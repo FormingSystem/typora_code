@@ -2,6 +2,7 @@ import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
 import { graph_element as el, graph_button as button, type graph_menu_entry } from "./git_graph_widgets";
 import type { git_source_control } from "./git_source_control";
+import { git_icon_button as icon_button, git_disclosure } from "./git_icons";
 
 /** 复用仓库控制器的真实提交及拓扑；展开文件只读取所选提交，不切走当前文档。 */
 export class git_scm_history {
@@ -13,18 +14,17 @@ export class git_scm_history {
   constructor(public owner: git_source_control) {
     this.container.setAttribute("aria-label", "提交图");
     this.container.setAttribute("data-linux-note-scm-history", "ready");
-    this.toggle = button("⌄ 提交图", () => owner.toggle_history(), "git-scm-history-toggle");
+    this.toggle = button("提交图", () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.prepend(git_disclosure());
     this.toggle.title = "展开或折叠提交图；右键筛选分支";
     this.toggle.setAttribute("aria-expanded", "true"); this.toggle.append(this.count);
-    const refresh = button("↻", () => void owner.panel.refresh(false), "git-scm-history-refresh"); refresh.title = "刷新提交历史";
-    const current = button("◎", () => void this.reveal_head(), "git-scm-history-head"); current.title = "定位当前提交（HEAD）"; current.setAttribute("aria-label", current.title);
-    const launch = button("↗", () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
-    launch.title = "在编辑区打开提交图"; launch.setAttribute("aria-label", launch.title);
-    const branches = button("⑂", () => {}, "git-scm-history-branches"); branches.title = "筛选提交历史分支"; branches.onclick = event => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
-    const more = button("…", () => {}, "git-scm-history-more-menu"); more.title = "更多提交图操作"; more.onclick = event => this.more_menu(event);
+    const refresh = icon_button("refresh", "刷新提交历史", () => void owner.panel.refresh(false), "git-scm-history-refresh");
+    const current = icon_button("target", "定位当前提交（HEAD）", () => void this.reveal_head(), "git-scm-history-head");
+    const launch = icon_button("link-external", "在编辑区打开提交图", () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
+    const branches = icon_button("git-branch", "筛选提交历史分支", () => {}, "git-scm-history-branches"); branches.onclick = event => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
+    const more = icon_button("more", "更多提交图操作", () => {}, "git-scm-history-more-menu"); more.onclick = event => this.more_menu(event);
     const tools = el("span", "git-scm-history-toolbar");
-    const network = [["fetch", "⇣", "获取远端更新"], ["pull", "↓", "拉取并整合远端更新"], ["push", "↑", "推送当前分支"]].map(([id, icon, title]) => {
-      const action = button(icon, () => this.network_action(id), "git-scm-history-network"); action.title = title; action.setAttribute("aria-label", title); action.setAttribute("data-history-action", id); return action;
+    const network = ([["fetch", "git-fetch", "获取远端更新"], ["pull", "repo-pull", "拉取并整合远端更新"], ["push", "repo-push", "推送当前分支"]] as const).map(([id, icon, title]) => {
+      const action = icon_button(icon, title, () => this.network_action(id), "git-scm-history-network"); action.setAttribute("data-history-action", id); return action;
     });
     tools.append(branches, current, ...network, refresh, launch, more);
     for (const action of [branches, refresh, more]) action.setAttribute("aria-label", action.title);
@@ -80,7 +80,7 @@ export class git_scm_history {
     if (row) { this.list.scrollTop += row.getBoundingClientRect().top - this.list.getBoundingClientRect().top - this.list.clientHeight / 2 + row.clientHeight / 2; row.focus({preventScroll: true}); }
   }
   set_open(open: boolean): void {
-    this.toggle.replaceChildren(document.createTextNode((open ? "⌄" : "›") + " 提交图"), this.count);
+    this.toggle.replaceChildren(git_disclosure(), document.createTextNode("提交图"), this.count);
     this.toggle.setAttribute("aria-expanded", String(open)); this.list.hidden = !open;
   }
   render(state: repository_state): void {
@@ -102,7 +102,7 @@ export class git_scm_history {
       row.dataset.hash = commit.hash; row.setAttribute("aria-expanded", String(expanded));
       const names = [...(commit.hash === state.head ? ["HEAD"] : []), ...(refs.get(commit.hash) || [])];
       row.title = `${commit.subject}\n${commit.author} · ${panel.date(commit)}\n${commit.hash}${names.length ? "\n" + names.join("、") : ""}`;
-      const disclosure = el("span", "git-scm-history-disclosure", expanded ? "⌄" : "›"); disclosure.setAttribute("aria-hidden", "true");
+      const disclosure = el("span", "git-scm-history-disclosure"); disclosure.append(git_disclosure()); disclosure.setAttribute("aria-hidden", "true");
       const summary = el("span", "git-scm-history-summary"); const subject = el("span", "git-scm-history-subject", panel.emoji(commit.subject));
       summary.append(subject);
       if (names.length) {
@@ -111,6 +111,7 @@ export class git_scm_history {
         summary.append(labels);
       }
       const svg = panel.draw_graph(graph.rows[index], graph.width);
+      svg.classList.add("git-scm-history-topology");
       svg.setAttribute("viewBox", `0 0 ${graph.width * 18 + 18} 34`); svg.setAttribute("height", "26"); svg.setAttribute("preserveAspectRatio", "none");
       row.append(disclosure, svg, summary);
       row.oncontextmenu = event => panel.target_menu(event, "commit", commit.hash, commit.hash); entry.append(row);
@@ -157,7 +158,7 @@ export class git_scm_history {
       if (directories.has(path)) return directories.get(path)!;
       const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/"));
       const directory = el("details", "git-scm-history-directory"); const key = commit.hash + ":" + path;
-      directory.open = !this.collapsed_directories.has(key); directory.setAttribute("data-history-directory", path); directory.append(el("summary", "", parts.at(-1)!));
+      directory.open = !this.collapsed_directories.has(key); directory.setAttribute("data-history-directory", path); const heading = el("summary", "", parts.at(-1)!); heading.prepend(git_disclosure()); directory.append(heading);
       directory.ontoggle = () => { if (directory.open) this.collapsed_directories.delete(key); else this.collapsed_directories.add(key); };
       parent.append(directory); directories.set(path, directory); return directory;
     };

@@ -38,6 +38,12 @@ const hover = async selector => {
   test_window.webContents.sendInputEvent({type:'mouseMove',...point}); await delay(100);
   return evaluate(`(() => {const s=getComputedStyle(document.querySelector(${JSON.stringify(selector)}));return {background:s.backgroundColor,color:s.color};})()`);
 };
+const check_disclosure = async (selector, expanded) => {
+  const metric = await evaluate(`(() => {const root=document.querySelector(${JSON.stringify(selector)}),icon=root.querySelector('.git-disclosure-icon'),matrix=new DOMMatrixReadOnly(getComputedStyle(icon).transform);return {icon:icon.dataset.gitIcon,text:icon.textContent.trim(),matrix:[matrix.a,matrix.b,matrix.c,matrix.d],before:getComputedStyle(root,'::before').content};})()`);
+  assert.equal(metric.icon,'chevron-right'); assert.equal(metric.text,'');
+  const expected = expanded ? [0,1,-1,0] : [1,0,0,1]; metric.matrix.forEach((value,index)=>assert(Math.abs(value-expected[index])<0.001,selector+' rotates the SVG chevron with its open state'));
+  assert(['none','normal','""'].includes(metric.before),selector+' does not render a text chevron');
+};
 const key = async (key_code, modifiers = []) => {
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:key_code,modifiers});
   // Electron 低层输入不自动生成 WM_CHAR；普通回车需包含真实字符输入阶段。
@@ -62,6 +68,17 @@ app.whenReady().then(async () => {
     document.querySelector('#editors').append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.settings.details_location="right";panel.open();
   })()`);
   await wait('panel.container.dataset.state === "ready"'); await evaluate('panel.settings.details_location="right";panel.render_history();');
+  const icon_metrics = await evaluate(`(() => {
+    const icons=[...panel.workbench.sidebar.querySelectorAll('svg.git-standard-icon')].map(icon=>({name:icon.dataset.gitIcon,width:getComputedStyle(icon).width,height:getComputedStyle(icon).height,view_box:icon.getAttribute('viewBox'),aria_hidden:icon.getAttribute('aria-hidden'),text:icon.textContent.trim(),paths:icon.querySelectorAll('path').length}));
+    const controls=[...panel.workbench.sidebar.querySelectorAll('button.git-icon-button')].map(button=>({text:button.textContent.trim(),title:button.title,label:button.getAttribute('aria-label'),icon:button.querySelector('svg.git-standard-icon')?.dataset.gitIcon}));
+    return {icons,controls};
+  })()`);
+  assert(icon_metrics.icons.length>=20); assert(icon_metrics.controls.length>=15);
+  for (const icon of icon_metrics.icons) { assert.equal(icon.width,'16px'); assert.equal(icon.height,'16px'); assert.equal(icon.view_box,'0 0 16 16'); assert.equal(icon.aria_hidden,'true'); assert.equal(icon.text,''); assert(icon.paths>0); }
+  for (const control of icon_metrics.controls) { assert.equal(control.text,''); assert.equal(control.label,control.title); assert(/[\u3400-\u9fff]/u.test(control.title)); assert(control.icon); }
+  for (const [selector,name] of [['.git-scm-view-menu','more'],['.git-scm-operation-menu','more'],['.git-scm-commit-options','chevron-down'],['.git-scm-history-branches','git-branch'],['.git-scm-history-head','target'],['.git-scm-history-refresh','refresh'],['[data-history-action=fetch]','git-fetch'],['[data-history-action=pull]','repo-pull'],['[data-history-action=push]','repo-push'],['[data-scm-group=changes] > summary .git-scm-inline-action','diff-multiple']]) {
+    assert.equal(await evaluate('document.querySelector('+JSON.stringify(selector)+').querySelector("[data-git-icon]").dataset.gitIcon'),name);
+  }
   // 顶部菜单控制三个真实视图；隐藏后的布局必须能从持久化状态恢复。
   const saved_layout = () => evaluate('JSON.parse(localStorage.getItem(panel.workbench.storage_key("layout")))');
   const toggle_view = async name => { await click('.git-scm-view-menu'); await click('[data-action="'+name+'"]'); };
@@ -71,18 +88,26 @@ app.whenReady().then(async () => {
   await toggle_view('show_changes'); await toggle_view('show_history');
   assert(await evaluate('panel.workbench.sections.hidden && panel.workbench.changes_pane.hidden && panel.workbench.history.container.hidden'));
   assert.deepEqual(Object.fromEntries(Object.entries(await saved_layout()).filter(([name])=>name.startsWith('show_'))), {show_repositories:true,show_changes:false,show_history:false});
-  await click('.git-scm-view-menu'); assert(await evaluate('document.querySelector("[data-action=show_repositories]").disabled')); await capture('source_control_views'); await key('Escape');
+  await click('.git-scm-view-menu'); assert(await evaluate('document.querySelector("[data-action=show_repositories]").disabled'));
+  assert(await evaluate('document.querySelector("[data-action=show_repositories] .git-menu-check [data-git-icon=check]") && [...document.querySelectorAll(".git-graph-menu button")].every(button=>button.textContent.trim()===button.querySelector(".git-menu-label").textContent.trim())'));
+  await capture('source_control_views'); await key('Escape');
   await evaluate('panel.workbench.show_repositories=false;panel.workbench.show_changes=true;panel.workbench.show_history=true;panel.workbench.load_layout()');
   assert(await evaluate('panel.workbench.show_repositories && !panel.workbench.show_changes && !panel.workbench.show_history && panel.workbench.sections.hidden'));
   await toggle_view('show_changes'); await toggle_view('show_history'); await toggle_view('show_repositories');
   assert.deepEqual(Object.fromEntries(Object.entries(await saved_layout()).filter(([name])=>name.startsWith('show_'))), {show_repositories:false,show_changes:true,show_history:true});
   // 输入区折叠不隐藏 Git 操作入口；提交下拉传递草稿和 amend 状态，不提前执行 Git。
   assert.equal(await evaluate('panel.workbench.message.getBoundingClientRect().height'),30);
+  await check_disclosure('.git-scm-input-heading',true);
   await click('.git-scm-input-title'); await wait('!panel.workbench.input_section.open');
+  await check_disclosure('.git-scm-input-heading',false);
   assert.equal((await saved_layout()).input_open,false);
   assert(await evaluate('document.querySelector(".git-scm-operation-menu").getBoundingClientRect().height > 0'));
   await evaluate('panel.workbench.load_layout()'); assert(!await evaluate('panel.workbench.input_section.open'));
   await click('.git-scm-input-title'); await wait('panel.workbench.input_section.open'); assert.equal((await saved_layout()).input_open,true);
+  await check_disclosure('.git-scm-input-heading',true);
+  await check_disclosure('[data-scm-group=changes] > summary',true);
+  await click('[data-scm-group=changes] .git-scm-group-label'); await check_disclosure('[data-scm-group=changes] > summary',false);
+  await click('[data-scm-group=changes] .git-scm-group-label'); await check_disclosure('[data-scm-group=changes] > summary',true);
   const hover_metrics = {};
   for (const selector of ['.git-scm-commit','.git-scm-commit-options']) {
     const colors = await hover(selector); assert.equal(colors.background,'rgb(0, 108, 190)'); assert.equal(colors.color,'rgb(255, 255, 255)'); hover_metrics[selector]=colors;
@@ -111,12 +136,15 @@ app.whenReady().then(async () => {
   const first_width = await evaluate('panel.list.clientWidth'); await drag(sash, -140, 0); assert(await evaluate('panel.list.clientWidth') < first_width - 80);
   assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit").length'),4);
   assert.equal(await evaluate('document.querySelector(".git-scm-history-toggle").getAttribute("aria-expanded")'),'true');
-  assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit svg circle").length'),4);
+  assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit .git-scm-history-topology circle").length'),4);
+  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',false);
   hover_metrics.history_closed = await hover('.git-scm-history-commit'); assert.equal(hover_metrics.history_closed.background,'rgba(136, 136, 136, 0.133)');
   const changes_height = await evaluate('panel.workbench.changes_pane.clientHeight'); await drag('.git-scm-history-sash',0,-70);
   assert(await evaluate('panel.workbench.changes_pane.clientHeight') < changes_height-40);
   await click('.git-scm-history-toggle'); assert.equal(await evaluate('panel.workbench.sections.dataset.historyOpen'),'false');
+  await check_disclosure('.git-scm-history-toggle',false);
   await click('.git-scm-history-toggle'); await click('.git-scm-history-commit'); await wait('!!document.querySelector("[data-history-file]")');
+  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',true);
   await click('[data-history-file]'); await wait('!!document.querySelector("[data-diff-ready=true]")');
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),git(['show','HEAD:example.md']));
   const selected_background = await evaluate('getComputedStyle(document.querySelector(".git-scm-history-commit[aria-expanded=true]")).backgroundColor');
@@ -125,8 +153,11 @@ app.whenReady().then(async () => {
   await click('.git-scm-history-more-menu'); await click('[data-action=history_tree]');
   await wait('document.querySelectorAll("[data-history-directory]").length === 2'); assert.equal((await saved_layout()).history_tree,true);
   const nested_directory = '[data-history-directory="z_docs/nested"]';
+  await check_disclosure(nested_directory+' > summary',true);
   await click(nested_directory+' > summary'); assert(!await evaluate('document.querySelector('+JSON.stringify(nested_directory)+').open'));
+  await check_disclosure(nested_directory+' > summary',false);
   await click(nested_directory+' > summary');
+  await check_disclosure(nested_directory+' > summary',true);
   await click('[data-history-file="'+nested_history_path+'"]'); await wait('!!document.querySelector("[data-diff-ready=true]")');
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[0].getValue()'),git(['show','HEAD^:'+nested_history_path]));
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),git(['show','HEAD:'+nested_history_path]));
@@ -163,7 +194,25 @@ app.whenReady().then(async () => {
   const metrics = await evaluate(`(() => {const view=core.app.workspace.activeLeaf.view;const editor=view.editor.editor;const left=editor.getOriginalEditor(),right=editor.getModifiedEditor();return {changes:editor.getLineChanges().length,width:view.containerEl.clientWidth,height:document.querySelector('.git-monaco-body').clientHeight,aligned:Math.abs(left.getTopForLineNumber(23)-right.getTopForLineNumber(24)),language:left.getModel().getLanguageId(),left:left.getValue(),right:right.getValue(),tokens:document.querySelectorAll('.mtk6,.mtk7,.mtk8').length};})()`);
   assert.equal(metrics.changes,3); assert(metrics.width>700 && metrics.height>500); assert(metrics.aligned<1); assert.equal(metrics.language,'c'); assert.equal(metrics.left,original_code); assert.equal(metrics.right,modified_code.join('\n'));
   const scroll_metrics = await evaluate(`(() => {const editor=core.app.workspace.activeLeaf.view.editor.editor;const left=editor.getOriginalEditor(),right=editor.getModifiedEditor();return {left:left.getLayoutInfo().verticalScrollbarWidth,right:right.getLayoutInfo().verticalScrollbarWidth,left_map:left.getLayoutInfo().minimap.minimapWidth,right_map:right.getLayoutInfo().minimap.minimapWidth,overview:!!document.querySelector('.diffOverview')};})()`);
-  assert.equal(scroll_metrics.left,8); assert.equal(scroll_metrics.right,8); assert.equal(scroll_metrics.left_map,0); assert(scroll_metrics.right_map>25); assert(!scroll_metrics.overview);
+  assert.equal(scroll_metrics.left,8); assert.equal(scroll_metrics.right,8); assert.equal(scroll_metrics.left_map,0); assert(scroll_metrics.right_map>25); assert(scroll_metrics.overview);
+  await delay(250);
+  const overview_metrics = await evaluate(`(() => {
+    const overview=document.querySelector('.diffOverview');
+    const scan=selector=>{const canvas=overview.querySelector(selector),pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let red=0,green=0;const red_rows=new Set(),green_rows=new Set();for(let offset=0;offset<pixels.length;offset+=4){if(!pixels[offset+3])continue;const row=Math.floor(offset/4/canvas.width);if(pixels[offset]>pixels[offset+1]+30&&pixels[offset]>pixels[offset+2]+30){red++;red_rows.add(row);}if(pixels[offset+1]>pixels[offset]+20&&pixels[offset+1]>pixels[offset+2]+30){green++;green_rows.add(row);}}return {width:canvas.getBoundingClientRect().width,red,green,red_rows:[...red_rows],green_rows:[...green_rows]};};
+    return {width:overview.getBoundingClientRect().width,height:overview.getBoundingClientRect().height,original:scan('.original.diffOverviewRuler'),modified:scan('.modified.diffOverviewRuler')};
+  })()`);
+  assert.equal(overview_metrics.width,30); assert(overview_metrics.height>400); assert.equal(overview_metrics.original.width,15); assert.equal(overview_metrics.modified.width,15);
+  assert(overview_metrics.original.red>0 && overview_metrics.modified.green>0); assert.equal(overview_metrics.original.green,0); assert.equal(overview_metrics.modified.red,0);
+  overview_metrics.clicks=[];
+  for (const [selector,row] of [['.diffOverview .original.diffOverviewRuler',overview_metrics.original.red_rows[0]],['.diffOverview .modified.diffOverviewRuler',overview_metrics.modified.green_rows.at(-1)]]) {
+    await evaluate('core.app.workspace.activeLeaf.view.editor.editor.getModifiedEditor().setScrollTop(100000)'); await delay(120);
+    const before=await evaluate('core.app.workspace.activeLeaf.view.editor.editor.getModifiedEditor().getScrollTop()');
+    const point=await evaluate(`(() => {const canvas=document.querySelector(${JSON.stringify(selector)}),box=canvas.getBoundingClientRect();return {x:Math.round(box.x+box.width/2),y:Math.round(box.y+(${row}+.5)/canvas.height*box.height)};})()`);
+    for (const type of ['mouseMove','mouseDown','mouseUp']) { test_window.webContents.sendInputEvent({type,...point,button:'left',clickCount:1}); await delay(40); } await delay(150);
+    const after=await evaluate('({left:core.app.workspace.activeLeaf.view.editor.editor.getOriginalEditor().getScrollTop(),right:core.app.workspace.activeLeaf.view.editor.editor.getModifiedEditor().getScrollTop()})');
+    assert(after.right<before-100,selector+' jumps to its change marker'); assert(Math.abs(after.left-after.right)<2); overview_metrics.clicks.push({selector,before,...after});
+  }
+  await capture('diff_overview_markers');
   const diff_sash = '.monaco-diff-editor > .monaco-sash.vertical';
   const left_width = await evaluate('core.app.workspace.activeLeaf.view.editor.editor.getOriginalEditor().getLayoutInfo().width'); await drag(diff_sash,-60,0);
   assert(await evaluate('core.app.workspace.activeLeaf.view.editor.editor.getOriginalEditor().getLayoutInfo().width') < left_width - 30);
@@ -202,7 +251,9 @@ app.whenReady().then(async () => {
   }
   await click('.git-scm-title','right'); assert(await evaluate('!!document.querySelector(".git-graph-menu")')); await key('Escape');
   await click('.git-scm-operation-menu'); await capture('source_control_menu');
-  await evaluate(`[...document.querySelectorAll('.git-graph-menu button')].find(item=>item.textContent==='更改  ›').focus()`); await key('Right'); assert(await evaluate('document.querySelectorAll(".git-graph-menu").length === 2 && !!document.querySelectorAll(".git-graph-menu")[1].querySelector("[data-action=stage_all]")')); await key('Left'); assert(!await evaluate('document.querySelectorAll(".git-graph-menu").length > 1')); await key('Escape');
+  await evaluate(`[...document.querySelectorAll('.git-graph-menu button')].find(item=>item.querySelector('.git-menu-label').textContent==='更改').focus()`);
+  assert(await evaluate('document.activeElement.querySelector(".git-menu-arrow [data-git-icon=chevron-right]") && document.activeElement.textContent.trim()==="更改"'));
+  await key('Right'); assert(await evaluate('document.querySelectorAll(".git-graph-menu").length === 2 && !!document.querySelectorAll(".git-graph-menu")[1].querySelector("[data-action=stage_all]")')); await key('Left'); assert(!await evaluate('document.querySelectorAll(".git-graph-menu").length > 1')); await key('Escape');
   await click('[data-scm-group=changes] [data-file="sample.c"]','right'); await click('[data-action=file_history]'); await wait('!!document.querySelector(".git-file-history-row")'); await click('.git-file-history-row'); await wait('!!document.querySelector("[data-diff-ready=true]")'); assert(await evaluate('core.app.workspace.activeLeaf.view.editor.models[0].getValue()')==='');
   await evaluate('(async()=>{const pending=panel.refresh(false);panel.close();await pending;})()'); assert(!await evaluate('panel.pending')); await evaluate('panel.refresh(false)'); assert(await evaluate('panel.container.dataset.state === "ready"'));
   fs.writeFileSync(path.join(root,'new-track.txt'),'track without staging\n'); fs.writeFileSync(path.join(root,'scratch.tmp'),'ignore this file\n');
@@ -262,5 +313,9 @@ app.whenReady().then(async () => {
   await click('[data-field=message]'); test_window.webContents.insertText('dialog first'); await key('Enter'); test_window.webContents.insertText('dialog second');
   await click('[data-git-preview]'); await wait('!document.querySelector("[data-git-execute]").disabled');
   assert.equal(git(['rev-parse','HEAD']),after_manual); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector("[data-git-execute]").disabled'); assert.notEqual(git(['rev-parse','HEAD']),after_manual); await key('Escape');
-  console.log(JSON.stringify({status:'PASS',checks:['real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','horizontal and vertical mouse sash','per-context menu checkbox persistence','column checkbox menu','colored two-column history','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','clickable minimap survives option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes','view menu persists repositories changes and history visibility','last visible view remains recoverable','message section collapse persists','single line message grows with input','commit dropdown preserves draft and amend choice without mutation','history list and collapsible nested tree open correct revisions','narrow sidebar retains filename ellipsis and aligned columns','hover never shifts file status or action slots','group stage button aligns with file stage buttons','history status aligns with change status','inline action keyboard stages and unstages without opening diff','file row keyboard opens diff','editable fields preserve native context menus','blank sidebar retains Git context menu','remote configuration actions are Chinese','commit buttons retain blue contrast on hover','history hover feedback preserves selected state'],scroll_metrics,column_metrics,hover_metrics,evidence}));
+  console.log(JSON.stringify({status:'PASS',checks:[
+    'real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','horizontal and vertical mouse sash','per-context menu checkbox persistence','column checkbox menu','colored two-column history','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','clickable minimap survives option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
+    'view menu persists repositories changes and history visibility','last visible view remains recoverable','message section collapse persists','single line message grows with input','commit dropdown preserves draft and amend choice without mutation','history list and collapsible nested tree open correct revisions','narrow sidebar retains filename ellipsis and aligned columns','hover never shifts file status or action slots','group stage button aligns with file stage buttons','history status aligns with change status','inline action keyboard stages and unstages without opening diff','file row keyboard opens diff','editable fields preserve native context menus','blank sidebar retains Git context menu','remote configuration actions are Chinese','commit buttons retain blue contrast on hover','history hover feedback preserves selected state',
+    'SCM controls use 16px official SVG shapes and Chinese accessible names','icon controls contain no text stand-ins','summary and history disclosure SVG follows open state','menus use SVG checks and submenu arrows','topology circles are independent of control SVGs','standard overview shows 15px red and green lanes','both overview marker lanes accept real clicks and synchronize panes'
+  ],scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));
 }).catch(async error => { console.error(error); if (test_window) { console.error(await evaluate('document.body.innerText')); await capture('failure'); } process.exitCode = 1; }).finally(() => { if (test_window && !test_window.isDestroyed()) test_window.destroy(); app.exit(process.exitCode || 0); });

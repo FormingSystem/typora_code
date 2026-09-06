@@ -11,6 +11,7 @@ import { bind_reading_navigation } from "./reading_navigation";
 import { initialize_workspace } from "./workspace_bootstrap";
 import { bind_file_path_actions } from "./file_path_actions";
 import { bind_git_graph } from "./git_graph_view";
+import { bind_workspace_browser } from "./workspace_browser";
 import { bind_reading_minimap } from "./reading_minimap";
 
 type code_mirror_stream = {
@@ -576,6 +577,7 @@ async function initialize(): Promise<void> {
     bind_reading_navigation();
     bind_file_path_actions();
     bind_git_graph();
+    bind_workspace_browser();
     bind_reading_minimap();
     schedule_scan();
   }).catch((error: unknown) => {

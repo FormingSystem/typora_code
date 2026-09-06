@@ -5,6 +5,7 @@ import { graph_element, graph_dialog } from "./git_graph_widgets";
 import { bind_git_status_bar } from "./git_status_bar";
 import { GRAPH_SETTINGS_KEY, load_graph_settings, save_reviews } from "./git_graph_settings";
 import graph_css from "./git_graph.css";
+import { git_icon } from "./git_icons";
 
 export function bind_git_graph(): void {
   if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
@@ -20,7 +21,7 @@ export function bind_git_graph(): void {
     }
     const panel = new git_graph_panel(host, cwd); controllers.add(panel); void panel.refresh(false); return panel;
   };
-  const icon = graph_element("i", "fa fa-code-fork");
+  const icon = graph_element("span", "git-activity-icon"); icon.append(git_icon("source-control"));
   class source_control_sidebar extends core.SidebarPanel {
     containerEl = graph_element("section", "linux-note-git-source-control"); panel?: git_graph_panel; visible = false;
     native_observer = new MutationObserver(() => this.clear_native_tabs());
@@ -70,9 +71,9 @@ export function bind_git_graph(): void {
       this.containerEl = this.panel.container; panels.set(leaf, this.panel);
     }
     onOpen() {
-      // 核心标签最初带 fa-file-o；清掉默认文件图标，防止两个 ::before 字形互相覆盖。
+      // 标签保留核心容器，用标准 SVG 替换默认字体图标。
       for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
-        const icon = tab.querySelector(".typ-file-icon"); if (icon) icon.className = "typ-file-icon fa fa-code-fork";
+        const icon = tab.querySelector(".typ-file-icon"); if (icon) { icon.className = "typ-file-icon git-tab-icon"; icon.replaceChildren(git_icon("git-branch")); }
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = "Git Graph";
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = "Git Graph · " + this.panel.root;
       }
@@ -96,6 +97,7 @@ export function bind_git_graph(): void {
     const leaf = core.app.workspace.createLeaf({ type: GIT_GRAPH_TYPE, state: { path: uri, git_cwd: cwd } }); parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf; return panels.get(leaf);
   };
   host.show_history = cwd => { const panel = open_graph(cwd); if (panel) show_source_control(panel); };
+  window.addEventListener("linux-note-open-git", ((event:CustomEvent<{path:string}>)=>{const path=event.detail.path;try{host.show_history(host.fs.statSync(path).isDirectory()?path:host.path_api.dirname(path));}catch(error){console.error(error);}}) as EventListener);
   const launch = (callback?: (panel: git_graph_panel) => void) => { const panel = open_graph(); if (panel) { show_source_control(panel); callback?.(panel); } };
   const commands: [string, string, (panel: git_graph_panel) => void][] = [
     ["view", "Git Graph：查看提交关系图", () => {}], ["add_repository", "Git Graph：添加 Git 仓库", panel => panel.manage_repositories()],

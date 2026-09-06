@@ -14,6 +14,8 @@ domains:
 本扩展补足主题 CSS 无法承担的以下能力：
 
 - 安装固定版本的 Typora Community Plugin 核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
+- 文件树显示全部文件及隐藏项目，目录按需展开；Markdown 保持原生渲染，普通源码在占满编辑组的只读 Monaco 中显示；
+- 按文件搜索并展示路径、行号和匹配高亮，精确跳到源码选区；支持范围筛选与确认后的替换，活动栏支持选中高亮和拖动排序；
 - 使用 `Alt + ←` / `Alt + →` 后退、前进，记录文内锚点和跨 Markdown 文件跳转，并恢复光标与滚动位置；
 - 带标题的链接在目标栏定位光标、正文和目录，来源栏保留阅读位置；关闭标签或窗口后重新打开文件，继续上次阅读；
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
@@ -58,6 +60,8 @@ npm run check
 
 `vendor/vscode_cpp/` 保存 VS Code 内置 C/C++ grammar；`vendor/gemoji/` 保存固定版本的 emoji 数据及随 bundle 安装的 MIT 许可；`vendor/typora_workspace/` 保存社区核心 `2.10.15` 的原始发行文件、许可证、来源与摘要。`npm run check` 检查预构建功能标记、部署入口、源码与 bundle 的核心版本一致性、核心文件摘要、C/C++ 解析、阅读历史状态机和持久化位置存储。
 
+`vendor/codicons/` 保存 42 个官方 Codicons SVG、供 bundle 导入的 `icons.json`、来源清单与 SHA-256。上游固定到提交 `1c47ab36a4bb845c437866405c2fa67b8ca0fe36`；图标采用 CC BY 4.0，代码采用 MIT，原始许可分别保存在 `LICENSE`、`LICENSE_CODE`。控件使用标准 SVG，折叠箭头按状态旋转，不用字符模拟图标；控件通常按 16px 显示，源代码管理活动图标保留上游 24×24 画布。安装不读取本机 VS Code、不下载字体，许可随运行资源部署。完整归属见 [图标来源说明](./vendor/codicons/README.md#1.2_来源校验与许可归属)。
+
 Git Graph 开发回归另需 PATH 中的 Git 和 `ssh-keygen`，用于临时仓库及临时密钥签名验证。测试不使用用户密钥和远端账号；普通扩展安装无需这些开发测试依赖。
 
 交互回归可用开发环境已有的 Electron 可执行文件运行 `scripts/test_interaction.cjs`（子进程不能设置 `ELECTRON_RUN_AS_NODE`）。它在隐藏的 Chromium 窗口中加载模拟宿主夹具和生产 bundle，发送真实鼠标与键盘输入，检查首次展开/收起、按钮重建、Enter / 空格、空闲 DOM、宏体颜色和 Alt 方向键导航。跨文件夹具包含社区工作区的延迟锚点步骤，后退一次必须回到来源文档。该夹具测试不替代 Typora 实窗验收。
@@ -71,6 +75,25 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共插件文件事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
 
 `fixtures/visual_test.md` 用于 Typora 实窗验收；可调试的隔离 Typora 实例还可运行 `node scripts/smoke_typora.mjs <端口> <截图路径>`，脚本会先点击正文，再用鼠标按下/松开分别验证展开和收起。
+
+2026-09-06 新增能力的验证按运行层分别记录，不能把隐藏 Electron 夹具写成全部 Typora 功能已实机通过：
+
+| 验证入口 | 已完成的检查 |
+| --- | --- |
+| `test_workspace_search.mjs` | 8 组临时目录／Git 后端回归：匹配、范围、忽略规则、编码及替换保护 |
+| `test_workspace_search_worker.mjs` | 4 组真实 Worker 回归：捕获组、取消、单文件超时及不完整结果禁止替换 |
+| `test_workspace_files_search.cjs` | 15 项隐藏 Electron：源码查看、语言映射、搜索分组和精确选区 |
+| `test_workspace_explorer.cjs` | 15 项隐藏 Electron：全文件、隐藏目录、按需读取、定位及菜单 |
+| `test_workspace_activity.cjs` | 16 项隐藏 Electron：选中状态、拖动持久化、键盘调整及减少动画 |
+| `test_scm_sidebar_layout.cjs` | 8 项隐藏 Electron：小窗口、缩放、长消息及收起提交图的可见性 |
+| `test_diff_overview.cjs` | 7 项隐藏 Electron：30px 红绿概览的绘制、点击定位和双栏滚动 |
+| `test_terminal_theme.cjs` | 5 组隐藏 Electron：终端跟随实际主题背景、前景及主题切换 |
+| `test_reading_native.ps1 -suite reading` | Windows Typora 1.14.9 的 18 项实窗检查：首次窗口 15 项，重新开窗续读 3 项，覆盖标题定位、来源位置、前后导航与持久化恢复 |
+| `test_reading_native.ps1 -suite browser` | Windows Typora 1.14.9 的 14 项实窗检查：隐藏文件、源码占满当前编辑组、Markdown 原生打开、离线正则 Worker、搜索分组／高亮／精确选区与侧栏开合 |
+| `test_reading_native.ps1 -suite git` | Windows Typora 1.14.9 的 66 项实窗 Git 回归 |
+| `test_reading_native.ps1 -suite terminal` | Windows Typora 1.14.9 的 13 项实窗终端回归 |
+
+上述结果按已执行套件记录；阅读、文件搜索、Git、终端和路径复制原生套件均已通过，最终 bundle 更新后须针对新增修改重跑对应检查。本轮 Windows 安装、主题与 bundle 摘要、插件资源及离线部署校验均已通过；Linux／UCRT64 的实机安装仍需分别验证。
 
 ## 1.3\_PowerShell单独安装扩展与备份
 
@@ -99,7 +122,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 
 ## 1.4\_标签页、分栏与阅读历史
 
-默认布局采用 VS Code 的 **单窗口、一组多标签页** 形式：在当前窗口打开其他 Markdown 后保留文件标签；需要并排阅读时再拆分。标签支持关闭、拖动排序和组间移动，标签右键菜单提供分栏操作。
+默认布局采用 VS Code 的 **单窗口、一组多标签页** 形式：在当前窗口打开 Markdown 或源码后保留文件标签；需要并排阅读时再拆分。标签支持关闭、拖动排序和组间移动，标签右键菜单提供分栏操作。
 
 | 操作 | 结果 |
 | --- | --- |
@@ -109,7 +132,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 | 点击非活动分栏正文 | 切入该分栏的 Typora 编辑器 |
 | `Alt + ←` / `Alt + →` | 返回上一个／下一个阅读位置 |
 
-社区工作区在活动分栏使用 Typora 原生编辑器，其他分栏显示预览；点击预览正文后交换编辑器所在分栏。它提供同窗多文档布局，但并非 VS Code 的多个独立未保存编辑缓冲区。切换文件仍经过 Typora 的保存确认；不会为实现导航自动保存、丢弃或复制正文。新建但尚未命名的文档不进入跨文件历史。历史只保留当前窗口最近 100 个跳转位置，重启清空；源代码模式和输入对话框保留原有方向键行为。
+Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览；点击预览正文后交换编辑器所在分栏。普通源码使用独立的只读 Monaco 标签。它们共用布局，但并非 VS Code 的多个独立未保存编辑缓冲区。切换 Markdown 仍经过 Typora 的保存确认；不会为实现导航自动保存、丢弃或复制正文。新建但尚未命名的文档不进入跨文件历史。历史只保留当前窗口最近 100 个跳转位置，重启清空；源代码模式和输入对话框保留原有方向键行为。
 
 插件管理由 [Typora Community Plugin](https://github.com/typora-community-plugin/typora-community-plugin) 提供，可从侧边工具栏的设置入口管理插件。仓库固定核心版本并附带预构建文件，安装无需联网下载核心，也不需要本机 Node.js；核心升级应更新仓库发行文件、摘要和 bootstrap 版本后重新验收。布局参考 [VS Code 自定义布局](https://code.visualstudio.com/docs/configure/custom-layout)，快捷键参考 [默认键位](https://code.visualstudio.com/docs/reference/default-keybindings)。
 
@@ -137,9 +160,76 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 
 相对路径的基准是 **Typora 当前打开的文件夹**，不是正在编辑的 Markdown 所在子目录。例如根目录为 `notes`，文件为其中的 `rcu/example.md`，Windows 下复制结果为 `rcu\example.md`。未打开文件夹或文件位于根目录之外时返回完整路径；根目录自身的相对路径为空，与 [VS Code 的路径标签规则](https://github.com/microsoft/vscode/blob/main/src/vs/base/common/labels.ts) 一致。切换文件夹后立即使用新的根目录。尚未保存、没有文件路径的文档不执行复制。
 
+### 1.4.3\_全部文件与语言识别
+
+资源管理器显示文件夹中的全部项目，包括点开头的隐藏文件、隐藏目录、无扩展名文件、源码、归档和二进制文件；语言规则只决定打开后的显示方式，不作为文件树过滤条件。文件夹展开时才读取下一层，列表按可见区域绘制；工具栏提供打开文件夹、定位当前文件、刷新和全部折叠。右键支持在当前组／右侧打开、路径复制和在系统文件夹中显示。
+
+普通打开 `.md`、`.markdown`、`.mdown`、`.mkdn`、`.mkd` 仍进入 Typora 的 Markdown 渲染与编辑。其他文本在独立的 **只读单栏 Monaco** 标签中占满所在编辑组，随分栏宽高调整，提供行号、语法高亮、查找及缩略图；它不会以 Git 双栏差异代替普通源码查看。搜索指定行列时，Markdown 也可临时打开源码标签，精确选中匹配文字，并通过 **打开 Markdown 渲染** 返回原生视图。
+
+识别顺序是 **特殊文件名／前缀 → 最长复合后缀 → 普通后缀 → 首行解释器 → 纯文本**。例如 `types.d.ts` 先命中 `.d.ts`，`archive.tar.gz` 先命中 `.tar.gz`，`.env.local` 使用环境变量规则，`.C`／`.H` 保留 C++ 的大小写区别。常用映射如下；完整可执行规则集中在 [`src/file_language.ts`](./src/file_language.ts)，不依赖本机 VS Code 文件关联。
+
+| 文件名或后缀示例 | 显示语言／类型 |
+| --- | --- |
+| `.md`、`.markdown`、`.mdown`、`.mkdn`、`.mkd`；`.mdx` | Markdown 原生；MDX 源码 |
+| `.d.ts`、`.d.mts`、`.d.cts`、`.ts`、`.tsx`、`.mts`、`.cts` | TypeScript |
+| `.js`、`.jsx`、`.mjs`、`.cjs` | JavaScript |
+| `.c`、`.h`、`.i`；`.C`、`.H`、`.cpp`、`.cc`、`.cxx`、`.hpp`、`.tpp`、`.ino` | C；C++ |
+| `.m`、`.mm`；`.cs`、`.csx`；`.rs`；`.go` | Objective-C；C#；Rust；Go |
+| `.java`；`.kt`、`.kts`；`.scala`、`.sc`；`.swift`；`.dart` | Java；Kotlin；Scala；Swift；Dart |
+| `.py`、`.pyi`、`.pyw`、`.pyx`、`SConstruct`、`SConscript` | Python |
+| `.sh`、`.bash`、`.zsh`、`.fish`、`.bashrc`、`.profile` | Shell |
+| `.ps1`、`.psm1`、`.psd1`；`.bat`、`.cmd` | PowerShell；Windows 批处理 |
+| `Makefile`、`Makefile.*`、`GNUmakefile`、`Kbuild`、`.mk` | Makefile |
+| `CMakeLists.txt`、`.cmake`；`Kconfig`、`Kconfig.*` | CMake；Kconfig |
+| `.dts`、`.dtsi`、`.dtso`；`.s`、`.S`、`.asm`、`.inc` | 设备树；汇编 |
+| `Dockerfile`、`Dockerfile.*`、`Containerfile`、`.dockerfile` | Dockerfile |
+| `.env`、`.env.*`、`.gitconfig`、`.gitmodules`、`.editorconfig`、`.ini`、`.conf`、`.service` | INI／环境变量 |
+| `.gitignore`、`.gitattributes`、`.dockerignore`、`.ignore` | 忽略规则 |
+| `.json`、`.jsonc`、`.jsonl`、`.ipynb`、`.code-workspace`、`.babelrc` | JSON |
+| `.toml`、`Cargo.lock`、`poetry.lock`、`uv.lock`；`.yaml`、`.yml` | TOML；YAML |
+| `.xml`、`.xsd`、`.svg`、`.plist`、`.csproj`；`.html`、`.vue`、`.svelte` | XML；HTML |
+| `.module.css`、`.css`；`.module.scss`、`.scss`；`.less` | CSS；SCSS；Less |
+| `.sql`；`.graphql`、`.gql`；`.proto`；`.hcl`、`.tf`、`.tfvars` | SQL；GraphQL；Protocol Buffers；HCL |
+| `.rb`、`Gemfile`、`Rakefile`；`.pl`、`.pm`；`.php`；`.lua` | Ruby；Perl；PHP；Lua |
+| `.r`；`.jl`；`.tcl`；`.clj`；`.scm`、`.rkt`；`.ex`；`.fs` | R；Julia；Tcl；Clojure；Scheme；Elixir；F# |
+| `.v`、`.vh`、`.sv`、`.svh`；`.rst` | Verilog／SystemVerilog；reStructuredText |
+| `LICENSE`、`COPYING`、`README`、`.txt`、`.log`、`.csv`、`.patch`、`.diff` | 纯文本 |
+| `.tar.gz`、`.tar.bz2`、`.tar.xz`、`.tar.zst`、`.zip`、`.7z`、`.deb`、`.rpm` | 归档类型，文件树保留项目 |
+| 图片、PDF、可执行文件、字体、音视频及 `.dtb` 等 | 二进制类型，文件树保留项目 |
+| 无已知映射但首行为 `#!` 的脚本；其他未知文件 | 按解释器识别；纯文本回退 |
+
+二进制判断还会检查实际字节；归档或二进制不作为文本硬解码。普通源码预览上限为 16 MiB，超过上限、无法解码或实际为二进制时显示原因，并提供 **使用系统程序打开**。文本默认严格 UTF-8 解码，带 BOM 的 UTF-8／UTF-16 按 BOM 处理。语言着色不等于编译、补全或语言服务器；普通源码当前没有编辑保存能力。
+
+### 1.4.4\_工作区搜索与替换
+
+点击活动栏 **搜索**，或按 `Ctrl + Shift + F`，在当前打开的文件夹中搜索磁盘文本。结果按文件分组，显示文件名、相对目录、匹配数、行号与高亮片段；文件分组和目录可折叠，可切换列表／树形显示，按路径／结果数排序，也可在编辑标签中打开结果。点击结果按起止行列打开并选中源码中的精确匹配；右键可在右侧打开、复制匹配行、复制路径或移除结果。普通打开文件仍遵循上一节的 Markdown／源码分流。
+
+| 控件 | 行为 |
+| --- | --- |
+| 区分大小写／全字匹配／正则表达式 | 控制匹配方式；全字匹配识别 Unicode 字母、数字与下划线边界，正则使用 JavaScript 语法 |
+| 包含的文件／排除的文件 | 使用 `/` 分隔路径，逗号分隔模式；支持 `*`、`**`、`?`、字符类及 `{c,h}`，例如 `src/**, *.md`；`./` 指定根目录起点 |
+| 使用忽略规则 | 使用 Git 的标准忽略规则及默认排除设置；关闭后仍保留显式包含／排除条件，实际跳过情况在范围说明中展示 |
+| 仅已打开 | 限定为当前工作区已打开的文件，仍读取磁盘版本 |
+| Enter／Shift + Enter／Esc | 立即搜索／在查询中换行／停止当前搜索；输入后也会延迟搜索 |
+| 替换／保留大小写 | 支持单条、单文件和全部结果的替换预览；正则替换可引用捕获组，保留大小写按匹配文字调整替换文本 |
+
+替换先显示涉及文件、匹配数和 **替换前／替换后** 双栏预览，点击 **确认替换** 才写磁盘。应用前重新核对原始字节、文件身份和未保存文档；搜索后磁盘内容变化、路径越界、符号链接／硬链接或相关 Markdown 尚未保存时拒绝写入，要求处理后重新搜索。仅支持能够保持原编码的 UTF-8、UTF-16LE／BE 替换，并保留 BOM；其他编码不能保证无损时只允许搜索。搜索取消或达到上限后，不执行整文件／全部替换，可重新缩小范围。多文件替换不是跨文件原子事务，错误会报告已完成范围，不承诺外部程序并发写入时的事务隔离。
+
+默认最多显示 5000 个结果，单文件搜索上限为 8 MiB，匹配文件快照总量上限为 64 MiB。二进制、过大、不可读、链接及被排除的项目会计数或提供范围说明；文件树中可见不表示每个文件都适合文本搜索。当前未提供 VS Code 扩展搜索提供器或语言服务器。
+
+正则匹配在独立 Worker 中执行，单文件预算为 2 秒；点击停止或按 Esc 会终止当前 Worker，避免复杂正则持续占用界面线程。超时会注明对应文件，并拒绝这一轮的全部替换，包括单条替换；简化表达式或缩小范围后重新搜索。取消与超时均不会写磁盘。
+
+### 1.4.5\_活动栏与侧栏布局
+
+活动栏以选中边线、背景和图标前景标出当前展开功能；收起侧栏后清除选中，切换文件、搜索、大纲与源代码管理时只高亮实际显示的功能。点击当前功能收起，再点打开；点击其他功能直接切换。图标和鼠标提示使用中文。
+
+按住上方功能图标纵向拖动可以排序，顺序保存在当前 Typora 用户的 Local Storage；设置及底部终端保持固定区域。右键 **上移／下移** 或聚焦图标后按 `Alt + ↑ / ↓` 可用键盘调整，方向键移动焦点、Enter 激活。拖动排序和颜色变化具有过渡效果，系统启用“减少动态效果”时关闭这些动画。
+
+文件树、搜索及源代码管理挂载到原有侧栏时，原生文件树底部工具条不会覆盖其结果、状态或提交图；退出这些自定义面板后恢复原生工具条，正文状态栏仍保留。提交图收起后保留完整标题行，小窗口、界面缩放、长提交消息与多文件列表使用各分区内部滚动，不把标题挤到侧栏底部之外。
+
 ## 1.5\_Git\_Graph提交关系图
 
-点击左侧活动栏中 **文件、大纲下方的分支图标**，或按 `Ctrl + Shift + G`，在原有主侧栏打开 **源代码管理**；中央文档保持打开。主侧栏下方的 **提交图**、状态栏 **Git Graph** 和命令面板的提交图命令，在上方原有标签栏打开 Git Graph。主侧栏、正文、提交图和差异编辑器复用同一个工作区布局。
+点击左侧活动栏的 **源代码管理** 图标，或按 `Ctrl + Shift + G`，在原有主侧栏打开源代码管理；中央文档保持打开。图标默认位于文件、大纲之后，也可拖动调整顺序。主侧栏下方的 **提交图**、状态栏 **Git Graph** 和命令面板的提交图命令，在上方原有标签栏打开 Git Graph。主侧栏、正文、提交图和差异编辑器复用同一个工作区布局。
 
 | 阅读或操作目标 | 入口 |
 | --- | --- |
@@ -181,7 +271,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 
 ### 1.5.2\_中央差异编辑器与文件时间线
 
-单击变更文件直接在原有编辑标签栏打开 **Monaco 0.56.0 左右差异编辑器**。两侧显示版本名称、完整源码、行号和语法高亮；删除与新增行使用不同底色，新增或删除造成的空缺行自动对齐，行内变化另行标色。两栏各自保留 8px 窄竖向滚动条，纵向同步滚动；左右横向滚动仍独立，中间分界线可拖动。修改版本右侧的源码缩略图支持点击或拖动快速定位，单版本查看也提供缩略图。`F7` / `Shift + F7` 跳转下一处／上一处改动，工具栏可切换前后文件、刷新差异或折叠主侧栏。
+单击变更文件直接在原有编辑标签栏打开 **Monaco 0.56.0 左右差异编辑器**。两侧显示版本名称、完整源码、行号和语法高亮；删除与新增行使用不同底色，新增或删除造成的空缺行自动对齐，行内变化另行标色。两栏各自保留 8px 窄竖向滚动条，纵向同步滚动；左右横向滚动仍独立，中间分界线可拖动。Monaco 原生差异概览占 30px，两个 15px 区域以红色标记删除、绿色标记新增，点击标记同步定位两栏；它与滚动条、源码缩略图各自承担不同操作。修改版本右侧的源码缩略图支持点击或拖动快速定位，单版本查看也提供缩略图。`F7` / `Shift + F7` 跳转下一处／上一处改动，工具栏可切换前后文件、刷新差异或折叠主侧栏。
 
 差异右键提供复制、全选、查找、前后改动、并排／行内比较、自动换行、折叠未修改区域、忽略首尾空白和所选文件的 Git 操作。`Ctrl + F` 由差异编辑器处理；Monaco 的查找提示也使用中文。相同文件及版本组合复用标签，刷新内容保留查看位置；分栏、关闭与拖动使用工作区原有标签菜单。
 
@@ -194,6 +284,8 @@ Monaco 的代码、简体中文界面、图标和浏览器 Worker 全部内嵌�
 点击 Git Graph 工具栏的 **终端**、左侧底部终端图标，或按 **Ctrl + `** 打开仓库根目录的终端。有活动终端时，该快捷键重新聚焦最近会话；**Ctrl + Shift + `** 新建会话。文件树右键提供 **在所属仓库根目录打开集成终端**，从子目录文件操作时也会先定位 Git 根目录；文件不属于 Git 仓库时使用所在文件夹。
 
 默认在下方编辑组打开，终端设置可选当前组新标签、右侧或下方。终端顶部可以选择 Shell、新建、左右拆分、查找、清屏、终止和设置；右键还可向下拆分、重启 Shell、复制选中文本、粘贴、全选及复制仓库根路径。默认使用 Windows PowerShell，另外提供 Command Prompt、已安装的 PowerShell 7 和 PATH 中的 Bash。选择框决定新会话的 Shell，当前会话的 Shell 不会被静默替换。
+
+终端按 Typora 当前实际背景和前景生成浅色／深色配色，同步光标、选区与 ANSI 颜色；切换主题时更新已经打开的终端，不重启 Shell、不清空输出。判断依据是页面计算后的颜色，不依赖主题文件名或本机 VS Code 设置。
 
 终端采用与 [VS Code 终端](https://code.visualstudio.com/docs/terminal/advanced) 相同的 [xterm.js](https://github.com/xtermjs/xterm.js) 显示组件和 [node-pty](https://github.com/microsoft/node-pty/tree/1.1.0) 伪终端组件。支持 ANSI 控制、交互程序、方向键历史、Ctrl+C、中英文输入、滚动缓冲和窗口尺寸同步；**Ctrl + Shift + C / V / F** 分别复制、粘贴和查找。右键或此快捷键粘贴多行内容时先展示文本，点击后发送给 Shell。终端焦点内的普通 Ctrl+K 等按键交给 Shell，不触发正文快捷键。
 

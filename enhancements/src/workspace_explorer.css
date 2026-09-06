@@ -1,0 +1,22 @@
+.linux-note-workspace-explorer { position:absolute; inset:0; display:flex; flex-direction:column; min-width:0; min-height:0; font:13px var(--monospace,Arial,sans-serif); color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); }
+.workspace-explorer-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:38px; padding:4px 10px 4px 14px; gap:6px; }
+.workspace-explorer-toolbar strong { white-space:nowrap; font-family:var(--font-family,Arial,sans-serif); font-size:12px; font-weight:600; }
+.workspace-explorer-actions { display:flex; align-items:center; gap:2px; }
+.workspace-explorer-actions button { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; padding:0; color:inherit; background:transparent; border:0; border-radius:4px; cursor:pointer; }
+.workspace-explorer-actions button:hover { background:#8882; }
+.workspace-explorer-actions button:focus-visible { outline:1px solid #0078d4; }
+.workspace-explorer-root { padding:4px 12px; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
+.workspace-explorer-tree { flex:1; min-height:0; position:relative; overflow:auto; outline:none; }
+.workspace-explorer-tree::-webkit-scrollbar { width:8px; height:8px; }
+.workspace-explorer-tree::-webkit-scrollbar-thumb { background:#8886; }
+.workspace-explorer-spacer { position:relative; min-width:100%; }
+.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:5px; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
+.workspace-explorer-row:hover { background:#8882; }
+.workspace-explorer-row.is-selected { background:#0078d426; }
+.workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid #0078d4; outline-offset:-1px; }
+.workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
+.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:center; width:12px; }
+.workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.workspace-explorer-note { font:11px var(--font-family,Arial,sans-serif); color:#777; margin-left:auto; }
+.workspace-explorer-note.is-error { color:#d33; }
+.workspace-explorer-status { padding:4px 10px; min-height:23px; max-height:58px; overflow:hidden; text-overflow:ellipsis; font:11px var(--font-family,Arial,sans-serif); border-top:1px solid #8882; color:var(--text-color,#666); overflow-wrap:anywhere; }

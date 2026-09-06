@@ -96,7 +96,7 @@ export async function initialize_workspace(): Promise<void> {
   window.addEventListener("keydown", (event) => {
     if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
         || event.isComposing) { chord_started = 0; return; }
-    if (event.target instanceof Element && event.target.closest(".linux-note-terminal, .git-graph-document")) { chord_started = 0; return; }
+    if (event.target instanceof Element && event.target.closest(".linux-note-terminal, .git-graph-document") && !event.target.closest(".linux-note-source-file")) { chord_started = 0; return; }
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
     const in_chord = chord_started > 0 && Date.now() - chord_started < 2000;
     const absolute = in_chord && event.code === "KeyP" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;

@@ -126,8 +126,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-input-section { margin: 0 -12px; }
 .git-scm-input-heading { position: relative; display: flex; align-items: center; min-height: 28px; gap: 6px; padding: 0 7px 0 20px; list-style: none; cursor: pointer; background: #88808; }
 .git-scm-input-heading::-webkit-details-marker, .git-scm-group > summary::-webkit-details-marker { display: none; }
-.git-scm-input-heading::before, .git-scm-group > summary::before { position: absolute; left: 7px; content: '›'; }
-.git-scm-input-section[open] > summary::before, .git-scm-group[open] > summary::before { content: '⌄'; }
+.git-scm-input-heading > .git-disclosure-icon, .git-scm-group > summary > .git-disclosure-icon { position: absolute; left: 2px; }
 .git-scm-input-title { font-weight: 600; flex: none; }
 .git-scm-input-heading .git-scm-branch { margin-left: auto; min-width: 0; font-size: 11px; opacity: .7; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-input-heading button.git-scm-operation-menu { flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 0; }
@@ -141,7 +140,8 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-title { display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-weight: 600; font-size: 12px; flex: none; }
 .git-scm-tools { display: flex; gap: 3px; }
 .git-scm-tools button { border: none; font-size: 17px; padding: 0 6px; }
-.git-scm-branch { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.git-scm-branch { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; cursor: pointer; }
+.git-scm-branch-label { overflow: hidden; text-overflow: ellipsis; }
 .git-scm-message { width: 100%; height: 30px; min-height: 30px; max-height: 120px; resize: none; background: var(--bg-color, white); color: inherit; border: 1px solid #8886; padding: 4px 7px; font: inherit; line-height: 20px; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit { color: white; background: #0078d4; border: 0; border-radius: 2px; }
 .git-scm-sync { display: flex; gap: 4px; }
@@ -194,8 +194,8 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-history-list { overflow: auto; scrollbar-gutter: stable; min-width: 0; min-height: 0; flex: 1; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; border-radius: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 26px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
 .git-scm-history-commit[aria-expanded=true] { background: #0078d426 !important; }
-.git-scm-history-disclosure { flex: 0 0 16px; text-align: center; }
-.git-scm-history-commit > svg { flex: none; overflow: visible; }
+.git-scm-history-disclosure { display: flex; align-items: center; justify-content: center; flex: 0 0 16px; }
+.git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 40px; padding-right: 6px; overflow: hidden; }
 .git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 26px; }
 .git-scm-history-refs { display: block; flex: 0 1 auto; max-width: 38%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
@@ -227,3 +227,39 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file:hover { background: #8882; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-inline-action { border: 0; padding: 0 4px; font-size: 17px; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools button { border: 0; padding: 0 5px; }
+
+/* 标准图标统一 16px 画布和命中区，不受正文字体或 details 默认标记影响。 */
+.git-standard-icon { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: middle; fill: currentColor; pointer-events: none; }
+.git-icon-button, .git-labeled-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
+:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button,
+:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-repositories-heading > button.git-icon-button { width: 24px; height: 24px; padding: 0; border: 0; }
+.git-scm-history-toggle { display: flex; align-items: center; gap: 4px; }
+.git-scm-sidebar details > summary { list-style: none; }
+.git-scm-sidebar details > summary::-webkit-details-marker { display: none; }
+.git-scm-sidebar details > summary::marker { content: ''; }
+.git-scm-sidebar details[open] > summary > .git-disclosure-icon,
+.git-scm-history-toggle[aria-expanded=true] > .git-disclosure-icon,
+.git-scm-history-commit[aria-expanded=true] .git-disclosure-icon { transform: rotate(90deg); }
+.git-scm-directory > summary, .git-scm-history-directory > summary { display: flex; align-items: center; gap: 4px; }
+.git-activity-icon, .git-tab-icon { display: inline-flex; align-items: center; justify-content: center; }
+.git-activity-icon > .git-standard-icon { width: 24px; height: 24px; }
+.git-graph-menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr) 16px; align-items: center; gap: 6px; }
+.git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }
+.git-menu-label { min-width: 0; }
+
+/* 原生文件 footer 悬浮在侧栏底部；自有面板挂载期间由各自工具栏承担文件操作。 */
+#typora-sidebar:has(#sidebar-content > :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) > .sidebar-footer {
+  display: none !important;
+}
+#sidebar-content:has(> :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) {
+  min-height: 0;
+  overflow: hidden;
+  bottom: 0;
+}
+.linux-note-git-source-control > .git-scm-sidebar { flex: 1 1 0; height: auto; max-height: 100%; }
+.git-scm-sections { flex: 1 1 0; overflow: hidden; }
+.git-scm-sections[data-show-changes=true][data-show-history=true][data-history-open=true] {
+  grid-template-rows: minmax(0, var(--git-scm-changes-size, 55fr)) 7px minmax(30px, var(--git-scm-history-size, 45fr));
+}
+.git-scm-history { min-height: 30px; }
+.git-scm-history-header { flex: 0 0 30px; min-height: 30px; }

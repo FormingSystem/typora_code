@@ -5,6 +5,8 @@ import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
 import { graph_button, graph_dialog, graph_element, type graph_menu_entry } from "./git_graph_widgets";
 import type { graph_settings } from "./git_graph_settings";
+import { git_icon } from "./git_icons";
+import { get_workspace_files } from "./workspace_files";
 
 export type graph_leaf = { state: { path: string; git_cwd?: string }; view: { containerEl: HTMLElement }; containerEl: HTMLElement;
   parent: { appendChild(leaf: graph_leaf): void; toggleTab(path: string): graph_leaf } };
@@ -52,6 +54,7 @@ export function create_graph_host(core: graph_core) {
       const payload = contents.get(this.leaf.state.path);
       // 核心把 URI 作为 HTML 标签名插入；URI 保持编码，显示名单独通过 textContent 写入。
       for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
+        const icon = tab.querySelector(".typ-file-icon"); if (icon) { icon.className = "typ-file-icon git-tab-icon"; icon.replaceChildren(git_icon("compare-changes")); }
         const title = payload?.data?.title || decodeURIComponent(this.leaf.state.path.split("/").at(-1)!);
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = title;
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
@@ -135,6 +138,8 @@ export function create_graph_host(core: graph_core) {
     async open_file(root: string, file: string, settings: graph_settings) {
       const target = ensure_file_path(root, file);
       if (!fs.existsSync(target)) throw new Error("当前工作区已没有此文件，可查看历史版本。");
+      const file_host = get_workspace_files();
+      if (file_host) { await file_host.open_file(target, {}, settings.new_tab_group); return; }
       if (/\.(md|markdown)$/iu.test(target)) {
         if (settings.new_tab_group === "active") core.app.openFile(target);
         else core.app.commands.run(settings.new_tab_group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [target]);
