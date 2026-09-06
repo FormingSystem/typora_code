@@ -131,6 +131,6 @@ Write-Host "Typora root: $typora_root"
 Write-Host "Bundle: $bundle_target"
 Write-Host "Backup: $backup_root"
 Write-Host "Restart Typora after saving open documents."
-Write-Host "Source Control uses the primary sidebar. Git Graph and Monaco side-by-side diffs use editor tabs; Chinese menus and file history are included. Git defaults to PATH; no separate Node.js installation is needed."
+Write-Host "Source Control includes staged/working changes, Ctrl+Enter commit, ignore/recycle actions, sidebar history, branch status and confirmed pull-then-push sync. Editor tabs include synchronized diffs and clickable minimaps. Git defaults to PATH; no separate Node.js installation is needed."
 
 Write-Host "Integrated terminal: xterm.js + node-pty ConPTY (Windows 10 1903+, x64/ARM64). Administrator terminal uses Windows UAC."

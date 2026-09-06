@@ -55,6 +55,6 @@ printf '%s\n' \
     "enhancement_entries: $entry_count" \
     "theme_sha256: $(typora_sha256 "$theme")" \
     "bundle_sha256: $(typora_sha256 "$bundle")" \
-    "git_graph_features: primary sidebar, Chinese context menus, Monaco side-by-side diff, file history, Git actions, reviews" \
+    "git_graph_features: primary sidebar history, staged/working changes, Ctrl+Enter commit, ignore/recycle actions, branch status, confirmed pull-then-push sync, Chinese menus, synchronized Monaco diff, minimaps, file history, reviews" \
     "git_graph_runtime: $git_graph_runtime" \
     'status: OK'
