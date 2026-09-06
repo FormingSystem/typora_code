@@ -1,0 +1,15 @@
+{
+  "version": "24.20.0",
+  "source": "https://nodejs.org/dist/v24.20.0/SHASUMS256.txt",
+  "archives": {
+    "x64": {
+      "sha256": "6cac9ffbca8f6a47091e4b5c772e0606049c3871cb67d900c0cedde630e545ba",
+      "executable_sha256": "5c976096e04e5c2c1f091938926234cc9fbebfe9787ddd149351b3b0ecc707b5"
+    },
+    "arm64": {
+      "sha256": "31c6799744de8a54601643098040c68c3697e56c94e407d61d0e5fa5f34191d7",
+      "executable_sha256": "92949e7764e56e305cb84ea3d575912e822c79e85599362e8d408b04b9ffd326"
+    }
+  },
+  "license_sha256": "ed34dd8e3f0a78dbaf00d0444ce8e285b015b765379c2e17880455f70370f8e9"
+}

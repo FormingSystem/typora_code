@@ -19,6 +19,10 @@ done
 typora_environment_init "$typora_tools_root"
 backup_root="$(typora_normalize_input_path "$backup_input")"
 backup_root="$(cd "$backup_root" && pwd -P)" || { printf '%s\n' '[typora] Backup directory is unavailable.' >&2; exit 1; }
+if [[ "$TYPORA_PLATFORM_ID" == 'windows-ucrt64' ]]; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$typora_tools_root/restore_configuration_windows.ps1")" -backup_root "$(cygpath -w "$backup_root")"
+    exit $?
+fi
 manifest_path="$backup_root/configuration_manifest.tsv"
 window_backup="$backup_root/window.html"
 [[ -f "$manifest_path" && -f "$window_backup" ]] || { printf '%s\n' '[typora] Backup manifest or window.html is missing.' >&2; exit 1; }

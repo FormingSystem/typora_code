@@ -33,26 +33,31 @@ export function graph_dialog(title: string): { root: HTMLElement; content: HTMLE
   footer.append(graph_button("关闭", close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
   return { root, content, footer, close };
 }
-export function graph_menu(event: MouseEvent, entries: { title: string; action: () => void; id?: string }[]): void {
-  document.querySelector(".git-graph-menu")?.remove(); event.preventDefault(); event.stopPropagation();
+export type graph_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean };
+let close_active_menu: (() => void) | undefined;
+export function graph_menu(event: MouseEvent, entries: graph_menu_entry[]): void {
+  close_active_menu?.(); event.preventDefault(); event.stopPropagation();
+  const previous_focus = document.activeElement as HTMLElement | null;
   const menu = graph_element("div", "git-graph-menu"); menu.setAttribute("role", "menu");
   for (const entry of entries) {
-    const node = graph_button(entry.title, () => { close(); entry.action(); }); node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; menu.append(node);
+    if (entry.separator && menu.children.length) { const separator = graph_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
+    const node = graph_button((entry.checked == null ? "" : entry.checked ? "✓  " : "　 ") + entry.title, () => { close(); entry.action(); }); node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled); if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); } menu.append(node);
   }
-  const close = () => { menu.remove(); window.removeEventListener("pointerdown", outside, true); };
+  const close = () => { menu.remove(); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; };
+  close_active_menu = close; window.addEventListener("blur", close);
   const outside = (input: Event) => { if (!menu.contains(input.target as Node)) close(); };
   menu.addEventListener("mousedown", input => { input.preventDefault(); input.stopPropagation(); });
   menu.addEventListener("keydown", input => {
     if (input.key === "Escape") { input.preventDefault(); close(); }
     if (["ArrowDown", "ArrowUp"].includes(input.key)) {
-      input.preventDefault(); const buttons = [...menu.querySelectorAll("button")];
+      input.preventDefault(); const buttons = [...menu.querySelectorAll<HTMLButtonElement>("button:not([disabled])")];
       buttons[(buttons.indexOf(document.activeElement as HTMLButtonElement) + (input.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
     }
     input.stopPropagation();
   });
   document.body.append(menu);
   const bounds = menu.getBoundingClientRect(); menu.style.left = Math.max(4, Math.min(event.clientX, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(event.clientY, innerHeight - bounds.height - 4)) + "px";
-  window.addEventListener("pointerdown", outside, true); menu.querySelector("button")?.focus();
+  window.addEventListener("pointerdown", outside, true); menu.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
 }
 
 export function inline_message(text: string, options: { markdown: boolean; emoji: Record<string, string>; issue_pattern: string; issue_url: string }, open_url: (url: string) => void): DocumentFragment {

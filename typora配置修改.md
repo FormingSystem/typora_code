@@ -266,14 +266,14 @@ Linux 安装目录通常不允许普通用户修改。脚本只会在已经验�
 
 PowerShell 和 Bash 入口执行同一组动作：
 
-1. 按共享 `bundle_markers.txt` 验证 C/C++、代码按钮、Mermaid、阅读导航、阅读位置恢复、路径复制、Git Graph 和工作区入口，并按 `SHA256SUMS` 校验社区插件核心；
+1. 按共享 `bundle_markers.txt` 验证 C/C++、代码按钮、Mermaid、阅读导航、阅读位置恢复、路径复制、Git Graph 和工作区入口，并按 `SHA256SUMS` 校验社区插件核心和终端模块，Windows 另校验官方 Node 下载包及可执行文件；
 2. 解析并验证 Typora 安装根；
 3. 备份当前主题、`resources/window.html`、旧扩展 bundle 和本次将覆盖的插件文件；
 4. 把仓库主题、bundle 和插件文件安装到当前用户的 Typora 数据目录，并核对安装后的摘要；
 5. 在 `window.html` 的 `</body>` 前保持唯一一条用户数据脚本入口；
 6. 记录平台、精确目标、文件是否原本存在及修改后 SHA-256。
 
-每次配置都会创建新的带时间戳备份目录，并把确切位置打印到终端。PowerShell 清单使用 JSON，Bash 清单使用逐字段 Base64 编码的 TSV；回退脚本不会把 TSV 当 shell 代码执行。
+每次配置都会创建新的带时间戳备份目录，并把确切位置打印到终端。Windows PowerShell 与 UCRT64 统一使用 JSON 清单，Linux Bash 清单使用逐字段 Base64 编码的 TSV；回退脚本不会把 TSV 当 shell 代码执行。
 
 插件核心固定为 Typora Community Plugin `2.10.15`，原始核心、CSS 和三个语言包随仓库分发。入口 bundle 加载用户数据目录中的 `plugins/2.10.15/core.js`；安装器不执行上游安装脚本，不建立指向仓库或某台机器的符号链接，也不依赖本机 Node.js。插件设置和后来安装的其他插件不在覆盖清单内。来源、许可证与摘要见 [工作区依赖说明](./enhancements/vendor/typora_workspace/NOTICE.md)。
 
@@ -311,7 +311,7 @@ bash ./tools/typora/check_configuration.sh
 
 ## 7.1\_开发者重新构建
 
-只有修改扩展源码、升级 grammar 或依赖时才需要 Node.js：
+只有修改扩展源码、升级 grammar 或依赖时才需要自行准备开发用 Node.js；Windows 安装器会另外管理集成终端的私有运行时：
 
 ```powershell
 cd tools\typora\enhancements
@@ -357,3 +357,12 @@ Typora 没有提供主题 JavaScript 的正式入口，所以该方案需要对�
 左侧工具栏底部的分支图标打开 Git Graph 标签，可并排查看当前仓库的提交关系和文件差异，执行分支、stash、合并、变基、远端同步，并持续记录文件评审。完整收集与对应入口见 [Git Graph 功能对照](./enhancements/git_graph_features.md#第1章_Git_Graph功能对照与操作说明)。操作与查询边界见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
 
 社区工作区使用一个活动的 Typora 原生编辑器，其余分栏显示预览；点击预览正文会交换编辑器所在分栏。多份独立未保存缓冲区、VS Code 语言服务器等能力不在本实现范围内，切换文件仍遵循 Typora 的保存确认。完整操作、插件管理和历史边界见 [标签页、分栏与阅读历史](./enhancements/README.md#1.4_标签页、分栏与阅读历史)。
+
+
+# 第9章\_仓库终端与可调整面板
+
+Git Graph 工具栏、文件树右键和左侧终端图标均能打开仓库根目录的集成终端。默认采用下方编辑组，也可选择当前组标签、右侧或下方分栏；切换标签保留正在运行的会话。Ctrl + ` 聚焦或打开终端，Ctrl + Shift + ` 新建会话，Ctrl + Shift + C / V / F 复制、粘贴或查找。右键还提供 **以管理员身份打开仓库终端（UAC）**，它在独立 PowerShell 窗口中提权并定位同一目录。完整操作见 [集成终端、管理员入口与分界线](./enhancements/README.md#1.6_集成终端、管理员入口与分界线)。
+
+提交列表与详情、历史双栏、编辑组之间的分界线支持鼠标拖动；表头右键切换列显示，布局按钮选择详情位置。各类 Git 对象的右键菜单末尾提供显示项勾选和恢复入口，设置按仓库保存。
+
+Windows 首次安装下载并校验 Node `24.20.0` 私有运行时，不要求预装 Node，不写系统 PATH，不固定本机安装路径。普通图查询继续使用 Typora 运行时，集成终端通过独立后台进程运行 node-pty。安装、检查与回退同时覆盖运行文件；下载缓存、平台范围和原生验证方法见 [终端运行文件、安装与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证)。

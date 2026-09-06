@@ -1,3 +1,5 @@
+import { bind_terminal_workspace } from "./terminal_workspace";
+import { create_workspace_sash } from "./workspace_sash";
 import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
 import { graph_button, graph_dialog, graph_element } from "./git_graph_widgets";
@@ -64,7 +66,10 @@ export function create_graph_host(core: graph_core) {
       };
       const left = text_view(document.left, 0); body.append(left);
       if (document.right != null) {
-        const right = text_view(document.right, 1); body.append(right);
+        const right = text_view(document.right, 1);
+        let ratio = .5;
+        const apply = (value: number) => { ratio = value; left.style.flex = `${ratio} 1 0`; right.style.flex = `${1 - ratio} 1 0`; };
+        body.append(create_workspace_sash({ label: "调整左右历史版本宽度", area: body, vertical: () => true, ratio: () => ratio, change: apply, save: () => {} }), right); apply(ratio);
         let syncing = false;
         const sync = (a: HTMLElement, b: HTMLElement) => { if (syncing) return; syncing = true; b.scrollTop = a.scrollTop; requestAnimationFrame(() => { syncing = false; }); };
         left.onscroll = () => sync(left, right); right.onscroll = () => sync(right, left);
@@ -76,7 +81,8 @@ export function create_graph_host(core: graph_core) {
     }
   }
   core.app.viewManager.registerView("linux_note.git_document", leaf => new graph_document_view(leaf));
-  return {
+  let terminal_workspace: ReturnType<typeof bind_terminal_workspace>;
+  const host = {
     core, fs, path_api, process_api,
     runner(settings: graph_settings, writable = false) { return create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable }); },
     context_path(use_active = true): string {
@@ -149,11 +155,7 @@ export function create_graph_host(core: graph_core) {
       if (!fs.existsSync(cache_path)) return;
       for (const file of fs.readdirSync(cache_path)) if (/^[a-f\d]{32}\.png$/u.test(file)) fs.unlinkSync(path_api.join(cache_path, file));
     },
-    terminal(root: string, program: string) {
-      const executable = program || (process_api.platform === "win32" ? process_api.env.ComSpec || "cmd.exe" : "x-terminal-emulator");
-      const child = child_process.spawn(executable, [], { cwd: root, detached: true, stdio: "ignore", windowsHide: false, shell: false });
-      child.on("error", (error: Error) => { const dialog = graph_dialog("终端启动失败"); dialog.content.textContent = error.message; }); child.unref();
-    },
+    terminal(root: string, program: string, admin = false) { if (admin) terminal_workspace.admin(root); else terminal_workspace.open(root, program); },
     export_file(root: string, filename: string, content: string) {
       const dialog = graph_dialog("导出配置"); const target = graph_element("input"); target.value = path_api.join(root, filename);
       const preview = graph_element("pre", "", content); const error = graph_element("p"); dialog.content.append(target, preview, error);
@@ -163,5 +165,7 @@ export function create_graph_host(core: graph_core) {
       }));
     },
   };
+  terminal_workspace = bind_terminal_workspace(host);
+  return host;
 }
 export type graph_host = ReturnType<typeof create_graph_host>;

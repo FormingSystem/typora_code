@@ -13,7 +13,7 @@ const git = args => child_process.execFileSync('git', ['-c', 'user.name=UI Test'
 git(['init', '-b', 'main']); fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n'); git(['add', 'example.md']); git(['commit', '-m', '开始 :tada:']);
 git(['checkout', '-b', 'feature']); fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n新增内容\n'); git(['add', 'example.md']); git(['commit', '-m', '实现 **对比** #12']);
 git(['checkout', 'main']); fs.writeFileSync(path.join(root, 'other.md'), 'main\n'); git(['add', 'other.md']); git(['commit', '-m', '主线更新']); git(['merge', '--no-ff', 'feature', '-m', '合并功能分支']);
-const bundle = buildSync({ stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, format: 'iife', globalName: 'graph_qa', write: false }).outputFiles[0].text;
+const bundle = buildSync({ stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'graph_qa', write: false }).outputFiles[0].text;
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); let test_window;
 const evaluate = source => test_window.webContents.executeJavaScript(source);
 const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluate(source)) return; await delay(50); } throw new Error('Timed out: ' + source); };
@@ -36,7 +36,7 @@ app.whenReady().then(async () => {
     const css = document.createElement('style'); css.textContent = ${JSON.stringify(fs.readFileSync(path.join(__dirname, '../src/git_graph.css'), 'utf8'))}; document.head.append(css);
     window.reqnode = require; window._options = {userDataPath:${JSON.stringify(root)}}; window.File = {changeCounter:{isDocumentEdited:()=>false}};
     window.JSBridge = {invoke: async (command, data) => { window.copied = JSON.parse(data).text; }};
-    const factories = new Map(); const leaves = []; const core = { WorkspaceView: class {constructor(leaf){this.leaf=leaf;}}, app: {viewManager:{registerView:(type,factory)=>factories.set(type,factory)}, commands:{run(){}}, workspace:{eachLeaves: callback=>leaves.forEach(callback), activeLeaf:null}}};
+    const factories = new Map(); const leaves = []; const core = { WorkspaceView: class {constructor(leaf){this.leaf=leaf;}}, app: {viewManager:{registerView:(type,factory)=>factories.set(type,factory)}, commands:{run(){},register(){}}, workspace:{on(){},ribbon:{addButton(){}},eachLeaves: callback=>leaves.forEach(callback), activeLeaf:null}}};
     const parent = {appendChild(leaf){leaves.push(leaf);document.body.replaceChildren(leaf.view.containerEl);leaf.view.onOpen();}};
     core.app.workspace.createLeaf = ({type,state}) => {const leaf={state,parent};leaf.view=factories.get(type)(leaf);return leaf;};
     const host = graph_qa.create_graph_host(core); window.panel = new graph_qa.git_graph_panel(host, ${JSON.stringify(root)});
@@ -44,6 +44,20 @@ app.whenReady().then(async () => {
   })()`);
   await wait('panel.container.dataset.state === "ready"');
   await click('.git-graph-row:not(.git-graph-worktree)'); await wait('!!document.querySelector(".git-graph-file")'); await click('.git-graph-file'); await wait('document.querySelector(".git-graph-patch").textContent.includes("新增内容")'); await capture('history');
+  const sash = '.git-graph-body > .linux-note-workspace-sash';
+  const drag = async (selector, dx, dy) => {
+    const point = await evaluate(`(() => {const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()`);
+    test_window.webContents.sendInputEvent({type:'mouseDown',...point,button:'left',clickCount:1});
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:point.x+dx,y:point.y+dy,button:'left'});
+    test_window.webContents.sendInputEvent({type:'mouseUp',x:point.x+dx,y:point.y+dy,button:'left',clickCount:1}); await delay(200);
+  };
+  const first_width = await evaluate('panel.list.clientWidth'); await drag(sash, -140, 0); assert(await evaluate('panel.list.clientWidth') < first_width - 80);
+  assert(await evaluate('JSON.parse(localStorage.getItem("linux-note-git-graph:v2:settings:"+panel.root)).panel_ratio') < 55);
+  await click('.git-graph-columns', 'right'); assert(await evaluate('document.querySelectorAll("[role=menuitemcheckbox]").length') >= 6); await key('Escape');
+  await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await click('[data-action="configure_menu"]');
+  await click('[data-action-id="branch_create"]'); await click('.git-graph-dialog-footer button');
+  await click('.git-graph-row:not(.git-graph-worktree)', 'right'); assert(!await evaluate('!!document.querySelector("[data-action=branch_create]")')); await click('[data-action="configure_menu"]');
+  await click('[data-action-id="branch_create"]'); await click('.git-graph-dialog-footer button');
   await key('f', ['control']); assert(await evaluate('document.activeElement === panel.search'));
   await key('Escape');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await capture('context_menu'); await click('[data-action="branch_create"]');
@@ -52,8 +66,9 @@ app.whenReady().then(async () => {
   await evaluate('panel.settings_dialog()'); await capture('settings');
   await evaluate('document.querySelector("[data-setting=details_location]").value = "bottom"');
   await click('.git-graph-dialog-footer button'); await wait('panel.container.dataset.state === "ready" && panel.container.dataset.details === "bottom"');
+  const first_height = await evaluate('panel.list.clientHeight'); await drag(sash, 0, -80); assert(await evaluate('panel.list.clientHeight') < first_height - 40);
   assert(await evaluate('localStorage.getItem("linux-note-git-graph:v2:settings:" + panel.root).includes("bottom")'));
   await evaluate('panel.select_commit(panel.state.commits[0])'); await wait('!!document.querySelector(".git-graph-file")');
   await evaluate('panel.open_diff(panel.files[0])'); await wait('!!document.querySelector(".git-graph-document")'); assert(await evaluate('document.querySelectorAll(".git-graph-document pre").length === 2 && !!document.querySelector(".git-graph-document .git-diff-add")')); await capture('side_by_side_diff');
-  console.log(JSON.stringify({status:'PASS',checks:['real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','colored two-column history'],evidence}));
+  console.log(JSON.stringify({status:'PASS',checks:['real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','horizontal and vertical mouse sash','per-context menu checkbox persistence','column checkbox menu','colored two-column history'],evidence}));
 }).catch(async error => { console.error(error); if (test_window) { console.error(await evaluate('document.body.innerText')); await capture('failure'); } process.exitCode = 1; }).finally(() => { if (test_window && !test_window.isDestroyed()) test_window.destroy(); app.quit(); });

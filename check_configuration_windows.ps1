@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$typora_root = "",
     [switch]$non_interactive
@@ -38,6 +38,10 @@ if ((Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash -ne
 }
 $workspace_assets = @(get_typora_workspace_assets (Join-Path $PSScriptRoot "enhancements\vendor\typora_workspace"))
 assert_typora_workspace_assets -asset_root (Join-Path $user_data "plugins") -assets $workspace_assets
+. (Join-Path $PSScriptRoot 'scripts/lib/typora_terminal.ps1')
+assert_typora_node -tools_root $PSScriptRoot -runtime_root (Join-Path $user_data 'linux_note_enhancements/terminal_runtime')
+$terminal_assets = @(get_typora_terminal_assets (Join-Path $PSScriptRoot 'enhancements/dist/terminal_runtime'))
+assert_typora_workspace_assets -asset_root (Join-Path $user_data 'linux_note_enhancements/terminal_runtime') -assets $terminal_assets
 assert_typora_bundle -bundle_path $bundle -markers_path (Join-Path $PSScriptRoot "enhancements\bundle_markers.txt")
 if ((Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash -ne
     (Get-FileHash -LiteralPath $repository_bundle -Algorithm SHA256).Hash) {
@@ -48,6 +52,8 @@ if ((Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash -ne
     typora_version = get_typora_windows_version $typora_root
     enhancement_entries = $tag_count
     workspace_assets = $workspace_assets.Count
+    terminal_assets = $terminal_assets.Count
+    integrated_terminal = "xterm.js + node-pty ConPTY; Windows UAC administrator entry"
     git_graph_features = "history, actions, comparisons, reviews, repository settings"
     git_graph_runtime = if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) { "Git available on PATH" } else { "Git missing on PATH; install Git to use Git Graph" }
     theme_sha256 = (Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash
