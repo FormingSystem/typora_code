@@ -1,3 +1,28 @@
+/*! gemoji 4.1.0 Unicode data
+Copyright (c) 2019 GitHub, Inc.
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+
+*/
 var LinuxNoteTyporaEnhancements = (() => {
   var __create = Object.create;
   var __defProp = Object.defineProperty;
@@ -3210,8 +3235,6 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
   // src/git_graph_data.ts
   var GIT_GRAPH_COMMAND = "linux_note:git_graph";
   var GIT_GRAPH_TYPE = "linux_note.git_graph";
-  var GIT_PAGE_SIZE = 200;
-  var GIT_MAX_COMMITS = 5e3;
   var valid_hash = (hash) => /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(hash);
   function require_hash(hash) {
     if (!valid_hash(hash)) throw new Error("\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0 Git Graph\u3002");
@@ -3230,64 +3253,6 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
       commits.push({ hash, parents, author, date, subject });
     }
     return commits;
-  }
-  async function read_git_snapshot(run, cwd, limit = GIT_PAGE_SIZE, revision = "") {
-    const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-    const [ref_text, head_text] = await Promise.all([
-      run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)", "refs/heads", "refs/remotes", "refs/tags"]),
-      // --quiet 在尚无首个提交的仓库返回 1；其他错误必须继续报告。
-      run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch((error) => {
-        if (error.code === 1) return "";
-        throw error;
-      })
-    ]);
-    const head = head_text.trim();
-    const refs = ref_text.split("\n").filter(Boolean).map((line) => {
-      const [object_hash, peeled_hash, name] = line.replace(/\r$/u, "").split("\0");
-      return { hash: require_hash(peeled_hash || object_hash), name };
-    });
-    const count = Math.min(GIT_MAX_COMMITS, Math.max(GIT_PAGE_SIZE, Math.floor(limit)));
-    const revisions = revision ? [require_hash(revision)] : ["--all", ...head ? [require_hash(head)] : []];
-    const commits = refs.length || head ? parse_git_log(await run(root, [
-      "log",
-      "--topo-order",
-      "--date-order",
-      `--max-count=${count + 1}`,
-      "--format=%H%x00%P%x00%an%x00%aI%x00%s",
-      "-z",
-      ...revisions,
-      "--"
-    ])) : [];
-    return { root, head, refs, commits: commits.slice(0, count), more: commits.length > count };
-  }
-  function diff_arguments(hash, parent) {
-    return [
-      "diff-tree",
-      "--root",
-      "--no-commit-id",
-      "-r",
-      "--no-renames",
-      "--no-ext-diff",
-      "--no-textconv",
-      ...parent ? [require_hash(parent)] : [],
-      require_hash(hash)
-    ];
-  }
-  async function read_git_files(run, root, hash, parent = "") {
-    const text = await run(root, [...diff_arguments(hash, parent), "--name-status", "-z", "--"]);
-    const fields = text.split("\0");
-    if (fields.at(-1) === "") fields.pop();
-    if (fields.length % 2) throw new Error("Git \u6587\u4EF6\u5217\u8868\u683C\u5F0F\u4E0D\u5B8C\u6574\u3002");
-    const files = [];
-    for (let index = 0; index < fields.length; index += 2) files.push({ status: fields[index], path: fields[index + 1] });
-    return files;
-  }
-  function read_git_patch(run, root, hash, parent, file) {
-    if (!file || file.includes("\0")) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
-    return run(root, [...diff_arguments(hash, parent), "-p", "--unified=3", "--no-color", "--", file]);
-  }
-  function read_git_message(run, root, hash) {
-    return run(root, ["show", "--no-patch", "--format=%B", require_hash(hash), "--"]);
   }
   function build_git_graph(commits) {
     let lanes = [];
@@ -3325,44 +3290,53 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
   }
 
   // src/git_graph_runtime.ts
-  function create_git_runner(modules) {
+  function create_git_runner(modules, options = {}) {
     const children = /* @__PURE__ */ new Set();
-    const env = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" };
-    for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE"]) delete env[key];
+    const env = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
+    for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env[key];
+    const execute = (cwd, args, binary = false, todo = "") => new Promise((resolve, reject) => {
+      const sequence_editor = `sh -c 'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"' --`;
+      const message_editor = `sh -c 'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi' --`;
+      const execution_env = { ...env, GIT_EDITOR: message_editor, ...todo ? { LINUX_NOTE_GIT_REBASE_TODO: todo, GIT_SEQUENCE_EDITOR: sequence_editor } : {} };
+      const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm"].includes(args[0]);
+      const child = modules.child_process.execFile(options.executable || "git", [
+        "--no-pager",
+        "--no-replace-objects",
+        ...literal_paths ? ["--literal-pathspecs"] : [],
+        "-c",
+        "protocol.ext.allow=never",
+        "-c",
+        "color.ui=false",
+        "-c",
+        "core.quotePath=false",
+        "-c",
+        "i18n.logOutputEncoding=utf-8",
+        "-c",
+        "log.showSignature=false",
+        ...args
+      ], {
+        cwd,
+        env: execution_env,
+        encoding: binary ? null : "utf8",
+        windowsHide: true,
+        shell: false,
+        timeout: options.writable ? 3e5 : 3e4,
+        maxBuffer: 16 * 1024 * 1024
+      }, (error, stdout, stderr) => {
+        children.delete(child);
+        if (!error) {
+          resolve(stdout);
+          return;
+        }
+        const message = error.code === "ENOENT" ? "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002" : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002" : error.killed ? "Git \u8BF7\u6C42\u5DF2\u53D6\u6D88\u6216\u8D85\u65F6\uFF0C\u8BF7\u5237\u65B0\u72B6\u6001\u540E\u91CD\u8BD5\u3002" : (String(stderr || "") || error.message).trim();
+        reject(Object.assign(new Error(message), { code: error.code }));
+      });
+      children.add(child);
+      child.stdin?.end();
+    });
     return {
-      run: (cwd, args) => new Promise((resolve, reject) => {
-        const child = modules.child_process.execFile("git", [
-          "--no-pager",
-          "--no-replace-objects",
-          "--literal-pathspecs",
-          "-c",
-          "color.ui=false",
-          "-c",
-          "core.quotePath=false",
-          "-c",
-          "i18n.logOutputEncoding=utf-8",
-          "-c",
-          "log.showSignature=false",
-          ...args
-        ], {
-          cwd,
-          env,
-          encoding: "utf8",
-          windowsHide: true,
-          shell: false,
-          timeout: 15e3,
-          maxBuffer: 4 * 1024 * 1024
-        }, (error, stdout, stderr) => {
-          children.delete(child);
-          if (!error) {
-            resolve(stdout);
-            return;
-          }
-          const message = error.code === "ENOENT" ? "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002" : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "\u7ED3\u679C\u8D85\u8FC7 4 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002" : error.killed ? "Git \u67E5\u8BE2\u5DF2\u53D6\u6D88\u6216\u8D85\u8FC7 15 \u79D2\uFF0C\u8BF7\u91CD\u8BD5\u3002" : (stderr || error.message).trim();
-          reject(Object.assign(new Error(message), { code: error.code }));
-        });
-        children.add(child);
-      }),
+      run: (cwd, args, execution) => execute(cwd, args, false, execution?.todo),
+      run_bytes: (cwd, args) => execute(cwd, args, true),
       cancel() {
         for (const child of children) child.kill();
         children.clear();
@@ -3370,316 +3344,24336 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     };
   }
 
-  // src/git_graph.css
-  var git_graph_default = '.linux-note-git-graph {\n  container-type: inline-size;\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  flex: 1;\n  min-width: 0;\n  min-height: 0;\n  overflow: hidden;\n  background: var(--bg-color, #fff);\n  color: var(--text-color, #24292f);\n  font: 13px/1.5 system-ui, sans-serif;\n  user-select: text;\n}\n.linux-note-git-graph * { box-sizing: border-box; }\n.linux-note-git-graph button, .linux-note-git-graph select, .linux-note-git-graph input {\n  font: inherit; color: inherit; background: transparent; border: 1px solid #8885; border-radius: 4px; padding: 4px 8px;\n}\n.linux-note-git-graph button { cursor: pointer; }\n.linux-note-git-graph button:hover { background: #8882; }\n.linux-note-git-graph button:focus-visible, .linux-note-git-graph select:focus-visible, .linux-note-git-graph input:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n.linux-note-git-graph button:disabled { opacity: .5; cursor: default; }\n.linux-note-git-graph [hidden] { display: none !important; }\n.git-graph-root { padding: 10px 12px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; flex: none; }\n.git-graph-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; flex: none; }\n.git-graph-branch { max-width: 220px; min-width: 100px; }\n.git-graph-search { flex: 1; min-width: 160px; }\n.git-graph-status { padding: 2px 12px 8px; opacity: .8; overflow-wrap: anywhere; max-height: 100px; overflow: auto; flex: none; }\n.git-graph-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; border-top: 1px solid #8884; }\n.git-graph-list { overflow: auto; min-height: 0; position: relative; }\n.linux-note-git-graph .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }\n.git-graph-row svg { flex: none; overflow: visible; }\n.git-graph-row[aria-pressed="true"], .linux-note-git-graph .git-graph-file.selected { background: #2684d426; }\n.git-graph-subject { min-width: 160px; width: 280px; flex: 1; overflow: hidden; text-overflow: ellipsis; }\n.git-graph-refs { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; margin-right: 8px; padding: 0 5px; border-radius: 3px; background: #2684d423; color: #2684d4; }\n.git-graph-author { width: 90px; overflow: hidden; text-overflow: ellipsis; opacity: .7; }\n.git-graph-hash { flex: none; font-size: 11px; background: none; }\n.git-graph-details { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; min-width: 0; min-height: 0; border-left: 1px solid #8884; }\n.git-graph-commit-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }\n.git-graph-full-hash { overflow-wrap: anywhere; font-size: 11px; background: none; flex: none; }\n.git-graph-meta { opacity: .75; }\n.git-graph-parent { width: 100%; flex: none; }\n.linux-note-git-graph pre { margin: 0; font: 12px/1.65 Consolas, ui-monospace, monospace; background: #8881; border: 0; padding: 8px; user-select: text; }\n.linux-note-git-graph .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }\n.git-graph-files { max-height: 150px; overflow: auto; flex: none; }\n.linux-note-git-graph .git-graph-file { display: block; width: 100%; text-align: left; border: 0; overflow-wrap: anywhere; }\n.linux-note-git-graph .git-graph-patch { flex: 1 0 180px; min-height: 180px; overflow: auto; white-space: pre; tab-size: 4; }\n.git-diff-add { color: #22863a; background: #2ea04315; }\n.git-diff-delete { color: #cb2431; background: #f8514915; }\n.git-diff-hunk { color: #2684d4; }\n@container (max-width: 680px) {\n  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(160px, 1fr); }\n  .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\n}\n';
+  // src/git_graph_settings.ts
+  var GRAPH_SETTINGS_KEY = "linux-note-git-graph:v2:";
+  var graph_defaults = {
+    graph_style: "curved",
+    colors: ["#2684d4", "#b462d6", "#209572", "#db8540", "#d4567d", "#7783cc"],
+    initial_count: 200,
+    page_count: 200,
+    auto_load: false,
+    order: "topo",
+    first_parent: false,
+    show_remotes: true,
+    show_remote_heads: false,
+    show_tags: true,
+    tag_only_commits: true,
+    show_stashes: true,
+    show_changes: true,
+    show_untracked: true,
+    include_reflogs: false,
+    use_mailmap: true,
+    mute_merges: false,
+    mute_unreachable: false,
+    show_signature: false,
+    fetch_avatars: false,
+    date_type: "author",
+    date_format: "local",
+    show_date: true,
+    show_author: true,
+    show_hash: true,
+    column_widths: { subject: 300, author: 110, date: 145, hash: 80 },
+    details_location: "right",
+    auto_center: true,
+    file_view: "tree",
+    compact_folders: true,
+    label_alignment: "inline",
+    combine_refs: false,
+    uncommitted_style: "row",
+    inline_markdown: true,
+    branch_globs: [],
+    emoji: {},
+    hidden_actions: [],
+    dialog_defaults: {},
+    shortcuts: { find: "Mod+f", head: "Mod+h", refresh: "Mod+r", stash_next: "Mod+s", stash_previous: "Mod+Shift+s" },
+    on_load_head: false,
+    on_load_branch: false,
+    on_load_branches: [],
+    retain_context: true,
+    fetch_prune: false,
+    fetch_prune_tags: false,
+    sign_commits: false,
+    sign_tags: false,
+    issue_pattern: "#([0-9]+)",
+    issue_url: "",
+    pr_url: "",
+    pr_base: "main",
+    encoding: "utf-8",
+    git_path: "git",
+    terminal_shell: "",
+    new_tab_group: "active",
+    open_active_repo: true,
+    search_depth: 2,
+    repository_order: "name",
+    show_status_button: true,
+    file_menu_entry: true,
+    icon_color: "auto"
+  };
+  var settings_labels = {
+    graph_style: "\u8FDE\u7EBF\u6837\u5F0F\uFF08curved / straight\uFF09",
+    colors: "\u5206\u652F\u989C\u8272",
+    initial_count: "\u9996\u6B21\u63D0\u4EA4\u6570\u91CF",
+    page_count: "\u7EE7\u7EED\u52A0\u8F7D\u6570\u91CF",
+    auto_load: "\u6EDA\u52A8\u5230\u5E95\u81EA\u52A8\u52A0\u8F7D",
+    order: "\u63D0\u4EA4\u987A\u5E8F\uFF08topo / date / author-date\uFF09",
+    first_parent: "\u4EC5\u6CBF\u7B2C\u4E00\u7236\u63D0\u4EA4",
+    show_remotes: "\u663E\u793A\u8FDC\u7AEF\u5206\u652F",
+    show_remote_heads: "\u663E\u793A\u8FDC\u7AEF HEAD",
+    show_tags: "\u663E\u793A\u6807\u7B7E",
+    tag_only_commits: "\u663E\u793A\u4EC5\u6807\u7B7E\u53EF\u8FBE\u7684\u63D0\u4EA4",
+    show_stashes: "\u663E\u793A stash",
+    show_changes: "\u663E\u793A\u672A\u63D0\u4EA4\u6539\u52A8",
+    show_untracked: "\u663E\u793A\u672A\u8DDF\u8E2A\u6587\u4EF6",
+    include_reflogs: "\u5305\u542B reflog \u63D0\u4EA4",
+    use_mailmap: "\u4F7F\u7528 mailmap",
+    mute_merges: "\u6DE1\u5316\u5408\u5E76\u63D0\u4EA4",
+    mute_unreachable: "\u6DE1\u5316\u4E0D\u5C5E\u4E8E HEAD \u7684\u63D0\u4EA4",
+    show_signature: "\u67E5\u770B\u7B7E\u540D\u72B6\u6001",
+    fetch_avatars: "\u663E\u793A Gravatar \u5934\u50CF\uFF08\u8054\u7F51\uFF09",
+    date_type: "\u65E5\u671F\u6765\u6E90\uFF08author / committer\uFF09",
+    date_format: "\u65E5\u671F\u683C\u5F0F\uFF08local / iso / relative\uFF09",
+    show_date: "\u663E\u793A\u65E5\u671F\u5217",
+    show_author: "\u663E\u793A\u4F5C\u8005\u5217",
+    show_hash: "\u663E\u793A\u7F16\u53F7\u5217",
+    column_widths: "\u5217\u5BBD",
+    details_location: "\u8BE6\u60C5\u4F4D\u7F6E\uFF08right / bottom / inline\uFF09",
+    auto_center: "\u9009\u4E2D\u63D0\u4EA4\u81EA\u52A8\u5C45\u4E2D",
+    file_view: "\u6587\u4EF6\u89C6\u56FE\uFF08tree / list\uFF09",
+    compact_folders: "\u5408\u5E76\u5355\u5B50\u76EE\u5F55",
+    label_alignment: "\u5F15\u7528\u4F4D\u7F6E\uFF08inline / split / graph\uFF09",
+    combine_refs: "\u5408\u5E76\u540C\u540D\u672C\u5730\u548C\u8FDC\u7AEF\u5F15\u7528",
+    uncommitted_style: "\u672A\u63D0\u4EA4\u8282\u70B9\uFF08row / connected\uFF09",
+    inline_markdown: "\u63D0\u4EA4\u8BF4\u660E\u884C\u5185 Markdown",
+    branch_globs: "\u81EA\u5B9A\u4E49\u5206\u652F\u7B5B\u9009\uFF08name / glob\uFF09",
+    emoji: "\u81EA\u5B9A\u4E49 emoji \u77ED\u4EE3\u7801",
+    hidden_actions: "\u9690\u85CF\u64CD\u4F5C ID",
+    dialog_defaults: "\u64CD\u4F5C\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C",
+    shortcuts: "\u56FE\u5185\u5FEB\u6377\u952E",
+    on_load_head: "\u6253\u5F00\u65F6\u5B9A\u4F4D HEAD",
+    on_load_branch: "\u6253\u5F00\u65F6\u9009\u62E9\u5F53\u524D\u5206\u652F",
+    on_load_branches: "\u6253\u5F00\u65F6\u6307\u5B9A\u5206\u652F",
+    retain_context: "\u4FDD\u7559\u9690\u85CF\u6807\u7B7E\u5185\u5BB9",
+    fetch_prune: "Fetch \u540C\u65F6 prune \u5206\u652F",
+    fetch_prune_tags: "Fetch \u540C\u65F6 prune \u6807\u7B7E",
+    sign_commits: "\u7B7E\u7F72\u65B0\u63D0\u4EA4",
+    sign_tags: "\u7B7E\u7F72\u6807\u7B7E",
+    issue_pattern: "Issue \u6B63\u5219\uFF08\u6355\u83B7\u7F16\u53F7\uFF09",
+    issue_url: "Issue URL \u6A21\u677F\uFF08{id}\uFF09",
+    pr_url: "\u81EA\u5B9A\u4E49 PR URL\uFF08{base} / {branch} / {remote}\uFF09",
+    pr_base: "PR \u9ED8\u8BA4\u76EE\u6807\u5206\u652F",
+    encoding: "\u5386\u53F2\u6587\u4EF6\u7F16\u7801",
+    git_path: "Git \u53EF\u6267\u884C\u6587\u4EF6",
+    terminal_shell: "\u5916\u90E8\u7EC8\u7AEF\u7A0B\u5E8F\uFF08\u7A7A\u4E3A\u7CFB\u7EDF\u9ED8\u8BA4\uFF09",
+    new_tab_group: "\u6587\u4EF6\u4E0E\u5DEE\u5F02\u6253\u5F00\u4F4D\u7F6E\uFF08active / right / down\uFF09",
+    open_active_repo: "\u4ECE\u6D3B\u52A8\u6587\u6863\u67E5\u627E\u4ED3\u5E93",
+    search_depth: "\u5B50\u4ED3\u5E93\u53D1\u73B0\u6DF1\u5EA6",
+    repository_order: "\u4ED3\u5E93\u6392\u5E8F\uFF08name / path / recent\uFF09",
+    show_status_button: "\u663E\u793A\u72B6\u6001\u680F\u5165\u53E3",
+    file_menu_entry: "\u663E\u793A\u6587\u4EF6\u83DC\u5355\u5165\u53E3",
+    icon_color: "\u5165\u53E3\u56FE\u6807\u989C\u8272\uFF08auto \u6216 CSS \u989C\u8272\uFF09"
+  };
+  var settings_choices = { graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "iso", "relative"], details_location: ["right", "bottom", "inline"], file_view: ["tree", "list"], label_alignment: ["inline", "split", "graph"], uncommitted_style: ["row", "connected"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
+  function validate_settings(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("\u8BBE\u7F6E\u5FC5\u987B\u662F JSON \u5BF9\u8C61\u3002");
+    const result = structuredClone(graph_defaults);
+    for (const [key, item] of Object.entries(value)) {
+      if (!Object.hasOwn(graph_defaults, key)) throw new Error(`\u672A\u77E5\u8BBE\u7F6E\uFF1A${key}`);
+      const expected = graph_defaults[key];
+      if (typeof expected !== typeof item || Array.isArray(expected) !== Array.isArray(item) || item == null) throw new Error(`\u8BBE\u7F6E\u7C7B\u578B\u4E0D\u6B63\u786E\uFF1A${key}`);
+      result[key] = item;
+    }
+    for (const key of ["initial_count", "page_count", "search_depth"]) {
+      if (!Number.isInteger(result[key]) || result[key] < (key === "search_depth" ? 0 : 1) || result[key] > (key === "search_depth" ? 5 : 2e3)) throw new Error(`\u8BBE\u7F6E\u8D85\u51FA\u8303\u56F4\uFF1A${key}`);
+    }
+    for (const [key, allowed] of Object.entries(settings_choices)) {
+      if (!allowed.includes(String(result[key]))) throw new Error(`\u8BBE\u7F6E\u53D6\u503C\u65E0\u6548\uFF1A${key}`);
+    }
+    if (!result.colors.length || result.colors.some((color) => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error("\u5206\u652F\u989C\u8272\u987B\u4E3A\u516D\u4F4D\u5341\u516D\u8FDB\u5236\u989C\u8272\u3002");
+    if (result.branch_globs.some((item) => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error("\u5206\u652F\u7B5B\u9009\u987B\u5305\u542B name \u548C glob\u3002");
+    for (const key of ["hidden_actions", "on_load_branches"]) if (result[key].some((item) => typeof item !== "string")) throw new Error(`\u8BBE\u7F6E\u987B\u4E3A\u6587\u672C\u6570\u7EC4\uFF1A${key}`);
+    for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some((item) => typeof item !== "string")) throw new Error("\u5FEB\u6377\u952E\u548C emoji \u6620\u5C04\u5FC5\u987B\u4E3A\u6587\u672C\u3002");
+    for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error(`\u7F3A\u5C11\u5FEB\u6377\u952E\uFF1A${key}`);
+    for (const key of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key)) throw new Error(`\u7F3A\u5C11\u5217\u5BBD\uFF1A${key}`);
+    for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some((value2) => typeof value2 !== "string" && typeof value2 !== "boolean")) throw new Error("\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C\u987B\u4E3A\u64CD\u4F5C\u540D\u5230\u5B57\u6BB5\u503C\u7684\u5BF9\u8C61\u3002");
+    for (const width of Object.values(result.column_widths)) if (!Number.isFinite(width) || width < 40 || width > 1500) throw new Error("\u5217\u5BBD\u987B\u5728 40\uFF5E1500 \u4E4B\u95F4\u3002");
+    new TextDecoder(result.encoding);
+    if (result.issue_pattern.length > 150) throw new Error("Issue \u6B63\u5219\u8FC7\u957F\u3002");
+    new RegExp(result.issue_pattern, "gu");
+    return result;
+  }
+  function load_graph_settings(storage, root) {
+    try {
+      return validate_settings(JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "settings:" + root) || "{}"));
+    } catch {
+      return structuredClone(graph_defaults);
+    }
+  }
+  function load_reviews(storage, now = Date.now()) {
+    try {
+      return JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "reviews") || "[]").filter((item) => item && typeof item.root === "string" && typeof item.from === "string" && typeof item.to === "string" && Array.isArray(item.reviewed) && item.reviewed.every((file) => typeof file === "string") && Number.isFinite(item.updated_at) && now - item.updated_at < 90 * 864e5);
+    } catch {
+      return [];
+    }
+  }
+  function save_reviews(storage, reviews) {
+    storage.setItem(GRAPH_SETTINGS_KEY + "reviews", JSON.stringify(reviews));
+  }
+  function glob_matches(pattern, value) {
+    const escaped = pattern.replace(/[.+^${}()|[\]\\]/gu, "\\$&").replace(/\*/gu, ".*").replace(/\?/gu, ".");
+    return new RegExp(`^${escaped}$`, "u").test(value);
+  }
 
-  // src/git_graph_view.ts
-  var colors = ["#2684d4", "#b462d6", "#209572", "#db8540", "#d4567d", "#7783cc"];
-  function element(tag, class_name, text = "") {
+  // src/git_graph_repository.ts
+  var WORKTREE = "WORKTREE";
+  var INDEX = "INDEX";
+  var EMPTY = "EMPTY";
+  function require_revision(value) {
+    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error("\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002");
+    return value;
+  }
+  function parse_status(source) {
+    const fields = source.split("\0");
+    const result = [];
+    for (let i = 0; i < fields.length; i++) {
+      if (!fields[i]) continue;
+      const status = fields[i].slice(0, 2);
+      const item = { status: status.trim(), index_status: status[0], work_status: status[1], path: fields[i].slice(3) };
+      if (/[RC]/u.test(status)) item.old_path = fields[++i];
+      result.push(item);
+    }
+    return result;
+  }
+  function parse_changes(source) {
+    const fields = source.split("\0");
+    const result = [];
+    for (let i = 0; i < fields.length && fields[i]; ) {
+      const status = fields[i++];
+      const old_path = /^[RC]/u.test(status) ? fields[i++] : void 0;
+      const path = fields[i++];
+      if (!path) throw new Error("\u6587\u4EF6\u5DEE\u5F02\u6570\u636E\u4E0D\u5B8C\u6574\u3002");
+      result.push({ status, path, ...old_path ? { old_path } : {} });
+    }
+    return result;
+  }
+  var quiet_head = async (run, root) => run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).then((value) => value.trim()).catch((error) => {
+    if (error.code === 1) return "";
+    throw error;
+  });
+  async function read_repository(run, cwd, settings, count, branches = []) {
+    const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
+    const [head, branch2, ref_text, stash_text, status_text, remote_text, git_path] = await Promise.all([
+      quiet_head(run, root),
+      run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).then((value) => value.trim()).catch((error) => {
+        if (error.code === 1) return "";
+        throw error;
+      }),
+      run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)%00%(objecttype)%00%(*objecttype)", "refs/heads", "refs/remotes", "refs/tags"]),
+      settings.show_stashes ? run(root, ["stash", "list", "--format=%H%x00%gd%x00%gs%x00%aI", "-z"]) : "",
+      settings.show_changes ? run(root, ["status", "--porcelain=v1", "-z", settings.show_untracked ? "--untracked-files=all" : "--untracked-files=no"]) : "",
+      run(root, ["remote", "-v"]),
+      run(root, ["rev-parse", "--absolute-git-dir"])
+    ]);
+    const refs = ref_text.split("\n").filter((line) => /\0commit(?:\0|$)/u.test(line)).map((line) => {
+      const [hash, peeled, name] = line.replace(/\r$/u, "").split("\0");
+      return { hash: peeled || hash, name };
+    });
+    const stash_fields = stash_text.split("\0");
+    const stashes = [];
+    for (let i = 0; i + 3 < stash_fields.length; i += 4) stashes.push({ hash: stash_fields[i], name: stash_fields[i + 1], subject: stash_fields[i + 2], date: stash_fields[i + 3] });
+    const remotes = [];
+    for (const line of remote_text.split("\n")) {
+      const match = /^(\S+)\s+(.+) \((fetch|push)\)$/u.exec(line.replace(/\r$/u, ""));
+      if (!match) continue;
+      let entry = remotes.find((item) => item.name === match[1]);
+      if (!entry) {
+        entry = { name: match[1], fetch: "", push: "" };
+        remotes.push(entry);
+      }
+      entry[match[3]] = match[2];
+    }
+    const selected_refs = refs.filter((ref) => {
+      if (!settings.show_remotes && ref.name.startsWith("refs/remotes/")) return false;
+      if (!settings.show_remote_heads && ref.name.startsWith("refs/remotes/") && ref.name.endsWith("/HEAD")) return false;
+      if ((!settings.show_tags || !settings.tag_only_commits) && ref.name.startsWith("refs/tags/")) return false;
+      return !branches.length || branches.some((pattern) => pattern === ref.name || glob_matches(pattern.replace(/^glob:/u, ""), ref.name.replace(/^refs\//u, "")));
+    });
+    const starts = new Set(selected_refs.map((ref) => require_revision(ref.hash)));
+    if (head && (!branches.length || branches.includes("HEAD"))) starts.add(head);
+    if (!branches.length) for (const stash of stashes) starts.add(stash.hash);
+    const records = starts.size || settings.include_reflogs ? await run(root, [
+      "log",
+      `--${settings.order}-order`,
+      `--max-count=${Math.max(1, count) + 1}`,
+      ...settings.first_parent ? ["--first-parent"] : [],
+      ...!branches.length && settings.include_reflogs ? ["--reflog"] : [],
+      `--format=%H%x00%P%x00%${settings.use_mailmap ? "aN" : "an"}%x00%aI%x00%s%x00%${settings.use_mailmap ? "aE" : "ae"}%x00%${settings.use_mailmap ? "cN" : "cn"}%x00%cI%x00%${settings.use_mailmap ? "cE" : "ce"}`,
+      "-z",
+      ...starts,
+      "--"
+    ]) : "";
+    const fields = records.split("\0");
+    const commits = [];
+    for (let i = 0; i + 8 < fields.length; i += 9) {
+      const base = parse_git_log(fields.slice(i, i + 5).join("\0") + "\0")[0];
+      commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
+    }
+    const operation = git_path.trim();
+    return { root, head, branch: branch2, refs, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+  }
+  function comparison_args(from, to, head) {
+    if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
+    if (from === INDEX && to === WORKTREE) return ["diff"];
+    if (to === INDEX) return ["diff", "--cached", ...head ? [require_revision(from === EMPTY ? head : from)] : []];
+    if (to === WORKTREE) return ["diff", ...from === EMPTY ? [] : [require_revision(from)]];
+    return ["diff", require_revision(from), require_revision(to)];
+  }
+  async function compare_files(run, state, from, to) {
+    if (from === EMPTY && to === WORKTREE) return state.changes.filter((file) => file.work_status !== "D").map((file) => ({ ...file, status: "A" }));
+    const changes = parse_changes(await run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]));
+    if (to === WORKTREE) {
+      for (const file of state.changes) if (file.status === "??" && !changes.some((item) => item.path === file.path)) changes.push(file);
+    }
+    return changes;
+  }
+  async function compare_patch(run, state, from, to, file) {
+    if (file.status === "??" || from === EMPTY && to === WORKTREE) return "";
+    return run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "-p", "--no-ext-diff", "--no-textconv", "--", file.path, ...file.old_path ? [file.old_path] : []]);
+  }
+  async function commit_containment(run, state, hash) {
+    require_revision(hash);
+    const [refs, in_head] = await Promise.all([
+      run(state.root, ["for-each-ref", `--contains=${hash}`, "--format=%(refname)"]),
+      state.head ? run(state.root, ["merge-base", "--is-ancestor", hash, state.head]).then(() => true).catch((error) => {
+        if (error.code === 1) return false;
+        throw error;
+      }) : false
+    ]);
+    const stashes = await Promise.all(state.stashes.map(async (stash) => {
+      try {
+        await run(state.root, ["merge-base", "--is-ancestor", hash, stash.hash]);
+        return stash.name;
+      } catch (error) {
+        if (error.code === 1) return "";
+        throw error;
+      }
+    }));
+    return [in_head ? "\u5C5E\u4E8E HEAD \u5386\u53F2" : "\u4E0D\u5C5E\u4E8E HEAD \u5386\u53F2", refs.trim(), ...stashes.filter(Boolean)].filter(Boolean).join("\n");
+  }
+  function pull_request_url(remote2, branch2, base, custom = "") {
+    const web = remote2.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://").replace(/\.git\/?$/u, "");
+    const url = new URL(web);
+    if (!["http:", "https:"].includes(url.protocol)) throw new Error("\u6B64\u8FDC\u7AEF\u6CA1\u6709\u53EF\u7528\u7684\u7F51\u9875\u5730\u5740\uFF0C\u8BF7\u914D\u7F6E PR URL\u3002");
+    const replacement = (template) => template.replace(/\{(branch|base|remote)\}/gu, (_, name) => name === "remote" ? web : encodeURIComponent(name === "branch" ? branch2 : base));
+    if (custom) return replacement(custom);
+    if (url.hostname === "github.com") return `${web}/compare/${encodeURIComponent(base)}...${encodeURIComponent(branch2)}?expand=1`;
+    if (url.hostname === "gitlab.com") return `${web}/-/merge_requests/new?merge_request[source_branch]=${encodeURIComponent(branch2)}&merge_request[target_branch]=${encodeURIComponent(base)}`;
+    if (url.hostname === "bitbucket.org") return `${web}/pull-requests/new?source=${encodeURIComponent(branch2)}&dest=${encodeURIComponent(base)}`;
+    throw new Error("\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u586B\u5199\u6B64\u670D\u52A1\u5668\u7684 PR URL \u6A21\u677F\u3002");
+  }
+
+  // src/git_graph_widgets.ts
+  function graph_element(tag, class_name = "", text = "") {
     const node = document.createElement(tag);
     node.className = class_name;
     node.textContent = text;
     return node;
   }
-  function button(text, action, class_name = "") {
-    const node = element("button", class_name, text);
+  function graph_button(text, action, class_name = "") {
+    const node = graph_element("button", class_name, text);
     node.type = "button";
-    node.addEventListener("click", action);
+    node.onclick = action;
     return node;
   }
-  function option(value, text) {
-    const node = element("option", "", text);
+  function graph_option(value, text) {
+    const node = graph_element("option", "", text);
     node.value = value;
     return node;
   }
-  function graph_svg(row, width) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", String(width * 18 + 18));
-    svg.setAttribute("height", "34");
-    svg.setAttribute("aria-hidden", "true");
-    const x = (lane) => lane * 18 + 16;
-    for (const edge of row.edges) {
-      const path = document.createElementNS(svg.namespaceURI, "path");
-      const top = edge.upper ? 0 : 17;
-      const bottom = edge.upper ? 17 : 34;
-      path.setAttribute("d", `M ${x(edge.from)} ${top} C ${x(edge.from)} ${top + 9}, ${x(edge.to)} ${bottom - 9}, ${x(edge.to)} ${bottom}`);
-      path.setAttribute("fill", "none");
-      path.setAttribute("stroke", colors[edge.color % colors.length]);
-      path.setAttribute("stroke-width", "2");
-      svg.append(path);
-    }
-    const circle = document.createElementNS(svg.namespaceURI, "circle");
-    circle.setAttribute("cx", String(x(row.lane)));
-    circle.setAttribute("cy", "17");
-    circle.setAttribute("r", "4");
-    circle.setAttribute("fill", colors[row.color % colors.length]);
-    svg.append(circle);
-    return svg;
+  function graph_dialog(title) {
+    const root = graph_element("div", "git-graph-dialog-shade");
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-modal", "true");
+    root.setAttribute("aria-label", title);
+    const panel = graph_element("section", "git-graph-dialog");
+    const content = graph_element("div", "git-graph-dialog-content");
+    const footer = graph_element("div", "git-graph-dialog-footer");
+    const previous = document.activeElement;
+    const close = () => {
+      window.removeEventListener("keydown", global_key, true);
+      root.remove();
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+    const global_key = (event) => {
+      if (document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) !== root) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        close();
+      }
+    };
+    panel.append(graph_element("h3", "", title), content, footer);
+    root.append(panel);
+    document.body.append(root);
+    window.addEventListener("keydown", global_key, true);
+    root.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+      if (event.key === "Tab") {
+        const focusable = [...root.querySelectorAll('button:not([disabled]),input,textarea,select,[tabindex="0"]')];
+        const current = focusable.indexOf(document.activeElement);
+        if (event.shiftKey && current <= 0) {
+          event.preventDefault();
+          focusable.at(-1)?.focus();
+        }
+        if (!event.shiftKey && current === focusable.length - 1) {
+          event.preventDefault();
+          focusable[0]?.focus();
+        }
+      }
+      event.stopPropagation();
+    });
+    footer.append(graph_button("\u5173\u95ED", close));
+    setTimeout(() => panel.querySelector("input,textarea,select,button")?.focus(), 0);
+    return { root, content, footer, close };
   }
+  function graph_menu(event, entries) {
+    document.querySelector(".git-graph-menu")?.remove();
+    event.preventDefault();
+    event.stopPropagation();
+    const menu = graph_element("div", "git-graph-menu");
+    menu.setAttribute("role", "menu");
+    for (const entry of entries) {
+      const node = graph_button(entry.title, () => {
+        close();
+        entry.action();
+      });
+      node.setAttribute("role", "menuitem");
+      if (entry.id) node.dataset.action = entry.id;
+      menu.append(node);
+    }
+    const close = () => {
+      menu.remove();
+      window.removeEventListener("pointerdown", outside, true);
+    };
+    const outside = (input) => {
+      if (!menu.contains(input.target)) close();
+    };
+    menu.addEventListener("mousedown", (input) => {
+      input.preventDefault();
+      input.stopPropagation();
+    });
+    menu.addEventListener("keydown", (input) => {
+      if (input.key === "Escape") {
+        input.preventDefault();
+        close();
+      }
+      if (["ArrowDown", "ArrowUp"].includes(input.key)) {
+        input.preventDefault();
+        const buttons = [...menu.querySelectorAll("button")];
+        buttons[(buttons.indexOf(document.activeElement) + (input.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
+      }
+      input.stopPropagation();
+    });
+    document.body.append(menu);
+    const bounds = menu.getBoundingClientRect();
+    menu.style.left = Math.max(4, Math.min(event.clientX, innerWidth - bounds.width - 4)) + "px";
+    menu.style.top = Math.max(4, Math.min(event.clientY, innerHeight - bounds.height - 4)) + "px";
+    window.addEventListener("pointerdown", outside, true);
+    menu.querySelector("button")?.focus();
+  }
+  function inline_message(text, options, open_url) {
+    const fragment = document.createDocumentFragment();
+    const source = text.replace(/:[a-z_0-9+-]+:/giu, (code) => options.emoji[code] || code);
+    const tokens = /(https?:\/\/[^\s<>]+|\*\*\*[^*\n]+\*\*\*|\*\*[^*\n]+\*\*|\*[^*\n]+\*|`[^`\n]+`)/gu;
+    let last = 0;
+    const plain = (value) => {
+      if (!options.issue_url) {
+        fragment.append(document.createTextNode(value));
+        return;
+      }
+      const pattern = new RegExp(options.issue_pattern, "gu");
+      let offset = 0;
+      for (const match of value.matchAll(pattern)) {
+        if (!match[0]) continue;
+        fragment.append(document.createTextNode(value.slice(offset, match.index)));
+        const link = graph_element("a", "", match[0]);
+        link.href = options.issue_url.replace(/\{id\}/gu, encodeURIComponent(match[1] || match[0]));
+        link.onclick = (event) => {
+          event.preventDefault();
+          open_url(link.href);
+        };
+        fragment.append(link);
+        offset = match.index + match[0].length;
+      }
+      fragment.append(document.createTextNode(value.slice(offset)));
+    };
+    for (const match of source.matchAll(tokens)) {
+      plain(source.slice(last, match.index));
+      const value = match[0];
+      if (/^https?:/u.test(value)) {
+        const link = graph_element("a", "", value);
+        link.href = value;
+        link.onclick = (event) => {
+          event.preventDefault();
+          open_url(value);
+        };
+        fragment.append(link);
+      } else if (!options.markdown) plain(value);
+      else {
+        const size = value.startsWith("***") ? 3 : value.startsWith("**") ? 2 : 1;
+        const node = graph_element(value[0] === "`" ? "code" : size > 1 ? "strong" : "em", "", value.slice(size, -size));
+        if (size === 3) node.style.fontStyle = "italic";
+        fragment.append(node);
+      }
+      last = match.index + value.length;
+    }
+    plain(source.slice(last));
+    return fragment;
+  }
+  function shortcut_matches(event, shortcut) {
+    const parts = shortcut.toLowerCase().split("+");
+    return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey) && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
+  }
+
+  // src/git_graph_host.ts
+  function create_graph_host(core) {
+    const runtime = window;
+    const fs = runtime.reqnode("fs");
+    const path_api = runtime.reqnode("path");
+    const process_api = runtime.reqnode("process");
+    const child_process = runtime.reqnode("child_process");
+    const crypto = runtime.reqnode("crypto");
+    const contents = /* @__PURE__ */ new Map();
+    const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
+    let serial = 0;
+    const ensure_file_path = (root, file) => {
+      const absolute = path_api.resolve(root, file);
+      const relative = path_api.relative(root, absolute);
+      if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002");
+      return absolute;
+    };
+    const add_tab = (type, uri, group) => {
+      if (group !== "active") {
+        core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]);
+        return;
+      }
+      const parent = core.app.workspace.activeLeaf?.parent;
+      if (!parent) return;
+      const leaf = core.app.workspace.createLeaf({ type, state: { path: uri } });
+      parent.appendChild(leaf);
+      core.app.workspace.activeLeaf = leaf;
+    };
+    class graph_document_view extends core.WorkspaceView {
+      containerEl = graph_element("section", "git-graph-document");
+      icon = "fa-code-fork";
+      constructor(leaf) {
+        super(leaf);
+      }
+      onOpen() {
+        if (this.containerEl.children.length) return;
+        const document2 = contents.get(this.leaf.state.path);
+        if (!document2) {
+          this.containerEl.textContent = "\u6B64\u4E34\u65F6\u5386\u53F2\u89C6\u56FE\u5DF2\u91CA\u653E\uFF0C\u8BF7\u4ECE\u63D0\u4EA4\u56FE\u91CD\u65B0\u6253\u5F00\u3002";
+          return;
+        }
+        const body = graph_element("div", "git-graph-document-body");
+        const changed = [/* @__PURE__ */ new Set(), /* @__PURE__ */ new Set()];
+        let old_line = 0;
+        let new_line = 0;
+        for (const line of (document2.patch || "").split("\n")) {
+          const hunk = /^@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/u.exec(line);
+          if (hunk) {
+            old_line = Number(hunk[1]);
+            new_line = Number(hunk[2]);
+          } else if (old_line || new_line) {
+            if (line.startsWith("-")) changed[0].add(old_line++);
+            else if (line.startsWith("+")) changed[1].add(new_line++);
+            else if (line.startsWith(" ")) {
+              old_line++;
+              new_line++;
+            }
+          }
+        }
+        const text_view = (source, side) => {
+          const view = graph_element("pre");
+          view.tabIndex = 0;
+          source.split("\n").forEach((line, index) => {
+            const row = graph_element("span", "git-document-line", line + "\n");
+            row.dataset.line = String(index + 1);
+            if (changed[side].has(index + 1) || document2.right != null && !document2.patch && (side ? !document2.left : !document2.right)) row.classList.add(side ? "git-diff-add" : "git-diff-delete");
+            view.append(row);
+          });
+          return view;
+        };
+        const left = text_view(document2.left, 0);
+        body.append(left);
+        if (document2.right != null) {
+          const right = text_view(document2.right, 1);
+          body.append(right);
+          let syncing = false;
+          const sync = (a, b) => {
+            if (syncing) return;
+            syncing = true;
+            b.scrollTop = a.scrollTop;
+            requestAnimationFrame(() => {
+              syncing = false;
+            });
+          };
+          left.onscroll = () => sync(left, right);
+          right.onscroll = () => sync(right, left);
+        }
+        this.containerEl.append(graph_element("div", "git-graph-root", document2.title), body);
+      }
+      onClose() {
+        setTimeout(() => {
+          let exists = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf.state.path === this.leaf.state.path) exists = true;
+          });
+          if (!exists) contents.delete(this.leaf.state.path);
+        }, 0);
+      }
+    }
+    core.app.viewManager.registerView("linux_note.git_document", (leaf) => new graph_document_view(leaf));
+    return {
+      core,
+      fs,
+      path_api,
+      process_api,
+      runner(settings, writable = false) {
+        return create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
+      },
+      context_path(use_active = true) {
+        const active = core.app.workspace.activeLeaf;
+        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
+      },
+      can_change_files() {
+        return !runtime.File?.changeCounter?.isDocumentEdited();
+      },
+      operation(git_dir) {
+        for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) if (fs.existsSync(path_api.join(git_dir, file))) return operation;
+        return "";
+      },
+      copy(text) {
+        return runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text }));
+      },
+      open_url(url) {
+        const parsed = new URL(url);
+        if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("\u53EA\u5141\u8BB8\u6253\u5F00 HTTP \u6216 HTTPS \u94FE\u63A5\u3002");
+        return runtime.reqnode("electron").shell.openExternal(parsed.href);
+      },
+      async open_file(root, file, settings) {
+        const target = ensure_file_path(root, file);
+        if (!fs.existsSync(target)) throw new Error("\u5F53\u524D\u5DE5\u4F5C\u533A\u5DF2\u6CA1\u6709\u6B64\u6587\u4EF6\uFF0C\u53EF\u67E5\u770B\u5386\u53F2\u7248\u672C\u3002");
+        if (/\.(md|markdown)$/iu.test(target)) {
+          if (settings.new_tab_group === "active") core.app.openFile(target);
+          else core.app.commands.run(settings.new_tab_group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [target]);
+        } else {
+          const text = await this.revision_text(root, WORKTREE, file, settings);
+          this.open_document(file, text, void 0, settings.new_tab_group);
+        }
+      },
+      file_path: ensure_file_path,
+      async revision_text(root, revision, file, settings) {
+        if (revision === EMPTY) return "";
+        if (revision === WORKTREE) {
+          const target = ensure_file_path(root, file);
+          if (!fs.existsSync(target)) return "";
+          const stat = await fs.promises.stat(target);
+          if (stat.size > 16 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 16 MiB\uFF0C\u65E0\u6CD5\u5728\u5386\u53F2\u6587\u672C\u89C6\u56FE\u6253\u5F00\u3002");
+          return new TextDecoder(settings.encoding).decode(await fs.promises.readFile(target));
+        }
+        const object = revision === INDEX ? `:${file}` : `${require_revision(revision)}:${file}`;
+        const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
+        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object]));
+      },
+      open_document(title, left, right, group, patch = "") {
+        const uri = `typ://linux_note.git_document/${++serial}/${encodeURIComponent(title)}`;
+        contents.set(uri, { title, left, right, patch });
+        add_tab("linux_note.git_document", uri, group);
+      },
+      async discover(root, depth) {
+        const found = [];
+        let visited = 0;
+        const walk = async (directory, level) => {
+          if (++visited > 1500) return;
+          const entries = await fs.promises.readdir(directory, { withFileTypes: true }).catch(() => []);
+          if (entries.some((entry) => entry.name === ".git")) found.push(directory);
+          if (level >= depth) return;
+          for (const entry of entries) if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk(path_api.join(directory, entry.name), level + 1);
+        };
+        await walk(root, 0);
+        return found;
+      },
+      async avatar(email) {
+        const hash = crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
+        const target = path_api.join(cache_path, hash + ".png");
+        if (fs.existsSync(target)) return "data:image/png;base64," + fs.readFileSync(target).toString("base64");
+        return new Promise((resolve, reject) => {
+          const request = runtime.reqnode("https").get(`https://www.gravatar.com/avatar/${hash}?s=32&d=identicon`, (response) => {
+            if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) {
+              response.resume();
+              reject(new Error("\u5934\u50CF\u4E0D\u53EF\u7528"));
+              return;
+            }
+            const chunks = [];
+            let size = 0;
+            response.on("data", (chunk) => {
+              size += chunk.length;
+              if (size > 256e3) {
+                request.destroy();
+                reject(new Error("\u5934\u50CF\u8FC7\u5927"));
+              } else chunks.push(chunk);
+            });
+            response.on("end", () => {
+              const data = runtime.reqnode("buffer").Buffer.concat(chunks);
+              fs.mkdirSync(cache_path, { recursive: true });
+              fs.writeFileSync(target, data);
+              resolve("data:image/png;base64," + data.toString("base64"));
+            });
+          });
+          request.setTimeout(1e4, () => request.destroy(new Error("\u5934\u50CF\u67E5\u8BE2\u8D85\u65F6")));
+          request.on("error", reject);
+        });
+      },
+      clear_avatars() {
+        if (!fs.existsSync(cache_path)) return;
+        for (const file of fs.readdirSync(cache_path)) if (/^[a-f\d]{32}\.png$/u.test(file)) fs.unlinkSync(path_api.join(cache_path, file));
+      },
+      terminal(root, program) {
+        const executable = program || (process_api.platform === "win32" ? process_api.env.ComSpec || "cmd.exe" : "x-terminal-emulator");
+        const child = child_process.spawn(executable, [], { cwd: root, detached: true, stdio: "ignore", windowsHide: false, shell: false });
+        child.on("error", (error) => {
+          const dialog = graph_dialog("\u7EC8\u7AEF\u542F\u52A8\u5931\u8D25");
+          dialog.content.textContent = error.message;
+        });
+        child.unref();
+      },
+      export_file(root, filename, content) {
+        const dialog = graph_dialog("\u5BFC\u51FA\u914D\u7F6E");
+        const target = graph_element("input");
+        target.value = path_api.join(root, filename);
+        const preview = graph_element("pre", "", content);
+        const error = graph_element("p");
+        dialog.content.append(target, preview, error);
+        dialog.footer.prepend(graph_button("\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84", () => {
+          try {
+            fs.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" });
+            dialog.close();
+          } catch (problem) {
+            error.textContent = String(problem) + "\uFF1B\u6587\u4EF6\u5DF2\u5B58\u5728\u65F6\u8BF7\u6362\u4E00\u4E2A\u5BFC\u51FA\u540D\u79F0\u3002";
+          }
+        }));
+      }
+    };
+  }
+
+  // vendor/gemoji/emoji.json
+  var emoji_default = [
+    {
+      emoji: "\u{1F600}",
+      description: "grinning face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "grinning"
+      ],
+      tags: [
+        "smile",
+        "happy"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F603}",
+      description: "grinning face with big eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smiley"
+      ],
+      tags: [
+        "happy",
+        "joy",
+        "haha"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F604}",
+      description: "grinning face with smiling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smile"
+      ],
+      tags: [
+        "happy",
+        "joy",
+        "laugh",
+        "pleased"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F601}",
+      description: "beaming face with smiling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "grin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F606}",
+      description: "grinning squinting face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "laughing",
+        "satisfied"
+      ],
+      tags: [
+        "happy",
+        "haha"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F605}",
+      description: "grinning face with sweat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sweat_smile"
+      ],
+      tags: [
+        "hot"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F923}",
+      description: "rolling on the floor laughing",
+      category: "Smileys & Emotion",
+      aliases: [
+        "rofl"
+      ],
+      tags: [
+        "lol",
+        "laughing"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F602}",
+      description: "face with tears of joy",
+      category: "Smileys & Emotion",
+      aliases: [
+        "joy"
+      ],
+      tags: [
+        "tears"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F642}",
+      description: "slightly smiling face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "slightly_smiling_face"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F643}",
+      description: "upside-down face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "upside_down_face"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FAE0}",
+      description: "melting face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "melting_face"
+      ],
+      tags: [
+        "sarcasm",
+        "dread"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F609}",
+      description: "winking face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "wink"
+      ],
+      tags: [
+        "flirt"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F60A}",
+      description: "smiling face with smiling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "blush"
+      ],
+      tags: [
+        "proud"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F607}",
+      description: "smiling face with halo",
+      category: "Smileys & Emotion",
+      aliases: [
+        "innocent"
+      ],
+      tags: [
+        "angel"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F970}",
+      description: "smiling face with hearts",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smiling_face_with_three_hearts"
+      ],
+      tags: [
+        "love"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F60D}",
+      description: "smiling face with heart-eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heart_eyes"
+      ],
+      tags: [
+        "love",
+        "crush"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F929}",
+      description: "star-struck",
+      category: "Smileys & Emotion",
+      aliases: [
+        "star_struck"
+      ],
+      tags: [
+        "eyes"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F618}",
+      description: "face blowing a kiss",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kissing_heart"
+      ],
+      tags: [
+        "flirt"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F617}",
+      description: "kissing face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kissing"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u263A\uFE0F",
+      description: "smiling face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "relaxed"
+      ],
+      tags: [
+        "blush",
+        "pleased"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F61A}",
+      description: "kissing face with closed eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kissing_closed_eyes"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F619}",
+      description: "kissing face with smiling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kissing_smiling_eyes"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F972}",
+      description: "smiling face with tear",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smiling_face_with_tear"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F60B}",
+      description: "face savoring food",
+      category: "Smileys & Emotion",
+      aliases: [
+        "yum"
+      ],
+      tags: [
+        "tongue",
+        "lick"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F61B}",
+      description: "face with tongue",
+      category: "Smileys & Emotion",
+      aliases: [
+        "stuck_out_tongue"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F61C}",
+      description: "winking face with tongue",
+      category: "Smileys & Emotion",
+      aliases: [
+        "stuck_out_tongue_winking_eye"
+      ],
+      tags: [
+        "prank",
+        "silly"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F92A}",
+      description: "zany face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "zany_face"
+      ],
+      tags: [
+        "goofy",
+        "wacky"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F61D}",
+      description: "squinting face with tongue",
+      category: "Smileys & Emotion",
+      aliases: [
+        "stuck_out_tongue_closed_eyes"
+      ],
+      tags: [
+        "prank"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F911}",
+      description: "money-mouth face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "money_mouth_face"
+      ],
+      tags: [
+        "rich"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F917}",
+      description: "smiling face with open hands",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hugs"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F92D}",
+      description: "face with hand over mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hand_over_mouth"
+      ],
+      tags: [
+        "quiet",
+        "whoops"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAE2}",
+      description: "face with open eyes and hand over mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_open_eyes_and_hand_over_mouth"
+      ],
+      tags: [
+        "gasp",
+        "shock"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FAE3}",
+      description: "face with peeking eye",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_peeking_eye"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F92B}",
+      description: "shushing face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "shushing_face"
+      ],
+      tags: [
+        "silence",
+        "quiet"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F914}",
+      description: "thinking face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "thinking"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FAE1}",
+      description: "saluting face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "saluting_face"
+      ],
+      tags: [
+        "respect"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F910}",
+      description: "zipper-mouth face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "zipper_mouth_face"
+      ],
+      tags: [
+        "silence",
+        "hush"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F928}",
+      description: "face with raised eyebrow",
+      category: "Smileys & Emotion",
+      aliases: [
+        "raised_eyebrow"
+      ],
+      tags: [
+        "suspicious"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F610}",
+      description: "neutral face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "neutral_face"
+      ],
+      tags: [
+        "meh"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F611}",
+      description: "expressionless face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "expressionless"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F636}",
+      description: "face without mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "no_mouth"
+      ],
+      tags: [
+        "mute",
+        "silence"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAE5}",
+      description: "dotted line face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "dotted_line_face"
+      ],
+      tags: [
+        "invisible"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F636}\u200D\u{1F32B}\uFE0F",
+      description: "face in clouds",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_in_clouds"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F60F}",
+      description: "smirking face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smirk"
+      ],
+      tags: [
+        "smug"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F612}",
+      description: "unamused face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "unamused"
+      ],
+      tags: [
+        "meh"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F644}",
+      description: "face with rolling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "roll_eyes"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F62C}",
+      description: "grimacing face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "grimacing"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F62E}\u200D\u{1F4A8}",
+      description: "face exhaling",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_exhaling"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F925}",
+      description: "lying face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "lying_face"
+      ],
+      tags: [
+        "liar"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FAE8}",
+      description: "shaking face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "shaking_face"
+      ],
+      tags: [
+        "shock"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F60C}",
+      description: "relieved face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "relieved"
+      ],
+      tags: [
+        "whew"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F614}",
+      description: "pensive face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "pensive"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F62A}",
+      description: "sleepy face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sleepy"
+      ],
+      tags: [
+        "tired"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F924}",
+      description: "drooling face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "drooling_face"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F634}",
+      description: "sleeping face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sleeping"
+      ],
+      tags: [
+        "zzz"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F637}",
+      description: "face with medical mask",
+      category: "Smileys & Emotion",
+      aliases: [
+        "mask"
+      ],
+      tags: [
+        "sick",
+        "ill"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F912}",
+      description: "face with thermometer",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_thermometer"
+      ],
+      tags: [
+        "sick"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F915}",
+      description: "face with head-bandage",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_head_bandage"
+      ],
+      tags: [
+        "hurt"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F922}",
+      description: "nauseated face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "nauseated_face"
+      ],
+      tags: [
+        "sick",
+        "barf",
+        "disgusted"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F92E}",
+      description: "face vomiting",
+      category: "Smileys & Emotion",
+      aliases: [
+        "vomiting_face"
+      ],
+      tags: [
+        "barf",
+        "sick"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F927}",
+      description: "sneezing face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sneezing_face"
+      ],
+      tags: [
+        "achoo",
+        "sick"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F975}",
+      description: "hot face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hot_face"
+      ],
+      tags: [
+        "heat",
+        "sweating"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F976}",
+      description: "cold face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cold_face"
+      ],
+      tags: [
+        "freezing",
+        "ice"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F974}",
+      description: "woozy face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "woozy_face"
+      ],
+      tags: [
+        "groggy"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F635}",
+      description: "face with crossed-out eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "dizzy_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F635}\u200D\u{1F4AB}",
+      description: "face with spiral eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_spiral_eyes"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F92F}",
+      description: "exploding head",
+      category: "Smileys & Emotion",
+      aliases: [
+        "exploding_head"
+      ],
+      tags: [
+        "mind",
+        "blown"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F920}",
+      description: "cowboy hat face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cowboy_hat_face"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F973}",
+      description: "partying face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "partying_face"
+      ],
+      tags: [
+        "celebration",
+        "birthday"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F978}",
+      description: "disguised face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "disguised_face"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F60E}",
+      description: "smiling face with sunglasses",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sunglasses"
+      ],
+      tags: [
+        "cool"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F913}",
+      description: "nerd face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "nerd_face"
+      ],
+      tags: [
+        "geek",
+        "glasses"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9D0}",
+      description: "face with monocle",
+      category: "Smileys & Emotion",
+      aliases: [
+        "monocle_face"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F615}",
+      description: "confused face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "confused"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAE4}",
+      description: "face with diagonal mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_with_diagonal_mouth"
+      ],
+      tags: [
+        "confused"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F61F}",
+      description: "worried face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "worried"
+      ],
+      tags: [
+        "nervous"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F641}",
+      description: "slightly frowning face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "slightly_frowning_face"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2639\uFE0F",
+      description: "frowning face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "frowning_face"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F62E}",
+      description: "face with open mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "open_mouth"
+      ],
+      tags: [
+        "surprise",
+        "impressed",
+        "wow"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F62F}",
+      description: "hushed face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hushed"
+      ],
+      tags: [
+        "silence",
+        "speechless"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F632}",
+      description: "astonished face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "astonished"
+      ],
+      tags: [
+        "amazed",
+        "gasp"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F633}",
+      description: "flushed face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "flushed"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F97A}",
+      description: "pleading face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "pleading_face"
+      ],
+      tags: [
+        "puppy",
+        "eyes"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F979}",
+      description: "face holding back tears",
+      category: "Smileys & Emotion",
+      aliases: [
+        "face_holding_back_tears"
+      ],
+      tags: [
+        "tears",
+        "gratitude"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F626}",
+      description: "frowning face with open mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "frowning"
+      ],
+      tags: [],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F627}",
+      description: "anguished face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "anguished"
+      ],
+      tags: [
+        "stunned"
+      ],
+      unicode_version: "6.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F628}",
+      description: "fearful face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "fearful"
+      ],
+      tags: [
+        "scared",
+        "shocked",
+        "oops"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F630}",
+      description: "anxious face with sweat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cold_sweat"
+      ],
+      tags: [
+        "nervous"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F625}",
+      description: "sad but relieved face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "disappointed_relieved"
+      ],
+      tags: [
+        "phew",
+        "sweat",
+        "nervous"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F622}",
+      description: "crying face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cry"
+      ],
+      tags: [
+        "sad",
+        "tear"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F62D}",
+      description: "loudly crying face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sob"
+      ],
+      tags: [
+        "sad",
+        "cry",
+        "bawling"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F631}",
+      description: "face screaming in fear",
+      category: "Smileys & Emotion",
+      aliases: [
+        "scream"
+      ],
+      tags: [
+        "horror",
+        "shocked"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F616}",
+      description: "confounded face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "confounded"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F623}",
+      description: "persevering face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "persevere"
+      ],
+      tags: [
+        "struggling"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F61E}",
+      description: "disappointed face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "disappointed"
+      ],
+      tags: [
+        "sad"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F613}",
+      description: "downcast face with sweat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sweat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F629}",
+      description: "weary face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "weary"
+      ],
+      tags: [
+        "tired"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F62B}",
+      description: "tired face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "tired_face"
+      ],
+      tags: [
+        "upset",
+        "whine"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F971}",
+      description: "yawning face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "yawning_face"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F624}",
+      description: "face with steam from nose",
+      category: "Smileys & Emotion",
+      aliases: [
+        "triumph"
+      ],
+      tags: [
+        "smug"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F621}",
+      description: "enraged face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "rage",
+        "pout"
+      ],
+      tags: [
+        "angry"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F620}",
+      description: "angry face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "angry"
+      ],
+      tags: [
+        "mad",
+        "annoyed"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F92C}",
+      description: "face with symbols on mouth",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cursing_face"
+      ],
+      tags: [
+        "foul"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F608}",
+      description: "smiling face with horns",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smiling_imp"
+      ],
+      tags: [
+        "devil",
+        "evil",
+        "horns"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F47F}",
+      description: "angry face with horns",
+      category: "Smileys & Emotion",
+      aliases: [
+        "imp"
+      ],
+      tags: [
+        "angry",
+        "devil",
+        "evil",
+        "horns"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F480}",
+      description: "skull",
+      category: "Smileys & Emotion",
+      aliases: [
+        "skull"
+      ],
+      tags: [
+        "dead",
+        "danger",
+        "poison"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2620\uFE0F",
+      description: "skull and crossbones",
+      category: "Smileys & Emotion",
+      aliases: [
+        "skull_and_crossbones"
+      ],
+      tags: [
+        "danger",
+        "pirate"
+      ],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4A9}",
+      description: "pile of poo",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hankey",
+        "poop",
+        "shit"
+      ],
+      tags: [
+        "crap"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F921}",
+      description: "clown face",
+      category: "Smileys & Emotion",
+      aliases: [
+        "clown_face"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F479}",
+      description: "ogre",
+      category: "Smileys & Emotion",
+      aliases: [
+        "japanese_ogre"
+      ],
+      tags: [
+        "monster"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F47A}",
+      description: "goblin",
+      category: "Smileys & Emotion",
+      aliases: [
+        "japanese_goblin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F47B}",
+      description: "ghost",
+      category: "Smileys & Emotion",
+      aliases: [
+        "ghost"
+      ],
+      tags: [
+        "halloween"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F47D}",
+      description: "alien",
+      category: "Smileys & Emotion",
+      aliases: [
+        "alien"
+      ],
+      tags: [
+        "ufo"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F47E}",
+      description: "alien monster",
+      category: "Smileys & Emotion",
+      aliases: [
+        "space_invader"
+      ],
+      tags: [
+        "game",
+        "retro"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F916}",
+      description: "robot",
+      category: "Smileys & Emotion",
+      aliases: [
+        "robot"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F63A}",
+      description: "grinning cat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smiley_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F638}",
+      description: "grinning cat with smiling eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smile_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F639}",
+      description: "cat with tears of joy",
+      category: "Smileys & Emotion",
+      aliases: [
+        "joy_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F63B}",
+      description: "smiling cat with heart-eyes",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heart_eyes_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F63C}",
+      description: "cat with wry smile",
+      category: "Smileys & Emotion",
+      aliases: [
+        "smirk_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F63D}",
+      description: "kissing cat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kissing_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F640}",
+      description: "weary cat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "scream_cat"
+      ],
+      tags: [
+        "horror"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F63F}",
+      description: "crying cat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "crying_cat_face"
+      ],
+      tags: [
+        "sad",
+        "tear"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F63E}",
+      description: "pouting cat",
+      category: "Smileys & Emotion",
+      aliases: [
+        "pouting_cat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F648}",
+      description: "see-no-evil monkey",
+      category: "Smileys & Emotion",
+      aliases: [
+        "see_no_evil"
+      ],
+      tags: [
+        "monkey",
+        "blind",
+        "ignore"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F649}",
+      description: "hear-no-evil monkey",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hear_no_evil"
+      ],
+      tags: [
+        "monkey",
+        "deaf"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F64A}",
+      description: "speak-no-evil monkey",
+      category: "Smileys & Emotion",
+      aliases: [
+        "speak_no_evil"
+      ],
+      tags: [
+        "monkey",
+        "mute",
+        "hush"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F48C}",
+      description: "love letter",
+      category: "Smileys & Emotion",
+      aliases: [
+        "love_letter"
+      ],
+      tags: [
+        "email",
+        "envelope"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F498}",
+      description: "heart with arrow",
+      category: "Smileys & Emotion",
+      aliases: [
+        "cupid"
+      ],
+      tags: [
+        "love",
+        "heart"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F49D}",
+      description: "heart with ribbon",
+      category: "Smileys & Emotion",
+      aliases: [
+        "gift_heart"
+      ],
+      tags: [
+        "chocolates"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F496}",
+      description: "sparkling heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sparkling_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F497}",
+      description: "growing heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heartpulse"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F493}",
+      description: "beating heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heartbeat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F49E}",
+      description: "revolving hearts",
+      category: "Smileys & Emotion",
+      aliases: [
+        "revolving_hearts"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F495}",
+      description: "two hearts",
+      category: "Smileys & Emotion",
+      aliases: [
+        "two_hearts"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F49F}",
+      description: "heart decoration",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heart_decoration"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2763\uFE0F",
+      description: "heart exclamation",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heavy_heart_exclamation"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F494}",
+      description: "broken heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "broken_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2764\uFE0F\u200D\u{1F525}",
+      description: "heart on fire",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heart_on_fire"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u2764\uFE0F\u200D\u{1FA79}",
+      description: "mending heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "mending_heart"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u2764\uFE0F",
+      description: "red heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "heart"
+      ],
+      tags: [
+        "love"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA77}",
+      description: "pink heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "pink_heart"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F9E1}",
+      description: "orange heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "orange_heart"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F49B}",
+      description: "yellow heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "yellow_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F49A}",
+      description: "green heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "green_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F499}",
+      description: "blue heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "blue_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA75}",
+      description: "light blue heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "light_blue_heart"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F49C}",
+      description: "purple heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "purple_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F90E}",
+      description: "brown heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "brown_heart"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F5A4}",
+      description: "black heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "black_heart"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FA76}",
+      description: "grey heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "grey_heart"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F90D}",
+      description: "white heart",
+      category: "Smileys & Emotion",
+      aliases: [
+        "white_heart"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F48B}",
+      description: "kiss mark",
+      category: "Smileys & Emotion",
+      aliases: [
+        "kiss"
+      ],
+      tags: [
+        "lipstick"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4AF}",
+      description: "hundred points",
+      category: "Smileys & Emotion",
+      aliases: [
+        "100"
+      ],
+      tags: [
+        "score",
+        "perfect"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A2}",
+      description: "anger symbol",
+      category: "Smileys & Emotion",
+      aliases: [
+        "anger"
+      ],
+      tags: [
+        "angry"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A5}",
+      description: "collision",
+      category: "Smileys & Emotion",
+      aliases: [
+        "boom",
+        "collision"
+      ],
+      tags: [
+        "explode"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4AB}",
+      description: "dizzy",
+      category: "Smileys & Emotion",
+      aliases: [
+        "dizzy"
+      ],
+      tags: [
+        "star"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A6}",
+      description: "sweat droplets",
+      category: "Smileys & Emotion",
+      aliases: [
+        "sweat_drops"
+      ],
+      tags: [
+        "water",
+        "workout"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A8}",
+      description: "dashing away",
+      category: "Smileys & Emotion",
+      aliases: [
+        "dash"
+      ],
+      tags: [
+        "wind",
+        "blow",
+        "fast"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F573}\uFE0F",
+      description: "hole",
+      category: "Smileys & Emotion",
+      aliases: [
+        "hole"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4AC}",
+      description: "speech balloon",
+      category: "Smileys & Emotion",
+      aliases: [
+        "speech_balloon"
+      ],
+      tags: [
+        "comment"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F",
+      description: "eye in speech bubble",
+      category: "Smileys & Emotion",
+      aliases: [
+        "eye_speech_bubble"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F5E8}\uFE0F",
+      description: "left speech bubble",
+      category: "Smileys & Emotion",
+      aliases: [
+        "left_speech_bubble"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F5EF}\uFE0F",
+      description: "right anger bubble",
+      category: "Smileys & Emotion",
+      aliases: [
+        "right_anger_bubble"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4AD}",
+      description: "thought balloon",
+      category: "Smileys & Emotion",
+      aliases: [
+        "thought_balloon"
+      ],
+      tags: [
+        "thinking"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A4}",
+      description: "ZZZ",
+      category: "Smileys & Emotion",
+      aliases: [
+        "zzz"
+      ],
+      tags: [
+        "sleeping"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F44B}",
+      description: "waving hand",
+      category: "People & Body",
+      aliases: [
+        "wave"
+      ],
+      tags: [
+        "goodbye"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91A}",
+      description: "raised back of hand",
+      category: "People & Body",
+      aliases: [
+        "raised_back_of_hand"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F590}\uFE0F",
+      description: "hand with fingers splayed",
+      category: "People & Body",
+      aliases: [
+        "raised_hand_with_fingers_splayed"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u270B",
+      description: "raised hand",
+      category: "People & Body",
+      aliases: [
+        "hand",
+        "raised_hand"
+      ],
+      tags: [
+        "highfive",
+        "stop"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F596}",
+      description: "vulcan salute",
+      category: "People & Body",
+      aliases: [
+        "vulcan_salute"
+      ],
+      tags: [
+        "prosper",
+        "spock"
+      ],
+      unicode_version: "7.0",
+      ios_version: "8.3",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF1}",
+      description: "rightwards hand",
+      category: "People & Body",
+      aliases: [
+        "rightwards_hand"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF2}",
+      description: "leftwards hand",
+      category: "People & Body",
+      aliases: [
+        "leftwards_hand"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF3}",
+      description: "palm down hand",
+      category: "People & Body",
+      aliases: [
+        "palm_down_hand"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF4}",
+      description: "palm up hand",
+      category: "People & Body",
+      aliases: [
+        "palm_up_hand"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF7}",
+      description: "leftwards pushing hand",
+      category: "People & Body",
+      aliases: [
+        "leftwards_pushing_hand"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF8}",
+      description: "rightwards pushing hand",
+      category: "People & Body",
+      aliases: [
+        "rightwards_pushing_hand"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F44C}",
+      description: "OK hand",
+      category: "People & Body",
+      aliases: [
+        "ok_hand"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F90C}",
+      description: "pinched fingers",
+      category: "People & Body",
+      aliases: [
+        "pinched_fingers"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F90F}",
+      description: "pinching hand",
+      category: "People & Body",
+      aliases: [
+        "pinching_hand"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u270C\uFE0F",
+      description: "victory hand",
+      category: "People & Body",
+      aliases: [
+        "v"
+      ],
+      tags: [
+        "victory",
+        "peace"
+      ],
+      unicode_version: "",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91E}",
+      description: "crossed fingers",
+      category: "People & Body",
+      aliases: [
+        "crossed_fingers"
+      ],
+      tags: [
+        "luck",
+        "hopeful"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF0}",
+      description: "hand with index finger and thumb crossed",
+      category: "People & Body",
+      aliases: [
+        "hand_with_index_finger_and_thumb_crossed"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91F}",
+      description: "love-you gesture",
+      category: "People & Body",
+      aliases: [
+        "love_you_gesture"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F918}",
+      description: "sign of the horns",
+      category: "People & Body",
+      aliases: [
+        "metal"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F919}",
+      description: "call me hand",
+      category: "People & Body",
+      aliases: [
+        "call_me_hand"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F448}",
+      description: "backhand index pointing left",
+      category: "People & Body",
+      aliases: [
+        "point_left"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F449}",
+      description: "backhand index pointing right",
+      category: "People & Body",
+      aliases: [
+        "point_right"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F446}",
+      description: "backhand index pointing up",
+      category: "People & Body",
+      aliases: [
+        "point_up_2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F595}",
+      description: "middle finger",
+      category: "People & Body",
+      aliases: [
+        "middle_finger",
+        "fu"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F447}",
+      description: "backhand index pointing down",
+      category: "People & Body",
+      aliases: [
+        "point_down"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u261D\uFE0F",
+      description: "index pointing up",
+      category: "People & Body",
+      aliases: [
+        "point_up"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF5}",
+      description: "index pointing at the viewer",
+      category: "People & Body",
+      aliases: [
+        "index_pointing_at_the_viewer"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F44D}",
+      description: "thumbs up",
+      category: "People & Body",
+      aliases: [
+        "+1",
+        "thumbsup"
+      ],
+      tags: [
+        "approve",
+        "ok"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F44E}",
+      description: "thumbs down",
+      category: "People & Body",
+      aliases: [
+        "-1",
+        "thumbsdown"
+      ],
+      tags: [
+        "disapprove",
+        "bury"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u270A",
+      description: "raised fist",
+      category: "People & Body",
+      aliases: [
+        "fist_raised",
+        "fist"
+      ],
+      tags: [
+        "power"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F44A}",
+      description: "oncoming fist",
+      category: "People & Body",
+      aliases: [
+        "fist_oncoming",
+        "facepunch",
+        "punch"
+      ],
+      tags: [
+        "attack"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91B}",
+      description: "left-facing fist",
+      category: "People & Body",
+      aliases: [
+        "fist_left"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91C}",
+      description: "right-facing fist",
+      category: "People & Body",
+      aliases: [
+        "fist_right"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F44F}",
+      description: "clapping hands",
+      category: "People & Body",
+      aliases: [
+        "clap"
+      ],
+      tags: [
+        "praise",
+        "applause"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64C}",
+      description: "raising hands",
+      category: "People & Body",
+      aliases: [
+        "raised_hands"
+      ],
+      tags: [
+        "hooray"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAF6}",
+      description: "heart hands",
+      category: "People & Body",
+      aliases: [
+        "heart_hands"
+      ],
+      tags: [
+        "love"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F450}",
+      description: "open hands",
+      category: "People & Body",
+      aliases: [
+        "open_hands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F932}",
+      description: "palms up together",
+      category: "People & Body",
+      aliases: [
+        "palms_up_together"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F91D}",
+      description: "handshake",
+      category: "People & Body",
+      aliases: [
+        "handshake"
+      ],
+      tags: [
+        "deal"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64F}",
+      description: "folded hands",
+      category: "People & Body",
+      aliases: [
+        "pray"
+      ],
+      tags: [
+        "please",
+        "hope",
+        "wish"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u270D\uFE0F",
+      description: "writing hand",
+      category: "People & Body",
+      aliases: [
+        "writing_hand"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F485}",
+      description: "nail polish",
+      category: "People & Body",
+      aliases: [
+        "nail_care"
+      ],
+      tags: [
+        "beauty",
+        "manicure"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F933}",
+      description: "selfie",
+      category: "People & Body",
+      aliases: [
+        "selfie"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F4AA}",
+      description: "flexed biceps",
+      category: "People & Body",
+      aliases: [
+        "muscle"
+      ],
+      tags: [
+        "flex",
+        "bicep",
+        "strong",
+        "workout"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9BE}",
+      description: "mechanical arm",
+      category: "People & Body",
+      aliases: [
+        "mechanical_arm"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9BF}",
+      description: "mechanical leg",
+      category: "People & Body",
+      aliases: [
+        "mechanical_leg"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9B5}",
+      description: "leg",
+      category: "People & Body",
+      aliases: [
+        "leg"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B6}",
+      description: "foot",
+      category: "People & Body",
+      aliases: [
+        "foot"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F442}",
+      description: "ear",
+      category: "People & Body",
+      aliases: [
+        "ear"
+      ],
+      tags: [
+        "hear",
+        "sound",
+        "listen"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9BB}",
+      description: "ear with hearing aid",
+      category: "People & Body",
+      aliases: [
+        "ear_with_hearing_aid"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F443}",
+      description: "nose",
+      category: "People & Body",
+      aliases: [
+        "nose"
+      ],
+      tags: [
+        "smell"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9E0}",
+      description: "brain",
+      category: "People & Body",
+      aliases: [
+        "brain"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAC0}",
+      description: "anatomical heart",
+      category: "People & Body",
+      aliases: [
+        "anatomical_heart"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAC1}",
+      description: "lungs",
+      category: "People & Body",
+      aliases: [
+        "lungs"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9B7}",
+      description: "tooth",
+      category: "People & Body",
+      aliases: [
+        "tooth"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9B4}",
+      description: "bone",
+      category: "People & Body",
+      aliases: [
+        "bone"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F440}",
+      description: "eyes",
+      category: "People & Body",
+      aliases: [
+        "eyes"
+      ],
+      tags: [
+        "look",
+        "see",
+        "watch"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F441}\uFE0F",
+      description: "eye",
+      category: "People & Body",
+      aliases: [
+        "eye"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F445}",
+      description: "tongue",
+      category: "People & Body",
+      aliases: [
+        "tongue"
+      ],
+      tags: [
+        "taste"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F444}",
+      description: "mouth",
+      category: "People & Body",
+      aliases: [
+        "lips"
+      ],
+      tags: [
+        "kiss"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAE6}",
+      description: "biting lip",
+      category: "People & Body",
+      aliases: [
+        "biting_lip"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F476}",
+      description: "baby",
+      category: "People & Body",
+      aliases: [
+        "baby"
+      ],
+      tags: [
+        "child",
+        "newborn"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D2}",
+      description: "child",
+      category: "People & Body",
+      aliases: [
+        "child"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F466}",
+      description: "boy",
+      category: "People & Body",
+      aliases: [
+        "boy"
+      ],
+      tags: [
+        "child"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F467}",
+      description: "girl",
+      category: "People & Body",
+      aliases: [
+        "girl"
+      ],
+      tags: [
+        "child"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}",
+      description: "person",
+      category: "People & Body",
+      aliases: [
+        "adult"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F471}",
+      description: "person: blond hair",
+      category: "People & Body",
+      aliases: [
+        "blond_haired_person"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}",
+      description: "man",
+      category: "People & Body",
+      aliases: [
+        "man"
+      ],
+      tags: [
+        "mustache",
+        "father",
+        "dad"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D4}",
+      description: "person: beard",
+      category: "People & Body",
+      aliases: [
+        "bearded_person"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D4}\u200D\u2642\uFE0F",
+      description: "man: beard",
+      category: "People & Body",
+      aliases: [
+        "man_beard"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D4}\u200D\u2640\uFE0F",
+      description: "woman: beard",
+      category: "People & Body",
+      aliases: [
+        "woman_beard"
+      ],
+      tags: [],
+      unicode_version: "13.1",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9B0}",
+      description: "man: red hair",
+      category: "People & Body",
+      aliases: [
+        "red_haired_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9B1}",
+      description: "man: curly hair",
+      category: "People & Body",
+      aliases: [
+        "curly_haired_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9B3}",
+      description: "man: white hair",
+      category: "People & Body",
+      aliases: [
+        "white_haired_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9B2}",
+      description: "man: bald",
+      category: "People & Body",
+      aliases: [
+        "bald_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}",
+      description: "woman",
+      category: "People & Body",
+      aliases: [
+        "woman"
+      ],
+      tags: [
+        "girls"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9B0}",
+      description: "woman: red hair",
+      category: "People & Body",
+      aliases: [
+        "red_haired_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9B0}",
+      description: "person: red hair",
+      category: "People & Body",
+      aliases: [
+        "person_red_hair"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9B1}",
+      description: "woman: curly hair",
+      category: "People & Body",
+      aliases: [
+        "curly_haired_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9B1}",
+      description: "person: curly hair",
+      category: "People & Body",
+      aliases: [
+        "person_curly_hair"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9B3}",
+      description: "woman: white hair",
+      category: "People & Body",
+      aliases: [
+        "white_haired_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9B3}",
+      description: "person: white hair",
+      category: "People & Body",
+      aliases: [
+        "person_white_hair"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9B2}",
+      description: "woman: bald",
+      category: "People & Body",
+      aliases: [
+        "bald_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9B2}",
+      description: "person: bald",
+      category: "People & Body",
+      aliases: [
+        "person_bald"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F471}\u200D\u2640\uFE0F",
+      description: "woman: blond hair",
+      category: "People & Body",
+      aliases: [
+        "blond_haired_woman",
+        "blonde_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F471}\u200D\u2642\uFE0F",
+      description: "man: blond hair",
+      category: "People & Body",
+      aliases: [
+        "blond_haired_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D3}",
+      description: "older person",
+      category: "People & Body",
+      aliases: [
+        "older_adult"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F474}",
+      description: "old man",
+      category: "People & Body",
+      aliases: [
+        "older_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F475}",
+      description: "old woman",
+      category: "People & Body",
+      aliases: [
+        "older_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64D}",
+      description: "person frowning",
+      category: "People & Body",
+      aliases: [
+        "frowning_person"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64D}\u200D\u2642\uFE0F",
+      description: "man frowning",
+      category: "People & Body",
+      aliases: [
+        "frowning_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64D}\u200D\u2640\uFE0F",
+      description: "woman frowning",
+      category: "People & Body",
+      aliases: [
+        "frowning_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64E}",
+      description: "person pouting",
+      category: "People & Body",
+      aliases: [
+        "pouting_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64E}\u200D\u2642\uFE0F",
+      description: "man pouting",
+      category: "People & Body",
+      aliases: [
+        "pouting_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64E}\u200D\u2640\uFE0F",
+      description: "woman pouting",
+      category: "People & Body",
+      aliases: [
+        "pouting_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F645}",
+      description: "person gesturing NO",
+      category: "People & Body",
+      aliases: [
+        "no_good"
+      ],
+      tags: [
+        "stop",
+        "halt",
+        "denied"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F645}\u200D\u2642\uFE0F",
+      description: "man gesturing NO",
+      category: "People & Body",
+      aliases: [
+        "no_good_man",
+        "ng_man"
+      ],
+      tags: [
+        "stop",
+        "halt",
+        "denied"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F645}\u200D\u2640\uFE0F",
+      description: "woman gesturing NO",
+      category: "People & Body",
+      aliases: [
+        "no_good_woman",
+        "ng_woman"
+      ],
+      tags: [
+        "stop",
+        "halt",
+        "denied"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F646}",
+      description: "person gesturing OK",
+      category: "People & Body",
+      aliases: [
+        "ok_person"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F646}\u200D\u2642\uFE0F",
+      description: "man gesturing OK",
+      category: "People & Body",
+      aliases: [
+        "ok_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F646}\u200D\u2640\uFE0F",
+      description: "woman gesturing OK",
+      category: "People & Body",
+      aliases: [
+        "ok_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F481}",
+      description: "person tipping hand",
+      category: "People & Body",
+      aliases: [
+        "tipping_hand_person",
+        "information_desk_person"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F481}\u200D\u2642\uFE0F",
+      description: "man tipping hand",
+      category: "People & Body",
+      aliases: [
+        "tipping_hand_man",
+        "sassy_man"
+      ],
+      tags: [
+        "information"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F481}\u200D\u2640\uFE0F",
+      description: "woman tipping hand",
+      category: "People & Body",
+      aliases: [
+        "tipping_hand_woman",
+        "sassy_woman"
+      ],
+      tags: [
+        "information"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64B}",
+      description: "person raising hand",
+      category: "People & Body",
+      aliases: [
+        "raising_hand"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64B}\u200D\u2642\uFE0F",
+      description: "man raising hand",
+      category: "People & Body",
+      aliases: [
+        "raising_hand_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F64B}\u200D\u2640\uFE0F",
+      description: "woman raising hand",
+      category: "People & Body",
+      aliases: [
+        "raising_hand_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CF}",
+      description: "deaf person",
+      category: "People & Body",
+      aliases: [
+        "deaf_person"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CF}\u200D\u2642\uFE0F",
+      description: "deaf man",
+      category: "People & Body",
+      aliases: [
+        "deaf_man"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CF}\u200D\u2640\uFE0F",
+      description: "deaf woman",
+      category: "People & Body",
+      aliases: [
+        "deaf_woman"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F647}",
+      description: "person bowing",
+      category: "People & Body",
+      aliases: [
+        "bow"
+      ],
+      tags: [
+        "respect",
+        "thanks"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F647}\u200D\u2642\uFE0F",
+      description: "man bowing",
+      category: "People & Body",
+      aliases: [
+        "bowing_man"
+      ],
+      tags: [
+        "respect",
+        "thanks"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F647}\u200D\u2640\uFE0F",
+      description: "woman bowing",
+      category: "People & Body",
+      aliases: [
+        "bowing_woman"
+      ],
+      tags: [
+        "respect",
+        "thanks"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F926}",
+      description: "person facepalming",
+      category: "People & Body",
+      aliases: [
+        "facepalm"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F926}\u200D\u2642\uFE0F",
+      description: "man facepalming",
+      category: "People & Body",
+      aliases: [
+        "man_facepalming"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F926}\u200D\u2640\uFE0F",
+      description: "woman facepalming",
+      category: "People & Body",
+      aliases: [
+        "woman_facepalming"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F937}",
+      description: "person shrugging",
+      category: "People & Body",
+      aliases: [
+        "shrug"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F937}\u200D\u2642\uFE0F",
+      description: "man shrugging",
+      category: "People & Body",
+      aliases: [
+        "man_shrugging"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F937}\u200D\u2640\uFE0F",
+      description: "woman shrugging",
+      category: "People & Body",
+      aliases: [
+        "woman_shrugging"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u2695\uFE0F",
+      description: "health worker",
+      category: "People & Body",
+      aliases: [
+        "health_worker"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u2695\uFE0F",
+      description: "man health worker",
+      category: "People & Body",
+      aliases: [
+        "man_health_worker"
+      ],
+      tags: [
+        "doctor",
+        "nurse"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2695\uFE0F",
+      description: "woman health worker",
+      category: "People & Body",
+      aliases: [
+        "woman_health_worker"
+      ],
+      tags: [
+        "doctor",
+        "nurse"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F393}",
+      description: "student",
+      category: "People & Body",
+      aliases: [
+        "student"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F393}",
+      description: "man student",
+      category: "People & Body",
+      aliases: [
+        "man_student"
+      ],
+      tags: [
+        "graduation"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F393}",
+      description: "woman student",
+      category: "People & Body",
+      aliases: [
+        "woman_student"
+      ],
+      tags: [
+        "graduation"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F3EB}",
+      description: "teacher",
+      category: "People & Body",
+      aliases: [
+        "teacher"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F3EB}",
+      description: "man teacher",
+      category: "People & Body",
+      aliases: [
+        "man_teacher"
+      ],
+      tags: [
+        "school",
+        "professor"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F3EB}",
+      description: "woman teacher",
+      category: "People & Body",
+      aliases: [
+        "woman_teacher"
+      ],
+      tags: [
+        "school",
+        "professor"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u2696\uFE0F",
+      description: "judge",
+      category: "People & Body",
+      aliases: [
+        "judge"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u2696\uFE0F",
+      description: "man judge",
+      category: "People & Body",
+      aliases: [
+        "man_judge"
+      ],
+      tags: [
+        "justice"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2696\uFE0F",
+      description: "woman judge",
+      category: "People & Body",
+      aliases: [
+        "woman_judge"
+      ],
+      tags: [
+        "justice"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F33E}",
+      description: "farmer",
+      category: "People & Body",
+      aliases: [
+        "farmer"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F33E}",
+      description: "man farmer",
+      category: "People & Body",
+      aliases: [
+        "man_farmer"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F33E}",
+      description: "woman farmer",
+      category: "People & Body",
+      aliases: [
+        "woman_farmer"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F373}",
+      description: "cook",
+      category: "People & Body",
+      aliases: [
+        "cook"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F373}",
+      description: "man cook",
+      category: "People & Body",
+      aliases: [
+        "man_cook"
+      ],
+      tags: [
+        "chef"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F373}",
+      description: "woman cook",
+      category: "People & Body",
+      aliases: [
+        "woman_cook"
+      ],
+      tags: [
+        "chef"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F527}",
+      description: "mechanic",
+      category: "People & Body",
+      aliases: [
+        "mechanic"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F527}",
+      description: "man mechanic",
+      category: "People & Body",
+      aliases: [
+        "man_mechanic"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F527}",
+      description: "woman mechanic",
+      category: "People & Body",
+      aliases: [
+        "woman_mechanic"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F3ED}",
+      description: "factory worker",
+      category: "People & Body",
+      aliases: [
+        "factory_worker"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F3ED}",
+      description: "man factory worker",
+      category: "People & Body",
+      aliases: [
+        "man_factory_worker"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F3ED}",
+      description: "woman factory worker",
+      category: "People & Body",
+      aliases: [
+        "woman_factory_worker"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F4BC}",
+      description: "office worker",
+      category: "People & Body",
+      aliases: [
+        "office_worker"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F4BC}",
+      description: "man office worker",
+      category: "People & Body",
+      aliases: [
+        "man_office_worker"
+      ],
+      tags: [
+        "business"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F4BC}",
+      description: "woman office worker",
+      category: "People & Body",
+      aliases: [
+        "woman_office_worker"
+      ],
+      tags: [
+        "business"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F52C}",
+      description: "scientist",
+      category: "People & Body",
+      aliases: [
+        "scientist"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F52C}",
+      description: "man scientist",
+      category: "People & Body",
+      aliases: [
+        "man_scientist"
+      ],
+      tags: [
+        "research"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F52C}",
+      description: "woman scientist",
+      category: "People & Body",
+      aliases: [
+        "woman_scientist"
+      ],
+      tags: [
+        "research"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F4BB}",
+      description: "technologist",
+      category: "People & Body",
+      aliases: [
+        "technologist"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F4BB}",
+      description: "man technologist",
+      category: "People & Body",
+      aliases: [
+        "man_technologist"
+      ],
+      tags: [
+        "coder"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F4BB}",
+      description: "woman technologist",
+      category: "People & Body",
+      aliases: [
+        "woman_technologist"
+      ],
+      tags: [
+        "coder"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F3A4}",
+      description: "singer",
+      category: "People & Body",
+      aliases: [
+        "singer"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F3A4}",
+      description: "man singer",
+      category: "People & Body",
+      aliases: [
+        "man_singer"
+      ],
+      tags: [
+        "rockstar"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F3A4}",
+      description: "woman singer",
+      category: "People & Body",
+      aliases: [
+        "woman_singer"
+      ],
+      tags: [
+        "rockstar"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F3A8}",
+      description: "artist",
+      category: "People & Body",
+      aliases: [
+        "artist"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F3A8}",
+      description: "man artist",
+      category: "People & Body",
+      aliases: [
+        "man_artist"
+      ],
+      tags: [
+        "painter"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F3A8}",
+      description: "woman artist",
+      category: "People & Body",
+      aliases: [
+        "woman_artist"
+      ],
+      tags: [
+        "painter"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u2708\uFE0F",
+      description: "pilot",
+      category: "People & Body",
+      aliases: [
+        "pilot"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u2708\uFE0F",
+      description: "man pilot",
+      category: "People & Body",
+      aliases: [
+        "man_pilot"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2708\uFE0F",
+      description: "woman pilot",
+      category: "People & Body",
+      aliases: [
+        "woman_pilot"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F680}",
+      description: "astronaut",
+      category: "People & Body",
+      aliases: [
+        "astronaut"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F680}",
+      description: "man astronaut",
+      category: "People & Body",
+      aliases: [
+        "man_astronaut"
+      ],
+      tags: [
+        "space"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F680}",
+      description: "woman astronaut",
+      category: "People & Body",
+      aliases: [
+        "woman_astronaut"
+      ],
+      tags: [
+        "space"
+      ],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F692}",
+      description: "firefighter",
+      category: "People & Body",
+      aliases: [
+        "firefighter"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F692}",
+      description: "man firefighter",
+      category: "People & Body",
+      aliases: [
+        "man_firefighter"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F692}",
+      description: "woman firefighter",
+      category: "People & Body",
+      aliases: [
+        "woman_firefighter"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46E}",
+      description: "police officer",
+      category: "People & Body",
+      aliases: [
+        "police_officer",
+        "cop"
+      ],
+      tags: [
+        "law"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46E}\u200D\u2642\uFE0F",
+      description: "man police officer",
+      category: "People & Body",
+      aliases: [
+        "policeman"
+      ],
+      tags: [
+        "law",
+        "cop"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46E}\u200D\u2640\uFE0F",
+      description: "woman police officer",
+      category: "People & Body",
+      aliases: [
+        "policewoman"
+      ],
+      tags: [
+        "law",
+        "cop"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F575}\uFE0F",
+      description: "detective",
+      category: "People & Body",
+      aliases: [
+        "detective"
+      ],
+      tags: [
+        "sleuth"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F575}\uFE0F\u200D\u2642\uFE0F",
+      description: "man detective",
+      category: "People & Body",
+      aliases: [
+        "male_detective"
+      ],
+      tags: [
+        "sleuth"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F575}\uFE0F\u200D\u2640\uFE0F",
+      description: "woman detective",
+      category: "People & Body",
+      aliases: [
+        "female_detective"
+      ],
+      tags: [
+        "sleuth"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F482}",
+      description: "guard",
+      category: "People & Body",
+      aliases: [
+        "guard"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F482}\u200D\u2642\uFE0F",
+      description: "man guard",
+      category: "People & Body",
+      aliases: [
+        "guardsman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F482}\u200D\u2640\uFE0F",
+      description: "woman guard",
+      category: "People & Body",
+      aliases: [
+        "guardswoman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F977}",
+      description: "ninja",
+      category: "People & Body",
+      aliases: [
+        "ninja"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F477}",
+      description: "construction worker",
+      category: "People & Body",
+      aliases: [
+        "construction_worker"
+      ],
+      tags: [
+        "helmet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F477}\u200D\u2642\uFE0F",
+      description: "man construction worker",
+      category: "People & Body",
+      aliases: [
+        "construction_worker_man"
+      ],
+      tags: [
+        "helmet"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F477}\u200D\u2640\uFE0F",
+      description: "woman construction worker",
+      category: "People & Body",
+      aliases: [
+        "construction_worker_woman"
+      ],
+      tags: [
+        "helmet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAC5}",
+      description: "person with crown",
+      category: "People & Body",
+      aliases: [
+        "person_with_crown"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F934}",
+      description: "prince",
+      category: "People & Body",
+      aliases: [
+        "prince"
+      ],
+      tags: [
+        "crown",
+        "royal"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F478}",
+      description: "princess",
+      category: "People & Body",
+      aliases: [
+        "princess"
+      ],
+      tags: [
+        "crown",
+        "royal"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F473}",
+      description: "person wearing turban",
+      category: "People & Body",
+      aliases: [
+        "person_with_turban"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F473}\u200D\u2642\uFE0F",
+      description: "man wearing turban",
+      category: "People & Body",
+      aliases: [
+        "man_with_turban"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F473}\u200D\u2640\uFE0F",
+      description: "woman wearing turban",
+      category: "People & Body",
+      aliases: [
+        "woman_with_turban"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F472}",
+      description: "person with skullcap",
+      category: "People & Body",
+      aliases: [
+        "man_with_gua_pi_mao"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D5}",
+      description: "woman with headscarf",
+      category: "People & Body",
+      aliases: [
+        "woman_with_headscarf"
+      ],
+      tags: [
+        "hijab"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F935}",
+      description: "person in tuxedo",
+      category: "People & Body",
+      aliases: [
+        "person_in_tuxedo"
+      ],
+      tags: [
+        "groom",
+        "marriage",
+        "wedding"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F935}\u200D\u2642\uFE0F",
+      description: "man in tuxedo",
+      category: "People & Body",
+      aliases: [
+        "man_in_tuxedo"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F935}\u200D\u2640\uFE0F",
+      description: "woman in tuxedo",
+      category: "People & Body",
+      aliases: [
+        "woman_in_tuxedo"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F470}",
+      description: "person with veil",
+      category: "People & Body",
+      aliases: [
+        "person_with_veil"
+      ],
+      tags: [
+        "marriage",
+        "wedding"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F470}\u200D\u2642\uFE0F",
+      description: "man with veil",
+      category: "People & Body",
+      aliases: [
+        "man_with_veil"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F470}\u200D\u2640\uFE0F",
+      description: "woman with veil",
+      category: "People & Body",
+      aliases: [
+        "woman_with_veil",
+        "bride_with_veil"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F930}",
+      description: "pregnant woman",
+      category: "People & Body",
+      aliases: [
+        "pregnant_woman"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAC3}",
+      description: "pregnant man",
+      category: "People & Body",
+      aliases: [
+        "pregnant_man"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1FAC4}",
+      description: "pregnant person",
+      category: "People & Body",
+      aliases: [
+        "pregnant_person"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F931}",
+      description: "breast-feeding",
+      category: "People & Body",
+      aliases: [
+        "breast_feeding"
+      ],
+      tags: [
+        "nursing"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F37C}",
+      description: "woman feeding baby",
+      category: "People & Body",
+      aliases: [
+        "woman_feeding_baby"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F37C}",
+      description: "man feeding baby",
+      category: "People & Body",
+      aliases: [
+        "man_feeding_baby"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F37C}",
+      description: "person feeding baby",
+      category: "People & Body",
+      aliases: [
+        "person_feeding_baby"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F47C}",
+      description: "baby angel",
+      category: "People & Body",
+      aliases: [
+        "angel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F385}",
+      description: "Santa Claus",
+      category: "People & Body",
+      aliases: [
+        "santa"
+      ],
+      tags: [
+        "christmas"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F936}",
+      description: "Mrs. Claus",
+      category: "People & Body",
+      aliases: [
+        "mrs_claus"
+      ],
+      tags: [
+        "santa"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F384}",
+      description: "mx claus",
+      category: "People & Body",
+      aliases: [
+        "mx_claus"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B8}",
+      description: "superhero",
+      category: "People & Body",
+      aliases: [
+        "superhero"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B8}\u200D\u2642\uFE0F",
+      description: "man superhero",
+      category: "People & Body",
+      aliases: [
+        "superhero_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B8}\u200D\u2640\uFE0F",
+      description: "woman superhero",
+      category: "People & Body",
+      aliases: [
+        "superhero_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B9}",
+      description: "supervillain",
+      category: "People & Body",
+      aliases: [
+        "supervillain"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B9}\u200D\u2642\uFE0F",
+      description: "man supervillain",
+      category: "People & Body",
+      aliases: [
+        "supervillain_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9B9}\u200D\u2640\uFE0F",
+      description: "woman supervillain",
+      category: "People & Body",
+      aliases: [
+        "supervillain_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D9}",
+      description: "mage",
+      category: "People & Body",
+      aliases: [
+        "mage"
+      ],
+      tags: [
+        "wizard"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D9}\u200D\u2642\uFE0F",
+      description: "man mage",
+      category: "People & Body",
+      aliases: [
+        "mage_man"
+      ],
+      tags: [
+        "wizard"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D9}\u200D\u2640\uFE0F",
+      description: "woman mage",
+      category: "People & Body",
+      aliases: [
+        "mage_woman"
+      ],
+      tags: [
+        "wizard"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DA}",
+      description: "fairy",
+      category: "People & Body",
+      aliases: [
+        "fairy"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DA}\u200D\u2642\uFE0F",
+      description: "man fairy",
+      category: "People & Body",
+      aliases: [
+        "fairy_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DA}\u200D\u2640\uFE0F",
+      description: "woman fairy",
+      category: "People & Body",
+      aliases: [
+        "fairy_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DB}",
+      description: "vampire",
+      category: "People & Body",
+      aliases: [
+        "vampire"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DB}\u200D\u2642\uFE0F",
+      description: "man vampire",
+      category: "People & Body",
+      aliases: [
+        "vampire_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DB}\u200D\u2640\uFE0F",
+      description: "woman vampire",
+      category: "People & Body",
+      aliases: [
+        "vampire_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DC}",
+      description: "merperson",
+      category: "People & Body",
+      aliases: [
+        "merperson"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DC}\u200D\u2642\uFE0F",
+      description: "merman",
+      category: "People & Body",
+      aliases: [
+        "merman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DC}\u200D\u2640\uFE0F",
+      description: "mermaid",
+      category: "People & Body",
+      aliases: [
+        "mermaid"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DD}",
+      description: "elf",
+      category: "People & Body",
+      aliases: [
+        "elf"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DD}\u200D\u2642\uFE0F",
+      description: "man elf",
+      category: "People & Body",
+      aliases: [
+        "elf_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DD}\u200D\u2640\uFE0F",
+      description: "woman elf",
+      category: "People & Body",
+      aliases: [
+        "elf_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9DE}",
+      description: "genie",
+      category: "People & Body",
+      aliases: [
+        "genie"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9DE}\u200D\u2642\uFE0F",
+      description: "man genie",
+      category: "People & Body",
+      aliases: [
+        "genie_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9DE}\u200D\u2640\uFE0F",
+      description: "woman genie",
+      category: "People & Body",
+      aliases: [
+        "genie_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9DF}",
+      description: "zombie",
+      category: "People & Body",
+      aliases: [
+        "zombie"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9DF}\u200D\u2642\uFE0F",
+      description: "man zombie",
+      category: "People & Body",
+      aliases: [
+        "zombie_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9DF}\u200D\u2640\uFE0F",
+      description: "woman zombie",
+      category: "People & Body",
+      aliases: [
+        "zombie_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9CC}",
+      description: "troll",
+      category: "People & Body",
+      aliases: [
+        "troll"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F486}",
+      description: "person getting massage",
+      category: "People & Body",
+      aliases: [
+        "massage"
+      ],
+      tags: [
+        "spa"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F486}\u200D\u2642\uFE0F",
+      description: "man getting massage",
+      category: "People & Body",
+      aliases: [
+        "massage_man"
+      ],
+      tags: [
+        "spa"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F486}\u200D\u2640\uFE0F",
+      description: "woman getting massage",
+      category: "People & Body",
+      aliases: [
+        "massage_woman"
+      ],
+      tags: [
+        "spa"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F487}",
+      description: "person getting haircut",
+      category: "People & Body",
+      aliases: [
+        "haircut"
+      ],
+      tags: [
+        "beauty"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F487}\u200D\u2642\uFE0F",
+      description: "man getting haircut",
+      category: "People & Body",
+      aliases: [
+        "haircut_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F487}\u200D\u2640\uFE0F",
+      description: "woman getting haircut",
+      category: "People & Body",
+      aliases: [
+        "haircut_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B6}",
+      description: "person walking",
+      category: "People & Body",
+      aliases: [
+        "walking"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B6}\u200D\u2642\uFE0F",
+      description: "man walking",
+      category: "People & Body",
+      aliases: [
+        "walking_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B6}\u200D\u2640\uFE0F",
+      description: "woman walking",
+      category: "People & Body",
+      aliases: [
+        "walking_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CD}",
+      description: "person standing",
+      category: "People & Body",
+      aliases: [
+        "standing_person"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CD}\u200D\u2642\uFE0F",
+      description: "man standing",
+      category: "People & Body",
+      aliases: [
+        "standing_man"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CD}\u200D\u2640\uFE0F",
+      description: "woman standing",
+      category: "People & Body",
+      aliases: [
+        "standing_woman"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CE}",
+      description: "person kneeling",
+      category: "People & Body",
+      aliases: [
+        "kneeling_person"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CE}\u200D\u2642\uFE0F",
+      description: "man kneeling",
+      category: "People & Body",
+      aliases: [
+        "kneeling_man"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9CE}\u200D\u2640\uFE0F",
+      description: "woman kneeling",
+      category: "People & Body",
+      aliases: [
+        "kneeling_woman"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9AF}",
+      description: "person with white cane",
+      category: "People & Body",
+      aliases: [
+        "person_with_probing_cane"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9AF}",
+      description: "man with white cane",
+      category: "People & Body",
+      aliases: [
+        "man_with_probing_cane"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9AF}",
+      description: "woman with white cane",
+      category: "People & Body",
+      aliases: [
+        "woman_with_probing_cane"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9BC}",
+      description: "person in motorized wheelchair",
+      category: "People & Body",
+      aliases: [
+        "person_in_motorized_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9BC}",
+      description: "man in motorized wheelchair",
+      category: "People & Body",
+      aliases: [
+        "man_in_motorized_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9BC}",
+      description: "woman in motorized wheelchair",
+      category: "People & Body",
+      aliases: [
+        "woman_in_motorized_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F9BD}",
+      description: "person in manual wheelchair",
+      category: "People & Body",
+      aliases: [
+        "person_in_manual_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.1",
+      ios_version: "13.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F9BD}",
+      description: "man in manual wheelchair",
+      category: "People & Body",
+      aliases: [
+        "man_in_manual_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F9BD}",
+      description: "woman in manual wheelchair",
+      category: "People & Body",
+      aliases: [
+        "woman_in_manual_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C3}",
+      description: "person running",
+      category: "People & Body",
+      aliases: [
+        "runner",
+        "running"
+      ],
+      tags: [
+        "exercise",
+        "workout",
+        "marathon"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C3}\u200D\u2642\uFE0F",
+      description: "man running",
+      category: "People & Body",
+      aliases: [
+        "running_man"
+      ],
+      tags: [
+        "exercise",
+        "workout",
+        "marathon"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C3}\u200D\u2640\uFE0F",
+      description: "woman running",
+      category: "People & Body",
+      aliases: [
+        "running_woman"
+      ],
+      tags: [
+        "exercise",
+        "workout",
+        "marathon"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F483}",
+      description: "woman dancing",
+      category: "People & Body",
+      aliases: [
+        "woman_dancing",
+        "dancer"
+      ],
+      tags: [
+        "dress"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F57A}",
+      description: "man dancing",
+      category: "People & Body",
+      aliases: [
+        "man_dancing"
+      ],
+      tags: [
+        "dancer"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F574}\uFE0F",
+      description: "person in suit levitating",
+      category: "People & Body",
+      aliases: [
+        "business_suit_levitating"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46F}",
+      description: "people with bunny ears",
+      category: "People & Body",
+      aliases: [
+        "dancers"
+      ],
+      tags: [
+        "bunny"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F46F}\u200D\u2642\uFE0F",
+      description: "men with bunny ears",
+      category: "People & Body",
+      aliases: [
+        "dancing_men"
+      ],
+      tags: [
+        "bunny"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F46F}\u200D\u2640\uFE0F",
+      description: "women with bunny ears",
+      category: "People & Body",
+      aliases: [
+        "dancing_women"
+      ],
+      tags: [
+        "bunny"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9D6}",
+      description: "person in steamy room",
+      category: "People & Body",
+      aliases: [
+        "sauna_person"
+      ],
+      tags: [
+        "steamy"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D6}\u200D\u2642\uFE0F",
+      description: "man in steamy room",
+      category: "People & Body",
+      aliases: [
+        "sauna_man"
+      ],
+      tags: [
+        "steamy"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D6}\u200D\u2640\uFE0F",
+      description: "woman in steamy room",
+      category: "People & Body",
+      aliases: [
+        "sauna_woman"
+      ],
+      tags: [
+        "steamy"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D7}",
+      description: "person climbing",
+      category: "People & Body",
+      aliases: [
+        "climbing"
+      ],
+      tags: [
+        "bouldering"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D7}\u200D\u2642\uFE0F",
+      description: "man climbing",
+      category: "People & Body",
+      aliases: [
+        "climbing_man"
+      ],
+      tags: [
+        "bouldering"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D7}\u200D\u2640\uFE0F",
+      description: "woman climbing",
+      category: "People & Body",
+      aliases: [
+        "climbing_woman"
+      ],
+      tags: [
+        "bouldering"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93A}",
+      description: "person fencing",
+      category: "People & Body",
+      aliases: [
+        "person_fencing"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F3C7}",
+      description: "horse racing",
+      category: "People & Body",
+      aliases: [
+        "horse_racing"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u26F7\uFE0F",
+      description: "skier",
+      category: "People & Body",
+      aliases: [
+        "skier"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3C2}",
+      description: "snowboarder",
+      category: "People & Body",
+      aliases: [
+        "snowboarder"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CC}\uFE0F",
+      description: "person golfing",
+      category: "People & Body",
+      aliases: [
+        "golfing"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CC}\uFE0F\u200D\u2642\uFE0F",
+      description: "man golfing",
+      category: "People & Body",
+      aliases: [
+        "golfing_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CC}\uFE0F\u200D\u2640\uFE0F",
+      description: "woman golfing",
+      category: "People & Body",
+      aliases: [
+        "golfing_woman"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C4}",
+      description: "person surfing",
+      category: "People & Body",
+      aliases: [
+        "surfer"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C4}\u200D\u2642\uFE0F",
+      description: "man surfing",
+      category: "People & Body",
+      aliases: [
+        "surfing_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3C4}\u200D\u2640\uFE0F",
+      description: "woman surfing",
+      category: "People & Body",
+      aliases: [
+        "surfing_woman"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6A3}",
+      description: "person rowing boat",
+      category: "People & Body",
+      aliases: [
+        "rowboat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6A3}\u200D\u2642\uFE0F",
+      description: "man rowing boat",
+      category: "People & Body",
+      aliases: [
+        "rowing_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6A3}\u200D\u2640\uFE0F",
+      description: "woman rowing boat",
+      category: "People & Body",
+      aliases: [
+        "rowing_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CA}",
+      description: "person swimming",
+      category: "People & Body",
+      aliases: [
+        "swimmer"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CA}\u200D\u2642\uFE0F",
+      description: "man swimming",
+      category: "People & Body",
+      aliases: [
+        "swimming_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CA}\u200D\u2640\uFE0F",
+      description: "woman swimming",
+      category: "People & Body",
+      aliases: [
+        "swimming_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u26F9\uFE0F",
+      description: "person bouncing ball",
+      category: "People & Body",
+      aliases: [
+        "bouncing_ball_person"
+      ],
+      tags: [
+        "basketball"
+      ],
+      unicode_version: "5.2",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u26F9\uFE0F\u200D\u2642\uFE0F",
+      description: "man bouncing ball",
+      category: "People & Body",
+      aliases: [
+        "bouncing_ball_man",
+        "basketball_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u26F9\uFE0F\u200D\u2640\uFE0F",
+      description: "woman bouncing ball",
+      category: "People & Body",
+      aliases: [
+        "bouncing_ball_woman",
+        "basketball_woman"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CB}\uFE0F",
+      description: "person lifting weights",
+      category: "People & Body",
+      aliases: [
+        "weight_lifting"
+      ],
+      tags: [
+        "gym",
+        "workout"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CB}\uFE0F\u200D\u2642\uFE0F",
+      description: "man lifting weights",
+      category: "People & Body",
+      aliases: [
+        "weight_lifting_man"
+      ],
+      tags: [
+        "gym",
+        "workout"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F3CB}\uFE0F\u200D\u2640\uFE0F",
+      description: "woman lifting weights",
+      category: "People & Body",
+      aliases: [
+        "weight_lifting_woman"
+      ],
+      tags: [
+        "gym",
+        "workout"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B4}",
+      description: "person biking",
+      category: "People & Body",
+      aliases: [
+        "bicyclist"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B4}\u200D\u2642\uFE0F",
+      description: "man biking",
+      category: "People & Body",
+      aliases: [
+        "biking_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B4}\u200D\u2640\uFE0F",
+      description: "woman biking",
+      category: "People & Body",
+      aliases: [
+        "biking_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B5}",
+      description: "person mountain biking",
+      category: "People & Body",
+      aliases: [
+        "mountain_bicyclist"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B5}\u200D\u2642\uFE0F",
+      description: "man mountain biking",
+      category: "People & Body",
+      aliases: [
+        "mountain_biking_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6B5}\u200D\u2640\uFE0F",
+      description: "woman mountain biking",
+      category: "People & Body",
+      aliases: [
+        "mountain_biking_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F938}",
+      description: "person cartwheeling",
+      category: "People & Body",
+      aliases: [
+        "cartwheeling"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F938}\u200D\u2642\uFE0F",
+      description: "man cartwheeling",
+      category: "People & Body",
+      aliases: [
+        "man_cartwheeling"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F938}\u200D\u2640\uFE0F",
+      description: "woman cartwheeling",
+      category: "People & Body",
+      aliases: [
+        "woman_cartwheeling"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93C}",
+      description: "people wrestling",
+      category: "People & Body",
+      aliases: [
+        "wrestling"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F93C}\u200D\u2642\uFE0F",
+      description: "men wrestling",
+      category: "People & Body",
+      aliases: [
+        "men_wrestling"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F93C}\u200D\u2640\uFE0F",
+      description: "women wrestling",
+      category: "People & Body",
+      aliases: [
+        "women_wrestling"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F93D}",
+      description: "person playing water polo",
+      category: "People & Body",
+      aliases: [
+        "water_polo"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93D}\u200D\u2642\uFE0F",
+      description: "man playing water polo",
+      category: "People & Body",
+      aliases: [
+        "man_playing_water_polo"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93D}\u200D\u2640\uFE0F",
+      description: "woman playing water polo",
+      category: "People & Body",
+      aliases: [
+        "woman_playing_water_polo"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93E}",
+      description: "person playing handball",
+      category: "People & Body",
+      aliases: [
+        "handball_person"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93E}\u200D\u2642\uFE0F",
+      description: "man playing handball",
+      category: "People & Body",
+      aliases: [
+        "man_playing_handball"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F93E}\u200D\u2640\uFE0F",
+      description: "woman playing handball",
+      category: "People & Body",
+      aliases: [
+        "woman_playing_handball"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F939}",
+      description: "person juggling",
+      category: "People & Body",
+      aliases: [
+        "juggling_person"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F939}\u200D\u2642\uFE0F",
+      description: "man juggling",
+      category: "People & Body",
+      aliases: [
+        "man_juggling"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F939}\u200D\u2640\uFE0F",
+      description: "woman juggling",
+      category: "People & Body",
+      aliases: [
+        "woman_juggling"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D8}",
+      description: "person in lotus position",
+      category: "People & Body",
+      aliases: [
+        "lotus_position"
+      ],
+      tags: [
+        "meditation"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D8}\u200D\u2642\uFE0F",
+      description: "man in lotus position",
+      category: "People & Body",
+      aliases: [
+        "lotus_position_man"
+      ],
+      tags: [
+        "meditation"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D8}\u200D\u2640\uFE0F",
+      description: "woman in lotus position",
+      category: "People & Body",
+      aliases: [
+        "lotus_position_woman"
+      ],
+      tags: [
+        "meditation"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6C0}",
+      description: "person taking bath",
+      category: "People & Body",
+      aliases: [
+        "bath"
+      ],
+      tags: [
+        "shower"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F6CC}",
+      description: "person in bed",
+      category: "People & Body",
+      aliases: [
+        "sleeping_bed"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F9D1}\u200D\u{1F91D}\u200D\u{1F9D1}",
+      description: "people holding hands",
+      category: "People & Body",
+      aliases: [
+        "people_holding_hands"
+      ],
+      tags: [
+        "couple",
+        "date"
+      ],
+      unicode_version: "12.0",
+      ios_version: "13.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46D}",
+      description: "women holding hands",
+      category: "People & Body",
+      aliases: [
+        "two_women_holding_hands"
+      ],
+      tags: [
+        "couple",
+        "date"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46B}",
+      description: "woman and man holding hands",
+      category: "People & Body",
+      aliases: [
+        "couple"
+      ],
+      tags: [
+        "date"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46C}",
+      description: "men holding hands",
+      category: "People & Body",
+      aliases: [
+        "two_men_holding_hands"
+      ],
+      tags: [
+        "couple",
+        "date"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F48F}",
+      description: "kiss",
+      category: "People & Body",
+      aliases: [
+        "couplekiss"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2764\uFE0F\u200D\u{1F48B}\u200D\u{1F468}",
+      description: "kiss: woman, man",
+      category: "People & Body",
+      aliases: [
+        "couplekiss_man_woman"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u2764\uFE0F\u200D\u{1F48B}\u200D\u{1F468}",
+      description: "kiss: man, man",
+      category: "People & Body",
+      aliases: [
+        "couplekiss_man_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2764\uFE0F\u200D\u{1F48B}\u200D\u{1F469}",
+      description: "kiss: woman, woman",
+      category: "People & Body",
+      aliases: [
+        "couplekiss_woman_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F491}",
+      description: "couple with heart",
+      category: "People & Body",
+      aliases: [
+        "couple_with_heart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2764\uFE0F\u200D\u{1F468}",
+      description: "couple with heart: woman, man",
+      category: "People & Body",
+      aliases: [
+        "couple_with_heart_woman_man"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F468}\u200D\u2764\uFE0F\u200D\u{1F468}",
+      description: "couple with heart: man, man",
+      category: "People & Body",
+      aliases: [
+        "couple_with_heart_man_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F469}\u200D\u2764\uFE0F\u200D\u{1F469}",
+      description: "couple with heart: woman, woman",
+      category: "People & Body",
+      aliases: [
+        "couple_with_heart_woman_woman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3",
+      skin_tones: true
+    },
+    {
+      emoji: "\u{1F46A}",
+      description: "family",
+      category: "People & Body",
+      aliases: [
+        "family"
+      ],
+      tags: [
+        "home",
+        "parents",
+        "child"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F469}\u200D\u{1F466}",
+      description: "family: man, woman, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_woman_boy"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}",
+      description: "family: man, woman, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_woman_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}",
+      description: "family: man, woman, girl, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_woman_girl_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F469}\u200D\u{1F466}\u200D\u{1F466}",
+      description: "family: man, woman, boy, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_woman_boy_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F467}",
+      description: "family: man, woman, girl, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_woman_girl_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F468}\u200D\u{1F466}",
+      description: "family: man, man, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_man_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F468}\u200D\u{1F467}",
+      description: "family: man, man, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_man_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F468}\u200D\u{1F467}\u200D\u{1F466}",
+      description: "family: man, man, girl, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_man_girl_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F468}\u200D\u{1F466}\u200D\u{1F466}",
+      description: "family: man, man, boy, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_man_boy_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F468}\u200D\u{1F467}\u200D\u{1F467}",
+      description: "family: man, man, girl, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_man_girl_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F469}\u200D\u{1F466}",
+      description: "family: woman, woman, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_woman_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F469}\u200D\u{1F467}",
+      description: "family: woman, woman, girl",
+      category: "People & Body",
+      aliases: [
+        "family_woman_woman_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F466}",
+      description: "family: woman, woman, girl, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_woman_girl_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F469}\u200D\u{1F466}\u200D\u{1F466}",
+      description: "family: woman, woman, boy, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_woman_boy_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F469}\u200D\u{1F467}\u200D\u{1F467}",
+      description: "family: woman, woman, girl, girl",
+      category: "People & Body",
+      aliases: [
+        "family_woman_woman_girl_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F466}",
+      description: "family: man, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F466}\u200D\u{1F466}",
+      description: "family: man, boy, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_boy_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F467}",
+      description: "family: man, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F467}\u200D\u{1F466}",
+      description: "family: man, girl, boy",
+      category: "People & Body",
+      aliases: [
+        "family_man_girl_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F468}\u200D\u{1F467}\u200D\u{1F467}",
+      description: "family: man, girl, girl",
+      category: "People & Body",
+      aliases: [
+        "family_man_girl_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F466}",
+      description: "family: woman, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F466}\u200D\u{1F466}",
+      description: "family: woman, boy, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_boy_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F467}",
+      description: "family: woman, girl",
+      category: "People & Body",
+      aliases: [
+        "family_woman_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F467}\u200D\u{1F466}",
+      description: "family: woman, girl, boy",
+      category: "People & Body",
+      aliases: [
+        "family_woman_girl_boy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F469}\u200D\u{1F467}\u200D\u{1F467}",
+      description: "family: woman, girl, girl",
+      category: "People & Body",
+      aliases: [
+        "family_woman_girl_girl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F5E3}\uFE0F",
+      description: "speaking head",
+      category: "People & Body",
+      aliases: [
+        "speaking_head"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F464}",
+      description: "bust in silhouette",
+      category: "People & Body",
+      aliases: [
+        "bust_in_silhouette"
+      ],
+      tags: [
+        "user"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F465}",
+      description: "busts in silhouette",
+      category: "People & Body",
+      aliases: [
+        "busts_in_silhouette"
+      ],
+      tags: [
+        "users",
+        "group",
+        "team"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAC2}",
+      description: "people hugging",
+      category: "People & Body",
+      aliases: [
+        "people_hugging"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F463}",
+      description: "footprints",
+      category: "People & Body",
+      aliases: [
+        "footprints"
+      ],
+      tags: [
+        "feet",
+        "tracks"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F435}",
+      description: "monkey face",
+      category: "Animals & Nature",
+      aliases: [
+        "monkey_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F412}",
+      description: "monkey",
+      category: "Animals & Nature",
+      aliases: [
+        "monkey"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F98D}",
+      description: "gorilla",
+      category: "Animals & Nature",
+      aliases: [
+        "gorilla"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9A7}",
+      description: "orangutan",
+      category: "Animals & Nature",
+      aliases: [
+        "orangutan"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F436}",
+      description: "dog face",
+      category: "Animals & Nature",
+      aliases: [
+        "dog"
+      ],
+      tags: [
+        "pet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F415}",
+      description: "dog",
+      category: "Animals & Nature",
+      aliases: [
+        "dog2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9AE}",
+      description: "guide dog",
+      category: "Animals & Nature",
+      aliases: [
+        "guide_dog"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F415}\u200D\u{1F9BA}",
+      description: "service dog",
+      category: "Animals & Nature",
+      aliases: [
+        "service_dog"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F429}",
+      description: "poodle",
+      category: "Animals & Nature",
+      aliases: [
+        "poodle"
+      ],
+      tags: [
+        "dog"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F43A}",
+      description: "wolf",
+      category: "Animals & Nature",
+      aliases: [
+        "wolf"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F98A}",
+      description: "fox",
+      category: "Animals & Nature",
+      aliases: [
+        "fox_face"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F99D}",
+      description: "raccoon",
+      category: "Animals & Nature",
+      aliases: [
+        "raccoon"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F431}",
+      description: "cat face",
+      category: "Animals & Nature",
+      aliases: [
+        "cat"
+      ],
+      tags: [
+        "pet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F408}",
+      description: "cat",
+      category: "Animals & Nature",
+      aliases: [
+        "cat2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F408}\u200D\u2B1B",
+      description: "black cat",
+      category: "Animals & Nature",
+      aliases: [
+        "black_cat"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F981}",
+      description: "lion",
+      category: "Animals & Nature",
+      aliases: [
+        "lion"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F42F}",
+      description: "tiger face",
+      category: "Animals & Nature",
+      aliases: [
+        "tiger"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F405}",
+      description: "tiger",
+      category: "Animals & Nature",
+      aliases: [
+        "tiger2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F406}",
+      description: "leopard",
+      category: "Animals & Nature",
+      aliases: [
+        "leopard"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F434}",
+      description: "horse face",
+      category: "Animals & Nature",
+      aliases: [
+        "horse"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FACE}",
+      description: "moose",
+      category: "Animals & Nature",
+      aliases: [
+        "moose"
+      ],
+      tags: [
+        "canada"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1FACF}",
+      description: "donkey",
+      category: "Animals & Nature",
+      aliases: [
+        "donkey"
+      ],
+      tags: [
+        "mule"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F40E}",
+      description: "horse",
+      category: "Animals & Nature",
+      aliases: [
+        "racehorse"
+      ],
+      tags: [
+        "speed"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F984}",
+      description: "unicorn",
+      category: "Animals & Nature",
+      aliases: [
+        "unicorn"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F993}",
+      description: "zebra",
+      category: "Animals & Nature",
+      aliases: [
+        "zebra"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F98C}",
+      description: "deer",
+      category: "Animals & Nature",
+      aliases: [
+        "deer"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9AC}",
+      description: "bison",
+      category: "Animals & Nature",
+      aliases: [
+        "bison"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F42E}",
+      description: "cow face",
+      category: "Animals & Nature",
+      aliases: [
+        "cow"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F402}",
+      description: "ox",
+      category: "Animals & Nature",
+      aliases: [
+        "ox"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F403}",
+      description: "water buffalo",
+      category: "Animals & Nature",
+      aliases: [
+        "water_buffalo"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F404}",
+      description: "cow",
+      category: "Animals & Nature",
+      aliases: [
+        "cow2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F437}",
+      description: "pig face",
+      category: "Animals & Nature",
+      aliases: [
+        "pig"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F416}",
+      description: "pig",
+      category: "Animals & Nature",
+      aliases: [
+        "pig2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F417}",
+      description: "boar",
+      category: "Animals & Nature",
+      aliases: [
+        "boar"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F43D}",
+      description: "pig nose",
+      category: "Animals & Nature",
+      aliases: [
+        "pig_nose"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F40F}",
+      description: "ram",
+      category: "Animals & Nature",
+      aliases: [
+        "ram"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F411}",
+      description: "ewe",
+      category: "Animals & Nature",
+      aliases: [
+        "sheep"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F410}",
+      description: "goat",
+      category: "Animals & Nature",
+      aliases: [
+        "goat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F42A}",
+      description: "camel",
+      category: "Animals & Nature",
+      aliases: [
+        "dromedary_camel"
+      ],
+      tags: [
+        "desert"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F42B}",
+      description: "two-hump camel",
+      category: "Animals & Nature",
+      aliases: [
+        "camel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F999}",
+      description: "llama",
+      category: "Animals & Nature",
+      aliases: [
+        "llama"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F992}",
+      description: "giraffe",
+      category: "Animals & Nature",
+      aliases: [
+        "giraffe"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F418}",
+      description: "elephant",
+      category: "Animals & Nature",
+      aliases: [
+        "elephant"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9A3}",
+      description: "mammoth",
+      category: "Animals & Nature",
+      aliases: [
+        "mammoth"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F98F}",
+      description: "rhinoceros",
+      category: "Animals & Nature",
+      aliases: [
+        "rhinoceros"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F99B}",
+      description: "hippopotamus",
+      category: "Animals & Nature",
+      aliases: [
+        "hippopotamus"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F42D}",
+      description: "mouse face",
+      category: "Animals & Nature",
+      aliases: [
+        "mouse"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F401}",
+      description: "mouse",
+      category: "Animals & Nature",
+      aliases: [
+        "mouse2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F400}",
+      description: "rat",
+      category: "Animals & Nature",
+      aliases: [
+        "rat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F439}",
+      description: "hamster",
+      category: "Animals & Nature",
+      aliases: [
+        "hamster"
+      ],
+      tags: [
+        "pet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F430}",
+      description: "rabbit face",
+      category: "Animals & Nature",
+      aliases: [
+        "rabbit"
+      ],
+      tags: [
+        "bunny"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F407}",
+      description: "rabbit",
+      category: "Animals & Nature",
+      aliases: [
+        "rabbit2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F43F}\uFE0F",
+      description: "chipmunk",
+      category: "Animals & Nature",
+      aliases: [
+        "chipmunk"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9AB}",
+      description: "beaver",
+      category: "Animals & Nature",
+      aliases: [
+        "beaver"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F994}",
+      description: "hedgehog",
+      category: "Animals & Nature",
+      aliases: [
+        "hedgehog"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F987}",
+      description: "bat",
+      category: "Animals & Nature",
+      aliases: [
+        "bat"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F43B}",
+      description: "bear",
+      category: "Animals & Nature",
+      aliases: [
+        "bear"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F43B}\u200D\u2744\uFE0F",
+      description: "polar bear",
+      category: "Animals & Nature",
+      aliases: [
+        "polar_bear"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F428}",
+      description: "koala",
+      category: "Animals & Nature",
+      aliases: [
+        "koala"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F43C}",
+      description: "panda",
+      category: "Animals & Nature",
+      aliases: [
+        "panda_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9A5}",
+      description: "sloth",
+      category: "Animals & Nature",
+      aliases: [
+        "sloth"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9A6}",
+      description: "otter",
+      category: "Animals & Nature",
+      aliases: [
+        "otter"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9A8}",
+      description: "skunk",
+      category: "Animals & Nature",
+      aliases: [
+        "skunk"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F998}",
+      description: "kangaroo",
+      category: "Animals & Nature",
+      aliases: [
+        "kangaroo"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9A1}",
+      description: "badger",
+      category: "Animals & Nature",
+      aliases: [
+        "badger"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F43E}",
+      description: "paw prints",
+      category: "Animals & Nature",
+      aliases: [
+        "feet",
+        "paw_prints"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F983}",
+      description: "turkey",
+      category: "Animals & Nature",
+      aliases: [
+        "turkey"
+      ],
+      tags: [
+        "thanksgiving"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F414}",
+      description: "chicken",
+      category: "Animals & Nature",
+      aliases: [
+        "chicken"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F413}",
+      description: "rooster",
+      category: "Animals & Nature",
+      aliases: [
+        "rooster"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F423}",
+      description: "hatching chick",
+      category: "Animals & Nature",
+      aliases: [
+        "hatching_chick"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F424}",
+      description: "baby chick",
+      category: "Animals & Nature",
+      aliases: [
+        "baby_chick"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F425}",
+      description: "front-facing baby chick",
+      category: "Animals & Nature",
+      aliases: [
+        "hatched_chick"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F426}",
+      description: "bird",
+      category: "Animals & Nature",
+      aliases: [
+        "bird"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F427}",
+      description: "penguin",
+      category: "Animals & Nature",
+      aliases: [
+        "penguin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F54A}\uFE0F",
+      description: "dove",
+      category: "Animals & Nature",
+      aliases: [
+        "dove"
+      ],
+      tags: [
+        "peace"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F985}",
+      description: "eagle",
+      category: "Animals & Nature",
+      aliases: [
+        "eagle"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F986}",
+      description: "duck",
+      category: "Animals & Nature",
+      aliases: [
+        "duck"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9A2}",
+      description: "swan",
+      category: "Animals & Nature",
+      aliases: [
+        "swan"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F989}",
+      description: "owl",
+      category: "Animals & Nature",
+      aliases: [
+        "owl"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9A4}",
+      description: "dodo",
+      category: "Animals & Nature",
+      aliases: [
+        "dodo"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAB6}",
+      description: "feather",
+      category: "Animals & Nature",
+      aliases: [
+        "feather"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9A9}",
+      description: "flamingo",
+      category: "Animals & Nature",
+      aliases: [
+        "flamingo"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F99A}",
+      description: "peacock",
+      category: "Animals & Nature",
+      aliases: [
+        "peacock"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F99C}",
+      description: "parrot",
+      category: "Animals & Nature",
+      aliases: [
+        "parrot"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FABD}",
+      description: "wing",
+      category: "Animals & Nature",
+      aliases: [
+        "wing"
+      ],
+      tags: [
+        "fly"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F426}\u200D\u2B1B",
+      description: "black bird",
+      category: "Animals & Nature",
+      aliases: [
+        "black_bird"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1FABF}",
+      description: "goose",
+      category: "Animals & Nature",
+      aliases: [
+        "goose"
+      ],
+      tags: [
+        "honk"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F438}",
+      description: "frog",
+      category: "Animals & Nature",
+      aliases: [
+        "frog"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F40A}",
+      description: "crocodile",
+      category: "Animals & Nature",
+      aliases: [
+        "crocodile"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F422}",
+      description: "turtle",
+      category: "Animals & Nature",
+      aliases: [
+        "turtle"
+      ],
+      tags: [
+        "slow"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F98E}",
+      description: "lizard",
+      category: "Animals & Nature",
+      aliases: [
+        "lizard"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F40D}",
+      description: "snake",
+      category: "Animals & Nature",
+      aliases: [
+        "snake"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F432}",
+      description: "dragon face",
+      category: "Animals & Nature",
+      aliases: [
+        "dragon_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F409}",
+      description: "dragon",
+      category: "Animals & Nature",
+      aliases: [
+        "dragon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F995}",
+      description: "sauropod",
+      category: "Animals & Nature",
+      aliases: [
+        "sauropod"
+      ],
+      tags: [
+        "dinosaur"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F996}",
+      description: "T-Rex",
+      category: "Animals & Nature",
+      aliases: [
+        "t-rex"
+      ],
+      tags: [
+        "dinosaur"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F433}",
+      description: "spouting whale",
+      category: "Animals & Nature",
+      aliases: [
+        "whale"
+      ],
+      tags: [
+        "sea"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F40B}",
+      description: "whale",
+      category: "Animals & Nature",
+      aliases: [
+        "whale2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F42C}",
+      description: "dolphin",
+      category: "Animals & Nature",
+      aliases: [
+        "dolphin",
+        "flipper"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9AD}",
+      description: "seal",
+      category: "Animals & Nature",
+      aliases: [
+        "seal"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F41F}",
+      description: "fish",
+      category: "Animals & Nature",
+      aliases: [
+        "fish"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F420}",
+      description: "tropical fish",
+      category: "Animals & Nature",
+      aliases: [
+        "tropical_fish"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F421}",
+      description: "blowfish",
+      category: "Animals & Nature",
+      aliases: [
+        "blowfish"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F988}",
+      description: "shark",
+      category: "Animals & Nature",
+      aliases: [
+        "shark"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F419}",
+      description: "octopus",
+      category: "Animals & Nature",
+      aliases: [
+        "octopus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F41A}",
+      description: "spiral shell",
+      category: "Animals & Nature",
+      aliases: [
+        "shell"
+      ],
+      tags: [
+        "sea",
+        "beach"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAB8}",
+      description: "coral",
+      category: "Animals & Nature",
+      aliases: [
+        "coral"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FABC}",
+      description: "jellyfish",
+      category: "Animals & Nature",
+      aliases: [
+        "jellyfish"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F40C}",
+      description: "snail",
+      category: "Animals & Nature",
+      aliases: [
+        "snail"
+      ],
+      tags: [
+        "slow"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F98B}",
+      description: "butterfly",
+      category: "Animals & Nature",
+      aliases: [
+        "butterfly"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F41B}",
+      description: "bug",
+      category: "Animals & Nature",
+      aliases: [
+        "bug"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F41C}",
+      description: "ant",
+      category: "Animals & Nature",
+      aliases: [
+        "ant"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F41D}",
+      description: "honeybee",
+      category: "Animals & Nature",
+      aliases: [
+        "bee",
+        "honeybee"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAB2}",
+      description: "beetle",
+      category: "Animals & Nature",
+      aliases: [
+        "beetle"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F41E}",
+      description: "lady beetle",
+      category: "Animals & Nature",
+      aliases: [
+        "lady_beetle"
+      ],
+      tags: [
+        "bug"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F997}",
+      description: "cricket",
+      category: "Animals & Nature",
+      aliases: [
+        "cricket"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAB3}",
+      description: "cockroach",
+      category: "Animals & Nature",
+      aliases: [
+        "cockroach"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F577}\uFE0F",
+      description: "spider",
+      category: "Animals & Nature",
+      aliases: [
+        "spider"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F578}\uFE0F",
+      description: "spider web",
+      category: "Animals & Nature",
+      aliases: [
+        "spider_web"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F982}",
+      description: "scorpion",
+      category: "Animals & Nature",
+      aliases: [
+        "scorpion"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F99F}",
+      description: "mosquito",
+      category: "Animals & Nature",
+      aliases: [
+        "mosquito"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAB0}",
+      description: "fly",
+      category: "Animals & Nature",
+      aliases: [
+        "fly"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAB1}",
+      description: "worm",
+      category: "Animals & Nature",
+      aliases: [
+        "worm"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9A0}",
+      description: "microbe",
+      category: "Animals & Nature",
+      aliases: [
+        "microbe"
+      ],
+      tags: [
+        "germ"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F490}",
+      description: "bouquet",
+      category: "Animals & Nature",
+      aliases: [
+        "bouquet"
+      ],
+      tags: [
+        "flowers"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F338}",
+      description: "cherry blossom",
+      category: "Animals & Nature",
+      aliases: [
+        "cherry_blossom"
+      ],
+      tags: [
+        "flower",
+        "spring"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4AE}",
+      description: "white flower",
+      category: "Animals & Nature",
+      aliases: [
+        "white_flower"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAB7}",
+      description: "lotus",
+      category: "Animals & Nature",
+      aliases: [
+        "lotus"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F3F5}\uFE0F",
+      description: "rosette",
+      category: "Animals & Nature",
+      aliases: [
+        "rosette"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F339}",
+      description: "rose",
+      category: "Animals & Nature",
+      aliases: [
+        "rose"
+      ],
+      tags: [
+        "flower"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F940}",
+      description: "wilted flower",
+      category: "Animals & Nature",
+      aliases: [
+        "wilted_flower"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F33A}",
+      description: "hibiscus",
+      category: "Animals & Nature",
+      aliases: [
+        "hibiscus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F33B}",
+      description: "sunflower",
+      category: "Animals & Nature",
+      aliases: [
+        "sunflower"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F33C}",
+      description: "blossom",
+      category: "Animals & Nature",
+      aliases: [
+        "blossom"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F337}",
+      description: "tulip",
+      category: "Animals & Nature",
+      aliases: [
+        "tulip"
+      ],
+      tags: [
+        "flower"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FABB}",
+      description: "hyacinth",
+      category: "Animals & Nature",
+      aliases: [
+        "hyacinth"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F331}",
+      description: "seedling",
+      category: "Animals & Nature",
+      aliases: [
+        "seedling"
+      ],
+      tags: [
+        "plant"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAB4}",
+      description: "potted plant",
+      category: "Animals & Nature",
+      aliases: [
+        "potted_plant"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F332}",
+      description: "evergreen tree",
+      category: "Animals & Nature",
+      aliases: [
+        "evergreen_tree"
+      ],
+      tags: [
+        "wood"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F333}",
+      description: "deciduous tree",
+      category: "Animals & Nature",
+      aliases: [
+        "deciduous_tree"
+      ],
+      tags: [
+        "wood"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F334}",
+      description: "palm tree",
+      category: "Animals & Nature",
+      aliases: [
+        "palm_tree"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F335}",
+      description: "cactus",
+      category: "Animals & Nature",
+      aliases: [
+        "cactus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F33E}",
+      description: "sheaf of rice",
+      category: "Animals & Nature",
+      aliases: [
+        "ear_of_rice"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F33F}",
+      description: "herb",
+      category: "Animals & Nature",
+      aliases: [
+        "herb"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2618\uFE0F",
+      description: "shamrock",
+      category: "Animals & Nature",
+      aliases: [
+        "shamrock"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F340}",
+      description: "four leaf clover",
+      category: "Animals & Nature",
+      aliases: [
+        "four_leaf_clover"
+      ],
+      tags: [
+        "luck"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F341}",
+      description: "maple leaf",
+      category: "Animals & Nature",
+      aliases: [
+        "maple_leaf"
+      ],
+      tags: [
+        "canada"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F342}",
+      description: "fallen leaf",
+      category: "Animals & Nature",
+      aliases: [
+        "fallen_leaf"
+      ],
+      tags: [
+        "autumn"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F343}",
+      description: "leaf fluttering in wind",
+      category: "Animals & Nature",
+      aliases: [
+        "leaves"
+      ],
+      tags: [
+        "leaf"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAB9}",
+      description: "empty nest",
+      category: "Animals & Nature",
+      aliases: [
+        "empty_nest"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FABA}",
+      description: "nest with eggs",
+      category: "Animals & Nature",
+      aliases: [
+        "nest_with_eggs"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F344}",
+      description: "mushroom",
+      category: "Animals & Nature",
+      aliases: [
+        "mushroom"
+      ],
+      tags: [
+        "fungus"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F347}",
+      description: "grapes",
+      category: "Food & Drink",
+      aliases: [
+        "grapes"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F348}",
+      description: "melon",
+      category: "Food & Drink",
+      aliases: [
+        "melon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F349}",
+      description: "watermelon",
+      category: "Food & Drink",
+      aliases: [
+        "watermelon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F34A}",
+      description: "tangerine",
+      category: "Food & Drink",
+      aliases: [
+        "tangerine",
+        "orange",
+        "mandarin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F34B}",
+      description: "lemon",
+      category: "Food & Drink",
+      aliases: [
+        "lemon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F34C}",
+      description: "banana",
+      category: "Food & Drink",
+      aliases: [
+        "banana"
+      ],
+      tags: [
+        "fruit"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F34D}",
+      description: "pineapple",
+      category: "Food & Drink",
+      aliases: [
+        "pineapple"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F96D}",
+      description: "mango",
+      category: "Food & Drink",
+      aliases: [
+        "mango"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F34E}",
+      description: "red apple",
+      category: "Food & Drink",
+      aliases: [
+        "apple"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F34F}",
+      description: "green apple",
+      category: "Food & Drink",
+      aliases: [
+        "green_apple"
+      ],
+      tags: [
+        "fruit"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F350}",
+      description: "pear",
+      category: "Food & Drink",
+      aliases: [
+        "pear"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F351}",
+      description: "peach",
+      category: "Food & Drink",
+      aliases: [
+        "peach"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F352}",
+      description: "cherries",
+      category: "Food & Drink",
+      aliases: [
+        "cherries"
+      ],
+      tags: [
+        "fruit"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F353}",
+      description: "strawberry",
+      category: "Food & Drink",
+      aliases: [
+        "strawberry"
+      ],
+      tags: [
+        "fruit"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAD0}",
+      description: "blueberries",
+      category: "Food & Drink",
+      aliases: [
+        "blueberries"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F95D}",
+      description: "kiwi fruit",
+      category: "Food & Drink",
+      aliases: [
+        "kiwi_fruit"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F345}",
+      description: "tomato",
+      category: "Food & Drink",
+      aliases: [
+        "tomato"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAD2}",
+      description: "olive",
+      category: "Food & Drink",
+      aliases: [
+        "olive"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F965}",
+      description: "coconut",
+      category: "Food & Drink",
+      aliases: [
+        "coconut"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F951}",
+      description: "avocado",
+      category: "Food & Drink",
+      aliases: [
+        "avocado"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F346}",
+      description: "eggplant",
+      category: "Food & Drink",
+      aliases: [
+        "eggplant"
+      ],
+      tags: [
+        "aubergine"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F954}",
+      description: "potato",
+      category: "Food & Drink",
+      aliases: [
+        "potato"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F955}",
+      description: "carrot",
+      category: "Food & Drink",
+      aliases: [
+        "carrot"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F33D}",
+      description: "ear of corn",
+      category: "Food & Drink",
+      aliases: [
+        "corn"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F336}\uFE0F",
+      description: "hot pepper",
+      category: "Food & Drink",
+      aliases: [
+        "hot_pepper"
+      ],
+      tags: [
+        "spicy"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FAD1}",
+      description: "bell pepper",
+      category: "Food & Drink",
+      aliases: [
+        "bell_pepper"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F952}",
+      description: "cucumber",
+      category: "Food & Drink",
+      aliases: [
+        "cucumber"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F96C}",
+      description: "leafy green",
+      category: "Food & Drink",
+      aliases: [
+        "leafy_green"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F966}",
+      description: "broccoli",
+      category: "Food & Drink",
+      aliases: [
+        "broccoli"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9C4}",
+      description: "garlic",
+      category: "Food & Drink",
+      aliases: [
+        "garlic"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9C5}",
+      description: "onion",
+      category: "Food & Drink",
+      aliases: [
+        "onion"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F95C}",
+      description: "peanuts",
+      category: "Food & Drink",
+      aliases: [
+        "peanuts"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FAD8}",
+      description: "beans",
+      category: "Food & Drink",
+      aliases: [
+        "beans"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F330}",
+      description: "chestnut",
+      category: "Food & Drink",
+      aliases: [
+        "chestnut"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FADA}",
+      description: "ginger root",
+      category: "Food & Drink",
+      aliases: [
+        "ginger_root"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1FADB}",
+      description: "pea pod",
+      category: "Food & Drink",
+      aliases: [
+        "pea_pod"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F35E}",
+      description: "bread",
+      category: "Food & Drink",
+      aliases: [
+        "bread"
+      ],
+      tags: [
+        "toast"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F950}",
+      description: "croissant",
+      category: "Food & Drink",
+      aliases: [
+        "croissant"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F956}",
+      description: "baguette bread",
+      category: "Food & Drink",
+      aliases: [
+        "baguette_bread"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FAD3}",
+      description: "flatbread",
+      category: "Food & Drink",
+      aliases: [
+        "flatbread"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F968}",
+      description: "pretzel",
+      category: "Food & Drink",
+      aliases: [
+        "pretzel"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F96F}",
+      description: "bagel",
+      category: "Food & Drink",
+      aliases: [
+        "bagel"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F95E}",
+      description: "pancakes",
+      category: "Food & Drink",
+      aliases: [
+        "pancakes"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9C7}",
+      description: "waffle",
+      category: "Food & Drink",
+      aliases: [
+        "waffle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9C0}",
+      description: "cheese wedge",
+      category: "Food & Drink",
+      aliases: [
+        "cheese"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F356}",
+      description: "meat on bone",
+      category: "Food & Drink",
+      aliases: [
+        "meat_on_bone"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F357}",
+      description: "poultry leg",
+      category: "Food & Drink",
+      aliases: [
+        "poultry_leg"
+      ],
+      tags: [
+        "meat",
+        "chicken"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F969}",
+      description: "cut of meat",
+      category: "Food & Drink",
+      aliases: [
+        "cut_of_meat"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F953}",
+      description: "bacon",
+      category: "Food & Drink",
+      aliases: [
+        "bacon"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F354}",
+      description: "hamburger",
+      category: "Food & Drink",
+      aliases: [
+        "hamburger"
+      ],
+      tags: [
+        "burger"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F35F}",
+      description: "french fries",
+      category: "Food & Drink",
+      aliases: [
+        "fries"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F355}",
+      description: "pizza",
+      category: "Food & Drink",
+      aliases: [
+        "pizza"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F32D}",
+      description: "hot dog",
+      category: "Food & Drink",
+      aliases: [
+        "hotdog"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F96A}",
+      description: "sandwich",
+      category: "Food & Drink",
+      aliases: [
+        "sandwich"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F32E}",
+      description: "taco",
+      category: "Food & Drink",
+      aliases: [
+        "taco"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F32F}",
+      description: "burrito",
+      category: "Food & Drink",
+      aliases: [
+        "burrito"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FAD4}",
+      description: "tamale",
+      category: "Food & Drink",
+      aliases: [
+        "tamale"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F959}",
+      description: "stuffed flatbread",
+      category: "Food & Drink",
+      aliases: [
+        "stuffed_flatbread"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9C6}",
+      description: "falafel",
+      category: "Food & Drink",
+      aliases: [
+        "falafel"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F95A}",
+      description: "egg",
+      category: "Food & Drink",
+      aliases: [
+        "egg"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F373}",
+      description: "cooking",
+      category: "Food & Drink",
+      aliases: [
+        "fried_egg"
+      ],
+      tags: [
+        "breakfast"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F958}",
+      description: "shallow pan of food",
+      category: "Food & Drink",
+      aliases: [
+        "shallow_pan_of_food"
+      ],
+      tags: [
+        "paella",
+        "curry"
+      ],
+      unicode_version: "",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F372}",
+      description: "pot of food",
+      category: "Food & Drink",
+      aliases: [
+        "stew"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAD5}",
+      description: "fondue",
+      category: "Food & Drink",
+      aliases: [
+        "fondue"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F963}",
+      description: "bowl with spoon",
+      category: "Food & Drink",
+      aliases: [
+        "bowl_with_spoon"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F957}",
+      description: "green salad",
+      category: "Food & Drink",
+      aliases: [
+        "green_salad"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F37F}",
+      description: "popcorn",
+      category: "Food & Drink",
+      aliases: [
+        "popcorn"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9C8}",
+      description: "butter",
+      category: "Food & Drink",
+      aliases: [
+        "butter"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9C2}",
+      description: "salt",
+      category: "Food & Drink",
+      aliases: [
+        "salt"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F96B}",
+      description: "canned food",
+      category: "Food & Drink",
+      aliases: [
+        "canned_food"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F371}",
+      description: "bento box",
+      category: "Food & Drink",
+      aliases: [
+        "bento"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F358}",
+      description: "rice cracker",
+      category: "Food & Drink",
+      aliases: [
+        "rice_cracker"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F359}",
+      description: "rice ball",
+      category: "Food & Drink",
+      aliases: [
+        "rice_ball"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F35A}",
+      description: "cooked rice",
+      category: "Food & Drink",
+      aliases: [
+        "rice"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F35B}",
+      description: "curry rice",
+      category: "Food & Drink",
+      aliases: [
+        "curry"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F35C}",
+      description: "steaming bowl",
+      category: "Food & Drink",
+      aliases: [
+        "ramen"
+      ],
+      tags: [
+        "noodle"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F35D}",
+      description: "spaghetti",
+      category: "Food & Drink",
+      aliases: [
+        "spaghetti"
+      ],
+      tags: [
+        "pasta"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F360}",
+      description: "roasted sweet potato",
+      category: "Food & Drink",
+      aliases: [
+        "sweet_potato"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F362}",
+      description: "oden",
+      category: "Food & Drink",
+      aliases: [
+        "oden"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F363}",
+      description: "sushi",
+      category: "Food & Drink",
+      aliases: [
+        "sushi"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F364}",
+      description: "fried shrimp",
+      category: "Food & Drink",
+      aliases: [
+        "fried_shrimp"
+      ],
+      tags: [
+        "tempura"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F365}",
+      description: "fish cake with swirl",
+      category: "Food & Drink",
+      aliases: [
+        "fish_cake"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F96E}",
+      description: "moon cake",
+      category: "Food & Drink",
+      aliases: [
+        "moon_cake"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F361}",
+      description: "dango",
+      category: "Food & Drink",
+      aliases: [
+        "dango"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F95F}",
+      description: "dumpling",
+      category: "Food & Drink",
+      aliases: [
+        "dumpling"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F960}",
+      description: "fortune cookie",
+      category: "Food & Drink",
+      aliases: [
+        "fortune_cookie"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F961}",
+      description: "takeout box",
+      category: "Food & Drink",
+      aliases: [
+        "takeout_box"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F980}",
+      description: "crab",
+      category: "Food & Drink",
+      aliases: [
+        "crab"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F99E}",
+      description: "lobster",
+      category: "Food & Drink",
+      aliases: [
+        "lobster"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F990}",
+      description: "shrimp",
+      category: "Food & Drink",
+      aliases: [
+        "shrimp"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F991}",
+      description: "squid",
+      category: "Food & Drink",
+      aliases: [
+        "squid"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9AA}",
+      description: "oyster",
+      category: "Food & Drink",
+      aliases: [
+        "oyster"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F366}",
+      description: "soft ice cream",
+      category: "Food & Drink",
+      aliases: [
+        "icecream"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F367}",
+      description: "shaved ice",
+      category: "Food & Drink",
+      aliases: [
+        "shaved_ice"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F368}",
+      description: "ice cream",
+      category: "Food & Drink",
+      aliases: [
+        "ice_cream"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F369}",
+      description: "doughnut",
+      category: "Food & Drink",
+      aliases: [
+        "doughnut"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F36A}",
+      description: "cookie",
+      category: "Food & Drink",
+      aliases: [
+        "cookie"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F382}",
+      description: "birthday cake",
+      category: "Food & Drink",
+      aliases: [
+        "birthday"
+      ],
+      tags: [
+        "party"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F370}",
+      description: "shortcake",
+      category: "Food & Drink",
+      aliases: [
+        "cake"
+      ],
+      tags: [
+        "dessert"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9C1}",
+      description: "cupcake",
+      category: "Food & Drink",
+      aliases: [
+        "cupcake"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F967}",
+      description: "pie",
+      category: "Food & Drink",
+      aliases: [
+        "pie"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F36B}",
+      description: "chocolate bar",
+      category: "Food & Drink",
+      aliases: [
+        "chocolate_bar"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F36C}",
+      description: "candy",
+      category: "Food & Drink",
+      aliases: [
+        "candy"
+      ],
+      tags: [
+        "sweet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F36D}",
+      description: "lollipop",
+      category: "Food & Drink",
+      aliases: [
+        "lollipop"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F36E}",
+      description: "custard",
+      category: "Food & Drink",
+      aliases: [
+        "custard"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F36F}",
+      description: "honey pot",
+      category: "Food & Drink",
+      aliases: [
+        "honey_pot"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F37C}",
+      description: "baby bottle",
+      category: "Food & Drink",
+      aliases: [
+        "baby_bottle"
+      ],
+      tags: [
+        "milk"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F95B}",
+      description: "glass of milk",
+      category: "Food & Drink",
+      aliases: [
+        "milk_glass"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u2615",
+      description: "hot beverage",
+      category: "Food & Drink",
+      aliases: [
+        "coffee"
+      ],
+      tags: [
+        "cafe",
+        "espresso"
+      ],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAD6}",
+      description: "teapot",
+      category: "Food & Drink",
+      aliases: [
+        "teapot"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F375}",
+      description: "teacup without handle",
+      category: "Food & Drink",
+      aliases: [
+        "tea"
+      ],
+      tags: [
+        "green",
+        "breakfast"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F376}",
+      description: "sake",
+      category: "Food & Drink",
+      aliases: [
+        "sake"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F37E}",
+      description: "bottle with popping cork",
+      category: "Food & Drink",
+      aliases: [
+        "champagne"
+      ],
+      tags: [
+        "bottle",
+        "bubbly",
+        "celebration"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F377}",
+      description: "wine glass",
+      category: "Food & Drink",
+      aliases: [
+        "wine_glass"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F378}",
+      description: "cocktail glass",
+      category: "Food & Drink",
+      aliases: [
+        "cocktail"
+      ],
+      tags: [
+        "drink"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F379}",
+      description: "tropical drink",
+      category: "Food & Drink",
+      aliases: [
+        "tropical_drink"
+      ],
+      tags: [
+        "summer",
+        "vacation"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F37A}",
+      description: "beer mug",
+      category: "Food & Drink",
+      aliases: [
+        "beer"
+      ],
+      tags: [
+        "drink"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F37B}",
+      description: "clinking beer mugs",
+      category: "Food & Drink",
+      aliases: [
+        "beers"
+      ],
+      tags: [
+        "drinks"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F942}",
+      description: "clinking glasses",
+      category: "Food & Drink",
+      aliases: [
+        "clinking_glasses"
+      ],
+      tags: [
+        "cheers",
+        "toast"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F943}",
+      description: "tumbler glass",
+      category: "Food & Drink",
+      aliases: [
+        "tumbler_glass"
+      ],
+      tags: [
+        "whisky"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FAD7}",
+      description: "pouring liquid",
+      category: "Food & Drink",
+      aliases: [
+        "pouring_liquid"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F964}",
+      description: "cup with straw",
+      category: "Food & Drink",
+      aliases: [
+        "cup_with_straw"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9CB}",
+      description: "bubble tea",
+      category: "Food & Drink",
+      aliases: [
+        "bubble_tea"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9C3}",
+      description: "beverage box",
+      category: "Food & Drink",
+      aliases: [
+        "beverage_box"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9C9}",
+      description: "mate",
+      category: "Food & Drink",
+      aliases: [
+        "mate"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9CA}",
+      description: "ice",
+      category: "Food & Drink",
+      aliases: [
+        "ice_cube"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F962}",
+      description: "chopsticks",
+      category: "Food & Drink",
+      aliases: [
+        "chopsticks"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F37D}\uFE0F",
+      description: "fork and knife with plate",
+      category: "Food & Drink",
+      aliases: [
+        "plate_with_cutlery"
+      ],
+      tags: [
+        "dining",
+        "dinner"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F374}",
+      description: "fork and knife",
+      category: "Food & Drink",
+      aliases: [
+        "fork_and_knife"
+      ],
+      tags: [
+        "cutlery"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F944}",
+      description: "spoon",
+      category: "Food & Drink",
+      aliases: [
+        "spoon"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F52A}",
+      description: "kitchen knife",
+      category: "Food & Drink",
+      aliases: [
+        "hocho",
+        "knife"
+      ],
+      tags: [
+        "cut",
+        "chop"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAD9}",
+      description: "jar",
+      category: "Food & Drink",
+      aliases: [
+        "jar"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F3FA}",
+      description: "amphora",
+      category: "Food & Drink",
+      aliases: [
+        "amphora"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F30D}",
+      description: "globe showing Europe-Africa",
+      category: "Travel & Places",
+      aliases: [
+        "earth_africa"
+      ],
+      tags: [
+        "globe",
+        "world",
+        "international"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F30E}",
+      description: "globe showing Americas",
+      category: "Travel & Places",
+      aliases: [
+        "earth_americas"
+      ],
+      tags: [
+        "globe",
+        "world",
+        "international"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F30F}",
+      description: "globe showing Asia-Australia",
+      category: "Travel & Places",
+      aliases: [
+        "earth_asia"
+      ],
+      tags: [
+        "globe",
+        "world",
+        "international"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F310}",
+      description: "globe with meridians",
+      category: "Travel & Places",
+      aliases: [
+        "globe_with_meridians"
+      ],
+      tags: [
+        "world",
+        "global",
+        "international"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5FA}\uFE0F",
+      description: "world map",
+      category: "Travel & Places",
+      aliases: [
+        "world_map"
+      ],
+      tags: [
+        "travel"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5FE}",
+      description: "map of Japan",
+      category: "Travel & Places",
+      aliases: [
+        "japan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9ED}",
+      description: "compass",
+      category: "Travel & Places",
+      aliases: [
+        "compass"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3D4}\uFE0F",
+      description: "snow-capped mountain",
+      category: "Travel & Places",
+      aliases: [
+        "mountain_snow"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26F0\uFE0F",
+      description: "mountain",
+      category: "Travel & Places",
+      aliases: [
+        "mountain"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F30B}",
+      description: "volcano",
+      category: "Travel & Places",
+      aliases: [
+        "volcano"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5FB}",
+      description: "mount fuji",
+      category: "Travel & Places",
+      aliases: [
+        "mount_fuji"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3D5}\uFE0F",
+      description: "camping",
+      category: "Travel & Places",
+      aliases: [
+        "camping"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3D6}\uFE0F",
+      description: "beach with umbrella",
+      category: "Travel & Places",
+      aliases: [
+        "beach_umbrella"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DC}\uFE0F",
+      description: "desert",
+      category: "Travel & Places",
+      aliases: [
+        "desert"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DD}\uFE0F",
+      description: "desert island",
+      category: "Travel & Places",
+      aliases: [
+        "desert_island"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DE}\uFE0F",
+      description: "national park",
+      category: "Travel & Places",
+      aliases: [
+        "national_park"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DF}\uFE0F",
+      description: "stadium",
+      category: "Travel & Places",
+      aliases: [
+        "stadium"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DB}\uFE0F",
+      description: "classical building",
+      category: "Travel & Places",
+      aliases: [
+        "classical_building"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3D7}\uFE0F",
+      description: "building construction",
+      category: "Travel & Places",
+      aliases: [
+        "building_construction"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9F1}",
+      description: "brick",
+      category: "Travel & Places",
+      aliases: [
+        "bricks"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAA8}",
+      description: "rock",
+      category: "Travel & Places",
+      aliases: [
+        "rock"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAB5}",
+      description: "wood",
+      category: "Travel & Places",
+      aliases: [
+        "wood"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F6D6}",
+      description: "hut",
+      category: "Travel & Places",
+      aliases: [
+        "hut"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F3D8}\uFE0F",
+      description: "houses",
+      category: "Travel & Places",
+      aliases: [
+        "houses"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3DA}\uFE0F",
+      description: "derelict house",
+      category: "Travel & Places",
+      aliases: [
+        "derelict_house"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3E0}",
+      description: "house",
+      category: "Travel & Places",
+      aliases: [
+        "house"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E1}",
+      description: "house with garden",
+      category: "Travel & Places",
+      aliases: [
+        "house_with_garden"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E2}",
+      description: "office building",
+      category: "Travel & Places",
+      aliases: [
+        "office"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E3}",
+      description: "Japanese post office",
+      category: "Travel & Places",
+      aliases: [
+        "post_office"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E4}",
+      description: "post office",
+      category: "Travel & Places",
+      aliases: [
+        "european_post_office"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E5}",
+      description: "hospital",
+      category: "Travel & Places",
+      aliases: [
+        "hospital"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E6}",
+      description: "bank",
+      category: "Travel & Places",
+      aliases: [
+        "bank"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E8}",
+      description: "hotel",
+      category: "Travel & Places",
+      aliases: [
+        "hotel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3E9}",
+      description: "love hotel",
+      category: "Travel & Places",
+      aliases: [
+        "love_hotel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3EA}",
+      description: "convenience store",
+      category: "Travel & Places",
+      aliases: [
+        "convenience_store"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3EB}",
+      description: "school",
+      category: "Travel & Places",
+      aliases: [
+        "school"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3EC}",
+      description: "department store",
+      category: "Travel & Places",
+      aliases: [
+        "department_store"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3ED}",
+      description: "factory",
+      category: "Travel & Places",
+      aliases: [
+        "factory"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3EF}",
+      description: "Japanese castle",
+      category: "Travel & Places",
+      aliases: [
+        "japanese_castle"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3F0}",
+      description: "castle",
+      category: "Travel & Places",
+      aliases: [
+        "european_castle"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F492}",
+      description: "wedding",
+      category: "Travel & Places",
+      aliases: [
+        "wedding"
+      ],
+      tags: [
+        "marriage"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5FC}",
+      description: "Tokyo tower",
+      category: "Travel & Places",
+      aliases: [
+        "tokyo_tower"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5FD}",
+      description: "Statue of Liberty",
+      category: "Travel & Places",
+      aliases: [
+        "statue_of_liberty"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26EA",
+      description: "church",
+      category: "Travel & Places",
+      aliases: [
+        "church"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F54C}",
+      description: "mosque",
+      category: "Travel & Places",
+      aliases: [
+        "mosque"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6D5}",
+      description: "hindu temple",
+      category: "Travel & Places",
+      aliases: [
+        "hindu_temple"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F54D}",
+      description: "synagogue",
+      category: "Travel & Places",
+      aliases: [
+        "synagogue"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26E9\uFE0F",
+      description: "shinto shrine",
+      category: "Travel & Places",
+      aliases: [
+        "shinto_shrine"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F54B}",
+      description: "kaaba",
+      category: "Travel & Places",
+      aliases: [
+        "kaaba"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26F2",
+      description: "fountain",
+      category: "Travel & Places",
+      aliases: [
+        "fountain"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26FA",
+      description: "tent",
+      category: "Travel & Places",
+      aliases: [
+        "tent"
+      ],
+      tags: [
+        "camping"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F301}",
+      description: "foggy",
+      category: "Travel & Places",
+      aliases: [
+        "foggy"
+      ],
+      tags: [
+        "karl"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F303}",
+      description: "night with stars",
+      category: "Travel & Places",
+      aliases: [
+        "night_with_stars"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3D9}\uFE0F",
+      description: "cityscape",
+      category: "Travel & Places",
+      aliases: [
+        "cityscape"
+      ],
+      tags: [
+        "skyline"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F304}",
+      description: "sunrise over mountains",
+      category: "Travel & Places",
+      aliases: [
+        "sunrise_over_mountains"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F305}",
+      description: "sunrise",
+      category: "Travel & Places",
+      aliases: [
+        "sunrise"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F306}",
+      description: "cityscape at dusk",
+      category: "Travel & Places",
+      aliases: [
+        "city_sunset"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F307}",
+      description: "sunset",
+      category: "Travel & Places",
+      aliases: [
+        "city_sunrise"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F309}",
+      description: "bridge at night",
+      category: "Travel & Places",
+      aliases: [
+        "bridge_at_night"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2668\uFE0F",
+      description: "hot springs",
+      category: "Travel & Places",
+      aliases: [
+        "hotsprings"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3A0}",
+      description: "carousel horse",
+      category: "Travel & Places",
+      aliases: [
+        "carousel_horse"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6DD}",
+      description: "playground slide",
+      category: "Travel & Places",
+      aliases: [
+        "playground_slide"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F3A1}",
+      description: "ferris wheel",
+      category: "Travel & Places",
+      aliases: [
+        "ferris_wheel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3A2}",
+      description: "roller coaster",
+      category: "Travel & Places",
+      aliases: [
+        "roller_coaster"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F488}",
+      description: "barber pole",
+      category: "Travel & Places",
+      aliases: [
+        "barber"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3AA}",
+      description: "circus tent",
+      category: "Travel & Places",
+      aliases: [
+        "circus_tent"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F682}",
+      description: "locomotive",
+      category: "Travel & Places",
+      aliases: [
+        "steam_locomotive"
+      ],
+      tags: [
+        "train"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F683}",
+      description: "railway car",
+      category: "Travel & Places",
+      aliases: [
+        "railway_car"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F684}",
+      description: "high-speed train",
+      category: "Travel & Places",
+      aliases: [
+        "bullettrain_side"
+      ],
+      tags: [
+        "train"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F685}",
+      description: "bullet train",
+      category: "Travel & Places",
+      aliases: [
+        "bullettrain_front"
+      ],
+      tags: [
+        "train"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F686}",
+      description: "train",
+      category: "Travel & Places",
+      aliases: [
+        "train2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F687}",
+      description: "metro",
+      category: "Travel & Places",
+      aliases: [
+        "metro"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F688}",
+      description: "light rail",
+      category: "Travel & Places",
+      aliases: [
+        "light_rail"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F689}",
+      description: "station",
+      category: "Travel & Places",
+      aliases: [
+        "station"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F68A}",
+      description: "tram",
+      category: "Travel & Places",
+      aliases: [
+        "tram"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F69D}",
+      description: "monorail",
+      category: "Travel & Places",
+      aliases: [
+        "monorail"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F69E}",
+      description: "mountain railway",
+      category: "Travel & Places",
+      aliases: [
+        "mountain_railway"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F68B}",
+      description: "tram car",
+      category: "Travel & Places",
+      aliases: [
+        "train"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F68C}",
+      description: "bus",
+      category: "Travel & Places",
+      aliases: [
+        "bus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F68D}",
+      description: "oncoming bus",
+      category: "Travel & Places",
+      aliases: [
+        "oncoming_bus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F68E}",
+      description: "trolleybus",
+      category: "Travel & Places",
+      aliases: [
+        "trolleybus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F690}",
+      description: "minibus",
+      category: "Travel & Places",
+      aliases: [
+        "minibus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F691}",
+      description: "ambulance",
+      category: "Travel & Places",
+      aliases: [
+        "ambulance"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F692}",
+      description: "fire engine",
+      category: "Travel & Places",
+      aliases: [
+        "fire_engine"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F693}",
+      description: "police car",
+      category: "Travel & Places",
+      aliases: [
+        "police_car"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F694}",
+      description: "oncoming police car",
+      category: "Travel & Places",
+      aliases: [
+        "oncoming_police_car"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F695}",
+      description: "taxi",
+      category: "Travel & Places",
+      aliases: [
+        "taxi"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F696}",
+      description: "oncoming taxi",
+      category: "Travel & Places",
+      aliases: [
+        "oncoming_taxi"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F697}",
+      description: "automobile",
+      category: "Travel & Places",
+      aliases: [
+        "car",
+        "red_car"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F698}",
+      description: "oncoming automobile",
+      category: "Travel & Places",
+      aliases: [
+        "oncoming_automobile"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F699}",
+      description: "sport utility vehicle",
+      category: "Travel & Places",
+      aliases: [
+        "blue_car"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6FB}",
+      description: "pickup truck",
+      category: "Travel & Places",
+      aliases: [
+        "pickup_truck"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F69A}",
+      description: "delivery truck",
+      category: "Travel & Places",
+      aliases: [
+        "truck"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F69B}",
+      description: "articulated lorry",
+      category: "Travel & Places",
+      aliases: [
+        "articulated_lorry"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F69C}",
+      description: "tractor",
+      category: "Travel & Places",
+      aliases: [
+        "tractor"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3CE}\uFE0F",
+      description: "racing car",
+      category: "Travel & Places",
+      aliases: [
+        "racing_car"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3CD}\uFE0F",
+      description: "motorcycle",
+      category: "Travel & Places",
+      aliases: [
+        "motorcycle"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6F5}",
+      description: "motor scooter",
+      category: "Travel & Places",
+      aliases: [
+        "motor_scooter"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F9BD}",
+      description: "manual wheelchair",
+      category: "Travel & Places",
+      aliases: [
+        "manual_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9BC}",
+      description: "motorized wheelchair",
+      category: "Travel & Places",
+      aliases: [
+        "motorized_wheelchair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F6FA}",
+      description: "auto rickshaw",
+      category: "Travel & Places",
+      aliases: [
+        "auto_rickshaw"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F6B2}",
+      description: "bicycle",
+      category: "Travel & Places",
+      aliases: [
+        "bike"
+      ],
+      tags: [
+        "bicycle"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F4}",
+      description: "kick scooter",
+      category: "Travel & Places",
+      aliases: [
+        "kick_scooter"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F6F9}",
+      description: "skateboard",
+      category: "Travel & Places",
+      aliases: [
+        "skateboard"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F6FC}",
+      description: "roller skate",
+      category: "Travel & Places",
+      aliases: [
+        "roller_skate"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F68F}",
+      description: "bus stop",
+      category: "Travel & Places",
+      aliases: [
+        "busstop"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6E3}\uFE0F",
+      description: "motorway",
+      category: "Travel & Places",
+      aliases: [
+        "motorway"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6E4}\uFE0F",
+      description: "railway track",
+      category: "Travel & Places",
+      aliases: [
+        "railway_track"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6E2}\uFE0F",
+      description: "oil drum",
+      category: "Travel & Places",
+      aliases: [
+        "oil_drum"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26FD",
+      description: "fuel pump",
+      category: "Travel & Places",
+      aliases: [
+        "fuelpump"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6DE}",
+      description: "wheel",
+      category: "Travel & Places",
+      aliases: [
+        "wheel"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F6A8}",
+      description: "police car light",
+      category: "Travel & Places",
+      aliases: [
+        "rotating_light"
+      ],
+      tags: [
+        "911",
+        "emergency"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6A5}",
+      description: "horizontal traffic light",
+      category: "Travel & Places",
+      aliases: [
+        "traffic_light"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6A6}",
+      description: "vertical traffic light",
+      category: "Travel & Places",
+      aliases: [
+        "vertical_traffic_light"
+      ],
+      tags: [
+        "semaphore"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6D1}",
+      description: "stop sign",
+      category: "Travel & Places",
+      aliases: [
+        "stop_sign"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F6A7}",
+      description: "construction",
+      category: "Travel & Places",
+      aliases: [
+        "construction"
+      ],
+      tags: [
+        "wip"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2693",
+      description: "anchor",
+      category: "Travel & Places",
+      aliases: [
+        "anchor"
+      ],
+      tags: [
+        "ship"
+      ],
+      unicode_version: "4.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6DF}",
+      description: "ring buoy",
+      category: "Travel & Places",
+      aliases: [
+        "ring_buoy"
+      ],
+      tags: [
+        "life preserver"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u26F5",
+      description: "sailboat",
+      category: "Travel & Places",
+      aliases: [
+        "boat",
+        "sailboat"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F6}",
+      description: "canoe",
+      category: "Travel & Places",
+      aliases: [
+        "canoe"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F6A4}",
+      description: "speedboat",
+      category: "Travel & Places",
+      aliases: [
+        "speedboat"
+      ],
+      tags: [
+        "ship"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F3}\uFE0F",
+      description: "passenger ship",
+      category: "Travel & Places",
+      aliases: [
+        "passenger_ship"
+      ],
+      tags: [
+        "cruise"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26F4\uFE0F",
+      description: "ferry",
+      category: "Travel & Places",
+      aliases: [
+        "ferry"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6E5}\uFE0F",
+      description: "motor boat",
+      category: "Travel & Places",
+      aliases: [
+        "motor_boat"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6A2}",
+      description: "ship",
+      category: "Travel & Places",
+      aliases: [
+        "ship"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2708\uFE0F",
+      description: "airplane",
+      category: "Travel & Places",
+      aliases: [
+        "airplane"
+      ],
+      tags: [
+        "flight"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6E9}\uFE0F",
+      description: "small airplane",
+      category: "Travel & Places",
+      aliases: [
+        "small_airplane"
+      ],
+      tags: [
+        "flight"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6EB}",
+      description: "airplane departure",
+      category: "Travel & Places",
+      aliases: [
+        "flight_departure"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6EC}",
+      description: "airplane arrival",
+      category: "Travel & Places",
+      aliases: [
+        "flight_arrival"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FA82}",
+      description: "parachute",
+      category: "Travel & Places",
+      aliases: [
+        "parachute"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F4BA}",
+      description: "seat",
+      category: "Travel & Places",
+      aliases: [
+        "seat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F681}",
+      description: "helicopter",
+      category: "Travel & Places",
+      aliases: [
+        "helicopter"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F69F}",
+      description: "suspension railway",
+      category: "Travel & Places",
+      aliases: [
+        "suspension_railway"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6A0}",
+      description: "mountain cableway",
+      category: "Travel & Places",
+      aliases: [
+        "mountain_cableway"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6A1}",
+      description: "aerial tramway",
+      category: "Travel & Places",
+      aliases: [
+        "aerial_tramway"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F0}\uFE0F",
+      description: "satellite",
+      category: "Travel & Places",
+      aliases: [
+        "artificial_satellite"
+      ],
+      tags: [
+        "orbit",
+        "space"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F680}",
+      description: "rocket",
+      category: "Travel & Places",
+      aliases: [
+        "rocket"
+      ],
+      tags: [
+        "ship",
+        "launch"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F8}",
+      description: "flying saucer",
+      category: "Travel & Places",
+      aliases: [
+        "flying_saucer"
+      ],
+      tags: [
+        "ufo"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F6CE}\uFE0F",
+      description: "bellhop bell",
+      category: "Travel & Places",
+      aliases: [
+        "bellhop_bell"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9F3}",
+      description: "luggage",
+      category: "Travel & Places",
+      aliases: [
+        "luggage"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u231B",
+      description: "hourglass done",
+      category: "Travel & Places",
+      aliases: [
+        "hourglass"
+      ],
+      tags: [
+        "time"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23F3",
+      description: "hourglass not done",
+      category: "Travel & Places",
+      aliases: [
+        "hourglass_flowing_sand"
+      ],
+      tags: [
+        "time"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u231A",
+      description: "watch",
+      category: "Travel & Places",
+      aliases: [
+        "watch"
+      ],
+      tags: [
+        "time"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23F0",
+      description: "alarm clock",
+      category: "Travel & Places",
+      aliases: [
+        "alarm_clock"
+      ],
+      tags: [
+        "morning"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23F1\uFE0F",
+      description: "stopwatch",
+      category: "Travel & Places",
+      aliases: [
+        "stopwatch"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u23F2\uFE0F",
+      description: "timer clock",
+      category: "Travel & Places",
+      aliases: [
+        "timer_clock"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F570}\uFE0F",
+      description: "mantelpiece clock",
+      category: "Travel & Places",
+      aliases: [
+        "mantelpiece_clock"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F55B}",
+      description: "twelve o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock12"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F567}",
+      description: "twelve-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock1230"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F550}",
+      description: "one o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock1"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F55C}",
+      description: "one-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock130"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F551}",
+      description: "two o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F55D}",
+      description: "two-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock230"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F552}",
+      description: "three o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock3"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F55E}",
+      description: "three-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock330"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F553}",
+      description: "four o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock4"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F55F}",
+      description: "four-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock430"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F554}",
+      description: "five o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock5"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F560}",
+      description: "five-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock530"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F555}",
+      description: "six o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock6"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F561}",
+      description: "six-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock630"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F556}",
+      description: "seven o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock7"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F562}",
+      description: "seven-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock730"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F557}",
+      description: "eight o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock8"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F563}",
+      description: "eight-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock830"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F558}",
+      description: "nine o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock9"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F564}",
+      description: "nine-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock930"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F559}",
+      description: "ten o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock10"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F565}",
+      description: "ten-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock1030"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F55A}",
+      description: "eleven o\u2019clock",
+      category: "Travel & Places",
+      aliases: [
+        "clock11"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F566}",
+      description: "eleven-thirty",
+      category: "Travel & Places",
+      aliases: [
+        "clock1130"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F311}",
+      description: "new moon",
+      category: "Travel & Places",
+      aliases: [
+        "new_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F312}",
+      description: "waxing crescent moon",
+      category: "Travel & Places",
+      aliases: [
+        "waxing_crescent_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F313}",
+      description: "first quarter moon",
+      category: "Travel & Places",
+      aliases: [
+        "first_quarter_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F314}",
+      description: "waxing gibbous moon",
+      category: "Travel & Places",
+      aliases: [
+        "moon",
+        "waxing_gibbous_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F315}",
+      description: "full moon",
+      category: "Travel & Places",
+      aliases: [
+        "full_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F316}",
+      description: "waning gibbous moon",
+      category: "Travel & Places",
+      aliases: [
+        "waning_gibbous_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F317}",
+      description: "last quarter moon",
+      category: "Travel & Places",
+      aliases: [
+        "last_quarter_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F318}",
+      description: "waning crescent moon",
+      category: "Travel & Places",
+      aliases: [
+        "waning_crescent_moon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F319}",
+      description: "crescent moon",
+      category: "Travel & Places",
+      aliases: [
+        "crescent_moon"
+      ],
+      tags: [
+        "night"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31A}",
+      description: "new moon face",
+      category: "Travel & Places",
+      aliases: [
+        "new_moon_with_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31B}",
+      description: "first quarter moon face",
+      category: "Travel & Places",
+      aliases: [
+        "first_quarter_moon_with_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31C}",
+      description: "last quarter moon face",
+      category: "Travel & Places",
+      aliases: [
+        "last_quarter_moon_with_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F321}\uFE0F",
+      description: "thermometer",
+      category: "Travel & Places",
+      aliases: [
+        "thermometer"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2600\uFE0F",
+      description: "sun",
+      category: "Travel & Places",
+      aliases: [
+        "sunny"
+      ],
+      tags: [
+        "weather"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31D}",
+      description: "full moon face",
+      category: "Travel & Places",
+      aliases: [
+        "full_moon_with_face"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31E}",
+      description: "sun with face",
+      category: "Travel & Places",
+      aliases: [
+        "sun_with_face"
+      ],
+      tags: [
+        "summer"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA90}",
+      description: "ringed planet",
+      category: "Travel & Places",
+      aliases: [
+        "ringed_planet"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u2B50",
+      description: "star",
+      category: "Travel & Places",
+      aliases: [
+        "star"
+      ],
+      tags: [],
+      unicode_version: "5.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F31F}",
+      description: "glowing star",
+      category: "Travel & Places",
+      aliases: [
+        "star2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F320}",
+      description: "shooting star",
+      category: "Travel & Places",
+      aliases: [
+        "stars"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F30C}",
+      description: "milky way",
+      category: "Travel & Places",
+      aliases: [
+        "milky_way"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2601\uFE0F",
+      description: "cloud",
+      category: "Travel & Places",
+      aliases: [
+        "cloud"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26C5",
+      description: "sun behind cloud",
+      category: "Travel & Places",
+      aliases: [
+        "partly_sunny"
+      ],
+      tags: [
+        "weather",
+        "cloud"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26C8\uFE0F",
+      description: "cloud with lightning and rain",
+      category: "Travel & Places",
+      aliases: [
+        "cloud_with_lightning_and_rain"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F324}\uFE0F",
+      description: "sun behind small cloud",
+      category: "Travel & Places",
+      aliases: [
+        "sun_behind_small_cloud"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F325}\uFE0F",
+      description: "sun behind large cloud",
+      category: "Travel & Places",
+      aliases: [
+        "sun_behind_large_cloud"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F326}\uFE0F",
+      description: "sun behind rain cloud",
+      category: "Travel & Places",
+      aliases: [
+        "sun_behind_rain_cloud"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F327}\uFE0F",
+      description: "cloud with rain",
+      category: "Travel & Places",
+      aliases: [
+        "cloud_with_rain"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F328}\uFE0F",
+      description: "cloud with snow",
+      category: "Travel & Places",
+      aliases: [
+        "cloud_with_snow"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F329}\uFE0F",
+      description: "cloud with lightning",
+      category: "Travel & Places",
+      aliases: [
+        "cloud_with_lightning"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F32A}\uFE0F",
+      description: "tornado",
+      category: "Travel & Places",
+      aliases: [
+        "tornado"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F32B}\uFE0F",
+      description: "fog",
+      category: "Travel & Places",
+      aliases: [
+        "fog"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F32C}\uFE0F",
+      description: "wind face",
+      category: "Travel & Places",
+      aliases: [
+        "wind_face"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F300}",
+      description: "cyclone",
+      category: "Travel & Places",
+      aliases: [
+        "cyclone"
+      ],
+      tags: [
+        "swirl"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F308}",
+      description: "rainbow",
+      category: "Travel & Places",
+      aliases: [
+        "rainbow"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F302}",
+      description: "closed umbrella",
+      category: "Travel & Places",
+      aliases: [
+        "closed_umbrella"
+      ],
+      tags: [
+        "weather",
+        "rain"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2602\uFE0F",
+      description: "umbrella",
+      category: "Travel & Places",
+      aliases: [
+        "open_umbrella"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2614",
+      description: "umbrella with rain drops",
+      category: "Travel & Places",
+      aliases: [
+        "umbrella"
+      ],
+      tags: [
+        "rain",
+        "weather"
+      ],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26F1\uFE0F",
+      description: "umbrella on ground",
+      category: "Travel & Places",
+      aliases: [
+        "parasol_on_ground"
+      ],
+      tags: [
+        "beach_umbrella"
+      ],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26A1",
+      description: "high voltage",
+      category: "Travel & Places",
+      aliases: [
+        "zap"
+      ],
+      tags: [
+        "lightning",
+        "thunder"
+      ],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2744\uFE0F",
+      description: "snowflake",
+      category: "Travel & Places",
+      aliases: [
+        "snowflake"
+      ],
+      tags: [
+        "winter",
+        "cold",
+        "weather"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2603\uFE0F",
+      description: "snowman",
+      category: "Travel & Places",
+      aliases: [
+        "snowman_with_snow"
+      ],
+      tags: [
+        "winter",
+        "christmas"
+      ],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u26C4",
+      description: "snowman without snow",
+      category: "Travel & Places",
+      aliases: [
+        "snowman"
+      ],
+      tags: [
+        "winter"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2604\uFE0F",
+      description: "comet",
+      category: "Travel & Places",
+      aliases: [
+        "comet"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F525}",
+      description: "fire",
+      category: "Travel & Places",
+      aliases: [
+        "fire"
+      ],
+      tags: [
+        "burn"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A7}",
+      description: "droplet",
+      category: "Travel & Places",
+      aliases: [
+        "droplet"
+      ],
+      tags: [
+        "water"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F30A}",
+      description: "water wave",
+      category: "Travel & Places",
+      aliases: [
+        "ocean"
+      ],
+      tags: [
+        "sea"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F383}",
+      description: "jack-o-lantern",
+      category: "Activities",
+      aliases: [
+        "jack_o_lantern"
+      ],
+      tags: [
+        "halloween"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F384}",
+      description: "Christmas tree",
+      category: "Activities",
+      aliases: [
+        "christmas_tree"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F386}",
+      description: "fireworks",
+      category: "Activities",
+      aliases: [
+        "fireworks"
+      ],
+      tags: [
+        "festival",
+        "celebration"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F387}",
+      description: "sparkler",
+      category: "Activities",
+      aliases: [
+        "sparkler"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9E8}",
+      description: "firecracker",
+      category: "Activities",
+      aliases: [
+        "firecracker"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u2728",
+      description: "sparkles",
+      category: "Activities",
+      aliases: [
+        "sparkles"
+      ],
+      tags: [
+        "shiny"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F388}",
+      description: "balloon",
+      category: "Activities",
+      aliases: [
+        "balloon"
+      ],
+      tags: [
+        "party",
+        "birthday"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F389}",
+      description: "party popper",
+      category: "Activities",
+      aliases: [
+        "tada"
+      ],
+      tags: [
+        "hooray",
+        "party"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38A}",
+      description: "confetti ball",
+      category: "Activities",
+      aliases: [
+        "confetti_ball"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38B}",
+      description: "tanabata tree",
+      category: "Activities",
+      aliases: [
+        "tanabata_tree"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38D}",
+      description: "pine decoration",
+      category: "Activities",
+      aliases: [
+        "bamboo"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38E}",
+      description: "Japanese dolls",
+      category: "Activities",
+      aliases: [
+        "dolls"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38F}",
+      description: "carp streamer",
+      category: "Activities",
+      aliases: [
+        "flags"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F390}",
+      description: "wind chime",
+      category: "Activities",
+      aliases: [
+        "wind_chime"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F391}",
+      description: "moon viewing ceremony",
+      category: "Activities",
+      aliases: [
+        "rice_scene"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9E7}",
+      description: "red envelope",
+      category: "Activities",
+      aliases: [
+        "red_envelope"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F380}",
+      description: "ribbon",
+      category: "Activities",
+      aliases: [
+        "ribbon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F381}",
+      description: "wrapped gift",
+      category: "Activities",
+      aliases: [
+        "gift"
+      ],
+      tags: [
+        "present",
+        "birthday",
+        "christmas"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F397}\uFE0F",
+      description: "reminder ribbon",
+      category: "Activities",
+      aliases: [
+        "reminder_ribbon"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F39F}\uFE0F",
+      description: "admission tickets",
+      category: "Activities",
+      aliases: [
+        "tickets"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3AB}",
+      description: "ticket",
+      category: "Activities",
+      aliases: [
+        "ticket"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F396}\uFE0F",
+      description: "military medal",
+      category: "Activities",
+      aliases: [
+        "medal_military"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3C6}",
+      description: "trophy",
+      category: "Activities",
+      aliases: [
+        "trophy"
+      ],
+      tags: [
+        "award",
+        "contest",
+        "winner"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3C5}",
+      description: "sports medal",
+      category: "Activities",
+      aliases: [
+        "medal_sports"
+      ],
+      tags: [
+        "gold",
+        "winner"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F947}",
+      description: "1st place medal",
+      category: "Activities",
+      aliases: [
+        "1st_place_medal"
+      ],
+      tags: [
+        "gold"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F948}",
+      description: "2nd place medal",
+      category: "Activities",
+      aliases: [
+        "2nd_place_medal"
+      ],
+      tags: [
+        "silver"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F949}",
+      description: "3rd place medal",
+      category: "Activities",
+      aliases: [
+        "3rd_place_medal"
+      ],
+      tags: [
+        "bronze"
+      ],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u26BD",
+      description: "soccer ball",
+      category: "Activities",
+      aliases: [
+        "soccer"
+      ],
+      tags: [
+        "sports"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26BE",
+      description: "baseball",
+      category: "Activities",
+      aliases: [
+        "baseball"
+      ],
+      tags: [
+        "sports"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F94E}",
+      description: "softball",
+      category: "Activities",
+      aliases: [
+        "softball"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3C0}",
+      description: "basketball",
+      category: "Activities",
+      aliases: [
+        "basketball"
+      ],
+      tags: [
+        "sports"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3D0}",
+      description: "volleyball",
+      category: "Activities",
+      aliases: [
+        "volleyball"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3C8}",
+      description: "american football",
+      category: "Activities",
+      aliases: [
+        "football"
+      ],
+      tags: [
+        "sports"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3C9}",
+      description: "rugby football",
+      category: "Activities",
+      aliases: [
+        "rugby_football"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3BE}",
+      description: "tennis",
+      category: "Activities",
+      aliases: [
+        "tennis"
+      ],
+      tags: [
+        "sports"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F94F}",
+      description: "flying disc",
+      category: "Activities",
+      aliases: [
+        "flying_disc"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3B3}",
+      description: "bowling",
+      category: "Activities",
+      aliases: [
+        "bowling"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3CF}",
+      description: "cricket game",
+      category: "Activities",
+      aliases: [
+        "cricket_game"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3D1}",
+      description: "field hockey",
+      category: "Activities",
+      aliases: [
+        "field_hockey"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3D2}",
+      description: "ice hockey",
+      category: "Activities",
+      aliases: [
+        "ice_hockey"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F94D}",
+      description: "lacrosse",
+      category: "Activities",
+      aliases: [
+        "lacrosse"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3D3}",
+      description: "ping pong",
+      category: "Activities",
+      aliases: [
+        "ping_pong"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3F8}",
+      description: "badminton",
+      category: "Activities",
+      aliases: [
+        "badminton"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F94A}",
+      description: "boxing glove",
+      category: "Activities",
+      aliases: [
+        "boxing_glove"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F94B}",
+      description: "martial arts uniform",
+      category: "Activities",
+      aliases: [
+        "martial_arts_uniform"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F945}",
+      description: "goal net",
+      category: "Activities",
+      aliases: [
+        "goal_net"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u26F3",
+      description: "flag in hole",
+      category: "Activities",
+      aliases: [
+        "golf"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26F8\uFE0F",
+      description: "ice skate",
+      category: "Activities",
+      aliases: [
+        "ice_skate"
+      ],
+      tags: [
+        "skating"
+      ],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3A3}",
+      description: "fishing pole",
+      category: "Activities",
+      aliases: [
+        "fishing_pole_and_fish"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F93F}",
+      description: "diving mask",
+      category: "Activities",
+      aliases: [
+        "diving_mask"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F3BD}",
+      description: "running shirt",
+      category: "Activities",
+      aliases: [
+        "running_shirt_with_sash"
+      ],
+      tags: [
+        "marathon"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3BF}",
+      description: "skis",
+      category: "Activities",
+      aliases: [
+        "ski"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6F7}",
+      description: "sled",
+      category: "Activities",
+      aliases: [
+        "sled"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F94C}",
+      description: "curling stone",
+      category: "Activities",
+      aliases: [
+        "curling_stone"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3AF}",
+      description: "bullseye",
+      category: "Activities",
+      aliases: [
+        "dart"
+      ],
+      tags: [
+        "target"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA80}",
+      description: "yo-yo",
+      category: "Activities",
+      aliases: [
+        "yo_yo"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA81}",
+      description: "kite",
+      category: "Activities",
+      aliases: [
+        "kite"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F52B}",
+      description: "water pistol",
+      category: "Activities",
+      aliases: [
+        "gun"
+      ],
+      tags: [
+        "shoot",
+        "weapon"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B1}",
+      description: "pool 8 ball",
+      category: "Activities",
+      aliases: [
+        "8ball"
+      ],
+      tags: [
+        "pool",
+        "billiards"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F52E}",
+      description: "crystal ball",
+      category: "Activities",
+      aliases: [
+        "crystal_ball"
+      ],
+      tags: [
+        "fortune"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA84}",
+      description: "magic wand",
+      category: "Activities",
+      aliases: [
+        "magic_wand"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F3AE}",
+      description: "video game",
+      category: "Activities",
+      aliases: [
+        "video_game"
+      ],
+      tags: [
+        "play",
+        "controller",
+        "console"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F579}\uFE0F",
+      description: "joystick",
+      category: "Activities",
+      aliases: [
+        "joystick"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3B0}",
+      description: "slot machine",
+      category: "Activities",
+      aliases: [
+        "slot_machine"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B2}",
+      description: "game die",
+      category: "Activities",
+      aliases: [
+        "game_die"
+      ],
+      tags: [
+        "dice",
+        "gambling"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9E9}",
+      description: "puzzle piece",
+      category: "Activities",
+      aliases: [
+        "jigsaw"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9F8}",
+      description: "teddy bear",
+      category: "Activities",
+      aliases: [
+        "teddy_bear"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FA85}",
+      description: "pi\xF1ata",
+      category: "Activities",
+      aliases: [
+        "pinata"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAA9}",
+      description: "mirror ball",
+      category: "Activities",
+      aliases: [
+        "mirror_ball"
+      ],
+      tags: [
+        "disco",
+        "party"
+      ],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FA86}",
+      description: "nesting dolls",
+      category: "Activities",
+      aliases: [
+        "nesting_dolls"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u2660\uFE0F",
+      description: "spade suit",
+      category: "Activities",
+      aliases: [
+        "spades"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2665\uFE0F",
+      description: "heart suit",
+      category: "Activities",
+      aliases: [
+        "hearts"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2666\uFE0F",
+      description: "diamond suit",
+      category: "Activities",
+      aliases: [
+        "diamonds"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2663\uFE0F",
+      description: "club suit",
+      category: "Activities",
+      aliases: [
+        "clubs"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u265F\uFE0F",
+      description: "chess pawn",
+      category: "Activities",
+      aliases: [
+        "chess_pawn"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F0CF}",
+      description: "joker",
+      category: "Activities",
+      aliases: [
+        "black_joker"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F004}",
+      description: "mahjong red dragon",
+      category: "Activities",
+      aliases: [
+        "mahjong"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B4}",
+      description: "flower playing cards",
+      category: "Activities",
+      aliases: [
+        "flower_playing_cards"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3AD}",
+      description: "performing arts",
+      category: "Activities",
+      aliases: [
+        "performing_arts"
+      ],
+      tags: [
+        "theater",
+        "drama"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5BC}\uFE0F",
+      description: "framed picture",
+      category: "Activities",
+      aliases: [
+        "framed_picture"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3A8}",
+      description: "artist palette",
+      category: "Activities",
+      aliases: [
+        "art"
+      ],
+      tags: [
+        "design",
+        "paint"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9F5}",
+      description: "thread",
+      category: "Activities",
+      aliases: [
+        "thread"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAA1}",
+      description: "sewing needle",
+      category: "Activities",
+      aliases: [
+        "sewing_needle"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9F6}",
+      description: "yarn",
+      category: "Activities",
+      aliases: [
+        "yarn"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAA2}",
+      description: "knot",
+      category: "Activities",
+      aliases: [
+        "knot"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F453}",
+      description: "glasses",
+      category: "Objects",
+      aliases: [
+        "eyeglasses"
+      ],
+      tags: [
+        "glasses"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F576}\uFE0F",
+      description: "sunglasses",
+      category: "Objects",
+      aliases: [
+        "dark_sunglasses"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F97D}",
+      description: "goggles",
+      category: "Objects",
+      aliases: [
+        "goggles"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F97C}",
+      description: "lab coat",
+      category: "Objects",
+      aliases: [
+        "lab_coat"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9BA}",
+      description: "safety vest",
+      category: "Objects",
+      aliases: [
+        "safety_vest"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F454}",
+      description: "necktie",
+      category: "Objects",
+      aliases: [
+        "necktie"
+      ],
+      tags: [
+        "shirt",
+        "formal"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F455}",
+      description: "t-shirt",
+      category: "Objects",
+      aliases: [
+        "shirt",
+        "tshirt"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F456}",
+      description: "jeans",
+      category: "Objects",
+      aliases: [
+        "jeans"
+      ],
+      tags: [
+        "pants"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9E3}",
+      description: "scarf",
+      category: "Objects",
+      aliases: [
+        "scarf"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9E4}",
+      description: "gloves",
+      category: "Objects",
+      aliases: [
+        "gloves"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9E5}",
+      description: "coat",
+      category: "Objects",
+      aliases: [
+        "coat"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9E6}",
+      description: "socks",
+      category: "Objects",
+      aliases: [
+        "socks"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F457}",
+      description: "dress",
+      category: "Objects",
+      aliases: [
+        "dress"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F458}",
+      description: "kimono",
+      category: "Objects",
+      aliases: [
+        "kimono"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F97B}",
+      description: "sari",
+      category: "Objects",
+      aliases: [
+        "sari"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA71}",
+      description: "one-piece swimsuit",
+      category: "Objects",
+      aliases: [
+        "one_piece_swimsuit"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA72}",
+      description: "briefs",
+      category: "Objects",
+      aliases: [
+        "swim_brief"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA73}",
+      description: "shorts",
+      category: "Objects",
+      aliases: [
+        "shorts"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F459}",
+      description: "bikini",
+      category: "Objects",
+      aliases: [
+        "bikini"
+      ],
+      tags: [
+        "beach"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F45A}",
+      description: "woman\u2019s clothes",
+      category: "Objects",
+      aliases: [
+        "womans_clothes"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAAD}",
+      description: "folding hand fan",
+      category: "Objects",
+      aliases: [
+        "folding_hand_fan"
+      ],
+      tags: [
+        "sensu"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F45B}",
+      description: "purse",
+      category: "Objects",
+      aliases: [
+        "purse"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F45C}",
+      description: "handbag",
+      category: "Objects",
+      aliases: [
+        "handbag"
+      ],
+      tags: [
+        "bag"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F45D}",
+      description: "clutch bag",
+      category: "Objects",
+      aliases: [
+        "pouch"
+      ],
+      tags: [
+        "bag"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6CD}\uFE0F",
+      description: "shopping bags",
+      category: "Objects",
+      aliases: [
+        "shopping"
+      ],
+      tags: [
+        "bags"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F392}",
+      description: "backpack",
+      category: "Objects",
+      aliases: [
+        "school_satchel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA74}",
+      description: "thong sandal",
+      category: "Objects",
+      aliases: [
+        "thong_sandal"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F45E}",
+      description: "man\u2019s shoe",
+      category: "Objects",
+      aliases: [
+        "mans_shoe",
+        "shoe"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F45F}",
+      description: "running shoe",
+      category: "Objects",
+      aliases: [
+        "athletic_shoe"
+      ],
+      tags: [
+        "sneaker",
+        "sport",
+        "running"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F97E}",
+      description: "hiking boot",
+      category: "Objects",
+      aliases: [
+        "hiking_boot"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F97F}",
+      description: "flat shoe",
+      category: "Objects",
+      aliases: [
+        "flat_shoe"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F460}",
+      description: "high-heeled shoe",
+      category: "Objects",
+      aliases: [
+        "high_heel"
+      ],
+      tags: [
+        "shoe"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F461}",
+      description: "woman\u2019s sandal",
+      category: "Objects",
+      aliases: [
+        "sandal"
+      ],
+      tags: [
+        "shoe"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA70}",
+      description: "ballet shoes",
+      category: "Objects",
+      aliases: [
+        "ballet_shoes"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F462}",
+      description: "woman\u2019s boot",
+      category: "Objects",
+      aliases: [
+        "boot"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAAE}",
+      description: "hair pick",
+      category: "Objects",
+      aliases: [
+        "hair_pick"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F451}",
+      description: "crown",
+      category: "Objects",
+      aliases: [
+        "crown"
+      ],
+      tags: [
+        "king",
+        "queen",
+        "royal"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F452}",
+      description: "woman\u2019s hat",
+      category: "Objects",
+      aliases: [
+        "womans_hat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3A9}",
+      description: "top hat",
+      category: "Objects",
+      aliases: [
+        "tophat"
+      ],
+      tags: [
+        "hat",
+        "classy"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F393}",
+      description: "graduation cap",
+      category: "Objects",
+      aliases: [
+        "mortar_board"
+      ],
+      tags: [
+        "education",
+        "college",
+        "university",
+        "graduation"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9E2}",
+      description: "billed cap",
+      category: "Objects",
+      aliases: [
+        "billed_cap"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FA96}",
+      description: "military helmet",
+      category: "Objects",
+      aliases: [
+        "military_helmet"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u26D1\uFE0F",
+      description: "rescue worker\u2019s helmet",
+      category: "Objects",
+      aliases: [
+        "rescue_worker_helmet"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4FF}",
+      description: "prayer beads",
+      category: "Objects",
+      aliases: [
+        "prayer_beads"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F484}",
+      description: "lipstick",
+      category: "Objects",
+      aliases: [
+        "lipstick"
+      ],
+      tags: [
+        "makeup"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F48D}",
+      description: "ring",
+      category: "Objects",
+      aliases: [
+        "ring"
+      ],
+      tags: [
+        "wedding",
+        "marriage",
+        "engaged"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F48E}",
+      description: "gem stone",
+      category: "Objects",
+      aliases: [
+        "gem"
+      ],
+      tags: [
+        "diamond"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F507}",
+      description: "muted speaker",
+      category: "Objects",
+      aliases: [
+        "mute"
+      ],
+      tags: [
+        "sound",
+        "volume"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F508}",
+      description: "speaker low volume",
+      category: "Objects",
+      aliases: [
+        "speaker"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F509}",
+      description: "speaker medium volume",
+      category: "Objects",
+      aliases: [
+        "sound"
+      ],
+      tags: [
+        "volume"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F50A}",
+      description: "speaker high volume",
+      category: "Objects",
+      aliases: [
+        "loud_sound"
+      ],
+      tags: [
+        "volume"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E2}",
+      description: "loudspeaker",
+      category: "Objects",
+      aliases: [
+        "loudspeaker"
+      ],
+      tags: [
+        "announcement"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E3}",
+      description: "megaphone",
+      category: "Objects",
+      aliases: [
+        "mega"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4EF}",
+      description: "postal horn",
+      category: "Objects",
+      aliases: [
+        "postal_horn"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F514}",
+      description: "bell",
+      category: "Objects",
+      aliases: [
+        "bell"
+      ],
+      tags: [
+        "sound",
+        "notification"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F515}",
+      description: "bell with slash",
+      category: "Objects",
+      aliases: [
+        "no_bell"
+      ],
+      tags: [
+        "volume",
+        "off"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3BC}",
+      description: "musical score",
+      category: "Objects",
+      aliases: [
+        "musical_score"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B5}",
+      description: "musical note",
+      category: "Objects",
+      aliases: [
+        "musical_note"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B6}",
+      description: "musical notes",
+      category: "Objects",
+      aliases: [
+        "notes"
+      ],
+      tags: [
+        "music"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F399}\uFE0F",
+      description: "studio microphone",
+      category: "Objects",
+      aliases: [
+        "studio_microphone"
+      ],
+      tags: [
+        "podcast"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F39A}\uFE0F",
+      description: "level slider",
+      category: "Objects",
+      aliases: [
+        "level_slider"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F39B}\uFE0F",
+      description: "control knobs",
+      category: "Objects",
+      aliases: [
+        "control_knobs"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3A4}",
+      description: "microphone",
+      category: "Objects",
+      aliases: [
+        "microphone"
+      ],
+      tags: [
+        "sing"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3A7}",
+      description: "headphone",
+      category: "Objects",
+      aliases: [
+        "headphones"
+      ],
+      tags: [
+        "music",
+        "earphones"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4FB}",
+      description: "radio",
+      category: "Objects",
+      aliases: [
+        "radio"
+      ],
+      tags: [
+        "podcast"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B7}",
+      description: "saxophone",
+      category: "Objects",
+      aliases: [
+        "saxophone"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA97}",
+      description: "accordion",
+      category: "Objects",
+      aliases: [
+        "accordion"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F3B8}",
+      description: "guitar",
+      category: "Objects",
+      aliases: [
+        "guitar"
+      ],
+      tags: [
+        "rock"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3B9}",
+      description: "musical keyboard",
+      category: "Objects",
+      aliases: [
+        "musical_keyboard"
+      ],
+      tags: [
+        "piano"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3BA}",
+      description: "trumpet",
+      category: "Objects",
+      aliases: [
+        "trumpet"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3BB}",
+      description: "violin",
+      category: "Objects",
+      aliases: [
+        "violin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA95}",
+      description: "banjo",
+      category: "Objects",
+      aliases: [
+        "banjo"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F941}",
+      description: "drum",
+      category: "Objects",
+      aliases: [
+        "drum"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1FA98}",
+      description: "long drum",
+      category: "Objects",
+      aliases: [
+        "long_drum"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FA87}",
+      description: "maracas",
+      category: "Objects",
+      aliases: [
+        "maracas"
+      ],
+      tags: [
+        "shaker"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1FA88}",
+      description: "flute",
+      category: "Objects",
+      aliases: [
+        "flute"
+      ],
+      tags: [
+        "recorder"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F4F1}",
+      description: "mobile phone",
+      category: "Objects",
+      aliases: [
+        "iphone"
+      ],
+      tags: [
+        "smartphone",
+        "mobile"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F2}",
+      description: "mobile phone with arrow",
+      category: "Objects",
+      aliases: [
+        "calling"
+      ],
+      tags: [
+        "call",
+        "incoming"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u260E\uFE0F",
+      description: "telephone",
+      category: "Objects",
+      aliases: [
+        "phone",
+        "telephone"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4DE}",
+      description: "telephone receiver",
+      category: "Objects",
+      aliases: [
+        "telephone_receiver"
+      ],
+      tags: [
+        "phone",
+        "call"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4DF}",
+      description: "pager",
+      category: "Objects",
+      aliases: [
+        "pager"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E0}",
+      description: "fax machine",
+      category: "Objects",
+      aliases: [
+        "fax"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F50B}",
+      description: "battery",
+      category: "Objects",
+      aliases: [
+        "battery"
+      ],
+      tags: [
+        "power"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAAB}",
+      description: "low battery",
+      category: "Objects",
+      aliases: [
+        "low_battery"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F50C}",
+      description: "electric plug",
+      category: "Objects",
+      aliases: [
+        "electric_plug"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4BB}",
+      description: "laptop",
+      category: "Objects",
+      aliases: [
+        "computer"
+      ],
+      tags: [
+        "desktop",
+        "screen"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5A5}\uFE0F",
+      description: "desktop computer",
+      category: "Objects",
+      aliases: [
+        "desktop_computer"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5A8}\uFE0F",
+      description: "printer",
+      category: "Objects",
+      aliases: [
+        "printer"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2328\uFE0F",
+      description: "keyboard",
+      category: "Objects",
+      aliases: [
+        "keyboard"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5B1}\uFE0F",
+      description: "computer mouse",
+      category: "Objects",
+      aliases: [
+        "computer_mouse"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5B2}\uFE0F",
+      description: "trackball",
+      category: "Objects",
+      aliases: [
+        "trackball"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4BD}",
+      description: "computer disk",
+      category: "Objects",
+      aliases: [
+        "minidisc"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4BE}",
+      description: "floppy disk",
+      category: "Objects",
+      aliases: [
+        "floppy_disk"
+      ],
+      tags: [
+        "save"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4BF}",
+      description: "optical disk",
+      category: "Objects",
+      aliases: [
+        "cd"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C0}",
+      description: "dvd",
+      category: "Objects",
+      aliases: [
+        "dvd"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9EE}",
+      description: "abacus",
+      category: "Objects",
+      aliases: [
+        "abacus"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3A5}",
+      description: "movie camera",
+      category: "Objects",
+      aliases: [
+        "movie_camera"
+      ],
+      tags: [
+        "film",
+        "video"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F39E}\uFE0F",
+      description: "film frames",
+      category: "Objects",
+      aliases: [
+        "film_strip"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4FD}\uFE0F",
+      description: "film projector",
+      category: "Objects",
+      aliases: [
+        "film_projector"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3AC}",
+      description: "clapper board",
+      category: "Objects",
+      aliases: [
+        "clapper"
+      ],
+      tags: [
+        "film"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4FA}",
+      description: "television",
+      category: "Objects",
+      aliases: [
+        "tv"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F7}",
+      description: "camera",
+      category: "Objects",
+      aliases: [
+        "camera"
+      ],
+      tags: [
+        "photo"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F8}",
+      description: "camera with flash",
+      category: "Objects",
+      aliases: [
+        "camera_flash"
+      ],
+      tags: [
+        "photo"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4F9}",
+      description: "video camera",
+      category: "Objects",
+      aliases: [
+        "video_camera"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4FC}",
+      description: "videocassette",
+      category: "Objects",
+      aliases: [
+        "vhs"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F50D}",
+      description: "magnifying glass tilted left",
+      category: "Objects",
+      aliases: [
+        "mag"
+      ],
+      tags: [
+        "search",
+        "zoom"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F50E}",
+      description: "magnifying glass tilted right",
+      category: "Objects",
+      aliases: [
+        "mag_right"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F56F}\uFE0F",
+      description: "candle",
+      category: "Objects",
+      aliases: [
+        "candle"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4A1}",
+      description: "light bulb",
+      category: "Objects",
+      aliases: [
+        "bulb"
+      ],
+      tags: [
+        "idea",
+        "light"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F526}",
+      description: "flashlight",
+      category: "Objects",
+      aliases: [
+        "flashlight"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3EE}",
+      description: "red paper lantern",
+      category: "Objects",
+      aliases: [
+        "izakaya_lantern",
+        "lantern"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA94}",
+      description: "diya lamp",
+      category: "Objects",
+      aliases: [
+        "diya_lamp"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F4D4}",
+      description: "notebook with decorative cover",
+      category: "Objects",
+      aliases: [
+        "notebook_with_decorative_cover"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D5}",
+      description: "closed book",
+      category: "Objects",
+      aliases: [
+        "closed_book"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D6}",
+      description: "open book",
+      category: "Objects",
+      aliases: [
+        "book",
+        "open_book"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D7}",
+      description: "green book",
+      category: "Objects",
+      aliases: [
+        "green_book"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D8}",
+      description: "blue book",
+      category: "Objects",
+      aliases: [
+        "blue_book"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D9}",
+      description: "orange book",
+      category: "Objects",
+      aliases: [
+        "orange_book"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4DA}",
+      description: "books",
+      category: "Objects",
+      aliases: [
+        "books"
+      ],
+      tags: [
+        "library"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D3}",
+      description: "notebook",
+      category: "Objects",
+      aliases: [
+        "notebook"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D2}",
+      description: "ledger",
+      category: "Objects",
+      aliases: [
+        "ledger"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C3}",
+      description: "page with curl",
+      category: "Objects",
+      aliases: [
+        "page_with_curl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4DC}",
+      description: "scroll",
+      category: "Objects",
+      aliases: [
+        "scroll"
+      ],
+      tags: [
+        "document"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C4}",
+      description: "page facing up",
+      category: "Objects",
+      aliases: [
+        "page_facing_up"
+      ],
+      tags: [
+        "document"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F0}",
+      description: "newspaper",
+      category: "Objects",
+      aliases: [
+        "newspaper"
+      ],
+      tags: [
+        "press"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5DE}\uFE0F",
+      description: "rolled-up newspaper",
+      category: "Objects",
+      aliases: [
+        "newspaper_roll"
+      ],
+      tags: [
+        "press"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4D1}",
+      description: "bookmark tabs",
+      category: "Objects",
+      aliases: [
+        "bookmark_tabs"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F516}",
+      description: "bookmark",
+      category: "Objects",
+      aliases: [
+        "bookmark"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3F7}\uFE0F",
+      description: "label",
+      category: "Objects",
+      aliases: [
+        "label"
+      ],
+      tags: [
+        "tag"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4B0}",
+      description: "money bag",
+      category: "Objects",
+      aliases: [
+        "moneybag"
+      ],
+      tags: [
+        "dollar",
+        "cream"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA99}",
+      description: "coin",
+      category: "Objects",
+      aliases: [
+        "coin"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F4B4}",
+      description: "yen banknote",
+      category: "Objects",
+      aliases: [
+        "yen"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B5}",
+      description: "dollar banknote",
+      category: "Objects",
+      aliases: [
+        "dollar"
+      ],
+      tags: [
+        "money"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B6}",
+      description: "euro banknote",
+      category: "Objects",
+      aliases: [
+        "euro"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B7}",
+      description: "pound banknote",
+      category: "Objects",
+      aliases: [
+        "pound"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B8}",
+      description: "money with wings",
+      category: "Objects",
+      aliases: [
+        "money_with_wings"
+      ],
+      tags: [
+        "dollar"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B3}",
+      description: "credit card",
+      category: "Objects",
+      aliases: [
+        "credit_card"
+      ],
+      tags: [
+        "subscription"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F9FE}",
+      description: "receipt",
+      category: "Objects",
+      aliases: [
+        "receipt"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F4B9}",
+      description: "chart increasing with yen",
+      category: "Objects",
+      aliases: [
+        "chart"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2709\uFE0F",
+      description: "envelope",
+      category: "Objects",
+      aliases: [
+        "envelope"
+      ],
+      tags: [
+        "letter",
+        "email"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E7}",
+      description: "e-mail",
+      category: "Objects",
+      aliases: [
+        "email",
+        "e-mail"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E8}",
+      description: "incoming envelope",
+      category: "Objects",
+      aliases: [
+        "incoming_envelope"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E9}",
+      description: "envelope with arrow",
+      category: "Objects",
+      aliases: [
+        "envelope_with_arrow"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E4}",
+      description: "outbox tray",
+      category: "Objects",
+      aliases: [
+        "outbox_tray"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E5}",
+      description: "inbox tray",
+      category: "Objects",
+      aliases: [
+        "inbox_tray"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E6}",
+      description: "package",
+      category: "Objects",
+      aliases: [
+        "package"
+      ],
+      tags: [
+        "shipping"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4EB}",
+      description: "closed mailbox with raised flag",
+      category: "Objects",
+      aliases: [
+        "mailbox"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4EA}",
+      description: "closed mailbox with lowered flag",
+      category: "Objects",
+      aliases: [
+        "mailbox_closed"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4EC}",
+      description: "open mailbox with raised flag",
+      category: "Objects",
+      aliases: [
+        "mailbox_with_mail"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4ED}",
+      description: "open mailbox with lowered flag",
+      category: "Objects",
+      aliases: [
+        "mailbox_with_no_mail"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4EE}",
+      description: "postbox",
+      category: "Objects",
+      aliases: [
+        "postbox"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5F3}\uFE0F",
+      description: "ballot box with ballot",
+      category: "Objects",
+      aliases: [
+        "ballot_box"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u270F\uFE0F",
+      description: "pencil",
+      category: "Objects",
+      aliases: [
+        "pencil2"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2712\uFE0F",
+      description: "black nib",
+      category: "Objects",
+      aliases: [
+        "black_nib"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F58B}\uFE0F",
+      description: "fountain pen",
+      category: "Objects",
+      aliases: [
+        "fountain_pen"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F58A}\uFE0F",
+      description: "pen",
+      category: "Objects",
+      aliases: [
+        "pen"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F58C}\uFE0F",
+      description: "paintbrush",
+      category: "Objects",
+      aliases: [
+        "paintbrush"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F58D}\uFE0F",
+      description: "crayon",
+      category: "Objects",
+      aliases: [
+        "crayon"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4DD}",
+      description: "memo",
+      category: "Objects",
+      aliases: [
+        "memo",
+        "pencil"
+      ],
+      tags: [
+        "document",
+        "note"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4BC}",
+      description: "briefcase",
+      category: "Objects",
+      aliases: [
+        "briefcase"
+      ],
+      tags: [
+        "business"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C1}",
+      description: "file folder",
+      category: "Objects",
+      aliases: [
+        "file_folder"
+      ],
+      tags: [
+        "directory"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C2}",
+      description: "open file folder",
+      category: "Objects",
+      aliases: [
+        "open_file_folder"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5C2}\uFE0F",
+      description: "card index dividers",
+      category: "Objects",
+      aliases: [
+        "card_index_dividers"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4C5}",
+      description: "calendar",
+      category: "Objects",
+      aliases: [
+        "date"
+      ],
+      tags: [
+        "calendar",
+        "schedule"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C6}",
+      description: "tear-off calendar",
+      category: "Objects",
+      aliases: [
+        "calendar"
+      ],
+      tags: [
+        "schedule"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5D2}\uFE0F",
+      description: "spiral notepad",
+      category: "Objects",
+      aliases: [
+        "spiral_notepad"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5D3}\uFE0F",
+      description: "spiral calendar",
+      category: "Objects",
+      aliases: [
+        "spiral_calendar"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4C7}",
+      description: "card index",
+      category: "Objects",
+      aliases: [
+        "card_index"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C8}",
+      description: "chart increasing",
+      category: "Objects",
+      aliases: [
+        "chart_with_upwards_trend"
+      ],
+      tags: [
+        "graph",
+        "metrics"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4C9}",
+      description: "chart decreasing",
+      category: "Objects",
+      aliases: [
+        "chart_with_downwards_trend"
+      ],
+      tags: [
+        "graph",
+        "metrics"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4CA}",
+      description: "bar chart",
+      category: "Objects",
+      aliases: [
+        "bar_chart"
+      ],
+      tags: [
+        "stats",
+        "metrics"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4CB}",
+      description: "clipboard",
+      category: "Objects",
+      aliases: [
+        "clipboard"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4CC}",
+      description: "pushpin",
+      category: "Objects",
+      aliases: [
+        "pushpin"
+      ],
+      tags: [
+        "location"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4CD}",
+      description: "round pushpin",
+      category: "Objects",
+      aliases: [
+        "round_pushpin"
+      ],
+      tags: [
+        "location"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4CE}",
+      description: "paperclip",
+      category: "Objects",
+      aliases: [
+        "paperclip"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F587}\uFE0F",
+      description: "linked paperclips",
+      category: "Objects",
+      aliases: [
+        "paperclips"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4CF}",
+      description: "straight ruler",
+      category: "Objects",
+      aliases: [
+        "straight_ruler"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4D0}",
+      description: "triangular ruler",
+      category: "Objects",
+      aliases: [
+        "triangular_ruler"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2702\uFE0F",
+      description: "scissors",
+      category: "Objects",
+      aliases: [
+        "scissors"
+      ],
+      tags: [
+        "cut"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5C3}\uFE0F",
+      description: "card file box",
+      category: "Objects",
+      aliases: [
+        "card_file_box"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5C4}\uFE0F",
+      description: "file cabinet",
+      category: "Objects",
+      aliases: [
+        "file_cabinet"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5D1}\uFE0F",
+      description: "wastebasket",
+      category: "Objects",
+      aliases: [
+        "wastebasket"
+      ],
+      tags: [
+        "trash"
+      ],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F512}",
+      description: "locked",
+      category: "Objects",
+      aliases: [
+        "lock"
+      ],
+      tags: [
+        "security",
+        "private"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F513}",
+      description: "unlocked",
+      category: "Objects",
+      aliases: [
+        "unlock"
+      ],
+      tags: [
+        "security"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F50F}",
+      description: "locked with pen",
+      category: "Objects",
+      aliases: [
+        "lock_with_ink_pen"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F510}",
+      description: "locked with key",
+      category: "Objects",
+      aliases: [
+        "closed_lock_with_key"
+      ],
+      tags: [
+        "security"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F511}",
+      description: "key",
+      category: "Objects",
+      aliases: [
+        "key"
+      ],
+      tags: [
+        "lock",
+        "password"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F5DD}\uFE0F",
+      description: "old key",
+      category: "Objects",
+      aliases: [
+        "old_key"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F528}",
+      description: "hammer",
+      category: "Objects",
+      aliases: [
+        "hammer"
+      ],
+      tags: [
+        "tool"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA93}",
+      description: "axe",
+      category: "Objects",
+      aliases: [
+        "axe"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u26CF\uFE0F",
+      description: "pick",
+      category: "Objects",
+      aliases: [
+        "pick"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2692\uFE0F",
+      description: "hammer and pick",
+      category: "Objects",
+      aliases: [
+        "hammer_and_pick"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6E0}\uFE0F",
+      description: "hammer and wrench",
+      category: "Objects",
+      aliases: [
+        "hammer_and_wrench"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5E1}\uFE0F",
+      description: "dagger",
+      category: "Objects",
+      aliases: [
+        "dagger"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2694\uFE0F",
+      description: "crossed swords",
+      category: "Objects",
+      aliases: [
+        "crossed_swords"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F4A3}",
+      description: "bomb",
+      category: "Objects",
+      aliases: [
+        "bomb"
+      ],
+      tags: [
+        "boom"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA83}",
+      description: "boomerang",
+      category: "Objects",
+      aliases: [
+        "boomerang"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F3F9}",
+      description: "bow and arrow",
+      category: "Objects",
+      aliases: [
+        "bow_and_arrow"
+      ],
+      tags: [
+        "archery"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6E1}\uFE0F",
+      description: "shield",
+      category: "Objects",
+      aliases: [
+        "shield"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FA9A}",
+      description: "carpentry saw",
+      category: "Objects",
+      aliases: [
+        "carpentry_saw"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F527}",
+      description: "wrench",
+      category: "Objects",
+      aliases: [
+        "wrench"
+      ],
+      tags: [
+        "tool"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA9B}",
+      description: "screwdriver",
+      category: "Objects",
+      aliases: [
+        "screwdriver"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F529}",
+      description: "nut and bolt",
+      category: "Objects",
+      aliases: [
+        "nut_and_bolt"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2699\uFE0F",
+      description: "gear",
+      category: "Objects",
+      aliases: [
+        "gear"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F5DC}\uFE0F",
+      description: "clamp",
+      category: "Objects",
+      aliases: [
+        "clamp"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2696\uFE0F",
+      description: "balance scale",
+      category: "Objects",
+      aliases: [
+        "balance_scale"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9AF}",
+      description: "white cane",
+      category: "Objects",
+      aliases: [
+        "probing_cane"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F517}",
+      description: "link",
+      category: "Objects",
+      aliases: [
+        "link"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26D3\uFE0F",
+      description: "chains",
+      category: "Objects",
+      aliases: [
+        "chains"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FA9D}",
+      description: "hook",
+      category: "Objects",
+      aliases: [
+        "hook"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9F0}",
+      description: "toolbox",
+      category: "Objects",
+      aliases: [
+        "toolbox"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9F2}",
+      description: "magnet",
+      category: "Objects",
+      aliases: [
+        "magnet"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FA9C}",
+      description: "ladder",
+      category: "Objects",
+      aliases: [
+        "ladder"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u2697\uFE0F",
+      description: "alembic",
+      category: "Objects",
+      aliases: [
+        "alembic"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9EA}",
+      description: "test tube",
+      category: "Objects",
+      aliases: [
+        "test_tube"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9EB}",
+      description: "petri dish",
+      category: "Objects",
+      aliases: [
+        "petri_dish"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9EC}",
+      description: "dna",
+      category: "Objects",
+      aliases: [
+        "dna"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F52C}",
+      description: "microscope",
+      category: "Objects",
+      aliases: [
+        "microscope"
+      ],
+      tags: [
+        "science",
+        "laboratory",
+        "investigate"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F52D}",
+      description: "telescope",
+      category: "Objects",
+      aliases: [
+        "telescope"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4E1}",
+      description: "satellite antenna",
+      category: "Objects",
+      aliases: [
+        "satellite"
+      ],
+      tags: [
+        "signal"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F489}",
+      description: "syringe",
+      category: "Objects",
+      aliases: [
+        "syringe"
+      ],
+      tags: [
+        "health",
+        "hospital",
+        "needle"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA78}",
+      description: "drop of blood",
+      category: "Objects",
+      aliases: [
+        "drop_of_blood"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F48A}",
+      description: "pill",
+      category: "Objects",
+      aliases: [
+        "pill"
+      ],
+      tags: [
+        "health",
+        "medicine"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FA79}",
+      description: "adhesive bandage",
+      category: "Objects",
+      aliases: [
+        "adhesive_bandage"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA7C}",
+      description: "crutch",
+      category: "Objects",
+      aliases: [
+        "crutch"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FA7A}",
+      description: "stethoscope",
+      category: "Objects",
+      aliases: [
+        "stethoscope"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1FA7B}",
+      description: "x-ray",
+      category: "Objects",
+      aliases: [
+        "x_ray"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F6AA}",
+      description: "door",
+      category: "Objects",
+      aliases: [
+        "door"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6D7}",
+      description: "elevator",
+      category: "Objects",
+      aliases: [
+        "elevator"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FA9E}",
+      description: "mirror",
+      category: "Objects",
+      aliases: [
+        "mirror"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FA9F}",
+      description: "window",
+      category: "Objects",
+      aliases: [
+        "window"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F6CF}\uFE0F",
+      description: "bed",
+      category: "Objects",
+      aliases: [
+        "bed"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F6CB}\uFE0F",
+      description: "couch and lamp",
+      category: "Objects",
+      aliases: [
+        "couch_and_lamp"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FA91}",
+      description: "chair",
+      category: "Objects",
+      aliases: [
+        "chair"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F6BD}",
+      description: "toilet",
+      category: "Objects",
+      aliases: [
+        "toilet"
+      ],
+      tags: [
+        "wc"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAA0}",
+      description: "plunger",
+      category: "Objects",
+      aliases: [
+        "plunger"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F6BF}",
+      description: "shower",
+      category: "Objects",
+      aliases: [
+        "shower"
+      ],
+      tags: [
+        "bath"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6C1}",
+      description: "bathtub",
+      category: "Objects",
+      aliases: [
+        "bathtub"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAA4}",
+      description: "mouse trap",
+      category: "Objects",
+      aliases: [
+        "mouse_trap"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FA92}",
+      description: "razor",
+      category: "Objects",
+      aliases: [
+        "razor"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F9F4}",
+      description: "lotion bottle",
+      category: "Objects",
+      aliases: [
+        "lotion_bottle"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9F7}",
+      description: "safety pin",
+      category: "Objects",
+      aliases: [
+        "safety_pin"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9F9}",
+      description: "broom",
+      category: "Objects",
+      aliases: [
+        "broom"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9FA}",
+      description: "basket",
+      category: "Objects",
+      aliases: [
+        "basket"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9FB}",
+      description: "roll of paper",
+      category: "Objects",
+      aliases: [
+        "roll_of_paper"
+      ],
+      tags: [
+        "toilet"
+      ],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAA3}",
+      description: "bucket",
+      category: "Objects",
+      aliases: [
+        "bucket"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9FC}",
+      description: "soap",
+      category: "Objects",
+      aliases: [
+        "soap"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAE7}",
+      description: "bubbles",
+      category: "Objects",
+      aliases: [
+        "bubbles"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1FAA5}",
+      description: "toothbrush",
+      category: "Objects",
+      aliases: [
+        "toothbrush"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F9FD}",
+      description: "sponge",
+      category: "Objects",
+      aliases: [
+        "sponge"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F9EF}",
+      description: "fire extinguisher",
+      category: "Objects",
+      aliases: [
+        "fire_extinguisher"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F6D2}",
+      description: "shopping cart",
+      category: "Objects",
+      aliases: [
+        "shopping_cart"
+      ],
+      tags: [],
+      unicode_version: "9.0",
+      ios_version: "10.2"
+    },
+    {
+      emoji: "\u{1F6AC}",
+      description: "cigarette",
+      category: "Objects",
+      aliases: [
+        "smoking"
+      ],
+      tags: [
+        "cigarette"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26B0\uFE0F",
+      description: "coffin",
+      category: "Objects",
+      aliases: [
+        "coffin"
+      ],
+      tags: [
+        "funeral"
+      ],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1FAA6}",
+      description: "headstone",
+      category: "Objects",
+      aliases: [
+        "headstone"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u26B1\uFE0F",
+      description: "funeral urn",
+      category: "Objects",
+      aliases: [
+        "funeral_urn"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F9FF}",
+      description: "nazar amulet",
+      category: "Objects",
+      aliases: [
+        "nazar_amulet"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1FAAC}",
+      description: "hamsa",
+      category: "Objects",
+      aliases: [
+        "hamsa"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F5FF}",
+      description: "moai",
+      category: "Objects",
+      aliases: [
+        "moyai"
+      ],
+      tags: [
+        "stone"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAA7}",
+      description: "placard",
+      category: "Objects",
+      aliases: [
+        "placard"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1FAAA}",
+      description: "identification card",
+      category: "Objects",
+      aliases: [
+        "identification_card"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u{1F3E7}",
+      description: "ATM sign",
+      category: "Symbols",
+      aliases: [
+        "atm"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6AE}",
+      description: "litter in bin sign",
+      category: "Symbols",
+      aliases: [
+        "put_litter_in_its_place"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B0}",
+      description: "potable water",
+      category: "Symbols",
+      aliases: [
+        "potable_water"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u267F",
+      description: "wheelchair symbol",
+      category: "Symbols",
+      aliases: [
+        "wheelchair"
+      ],
+      tags: [
+        "accessibility"
+      ],
+      unicode_version: "4.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B9}",
+      description: "men\u2019s room",
+      category: "Symbols",
+      aliases: [
+        "mens"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6BA}",
+      description: "women\u2019s room",
+      category: "Symbols",
+      aliases: [
+        "womens"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6BB}",
+      description: "restroom",
+      category: "Symbols",
+      aliases: [
+        "restroom"
+      ],
+      tags: [
+        "toilet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6BC}",
+      description: "baby symbol",
+      category: "Symbols",
+      aliases: [
+        "baby_symbol"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6BE}",
+      description: "water closet",
+      category: "Symbols",
+      aliases: [
+        "wc"
+      ],
+      tags: [
+        "toilet",
+        "restroom"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6C2}",
+      description: "passport control",
+      category: "Symbols",
+      aliases: [
+        "passport_control"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6C3}",
+      description: "customs",
+      category: "Symbols",
+      aliases: [
+        "customs"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6C4}",
+      description: "baggage claim",
+      category: "Symbols",
+      aliases: [
+        "baggage_claim"
+      ],
+      tags: [
+        "airport"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6C5}",
+      description: "left luggage",
+      category: "Symbols",
+      aliases: [
+        "left_luggage"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26A0\uFE0F",
+      description: "warning",
+      category: "Symbols",
+      aliases: [
+        "warning"
+      ],
+      tags: [
+        "wip"
+      ],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B8}",
+      description: "children crossing",
+      category: "Symbols",
+      aliases: [
+        "children_crossing"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26D4",
+      description: "no entry",
+      category: "Symbols",
+      aliases: [
+        "no_entry"
+      ],
+      tags: [
+        "limit"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6AB}",
+      description: "prohibited",
+      category: "Symbols",
+      aliases: [
+        "no_entry_sign"
+      ],
+      tags: [
+        "block",
+        "forbidden"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B3}",
+      description: "no bicycles",
+      category: "Symbols",
+      aliases: [
+        "no_bicycles"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6AD}",
+      description: "no smoking",
+      category: "Symbols",
+      aliases: [
+        "no_smoking"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6AF}",
+      description: "no littering",
+      category: "Symbols",
+      aliases: [
+        "do_not_litter"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B1}",
+      description: "non-potable water",
+      category: "Symbols",
+      aliases: [
+        "non-potable_water"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6B7}",
+      description: "no pedestrians",
+      category: "Symbols",
+      aliases: [
+        "no_pedestrians"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F5}",
+      description: "no mobile phones",
+      category: "Symbols",
+      aliases: [
+        "no_mobile_phones"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51E}",
+      description: "no one under eighteen",
+      category: "Symbols",
+      aliases: [
+        "underage"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2622\uFE0F",
+      description: "radioactive",
+      category: "Symbols",
+      aliases: [
+        "radioactive"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2623\uFE0F",
+      description: "biohazard",
+      category: "Symbols",
+      aliases: [
+        "biohazard"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2B06\uFE0F",
+      description: "up arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_up"
+      ],
+      tags: [],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2197\uFE0F",
+      description: "up-right arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_upper_right"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u27A1\uFE0F",
+      description: "right arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_right"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2198\uFE0F",
+      description: "down-right arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_lower_right"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2B07\uFE0F",
+      description: "down arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_down"
+      ],
+      tags: [],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2199\uFE0F",
+      description: "down-left arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_lower_left"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2B05\uFE0F",
+      description: "left arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_left"
+      ],
+      tags: [],
+      unicode_version: "4.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2196\uFE0F",
+      description: "up-left arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_upper_left"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2195\uFE0F",
+      description: "up-down arrow",
+      category: "Symbols",
+      aliases: [
+        "arrow_up_down"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2194\uFE0F",
+      description: "left-right arrow",
+      category: "Symbols",
+      aliases: [
+        "left_right_arrow"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u21A9\uFE0F",
+      description: "right arrow curving left",
+      category: "Symbols",
+      aliases: [
+        "leftwards_arrow_with_hook"
+      ],
+      tags: [
+        "return"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u21AA\uFE0F",
+      description: "left arrow curving right",
+      category: "Symbols",
+      aliases: [
+        "arrow_right_hook"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2934\uFE0F",
+      description: "right arrow curving up",
+      category: "Symbols",
+      aliases: [
+        "arrow_heading_up"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2935\uFE0F",
+      description: "right arrow curving down",
+      category: "Symbols",
+      aliases: [
+        "arrow_heading_down"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F503}",
+      description: "clockwise vertical arrows",
+      category: "Symbols",
+      aliases: [
+        "arrows_clockwise"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F504}",
+      description: "counterclockwise arrows button",
+      category: "Symbols",
+      aliases: [
+        "arrows_counterclockwise"
+      ],
+      tags: [
+        "sync"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F519}",
+      description: "BACK arrow",
+      category: "Symbols",
+      aliases: [
+        "back"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51A}",
+      description: "END arrow",
+      category: "Symbols",
+      aliases: [
+        "end"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51B}",
+      description: "ON! arrow",
+      category: "Symbols",
+      aliases: [
+        "on"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51C}",
+      description: "SOON arrow",
+      category: "Symbols",
+      aliases: [
+        "soon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51D}",
+      description: "TOP arrow",
+      category: "Symbols",
+      aliases: [
+        "top"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6D0}",
+      description: "place of worship",
+      category: "Symbols",
+      aliases: [
+        "place_of_worship"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u269B\uFE0F",
+      description: "atom symbol",
+      category: "Symbols",
+      aliases: [
+        "atom_symbol"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F549}\uFE0F",
+      description: "om",
+      category: "Symbols",
+      aliases: [
+        "om"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2721\uFE0F",
+      description: "star of David",
+      category: "Symbols",
+      aliases: [
+        "star_of_david"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2638\uFE0F",
+      description: "wheel of dharma",
+      category: "Symbols",
+      aliases: [
+        "wheel_of_dharma"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u262F\uFE0F",
+      description: "yin yang",
+      category: "Symbols",
+      aliases: [
+        "yin_yang"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u271D\uFE0F",
+      description: "latin cross",
+      category: "Symbols",
+      aliases: [
+        "latin_cross"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u2626\uFE0F",
+      description: "orthodox cross",
+      category: "Symbols",
+      aliases: [
+        "orthodox_cross"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u262A\uFE0F",
+      description: "star and crescent",
+      category: "Symbols",
+      aliases: [
+        "star_and_crescent"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u262E\uFE0F",
+      description: "peace symbol",
+      category: "Symbols",
+      aliases: [
+        "peace_symbol"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F54E}",
+      description: "menorah",
+      category: "Symbols",
+      aliases: [
+        "menorah"
+      ],
+      tags: [],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F52F}",
+      description: "dotted six-pointed star",
+      category: "Symbols",
+      aliases: [
+        "six_pointed_star"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1FAAF}",
+      description: "khanda",
+      category: "Symbols",
+      aliases: [
+        "khanda"
+      ],
+      tags: [],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u2648",
+      description: "Aries",
+      category: "Symbols",
+      aliases: [
+        "aries"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2649",
+      description: "Taurus",
+      category: "Symbols",
+      aliases: [
+        "taurus"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264A",
+      description: "Gemini",
+      category: "Symbols",
+      aliases: [
+        "gemini"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264B",
+      description: "Cancer",
+      category: "Symbols",
+      aliases: [
+        "cancer"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264C",
+      description: "Leo",
+      category: "Symbols",
+      aliases: [
+        "leo"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264D",
+      description: "Virgo",
+      category: "Symbols",
+      aliases: [
+        "virgo"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264E",
+      description: "Libra",
+      category: "Symbols",
+      aliases: [
+        "libra"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u264F",
+      description: "Scorpio",
+      category: "Symbols",
+      aliases: [
+        "scorpius"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2650",
+      description: "Sagittarius",
+      category: "Symbols",
+      aliases: [
+        "sagittarius"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2651",
+      description: "Capricorn",
+      category: "Symbols",
+      aliases: [
+        "capricorn"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2652",
+      description: "Aquarius",
+      category: "Symbols",
+      aliases: [
+        "aquarius"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2653",
+      description: "Pisces",
+      category: "Symbols",
+      aliases: [
+        "pisces"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26CE",
+      description: "Ophiuchus",
+      category: "Symbols",
+      aliases: [
+        "ophiuchus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F500}",
+      description: "shuffle tracks button",
+      category: "Symbols",
+      aliases: [
+        "twisted_rightwards_arrows"
+      ],
+      tags: [
+        "shuffle"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F501}",
+      description: "repeat button",
+      category: "Symbols",
+      aliases: [
+        "repeat"
+      ],
+      tags: [
+        "loop"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F502}",
+      description: "repeat single button",
+      category: "Symbols",
+      aliases: [
+        "repeat_one"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25B6\uFE0F",
+      description: "play button",
+      category: "Symbols",
+      aliases: [
+        "arrow_forward"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23E9",
+      description: "fast-forward button",
+      category: "Symbols",
+      aliases: [
+        "fast_forward"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23ED\uFE0F",
+      description: "next track button",
+      category: "Symbols",
+      aliases: [
+        "next_track_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u23EF\uFE0F",
+      description: "play or pause button",
+      category: "Symbols",
+      aliases: [
+        "play_or_pause_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u25C0\uFE0F",
+      description: "reverse button",
+      category: "Symbols",
+      aliases: [
+        "arrow_backward"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23EA",
+      description: "fast reverse button",
+      category: "Symbols",
+      aliases: [
+        "rewind"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23EE\uFE0F",
+      description: "last track button",
+      category: "Symbols",
+      aliases: [
+        "previous_track_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F53C}",
+      description: "upwards button",
+      category: "Symbols",
+      aliases: [
+        "arrow_up_small"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23EB",
+      description: "fast up button",
+      category: "Symbols",
+      aliases: [
+        "arrow_double_up"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F53D}",
+      description: "downwards button",
+      category: "Symbols",
+      aliases: [
+        "arrow_down_small"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23EC",
+      description: "fast down button",
+      category: "Symbols",
+      aliases: [
+        "arrow_double_down"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u23F8\uFE0F",
+      description: "pause button",
+      category: "Symbols",
+      aliases: [
+        "pause_button"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u23F9\uFE0F",
+      description: "stop button",
+      category: "Symbols",
+      aliases: [
+        "stop_button"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u23FA\uFE0F",
+      description: "record button",
+      category: "Symbols",
+      aliases: [
+        "record_button"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u23CF\uFE0F",
+      description: "eject button",
+      category: "Symbols",
+      aliases: [
+        "eject_button"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3A6}",
+      description: "cinema",
+      category: "Symbols",
+      aliases: [
+        "cinema"
+      ],
+      tags: [
+        "film",
+        "movie"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F505}",
+      description: "dim button",
+      category: "Symbols",
+      aliases: [
+        "low_brightness"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F506}",
+      description: "bright button",
+      category: "Symbols",
+      aliases: [
+        "high_brightness"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F6}",
+      description: "antenna bars",
+      category: "Symbols",
+      aliases: [
+        "signal_strength"
+      ],
+      tags: [
+        "wifi"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6DC}",
+      description: "wireless",
+      category: "Symbols",
+      aliases: [
+        "wireless"
+      ],
+      tags: [
+        "wifi"
+      ],
+      unicode_version: "15.0",
+      ios_version: "16.4"
+    },
+    {
+      emoji: "\u{1F4F3}",
+      description: "vibration mode",
+      category: "Symbols",
+      aliases: [
+        "vibration_mode"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4F4}",
+      description: "mobile phone off",
+      category: "Symbols",
+      aliases: [
+        "mobile_phone_off"
+      ],
+      tags: [
+        "mute",
+        "off"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2640\uFE0F",
+      description: "female sign",
+      category: "Symbols",
+      aliases: [
+        "female_sign"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u2642\uFE0F",
+      description: "male sign",
+      category: "Symbols",
+      aliases: [
+        "male_sign"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u26A7\uFE0F",
+      description: "transgender symbol",
+      category: "Symbols",
+      aliases: [
+        "transgender_symbol"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u2716\uFE0F",
+      description: "multiply",
+      category: "Symbols",
+      aliases: [
+        "heavy_multiplication_x"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2795",
+      description: "plus",
+      category: "Symbols",
+      aliases: [
+        "heavy_plus_sign"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2796",
+      description: "minus",
+      category: "Symbols",
+      aliases: [
+        "heavy_minus_sign"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2797",
+      description: "divide",
+      category: "Symbols",
+      aliases: [
+        "heavy_division_sign"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F7F0}",
+      description: "heavy equals sign",
+      category: "Symbols",
+      aliases: [
+        "heavy_equals_sign"
+      ],
+      tags: [],
+      unicode_version: "14.0",
+      ios_version: "15.4"
+    },
+    {
+      emoji: "\u267E\uFE0F",
+      description: "infinity",
+      category: "Symbols",
+      aliases: [
+        "infinity"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u203C\uFE0F",
+      description: "double exclamation mark",
+      category: "Symbols",
+      aliases: [
+        "bangbang"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2049\uFE0F",
+      description: "exclamation question mark",
+      category: "Symbols",
+      aliases: [
+        "interrobang"
+      ],
+      tags: [],
+      unicode_version: "3.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2753",
+      description: "red question mark",
+      category: "Symbols",
+      aliases: [
+        "question"
+      ],
+      tags: [
+        "confused"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2754",
+      description: "white question mark",
+      category: "Symbols",
+      aliases: [
+        "grey_question"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2755",
+      description: "white exclamation mark",
+      category: "Symbols",
+      aliases: [
+        "grey_exclamation"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2757",
+      description: "red exclamation mark",
+      category: "Symbols",
+      aliases: [
+        "exclamation",
+        "heavy_exclamation_mark"
+      ],
+      tags: [
+        "bang"
+      ],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u3030\uFE0F",
+      description: "wavy dash",
+      category: "Symbols",
+      aliases: [
+        "wavy_dash"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B1}",
+      description: "currency exchange",
+      category: "Symbols",
+      aliases: [
+        "currency_exchange"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4B2}",
+      description: "heavy dollar sign",
+      category: "Symbols",
+      aliases: [
+        "heavy_dollar_sign"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2695\uFE0F",
+      description: "medical symbol",
+      category: "Symbols",
+      aliases: [
+        "medical_symbol"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u267B\uFE0F",
+      description: "recycling symbol",
+      category: "Symbols",
+      aliases: [
+        "recycle"
+      ],
+      tags: [
+        "environment",
+        "green"
+      ],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u269C\uFE0F",
+      description: "fleur-de-lis",
+      category: "Symbols",
+      aliases: [
+        "fleur_de_lis"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F531}",
+      description: "trident emblem",
+      category: "Symbols",
+      aliases: [
+        "trident"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4DB}",
+      description: "name badge",
+      category: "Symbols",
+      aliases: [
+        "name_badge"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F530}",
+      description: "Japanese symbol for beginner",
+      category: "Symbols",
+      aliases: [
+        "beginner"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2B55",
+      description: "hollow red circle",
+      category: "Symbols",
+      aliases: [
+        "o"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2705",
+      description: "check mark button",
+      category: "Symbols",
+      aliases: [
+        "white_check_mark"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2611\uFE0F",
+      description: "check box with check",
+      category: "Symbols",
+      aliases: [
+        "ballot_box_with_check"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2714\uFE0F",
+      description: "check mark",
+      category: "Symbols",
+      aliases: [
+        "heavy_check_mark"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u274C",
+      description: "cross mark",
+      category: "Symbols",
+      aliases: [
+        "x"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u274E",
+      description: "cross mark button",
+      category: "Symbols",
+      aliases: [
+        "negative_squared_cross_mark"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u27B0",
+      description: "curly loop",
+      category: "Symbols",
+      aliases: [
+        "curly_loop"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u27BF",
+      description: "double curly loop",
+      category: "Symbols",
+      aliases: [
+        "loop"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u303D\uFE0F",
+      description: "part alternation mark",
+      category: "Symbols",
+      aliases: [
+        "part_alternation_mark"
+      ],
+      tags: [],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2733\uFE0F",
+      description: "eight-spoked asterisk",
+      category: "Symbols",
+      aliases: [
+        "eight_spoked_asterisk"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2734\uFE0F",
+      description: "eight-pointed star",
+      category: "Symbols",
+      aliases: [
+        "eight_pointed_black_star"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2747\uFE0F",
+      description: "sparkle",
+      category: "Symbols",
+      aliases: [
+        "sparkle"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\xA9\uFE0F",
+      description: "copyright",
+      category: "Symbols",
+      aliases: [
+        "copyright"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\xAE\uFE0F",
+      description: "registered",
+      category: "Symbols",
+      aliases: [
+        "registered"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2122\uFE0F",
+      description: "trade mark",
+      category: "Symbols",
+      aliases: [
+        "tm"
+      ],
+      tags: [
+        "trademark"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "#\uFE0F\u20E3",
+      description: "keycap: #",
+      category: "Symbols",
+      aliases: [
+        "hash"
+      ],
+      tags: [
+        "number"
+      ],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "*\uFE0F\u20E3",
+      description: "keycap: *",
+      category: "Symbols",
+      aliases: [
+        "asterisk"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "0\uFE0F\u20E3",
+      description: "keycap: 0",
+      category: "Symbols",
+      aliases: [
+        "zero"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "1\uFE0F\u20E3",
+      description: "keycap: 1",
+      category: "Symbols",
+      aliases: [
+        "one"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "2\uFE0F\u20E3",
+      description: "keycap: 2",
+      category: "Symbols",
+      aliases: [
+        "two"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "3\uFE0F\u20E3",
+      description: "keycap: 3",
+      category: "Symbols",
+      aliases: [
+        "three"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "4\uFE0F\u20E3",
+      description: "keycap: 4",
+      category: "Symbols",
+      aliases: [
+        "four"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "5\uFE0F\u20E3",
+      description: "keycap: 5",
+      category: "Symbols",
+      aliases: [
+        "five"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "6\uFE0F\u20E3",
+      description: "keycap: 6",
+      category: "Symbols",
+      aliases: [
+        "six"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "7\uFE0F\u20E3",
+      description: "keycap: 7",
+      category: "Symbols",
+      aliases: [
+        "seven"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "8\uFE0F\u20E3",
+      description: "keycap: 8",
+      category: "Symbols",
+      aliases: [
+        "eight"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "9\uFE0F\u20E3",
+      description: "keycap: 9",
+      category: "Symbols",
+      aliases: [
+        "nine"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F51F}",
+      description: "keycap: 10",
+      category: "Symbols",
+      aliases: [
+        "keycap_ten"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F520}",
+      description: "input latin uppercase",
+      category: "Symbols",
+      aliases: [
+        "capital_abcd"
+      ],
+      tags: [
+        "letters"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F521}",
+      description: "input latin lowercase",
+      category: "Symbols",
+      aliases: [
+        "abcd"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F522}",
+      description: "input numbers",
+      category: "Symbols",
+      aliases: [
+        "1234"
+      ],
+      tags: [
+        "numbers"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F523}",
+      description: "input symbols",
+      category: "Symbols",
+      aliases: [
+        "symbols"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F524}",
+      description: "input latin letters",
+      category: "Symbols",
+      aliases: [
+        "abc"
+      ],
+      tags: [
+        "alphabet"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F170}\uFE0F",
+      description: "A button (blood type)",
+      category: "Symbols",
+      aliases: [
+        "a"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F18E}",
+      description: "AB button (blood type)",
+      category: "Symbols",
+      aliases: [
+        "ab"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F171}\uFE0F",
+      description: "B button (blood type)",
+      category: "Symbols",
+      aliases: [
+        "b"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F191}",
+      description: "CL button",
+      category: "Symbols",
+      aliases: [
+        "cl"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F192}",
+      description: "COOL button",
+      category: "Symbols",
+      aliases: [
+        "cool"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F193}",
+      description: "FREE button",
+      category: "Symbols",
+      aliases: [
+        "free"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2139\uFE0F",
+      description: "information",
+      category: "Symbols",
+      aliases: [
+        "information_source"
+      ],
+      tags: [],
+      unicode_version: "3.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F194}",
+      description: "ID button",
+      category: "Symbols",
+      aliases: [
+        "id"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u24C2\uFE0F",
+      description: "circled M",
+      category: "Symbols",
+      aliases: [
+        "m"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F195}",
+      description: "NEW button",
+      category: "Symbols",
+      aliases: [
+        "new"
+      ],
+      tags: [
+        "fresh"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F196}",
+      description: "NG button",
+      category: "Symbols",
+      aliases: [
+        "ng"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F17E}\uFE0F",
+      description: "O button (blood type)",
+      category: "Symbols",
+      aliases: [
+        "o2"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F197}",
+      description: "OK button",
+      category: "Symbols",
+      aliases: [
+        "ok"
+      ],
+      tags: [
+        "yes"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F17F}\uFE0F",
+      description: "P button",
+      category: "Symbols",
+      aliases: [
+        "parking"
+      ],
+      tags: [],
+      unicode_version: "5.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F198}",
+      description: "SOS button",
+      category: "Symbols",
+      aliases: [
+        "sos"
+      ],
+      tags: [
+        "help",
+        "emergency"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F199}",
+      description: "UP! button",
+      category: "Symbols",
+      aliases: [
+        "up"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F19A}",
+      description: "VS button",
+      category: "Symbols",
+      aliases: [
+        "vs"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F201}",
+      description: "Japanese \u201Chere\u201D button",
+      category: "Symbols",
+      aliases: [
+        "koko"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F202}\uFE0F",
+      description: "Japanese \u201Cservice charge\u201D button",
+      category: "Symbols",
+      aliases: [
+        "sa"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F237}\uFE0F",
+      description: "Japanese \u201Cmonthly amount\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u6708"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F236}",
+      description: "Japanese \u201Cnot free of charge\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u6709"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F22F}",
+      description: "Japanese \u201Creserved\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u6307"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F250}",
+      description: "Japanese \u201Cbargain\u201D button",
+      category: "Symbols",
+      aliases: [
+        "ideograph_advantage"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F239}",
+      description: "Japanese \u201Cdiscount\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u5272"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F21A}",
+      description: "Japanese \u201Cfree of charge\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u7121"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F232}",
+      description: "Japanese \u201Cprohibited\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u7981"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F251}",
+      description: "Japanese \u201Cacceptable\u201D button",
+      category: "Symbols",
+      aliases: [
+        "accept"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F238}",
+      description: "Japanese \u201Capplication\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u7533"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F234}",
+      description: "Japanese \u201Cpassing grade\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u5408"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F233}",
+      description: "Japanese \u201Cvacancy\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u7a7a"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u3297\uFE0F",
+      description: "Japanese \u201Ccongratulations\u201D button",
+      category: "Symbols",
+      aliases: [
+        "congratulations"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u3299\uFE0F",
+      description: "Japanese \u201Csecret\u201D button",
+      category: "Symbols",
+      aliases: [
+        "secret"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F23A}",
+      description: "Japanese \u201Copen for business\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u55b6"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F235}",
+      description: "Japanese \u201Cno vacancy\u201D button",
+      category: "Symbols",
+      aliases: [
+        "u6e80"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F534}",
+      description: "red circle",
+      category: "Symbols",
+      aliases: [
+        "red_circle"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F7E0}",
+      description: "orange circle",
+      category: "Symbols",
+      aliases: [
+        "orange_circle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E1}",
+      description: "yellow circle",
+      category: "Symbols",
+      aliases: [
+        "yellow_circle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E2}",
+      description: "green circle",
+      category: "Symbols",
+      aliases: [
+        "green_circle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F535}",
+      description: "blue circle",
+      category: "Symbols",
+      aliases: [
+        "large_blue_circle"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F7E3}",
+      description: "purple circle",
+      category: "Symbols",
+      aliases: [
+        "purple_circle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E4}",
+      description: "brown circle",
+      category: "Symbols",
+      aliases: [
+        "brown_circle"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u26AB",
+      description: "black circle",
+      category: "Symbols",
+      aliases: [
+        "black_circle"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u26AA",
+      description: "white circle",
+      category: "Symbols",
+      aliases: [
+        "white_circle"
+      ],
+      tags: [],
+      unicode_version: "4.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F7E5}",
+      description: "red square",
+      category: "Symbols",
+      aliases: [
+        "red_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E7}",
+      description: "orange square",
+      category: "Symbols",
+      aliases: [
+        "orange_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E8}",
+      description: "yellow square",
+      category: "Symbols",
+      aliases: [
+        "yellow_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E9}",
+      description: "green square",
+      category: "Symbols",
+      aliases: [
+        "green_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7E6}",
+      description: "blue square",
+      category: "Symbols",
+      aliases: [
+        "blue_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7EA}",
+      description: "purple square",
+      category: "Symbols",
+      aliases: [
+        "purple_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u{1F7EB}",
+      description: "brown square",
+      category: "Symbols",
+      aliases: [
+        "brown_square"
+      ],
+      tags: [],
+      unicode_version: "12.0",
+      ios_version: "13.0"
+    },
+    {
+      emoji: "\u2B1B",
+      description: "black large square",
+      category: "Symbols",
+      aliases: [
+        "black_large_square"
+      ],
+      tags: [],
+      unicode_version: "5.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u2B1C",
+      description: "white large square",
+      category: "Symbols",
+      aliases: [
+        "white_large_square"
+      ],
+      tags: [],
+      unicode_version: "5.1",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25FC\uFE0F",
+      description: "black medium square",
+      category: "Symbols",
+      aliases: [
+        "black_medium_square"
+      ],
+      tags: [],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25FB\uFE0F",
+      description: "white medium square",
+      category: "Symbols",
+      aliases: [
+        "white_medium_square"
+      ],
+      tags: [],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25FE",
+      description: "black medium-small square",
+      category: "Symbols",
+      aliases: [
+        "black_medium_small_square"
+      ],
+      tags: [],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25FD",
+      description: "white medium-small square",
+      category: "Symbols",
+      aliases: [
+        "white_medium_small_square"
+      ],
+      tags: [],
+      unicode_version: "3.2",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25AA\uFE0F",
+      description: "black small square",
+      category: "Symbols",
+      aliases: [
+        "black_small_square"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u25AB\uFE0F",
+      description: "white small square",
+      category: "Symbols",
+      aliases: [
+        "white_small_square"
+      ],
+      tags: [],
+      unicode_version: "",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F536}",
+      description: "large orange diamond",
+      category: "Symbols",
+      aliases: [
+        "large_orange_diamond"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F537}",
+      description: "large blue diamond",
+      category: "Symbols",
+      aliases: [
+        "large_blue_diamond"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F538}",
+      description: "small orange diamond",
+      category: "Symbols",
+      aliases: [
+        "small_orange_diamond"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F539}",
+      description: "small blue diamond",
+      category: "Symbols",
+      aliases: [
+        "small_blue_diamond"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F53A}",
+      description: "red triangle pointed up",
+      category: "Symbols",
+      aliases: [
+        "small_red_triangle"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F53B}",
+      description: "red triangle pointed down",
+      category: "Symbols",
+      aliases: [
+        "small_red_triangle_down"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F4A0}",
+      description: "diamond with a dot",
+      category: "Symbols",
+      aliases: [
+        "diamond_shape_with_a_dot_inside"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F518}",
+      description: "radio button",
+      category: "Symbols",
+      aliases: [
+        "radio_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F533}",
+      description: "white square button",
+      category: "Symbols",
+      aliases: [
+        "white_square_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F532}",
+      description: "black square button",
+      category: "Symbols",
+      aliases: [
+        "black_square_button"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3C1}",
+      description: "chequered flag",
+      category: "Flags",
+      aliases: [
+        "checkered_flag"
+      ],
+      tags: [
+        "milestone",
+        "finish"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F6A9}",
+      description: "triangular flag",
+      category: "Flags",
+      aliases: [
+        "triangular_flag_on_post"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F38C}",
+      description: "crossed flags",
+      category: "Flags",
+      aliases: [
+        "crossed_flags"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F3F4}",
+      description: "black flag",
+      category: "Flags",
+      aliases: [
+        "black_flag"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3F3}\uFE0F",
+      description: "white flag",
+      category: "Flags",
+      aliases: [
+        "white_flag"
+      ],
+      tags: [],
+      unicode_version: "7.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F3F3}\uFE0F\u200D\u{1F308}",
+      description: "rainbow flag",
+      category: "Flags",
+      aliases: [
+        "rainbow_flag"
+      ],
+      tags: [
+        "pride"
+      ],
+      unicode_version: "6.0",
+      ios_version: "10.0"
+    },
+    {
+      emoji: "\u{1F3F3}\uFE0F\u200D\u26A7\uFE0F",
+      description: "transgender flag",
+      category: "Flags",
+      aliases: [
+        "transgender_flag"
+      ],
+      tags: [],
+      unicode_version: "13.0",
+      ios_version: "14.0"
+    },
+    {
+      emoji: "\u{1F3F4}\u200D\u2620\uFE0F",
+      description: "pirate flag",
+      category: "Flags",
+      aliases: [
+        "pirate_flag"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1E8}",
+      description: "flag: Ascension Island",
+      category: "Flags",
+      aliases: [
+        "ascension_island"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1E9}",
+      description: "flag: Andorra",
+      category: "Flags",
+      aliases: [
+        "andorra"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1EA}",
+      description: "flag: United Arab Emirates",
+      category: "Flags",
+      aliases: [
+        "united_arab_emirates"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1EB}",
+      description: "flag: Afghanistan",
+      category: "Flags",
+      aliases: [
+        "afghanistan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1EC}",
+      description: "flag: Antigua & Barbuda",
+      category: "Flags",
+      aliases: [
+        "antigua_barbuda"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1EE}",
+      description: "flag: Anguilla",
+      category: "Flags",
+      aliases: [
+        "anguilla"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F1}",
+      description: "flag: Albania",
+      category: "Flags",
+      aliases: [
+        "albania"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F2}",
+      description: "flag: Armenia",
+      category: "Flags",
+      aliases: [
+        "armenia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F4}",
+      description: "flag: Angola",
+      category: "Flags",
+      aliases: [
+        "angola"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F6}",
+      description: "flag: Antarctica",
+      category: "Flags",
+      aliases: [
+        "antarctica"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F7}",
+      description: "flag: Argentina",
+      category: "Flags",
+      aliases: [
+        "argentina"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F8}",
+      description: "flag: American Samoa",
+      category: "Flags",
+      aliases: [
+        "american_samoa"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1F9}",
+      description: "flag: Austria",
+      category: "Flags",
+      aliases: [
+        "austria"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1FA}",
+      description: "flag: Australia",
+      category: "Flags",
+      aliases: [
+        "australia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1FC}",
+      description: "flag: Aruba",
+      category: "Flags",
+      aliases: [
+        "aruba"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1FD}",
+      description: "flag: \xC5land Islands",
+      category: "Flags",
+      aliases: [
+        "aland_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E6}\u{1F1FF}",
+      description: "flag: Azerbaijan",
+      category: "Flags",
+      aliases: [
+        "azerbaijan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1E6}",
+      description: "flag: Bosnia & Herzegovina",
+      category: "Flags",
+      aliases: [
+        "bosnia_herzegovina"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1E7}",
+      description: "flag: Barbados",
+      category: "Flags",
+      aliases: [
+        "barbados"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1E9}",
+      description: "flag: Bangladesh",
+      category: "Flags",
+      aliases: [
+        "bangladesh"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1EA}",
+      description: "flag: Belgium",
+      category: "Flags",
+      aliases: [
+        "belgium"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1EB}",
+      description: "flag: Burkina Faso",
+      category: "Flags",
+      aliases: [
+        "burkina_faso"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1EC}",
+      description: "flag: Bulgaria",
+      category: "Flags",
+      aliases: [
+        "bulgaria"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1ED}",
+      description: "flag: Bahrain",
+      category: "Flags",
+      aliases: [
+        "bahrain"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1EE}",
+      description: "flag: Burundi",
+      category: "Flags",
+      aliases: [
+        "burundi"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1EF}",
+      description: "flag: Benin",
+      category: "Flags",
+      aliases: [
+        "benin"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F1}",
+      description: "flag: St. Barth\xE9lemy",
+      category: "Flags",
+      aliases: [
+        "st_barthelemy"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F2}",
+      description: "flag: Bermuda",
+      category: "Flags",
+      aliases: [
+        "bermuda"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F3}",
+      description: "flag: Brunei",
+      category: "Flags",
+      aliases: [
+        "brunei"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F4}",
+      description: "flag: Bolivia",
+      category: "Flags",
+      aliases: [
+        "bolivia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F6}",
+      description: "flag: Caribbean Netherlands",
+      category: "Flags",
+      aliases: [
+        "caribbean_netherlands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F7}",
+      description: "flag: Brazil",
+      category: "Flags",
+      aliases: [
+        "brazil"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F8}",
+      description: "flag: Bahamas",
+      category: "Flags",
+      aliases: [
+        "bahamas"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1F9}",
+      description: "flag: Bhutan",
+      category: "Flags",
+      aliases: [
+        "bhutan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1FB}",
+      description: "flag: Bouvet Island",
+      category: "Flags",
+      aliases: [
+        "bouvet_island"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1FC}",
+      description: "flag: Botswana",
+      category: "Flags",
+      aliases: [
+        "botswana"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1FE}",
+      description: "flag: Belarus",
+      category: "Flags",
+      aliases: [
+        "belarus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E7}\u{1F1FF}",
+      description: "flag: Belize",
+      category: "Flags",
+      aliases: [
+        "belize"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1E6}",
+      description: "flag: Canada",
+      category: "Flags",
+      aliases: [
+        "canada"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1E8}",
+      description: "flag: Cocos (Keeling) Islands",
+      category: "Flags",
+      aliases: [
+        "cocos_islands"
+      ],
+      tags: [
+        "keeling"
+      ],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1E9}",
+      description: "flag: Congo - Kinshasa",
+      category: "Flags",
+      aliases: [
+        "congo_kinshasa"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1EB}",
+      description: "flag: Central African Republic",
+      category: "Flags",
+      aliases: [
+        "central_african_republic"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1EC}",
+      description: "flag: Congo - Brazzaville",
+      category: "Flags",
+      aliases: [
+        "congo_brazzaville"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1ED}",
+      description: "flag: Switzerland",
+      category: "Flags",
+      aliases: [
+        "switzerland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1EE}",
+      description: "flag: C\xF4te d\u2019Ivoire",
+      category: "Flags",
+      aliases: [
+        "cote_divoire"
+      ],
+      tags: [
+        "ivory"
+      ],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F0}",
+      description: "flag: Cook Islands",
+      category: "Flags",
+      aliases: [
+        "cook_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F1}",
+      description: "flag: Chile",
+      category: "Flags",
+      aliases: [
+        "chile"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F2}",
+      description: "flag: Cameroon",
+      category: "Flags",
+      aliases: [
+        "cameroon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F3}",
+      description: "flag: China",
+      category: "Flags",
+      aliases: [
+        "cn"
+      ],
+      tags: [
+        "china"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F4}",
+      description: "flag: Colombia",
+      category: "Flags",
+      aliases: [
+        "colombia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F5}",
+      description: "flag: Clipperton Island",
+      category: "Flags",
+      aliases: [
+        "clipperton_island"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1F7}",
+      description: "flag: Costa Rica",
+      category: "Flags",
+      aliases: [
+        "costa_rica"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FA}",
+      description: "flag: Cuba",
+      category: "Flags",
+      aliases: [
+        "cuba"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FB}",
+      description: "flag: Cape Verde",
+      category: "Flags",
+      aliases: [
+        "cape_verde"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FC}",
+      description: "flag: Cura\xE7ao",
+      category: "Flags",
+      aliases: [
+        "curacao"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FD}",
+      description: "flag: Christmas Island",
+      category: "Flags",
+      aliases: [
+        "christmas_island"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FE}",
+      description: "flag: Cyprus",
+      category: "Flags",
+      aliases: [
+        "cyprus"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E8}\u{1F1FF}",
+      description: "flag: Czechia",
+      category: "Flags",
+      aliases: [
+        "czech_republic"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1EA}",
+      description: "flag: Germany",
+      category: "Flags",
+      aliases: [
+        "de"
+      ],
+      tags: [
+        "flag",
+        "germany"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1EC}",
+      description: "flag: Diego Garcia",
+      category: "Flags",
+      aliases: [
+        "diego_garcia"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1EF}",
+      description: "flag: Djibouti",
+      category: "Flags",
+      aliases: [
+        "djibouti"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1F0}",
+      description: "flag: Denmark",
+      category: "Flags",
+      aliases: [
+        "denmark"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1F2}",
+      description: "flag: Dominica",
+      category: "Flags",
+      aliases: [
+        "dominica"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1F4}",
+      description: "flag: Dominican Republic",
+      category: "Flags",
+      aliases: [
+        "dominican_republic"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1E9}\u{1F1FF}",
+      description: "flag: Algeria",
+      category: "Flags",
+      aliases: [
+        "algeria"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1E6}",
+      description: "flag: Ceuta & Melilla",
+      category: "Flags",
+      aliases: [
+        "ceuta_melilla"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1E8}",
+      description: "flag: Ecuador",
+      category: "Flags",
+      aliases: [
+        "ecuador"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1EA}",
+      description: "flag: Estonia",
+      category: "Flags",
+      aliases: [
+        "estonia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1EC}",
+      description: "flag: Egypt",
+      category: "Flags",
+      aliases: [
+        "egypt"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1ED}",
+      description: "flag: Western Sahara",
+      category: "Flags",
+      aliases: [
+        "western_sahara"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1F7}",
+      description: "flag: Eritrea",
+      category: "Flags",
+      aliases: [
+        "eritrea"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1F8}",
+      description: "flag: Spain",
+      category: "Flags",
+      aliases: [
+        "es"
+      ],
+      tags: [
+        "spain"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1F9}",
+      description: "flag: Ethiopia",
+      category: "Flags",
+      aliases: [
+        "ethiopia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EA}\u{1F1FA}",
+      description: "flag: European Union",
+      category: "Flags",
+      aliases: [
+        "eu",
+        "european_union"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1EE}",
+      description: "flag: Finland",
+      category: "Flags",
+      aliases: [
+        "finland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1EF}",
+      description: "flag: Fiji",
+      category: "Flags",
+      aliases: [
+        "fiji"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1F0}",
+      description: "flag: Falkland Islands",
+      category: "Flags",
+      aliases: [
+        "falkland_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1F2}",
+      description: "flag: Micronesia",
+      category: "Flags",
+      aliases: [
+        "micronesia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1F4}",
+      description: "flag: Faroe Islands",
+      category: "Flags",
+      aliases: [
+        "faroe_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EB}\u{1F1F7}",
+      description: "flag: France",
+      category: "Flags",
+      aliases: [
+        "fr"
+      ],
+      tags: [
+        "france",
+        "french"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1E6}",
+      description: "flag: Gabon",
+      category: "Flags",
+      aliases: [
+        "gabon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1E7}",
+      description: "flag: United Kingdom",
+      category: "Flags",
+      aliases: [
+        "gb",
+        "uk"
+      ],
+      tags: [
+        "flag",
+        "british"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1E9}",
+      description: "flag: Grenada",
+      category: "Flags",
+      aliases: [
+        "grenada"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1EA}",
+      description: "flag: Georgia",
+      category: "Flags",
+      aliases: [
+        "georgia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1EB}",
+      description: "flag: French Guiana",
+      category: "Flags",
+      aliases: [
+        "french_guiana"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1EC}",
+      description: "flag: Guernsey",
+      category: "Flags",
+      aliases: [
+        "guernsey"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1ED}",
+      description: "flag: Ghana",
+      category: "Flags",
+      aliases: [
+        "ghana"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1EE}",
+      description: "flag: Gibraltar",
+      category: "Flags",
+      aliases: [
+        "gibraltar"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F1}",
+      description: "flag: Greenland",
+      category: "Flags",
+      aliases: [
+        "greenland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F2}",
+      description: "flag: Gambia",
+      category: "Flags",
+      aliases: [
+        "gambia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F3}",
+      description: "flag: Guinea",
+      category: "Flags",
+      aliases: [
+        "guinea"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F5}",
+      description: "flag: Guadeloupe",
+      category: "Flags",
+      aliases: [
+        "guadeloupe"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F6}",
+      description: "flag: Equatorial Guinea",
+      category: "Flags",
+      aliases: [
+        "equatorial_guinea"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F7}",
+      description: "flag: Greece",
+      category: "Flags",
+      aliases: [
+        "greece"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F8}",
+      description: "flag: South Georgia & South Sandwich Islands",
+      category: "Flags",
+      aliases: [
+        "south_georgia_south_sandwich_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1F9}",
+      description: "flag: Guatemala",
+      category: "Flags",
+      aliases: [
+        "guatemala"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1FA}",
+      description: "flag: Guam",
+      category: "Flags",
+      aliases: [
+        "guam"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1FC}",
+      description: "flag: Guinea-Bissau",
+      category: "Flags",
+      aliases: [
+        "guinea_bissau"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EC}\u{1F1FE}",
+      description: "flag: Guyana",
+      category: "Flags",
+      aliases: [
+        "guyana"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1F0}",
+      description: "flag: Hong Kong SAR China",
+      category: "Flags",
+      aliases: [
+        "hong_kong"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1F2}",
+      description: "flag: Heard & McDonald Islands",
+      category: "Flags",
+      aliases: [
+        "heard_mcdonald_islands"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1F3}",
+      description: "flag: Honduras",
+      category: "Flags",
+      aliases: [
+        "honduras"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1F7}",
+      description: "flag: Croatia",
+      category: "Flags",
+      aliases: [
+        "croatia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1F9}",
+      description: "flag: Haiti",
+      category: "Flags",
+      aliases: [
+        "haiti"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1ED}\u{1F1FA}",
+      description: "flag: Hungary",
+      category: "Flags",
+      aliases: [
+        "hungary"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1E8}",
+      description: "flag: Canary Islands",
+      category: "Flags",
+      aliases: [
+        "canary_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1E9}",
+      description: "flag: Indonesia",
+      category: "Flags",
+      aliases: [
+        "indonesia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1EA}",
+      description: "flag: Ireland",
+      category: "Flags",
+      aliases: [
+        "ireland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F1}",
+      description: "flag: Israel",
+      category: "Flags",
+      aliases: [
+        "israel"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F2}",
+      description: "flag: Isle of Man",
+      category: "Flags",
+      aliases: [
+        "isle_of_man"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F3}",
+      description: "flag: India",
+      category: "Flags",
+      aliases: [
+        "india"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F4}",
+      description: "flag: British Indian Ocean Territory",
+      category: "Flags",
+      aliases: [
+        "british_indian_ocean_territory"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F6}",
+      description: "flag: Iraq",
+      category: "Flags",
+      aliases: [
+        "iraq"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F7}",
+      description: "flag: Iran",
+      category: "Flags",
+      aliases: [
+        "iran"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F8}",
+      description: "flag: Iceland",
+      category: "Flags",
+      aliases: [
+        "iceland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EE}\u{1F1F9}",
+      description: "flag: Italy",
+      category: "Flags",
+      aliases: [
+        "it"
+      ],
+      tags: [
+        "italy"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1EF}\u{1F1EA}",
+      description: "flag: Jersey",
+      category: "Flags",
+      aliases: [
+        "jersey"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1EF}\u{1F1F2}",
+      description: "flag: Jamaica",
+      category: "Flags",
+      aliases: [
+        "jamaica"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EF}\u{1F1F4}",
+      description: "flag: Jordan",
+      category: "Flags",
+      aliases: [
+        "jordan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1EF}\u{1F1F5}",
+      description: "flag: Japan",
+      category: "Flags",
+      aliases: [
+        "jp"
+      ],
+      tags: [
+        "japan"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1EA}",
+      description: "flag: Kenya",
+      category: "Flags",
+      aliases: [
+        "kenya"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1EC}",
+      description: "flag: Kyrgyzstan",
+      category: "Flags",
+      aliases: [
+        "kyrgyzstan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1ED}",
+      description: "flag: Cambodia",
+      category: "Flags",
+      aliases: [
+        "cambodia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1EE}",
+      description: "flag: Kiribati",
+      category: "Flags",
+      aliases: [
+        "kiribati"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1F2}",
+      description: "flag: Comoros",
+      category: "Flags",
+      aliases: [
+        "comoros"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1F3}",
+      description: "flag: St. Kitts & Nevis",
+      category: "Flags",
+      aliases: [
+        "st_kitts_nevis"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1F5}",
+      description: "flag: North Korea",
+      category: "Flags",
+      aliases: [
+        "north_korea"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1F7}",
+      description: "flag: South Korea",
+      category: "Flags",
+      aliases: [
+        "kr"
+      ],
+      tags: [
+        "korea"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1FC}",
+      description: "flag: Kuwait",
+      category: "Flags",
+      aliases: [
+        "kuwait"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1FE}",
+      description: "flag: Cayman Islands",
+      category: "Flags",
+      aliases: [
+        "cayman_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F0}\u{1F1FF}",
+      description: "flag: Kazakhstan",
+      category: "Flags",
+      aliases: [
+        "kazakhstan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1E6}",
+      description: "flag: Laos",
+      category: "Flags",
+      aliases: [
+        "laos"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1E7}",
+      description: "flag: Lebanon",
+      category: "Flags",
+      aliases: [
+        "lebanon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1E8}",
+      description: "flag: St. Lucia",
+      category: "Flags",
+      aliases: [
+        "st_lucia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1EE}",
+      description: "flag: Liechtenstein",
+      category: "Flags",
+      aliases: [
+        "liechtenstein"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1F0}",
+      description: "flag: Sri Lanka",
+      category: "Flags",
+      aliases: [
+        "sri_lanka"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1F7}",
+      description: "flag: Liberia",
+      category: "Flags",
+      aliases: [
+        "liberia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1F8}",
+      description: "flag: Lesotho",
+      category: "Flags",
+      aliases: [
+        "lesotho"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1F9}",
+      description: "flag: Lithuania",
+      category: "Flags",
+      aliases: [
+        "lithuania"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1FA}",
+      description: "flag: Luxembourg",
+      category: "Flags",
+      aliases: [
+        "luxembourg"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1FB}",
+      description: "flag: Latvia",
+      category: "Flags",
+      aliases: [
+        "latvia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F1}\u{1F1FE}",
+      description: "flag: Libya",
+      category: "Flags",
+      aliases: [
+        "libya"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1E6}",
+      description: "flag: Morocco",
+      category: "Flags",
+      aliases: [
+        "morocco"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1E8}",
+      description: "flag: Monaco",
+      category: "Flags",
+      aliases: [
+        "monaco"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1E9}",
+      description: "flag: Moldova",
+      category: "Flags",
+      aliases: [
+        "moldova"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1EA}",
+      description: "flag: Montenegro",
+      category: "Flags",
+      aliases: [
+        "montenegro"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1EB}",
+      description: "flag: St. Martin",
+      category: "Flags",
+      aliases: [
+        "st_martin"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1EC}",
+      description: "flag: Madagascar",
+      category: "Flags",
+      aliases: [
+        "madagascar"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1ED}",
+      description: "flag: Marshall Islands",
+      category: "Flags",
+      aliases: [
+        "marshall_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F0}",
+      description: "flag: North Macedonia",
+      category: "Flags",
+      aliases: [
+        "macedonia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F1}",
+      description: "flag: Mali",
+      category: "Flags",
+      aliases: [
+        "mali"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F2}",
+      description: "flag: Myanmar (Burma)",
+      category: "Flags",
+      aliases: [
+        "myanmar"
+      ],
+      tags: [
+        "burma"
+      ],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F3}",
+      description: "flag: Mongolia",
+      category: "Flags",
+      aliases: [
+        "mongolia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F4}",
+      description: "flag: Macao SAR China",
+      category: "Flags",
+      aliases: [
+        "macau"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F5}",
+      description: "flag: Northern Mariana Islands",
+      category: "Flags",
+      aliases: [
+        "northern_mariana_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F6}",
+      description: "flag: Martinique",
+      category: "Flags",
+      aliases: [
+        "martinique"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F7}",
+      description: "flag: Mauritania",
+      category: "Flags",
+      aliases: [
+        "mauritania"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F8}",
+      description: "flag: Montserrat",
+      category: "Flags",
+      aliases: [
+        "montserrat"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1F9}",
+      description: "flag: Malta",
+      category: "Flags",
+      aliases: [
+        "malta"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FA}",
+      description: "flag: Mauritius",
+      category: "Flags",
+      aliases: [
+        "mauritius"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FB}",
+      description: "flag: Maldives",
+      category: "Flags",
+      aliases: [
+        "maldives"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FC}",
+      description: "flag: Malawi",
+      category: "Flags",
+      aliases: [
+        "malawi"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FD}",
+      description: "flag: Mexico",
+      category: "Flags",
+      aliases: [
+        "mexico"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FE}",
+      description: "flag: Malaysia",
+      category: "Flags",
+      aliases: [
+        "malaysia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F2}\u{1F1FF}",
+      description: "flag: Mozambique",
+      category: "Flags",
+      aliases: [
+        "mozambique"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1E6}",
+      description: "flag: Namibia",
+      category: "Flags",
+      aliases: [
+        "namibia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1E8}",
+      description: "flag: New Caledonia",
+      category: "Flags",
+      aliases: [
+        "new_caledonia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1EA}",
+      description: "flag: Niger",
+      category: "Flags",
+      aliases: [
+        "niger"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1EB}",
+      description: "flag: Norfolk Island",
+      category: "Flags",
+      aliases: [
+        "norfolk_island"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1EC}",
+      description: "flag: Nigeria",
+      category: "Flags",
+      aliases: [
+        "nigeria"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1EE}",
+      description: "flag: Nicaragua",
+      category: "Flags",
+      aliases: [
+        "nicaragua"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1F1}",
+      description: "flag: Netherlands",
+      category: "Flags",
+      aliases: [
+        "netherlands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1F4}",
+      description: "flag: Norway",
+      category: "Flags",
+      aliases: [
+        "norway"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1F5}",
+      description: "flag: Nepal",
+      category: "Flags",
+      aliases: [
+        "nepal"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1F7}",
+      description: "flag: Nauru",
+      category: "Flags",
+      aliases: [
+        "nauru"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1FA}",
+      description: "flag: Niue",
+      category: "Flags",
+      aliases: [
+        "niue"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F3}\u{1F1FF}",
+      description: "flag: New Zealand",
+      category: "Flags",
+      aliases: [
+        "new_zealand"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F4}\u{1F1F2}",
+      description: "flag: Oman",
+      category: "Flags",
+      aliases: [
+        "oman"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1E6}",
+      description: "flag: Panama",
+      category: "Flags",
+      aliases: [
+        "panama"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1EA}",
+      description: "flag: Peru",
+      category: "Flags",
+      aliases: [
+        "peru"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1EB}",
+      description: "flag: French Polynesia",
+      category: "Flags",
+      aliases: [
+        "french_polynesia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1EC}",
+      description: "flag: Papua New Guinea",
+      category: "Flags",
+      aliases: [
+        "papua_new_guinea"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1ED}",
+      description: "flag: Philippines",
+      category: "Flags",
+      aliases: [
+        "philippines"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F0}",
+      description: "flag: Pakistan",
+      category: "Flags",
+      aliases: [
+        "pakistan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F1}",
+      description: "flag: Poland",
+      category: "Flags",
+      aliases: [
+        "poland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F2}",
+      description: "flag: St. Pierre & Miquelon",
+      category: "Flags",
+      aliases: [
+        "st_pierre_miquelon"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F3}",
+      description: "flag: Pitcairn Islands",
+      category: "Flags",
+      aliases: [
+        "pitcairn_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F7}",
+      description: "flag: Puerto Rico",
+      category: "Flags",
+      aliases: [
+        "puerto_rico"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F8}",
+      description: "flag: Palestinian Territories",
+      category: "Flags",
+      aliases: [
+        "palestinian_territories"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1F9}",
+      description: "flag: Portugal",
+      category: "Flags",
+      aliases: [
+        "portugal"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1FC}",
+      description: "flag: Palau",
+      category: "Flags",
+      aliases: [
+        "palau"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F5}\u{1F1FE}",
+      description: "flag: Paraguay",
+      category: "Flags",
+      aliases: [
+        "paraguay"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F6}\u{1F1E6}",
+      description: "flag: Qatar",
+      category: "Flags",
+      aliases: [
+        "qatar"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F7}\u{1F1EA}",
+      description: "flag: R\xE9union",
+      category: "Flags",
+      aliases: [
+        "reunion"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F7}\u{1F1F4}",
+      description: "flag: Romania",
+      category: "Flags",
+      aliases: [
+        "romania"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F7}\u{1F1F8}",
+      description: "flag: Serbia",
+      category: "Flags",
+      aliases: [
+        "serbia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F7}\u{1F1FA}",
+      description: "flag: Russia",
+      category: "Flags",
+      aliases: [
+        "ru"
+      ],
+      tags: [
+        "russia"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1F7}\u{1F1FC}",
+      description: "flag: Rwanda",
+      category: "Flags",
+      aliases: [
+        "rwanda"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1E6}",
+      description: "flag: Saudi Arabia",
+      category: "Flags",
+      aliases: [
+        "saudi_arabia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1E7}",
+      description: "flag: Solomon Islands",
+      category: "Flags",
+      aliases: [
+        "solomon_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1E8}",
+      description: "flag: Seychelles",
+      category: "Flags",
+      aliases: [
+        "seychelles"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1E9}",
+      description: "flag: Sudan",
+      category: "Flags",
+      aliases: [
+        "sudan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1EA}",
+      description: "flag: Sweden",
+      category: "Flags",
+      aliases: [
+        "sweden"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1EC}",
+      description: "flag: Singapore",
+      category: "Flags",
+      aliases: [
+        "singapore"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1ED}",
+      description: "flag: St. Helena",
+      category: "Flags",
+      aliases: [
+        "st_helena"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1EE}",
+      description: "flag: Slovenia",
+      category: "Flags",
+      aliases: [
+        "slovenia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1EF}",
+      description: "flag: Svalbard & Jan Mayen",
+      category: "Flags",
+      aliases: [
+        "svalbard_jan_mayen"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F0}",
+      description: "flag: Slovakia",
+      category: "Flags",
+      aliases: [
+        "slovakia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F1}",
+      description: "flag: Sierra Leone",
+      category: "Flags",
+      aliases: [
+        "sierra_leone"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F2}",
+      description: "flag: San Marino",
+      category: "Flags",
+      aliases: [
+        "san_marino"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F3}",
+      description: "flag: Senegal",
+      category: "Flags",
+      aliases: [
+        "senegal"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F4}",
+      description: "flag: Somalia",
+      category: "Flags",
+      aliases: [
+        "somalia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F7}",
+      description: "flag: Suriname",
+      category: "Flags",
+      aliases: [
+        "suriname"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F8}",
+      description: "flag: South Sudan",
+      category: "Flags",
+      aliases: [
+        "south_sudan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1F9}",
+      description: "flag: S\xE3o Tom\xE9 & Pr\xEDncipe",
+      category: "Flags",
+      aliases: [
+        "sao_tome_principe"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1FB}",
+      description: "flag: El Salvador",
+      category: "Flags",
+      aliases: [
+        "el_salvador"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1FD}",
+      description: "flag: Sint Maarten",
+      category: "Flags",
+      aliases: [
+        "sint_maarten"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1FE}",
+      description: "flag: Syria",
+      category: "Flags",
+      aliases: [
+        "syria"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F8}\u{1F1FF}",
+      description: "flag: Eswatini",
+      category: "Flags",
+      aliases: [
+        "swaziland"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1E6}",
+      description: "flag: Tristan da Cunha",
+      category: "Flags",
+      aliases: [
+        "tristan_da_cunha"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1E8}",
+      description: "flag: Turks & Caicos Islands",
+      category: "Flags",
+      aliases: [
+        "turks_caicos_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1E9}",
+      description: "flag: Chad",
+      category: "Flags",
+      aliases: [
+        "chad"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1EB}",
+      description: "flag: French Southern Territories",
+      category: "Flags",
+      aliases: [
+        "french_southern_territories"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1EC}",
+      description: "flag: Togo",
+      category: "Flags",
+      aliases: [
+        "togo"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1ED}",
+      description: "flag: Thailand",
+      category: "Flags",
+      aliases: [
+        "thailand"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1EF}",
+      description: "flag: Tajikistan",
+      category: "Flags",
+      aliases: [
+        "tajikistan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F0}",
+      description: "flag: Tokelau",
+      category: "Flags",
+      aliases: [
+        "tokelau"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F1}",
+      description: "flag: Timor-Leste",
+      category: "Flags",
+      aliases: [
+        "timor_leste"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F2}",
+      description: "flag: Turkmenistan",
+      category: "Flags",
+      aliases: [
+        "turkmenistan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F3}",
+      description: "flag: Tunisia",
+      category: "Flags",
+      aliases: [
+        "tunisia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F4}",
+      description: "flag: Tonga",
+      category: "Flags",
+      aliases: [
+        "tonga"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F7}",
+      description: "flag: Turkey",
+      category: "Flags",
+      aliases: [
+        "tr"
+      ],
+      tags: [
+        "turkey"
+      ],
+      unicode_version: "8.0",
+      ios_version: "9.1"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1F9}",
+      description: "flag: Trinidad & Tobago",
+      category: "Flags",
+      aliases: [
+        "trinidad_tobago"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1FB}",
+      description: "flag: Tuvalu",
+      category: "Flags",
+      aliases: [
+        "tuvalu"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1FC}",
+      description: "flag: Taiwan",
+      category: "Flags",
+      aliases: [
+        "taiwan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1F9}\u{1F1FF}",
+      description: "flag: Tanzania",
+      category: "Flags",
+      aliases: [
+        "tanzania"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1E6}",
+      description: "flag: Ukraine",
+      category: "Flags",
+      aliases: [
+        "ukraine"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1EC}",
+      description: "flag: Uganda",
+      category: "Flags",
+      aliases: [
+        "uganda"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1F2}",
+      description: "flag: U.S. Outlying Islands",
+      category: "Flags",
+      aliases: [
+        "us_outlying_islands"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1F3}",
+      description: "flag: United Nations",
+      category: "Flags",
+      aliases: [
+        "united_nations"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1F8}",
+      description: "flag: United States",
+      category: "Flags",
+      aliases: [
+        "us"
+      ],
+      tags: [
+        "flag",
+        "united",
+        "america"
+      ],
+      unicode_version: "6.0",
+      ios_version: "6.0"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1FE}",
+      description: "flag: Uruguay",
+      category: "Flags",
+      aliases: [
+        "uruguay"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FA}\u{1F1FF}",
+      description: "flag: Uzbekistan",
+      category: "Flags",
+      aliases: [
+        "uzbekistan"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1E6}",
+      description: "flag: Vatican City",
+      category: "Flags",
+      aliases: [
+        "vatican_city"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1E8}",
+      description: "flag: St. Vincent & Grenadines",
+      category: "Flags",
+      aliases: [
+        "st_vincent_grenadines"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1EA}",
+      description: "flag: Venezuela",
+      category: "Flags",
+      aliases: [
+        "venezuela"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1EC}",
+      description: "flag: British Virgin Islands",
+      category: "Flags",
+      aliases: [
+        "british_virgin_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1EE}",
+      description: "flag: U.S. Virgin Islands",
+      category: "Flags",
+      aliases: [
+        "us_virgin_islands"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1F3}",
+      description: "flag: Vietnam",
+      category: "Flags",
+      aliases: [
+        "vietnam"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FB}\u{1F1FA}",
+      description: "flag: Vanuatu",
+      category: "Flags",
+      aliases: [
+        "vanuatu"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FC}\u{1F1EB}",
+      description: "flag: Wallis & Futuna",
+      category: "Flags",
+      aliases: [
+        "wallis_futuna"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1FC}\u{1F1F8}",
+      description: "flag: Samoa",
+      category: "Flags",
+      aliases: [
+        "samoa"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FD}\u{1F1F0}",
+      description: "flag: Kosovo",
+      category: "Flags",
+      aliases: [
+        "kosovo"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FE}\u{1F1EA}",
+      description: "flag: Yemen",
+      category: "Flags",
+      aliases: [
+        "yemen"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FE}\u{1F1F9}",
+      description: "flag: Mayotte",
+      category: "Flags",
+      aliases: [
+        "mayotte"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "9.0"
+    },
+    {
+      emoji: "\u{1F1FF}\u{1F1E6}",
+      description: "flag: South Africa",
+      category: "Flags",
+      aliases: [
+        "south_africa"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FF}\u{1F1F2}",
+      description: "flag: Zambia",
+      category: "Flags",
+      aliases: [
+        "zambia"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F1FF}\u{1F1FC}",
+      description: "flag: Zimbabwe",
+      category: "Flags",
+      aliases: [
+        "zimbabwe"
+      ],
+      tags: [],
+      unicode_version: "6.0",
+      ios_version: "8.3"
+    },
+    {
+      emoji: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}",
+      description: "flag: England",
+      category: "Flags",
+      aliases: [
+        "england"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",
+      description: "flag: Scotland",
+      category: "Flags",
+      aliases: [
+        "scotland"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    },
+    {
+      emoji: "\u{1F3F4}\u{E0067}\u{E0062}\u{E0077}\u{E006C}\u{E0073}\u{E007F}",
+      description: "flag: Wales",
+      category: "Flags",
+      aliases: [
+        "wales"
+      ],
+      tags: [],
+      unicode_version: "11.0",
+      ios_version: "12.1"
+    }
+  ];
+
+  // src/git_graph_actions.ts
+  var field = (key, title, optional = false) => ({ key, title, optional });
+  var check = (key, title, initial = false) => ({ key, title, type: "boolean", initial });
+  var choice = (key, title, choices) => ({ key, title, type: "choice", choices, initial: choices[0] });
+  var remote = field("remote", "\u8FDC\u7AEF\u540D\u79F0");
+  var branch = field("branch", "\u5206\u652F\u540D\u79F0");
+  var graph_actions = [
+    { id: "branch_create", title: "\u521B\u5EFA\u5206\u652F", targets: ["commit", "branch", "tag"], fields: [branch, check("checkout", "\u521B\u5EFA\u540E\u5207\u6362")], touches_files: true },
+    { id: "branch_checkout", title: "\u5207\u6362\u5206\u652F", targets: ["branch"], fields: [], touches_files: true },
+    { id: "remote_checkout", title: "\u68C0\u51FA\u8FDC\u7AEF\u5206\u652F", targets: ["remote"], fields: [branch], touches_files: true },
+    { id: "branch_rename", title: "\u91CD\u547D\u540D\u5206\u652F", targets: ["branch"], fields: [branch] },
+    { id: "branch_delete", title: "\u5220\u9664\u5206\u652F", targets: ["branch"], fields: [check("force", "\u5141\u8BB8\u5220\u9664\u672A\u5408\u5E76\u5206\u652F")], destructive: "\u5220\u9664\u6240\u9009\u5206\u652F\u5F15\u7528\u3002" },
+    { id: "remote_branch_delete", title: "\u5220\u9664\u8FDC\u7AEF\u5206\u652F", targets: ["remote"], fields: [remote, branch], destructive: "\u5220\u9664\u670D\u52A1\u5668\u4E0A\u7684\u5206\u652F\u3002" },
+    { id: "branch_fetch", title: "Fetch \u5230\u672C\u5730\u5206\u652F", targets: ["remote"], fields: [remote, field("source", "\u8FDC\u7AEF\u5206\u652F"), branch, check("force", "\u5141\u8BB8\u975E\u5FEB\u8FDB\u66F4\u65B0\u672C\u5730\u5206\u652F")] },
+    { id: "merge", title: "\u5408\u5E76\u5230\u5F53\u524D\u5206\u652F", targets: ["commit", "branch", "remote"], fields: [choice("mode", "\u5408\u5E76\u65B9\u5F0F", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "\u6682\u4E0D\u521B\u5EFA\u63D0\u4EA4")], touches_files: true },
+    { id: "rebase", title: "\u5C06\u5F53\u524D\u5206\u652F\u53D8\u57FA\u5230\u6B64\u5904", targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "\u4FDD\u7559\u5408\u5E76\u7ED3\u6784"), check("ignore_date", "\u4F7F\u7528\u5F53\u524D\u4F5C\u8005\u65F6\u95F4"), check("interactive", "\u4EA4\u4E92\u5F0F\u8C03\u6574\u63D0\u4EA4"), field("todo", "\u4EA4\u4E92\u5217\u8868\uFF1Apick / reword / edit / squash / fixup / drop + \u5B8C\u6574\u7F16\u53F7 + \u6807\u9898", true)], touches_files: true, destructive: "\u91CD\u5199\u5F53\u524D\u5206\u652F\u4E0A\u88AB\u91CD\u653E\u7684\u63D0\u4EA4\u3002" },
+    { id: "reset", title: "\u91CD\u7F6E\u5F53\u524D\u5206\u652F", targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "\u91CD\u7F6E\u65B9\u5F0F", ["mixed", "soft", "hard"])], touches_files: true, destructive: "\u79FB\u52A8\u5F53\u524D\u5206\u652F\uFF1Bhard \u4F1A\u4E22\u5F03\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u7684\u672A\u63D0\u4EA4\u5185\u5BB9\u3002" },
+    { id: "commit_checkout", title: "\u68C0\u51FA\u6B64\u63D0\u4EA4\uFF08\u6E38\u79BB HEAD\uFF09", targets: ["commit", "tag"], fields: [], touches_files: true },
+    { id: "cherry_pick", title: "Cherry-pick \u63D0\u4EA4", targets: ["commit"], fields: [check("no_commit", "\u53EA\u5E94\u7528\u6539\u52A8"), check("record_origin", "\u5728\u8BF4\u660E\u4E2D\u8BB0\u5F55\u6765\u6E90\u63D0\u4EA4"), field("mainline", "\u5408\u5E76\u63D0\u4EA4\u7684\u7236\u7F16\u53F7", true)], touches_files: true },
+    { id: "revert", title: "Revert \u63D0\u4EA4", targets: ["commit"], fields: [check("no_commit", "\u53EA\u5E94\u7528\u6539\u52A8"), field("mainline", "\u5408\u5E76\u63D0\u4EA4\u7684\u7236\u7F16\u53F7", true)], touches_files: true },
+    { id: "drop", title: "\u4ECE\u5F53\u524D\u5206\u652F\u79FB\u9664\u6B64\u63D0\u4EA4", targets: ["commit"], fields: [], touches_files: true, destructive: "\u901A\u8FC7 rebase --onto \u91CD\u5199\u540E\u7EE7\u63D0\u4EA4\uFF0C\u79FB\u9664\u6240\u9009\u63D0\u4EA4\u3002" },
+    { id: "tag_add", title: "\u6DFB\u52A0\u6807\u7B7E", targets: ["commit", "branch"], fields: [field("tag", "\u6807\u7B7E\u540D\u79F0"), field("message", "\u6CE8\u89E3\u8BF4\u660E\uFF08\u7A7A\u4E3A\u8F7B\u91CF\u6807\u7B7E\uFF09", true), check("sign", "\u7B7E\u7F72\u6807\u7B7E")] },
+    { id: "tag_delete", title: "\u5220\u9664\u6807\u7B7E", targets: ["tag"], fields: [], destructive: "\u5220\u9664\u672C\u5730\u6807\u7B7E\u5F15\u7528\u3002" },
+    { id: "tag_push", title: "\u63A8\u9001\u6807\u7B7E", targets: ["tag"], fields: [remote] },
+    { id: "fetch", title: "Fetch \u8FDC\u7AEF", targets: ["repository", "remote"], fields: [field("remote", "\u8FDC\u7AEF\u540D\u79F0\uFF08\u7A7A\u4E3A\u5168\u90E8\uFF09", true), check("prune", "\u6E05\u7406\u5931\u6548\u8FDC\u7AEF\u5206\u652F"), check("prune_tags", "\u540C\u6B65\u6E05\u7406\u6807\u7B7E")] },
+    { id: "pull", title: "Pull \u5230\u5F53\u524D\u5206\u652F", targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "\u6574\u5408\u65B9\u5F0F", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
+    { id: "push", title: "\u63A8\u9001\u5206\u652F", targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "\u8BBE\u7F6E\u4E0A\u6E38"), check("force_lease", "Force-with-lease")], destructive: "\u66F4\u65B0\u670D\u52A1\u5668\u5206\u652F\uFF1BForce-with-lease \u53EF\u66FF\u6362\u8FDC\u7AEF\u5386\u53F2\u3002" },
+    { id: "stash_create", title: "\u6682\u5B58\u672A\u63D0\u4EA4\u6539\u52A8\uFF08stash\uFF09", targets: ["changes", "repository"], fields: [field("message", "\u8BF4\u660E", true), check("untracked", "\u5305\u542B\u672A\u8DDF\u8E2A\u6587\u4EF6"), check("keep_index", "\u4FDD\u7559\u5DF2\u6682\u5B58\u5185\u5BB9")], touches_files: true },
+    { id: "stash_apply", title: "\u5E94\u7528 stash", targets: ["stash"], fields: [check("index", "\u6062\u590D\u6682\u5B58\u72B6\u6001")], touches_files: true },
+    { id: "stash_pop", title: "\u5E94\u7528\u5E76\u79FB\u9664 stash", targets: ["stash"], fields: [check("index", "\u6062\u590D\u6682\u5B58\u72B6\u6001")], touches_files: true },
+    { id: "stash_drop", title: "\u5220\u9664 stash", targets: ["stash"], fields: [], destructive: "\u5220\u9664\u6240\u9009 stash \u7684\u5F15\u7528\u3002" },
+    { id: "stash_branch", title: "\u4ECE stash \u521B\u5EFA\u5206\u652F", targets: ["stash"], fields: [branch], touches_files: true },
+    { id: "clean", title: "\u6E05\u7406\u672A\u8DDF\u8E2A\u6587\u4EF6", targets: ["changes"], fields: [check("directories", "\u5305\u542B\u672A\u8DDF\u8E2A\u76EE\u5F55"), check("ignored", "\u540C\u65F6\u5305\u542B\u88AB\u5FFD\u7565\u6587\u4EF6")], touches_files: true, destructive: "\u6C38\u4E45\u5220\u9664\u9884\u89C8\u4E2D\u5217\u51FA\u7684\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF1BGit \u65E0\u6CD5\u6062\u590D\u8FD9\u4E9B\u5185\u5BB9\u3002" },
+    { id: "remote_add", title: "\u6DFB\u52A0\u8FDC\u7AEF", targets: ["repository"], fields: [remote, field("url", "\u8FDC\u7AEF URL \u6216\u8DEF\u5F84")] },
+    { id: "remote_edit", title: "\u4FEE\u6539\u8FDC\u7AEF URL", targets: ["repository"], fields: [remote, field("url", "\u8FDC\u7AEF URL \u6216\u8DEF\u5F84"), check("push_url", "\u8BBE\u7F6E\u72EC\u7ACB\u63A8\u9001 URL")] },
+    { id: "remote_remove", title: "\u5220\u9664\u8FDC\u7AEF\u914D\u7F6E", targets: ["repository"], fields: [remote], destructive: "\u79FB\u9664\u672C\u5730\u8FDC\u7AEF\u914D\u7F6E\u53CA\u5BF9\u5E94\u8DDF\u8E2A\u5F15\u7528\u3002" },
+    { id: "remote_prune", title: "Prune \u8FDC\u7AEF\u8DDF\u8E2A\u5F15\u7528", targets: ["repository"], fields: [remote], destructive: "\u6E05\u7406\u670D\u52A1\u5668\u4E0A\u5DF2\u4E0D\u5B58\u5728\u7684\u8DDF\u8E2A\u5F15\u7528\u3002" },
+    { id: "stage", title: "\u6682\u5B58\u6587\u4EF6", targets: ["file"], fields: [] },
+    { id: "unstage", title: "\u53D6\u6D88\u6682\u5B58", targets: ["file"], fields: [] },
+    { id: "commit", title: "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9", targets: ["changes"], fields: [field("message", "\u63D0\u4EA4\u8BF4\u660E"), check("amend", "\u4FEE\u6539\u4E0A\u4E00\u4E2A\u63D0\u4EA4")], destructive: "amend \u4F1A\u6539\u5199\u4E0A\u4E00\u4E2A\u63D0\u4EA4\u3002" },
+    { id: "continue", title: "\u7EE7\u7EED\u5F53\u524D Git \u64CD\u4F5C", targets: ["repository"], fields: [], touches_files: true },
+    { id: "abort", title: "\u4E2D\u6B62\u5F53\u524D Git \u64CD\u4F5C", targets: ["repository"], fields: [], touches_files: true },
+    { id: "skip", title: "\u8DF3\u8FC7\u5F53\u524D\u63D0\u4EA4", targets: ["repository"], fields: [], touches_files: true }
+  ];
+  var busy_repositories = /* @__PURE__ */ new Set();
+  var text_value = (value, name, required = true) => {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (required && !text || /[\0\r\n]/u.test(text) || text.startsWith("-")) throw new Error(`${name} \u65E0\u6548\u3002`);
+    return text;
+  };
+  async function valid_ref(run, root, value, tag = false) {
+    const name = text_value(value, tag ? "\u6807\u7B7E\u540D\u79F0" : "\u5206\u652F\u540D\u79F0");
+    await run(root, ["check-ref-format", ...tag ? [`refs/tags/${name}`] : ["--branch", name]]);
+    return name;
+  }
+  async function repository_fingerprint(run, root) {
+    const [head, status, refs, working, staged, remotes] = await Promise.all([
+      run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch((error) => {
+        if (error.code === 1) return "unborn";
+        throw error;
+      }),
+      run(root, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]),
+      run(root, ["for-each-ref", "--format=%(refname) %(objectname)"]),
+      run(root, ["diff", "--binary", "--no-ext-diff", "--no-textconv", "--"]),
+      run(root, ["diff", "--cached", "--binary", "--no-ext-diff", "--no-textconv", "--"]),
+      run(root, ["remote", "-v"])
+    ]);
+    return JSON.stringify([head, status, refs, working, staged, remotes]);
+  }
+  async function plan_git_action(run, id, context, values) {
+    const action = graph_actions.find((item) => item.id === id);
+    if (!action) throw new Error("\u672A\u77E5 Git \u64CD\u4F5C\u3002");
+    for (const item of action.fields) {
+      const value2 = values[item.key];
+      if (item.type === "choice" && !item.choices?.includes(String(value2))) throw new Error(`\u9009\u9879\u65E0\u6548\uFF1A${item.title}`);
+      if (item.type === "boolean" && typeof value2 !== "boolean") throw new Error(`\u9009\u9879\u65E0\u6548\uFF1A${item.title}`);
+    }
+    const { root } = context;
+    const target = ["stage", "unstage"].includes(id) ? context.target : text_value(context.target, "\u76EE\u6807", false);
+    if (target.includes("\0") || ["stage", "unstage"].includes(id) && !target) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
+    const hash = text_value(context.hash, "\u63D0\u4EA4", false);
+    const value = (key, required = true) => {
+      if (key !== "message" && key !== "todo") return text_value(values[key], key, required);
+      const message = typeof values[key] === "string" ? values[key].trim() : "";
+      if (required && !message || message.includes("\0")) throw new Error("\u63D0\u4EA4\u8BF4\u660E\u65E0\u6548\u3002");
+      return message;
+    };
+    const remote2 = () => value("remote");
+    const branch2 = () => valid_ref(run, root, values.branch);
+    const flag = (key) => values[key] === true;
+    const sign = context.sign_commits ? ["-S"] : [];
+    const mainline = () => {
+      const n = value("mainline", false);
+      if (n && !/^[1-9]\d*$/u.test(n)) throw new Error("\u7236\u7F16\u53F7\u5FC5\u987B\u4E3A\u6B63\u6574\u6570\u3002");
+      return n ? ["-m", n] : [];
+    };
+    let args;
+    let todo;
+    switch (id) {
+      case "branch_create": {
+        const name = await branch2();
+        args = flag("checkout") ? ["checkout", "-b", name, hash] : ["branch", name, hash];
+        break;
+      }
+      case "branch_checkout":
+        args = ["checkout", target];
+        break;
+      case "remote_checkout":
+        args = ["checkout", "-b", await branch2(), "--track", target];
+        break;
+      case "branch_rename":
+        args = ["branch", "-m", target, await branch2()];
+        break;
+      case "branch_delete":
+        args = ["branch", flag("force") ? "-D" : "-d", target];
+        break;
+      case "remote_branch_delete":
+        args = ["push", remote2(), "--delete", await branch2()];
+        break;
+      case "branch_fetch":
+        args = ["fetch", ...flag("force") ? ["--force"] : [], remote2(), `${await valid_ref(run, root, values.source)}:${await branch2()}`];
+        break;
+      case "merge":
+        args = ["merge", ...sign, ...values.mode === "normal" ? [] : ["--" + value("mode")], ...flag("no_commit") ? ["--no-commit"] : ["--no-edit"], hash];
+        break;
+      case "rebase": {
+        args = ["rebase", ...context.sign_commits ? ["--gpg-sign"] : [], ...flag("ignore_date") ? ["--ignore-date"] : [], ...flag("preserve_merges") ? ["--rebase-merges"] : [], ...flag("interactive") ? ["--interactive"] : [], hash];
+        if (flag("interactive")) {
+          if (flag("preserve_merges")) throw new Error("\u4EA4\u4E92\u5217\u8868\u7F16\u8F91\u7EBF\u6027\u63D0\u4EA4\uFF1B\u4FDD\u7559\u5408\u5E76\u7ED3\u6784\u8BF7\u53D6\u6D88\u4EA4\u4E92\u9009\u9879\u3002");
+          const commits = (await run(root, ["rev-list", "--reverse", "--no-merges", `${hash}..HEAD`])).trim().split("\n").filter(Boolean);
+          todo = value("todo");
+          const seen = /* @__PURE__ */ new Set();
+          for (const line of todo.split(/\r?\n/u)) {
+            const match = /^(pick|reword|edit|squash|fixup|drop) ([a-f\d]{40}(?:[a-f\d]{24})?)(?: (.*))?$/u.exec(line.trim());
+            if (!match || !commits.includes(match[2]) || seen.has(match[2])) throw new Error("\u4EA4\u4E92\u5217\u8868\u5305\u542B\u65E0\u6548\u3001\u91CD\u590D\u6216\u8303\u56F4\u5916\u63D0\u4EA4\u3002");
+            if (!seen.size && ["squash", "fixup"].includes(match[1])) throw new Error("\u9996\u6761\u4E0D\u80FD\u5408\u5E76\u5230\u5C1A\u4E0D\u5B58\u5728\u7684\u524D\u4E00\u63D0\u4EA4\u3002");
+            if (match[1] === "reword" && !match[3]?.trim()) throw new Error("reword \u540E\u987B\u586B\u5199\u65B0\u7684\u63D0\u4EA4\u6807\u9898\u3002");
+            seen.add(match[2]);
+          }
+          if (seen.size !== commits.length) throw new Error("\u4EA4\u4E92\u5217\u8868\u5FC5\u987B\u5217\u51FA\u8303\u56F4\u5185\u6BCF\u6761\u63D0\u4EA4\uFF1B\u5220\u9664\u63D0\u4EA4\u8BF7\u663E\u5F0F\u4F7F\u7528 drop\u3002");
+        }
+        break;
+      }
+      case "reset":
+        if (!["soft", "mixed", "hard"].includes(value("mode"))) throw new Error("\u91CD\u7F6E\u65B9\u5F0F\u65E0\u6548\u3002");
+        args = ["reset", "--" + value("mode"), hash || "HEAD"];
+        break;
+      case "commit_checkout":
+        args = ["checkout", "--detach", hash];
+        break;
+      case "cherry_pick":
+      case "revert":
+        args = [id === "revert" ? "revert" : "cherry-pick", ...sign, ...id === "cherry_pick" && flag("record_origin") ? ["-x"] : [], ...mainline(), ...flag("no_commit") ? ["--no-commit"] : id === "revert" ? ["--no-edit"] : [], hash];
+        break;
+      case "drop": {
+        await run(root, ["merge-base", "--is-ancestor", hash, "HEAD"]);
+        const parents = (await run(root, ["show", "-s", "--format=%P", hash])).trim().split(" ").filter(Boolean);
+        if (parents.length !== 1) throw new Error("\u79FB\u9664\u64CD\u4F5C\u8981\u6C42\u6240\u9009\u63D0\u4EA4\u6709\u4E00\u4E2A\u7236\u63D0\u4EA4\uFF1B\u6839\u63D0\u4EA4\u6216\u5408\u5E76\u63D0\u4EA4\u8BF7\u4F7F\u7528\u663E\u5F0F rebase / revert\u3002");
+        args = ["rebase", "--rebase-merges", "--onto", parents[0], hash];
+        break;
+      }
+      case "tag_add": {
+        const tag = await valid_ref(run, root, values.tag, true);
+        const message = value("message", false);
+        const signed = flag("sign") || context.sign_tags;
+        args = ["tag", ...signed ? ["-s", "-m", message || tag] : message ? ["-a", "-m", message] : [], tag, hash];
+        break;
+      }
+      case "tag_delete":
+        args = ["tag", "-d", target];
+        break;
+      case "tag_push":
+        args = ["push", remote2(), `refs/tags/${target}`];
+        break;
+      case "fetch":
+        args = ["fetch", ...flag("prune") ? ["--prune"] : [], ...flag("prune_tags") ? ["--prune-tags"] : [], ...value("remote", false) ? [value("remote")] : ["--all"]];
+        break;
+      case "pull":
+        args = ["pull", ...sign, ...values.mode === "rebase" ? ["--rebase"] : values.mode === "ff-only" ? ["--ff-only"] : ["--no-rebase", "--no-edit", ...values.mode === "merge" ? [] : ["--" + value("mode")]], remote2(), await branch2()];
+        break;
+      case "push":
+        args = ["push", ...flag("upstream") ? ["--set-upstream"] : [], ...flag("force_lease") ? ["--force-with-lease"] : [], remote2(), await branch2()];
+        break;
+      case "stash_create":
+        args = ["stash", "push", ...flag("untracked") ? ["--include-untracked"] : [], ...flag("keep_index") ? ["--keep-index"] : [], ...value("message", false) ? ["-m", value("message")] : []];
+        break;
+      case "stash_apply":
+      case "stash_pop":
+      case "stash_drop":
+      case "stash_branch":
+        if (!/^stash@\{\d+\}$/u.test(target)) throw new Error("Stash \u5F15\u7528\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002");
+        if ((await run(root, ["rev-parse", target])).trim() !== hash) throw new Error("Stash \u5217\u8868\u5DF2\u6539\u53D8\uFF0C\u8BF7\u5237\u65B0\u3002");
+        args = ["stash", id.slice(6), ...id === "stash_branch" ? [await branch2()] : flag("index") ? ["--index"] : [], target];
+        break;
+      case "clean":
+        args = ["clean", "-f", ...flag("directories") ? ["-d"] : [], ...flag("ignored") ? ["-x"] : []];
+        break;
+      case "remote_add":
+        args = ["remote", "add", remote2(), value("url")];
+        break;
+      case "remote_edit":
+        args = ["remote", "set-url", ...flag("push_url") ? ["--push"] : [], remote2(), value("url")];
+        break;
+      case "remote_remove":
+        args = ["remote", "remove", remote2()];
+        break;
+      case "remote_prune":
+        args = ["remote", "prune", remote2()];
+        break;
+      case "stage":
+        args = ["add", "--", target];
+        break;
+      case "unstage": {
+        const head = await run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch((error) => {
+          if (error.code === 1) return "";
+          throw error;
+        });
+        args = head ? ["reset", "--", target] : ["rm", "--cached", "--", target];
+        break;
+      }
+      case "commit":
+        args = ["commit", ...sign, ...flag("amend") ? ["--amend"] : [], "-m", value("message")];
+        break;
+      case "continue":
+      case "abort":
+      case "skip":
+        if (!["merge", "rebase", "cherry-pick", "revert"].includes(context.operation)) throw new Error("\u6CA1\u6709\u53EF\u7EE7\u7EED\u6216\u4E2D\u6B62\u7684\u64CD\u4F5C\u3002");
+        if (context.operation === "merge" && id === "skip") throw new Error("\u5408\u5E76\u64CD\u4F5C\u4E0D\u652F\u6301\u8DF3\u8FC7\u3002");
+        args = [context.operation, "--" + id];
+        break;
+      default:
+        throw new Error("\u64CD\u4F5C\u5C1A\u672A\u6CE8\u518C\u3002");
+    }
+    if (args.some((arg) => arg.includes("\0"))) throw new Error("Git \u53C2\u6570\u5305\u542B\u65E0\u6548\u5B57\u7B26\u3002");
+    let preview = "git " + args.map((arg) => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" ");
+    if (id === "clean") preview += "\n\n" + await run(root, args.map((arg) => arg === "-f" ? "-n" : arg));
+    if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
+    if (todo) preview += "\n\n" + todo;
+    return { action, args, preview, fingerprint: await repository_fingerprint(run, root), context, todo };
+  }
+  async function execute_git_action(run, plan, can_change_files) {
+    const root = plan.context.root;
+    if (busy_repositories.has(root)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709\u64CD\u4F5C\u5728\u6267\u884C\u3002");
+    busy_repositories.add(root);
+    try {
+      if (plan.action.touches_files && !can_change_files()) throw new Error("\u5F53\u524D Typora \u6587\u6863\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002\u8BF7\u5148\u4FDD\u5B58\uFF0C\u518D\u6267\u884C\u4F1A\u6539\u53D8\u5DE5\u4F5C\u533A\u6587\u4EF6\u7684\u64CD\u4F5C\u3002");
+      if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error("\u4ED3\u5E93\u5DF2\u88AB\u5176\u4ED6\u7A0B\u5E8F\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u64CD\u4F5C\u3002");
+      return await run(root, plan.args, { todo: plan.todo });
+    } finally {
+      busy_repositories.delete(root);
+    }
+  }
+
+  // src/git_graph_panel.ts
+  var git_graph_panel = class {
+    constructor(host, cwd) {
+      this.host = host;
+      this.root = cwd;
+      this.settings = load_graph_settings(localStorage, cwd);
+      this.count = this.settings.initial_count;
+      this.runner = host.runner(this.settings);
+      this.writer = host.runner(this.settings, true);
+      this.branches = [...this.settings.on_load_branches];
+      if (this.settings.on_load_branch) this.branches = ["HEAD"];
+      this.container.setAttribute("aria-label", "Git Graph \u63D0\u4EA4\u5386\u53F2");
+      this.status.setAttribute("role", "status");
+      this.branch_select.setAttribute("aria-label", "\u5206\u652F\u6216\u6807\u7B7E");
+      this.branch_select.append(graph_option("", "\u5168\u90E8\u5206\u652F"));
+      this.branch_select.onchange = () => {
+        this.branches = this.branch_select.value ? [this.branch_select.value] : [];
+        void this.refresh();
+      };
+      this.repo_select.setAttribute("aria-label", "Git \u4ED3\u5E93");
+      this.repo_select.onchange = () => this.switch_repo(this.repo_select.value);
+      this.search.placeholder = "\u67E5\u627E\u63D0\u4EA4\u3001\u65E5\u671F\u3001\u4F5C\u8005\u3001\u7F16\u53F7\u548C\u5F15\u7528";
+      this.search.setAttribute("aria-label", "\u67E5\u627E Git \u5386\u53F2");
+      this.search.onkeydown = (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          this.find_next(event.shiftKey ? -1 : 1);
+        }
+      };
+      this.toolbar.append(
+        this.repo_select,
+        graph_button("\u4ED3\u5E93", () => this.manage_repositories()),
+        this.branch_select,
+        graph_button("\u591A\u9009\u5206\u652F", () => this.filter_branches()),
+        this.refresh_button,
+        graph_button("Fetch", () => this.action_dialog("fetch", "repository")),
+        graph_button("\u64CD\u4F5C", () => this.repository_menu()),
+        graph_button("\u8BBE\u7F6E", () => this.settings_dialog()),
+        this.search,
+        graph_button("\u67E5\u627E", () => this.find_next())
+      );
+      this.body.append(this.list, this.details);
+      this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
+      this.list.addEventListener("scroll", () => {
+        if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) {
+          this.count += this.settings.page_count;
+          void this.refresh(false);
+        }
+      });
+      this.key_handler = (event) => this.keydown(event);
+    }
+    root;
+    settings;
+    state;
+    container = graph_element("section", "linux-note-git-graph");
+    toolbar = graph_element("div", "git-graph-toolbar");
+    root_label = graph_element("div", "git-graph-root");
+    status = graph_element("div", "git-graph-status");
+    list = graph_element("div", "git-graph-list");
+    details = graph_element("div", "git-graph-details", "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002");
+    branch_select = graph_element("select", "git-graph-branch");
+    repo_select = graph_element("select", "git-graph-repositories");
+    search = graph_element("input", "git-graph-search");
+    body = graph_element("div", "git-graph-body");
+    header = graph_element("div", "git-graph-columns");
+    refresh_button = graph_button("\u5237\u65B0", () => void this.refresh());
+    more_button = graph_button("\u52A0\u8F7D\u66F4\u591A", () => {
+      this.count += this.settings.page_count;
+      void this.refresh(false);
+    });
+    runner;
+    writer;
+    count;
+    branches = [];
+    selected = "";
+    from = EMPTY;
+    to = "";
+    epoch = 0;
+    detail_epoch = 0;
+    patch_epoch = 0;
+    pending = false;
+    writing = false;
+    loaded = false;
+    active = false;
+    files = [];
+    containment = /* @__PURE__ */ new Map();
+    ancestors = /* @__PURE__ */ new Set();
+    key_handler;
+    open() {
+      this.active = true;
+      window.addEventListener("keydown", this.key_handler, true);
+      if (!this.loaded || this.pending || !this.settings.retain_context) void this.refresh(false);
+      else if (this.selected) void this.show_comparison(this.from, this.to);
+    }
+    close() {
+      this.active = false;
+      this.epoch++;
+      this.detail_epoch++;
+      this.patch_epoch++;
+      this.runner.cancel();
+      window.removeEventListener("keydown", this.key_handler, true);
+    }
+    report(error) {
+      this.status.textContent = String(error instanceof Error ? error.message : error);
+    }
+    persist_settings() {
+      localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings));
+      window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings }));
+    }
+    known_repos() {
+      try {
+        return JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]").filter((value) => typeof value === "string");
+      } catch {
+        return [];
+      }
+    }
+    save_repos(repos) {
+      localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify([...new Set(repos)]));
+    }
+    switch_repo(root) {
+      if (this.writing) {
+        this.report("Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002");
+        return;
+      }
+      this.root = root;
+      this.state = void 0;
+      this.loaded = false;
+      this.selected = "";
+      this.branches = [];
+      this.settings = load_graph_settings(localStorage, root);
+      this.runner.cancel();
+      this.runner = this.host.runner(this.settings);
+      this.writer = this.host.runner(this.settings, true);
+      this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches];
+      void this.refresh();
+    }
+    async refresh(reset = true) {
+      const epoch = ++this.epoch;
+      this.detail_epoch++;
+      this.patch_epoch++;
+      this.runner.cancel();
+      this.pending = true;
+      if (reset) this.count = this.settings.initial_count;
+      this.refresh_button.disabled = true;
+      this.more_button.disabled = true;
+      this.container.dataset.state = "loading";
+      this.status.textContent = "\u6B63\u5728\u8BFB\u53D6 Git \u4ED3\u5E93\u2026";
+      try {
+        if (!this.root) throw new Error("\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u6863\uFF0C\u6216\u901A\u8FC7\u201C\u4ED3\u5E93\u201D\u6DFB\u52A0\u6587\u4EF6\u5939\u3002");
+        let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
+        if (epoch !== this.epoch) return;
+        if (!this.loaded) {
+          const stored = load_graph_settings(localStorage, state.root);
+          const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
+          if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root) && this.host.fs.existsSync(config_path)) {
+            const info = this.host.fs.statSync(config_path);
+            if (info.size < 1e5) {
+              const imported = validate_settings(JSON.parse(this.host.fs.readFileSync(config_path, "utf8")));
+              Object.assign(stored, imported, { git_path: stored.git_path, terminal_shell: stored.terminal_shell, fetch_avatars: stored.fetch_avatars });
+            }
+          }
+          if (JSON.stringify(stored) !== JSON.stringify(this.settings)) {
+            this.settings = stored;
+            this.count = stored.initial_count;
+            this.runner = this.host.runner(stored);
+            this.writer = this.host.runner(stored, true);
+            this.branches = stored.on_load_branch ? ["HEAD"] : [...stored.on_load_branches];
+            state = await read_repository(this.runner.run, state.root, stored, this.count, this.branches);
+            if (epoch !== this.epoch) return;
+          }
+        }
+        const first_load = !this.loaded;
+        state.operation = this.host.operation(state.operation);
+        this.state = state;
+        this.root = state.root;
+        this.loaded = true;
+        this.containment.clear();
+        this.save_repos([this.root, ...this.known_repos()]);
+        const repos = this.known_repos();
+        if (this.settings.repository_order !== "recent") repos.sort((a, b) => this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b)) : a.localeCompare(b));
+        this.repo_select.replaceChildren(...repos.map((root) => graph_option(root, this.host.path_api.basename(root) || root)));
+        this.repo_select.value = this.root;
+        this.root_label.textContent = `${state.root}${state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 \u6E38\u79BB HEAD" : ""}`;
+        this.root_label.title = state.root;
+        this.branch_select.replaceChildren(graph_option("", "\u5168\u90E8\u5206\u652F"), graph_option("HEAD", "\u5F53\u524D HEAD"));
+        for (const ref of state.refs) this.branch_select.append(graph_option(ref.name, ref.name.replace(/^refs\//u, "")));
+        for (const glob of this.settings.branch_globs) this.branch_select.append(graph_option("glob:" + glob.glob, glob.name));
+        this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+        this.ancestors.clear();
+        if (this.settings.mute_unreachable && state.head) {
+          const hashes = await this.runner.run(this.root, ["rev-list", state.head, `--max-count=${this.count * 4}`]);
+          if (epoch !== this.epoch) return;
+          this.ancestors = new Set(hashes.trim().split("\n"));
+        }
+        this.render_history();
+        this.more_button.hidden = !state.more;
+        this.status.textContent = `${state.commits.length ? `\u5DF2\u52A0\u8F7D ${state.commits.length} \u6761\u63D0\u4EA4` : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4"} \xB7 ${state.changes.length} \u4E2A\u672A\u63D0\u4EA4\u6587\u4EF6${state.operation ? " \xB7 \u8FDB\u884C\u4E2D\uFF1A" + state.operation : ""}`;
+        this.container.dataset.state = "ready";
+        if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
+        if (this.selected && (this.selected === WORKTREE || state.commits.some((commit) => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
+        else {
+          this.selected = "";
+          this.details.textContent = "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002";
+        }
+      } catch (error) {
+        if (epoch === this.epoch) {
+          this.report(error);
+          this.container.dataset.state = "error";
+        }
+      } finally {
+        if (epoch === this.epoch) {
+          this.pending = false;
+          this.refresh_button.disabled = false;
+          this.more_button.disabled = false;
+        }
+      }
+    }
+    date(commit) {
+      const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;
+      if (this.settings.date_format === "iso") return source;
+      if (this.settings.date_format === "relative") {
+        const days = Math.floor((Date.now() - new Date(source).getTime()) / 864e5);
+        return days ? `${days} \u5929\u524D` : "\u4ECA\u5929";
+      }
+      return new Date(source).toLocaleString();
+    }
+    draw_graph(row, width) {
+      const ns = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("width", String(width * 18 + 18));
+      svg.setAttribute("height", "34");
+      svg.setAttribute("aria-hidden", "true");
+      const x = (lane) => lane * 18 + 16;
+      for (const edge of row.edges) {
+        const path = document.createElementNS(ns, "path");
+        const top = edge.upper ? 0 : 17;
+        const bottom = top + 17;
+        path.setAttribute("d", this.settings.graph_style === "straight" ? `M${x(edge.from)},${top} L${x(edge.to)},${bottom}` : `M${x(edge.from)},${top} C${x(edge.from)},${top + 9} ${x(edge.to)},${bottom - 9} ${x(edge.to)},${bottom}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]);
+        path.setAttribute("stroke-width", "2");
+        svg.append(path);
+      }
+      const dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", String(x(row.lane)));
+      dot.setAttribute("cy", "17");
+      dot.setAttribute("r", "4");
+      dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]);
+      svg.append(dot);
+      return svg;
+    }
+    render_history() {
+      const state = this.state;
+      const connected = state.changes.length > 0 && this.settings.show_changes && this.settings.uncommitted_style === "connected";
+      const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
+      const fragment = document.createDocumentFragment();
+      this.container.dataset.details = this.settings.details_location;
+      this.container.dataset.labels = this.settings.label_alignment;
+      for (const [key, width] of Object.entries(this.settings.column_widths)) this.container.style.setProperty(`--git-${key}-width`, width + "px");
+      this.header.replaceChildren();
+      this.header.style.paddingLeft = graph.width * 18 + 26 + "px";
+      for (const [key, title] of [["subject", "\u63D0\u4EA4\u8BF4\u660E"], ["author", "\u4F5C\u8005"], ["date", "\u65E5\u671F"], ["hash", "\u63D0\u4EA4\u7F16\u53F7"]]) {
+        if (key !== "subject" && !this.settings["show_" + key]) continue;
+        const label = graph_element("div", "git-graph-column", title);
+        label.style.width = `var(--git-${key}-width)`;
+        const handle = graph_element("span", "git-graph-column-resize");
+        label.append(handle);
+        handle.onpointerdown = (event) => {
+          event.preventDefault();
+          handle.setPointerCapture(event.pointerId);
+          const start = event.clientX;
+          const width = label.getBoundingClientRect().width;
+          handle.onpointermove = (move) => {
+            this.settings.column_widths[key] = Math.max(40, Math.min(1500, width + move.clientX - start));
+            this.container.style.setProperty(`--git-${key}-width`, this.settings.column_widths[key] + "px");
+          };
+          handle.onpointerup = () => {
+            handle.onpointermove = null;
+            this.persist_settings();
+          };
+        };
+        this.header.append(label);
+      }
+      if (state.changes.length && this.settings.show_changes) {
+        const row = graph_element("div", "git-graph-row git-graph-worktree", `\u25CF \u672A\u63D0\u4EA4\u6539\u52A8 \xB7 ${state.changes.length} \u4E2A\u6587\u4EF6`);
+        row.dataset.hash = WORKTREE;
+        row.tabIndex = 0;
+        if (connected) row.prepend(this.draw_graph(graph.rows[0], graph.width));
+        row.onclick = (event) => {
+          if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== WORKTREE) void this.show_comparison(this.selected, WORKTREE);
+          else {
+            this.selected = WORKTREE;
+            void this.show_comparison(state.head || EMPTY, WORKTREE);
+          }
+        };
+        row.oncontextmenu = (event) => this.target_menu(event, "changes", "", state.head);
+        if (this.settings.uncommitted_style === "connected") row.classList.add("connected");
+        fragment.append(row);
+      }
+      const ref_map = /* @__PURE__ */ new Map();
+      for (const ref of state.refs) {
+        if (!this.settings.show_tags && ref.name.startsWith("refs/tags/") || !this.settings.show_remotes && ref.name.startsWith("refs/remotes/") || !this.settings.show_remote_heads && /refs\/remotes\/.+\/HEAD$/u.test(ref.name)) continue;
+        ref_map.set(ref.hash, [...ref_map.get(ref.hash) || [], ref]);
+      }
+      state.commits.forEach((commit, index) => {
+        const row = graph_element("div", "git-graph-row");
+        row.dataset.hash = commit.hash;
+        row.tabIndex = 0;
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-pressed", String(this.selected === commit.hash));
+        row.title = `${commit.hash}
+${commit.author} \xB7 ${this.date(commit)}
+${commit.subject}`;
+        if (this.settings.mute_merges && commit.parents.length > 1 || this.settings.mute_unreachable && !this.ancestors.has(commit.hash)) row.classList.add("git-graph-muted");
+        row.onclick = (event) => {
+          if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== commit.hash) void this.show_comparison(this.selected === WORKTREE ? commit.hash : this.selected, this.selected === WORKTREE ? WORKTREE : commit.hash);
+          else this.select_commit(commit);
+        };
+        row.onkeydown = (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            this.select_commit(commit);
+          }
+        };
+        row.oncontextmenu = (event) => this.target_menu(event, commit.stash ? "stash" : "commit", commit.stash || commit.hash, commit.hash);
+        const svg = this.draw_graph(graph.rows[index + (connected ? 1 : 0)], graph.width);
+        svg.onmouseenter = () => {
+          if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then((value) => {
+            this.containment.set(commit.hash, value);
+            row.title = value + "\n" + commit.subject;
+          }).catch(() => {
+          });
+          else row.title = this.containment.get(commit.hash);
+        };
+        const subject = graph_element("span", "git-graph-subject");
+        const refs = graph_element("span", "git-graph-labels");
+        if (state.head === commit.hash) refs.append(graph_element("span", "git-graph-refs", "HEAD"));
+        if (commit.stash) {
+          const badge = graph_element("span", "git-graph-refs", commit.stash);
+          badge.onclick = (event) => {
+            event.stopPropagation();
+            this.target_menu(event, "stash", commit.stash, commit.hash);
+          };
+          refs.append(badge);
+        }
+        const items = ref_map.get(commit.hash) || [];
+        const seen = /* @__PURE__ */ new Set();
+        for (const ref of items) {
+          const kind = ref.name.startsWith("refs/tags/") ? "tag" : ref.name.startsWith("refs/remotes/") ? "remote" : "branch";
+          const name = ref.name.replace(/^refs\/(heads|tags|remotes)\//u, "");
+          const base_name = kind === "remote" ? name.slice(name.indexOf("/") + 1) : name;
+          if (this.settings.combine_refs && kind === "remote" && items.some((item) => item.name === "refs/heads/" + base_name)) continue;
+          if (seen.has(name)) continue;
+          seen.add(name);
+          const combined = this.settings.combine_refs && kind === "branch" ? items.filter((item) => item.name.startsWith("refs/remotes/") && item.name.slice(item.name.indexOf("/", 13) + 1) === name).map((item) => item.name.slice(13, item.name.indexOf("/", 13))) : [];
+          const badge = graph_element("span", "git-graph-refs git-ref-" + kind, name + (combined.length ? " \xB7 " + combined.join(", ") : ""));
+          badge.dataset.ref = ref.name;
+          badge.title = ref.name;
+          badge.onclick = (event) => {
+            event.stopPropagation();
+            this.target_menu(event, kind, name, commit.hash);
+          };
+          badge.oncontextmenu = (event) => this.target_menu(event, kind, name, commit.hash);
+          refs.append(badge);
+        }
+        subject.append(refs, graph_element("span", "git-graph-subject-text", this.emoji(commit.subject)));
+        row.append(svg, subject);
+        if (this.settings.show_author) row.append(graph_element("span", "git-graph-author", commit.author));
+        if (this.settings.show_date) row.append(graph_element("span", "git-graph-date", this.date(commit)));
+        if (this.settings.show_hash) row.append(graph_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
+        fragment.append(row);
+      });
+      const scroll = this.list.scrollTop;
+      this.list.replaceChildren(this.header, fragment);
+      this.place_details();
+      this.list.scrollTop = scroll;
+    }
+    place_details() {
+      const row = [...this.list.querySelectorAll("[data-hash]")].find((item) => item.dataset.hash === this.selected);
+      if (this.settings.details_location === "inline" && row) row.after(this.details);
+      else this.body.append(this.details);
+    }
+    emoji(text) {
+      return text.replace(/:[a-z_0-9+-]+:/giu, (code) => this.settings.emoji[code] || builtin_emoji[code] || code);
+    }
+    scroll_to(hash) {
+      const row = [...this.list.querySelectorAll("[data-hash]")].find((item) => item.dataset.hash === hash);
+      if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2;
+    }
+    select_commit(commit) {
+      this.selected = commit.hash;
+      if (this.settings.auto_center) this.scroll_to(commit.hash);
+      void this.show_comparison(commit.parents[0] || EMPTY, commit.hash);
+    }
+    find_next(direction = 1) {
+      const query = this.search.value.trim().toLocaleLowerCase();
+      if (!query || !this.state) return;
+      const matches = this.state.commits.filter((commit) => [commit.subject, commit.author, this.date(commit), commit.hash, ...this.state.refs.filter((ref) => ref.hash === commit.hash).map((ref) => ref.name)].some((value) => value.toLocaleLowerCase().includes(query)));
+      if (!matches.length) {
+        this.status.textContent = "\u5DF2\u52A0\u8F7D\u5386\u53F2\u4E2D\u6CA1\u6709\u5339\u914D\u9879\uFF0C\u53EF\u7EE7\u7EED\u52A0\u8F7D\u3002";
+        return;
+      }
+      const current = matches.findIndex((commit) => commit.hash === this.selected);
+      const index = current < 0 ? direction > 0 ? 0 : matches.length - 1 : (current + direction + matches.length) % matches.length;
+      this.select_commit(matches[index]);
+      this.scroll_to(matches[index].hash);
+      this.status.textContent = `\u627E\u5230 ${matches.length} \u6761 \xB7 \u7B2C ${index + 1} \u6761`;
+    }
+    review_key() {
+      return JSON.stringify([this.root, this.from, this.to]);
+    }
+    is_reviewed(file) {
+      return load_reviews(localStorage).find((review) => JSON.stringify([review.root, review.from, review.to]) === this.review_key())?.reviewed.includes(file) || false;
+    }
+    review_active() {
+      return load_reviews(localStorage).some((review) => JSON.stringify([review.root, review.from, review.to]) === this.review_key());
+    }
+    mark_reviewed(file) {
+      const reviews = load_reviews(localStorage);
+      const review = reviews.find((item) => JSON.stringify([item.root, item.from, item.to]) === this.review_key());
+      if (review) {
+        review.reviewed = [.../* @__PURE__ */ new Set([...review.reviewed, file])];
+        review.updated_at = Date.now();
+        save_reviews(localStorage, reviews);
+      }
+      for (const node of this.details.querySelectorAll("[data-file]")) if (node.dataset.file === file) node.classList.remove("git-file-unreviewed");
+    }
+    async show_comparison(from, to) {
+      if (!this.state) return;
+      const epoch = ++this.detail_epoch;
+      this.patch_epoch++;
+      this.from = from;
+      this.to = to;
+      this.place_details();
+      const commit = this.state.commits.find((item) => item.hash === to);
+      this.details.replaceChildren(graph_element("div", "git-graph-commit-title", to === WORKTREE ? "\u672A\u63D0\u4EA4\u6539\u52A8" : to === INDEX ? "\u5DF2\u6682\u5B58\u6539\u52A8" : commit?.subject || "\u63D0\u4EA4\u6BD4\u8F83"));
+      this.details.append(graph_element("code", "git-graph-full-hash", `${from} \u2192 ${to}`));
+      for (const row of this.list.querySelectorAll("[data-hash]")) row.setAttribute("aria-pressed", String(row.dataset.hash === this.selected));
+      const controls = graph_element("div", "git-graph-detail-controls");
+      this.details.append(controls);
+      if (to === WORKTREE || to === INDEX) {
+        const mode = graph_element("select", "git-graph-parent");
+        mode.append(graph_option("all", "HEAD \u2192 \u5DE5\u4F5C\u533A"), graph_option("staged", "HEAD \u2192 \u6682\u5B58\u533A"), graph_option("unstaged", "\u6682\u5B58\u533A \u2192 \u5DE5\u4F5C\u533A"));
+        mode.value = to === INDEX ? "staged" : from === INDEX ? "unstaged" : "all";
+        mode.onchange = () => void this.show_comparison(mode.value === "unstaged" ? INDEX : this.state.head || EMPTY, mode.value === "staged" ? INDEX : WORKTREE);
+        controls.append(mode);
+        controls.append(graph_button("\u64CD\u4F5C", () => this.repository_menu("changes")));
+      } else {
+        if (commit) {
+          this.details.append(graph_element("div", "git-graph-meta", `\u4F5C\u8005\uFF1A${commit.author} <${commit.email || ""}> \xB7 ${commit.date}
+\u63D0\u4EA4\u8005\uFF1A${commit.committer || commit.author} <${commit.committer_email || ""}> \xB7 ${commit.commit_date || commit.date}`));
+          if (this.settings.fetch_avatars && commit.email) {
+            const img = graph_element("img", "git-graph-avatar");
+            img.alt = commit.author;
+            this.details.append(img);
+            void this.host.avatar(commit.email).then((url) => {
+              if (epoch === this.detail_epoch) img.src = url;
+            }).catch(() => img.remove());
+          }
+          const parent = graph_element("select", "git-graph-parent");
+          parent.setAttribute("aria-label", "\u5BF9\u6BD4\u7236\u63D0\u4EA4");
+          if (!commit.parents.length) parent.append(graph_option(EMPTY, "\u9996\u6B21\u63D0\u4EA4 \xB7 \u7A7A\u6811"));
+          commit.parents.forEach((hash, index) => parent.append(graph_option(hash, `\u7236\u63D0\u4EA4 ${index + 1} \xB7 ${hash.slice(0, 8)}`)));
+          if (![...parent.options].some((item) => item.value === from)) parent.append(graph_option(from, "\u6240\u9009\u6BD4\u8F83\u63D0\u4EA4 \xB7 " + from.slice(0, 8)));
+          parent.value = from;
+          parent.onchange = () => void this.show_comparison(parent.value, to);
+          controls.append(parent);
+        }
+        controls.append(graph_button(this.review_active() ? "\u7ED3\u675F\u8BC4\u5BA1" : "\u5F00\u59CB\u8BC4\u5BA1", () => {
+          const reviews = load_reviews(localStorage);
+          const filtered = reviews.filter((item) => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
+          if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
+          save_reviews(localStorage, filtered);
+          void this.show_comparison(from, to);
+        }));
+        const message = graph_element("div", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
+        this.details.append(message);
+        void this.runner.run(this.root, ["show", "-s", `--format=%B${this.settings.show_signature ? "%n\u7B7E\u540D\uFF1A%G?%n%GS%n%GK" : ""}`, to, "--"]).then((text) => {
+          if (epoch === this.detail_epoch) message.replaceChildren(inline_message(text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
+        }).catch((error) => {
+          if (epoch === this.detail_epoch) message.textContent = String(error);
+        });
+      }
+      controls.append(graph_button(this.settings.file_view === "tree" ? "\u5207\u6362\u5217\u8868" : "\u5207\u6362\u76EE\u5F55\u6811", () => {
+        this.settings.file_view = this.settings.file_view === "tree" ? "list" : "tree";
+        this.persist_settings();
+        void this.show_comparison(from, to);
+      }));
+      const files = graph_element("div", "git-graph-files");
+      const patch = graph_element("pre", "git-graph-patch", "\u9009\u62E9\u6587\u4EF6\u67E5\u770B\u5DEE\u5F02\u3002");
+      patch.tabIndex = 0;
+      this.details.append(files, patch);
+      try {
+        this.files = await compare_files(this.runner.run, this.state, from, to);
+        if (epoch !== this.detail_epoch) return;
+        if (!this.files.length) {
+          files.textContent = "\u6CA1\u6709\u6587\u4EF6\u5DEE\u5F02\u3002";
+          return;
+        }
+        this.render_files(files, patch);
+      } catch (error) {
+        if (epoch === this.detail_epoch) files.textContent = String(error);
+      }
+    }
+    render_files(container, patch) {
+      const directories = /* @__PURE__ */ new Map();
+      directories.set("", container);
+      const parent_for = (path) => {
+        if (directories.has(path)) return directories.get(path);
+        const parts = path.split("/");
+        const parent = parent_for(parts.slice(0, -1).join("/"));
+        const group = graph_element("details", "git-file-directory");
+        group.open = true;
+        group.append(graph_element("summary", "", parts.at(-1)));
+        parent.append(group);
+        directories.set(path, group);
+        return group;
+      };
+      for (const file of this.files) {
+        const row = graph_button(`${file.status}  ${file.old_path ? file.old_path + " \u2192 " : ""}${file.path}`, () => {
+          for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
+          row.classList.add("selected");
+          void this.show_patch(file, patch).then((success) => {
+            if (success) this.mark_reviewed(file.path);
+          });
+        }, "git-graph-file");
+        row.dataset.file = file.path;
+        row.title = file.path;
+        if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
+        row.oncontextmenu = (event) => this.file_menu(event, file);
+        (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(row);
+      }
+      if (this.settings.compact_folders) {
+        for (const directory of [...container.querySelectorAll("details")].reverse()) {
+          const children = [...directory.children];
+          if (children.length === 2 && children[1].tagName === "DETAILS") {
+            const child = children[1];
+            directory.querySelector("summary").textContent += "/" + child.querySelector("summary").textContent;
+            directory.append(...[...child.children].slice(1));
+            child.remove();
+          }
+        }
+      }
+    }
+    async show_patch(file, target) {
+      const epoch = ++this.patch_epoch;
+      target.textContent = "\u6B63\u5728\u8BFB\u53D6\u5DEE\u5F02\u2026";
+      try {
+        let text = await compare_patch(this.runner.run, this.state, this.from, this.to, file);
+        if (file.status === "??" || this.from === EMPTY && this.to === WORKTREE) text = (await this.host.revision_text(this.root, WORKTREE, file.path, this.settings)).split("\n").map((line) => "+" + line).join("\n");
+        if (epoch !== this.patch_epoch) return false;
+        const fragment = document.createDocumentFragment();
+        const lines = text.split("\n");
+        for (const line of lines.slice(0, 1e4)) fragment.append(graph_element("span", line.startsWith("+") ? "git-diff-add" : line.startsWith("-") ? "git-diff-delete" : line.startsWith("@@") ? "git-diff-hunk" : "", line + "\n"));
+        if (lines.length > 1e4) fragment.append(document.createTextNode("\n\u6B64\u5904\u5C55\u793A\u524D 10000 \u884C\uFF1B\u53F3\u952E\u6587\u4EF6\u53EF\u6253\u5F00\u5B8C\u6574\u5386\u53F2\u6587\u672C\u89C6\u56FE\u3002"));
+        target.replaceChildren(fragment);
+        target.scrollTop = 0;
+        return true;
+      } catch (error) {
+        if (epoch === this.patch_epoch) target.textContent = String(error);
+        return false;
+      }
+    }
+    file_menu(event, file) {
+      const entries = [
+        { title: "\u6253\u5F00\u5F53\u524D\u6587\u4EF6", action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch((error) => this.report(error)) },
+        { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => void this.host.copy(file.path) },
+        { title: "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
+        { title: "\u6253\u5F00\u53CC\u680F\u5DEE\u5F02", action: () => void this.open_diff(file) },
+        { title: "\u67E5\u770B\u5DE6\u4FA7\u5386\u53F2\u7248\u672C", action: () => void this.open_revision(this.from, file.old_path || file.path) },
+        { title: "\u67E5\u770B\u53F3\u4FA7\u5386\u53F2\u7248\u672C", action: () => void this.open_revision(this.to, file.path) },
+        { title: "\u6807\u8BB0\u5DF2\u8BC4\u5BA1", action: () => this.mark_reviewed(file.path) }
+      ];
+      if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ title: graph_actions.find((action) => action.id === id).title, action: () => this.action_dialog(id, "file", file.path) });
+      graph_menu(event, entries);
+    }
+    async open_revision(revision, file) {
+      try {
+        const text = await this.host.revision_text(this.root, revision, file, this.settings);
+        this.host.open_document(`${revision.slice(0, 8)} \xB7 ${file}`, text, void 0, this.settings.new_tab_group);
+        this.mark_reviewed(file);
+      } catch (error) {
+        this.report(error);
+      }
+    }
+    async open_diff(file) {
+      try {
+        const left = file.status.startsWith("A") || file.status === "??" ? "" : await this.host.revision_text(this.root, this.from, file.old_path || file.path, this.settings);
+        const right = file.status.startsWith("D") ? "" : await this.host.revision_text(this.root, this.to, file.path, this.settings);
+        const patch = await compare_patch(this.runner.run, this.state, this.from, this.to, file);
+        this.host.open_document(`${this.from.slice(0, 8)} \u2194 ${this.to.slice(0, 8)} \xB7 ${file.path}`, left, right, this.settings.new_tab_group, patch);
+        this.mark_reviewed(file.path);
+      } catch (error) {
+        this.report(error);
+      }
+    }
+    target_menu(event, kind, target, hash) {
+      const entries = graph_actions.filter((action) => action.targets.includes(kind) && !this.settings.hidden_actions.includes(action.id)).map((action) => ({ title: action.title, id: action.id, action: () => this.action_dialog(action.id, kind, target, hash) }));
+      entries.push({ title: "\u590D\u5236\u540D\u79F0\u6216\u7F16\u53F7", id: "copy_name", action: () => void this.host.copy(target || hash) }, { title: "\u590D\u5236\u63D0\u4EA4\u7F16\u53F7", id: "copy_hash", action: () => void this.host.copy(hash) });
+      const commit = this.state?.commits.find((item) => item.hash === hash);
+      if (commit) entries.push({ title: "\u590D\u5236\u63D0\u4EA4\u6807\u9898", id: "copy_subject", action: () => void this.host.copy(commit.subject) });
+      if (kind === "tag") entries.push({ title: "\u67E5\u770B\u6807\u7B7E\u8BE6\u60C5", id: "tag_details", action: () => void this.tag_details(target) });
+      if (kind === "branch" || kind === "remote") {
+        entries.push({ title: "\u6253\u5F00 Pull Request \u8868\u5355", id: "pull_request", action: () => this.pr_dialog(kind === "remote" ? target.slice(target.indexOf("/") + 1) : target) });
+        const name = kind === "branch" ? "refs/heads/" + target : "refs/remotes/" + target;
+        entries.push({ title: this.branches.includes(name) ? "\u4ECE\u5206\u652F\u7B5B\u9009\u4E2D\u79FB\u9664" : "\u52A0\u5165\u5206\u652F\u7B5B\u9009", id: "filter", action: () => {
+          this.branches = this.branches.includes(name) ? this.branches.filter((item) => item !== name) : [...this.branches, name];
+          void this.refresh();
+        } });
+      }
+      if (["branch", "remote", "tag", "commit"].includes(kind)) entries.push({ title: "\u5BFC\u51FA\u6B64\u7248\u672C\u7684 ZIP \u5F52\u6863", id: "archive", action: () => this.archive_dialog(hash) });
+      graph_menu(event, entries.filter((entry) => !this.settings.hidden_actions.includes(entry.id)));
+    }
+    repository_menu(kind = "repository") {
+      const dialog = graph_dialog(kind === "changes" ? "\u672A\u63D0\u4EA4\u6539\u52A8\u64CD\u4F5C" : "\u4ED3\u5E93\u64CD\u4F5C");
+      for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(graph_button(action.title, () => {
+        dialog.close();
+        this.action_dialog(action.id, kind, "", this.state?.head);
+      }));
+      dialog.content.append(graph_button("\u8FDC\u7AEF\u914D\u7F6E", () => {
+        dialog.close();
+        this.remotes_dialog();
+      }), graph_button("\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF", () => {
+        this.host.terminal(this.root, this.settings.terminal_shell);
+        dialog.close();
+      }), graph_button("\u7BA1\u7406\u8BC4\u5BA1\u8BB0\u5F55", () => {
+        dialog.close();
+        this.reviews_dialog();
+      }), graph_button("\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => {
+        this.host.clear_avatars();
+        dialog.close();
+      }));
+    }
+    remotes_dialog() {
+      const dialog = graph_dialog("\u4ED3\u5E93\u8FDC\u7AEF\u914D\u7F6E");
+      if (!this.state?.remotes.length) dialog.content.append(graph_element("p", "", "\u6B64\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002"));
+      for (const remote2 of this.state?.remotes || []) {
+        const row = graph_element("div", "git-graph-repo-entry", `${remote2.name}
+Fetch\uFF1A${remote2.fetch}
+Push\uFF1A${remote2.push}`);
+        for (const [title, id, preset] of [["\u4FEE\u6539 Fetch URL", "remote_edit", { url: remote2.fetch }], ["\u4FEE\u6539 Push URL", "remote_edit", { url: remote2.push, push_url: true }], ["Fetch", "fetch", {}], ["Prune", "remote_prune", {}], ["\u5220\u9664", "remote_remove", {}]]) row.append(graph_button(title, () => {
+          dialog.close();
+          this.action_dialog(id, "repository", "", "", { remote: remote2.name, ...preset });
+        }));
+        dialog.content.append(row);
+      }
+      dialog.footer.prepend(graph_button("\u6DFB\u52A0\u8FDC\u7AEF", () => {
+        dialog.close();
+        this.action_dialog("remote_add", "repository");
+      }));
+    }
+    action_dialog(id, kind, target = "", hash = this.selected, preset = {}) {
+      if (!this.state || this.writing) {
+        this.report("\u8BF7\u7B49\u5F85\u4ED3\u5E93\u8BFB\u53D6\u6216\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
+        return;
+      }
+      const action = graph_actions.find((item) => item.id === id);
+      const dialog = graph_dialog(action.title);
+      const fields = /* @__PURE__ */ new Map();
+      const defaults = { ...this.settings.dialog_defaults[id], ...preset };
+      dialog.content.append(graph_element("p", "", `\u4ED3\u5E93\uFF1A${this.root}
+\u76EE\u6807\uFF1A${target || hash || this.state.branch}`));
+      const form = graph_element("form", "git-graph-form");
+      const result = graph_element("pre", "git-graph-action-preview");
+      dialog.content.append(form, result);
+      for (const item of action.fields) {
+        const input = item.type === "choice" ? graph_element("select") : ["message", "todo"].includes(item.key) ? graph_element("textarea") : graph_element("input");
+        let initial = defaults[item.key] ?? item.initial ?? "";
+        if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter((remote2) => target.startsWith(remote2.name + "/")).sort((a, b) => b.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
+        if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
+        if (item.key === "source" && kind === "remote") initial = target.slice(target.indexOf("/") + 1);
+        if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
+        if (item.key === "prune_tags") initial = defaults.prune_tags ?? this.settings.fetch_prune_tags;
+        if (item.key === "sign") initial = defaults.sign ?? this.settings.sign_tags;
+        if (input instanceof HTMLSelectElement) {
+          for (const value of item.choices) input.append(graph_option(value, value));
+          input.value = String(initial);
+        } else if (item.type === "boolean") {
+          input.type = "checkbox";
+          input.checked = Boolean(initial);
+        } else input.value = String(initial);
+        input.dataset.field = item.key;
+        fields.set(item.key, input);
+        const label = graph_element("label", "", item.title);
+        label.append(input);
+        form.append(label);
+      }
+      let plan;
+      let form_revision = 0;
+      const execute = graph_button("\u6267\u884C\u6B64\u64CD\u4F5C", () => void submit());
+      execute.disabled = true;
+      execute.setAttribute("data-git-execute", id);
+      const preview = graph_button("\u9884\u89C8\u64CD\u4F5C", () => void prepare());
+      preview.setAttribute("data-git-preview", id);
+      form.oninput = () => {
+        form_revision++;
+        execute.disabled = true;
+        plan = void 0;
+      };
+      const prepare = async () => {
+        try {
+          const revision = form_revision;
+          preview.disabled = true;
+          execute.disabled = true;
+          const values = {};
+          for (const [key, input] of fields) values[key] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
+          if (id === "rebase" && values.interactive && !values.todo) {
+            fields.get("todo").value = await this.runner.run(this.root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", `${hash}..HEAD`, "--"]);
+            result.textContent = "\u5DF2\u751F\u6210\u4EA4\u4E92\u5217\u8868\u3002\u53EF\u4EE5\u8C03\u6574\u987A\u5E8F\u6216\u6539\u4E3A reword / edit / squash / fixup / drop\uFF1Breword \u7684\u6807\u9898\u5C06\u4F5C\u4E3A\u65B0\u8BF4\u660E\u3002\u786E\u8BA4\u5217\u8868\u540E\u518D\u6B21\u9884\u89C8\u3002";
+            return;
+          }
+          plan = await plan_git_action(this.runner.run, id, { root: this.root, target, hash: hash === WORKTREE ? this.state.head : hash, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
+          if (revision !== form_revision) {
+            plan = void 0;
+            result.textContent = "\u53C2\u6570\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u3002";
+            return;
+          }
+          result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview;
+          execute.disabled = false;
+        } catch (error) {
+          result.textContent = String(error);
+        } finally {
+          preview.disabled = false;
+        }
+      };
+      const submit = async () => {
+        if (!plan) return;
+        this.writing = true;
+        preview.disabled = true;
+        execute.disabled = true;
+        result.textContent += "\n\n\u6267\u884C\u4E2D\u2026";
+        try {
+          const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files());
+          result.textContent += "\n" + (output || "\u64CD\u4F5C\u5B8C\u6210\u3002");
+        } catch (error) {
+          result.textContent += "\n" + String(error);
+        } finally {
+          this.writing = false;
+          plan = void 0;
+          preview.disabled = false;
+          await this.refresh(false);
+        }
+      };
+      form.onsubmit = (event) => {
+        event.preventDefault();
+        if (plan && !execute.disabled) void submit();
+        else void prepare();
+      };
+      dialog.root.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement)) {
+          event.preventDefault();
+          if (plan && !execute.disabled) void submit();
+          else void prepare();
+        }
+      });
+      dialog.footer.prepend(preview, execute);
+    }
+    async tag_details(name) {
+      const dialog = graph_dialog("\u6807\u7B7E\u8BE6\u60C5 \xB7 " + name);
+      try {
+        const text = await this.runner.run(this.root, ["for-each-ref", "--format=%(refname)%0a%(objecttype)%0a%(taggername) %(taggeremail)%0a%(taggerdate:iso8601)%0a%(contents)", "refs/tags/" + name]);
+        dialog.content.append(inline_message(text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
+      } catch (error) {
+        dialog.content.textContent = String(error);
+      }
+    }
+    pr_dialog(branch2) {
+      const dialog = graph_dialog("\u521B\u5EFA Pull Request");
+      const remote2 = graph_element("select");
+      const base = graph_element("input");
+      base.value = this.settings.pr_base;
+      const error = graph_element("p");
+      for (const item of this.state.remotes) remote2.append(graph_option(item.fetch, item.name));
+      dialog.content.append(graph_element("p", "", "\u9009\u62E9\u8FDC\u7AEF\u4E0E\u76EE\u6807\u5206\u652F\uFF0C\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u9884\u586B\u8868\u5355\u3002"), remote2, base, error);
+      dialog.footer.prepend(graph_button("\u6253\u5F00\u8868\u5355", () => {
+        try {
+          void this.host.open_url(pull_request_url(remote2.value, branch2, base.value, this.settings.pr_url)).catch((problem) => {
+            error.textContent = String(problem);
+          });
+        } catch (problem) {
+          error.textContent = String(problem);
+        }
+      }));
+    }
+    archive_dialog(hash) {
+      const dialog = graph_dialog("\u5BFC\u51FA\u7248\u672C\u5F52\u6863");
+      const target = graph_element("input");
+      target.value = this.host.path_api.join(this.root, hash.slice(0, 8) + ".zip");
+      const error = graph_element("pre");
+      dialog.content.append(target, error);
+      dialog.footer.prepend(graph_button("\u5BFC\u51FA ZIP", () => void (async () => {
+        try {
+          if (this.host.fs.existsSync(target.value)) throw new Error("\u76EE\u6807\u5DF2\u5B58\u5728\uFF0C\u8BF7\u6362\u4E00\u4E2A\u540D\u79F0\u3002");
+          await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash]);
+          error.textContent = "\u5DF2\u5BFC\u51FA\uFF1A" + target.value;
+        } catch (problem) {
+          error.textContent = String(problem);
+        }
+      })()));
+    }
+    filter_branches() {
+      if (!this.state) {
+        this.report("\u8BF7\u5148\u6253\u5F00\u6709\u6548\u4ED3\u5E93\u3002");
+        return;
+      }
+      const dialog = graph_dialog("\u9009\u62E9\u4E00\u4E2A\u6216\u591A\u4E2A\u5206\u652F");
+      const selected = new Set(this.branches);
+      for (const [name, title] of [["HEAD", "\u5F53\u524D HEAD"], ...this.state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
+        const check2 = graph_element("input");
+        check2.type = "checkbox";
+        check2.checked = selected.has(name);
+        check2.onchange = () => check2.checked ? selected.add(name) : selected.delete(name);
+        const label = graph_element("label", "git-graph-filter", title);
+        label.prepend(check2);
+        dialog.content.append(label);
+      }
+      dialog.footer.prepend(graph_button("\u5168\u90E8\u5206\u652F", () => {
+        this.branches = [];
+        dialog.close();
+        void this.refresh();
+      }), graph_button("\u5E94\u7528\u9009\u62E9", () => {
+        this.branches = [...selected];
+        dialog.close();
+        void this.refresh();
+      }));
+    }
+    manage_repositories() {
+      const dialog = graph_dialog("\u7BA1\u7406 Git \u4ED3\u5E93");
+      const input = graph_element("input");
+      input.placeholder = "\u7C98\u8D34\u4ED3\u5E93\u6587\u4EF6\u5939\u8DEF\u5F84";
+      input.value = this.root;
+      const error = graph_element("p");
+      const list = graph_element("div");
+      const render = () => {
+        list.replaceChildren();
+        for (const root of this.known_repos()) {
+          const row = graph_element("div", "git-graph-repo-entry", root);
+          row.append(graph_button("\u6253\u5F00", () => {
+            this.switch_repo(root);
+            dialog.close();
+          }), graph_button("\u79FB\u9664\u8BB0\u5F55", () => {
+            this.save_repos(this.known_repos().filter((item) => item !== root));
+            render();
+          }));
+          list.append(row);
+        }
+      };
+      render();
+      dialog.content.append(input, list, error);
+      dialog.footer.prepend(
+        graph_button("\u6DFB\u52A0\u4ED3\u5E93", () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
+          this.save_repos([...this.known_repos(), root.trim()]);
+          render();
+        }).catch((problem) => {
+          error.textContent = String(problem);
+        })),
+        graph_button("\u53D1\u73B0\u5B50\u4ED3\u5E93", () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
+          this.save_repos([...this.known_repos(), ...roots]);
+          render();
+          error.textContent = `\u53D1\u73B0 ${roots.length} \u4E2A\u4ED3\u5E93\u3002`;
+        }).catch((problem) => {
+          error.textContent = String(problem);
+        }))
+      );
+    }
+    settings_dialog() {
+      if (this.writing) {
+        this.report("Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002");
+        return;
+      }
+      const dialog = graph_dialog("Git Graph \u8BBE\u7F6E");
+      const form = graph_element("div", "git-graph-settings-form");
+      const fields = /* @__PURE__ */ new Map();
+      const error = graph_element("p");
+      for (const [key, value] of Object.entries(this.settings)) {
+        const input = settings_choices[key] ? graph_element("select") : typeof value === "object" ? graph_element("textarea") : graph_element("input");
+        input.dataset.setting = key;
+        if (input instanceof HTMLSelectElement) for (const value2 of settings_choices[key]) input.append(graph_option(value2, value2));
+        if (typeof value === "boolean") {
+          input.type = "checkbox";
+          input.checked = value;
+        } else {
+          input.value = typeof value === "object" ? JSON.stringify(value, null, 2) : String(value);
+          if (typeof value === "number") input.type = "number";
+        }
+        const label = graph_element("label", "", settings_labels[key]);
+        label.append(input);
+        form.append(label);
+        fields.set(key, input);
+      }
+      dialog.content.append(form, error);
+      const apply = (settings) => {
+        this.settings = settings;
+        this.persist_settings();
+        this.runner.cancel();
+        this.runner = this.host.runner(settings);
+        this.writer = this.host.runner(settings, true);
+        dialog.close();
+        void this.refresh();
+      };
+      const file = graph_element("input");
+      file.type = "file";
+      file.accept = ".json";
+      file.hidden = true;
+      file.onchange = () => void file.files?.[0]?.text().then((text) => {
+        try {
+          const settings = validate_settings(JSON.parse(text));
+          apply({ ...settings, git_path: this.settings.git_path, terminal_shell: this.settings.terminal_shell, fetch_avatars: this.settings.fetch_avatars });
+        } catch (problem) {
+          error.textContent = String(problem);
+        }
+      });
+      dialog.content.append(file);
+      dialog.footer.prepend(graph_button("\u4FDD\u5B58\u8BBE\u7F6E", () => {
+        try {
+          const values = {};
+          for (const [key, input] of fields) {
+            const baseline = graph_defaults[key];
+            values[key] = typeof baseline === "boolean" ? input.checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
+          }
+          apply(validate_settings(values));
+        } catch (problem) {
+          error.textContent = String(problem);
+        }
+      }), graph_button("\u6062\u590D\u9ED8\u8BA4", () => apply(structuredClone(graph_defaults))), graph_button("\u5BFC\u5165\u914D\u7F6E", () => file.click()), graph_button("\u5BFC\u51FA\u914D\u7F6E", () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
+    }
+    reviews_dialog() {
+      const dialog = graph_dialog("\u8BC4\u5BA1\u8BB0\u5F55");
+      const render = () => {
+        dialog.content.replaceChildren();
+        const reviews = load_reviews(localStorage);
+        if (!reviews.length) dialog.content.textContent = "\u6682\u65E0\u8BC4\u5BA1\u8BB0\u5F55\u3002";
+        for (const review of reviews) {
+          const row = graph_element("div", "git-graph-review", `${review.root}
+${review.from.slice(0, 8)} \u2192 ${review.to.slice(0, 8)} \xB7 \u5DF2\u8BFB ${review.reviewed.length} \u4E2A\u6587\u4EF6`);
+          row.append(
+            graph_button("\u7EE7\u7EED\u8BC4\u5BA1", () => {
+              dialog.close();
+              if (review.root !== this.root) this.switch_repo(review.root);
+              void (async () => {
+                while (this.pending) await new Promise((resolve) => setTimeout(resolve, 50));
+                this.selected = review.to;
+                void this.show_comparison(review.from, review.to);
+              })();
+            }),
+            graph_button("\u7ED3\u675F", () => {
+              save_reviews(localStorage, reviews.filter((item) => item !== review));
+              render();
+            })
+          );
+          dialog.content.append(row);
+        }
+      };
+      render();
+      dialog.footer.prepend(graph_button("\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", () => {
+        save_reviews(localStorage, []);
+        render();
+      }));
+    }
+    keydown(event) {
+      if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector(".git-graph-dialog-shade, .git-graph-menu") || event.isComposing) return;
+      const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
+      let handled = true;
+      if (shortcut_matches(event, this.settings.shortcuts.find)) this.search.focus();
+      else if (shortcut_matches(event, this.settings.shortcuts.head)) this.scroll_to(this.state?.head || "");
+      else if (shortcut_matches(event, this.settings.shortcuts.refresh)) void this.refresh();
+      else if (shortcut_matches(event, this.settings.shortcuts.stash_next) || shortcut_matches(event, this.settings.shortcuts.stash_previous)) {
+        const stashes = this.state?.commits.filter((commit) => commit.stash) || [];
+        const direction = event.shiftKey ? -1 : 1;
+        if (stashes.length) {
+          const current = stashes.findIndex((commit) => commit.hash === this.selected);
+          const index = current < 0 ? direction > 0 ? 0 : stashes.length - 1 : (current + direction + stashes.length) % stashes.length;
+          this.select_commit(stashes[index]);
+        }
+      } else if (!editing && ["ArrowUp", "ArrowDown"].includes(event.key) && this.state) {
+        const index = this.state.commits.findIndex((commit) => commit.hash === this.selected);
+        const current = this.state.commits[index];
+        let next;
+        if (current && (event.ctrlKey || event.metaKey)) {
+          if (event.key === "ArrowDown") next = this.state.commits.find((commit) => commit.hash === current.parents[event.shiftKey ? 1 : 0]);
+          else next = this.state.commits.filter((commit) => commit.parents.includes(current.hash))[event.shiftKey ? 1 : 0];
+        } else next = this.state.commits[Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1))];
+        if (next) this.select_commit(next);
+      } else if (event.key === "Escape") {
+        this.detail_epoch++;
+        this.patch_epoch++;
+        this.details.textContent = "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\u3002";
+        this.selected = "";
+      } else handled = false;
+      if (handled) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }
+  };
+  var builtin_emoji = { ":art:": "\u{1F3A8}", ":zap:": "\u26A1\uFE0F", ":fire:": "\u{1F525}", ":bug:": "\u{1F41B}", ":ambulance:": "\u{1F691}\uFE0F", ":sparkles:": "\u2728", ":memo:": "\u{1F4DD}", ":rocket:": "\u{1F680}", ":lipstick:": "\u{1F484}", ":tada:": "\u{1F389}", ":white_check_mark:": "\u2705", ":lock:": "\u{1F512}\uFE0F", ":closed_lock_with_key:": "\u{1F510}", ":bookmark:": "\u{1F516}", ":rotating_light:": "\u{1F6A8}", ":construction:": "\u{1F6A7}", ":green_heart:": "\u{1F49A}", ":arrow_down:": "\u2B07\uFE0F", ":arrow_up:": "\u2B06\uFE0F", ":pushpin:": "\u{1F4CC}", ":construction_worker:": "\u{1F477}", ":chart_with_upwards_trend:": "\u{1F4C8}", ":recycle:": "\u267B\uFE0F", ":heavy_plus_sign:": "\u2795", ":heavy_minus_sign:": "\u2796", ":wrench:": "\u{1F527}", ":hammer:": "\u{1F528}", ":globe_with_meridians:": "\u{1F310}", ":pencil2:": "\u270F\uFE0F", ":poop:": "\u{1F4A9}", ":rewind:": "\u23EA\uFE0F", ":twisted_rightwards_arrows:": "\u{1F500}", ":package:": "\u{1F4E6}\uFE0F", ":alien:": "\u{1F47D}\uFE0F", ":truck:": "\u{1F69A}", ":page_facing_up:": "\u{1F4C4}", ":boom:": "\u{1F4A5}", ":bento:": "\u{1F371}", ":wheelchair:": "\u267F\uFE0F", ":bulb:": "\u{1F4A1}", ":beers:": "\u{1F37B}", ":speech_balloon:": "\u{1F4AC}", ":card_file_box:": "\u{1F5C3}\uFE0F", ":loud_sound:": "\u{1F50A}", ":mute:": "\u{1F507}", ":busts_in_silhouette:": "\u{1F465}", ":children_crossing:": "\u{1F6B8}", ":building_construction:": "\u{1F3D7}\uFE0F", ":iphone:": "\u{1F4F1}", ":clown_face:": "\u{1F921}", ":egg:": "\u{1F95A}", ":see_no_evil:": "\u{1F648}", ":camera_flash:": "\u{1F4F8}", ":alembic:": "\u2697\uFE0F", ":mag:": "\u{1F50D}\uFE0F", ":label:": "\u{1F3F7}\uFE0F", ":seedling:": "\u{1F331}", ":triangular_flag_on_post:": "\u{1F6A9}", ":goal_net:": "\u{1F945}", ":dizzy:": "\u{1F4AB}", ":wastebasket:": "\u{1F5D1}\uFE0F", ":passport_control:": "\u{1F6C2}", ":adhesive_bandage:": "\u{1FA79}", ":monocle_face:": "\u{1F9D0}", ":coffin:": "\u26B0\uFE0F", ":test_tube:": "\u{1F9EA}", ":necktie:": "\u{1F454}", ":stethoscope:": "\u{1FA7A}", ":bricks:": "\u{1F9F1}", ":technologist:": "\u{1F9D1}\u200D\u{1F4BB}", ":money_with_wings:": "\u{1F4B8}", ":thread:": "\u{1F9F5}", ":safety_vest:": "\u{1F9BA}", ":smile:": "\u{1F604}", ":thumbsup:": "\u{1F44D}", ":heart:": "\u2764\uFE0F" };
+  for (const item of emoji_default) for (const alias of item.aliases) builtin_emoji[":" + alias + ":"] ??= item.emoji;
+
+  // src/git_graph.css
+  var git_graph_default = `.linux-note-git-graph {\r
+  container-type: inline-size;\r
+  box-sizing: border-box;\r
+  display: flex;\r
+  flex-direction: column;\r
+  height: 100%;\r
+  width: 100%;\r
+  flex: 1;\r
+  min-width: 0;\r
+  min-height: 0;\r
+  overflow: hidden;\r
+  background: var(--bg-color, #fff);\r
+  color: var(--text-color, #24292f);\r
+  font: 13px/1.5 system-ui, sans-serif;\r
+  user-select: text;\r
+}\r
+.linux-note-git-graph * { box-sizing: border-box; }\r
+.linux-note-git-graph button, .linux-note-git-graph select, .linux-note-git-graph input {\r
+  font: inherit; color: inherit; background: transparent; border: 1px solid #8885; border-radius: 4px; padding: 4px 8px;\r
+}\r
+.linux-note-git-graph button { cursor: pointer; }\r
+.linux-note-git-graph button:hover { background: #8882; }\r
+.linux-note-git-graph button:focus-visible, .linux-note-git-graph select:focus-visible, .linux-note-git-graph input:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\r
+.linux-note-git-graph button:disabled { opacity: .5; cursor: default; }\r
+.linux-note-git-graph [hidden] { display: none !important; }\r
+.git-graph-root { padding: 10px 12px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; flex: none; }\r
+.git-graph-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; flex: none; }\r
+.git-graph-branch { max-width: 220px; min-width: 100px; }\r
+.git-graph-search { flex: 1; min-width: 160px; }\r
+.git-graph-status { padding: 2px 12px 8px; opacity: .8; overflow-wrap: anywhere; max-height: 100px; overflow: auto; flex: none; }\r
+.git-graph-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; border-top: 1px solid #8884; }\r
+.git-graph-list { overflow: auto; min-height: 0; position: relative; }\r
+.linux-note-git-graph .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }\r
+.git-graph-row svg { flex: none; overflow: visible; }\r
+.git-graph-row[aria-pressed="true"], .linux-note-git-graph .git-graph-file.selected { background: #2684d426; }\r
+.git-graph-subject { min-width: 80px; width: var(--git-subject-width, 300px); flex: none; overflow: hidden; text-overflow: ellipsis; }\r
+.git-graph-refs { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; margin-right: 8px; padding: 0 5px; border-radius: 3px; background: #2684d423; color: #2684d4; }\r
+.git-graph-author { width: var(--git-author-width, 110px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }\r
+.git-graph-date { width: var(--git-date-width, 145px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }\r
+.git-graph-hash { width: var(--git-hash-width, 80px); flex: none; font-size: 11px; background: none; }\r
+.git-graph-details { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; min-width: 0; min-height: 0; border-left: 1px solid #8884; }\r
+.git-graph-commit-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }\r
+.git-graph-full-hash { overflow-wrap: anywhere; font-size: 11px; background: none; flex: none; }\r
+.git-graph-meta { opacity: .75; white-space: pre-wrap; overflow-wrap: anywhere; }\r
+.git-graph-parent { width: 100%; flex: none; }\r
+.linux-note-git-graph pre { margin: 0; font: 12px/1.65 Consolas, ui-monospace, monospace; background: #8881; border: 0; padding: 8px; user-select: text; }\r
+.linux-note-git-graph .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }\r
+.git-graph-files { max-height: 150px; overflow: auto; flex: none; }\r
+.linux-note-git-graph .git-graph-file { display: block; width: 100%; text-align: left; border: 0; overflow-wrap: anywhere; }\r
+.linux-note-git-graph .git-graph-patch { flex: 1 0 180px; min-height: 180px; overflow: auto; white-space: pre; tab-size: 4; }\r
+.git-diff-add { color: #22863a; background: #2ea04315; }\r
+.git-diff-delete { color: #cb2431; background: #f8514915; }\r
+.git-diff-hunk { color: #2684d4; }\r
+@container (max-width: 680px) {\r
+  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(160px, 1fr); }\r
+  .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\r
+}\r
+/* Git Graph \u7684\u5F39\u7A97\u5C5E\u4E8E\u5BBF\u4E3B\u7A97\u53E3\uFF0C\u4E0D\u80FD\u4F9D\u8D56\u6B63\u6587\u7F16\u8F91\u533A\u7684\u7126\u70B9\u6216\u6837\u5F0F\u3002 */\r
+.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }\r
+.git-graph-dialog, .git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font: 13px/1.5 system-ui, sans-serif; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }\r
+.git-graph-dialog { display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }\r
+.git-graph-dialog h3 { font: 600 17px/1.5 system-ui; margin: 0; padding: 14px 18px; border-bottom: 1px solid #8884; }\r
+.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }\r
+.git-graph-dialog-footer { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }\r
+.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea, .git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }\r
+.git-graph-dialog button { cursor: pointer; margin: 2px; }\r
+.git-graph-dialog button:disabled { opacity: .5; cursor: default; }\r
+.git-graph-dialog button:hover, .git-graph-menu button:hover, .git-graph-menu button:focus { background: #2684d424; }\r
+.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }\r
+.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }\r
+.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font: 12px/1.6 Consolas, monospace; }\r
+.git-graph-form label, .git-graph-settings-form label { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #8882; }\r
+.git-graph-form input[type=checkbox], .git-graph-settings-form input[type=checkbox] { justify-self: start; }\r
+.git-graph-filter { display: block; padding: 4px; }\r
+.git-graph-filter input { margin-right: 10px; }\r
+.git-graph-repo-entry, .git-graph-review { padding: 10px 0; border-bottom: 1px solid #8883; }\r
+.git-graph-menu { position: fixed; z-index: 110001; padding: 5px; min-width: 190px; max-width: min(360px, 95vw); max-height: 85vh; overflow: auto; }\r
+.git-graph-menu button { display: block; width: 100%; border: none; border-radius: 3px; text-align: left; cursor: pointer; }\r
+.git-graph-status-launch { position: fixed; right: 108px; bottom: 2px; z-index: 100; font: 11px/18px system-ui; color: var(--text-color, #555); background: var(--bg-color, #fff); border: 0; cursor: pointer; padding: 0 8px; }\r
+.git-graph-status-launch[hidden] { display: none; }\r
+.git-graph-repositories { max-width: 180px; }\r
+.git-graph-columns { display: flex; gap: 8px; width: max-content; min-width: 100%; position: sticky; top: 0; z-index: 2; background: var(--bg-color, #fff); border-bottom: 1px solid #8884; height: 30px; }\r
+.git-graph-column { position: relative; flex: none; overflow: hidden; white-space: nowrap; padding: 4px 8px 4px 0; opacity: .8; }\r
+.git-graph-column-resize { position: absolute; right: 0; top: 0; width: 7px; height: 100%; cursor: col-resize; border-right: 1px solid #8884; touch-action: none; }\r
+.git-graph-row { cursor: pointer; }\r
+.git-graph-row:hover { background: #8881; }\r
+.git-graph-row:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\r
+.git-graph-muted { opacity: .45; }\r
+.git-graph-worktree { padding-left: 14px !important; font-weight: 600; }\r
+.git-graph-worktree.connected { padding-left: 0 !important; }\r
+.git-graph-refs { cursor: context-menu; }\r
+.git-ref-tag { color: #946900; background: #eac54f24; }\r
+.git-ref-remote { color: #22875e; background: #29885824; }\r
+.git-graph-detail-controls { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }\r
+.git-graph-detail-controls select { flex: 1; width: auto; min-width: 120px; }\r
+.git-file-directory { margin-left: 8px; }\r
+.git-file-directory summary { cursor: pointer; }\r
+.git-file-unreviewed::before { content: '\u25CF '; color: #2684d4; }\r
+.git-graph-avatar { width: 32px; height: 32px; border-radius: 50%; }\r
+.linux-note-git-graph[data-details=bottom] .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(180px, 1fr); }\r
+.linux-note-git-graph[data-details=bottom] .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\r
+.linux-note-git-graph[data-details=inline] .git-graph-body { display: flex; flex-direction: column; }\r
+.linux-note-git-graph[data-details=inline] .git-graph-list { flex: 1; }\r
+.linux-note-git-graph[data-details=inline] .git-graph-details { height: 440px; max-width: 100%; border: 1px solid #8884; }\r
+.linux-note-git-graph[data-labels=split] .git-graph-subject { display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; }\r
+.linux-note-git-graph[data-labels=graph] .git-graph-labels { display: inline-block; width: 130px; overflow: hidden; vertical-align: bottom; }\r
+.git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }\r
+.git-graph-document-body { display: flex; min-height: 0; min-width: 0; flex: 1; }\r
+.git-graph-document-body pre { flex: 1; min-width: 0; overflow: auto; margin: 0; padding: 10px 0; border: 1px solid #8883; font: 12px/1.65 Consolas, monospace; tab-size: 4; user-select: text; background: transparent; }\r
+.git-document-line { display: block; min-width: max-content; height: 1.65em; white-space: pre; }\r
+.git-document-line::before { content: attr(data-line); display: inline-block; width: 4em; margin-right: 12px; text-align: right; opacity: .4; user-select: none; }\r
+@media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }\r
+`;
+
+  // src/git_graph_view.ts
   function bind_git_graph() {
     if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
     const core = window[Symbol.for("typora-plugin-core@v2")];
-    const runtime = window;
-    if (!core?.app || !runtime.reqnode) return;
-    const style = element("style", "");
+    if (!core?.app || !window.reqnode) return;
+    const style = graph_element("style");
     style.textContent = git_graph_default;
     document.head.append(style);
-    const { app } = core;
-    const path_api = runtime.reqnode("path");
-    const context_path = () => {
-      const active = app.workspace.activeLeaf;
-      const file = active?.state.path;
-      return file && path_api.isAbsolute(file) ? path_api.dirname(file) : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (app.workspace.activeFile ? path_api.dirname(app.workspace.activeFile) : "");
+    const host = create_graph_host(core);
+    const panels = /* @__PURE__ */ new Map();
+    const context_settings = () => {
+      const active = core.app.workspace.activeLeaf;
+      if (active && panels.has(active)) return panels.get(active).settings;
+      const cwd = host.context_path();
+      let root = cwd;
+      try {
+        const repos = JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]");
+        for (const candidate of repos.sort((a, b) => b.length - a.length)) {
+          const relative = host.path_api.relative(candidate, cwd);
+          if (!host.path_api.isAbsolute(relative) && relative !== ".." && !relative.startsWith(".." + host.path_api.sep)) {
+            root = candidate;
+            break;
+          }
+        }
+      } catch {
+      }
+      return load_graph_settings(localStorage, root);
     };
     class git_graph_view extends core.WorkspaceView {
-      containerEl = element("section", "linux-note-git-graph");
       icon = "fa-code-fork";
-      runner = create_git_runner({ child_process: runtime.reqnode("child_process"), process: runtime.reqnode("process") });
-      toolbar = element("div", "git-graph-toolbar");
-      root_label = element("div", "git-graph-root", "Git Graph");
-      status = element("div", "git-graph-status");
-      branch = element("select", "git-graph-branch");
-      refresh_button = button("\u5237\u65B0", () => void this.refresh());
-      more_button = button("\u52A0\u8F7D\u66F4\u591A", () => {
-        this.limit += GIT_PAGE_SIZE;
-        void this.refresh(false);
-      });
-      list = element("div", "git-graph-list");
-      details = element("div", "git-graph-details", "\u9009\u62E9\u4E00\u6761\u63D0\u4EA4\uFF0C\u67E5\u770B\u8BF4\u660E\u548C\u6587\u4EF6\u5DEE\u5F02\u3002");
-      search = element("input", "git-graph-search");
-      snapshot;
-      limit = GIT_PAGE_SIZE;
-      epoch = 0;
-      selection_epoch = 0;
-      patch_epoch = 0;
-      pending = false;
-      selected = "";
+      panel;
       constructor(leaf) {
         super(leaf);
-        if (!leaf.state.git_cwd) {
-          const encoded = leaf.state.path.split("/")[3];
-          try {
-            const cwd = decodeURIComponent(encoded || "");
-            if (path_api.isAbsolute(cwd)) leaf.state.git_cwd = cwd;
-          } catch {
+        let cwd = leaf.state.git_cwd || "";
+        if (!cwd) {
+          for (const [existing, panel] of panels) if (existing.state.path === leaf.state.path) {
+            cwd = panel.root;
+            break;
           }
         }
-        this.containerEl.setAttribute("aria-label", "Git Graph \u63D0\u4EA4\u5386\u53F2");
-        this.status.setAttribute("role", "status");
-        this.branch.setAttribute("aria-label", "\u5206\u652F\u6216\u6807\u7B7E");
-        this.branch.append(option("", "\u5168\u90E8\u5206\u652F"));
-        this.branch.addEventListener("change", () => void this.refresh());
-        this.search.placeholder = "\u67E5\u627E\u5DF2\u52A0\u8F7D\u63D0\u4EA4\uFF0CEnter \u67E5\u627E\u4E0B\u4E00\u6761";
-        this.search.setAttribute("aria-label", "\u67E5\u627E\u63D0\u4EA4\u8BF4\u660E\u3001\u4F5C\u8005\u6216\u7F16\u53F7");
-        this.search.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            event.stopPropagation();
-            this.find_next();
-          }
-        });
-        this.toolbar.append(this.branch, this.refresh_button, this.search, button("\u67E5\u627E", () => this.find_next()));
-        const body = element("div", "git-graph-body");
-        body.append(this.list, this.details);
-        this.more_button.hidden = true;
-        this.containerEl.append(this.root_label, this.toolbar, this.status, body, this.more_button);
-        this.containerEl.addEventListener("keydown", (event) => event.stopPropagation());
+        if (!cwd) try {
+          cwd = decodeURIComponent(leaf.state.path.split("/")[3] || "");
+        } catch {
+        }
+        this.panel = new git_graph_panel(host, cwd || host.context_path());
+        this.containerEl = this.panel.container;
+        panels.set(leaf, this.panel);
       }
       onOpen() {
-        if (!this.snapshot || this.pending) void this.refresh(false);
-        else if (this.selected) {
-          const commit = this.snapshot.commits.find((item) => item.hash === this.selected);
-          if (commit) void this.select_commit(commit);
-        }
+        this.panel.open();
       }
       onClose() {
-        this.epoch++;
-        this.selection_epoch++;
-        this.patch_epoch++;
-        this.runner.cancel();
-      }
-      async refresh(reset = true) {
-        const epoch = ++this.epoch;
-        this.selection_epoch++;
-        this.patch_epoch++;
-        this.runner.cancel();
-        this.pending = true;
-        if (reset) this.limit = GIT_PAGE_SIZE;
-        this.refresh_button.disabled = true;
-        this.more_button.disabled = true;
-        this.branch.disabled = true;
-        this.containerEl.dataset.state = "loading";
-        this.status.textContent = "\u6B63\u5728\u8BFB\u53D6 Git \u5386\u53F2\u2026";
-        const chosen_ref = this.branch.value;
-        try {
-          const cwd = this.leaf.state.git_cwd || context_path();
-          if (!cwd) throw new Error("\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u6863\u6216\u6587\u4EF6\u5939\uFF0C\u518D\u6253\u5F00 Git Graph\u3002");
-          let snapshot = await read_git_snapshot(this.runner.run, cwd, this.limit);
-          if (chosen_ref) {
-            const current = chosen_ref === "HEAD" ? snapshot.head : snapshot.refs.find((item) => item.name === chosen_ref)?.hash;
-            if (current) snapshot = await read_git_snapshot(this.runner.run, snapshot.root, this.limit, current);
-          }
-          if (epoch !== this.epoch) return;
-          this.snapshot = snapshot;
-          this.leaf.state.git_cwd = snapshot.root;
-          this.root_label.textContent = snapshot.root;
-          this.root_label.title = snapshot.root;
-          this.branch.replaceChildren(option("", "\u5168\u90E8\u5206\u652F"));
-          if (snapshot.head) this.branch.append(option("HEAD", "\u5F53\u524D HEAD"));
-          for (const ref of snapshot.refs) this.branch.append(option(ref.name, ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "$1 / ")));
-          this.branch.value = [...this.branch.options].some((item) => item.value === chosen_ref) ? chosen_ref : "";
-          this.render_list();
-          this.more_button.hidden = !snapshot.more || this.limit >= GIT_MAX_COMMITS;
-          this.status.textContent = snapshot.commits.length ? `\u5DF2\u52A0\u8F7D ${snapshot.commits.length} \u6761\u63D0\u4EA4${snapshot.more ? " \xB7 \u4E0B\u65B9\u8FDE\u7EBF\u5EF6\u7EED\u5230\u66F4\u65E9\u5386\u53F2" : ""}${this.limit >= GIT_MAX_COMMITS && snapshot.more ? " \xB7 \u5DF2\u8FBE 5000 \u6761\u4E0A\u9650\uFF0C\u8BF7\u9009\u62E9\u5206\u652F\u7F29\u5C0F\u8303\u56F4" : ""}` : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002";
-          this.containerEl.dataset.state = "ready";
-          if (!snapshot.commits.some((item) => item.hash === this.selected)) {
-            this.selected = "";
-            this.details.textContent = "\u9009\u62E9\u4E00\u6761\u63D0\u4EA4\uFF0C\u67E5\u770B\u8BF4\u660E\u548C\u6587\u4EF6\u5DEE\u5F02\u3002";
-          } else {
-            void this.select_commit(snapshot.commits.find((item) => item.hash === this.selected));
-          }
-        } catch (error) {
-          if (epoch !== this.epoch) return;
-          this.status.textContent = `\u65E0\u6CD5\u8BFB\u53D6 Git \u5386\u53F2\uFF1A${error instanceof Error ? error.message : String(error)}`;
-          this.containerEl.dataset.state = "error";
-        } finally {
-          if (epoch === this.epoch) {
-            this.pending = false;
-            this.refresh_button.disabled = false;
-            this.more_button.disabled = false;
-            this.branch.disabled = false;
-          }
-        }
-      }
-      render_list() {
-        const snapshot = this.snapshot;
-        const graph = build_git_graph(snapshot.commits);
-        const rows = document.createDocumentFragment();
-        const refs = /* @__PURE__ */ new Map();
-        if (snapshot.head) refs.set(snapshot.head, ["HEAD"]);
-        for (const ref of snapshot.refs) refs.set(ref.hash, [...refs.get(ref.hash) || [], ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "")]);
-        snapshot.commits.forEach((commit, index) => {
-          const row = button("", () => void this.select_commit(commit), "git-graph-row");
-          row.dataset.hash = commit.hash;
-          row.setAttribute("aria-pressed", String(this.selected === commit.hash));
-          const labels = (refs.get(commit.hash) || []).join(" \xB7 ");
-          const subject = element("span", "git-graph-subject", commit.subject);
-          if (labels) subject.prepend(element("span", "git-graph-refs", labels));
-          row.title = `${commit.hash}
-${commit.author} \xB7 ${commit.date}
-${commit.subject}`;
-          row.append(graph_svg(graph.rows[index], graph.width), subject, element("span", "git-graph-author", commit.author), element("code", "git-graph-hash", commit.hash.slice(0, 8)));
-          rows.append(row);
-        });
-        this.list.replaceChildren(rows);
-      }
-      find_next() {
-        const query = this.search.value.trim().toLocaleLowerCase();
-        if (!query || !this.snapshot) return;
-        const matches = this.snapshot.commits.filter((commit2) => [commit2.subject, commit2.author, commit2.hash].some((value) => value.toLocaleLowerCase().includes(query)));
-        if (!matches.length) {
-          this.status.textContent = "\u5DF2\u52A0\u8F7D\u5386\u53F2\u4E2D\u6CA1\u6709\u5339\u914D\u9879\uFF0C\u53EF\u52A0\u8F7D\u66F4\u591A\u540E\u91CD\u8BD5\u3002";
-          return;
-        }
-        const index = (matches.findIndex((item) => item.hash === this.selected) + 1) % matches.length;
-        const commit = matches[index];
-        const row = this.list.querySelector(`[data-hash="${commit.hash}"]`);
-        if (row) this.list.scrollTop = row.offsetTop - this.list.offsetTop - this.list.clientHeight / 2;
-        this.status.textContent = `\u627E\u5230 ${matches.length} \u6761 \xB7 \u7B2C ${index + 1} \u6761`;
-        void this.select_commit(commit);
-      }
-      async select_commit(commit) {
-        const epoch = ++this.selection_epoch;
-        this.patch_epoch++;
-        this.selected = commit.hash;
-        for (const row of this.list.querySelectorAll(".git-graph-row")) row.setAttribute("aria-pressed", String(row.dataset.hash === commit.hash));
-        this.details.replaceChildren(
-          element("div", "git-graph-commit-title", commit.subject),
-          element("code", "git-graph-full-hash", commit.hash),
-          element("div", "git-graph-meta", `${commit.author} \xB7 ${new Date(commit.date).toLocaleString()}`)
-        );
-        const message = element("pre", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
-        const parent_select = element("select", "git-graph-parent");
-        parent_select.setAttribute("aria-label", "\u5BF9\u6BD4\u7236\u63D0\u4EA4");
-        commit.parents.forEach((hash, index) => parent_select.append(option(hash, `\u5BF9\u6BD4\u7236\u63D0\u4EA4 ${index + 1} \xB7 ${hash.slice(0, 8)}`)));
-        if (!commit.parents.length) parent_select.append(option("", "\u9996\u6B21\u63D0\u4EA4 \xB7 \u4E0E\u7A7A\u6811\u6BD4\u8F83"));
-        const files = element("div", "git-graph-files");
-        const patch = element("pre", "git-graph-patch", "\u9009\u62E9\u6587\u4EF6\u67E5\u770B\u5DEE\u5F02\u3002");
-        patch.tabIndex = 0;
-        this.details.append(message, parent_select, files, patch);
-        void read_git_message(this.runner.run, this.snapshot.root, commit.hash).then((text) => {
-          if (epoch === this.selection_epoch) message.textContent = text.trim();
-        }).catch((error) => {
-          if (epoch === this.selection_epoch) message.textContent = String(error);
-        });
-        let file_epoch = 0;
-        const load_files = async () => {
-          const request = ++file_epoch;
-          this.patch_epoch++;
-          files.textContent = "\u6B63\u5728\u8BFB\u53D6\u53D8\u66F4\u6587\u4EF6\u2026";
-          patch.textContent = "\u9009\u62E9\u6587\u4EF6\u67E5\u770B\u5DEE\u5F02\u3002";
-          try {
-            const entries = await read_git_files(this.runner.run, this.snapshot.root, commit.hash, parent_select.value);
-            if (epoch !== this.selection_epoch || request !== file_epoch) return;
-            files.replaceChildren();
-            if (!entries.length) files.textContent = "\u76F8\u5BF9\u4E8E\u6B64\u7236\u63D0\u4EA4\u6CA1\u6709\u6587\u4EF6\u53D8\u5316\u3002";
-            for (const file of entries) {
-              const file_button = button(`${file.status}  ${file.path}`, () => {
-                for (const sibling of files.children) sibling.classList.remove("selected");
-                file_button.classList.add("selected");
-                void this.show_patch(commit.hash, parent_select.value, file.path, patch);
-              }, "git-graph-file");
-              file_button.title = file.path;
-              files.append(file_button);
-            }
-          } catch (error) {
-            if (epoch === this.selection_epoch && request === file_epoch) files.textContent = String(error);
-          }
-        };
-        parent_select.addEventListener("change", () => void load_files());
-        void load_files();
-      }
-      async show_patch(hash, parent, file, target) {
-        const epoch = ++this.patch_epoch;
-        target.textContent = "\u6B63\u5728\u8BFB\u53D6\u5DEE\u5F02\u2026";
-        try {
-          const patch = await read_git_patch(this.runner.run, this.snapshot.root, hash, parent, file);
-          if (epoch !== this.patch_epoch) return;
-          const lines = patch.split("\n");
-          const fragment = document.createDocumentFragment();
-          for (const line of lines.slice(0, 4e3)) fragment.append(element("span", line.startsWith("+") ? "git-diff-add" : line.startsWith("-") ? "git-diff-delete" : line.startsWith("@@") ? "git-diff-hunk" : "", line + "\n"));
-          if (lines.length > 4e3) fragment.append(document.createTextNode("\n\u5DEE\u5F02\u8D85\u8FC7 4000 \u884C\uFF0C\u5F53\u524D\u5C55\u793A\u524D 4000 \u884C\u3002"));
-          target.replaceChildren(fragment);
-          target.scrollTop = 0;
-          target.scrollLeft = 0;
-        } catch (error) {
-          if (epoch === this.patch_epoch) target.textContent = String(error);
-        }
+        this.panel.close();
+        setTimeout(() => {
+          let exists = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf === this.leaf) exists = true;
+          });
+          if (!exists) panels.delete(this.leaf);
+        }, 0);
       }
     }
-    app.viewManager.registerView(GIT_GRAPH_TYPE, (leaf) => new git_graph_view(leaf));
-    const open_graph = () => {
-      if (app.workspace.activeLeaf?.state.path.startsWith(`typ://${GIT_GRAPH_TYPE}/`)) return;
-      const cwd = context_path();
+    core.app.viewManager.registerView(GIT_GRAPH_TYPE, (leaf) => new git_graph_view(leaf));
+    const open_graph = (cwd) => {
+      const active = core.app.workspace.activeLeaf;
+      if (!cwd && active && panels.has(active)) return panels.get(active);
+      const settings2 = context_settings();
+      cwd ||= host.context_path(settings2.open_active_repo);
       const uri = `typ://${GIT_GRAPH_TYPE}/${encodeURIComponent(cwd)}/Git Graph`;
       let existing;
-      app.workspace.eachLeaves((leaf2) => {
-        if (leaf2.state.path === uri) existing = leaf2;
+      core.app.workspace.eachLeaves((leaf2) => {
+        if (leaf2.state.path === uri || panels.get(leaf2)?.root === cwd) existing = leaf2;
       });
       if (existing) {
-        app.workspace.activeLeaf = existing.parent.toggleTab(uri);
-        return;
+        core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);
+        return panels.get(existing);
       }
-      const parent = app.workspace.activeLeaf?.parent;
+      const parent = active?.parent;
       if (!parent) return;
-      const leaf = app.workspace.createLeaf({ type: GIT_GRAPH_TYPE, state: { path: uri, git_cwd: cwd } });
+      const leaf = core.app.workspace.createLeaf({ type: GIT_GRAPH_TYPE, state: { path: uri, git_cwd: cwd } });
       parent.appendChild(leaf);
-      app.workspace.activeLeaf = leaf;
+      core.app.workspace.activeLeaf = leaf;
+      return panels.get(leaf);
     };
-    app.commands.register({ id: GIT_GRAPH_COMMAND, title: "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", scope: "global", callback: open_graph });
-    const icon = element("i", "fa fa-code-fork");
-    app.workspace.ribbon.addButton({ id: GIT_GRAPH_COMMAND, title: "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", group: "bottom", icon, onclick: open_graph });
+    const launch = (callback) => {
+      const panel = open_graph();
+      if (panel) callback?.(panel);
+    };
+    const commands = [
+      ["view", "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", () => {
+      }],
+      ["add_repository", "Git Graph\uFF1A\u6DFB\u52A0 Git \u4ED3\u5E93", (panel) => panel.manage_repositories()],
+      ["remove_repository", "Git Graph\uFF1A\u79FB\u9664\u4ED3\u5E93\u8BB0\u5F55", (panel) => panel.manage_repositories()],
+      ["fetch", "Git Graph\uFF1AFetch \u8FDC\u7AEF", (panel) => void (async () => {
+        while (panel.pending) await new Promise((resolve) => setTimeout(resolve, 50));
+        panel.action_dialog("fetch", "repository");
+      })()],
+      ["reviews", "Git Graph\uFF1A\u7EE7\u7EED\u6216\u7ED3\u675F\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
+      ["clear_avatars", "Git Graph\uFF1A\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => host.clear_avatars()],
+      ["end_all_reviews", "Git Graph\uFF1A\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", (panel) => {
+        save_reviews(localStorage, []);
+        if (panel.to) void panel.show_comparison(panel.from, panel.to);
+      }],
+      ["end_review", "Git Graph\uFF1A\u7ED3\u675F\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
+      ["resume_review", "Git Graph\uFF1A\u6062\u590D\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
+      ["version", "Git Graph\uFF1A\u7248\u672C\u4E0E\u8BCA\u65AD", (panel) => {
+        const dialog = graph_dialog("Git Graph \u8BCA\u65AD");
+        dialog.content.textContent = "Typora Git Graph \xB7 2\n\u529F\u80FD\u5BF9\u7167\uFF1AVS Code Git Graph 1.30.0\n" + panel.root;
+        void panel.runner.run(panel.root, ["--version"]).then((version) => {
+          dialog.content.textContent += "\n" + version;
+        }).catch((error) => {
+          dialog.content.textContent += String(error);
+        });
+      }]
+    ];
+    core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: commands[0][1], scope: "global", callback: () => launch() });
+    for (const [id, title, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title, scope: "global", callback: () => launch(callback) });
+    const icon = graph_element("i", "fa fa-code-fork");
+    core.app.workspace.ribbon.addButton({ id: GIT_GRAPH_COMMAND, title: "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", group: "bottom", icon, onclick: () => launch() });
+    const settings = context_settings();
+    if (settings.icon_color !== "auto") icon.style.color = settings.icon_color;
+    const status_button = graph_button("Git Graph", () => launch(), "git-graph-status-launch");
+    status_button.hidden = !settings.show_status_button;
+    document.body.append(status_button);
+    window.addEventListener("linux-note-git-settings", ((event) => {
+      status_button.hidden = !event.detail.show_status_button;
+      icon.style.color = event.detail.icon_color === "auto" ? "" : event.detail.icon_color;
+    }));
+    core.app.workspace.on("file-menu", ({ menu, path }) => {
+      menu.containerEl.querySelector("[data-git-graph-launch]")?.remove();
+      if (!context_settings().file_menu_entry) return;
+      const item = graph_element("li");
+      item.setAttribute("data-git-graph-launch", "true");
+      const link = graph_element("a", "", "Git Graph\uFF1A\u67E5\u770B\u6240\u5C5E\u4ED3\u5E93");
+      item.append(link);
+      for (const name of ["pointerdown", "mousedown", "mouseup"]) item.addEventListener(name, (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      });
+      item.onclick = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        menu.containerEl.style.display = "none";
+        try {
+          const cwd = host.fs.statSync(path).isDirectory() ? path : host.path_api.dirname(path);
+          open_graph(cwd);
+        } catch (error) {
+          const dialog = graph_dialog("\u4ED3\u5E93\u6253\u5F00\u5931\u8D25");
+          dialog.content.textContent = String(error);
+        }
+      };
+      menu.containerEl.append(item);
+    });
     document.documentElement.setAttribute("data-linux-note-git-graph", "ready");
+    document.documentElement.setAttribute("data-linux-note-git-graph-actions", "ready");
   }
 
   // src/typora_enhancements.ts
@@ -3811,16 +27805,16 @@ ${commit.subject}`;
     fence.style.removeProperty("--linux-note-code-collapsed-height");
     fence.querySelector(":scope > .linux-note-code-toolbar")?.remove();
   }
-  function render_code_toggle(button2, expanded) {
-    if (button2.getAttribute("aria-expanded") === String(expanded)) return;
-    button2.setAttribute("aria-expanded", String(expanded));
-    button2.innerHTML = expanded ? '<span aria-hidden="true">\u21A5</span><span>\u6536\u8D77\u4EE3\u7801</span>' : '<span aria-hidden="true">\u21A7</span><span>\u5C55\u5F00\u5168\u90E8\u4EE3\u7801</span>';
-    button2.title = expanded ? "\u6062\u590D\u957F\u4EE3\u7801\u5757\u7684\u9650\u9AD8\u663E\u793A" : "\u5C55\u793A\u8FD9\u4E2A\u4EE3\u7801\u5757\u7684\u5168\u90E8\u5185\u5BB9";
+  function render_code_toggle(button, expanded) {
+    if (button.getAttribute("aria-expanded") === String(expanded)) return;
+    button.setAttribute("aria-expanded", String(expanded));
+    button.innerHTML = expanded ? '<span aria-hidden="true">\u21A5</span><span>\u6536\u8D77\u4EE3\u7801</span>' : '<span aria-hidden="true">\u21A7</span><span>\u5C55\u5F00\u5168\u90E8\u4EE3\u7801</span>';
+    button.title = expanded ? "\u6062\u590D\u957F\u4EE3\u7801\u5757\u7684\u9650\u9AD8\u663E\u793A" : "\u5C55\u793A\u8FD9\u4E2A\u4EE3\u7801\u5757\u7684\u5168\u90E8\u5185\u5BB9";
   }
-  function set_code_expanded(fence, button2, expanded) {
+  function set_code_expanded(fence, button, expanded) {
     fence.classList.toggle("is-code-expanded", expanded);
     fence.classList.toggle("is-code-collapsed", !expanded);
-    render_code_toggle(button2, expanded);
+    render_code_toggle(button, expanded);
     if (!expanded) {
       const scroller = fence.querySelector(".CodeMirror-scroll");
       if (scroller) scroller.scrollTop = 0;
@@ -3830,20 +27824,20 @@ ${commit.subject}`;
   function bind_code_toggle_events() {
     const handle_event = (event) => {
       const target = event.target;
-      const button2 = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
-      const fence = button2?.closest(".md-fences");
-      if (!button2 || !fence || !button2.parentElement?.classList.contains("linux-note-code-toolbar")) return;
+      const button = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
+      const fence = button?.closest(".md-fences");
+      if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
       if (event instanceof KeyboardEvent) {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.stopPropagation();
         event.preventDefault();
-        if (event.key === "Enter" && event.type === "keydown" && !event.repeat || event.key === " " && event.type === "keyup") button2.click();
+        if (event.key === "Enter" && event.type === "keydown" && !event.repeat || event.key === " " && event.type === "keyup") button.click();
         return;
       }
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
       if (event.type === "click") {
-        set_code_expanded(fence, button2, !fence.classList.contains("is-code-expanded"));
+        set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
       }
     };
     for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -3870,22 +27864,22 @@ ${commit.subject}`;
     }
     fence.style.setProperty("--linux-note-code-collapsed-height", `${maximum_height}px`);
     let toolbar = fence.querySelector(":scope > .linux-note-code-toolbar");
-    let button2 = toolbar?.querySelector(".linux-note-code-toggle");
-    if (!toolbar || !button2) {
+    let button = toolbar?.querySelector(".linux-note-code-toggle");
+    if (!toolbar || !button) {
       toolbar?.remove();
       toolbar = document.createElement("div");
       toolbar.className = "linux-note-code-toolbar";
       toolbar.contentEditable = "false";
-      button2 = document.createElement("button");
-      button2.type = "button";
-      button2.className = "linux-note-code-toggle";
-      toolbar.append(button2);
+      button = document.createElement("button");
+      button.type = "button";
+      button.className = "linux-note-code-toggle";
+      toolbar.append(button);
       fence.append(toolbar);
     }
     if (!fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
-      set_code_expanded(fence, button2, false);
+      set_code_expanded(fence, button, false);
     } else {
-      render_code_toggle(button2, fence.classList.contains("is-code-expanded"));
+      render_code_toggle(button, fence.classList.contains("is-code-expanded"));
     }
   }
   function schedule_scan() {
@@ -3904,10 +27898,10 @@ ${commit.subject}`;
       diagram_containers.add(mermaid_container_for_preview(preview));
     });
     diagram_containers.forEach(ensure_mermaid_button);
-    for (const [container, button2] of mermaid_buttons) {
+    for (const [container, button] of mermaid_buttons) {
       if (!container.isConnected) {
         mermaid_buttons.delete(container);
-      } else if (!button2.isConnected) {
+      } else if (!button.isConnected) {
         mermaid_buttons.delete(container);
         ensure_mermaid_button(container);
       }
@@ -3916,19 +27910,19 @@ ${commit.subject}`;
   function namespace_svg_ids(svg) {
     const prefix = `linux-note-mermaid-${Date.now().toString(36)}`;
     const replacements = /* @__PURE__ */ new Map();
-    svg.querySelectorAll("[id]").forEach((element2) => {
-      const old_id = element2.id;
+    svg.querySelectorAll("[id]").forEach((element) => {
+      const old_id = element.id;
       const new_id = `${prefix}-${old_id}`;
       replacements.set(old_id, new_id);
-      element2.id = new_id;
+      element.id = new_id;
     });
-    svg.querySelectorAll("*").forEach((element2) => {
-      for (const attribute of Array.from(element2.attributes)) {
+    svg.querySelectorAll("*").forEach((element) => {
+      for (const attribute of Array.from(element.attributes)) {
         let value = attribute.value;
         for (const [old_id, new_id] of replacements) {
           value = value.replaceAll(`url(#${old_id})`, `url(#${new_id})`).replaceAll(`#${old_id}`, `#${new_id}`);
         }
-        if (value !== attribute.value) element2.setAttribute(attribute.name, value);
+        if (value !== attribute.value) element.setAttribute(attribute.name, value);
       }
     });
     svg.querySelectorAll("style").forEach((style) => {
@@ -4068,9 +28062,9 @@ ${commit.subject}`;
       }
     };
     viewer.addEventListener("click", (event) => {
-      const button2 = event.target.closest("button[data-action]");
-      if (!button2) return;
-      const action = button2.dataset.action;
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const action = button.dataset.action;
       if (action === "close") close();
       else if (action === "zoom-out") set_zoom(view.scale / ZOOM_FACTOR);
       else if (action === "zoom-in") set_zoom(view.scale * ZOOM_FACTOR);
@@ -4151,19 +28145,19 @@ ${commit.subject}`;
     const toolbar = document.createElement("div");
     toolbar.className = "linux-note-mermaid-inline-toolbar";
     toolbar.contentEditable = "false";
-    const button2 = document.createElement("button");
-    button2.type = "button";
-    button2.className = "linux-note-mermaid-open";
-    button2.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
-    button2.innerHTML = '<span aria-hidden="true">\u26F6</span><span>\u5168\u5C4F\u67E5\u770B</span>';
-    button2.addEventListener("click", (event) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "linux-note-mermaid-open";
+    button.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
+    button.innerHTML = '<span aria-hidden="true">\u26F6</span><span>\u5168\u5C4F\u67E5\u770B</span>';
+    button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       open_mermaid_viewer(preview);
     });
-    toolbar.append(button2);
+    toolbar.append(button);
     preview.prepend(toolbar);
-    mermaid_buttons.set(container, button2);
+    mermaid_buttons.set(container, button);
   }
   async function initialize() {
     ensure_style();

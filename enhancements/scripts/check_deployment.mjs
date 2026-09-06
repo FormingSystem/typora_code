@@ -8,12 +8,17 @@ const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bund
 const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'), 'utf8');
 for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
   'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
-  'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph']) {
+  'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade']) {
   if (!bundle_markers.includes(marker)) throw new Error(`required deployment capability is missing: ${marker}`);
 }
 for (const marker of bundle_markers) {
   if (!bundle_source.includes(marker)) throw new Error(`prebuilt bundle is missing: ${marker}`);
 }
+for (const line of fs.readFileSync('vendor/gemoji/SHA256SUMS', 'utf8').trim().split(/\r?\n/u)) {
+  const match = /^([a-f\d]{64})  (emoji\.json|LICENSE)$/u.exec(line);
+  if (!match || createHash('sha256').update(fs.readFileSync('vendor/gemoji/' + match[2])).digest('hex') !== match[1]) throw new Error('Gemoji release hash mismatch');
+}
+if (!bundle_source.includes('Copyright (c) 2019 GitHub, Inc.')) throw new Error('Gemoji license is missing from installed bundle');
 const deployment_files = [
   "configure_windows.cmd",
   "configure_windows.ps1",

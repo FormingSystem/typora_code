@@ -48,6 +48,7 @@ if ((Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash -ne
     typora_version = get_typora_windows_version $typora_root
     enhancement_entries = $tag_count
     workspace_assets = $workspace_assets.Count
+    git_graph_features = "history, actions, comparisons, reviews, repository settings"
     git_graph_runtime = if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) { "Git available on PATH" } else { "Git missing on PATH; install Git to use Git Graph" }
     theme_sha256 = (Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash
     bundle_sha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash
