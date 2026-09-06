@@ -17,6 +17,7 @@ domains:
 - 使用 `Alt + ←` / `Alt + →` 后退、前进，记录文内锚点和跨 Markdown 文件跳转，并恢复光标与滚动位置；
 - 带标题的链接在目标栏定位光标、正文和目录，来源栏保留阅读位置；关闭标签或窗口后重新打开文件，继续上次阅读；
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
+- 在工作区标签中使用 Git Graph，查看当前仓库的提交、分支、合并关系和文件差异；
 - 使用 VS Code 内置 C/C++ TextMate 语法和 Oniguruma 解析 Typora 的 `c`、`cpp` 等代码围栏，并把识别出的语法角色映射到 GitHub Light 代码配色；
 - 对超过响应式阅读高度的普通代码块默认限高，提供 `展开全部代码` / `收起代码` 切换；正文或代码块获焦时都能直接点击，按钮获焦后支持 Enter / 空格，打印时自动完整展开且不修改 Markdown；
 - 在 Mermaid 图正上方放置随正文自然滚动的静态工具行，不悬浮、不跟随视口，也不覆盖图；工具行挂在预览容器内部，并按 Mermaid 代码块去重，避免 Typora 的隐藏或重建预览产生重复按钮；
@@ -61,6 +62,8 @@ npm run check
 Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test_reading_native.ps1`。脚本通过共享环境助手发现 Typora，生成临时 Markdown，验证预览栏中的中文标题链接、目标光标及目录、来源段落与栏内偏移、Alt 前后导航、关闭标签重开和新窗口续读；比较源文件摘要，确认正文没有被改写。测试入口只对两个临时文档生效，完成后关闭自己的测试窗口并移除入口，不退出其他窗口。结果 JSON 保留在脚本输出的临时目录。
 
 同一命令增加 `-suite paths` 验证复制路径：标签右键菜单、文件树菜单事件、快捷键、非活动标签和活动预览栏的目标识别，以及光标和阅读位置保持。该套件用剪贴板桥接替身核对复制文本，不覆盖系统剪贴板。`npm run check` 另覆盖 Windows、UNC 和 Linux 路径、根目录边界、中文与空格、未保存文档。
+
+增加 `-suite git` 验证 Git Graph：脚本生成临时 Git 仓库，在真实 Typora 中检查工具栏入口、提交图、分支筛选、合并父提交、中文文件差异、查找、刷新和切回正文的非零阅读位置；未提交 Markdown 与 Git 索引必须保持原字节。`npm run check` 另使用真实 Git 验证空仓库、注解标签、远端引用、分页、独立 worktree、非仓库错误和外部 diff 禁用。
 
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共插件文件事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
 
@@ -128,3 +131,23 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 这些键位对应 [VS Code 默认文件命令](https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/files/browser/fileCommands.ts)。路径按当前系统格式输出：Windows 使用反斜杠，Linux 使用正斜杠，保留中文、空格、`#` 和 `%`，不额外加入引号或 Markdown 转义。普通 `Ctrl + C` 继续复制正文选区；分栏快捷键继续有效。
 
 相对路径的基准是 **Typora 当前打开的文件夹**，不是正在编辑的 Markdown 所在子目录。例如根目录为 `notes`，文件为其中的 `rcu/example.md`，Windows 下复制结果为 `rcu\example.md`。未打开文件夹或文件位于根目录之外时返回完整路径；根目录自身的相对路径为空，与 [VS Code 的路径标签规则](https://github.com/microsoft/vscode/blob/main/src/vs/base/common/labels.ts) 一致。切换文件夹后立即使用新的根目录。尚未保存、没有文件路径的文档不执行复制。
+
+## 1.5\_Git\_Graph提交关系图
+
+点击左侧工具栏底部的 **分支图标**，或在社区插件命令面板执行 **Git Graph：查看提交关系图**，即可在当前编辑区打开 Git Graph 标签。它读取活动文档所属的 Git 仓库；没有已保存文档时使用当前打开的文件夹。子目录通过 Git 查找仓库根，子模块和独立 worktree 保持自己的仓库上下文。图标签可使用已有分栏操作并排展示，切回 Markdown 时保持原来的阅读位置。
+
+| 操作 | 展示内容 |
+| --- | --- |
+| 全部分支 | 本地分支、已有远端跟踪引用、标签和 HEAD 的提交关系；圆点为提交，向下的连线指向父提交 |
+| 分支选择框 | 切换为指定分支、标签或当前 HEAD 的历史 |
+| 点击提交 | 完整编号、作者、日期、提交说明和变更文件 |
+| 对比父提交 | 合并提交可选择任一父提交；首次提交与空树比较 |
+| 点击变更文件 | 带增删颜色的统一差异；文件名保留中文、空格和特殊符号 |
+| 查找／Enter | 按说明、作者或编号查找已加载的提交，再按一次定位下一个匹配项 |
+| 刷新／加载更多 | 重新读取当前分支尖端；每次增加 200 条历史 |
+
+这是仓库增强中的 Git 历史查看工具，使用社区核心的标签和工具栏接口，不是把 VS Code 的扩展包直接装入 Typora。历史查询使用 [Git log](https://git-scm.com/docs/git-log)，父提交差异使用 [Git diff-tree](https://git-scm.com/docs/git-diff-tree)。读取不执行提交、暂存、切换分支或网络同步；图中的远端分支名称来自本地已有的远端跟踪引用，刷新不会 fetch。
+
+普通安装已包含预构建实现，无需额外安装 Node.js。**Git 必须在 Typora 进程的 PATH 中可执行**；安装 Git 或修改 PATH 后，保存文档并正常重启 Typora。配置检查增加 `git_graph_runtime` 字段报告检查进程能否发现 Git；缺少 Git 时，图内显示提示，其他阅读增强仍可使用。安装器不写固定 Git 路径，也不自动改动系统 PATH。
+
+初始读取 200 条，单个视图最多加载 5000 条；达到上限时可选择分支缩小范围。每次查询最长 15 秒、输出最多 4 MiB；文件差异最多展示前 4000 行，截断会明确提示。二进制文件显示 Git 的差异提示；重命名按删除、增加分别展示。关闭或隐藏图标签会取消未完成查询，重新进入后补齐尚未完成的内容。空仓库和非 Git 文件夹分别显示状态及错误说明。
