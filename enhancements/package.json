@@ -5,7 +5,7 @@
   "description": "Typora editor groups, reading navigation, TextMate C/C++ colors and Mermaid viewer.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs && node scripts/test_reading_history.mjs && node scripts/test_reading_positions.mjs && node scripts/test_file_paths.mjs && node scripts/test_git_graph.mjs && node scripts/test_git_graph_full.mjs && node scripts/test_terminal.mjs"
+    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs && node scripts/test_reading_history.mjs && node scripts/test_reading_positions.mjs && node scripts/test_file_paths.mjs && node scripts/test_git_graph.mjs && node scripts/test_git_graph_full.mjs && node scripts/test_git_sync.mjs && node scripts/test_git_discard_changes.mjs && node scripts/test_terminal.mjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "0.11.0",

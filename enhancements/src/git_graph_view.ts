@@ -1,7 +1,8 @@
 import { GIT_GRAPH_COMMAND, GIT_GRAPH_TYPE } from "./git_graph_data";
 import { create_graph_host, type graph_core, type graph_leaf } from "./git_graph_host";
 import { git_graph_panel } from "./git_graph_panel";
-import { graph_element, graph_button, graph_dialog } from "./git_graph_widgets";
+import { graph_element, graph_dialog } from "./git_graph_widgets";
+import { bind_git_status_bar } from "./git_status_bar";
 import { GRAPH_SETTINGS_KEY, load_graph_settings, save_reviews } from "./git_graph_settings";
 import graph_css from "./git_graph.css";
 
@@ -22,10 +23,22 @@ export function bind_git_graph(): void {
   const icon = graph_element("i", "fa fa-code-fork");
   class source_control_sidebar extends core.SidebarPanel {
     containerEl = graph_element("section", "linux-note-git-source-control"); panel?: git_graph_panel; visible = false;
+    native_observer = new MutationObserver(() => this.clear_native_tabs());
     constructor() { super(); this.addRibbonButton({id: "linux_note:source_control", title: "源代码管理（Ctrl+Shift+G）", icon, group: "top"}); }
     mount(panel: git_graph_panel) { this.panel = panel; this.containerEl.replaceChildren(panel.workbench.sidebar); }
-    onshow() { this.visible = true; this.mount(controller_for(host.context_path())); if (this.panel && !this.panel.pending) void this.panel.refresh(false); }
-    onhide() { this.visible = false; }
+    clear_native_tabs() {
+      const sidebar = document.querySelector("#typora-sidebar");
+      const classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
+      if (this.visible && sidebar && classes.some(name => sidebar.classList.contains(name))) sidebar.classList.remove(...classes);
+    }
+    onshow() {
+      this.visible = true; this.clear_native_tabs();
+      const native_sidebar = document.querySelector("#typora-sidebar");
+      // showSidebar 与延迟大纲刷新会恢复原生标签 class；Git 面板显示期间由本面板持有显示状态。
+      if (native_sidebar) this.native_observer.observe(native_sidebar, {attributes: true, attributeFilter: ["class"]});
+      this.mount(controller_for(host.context_path())); if (this.panel && !this.panel.pending) void this.panel.refresh(false);
+    }
+    onhide() { this.visible = false; this.native_observer.disconnect(); }
   }
   const source_sidebar = new source_control_sidebar(); core.app.workspace.sidebar.addPanel(source_sidebar);
   const show_source_control = (panel?: git_graph_panel, toggle = false) => {
@@ -56,7 +69,15 @@ export function bind_git_graph(): void {
       this.panel = available || new git_graph_panel(host, cwd || host.context_path()); controllers.add(this.panel);
       this.containerEl = this.panel.container; panels.set(leaf, this.panel);
     }
-    onOpen() { this.panel.open(); }
+    onOpen() {
+      // 核心标签最初带 fa-file-o；清掉默认文件图标，防止两个 ::before 字形互相覆盖。
+      for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
+        const icon = tab.querySelector(".typ-file-icon"); if (icon) icon.className = "typ-file-icon fa fa-code-fork";
+        const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = "Git Graph";
+        tab.querySelector(".typ-file-ext")?.remove(); tab.title = "Git Graph · " + this.panel.root;
+      }
+      this.panel.open();
+    }
     onClose() {
       this.panel.close();
       setTimeout(() => { let exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf === this.leaf) exists = true; }); if (!exists) { panels.delete(this.leaf); } }, 0);
@@ -88,8 +109,9 @@ export function bind_git_graph(): void {
   core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: commands[0][1], scope: "global", callback: () => launch() });
   for (const [id, title, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title, scope: "global", callback: () => launch(callback) });
   const settings = context_settings(); if (settings.icon_color !== "auto") icon.style.color = settings.icon_color;
-  const status_button = graph_button("Git Graph", () => launch(), "git-graph-status-launch"); status_button.hidden = !settings.show_status_button; document.body.append(status_button);
-  window.addEventListener("linux-note-git-settings", ((event: CustomEvent) => { status_button.hidden = !event.detail.show_status_button; icon.style.color = event.detail.icon_color === "auto" ? "" : event.detail.icon_color; }) as EventListener);
+  const status_bar = bind_git_status_bar(core, host, () => panels.get(core.app.workspace.activeLeaf!) || controller_for(host.context_path()), () => launch());
+  status_bar.set_graph_visible(settings.show_status_button);
+  window.addEventListener("linux-note-git-settings", ((event: CustomEvent) => { status_bar.set_graph_visible(event.detail.show_status_button); status_bar.refresh(); icon.style.color = event.detail.icon_color === "auto" ? "" : event.detail.icon_color; }) as EventListener);
   core.app.workspace.on("file-menu", ({ menu, path }) => {
     menu.containerEl.querySelectorAll("[data-git-graph-launch]").forEach((item: Element) => item.remove());
     if (!context_settings().file_menu_entry) return;
@@ -113,10 +135,11 @@ export function bind_git_graph(): void {
   core.app.commands.register({id: "linux_note:source_control", title: "Git：源代码管理", scope: "global", callback: () => show_source_control()});
   core.app.workspace.on("active-leaf:change", leaf => {
     if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
+    status_bar.refresh();
   });
   const refresh_visible = () => { const panel = source_sidebar.panel; if (source_sidebar.visible && document.visibilityState !== "hidden" && panel && !panel.pending && !panel.writing && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu")) void panel.refresh(false); };
   window.setInterval(refresh_visible, 8000);
-  core.app.workspace.on("file:will-save", () => window.setTimeout(refresh_visible, 600));
+  core.app.workspace.on("file:will-save", () => window.setTimeout(() => { refresh_visible(); status_bar.refresh(); }, 600));
   window.addEventListener("focus", () => { const panel = source_sidebar.panel; if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false); });
   window.addEventListener("keydown", event => {
     if (event.isComposing || document.querySelector(".git-graph-dialog-shade, .git-graph-menu")) return;

@@ -293,3 +293,6 @@ body.linux-note-mermaid-viewer-open {
     display: none !important;
   }
 }
+[data-linux-note-workspace="ready"] #outline-btn-wrapper {
+  display: none !important;
+}

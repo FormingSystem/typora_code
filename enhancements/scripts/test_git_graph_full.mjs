@@ -5,7 +5,7 @@ import path from 'node:path';
 import child_process from 'node:child_process';
 import { build } from 'esbuild';
 
-const compiled = await build({ stdin: { contents: ['git_graph_repository', 'git_graph_actions', 'git_graph_settings', 'git_graph_runtime'].map(name => `export * from './src/${name}.ts';`).join('\n'), resolveDir: process.cwd() }, bundle: true, platform: 'node', format: 'esm', write: false });
+const compiled = await build({ stdin: { contents: ['git_graph_repository', 'git_graph_actions', 'git_graph_settings', 'git_graph_runtime', 'git_ignore'].map(name => `export * from './src/${name}.ts';`).join('\n'), resolveDir: process.cwd() }, bundle: true, platform: 'node', format: 'esm', write: false });
 const api = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_git_full_'));
 const reader = api.create_git_runner({ child_process, process }); const writer = api.create_git_runner({ child_process, process }, { writable: true });
@@ -187,6 +187,41 @@ try {
   expect(!git(scm,['diff','--cached','--name-only']) && fs.existsSync(path.join(scm,'moved.c')), 'unstaging rename removes both index paths without moving working file');
   const clone_path = path.join(temp,'克隆仓库'); await action(scm,'clone',{url:scm,directory:clone_path});
   expect(head(clone_path) === head(scm),'clone creates selected destination with committed history');
+  const ignored_root = create_repo('precise ignores'); const modules = {fs, path_api: path};
+  const append_ignore = file => api.append_git_ignore(modules, reader.run, ignored_root, file);
+  const ignore_file = path.join(ignored_root, '.gitignore'); const original_ignore = Buffer.from('\ufeff# existing rules\r\nkeep-original'); fs.writeFileSync(ignore_file, original_ignore);
+  const special = '目录 [1]/#秘密 ! 文件[2].md'; write(ignored_root, special, 'secret'); write(ignored_root, '目录 [1]/#秘密 ! 文件2.md', 'neighbor'); write(ignored_root, 'other/' + special, 'another directory');
+  const ignored_result = await append_ignore(special); const ignore_bytes = fs.readFileSync(ignore_file);
+  expect(ignore_bytes.subarray(0, original_ignore.length).equals(original_ignore) && ignore_bytes.subarray(original_ignore.length).toString() === '\r\n' + ignored_result.rule + '\r\n', 'ignore append preserves original BOM, bytes and CRLF without a final newline');
+  expect(await reader.run(ignored_root, ['check-ignore', '--', special]) === special + '\n', 'root ignore rule matches the exact special filename');
+  await assert.rejects(reader.run(ignored_root, ['check-ignore', '--', '目录 [1]/#秘密 ! 文件2.md']), error => error.code === 1);
+  await assert.rejects(reader.run(ignored_root, ['check-ignore', '--', 'other/' + special]), error => error.code === 1);
+  expect(true, 'ignore rule escapes brackets and anchors the complete path at repository root');
+  expect(!(await append_ignore(special)).changed && fs.readFileSync(ignore_file).equals(ignore_bytes), 'repeating an effective exact ignore rule leaves existing bytes unchanged');
+  write(ignored_root, 'tracked.md', 'tracked'); await action(ignored_root, 'stage', {}, 'tracked.md');
+  await assert.rejects(append_ignore('tracked.md'), /已经加入 Git 跟踪/);
+  expect((await reader.run(ignored_root, ['ls-files', '-z', '--', 'tracked.md'])) === 'tracked.md\0' && fs.readFileSync(ignore_file).equals(ignore_bytes), 'ignore rejects tracked files without removing index entries or editing rules');
+  for (const invalid of ['../outside.md', '/absolute.md', 'bad\nname.md', '.git/config']) await assert.rejects(append_ignore(invalid), /精确忽略规则/);
+  expect(true, 'ignore rejects traversal, metadata paths and line-breaking filenames');
+  const patterns = ['literal*.md', 'question?.md', '#start!.md', 'bracket[ab].md', 'trailing ', ...(process.platform === 'win32' ? [] : ['back\\slash.md'])];
+  fs.writeFileSync(ignore_file, patterns.map(api.exact_ignore_rule).join('\n') + '\n');
+  for (const name of patterns) {
+    await reader.run(ignored_root, ['check-ignore', '--no-index', '--quiet', '--', name]);
+    await assert.rejects(reader.run(ignored_root, ['check-ignore', '--no-index', '--quiet', '--', 'nested/' + name]), error => error.code === 1);
+  }
+  for (const name of ['literalXYZ.md', 'questionA.md', 'bracketa.md', 'trailing']) await assert.rejects(reader.run(ignored_root, ['check-ignore', '--no-index', '--quiet', '--', name]), error => error.code === 1);
+  expect(api.exact_ignore_rule('back\\slash.md') === '/back\\\\slash.md', 'Git validates wildcard, leading marker and trailing-space escaping; literal backslashes are escaped for POSIX filenames');
+  fs.writeFileSync(ignore_file, Buffer.from([0xff, 0xfe, 0x61, 0])); write(ignored_root, 'untouched.md', 'untouched');
+  await assert.rejects(append_ignore('untouched.md'), /UTF-8/);
+  expect(fs.readFileSync(ignore_file).equals(Buffer.from([0xff, 0xfe, 0x61, 0])), 'non-UTF8 ignore content is rejected without alteration');
+  fs.unlinkSync(ignore_file); const outside = path.join(temp, 'outside-ignore'); fs.writeFileSync(outside, 'outside\n'); fs.linkSync(outside, ignore_file);
+  await assert.rejects(append_ignore('untouched.md'), /无链接的普通文件/);
+  expect(fs.readFileSync(outside, 'utf8') === 'outside\n', 'hard-linked ignore file is rejected without writing its other name');
+  fs.unlinkSync(ignore_file); const linked_directory = path.join(temp, 'linked-ignore-directory'); fs.mkdirSync(linked_directory); fs.symlinkSync(linked_directory, ignore_file, process.platform === 'win32' ? 'junction' : 'dir');
+  await assert.rejects(append_ignore('untouched.md'), /无链接的普通文件/);
+  expect(fs.readdirSync(linked_directory).length === 0, 'symbolic-link or junction ignore path is rejected');
+  fs.unlinkSync(ignore_file); const new_ignore = await append_ignore('untouched.md');
+  expect(new_ignore.changed && fs.readFileSync(ignore_file, 'utf8') === '/untouched.md\n' && !(await reader.run(ignored_root, ['ls-files', '-z', '--', '.gitignore'])), 'missing root ignore is created without staging the rule file');
   console.log(JSON.stringify({ status: 'PASS', checks }, null, 2));
 } finally {
   reader.cancel(); writer.cancel();

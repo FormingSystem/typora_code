@@ -1,0 +1,36 @@
+footer.ty-footer .linux-note-git-status {
+  float: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 100%;
+  max-width: 65%;
+  padding: 0 4px;
+  overflow: hidden;
+  color: var(--text-color, #424242);
+}
+.linux-note-git-status button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 0 7px;
+  margin: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.linux-note-git-status button[hidden] { display: none; }
+.linux-note-git-status button:hover { background: var(--item-hover-bg-color, #8882); }
+.linux-note-git-status button:focus-visible { outline: 1px solid var(--primary-color, #007acc); outline-offset: -1px; }
+.linux-note-git-status button:disabled { cursor: default; opacity: .5; }
+.git-status-branch { flex: 0 1 auto; max-width: min(300px, 35vw); }
+.git-status-branch-label { overflow: hidden; text-overflow: ellipsis; }
+.git-status-sync, .git-status-graph { flex: none; }
+.git-status-sync-counts:empty { display: none; }
+@media print { .linux-note-git-status { display: none !important; } }
