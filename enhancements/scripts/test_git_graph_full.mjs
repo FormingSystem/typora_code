@@ -167,6 +167,26 @@ try {
   expect(true, 'tag signature verifies with an isolated signing key');
   const archive = path.join(temp, 'version.zip'); await writer.run(signed, ['archive', '--format=zip', '--output=' + archive, 'HEAD']);
   expect(fs.readFileSync(archive).subarray(0, 2).toString() === 'PK', 'archive writes a ZIP file');
+  const scm = create_repo('source control'); const old_path = '旧名 [1] #%.c'; const new_path = '新名 [1] #%.c';
+  write(scm, old_path, 'int value = 1;\n'); const scm_first = commit(scm, '初始文件');
+  git(scm, ['mv', '--', old_path, new_path]); commit(scm, '重命名'); write(scm, new_path, 'int value = 2;\n'); commit(scm, '修改内容');
+  const timeline = await api.read_file_history(reader.run, scm, new_path);
+  expect(timeline.length === 3 && timeline[0].file.path === new_path && timeline[1].file.old_path === old_path && timeline[2].file.path === old_path && timeline[2].commit.hash === scm_first, 'file timeline follows rename and retains historical paths');
+  write(scm, new_path, 'int value = 3;\n'); await action(scm, 'stage', {}, new_path); write(scm, new_path, 'int value = 4;\n');
+  await action(scm, 'discard_file', {}, new_path);
+  expect(fs.readFileSync(path.join(scm,new_path),'utf8') === 'int value = 3;\n', 'discard restores index version and preserves staged content');
+  await action(scm, 'unstage_all'); expect(!git(scm,['diff','--cached','--name-only']), 'unstage all keeps working files');
+  write(scm,'new [2].md','untracked'); write(scm,'new 2.md','neighbor');
+  await action(scm,'delete_untracked',{},'new [2].md');
+  expect(!fs.existsSync(path.join(scm,'new [2].md')) && fs.existsSync(path.join(scm,'new 2.md')), 'discard untracked file treats brackets literally and leaves neighboring file');
+  await action(scm,'stage_all'); expect(git(scm,['diff','--cached','--name-only']).includes('new 2.md'),'stage all includes untracked file');
+  await action(scm,'unstage_all'); git(scm,['restore','--worktree','--',new_path]);
+  git(scm,['mv','--',new_path,'moved.c']);
+  const batch = await api.plan_git_action(reader.run,'unstage',{root:scm,target:'moved.c',hash:head(scm),operation:'',paths:['moved.c',new_path]},{});
+  await api.execute_git_action(writer.run,batch,()=>true);
+  expect(!git(scm,['diff','--cached','--name-only']) && fs.existsSync(path.join(scm,'moved.c')), 'unstaging rename removes both index paths without moving working file');
+  const clone_path = path.join(temp,'克隆仓库'); await action(scm,'clone',{url:scm,directory:clone_path});
+  expect(head(clone_path) === head(scm),'clone creates selected destination with committed history');
   console.log(JSON.stringify({ status: 'PASS', checks }, null, 2));
 } finally {
   reader.cancel(); writer.cancel();

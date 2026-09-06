@@ -8,7 +8,7 @@ const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bund
 const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'), 'utf8');
 for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
   'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
-  'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade']) {
+  'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade', 'data-linux-note-source-control', 'data-linux-note-monaco-diff', 'linux_note:source_control']) {
   if (!bundle_markers.includes(marker)) throw new Error(`required deployment capability is missing: ${marker}`);
 }
 for (const marker of bundle_markers) {
@@ -102,3 +102,6 @@ for (const line of fs.readFileSync('dist/terminal_runtime/SHA256SUMS','utf8').tr
 for (const marker of ['data-linux-note-terminal','linux_note:terminal','linux-note-workspace-sash']) if (!bundle_markers.includes(marker)) throw new Error('Terminal deployment marker missing');
 const node_release = JSON.parse(fs.readFileSync('node_runtime.json','utf8'));
 if (!bundle_source.includes(node_release.version) || !bundle_source.includes('Copyright (c) 2017-2019, The xterm.js authors')) throw new Error('Terminal runtime version or license is missing');
+
+if (!bundle_source.includes('Monaco Editor 0.56.0 (MIT)')) throw new Error('Monaco license is missing');
+if (!bundle_source.includes('_VSCODE_NLS_LANGUAGE')) throw new Error('Monaco Chinese UI is missing');

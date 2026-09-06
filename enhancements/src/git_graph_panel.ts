@@ -1,8 +1,9 @@
+import { git_source_control } from "./git_source_control";
 import { create_workspace_sash } from "./workspace_sash";
 import type { graph_menu_entry } from "./git_graph_widgets";
 import emoji_data from "../vendor/gemoji/emoji.json";
 import { build_git_graph, type graph_row, type git_ref } from "./git_graph_data";
-import { read_repository, compare_files, compare_patch, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
+import { read_repository, compare_files, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
   type repository_state, type graph_commit, type graph_change } from "./git_graph_repository";
 import { graph_defaults, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, settings_choices, settings_labels, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
 import { graph_actions, plan_git_action, execute_git_action, type graph_action, type action_plan } from "./git_graph_actions";
@@ -14,12 +15,12 @@ export class git_graph_panel {
   container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar"); root_label = el("div", "git-graph-root");
   status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("div", "git-graph-details", "选择提交查看详情；Ctrl / Cmd 点击第二条提交进行比较。");
   branch_select = el("select", "git-graph-branch"); repo_select = el("select", "git-graph-repositories"); search = el("input", "git-graph-search");
-  sash: HTMLElement;
+  sash: HTMLElement; workbench: git_source_control;
   body = el("div", "git-graph-body"); header = el("div", "git-graph-columns");
   refresh_button = button("刷新", () => void this.refresh()); more_button = button("加载更多", () => { this.count += this.settings.page_count; void this.refresh(false); });
   runner: ReturnType<graph_host["runner"]>; writer: ReturnType<graph_host["runner"]>;
   count: number; branches: string[] = []; selected = ""; from = EMPTY; to = "";
-  epoch = 0; detail_epoch = 0; patch_epoch = 0; pending = false; writing = false; loaded = false; active = false;
+  epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false;
   files: graph_change[] = []; containment = new Map<string, string>(); ancestors = new Set<string>();
   key_handler: (event: KeyboardEvent) => void;
 
@@ -34,14 +35,14 @@ export class git_graph_panel {
     this.search.placeholder = "查找提交、日期、作者、编号和引用"; this.search.setAttribute("aria-label", "查找 Git 历史");
     this.search.onkeydown = event => { if (event.key === "Enter") { event.preventDefault(); this.find_next(event.shiftKey ? -1 : 1); } };
     this.toolbar.append(this.repo_select, button("仓库", () => this.manage_repositories()), this.branch_select, button("多选分支", () => this.filter_branches()), this.refresh_button,
-      button("Fetch", () => this.action_dialog("fetch", "repository")), button("操作", () => this.repository_menu()), button("设置", () => this.settings_dialog()), this.search, button("查找", () => this.find_next()));
+      button("获取", () => this.action_dialog("fetch", "repository")), button("操作", () => this.repository_menu()), button("设置", () => this.settings_dialog()), this.search, button("查找", () => this.find_next()));
     this.sash = create_workspace_sash({ label: "调整提交列表与详情面板大小", area: this.body,
       vertical: () => this.settings.details_location === "right" && this.container.clientWidth > 680,
       ratio: () => this.settings.panel_ratio / 100, change: ratio => { this.settings.panel_ratio = Math.round(ratio * 100); this.apply_layout(); }, save: () => this.persist_settings(), reset: .55 });
     this.header.oncontextmenu = event => this.layout_menu(event);
     this.container.oncontextmenu = event => this.background_menu(event);
     this.toolbar.append(button("终端", () => this.host.terminal(this.root, this.settings.terminal_shell)), button("布局", () => this.layout_dialog()));
-    this.body.append(this.list, this.sash, this.details); this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
+    this.body.append(this.list, this.sash, this.details); this.workbench = new git_source_control(this); this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
     this.list.addEventListener("scroll", () => {
       if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) { this.count += this.settings.page_count; void this.refresh(false); }
     });
@@ -52,19 +53,19 @@ export class git_graph_panel {
     if (!this.loaded || this.pending || !this.settings.retain_context) void this.refresh(false);
     else if (this.selected) void this.show_comparison(this.from, this.to);
   }
-  close(): void { this.active = false; this.epoch++; this.detail_epoch++; this.patch_epoch++; this.runner.cancel(); window.removeEventListener("keydown", this.key_handler, true); }
-  report(error: unknown): void { this.status.textContent = String(error instanceof Error ? error.message : error); }
+  close(): void { this.active = false; this.epoch++; this.detail_epoch++; this.runner.cancel(); this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; window.removeEventListener("keydown", this.key_handler, true); }
+  report(error: unknown): void { this.status.textContent = String(error instanceof Error ? error.message : error); if (this.workbench) this.workbench.notice.textContent = this.status.textContent; }
   persist_settings(): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings)); window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings })); }
   known_repos(): string[] { try { return JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]").filter((value: unknown) => typeof value === "string"); } catch { return []; } }
   save_repos(repos: string[]): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify([...new Set(repos)])); }
   switch_repo(root: string): void {
     if (this.writing) { this.report("Git 操作仍在执行，请等待结果。"); return; }
-    this.root = root; this.state = undefined; this.loaded = false; this.selected = ""; this.branches = [];
+    this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.selected = ""; this.branches = [];
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; void this.refresh();
   }
   async refresh(reset = true): Promise<void> {
-    const epoch = ++this.epoch; this.detail_epoch++; this.patch_epoch++; this.runner.cancel(); this.pending = true;
+    const epoch = ++this.epoch; this.detail_epoch++; this.runner.cancel(); this.pending = true;
     if (reset) this.count = this.settings.initial_count;
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = "正在读取 Git 仓库…";
     try {
@@ -91,6 +92,7 @@ export class git_graph_panel {
       }
       const first_load = !this.loaded;
       state.operation = this.host.operation(state.operation); this.state = state; this.root = state.root; this.loaded = true; this.containment.clear();
+      if (first_load && !this.workbench.message.value) this.workbench.load_layout();
       this.save_repos([this.root, ...this.known_repos()]); const repos = this.known_repos();
       if (this.settings.repository_order !== "recent") repos.sort((a, b) => (this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b)) : a.localeCompare(b)));
       this.repo_select.replaceChildren(...repos.map(root => option(root, this.host.path_api.basename(root) || root))); this.repo_select.value = this.root;
@@ -104,12 +106,12 @@ export class git_graph_panel {
         const hashes = await this.runner.run(this.root, ["rev-list", state.head, `--max-count=${this.count * 4}`]); if (epoch !== this.epoch) return;
         this.ancestors = new Set(hashes.trim().split("\n"));
       }
-      this.render_history(); this.more_button.hidden = !state.more;
+      this.render_history(); await this.workbench.refresh(); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
       this.status.textContent = `${state.commits.length ? `已加载 ${state.commits.length} 条提交` : "此仓库尚无提交"} · ${state.changes.length} 个未提交文件${state.operation ? " · 进行中：" + state.operation : ""}`;
       this.container.dataset.state = "ready";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
       if (this.selected && (this.selected === WORKTREE || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
-      else { this.selected = ""; this.details.textContent = "选择提交查看详情；Ctrl / Cmd 点击第二条提交进行比较。"; }
+      else { this.selected = ""; this.to = ""; this.details.textContent = "选择提交查看详情；Ctrl / Cmd 点击第二条提交进行比较。"; this.place_details(); }
     } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
     finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; } }
   }
@@ -192,6 +194,7 @@ export class git_graph_panel {
     const scroll = this.list.scrollTop; this.list.replaceChildren(this.header, fragment); this.place_details(); this.list.scrollTop = scroll;
   }
   place_details(): void {
+    this.container.setAttribute("data-detail-visible", String(Boolean(this.to)));
     const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === this.selected);
     if (this.settings.details_location === "inline" && row) row.after(this.details);
     else this.body.append(this.sash, this.details);
@@ -216,7 +219,7 @@ export class git_graph_panel {
     for (const node of this.details.querySelectorAll<HTMLElement>("[data-file]")) if (node.dataset.file === file) node.classList.remove("git-file-unreviewed");
   }
   async show_comparison(from: string, to: string): Promise<void> {
-    if (!this.state) return; const epoch = ++this.detail_epoch; this.patch_epoch++; this.from = from; this.to = to;
+    if (!this.state) return; const epoch = ++this.detail_epoch; this.from = from; this.to = to;
     this.place_details();
     const commit = this.state.commits.find(item => item.hash === to);
     this.details.replaceChildren(el("div", "git-graph-commit-title", to === WORKTREE ? "未提交改动" : to === INDEX ? "已暂存改动" : commit?.subject || "提交比较"));
@@ -249,15 +252,15 @@ export class git_graph_panel {
       }).catch(error => { if (epoch === this.detail_epoch) message.textContent = String(error); });
     }
     controls.append(button(this.settings.file_view === "tree" ? "切换列表" : "切换目录树", () => { this.settings.file_view = this.settings.file_view === "tree" ? "list" : "tree"; this.persist_settings(); void this.show_comparison(from, to); }));
-    const files = el("div", "git-graph-files"); const patch = el("pre", "git-graph-patch", "选择文件查看差异。"); patch.tabIndex = 0;
-    this.details.append(files, patch);
+    const files = el("div", "git-graph-files");
+    this.details.append(el("div", "git-scm-empty", "单击文件在中央编辑区打开差异；右键查看文件操作。"), files);
     try {
       this.files = await compare_files(this.runner.run, this.state, from, to); if (epoch !== this.detail_epoch) return;
       if (!this.files.length) { files.textContent = "没有文件差异。"; return; }
-      this.render_files(files, patch);
+      this.render_files(files);
     } catch (error) { if (epoch === this.detail_epoch) files.textContent = String(error); }
   }
-  render_files(container: HTMLElement, patch: HTMLElement): void {
+  render_files(container: HTMLElement): void {
     const directories = new Map<string, HTMLElement>(); directories.set("", container);
     const parent_for = (path: string): HTMLElement => {
       if (directories.has(path)) return directories.get(path)!;
@@ -267,7 +270,7 @@ export class git_graph_panel {
     for (const file of this.files) {
       const row = button(`${file.status}  ${file.old_path ? file.old_path + " → " : ""}${file.path}`, () => {
         for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected"); row.classList.add("selected");
-        void this.show_patch(file, patch).then(success => { if (success) this.mark_reviewed(file.path); });
+        void this.open_diff(file);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
       if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
       row.oncontextmenu = event => this.file_menu(event, file);
@@ -283,20 +286,9 @@ export class git_graph_panel {
       }
     }
   }
-  async show_patch(file: graph_change, target: HTMLElement): Promise<boolean> {
-    const epoch = ++this.patch_epoch; target.textContent = "正在读取差异…";
-    try {
-      let text = await compare_patch(this.runner.run, this.state!, this.from, this.to, file);
-      if (file.status === "??" || this.from === EMPTY && this.to === WORKTREE) text = (await this.host.revision_text(this.root, WORKTREE, file.path, this.settings)).split("\n").map(line => "+" + line).join("\n");
-      if (epoch !== this.patch_epoch) return false;
-      const fragment = document.createDocumentFragment(); const lines = text.split("\n");
-      for (const line of lines.slice(0, 10000)) fragment.append(el("span", line.startsWith("+") ? "git-diff-add" : line.startsWith("-") ? "git-diff-delete" : line.startsWith("@@") ? "git-diff-hunk" : "", line + "\n"));
-      if (lines.length > 10000) fragment.append(document.createTextNode("\n此处展示前 10000 行；右键文件可打开完整历史文本视图。"));
-      target.replaceChildren(fragment); target.scrollTop = 0; return true;
-    } catch (error) { if (epoch === this.patch_epoch) target.textContent = String(error); return false; }
-  }
   file_menu(event: MouseEvent, file: graph_change): void {
     const entries: graph_menu_entry[] = [
+      { id: "file_history", title: "打开文件历史（时间线）", action: () => void this.workbench.file_history(file.path) },
       { id: "open_file", title: "打开当前文件", action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch(error => this.report(error)) },
       { id: "copy_relative", title: "复制相对路径", action: () => void this.host.copy(file.path) }, { id: "copy_absolute", title: "复制绝对路径", action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
       { id: "open_diff", title: "打开双栏差异", action: () => void this.open_diff(file) },
@@ -304,20 +296,15 @@ export class git_graph_panel {
       { id: "right_revision", title: "查看右侧历史版本", action: () => void this.open_revision(this.to, file.path) },
       { id: "reviewed", title: "标记已评审", action: () => this.mark_reviewed(file.path) },
     ];
-    if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ id, title: graph_actions.find(action => action.id === id)!.title, action: () => this.action_dialog(id, "file", file.path) });
+    if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ id, title: graph_actions.find(action => action.id === id)!.title, action: () => void this.quick_action(id, [file.path, ...(file.old_path ? [file.old_path] : [])]) });
     this.configured_menu(event, "file", entries);
   }
   async open_revision(revision: string, file: string): Promise<void> {
-    try { const text = await this.host.revision_text(this.root, revision, file, this.settings); this.host.open_document(`${revision.slice(0, 8)} · ${file}`, text, undefined, this.settings.new_tab_group); this.mark_reviewed(file); }
+    try { const text = await this.host.revision_text(this.root, revision, file, this.settings); this.host.open_document({title: `${revision.slice(0, 8)} · ${file}`, file, left: text}, this.settings.new_tab_group, {root: this.root}); this.mark_reviewed(file); }
     catch (error) { this.report(error); }
   }
   async open_diff(file: graph_change): Promise<void> {
-    try {
-      const left = file.status.startsWith("A") || file.status === "??" ? "" : await this.host.revision_text(this.root, this.from, file.old_path || file.path, this.settings);
-      const right = file.status.startsWith("D") ? "" : await this.host.revision_text(this.root, this.to, file.path, this.settings);
-      const patch = await compare_patch(this.runner.run, this.state!, this.from, this.to, file);
-      this.host.open_document(`${this.from.slice(0, 8)} ↔ ${this.to.slice(0, 8)} · ${file.path}`, left, right, this.settings.new_tab_group, patch); this.mark_reviewed(file.path);
-    } catch (error) { this.report(error); }
+    await this.workbench.open_file(file, this.from, this.to, this.files);
   }
   target_menu(event: MouseEvent, kind: string, target: string, hash: string): void {
     const entries = graph_actions.filter(action => action.targets.includes(kind) && !this.settings.hidden_actions.includes(action.id)).map(action => ({ title: action.title, id: action.id, action: () => this.action_dialog(action.id, kind, target, hash) }));
@@ -350,9 +337,11 @@ export class git_graph_panel {
   layout_dialog(): void { const dialog = graph_dialog("提交图布局"); for (const entry of this.layout_entries()) dialog.content.append(button((entry.checked ? "✓ " : "") + entry.title, () => { dialog.close(); entry.action(); })); }
   configured_menu(event: MouseEvent, kind: string, entries: graph_menu_entry[]): void {
     const hidden = (id: string) => this.settings.hidden_actions.includes(id) || this.settings.hidden_actions.includes(kind + ":" + id);
-    graph_menu(event, [...entries.filter(entry => !entry.id || !hidden(entry.id)), { id: "configure_menu", title: "配置此右键菜单…", separator: true, action: () => {
+    const filter_entries = (items: graph_menu_entry[]): graph_menu_entry[] => items.filter(entry => !entry.id || !hidden(entry.id)).map(entry => entry.children ? {...entry, children: filter_entries(entry.children)} : entry);
+    const all_entries = (items: graph_menu_entry[]): graph_menu_entry[] => items.flatMap(entry => [entry, ...all_entries(entry.children || [])]);
+    graph_menu(event, [...filter_entries(entries), { id: "configure_menu", title: "配置此右键菜单…", separator: true, action: () => {
       const dialog = graph_dialog("右键菜单显示项 · " + kind); const choices = new Map<string, HTMLInputElement>();
-      for (const entry of entries) { if (!entry.id) continue; const label = el("label", "git-graph-filter", entry.title); const input = el("input"); input.type = "checkbox"; input.checked = !hidden(entry.id); input.setAttribute("data-action-id", entry.id); label.prepend(input); choices.set(entry.id, input); dialog.content.append(label); }
+      for (const entry of all_entries(entries)) { if (!entry.id || choices.has(entry.id)) continue; const label = el("label", "git-graph-filter", entry.title); const input = el("input"); input.type = "checkbox"; input.checked = !hidden(entry.id); input.setAttribute("data-action-id", entry.id); label.prepend(input); choices.set(entry.id, input); dialog.content.append(label); }
       dialog.footer.prepend(button("应用", () => {
         for (const [id, input] of choices) { this.settings.hidden_actions = this.settings.hidden_actions.filter(value => value !== kind + ":" + id); if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id); else this.settings.hidden_actions = this.settings.hidden_actions.filter(value => value !== id); }
         this.persist_settings(); dialog.close();
@@ -384,6 +373,16 @@ export class git_graph_panel {
       dialog.content.append(row);
     }
     dialog.footer.prepend(button("添加远端", () => { dialog.close(); this.action_dialog("remote_add", "repository"); }));
+  }
+  async quick_action(id: string, paths: string[] = [], values: Record<string, unknown> = {}): Promise<void> {
+    if (!this.state || this.writing) return;
+    this.writing = true; let message = "";
+    try {
+      const plan = await plan_git_action(this.writer.run, id, {root: this.root, target: paths[0] || "", paths: paths.length ? paths : undefined, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags}, values);
+      message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || "操作完成。";
+      if (id === "commit") { this.workbench.message.value = ""; localStorage.removeItem(this.workbench.storage_key("message")); }
+    } catch (error) { message = String(error); }
+    finally { this.writing = false; await this.refresh(false); this.report(message); }
   }
   action_dialog(id: string, kind: string, target = "", hash = this.selected, preset: Record<string, string | boolean> = {}): void {
     if (!this.state || this.writing) { this.report("请等待仓库读取或当前操作完成。"); return; }
@@ -510,7 +509,9 @@ export class git_graph_panel {
   }
   keydown(event: KeyboardEvent): void {
     if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector('.git-graph-dialog-shade, .git-graph-menu') || event.isComposing) return;
-    if (event.target instanceof Element && event.target.closest("[role=separator]")) return;
+    if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") { event.preventDefault(); this.host.core.app.workspace.sidebar.toggle(); return; }
+    if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
     const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
     let handled = true;
     if (shortcut_matches(event, this.settings.shortcuts.find)) this.search.focus();
@@ -530,7 +531,7 @@ export class git_graph_panel {
         else next = this.state.commits.filter(commit => commit.parents.includes(current.hash))[event.shiftKey ? 1 : 0];
       } else next = this.state.commits[Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1))];
       if (next) this.select_commit(next);
-    } else if (event.key === "Escape") { this.detail_epoch++; this.patch_epoch++; this.details.textContent = "选择提交查看详情。"; this.selected = ""; }
+    } else if (event.key === "Escape") { this.detail_epoch++; this.details.textContent = "选择提交查看详情。"; this.selected = ""; this.to = ""; this.place_details(); }
     else handled = false;
     if (handled) { event.preventDefault(); event.stopImmediatePropagation(); }
   }

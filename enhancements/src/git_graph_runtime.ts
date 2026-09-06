@@ -18,7 +18,7 @@ export function create_git_runner(modules: native_modules, options: { executable
       const message_editor = `sh -c 'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi' --`;
       const execution_env = { ...env, GIT_EDITOR: message_editor, ...(todo ? { LINUX_NOTE_GIT_REBASE_TODO: todo, GIT_SEQUENCE_EDITOR: sequence_editor } : {}) };
       // stash 的内部 clean 需要 Git 自己构造 pathspec；只对直接接收文件路径的命令禁用通配符。
-      const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm"].includes(args[0]);
+      const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm", "restore", "clean"].includes(args[0]) || args[0] === "log" && args.indexOf("--") >= 0 && args.indexOf("--") < args.length - 1;
       const child = modules.child_process.execFile(options.executable || "git", ["--no-pager", "--no-replace-objects", ...(literal_paths ? ["--literal-pathspecs"] : []),
         "-c", "protocol.ext.allow=never",
         "-c", "color.ui=false", "-c", "core.quotePath=false", "-c", "i18n.logOutputEncoding=utf-8", "-c", "log.showSignature=false", ...args], {

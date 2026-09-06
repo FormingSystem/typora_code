@@ -14,39 +14,44 @@ export const graph_actions: graph_action[] = [
   { id: "branch_rename", title: "重命名分支", targets: ["branch"], fields: [branch] },
   { id: "branch_delete", title: "删除分支", targets: ["branch"], fields: [check("force", "允许删除未合并分支")], destructive: "删除所选分支引用。" },
   { id: "remote_branch_delete", title: "删除远端分支", targets: ["remote"], fields: [remote, branch], destructive: "删除服务器上的分支。" },
-  { id: "branch_fetch", title: "Fetch 到本地分支", targets: ["remote"], fields: [remote, field("source", "远端分支"), branch, check("force", "允许非快进更新本地分支")] },
+  { id: "branch_fetch", title: "获取到本地分支", targets: ["remote"], fields: [remote, field("source", "远端分支"), branch, check("force", "允许非快进更新本地分支")] },
   { id: "merge", title: "合并到当前分支", targets: ["commit", "branch", "remote"], fields: [choice("mode", "合并方式", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "暂不创建提交")], touches_files: true },
   { id: "rebase", title: "将当前分支变基到此处", targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "保留合并结构"), check("ignore_date", "使用当前作者时间"), check("interactive", "交互式调整提交"), field("todo", "交互列表：pick / reword / edit / squash / fixup / drop + 完整编号 + 标题", true)], touches_files: true, destructive: "重写当前分支上被重放的提交。" },
   { id: "reset", title: "重置当前分支", targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "重置方式", ["mixed", "soft", "hard"])], touches_files: true, destructive: "移动当前分支；hard 会丢弃已跟踪文件的未提交内容。" },
   { id: "commit_checkout", title: "检出此提交（游离 HEAD）", targets: ["commit", "tag"], fields: [], touches_files: true },
-  { id: "cherry_pick", title: "Cherry-pick 提交", targets: ["commit"], fields: [check("no_commit", "只应用改动"), check("record_origin", "在说明中记录来源提交"), field("mainline", "合并提交的父编号", true)], touches_files: true },
-  { id: "revert", title: "Revert 提交", targets: ["commit"], fields: [check("no_commit", "只应用改动"), field("mainline", "合并提交的父编号", true)], touches_files: true },
+  { id: "cherry_pick", title: "拣选提交（Cherry-pick）", targets: ["commit"], fields: [check("no_commit", "只应用改动"), check("record_origin", "在说明中记录来源提交"), field("mainline", "合并提交的父编号", true)], touches_files: true },
+  { id: "revert", title: "撤销提交（Revert）", targets: ["commit"], fields: [check("no_commit", "只应用改动"), field("mainline", "合并提交的父编号", true)], touches_files: true },
   { id: "drop", title: "从当前分支移除此提交", targets: ["commit"], fields: [], touches_files: true, destructive: "通过 rebase --onto 重写后继提交，移除所选提交。" },
   { id: "tag_add", title: "添加标签", targets: ["commit", "branch"], fields: [field("tag", "标签名称"), field("message", "注解说明（空为轻量标签）", true), check("sign", "签署标签")] },
   { id: "tag_delete", title: "删除标签", targets: ["tag"], fields: [], destructive: "删除本地标签引用。" },
   { id: "tag_push", title: "推送标签", targets: ["tag"], fields: [remote] },
-  { id: "fetch", title: "Fetch 远端", targets: ["repository", "remote"], fields: [field("remote", "远端名称（空为全部）", true), check("prune", "清理失效远端分支"), check("prune_tags", "同步清理标签")] },
-  { id: "pull", title: "Pull 到当前分支", targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "整合方式", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
+  { id: "fetch", title: "获取远端更新", targets: ["repository", "remote"], fields: [field("remote", "远端名称（空为全部）", true), check("prune", "清理失效远端分支"), check("prune_tags", "同步清理标签")] },
+  { id: "pull", title: "拉取到当前分支", targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "整合方式", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
   { id: "push", title: "推送分支", targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "设置上游"), check("force_lease", "Force-with-lease")], destructive: "更新服务器分支；Force-with-lease 可替换远端历史。" },
-  { id: "stash_create", title: "暂存未提交改动（stash）", targets: ["changes", "repository"], fields: [field("message", "说明", true), check("untracked", "包含未跟踪文件"), check("keep_index", "保留已暂存内容")], touches_files: true },
-  { id: "stash_apply", title: "应用 stash", targets: ["stash"], fields: [check("index", "恢复暂存状态")], touches_files: true },
-  { id: "stash_pop", title: "应用并移除 stash", targets: ["stash"], fields: [check("index", "恢复暂存状态")], touches_files: true },
-  { id: "stash_drop", title: "删除 stash", targets: ["stash"], fields: [], destructive: "删除所选 stash 的引用。" },
-  { id: "stash_branch", title: "从 stash 创建分支", targets: ["stash"], fields: [branch], touches_files: true },
+  { id: "stash_create", title: "贮藏未提交更改", targets: ["changes", "repository"], fields: [field("message", "说明", true), check("untracked", "包含未跟踪文件"), check("keep_index", "保留已暂存内容")], touches_files: true },
+  { id: "stash_apply", title: "应用贮藏", targets: ["stash"], fields: [check("index", "恢复暂存状态")], touches_files: true },
+  { id: "stash_pop", title: "弹出贮藏", targets: ["stash"], fields: [check("index", "恢复暂存状态")], touches_files: true },
+  { id: "stash_drop", title: "删除贮藏", targets: ["stash"], fields: [], destructive: "删除所选 stash 的引用。" },
+  { id: "stash_branch", title: "从贮藏创建分支", targets: ["stash"], fields: [branch], touches_files: true },
   { id: "clean", title: "清理未跟踪文件", targets: ["changes"], fields: [check("directories", "包含未跟踪目录"), check("ignored", "同时包含被忽略文件")], touches_files: true, destructive: "永久删除预览中列出的未跟踪文件；Git 无法恢复这些内容。" },
+  { id: "clone", title: "克隆仓库", targets: ["repository"], fields: [field("url", "仓库 URL"), field("directory", "目标文件夹（应不存在或为空）")] },
   { id: "remote_add", title: "添加远端", targets: ["repository"], fields: [remote, field("url", "远端 URL 或路径")] },
   { id: "remote_edit", title: "修改远端 URL", targets: ["repository"], fields: [remote, field("url", "远端 URL 或路径"), check("push_url", "设置独立推送 URL")] },
   { id: "remote_remove", title: "删除远端配置", targets: ["repository"], fields: [remote], destructive: "移除本地远端配置及对应跟踪引用。" },
-  { id: "remote_prune", title: "Prune 远端跟踪引用", targets: ["repository"], fields: [remote], destructive: "清理服务器上已不存在的跟踪引用。" },
+  { id: "remote_prune", title: "清理过期远端跟踪引用", targets: ["repository"], fields: [remote], destructive: "清理服务器上已不存在的跟踪引用。" },
   { id: "stage", title: "暂存文件", targets: ["file"], fields: [] },
   { id: "unstage", title: "取消暂存", targets: ["file"], fields: [] },
+  { id: "stage_all", title: "暂存所有更改", targets: ["changes", "repository"], fields: [] },
+  { id: "unstage_all", title: "取消所有暂存", targets: ["changes", "repository"], fields: [] },
+  { id: "discard_file", title: "放弃文件更改", targets: ["file"], fields: [], touches_files: true, destructive: "将此文件恢复为暂存区版本，丢弃未暂存内容。" },
+  { id: "delete_untracked", title: "删除未跟踪文件", targets: ["file"], fields: [], touches_files: true, destructive: "永久删除所选未跟踪文件；Git 无法恢复。" },
   { id: "commit", title: "提交已暂存内容", targets: ["changes"], fields: [field("message", "提交说明"), check("amend", "修改上一个提交")], destructive: "amend 会改写上一个提交。" },
   { id: "continue", title: "继续当前 Git 操作", targets: ["repository"], fields: [], touches_files: true },
   { id: "abort", title: "中止当前 Git 操作", targets: ["repository"], fields: [], touches_files: true },
   { id: "skip", title: "跳过当前提交", targets: ["repository"], fields: [], touches_files: true },
 ];
-export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean };
-export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string };
+export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean; paths?: string[] };
+export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string };
 const busy_repositories = new Set<string>();
 const text_value = (value: unknown, name: string, required = true): string => {
   const text = typeof value === "string" ? value.trim() : "";
@@ -77,8 +82,10 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     if (item.type === "boolean" && typeof value !== "boolean") throw new Error(`选项无效：${item.title}`);
   }
   const { root } = context;
-  const target = ["stage", "unstage"].includes(id) ? context.target : text_value(context.target, "目标", false);
-  if (target.includes("\0") || ["stage", "unstage"].includes(id) && !target) throw new Error("文件路径无效。");
+  const target = ["stage", "unstage", "discard_file", "delete_untracked"].includes(id) ? context.target : text_value(context.target, "目标", false);
+  if (target.includes("\0") || ["stage", "unstage", "discard_file", "delete_untracked"].includes(id) && !target) throw new Error("文件路径无效。");
+  const paths = context.paths || [target];
+  if (context.paths && (!paths.length || paths.some(path => !path || path.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(path) || path.split(/[\\/]/u).includes("..")))) throw new Error("文件路径无效。");
   const hash = text_value(context.hash, "提交", false);
   const value = (key: string, required = true) => {
     if (key !== "message" && key !== "todo") return text_value(values[key], key, required);
@@ -136,15 +143,23 @@ export async function plan_git_action(run: git_run, id: string, context: action_
       if ((await run(root, ["rev-parse", target])).trim() !== hash) throw new Error("Stash 列表已改变，请刷新。");
       args = ["stash", id.slice(6), ...(id === "stash_branch" ? [await branch()] : flag("index") ? ["--index"] : []), target]; break;
     case "clean": args = ["clean", "-f", ...(flag("directories") ? ["-d"] : []), ...(flag("ignored") ? ["-x"] : [])]; break;
+    case "clone": args = ["clone", "--", value("url"), value("directory")]; break;
     case "remote_add": args = ["remote", "add", remote(), value("url")]; break;
     case "remote_edit": args = ["remote", "set-url", ...(flag("push_url") ? ["--push"] : []), remote(), value("url")]; break;
     case "remote_remove": args = ["remote", "remove", remote()]; break;
     case "remote_prune": args = ["remote", "prune", remote()]; break;
-    case "stage": args = ["add", "--", target]; break;
+    case "stage": args = ["add", "--", ...paths]; break;
     case "unstage": {
       const head = await run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch(error => { if (error.code === 1) return ""; throw error; });
-      args = head ? ["reset", "--", target] : ["rm", "--cached", "--", target]; break;
+      args = head ? ["reset", "--", ...paths] : ["rm", "--cached", "--", ...paths]; break;
     }
+    case "stage_all": args = ["add", "-A", "--", "."]; break;
+    case "unstage_all": {
+      const head = await run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch(error => { if (error.code === 1) return ""; throw error; });
+      args = head ? ["reset", "--", "."] : ["rm", "--cached", "-r", "--", "."]; break;
+    }
+    case "discard_file": args = ["restore", "--worktree", "--", target]; break;
+    case "delete_untracked": args = ["clean", "-f", "--", target]; break;
     case "commit": args = ["commit", ...sign, ...(flag("amend") ? ["--amend"] : []), "-m", value("message")]; break;
     case "continue": case "abort": case "skip":
       if (!["merge", "rebase", "cherry-pick", "revert"].includes(context.operation)) throw new Error("没有可继续或中止的操作。");
@@ -157,7 +172,8 @@ export async function plan_git_action(run: git_run, id: string, context: action_
   if (id === "clean") preview += "\n\n" + await run(root, args.map(arg => arg === "-f" ? "-n" : arg));
   if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
   if (todo) preview += "\n\n" + todo;
-  return { action, args, preview, fingerprint: await repository_fingerprint(run, root), context, todo };
+  const file_guard = id === "delete_untracked" ? await run(root, ["hash-object", "--no-filters", "--", target]) : undefined;
+  return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo };
 }
 
 export async function execute_git_action(run: git_run, plan: action_plan, can_change_files: () => boolean): Promise<string> {
@@ -167,6 +183,7 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
   try {
     if (plan.action.touches_files && !can_change_files()) throw new Error("当前 Typora 文档有未保存修改。请先保存，再执行会改变工作区文件的操作。");
     if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error("仓库已被其他程序改变，请重新预览操作。");
+    if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error("未跟踪文件内容已改变，请重新预览。 ");
     return await run(root, plan.args, { todo: plan.todo });
   } finally { busy_repositories.delete(root); }
 }

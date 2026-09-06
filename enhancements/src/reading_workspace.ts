@@ -84,20 +84,23 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     restoring.set(context.view_id, token);
     remember(context, position, false);
     let applied = false;
-    let previous_height = -1;
+    let previous_geometry = "";
     let stable_since = Date.now();
     const started = Date.now();
     // 等待异步预览、代码限高与排版；用户开始滚动/编辑时立即停止，避免把新位置拉回去。
     while (restoring.get(context.view_id) === token && Date.now() - started < 5000) {
       const nodes = elements(context);
       if (nodes) {
-        const height = nodes.root.getBoundingClientRect().height;
-        if (!applied || height !== previous_height) {
-          apply_position(nodes.scroller, nodes.root, position);
-          previous_height = height;
+        const geometry = `${nodes.root.getBoundingClientRect().height}:${nodes.scroller.clientHeight}:${nodes.scroller.scrollHeight}`;
+        const before_top = nodes.scroller.scrollTop; const before_left = nodes.scroller.scrollLeft;
+        // 宿主恢复选区可能在正文高度不变时重置滚动；每轮核对实际位置，而非只等正文高度稳定。
+        // 视口尺寸变化和宿主再次挪动滚动条都会重新开始稳定期；真实用户输入仍立即取消恢复。
+        apply_position(nodes.scroller, nodes.root, position);
+        if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > .5 || Math.abs(before_left - nodes.scroller.scrollLeft) > .5) {
+          previous_geometry = geometry;
           stable_since = Date.now();
-          applied = true;
         }
+        applied = true;
         if (applied && Date.now() - stable_since >= 250) break;
       }
       await reading_delay(40);

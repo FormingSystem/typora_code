@@ -54,7 +54,7 @@ if ((Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash -ne
     workspace_assets = $workspace_assets.Count
     terminal_assets = $terminal_assets.Count
     integrated_terminal = "xterm.js + node-pty ConPTY; Windows UAC administrator entry"
-    git_graph_features = "history, actions, comparisons, reviews, repository settings"
+    git_graph_features = "primary sidebar, Chinese context menus, Monaco side-by-side diff, file history, Git actions, reviews"
     git_graph_runtime = if (Get-Command git -CommandType Application -ErrorAction SilentlyContinue) { "Git available on PATH" } else { "Git missing on PATH; install Git to use Git Graph" }
     theme_sha256 = (Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash
     bundle_sha256 = (Get-FileHash -LiteralPath $bundle -Algorithm SHA256).Hash

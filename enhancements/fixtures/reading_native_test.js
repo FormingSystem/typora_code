@@ -31,6 +31,12 @@
       const app = window[Symbol.for('typora-plugin-core@v2')].app;
       const content = document.querySelector('content');
       const write = document.querySelector('#write');
+      if (phase === '2') {
+        // 模拟宿主延迟恢复选区：正文高度未变，但滚动再次回到 0；不能把它覆盖为新的阅读位置。
+        await delay(80); const height = write.getBoundingClientRect().height;
+        content.scrollTop = 0;
+        expect(write.getBoundingClientRect().height === height, 'host scroll reset leaves document height unchanged');
+      }
       await delay(700);
       if (phase === '1') {
         const source = app.workspace.activeLeaf;
