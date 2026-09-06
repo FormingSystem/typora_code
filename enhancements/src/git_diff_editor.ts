@@ -59,14 +59,31 @@ export class git_diff_editor {
     };
     const original = model(data.left, "original");
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
-    const options = {automaticLayout: true, readOnly: true, fontSize: 14, lineHeight: 22, fontFamily: "Consolas, ui-monospace, monospace", minimap: {enabled: false}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
+    const minimap: monaco.editor.IEditorMinimapOptions = {enabled: true, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
+    const options = {automaticLayout: true, readOnly: true, fontSize: 14, lineHeight: 22, fontFamily: "Consolas, ui-monospace, monospace", minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
-      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
+      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: false, enableSplitViewResizing: true, maxComputationTime: 10000});
+      // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
+      // 关闭独立差异概览栏，释放其占用的 30px；修改侧以文档缩略图提供快速定位。
+      const modified_view = editor.getModifiedEditor();
+      // Monaco 的差异组件在更新任意选项时会关闭两侧缩略图；只为修改侧恢复文档地图。
+      // 不接管滚轮、点击或拖动，沿用编辑器的定位与双栏滚动同步。
+      this.subscriptions.push(modified_view.onDidChangeConfiguration(event => {
+        if (event.hasChanged(monaco.editor.EditorOption.minimap) && !modified_view.getOption(monaco.editor.EditorOption.minimap).enabled) modified_view.updateOptions({minimap});
+      }));
+      modified_view.updateOptions({minimap});
+      const minimap_changes = modified_view.createDecorationsCollection();
       this.editor = editor; editor.setModel({original, modified});
       let revealed = false;
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
         const changes = editor.getLineChanges(); this.status.textContent = changes ? `${changes.length} 处改动` : "差异计算未完成";
+        minimap_changes.set((changes || []).map(change => {
+          const deleted = change.modifiedEndLineNumber === 0;
+          const start = Math.max(1, Math.min(modified.getLineCount(), change.modifiedStartLineNumber));
+          const end = deleted ? start : Math.max(start, change.modifiedEndLineNumber);
+          return {range: new monaco.Range(start, 1, end, 1), options: {description: "git-diff-minimap", isWholeLine: true, minimap: {color: deleted ? "#c74e39" : change.originalEndLineNumber === 0 ? "#2e9d57" : "#3286c8", position: monaco.editor.MinimapPosition.Gutter}}};
+        }));
         this.container.setAttribute("data-diff-ready", String(changes !== null));
         if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
       }));

@@ -40,7 +40,10 @@ export class git_graph_panel {
       vertical: () => this.settings.details_location === "right" && this.container.clientWidth > 680,
       ratio: () => this.settings.panel_ratio / 100, change: ratio => { this.settings.panel_ratio = Math.round(ratio * 100); this.apply_layout(); }, save: () => this.persist_settings(), reset: .55 });
     this.header.oncontextmenu = event => this.layout_menu(event);
-    this.container.oncontextmenu = event => this.background_menu(event);
+    this.container.oncontextmenu = event => {
+      if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
+      this.background_menu(event);
+    };
     this.toolbar.append(button("终端", () => this.host.terminal(this.root, this.settings.terminal_shell)), button("布局", () => this.layout_dialog()));
     this.body.append(this.list, this.sash, this.details); this.workbench = new git_source_control(this); this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
     this.list.addEventListener("scroll", () => {
@@ -297,6 +300,7 @@ export class git_graph_panel {
       { id: "reviewed", title: "标记已评审", action: () => this.mark_reviewed(file.path) },
     ];
     if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ id, title: graph_actions.find(action => action.id === id)!.title, action: () => void this.quick_action(id, [file.path, ...(file.old_path ? [file.old_path] : [])]) });
+    entries.push(...this.workbench.file_entries(file, this.from, this.to, this.files).filter(entry => entry.id === "ignore_file"));
     this.configured_menu(event, "file", entries);
   }
   async open_revision(revision: string, file: string): Promise<void> {
@@ -368,8 +372,8 @@ export class git_graph_panel {
     const dialog = graph_dialog("仓库远端配置");
     if (!this.state?.remotes.length) dialog.content.append(el("p", "", "此仓库尚未配置远端。"));
     for (const remote of this.state?.remotes || []) {
-      const row = el("div", "git-graph-repo-entry", `${remote.name}\nFetch：${remote.fetch}\nPush：${remote.push}`);
-      for (const [title, id, preset] of [["修改 Fetch URL", "remote_edit", { url: remote.fetch }], ["修改 Push URL", "remote_edit", { url: remote.push, push_url: true }], ["Fetch", "fetch", {}], ["Prune", "remote_prune", {}], ["删除", "remote_remove", {}]] as const) row.append(button(title, () => { dialog.close(); this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset }); }));
+      const row = el("div", "git-graph-repo-entry", `${remote.name}\n获取地址：${remote.fetch}\n推送地址：${remote.push}`);
+      for (const [title, id, preset] of [["修改获取地址", "remote_edit", { url: remote.fetch }], ["修改推送地址", "remote_edit", { url: remote.push, push_url: true }], ["获取", "fetch", {}], ["清理过期引用", "remote_prune", {}], ["删除", "remote_remove", {}]] as const) row.append(button(title, () => { dialog.close(); this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset }); }));
       dialog.content.append(row);
     }
     dialog.footer.prepend(button("添加远端", () => { dialog.close(); this.action_dialog("remote_add", "repository"); }));
@@ -384,9 +388,11 @@ export class git_graph_panel {
     } catch (error) { message = String(error); }
     finally { this.writing = false; await this.refresh(false); this.report(message); }
   }
-  action_dialog(id: string, kind: string, target = "", hash = this.selected, preset: Record<string, string | boolean> = {}): void {
+  action_dialog(id: string, kind: string, target = "", hash = this.selected, preset: Record<string, string | boolean> = {}, paths?: string[]): void {
     if (!this.state || this.writing) { this.report("请等待仓库读取或当前操作完成。"); return; }
     const action = graph_actions.find(item => item.id === id)!; const dialog = graph_dialog(action.title); const fields = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
+    if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
+    if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
     const defaults = { ...this.settings.dialog_defaults[id], ...preset };
     dialog.content.append(el("p", "", `仓库：${this.root}\n目标：${target || hash || this.state.branch}`));
     const form = el("form", "git-graph-form"); const result = el("pre", "git-graph-action-preview"); dialog.content.append(form, result);
@@ -406,7 +412,7 @@ export class git_graph_panel {
     }
     let plan: action_plan | undefined;
     let form_revision = 0;
-    const execute = button("执行此操作", () => void submit()); execute.disabled = true; execute.setAttribute("data-git-execute", id);
+    const execute = button(id === "sync" ? "确认同步" : "执行此操作", () => void submit()); execute.disabled = true; execute.setAttribute("data-git-execute", id);
     const preview = button("预览操作", () => void prepare()); preview.setAttribute("data-git-preview", id);
     form.oninput = () => { form_revision++; execute.disabled = true; plan = undefined; };
     const prepare = async () => {
@@ -419,7 +425,8 @@ export class git_graph_panel {
           fields.get("todo")!.value = await this.runner.run(this.root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", `${hash}..HEAD`, "--"]);
           result.textContent = "已生成交互列表。可以调整顺序或改为 reword / edit / squash / fixup / drop；reword 的标题将作为新说明。确认列表后再次预览。"; return;
         }
-        plan = await plan_git_action(this.runner.run, id, { root: this.root, target, hash: hash === WORKTREE ? this.state!.head : hash, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
+        const selected_paths = id === "discard_changes" ? paths || this.workbench.groups_state.find(group => group.id === "changes")?.files.map(file => file.path) : paths;
+        plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash === WORKTREE ? this.state!.head : hash, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
         if (revision !== form_revision) { plan = undefined; result.textContent = "参数已改变，请重新预览。"; return; }
         result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview; execute.disabled = false;
       } catch (error) { result.textContent = String(error); } finally { preview.disabled = false; }
@@ -427,13 +434,14 @@ export class git_graph_panel {
     const submit = async () => {
       if (!plan) return; this.writing = true; preview.disabled = true; execute.disabled = true;
       result.textContent += "\n\n执行中…";
-      try { const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()); result.textContent += "\n" + (output || "操作完成。"); }
+      try { const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files(), {trash_files: (root, files) => this.host.trash_files(root, files)}); result.textContent += "\n" + (output || "操作完成。"); }
       catch (error) { result.textContent += "\n" + String(error); }
       finally { this.writing = false; plan = undefined; preview.disabled = false; await this.refresh(false); }
     };
     form.onsubmit = event => { event.preventDefault(); if (plan && !execute.disabled) void submit(); else void prepare(); };
     dialog.root.addEventListener("keydown", event => { if (event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement)) { event.preventDefault(); if (plan && !execute.disabled) void submit(); else void prepare(); } });
     dialog.footer.prepend(preview, execute);
+    if (id === "sync") void prepare();
   }
   async tag_details(name: string): Promise<void> {
     const dialog = graph_dialog("标签详情 · " + name);

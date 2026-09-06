@@ -30,3 +30,13 @@ linux-note-workspace-sash
 data-linux-note-source-control
 data-linux-note-monaco-diff
 linux_note:source_control
+data-linux-note-git-commit-shortcut
+data-linux-note-scm-history
+append_git_ignore
+#outline-btn-wrapper
+data-linux-note-reading-minimap
+bind_reading_minimap
+data-linux-note-git-status
+data-linux-note-git-sync
+data-linux-note-git-discard
+trashItem

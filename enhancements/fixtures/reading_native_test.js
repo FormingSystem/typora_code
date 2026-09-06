@@ -40,10 +40,27 @@
       await delay(700);
       if (phase === '1') {
         const source = app.workspace.activeLeaf;
+        await wait(() => document.querySelector('content > .linux-note-reading-minimap[data-ready=true]'));
+        const minimap = document.querySelector('content > .linux-note-reading-minimap');
+        expect(!write.contains(minimap) && minimap.querySelector('canvas').width > 0, 'native reading minimap is rendered outside saved document');
+        minimap.dispatchEvent(new KeyboardEvent('keydown', {key:'End',bubbles:true,cancelable:true}));
+        expect(content.scrollTop > content.scrollHeight - content.clientHeight - 3, 'native minimap can jump to document end');
+        File.editor.sourceView.show();
+        await wait(() => document.querySelector('.CodeMirror > .linux-note-reading-minimap[data-ready=true]'));
+        const source_editor = File.editor.sourceView.cm;
+        const source_text = source_editor.getValue(); const source_cursor = JSON.stringify(source_editor.getCursor());
+        document.querySelector('.CodeMirror > .linux-note-reading-minimap').dispatchEvent(new KeyboardEvent('keydown', {key:'End',bubbles:true,cancelable:true}));
+        expect(source_editor.getScrollInfo().top > 100, 'source mode minimap scrolls full CodeMirror document');
+        expect(source_editor.getValue() === source_text && JSON.stringify(source_editor.getCursor()) === source_cursor, 'source minimap preserves text and cursor');
+        File.editor.sourceView.hide();
+        await wait(() => document.querySelector('content > .linux-note-reading-minimap[data-ready=true]') && !document.querySelector('.CodeMirror > .linux-note-reading-minimap'));
+        await delay(500);
         content.scrollTop = 720; await delay(450);
         const source_position = visible(content, write);
         app.commands.run('core.workspace:split-right', [File.bundle.filePath]); await delay(700);
         const right_source = app.workspace.activeLeaf;
+        await wait(() => document.querySelectorAll('.linux-note-reading-minimap[data-ready=true]').length === 2);
+        expect(document.querySelectorAll('.linux-note-reading-minimap[data-ready=true]').length === 2, 'split reading panes have independent minimaps');
         right_source.containerEl.scrollTop = 300; await delay(450);
         const from_position = visible(right_source.containerEl, right_source.view.containerEl);
         const link = right_source.view.containerEl.querySelector('a');

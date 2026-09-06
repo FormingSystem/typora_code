@@ -1,5 +1,6 @@
 import { bind_terminal_workspace } from "./terminal_workspace";
 import { git_diff_editor, type diff_document } from "./git_diff_editor";
+import { append_git_ignore } from "./git_ignore";
 import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
 import { graph_button, graph_dialog, graph_element, type graph_menu_entry } from "./git_graph_widgets";
@@ -80,6 +81,7 @@ export function create_graph_host(core: graph_core) {
   let terminal_workspace: ReturnType<typeof bind_terminal_workspace>;
   const host = {
     core, fs, path_api, process_api,
+    ignore_file(root: string, file: string, settings: graph_settings) { return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
     show_history: (_root: string) => {},
     runner(settings: graph_settings, writable = false) {
       const runner = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
@@ -102,6 +104,25 @@ export function create_graph_host(core: graph_core) {
         : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
     },
     can_change_files() { return !runtime.File?.changeCounter?.isDocumentEdited(); },
+    async trash_files(root: string, files: string[]): Promise<void> {
+      const shell = runtime.reqnode("electron").shell;
+      if (typeof shell.trashItem !== "function") throw new Error("当前 Typora 无法将文件移至回收站，未删除文件。");
+      const real_root = await fs.promises.realpath(root);
+      const targets: string[] = [];
+      for (const file of files) {
+        const target = ensure_file_path(root, file);
+        const parent = await fs.promises.realpath(path_api.dirname(target));
+        const relative = path_api.relative(real_root, parent);
+        if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error("文件的实际目录超出仓库，已停止回收：" + file);
+        const stat = await fs.promises.lstat(target);
+        if (!stat.isFile() && !stat.isSymbolicLink()) throw new Error("只支持回收明确选择的文件：" + file);
+        targets.push(target);
+      }
+      for (let index = 0; index < targets.length; index++) {
+        try { await shell.trashItem(targets[index]); }
+        catch (error) { throw new Error(`已回收 ${index} 个文件；无法回收 ${files[index]}，其余文件保留：${String(error)}`); }
+      }
+    },
     operation(git_dir: string): string {
       for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) if (fs.existsSync(path_api.join(git_dir, file))) return operation;
       return "";

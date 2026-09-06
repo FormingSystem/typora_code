@@ -44,7 +44,7 @@ foreach ($phase in $phases) {
         $result_file = Join-Path $probe_root "result_$phase.json"
         $started = Get-Date
         while (!(Test-Path -LiteralPath $result_file)) {
-            if (((Get-Date) - $started).TotalSeconds -gt 50) { throw "Native test timed out. Evidence: $probe_root" }
+            if (((Get-Date) - $started).TotalSeconds -gt 90) { throw "Native test timed out. Evidence: $probe_root" }
             Start-Sleep -Milliseconds 200
         }
         $result = [IO.File]::ReadAllText($result_file, [Text.Encoding]::UTF8) | ConvertFrom-Json

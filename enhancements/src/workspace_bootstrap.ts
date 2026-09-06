@@ -26,6 +26,7 @@ type workspace_app = {
   };
   openFile(path: string): unknown;
   workspace: {
+    sidebar: { isShown: boolean; activePanel?: {ribbonButton?: {id: string}; containerEl?: HTMLElement}; panels: {ribbonButton?: {id: string}; containerEl?: HTMLElement}[] };
     activeFile: string;
     activeLeaf: workspace_leaf | null;
     activeEditor: { openFile(file: string | { pathname: string; hash?: string }): void };
@@ -73,6 +74,22 @@ export async function initialize_workspace(): Promise<void> {
     if (app.settings.get(key) !== value) app.settings.set(key, value);
   }
   await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
+
+  // 核心启动时尚未设置 activePanel，原生侧栏却可能已显示文件或大纲。
+  // 点击前按实际面板校正状态，再由核心 switch 执行同项收起、异项切换。
+  document.addEventListener("click", event => {
+    const item = event.target instanceof Element ? event.target.closest<HTMLElement>(".typ-ribbon-item[data-id]") : null;
+    if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
+    const sidebar = app.workspace.sidebar; if (!sidebar.isShown) return;
+    const active_id = sidebar.activePanel?.ribbonButton?.id;
+    // 原生延迟大纲刷新仍可能补回 class；已挂载的插件面板才是此时真正的当前面板。
+    if (active_id && !["core.file-explorer", "core.outline"].includes(active_id) && sidebar.activePanel?.containerEl?.isConnected) return;
+    const host_sidebar = document.querySelector("#typora-sidebar");
+    const current_id = host_sidebar?.classList.contains("active-tab-files") ? "core.file-explorer"
+      : host_sidebar?.classList.contains("active-tab-outline") ? "core.outline" : sidebar.activePanel?.ribbonButton?.id;
+    const current = sidebar.panels.find(panel => panel.ribbonButton?.id === current_id);
+    if (current) sidebar.activePanel = current;
+  }, true);
 
   // 默认一组多标签；Ctrl+\ 复制当前文档到右侧组，Ctrl+K、Ctrl+\ 向下拆分。
   let chord_started = 0;
