@@ -301,7 +301,7 @@ bash ./tools/typora/restore_configuration.sh \
 bash ./tools/typora/check_configuration.sh
 ```
 
-检查通过时会报告平台、已验证的 Typora 根目录、唯一脚本入口数量、主题 SHA-256、bundle SHA-256 和 `status: OK`。检查还会比较已安装 bundle 与当前仓库预构建是否一致，并校验全部插件资产；旧 bundle 或缺失、损坏的插件文件不能仅凭入口还在就通过。持续集成或其他非交互环境应增加 `-non_interactive` 或 `--non-interactive`，防止脚本等待终端输入。
+检查通过时会报告平台、已验证的 Typora 根目录、唯一脚本入口数量、主题 SHA-256、bundle SHA-256 和 `status: OK`。检查会分别比较已安装主题、bundle 与当前仓库文件是否一致，并校验全部插件资产；旧主题、旧 bundle 或缺失、损坏的插件文件不能仅凭入口还在就通过。普通安装也会在复制后校验主题、bundle 和插件资产。持续集成或其他非交互环境应增加 `-non_interactive` 或 `--non-interactive`，防止脚本等待终端输入。
 
 # 第7章\_维护、验收与边界
 

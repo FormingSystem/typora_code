@@ -36,6 +36,10 @@ try {
     [System.IO.File]::WriteAllText($old_core, "previous core")
     & (Join-Path $tools_copy "configure_windows.ps1") -typora_root $fake_root -non_interactive
     & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive
+    $installed_theme = Join-Path $user_data "themes\cpp_github-consolas.css"
+    [System.IO.File]::AppendAllText($installed_theme, "/* stale theme fixture */")
+    assert_rejected { & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive } "Stale theme passed installed checks"
+    Copy-Item -LiteralPath (Join-Path $tools_copy "cpp_github-consolas.css") -Destination $installed_theme -Force
     $unified_backup = @(Get-ChildItem -LiteralPath (Join-Path $user_data "backups\linux_note_typora_configuration") -Directory)[0].FullName
     $installer = Join-Path $tools_copy "enhancements\scripts\install_windows.ps1"
     & $installer -typora_root $fake_root -backup_root (Join-Path $test_root "repeat backup") -non_interactive
