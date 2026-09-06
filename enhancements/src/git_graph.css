@@ -33,14 +33,15 @@
 .linux-note-git-graph .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }
 .git-graph-row svg { flex: none; overflow: visible; }
 .git-graph-row[aria-pressed="true"], .linux-note-git-graph .git-graph-file.selected { background: #2684d426; }
-.git-graph-subject { min-width: 160px; width: 280px; flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.git-graph-subject { min-width: 80px; width: var(--git-subject-width, 300px); flex: none; overflow: hidden; text-overflow: ellipsis; }
 .git-graph-refs { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; margin-right: 8px; padding: 0 5px; border-radius: 3px; background: #2684d423; color: #2684d4; }
-.git-graph-author { width: 90px; overflow: hidden; text-overflow: ellipsis; opacity: .7; }
-.git-graph-hash { flex: none; font-size: 11px; background: none; }
+.git-graph-author { width: var(--git-author-width, 110px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }
+.git-graph-date { width: var(--git-date-width, 145px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }
+.git-graph-hash { width: var(--git-hash-width, 80px); flex: none; font-size: 11px; background: none; }
 .git-graph-details { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; min-width: 0; min-height: 0; border-left: 1px solid #8884; }
 .git-graph-commit-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
 .git-graph-full-hash { overflow-wrap: anywhere; font-size: 11px; background: none; flex: none; }
-.git-graph-meta { opacity: .75; }
+.git-graph-meta { opacity: .75; white-space: pre-wrap; overflow-wrap: anywhere; }
 .git-graph-parent { width: 100%; flex: none; }
 .linux-note-git-graph pre { margin: 0; font: 12px/1.65 Consolas, ui-monospace, monospace; background: #8881; border: 0; padding: 8px; user-select: text; }
 .linux-note-git-graph .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }
@@ -54,3 +55,58 @@
   .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(160px, 1fr); }
   .git-graph-details { border-left: 0; border-top: 1px solid #8884; }
 }
+/* Git Graph 的弹窗属于宿主窗口，不能依赖正文编辑区的焦点或样式。 */
+.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.git-graph-dialog, .git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font: 13px/1.5 system-ui, sans-serif; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }
+.git-graph-dialog { display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }
+.git-graph-dialog h3 { font: 600 17px/1.5 system-ui; margin: 0; padding: 14px 18px; border-bottom: 1px solid #8884; }
+.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.git-graph-dialog-footer { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }
+.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea, .git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }
+.git-graph-dialog button { cursor: pointer; margin: 2px; }
+.git-graph-dialog button:disabled { opacity: .5; cursor: default; }
+.git-graph-dialog button:hover, .git-graph-menu button:hover, .git-graph-menu button:focus { background: #2684d424; }
+.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }
+.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }
+.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font: 12px/1.6 Consolas, monospace; }
+.git-graph-form label, .git-graph-settings-form label { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #8882; }
+.git-graph-form input[type=checkbox], .git-graph-settings-form input[type=checkbox] { justify-self: start; }
+.git-graph-filter { display: block; padding: 4px; }
+.git-graph-filter input { margin-right: 10px; }
+.git-graph-repo-entry, .git-graph-review { padding: 10px 0; border-bottom: 1px solid #8883; }
+.git-graph-menu { position: fixed; z-index: 110001; padding: 5px; min-width: 190px; max-width: min(360px, 95vw); max-height: 85vh; overflow: auto; }
+.git-graph-menu button { display: block; width: 100%; border: none; border-radius: 3px; text-align: left; cursor: pointer; }
+.git-graph-status-launch { position: fixed; right: 108px; bottom: 2px; z-index: 100; font: 11px/18px system-ui; color: var(--text-color, #555); background: var(--bg-color, #fff); border: 0; cursor: pointer; padding: 0 8px; }
+.git-graph-status-launch[hidden] { display: none; }
+.git-graph-repositories { max-width: 180px; }
+.git-graph-columns { display: flex; gap: 8px; width: max-content; min-width: 100%; position: sticky; top: 0; z-index: 2; background: var(--bg-color, #fff); border-bottom: 1px solid #8884; height: 30px; }
+.git-graph-column { position: relative; flex: none; overflow: hidden; white-space: nowrap; padding: 4px 8px 4px 0; opacity: .8; }
+.git-graph-column-resize { position: absolute; right: 0; top: 0; width: 7px; height: 100%; cursor: col-resize; border-right: 1px solid #8884; touch-action: none; }
+.git-graph-row { cursor: pointer; }
+.git-graph-row:hover { background: #8881; }
+.git-graph-row:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }
+.git-graph-muted { opacity: .45; }
+.git-graph-worktree { padding-left: 14px !important; font-weight: 600; }
+.git-graph-worktree.connected { padding-left: 0 !important; }
+.git-graph-refs { cursor: context-menu; }
+.git-ref-tag { color: #946900; background: #eac54f24; }
+.git-ref-remote { color: #22875e; background: #29885824; }
+.git-graph-detail-controls { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+.git-graph-detail-controls select { flex: 1; width: auto; min-width: 120px; }
+.git-file-directory { margin-left: 8px; }
+.git-file-directory summary { cursor: pointer; }
+.git-file-unreviewed::before { content: '● '; color: #2684d4; }
+.git-graph-avatar { width: 32px; height: 32px; border-radius: 50%; }
+.linux-note-git-graph[data-details=bottom] .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(180px, 1fr); }
+.linux-note-git-graph[data-details=bottom] .git-graph-details { border-left: 0; border-top: 1px solid #8884; }
+.linux-note-git-graph[data-details=inline] .git-graph-body { display: flex; flex-direction: column; }
+.linux-note-git-graph[data-details=inline] .git-graph-list { flex: 1; }
+.linux-note-git-graph[data-details=inline] .git-graph-details { height: 440px; max-width: 100%; border: 1px solid #8884; }
+.linux-note-git-graph[data-labels=split] .git-graph-subject { display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; }
+.linux-note-git-graph[data-labels=graph] .git-graph-labels { display: inline-block; width: 130px; overflow: hidden; vertical-align: bottom; }
+.git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }
+.git-graph-document-body { display: flex; min-height: 0; min-width: 0; flex: 1; }
+.git-graph-document-body pre { flex: 1; min-width: 0; overflow: auto; margin: 0; padding: 10px 0; border: 1px solid #8883; font: 12px/1.65 Consolas, monospace; tab-size: 4; user-select: text; background: transparent; }
+.git-document-line { display: block; min-width: max-content; height: 1.65em; white-space: pre; }
+.git-document-line::before { content: attr(data-line); display: inline-block; width: 4em; margin-right: 12px; text-align: right; opacity: .4; user-select: none; }
+@media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }

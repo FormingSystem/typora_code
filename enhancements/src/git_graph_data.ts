@@ -1,12 +1,8 @@
 export const GIT_GRAPH_COMMAND = "linux_note:git_graph";
 export const GIT_GRAPH_TYPE = "linux_note.git_graph";
-export const GIT_PAGE_SIZE = 200;
-export const GIT_MAX_COMMITS = 5000;
-export type git_run = (cwd: string, args: string[]) => Promise<string>;
+export type git_run = (cwd: string, args: string[], execution?: { todo?: string }) => Promise<string>;
 export type git_commit = { hash: string; parents: string[]; author: string; date: string; subject: string };
 export type git_ref = { hash: string; name: string };
-export type git_snapshot = { root: string; head: string; refs: git_ref[]; commits: git_commit[]; more: boolean };
-export type git_file = { status: string; path: string };
 
 const valid_hash = (hash: string) => /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(hash);
 function require_hash(hash: string): string {
@@ -27,52 +23,6 @@ export function parse_git_log(source: string): git_commit[] {
     commits.push({ hash, parents, author, date, subject });
   }
   return commits;
-}
-
-export async function read_git_snapshot(run: git_run, cwd: string, limit = GIT_PAGE_SIZE, revision = ""): Promise<git_snapshot> {
-  const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-  const [ref_text, head_text] = await Promise.all([
-    run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)", "refs/heads", "refs/remotes", "refs/tags"]),
-    // --quiet 在尚无首个提交的仓库返回 1；其他错误必须继续报告。
-    run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch((error) => {
-      if (error.code === 1) return "";
-      throw error;
-    }),
-  ]);
-  const head = head_text.trim();
-  const refs = ref_text.split("\n").filter(Boolean).map((line) => {
-    const [object_hash, peeled_hash, name] = line.replace(/\r$/u, "").split("\0");
-    return { hash: require_hash(peeled_hash || object_hash), name };
-  });
-  const count = Math.min(GIT_MAX_COMMITS, Math.max(GIT_PAGE_SIZE, Math.floor(limit)));
-  const revisions = revision ? [require_hash(revision)] : ["--all", ...(head ? [require_hash(head)] : [])];
-  const commits = refs.length || head ? parse_git_log(await run(root, ["log", "--topo-order", "--date-order",
-    `--max-count=${count + 1}`, "--format=%H%x00%P%x00%an%x00%aI%x00%s", "-z", ...revisions, "--"])) : [];
-  return { root, head, refs, commits: commits.slice(0, count), more: commits.length > count };
-}
-
-function diff_arguments(hash: string, parent: string): string[] {
-  return ["diff-tree", "--root", "--no-commit-id", "-r", "--no-renames", "--no-ext-diff", "--no-textconv",
-    ...(parent ? [require_hash(parent)] : []), require_hash(hash)];
-}
-
-export async function read_git_files(run: git_run, root: string, hash: string, parent = ""): Promise<git_file[]> {
-  const text = await run(root, [...diff_arguments(hash, parent), "--name-status", "-z", "--"]);
-  const fields = text.split("\0");
-  if (fields.at(-1) === "") fields.pop();
-  if (fields.length % 2) throw new Error("Git 文件列表格式不完整。");
-  const files: git_file[] = [];
-  for (let index = 0; index < fields.length; index += 2) files.push({ status: fields[index], path: fields[index + 1] });
-  return files;
-}
-
-export function read_git_patch(run: git_run, root: string, hash: string, parent: string, file: string): Promise<string> {
-  if (!file || file.includes("\0")) throw new Error("文件路径无效。");
-  return run(root, [...diff_arguments(hash, parent), "-p", "--unified=3", "--no-color", "--", file]);
-}
-
-export function read_git_message(run: git_run, root: string, hash: string): Promise<string> {
-  return run(root, ["show", "--no-patch", "--format=%B", require_hash(hash), "--"]);
 }
 
 type graph_lane = { hash: string; color: number };

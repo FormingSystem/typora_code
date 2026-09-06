@@ -305,7 +305,7 @@ bash ./tools/typora/check_configuration.sh
 
 检查通过时会报告平台、已验证的 Typora 根目录、唯一脚本入口数量、主题 SHA-256、bundle SHA-256 和 `status: OK`。检查会分别比较已安装主题、bundle 与当前仓库文件是否一致，并校验全部插件资产；旧主题、旧 bundle 或缺失、损坏的插件文件不能仅凭入口还在就通过。普通安装也会在复制后校验主题、bundle 和插件资产。持续集成或其他非交互环境应增加 `-non_interactive` 或 `--non-interactive`，防止脚本等待终端输入。
 
-`git_graph_runtime` 另报告当前检查进程能否从 PATH 发现 Git；它与配置文件完整性分别检查。Git Graph 使用系统 Git 和 Typora 自带的运行时，安装脚本不固定 Git 的绝对路径、不改写系统 PATH，也不要求额外安装 Node.js。详见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
+`git_graph_features` 报告完整提交图、操作、比较、评审与设置能力；功能标记和 bundle 摘要校验防止旧版查看器误通过。`git_graph_runtime` 另报告当前检查进程能否从 PATH 发现 Git；它与配置文件完整性分别检查。Git Graph 使用系统 Git 和 Typora 自带的运行时，安装脚本不固定 Git 的绝对路径、不改写系统 PATH，也不要求额外安装 Node.js。详见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
 
 # 第7章\_维护、验收与边界
 
@@ -334,7 +334,7 @@ npm run check
 - 通过文内锚点和跨文件锚点跳转，确认 `Alt + ←` 一次返回链接来源，`Alt + →` 回到目标，并恢复阅读位置；在有未保存修改时取消宿主确认，确认原文保留。
 - 从另一栏点击带中文标题的链接，确认目标标题出现在视口中，光标和目录选中同一标题，来源栏仍显示原来的段落；关闭标签、关闭窗口后分别重开，确认普通打开延续上次位置，带标题打开优先到指定标题。
 - 右键非活动文件标签或文件树项目，复制相对路径与绝对路径，确认复制对象正确且没有切换文档；检查 `Ctrl + K`、`P` 和 `Ctrl + K`、`Ctrl + Shift + C`，并确认原来的向下分栏快捷键正常。
-- 打开 Git Graph，检查提交连线、分支筛选、合并父提交及中文文件差异；从图标签切回正文后，确认原有非零阅读位置保持。临时仓库回归通过 `test_reading_native.ps1 -suite git` 执行，并比较未提交正文和索引的原始字节。
+- 打开 Git Graph，检查提交连线、分支筛选、合并父提交及中文文件差异；再在测试仓库验证操作预览、执行、评审记录和 Ctrl 版本比较；从图标签切回正文后，确认原有非零阅读位置保持。临时仓库回归通过 `test_reading_native.ps1 -suite git` 执行，并比较未提交正文和索引的原始字节。
 
 ## 7.3\_Typora升级边界
 
@@ -354,6 +354,6 @@ Typora 没有提供主题 JavaScript 的正式入口，所以该方案需要对�
 
 文件标签和侧栏文件树的右键菜单提供相对路径、绝对路径复制；相对路径以当前打开的文件夹根目录为基准。操作入口和快捷键见 [复制文件路径](./enhancements/README.md#1.4.2_复制文件路径)。
 
-左侧工具栏底部的分支图标打开 Git Graph 标签，可并排查看当前仓库的提交关系和文件差异。操作与查询边界见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
+左侧工具栏底部的分支图标打开 Git Graph 标签，可并排查看当前仓库的提交关系和文件差异，执行分支、stash、合并、变基、远端同步，并持续记录文件评审。完整收集与对应入口见 [Git Graph 功能对照](./enhancements/git_graph_features.md#第1章_Git_Graph功能对照与操作说明)。操作与查询边界见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
 
 社区工作区使用一个活动的 Typora 原生编辑器，其余分栏显示预览；点击预览正文会交换编辑器所在分栏。多份独立未保存缓冲区、VS Code 语言服务器等能力不在本实现范围内，切换文件仍遵循 Typora 的保存确认。完整操作、插件管理和历史边界见 [标签页、分栏与阅读历史](./enhancements/README.md#1.4_标签页、分栏与阅读历史)。

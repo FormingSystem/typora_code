@@ -34,6 +34,11 @@ try {
     $reading_store = Join-Path $user_data "Local Storage\leveldb\reading-position-fixture.log"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $reading_store) | Out-Null
     [System.IO.File]::WriteAllText($reading_store, "existing reading positions")
+    $graph_store = Join-Path $user_data "Local Storage\leveldb\git-graph-fixture.log"
+    $avatar_store = Join-Path $user_data "linux_note_enhancements\git_graph\avatars\fixture.png"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $avatar_store) | Out-Null
+    [IO.File]::WriteAllText($graph_store, "existing reviews and repository settings")
+    [IO.File]::WriteAllText($avatar_store, "existing avatar")
     $old_core = Join-Path $user_data "plugins\2.10.15\core.js"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $old_core) | Out-Null
     [System.IO.File]::WriteAllText($old_core, "previous core")
@@ -55,6 +60,15 @@ try {
     assert_equal ([System.IO.File]::ReadAllText($old_core)) "previous core" "Existing core was not restored"
     assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Restore changed reading positions"
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data "plugins\2.10.15\core.css")) $false "New assets remain active after restore"
+
+    assert_equal ([IO.File]::ReadAllText($graph_store)) "existing reviews and repository settings" "Install or restore changed Git Graph state"
+    assert_equal ([IO.File]::ReadAllText($avatar_store)) "existing avatar" "Install or restore changed avatar cache"
+    $bundle_copy = Join-Path $tools_copy "enhancements\dist\typora_enhancements.js"
+    $bundle_original = [IO.File]::ReadAllText($bundle_copy)
+    [IO.File]::WriteAllText($bundle_copy, $bundle_original.Replace('data-linux-note-git-graph-actions', 'missing-full-graph-capability'))
+    assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'old graph rejected') -non_interactive } "Old Git Graph bundle passed full capability check"
+    assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'old graph rejected')) $false "Invalid graph bundle triggered mutations"
+    [IO.File]::WriteAllText($bundle_copy, $bundle_original, [Text.UTF8Encoding]::new($false))
 
     # 制造提交清单写入失败，检查已复制文件能回滚。
     $failed_backup = Join-Path $test_root "failed transaction"

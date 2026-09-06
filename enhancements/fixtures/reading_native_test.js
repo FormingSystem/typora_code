@@ -79,7 +79,12 @@
       }
       expect(hashes[0] === digest('source.md') && hashes[1] === digest('target.md'), 'Markdown sources remain unchanged');
       result.status = 'PASS';
-    } catch (error) { result.status = 'FAIL'; result.error = String(error.stack); }
+    } catch (error) {
+      result.status = 'FAIL'; result.error = String(error.stack);
+      result.resume_debug = { phase, actual: visible(document.querySelector('content'), document.querySelector('#write')),
+        scroll_top: document.querySelector('content').scrollTop,
+        stored: localStorage.getItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(File.bundle.filePath))) };
+    }
     finally {
       fs.writeFileSync(path.join(probe_root, `result_${phase}.json`), JSON.stringify(result, null, 2));
       window.close();

@@ -20,3 +20,7 @@ mermaid_container_for_preview
 preview.prepend(toolbar)
 fit-width
 data-linux-note-typora-enhancements
+data-linux-note-git-graph-actions
+plan_git_action
+linux-note-git-graph:v2:
+git-graph-dialog-shade

@@ -26,15 +26,17 @@
       app.workspace.ribbon.clickButton('linux_note:git_graph');
       await wait(() => document.querySelector('.linux-note-git-graph')?.dataset.state === 'ready', 'Graph did not load');
       const graph = document.querySelector('.linux-note-git-graph'); const graph_leaf = app.workspace.activeLeaf;
-      expect(normalized(graph.querySelector('.git-graph-root').textContent) === normalized(probe_root), 'repository discovered from active document');
-      expect(graph.querySelectorAll('.git-graph-row').length === 4, 'real commit history rendered in workspace tab');
+      const commits = node => node.querySelectorAll('.git-graph-row:not(.git-graph-worktree)');
+      const refresh = node => [...node.querySelectorAll('.git-graph-toolbar button')].find(button => button.textContent === '刷新').click();
+      expect(normalized(graph.querySelector('.git-graph-root').title) === normalized(probe_root), 'repository discovered from active document');
+      expect(commits(graph).length === 4, 'real commit history rendered in workspace tab');
       expect(graph.querySelectorAll('.git-graph-row svg circle').length === 4, 'one graph node per commit');
-      expect(graph.querySelector('.git-graph-row svg').querySelectorAll('path').length === 2, 'merge node has two parent edges');
+      expect(graph.querySelector('.git-graph-row:not(.git-graph-worktree) svg').querySelectorAll('path').length === 2, 'merge node has two parent edges');
       expect(!graph.querySelector('img') && graph.textContent.includes('<img src=x onerror=alert(1)>'), 'commit text is displayed without interpreting HTML');
       expect(File.bundle.filePath === source_leaf.state.path, 'opening graph does not switch native document');
       app.commands.run('linux_note:git_graph');
       expect(document.querySelectorAll('.linux-note-git-graph').length === 1, 'reopening active graph does not duplicate tab');
-      graph.querySelector('.git-graph-row').click();
+      commits(graph)[0].click();
       await wait(() => graph.querySelector('.git-graph-file'));
       expect(graph.querySelectorAll('.git-graph-parent option').length === 2, 'merge exposes both parents');
       expect(graph.querySelector('.git-graph-file').textContent.includes('中文 #%.md'), 'first parent changed file preserves Unicode and punctuation');
@@ -45,7 +47,7 @@
       await wait(() => graph.querySelector('.git-graph-file')?.textContent.includes('target.md'));
       expect(true, 'switching merge parent updates comparison files');
       const branch = graph.querySelector('.git-graph-branch'); branch.value = 'refs/heads/feature'; branch.dispatchEvent(new Event('change'));
-      await wait(() => graph.dataset.state === 'ready' && graph.querySelectorAll('.git-graph-row').length === 2);
+      await wait(() => graph.dataset.state === 'ready' && commits(graph).length === 2);
       expect(true, 'branch selector narrows topology');
       const search = graph.querySelector('.git-graph-search'); search.value = 'Initial';
       search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
@@ -56,9 +58,9 @@
       expect(true, 'returning to source preserves reading position');
       app.workspace.activeLeaf = graph_leaf.parent.toggleTab(graph_leaf.state.path);
       await delay(350);
-      graph.querySelector('.git-graph-toolbar button').click();
+      refresh(graph);
       await wait(() => graph.dataset.state === 'ready');
-      expect(graph.querySelectorAll('.git-graph-row').length === 2, 'refresh retains selected branch');
+      expect(commits(graph).length === 2, 'refresh retains selected branch');
       expect(fs.readFileSync(path.join(probe_root, 'source.md')).equals(source_bytes), 'uncommitted Markdown remains byte-identical');
       expect(fs.readFileSync(path.join(probe_root, '.git/index')).equals(index_bytes), 'Git index remains byte-identical');
       const bounds = graph.getBoundingClientRect();
@@ -67,26 +69,60 @@
       app.commands.run('core.workspace:split-right', [graph_leaf.state.path]);
       await wait(() => [...document.querySelectorAll('.linux-note-git-graph')].filter(node => node.dataset.state === 'ready').length === 2);
       const split_graph = app.workspace.activeLeaf.view.containerEl;
-      expect(normalized(split_graph.querySelector('.git-graph-root').textContent) === normalized(probe_root), 'split graph retains repository context');
+      expect(normalized(split_graph.querySelector('.git-graph-root').title) === normalized(probe_root), 'split graph retains repository context');
       const list_bounds = split_graph.querySelector('.git-graph-list').getBoundingClientRect();
       const details_bounds = split_graph.querySelector('.git-graph-details').getBoundingClientRect();
       expect(list_bounds.width > 100 && list_bounds.height > 50 && details_bounds.height > 100 && details_bounds.top >= list_bounds.bottom - 1,
         'narrow split stacks readable history and details inside its viewport');
       // 非仓库错误保留工具入口；恢复目录后可以继续刷新。
       const split_leaf = app.workspace.activeLeaf;
-      split_leaf.state.git_cwd = path.dirname(probe_root);
-      split_graph.querySelector('.git-graph-toolbar button').click();
+      split_leaf.view.panel.root = path.dirname(probe_root);
+      refresh(split_graph);
       await wait(() => split_graph.dataset.state === 'error');
       expect(split_graph.querySelector('.git-graph-status').textContent.includes('not a git repository'), 'non-repository error is visible in graph');
-      split_leaf.state.git_cwd = probe_root;
-      split_graph.querySelector('.git-graph-toolbar button').click();
+      split_leaf.view.panel.root = probe_root;
+      refresh(split_graph);
       await wait(() => split_graph.dataset.state === 'ready');
-      expect(split_graph.querySelectorAll('.git-graph-row').length === 4, 'refresh recovers after a repository error');
+      expect(commits(split_graph).length === 4, 'refresh recovers after a repository error');
+      // 新增写入操作只在此脚本创建的临时仓库验证。
+      const panel = split_leaf.view.panel;
+      commits(split_graph)[0].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 450, clientY: 150 }));
+      await wait(() => document.querySelector('[data-action="branch_create"]'));
+      document.querySelector('[data-action="branch_create"]').click();
+      const field = document.querySelector('[data-field="branch"]'); field.value = 'native-created'; field.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(document.querySelector('[data-git-execute]').disabled, 'action requires a concrete preview before execution');
+      document.querySelector('[data-git-preview]').click();
+      await wait(() => !document.querySelector('[data-git-execute]').disabled);
+      expect(document.querySelector('.git-graph-action-preview').textContent.includes('native-created') && !fs.existsSync(path.join(probe_root, '.git/refs/heads/native-created')), 'preview displays exact branch without creating it');
+      document.querySelector('[data-git-execute]').click();
+      await wait(() => fs.existsSync(path.join(probe_root, '.git/refs/heads/native-created')) && !panel.writing);
+      expect(true, 'native dialog executes approved branch operation');
+      document.querySelector('.git-graph-dialog-shade').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+      panel.select_commit(panel.state.commits[0]); await wait(() => split_graph.querySelector('.git-graph-file'));
+      [...split_graph.querySelectorAll('.git-graph-detail-controls button')].find(button => button.textContent === '开始评审').click();
+      await wait(() => split_graph.querySelector('.git-file-unreviewed'));
+      split_graph.querySelector('.git-graph-file').click();
+      await wait(() => panel.is_reviewed('中文 #%.md'));
+      expect(panel.is_reviewed('中文 #%.md'), 'native diff selection persists reviewed file');
+      const initial = panel.state.commits.find(commit => commit.subject.startsWith('Initial'));
+      commits(split_graph)[commits(split_graph).length - 1].dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
+      await wait(() => panel.to === initial.hash);
+      expect(panel.from !== panel.to, 'Ctrl click compares two distinct revisions');
+      panel.settings.details_location = 'inline'; panel.render_history();
+      expect(split_graph.querySelector('.git-graph-list').contains(split_graph.querySelector('.git-graph-details')), 'inline details attach to selected graph row');
       result.status = 'PASS';
     } catch (error) {
       result.status = 'FAIL'; result.error = String(error.stack);
       result.graph = document.querySelector('.linux-note-git-graph')?.innerText.slice(0, 3000);
     } finally {
+      const prefix = 'linux-note-git-graph:v2:';
+      try {
+        const repositories = JSON.parse(localStorage.getItem(prefix + 'repositories') || '[]');
+        localStorage.setItem(prefix + 'repositories', JSON.stringify(repositories.filter(root => normalized(root) !== normalized(probe_root))));
+        const reviews = JSON.parse(localStorage.getItem(prefix + 'reviews') || '[]');
+        localStorage.setItem(prefix + 'reviews', JSON.stringify(reviews.filter(review => normalized(review.root) !== normalized(probe_root))));
+        for (const key of Object.keys(localStorage)) if (key.startsWith(prefix + 'settings:') && normalized(key.slice((prefix + 'settings:').length)) === normalized(probe_root)) localStorage.removeItem(key);
+      } catch { /* 不覆盖已有的损坏记录。 */ }
       fs.writeFileSync(path.join(probe_root, 'result_1.json'), JSON.stringify(result, null, 2));
       window.close();
     }
