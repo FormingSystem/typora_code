@@ -7,7 +7,7 @@ export const graph_defaults = {
   mute_merges: false, mute_unreachable: false, show_signature: false, fetch_avatars: false,
   date_type: "author", date_format: "local", show_date: true, show_author: true, show_hash: true,
   column_widths: { subject: 300, author: 110, date: 145, hash: 80 },
-  details_location: "right", panel_ratio: 55, auto_center: true, file_view: "tree", compact_folders: true,
+  details_location: "bottom", panel_ratio: 55, auto_center: true, file_view: "tree", compact_folders: true,
   label_alignment: "inline", combine_refs: false, uncommitted_style: "row", inline_markdown: true,
   branch_globs: [] as { name: string; glob: string }[], emoji: {} as Record<string, string>,
   hidden_actions: [] as string[], dialog_defaults: {} as Record<string, Record<string, string | boolean>>,

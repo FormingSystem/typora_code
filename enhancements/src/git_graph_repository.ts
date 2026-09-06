@@ -98,6 +98,23 @@ export async function compare_patch(run: git_run, state: repository_state, from:
   if (file.status === "??" || from === EMPTY && to === WORKTREE) return ""; // 无基准内容由宿主读取并显示为新增。
   return run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "-p", "--no-ext-diff", "--no-textconv", "--", file.path, ...(file.old_path ? [file.old_path] : [])]);
 }
+
+/** --follow 在重命名前继续追踪旧路径；每个提交携带当时的文件名，避免拿今天的路径读旧对象。 */
+export async function read_file_history(run: git_run, root: string, file: string, count = 200): Promise<{commit: graph_commit; file: graph_change}[]> {
+  const source = await run(root, ["log", "--follow", `--max-count=${count}`, "--format=%H%x00%P%x00%an%x00%aI%x00%s", "-z", "--name-status", "--find-renames", "--", file]);
+  const fields = source.split("\0"); const result: {commit: graph_commit; file: graph_change}[] = [];
+  for (let index = 0; index < fields.length && fields[index];) {
+    const commit = parse_git_log(fields.slice(index, index + 5).join("\0") + "\0")[0]; index += 5;
+    while (index < fields.length && fields[index] && !/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(fields[index])) {
+      const status = fields[index++].replace(/^\n/u, "");
+      if (!/^[ACDMRTUXB][0-9]*$/u.test(status)) throw new Error("文件历史状态无法解析。");
+      const old_path = /^[RC]/u.test(status) ? fields[index++] : undefined;
+      const path = fields[index++]; if (!path) throw new Error("文件历史路径缺失。");
+      result.push({commit, file: {status, path, ...(old_path ? {old_path} : {})}});
+    }
+  }
+  return result;
+}
 export async function commit_containment(run: git_run, state: repository_state, hash: string): Promise<string> {
   require_revision(hash);
   const [refs, in_head] = await Promise.all([

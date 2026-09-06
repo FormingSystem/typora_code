@@ -27,3 +27,6 @@ git-graph-dialog-shade
 data-linux-note-terminal
 linux_note:terminal
 linux-note-workspace-sash
+data-linux-note-source-control
+data-linux-note-monaco-diff
+linux_note:source_control

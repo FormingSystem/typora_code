@@ -24,7 +24,15 @@
       await delay(1200);
       content.scrollTop = 620; await delay(600); const original_scroll = content.scrollTop;
       expect(original_scroll > 500, 'source starts at a nonzero reading position');
-      app.workspace.ribbon.clickButton('linux_note:git_graph');
+      app.workspace.ribbon.clickButton('linux_note:source_control');
+      await wait(() => document.querySelector('.git-scm-sidebar .git-scm-file'));
+      const scm_icon = document.querySelector('.typ-ribbon-item[data-id="linux_note:source_control"]');
+      const outline_icon = document.querySelector('.typ-ribbon-item[data-id="core.outline"]');
+      expect(scm_icon.closest('.group.top') && scm_icon.getBoundingClientRect().top > outline_icon.getBoundingClientRect().top, 'Git icon is in top activity group below outline');
+      expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:git_graph"]'), 'old bottom Git icon removed');
+      expect(app.workspace.activeLeaf === source_leaf, 'source control opens sidebar without replacing document');
+      expect(document.querySelector('#sidebar-content .git-scm-sidebar'), 'source control uses native primary sidebar');
+      document.querySelector('.git-scm-graph-launch').click();
       await wait(() => document.querySelector('.linux-note-git-graph')?.dataset.state === 'ready', 'Graph did not load');
       const graph = document.querySelector('.linux-note-git-graph'); const graph_leaf = app.workspace.activeLeaf;
       const commits = node => node.querySelectorAll('.git-graph-row:not(.git-graph-worktree)');
@@ -42,8 +50,14 @@
       expect(graph.querySelectorAll('.git-graph-parent option').length === 2, 'merge exposes both parents');
       expect(graph.querySelector('.git-graph-file').textContent.includes('中文 #%.md'), 'first parent changed file preserves Unicode and punctuation');
       graph.querySelector('.git-graph-file').click();
-      await wait(() => graph.querySelector('.git-graph-patch').textContent.includes('+branch'));
-      expect([...graph.querySelectorAll('.git-diff-add')].some(node => node.textContent.includes('+branch')), 'selected file displays colored patch');
+      await wait(() => document.querySelector('[data-diff-ready=true]'), 'Monaco native diff did not compute');
+      expect(document.querySelectorAll('.monaco-diff-editor .monaco-editor').length >= 2, 'file click opens real Monaco side by side diff');
+      expect([...document.querySelectorAll('.typ-tab .typ-file-basename')].some(node => node.textContent === '中文 #%.md（更改）'), 'Chinese diff tab name is readable and safely rendered');
+      const diff_bounds = document.querySelector('.git-monaco-body').getBoundingClientRect();
+      expect(diff_bounds.height > 400 && diff_bounds.width > 500, 'diff occupies central editor area');
+      expect(document.querySelector('#sidebar-content .git-scm-sidebar') && document.querySelector('[data-scm-group=changes] [data-file="source.md"]'), 'source control sidebar shows uncommitted draft');
+      expect(!graph.querySelector('.git-scm-sidebar, .git-workbench-tabs, .git-workbench-activity'), 'graph has no nested sidebar activity bar or tabs');
+      app.workspace.activeLeaf = graph_leaf.parent.toggleTab(graph_leaf.state.path);
       const parent = graph.querySelector('.git-graph-parent'); parent.selectedIndex = 1; parent.dispatchEvent(new Event('change'));
       await wait(() => graph.querySelector('.git-graph-file')?.textContent.includes('target.md'));
       expect(true, 'switching merge parent updates comparison files');
@@ -71,6 +85,8 @@
       await wait(() => [...document.querySelectorAll('.linux-note-git-graph')].filter(node => node.dataset.state === 'ready').length === 2);
       const split_graph = app.workspace.activeLeaf.view.containerEl;
       expect(normalized(split_graph.querySelector('.git-graph-root').title) === normalized(probe_root), 'split graph retains repository context');
+      app.workspace.activeLeaf.view.panel.select_commit(app.workspace.activeLeaf.view.panel.state.commits[0]);
+      await wait(() => split_graph.querySelector('.git-graph-file'));
       const list_bounds = split_graph.querySelector('.git-graph-list').getBoundingClientRect();
       const details_bounds = split_graph.querySelector('.git-graph-details').getBoundingClientRect();
       expect(list_bounds.width > 100 && list_bounds.height > 50 && details_bounds.height > 100 && details_bounds.top >= list_bounds.bottom - 1,
@@ -122,6 +138,7 @@
         localStorage.setItem(prefix + 'repositories', JSON.stringify(repositories.filter(root => normalized(root) !== normalized(probe_root))));
         const reviews = JSON.parse(localStorage.getItem(prefix + 'reviews') || '[]');
         localStorage.setItem(prefix + 'reviews', JSON.stringify(reviews.filter(review => normalized(review.root) !== normalized(probe_root))));
+        for (const key of Object.keys(localStorage)) if (key.startsWith('linux-note-source-control:v1:') && normalized(key).endsWith(normalized(probe_root))) localStorage.removeItem(key);
         for (const key of Object.keys(localStorage)) if (key.startsWith(prefix + 'settings:') && normalized(key.slice((prefix + 'settings:').length)) === normalized(probe_root)) localStorage.removeItem(key);
       } catch { /* 不覆盖已有的损坏记录。 */ }
       fs.writeFileSync(path.join(probe_root, 'result_1.json'), JSON.stringify(result, null, 2));

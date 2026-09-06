@@ -33,31 +33,44 @@ export function graph_dialog(title: string): { root: HTMLElement; content: HTMLE
   footer.append(graph_button("关闭", close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
   return { root, content, footer, close };
 }
-export type graph_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean };
+export type graph_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: graph_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
 export function graph_menu(event: MouseEvent, entries: graph_menu_entry[]): void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
   const previous_focus = document.activeElement as HTMLElement | null;
-  const menu = graph_element("div", "git-graph-menu"); menu.setAttribute("role", "menu");
-  for (const entry of entries) {
-    if (entry.separator && menu.children.length) { const separator = graph_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
-    const node = graph_button((entry.checked == null ? "" : entry.checked ? "✓  " : "　 ") + entry.title, () => { close(); entry.action(); }); node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled); if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); } menu.append(node);
-  }
-  const close = () => { menu.remove(); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; };
-  close_active_menu = close; window.addEventListener("blur", close);
-  const outside = (input: Event) => { if (!menu.contains(input.target as Node)) close(); };
-  menu.addEventListener("mousedown", input => { input.preventDefault(); input.stopPropagation(); });
-  menu.addEventListener("keydown", input => {
-    if (input.key === "Escape") { input.preventDefault(); close(); }
-    if (["ArrowDown", "ArrowUp"].includes(input.key)) {
-      input.preventDefault(); const buttons = [...menu.querySelectorAll<HTMLButtonElement>("button:not([disabled])")];
-      buttons[(buttons.indexOf(document.activeElement as HTMLButtonElement) + (input.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
+  const menus: HTMLElement[] = [];
+  const close_from = (level: number) => { menus.splice(level).forEach(menu => menu.remove()); };
+  const close = () => { close_from(0); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; };
+  const outside = (input: Event) => { if (!menus.some(menu => menu.contains(input.target as Node))) close(); };
+  const show = (items: graph_menu_entry[], x: number, y: number, level: number, parent?: HTMLButtonElement) => {
+    close_from(level); const menu = graph_element("div", "git-graph-menu"); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
+    for (const entry of items) {
+      if (entry.separator && menu.children.length) { const separator = graph_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
+      const node = graph_button((entry.checked == null ? "" : entry.checked ? "✓  " : "　 ") + entry.title + (entry.children ? "  ›" : ""), () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
+      const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
+      node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
+      if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }
+      if (entry.children) node.setAttribute("aria-haspopup", "menu");
+      node.onmouseenter = () => entry.children ? open_child() : close_from(level + 1);
+      node.onkeydown = input => { if (input.key === "ArrowRight" && entry.children) { input.preventDefault(); input.stopPropagation(); open_child(true); } };
+      menu.append(node);
     }
-    input.stopPropagation();
-  });
-  document.body.append(menu);
-  const bounds = menu.getBoundingClientRect(); menu.style.left = Math.max(4, Math.min(event.clientX, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(event.clientY, innerHeight - bounds.height - 4)) + "px";
-  window.addEventListener("pointerdown", outside, true); menu.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
+    menu.addEventListener("mousedown", input => { input.preventDefault(); input.stopPropagation(); });
+    menu.addEventListener("keydown", input => {
+      if (input.key === "Escape") { input.preventDefault(); close(); }
+      if (input.key === "ArrowLeft" && parent) { input.preventDefault(); close_from(level); parent.focus(); }
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(input.key)) {
+        input.preventDefault(); const buttons = [...menu.querySelectorAll<HTMLButtonElement>("button:not([disabled])")]; const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        buttons[input.key === "Home" ? 0 : input.key === "End" ? buttons.length - 1 : (current + (input.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
+      } input.stopPropagation();
+    });
+    document.body.append(menu); const bounds = menu.getBoundingClientRect();
+    if (parent && x + bounds.width > innerWidth - 4) x = parent.getBoundingClientRect().left - bounds.width + 2;
+    menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
+    return menu;
+  };
+  close_active_menu = close; window.addEventListener("blur", close); window.addEventListener("pointerdown", outside, true);
+  show(entries, event.clientX, event.clientY, 0).querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
 }
 
 export function inline_message(text: string, options: { markdown: boolean; emoji: Record<string, string>; issue_pattern: string; issue_url: string }, open_url: (url: string) => void): DocumentFragment {

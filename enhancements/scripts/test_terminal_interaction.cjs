@@ -1,7 +1,8 @@
 // 隔离 Electron 中使用真实键盘和鼠标；仅加载已校验的终端运行文件。
 const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs'); const path = require('node:path'); const os = require('node:os'); const assert = require('node:assert/strict');
-const { buildSync } = require('esbuild');
+const { build } = require('esbuild');
+const { editor_plugins } = require('./editor_bundle.cjs');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_terminal_ui_'));
 const evidence = process.argv[2] || root; fs.mkdirSync(evidence, { recursive: true });
 const runtime_data = process.env.TYPORA_TEST_USER_DATA || path.join(process.env.APPDATA, 'Typora');
@@ -15,7 +16,7 @@ app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1200, height: 750, webPreferences: { nodeIntegration: true, contextIsolation: false, offscreen: true, backgroundThrottling: false } });
   test_window.webContents.on('console-message', (_event, _level, message) => console.error(message));
   const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}</style>'); await test_window.loadFile(html);
-  const bundle = buildSync({ stdin: { contents: 'export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: { '.css':'text' }, format: 'iife', globalName: 'terminal_qa', write: false }).outputFiles[0].text;
+  const bundle = (await build({ plugins: editor_plugins(), stdin: { contents: 'export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: { '.css':'text' }, format: 'iife', globalName: 'terminal_qa', write: false })).outputFiles[0].text;
   await evaluate(bundle);
   await evaluate(`(() => {
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
@@ -46,4 +47,4 @@ app.whenReady().then(async () => {
   const before=await evaluate('view.term.cols'); test_window.setSize(750,600); await delay(500); assert(await evaluate('view.term.cols')<before);
   await evaluate('view.dispose()');
   console.log(JSON.stringify({status:'PASS',checks:['typed input','arrow-key command history','Ctrl+C interrupt','Ctrl+Shift+C copy','find shortcut and Escape','real right-click terminal menu','window resize'],evidence}));
-}).catch(async error=>{console.error(error);if(test_window){console.error(await evaluate('document.body.innerText'));await evaluate('window.view?.dispose()');}process.exitCode=1;}).finally(()=>{if(test_window&&!test_window.isDestroyed())test_window.destroy();app.quit();});
+}).catch(async error=>{console.error(error);if(test_window){console.error(await evaluate('document.body.innerText'));await evaluate('window.view?.dispose()');}process.exitCode=1;}).finally(()=>{if(test_window&&!test_window.isDestroyed())test_window.destroy();app.exit(process.exitCode || 0);});
