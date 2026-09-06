@@ -1,11 +1,13 @@
 ---
 id: tools.typora.typora配置展示
-title: "文件"
+title: "Typora 原生偏好设置截图"
 kind: reference
 status: evolving
 domains:
   - tools
 ---
+
+本页保留原有七组 Typora 偏好设置截图。插件系统、同窗标签与分栏、阅读导航、代码按钮和语法高亮由扩展提供，配置方法从 [Typora 安装与阅读工作区](./README.md#1.1_安装、检查与恢复) 进入；完整操作见 [标签页、分栏与阅读历史](./enhancements/README.md#1.4_标签页、分栏与阅读历史)。下列截图作为原生设置参考，不代表插件的安装状态；安装状态应运行 [只读检查](./typora配置修改.md#6.5_只读状态检查)。
 
 # 第1章\_文件
 
