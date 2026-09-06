@@ -68,6 +68,11 @@
         result.resumed_position = visible(content, write);
       } else {
         const prior = JSON.parse(fs.readFileSync(path.join(probe_root, 'result_1.json'), 'utf8'));
+        // ready 表示事件已接入；排版及异步位置恢复可能仍在进行，等待可观察的阅读位置。
+        await wait(() => same_position(prior.resumed_position, visible(content, write)));
+        await delay(350);
+        result.resume = { expected: prior.resumed_position, actual: visible(content, write), scroll_top: content.scrollTop,
+          stored: localStorage.getItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(File.bundle.filePath))) };
         expect(same_position(prior.resumed_position, visible(content, write)), 'new window resumes persisted reading position');
         // 仅移除本次测试两个临时文件的键，保留用户所有实际文档的阅读记录。
         for (const name of ['source.md', 'target.md']) localStorage.removeItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(path.join(probe_root, name))));
