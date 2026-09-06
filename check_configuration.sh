@@ -31,6 +31,11 @@ entry_count="$(grep -oF 'data-linux-note-enhancements="true"' "$window_html" | w
 typora_validate_bundle "$bundle" "$typora_tools_root/enhancements/bundle_markers.txt"
 typora_validate_workspace "$TYPORA_USER_DATA/plugins" "$typora_tools_root/enhancements/vendor/typora_workspace/SHA256SUMS"
 
+[[ "$(typora_sha256 "$theme")" == "$(typora_sha256 "$typora_tools_root/cpp_github-consolas.css")" ]] || {
+    printf '%s\n' '[typora] Installed theme differs from this repository theme; run configure.sh again.' >&2
+    exit 1
+}
+
 [[ "$(typora_sha256 "$bundle")" == "$(typora_sha256 "$typora_tools_root/enhancements/dist/typora_enhancements.js")" ]] || {
     printf '%s\n' '[typora] Installed extension differs from this repository prebuilt bundle; run configure.sh again.' >&2
     exit 1

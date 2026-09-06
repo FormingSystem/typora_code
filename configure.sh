@@ -106,6 +106,10 @@ typora_install_workspace "$workspace_vendor" "$workspace_target" "$workspace_man
 cp -f -- "$theme_source" "$theme_target"
 cp -f -- "$bundle_source" "$bundle_target"
 typora_copy_file "$new_window_html" "$window_html"
+[[ "$(typora_sha256 "$theme_source")" == "$(typora_sha256 "$theme_target")" ]] || {
+    printf '%s\n' '[typora] Installed theme does not match the repository theme.' >&2
+    exit 1
+}
 [[ "$(typora_sha256 "$bundle_source")" == "$(typora_sha256 "$bundle_target")" ]] || {
     printf '%s\n' '[typora] Installed extension does not match the prebuilt bundle.' >&2
     exit 1

@@ -50,9 +50,11 @@ if ($theme_existed) {
     Copy-Item -LiteralPath $theme_target -Destination $theme_backup
 }
 
-Copy-Item -LiteralPath $theme_source -Destination $theme_target -Force
-
 try {
+    Copy-Item -LiteralPath $theme_source -Destination $theme_target -Force
+    if ((Get-Sha256 $theme_source) -ne (Get-Sha256 $theme_target)) {
+        throw "Installed theme does not match the repository theme."
+    }
     & $installer -typora_root $typora_root -backup_root $backup_root -non_interactive
 } catch {
     if ($theme_existed -and (Test-Path -LiteralPath $theme_backup -PathType Leaf)) {

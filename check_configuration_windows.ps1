@@ -31,6 +31,11 @@ if ($tag_count -ne 1) {
 }
 
 $repository_bundle = Join-Path $PSScriptRoot "enhancements\dist\typora_enhancements.js"
+$repository_theme = Join-Path $PSScriptRoot "cpp_github-consolas.css"
+if ((Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash -ne
+    (Get-FileHash -LiteralPath $repository_theme -Algorithm SHA256).Hash) {
+    throw "Installed theme differs from this repository's theme. Run configure_windows.cmd again."
+}
 $workspace_assets = @(get_typora_workspace_assets (Join-Path $PSScriptRoot "enhancements\vendor\typora_workspace"))
 assert_typora_workspace_assets -asset_root (Join-Path $user_data "plugins") -assets $workspace_assets
 assert_typora_bundle -bundle_path $bundle -markers_path (Join-Path $PSScriptRoot "enhancements\bundle_markers.txt")

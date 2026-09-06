@@ -72,10 +72,17 @@ for (const file of ['configure.sh', 'check_configuration.sh']) {
 
 const vendor_root = path.join(typora_root, 'enhancements/vendor/typora_workspace');
 const asset_lines = fs.readFileSync(path.join(vendor_root, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/u);
+const bootstrap_source = fs.readFileSync(path.join(typora_root, 'enhancements/src/workspace_bootstrap.ts'), 'utf8');
+const bootstrap_version = /const WORKSPACE_VERSION = "([0-9.]+)"/u.exec(bootstrap_source)?.[1];
+const bundled_version = /WORKSPACE_VERSION = "([0-9.]+)"/u.exec(bundle_source)?.[1];
+if (!bootstrap_version || bundled_version !== bootstrap_version) {
+  throw new Error('workspace source and prebuilt core versions differ; rebuild the bundle');
+}
 for (const line of asset_lines) {
   const match = /^([a-f0-9]{64})  ([0-9.]+\/(?:locales\/)?[a-zA-Z0-9._-]+)$/u.exec(line);
   if (!match || match[2].includes('..')) throw new Error(`invalid workspace asset entry: ${line}`);
+  if (match[2].split('/')[0] !== bootstrap_version) throw new Error(`workspace core version differs from its assets: ${match[2]}`);
   const digest = createHash('sha256').update(fs.readFileSync(path.join(vendor_root, match[2]))).digest('hex');
   if (digest !== match[1]) throw new Error(`workspace asset hash mismatch: ${match[2]}`);
 }
-console.log(`validated ${deployment_files.length} portable deployment files and ${asset_lines.length} pinned workspace assets`);
+console.log(`validated ${deployment_files.length} portable deployment files and ${asset_lines.length} workspace ${bootstrap_version} assets`);
