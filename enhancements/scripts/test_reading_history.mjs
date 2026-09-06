@@ -31,4 +31,11 @@ const pending = history.travel(-1, current, () => new Promise((resolve) => { fin
 assert.equal(await history.travel(-1, current, restore), false, '导航期间不重复打开文件');
 finish(false);
 await pending;
+const pane_history = create_reading_history();
+const left_pane = { ...location('chapter_a.md', 80), view_id: 1 };
+const right_pane = { ...left_pane, view_id: 2 };
+pane_history.record_jump(left_pane, right_pane);
+let restored_pane;
+assert.equal(await pane_history.travel(-1, right_pane, async (target) => { restored_pane = target.view_id; return true; }), true);
+assert.equal(restored_pane, 1, '同一文件同一滚动位置也要区分来源栏');
 console.log('reading history: anchors, files, scroll restoration, branching, cancellation and reentrancy passed');

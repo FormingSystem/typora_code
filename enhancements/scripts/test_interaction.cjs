@@ -84,7 +84,7 @@ app.whenReady().then(async () => {
   async function navigate(key_code) {
     test_window.webContents.sendInputEvent({ type: 'keyDown', keyCode: key_code, modifiers: ['alt'] });
     test_window.webContents.sendInputEvent({ type: 'keyUp', keyCode: key_code, modifiers: ['alt'] });
-    await delay(350);
+    await delay(650);
   }
   await click('#outside');
   await click('#reading_link');

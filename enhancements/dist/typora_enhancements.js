@@ -2530,7 +2530,7 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
 
   // src/reading_history.ts
   function same_location(left, right) {
-    return left.file_path === right.file_path && Math.abs(left.scroll_top - right.scroll_top) < 2 && Math.abs(left.scroll_left - right.scroll_left) < 2 && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
+    return left.file_path === right.file_path && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2 && Math.abs(left.scroll_left - right.scroll_left) < 2 && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
   }
   function create_reading_history(maximum_entries = 100) {
     let entries = [];
@@ -2543,7 +2543,7 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
         if (index < 0) {
           entries = [from];
           index = 0;
-        } else if (entries[index].file_path === from.file_path) entries[index] = from;
+        } else if (entries[index].file_path === from.file_path && entries[index].view_id === from.view_id) entries[index] = from;
         else {
           entries = entries.slice(0, index + 1);
           entries.push(from);
@@ -2560,7 +2560,7 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
         navigating = true;
         try {
           if (!await restore(entries[target_index])) return false;
-          if (entries[index]?.file_path === current.file_path) entries[index] = current;
+          if (entries[index]?.file_path === current.file_path && entries[index]?.view_id === current.view_id) entries[index] = current;
           index = target_index;
           return true;
         } finally {
@@ -2568,6 +2568,76 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
         }
       }
     };
+  }
+
+  // src/reading_positions.ts
+  var POSITION_PREFIX = "linux-note-reading-position:v1:";
+  function file_key(path) {
+    const normalized = path.replace(/\\/gu, "/");
+    return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
+  }
+  function create_position_store(storage, maximum_entries = 500) {
+    const read_entry = (key) => {
+      try {
+        const entry = JSON.parse(storage.getItem(key) ?? "null");
+        const position = entry?.position;
+        if (!Number.isFinite(entry?.updated_at) || !Number.isFinite(position?.scroll_top) || !Number.isFinite(position?.scroll_left) || position.scroll_top < 0 || position.scroll_left < 0) return null;
+        if (position.block && (typeof position.block.text !== "string" || typeof position.block.tag !== "string" || !Number.isInteger(position.block.index) || !Number.isFinite(position.block.offset))) delete position.block;
+        return entry;
+      } catch {
+        return null;
+      }
+    };
+    return {
+      get(path) {
+        return read_entry(POSITION_PREFIX + encodeURIComponent(file_key(path)))?.position ?? null;
+      },
+      set(path, position) {
+        if (!path || path.startsWith("typ://")) return;
+        try {
+          const key = POSITION_PREFIX + encodeURIComponent(file_key(path));
+          storage.setItem(key, JSON.stringify({ updated_at: Date.now(), position }));
+          const entries = [];
+          for (let index = 0; index < storage.length; index += 1) {
+            const candidate = storage.key(index);
+            if (candidate?.startsWith(POSITION_PREFIX)) entries.push({ key: candidate, updated_at: read_entry(candidate)?.updated_at ?? 0 });
+          }
+          entries.sort((left, right) => left.key === key ? -1 : right.key === key ? 1 : right.updated_at - left.updated_at);
+          for (const entry of entries.slice(maximum_entries)) storage.removeItem(entry.key);
+        } catch (error) {
+          console.warn("[linux-note reading positions] cannot persist position", error);
+        }
+      }
+    };
+  }
+  function blocks(root) {
+    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button, .linux-note-mermaid-inline-toolbar"));
+  }
+  function block_text(block) {
+    return (block.textContent ?? "").trim().slice(0, 160);
+  }
+  function capture_position(scroller, root) {
+    const position = { scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft };
+    const children = blocks(root);
+    const top = scroller.getBoundingClientRect().top;
+    let index = children.findIndex((block2) => block2.getBoundingClientRect().bottom > top + 16);
+    if (index < 0) index = children.length - 1;
+    const block = children[index];
+    if (block) position.block = { tag: block.tagName, text: block_text(block), index, offset: block.getBoundingClientRect().top - top };
+    return position;
+  }
+  function position_block(root, position) {
+    const saved = position.block;
+    if (!saved) return;
+    const children = blocks(root);
+    const matches = (block) => block.tagName === saved.tag && block_text(block) === saved.text;
+    if (children[saved.index] && matches(children[saved.index])) return children[saved.index];
+    return children.find(matches);
+  }
+  function apply_position(scroller, root, position) {
+    const block = position_block(root, position);
+    scroller.scrollTop = block && position.block ? scroller.scrollTop + block.getBoundingClientRect().top - scroller.getBoundingClientRect().top - position.block.offset : position.scroll_top;
+    scroller.scrollLeft = position.scroll_left;
   }
 
   // src/workspace_bootstrap.ts
@@ -2631,118 +2701,372 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     document.documentElement.setAttribute("data-linux-note-workspace", "ready");
   }
 
+  // src/reading_workspace.ts
+  var reading_delay = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+  function create_reading_workspace(native_path, is_busy) {
+    const app = get_workspace_app();
+    const contexts = /* @__PURE__ */ new WeakMap();
+    const native_contexts = /* @__PURE__ */ new Map();
+    const saved = /* @__PURE__ */ new Map();
+    const restoring = /* @__PURE__ */ new Map();
+    const held_paths = /* @__PURE__ */ new Set();
+    const dirty = /* @__PURE__ */ new Map();
+    let next_id = 1;
+    let save_timer = 0;
+    let store;
+    try {
+      store = create_position_store(window.localStorage);
+    } catch {
+    }
+    const context_for = (leaf) => {
+      let context = contexts.get(leaf.view);
+      if (!context) {
+        context = { view_id: next_id++, file_path: leaf.state.path, leaf };
+        contexts.set(leaf.view, context);
+      }
+      context.file_path = leaf.state.path;
+      return context;
+    };
+    const all = () => {
+      if (!app) {
+        const path = native_path();
+        const key = file_key(path);
+        if (!native_contexts.has(key)) native_contexts.set(key, { view_id: next_id++, file_path: path });
+        return [native_contexts.get(key)];
+      }
+      const result = [];
+      app.workspace.eachLeaves((leaf) => {
+        if (typeof leaf.view?.isEditor === "function") result.push(context_for(leaf));
+      });
+      return result;
+    };
+    const active = () => {
+      const leaf = app?.workspace.activeLeaf;
+      return leaf && typeof leaf.view?.isEditor === "function" ? context_for(leaf) : all().find((context) => file_key(context.file_path) === file_key(native_path()));
+    };
+    const elements = (context) => {
+      const view = context.leaf?.view;
+      if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
+      if (!view || view.isEditor()) {
+        if (is_busy() || file_key(context.file_path) !== file_key(native_path())) return null;
+        const scroller = document.querySelector("content");
+        const root2 = document.querySelector("#write");
+        return scroller && root2?.children.length && scroller.getBoundingClientRect().height > 0 ? { scroller, root: root2 } : null;
+      }
+      const root = view.containerEl;
+      return root.children.length && root.classList.contains("typ-markdown-preview") && root.getBoundingClientRect().height > 0 ? { scroller: context.leaf.containerEl, root } : null;
+    };
+    const flush = () => {
+      window.clearTimeout(save_timer);
+      for (const [path, position] of dirty) store?.set(path, position);
+      dirty.clear();
+    };
+    const remember = (context, position, persist = true) => {
+      saved.set(context.view_id, position);
+      if (context.leaf) context.leaf.state.linux_note_position = position;
+      const active_context = active();
+      if (persist && (!active_context || file_key(active_context.file_path) !== file_key(context.file_path) || active_context.view_id === context.view_id)) {
+        dirty.set(context.file_path, position);
+        window.clearTimeout(save_timer);
+        save_timer = window.setTimeout(flush, 300);
+      }
+    };
+    const capture = (context) => {
+      if (restoring.has(context.view_id)) return saved.get(context.view_id) ?? null;
+      const nodes = elements(context);
+      return nodes ? capture_position(nodes.scroller, nodes.root) : saved.get(context.view_id) ?? null;
+    };
+    const checkpoint = () => {
+      for (const context of all()) {
+        if (!elements(context) || restoring.has(context.view_id)) continue;
+        const position = capture(context);
+        if (position) remember(context, position);
+      }
+    };
+    const restore = async (context, position) => {
+      const token = {};
+      restoring.set(context.view_id, token);
+      remember(context, position, false);
+      let applied = false;
+      let previous_height = -1;
+      let stable_since = Date.now();
+      const started = Date.now();
+      while (restoring.get(context.view_id) === token && Date.now() - started < 5e3) {
+        const nodes = elements(context);
+        if (nodes) {
+          const height = nodes.root.getBoundingClientRect().height;
+          if (!applied || height !== previous_height) {
+            apply_position(nodes.scroller, nodes.root, position);
+            previous_height = height;
+            stable_since = Date.now();
+            applied = true;
+          }
+          if (applied && Date.now() - stable_since >= 250) break;
+        }
+        await reading_delay(40);
+      }
+      if (restoring.get(context.view_id) === token) {
+        restoring.delete(context.view_id);
+        const nodes = elements(context);
+        if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
+      }
+      return applied;
+    };
+    const stop_restoring = (context) => {
+      if (context) restoring.delete(context.view_id);
+      else restoring.clear();
+    };
+    const patched = /* @__PURE__ */ new WeakSet();
+    const patch_view = (view) => {
+      const prototype = Object.getPrototypeOf(view);
+      if (patched.has(prototype)) return false;
+      patched.add(prototype);
+      prototype.getState = function() {
+        const context = context_for(this.leaf);
+        const position = capture(context) ?? this.leaf.state.linux_note_position;
+        if (position) remember(context, position);
+        return position ? { scrollTop: position.scroll_top, linux_note_position: position } : {};
+      };
+      prototype.setState = function(state) {
+        const context = context_for(this.leaf);
+        if (held_paths.has(file_key(context.file_path))) return;
+        const position = state.linux_note_position ?? saved.get(context.view_id) ?? store?.get(context.file_path) ?? (typeof state.scrollTop === "number" ? { scroll_top: state.scrollTop, scroll_left: 0 } : null);
+        if (position) void restore(context, position);
+      };
+      return true;
+    };
+    for (const context of all()) {
+      if (context.leaf) patch_view(context.leaf.view);
+      const position = store?.get(context.file_path);
+      if (position) void restore(context, position);
+    }
+    app?.workspace.rootSplit.on("leaf:open", (leaf) => {
+      if (typeof leaf.view?.isEditor !== "function" || !patch_view(leaf.view)) return;
+      const context = context_for(leaf);
+      const position = store?.get(context.file_path);
+      if (position && !held_paths.has(file_key(context.file_path))) void restore(context, position);
+    });
+    document.addEventListener("scroll", (event) => {
+      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
+      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
+      const position = capture(context);
+      if (position) remember(context, position);
+    }, true);
+    for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
+      window.addEventListener(name, (event) => {
+        if (!event.isTrusted) return;
+        const target = event.target;
+        for (const context of all()) {
+          const nodes = elements(context);
+          if (nodes && target instanceof Node && nodes.scroller.contains(target)) stop_restoring(context);
+        }
+      }, true);
+    }
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("beforeunload", flush);
+    return {
+      all,
+      active,
+      elements,
+      capture,
+      checkpoint,
+      remember,
+      restore,
+      stop_restoring,
+      hold(path, value) {
+        if (value) held_paths.add(file_key(path));
+        else held_paths.delete(file_key(path));
+      },
+      resume(context) {
+        const position = saved.get(context.view_id) ?? store?.get(context.file_path);
+        return position ? restore(context, position) : Promise.resolve(true);
+      }
+    };
+  }
+
   // src/reading_navigation.ts
   var bound = false;
   function bind_reading_navigation() {
     if (bound) return;
     const file = window.File;
     const editor = file?.editor;
-    if (!file || !editor || typeof editor.tryOpenUrl !== "function" || typeof editor.library?.openFile !== "function" || typeof editor.selection?.buildUndo !== "function" || typeof editor.undo?.exeCommand !== "function") return;
+    if (!file || !editor || typeof editor.tryOpenUrl !== "function" || typeof editor.library?.openFile !== "function" || typeof editor.selection?.buildUndo !== "function") return;
     bound = true;
+    const app = get_workspace_app();
+    const runtime = window;
+    const path_api = app ? runtime.reqnode("path") : void 0;
     const history = create_reading_history();
     const original_open_url = editor.tryOpenUrl;
     const original_open_file = editor.library.openFile;
+    const native_path = () => file.bundle?.filePath ?? "";
+    const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
+    const workspace = create_reading_workspace(native_path, is_busy);
+    let navigating = false;
     let pending_from = null;
     let pending_timer = 0;
-    let pending_local = false;
-    const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
-    const capture = () => {
-      const scroller = document.querySelector("content");
-      const file_path = file.bundle?.filePath;
-      if (!scroller || !file_path || file.bundle?.unsupported || editor.sourceView?.inSourceMode) return null;
+    const capture = (context = workspace.active()) => {
+      if (!context?.file_path || file.bundle?.unsupported || editor.sourceView?.inSourceMode) return null;
+      const position = workspace.capture(context);
+      if (!position) return null;
       let cursor = null;
-      try {
-        const candidate = editor.selection.buildUndo();
-        if (candidate?.type === "cursor") cursor = JSON.parse(JSON.stringify(candidate));
-      } catch {
+      if ((!context.leaf || context.leaf.view.isEditor()) && file_key(context.file_path) === file_key(native_path())) {
+        try {
+          const candidate = editor.selection.buildUndo();
+          if (candidate?.type === "cursor") cursor = JSON.parse(JSON.stringify(candidate));
+        } catch {
+        }
       }
-      return { file_path, scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft, cursor };
+      return { file_path: context.file_path, ...position, position, cursor, view_id: context.view_id };
     };
     const finish_pending = () => {
       window.clearTimeout(pending_timer);
       const current = capture();
-      if (pending_from && current && !is_busy() && (pending_local || current.file_path !== pending_from.file_path)) history.record_jump(pending_from, current);
+      if (pending_from && current && !is_busy() && !navigating) history.record_jump(pending_from, current);
       pending_from = null;
     };
-    const record_after_open = (local) => {
-      window.clearTimeout(pending_timer);
+    const wait_for = async (ready) => {
       const started = Date.now();
-      const poll = () => {
-        if (!pending_from) return;
-        if (!is_busy() && (local || file.bundle?.filePath !== pending_from.file_path)) {
-          pending_timer = window.setTimeout(finish_pending, local ? 150 : 750);
-        } else if (Date.now() - started < 3e4) {
-          pending_timer = window.setTimeout(poll, 75);
-        } else pending_from = null;
-      };
-      pending_timer = window.setTimeout(poll, 0);
+      while (!ready()) {
+        if (Date.now() - started > 15e3) return false;
+        await reading_delay(40);
+      }
+      return true;
+    };
+    const activate = async (context) => {
+      const leaf = context.leaf;
+      if (app && leaf) {
+        if (leaf.parent.activeLeaf !== leaf) leaf.parent.toggleTab(leaf.state.path);
+        app.workspace.activeLeaf = leaf;
+        if (!await wait_for(() => Boolean(workspace.elements(context)))) return false;
+        if (!leaf.view.isEditor()) {
+          leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        }
+      }
+      return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path) && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
+    };
+    const open_target = async (path, view_id) => {
+      const existing = view_id == null ? void 0 : workspace.all().find((context) => context.view_id === view_id && file_key(context.file_path) === file_key(path));
+      if (existing) return await activate(existing) ? existing : void 0;
+      const current = workspace.active();
+      if (current && file_key(current.file_path) === file_key(path)) return await activate(current) ? current : void 0;
+      original_open_file.call(editor.library, path);
+      let target;
+      if (!await wait_for(() => {
+        target = workspace.active();
+        return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
+      })) return;
+      return target && await activate(target) ? target : void 0;
+    };
+    const report = (error) => console.error("[linux-note reading navigation]", error);
+    const navigate = async (path, hash, location) => {
+      if (navigating) return false;
+      path = path_api?.normalize(path) ?? path;
+      finish_pending();
+      const from = capture();
+      workspace.checkpoint();
+      navigating = true;
+      workspace.hold(path, true);
+      try {
+        const target = await open_target(path, location?.view_id);
+        if (!target) return false;
+        await reading_delay(100);
+        workspace.stop_restoring(target);
+        if (hash) {
+          original_open_url.call(editor, hash);
+          await reading_delay(100);
+          const heading = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
+          const cid = heading?.getAttribute("cid");
+          if (cid) {
+            const item = Array.from(document.querySelectorAll("#outline-content .outline-label")).find((node) => node.getAttribute("data-ref") === cid);
+            if (item) {
+              for (let parent = item.parentElement; parent?.closest("#outline-content"); parent = parent.parentElement) {
+                if (parent.classList.contains("outline-item-wrapper")) parent.classList.add("outline-item-open");
+              }
+              item.scrollIntoView({ block: "nearest" });
+            }
+          }
+        } else if (location) {
+          try {
+            if (location.cursor) editor.undo?.exeCommand(location.cursor);
+          } catch {
+          }
+          await reading_delay(40);
+          await workspace.restore(target, location.position ?? location);
+        } else await workspace.resume(target);
+        const to = capture(target);
+        if (to) {
+          workspace.remember(target, to.position);
+          if (from && !location) history.record_jump(from, to);
+        }
+        return true;
+      } finally {
+        workspace.hold(path, false);
+        navigating = false;
+      }
     };
     editor.tryOpenUrl = function(url, ...args) {
       const local_url = url.trim().replace(/^<|>$/gu, "");
-      if (history.is_navigating() || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
+      if (navigating) return;
+      if (editor.sourceView?.inSourceMode || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
         return original_open_url.call(this, url, ...args);
       }
-      if (pending_from && pending_local) finish_pending();
-      if (!pending_from) pending_from = capture();
-      pending_local = local_url.startsWith("#");
-      try {
-        const result = original_open_url.call(this, url, ...args);
-        record_after_open(pending_local);
-        return result;
-      } catch (error) {
-        pending_from = null;
-        throw error;
+      if (local_url.startsWith("#")) {
+        const context = workspace.active();
+        if (context) void navigate(context.file_path, local_url).catch(report);
+        return;
       }
+      if (!app && /\.md(?:#|$)/iu.test(local_url)) {
+        const [path, hash] = local_url.split(/#(.*)/su);
+        void navigate(path, hash ? `#${hash}` : void 0).catch(report);
+        return;
+      }
+      return original_open_url.call(this, url, ...args);
     };
     editor.library.openFile = function(path, callback) {
-      if (history.is_navigating()) return original_open_file.call(this, path, callback);
-      finish_pending();
-      pending_from = capture();
-      pending_local = false;
-      const result = original_open_file.call(this, path, callback);
-      record_after_open(false);
-      return result;
+      if (navigating || callback || editor.sourceView?.inSourceMode) return original_open_file.call(this, path, callback);
+      void navigate(path).catch(report);
     };
-    get_workspace_app()?.workspace.on("file:will-open", () => {
-      if (history.is_navigating() || pending_from) return;
-      pending_from = capture();
-      pending_local = false;
-      record_after_open(false);
-    });
-    const restore = async (location) => {
-      if (file.bundle?.filePath !== location.file_path) {
-        original_open_file.call(editor.library, location.file_path);
-        const started = Date.now();
-        while (file.bundle?.filePath !== location.file_path || is_busy()) {
-          if (Date.now() - started >= 3e4) return false;
-          await new Promise((resolve) => window.setTimeout(resolve, 75));
-        }
-        await new Promise((resolve) => window.setTimeout(resolve, 150));
-      }
-      if (file.bundle?.filePath !== location.file_path) return false;
-      try {
-        if (location.cursor) editor.undo.exeCommand(location.cursor);
-      } catch {
-      }
-      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
-      const scroller = document.querySelector("content");
-      if (!scroller) return false;
-      scroller.scrollTop = location.scroll_top;
-      scroller.scrollLeft = location.scroll_left;
-      return true;
-    };
+    if (app) {
+      const original_workspace_open_file = app.workspace.activeEditor.openFile;
+      app.workspace.activeEditor.openFile = (target) => {
+        if (editor.sourceView?.inSourceMode) return original_workspace_open_file.call(app.workspace.activeEditor, target);
+        const url = typeof target === "string" ? { pathname: target } : target;
+        void navigate(url.pathname, url.hash).catch(report);
+      };
+      const original_app_open_file = app.openFile;
+      app.openFile = function(path) {
+        const source = workspace.active()?.file_path;
+        const unwrapped = path.replace(/^<|>$/gu, "");
+        return original_app_open_file.call(this, source && !path_api.isAbsolute(unwrapped) ? path_api.resolve(path_api.dirname(source), unwrapped) : unwrapped);
+      };
+      app.workspace.on("file:will-open", () => {
+        workspace.checkpoint();
+        if (navigating || history.is_navigating() || pending_from) return;
+        pending_from = capture();
+      });
+      app.workspace.on("file:open", () => {
+        if (navigating || history.is_navigating()) return;
+        window.clearTimeout(pending_timer);
+        pending_timer = window.setTimeout(finish_pending, 500);
+      });
+    }
     window.addEventListener("keydown", (event) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active = document.activeElement;
       if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (event.repeat || history.is_navigating() || is_busy()) return;
+      if (event.repeat || navigating || history.is_navigating() || is_busy()) return;
       finish_pending();
       const current = capture();
-      if (current) void history.travel(event.key === "ArrowLeft" ? -1 : 1, current, restore).catch((error) => console.error("[linux-note reading navigation]", error));
+      if (current) void history.travel(
+        event.key === "ArrowLeft" ? -1 : 1,
+        current,
+        (location) => navigate(location.file_path, void 0, location)
+      ).catch(report);
     }, true);
     document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
+    document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
   }
 
   // src/typora_enhancements.ts

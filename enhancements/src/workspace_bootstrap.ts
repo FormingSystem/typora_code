@@ -1,14 +1,31 @@
 const WORKSPACE_VERSION = "2.10.15";
 const WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
 
+export type workspace_view = {
+  containerEl: HTMLElement;
+  leaf: workspace_leaf;
+  isEditor(): boolean;
+  getState(): Record<string, unknown>;
+  setState(state: Record<string, unknown>): void;
+};
+export type workspace_leaf = {
+  state: { path: string; [key: string]: unknown };
+  containerEl: HTMLElement;
+  view: workspace_view;
+  parent: { activeLeaf: workspace_leaf; toggleTab(path: string): workspace_leaf };
+};
 type workspace_app = {
   coreVersion: string;
   settings: { get(key: string): unknown; set(key: string | string[], value: unknown): void };
   commands: { run(id: string, args?: unknown[]): void };
+  openFile(path: string): unknown;
   workspace: {
     activeFile: string;
-    rootSplit: { containerEl: HTMLElement };
-    on(event: string, callback: () => void): unknown;
+    activeLeaf: workspace_leaf | null;
+    activeEditor: { openFile(file: string | { pathname: string; hash?: string }): void };
+    rootSplit: { containerEl: HTMLElement; on(event: string, callback: (leaf: workspace_leaf) => void): unknown };
+    eachLeaves(callback: (leaf: workspace_leaf) => void): void;
+    on(event: string, callback: (path: string) => void): unknown;
   };
 };
 
