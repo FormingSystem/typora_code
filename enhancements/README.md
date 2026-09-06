@@ -16,6 +16,7 @@ domains:
 - 安装固定版本的 Typora Community Plugin 核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
 - 使用 `Alt + ←` / `Alt + →` 后退、前进，记录文内锚点和跨 Markdown 文件跳转，并恢复光标与滚动位置；
 - 带标题的链接在目标栏定位光标、正文和目录，来源栏保留阅读位置；关闭标签或窗口后重新打开文件，继续上次阅读；
+- 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
 - 使用 VS Code 内置 C/C++ TextMate 语法和 Oniguruma 解析 Typora 的 `c`、`cpp` 等代码围栏，并把识别出的语法角色映射到 GitHub Light 代码配色；
 - 对超过响应式阅读高度的普通代码块默认限高，提供 `展开全部代码` / `收起代码` 切换；正文或代码块获焦时都能直接点击，按钮获焦后支持 Enter / 空格，打印时自动完整展开且不修改 Markdown；
 - 在 Mermaid 图正上方放置随正文自然滚动的静态工具行，不悬浮、不跟随视口，也不覆盖图；工具行挂在预览容器内部，并按 Mermaid 代码块去重，避免 Typora 的隐藏或重建预览产生重复按钮；
@@ -58,6 +59,8 @@ npm run check
 交互回归可用开发环境已有的 Electron 可执行文件运行 `scripts/test_interaction.cjs`（子进程不能设置 `ELECTRON_RUN_AS_NODE`）。它在隐藏的 Chromium 窗口中加载模拟宿主夹具和生产 bundle，发送真实鼠标与键盘输入，检查首次展开/收起、按钮重建、Enter / 空格、空闲 DOM、宏体颜色和 Alt 方向键导航。跨文件夹具包含社区工作区的延迟锚点步骤，后退一次必须回到来源文档。该夹具测试不替代 Typora 实窗验收。
 
 Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test_reading_native.ps1`。脚本通过共享环境助手发现 Typora，生成临时 Markdown，验证预览栏中的中文标题链接、目标光标及目录、来源段落与栏内偏移、Alt 前后导航、关闭标签重开和新窗口续读；比较源文件摘要，确认正文没有被改写。测试入口只对两个临时文档生效，完成后关闭自己的测试窗口并移除入口，不退出其他窗口。结果 JSON 保留在脚本输出的临时目录。
+
+同一命令增加 `-suite paths` 验证复制路径：标签右键菜单、文件树菜单事件、快捷键、非活动标签和活动预览栏的目标识别，以及光标和阅读位置保持。该套件用剪贴板桥接替身核对复制文本，不覆盖系统剪贴板。`npm run check` 另覆盖 Windows、UNC 和 Linux 路径、根目录边界、中文与空格、未保存文档。
 
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共插件文件事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
 
@@ -111,3 +114,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 普通打开、关闭标签后重开，以及关闭窗口后重开，都会恢复文件上次的阅读位置。明确指定的标题链接和 Alt 历史位置优先于“上次位置”。位置记录使用可见块的短文本指纹、块内偏移及滚动坐标，避免把旧文件的临时光标编号或过期字符偏移应用到新文件；文本改变导致定位块不存在时回退到滚动坐标。
 
 上次位置独立于窗口的前后跳转历史，保留最近使用的 500 个文件，存入 Typora 当前用户配置中的 Local Storage；不在 Markdown 或仓库中创建状态文件。各文件独立写入，滚动写入合并到 300ms，关闭窗口时提交待写记录。安装、重复安装和恢复扩展不清空阅读记录；清除 Typora 用户数据会清除这些位置。首次安装前尚未记录的位置无法补回。
+
+### 1.4.2\_复制文件路径
+
+在 **文件标签** 或 **侧栏文件树的文件／文件夹** 上右键，选择“复制绝对路径”或“复制相对路径”。右键操作以被点中的项目为准，不切换标签、不打开文件、不改变正文光标或阅读位置。命令面板也提供这两个命令，作用于当前活动栏的文档。
+
+| Windows 快捷键 | 结果 |
+| --- | --- |
+| `Ctrl + K`，松开后按 `P` | 复制活动文档的绝对路径 |
+| `Shift + Alt + C` | 复制活动文档的绝对路径 |
+| `Ctrl + K`，再按 `Ctrl + Shift + C` | 复制活动文档相对当前打开文件夹根目录的路径 |
+
+这些键位对应 [VS Code 默认文件命令](https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/files/browser/fileCommands.ts)。路径按当前系统格式输出：Windows 使用反斜杠，Linux 使用正斜杠，保留中文、空格、`#` 和 `%`，不额外加入引号或 Markdown 转义。普通 `Ctrl + C` 继续复制正文选区；分栏快捷键继续有效。
+
+相对路径的基准是 **Typora 当前打开的文件夹**，不是正在编辑的 Markdown 所在子目录。例如根目录为 `notes`，文件为其中的 `rcu/example.md`，Windows 下复制结果为 `rcu\example.md`。未打开文件夹或文件位于根目录之外时返回完整路径；根目录自身的相对路径为空，与 [VS Code 的路径标签规则](https://github.com/microsoft/vscode/blob/main/src/vs/base/common/labels.ts) 一致。切换文件夹后立即使用新的根目录。尚未保存、没有文件路径的文档不执行复制。

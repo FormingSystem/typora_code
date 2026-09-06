@@ -11,6 +11,8 @@ create_reading_workspace
 linux-note-reading-position:v1:
 data-linux-note-reading-positions
 initialize_workspace
+bind_file_path_actions
+data-linux-note-copy-path
 mermaid_container_for_preview
 preview.prepend(toolbar)
 fit-width

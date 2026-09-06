@@ -2640,6 +2640,18 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     scroller.scrollLeft = position.scroll_left;
   }
 
+  // src/file_paths.ts
+  var COPY_ABSOLUTE_PATH = "linux_note:copy_absolute_path";
+  var COPY_RELATIVE_PATH = "linux_note:copy_relative_path";
+  function format_file_path(api, target, root, relative) {
+    if (!target || !api.isAbsolute(target)) return null;
+    let absolute = api.normalize(target);
+    if (api.sep === "\\") absolute = absolute.replace(/^[a-z]:/u, (drive) => drive.toUpperCase());
+    if (!relative || !root || !api.isAbsolute(root)) return absolute;
+    const result = api.relative(root, absolute);
+    return result === ".." || result.startsWith(`..${api.sep}`) || api.isAbsolute(result) ? absolute : result;
+  }
+
   // src/workspace_bootstrap.ts
   var WORKSPACE_VERSION = "2.10.15";
   var WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
@@ -2680,8 +2692,26 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
     let chord_started = 0;
     window.addEventListener("keydown", (event) => {
-      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]')) return;
-      if (!event.ctrlKey || event.altKey || event.metaKey || event.isComposing || event.repeat) return;
+      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || event.isComposing) {
+        chord_started = 0;
+        return;
+      }
+      if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
+      const in_chord = chord_started > 0 && Date.now() - chord_started < 2e3;
+      const absolute = in_chord && event.code === "KeyP" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
+      const relative = in_chord && event.code === "KeyC" && event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
+      const windows_absolute = event.code === "KeyC" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey;
+      if (absolute || relative || windows_absolute) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        chord_started = 0;
+        app.commands.run(relative ? COPY_RELATIVE_PATH : COPY_ABSOLUTE_PATH);
+        return;
+      }
+      if (!event.ctrlKey || event.altKey || event.metaKey) {
+        chord_started = 0;
+        return;
+      }
       if (event.code === "KeyK" && !event.shiftKey) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -2694,10 +2724,13 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
       }
       event.preventDefault();
       event.stopImmediatePropagation();
-      const down = Date.now() - chord_started < 2e3;
+      const down = in_chord;
       chord_started = 0;
-      app.commands.run(down ? "core.workspace:split-down" : "core.workspace:split-right", [app.workspace.activeFile]);
+      app.commands.run(down ? "core.workspace:split-down" : "core.workspace:split-right", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]);
     }, true);
+    window.addEventListener("blur", () => {
+      chord_started = 0;
+    });
     document.documentElement.setAttribute("data-linux-note-workspace", "ready");
   }
 
@@ -3067,6 +3100,96 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     }, true);
     document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
     document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
+  }
+
+  // src/file_path_actions.ts
+  var bound2 = false;
+  function bind_file_path_actions() {
+    const app = get_workspace_app();
+    if (bound2 || !app) return;
+    const runtime = window;
+    if (!runtime.reqnode || !runtime.JSBridge?.invoke) return;
+    bound2 = true;
+    const api = runtime.reqnode("path");
+    const core = window[Symbol.for("typora-plugin-core@v2")];
+    const get_path = (target, relative) => format_file_path(api, target, runtime.File.getMountFolder(), relative);
+    const copy_path = (target, relative) => {
+      const text = get_path(target, relative);
+      if (text === null) {
+        new core.Notice("\u8BF7\u5148\u4FDD\u5B58\u6587\u6863\uFF0C\u518D\u590D\u5236\u8DEF\u5F84\u3002", 2e3);
+        return;
+      }
+      void Promise.resolve().then(() => runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text }))).then(() => {
+        new core.Notice(relative ? "\u5DF2\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84" : "\u5DF2\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", 1500);
+      }).catch((error) => {
+        console.error("[linux-note copy path]", error);
+        new core.Notice("\u590D\u5236\u8DEF\u5F84\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u3002", 2500);
+      });
+    };
+    for (const [id, relative, title] of [
+      [COPY_ABSOLUTE_PATH, false, "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84"],
+      [COPY_RELATIVE_PATH, true, "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84"]
+    ]) {
+      app.commands.register({ id, title, scope: "global", callback: () => copy_path(app.workspace.activeLeaf?.state.path ?? "", relative) });
+    }
+    const actions = /* @__PURE__ */ new WeakMap();
+    const add_items = (menu, target) => {
+      menu.querySelectorAll(".linux-note-path-item").forEach((item) => item.remove());
+      const separator = document.createElement("li");
+      separator.className = "divider typ-menuitem linux-note-path-item";
+      separator.setAttribute("for-file", "");
+      separator.setAttribute("for-folder", "");
+      menu.append(separator);
+      for (const [relative, label, key] of [[false, "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", "absolute"], [true, "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", "relative"]]) {
+        const item = document.createElement("li");
+        item.className = "typ-menuitem linux-note-path-item";
+        item.setAttribute("data-linux-note-copy-path", key);
+        item.setAttribute("for-file", "");
+        item.setAttribute("for-folder", "");
+        const anchor = document.createElement("a");
+        anchor.setAttribute("role", "menuitem");
+        anchor.tabIndex = 0;
+        anchor.textContent = label;
+        const enabled = get_path(target, relative) !== null;
+        anchor.setAttribute("aria-disabled", String(!enabled));
+        if (!enabled) {
+          item.classList.add("disabled");
+          anchor.title = "\u6587\u6863\u5C1A\u672A\u4FDD\u5B58\uFF0C\u6CA1\u6709\u6587\u4EF6\u8DEF\u5F84";
+        }
+        item.append(anchor);
+        actions.set(item, () => {
+          if (!enabled) return;
+          copy_path(target, relative);
+          menu.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+          menu.style.display = "none";
+        });
+        menu.append(item);
+      }
+    };
+    app.workspace.on("file-menu", ({ menu, path }) => add_items(menu.containerEl, path));
+    document.addEventListener("contextmenu", (event) => {
+      const tab = event.target instanceof Element ? event.target.closest(".typ-tab") : null;
+      if (!tab) return;
+      const menu = Array.from(document.querySelectorAll(".context-menu")).find((candidate) => candidate.querySelector('[data-key="removeTab"]'));
+      if (!menu) return;
+      add_items(menu, tab.getAttribute("data-id") ?? "");
+      window.setTimeout(() => {
+        const bounds = menu.getBoundingClientRect();
+        menu.style.top = Math.max(0, Math.min(bounds.top, window.innerHeight - bounds.height - 4)) + "px";
+        menu.style.left = Math.max(0, Math.min(bounds.left, window.innerWidth - bounds.width - 4)) + "px";
+      }, 0);
+    });
+    for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
+      document.addEventListener(name, (event) => {
+        const item = event.target instanceof Element ? event.target.closest("[data-linux-note-copy-path]") : null;
+        if (!item || !actions.has(item)) return;
+        if (event instanceof KeyboardEvent && !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (name === "click" || event instanceof KeyboardEvent && !event.repeat) actions.get(item)();
+      }, true);
+    }
+    document.documentElement.setAttribute("data-linux-note-copy-path", "ready");
   }
 
   // src/typora_enhancements.ts
@@ -3556,6 +3679,7 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     ensure_style();
     void initialize_workspace().then(() => {
       bind_reading_navigation();
+      bind_file_path_actions();
       schedule_scan();
     }).catch((error) => {
       document.documentElement.setAttribute("data-linux-note-workspace", "failed");
