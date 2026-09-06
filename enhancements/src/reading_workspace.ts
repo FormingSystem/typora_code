@@ -120,6 +120,19 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     const prototype = Object.getPrototypeOf(view) as workspace_view;
     if (patched.has(prototype)) return false;
     patched.add(prototype);
+    const original_on_open = prototype.onOpen;
+    prototype.onOpen = function () {
+      const context = context_for(this.leaf);
+      const position = saved.get(context.view_id) ?? this.leaf.state.linux_note_position as reading_position | undefined ?? store?.get(context.file_path);
+      if (!position || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
+      // 核心先重建编辑器，再调用原生 openFile；中间产生的 0 滚动量不是新的阅读位置。
+      // 先保护旧状态，避免 file:will-open 的 checkpoint 覆盖它，再等待布局恢复。
+      restoring.set(context.view_id, {});
+      remember(context, position, false);
+      try { original_on_open.call(this); }
+      catch (error) { restoring.delete(context.view_id); throw error; }
+      void restore(context, position);
+    };
     prototype.getState = function () {
       const context = context_for(this.leaf);
       const position = capture(context) ?? this.leaf.state.linux_note_position as reading_position | undefined;

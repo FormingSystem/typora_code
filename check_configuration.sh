@@ -41,10 +41,13 @@ typora_validate_workspace "$TYPORA_USER_DATA/plugins" "$typora_tools_root/enhanc
     exit 1
 }
 
+git_graph_runtime='Git missing on PATH; install Git to use Git Graph'
+if command -v git >/dev/null 2>&1; then git_graph_runtime='Git available on PATH'; fi
 printf '%s\n' \
     "platform: $TYPORA_PLATFORM_ID" \
     "typora_root: $typora_root" \
     "enhancement_entries: $entry_count" \
     "theme_sha256: $(typora_sha256 "$theme")" \
     "bundle_sha256: $(typora_sha256 "$bundle")" \
+    "git_graph_runtime: $git_graph_runtime" \
     'status: OK'

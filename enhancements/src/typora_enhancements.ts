@@ -10,6 +10,7 @@ import { scope_style } from "./textmate_style";
 import { bind_reading_navigation } from "./reading_navigation";
 import { initialize_workspace } from "./workspace_bootstrap";
 import { bind_file_path_actions } from "./file_path_actions";
+import { bind_git_graph } from "./git_graph_view";
 
 type code_mirror_stream = {
   string: string;
@@ -573,6 +574,7 @@ async function initialize(): Promise<void> {
   void initialize_workspace().then(() => {
     bind_reading_navigation();
     bind_file_path_actions();
+    bind_git_graph();
     schedule_scan();
   }).catch((error: unknown) => {
     document.documentElement.setAttribute("data-linux-note-workspace", "failed");
