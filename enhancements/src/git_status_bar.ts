@@ -2,6 +2,7 @@ import { graph_element as el, graph_button as button, graph_menu, type graph_men
 import type { graph_core, graph_host } from "./git_graph_host";
 import type { git_graph_panel } from "./git_graph_panel";
 import status_css from "./git_status_bar.css";
+import { git_icon } from "./git_icons";
 
 type status_plugin = {addStatusBarItem(options: {position: "left"; type: "item"; hint: string}): HTMLElement; unload(): void};
 type status_core = graph_core & {Plugin: new (app: graph_core["app"], manifest: {id: string; name: string}) => status_plugin};
@@ -33,13 +34,13 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   item.parentElement?.prepend(item);
   const style = el("style"); style.textContent = status_css; document.head.append(style);
   const branch = button("", () => {}, "git-status-branch"); branch.dataset.gitStatus = "branch";
-  const branch_icon = el("i", "fa fa-code-fork"); branch_icon.setAttribute("aria-hidden", "true");
+  const branch_icon = git_icon("git-branch");
   const label = el("span", "git-status-branch-label", "正在检查 Git…"); branch.append(branch_icon, label);
   const sync = button("", () => {}, "git-status-sync"); sync.dataset.gitStatus = "sync";
-  const sync_icon = el("i", "fa fa-refresh"); sync_icon.setAttribute("aria-hidden", "true");
+  const sync_icon = git_icon("sync");
   const counts = el("span", "git-status-sync-counts"); sync.append(sync_icon, counts);
   const graph = button("", launch_graph, "git-status-graph"); graph.dataset.gitStatus = "graph";
-  const graph_icon = el("i", "fa fa-code-fork"); graph_icon.setAttribute("aria-hidden", "true"); graph.append(graph_icon, document.createTextNode("Git Graph"));
+  const graph_icon = git_icon("git-branch"); graph.append(graph_icon, document.createTextNode("Git Graph"));
   graph.title = "打开或切换到当前仓库的 Git Graph 提交图"; graph.setAttribute("aria-label", graph.title);
   item.append(branch, sync, graph);
   let panel: git_graph_panel | undefined; let snapshot: branch_status | undefined; let snapshot_root = ""; let epoch = 0; let disposed = false;
@@ -67,7 +68,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       branch.setAttribute("aria-label", branch.title); item.dataset.repository = "ready";
       counts.textContent = status.upstream && (status.behind || status.ahead) ? `↓${status.behind} ↑${status.ahead}` : "";
       sync.disabled = detached || status.head === "(initial)";
-      sync_icon.className = status.upstream ? "fa fa-refresh" : "fa fa-cloud-upload";
+      sync.replaceChildren(git_icon(status.upstream ? "sync" : "cloud-upload"), counts);
       sync.title = sync.disabled ? "请先在分支上创建提交，再发布或同步更改" : status.upstream ? `上游：${status.upstream}\n待拉取 ${status.behind}，待推送 ${status.ahead}\n点击确认同步（先拉取、再推送）；右键选择其他操作` : "尚未配置上游；点击发布分支并设置上游；右键选择其他操作";
       sync.setAttribute("aria-label", sync.title);
     } catch (error) { if (!disposed && token === epoch) unavailable("无法读取 Git 仓库：" + String(error instanceof Error ? error.message : error)); }

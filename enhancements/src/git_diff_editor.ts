@@ -25,6 +25,8 @@ import "monaco-editor/languages/definitions/java/register";
 import { createTokenizationSupport } from "monaco-editor/languages/features/json/tokenization";
 import worker_source from "linux_note_monaco_worker";
 import { graph_element as el, graph_button as button, graph_menu, type graph_menu_entry } from "./git_graph_widgets";
+import { detect_file_language } from "./file_language";
+import { register_file_languages } from "./workspace_languages";
 
 let initialized = false;
 let serial = 0;
@@ -34,6 +36,7 @@ function initialize_editor(): void {
   (globalThis as unknown as {MonacoEnvironment: unknown}).MonacoEnvironment = {getWorker: () => new Worker(worker_url)};
   monaco.languages.register({id: "json", extensions: [".json", ".jsonc"]});
   monaco.languages.setTokensProvider("json", createTokenizationSupport(true));
+  register_file_languages();
   initialized = true;
 }
 export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string};
@@ -55,7 +58,8 @@ export class git_diff_editor {
     const model = (text: string, side: string) => {
       if (text.includes("\0")) throw new Error("这是二进制文件，不能作为文本比较。请打开文件或查看 Git 文件状态。");
       const uri = monaco.Uri.from({scheme: "linux-note-git", path: `/${++serial}/${side}/${data.file || data.title}`});
-      const result = monaco.editor.createModel(text, undefined, uri); this.models.push(result); return result;
+      const language = detect_file_language(data.file || data.title, text.split(/\r?\n/u, 1)[0]);
+      const result = monaco.editor.createModel(text, language, uri); this.models.push(result); return result;
     };
     const original = model(data.left, "original");
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
@@ -63,9 +67,10 @@ export class git_diff_editor {
     const options = {automaticLayout: true, readOnly: true, fontSize: 14, lineHeight: 22, fontFamily: "Consolas, ui-monospace, monospace", minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
-      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: false, enableSplitViewResizing: true, maxComputationTime: 10000});
+      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
       // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
-      // 关闭独立差异概览栏，释放其占用的 30px；修改侧以文档缩略图提供快速定位。
+      // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
+      // 概览的宽度、点击定位和视口框由上游管理，与窄滚动条、修改侧缩略图并存。
       const modified_view = editor.getModifiedEditor();
       // Monaco 的差异组件在更新任意选项时会关闭两侧缩略图；只为修改侧恢复文档地图。
       // 不接管滚轮、点击或拖动，沿用编辑器的定位与双栏滚动同步。

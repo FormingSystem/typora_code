@@ -1,0 +1,7 @@
+icons/*.svg -text
+# Preserve the upstream license bytes, including CRLF and original whitespace.
+LICENSE -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+LICENSE_CODE -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+*.json text eol=lf
+README.md text eol=lf
+SHA256SUMS text eol=lf

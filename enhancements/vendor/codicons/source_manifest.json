@@ -1,0 +1,272 @@
+{
+  "repository_url": "https://github.com/microsoft/vscode-codicons",
+  "revision": "1c47ab36a4bb845c437866405c2fa67b8ca0fe36",
+  "icons": {
+    "diff-multiple": {
+      "file": "icons/diff_multiple.svg",
+      "source_path": "src/icons/diff-multiple.svg",
+      "git_blob_sha1": "5bb17742115f41ad6bdb5f981aec9aa188a1e3d8",
+      "sha256": "93f732e4a8ae35ad936afe8602114fc0bef8ce52b8facf882682501252c138d1"
+    },
+    "compare-changes": {
+      "file": "icons/compare_changes.svg",
+      "source_path": "src/icons/git-compare.svg",
+      "git_blob_sha1": "193a80cf9677f4cf77bed7085963a3da5a161be5",
+      "sha256": "8a4009ed55ce989f3c43c6454a7566aefdf784ffaa5d89d52b410ccebd3f4a45"
+    },
+    "go-to-file": {
+      "file": "icons/go_to_file.svg",
+      "source_path": "src/icons/go-to-file.svg",
+      "git_blob_sha1": "c11a995604b96bf014e9fda144a36c9ff1160202",
+      "sha256": "052ac34ba3254f734a9584882cb7cf308a51f5b6cec670d359efdef42974fe19"
+    },
+    "discard": {
+      "file": "icons/discard.svg",
+      "source_path": "src/icons/discard.svg",
+      "git_blob_sha1": "b7434c9bfe455a6cdfae6c759b064a95ddf50afb",
+      "sha256": "f2fbc797f92241585befefbe5bb7994b029fa93af3cda1e5eda7959e2f5795cc"
+    },
+    "add": {
+      "file": "icons/add.svg",
+      "source_path": "src/icons/add.svg",
+      "git_blob_sha1": "c564bb8b4c75c49b8efb3881a1509fa1db87f2da",
+      "sha256": "2f67796c7a4506dbec770919ae1cf57759aa0f37a3f971edcda73b45e89c4ee0"
+    },
+    "remove": {
+      "file": "icons/remove.svg",
+      "source_path": "src/icons/remove.svg",
+      "git_blob_sha1": "fef67146543ba6053d27d7e01a2baaa9ebd49e79",
+      "sha256": "9dd7226072789535d2243d5f5e48f878897d1d71afaf277d9760cab489af2115"
+    },
+    "check": {
+      "file": "icons/check.svg",
+      "source_path": "src/icons/check.svg",
+      "git_blob_sha1": "6217cb95728ed53f4938089a7e75c2e0c5cf0c7c",
+      "sha256": "58e1762d74142ee78ee2422ae46498c1059e4f4812f9c7514e422a1f8d80235d"
+    },
+    "chevron-right": {
+      "file": "icons/chevron_right.svg",
+      "source_path": "src/icons/chevron-right.svg",
+      "git_blob_sha1": "831a0c911c4109a8e1b5dade8c13fbe49a5092ad",
+      "sha256": "f57be224b89aab6a03908b726ffa643f32e6709119b780eba486005180772bf2"
+    },
+    "chevron-down": {
+      "file": "icons/chevron_down.svg",
+      "source_path": "src/icons/chevron-down.svg",
+      "git_blob_sha1": "445aba2d5cb4e592b6f9c5a0a4e15ea1f626e2f5",
+      "sha256": "d98010cf4a4a2f830da7d7686535295fe224b8d5e4c1e92fb79913329af4e47b"
+    },
+    "more": {
+      "file": "icons/more.svg",
+      "source_path": "src/icons/ellipsis.svg",
+      "git_blob_sha1": "7b165393bbc56c8d318d37e5b24962834cc4fd16",
+      "sha256": "e993dba6f9d71feb33e85400ce881822559b435f002abe0254358923a8cf1cf3"
+    },
+    "git-branch": {
+      "file": "icons/git_branch.svg",
+      "source_path": "src/icons/git-branch.svg",
+      "git_blob_sha1": "6418d1f24c21bcc6045747c588ef01ce30c9dff1",
+      "sha256": "b88a5afd13aaab0c1d58d90cae19b8e7751856e54cc9d0c806d2aceba08802ad"
+    },
+    "target": {
+      "file": "icons/target.svg",
+      "source_path": "src/icons/target.svg",
+      "git_blob_sha1": "ec673555d35e3f566593e769f94789ecc67c01f8",
+      "sha256": "cb12db5d9c9dfe8021eb03e344ca907399f44f8b970a67ea3dfdd862bb7b3717"
+    },
+    "git-fetch": {
+      "file": "icons/git_fetch.svg",
+      "source_path": "src/icons/git-fetch.svg",
+      "git_blob_sha1": "6ad8e40d8326c28559fadf58a665b4e5c25695dc",
+      "sha256": "b3113e5c520f3af8bd7e10afc1d1ed0706ed6dce7d1a3319a77738abcae098ed"
+    },
+    "repo-pull": {
+      "file": "icons/repo_pull.svg",
+      "source_path": "src/icons/repo-pull.svg",
+      "git_blob_sha1": "2a42ff79bdee455253e9c83d7fcf8b54201fb5ec",
+      "sha256": "73bf9b5bb3dcff6fda97f2f1ebfc101994f828cd3a419b9ab1536760f72c31ff"
+    },
+    "repo-push": {
+      "file": "icons/repo_push.svg",
+      "source_path": "src/icons/repo-push.svg",
+      "git_blob_sha1": "51998c930745ab97b1a0ec8039c4cc4365d1b34f",
+      "sha256": "46dc9358c549d6264fade7ac9a9f8ef0bbbb21cdf037dff4e1ea8b3eae2c9f35"
+    },
+    "refresh": {
+      "file": "icons/refresh.svg",
+      "source_path": "src/icons/refresh.svg",
+      "git_blob_sha1": "49df22b8ea49a5ec42b5ebf7a401a47efb8e215a",
+      "sha256": "b2c8746f438a50cee7f710c1d2e35bb5eea1cc735dc66ac43fa118baab01fee3"
+    },
+    "sync": {
+      "file": "icons/sync.svg",
+      "source_path": "src/icons/sync.svg",
+      "git_blob_sha1": "ab0c839a681035a9db51e9ee2aa48d499d8fb44f",
+      "sha256": "3423d94a76e84061f67cc6172692bd5cc330a13985a2090c25669659918f583e"
+    },
+    "cloud-upload": {
+      "file": "icons/cloud_upload.svg",
+      "source_path": "src/icons/cloud-upload.svg",
+      "git_blob_sha1": "12791a5d53b7691ac637b70410ef0ab4561c624c",
+      "sha256": "21e05216cfc5a9b225aca1159d76ab1f2e161720670cbca1a60b2c15da0d785d"
+    },
+    "git-commit": {
+      "file": "icons/git_commit.svg",
+      "source_path": "src/icons/git-commit.svg",
+      "git_blob_sha1": "ecce26c50395d7d3e212a69dd26fba6a9c663038",
+      "sha256": "9f4f74b94a9fff575435f0fb021f2a365c2ee698b6149512be8bbf48000a21c2"
+    },
+    "history": {
+      "file": "icons/history.svg",
+      "source_path": "src/icons/history.svg",
+      "git_blob_sha1": "a6c0a49a56f6bf5bd267b265ad2c11620275b072",
+      "sha256": "88b0e95617ccd12cecdaef8d1e00236a576af4c9c13132422e135c088f130628"
+    },
+    "link-external": {
+      "file": "icons/link_external.svg",
+      "source_path": "src/icons/link-external.svg",
+      "git_blob_sha1": "ded2e008e303617be3575e73af56882910e999c8",
+      "sha256": "cb5499bf8a68b4f9267a0fef6264f1426efaa6852e23626bceb781587a5f7911"
+    },
+    "source-control": {
+      "file": "icons/source_control.svg",
+      "source_path": "src/icons/source-control.svg",
+      "git_blob_sha1": "c40e566378b968e0cc365cf4fcf8305ca864b711",
+      "sha256": "c713daf14e7ce871e0d80f7c1ad6732aa14b3a57dcfa02a294fc7d30ece800ba"
+    },
+    "search": {
+      "file": "icons/search.svg",
+      "source_path": "src/icons/search.svg",
+      "git_blob_sha1": "f8249b1f968f4b7dab17d5b45fa0a612f905f6b7",
+      "sha256": "ea26083bb6dd49a42a1a6fe13cd9613022442a002f11c8247476c32b7eab7dfe"
+    },
+    "case-sensitive": {
+      "file": "icons/case_sensitive.svg",
+      "source_path": "src/icons/case-sensitive.svg",
+      "git_blob_sha1": "98954a0c4ea52bebd23b8cff947fea4f5c824428",
+      "sha256": "225563c388617c52418b1b1b73aca3d0ac0e8e3906ac55dee697d4c08fb062f0"
+    },
+    "whole-word": {
+      "file": "icons/whole_word.svg",
+      "source_path": "src/icons/whole-word.svg",
+      "git_blob_sha1": "7baf83d8f293b6da2091d624dd2cc7f6f1b4e8f6",
+      "sha256": "3a52386c2cc1d5c8f299513d4a18c0a4ce2c5feb109d0bf2561a0df43920fc55"
+    },
+    "regex": {
+      "file": "icons/regex.svg",
+      "source_path": "src/icons/regex.svg",
+      "git_blob_sha1": "1ee518616af44f3c75d2169cdbe1c165d316e301",
+      "sha256": "9ec9321acbb7b819098e7cdbeaac2a80e2c066d548fa43c6f7669e272a2b65e1"
+    },
+    "replace": {
+      "file": "icons/replace.svg",
+      "source_path": "src/icons/replace.svg",
+      "git_blob_sha1": "6125e249f514221b96d75e054013148c44845fd1",
+      "sha256": "602497344191edf4b7715598aa05c284f9c22c5427d76a08d3eb2f30277f7078"
+    },
+    "replace-all": {
+      "file": "icons/replace_all.svg",
+      "source_path": "src/icons/replace-all.svg",
+      "git_blob_sha1": "70e8054aea48794dad24bfb2e4aac33f9fbbf25f",
+      "sha256": "510d3a98025cffdef190f2eba687ee1b7e54571dbe7b7ab7744adab66767963a"
+    },
+    "preserve-case": {
+      "file": "icons/preserve_case.svg",
+      "source_path": "src/icons/preserve-case.svg",
+      "git_blob_sha1": "30c29d30e7b1d97cda1eaca19542385b71a46bd8",
+      "sha256": "faf237e7ddca864c5f135ac53d3639acd8f173a8d8499b3e3f585a1fe91dd93b"
+    },
+    "clear-all": {
+      "file": "icons/clear_all.svg",
+      "source_path": "src/icons/clear-all.svg",
+      "git_blob_sha1": "8d96f4a103e331b84575d91bf223703eca5f995d",
+      "sha256": "614a21286e9dbe10b05bb2e24860a09e1b11d5a56c7287b035c8b86d7e1b6de6"
+    },
+    "collapse-all": {
+      "file": "icons/collapse_all.svg",
+      "source_path": "src/icons/collapse-all.svg",
+      "git_blob_sha1": "035053fe8df54e516a81a04ffeb524782f675d77",
+      "sha256": "5e61ec6c422a69d4073a4844847aaa770f39a0e19f902aa65a9f824a82e894d8"
+    },
+    "expand-all": {
+      "file": "icons/expand_all.svg",
+      "source_path": "src/icons/expand-all.svg",
+      "git_blob_sha1": "81b9253de5bd8a0fefc22669f63445f68e411f9f",
+      "sha256": "d4e3deb5d70d24ba2ba23bb1ccfe9771c0f915fddacd27e9d7b72e9aa46a4c5f"
+    },
+    "search-stop": {
+      "file": "icons/search_stop.svg",
+      "source_path": "src/icons/search-stop.svg",
+      "git_blob_sha1": "851ab8391547efd1fdc37ef57605bdd4f0eb504e",
+      "sha256": "a2638fdd58602da6ed7891693e16b48dff1c53aa535cf0af962e6c97603d863b"
+    },
+    "list-flat": {
+      "file": "icons/list_flat.svg",
+      "source_path": "src/icons/list-flat.svg",
+      "git_blob_sha1": "55ef82c42d509291e61c88fcf091e5ba97c23d4d",
+      "sha256": "e9ea963de6c549dca85d1c52fdfe77c10787b7a8c18d9e77fe67c26a19f91e94"
+    },
+    "list-tree": {
+      "file": "icons/list_tree.svg",
+      "source_path": "src/icons/list-tree.svg",
+      "git_blob_sha1": "368d9fbf5c63671d8bb8ab2ec9d3e98f2eb03364",
+      "sha256": "fa5bc254ff43ed50ac8181eda0999699a94c53417c7d13713ec2a64ba82ee04a"
+    },
+    "close": {
+      "file": "icons/close.svg",
+      "source_path": "src/icons/close.svg",
+      "git_blob_sha1": "53d996c4738d78d978efdde74c4f41f313c0e9b8",
+      "sha256": "6876f88fdc070323f1f0aa9e52c5b3c8e7fa73a839b4f5544d8999c51dbbb876"
+    },
+    "folder": {
+      "file": "icons/folder.svg",
+      "source_path": "src/icons/folder.svg",
+      "git_blob_sha1": "a669796583f6c58aeabf3f01c0f52e4552ca46de",
+      "sha256": "f1eae6f443ee2f95b99ee74f0f2d07c03d7b4f1bade49b3f3783c97e9a5b9b5b"
+    },
+    "folder-opened": {
+      "file": "icons/folder_opened.svg",
+      "source_path": "src/icons/folder-opened.svg",
+      "git_blob_sha1": "4a8779b3c4fcef275d66acca17e8d4cb3361989f",
+      "sha256": "9e57f643bf6660c31f5bcc057e4933c44ec7367a814c5074285d8d2ae1092ec8"
+    },
+    "file": {
+      "file": "icons/file.svg",
+      "source_path": "src/icons/file.svg",
+      "git_blob_sha1": "31d6076de011bbd56f15b23e78e179de3133d2ec",
+      "sha256": "8d85e1e13c99e0b303442631ec01238b1aeb64a4e9e3a2949f12a60f0def71ae"
+    },
+    "new-file": {
+      "file": "icons/new_file.svg",
+      "source_path": "src/icons/new-file.svg",
+      "git_blob_sha1": "fecbb5ff1bffcef80e46d3113d50f6db55946ad0",
+      "sha256": "8da3c30422a75c76af2838e97a84a12ebc1c252ba847d1b5516fa3661c2be0fa"
+    },
+    "arrow-up": {
+      "file": "icons/arrow_up.svg",
+      "source_path": "src/icons/arrow-up.svg",
+      "git_blob_sha1": "bcd870c6672afd57e6cd6cd15ae812833bc0827e",
+      "sha256": "64430f0ec76b9461e23a0995034461fd12f09af8fd0177347c745a6d3bdf1cbd"
+    },
+    "arrow-down": {
+      "file": "icons/arrow_down.svg",
+      "source_path": "src/icons/arrow-down.svg",
+      "git_blob_sha1": "fde1bfc0190d2689d2c347d86c27cbdf976e9f80",
+      "sha256": "f94113b5bcc60685eb4fe87927b6249e3640c6db406bb936d56b230957f41135"
+    }
+  },
+  "licenses": [
+    {
+      "file": "LICENSE",
+      "source_path": "LICENSE",
+      "git_blob_sha1": "35b538308f557d8eadbd38eb35269294cbea21c7",
+      "sha256": "af5e030844efddbc7ab00dcfea8b019703753d4d9f5172d727c533a492aec665"
+    },
+    {
+      "file": "LICENSE_CODE",
+      "source_path": "LICENSE-CODE",
+      "git_blob_sha1": "3d8b93bc7987d14c848448c089e2ae15311380d7",
+      "sha256": "9906940f61b1f0b533fa7d99baf55178b2808fbe113ea51dfbfad8572ccd5f2b"
+    }
+  ]
+}

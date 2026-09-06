@@ -1,5 +1,6 @@
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH, format_file_path, type path_operations } from "./file_paths";
 import { get_workspace_app } from "./workspace_bootstrap";
+import { get_workspace_files } from "./workspace_files";
 
 let bound = false;
 
@@ -15,7 +16,10 @@ export function bind_file_path_actions(): void {
   bound = true;
   const api = runtime.reqnode("path");
   const core = (window as unknown as Record<symbol, { Notice: new (message: string, delay?: number) => unknown }>)[Symbol.for("typora-plugin-core@v2")];
-  const get_path = (target: string, relative: boolean) => format_file_path(api, target, runtime.File.getMountFolder(), relative);
+  const get_path = (target: string, relative: boolean) => {
+    if(target.startsWith("typ://linux_note.source_file/"))try{target=decodeURIComponent(target.slice("typ://linux_note.source_file/".length));}catch{return null;}
+    return format_file_path(api,target,get_workspace_files()?.context_root()||runtime.File.getMountFolder(),relative);
+  };
   const copy_path = (target: string, relative: boolean) => {
     const text = get_path(target, relative);
     if (text === null) { new core.Notice("请先保存文档，再复制路径。", 2000); return; }

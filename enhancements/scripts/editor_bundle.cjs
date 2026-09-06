@@ -5,6 +5,11 @@ const { buildSync } = require('esbuild');
 exports.editor_plugins = () => [{
   name: 'offline-monaco',
   setup(build) {
+    build.onResolve({filter: /^linux_note_search_worker$/}, () => ({path: 'worker', namespace: 'search-worker'}));
+    build.onLoad({filter: /.*/, namespace: 'search-worker'}, () => {
+      const worker = buildSync({entryPoints: [path.resolve(__dirname, '../src/workspace_search_worker.ts')], bundle: true, write: false, format: 'iife', target: 'chrome120', minify: true});
+      return {contents: `export default ${JSON.stringify(worker.outputFiles[0].text)}`, loader: 'js'};
+    });
     build.onResolve({filter: /^linux_note_monaco_worker$/}, () => ({path: 'worker', namespace: 'monaco-worker'}));
     build.onLoad({filter: /.*/, namespace: 'monaco-worker'}, () => {
       const worker = buildSync({entryPoints: [require.resolve('monaco-editor/editor/editor.worker')], bundle: true, write: false, format: 'iife', target: 'chrome120', minify: true});

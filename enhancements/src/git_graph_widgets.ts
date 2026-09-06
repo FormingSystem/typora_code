@@ -46,7 +46,10 @@ export function graph_menu(event: MouseEvent, entries: graph_menu_entry[]): void
     close_from(level); const menu = graph_element("div", "git-graph-menu"); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
     for (const entry of items) {
       if (entry.separator && menu.children.length) { const separator = graph_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
-      const node = graph_button((entry.checked == null ? "" : entry.checked ? "✓  " : "　 ") + entry.title + (entry.children ? "  ›" : ""), () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
+      const node = graph_button("", () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
+      const check = graph_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
+      const arrow = graph_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
+      node.append(check, graph_element("span", "git-menu-label", entry.title), arrow);
       const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
       node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
       if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }
@@ -108,3 +111,4 @@ export function shortcut_matches(event: KeyboardEvent, shortcut: string): boolea
   return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey)
     && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
 }
+import { git_icon } from "./git_icons";

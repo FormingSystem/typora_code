@@ -4,6 +4,7 @@ import { graph_actions } from "./git_graph_actions";
 import { git_scm_history } from "./git_scm_history";
 import { create_workspace_sash } from "./workspace_sash";
 import type { git_graph_panel } from "./git_graph_panel";
+import { git_icon, git_icon_button as icon_button, git_disclosure } from "./git_icons";
 
 type change_group = {id: string; title: string; from: string; to: string; files: graph_change[]};
 const short_revision = (revision: string) => ({[EMPTY]: "空文件", [INDEX]: "暂存区", [WORKTREE]: "工作区"}[revision] || revision.slice(0, 8));
@@ -22,7 +23,7 @@ export class git_source_control {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
     const tools = el("div", "git-scm-tools");
-    tools.append(button("↻", () => void panel.refresh()), button("…", () => {}));
+    tools.append(icon_button("refresh", "刷新源代码管理", () => void panel.refresh()), icon_button("more", "选择源代码管理视图", () => {}));
     tools.children[1].addEventListener("click", event => this.view_menu(event as MouseEvent));
     tools.children[1].classList.add("git-scm-view-menu");
     tools.children[0].setAttribute("title", "刷新源代码管理"); tools.children[1].setAttribute("title", "选择源代码管理视图"); this.title.append(tools);
@@ -35,8 +36,8 @@ export class git_source_control {
       if (event.key !== "Enter" || (!event.ctrlKey && !event.metaKey) || event.altKey || event.isComposing) return;
       event.preventDefault(); event.stopPropagation(); if (!event.repeat) this.commit();
     };
-    const commit = button("✓ 提交", () => this.commit(), "git-scm-commit"); commit.setAttribute("data-scm-action", "commit");
-    const commit_options = button("▾", () => {}, "git-scm-commit-options"); commit_options.title = "更多提交方式"; commit_options.setAttribute("aria-label", commit_options.title);
+    const commit = button("提交", () => this.commit(), "git-scm-commit git-labeled-button"); commit.prepend(git_icon("check")); commit.setAttribute("data-scm-action", "commit");
+    const commit_options = icon_button("chevron-down", "更多提交方式", () => {}, "git-scm-commit-options");
     commit_options.onclick = event => panel.configured_menu(event, "scm_commit_options", [
       {id: "commit", title: "提交已暂存内容", action: () => this.commit()},
       {id: "commit_options", title: "打开提交选项…", action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, {message: this.message.value, amend: false})},
@@ -47,11 +48,11 @@ export class git_source_control {
     this.repo_select.setAttribute("aria-label", "源代码管理仓库"); this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
     this.changes_pane.setAttribute("aria-label", "工作区更改");
     this.notice.setAttribute("role", "status");
-    const input_heading = el("summary", "git-scm-input-heading"); const input_menu = button("…", () => {}, "git-scm-operation-menu"); input_menu.title = "更改与 Git 操作";
-    input_menu.onclick = event => this.more_menu(event); input_heading.append(el("span", "git-scm-input-title", "更改"), this.branch, input_menu);
+    const input_heading = el("summary", "git-scm-input-heading"); const input_menu = icon_button("more", "更改与 Git 操作", () => {}, "git-scm-operation-menu");
+    input_menu.onclick = event => this.more_menu(event); input_heading.append(git_disclosure(), el("span", "git-scm-input-title", "更改"), this.branch, input_menu);
     const inputs = el("div", "git-scm-inputs"); inputs.append(this.message, commit_bar);
     this.input_section.append(input_heading, inputs); this.input_section.ontoggle = () => this.save_layout();
-    const repo_heading = el("div", "git-scm-repositories-heading", "仓库"); const manage = button("…", () => panel.manage_repositories()); manage.title = "管理仓库"; repo_heading.append(manage);
+    const repo_heading = el("div", "git-scm-repositories-heading", "仓库"); const manage = icon_button("more", "管理仓库", () => panel.manage_repositories()); repo_heading.append(manage);
     this.repositories_view.append(repo_heading, this.repo_select);
     this.changes_pane.append(this.input_section, this.filter, this.groups, this.notice);
     this.history = new git_scm_history(this);
@@ -115,7 +116,7 @@ export class git_source_control {
     this.fit_message();
     this.history.render(state);
     this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map(item => item.cloneNode(true))); this.repo_select.value = this.panel.root;
-    this.branch.textContent = `⑂ ${state.branch || "游离 HEAD"}${state.operation ? " · " + state.operation : ""}`;
+    this.branch.replaceChildren(git_icon("git-branch"), el("span", "git-scm-branch-label", `${state.branch || "游离 HEAD"}${state.operation ? " · " + state.operation : ""}`));
     this.branch.title = this.panel.root; this.branch.onclick = event => this.panel.configured_menu(event, "checkout", [
       ...state.refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({id: ref.name, title: "检出 " + ref.name.slice(11), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash)})),
       {id: "branch_create", title: "创建分支…", separator: true, disabled: !state.head, action: () => this.panel.action_dialog("branch_create", "commit", state.head, state.head)},
@@ -136,14 +137,14 @@ export class git_source_control {
     for (const group of this.groups_state) {
       const section = el("details", "git-scm-group"); section.setAttribute("data-scm-group", group.id); section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";
       section.ontoggle = () => localStorage.setItem(this.storage_key("collapsed:" + group.id), String(!section.open));
-      const heading = el("summary", ""); const label = el("span", "git-scm-group-label"); label.append(el("span", "git-scm-group-name", group.title), el("span", "git-scm-badge", String(group.files.length))); heading.append(label);
+      const heading = el("summary", ""); const label = el("span", "git-scm-group-label"); label.append(el("span", "git-scm-group-name", group.title), el("span", "git-scm-badge", String(group.files.length))); heading.append(git_disclosure(), label);
       const action_id = group.id === "staged" ? "unstage" : "stage";
       const group_action = () => void this.panel.quick_action(action_id, [...new Set(group.files.flatMap(file => [file.path, ...(file.old_path ? [file.old_path] : [])]))]);
-      const all = button(group.id === "staged" ? "−" : "+", group_action, "git-scm-inline-action");
+      const all = icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? "取消本组所有暂存" : "暂存本组所有更改", group_action, "git-scm-inline-action");
       all.title = group.id === "staged" ? "取消本组所有暂存" : "暂存本组所有更改"; all.onclick = event => { event.preventDefault(); event.stopPropagation(); group_action(); }; all.disabled = !group.files.length;
-      const open = button("▱", () => {}, "git-scm-inline-action"); open.title = "打开本组更改（可切换文件）"; open.disabled = !group.files.length;
+      const open = icon_button("diff-multiple", "打开本组更改（可切换文件）", () => {}, "git-scm-inline-action"); open.disabled = !group.files.length;
       open.onclick = event => { event.preventDefault(); event.stopPropagation(); if (group.files[0]) void this.open_file(group.files[0], group.from, group.to, group.files); };
-      const discard = button("↶", () => {}, "git-scm-inline-action"); discard.title = "放弃本组所有更改…"; discard.disabled = group.id === "staged" || !group.files.length;
+      const discard = icon_button("discard", "放弃本组所有更改…", () => {}, "git-scm-inline-action"); discard.disabled = group.id === "staged" || !group.files.length;
       discard.onclick = event => { event.preventDefault(); event.stopPropagation(); this.panel.action_dialog("discard_changes", "changes", "", this.panel.state?.head, {include_untracked: true}, group.files.map(file => file.path)); };
       const actions = el("span", "git-scm-row-actions"); actions.append(open, discard, all);
       const placeholder = el("span", "git-scm-status-slot"); placeholder.setAttribute("aria-hidden", "true"); heading.append(actions, placeholder);
@@ -156,14 +157,14 @@ export class git_source_control {
       section.append(heading); this.groups.append(section); const directories = new Map<string, HTMLElement>([["", section]]);
       const parent_for = (path: string): HTMLElement => {
         if (!this.tree || !path) return section; if (directories.has(path)) return directories.get(path)!;
-        const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/")); const directory = el("details", "git-scm-directory"); directory.open = true; directory.append(el("summary", "", parts.at(-1)!)); parent.append(directory); directories.set(path, directory); return directory;
+        const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/")); const directory = el("details", "git-scm-directory"); directory.open = true; const heading = el("summary", "", parts.at(-1)!); heading.prepend(git_disclosure()); directory.append(heading); parent.append(directory); directories.set(path, directory); return directory;
       };
       for (const file of group.files.filter(file => file.path.toLowerCase().includes(filter)).sort((a, b) => this.sort_files(a, b))) {
         const row = el("div", "git-scm-file"); row.setAttribute("data-file", file.path); row.tabIndex = 0; row.setAttribute("role", "button"); row.title = `${file.old_path ? file.old_path + " → " : ""}${file.path}\n${short_revision(group.from)} ↔ ${short_revision(group.to)}`;
         const label = el("span", "git-scm-file-label"); label.append(el("span", "git-scm-file-name", file.path.split("/").at(-1)!));
         if (!this.tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
         const action = group.id === "staged" ? "unstage" : "stage";
-        const mini = button(group.id === "staged" ? "−" : "+", () => {}, "git-scm-inline-action"); mini.title = group.id === "staged" ? "取消暂存" : "暂存更改";
+        const mini = icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? "取消暂存" : "暂存更改", () => {}, "git-scm-inline-action");
         mini.onclick = event => { event.stopPropagation(); void this.panel.quick_action(action, [file.path, ...(file.old_path ? [file.old_path] : [])]); };
         const actions = el("span", "git-scm-row-actions"); actions.append(mini);
         const status = el("span", "git-scm-file-status", file.status === "??" ? "U" : file.status); status.title = file.status; status.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);

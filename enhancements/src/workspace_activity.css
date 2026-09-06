@@ -1,0 +1,74 @@
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item {
+  box-sizing: border-box;
+  position: relative;
+  flex: 0 0 var(--typ-ribbon-width, 48px);
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  color: var(--workspace-activity-foreground, var(--control-text-color, #616161));
+  background: transparent;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:hover {
+  color: var(--workspace-activity-active-foreground, #005a9e);
+  background: var(--workspace-activity-hover-background, #0078d412);
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item[data-activity-active=true] {
+  color: var(--workspace-activity-active-foreground, #005a9e);
+  background: var(--workspace-activity-active-background, #0078d421);
+  border-left-color: var(--workspace-activity-active-border, #0078d4);
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:focus-visible {
+  outline: 1px solid var(--workspace-activity-active-border, #0078d4);
+  outline-offset: -3px;
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-dragging {
+  cursor: grabbing;
+  background: var(--workspace-activity-active-background, #0078d421);
+  outline: 1px dashed var(--workspace-activity-active-border, #0078d4);
+  outline-offset: -3px;
+  z-index: 1;
+}
+.workspace-activity-menu {
+  position: fixed;
+  z-index: 2147483646;
+  min-width: 150px;
+  padding: 4px;
+  color: var(--text-color, #24292f);
+  background: var(--bg-color, #fff);
+  border: 1px solid #8885;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px #0003;
+  font: 13px/1.5 system-ui, sans-serif;
+}
+.workspace-activity-menu > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 2px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.workspace-activity-menu > button:hover:not(:disabled), .workspace-activity-menu > button:focus-visible {
+  outline: none;
+  color: #fff;
+  background: #0078d4;
+}
+.workspace-activity-menu > button:disabled { opacity: .45; cursor: default; }
+.workspace-activity-menu .git-standard-icon { width: 16px; height: 16px; flex: none; fill: currentColor; }
+.workspace-activity-menu [data-activity-move=up] > svg { transform: rotate(-90deg); }
+.workspace-activity-menu [data-activity-move=down] > svg { transform: rotate(90deg); }
+@media (prefers-color-scheme: dark) {
+  .typ-ribbon[data-workspace-activity=ready] { --workspace-activity-active-foreground: #9cdcfe; --workspace-activity-active-border: #75beff; --workspace-activity-active-background: #75beff22; --workspace-activity-hover-background: #75beff14; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
+}

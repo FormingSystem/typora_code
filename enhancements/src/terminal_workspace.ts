@@ -8,6 +8,7 @@ import terminal_css from "./terminal_workspace.css";
 import { terminal_profiles, terminal_environment, administrator_launch } from "./terminal_runtime";
 import { graph_button as button, graph_element as el, graph_option as option, graph_dialog, graph_menu } from "./git_graph_widgets";
 import type { graph_host, graph_leaf } from "./git_graph_host";
+import { terminal_theme, observe_terminal_theme } from "./terminal_theme";
 
 const TERMINAL_TYPE = "linux_note.terminal";
 const TERMINAL_SETTINGS_KEY = "linux-note-terminal:v1:";
@@ -19,6 +20,7 @@ export function bind_terminal_workspace(host: graph_host) {
   const style = el("style"); style.textContent = xterm_css + "\n" + terminal_css; document.head.append(style);
   const profiles = terminal_profiles(host.process_api, host.path_api);
   const sessions = new Map<graph_leaf, terminal_view>(); let serial = 0; let last_leaf: graph_leaf | undefined;
+  const stop_theme = observe_terminal_theme(theme => { for (const view of sessions.values()) if (view.term) view.term.options.theme = theme; });
   const load_settings = (): terminal_settings => {
     try { const value = JSON.parse(localStorage.getItem(TERMINAL_SETTINGS_KEY) || "{}"); return {
       profile: profiles.some(item => item.id === value.profile) ? value.profile : "",
@@ -90,7 +92,7 @@ export function bind_terminal_workspace(host: graph_host) {
       this.active = true; last_leaf = this.leaf;
       if (!this.term) {
         const settings = load_settings();
-        this.term = new Terminal({ cursorBlink: true, fontFamily: "Consolas, 'Cascadia Mono', monospace", fontSize: settings.font_size, scrollback: settings.scrollback, allowProposedApi: false, theme: { background: "#1e1e1e", foreground: "#d4d4d4", cursor: "#aeafad", selectionBackground: "#264f78" } });
+        this.term = new Terminal({ cursorBlink: true, fontFamily: "Consolas, 'Cascadia Mono', monospace", fontSize: settings.font_size, scrollback: settings.scrollback, allowProposedApi: false, theme: terminal_theme() });
         this.fit = new FitAddon(); this.search = new SearchAddon(); this.term.loadAddon(this.fit); this.term.loadAddon(this.search); this.term.open(this.viewport);
         this.term.onData(data => { if (this.pty) try { this.pty.write(data); } catch (error) { this.status.textContent = String(error); } });
         this.term.attachCustomKeyEventHandler(event => {
@@ -145,6 +147,7 @@ export function bind_terminal_workspace(host: graph_host) {
     try { return (await runner.run(cwd, ["rev-parse", "--show-toplevel"])).trim(); } catch { return cwd; }
   };
   const launch = (admin_mode = false, path?: string) => { void resolve_root(path).then(root => admin_mode ? admin(root) : open(root)).catch(fail); };
+  window.addEventListener("linux-note-open-terminal", ((event:CustomEvent<{path:string;admin?:boolean}>)=>launch(Boolean(event.detail.admin),event.detail.path)) as EventListener);
   core.app.commands.register({ id: "linux_note:terminal", title: "终端：在仓库根目录新建终端", scope: "global", callback: () => launch() });
   core.app.commands.register({ id: "linux_note:terminal_admin", title: "终端：以管理员身份打开仓库根目录（UAC）", scope: "global", callback: () => launch(true) });
   core.app.commands.register({ id: "linux_note:terminal_settings", title: "终端：设置", scope: "global", callback: settings_dialog });
@@ -163,7 +166,8 @@ export function bind_terminal_workspace(host: graph_host) {
     event.preventDefault(); event.stopImmediatePropagation();
     if (!event.shiftKey && last_leaf && sessions.has(last_leaf)) { core.app.workspace.activeLeaf = last_leaf.parent.toggleTab(last_leaf.state.path); sessions.get(last_leaf)?.term?.focus(); } else launch();
   }, true);
-  window.addEventListener("unload", () => { for (const view of sessions.values()) view.dispose(); });
+  window.addEventListener("unload", () => { stop_theme(); for (const view of sessions.values()) view.dispose(); });
+  document.documentElement.setAttribute("data-linux-note-terminal-theme", "ready");
   document.documentElement.setAttribute("data-linux-note-terminal", "ready");
   return { open, admin };
 }

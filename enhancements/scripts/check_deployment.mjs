@@ -15,6 +15,14 @@ for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'ini
 for (const marker of bundle_markers) {
   if (!bundle_source.includes(marker)) throw new Error(`prebuilt bundle is missing: ${marker}`);
 }
+for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-workspace-files','data-linux-note-workspace-search','data-linux-note-workspace-explorer','install_workspace_activity','data-linux-note-terminal-theme']) {
+  if(!bundle_markers.includes(marker))throw new Error(`required workspace deployment capability is missing: ${marker}`);
+}
+for(const line of fs.readFileSync('vendor/codicons/SHA256SUMS','utf8').trim().split(/\r?\n/u)) {
+  const match=/^([a-f\d]{64})  ([a-zA-Z0-9_./-]+)$/u.exec(line);
+  if(!match||match[2].includes('..')||createHash('sha256').update(fs.readFileSync('vendor/codicons/'+match[2])).digest('hex')!==match[1])throw new Error('Codicons asset hash mismatch');
+}
+if(!bundle_source.includes('Microsoft VS Code Codicons')||!bundle_source.includes('https://creativecommons.org/licenses/by/4.0/'))throw new Error('Codicons attribution is missing from the installed bundle');
 for (const line of fs.readFileSync('vendor/gemoji/SHA256SUMS', 'utf8').trim().split(/\r?\n/u)) {
   const match = /^([a-f\d]{64})  (emoji\.json|LICENSE)$/u.exec(line);
   if (!match || createHash('sha256').update(fs.readFileSync('vendor/gemoji/' + match[2])).digest('hex') !== match[1]) throw new Error('Gemoji release hash mismatch');
