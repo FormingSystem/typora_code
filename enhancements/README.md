@@ -18,6 +18,7 @@ domains:
 - 带标题的链接在目标栏定位光标、正文和目录，来源栏保留阅读位置；关闭标签或窗口后重新打开文件，继续上次阅读；
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
 - 在工作区标签中使用 Git Graph，查看提交关系、比较版本、执行 Git 操作并跟踪文件评审；
+- 按对象配置 Git 右键菜单，拖动面板分界线；从仓库根目录打开集成终端，支持多会话、分栏和管理员入口；
 - 使用 VS Code 内置 C/C++ TextMate 语法和 Oniguruma 解析 Typora 的 `c`、`cpp` 等代码围栏，并把识别出的语法角色映射到 GitHub Light 代码配色；
 - 对超过响应式阅读高度的普通代码块默认限高，提供 `展开全部代码` / `收起代码` 切换；正文或代码块获焦时都能直接点击，按钮获焦后支持 Enter / 空格，打印时自动完整展开且不修改 Markdown；
 - 在 Mermaid 图正上方放置随正文自然滚动的静态工具行，不悬浮、不跟随视口，也不覆盖图；工具行挂在预览容器内部，并按 Mermaid 代码块去重，避免 Typora 的隐藏或重建预览产生重复按钮；
@@ -29,7 +30,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-仓库已经提交预构建 bundle，普通用户无需安装 Node.js。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
+仓库已经提交预构建 bundle，普通用户无需预装 Node.js；Windows 安装器管理终端所需的私有运行时。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
 
 Windows PowerShell 或资源管理器入口：
 
@@ -44,7 +45,7 @@ cd tools/typora
 bash ./configure.sh
 ```
 
-PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识别 Windows 与 POSIX 路径；Linux Bash 只接受 Linux 路径。脚本先校验 bundle 功能标记和社区核心 `SHA256SUMS`，再统一备份主题、Typora `resources/window.html`、旧 bundle 和将被覆盖的插件文件。安装完成后保存文档并重启 Typora。完整安装、检查和回退说明见 [`../typora配置修改.md`](../typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。
+PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识别 Windows 与 POSIX 路径；Linux Bash 只接受 Linux 路径。Windows 首次配置会下载并校验官方 Node `24.20.0` 私有运行时，供集成终端使用；无需安装到系统或修改 PATH。再次配置复用校验过的下载缓存。脚本先校验 bundle 功能标记、社区核心与终端资产 `SHA256SUMS`，再统一备份主题、Typora `resources/window.html`、旧 bundle、插件文件和终端运行文件。Windows UCRT64 入口调用同一 PowerShell 安装事务；Linux 保留主题、工作区和 Git Graph，当前没有 Linux 集成终端原生运行包。安装完成后保存文档并重启 Typora。完整安装、检查和回退说明见 [`../typora配置修改.md`](../typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。
 
 ## 1.2\_开发者构建
 
@@ -154,3 +155,32 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 普通安装已包含预构建实现，无需额外 Node.js。Git 默认从 Typora 进程的 PATH 查找，也可在图内本地设置中指定可执行文件。安装器不写固定路径、不修改系统 PATH。配置检查报告 `git_graph_features` 和 `git_graph_runtime`，并要求完整功能标记、bundle 摘要和社区核心资产均一致。缺少 Git 时图内提供提示，其他阅读增强仍可使用。
 
 默认每次读取 200 条，可调整加载数量、分支范围和自动加载；不再使用旧版 5000 条上限。读取超时 30 秒，写操作 5 分钟，单次输出上限 16 MiB。显示、冲突保护、签名与平台验证的详细边界见 [宿主差异与验证边界](./git_graph_features.md#1.4_宿主差异与验证边界)。
+
+
+## 1.6\_集成终端、管理员入口与分界线
+
+点击 Git Graph 工具栏的 **终端**、左侧底部终端图标，或按 **Ctrl + `** 打开仓库根目录的终端。有活动终端时，该快捷键重新聚焦最近会话；**Ctrl + Shift + `** 新建会话。文件树右键提供 **在所属仓库根目录打开集成终端**，从子目录文件操作时也会先定位 Git 根目录；文件不属于 Git 仓库时使用所在文件夹。
+
+默认在下方编辑组打开，终端设置可选当前组新标签、右侧或下方。终端顶部可以选择 Shell、新建、左右拆分、查找、清屏、终止和设置；右键还可向下拆分、重启 Shell、复制选中文本、粘贴、全选及复制仓库根路径。默认使用 Windows PowerShell，另外提供 Command Prompt、已安装的 PowerShell 7 和 PATH 中的 Bash。选择框决定新会话的 Shell，当前会话的 Shell 不会被静默替换。
+
+终端采用与 [VS Code 终端](https://code.visualstudio.com/docs/terminal/advanced) 相同的 [xterm.js](https://github.com/xtermjs/xterm.js) 显示组件和 [node-pty](https://github.com/microsoft/node-pty/tree/1.1.0) 伪终端组件。支持 ANSI 控制、交互程序、方向键历史、Ctrl+C、中英文输入、滚动缓冲和窗口尺寸同步；**Ctrl + Shift + C / V / F** 分别复制、粘贴和查找。右键或此快捷键粘贴多行内容时先展示文本，点击后发送给 Shell。终端焦点内的普通 Ctrl+K 等按键交给 Shell，不触发正文快捷键。
+
+切换 Markdown 或 Git Graph 标签只隐藏终端，进程与输出保留；终止按钮、关闭终端标签或真正关闭宿主窗口时回收对应会话。关闭窗口后不恢复旧进程及输出，重新打开会创建新 Shell。当前没有移植 VS Code 的扩展 API、任务系统、调试器和跨窗口会话恢复。
+
+**以管理员身份打开仓库终端（UAC）** 位于文件树、Git Graph 空白处和终端的右键菜单中，也能从命令面板执行。它通过 Windows UAC 启动独立的管理员 PowerShell，并用 `Set-Location -LiteralPath` 定位同一仓库根目录；取消 UAC 时显示未启动。普通集成终端和 Typora 本身不会随之提权。自动测试验证命令编码和含中文、引号及特殊字符的路径，不自动接受或触发管理员授权。
+
+提交列表与详情之间、只读历史双栏之间，以及工作区编辑组之间，都可以用鼠标拖动分界线。详情放在下方时上下调整，放在右侧时左右调整；窄面板自动上下排列。Git 图面板比例按仓库保存，表头列宽单独保存。新增的图内分界线可用 Tab 聚焦后按方向键调整，双击或 Home 复位；表头右键可以勾选列显隐，**布局** 按钮调整详情位置并重置列宽。
+
+Git Graph 的提交、分支、远端、标签、stash、未提交行、变更文件和空白处菜单均提供 **配置此右键菜单**。勾选决定显示项，修改立即保存在当前仓库配置中；`hidden_actions` 中 `commit:branch_create` 表示只在提交菜单隐藏该项，单独的 `branch_create` 表示全局隐藏。配置入口始终保留，避免隐藏全部操作后无法恢复。
+
+## 1.7\_终端运行文件、安装与验证
+
+Windows 集成终端要求 Windows 10 1903 或更新版本、x64 或 ARM64。已在 x64 Typora `1.14.9` 实测，ARM64 运行文件来自上游预构建，尚未完成 ARM64 实机验证。
+
+安装器通过系统环境发现 Typora 和用户目录。前端依赖锁定为 xterm.js `6.0.0`、FitAddon `0.11.0`、SearchAddon `0.16.0`；node-pty `1.1.0` 的原始 JavaScript、MIT 许可证与 Windows Node-API 模块保存于 `dist/terminal_runtime/`，由 `scripts/build_terminal_assets.mjs` 从锁定 npm 包生成并附 SHA-256 清单。安装器不编译本机模块，不下载或复制已安装 VS Code 的私有文件。
+
+独立后台运行时固定为 Node `24.20.0`，官方来源与 x64 / ARM64 ZIP、可执行文件摘要见 [运行时清单](./node_runtime.json)；来源为 [Node 官方发行目录](https://nodejs.org/dist/v24.20.0/)。首次配置下载约 38 MB 的架构对应 ZIP，校验后只提取 `node.exe` 和 `LICENSE`。运行文件安装到 Typora 用户数据中的 `linux_note_enhancements/terminal_runtime/`，不依赖系统 Node，不修改 PATH。离线环境可把相同官方 ZIP 放进 `TYPORA_TERMINAL_CACHE` 指向的目录；默认缓存通过系统本地应用数据目录发现。缓存和提取文件仍须通过摘要校验。
+
+Typora 编辑页不支持 node-pty 的后台排空线程，因此每个会话使用独立的 Node 后台进程，通过 IPC 传递输入、输出和尺寸；输出采用确认与暂停机制限制积压。标签切换不销毁进程；进程断开 IPC 或收到关闭命令后清理伪终端。运行文件与 bundle、工作区核心一起校验、备份、安装和回滚。安装不会覆盖阅读位置、Git 评审、设置或用户后来安装的插件。
+
+`test_terminal.mjs` 验证真实后台进程、特殊字符工作目录、输入输出、尺寸、退出、环境隔离和 UAC 命令编码。`test_terminal_interaction.cjs` 用隐藏 Electron 发送真实鼠标与键盘，验证输入、方向键历史、Ctrl+C、复制、查找、菜单及窗口缩放。`test_reading_native.ps1 -suite terminal` 则在临时仓库的真实 Typora 窗口中检查会话、切换、分栏与回收；`-suite git`、`-suite reading` 和 `-suite paths` 继续检查原有功能。管理员 UAC 的人工交互和 ARM64、原生 Linux 环境不在已通过的自动验收范围内。

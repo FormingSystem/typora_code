@@ -1,18 +1,18 @@
 ﻿[CmdletBinding()]
-param([string]$typora_root = '', [ValidateSet('reading', 'paths', 'git')][string]$suite = 'reading')
+param([string]$typora_root = '', [ValidateSet('reading', 'paths', 'git', 'terminal')][string]$suite = 'reading')
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../../scripts/lib/typora_environment.ps1')
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive
 $window_file = Join-Path $typora_root 'resources/window.html'
 $probe_root = Join-Path ([IO.Path]::GetTempPath()) ('typora_reading_test_' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $probe_root | Out-Null
-$fixture_name = switch ($suite) { 'paths' { 'file_path_native_test.js' } 'git' { 'git_graph_native_test.js' } default { 'reading_native_test.js' } }
+$fixture_name = switch ($suite) { 'terminal' { 'terminal_native_test.js' } 'paths' { 'file_path_native_test.js' } 'git' { 'git_graph_native_test.js' } default { 'reading_native_test.js' } }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "../fixtures/$fixture_name") -Destination $probe_root
 $source = @('# Source', '', '[Target](target.md#13.7_目标_标题)', '', '## Origin', '') + (1..90 | ForEach-Object { "Source paragraph $_.`n" }) + @('## 13.7_目标_标题', '') + (1..30 | ForEach-Object { "Source tail $_.`n" })
 $target = @('# Destination', '') + (1..60 | ForEach-Object { "Target paragraph $_.`n" }) + @('## 13.7_目标_标题', '') + (1..30 | ForEach-Object { "Target tail $_.`n" })
 [IO.File]::WriteAllLines((Join-Path $probe_root 'source.md'), $source, [Text.UTF8Encoding]::new($false))
 [IO.File]::WriteAllLines((Join-Path $probe_root 'target.md'), $target, [Text.UTF8Encoding]::new($false))
-if ($suite -eq 'git') {
+if ($suite -in @('git', 'terminal')) {
     function invoke_probe_git {
         & git -C $probe_root -c user.name=Typora_Test -c user.email=typora@example.invalid -c commit.gpgsign=false -c core.autocrlf=false -c core.hooksPath=.git/unused_hooks @args | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "Git fixture setup failed: $args" }

@@ -19,6 +19,12 @@ done
 
 typora_environment_init "$typora_tools_root"
 typora_root="$(typora_resolve_root "$requested_root" "$non_interactive")"
+# Windows 的安装、下载、校验与回滚统一交给同一实现。
+if [[ "$TYPORA_PLATFORM_ID" == 'windows-ucrt64' ]]; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$typora_tools_root/check_configuration_windows.ps1")" -typora_root "$(cygpath -w "$typora_root")" -non_interactive
+    exit $?
+fi
+
 window_html="$typora_root/resources/window.html"
 theme="$TYPORA_USER_DATA/themes/cpp_github-consolas.css"
 bundle="$TYPORA_USER_DATA/linux_note_enhancements/typora_enhancements.js"

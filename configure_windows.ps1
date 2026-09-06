@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$typora_root = "",
     [switch]$non_interactive
@@ -42,6 +42,9 @@ assert_typora_bundle -bundle_path $bundle_source -markers_path (Join-Path $enhan
 . (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
 $workspace_vendor = Join-Path $enhancement_root "vendor\typora_workspace"
 assert_typora_workspace_assets -asset_root $workspace_vendor -assets @(get_typora_workspace_assets $workspace_vendor)
+
+$terminal_vendor = Join-Path $enhancement_root 'dist/terminal_runtime'
+assert_typora_workspace_assets -asset_root $terminal_vendor -assets @(get_typora_terminal_assets $terminal_vendor)
 
 New-Item -ItemType Directory -Force -Path $backup_root, $theme_directory | Out-Null
 $theme_existed = Test-Path -LiteralPath $theme_target -PathType Leaf

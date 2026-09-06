@@ -16,7 +16,7 @@ $test_root = Join-Path ([System.IO.Path]::GetTempPath()) ("typora-install-test-"
 $tools_source = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root "portable checkout\tools\typora"
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative_path in @("configure_windows.ps1", "check_configuration_windows.ps1", "restore_configuration_windows.ps1", "cpp_github-consolas.css", "scripts", "enhancements\scripts", "enhancements\dist", "enhancements\vendor", "enhancements\bundle_markers.txt")) {
+foreach ($relative_path in @("configure_windows.ps1", "check_configuration_windows.ps1", "restore_configuration_windows.ps1", "cpp_github-consolas.css", "scripts", "enhancements\scripts", "enhancements\dist", "enhancements\vendor", "enhancements\bundle_markers.txt", "enhancements\node_runtime.json")) {
     $destination = Join-Path $tools_copy $relative_path
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $tools_source $relative_path) -Destination $destination -Recurse
@@ -61,6 +61,8 @@ try {
     assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Restore changed reading positions"
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data "plugins\2.10.15\core.css")) $false "New assets remain active after restore"
 
+    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'linux_note_enhancements/terminal_runtime/1.1.0/terminal_broker.cjs')) $false "New terminal broker remains active after restore"
+    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'linux_note_enhancements/terminal_runtime/node/24.20.0/node.exe')) $false "Private terminal runtime remains active after restore"
     assert_equal ([IO.File]::ReadAllText($graph_store)) "existing reviews and repository settings" "Install or restore changed Git Graph state"
     assert_equal ([IO.File]::ReadAllText($avatar_store)) "existing avatar" "Install or restore changed avatar cache"
     $bundle_copy = Join-Path $tools_copy "enhancements\dist\typora_enhancements.js"

@@ -24,3 +24,6 @@ data-linux-note-git-graph-actions
 plan_git_action
 linux-note-git-graph:v2:
 git-graph-dialog-shade
+data-linux-note-terminal
+linux_note:terminal
+linux-note-workspace-sash

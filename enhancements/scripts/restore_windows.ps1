@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string]$backup_root
@@ -26,6 +26,10 @@ foreach ($required in @($manifest_path, $window_backup)) {
 $manifest = Get-Content -LiteralPath $manifest_path -Raw | ConvertFrom-Json
 $workspace_records = @()
 if ($manifest.PSObject.Properties['workspace_assets']) { $workspace_records = @($manifest.workspace_assets) }
+$terminal_records = @()
+if ($manifest.PSObject.Properties['terminal_assets']) { $terminal_records = @($manifest.terminal_assets) }
+$terminal_backup = Join-Path $backup_root 'terminal_runtime'
+assert_typora_workspace_backup -backup_root $terminal_backup -records $terminal_records
 $workspace_backup = Join-Path $backup_root "workspace"
 assert_typora_workspace_backup -backup_root $workspace_backup -records $workspace_records
 if (-not (Test-Path -LiteralPath $manifest.window_html -PathType Leaf)) {
@@ -42,6 +46,8 @@ if (-not $resolved_typora_root -or
 if ($manifest.bundle_backup -and -not (Test-Path -LiteralPath $manifest.bundle_backup -PathType Leaf)) {
     throw "Recorded bundle backup is missing: $($manifest.bundle_backup)"
 }
+
+restore_typora_workspace -asset_root (Join-Path (get_typora_windows_user_data) 'linux_note_enhancements/terminal_runtime') -backup_root $terminal_backup -records $terminal_records -timestamp (Get-Date -Format 'yyyyMMdd-HHmmss')
 
 $safety_backup = Join-Path $backup_root "window.before_restore.$(Get-Date -Format 'yyyyMMdd-HHmmss').html"
 Copy-Item -LiteralPath $manifest.window_html -Destination $safety_backup

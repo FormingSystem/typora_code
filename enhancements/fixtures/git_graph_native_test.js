@@ -15,6 +15,7 @@
     const fs = reqnode('fs'); const path = reqnode('path');
     try {
       await wait(() => document.documentElement.getAttribute('data-linux-note-git-graph') === 'ready');
+      window.resizeTo(1400, 950); await delay(300);
       const app = window[Symbol.for('typora-plugin-core@v2')].app;
       const source_leaf = app.workspace.activeLeaf;
       const source_bytes = fs.readFileSync(path.join(probe_root, 'source.md'));

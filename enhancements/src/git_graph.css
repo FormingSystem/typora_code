@@ -28,7 +28,7 @@
 .git-graph-branch { max-width: 220px; min-width: 100px; }
 .git-graph-search { flex: 1; min-width: 160px; }
 .git-graph-status { padding: 2px 12px 8px; opacity: .8; overflow-wrap: anywhere; max-height: 100px; overflow: auto; flex: none; }
-.git-graph-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; border-top: 1px solid #8884; }
+.git-graph-body { display: grid; grid-template-columns: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); flex: 1; min-height: 0; border-top: 1px solid #8884; }
 .git-graph-list { overflow: auto; min-height: 0; position: relative; }
 .linux-note-git-graph .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }
 .git-graph-row svg { flex: none; overflow: visible; }
@@ -52,7 +52,7 @@
 .git-diff-delete { color: #cb2431; background: #f8514915; }
 .git-diff-hunk { color: #2684d4; }
 @container (max-width: 680px) {
-  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(160px, 1fr); }
+  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); }
   .git-graph-details { border-left: 0; border-top: 1px solid #8884; }
 }
 /* Git Graph 的弹窗属于宿主窗口，不能依赖正文编辑区的焦点或样式。 */
@@ -97,7 +97,7 @@
 .git-file-directory summary { cursor: pointer; }
 .git-file-unreviewed::before { content: '● '; color: #2684d4; }
 .git-graph-avatar { width: 32px; height: 32px; border-radius: 50%; }
-.linux-note-git-graph[data-details=bottom] .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(180px, 1fr); }
+.linux-note-git-graph[data-details=bottom] .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); }
 .linux-note-git-graph[data-details=bottom] .git-graph-details { border-left: 0; border-top: 1px solid #8884; }
 .linux-note-git-graph[data-details=inline] .git-graph-body { display: flex; flex-direction: column; }
 .linux-note-git-graph[data-details=inline] .git-graph-list { flex: 1; }
@@ -110,3 +110,15 @@
 .git-document-line { display: block; min-width: max-content; height: 1.65em; white-space: pre; }
 .git-document-line::before { content: attr(data-line); display: inline-block; width: 4em; margin-right: 12px; text-align: right; opacity: .4; user-select: none; }
 @media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }
+
+/* 编辑组、提交详情和历史双栏使用一致的可命中分界线。 */
+.linux-note-workspace-sash { flex: 0 0 7px; min-width: 7px; min-height: 7px; position: relative; background: #8881; cursor: col-resize; touch-action: none; user-select: none; z-index: 3; }
+.linux-note-workspace-sash:hover, .linux-note-workspace-sash.dragging, .linux-note-workspace-sash:focus-visible { background: #007fd4; outline: none; }
+.linux-note-git-graph[data-details=bottom] .linux-note-workspace-sash { cursor: row-resize; }
+@container (max-width: 680px) { .git-graph-body > .linux-note-workspace-sash { cursor: row-resize; } }
+.git-graph-menu hr { border: 0; border-top: 1px solid #8884; margin: 5px 2px; }
+.git-graph-menu button:disabled { opacity: .4; cursor: default; }
+.git-graph-toolbar { background: #88808; border-bottom: 1px solid #8882; }
+.git-graph-columns { font-size: 12px; font-weight: 600; }
+.git-graph-details { border-left: none; }
+hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }

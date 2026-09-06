@@ -28,6 +28,7 @@ const deployment_files = [
   "check_configuration.sh",
   "restore_configuration.sh",
   "scripts/lib/typora_environment.ps1",
+  "scripts/lib/typora_terminal.ps1",
   "scripts/lib/typora_environment.sh",
   "scripts/lib/typora_workspace.ps1",
   "scripts/lib/typora_workspace.sh",
@@ -93,3 +94,11 @@ for (const line of asset_lines) {
   if (digest !== match[1]) throw new Error(`workspace asset hash mismatch: ${match[2]}`);
 }
 console.log(`validated ${deployment_files.length} portable deployment files and ${asset_lines.length} workspace ${bootstrap_version} assets`);
+
+for (const line of fs.readFileSync('dist/terminal_runtime/SHA256SUMS','utf8').trim().split(/\r?\n/u)) {
+  const match = /^([a-f0-9]{64})  ([0-9.]+\/(?:node-pty\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9._-]+|terminal_broker.cjs))$/u.exec(line);
+  if (!match || match[2].includes('..') || createHash('sha256').update(fs.readFileSync('dist/terminal_runtime/'+match[2])).digest('hex') !== match[1]) throw new Error('Terminal asset hash mismatch');
+}
+for (const marker of ['data-linux-note-terminal','linux_note:terminal','linux-note-workspace-sash']) if (!bundle_markers.includes(marker)) throw new Error('Terminal deployment marker missing');
+const node_release = JSON.parse(fs.readFileSync('node_runtime.json','utf8'));
+if (!bundle_source.includes(node_release.version) || !bundle_source.includes('Copyright (c) 2017-2019, The xterm.js authors')) throw new Error('Terminal runtime version or license is missing');

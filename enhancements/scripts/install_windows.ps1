@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$typora_root = "",
     [string]$backup_root = "",
@@ -49,6 +49,14 @@ $workspace_backup = Join-Path $backup_root "workspace"
 $workspace_assets = @(get_typora_workspace_assets $workspace_vendor)
 assert_typora_workspace_assets -asset_root $workspace_vendor -assets $workspace_assets
 
+$terminal_vendor = Join-Path $typora_tools_root 'enhancements/dist/terminal_runtime'
+$terminal_target = Join-Path $extension_target 'terminal_runtime'
+$terminal_backup = Join-Path $backup_root 'terminal_runtime'
+. (Join-Path $typora_tools_root 'scripts/lib/typora_terminal.ps1')
+$node_stage = prepare_typora_node $typora_tools_root
+$terminal_assets = @(get_typora_terminal_assets $terminal_vendor)
+assert_typora_workspace_assets -asset_root $terminal_vendor -assets $terminal_assets
+
 New-Item -ItemType Directory -Force -Path $backup_root, $extension_target | Out-Null
 Copy-Item -LiteralPath $window_html -Destination $window_backup
 if (Test-Path -LiteralPath $bundle_target -PathType Leaf) {
@@ -66,7 +74,11 @@ if (-not $window_source.Contains("</body>")) {
 $window_source = $window_source.Replace("</body>", "$script_tag</body>")
 $workspace_records = @(backup_typora_workspace -asset_root $workspace_target -backup_root $workspace_backup -assets $workspace_assets)
 
+$terminal_records = @(backup_typora_workspace -asset_root $terminal_target -backup_root $terminal_backup -assets @($terminal_assets + $node_stage.assets))
+
 try {
+    install_typora_workspace -vendor_root $node_stage.root -asset_root $terminal_target -assets $node_stage.assets
+    install_typora_workspace -vendor_root $terminal_vendor -asset_root $terminal_target -assets $terminal_assets
     install_typora_workspace -vendor_root $workspace_vendor -asset_root $workspace_target -assets $workspace_assets
     Copy-Item -LiteralPath $bundle_source -Destination $bundle_target -Force
     [System.IO.File]::WriteAllText($window_html, $window_source, [System.Text.UTF8Encoding]::new($false))
@@ -94,6 +106,7 @@ try {
         bundle_before_sha256 = $bundle_before_hash
         bundle_after_sha256 = Get-Sha256 $bundle_target
         workspace_assets = $workspace_records
+        terminal_assets = $terminal_records
     }
     [System.IO.File]::WriteAllText(
         $manifest_path,
@@ -101,6 +114,7 @@ try {
         [System.Text.UTF8Encoding]::new($false)
     )
 } catch {
+    restore_typora_workspace -asset_root $terminal_target -backup_root $terminal_backup -records $terminal_records -timestamp $timestamp
     Copy-Item -LiteralPath $window_backup -Destination $window_html -Force
     restore_typora_workspace -asset_root $workspace_target -backup_root $workspace_backup -records $workspace_records -timestamp $timestamp
     if (Test-Path -LiteralPath $bundle_backup -PathType Leaf) {
@@ -118,3 +132,5 @@ Write-Host "Bundle: $bundle_target"
 Write-Host "Backup: $backup_root"
 Write-Host "Restart Typora after saving open documents."
 Write-Host "Git Graph includes history, Git actions, comparisons and reviews. Git defaults to PATH; no separate Node.js installation is needed."
+
+Write-Host "Integrated terminal: xterm.js + node-pty ConPTY (Windows 10 1903+, x64/ARM64). Administrator terminal uses Windows UAC."
