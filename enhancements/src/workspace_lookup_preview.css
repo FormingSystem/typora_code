@@ -1,0 +1,6 @@
+.workspace-lookup-preview{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;color:var(--text-color,inherit);background:var(--bg-color,inherit)}
+.workspace-lookup-preview-body{position:relative;flex:1;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}
+.workspace-lookup-preview-body>.git-graph-document{height:100%;min-height:0;border:0}
+.workspace-lookup-preview-body .git-diff-toolbar,.workspace-lookup-preview-body .git-diff-labels{display:none}
+.workspace-lookup-preview-body .git-monaco-body{flex:1;min-height:0}
+.workspace-lookup-preview-message{padding:10px;font-size:12px}

@@ -1,0 +1,53 @@
+// 实际 Monaco 差异与源码视图共同使用唯一底栏；文件只放在临时目录。
+const {app,BrowserWindow}=require('electron');
+const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+const {build}=require('esbuild');const {editor_plugins}=require('./editor_bundle.cjs');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_diff_status_'));app.setPath('userData',path.join(root,'user_data'));app.disableHardwareAcceleration();
+const source_path=path.join(root,'source.ts');fs.writeFileSync(source_path,'const value = 1;\r\nconst next = 2;\r\n');
+let test_window;const checks=[];const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const evaluate=source=>test_window.webContents.executeJavaScript(source);
+const check=async(source,label)=>{const passed=await evaluate(source);if(!passed)console.error(await evaluate('({text:binding.container.textContent,last:diff?.last_focused_editor===right,leftfocus:left?.hasTextFocus(),rightfocus:right?.hasTextFocus(),position:right?.getPosition(),eol:JSON.stringify(right?.getModel()?.getEOL())})'));assert(passed,label);checks.push(label)};
+const wait=async source=>{for(let index=0;index<250;index++){if(await evaluate(source))return;await delay(30)}throw new Error('Timed out: '+source)};
+app.whenReady().then(async()=>{
+  test_window=new BrowserWindow({show:false,width:1100,height:750,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});
+  test_window.webContents.on('console-message',(_event,level,message)=>{if(level>=2)console.error(message)});
+  const html=path.join(root,'test.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden;background:white;color:#222;font-family:Arial}main{position:absolute;inset:0 0 28px}footer.ty-footer{position:absolute;bottom:0;left:0;right:0;height:28px;background:#eee}</style><body class="show-footer"><main></main><footer class="ty-footer"><span id="footer-word-count">100 词</span></footer></body>');await test_window.loadFile(html);
+  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export {create_graph_host} from "./src/git_graph_host";export {bind_workspace_files} from "./src/workspace_files";export {bind_workspace_editor_status} from "./src/workspace_editor_status";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'status_qa',write:false});await evaluate(bundle.outputFiles[0].text);
+  await evaluate(`(()=>{
+    const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
+    window.reqnode=name=>name==='electron'?{shell:{}}:require(name);window._options={userDataPath:${JSON.stringify(root)}};window.JSBridge={invoke:async()=>{}};
+    window.File={getMountFolder:()=>${JSON.stringify(root)},bundle:{filePath:${JSON.stringify(source_path)}},changeCounter:{isDocumentEdited:()=>false},editor:{library:{}}};
+    window.factories=new Map();window.listeners=new Map();window.leaves=[];let active=null;
+    class view{constructor(leaf){this.leaf=leaf;this.containerEl=document.createElement('div')}onOpen(){}onClose(){}}
+    window.parent_group={containerEl:document.querySelector('main'),appendChild(leaf){leaves.push(leaf)},toggleTab(uri){return leaves.find(leaf=>leaf.state.path===uri)}};
+    const workspace={activeFile:${JSON.stringify(source_path)},get activeLeaf(){return active},set activeLeaf(leaf){active?.view.onClose?.();active=leaf;document.querySelector('main').replaceChildren(leaf.view.containerEl);leaf.view.onOpen?.();listeners.get('active-leaf:change')?.forEach(callback=>callback(leaf))},eachLeaves(callback){leaves.forEach(callback)},createLeaf(descriptor){const leaf={...descriptor,parent:parent_group,containerEl:document.createElement('div')};leaf.view=factories.get(descriptor.type)(leaf);return leaf},on(name,callback){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(callback);return()=>listeners.get(name).delete(callback)},ribbon:{addButton(){}},sidebar:{toggle(){}}};
+    window.core={WorkspaceView:view,app:{workspace,openFile(){},viewManager:{registerView:(type,factory)=>factories.set(type,factory)},commands:{register(){},run(){}}}};
+    const placeholder={state:{path:'placeholder'},parent:parent_group,view:{containerEl:document.createElement('div')}};leaves.push(placeholder);workspace.activeLeaf=placeholder;
+    window.files=status_qa.bind_workspace_files(core);window.host=status_qa.create_graph_host(core);window.binding=status_qa.bind_workspace_editor_status(core);
+    window.active_editor=()=>core.app.workspace.activeLeaf.view.editor;
+  })()`);
+  await evaluate(`files.open_file(${JSON.stringify(source_path)})`);await wait('core.app.workspace.activeLeaf.view.loaded');
+  await evaluate('window.source_leaf=core.app.workspace.activeLeaf;source_leaf.view.editor.focused_editor().setPosition({lineNumber:2,column:7})');
+  await check('document.querySelectorAll(".linux-note-editor-status").length===1 && status_qa.bind_workspace_editor_status(core)===binding','source and Git host factories reuse one shared status instance');
+  await check('binding.container.firstChild===source_leaf.view.status_controls && binding.container.textContent.includes("行 2，列 7")','real source view owns the initial global status');
+  const diff_data={title:'test.ts 的更改',file:'test.ts',left:'const a = 1;\r\nconst old_value = 2;\r\n',right:'const a = 1;\nconst new_value = 20;\nconst added = 3;\n',left_label:'提交 abc',right_label:'工作区'};
+  await evaluate(`host.open_document(${JSON.stringify(diff_data)},'active',{root:${JSON.stringify(root)}});window.diff_leaf=core.app.workspace.activeLeaf;window.diff=active_editor();void 0;`);
+  await wait('diff?.editor.getLineChanges()!==null');await delay(120);
+  await check('binding.container.firstChild===diff.readonly_status && !binding.container.querySelector("[aria-label=保存编码]") && binding.container.textContent.includes("只读")','Git diff registers read-only model state without inventing a file encoding');
+  await evaluate('window.left=diff.editor.getOriginalEditor();window.right=diff.editor.getModifiedEditor();left.focus();left.setPosition({lineNumber:2,column:5});');await delay(50);
+  await check('binding.container.textContent.includes("原始版本") && binding.container.textContent.includes("行 2，列 5") && binding.container.querySelector("[aria-label=行尾序列]").textContent==="CRLF"','focusing the original pane shows its actual position and CRLF');
+  await evaluate('right.focus();right.setPosition({lineNumber:3,column:8});');await delay(50);
+  await check('binding.container.textContent.includes("修改版本") && binding.container.textContent.includes("行 3，列 8") && binding.container.querySelector("[aria-label=行尾序列]").textContent==="LF"','focusing the modified pane switches the global position and LF');
+  await evaluate('left.setPosition({lineNumber:1,column:1});status_qa.monaco.editor.setModelLanguage(right.getModel(),"javascript");');await delay(60);
+  await check('binding.container.textContent.includes("行 3，列 8") && binding.container.querySelector("[aria-label=语言模式]").textContent==="javascript"','background pane cursor changes do not steal status and active language changes refresh');
+  await evaluate('diff.toolbar.querySelector("button").focus();right.setPosition({lineNumber:2,column:4});');await delay(60);
+  await check('diff.focused_editor()===right && binding.container.textContent.includes("修改版本") && binding.container.textContent.includes("行 2，列 4")','toolbar focus retains the last active comparison side');
+  await evaluate('core.app.workspace.activeLeaf=source_leaf;right.setPosition({lineNumber:1,column:2});');await delay(60);
+  await check('binding.container.firstChild===source_leaf.view.status_controls && binding.container.textContent.includes("行 2，列 7")','returning to source restores its own state despite later background diff events');
+  await evaluate('core.app.workspace.activeLeaf=diff_leaf;void 0;');await delay(50);
+  await check('binding.container.firstChild===diff.readonly_status && binding.container.textContent.includes("修改版本")','reopening a retained diff tab restores its last selected side');
+  await evaluate('leaves.splice(leaves.indexOf(diff_leaf),1);core.app.workspace.activeLeaf=source_leaf;void 0;');await delay(80);
+  await check('diff.models.every(model=>model.isDisposed()) && binding.container.firstChild===source_leaf.view.status_controls && document.querySelectorAll(".linux-note-editor-status").length===1','closing diff disposes its models and restores source with one global bar');
+  await evaluate('binding.dispose()');
+  console.log(JSON.stringify({status:'PASS',checks,evidence:root},null,2));test_window.destroy();app.exit(0);
+}).catch(async error=>{console.error(error);if(test_window&&!test_window.isDestroyed()){fs.writeFileSync(path.join(root,'failure.png'),(await test_window.webContents.capturePage()).toPNG());test_window.destroy()}console.error(root);app.exit(1)});

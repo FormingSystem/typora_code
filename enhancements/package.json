@@ -5,7 +5,7 @@
   "description": "Typora editor groups, reading navigation, TextMate C/C++ colors and Mermaid viewer.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs && node scripts/test_reading_history.mjs && node scripts/test_reading_positions.mjs && node scripts/test_file_paths.mjs && node scripts/test_git_graph.mjs && node scripts/test_git_graph_full.mjs && node scripts/test_git_sync.mjs && node scripts/test_git_discard_changes.mjs && node scripts/test_terminal.mjs && node scripts/test_file_language.mjs && node scripts/test_workspace_search.mjs && node scripts/test_workspace_search_worker.mjs"
+    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs && node scripts/test_reading_history.mjs && node scripts/test_reading_positions.mjs && node scripts/test_file_paths.mjs && node scripts/test_git_graph.mjs && node scripts/test_git_graph_full.mjs && node scripts/test_git_sync.mjs && node scripts/test_git_discard_changes.mjs && node scripts/test_terminal.mjs && node scripts/test_file_language.mjs && node scripts/test_workspace_search.mjs && node scripts/test_workspace_search_worker.mjs && node scripts/test_workspace_text_document.mjs && node scripts/test_workspace_rename.mjs"
   },
   "dependencies": {
     "@xterm/addon-fit": "0.11.0",
@@ -14,7 +14,9 @@
     "monaco-editor": "0.56.0",
     "node-pty": "1.1.0",
     "vscode-oniguruma": "1.7.0",
-    "vscode-textmate": "9.3.2"
+    "vscode-textmate": "9.3.2",
+    "marked": "14.0.0",
+    "dompurify": "3.4.14"
   },
   "devDependencies": {
     "esbuild": "0.25.9"

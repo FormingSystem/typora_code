@@ -184,6 +184,13 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
   window.addEventListener("pagehide", flush);
   window.addEventListener("beforeunload", flush);
   return { all, active, elements, capture, checkpoint, remember, restore, stop_restoring,
+    remap_paths(map: (path: string) => string | undefined) {
+      flush(); store?.remap_paths(map);
+      for (const [key, context] of [...native_contexts]) {
+        const target = map(context.file_path); if (!target) continue;
+        native_contexts.delete(key); context.file_path = target; native_contexts.set(file_key(target), context);
+      }
+    },
     hold(path: string, value: boolean) {
       if (value) held_paths.add(file_key(path)); else held_paths.delete(file_key(path));
     },

@@ -26,6 +26,18 @@ export function create_position_store(storage: Pick<Storage, "getItem" | "setIte
     } catch { return null; }
   };
   return {
+    remap_paths(map: (path: string) => string | undefined): void {
+      const updates: {old_key: string; new_key: string; value: string}[] = [];
+      try {
+        for (let index = 0; index < storage.length; index++) {
+          const key = storage.key(index); if (!key?.startsWith(POSITION_PREFIX)) continue;
+          const target = map(decodeURIComponent(key.slice(POSITION_PREFIX.length)));
+          const value = storage.getItem(key);
+          if (target && value && read_entry(key)) updates.push({old_key: key, new_key: POSITION_PREFIX + encodeURIComponent(file_key(target)), value});
+        }
+        for (const update of updates) { storage.setItem(update.new_key, update.value); if (update.old_key !== update.new_key) storage.removeItem(update.old_key); }
+      } catch (error) { console.warn("[linux-note reading positions] cannot rename position", error); }
+    },
     get(path: string): reading_position | null {
       return read_entry(POSITION_PREFIX + encodeURIComponent(file_key(path)))?.position ?? null;
     },

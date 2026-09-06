@@ -92,7 +92,7 @@
       expect(document.querySelectorAll('.monaco-diff-editor .monaco-editor').length >= 2, 'file click opens real Monaco side by side diff');
       const diff_editor = app.workspace.activeLeaf.view.editor.editor;
       expect(diff_editor.getOriginalEditor().getLayoutInfo().verticalScrollbarWidth === 8 && diff_editor.getModifiedEditor().getLayoutInfo().verticalScrollbarWidth === 8, 'native diff retains a thin scrollbar on each side');
-      expect(diff_editor.getOriginalEditor().getLayoutInfo().minimap.minimapWidth === 0 && diff_editor.getModifiedEditor().getLayoutInfo().minimap.minimapWidth > 0, 'native diff shows a minimap on the modified side only');
+    expect(diff_editor.getOriginalEditor().getLayoutInfo().minimap.minimapWidth === 0 && diff_editor.getModifiedEditor().getLayoutInfo().minimap.minimapWidth === 0, 'native diff omits both full-text minimaps');
       expect([...document.querySelectorAll('.typ-tab .typ-file-basename')].some(node => node.textContent === '中文 #%.md（更改）'), 'Chinese diff tab name is readable and safely rendered');
       const diff_bounds = document.querySelector('.git-monaco-body').getBoundingClientRect();
       expect(diff_bounds.height > 400 && diff_bounds.width > 500, 'diff occupies central editor area');

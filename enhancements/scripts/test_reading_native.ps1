@@ -1,12 +1,21 @@
 ﻿[CmdletBinding()]
-param([string]$typora_root = '', [ValidateSet('reading', 'paths', 'git', 'terminal', 'browser')][string]$suite = 'reading')
+param([string]$typora_root = '', [ValidateSet('reading', 'paths', 'git', 'terminal', 'browser', 'workspace', 'markdown_location', 'rename')][string]$suite = 'reading')
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '../../scripts/lib/typora_environment.ps1')
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive
 $window_file = Join-Path $typora_root 'resources/window.html'
 $probe_root = Join-Path ([IO.Path]::GetTempPath()) ('typora_reading_test_' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $probe_root | Out-Null
-$fixture_name = switch ($suite) { 'browser' { 'workspace_browser_native_test.js' } 'terminal' { 'terminal_native_test.js' } 'paths' { 'file_path_native_test.js' } 'git' { 'git_graph_native_test.js' } default { 'reading_native_test.js' } }
+$fixture_name = switch ($suite) { 'rename' { 'workspace_rename_native_test.js' } 'markdown_location' { 'workspace_markdown_location_native_test.js' } 'workspace' { 'workspace_interaction_native_test.js' } 'browser' { 'workspace_browser_native_test.js' } 'terminal' { 'terminal_native_test.js' } 'paths' { 'file_path_native_test.js' } 'git' { 'git_graph_native_test.js' } default { 'reading_native_test.js' } }
+$workspace_index = $null
+$workspace_index_bytes = $null
+if ($suite -eq 'workspace') {
+    # 当前隔离工作树的索引只读快照；测试样例始终位于临时目录，不能暂存仓库文件。
+    $workspace_index = & git -C $PSScriptRoot rev-parse --path-format=absolute --git-path index
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot locate workspace Git index for native test audit.' }
+    $workspace_index = $workspace_index.Trim()
+    if (Test-Path -LiteralPath $workspace_index) { $workspace_index_bytes = [Convert]::ToBase64String([IO.File]::ReadAllBytes($workspace_index)) }
+}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot "../fixtures/$fixture_name") -Destination $probe_root
 $source = @('# Source', '', '[Target](target.md#13.7_目标_标题)', '', '## Origin', '') + (1..90 | ForEach-Object { "Source paragraph $_.`n" }) + @('## 13.7_目标_标题', '') + (1..30 | ForEach-Object { "Source tail $_.`n" })
 $target = @('# Destination', '') + (1..60 | ForEach-Object { "Target paragraph $_.`n" }) + @('## 13.7_目标_标题', '') + (1..30 | ForEach-Object { "Target tail $_.`n" })
@@ -44,7 +53,7 @@ foreach ($phase in $phases) {
         $result_file = Join-Path $probe_root "result_$phase.json"
         $started = Get-Date
         while (!(Test-Path -LiteralPath $result_file)) {
-            if (((Get-Date) - $started).TotalSeconds -gt 90) { throw "Native test timed out. Evidence: $probe_root" }
+            if (((Get-Date) - $started).TotalSeconds -gt 120) { throw "Native test timed out. Evidence: $probe_root" }
             Start-Sleep -Milliseconds 200
         }
         $result = [IO.File]::ReadAllText($result_file, [Text.Encoding]::UTF8) | ConvertFrom-Json
@@ -54,6 +63,10 @@ foreach ($phase in $phases) {
     } finally {
         $current = [IO.File]::ReadAllText($window_file)
         [IO.File]::WriteAllText($window_file, $current.Replace($tag, ''), [Text.UTF8Encoding]::new($false))
+        if ($workspace_index) {
+            $current_index_bytes = if (Test-Path -LiteralPath $workspace_index) { [Convert]::ToBase64String([IO.File]::ReadAllBytes($workspace_index)) } else { $null }
+            if ($current_index_bytes -cne $workspace_index_bytes) { throw "Workspace Git index changed during native test. Evidence: $probe_root" }
+        }
     }
 }
 Write-Output "Native reading test evidence: $probe_root"

@@ -2,6 +2,8 @@ import { create_reading_history, type reading_location } from "./reading_history
 import { file_key } from "./reading_positions";
 import { create_reading_workspace, reading_delay, type reading_context } from "./reading_workspace";
 import { get_workspace_app } from "./workspace_bootstrap";
+import { capture_markdown_location, reveal_markdown_location } from "./workspace_markdown_location";
+import type { file_location } from "./workspace_files";
 
 // Typora 1.14.9 appsrc/window/frame.js 与社区核心 2.10.15 已核对的宿主接口。
 type typora_editor = {
@@ -19,6 +21,15 @@ type typora_file_state = {
 };
 
 let bound = false;
+type reading_target_options = { locate?: () => Promise<void>; group?: string };
+let navigate_target: ((path: string, options: reading_target_options) => Promise<boolean>) | undefined;
+let remap_paths: ((map: (path: string) => string | undefined) => void) | undefined;
+export function rename_reading_paths(map: (path: string) => string | undefined): void { remap_paths?.(map); }
+
+/** 定位必须包含在打开、位置保护和阅读历史的同一事务中。 */
+export async function navigate_reading_target(path: string, options: reading_target_options = {}): Promise<void> {
+  if (!navigate_target || !await navigate_target(path, options)) throw new Error("无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。");
+}
 
 export function bind_reading_navigation(): void {
   if (bound) return;
@@ -41,6 +52,10 @@ export function bind_reading_navigation(): void {
   let navigating = false;
   let pending_from: reading_location | null = null;
   let pending_timer = 0;
+  remap_paths = map => {
+    history.remap_paths(map); workspace.remap_paths(map);
+    if (pending_from) pending_from.file_path = map(pending_from.file_path) ?? pending_from.file_path;
+  };
   const capture = (context = workspace.active()): reading_location | null => {
     if (!context?.file_path || file.bundle?.unsupported || editor.sourceView?.inSourceMode) return null;
     const position = workspace.capture(context);
@@ -49,7 +64,11 @@ export function bind_reading_navigation(): void {
     if ((!context.leaf || context.leaf.view.isEditor()) && file_key(context.file_path) === file_key(native_path())) {
       try {
         const candidate = editor.selection.buildUndo();
-        if (candidate?.type === "cursor") cursor = JSON.parse(JSON.stringify(candidate));
+        if (candidate?.type === "cursor") {
+          cursor = JSON.parse(JSON.stringify(candidate));
+          const source_location = capture_markdown_location();
+          if (source_location) cursor.linux_note_source_location = source_location;
+        }
       } catch { /* 没有正文选区时仍保存阅读位置。 */ }
     }
     return { file_path: context.file_path, ...position, position, cursor, view_id: context.view_id };
@@ -83,7 +102,7 @@ export function bind_reading_navigation(): void {
       && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
   };
   const open_target = async (path: string, view_id?: number): Promise<reading_context | undefined> => {
-    const existing = view_id == null ? undefined : workspace.all().find((context) => context.view_id === view_id
+    const existing = workspace.all().find((context) => (view_id == null || context.view_id === view_id)
       && file_key(context.file_path) === file_key(path));
     if (existing) return await activate(existing) ? existing : undefined;
     const current = workspace.active();
@@ -98,7 +117,7 @@ export function bind_reading_navigation(): void {
     return target && await activate(target) ? target : undefined;
   };
   const report = (error: unknown) => console.error("[linux-note reading navigation]", error);
-  const navigate = async (path: string, hash?: string, location?: reading_location): Promise<boolean> => {
+  const navigate = async (path: string, hash?: string, location?: reading_location, options: reading_target_options = {}): Promise<boolean> => {
     if (navigating) return false;
     path = path_api?.normalize(path) ?? path;
     finish_pending();
@@ -107,12 +126,22 @@ export function bind_reading_navigation(): void {
     navigating = true;
     workspace.hold(path, true);
     try {
-      const target = await open_target(path, location?.view_id);
+      let target: reading_context | undefined;
+      if (app && options.group && options.group !== "active") {
+        app.commands.run(options.group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [path]);
+        const opened = await wait_for(() => {
+          target = workspace.active();
+          return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
+        });
+        if (!opened || !target || !await activate(target)) target = undefined;
+      } else target = await open_target(path, location?.view_id);
       if (!target) return false;
       // 文件事件、交换回调与代码块限高都可能异步改变布局；先让这些步骤完成再定位。
       await reading_delay(100);
       workspace.stop_restoring(target);
-      if (hash) {
+      if (options.locate) {
+        await options.locate();
+      } else if (hash) {
         original_open_url.call(editor, hash);
         await reading_delay(100);
         const heading = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
@@ -130,7 +159,10 @@ export function bind_reading_navigation(): void {
         }
       } else if (location) {
         // cid 只用于当前窗口的原生历史，持久化位置不保存它；最后恢复滚动，避免选区拉动视口。
-        try { if (location.cursor) editor.undo?.exeCommand(location.cursor); } catch { /* 失效光标不阻止阅读恢复。 */ }
+        try {
+          if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location as file_location);
+          else if (location.cursor) editor.undo?.exeCommand(location.cursor);
+        } catch { /* 正文发生变化或失效光标不阻止阅读位置恢复。 */ }
         await reading_delay(40);
         await workspace.restore(target, location.position ?? location);
       } else await workspace.resume(target);
@@ -144,6 +176,15 @@ export function bind_reading_navigation(): void {
       workspace.hold(path, false);
       navigating = false;
     }
+  };
+  navigate_target = async (path, options) => {
+    // 光标先到位而历史滚动仍在稳定时，下一次明确打开应等待事务结束，不能丢掉用户的双击。
+    const started = Date.now();
+    while (navigating || history.is_navigating()) {
+      if (Date.now() - started > 15000) return false;
+      await reading_delay(40);
+    }
+    return navigate(path, undefined, undefined, options);
   };
 
   editor.tryOpenUrl = function (url, ...args) {

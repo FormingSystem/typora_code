@@ -253,6 +253,24 @@
       "source_path": "src/icons/arrow-down.svg",
       "git_blob_sha1": "fde1bfc0190d2689d2c347d86c27cbdf976e9f80",
       "sha256": "f94113b5bcc60685eb4fe87927b6249e3640c6db406bb936d56b230957f41135"
+    },
+    "edit-code": {
+      "file": "icons/edit_code.svg",
+      "source_path": "src/icons/edit-code.svg",
+      "git_blob_sha1": "144b80316d444654122887d630cecc634e8af13f",
+      "sha256": "d9346c8664ac3f64f42ba98d91989badc213481150042f1b2884a7c79553e180"
+    },
+    "book": {
+      "file": "icons/book.svg",
+      "source_path": "src/icons/book.svg",
+      "git_blob_sha1": "7e318533bbf82f9cc04571b522af5f9e6bea7f44",
+      "sha256": "cb4431b90f05a017a86548652ab149c38371324b9b12d1d8cb6f197b65bb0e88"
+    },
+    "exclude": {
+      "file": "icons/exclude.svg",
+      "source_path": "src/icons/exclude.svg",
+      "git_blob_sha1": "eb82a8b43c7741b768ae3a7ca140d123472043ad",
+      "sha256": "b5997894d1926c3fc58fa7bd3638e55491a63077a3e94c042985d6cf8027cffc"
     }
   },
   "licenses": [

@@ -1,0 +1,44 @@
+import workspace_footer_css from "./workspace_footer.css";
+
+type footer_binding = { dispose(): void };
+const footer_bindings = new WeakMap<HTMLElement, footer_binding>();
+
+/** 移动原生节点，保留 Typora 绑定在容器和菜单上的委托事件。 */
+export function install_workspace_footer(): footer_binding | undefined {
+  const actions = document.querySelector<HTMLElement>("#ty-sidebar-footer");
+  const footer = document.querySelector<HTMLElement>("footer.ty-footer");
+  const sidebar = document.querySelector<HTMLElement>("#typora-sidebar");
+  if (!actions || !footer || !sidebar || !actions.parentNode) return;
+  const existing = footer_bindings.get(actions); if (existing) return existing;
+  const original_parent = actions.parentNode, original_next = actions.nextSibling;
+  const original_aria = footer.getAttribute("aria-hidden");
+  const original_role = actions.getAttribute("role"), original_label = actions.getAttribute("aria-label");
+  const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
+  const original_classes = new Map(mirrored_classes.map(name => [name, actions.classList.contains(name)]));
+  const style = document.createElement("style"); style.dataset.workspaceFooterStyle = "ready";
+  style.textContent = workspace_footer_css; document.head.append(style);
+  actions.setAttribute("role", "group"); actions.setAttribute("aria-label", "文件与大纲操作");
+  footer.removeAttribute("aria-hidden"); footer.dataset.workspaceFooter = "ready";
+  sidebar.dataset.workspaceFooter = "moved";
+  // 字数和拼写检查仍在最右侧；整个文件操作组插在它们前面。
+  footer.insertBefore(actions, footer.querySelector(".footer-item-right"));
+  const update_context = () => {
+    for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
+  };
+  update_context();
+  // 只观察侧栏状态；不观察移入的节点，避免 class 镜像产生自触发循环。
+  const observer = new MutationObserver(update_context);
+  observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
+  let disposed = false;
+  const binding: footer_binding = { dispose() {
+    if (disposed) return; disposed = true; observer.disconnect();
+    original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
+    for (const [name, present] of original_classes) actions.classList.toggle(name, present);
+    if (original_role === null) actions.removeAttribute("role"); else actions.setAttribute("role", original_role);
+    if (original_label === null) actions.removeAttribute("aria-label"); else actions.setAttribute("aria-label", original_label);
+    if (original_aria === null) footer.removeAttribute("aria-hidden"); else footer.setAttribute("aria-hidden", original_aria);
+    delete footer.dataset.workspaceFooter; delete sidebar.dataset.workspaceFooter;
+    style.remove(); footer_bindings.delete(actions);
+  } };
+  footer_bindings.set(actions, binding); return binding;
+}

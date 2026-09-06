@@ -1,0 +1,23 @@
+body.unibody-window { --typ-workspace-top:32px; }
+body.unibody-window #top-titlebar[data-workspace-titlebar] {
+  display:flex;align-items:center;gap:2px;position:fixed;left:0!important;right:0;top:0;height:32px;
+  padding:0 0 0 8px;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));
+  color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));
+  font:13px/1.2 system-ui,sans-serif;-webkit-app-region:drag;
+}
+#top-titlebar .workspace-titlebar-icon {width:24px;height:24px;flex:none;object-fit:contain;margin-right:6px;}
+#top-titlebar .workspace-titlebar-menu {display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag;}
+#top-titlebar .workspace-titlebar-menu button {appearance:none;border:0;background:transparent;color:inherit;border-radius:4px;margin:2px 0;padding:0 8px;height:26px;min-width:0;font:inherit;cursor:default;outline-offset:-2px;}
+#top-titlebar .workspace-titlebar-menu button:hover,#top-titlebar .workspace-titlebar-menu button:focus-visible {background:var(--active-file-bg-color,rgba(127,127,127,.16));}
+#top-titlebar[data-workspace-titlebar] #w-menu-btn {display:none;}
+#top-titlebar[data-workspace-titlebar] #w-titlebar-left {float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden;}
+#top-titlebar[data-workspace-titlebar] #title-text {float:none!important;display:block;margin:0 12px;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px/30px system-ui,sans-serif;opacity:.8;}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights {float:none;flex:none;display:flex;align-items:center;height:31px;margin-left:auto;}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon {width:44px;height:31px;line-height:31px;margin:0;text-align:center;}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon {font-size:12px;}
+#top-titlebar[data-workspace-titlebar] #w-top-margin {display:none;}
+body.unibody-window .typ-ribbon {padding-top:32px;box-sizing:border-box;}
+body.unibody-window #typora-sidebar {top:32px;height:calc(100% - 32px);}
+body.unibody-window #typora-sidebar-resizer {top:32px;}
+@media(max-width:680px){#top-titlebar[data-workspace-titlebar] #title-text {display:none;}#top-titlebar .workspace-titlebar-menu button{padding:0 5px;}}
+@media(max-width:480px){#top-titlebar .workspace-titlebar-menu button{padding:0 3px;font-size:12px;}#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:32px;}#top-titlebar .workspace-titlebar-icon{margin-right:2px;}}

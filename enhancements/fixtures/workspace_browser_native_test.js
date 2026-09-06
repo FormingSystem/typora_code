@@ -29,10 +29,24 @@
       await app.openFile(path.join(hidden,'config.test.d.ts'));await wait(()=>app.workspace.activeLeaf.view.editor?.models[0]?.getValue().includes('export const sampleToken'));
       expect(app.workspace.activeLeaf.view.editor.models[0].getLanguageId()==='typescript','native app open handles inserted segments and longest compound suffix');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>document.querySelector('.linux-note-workspace-search textarea'));
-      const search=document.querySelector('.linux-note-workspace-search');const includes=search.querySelector('[aria-label="包含的文件"]');includes.value='*.ts';
+      const search=document.querySelector('.linux-note-workspace-search');
+      // 原生大纲过滤和全文件搜索共享一个旧输入框；自定义面板只保留自己的一组控件。
+      const native_search=document.querySelector('#file-library-search');
+      expect(getComputedStyle(native_search).display==='none','native shared find input does not overlap custom search');
+      expect(Math.abs(search.getBoundingClientRect().top-search.parentElement.getBoundingClientRect().top)<2,'custom search starts at sidebar top without native filter gap');
+      expect(search.querySelectorAll('.workspace-search-heading button').length===4&&search.querySelector('.workspace-search-replace').hidden,'search has four title actions and collapsed replacement');
+      for(const name of ['case-sensitive','whole-word','regex','edit-code','book','exclude']){
+        const icon=search.querySelector(`[data-git-icon="${name}"]`),button=icon?.closest('button'),box=button?.closest('.workspace-search-query-box');
+        expect(Boolean(box)&&button.getBoundingClientRect().right<=box.getBoundingClientRect().right,`${name} option stays inside its compact input frame`);
+      }
+      for(const field of search.querySelectorAll('input,textarea')){if(!field.getClientRects().length)continue;field.focus();const computed=getComputedStyle(field);expect(computed.outlineWidth==='0px'&&computed.boxShadow==='none','native theme does not add a second focus border');}
+      const includes=search.querySelector('[aria-label="包含的文件"]');includes.value='*.ts';
       const query=search.querySelector('textarea');query.value='sampleToken';query.dispatchEvent(new Event('input',{bubbles:true}));
       await wait(()=>search.querySelectorAll('.workspace-search-match').length===2,'Search did not produce two TypeScript matches');
       expect(search.querySelectorAll('.workspace-search-file').length===2&&search.querySelectorAll('mark').length===2,'native search groups by file and highlights match previews');
+      expect(search.querySelectorAll('.workspace-search-file>summary>[data-git-icon="file"]').length===2,'native search results include standard file icons');
+      expect(getComputedStyle(search.querySelector('.workspace-search-line')).display==='none'&&search.querySelector('.workspace-search-match').title.includes(':1:'),'match location stays in tooltip without a separate wide line-number column');
+      expect(search.querySelector('.workspace-search-open-editor')?.textContent==='在编辑器中打开','result count exposes the Chinese open-in-editor action');
       search.querySelector('[data-search-option="regex"]').click();query.value='sample[A-Z][a-z]+';query.dispatchEvent(new Event('input',{bubbles:true}));
       await wait(()=>search.querySelectorAll('.workspace-search-match').length===2&&search.querySelector('mark')?.textContent==='sampleToken','Worker regex did not return two native matches');
       expect(true,'installed offline regex worker returns highlighted file matches');

@@ -20,6 +20,9 @@ export function create_reading_history(maximum_entries = 100) {
   let navigating = false;
   return {
     is_navigating: () => navigating,
+    remap_paths(map: (path: string) => string | undefined) {
+      for (const entry of entries) entry.file_path = map(entry.file_path) ?? entry.file_path;
+    },
     record_jump(from: reading_location, to: reading_location) {
       if (navigating || same_location(from, to)) return;
       if (index < 0) { entries = [from]; index = 0; }

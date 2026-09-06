@@ -1,33 +1,52 @@
-.linux-note-workspace-search { display:flex; flex-direction:column; height:100%; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }
-.workspace-search-heading { display:flex; align-items:center; gap:2px; min-height:35px; padding:4px 10px; flex:none; }
-.workspace-search-heading strong { margin-right:auto; font-size:13px; }
-.workspace-search-heading button,.workspace-search-input-actions button,.workspace-search-input-row>button,.workspace-search-options-row button { width:24px; height:24px; min-width:24px; padding:2px; border:0; border-radius:3px; background:transparent; color:inherit; cursor:pointer; }
-.workspace-search-form { flex:none; padding:0 10px 8px; min-width:0; }
-.workspace-search-input-row { display:flex; align-items:center; gap:3px; margin:3px 0; min-width:0; }
-.workspace-search-query-box { display:flex; align-items:flex-start; flex:1; min-width:0; border:1px solid #8886; background:var(--bg-color,#fff); }
-.workspace-search-query-box:focus-within { outline:1px solid #007fd4; }
-.workspace-search-query-box textarea { flex:1; min-width:0; resize:none; border:0!important; box-shadow:none!important; padding:4px 5px!important; margin:0; background:transparent; color:inherit; line-height:20px; font:inherit; max-height:100px; }
-.workspace-search-input-actions { display:flex; align-items:center; padding-top:2px; }
-.workspace-search-form input { box-sizing:border-box; height:28px; min-width:0; width:100%; font:inherit; color:inherit; background:var(--bg-color,#fff); border:1px solid #8886; padding:3px 5px; border-radius:2px; }
-.workspace-search-replace { padding-left:27px; }
-.workspace-search-options-row { display:flex; justify-content:flex-end; }
-.workspace-search-details label { display:block; font-size:12px; margin:3px 0 7px 27px; }
-.workspace-search-details label>button { font:inherit; color:inherit; background:transparent; border:1px solid transparent; margin:2px 4px 0 0; cursor:pointer; }
-.linux-note-workspace-search button:hover,.workspace-search-editor button:hover { background:var(--item-hover-bg-color,#8882); }
+﻿/* 原生文件搜索与大纲过滤共用此容器；自定义搜索卸载后选择器失效，原生显示规则自动恢复。 */
+#sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }
+.linux-note-workspace-search { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }
+.workspace-search-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; gap:2px; height:35px; padding:0 10px 0 20px; flex:none; }
+.workspace-search-heading strong { margin-right:auto; font-size:13px; font-weight:600; }
+.linux-note-workspace-search button,.workspace-search-editor button { box-sizing:border-box; color:inherit; font:inherit; cursor:pointer; }
+.workspace-search-heading button,.workspace-search-query-box button,.workspace-search-input-row>button,.workspace-search-options-row button,.workspace-search-file-actions button { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; flex:none; padding:2px; border:1px solid transparent; border-radius:3px; background:transparent; box-shadow:none; }
+.workspace-search-form { flex:none; padding:0 10px 7px; min-width:0; }
+.workspace-search-input-row { display:flex; align-items:flex-start; gap:2px; margin:3px 0; min-width:0; }
+.workspace-search-input-row>.workspace-search-replace-toggle { margin-left:-6px; width:18px; min-width:18px; height:26px; }
+.workspace-search-query-box { box-sizing:border-box; display:flex; align-items:flex-start; flex:1; min-width:0; min-height:26px; padding:1px; border:1px solid var(--search-select-bg-color,#8886); border-radius:2px; background:var(--bg-color,#fff); }
+.workspace-search-query-box:focus-within { border-color:#007fd4; outline:0; box-shadow:none; }
+/* 只让外层输入框画一条焦点边框，隔离 Typora 主题给 input/textarea 的橙色轮廓和阴影。 */
+.linux-note-workspace-search .workspace-search-query-box input,
+.linux-note-workspace-search .workspace-search-query-box textarea { box-sizing:border-box; flex:1; width:100%; min-width:0; height:22px; resize:none; border:0!important; outline:0!important; box-shadow:none!important; padding:1px 4px!important; margin:0!important; background:transparent!important; color:inherit; font:inherit; line-height:20px; border-radius:0!important; }
+.linux-note-workspace-search .workspace-search-query-box textarea { max-height:100px; overflow-y:auto; }
+.workspace-search-input-actions { display:flex; flex:none; align-items:center; }
+.workspace-search-replace { padding-left:14px; }
+.workspace-search-options-row { display:flex; align-items:center; justify-content:space-between; height:23px; margin-left:14px; font-size:12px; }
+.workspace-search-options-row>button { margin-left:auto; }
+.workspace-search-details { margin-left:14px; }
+.workspace-search-details .workspace-search-exclude-label { display:block; line-height:22px; margin:2px 0 0; font-size:12px; }
+.workspace-search-pattern-box { width:100%; }
+.linux-note-workspace-search button:hover,.workspace-search-editor button:hover,.workspace-search-file>summary:hover,.workspace-search-directory>summary:hover { background:var(--item-hover-bg-color,#8882); }
 .linux-note-workspace-search button[aria-pressed=true] { color:var(--text-color,#174a73); background:#007fd425; border:1px solid #007fd4; }
 .linux-note-workspace-search button:focus-visible,.workspace-search-editor button:focus-visible { outline:1px solid #007fd4; outline-offset:-1px; }
-.workspace-search-status { padding:3px 0 0 27px; overflow-wrap:anywhere; font-size:12px; }
-.workspace-search-status>button { float:right; }
+.workspace-search-status { padding:7px 0 0 14px; overflow-wrap:anywhere; font-size:12px; }
+.workspace-search-status:empty { display:none; }
+.workspace-search-status>.git-icon-button { float:right; }
+.workspace-search-status>.workspace-search-open-editor { display:inline; height:auto; margin:0 0 0 4px; padding:0; border:0; border-radius:0; color:var(--link-color,#006ab1); background:transparent; text-decoration:none; }
+.workspace-search-status>.workspace-search-open-editor:hover { color:var(--link-color,#006ab1); background:transparent; text-decoration:underline; }
 .workspace-search-notices p { white-space:pre-wrap; margin:3px; }
 .workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }
-.workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:25px; gap:4px; padding:0 9px 0 3px; cursor:pointer; list-style:none; user-select:none; }
+.workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:24px; gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }
 .workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }
 .workspace-search-file[open]>summary>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }
+.workspace-search-file>summary>svg,.workspace-search-directory>summary>svg { flex:none; width:16px; height:16px; }
 .workspace-search-file-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:35px; }
 .workspace-search-file-path { opacity:.65; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.workspace-search-file-count { border-radius:12px; color:white; background:#007acc; padding:0 5px; min-width:16px; text-align:center; font-size:11px; }
-.workspace-search-match { display:flex; align-items:center; gap:5px; width:100%; height:24px; border:0; border-radius:0; padding:1px 10px 1px 22px; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
-.workspace-search-line { opacity:.6; font:11px ui-monospace,monospace; min-width:22px; text-align:right; }
+.workspace-search-git-status { flex:none; width:13px; text-align:center; font-size:11px; color:#8a6900; }
+.workspace-search-git-status[data-status=U],.workspace-search-git-status[data-status=A] { color:#328044; }
+.workspace-search-git-status[data-status=D] { color:#b62525; }
+.workspace-search-file-actions { position:relative; display:flex; align-items:center; justify-content:center; flex:none; min-width:22px; height:22px; }
+.workspace-search-file-count { box-sizing:border-box; border-radius:10px; color:white; background:#007acc; padding:0 5px; min-width:18px; line-height:18px; text-align:center; font-size:11px; }
+.workspace-search-file-actions>.workspace-search-remove { position:absolute; inset:0; opacity:0; }
+.workspace-search-file>summary:hover .workspace-search-file-count,.workspace-search-file>summary:focus-within .workspace-search-file-count { visibility:hidden; }
+.workspace-search-file>summary:hover .workspace-search-remove,.workspace-search-file>summary:focus-within .workspace-search-remove { opacity:1; }
+.workspace-search-match { display:flex; align-items:center; width:100%; height:22px; border:0; border-radius:0; padding:1px 10px 1px 39px; background:transparent; color:inherit; text-align:left; }
+.workspace-search-line { display:none; }
 .workspace-search-preview { overflow:hidden; text-overflow:ellipsis; white-space:pre; }
 .workspace-search-preview mark { background:#f2c81166; color:inherit; outline:1px solid #c99e2466; }
 .workspace-search-directory>details { margin-left:12px; }
@@ -36,3 +55,22 @@
 .workspace-search-replace-preview { height:50vh; min-height:250px; min-width:0; }
 .linux-note-workspace-search [hidden] { display:none!important; }
 .workspace-search-replace-toggle[aria-expanded=true] svg { transform:rotate(90deg); }
+.workspace-search-body { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; }
+.workspace-search-body.has-preview>.workspace-search-results { flex:0 0 var(--search-results-size,40%); }
+.workspace-search-preview-section { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; container-type:inline-size; container-name:workspace-search-preview; }
+.workspace-search-preview-section.is-collapsed { flex:0 0 28px; }
+.workspace-search-preview-section>.workspace-lookup-preview { flex:1; min-height:0; min-width:0; }
+.workspace-search-preview-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; flex:0 0 28px; min-height:28px; min-width:0; width:100%; border-bottom:1px solid #8883; }
+.workspace-search-preview-heading button { display:inline-flex; align-items:center; gap:3px; height:26px; padding:3px 6px; border:0; background:transparent; }
+.workspace-search-preview-heading>button { flex:1; min-width:0; justify-content:flex-start; }
+.workspace-search-preview-actions { display:flex; align-items:center; gap:0; flex:0 1 auto; min-width:0; margin-left:auto; }
+.workspace-search-preview-actions>.git-icon-button { width:26px; min-width:26px; justify-content:center; padding:3px; }
+.workspace-search-preview-actions>.workspace-search-preview-slider { box-sizing:border-box; flex:0 1 80px; width:80px; min-width:48px; max-width:80px; height:24px; margin:0; padding:0!important; border:0!important; box-shadow:none!important; background:transparent; accent-color:#0078d4; }
+.workspace-search-preview-actions>.workspace-search-preview-scale { flex:none; min-width:34px; padding:0 2px; text-align:center; font-size:11px; font-variant-numeric:tabular-nums; }
+.workspace-search-preview-actions>button:disabled { opacity:.4; cursor:default; background:transparent; }
+@container workspace-search-preview (max-width:230px) { .workspace-search-preview-actions>.git-icon-button { display:none; } }
+.workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }
+.workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }
+.workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }
+.workspace-search-file>summary.is-selected { background:#0078d410; }
+.workspace-search-match.is-selected { background:#0078d426; }

@@ -1,23 +1,34 @@
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
-import { graph_element as el, graph_button as button, graph_menu } from "./git_graph_widgets";
-import { decode_file_bytes, detect_binary_bytes, detect_file_language, is_markdown_file } from "./file_language";
+import { graph_element as el, graph_button as button, graph_menu, graph_dialog } from "./git_graph_widgets";
+import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
+import { create_text_document } from "./workspace_text_document";
+import { bind_source_lifecycle } from "./workspace_source_lifecycle";
+import { bind_workspace_editor_status } from "./workspace_editor_status";
+import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
+import { prepare_workspace_rename, renamed_workspace_path } from "./workspace_rename";
+import { reveal_markdown_location } from "./workspace_markdown_location";
+import { file_key } from "./reading_positions";
+import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
-export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean};
+export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string};
 export type workspace_file_host = ReturnType<typeof bind_workspace_files>;
 const FILE_VIEW = "linux_note.source_file";
 let active_host: workspace_file_host | undefined;
 export function get_workspace_files(): workspace_file_host | undefined { return active_host; }
 
-/** Markdown 保留原生编辑面；其他文本与搜索定位使用有行号和语言识别的源码标签。 */
+/** Markdown 默认使用原生编辑面；显式源码视图和其他文本使用 Monaco 标签。 */
 export function bind_workspace_files(core: graph_core) {
-  const runtime = window as unknown as {reqnode(name: string): any; File?: any};
+  const runtime = window as unknown as {reqnode(name: string): any; File?: any; doApplyRename?(path: string): void};
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
   const native_open = core.app.openFile.bind(core.app);
   const style = el("style"); style.textContent = files_css; document.head.append(style);
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
+  let renaming = false;
+  const source_lifecycle = bind_source_lifecycle(core, () => views);
+  const editor_status = bind_workspace_editor_status(core);
   const real_path = (leaf: graph_leaf | null): string => {
     if (!leaf) return "";
     if (path_api.isAbsolute(leaf.state.path)) return leaf.state.path;
@@ -28,60 +39,144 @@ export function bind_workspace_files(core: graph_core) {
   class source_file_view extends core.WorkspaceView {
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
     editor?: git_diff_editor; file_path: string; loaded = false; loading = false; disposed=false; target?:file_location;
-    toolbar = el("div", "workspace-file-toolbar"); status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
+    status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
+    status_controls = el("div", "workspace-editor-status-controls"); location_label = el("span", "workspace-file-location");
+    language_button = button("", () => this.choose_language()); encoding_button = button("", () => this.choose_format("encoding")); eol_button = button("", () => this.choose_format("eol"));
+    text_document: ReturnType<typeof create_text_document>; format?: Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>;
+    saved_format = ""; saved_version = 0; saving = false;
     constructor(leaf: graph_leaf) {
       super(leaf); this.file_path = real_path(leaf); leaf.state.git_cwd = path_api.dirname(this.file_path); views.add(this);
       this.target=group_locations.get(leaf.state.path);group_locations.delete(leaf.state.path);
-      this.toolbar.append(button("重新加载", () => void this.load()), button("在文件夹中显示", () => shell.showItemInFolder(this.file_path)), this.status);
-      if (is_markdown_file(this.file_path)) this.toolbar.prepend(button("打开 Markdown 渲染", () => native_open(this.file_path)));
-      this.containerEl.append(this.toolbar, this.body);
+      this.text_document = create_text_document({fs,path_api}, this.file_path);
+      this.language_button.title = "选择语言模式（仅改变语法高亮）"; this.language_button.setAttribute("aria-label", "语言模式");
+      this.encoding_button.title = "选择保存编码"; this.encoding_button.setAttribute("aria-label", "保存编码");
+      this.encoding_button.textContent="UTF-8";
+      this.eol_button.title = "选择行尾序列"; this.eol_button.setAttribute("aria-label", "行尾序列");
+      this.status_controls.append(this.status, this.location_label, this.encoding_button, this.eol_button, this.language_button);
+      this.containerEl.append(this.body);editor_status.register(this.leaf,this.status_controls);
+      const save_keydown=(event:KeyboardEvent)=>{
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && !event.isComposing && event.key.toLowerCase() === "s") {event.preventDefault();event.stopImmediatePropagation();void this.save();}
+      };
+      this.containerEl.addEventListener("keydown",save_keydown,true);this.status_controls.addEventListener("keydown",save_keydown,true);
+      this.status_controls.oncontextmenu = event => this.menu(event);
     }
     onOpen() {
+      this.guard_close();
       for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.dataset.id === this.leaf.state.path) {
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = path_api.basename(this.file_path);
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = this.file_path;
       }
-      if (!this.loaded && !this.loading) void this.load(); else this.reveal();
+      this.update_status();
+      editor_status.refresh();editor_status.schedule();
+      if (!this.loaded && !this.loading) void this.load_file(); else this.reveal();
+      queueMicrotask(()=>{if(!this.disposed&&core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();});
     }
-    async load() {
-      if (this.loading||this.disposed) return; this.loading = true; this.status.textContent = "正在读取…";
+    async load_file(encoding?: string) {
+      if (renaming) { this.status.textContent = "正在重命名，请稍后再读取文件。"; return; }
+      if (this.loading||this.saving||this.disposed) return; this.loading = true; this.status.textContent = "正在读取…";
+      const previous_version=this.editor?.models[0].getAlternativeVersionId(),previous_format=this.format_key();
+      // 读取候选快照后才替换保存基线；读取期间禁止输入及格式修改。
+      const candidate=create_text_document({fs,path_api},this.file_path,{encoding:encoding??this.format?.encoding});
+      this.editor?.focused_editor().updateOptions({readOnly:true});
+      for(const control of[this.language_button,this.encoding_button,this.eol_button])control.disabled=true;
       try {
-        const stat = await fs.promises.stat(this.file_path);
-        if(this.disposed)return;
-        if (!stat.isFile()) throw new Error("该项目不是普通文件，请在目录中展开文件夹。");
-        if (stat.size > 16 * 1024 * 1024) throw new Error("文件超过 16 MiB，已保留目录项目；请使用系统程序打开。");
-        const bytes = await fs.promises.readFile(this.file_path);
-        if(this.disposed)return;
-        if (detect_binary_bytes(bytes)) throw new Error("这是二进制文件，不能按文本显示；可使用系统程序打开。");
-        const decoded = decode_file_bytes(bytes);
+        const decoded = await candidate.load(); if(this.disposed)return;
+        if(this.editor?.models[0].getAlternativeVersionId()!==previous_version||this.format_key()!==previous_format){this.status.textContent="读取期间内容已变化，已保留未保存的修改。";return;}
+        this.text_document=candidate;
+        this.format = decoded; this.saved_format = this.format_key();
         const data = {title: path_api.basename(this.file_path), file: this.file_path, left: decoded.text, left_label: this.file_path};
         if (this.editor) this.editor.update(data);
-        else { this.editor = new git_diff_editor(data); this.body.replaceChildren(this.editor.container); }
-        this.status.textContent = `${detect_file_language(this.file_path, decoded.text.split(/\r?\n/u, 1)[0])} · ${decoded.encoding} · 只读`;
-        this.loaded = true; this.reveal();
+        else {
+          this.editor = new git_diff_editor(data,()=>this.menu_entries()); this.body.replaceChildren(this.editor.container);
+          const view=this.editor.focused_editor();
+          this.editor.subscriptions.push(view.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed)this.update_status();})),view.onDidChangeCursorPosition(()=>this.update_status()),view.onDidFocusEditorText(()=>editor_status.schedule()));
+        }
+        this.editor.focused_editor().updateOptions({readOnly:false});
+        this.saved_version=this.editor.models[0].getAlternativeVersionId();
+        this.loaded = true; this.update_status(); this.reveal();
+        if(core.app.workspace.activeLeaf===this.leaf)this.editor.focused_editor().focus();
       } catch (error) {
         if(this.disposed)return;
         this.status.textContent = "无法作为文本预览";
         if (!this.editor) this.body.replaceChildren(el("p", "workspace-file-notice", String(error)), button("使用系统程序打开", () => void shell.openPath(this.file_path)));
         else this.status.textContent = String(error);
-      } finally { this.loading = false; }
+      } finally { this.loading = false;if(!this.disposed){this.editor?.focused_editor().updateOptions({readOnly:false});for(const control of[this.language_button,this.encoding_button,this.eol_button])control.disabled=false;} }
     }
     reveal() {
       if(this.disposed)return;this.editor?.editor.layout();
       const target = this.target; if (!target || !this.editor) return;
       const editor = this.editor.focused_editor(); const model = editor.getModel(); if (!model) return;
       const line = Math.max(1, Math.min(model.getLineCount(), target.line || 1));
-      editor.setSelection({startLineNumber: line, startColumn: target.column || 1, endLineNumber: target.end_line || line, endColumn: target.end_column || target.column || 1});
-      editor.revealLineInCenter(line); editor.focus(); this.target=undefined;
+      const selection={startLineNumber: line, startColumn: target.column || 1, endLineNumber: target.end_line || line, endColumn: target.end_column || target.column || 1};
+      if(target.expected_text!==undefined&&model.getValueInRange(selection).replace(/\r\n?/gu,"\n")!==target.expected_text.replace(/\r\n?/gu,"\n")){this.status.textContent="目标内容已变化，请保存未保存的修改并刷新搜索后重试。";this.target=undefined;return;}
+      editor.setSelection(selection);
+      editor.revealRangeInCenter(selection); editor.focus(); this.target=undefined;
     }
-    onClose() { setTimeout(() => { let present = false; core.app.workspace.eachLeaves(leaf => { if (leaf === this.leaf) present = true; }); if (!present) { this.disposed=true;this.editor?.dispose(); views.delete(this); } }, 0); }
+    format_key(){return this.format ? `${this.format.encoding}:${this.format.bom}:${this.format.eol}` : "";}
+    dirty(){return this.loaded&&Boolean(this.editor)&&(this.editor!.models[0].getAlternativeVersionId()!==this.saved_version||this.format_key()!==this.saved_format);}
+    update_status(){
+      if(this.disposed||!this.editor||!this.format)return;
+      const view=this.editor.focused_editor(),position=view.getPosition();
+      this.containerEl.dataset.modified=String(this.dirty());
+      this.status.textContent=this.saving?"正在保存…":this.dirty()?"未保存":"";
+      this.location_label.textContent=position?`行 ${position.lineNumber}，列 ${position.column}`:"";
+      this.language_button.textContent=this.editor.models[0].getLanguageId();this.encoding_button.textContent=this.format.encoding.toUpperCase()+(this.format.bom?" BOM":"");this.eol_button.textContent=this.format.eol==="mixed"?"混合换行":this.format.eol;
+      editor_status.schedule();
+      for(const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]"))if(tab.dataset.id===this.leaf.state.path){
+        let dot=tab.querySelector<HTMLElement>(".workspace-file-dirty");if(this.dirty()&&!dot){dot=el("span","workspace-file-dirty","●");dot.title="有未保存修改";tab.querySelector(".typ-file-basename")?.after(dot);}else if(!this.dirty())dot?.remove();
+      }
+    }
+    async save(){
+      if(renaming){this.status.textContent="正在重命名，请稍后再保存。";return false;}
+      if(this.saving||this.loading||!this.editor||!this.format)return false;
+      if(runtime.File?.bundle?.filePath===this.file_path&&runtime.File?.changeCounter?.isDocumentEdited()){this.status.textContent="该 Markdown 的正文编辑器有未保存修改，请先处理正文草稿。";return false;}
+      this.editor.focused_editor().pushUndoStop();
+      const model=this.editor.models[0],version=model.getAlternativeVersionId(),format_key=this.format_key();
+      this.saving=true;this.update_status();
+      try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.update_status();return true;}
+      catch(error){this.saving=false;this.update_status();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
+    }
+    choose_language(){
+      if(!this.editor||this.loading)return;const dialog=graph_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
+      const choices=new Map(FILE_LANGUAGE_RULES.filter(rule=>!rule.category||rule.category==="text").map(rule=>[rule.language,rule.label]));choices.set("plaintext","纯文本");
+      for(const [value,label]of choices){const option=el("option","",label);option.value=value;select.append(option);}select.value=this.editor.models[0].getLanguageId();
+      dialog.content.append(select,el("p","","语言模式只改变高亮；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
+    }
+    choose_format(kind:"encoding"|"eol"){
+      if(this.loading)return;
+      if(!this.format){if(kind==="encoding")this.choose_reopen_encoding();return;}const dialog=graph_dialog(kind==="encoding"?"选择保存编码":"选择行尾序列");const select=el("select");select.setAttribute("aria-label",kind==="encoding"?"文件保存编码":"文件行尾序列");
+      const values=kind==="encoding"?["utf-8","utf-8-bom","utf-16le","utf-16be"]:["LF","CRLF","CR",...(this.format.eol==="mixed"?["mixed"]:[])];
+      for(const value of values){const option=el("option","",value==="mixed"?"保留混合换行":value.toUpperCase());option.value=value;select.append(option);}select.value=kind==="encoding"?(this.format.encoding==="utf-8"&&this.format.bom?"utf-8-bom":this.format.encoding):this.format.eol;
+      dialog.content.append(select,el("p","","选择后按 Ctrl+S 保存，当前文件不会立即改写。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;if(kind==="encoding"){this.format!.encoding=select.value==="utf-8-bom"?"utf-8":select.value;this.format!.bom=select.value!=="utf-8";}else this.format!.eol=select.value as typeof this.format.eol;this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
+      if(kind==="encoding")dialog.footer.prepend(button("以编码重新打开…",()=>{dialog.close();this.choose_reopen_encoding();}));
+    }
+    choose_reopen_encoding(){
+      if(this.loading)return;
+      if(this.dirty()){this.status.textContent="请先保存或从磁盘重新加载，避免重新解码丢失草稿。";return;}
+      const dialog=graph_dialog("以编码重新打开");const select=el("select");select.setAttribute("aria-label","重新打开编码");
+      for(const value of["utf-8","utf-16le","utf-16be","gb18030","big5","windows-1252"]){const option=el("option","",value.toUpperCase());option.value=value;select.append(option);}
+      dialog.content.append(select);dialog.footer.prepend(button("重新打开",()=>{if(this.dirty()||this.loading){this.status.textContent="请先保存修改，再以其他编码重新打开。";return;}dialog.close();void this.load_file(select.value);}));
+    }
+    menu_entries(){return [
+      {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
+      {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
+      {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
+      ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}native_open(this.file_path);}}]:[])
+    ];}
+    menu(event:MouseEvent){graph_menu(event,this.menu_entries());}
+    confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=graph_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
+    confirm_close(close:()=>void){source_lifecycle.confirm_close(this,close);}
+    guard_close(){source_lifecycle.guard(this);}
+    release_source(){if(this.disposed)return;this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
+    onClose(){source_lifecycle.schedule_release(this);editor_status.schedule();}
   }
   core.app.viewManager.registerView(FILE_VIEW, leaf => new source_file_view(leaf));
   const open_file = async (file_path: string, location: file_location = {}, group = "active") => {
+    if (renaming) throw new Error("正在重命名，请稍后再打开文件。");
     file_path = path_api.resolve(file_path);
-    if (is_markdown_file(file_path) && !location.source && location.line == null) {
-      if (group === "active") native_open(file_path);
-      else core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [file_path]);
+    if (is_markdown_file(file_path) && !location.source) {
+      if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
+      await navigate_reading_target(file_path, {group, locate: location.line == null ? undefined : () => reveal_markdown_location(location)});
       return;
     }
     const uri = `typ://${FILE_VIEW}/${encodeURIComponent(file_path)}`;
@@ -98,6 +193,8 @@ export function bind_workspace_files(core: graph_core) {
   const markdown_target=(target:string)=>is_markdown_file(target)||is_markdown_file(target.split("#",1)[0]);
   core.app.openFile = (target: string) => {
     if (!target.startsWith("typ://") && !markdown_target(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
+    // 原生 bundle 仍指向该文件而中央为工具标签时，核心会直接返回；阅读导航显式激活既有 Markdown leaf。
+    if (is_markdown_file(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
     return native_open(target);
   };
   const library = runtime.File?.editor?.library;
@@ -116,10 +213,72 @@ export function bind_workspace_files(core: graph_core) {
     {title: "复制相对路径", action: () => copy(path_api.relative(context_root(), file_path))},
     {title: "在文件夹中显示", action: () => shell.showItemInFolder(file_path)}
   ]);
+  const rename_file = async (root: string, old_path: string, name: string) => {
+    if (renaming || runtime.File?._onFileSwitching || runtime.File?.inSavingProcess) throw new Error("文件正在切换、保存或重命名，请稍后重试。");
+    renaming = true;
+    const relocations: {view: source_file_view; target: string; transaction: Awaited<ReturnType<source_file_view["text_document"]["prepare_relocation"]>>}[] = [];
+    const library = runtime.File?.editor?.library;
+    let paused = false, native_watch_paused = false, old_native_path = "", new_native_path = "", applied = false, renamed_path = "";
+    try {
+      const plan = await prepare_workspace_rename({fs, path_api}, root, old_path, name);
+      if (plan.old_path === plan.new_path) return plan.new_path;
+      const map = (candidate: string) => renamed_workspace_path(path_api, candidate, plan.old_path, plan.new_path, plan.directory);
+      for (const view of views) {
+        const target = map(view.file_path); if (!target) continue;
+        if (view.loading || view.saving) throw new Error("有关标签正在读取或保存，请稍后再重命名。");
+        relocations.push({view, target, transaction: await view.text_document.prepare_relocation(target)});
+      }
+      old_native_path = runtime.File?.bundle?.filePath || ""; new_native_path = map(old_native_path) || "";
+      if (new_native_path && typeof runtime.doApplyRename !== "function") throw new Error("当前 Typora 未提供原生文档改名接口，已停止重命名以保留编辑内容。");
+      const tabs: {leaf: graph_leaf; target: string}[] = [];
+      const all_leaves: graph_leaf[] = [];
+      core.app.workspace.eachLeaves(leaf => { all_leaves.push(leaf); });
+      core.app.workspace.eachLeaves(leaf => {
+        const target = map(real_path(leaf)); if (!target) return;
+        if (all_leaves.some(other => other !== leaf && !map(real_path(other)) && file_key(real_path(other)) === file_key(target))) throw new Error("目标名称已有打开的文档标签，请先处理该标签，避免混淆未保存内容。");
+        if (typeof (leaf.parent as unknown as {renameTab?: unknown}).renameTab !== "function") throw new Error("当前编辑器组不支持更新标签路径，已停止重命名。");
+        tabs.push({leaf, target: leaf.state.path.startsWith(`typ://${FILE_VIEW}/`) ? `typ://${FILE_VIEW}/${encodeURIComponent(target)}` : target});
+      });
+      library?.pauseOnChange?.(); paused = true;
+      // 原生 IPC 负责暂停文件监视；不用社区核心的 directory:rename 前缀匹配，以免 a 误改 abc。
+      const ipc = runtime.reqnode("electron").ipcRenderer;
+      if (new_native_path) { await ipc.invoke("app.sendEvent", "willRename", {oldPath: plan.old_path}); native_watch_paused = true; }
+      await plan.apply(); applied = true; renamed_path = plan.new_path;
+      for (const {leaf, target} of tabs) (leaf.parent as unknown as {renameTab(old_path: string, new_path: string): void}).renameTab(leaf.state.path, target);
+      const problems: string[] = [];
+      for (const {view, target, transaction} of relocations) {
+        view.file_path = target; view.leaf.state.git_cwd = path_api.dirname(target);
+        if (view.editor) { view.editor.data.file = target; view.editor.data.title = path_api.basename(target); view.editor.data.left_label = target; }
+        try { await transaction.commit(); } catch (error) { problems.push(String(error)); }
+        for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.dataset.id === view.leaf.state.path) {
+          const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = path_api.basename(target);
+          tab.querySelector(".typ-file-ext")?.remove(); tab.title = target;
+        }
+        view.update_status();
+      }
+      if (new_native_path) runtime.doApplyRename!(new_native_path);
+      rename_reading_paths(map); editor_status.refresh(); editor_status.schedule();
+      runtime.File?.editor?.quickOpenPanel?.updateCacheByRename?.(plan.old_path, plan.new_path);
+      window.dispatchEvent(new CustomEvent("linux-note-workspace-renamed", {detail: {old_path: plan.old_path, new_path: plan.new_path, directory: plan.directory}}));
+      // 其他 Typora 窗口沿真实原生事件更新路径；当前窗口的标签已用组件边界精确迁移。
+      await ipc.invoke("app.sendEvent", "didRename", {oldPath: plan.old_path, newPath: plan.new_path});
+      if (problems.length) throw new Error("名称已更新，但磁盘内容同时发生变化。草稿仍保留，请比较后再保存。\n" + problems.join("\n"));
+      return plan.new_path;
+    } catch (error) {
+      if (applied) throw Object.assign(new Error(String(error instanceof Error ? error.message : error)), {renamed_path});
+      throw error;
+    } finally {
+      for (const relocation of relocations) relocation.transaction.cancel();
+      if (!applied && native_watch_paused && old_native_path) runtime.doApplyRename?.(old_native_path);
+      if (paused) library?.resumeOnChange?.();
+      renaming = false;
+    }
+  };
   document.documentElement.setAttribute("data-linux-note-workspace-files", "ready");
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy,
+  document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file,
     current_file: () => real_path(core.app.workspace.activeLeaf),
-    can_write: (file_path: string) => !runtime.File?.changeCounter?.isDocumentEdited() || runtime.File?.bundle?.filePath !== file_path,
-    refresh_files: (paths: string[]) => { for (const view of views) if (paths.includes(view.file_path)) void view.load(); }
+    can_write: (file_path: string) => (![...views].some(view=>view.file_path===file_path&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || runtime.File?.bundle?.filePath !== file_path),
+    refresh_files: (paths: string[]) => { for (const view of views) if (paths.includes(view.file_path)&&!view.dirty()) void view.load_file(); }
   }; active_host=host; return host;
 }

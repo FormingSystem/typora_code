@@ -124,15 +124,16 @@ export class git_graph_panel {
     if (this.settings.date_format === "relative") { const days = Math.floor((Date.now() - new Date(source).getTime()) / 86400000); return days ? `${days} 天前` : "今天"; }
     return new Date(source).toLocaleString();
   }
-  draw_graph(row: graph_row, width: number): SVGSVGElement {
-    const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String(width * 18 + 18)); svg.setAttribute("height", "34"); svg.setAttribute("aria-hidden", "true");
-    const x = (lane: number) => lane * 18 + 16;
+  draw_graph(row: graph_row, width: number, geometry = {lane_width: 18, first_x: 16, right_gap: 20, height: 34}): SVGSVGElement {
+    const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");
+    const x = (lane: number) => lane * geometry.lane_width + geometry.first_x;
+    const half_height = geometry.height / 2;
     for (const edge of row.edges) {
-      const path = document.createElementNS(ns, "path"); const top = edge.upper ? 0 : 17; const bottom = top + 17;
-      path.setAttribute("d", this.settings.graph_style === "straight" ? `M${x(edge.from)},${top} L${x(edge.to)},${bottom}` : `M${x(edge.from)},${top} C${x(edge.from)},${top + 9} ${x(edge.to)},${bottom - 9} ${x(edge.to)},${bottom}`);
+      const path = document.createElementNS(ns, "path"); const top = edge.upper ? 0 : half_height; const bottom = top + half_height;
+      path.setAttribute("d", this.settings.graph_style === "straight" ? `M${x(edge.from)},${top} L${x(edge.to)},${bottom}` : `M${x(edge.from)},${top} C${x(edge.from)},${top + half_height / 2} ${x(edge.to)},${bottom - half_height / 2} ${x(edge.to)},${bottom}`);
       path.setAttribute("fill", "none"); path.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]); path.setAttribute("stroke-width", "2"); svg.append(path);
     }
-    const dot = document.createElementNS(ns, "circle"); dot.setAttribute("cx", String(x(row.lane))); dot.setAttribute("cy", "17"); dot.setAttribute("r", "4"); dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]); svg.append(dot); return svg;
+    const dot = document.createElementNS(ns, "circle"); dot.setAttribute("cx", String(x(row.lane))); dot.setAttribute("cy", String(half_height)); dot.setAttribute("r", "4"); dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]); svg.append(dot); return svg;
   }
   render_history(): void {
     const state = this.state!;
