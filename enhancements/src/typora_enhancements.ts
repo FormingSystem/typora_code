@@ -6,6 +6,9 @@ import cpp_grammar from "../vendor/vscode_cpp/syntaxes/cpp.tmLanguage.json";
 import cpp_macro_grammar from "../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.tmLanguage.json";
 import platform_grammar from "../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json";
 import extension_css from "./typora_enhancements.css";
+import { scope_style } from "./textmate_style";
+import { bind_reading_navigation } from "./reading_navigation";
+import { initialize_workspace } from "./workspace_bootstrap";
 
 type code_mirror_stream = {
   string: string;
@@ -85,28 +88,6 @@ async function load_textmate_grammars(): Promise<void> {
   c_textmate_grammar = await registry.loadGrammar("source.c");
   cpp_textmate_grammar = await registry.loadGrammar("source.cpp");
   if (!c_textmate_grammar || !cpp_textmate_grammar) throw new Error("C/C++ TextMate grammar failed to load");
-}
-
-function scope_style(scopes: string[]): string {
-  const joined = scopes.join(" ");
-  if (/\binvalid(?:\.|\b)/u.test(joined)) return "tm-invalid";
-  if (/\bcomment(?:\.|\b)/u.test(joined)) return "tm-comment";
-  if (/\bstring(?:\.|\b)/u.test(joined)) return "tm-string";
-  if (/\bconstant\.numeric(?:\.|\b)/u.test(joined)) return "tm-number";
-  if (/\bmeta\.preprocessor(?:\.|\b)|\bkeyword\.control\.directive(?:\.|\b)|\bentity\.name\.function\.preprocessor(?:\.|\b)/u.test(joined)) return "tm-preprocessor";
-  if (/\bentity\.name\.function(?:\.|\b)|\bsupport\.function(?:\.|\b)|\bentity\.name\.operator(?:\.|\b)/u.test(joined)) return "tm-function";
-  if (/\bvariable\.parameter(?:\.|\b)/u.test(joined)) return "tm-parameter";
-  if (/\bvariable\.other\.property(?:\.|\b)|\bvariable\.object\.property(?:\.|\b)/u.test(joined)) return "tm-property";
-  if (/\bentity\.name\.namespace(?:\.|\b)|\bentity\.name\.scope-resolution(?:\.|\b)/u.test(joined)) return "tm-namespace";
-  if (/\bsupport\.type(?:\.|\b)|\bsupport\.class(?:\.|\b)|\bentity\.name\.type(?:\.|\b)|\bentity\.name\.class(?:\.|\b)/u.test(joined)) return "tm-type";
-  if (/\bentity\.other\.attribute(?:\.|\b)/u.test(joined)) return "tm-attribute";
-  if (/\bkeyword\.control(?:\.|\b)|\bkeyword\.other\.(?:using|operator)(?:\.|\b)/u.test(joined)) return "tm-control";
-  if (/\bstorage(?:\.|\b)|\bkeyword(?:\.|\b)/u.test(joined)) return "tm-keyword";
-  if (/\bvariable(?:\.|\b)|\bmeta\.definition\.variable\.name(?:\.|\b)|\bentity\.name\.variable(?:\.|\b)|\bsupport\.variable(?:\.|\b)/u.test(joined)) return "tm-variable";
-  if (/\bconstant(?:\.|\b)/u.test(joined)) return "tm-constant";
-  if (/\bkeyword\.operator(?:\.|\b)/u.test(joined)) return "tm-operator";
-  if (/\bpunctuation(?:\.|\b)/u.test(joined)) return "tm-punctuation";
-  return "tm-plain";
 }
 
 function create_textmate_mode(grammar: IGrammar) {
@@ -197,12 +178,16 @@ function code_fence_is_diagram(fence: Element): boolean {
 }
 
 function remove_code_collapse(fence: HTMLElement): void {
-  fence.classList.remove("linux-note-code-collapsible", "is-code-collapsed", "is-code-expanded");
+  for (const class_name of ["linux-note-code-collapsible", "is-code-collapsed", "is-code-expanded"]) {
+    if (fence.classList.contains(class_name)) fence.classList.remove(class_name);
+  }
   fence.style.removeProperty("--linux-note-code-collapsed-height");
   fence.querySelector(":scope > .linux-note-code-toolbar")?.remove();
 }
 
 function render_code_toggle(button: HTMLButtonElement, expanded: boolean): void {
+  // 无状态变化时保留原节点，避免观察器反复扫描以及按下、松开之间点击目标被替换。
+  if (button.getAttribute("aria-expanded") === String(expanded)) return;
   button.setAttribute("aria-expanded", String(expanded));
   button.innerHTML = expanded
     ? '<span aria-hidden="true">↥</span><span>收起代码</span>'
@@ -219,6 +204,33 @@ function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expand
     if (scroller) scroller.scrollTop = 0;
   }
   requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
+}
+
+function bind_code_toggle_events(): void {
+  // 在正文处理选区前接管按钮事件。委托到 document，代码块重建后也无需重新绑定。
+  const handle_event = (event: Event) => {
+    const target = event.target;
+    const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle") : null;
+    const fence = button?.closest<HTMLElement>(".md-fences");
+    if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
+    if (event instanceof KeyboardEvent) {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.stopPropagation();
+      event.preventDefault();
+      if ((event.key === "Enter" && event.type === "keydown" && !event.repeat)
+          || (event.key === " " && event.type === "keyup")) button.click();
+      return;
+    }
+    event.stopPropagation();
+    // 保持正文光标位置；鼠标仍由 click 切换，按下后移出按钮则不会切换。
+    if (event.type === "mousedown" || event.type === "click") event.preventDefault();
+    if (event.type === "click") {
+      set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+    }
+  };
+  for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
+    document.addEventListener(event_name, handle_event, true);
+  }
 }
 
 function ensure_code_collapse(fence_element: Element): void {
@@ -238,7 +250,9 @@ function ensure_code_collapse(fence_element: Element): void {
     return;
   }
 
-  fence.classList.add("linux-note-code-collapsible");
+  if (!fence.classList.contains("linux-note-code-collapsible")) {
+    fence.classList.add("linux-note-code-collapsible");
+  }
   fence.style.setProperty("--linux-note-code-collapsed-height", `${maximum_height}px`);
   let toolbar = fence.querySelector<HTMLElement>(":scope > .linux-note-code-toolbar");
   let button = toolbar?.querySelector<HTMLButtonElement>(".linux-note-code-toggle");
@@ -250,11 +264,6 @@ function ensure_code_collapse(fence_element: Element): void {
     button = document.createElement("button");
     button.type = "button";
     button.className = "linux-note-code-toggle";
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      set_code_expanded(fence, button!, !fence.classList.contains("is-code-expanded"));
-    });
     toolbar.append(button);
     fence.append(toolbar);
   }
@@ -266,11 +275,16 @@ function ensure_code_collapse(fence_element: Element): void {
 }
 
 function schedule_scan(): void {
-  window.clearTimeout(scan_timer);
-  scan_timer = window.setTimeout(scan_document, 80);
+  // 分栏布局持续更新时也必须推进扫描，不能被新的 mutation 一直推迟。
+  if (scan_timer) return;
+  scan_timer = window.setTimeout(() => {
+    scan_timer = 0;
+    scan_document();
+  }, 80);
 }
 
 function scan_document(): void {
+  if (document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") bind_reading_navigation();
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
   document.querySelectorAll(".md-fences").forEach(ensure_code_collapse);
   const diagram_containers = new Set<Element>();
@@ -555,10 +569,19 @@ function ensure_mermaid_button(container: Element): void {
 
 async function initialize(): Promise<void> {
   ensure_style();
+  void initialize_workspace().then(() => {
+    bind_reading_navigation();
+    schedule_scan();
+  }).catch((error: unknown) => {
+    document.documentElement.setAttribute("data-linux-note-workspace", "failed");
+    console.error("[linux-note Typora workspace]", error);
+    schedule_scan();
+  });
   await load_textmate_grammars();
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
   window.CodeMirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
   window.CodeMirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
+  bind_code_toggle_events();
   scan_document();
   new MutationObserver(schedule_scan).observe(document.body, {
     subtree: true,

@@ -20,13 +20,14 @@ if (-not (Test-Path -LiteralPath $environment_helper -PathType Leaf)) {
     throw "Typora environment helper is missing: $environment_helper"
 }
 . $environment_helper
+. (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
 $window_html = Join-Path $typora_root "resources\window.html"
 $bundle_source = Join-Path (Split-Path -Parent $PSScriptRoot) "dist\typora_enhancements.js"
 $user_data = get_typora_windows_user_data
 $extension_target = Join-Path $user_data "linux_note_enhancements"
 $bundle_target = Join-Path $extension_target "typora_enhancements.js"
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
 if ([string]::IsNullOrWhiteSpace($backup_root)) {
     $backup_root = Join-Path $user_data "backups\linux_note_typora_enhancements\$timestamp"
 }
@@ -40,6 +41,13 @@ foreach ($required in @($window_html, $bundle_source)) {
         throw "Required file is missing: $required"
     }
 }
+
+assert_typora_bundle -bundle_path $bundle_source -markers_path (Join-Path $typora_tools_root "enhancements\bundle_markers.txt")
+$workspace_vendor = Join-Path $typora_tools_root "enhancements\vendor\typora_workspace"
+$workspace_target = Join-Path $user_data "plugins"
+$workspace_backup = Join-Path $backup_root "workspace"
+$workspace_assets = @(get_typora_workspace_assets $workspace_vendor)
+assert_typora_workspace_assets -asset_root $workspace_vendor -assets $workspace_assets
 
 New-Item -ItemType Directory -Force -Path $backup_root, $extension_target | Out-Null
 Copy-Item -LiteralPath $window_html -Destination $window_backup
@@ -56,8 +64,10 @@ if (-not $window_source.Contains("</body>")) {
     throw "Typora resources/window.html does not contain </body>; installation stopped before overwrite."
 }
 $window_source = $window_source.Replace("</body>", "$script_tag</body>")
+$workspace_records = @(backup_typora_workspace -asset_root $workspace_target -backup_root $workspace_backup -assets $workspace_assets)
 
 try {
+    install_typora_workspace -vendor_root $workspace_vendor -asset_root $workspace_target -assets $workspace_assets
     Copy-Item -LiteralPath $bundle_source -Destination $bundle_target -Force
     [System.IO.File]::WriteAllText($window_html, $window_source, [System.Text.UTF8Encoding]::new($false))
 
@@ -65,6 +75,10 @@ try {
     $installed_tag_count = ([regex]::Matches($installed_source, [regex]::Escape($script_tag))).Count
     if ($installed_tag_count -ne 1) {
         throw "Expected one enhancement script tag after installation, found $installed_tag_count."
+    }
+
+    if ((Get-Sha256 $bundle_source) -ne (Get-Sha256 $bundle_target)) {
+        throw "Installed extension does not match the prebuilt bundle."
     }
 
     $manifest = [ordered]@{
@@ -79,6 +93,7 @@ try {
         bundle_backup = if (Test-Path -LiteralPath $bundle_backup) { $bundle_backup } else { $null }
         bundle_before_sha256 = $bundle_before_hash
         bundle_after_sha256 = Get-Sha256 $bundle_target
+        workspace_assets = $workspace_records
     }
     [System.IO.File]::WriteAllText(
         $manifest_path,
@@ -87,6 +102,7 @@ try {
     )
 } catch {
     Copy-Item -LiteralPath $window_backup -Destination $window_html -Force
+    restore_typora_workspace -asset_root $workspace_target -backup_root $workspace_backup -records $workspace_records -timestamp $timestamp
     if (Test-Path -LiteralPath $bundle_backup -PathType Leaf) {
         Copy-Item -LiteralPath $bundle_backup -Destination $bundle_target -Force
     } elseif (Test-Path -LiteralPath $bundle_target -PathType Leaf) {

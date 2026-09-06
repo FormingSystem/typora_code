@@ -143,6 +143,23 @@ function get_typora_windows_user_data {
     return Join-Path $env:APPDATA "Typora"
 }
 
+function assert_typora_bundle {
+    param([string]$bundle_path, [string]$markers_path)
+    foreach ($required_path in @($bundle_path, $markers_path)) {
+        if (-not (Test-Path -LiteralPath $required_path -PathType Leaf)) {
+            throw "Required extension file is missing: $required_path"
+        }
+    }
+    $markers = @([System.IO.File]::ReadAllLines($markers_path) | Where-Object { $_.Trim() })
+    if ($markers.Count -eq 0) { throw "Extension marker list is empty: $markers_path" }
+    $bundle_text = [System.IO.File]::ReadAllText($bundle_path)
+    foreach ($marker in $markers) {
+        if (-not $bundle_text.Contains($marker.Trim())) {
+            throw "Extension bundle failed validation; missing marker: $marker"
+        }
+    }
+}
+
 function get_typora_windows_version {
     param(
         [Parameter(Mandatory = $true)]

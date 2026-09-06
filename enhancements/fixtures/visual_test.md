@@ -1,7 +1,16 @@
 # Typora C 与 Mermaid 增强验收
 
+先点击这一段正文，再直接点击代码块下方的展开或收起按钮；首次点击就应切换。
+
 ```c
 #include <linux/rcupdate.h>
+
+/* 多行宏：指令和宏名为蓝色，控制关键字和内建类型为红色，函数调用为紫色。 */
+#define raw_local_irq_save(flags) \
+    do { \
+        typecheck(unsigned long, flags); \
+        flags = arch_local_irq_save(); \
+    } while (0)
 
 struct demo_cfg {
     int generation;

@@ -1,0 +1,115 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>代码按钮事件回归夹具</title>
+<style>
+  body { margin: 24px; font-family: sans-serif; }
+  content { display: block; height: 700px; overflow: auto; }
+  .md-fences { padding: 12px; background: #f6f8fa; border: 1px solid #d0d7de; }
+  .CodeMirror-scroll { overflow: auto; }
+  .CodeMirror-line { margin: 0; font: 16px/24px monospace; white-space: pre; }
+</style>
+<content><article id="write" contenteditable="true">
+  <p id="outside">在代码框外点击和输入，再操作按钮。</p>
+  <p><a id="reading_link" href="#reading_target">跳到文内目标</a></p>
+  <div class="md-fences" lang="c" contenteditable="false">
+    <div class="CodeMirror cm-s-inner"><div class="CodeMirror-scroll"><div class="CodeMirror-sizer"></div></div></div>
+  </div>
+  <p id="after">代码之后的正文。</p>
+  <h2 id="reading_target">文内目标</h2>
+  <p><a id="file_link" href="chapter_b.md#reading_target">跳到另一篇文档</a></p>
+  <div style="height: 800px"></div>
+</article></content>
+<script>
+  // 模拟已核对的 Typora 接口，测试历史控制与宿主适配；不读写真实 Markdown。
+  let test_cursor = { type: 'cursor', id: 'outside', start: 0, end: 0 };
+  window.File = {
+    bundle: { filePath: 'chapter_a.md' },
+    editor: {
+      tryOpenUrl(url) {
+        if (url.startsWith('#')) {
+          document.querySelector(url)?.scrollIntoView({ block: 'start' });
+          test_cursor = { type: 'cursor', id: url.slice(1), start: 0, end: 0 };
+        } else if (url.includes('.md')) {
+          File.editor.library.openFile(url.split('#')[0]);
+          // 社区工作区先打开文件，500ms 后才跳到其中的锚点。
+          if (url.includes('#')) setTimeout(() => File.editor.tryOpenUrl('#' + url.split('#')[1]), 500);
+        }
+      },
+      library: {
+        openFile(path, callback) {
+          File._onFileSwitching = true;
+          setTimeout(() => {
+            File.bundle.filePath = path;
+            document.querySelector('content').scrollTop = 0;
+            File._onFileSwitching = false;
+            callback?.();
+          }, 40);
+        },
+      },
+      selection: { buildUndo() { return { ...test_cursor }; } },
+      undo: { exeCommand(cursor) { test_cursor = { ...cursor }; } },
+    },
+  };
+  document.querySelectorAll('a').forEach((link) => link.addEventListener('click', (event) => {
+    event.preventDefault();
+    File.editor.tryOpenUrl(link.getAttribute('href'));
+  }));
+  // 这里只模拟宿主的 CodeMirror 接口及选区事件；语法、颜色和按钮使用生产 bundle。
+  const mode_factories = new Map();
+  window.CodeMirror = { defineMode(name, factory) { mode_factories.set(name, factory); } };
+  const source_lines = [
+    '#define raw_local_irq_save(flags) \\',
+    '    do { \\',
+    '        typecheck(unsigned long, flags); \\',
+    '        flags = arch_local_irq_save(); \\',
+    '    } while (0)',
+    ...Array(48).fill('call_rcu(head, callback);'),
+  ];
+  let current_mode = 'c';
+  const sizer = document.querySelector('.CodeMirror-sizer');
+  sizer.textContent = source_lines.join('\n');
+  sizer.style.whiteSpace = 'pre';
+  sizer.style.lineHeight = '24px';
+  document.querySelector('.CodeMirror').CodeMirror = {
+    state: {},
+    getOption() { return current_mode; },
+    setOption(name, value) {
+      current_mode = value;
+      const mode = mode_factories.get(value)();
+      const state = mode.startState();
+      sizer.replaceChildren();
+      for (const line of source_lines) {
+        const row = document.createElement('pre');
+        row.className = 'CodeMirror-line';
+        const stream = {
+          string: line, pos: 0,
+          sol() { return this.pos === 0; },
+          eol() { return this.pos >= this.string.length; },
+          skipToEnd() { this.pos = this.string.length; },
+        };
+        while (!stream.eol()) {
+          const start = stream.pos;
+          const span = document.createElement('span');
+          span.className = 'cm-' + mode.token(stream, state);
+          span.textContent = line.slice(start, stream.pos);
+          row.append(span);
+        }
+        sizer.append(row);
+      }
+    },
+    refresh() {},
+  };
+  window.test_host_events = 0;
+  for (const event_name of ['mousedown', 'mouseup', 'click']) {
+    document.querySelector('#write').addEventListener(event_name, (event) => {
+      window.test_host_events += 1;
+      const fence = event.target.closest('.md-fences');
+      // 覆盖宿主在首次聚焦时重建 DOM 的情况；重建会丢失节点上的直接监听器。
+      if (event_name === 'mousedown' && fence && !fence.classList.contains('md-focus')) {
+        fence.innerHTML = fence.innerHTML;
+        fence.classList.add('md-focus');
+      }
+    });
+  }
+</script>
+<script src="../dist/typora_enhancements.js"></script>

@@ -11,6 +11,7 @@ if (-not (Test-Path -LiteralPath $environment_helper -PathType Leaf)) {
     throw "Typora environment helper is missing: $environment_helper"
 }
 . $environment_helper
+. (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
 $backup_root = convert_typora_input_path $backup_root
 $backup_root = (Resolve-Path -LiteralPath $backup_root).Path
 $manifest_path = Join-Path $backup_root "manifest.json"
@@ -23,6 +24,10 @@ foreach ($required in @($manifest_path, $window_backup)) {
 }
 
 $manifest = Get-Content -LiteralPath $manifest_path -Raw | ConvertFrom-Json
+$workspace_records = @()
+if ($manifest.PSObject.Properties['workspace_assets']) { $workspace_records = @($manifest.workspace_assets) }
+$workspace_backup = Join-Path $backup_root "workspace"
+assert_typora_workspace_backup -backup_root $workspace_backup -records $workspace_records
 if (-not (Test-Path -LiteralPath $manifest.window_html -PathType Leaf)) {
     throw "Current Typora window.html is missing: $($manifest.window_html)"
 }
@@ -41,6 +46,7 @@ if ($manifest.bundle_backup -and -not (Test-Path -LiteralPath $manifest.bundle_b
 $safety_backup = Join-Path $backup_root "window.before_restore.$(Get-Date -Format 'yyyyMMdd-HHmmss').html"
 Copy-Item -LiteralPath $manifest.window_html -Destination $safety_backup
 Copy-Item -LiteralPath $window_backup -Destination $manifest.window_html -Force
+restore_typora_workspace -asset_root (Join-Path (get_typora_windows_user_data) "plugins") -backup_root $workspace_backup -records $workspace_records -timestamp (Get-Date -Format 'yyyyMMdd-HHmmss')
 
 if ($manifest.bundle_backup -and (Test-Path -LiteralPath $manifest.bundle_backup -PathType Leaf)) {
     Copy-Item -LiteralPath $manifest.bundle_backup -Destination $manifest.bundle_target -Force

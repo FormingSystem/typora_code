@@ -2,10 +2,10 @@
   "name": "linux-note-typora-enhancements",
   "version": "1.0.0",
   "private": true,
-  "description": "VS Code TextMate C/C++ parsing with GitHub Light colors and Mermaid viewer enhancements for Typora.",
+  "description": "Typora editor groups, reading navigation, TextMate C/C++ colors and Mermaid viewer.",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs"
+    "check": "node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_textmate.mjs && node scripts/test_reading_history.mjs"
   },
   "dependencies": {
     "vscode-oniguruma": "1.7.0",

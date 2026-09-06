@@ -55,6 +55,20 @@ async function evaluate(expression) {
   return result.result.value;
 }
 
+async function click_element(selector) {
+  const point = await evaluate(`(() => {
+    const element = document.querySelector(${JSON.stringify(selector)});
+    if (!element) throw new Error('missing click target');
+    element.scrollIntoView({ block: 'center' });
+    const bounds = element.getBoundingClientRect();
+    return { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
+  })()`);
+  await send('Input.dispatchMouseEvent', { type: 'mouseMoved', ...point });
+  await send('Input.dispatchMouseEvent', { type: 'mousePressed', ...point, button: 'left', clickCount: 1 });
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  await send('Input.dispatchMouseEvent', { type: 'mouseReleased', ...point, button: 'left', clickCount: 1 });
+}
+
 await send("Runtime.enable");
 await send("Page.enable");
 for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -67,16 +81,20 @@ for (let attempt = 0; attempt < 40; attempt += 1) {
   await new Promise((resolve) => setTimeout(resolve, 250));
 }
 
-const result = await evaluate(`(() => {
+// 使用 Chromium 鼠标输入覆盖按下、焦点切换、松开的完整过程，不能用 button.click() 替代。
+const code_collapsed_before = await evaluate(`Boolean(document.querySelector('.linux-note-code-toggle')?.closest('.md-fences')?.classList.contains('is-code-collapsed'))`);
+await click_element('#write > p');
+await click_element('.linux-note-code-toggle span:last-child');
+const code_expanded_after = await evaluate(`Boolean(document.querySelector('.linux-note-code-toggle')?.closest('.md-fences')?.classList.contains('is-code-expanded'))`);
+const code_expanded_label = await evaluate(`document.querySelector('.linux-note-code-toggle')?.textContent?.trim()`);
+await click_element('#write > p');
+await click_element('.linux-note-code-toggle');
+const code_collapsed_after = await evaluate(`Boolean(document.querySelector('.linux-note-code-toggle')?.closest('.md-fences')?.classList.contains('is-code-collapsed'))`);
+
+const result = { code_collapsed_before, code_expanded_after, code_expanded_label, code_collapsed_after, ...await evaluate(`(() => {
   const lines = Array.from(document.querySelectorAll('.md-fences[lang="c"] .CodeMirror-line'));
   const function_span = lines.flatMap((line) => Array.from(line.querySelectorAll('span')))
     .find((span) => span.textContent === "rcu_replace_pointer" || span.textContent === "call_rcu");
-  const code_toggle = document.querySelector('.linux-note-code-toggle');
-  const code_fence = code_toggle?.closest('.md-fences');
-  const code_collapsed_before = Boolean(code_fence?.classList.contains('is-code-collapsed'));
-  code_toggle?.click();
-  const code_expanded_after = Boolean(code_fence?.classList.contains('is-code-expanded'));
-  const code_expanded_label = code_toggle?.textContent?.trim() ?? null;
   const mermaid_button = document.querySelector('.linux-note-mermaid-open');
   const mermaid_toolbar = mermaid_button?.closest('.linux-note-mermaid-inline-toolbar');
   const mermaid_preview = mermaid_toolbar?.parentElement;
@@ -90,9 +108,6 @@ const result = await evaluate(`(() => {
     function_text: function_span?.textContent ?? null,
     function_class: function_span?.className ?? null,
     code_toggles: document.querySelectorAll('.linux-note-code-toggle').length,
-    code_collapsed_before,
-    code_expanded_after,
-    code_expanded_label,
     mermaid_buttons: document.querySelectorAll('.linux-note-mermaid-open').length,
     toolbar_inside_preview: Boolean(mermaid_preview?.matches('.md-diagram-panel-preview')),
     toolbar_position,
@@ -100,7 +115,7 @@ const result = await evaluate(`(() => {
     viewer_open: Boolean(document.querySelector('.linux-note-mermaid-viewer')),
     viewer_svg: Boolean(document.querySelector('.linux-note-mermaid-viewer svg'))
   };
-})()`);
+})()`) };
 
 const screenshot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
 const fs = await import("node:fs");
@@ -112,7 +127,7 @@ console.log(JSON.stringify({ target: target.title, ...result, screenshot_path },
 if (result.enhancement !== "ready") throw new Error(`enhancement state is ${result.enhancement}`);
 if (result.c_mode !== "linux-note-vscode-textmate-c") throw new Error(`unexpected C mode: ${result.c_mode}`);
 if (!String(result.function_class).includes("cm-tm-function")) throw new Error(`function token class is ${result.function_class}`);
-if (!result.code_toggles || !result.code_collapsed_before || !result.code_expanded_after || result.code_expanded_label !== "↥收起代码") {
+if (!result.code_toggles || !result.code_collapsed_before || !result.code_expanded_after || !result.code_collapsed_after || result.code_expanded_label !== "↥收起代码") {
   throw new Error(`long code collapse smoke check failed: ${JSON.stringify(result)}`);
 }
 if (!result.toolbar_inside_preview || result.toolbar_position !== "static" || result.duplicate_toolbars) {
