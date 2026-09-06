@@ -1,0 +1,170 @@
+{
+  "commandModal": {
+    "commandOpen": "Open Command Panel",
+    "placeholder": "Filter commands by text input"
+  },
+  "config": {
+    "commandUseGlobalConfig": "Use global settings (remove `.typora` from vault)",
+    "commandUseVaultConfig": "Use vault settings (add `.typora` to vault)"
+  },
+  "net": {
+    "fileDownloadFailed": "Download failed. You can retry later."
+  },
+  "githubAPI": {
+    "proxyNotFound": "Github proxy is removed and has been automatically reverted to the default settings."
+  },
+  "internalPlugins": {
+    "metadata": {
+      "name": "Metadata (beta)",
+      "description": "Index metadata of all files in the vault. Used by other plugins (like `tag`)."
+    },
+    "workspace": {
+      "name": "Workspace",
+      "description": "Support split & tabs layout. Provides workspace, file tabs, and related features. Better to enable \"App Setting → General → Save without asking when switch files on side panel\"",
+      "settings": {
+        "hideExtensionInFileTab": "Hide extension in file tab",
+        "hideExtensionInFileTabDesc": "For example, file tab of \"File.md\" will be shown as \"File\".",
+        "useBlankNewTab": "Use blank New Tab",
+        "useAutoSwap": "Swap editor and preview on click",
+        "useAutoSwapDesc": "Click on previewer content area to swap the current Typora editor with the clicked preview tab."
+      }
+    }
+  },
+  "notice": {
+    "clearAll": "Notice: Clear all notices"
+  },
+  "pluginManager": {
+    "needNewerCoreVersion": "Plugin \"{name}\" requires a newer version of Typora Community Plugin. Please check for updates.",
+    "upToDate": "Plugin \"{name}\" is up to date.",
+    "updateSuccessful": "The plugin \"{name}\" has been updated successfully."
+  },
+  "pluginMarketplace": {
+    "idNotCorrect": "Downloaded plugin \"{name}\" id is not equal to user install plugin id.",
+    "installSuccessful": "The plugin \"{name}\" has been installed successfully."
+  },
+  "settingModal": {
+    "commandOpen": "Open Plugin Settings Modal",
+    "titleGlobal": "Global Settings",
+    "titleVault": "Vault Settings",
+    "groupCore": "Core",
+    "groupInternalPlugins": "Core Plugins",
+    "groupPlugins": "Community Plugins"
+  },
+  "settingTabs": {
+    "fileLink": {
+      "name": "File & Link",
+      "link": "Link",
+      "openLinkInCurrentWin": "Open Markdown links in current window",
+      "openLinkInCurrentWinDesc": "Ctrl(⌘)+Click to open Markdown links will open the Markdown file in the current window. Recommended when using File Tabs.",
+      "mdLinkWithoutExtension": "Markdown link without extension",
+      "mdLinkWithoutExtensionDesc": "Markdown link can be used without the extension `.md`, e.g. `[Note](note)` will open `note.md`",
+      "quickOpen": "Quick Open",
+      "quickOpenInCurrentWin": "Quick open file in current window",
+      "quickOpenInCurrentWinDesc": "Choosing a file in the quick open panel will open the Markdown file in the current window. Recommended when using File Tabs.",
+      "ignoreFileGlob": "Ignore folder in quick open panel",
+      "ignoreFileGlobDesc": "Ignore files in folders (separated by comma) and not show them in the quick open panel."
+    },
+    "appearance": {
+      "name": "Appearance",
+      "fileExplorer": "File Explorer",
+      "showNotSupportedFile": "Show not supported file",
+      "showNotSupportedFileDesc": "Not supported file will open with default application.",
+      "search": "Search",
+      "keepSearchResult": "Keep search results",
+      "keepSearchResultDesc": "When you switch to another panel (such as \"Files\") and then switch back to the search panel, you will not lose the recent search results.",
+      "searchResultFullPath": "Show search result full path",
+      "searchResultFullPathDesc": "Hover your cursor over the path and it will show full path in a tooltip.",
+      "advancedSearchMode": "Advanced Search Mode",
+      "advancedSearchModeDesc": "Replace native file search with custom ripgrep-based engine that supports regex patterns. A toggle button appears next to the regex button in the search bar.",
+      "advanced": "Advanced",
+      "ribbon": "Show Ribbon",
+      "ribbonDesc": "Also enable Custom Sidebar Panel"
+    },
+    "hotkey": {
+      "name": "Hotkey",
+      "waitHotkey": "Press hotkey..."
+    },
+    "internalPlugins": {
+      "name": "Core Plugins"
+    },
+    "pluginMarketplace": {
+      "name": "Plugin Marketplace",
+      "downloader": "Downloader",
+      "downloaderDesc": "- Typora: More stable, shows very few error messages;\n- Nodejs: Shows more error messages.",
+      "githubProxy": "Github proxy",
+      "githubProxyDesc": "Proxy of github for loading plugin list and downloading plugin.",
+      "searchPlugin": "Search plugins:",
+      "pluginList": "Plugin List",
+      "reloadPluginList": "Reload Plugin List",
+      "author": "Author",
+      "lastUpdate": "Last Update",
+      "size": "Size",
+      "downloads": "Downloads",
+      "installToGlobal": "Global",
+      "installToGlobalDesc": "Install to global",
+      "installToVault": "Vault",
+      "installToVaultDesc": "Install to vault"
+    },
+    "plugins": {
+      "name": "Installed Plugins",
+      "searchPlugin": "Search plugins:",
+      "titleInstalled": "Installed Plugin ({0} installed)",
+      "update": "Update",
+      "uninstall": "Uninstall"
+    },
+    "about": {
+      "name": "About",
+      "projectDesc": "A community plugin system for",
+      "labelVersion": "Version",
+      "labelBuildTime": "Build Time",
+      "labelAuthor": "Author",
+      "labelHomepage": "Homepage",
+      "buttonUpdate": "Update",
+      "coreUpToDate": "Typora Community Plugin is up to date.",
+      "coreUpdateSuccessful": "Typora Community Plugin update successful. (Need to relaunch Typora)",
+      "lang": "Language",
+      "langDesc": "Display language of Typora Community Plugin. (Need to relaunch Typora)",
+      "debugDownloadUrl": "Debug Download URL",
+      "debugDownloadUrlDesc": "Enter the download URL for the Core update package, for development debugging",
+      "debugDownloadEmpty": "Please enter a download URL first"
+    }
+  },
+  "ribbon": {
+    "search": "Search file content",
+    "files": "Files",
+    "outline": "Outline",
+    "settings": "Settings",
+    "settingOfApp": "Open App Settings",
+    "globalSettingOfPlugin": "Open Plugin Settings (Global)",
+    "vaultSettingOfPlugin": "Open Plugin Settings (Vault)"
+  },
+  "sidebar": {
+    "search": {
+      "commonMode": "Search",
+      "advancedMode": "Advanced Search",
+      "advancedModeDesc": "Syntax:\n  space        = AND\n  OR           = OR\n  -term       = NOT (exclude)\n  (group)      = grouping\n  tag:/title:/filename:value = field search\n  \"exact phrase\" = exact match"
+    }
+  },
+  "tabview": {
+    "close": "Close",
+    "closeOthers": "Close other tabs",
+    "closeRight": "Close tabs to right",
+    "splitRight": "Split right",
+    "splitDown": "Split down"
+  },
+  "views": {
+    "empty": {
+      "noFile": "No file is open."
+    }
+  },
+  "workspace": {
+    "commandSplitRight": "Workspace: Split right",
+    "commandSplitDown": "Workspace: Split down",
+    "commandReset": "Workspace: Reset",
+    "fileContextMenuSplitRight": "Open to the right",
+    "rightSplit": {
+      "toggleButton": "Toggle right sidebar",
+      "empty": "This sidebar is empty."
+    }
+  }
+}

@@ -4,6 +4,7 @@ set -euo pipefail
 typora_tools_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/lib/typora_environment.sh
 source "$typora_tools_root/scripts/lib/typora_environment.sh"
+source "$typora_tools_root/scripts/lib/typora_workspace.sh"
 
 requested_root=''
 non_interactive=0
@@ -43,9 +44,11 @@ script_tag='<script defer src="typora://app/userData/linux_note_enhancements/typ
 for required_path in "$window_html" "$bundle_source" "$theme_source"; do
     [[ -f "$required_path" ]] || { printf '[typora] Required file is missing: %s\n' "$required_path" >&2; exit 1; }
 done
-for marker in linux-note-vscode-textmate-c linux-note-vscode-textmate-cpp linux-note-mermaid-viewer linux-note-mermaid-inline-toolbar linux-note-code-collapsible linux-note-code-toggle is-code-collapsed mermaid_container_for_preview 'preview.prepend(toolbar)'; do
-    grep -Fq "$marker" "$bundle_source" || { printf '[typora] Bundle marker is missing: %s\n' "$marker" >&2; exit 1; }
-done
+typora_validate_bundle "$bundle_source" "$typora_tools_root/enhancements/bundle_markers.txt"
+workspace_vendor="$typora_tools_root/enhancements/vendor/typora_workspace"
+workspace_manifest="$workspace_vendor/SHA256SUMS"
+workspace_target="$TYPORA_USER_DATA/plugins"
+typora_validate_workspace "$workspace_vendor" "$workspace_manifest"
 grep -Fq '</body>' "$window_html" || { printf '%s\n' '[typora] Typora resources/window.html does not contain </body>.' >&2; exit 1; }
 command -v base64 >/dev/null 2>&1 || { printf '%s\n' '[typora] base64 is required.' >&2; exit 1; }
 
@@ -73,6 +76,7 @@ entry_count="$(grep -oF "$script_tag" "$new_window_html" | wc -l | tr -d '[:spac
 
 configuration_started=0
 configuration_committed=0
+typora_backup_workspace "$workspace_target" "$backup_root/workspace" "$workspace_manifest"
 rollback_configuration() {
     local exit_code=$?
     set +e
@@ -80,6 +84,7 @@ rollback_configuration() {
     rmdir -- "$temporary_root" 2>/dev/null
     if [[ "$exit_code" -ne 0 && "$configuration_started" == '1' && "$configuration_committed" == '0' ]]; then
         printf '%s\n' '[typora] Configuration failed; restoring the pre-change files.' >&2
+        typora_restore_workspace "$workspace_target" "$backup_root/workspace" "$timestamp"
         typora_copy_file "$backup_root/window.html" "$window_html"
         if [[ "$theme_existed" == '1' ]]; then
             cp -f -- "$backup_root/cpp_github-consolas.css" "$theme_target"
@@ -97,9 +102,14 @@ rollback_configuration() {
 trap rollback_configuration EXIT
 
 configuration_started=1
+typora_install_workspace "$workspace_vendor" "$workspace_target" "$workspace_manifest"
 cp -f -- "$theme_source" "$theme_target"
 cp -f -- "$bundle_source" "$bundle_target"
 typora_copy_file "$new_window_html" "$window_html"
+[[ "$(typora_sha256 "$bundle_source")" == "$(typora_sha256 "$bundle_target")" ]] || {
+    printf '%s\n' '[typora] Installed extension does not match the prebuilt bundle.' >&2
+    exit 1
+}
 
 : > "$manifest_path"
 typora_manifest_put "$manifest_path" schema_version '1'
@@ -111,6 +121,7 @@ typora_manifest_put "$manifest_path" theme_target "$theme_target"
 typora_manifest_put "$manifest_path" bundle_target "$bundle_target"
 typora_manifest_put "$manifest_path" theme_existed "$theme_existed"
 typora_manifest_put "$manifest_path" bundle_existed "$bundle_existed"
+typora_manifest_put "$manifest_path" workspace_assets 'workspace/assets.tsv'
 typora_manifest_put "$manifest_path" window_sha256 "$(typora_sha256 "$window_html")"
 typora_manifest_put "$manifest_path" theme_sha256 "$(typora_sha256 "$theme_target")"
 typora_manifest_put "$manifest_path" bundle_sha256 "$(typora_sha256 "$bundle_target")"

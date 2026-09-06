@@ -1,0 +1,46 @@
+export type reading_location = {
+  file_path: string;
+  scroll_top: number;
+  scroll_left: number;
+  cursor: Record<string, unknown> | null;
+};
+
+function same_location(left: reading_location, right: reading_location): boolean {
+  return left.file_path === right.file_path && Math.abs(left.scroll_top - right.scroll_top) < 2
+    && Math.abs(left.scroll_left - right.scroll_left) < 2
+    && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
+}
+
+/** 历史只保存窗口内的阅读位置；恢复成功后才移动索引，取消打开不会丢掉原记录。 */
+export function create_reading_history(maximum_entries = 100) {
+  let entries: reading_location[] = [];
+  let index = -1;
+  let navigating = false;
+  return {
+    is_navigating: () => navigating,
+    record_jump(from: reading_location, to: reading_location) {
+      if (navigating || same_location(from, to)) return;
+      if (index < 0) { entries = [from]; index = 0; }
+      else if (entries[index].file_path === from.file_path) entries[index] = from;
+      else { entries = entries.slice(0, index + 1); entries.push(from); index += 1; }
+      entries = entries.slice(0, index + 1);
+      entries.push(to);
+      if (entries.length > maximum_entries) entries.splice(0, entries.length - maximum_entries);
+      index = entries.length - 1;
+    },
+    async travel(direction: -1 | 1, current: reading_location,
+      restore: (location: reading_location) => Promise<boolean>): Promise<boolean> {
+      const target_index = index + direction;
+      if (navigating || target_index < 0 || target_index >= entries.length) return false;
+      navigating = true;
+      try {
+        if (!await restore(entries[target_index])) return false;
+        if (entries[index]?.file_path === current.file_path) entries[index] = current;
+        index = target_index;
+        return true;
+      } finally {
+        navigating = false;
+      }
+    },
+  };
+}

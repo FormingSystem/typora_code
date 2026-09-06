@@ -4,6 +4,7 @@ set -euo pipefail
 typora_tools_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/lib/typora_environment.sh
 source "$typora_tools_root/scripts/lib/typora_environment.sh"
+source "$typora_tools_root/scripts/lib/typora_workspace.sh"
 
 backup_input=''
 while [[ "$#" -gt 0 ]]; do
@@ -49,8 +50,16 @@ if [[ "$bundle_existed" == '1' && ! -f "$backup_root/typora_enhancements.js" ]];
 fi
 
 timestamp="$(date '+%Y%m%d-%H%M%S')"
+workspace_assets="$(typora_manifest_get "$manifest_path" workspace_assets || true)"
+if [[ -n "$workspace_assets" ]]; then
+    [[ "$workspace_assets" == 'workspace/assets.tsv' ]] || exit 1
+    typora_validate_workspace_backup "$backup_root/workspace"
+fi
 cp -- "$window_html" "$backup_root/window.before_restore.$timestamp.html"
 typora_copy_file "$window_backup" "$window_html"
+if [[ -n "$workspace_assets" ]]; then
+    typora_restore_workspace "$TYPORA_USER_DATA/plugins" "$backup_root/workspace" "$timestamp"
+fi
 if [[ "$theme_existed" == '1' ]]; then
     cp -f -- "$backup_root/cpp_github-consolas.css" "$theme_target"
 elif [[ -f "$theme_target" ]]; then

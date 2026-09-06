@@ -27,7 +27,7 @@ $installer = Join-Path $enhancement_root "scripts\install_windows.ps1"
 $user_data = get_typora_windows_user_data
 $theme_directory = Join-Path $user_data "themes"
 $theme_target = Join-Path $theme_directory "cpp_github-consolas.css"
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
 $backup_root = Join-Path $user_data "backups\linux_note_typora_configuration\$timestamp"
 $theme_backup = Join-Path $backup_root "cpp_github-consolas.css"
 $configuration_manifest = Join-Path $backup_root "configuration_manifest.json"
@@ -38,22 +38,10 @@ foreach ($required in @($bundle_source, $theme_source, $installer)) {
     }
 }
 
-$bundle_text = [System.IO.File]::ReadAllText($bundle_source)
-foreach ($marker in @(
-    "linux-note-vscode-textmate-c",
-    "linux-note-vscode-textmate-cpp",
-    "linux-note-mermaid-viewer",
-    "linux-note-code-collapsible",
-    "linux-note-code-toggle",
-    "is-code-collapsed",
-    "mermaid_container_for_preview",
-    "preview.prepend(toolbar)",
-    "data-linux-note-typora-enhancements"
-)) {
-    if (-not $bundle_text.Contains($marker)) {
-        throw "Prebuilt enhancement bundle failed validation; missing marker: $marker"
-    }
-}
+assert_typora_bundle -bundle_path $bundle_source -markers_path (Join-Path $enhancement_root "bundle_markers.txt")
+. (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
+$workspace_vendor = Join-Path $enhancement_root "vendor\typora_workspace"
+assert_typora_workspace_assets -asset_root $workspace_vendor -assets @(get_typora_workspace_assets $workspace_vendor)
 
 New-Item -ItemType Directory -Force -Path $backup_root, $theme_directory | Out-Null
 $theme_existed = Test-Path -LiteralPath $theme_target -PathType Leaf

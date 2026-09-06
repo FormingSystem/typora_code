@@ -4,6 +4,7 @@ set -euo pipefail
 typora_tools_root="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 # shellcheck source=scripts/lib/typora_environment.sh
 source "$typora_tools_root/scripts/lib/typora_environment.sh"
+source "$typora_tools_root/scripts/lib/typora_workspace.sh"
 
 requested_root=''
 non_interactive=0
@@ -27,9 +28,13 @@ done
 
 entry_count="$(grep -oF 'data-linux-note-enhancements="true"' "$window_html" | wc -l | tr -d '[:space:]')"
 [[ "$entry_count" == '1' ]] || { printf '[typora] Expected one enhancement entry, found %s.\n' "$entry_count" >&2; exit 1; }
-for marker in linux-note-vscode-textmate-c linux-note-vscode-textmate-cpp linux-note-mermaid-viewer linux-note-mermaid-inline-toolbar linux-note-code-collapsible linux-note-code-toggle is-code-collapsed mermaid_container_for_preview 'preview.prepend(toolbar)' fit-width; do
-    grep -Fq "$marker" "$bundle" || { printf '[typora] Installed bundle marker is missing: %s\n' "$marker" >&2; exit 1; }
-done
+typora_validate_bundle "$bundle" "$typora_tools_root/enhancements/bundle_markers.txt"
+typora_validate_workspace "$TYPORA_USER_DATA/plugins" "$typora_tools_root/enhancements/vendor/typora_workspace/SHA256SUMS"
+
+[[ "$(typora_sha256 "$bundle")" == "$(typora_sha256 "$typora_tools_root/enhancements/dist/typora_enhancements.js")" ]] || {
+    printf '%s\n' '[typora] Installed extension differs from this repository prebuilt bundle; run configure.sh again.' >&2
+    exit 1
+}
 
 printf '%s\n' \
     "platform: $TYPORA_PLATFORM_ID" \
