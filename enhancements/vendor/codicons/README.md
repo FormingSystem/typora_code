@@ -9,7 +9,7 @@ domains:
 
 # 第1章\_Codicons图标来源与使用
 
-本目录保存 Microsoft 与 Codicons 贡献者提供的 42 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
+本目录保存 Microsoft 与 Codicons 贡献者提供的 45 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
 
 ## 1.1\_图形与操作映射
 
@@ -59,6 +59,9 @@ domains:
 | 新建文件 | `new-file` | [new_file.svg](icons/new_file.svg) |
 | 上一个结果 | `arrow-up` | [arrow_up.svg](icons/arrow_up.svg) |
 | 下一个结果 | `arrow-down` | [arrow_down.svg](icons/arrow_down.svg) |
+| 仅搜索源代码管理中的更改文件 | `edit-code` | [edit_code.svg](icons/edit_code.svg) |
+| 仅搜索已打开的编辑器 | `book` | [book.svg](icons/book.svg) |
+| 使用排除设置与忽略文件 | `exclude` | [exclude.svg](icons/exclude.svg) |
 
 两个 ID 使用上游已有别名：`more` 对应 `src/icons/ellipsis.svg`，`compare-changes` 对应 `src/icons/git-compare.svg`。对应关系取自同一提交的 [src/template/mapping.json](https://github.com/microsoft/vscode-codicons/blob/1c47ab36a4bb845c437866405c2fa67b8ca0fe36/src/template/mapping.json)。它们不是本仓库重新绘制的替代图形。
 

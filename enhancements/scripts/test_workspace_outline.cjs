@@ -1,0 +1,65 @@
+// 根据 Typora 1.14.9 的原生选择器与盒模型验证大纲；不读取或修改安装目录。
+const {app, BrowserWindow} = require('electron');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const {build} = require('esbuild');
+const evidence = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_workspace_outline_'));
+app.setPath('userData', path.join(evidence, 'user_data'));
+app.disableHardwareAcceleration();
+let test_window;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const evaluate = source => test_window.webContents.executeJavaScript(source);
+const checks = [];
+const check = (condition, label) => {assert(condition, label); checks.push(label);};
+const capture = async name => fs.writeFileSync(path.join(evidence, name + '.png'), (await test_window.webContents.capturePage()).toPNG());
+const click = async selector => {
+  const point = await evaluate(`(()=>{const rect=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(rect.left+rect.width/2),y:Math.round(rect.top+rect.height/2)}})()`);
+  for (const type of ['mouseMove', 'mouseDown', 'mouseUp']) test_window.webContents.sendInputEvent({type, ...point, button:'left', clickCount:1});
+  await delay(80);
+};
+app.whenReady().then(async () => {
+  test_window = new BrowserWindow({show:false, width:760, height:580, webPreferences:{contextIsolation:false, offscreen:true, backgroundThrottling:false}});
+  const html = path.join(evidence, 'test.html');
+  fs.writeFileSync(html, `<!doctype html><meta charset="utf-8"><style>
+    html,body{margin:0;height:100%;font:16px/1.4 system-ui}body{display:flex}aside{width:48px;background:#eee;flex:none}#typora-sidebar{width:280px;background:#f7f7f7;flex:none}#sidebar-content{display:flex;flex-direction:column;height:100%}.outline-content{padding:3px 18px;overflow-x:hidden;max-width:100%;flex:auto;overflow-y:auto}.outline-content li,.outline-content ul{margin-left:0;margin-right:0;padding-left:0;padding-right:0;list-style:none;overflow-wrap:anywhere}.outline-content ul{margin-top:0;margin-bottom:0}.outline-item{padding-top:3px;padding-bottom:3px;cursor:pointer}.outline-expander{width:1rem;height:1.428571429rem;position:relative;display:table-cell;vertical-align:middle;cursor:pointer;padding-left:4px}.outline-expander:before{content:'›';font-size:12px}.outline-item-open>.outline-item>.outline-expander:before{content:'⌄'}.outline-h1>.outline-item{padding-left:0}.outline-h2>.outline-item{padding-left:1em}.outline-h3>.outline-item{padding-left:2em}.outline-label{display:table-cell;vertical-align:middle}.outline-item:hover{margin-left:-28px;margin-right:-28px;border-left:28px solid transparent;border-right:28px solid transparent;background:#ddd}.outline-children{display:none}.outline-item-open>.outline-children{display:block}#file-library-search{height:0;overflow:hidden}.ty-show-outline-filter #file-library-search,.ty-show-search #file-library-search{height:50px}.ty-on-outline-filter .outline-item:not(.matched){display:none}.ty-on-outline-filter .outline-expander{display:none}#outline-menu{position:absolute;bottom:0;left:400px;list-style:none;background:#eee;padding:6px}#outline-menu>.divider{height:1px;background:#999;margin:4px 0}#toc-content{position:absolute;left:360px;top:0;width:240px;height:100px}main{padding:140px 25px 0;flex:1}#outline-content{height:100%;line-height:1.1rem}.workspace-search-query{display:block;width:160px}
+  </style><aside></aside><section id="typora-sidebar" class="active-tab-outline ty-show-outline-filter ty-on-outline-filter"><div id="sidebar-content"><div id="file-library-search"><div id="file-library-search-panel"><input id="file-library-search-input" value="old" style="width:calc(100% - 18px)"><span id="close-outline-filter-btn">×</span></div></div><div id="outline-content" class="outline-content"><li class="outline-item-wrapper outline-h1 outline-item-open"><div class="outline-item matched" id="heading_1"><span class="outline-expander"></span><span class="outline-label">源代码阅读</span></div><ul class="outline-children"><li class="outline-item-wrapper outline-h2 outline-item-open"><div class="outline-item" id="heading_2"><span class="outline-expander"></span><span class="outline-label">Tiny RCU 队列</span></div><ul class="outline-children"><li class="outline-item-wrapper outline-h3"><div class="outline-item" id="heading_3"><span class="outline-expander"></span><span class="outline-label">local_irq_save 与原始状态保存</span></div></li></ul></li></ul></li></div></div></section><div id="toc-content" class="outline-content">正文目录弹层保持原样</div><main id="write">正文内容不变。</main><ul id="outline-menu"><li data-action="highlight">高亮当前标题</li><li class="divider"></li><li data-action="filter">筛选</li><li class="divider" data-collapse></li><li data-action="collapse-all">全部折叠</li></ul>`);
+  await test_window.loadFile(html);
+  const bundle = await build({stdin:{contents:'export {install_workspace_outline} from "./src/workspace_outline";', resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'outline_qa',write:false});
+  await evaluate(bundle.outputFiles[0].text);
+  const initial_padding = await evaluate('getComputedStyle(document.querySelector("#outline-content")).paddingLeft');
+  check(initial_padding === '18px', 'fixture reproduces the native 18px outline outer padding');
+  await evaluate(`(()=>{
+    window.sidebar=document.querySelector('#typora-sidebar');window.hide_count=0;window.clear_count=0;window.filter_shown=true;window.selected='';window.original_text=document.querySelector('#write').textContent;
+    window.native_outline={isSearchShown:()=>filter_shown,hideSearch(){hide_count++;filter_shown=false;sidebar.classList.remove('ty-show-outline-filter');},clearSearch(){clear_count++;sidebar.classList.remove('ty-on-outline-filter');document.querySelectorAll('.ty-outline-hit').forEach(node=>node.replaceWith(...node.childNodes));}};
+    window.outline=outline_qa.install_workspace_outline({sidebar,outline:native_outline});
+    document.querySelectorAll('.outline-expander').forEach(node=>node.onclick=()=>node.closest('.outline-item-wrapper').classList.toggle('outline-item-open'));
+    document.querySelectorAll('.outline-label').forEach(node=>node.onclick=()=>{selected=node.textContent});
+    window.metrics=()=>{const pane=document.querySelector('#outline-content'),rect=pane.getBoundingClientRect();return{padding:getComputedStyle(pane).paddingLeft,scroll:pane.scrollWidth,client:pane.clientWidth,offsets:[...document.querySelectorAll('#outline-content .outline-expander')].map(node=>node.getBoundingClientRect().left-rect.left),filter:getComputedStyle(document.querySelector('#file-library-search')).display,popup:getComputedStyle(document.querySelector('#toc-content')).paddingLeft};};
+  })()`);
+  await delay(100);
+  check(await evaluate('hide_count===1&&clear_count===1&&!filter_shown&&!sidebar.classList.contains("ty-on-outline-filter")'), 'native hideSearch and clearSearch clear old filtering state');
+  check(await evaluate('document.querySelector("#file-library-search-input").value===""&&getComputedStyle(document.querySelector("#close-outline-filter-btn")).display==="none"'), 'old filter text and close button are cleared');
+  const compact = await evaluate('metrics()');
+  check(compact.padding === '0px' && compact.offsets[0] === 0, 'first heading expander starts at the outline edge without outer blank space');
+  check(compact.offsets[1]-compact.offsets[0] === 16 && compact.offsets[2]-compact.offsets[1] === 16, 'second and third heading levels preserve native one-em indentation');
+  check(compact.filter === 'none' && compact.popup === '18px', 'outline filter is hidden while the document TOC popup retains its padding');
+  check(await evaluate('getComputedStyle(document.querySelector("#outline-menu>[data-action=filter]")).display==="none"&&getComputedStyle(document.querySelector("#outline-menu>.divider")).display==="none"&&getComputedStyle(document.querySelector("#outline-menu>[data-action=collapse-all]")).display!=="none"'), 'only the outline filter menu and its separator are hidden');
+  await click('#heading_1 .outline-expander');
+  check(await evaluate('getComputedStyle(document.querySelector("#heading_1").nextElementSibling).display==="none"'), 'native expander still collapses nested headings');
+  await click('#heading_1 .outline-expander');await click('#heading_3 .outline-label');
+  check(await evaluate('selected==="local_irq_save 与原始状态保存"'), 'native heading navigation remains clickable');
+  await evaluate('filter_shown=true;sidebar.classList.add("ty-show-outline-filter","ty-on-outline-filter")');await delay(100);
+  check(await evaluate('hide_count===2&&clear_count===2&&!sidebar.classList.contains("ty-show-outline-filter")'), 'a later native filter activation is cleared without leaving filtered headings');
+  const idle = await evaluate('hide_count');await delay(100);check(await evaluate('hide_count') === idle, 'native class observer does not loop while idle');
+  await evaluate('sidebar.style.width="220px"');await click('#heading_2');const narrow = await evaluate('metrics()');
+  check(narrow.scroll === narrow.client && narrow.offsets[0] === 0, 'narrow outline hover does not overflow or restore the outer gap');
+  await capture('compact_outline');
+  await evaluate('sidebar.classList.remove("active-tab-outline");const panel=document.createElement("section");panel.className="linux-note-workspace-search";panel.innerHTML="<textarea class=workspace-search-query>当前搜索</textarea>";document.querySelector("#sidebar-content").append(panel);');
+  check(await evaluate('getComputedStyle(document.querySelector(".workspace-search-query")).display!=="none"'), 'workspace search input is not hidden by outline rules');
+  check(await evaluate('document.querySelector("#write").textContent===original_text'), 'outline cleanup leaves document text unchanged');
+  await evaluate('outline.dispose()');
+  check(await evaluate('getComputedStyle(document.querySelector("#outline-content")).paddingLeft==="18px"&&!document.querySelector("[data-workspace-outline-style]")'), 'dispose removes outline-only layout and observers');
+  console.log(JSON.stringify({status:'PASS',checks,compact,narrow,evidence}));test_window.destroy();app.exit(0);
+}).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});

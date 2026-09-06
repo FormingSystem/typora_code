@@ -1,0 +1,16 @@
+body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }
+.linux-note-editor-status { display:flex; flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }
+.linux-note-editor-status[hidden] { display:none!important; }
+.workspace-editor-status-controls { display:flex; align-items:center; gap:6px; min-width:0; padding:0 4px; font:12px/26px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.workspace-editor-status-controls::-webkit-scrollbar { display:none; }
+.workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }
+.workspace-editor-status-controls button:hover { background:var(--item-hover-bg-color,rgba(127,127,127,.12)); }
+.workspace-editor-status-controls :is(.workspace-file-location,.workspace-file-detail) { flex:none; white-space:nowrap; }
+footer.ty-footer[data-editor-status] > :is(#footer-word-count,#footer-spell-check) { display:none!important; }
+footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; min-width:0; }
+footer.ty-footer[data-editor-status][data-workspace-footer=ready] > #ty-sidebar-footer { margin-left:4px; }
+/* 空间不足时保留原生更多菜单，源码信息先于重复的新建/列表按钮显示。 */
+footer.ty-footer[data-editor-status=compact][data-workspace-footer=ready] > #ty-sidebar-footer { flex:0 0 26px; min-width:26px; max-width:26px; }
+footer.ty-footer[data-editor-status=compact] #ty-sidebar-footer > div > .sidebar-footer-item,
+footer.ty-footer[data-editor-status=compact] #sidebar-footer-main-item-label { display:none!important; }

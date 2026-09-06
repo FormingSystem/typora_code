@@ -1,0 +1,39 @@
+/* 原生底栏不再占用侧栏的最后 30px；预览和目录可使用完整高度。 */
+#typora-sidebar[data-workspace-footer=moved] > #sidebar-content { bottom:0!important; }
+body.show-footer footer.ty-footer[data-workspace-footer=ready] {
+  display:flex; align-items:center; gap:0; min-width:0; --workspace-native-actions-width:210px;
+}
+footer.ty-footer[data-workspace-footer=ready] > .footer-item {
+  float:none; flex:0 0 auto;
+}
+footer.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {
+  flex:0 1 auto; min-width:0;
+}
+footer.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {
+  position:relative!important; inset:auto!important; display:flex!important;
+  flex:0 1 210px; min-width:72px; max-width:40%; width:auto!important; height:100%;
+  margin:0 0 0 auto; padding:0; border:0!important; opacity:1!important;
+  animation:none!important; background:inherit; line-height:inherit; overflow:visible; z-index:5;
+}
+footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div {
+  display:flex; align-items:center; width:100%; min-width:0; height:100%;
+}
+footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer .sidebar-footer-item {
+  opacity:1!important; margin:0; padding-top:0; line-height:26px;
+}
+footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div > .sidebar-footer-item {
+  flex:none; width:26px; text-align:center;
+}
+footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
+  flex:1 1 auto; min-width:20px; overflow:visible;
+}
+footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
+  min-width:20px; width:100%; overflow:hidden;
+}
+footer.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label { min-width:0; }
+footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn .footer-btn { flex:none; }
+footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {
+  left:auto; right:0; top:auto; bottom:calc(100% + 3px);
+  width:min(320px, calc(100vw - 24px)); max-height:65vh; overflow:auto;
+  background:var(--bg-color,#fff); color:var(--text-color,inherit);
+}

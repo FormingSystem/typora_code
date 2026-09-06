@@ -4,6 +4,10 @@ import { transform } from "esbuild";
 
 const compiled = await transform(fs.readFileSync("src/file_language.ts", "utf8"), {loader: "ts", format: "esm"});
 const {FILE_LANGUAGE_RULES, match_file_language, detect_file_language, is_markdown_file, detect_binary_bytes, decode_file_bytes} = await import(`data:text/javascript;base64,${Buffer.from(compiled.code).toString("base64")}`);
+// 分离文件 BOM 之后，紧接着的 U+FEFF 是正文，不能被解码器再剥除一次。
+assert.equal(decode_file_bytes(Uint8Array.from([0xef,0xbb,0xbf,0xef,0xbb,0xbf,0x61])).text,'\ufeffa');
+assert.equal(decode_file_bytes(Uint8Array.from([0xff,0xfe,0xff,0xfe,0x61,0x00])).text,'\ufeffa');
+assert.equal(decode_file_bytes(Uint8Array.from([0xfe,0xff,0xfe,0xff,0x00,0x61])).text,'\ufeffa');
 const cases = [
   ["index.d.ts", "typescript", ".d.ts"], ["index.d.mts", "typescript", ".d.mts"], ["index.d.cts", "typescript", ".d.cts"],
   ["index.test.ts", "typescript", ".ts"], ["a.test.custom.ts", "typescript", ".ts"], ["theme.module.css", "css", ".module.css"],

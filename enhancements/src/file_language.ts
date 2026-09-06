@@ -146,7 +146,8 @@ function bom_encoding(bytes: Uint8Array): { encoding: string; offset: number } |
 /** BOM 优先于用户编码；不使用替换字符悄悄掩盖非法字节。 */
 export function decode_file_bytes(bytes: Uint8Array, fallback_encoding = "utf-8"): decoded_file {
   const bom = bom_encoding(bytes);
-  const decoder = new TextDecoder(bom?.encoding || fallback_encoding, {fatal: true});
+  // BOM 已在此处分离，后续 U+FEFF 属于正文，不能再被 TextDecoder 当作第二个 BOM 丢掉。
+  const decoder = new TextDecoder(bom?.encoding || fallback_encoding, {fatal: true, ignoreBOM: true});
   return {text: decoder.decode(bom ? bytes.subarray(bom.offset) : bytes), encoding: decoder.encoding, bom: Boolean(bom)};
 }
 

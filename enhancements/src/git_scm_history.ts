@@ -2,7 +2,11 @@ import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
 import { graph_element as el, graph_button as button, type graph_menu_entry } from "./git_graph_widgets";
 import type { git_source_control } from "./git_source_control";
-import { git_icon_button as icon_button, git_disclosure } from "./git_icons";
+import { git_icon_button as icon_button, git_disclosure, git_icon } from "./git_icons";
+
+// 与 VS Code SCM 历史相同的 11px 轨道、22px 行高；只计算当前行仍存在的轨道。
+const HISTORY_LANE_WIDTH = 11;
+const HISTORY_ROW_HEIGHT = 22;
 
 /** 复用仓库控制器的真实提交及拓扑；展开文件只读取所选提交，不切走当前文档。 */
 export class git_scm_history {
@@ -99,26 +103,34 @@ export class git_scm_history {
     for (const [index, commit] of state.commits.entries()) {
       const entry = el("div", "git-scm-history-entry"); const expanded = commit.hash === this.selected;
       const row = button("", () => { this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
-      row.dataset.hash = commit.hash; row.setAttribute("aria-expanded", String(expanded));
-      const names = [...(commit.hash === state.head ? ["HEAD"] : []), ...(refs.get(commit.hash) || [])];
+      row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
+      const names = [...(refs.get(commit.hash) || [])].sort((a, b) => Number(b === state.branch) - Number(a === state.branch));
+      if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
       row.title = `${commit.subject}\n${commit.author} · ${panel.date(commit)}\n${commit.hash}${names.length ? "\n" + names.join("、") : ""}`;
       const disclosure = el("span", "git-scm-history-disclosure"); disclosure.append(git_disclosure()); disclosure.setAttribute("aria-hidden", "true");
       const summary = el("span", "git-scm-history-summary"); const subject = el("span", "git-scm-history-subject", panel.emoji(commit.subject));
       summary.append(subject);
       if (names.length) {
         const labels = el("span", "git-scm-history-refs"); labels.title = names.join("、");
-        for (const name of names) labels.append(el("span", "git-scm-history-ref", name));
+        for (const name of names) {
+          const badge = el("span", "git-scm-history-ref"); badge.title = name;
+          badge.dataset.current = String(commit.hash === state.head && (name === state.branch || name === "HEAD"));
+          badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), el("span", "git-scm-history-ref-name", name)); labels.append(badge);
+        }
         summary.append(labels);
-      }
-      const svg = panel.draw_graph(graph.rows[index], graph.width);
+      } else summary.append(el("span", "git-scm-history-author", commit.author));
+      const graph_row = graph.rows[index];
+      const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap(edge => [edge.from, edge.to])) + 1;
+      const svg = panel.draw_graph(graph_row, row_lanes, {lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT});
       svg.classList.add("git-scm-history-topology");
-      svg.setAttribute("viewBox", `0 0 ${graph.width * 18 + 18} 34`); svg.setAttribute("height", "26"); svg.setAttribute("preserveAspectRatio", "none");
+      svg.setAttribute("viewBox", `0 0 ${(row_lanes + 1) * HISTORY_LANE_WIDTH} ${HISTORY_ROW_HEIGHT}`);
       row.append(disclosure, svg, summary);
       row.oncontextmenu = event => panel.target_menu(event, "commit", commit.hash, commit.hash); entry.append(row);
       if (expanded) {
-        const expansion = el("div", "git-scm-history-expansion"); expansion.style.setProperty("--git-history-lanes", graph.width * 18 + 34 + "px");
+        const outgoing_lanes = Math.max(-1, ...graph_row.edges.filter(edge => !edge.upper).map(edge => edge.to)) + 1;
+        const expansion = el("div", "git-scm-history-expansion"); expansion.style.setProperty("--git-history-lanes", (outgoing_lanes + 1) * HISTORY_LANE_WIDTH + "px");
         const files = el("div", "git-scm-history-files"); files.dataset.commit = commit.hash;
-        expansion.append(this.continuation(graph.rows[index], graph.width), files); entry.append(expansion);
+        expansion.append(this.continuation(graph_row, outgoing_lanes), files); entry.append(expansion);
         if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash)!);
         else { files.textContent = "正在读取提交文件…"; void this.load_files(state, commit, files, epoch); }
       }
@@ -132,11 +144,11 @@ export class git_scm_history {
   /** 文件展开区域延长每条离开当前提交的轨道，保持上下提交连线连续。 */
   continuation(row: graph_row, width: number): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg");
-    svg.classList.add("git-scm-history-continuation"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("width", String(width * 18 + 18));
-    svg.setAttribute("viewBox", `0 0 ${width * 18 + 18} 1`); svg.setAttribute("preserveAspectRatio", "none");
+    svg.classList.add("git-scm-history-continuation"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("width", String((width + 1) * HISTORY_LANE_WIDTH));
+    svg.setAttribute("viewBox", `0 0 ${(width + 1) * HISTORY_LANE_WIDTH} 1`); svg.setAttribute("preserveAspectRatio", "none");
     const lanes = new Set<number>();
     for (const edge of row.edges) if (!edge.upper && !lanes.has(edge.to)) {
-      lanes.add(edge.to); const line = document.createElementNS(ns, "line"); const x = String(edge.to * 18 + 16);
+      lanes.add(edge.to); const line = document.createElementNS(ns, "line"); const x = String((edge.to + 1) * HISTORY_LANE_WIDTH);
       line.setAttribute("x1", x); line.setAttribute("x2", x); line.setAttribute("y1", "0"); line.setAttribute("y2", "1");
       line.setAttribute("stroke", this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]); line.setAttribute("stroke-width", "2"); line.setAttribute("vector-effect", "non-scaling-stroke"); svg.append(line);
     }
@@ -151,7 +163,8 @@ export class git_scm_history {
   }
   render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
     target.replaceChildren(); const from = commit.parents[0] || EMPTY;
-    target.append(el("div", "git-scm-history-file-count", `${files.length} 个更改文件${commit.parents.length > 1 ? " · 对比第一个父提交" : ""}`));
+    target.setAttribute("role", "group");
+    target.setAttribute("aria-label", `${files.length} 个更改文件${commit.parents.length > 1 ? " · 对比第一个父提交" : ""}`);
     const directories = new Map<string, HTMLElement>([["", target]]);
     const parent_for = (path: string): HTMLElement => {
       if (!this.owner.history_tree || !path) return target;
@@ -165,7 +178,7 @@ export class git_scm_history {
     for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
       const row = button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
       row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
-      const label = el("span", "git-scm-file-label"); label.append(el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
+      const label = el("span", "git-scm-file-label"); label.append(git_icon("file"), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
       if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
       row.oncontextmenu = event => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files)); parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);

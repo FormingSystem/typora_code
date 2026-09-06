@@ -7,6 +7,7 @@ import { graph_button, graph_dialog, graph_element, type graph_menu_entry } from
 import type { graph_settings } from "./git_graph_settings";
 import { git_icon } from "./git_icons";
 import { get_workspace_files } from "./workspace_files";
+import { bind_workspace_editor_status } from "./workspace_editor_status";
 
 export type graph_leaf = { state: { path: string; git_cwd?: string }; view: { containerEl: HTMLElement }; containerEl: HTMLElement;
   parent: { appendChild(leaf: graph_leaf): void; toggleTab(path: string): graph_leaf } };
@@ -29,6 +30,7 @@ type native_file = { getMountFolder?(): string; bundle?: { filePath?: string }; 
 export function create_graph_host(core: graph_core) {
   const runtime = window as unknown as { reqnode(name: string): any; File?: native_file; JSBridge: { invoke(command: string, ...args: unknown[]): Promise<unknown> }; _options: { userDataPath: string } };
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const process_api = runtime.reqnode("process");
+  const editor_status=bind_workspace_editor_status(core);
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
   type document_options = {root?: string; key?: string; menu?: () => graph_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
@@ -60,7 +62,7 @@ export function create_graph_host(core: graph_core) {
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
       }
       if (!payload) { this.containerEl.textContent = "此临时历史视图已释放，请从提交图重新打开。"; return; }
-      if (payload === this.document) { this.editor?.editor.layout(); return; }
+      if (payload === this.document) { this.editor?.editor.layout();editor_status.refresh(); return; }
       if (this.editor && payload.data && this.document?.data) {
         try { this.editor.update(payload.data); this.document = payload; }
         catch (error) { this.editor.status.textContent = String(error); }
@@ -74,10 +76,12 @@ export function create_graph_host(core: graph_core) {
         if (payload.options.adjacent) this.editor.toolbar.prepend(graph_button("上一文件", () => payload.options.adjacent!(-1)), graph_button("下一文件", () => payload.options.adjacent!(1)));
         this.editor.toolbar.append(graph_button("切换侧栏", () => core.app.workspace.sidebar.toggle()));
         this.containerEl.append(this.editor.container);
+        editor_status.register(this.leaf,this.editor.create_readonly_status());
       } catch (error) { this.containerEl.append(graph_element("p", "git-scm-empty", String(error))); }
     }
     onClose() {
-      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) this.editor?.dispose(); if (!payload_exists) contents.delete(this.leaf.state.path); }, 0);
+      editor_status.schedule();
+      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) {editor_status.release(this.leaf);this.editor?.dispose();} if (!payload_exists) contents.delete(this.leaf.state.path); }, 0);
     }
   }
   core.app.viewManager.registerView("linux_note.git_document", leaf => new graph_document_view(leaf));

@@ -1,0 +1,12 @@
+/* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
+body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
+  display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
+  right:auto!important; width:7px!important; margin-left:-3px!important; z-index:99;
+  touch-action:none; user-select:none; cursor:col-resize; outline:none;
+}
+#typora-sidebar-resizer[data-workspace-sidebar-sash=ready] > .typora-sidebar-resizer-bar { display:none!important; }
+#typora-sidebar-resizer[data-workspace-sidebar-sash=ready]::after { content:""; position:absolute; left:3px; top:0; bottom:0; width:1px; background:var(--window-border-color,#8884); }
+#typora-sidebar-resizer[data-workspace-sidebar-sash=ready]:focus-visible { background:#0078d4; }
+.linux-note-sidebar-dragging,.linux-note-sidebar-dragging * { cursor:col-resize!important; user-select:none!important; }
+.linux-note-sidebar-dragging :is(#typora-sidebar,#top-titlebar,#typora-sidebar-resizer,content,footer.ty-footer,.typ-workspace-root) { transition:none!important; }
+.linux-note-sidebar-dragging #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] { background:#0078d4; }

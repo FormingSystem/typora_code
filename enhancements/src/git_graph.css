@@ -192,19 +192,23 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 @container (max-width: 400px) { .git-scm-history-network { display: none !important; } }
 @container (max-width: 230px) { .git-scm-history-toolbar .git-scm-graph-launch { display: none !important; } }
 .git-scm-history-list { overflow: auto; scrollbar-gutter: stable; min-width: 0; min-height: 0; flex: 1; }
-:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; border-radius: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 26px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
+:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; border-radius: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
 .git-scm-history-commit[aria-expanded=true] { background: #0078d426 !important; }
-.git-scm-history-disclosure { display: flex; align-items: center; justify-content: center; flex: 0 0 16px; }
+.git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
+.git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 40px; padding-right: 6px; overflow: hidden; }
-.git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 26px; }
-.git-scm-history-refs { display: block; flex: 0 1 auto; max-width: 38%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
-.git-scm-history-ref { display: inline; border-radius: 2px; background: #0078d424; color: #1679c1; padding: 0 3px; margin-right: 4px; }
-.git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); padding-bottom: 4px; }
-.git-scm-history-continuation { position: absolute; left: 16px; top: 0; height: 100%; pointer-events: none; }
-.git-scm-history-files { min-width: 0; font-size: 11px; }
-.git-scm-history-file-count { opacity: .65; padding: 4px 6px 4px 0; overflow-wrap: anywhere; }
-:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; border-radius: 0; box-shadow: none; width: 100%; min-height: 26px; padding: 3px var(--git-scm-row-right) 3px 0; margin: 0; text-align: left; background: transparent; white-space: nowrap; }
+.git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 22px; }
+.git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 45%; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 11px; }
+.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
+.git-scm-history-ref[data-current=true] { background: #006bff; }
+.git-scm-history-ref-name { overflow: hidden; text-overflow: ellipsis; }
+.git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }
+.git-scm-history-author { flex: 0 1 auto; max-width: 30%; overflow: hidden; text-overflow: ellipsis; opacity: .65; font-size: 11px; }
+.git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); }
+.git-scm-history-continuation { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }
+.git-scm-history-files { min-width: 0; font-size: 12px; }
+:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; border-radius: 0; box-shadow: none; width: 100%; height: 22px; padding: 0 var(--git-scm-row-right) 0 0; margin: 0; text-align: left; background: transparent; white-space: nowrap; }
 .git-scm-history-directory { margin-left: 8px; }
 .git-scm-history-directory > summary { cursor: pointer; padding: 3px 6px 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-more { width: 100%; border: 0; border-radius: 0; box-shadow: none; font-size: 12px; }

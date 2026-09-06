@@ -1,0 +1,25 @@
+/* 原生外围有 18px padding，标题行还有按级缩进；仅移除重复的外围留白。 */
+html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content {
+  padding-left: 0;
+  padding-right: 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item {
+  padding-right: 4px;
+}
+/* 原生 hover 用负边距扩大热区；去外围空白后直接使用行本身，避免横向越界。 */
+html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item:hover {
+  margin-left: 0;
+  margin-right: 0;
+  border-left: 0;
+  border-right: 0;
+}
+html[data-linux-note-workspace-outline="ready"] #typora-sidebar.active-tab-outline #file-library-search {
+  display: none !important;
+  height: 0 !important;
+}
+html[data-linux-note-workspace-outline="ready"] #outline-menu > [data-action="filter"],
+html[data-linux-note-workspace-outline="ready"] #outline-menu > .divider:has(+ [data-action="filter"]) {
+  display: none !important;
+}

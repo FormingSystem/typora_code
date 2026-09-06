@@ -18,6 +18,7 @@ export type workspace_explorer_options = {
   active_file?(): string;
   open_folder(): unknown;
   copy(text: string): unknown;
+  rename(root: string, old_path: string, name: string): Promise<string>;
   extra_menu?(path: string, is_directory: boolean): graph_menu_entry[];
 };
 type explorer_node = {
@@ -35,7 +36,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   const sidebar = core.app.workspace.sidebar;
   const style = el("style"); style.textContent = explorer_css; document.head.append(style);
   const container = el("section", "linux-note-workspace-explorer"); container.setAttribute("aria-label", "资源管理器");
-  const toolbar = el("header", "workspace-explorer-toolbar");
+  const toolbar = el("div", "workspace-explorer-toolbar");
   const title = el("strong", "", "资源管理器");
   const actions = el("div", "workspace-explorer-actions");
   const root_label = el("div", "workspace-explorer-root");
@@ -45,6 +46,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
+  let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean} | undefined, click_timer = 0;
   const nodes = new Map<string, explorer_node>(); const detachers: (() => void)[] = [];
   const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
 
@@ -102,6 +104,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
       const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
       const rows: HTMLElement[] = [];
+      const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : undefined;
+      const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : undefined;
       for (let index = start; index < end; index++) {
         const node = flat_nodes[index];
         const row = el("div", "workspace-explorer-row" + (node.path === selected_path ? " is-selected" : ""));
@@ -112,21 +116,40 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
         row.title = node.path + (node.error ? "\n" + node.error : "");
         const chevron = el("span", "workspace-explorer-chevron");
         if (node.directory) chevron.append(icon(node.expanded ? "chevron-down" : "chevron-right"));
-        row.append(chevron, icon(node.directory ? node.expanded ? "folder-opened" : "folder" : "file"), el("span", "workspace-explorer-name", node.name));
+        row.append(chevron, icon(node.directory ? node.expanded ? "folder-opened" : "folder" : "file"), rename_state?.node === node ? rename_state.input : el("span", "workspace-explorer-name", node.name));
         if (node.link) row.append(el("span", "workspace-explorer-note", "链接"));
         if (node.loading) row.append(el("span", "workspace-explorer-note", "读取中…"));
         else if (node.error) row.append(el("span", "workspace-explorer-note is-error", "无法读取"));
-        row.onclick = () => { select(node); run(() => activate(node)); };
+        row.onclick = event => {
+          if (event.target === rename_state?.input) return;
+          if (event.detail > 1) return;
+          window.clearTimeout(click_timer);
+          // 已选中名称的第二次操作留给双击改名；箭头和图标仍立即打开/折叠。
+          if (selected_path === node.path && event.target instanceof Element && event.target.closest(".workspace-explorer-name")) {
+            click_timer = window.setTimeout(() => { click_timer = 0; run(() => activate(node)); }, 500); return;
+          }
+          select(node); run(() => activate(node));
+        };
+        row.ondblclick = event => {
+          if (!(event.target instanceof Element) || !event.target.closest(".workspace-explorer-name")) return;
+          event.preventDefault(); event.stopPropagation(); window.clearTimeout(click_timer); click_timer = 0; begin_rename(node);
+        };
         row.oncontextmenu = event => { select(node); context_menu(event, node); };
         rows.push(row);
       }
       spacer.replaceChildren(...rows);
+      if (focused_input?.isConnected) { focused_input.focus({preventScroll: true}); focused_input.setSelectionRange(selection![0], selection![1]); }
+      if (rename_state?.focus_requested && rename_state.input.isConnected) {
+        const {input, node} = rename_state; rename_state.focus_requested = false;
+        input.focus({preventScroll: true}); const dot = node.directory ? -1 : node.name.lastIndexOf("."); input.setSelectionRange(0, dot > 0 ? dot : node.name.length);
+      }
       const selected = nodes.get(selected_path);
       if (selected && rows.some(row => row.id === selected.id)) tree.setAttribute("aria-activedescendant", selected.id);
       else tree.removeAttribute("aria-activedescendant");
     });
   }
   function select(node: explorer_node, scroll = false) {
+    if (rename_state && rename_state.node !== node && !rename_state.busy) rename_state = undefined;
     selected_path = node.path; set_status(node.path); tree.focus({preventScroll: true});
     if (scroll) {
       const index = flat_nodes.indexOf(node), top = index * ROW_HEIGHT;
@@ -136,6 +159,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     render();
   }
   async function load_children(node: explorer_node, force = false): Promise<void> {
+    if (rename_state?.busy) return;
     if (disposed || nodes.get(node.path) !== node) return;
     if (node.loading) return node.loading;
     if (node.children && !force) { watch(node); return; }
@@ -168,6 +192,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     render(); return node.loading;
   }
   async function activate(node: explorer_node) {
+    if (rename_state) return;
     if (node.link && !node.directory) {
       // 仅在用户点击链接时查询目标；不递归跟随符号链接遍历仓库。
       const stat = await fs.promises.stat(node.path); node.directory = stat.isDirectory();
@@ -182,13 +207,51 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     const entries: graph_menu_entry[] = node === root ? [{title: "全部折叠", action: () => { for (const child of node.children || []) collapse(child); rebuild(); }}]
       : node.directory ? [{title: node.expanded ? "折叠文件夹" : "展开文件夹", action: () => run(() => activate(node))}]
       : [{title: "打开文件", action: () => run(() => options.open_file(node.path))}, {title: "在右侧打开", action: () => run(() => options.open_file(node.path, {}, "right"))}];
+    if (node !== root) entries.push({title: "重命名（F2）", separator: true, disabled: Boolean(rename_state?.busy), action: () => begin_rename(node)});
     entries.push({title: "复制路径", separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
       {title: "复制相对路径", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
     if (node.directory) entries.push({title: "刷新文件夹", action: () => run(() => load_children(node, true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
     graph_menu(event, entries);
   }
+  function begin_rename(node: explorer_node) {
+    if (!root || node === root || disposed || rename_state?.busy) return;
+    window.clearTimeout(click_timer); click_timer = 0; select(node, true);
+    const input = el("input", "workspace-explorer-rename"); input.value = node.name; input.setAttribute("aria-label", "新名称"); input.spellcheck = false;
+    rename_state = {node, input, busy: false, focus_requested: true}; set_status("输入新名称，按 Enter 确认，Esc 取消。");
+    input.onkeydown = event => {
+      event.stopPropagation();
+      if (event.isComposing) return;
+      if (event.key === "Escape") { event.preventDefault(); if (!rename_state?.busy) { rename_state = undefined; set_status("已取消重命名。"); tree.focus({preventScroll: true}); render(); } }
+      else if (event.key === "Enter") { event.preventDefault(); run(finish_rename); }
+    };
+    // 聚焦由真正挂载输入框的 render 执行；滚动事件取消旧 RAF 时也不会漏掉聚焦。
+    render();
+  }
+  async function finish_rename() {
+    const edit = rename_state, current_root = root;
+    if (!edit || !current_root || edit.busy) return;
+    if (edit.input.value === edit.node.name) { rename_state = undefined; tree.focus({preventScroll: true}); render(); return; }
+    edit.busy = true; edit.input.disabled = true; set_status("正在重命名…");
+    try {
+      const expanded = edit.node.expanded;
+      const target = await options.rename(current_root.path, edit.node.path, edit.input.value);
+      rename_state = undefined;
+      if (disposed || root !== current_root) return;
+      // 丢弃旧路径监视句柄，随后重新展开到新名称，避免目录改名后继续读取旧路径。
+      close_branch(edit.node, true); await load_children(edit.node.parent || current_root, true); await reveal(target);
+      const replacement = nodes.get(target); if (expanded && replacement?.directory) { replacement.expanded = true; await load_children(replacement); }
+      set_status("已重命名为 " + path_api.basename(target)); tree.focus({preventScroll: true});
+    } catch (error) {
+      if (disposed) return;
+      const renamed_path = (error as {renamed_path?: string}).renamed_path;
+      if (renamed_path) { rename_state = undefined; await refresh(); await reveal(renamed_path); set_status(String(error instanceof Error ? error.message : error)); return; }
+      edit.busy = false; edit.input.disabled = false; edit.input.setAttribute("aria-invalid", "true"); set_status(String(error instanceof Error ? error.message : error));
+      edit.input.focus({preventScroll: true});
+    }
+  }
   async function sync_root(force = false) {
+    if (rename_state?.busy) return;
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
       if (root) { generation++; close_branch(root, true); root = undefined; root_label.textContent = "未打开文件夹"; selected_path = ""; rebuild(); }
@@ -197,6 +260,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) await load_children(root, true); return; }
     generation++;
+    rename_state = undefined;
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
     selected_path = ""; root_label.textContent = root.name; root_label.title = root.path; tree.scrollTop = 0;
@@ -272,6 +336,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       if (event.key === "ArrowLeft") { if (node.expanded) { collapse(node); rebuild(); } else if (node.parent && node.parent !== root) select(node.parent, true); }
       else if (event.key === "ArrowRight") { if (node.directory && !node.expanded) run(() => activate(node)); else if (node.expanded && node.children?.length) select(node.children[0], true); }
       else run(() => activate(node));
+    } else if (event.key === "F2") {
+      event.preventDefault(); event.stopPropagation(); begin_rename(node);
     } else if (event.key === "F10" && event.shiftKey) {
       event.preventDefault(); const bounds = tree.getBoundingClientRect(); context_menu(new MouseEvent("contextmenu", {clientX: bounds.left + 24, clientY: bounds.top + 30}), node);
     }
@@ -287,6 +353,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     native_observer.disconnect(); resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame); if (refresh_frame) cancelAnimationFrame(refresh_frame);
+    window.clearTimeout(click_timer); rename_state = undefined;
     document.removeEventListener("click", activity_click, true); window.removeEventListener("focus", window_focus); window.removeEventListener("pagehide", dispose);
     for (const detach of detachers) detach();
     if (sidebar.activePanel === panel) { sidebar.hide(); sidebar.activePanel = sidebar.panels.find(candidate => candidate.ribbonButton?.id === "core.file-explorer"); }

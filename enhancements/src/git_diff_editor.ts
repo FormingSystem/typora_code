@@ -30,7 +30,7 @@ import { register_file_languages } from "./workspace_languages";
 
 let initialized = false;
 let serial = 0;
-function initialize_editor(): void {
+export function initialize_editor(): void {
   if (initialized) return;
   const worker_url = URL.createObjectURL(new Blob([worker_source], {type: "text/javascript"}));
   (globalThis as unknown as {MonacoEnvironment: unknown}).MonacoEnvironment = {getWorker: () => new Worker(worker_url)};
@@ -46,6 +46,8 @@ export class git_diff_editor {
   editor: monaco.editor.IStandaloneDiffEditor | monaco.editor.IStandaloneCodeEditor;
   models: monaco.editor.ITextModel[] = []; observer: ResizeObserver; subscriptions: monaco.IDisposable[] = [];
   side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = false;
+  last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
+  readonly_status?: HTMLElement;
   constructor(public data: diff_document, public extra_menu: () => graph_menu_entry[] = () => []) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("这是二进制文件，不能作为文本比较。请打开文件或查看 Git 文件状态。");
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
@@ -63,32 +65,19 @@ export class git_diff_editor {
     };
     const original = model(data.left, "original");
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
-    const minimap: monaco.editor.IEditorMinimapOptions = {enabled: true, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
+    // 普通单文件保留全文缩略图；Git 差异只显示原生红绿改动概览。
+    const minimap: monaco.editor.IEditorMinimapOptions = {enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
     const options = {automaticLayout: true, readOnly: true, fontSize: 14, lineHeight: 22, fontFamily: "Consolas, ui-monospace, monospace", minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
       const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
       // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
       // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
-      // 概览的宽度、点击定位和视口框由上游管理，与窄滚动条、修改侧缩略图并存。
-      const modified_view = editor.getModifiedEditor();
-      // Monaco 的差异组件在更新任意选项时会关闭两侧缩略图；只为修改侧恢复文档地图。
-      // 不接管滚轮、点击或拖动，沿用编辑器的定位与双栏滚动同步。
-      this.subscriptions.push(modified_view.onDidChangeConfiguration(event => {
-        if (event.hasChanged(monaco.editor.EditorOption.minimap) && !modified_view.getOption(monaco.editor.EditorOption.minimap).enabled) modified_view.updateOptions({minimap});
-      }));
-      modified_view.updateOptions({minimap});
-      const minimap_changes = modified_view.createDecorationsCollection();
+      // 概览的宽度、点击定位和视口框由上游管理，不额外显示全文缩略图。
       this.editor = editor; editor.setModel({original, modified});
       let revealed = false;
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
         const changes = editor.getLineChanges(); this.status.textContent = changes ? `${changes.length} 处改动` : "差异计算未完成";
-        minimap_changes.set((changes || []).map(change => {
-          const deleted = change.modifiedEndLineNumber === 0;
-          const start = Math.max(1, Math.min(modified.getLineCount(), change.modifiedStartLineNumber));
-          const end = deleted ? start : Math.max(start, change.modifiedEndLineNumber);
-          return {range: new monaco.Range(start, 1, end, 1), options: {description: "git-diff-minimap", isWholeLine: true, minimap: {color: deleted ? "#c74e39" : change.originalEndLineNumber === 0 ? "#2e9d57" : "#3286c8", position: monaco.editor.MinimapPosition.Gutter}}};
-        }));
         this.container.setAttribute("data-diff-ready", String(changes !== null));
         if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
       }));
@@ -108,11 +97,58 @@ export class git_diff_editor {
   }
   focused_editor(): monaco.editor.IStandaloneCodeEditor {
     if (!("getModifiedEditor" in this.editor)) return this.editor;
-    return this.editor.getOriginalEditor().hasTextFocus() ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor();
+    return this.last_focused_editor || (this.editor.getOriginalEditor().hasTextFocus() ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor());
+  }
+  /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
+  create_readonly_status(): HTMLElement {
+    if(this.readonly_status)return this.readonly_status;
+    const controls=el("div","workspace-editor-status-controls");this.readonly_status=controls;
+    const side=el("span","workspace-file-detail"),location=el("span","workspace-file-location"),eol=el("span","workspace-file-detail"),language=el("span","workspace-file-detail"),readonly=el("span","workspace-file-detail","只读");
+    side.setAttribute("aria-label","比较侧");eol.setAttribute("aria-label","行尾序列");language.setAttribute("aria-label","语言模式");
+    controls.append(side,location,eol,language,readonly);
+    const refresh=()=>{
+      const editor=this.focused_editor(),model=editor.getModel(),position=editor.getPosition();
+      const original="getOriginalEditor" in this.editor && editor===this.editor.getOriginalEditor();
+      side.textContent="getOriginalEditor" in this.editor?(original?"原始版本":"修改版本"):"历史版本";
+      side.title=original?this.data.left_label||"原始版本":this.data.right_label||this.data.left_label||"历史版本";
+      location.textContent=`行 ${position?.lineNumber||1}，列 ${position?.column||1}`;
+      eol.textContent=model?.getEOL()==="\r\n"?"CRLF":"LF";language.textContent=model?.getLanguageId()||"plaintext";
+    };
+    const views="getOriginalEditor" in this.editor?[this.editor.getOriginalEditor(),this.editor.getModifiedEditor()]:[this.editor];
+    for(const view of views)this.subscriptions.push(view.onDidFocusEditorText(refresh),view.onDidChangeCursorPosition(()=>{if(view===this.focused_editor())refresh();}),view.onDidChangeModelLanguage(refresh),view.onDidChangeModelContent(refresh));
+    refresh();return controls;
+  }
+  sync_theme(): void {
+    const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
+    monaco.editor.setTheme(color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs");
   }
   bind_editor(view: monaco.editor.IStandaloneCodeEditor): void {
+    this.subscriptions.push(view.onDidFocusEditorText(()=>{this.last_focused_editor=view;}));
     // 右键不受正文是否先获焦影响；菜单作用于刚刚右击的这一侧。
     this.subscriptions.push(view.onContextMenu(event => { view.focus(); this.context_menu(event.event.browserEvent as MouseEvent); }));
+    const root = view.getDomNode();
+    let pending: {query: string; selection: monaco.Selection; x: number; y: number} | undefined;
+    const lookup = (event: MouseEvent) => {
+      pending = undefined;
+      if (!event.isTrusted || event.button !== 0 || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      const selection = view.getSelection(), model = view.getModel();
+      const target = view.getTargetAtClientPoint(event.clientX, event.clientY)?.position;
+      if (!selection || selection.isEmpty() || !model || !target || !selection.containsPosition(target)) return;
+      const query = model.getValueInRange(selection); if (!query.trim()) return;
+      // 在 Monaco 折叠选区之前捕获；只接管点在现有选区内的 Ctrl+左键。
+      event.preventDefault(); event.stopImmediatePropagation();
+      pending = {query, selection, x: event.clientX, y: event.clientY};
+    };
+    const click = (event: MouseEvent) => {
+      const candidate = pending; pending = undefined;
+      if (!candidate || !event.isTrusted || event.button !== 0 || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || Math.hypot(event.clientX - candidate.x, event.clientY - candidate.y) > 5) return;
+      event.preventDefault(); event.stopImmediatePropagation(); const {query, selection} = candidate;
+      window.dispatchEvent(new CustomEvent("linux-note-search-selection", {detail: {query, source_path: this.data.file,
+        line: selection.startLineNumber, column: selection.startColumn, end_line: selection.endLineNumber, end_column: selection.endColumn}}));
+    };
+    root?.addEventListener("mousedown", lookup, true);
+    root?.addEventListener("click", click, true);
+    this.subscriptions.push({dispose: () => {pending = undefined; root?.removeEventListener("mousedown", lookup, true); root?.removeEventListener("click", click, true);}});
   }
   navigate(direction: "next" | "previous"): void { if ("goToDiff" in this.editor) this.editor.goToDiff(direction); }
   update(data: diff_document): void {

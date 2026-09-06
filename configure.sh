@@ -145,4 +145,7 @@ printf '%s\n' \
     '[typora] Save open documents, restart Typora, and select cpp github consolas.' \
     '[typora] 已安装全文件目录、隐藏文件、复合后缀识别、源码标签和文件搜索预览。' \
     '[typora] Git 使用官方 Codicons、双栏差异和红绿概览；活动栏支持排序，终端配色跟随主题。' \
+    '[typora] 搜索支持手动输入和选中文字后 Ctrl+左键；单击预览、双击定位，预览可收放，用滑块或 Ctrl+滚轮调整比例。' \
+    '[typora] 普通源码支持 Ctrl+S 保存、Ctrl+F 查找；全局底栏随当前编辑区更新行列、语言模式、编码和换行格式。' \
+    '[typora] Windows／Linux 新窗口使用单行标题与菜单；保存文档后重启使已有窗口生效。' \
     '[typora] Git 从 PATH 发现；无需独立安装 Node.js。'

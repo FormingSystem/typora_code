@@ -1,0 +1,42 @@
+// 用后段多分支的历史重现前段单轨提交被全局宽度撑开的排版问题。
+const {app,BrowserWindow}=require('electron');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const os=require('node:os');
+const path=require('node:path');
+const {build}=require('esbuild');
+const {editor_plugins}=require('./editor_bundle.cjs');
+const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_history_layout_'));
+app.setPath('userData',path.join(evidence,'user_data'));app.disableHardwareAcceleration();
+let test_window;const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const evaluate=source=>test_window.webContents.executeJavaScript(source);
+const capture=async name=>fs.writeFileSync(path.join(evidence,name+'.png'),(await test_window.webContents.capturePage()).toPNG());
+app.whenReady().then(async()=>{
+  test_window=new BrowserWindow({show:false,width:780,height:800,webPreferences:{contextIsolation:false,offscreen:true,backgroundThrottling:false}});
+  const html=path.join(evidence,'test.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;font:13px system-ui;background:white}#sidebar{width:300px;height:100%;border-right:1px solid #ddd;box-sizing:border-box;display:flex;flex-direction:column}</style><aside id="sidebar" class="linux-note-git-source-control git-scm-sidebar"></aside>');await test_window.loadFile(html);
+  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export {git_scm_history} from "./src/git_scm_history";export {git_graph_panel} from "./src/git_graph_panel";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'history_qa',write:false});await evaluate(bundle.outputFiles[0].text);
+  await evaluate(`(()=>{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);})()`);
+  await evaluate(String.raw`(()=>{
+    const make=(hash,parents)=>({hash,parents,author:'测试作者',date:'2026-09-06',subject:hash==='tip'?'修正文件列表缩进和显示位置':hash});
+    const commits=[make('tip',['single']),make('single',['merge']),make('merge',Array.from({length:12},(_,index)=>'branch_'+index)),...Array.from({length:12},(_,index)=>make('branch_'+index,['base'])),make('base',[])];
+    window.state={root:'layout-fixture',head:'tip',branch:'main',refs:[{name:'refs/heads/main',hash:'tip'},{name:'refs/remotes/origin/main',hash:'merge'}],commits,more:false};
+    window.opened=[];window.owner={history_tree:false,history_open:true,toggle_history(){},save_layout(){},open_file(...args){opened.push(args)},file_entries(){return[]},panel:{root:state.root,state,settings:{colors:['#1679e8','#6c369d','#008866'],graph_style:'curved',show_tags:true,show_remotes:true},emoji:text=>text,date:commit=>commit.date,host:{},configured_menu(){},target_menu(){},draw_graph:history_qa.git_graph_panel.prototype.draw_graph}};
+    window.history_view=new history_qa.git_scm_history(owner);history_view.root=state.root;
+    for(const commit of commits)history_view.files_cache.set(commit.hash,[{path:'src/configure_environment.sh',status:'M'},{path:'README.md',status:'A'}]);
+    document.querySelector('#sidebar').append(history_view.container);history_view.render(state);
+  })()`);await delay(100);
+  const metrics=[];
+  for(const width of [220,300,480]){
+    await evaluate(`document.querySelector('#sidebar').style.width='${width}px';history_view.selected='tip';history_view.render(state)`);await delay(50);
+    const result=await evaluate(`(()=>{const row=document.querySelector('[data-hash=tip]'),svg=row.querySelector('.git-scm-history-topology'),subject=row.querySelector('.git-scm-history-subject'),expansion=row.nextElementSibling,files=expansion.querySelector('.git-scm-history-files'),next=document.querySelector('[data-hash=single] .git-scm-history-topology'),line=expansion.querySelector('line');const rightmost=[...expansion.querySelectorAll('.git-scm-file-status')].map(node=>node.getBoundingClientRect().right);return{svg_width:svg.getBoundingClientRect().width,indent:files.getBoundingClientRect().left-row.getBoundingClientRect().left,gap:subject.getBoundingClientRect().left-svg.getBoundingClientRect().left,twistie:getComputedStyle(row.querySelector('.git-scm-history-disclosure')).display,file_width:files.clientWidth,line_x:line.x1.baseVal.value+line.ownerSVGElement.getBoundingClientRect().left,next_x:next.querySelector('circle').cx.baseVal.value+next.getBoundingClientRect().left,row_bottom:row.getBoundingClientRect().bottom,files_top:files.getBoundingClientRect().top,overflow:history_view.list.scrollWidth-history_view.list.clientWidth,rightmost,badge:row.querySelector('.git-scm-history-ref').textContent,head_fill:getComputedStyle(svg.querySelector('circle')).fill};})()`);
+    assert.equal(result.svg_width,22);assert.equal(result.indent,22);assert.equal(result.gap,22);assert.equal(result.twistie,'none');assert(result.file_width>170);assert.equal(result.line_x,result.next_x);assert.equal(result.row_bottom,result.files_top);assert(result.overflow<=1);assert.equal(result.rightmost[0],result.rightmost[1]);assert.equal(result.badge,'main');metrics.push({width,...result});await capture('single_lane_'+width);
+  }
+  await evaluate(`history_view.selected='merge';history_view.render(state)`);await delay(50);
+  const merge=await evaluate(`(()=>{const row=document.querySelector('[data-hash=merge]'),svg=row.querySelector('.git-scm-history-topology'),continuation=row.nextElementSibling.querySelector('svg');return{width:svg.getBoundingClientRect().width,lines:[...continuation.querySelectorAll('line')].map(line=>line.x1.baseVal.value),continuation_width:continuation.getBoundingClientRect().width};})()`);
+  assert.equal(merge.width,143);assert.equal(merge.continuation_width,143);assert.deepEqual(merge.lines,Array.from({length:12},(_,index)=>(index+1)*11));await capture('multi_lane');
+  await evaluate(`history_view.selected='branch_11';history_view.render(state)`);await delay(50);
+  assert.equal(await evaluate(`document.querySelector('[data-hash=branch_11]').nextElementSibling.querySelector('.git-scm-history-files').getBoundingClientRect().left-document.querySelector('[data-hash=branch_11]').getBoundingClientRect().left`),22);
+  await evaluate(`document.querySelector('[data-hash=branch_11]').nextElementSibling.querySelector('[data-history-file]').click()`);assert.equal(await evaluate('opened.length'),1);
+  await evaluate(`document.querySelector('[data-hash=branch_11]').click()`);assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-expansion").length'),0);
+  console.log(JSON.stringify({status:'PASS',checks:['later 12-lane merge cannot widen current single-lane row','single-lane file list begins at 22px without an extra count row','separate twistie column is removed','continuation and next commit retain identical lane coordinates','multi-parent expansion preserves all 12 live lanes','merged-away tracks stop reserving file indentation','narrow and wide sidebars keep status alignment and avoid overflow','file click still opens the selected comparison and commit click collapses it'],metrics,merge,evidence}));test_window.destroy();app.exit(0);
+}).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});

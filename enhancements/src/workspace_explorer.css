@@ -20,3 +20,6 @@
 .workspace-explorer-note { font:11px var(--font-family,Arial,sans-serif); color:#777; margin-left:auto; }
 .workspace-explorer-note.is-error { color:#d33; }
 .workspace-explorer-status { padding:4px 10px; min-height:23px; max-height:58px; overflow:hidden; text-overflow:ellipsis; font:11px var(--font-family,Arial,sans-serif); border-top:1px solid #8882; color:var(--text-color,#666); overflow-wrap:anywhere; }
+.workspace-explorer-rename{min-width:0;flex:1;width:100%;height:23px;box-sizing:border-box;border:1px solid var(--select-text-bg-color,#007acc);border-radius:0;padding:1px 4px;background:var(--bg-color,#fff);color:var(--text-color,#333);font:inherit;outline:none}
+.workspace-explorer-rename[aria-invalid="true"]{border-color:#d73a49}
+.workspace-explorer-rename:disabled{opacity:.7}
