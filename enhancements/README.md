@@ -9,6 +9,8 @@ domains:
 
 # 第1章\_Typora\_工作区、阅读导航与代码增强
 
+用户入口见 [Typora 安装与阅读工作区](../README.md#1.1_安装、检查与恢复)；原生偏好设置另见 [配置截图](../typora配置展示.md#第1章_文件)。本页集中说明扩展能力、构建与依赖维护。
+
 本扩展补足主题 CSS 无法承担的以下能力：
 
 - 安装固定版本的 Typora Community Plugin 核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
@@ -45,12 +47,12 @@ PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识�
 
 ```powershell
 cd tools/typora/enhancements
-npm install
+npm ci
 npm run build
 npm run check
 ```
 
-`vendor/vscode_cpp/` 保存 VS Code 内置 C/C++ grammar；`vendor/typora_workspace/` 保存社区核心 `2.10.15` 的原始发行文件、许可证、来源与摘要。`npm run check` 检查预构建功能标记、部署入口、核心文件摘要、C/C++ 解析和阅读历史状态机。
+`vendor/vscode_cpp/` 保存 VS Code 内置 C/C++ grammar；`vendor/typora_workspace/` 保存社区核心 `2.10.15` 的原始发行文件、许可证、来源与摘要。`npm run check` 检查预构建功能标记、部署入口、源码与 bundle 的核心版本一致性、核心文件摘要、C/C++ 解析和阅读历史状态机。
 
 交互回归可用开发环境已有的 Electron 可执行文件运行 `scripts/test_interaction.cjs`（子进程不能设置 `ELECTRON_RUN_AS_NODE`）。它在隐藏的 Chromium 窗口中加载模拟宿主夹具和生产 bundle，发送真实鼠标与键盘输入，检查首次展开/收起、按钮重建、Enter / 空格、空闲 DOM、宏体颜色和 Alt 方向键导航。跨文件夹具包含社区工作区的延迟锚点步骤，后退一次必须回到来源文档。该夹具测试不替代 Typora 实窗验收。
 
