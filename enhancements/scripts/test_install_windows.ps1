@@ -31,6 +31,9 @@ $previous_appdata = $env:APPDATA
 try {
     $env:APPDATA = Join-Path $test_root "user data"
     $user_data = Join-Path $env:APPDATA "Typora"
+    $reading_store = Join-Path $user_data "Local Storage\leveldb\reading-position-fixture.log"
+    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $reading_store) | Out-Null
+    [System.IO.File]::WriteAllText($reading_store, "existing reading positions")
     $old_core = Join-Path $user_data "plugins\2.10.15\core.js"
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $old_core) | Out-Null
     [System.IO.File]::WriteAllText($old_core, "previous core")
@@ -44,11 +47,13 @@ try {
     $installer = Join-Path $tools_copy "enhancements\scripts\install_windows.ps1"
     & $installer -typora_root $fake_root -backup_root (Join-Path $test_root "repeat backup") -non_interactive
     assert_equal ([regex]::Matches([System.IO.File]::ReadAllText($window_path), 'data-linux-note-enhancements="true"').Count) 1 "Repeated installation duplicated the entry"
+    assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Installation changed reading positions"
     [System.IO.File]::AppendAllText($old_core, "corrupted")
     assert_rejected { & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive } "Asset corruption passed installed checks"
     & (Join-Path $tools_copy "restore_configuration_windows.ps1") -backup_root $unified_backup
     assert_equal ([System.IO.File]::ReadAllText($window_path)) $window_original "Entry restore failed"
     assert_equal ([System.IO.File]::ReadAllText($old_core)) "previous core" "Existing core was not restored"
+    assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Restore changed reading positions"
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data "plugins\2.10.15\core.css")) $false "New assets remain active after restore"
 
     # 制造提交清单写入失败，检查已复制文件能回滚。
