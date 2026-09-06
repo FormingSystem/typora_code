@@ -13,6 +13,9 @@ data-linux-note-reading-positions
 initialize_workspace
 bind_file_path_actions
 data-linux-note-copy-path
+bind_git_graph
+data-linux-note-git-graph
+linux_note:git_graph
 mermaid_container_for_preview
 preview.prepend(toolbar)
 fit-width

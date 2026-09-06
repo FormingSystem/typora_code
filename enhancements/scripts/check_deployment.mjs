@@ -7,7 +7,8 @@ const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bund
   .split(/\r?\n/u).map((marker) => marker.trim()).filter(Boolean);
 const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'), 'utf8');
 for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
-  'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path']) {
+  'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
+  'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph']) {
   if (!bundle_markers.includes(marker)) throw new Error(`required deployment capability is missing: ${marker}`);
 }
 for (const marker of bundle_markers) {

@@ -136,4 +136,5 @@ printf '%s\n' \
     "[typora] Platform: $TYPORA_PLATFORM_ID" \
     "[typora] Typora root: $typora_root" \
     "[typora] Unified backup: $backup_root" \
-    '[typora] Save open documents, restart Typora, and select cpp github consolas.'
+    '[typora] Save open documents, restart Typora, and select cpp github consolas.' \
+    '[typora] Git Graph is included. It uses Git on PATH; no separate Node.js installation is needed.'

@@ -7,6 +7,7 @@ export type workspace_view = {
   containerEl: HTMLElement;
   leaf: workspace_leaf;
   isEditor(): boolean;
+  onOpen(): void;
   getState(): Record<string, unknown>;
   setState(state: Record<string, unknown>): void;
 };

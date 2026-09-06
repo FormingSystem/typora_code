@@ -2854,6 +2854,21 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
       const prototype = Object.getPrototypeOf(view);
       if (patched.has(prototype)) return false;
       patched.add(prototype);
+      const original_on_open = prototype.onOpen;
+      prototype.onOpen = function() {
+        const context = context_for(this.leaf);
+        const position = saved.get(context.view_id) ?? this.leaf.state.linux_note_position ?? store?.get(context.file_path);
+        if (!position || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
+        restoring.set(context.view_id, {});
+        remember(context, position, false);
+        try {
+          original_on_open.call(this);
+        } catch (error) {
+          restoring.delete(context.view_id);
+          throw error;
+        }
+        void restore(context, position);
+      };
       prototype.getState = function() {
         const context = context_for(this.leaf);
         const position = capture(context) ?? this.leaf.state.linux_note_position;
@@ -3192,6 +3207,481 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     document.documentElement.setAttribute("data-linux-note-copy-path", "ready");
   }
 
+  // src/git_graph_data.ts
+  var GIT_GRAPH_COMMAND = "linux_note:git_graph";
+  var GIT_GRAPH_TYPE = "linux_note.git_graph";
+  var GIT_PAGE_SIZE = 200;
+  var GIT_MAX_COMMITS = 5e3;
+  var valid_hash = (hash) => /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(hash);
+  function require_hash(hash) {
+    if (!valid_hash(hash)) throw new Error("\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0 Git Graph\u3002");
+    return hash;
+  }
+  function parse_git_log(source) {
+    const fields = source.split("\0");
+    if (fields.at(-1) === "") fields.pop();
+    if (fields.length % 5) throw new Error("Git \u5386\u53F2\u683C\u5F0F\u4E0D\u5B8C\u6574\u3002");
+    const commits = [];
+    for (let index = 0; index < fields.length; index += 5) {
+      const [hash, parent_text, author, date, subject] = fields.slice(index, index + 5);
+      const parents = parent_text ? parent_text.split(" ") : [];
+      require_hash(hash);
+      parents.forEach(require_hash);
+      commits.push({ hash, parents, author, date, subject });
+    }
+    return commits;
+  }
+  async function read_git_snapshot(run, cwd, limit = GIT_PAGE_SIZE, revision = "") {
+    const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
+    const [ref_text, head_text] = await Promise.all([
+      run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)", "refs/heads", "refs/remotes", "refs/tags"]),
+      // --quiet 在尚无首个提交的仓库返回 1；其他错误必须继续报告。
+      run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).catch((error) => {
+        if (error.code === 1) return "";
+        throw error;
+      })
+    ]);
+    const head = head_text.trim();
+    const refs = ref_text.split("\n").filter(Boolean).map((line) => {
+      const [object_hash, peeled_hash, name] = line.replace(/\r$/u, "").split("\0");
+      return { hash: require_hash(peeled_hash || object_hash), name };
+    });
+    const count = Math.min(GIT_MAX_COMMITS, Math.max(GIT_PAGE_SIZE, Math.floor(limit)));
+    const revisions = revision ? [require_hash(revision)] : ["--all", ...head ? [require_hash(head)] : []];
+    const commits = refs.length || head ? parse_git_log(await run(root, [
+      "log",
+      "--topo-order",
+      "--date-order",
+      `--max-count=${count + 1}`,
+      "--format=%H%x00%P%x00%an%x00%aI%x00%s",
+      "-z",
+      ...revisions,
+      "--"
+    ])) : [];
+    return { root, head, refs, commits: commits.slice(0, count), more: commits.length > count };
+  }
+  function diff_arguments(hash, parent) {
+    return [
+      "diff-tree",
+      "--root",
+      "--no-commit-id",
+      "-r",
+      "--no-renames",
+      "--no-ext-diff",
+      "--no-textconv",
+      ...parent ? [require_hash(parent)] : [],
+      require_hash(hash)
+    ];
+  }
+  async function read_git_files(run, root, hash, parent = "") {
+    const text = await run(root, [...diff_arguments(hash, parent), "--name-status", "-z", "--"]);
+    const fields = text.split("\0");
+    if (fields.at(-1) === "") fields.pop();
+    if (fields.length % 2) throw new Error("Git \u6587\u4EF6\u5217\u8868\u683C\u5F0F\u4E0D\u5B8C\u6574\u3002");
+    const files = [];
+    for (let index = 0; index < fields.length; index += 2) files.push({ status: fields[index], path: fields[index + 1] });
+    return files;
+  }
+  function read_git_patch(run, root, hash, parent, file) {
+    if (!file || file.includes("\0")) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
+    return run(root, [...diff_arguments(hash, parent), "-p", "--unified=3", "--no-color", "--", file]);
+  }
+  function read_git_message(run, root, hash) {
+    return run(root, ["show", "--no-patch", "--format=%B", require_hash(hash), "--"]);
+  }
+  function build_git_graph(commits) {
+    let lanes = [];
+    let next_color = 0;
+    let width = 1;
+    const rows = [];
+    for (const commit of commits) {
+      const incoming = [...lanes];
+      let lane = lanes.findIndex((item) => item.hash === commit.hash);
+      if (lane < 0) {
+        lane = lanes.length;
+        lanes.push({ hash: commit.hash, color: next_color++ });
+      }
+      const current = lanes[lane];
+      const edges = incoming.map((item, index) => ({ from: index, to: index, color: item.color, upper: true }));
+      const before = [...lanes];
+      lanes.splice(lane, 1);
+      let insert_at = lane;
+      commit.parents.forEach((hash, index) => {
+        if (!lanes.some((item) => item.hash === hash)) {
+          lanes.splice(insert_at++, 0, { hash, color: index === 0 ? current.color : next_color++ });
+        }
+      });
+      before.forEach((item, index) => {
+        if (index !== lane) edges.push({ from: index, to: lanes.findIndex((next) => next.hash === item.hash), color: item.color, upper: false });
+      });
+      for (const hash of commit.parents) {
+        const target = lanes.findIndex((item) => item.hash === hash);
+        edges.push({ from: lane, to: target, color: lanes[target].color, upper: false });
+      }
+      width = Math.max(width, before.length, lanes.length);
+      rows.push({ lane, color: current.color, edges });
+    }
+    return { rows, width };
+  }
+
+  // src/git_graph_runtime.ts
+  function create_git_runner(modules) {
+    const children = /* @__PURE__ */ new Set();
+    const env = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" };
+    for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE"]) delete env[key];
+    return {
+      run: (cwd, args) => new Promise((resolve, reject) => {
+        const child = modules.child_process.execFile("git", [
+          "--no-pager",
+          "--no-replace-objects",
+          "--literal-pathspecs",
+          "-c",
+          "color.ui=false",
+          "-c",
+          "core.quotePath=false",
+          "-c",
+          "i18n.logOutputEncoding=utf-8",
+          "-c",
+          "log.showSignature=false",
+          ...args
+        ], {
+          cwd,
+          env,
+          encoding: "utf8",
+          windowsHide: true,
+          shell: false,
+          timeout: 15e3,
+          maxBuffer: 4 * 1024 * 1024
+        }, (error, stdout, stderr) => {
+          children.delete(child);
+          if (!error) {
+            resolve(stdout);
+            return;
+          }
+          const message = error.code === "ENOENT" ? "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002" : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "\u7ED3\u679C\u8D85\u8FC7 4 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002" : error.killed ? "Git \u67E5\u8BE2\u5DF2\u53D6\u6D88\u6216\u8D85\u8FC7 15 \u79D2\uFF0C\u8BF7\u91CD\u8BD5\u3002" : (stderr || error.message).trim();
+          reject(Object.assign(new Error(message), { code: error.code }));
+        });
+        children.add(child);
+      }),
+      cancel() {
+        for (const child of children) child.kill();
+        children.clear();
+      }
+    };
+  }
+
+  // src/git_graph.css
+  var git_graph_default = '.linux-note-git-graph {\n  container-type: inline-size;\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  flex: 1;\n  min-width: 0;\n  min-height: 0;\n  overflow: hidden;\n  background: var(--bg-color, #fff);\n  color: var(--text-color, #24292f);\n  font: 13px/1.5 system-ui, sans-serif;\n  user-select: text;\n}\n.linux-note-git-graph * { box-sizing: border-box; }\n.linux-note-git-graph button, .linux-note-git-graph select, .linux-note-git-graph input {\n  font: inherit; color: inherit; background: transparent; border: 1px solid #8885; border-radius: 4px; padding: 4px 8px;\n}\n.linux-note-git-graph button { cursor: pointer; }\n.linux-note-git-graph button:hover { background: #8882; }\n.linux-note-git-graph button:focus-visible, .linux-note-git-graph select:focus-visible, .linux-note-git-graph input:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n.linux-note-git-graph button:disabled { opacity: .5; cursor: default; }\n.linux-note-git-graph [hidden] { display: none !important; }\n.git-graph-root { padding: 10px 12px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; flex: none; }\n.git-graph-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; flex: none; }\n.git-graph-branch { max-width: 220px; min-width: 100px; }\n.git-graph-search { flex: 1; min-width: 160px; }\n.git-graph-status { padding: 2px 12px 8px; opacity: .8; overflow-wrap: anywhere; max-height: 100px; overflow: auto; flex: none; }\n.git-graph-body { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); flex: 1; min-height: 0; border-top: 1px solid #8884; }\n.git-graph-list { overflow: auto; min-height: 0; position: relative; }\n.linux-note-git-graph .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }\n.git-graph-row svg { flex: none; overflow: visible; }\n.git-graph-row[aria-pressed="true"], .linux-note-git-graph .git-graph-file.selected { background: #2684d426; }\n.git-graph-subject { min-width: 160px; width: 280px; flex: 1; overflow: hidden; text-overflow: ellipsis; }\n.git-graph-refs { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; margin-right: 8px; padding: 0 5px; border-radius: 3px; background: #2684d423; color: #2684d4; }\n.git-graph-author { width: 90px; overflow: hidden; text-overflow: ellipsis; opacity: .7; }\n.git-graph-hash { flex: none; font-size: 11px; background: none; }\n.git-graph-details { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; min-width: 0; min-height: 0; border-left: 1px solid #8884; }\n.git-graph-commit-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }\n.git-graph-full-hash { overflow-wrap: anywhere; font-size: 11px; background: none; flex: none; }\n.git-graph-meta { opacity: .75; }\n.git-graph-parent { width: 100%; flex: none; }\n.linux-note-git-graph pre { margin: 0; font: 12px/1.65 Consolas, ui-monospace, monospace; background: #8881; border: 0; padding: 8px; user-select: text; }\n.linux-note-git-graph .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }\n.git-graph-files { max-height: 150px; overflow: auto; flex: none; }\n.linux-note-git-graph .git-graph-file { display: block; width: 100%; text-align: left; border: 0; overflow-wrap: anywhere; }\n.linux-note-git-graph .git-graph-patch { flex: 1 0 180px; min-height: 180px; overflow: auto; white-space: pre; tab-size: 4; }\n.git-diff-add { color: #22863a; background: #2ea04315; }\n.git-diff-delete { color: #cb2431; background: #f8514915; }\n.git-diff-hunk { color: #2684d4; }\n@container (max-width: 680px) {\n  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(100px, 1fr) minmax(160px, 1fr); }\n  .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\n}\n';
+
+  // src/git_graph_view.ts
+  var colors = ["#2684d4", "#b462d6", "#209572", "#db8540", "#d4567d", "#7783cc"];
+  function element(tag, class_name, text = "") {
+    const node = document.createElement(tag);
+    node.className = class_name;
+    node.textContent = text;
+    return node;
+  }
+  function button(text, action, class_name = "") {
+    const node = element("button", class_name, text);
+    node.type = "button";
+    node.addEventListener("click", action);
+    return node;
+  }
+  function option(value, text) {
+    const node = element("option", "", text);
+    node.value = value;
+    return node;
+  }
+  function graph_svg(row, width) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", String(width * 18 + 18));
+    svg.setAttribute("height", "34");
+    svg.setAttribute("aria-hidden", "true");
+    const x = (lane) => lane * 18 + 16;
+    for (const edge of row.edges) {
+      const path = document.createElementNS(svg.namespaceURI, "path");
+      const top = edge.upper ? 0 : 17;
+      const bottom = edge.upper ? 17 : 34;
+      path.setAttribute("d", `M ${x(edge.from)} ${top} C ${x(edge.from)} ${top + 9}, ${x(edge.to)} ${bottom - 9}, ${x(edge.to)} ${bottom}`);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", colors[edge.color % colors.length]);
+      path.setAttribute("stroke-width", "2");
+      svg.append(path);
+    }
+    const circle = document.createElementNS(svg.namespaceURI, "circle");
+    circle.setAttribute("cx", String(x(row.lane)));
+    circle.setAttribute("cy", "17");
+    circle.setAttribute("r", "4");
+    circle.setAttribute("fill", colors[row.color % colors.length]);
+    svg.append(circle);
+    return svg;
+  }
+  function bind_git_graph() {
+    if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
+    const core = window[Symbol.for("typora-plugin-core@v2")];
+    const runtime = window;
+    if (!core?.app || !runtime.reqnode) return;
+    const style = element("style", "");
+    style.textContent = git_graph_default;
+    document.head.append(style);
+    const { app } = core;
+    const path_api = runtime.reqnode("path");
+    const context_path = () => {
+      const active = app.workspace.activeLeaf;
+      const file = active?.state.path;
+      return file && path_api.isAbsolute(file) ? path_api.dirname(file) : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (app.workspace.activeFile ? path_api.dirname(app.workspace.activeFile) : "");
+    };
+    class git_graph_view extends core.WorkspaceView {
+      containerEl = element("section", "linux-note-git-graph");
+      icon = "fa-code-fork";
+      runner = create_git_runner({ child_process: runtime.reqnode("child_process"), process: runtime.reqnode("process") });
+      toolbar = element("div", "git-graph-toolbar");
+      root_label = element("div", "git-graph-root", "Git Graph");
+      status = element("div", "git-graph-status");
+      branch = element("select", "git-graph-branch");
+      refresh_button = button("\u5237\u65B0", () => void this.refresh());
+      more_button = button("\u52A0\u8F7D\u66F4\u591A", () => {
+        this.limit += GIT_PAGE_SIZE;
+        void this.refresh(false);
+      });
+      list = element("div", "git-graph-list");
+      details = element("div", "git-graph-details", "\u9009\u62E9\u4E00\u6761\u63D0\u4EA4\uFF0C\u67E5\u770B\u8BF4\u660E\u548C\u6587\u4EF6\u5DEE\u5F02\u3002");
+      search = element("input", "git-graph-search");
+      snapshot;
+      limit = GIT_PAGE_SIZE;
+      epoch = 0;
+      selection_epoch = 0;
+      patch_epoch = 0;
+      pending = false;
+      selected = "";
+      constructor(leaf) {
+        super(leaf);
+        if (!leaf.state.git_cwd) {
+          const encoded = leaf.state.path.split("/")[3];
+          try {
+            const cwd = decodeURIComponent(encoded || "");
+            if (path_api.isAbsolute(cwd)) leaf.state.git_cwd = cwd;
+          } catch {
+          }
+        }
+        this.containerEl.setAttribute("aria-label", "Git Graph \u63D0\u4EA4\u5386\u53F2");
+        this.status.setAttribute("role", "status");
+        this.branch.setAttribute("aria-label", "\u5206\u652F\u6216\u6807\u7B7E");
+        this.branch.append(option("", "\u5168\u90E8\u5206\u652F"));
+        this.branch.addEventListener("change", () => void this.refresh());
+        this.search.placeholder = "\u67E5\u627E\u5DF2\u52A0\u8F7D\u63D0\u4EA4\uFF0CEnter \u67E5\u627E\u4E0B\u4E00\u6761";
+        this.search.setAttribute("aria-label", "\u67E5\u627E\u63D0\u4EA4\u8BF4\u660E\u3001\u4F5C\u8005\u6216\u7F16\u53F7");
+        this.search.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            event.stopPropagation();
+            this.find_next();
+          }
+        });
+        this.toolbar.append(this.branch, this.refresh_button, this.search, button("\u67E5\u627E", () => this.find_next()));
+        const body = element("div", "git-graph-body");
+        body.append(this.list, this.details);
+        this.more_button.hidden = true;
+        this.containerEl.append(this.root_label, this.toolbar, this.status, body, this.more_button);
+        this.containerEl.addEventListener("keydown", (event) => event.stopPropagation());
+      }
+      onOpen() {
+        if (!this.snapshot || this.pending) void this.refresh(false);
+        else if (this.selected) {
+          const commit = this.snapshot.commits.find((item) => item.hash === this.selected);
+          if (commit) void this.select_commit(commit);
+        }
+      }
+      onClose() {
+        this.epoch++;
+        this.selection_epoch++;
+        this.patch_epoch++;
+        this.runner.cancel();
+      }
+      async refresh(reset = true) {
+        const epoch = ++this.epoch;
+        this.selection_epoch++;
+        this.patch_epoch++;
+        this.runner.cancel();
+        this.pending = true;
+        if (reset) this.limit = GIT_PAGE_SIZE;
+        this.refresh_button.disabled = true;
+        this.more_button.disabled = true;
+        this.branch.disabled = true;
+        this.containerEl.dataset.state = "loading";
+        this.status.textContent = "\u6B63\u5728\u8BFB\u53D6 Git \u5386\u53F2\u2026";
+        const chosen_ref = this.branch.value;
+        try {
+          const cwd = this.leaf.state.git_cwd || context_path();
+          if (!cwd) throw new Error("\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u6863\u6216\u6587\u4EF6\u5939\uFF0C\u518D\u6253\u5F00 Git Graph\u3002");
+          let snapshot = await read_git_snapshot(this.runner.run, cwd, this.limit);
+          if (chosen_ref) {
+            const current = chosen_ref === "HEAD" ? snapshot.head : snapshot.refs.find((item) => item.name === chosen_ref)?.hash;
+            if (current) snapshot = await read_git_snapshot(this.runner.run, snapshot.root, this.limit, current);
+          }
+          if (epoch !== this.epoch) return;
+          this.snapshot = snapshot;
+          this.leaf.state.git_cwd = snapshot.root;
+          this.root_label.textContent = snapshot.root;
+          this.root_label.title = snapshot.root;
+          this.branch.replaceChildren(option("", "\u5168\u90E8\u5206\u652F"));
+          if (snapshot.head) this.branch.append(option("HEAD", "\u5F53\u524D HEAD"));
+          for (const ref of snapshot.refs) this.branch.append(option(ref.name, ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "$1 / ")));
+          this.branch.value = [...this.branch.options].some((item) => item.value === chosen_ref) ? chosen_ref : "";
+          this.render_list();
+          this.more_button.hidden = !snapshot.more || this.limit >= GIT_MAX_COMMITS;
+          this.status.textContent = snapshot.commits.length ? `\u5DF2\u52A0\u8F7D ${snapshot.commits.length} \u6761\u63D0\u4EA4${snapshot.more ? " \xB7 \u4E0B\u65B9\u8FDE\u7EBF\u5EF6\u7EED\u5230\u66F4\u65E9\u5386\u53F2" : ""}${this.limit >= GIT_MAX_COMMITS && snapshot.more ? " \xB7 \u5DF2\u8FBE 5000 \u6761\u4E0A\u9650\uFF0C\u8BF7\u9009\u62E9\u5206\u652F\u7F29\u5C0F\u8303\u56F4" : ""}` : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002";
+          this.containerEl.dataset.state = "ready";
+          if (!snapshot.commits.some((item) => item.hash === this.selected)) {
+            this.selected = "";
+            this.details.textContent = "\u9009\u62E9\u4E00\u6761\u63D0\u4EA4\uFF0C\u67E5\u770B\u8BF4\u660E\u548C\u6587\u4EF6\u5DEE\u5F02\u3002";
+          } else {
+            void this.select_commit(snapshot.commits.find((item) => item.hash === this.selected));
+          }
+        } catch (error) {
+          if (epoch !== this.epoch) return;
+          this.status.textContent = `\u65E0\u6CD5\u8BFB\u53D6 Git \u5386\u53F2\uFF1A${error instanceof Error ? error.message : String(error)}`;
+          this.containerEl.dataset.state = "error";
+        } finally {
+          if (epoch === this.epoch) {
+            this.pending = false;
+            this.refresh_button.disabled = false;
+            this.more_button.disabled = false;
+            this.branch.disabled = false;
+          }
+        }
+      }
+      render_list() {
+        const snapshot = this.snapshot;
+        const graph = build_git_graph(snapshot.commits);
+        const rows = document.createDocumentFragment();
+        const refs = /* @__PURE__ */ new Map();
+        if (snapshot.head) refs.set(snapshot.head, ["HEAD"]);
+        for (const ref of snapshot.refs) refs.set(ref.hash, [...refs.get(ref.hash) || [], ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "")]);
+        snapshot.commits.forEach((commit, index) => {
+          const row = button("", () => void this.select_commit(commit), "git-graph-row");
+          row.dataset.hash = commit.hash;
+          row.setAttribute("aria-pressed", String(this.selected === commit.hash));
+          const labels = (refs.get(commit.hash) || []).join(" \xB7 ");
+          const subject = element("span", "git-graph-subject", commit.subject);
+          if (labels) subject.prepend(element("span", "git-graph-refs", labels));
+          row.title = `${commit.hash}
+${commit.author} \xB7 ${commit.date}
+${commit.subject}`;
+          row.append(graph_svg(graph.rows[index], graph.width), subject, element("span", "git-graph-author", commit.author), element("code", "git-graph-hash", commit.hash.slice(0, 8)));
+          rows.append(row);
+        });
+        this.list.replaceChildren(rows);
+      }
+      find_next() {
+        const query = this.search.value.trim().toLocaleLowerCase();
+        if (!query || !this.snapshot) return;
+        const matches = this.snapshot.commits.filter((commit2) => [commit2.subject, commit2.author, commit2.hash].some((value) => value.toLocaleLowerCase().includes(query)));
+        if (!matches.length) {
+          this.status.textContent = "\u5DF2\u52A0\u8F7D\u5386\u53F2\u4E2D\u6CA1\u6709\u5339\u914D\u9879\uFF0C\u53EF\u52A0\u8F7D\u66F4\u591A\u540E\u91CD\u8BD5\u3002";
+          return;
+        }
+        const index = (matches.findIndex((item) => item.hash === this.selected) + 1) % matches.length;
+        const commit = matches[index];
+        const row = this.list.querySelector(`[data-hash="${commit.hash}"]`);
+        if (row) this.list.scrollTop = row.offsetTop - this.list.offsetTop - this.list.clientHeight / 2;
+        this.status.textContent = `\u627E\u5230 ${matches.length} \u6761 \xB7 \u7B2C ${index + 1} \u6761`;
+        void this.select_commit(commit);
+      }
+      async select_commit(commit) {
+        const epoch = ++this.selection_epoch;
+        this.patch_epoch++;
+        this.selected = commit.hash;
+        for (const row of this.list.querySelectorAll(".git-graph-row")) row.setAttribute("aria-pressed", String(row.dataset.hash === commit.hash));
+        this.details.replaceChildren(
+          element("div", "git-graph-commit-title", commit.subject),
+          element("code", "git-graph-full-hash", commit.hash),
+          element("div", "git-graph-meta", `${commit.author} \xB7 ${new Date(commit.date).toLocaleString()}`)
+        );
+        const message = element("pre", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
+        const parent_select = element("select", "git-graph-parent");
+        parent_select.setAttribute("aria-label", "\u5BF9\u6BD4\u7236\u63D0\u4EA4");
+        commit.parents.forEach((hash, index) => parent_select.append(option(hash, `\u5BF9\u6BD4\u7236\u63D0\u4EA4 ${index + 1} \xB7 ${hash.slice(0, 8)}`)));
+        if (!commit.parents.length) parent_select.append(option("", "\u9996\u6B21\u63D0\u4EA4 \xB7 \u4E0E\u7A7A\u6811\u6BD4\u8F83"));
+        const files = element("div", "git-graph-files");
+        const patch = element("pre", "git-graph-patch", "\u9009\u62E9\u6587\u4EF6\u67E5\u770B\u5DEE\u5F02\u3002");
+        patch.tabIndex = 0;
+        this.details.append(message, parent_select, files, patch);
+        void read_git_message(this.runner.run, this.snapshot.root, commit.hash).then((text) => {
+          if (epoch === this.selection_epoch) message.textContent = text.trim();
+        }).catch((error) => {
+          if (epoch === this.selection_epoch) message.textContent = String(error);
+        });
+        let file_epoch = 0;
+        const load_files = async () => {
+          const request = ++file_epoch;
+          this.patch_epoch++;
+          files.textContent = "\u6B63\u5728\u8BFB\u53D6\u53D8\u66F4\u6587\u4EF6\u2026";
+          patch.textContent = "\u9009\u62E9\u6587\u4EF6\u67E5\u770B\u5DEE\u5F02\u3002";
+          try {
+            const entries = await read_git_files(this.runner.run, this.snapshot.root, commit.hash, parent_select.value);
+            if (epoch !== this.selection_epoch || request !== file_epoch) return;
+            files.replaceChildren();
+            if (!entries.length) files.textContent = "\u76F8\u5BF9\u4E8E\u6B64\u7236\u63D0\u4EA4\u6CA1\u6709\u6587\u4EF6\u53D8\u5316\u3002";
+            for (const file of entries) {
+              const file_button = button(`${file.status}  ${file.path}`, () => {
+                for (const sibling of files.children) sibling.classList.remove("selected");
+                file_button.classList.add("selected");
+                void this.show_patch(commit.hash, parent_select.value, file.path, patch);
+              }, "git-graph-file");
+              file_button.title = file.path;
+              files.append(file_button);
+            }
+          } catch (error) {
+            if (epoch === this.selection_epoch && request === file_epoch) files.textContent = String(error);
+          }
+        };
+        parent_select.addEventListener("change", () => void load_files());
+        void load_files();
+      }
+      async show_patch(hash, parent, file, target) {
+        const epoch = ++this.patch_epoch;
+        target.textContent = "\u6B63\u5728\u8BFB\u53D6\u5DEE\u5F02\u2026";
+        try {
+          const patch = await read_git_patch(this.runner.run, this.snapshot.root, hash, parent, file);
+          if (epoch !== this.patch_epoch) return;
+          const lines = patch.split("\n");
+          const fragment = document.createDocumentFragment();
+          for (const line of lines.slice(0, 4e3)) fragment.append(element("span", line.startsWith("+") ? "git-diff-add" : line.startsWith("-") ? "git-diff-delete" : line.startsWith("@@") ? "git-diff-hunk" : "", line + "\n"));
+          if (lines.length > 4e3) fragment.append(document.createTextNode("\n\u5DEE\u5F02\u8D85\u8FC7 4000 \u884C\uFF0C\u5F53\u524D\u5C55\u793A\u524D 4000 \u884C\u3002"));
+          target.replaceChildren(fragment);
+          target.scrollTop = 0;
+          target.scrollLeft = 0;
+        } catch (error) {
+          if (epoch === this.patch_epoch) target.textContent = String(error);
+        }
+      }
+    }
+    app.viewManager.registerView(GIT_GRAPH_TYPE, (leaf) => new git_graph_view(leaf));
+    const open_graph = () => {
+      if (app.workspace.activeLeaf?.state.path.startsWith(`typ://${GIT_GRAPH_TYPE}/`)) return;
+      const cwd = context_path();
+      const uri = `typ://${GIT_GRAPH_TYPE}/${encodeURIComponent(cwd)}/Git Graph`;
+      let existing;
+      app.workspace.eachLeaves((leaf2) => {
+        if (leaf2.state.path === uri) existing = leaf2;
+      });
+      if (existing) {
+        app.workspace.activeLeaf = existing.parent.toggleTab(uri);
+        return;
+      }
+      const parent = app.workspace.activeLeaf?.parent;
+      if (!parent) return;
+      const leaf = app.workspace.createLeaf({ type: GIT_GRAPH_TYPE, state: { path: uri, git_cwd: cwd } });
+      parent.appendChild(leaf);
+      app.workspace.activeLeaf = leaf;
+    };
+    app.commands.register({ id: GIT_GRAPH_COMMAND, title: "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", scope: "global", callback: open_graph });
+    const icon = element("i", "fa fa-code-fork");
+    app.workspace.ribbon.addButton({ id: GIT_GRAPH_COMMAND, title: "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", group: "bottom", icon, onclick: open_graph });
+    document.documentElement.setAttribute("data-linux-note-git-graph", "ready");
+  }
+
   // src/typora_enhancements.ts
   var EXTENSION_STYLE_ID = "linux-note-typora-enhancements-style";
   var C_MODE_NAME = "linux-note-vscode-textmate-c";
@@ -3321,16 +3811,16 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     fence.style.removeProperty("--linux-note-code-collapsed-height");
     fence.querySelector(":scope > .linux-note-code-toolbar")?.remove();
   }
-  function render_code_toggle(button, expanded) {
-    if (button.getAttribute("aria-expanded") === String(expanded)) return;
-    button.setAttribute("aria-expanded", String(expanded));
-    button.innerHTML = expanded ? '<span aria-hidden="true">\u21A5</span><span>\u6536\u8D77\u4EE3\u7801</span>' : '<span aria-hidden="true">\u21A7</span><span>\u5C55\u5F00\u5168\u90E8\u4EE3\u7801</span>';
-    button.title = expanded ? "\u6062\u590D\u957F\u4EE3\u7801\u5757\u7684\u9650\u9AD8\u663E\u793A" : "\u5C55\u793A\u8FD9\u4E2A\u4EE3\u7801\u5757\u7684\u5168\u90E8\u5185\u5BB9";
+  function render_code_toggle(button2, expanded) {
+    if (button2.getAttribute("aria-expanded") === String(expanded)) return;
+    button2.setAttribute("aria-expanded", String(expanded));
+    button2.innerHTML = expanded ? '<span aria-hidden="true">\u21A5</span><span>\u6536\u8D77\u4EE3\u7801</span>' : '<span aria-hidden="true">\u21A7</span><span>\u5C55\u5F00\u5168\u90E8\u4EE3\u7801</span>';
+    button2.title = expanded ? "\u6062\u590D\u957F\u4EE3\u7801\u5757\u7684\u9650\u9AD8\u663E\u793A" : "\u5C55\u793A\u8FD9\u4E2A\u4EE3\u7801\u5757\u7684\u5168\u90E8\u5185\u5BB9";
   }
-  function set_code_expanded(fence, button, expanded) {
+  function set_code_expanded(fence, button2, expanded) {
     fence.classList.toggle("is-code-expanded", expanded);
     fence.classList.toggle("is-code-collapsed", !expanded);
-    render_code_toggle(button, expanded);
+    render_code_toggle(button2, expanded);
     if (!expanded) {
       const scroller = fence.querySelector(".CodeMirror-scroll");
       if (scroller) scroller.scrollTop = 0;
@@ -3340,20 +3830,20 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
   function bind_code_toggle_events() {
     const handle_event = (event) => {
       const target = event.target;
-      const button = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
-      const fence = button?.closest(".md-fences");
-      if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
+      const button2 = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
+      const fence = button2?.closest(".md-fences");
+      if (!button2 || !fence || !button2.parentElement?.classList.contains("linux-note-code-toolbar")) return;
       if (event instanceof KeyboardEvent) {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.stopPropagation();
         event.preventDefault();
-        if (event.key === "Enter" && event.type === "keydown" && !event.repeat || event.key === " " && event.type === "keyup") button.click();
+        if (event.key === "Enter" && event.type === "keydown" && !event.repeat || event.key === " " && event.type === "keyup") button2.click();
         return;
       }
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
       if (event.type === "click") {
-        set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+        set_code_expanded(fence, button2, !fence.classList.contains("is-code-expanded"));
       }
     };
     for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -3380,22 +3870,22 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     }
     fence.style.setProperty("--linux-note-code-collapsed-height", `${maximum_height}px`);
     let toolbar = fence.querySelector(":scope > .linux-note-code-toolbar");
-    let button = toolbar?.querySelector(".linux-note-code-toggle");
-    if (!toolbar || !button) {
+    let button2 = toolbar?.querySelector(".linux-note-code-toggle");
+    if (!toolbar || !button2) {
       toolbar?.remove();
       toolbar = document.createElement("div");
       toolbar.className = "linux-note-code-toolbar";
       toolbar.contentEditable = "false";
-      button = document.createElement("button");
-      button.type = "button";
-      button.className = "linux-note-code-toggle";
-      toolbar.append(button);
+      button2 = document.createElement("button");
+      button2.type = "button";
+      button2.className = "linux-note-code-toggle";
+      toolbar.append(button2);
       fence.append(toolbar);
     }
     if (!fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
-      set_code_expanded(fence, button, false);
+      set_code_expanded(fence, button2, false);
     } else {
-      render_code_toggle(button, fence.classList.contains("is-code-expanded"));
+      render_code_toggle(button2, fence.classList.contains("is-code-expanded"));
     }
   }
   function schedule_scan() {
@@ -3414,10 +3904,10 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
       diagram_containers.add(mermaid_container_for_preview(preview));
     });
     diagram_containers.forEach(ensure_mermaid_button);
-    for (const [container, button] of mermaid_buttons) {
+    for (const [container, button2] of mermaid_buttons) {
       if (!container.isConnected) {
         mermaid_buttons.delete(container);
-      } else if (!button.isConnected) {
+      } else if (!button2.isConnected) {
         mermaid_buttons.delete(container);
         ensure_mermaid_button(container);
       }
@@ -3426,19 +3916,19 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
   function namespace_svg_ids(svg) {
     const prefix = `linux-note-mermaid-${Date.now().toString(36)}`;
     const replacements = /* @__PURE__ */ new Map();
-    svg.querySelectorAll("[id]").forEach((element) => {
-      const old_id = element.id;
+    svg.querySelectorAll("[id]").forEach((element2) => {
+      const old_id = element2.id;
       const new_id = `${prefix}-${old_id}`;
       replacements.set(old_id, new_id);
-      element.id = new_id;
+      element2.id = new_id;
     });
-    svg.querySelectorAll("*").forEach((element) => {
-      for (const attribute of Array.from(element.attributes)) {
+    svg.querySelectorAll("*").forEach((element2) => {
+      for (const attribute of Array.from(element2.attributes)) {
         let value = attribute.value;
         for (const [old_id, new_id] of replacements) {
           value = value.replaceAll(`url(#${old_id})`, `url(#${new_id})`).replaceAll(`#${old_id}`, `#${new_id}`);
         }
-        if (value !== attribute.value) element.setAttribute(attribute.name, value);
+        if (value !== attribute.value) element2.setAttribute(attribute.name, value);
       }
     });
     svg.querySelectorAll("style").forEach((style) => {
@@ -3578,9 +4068,9 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
       }
     };
     viewer.addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-action]");
-      if (!button) return;
-      const action = button.dataset.action;
+      const button2 = event.target.closest("button[data-action]");
+      if (!button2) return;
+      const action = button2.dataset.action;
       if (action === "close") close();
       else if (action === "zoom-out") set_zoom(view.scale / ZOOM_FACTOR);
       else if (action === "zoom-in") set_zoom(view.scale * ZOOM_FACTOR);
@@ -3661,25 +4151,26 @@ U[a-fA-F0-9]{,8} )`, name: "constant.character.escape" }, { match: "\\\\.", name
     const toolbar = document.createElement("div");
     toolbar.className = "linux-note-mermaid-inline-toolbar";
     toolbar.contentEditable = "false";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "linux-note-mermaid-open";
-    button.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
-    button.innerHTML = '<span aria-hidden="true">\u26F6</span><span>\u5168\u5C4F\u67E5\u770B</span>';
-    button.addEventListener("click", (event) => {
+    const button2 = document.createElement("button");
+    button2.type = "button";
+    button2.className = "linux-note-mermaid-open";
+    button2.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
+    button2.innerHTML = '<span aria-hidden="true">\u26F6</span><span>\u5168\u5C4F\u67E5\u770B</span>';
+    button2.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
       open_mermaid_viewer(preview);
     });
-    toolbar.append(button);
+    toolbar.append(button2);
     preview.prepend(toolbar);
-    mermaid_buttons.set(container, button);
+    mermaid_buttons.set(container, button2);
   }
   async function initialize() {
     ensure_style();
     void initialize_workspace().then(() => {
       bind_reading_navigation();
       bind_file_path_actions();
+      bind_git_graph();
       schedule_scan();
     }).catch((error) => {
       document.documentElement.setAttribute("data-linux-note-workspace", "failed");
