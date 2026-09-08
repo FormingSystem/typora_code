@@ -3,7 +3,7 @@ import { git_diff_editor, type diff_document } from "./git_diff_editor";
 import { append_git_ignore } from "./git_ignore";
 import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
-import { graph_button, graph_dialog, graph_element, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_button, workspace_dialog, workspace_element, type workspace_menu_entry } from "./workspace_widgets";
 import type { graph_settings } from "./git_graph_settings";
 import { git_icon } from "./git_icons";
 import { get_workspace_files } from "./workspace_files";
@@ -32,7 +32,7 @@ export function create_graph_host(core: graph_core) {
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const process_api = runtime.reqnode("process");
   const editor_status=bind_workspace_editor_status(core);
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {root?: string; key?: string; menu?: () => graph_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
+  type document_options = {root?: string; key?: string; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
   let serial = 0;
@@ -49,7 +49,7 @@ export function create_graph_host(core: graph_core) {
     const leaf = core.app.workspace.createLeaf({ type, state: { path: uri } }); parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
   };
   class graph_document_view extends core.WorkspaceView {
-    containerEl = graph_element("section", "git-graph-document"); icon = "fa-code-fork";
+    containerEl = workspace_element("section", "git-graph-document"); icon = "fa-code-fork";
     editor?: git_diff_editor; document?: typeof contents extends Map<string, infer value> ? value : never;
     constructor(leaf: graph_leaf) { super(leaf); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* 无效 URI 由打开入口处理。 */ } }
     onOpen() {
@@ -72,12 +72,12 @@ export function create_graph_host(core: graph_core) {
       if (payload.panel) { this.containerEl.append(payload.panel); return; }
       try {
         this.editor = new git_diff_editor(payload.data!, payload.options.menu);
-        if (payload.options.refresh) this.editor.toolbar.prepend(graph_button("刷新差异", payload.options.refresh));
-        if (payload.options.adjacent) this.editor.toolbar.prepend(graph_button("上一文件", () => payload.options.adjacent!(-1)), graph_button("下一文件", () => payload.options.adjacent!(1)));
-        this.editor.toolbar.append(graph_button("切换侧栏", () => core.app.workspace.sidebar.toggle()));
+        if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button("刷新差异", payload.options.refresh));
+        if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button("上一文件", () => payload.options.adjacent!(-1)), workspace_button("下一文件", () => payload.options.adjacent!(1)));
+        this.editor.toolbar.append(workspace_button("切换侧栏", () => core.app.workspace.sidebar.toggle()));
         this.containerEl.append(this.editor.container);
         editor_status.register(this.leaf,this.editor.create_readonly_status());
-      } catch (error) { this.containerEl.append(graph_element("p", "git-scm-empty", String(error))); }
+      } catch (error) { this.containerEl.append(workspace_element("p", "git-scm-empty", String(error))); }
     }
     onClose() {
       editor_status.schedule();
@@ -101,9 +101,9 @@ export function create_graph_host(core: graph_core) {
       return {...runner, run};
     },
     show_output(root: string) {
-      const view = graph_element("div", "git-output"); const text = graph_element("pre");
+      const view = workspace_element("div", "git-output"); const text = workspace_element("pre");
       const refresh = () => { text.textContent = (output_lines.get(root) || ["暂无 Git 输出。"]).join("\n"); text.scrollTop = text.scrollHeight; };
-      view.append(graph_button("刷新输出", refresh), text); refresh(); this.open_panel("Git 输出", "git_output", root, view);
+      view.append(workspace_button("刷新输出", refresh), text); refresh(); this.open_panel("Git 输出", "git_output", root, view);
     },
     context_path(use_active = true): string {
       const active = core.app.workspace.activeLeaf;
@@ -213,9 +213,9 @@ export function create_graph_host(core: graph_core) {
     },
     terminal(root: string, program: string, admin = false) { if (admin) terminal_workspace.admin(root); else terminal_workspace.open(root, program); },
     export_file(root: string, filename: string, content: string) {
-      const dialog = graph_dialog("导出配置"); const target = graph_element("input"); target.value = path_api.join(root, filename);
-      const preview = graph_element("pre", "", content); const error = graph_element("p"); dialog.content.append(target, preview, error);
-      dialog.footer.prepend(graph_button("保存到此路径", () => {
+      const dialog = workspace_dialog("导出配置"); const target = workspace_element("input"); target.value = path_api.join(root, filename);
+      const preview = workspace_element("pre", "", content); const error = workspace_element("p"); dialog.content.append(target, preview, error);
+      dialog.footer.prepend(workspace_button("保存到此路径", () => {
         try { fs.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" }); dialog.close(); }
         catch (problem) { error.textContent = String(problem) + "；文件已存在时请换一个导出名称。"; }
       }));

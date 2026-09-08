@@ -65,12 +65,12 @@
       await wait(() => titlebar_icon?.complete && titlebar_icon.naturalWidth>0 && Math.abs(titlebar.getBoundingClientRect().width-window.innerWidth)<=1, '标题栏原生图标或全宽布局未就绪');
       await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       const titlebar_bounds=titlebar.getBoundingClientRect();
-      expect(Math.abs(titlebar_bounds.height-32)<=1 && Math.abs(titlebar_bounds.left)<=1 && Math.abs(titlebar_bounds.right-window.innerWidth)<=1, 'Unibody 顶栏保持 32 像素单行并横跨整个窗口');
+      expect(Math.abs(titlebar_bounds.height-35)<=1 && Math.abs(titlebar_bounds.left)<=1 && Math.abs(titlebar_bounds.right-window.innerWidth)<=1, 'Unibody 顶栏保持 35 像素单行并横跨整个窗口');
       const titlebar_menus=[...titlebar.querySelectorAll('.workspace-titlebar-menu button')];
       expect(titlebar_menus.length===7 && titlebar_menus.every(node=>node.getBoundingClientRect().top>=titlebar_bounds.top && node.getBoundingClientRect().bottom<=titlebar_bounds.bottom), '七个中文主菜单与窗口标题处于同一行');
-      expect(Math.abs(titlebar_icon.getBoundingClientRect().width-24)<=1 && titlebar_icon.currentSrc.includes('/assets/icon/') && titlebar_icon.complete && titlebar_icon.naturalWidth>0, '标题栏使用已加载的原生 Typora 图标并显示为 24 像素');
-      await wait(()=>document.querySelector('.typ-workspace-root')?.getBoundingClientRect().top>=31, '编辑工作区未避开单行标题栏');
-      expect(document.querySelector('.typ-workspace-root').getBoundingClientRect().top>=31, '中央编辑工作区排列在单行标题栏下方');
+      expect(Math.abs(titlebar_icon.getBoundingClientRect().width-16)<=1 && titlebar_icon.currentSrc.includes('/assets/icon/') && titlebar_icon.complete && titlebar_icon.naturalWidth>0, '标题栏使用已加载的原生 Typora 图标并显示为 16 像素');
+      await wait(()=>document.querySelector('.typ-workspace-root')?.getBoundingClientRect().top>=34, '编辑工作区未避开单行标题栏');
+      expect(document.querySelector('.typ-workspace-root').getBoundingClientRect().top>=34, '中央编辑工作区排列在单行标题栏下方');
       const native_actions=document.querySelector('#ty-sidebar-footer'), native_status=document.querySelector('footer.ty-footer');
       expect(native_actions?.parentElement===native_status && !document.querySelector('#typora-sidebar > #ty-sidebar-footer'), '原生文件与大纲操作整组移到中央底部，侧栏不再留操作栏');
       expect(native_actions.querySelector('#sidebar-files-menu') && native_actions.querySelector('#sidebar-new-file-btn') && native_actions.querySelector('#switch-file-list-btn'), '原生文件菜单、新建和列表树切换仍保留原节点');
@@ -83,7 +83,7 @@
       await wait(() => document.querySelector('#typora-sidebar').classList.contains('active-tab-outline') && app.workspace.sidebar.isShown, '原生大纲未展开');
       await delay(350);
       const sidebar_bounds=document.querySelector('#typora-sidebar').getBoundingClientRect();
-      expect(sidebar_bounds.top>=31 && sidebar_bounds.bottom<=window.innerHeight+1, '主侧栏避开单行标题栏且底部不超出窗口');
+      expect(sidebar_bounds.top>=34 && sidebar_bounds.bottom<=window.innerHeight+1, '主侧栏避开单行标题栏且底部不超出窗口');
       const outline = File.editor.library.outline;
       expect(typeof outline.showSearch === 'function', '原生大纲过滤接口存在');
       outline.showSearch();

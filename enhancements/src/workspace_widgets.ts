@@ -1,16 +1,16 @@
-export function graph_element<K extends keyof HTMLElementTagNameMap>(tag: K, class_name = "", text = ""): HTMLElementTagNameMap[K] {
+export function workspace_element<K extends keyof HTMLElementTagNameMap>(tag: K, class_name = "", text = ""): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag); node.className = class_name; node.textContent = text; return node;
 }
-export function graph_button(text: string, action: () => void, class_name = ""): HTMLButtonElement {
-  const node = graph_element("button", class_name, text); node.type = "button"; node.onclick = action; return node;
+export function workspace_button(text: string, action: () => void, class_name = ""): HTMLButtonElement {
+  const node = workspace_element("button", class_name, text); node.type = "button"; node.onclick = action; return node;
 }
-export function graph_option(value: string, text: string): HTMLOptionElement {
-  const node = graph_element("option", "", text); node.value = value; return node;
+export function workspace_option(value: string, text: string): HTMLOptionElement {
+  const node = workspace_element("option", "", text); node.value = value; return node;
 }
-export function graph_dialog(title: string): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
-  const root = graph_element("div", "git-graph-dialog-shade");
+export function workspace_dialog(title: string): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
+  const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
-  const panel = graph_element("section", "git-graph-dialog"); const content = graph_element("div", "git-graph-dialog-content"); const footer = graph_element("div", "git-graph-dialog-footer");
+  const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
   const previous = document.activeElement as HTMLElement | null;
   const close = () => { window.removeEventListener("keydown", global_key, true); root.remove(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   // 执行按钮禁用后浏览器可能把焦点退回 body；Esc 仍必须关闭最上层弹窗。
@@ -18,7 +18,7 @@ export function graph_dialog(title: string): { root: HTMLElement; content: HTMLE
     if (document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) !== root) return;
     if (event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); close(); }
   };
-  panel.append(graph_element("h3", "", title), content, footer); root.append(panel); document.body.append(root);
+  panel.append(workspace_element("h3", "", title), content, footer); root.append(panel); document.body.append(root);
   window.addEventListener("keydown", global_key, true);
   root.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); close(); }
@@ -30,26 +30,26 @@ export function graph_dialog(title: string): { root: HTMLElement; content: HTMLE
     }
     event.stopPropagation();
   });
-  footer.append(graph_button("关闭", close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
+  footer.append(workspace_button("关闭", close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
   return { root, content, footer, close };
 }
-export type graph_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: graph_menu_entry[] };
+export type workspace_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
-export function graph_menu(event: MouseEvent, entries: graph_menu_entry[]): void {
+export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[]): void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
   const previous_focus = document.activeElement as HTMLElement | null;
   const menus: HTMLElement[] = [];
   const close_from = (level: number) => { menus.splice(level).forEach(menu => menu.remove()); };
   const close = () => { close_from(0); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; };
   const outside = (input: Event) => { if (!menus.some(menu => menu.contains(input.target as Node))) close(); };
-  const show = (items: graph_menu_entry[], x: number, y: number, level: number, parent?: HTMLButtonElement) => {
-    close_from(level); const menu = graph_element("div", "git-graph-menu"); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
+  const show = (items: workspace_menu_entry[], x: number, y: number, level: number, parent?: HTMLButtonElement) => {
+    close_from(level); const menu = workspace_element("div", "git-graph-menu"); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
     for (const entry of items) {
-      if (entry.separator && menu.children.length) { const separator = graph_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
-      const node = graph_button("", () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
-      const check = graph_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
-      const arrow = graph_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
-      node.append(check, graph_element("span", "git-menu-label", entry.title), arrow);
+      if (entry.separator && menu.children.length) { const separator = workspace_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
+      const node = workspace_button("", () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
+      const check = workspace_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
+      const arrow = workspace_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
+      node.append(check, workspace_element("span", "git-menu-label", entry.title), arrow);
       const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
       node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
       if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }
@@ -87,7 +87,7 @@ export function inline_message(text: string, options: { markdown: boolean; emoji
     for (const match of value.matchAll(pattern)) {
       if (!match[0]) continue;
       fragment.append(document.createTextNode(value.slice(offset, match.index)));
-      const link = graph_element("a", "", match[0]); link.href = options.issue_url.replace(/\{id\}/gu, encodeURIComponent(match[1] || match[0])); link.onclick = event => { event.preventDefault(); open_url(link.href); }; fragment.append(link);
+      const link = workspace_element("a", "", match[0]); link.href = options.issue_url.replace(/\{id\}/gu, encodeURIComponent(match[1] || match[0])); link.onclick = event => { event.preventDefault(); open_url(link.href); }; fragment.append(link);
       offset = match.index! + match[0].length;
     }
     fragment.append(document.createTextNode(value.slice(offset)));
@@ -95,11 +95,11 @@ export function inline_message(text: string, options: { markdown: boolean; emoji
   for (const match of source.matchAll(tokens)) {
     plain(source.slice(last, match.index)); const value = match[0];
     if (/^https?:/u.test(value)) {
-      const link = graph_element("a", "", value); link.href = value; link.onclick = event => { event.preventDefault(); open_url(value); }; fragment.append(link);
+      const link = workspace_element("a", "", value); link.href = value; link.onclick = event => { event.preventDefault(); open_url(value); }; fragment.append(link);
     } else if (!options.markdown) plain(value);
     else {
       const size = value.startsWith("***") ? 3 : value.startsWith("**") ? 2 : 1;
-      const node = graph_element(value[0] === "`" ? "code" : size > 1 ? "strong" : "em", "", value.slice(size, -size));
+      const node = workspace_element(value[0] === "`" ? "code" : size > 1 ? "strong" : "em", "", value.slice(size, -size));
       if (size === 3) node.style.fontStyle = "italic"; fragment.append(node);
     }
     last = match.index! + value.length;

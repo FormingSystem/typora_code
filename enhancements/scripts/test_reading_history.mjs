@@ -8,10 +8,16 @@ const location = (file_path, scroll_top) => ({ file_path, scroll_top, scroll_lef
 const history = create_reading_history(3);
 let current = location('chapter_a.md', 10);
 const restore = async (target) => { current = target; return true; };
+assert.equal(history.can_travel(-1), false);
+assert.equal(history.can_travel(1), false);
 assert.equal(await history.travel(-1, current, restore), false);
 history.record_jump(current, location('chapter_a.md', 800));
+assert.equal(history.can_travel(-1), true);
+assert.equal(history.can_travel(1), false);
 current = location('chapter_a.md', 920);
 assert.equal(await history.travel(-1, current, restore), true);
+assert.equal(history.can_travel(-1), false);
+assert.equal(history.can_travel(1), true);
 assert.equal(current.scroll_top, 10);
 assert.equal(await history.travel(1, current, restore), true);
 assert.equal(current.scroll_top, 920, '前进恢复离开目标时的阅读位置');
@@ -28,6 +34,8 @@ assert.equal(await history.travel(-1, current, restore), true, '打开异常后�
 history.record_jump(current, current);
 let finish;
 const pending = history.travel(-1, current, () => new Promise((resolve) => { finish = resolve; }));
+assert.equal(history.can_travel(-1), false, '导航期间禁用历史按钮');
+assert.equal(history.can_travel(1), false, '导航期间禁用前进按钮');
 assert.equal(await history.travel(-1, current, restore), false, '导航期间不重复打开文件');
 finish(false);
 await pending;

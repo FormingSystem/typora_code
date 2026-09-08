@@ -74,6 +74,10 @@
         expect(document.querySelector('#outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'), 'outline selects destination heading');
         expect(document.querySelector('#outline-content')?.textContent.includes('Destination'), 'outline belongs to destination document');
         expect(same_position(source_position, visible(source.containerEl, source.view.containerEl)), 'source pane keeps the same paragraph and offset');
+        const back_button=document.querySelector('.workspace-titlebar-history.is-back');await wait(()=>back_button&&!back_button.disabled);back_button.click();await delay(1000);
+        expect(app.workspace.activeLeaf===right_source&&same_position(from_position,visible(content,write)),'titlebar Back arrow restores the exact prior pane and reading position');
+        const forward_button=document.querySelector('.workspace-titlebar-history.is-forward');await wait(()=>forward_button&&!forward_button.disabled);forward_button.click();await delay(1000);
+        expect(normalized(File.bundle.filePath)===normalized(path.join(probe_root,'target.md')),'titlebar Forward arrow returns to the destination');
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true, cancelable: true }));
         await delay(1000);
         expect(app.workspace.activeLeaf === right_source, 'Alt Left returns to the original pane and tab');

@@ -44,6 +44,12 @@ export function bind_reading_navigation(): void {
   } };
   const path_api = app ? runtime.reqnode("path") : undefined;
   const history = create_reading_history();
+  const publish_history_state = () => {
+    const detail = { back: history.can_travel(-1), forward: history.can_travel(1) };
+    document.documentElement.dataset.linuxNoteHistoryBack = String(detail.back);
+    document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
+    window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
+  };
   const original_open_url = editor.tryOpenUrl;
   const original_open_file = editor.library.openFile;
   const native_path = () => file.bundle?.filePath ?? "";
@@ -76,7 +82,7 @@ export function bind_reading_navigation(): void {
   const finish_pending = () => {
     window.clearTimeout(pending_timer);
     const current = capture();
-    if (pending_from && current && !is_busy() && !navigating) history.record_jump(pending_from, current);
+    if (pending_from && current && !is_busy() && !navigating) { history.record_jump(pending_from, current); publish_history_state(); }
     pending_from = null;
   };
   const wait_for = async (ready: () => boolean): Promise<boolean> => {
@@ -169,7 +175,7 @@ export function bind_reading_navigation(): void {
       const to = capture(target);
       if (to) {
         workspace.remember(target, to.position!);
-        if (from && !location) history.record_jump(from, to);
+        if (from && !location) { history.record_jump(from, to); publish_history_state(); }
       }
       return true;
     } finally {
@@ -185,6 +191,16 @@ export function bind_reading_navigation(): void {
       await reading_delay(40);
     }
     return navigate(path, undefined, undefined, options);
+  };
+  const travel_history = async (direction: -1 | 1) => {
+    if (navigating || history.is_navigating() || is_busy()) return false;
+    finish_pending();
+    const current = capture();
+    if (!current) return false;
+    const pending = history.travel(direction, current, location => navigate(location.file_path, undefined, location));
+    publish_history_state();
+    try { return await pending; }
+    finally { publish_history_state(); }
   };
 
   editor.tryOpenUrl = function (url, ...args) {
@@ -245,12 +261,14 @@ export function bind_reading_navigation(): void {
         || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write"))) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (event.repeat || navigating || history.is_navigating() || is_busy()) return;
-    finish_pending();
-    const current = capture();
-    if (current) void history.travel(event.key === "ArrowLeft" ? -1 : 1, current,
-      (location) => navigate(location.file_path, undefined, location)).catch(report);
+    if (event.repeat) return;
+    void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
   }, true);
+  window.addEventListener("linux-note-reading-history-travel", event => {
+    const direction = (event as CustomEvent<{ direction?: number }>).detail?.direction;
+    if (direction === -1 || direction === 1) void travel_history(direction).catch(report);
+  });
+  publish_history_state();
   document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
   document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
 }

@@ -21187,8 +21187,8 @@ var LinuxNoteTyporaEnhancements = (() => {
           const removeFn = commands.unshift(idOrCommand);
           const ret = toDisposable(() => {
             removeFn();
-            const command = this._commands.get(id);
-            if (command?.isEmpty()) {
+            const command2 = this._commands.get(id);
+            if (command2?.isEmpty()) {
               this._commands.delete(id);
             }
           });
@@ -21208,9 +21208,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         getCommands() {
           const result = /* @__PURE__ */ new Map();
           for (const key of this._commands.keys()) {
-            const command = this.getCommand(key);
-            if (command) {
-              result.set(key, command);
+            const command2 = this.getCommand(key);
+            if (command2) {
+              result.set(key, command2);
             }
           }
           return result;
@@ -23202,39 +23202,39 @@ var LinuxNoteTyporaEnhancements = (() => {
   function registerAction2(ctor) {
     const disposables = [];
     const action = new ctor();
-    const { f1, menu, keybinding, ...command } = action.desc;
-    if (CommandsRegistry.getCommand(command.id)) {
-      throw new Error("Cannot register two commands with the same id: ".concat(command.id));
+    const { f1, menu, keybinding, ...command2 } = action.desc;
+    if (CommandsRegistry.getCommand(command2.id)) {
+      throw new Error("Cannot register two commands with the same id: ".concat(command2.id));
     }
     disposables.push(CommandsRegistry.registerCommand({
-      id: command.id,
+      id: command2.id,
       handler: (accessor, ...args) => action.run(accessor, ...args),
-      metadata: command.metadata ?? { description: action.desc.title }
+      metadata: command2.metadata ?? { description: action.desc.title }
     }));
     if (Array.isArray(menu)) {
       for (const item of menu) {
-        disposables.push(MenuRegistry.appendMenuItem(item.id, { command: { ...command, precondition: item.precondition === null ? void 0 : command.precondition }, ...item }));
+        disposables.push(MenuRegistry.appendMenuItem(item.id, { command: { ...command2, precondition: item.precondition === null ? void 0 : command2.precondition }, ...item }));
       }
     } else if (menu) {
-      disposables.push(MenuRegistry.appendMenuItem(menu.id, { command: { ...command, precondition: menu.precondition === null ? void 0 : command.precondition }, ...menu }));
+      disposables.push(MenuRegistry.appendMenuItem(menu.id, { command: { ...command2, precondition: menu.precondition === null ? void 0 : command2.precondition }, ...menu }));
     }
     if (f1) {
-      disposables.push(MenuRegistry.appendMenuItem(MenuId.CommandPalette, { command, when: command.precondition }));
-      disposables.push(MenuRegistry.addCommand(command));
+      disposables.push(MenuRegistry.appendMenuItem(MenuId.CommandPalette, { command: command2, when: command2.precondition }));
+      disposables.push(MenuRegistry.addCommand(command2));
     }
     if (Array.isArray(keybinding)) {
       for (const item of keybinding) {
         disposables.push(KeybindingsRegistry.registerKeybindingRule({
           ...item,
-          id: command.id,
-          when: command.precondition ? ContextKeyExpr.and(command.precondition, item.when) : item.when
+          id: command2.id,
+          when: command2.precondition ? ContextKeyExpr.and(command2.precondition, item.when) : item.when
         }));
       }
     } else if (keybinding) {
       disposables.push(KeybindingsRegistry.registerKeybindingRule({
         ...keybinding,
-        id: command.id,
-        when: command.precondition ? ContextKeyExpr.and(command.precondition, keybinding.when) : keybinding.when
+        id: command2.id,
+        when: command2.precondition ? ContextKeyExpr.and(command2.precondition, keybinding.when) : keybinding.when
       }));
     }
     return {
@@ -24090,11 +24090,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           });
           this.onDidChangeMenu = this._onDidChangeMenu.event;
         }
-        addCommand(command) {
-          this._commands.set(command.id, command);
+        addCommand(command2) {
+          this._commands.set(command2.id, command2);
           this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(MenuId.CommandPalette));
           return markAsSingleton(toDisposable(() => {
-            if (this._commands.delete(command.id)) {
+            if (this._commands.delete(command2.id)) {
               this._onDidChangeMenu.fire(MenuRegistryChangeEvent.for(MenuId.CommandPalette));
             }
           }));
@@ -24149,9 +24149,9 @@ var LinuxNoteTyporaEnhancements = (() => {
               }
             }
           }
-          this._commands.forEach((command, id) => {
+          this._commands.forEach((command2, id) => {
             if (!set.has(id)) {
-              result.push({ command });
+              result.push({ command: command2 });
             }
           });
         }
@@ -25537,9 +25537,9 @@ var LinuxNoteTyporaEnhancements = (() => {
   function registerEditorContribution(id, ctor, instantiation) {
     EditorContributionRegistry.INSTANCE.registerEditorContribution(id, ctor, instantiation);
   }
-  function registerCommand(command) {
-    command.register();
-    return command;
+  function registerCommand(command2) {
+    command2.register();
+    return command2;
   }
   var Command2, MultiCommand, ProxyCommand, EditorCommand, EditorAction, MultiEditorAction, EditorAction2, EditorExtensionsRegistry, Extensions2, EditorContributionRegistry, UndoCommand, RedoCommand, SelectAllCommand;
   var init_editorExtensions = __esm({
@@ -25671,9 +25671,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       };
       ProxyCommand = class extends Command2 {
-        constructor(command, opts) {
+        constructor(command2, opts) {
           super(opts);
-          this.command = command;
+          this.command = command2;
         }
         runCommand(accessor, args) {
           return this.command.runCommand(accessor, args);
@@ -34441,13 +34441,13 @@ var LinuxNoteTyporaEnhancements = (() => {
          * @returns A new color representing the mix
          */
         mix(color, factor2 = 0.5) {
-          const normalize3 = Math.min(Math.max(factor2, 0), 1);
+          const normalize4 = Math.min(Math.max(factor2, 0), 1);
           const thisRGBA = this.rgba;
           const otherRGBA = color.rgba;
-          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize3;
-          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize3;
-          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize3;
-          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize3;
+          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize4;
+          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize4;
+          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize4;
+          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize4;
           return new _Color(new RGBA(r4, g, b2, a));
         }
         makeOpaque(opaqueBackground) {
@@ -39464,7 +39464,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     EditorSettingMigration.items.push(new EditorSettingMigration(key, migrate));
   }
   function registerSimpleEditorSettingMigration(key, values) {
-    registerEditorSettingMigration(key, (value, read2, write) => {
+    registerEditorSettingMigration(key, (value, read3, write) => {
       if (typeof value !== "undefined") {
         for (const [oldValue, newValue] of values) {
           if (value === oldValue) {
@@ -39491,9 +39491,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
         apply(options2) {
           const value = _EditorSettingMigration._read(options2, this.key);
-          const read2 = (key) => _EditorSettingMigration._read(options2, key);
+          const read3 = (key) => _EditorSettingMigration._read(options2, key);
           const write = (key, value2) => _EditorSettingMigration._write(options2, key, value2);
-          this.migrate(value, read2, write);
+          this.migrate(value, read3, write);
         }
         static _read(source, key) {
           if (typeof source === "undefined" || source === null) {
@@ -39534,29 +39534,29 @@ var LinuxNoteTyporaEnhancements = (() => {
       registerSimpleEditorSettingMigration("wordBasedSuggestions", [[true, "matchingDocuments"], [false, "off"]]);
       registerSimpleEditorSettingMigration("defaultColorDecorators", [[true, "auto"], [false, "never"]]);
       registerSimpleEditorSettingMigration("minimap.autohide", [[true, "mouseover"], [false, "none"]]);
-      registerEditorSettingMigration("autoClosingBrackets", (value, read2, write) => {
+      registerEditorSettingMigration("autoClosingBrackets", (value, read3, write) => {
         if (value === false) {
           write("autoClosingBrackets", "never");
-          if (typeof read2("autoClosingQuotes") === "undefined") {
+          if (typeof read3("autoClosingQuotes") === "undefined") {
             write("autoClosingQuotes", "never");
           }
-          if (typeof read2("autoSurround") === "undefined") {
+          if (typeof read3("autoSurround") === "undefined") {
             write("autoSurround", "never");
           }
         }
       });
-      registerEditorSettingMigration("renderIndentGuides", (value, read2, write) => {
+      registerEditorSettingMigration("renderIndentGuides", (value, read3, write) => {
         if (typeof value !== "undefined") {
           write("renderIndentGuides", void 0);
-          if (typeof read2("guides.indentation") === "undefined") {
+          if (typeof read3("guides.indentation") === "undefined") {
             write("guides.indentation", !!value);
           }
         }
       });
-      registerEditorSettingMigration("highlightActiveIndentGuide", (value, read2, write) => {
+      registerEditorSettingMigration("highlightActiveIndentGuide", (value, read3, write) => {
         if (typeof value !== "undefined") {
           write("highlightActiveIndentGuide", void 0);
-          if (typeof read2("guides.highlightActiveIndentation") === "undefined") {
+          if (typeof read3("guides.highlightActiveIndentation") === "undefined") {
             write("guides.highlightActiveIndentation", !!value);
           }
         }
@@ -39589,12 +39589,12 @@ var LinuxNoteTyporaEnhancements = (() => {
         typeParameter: "showTypeParameters",
         snippet: "showSnippets"
       };
-      registerEditorSettingMigration("suggest.filteredTypes", (value, read2, write) => {
+      registerEditorSettingMigration("suggest.filteredTypes", (value, read3, write) => {
         if (value && typeof value === "object") {
           for (const entry of Object.entries(suggestFilteredTypesMapping)) {
             const v2 = value[entry[0]];
             if (v2 === false) {
-              if (typeof read2("suggest.".concat(entry[1])) === "undefined") {
+              if (typeof read3("suggest.".concat(entry[1])) === "undefined") {
                 write("suggest.".concat(entry[1]), false);
               }
             }
@@ -39602,38 +39602,38 @@ var LinuxNoteTyporaEnhancements = (() => {
           write("suggest.filteredTypes", void 0);
         }
       });
-      registerEditorSettingMigration("quickSuggestions", (input, read2, write) => {
+      registerEditorSettingMigration("quickSuggestions", (input, read3, write) => {
         if (typeof input === "boolean") {
           const value = input ? "on" : "off";
           const newValue = { comments: value, strings: value, other: value };
           write("quickSuggestions", newValue);
         }
       });
-      registerEditorSettingMigration("experimental.stickyScroll.enabled", (value, read2, write) => {
+      registerEditorSettingMigration("experimental.stickyScroll.enabled", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("experimental.stickyScroll.enabled", void 0);
-          if (typeof read2("stickyScroll.enabled") === "undefined") {
+          if (typeof read3("stickyScroll.enabled") === "undefined") {
             write("stickyScroll.enabled", value);
           }
         }
       });
-      registerEditorSettingMigration("experimental.stickyScroll.maxLineCount", (value, read2, write) => {
+      registerEditorSettingMigration("experimental.stickyScroll.maxLineCount", (value, read3, write) => {
         if (typeof value === "number") {
           write("experimental.stickyScroll.maxLineCount", void 0);
-          if (typeof read2("stickyScroll.maxLineCount") === "undefined") {
+          if (typeof read3("stickyScroll.maxLineCount") === "undefined") {
             write("stickyScroll.maxLineCount", value);
           }
         }
       });
-      registerEditorSettingMigration("editor.experimentalEditContextEnabled", (value, read2, write) => {
+      registerEditorSettingMigration("editor.experimentalEditContextEnabled", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("editor.experimentalEditContextEnabled", void 0);
-          if (typeof read2("editor.editContext") === "undefined") {
+          if (typeof read3("editor.editContext") === "undefined") {
             write("editor.editContext", value);
           }
         }
       });
-      registerEditorSettingMigration("codeActionsOnSave", (value, read2, write) => {
+      registerEditorSettingMigration("codeActionsOnSave", (value, read3, write) => {
         if (value && typeof value === "object") {
           let toBeModified = false;
           const newValue = {};
@@ -39650,26 +39650,26 @@ var LinuxNoteTyporaEnhancements = (() => {
           }
         }
       });
-      registerEditorSettingMigration("codeActionWidget.includeNearbyQuickfixes", (value, read2, write) => {
+      registerEditorSettingMigration("codeActionWidget.includeNearbyQuickfixes", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("codeActionWidget.includeNearbyQuickfixes", void 0);
-          if (typeof read2("codeActionWidget.includeNearbyQuickFixes") === "undefined") {
+          if (typeof read3("codeActionWidget.includeNearbyQuickFixes") === "undefined") {
             write("codeActionWidget.includeNearbyQuickFixes", value);
           }
         }
       });
-      registerEditorSettingMigration("lightbulb.enabled", (value, read2, write) => {
+      registerEditorSettingMigration("lightbulb.enabled", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("lightbulb.enabled", value ? void 0 : "off");
         }
       });
-      registerEditorSettingMigration("inlineSuggest.edits.codeShifting", (value, read2, write) => {
+      registerEditorSettingMigration("inlineSuggest.edits.codeShifting", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("inlineSuggest.edits.codeShifting", void 0);
           write("inlineSuggest.edits.allowCodeShifting", value ? "always" : "never");
         }
       });
-      registerEditorSettingMigration("hover.enabled", (value, read2, write) => {
+      registerEditorSettingMigration("hover.enabled", (value, read3, write) => {
         if (typeof value === "boolean") {
           write("hover.enabled", value ? "on" : "off");
         }
@@ -51058,8 +51058,8 @@ var LinuxNoteTyporaEnhancements = (() => {
               const prefix = lineText.substring(lineFirstNonBlankColumn - 1, position2.column - 1);
               const typeText = newIndentation + prefix + ch;
               const typeSelection = new Range(position2.lineNumber, 1, position2.lineNumber, position2.column);
-              const command = new ReplaceCommand(typeSelection, typeText);
-              return new EditOperationResult(getTypingOperation(typeText, prevEditOperationType), [command], {
+              const command2 = new ReplaceCommand(typeSelection, typeText);
+              return new EditOperationResult(getTypingOperation(typeText, prevEditOperationType), [command2], {
                 shouldPushStackElementBefore: false,
                 shouldPushStackElementAfter: true
               });
@@ -51699,9 +51699,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       weight: CORE_WEIGHT + 1
     });
   }
-  function registerCommand2(command) {
-    command.register();
-    return command;
+  function registerCommand2(command2) {
+    command2.register();
+    return command2;
   }
   function registerOverwritableCommand(handlerId, metadata) {
     registerCommand2(new EditorHandlerCommand("default:" + handlerId, handlerId));
@@ -85764,10 +85764,10 @@ var LinuxNoteTyporaEnhancements = (() => {
             const autoClosedCharactersRanges = [];
             const autoClosedEnclosingRanges = [];
             for (let i = 0; i < opResult.commands.length; i++) {
-              const command = opResult.commands[i];
-              if (command instanceof BaseTypeWithAutoClosingCommand && command.enclosingRange && command.closeCharacterRange) {
-                autoClosedCharactersRanges.push(command.closeCharacterRange);
-                autoClosedEnclosingRanges.push(command.enclosingRange);
+              const command2 = opResult.commands[i];
+              if (command2 instanceof BaseTypeWithAutoClosingCommand && command2.enclosingRange && command2.closeCharacterRange) {
+                autoClosedCharactersRanges.push(command2.closeCharacterRange);
+                autoClosedEnclosingRanges.push(command2.enclosingRange);
               }
             }
             if (autoClosedCharactersRanges.length > 0) {
@@ -85978,11 +85978,11 @@ var LinuxNoteTyporaEnhancements = (() => {
             this._executeEditOperation(DeleteOperations.cut(this.context.cursorConfig, this._model, this.getSelections()), reason);
           }, eventsCollector, source);
         }
-        executeCommand(eventsCollector, command, source) {
+        executeCommand(eventsCollector, command2, source) {
           const reason = EditSources.cursor({ kind: "executeCommand", detailedSource: source });
           this._executeEdit(() => {
             this._cursors.killSecondaryCursors();
-            this._executeEditOperation(new EditOperationResult(0, [command], {
+            this._executeEditOperation(new EditOperationResult(0, [command2], {
               shouldPushStackElementBefore: false,
               shouldPushStackElementAfter: false
             }), reason);
@@ -86183,9 +86183,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           let operations = [];
           let hadTrackedEditOperation = false;
           for (let i = 0, len = commands.length; i < len; i++) {
-            const command = commands[i];
-            if (command) {
-              const r4 = this._getEditOperationsFromCommand(ctx, i, command);
+            const command2 = commands[i];
+            if (command2) {
+              const r4 = this._getEditOperationsFromCommand(ctx, i, command2);
               operations = operations.concat(r4.operations);
               hadTrackedEditOperation = hadTrackedEditOperation || r4.hadTrackedEditOperation;
             }
@@ -86195,7 +86195,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             hadTrackedEditOperation
           };
         }
-        static _getEditOperationsFromCommand(ctx, majorIdentifier, command) {
+        static _getEditOperationsFromCommand(ctx, majorIdentifier, command2) {
           const operations = [];
           let operationMinor = 0;
           const addEditOperation = (range2, text3, forceMoveMarkers = false) => {
@@ -86210,7 +86210,7 @@ var LinuxNoteTyporaEnhancements = (() => {
               range: range2,
               text: text3,
               forceMoveMarkers,
-              isAutoWhitespaceEdit: command.insertsAutoWhitespace
+              isAutoWhitespaceEdit: command2.insertsAutoWhitespace
             });
           };
           let hadTrackedEditOperation = false;
@@ -86251,7 +86251,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             trackSelection
           };
           try {
-            command.getEditOperations(ctx.model, editOperationBuilder);
+            command2.getEditOperations(ctx.model, editOperationBuilder);
           } catch (e) {
             onUnexpectedError(e);
             return {
@@ -90605,8 +90605,8 @@ var LinuxNoteTyporaEnhancements = (() => {
         cut(source) {
           this._executeCursorEdit((eventsCollector) => this._cursor.cut(eventsCollector, source));
         }
-        executeCommand(command, source) {
-          this._executeCursorEdit((eventsCollector) => this._cursor.executeCommand(eventsCollector, command, source));
+        executeCommand(command2, source) {
+          this._executeCursorEdit((eventsCollector) => this._cursor.executeCommand(eventsCollector, command2, source));
         }
         executeCommands(commands, source) {
           this._executeCursorEdit((eventsCollector) => this._cursor.executeCommands(eventsCollector, commands, source));
@@ -91772,14 +91772,14 @@ var LinuxNoteTyporaEnhancements = (() => {
           this._modelData.viewModel.cut(source);
         }
         _triggerEditorCommand(source, handlerId, payload) {
-          const command = EditorExtensionsRegistry.getEditorCommand(handlerId);
-          if (command) {
+          const command2 = EditorExtensionsRegistry.getEditorCommand(handlerId);
+          if (command2) {
             payload = payload || {};
             if (isObject(payload)) {
               payload.source = source;
             }
             this._instantiationService.invokeFunction((accessor) => {
-              Promise.resolve(command.runEditorCommand(accessor, this, payload)).then(void 0, onUnexpectedError);
+              Promise.resolve(command2.runEditorCommand(accessor, this, payload)).then(void 0, onUnexpectedError);
             });
             return true;
           }
@@ -91851,11 +91851,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           this._modelData.viewModel.executeEdits(sourceStr, edits, cursorStateComputer, reason);
           return true;
         }
-        executeCommand(source, command) {
+        executeCommand(source, command2) {
           if (!this._modelData) {
             return;
           }
-          this._modelData.viewModel.executeCommand(command, source);
+          this._modelData.viewModel.executeCommand(command2, source);
         }
         executeCommands(source, commands) {
           if (!this._modelData) {
@@ -97263,7 +97263,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         };
       }
       if (!apply) {
-        apply = function apply3(func, thisArg) {
+        apply = function apply4(func, thisArg) {
           for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
             args[_key - 2] = arguments[_key];
           }
@@ -104641,9 +104641,9 @@ var LinuxNoteTyporaEnhancements = (() => {
   });
 
   // node_modules/monaco-editor/esm/vs/platform/actions/common/menuService.js
-  function createMenuHide(menu, command, states) {
-    const id = isISubmenuItem(command) ? command.submenu.id : command.id;
-    const title = typeof command.title === "string" ? command.title : command.title.value;
+  function createMenuHide(menu, command2, states) {
+    const id = isISubmenuItem(command2) ? command2.submenu.id : command2.id;
+    const title = typeof command2.title === "string" ? command2.title : command2.title.value;
     const hide2 = toAction({
       id: "hide/".concat(menu.id, "/").concat(id),
       label: localize(1703, "Hide '{0}'", title),
@@ -115128,9 +115128,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           this._defaultKeybindings = defaultKeybindings;
           this._defaultBoundCommands = /* @__PURE__ */ new Map();
           for (const defaultKeybinding of defaultKeybindings) {
-            const command = defaultKeybinding.command;
-            if (command && command.charAt(0) !== "-") {
-              this._defaultBoundCommands.set(command, true);
+            const command2 = defaultKeybinding.command;
+            if (command2 && command2.charAt(0) !== "-") {
+              this._defaultBoundCommands.set(command2, true);
             }
           }
           this._map = /* @__PURE__ */ new Map();
@@ -115176,11 +115176,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           for (let i = 0, len = rules.length; i < len; i++) {
             const rule = rules[i];
             if (rule.command && rule.command.charAt(0) === "-") {
-              const command = rule.command.substring(1);
-              if (!removals.has(command)) {
-                removals.set(command, [rule]);
+              const command2 = rule.command.substring(1);
+              if (!removals.has(command2)) {
+                removals.set(command2, [rule]);
               } else {
-                removals.get(command).push(rule);
+                removals.get(command2).push(rule);
               }
             }
           }
@@ -115685,15 +115685,15 @@ var LinuxNoteTyporaEnhancements = (() => {
   var init_resolvedKeybindingItem = __esm({
     "node_modules/monaco-editor/esm/vs/platform/keybinding/common/resolvedKeybindingItem.js"() {
       ResolvedKeybindingItem = class {
-        constructor(resolvedKeybinding, command, commandArgs, when, isDefault, extensionId, isBuiltinExtension) {
+        constructor(resolvedKeybinding, command2, commandArgs, when, isDefault, extensionId, isBuiltinExtension) {
           this._resolvedKeybindingItemBrand = void 0;
           this.resolvedKeybinding = resolvedKeybinding;
           this.chords = resolvedKeybinding ? toEmptyArrayIfContainsNull(resolvedKeybinding.getDispatchChords()) : [];
           if (resolvedKeybinding && this.chords.length === 0) {
             this.chords = toEmptyArrayIfContainsNull(resolvedKeybinding.getSingleModifierDispatchChords());
           }
-          this.bubble = command ? command.charCodeAt(0) === 94 : false;
-          this.command = this.bubble ? command.substr(1) : command;
+          this.bubble = command2 ? command2.charCodeAt(0) === 94 : false;
+          this.command = this.bubble ? command2.substr(1) : command2;
           this.commandArgs = commandArgs;
           this.when = when;
           this.isDefault = isDefault;
@@ -135084,13 +135084,13 @@ var LinuxNoteTyporaEnhancements = (() => {
           this._instantiationService = instantiationService;
         }
         executeCommand(id, ...args) {
-          const command = CommandsRegistry.getCommand(id);
-          if (!command) {
+          const command2 = CommandsRegistry.getCommand(id);
+          if (!command2) {
             return Promise.reject(new Error("command '".concat(id, "' not found")));
           }
           try {
             this._onWillExecuteCommand.fire({ commandId: id, args });
-            const result = this._instantiationService.invokeFunction.apply(this._instantiationService, [command.handler, ...args]);
+            const result = this._instantiationService.invokeFunction.apply(this._instantiationService, [command2.handler, ...args]);
             this._onDidExecuteCommand.fire({ commandId: id, args });
             return Promise.resolve(result);
           } catch (err) {
@@ -135166,10 +135166,10 @@ var LinuxNoteTyporaEnhancements = (() => {
           this._register(codeEditorService.onDiffEditorRemove(removeDiffEditor));
           codeEditorService.listDiffEditors().forEach(addDiffEditor);
         }
-        addDynamicKeybinding(command, keybinding, handler, when) {
-          return combinedDisposable(CommandsRegistry.registerCommand(command, handler), this.addDynamicKeybindings([{
+        addDynamicKeybinding(command2, keybinding, handler, when) {
+          return combinedDisposable(CommandsRegistry.registerCommand(command2, handler), this.addDynamicKeybindings([{
             keybinding,
-            command,
+            command: command2,
             when
           }]));
         }
@@ -158388,6 +158388,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     let navigating = false;
     return {
       is_navigating: () => navigating,
+      can_travel: (direction) => !navigating && index + direction >= 0 && index + direction < entries3.length,
       remap_paths(map) {
         for (const entry of entries3) entry.file_path = map(entry.file_path) ?? entry.file_path;
       },
@@ -158584,6 +158585,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         return;
       }
       if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
+      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.code === "KeyB") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        chord_started = 0;
+        app.workspace.sidebar.toggle();
+        return;
+      }
       const in_chord = chord_started > 0 && Date.now() - chord_started < 2e3;
       const absolute = in_chord && event.code === "KeyP" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
       const relative2 = in_chord && event.code === "KeyC" && event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
@@ -158921,6 +158929,12 @@ var LinuxNoteTyporaEnhancements = (() => {
     const runtime = window;
     const path_api = app ? runtime.reqnode("path") : void 0;
     const history = create_reading_history();
+    const publish_history_state = () => {
+      const detail = { back: history.can_travel(-1), forward: history.can_travel(1) };
+      document.documentElement.dataset.linuxNoteHistoryBack = String(detail.back);
+      document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
+      window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
+    };
     const original_open_url = editor2.tryOpenUrl;
     const original_open_file = editor2.library.openFile;
     const native_path = () => file.bundle?.filePath ?? "";
@@ -158955,7 +158969,10 @@ var LinuxNoteTyporaEnhancements = (() => {
     const finish_pending = () => {
       window.clearTimeout(pending_timer);
       const current = capture();
-      if (pending_from && current && !is_busy() && !navigating) history.record_jump(pending_from, current);
+      if (pending_from && current && !is_busy() && !navigating) {
+        history.record_jump(pending_from, current);
+        publish_history_state();
+      }
       pending_from = null;
     };
     const wait_for = async (ready) => {
@@ -159041,7 +159058,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         const to = capture(target);
         if (to) {
           workspace.remember(target, to.position);
-          if (from && !location) history.record_jump(from, to);
+          if (from && !location) {
+            history.record_jump(from, to);
+            publish_history_state();
+          }
         }
         return true;
       } finally {
@@ -159056,6 +159076,19 @@ var LinuxNoteTyporaEnhancements = (() => {
         await reading_delay(40);
       }
       return navigate(path, void 0, void 0, options2);
+    };
+    const travel_history = async (direction) => {
+      if (navigating || history.is_navigating() || is_busy()) return false;
+      finish_pending();
+      const current = capture();
+      if (!current) return false;
+      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location));
+      publish_history_state();
+      try {
+        return await pending;
+      } finally {
+        publish_history_state();
+      }
     };
     editor2.tryOpenUrl = function(url, ...args) {
       const local_url = url.trim().replace(/^<|>$/gu, "");
@@ -159109,15 +159142,14 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (event.repeat || navigating || history.is_navigating() || is_busy()) return;
-      finish_pending();
-      const current = capture();
-      if (current) void history.travel(
-        event.key === "ArrowLeft" ? -1 : 1,
-        current,
-        (location) => navigate(location.file_path, void 0, location)
-      ).catch(report);
+      if (event.repeat) return;
+      void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
     }, true);
+    window.addEventListener("linux-note-reading-history-travel", (event) => {
+      const direction = event.detail?.direction;
+      if (direction === -1 || direction === 1) void travel_history(direction).catch(report);
+    });
+    publish_history_state();
     document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
     document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
   }
@@ -160489,8 +160521,8 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (nextMatch) {
         if (selection.equalsRange(nextMatch.range)) {
           const replaceString = replacePattern.buildReplaceString(nextMatch.matches, this._state.preserveCase);
-          const command = new ReplaceCommand(selection, replaceString);
-          this._executeEditorCommand("replace", command);
+          const command2 = new ReplaceCommand(selection, replaceString);
+          this._executeEditorCommand("replace", command2);
           this._decorations.setStartPosition(new Position(selection.startLineNumber, selection.startColumn + replaceString.length));
           this.research(true);
         } else {
@@ -160554,8 +160586,8 @@ var LinuxNoteTyporaEnhancements = (() => {
       } else {
         resultText = modelText.replace(searchRegex, replacePattern.buildReplaceString(null, preserveCase));
       }
-      const command = new ReplaceCommandThatPreservesSelection(fullModelRange, resultText, this._editor.getSelection());
-      this._executeEditorCommand("replaceAll", command);
+      const command2 = new ReplaceCommandThatPreservesSelection(fullModelRange, resultText, this._editor.getSelection());
+      this._executeEditorCommand("replaceAll", command2);
     }
     _regularReplaceAll(findScopes) {
       const replacePattern = this._getReplacePattern();
@@ -160569,8 +160601,8 @@ var LinuxNoteTyporaEnhancements = (() => {
       for (let i = 0, len = matches.length; i < len; i++) {
         replaceStrings[i] = replacePattern.buildReplaceString(matches[i].matches, this._state.preserveCase);
       }
-      const command = new ReplaceAllCommand(this._editor.getSelection(), matches.map((m) => m.range), replaceStrings);
-      this._executeEditorCommand("replaceAll", command);
+      const command2 = new ReplaceAllCommand(this._editor.getSelection(), matches.map((m) => m.range), replaceStrings);
+      this._executeEditorCommand("replaceAll", command2);
     }
     selectAllMatches() {
       if (!this._hasMatches()) {
@@ -160594,11 +160626,11 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       this._editor.setSelections(selections);
     }
-    _executeEditorCommand(source, command) {
+    _executeEditorCommand(source, command2) {
       try {
         this._ignoreModelContentChanged = true;
         this._editor.pushUndoStop();
-        this._editor.executeCommand(source, command);
+        this._editor.executeCommand(source, command2);
         this._editor.pushUndoStop();
       } finally {
         this._ignoreModelContentChanged = false;
@@ -168131,9 +168163,9 @@ var LinuxNoteTyporaEnhancements = (() => {
   var supportsCut = isNative || document.queryCommandSupported("cut");
   var supportsCopy = isNative || document.queryCommandSupported("copy");
   var supportsPaste = typeof navigator.clipboard === "undefined" || isFirefox2 ? document.queryCommandSupported("paste") : true;
-  function registerCommand4(command) {
-    command.register();
-    return command;
+  function registerCommand4(command2) {
+    command2.register();
+    return command2;
   }
   var CutAction = supportsCut ? registerCommand4(new MultiCommand({
     id: "editor.action.clipboardCutAction",
@@ -172930,9 +172962,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       const config = _accessor.get(IConfigurationService);
       const model = editor2.getModel();
       const trimInRegexAndStrings = config.getValue("files.trimTrailingWhitespaceInRegexAndStrings", { overrideIdentifier: model?.getLanguageId(), resource: model?.uri });
-      const command = new TrimTrailingWhitespaceCommand(selection, cursors, trimInRegexAndStrings);
+      const command2 = new TrimTrailingWhitespaceCommand(selection, cursors, trimInRegexAndStrings);
       editor2.pushUndoStop();
-      editor2.executeCommands(this.id, [command]);
+      editor2.executeCommands(this.id, [command2]);
       editor2.pushUndoStop();
     }
   };
@@ -174635,6 +174667,8 @@ var LinuxNoteTyporaEnhancements = (() => {
 
   // vendor/codicons/icons.json
   var icons_default = {
+    "arrow-left": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.5 8.00023H3.70701L7.85301 3.85423C8.04801 3.65923 8.04801 3.34223 7.85301 3.14723C7.65801 2.95223 7.34101 2.95223 7.14601 3.14723L2.14601 8.14723C1.95101 8.34223 1.95101 8.65923 2.14601 8.85423L7.14601 13.8542C7.24401 13.9522 7.37201 14.0002 7.50001 14.0002C7.62801 14.0002 7.75601 13.9512 7.85401 13.8542C8.04901 13.6592 8.04901 13.3422 7.85401 13.1472L3.70801 9.00123H13.501C13.777 9.00123 14.001 8.77723 14.001 8.50123C14.001 8.22523 13.777 8.00123 13.501 8.00123L13.5 8.00023Z"/></svg>',
+    "arrow-right": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.854 8.14576L8.854 3.14576C8.659 2.95076 8.342 2.95076 8.147 3.14576C7.952 3.34076 7.952 3.65776 8.147 3.85276L12.293 7.99876H2.5C2.224 7.99876 2 8.22276 2 8.49876C2 8.77476 2.224 8.99876 2.5 8.99876H12.293L8.147 13.1448C7.952 13.3398 7.952 13.6568 8.147 13.8518C8.245 13.9498 8.373 13.9978 8.501 13.9978C8.629 13.9978 8.757 13.9488 8.855 13.8518L13.855 8.85176C14.05 8.65676 14.05 8.33976 13.855 8.14476L13.854 8.14576Z"/></svg>',
     "diff-multiple": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13 12V4.414C13 4.014 12.844 3.637 12.561 3.353L9.64602 0.439C9.36302 0.156 8.98602 0 8.58502 0H3.99902C2.89602 0 1.99902 0.897 1.99902 2V12C1.99902 13.103 2.89602 14 3.99902 14H10.999C12.102 14 12.999 13.103 12.999 12H13ZM3.00002 12V2C3.00002 1.449 3.44902 1 4.00002 1H8.58602C8.71702 1 8.84602 1.053 8.94002 1.146L11.854 4.06C11.947 4.153 12 4.282 12 4.414V12C12 12.551 11.551 13 11 13H4.00002C3.44902 13 3.00002 12.551 3.00002 12ZM15 6.41V12C15 14.21 13.21 16 11 16H6.00002C5.26002 16 4.62002 15.6 4.27002 15H11C12.65 15 14 13.65 14 12V4.79L14.56 5.35C14.84 5.64 15 6.01 15 6.41ZM10 5.499C10 5.775 9.77602 5.999 9.50002 5.999H8.00002V7.499C8.00002 7.775 7.77602 7.999 7.50002 7.999C7.22402 7.999 7.00002 7.775 7.00002 7.499V5.999H5.50002C5.22402 5.999 5.00002 5.775 5.00002 5.499C5.00002 5.223 5.22402 4.999 5.50002 4.999H7.00002V3.499C7.00002 3.223 7.22402 2.999 7.50002 2.999C7.77602 2.999 8.00002 3.223 8.00002 3.499V4.999H9.50002C9.77602 4.999 10 5.223 10 5.499ZM10 10.499C10 10.775 9.77602 10.999 9.50002 10.999H5.50002C5.22402 10.999 5.00002 10.775 5.00002 10.499C5.00002 10.223 5.22402 9.999 5.50002 9.999H9.50002C9.77602 9.999 10 10.223 10 10.499Z"/></svg>',
     "compare-changes": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.14645 5.85355C9.34171 6.04882 9.65829 6.04882 9.85355 5.85355C10.0488 5.65829 10.0488 5.34171 9.85355 5.14645L8.70711 4H10.5C11.3284 4 12 4.67157 12 5.5V10.05C10.8589 10.2816 10 11.2905 10 12.5C10 13.8807 11.1193 15 12.5 15C13.8807 15 15 13.8807 15 12.5C15 11.2905 14.1411 10.2816 13 10.05V5.5C13 4.11929 11.8807 3 10.5 3H8.70711L9.85355 1.85355C10.0488 1.65829 10.0488 1.34171 9.85355 1.14645C9.65829 0.951184 9.34171 0.951184 9.14645 1.14645L7.14645 3.14645C6.95118 3.34171 6.95118 3.65829 7.14645 3.85355L9.14645 5.85355ZM14 12.5C14 13.3284 13.3284 14 12.5 14C11.6716 14 11 13.3284 11 12.5C11 11.6716 11.6716 11 12.5 11C13.3284 11 14 11.6716 14 12.5ZM6 3.5C6 4.70948 5.14112 5.71836 4 5.94999V10.5C4 11.3284 4.67157 12 5.5 12H7.29289L6.14645 10.8536C5.95118 10.6583 5.95118 10.3417 6.14645 10.1464C6.34171 9.95118 6.65829 9.95118 6.85355 10.1464L8.85355 12.1464C9.04882 12.3417 9.04882 12.6583 8.85355 12.8536L6.85355 14.8536C6.65829 15.0488 6.34171 15.0488 6.14645 14.8536C5.95118 14.6583 5.95118 14.3417 6.14645 14.1464L7.29289 13H5.5C4.11929 13 3 11.8807 3 10.5V5.94999C1.85888 5.71836 1 4.70948 1 3.5C1 2.11929 2.11929 1 3.5 1C4.88071 1 6 2.11929 6 3.5ZM5 3.5C5 2.67157 4.32843 2 3.5 2C2.67157 2 2 2.67157 2 3.5C2 4.32843 2.67157 5 3.5 5C4.32843 5 5 4.32843 5 3.5Z"/></svg>',
     "go-to-file": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.58594 1.00098C8.98394 1.00098 9.36646 1.15943 9.64746 1.44043L12.5605 4.35352C12.8415 4.63552 13.001 5.01704 13.001 5.41504V13.001C13.001 14.106 12.106 15.001 11.001 15.001H5.00098C3.89599 15.001 3.00098 14.106 3.00098 13.001V6.00098H4.00098V13.001C4.00098 13.553 4.44899 14.001 5.00098 14.001H11.001C11.553 14.001 12.001 13.553 12.001 13.001V6.00098H9.50098C8.67299 6.00096 8.00098 5.32897 8.00098 4.50098V2.00098C7.99198 1.97699 7.98265 1.9527 7.97266 1.92871C7.89674 1.74704 7.78717 1.5812 7.64746 1.44238L7.20605 1.00098H8.58594ZM9 4.5C9 4.776 9.224 5 9.5 5H11.793L9 2.20703V4.5Z"/><path d="M4.5 0C4.63299 0 4.75952 0.0534683 4.85352 0.147461L6.85352 2.14746C6.90042 2.19336 6.93789 2.24775 6.96289 2.30859C6.98789 2.36959 7.00097 2.43498 7.00098 2.50098C7.00098 2.56698 6.98789 2.63236 6.96289 2.69336C6.93789 2.75323 6.90043 2.80956 6.85352 2.85547L4.85352 4.85547C4.75956 4.94917 4.63278 5.00195 4.5 5.00195C4.36722 5.00195 4.24044 4.94917 4.14648 4.85547C4.05248 4.76147 3.99902 4.63398 3.99902 4.50098C3.99903 4.36799 4.05249 4.24146 4.14648 4.14746L5.29297 3.00098H2.5C2.10201 3.00098 1.72045 3.15944 1.43945 3.44043C1.15846 3.72242 1.00001 4.10298 1 4.50098V5.50098C1 5.63398 0.947516 5.76147 0.853516 5.85547C0.759563 5.94817 0.632774 6.00098 0.5 6.00098C0.367225 6.00098 0.240437 5.94917 0.146484 5.85547C0.0534844 5.76147 0 5.63398 0 5.50098V4.50098C6.17892e-06 3.83799 0.263427 3.20239 0.732422 2.7334C1.20142 2.26441 1.83701 2.00098 2.5 2.00098H5.29297L4.14648 0.855469C4.05248 0.761469 3.99902 0.633977 3.99902 0.500977C3.99903 0.367985 4.05249 0.241455 4.14648 0.147461C4.24048 0.0534683 4.36701 0 4.5 0Z"/></svg>',
@@ -174717,32 +174751,32 @@ var LinuxNoteTyporaEnhancements = (() => {
     return git_icon("chevron-right", "git-disclosure-icon");
   }
 
-  // src/git_graph_widgets.ts
-  function graph_element(tag3, class_name = "", text3 = "") {
+  // src/workspace_widgets.ts
+  function workspace_element(tag3, class_name = "", text3 = "") {
     const node = document.createElement(tag3);
     node.className = class_name;
     node.textContent = text3;
     return node;
   }
-  function graph_button(text3, action, class_name = "") {
-    const node = graph_element("button", class_name, text3);
+  function workspace_button(text3, action, class_name = "") {
+    const node = workspace_element("button", class_name, text3);
     node.type = "button";
     node.onclick = action;
     return node;
   }
-  function graph_option(value, text3) {
-    const node = graph_element("option", "", text3);
+  function workspace_option(value, text3) {
+    const node = workspace_element("option", "", text3);
     node.value = value;
     return node;
   }
-  function graph_dialog(title) {
-    const root = graph_element("div", "git-graph-dialog-shade");
+  function workspace_dialog(title) {
+    const root = workspace_element("div", "git-graph-dialog-shade");
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
     root.setAttribute("aria-label", title);
-    const panel = graph_element("section", "git-graph-dialog");
-    const content = graph_element("div", "git-graph-dialog-content");
-    const footer = graph_element("div", "git-graph-dialog-footer");
+    const panel = workspace_element("section", "git-graph-dialog");
+    const content = workspace_element("div", "git-graph-dialog-content");
+    const footer = workspace_element("div", "git-graph-dialog-footer");
     const previous = document.activeElement;
     const close = () => {
       window.removeEventListener("keydown", global_key, true);
@@ -174757,7 +174791,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         close();
       }
     };
-    panel.append(graph_element("h3", "", title), content, footer);
+    panel.append(workspace_element("h3", "", title), content, footer);
     root.append(panel);
     document.body.append(root);
     window.addEventListener("keydown", global_key, true);
@@ -174780,12 +174814,12 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       event.stopPropagation();
     });
-    footer.append(graph_button("\u5173\u95ED", close));
+    footer.append(workspace_button("\u5173\u95ED", close));
     setTimeout(() => panel.querySelector("input,textarea,select,button")?.focus(), 0);
     return { root, content, footer, close };
   }
   var close_active_menu;
-  function graph_menu(event, entries3) {
+  function workspace_menu(event, entries3) {
     close_active_menu?.();
     event.preventDefault();
     event.stopPropagation();
@@ -174806,28 +174840,28 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const show2 = (items, x, y, level, parent) => {
       close_from(level);
-      const menu = graph_element("div", "git-graph-menu");
+      const menu = workspace_element("div", "git-graph-menu");
       menu.setAttribute("role", "menu");
       menu.setAttribute("data-menu-level", String(level));
       menus.push(menu);
       for (const entry of items) {
         if (entry.separator && menu.children.length) {
-          const separator = graph_element("hr");
+          const separator = workspace_element("hr");
           separator.setAttribute("role", "separator");
           menu.append(separator);
         }
-        const node = graph_button("", () => {
+        const node = workspace_button("", () => {
           if (entry.children) open_child(true);
           else {
             close();
             entry.action();
           }
         });
-        const check2 = graph_element("span", "git-menu-check");
+        const check2 = workspace_element("span", "git-menu-check");
         if (entry.checked) check2.append(git_icon("check"));
-        const arrow = graph_element("span", "git-menu-arrow");
+        const arrow = workspace_element("span", "git-menu-arrow");
         if (entry.children) arrow.append(git_icon("chevron-right"));
-        node.append(check2, graph_element("span", "git-menu-label", entry.title), arrow);
+        node.append(check2, workspace_element("span", "git-menu-label", entry.title), arrow);
         const open_child = (focus = false) => {
           if (!entry.children || node.disabled) return;
           const rect = node.getBoundingClientRect();
@@ -174901,7 +174935,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       for (const match2 of value.matchAll(pattern)) {
         if (!match2[0]) continue;
         fragment.append(document.createTextNode(value.slice(offset, match2.index)));
-        const link3 = graph_element("a", "", match2[0]);
+        const link3 = workspace_element("a", "", match2[0]);
         link3.href = options2.issue_url.replace(/\{id\}/gu, encodeURIComponent(match2[1] || match2[0]));
         link3.onclick = (event) => {
           event.preventDefault();
@@ -174916,7 +174950,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       plain(source.slice(last, match2.index));
       const value = match2[0];
       if (/^https?:/u.test(value)) {
-        const link3 = graph_element("a", "", value);
+        const link3 = workspace_element("a", "", value);
         link3.href = value;
         link3.onclick = (event) => {
           event.preventDefault();
@@ -174926,7 +174960,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       } else if (!options2.markdown) plain(value);
       else {
         const size = value.startsWith("***") ? 3 : value.startsWith("**") ? 2 : 1;
-        const node = graph_element(value[0] === "`" ? "code" : size > 1 ? "strong" : "em", "", value.slice(size, -size));
+        const node = workspace_element(value[0] === "`" ? "code" : size > 1 ? "strong" : "em", "", value.slice(size, -size));
         if (size === 3) node.style.fontStyle = "italic";
         fragment.append(node);
       }
@@ -175023,26 +175057,26 @@ var LinuxNoteTyporaEnhancements = (() => {
         break;
       }
     }
-    const command = basename3(executable).replace(/\.exe$/i, "");
-    if (/^python(?:\d+(?:\.\d+)*)?$/.test(command)) return "python";
-    if (/^(?:sh|bash|dash|ash|zsh|ksh|fish)$/.test(command)) return "shell";
-    if (/^(?:node|nodejs|bun|deno)$/.test(command)) return "javascript";
-    if (/^(?:pwsh|powershell)$/.test(command)) return "powershell";
-    if (/^ruby(?:\d+(?:\.\d+)*)?$/.test(command)) return "ruby";
-    if (/^perl(?:\d+(?:\.\d+)*)?$/.test(command)) return "perl";
-    if (/^php(?:\d+(?:\.\d+)*)?$/.test(command)) return "php";
-    if (/^lua(?:\d+(?:\.\d+)*)?$/.test(command)) return "lua";
-    if (/^Rscript$/.test(command)) return "r";
+    const command2 = basename3(executable).replace(/\.exe$/i, "");
+    if (/^python(?:\d+(?:\.\d+)*)?$/.test(command2)) return "python";
+    if (/^(?:sh|bash|dash|ash|zsh|ksh|fish)$/.test(command2)) return "shell";
+    if (/^(?:node|nodejs|bun|deno)$/.test(command2)) return "javascript";
+    if (/^(?:pwsh|powershell)$/.test(command2)) return "powershell";
+    if (/^ruby(?:\d+(?:\.\d+)*)?$/.test(command2)) return "ruby";
+    if (/^perl(?:\d+(?:\.\d+)*)?$/.test(command2)) return "perl";
+    if (/^php(?:\d+(?:\.\d+)*)?$/.test(command2)) return "php";
+    if (/^lua(?:\d+(?:\.\d+)*)?$/.test(command2)) return "lua";
+    if (/^Rscript$/.test(command2)) return "r";
     return;
   }
   function match_file_language(file_path, first_line = "") {
     const name = basename3(file_path), lower_name = name.toLowerCase();
     for (const rule2 of FILE_LANGUAGE_RULES) {
       const candidate = rule2.case_sensitive ? name : lower_name;
-      const normalize3 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
-      const exact = rule2.filenames?.find((value) => candidate === normalize3(value));
+      const normalize4 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
+      const exact = rule2.filenames?.find((value) => candidate === normalize4(value));
       if (exact) return from_rule(rule2, "filename", exact);
-      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize3(value)));
+      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize4(value)));
       if (prefix) return from_rule(rule2, "filename", prefix + "*");
     }
     for (const { rule: rule2, suffix } of suffix_rules) {
@@ -175475,9 +175509,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       initialize_editor();
       this.container.setAttribute("data-linux-note-monaco-diff", "ready");
       this.container.append(this.toolbar);
-      const labels = graph_element("div", "git-diff-labels");
-      labels.append(graph_element("div", "", data.left_label || "\u539F\u59CB\u7248\u672C"));
-      if (data.right != null) labels.append(graph_element("div", "", data.right_label || "\u4FEE\u6539\u7248\u672C"));
+      const labels = workspace_element("div", "git-diff-labels");
+      labels.append(workspace_element("div", "", data.left_label || "\u539F\u59CB\u7248\u672C"));
+      if (data.right != null) labels.append(workspace_element("div", "", data.right_label || "\u4FEE\u6539\u7248\u672C"));
       this.container.append(labels, this.body);
       const model = (text3, side) => {
         if (text3.includes("\0")) throw new Error("\u8FD9\u662F\u4E8C\u8FDB\u5236\u6587\u4EF6\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u6587\u672C\u6BD4\u8F83\u3002\u8BF7\u6253\u5F00\u6587\u4EF6\u6216\u67E5\u770B Git \u6587\u4EF6\u72B6\u6001\u3002");
@@ -175506,14 +175540,14 @@ var LinuxNoteTyporaEnhancements = (() => {
             editor2.revealFirstDiff();
           }
         }));
-        this.toolbar.append(graph_button("\u2191 \u4E0A\u4E00\u6539\u52A8", () => editor2.goToDiff("previous")), graph_button("\u2193 \u4E0B\u4E00\u6539\u52A8", () => editor2.goToDiff("next")));
+        this.toolbar.append(workspace_button("\u2191 \u4E0A\u4E00\u6539\u52A8", () => editor2.goToDiff("previous")), workspace_button("\u2193 \u4E0B\u4E00\u6539\u52A8", () => editor2.goToDiff("next")));
         for (const view of [editor2.getOriginalEditor(), editor2.getModifiedEditor()]) this.bind_editor(view);
       } else {
         this.editor = editor.create(this.body, { ...options2, model: original });
         this.status.textContent = "\u53EA\u8BFB\u7248\u672C";
         this.bind_editor(this.editor);
       }
-      this.toolbar.append(graph_button("\u67E5\u627E", () => this.focused_editor().getAction("actions.find")?.run()), graph_button("\u2026", () => {
+      this.toolbar.append(workspace_button("\u67E5\u627E", () => this.focused_editor().getAction("actions.find")?.run()), workspace_button("\u2026", () => {
         const rect = this.toolbar.getBoundingClientRect();
         this.context_menu(new MouseEvent("contextmenu", { clientX: rect.right - 250, clientY: rect.bottom }));
       }), this.status);
@@ -175528,10 +175562,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         event.stopPropagation();
       });
     }
-    container = graph_element("section", "git-graph-document");
-    toolbar = graph_element("div", "git-diff-toolbar");
-    body = graph_element("div", "git-monaco-body");
-    status = graph_element("span", "git-diff-count", "\u6B63\u5728\u8BA1\u7B97\u5DEE\u5F02\u2026");
+    container = workspace_element("section", "git-graph-document");
+    toolbar = workspace_element("div", "git-diff-toolbar");
+    body = workspace_element("div", "git-monaco-body");
+    status = workspace_element("span", "git-diff-count", "\u6B63\u5728\u8BA1\u7B97\u5DEE\u5F02\u2026");
     editor;
     models = [];
     observer;
@@ -175549,9 +175583,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
     create_readonly_status() {
       if (this.readonly_status) return this.readonly_status;
-      const controls = graph_element("div", "workspace-editor-status-controls");
+      const controls = workspace_element("div", "workspace-editor-status-controls");
       this.readonly_status = controls;
-      const side = graph_element("span", "workspace-file-detail"), location = graph_element("span", "workspace-file-location"), eol = graph_element("span", "workspace-file-detail"), language44 = graph_element("span", "workspace-file-detail"), readonly = graph_element("span", "workspace-file-detail", "\u53EA\u8BFB");
+      const side = workspace_element("span", "workspace-file-detail"), location = workspace_element("span", "workspace-file-location"), eol = workspace_element("span", "workspace-file-detail"), language44 = workspace_element("span", "workspace-file-detail"), readonly = workspace_element("span", "workspace-file-detail", "\u53EA\u8BFB");
       side.setAttribute("aria-label", "\u6BD4\u8F83\u4FA7");
       eol.setAttribute("aria-label", "\u884C\u5C3E\u5E8F\u5217");
       language44.setAttribute("aria-label", "\u8BED\u8A00\u6A21\u5F0F");
@@ -175672,7 +175706,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           } }
         );
       }
-      graph_menu(event, [...entries3, ...this.extra_menu()]);
+      workspace_menu(event, [...entries3, ...this.extra_menu()]);
     }
     dispose() {
       this.observer.disconnect();
@@ -175919,16 +175953,17 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const confirm_close = (view, close) => {
       if (pending.get(view)?.root.isConnected) return;
-      const dialog = graph_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
+      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
       pending.set(view, dialog);
-      dialog.content.append(graph_element("p", "", "".concat(view.file_path.split(/[\\/]/u).at(-1), " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
+      dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
+      dialog.content.append(workspace_element("p", "", "".concat(view.file_path.split(/[\\/]/u).at(-1), " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
       let saving = false;
-      const discard_button = graph_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+      const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         dialog.close();
         pending.delete(view);
         close();
       });
-      const save_button = graph_button("\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+      const save_button = workspace_button("\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         if (saving) return;
         saving = true;
         save_button.disabled = true;
@@ -176030,15 +176065,15 @@ var LinuxNoteTyporaEnhancements = (() => {
       event.stopImmediatePropagation();
       event.returnValue = "";
       if (window_dialog?.root.isConnected) return true;
-      const dialog = window_dialog = graph_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
+      const dialog = window_dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
       dialog.root.setAttribute("data-workspace-save-close", "true");
-      dialog.content.append(graph_element("p", "", "".concat(dirty.length, " \u4E2A\u6E90\u7801\u6587\u4EF6\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
+      dialog.content.append(workspace_element("p", "", "".concat(dirty.length, " \u4E2A\u6E90\u7801\u6587\u4EF6\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
       let saving = false;
-      const discard_button = graph_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+      const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         dialog.close();
         request_window_close();
       });
-      const save_button = graph_button("\u5168\u90E8\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+      const save_button = workspace_button("\u5168\u90E8\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         if (saving) return;
         saving = true;
         save_button.disabled = true;
@@ -176238,7 +176273,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const path_api = runtime.reqnode("path");
     const shell = runtime.reqnode("electron").shell;
     const native_open = core.app.openFile.bind(core.app);
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = workspace_files_default;
     document.head.append(style63);
     const group_locations = /* @__PURE__ */ new Map();
@@ -176254,7 +176289,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const context_root = () => runtime.File?.getMountFolder?.() || core.app.workspace.activeLeaf?.state.git_cwd || path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
     class source_file_view extends core.WorkspaceView {
-      containerEl = graph_element("section", "linux-note-source-file");
+      containerEl = workspace_element("section", "linux-note-source-file");
       icon = "fa-file-code-o";
       editor;
       file_path;
@@ -176262,13 +176297,13 @@ var LinuxNoteTyporaEnhancements = (() => {
       loading = false;
       disposed = false;
       target;
-      status = graph_element("span", "workspace-file-status");
-      body = graph_element("div", "workspace-file-body");
-      status_controls = graph_element("div", "workspace-editor-status-controls");
-      location_label = graph_element("span", "workspace-file-location");
-      language_button = graph_button("", () => this.choose_language());
-      encoding_button = graph_button("", () => this.choose_format("encoding"));
-      eol_button = graph_button("", () => this.choose_format("eol"));
+      status = workspace_element("span", "workspace-file-status");
+      body = workspace_element("div", "workspace-file-body");
+      status_controls = workspace_element("div", "workspace-editor-status-controls");
+      location_label = workspace_element("span", "workspace-file-location");
+      language_button = workspace_button("", () => this.choose_language());
+      encoding_button = workspace_button("", () => this.choose_format("encoding"));
+      eol_button = workspace_button("", () => this.choose_format("eol"));
       text_document;
       format;
       saved_format = "";
@@ -176361,7 +176396,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         } catch (error) {
           if (this.disposed) return;
           this.status.textContent = "\u65E0\u6CD5\u4F5C\u4E3A\u6587\u672C\u9884\u89C8";
-          if (!this.editor) this.body.replaceChildren(graph_element("p", "workspace-file-notice", String(error)), graph_button("\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00", () => void shell.openPath(this.file_path)));
+          if (!this.editor) this.body.replaceChildren(workspace_element("p", "workspace-file-notice", String(error)), workspace_button("\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00", () => void shell.openPath(this.file_path)));
           else this.status.textContent = String(error);
         } finally {
           this.loading = false;
@@ -176410,7 +176445,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         for (const tab of document.querySelectorAll(".typ-tab[data-id]")) if (tab.dataset.id === this.leaf.state.path) {
           let dot = tab.querySelector(".workspace-file-dirty");
           if (this.dirty() && !dot) {
-            dot = graph_element("span", "workspace-file-dirty", "\u25CF");
+            dot = workspace_element("span", "workspace-file-dirty", "\u25CF");
             dot.title = "\u6709\u672A\u4FDD\u5B58\u4FEE\u6539";
             tab.querySelector(".typ-file-basename")?.after(dot);
           } else if (!this.dirty()) dot?.remove();
@@ -176447,19 +176482,19 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       choose_language() {
         if (!this.editor || this.loading) return;
-        const dialog = graph_dialog("\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F");
-        const select = graph_element("select");
+        const dialog = workspace_dialog("\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F");
+        const select = workspace_element("select");
         select.setAttribute("aria-label", "\u6587\u4EF6\u8BED\u8A00\u6A21\u5F0F");
         const choices = new Map(FILE_LANGUAGE_RULES.filter((rule) => !rule.category || rule.category === "text").map((rule) => [rule.language, rule.label]));
         choices.set("plaintext", "\u7EAF\u6587\u672C");
         for (const [value, label] of choices) {
-          const option = graph_element("option", "", label);
+          const option = workspace_element("option", "", label);
           option.value = value;
           select.append(option);
         }
         select.value = this.editor.models[0].getLanguageId();
-        dialog.content.append(select, graph_element("p", "", "\u8BED\u8A00\u6A21\u5F0F\u53EA\u6539\u53D8\u9AD8\u4EAE\uFF1B\u4FDD\u5B58\u6CBF\u7528\u539F\u6587\u4EF6\u540D\u548C\u540E\u7F00\u3002"));
-        dialog.footer.prepend(graph_button("\u5E94\u7528", () => {
+        dialog.content.append(select, workspace_element("p", "", "\u8BED\u8A00\u6A21\u5F0F\u53EA\u6539\u53D8\u9AD8\u4EAE\uFF1B\u4FDD\u5B58\u6CBF\u7528\u539F\u6587\u4EF6\u540D\u548C\u540E\u7F00\u3002"));
+        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
           if (this.loading) return;
           editor.setModelLanguage(this.editor.models[0], select.value);
           this.update_status();
@@ -176473,18 +176508,18 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (kind === "encoding") this.choose_reopen_encoding();
           return;
         }
-        const dialog = graph_dialog(kind === "encoding" ? "\u9009\u62E9\u4FDD\u5B58\u7F16\u7801" : "\u9009\u62E9\u884C\u5C3E\u5E8F\u5217");
-        const select = graph_element("select");
+        const dialog = workspace_dialog(kind === "encoding" ? "\u9009\u62E9\u4FDD\u5B58\u7F16\u7801" : "\u9009\u62E9\u884C\u5C3E\u5E8F\u5217");
+        const select = workspace_element("select");
         select.setAttribute("aria-label", kind === "encoding" ? "\u6587\u4EF6\u4FDD\u5B58\u7F16\u7801" : "\u6587\u4EF6\u884C\u5C3E\u5E8F\u5217");
         const values = kind === "encoding" ? ["utf-8", "utf-8-bom", "utf-16le", "utf-16be"] : ["LF", "CRLF", "CR", ...this.format.eol === "mixed" ? ["mixed"] : []];
         for (const value of values) {
-          const option = graph_element("option", "", value === "mixed" ? "\u4FDD\u7559\u6DF7\u5408\u6362\u884C" : value.toUpperCase());
+          const option = workspace_element("option", "", value === "mixed" ? "\u4FDD\u7559\u6DF7\u5408\u6362\u884C" : value.toUpperCase());
           option.value = value;
           select.append(option);
         }
         select.value = kind === "encoding" ? this.format.encoding === "utf-8" && this.format.bom ? "utf-8-bom" : this.format.encoding : this.format.eol;
-        dialog.content.append(select, graph_element("p", "", "\u9009\u62E9\u540E\u6309 Ctrl+S \u4FDD\u5B58\uFF0C\u5F53\u524D\u6587\u4EF6\u4E0D\u4F1A\u7ACB\u5373\u6539\u5199\u3002"));
-        dialog.footer.prepend(graph_button("\u5E94\u7528", () => {
+        dialog.content.append(select, workspace_element("p", "", "\u9009\u62E9\u540E\u6309 Ctrl+S \u4FDD\u5B58\uFF0C\u5F53\u524D\u6587\u4EF6\u4E0D\u4F1A\u7ACB\u5373\u6539\u5199\u3002"));
+        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
           if (this.loading) return;
           if (kind === "encoding") {
             this.format.encoding = select.value === "utf-8-bom" ? "utf-8" : select.value;
@@ -176494,7 +176529,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           dialog.close();
           if (core.app.workspace.activeLeaf === this.leaf) this.editor?.focused_editor().focus();
         }));
-        if (kind === "encoding") dialog.footer.prepend(graph_button("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u2026", () => {
+        if (kind === "encoding") dialog.footer.prepend(workspace_button("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u2026", () => {
           dialog.close();
           this.choose_reopen_encoding();
         }));
@@ -176505,16 +176540,16 @@ var LinuxNoteTyporaEnhancements = (() => {
           this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u6216\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D\uFF0C\u907F\u514D\u91CD\u65B0\u89E3\u7801\u4E22\u5931\u8349\u7A3F\u3002";
           return;
         }
-        const dialog = graph_dialog("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00");
-        const select = graph_element("select");
+        const dialog = workspace_dialog("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00");
+        const select = workspace_element("select");
         select.setAttribute("aria-label", "\u91CD\u65B0\u6253\u5F00\u7F16\u7801");
         for (const value of ["utf-8", "utf-16le", "utf-16be", "gb18030", "big5", "windows-1252"]) {
-          const option = graph_element("option", "", value.toUpperCase());
+          const option = workspace_element("option", "", value.toUpperCase());
           option.value = value;
           select.append(option);
         }
         dialog.content.append(select);
-        dialog.footer.prepend(graph_button("\u91CD\u65B0\u6253\u5F00", () => {
+        dialog.footer.prepend(workspace_button("\u91CD\u65B0\u6253\u5F00", () => {
           if (this.dirty() || this.loading) {
             this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u4FEE\u6539\uFF0C\u518D\u4EE5\u5176\u4ED6\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u3002";
             return;
@@ -176538,16 +176573,16 @@ var LinuxNoteTyporaEnhancements = (() => {
         ];
       }
       menu(event) {
-        graph_menu(event, this.menu_entries());
+        workspace_menu(event, this.menu_entries());
       }
       confirm_reload() {
         if (!this.dirty()) {
           void this.load_file();
           return;
         }
-        const dialog = graph_dialog("\u91CD\u65B0\u52A0\u8F7D\u6587\u4EF6");
-        dialog.content.append(graph_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6807\u7B7E\u4E2D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
-        dialog.footer.prepend(graph_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
+        const dialog = workspace_dialog("\u91CD\u65B0\u52A0\u8F7D\u6587\u4EF6");
+        dialog.content.append(workspace_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6807\u7B7E\u4E2D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
+        dialog.footer.prepend(workspace_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
           dialog.close();
           void this.load_file();
         }));
@@ -176618,7 +176653,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       };
     }
     const copy = (text3) => runtime.reqnode("electron").clipboard.writeText(text3);
-    const file_menu = (event, file_path) => graph_menu(event, [
+    const file_menu = (event, file_path) => workspace_menu(event, [
       { title: "\u6253\u5F00\u6587\u4EF6", action: () => void open_file(file_path) },
       { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => void open_file(file_path, {}, "right") },
       { title: "\u590D\u5236\u8DEF\u5F84", action: () => copy(file_path) },
@@ -187805,7 +187840,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       brightWhite: dark ? "#ffffff" : "#333333"
     };
   }
-  function observe_terminal_theme(apply3) {
+  function observe_terminal_theme(apply4) {
     let frame2 = 0;
     let previous = "";
     const update = () => {
@@ -187815,7 +187850,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         const key = JSON.stringify(theme);
         if (key !== previous) {
           previous = key;
-          apply3(theme);
+          apply4(theme);
         }
       });
     };
@@ -187841,7 +187876,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   function bind_terminal_workspace(host) {
     const core = host.core;
     const runtime = window;
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = xterm_default + "\n" + terminal_workspace_default;
     document.head.append(style63);
     const profiles = terminal_profiles(host.process_api, host.path_api);
@@ -187865,7 +187900,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
     };
     const fail = (error) => {
-      const dialog = graph_dialog("\u7EC8\u7AEF");
+      const dialog = workspace_dialog("\u7EC8\u7AEF");
       dialog.content.textContent = String(error);
     };
     const admin = (root) => {
@@ -187880,33 +187915,33 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const settings_dialog = () => {
       const settings = load_settings();
-      const dialog = graph_dialog("\u7EC8\u7AEF\u8BBE\u7F6E");
-      const form = graph_element("div", "git-graph-settings-form");
-      const profile = graph_element("select");
-      for (const item of profiles) profile.append(graph_option(item.id, item.title));
+      const dialog = workspace_dialog("\u7EC8\u7AEF\u8BBE\u7F6E");
+      const form = workspace_element("div", "git-graph-settings-form");
+      const profile = workspace_element("select");
+      for (const item of profiles) profile.append(workspace_option(item.id, item.title));
       profile.value = settings.profile || profiles[0].id;
-      const font = graph_element("input");
+      const font = workspace_element("input");
       font.type = "number";
       font.min = "9";
       font.max = "32";
       font.value = String(settings.font_size);
-      const scrollback = graph_element("input");
+      const scrollback = workspace_element("input");
       scrollback.type = "number";
       scrollback.min = "100";
       scrollback.max = "100000";
       scrollback.value = String(settings.scrollback);
-      const location = graph_element("select");
-      for (const [id, title] of [["down", "\u4E0B\u65B9\u7F16\u8F91\u7EC4"], ["right", "\u53F3\u4FA7\u7F16\u8F91\u7EC4"], ["active", "\u5F53\u524D\u7EC4\u65B0\u6807\u7B7E"]]) location.append(graph_option(id, title));
+      const location = workspace_element("select");
+      for (const [id, title] of [["down", "\u4E0B\u65B9\u7F16\u8F91\u7EC4"], ["right", "\u53F3\u4FA7\u7F16\u8F91\u7EC4"], ["active", "\u5F53\u524D\u7EC4\u65B0\u6807\u7B7E"]]) location.append(workspace_option(id, title));
       location.value = settings.location;
       for (const [title, input] of [["\u9ED8\u8BA4 Shell", profile], ["\u5B57\u4F53\u5927\u5C0F", font], ["\u4FDD\u7559\u6EDA\u52A8\u884C\u6570", scrollback], ["\u65B0\u7EC8\u7AEF\u4F4D\u7F6E", location]]) {
-        const label = graph_element("label", "", title);
+        const label = workspace_element("label", "", title);
         label.append(input);
         form.append(label);
       }
       dialog.content.append(form);
-      const error = graph_element("p");
+      const error = workspace_element("p");
       dialog.content.append(error);
-      dialog.footer.prepend(graph_button("\u5E94\u7528", () => {
+      dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
         if (![...form.querySelectorAll("input")].every((input) => input.checkValidity())) {
           error.textContent = "\u8BF7\u586B\u5199\u5141\u8BB8\u8303\u56F4\u5185\u7684\u6574\u6570\u3002";
           return;
@@ -187935,10 +187970,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
     };
     class terminal_view extends core.WorkspaceView {
-      containerEl = graph_element("section", "linux-note-terminal");
+      containerEl = workspace_element("section", "linux-note-terminal");
       icon = "fa-terminal";
-      viewport = graph_element("div", "linux-note-terminal-viewport");
-      status = graph_element("div", "linux-note-terminal-status");
+      viewport = workspace_element("div", "linux-note-terminal-viewport");
+      status = workspace_element("div", "linux-note-terminal-status");
       term;
       fit;
       search;
@@ -187965,20 +188000,20 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.containerEl.dataset.cwd = this.root;
         this.containerEl.setAttribute("aria-label", "\u4ED3\u5E93\u547D\u4EE4\u7EC8\u7AEF");
         this.status.setAttribute("role", "status");
-        const toolbar = graph_element("div", "linux-note-terminal-toolbar");
-        const title = graph_element("span", "linux-note-terminal-title", "\u7EC8\u7AEF \xB7 " + host.path_api.basename(this.root));
+        const toolbar = workspace_element("div", "linux-note-terminal-toolbar");
+        const title = workspace_element("span", "linux-note-terminal-title", "\u7EC8\u7AEF \xB7 " + host.path_api.basename(this.root));
         title.title = this.root;
-        const select = graph_element("select");
+        const select = workspace_element("select");
         select.setAttribute("aria-label", "\u65B0\u7EC8\u7AEF Shell");
-        for (const item of profiles) select.append(graph_option(item.id, item.title));
+        for (const item of profiles) select.append(workspace_option(item.id, item.title));
         select.value = load_settings().profile || profiles[0].id;
-        toolbar.append(title, select, graph_button("\uFF0B", () => open(this.root, select.value, "active")), graph_button("\u5DE6\u53F3\u62C6\u5206", () => open(this.root, select.value, "right")), graph_button("\u67E5\u627E", () => this.find()), graph_button("\u6E05\u5C4F", () => this.term?.clear()), graph_button("\u7EC8\u6B62", () => this.stop()), graph_button("\u8BBE\u7F6E", settings_dialog));
+        toolbar.append(title, select, workspace_button("\uFF0B", () => open(this.root, select.value, "active")), workspace_button("\u5DE6\u53F3\u62C6\u5206", () => open(this.root, select.value, "right")), workspace_button("\u67E5\u627E", () => this.find()), workspace_button("\u6E05\u5C4F", () => this.term?.clear()), workspace_button("\u7EC8\u6B62", () => this.stop()), workspace_button("\u8BBE\u7F6E", settings_dialog));
         this.containerEl.append(toolbar, this.viewport, this.status);
         this.containerEl.onpointerdown = () => {
           core.app.workspace.activeLeaf = this.leaf;
           last_leaf = this.leaf;
         };
-        this.containerEl.oncontextmenu = (event) => graph_menu(event, [
+        this.containerEl.oncontextmenu = (event) => workspace_menu(event, [
           { id: "terminal_copy", title: "\u590D\u5236\u9009\u4E2D\u6587\u672C", disabled: !this.term?.hasSelection(), action: () => void host.copy(this.term?.getSelection() || "") },
           { id: "terminal_paste", title: "\u7C98\u8D34", action: () => void this.paste() },
           { id: "terminal_select_all", title: "\u5168\u9009", action: () => this.term?.selectAll() },
@@ -188100,9 +188135,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           const text3 = await navigator.clipboard.readText();
           if (!this.pty) return;
           if (/[\r\n]/u.test(text3)) {
-            const dialog = graph_dialog("\u7C98\u8D34\u591A\u884C\u547D\u4EE4");
-            dialog.content.append(graph_element("pre", "", text3));
-            dialog.footer.prepend(graph_button("\u7C98\u8D34\u5230\u7EC8\u7AEF", () => {
+            const dialog = workspace_dialog("\u7C98\u8D34\u591A\u884C\u547D\u4EE4");
+            dialog.content.append(workspace_element("pre", "", text3));
+            dialog.footer.prepend(workspace_button("\u7C98\u8D34\u5230\u7EC8\u7AEF", () => {
               this.term?.paste(text3);
               dialog.close();
               this.term?.focus();
@@ -188116,8 +188151,8 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       }
       find() {
-        const dialog = graph_dialog("\u67E5\u627E\u7EC8\u7AEF\u8F93\u51FA");
-        const input = graph_element("input");
+        const dialog = workspace_dialog("\u67E5\u627E\u7EC8\u7AEF\u8F93\u51FA");
+        const input = workspace_element("input");
         input.setAttribute("aria-label", "\u67E5\u627E\u7EC8\u7AEF\u8F93\u51FA");
         dialog.content.append(input);
         const search2 = (backwards = false) => {
@@ -188129,7 +188164,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             search2(event.shiftKey);
           }
         };
-        dialog.footer.prepend(graph_button("\u4E0B\u4E00\u4E2A", () => search2()), graph_button("\u4E0A\u4E00\u4E2A", () => search2(true)));
+        dialog.footer.prepend(workspace_button("\u4E0B\u4E00\u4E2A", () => search2()), workspace_button("\u4E0A\u4E00\u4E2A", () => search2(true)));
         input.focus();
       }
       stop() {
@@ -188181,14 +188216,14 @@ var LinuxNoteTyporaEnhancements = (() => {
     core.app.commands.register({ id: "linux_note:terminal", title: "\u7EC8\u7AEF\uFF1A\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u65B0\u5EFA\u7EC8\u7AEF", scope: "global", callback: () => launch() });
     core.app.commands.register({ id: "linux_note:terminal_admin", title: "\u7EC8\u7AEF\uFF1A\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u6839\u76EE\u5F55\uFF08UAC\uFF09", scope: "global", callback: () => launch(true) });
     core.app.commands.register({ id: "linux_note:terminal_settings", title: "\u7EC8\u7AEF\uFF1A\u8BBE\u7F6E", scope: "global", callback: settings_dialog });
-    core.app.workspace.ribbon.addButton({ id: "linux_note:terminal", title: "\u4ED3\u5E93\u7EC8\u7AEF\uFF08Ctrl+`\uFF09", group: "bottom", icon: graph_element("i", "fa fa-terminal"), onclick: () => launch() });
+    core.app.workspace.ribbon.addButton({ id: "linux_note:terminal", title: "\u4ED3\u5E93\u7EC8\u7AEF\uFF08Ctrl+`\uFF09", group: "bottom", icon: workspace_element("i", "fa fa-terminal"), onclick: () => launch() });
     core.app.workspace.on("file-menu", ({ menu, path }) => {
       menu.containerEl.querySelectorAll("[data-terminal-launch]").forEach((node) => node.remove());
       for (const [title, admin_mode] of [["\u5728\u6240\u5C5E\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u96C6\u6210\u7EC8\u7AEF", false], ["\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", true]]) {
         if (admin_mode && host.process_api.platform !== "win32") continue;
-        const item = graph_element("li");
+        const item = workspace_element("li");
         item.setAttribute("data-terminal-launch", "true");
-        item.append(graph_element("a", "", title));
+        item.append(workspace_element("a", "", title));
         for (const name of ["pointerdown", "mousedown", "mouseup"]) item.addEventListener(name, (event) => {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -188717,7 +188752,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       core.app.workspace.activeLeaf = leaf;
     };
     class graph_document_view extends core.WorkspaceView {
-      containerEl = graph_element("section", "git-graph-document");
+      containerEl = workspace_element("section", "git-graph-document");
       icon = "fa-code-fork";
       editor;
       document;
@@ -188768,13 +188803,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
         try {
           this.editor = new git_diff_editor(payload.data, payload.options.menu);
-          if (payload.options.refresh) this.editor.toolbar.prepend(graph_button("\u5237\u65B0\u5DEE\u5F02", payload.options.refresh));
-          if (payload.options.adjacent) this.editor.toolbar.prepend(graph_button("\u4E0A\u4E00\u6587\u4EF6", () => payload.options.adjacent(-1)), graph_button("\u4E0B\u4E00\u6587\u4EF6", () => payload.options.adjacent(1)));
-          this.editor.toolbar.append(graph_button("\u5207\u6362\u4FA7\u680F", () => core.app.workspace.sidebar.toggle()));
+          if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button("\u5237\u65B0\u5DEE\u5F02", payload.options.refresh));
+          if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button("\u4E0A\u4E00\u6587\u4EF6", () => payload.options.adjacent(-1)), workspace_button("\u4E0B\u4E00\u6587\u4EF6", () => payload.options.adjacent(1)));
+          this.editor.toolbar.append(workspace_button("\u5207\u6362\u4FA7\u680F", () => core.app.workspace.sidebar.toggle()));
           this.containerEl.append(this.editor.container);
           editor_status.register(this.leaf, this.editor.create_readonly_status());
         } catch (error) {
-          this.containerEl.append(graph_element("p", "git-scm-empty", String(error)));
+          this.containerEl.append(workspace_element("p", "git-scm-empty", String(error)));
         }
       }
       onClose() {
@@ -188828,13 +188863,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         return { ...runner, run };
       },
       show_output(root) {
-        const view = graph_element("div", "git-output");
-        const text3 = graph_element("pre");
+        const view = workspace_element("div", "git-output");
+        const text3 = workspace_element("pre");
         const refresh = () => {
           text3.textContent = (output_lines.get(root) || ["\u6682\u65E0 Git \u8F93\u51FA\u3002"]).join("\n");
           text3.scrollTop = text3.scrollHeight;
         };
-        view.append(graph_button("\u5237\u65B0\u8F93\u51FA", refresh), text3);
+        view.append(workspace_button("\u5237\u65B0\u8F93\u51FA", refresh), text3);
         refresh();
         this.open_panel("Git \u8F93\u51FA", "git_output", root, view);
       },
@@ -188991,13 +189026,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         else terminal_workspace.open(root, program);
       },
       export_file(root, filename, content) {
-        const dialog = graph_dialog("\u5BFC\u51FA\u914D\u7F6E");
-        const target = graph_element("input");
+        const dialog = workspace_dialog("\u5BFC\u51FA\u914D\u7F6E");
+        const target = workspace_element("input");
         target.value = path_api.join(root, filename);
-        const preview = graph_element("pre", "", content);
-        const error = graph_element("p");
+        const preview = workspace_element("pre", "", content);
+        const error = workspace_element("p");
         dialog.content.append(target, preview, error);
-        dialog.footer.prepend(graph_button("\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84", () => {
+        dialog.footer.prepend(workspace_button("\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84", () => {
           try {
             fs2.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" });
             dialog.close();
@@ -189393,7 +189428,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.owner = owner;
       this.container.setAttribute("aria-label", "\u63D0\u4EA4\u56FE");
       this.container.setAttribute("data-linux-note-scm-history", "ready");
-      this.toggle = graph_button("\u63D0\u4EA4\u56FE", () => owner.toggle_history(), "git-scm-history-toggle");
+      this.toggle = workspace_button("\u63D0\u4EA4\u56FE", () => owner.toggle_history(), "git-scm-history-toggle");
       this.toggle.prepend(git_disclosure());
       this.toggle.title = "\u5C55\u5F00\u6216\u6298\u53E0\u63D0\u4EA4\u56FE\uFF1B\u53F3\u952E\u7B5B\u9009\u5206\u652F";
       this.toggle.setAttribute("aria-expanded", "true");
@@ -189407,7 +189442,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       const more = git_icon_button("more", "\u66F4\u591A\u63D0\u4EA4\u56FE\u64CD\u4F5C", () => {
       }, "git-scm-history-more-menu");
       more.onclick = (event) => this.more_menu(event);
-      const tools = graph_element("span", "git-scm-history-toolbar");
+      const tools = workspace_element("span", "git-scm-history-toolbar");
       const network = [["fetch", "git-fetch", "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0"], ["pull", "repo-pull", "\u62C9\u53D6\u5E76\u6574\u5408\u8FDC\u7AEF\u66F4\u65B0"], ["push", "repo-push", "\u63A8\u9001\u5F53\u524D\u5206\u652F"]].map(([id, icon, title]) => {
         const action = git_icon_button(icon, title, () => this.network_action(id), "git-scm-history-network");
         action.setAttribute("data-history-action", id);
@@ -189438,10 +189473,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       });
     }
-    container = graph_element("section", "git-scm-history");
-    header = graph_element("div", "git-scm-history-header");
-    list = graph_element("div", "git-scm-history-list");
-    count = graph_element("span", "git-scm-badge");
+    container = workspace_element("section", "git-scm-history");
+    header = workspace_element("div", "git-scm-history-header");
+    list = workspace_element("div", "git-scm-history-list");
+    count = workspace_element("span", "git-scm-badge");
     toggle;
     selected = "";
     epoch = 0;
@@ -189538,9 +189573,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         refs.set(ref.hash, [...refs.get(ref.hash) || [], ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "")]);
       }
       for (const [index, commit] of state.commits.entries()) {
-        const entry = graph_element("div", "git-scm-history-entry");
+        const entry = workspace_element("div", "git-scm-history-entry");
         const expanded2 = commit.hash === this.selected;
-        const row = graph_button("", () => {
+        const row = workspace_button("", () => {
           this.selected = this.selected === commit.hash ? "" : commit.hash;
           this.render(state);
         }, "git-scm-history-commit");
@@ -189550,24 +189585,24 @@ var LinuxNoteTyporaEnhancements = (() => {
         const names = [...refs.get(commit.hash) || []].sort((a, b2) => Number(b2 === state.branch) - Number(a === state.branch));
         if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
         row.title = "".concat(commit.subject, "\n").concat(commit.author, " \xB7 ").concat(panel.date(commit), "\n").concat(commit.hash).concat(names.length ? "\n" + names.join("\u3001") : "");
-        const disclosure = graph_element("span", "git-scm-history-disclosure");
+        const disclosure = workspace_element("span", "git-scm-history-disclosure");
         disclosure.append(git_disclosure());
         disclosure.setAttribute("aria-hidden", "true");
-        const summary = graph_element("span", "git-scm-history-summary");
-        const subject = graph_element("span", "git-scm-history-subject", panel.emoji(commit.subject));
+        const summary = workspace_element("span", "git-scm-history-summary");
+        const subject = workspace_element("span", "git-scm-history-subject", panel.emoji(commit.subject));
         summary.append(subject);
         if (names.length) {
-          const labels = graph_element("span", "git-scm-history-refs");
+          const labels = workspace_element("span", "git-scm-history-refs");
           labels.title = names.join("\u3001");
           for (const name of names) {
-            const badge = graph_element("span", "git-scm-history-ref");
+            const badge = workspace_element("span", "git-scm-history-ref");
             badge.title = name;
             badge.dataset.current = String(commit.hash === state.head && (name === state.branch || name === "HEAD"));
-            badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), graph_element("span", "git-scm-history-ref-name", name));
+            badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), workspace_element("span", "git-scm-history-ref-name", name));
             labels.append(badge);
           }
           summary.append(labels);
-        } else summary.append(graph_element("span", "git-scm-history-author", commit.author));
+        } else summary.append(workspace_element("span", "git-scm-history-author", commit.author));
         const graph_row = graph.rows[index];
         const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
         const svg3 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT });
@@ -189578,9 +189613,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         entry.append(row);
         if (expanded2) {
           const outgoing_lanes = Math.max(-1, ...graph_row.edges.filter((edge) => !edge.upper).map((edge) => edge.to)) + 1;
-          const expansion = graph_element("div", "git-scm-history-expansion");
+          const expansion = workspace_element("div", "git-scm-history-expansion");
           expansion.style.setProperty("--git-history-lanes", (outgoing_lanes + 1) * HISTORY_LANE_WIDTH + "px");
-          const files = graph_element("div", "git-scm-history-files");
+          const files = workspace_element("div", "git-scm-history-files");
           files.dataset.commit = commit.hash;
           expansion.append(this.continuation(graph_row, outgoing_lanes), files);
           entry.append(expansion);
@@ -189592,8 +189627,8 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
         fragment.append(entry);
       }
-      if (!state.commits.length) fragment.append(graph_element("div", "git-scm-empty", state.head ? "\u5F53\u524D\u5206\u652F\u7B5B\u9009\u6CA1\u6709\u63D0\u4EA4\u3002" : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002"));
-      if (state.more) fragment.append(graph_button("\u52A0\u8F7D\u66F4\u591A\u63D0\u4EA4", () => {
+      if (!state.commits.length) fragment.append(workspace_element("div", "git-scm-empty", state.head ? "\u5F53\u524D\u5206\u652F\u7B5B\u9009\u6CA1\u6709\u63D0\u4EA4\u3002" : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002"));
+      if (state.more) fragment.append(workspace_button("\u52A0\u8F7D\u66F4\u591A\u63D0\u4EA4", () => {
         if (panel.pending) return;
         panel.count += panel.settings.page_count;
         void panel.refresh(false);
@@ -189636,7 +189671,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       } catch (error) {
         if (epoch === this.epoch) {
           target.textContent = String(error instanceof Error ? error.message : error);
-          target.append(graph_button("\u91CD\u8BD5", () => {
+          target.append(workspace_button("\u91CD\u8BD5", () => {
             const current = this.owner.panel.state;
             if (current) this.render(current);
           }));
@@ -189654,11 +189689,11 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (directories.has(path)) return directories.get(path);
         const parts = path.split("/");
         const parent = parent_for(parts.slice(0, -1).join("/"));
-        const directory = graph_element("details", "git-scm-history-directory");
+        const directory = workspace_element("details", "git-scm-history-directory");
         const key = commit.hash + ":" + path;
         directory.open = !this.collapsed_directories.has(key);
         directory.setAttribute("data-history-directory", path);
-        const heading3 = graph_element("summary", "", parts.at(-1));
+        const heading3 = workspace_element("summary", "", parts.at(-1));
         heading3.prepend(git_disclosure());
         directory.append(heading3);
         directory.ontoggle = () => {
@@ -189670,13 +189705,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         return directory;
       };
       for (const file of [...files].sort((a, b2) => a.path.localeCompare(b2.path))) {
-        const row = graph_button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
+        const row = workspace_button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
-        const label = graph_element("span", "git-scm-file-label");
-        label.append(git_icon("file"), graph_element("span", "git-scm-history-file-name", file.path.split("/").at(-1)));
-        if (!this.owner.history_tree) label.append(graph_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
-        const status2 = graph_element("span", "git-scm-file-status", file.status);
+        const label = workspace_element("span", "git-scm-file-label");
+        label.append(git_icon("file"), workspace_element("span", "git-scm-history-file-name", file.path.split("/").at(-1)));
+        if (!this.owner.history_tree) label.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+        const status2 = workspace_element("span", "git-scm-file-status", file.status);
         status2.title = file.status;
         status2.setAttribute("data-status", file.status[0]);
         row.append(label, status2);
@@ -189699,7 +189734,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     sash.setAttribute("aria-label", options2.label);
     sash.setAttribute("aria-valuemin", "15");
     sash.setAttribute("aria-valuemax", "85");
-    const apply3 = (value) => {
+    const apply4 = (value) => {
       const ratio = Math.max(0.15, Math.min(0.85, value));
       options2.change(ratio);
       sash.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
@@ -189726,7 +189761,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       };
       sash.onpointermove = (move) => {
         move.preventDefault();
-        apply3(vertical ? (move.clientX - bounds.left) / bounds.width : (move.clientY - bounds.top) / bounds.height);
+        apply4(vertical ? (move.clientX - bounds.left) / bounds.width : (move.clientY - bounds.top) / bounds.height);
       };
       sash.onpointerup = finish;
       sash.onpointercancel = finish;
@@ -189734,7 +189769,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     sash.ondblclick = (event) => {
       event.preventDefault();
-      apply3(options2.reset ?? 0.5);
+      apply4(options2.reset ?? 0.5);
       options2.save();
     };
     sash.onkeydown = (event) => {
@@ -189743,7 +189778,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (![backwards, forwards, "Home"].includes(event.key)) return;
       event.preventDefault();
       event.stopPropagation();
-      apply3(event.key === "Home" ? options2.reset ?? 0.5 : options2.ratio() + (event.key === backwards ? -0.02 : 0.02));
+      apply4(event.key === "Home" ? options2.reset ?? 0.5 : options2.ratio() + (event.key === backwards ? -0.02 : 0.02));
       options2.save();
     };
     sash.onfocus = sync;
@@ -189759,7 +189794,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.panel = panel;
       this.sidebar.setAttribute("data-linux-note-source-control", "ready");
       this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
-      const tools = graph_element("div", "git-scm-tools");
+      const tools = workspace_element("div", "git-scm-tools");
       tools.append(git_icon_button("refresh", "\u5237\u65B0\u6E90\u4EE3\u7801\u7BA1\u7406", () => void panel.refresh()), git_icon_button("more", "\u9009\u62E9\u6E90\u4EE3\u7801\u7BA1\u7406\u89C6\u56FE", () => {
       }));
       tools.children[1].addEventListener("click", (event) => this.view_menu(event));
@@ -189789,7 +189824,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         event.stopPropagation();
         if (!event.repeat) this.commit();
       };
-      const commit = graph_button("\u63D0\u4EA4", () => this.commit(), "git-scm-commit git-labeled-button");
+      const commit = workspace_button("\u63D0\u4EA4", () => this.commit(), "git-scm-commit git-labeled-button");
       commit.prepend(git_icon("check"));
       commit.setAttribute("data-scm-action", "commit");
       const commit_options = git_icon_button("chevron-down", "\u66F4\u591A\u63D0\u4EA4\u65B9\u5F0F", () => {
@@ -189799,7 +189834,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         { id: "commit_options", title: "\u6253\u5F00\u63D0\u4EA4\u9009\u9879\u2026", action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: false }) },
         { id: "commit_amend", title: "\u4FEE\u6539\u4E0A\u4E00\u6B21\u63D0\u4EA4\u2026", disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }
       ]);
-      const commit_bar = graph_element("div", "git-scm-commit-bar");
+      const commit_bar = workspace_element("div", "git-scm-commit-bar");
       commit_bar.append(commit, commit_options);
       this.filter.placeholder = "\u7B5B\u9009\u66F4\u6539\u6587\u4EF6";
       this.filter.setAttribute("aria-label", "\u7B5B\u9009\u66F4\u6539\u6587\u4EF6");
@@ -189808,16 +189843,16 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
       this.changes_pane.setAttribute("aria-label", "\u5DE5\u4F5C\u533A\u66F4\u6539");
       this.notice.setAttribute("role", "status");
-      const input_heading = graph_element("summary", "git-scm-input-heading");
+      const input_heading = workspace_element("summary", "git-scm-input-heading");
       const input_menu = git_icon_button("more", "\u66F4\u6539\u4E0E Git \u64CD\u4F5C", () => {
       }, "git-scm-operation-menu");
       input_menu.onclick = (event) => this.more_menu(event);
-      input_heading.append(git_disclosure(), graph_element("span", "git-scm-input-title", "\u66F4\u6539"), this.branch, input_menu);
-      const inputs = graph_element("div", "git-scm-inputs");
+      input_heading.append(git_disclosure(), workspace_element("span", "git-scm-input-title", "\u66F4\u6539"), this.branch, input_menu);
+      const inputs = workspace_element("div", "git-scm-inputs");
       inputs.append(this.message, commit_bar);
       this.input_section.append(input_heading, inputs);
       this.input_section.ontoggle = () => this.save_layout();
-      const repo_heading = graph_element("div", "git-scm-repositories-heading", "\u4ED3\u5E93");
+      const repo_heading = workspace_element("div", "git-scm-repositories-heading", "\u4ED3\u5E93");
       const manage = git_icon_button("more", "\u7BA1\u7406\u4ED3\u5E93", () => panel.manage_repositories());
       repo_heading.append(manage);
       this.repositories_view.append(repo_heading, this.repo_select);
@@ -189844,18 +189879,18 @@ var LinuxNoteTyporaEnhancements = (() => {
       };
       this.load_layout();
     }
-    sidebar = graph_element("aside", "git-scm-sidebar");
-    groups = graph_element("div", "git-scm-groups");
-    filter = graph_element("input", "git-scm-filter");
-    message = graph_element("textarea", "git-scm-message");
-    branch = graph_element("div", "git-scm-branch");
-    title = graph_element("div", "git-scm-title", "\u6E90\u4EE3\u7801\u7BA1\u7406");
-    repo_select = graph_element("select", "git-scm-repository");
-    notice = graph_element("div", "git-scm-notice");
-    sections = graph_element("div", "git-scm-sections");
-    changes_pane = graph_element("section", "git-scm-changes-pane");
-    input_section = graph_element("details", "git-scm-input-section");
-    repositories_view = graph_element("section", "git-scm-repositories-view");
+    sidebar = workspace_element("aside", "git-scm-sidebar");
+    groups = workspace_element("div", "git-scm-groups");
+    filter = workspace_element("input", "git-scm-filter");
+    message = workspace_element("textarea", "git-scm-message");
+    branch = workspace_element("div", "git-scm-branch");
+    title = workspace_element("div", "git-scm-title", "\u6E90\u4EE3\u7801\u7BA1\u7406");
+    repo_select = workspace_element("select", "git-scm-repository");
+    notice = workspace_element("div", "git-scm-notice");
+    sections = workspace_element("div", "git-scm-sections");
+    changes_pane = workspace_element("section", "git-scm-changes-pane");
+    input_section = workspace_element("details", "git-scm-input-section");
+    repositories_view = workspace_element("section", "git-scm-repositories-view");
     message_resize;
     show_repositories = false;
     show_changes = true;
@@ -189954,7 +189989,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.history.render(state);
       this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map((item) => item.cloneNode(true)));
       this.repo_select.value = this.panel.root;
-      this.branch.replaceChildren(git_icon("git-branch"), graph_element("span", "git-scm-branch-label", "".concat(state.branch || "\u6E38\u79BB HEAD").concat(state.operation ? " \xB7 " + state.operation : "")));
+      this.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-branch-label", "".concat(state.branch || "\u6E38\u79BB HEAD").concat(state.operation ? " \xB7 " + state.operation : "")));
       this.branch.title = this.panel.root;
       this.branch.onclick = (event) => this.panel.configured_menu(event, "checkout", [
         ...state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: "\u68C0\u51FA " + ref.name.slice(11), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash) })),
@@ -189978,13 +190013,13 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.groups.replaceChildren();
       const filter = this.filter.value.toLowerCase();
       for (const group of this.groups_state) {
-        const section = graph_element("details", "git-scm-group");
+        const section = workspace_element("details", "git-scm-group");
         section.setAttribute("data-scm-group", group.id);
         section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";
         section.ontoggle = () => localStorage.setItem(this.storage_key("collapsed:" + group.id), String(!section.open));
-        const heading3 = graph_element("summary", "");
-        const label = graph_element("span", "git-scm-group-label");
-        label.append(graph_element("span", "git-scm-group-name", group.title), graph_element("span", "git-scm-badge", String(group.files.length)));
+        const heading3 = workspace_element("summary", "");
+        const label = workspace_element("span", "git-scm-group-label");
+        label.append(workspace_element("span", "git-scm-group-name", group.title), workspace_element("span", "git-scm-badge", String(group.files.length)));
         heading3.append(git_disclosure(), label);
         const action_id = group.id === "staged" ? "unstage" : "stage";
         const group_action = () => void this.panel.quick_action(action_id, [...new Set(group.files.flatMap((file) => [file.path, ...file.old_path ? [file.old_path] : []]))]);
@@ -190012,9 +190047,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           event.stopPropagation();
           this.panel.action_dialog("discard_changes", "changes", "", this.panel.state?.head, { include_untracked: true }, group.files.map((file) => file.path));
         };
-        const actions = graph_element("span", "git-scm-row-actions");
+        const actions = workspace_element("span", "git-scm-row-actions");
         actions.append(open, discard, all);
-        const placeholder = graph_element("span", "git-scm-status-slot");
+        const placeholder = workspace_element("span", "git-scm-status-slot");
         placeholder.setAttribute("aria-hidden", "true");
         heading3.append(actions, placeholder);
         heading3.oncontextmenu = (event) => this.panel.configured_menu(event, "changes_group", [
@@ -190039,9 +190074,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (directories.has(path)) return directories.get(path);
           const parts = path.split("/");
           const parent = parent_for(parts.slice(0, -1).join("/"));
-          const directory = graph_element("details", "git-scm-directory");
+          const directory = workspace_element("details", "git-scm-directory");
           directory.open = true;
-          const heading4 = graph_element("summary", "", parts.at(-1));
+          const heading4 = workspace_element("summary", "", parts.at(-1));
           heading4.prepend(git_disclosure());
           directory.append(heading4);
           parent.append(directory);
@@ -190049,14 +190084,14 @@ var LinuxNoteTyporaEnhancements = (() => {
           return directory;
         };
         for (const file of group.files.filter((file2) => file2.path.toLowerCase().includes(filter)).sort((a, b2) => this.sort_files(a, b2))) {
-          const row = graph_element("div", "git-scm-file");
+          const row = workspace_element("div", "git-scm-file");
           row.setAttribute("data-file", file.path);
           row.tabIndex = 0;
           row.setAttribute("role", "button");
           row.title = "".concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path, "\n").concat(short_revision(group.from), " \u2194 ").concat(short_revision(group.to));
-          const label2 = graph_element("span", "git-scm-file-label");
-          label2.append(graph_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
-          if (!this.tree) label2.append(graph_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+          const label2 = workspace_element("span", "git-scm-file-label");
+          label2.append(workspace_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
+          if (!this.tree) label2.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
           const action = group.id === "staged" ? "unstage" : "stage";
           const mini = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? "\u53D6\u6D88\u6682\u5B58" : "\u6682\u5B58\u66F4\u6539", () => {
           }, "git-scm-inline-action");
@@ -190064,9 +190099,9 @@ var LinuxNoteTyporaEnhancements = (() => {
             event.stopPropagation();
             void this.panel.quick_action(action, [file.path, ...file.old_path ? [file.old_path] : []]);
           };
-          const actions2 = graph_element("span", "git-scm-row-actions");
+          const actions2 = workspace_element("span", "git-scm-row-actions");
           actions2.append(mini);
-          const status2 = graph_element("span", "git-scm-file-status", file.status === "??" ? "U" : file.status);
+          const status2 = workspace_element("span", "git-scm-file-status", file.status === "??" ? "U" : file.status);
           status2.title = file.status;
           status2.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
           row.append(label2, actions2, status2);
@@ -190084,7 +190119,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           row.oncontextmenu = (event) => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
           parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
         }
-        if (!group.files.length) section.append(graph_element("div", "git-scm-empty", "\u65E0\u66F4\u6539"));
+        if (!group.files.length) section.append(workspace_element("div", "git-scm-empty", "\u65E0\u66F4\u6539"));
       }
       this.groups.scrollTop = scroll;
     }
@@ -190155,9 +190190,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     async file_history(file) {
       const root = this.panel.root;
-      const view = graph_element("div", "git-file-timeline");
-      const title = graph_element("div", "git-scm-title", "\u65F6\u95F4\u7EBF \xB7 " + file);
-      const list3 = graph_element("div", "git-file-timeline-list");
+      const view = workspace_element("div", "git-file-timeline");
+      const title = workspace_element("div", "git-scm-title", "\u65F6\u95F4\u7EBF \xB7 " + file);
+      const list3 = workspace_element("div", "git-file-timeline-list");
       view.append(title, list3);
       this.panel.host.open_panel("\u25F7 " + file.split("/").at(-1), "timeline:" + file, root, view);
       let count = this.panel.settings.initial_count;
@@ -190168,8 +190203,8 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (root !== this.panel.root) return;
           list3.replaceChildren();
           for (const record of records) {
-            const row = graph_button(record.commit.subject, () => void this.open_file(record.file, record.commit.parents[0] || EMPTY, record.commit.hash), "git-file-history-row");
-            row.append(graph_element("span", "", "".concat(record.commit.author, " \xB7 ").concat(this.panel.date(record.commit), " \xB7 ").concat(record.commit.hash.slice(0, 8), " \xB7 ").concat(record.file.status, " ").concat(record.file.path)));
+            const row = workspace_button(record.commit.subject, () => void this.open_file(record.file, record.commit.parents[0] || EMPTY, record.commit.hash), "git-file-history-row");
+            row.append(workspace_element("span", "", "".concat(record.commit.author, " \xB7 ").concat(this.panel.date(record.commit), " \xB7 ").concat(record.commit.hash.slice(0, 8), " \xB7 ").concat(record.file.status, " ").concat(record.file.path)));
             row.oncontextmenu = (event) => this.panel.configured_menu(event, "timeline", [
               { id: "open_diff", title: "\u6253\u5F00\u66F4\u6539", action: () => row.click() },
               { id: "open_revision", title: "\u6253\u5F00\u6B64\u7248\u672C", action: () => void this.panel.open_revision(record.commit.hash, record.file.path) },
@@ -190179,7 +190214,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             list3.append(row);
           }
           if (!records.length) list3.textContent = "\u6B64\u6587\u4EF6\u6CA1\u6709 Git \u63D0\u4EA4\u5386\u53F2\u3002";
-          if (records.length >= count) list3.append(graph_button("\u52A0\u8F7D\u66F4\u591A\u6587\u4EF6\u5386\u53F2", () => {
+          if (records.length >= count) list3.append(workspace_button("\u52A0\u8F7D\u66F4\u591A\u6587\u4EF6\u5386\u53F2", () => {
             count += this.panel.settings.page_count;
             void load();
           }));
@@ -212345,7 +212380,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.container.setAttribute("aria-label", "Git Graph \u63D0\u4EA4\u5386\u53F2");
       this.status.setAttribute("role", "status");
       this.branch_select.setAttribute("aria-label", "\u5206\u652F\u6216\u6807\u7B7E");
-      this.branch_select.append(graph_option("", "\u5168\u90E8\u5206\u652F"));
+      this.branch_select.append(workspace_option("", "\u5168\u90E8\u5206\u652F"));
       this.branch_select.onchange = () => {
         this.branches = this.branch_select.value ? [this.branch_select.value] : [];
         void this.refresh();
@@ -212362,15 +212397,15 @@ var LinuxNoteTyporaEnhancements = (() => {
       };
       this.toolbar.append(
         this.repo_select,
-        graph_button("\u4ED3\u5E93", () => this.manage_repositories()),
+        workspace_button("\u4ED3\u5E93", () => this.manage_repositories()),
         this.branch_select,
-        graph_button("\u591A\u9009\u5206\u652F", () => this.filter_branches()),
+        workspace_button("\u591A\u9009\u5206\u652F", () => this.filter_branches()),
         this.refresh_button,
-        graph_button("\u83B7\u53D6", () => this.action_dialog("fetch", "repository")),
-        graph_button("\u64CD\u4F5C", () => this.repository_menu()),
-        graph_button("\u8BBE\u7F6E", () => this.settings_dialog()),
+        workspace_button("\u83B7\u53D6", () => this.action_dialog("fetch", "repository")),
+        workspace_button("\u64CD\u4F5C", () => this.repository_menu()),
+        workspace_button("\u8BBE\u7F6E", () => this.settings_dialog()),
         this.search,
-        graph_button("\u67E5\u627E", () => this.find_next())
+        workspace_button("\u67E5\u627E", () => this.find_next())
       );
       this.sash = create_workspace_sash({
         label: "\u8C03\u6574\u63D0\u4EA4\u5217\u8868\u4E0E\u8BE6\u60C5\u9762\u677F\u5927\u5C0F",
@@ -212389,7 +212424,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
         this.background_menu(event);
       };
-      this.toolbar.append(graph_button("\u7EC8\u7AEF", () => this.host.terminal(this.root, this.settings.terminal_shell)), graph_button("\u5E03\u5C40", () => this.layout_dialog()));
+      this.toolbar.append(workspace_button("\u7EC8\u7AEF", () => this.host.terminal(this.root, this.settings.terminal_shell)), workspace_button("\u5E03\u5C40", () => this.layout_dialog()));
       this.body.append(this.list, this.sash, this.details);
       this.workbench = new git_source_control(this);
       this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
@@ -212404,21 +212439,21 @@ var LinuxNoteTyporaEnhancements = (() => {
     root;
     settings;
     state;
-    container = graph_element("section", "linux-note-git-graph");
-    toolbar = graph_element("div", "git-graph-toolbar");
-    root_label = graph_element("div", "git-graph-root");
-    status = graph_element("div", "git-graph-status");
-    list = graph_element("div", "git-graph-list");
-    details = graph_element("div", "git-graph-details", "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002");
-    branch_select = graph_element("select", "git-graph-branch");
-    repo_select = graph_element("select", "git-graph-repositories");
-    search = graph_element("input", "git-graph-search");
+    container = workspace_element("section", "linux-note-git-graph");
+    toolbar = workspace_element("div", "git-graph-toolbar");
+    root_label = workspace_element("div", "git-graph-root");
+    status = workspace_element("div", "git-graph-status");
+    list = workspace_element("div", "git-graph-list");
+    details = workspace_element("div", "git-graph-details", "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002");
+    branch_select = workspace_element("select", "git-graph-branch");
+    repo_select = workspace_element("select", "git-graph-repositories");
+    search = workspace_element("input", "git-graph-search");
     sash;
     workbench;
-    body = graph_element("div", "git-graph-body");
-    header = graph_element("div", "git-graph-columns");
-    refresh_button = graph_button("\u5237\u65B0", () => void this.refresh());
-    more_button = graph_button("\u52A0\u8F7D\u66F4\u591A", () => {
+    body = workspace_element("div", "git-graph-body");
+    header = workspace_element("div", "git-graph-columns");
+    refresh_button = workspace_button("\u5237\u65B0", () => void this.refresh());
+    more_button = workspace_button("\u52A0\u8F7D\u66F4\u591A", () => {
       this.count += this.settings.page_count;
       void this.refresh(false);
     });
@@ -212535,13 +212570,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.save_repos([this.root, ...this.known_repos()]);
         const repos = this.known_repos();
         if (this.settings.repository_order !== "recent") repos.sort((a, b2) => this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b2)) : a.localeCompare(b2));
-        this.repo_select.replaceChildren(...repos.map((root) => graph_option(root, this.host.path_api.basename(root) || root)));
+        this.repo_select.replaceChildren(...repos.map((root) => workspace_option(root, this.host.path_api.basename(root) || root)));
         this.repo_select.value = this.root;
         this.root_label.textContent = "".concat(state.root).concat(state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 \u6E38\u79BB HEAD" : "");
         this.root_label.title = state.root;
-        this.branch_select.replaceChildren(graph_option("", "\u5168\u90E8\u5206\u652F"), graph_option("HEAD", "\u5F53\u524D HEAD"));
-        for (const ref of state.refs) this.branch_select.append(graph_option(ref.name, ref.name.replace(/^refs\//u, "")));
-        for (const glob of this.settings.branch_globs) this.branch_select.append(graph_option("glob:" + glob.glob, glob.name));
+        this.branch_select.replaceChildren(workspace_option("", "\u5168\u90E8\u5206\u652F"), workspace_option("HEAD", "\u5F53\u524D HEAD"));
+        for (const ref of state.refs) this.branch_select.append(workspace_option(ref.name, ref.name.replace(/^refs\//u, "")));
+        for (const glob of this.settings.branch_globs) this.branch_select.append(workspace_option("glob:" + glob.glob, glob.name));
         this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
         this.ancestors.clear();
         if (this.settings.mute_unreachable && state.head) {
@@ -212624,9 +212659,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.header.style.paddingLeft = graph.width * 18 + 26 + "px";
       for (const [key, title] of [["subject", "\u63D0\u4EA4\u8BF4\u660E"], ["author", "\u4F5C\u8005"], ["date", "\u65E5\u671F"], ["hash", "\u63D0\u4EA4\u7F16\u53F7"]]) {
         if (key !== "subject" && !this.settings["show_" + key]) continue;
-        const label = graph_element("div", "git-graph-column", title);
+        const label = workspace_element("div", "git-graph-column", title);
         label.style.width = "var(--git-".concat(key, "-width)");
-        const handle = graph_element("span", "git-graph-column-resize");
+        const handle = workspace_element("span", "git-graph-column-resize");
         label.append(handle);
         handle.onpointerdown = (event) => {
           event.preventDefault();
@@ -212645,7 +212680,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.header.append(label);
       }
       if (state.changes.length && this.settings.show_changes) {
-        const row = graph_element("div", "git-graph-row git-graph-worktree", "\u25CF \u672A\u63D0\u4EA4\u6539\u52A8 \xB7 ".concat(state.changes.length, " \u4E2A\u6587\u4EF6"));
+        const row = workspace_element("div", "git-graph-row git-graph-worktree", "\u25CF \u672A\u63D0\u4EA4\u6539\u52A8 \xB7 ".concat(state.changes.length, " \u4E2A\u6587\u4EF6"));
         row.dataset.hash = WORKTREE;
         row.tabIndex = 0;
         if (connected) row.prepend(this.draw_graph(graph.rows[0], graph.width));
@@ -212666,7 +212701,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         ref_map.set(ref.hash, [...ref_map.get(ref.hash) || [], ref]);
       }
       state.commits.forEach((commit, index) => {
-        const row = graph_element("div", "git-graph-row");
+        const row = workspace_element("div", "git-graph-row");
         row.dataset.hash = commit.hash;
         row.tabIndex = 0;
         row.setAttribute("role", "button");
@@ -212693,11 +212728,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           });
           else row.title = this.containment.get(commit.hash);
         };
-        const subject = graph_element("span", "git-graph-subject");
-        const refs = graph_element("span", "git-graph-labels");
-        if (state.head === commit.hash) refs.append(graph_element("span", "git-graph-refs", "HEAD"));
+        const subject = workspace_element("span", "git-graph-subject");
+        const refs = workspace_element("span", "git-graph-labels");
+        if (state.head === commit.hash) refs.append(workspace_element("span", "git-graph-refs", "HEAD"));
         if (commit.stash) {
-          const badge = graph_element("span", "git-graph-refs", commit.stash);
+          const badge = workspace_element("span", "git-graph-refs", commit.stash);
           badge.onclick = (event) => {
             event.stopPropagation();
             this.target_menu(event, "stash", commit.stash, commit.hash);
@@ -212714,7 +212749,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (seen.has(name)) continue;
           seen.add(name);
           const combined = this.settings.combine_refs && kind === "branch" ? items.filter((item) => item.name.startsWith("refs/remotes/") && item.name.slice(item.name.indexOf("/", 13) + 1) === name).map((item) => item.name.slice(13, item.name.indexOf("/", 13))) : [];
-          const badge = graph_element("span", "git-graph-refs git-ref-" + kind, name + (combined.length ? " \xB7 " + combined.join(", ") : ""));
+          const badge = workspace_element("span", "git-graph-refs git-ref-" + kind, name + (combined.length ? " \xB7 " + combined.join(", ") : ""));
           badge.dataset.ref = ref.name;
           badge.title = ref.name;
           badge.onclick = (event) => {
@@ -212724,11 +212759,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           badge.oncontextmenu = (event) => this.target_menu(event, kind, name, commit.hash);
           refs.append(badge);
         }
-        subject.append(refs, graph_element("span", "git-graph-subject-text", this.emoji(commit.subject)));
+        subject.append(refs, workspace_element("span", "git-graph-subject-text", this.emoji(commit.subject)));
         row.append(svg3, subject);
-        if (this.settings.show_author) row.append(graph_element("span", "git-graph-author", commit.author));
-        if (this.settings.show_date) row.append(graph_element("span", "git-graph-date", this.date(commit)));
-        if (this.settings.show_hash) row.append(graph_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
+        if (this.settings.show_author) row.append(workspace_element("span", "git-graph-author", commit.author));
+        if (this.settings.show_date) row.append(workspace_element("span", "git-graph-date", this.date(commit)));
+        if (this.settings.show_hash) row.append(workspace_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
         fragment.append(row);
       });
       const scroll = this.list.scrollTop;
@@ -212794,46 +212829,46 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.to = to;
       this.place_details();
       const commit = this.state.commits.find((item) => item.hash === to);
-      this.details.replaceChildren(graph_element("div", "git-graph-commit-title", to === WORKTREE ? "\u672A\u63D0\u4EA4\u6539\u52A8" : to === INDEX ? "\u5DF2\u6682\u5B58\u6539\u52A8" : commit?.subject || "\u63D0\u4EA4\u6BD4\u8F83"));
-      this.details.append(graph_element("code", "git-graph-full-hash", "".concat(from, " \u2192 ").concat(to)));
+      this.details.replaceChildren(workspace_element("div", "git-graph-commit-title", to === WORKTREE ? "\u672A\u63D0\u4EA4\u6539\u52A8" : to === INDEX ? "\u5DF2\u6682\u5B58\u6539\u52A8" : commit?.subject || "\u63D0\u4EA4\u6BD4\u8F83"));
+      this.details.append(workspace_element("code", "git-graph-full-hash", "".concat(from, " \u2192 ").concat(to)));
       for (const row of this.list.querySelectorAll("[data-hash]")) row.setAttribute("aria-pressed", String(row.dataset.hash === this.selected));
-      const controls = graph_element("div", "git-graph-detail-controls");
+      const controls = workspace_element("div", "git-graph-detail-controls");
       this.details.append(controls);
       if (to === WORKTREE || to === INDEX) {
-        const mode = graph_element("select", "git-graph-parent");
-        mode.append(graph_option("all", "HEAD \u2192 \u5DE5\u4F5C\u533A"), graph_option("staged", "HEAD \u2192 \u6682\u5B58\u533A"), graph_option("unstaged", "\u6682\u5B58\u533A \u2192 \u5DE5\u4F5C\u533A"));
+        const mode = workspace_element("select", "git-graph-parent");
+        mode.append(workspace_option("all", "HEAD \u2192 \u5DE5\u4F5C\u533A"), workspace_option("staged", "HEAD \u2192 \u6682\u5B58\u533A"), workspace_option("unstaged", "\u6682\u5B58\u533A \u2192 \u5DE5\u4F5C\u533A"));
         mode.value = to === INDEX ? "staged" : from === INDEX ? "unstaged" : "all";
         mode.onchange = () => void this.show_comparison(mode.value === "unstaged" ? INDEX : this.state.head || EMPTY, mode.value === "staged" ? INDEX : WORKTREE);
         controls.append(mode);
-        controls.append(graph_button("\u64CD\u4F5C", () => this.repository_menu("changes")));
+        controls.append(workspace_button("\u64CD\u4F5C", () => this.repository_menu("changes")));
       } else {
         if (commit) {
-          this.details.append(graph_element("div", "git-graph-meta", "\u4F5C\u8005\uFF1A".concat(commit.author, " <").concat(commit.email || "", "> \xB7 ").concat(commit.date, "\n\u63D0\u4EA4\u8005\uFF1A").concat(commit.committer || commit.author, " <").concat(commit.committer_email || "", "> \xB7 ").concat(commit.commit_date || commit.date)));
+          this.details.append(workspace_element("div", "git-graph-meta", "\u4F5C\u8005\uFF1A".concat(commit.author, " <").concat(commit.email || "", "> \xB7 ").concat(commit.date, "\n\u63D0\u4EA4\u8005\uFF1A").concat(commit.committer || commit.author, " <").concat(commit.committer_email || "", "> \xB7 ").concat(commit.commit_date || commit.date)));
           if (this.settings.fetch_avatars && commit.email) {
-            const img = graph_element("img", "git-graph-avatar");
+            const img = workspace_element("img", "git-graph-avatar");
             img.alt = commit.author;
             this.details.append(img);
             void this.host.avatar(commit.email).then((url) => {
               if (epoch === this.detail_epoch) img.src = url;
             }).catch(() => img.remove());
           }
-          const parent = graph_element("select", "git-graph-parent");
+          const parent = workspace_element("select", "git-graph-parent");
           parent.setAttribute("aria-label", "\u5BF9\u6BD4\u7236\u63D0\u4EA4");
-          if (!commit.parents.length) parent.append(graph_option(EMPTY, "\u9996\u6B21\u63D0\u4EA4 \xB7 \u7A7A\u6811"));
-          commit.parents.forEach((hash2, index) => parent.append(graph_option(hash2, "\u7236\u63D0\u4EA4 ".concat(index + 1, " \xB7 ").concat(hash2.slice(0, 8)))));
-          if (![...parent.options].some((item) => item.value === from)) parent.append(graph_option(from, "\u6240\u9009\u6BD4\u8F83\u63D0\u4EA4 \xB7 " + from.slice(0, 8)));
+          if (!commit.parents.length) parent.append(workspace_option(EMPTY, "\u9996\u6B21\u63D0\u4EA4 \xB7 \u7A7A\u6811"));
+          commit.parents.forEach((hash2, index) => parent.append(workspace_option(hash2, "\u7236\u63D0\u4EA4 ".concat(index + 1, " \xB7 ").concat(hash2.slice(0, 8)))));
+          if (![...parent.options].some((item) => item.value === from)) parent.append(workspace_option(from, "\u6240\u9009\u6BD4\u8F83\u63D0\u4EA4 \xB7 " + from.slice(0, 8)));
           parent.value = from;
           parent.onchange = () => void this.show_comparison(parent.value, to);
           controls.append(parent);
         }
-        controls.append(graph_button(this.review_active() ? "\u7ED3\u675F\u8BC4\u5BA1" : "\u5F00\u59CB\u8BC4\u5BA1", () => {
+        controls.append(workspace_button(this.review_active() ? "\u7ED3\u675F\u8BC4\u5BA1" : "\u5F00\u59CB\u8BC4\u5BA1", () => {
           const reviews = load_reviews(localStorage);
           const filtered = reviews.filter((item) => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
           if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
           save_reviews(localStorage, filtered);
           void this.show_comparison(from, to);
         }));
-        const message = graph_element("div", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
+        const message = workspace_element("div", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
         this.details.append(message);
         void this.runner.run(this.root, ["show", "-s", "--format=%B".concat(this.settings.show_signature ? "%n\u7B7E\u540D\uFF1A%G?%n%GS%n%GK" : ""), to, "--"]).then((text3) => {
           if (epoch === this.detail_epoch) message.replaceChildren(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
@@ -212841,13 +212876,13 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (epoch === this.detail_epoch) message.textContent = String(error);
         });
       }
-      controls.append(graph_button(this.settings.file_view === "tree" ? "\u5207\u6362\u5217\u8868" : "\u5207\u6362\u76EE\u5F55\u6811", () => {
+      controls.append(workspace_button(this.settings.file_view === "tree" ? "\u5207\u6362\u5217\u8868" : "\u5207\u6362\u76EE\u5F55\u6811", () => {
         this.settings.file_view = this.settings.file_view === "tree" ? "list" : "tree";
         this.persist_settings();
         void this.show_comparison(from, to);
       }));
-      const files = graph_element("div", "git-graph-files");
-      this.details.append(graph_element("div", "git-scm-empty", "\u5355\u51FB\u6587\u4EF6\u5728\u4E2D\u592E\u7F16\u8F91\u533A\u6253\u5F00\u5DEE\u5F02\uFF1B\u53F3\u952E\u67E5\u770B\u6587\u4EF6\u64CD\u4F5C\u3002"), files);
+      const files = workspace_element("div", "git-graph-files");
+      this.details.append(workspace_element("div", "git-scm-empty", "\u5355\u51FB\u6587\u4EF6\u5728\u4E2D\u592E\u7F16\u8F91\u533A\u6253\u5F00\u5DEE\u5F02\uFF1B\u53F3\u952E\u67E5\u770B\u6587\u4EF6\u64CD\u4F5C\u3002"), files);
       try {
         this.files = await compare_files(this.runner.run, this.state, from, to);
         if (epoch !== this.detail_epoch) return;
@@ -212867,15 +212902,15 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (directories.has(path)) return directories.get(path);
         const parts = path.split("/");
         const parent = parent_for(parts.slice(0, -1).join("/"));
-        const group = graph_element("details", "git-file-directory");
+        const group = workspace_element("details", "git-file-directory");
         group.open = true;
-        group.append(graph_element("summary", "", parts.at(-1)));
+        group.append(workspace_element("summary", "", parts.at(-1)));
         parent.append(group);
         directories.set(path, group);
         return group;
       };
       for (const file of this.files) {
-        const row = graph_button("".concat(file.status, "  ").concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path), () => {
+        const row = workspace_button("".concat(file.status, "  ").concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path), () => {
           for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
           row.classList.add("selected");
           void this.open_diff(file);
@@ -212970,11 +213005,11 @@ var LinuxNoteTyporaEnhancements = (() => {
       ];
     }
     layout_menu(event) {
-      graph_menu(event, this.layout_entries());
+      workspace_menu(event, this.layout_entries());
     }
     layout_dialog() {
-      const dialog = graph_dialog("\u63D0\u4EA4\u56FE\u5E03\u5C40");
-      for (const entry of this.layout_entries()) dialog.content.append(graph_button((entry.checked ? "\u2713 " : "") + entry.title, () => {
+      const dialog = workspace_dialog("\u63D0\u4EA4\u56FE\u5E03\u5C40");
+      for (const entry of this.layout_entries()) dialog.content.append(workspace_button((entry.checked ? "\u2713 " : "") + entry.title, () => {
         dialog.close();
         entry.action();
       }));
@@ -212983,13 +213018,13 @@ var LinuxNoteTyporaEnhancements = (() => {
       const hidden = (id) => this.settings.hidden_actions.includes(id) || this.settings.hidden_actions.includes(kind + ":" + id);
       const filter_entries = (items) => items.filter((entry) => !entry.id || !hidden(entry.id)).map((entry) => entry.children ? { ...entry, children: filter_entries(entry.children) } : entry);
       const all_entries = (items) => items.flatMap((entry) => [entry, ...all_entries(entry.children || [])]);
-      graph_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: "\u914D\u7F6E\u6B64\u53F3\u952E\u83DC\u5355\u2026", separator: true, action: () => {
-        const dialog = graph_dialog("\u53F3\u952E\u83DC\u5355\u663E\u793A\u9879 \xB7 " + kind);
+      workspace_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: "\u914D\u7F6E\u6B64\u53F3\u952E\u83DC\u5355\u2026", separator: true, action: () => {
+        const dialog = workspace_dialog("\u53F3\u952E\u83DC\u5355\u663E\u793A\u9879 \xB7 " + kind);
         const choices = /* @__PURE__ */ new Map();
         for (const entry of all_entries(entries3)) {
           if (!entry.id || choices.has(entry.id)) continue;
-          const label = graph_element("label", "git-graph-filter", entry.title);
-          const input = graph_element("input");
+          const label = workspace_element("label", "git-graph-filter", entry.title);
+          const input = workspace_element("input");
           input.type = "checkbox";
           input.checked = !hidden(entry.id);
           input.setAttribute("data-action-id", entry.id);
@@ -212997,7 +213032,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           choices.set(entry.id, input);
           dialog.content.append(label);
         }
-        dialog.footer.prepend(graph_button("\u5E94\u7528", () => {
+        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
           for (const [id, input] of choices) {
             this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== kind + ":" + id);
             if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id);
@@ -213005,7 +213040,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           }
           this.persist_settings();
           dialog.close();
-        }), graph_button("\u6062\u590D\u6B64\u83DC\u5355\u5168\u90E8\u9879\u76EE", () => {
+        }), workspace_button("\u6062\u590D\u6B64\u83DC\u5355\u5168\u90E8\u9879\u76EE", () => {
           this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices.has(id));
           this.persist_settings();
           dialog.close();
@@ -213026,40 +213061,40 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.configured_menu(event, "repository", entries3);
     }
     repository_menu(kind = "repository") {
-      const dialog = graph_dialog(kind === "changes" ? "\u672A\u63D0\u4EA4\u6539\u52A8\u64CD\u4F5C" : "\u4ED3\u5E93\u64CD\u4F5C");
-      for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(graph_button(action.title, () => {
+      const dialog = workspace_dialog(kind === "changes" ? "\u672A\u63D0\u4EA4\u6539\u52A8\u64CD\u4F5C" : "\u4ED3\u5E93\u64CD\u4F5C");
+      for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(workspace_button(action.title, () => {
         dialog.close();
         this.action_dialog(action.id, kind, "", this.state?.head);
       }));
-      dialog.content.append(graph_button("\u8FDC\u7AEF\u914D\u7F6E", () => {
+      dialog.content.append(workspace_button("\u8FDC\u7AEF\u914D\u7F6E", () => {
         dialog.close();
         this.remotes_dialog();
-      }), graph_button("\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF", () => {
+      }), workspace_button("\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF", () => {
         this.host.terminal(this.root, this.settings.terminal_shell);
         dialog.close();
-      }), graph_button("\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", () => {
+      }), workspace_button("\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", () => {
         this.host.terminal(this.root, "", true);
         dialog.close();
-      }), graph_button("\u7BA1\u7406\u8BC4\u5BA1\u8BB0\u5F55", () => {
+      }), workspace_button("\u7BA1\u7406\u8BC4\u5BA1\u8BB0\u5F55", () => {
         dialog.close();
         this.reviews_dialog();
-      }), graph_button("\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => {
+      }), workspace_button("\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => {
         this.host.clear_avatars();
         dialog.close();
       }));
     }
     remotes_dialog() {
-      const dialog = graph_dialog("\u4ED3\u5E93\u8FDC\u7AEF\u914D\u7F6E");
-      if (!this.state?.remotes.length) dialog.content.append(graph_element("p", "", "\u6B64\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002"));
+      const dialog = workspace_dialog("\u4ED3\u5E93\u8FDC\u7AEF\u914D\u7F6E");
+      if (!this.state?.remotes.length) dialog.content.append(workspace_element("p", "", "\u6B64\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002"));
       for (const remote2 of this.state?.remotes || []) {
-        const row = graph_element("div", "git-graph-repo-entry", "".concat(remote2.name, "\n\u83B7\u53D6\u5730\u5740\uFF1A").concat(remote2.fetch, "\n\u63A8\u9001\u5730\u5740\uFF1A").concat(remote2.push));
-        for (const [title, id, preset] of [["\u4FEE\u6539\u83B7\u53D6\u5730\u5740", "remote_edit", { url: remote2.fetch }], ["\u4FEE\u6539\u63A8\u9001\u5730\u5740", "remote_edit", { url: remote2.push, push_url: true }], ["\u83B7\u53D6", "fetch", {}], ["\u6E05\u7406\u8FC7\u671F\u5F15\u7528", "remote_prune", {}], ["\u5220\u9664", "remote_remove", {}]]) row.append(graph_button(title, () => {
+        const row = workspace_element("div", "git-graph-repo-entry", "".concat(remote2.name, "\n\u83B7\u53D6\u5730\u5740\uFF1A").concat(remote2.fetch, "\n\u63A8\u9001\u5730\u5740\uFF1A").concat(remote2.push));
+        for (const [title, id, preset] of [["\u4FEE\u6539\u83B7\u53D6\u5730\u5740", "remote_edit", { url: remote2.fetch }], ["\u4FEE\u6539\u63A8\u9001\u5730\u5740", "remote_edit", { url: remote2.push, push_url: true }], ["\u83B7\u53D6", "fetch", {}], ["\u6E05\u7406\u8FC7\u671F\u5F15\u7528", "remote_prune", {}], ["\u5220\u9664", "remote_remove", {}]]) row.append(workspace_button(title, () => {
           dialog.close();
           this.action_dialog(id, "repository", "", "", { remote: remote2.name, ...preset });
         }));
         dialog.content.append(row);
       }
-      dialog.footer.prepend(graph_button("\u6DFB\u52A0\u8FDC\u7AEF", () => {
+      dialog.footer.prepend(workspace_button("\u6DFB\u52A0\u8FDC\u7AEF", () => {
         dialog.close();
         this.action_dialog("remote_add", "repository");
       }));
@@ -213089,17 +213124,17 @@ var LinuxNoteTyporaEnhancements = (() => {
         return;
       }
       const action = graph_actions.find((item) => item.id === id);
-      const dialog = graph_dialog(action.title);
+      const dialog = workspace_dialog(action.title);
       const fields = /* @__PURE__ */ new Map();
       if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
       if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
       const defaults2 = { ...this.settings.dialog_defaults[id], ...preset };
-      dialog.content.append(graph_element("p", "", "\u4ED3\u5E93\uFF1A".concat(this.root, "\n\u76EE\u6807\uFF1A").concat(target || hash2 || this.state.branch)));
-      const form = graph_element("form", "git-graph-form");
-      const result = graph_element("pre", "git-graph-action-preview");
+      dialog.content.append(workspace_element("p", "", "\u4ED3\u5E93\uFF1A".concat(this.root, "\n\u76EE\u6807\uFF1A").concat(target || hash2 || this.state.branch)));
+      const form = workspace_element("form", "git-graph-form");
+      const result = workspace_element("pre", "git-graph-action-preview");
       dialog.content.append(form, result);
       for (const item of action.fields) {
-        const input = item.type === "choice" ? graph_element("select") : ["message", "todo"].includes(item.key) ? graph_element("textarea") : graph_element("input");
+        const input = item.type === "choice" ? workspace_element("select") : ["message", "todo"].includes(item.key) ? workspace_element("textarea") : workspace_element("input");
         let initial = defaults2[item.key] ?? item.initial ?? "";
         if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter((remote2) => target.startsWith(remote2.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
         if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
@@ -213108,7 +213143,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (item.key === "prune_tags") initial = defaults2.prune_tags ?? this.settings.fetch_prune_tags;
         if (item.key === "sign") initial = defaults2.sign ?? this.settings.sign_tags;
         if (input instanceof HTMLSelectElement) {
-          for (const value of item.choices) input.append(graph_option(value, value));
+          for (const value of item.choices) input.append(workspace_option(value, value));
           input.value = String(initial);
         } else if (item.type === "boolean") {
           input.type = "checkbox";
@@ -213116,16 +213151,16 @@ var LinuxNoteTyporaEnhancements = (() => {
         } else input.value = String(initial);
         input.dataset.field = item.key;
         fields.set(item.key, input);
-        const label = graph_element("label", "", item.title);
+        const label = workspace_element("label", "", item.title);
         label.append(input);
         form.append(label);
       }
       let plan;
       let form_revision = 0;
-      const execute = graph_button(id === "sync" ? "\u786E\u8BA4\u540C\u6B65" : "\u6267\u884C\u6B64\u64CD\u4F5C", () => void submit());
+      const execute = workspace_button(id === "sync" ? "\u786E\u8BA4\u540C\u6B65" : "\u6267\u884C\u6B64\u64CD\u4F5C", () => void submit());
       execute.disabled = true;
       execute.setAttribute("data-git-execute", id);
-      const preview = graph_button("\u9884\u89C8\u64CD\u4F5C", () => void prepare());
+      const preview = workspace_button("\u9884\u89C8\u64CD\u4F5C", () => void prepare());
       preview.setAttribute("data-git-preview", id);
       form.oninput = () => {
         form_revision++;
@@ -213193,7 +213228,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (id === "sync") void prepare();
     }
     async tag_details(name) {
-      const dialog = graph_dialog("\u6807\u7B7E\u8BE6\u60C5 \xB7 " + name);
+      const dialog = workspace_dialog("\u6807\u7B7E\u8BE6\u60C5 \xB7 " + name);
       try {
         const text3 = await this.runner.run(this.root, ["for-each-ref", "--format=%(refname)%0a%(objecttype)%0a%(taggername) %(taggeremail)%0a%(taggerdate:iso8601)%0a%(contents)", "refs/tags/" + name]);
         dialog.content.append(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
@@ -213202,14 +213237,14 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
     }
     pr_dialog(branch2) {
-      const dialog = graph_dialog("\u521B\u5EFA Pull Request");
-      const remote2 = graph_element("select");
-      const base = graph_element("input");
+      const dialog = workspace_dialog("\u521B\u5EFA Pull Request");
+      const remote2 = workspace_element("select");
+      const base = workspace_element("input");
       base.value = this.settings.pr_base;
-      const error = graph_element("p");
-      for (const item of this.state.remotes) remote2.append(graph_option(item.fetch, item.name));
-      dialog.content.append(graph_element("p", "", "\u9009\u62E9\u8FDC\u7AEF\u4E0E\u76EE\u6807\u5206\u652F\uFF0C\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u9884\u586B\u8868\u5355\u3002"), remote2, base, error);
-      dialog.footer.prepend(graph_button("\u6253\u5F00\u8868\u5355", () => {
+      const error = workspace_element("p");
+      for (const item of this.state.remotes) remote2.append(workspace_option(item.fetch, item.name));
+      dialog.content.append(workspace_element("p", "", "\u9009\u62E9\u8FDC\u7AEF\u4E0E\u76EE\u6807\u5206\u652F\uFF0C\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u9884\u586B\u8868\u5355\u3002"), remote2, base, error);
+      dialog.footer.prepend(workspace_button("\u6253\u5F00\u8868\u5355", () => {
         try {
           void this.host.open_url(pull_request_url(remote2.value, branch2, base.value, this.settings.pr_url)).catch((problem) => {
             error.textContent = String(problem);
@@ -213220,12 +213255,12 @@ var LinuxNoteTyporaEnhancements = (() => {
       }));
     }
     archive_dialog(hash2) {
-      const dialog = graph_dialog("\u5BFC\u51FA\u7248\u672C\u5F52\u6863");
-      const target = graph_element("input");
+      const dialog = workspace_dialog("\u5BFC\u51FA\u7248\u672C\u5F52\u6863");
+      const target = workspace_element("input");
       target.value = this.host.path_api.join(this.root, hash2.slice(0, 8) + ".zip");
-      const error = graph_element("pre");
+      const error = workspace_element("pre");
       dialog.content.append(target, error);
-      dialog.footer.prepend(graph_button("\u5BFC\u51FA ZIP", () => void (async () => {
+      dialog.footer.prepend(workspace_button("\u5BFC\u51FA ZIP", () => void (async () => {
         try {
           if (this.host.fs.existsSync(target.value)) throw new Error("\u76EE\u6807\u5DF2\u5B58\u5728\uFF0C\u8BF7\u6362\u4E00\u4E2A\u540D\u79F0\u3002");
           await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash2]);
@@ -213240,42 +213275,42 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.report("\u8BF7\u5148\u6253\u5F00\u6709\u6548\u4ED3\u5E93\u3002");
         return;
       }
-      const dialog = graph_dialog("\u9009\u62E9\u4E00\u4E2A\u6216\u591A\u4E2A\u5206\u652F");
+      const dialog = workspace_dialog("\u9009\u62E9\u4E00\u4E2A\u6216\u591A\u4E2A\u5206\u652F");
       const selected = new Set(this.branches);
       for (const [name, title] of [["HEAD", "\u5F53\u524D HEAD"], ...this.state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
-        const check2 = graph_element("input");
+        const check2 = workspace_element("input");
         check2.type = "checkbox";
         check2.checked = selected.has(name);
         check2.onchange = () => check2.checked ? selected.add(name) : selected.delete(name);
-        const label = graph_element("label", "git-graph-filter", title);
+        const label = workspace_element("label", "git-graph-filter", title);
         label.prepend(check2);
         dialog.content.append(label);
       }
-      dialog.footer.prepend(graph_button("\u5168\u90E8\u5206\u652F", () => {
+      dialog.footer.prepend(workspace_button("\u5168\u90E8\u5206\u652F", () => {
         this.branches = [];
         dialog.close();
         void this.refresh();
-      }), graph_button("\u5E94\u7528\u9009\u62E9", () => {
+      }), workspace_button("\u5E94\u7528\u9009\u62E9", () => {
         this.branches = [...selected];
         dialog.close();
         void this.refresh();
       }));
     }
     manage_repositories() {
-      const dialog = graph_dialog("\u7BA1\u7406 Git \u4ED3\u5E93");
-      const input = graph_element("input");
+      const dialog = workspace_dialog("\u7BA1\u7406 Git \u4ED3\u5E93");
+      const input = workspace_element("input");
       input.placeholder = "\u7C98\u8D34\u4ED3\u5E93\u6587\u4EF6\u5939\u8DEF\u5F84";
       input.value = this.root;
-      const error = graph_element("p");
-      const list3 = graph_element("div");
+      const error = workspace_element("p");
+      const list3 = workspace_element("div");
       const render = () => {
         list3.replaceChildren();
         for (const root of this.known_repos()) {
-          const row = graph_element("div", "git-graph-repo-entry", root);
-          row.append(graph_button("\u6253\u5F00", () => {
+          const row = workspace_element("div", "git-graph-repo-entry", root);
+          row.append(workspace_button("\u6253\u5F00", () => {
             this.switch_repo(root);
             dialog.close();
-          }), graph_button("\u79FB\u9664\u8BB0\u5F55", () => {
+          }), workspace_button("\u79FB\u9664\u8BB0\u5F55", () => {
             this.save_repos(this.known_repos().filter((item) => item !== root));
             render();
           }));
@@ -213285,13 +213320,13 @@ var LinuxNoteTyporaEnhancements = (() => {
       render();
       dialog.content.append(input, list3, error);
       dialog.footer.prepend(
-        graph_button("\u6DFB\u52A0\u4ED3\u5E93", () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
+        workspace_button("\u6DFB\u52A0\u4ED3\u5E93", () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
           this.save_repos([...this.known_repos(), root.trim()]);
           render();
         }).catch((problem) => {
           error.textContent = String(problem);
         })),
-        graph_button("\u53D1\u73B0\u5B50\u4ED3\u5E93", () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
+        workspace_button("\u53D1\u73B0\u5B50\u4ED3\u5E93", () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
           this.save_repos([...this.known_repos(), ...roots]);
           render();
           error.textContent = "\u53D1\u73B0 ".concat(roots.length, " \u4E2A\u4ED3\u5E93\u3002");
@@ -213305,14 +213340,14 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.report("Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002");
         return;
       }
-      const dialog = graph_dialog("Git Graph \u8BBE\u7F6E");
-      const form = graph_element("div", "git-graph-settings-form");
+      const dialog = workspace_dialog("Git Graph \u8BBE\u7F6E");
+      const form = workspace_element("div", "git-graph-settings-form");
       const fields = /* @__PURE__ */ new Map();
-      const error = graph_element("p");
+      const error = workspace_element("p");
       for (const [key, value] of Object.entries(this.settings)) {
-        const input = settings_choices[key] ? graph_element("select") : typeof value === "object" ? graph_element("textarea") : graph_element("input");
+        const input = settings_choices[key] ? workspace_element("select") : typeof value === "object" ? workspace_element("textarea") : workspace_element("input");
         input.dataset.setting = key;
-        if (input instanceof HTMLSelectElement) for (const value2 of settings_choices[key]) input.append(graph_option(value2, value2));
+        if (input instanceof HTMLSelectElement) for (const value2 of settings_choices[key]) input.append(workspace_option(value2, value2));
         if (typeof value === "boolean") {
           input.type = "checkbox";
           input.checked = value;
@@ -213320,13 +213355,13 @@ var LinuxNoteTyporaEnhancements = (() => {
           input.value = typeof value === "object" ? JSON.stringify(value, null, 2) : String(value);
           if (typeof value === "number") input.type = "number";
         }
-        const label = graph_element("label", "", settings_labels[key]);
+        const label = workspace_element("label", "", settings_labels[key]);
         label.append(input);
         form.append(label);
         fields.set(key, input);
       }
       dialog.content.append(form, error);
-      const apply3 = (settings) => {
+      const apply4 = (settings) => {
         this.settings = settings;
         this.persist_settings();
         this.runner.cancel();
@@ -213335,42 +213370,42 @@ var LinuxNoteTyporaEnhancements = (() => {
         dialog.close();
         void this.refresh();
       };
-      const file = graph_element("input");
+      const file = workspace_element("input");
       file.type = "file";
       file.accept = ".json";
       file.hidden = true;
       file.onchange = () => void file.files?.[0]?.text().then((text3) => {
         try {
           const settings = validate_settings(JSON.parse(text3));
-          apply3({ ...settings, git_path: this.settings.git_path, terminal_shell: this.settings.terminal_shell, fetch_avatars: this.settings.fetch_avatars });
+          apply4({ ...settings, git_path: this.settings.git_path, terminal_shell: this.settings.terminal_shell, fetch_avatars: this.settings.fetch_avatars });
         } catch (problem) {
           error.textContent = String(problem);
         }
       });
       dialog.content.append(file);
-      dialog.footer.prepend(graph_button("\u4FDD\u5B58\u8BBE\u7F6E", () => {
+      dialog.footer.prepend(workspace_button("\u4FDD\u5B58\u8BBE\u7F6E", () => {
         try {
           const values = {};
           for (const [key, input] of fields) {
             const baseline = graph_defaults[key];
             values[key] = typeof baseline === "boolean" ? input.checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
           }
-          apply3(validate_settings(values));
+          apply4(validate_settings(values));
         } catch (problem) {
           error.textContent = String(problem);
         }
-      }), graph_button("\u6062\u590D\u9ED8\u8BA4", () => apply3(structuredClone(graph_defaults))), graph_button("\u5BFC\u5165\u914D\u7F6E", () => file.click()), graph_button("\u5BFC\u51FA\u914D\u7F6E", () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
+      }), workspace_button("\u6062\u590D\u9ED8\u8BA4", () => apply4(structuredClone(graph_defaults))), workspace_button("\u5BFC\u5165\u914D\u7F6E", () => file.click()), workspace_button("\u5BFC\u51FA\u914D\u7F6E", () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
     }
     reviews_dialog() {
-      const dialog = graph_dialog("\u8BC4\u5BA1\u8BB0\u5F55");
+      const dialog = workspace_dialog("\u8BC4\u5BA1\u8BB0\u5F55");
       const render = () => {
         dialog.content.replaceChildren();
         const reviews = load_reviews(localStorage);
         if (!reviews.length) dialog.content.textContent = "\u6682\u65E0\u8BC4\u5BA1\u8BB0\u5F55\u3002";
         for (const review of reviews) {
-          const row = graph_element("div", "git-graph-review", "".concat(review.root, "\n").concat(review.from.slice(0, 8), " \u2192 ").concat(review.to.slice(0, 8), " \xB7 \u5DF2\u8BFB ").concat(review.reviewed.length, " \u4E2A\u6587\u4EF6"));
+          const row = workspace_element("div", "git-graph-review", "".concat(review.root, "\n").concat(review.from.slice(0, 8), " \u2192 ").concat(review.to.slice(0, 8), " \xB7 \u5DF2\u8BFB ").concat(review.reviewed.length, " \u4E2A\u6587\u4EF6"));
           row.append(
-            graph_button("\u7EE7\u7EED\u8BC4\u5BA1", () => {
+            workspace_button("\u7EE7\u7EED\u8BC4\u5BA1", () => {
               dialog.close();
               if (review.root !== this.root) this.switch_repo(review.root);
               void (async () => {
@@ -213379,7 +213414,7 @@ var LinuxNoteTyporaEnhancements = (() => {
                 void this.show_comparison(review.from, review.to);
               })();
             }),
-            graph_button("\u7ED3\u675F", () => {
+            workspace_button("\u7ED3\u675F", () => {
               save_reviews(localStorage, reviews.filter((item) => item !== review));
               render();
             })
@@ -213388,7 +213423,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       };
       render();
-      dialog.footer.prepend(graph_button("\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", () => {
+      dialog.footer.prepend(workspace_button("\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", () => {
         save_reviews(localStorage, []);
         render();
       }));
@@ -213472,22 +213507,22 @@ var LinuxNoteTyporaEnhancements = (() => {
     item.classList.add("linux-note-git-status");
     item.setAttribute("data-linux-note-git-status", "ready");
     item.parentElement?.prepend(item);
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = git_status_bar_default;
     document.head.append(style63);
-    const branch2 = graph_button("", () => {
+    const branch2 = workspace_button("", () => {
     }, "git-status-branch");
     branch2.dataset.gitStatus = "branch";
     const branch_icon = git_icon("git-branch");
-    const label = graph_element("span", "git-status-branch-label", "\u6B63\u5728\u68C0\u67E5 Git\u2026");
+    const label = workspace_element("span", "git-status-branch-label", "\u6B63\u5728\u68C0\u67E5 Git\u2026");
     branch2.append(branch_icon, label);
-    const sync = graph_button("", () => {
+    const sync = workspace_button("", () => {
     }, "git-status-sync");
     sync.dataset.gitStatus = "sync";
     const sync_icon = git_icon("sync");
-    const counts = graph_element("span", "git-status-sync-counts");
+    const counts = workspace_element("span", "git-status-sync-counts");
     sync.append(sync_icon, counts);
-    const graph = graph_button("", launch_graph, "git-status-graph");
+    const graph = workspace_button("", launch_graph, "git-status-graph");
     graph.dataset.gitStatus = "graph";
     const graph_icon = git_icon("git-branch");
     graph.append(graph_icon, document.createTextNode("Git Graph"));
@@ -213567,7 +213602,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         while (current.pending) await new Promise((resolve3) => setTimeout(resolve3, 50));
         if (disposed || current !== current_panel()) return;
         if (!current.state || current.container.dataset.state === "error") {
-          graph_menu(event, [{ id: "select_repository", title: "\u9009\u62E9 Git \u4ED3\u5E93\u2026", action: () => current.manage_repositories() }, { id: "refresh_status", title: "\u91CD\u65B0\u68C0\u67E5\u4ED3\u5E93", action: () => void refresh() }]);
+          workspace_menu(event, [{ id: "select_repository", title: "\u9009\u62E9 Git \u4ED3\u5E93\u2026", action: () => current.manage_repositories() }, { id: "refresh_status", title: "\u91CD\u65B0\u68C0\u67E5\u4ED3\u5E93", action: () => void refresh() }]);
           return;
         }
         await show2(current);
@@ -213651,7 +213686,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
     const core = window[Symbol.for("typora-plugin-core@v2")];
     if (!core?.app || !window.reqnode) return;
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = git_graph_default;
     document.head.append(style63);
     const host = create_graph_host(core);
@@ -213667,10 +213702,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       void panel.refresh(false);
       return panel;
     };
-    const icon = graph_element("span", "git-activity-icon");
+    const icon = workspace_element("span", "git-activity-icon");
     icon.append(git_icon("source-control"));
     class source_control_sidebar extends core.SidebarPanel {
-      containerEl = graph_element("section", "linux-note-git-source-control");
+      containerEl = workspace_element("section", "linux-note-git-source-control");
       panel;
       visible = false;
       native_observer = new MutationObserver(() => this.clear_native_tabs());
@@ -213834,7 +213869,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       ["end_review", "Git Graph\uFF1A\u7ED3\u675F\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
       ["resume_review", "Git Graph\uFF1A\u6062\u590D\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
       ["version", "Git Graph\uFF1A\u7248\u672C\u4E0E\u8BCA\u65AD", (panel) => {
-        const dialog = graph_dialog("Git Graph \u8BCA\u65AD");
+        const dialog = workspace_dialog("Git Graph \u8BCA\u65AD");
         dialog.content.textContent = "Typora Git Graph \xB7 2\n\u529F\u80FD\u5BF9\u7167\uFF1AVS Code Git Graph 1.30.0\n" + panel.root;
         void panel.runner.run(panel.root, ["--version"]).then((version) => {
           dialog.content.textContent += "\n" + version;
@@ -213864,9 +213899,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         return;
       }
       for (const [id, title] of [["graph", "Git\uFF1A\u67E5\u770B\u4ED3\u5E93\u63D0\u4EA4\u56FE"], ...!directory ? [["history", "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u5386\u53F2"], ["changes", "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u66F4\u6539"]] : []]) {
-        const item = graph_element("li");
+        const item = workspace_element("li");
         item.setAttribute("data-git-graph-launch", id);
-        item.append(graph_element("a", "", title));
+        item.append(workspace_element("a", "", title));
         for (const name of ["pointerdown", "mousedown", "mouseup"]) item.addEventListener(name, (event) => {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -213942,22 +213977,22 @@ var LinuxNoteTyporaEnhancements = (() => {
     const runtime = window;
     const fs2 = runtime.reqnode("fs"), path_api = runtime.reqnode("path");
     const sidebar = core.app.workspace.sidebar;
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = workspace_explorer_default;
     document.head.append(style63);
-    const container = graph_element("section", "linux-note-workspace-explorer");
+    const container = workspace_element("section", "linux-note-workspace-explorer");
     container.setAttribute("aria-label", "\u8D44\u6E90\u7BA1\u7406\u5668");
-    const toolbar = graph_element("div", "workspace-explorer-toolbar");
-    const title = graph_element("strong", "", "\u8D44\u6E90\u7BA1\u7406\u5668");
-    const actions = graph_element("div", "workspace-explorer-actions");
-    const root_label = graph_element("div", "workspace-explorer-root");
-    const tree = graph_element("div", "workspace-explorer-tree");
+    const toolbar = workspace_element("div", "workspace-explorer-toolbar");
+    const title = workspace_element("strong", "", "\u8D44\u6E90\u7BA1\u7406\u5668");
+    const actions = workspace_element("div", "workspace-explorer-actions");
+    const root_label = workspace_element("div", "workspace-explorer-root");
+    const tree = workspace_element("div", "workspace-explorer-tree");
     tree.tabIndex = 0;
     tree.setAttribute("role", "tree");
     tree.setAttribute("aria-label", "\u6587\u4EF6\u548C\u6587\u4EF6\u5939");
-    const spacer = graph_element("div", "workspace-explorer-spacer");
+    const spacer = workspace_element("div", "workspace-explorer-spacer");
     tree.append(spacer);
-    const status2 = graph_element("div", "workspace-explorer-status");
+    const status2 = workspace_element("div", "workspace-explorer-status");
     status2.setAttribute("role", "status");
     toolbar.append(title, actions);
     container.append(toolbar, root_label, tree, status2);
@@ -213975,7 +214010,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const icon = (name) => git_icon(name, "workspace-explorer-icon");
     const icon_button = (name, label, action) => {
-      const button = graph_element("button");
+      const button = workspace_element("button");
       button.type = "button";
       button.title = label;
       button.setAttribute("aria-label", label);
@@ -214063,7 +214098,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
         for (let index = start; index < end; index++) {
           const node = flat_nodes[index];
-          const row = graph_element("div", "workspace-explorer-row" + (node.path === selected_path ? " is-selected" : ""));
+          const row = workspace_element("div", "workspace-explorer-row" + (node.path === selected_path ? " is-selected" : ""));
           row.id = node.id;
           row.dataset.path = node.path;
           row.dataset.directory = String(node.directory);
@@ -214074,12 +214109,12 @@ var LinuxNoteTyporaEnhancements = (() => {
           row.style.top = index * ROW_HEIGHT + "px";
           row.style.paddingLeft = node.depth * 14 + 8 + "px";
           row.title = node.path + (node.error ? "\n" + node.error : "");
-          const chevron = graph_element("span", "workspace-explorer-chevron");
+          const chevron = workspace_element("span", "workspace-explorer-chevron");
           if (node.directory) chevron.append(icon(node.expanded ? "chevron-down" : "chevron-right"));
-          row.append(chevron, icon(node.directory ? node.expanded ? "folder-opened" : "folder" : "file"), rename_state?.node === node ? rename_state.input : graph_element("span", "workspace-explorer-name", node.name));
-          if (node.link) row.append(graph_element("span", "workspace-explorer-note", "\u94FE\u63A5"));
-          if (node.loading) row.append(graph_element("span", "workspace-explorer-note", "\u8BFB\u53D6\u4E2D\u2026"));
-          else if (node.error) row.append(graph_element("span", "workspace-explorer-note is-error", "\u65E0\u6CD5\u8BFB\u53D6"));
+          row.append(chevron, icon(node.directory ? node.expanded ? "folder-opened" : "folder" : "file"), rename_state?.node === node ? rename_state.input : workspace_element("span", "workspace-explorer-name", node.name));
+          if (node.link) row.append(workspace_element("span", "workspace-explorer-note", "\u94FE\u63A5"));
+          if (node.loading) row.append(workspace_element("span", "workspace-explorer-note", "\u8BFB\u53D6\u4E2D\u2026"));
+          else if (node.error) row.append(workspace_element("span", "workspace-explorer-note is-error", "\u65E0\u6CD5\u8BFB\u53D6"));
           row.onclick = (event) => {
             if (event.target === rename_state?.input) return;
             if (event.detail > 1) return;
@@ -214210,14 +214245,14 @@ var LinuxNoteTyporaEnhancements = (() => {
       );
       if (node.directory) entries3.push({ title: "\u5237\u65B0\u6587\u4EF6\u5939", action: () => run(() => load_children(node, true)) });
       entries3.push(...options2.extra_menu?.(node.path, node.directory) || []);
-      graph_menu(event, entries3);
+      workspace_menu(event, entries3);
     }
     function begin_rename(node) {
       if (!root || node === root || disposed || rename_state?.busy) return;
       window.clearTimeout(click_timer);
       click_timer = 0;
       select(node, true);
-      const input = graph_element("input", "workspace-explorer-rename");
+      const input = workspace_element("input", "workspace-explorer-rename");
       input.value = node.name;
       input.setAttribute("aria-label", "\u65B0\u540D\u79F0");
       input.spellcheck = false;
@@ -217213,7 +217248,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
   }
   if (!apply2) {
-    apply2 = function apply3(func, thisArg) {
+    apply2 = function apply4(func, thisArg) {
       for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
         args[_key - 2] = arguments[_key];
       }
@@ -218831,18 +218866,18 @@ var LinuxNoteTyporaEnhancements = (() => {
   var clamp_scale = (value) => Number.isFinite(value) ? Math.min(150, Math.max(50, Math.round(value))) : 80;
   var markdown_source = (text3) => text3.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
   function create_lookup_preview(files) {
-    const container = graph_element("section", "workspace-lookup-preview");
-    const style63 = graph_element("style");
+    const container = workspace_element("section", "workspace-lookup-preview");
+    const style63 = workspace_element("style");
     style63.textContent = workspace_lookup_preview_default;
     document.head.append(style63);
-    const body = graph_element("div", "workspace-lookup-preview-body");
+    const body = workspace_element("div", "workspace-lookup-preview-body");
     body.tabIndex = 0;
     body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8");
-    const markdown_host = graph_element("div", "workspace-lookup-markdown");
+    const markdown_host = workspace_element("div", "workspace-lookup-markdown");
     const shadow = markdown_host.attachShadow({ mode: "open" });
-    const reader = graph_element("article");
+    const reader = workspace_element("article");
     reader.id = "write";
-    const theme_style = graph_element("style");
+    const theme_style = workspace_element("style");
     shadow.append(theme_style, reader);
     container.append(body);
     container.setAttribute("data-linux-note-lookup-preview", "ready");
@@ -218888,7 +218923,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         } catch {
         }
       }
-      const local = graph_element("style");
+      const local = workspace_element("style");
       local.textContent = ":host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;color:inherit!important;overflow-wrap:anywhere;line-height:1.6}#write h1{font-size:1.8em}#write h2{font-size:1.5em}#write h3{font-size:1.25em}#write p{margin:.7em 0}#write pre{overflow:auto;background:rgba(127,127,127,.08);padding:8px}#write pre code{white-space:pre}#write table{border-collapse:collapse;width:100%}#write th,#write td{border:1px solid rgba(127,127,127,.3);padding:5px 8px}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:default}#write input{pointer-events:none}";
       local.textContent += "#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}";
       rules.push(local.textContent || "");
@@ -218934,7 +218969,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       for (const token of tokens) {
         const token_start = token.raw === front_matter ? 0 : normalized.indexOf(token.raw, offset);
         const safe_start = token_start < 0 ? offset : token_start;
-        const block3 = graph_element("div");
+        const block3 = workspace_element("div");
         block3.dataset.sourceStart = String(safe_start);
         const single = Object.assign([token], { links: tokens.links });
         block3.innerHTML = purify2.sanitize(marked2.parser(single, { gfm: true }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name"], ALLOW_DATA_ATTR: false });
@@ -218965,7 +219000,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         const raw_start = Number(selected_block.dataset.sourceStart);
         const prefix_tokens = marked2.lexer(normalized.slice(raw_start, start), { gfm: true });
         prefix_tokens.links = tokens.links;
-        const prefix = graph_element("div");
+        const prefix = workspace_element("div");
         prefix.innerHTML = purify2.sanitize(marked2.parser(prefix_tokens), { FORBID_TAGS: ["img", "style", "iframe", "object", "embed", "audio", "video", "source"] });
         const occurrence = (prefix.textContent || "").split(needle).length - 1;
         const target_content = selected_block.querySelector(".lookup-diagram-source-label + pre code") || selected_block;
@@ -218990,7 +219025,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             const range2 = document.createRange();
             range2.setStart(from.node, found - from.start);
             range2.setEnd(to.node, found + needle.length - to.start);
-            const mark = graph_element("mark");
+            const mark = workspace_element("mark");
             mark.append(range2.extractContents());
             range2.insertNode(mark);
             selected_block = mark;
@@ -219005,10 +219040,11 @@ var LinuxNoteTyporaEnhancements = (() => {
       const request = ++generation;
       selected = { file, match: match2 };
       body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8\uFF1A".concat(file.relative_path, "\uFF0C\u884C ").concat(match2.line, "\uFF0C\u5217 ").concat(match2.column));
+      for (const key of ["previewPath", "previewKind", "previewLine", "previewColumn", "previewEndLine", "previewEndColumn", "previewText"]) delete body.dataset[key];
       editor2?.dispose();
       editor2 = void 0;
       selected_block = void 0;
-      body.replaceChildren(graph_element("p", "workspace-lookup-preview-message", "\u6B63\u5728\u8BFB\u53D6\u9884\u89C8\u2026"));
+      body.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", "\u6B63\u5728\u8BFB\u53D6\u9884\u89C8\u2026"));
       try {
         const stat = await files.fs.promises.stat(file.file_path);
         if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("\u9884\u89C8\u652F\u6301 2 MiB \u4EE5\u5185\u7684\u6587\u672C\u6587\u4EF6\uFF1B\u53CC\u51FB\u7ED3\u679C\u53EF\u6253\u5F00\u5B8C\u6574\u6587\u4EF6\u3002");
@@ -219027,9 +219063,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           view.layout();
           view.revealRangeInCenter(selection);
         }
-        if (!disposed && request === generation) body.dataset.previewPath = file.file_path;
+        if (!disposed && request === generation) {
+          Object.assign(body.dataset, { previewPath: file.file_path, previewKind: is_markdown_file(file.file_path) ? "markdown" : "source", previewLine: String(match2.line), previewColumn: String(match2.column), previewEndLine: String(match2.end_line), previewEndColumn: String(match2.end_column), previewText: match2.text });
+        }
       } catch (error) {
-        if (!disposed && request === generation) body.replaceChildren(graph_element("p", "workspace-lookup-preview-message", String(error)));
+        if (!disposed && request === generation) body.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", String(error)));
       }
     };
     const theme_observer = new MutationObserver(() => {
@@ -219132,11 +219170,11 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/workspace_search.css
-  var workspace_search_default = "/* \u539F\u751F\u6587\u4EF6\u641C\u7D22\u4E0E\u5927\u7EB2\u8FC7\u6EE4\u5171\u7528\u6B64\u5BB9\u5668\uFF1B\u81EA\u5B9A\u4E49\u641C\u7D22\u5378\u8F7D\u540E\u9009\u62E9\u5668\u5931\u6548\uFF0C\u539F\u751F\u663E\u793A\u89C4\u5219\u81EA\u52A8\u6062\u590D\u3002 */\n#sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }\n.linux-note-workspace-search { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }\n.workspace-search-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; gap:2px; height:35px; padding:0 10px 0 20px; flex:none; }\n.workspace-search-heading strong { margin-right:auto; font-size:13px; font-weight:600; }\n.linux-note-workspace-search button,.workspace-search-editor button { box-sizing:border-box; color:inherit; font:inherit; cursor:pointer; }\n.workspace-search-heading button,.workspace-search-query-box button,.workspace-search-input-row>button,.workspace-search-options-row button,.workspace-search-file-actions button { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; flex:none; padding:2px; border:1px solid transparent; border-radius:3px; background:transparent; box-shadow:none; }\n.workspace-search-form { flex:none; padding:0 10px 7px; min-width:0; }\n.workspace-search-input-row { display:flex; align-items:flex-start; gap:2px; margin:3px 0; min-width:0; }\n.workspace-search-input-row>.workspace-search-replace-toggle { margin-left:-6px; width:18px; min-width:18px; height:26px; }\n.workspace-search-query-box { box-sizing:border-box; display:flex; align-items:flex-start; flex:1; min-width:0; min-height:26px; padding:1px; border:1px solid var(--search-select-bg-color,#8886); border-radius:2px; background:var(--bg-color,#fff); }\n.workspace-search-query-box:focus-within { border-color:#007fd4; outline:0; box-shadow:none; }\n/* \u53EA\u8BA9\u5916\u5C42\u8F93\u5165\u6846\u753B\u4E00\u6761\u7126\u70B9\u8FB9\u6846\uFF0C\u9694\u79BB Typora \u4E3B\u9898\u7ED9 input/textarea \u7684\u6A59\u8272\u8F6E\u5ED3\u548C\u9634\u5F71\u3002 */\n.linux-note-workspace-search .workspace-search-query-box input,\n.linux-note-workspace-search .workspace-search-query-box textarea { box-sizing:border-box; flex:1; width:100%; min-width:0; height:22px; resize:none; border:0!important; outline:0!important; box-shadow:none!important; padding:1px 4px!important; margin:0!important; background:transparent!important; color:inherit; font:inherit; line-height:20px; border-radius:0!important; }\n.linux-note-workspace-search .workspace-search-query-box textarea { max-height:100px; overflow-y:auto; }\n.workspace-search-input-actions { display:flex; flex:none; align-items:center; }\n.workspace-search-replace { padding-left:14px; }\n.workspace-search-options-row { display:flex; align-items:center; justify-content:space-between; height:23px; margin-left:14px; font-size:12px; }\n.workspace-search-options-row>button { margin-left:auto; }\n.workspace-search-details { margin-left:14px; }\n.workspace-search-details .workspace-search-exclude-label { display:block; line-height:22px; margin:2px 0 0; font-size:12px; }\n.workspace-search-pattern-box { width:100%; }\n.linux-note-workspace-search button:hover,.workspace-search-editor button:hover,.workspace-search-file>summary:hover,.workspace-search-directory>summary:hover { background:var(--item-hover-bg-color,#8882); }\n.linux-note-workspace-search button[aria-pressed=true] { color:var(--text-color,#174a73); background:#007fd425; border:1px solid #007fd4; }\n.linux-note-workspace-search button:focus-visible,.workspace-search-editor button:focus-visible { outline:1px solid #007fd4; outline-offset:-1px; }\n.workspace-search-status { padding:7px 0 0 14px; overflow-wrap:anywhere; font-size:12px; }\n.workspace-search-status:empty { display:none; }\n.workspace-search-status>.git-icon-button { float:right; }\n.workspace-search-status>.workspace-search-open-editor { display:inline; height:auto; margin:0 0 0 4px; padding:0; border:0; border-radius:0; color:var(--link-color,#006ab1); background:transparent; text-decoration:none; }\n.workspace-search-status>.workspace-search-open-editor:hover { color:var(--link-color,#006ab1); background:transparent; text-decoration:underline; }\n.workspace-search-notices p { white-space:pre-wrap; margin:3px; }\n.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }\n.workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:24px; gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }\n.workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }\n.workspace-search-file[open]>summary>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }\n.workspace-search-file>summary>svg,.workspace-search-directory>summary>svg { flex:none; width:16px; height:16px; }\n.workspace-search-file-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:35px; }\n.workspace-search-file-path { opacity:.65; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }\n.workspace-search-git-status { flex:none; width:13px; text-align:center; font-size:11px; color:#8a6900; }\n.workspace-search-git-status[data-status=U],.workspace-search-git-status[data-status=A] { color:#328044; }\n.workspace-search-git-status[data-status=D] { color:#b62525; }\n.workspace-search-file-actions { position:relative; display:flex; align-items:center; justify-content:center; flex:none; min-width:22px; height:22px; }\n.workspace-search-file-count { box-sizing:border-box; border-radius:10px; color:white; background:#007acc; padding:0 5px; min-width:18px; line-height:18px; text-align:center; font-size:11px; }\n.workspace-search-file-actions>.workspace-search-remove { position:absolute; inset:0; opacity:0; }\n.workspace-search-file>summary:hover .workspace-search-file-count,.workspace-search-file>summary:focus-within .workspace-search-file-count { visibility:hidden; }\n.workspace-search-file>summary:hover .workspace-search-remove,.workspace-search-file>summary:focus-within .workspace-search-remove { opacity:1; }\n.workspace-search-match { display:flex; align-items:center; width:100%; height:22px; border:0; border-radius:0; padding:1px 10px 1px 39px; background:transparent; color:inherit; text-align:left; }\n.workspace-search-line { display:none; }\n.workspace-search-preview { overflow:hidden; text-overflow:ellipsis; white-space:pre; }\n.workspace-search-preview mark { background:#f2c81166; color:inherit; outline:1px solid #c99e2466; }\n.workspace-search-directory>details { margin-left:12px; }\n.workspace-search-editor { height:100%; overflow:auto; color:var(--text-color,#333); }\n.workspace-search-editor-results { padding:12px; }\n.workspace-search-replace-preview { height:50vh; min-height:250px; min-width:0; }\n.linux-note-workspace-search [hidden] { display:none!important; }\n.workspace-search-replace-toggle[aria-expanded=true] svg { transform:rotate(90deg); }\n.workspace-search-body { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; }\n.workspace-search-body.has-preview>.workspace-search-results { flex:0 0 var(--search-results-size,40%); }\n.workspace-search-preview-section { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; container-type:inline-size; container-name:workspace-search-preview; }\n.workspace-search-preview-section.is-collapsed { flex:0 0 28px; }\n.workspace-search-preview-section>.workspace-lookup-preview { flex:1; min-height:0; min-width:0; }\n.workspace-search-preview-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; flex:0 0 28px; min-height:28px; min-width:0; width:100%; border-bottom:1px solid #8883; }\n.workspace-search-preview-heading button { display:inline-flex; align-items:center; gap:3px; height:26px; padding:3px 6px; border:0; background:transparent; }\n.workspace-search-preview-heading>button { flex:1; min-width:0; justify-content:flex-start; }\n.workspace-search-preview-actions { display:flex; align-items:center; gap:0; flex:0 1 auto; min-width:0; margin-left:auto; }\n.workspace-search-preview-actions>.git-icon-button { width:26px; min-width:26px; justify-content:center; padding:3px; }\n.workspace-search-preview-actions>.workspace-search-preview-slider { box-sizing:border-box; flex:0 1 80px; width:80px; min-width:48px; max-width:80px; height:24px; margin:0; padding:0!important; border:0!important; box-shadow:none!important; background:transparent; accent-color:#0078d4; }\n.workspace-search-preview-actions>.workspace-search-preview-scale { flex:none; min-width:34px; padding:0 2px; text-align:center; font-size:11px; font-variant-numeric:tabular-nums; }\n.workspace-search-preview-actions>button:disabled { opacity:.4; cursor:default; background:transparent; }\n@container workspace-search-preview (max-width:230px) { .workspace-search-preview-actions>.git-icon-button { display:none; } }\n.workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }\n.workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }\n.workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }\n.workspace-search-file>summary.is-selected { background:#0078d410; }\n.workspace-search-match.is-selected { background:#0078d426; }\n";
+  var workspace_search_default = "/* \u539F\u751F\u6587\u4EF6\u641C\u7D22\u4E0E\u5927\u7EB2\u8FC7\u6EE4\u5171\u7528\u6B64\u5BB9\u5668\uFF1B\u81EA\u5B9A\u4E49\u641C\u7D22\u5378\u8F7D\u540E\u9009\u62E9\u5668\u5931\u6548\uFF0C\u539F\u751F\u663E\u793A\u89C4\u5219\u81EA\u52A8\u6062\u590D\u3002 */\n#sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }\n.linux-note-workspace-search { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }\n.workspace-search-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; gap:2px; height:35px; padding:0 10px 0 20px; flex:none; }\n.workspace-search-heading strong { margin-right:auto; font-size:13px; font-weight:600; }\n.linux-note-workspace-search button,.workspace-search-editor button { box-sizing:border-box; color:inherit; font:inherit; cursor:pointer; }\n.workspace-search-heading button,.workspace-search-query-box button,.workspace-search-input-row>button,.workspace-search-options-row button,.workspace-search-file-actions button { display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; min-width:22px; flex:none; padding:2px; border:1px solid transparent; border-radius:3px; background:transparent; box-shadow:none; }\n.workspace-search-form { flex:none; padding:0 10px 7px; min-width:0; }\n.workspace-search-input-row { display:flex; align-items:flex-start; gap:2px; margin:3px 0; min-width:0; }\n.workspace-search-input-row>.workspace-search-replace-toggle { margin-left:-6px; width:18px; min-width:18px; height:26px; }\n.workspace-search-query-box { box-sizing:border-box; display:flex; align-items:flex-start; flex:1; min-width:0; min-height:26px; padding:1px; border:1px solid var(--search-select-bg-color,#8886); border-radius:2px; background:var(--bg-color,#fff); }\n.workspace-search-query-box:focus-within { border-color:#007fd4; outline:0; box-shadow:none; }\n/* \u53EA\u8BA9\u5916\u5C42\u8F93\u5165\u6846\u753B\u4E00\u6761\u7126\u70B9\u8FB9\u6846\uFF0C\u9694\u79BB Typora \u4E3B\u9898\u7ED9 input/textarea \u7684\u6A59\u8272\u8F6E\u5ED3\u548C\u9634\u5F71\u3002 */\n.linux-note-workspace-search .workspace-search-query-box input,\n.linux-note-workspace-search .workspace-search-query-box textarea { box-sizing:border-box; flex:1; width:100%; min-width:0; height:22px; resize:none; border:0!important; outline:0!important; box-shadow:none!important; padding:1px 4px!important; margin:0!important; background:transparent!important; color:inherit; font:inherit; line-height:20px; border-radius:0!important; }\n.linux-note-workspace-search .workspace-search-query-box textarea { max-height:100px; overflow-y:auto; }\n.workspace-search-input-actions { display:flex; flex:none; align-items:center; }\n.workspace-search-replace { padding-left:14px; }\n.workspace-search-options-row { display:flex; align-items:center; justify-content:space-between; height:23px; margin-left:14px; font-size:12px; }\n.workspace-search-options-row>button { margin-left:auto; }\n.workspace-search-details { margin-left:14px; }\n.workspace-search-details .workspace-search-exclude-label { display:block; line-height:22px; margin:2px 0 0; font-size:12px; }\n.workspace-search-pattern-box { width:100%; }\n.linux-note-workspace-search button:hover,.workspace-search-editor button:hover,.workspace-search-file>summary:hover,.workspace-search-directory>summary:hover { background:var(--item-hover-bg-color,#8882); }\n.linux-note-workspace-search button[aria-pressed=true] { color:var(--text-color,#174a73); background:#007fd425; border:1px solid #007fd4; }\n.linux-note-workspace-search button:focus-visible,.workspace-search-editor button:focus-visible { outline:1px solid #007fd4; outline-offset:-1px; }\n.workspace-search-status { padding:7px 0 0 14px; overflow-wrap:anywhere; font-size:12px; }\n.workspace-search-status:empty { display:none; }\n.workspace-search-status>.git-icon-button { float:right; }\n.workspace-search-status>.workspace-search-open-editor { display:inline; height:auto; margin:0 0 0 4px; padding:0; border:0; border-radius:0; color:var(--link-color,#006ab1); background:transparent; text-decoration:none; }\n.workspace-search-status>.workspace-search-open-editor:hover { color:var(--link-color,#006ab1); background:transparent; text-decoration:underline; }\n.workspace-search-notices p { white-space:pre-wrap; margin:3px; }\n.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }\n.workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:24px; gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }\n.workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }\n.workspace-search-file[open]>summary>.workspace-search-file-toggle>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }\n.workspace-search-file>summary>.workspace-search-file-toggle { display:inline-flex; align-items:center; justify-content:center; flex:none; width:20px; height:22px; min-width:20px; padding:2px; border:0; border-radius:3px; background:transparent; }\n.workspace-search-file>summary>svg,.workspace-search-directory>summary>svg { flex:none; width:16px; height:16px; }\n.workspace-search-file-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:35px; }\n.workspace-search-file-path { opacity:.65; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }\n.workspace-search-git-status { flex:none; width:13px; text-align:center; font-size:11px; color:#8a6900; }\n.workspace-search-git-status[data-status=U],.workspace-search-git-status[data-status=A] { color:#328044; }\n.workspace-search-git-status[data-status=D] { color:#b62525; }\n.workspace-search-file-actions { position:relative; display:flex; align-items:center; justify-content:center; flex:none; min-width:22px; height:22px; }\n.workspace-search-file-count { box-sizing:border-box; border-radius:10px; color:white; background:#007acc; padding:0 5px; min-width:18px; line-height:18px; text-align:center; font-size:11px; }\n.workspace-search-file-actions>.workspace-search-remove { position:absolute; inset:0; opacity:0; }\n.workspace-search-file>summary:hover .workspace-search-file-count,.workspace-search-file>summary:focus-within .workspace-search-file-count { visibility:hidden; }\n.workspace-search-file>summary:hover .workspace-search-remove,.workspace-search-file>summary:focus-within .workspace-search-remove { opacity:1; }\n.workspace-search-match { display:flex; align-items:center; width:100%; height:22px; border:0; border-radius:0; padding:1px 10px 1px 39px; background:transparent; color:inherit; text-align:left; }\n.workspace-search-line { display:none; }\n.workspace-search-preview { overflow:hidden; text-overflow:ellipsis; white-space:pre; }\n.workspace-search-preview mark { background:#f2c81166; color:inherit; outline:1px solid #c99e2466; }\n.workspace-search-directory>details { margin-left:12px; }\n.workspace-search-editor { height:100%; overflow:auto; color:var(--text-color,#333); }\n.workspace-search-editor-results { padding:12px; }\n.workspace-search-replace-preview { height:50vh; min-height:250px; min-width:0; }\n.linux-note-workspace-search [hidden] { display:none!important; }\n.workspace-search-replace-toggle[aria-expanded=true] svg { transform:rotate(90deg); }\n.workspace-search-body { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; }\n.workspace-search-body.has-preview>.workspace-search-results { flex:0 0 var(--search-results-size,40%); }\n.workspace-search-preview-section { display:flex; flex-direction:column; flex:1; min-height:0; min-width:0; overflow:hidden; container-type:inline-size; container-name:workspace-search-preview; }\n.workspace-search-preview-section.is-collapsed { flex:0 0 28px; }\n.workspace-search-preview-section>.workspace-lookup-preview { flex:1; min-height:0; min-width:0; }\n.workspace-search-preview-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; flex:0 0 28px; min-height:28px; min-width:0; width:100%; border-bottom:1px solid #8883; }\n.workspace-search-preview-heading button { display:inline-flex; align-items:center; gap:3px; height:26px; padding:3px 6px; border:0; background:transparent; }\n.workspace-search-preview-heading>button { flex:1; min-width:0; justify-content:flex-start; }\n.workspace-search-preview-actions { display:flex; align-items:center; gap:0; flex:0 1 auto; min-width:0; margin-left:auto; }\n.workspace-search-preview-actions>.git-icon-button { width:26px; min-width:26px; justify-content:center; padding:3px; }\n.workspace-search-preview-actions>.workspace-search-preview-slider { box-sizing:border-box; flex:0 1 80px; width:80px; min-width:48px; max-width:80px; height:24px; margin:0; padding:0!important; border:0!important; box-shadow:none!important; background:transparent; accent-color:#0078d4; }\n.workspace-search-preview-actions>.workspace-search-preview-scale { flex:none; min-width:34px; padding:0 2px; text-align:center; font-size:11px; font-variant-numeric:tabular-nums; }\n.workspace-search-preview-actions>button:disabled { opacity:.4; cursor:default; background:transparent; }\n@container workspace-search-preview (max-width:230px) { .workspace-search-preview-actions>.git-icon-button { display:none; } }\n.workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }\n.workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }\n.workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }\n.workspace-search-file>summary.is-selected { background:#0078d410; }\n.workspace-search-match.is-selected { background:#0078d426; }\n";
 
   // src/workspace_search.ts
   function bind_workspace_search(core, files) {
-    const style63 = graph_element("style");
+    const style63 = workspace_element("style");
     style63.textContent = workspace_search_default;
     document.head.append(style63);
     const runtime = window;
@@ -219144,7 +219182,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime.reqnode("process").platform });
     const native_sidebar = document.querySelector("#typora-sidebar");
     const input = (label, placeholder = label) => {
-      const node = graph_element("input");
+      const node = workspace_element("input");
       node.type = "text";
       node.placeholder = placeholder;
       node.setAttribute("aria-label", label);
@@ -219155,7 +219193,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const panels = /* @__PURE__ */ new Map();
     let serial2 = 0, disposed = false;
     class search_editor_view extends core.WorkspaceView {
-      containerEl = graph_element("section", "workspace-search-editor");
+      containerEl = workspace_element("section", "workspace-search-editor");
       icon = "fa-search";
       onOpen() {
         const panel2 = panels.get(this.leaf.state.path);
@@ -219165,26 +219203,26 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     core.app.viewManager.registerView("linux_note.search_results", (leaf) => new search_editor_view(leaf));
     class search_sidebar extends core.SidebarPanel {
-      containerEl = graph_element("section", "linux-note-workspace-search");
-      query = graph_element("textarea");
+      containerEl = workspace_element("section", "linux-note-workspace-search");
+      query = workspace_element("textarea");
       replacement = input("\u66FF\u6362");
       includes = input("\u5305\u542B\u7684\u6587\u4EF6", "\u4F8B\u5982 *.md, src/**");
       excludes = input("\u6392\u9664\u7684\u6587\u4EF6", "\u4F8B\u5982 *.c, *.h");
-      form = graph_element("div", "workspace-search-form");
-      results = graph_element("div", "workspace-search-results");
-      status = graph_element("div", "workspace-search-status");
-      replace_row = graph_element("div", "workspace-search-input-row workspace-search-replace");
-      details = graph_element("div", "workspace-search-details");
-      body = graph_element("div", "workspace-search-body");
-      split = graph_element("div", "workspace-search-split");
+      form = workspace_element("div", "workspace-search-form");
+      results = workspace_element("div", "workspace-search-results");
+      status = workspace_element("div", "workspace-search-status");
+      replace_row = workspace_element("div", "workspace-search-input-row workspace-search-replace");
+      details = workspace_element("div", "workspace-search-details");
+      body = workspace_element("div", "workspace-search-body");
+      split = workspace_element("div", "workspace-search-split");
       preview = create_lookup_preview(files);
-      preview_section = graph_element("section", "workspace-search-preview-section");
+      preview_section = workspace_element("section", "workspace-search-preview-section");
       preview_toggle = git_icon_button("chevron-down", "\u6536\u8D77\u9884\u89C8", () => this.set_preview_open(!this.preview_open));
       preview_open = true;
       preview_smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() - 5));
       preview_larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() + 5));
-      preview_slider = graph_element("input", "workspace-search-preview-slider");
-      preview_scale = graph_element("output", "workspace-search-preview-scale");
+      preview_slider = workspace_element("input", "workspace-search-preview-slider");
+      preview_scale = workspace_element("output", "workspace-search-preview-scale");
       scale_observer = new MutationObserver(() => this.update_preview_scale());
       selected;
       remembered = /* @__PURE__ */ new Map();
@@ -219205,8 +219243,8 @@ var LinuxNoteTyporaEnhancements = (() => {
       constructor() {
         super();
         this.containerEl.setAttribute("data-linux-note-workspace-search", "ready");
-        const heading3 = graph_element("div", "workspace-search-heading");
-        heading3.append(graph_element("strong", "", "\u641C\u7D22"));
+        const heading3 = workspace_element("div", "workspace-search-heading");
+        heading3.append(workspace_element("strong", "", "\u641C\u7D22"));
         heading3.append(
           git_icon_button("refresh", "\u5237\u65B0\u641C\u7D22", () => void this.search()),
           git_icon_button("clear-all", "\u6E05\u9664\u641C\u7D22\u7ED3\u679C", () => {
@@ -219220,10 +219258,10 @@ var LinuxNoteTyporaEnhancements = (() => {
           git_icon_button("collapse-all", "\u5168\u90E8\u6298\u53E0\uFF0F\u5C55\u5F00", () => {
             const nodes = [...this.results.querySelectorAll("details")];
             const open = nodes.some((node) => !node.open);
-            nodes.forEach((node) => node.open = open);
+            nodes.forEach((node) => this.set_group_open(node, open));
           })
         );
-        heading3.oncontextmenu = (event) => graph_menu(event, [
+        heading3.oncontextmenu = (event) => workspace_menu(event, [
           { title: "\u4EE5\u5217\u8868\u663E\u793A", checked: !this.tree, action: () => {
             this.tree = false;
             this.render();
@@ -219241,7 +219279,7 @@ var LinuxNoteTyporaEnhancements = (() => {
             this.render();
           } }
         ]);
-        const query_row = graph_element("div", "workspace-search-input-row");
+        const query_row = workspace_element("div", "workspace-search-input-row");
         const disclosure = git_icon_button("chevron-right", "\u5C55\u5F00\u66FF\u6362", () => {
           const open = this.replace_row.hidden;
           this.replace_row.hidden = !open;
@@ -219255,11 +219293,11 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.query.placeholder = "\u641C\u7D22";
         this.query.setAttribute("aria-label", "\u641C\u7D22\u5185\u5BB9");
         this.query.spellcheck = false;
-        const query_box = graph_element("div", "workspace-search-query-box");
+        const query_box = workspace_element("div", "workspace-search-query-box");
         query_box.append(this.query);
-        const toggles = graph_element("div", "workspace-search-input-actions");
+        const toggles = workspace_element("div", "workspace-search-input-actions");
         const toggle = (label, key, icon) => {
-          const node = graph_button("", () => {
+          const node = workspace_button("", () => {
             this.options[key] = !this.options[key];
             node.setAttribute("aria-pressed", String(Boolean(this.options[key])));
             this.schedule();
@@ -219274,12 +219312,12 @@ var LinuxNoteTyporaEnhancements = (() => {
         toggles.append(toggle("\u533A\u5206\u5927\u5C0F\u5199", "case_sensitive", "case-sensitive"), toggle("\u5168\u5B57\u5339\u914D", "whole_word", "whole-word"), toggle("\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", "regex", "regex"));
         query_box.append(toggles);
         query_row.append(disclosure, query_box);
-        const replace_box = graph_element("div", "workspace-search-query-box");
+        const replace_box = workspace_element("div", "workspace-search-query-box");
         replace_box.append(this.replacement, toggle("\u4FDD\u7559\u5927\u5C0F\u5199", "preserve_case", "preserve-case"));
         this.replace_row.append(replace_box, git_icon_button("replace-all", "\u5168\u90E8\u66FF\u6362\uFF08\u5148\u9884\u89C8\uFF09", () => void this.replace()));
         this.replace_row.hidden = true;
-        const options_row = graph_element("div", "workspace-search-options-row");
-        const include_label = graph_element("label", "", "\u5305\u542B\u7684\u6587\u4EF6");
+        const options_row = workspace_element("div", "workspace-search-options-row");
+        const include_label = workspace_element("label", "", "\u5305\u542B\u7684\u6587\u4EF6");
         this.includes.id = "linux-note-search-include";
         include_label.htmlFor = this.includes.id;
         const more = git_icon_button("more", "\u663E\u793A\uFF0F\u9690\u85CF\u641C\u7D22\u8BE6\u7EC6\u4FE1\u606F", () => {
@@ -219289,7 +219327,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         });
         more.setAttribute("aria-expanded", "true");
         options_row.append(include_label, more);
-        const include_box = graph_element("div", "workspace-search-query-box workspace-search-pattern-box");
+        const include_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
         const only_changed = git_icon_button("edit-code", "\u4EC5\u641C\u7D22\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6", () => {
           this.only_changed = !this.only_changed;
           if (this.only_changed) this.only_open = false;
@@ -219308,10 +219346,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         };
         update_scope();
         include_box.append(this.includes, only_changed, only_open);
-        const exclude_label = graph_element("label", "workspace-search-exclude-label", "\u6392\u9664\u7684\u6587\u4EF6");
+        const exclude_label = workspace_element("label", "workspace-search-exclude-label", "\u6392\u9664\u7684\u6587\u4EF6");
         this.excludes.id = "linux-note-search-exclude";
         exclude_label.htmlFor = this.excludes.id;
-        const exclude_box = graph_element("div", "workspace-search-query-box workspace-search-pattern-box");
+        const exclude_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
         const ignore = git_icon_button("exclude", "\u4F7F\u7528 .gitignore \u548C\u9ED8\u8BA4\u6392\u9664\u8BBE\u7F6E", () => {
           this.options.use_ignore = !this.options.use_ignore;
           ignore.setAttribute("aria-pressed", String(this.options.use_ignore));
@@ -219321,10 +219359,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         exclude_box.append(this.excludes, ignore);
         this.details.append(include_box, exclude_label, exclude_box);
         this.form.append(query_row, this.replace_row, options_row, this.details, this.status);
-        const preview_heading = graph_element("div", "workspace-search-preview-heading");
+        const preview_heading = workspace_element("div", "workspace-search-preview-heading");
         preview_heading.setAttribute("role", "toolbar");
         preview_heading.setAttribute("aria-label", "\u9884\u89C8\u5DE5\u5177\u680F");
-        this.preview_toggle.append(graph_element("span", "", "\u9884\u89C8"));
+        this.preview_toggle.append(workspace_element("span", "", "\u9884\u89C8"));
         this.preview_toggle.setAttribute("aria-expanded", "true");
         this.preview_slider.type = "range";
         this.preview_slider.min = "50";
@@ -219334,7 +219372,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.preview_slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
         this.preview_slider.oninput = () => this.preview.set_scale(Number(this.preview_slider.value));
         this.preview_scale.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
-        const preview_actions = graph_element("div", "workspace-search-preview-actions");
+        const preview_actions = workspace_element("div", "workspace-search-preview-actions");
         preview_actions.append(this.preview_smaller, this.preview_slider, this.preview_scale, this.preview_larger);
         preview_heading.append(this.preview_toggle, preview_actions);
         this.preview_section.append(preview_heading, this.preview.container);
@@ -219488,11 +219526,11 @@ var LinuxNoteTyporaEnhancements = (() => {
         const result = this.result;
         if (!result) return;
         const count = result.counts;
-        this.status.replaceChildren(graph_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "") + (result.limit_reached ? " \xB7 \u5DF2\u8FBE\u5230\u7ED3\u679C\u4E0A\u9650" : "")));
-        if (count.matches) this.status.append(graph_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
+        this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "") + (result.limit_reached ? " \xB7 \u5DF2\u8FBE\u5230\u7ED3\u679C\u4E0A\u9650" : "")));
+        if (count.matches) this.status.append(workspace_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
         if (result.notices.length) {
-          const note = graph_element("details", "workspace-search-notices");
-          note.append(graph_element("summary", "", "\u641C\u7D22\u8303\u56F4\u8BF4\u660E"), graph_element("p", "", result.notices.join("\n")));
+          const note = workspace_element("details", "workspace-search-notices");
+          note.append(workspace_element("summary", "", "\u641C\u7D22\u8303\u56F4\u8BF4\u660E"), workspace_element("p", "", result.notices.join("\n")));
           this.status.append(note);
         }
       }
@@ -219558,7 +219596,17 @@ var LinuxNoteTyporaEnhancements = (() => {
           }
         }
       }
+      set_group_open(group, open) {
+        group.open = open;
+        const toggle = group.querySelector(":scope>summary>.workspace-search-file-toggle");
+        if (toggle) {
+          toggle.setAttribute("aria-expanded", String(open));
+          toggle.title = "".concat(open ? "\u6536\u8D77" : "\u5C55\u5F00", " ").concat(group.querySelector("summary")?.title || "\u6587\u4EF6", " \u7684\u5339\u914D\u9879");
+          toggle.setAttribute("aria-label", toggle.title);
+        }
+      }
       render(target = this.results) {
+        const open_states = new Map([...target.querySelectorAll("details[data-search-group]")].map((node) => [node.getAttribute("data-search-group"), node.open]));
         target.replaceChildren();
         if (!this.result) return;
         const sorted = [...this.result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : a.relative_path.localeCompare(b2.relative_path, "zh-CN", { numeric: true }));
@@ -219572,10 +219620,12 @@ var LinuxNoteTyporaEnhancements = (() => {
               key += part + "/";
               let nested = directories.get(key);
               if (!nested) {
-                const folder = graph_element("details", "workspace-search-directory");
-                folder.open = true;
-                const summary2 = graph_element("summary");
-                summary2.append(git_disclosure(), graph_element("span", "", part));
+                const folder = workspace_element("details", "workspace-search-directory");
+                const state_key2 = "directory:" + key;
+                folder.setAttribute("data-search-group", state_key2);
+                folder.open = open_states.get(state_key2) ?? true;
+                const summary2 = workspace_element("summary");
+                summary2.append(git_disclosure(), workspace_element("span", "", part));
                 folder.append(summary2);
                 parent.append(folder);
                 directories.set(key, folder);
@@ -219584,24 +219634,39 @@ var LinuxNoteTyporaEnhancements = (() => {
               parent = nested;
             }
           }
-          const group = graph_element("details", "workspace-search-file");
-          group.open = true;
+          const group = workspace_element("details", "workspace-search-file"), state_key = "file:" + file.file_path;
+          group.setAttribute("data-search-group", state_key);
+          group.open = open_states.get(state_key) ?? true;
           group.dataset.path = file.file_path;
-          const summary = graph_element("summary");
+          const summary = workspace_element("summary");
           summary.title = file.relative_path;
           summary.tabIndex = 0;
-          const label = graph_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
-          const path = graph_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
-          summary.append(git_disclosure(), git_icon("file"), label, path);
+          const label = workspace_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
+          const path = workspace_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
+          const disclosure = workspace_button("", () => {
+          }, "workspace-search-file-toggle");
+          disclosure.append(git_disclosure());
+          disclosure.onclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.set_group_open(group, !group.open);
+          };
+          disclosure.onkeydown = (event) => {
+            if (!["Enter", " "].includes(event.key)) return;
+            event.preventDefault();
+            event.stopPropagation();
+            this.set_group_open(group, !group.open);
+          };
+          summary.append(disclosure, git_icon("file"), label, path);
           const git_status = this.git_status.get(this.path_key(file.file_path));
           if (git_status) {
-            const badge = graph_element("span", "workspace-search-git-status", git_status);
+            const badge = workspace_element("span", "workspace-search-git-status", git_status);
             badge.dataset.status = git_status;
             badge.title = { M: "\u5DF2\u4FEE\u6539", A: "\u5DF2\u6DFB\u52A0", D: "\u5DF2\u5220\u9664", R: "\u5DF2\u91CD\u547D\u540D", C: "\u5DF2\u590D\u5236", U: "\u672A\u8DDF\u8E2A\u6216\u5B58\u5728\u51B2\u7A81" }[git_status] || git_status;
             summary.append(badge);
           }
-          const actions = graph_element("span", "workspace-search-file-actions");
-          const count = graph_element("span", "workspace-search-file-count", String(file.matches.length));
+          const actions = workspace_element("span", "workspace-search-file-actions");
+          const count = workspace_element("span", "workspace-search-file-count", String(file.matches.length));
           const remove = git_icon_button("close", "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", () => this.remove_result(file, group), "workspace-search-remove");
           remove.onclick = (event) => {
             event.preventDefault();
@@ -219613,7 +219678,6 @@ var LinuxNoteTyporaEnhancements = (() => {
           summary.onclick = (event) => {
             if (event.target.closest("button")) return;
             event.preventDefault();
-            if (event.target.closest(".git-disclosure-icon")) group.open = !group.open;
             this.select(file, this.file_match(file));
           };
           summary.onfocus = () => this.select(file, this.file_match(file));
@@ -219626,23 +219690,24 @@ var LinuxNoteTyporaEnhancements = (() => {
             if (event.target !== summary) return;
             this.navigate(event, summary, file, () => this.file_match(file), target);
           };
-          summary.oncontextmenu = (event) => graph_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);
+          summary.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);
           group.append(summary);
+          this.set_group_open(group, group.open);
           for (const match2 of file.matches) {
-            const row = graph_button("", () => this.select(file, match2), "workspace-search-match");
+            const row = workspace_button("", () => this.select(file, match2), "workspace-search-match");
             row.dataset.matchId = match2.id;
             row.title = "".concat(file.relative_path, ":").concat(match2.line, ":").concat(match2.column, "\n").concat(match2.preview);
             row.setAttribute("aria-label", "".concat(file.relative_path, "\uFF0C\u7B2C ").concat(match2.line, " \u884C\uFF0C\u7B2C ").concat(match2.column, " \u5217\uFF1A").concat(match2.preview));
-            row.append(graph_element("span", "workspace-search-line", String(match2.line)));
-            const preview = graph_element("span", "workspace-search-preview");
+            row.append(workspace_element("span", "workspace-search-line", String(match2.line)));
+            const preview = workspace_element("span", "workspace-search-preview");
             let start = 0;
             for (const range2 of match2.preview_ranges) {
-              preview.append(document.createTextNode(match2.preview.slice(start, range2.start)), graph_element("mark", "", match2.preview.slice(range2.start, range2.end)));
+              preview.append(document.createTextNode(match2.preview.slice(start, range2.start)), workspace_element("mark", "", match2.preview.slice(range2.start, range2.end)));
               start = range2.end;
             }
             preview.append(document.createTextNode(match2.preview.slice(start)));
             row.append(preview);
-            row.oncontextmenu = (event) => graph_menu(event, [{ title: "\u6253\u5F00\u5339\u914D\u4F4D\u7F6E", action: () => this.open_match(file, match2) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => this.open_match(file, match2, "right") }, { title: "\u590D\u5236\u5339\u914D\u884C", action: () => files.copy(match2.preview) }, { title: "\u66FF\u6362\u6B64\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path, [match2.id]) }]);
+            row.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5339\u914D\u4F4D\u7F6E", action: () => this.open_match(file, match2) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => this.open_match(file, match2, "right") }, { title: "\u590D\u5236\u5339\u914D\u884C", action: () => files.copy(match2.preview) }, { title: "\u66FF\u6362\u6B64\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path, [match2.id]) }]);
             row.onfocus = () => this.select(file, match2);
             row.ondblclick = (event) => {
               event.preventDefault();
@@ -219716,9 +219781,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       open_results() {
         if (!this.result) return;
-        const panel2 = graph_element("div", "workspace-search-editor-results");
-        panel2.append(graph_element("h3", "", "\u641C\u7D22\uFF1A".concat(this.result.options.query)));
-        const list3 = graph_element("div");
+        const panel2 = workspace_element("div", "workspace-search-editor-results");
+        panel2.append(workspace_element("h3", "", "\u641C\u7D22\uFF1A".concat(this.result.options.query)));
+        const list3 = workspace_element("div");
         this.render(list3);
         panel2.append(list3);
         const uri = "typ://linux_note.search_results/".concat(++serial2, "/\u641C\u7D22\u7ED3\u679C");
@@ -219731,7 +219796,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       async replace(file_path, match_ids) {
         if (!this.result) return;
-        const dialog = graph_dialog("\u66FF\u6362\u9884\u89C8");
+        const dialog = workspace_dialog("\u66FF\u6362\u9884\u89C8");
         const editors = [];
         const original_close = dialog.close;
         dialog.close = () => {
@@ -219749,15 +219814,15 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
           const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
           const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
-          dialog.content.append(graph_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
-          const picker = graph_element("select");
+          dialog.content.append(workspace_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
+          const picker = workspace_element("select");
           picker.setAttribute("aria-label", "\u9884\u89C8\u66FF\u6362\u6587\u4EF6");
           for (const file of plan.files) {
-            const option = graph_element("option", "", file.relative_path);
+            const option = workspace_element("option", "", file.relative_path);
             option.value = file.file_path;
             picker.append(option);
           }
-          const preview = graph_element("div", "workspace-search-replace-preview");
+          const preview = workspace_element("div", "workspace-search-replace-preview");
           dialog.content.append(picker, preview);
           const show3 = () => {
             editors.splice(0).forEach((editor2) => editor2.dispose());
@@ -219770,23 +219835,23 @@ var LinuxNoteTyporaEnhancements = (() => {
           };
           picker.onchange = show3;
           show3();
-          const error = graph_element("p");
+          const error = workspace_element("p");
           dialog.content.append(error);
-          const apply3 = graph_button("\u786E\u8BA4\u66FF\u6362", () => {
-            apply3.disabled = true;
+          const apply4 = workspace_button("\u786E\u8BA4\u66FF\u6362", () => {
+            apply4.disabled = true;
             void engine.apply_replace(plan, { can_write: (paths) => paths.every(files.can_write) }).then((result) => {
               files.refresh_files(result.files);
               dialog.close();
               void this.search();
             }).catch((problem) => {
               error.textContent = String(problem);
-              apply3.disabled = false;
+              apply4.disabled = false;
             });
           });
-          apply3.disabled = !plan.match_count;
-          dialog.footer.prepend(apply3);
+          apply4.disabled = !plan.match_count;
+          dialog.footer.prepend(apply4);
         } catch (error) {
-          dialog.content.append(graph_element("p", "", String(error)));
+          dialog.content.append(workspace_element("p", "", String(error)));
         }
       }
     }
@@ -220261,11 +220326,746 @@ var LinuxNoteTyporaEnhancements = (() => {
     return binding;
   }
 
+  // src/workspace_quick_open.ts
+  function fuzzy_score(query, candidate) {
+    const needle = query.trim().toLocaleLowerCase();
+    const haystack = candidate.toLocaleLowerCase();
+    if (!needle) return 1;
+    const exact = haystack.indexOf(needle);
+    if (exact >= 0) return 1e4 - exact * 10 - candidate.length;
+    let score3 = 0, position2 = -1, streak = 0;
+    for (const character of needle) {
+      const next = haystack.indexOf(character, position2 + 1);
+      if (next < 0) return -1;
+      streak = next === position2 + 1 ? streak + 1 : 0;
+      score3 += 30 + streak * 12 - next;
+      position2 = next;
+    }
+    return score3 - candidate.length;
+  }
+  function create_workspace_quick_open(files) {
+    const root = document.createElement("section");
+    root.className = "workspace-quick-open";
+    root.hidden = true;
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-modal", "false");
+    root.setAttribute("aria-label", "\u5FEB\u901F\u6253\u5F00\u6587\u4EF6");
+    const input_row = document.createElement("div");
+    input_row.className = "workspace-quick-open-input-row";
+    input_row.append(git_icon("search"));
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "\u952E\u5165\u6587\u4EF6\u540D\u8FDB\u884C\u641C\u7D22";
+    input.setAttribute("aria-label", "\u6309\u6587\u4EF6\u540D\u641C\u7D22");
+    input.autocomplete = "off";
+    input.spellcheck = false;
+    input_row.append(input);
+    const results = document.createElement("div");
+    results.className = "workspace-quick-open-results";
+    results.setAttribute("role", "listbox");
+    const status2 = document.createElement("div");
+    status2.className = "workspace-quick-open-status";
+    root.append(input_row, status2, results);
+    document.body.append(root);
+    let catalogue = [];
+    let shown = [];
+    let selected_index = 0;
+    let scan_generation = 0;
+    let previous_focus = null;
+    const close = () => {
+      if (root.hidden) return;
+      scan_generation += 1;
+      root.hidden = true;
+      root.setAttribute("aria-modal", "false");
+      results.replaceChildren();
+      shown = [];
+      if (previous_focus?.isConnected) previous_focus.focus({ preventScroll: true });
+      previous_focus = null;
+    };
+    const select = (index) => {
+      const rows = [...results.querySelectorAll(".workspace-quick-open-result")];
+      if (!rows.length) return;
+      selected_index = (index + rows.length) % rows.length;
+      rows.forEach((row, row_index) => {
+        const selected = row_index === selected_index;
+        row.classList.toggle("is-selected", selected);
+        row.setAttribute("aria-selected", String(selected));
+        if (selected) row.scrollIntoView({ block: "nearest" });
+      });
+    };
+    const open_selected = () => {
+      const target = shown[selected_index];
+      if (!target) return;
+      close();
+      void files.open_file(target.file_path);
+    };
+    const render = () => {
+      const query = input.value.trim();
+      shown = catalogue.map((file) => ({ file, score: Math.max(fuzzy_score(query, file.name), fuzzy_score(query, file.relative_path)) })).filter((item) => item.score >= 0).sort((left, right) => right.score - left.score || left.file.relative_path.localeCompare(right.file.relative_path, "zh-CN", { numeric: true })).slice(0, 100).map((item) => item.file);
+      selected_index = 0;
+      results.replaceChildren(...shown.map((file, index) => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "workspace-quick-open-result";
+        row.setAttribute("role", "option");
+        row.title = file.file_path;
+        row.append(git_icon("file"));
+        const name = document.createElement("span");
+        name.className = "workspace-quick-open-name";
+        name.textContent = file.name;
+        const directory = document.createElement("span");
+        directory.className = "workspace-quick-open-path";
+        directory.textContent = files.path_api.dirname(file.relative_path).replace(/^\.$/u, "");
+        row.append(name, directory);
+        row.onmousemove = () => select(index);
+        row.onclick = () => {
+          selected_index = index;
+          open_selected();
+        };
+        row.ondblclick = (event) => event.preventDefault();
+        return row;
+      }));
+      status2.textContent = shown.length ? "".concat(shown.length).concat(catalogue.length > shown.length ? "+" : "", " \u4E2A\u6587\u4EF6") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6" : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6";
+      select(0);
+    };
+    const scan = async () => {
+      const generation = ++scan_generation;
+      catalogue = [];
+      status2.textContent = "\u6B63\u5728\u67E5\u627E\u5DE5\u4F5C\u533A\u6587\u4EF6\u2026";
+      const workspace_root = files.context_root();
+      const stack = workspace_root ? [workspace_root] : [];
+      while (stack.length && catalogue.length < 5e4) {
+        const directory = stack.pop();
+        let entries3;
+        try {
+          entries3 = await files.fs.promises.readdir(directory, { withFileTypes: true });
+        } catch {
+          continue;
+        }
+        if (generation !== scan_generation || root.hidden) return;
+        entries3.sort((left, right) => left.name.localeCompare(right.name, "zh-CN", { numeric: true }));
+        for (let index = entries3.length - 1; index >= 0; index -= 1) {
+          const entry = entries3[index];
+          const file_path = files.path_api.join(directory, entry.name);
+          if (entry.isDirectory()) {
+            if (![".git", "node_modules"].includes(entry.name)) stack.push(file_path);
+          } else if (entry.isFile()) {
+            const relative_path = files.path_api.relative(workspace_root, file_path).replaceAll("\\", "/");
+            catalogue.push({ file_path, relative_path, name: entry.name });
+          }
+        }
+        if (catalogue.length % 500 === 0) await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+      }
+      if (generation === scan_generation && !root.hidden) render();
+    };
+    const open = () => {
+      if (!root.hidden) {
+        input.focus();
+        input.select();
+        return;
+      }
+      previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      root.hidden = false;
+      root.setAttribute("aria-modal", "true");
+      input.value = "";
+      catalogue = [];
+      results.replaceChildren();
+      input.focus();
+      void scan();
+    };
+    input.oninput = render;
+    input.onkeydown = (event) => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        select(selected_index + (event.key === "ArrowDown" ? 1 : -1));
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        open_selected();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+      }
+    };
+    root.onmousedown = (event) => {
+      if (event.target === root) close();
+    };
+    document.addEventListener("pointerdown", (event) => {
+      if (!root.hidden && !root.contains(event.target)) close();
+    }, true);
+    window.addEventListener("keydown", (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.code !== "KeyP" || event.isComposing) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (root.hidden) open();
+      else close();
+    }, true);
+    window.addEventListener("blur", close);
+    return { root, input, open, close };
+  }
+
+  // src/workspace_tabs.ts
+  function group_for_tab(files, tab) {
+    const container = tab.closest(".typ-workspace-tabs");
+    let match2;
+    files.core.app.workspace.eachLeaves((leaf) => {
+      const group = leaf.parent;
+      if (!match2 && group?.containerEl === container) match2 = group;
+    });
+    return match2;
+  }
+  function active_group(files) {
+    return files.core.app.workspace.activeLeaf?.parent;
+  }
+  function tab_for(group, path) {
+    return [...group.containerEl.querySelectorAll(".typ-tab[data-id]")].find((tab) => tab.dataset.id === path);
+  }
+  function leaf_present(group, leaf) {
+    return group.children.includes(leaf);
+  }
+  async function close_leaf(group, leaf) {
+    const before_dialogs = new Set(document.querySelectorAll(".git-graph-dialog-shade"));
+    group.removeTab(leaf.state.path, tab_for(group, leaf.state.path));
+    if (!leaf_present(group, leaf)) return true;
+    return new Promise((resolve3) => {
+      let close_dialog;
+      let settled = false;
+      const finish = (closed) => {
+        if (settled) return;
+        settled = true;
+        observer.disconnect();
+        window.clearTimeout(timeout2);
+        resolve3(closed);
+      };
+      const inspect = () => {
+        if (!leaf_present(group, leaf)) {
+          finish(true);
+          return;
+        }
+        close_dialog ||= [...document.querySelectorAll(".git-graph-dialog-shade")].find((dialog) => !before_dialogs.has(dialog));
+        if (close_dialog && !close_dialog.isConnected) finish(false);
+      };
+      const observer = new MutationObserver(inspect);
+      observer.observe(document.body, { childList: true, subtree: true });
+      const timeout2 = window.setTimeout(() => finish(false), 5 * 60 * 1e3);
+      inspect();
+    });
+  }
+  function close_active_workspace_tab(files) {
+    const leaf = files.core.app.workspace.activeLeaf;
+    const group = leaf?.parent;
+    if (leaf && group && leaf.state.path) void close_leaf(group, leaf);
+  }
+  async function close_all_workspace_tabs(files, group = active_group(files)) {
+    if (!group) return;
+    for (const leaf of [...group.children].filter((item) => Boolean(item.state.path))) {
+      if (!leaf_present(group, leaf) || !await close_leaf(group, leaf)) return;
+    }
+  }
+  function bind_workspace_tab_actions(files) {
+    if (document.documentElement.dataset.linuxNoteWorkspaceTabs) return;
+    document.documentElement.dataset.linuxNoteWorkspaceTabs = "ready";
+    const style63 = document.createElement("style");
+    style63.dataset.workspaceTabActions = "true";
+    style63.textContent = ".typ-workspace-tabs.linux-note-empty-group>.typ-workspace-tab-header{display:none!important}.linux-note-close-all-tabs.disabled>a{opacity:.45;pointer-events:none}";
+    document.head.append(style63);
+    const refresh_empty_groups = () => {
+      document.querySelectorAll(".typ-workspace-tabs").forEach((group) => {
+        const tabs = [...group.querySelectorAll(":scope>.typ-workspace-tab-header .typ-tab[data-id]")];
+        group.classList.toggle("linux-note-empty-group", tabs.length === 1 && !tabs[0].dataset.id);
+      });
+    };
+    new MutationObserver(refresh_empty_groups).observe(files.core.app.workspace.rootSplit.containerEl, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-id"] });
+    refresh_empty_groups();
+    let menu_group;
+    document.addEventListener("contextmenu", (event) => {
+      const tab = event.target instanceof Element ? event.target.closest(".typ-tab") : null;
+      if (!tab) return;
+      menu_group = group_for_tab(files, tab);
+      window.setTimeout(() => {
+        const menu = [...document.querySelectorAll(".context-menu")].find((candidate) => candidate.querySelector('[data-key="removeTab"]'));
+        if (!menu || menu.querySelector(".linux-note-close-all-tabs")) return;
+        const item = document.createElement("li");
+        item.className = "typ-menuitem linux-note-close-all-tabs";
+        item.dataset.key = "removeAllTabs";
+        const anchor = document.createElement("a");
+        anchor.setAttribute("role", "menuitem");
+        anchor.tabIndex = 0;
+        anchor.textContent = "\u5173\u95ED\u6240\u6709\u6807\u7B7E";
+        item.classList.toggle("disabled", !menu_group?.children.some((leaf) => Boolean(leaf.state.path)));
+        item.append(anchor);
+        const right = menu.querySelector('[data-key="removeRight"]');
+        right?.after(item);
+      }, 0);
+    }, true);
+    for (const event_name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
+      document.addEventListener(event_name, (event) => {
+        const item = event.target instanceof Element ? event.target.closest(".linux-note-close-all-tabs") : null;
+        if (!item || item.classList.contains("disabled")) return;
+        if (event instanceof KeyboardEvent && !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event_name === "click" || event instanceof KeyboardEvent && !event.repeat) {
+          item.closest(".context-menu")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+          void close_all_workspace_tabs(files, menu_group);
+          menu_group = void 0;
+        }
+      }, true);
+    }
+  }
+
+  // src/workspace_ui_appearance.ts
+  var SETTINGS_KEY = "linux-note:workspace-ui-appearance:v1";
+  var DEFAULT_FONT = '"Segoe WPC", "Segoe UI", "Microsoft YaHei UI", sans-serif';
+  var DEFAULT_SIZE = 13;
+  function normalize3(value = {}) {
+    const font_size = Number(value.font_size);
+    return {
+      font_family: String(value.font_family || DEFAULT_FONT).trim() || DEFAULT_FONT,
+      font_size: Number.isFinite(font_size) ? Math.max(11, Math.min(18, Math.round(font_size))) : DEFAULT_SIZE
+    };
+  }
+  function read2() {
+    try {
+      return normalize3(JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}"));
+    } catch {
+      return normalize3();
+    }
+  }
+  function apply3(value) {
+    document.documentElement.style.setProperty("--linux-note-ui-font-family", value.font_family);
+    document.documentElement.style.setProperty("--linux-note-ui-font-size", "".concat(value.font_size, "px"));
+  }
+  function install_workspace_ui_appearance() {
+    if (document.documentElement.dataset.linuxNoteUiAppearance) return;
+    document.documentElement.dataset.linuxNoteUiAppearance = "ready";
+    const style63 = document.createElement("style");
+    style63.dataset.workspaceUiAppearance = "true";
+    style63.textContent = ":is(#top-titlebar,.typ-ribbon,.typ-workspace-tab-header,.context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu),#typora-sidebar :is(button,input,textarea,select,summary,.workspace-explorer-row,.workspace-outline-row,.workspace-search-heading,.workspace-search-options-row,.workspace-search-status):not(.workspace-lookup-preview *){font-family:var(--linux-note-ui-font-family,".concat(DEFAULT_FONT, ")!important;font-size:var(--linux-note-ui-font-size,").concat(DEFAULT_SIZE, "px)!important}");
+    document.head.append(style63);
+    apply3(read2());
+  }
+  function open_workspace_ui_appearance() {
+    const current = read2();
+    const dialog = workspace_dialog("\u754C\u9762\u5B57\u4F53");
+    dialog.root.dataset.workspaceUiAppearance = "true";
+    const font_label = workspace_element("label", "", "\u754C\u9762\u5B57\u4F53");
+    const font = workspace_element("input");
+    font.value = current.font_family;
+    font.setAttribute("aria-label", "\u754C\u9762\u5B57\u4F53");
+    const size_label = workspace_element("label", "", "\u754C\u9762\u5B57\u53F7 ".concat(current.font_size, "px"));
+    const size = workspace_element("input");
+    size.type = "range";
+    size.min = "11";
+    size.max = "18";
+    size.step = "1";
+    size.value = String(current.font_size);
+    size.setAttribute("aria-label", "\u754C\u9762\u5B57\u53F7");
+    const preview = () => {
+      const value = normalize3({ font_family: font.value, font_size: Number(size.value) });
+      size_label.textContent = "\u754C\u9762\u5B57\u53F7 ".concat(value.font_size, "px");
+      apply3(value);
+    };
+    font.oninput = preview;
+    size.oninput = preview;
+    dialog.content.append(font_label, font, size_label, size, workspace_element("p", "", "\u4EC5\u8C03\u6574\u83DC\u5355\u3001\u6807\u7B7E\u3001\u4FA7\u680F\u548C\u5F39\u7A97\uFF1BMarkdown \u6B63\u6587\u6E32\u67D3\u4FDD\u6301\u539F\u6837\u3002"));
+    const close = dialog.close;
+    let saved = false;
+    const observer = new MutationObserver(() => {
+      if (!dialog.root.isConnected) {
+        observer.disconnect();
+        if (!saved) apply3(current);
+      }
+    });
+    observer.observe(document.body, { childList: true });
+    dialog.footer.prepend(
+      workspace_button("\u6062\u590D\u9ED8\u8BA4", () => {
+        font.value = DEFAULT_FONT;
+        size.value = String(DEFAULT_SIZE);
+        preview();
+      }),
+      workspace_button("\u5E94\u7528", () => {
+        const value = normalize3({ font_family: font.value, font_size: Number(size.value) });
+        try {
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(value));
+        } catch {
+        }
+        saved = true;
+        apply3(value);
+        close();
+      })
+    );
+  }
+
+  // src/workspace_titlebar_entries.ts
+  function command(runtime, name, ...args) {
+    return () => runtime.ClientCommand?.[name]?.(...args);
+  }
+  function create_workspace_titlebar_definitions(files, runtime, open_quickly) {
+    const editor2 = () => runtime.File?.editor;
+    const library = () => editor2()?.library;
+    const stylize = (name, ...args) => () => editor2()?.stylize?.[name]?.(...args);
+    const native_document_active = () => !String(files.core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
+    const native_only = (entry) => ({ ...entry, disabled: !native_document_active() || entry.disabled });
+    const recent_children = (items) => {
+      const usable = (items || []).filter((item) => item.path);
+      if (!usable.length) return [{ label: "\u7A7A", disabled: true }];
+      return usable.map((item) => ({ label: item.name || files.path_api.basename(item.path), title: item.path, action: command(runtime, "openWithPath", item.path) }));
+    };
+    const file_entries = async () => {
+      let recents = {};
+      try {
+        recents = await runtime.JSBridge?.invoke("setting.getRecentFiles") || {};
+      } catch {
+      }
+      return [
+        { label: "\u65B0\u5EFA", shortcut: "Ctrl+N", action: command(runtime, "newFile") },
+        { label: "\u65B0\u5EFA\u7A97\u53E3", shortcut: "Ctrl+Shift+N", action: command(runtime, "newWindow") },
+        { separator: true },
+        { label: "\u6253\u5F00\u2026", shortcut: "Ctrl+O", action: command(runtime, "open") },
+        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: command(runtime, "openFolder") },
+        { label: "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6", children: recent_children(recents.files) },
+        { label: "\u6700\u8FD1\u4F7F\u7528\u7684\u76EE\u5F55", children: recent_children(recents.folders) },
+        { label: "\u6E05\u9664\u6700\u8FD1\u6587\u4EF6", action: () => runtime.JSBridge?.invoke("setting.askForClearRecentDocuments") },
+        { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_quickly },
+        { separator: true },
+        native_only({ label: "\u9009\u62E9\u7F16\u7801\u91CD\u65B0\u6253\u5F00", children: ["utf-8", "gb18030", "big5", "windows-1252", "utf-16le", "utf-16be"].map((encoding) => ({ label: encoding.toUpperCase(), action: () => runtime.File?.reloadWithEncoding?.(encoding) })) }),
+        native_only({ label: "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", action: command(runtime, "reloadFromDisk") }),
+        { separator: true },
+        native_only({ label: "\u4FDD\u5B58", shortcut: "Ctrl+S", action: command(runtime, "save") }),
+        { label: "\u4FDD\u5B58\u5168\u90E8\u6253\u5F00\u7684\u6587\u4EF6", shortcut: "Ctrl+K S", action: command(runtime, "saveAll") },
+        native_only({ label: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", action: command(runtime, "saveAs") }),
+        native_only({ label: "\u521B\u5EFA\u526F\u672C", action: () => library()?.duplicateFileCommand?.() }),
+        native_only({ label: "\u91CD\u547D\u540D", shortcut: "F2", action: () => library()?.renameFileCommand?.() }),
+        native_only({ label: "\u79FB\u52A8\u5230\u2026", action: command(runtime, "moveTo") }),
+        { separator: true },
+        native_only({ label: "\u6253\u5F00\u6587\u4EF6\u4F4D\u7F6E", action: command(runtime, "openFileLocation") }),
+        native_only({ label: "\u5728\u6587\u6863\u5217\u8868\u4E2D\u663E\u793A", action: () => library()?.revealInFileList?.() }),
+        native_only({ label: "\u5728\u6587\u4EF6\u6811\u4E2D\u663E\u793A", action: () => library()?.revealInFileTree?.() }),
+        { separator: true },
+        { label: "\u5BFC\u5165\u2026", action: command(runtime, "import") },
+        native_only({ label: "\u5BFC\u51FA\u2026", action: command(runtime, "export") }),
+        native_only({ label: "\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", action: command(runtime, "exportLast") }),
+        native_only({ label: "\u6253\u5370\u2026", action: command(runtime, "print") }),
+        { separator: true },
+        { label: "\u5173\u95ED\u6807\u7B7E", shortcut: "Ctrl+W", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => close_active_workspace_tab(files) },
+        { label: "\u5173\u95ED\u6240\u6709\u6807\u7B7E", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => void close_all_workspace_tabs(files) },
+        { label: "\u5173\u95ED\u7A97\u53E3", shortcut: "Alt+F4", action: command(runtime, "close") }
+      ];
+    };
+    const edit_entries = async () => [
+      native_only({ label: "\u64A4\u6D88", shortcut: "Ctrl+Z", action: command(runtime, "undo") }),
+      native_only({ label: "\u91CD\u505A", shortcut: "Ctrl+Y", action: command(runtime, "redo") }),
+      { separator: true },
+      native_only({ label: "\u526A\u5207", shortcut: "Ctrl+X", action: command(runtime, "cut") }),
+      native_only({ label: "\u590D\u5236", shortcut: "Ctrl+C", action: command(runtime, "copy") }),
+      native_only({ label: "\u7C98\u8D34", shortcut: "Ctrl+V", action: command(runtime, "paste") }),
+      native_only({ label: "\u590D\u5236\uFF0F\u7C98\u8D34\u4E3A", children: [
+        { label: "\u590D\u5236\u4E3A Markdown", action: command(runtime, "copyAsMarkdown") },
+        { label: "\u590D\u5236\u4E3A HTML \u4EE3\u7801", action: command(runtime, "copyAsHTMLSource") },
+        { label: "\u590D\u5236\u4E3A\u7EAF\u6587\u672C", action: command(runtime, "copyAsPlainText") },
+        { label: "\u590D\u5236\u4E3A\u8BED\u4E49 HTML", action: command(runtime, "copyAsSemanticHTML") },
+        { label: "\u7C98\u8D34\u4E3A\u7EAF\u6587\u672C", shortcut: "Ctrl+Shift+V", action: command(runtime, "pasteAsPlain") }
+      ] }),
+      { separator: true },
+      native_only({ label: "\u9009\u62E9", children: [
+        { label: "\u5168\u9009", shortcut: "Ctrl+A", action: command(runtime, "selectAll") },
+        { label: "\u9009\u4E2D\u5F53\u524D\u884C\u6216\u53E5", action: () => editor2()?.selection?.selectLine?.() },
+        { label: "\u9009\u4E2D\u5F53\u524D\u683C\u5F0F\u6587\u672C", action: () => editor2()?.selection?.selectBlock?.() },
+        { label: "\u9009\u4E2D\u5F53\u524D\u8BCD", action: () => editor2()?.selection?.selectWord?.() }
+      ] }),
+      native_only({ label: "\u5220\u9664", children: [
+        { label: "\u5220\u9664\u6240\u9009\u8303\u56F4", action: () => editor2()?.UserOp?.deleteSelectable?.() },
+        { label: "\u5220\u9664\u5F53\u524D\u8BCD", action: command(runtime, "deleteWord") },
+        { label: "\u5220\u9664\u5F53\u524D\u683C\u5F0F\u6587\u672C", action: command(runtime, "deleteScope") },
+        { label: "\u5220\u9664\u5F53\u524D\u884C\u6216\u53E5", action: command(runtime, "deleteLine") },
+        { label: "\u5220\u9664\u5757", action: command(runtime, "deleteBlock") }
+      ] }),
+      native_only({ label: "\u8DF3\u8F6C\u5230", children: [
+        { label: "\u8DF3\u8F6C\u5230\u6587\u9996", shortcut: "Ctrl+Home", action: () => editor2()?.selection?.jumpTop?.() },
+        { label: "\u8DF3\u8F6C\u5230\u6240\u9009\u5185\u5BB9", action: () => editor2()?.selection?.jumpSelection?.() },
+        { label: "\u8DF3\u8F6C\u5230\u6587\u672B", shortcut: "Ctrl+End", action: () => editor2()?.selection?.jumpBottom?.() }
+      ] }),
+      { separator: true },
+      native_only({ label: "\u67E5\u627E", shortcut: "Ctrl+F", action: () => editor2()?.searchPanel?.showPanel?.() }),
+      { label: "\u5728\u6587\u4EF6\u4E2D\u67E5\u627E", shortcut: "Ctrl+Shift+F", action: () => files.core.app.commands.run("linux_note:search") }
+    ];
+    const paragraph_entries = async () => [
+      ...[1, 2, 3, 4, 5, 6].map((level) => native_only({ label: "".concat(["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"][level - 1], "\u7EA7\u6807\u9898"), shortcut: "Ctrl+".concat(level), action: () => editor2()?.stylize?.changeBlock?.("header".concat(level)) })),
+      native_only({ label: "\u6B63\u6587", shortcut: "Ctrl+0", action: () => editor2()?.stylize?.changeBlock?.("paragraph") }),
+      native_only({ label: "\u63D0\u5347\u6807\u9898\u7EA7\u522B", action: () => editor2()?.stylize?.increaseHeaderLevel?.() }),
+      native_only({ label: "\u964D\u4F4E\u6807\u9898\u7EA7\u522B", action: () => editor2()?.stylize?.decreaseHeaderLevel?.() }),
+      { separator: true },
+      native_only({ label: "\u8868\u683C\u2026", shortcut: "Ctrl+T", action: () => editor2()?.tableEdit?.insertTable?.() }),
+      native_only({ label: "\u4EE3\u7801\u5757", action: stylize("toggleFences") }),
+      native_only({ label: "\u516C\u5F0F\u5757", action: stylize("toggleMathBlock") }),
+      native_only({ label: "\u5F15\u7528", action: stylize("toggleIndent", "blockquote") }),
+      native_only({ label: "\u6709\u5E8F\u5217\u8868", action: stylize("toggleIndent", "ol") }),
+      native_only({ label: "\u65E0\u5E8F\u5217\u8868", action: stylize("toggleIndent", "ul") }),
+      native_only({ label: "\u4EFB\u52A1\u5217\u8868", action: stylize("toggleIndent", "tasklist") }),
+      native_only({ label: "\u589E\u52A0\u7F29\u8FDB", shortcut: "Ctrl+]", action: () => editor2()?.UserOp?.moreIndent?.(editor2()) }),
+      native_only({ label: "\u51CF\u5C11\u7F29\u8FDB", shortcut: "Ctrl+[", action: () => editor2()?.UserOp?.lessIndent?.(editor2()) }),
+      { separator: true },
+      native_only({ label: "\u94FE\u63A5\u5F15\u7528", action: stylize("insertBlock", "link_reference") }),
+      native_only({ label: "\u811A\u6CE8", action: stylize("insertBlock", "footnote") }),
+      native_only({ label: "\u6C34\u5E73\u5206\u5272\u7EBF", action: stylize("insertBlock", "hr") }),
+      native_only({ label: "\u5185\u5BB9\u76EE\u5F55", action: stylize("insertBlock", "toc") }),
+      native_only({ label: "YAML Front Matter", action: stylize("insertMetaBlock") })
+    ];
+    const format_entries = async () => [
+      native_only({ label: "\u52A0\u7C97", shortcut: "Ctrl+B", action: stylize("toggleStyle", "strong") }),
+      native_only({ label: "\u659C\u4F53", shortcut: "Ctrl+I", action: stylize("toggleStyle", "em") }),
+      native_only({ label: "\u4E0B\u5212\u7EBF", shortcut: "Ctrl+U", action: stylize("toggleStyle", "underline") }),
+      native_only({ label: "\u4EE3\u7801", action: stylize("toggleStyle", "code") }),
+      native_only({ label: "\u5185\u8054\u516C\u5F0F", action: stylize("toggleStyle", "inline_math") }),
+      native_only({ label: "\u5220\u9664\u7EBF", action: stylize("toggleStyle", "del") }),
+      native_only({ label: "\u9AD8\u4EAE", action: stylize("toggleStyle", "highlight") }),
+      native_only({ label: "\u4E0A\u6807", action: stylize("toggleStyle", "superscript") }),
+      native_only({ label: "\u4E0B\u6807", action: stylize("toggleStyle", "subscript") }),
+      native_only({ label: "\u6CE8\u91CA", action: stylize("toggleStyle", "comment") }),
+      { separator: true },
+      native_only({ label: "\u8D85\u94FE\u63A5", shortcut: "Ctrl+K", action: stylize("toggleStyle", "link") }),
+      native_only({ label: "\u56FE\u50CF", action: stylize("toggleStyle", "image") }),
+      native_only({ label: "\u6E05\u9664\u6837\u5F0F", shortcut: "Ctrl+\\", action: stylize("clearStyle") })
+    ];
+    const view_entries = async () => [
+      native_only({ label: "\u6E90\u4EE3\u7801\u6A21\u5F0F", shortcut: "Ctrl+/", checked: Boolean(editor2()?.sourceView?.inSourceMode), action: () => runtime.File?.toggleSourceMode?.() }),
+      native_only({ label: "\u53EA\u8BFB\u6A21\u5F0F", checked: Boolean(runtime.File?.isReadonlyMode), action: () => runtime.File?.toggleReadonlyMode?.() }),
+      native_only({ label: "\u4E13\u6CE8\u6A21\u5F0F", shortcut: "F8", checked: Boolean(runtime.File?.isFocusMode), action: () => editor2()?.toggleFocusMode?.() }),
+      native_only({ label: "\u6253\u5B57\u673A\u6A21\u5F0F", shortcut: "F9", checked: Boolean(runtime.File?.isTypeWriterMode), action: () => editor2()?.toggleTypeWriterMode?.() }),
+      { separator: true },
+      { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u8FB9\u680F", shortcut: "Ctrl+B", action: () => files.core.app.workspace.sidebar.toggle() },
+      { label: "\u5927\u7EB2", action: command(runtime, "toggleOutline") },
+      { label: "\u6587\u6863\u5217\u8868", action: command(runtime, "toggleFileList") },
+      { label: "\u6587\u4EF6\u6811", shortcut: "Ctrl+Shift+E", action: () => files.core.app.commands.run("linux_note:file_explorer") },
+      { label: "\u72B6\u6001\u680F", action: command(runtime, "toggleStatusBar") },
+      { label: "\u5DE5\u5177\u680F", action: command(runtime, "toggleToolbar") },
+      { separator: true },
+      { label: "\u754C\u9762\u5B57\u4F53\u2026", action: open_workspace_ui_appearance },
+      { label: "\u653E\u5927", shortcut: "Ctrl+=", action: command(runtime, "zoomIn") },
+      { label: "\u7F29\u5C0F", shortcut: "Ctrl+-", action: command(runtime, "zoomOut") },
+      { label: "\u5B9E\u9645\u5927\u5C0F", shortcut: "Ctrl+\u6570\u5B57\u952E\u76D8 0", action: command(runtime, "resetZoom") },
+      { separator: true },
+      { label: "\u5F00\u53D1\u8005\u5DE5\u5177", shortcut: "Ctrl+Shift+I", action: command(runtime, "toggleDevTools") }
+    ];
+    const theme_entries = async () => {
+      let theme_data = {};
+      try {
+        theme_data = await runtime.JSBridge?.invoke("setting.getThemes");
+      } catch {
+      }
+      const themes = Array.isArray(theme_data?.all) ? theme_data.all : [];
+      const current = String(theme_data?.current ?? runtime.File?.option?.curTheme ?? "").replace(/\.css$/iu, "");
+      return [
+        ...themes.map((theme) => {
+          const name = String(theme?.name ?? theme?.displayName ?? theme);
+          const display = String(theme?.displayName ?? theme?.name ?? theme).replace(/\.css$/iu, "");
+          return { label: display, checked: current === name.replace(/\.css$/iu, "") || theme?.active, action: command(runtime, "setTheme", name) };
+        }),
+        ...themes.length ? [{ separator: true }] : [{ label: "\u6CA1\u6709\u53D1\u73B0\u53EF\u7528\u4E3B\u9898", disabled: true }],
+        { label: "\u6253\u5F00\u4E3B\u9898\u6587\u4EF6\u5939", action: () => runtime.JSBridge?.invoke("shell.openItem", "".concat(window._options?.userDataPath || "", "/themes")) }
+      ];
+    };
+    const help_entries = async () => [
+      { label: "\u504F\u597D\u8BBE\u7F6E", shortcut: "Ctrl+,", action: command(runtime, "showPreferencePanel") },
+      { separator: true },
+      { label: "\u9690\u79C1\u6761\u6B3E", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/privacy/") },
+      { label: "\u9E23\u8C22", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/credits/") },
+      { label: "\u66F4\u65B0\u65E5\u5FD7", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/releases/all") },
+      { label: "\u5B98\u65B9\u7F51\u7AD9", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/") },
+      { label: "\u53CD\u9988", action: () => runtime.JSBridge?.showInBrowser?.("https://support.typora.io/") },
+      { label: "\u68C0\u67E5\u66F4\u65B0", action: () => runtime.JSBridge?.invoke("app.checkForUpdates") },
+      { separator: true },
+      { label: "\u5173\u4E8E Typora", action: () => runtime.$?.("#about-dialog")?.modal?.("show") }
+    ];
+    return [
+      { label: "\u6587\u4EF6", mnemonic: "F", entries: file_entries },
+      { label: "\u7F16\u8F91", mnemonic: "E", entries: edit_entries },
+      { label: "\u6BB5\u843D", mnemonic: "P", entries: paragraph_entries },
+      { label: "\u683C\u5F0F", mnemonic: "O", entries: format_entries },
+      { label: "\u89C6\u56FE", mnemonic: "V", entries: view_entries },
+      { label: "\u4E3B\u9898", mnemonic: "T", entries: theme_entries },
+      { label: "\u5E2E\u52A9", mnemonic: "H", entries: help_entries }
+    ];
+  }
+
+  // src/workspace_titlebar_menu.ts
+  function create_workspace_titlebar_menu(definitions) {
+    const menu = document.createElement("nav");
+    menu.className = "workspace-titlebar-menu";
+    menu.setAttribute("aria-label", "\u4E3B\u83DC\u5355");
+    menu.setAttribute("role", "menubar");
+    let panels = [];
+    let open_index = -1;
+    const close_from = (level) => {
+      panels.splice(level).forEach((panel) => panel.remove());
+    };
+    const close = () => {
+      close_from(0);
+      open_index = -1;
+      menu.querySelectorAll("button[aria-expanded]").forEach((button) => button.setAttribute("aria-expanded", "false"));
+    };
+    const show_panel = (entries3, x, y, level, owner) => {
+      close_from(level);
+      const panel = document.createElement("div");
+      panel.className = "workspace-titlebar-popup";
+      panel.dataset.menuLevel = String(level);
+      panel.setAttribute("role", "menu");
+      panels.push(panel);
+      for (const entry of entries3) {
+        if (entry.separator) {
+          const separator = document.createElement("div");
+          separator.className = "workspace-titlebar-separator";
+          separator.setAttribute("role", "separator");
+          panel.append(separator);
+          continue;
+        }
+        const item = document.createElement("button");
+        item.type = "button";
+        item.setAttribute("role", entry.checked == null ? "menuitem" : "menuitemcheckbox");
+        if (entry.checked != null) item.setAttribute("aria-checked", String(entry.checked));
+        if (entry.children) item.setAttribute("aria-haspopup", "menu");
+        item.disabled = Boolean(entry.disabled);
+        item.title = entry.title || "";
+        const check2 = document.createElement("span");
+        check2.className = "workspace-titlebar-check";
+        if (entry.checked) check2.append(git_icon("check"));
+        const label = document.createElement("span");
+        label.className = "workspace-titlebar-popup-label";
+        label.textContent = entry.label || "";
+        const shortcut = document.createElement("kbd");
+        shortcut.textContent = entry.shortcut || "";
+        const arrow = document.createElement("span");
+        arrow.className = "workspace-titlebar-submenu-arrow";
+        if (entry.children) arrow.append(git_icon("chevron-right"));
+        item.append(check2, label, shortcut, arrow);
+        const open_child = (focus = false) => {
+          if (!entry.children || item.disabled) return;
+          const rect = item.getBoundingClientRect();
+          const child = show_panel(entry.children, rect.right - 2, rect.top, level + 1, item);
+          if (focus) child.querySelector("button:not(:disabled)")?.focus();
+        };
+        item.onmouseenter = () => entry.children ? open_child() : close_from(level + 1);
+        item.onclick = () => {
+          if (entry.children) open_child(true);
+          else {
+            close();
+            entry.action?.();
+          }
+        };
+        item.onkeydown = (event) => {
+          if (event.key === "ArrowRight" && entry.children) {
+            event.preventDefault();
+            event.stopPropagation();
+            open_child(true);
+          }
+        };
+        panel.append(item);
+      }
+      document.body.append(panel);
+      const bounds = panel.getBoundingClientRect();
+      if (level > 0 && x + bounds.width > innerWidth - 4) x = owner.getBoundingClientRect().left - bounds.width + 2;
+      panel.style.left = "".concat(Math.max(4, Math.min(x, innerWidth - bounds.width - 4)), "px");
+      panel.style.top = "".concat(Math.max(35, Math.min(y, innerHeight - bounds.height - 4)), "px");
+      panel.onkeydown = (event) => {
+        const items = [...panel.querySelectorAll(":scope>button:not(:disabled)")];
+        const current = Math.max(0, items.indexOf(document.activeElement));
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          const target = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : (current + (event.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+          items[target]?.focus();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          if (level) {
+            close_from(level);
+            owner.focus();
+          } else {
+            close();
+            owner.focus();
+          }
+        } else if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          if (level) {
+            close_from(level);
+            owner.focus();
+          } else void open((open_index - 1 + definitions.length) % definitions.length, true);
+        } else if (event.key === "ArrowRight" && !document.activeElement?.getAttribute("aria-haspopup") && !level) {
+          event.preventDefault();
+          void open((open_index + 1) % definitions.length, true);
+        }
+        event.stopPropagation();
+      };
+      return panel;
+    };
+    const open = async (index, focus_first = false) => {
+      close();
+      open_index = index;
+      const definition = definitions[index];
+      const button = menu.children[index];
+      button.setAttribute("aria-expanded", "true");
+      const entries3 = await definition.entries();
+      if (open_index !== index) return;
+      const rect = button.getBoundingClientRect();
+      const panel = show_panel(entries3, rect.left, rect.bottom, 0, button);
+      panel.setAttribute("aria-label", "".concat(definition.label, "\u83DC\u5355"));
+      if (focus_first) panel.querySelector("button:not(:disabled)")?.focus();
+    };
+    definitions.forEach((definition, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = definition.label;
+      button.title = "".concat(definition.label, "\uFF08Alt+").concat(definition.mnemonic, "\uFF09");
+      button.setAttribute("role", "menuitem");
+      button.setAttribute("aria-haspopup", "menu");
+      button.setAttribute("aria-expanded", "false");
+      button.onclick = () => {
+        if (open_index === index) close();
+        else void open(index);
+      };
+      button.onmouseenter = () => {
+        if (open_index >= 0 && open_index !== index) void open(index);
+      };
+      button.onkeydown = (event) => {
+        if (["ArrowDown", "Enter", " "].includes(event.key)) {
+          event.preventDefault();
+          void open(index, true);
+        } else if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+          event.preventDefault();
+          const target = event.key === "Home" ? 0 : event.key === "End" ? definitions.length - 1 : (index + (event.key === "ArrowLeft" ? -1 : 1) + definitions.length) % definitions.length;
+          menu.children[target].focus();
+        }
+      };
+      menu.append(button);
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (panels.length && !panels.some((panel) => panel.contains(event.target)) && !menu.contains(event.target)) close();
+    }, true);
+    window.addEventListener("keydown", (event) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing) return;
+      const index = definitions.findIndex((definition) => event.key.toLocaleUpperCase() === definition.mnemonic);
+      if (index < 0) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      void open(index, true);
+    }, true);
+    return { menu, close, open };
+  }
+
   // src/workspace_titlebar.css
-  var workspace_titlebar_default = "body.unibody-window { --typ-workspace-top:32px; }\nbody.unibody-window #top-titlebar[data-workspace-titlebar] {\n  display:flex;align-items:center;gap:2px;position:fixed;left:0!important;right:0;top:0;height:32px;\n  padding:0 0 0 8px;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));\n  color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));\n  font:13px/1.2 system-ui,sans-serif;-webkit-app-region:drag;\n}\n#top-titlebar .workspace-titlebar-icon {width:24px;height:24px;flex:none;object-fit:contain;margin-right:6px;}\n#top-titlebar .workspace-titlebar-menu {display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag;}\n#top-titlebar .workspace-titlebar-menu button {appearance:none;border:0;background:transparent;color:inherit;border-radius:4px;margin:2px 0;padding:0 8px;height:26px;min-width:0;font:inherit;cursor:default;outline-offset:-2px;}\n#top-titlebar .workspace-titlebar-menu button:hover,#top-titlebar .workspace-titlebar-menu button:focus-visible {background:var(--active-file-bg-color,rgba(127,127,127,.16));}\n#top-titlebar[data-workspace-titlebar] #w-menu-btn {display:none;}\n#top-titlebar[data-workspace-titlebar] #w-titlebar-left {float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden;}\n#top-titlebar[data-workspace-titlebar] #title-text {float:none!important;display:block;margin:0 12px;padding:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:12px/30px system-ui,sans-serif;opacity:.8;}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights {float:none;flex:none;display:flex;align-items:center;height:31px;margin-left:auto;}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon {width:44px;height:31px;line-height:31px;margin:0;text-align:center;}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon {font-size:12px;}\n#top-titlebar[data-workspace-titlebar] #w-top-margin {display:none;}\nbody.unibody-window .typ-ribbon {padding-top:32px;box-sizing:border-box;}\nbody.unibody-window #typora-sidebar {top:32px;height:calc(100% - 32px);}\nbody.unibody-window #typora-sidebar-resizer {top:32px;}\n@media(max-width:680px){#top-titlebar[data-workspace-titlebar] #title-text {display:none;}#top-titlebar .workspace-titlebar-menu button{padding:0 5px;}}\n@media(max-width:480px){#top-titlebar .workspace-titlebar-menu button{padding:0 3px;font-size:12px;}#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:32px;}#top-titlebar .workspace-titlebar-icon{margin-right:2px;}}\n";
+  var workspace_titlebar_default = 'body.unibody-window{--typ-workspace-top:35px}\nbody.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-items:center;position:fixed;inset:0 0 auto 0!important;height:35px;padding:0;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2;-webkit-app-region:drag}\n#top-titlebar .workspace-titlebar-icon-slot{display:grid;place-items:center;width:35px;height:35px;flex:none}\n#top-titlebar .workspace-titlebar-icon{width:16px;height:16px;object-fit:contain}\n#top-titlebar .workspace-titlebar-menu{display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag}\n#top-titlebar :is(.workspace-titlebar-menu>button,.workspace-titlebar-history,.workspace-titlebar-quick-open){appearance:none;border:0;background:transparent;color:inherit;border-radius:5px;min-width:0;font:inherit;outline-offset:-2px;-webkit-app-region:no-drag}\n#top-titlebar .workspace-titlebar-menu>button{height:30px;margin:2px 0;padding:0 8px;cursor:default}\n#top-titlebar :is(.workspace-titlebar-menu>button:hover,.workspace-titlebar-menu>button:focus-visible,.workspace-titlebar-menu>button[aria-expanded="true"],.workspace-titlebar-history:not(:disabled):hover,.workspace-titlebar-history:focus-visible,.workspace-titlebar-quick-open:hover,.workspace-titlebar-quick-open:focus-visible){background:var(--active-file-bg-color,rgba(127,127,127,.16))}\n#top-titlebar[data-workspace-titlebar] #w-menu-btn{display:none}\n#top-titlebar[data-workspace-titlebar] #w-titlebar-left{float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden}\n#top-titlebar[data-workspace-titlebar] #title-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights{float:none;flex:none;display:flex;align-items:center;height:35px;margin-left:auto;z-index:2}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:46px;height:35px;line-height:35px;margin:0;text-align:center}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon{font-size:12px}\n#top-titlebar[data-workspace-titlebar] #w-top-margin{display:none}\n.workspace-titlebar-command-area{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:min(38vw,600px);height:22px;-webkit-app-region:no-drag}\n.workspace-titlebar-navigation{position:absolute;right:calc(100% + 4px);top:0;display:flex;align-items:center;gap:4px;height:22px}\n#top-titlebar .workspace-titlebar-history{display:grid;place-items:center;width:22px;height:22px;padding:0}\n#top-titlebar .workspace-titlebar-history:disabled{opacity:.4}\n#top-titlebar .workspace-titlebar-history svg{width:16px;height:16px}\n#top-titlebar .workspace-titlebar-quick-open{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;height:22px;margin:0;padding:0 8px;border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.08)}\n#top-titlebar .workspace-titlebar-quick-open span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86}\n#top-titlebar .workspace-titlebar-quick-open svg{flex:none;width:14px;height:14px;opacity:.8}\n.workspace-titlebar-popup{position:fixed;z-index:2200;min-width:260px;max-width:min(440px,calc(100vw - 8px));max-height:calc(100vh - 43px);overflow:auto;padding:4px;border:1px solid rgba(127,127,127,.28);border-radius:5px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.22);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2}\n.workspace-titlebar-popup>button{display:grid;grid-template-columns:16px minmax(145px,1fr) auto 16px;align-items:center;gap:6px;width:100%;height:26px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-titlebar-popup>button:is(:hover,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-titlebar-popup>button:disabled{opacity:.45}\n.workspace-titlebar-popup :is(kbd,.workspace-titlebar-popup-label){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.workspace-titlebar-popup kbd{font:inherit;opacity:.65}\n.workspace-titlebar-check,.workspace-titlebar-submenu-arrow{display:grid;place-items:center}\n.workspace-titlebar-check svg,.workspace-titlebar-submenu-arrow svg{width:16px;height:16px}\n.workspace-titlebar-separator{height:1px;margin:4px 7px;background:rgba(127,127,127,.25)}\n.workspace-quick-open{position:fixed;z-index:2300;top:41px;left:50%;transform:translateX(-50%);width:min(600px,calc(100vw - 16px));max-height:min(70vh,560px);padding:6px;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}\n.workspace-quick-open[hidden]{display:none}\n.workspace-quick-open-input-row{display:flex;align-items:center;gap:7px;height:34px;padding:0 9px;border:1px solid var(--active-file-border-color,#007acc);border-radius:3px}\n.workspace-quick-open-input-row>svg{width:16px;height:16px}\n.workspace-quick-open-input-row input{min-width:0;flex:1;height:30px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}\n.workspace-quick-open-status{min-height:23px;padding:5px 7px 2px;opacity:.7}\n.workspace-quick-open-results{max-height:min(58vh,450px);overflow:auto}\n.workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:29px;padding:0 8px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-quick-open-result>svg{width:16px;height:16px;flex:none}\n.workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}\nbody.unibody-window .typ-ribbon{padding-top:35px;box-sizing:border-box}\nbody.unibody-window #typora-sidebar{top:35px;height:calc(100% - 35px)}\nbody.unibody-window #typora-sidebar-resizer{top:35px}\n@media(max-width:900px){.workspace-titlebar-command-area{right:142px;left:auto;transform:none;width:22px}.workspace-titlebar-navigation{right:calc(100% + 4px)}.workspace-titlebar-quick-open{display:none!important}#top-titlebar .workspace-titlebar-menu>button{padding:0 5px}}\n@media(max-width:650px){.workspace-titlebar-command-area{display:none}}\n';
 
   // src/workspace_titlebar.ts
-  function install_workspace_titlebar() {
+  function history_button(direction) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "workspace-titlebar-history ".concat(direction < 0 ? "is-back" : "is-forward");
+    button.append(git_icon(direction < 0 ? "arrow-left" : "arrow-right"));
+    button.disabled = true;
+    button.title = direction < 0 ? "\u540E\u9000\uFF08Alt+\u2190\uFF09" : "\u524D\u8FDB\uFF08Alt+\u2192\uFF09";
+    button.setAttribute("aria-label", button.title);
+    button.onclick = () => window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel", { detail: { direction } }));
+    return button;
+  }
+  function install_workspace_titlebar(files) {
     const runtime = window;
     const bar = document.querySelector("#top-titlebar");
     if (!bar || !runtime.File?.isNode || runtime.File.isMac || bar.dataset.workspaceTitlebar) return;
@@ -220283,49 +221083,63 @@ var LinuxNoteTyporaEnhancements = (() => {
         document.documentElement.dataset.linuxNoteTitlebar = "setting-failed";
       });
     } else document.documentElement.dataset.linuxNoteTitlebar = "ready";
+    const icon_slot = document.createElement("span");
+    icon_slot.className = "workspace-titlebar-icon-slot";
     const icon = document.createElement("img");
     icon.className = "workspace-titlebar-icon";
     icon.src = new URL("./assets/icon/icon_32x32@2x.png", document.baseURI).href;
     icon.alt = "Typora";
     icon.draggable = false;
-    const menu = document.createElement("nav");
-    menu.className = "workspace-titlebar-menu";
-    menu.setAttribute("aria-label", "\u4E3B\u83DC\u5355");
-    menu.setAttribute("role", "menubar");
-    const entries3 = [["\u6587\u4EF6", "F"], ["\u7F16\u8F91", "E"], ["\u6BB5\u843D", "P"], ["\u683C\u5F0F", "O"], ["\u89C6\u56FE", "V"], ["\u4E3B\u9898", "T"], ["\u5E2E\u52A9", "H"]];
-    entries3.forEach(([label, key], index) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = label;
-      button.title = "".concat(label, "\uFF08Alt+").concat(key, "\uFF09");
-      button.setAttribute("role", "menuitem");
-      button.setAttribute("aria-haspopup", "menu");
-      const open = () => {
-        const rect = button.getBoundingClientRect();
-        runtime.JSBridge?.invoke("menu.popup", { x: Math.round(rect.left), y: Math.round(rect.bottom), positioningItem: index });
-      };
-      button.onclick = open;
-      button.onkeydown = (event) => {
-        if (event.key === "ArrowDown") {
-          event.preventDefault();
-          open();
-        } else if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
-          event.preventDefault();
-          const position2 = event.key === "Home" ? 0 : event.key === "End" ? entries3.length - 1 : (index + (event.key === "ArrowLeft" ? -1 : 1) + entries3.length) % entries3.length;
-          menu.children[position2].focus();
-        }
-      };
-      menu.append(button);
+    icon_slot.append(icon);
+    const quick_open = create_workspace_quick_open(files);
+    const definitions = create_workspace_titlebar_definitions(files, runtime, quick_open.open);
+    const titlebar_menu = create_workspace_titlebar_menu(definitions);
+    const command_area = document.createElement("div");
+    command_area.className = "workspace-titlebar-command-area";
+    const navigation = document.createElement("div");
+    navigation.className = "workspace-titlebar-navigation";
+    navigation.setAttribute("aria-label", "\u7F16\u8F91\u4F4D\u7F6E\u5386\u53F2");
+    const back = history_button(-1), forward = history_button(1);
+    back.disabled = document.documentElement.dataset.linuxNoteHistoryBack !== "true";
+    forward.disabled = document.documentElement.dataset.linuxNoteHistoryForward !== "true";
+    navigation.append(back, forward);
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "workspace-titlebar-quick-open";
+    trigger.title = "\u6309\u6587\u4EF6\u540D\u641C\u7D22\uFF08Ctrl+P\uFF09";
+    trigger.setAttribute("aria-label", trigger.title);
+    const trigger_text = document.createElement("span");
+    const refresh_title = () => {
+      const workspace = files.context_root();
+      trigger_text.textContent = workspace ? files.path_api.basename(workspace) : document.title || "\u641C\u7D22";
+    };
+    trigger.append(git_icon("search"), trigger_text);
+    trigger.onclick = quick_open.open;
+    refresh_title();
+    command_area.append(navigation, trigger);
+    window.addEventListener("linux-note-reading-history-state", (event) => {
+      const state = event.detail || {};
+      back.disabled = !state.back;
+      forward.disabled = !state.forward;
     });
-    bar.prepend(icon, menu);
+    window.addEventListener("keydown", (event) => {
+      if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.code !== "Numpad0" || event.isComposing) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      runtime.ClientCommand?.resetZoom?.();
+    }, true);
+    bar.prepend(icon_slot, titlebar_menu.menu);
+    bar.append(command_area);
     const title = document.querySelector("#title-text");
     if (title) {
       const refresh = () => {
         title.title = title.textContent || document.title;
+        refresh_title();
       };
       refresh();
       new MutationObserver(refresh).observe(title, { childList: true, characterData: true, subtree: true });
     }
+    return { menu: titlebar_menu.menu, quick_open, back, forward, close_menu: titlebar_menu.close };
   }
 
   // src/workspace_sidebar_sash.css
@@ -220533,19 +221347,21 @@ var LinuxNoteTyporaEnhancements = (() => {
   function bind_workspace_browser() {
     const core = window[Symbol.for("typora-plugin-core@v2")];
     if (!core?.app) return;
-    install_workspace_titlebar();
     install_workspace_outline({ outline: window.File?.editor?.library?.outline });
     const files = bind_workspace_files(core);
     let chosen_root = "";
     const context_root = files.context_root;
     files.context_root = () => chosen_root || context_root();
+    install_workspace_ui_appearance();
+    bind_workspace_tab_actions(files);
+    install_workspace_titlebar(files);
     const open_folder = () => new Promise((resolve3) => {
-      const dialog = graph_dialog("\u6253\u5F00\u6587\u4EF6\u5939");
-      const path = graph_element("input");
+      const dialog = workspace_dialog("\u6253\u5F00\u6587\u4EF6\u5939");
+      const path = workspace_element("input");
       path.setAttribute("aria-label", "\u6587\u4EF6\u5939\u8DEF\u5F84");
       path.value = files.context_root();
-      const error = graph_element("p");
-      dialog.content.append(graph_element("p", "", "\u8F93\u5165\u8981\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u6253\u5F00\u7684\u6587\u4EF6\u5939\u8DEF\u5F84\u3002"), path, error);
+      const error = workspace_element("p");
+      dialog.content.append(workspace_element("p", "", "\u8F93\u5165\u8981\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u6253\u5F00\u7684\u6587\u4EF6\u5939\u8DEF\u5F84\u3002"), path, error);
       const cleanup = new MutationObserver(() => {
         if (!dialog.root.isConnected) {
           cleanup.disconnect();
@@ -220570,7 +221386,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           open();
         }
       };
-      dialog.footer.prepend(graph_button("\u6253\u5F00", open));
+      dialog.footer.prepend(workspace_button("\u6253\u5F00", open));
     });
     const explorer = bind_workspace_explorer(core, {
       open_file: files.open_file,
@@ -220586,6 +221402,19 @@ var LinuxNoteTyporaEnhancements = (() => {
       ]
     });
     const search2 = bind_workspace_search(core, files);
+    const focus_explorer = () => {
+      explorer.show();
+      requestAnimationFrame(() => explorer.container.querySelector(".workspace-explorer-tree")?.focus({ preventScroll: true }));
+    };
+    core.app.commands.register({ id: "linux_note:file_explorer", title: "\u89C6\u56FE\uFF1A\u8D44\u6E90\u7BA1\u7406\u5668", scope: "global", callback: focus_explorer });
+    const explorer_shortcut = (event) => {
+      if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.altKey || event.code !== "KeyE" || event.isComposing || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      focus_explorer();
+    };
+    window.addEventListener("keydown", explorer_shortcut, true);
+    window.addEventListener("unload", () => window.removeEventListener("keydown", explorer_shortcut, true), { once: true });
     install_workspace_footer();
     install_workspace_sidebar_sash({ sidebar: core.app.workspace.sidebar, save_width: (width2) => window.JSBridge.putSetting("sidebar-width", width2) });
     const sidebar = core.app.workspace.sidebar;

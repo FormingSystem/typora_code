@@ -1,6 +1,6 @@
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
-import { graph_element as el, graph_button as button, graph_menu, graph_dialog } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
 import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
 import { create_text_document } from "./workspace_text_document";
 import { bind_source_lifecycle } from "./workspace_source_lifecycle";
@@ -137,14 +137,14 @@ export function bind_workspace_files(core: graph_core) {
       catch(error){this.saving=false;this.update_status();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
     }
     choose_language(){
-      if(!this.editor||this.loading)return;const dialog=graph_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
+      if(!this.editor||this.loading)return;const dialog=workspace_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
       const choices=new Map(FILE_LANGUAGE_RULES.filter(rule=>!rule.category||rule.category==="text").map(rule=>[rule.language,rule.label]));choices.set("plaintext","纯文本");
       for(const [value,label]of choices){const option=el("option","",label);option.value=value;select.append(option);}select.value=this.editor.models[0].getLanguageId();
       dialog.content.append(select,el("p","","语言模式只改变高亮；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
     }
     choose_format(kind:"encoding"|"eol"){
       if(this.loading)return;
-      if(!this.format){if(kind==="encoding")this.choose_reopen_encoding();return;}const dialog=graph_dialog(kind==="encoding"?"选择保存编码":"选择行尾序列");const select=el("select");select.setAttribute("aria-label",kind==="encoding"?"文件保存编码":"文件行尾序列");
+      if(!this.format){if(kind==="encoding")this.choose_reopen_encoding();return;}const dialog=workspace_dialog(kind==="encoding"?"选择保存编码":"选择行尾序列");const select=el("select");select.setAttribute("aria-label",kind==="encoding"?"文件保存编码":"文件行尾序列");
       const values=kind==="encoding"?["utf-8","utf-8-bom","utf-16le","utf-16be"]:["LF","CRLF","CR",...(this.format.eol==="mixed"?["mixed"]:[])];
       for(const value of values){const option=el("option","",value==="mixed"?"保留混合换行":value.toUpperCase());option.value=value;select.append(option);}select.value=kind==="encoding"?(this.format.encoding==="utf-8"&&this.format.bom?"utf-8-bom":this.format.encoding):this.format.eol;
       dialog.content.append(select,el("p","","选择后按 Ctrl+S 保存，当前文件不会立即改写。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;if(kind==="encoding"){this.format!.encoding=select.value==="utf-8-bom"?"utf-8":select.value;this.format!.bom=select.value!=="utf-8";}else this.format!.eol=select.value as typeof this.format.eol;this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
@@ -153,7 +153,7 @@ export function bind_workspace_files(core: graph_core) {
     choose_reopen_encoding(){
       if(this.loading)return;
       if(this.dirty()){this.status.textContent="请先保存或从磁盘重新加载，避免重新解码丢失草稿。";return;}
-      const dialog=graph_dialog("以编码重新打开");const select=el("select");select.setAttribute("aria-label","重新打开编码");
+      const dialog=workspace_dialog("以编码重新打开");const select=el("select");select.setAttribute("aria-label","重新打开编码");
       for(const value of["utf-8","utf-16le","utf-16be","gb18030","big5","windows-1252"]){const option=el("option","",value.toUpperCase());option.value=value;select.append(option);}
       dialog.content.append(select);dialog.footer.prepend(button("重新打开",()=>{if(this.dirty()||this.loading){this.status.textContent="请先保存修改，再以其他编码重新打开。";return;}dialog.close();void this.load_file(select.value);}));
     }
@@ -163,8 +163,8 @@ export function bind_workspace_files(core: graph_core) {
       {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
       ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}native_open(this.file_path);}}]:[])
     ];}
-    menu(event:MouseEvent){graph_menu(event,this.menu_entries());}
-    confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=graph_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
+    menu(event:MouseEvent){workspace_menu(event,this.menu_entries());}
+    confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=workspace_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
     confirm_close(close:()=>void){source_lifecycle.confirm_close(this,close);}
     guard_close(){source_lifecycle.guard(this);}
     release_source(){if(this.disposed)return;this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
@@ -206,7 +206,7 @@ export function bind_workspace_files(core: graph_core) {
     };
   }
   const copy = (text: string) => runtime.reqnode("electron").clipboard.writeText(text);
-  const file_menu = (event: MouseEvent, file_path: string) => graph_menu(event, [
+  const file_menu = (event: MouseEvent, file_path: string) => workspace_menu(event, [
     {title: "打开文件", action: () => void open_file(file_path)},
     {title: "在右侧打开", action: () => void open_file(file_path, {}, "right")},
     {title: "复制路径", action: () => copy(file_path)},

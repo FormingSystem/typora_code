@@ -33,7 +33,8 @@
 .workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }
 .workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:24px; gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }
 .workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }
-.workspace-search-file[open]>summary>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }
+.workspace-search-file[open]>summary>.workspace-search-file-toggle>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }
+.workspace-search-file>summary>.workspace-search-file-toggle { display:inline-flex; align-items:center; justify-content:center; flex:none; width:20px; height:22px; min-width:20px; padding:2px; border:0; border-radius:3px; background:transparent; }
 .workspace-search-file>summary>svg,.workspace-search-directory>summary>svg { flex:none; width:16px; height:16px; }
 .workspace-search-file-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:35px; }
 .workspace-search-file-path { opacity:.65; font-size:11px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }

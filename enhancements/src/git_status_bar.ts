@@ -1,4 +1,4 @@
-import { graph_element as el, graph_button as button, graph_menu, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import type { graph_core, graph_host } from "./git_graph_host";
 import type { git_graph_panel } from "./git_graph_panel";
 import status_css from "./git_status_bar.css";
@@ -81,14 +81,14 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       while (current.pending) await new Promise(resolve => setTimeout(resolve, 50));
       if (disposed || current !== current_panel()) return;
       if (!current.state || current.container.dataset.state === "error") {
-        graph_menu(event, [{id: "select_repository", title: "选择 Git 仓库…", action: () => current.manage_repositories()}, {id: "refresh_status", title: "重新检查仓库", action: () => void refresh()}]); return;
+        workspace_menu(event, [{id: "select_repository", title: "选择 Git 仓库…", action: () => current.manage_repositories()}, {id: "refresh_status", title: "重新检查仓库", action: () => void refresh()}]); return;
       }
       await show(current);
     })().catch(error => current.report(error));
   };
   branch.onclick = event => ready(event, current => {
     const state = current.state!;
-    const entries: graph_menu_entry[] = state.refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({
+    const entries: workspace_menu_entry[] = state.refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({
       id: "checkout:" + ref.name, title: ref.name.slice(11), checked: ref.name.slice(11) === state.branch,
       action: () => current.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash),
     }));

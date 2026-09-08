@@ -1,4 +1,4 @@
-import { graph_element as el, graph_menu, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_element as el, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import { format_file_path } from "./file_paths";
 import { git_icon, type git_icon_name } from "./git_icons";
 import explorer_css from "./workspace_explorer.css";
@@ -19,7 +19,7 @@ export type workspace_explorer_options = {
   open_folder(): unknown;
   copy(text: string): unknown;
   rename(root: string, old_path: string, name: string): Promise<string>;
-  extra_menu?(path: string, is_directory: boolean): graph_menu_entry[];
+  extra_menu?(path: string, is_directory: boolean): workspace_menu_entry[];
 };
 type explorer_node = {
   id: string; path: string; name: string; parent?: explorer_node; depth: number;
@@ -204,7 +204,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     } else await options.open_file(node.path);
   }
   function context_menu(event: MouseEvent, node: explorer_node) {
-    const entries: graph_menu_entry[] = node === root ? [{title: "全部折叠", action: () => { for (const child of node.children || []) collapse(child); rebuild(); }}]
+    const entries: workspace_menu_entry[] = node === root ? [{title: "全部折叠", action: () => { for (const child of node.children || []) collapse(child); rebuild(); }}]
       : node.directory ? [{title: node.expanded ? "折叠文件夹" : "展开文件夹", action: () => run(() => activate(node))}]
       : [{title: "打开文件", action: () => run(() => options.open_file(node.path))}, {title: "在右侧打开", action: () => run(() => options.open_file(node.path, {}, "right"))}];
     if (node !== root) entries.push({title: "重命名（F2）", separator: true, disabled: Boolean(rename_state?.busy), action: () => begin_rename(node)});
@@ -212,7 +212,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       {title: "复制相对路径", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
     if (node.directory) entries.push({title: "刷新文件夹", action: () => run(() => load_children(node, true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
-    graph_menu(event, entries);
+    workspace_menu(event, entries);
   }
   function begin_rename(node: explorer_node) {
     if (!root || node === root || disposed || rename_state?.busy) return;

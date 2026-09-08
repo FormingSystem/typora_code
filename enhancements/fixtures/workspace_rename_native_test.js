@@ -6,8 +6,9 @@
   const norm = value => String(value).replace(/\\/gu, '/').toLowerCase();
   const wait = async (ready, message) => { const start = Date.now(); while (!ready()) { if (Date.now() - start > 14000) throw new Error(message); await delay(40); } };
   const expect = (value, message) => { if (!value) throw new Error(message); result.checks.push(message); };
+  const within = (promise, message) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error(message)), 14000))]);
   const run = async () => {
-    await wait(() => window.File?.bundle?.filePath, '原生文档未就绪'); if (norm(File.bundle.filePath) !== norm(root + '/source.md')) return;
+    await wait(() => window.File?.bundle?.filePath && norm(File.bundle.filePath) === norm(root + '/source.md'), '原生测试文档未切换到启动路径');
     const fs = reqnode('fs'), path = reqnode('path'), original_mount = File.getMountFolder;
     const original_source = fs.readFileSync(path.join(root, 'source.md')); let app;
     const leaf_list = () => { const leaves = []; app.workspace.eachLeaves(leaf => { leaves.push(leaf); }); return leaves; };
@@ -62,11 +63,11 @@
       expect(leaf_list().filter(leaf => leaf === child || leaf === sibling || leaf === source_leaf || leaf === native_leaf).length === 4, '全部既有原生和源码标签保持对象身份');
       const held_path = path.join(root, 'held_target.ts'), candidate_path = path.join(root, 'rename_candidate.ts'), filler_path = path.join(root, 'guard_filler.ts');
       fs.writeFileSync(held_path, 'const held = 1;\n'); fs.writeFileSync(candidate_path, 'const candidate = 2;\n'); fs.writeFileSync(filler_path, 'const filler = 3;\n');
-      await app.openFile(held_path); await wait(() => app.workspace.activeLeaf.view.loaded && app.workspace.activeLeaf.view.file_path === held_path, '冲突目标源码未打开');
+      await within(app.openFile(held_path), '打开冲突目标源码超时'); await wait(() => app.workspace.activeLeaf.view.loaded && app.workspace.activeLeaf.view.file_path === held_path, '冲突目标源码未打开');
       const held_leaf = app.workspace.activeLeaf, held_editor = held_leaf.view.editor.focused_editor(), held_model = held_editor.getModel();
       held_editor.pushUndoStop(); held_editor.setPosition({lineNumber: 1, column: 1}); held_editor.trigger('keyboard', 'type', {text: '// held draft\n'}); held_editor.pushUndoStop(); await delay(40);
       const held_draft = held_model.getValue(); fs.unlinkSync(held_path);
-      await app.openFile(filler_path); await wait(() => app.workspace.activeLeaf.view.loaded && app.workspace.activeLeaf.view.file_path === filler_path, '旧组末尾填充标签未就绪');
+      await within(app.openFile(filler_path), '打开分栏填充源码超时'); await wait(() => app.workspace.activeLeaf.view.loaded && app.workspace.activeLeaf.view.file_path === filler_path, '旧组末尾填充标签未就绪');
       const candidate_uri = `typ://linux_note.source_file/${encodeURIComponent(candidate_path)}`;
       app.commands.run('core.workspace:split-right', [candidate_uri]);
       await wait(() => app.workspace.activeLeaf.view.loaded && app.workspace.activeLeaf.view.file_path === candidate_path, '右侧候选源码未打开');
@@ -79,20 +80,24 @@
       expect(leaf_list().includes(held_leaf) && held_leaf.view.editor.focused_editor().getModel() === held_model && held_model.getValue() === held_draft && held_leaf.view.dirty()
         && app.workspace.activeLeaf === candidate_leaf && candidate_model.getValue() === candidate_text && candidate_leaf.state.path === candidate_uri
         && !fs.existsSync(held_path) && fs.readFileSync(candidate_path, 'utf8') === 'const candidate = 2;\n', '多组路径冲突保留两个标签、两份内存内容及原磁盘文件');
-      await held_model.undo(); await delay(40); held_leaf.parent.removeTab(held_leaf.state.path);
+      await within(held_model.undo(), '撤销冲突目标草稿超时');
+      await delay(40);
+      held_leaf.parent.removeTab(held_leaf.state.path);
       expect(fs.readFileSync(path.join(root, 'source.md')).equals(original_source), '原始测试来源文档没有写入');
       result.status = 'PASS';
     } catch (error) { result.status = 'FAIL'; result.error = String(error.stack); result.active = app?.workspace.activeLeaf?.state.path; result.native = File.bundle.filePath; result.explorer = document.querySelector('.linux-note-workspace-explorer')?.outerHTML; }
     finally {
-      // 失败用例可能仍持有故意创建的草稿；只释放本夹具临时目录中的源码标签。
-      // 不用 redo 代替清理，它会再次把测试输入放回模型并触发关窗保护。
-      if (app) for (const leaf of leaf_list()) if (leaf.view.file_path && norm(leaf.view.file_path).startsWith(norm(root) + '/')) {
-        leaf.parent.removeTab(leaf.state.path);
-        const dialog = [...document.querySelectorAll('.git-graph-dialog-shade')].find(node => node.getAttribute('aria-label') === '保存文件修改');
-        [...dialog?.querySelectorAll('button') || []].find(button => button.textContent === '不保存并关闭')?.click();
+      // 测试窗口直接释放临时源码模型；逐组 removeTab 会并发触发多个关闭确认并使夹具自身互锁。
+      if (app) {
+        for (const leaf of leaf_list()) {
+          if (leaf.view.file_path && norm(leaf.view.file_path).startsWith(norm(root) + '/') && typeof leaf.view.release_source === 'function') {
+            leaf.view.release_source();
+          }
+        }
       }
-      const close_started = Date.now(); while (File._onFileSwitching && Date.now() - close_started < 4000) await delay(40);
-      File.getMountFolder = original_mount; fs.writeFileSync(path.join(root, 'result_1.json'), JSON.stringify(result, null, 2)); window.close();
+      File.getMountFolder = original_mount;
+      fs.writeFileSync(path.join(root, 'result_1.json'), JSON.stringify(result, null, 2));
+      window.close();
     }
   }; void run();
 })();

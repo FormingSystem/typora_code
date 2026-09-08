@@ -9,7 +9,7 @@ domains:
 
 # 第1章\_Codicons图标来源与使用
 
-本目录保存 Microsoft 与 Codicons 贡献者提供的 45 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
+本目录保存 Microsoft 与 Codicons 贡献者提供的 47 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
 
 ## 1.1\_图形与操作映射
 
@@ -40,6 +40,8 @@ domains:
 | 打开外部链接 | `link-external` | [link_external.svg](icons/link_external.svg) |
 | 源代码管理入口 | `source-control` | [source_control.svg](icons/source_control.svg) |
 | 工作区搜索 | `search` | [search.svg](icons/search.svg) |
+| 返回上一个编辑位置 | `arrow-left` | [arrow_left.svg](icons/arrow_left.svg) |
+| 前进到下一个编辑位置 | `arrow-right` | [arrow_right.svg](icons/arrow_right.svg) |
 | 区分大小写 | `case-sensitive` | [case_sensitive.svg](icons/case_sensitive.svg) |
 | 全字匹配 | `whole-word` | [whole_word.svg](icons/whole_word.svg) |
 | 使用正则表达式 | `regex` | [regex.svg](icons/regex.svg) |

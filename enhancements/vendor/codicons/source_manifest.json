@@ -2,6 +2,18 @@
   "repository_url": "https://github.com/microsoft/vscode-codicons",
   "revision": "1c47ab36a4bb845c437866405c2fa67b8ca0fe36",
   "icons": {
+    "arrow-left": {
+      "file": "icons/arrow_left.svg",
+      "source_path": "src/icons/arrow-left.svg",
+      "git_blob_sha1": "334409425deb4cdc7263554ddbbe8c04b8d3e67a",
+      "sha256": "a8ff0950bfb3746272b0f6d25e28b45ce0be54aba7900833c9e3d9d17391512f"
+    },
+    "arrow-right": {
+      "file": "icons/arrow_right.svg",
+      "source_path": "src/icons/arrow-right.svg",
+      "git_blob_sha1": "50cfc21d2179624118466305520cd1bf6f91a61a",
+      "sha256": "a3eb7dce0a7f2e0b6d0340c1e88a01404ca4de0a8ac2190827b85bf8c942ad6"
+    },
     "diff-multiple": {
       "file": "icons/diff_multiple.svg",
       "source_path": "src/icons/diff-multiple.svg",
