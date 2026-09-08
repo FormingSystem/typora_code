@@ -1,4 +1,4 @@
-import { graph_element as el, graph_button as button, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
 import { compare_files, read_file_history, EMPTY, INDEX, WORKTREE, type graph_change } from "./git_graph_repository";
 import { graph_actions } from "./git_graph_actions";
 import { git_scm_history } from "./git_scm_history";
@@ -182,8 +182,8 @@ export class git_source_control {
     const value = (file: graph_change) => this.sort_order === "name" ? file.path.split("/").at(-1)! : this.sort_order === "status" ? file.status : file.path;
     return value(a).localeCompare(value(b)) || a.path.localeCompare(b.path);
   }
-  file_entries(file: graph_change, from: string, to: string, files: graph_change[]): graph_menu_entry[] {
-    const entries: graph_menu_entry[] = [
+  file_entries(file: graph_change, from: string, to: string, files: graph_change[]): workspace_menu_entry[] {
+    const entries: workspace_menu_entry[] = [
       {id: "open_diff", title: "打开更改", action: () => void this.open_file(file, from, to, files)},
       {id: "open_file", title: "打开文件", action: () => void this.panel.host.open_file(this.panel.root, file.path, this.panel.settings).catch(error => this.panel.report(error))},
       {id: "file_history", title: "打开文件历史（时间线）", action: () => void this.file_history(file.path)},
@@ -256,7 +256,7 @@ export class git_source_control {
   more_menu(event: MouseEvent): void {
     const panel = this.panel;
     const actions = (ids: string[]) => ids.map(id => ({id, title: graph_actions.find(action => action.id === id)!.title, action: () => ["stage_all", "unstage_all"].includes(id) ? void panel.quick_action(id) : id === "commit" ? this.commit() : panel.action_dialog(id, id.startsWith("stash") ? "changes" : "repository", "", panel.state?.head)}));
-    const submenu = (title: string, entries: graph_menu_entry[]): graph_menu_entry => ({title, children: entries, disabled: !entries.length, action() {}});
+    const submenu = (title: string, entries: workspace_menu_entry[]): workspace_menu_entry => ({title, children: entries, disabled: !entries.length, action() {}});
     const target_actions = (kind: string, target: string, hash: string) => graph_actions.filter(action => action.targets.includes(kind)).map(action => ({id: action.id, title: action.title, action: () => panel.action_dialog(action.id, kind, target, hash)}));
     const refs = panel.state?.refs || [];
     const branches = refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => submenu(ref.name.slice(11), target_actions("branch", ref.name.slice(11), ref.hash)));

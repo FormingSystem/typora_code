@@ -26,7 +26,7 @@ type workspace_app = {
   };
   openFile(path: string): unknown;
   workspace: {
-    sidebar: { isShown: boolean; activePanel?: {ribbonButton?: {id: string}; containerEl?: HTMLElement}; panels: {ribbonButton?: {id: string}; containerEl?: HTMLElement}[] };
+    sidebar: { isShown: boolean; toggle(): void; activePanel?: {ribbonButton?: {id: string}; containerEl?: HTMLElement}; panels: {ribbonButton?: {id: string}; containerEl?: HTMLElement}[] };
     activeFile: string;
     activeLeaf: workspace_leaf | null;
     activeEditor: { openFile(file: string | { pathname: string; hash?: string }): void };
@@ -98,6 +98,13 @@ export async function initialize_workspace(): Promise<void> {
         || event.isComposing) { chord_started = 0; return; }
     if (event.target instanceof Element && event.target.closest(".linux-note-terminal, .git-graph-document") && !event.target.closest(".linux-note-source-file")) { chord_started = 0; return; }
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.code === "KeyB") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      chord_started = 0;
+      app.workspace.sidebar.toggle();
+      return;
+    }
     const in_chord = chord_started > 0 && Date.now() - chord_started < 2000;
     const absolute = in_chord && event.code === "KeyP" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
     const relative = in_chord && event.code === "KeyC" && event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;

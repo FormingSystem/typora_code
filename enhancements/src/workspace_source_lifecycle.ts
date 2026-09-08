@@ -1,5 +1,5 @@
 import type { graph_core, graph_leaf } from "./git_graph_host";
-import { graph_button as button, graph_dialog, graph_element as el } from "./git_graph_widgets";
+import { workspace_button as button, workspace_dialog, workspace_element as el } from "./workspace_widgets";
 
 export type source_lifecycle_view = {
   leaf: graph_leaf; file_path: string; disposed: boolean;
@@ -17,10 +17,10 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   const guarded_groups = new WeakSet<object>();
   const guarded_leaves = new WeakSet<object>();
   const moving_leaves = new WeakSet<object>();
-  const pending = new Map<source_lifecycle_view, ReturnType<typeof graph_dialog>>();
+  const pending = new Map<source_lifecycle_view, ReturnType<typeof workspace_dialog>>();
   let menu_view: source_lifecycle_view | undefined;
   let allow_close_once = false;
-  let window_dialog: ReturnType<typeof graph_dialog> | undefined;
+  let window_dialog: ReturnType<typeof workspace_dialog> | undefined;
   const native_before_unload = window.onbeforeunload;
   const present = (leaf: graph_leaf) => {
     let found = false; core.app.workspace.eachLeaves(item => { if (item === leaf) found = true; }); return found;
@@ -35,7 +35,8 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   };
   const confirm_close = (view: source_lifecycle_view, close: () => void) => {
     if (pending.get(view)?.root.isConnected) return;
-    const dialog = graph_dialog("保存文件修改"); pending.set(view, dialog);
+    const dialog = workspace_dialog("保存文件修改"); pending.set(view, dialog);
+    dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
     dialog.content.append(el("p", "", `${view.file_path.split(/[\\/]/u).at(-1)} 有未保存的修改。`));
     let saving = false;
     const discard_button = button("不保存并关闭", () => { dialog.close(); pending.delete(view); close(); });
@@ -113,7 +114,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     // Typora 的 onbeforeunload 自己调用 silentQuit；在原生函数执行前检查源码草稿。
     event.preventDefault(); event.stopImmediatePropagation(); event.returnValue = "";
     if (window_dialog?.root.isConnected) return true;
-    const dialog = window_dialog = graph_dialog("保存文件修改"); dialog.root.setAttribute("data-workspace-save-close", "true");
+    const dialog = window_dialog = workspace_dialog("保存文件修改"); dialog.root.setAttribute("data-workspace-save-close", "true");
     dialog.content.append(el("p", "", `${dirty.length} 个源码文件有未保存修改。`));
     let saving = false;
     const discard_button = button("不保存并关闭", () => { dialog.close(); request_window_close(); });

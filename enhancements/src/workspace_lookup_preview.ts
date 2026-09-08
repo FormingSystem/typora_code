@@ -4,7 +4,7 @@ import type { workspace_file_host } from "./workspace_files";
 import type { workspace_search_file, workspace_search_match } from "./workspace_search_engine";
 import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file_language";
 import { git_diff_editor } from "./git_diff_editor";
-import { graph_element as el } from "./git_graph_widgets";
+import { workspace_element as el } from "./workspace_widgets";
 import preview_css from "./workspace_lookup_preview.css";
 import { highlight_preview_code, create_preview_diagrams } from "./workspace_markdown_preview_render";
 
@@ -132,6 +132,7 @@ export function create_lookup_preview(files: workspace_file_host) {
   };
   const show = async (file: workspace_search_file, match: workspace_search_match) => {
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
+    for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
     editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", "正在读取预览…"));
     try {
       const stat = await files.fs.promises.stat(file.file_path);
@@ -145,7 +146,9 @@ export function create_lookup_preview(files: workspace_file_host) {
         body.replaceChildren(editor.container); apply_scale();
         const view = editor.focused_editor(); const selection = {startLineNumber: match.line, startColumn: match.column, endLineNumber: match.end_line, endColumn: match.end_column}; view.setSelection(selection); view.layout(); view.revealRangeInCenter(selection);
       }
-      if(!disposed&&request===generation)body.dataset.previewPath = file.file_path;
+      if(!disposed&&request===generation){
+        Object.assign(body.dataset,{previewPath:file.file_path,previewKind:is_markdown_file(file.file_path)?"markdown":"source",previewLine:String(match.line),previewColumn:String(match.column),previewEndLine:String(match.end_line),previewEndColumn:String(match.end_column),previewText:match.text});
+      }
     } catch (error) { if (!disposed && request === generation) body.replaceChildren(el("p", "workspace-lookup-preview-message", String(error))); }
   };
   const theme_observer = new MutationObserver(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});

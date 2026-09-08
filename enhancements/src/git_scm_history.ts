@@ -1,6 +1,6 @@
 import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
-import { graph_element as el, graph_button as button, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
 import type { git_source_control } from "./git_source_control";
 import { git_icon_button as icon_button, git_disclosure, git_icon } from "./git_icons";
 
@@ -49,7 +49,7 @@ export class git_scm_history {
       }
     });
   }
-  branch_entries(): graph_menu_entry[] {
+  branch_entries(): workspace_menu_entry[] {
     const panel = this.owner.panel; const select = (branches: string[]) => { panel.branches = branches; void panel.refresh(); };
     return [
       {id: "all_branches", title: "全部分支", checked: !panel.branches.length, action: () => select([])},

@@ -24,7 +24,7 @@ import "monaco-editor/languages/definitions/go/register";
 import "monaco-editor/languages/definitions/java/register";
 import { createTokenizationSupport } from "monaco-editor/languages/features/json/tokenization";
 import worker_source from "linux_note_monaco_worker";
-import { graph_element as el, graph_button as button, graph_menu, type graph_menu_entry } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import { detect_file_language } from "./file_language";
 import { register_file_languages } from "./workspace_languages";
 
@@ -48,7 +48,7 @@ export class git_diff_editor {
   side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = false;
   last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
   readonly_status?: HTMLElement;
-  constructor(public data: diff_document, public extra_menu: () => graph_menu_entry[] = () => []) {
+  constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => []) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("这是二进制文件，不能作为文本比较。请打开文件或查看 Git 文件状态。");
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
@@ -160,7 +160,7 @@ export class git_diff_editor {
   }
   context_menu(event: MouseEvent): void {
     const view = this.focused_editor();
-    const entries: graph_menu_entry[] = [
+    const entries: workspace_menu_entry[] = [
       {id: "copy", title: "复制  Ctrl+C", action: () => void view.getAction("editor.action.clipboardCopyAction")?.run()},
       {id: "select_all", title: "全选  Ctrl+A", action: () => view.trigger("menu", "editor.action.selectAll", null)},
       {id: "find", title: "查找  Ctrl+F", action: () => void view.getAction("actions.find")?.run()},
@@ -173,7 +173,7 @@ export class git_diff_editor {
         {id: "hide_unchanged", title: "折叠未修改区域", checked: this.collapsed, action: () => { this.collapsed = !this.collapsed; editor.updateOptions({hideUnchangedRegions: {enabled: this.collapsed}}); }},
         {id: "ignore_whitespace", title: "忽略行首尾空白", checked: this.ignore_whitespace, action: () => { this.ignore_whitespace = !this.ignore_whitespace; editor.updateOptions({ignoreTrimWhitespace: this.ignore_whitespace}); }});
     }
-    graph_menu(event, [...entries, ...this.extra_menu()]);
+    workspace_menu(event, [...entries, ...this.extra_menu()]);
   }
   dispose(): void { this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(item => item.dispose()); this.container.remove(); }
 }

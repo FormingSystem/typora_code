@@ -1,6 +1,6 @@
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import type { workspace_file_host } from "./workspace_files";
-import { graph_element as el, graph_button as button, graph_dialog, graph_menu } from "./git_graph_widgets";
+import { workspace_element as el, workspace_button as button, workspace_dialog, workspace_menu } from "./workspace_widgets";
 import { git_icon, git_icon_button, git_disclosure, type git_icon_name } from "./git_icons";
 import { create_workspace_search_engine, type workspace_search_result, type workspace_search_file, type workspace_search_match, type workspace_search_options } from "./workspace_search_engine";
 import { create_git_runner } from "./git_graph_runtime";
@@ -50,8 +50,8 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       heading.append(git_icon_button("refresh","刷新搜索",()=>void this.search()),
         git_icon_button("clear-all","清除搜索结果",()=>{clearTimeout(this.timer);this.controller?.abort();this.controller=undefined;this.clear_results();this.status.textContent="";}),
         git_icon_button("new-file","在编辑器中打开搜索结果",()=>this.open_results()),
-        git_icon_button("collapse-all","全部折叠／展开",()=>{const nodes=[...this.results.querySelectorAll("details")];const open=nodes.some(node=>!node.open);nodes.forEach(node=>node.open=open);}));
-      heading.oncontextmenu=event=>graph_menu(event,[
+        git_icon_button("collapse-all","全部折叠／展开",()=>{const nodes=[...this.results.querySelectorAll("details")];const open=nodes.some(node=>!node.open);nodes.forEach(node=>this.set_group_open(node,open));}));
+      heading.oncontextmenu=event=>workspace_menu(event,[
           {title:"以列表显示",checked:!this.tree,action:()=>{this.tree=false;this.render();}}, {title:"以树形显示",checked:this.tree,action:()=>{this.tree=true;this.render();}},
           {title:"按路径排序",checked:this.sort==="path",action:()=>{this.sort="path";this.render();}}, {title:"按结果数排序",checked:this.sort==="count",action:()=>{this.sort="count";this.render();}}
         ]);
@@ -157,32 +157,42 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         if(!result.cancelled&&result.files[0]?.matches[0])this.select(result.files[0],result.files[0].matches[0]);
       }catch(error){if(!disposed&&this.controller===controller){this.containerEl.dataset.state="error";this.status.textContent=String(error);this.results.replaceChildren();}}
     }
+    set_group_open(group:HTMLDetailsElement,open:boolean){
+      group.open=open;const toggle=group.querySelector<HTMLButtonElement>(":scope>summary>.workspace-search-file-toggle");
+      if(toggle){toggle.setAttribute("aria-expanded",String(open));toggle.title=`${open?"收起":"展开"} ${group.querySelector("summary")?.title||"文件"} 的匹配项`;toggle.setAttribute("aria-label",toggle.title);}
+    }
     render(target:HTMLElement=this.results){
+      // 排序、视图切换和移除结果只重排当前列表；各文件的开关不应被重置为全部展开。
+      const open_states=new Map([...target.querySelectorAll<HTMLDetailsElement>("details[data-search-group]")].map(node=>[node.getAttribute("data-search-group")!,node.open]));
       target.replaceChildren();if(!this.result)return;
       const sorted=[...this.result.files].sort((a,b)=>this.sort==="count"?b.matches.length-a.matches.length:a.relative_path.localeCompare(b.relative_path,"zh-CN",{numeric:true}));
       const directories=new Map<string,HTMLElement>();
       for(const file of sorted){
         let parent=target;
-        if(this.tree){const parts=file.relative_path.split("/").slice(0,-1);let key="";for(const part of parts){key+=part+"/";let nested=directories.get(key);if(!nested){const folder=el("details","workspace-search-directory");folder.open=true;const summary=el("summary");summary.append(git_disclosure(),el("span","",part));folder.append(summary);parent.append(folder);directories.set(key,folder);nested=folder;}parent=nested;}}
-        const group=el("details","workspace-search-file");group.open=true;group.dataset.path=file.file_path;
+        if(this.tree){const parts=file.relative_path.split("/").slice(0,-1);let key="";for(const part of parts){key+=part+"/";let nested=directories.get(key);if(!nested){const folder=el("details","workspace-search-directory");const state_key="directory:"+key;folder.setAttribute("data-search-group",state_key);folder.open=open_states.get(state_key)??true;const summary=el("summary");summary.append(git_disclosure(),el("span","",part));folder.append(summary);parent.append(folder);directories.set(key,folder);nested=folder;}parent=nested;}}
+        const group=el("details","workspace-search-file"),state_key="file:"+file.file_path;group.setAttribute("data-search-group",state_key);group.open=open_states.get(state_key)??true;group.dataset.path=file.file_path;
         const summary=el("summary");summary.title=file.relative_path;summary.tabIndex=0;
         const label=el("span","workspace-search-file-name",files.path_api.basename(file.file_path));
         const path=el("span","workspace-search-file-path",files.path_api.dirname(file.relative_path).replace(/^\.$/u,""));
-        summary.append(git_disclosure(),git_icon("file"),label,path);
+        // SVG 图标保持 pointer-events:none；由真实按钮提供完整命中区，不依赖 SVG 成为 event.target。
+        const disclosure=button("",()=>{},"workspace-search-file-toggle");disclosure.append(git_disclosure());
+        disclosure.onclick=event=>{event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
+        disclosure.onkeydown=event=>{if(!["Enter"," "].includes(event.key))return;event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
+        summary.append(disclosure,git_icon("file"),label,path);
         const git_status=this.git_status.get(this.path_key(file.file_path));
         if(git_status){const badge=el("span","workspace-search-git-status",git_status);badge.dataset.status=git_status;badge.title=({M:"已修改",A:"已添加",D:"已删除",R:"已重命名",C:"已复制",U:"未跟踪或存在冲突"} as Record<string,string>)[git_status]||git_status;summary.append(badge);}
         const actions=el("span","workspace-search-file-actions");const count=el("span","workspace-search-file-count",String(file.matches.length));
         const remove=git_icon_button("close","从结果中移除",()=>this.remove_result(file,group),"workspace-search-remove");remove.onclick=event=>{event.preventDefault();event.stopPropagation();this.remove_result(file,group);};actions.append(count,remove);summary.append(actions);
-        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();if((event.target as Element).closest(".git-disclosure-icon"))group.open=!group.open;this.select(file,this.file_match(file));};
+        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();this.select(file,this.file_match(file));};
         summary.onfocus=()=>this.select(file,this.file_match(file));summary.ondblclick=event=>{if((event.target as Element).closest("button,.git-disclosure-icon"))return;event.preventDefault();this.open_match(file,this.file_match(file));};
         summary.onkeydown=event=>{if(event.target!==summary)return;this.navigate(event,summary,file,()=>this.file_match(file),target);};
-        summary.oncontextmenu=event=>graph_menu(event,[{title:"打开当前预览位置",action:()=>this.open_match(file,this.file_match(file))}, {title:"复制路径",action:()=>files.copy(file.file_path)}, {title:"复制相对路径",action:()=>files.copy(file.relative_path)}, {title:"替换此文件中的匹配项…",action:()=>void this.replace(file.file_path)}, {title:"从结果中移除",action:()=>this.remove_result(file,group)}]);
-        group.append(summary);
+        summary.oncontextmenu=event=>workspace_menu(event,[{title:"打开当前预览位置",action:()=>this.open_match(file,this.file_match(file))}, {title:"复制路径",action:()=>files.copy(file.file_path)}, {title:"复制相对路径",action:()=>files.copy(file.relative_path)}, {title:"替换此文件中的匹配项…",action:()=>void this.replace(file.file_path)}, {title:"从结果中移除",action:()=>this.remove_result(file,group)}]);
+        group.append(summary);this.set_group_open(group,group.open);
         for(const match of file.matches){
           const row=button("",()=>this.select(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",`${file.relative_path}，第 ${match.line} 行，第 ${match.column} 列：${match.preview}`);
           row.append(el("span","workspace-search-line",String(match.line)));const preview=el("span","workspace-search-preview");let start=0;
           for(const range of match.preview_ranges){preview.append(document.createTextNode(match.preview.slice(start,range.start)),el("mark","",match.preview.slice(range.start,range.end)));start=range.end;}preview.append(document.createTextNode(match.preview.slice(start)));row.append(preview);
-          row.oncontextmenu=event=>graph_menu(event,[{title:"打开匹配位置",action:()=>this.open_match(file,match)}, {title:"在右侧打开",action:()=>this.open_match(file,match,"right")}, {title:"复制匹配行",action:()=>files.copy(match.preview)}, {title:"替换此匹配项…",action:()=>void this.replace(file.file_path,[match.id])}]);
+          row.oncontextmenu=event=>workspace_menu(event,[{title:"打开匹配位置",action:()=>this.open_match(file,match)}, {title:"在右侧打开",action:()=>this.open_match(file,match,"right")}, {title:"复制匹配行",action:()=>files.copy(match.preview)}, {title:"替换此匹配项…",action:()=>void this.replace(file.file_path,[match.id])}]);
           row.onfocus=()=>this.select(file,match);row.ondblclick=event=>{event.preventDefault();this.open_match(file,match);};row.onkeydown=event=>this.navigate(event,row,file,()=>match,target);
           group.append(row);
         }parent.append(group);
@@ -218,7 +228,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     open_results(){if(!this.result)return;const panel=el("div","workspace-search-editor-results");panel.append(el("h3","",`搜索：${this.result.options.query}`));const list=el("div");this.render(list);panel.append(list);const uri=`typ://linux_note.search_results/${++serial}/搜索结果`;panels.set(uri,panel);const parent=core.app.workspace.activeLeaf?.parent;if(!parent)return;const leaf=core.app.workspace.createLeaf({type:"linux_note.search_results",state:{path:uri,git_cwd:files.context_root()}});parent.appendChild(leaf);core.app.workspace.activeLeaf=leaf;}
     async replace(file_path?:string,match_ids?:string[]){
       if(!this.result)return;
-      const dialog=graph_dialog("替换预览");const editors:git_diff_editor[]=[];const original_close=dialog.close;dialog.close=()=>{editors.forEach(editor=>editor.dispose());original_close();};
+      const dialog=workspace_dialog("替换预览");const editors:git_diff_editor[]=[];const original_close=dialog.close;dialog.close=()=>{editors.forEach(editor=>editor.dispose());original_close();};
       const cleanup=new MutationObserver(()=>{if(!dialog.root.isConnected){editors.splice(0).forEach(editor=>editor.dispose());cleanup.disconnect();}});cleanup.observe(document.body,{childList:true});
       try{
         if(!match_ids&&(this.result.cancelled||this.result.limit_reached))throw new Error("搜索未完成，请缩小范围后再执行批量替换。");

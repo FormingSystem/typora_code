@@ -6,7 +6,7 @@ import { SearchAddon } from "@xterm/addon-search";
 import xterm_css from "@xterm/xterm/css/xterm.css";
 import terminal_css from "./terminal_workspace.css";
 import { terminal_profiles, terminal_environment, administrator_launch } from "./terminal_runtime";
-import { graph_button as button, graph_element as el, graph_option as option, graph_dialog, graph_menu } from "./git_graph_widgets";
+import { workspace_button as button, workspace_element as el, workspace_option as option, workspace_dialog, workspace_menu } from "./workspace_widgets";
 import type { graph_host, graph_leaf } from "./git_graph_host";
 import { terminal_theme, observe_terminal_theme } from "./terminal_theme";
 
@@ -29,14 +29,14 @@ export function bind_terminal_workspace(host: graph_host) {
       location: ["active", "right", "down"].includes(value.location) ? value.location : defaults.location,
     }; } catch { return { ...defaults }; }
   };
-  const fail = (error: unknown) => { const dialog = graph_dialog("终端"); dialog.content.textContent = String(error); };
+  const fail = (error: unknown) => { const dialog = workspace_dialog("终端"); dialog.content.textContent = String(error); };
   const admin = (root: string) => {
     try { const launch = administrator_launch(root, host.process_api, host.path_api);
       runtime.reqnode("child_process").execFile(launch.executable, launch.args, { cwd: root, windowsHide: true, shell: false }, (error: Error | null) => { if (error) fail("管理员终端未启动（UAC 可能已取消）：" + error.message); });
     } catch (error) { fail(error); }
   };
   const settings_dialog = () => {
-    const settings = load_settings(); const dialog = graph_dialog("终端设置"); const form = el("div", "git-graph-settings-form");
+    const settings = load_settings(); const dialog = workspace_dialog("终端设置"); const form = el("div", "git-graph-settings-form");
     const profile = el("select"); for (const item of profiles) profile.append(option(item.id, item.title)); profile.value = settings.profile || profiles[0].id;
     const font = el("input"); font.type = "number"; font.min = "9"; font.max = "32"; font.value = String(settings.font_size);
     const scrollback = el("input"); scrollback.type = "number"; scrollback.min = "100"; scrollback.max = "100000"; scrollback.value = String(settings.scrollback);
@@ -70,7 +70,7 @@ export function bind_terminal_workspace(host: graph_host) {
       toolbar.append(title, select, button("＋", () => open(this.root, select.value, "active")), button("左右拆分", () => open(this.root, select.value, "right")), button("查找", () => this.find()), button("清屏", () => this.term?.clear()), button("终止", () => this.stop()), button("设置", settings_dialog));
       this.containerEl.append(toolbar, this.viewport, this.status);
       this.containerEl.onpointerdown = () => { core.app.workspace.activeLeaf = this.leaf; last_leaf = this.leaf; };
-      this.containerEl.oncontextmenu = event => graph_menu(event, [
+      this.containerEl.oncontextmenu = event => workspace_menu(event, [
         { id: "terminal_copy", title: "复制选中文本", disabled: !this.term?.hasSelection(), action: () => void host.copy(this.term?.getSelection() || "") },
         { id: "terminal_paste", title: "粘贴", action: () => void this.paste() },
         { id: "terminal_select_all", title: "全选", action: () => this.term?.selectAll() },
@@ -129,11 +129,11 @@ export function bind_terminal_workspace(host: graph_host) {
     resize() { if (!this.active || !this.viewport.clientWidth || !this.viewport.clientHeight) return; try { this.fit?.fit(); if (this.pty && this.term) this.pty.resize(this.term.cols, this.term.rows); } catch { /* 隐藏、关闭或尺寸尚未稳定时等待下次布局。 */ } }
     async paste() {
       try { const text = await navigator.clipboard.readText(); if (!this.pty) return;
-        if (/[\r\n]/u.test(text)) { const dialog = graph_dialog("粘贴多行命令"); dialog.content.append(el("pre", "", text)); dialog.footer.prepend(button("粘贴到终端", () => { this.term?.paste(text); dialog.close(); this.term?.focus(); })); }
+        if (/[\r\n]/u.test(text)) { const dialog = workspace_dialog("粘贴多行命令"); dialog.content.append(el("pre", "", text)); dialog.footer.prepend(button("粘贴到终端", () => { this.term?.paste(text); dialog.close(); this.term?.focus(); })); }
         else { this.term?.paste(text); this.term?.focus(); }
       } catch (error) { fail("读取剪贴板失败，可使用键盘粘贴：" + String(error)); }
     }
-    find() { const dialog = graph_dialog("查找终端输出"); const input = el("input"); input.setAttribute("aria-label", "查找终端输出"); dialog.content.append(input);
+    find() { const dialog = workspace_dialog("查找终端输出"); const input = el("input"); input.setAttribute("aria-label", "查找终端输出"); dialog.content.append(input);
       const search = (backwards = false) => { if (input.value) (backwards ? this.search?.findPrevious(input.value) : this.search?.findNext(input.value)); };
       input.onkeydown = event => { if (event.key === "Enter") { event.preventDefault(); search(event.shiftKey); } }; dialog.footer.prepend(button("下一个", () => search()), button("上一个", () => search(true))); input.focus(); }
     stop() { this.generation++; const pty = this.pty; this.pty = undefined; if (pty) try { pty.kill(); } catch { /* 进程可能刚退出。 */ } this.containerEl.dataset.state = "exited"; this.status.textContent = "Shell 已终止 · " + this.root; }
