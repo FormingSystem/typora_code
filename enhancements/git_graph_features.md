@@ -13,7 +13,7 @@ domains:
 
 Typora 实现独立编写，使用系统 Git 和现有社区工作区核心。上游 Git Graph 的 [许可证](https://github.com/mhutchie/vscode-git-graph/blob/v1.30.0/LICENSE) 限制衍生作品发布，本目录不复制或打包它的实现代码。Gemoji 数据使用其独立的 MIT 许可证，来源及摘要见 [数据说明](./vendor/gemoji/README.md#第1章_Gemoji短代码数据来源)。
 
-界面共用 49 个官方 Codicons SVG，采用图标 CC BY 4.0／代码 MIT 许可，保留固定来源、摘要和随部署许可。按钮、状态栏及需要折叠的分组使用 SVG，箭头按开合状态旋转；不依赖本机 VS Code、字体或扩展。来源与原始画布见 [Codicons 说明](./vendor/codicons/README.md#第1章_Codicons图标来源与使用)。
+界面共用官方 Codicons SVG，采用图标 CC BY 4.0／代码 MIT 许可，保留固定来源、摘要和随部署许可。按钮、状态栏及需要折叠的分组使用 SVG，箭头按开合状态旋转；不依赖本机 VS Code、字体或扩展。来源与原始画布见 [Codicons 说明](./vendor/codicons/README.md#第1章_Codicons图标来源与使用)。
 
 ## 1.1\_功能与入口
 
@@ -21,9 +21,9 @@ Typora 实现独立编写，使用系统 Git 和现有社区工作区核心。�
 
 源代码管理标题区高 35px，提交消息框高 30px，提交按钮与筛选框高 26px，更改分组、文件行和下方提交图标题栏均高 22px；活动栏每项为 48×48px，图标使用 24×24px Codicon 画布。文件行只有名称和右侧 16px 状态固定列，行内操作仅在悬停或聚焦时覆盖名称尾部，不为操作长期预留空列。侧栏历史采用 11px 轨道间距和 22px 行高，每行按本行仍存在的轨道计算图形宽度。提交前不另占箭头列，展开后直接显示带图标和状态的文件，不增加文件总数行；引用使用彩色圆角标签。大纲与搜索清除多余原生过滤框，大纲保留层级缩进并去除外围重复留白，见 [活动栏与侧栏布局](./README.md#1.4.5_活动栏与侧栏布局)。
 
-中央历史标签参照经典 Git Graph `1.30.0` 的信息密度与列顺序：40px 单行工具栏、30px 表头和 24px 提交行。工具栏放置分支筛选、远端分支开关和右侧图标操作；下方固定为 Graph、Description、Date、Author、Commit 五列，引用标签先于提交说明显示。选中提交后，详情直接插在该行之后，以 50%／50% 展示提交摘要和更改文件，最右侧保留 32px 操作栏；此前的独立右侧详情、底部详情和详情比例分界线已移除。
+中央历史标签参照经典 Git Graph `1.30.0` 的信息密度与列顺序：35px 起的紧凑工具栏、22px 表头和 22px 提交行，动作命中区为 22px、图标为 16px；窄组中工具栏可换行。工具栏放置分支筛选、远端分支开关和右侧图标操作；默认列顺序为 Graph、Description、Date、Author、Commit，列头菜单可独立隐藏后三列，引用标签先于提交说明显示。选中提交后，详情直接插在该行之后，以 50%／50% 展示提交摘要和更改文件，最右侧保留 30px 操作栏；可在设置中改为底部停靠。520px 以下详情摘要和文件纵向排列，文件区独立滚动。
 
-面板文案通过 639 个受类型约束的键成对提供简体中文和英文，并根据 Typora／插件语言统一切换源代码管理、Git Graph、提示、菜单、设置、确认框和错误消息。分支、提交、路径、Git 参数及用户输入作为原始数据保留，不翻译也不改变实际操作标识。
+面板文案通过受类型约束的键成对提供简体中文和英文，并根据 Typora／插件语言统一切换源代码管理、Git Graph、提示、菜单、设置、确认框和错误消息。分支、提交、路径、Git 参数及用户输入作为原始数据保留，不翻译也不改变实际操作标识。
 
 Windows／Linux 新窗口将应用图标、中文主菜单、标题与原生窗口按钮放在同一顶栏；原生命令和关闭流程保留。全局底栏根据当前活动编辑区更新状态，不在各分屏之间额外插入状态行。
 
@@ -117,13 +117,13 @@ Windows／Linux 新窗口将应用图标、中文主菜单、标题与原生窗�
 
 全文件浏览不会按已知语言隐藏文件，目录按需展开；特殊名称、最长复合后缀及解释器映射见 [全部文件与语言识别](./README.md#1.4.3_全部文件与语言识别)。工作区文本搜索与图内提交搜索是独立入口：前者使用紧凑工具栏和一个搜索框，提供文件分组、路径、Git 状态、高亮和悬停行列位置，支持单击预览、双击精确选中 Markdown 原生正文或其他文本的源码，以及大小写／全字／正则／包含排除／忽略／仅已打开与替换预览。**仅搜索源代码管理中的更改文件** 包含已暂存、工作区更改及未跟踪文件，搜索当前磁盘文本，与“仅已打开”互斥；范围过滤仍有效。替换前检查磁盘快照和未保存内容，边界见 [工作区搜索与替换](./README.md#1.4.4_工作区搜索与替换)。这些能力不意味着已经移植完整 VS Code。
 
-选中文字后 Ctrl／Cmd 加鼠标左键进入同一个 **搜索** 面板：始终列出命中文件，单击仅更新下方只读 Markdown／源码预览，保留中央位置；双击文件或片段才精确打开目标，Markdown 使用原生视图并保留阅读历史和既有标签。预览支持收放、默认 80% 且范围 50%～150% 的本地持久化内容缩放、Ctrl／Cmd 加滚轮及上下分区调整。侧预览只读取 2 MiB 以内的文本，代码围栏按语言高亮；Mermaid 使用独立 iframe 加载 Typora 随附的本地图表库，不改变中央实例配置。文档 HTML 经过净化，不执行文档脚本或加载媒体；它查找文本出现位置，不解析符号定义或 Git 提交关系，见 [搜索下方预览操作](./README.md#1.4.6_选中文字的跳转预览)。
+选中文字后 Ctrl／Cmd 加鼠标左键进入同一个 **搜索** 面板并列出命中文件；默认单击在编辑区预览打开目标，双击或 Enter 保持打开，Markdown 使用原生视图并保留阅读历史和既有标签。需要下方只读 Markdown／源码阅读预览时，在搜索视图选项中显式开启；该模式单击更新下方预览并保留中央位置。预览支持收放、默认 80% 且范围 50%～150% 的本地持久化内容缩放、Ctrl／Cmd 加滚轮及上下分区调整。侧预览只读取 2 MiB 以内的文本，代码围栏按语言高亮；Mermaid 使用独立 iframe 加载 Typora 随附的本地图表库，不改变中央实例配置。文档 HTML 经过净化，不执行文档脚本或加载媒体；它查找文本出现位置，不解析符号定义或 Git 提交关系，见 [搜索下方预览操作](./README.md#1.4.6_选中文字的跳转预览)。
 
 源码的行列、编码、换行和语言设置统一位于窗口全局底栏，随活动标签及编辑组更新，各分屏不再单独占用底栏。格式仍由各文件自己的编辑模型保存；Git Diff 根据最后聚焦的左右一侧显示只读行列、语言和换行。切换到原生 Markdown、提交图或终端会撤下旧源码状态。
 
-Git 与其他主侧栏共用 170 CSS px 最小正文宽度；继续拖到请求宽度不足 85px 收起，活动栏仍可用于恢复，完整鼠标／键盘规则见 [活动栏与侧栏布局](./README.md#1.4.5_活动栏与侧栏布局)。该宽度、源代码管理内部上下分区和中央差异双栏宽度分别调整；中央 Git Graph 的详情固定跟随所选提交行。
+Git 与其他主侧栏共用 170 CSS px 最小正文宽度；继续拖到请求宽度不足 85px 收起，活动栏仍可用于恢复，完整鼠标／键盘规则见 [活动栏与侧栏布局](./README.md#1.4.5_活动栏与侧栏布局)。该宽度、源代码管理内部上下分区和中央差异双栏宽度分别调整；中央 Git Graph 的详情默认跟随所选提交行，也可停靠底部。
 
-默认读取 200 条，每次再加载 200 条，可设置为 1～2000 条；文件历史也可继续加载。Git 读取超时 30 秒、写操作 5 分钟，命令输出与历史文件上限 16 MiB。Monaco 使用浏览器 Worker 计算差异，默认计算时限 10 秒；超过限制应缩小文件或提交范围。普通安装直接使用包含代码、中文界面、图标和 Worker 的离线 bundle。
+默认读取 300 条，每次再加载 100 条，滚动到底自动加载，可设置为 1～2000 条；文件历史也可继续加载。Git 读取超时 30 秒、写操作 5 分钟，命令输出与历史文件上限 16 MiB。Monaco 使用浏览器 Worker 计算差异，默认计算时限 10 秒；超过限制应缩小文件或提交范围。普通安装直接使用包含代码、中文界面、图标和 Worker 的离线 bundle。
 
 已有验证基线包括：真实 Git 临时仓库中的分支、标签、重命名、任意版本差异、空仓库、分页、独立 worktree、stash、暂存、提交、本地 bare 远端推拉、交互式 Rebase、冲突继续／中止／跳过、预览失效和未保存保护；Windows Typora `1.14.9` 实窗中的标签、分栏、阅读位置、菜单、预览与执行、评审和 Ctrl 比较；隐藏 Chromium 的真实鼠标／键盘输入与双栏差异。对应脚本为 `test_git_graph.mjs`、`test_git_graph_full.mjs`、`test_reading_native.ps1 -suite git` 和 `test_git_graph_interaction.cjs`。
 
@@ -131,7 +131,7 @@ Git 与其他主侧栏共用 170 CSS px 最小正文宽度；继续拖到请求�
 
 安装与恢复回归额外检查：旧的仅查看图 bundle 不能通过完整功能标记校验，重复安装保持一个入口，升级及恢复不删除阅读位置、评审、设置或头像缓存。普通安装使用随仓库提交的 bundle、插件核心与终端模块，不要求预装 Node.js、Ruby，也不包含本机固定路径。Windows 首次配置另下载并校验固定版本的 Node 私有运行时；离线安装使用官方 ZIP 缓存。详见 [安装说明](./README.md#1.1_普通用户一键配置)。
 
-扩展回归覆盖经典 Git Graph 的 40px 单行工具栏、30px 固定五列表头、24px 提交行、引用标签顺序、行内 50%／50% 详情和 32px 操作栏，同时继续覆盖 639 键中英文切换、右键勾选持久化、表头列宽、历史双栏、源代码管理精确几何、上下分区及终端生命周期。对应脚本见 [终端运行文件、安装与验证](./README.md#1.7_终端运行文件、安装与验证)。
+扩展回归当前检查 35px 工具栏、22px 表头／提交行、引用顺序、行内双栏详情与 30px 操作栏，并覆盖可选底部停靠和 360px 窄组。双语键由测试动态核对，不冻结键数。目标脚本为 `test_git_graph_interaction.cjs` 和 `test_git_graph_actions_settings_i18n.mjs`；单个目标通过不能替代完整构建、完整 UI 套件或真实 Typora 实窗验收。
 
 Git 回归覆盖主侧栏复用、活动栏顺序、中央独立差异标签、多个差异块的行对齐、C 高亮、单击暂存／取消暂存、中文子菜单键盘导航、重命名时间线、指定文件放弃更改和克隆。
 
@@ -139,4 +139,207 @@ Git 回归覆盖主侧栏复用、活动栏顺序、中央独立差异标签、�
 
 侧栏回归还检查三视图显隐持久化、提交输入区折叠、提交下拉、历史文件树、行内按钮键盘操作、编辑框原生右键，以及 220px 窄侧栏中无固定操作列、状态列在悬停前后保持对齐。`test_git_sync.mjs` 覆盖真实本地远端分歧、拉取冲突、推送拒绝与上游变化；`test_git_discard_changes.mjs` 覆盖精确文件清单、暂存区字节保留、预览失效和回收失败。Windows Typora 实窗套件另检查系统回收站及状态栏同步确认，不使用用户远端或删除用户文件。
 
-2026-09-09 已通过 `npm run build`、完整 `npm run check` 和 **25／25** 项 `npm run check:ui` 隐藏 Electron 回归。经典 Git Graph 专项核对 40px 单行工具栏、30px 的 Graph／Description／Date／Author／Commit 五列表头、24px 提交行、引用标签顺序，以及跟随所选提交行的 50%／50% 详情和 32px 操作栏；右侧详情、底部详情及其分界线均不存在。既有 Windows Typora `1.14.9` 安装检查状态为 `OK`；`workspace` 75 项、Git 66 项、重命名与 Markdown 原生精确定位各 16 项实窗结果继续作为 2026-09-06 基线保留。套件范围和本次结果见 [开发者构建与验证](./README.md#1.2_开发者构建)。
+2026-09-09 本轮完整构建、逻辑检查和28/28隐藏Electron回归通过；Windows安装及干净Git检出副本安装通过。真实Typora Git套件通过68项，覆盖源代码管理、提交拓扑、内嵌详情、分栏、查找默认行为、真实差异、精确暂存提交、回收与同步，并验证中文appLocale不被HTML的英文lang覆盖。阅读套件两次开窗共20项通过。停靠、所有配置枚举及与VS Code同DPI成对截图仍按下表逐项记录，不从这些结果外推完整一比一验收。套件范围见 [开发者构建与验证](./README.md#1.2_开发者构建)。
+
+## 1.5\_固定上游配置逐项矩阵
+
+来源：官方 `v1.30.0`，提交 `881a9e613045bacbbadf8940f6b6c5b8bd699335` 的 `package.json`。缓存工作树 HEAD 是较新的 beta，不能替代此固定 tag；本表逐项从固定 tag 提取。设置列记录当前默认值，不把字段存在视为运行验证。
+
+验证入口：**UI** = `scripts/test_git_graph_interaction.cjs`（真实 Electron 输入、几何和详情）；**Git** = `scripts/test_git_graph_full.mjs`（真实临时 Git 仓库及本地 bare 远端）；**Data** = `scripts/test_git_graph.mjs`（拓扑、过滤、分页）；**Meta** = `scripts/test_git_graph_actions_settings_i18n.mjs`（配置类型与双语元数据，只证明配置契约）。标为适配的行不宣称与 VS Code 宿主逐像素一致。
+
+| 上游设置（省略 git-graph.） | 上游默认 | Typora 配置／默认 | 实际入口与证据 | 边界 |
+| --- | --- | --- | --- | --- |
+| `commitDetailsView.autoCenter` | `true` | `auto_center` = `true` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `commitDetailsView.fileView.fileTree.compactFolders` | `true` | `compact_folders` = `true` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `commitDetailsView.fileView.type` | `"File Tree"` | `file_view` = `"tree"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `commitDetailsView.location` | `"Inline"` | `details_location` = `"inline"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `contextMenuActionsVisibility` | `{}` | `hidden_actions` = `[]` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `customBranchGlobPatterns` | `[]` | `branch_globs` = `[]` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `customEmojiShortcodeMappings` | `[]` | `emoji` = `{}` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `customPullRequestProviders` | `[]` | `pr_providers` = `[]` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已接命名的自定义提供方列表；`test_git_graph_pull_request.cjs` 真实对话框与 `test_git_graph.mjs` URL／配置回归通过 |
+| `date.format` | `"Date & Time"` | `date_format` = `"local"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `date.type` | `"Author Date"` | `date_type` = `"author"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `defaultColumnVisibility` | `{"Date":true,"Author":true,"Commit":true}` | `show_date,show_author,show_hash` = `{"show_date":true,"show_author":true,"show_hash":true}` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `dialog.addTag.pushToRemote` | `false` | `tag_add.push` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.addTag.type` | `"Annotated"` | `tag_add.tag_type` = `"annotated"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.applyStash.reinstateIndex` | `false` | `stash_apply.index` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.cherryPick.noCommit` | `false` | `cherry_pick.no_commit` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.cherryPick.recordOrigin` | `false` | `cherry_pick.record_origin` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.createBranch.checkOut` | `false` | `branch_create.checkout` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.deleteBranch.forceDelete` | `false` | `branch_delete.force` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.fetchIntoLocalBranch.forceFetch` | `false` | `branch_fetch.force` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.fetchRemote.prune` | `false` | `fetch.prune` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.fetchRemote.pruneTags` | `false` | `fetch.prune_tags` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.general.referenceInputSpaceSubstitution` | `"None"` | `reference_space` = `"none"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `dialog.merge.noCommit` | `false` | `merge.no_commit` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.merge.noFastForward` | `true` | `merge.mode` = `"no-ff"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.merge.squashCommits` | `false` | `merge.mode` = `"no-ff"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.merge.squashMessageFormat` | `"Default"` | `merge.squash_message` = `"default"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.popStash.reinstateIndex` | `false` | `stash_pop.index` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.pullBranch.noFastForward` | `false` | `pull.mode` = `"merge"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.pullBranch.squashCommits` | `false` | `pull.mode` = `"merge"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.pullBranch.squashMessageFormat` | `"Default"` | `pull.squash_message` = `"default"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.rebase.ignoreDate` | `true` | `rebase.ignore_date` = `true` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.rebase.launchInteractiveRebase` | `false` | `rebase.interactive` = `false` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.resetCurrentBranchToCommit.mode` | `"Mixed"` | `reset.mode` = `"mixed"` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.resetUncommittedChanges.mode` | `"Mixed"` | `dialog_defaults.reset_changes.mode`（缺省mixed） | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `dialog.stashUncommittedChanges.includeUntracked` | `true` | `stash_create.untracked` = `true` | 对应右键动作对话框；Git + Meta | 已映射；按证据列区分验证层 |
+| `enhancedAccessibility` | `false` | 无独立设置；状态字母固定显示 | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 适配：始终显示文字状态，无须开启 |
+| `fileEncoding` | `"utf8"` | `encoding` = `"utf-8"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 适配：TextDecoder 支持的编码集合 |
+| `graph.colours` | `["#0085d9","#d9008f","#00d90a","#d98500","#a300d9","#ff0000","#00d9cc","#e138e8","#85d900","#dc5b23","#6f24d6","#ffcc00"]` | `colors` = `["#0085d9","#d9008f","#00d90a","#d98500","#a300d9","#ff0000","#00d9cc","#e138e8","#85d900","#dc5b23","#6f24d6","#ffcc00"]` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `graph.style` | `"rounded"` | `graph_style` = `"curved"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `graph.uncommittedChanges` | `"Open Circle at the Uncommitted Changes"` | `uncommitted_style` = `"connected"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `integratedTerminalShell` | `""` | `terminal_shell` = `""` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `keyboardShortcut.find` | `"CTRL/CMD + F"` | `shortcuts.find` = `"Mod+f"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `keyboardShortcut.refresh` | `"CTRL/CMD + R"` | `shortcuts.refresh` = `"Mod+r"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `keyboardShortcut.scrollToHead` | `"CTRL/CMD + H"` | `shortcuts.head` = `"Mod+h"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `keyboardShortcut.scrollToStash` | `"CTRL/CMD + S"` | `shortcuts.stash_next` = `"Mod+s"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `markdown` | `true` | `inline_markdown` = `true` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `maxDepthOfRepoSearch` | `0` | `search_depth` = `0` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `openNewTabEditorGroup` | `"Active"` | `new_tab_group` = `"active"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `openToTheRepoOfTheActiveTextEditorDocument` | `false` | `open_active_repo` = `true` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 适配：默认活动文件仓库，减少手工选仓 |
+| `referenceLabels.alignment` | `"Normal"` | `label_alignment` = `"normal"` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `referenceLabels.combineLocalAndRemoteBranchLabels` | `true` | `combine_refs` = `true` | 设置／列头菜单／图；UI + Meta | 已映射；按证据列区分验证层 |
+| `repository.commits.fetchAvatars` | `false` | `fetch_avatars` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.initialLoad` | `300` | `initial_count` = `300` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.loadMore` | `100` | `page_count` = `100` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.loadMoreAutomatically` | `true` | `auto_load` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.mute.commitsThatAreNotAncestorsOfHead` | `false` | `mute_unreachable` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.mute.mergeCommits` | `true` | `mute_merges` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.order` | `"date"` | `order` = `"date"` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.commits.showSignatureStatus` | `false` | `show_signature` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.fetchAndPrune` | `false` | `fetch_prune` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.fetchAndPruneTags` | `false` | `fetch_prune_tags` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.includeCommitsMentionedByReflogs` | `false` | `include_reflogs` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.onLoad.scrollToHead` | `false` | `on_load_head` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.onLoad.showCheckedOutBranch` | `false` | `on_load_branch` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.onLoad.showSpecificBranches` | `[]` | `on_load_branches` = `[]` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.onlyFollowFirstParent` | `false` | `first_parent` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showCommitsOnlyReferencedByTags` | `true` | `tag_only_commits` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showRemoteBranches` | `true` | `show_remotes` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showRemoteHeads` | `true` | `show_remote_heads` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showStashes` | `true` | `show_stashes` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showTags` | `true` | `show_tags` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showUncommittedChanges` | `true` | `show_changes` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.showUntrackedFiles` | `true` | `show_untracked` = `true` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.sign.commits` | `false` | `sign_commits` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.sign.tags` | `false` | `sign_tags` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repository.useMailmap` | `false` | `use_mailmap` = `false` | 设置／图；Meta；运行覆盖需按1.6及具体测试场景核对 | 已映射；按证据列区分验证层 |
+| `repositoryDropdownOrder` | `"Workspace Full Path"` | `repository_order` = `"path"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `retainContextWhenHidden` | `true` | `retain_context` = `true` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `showStatusBarItem` | `true` | `show_status_button` = `true` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已映射；按证据列区分验证层 |
+| `sourceCodeProviderIntegrationLocation` | `"Inline"` | `scm_integration` = `"inline"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 已实现：SCM标题行内按钮／更多菜单；UI验证位置切换 |
+| `tabIconColourTheme` | `"colour"` | `tab_icon_theme` = `"colour"` | 设置／仓库菜单；Meta，宿主场景见功能矩阵 | 标签专属colour/grey，不修改活动栏配色 |
+
+### 1.5.1\_上游已弃用名称
+
+以下是同一设置的旧名称，不是新增能力；Typora 使用上表唯一配置，不引入旧名称转发。
+
+| 上游旧名称 | 上游替代说明 |
+| --- | --- |
+| `git-graph.autoCenterCommitDetailsView` | Depreciated: This setting has been renamed to git-graph.commitDetailsView.autoCenter |
+| `git-graph.combineLocalAndRemoteBranchLabels` | Depreciated: This setting has been renamed to git-graph.referenceLabels.combineLocalAndRemoteBranchLabels |
+| `git-graph.commitDetailsViewFileTreeCompactFolders` | Depreciated: This setting has been renamed to git-graph.commitDetailsView.fileView.fileTree.compactFolders |
+| `git-graph.commitDetailsViewLocation` | Depreciated: This setting has been renamed to git-graph.commitDetailsView.location |
+| `git-graph.commitOrdering` | Depreciated: This setting has been renamed to git-graph.repository.commits.order |
+| `git-graph.dateFormat` | Depreciated: This setting has been renamed to git-graph.date.format |
+| `git-graph.dateType` | Depreciated: This setting has been renamed to git-graph.date.type |
+| `git-graph.defaultFileViewType` | Depreciated: This setting has been renamed to git-graph.commitDetailsView.fileView.type |
+| `git-graph.fetchAndPrune` | Depreciated: This setting has been renamed to git-graph.repository.fetchAndPrune |
+| `git-graph.fetchAvatars` | Depreciated: This setting has been renamed to git-graph.repository.commits.fetchAvatars |
+| `git-graph.graphColours` | Depreciated: This setting has been renamed to git-graph.graph.colours |
+| `git-graph.graphStyle` | Depreciated: This setting has been renamed to git-graph.graph.style |
+| `git-graph.includeCommitsMentionedByReflogs` | Depreciated: This setting has been renamed to git-graph.repository.includeCommitsMentionedByReflogs |
+| `git-graph.initialLoadCommits` | Depreciated: This setting has been renamed to git-graph.repository.commits.initialLoad |
+| `git-graph.loadMoreCommits` | Depreciated: This setting has been renamed to git-graph.repository.commits.loadMore |
+| `git-graph.loadMoreCommitsAutomatically` | Depreciated: This setting has been renamed to git-graph.repository.commits.loadMoreAutomatically |
+| `git-graph.muteCommitsThatAreNotAncestorsOfHead` | Depreciated: This setting has been renamed to git-graph.repository.commits.mute.commitsThatAreNotAncestorsOfHead |
+| `git-graph.muteMergeCommits` | Depreciated: This setting has been renamed to git-graph.repository.commits.mute.mergeCommits |
+| `git-graph.onlyFollowFirstParent` | Depreciated: This setting has been renamed to git-graph.repository.onlyFollowFirstParent |
+| `git-graph.openDiffTabLocation` | Depreciated: This setting has been renamed to git-graph.openNewTabEditorGroup |
+| `git-graph.openRepoToHead` | Depreciated: This setting has been renamed to git-graph.repository.onLoad.scrollToHead |
+| `git-graph.referenceLabelAlignment` | Depreciated: This setting has been renamed to git-graph.referenceLabels.alignment |
+| `git-graph.showCommitsOnlyReferencedByTags` | Depreciated: This setting has been renamed to git-graph.repository.showCommitsOnlyReferencedByTags |
+| `git-graph.showCurrentBranchByDefault` | Depreciated: This setting has been renamed to git-graph.repository.onLoad.showCheckedOutBranch |
+| `git-graph.showSignatureStatus` | Depreciated: This setting has been renamed to git-graph.repository.commits.showSignatureStatus |
+| `git-graph.showTags` | Depreciated: This setting has been renamed to git-graph.repository.showTags |
+| `git-graph.showUncommittedChanges` | Depreciated: This setting has been renamed to git-graph.repository.showUncommittedChanges |
+| `git-graph.showUntrackedFiles` | Depreciated: This setting has been renamed to git-graph.repository.showUntrackedFiles |
+| `git-graph.useMailmap` | Depreciated: This setting has been renamed to git-graph.repository.useMailmap |
+
+## 1.6\_命令与功能布局矩阵
+
+| 上游命令 | Typora 入口 | 实现与验证边界 |
+| --- | --- | --- |
+| `git-graph.view` | 状态栏、SCM 提交图标题、命令面板；UI打开中央历史 | View Git Graph (git log) |
+| `git-graph.addGitRepository` | 仓库管理 → 添加；UI验证单仓隐藏/多仓选择 | Add Git Repository... |
+| `git-graph.clearAvatarCache` | 操作／命令面板 → 清除头像缓存；宿主生命周期回归 | Clear Avatar Cache |
+| `git-graph.endAllWorkspaceCodeReviews` | 评审管理 → 全部结束；Git评审存储与90天过期 | End All Code Reviews in Workspace |
+| `git-graph.endSpecificWorkspaceCodeReview` | 评审管理 → 指定评审结束；Git存储 | End a specific Code Review in Workspace... |
+| `git-graph.fetch` | 顶部Fetch、操作菜单；Git本地bare远端 | Fetch from Remote(s) |
+| `git-graph.removeGitRepository` | 仓库管理 → 移除记录；UI多仓入口 | Remove Git Repository... |
+| `git-graph.resumeWorkspaceCodeReview` | 评审管理 → 继续；Git存储、UI打开详情 | Resume a specific Code Review in Workspace... |
+| `git-graph.version` | 操作／命令面板 → 版本信息；系统Git输出 | Get Version Information |
+| `git-graph.openFile` | 变更文件右键 → 打开文件；UI历史文件到宿主编辑器 | Open File |
+
+### 1.6.1\_可见布局与交互逐项核对
+
+下表区分上游 Git Graph 与 VS Code 工作台宿主。35/22/16px 是本轮工作台统一尺寸，不把上游扩展的 40/30/24px 旧尺寸称作已逐像素复制。功能入口的归属和排列先保持一致，宿主差异单列记录。
+
+| 区域／功能 | 上游行为及布局 | Typora 当前行为 | 实际回归 |
+| --- | --- | --- | --- |
+| 顶部仓库 | 多仓库 selector，单仓库省略 | 首次加载即隐藏；多仓刷新显示；分支、远端开关、右侧动作 | UI 单仓／多仓状态与宽度 |
+| 顶部动作 | Find、仓库设置、Fetch、Refresh | 相同区域，增加集成终端入口；22px 命中框／16px SVG | UI 几何与可访问名称 |
+| 历史五列 | Graph、Description、Date、Author、Commit；后三列可隐藏 | 默认同顺序；列头菜单恢复显隐并保留缩放 | UI 真鼠标菜单切换及显示计算 |
+| 引用标签 | Normal；分支左标签右；分支紧靠图标签右 | 三种设置分别移动真实标签 DOM，非仅修改字段 | UI 图列落点；分支／标签数据由 Data 验证 |
+| 未提交节点 | 工作树空心圆／HEAD空心圆，后者虚线相连 | 两种模式；与HEAD连接保持拓扑，默认工作树空心圆 | Data 拓扑；UI 工作树选中与SVG |
+| 提交详情 | 点击打开，再次点击关闭；Ctrl比较；行内或底部 | 鼠标及Enter/Space共享转换；关闭清理版本和文件状态；两种落点 | UI 重复激活、异步延迟、停靠与360px布局 |
+| Changed Files | 树／列表、紧凑目录、状态标识、打开差异和文件 | 文件／目录22px行、16px图标，无重复外margin；局部滚动 | UI 真实文件跳转与嵌套目录 |
+| 任意比较 | 两提交、提交与工作树、根提交与空树 | Ctrl/Meta鼠标及键盘比较；首提交EMPTY | UI + Git |
+| 评审 | 单提交／区间、跨会话、90天过期 | localStorage按仓库和版本对保存；打开文件记已读 | Git存储过期；UI详情操作 |
+| 查找 | 字段搜索、大小写／正则、输入更新、高亮、可选自动开详情 | 三开关默认false与上游一致；输入同步匹配，Enter／Shift+Enter切换结果；匹配位置独立于详情 | UI实际输入、大小写、合法／非法及零长度正则、高亮、循环、详情开关与延迟Git响应失效 |
+| 日期 | 本地日期时间、仅日期、ISO日期时间、ISO日期、相对时间 | 五种；相对时间按秒／分／小时／天表达 | UI真实格式输出；Meta枚举 |
+| Git操作对话框 | 对象右键、可配置初始值、Enter主动作 | 中文字段；先预览具体命令再执行；多行消息Enter换行 | UI无变更预览、Git执行／过期拒绝 |
+| 分支 | 创建／切换／删除／Fetch／Merge／Pull／Push／Rebase／重命名／Reset | 本地branch菜单补Fetch与Pull；各种命令按目标填充 | Git真实ref、bare远端、rebase；UI入口 |
+| 标签 | Annotated默认；Lightweight；创建后可推送 | 显式类型和push；复合预览显示两条命令，第二步失败说明第一步已完成 | Git对象类型及bare远端ref |
+| 压缩合并 | Merge/Pull squash、Default／Git SQUASH_MSG、可延迟提交 | 成功有暂存差异才提交；提交前复核草稿与index；首步后失败报告部分成功并保留暂存成果 | Git单父提交、--no-commit、后续检查失败及外部stage保留 |
+| 引用输入 | 不替换／用连字符／下划线替换空格 | 显式设置，替换后仍执行check-ref-format | Git实际创建feature-space |
+| Stash | 创建含未跟踪、apply/pop恢复index、drop、分支 | 对象右键；默认include-untracked对齐上游 | Git真实stash生命周期 |
+| 远端仓库 | 查看、添加、编辑、删除、fetch/prune、配置导出 | 操作菜单与共享配置；Git/终端路径不从共享文件覆盖 | Git本地远端；UI仓库管理 |
+| 语言和图标 | VS Code宿主语言与主题 | Typora语言；双语键；官方Codicons数据，源码不复制上游 | Meta双语；UI真实SVG |
+| SCM入口 | 标题行内／More Actions | `scm_integration`控制标题图按钮，更多菜单保留入口 | UI隐藏行内后菜单仍可达 |
+| 生命周期 | 宿主负责隐藏／关闭／卸载 | 隐藏取消读查询；永久dispose清监听/observer/节点；写入中拒绝卸载 | UI阻止写入时销毁、幂等销毁和禁止重开 |
+
+### 1.6.2\_默认适配与证明边界
+
+首次数量300、增量100、自动加载、date排序、淡化merge、合并同名引用、显示remote HEAD、mailmap默认关闭、搜索深度0、仓库按路径排序已对齐固定上游。`open_active_repo=true`保留本产品默认：打开活动文档所属仓库，避免用户每次切换文件后重新选仓。无障碍状态字母始终显示。TextDecoder编码集合、Typora文档和侧栏宿主、35/22/16px统一密度属于明确适配。
+
+上游废弃配置名仅列为索引，不为它们建立第二份状态或旧参数转发。自定义PR提供方列表与标签图标配色已经接入，`test_git_graph_pull_request.cjs` 与 `test_git_graph.mjs` 已验证提供方切换、自建服务、编码和存储；`pr_providers`维护命名提供方，`pr_config`保存仓库选择。GitHub/GitLab/Bitbucket URL生成可使用本地纯函数验证，用户账户认证及网络推送不能用本地bare回归替代。
+
+本表为本次固定版本完整配置与命令清点，不以条目数量作为全功能完成证明。每次改动后应重跑相关实际行为回归，再更新证据；保留前述宿主差异，不能宣称Typora已经具备完整VS Code扩展宿主。
+
+### 1.6.3\_工作台菜单与快速入口
+
+以下属于承载 Git Graph 的工作台排版，参考 VS Code 的入口职责；不是 Git Graph 扩展自带配置。
+
+| 功能／排版 | Typora Code 入口与适配 | 实际行为证据 |
+| --- | --- | --- |
+| 顶级菜单 | 文件、编辑、选择、视图、转到、终端、帮助；Markdown 段落／格式位于编辑子菜单，主题位于视图 | `test_workspace_titlebar.cjs` 菜单顺序、子菜单内容、原生命令调用 |
+| 文本选择与定位 | 选择支持原生文本或 Monaco 全选／当前行／扩大范围；转到支持历史前后、文首／文末 | `test_workspace_file_editing.cjs` 实际选区和光标；titlebar 历史事件 |
+| 命令面板 | `Ctrl+Shift+P` 或快速输入 `>`；实时读取社区核心 `CommandManager.commandMap`，尊重 `showInCommandPanel` 和用户快捷键，经 `run(id)` 执行 | titlebar 动态注册表、隐藏命令、注销后消失、真实路由断言 |
+| 文件与行定位 | `Ctrl+P` 文件名搜索；`Ctrl+G` 或 `:行号:列号` 定位活动文件；不复制正文到另一文档 | titlebar 隐藏文件及复合扩展名；file editing 真实 Monaco 定位且无修改 |
+| 符号与调试边界 | `@` 提示使用大纲，尚无跨原生 Markdown／Monaco 的统一符号提供方；不展示无实现的运行／调试菜单 | 明确界面提示，不把静态条目当作能力 |
+| 终端菜单 | 调用已注册的默认／管理员终端、编辑区／Panel 转移和设置命令 | titlebar 命令路由；终端专项真实会话验证 |
+| 右侧布局按钮 | 窗口控制前放置主侧栏与底部 Panel；22px 按钮、16px 官方布局图标，调用 sidebar.toggle／terminal_toggle_panel | titlebar 几何、路由和卸载清理；terminal Panel 保持真实会话 |
+
+### 1.6.4\_收尾审查的未完成项与证据缺口
+
+下列条目明确限定“一比一”的完成范围；配置名称清点齐全不等于其全部值、入口和行为均已对齐。
+
+| 优先级 | 未完成项／差异 | 已确认实现边界 | 应补行为证明 |
+| --- | --- | --- | --- |
+| 已完成 | Graph Find 控件与行为 | 固定上游 `web/findWidget.ts` 与 `src/extensionState.ts` 为依据；`git_graph_find.ts`实现大小写、正则、错误提示、即时匹配、高亮与详情开关；三个开关默认false。同步匹配替代上游200ms延迟，详情仍使用epoch隔离 | `test_git_graph_interaction.cjs` 已执行真实输入、零长度／非法模式、循环与开关、逆序释放真实Git diff响应；截图 `graph_find_regex.png` |
+| P2 | 设置页的操作排版 | 当前 `settings_dialog` 逐字段生成一个表单；对象配置为 JSON 文本框，包括快捷键、对话框默认值、自定义glob等。字段可配置，但不是 VS Code 设置页分组／检索／控件的一比一移植 | 常见配置无须编辑 JSON 的实际操作；非法输入能定位字段，不只展示通用错误 |
+| P2 | 部分配置的运行回归不足 | 配置矩阵中的 Meta 仅验证类型、默认值、双语标签；没有逐项证明自动加载、每种加载筛选、全部快捷键覆盖与替换、头像和签名显示等 | 每项真实加载／重开／键盘行为；签名显示不能以标签签名Git测试代替，联网头像不能以默认false代替 |
+| P2 | 高级详情／导航的上游视觉差异 | 当前固定35／22／16px密度属于工作台适配；上游扩展尺寸并非逐像素相同。两种详情落点已通过本地Electron；本轮Typora实窗已验证内嵌详情与窄分栏，停靠实窗及成对截图仍待补充 | 固定上游与本地相同状态的成对截图，以及本轮实窗交互证据 |
+| P3 | 声明与测试粒度 | `Git + Meta` 或 `UI + Meta` 是相关套件入口，并不保证本行所有枚举组合、全部宿主路径均被单独执行 | 继续为新增或更改的真实行为建立精确断言；避免用字段／源码字符串存在代替测试 |
