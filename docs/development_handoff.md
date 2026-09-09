@@ -2,11 +2,17 @@
 
 记录日期：2026-09-09。本文记录迁出后的任务边界与待办，不是完成声明。
 
-## 当前方向与优先级
+## 当前产品与部署状态
 
-用户已明确要求先将 Typora 实现迁出，再在本独立仓库继续开发；后续不再与原知识库建立代码同步关系。迁入时包含未提交的工作台修复、社区插件迁移及已有测试修改，保留在 `work/plugin-and-workbench` 分支的工作区，应保留并审查，不得恢复到旧快照。
+Typora Code 已独立维护，工作区和所有构建、运行、测试入口均收敛在本仓库。普通文件夹可以直接使用，不依赖原知识库目录、元数据或根脚本，也没有跨仓代码同步约定。独立迁移时保留的改动已持续整改；当前差量必须按实际内容审查，不得恢复到迁入快照。
 
-下一阶段需主动统一所有同类面板，以用户提供的 VS Code 参考图为视觉验收基线。同时对 Git Graph 上游做全功能扫描，逐项实现、核对默认配置并建立回归矩阵。UI 统一、插件迁移和全功能验收均未完成；旧文档中的“已实现”也需要逐项核验。
+部署统一采用 **Typora Community Plugin 2.10.15 官方 loader/core + `enhancements/dist/community_plugin`**。插件包包含 `main.js`、`manifest.json`、`style.css`，三项摘要由构建写入 `SHA256SUMS`；Windows与Bash安装、检测及恢复共用同一资产定义。旧direct bundle不再是有效发布入口，部署检查拒绝旧分发文件残留。安装和恢复仅合并本插件设置，保留其他插件与用户后续设置；共享核心是否保留按其他插件实际存在情况判断。
+
+Windows隔离安装回归已经覆盖安装、重复安装、恢复、再次安装、摘要错误预检和失败回退。最终基线已通过build、完整check和28/28隐藏UI；Git以core.autocrlf=true检出的干净副本也通过摘要校验及Windows安装回归。Bash文件事务与模拟Linux分支已有目标验证；原生Linux安装环境尚无实机证据，不能把Windows上的Bash模拟写成Linux验收。
+
+本轮真实Typora阅读套件两次开窗共20项通过，Git套件68项通过；确认内嵌大纲、阅读位置恢复、拓扑、分栏详情、真实差异及临时仓库提交／回收／同步。Git Graph语言已补读取宿主appLocale，七种中英文优先级DOM场景通过。
+
+UI继续以用户VS Code参考图与固定上游源码逐项核对。当前实现和明确缺口见[工作台对照矩阵](workbench_parity.md)与[Git Graph功能矩阵](../enhancements/git_graph_features.md)。这些矩阵区分代码已实现、目标测试通过与尚待集成验证，不以历史实窗记录替代本轮证据。
 
 ## 八类 UI 验收要求
 
@@ -19,28 +25,22 @@
 7. **列表状态与对比度**：明暗主题分别给出稳定 hover、inactive selection、active selection、focus border。Explorer 当前文件、搜索结果、大纲、SCM 文件／历史和 Graph 统一语义；选中行文字、路径、图标均易读，不能被正文主题的过浅 active-file 背景削弱。不改变 Markdown 正文主题。
 8. **总体视觉一致性**：同一水平线、同一密度、同一图标画布及状态语义，无无效空带和任意外边距；窄窗口不溢出。以截图和实际 DOM 几何共同验证，不能仅通过 CSS 字符串断言完成验收。
 
-## 已迁入的半成品与明确缺口
+## 当前实现与尚待验证的边界
 
-工作台几何代理仅写入了 `enhancements/src/workspace_chrome.css` 的共享尺寸／状态色／面板覆盖，以及 `workspace_explorer.css` 的 35/22px 几何；过程中发生默认编码问题，迁入时已转回 UTF-8。上述变更未运行新回归。Explorer TypeScript 虚拟滚动步长仍需核对，暗色调色板需要实际主题探测接通。窗口按钮 SVG、原生盒模型重置、其余面板整理和生命周期修复尚未由该代理完成。
+工作台已统一35px标题栏、46×35px窗口按钮、48px活动项、22px树行和状态栏，并按明暗主题提供hover、inactive/active selection及focus状态。标题菜单采用文件、编辑、选择、视图、转到、终端和帮助；Markdown段落与格式收进编辑子菜单。源码编辑动作路由Monaco；Quick Open增加命令和行列模式，标题右侧提供主侧栏与底部Panel开关。新增菜单、布局按钮及源码菜单已通过真实输入和几何回归。
 
-Graph 代理已写入重复提交切换、单仓库 selector 隐藏及部分共享几何／状态 token；SCM 的 pane padding、行高、节标题与动作尺寸也已绑定共享 token。对应交互测试尚未修改，仍保留 40px 工具栏、30px 表头、24px 行高等旧断言；标题栏测试另有上一轮新增草稿。迁出时均暂停，需检查实际差量并补回归，不能直接标记完成。
+Explorer已接通行内新建文件/目录、重命名、文件剪贴板、多选、删除确认与回收站、紧凑单目录链。单击请求预览打开，双击和Enter保持打开；顶部Open Editors区域最多显示9行，提供按组列表、活动叶、关闭与dirty状态；底部嵌入原生Markdown大纲，默认折叠；视图菜单与命令面板统一路由正式大纲命令并展开。终端默认位于独立底部Panel，可调整高度、隐藏、往返编辑区并保留会话。Explorer文件操作、区域折叠和preview调用契约已有目标PASS；完整插件目标进一步通过preview不降级、dirty保持打开、Open Editors双组定位和非活动关闭、Outline恢复，以及状态提示零占位和错误输入/取消后编辑行可见。搜索默认单击在编辑区预览打开，双击或Enter保持打开；下方阅读预览由“搜索视图选项”显式开启，最新files_search目标已通过。完整UI结果为28/28通过。
 
-当前共享 token 为 `--linux-note-shell-header-height`、`--linux-note-shell-row-height`、`--linux-note-shell-action-size`、`--linux-note-shell-icon-size`、`--linux-note-shell-inset-small`、`--linux-note-shell-inset`、`--linux-note-shell-inset-large`；状态 token 包括 hover、selection、inactive-selection 的 background/foreground 与 focus。名称是迁入源码现状，不代表与旧仓库的依赖。若独立产品命名整理改变这些名称，所有引用与测试应一并收敛，不保留双套别名。
+插件与阅读模块已补幂等dispose，移除持有的监听、observer、timer和DOM，恢复自己包装的宿主函数，并阻止取消后的导航与位置恢复继续回写。阅读生命周期与minimap目标回归已通过；完整插件启停/重载、草稿保护、加载取消及构造失败回退均通过。
 
-生命周期初查：chrome、activity、outline、footer、sidebar_sash 已有 dispose 返回；titlebar、titlebar_menu、quick_open、tab actions 仍需补齐或重新核验。插件卸载必须取消全局监听器、MutationObserver、定时／动画任务，移除自有节点、样式与标记；重新加载不能重复安装。父级工作区需统一收集和调用各绑定的 dispose。
+明确功能边界仍包括系统文件剪贴板、同目录复制自动命名、多级新建名称、压缩目录每段独立操作，以及完整VSCode扩展/调试/任务宿主。Node文件路径接口不提供跨进程目录句柄锁；回收站批次无法原子撤销，复制回退遇到其他进程新建内容会保留并报告。跨设备移动明确失败，不隐式复制后永久删除。
 
-## 社区插件迁移剩余点
 
-目标为单一官方 Typora Community Plugin 加载方式，上游研究版本为 2.10.15。已迁入 `enhancements/src/community_plugin.ts`、`community_plugin/` 资源、官方 loader/core 缓存，以及部分构建、Windows 安装／恢复和 fixture 改动。
+## 社区插件验证入口
 
-继续审查以下闭环；文件可能在迁入整理中已有部分修改，状态以当前差量和新测试为准：
+根 `configure`／`check_configuration`／`restore_configuration` 的Windows与Bash版本均使用社区插件目录。`enhancements/scripts/build.mjs`、`check.mjs`、`check_deployment.mjs`与安装fixture已收敛到 `dist/community_plugin/`；当前只读部署检查通过14个入口文件、7个固定核心资产与三文件插件摘要。迁移识别旧安装标记只用于清除旧注入，不构成第二正式入口。
 
-- 根配置／检查脚本与 Windows、Linux 安装恢复是否统一检测社区插件目录和产物。
-- `enhancements/scripts/build.mjs`、`check.mjs`、`check_deployment.mjs`、`test_install_windows.ps1` 是否全部收敛到 `dist/community_plugin/`。
-- tracked 旧 `dist/typora_enhancements.js`、直接 script 注入标记和旧安装检测仍需清理，不能保留双入口或两套正式运行路径。
-- Windows、Linux 均验证安装、重复安装、检查、卸载和恢复；不得仅由一个平台推断另一个平台通过。
-- 插件 activate/deactivate 需验证完整销毁与再次加载；说明文档同步删除“bundle 直接加载 core”等过时表述。
-- 安装不覆盖用户无关插件、配置或主题；恢复流程应准确归还自身改动。
+最终构建和干净Git检出副本均已执行 `test_install_windows.ps1` 的独立临时fixture，通过安装、重复安装、检查、恢复、再次安装和故障回退。`test_workspace_install.sh`承担Bash文件事务；原生Linux环境验证仍待补充。安装回归不操作用户现有Typora目录。完整插件activate/deactivate与卸载重载由 `test_plugin_lifecycle.cjs` 等目标验证，已纳入本轮28/28通过记录。
 
 ## Git Graph 全功能扫描与回归矩阵
 
@@ -67,4 +67,10 @@ Graph 代理已写入重复提交切换、单仓库 selector 隐藏及部分共�
 
 先检查当前差量和测试草稿，再补齐目标回归。重点入口为 `test_workspace_titlebar.cjs`、`test_scm_vscode_geometry.cjs`、`test_git_graph_interaction.cjs`、`test_workspace_files_search.cjs`、`test_workspace_outline.cjs`、`test_workspace_tabs.cjs` 和 `test_workspace_footer.cjs`，均位于 `enhancements/scripts/`。
 
-完成目标测试和截图核验后，在 `enhancements/` 使用已有 `npm run build`、`npm run check`、`npm run check:ui`。旧会话曾通过的标题栏、Graph、SCM、搜索、大纲、标签与底栏测试是修复前基线，不是本次新证据。所有未执行或受阻项如实保留。共享产物构建应串行安排，最后再按实际独立结果审查与提交；未经授权不 push。
+完成目标测试和截图核验后，在 `enhancements/` 使用已有 `npm run build`、`npm run check`、`npm run check:ui`。旧会话测试仅作为历史基线；本轮目标测试与最终全量结果须分别记录。所有未执行或受阻项如实保留。共享产物构建应串行安排，最后再按实际独立结果审查与提交；未经授权不 push。
+
+## 本轮分发与继续整改
+
+Windows本机已通过正式安装入口更新，`check_configuration_windows.ps1`返回 `OK`。安装先备份后写入，不强制关闭用户窗口。正式入口是名为Typora Code的社区插件；发布包与官方loader按原始字节保存，manifest/style统一LF，Codicons元数据先规范LF再计算摘要，避免Git换行转换导致新克隆安装失败。
+
+继续整改按两个矩阵的缺口执行，重点包括Git Graph设置页分组／检索与高级对象控件、未覆盖配置的逐项真实运行，以及工作台菜单／固定标签／更多文件操作。上游宿主和平台能力差异保留明确状态；不能把本轮回归通过写成“一比一全部完成”。原生Linux环境仍待验证。Git多步写操作会报告已完成步骤并保留数据，插件锁不提供跨外部Git进程的原子事务。
