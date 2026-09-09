@@ -1,0 +1,364 @@
+html[data-linux-note-workspace-chrome="ready"] {
+  /*
+   * The Markdown theme continues to own #write.  These semantic colours only
+   * describe the workbench chrome around it.  Prefer VS Code tokens when a
+   * theme exposes them, then derive a quiet hierarchy from Typora's existing
+   * theme colours instead of assuming a light or dark palette.
+   */
+  --linux-note-shell-editor-background:var(--vscode-editor-background,var(--bg-color,Canvas));
+  --linux-note-shell-foreground:var(--vscode-foreground,var(--text-color,CanvasText));
+  --linux-note-shell-muted-foreground:var(--vscode-descriptionForeground,var(--control-text-color,var(--blur-text-color,color-mix(in srgb,var(--linux-note-shell-foreground) 68%,transparent))));
+  --linux-note-shell-border:var(--vscode-panel-border,var(--window-border-color,color-mix(in srgb,var(--linux-note-shell-foreground) 16%,transparent)));
+  --linux-note-shell-sidebar-border:var(--vscode-sideBar-border,var(--linux-note-shell-border));
+  --linux-note-shell-tab-border:var(--vscode-tab-border,var(--vscode-editorGroupHeader-tabsBorder,var(--linux-note-shell-border)));
+  --linux-note-shell-titlebar-background:var(--vscode-titleBar-activeBackground,color-mix(in srgb,var(--linux-note-shell-editor-background) 95%,var(--linux-note-shell-foreground) 5%));
+  --linux-note-shell-titlebar-foreground:var(--vscode-titleBar-activeForeground,var(--linux-note-shell-foreground));
+  --linux-note-shell-activity-background:var(--vscode-activityBar-background,color-mix(in srgb,var(--linux-note-shell-editor-background) 94%,var(--linux-note-shell-foreground) 6%));
+  --linux-note-shell-activity-foreground:var(--vscode-activityBar-inactiveForeground,var(--linux-note-shell-muted-foreground));
+  --linux-note-shell-activity-active-foreground:var(--vscode-activityBar-foreground,var(--linux-note-shell-foreground));
+  --linux-note-shell-sidebar-background:var(--vscode-sideBar-background,color-mix(in srgb,var(--side-bar-bg-color,var(--linux-note-shell-editor-background)) 97%,var(--linux-note-shell-foreground) 3%));
+  --linux-note-shell-sidebar-foreground:var(--vscode-sideBar-foreground,var(--linux-note-shell-foreground));
+  --linux-note-shell-tabs-background:var(--vscode-editorGroupHeader-tabsBackground,color-mix(in srgb,var(--linux-note-shell-editor-background) 95%,var(--linux-note-shell-foreground) 5%));
+  --linux-note-shell-tab-inactive-background:var(--vscode-tab-inactiveBackground,var(--linux-note-shell-tabs-background));
+  --linux-note-shell-tab-inactive-foreground:var(--vscode-tab-inactiveForeground,var(--linux-note-shell-muted-foreground));
+  --linux-note-shell-tab-active-background:var(--vscode-tab-activeBackground,var(--linux-note-shell-editor-background));
+  --linux-note-shell-tab-active-foreground:var(--vscode-tab-activeForeground,var(--linux-note-shell-foreground));
+  --linux-note-shell-toolbar-background:var(--vscode-sideBarSectionHeader-background,color-mix(in srgb,var(--linux-note-shell-sidebar-background) 96%,var(--linux-note-shell-foreground) 4%));
+  --linux-note-shell-raised-background:var(--vscode-quickInput-background,color-mix(in srgb,var(--linux-note-shell-editor-background) 96%,var(--linux-note-shell-foreground) 4%));
+  --linux-note-shell-input-background:var(--vscode-input-background,var(--linux-note-shell-editor-background));
+  --linux-note-shell-input-foreground:var(--vscode-input-foreground,var(--linux-note-shell-foreground));
+  --linux-note-shell-input-placeholder:var(--vscode-input-placeholderForeground,var(--linux-note-shell-muted-foreground));
+  --linux-note-shell-input-border:var(--vscode-input-border,color-mix(in srgb,var(--linux-note-shell-foreground) 24%,transparent));
+  --linux-note-shell-dropdown-background:var(--vscode-dropdown-background,var(--linux-note-shell-input-background));
+  --linux-note-shell-dropdown-foreground:var(--vscode-dropdown-foreground,var(--linux-note-shell-input-foreground));
+  --linux-note-shell-dropdown-border:var(--vscode-dropdown-border,var(--linux-note-shell-input-border));
+  --linux-note-shell-icon-foreground:var(--vscode-icon-foreground,var(--linux-note-shell-muted-foreground));
+  --linux-note-shell-action-hover-background:var(--vscode-toolbar-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));
+  --linux-note-shell-hover-background:var(--vscode-list-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));
+  --linux-note-shell-hover-foreground:var(--vscode-list-hoverForeground,var(--linux-note-shell-foreground));
+  --linux-note-shell-selection-background:var(--vscode-list-activeSelectionBackground,var(--active-file-bg-color,color-mix(in srgb,var(--primary-color,#0078d4) 20%,transparent)));
+  --linux-note-shell-selection-foreground:var(--vscode-list-activeSelectionForeground,var(--linux-note-shell-foreground));
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,color-mix(in srgb,var(--linux-note-shell-foreground) 10%,transparent));
+  --linux-note-shell-list-focus-background:var(--vscode-list-focusBackground,var(--linux-note-shell-selection-background));
+  --linux-note-shell-list-focus-foreground:var(--vscode-list-focusForeground,var(--linux-note-shell-selection-foreground));
+  --linux-note-shell-focus:var(--vscode-focusBorder,var(--active-file-border-color,var(--primary-color,#0078d4)));
+  --linux-note-shell-badge-background:var(--vscode-badge-background,var(--primary-color,#0078d4));
+  --linux-note-shell-badge-foreground:var(--vscode-badge-foreground,#fff);
+  --linux-note-shell-match-background:var(--vscode-editor-findMatchHighlightBackground,var(--search-select-bg-color,rgba(234,92,0,.28)));
+  --linux-note-shell-match-border:var(--vscode-editor-findMatchBorder,color-mix(in srgb,var(--linux-note-shell-foreground) 26%,transparent));
+  --linux-note-shell-button-background:var(--vscode-button-background,var(--primary-color,#0078d4));
+  --linux-note-shell-button-foreground:var(--vscode-button-foreground,#fff);
+  --linux-note-shell-button-hover:var(--vscode-button-hoverBackground,color-mix(in srgb,var(--linux-note-shell-button-background) 86%,#000 14%));
+  --linux-note-shell-git-modified:var(--vscode-gitDecoration-modifiedResourceForeground,#cca700);
+  --linux-note-shell-git-added:var(--vscode-gitDecoration-addedResourceForeground,#73c991);
+  --linux-note-shell-git-deleted:var(--vscode-gitDecoration-deletedResourceForeground,#f14c4c);
+  --linux-note-shell-menu-background:var(--vscode-menu-background,var(--linux-note-shell-raised-background));
+  --linux-note-shell-menu-foreground:var(--vscode-menu-foreground,var(--linux-note-shell-foreground));
+  --linux-note-shell-menu-selection-background:var(--vscode-menu-selectionBackground,var(--linux-note-shell-selection-background));
+  --linux-note-shell-menu-selection-foreground:var(--vscode-menu-selectionForeground,var(--linux-note-shell-selection-foreground));
+  --linux-note-shell-widget-background:var(--vscode-editorWidget-background,var(--linux-note-shell-raised-background));
+  --linux-note-shell-widget-foreground:var(--vscode-editorSuggestWidget-foreground,var(--linux-note-shell-foreground));
+  --linux-note-git-graph-hover-background:rgba(128,128,128,.15);
+  --linux-note-git-graph-selected-background:rgba(128,128,128,.25);
+  --linux-note-git-graph-selected-hover-background:rgba(128,128,128,.35);
+  --linux-note-git-graph-details-background:rgba(128,128,128,.1);
+  --linux-note-git-graph-detail-border:rgba(128,128,128,.2);
+  --linux-note-shell-shadow:var(--vscode-widget-shadow,rgba(0,0,0,.28));
+  --linux-note-scrollbar-thumb:var(--vscode-scrollbarSlider-background,rgba(121,121,121,.4));
+  --linux-note-scrollbar-thumb-hover:var(--vscode-scrollbarSlider-hoverBackground,rgba(100,100,100,.7));
+  --linux-note-scrollbar-thumb-active:var(--vscode-scrollbarSlider-activeBackground,rgba(85,85,85,.8));
+  --linux-note-control-accent:var(--linux-note-shell-focus);
+  --linux-note-range-track:color-mix(in srgb,var(--linux-note-shell-foreground) 28%,transparent);
+}
+
+/* Workbench surfaces.  Deliberately exclude #write so Typora themes retain
+ * complete ownership of Markdown background, typography and content colours. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #top-titlebar[data-workspace-titlebar] {
+  color:var(--linux-note-shell-titlebar-foreground);
+  background:var(--linux-note-shell-titlebar-background);
+  border-bottom-color:var(--linux-note-shell-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-ribbon {
+  --workspace-activity-foreground:var(--linux-note-shell-activity-foreground);
+  --workspace-activity-active-foreground:var(--linux-note-shell-activity-active-foreground);
+  --workspace-activity-active-border:var(--vscode-activityBar-activeBorder,var(--linux-note-shell-focus));
+  --workspace-activity-active-background:var(--vscode-activityBar-activeBackground,var(--linux-note-shell-selection-background));
+  --workspace-activity-hover-background:var(--linux-note-shell-action-hover-background);
+  color:var(--linux-note-shell-activity-foreground);
+  background:var(--linux-note-shell-activity-background);
+  border-right-color:var(--linux-note-shell-sidebar-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar,
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #sidebar-content,
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .git-scm-sidebar,
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.git-scm-sidebar) {
+  color:var(--linux-note-shell-sidebar-foreground);
+  background:var(--linux-note-shell-sidebar-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.typ-workspace-tab-header,.typ-tabs) {
+  color:var(--linux-note-shell-tab-inactive-foreground);
+  background:var(--linux-note-shell-tabs-background);
+  border-color:var(--linux-note-shell-tab-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-workspace-tab-header .typ-tab {
+  color:var(--linux-note-shell-tab-inactive-foreground);
+  background:var(--linux-note-shell-tab-inactive-background);
+  border-color:var(--linux-note-shell-tab-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-workspace-tab-header .typ-tab.active {
+  color:var(--linux-note-shell-tab-active-foreground);
+  background:var(--linux-note-shell-tab-active-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.typ-workspace-tab-content,.typ-empty-view) {
+  color:var(--linux-note-shell-foreground);
+  background:var(--linux-note-shell-editor-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) footer.ty-footer {
+  color:var(--linux-note-shell-muted-foreground);
+  background:var(--linux-note-shell-titlebar-background);
+  border-top-color:var(--linux-note-shell-border);
+}
+
+/* Inputs, actions, icons and list states share the same foreground hierarchy. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-activity-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu,
+  .linux-note-git-graph,.linux-note-git-source-control
+) :is(svg,.fa,.ty-icon) { color:var(--linux-note-shell-icon-foreground); fill:currentColor; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  .typ-ribbon [data-activity-active="true"],.typ-workspace-tab-header .typ-tab.active,
+  #typora-sidebar button[aria-pressed="true"]
+) :is(svg,.fa,.ty-icon) { color:var(--linux-note-shell-activity-active-foreground); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .linux-note-git-graph,.linux-note-git-source-control
+) button:not(:disabled):hover { color:var(--linux-note-shell-hover-foreground); background-color:var(--linux-note-shell-action-hover-background); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .linux-note-git-graph,.linux-note-git-source-control
+) :is(button,input,textarea,select):focus-visible { outline-color:var(--linux-note-shell-focus); }
+
+/* Explorer, outline and unified search use VS Code list and input tokens. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+  .workspace-explorer-toolbar,.workspace-explorer-root,.workspace-search-heading,
+  .workspace-search-preview-heading,.git-scm-title,.git-scm-input-heading,
+  .git-scm-group>summary,.git-scm-history-header
+) { background:var(--linux-note-shell-toolbar-background); border-color:var(--linux-note-shell-border); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+  .workspace-search-query-box,.workspace-explorer-rename,.git-scm-message,input,textarea,select
+) { color:var(--linux-note-shell-input-foreground); background:var(--linux-note-shell-input-background); border-color:var(--linux-note-shell-input-border); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar select {
+  color:var(--linux-note-shell-dropdown-foreground); background:var(--linux-note-shell-dropdown-background); border-color:var(--linux-note-shell-dropdown-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #typora-sidebar,.linux-note-git-graph,.git-graph-dialog,.git-graph-find-widget
+) :is(input,textarea)::placeholder { color:var(--linux-note-shell-input-placeholder); opacity:1; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+  .workspace-explorer-row,.outline-item,.workspace-search-file>summary,
+  .workspace-search-directory>summary,.workspace-search-match,.git-scm-file,
+  .git-scm-history-commit,.git-scm-history-file
+):hover { color:var(--linux-note-shell-hover-foreground); background:var(--linux-note-shell-hover-background); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+  .workspace-explorer-row.is-selected,.workspace-search-file>summary.is-selected,
+  .workspace-search-match.is-selected,.outline-item-active,.git-scm-file.selected,
+  .git-scm-history-commit[aria-expanded="true"]
+) { color:var(--linux-note-shell-selection-foreground); background:var(--linux-note-shell-selection-background); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+  .workspace-explorer-status,.workspace-explorer-note,.workspace-search-file-path,
+  .git-scm-history-author,.git-scm-notice
+) { color:var(--linux-note-shell-muted-foreground); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-file-count {
+  color:var(--linux-note-shell-badge-foreground); background:var(--linux-note-shell-badge-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status {
+  color:var(--linux-note-shell-git-modified);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status:is([data-status="U"],[data-status="A"]) {
+  color:var(--linux-note-shell-git-added);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status[data-status="D"] {
+  color:var(--linux-note-shell-git-deleted);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-badge {
+  color:var(--linux-note-shell-badge-foreground); background:var(--linux-note-shell-badge-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status {
+  color:var(--linux-note-shell-git-modified);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status:is([data-status="U"],[data-status="A"]) {
+  color:var(--linux-note-shell-git-added);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status[data-status="D"] {
+  color:var(--linux-note-shell-git-deleted);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-commit-bar>button {
+  color:var(--linux-note-shell-button-foreground);
+  background:var(--linux-note-shell-button-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-commit-bar>button:not(:disabled):hover {
+  color:var(--linux-note-shell-button-foreground);
+  background:var(--linux-note-shell-button-hover);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-preview-section {
+  background:var(--linux-note-shell-editor-background); border-color:var(--linux-note-shell-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-lookup-preview {
+  color:var(--linux-note-shell-foreground); background:var(--linux-note-shell-editor-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-preview mark {
+  color:inherit; background:var(--linux-note-shell-match-background); outline-color:var(--linux-note-shell-match-border);
+}
+
+/* Native menus, quick open and extension dialogs are raised workbench widgets. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  .context-menu,.workspace-activity-menu,.workspace-titlebar-popup,.workspace-quick-open
+) {
+  color:var(--linux-note-shell-foreground);
+  background:var(--linux-note-shell-raised-background);
+  border-color:var(--linux-note-shell-border);
+  box-shadow:0 6px 20px var(--linux-note-shell-shadow);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-dialog,.git-graph-menu) {
+  color:var(--linux-note-shell-menu-foreground);
+  background:var(--linux-note-shell-menu-background);
+  border-color:var(--vscode-menu-border,var(--linux-note-shell-border));
+  box-shadow:0 1px 4px 1px var(--linux-note-shell-shadow);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-find-widget,.git-graph-status) {
+  color:var(--linux-note-shell-widget-foreground);
+  background:var(--linux-note-shell-widget-background);
+  border-color:var(--linux-note-shell-border);
+  box-shadow:0 2px 8px var(--linux-note-shell-shadow);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .workspace-titlebar-quick-open {
+  color:var(--linux-note-shell-titlebar-foreground);
+  background:var(--linux-note-shell-raised-background);
+  border-color:var(--linux-note-shell-input-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  .workspace-titlebar-popup>button,.workspace-quick-open-result,.workspace-activity-menu>button,.git-graph-menu>button
+):is(:hover,:focus-visible,.is-selected) {
+  color:var(--linux-note-shell-selection-foreground);
+  background:var(--linux-note-shell-selection-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-menu>button:is(:hover,:focus-visible,.is-selected) {
+  color:var(--linux-note-shell-menu-selection-foreground);
+  background:var(--linux-note-shell-menu-selection-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .workspace-quick-open-input-row {
+  color:var(--linux-note-shell-input-foreground);
+  background:var(--linux-note-shell-input-background);
+  border-color:var(--linux-note-shell-focus);
+}
+
+/* Classic Git Graph keeps the editor canvas quiet and reserves tinted surfaces
+ * for its toolbar, column header, selected row and inline commit details. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.git-graph-document) {
+  color:var(--linux-note-shell-foreground); background:var(--linux-note-shell-editor-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-toolbar,.git-graph-columns,.git-diff-labels) {
+  background:var(--linux-note-shell-editor-background); border-color:color-mix(in srgb,var(--linux-note-shell-foreground) 50%,transparent);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-row,.git-graph-file):hover {
+  color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-hover-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  .git-graph-row[aria-pressed="true"],.git-graph-file.selected
+) { color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-selected-background); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-row[aria-pressed="true"]:hover {
+  background:var(--linux-note-git-graph-selected-hover-background);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-details {
+  color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-details-background); border-color:var(--linux-note-git-graph-detail-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-detail-info,.git-graph-detail-files) {
+  border-color:var(--linux-note-git-graph-detail-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-toolbar-actions .git-standard-icon {
+  color:var(--linux-note-shell-foreground); opacity:.8;
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-toolbar-actions button:hover .git-standard-icon { opacity:1; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status) { color:var(--linux-note-shell-git-modified); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status):is(.A,.U,[data-status="A"],[data-status="U"]) { color:var(--linux-note-shell-git-added); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status):is(.D,[data-status="D"]) { color:var(--linux-note-shell-git-deleted); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.linux-note-git-source-control) :is(input,textarea,select) {
+  color:var(--linux-note-shell-input-foreground); background:var(--linux-note-shell-input-background); border-color:var(--linux-note-shell-input-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.linux-note-git-source-control) select {
+  color:var(--linux-note-shell-dropdown-foreground); background:var(--linux-note-shell-dropdown-background); border-color:var(--linux-note-shell-dropdown-border);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-detail-controls>button[aria-pressed="true"] {
+  color:var(--linux-note-shell-selection-foreground); background:var(--linux-note-shell-selection-background);
+}
+
+/* Match the compact 10px VS Code scrollbar lane and keep every movable indicator rounded. */
+html[data-linux-note-workspace-chrome="ready"] * {
+  scrollbar-color:var(--linux-note-scrollbar-thumb) transparent;
+  scrollbar-width:thin;
+}
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar { width:10px; height:10px; }
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-track { background:transparent; border-radius:999px; }
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-corner { background:transparent; }
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb {
+  min-width:20px; min-height:20px; border:2px solid transparent; border-radius:999px;
+  background:var(--linux-note-scrollbar-thumb); background-clip:content-box;
+}
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb:hover { background-color:var(--linux-note-scrollbar-thumb-hover); }
+html[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb:active { background-color:var(--linux-note-scrollbar-thumb-active); }
+
+html[data-linux-note-workspace-chrome="ready"] :is(.monaco-scrollable-element,.xterm)>.scrollbar>.slider,
+html[data-linux-note-workspace-chrome="ready"] :is(.typ-global-search-progressbar,.typ-global-search-progressbar-inner) {
+  border-radius:999px!important;
+}
+
+/* Range styling is limited to application chrome so Markdown-embedded controls stay theme-owned. */
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"] {
+  appearance:none; -webkit-appearance:none; height:20px; padding:0; border:0; border-radius:999px;
+  background:linear-gradient(to right,
+    var(--linux-note-control-accent) 0 var(--linux-note-range-progress,0%),
+    var(--linux-note-range-track) var(--linux-note-range-progress,0%) 100%) center/100% 4px no-repeat;
+  accent-color:var(--linux-note-control-accent); box-shadow:none;
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]::-webkit-slider-runnable-track {
+  height:4px; border:0; border-radius:999px; background:transparent;
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]::-webkit-slider-thumb {
+  appearance:none; -webkit-appearance:none; width:12px; height:12px; margin-top:-4px;
+  border:1px solid var(--linux-note-control-accent); border-radius:50%; background:var(--linux-note-control-accent);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]::-moz-range-track {
+  height:4px; border:0; border-radius:999px; background:var(--linux-note-range-track);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]::-moz-range-progress {
+  height:4px; border-radius:999px; background:var(--linux-note-control-accent);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]::-moz-range-thumb {
+  width:12px; height:12px; border:1px solid var(--linux-note-control-accent); border-radius:50%;
+  background:var(--linux-note-control-accent);
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]:focus-visible { outline:1px solid var(--linux-note-control-accent); outline-offset:1px; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
+  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
+  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
+) input[type="range"]:disabled { opacity:.45; }

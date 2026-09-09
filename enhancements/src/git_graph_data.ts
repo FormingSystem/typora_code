@@ -1,3 +1,5 @@
+import { git_graph_text as text } from "./git_graph_i18n";
+
 export const GIT_GRAPH_COMMAND = "linux_note:git_graph";
 export const GIT_GRAPH_TYPE = "linux_note.git_graph";
 export type git_run = (cwd: string, args: string[], execution?: { todo?: string }) => Promise<string>;
@@ -6,7 +8,7 @@ export type git_ref = { hash: string; name: string };
 
 const valid_hash = (hash: string) => /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(hash);
 function require_hash(hash: string): string {
-  if (!valid_hash(hash)) throw new Error("提交编号无效，请刷新 Git Graph。");
+  if (!valid_hash(hash)) throw new Error(text("data.invalid_commit_hash"));
   return hash;
 }
 
@@ -14,7 +16,7 @@ function require_hash(hash: string): string {
 export function parse_git_log(source: string): git_commit[] {
   const fields = source.split("\0");
   if (fields.at(-1) === "") fields.pop();
-  if (fields.length % 5) throw new Error("Git 历史格式不完整。");
+  if (fields.length % 5) throw new Error(text("data.incomplete_history"));
   const commits: git_commit[] = [];
   for (let index = 0; index < fields.length; index += 5) {
     const [hash, parent_text, author, date, subject] = fields.slice(index, index + 5);

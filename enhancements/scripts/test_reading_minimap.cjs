@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { build } = require('esbuild');
+const { editor_plugins } = require('./editor_bundle.cjs');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_minimap_'));
 app.setPath('userData', path.join(root, 'user_data')); app.disableHardwareAcceleration();
 let test_window;
@@ -13,7 +14,7 @@ const evaluate = source => test_window.webContents.executeJavaScript(source);
 const wait = async source => { for (let index = 0; index < 150; index += 1) { if (await evaluate(source)) return; await delay(40); } throw new Error('Timed out: ' + source); };
 app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1200, height: 800, webPreferences: { contextIsolation: false, backgroundThrottling: false, offscreen: true } });
-  const html = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden}body{font:16px/1.8 monospace}content{display:block;position:absolute;left:0;top:32px;bottom:25px;width:50%;overflow:auto}#write{padding:20px;box-sizing:border-box}.typ-workspace-leaf{position:absolute;left:50%;width:50%;top:32px;bottom:25px;overflow:auto;display:flex;align-items:flex-start}.typ-markdown-preview{padding:20px;box-sizing:border-box;width:100%}h2{color:#005cc5}p{margin:12px 0}#source{position:absolute;inset:0;display:none}.CodeMirror{position:absolute;inset:0}.CodeMirror-scroll{height:100%;overflow:auto}.CodeMirror-lines{height:9000px}</style><content><div id="write"></div></content><section class="typ-workspace-leaf mod-active"><div class="typ-markdown-preview"></div></section><div id="source"><div class="CodeMirror"><div class="CodeMirror-scroll"><div class="CodeMirror-lines"></div></div></div></div>';
+  const html = '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden}body{font:16px/1.8 monospace}#sidebar{position:fixed;left:0;top:0;width:1px;height:1px;overflow:hidden}content{display:block;position:absolute;left:0;top:32px;bottom:25px;width:50%;overflow:auto}#write{padding:20px;box-sizing:border-box}.typ-workspace-leaf{position:absolute;left:50%;width:50%;top:32px;bottom:25px;overflow:auto;display:flex;align-items:flex-start}.typ-markdown-preview{padding:20px;box-sizing:border-box;width:100%}h2{color:#005cc5}p{margin:12px 0}#source{position:absolute;inset:0;display:none}.CodeMirror{position:absolute;inset:0}.CodeMirror-scroll{height:100%;overflow:auto}.CodeMirror-lines{height:9000px}.CodeMirror-line{font:16px/30px monospace}</style><aside id="sidebar"><div>资源管理器</div></aside><content><div id="write"></div></content><section class="typ-workspace-leaf mod-active"><div class="typ-markdown-preview"></div></section><div id="source"><div class="CodeMirror"><div class="CodeMirror-scroll"><div class="CodeMirror-lines"><pre class="CodeMirror-line">visible source row</pre></div></div></div></div>';
   const filename = path.join(root, 'test.html'); fs.writeFileSync(filename, html); await test_window.loadFile(filename);
   await evaluate(`(() => {
     const source = Array.from({length:800}, (_,index) => '<h2>Section ' + index + ' 标题</h2><p>' + 'Document content ' + index + ': Linux kernel, RCU and memory. '.repeat(4) + '</p>').join('');
@@ -22,11 +23,12 @@ app.whenReady().then(async () => {
     const leaf={state:{path:'preview.md'},containerEl:document.querySelector('.typ-workspace-leaf'),view:{containerEl:document.querySelector('.typ-markdown-preview')}};
     window.leaves=[leaf]; window[Symbol.for('typora-plugin-core@v2')]={app:{workspace:{eachLeaves:callback=>window.leaves.forEach(callback)}}};
   })()`);
-  const bundle = await build({ stdin: { contents:'export { bind_reading_minimap } from "./src/reading_minimap";', resolveDir:path.join(__dirname,'..') }, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'minimap_qa', write:false });
+  const bundle = await build({ plugins:editor_plugins(), stdin: { contents:'export { bind_reading_minimap } from "./src/reading_minimap";', resolveDir:path.join(__dirname,'..') }, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'minimap_qa', write:false });
   await evaluate(bundle.outputFiles[0].text); await evaluate('minimap_qa.bind_reading_minimap()');
   await wait('document.querySelectorAll(".linux-note-reading-minimap[data-ready=true]").length===2');
   assert(await evaluate(`Array.from(document.querySelectorAll('.linux-note-reading-minimap canvas')).every(canvas => {const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return pixels.some((value,index)=>index%4===3&&value>0);})`));
-  const initial_canvas = await evaluate('document.querySelector("content .linux-note-reading-minimap canvas").toDataURL()');
+  const initial_state = await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');window.stable_minimap_canvas=canvas;return {pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount),ready:rail.dataset.ready};})()`);
+  assert.equal(initial_state.commits, 1); assert.equal(initial_state.ready, 'true');
   assert(await evaluate('document.querySelector("content .linux-note-reading-minimap canvas").toDataURL()!==document.querySelector(".typ-workspace-leaf .linux-note-reading-minimap canvas").toDataURL()'));
   const position = await evaluate(`(() => {const bounds=document.querySelector('content .linux-note-reading-minimap').getBoundingClientRect();return {x:Math.round(bounds.x+30),y:Math.round(bounds.y+bounds.height*.6)};})()`);
   for (const type of ['mouseMove','mouseDown','mouseUp']) test_window.webContents.sendInputEvent({type,...position,button:'left',clickCount:1});
@@ -37,22 +39,33 @@ app.whenReady().then(async () => {
   test_window.webContents.sendInputEvent({type:'mouseMove',x:position.x,y:position.y+70,button:'left'});
   test_window.webContents.sendInputEvent({type:'mouseUp',x:position.x,y:position.y+70,button:'left',clickCount:1});
   await delay(120); assert(await evaluate('document.querySelector("content").scrollTop')>old_top);
-  assert.equal(await evaluate('document.querySelector("content .linux-note-reading-minimap canvas").toDataURL()'), initial_canvas);
-  const concurrent_paint = await evaluate(`new Promise((resolve,reject) => {
-    const rail=document.querySelector('content .linux-note-reading-minimap'),content=document.querySelector('content');let frames=0;const started=Date.now();
-    document.querySelector('#write').style.outlineColor='transparent';
-    const tick=()=>{if(rail.dataset.ready==='false'){content.scrollTop-=17;frames+=1;}else if(frames){resolve({frames,pixels:rail.querySelector('canvas').toDataURL()});return;}if(Date.now()-started>3000){reject(new Error('No asynchronous paint observed'));return;}requestAnimationFrame(tick);};requestAnimationFrame(tick);
+  await delay(350);
+  assert.deepEqual(await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');return {same:canvas===window.stable_minimap_canvas,pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount)};})()`), {same:true,pixels:initial_state.pixels,commits:initial_state.commits});
+  await evaluate(`(() => {const sidebar=document.querySelector('#sidebar');for(let index=0;index<8;index+=1){sidebar.classList.toggle('open');sidebar.replaceChildren(Object.assign(document.createElement('div'),{textContent:'sidebar view '+index}));}sidebar.className='';})()`);
+  await delay(350);
+  assert.deepEqual(await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');return {same:canvas===window.stable_minimap_canvas,pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount)};})()`), {same:true,pixels:initial_state.pixels,commits:initial_state.commits});
+  const atomic_update = await evaluate(`new Promise((resolve,reject) => {
+    const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas'),before=canvas.toDataURL(),commits=Number(rail.dataset.commitCount);let updating_frames=0;const started=Date.now();
+    const has_pixels=()=>{const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return data.some((value,index)=>index%4===3&&value>0);};
+    const tick=()=>{if(canvas!==window.stable_minimap_canvas)return reject(new Error('Foreground canvas node changed'));if(rail.dataset.updating==='true'){updating_frames+=1;if(rail.dataset.ready!=='true'||canvas.toDataURL()!==before||!has_pixels())return reject(new Error('Foreground frame changed before atomic commit'));}else if(updating_frames){return resolve({updating_frames,commits:Number(rail.dataset.commitCount)-commits,changed:canvas.toDataURL()!==before,nonempty:has_pixels()});}if(Date.now()-started>6000)return reject(new Error('No completed asynchronous content paint observed'));requestAnimationFrame(tick);};
+    document.querySelector('#write p').firstChild.data='Atomic replacement content: scheduler, RCU, memory ordering and a stable foreground canvas.';requestAnimationFrame(tick);
   })`);
-  assert(concurrent_paint.frames > 0); assert.equal(concurrent_paint.pixels, initial_canvas);
-  await evaluate('document.querySelector("#write").style.removeProperty("outline-color")');
-  assert(await evaluate('document.querySelector("#write").innerHTML===original && document.querySelector(".typ-markdown-preview").innerHTML===original_preview'));
+  assert(atomic_update.updating_frames > 0); assert.deepEqual({commits:atomic_update.commits,changed:atomic_update.changed,nonempty:atomic_update.nonempty},{commits:1,changed:true,nonempty:true});
+  await evaluate('window.expected_after_update=document.querySelector("#write").innerHTML');
+  const resize_before = await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap');return {pixels:rail.querySelector('canvas').toDataURL(),commits:Number(rail.dataset.commitCount)};})()`);
+  for (const width of ['49%','48%','47%','46%']) { await evaluate(`document.querySelector('content').style.width=${JSON.stringify(width)}`); await delay(30); }
+  assert.deepEqual(await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');return {same:canvas===window.stable_minimap_canvas,pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount),updating:rail.dataset.updating};})()`), {same:true,pixels:resize_before.pixels,commits:resize_before.commits,updating:'true'});
+  await wait(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap');return rail.dataset.updating==='false'&&Number(rail.dataset.commitCount)===${resize_before.commits + 1};})()`);
+  await delay(300); assert.equal(await evaluate('Number(document.querySelector("content .linux-note-reading-minimap").dataset.commitCount)'), resize_before.commits + 1);
+  assert(await evaluate('document.querySelector("#write").innerHTML===expected_after_update && document.querySelector(".typ-markdown-preview").innerHTML===original_preview'));
   await evaluate('document.querySelector(".typ-workspace-leaf").remove();window.leaves=[];');
   await wait('document.querySelectorAll(".linux-note-reading-minimap").length===1');
+  const clip_commit = await evaluate('Number(document.querySelector("content .linux-note-reading-minimap").dataset.commitCount)');
   await evaluate(`(() => {
     document.querySelector('#write').innerHTML='<div id="clip_box" style="height:100px;overflow:auto;color:rgb(255,0,0);line-height:20px">'+Array.from({length:100},(_,index)=>'<div>Buffered code line '+index+'</div>').join('')+'</div><p style="color:rgb(0,0,255)">Body after the collapsed code block</p><div style="height:1700px"></div>';
     document.querySelector('content').scrollTop=0;
   })()`);
-  await delay(220); await wait('document.querySelector("content .linux-note-reading-minimap").dataset.ready==="true"');
+  await wait(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap');return rail.dataset.updating==='false'&&Number(rail.dataset.commitCount)===${clip_commit + 1};})()`);
   const clip_evidence = await evaluate(`(() => {
     const canvas=document.querySelector('content .linux-note-reading-minimap canvas'),content=document.querySelector('content'),write=document.querySelector('#write'),clip_box=document.querySelector('#clip_box');
     const scale_y=Math.min(88/write.clientWidth,content.clientHeight/content.scrollHeight)*canvas.height/content.clientHeight;
@@ -74,13 +87,17 @@ app.whenReady().then(async () => {
   await wait('!!document.querySelector(".CodeMirror .linux-note-reading-minimap[data-ready=true]")');
   await wait('!!document.querySelector(".typ-workspace-leaf .linux-note-reading-minimap[data-ready=true]")');
   assert(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length===2 && !document.querySelector("content .linux-note-reading-minimap")'));
+  const source_state = await evaluate(`(() => {const rail=document.querySelector('.CodeMirror .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');window.stable_source_canvas=canvas;return {pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount)};})()`);
   await evaluate(`document.querySelector('.CodeMirror .linux-note-reading-minimap').dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true}))`);
   assert(await evaluate('document.querySelector(".CodeMirror-scroll").scrollTop>8000'));
+  await evaluate(`(() => {const lines=document.querySelector('.CodeMirror-lines'),row=document.createElement('pre');row.className='CodeMirror-line';row.textContent='virtual row after source scroll';lines.replaceChildren(row);document.querySelector('.CodeMirror-scroll').dispatchEvent(new Event('scroll'));})()`);
+  await delay(350);
+  assert.deepEqual(await evaluate(`(() => {const rail=document.querySelector('.CodeMirror .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');return {same:canvas===window.stable_source_canvas,pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount)};})()`), {same:true,pixels:source_state.pixels,commits:source_state.commits});
   await evaluate(`File.editor.sourceView.inSourceMode=false;document.querySelector('#source').style.display='none';document.querySelector('content').style.display='block';`);
   await wait('!!document.querySelector("content .linux-note-reading-minimap[data-ready=true]")');
   assert(await evaluate('source_handlers.size===0 && !document.querySelector(".CodeMirror .linux-note-reading-minimap")'));
   await evaluate('window.dispatchEvent(new Event("pagehide"))');
   assert(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length===0 && !document.querySelector("[data-linux-note-minimap-owner]")'));
-  console.log(JSON.stringify({status:'PASS',checks:['actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','scroll updates viewport without repainting full document','concurrent scrolling does not misalign asynchronous painting','document content remains unchanged','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],clip_evidence,screenshot:path.join(root,'clipped_minimap.png')},null,2));
+  console.log(JSON.stringify({status:'PASS',checks:['actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,screenshot:path.join(root,'clipped_minimap.png')},null,2));
   test_window.destroy(); app.exit(0);
 }).catch(error=>{console.error(error);test_window?.destroy();app.exit(1);});

@@ -39,6 +39,7 @@ try {
   assert.deepEqual(paths(await search(texts, 'needle', {include: '*.c, *.json', exclude: 'deep'})), ['nested/.secret.json', 'source.c']);
   assert.deepEqual(paths(await search(texts, 'needle', {include: './source.c'})), ['source.c']);
   assert.deepEqual(paths(await search(texts, 'needle', {file_paths: [source, path.join(temp, 'outside.c')]})), ['source.c']);
+  if (process.platform === 'win32') assert.deepEqual(paths(await search(texts, 'needle', {file_paths: [source.toUpperCase()]})), ['source.c'], 'Windows open-file scope uses case-insensitive file identity');
   assert.equal((await search(texts, 'needle', {file_paths: []})).counts.matches, 0);
   checks.push('VS Code Search glob prefixes, comma/brace/class syntax, root anchors and explicit open-editor scope are enforced');
 

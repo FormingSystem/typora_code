@@ -1,23 +1,38 @@
 import { git_source_control } from "./git_source_control";
-import { create_workspace_sash } from "./workspace_sash";
+import { git_icon, git_icon_button } from "./git_icons";
 import type { workspace_menu_entry } from "./workspace_widgets";
 import emoji_data from "../vendor/gemoji/emoji.json";
 import { build_git_graph, type graph_row, type git_ref } from "./git_graph_data";
 import { read_repository, compare_files, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
   type repository_state, type graph_commit, type graph_change } from "./git_graph_repository";
-import { graph_defaults, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, settings_choices, settings_labels, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
+import { graph_defaults, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, settings_choices, settings_choice_labels, settings_labels, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
 import { graph_actions, plan_git_action, execute_git_action, type graph_action, type action_plan } from "./git_graph_actions";
 import { workspace_element as el, workspace_button as button, workspace_option as option, workspace_dialog, workspace_menu, inline_message, shortcut_matches } from "./workspace_widgets";
 import type { graph_host } from "./git_graph_host";
+import { git_graph_language_tag, git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
+
+const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
+const revision_label = (revision: string): string => revision === WORKTREE ? text("graph.revision.worktree") : revision === INDEX ? text("graph.revision.index") : revision === EMPTY ? text("graph.revision.empty") : revision;
+const short_revision_label = (revision: string): string => revision === WORKTREE || revision === INDEX || revision === EMPTY ? revision_label(revision) : revision.slice(0, 8);
+const operation_label = (operation: string): string => {
+  const key = ({ merge: "graph.operation.merge", rebase: "graph.operation.rebase", "cherry-pick": "graph.operation.cherry_pick", revert: "graph.operation.revert" } as const)[operation as "merge" | "rebase" | "cherry-pick" | "revert"];
+  return key ? text(key) : operation;
+};
+const target_kind_label = (kind: string): string => text(({
+  repository: "graph.target.repository", changes: "graph.target.changes", branch: "graph.target.branch", remote: "graph.target.remote",
+  tag: "graph.target.tag", commit: "graph.target.commit", stash: "graph.target.stash", file: "graph.target.file",
+} as Record<string, git_graph_text_key>)[kind] || "graph.target.repository");
 
 export class git_graph_panel {
   root: string; settings: graph_settings; state?: repository_state;
-  container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar"); root_label = el("div", "git-graph-root");
-  status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("div", "git-graph-details", "选择提交查看详情；Ctrl / Cmd 点击第二条提交进行比较。");
+  container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar");
+  status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("section", "git-graph-details");
   branch_select = el("select", "git-graph-branch"); repo_select = el("select", "git-graph-repositories"); search = el("input", "git-graph-search");
-  sash: HTMLElement; workbench: git_source_control;
+  show_remote_input = el("input", "git-graph-show-remote-input"); find_widget = el("div", "git-graph-find-widget"); find_position = el("span", "git-graph-find-position");
+  workbench: git_source_control;
   body = el("div", "git-graph-body"); header = el("div", "git-graph-columns");
-  refresh_button = button("刷新", () => void this.refresh()); more_button = button("加载更多", () => { this.count += this.settings.page_count; void this.refresh(false); });
+  refresh_button = git_icon_button("refresh", text("graph.refresh"), () => void this.refresh(), "git-graph-refresh");
+  more_button = button(text("graph.load_more"), () => { this.count += this.settings.page_count; void this.refresh(false); }, "git-graph-load-more");
   runner: ReturnType<graph_host["runner"]>; writer: ReturnType<graph_host["runner"]>;
   count: number; branches: string[] = []; selected = ""; from = EMPTY; to = "";
   epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false;
@@ -28,24 +43,44 @@ export class git_graph_panel {
     this.root = cwd; this.settings = load_graph_settings(localStorage, cwd); this.count = this.settings.initial_count;
     this.runner = host.runner(this.settings); this.writer = host.runner(this.settings, true);
     this.branches = [...this.settings.on_load_branches]; if (this.settings.on_load_branch) this.branches = ["HEAD"];
-    this.container.setAttribute("aria-label", "Git Graph 提交历史"); this.status.setAttribute("role", "status");
-    this.branch_select.setAttribute("aria-label", "分支或标签"); this.branch_select.append(option("", "全部分支"));
-    this.branch_select.onchange = () => { this.branches = this.branch_select.value ? [this.branch_select.value] : []; void this.refresh(); };
-    this.repo_select.setAttribute("aria-label", "Git 仓库"); this.repo_select.onchange = () => this.switch_repo(this.repo_select.value);
-    this.search.placeholder = "查找提交、日期、作者、编号和引用"; this.search.setAttribute("aria-label", "查找 Git 历史");
+    this.container.setAttribute("aria-label", text("graph.aria_label")); this.status.setAttribute("role", "status");
+    this.branch_select.setAttribute("aria-label", text("graph.branches")); this.branch_select.append(option("", text("graph.all_branches")));
+    this.branch_select.onchange = () => {
+      if (this.branch_select.value === "__multiple__") { this.branch_select.value = this.branches.length === 1 ? this.branches[0] : ""; this.filter_branches(); return; }
+      this.branches = this.branch_select.value ? [this.branch_select.value] : []; void this.refresh();
+    };
+    this.repo_select.setAttribute("aria-label", text("graph.repository")); this.repo_select.onchange = () => {
+      if (this.repo_select.value === "__manage__") { this.repo_select.value = this.root; this.manage_repositories(); return; }
+      this.switch_repo(this.repo_select.value);
+    };
+    this.show_remote_input.type = "checkbox"; this.show_remote_input.checked = this.settings.show_remotes;
+    this.show_remote_input.onchange = () => { this.settings.show_remotes = this.show_remote_input.checked; this.persist_settings(); void this.refresh(); };
+    this.search.placeholder = text("graph.find_placeholder"); this.search.setAttribute("aria-label", text("graph.find_history"));
+    this.search.oninput = () => { if (!this.search.value) this.find_position.textContent = ""; };
     this.search.onkeydown = event => { if (event.key === "Enter") { event.preventDefault(); this.find_next(event.shiftKey ? -1 : 1); } };
-    this.toolbar.append(this.repo_select, button("仓库", () => this.manage_repositories()), this.branch_select, button("多选分支", () => this.filter_branches()), this.refresh_button,
-      button("获取", () => this.action_dialog("fetch", "repository")), button("操作", () => this.repository_menu()), button("设置", () => this.settings_dialog()), this.search, button("查找", () => this.find_next()));
-    this.sash = create_workspace_sash({ label: "调整提交列表与详情面板大小", area: this.body,
-      vertical: () => this.settings.details_location === "right" && this.container.clientWidth > 680,
-      ratio: () => this.settings.panel_ratio / 100, change: ratio => { this.settings.panel_ratio = Math.round(ratio * 100); this.apply_layout(); }, save: () => this.persist_settings(), reset: .55 });
+    const repo_control = el("label", "git-graph-control git-graph-repository-control", text("graph.repository")); repo_control.append(this.repo_select);
+    const branch_control = el("label", "git-graph-control git-graph-branch-control", text("graph.branches")); branch_control.append(this.branch_select);
+    const remote_control = el("label", "git-graph-control git-graph-remote-control", text("graph.show_remote_branches")); remote_control.prepend(this.show_remote_input);
+    const actions = el("div", "git-graph-toolbar-actions");
+    actions.append(
+      git_icon_button("search", text("graph.find_commit"), () => this.open_find(), "git-graph-find-toggle"),
+      git_icon_button("terminal", text("graph.open_terminal"), () => this.host.terminal(this.root, this.settings.terminal_shell), "git-graph-terminal"),
+      git_icon_button("settings-gear", text("graph.actions_and_settings"), () => this.repository_menu(), "git-graph-settings"),
+      git_icon_button("git-fetch", text("graph.fetch"), () => this.action_dialog("fetch", "repository"), "git-graph-fetch"),
+      this.refresh_button,
+    );
+    this.toolbar.append(repo_control, branch_control, remote_control, actions);
+    this.find_widget.setAttribute("aria-label", text("graph.find_commit")); this.find_widget.dataset.open = "false";
+    this.find_widget.append(this.search, this.find_position,
+      git_icon_button("arrow-up", text("graph.find_previous"), () => this.find_next(-1)),
+      git_icon_button("arrow-down", text("graph.find_next"), () => this.find_next(1)),
+      git_icon_button("close", text("graph.find_close"), () => this.close_find()));
     this.header.oncontextmenu = event => this.layout_menu(event);
     this.container.oncontextmenu = event => {
       if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
       this.background_menu(event);
     };
-    this.toolbar.append(button("终端", () => this.host.terminal(this.root, this.settings.terminal_shell)), button("布局", () => this.layout_dialog()));
-    this.body.append(this.list, this.sash, this.details); this.workbench = new git_source_control(this); this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
+    this.body.append(this.list); this.workbench = new git_source_control(this); this.container.append(this.toolbar, this.find_widget, this.status, this.body, this.more_button);
     this.list.addEventListener("scroll", () => {
       if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) { this.count += this.settings.page_count; void this.refresh(false); }
     });
@@ -62,7 +97,7 @@ export class git_graph_panel {
   known_repos(): string[] { try { return JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]").filter((value: unknown) => typeof value === "string"); } catch { return []; } }
   save_repos(repos: string[]): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify([...new Set(repos)])); }
   switch_repo(root: string): void {
-    if (this.writing) { this.report("Git 操作仍在执行，请等待结果。"); return; }
+    if (this.writing) { this.report(text("graph.operation_pending")); return; }
     this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.selected = ""; this.branches = [];
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; void this.refresh();
@@ -70,9 +105,9 @@ export class git_graph_panel {
   async refresh(reset = true): Promise<void> {
     const epoch = ++this.epoch; this.detail_epoch++; this.runner.cancel(); this.pending = true;
     if (reset) this.count = this.settings.initial_count;
-    this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = "正在读取 Git 仓库…";
+    this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");
     try {
-      if (!this.root) throw new Error("请先打开仓库中的文档，或通过“仓库”添加文件夹。");
+      if (!this.root) throw new Error(text("graph.open_repository_first"));
       let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
       if (epoch !== this.epoch) return;
       if (!this.loaded) {
@@ -98,33 +133,36 @@ export class git_graph_panel {
       if (first_load && !this.workbench.message.value) this.workbench.load_layout();
       this.save_repos([this.root, ...this.known_repos()]); const repos = this.known_repos();
       if (this.settings.repository_order !== "recent") repos.sort((a, b) => (this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b)) : a.localeCompare(b)));
-      this.repo_select.replaceChildren(...repos.map(root => option(root, this.host.path_api.basename(root) || root))); this.repo_select.value = this.root;
-      this.root_label.textContent = `${state.root}${state.branch ? " · " + state.branch : state.head ? " · 游离 HEAD" : ""}`; this.root_label.title = state.root;
-      this.branch_select.replaceChildren(option("", "全部分支"), option("HEAD", "当前 HEAD"));
+      this.repo_select.replaceChildren(...repos.map(root => option(root, this.host.path_api.basename(root) || root)), option("__manage__", text("graph.manage_repositories"))); this.repo_select.value = this.root;
+      const repository_control = this.repo_select.closest<HTMLElement>(".git-graph-repository-control"); if (repository_control) repository_control.hidden = repos.length <= 1;
+      this.container.title = `${state.root}${state.branch ? " · " + state.branch : state.head ? " · " + text("graph.detached_head") : ""}`;
+      this.branch_select.replaceChildren(option("", text("graph.all_branches")), option("HEAD", text("graph.current_head")));
       for (const ref of state.refs) this.branch_select.append(option(ref.name, ref.name.replace(/^refs\//u, "")));
       for (const glob of this.settings.branch_globs) this.branch_select.append(option("glob:" + glob.glob, glob.name));
+      this.branch_select.append(option("__multiple__", text("graph.select_multiple_branches")));
       this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+      this.show_remote_input.checked = this.settings.show_remotes;
       this.ancestors.clear();
       if (this.settings.mute_unreachable && state.head) {
         const hashes = await this.runner.run(this.root, ["rev-list", state.head, `--max-count=${this.count * 4}`]); if (epoch !== this.epoch) return;
         this.ancestors = new Set(hashes.trim().split("\n"));
       }
       this.render_history(); await this.workbench.refresh(); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
-      this.status.textContent = `${state.commits.length ? `已加载 ${state.commits.length} 条提交` : "此仓库尚无提交"} · ${state.changes.length} 个未提交文件${state.operation ? " · 进行中：" + state.operation : ""}`;
+      this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
       this.container.dataset.state = "ready";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
       if (this.selected && (this.selected === WORKTREE || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
-      else { this.selected = ""; this.to = ""; this.details.textContent = "选择提交查看详情；Ctrl / Cmd 点击第二条提交进行比较。"; this.place_details(); }
+      else this.close_details();
     } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
     finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; } }
   }
   date(commit: graph_commit): string {
     const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;
     if (this.settings.date_format === "iso") return source;
-    if (this.settings.date_format === "relative") { const days = Math.floor((Date.now() - new Date(source).getTime()) / 86400000); return days ? `${days} 天前` : "今天"; }
-    return new Date(source).toLocaleString();
+    if (this.settings.date_format === "relative") { const days = Math.floor((Date.now() - new Date(source).getTime()) / 86400000); return days ? text("graph.relative_days", {count: days}) : text("graph.today"); }
+    return new Date(source).toLocaleString(git_graph_language_tag());
   }
-  draw_graph(row: graph_row, width: number, geometry = {lane_width: 18, first_x: 16, right_gap: 20, height: 34}): SVGSVGElement {
+  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");
     const x = (lane: number) => lane * geometry.lane_width + geometry.first_x;
     const half_height = geometry.height / 2;
@@ -140,14 +178,12 @@ export class git_graph_panel {
     const connected = state.changes.length > 0 && this.settings.show_changes && this.settings.uncommitted_style === "connected";
     const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
     const fragment = document.createDocumentFragment();
-    this.container.dataset.details = this.settings.details_location; this.apply_layout();
-    this.container.dataset.labels = this.settings.label_alignment;
+    const graph_width = Math.max(58, (graph.width - 1) * 16 + 20); this.container.style.setProperty("--git-graph-width", graph_width + "px");
     for (const [key, width] of Object.entries(this.settings.column_widths)) this.container.style.setProperty(`--git-${key}-width`, width + "px");
     this.header.replaceChildren();
-    this.header.style.paddingLeft = (graph.width * 18 + 26) + "px";
-    for (const [key, title] of [["subject", "提交说明"], ["author", "作者"], ["date", "日期"], ["hash", "提交编号"]]) {
-      if (key !== "subject" && !this.settings[("show_" + key) as keyof graph_settings]) continue;
-      const label = el("div", "git-graph-column", title); label.style.width = `var(--git-${key}-width)`; const handle = el("span", "git-graph-column-resize"); label.append(handle);
+    this.header.append(el("div", "git-graph-column git-graph-column-graph", text("graph.column.graph")));
+    for (const [key, title] of [["subject", text("graph.column.description")], ["date", text("graph.column.date")], ["author", text("graph.column.author")], ["hash", text("graph.column.commit")]]) {
+      const label = el("div", "git-graph-column git-graph-column-" + key, title); const handle = el("span", "git-graph-column-resize"); label.append(handle);
       handle.onpointerdown = event => {
         event.preventDefault(); handle.setPointerCapture(event.pointerId); const start = event.clientX; const width = label.getBoundingClientRect().width;
         handle.onpointermove = move => { this.settings.column_widths[key as keyof graph_settings["column_widths"]] = Math.max(40, Math.min(1500, width + move.clientX - start)); this.container.style.setProperty(`--git-${key}-width`, this.settings.column_widths[key as keyof graph_settings["column_widths"]] + "px"); };
@@ -155,9 +191,10 @@ export class git_graph_panel {
       }; this.header.append(label);
     }
     if (state.changes.length && this.settings.show_changes) {
-      const row = el("div", "git-graph-row git-graph-worktree", `● 未提交改动 · ${state.changes.length} 个文件`); row.dataset.hash = WORKTREE; row.tabIndex = 0;
-      if (connected) row.prepend(this.draw_graph(graph.rows[0], graph.width));
+      const row = el("div", "git-graph-row git-graph-worktree"); row.dataset.hash = WORKTREE; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === WORKTREE));
+      row.append(connected ? this.draw_graph(graph.rows[0], graph.width) : el("span", "git-graph-worktree-node", "●"), el("span", "git-graph-subject", text("graph.uncommitted_changes_files", {count: state.changes.length})), el("span", "git-graph-date"), el("span", "git-graph-author"), el("code", "git-graph-hash", revision_label(WORKTREE)));
       row.onclick = event => { if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== WORKTREE) void this.show_comparison(this.selected, WORKTREE); else { this.selected = WORKTREE; void this.show_comparison(state.head || EMPTY, WORKTREE); } };
+      row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.selected = WORKTREE; void this.show_comparison(state.head || EMPTY, WORKTREE); } };
       row.oncontextmenu = event => this.target_menu(event, "changes", "", state.head); if (this.settings.uncommitted_style === "connected") row.classList.add("connected"); fragment.append(row);
     }
     const ref_map = new Map<string, git_ref[]>();
@@ -167,6 +204,7 @@ export class git_graph_panel {
     }
     state.commits.forEach((commit, index) => {
       const row = el("div", "git-graph-row"); row.dataset.hash = commit.hash; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === commit.hash));
+      if (state.head === commit.hash) row.dataset.head = "true";
       row.title = `${commit.hash}\n${commit.author} · ${this.date(commit)}\n${commit.subject}`;
       if (this.settings.mute_merges && commit.parents.length > 1 || this.settings.mute_unreachable && !this.ancestors.has(commit.hash)) row.classList.add("git-graph-muted");
       row.onclick = event => { if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== commit.hash) void this.show_comparison(this.selected === WORKTREE ? commit.hash : this.selected, this.selected === WORKTREE ? WORKTREE : commit.hash); else this.select_commit(commit); };
@@ -189,30 +227,31 @@ export class git_graph_panel {
         badge.onclick = event => { event.stopPropagation(); this.target_menu(event, kind, name, commit.hash); }; badge.oncontextmenu = event => this.target_menu(event, kind, name, commit.hash); refs.append(badge);
       }
       subject.append(refs, el("span", "git-graph-subject-text", this.emoji(commit.subject)));
-      row.append(svg, subject);
-      if (this.settings.show_author) row.append(el("span", "git-graph-author", commit.author));
-      if (this.settings.show_date) row.append(el("span", "git-graph-date", this.date(commit)));
-      if (this.settings.show_hash) row.append(el("code", "git-graph-hash", commit.hash.slice(0, 8)));
+      row.append(svg, subject, el("span", "git-graph-date", this.date(commit)), el("span", "git-graph-author", commit.author), el("code", "git-graph-hash", commit.hash.slice(0, 8)));
       fragment.append(row);
     });
     const scroll = this.list.scrollTop; this.list.replaceChildren(this.header, fragment); this.place_details(); this.list.scrollTop = scroll;
   }
   place_details(): void {
-    this.container.setAttribute("data-detail-visible", String(Boolean(this.to)));
     const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === this.selected);
-    if (this.settings.details_location === "inline" && row) row.after(this.details);
-    else this.body.append(this.sash, this.details);
+    if (this.to && row) row.after(this.details); else this.details.remove();
   }
+  close_details(): void {
+    this.detail_epoch++; this.selected = ""; this.to = ""; this.files = []; this.details.replaceChildren(); this.place_details();
+    for (const row of this.list.querySelectorAll<HTMLElement>("[data-hash]")) row.setAttribute("aria-pressed", "false");
+  }
+  open_find(): void { this.find_widget.dataset.open = "true"; this.search.focus(); this.search.select(); }
+  close_find(): void { this.find_widget.dataset.open = "false"; this.find_position.textContent = ""; }
   emoji(text: string): string { return text.replace(/:[a-z_0-9+-]+:/giu, code => this.settings.emoji[code] || builtin_emoji[code] || code); }
   scroll_to(hash: string): void { const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === hash); if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2; }
   select_commit(commit: graph_commit): void { this.selected = commit.hash; if (this.settings.auto_center) this.scroll_to(commit.hash); void this.show_comparison(commit.parents[0] || EMPTY, commit.hash); }
   find_next(direction = 1): void {
-    const query = this.search.value.trim().toLocaleLowerCase(); if (!query || !this.state) return;
+    const query = this.search.value.trim().toLocaleLowerCase(); if (!query || !this.state) { this.find_position.textContent = ""; return; }
     const matches = this.state.commits.filter(commit => [commit.subject, commit.author, this.date(commit), commit.hash, ...this.state!.refs.filter(ref => ref.hash === commit.hash).map(ref => ref.name)].some(value => value.toLocaleLowerCase().includes(query)));
-    if (!matches.length) { this.status.textContent = "已加载历史中没有匹配项，可继续加载。"; return; }
+    if (!matches.length) { this.find_position.textContent = text("graph.find_no_results"); return; }
     const current = matches.findIndex(commit => commit.hash === this.selected);
     const index = current < 0 ? direction > 0 ? 0 : matches.length - 1 : (current + direction + matches.length) % matches.length;
-    this.select_commit(matches[index]); this.scroll_to(matches[index].hash); this.status.textContent = `找到 ${matches.length} 条 · 第 ${index + 1} 条`;
+    this.select_commit(matches[index]); this.scroll_to(matches[index].hash); this.find_position.textContent = text("graph.find_position", {current: index + 1, total: matches.length});
   }
   review_key(): string { return JSON.stringify([this.root, this.from, this.to]); }
   is_reviewed(file: string): boolean { return load_reviews(localStorage).find(review => JSON.stringify([review.root, review.from, review.to]) === this.review_key())?.reviewed.includes(file) || false; }
@@ -226,56 +265,68 @@ export class git_graph_panel {
     if (!this.state) return; const epoch = ++this.detail_epoch; this.from = from; this.to = to;
     this.place_details();
     const commit = this.state.commits.find(item => item.hash === to);
-    this.details.replaceChildren(el("div", "git-graph-commit-title", to === WORKTREE ? "未提交改动" : to === INDEX ? "已暂存改动" : commit?.subject || "提交比较"));
-    this.details.append(el("code", "git-graph-full-hash", `${from} → ${to}`));
+    const content = el("div", "git-graph-detail-content"); const summary = el("section", "git-graph-detail-summary"); const files_pane = el("section", "git-graph-detail-files"); const controls = el("nav", "git-graph-detail-controls");
+    summary.append(el("div", "git-graph-commit-title", to === WORKTREE ? text("graph.uncommitted_changes") : to === INDEX ? text("graph.staged_changes") : commit?.subject || text("graph.commit_comparison")), el("code", "git-graph-full-hash", `${revision_label(from)} → ${revision_label(to)}`));
+    content.append(summary, files_pane); this.details.replaceChildren(content, controls);
     for (const row of this.list.querySelectorAll<HTMLElement>("[data-hash]")) row.setAttribute("aria-pressed", String(row.dataset.hash === this.selected));
-    const controls = el("div", "git-graph-detail-controls"); this.details.append(controls);
+    controls.append(git_icon_button("close", text("graph.details_close"), () => this.close_details(), "git-graph-detail-close"));
     if (to === WORKTREE || to === INDEX) {
-      const mode = el("select", "git-graph-parent"); mode.append(option("all", "HEAD → 工作区"), option("staged", "HEAD → 暂存区"), option("unstaged", "暂存区 → 工作区"));
+      const mode = el("select", "git-graph-parent"); mode.append(option("all", text("graph.head_to_worktree")), option("staged", text("graph.head_to_index")), option("unstaged", text("graph.index_to_worktree")));
       mode.value = to === INDEX ? "staged" : from === INDEX ? "unstaged" : "all";
-      mode.onchange = () => void this.show_comparison(mode.value === "unstaged" ? INDEX : this.state!.head || EMPTY, mode.value === "staged" ? INDEX : WORKTREE); controls.append(mode);
-      controls.append(button("操作", () => this.repository_menu("changes")));
+      mode.onchange = () => void this.show_comparison(mode.value === "unstaged" ? INDEX : this.state!.head || EMPTY, mode.value === "staged" ? INDEX : WORKTREE);
+      const mode_label = el("label", "git-graph-detail-option", text("graph.comparison")); mode_label.append(mode); summary.append(mode_label);
     } else {
       if (commit) {
-        this.details.append(el("div", "git-graph-meta", `作者：${commit.author} <${commit.email || ""}> · ${commit.date}\n提交者：${commit.committer || commit.author} <${commit.committer_email || ""}> · ${commit.commit_date || commit.date}`));
-        if (this.settings.fetch_avatars && commit.email) { const img = el("img", "git-graph-avatar"); img.alt = commit.author; this.details.append(img); void this.host.avatar(commit.email).then(url => { if (epoch === this.detail_epoch) img.src = url; }).catch(() => img.remove()); }
-        const parent = el("select", "git-graph-parent"); parent.setAttribute("aria-label", "对比父提交");
-        if (!commit.parents.length) parent.append(option(EMPTY, "首次提交 · 空树"));
-        commit.parents.forEach((hash, index) => parent.append(option(hash, `父提交 ${index + 1} · ${hash.slice(0, 8)}`)));
-        if (![...parent.options].some(item => item.value === from)) parent.append(option(from, "所选比较提交 · " + from.slice(0, 8)));
-        parent.value = from; parent.onchange = () => void this.show_comparison(parent.value, to); controls.append(parent);
+        summary.append(el("div", "git-graph-meta", text("graph.author_meta", {author: commit.author, email: commit.email || "", date: commit.date, committer: commit.committer || commit.author, committer_email: commit.committer_email || "", commit_date: commit.commit_date || commit.date})));
+        if (this.settings.fetch_avatars && commit.email) { const img = el("img", "git-graph-avatar"); img.alt = commit.author; summary.append(img); void this.host.avatar(commit.email).then(url => { if (epoch === this.detail_epoch) img.src = url; }).catch(() => img.remove()); }
+        const parent = el("select", "git-graph-parent"); parent.setAttribute("aria-label", text("graph.compare_parent"));
+        if (!commit.parents.length) parent.append(option(EMPTY, text("graph.initial_commit_empty_tree")));
+        commit.parents.forEach((hash, index) => parent.append(option(hash, text("graph.parent_commit", {number: index + 1, hash: hash.slice(0, 8)}))));
+        if (![...parent.options].some(item => item.value === from)) parent.append(option(from, text("graph.selected_comparison", {hash: from.slice(0, 8)})));
+        parent.value = from; parent.onchange = () => void this.show_comparison(parent.value, to);
+        const parent_label = el("label", "git-graph-detail-option", text("graph.compare_with")); parent_label.append(parent); summary.append(parent_label);
       }
-      controls.append(button(this.review_active() ? "结束评审" : "开始评审", () => {
-        const reviews = load_reviews(localStorage); const filtered = reviews.filter(item => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
-        if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
-        save_reviews(localStorage, filtered); void this.show_comparison(from, to);
-      }));
-      const message = el("div", "git-graph-message", "正在读取提交说明…"); this.details.append(message);
-      void this.runner.run(this.root, ["show", "-s", `--format=%B${this.settings.show_signature ? "%n签名：%G?%n%GS%n%GK" : ""}`, to, "--"]).then(text => {
-        if (epoch === this.detail_epoch) message.replaceChildren(inline_message(text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, url => void this.host.open_url(url).catch(error => this.report(error))));
+      const review_button = git_icon_button("check", this.review_active() ? text("graph.review_end") : text("graph.review_start"), () => this.toggle_review(from, to), "git-graph-detail-review"); review_button.setAttribute("aria-pressed", String(this.review_active())); controls.append(review_button);
+      const message = el("div", "git-graph-message", text("graph.loading_message")); summary.append(message);
+      void this.runner.run(this.root, ["show", "-s", `--format=%B${this.settings.show_signature ? "%n" + text("graph.signature_label") + "%G?%n%GS%n%GK" : ""}`, to, "--"]).then(message_text => {
+        if (epoch === this.detail_epoch) message.replaceChildren(inline_message(message_text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, url => void this.host.open_url(url).catch(error => this.report(error))));
       }).catch(error => { if (epoch === this.detail_epoch) message.textContent = String(error); });
     }
-    controls.append(button(this.settings.file_view === "tree" ? "切换列表" : "切换目录树", () => { this.settings.file_view = this.settings.file_view === "tree" ? "list" : "tree"; this.persist_settings(); void this.show_comparison(from, to); }));
-    const files = el("div", "git-graph-files");
-    this.details.append(el("div", "git-scm-empty", "单击文件在中央编辑区打开差异；右键查看文件操作。"), files);
+    const tree_button = git_icon_button("list-tree", text("graph.files_tree"), () => this.set_file_view("tree", from, to), "git-graph-detail-tree"); tree_button.setAttribute("aria-pressed", String(this.settings.file_view === "tree"));
+    const list_button = git_icon_button("list-flat", text("graph.files_list"), () => this.set_file_view("list", from, to), "git-graph-detail-list"); list_button.setAttribute("aria-pressed", String(this.settings.file_view === "list"));
+    controls.append(tree_button, list_button, git_icon_button("more", text("graph.more_commit_actions"), () => this.repository_menu(to === WORKTREE || to === INDEX ? "changes" : "repository"), "git-graph-detail-more"));
+    const files_heading = el("div", "git-graph-files-heading", text("graph.changed_files")); const files = el("div", "git-graph-files"); files_pane.append(files_heading, files);
     try {
       this.files = await compare_files(this.runner.run, this.state, from, to); if (epoch !== this.detail_epoch) return;
-      if (!this.files.length) { files.textContent = "没有文件差异。"; return; }
+      files_heading.textContent = text("graph.changed_files_count", {count: this.files.length});
+      if (!this.files.length) { files.textContent = text("graph.no_file_differences"); return; }
       this.render_files(files);
     } catch (error) { if (epoch === this.detail_epoch) files.textContent = String(error); }
+  }
+  toggle_review(from: string, to: string): void {
+    const reviews = load_reviews(localStorage); const filtered = reviews.filter(item => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
+    if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
+    save_reviews(localStorage, filtered); void this.show_comparison(from, to);
+  }
+  set_file_view(view: "tree" | "list", from: string, to: string): void {
+    if (this.settings.file_view === view) return; this.settings.file_view = view; this.persist_settings(); void this.show_comparison(from, to);
   }
   render_files(container: HTMLElement): void {
     const directories = new Map<string, HTMLElement>(); directories.set("", container);
     const parent_for = (path: string): HTMLElement => {
       if (directories.has(path)) return directories.get(path)!;
       const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/"));
-      const group = el("details", "git-file-directory"); group.open = true; group.append(el("summary", "", parts.at(-1)!)); parent.append(group); directories.set(path, group); return group;
+      const group = el("details", "git-file-directory"); group.open = true; const summary = el("summary"); summary.append(git_icon("chevron-right", "git-graph-file-disclosure"), git_icon("folder-opened", "git-graph-file-folder"), el("span", "git-graph-directory-name", parts.at(-1)!)); group.append(summary);
+      group.ontoggle = () => { const current = summary.querySelector(".git-graph-file-folder"); current?.replaceWith(git_icon(group.open ? "folder-opened" : "folder", "git-graph-file-folder")); };
+      parent.append(group); directories.set(path, group); return group;
     };
     for (const file of this.files) {
-      const row = button(`${file.status}  ${file.old_path ? file.old_path + " → " : ""}${file.path}`, () => {
+      const row = button("", () => {
         for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected"); row.classList.add("selected");
         void this.open_diff(file);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
+      const display_path = file.old_path ? file.old_path + " → " + file.path : file.path; const parts = display_path.split("/");
+      row.append(git_icon("file", "git-graph-file-icon"), el("span", "git-graph-file-name", parts.pop() || display_path), el("span", "git-graph-file-path", parts.join("/")), el("span", "git-graph-file-status", file.status));
       if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
       row.oncontextmenu = event => this.file_menu(event, file);
       (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(row);
@@ -284,7 +335,7 @@ export class git_graph_panel {
       for (const directory of [...container.querySelectorAll("details")].reverse()) {
         const children = [...directory.children];
         if (children.length === 2 && children[1].tagName === "DETAILS") {
-          const child = children[1]; directory.querySelector("summary")!.textContent += "/" + child.querySelector("summary")!.textContent;
+          const child = children[1]; directory.querySelector(".git-graph-directory-name")!.textContent += "/" + child.querySelector(".git-graph-directory-name")!.textContent;
           directory.append(...[...child.children].slice(1)); child.remove();
         }
       }
@@ -292,13 +343,13 @@ export class git_graph_panel {
   }
   file_menu(event: MouseEvent, file: graph_change): void {
     const entries: workspace_menu_entry[] = [
-      { id: "file_history", title: "打开文件历史（时间线）", action: () => void this.workbench.file_history(file.path) },
-      { id: "open_file", title: "打开当前文件", action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch(error => this.report(error)) },
-      { id: "copy_relative", title: "复制相对路径", action: () => void this.host.copy(file.path) }, { id: "copy_absolute", title: "复制绝对路径", action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
-      { id: "open_diff", title: "打开双栏差异", action: () => void this.open_diff(file) },
-      { id: "left_revision", title: "查看左侧历史版本", action: () => void this.open_revision(this.from, file.old_path || file.path) },
-      { id: "right_revision", title: "查看右侧历史版本", action: () => void this.open_revision(this.to, file.path) },
-      { id: "reviewed", title: "标记已评审", action: () => this.mark_reviewed(file.path) },
+      { id: "file_history", title: text("graph.file_history"), action: () => void this.workbench.file_history(file.path) },
+      { id: "open_file", title: text("graph.open_current_file"), action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch(error => this.report(error)) },
+      { id: "copy_relative", title: text("graph.copy_relative_path"), action: () => void this.host.copy(file.path) }, { id: "copy_absolute", title: text("graph.copy_absolute_path"), action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
+      { id: "open_diff", title: text("graph.open_side_by_side_diff"), action: () => void this.open_diff(file) },
+      { id: "left_revision", title: text("graph.open_left_revision"), action: () => void this.open_revision(this.from, file.old_path || file.path) },
+      { id: "right_revision", title: text("graph.open_right_revision"), action: () => void this.open_revision(this.to, file.path) },
+      { id: "reviewed", title: text("graph.mark_reviewed"), action: () => this.mark_reviewed(file.path) },
     ];
     if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ id, title: graph_actions.find(action => action.id === id)!.title, action: () => void this.quick_action(id, [file.path, ...(file.old_path ? [file.old_path] : [])]) });
     entries.push(...this.workbench.file_entries(file, this.from, this.to, this.files).filter(entry => entry.id === "ignore_file"));
@@ -313,89 +364,82 @@ export class git_graph_panel {
   }
   target_menu(event: MouseEvent, kind: string, target: string, hash: string): void {
     const entries = graph_actions.filter(action => action.targets.includes(kind) && !this.settings.hidden_actions.includes(action.id)).map(action => ({ title: action.title, id: action.id, action: () => this.action_dialog(action.id, kind, target, hash) }));
-    entries.push({ title: "复制名称或编号", id: "copy_name", action: () => void this.host.copy(target || hash) }, { title: "复制提交编号", id: "copy_hash", action: () => void this.host.copy(hash) });
+    entries.push({ title: text("graph.copy_name_or_hash"), id: "copy_name", action: () => void this.host.copy(target || hash) }, { title: text("graph.copy_commit_hash"), id: "copy_hash", action: () => void this.host.copy(hash) });
     const commit = this.state?.commits.find(item => item.hash === hash);
-    if (commit) entries.push({ title: "复制提交标题", id: "copy_subject", action: () => void this.host.copy(commit.subject) });
-    if (kind === "tag") entries.push({ title: "查看标签详情", id: "tag_details", action: () => void this.tag_details(target) });
+    if (commit) entries.push({ title: text("graph.copy_commit_subject"), id: "copy_subject", action: () => void this.host.copy(commit.subject) });
+    if (kind === "tag") entries.push({ title: text("graph.tag_details"), id: "tag_details", action: () => void this.tag_details(target) });
     if (kind === "branch" || kind === "remote") {
-      entries.push({ title: "打开 Pull Request 表单", id: "pull_request", action: () => this.pr_dialog(kind === "remote" ? target.slice(target.indexOf("/") + 1) : target) });
+      entries.push({ title: text("graph.open_pull_request"), id: "pull_request", action: () => this.pr_dialog(kind === "remote" ? target.slice(target.indexOf("/") + 1) : target) });
       const name = kind === "branch" ? "refs/heads/" + target : "refs/remotes/" + target;
-      entries.push({ title: this.branches.includes(name) ? "从分支筛选中移除" : "加入分支筛选", id: "filter", action: () => { this.branches = this.branches.includes(name) ? this.branches.filter(item => item !== name) : [...this.branches, name]; void this.refresh(); } });
+      entries.push({ title: this.branches.includes(name) ? text("graph.filter_remove") : text("graph.filter_add"), id: "filter", action: () => { this.branches = this.branches.includes(name) ? this.branches.filter(item => item !== name) : [...this.branches, name]; void this.refresh(); } });
     }
-    if (["branch", "remote", "tag", "commit"].includes(kind)) entries.push({ title: "导出此版本的 ZIP 归档", id: "archive", action: () => this.archive_dialog(hash) });
+    if (["branch", "remote", "tag", "commit"].includes(kind)) entries.push({ title: text("graph.archive_zip"), id: "archive", action: () => this.archive_dialog(hash) });
     this.configured_menu(event, kind, entries);
-  }
-  apply_layout(): void {
-    this.body.style.setProperty("--git-panel-first", this.settings.panel_ratio + "fr");
-    this.body.style.setProperty("--git-panel-second", (100 - this.settings.panel_ratio) + "fr");
-    this.sash.hidden = this.settings.details_location === "inline";
   }
   layout_entries(): workspace_menu_entry[] {
     return [
-      ...[["right", "详情放右侧"], ["bottom", "详情放下方"], ["inline", "详情嵌入提交行"]].map(([value, title]) => ({ title, checked: this.settings.details_location === value, action: () => { this.settings.details_location = value; this.persist_settings(); if (this.state) this.render_history(); this.place_details(); } })),
-      ...[["show_author", "显示作者列"], ["show_date", "显示日期列"], ["show_hash", "显示编号列"]].map(([key, title]) => ({ title, checked: Boolean(this.settings[key as keyof graph_settings]), action: () => { (this.settings as Record<string, unknown>)[key] = !this.settings[key as keyof graph_settings]; this.persist_settings(); if (this.state) this.render_history(); } })),
-      { title: "重置列宽和分界线", separator: true, action: () => { this.settings.column_widths = { ...graph_defaults.column_widths }; this.settings.panel_ratio = graph_defaults.panel_ratio; this.persist_settings(); if (this.state) this.render_history(); } },
-      { title: "全部设置", action: () => this.settings_dialog() },
+      { title: text("graph.reset_columns"), action: () => { this.settings.column_widths = { ...graph_defaults.column_widths }; this.persist_settings(); if (this.state) this.render_history(); } },
+      { title: text("graph.all_settings"), action: () => this.settings_dialog() },
     ];
   }
   layout_menu(event: MouseEvent): void { workspace_menu(event, this.layout_entries()); }
-  layout_dialog(): void { const dialog = workspace_dialog("提交图布局"); for (const entry of this.layout_entries()) dialog.content.append(button((entry.checked ? "✓ " : "") + entry.title, () => { dialog.close(); entry.action(); })); }
+  layout_dialog(): void { const dialog = graph_dialog(text("graph.layout_title")); for (const entry of this.layout_entries()) dialog.content.append(button((entry.checked ? "✓ " : "") + entry.title, () => { dialog.close(); entry.action(); })); }
   configured_menu(event: MouseEvent, kind: string, entries: workspace_menu_entry[]): void {
     const hidden = (id: string) => this.settings.hidden_actions.includes(id) || this.settings.hidden_actions.includes(kind + ":" + id);
     const filter_entries = (items: workspace_menu_entry[]): workspace_menu_entry[] => items.filter(entry => !entry.id || !hidden(entry.id)).map(entry => entry.children ? {...entry, children: filter_entries(entry.children)} : entry);
     const all_entries = (items: workspace_menu_entry[]): workspace_menu_entry[] => items.flatMap(entry => [entry, ...all_entries(entry.children || [])]);
-    workspace_menu(event, [...filter_entries(entries), { id: "configure_menu", title: "配置此右键菜单…", separator: true, action: () => {
-      const dialog = workspace_dialog("右键菜单显示项 · " + kind); const choices = new Map<string, HTMLInputElement>();
+    workspace_menu(event, [...filter_entries(entries), { id: "configure_menu", title: text("graph.configure_context_menu"), separator: true, action: () => {
+      const dialog = graph_dialog(text("graph.context_menu_title", {kind: target_kind_label(kind)})); const choices = new Map<string, HTMLInputElement>();
       for (const entry of all_entries(entries)) { if (!entry.id || choices.has(entry.id)) continue; const label = el("label", "git-graph-filter", entry.title); const input = el("input"); input.type = "checkbox"; input.checked = !hidden(entry.id); input.setAttribute("data-action-id", entry.id); label.prepend(input); choices.set(entry.id, input); dialog.content.append(label); }
-      dialog.footer.prepend(button("应用", () => {
+      dialog.footer.prepend(button(text("graph.apply"), () => {
         for (const [id, input] of choices) { this.settings.hidden_actions = this.settings.hidden_actions.filter(value => value !== kind + ":" + id); if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id); else this.settings.hidden_actions = this.settings.hidden_actions.filter(value => value !== id); }
         this.persist_settings(); dialog.close();
-      }), button("恢复此菜单全部项目", () => { this.settings.hidden_actions = this.settings.hidden_actions.filter(id => !id.startsWith(kind + ":") && !choices.has(id)); this.persist_settings(); dialog.close(); }));
+      }), button(text("graph.restore_menu"), () => { this.settings.hidden_actions = this.settings.hidden_actions.filter(id => !id.startsWith(kind + ":") && !choices.has(id)); this.persist_settings(); dialog.close(); }));
     } }]);
   }
   background_menu(event: MouseEvent): void {
     const entries: workspace_menu_entry[] = graph_actions.filter(action => action.targets.includes("repository")).map(action => ({ id: action.id, title: action.title, disabled: !this.state || this.writing, action: () => this.action_dialog(action.id, "repository", "", this.state?.head) }));
-    entries.push({ id: "refresh", title: "刷新", separator: true, action: () => void this.refresh() },
-      { id: "terminal", title: "在仓库根目录打开集成终端", action: () => this.host.terminal(this.root, this.settings.terminal_shell) },
-      { id: "terminal_admin", title: "以管理员身份打开仓库终端（UAC）", disabled: this.host.process_api.platform !== "win32", action: () => this.host.terminal(this.root, "", true) },
-      { id: "remotes", title: "远端配置", action: () => this.remotes_dialog() },
-      { id: "copy_root", title: "复制仓库根路径", action: () => void this.host.copy(this.root) },
-      { id: "layout", title: "面板布局与列显示", separator: true, action: () => this.layout_dialog() },
-      { id: "settings", title: "全部设置", action: () => this.settings_dialog() });
+    entries.push({ id: "refresh", title: text("graph.refresh_short"), separator: true, action: () => void this.refresh() },
+      { id: "terminal", title: text("graph.open_terminal"), action: () => this.host.terminal(this.root, this.settings.terminal_shell) },
+      { id: "terminal_admin", title: text("graph.open_admin_terminal"), disabled: this.host.process_api.platform !== "win32", action: () => this.host.terminal(this.root, "", true) },
+      { id: "remotes", title: text("graph.remotes"), action: () => this.remotes_dialog() },
+      { id: "copy_root", title: text("graph.copy_repository_root"), action: () => void this.host.copy(this.root) },
+      { id: "layout", title: text("graph.column_layout"), separator: true, action: () => this.layout_dialog() },
+      { id: "settings", title: text("graph.all_settings"), action: () => this.settings_dialog() });
     this.configured_menu(event, "repository", entries);
   }
   repository_menu(kind = "repository"): void {
-    const dialog = workspace_dialog(kind === "changes" ? "未提交改动操作" : "仓库操作");
+    const dialog = graph_dialog(kind === "changes" ? text("graph.changes_actions") : text("graph.repository_actions"));
     for (const action of graph_actions.filter(item => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(button(action.title, () => { dialog.close(); this.action_dialog(action.id, kind, "", this.state?.head); }));
-    dialog.content.append(button("远端配置", () => { dialog.close(); this.remotes_dialog(); }), button("打开仓库终端", () => { this.host.terminal(this.root, this.settings.terminal_shell); dialog.close(); }), button("以管理员身份打开仓库终端（UAC）", () => { this.host.terminal(this.root, "", true); dialog.close(); }), button("管理评审记录", () => { dialog.close(); this.reviews_dialog(); }), button("清空头像缓存", () => { this.host.clear_avatars(); dialog.close(); }));
+    dialog.content.append(button(text("graph.remotes"), () => { dialog.close(); this.remotes_dialog(); }), button(text("graph.open_repository_terminal"), () => { this.host.terminal(this.root, this.settings.terminal_shell); dialog.close(); }), button(text("graph.open_admin_terminal"), () => { this.host.terminal(this.root, "", true); dialog.close(); }), button(text("graph.manage_reviews"), () => { dialog.close(); this.reviews_dialog(); }), button(text("graph.clear_avatar_cache"), () => { this.host.clear_avatars(); dialog.close(); }));
   }
   remotes_dialog(): void {
-    const dialog = workspace_dialog("仓库远端配置");
-    if (!this.state?.remotes.length) dialog.content.append(el("p", "", "此仓库尚未配置远端。"));
+    const dialog = graph_dialog(text("graph.repository_remotes"));
+    if (!this.state?.remotes.length) dialog.content.append(el("p", "", text("graph.no_remotes")));
     for (const remote of this.state?.remotes || []) {
-      const row = el("div", "git-graph-repo-entry", `${remote.name}\n获取地址：${remote.fetch}\n推送地址：${remote.push}`);
-      for (const [title, id, preset] of [["修改获取地址", "remote_edit", { url: remote.fetch }], ["修改推送地址", "remote_edit", { url: remote.push, push_url: true }], ["获取", "fetch", {}], ["清理过期引用", "remote_prune", {}], ["删除", "remote_remove", {}]] as const) row.append(button(title, () => { dialog.close(); this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset }); }));
+      const row = el("div", "git-graph-repo-entry", text("graph.remote_addresses", {name: remote.name, fetch: remote.fetch, push: remote.push}));
+      for (const [title, id, preset] of [[text("graph.edit_fetch_url"), "remote_edit", { url: remote.fetch }], [text("graph.edit_push_url"), "remote_edit", { url: remote.push, push_url: true }], [text("graph.fetch"), "fetch", {}], [text("graph.prune_remote"), "remote_prune", {}], [text("graph.delete"), "remote_remove", {}]] as const) row.append(button(title, () => { dialog.close(); this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset }); }));
       dialog.content.append(row);
     }
-    dialog.footer.prepend(button("添加远端", () => { dialog.close(); this.action_dialog("remote_add", "repository"); }));
+    dialog.footer.prepend(button(text("graph.add_remote"), () => { dialog.close(); this.action_dialog("remote_add", "repository"); }));
   }
   async quick_action(id: string, paths: string[] = [], values: Record<string, unknown> = {}): Promise<void> {
     if (!this.state || this.writing) return;
     this.writing = true; let message = "";
     try {
       const plan = await plan_git_action(this.writer.run, id, {root: this.root, target: paths[0] || "", paths: paths.length ? paths : undefined, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags}, values);
-      message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || "操作完成。";
+      message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || text("graph.action_complete");
       if (id === "commit") { this.workbench.message.value = ""; localStorage.removeItem(this.workbench.storage_key("message")); }
     } catch (error) { message = String(error); }
     finally { this.writing = false; await this.refresh(false); this.report(message); }
   }
   action_dialog(id: string, kind: string, target = "", hash = this.selected, preset: Record<string, string | boolean> = {}, paths?: string[]): void {
-    if (!this.state || this.writing) { this.report("请等待仓库读取或当前操作完成。"); return; }
-    const action = graph_actions.find(item => item.id === id)!; const dialog = workspace_dialog(action.title); const fields = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
+    if (!this.state || this.writing) { this.report(text("graph.wait_for_repository")); return; }
+    const action = graph_actions.find(item => item.id === id)!; const dialog = graph_dialog(action.title); const fields = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
     if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
     if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
     const defaults = { ...this.settings.dialog_defaults[id], ...preset };
-    dialog.content.append(el("p", "", `仓库：${this.root}\n目标：${target || hash || this.state.branch}`));
+    dialog.content.append(el("p", "", text("graph.repository_target", {root: this.root, target: revision_label(target || hash || this.state.branch)})));
     const form = el("form", "git-graph-form"); const result = el("pre", "git-graph-action-preview"); dialog.content.append(form, result);
     for (const item of action.fields) {
       const input = item.type === "choice" ? el("select") : ["message", "todo"].includes(item.key) ? el("textarea") : el("input");
@@ -406,15 +450,15 @@ export class git_graph_panel {
       if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
       if (item.key === "prune_tags") initial = defaults.prune_tags ?? this.settings.fetch_prune_tags;
       if (item.key === "sign") initial = defaults.sign ?? this.settings.sign_tags;
-      if (input instanceof HTMLSelectElement) { for (const value of item.choices!) input.append(option(value, value)); input.value = String(initial); }
+      if (input instanceof HTMLSelectElement) { for (const value of item.choices!) input.append(option(value, item.choice_labels?.[value] || value)); input.value = String(initial); }
       else if (item.type === "boolean") { (input as HTMLInputElement).type = "checkbox"; (input as HTMLInputElement).checked = Boolean(initial); }
       else input.value = String(initial);
       input.dataset.field = item.key; fields.set(item.key, input); const label = el("label", "", item.title); label.append(input); form.append(label);
     }
     let plan: action_plan | undefined;
     let form_revision = 0;
-    const execute = button(id === "sync" ? "确认同步" : "执行此操作", () => void submit()); execute.disabled = true; execute.setAttribute("data-git-execute", id);
-    const preview = button("预览操作", () => void prepare()); preview.setAttribute("data-git-preview", id);
+    const execute = button(id === "sync" ? text("graph.sync_confirm") : text("graph.execute_action"), () => void submit()); execute.disabled = true; execute.setAttribute("data-git-execute", id);
+    const preview = button(text("graph.preview_action"), () => void prepare()); preview.setAttribute("data-git-preview", id);
     form.oninput = () => { form_revision++; execute.disabled = true; plan = undefined; };
     const prepare = async () => {
       try {
@@ -424,18 +468,18 @@ export class git_graph_panel {
         for (const [key, input] of fields) values[key] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
         if (id === "rebase" && values.interactive && !values.todo) {
           fields.get("todo")!.value = await this.runner.run(this.root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", `${hash}..HEAD`, "--"]);
-          result.textContent = "已生成交互列表。可以调整顺序或改为 reword / edit / squash / fixup / drop；reword 的标题将作为新说明。确认列表后再次预览。"; return;
+          result.textContent = text("graph.rebase_todo_ready"); return;
         }
         const selected_paths = id === "discard_changes" ? paths || this.workbench.groups_state.find(group => group.id === "changes")?.files.map(file => file.path) : paths;
         plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash === WORKTREE ? this.state!.head : hash, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
-        if (revision !== form_revision) { plan = undefined; result.textContent = "参数已改变，请重新预览。"; return; }
+        if (revision !== form_revision) { plan = undefined; result.textContent = text("graph.parameters_changed"); return; }
         result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview; execute.disabled = false;
       } catch (error) { result.textContent = String(error); } finally { preview.disabled = false; }
     };
     const submit = async () => {
       if (!plan) return; this.writing = true; preview.disabled = true; execute.disabled = true;
-      result.textContent += "\n\n执行中…";
-      try { const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files(), {trash_files: (root, files) => this.host.trash_files(root, files)}); result.textContent += "\n" + (output || "操作完成。"); }
+      result.textContent += "\n\n" + text("graph.executing");
+      try { const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files(), {trash_files: (root, files) => this.host.trash_files(root, files)}); result.textContent += "\n" + (output || text("graph.action_complete")); }
       catch (error) { result.textContent += "\n" + String(error); }
       finally { this.writing = false; plan = undefined; preview.disabled = false; await this.refresh(false); }
     };
@@ -445,7 +489,7 @@ export class git_graph_panel {
     if (id === "sync") void prepare();
   }
   async tag_details(name: string): Promise<void> {
-    const dialog = workspace_dialog("标签详情 · " + name);
+    const dialog = graph_dialog(text("graph.tag_details_title", {name}));
     try {
       const text = await this.runner.run(this.root, ["for-each-ref", "--format=%(refname)%0a%(objecttype)%0a%(taggername) %(taggeremail)%0a%(taggerdate:iso8601)%0a%(contents)", "refs/tags/" + name]);
       dialog.content.append(inline_message(text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, url => void this.host.open_url(url).catch(error => this.report(error))));
@@ -453,42 +497,42 @@ export class git_graph_panel {
     catch (error) { dialog.content.textContent = String(error); }
   }
   pr_dialog(branch: string): void {
-    const dialog = workspace_dialog("创建 Pull Request"); const remote = el("select"); const base = el("input"); base.value = this.settings.pr_base; const error = el("p");
-    for (const item of this.state!.remotes) remote.append(option(item.fetch, item.name)); dialog.content.append(el("p", "", "选择远端与目标分支，在浏览器打开预填表单。"), remote, base, error);
-    dialog.footer.prepend(button("打开表单", () => { try { void this.host.open_url(pull_request_url(remote.value, branch, base.value, this.settings.pr_url)).catch(problem => { error.textContent = String(problem); }); } catch (problem) { error.textContent = String(problem); } }));
+    const dialog = graph_dialog(text("graph.pull_request_title")); const remote = el("select"); const base = el("input"); base.value = this.settings.pr_base; const error = el("p");
+    for (const item of this.state!.remotes) remote.append(option(item.fetch, item.name)); dialog.content.append(el("p", "", text("graph.pull_request_help")), remote, base, error);
+    dialog.footer.prepend(button(text("graph.open_form"), () => { try { void this.host.open_url(pull_request_url(remote.value, branch, base.value, this.settings.pr_url)).catch(problem => { error.textContent = String(problem); }); } catch (problem) { error.textContent = String(problem); } }));
   }
   archive_dialog(hash: string): void {
-    const dialog = workspace_dialog("导出版本归档"); const target = el("input"); target.value = this.host.path_api.join(this.root, hash.slice(0, 8) + ".zip"); const error = el("pre"); dialog.content.append(target, error);
-    dialog.footer.prepend(button("导出 ZIP", () => void (async () => {
-      try { if (this.host.fs.existsSync(target.value)) throw new Error("目标已存在，请换一个名称。");
-        await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash]); error.textContent = "已导出：" + target.value;
+    const dialog = graph_dialog(text("graph.archive_title")); const target = el("input"); target.value = this.host.path_api.join(this.root, hash.slice(0, 8) + ".zip"); const error = el("pre"); dialog.content.append(target, error);
+    dialog.footer.prepend(button(text("graph.export_zip"), () => void (async () => {
+      try { if (this.host.fs.existsSync(target.value)) throw new Error(text("graph.target_exists"));
+        await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash]); error.textContent = text("graph.exported", {path: target.value});
       } catch (problem) { error.textContent = String(problem); }
     })()));
   }
   filter_branches(): void {
-    if (!this.state) { this.report("请先打开有效仓库。"); return; }
-    const dialog = workspace_dialog("选择一个或多个分支"); const selected = new Set(this.branches);
-    for (const [name, title] of [["HEAD", "当前 HEAD"], ...this.state!.refs.map(ref => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map(item => ["glob:" + item.glob, item.name])]) {
+    if (!this.state) { this.report(text("graph.valid_repository_required")); return; }
+    const dialog = graph_dialog(text("graph.select_branches_title")); const selected = new Set(this.branches);
+    for (const [name, title] of [["HEAD", text("graph.current_head")], ...this.state!.refs.map(ref => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map(item => ["glob:" + item.glob, item.name])]) {
       const check = el("input"); check.type = "checkbox"; check.checked = selected.has(name); check.onchange = () => check.checked ? selected.add(name) : selected.delete(name);
       const label = el("label", "git-graph-filter", title); label.prepend(check); dialog.content.append(label);
     }
-    dialog.footer.prepend(button("全部分支", () => { this.branches = []; dialog.close(); void this.refresh(); }), button("应用选择", () => { this.branches = [...selected]; dialog.close(); void this.refresh(); }));
+    dialog.footer.prepend(button(text("graph.all_branches_button"), () => { this.branches = []; dialog.close(); void this.refresh(); }), button(text("graph.apply_selection"), () => { this.branches = [...selected]; dialog.close(); void this.refresh(); }));
   }
   manage_repositories(): void {
-    const dialog = workspace_dialog("管理 Git 仓库"); const input = el("input"); input.placeholder = "粘贴仓库文件夹路径"; input.value = this.root; const error = el("p"); const list = el("div");
+    const dialog = graph_dialog(text("graph.manage_repositories_title")); const input = el("input"); input.placeholder = text("graph.repository_path_placeholder"); input.value = this.root; const error = el("p"); const list = el("div");
     const render = () => { list.replaceChildren(); for (const root of this.known_repos()) {
-      const row = el("div", "git-graph-repo-entry", root); row.append(button("打开", () => { this.switch_repo(root); dialog.close(); }), button("移除记录", () => { this.save_repos(this.known_repos().filter(item => item !== root)); render(); })); list.append(row);
+      const row = el("div", "git-graph-repo-entry", root); row.append(button(text("graph.open"), () => { this.switch_repo(root); dialog.close(); }), button(text("graph.remove_record"), () => { this.save_repos(this.known_repos().filter(item => item !== root)); render(); })); list.append(row);
     } }; render(); dialog.content.append(input, list, error);
-    dialog.footer.prepend(button("添加仓库", () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then(root => { this.save_repos([...this.known_repos(), root.trim()]); render(); }).catch(problem => { error.textContent = String(problem); })),
-      button("发现子仓库", () => void this.host.discover(input.value, this.settings.search_depth).then(roots => { this.save_repos([...this.known_repos(), ...roots]); render(); error.textContent = `发现 ${roots.length} 个仓库。`; }).catch(problem => { error.textContent = String(problem); })));
+    dialog.footer.prepend(button(text("graph.add_repository"), () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then(root => { this.save_repos([...this.known_repos(), root.trim()]); render(); }).catch(problem => { error.textContent = String(problem); })),
+      button(text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth).then(roots => { this.save_repos([...this.known_repos(), ...roots]); render(); error.textContent = text("graph.discovered_repositories", {count: roots.length}); }).catch(problem => { error.textContent = String(problem); })));
   }
   settings_dialog(): void {
-    if (this.writing) { this.report("Git 操作仍在执行，请等待结果。"); return; }
-    const dialog = workspace_dialog("Git Graph 设置"); const form = el("div", "git-graph-settings-form"); const fields = new Map<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(); const error = el("p");
+    if (this.writing) { this.report(text("graph.operation_pending")); return; }
+    const dialog = graph_dialog(text("graph.settings_title")); const form = el("div", "git-graph-settings-form"); const fields = new Map<string, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(); const error = el("p");
     for (const [key, value] of Object.entries(this.settings)) {
       const input = settings_choices[key] ? el("select") : typeof value === "object" ? el("textarea") : el("input");
       input.dataset.setting = key;
-      if (input instanceof HTMLSelectElement) for (const value of settings_choices[key]) input.append(option(value, value));
+      if (input instanceof HTMLSelectElement) for (const value of settings_choices[key]) input.append(option(value, settings_choice_labels[key]?.[value] || value));
       if (typeof value === "boolean") { (input as HTMLInputElement).type = "checkbox"; (input as HTMLInputElement).checked = value; }
       else { input.value = typeof value === "object" ? JSON.stringify(value, null, 2) : String(value); if (typeof value === "number") (input as HTMLInputElement).type = "number"; }
       const label = el("label", "", settings_labels[key as keyof graph_settings]); label.append(input); form.append(label); fields.set(key, input);
@@ -499,22 +543,22 @@ export class git_graph_panel {
     file.onchange = () => void file.files?.[0]?.text().then(text => {
       try { const settings = validate_settings(JSON.parse(text)); apply({ ...settings, git_path: this.settings.git_path, terminal_shell: this.settings.terminal_shell, fetch_avatars: this.settings.fetch_avatars }); } catch (problem) { error.textContent = String(problem); }
     }); dialog.content.append(file);
-    dialog.footer.prepend(button("保存设置", () => {
+    dialog.footer.prepend(button(text("graph.save_settings"), () => {
       try { const values: Record<string, unknown> = {}; for (const [key, input] of fields) {
         const baseline = graph_defaults[key as keyof graph_settings]; values[key] = typeof baseline === "boolean" ? (input as HTMLInputElement).checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
-      } apply(validate_settings(values)); } catch (problem) { error.textContent = String(problem); }
-    }), button("恢复默认", () => apply(structuredClone(graph_defaults))), button("导入配置", () => file.click()), button("导出配置", () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
+      } apply(validate_settings({ ...this.settings, ...values })); } catch (problem) { error.textContent = String(problem); }
+    }), button(text("graph.restore_defaults"), () => apply(structuredClone(graph_defaults))), button(text("graph.import_settings"), () => file.click()), button(text("graph.export_settings"), () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
   }
   reviews_dialog(): void {
-    const dialog = workspace_dialog("评审记录"); const render = () => {
+    const dialog = graph_dialog(text("graph.reviews_title")); const render = () => {
       dialog.content.replaceChildren(); const reviews = load_reviews(localStorage);
-      if (!reviews.length) dialog.content.textContent = "暂无评审记录。";
+      if (!reviews.length) dialog.content.textContent = text("graph.no_reviews");
       for (const review of reviews) {
-        const row = el("div", "git-graph-review", `${review.root}\n${review.from.slice(0, 8)} → ${review.to.slice(0, 8)} · 已读 ${review.reviewed.length} 个文件`);
-        row.append(button("继续评审", () => { dialog.close(); if (review.root !== this.root) this.switch_repo(review.root); void (async () => { while (this.pending) await new Promise(resolve => setTimeout(resolve, 50)); this.selected = review.to; void this.show_comparison(review.from, review.to); })(); }),
-          button("结束", () => { save_reviews(localStorage, reviews.filter(item => item !== review)); render(); })); dialog.content.append(row);
+        const row = el("div", "git-graph-review", text("graph.review_record", {root: review.root, from: short_revision_label(review.from), to: short_revision_label(review.to), count: review.reviewed.length}));
+        row.append(button(text("graph.resume_review"), () => { dialog.close(); if (review.root !== this.root) this.switch_repo(review.root); void (async () => { while (this.pending) await new Promise(resolve => setTimeout(resolve, 50)); this.selected = review.to; void this.show_comparison(review.from, review.to); })(); }),
+          button(text("graph.finish"), () => { save_reviews(localStorage, reviews.filter(item => item !== review)); render(); })); dialog.content.append(row);
       }
-    }; render(); dialog.footer.prepend(button("结束全部评审", () => { save_reviews(localStorage, []); render(); }));
+    }; render(); dialog.footer.prepend(button(text("graph.finish_all_reviews"), () => { save_reviews(localStorage, []); render(); }));
   }
   keydown(event: KeyboardEvent): void {
     if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector('.git-graph-dialog-shade, .git-graph-menu') || event.isComposing) return;
@@ -523,7 +567,7 @@ export class git_graph_panel {
     if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
     const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
     let handled = true;
-    if (shortcut_matches(event, this.settings.shortcuts.find)) this.search.focus();
+    if (shortcut_matches(event, this.settings.shortcuts.find)) this.open_find();
     else if (shortcut_matches(event, this.settings.shortcuts.head)) this.scroll_to(this.state?.head || "");
     else if (shortcut_matches(event, this.settings.shortcuts.refresh)) void this.refresh();
     else if (shortcut_matches(event, this.settings.shortcuts.stash_next) || shortcut_matches(event, this.settings.shortcuts.stash_previous)) {
@@ -540,7 +584,8 @@ export class git_graph_panel {
         else next = this.state.commits.filter(commit => commit.parents.includes(current.hash))[event.shiftKey ? 1 : 0];
       } else next = this.state.commits[Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1))];
       if (next) this.select_commit(next);
-    } else if (event.key === "Escape") { this.detail_epoch++; this.details.textContent = "选择提交查看详情。"; this.selected = ""; this.to = ""; this.place_details(); }
+    } else if (event.key === "Escape" && this.find_widget.dataset.open === "true") this.close_find();
+    else if (event.key === "Escape") this.close_details();
     else handled = false;
     if (handled) { event.preventDefault(); event.stopImmediatePropagation(); }
   }

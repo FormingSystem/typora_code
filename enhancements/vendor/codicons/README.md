@@ -9,11 +9,11 @@ domains:
 
 # 第1章\_Codicons图标来源与使用
 
-本目录保存 Microsoft 与 Codicons 贡献者提供的 47 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
+本目录保存 Microsoft 与 Codicons 贡献者提供的 49 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
 
 ## 1.1\_图形与操作映射
 
-图标 ID 沿用上游公共名称；本地 SVG 文件名使用 `snake_case`。`icons.json` 按图标 ID 保存原始 SVG 字符串，供构建静态引入。原始文件保存在 `icons/`，用于核对来源；图形路径、填色、尺寸与 `viewBox` 均未修改。`source-control` 的原始画布为 `24 × 24`，其他选取图标为 `16 × 16`；显示时应保留原始 `viewBox`，通过布局尺寸等比缩放。
+图标 ID 沿用上游公共名称；本地 SVG 文件名使用 `snake_case`。`icons.json` 按图标 ID 保存原始 SVG 字符串，供构建静态引入。原始文件保存在 `icons/`，用于核对来源；图形路径、填色、尺寸与 `viewBox` 均未修改。`source-control`、`terminal` 和 `settings-gear` 的原始画布为 `24 × 24`，其他选取图标为 `16 × 16`；显示时应保留原始 `viewBox`，通过布局尺寸等比缩放。
 
 | 操作 | 上游图标 ID | 本地原始文件 |
 | --- | --- | --- |
@@ -40,6 +40,8 @@ domains:
 | 打开外部链接 | `link-external` | [link_external.svg](icons/link_external.svg) |
 | 源代码管理入口 | `source-control` | [source_control.svg](icons/source_control.svg) |
 | 工作区搜索 | `search` | [search.svg](icons/search.svg) |
+| 集成终端 | `terminal` | [terminal.svg](icons/terminal.svg) |
+| 设置 | `settings-gear` | [settings_gear.svg](icons/settings_gear.svg) |
 | 返回上一个编辑位置 | `arrow-left` | [arrow_left.svg](icons/arrow_left.svg) |
 | 前进到下一个编辑位置 | `arrow-right` | [arrow_right.svg](icons/arrow_right.svg) |
 | 区分大小写 | `case-sensitive` | [case_sensitive.svg](icons/case_sensitive.svg) |

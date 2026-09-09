@@ -9,8 +9,3 @@ body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex
 .workspace-editor-status-controls :is(.workspace-file-location,.workspace-file-detail) { flex:none; white-space:nowrap; }
 footer.ty-footer[data-editor-status] > :is(#footer-word-count,#footer-spell-check) { display:none!important; }
 footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; min-width:0; }
-footer.ty-footer[data-editor-status][data-workspace-footer=ready] > #ty-sidebar-footer { margin-left:4px; }
-/* 空间不足时保留原生更多菜单，源码信息先于重复的新建/列表按钮显示。 */
-footer.ty-footer[data-editor-status=compact][data-workspace-footer=ready] > #ty-sidebar-footer { flex:0 0 26px; min-width:26px; max-width:26px; }
-footer.ty-footer[data-editor-status=compact] #ty-sidebar-footer > div > .sidebar-footer-item,
-footer.ty-footer[data-editor-status=compact] #sidebar-footer-main-item-label { display:none!important; }

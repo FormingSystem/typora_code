@@ -30,7 +30,6 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   root.setAttribute("aria-label", "快速打开文件");
   const input_row = document.createElement("div");
   input_row.className = "workspace-quick-open-input-row";
-  input_row.append(git_icon("search"));
   const input = document.createElement("input");
   input.type = "text";
   input.placeholder = "键入文件名进行搜索";
@@ -43,6 +42,8 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   results.setAttribute("role", "listbox");
   const status = document.createElement("div");
   status.className = "workspace-quick-open-status";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
   root.append(input_row, status, results);
   document.body.append(root);
 

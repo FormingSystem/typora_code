@@ -1,4 +1,5 @@
-import { apply_position, capture_position, create_position_store, file_key, type reading_position } from "./reading_positions";
+import { apply_position, capture_position, create_position_store, type reading_position } from "./reading_positions";
+import { file_key } from "./workspace_file_uri";
 import { get_workspace_app, type workspace_leaf, type workspace_view } from "./workspace_bootstrap";
 
 export type reading_context = { view_id: number; file_path: string; leaf?: workspace_leaf };

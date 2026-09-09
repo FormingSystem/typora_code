@@ -2,6 +2,7 @@
 import { decode_file_bytes, detect_binary_bytes, type decoded_file } from "./file_language";
 import {query_expression, line_starts, whole_word, capture_match, type search_captured_match} from "./workspace_search_matcher";
 import {create_search_matcher, search_match_failure, type search_matcher_factory} from "./workspace_search_worker_client";
+import {file_key} from "./workspace_file_uri";
 
 export type workspace_search_options = {
   query: string; case_sensitive?: boolean; whole_word?: boolean; regex?: boolean; include?: string; exclude?: string;
@@ -152,9 +153,10 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const root = await files_api.realpath(path_api.resolve(input_root));
     if (!(await files_api.stat(root)).isDirectory()) throw new Error("搜索范围必须是文件夹。");
     // 调用方可限制为已经打开的文件；不接受越界路径，也不把空列表解释成全目录。
-    const selected_paths = options.file_paths ? new Set(options.file_paths.map(file => path_api.resolve(file)).filter(file => inside(root, file))) : undefined;
+    const selected_files = options.file_paths?.map(file => path_api.resolve(file)).filter(file => inside(root, file));
+    const selected_paths = selected_files ? new Set(selected_files.map(file_key)) : undefined;
     const selected_directories = new Set<string>();
-    for (const file of selected_paths || []) { let directory = path_api.dirname(file); while (inside(root, directory)) { selected_directories.add(directory); if (directory === root) break; directory = path_api.dirname(directory); } }
+    for (const file of selected_files || []) { let directory = path_api.dirname(file); while (inside(root, directory)) { selected_directories.add(file_key(directory)); if (file_key(directory) === file_key(root)) break; directory = path_api.dirname(directory); } }
     const expression = query_expression(options); const max_results = bounded_integer(options.max_results, 5000, 100000);
     const max_file_bytes = bounded_integer(options.max_file_bytes, 8 * 1024 * 1024, 64 * 1024 * 1024);
     const case_sensitive = options.glob_case_sensitive ?? (modules.platform ? !["win32", "darwin"].includes(modules.platform) : path_api.sep !== "\\");
@@ -187,7 +189,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     while (stack.length && !cancelled() && !result.limit_reached) {
       const current = stack.pop()!; let entries: any[];
       try {
-        if (selected_paths && !selected_directories.has(current.directory)) continue;
+        if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
         if (await files_api.realpath(current.directory) !== current.directory) { result.counts.skipped.links++; continue; }
         entries = (await files_api.readdir(current.directory, {withFileTypes: true})).sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
@@ -206,7 +208,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
           directories.push({directory: file_path, relative, ignore_root: nested === undefined ? current.ignore_root : file_path, allowed: nested === undefined ? current.allowed : nested}); continue;
         }
         if (!entry.isFile()) { result.counts.skipped.unreadable++; continue; }
-        if (selected_paths && !selected_paths.has(file_path)) continue;
+        if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
         result.counts.scanned_files++;
         if (options.include?.trim() && !include(relative)) { result.counts.skipped.excluded++; continue; }
         try {

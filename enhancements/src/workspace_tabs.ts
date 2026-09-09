@@ -30,29 +30,60 @@ function leaf_present(group: workspace_group, leaf: workspace_leaf): boolean {
   return group.children.includes(leaf);
 }
 
+const CLOSE_DIALOG_SELECTOR = '.git-graph-dialog-shade, [role="dialog"], .modal-dialog, .modal-backdrop, .modal.in';
+const CLOSE_DIALOG_APPEAR_TIMEOUT_MS = 2000;
+
+function dialog_owner(node: HTMLElement): HTMLElement {
+  if (node.classList.contains("modal-backdrop")) return node;
+  return node.closest<HTMLElement>(".modal") || node;
+}
+
+function visible_dialog(node: HTMLElement): boolean {
+  if (!node.isConnected || node.closest(".workspace-quick-open") || node.closest('[hidden], [aria-hidden="true"]')) return false;
+  const style = getComputedStyle(node);
+  return style.display !== "none" && style.visibility !== "hidden" && style.visibility !== "collapse"
+    && style.opacity !== "0" && node.getClientRects().length > 0;
+}
+
+function visible_close_dialogs(): HTMLElement[] {
+  const dialogs = new Set<HTMLElement>();
+  for (const candidate of document.querySelectorAll<HTMLElement>(CLOSE_DIALOG_SELECTOR)) {
+    const owner = dialog_owner(candidate);
+    if (visible_dialog(owner)) dialogs.add(owner);
+  }
+  return [...dialogs];
+}
+
 async function close_leaf(group: workspace_group, leaf: workspace_leaf): Promise<boolean> {
-  const before_dialogs = new Set(document.querySelectorAll(".git-graph-dialog-shade"));
+  const before_dialogs = new Set(visible_close_dialogs());
   group.removeTab(leaf.state.path, tab_for(group, leaf.state.path));
   if (!leaf_present(group, leaf)) return true;
   return new Promise<boolean>(resolve => {
-    let close_dialog: Element | undefined;
+    let close_dialog: HTMLElement | undefined;
     let settled = false;
     const finish = (closed: boolean) => {
       if (settled) return;
       settled = true;
       observer.disconnect();
-      window.clearTimeout(timeout);
+      window.clearTimeout(appearance_timeout);
+      window.clearInterval(visibility_poll);
       resolve(closed);
     };
     const inspect = () => {
       if (!leaf_present(group, leaf)) { finish(true); return; }
-      close_dialog ||= [...document.querySelectorAll(".git-graph-dialog-shade")]
+      close_dialog ||= visible_close_dialogs()
         .find(dialog => !before_dialogs.has(dialog));
-      if (close_dialog && !close_dialog.isConnected) finish(false);
+      if (close_dialog) {
+        window.clearTimeout(appearance_timeout);
+        if (!visible_dialog(close_dialog)) finish(false);
+      }
     };
     const observer = new MutationObserver(inspect);
-    observer.observe(document.body, { childList: true, subtree: true });
-    const timeout = window.setTimeout(() => finish(false), 5 * 60 * 1000);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden", "aria-hidden", "open"] });
+    // 原生 Bootstrap 模态框可能只通过过渡样式退出；轮询补足没有后续 DOM 变更的结束状态。
+    const visibility_poll = window.setInterval(inspect, 100);
+    // 未识别到关闭确认时尽快停止本次 Close All，避免把后续标签误关或等待五分钟。
+    const appearance_timeout = window.setTimeout(() => finish(false), CLOSE_DIALOG_APPEAR_TIMEOUT_MS);
     inspect();
   });
 }
