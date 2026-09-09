@@ -1,3 +1,5 @@
+import { file_key } from "./workspace_file_uri";
+
 export type reading_position = {
   scroll_top: number;
   scroll_left: number;
@@ -5,11 +7,6 @@ export type reading_position = {
 };
 
 const POSITION_PREFIX = "linux-note-reading-position:v1:";
-
-export function file_key(path: string): string {
-  const normalized = path.replace(/\\/gu, "/");
-  return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
-}
 
 /** 每个文件单独存储，多个 Typora 窗口不会互相覆盖整张位置表；不复制文档或保存临时 cid。 */
 export function create_position_store(storage: Pick<Storage, "getItem" | "setItem" | "removeItem" | "key" | "length">,

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { transform } from 'esbuild';
+import { build } from 'esbuild';
 
-const compiled = await transform(fs.readFileSync('src/reading_positions.ts', 'utf8'), { loader: 'ts', format: 'esm' });
-const { create_position_store } = await import(`data:text/javascript;base64,${Buffer.from(compiled.code).toString('base64')}`);
+const compiled = await build({entryPoints:['src/reading_positions.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const { create_position_store } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const values = new Map();
 const storage = {
   getItem: (key) => values.get(key) ?? null,

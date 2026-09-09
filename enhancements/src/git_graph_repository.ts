@@ -1,5 +1,6 @@
 import { parse_git_log, type git_commit, type git_run, type git_ref } from "./git_graph_data";
 import { glob_matches, type graph_settings } from "./git_graph_settings";
+import { git_graph_text as text } from "./git_graph_i18n";
 
 export const WORKTREE = "WORKTREE";
 export const INDEX = "INDEX";
@@ -12,7 +13,7 @@ export type repository_state = {
   changes: graph_change[]; remotes: { name: string; fetch: string; push: string }[]; operation: string;
 };
 export function require_revision(value: string): string {
-  if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error("提交编号无效，请刷新。"); return value;
+  if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error(text("repository.invalid_revision")); return value;
 }
 export function parse_status(source: string): graph_change[] {
   const fields = source.split("\0"); const result: graph_change[] = [];
@@ -28,7 +29,7 @@ export function parse_changes(source: string): graph_change[] {
   const fields = source.split("\0"); const result: graph_change[] = [];
   for (let i = 0; i < fields.length && fields[i];) {
     const status = fields[i++]; const old_path = /^[RC]/u.test(status) ? fields[i++] : undefined;
-    const path = fields[i++]; if (!path) throw new Error("文件差异数据不完整。");
+    const path = fields[i++]; if (!path) throw new Error(text("repository.incomplete_diff"));
     result.push({ status, path, ...(old_path ? { old_path } : {}) });
   }
   return result;
@@ -107,9 +108,9 @@ export async function read_file_history(run: git_run, root: string, file: string
     const commit = parse_git_log(fields.slice(index, index + 5).join("\0") + "\0")[0]; index += 5;
     while (index < fields.length && fields[index] && !/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(fields[index])) {
       const status = fields[index++].replace(/^\n/u, "");
-      if (!/^[ACDMRTUXB][0-9]*$/u.test(status)) throw new Error("文件历史状态无法解析。");
+      if (!/^[ACDMRTUXB][0-9]*$/u.test(status)) throw new Error(text("repository.invalid_history_status"));
       const old_path = /^[RC]/u.test(status) ? fields[index++] : undefined;
-      const path = fields[index++]; if (!path) throw new Error("文件历史路径缺失。");
+      const path = fields[index++]; if (!path) throw new Error(text("repository.missing_history_path"));
       result.push({commit, file: {status, path, ...(old_path ? {old_path} : {})}});
     }
   }
@@ -124,16 +125,16 @@ export async function commit_containment(run: git_run, state: repository_state, 
   const stashes = await Promise.all(state.stashes.map(async stash => {
     try { await run(state.root, ["merge-base", "--is-ancestor", hash, stash.hash]); return stash.name; } catch (error) { if (error.code === 1) return ""; throw error; }
   }));
-  return [in_head ? "属于 HEAD 历史" : "不属于 HEAD 历史", refs.trim(), ...stashes.filter(Boolean)].filter(Boolean).join("\n");
+  return [in_head ? text("repository.in_head_history") : text("repository.not_in_head_history"), refs.trim(), ...stashes.filter(Boolean)].filter(Boolean).join("\n");
 }
 
 export function pull_request_url(remote: string, branch: string, base: string, custom = ""): string {
   const web = remote.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://").replace(/\.git\/?$/u, "");
-  const url = new URL(web); if (!["http:", "https:"].includes(url.protocol)) throw new Error("此远端没有可用的网页地址，请配置 PR URL。");
+  const url = new URL(web); if (!["http:", "https:"].includes(url.protocol)) throw new Error(text("repository.no_remote_web_url"));
   const replacement = (template: string) => template.replace(/\{(branch|base|remote)\}/gu, (_, name) => name === "remote" ? web : encodeURIComponent(name === "branch" ? branch : base));
   if (custom) return replacement(custom);
   if (url.hostname === "github.com") return `${web}/compare/${encodeURIComponent(base)}...${encodeURIComponent(branch)}?expand=1`;
   if (url.hostname === "gitlab.com") return `${web}/-/merge_requests/new?merge_request[source_branch]=${encodeURIComponent(branch)}&merge_request[target_branch]=${encodeURIComponent(base)}`;
   if (url.hostname === "bitbucket.org") return `${web}/pull-requests/new?source=${encodeURIComponent(branch)}&dest=${encodeURIComponent(base)}`;
-  throw new Error("请在设置中填写此服务器的 PR URL 模板。");
+  throw new Error(text("repository.pr_template_required"));
 }

@@ -12,7 +12,7 @@
       "file": "icons/arrow_right.svg",
       "source_path": "src/icons/arrow-right.svg",
       "git_blob_sha1": "50cfc21d2179624118466305520cd1bf6f91a61a",
-      "sha256": "a3eb7dce0a7f2e0b6d0340c1e88a01404ca4de0a8ac2190827b85bf8c942ad6"
+      "sha256": "a3eb7dce0a7f2e0b6d0340c1e88a01404cca4de0a8ac2190827b85bf8c942ad6"
     },
     "diff-multiple": {
       "file": "icons/diff_multiple.svg",
@@ -283,6 +283,18 @@
       "source_path": "src/icons/exclude.svg",
       "git_blob_sha1": "eb82a8b43c7741b768ae3a7ca140d123472043ad",
       "sha256": "b5997894d1926c3fc58fa7bd3638e55491a63077a3e94c042985d6cf8027cffc"
+    },
+    "terminal": {
+      "file": "icons/terminal.svg",
+      "source_path": "src/icons/terminal.svg",
+      "git_blob_sha1": "3b1b1a3ea35868b93ca84c240179848a5bb188de",
+      "sha256": "bf5fc03cccc11da088c2339eb30c06f2fb583fd1a1f1880d0512e06bf36b3290"
+    },
+    "settings-gear": {
+      "file": "icons/settings_gear.svg",
+      "source_path": "src/icons/settings-gear.svg",
+      "git_blob_sha1": "cdc25f1e9d2eb8310dc115588b397755fc77af88",
+      "sha256": "fc7d0ccb2d7a74e74e37ce1ba833e31fef326f9e07ce5f74bc17acb64c087669"
     }
   },
   "licenses": [

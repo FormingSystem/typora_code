@@ -9,6 +9,7 @@ import { git_diff_editor } from "./git_diff_editor";
 import { create_lookup_preview } from "./workspace_lookup_preview";
 import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file_language";
 import { bind_workspace_selection_search, type workspace_selection_request } from "./workspace_selection_search";
+import { file_key, source_file_path } from "./workspace_file_uri";
 import search_css from "./workspace_search.css";
 
 /** 文件搜索独占一个侧栏面板，输入区固定、结果区单独滚动。 */
@@ -117,7 +118,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     onshow(){this.visible=true;this.clear_native();if(native_sidebar)this.native_observer.observe(native_sidebar,{attributes:true,attributeFilter:["class"]});}
     onhide(){this.visible=false;this.native_observer.disconnect();}
     schedule(){clearTimeout(this.timer);this.controller?.abort();this.controller=undefined;this.clear_results();this.status.textContent="";this.timer=window.setTimeout(()=>void this.search(),250);}
-    path_key(path:string){const resolved=files.path_api.resolve(path);return runtime.reqnode("process").platform==="win32"?resolved.toLowerCase():resolved;}
+    path_key(path:string){return file_key(files.path_api.resolve(path));}
     async read_git_status(root:string){
       const statuses=new Map<string,string>();
       try{
@@ -144,7 +145,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       clearTimeout(this.timer);this.timer=0;this.controller?.abort();this.controller=undefined;this.clear_results();if(!this.query.value||disposed){this.status.textContent="";return;}
       const controller=new AbortController();this.controller=controller;this.containerEl.dataset.state="searching";this.status.textContent="正在搜索…";
       const stop=git_icon_button("search-stop","停止搜索",()=>controller.abort());this.status.append(stop);
-      const open_files:string[]=[];if(this.only_open)core.app.workspace.eachLeaves(leaf=>{if(files.path_api.isAbsolute(leaf.state.path))open_files.push(leaf.state.path);else if(leaf.state.path.startsWith("typ://linux_note.source_file/"))open_files.push(decodeURIComponent(leaf.state.path.slice("typ://linux_note.source_file/".length)));});
+      const open_files:string[]=[];if(this.only_open)core.app.workspace.eachLeaves(leaf=>{const source_path=source_file_path(leaf.state.path,files.path_api);if(files.path_api.isAbsolute(leaf.state.path))open_files.push(leaf.state.path);else if(source_path)open_files.push(source_path);});
       try{
         const root=files.context_root();const git=await this.read_git_status(root);if(disposed||this.controller!==controller)return;
         if(this.only_changed&&!git.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");

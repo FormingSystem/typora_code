@@ -1,4 +1,4 @@
-import "monaco-editor/nls/lang/zh-cn";
+import "./monaco_locale";
 import * as monaco from "monaco-editor/editor/editor.api";
 import "monaco-editor/editor/browser/coreCommands";
 import "monaco-editor/editor/browser/widget/diffEditor/diffEditor.contribution";
@@ -27,6 +27,7 @@ import worker_source from "linux_note_monaco_worker";
 import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import { detect_file_language } from "./file_language";
 import { register_file_languages } from "./workspace_languages";
+import { git_graph_text as text } from "./git_graph_i18n";
 
 let initialized = false;
 let serial = 0;
@@ -42,26 +43,26 @@ export function initialize_editor(): void {
 export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string};
 export class git_diff_editor {
   container = el("section", "git-graph-document"); toolbar = el("div", "git-diff-toolbar");
-  body = el("div", "git-monaco-body"); status = el("span", "git-diff-count", "正在计算差异…");
+  body = el("div", "git-monaco-body"); status = el("span", "git-diff-count", text("diff.calculating"));
   editor: monaco.editor.IStandaloneDiffEditor | monaco.editor.IStandaloneCodeEditor;
   models: monaco.editor.ITextModel[] = []; observer: ResizeObserver; subscriptions: monaco.IDisposable[] = [];
   side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = false;
   last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
   readonly_status?: HTMLElement;
   constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => []) {
-    if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("这是二进制文件，不能作为文本比较。请打开文件或查看 Git 文件状态。");
+    if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.binary_file"));
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
     const labels = el("div", "git-diff-labels");
-    labels.append(el("div", "", data.left_label || "原始版本"));
-    if (data.right != null) labels.append(el("div", "", data.right_label || "修改版本"));
+    labels.append(el("div", "", data.left_label || text("diff.original")));
+    if (data.right != null) labels.append(el("div", "", data.right_label || text("diff.modified")));
     this.container.append(labels, this.body);
     // 每个历史版本拥有独立模型；文件名只用于语言识别，不执行仓库中的任何代码。
-    const model = (text: string, side: string) => {
-      if (text.includes("\0")) throw new Error("这是二进制文件，不能作为文本比较。请打开文件或查看 Git 文件状态。");
+    const model = (source: string, side: string) => {
+      if (source.includes("\0")) throw new Error(text("diff.binary_file"));
       const uri = monaco.Uri.from({scheme: "linux-note-git", path: `/${++serial}/${side}/${data.file || data.title}`});
-      const language = detect_file_language(data.file || data.title, text.split(/\r?\n/u, 1)[0]);
-      const result = monaco.editor.createModel(text, language, uri); this.models.push(result); return result;
+      const language = detect_file_language(data.file || data.title, source.split(/\r?\n/u, 1)[0]);
+      const result = monaco.editor.createModel(source, language, uri); this.models.push(result); return result;
     };
     const original = model(data.left, "original");
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
@@ -77,14 +78,14 @@ export class git_diff_editor {
       this.editor = editor; editor.setModel({original, modified});
       let revealed = false;
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
-        const changes = editor.getLineChanges(); this.status.textContent = changes ? `${changes.length} 处改动` : "差异计算未完成";
+        const changes = editor.getLineChanges(); this.status.textContent = changes ? text("diff.change_count", {count: changes.length}) : text("diff.incomplete");
         this.container.setAttribute("data-diff-ready", String(changes !== null));
         if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
       }));
-      this.toolbar.append(button("↑ 上一改动", () => editor.goToDiff("previous")), button("↓ 下一改动", () => editor.goToDiff("next")));
+      this.toolbar.append(button(text("diff.previous_change_button"), () => editor.goToDiff("previous")), button(text("diff.next_change_button"), () => editor.goToDiff("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
-    } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = "只读版本"; this.bind_editor(this.editor); }
-    this.toolbar.append(button("查找", () => this.focused_editor().getAction("actions.find")?.run()), button("…", () => {
+    } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
+    this.toolbar.append(button(text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), button("…", () => {
       const rect = this.toolbar.getBoundingClientRect(); this.context_menu(new MouseEvent("contextmenu", {clientX: rect.right - 250, clientY: rect.bottom}));
     }), this.status);
     this.observer = new ResizeObserver(() => this.editor.layout()); this.observer.observe(this.body);
@@ -103,15 +104,15 @@ export class git_diff_editor {
   create_readonly_status(): HTMLElement {
     if(this.readonly_status)return this.readonly_status;
     const controls=el("div","workspace-editor-status-controls");this.readonly_status=controls;
-    const side=el("span","workspace-file-detail"),location=el("span","workspace-file-location"),eol=el("span","workspace-file-detail"),language=el("span","workspace-file-detail"),readonly=el("span","workspace-file-detail","只读");
-    side.setAttribute("aria-label","比较侧");eol.setAttribute("aria-label","行尾序列");language.setAttribute("aria-label","语言模式");
+    const side=el("span","workspace-file-detail"),location=el("span","workspace-file-location"),eol=el("span","workspace-file-detail"),language=el("span","workspace-file-detail"),readonly=el("span","workspace-file-detail",text("diff.readonly"));
+    side.setAttribute("aria-label",text("diff.comparison_side"));eol.setAttribute("aria-label",text("diff.end_of_line"));language.setAttribute("aria-label",text("diff.language_mode"));
     controls.append(side,location,eol,language,readonly);
     const refresh=()=>{
       const editor=this.focused_editor(),model=editor.getModel(),position=editor.getPosition();
       const original="getOriginalEditor" in this.editor && editor===this.editor.getOriginalEditor();
-      side.textContent="getOriginalEditor" in this.editor?(original?"原始版本":"修改版本"):"历史版本";
-      side.title=original?this.data.left_label||"原始版本":this.data.right_label||this.data.left_label||"历史版本";
-      location.textContent=`行 ${position?.lineNumber||1}，列 ${position?.column||1}`;
+      side.textContent="getOriginalEditor" in this.editor?(original?text("diff.original"):text("diff.modified")):text("diff.historical_revision");
+      side.title=original?this.data.left_label||text("diff.original"):this.data.right_label||this.data.left_label||text("diff.historical_revision");
+      location.textContent=text("diff.cursor_position", {line: position?.lineNumber||1, column: position?.column||1});
       eol.textContent=model?.getEOL()==="\r\n"?"CRLF":"LF";language.textContent=model?.getLanguageId()||"plaintext";
     };
     const views="getOriginalEditor" in this.editor?[this.editor.getOriginalEditor(),this.editor.getModifiedEditor()]:[this.editor];
@@ -152,7 +153,7 @@ export class git_diff_editor {
   }
   navigate(direction: "next" | "previous"): void { if ("goToDiff" in this.editor) this.editor.goToDiff(direction); }
   update(data: diff_document): void {
-    if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("此文件已变为二进制，无法刷新文本差异。请打开文件或查看 Git 文件状态。");
+    if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.became_binary"));
     const replace_models = () => { if (this.models[0].getValue() !== data.left) this.models[0].setValue(data.left); if (data.right != null && this.models[1].getValue() !== data.right) this.models[1].setValue(data.right); };
     if ("getModifiedEditor" in this.editor) { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     else { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
@@ -161,17 +162,17 @@ export class git_diff_editor {
   context_menu(event: MouseEvent): void {
     const view = this.focused_editor();
     const entries: workspace_menu_entry[] = [
-      {id: "copy", title: "复制  Ctrl+C", action: () => void view.getAction("editor.action.clipboardCopyAction")?.run()},
-      {id: "select_all", title: "全选  Ctrl+A", action: () => view.trigger("menu", "editor.action.selectAll", null)},
-      {id: "find", title: "查找  Ctrl+F", action: () => void view.getAction("actions.find")?.run()},
-      {id: "word_wrap", title: "自动换行", checked: this.wrapped, separator: true, action: () => { this.wrapped = !this.wrapped; this.editor.updateOptions({wordWrap: this.wrapped ? "on" : "off"}); }},
+      {id: "copy", title: text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run()},
+      {id: "select_all", title: text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null)},
+      {id: "find", title: text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run()},
+      {id: "word_wrap", title: text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => { this.wrapped = !this.wrapped; this.editor.updateOptions({wordWrap: this.wrapped ? "on" : "off"}); }},
     ];
     if ("getModifiedEditor" in this.editor) {
       const editor = this.editor;
-      entries.push({id: "previous_change", title: "上一处改动  Shift+F7", action: () => editor.goToDiff("previous")}, {id: "next_change", title: "下一处改动  F7", action: () => editor.goToDiff("next")},
-        {id: "side_by_side", title: "并排比较", checked: this.side_by_side, action: () => { this.side_by_side = !this.side_by_side; editor.updateOptions({renderSideBySide: this.side_by_side}); }},
-        {id: "hide_unchanged", title: "折叠未修改区域", checked: this.collapsed, action: () => { this.collapsed = !this.collapsed; editor.updateOptions({hideUnchangedRegions: {enabled: this.collapsed}}); }},
-        {id: "ignore_whitespace", title: "忽略行首尾空白", checked: this.ignore_whitespace, action: () => { this.ignore_whitespace = !this.ignore_whitespace; editor.updateOptions({ignoreTrimWhitespace: this.ignore_whitespace}); }});
+      entries.push({id: "previous_change", title: text("diff.previous_change"), action: () => editor.goToDiff("previous")}, {id: "next_change", title: text("diff.next_change"), action: () => editor.goToDiff("next")},
+        {id: "side_by_side", title: text("diff.side_by_side"), checked: this.side_by_side, action: () => { this.side_by_side = !this.side_by_side; editor.updateOptions({renderSideBySide: this.side_by_side}); }},
+        {id: "hide_unchanged", title: text("diff.hide_unchanged"), checked: this.collapsed, action: () => { this.collapsed = !this.collapsed; editor.updateOptions({hideUnchangedRegions: {enabled: this.collapsed}}); }},
+        {id: "ignore_whitespace", title: text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => { this.ignore_whitespace = !this.ignore_whitespace; editor.updateOptions({ignoreTrimWhitespace: this.ignore_whitespace}); }});
     }
     workspace_menu(event, [...entries, ...this.extra_menu()]);
   }

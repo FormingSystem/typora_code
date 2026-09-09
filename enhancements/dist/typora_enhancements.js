@@ -9548,7 +9548,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     return dir === pathObject.root ? "".concat(dir).concat(base) : "".concat(dir).concat(sep2).concat(base);
   }
-  var CHAR_UPPERCASE_A, CHAR_LOWERCASE_A, CHAR_UPPERCASE_Z, CHAR_LOWERCASE_Z, CHAR_DOT, CHAR_FORWARD_SLASH, CHAR_BACKWARD_SLASH, CHAR_COLON, CHAR_QUESTION_MARK, ErrorInvalidArgType, platformIsWin32, win32, posixCwd, posix, normalize, join, resolve, relative, dirname, basename, extname, sep;
+  var CHAR_UPPERCASE_A, CHAR_LOWERCASE_A, CHAR_UPPERCASE_Z, CHAR_LOWERCASE_Z, CHAR_DOT, CHAR_FORWARD_SLASH, CHAR_BACKWARD_SLASH, CHAR_COLON, CHAR_QUESTION_MARK, ErrorInvalidArgType, platformIsWin32, win32, posixCwd, posix, normalize, join, resolve, relative, dirname, basename2, extname, sep;
   var init_path = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/path.js"() {
       init_process();
@@ -10551,7 +10551,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       resolve = platformIsWin32 ? win32.resolve : posix.resolve;
       relative = platformIsWin32 ? win32.relative : posix.relative;
       dirname = platformIsWin32 ? win32.dirname : posix.dirname;
-      basename = platformIsWin32 ? win32.basename : posix.basename;
+      basename2 = platformIsWin32 ? win32.basename : posix.basename;
       extname = platformIsWin32 ? win32.extname : posix.extname;
       sep = platformIsWin32 ? win32.sep : posix.sep;
     }
@@ -24990,7 +24990,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   function originalFSPath(uri) {
     return uriToFsPath(uri, true);
   }
-  var ExtUri, extUri, isEqual, basenameOrAuthority, basename2, extname2, dirname2, joinPath, normalizePath, relativePath, resolvePath, isEqualAuthority, hasTrailingPathSeparator, DataUri;
+  var ExtUri, extUri, isEqual, basenameOrAuthority, basename3, extname2, dirname2, joinPath, normalizePath, relativePath, resolvePath, isEqualAuthority, hasTrailingPathSeparator, DataUri;
   var init_resources = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/resources.js"() {
       init_extpath();
@@ -25040,7 +25040,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           return URI.joinPath(resource, ...pathFragment);
         }
         basenameOrAuthority(resource) {
-          return basename2(resource) || resource.authority;
+          return basename3(resource) || resource.authority;
         }
         basename(resource, suffix) {
           return posix.basename(resource.path, suffix);
@@ -25159,7 +25159,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       extUri.isEqualOrParent.bind(extUri);
       extUri.getComparisonKey.bind(extUri);
       basenameOrAuthority = extUri.basenameOrAuthority.bind(extUri);
-      basename2 = extUri.basename.bind(extUri);
+      basename3 = extUri.basename.bind(extUri);
       extname2 = extUri.extname.bind(extUri);
       dirname2 = extUri.dirname.bind(extUri);
       joinPath = extUri.joinPath.bind(extUri);
@@ -39464,11 +39464,11 @@ var LinuxNoteTyporaEnhancements = (() => {
     EditorSettingMigration.items.push(new EditorSettingMigration(key, migrate));
   }
   function registerSimpleEditorSettingMigration(key, values) {
-    registerEditorSettingMigration(key, (value, read3, write) => {
+    registerEditorSettingMigration(key, (value, read3, write2) => {
       if (typeof value !== "undefined") {
         for (const [oldValue, newValue] of values) {
           if (value === oldValue) {
-            write(key, newValue);
+            write2(key, newValue);
             return;
           }
         }
@@ -39492,8 +39492,8 @@ var LinuxNoteTyporaEnhancements = (() => {
         apply(options2) {
           const value = _EditorSettingMigration._read(options2, this.key);
           const read3 = (key) => _EditorSettingMigration._read(options2, key);
-          const write = (key, value2) => _EditorSettingMigration._write(options2, key, value2);
-          this.migrate(value, read3, write);
+          const write2 = (key, value2) => _EditorSettingMigration._write(options2, key, value2);
+          this.migrate(value, read3, write2);
         }
         static _read(source, key) {
           if (typeof source === "undefined" || source === null) {
@@ -39534,30 +39534,30 @@ var LinuxNoteTyporaEnhancements = (() => {
       registerSimpleEditorSettingMigration("wordBasedSuggestions", [[true, "matchingDocuments"], [false, "off"]]);
       registerSimpleEditorSettingMigration("defaultColorDecorators", [[true, "auto"], [false, "never"]]);
       registerSimpleEditorSettingMigration("minimap.autohide", [[true, "mouseover"], [false, "none"]]);
-      registerEditorSettingMigration("autoClosingBrackets", (value, read3, write) => {
+      registerEditorSettingMigration("autoClosingBrackets", (value, read3, write2) => {
         if (value === false) {
-          write("autoClosingBrackets", "never");
+          write2("autoClosingBrackets", "never");
           if (typeof read3("autoClosingQuotes") === "undefined") {
-            write("autoClosingQuotes", "never");
+            write2("autoClosingQuotes", "never");
           }
           if (typeof read3("autoSurround") === "undefined") {
-            write("autoSurround", "never");
+            write2("autoSurround", "never");
           }
         }
       });
-      registerEditorSettingMigration("renderIndentGuides", (value, read3, write) => {
+      registerEditorSettingMigration("renderIndentGuides", (value, read3, write2) => {
         if (typeof value !== "undefined") {
-          write("renderIndentGuides", void 0);
+          write2("renderIndentGuides", void 0);
           if (typeof read3("guides.indentation") === "undefined") {
-            write("guides.indentation", !!value);
+            write2("guides.indentation", !!value);
           }
         }
       });
-      registerEditorSettingMigration("highlightActiveIndentGuide", (value, read3, write) => {
+      registerEditorSettingMigration("highlightActiveIndentGuide", (value, read3, write2) => {
         if (typeof value !== "undefined") {
-          write("highlightActiveIndentGuide", void 0);
+          write2("highlightActiveIndentGuide", void 0);
           if (typeof read3("guides.highlightActiveIndentation") === "undefined") {
-            write("guides.highlightActiveIndentation", !!value);
+            write2("guides.highlightActiveIndentation", !!value);
           }
         }
       });
@@ -39589,51 +39589,51 @@ var LinuxNoteTyporaEnhancements = (() => {
         typeParameter: "showTypeParameters",
         snippet: "showSnippets"
       };
-      registerEditorSettingMigration("suggest.filteredTypes", (value, read3, write) => {
+      registerEditorSettingMigration("suggest.filteredTypes", (value, read3, write2) => {
         if (value && typeof value === "object") {
           for (const entry of Object.entries(suggestFilteredTypesMapping)) {
             const v2 = value[entry[0]];
             if (v2 === false) {
               if (typeof read3("suggest.".concat(entry[1])) === "undefined") {
-                write("suggest.".concat(entry[1]), false);
+                write2("suggest.".concat(entry[1]), false);
               }
             }
           }
-          write("suggest.filteredTypes", void 0);
+          write2("suggest.filteredTypes", void 0);
         }
       });
-      registerEditorSettingMigration("quickSuggestions", (input, read3, write) => {
+      registerEditorSettingMigration("quickSuggestions", (input, read3, write2) => {
         if (typeof input === "boolean") {
           const value = input ? "on" : "off";
           const newValue = { comments: value, strings: value, other: value };
-          write("quickSuggestions", newValue);
+          write2("quickSuggestions", newValue);
         }
       });
-      registerEditorSettingMigration("experimental.stickyScroll.enabled", (value, read3, write) => {
+      registerEditorSettingMigration("experimental.stickyScroll.enabled", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("experimental.stickyScroll.enabled", void 0);
+          write2("experimental.stickyScroll.enabled", void 0);
           if (typeof read3("stickyScroll.enabled") === "undefined") {
-            write("stickyScroll.enabled", value);
+            write2("stickyScroll.enabled", value);
           }
         }
       });
-      registerEditorSettingMigration("experimental.stickyScroll.maxLineCount", (value, read3, write) => {
+      registerEditorSettingMigration("experimental.stickyScroll.maxLineCount", (value, read3, write2) => {
         if (typeof value === "number") {
-          write("experimental.stickyScroll.maxLineCount", void 0);
+          write2("experimental.stickyScroll.maxLineCount", void 0);
           if (typeof read3("stickyScroll.maxLineCount") === "undefined") {
-            write("stickyScroll.maxLineCount", value);
+            write2("stickyScroll.maxLineCount", value);
           }
         }
       });
-      registerEditorSettingMigration("editor.experimentalEditContextEnabled", (value, read3, write) => {
+      registerEditorSettingMigration("editor.experimentalEditContextEnabled", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("editor.experimentalEditContextEnabled", void 0);
+          write2("editor.experimentalEditContextEnabled", void 0);
           if (typeof read3("editor.editContext") === "undefined") {
-            write("editor.editContext", value);
+            write2("editor.editContext", value);
           }
         }
       });
-      registerEditorSettingMigration("codeActionsOnSave", (value, read3, write) => {
+      registerEditorSettingMigration("codeActionsOnSave", (value, read3, write2) => {
         if (value && typeof value === "object") {
           let toBeModified = false;
           const newValue = {};
@@ -39646,32 +39646,32 @@ var LinuxNoteTyporaEnhancements = (() => {
             }
           }
           if (toBeModified) {
-            write("codeActionsOnSave", newValue);
+            write2("codeActionsOnSave", newValue);
           }
         }
       });
-      registerEditorSettingMigration("codeActionWidget.includeNearbyQuickfixes", (value, read3, write) => {
+      registerEditorSettingMigration("codeActionWidget.includeNearbyQuickfixes", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("codeActionWidget.includeNearbyQuickfixes", void 0);
+          write2("codeActionWidget.includeNearbyQuickfixes", void 0);
           if (typeof read3("codeActionWidget.includeNearbyQuickFixes") === "undefined") {
-            write("codeActionWidget.includeNearbyQuickFixes", value);
+            write2("codeActionWidget.includeNearbyQuickFixes", value);
           }
         }
       });
-      registerEditorSettingMigration("lightbulb.enabled", (value, read3, write) => {
+      registerEditorSettingMigration("lightbulb.enabled", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("lightbulb.enabled", value ? void 0 : "off");
+          write2("lightbulb.enabled", value ? void 0 : "off");
         }
       });
-      registerEditorSettingMigration("inlineSuggest.edits.codeShifting", (value, read3, write) => {
+      registerEditorSettingMigration("inlineSuggest.edits.codeShifting", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("inlineSuggest.edits.codeShifting", void 0);
-          write("inlineSuggest.edits.allowCodeShifting", value ? "always" : "never");
+          write2("inlineSuggest.edits.codeShifting", void 0);
+          write2("inlineSuggest.edits.allowCodeShifting", value ? "always" : "never");
         }
       });
-      registerEditorSettingMigration("hover.enabled", (value, read3, write) => {
+      registerEditorSettingMigration("hover.enabled", (value, read3, write2) => {
         if (typeof value === "boolean") {
-          write("hover.enabled", value ? "on" : "off");
+          write2("hover.enabled", value ? "on" : "off");
         }
       });
     }
@@ -74454,7 +74454,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         toString() {
           const result = [];
           for (const editStackElement of this._editStackElementsArr) {
-            result.push("".concat(basename2(editStackElement.resource), ": ").concat(editStackElement));
+            result.push("".concat(basename3(editStackElement.resource), ": ").concat(editStackElement));
           }
           return "{".concat(result.join(", "), "}");
         }
@@ -102428,7 +102428,7 @@ var LinuxNoteTyporaEnhancements = (() => {
                 continue;
               case "}": {
                 const choices = splitGlobAware(braceVal, ",");
-                const braceRegExp = "(?:".concat(choices.map((choice2) => parseRegExp(choice2)).join("|"), ")");
+                const braceRegExp = "(?:".concat(choices.map((choice) => parseRegExp(choice)).join("|"), ")");
                 regEx += braceRegExp;
                 inBraces = false;
                 braceVal = "";
@@ -102693,7 +102693,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         const parsedPattern = parsedPatterns[i];
         if (parsedPattern.requiresSiblings && hasSibling) {
           if (!base) {
-            base = basename(path);
+            base = basename2(path);
           }
           if (!name) {
             name = base.substring(0, base.length - extname(path).length);
@@ -125958,7 +125958,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       return [{ id: "unknown", mime: Mimes.unknown }];
     }
     path = path.toLowerCase();
-    const filename = basename(path);
+    const filename = basename2(path);
     const configuredLanguage = getAssociationByPath(path, filename, userRegisteredAssociations);
     if (configuredLanguage) {
       return [configuredLanguage, { id: PLAINTEXT_LANGUAGE_ID, mime: Mimes.text }];
@@ -135420,7 +135420,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           return resource.path;
         }
         getUriBasenameLabel(resource) {
-          return basename2(resource);
+          return basename3(resource);
         }
       };
       StandaloneContextViewService = class StandaloneContextViewService2 extends ContextViewService {
@@ -158424,12 +158424,244 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
   }
 
-  // src/reading_positions.ts
-  var POSITION_PREFIX = "linux-note-reading-position:v1:";
-  function file_key(path) {
-    const normalized = path.replace(/\\/gu, "/");
+  // src/file_language.ts
+  var FILE_LANGUAGE_RULES = [
+    { language: "markdown", label: "Markdown", suffixes: [".md", ".markdown", ".mdown", ".mkdn", ".mkd"] },
+    { language: "mdx", label: "MDX", suffixes: [".mdx"] },
+    { language: "typescript", label: "TypeScript", suffixes: [".d.ts", ".d.mts", ".d.cts", ".ts", ".tsx", ".mts", ".cts"] },
+    { language: "javascript", label: "JavaScript", suffixes: [".js", ".jsx", ".mjs", ".cjs"] },
+    { language: "json", label: "JSON", filenames: [".babelrc", ".eslintrc", ".prettierrc", ".jshintrc"], suffixes: [".json", ".jsonc", ".jsonl", ".ipynb", ".code-workspace"] },
+    { language: "c", label: "C", suffixes: [".c", ".h", ".i"] },
+    { language: "cpp", label: "C++", suffixes: [".cpp", ".cc", ".cxx", ".c++", ".hpp", ".hh", ".hxx", ".h++", ".ipp", ".tpp", ".ino"] },
+    { language: "cpp", label: "C++", suffixes: [".C", ".H"], case_sensitive: true },
+    { language: "objective-c", label: "Objective-C", suffixes: [".m", ".mm"] },
+    { language: "csharp", label: "C#", suffixes: [".cs", ".csx"] },
+    { language: "rust", label: "Rust", suffixes: [".rs"] },
+    { language: "go", label: "Go", suffixes: [".go"] },
+    { language: "java", label: "Java", suffixes: [".java"] },
+    { language: "kotlin", label: "Kotlin", suffixes: [".kt", ".kts"] },
+    { language: "scala", label: "Scala", suffixes: [".scala", ".sc"] },
+    { language: "swift", label: "Swift", suffixes: [".swift"] },
+    { language: "dart", label: "Dart", suffixes: [".dart"] },
+    { language: "python", label: "Python", filenames: ["SConstruct", "SConscript"], suffixes: [".py", ".pyi", ".pyw", ".pyx", ".pxd"] },
+    { language: "shell", label: "Shell", filenames: [".bashrc", ".bash_profile", ".bash_login", ".profile", ".zshrc", ".zprofile", ".zshenv", ".kshrc"], suffixes: [".sh", ".bash", ".zsh", ".ksh", ".fish"] },
+    { language: "powershell", label: "PowerShell", suffixes: [".ps1", ".psm1", ".psd1"] },
+    { language: "bat", label: "Windows \u6279\u5904\u7406", suffixes: [".bat", ".cmd"] },
+    { language: "makefile", label: "Makefile", filenames: ["Makefile", "GNUmakefile", "Kbuild"], filename_prefixes: ["Makefile.", "GNUmakefile.", "Kbuild."], suffixes: [".mk", ".mak"] },
+    { language: "cmake", label: "CMake", filenames: ["CMakeLists.txt"], suffixes: [".cmake"] },
+    { language: "kconfig", label: "Kconfig", filenames: ["Kconfig"], filename_prefixes: ["Kconfig."] },
+    { language: "dts", label: "\u8BBE\u5907\u6811", suffixes: [".dts", ".dtsi", ".dtso"] },
+    { language: "asm", label: "\u6C47\u7F16", suffixes: [".s", ".asm", ".inc"] },
+    { language: "dockerfile", label: "Dockerfile", filenames: ["Dockerfile", "Containerfile"], filename_prefixes: ["Dockerfile.", "Containerfile."], suffixes: [".dockerfile", ".containerfile"] },
+    { language: "ini", label: "INI / \u73AF\u5883\u53D8\u91CF", filenames: [".env", ".gitconfig", ".gitmodules", ".editorconfig", ".npmrc", ".yarnrc"], filename_prefixes: [".env."], suffixes: [".ini", ".cfg", ".conf", ".properties", ".service", ".socket", ".timer", ".desktop"] },
+    { language: "ignore", label: "\u5FFD\u7565\u89C4\u5219", filenames: [".gitignore", ".gitattributes", ".dockerignore", ".ignore", ".npmignore", ".eslintignore", ".prettierignore"], suffixes: [".gitignore"] },
+    { language: "toml", label: "TOML", filenames: ["Cargo.lock", "poetry.lock", "uv.lock"], suffixes: [".toml"] },
+    { language: "yaml", label: "YAML", suffixes: [".yaml", ".yml"] },
+    { language: "xml", label: "XML", suffixes: [".xml", ".xsd", ".xsl", ".xslt", ".svg", ".plist", ".csproj", ".props", ".targets", ".ui"] },
+    { language: "html", label: "HTML", suffixes: [".html", ".htm", ".xhtml", ".vue", ".svelte"] },
+    { language: "css", label: "CSS", suffixes: [".module.css", ".css"] },
+    { language: "scss", label: "SCSS", suffixes: [".module.scss", ".scss"] },
+    { language: "less", label: "Less", suffixes: [".less"] },
+    { language: "sql", label: "SQL", suffixes: [".sql"] },
+    { language: "graphql", label: "GraphQL", suffixes: [".graphql", ".gql"] },
+    { language: "proto", label: "Protocol Buffers", suffixes: [".proto"] },
+    { language: "hcl", label: "HCL / Terraform", suffixes: [".hcl", ".tf", ".tfvars"] },
+    { language: "ruby", label: "Ruby", filenames: ["Gemfile", "Rakefile", "Guardfile", "Vagrantfile"], suffixes: [".rb", ".rake", ".gemspec"] },
+    { language: "perl", label: "Perl", suffixes: [".pl", ".pm", ".pod"] },
+    { language: "php", label: "PHP", suffixes: [".php", ".phtml"] },
+    { language: "lua", label: "Lua", suffixes: [".lua"] },
+    { language: "r", label: "R", suffixes: [".r", ".rprofile"] },
+    { language: "julia", label: "Julia", suffixes: [".jl"] },
+    { language: "tcl", label: "Tcl", suffixes: [".tcl", ".tk"] },
+    { language: "clojure", label: "Clojure", suffixes: [".clj", ".cljs", ".cljc", ".edn"] },
+    { language: "scheme", label: "Scheme", suffixes: [".scm", ".ss", ".rkt"] },
+    { language: "elixir", label: "Elixir", suffixes: [".ex", ".exs"] },
+    { language: "fsharp", label: "F#", suffixes: [".fs", ".fsi", ".fsx"] },
+    { language: "systemverilog", label: "Verilog / SystemVerilog", suffixes: [".v", ".vh", ".sv", ".svh"] },
+    { language: "restructuredtext", label: "reStructuredText", suffixes: [".rst"] },
+    { language: "plaintext", label: "\u7EAF\u6587\u672C", filenames: ["LICENSE", "COPYING", "AUTHORS", "NOTICE", "README", "CHANGELOG", "COMMIT_EDITMSG", "MERGE_MSG"], suffixes: [".txt", ".text", ".log", ".csv", ".tsv", ".patch", ".diff"] },
+    { language: "plaintext", label: "\u5F52\u6863\u6587\u4EF6", category: "archive", suffixes: [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lz4", ".tgz", ".tbz2", ".txz", ".zip", ".7z", ".rar", ".gz", ".bz2", ".xz", ".zst", ".tar", ".jar", ".war", ".deb", ".rpm"] },
+    { language: "plaintext", label: "\u4E8C\u8FDB\u5236\u6587\u4EF6", category: "binary", suffixes: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".bmp", ".pdf", ".exe", ".dll", ".so", ".a", ".o", ".class", ".pyc", ".wasm", ".woff", ".woff2", ".ttf", ".mp3", ".mp4", ".wav", ".bin", ".dtb"] }
+  ];
+  var suffix_rules = FILE_LANGUAGE_RULES.flatMap((rule) => (rule.suffixes || []).map((suffix) => ({ rule, suffix }))).sort((left, right) => right.suffix.length - left.suffix.length || Number(Boolean(right.rule.case_sensitive)) - Number(Boolean(left.rule.case_sensitive)));
+  function basename(file_path) {
+    return file_path.replace(/\\/g, "/").split("/").pop() || "";
+  }
+  function from_rule(rule, matched_by, pattern) {
+    return { language: rule.language, label: rule.label, category: rule.category || "text", matched_by, pattern };
+  }
+  function shebang_language(first_line) {
+    const line = first_line.replace(/^\uFEFF/, "").split(/[\r\n]/, 1)[0];
+    if (!line.startsWith("#!")) return;
+    const tokens = line.slice(2).trim().match(/"[^"\r\n]*"|'[^'\r\n]*'|\S+/g) || [];
+    let executable = tokens.shift()?.replace(/^['"]|['"]$/g, "") || "";
+    if (basename(executable) === "env") {
+      while (tokens.length) {
+        const token = tokens.shift();
+        if (["-u", "--unset", "-C", "--chdir"].includes(token)) {
+          tokens.shift();
+          continue;
+        }
+        if (token.startsWith("-") || /^[A-Za-z_][A-Za-z0-9_]*=/.test(token)) continue;
+        executable = token.replace(/^['"]|['"]$/g, "").split(/\s/)[0];
+        break;
+      }
+    }
+    const command2 = basename(executable).replace(/\.exe$/i, "");
+    if (/^python(?:\d+(?:\.\d+)*)?$/.test(command2)) return "python";
+    if (/^(?:sh|bash|dash|ash|zsh|ksh|fish)$/.test(command2)) return "shell";
+    if (/^(?:node|nodejs|bun|deno)$/.test(command2)) return "javascript";
+    if (/^(?:pwsh|powershell)$/.test(command2)) return "powershell";
+    if (/^ruby(?:\d+(?:\.\d+)*)?$/.test(command2)) return "ruby";
+    if (/^perl(?:\d+(?:\.\d+)*)?$/.test(command2)) return "perl";
+    if (/^php(?:\d+(?:\.\d+)*)?$/.test(command2)) return "php";
+    if (/^lua(?:\d+(?:\.\d+)*)?$/.test(command2)) return "lua";
+    if (/^Rscript$/.test(command2)) return "r";
+    return;
+  }
+  function match_file_language(file_path, first_line = "") {
+    const name = basename(file_path), lower_name = name.toLowerCase();
+    for (const rule2 of FILE_LANGUAGE_RULES) {
+      const candidate = rule2.case_sensitive ? name : lower_name;
+      const normalize4 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
+      const exact = rule2.filenames?.find((value) => candidate === normalize4(value));
+      if (exact) return from_rule(rule2, "filename", exact);
+      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize4(value)));
+      if (prefix) return from_rule(rule2, "filename", prefix + "*");
+    }
+    for (const { rule: rule2, suffix } of suffix_rules) {
+      if ((rule2.case_sensitive ? name : lower_name).endsWith(rule2.case_sensitive ? suffix : suffix.toLowerCase())) return from_rule(rule2, "suffix", suffix);
+    }
+    const language44 = shebang_language(first_line);
+    const rule = language44 && FILE_LANGUAGE_RULES.find((candidate) => candidate.language === language44);
+    if (rule) return from_rule(rule, "shebang", "#!");
+    return { language: "plaintext", label: "\u7EAF\u6587\u672C", category: "text", matched_by: "fallback", pattern: "" };
+  }
+  function detect_file_language(file_path, first_line = "") {
+    return match_file_language(file_path, first_line).language;
+  }
+  function is_markdown_file(file_path) {
+    return detect_file_language(file_path) === "markdown";
+  }
+  function byte_prefix(bytes, signature) {
+    return signature.length <= bytes.length && signature.every((value, index) => bytes[index] === value);
+  }
+  function bom_encoding(bytes) {
+    if (byte_prefix(bytes, [239, 187, 191])) return { encoding: "utf-8", offset: 3 };
+    if (byte_prefix(bytes, [255, 254, 0, 0]) || byte_prefix(bytes, [0, 0, 254, 255])) return;
+    if (byte_prefix(bytes, [255, 254])) return { encoding: "utf-16le", offset: 2 };
+    if (byte_prefix(bytes, [254, 255])) return { encoding: "utf-16be", offset: 2 };
+  }
+  function decode_file_bytes(bytes, fallback_encoding = "utf-8") {
+    const bom = bom_encoding(bytes);
+    const decoder = new TextDecoder(bom?.encoding || fallback_encoding, { fatal: true, ignoreBOM: true });
+    return { text: decoder.decode(bom ? bytes.subarray(bom.offset) : bytes), encoding: decoder.encoding, bom: Boolean(bom) };
+  }
+  var BINARY_SIGNATURES = [
+    [137, 80, 78, 71, 13, 10, 26, 10],
+    [255, 216, 255],
+    [71, 73, 70, 56],
+    [37, 80, 68, 70, 45],
+    [127, 69, 76, 70],
+    [80, 75, 3, 4],
+    [80, 75, 5, 6],
+    [80, 75, 7, 8],
+    [31, 139],
+    [253, 55, 122, 88, 90, 0],
+    [66, 90, 104],
+    [55, 122, 188, 175, 39, 28],
+    [82, 97, 114, 33, 26, 7],
+    [0, 97, 115, 109],
+    [40, 181, 47, 253]
+  ];
+  function contains_binary_controls(text3) {
+    if (text3.includes("\0")) return true;
+    const controls = text3.match(/[\x01-\x08\x0e-\x1f\x7f]/g)?.length || 0;
+    return controls > 0 && controls / Math.max(1, text3.length) > 0.1;
+  }
+  function detect_binary_bytes(bytes) {
+    if (BINARY_SIGNATURES.some((signature) => byte_prefix(bytes, signature))) return true;
+    if (bytes.length >= 262 && String.fromCharCode(...bytes.subarray(257, 262)) === "ustar") return true;
+    const bom = bom_encoding(bytes);
+    if (bom) {
+      const limit = Math.min(bytes.length, 8192);
+      const end = bom.encoding.startsWith("utf-16") ? limit - (limit - bom.offset) % 2 : limit;
+      try {
+        return contains_binary_controls(new TextDecoder(bom.encoding, { fatal: true }).decode(bytes.subarray(bom.offset, end), { stream: end < bytes.length }));
+      } catch {
+        return true;
+      }
+    }
+    let controls = 0;
+    const length = Math.min(bytes.length, 8192);
+    for (let index = 0; index < length; index++) {
+      const value = bytes[index];
+      if (!value) return true;
+      if (value < 9 || value > 13 && value < 32 || value === 127) controls++;
+    }
+    return controls > 0 && controls / Math.max(1, length) > 0.1;
+  }
+
+  // src/workspace_file_uri.ts
+  var SOURCE_FILE_VIEW_ID = "linux_note.source_file";
+  var SOURCE_FILE_URI_PREFIX = "typ://".concat(SOURCE_FILE_VIEW_ID, "/");
+  var is_windows_absolute_file = (file_path) => /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/iu.test(file_path);
+  var is_absolute_file = (file_path) => file_path.startsWith("/") || is_windows_absolute_file(file_path);
+  var is_platform_absolute_file = (file_path, path_api) => path_api.sep === "\\" ? is_windows_absolute_file(file_path) : file_path.startsWith("/") && path_api.isAbsolute(file_path);
+  function is_source_file_uri(target) {
+    return target.startsWith(SOURCE_FILE_URI_PREFIX);
+  }
+  function source_file_uri(file_path) {
+    if (!is_absolute_file(file_path)) throw new Error("\u6E90\u7801 URI \u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
+    return SOURCE_FILE_URI_PREFIX + encodeURIComponent(file_path);
+  }
+  function source_file_path(target, path_api) {
+    if (!is_source_file_uri(target)) return;
+    try {
+      const file_path = decodeURIComponent(target.slice(SOURCE_FILE_URI_PREFIX.length));
+      return file_path && is_absolute_file(file_path) && (!path_api || is_platform_absolute_file(file_path, path_api)) ? file_path : void 0;
+    } catch {
+      return;
+    }
+  }
+  function file_key(file_path) {
+    const normalized = file_path.replace(/\\/gu, "/");
     return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
   }
+  function resolve_workspace_file(path_api, context_root, target) {
+    const decoded = source_file_path(target, path_api);
+    if (is_source_file_uri(target) && !decoded) return;
+    const candidate = decoded ?? target;
+    if (!candidate || candidate.startsWith("typ://")) return;
+    if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : void 0;
+    if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
+    return path_api.resolve(context_root, candidate);
+  }
+  function resolve_host_open_file_target(path_api, source_file, target) {
+    if (target.startsWith("typ://")) return target;
+    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+    return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
+  }
+  function parse_markdown_file_target(target) {
+    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+    if (!candidate || is_source_file_uri(candidate)) return;
+    let separator = candidate.indexOf("#");
+    while (separator >= 0) {
+      const file_path = candidate.slice(0, separator);
+      if (is_markdown_file(file_path)) return { file_path, hash: candidate.slice(separator) };
+      separator = candidate.indexOf("#", separator + 1);
+    }
+    return is_markdown_file(candidate) ? { file_path: candidate } : void 0;
+  }
+  function resolve_markdown_file_target(path_api, context_root, target) {
+    const parsed = parse_markdown_file_target(target);
+    if (!parsed) return;
+    const file_path = resolve_workspace_file(path_api, context_root, parsed.file_path);
+    return file_path ? { ...parsed, file_path } : void 0;
+  }
+
+  // src/reading_positions.ts
+  var POSITION_PREFIX = "linux-note-reading-position:v1:";
   function create_position_store(storage, maximum_entries = 500) {
     const read_entry = (key) => {
       try {
@@ -158524,634 +158756,96 @@ var LinuxNoteTyporaEnhancements = (() => {
     return result === ".." || result.startsWith("..".concat(api2.sep)) || api2.isAbsolute(result) ? absolute : result;
   }
 
-  // src/workspace_bootstrap.ts
-  var WORKSPACE_VERSION = "2.10.15";
-  var WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
-  function get_workspace_app() {
-    return window[Symbol.for(WORKSPACE_NAMESPACE)]?.app;
+  // src/workspace_shortcuts.ts
+  var CLOSE_ALL_WORKSPACE_TABS = "linux_note:close_all_workspace_tabs";
+  var active_binding;
+  function primary_modifier(event) {
+    return (event.ctrlKey || event.metaKey) && !event.altKey;
   }
-  async function initialize_workspace() {
-    const runtime = window;
-    if (!runtime.reqnode || !runtime._options?.userDataPath) return;
-    document.documentElement.setAttribute("data-linux-note-workspace", "loading");
-    if (!get_workspace_app()) {
-      window[Symbol.for("".concat(WORKSPACE_NAMESPACE, ":env"))] = { debug: false };
-      await new Promise((resolve3, reject) => {
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = "typora://app/userData/plugins/".concat(WORKSPACE_VERSION, "/core.js");
-        script.onload = () => resolve3();
-        script.onerror = () => reject(new Error("Typora workspace core could not load; rerun the configuration installer."));
-        document.head.append(script);
-      });
-    }
-    const app = get_workspace_app();
-    if (!app || app.coreVersion !== WORKSPACE_VERSION) throw new Error("Unexpected Typora workspace core version.");
-    const started = Date.now();
-    const wait_ready = async (ready) => {
-      while (!ready()) {
-        if (Date.now() - started > 15e3) throw new Error("Typora workspace initialization timed out.");
-        await new Promise((resolve3) => setTimeout(resolve3, 50));
-      }
-    };
-    await wait_ready(() => Boolean(app.settings));
-    if (!app.settings.get("internalPlugin.enabledPlugins")?.["internal.workspace"]) {
-      app.settings.set(["internalPlugin.enabledPlugins", "internal.workspace"], true);
-    }
-    for (const [key, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
-      if (app.settings.get(key) !== value) app.settings.set(key, value);
-    }
-    await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
-    document.addEventListener("click", (event) => {
-      const item = event.target instanceof Element ? event.target.closest(".typ-ribbon-item[data-id]") : null;
-      if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
-      const sidebar = app.workspace.sidebar;
-      if (!sidebar.isShown) return;
-      const active_id = sidebar.activePanel?.ribbonButton?.id;
-      if (active_id && !["core.file-explorer", "core.outline"].includes(active_id) && sidebar.activePanel?.containerEl?.isConnected) return;
-      const host_sidebar = document.querySelector("#typora-sidebar");
-      const current_id = host_sidebar?.classList.contains("active-tab-files") ? "core.file-explorer" : host_sidebar?.classList.contains("active-tab-outline") ? "core.outline" : sidebar.activePanel?.ribbonButton?.id;
-      const current = sidebar.panels.find((panel) => panel.ribbonButton?.id === current_id);
-      if (current) sidebar.activePanel = current;
-    }, true);
+  function visible_modal() {
+    const candidates = document.querySelectorAll('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]');
+    return Array.from(candidates).some((candidate) => {
+      if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
+      const style63 = getComputedStyle(candidate);
+      return style63.display !== "none" && style63.visibility !== "hidden";
+    });
+  }
+  function install_workspace_shortcuts(app, runtime2, get_file_host = () => void 0) {
+    if (active_binding) return active_binding;
     let chord_started = 0;
-    window.addEventListener("keydown", (event) => {
-      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || event.isComposing) {
-        chord_started = 0;
+    const reset_chord = () => {
+      chord_started = 0;
+    };
+    const run = (event, action) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      reset_chord();
+      action();
+    };
+    const keydown = (event) => {
+      if (visible_modal() || event.isComposing) {
+        reset_chord();
         return;
       }
       if (event.target instanceof Element && event.target.closest(".linux-note-terminal, .git-graph-document") && !event.target.closest(".linux-note-source-file")) {
-        chord_started = 0;
+        reset_chord();
         return;
       }
       if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
-      if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey && event.code === "KeyB") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        chord_started = 0;
-        app.workspace.sidebar.toggle();
+      if (primary_modifier(event) && !event.shiftKey && event.code === "KeyB") {
+        run(event, () => app.workspace.sidebar.toggle());
         return;
       }
       const in_chord = chord_started > 0 && Date.now() - chord_started < 2e3;
-      const absolute = in_chord && event.code === "KeyP" && !event.ctrlKey && !event.altKey && !event.metaKey && !event.shiftKey;
-      const relative2 = in_chord && event.code === "KeyC" && event.ctrlKey && event.shiftKey && !event.altKey && !event.metaKey;
-      const windows_absolute = event.code === "KeyC" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey;
-      if (absolute || relative2 || windows_absolute) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        chord_started = 0;
-        app.commands.run(relative2 ? COPY_RELATIVE_PATH : COPY_ABSOLUTE_PATH);
+      if (in_chord) {
+        const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+        const primary = primary_modifier(event) && !event.shiftKey;
+        if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
+        else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
+        else if (event.code === "KeyO" && primary) run(event, () => {
+          runtime2.ClientCommand?.openFolder?.();
+        });
+        else if (event.code === "KeyS" && unmodified) run(event, () => {
+          const files = get_file_host();
+          if (files) void files.save_all();
+          else runtime2.ClientCommand?.saveAll?.();
+        });
+        else if (event.code === "KeyW" && unmodified) run(event, () => app.commands.run(CLOSE_ALL_WORKSPACE_TABS));
+        else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("core.workspace:split-down", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
+        else reset_chord();
         return;
       }
-      if (!event.ctrlKey || event.altKey || event.metaKey) {
-        chord_started = 0;
+      if (event.code === "KeyC" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
         return;
       }
-      if (event.code === "KeyK" && !event.shiftKey) {
+      if (!primary_modifier(event) || event.shiftKey) {
+        reset_chord();
+        return;
+      }
+      if (event.code === "KeyK") {
         event.preventDefault();
         event.stopImmediatePropagation();
         chord_started = Date.now();
         return;
       }
-      if (event.code !== "Backslash" || event.shiftKey) {
-        chord_started = 0;
+      if (event.code === "Backslash") {
+        run(event, () => app.commands.run("core.workspace:split-right", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
         return;
       }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const down = in_chord;
-      chord_started = 0;
-      app.commands.run(down ? "core.workspace:split-down" : "core.workspace:split-right", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]);
-    }, true);
-    window.addEventListener("blur", () => {
-      chord_started = 0;
-    });
-    document.documentElement.setAttribute("data-linux-note-workspace", "ready");
-  }
-
-  // src/reading_workspace.ts
-  var reading_delay = (milliseconds) => new Promise((resolve3) => window.setTimeout(resolve3, milliseconds));
-  function create_reading_workspace(native_path, is_busy) {
-    const app = get_workspace_app();
-    const contexts = /* @__PURE__ */ new WeakMap();
-    const native_contexts = /* @__PURE__ */ new Map();
-    const saved = /* @__PURE__ */ new Map();
-    const restoring = /* @__PURE__ */ new Map();
-    const held_paths = /* @__PURE__ */ new Set();
-    const dirty = /* @__PURE__ */ new Map();
-    let next_id = 1;
-    let save_timer = 0;
-    let store;
-    try {
-      store = create_position_store(window.localStorage);
-    } catch {
-    }
-    const context_for = (leaf) => {
-      let context = contexts.get(leaf.view);
-      if (!context) {
-        context = { view_id: next_id++, file_path: leaf.state.path, leaf };
-        contexts.set(leaf.view, context);
-      }
-      context.file_path = leaf.state.path;
-      return context;
+      reset_chord();
     };
-    const all = () => {
-      if (!app) {
-        const path = native_path();
-        const key = file_key(path);
-        if (!native_contexts.has(key)) native_contexts.set(key, { view_id: next_id++, file_path: path });
-        return [native_contexts.get(key)];
-      }
-      const result = [];
-      app.workspace.eachLeaves((leaf) => {
-        if (typeof leaf.view?.isEditor === "function") result.push(context_for(leaf));
-      });
-      return result;
-    };
-    const active = () => {
-      const leaf = app?.workspace.activeLeaf;
-      return leaf && typeof leaf.view?.isEditor === "function" ? context_for(leaf) : all().find((context) => file_key(context.file_path) === file_key(native_path()));
-    };
-    const elements = (context) => {
-      const view = context.leaf?.view;
-      if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
-      if (!view || view.isEditor()) {
-        if (is_busy() || file_key(context.file_path) !== file_key(native_path())) return null;
-        const scroller = document.querySelector("content");
-        const root2 = document.querySelector("#write");
-        return scroller && root2?.children.length && scroller.getBoundingClientRect().height > 0 ? { scroller, root: root2 } : null;
-      }
-      const root = view.containerEl;
-      return root.children.length && root.classList.contains("typ-markdown-preview") && root.getBoundingClientRect().height > 0 ? { scroller: context.leaf.containerEl, root } : null;
-    };
-    const flush = () => {
-      window.clearTimeout(save_timer);
-      for (const [path, position2] of dirty) store?.set(path, position2);
-      dirty.clear();
-    };
-    const remember = (context, position2, persist = true) => {
-      saved.set(context.view_id, position2);
-      if (context.leaf) context.leaf.state.linux_note_position = position2;
-      const active_context = active();
-      if (persist && (!active_context || file_key(active_context.file_path) !== file_key(context.file_path) || active_context.view_id === context.view_id)) {
-        dirty.set(context.file_path, position2);
-        window.clearTimeout(save_timer);
-        save_timer = window.setTimeout(flush, 300);
-      }
-    };
-    const capture = (context) => {
-      if (restoring.has(context.view_id)) return saved.get(context.view_id) ?? null;
-      const nodes = elements(context);
-      return nodes ? capture_position(nodes.scroller, nodes.root) : saved.get(context.view_id) ?? null;
-    };
-    const checkpoint = () => {
-      for (const context of all()) {
-        if (!elements(context) || restoring.has(context.view_id)) continue;
-        const position2 = capture(context);
-        if (position2) remember(context, position2);
-      }
-    };
-    const restore = async (context, position2) => {
-      const token = {};
-      restoring.set(context.view_id, token);
-      remember(context, position2, false);
-      let applied = false;
-      let previous_geometry = "";
-      let stable_since = Date.now();
-      const started = Date.now();
-      while (restoring.get(context.view_id) === token && Date.now() - started < 5e3) {
-        const nodes = elements(context);
-        if (nodes) {
-          const geometry = "".concat(nodes.root.getBoundingClientRect().height, ":").concat(nodes.scroller.clientHeight, ":").concat(nodes.scroller.scrollHeight);
-          const before_top = nodes.scroller.scrollTop;
-          const before_left = nodes.scroller.scrollLeft;
-          apply_position(nodes.scroller, nodes.root, position2);
-          if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > 0.5 || Math.abs(before_left - nodes.scroller.scrollLeft) > 0.5) {
-            previous_geometry = geometry;
-            stable_since = Date.now();
-          }
-          applied = true;
-          if (applied && Date.now() - stable_since >= 250) break;
-        }
-        await reading_delay(40);
-      }
-      if (restoring.get(context.view_id) === token) {
-        restoring.delete(context.view_id);
-        const nodes = elements(context);
-        if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
-      }
-      return applied;
-    };
-    const stop_restoring = (context) => {
-      if (context) restoring.delete(context.view_id);
-      else restoring.clear();
-    };
-    const patched = /* @__PURE__ */ new WeakSet();
-    const patch_view = (view) => {
-      const prototype = Object.getPrototypeOf(view);
-      if (patched.has(prototype)) return false;
-      patched.add(prototype);
-      const original_on_open = prototype.onOpen;
-      prototype.onOpen = function() {
-        const context = context_for(this.leaf);
-        const position2 = saved.get(context.view_id) ?? this.leaf.state.linux_note_position ?? store?.get(context.file_path);
-        if (!position2 || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
-        restoring.set(context.view_id, {});
-        remember(context, position2, false);
-        try {
-          original_on_open.call(this);
-        } catch (error) {
-          restoring.delete(context.view_id);
-          throw error;
-        }
-        void restore(context, position2);
-      };
-      prototype.getState = function() {
-        const context = context_for(this.leaf);
-        const position2 = capture(context) ?? this.leaf.state.linux_note_position;
-        if (position2) remember(context, position2);
-        return position2 ? { scrollTop: position2.scroll_top, linux_note_position: position2 } : {};
-      };
-      prototype.setState = function(state) {
-        const context = context_for(this.leaf);
-        if (held_paths.has(file_key(context.file_path))) return;
-        const position2 = state.linux_note_position ?? saved.get(context.view_id) ?? store?.get(context.file_path) ?? (typeof state.scrollTop === "number" ? { scroll_top: state.scrollTop, scroll_left: 0 } : null);
-        if (position2) void restore(context, position2);
-      };
-      return true;
-    };
-    for (const context of all()) {
-      if (context.leaf) patch_view(context.leaf.view);
-      const position2 = store?.get(context.file_path);
-      if (position2) void restore(context, position2);
-    }
-    app?.workspace.rootSplit.on("leaf:open", (leaf) => {
-      if (typeof leaf.view?.isEditor !== "function" || !patch_view(leaf.view)) return;
-      const context = context_for(leaf);
-      const position2 = store?.get(context.file_path);
-      if (position2 && !held_paths.has(file_key(context.file_path))) void restore(context, position2);
-    });
-    document.addEventListener("scroll", (event) => {
-      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
-      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
-      const position2 = capture(context);
-      if (position2) remember(context, position2);
-    }, true);
-    for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
-      window.addEventListener(name, (event) => {
-        if (!event.isTrusted) return;
-        const target = event.target;
-        for (const context of all()) {
-          const nodes = elements(context);
-          if (nodes && target instanceof Node && nodes.scroller.contains(target)) stop_restoring(context);
-        }
-      }, true);
-    }
-    window.addEventListener("pagehide", flush);
-    window.addEventListener("beforeunload", flush);
-    return {
-      all,
-      active,
-      elements,
-      capture,
-      checkpoint,
-      remember,
-      restore,
-      stop_restoring,
-      remap_paths(map) {
-        flush();
-        store?.remap_paths(map);
-        for (const [key, context] of [...native_contexts]) {
-          const target = map(context.file_path);
-          if (!target) continue;
-          native_contexts.delete(key);
-          context.file_path = target;
-          native_contexts.set(file_key(target), context);
-        }
-      },
-      hold(path, value) {
-        if (value) held_paths.add(file_key(path));
-        else held_paths.delete(file_key(path));
-      },
-      resume(context) {
-        const position2 = saved.get(context.view_id) ?? store?.get(context.file_path);
-        return position2 ? restore(context, position2) : Promise.resolve(true);
-      }
-    };
-  }
-
-  // src/workspace_markdown_location.ts
-  var normalize_newlines = (value) => value.replace(/\r\n?/gu, "\n");
-  var frame = () => new Promise((resolve3) => requestAnimationFrame(() => resolve3()));
-  var revealed;
-  function capture_markdown_location() {
-    const editor2 = window.File?.editor;
-    if (!revealed || editor2 !== revealed.editor || normalize_newlines(editor2.getMarkdown()) !== revealed.text || JSON.stringify(editor2.selection.buildUndo()) !== revealed.cursor) return;
-    return { ...revealed.location };
-  }
-  async function reveal_markdown_location(location) {
-    const editor2 = window.File?.editor;
-    if (!editor2?.sourceView?.gotoLine || !editor2.selection?.buildUndo || !editor2.undo?.exeCommand) throw new Error("\u5F53\u524D Typora \u6CA1\u6709\u53EF\u7528\u7684 Markdown \u539F\u751F\u5B9A\u4F4D\u63A5\u53E3\u3002");
-    if (editor2.sourceView.inSourceMode) throw new Error("\u8BF7\u5148\u9000\u51FA Markdown \u6E90\u7801\u6A21\u5F0F\uFF0C\u518D\u6253\u5F00\u6E32\u67D3\u4F4D\u7F6E\u3002");
-    const root = document.querySelector("#write"), scroller = document.querySelector("content");
-    if (!root || !scroller) throw new Error("Markdown \u6B63\u6587\u5C1A\u672A\u51C6\u5907\u597D\uFF0C\u8BF7\u91CD\u8BD5\u3002");
-    const text3 = normalize_newlines(editor2.getMarkdown()), lines = text3.split("\n");
-    const from = { line: (location.line ?? 1) - 1, ch: (location.column ?? 1) - 1 };
-    const to = { line: (location.end_line ?? location.line ?? 1) - 1, ch: (location.end_column ?? location.column ?? 1) - 1 };
-    const offset = (position2) => {
-      if (!Number.isInteger(position2.line) || !Number.isInteger(position2.ch) || position2.line < 0 || position2.line >= lines.length || position2.ch < 0 || position2.ch > lines[position2.line].length) throw new Error("\u76EE\u6807\u884C\u5217\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u8DF3\u8F6C\u7ED3\u679C\u3002");
-      let result = position2.ch;
-      for (let line = 0; line < position2.line; line++) result += lines[line].length + 1;
-      return result;
-    };
-    const start = offset(from), end = offset(to), expected = location.expected_text === void 0 ? text3.slice(start, end) : normalize_newlines(location.expected_text);
-    if (end < start || text3.slice(start, end) !== expected) throw new Error("Markdown \u5F53\u524D\u5185\u5BB9\u4E0E\u641C\u7D22\u4F4D\u7F6E\u4E0D\u4E00\u81F4\uFF0C\u8BF7\u5904\u7406\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u5E76\u5237\u65B0\u7ED3\u679C\u3002");
-    const previous = editor2.selection.buildUndo(), previous_top = scroller.scrollTop, previous_left = scroller.scrollLeft;
-    const goto = (position2) => {
-      editor2.sourceView.gotoLine({ line: position2.line, ch: position2.ch, lineText: lines[position2.line], textBefore: lines[position2.line].slice(0, position2.ch) });
-      const wrapper = document.activeElement?.closest("#write .CodeMirror");
-      const cm = wrapper?.CodeMirror;
-      return { cursor: editor2.selection.buildUndo(), cm, position: cm?.getCursor() };
-    };
-    try {
-      const first = goto(from), last = goto(to);
-      if (first.cm || last.cm) {
-        if (!first.cm || first.cm !== last.cm || !first.position || !last.position || normalize_newlines(first.cm.getRange(first.position, last.position)) !== expected) throw new Error("\u8BE5\u5339\u914D\u8DE8\u8D8A\u4E0D\u540C\u7F16\u8F91\u533A\uFF0C\u65E0\u6CD5\u5B89\u5168\u9009\u4E2D\uFF1B\u8BF7\u7F29\u5C0F\u5173\u952E\u8BCD\u8303\u56F4\u3002");
-        first.cm.setSelection(first.position, last.position);
-        first.cm.focus();
-        first.cm.scrollIntoView({ from: first.position, to: last.position }, 40);
-        await frame();
-        const rect = first.cm.charCoords(first.position, "window"), viewport = scroller.getBoundingClientRect();
-        scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - (rect.bottom - rect.top)) / 2);
-      } else {
-        if (!first.cursor || !last.cursor || typeof first.cursor.start !== "number" || typeof last.cursor.start !== "number") throw new Error("\u8BE5 Markdown \u4F4D\u7F6E\u6CA1\u6709\u53EF\u9009\u4E2D\u7684\u6B63\u6587\u5185\u5BB9\u3002");
-        const first_id = first.cursor.id ?? first.cursor.startId, last_id = last.cursor.id ?? last.cursor.startId;
-        if (!first_id || !last_id) throw new Error("\u65E0\u6CD5\u786E\u8BA4 Markdown \u547D\u4E2D\u6240\u5728\u7684\u6B63\u6587\u5757\u3002");
-        editor2.undo.exeCommand(first_id === last_id ? { type: "cursor", id: first_id, start: first.cursor.start, end: last.cursor.start } : { type: "cursor", startId: first_id, endId: last_id, start: first.cursor.start, end: last.cursor.start });
-        let range2 = editor2.selection.getRangy();
-        if (!range2 || normalize_newlines(range2.toString()) !== expected || !root.contains(range2.startContainer) || !root.contains(range2.endContainer)) throw new Error("\u539F\u751F\u6B63\u6587\u9009\u533A\u4E0E\u547D\u4E2D\u4E0D\u4E00\u81F4\uFF0C\u5DF2\u53D6\u6D88\u5B9A\u4F4D\uFF1B\u8BF7\u5237\u65B0\u6216\u7F29\u5C0F\u5173\u952E\u8BCD\u8303\u56F4\u3002");
-        await frame();
-        range2 = editor2.selection.getRangy();
-        if (!range2 || normalize_newlines(range2.toString()) !== expected) throw new Error("Markdown \u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u547D\u4E2D\u3002");
-        const visible_range = document.createRange();
-        visible_range.setStart(range2.startContainer, range2.startOffset);
-        visible_range.setEnd(range2.endContainer, range2.endOffset);
-        const rect = visible_range.getBoundingClientRect(), viewport = scroller.getBoundingClientRect();
-        scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - rect.height) / 2);
-      }
-      await frame();
-      revealed = { editor: editor2, text: text3, cursor: JSON.stringify(editor2.selection.buildUndo()), location: { ...location } };
-    } catch (error) {
-      if (previous) editor2.undo.exeCommand(previous);
-      scroller.scrollTop = previous_top;
-      scroller.scrollLeft = previous_left;
-      throw error;
-    }
-  }
-
-  // src/reading_navigation.ts
-  var bound = false;
-  var navigate_target;
-  var remap_paths;
-  function rename_reading_paths(map) {
-    remap_paths?.(map);
-  }
-  async function navigate_reading_target(path, options2 = {}) {
-    if (!navigate_target || !await navigate_target(path, options2)) throw new Error("\u65E0\u6CD5\u5207\u6362\u5230\u76EE\u6807 Markdown\uFF1B\u8BF7\u5148\u5904\u7406\u6587\u4EF6\u6253\u5F00\u6216\u672A\u4FDD\u5B58\u786E\u8BA4\u540E\u91CD\u8BD5\u3002");
-  }
-  function bind_reading_navigation() {
-    if (bound) return;
-    const file = window.File;
-    const editor2 = file?.editor;
-    if (!file || !editor2 || typeof editor2.tryOpenUrl !== "function" || typeof editor2.library?.openFile !== "function" || typeof editor2.selection?.buildUndo !== "function") return;
-    bound = true;
-    const app = get_workspace_app();
-    const runtime = window;
-    const path_api = app ? runtime.reqnode("path") : void 0;
-    const history = create_reading_history();
-    const publish_history_state = () => {
-      const detail = { back: history.can_travel(-1), forward: history.can_travel(1) };
-      document.documentElement.dataset.linuxNoteHistoryBack = String(detail.back);
-      document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
-      window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
-    };
-    const original_open_url = editor2.tryOpenUrl;
-    const original_open_file = editor2.library.openFile;
-    const native_path = () => file.bundle?.filePath ?? "";
-    const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
-    const workspace = create_reading_workspace(native_path, is_busy);
-    let navigating = false;
-    let pending_from = null;
-    let pending_timer = 0;
-    remap_paths = (map) => {
-      history.remap_paths(map);
-      workspace.remap_paths(map);
-      if (pending_from) pending_from.file_path = map(pending_from.file_path) ?? pending_from.file_path;
-    };
-    const capture = (context = workspace.active()) => {
-      if (!context?.file_path || file.bundle?.unsupported || editor2.sourceView?.inSourceMode) return null;
-      const position2 = workspace.capture(context);
-      if (!position2) return null;
-      let cursor = null;
-      if ((!context.leaf || context.leaf.view.isEditor()) && file_key(context.file_path) === file_key(native_path())) {
-        try {
-          const candidate = editor2.selection.buildUndo();
-          if (candidate?.type === "cursor") {
-            cursor = JSON.parse(JSON.stringify(candidate));
-            const source_location = capture_markdown_location();
-            if (source_location) cursor.linux_note_source_location = source_location;
-          }
-        } catch {
-        }
-      }
-      return { file_path: context.file_path, ...position2, position: position2, cursor, view_id: context.view_id };
-    };
-    const finish_pending = () => {
-      window.clearTimeout(pending_timer);
-      const current = capture();
-      if (pending_from && current && !is_busy() && !navigating) {
-        history.record_jump(pending_from, current);
-        publish_history_state();
-      }
-      pending_from = null;
-    };
-    const wait_for = async (ready) => {
-      const started = Date.now();
-      while (!ready()) {
-        if (Date.now() - started > 15e3) return false;
-        await reading_delay(40);
-      }
-      return true;
-    };
-    const activate = async (context) => {
-      const leaf = context.leaf;
-      if (app && leaf) {
-        if (leaf.parent.activeLeaf !== leaf) leaf.parent.toggleTab(leaf.state.path);
-        app.workspace.activeLeaf = leaf;
-        if (!await wait_for(() => Boolean(workspace.elements(context)))) return false;
-        if (!leaf.view.isEditor()) {
-          leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-        }
-      }
-      return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path) && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
-    };
-    const open_target = async (path, view_id) => {
-      const existing = workspace.all().find((context) => (view_id == null || context.view_id === view_id) && file_key(context.file_path) === file_key(path));
-      if (existing) return await activate(existing) ? existing : void 0;
-      const current = workspace.active();
-      if (current && file_key(current.file_path) === file_key(path)) return await activate(current) ? current : void 0;
-      original_open_file.call(editor2.library, path);
-      let target;
-      if (!await wait_for(() => {
-        target = workspace.active();
-        return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-      })) return;
-      return target && await activate(target) ? target : void 0;
-    };
-    const report = (error) => console.error("[linux-note reading navigation]", error);
-    const navigate = async (path, hash2, location, options2 = {}) => {
-      if (navigating) return false;
-      path = path_api?.normalize(path) ?? path;
-      finish_pending();
-      const from = capture();
-      workspace.checkpoint();
-      navigating = true;
-      workspace.hold(path, true);
-      try {
-        let target;
-        if (app && options2.group && options2.group !== "active") {
-          app.commands.run(options2.group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [path]);
-          const opened = await wait_for(() => {
-            target = workspace.active();
-            return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-          });
-          if (!opened || !target || !await activate(target)) target = void 0;
-        } else target = await open_target(path, location?.view_id);
-        if (!target) return false;
-        await reading_delay(100);
-        workspace.stop_restoring(target);
-        if (options2.locate) {
-          await options2.locate();
-        } else if (hash2) {
-          original_open_url.call(editor2, hash2);
-          await reading_delay(100);
-          const heading3 = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
-          const cid = heading3?.getAttribute("cid");
-          if (cid) {
-            const item = Array.from(document.querySelectorAll("#outline-content .outline-label")).find((node) => node.getAttribute("data-ref") === cid);
-            if (item) {
-              for (let parent = item.parentElement; parent?.closest("#outline-content"); parent = parent.parentElement) {
-                if (parent.classList.contains("outline-item-wrapper")) parent.classList.add("outline-item-open");
-              }
-              item.scrollIntoView({ block: "nearest" });
-            }
-          }
-        } else if (location) {
-          try {
-            if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location);
-            else if (location.cursor) editor2.undo?.exeCommand(location.cursor);
-          } catch {
-          }
-          await reading_delay(40);
-          await workspace.restore(target, location.position ?? location);
-        } else await workspace.resume(target);
-        const to = capture(target);
-        if (to) {
-          workspace.remember(target, to.position);
-          if (from && !location) {
-            history.record_jump(from, to);
-            publish_history_state();
-          }
-        }
-        return true;
-      } finally {
-        workspace.hold(path, false);
-        navigating = false;
-      }
-    };
-    navigate_target = async (path, options2) => {
-      const started = Date.now();
-      while (navigating || history.is_navigating()) {
-        if (Date.now() - started > 15e3) return false;
-        await reading_delay(40);
-      }
-      return navigate(path, void 0, void 0, options2);
-    };
-    const travel_history = async (direction) => {
-      if (navigating || history.is_navigating() || is_busy()) return false;
-      finish_pending();
-      const current = capture();
-      if (!current) return false;
-      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location));
-      publish_history_state();
-      try {
-        return await pending;
-      } finally {
-        publish_history_state();
-      }
-    };
-    editor2.tryOpenUrl = function(url, ...args) {
-      const local_url = url.trim().replace(/^<|>$/gu, "");
-      if (navigating) return;
-      if (editor2.sourceView?.inSourceMode || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
-        return original_open_url.call(this, url, ...args);
-      }
-      if (local_url.startsWith("#")) {
-        const context = workspace.active();
-        if (context) void navigate(context.file_path, local_url).catch(report);
-        return;
-      }
-      if (!app && /\.md(?:#|$)/iu.test(local_url)) {
-        const [path, hash2] = local_url.split(/#(.*)/su);
-        void navigate(path, hash2 ? "#".concat(hash2) : void 0).catch(report);
-        return;
-      }
-      return original_open_url.call(this, url, ...args);
-    };
-    editor2.library.openFile = function(path, callback) {
-      if (navigating || callback || editor2.sourceView?.inSourceMode) return original_open_file.call(this, path, callback);
-      void navigate(path).catch(report);
-    };
-    if (app) {
-      const original_workspace_open_file = app.workspace.activeEditor.openFile;
-      app.workspace.activeEditor.openFile = (target) => {
-        if (editor2.sourceView?.inSourceMode) return original_workspace_open_file.call(app.workspace.activeEditor, target);
-        const url = typeof target === "string" ? { pathname: target } : target;
-        void navigate(url.pathname, url.hash).catch(report);
-      };
-      const original_app_open_file = app.openFile;
-      app.openFile = function(path) {
-        const source = workspace.active()?.file_path;
-        const unwrapped = path.replace(/^<|>$/gu, "");
-        return original_app_open_file.call(this, source && !path_api.isAbsolute(unwrapped) ? path_api.resolve(path_api.dirname(source), unwrapped) : unwrapped);
-      };
-      app.workspace.on("file:will-open", () => {
-        workspace.checkpoint();
-        if (navigating || history.is_navigating() || pending_from) return;
-        pending_from = capture();
-      });
-      app.workspace.on("file:open", () => {
-        if (navigating || history.is_navigating()) return;
-        window.clearTimeout(pending_timer);
-        pending_timer = window.setTimeout(finish_pending, 500);
-      });
-    }
-    window.addEventListener("keydown", (event) => {
-      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      const active = document.activeElement;
-      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (event.repeat) return;
-      void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
-    }, true);
-    window.addEventListener("linux-note-reading-history-travel", (event) => {
-      const direction = event.detail?.direction;
-      if (direction === -1 || direction === 1) void travel_history(direction).catch(report);
-    });
-    publish_history_state();
-    document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
-    document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
+    window.addEventListener("keydown", keydown, true);
+    window.addEventListener("blur", reset_chord);
+    const binding = { dispose() {
+      if (active_binding !== binding) return;
+      window.removeEventListener("keydown", keydown, true);
+      window.removeEventListener("blur", reset_chord);
+      reset_chord();
+      active_binding = void 0;
+    } };
+    active_binding = binding;
+    return binding;
   }
 
   // node_modules/monaco-editor/esm/vs/nls/lang/zh-cn.js
@@ -159163,6 +158857,1326 @@ var LinuxNoteTyporaEnhancements = (() => {
    *-----------------------------------------------------------*/
   globalThis._VSCODE_NLS_MESSAGES = ["{0} ({1})", "\u8F93\u5165", "\u533A\u5206\u5927\u5C0F\u5199", "\u5168\u5B57\u5339\u914D", "\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", "\u8F93\u5165", "\u4FDD\u7559\u5927\u5C0F\u5199", "\u5728\u8F85\u52A9\u89C6\u56FE\u4E2D\u7528 {0} \u68C0\u67E5\u6B64\u9879\u3002", "\u901A\u8FC7\u547D\u4EE4\u201C\u6253\u5F00\u8F85\u52A9\u89C6\u56FE\u201D\u5728\u8F85\u52A9\u89C6\u56FE\u4E2D\u68C0\u67E5\u6B64\u9879\uFF0C\u8BE5\u547D\u4EE4\u5F53\u524D\u65E0\u6CD5\u901A\u8FC7\u952E\u7ED1\u5B9A\u89E6\u53D1\u3002", "\u9519\u8BEF: {0}", "\u8B66\u544A: {0}", "\u4FE1\u606F: {0}", " \u6216\u4F7F\u7528 {0} \u4EE5\u67E5\u770B\u5386\u53F2\u8BB0\u5F55", " (\u4F7F\u7528 {0} \u67E5\u770B\u5386\u53F2\u8BB0\u5F55)", "\u6E05\u9664\u7684\u8F93\u5165", "\u672A\u7ED1\u5B9A", "\u8FDB\u5EA6", "\u5206\u9694\u7B26", "\u9009\u62E9\u6846", "\u66F4\u591A\u64CD\u4F5C...", "\u8981\u641C\u7D22\u7684\u7C7B\u578B", "\u5173\u95ED", "\u8981\u641C\u7D22\u7684\u7C7B\u578B", "\u672A\u627E\u5230\u4EFB\u4F55\u7ED3\u679C\u3002", "\u65E0\u7ED3\u679C", "{0} \u4E2A\u7ED3\u679C", "\u8981\u7B5B\u9009\u7684\u7C7B\u578B", "\u8981\u641C\u7D22\u7684\u7C7B\u578B", "\u7B5B\u9009\u5668", "\u6A21\u7CCA\u5339\u914D", "\u5DF2\u6298\u53E0", "\u5DF2\u5C55\u5F00", "(\u7A7A)", "{0}: {1}", "\u53D1\u751F\u4E86\u7CFB\u7EDF\u9519\u8BEF ({0})", "\u51FA\u73B0\u672A\u77E5\u9519\u8BEF\u3002\u6709\u5173\u8BE6\u7EC6\u4FE1\u606F\uFF0C\u8BF7\u53C2\u9605\u65E5\u5FD7\u3002", "\u51FA\u73B0\u672A\u77E5\u9519\u8BEF\u3002\u6709\u5173\u8BE6\u7EC6\u4FE1\u606F\uFF0C\u8BF7\u53C2\u9605\u65E5\u5FD7\u3002", "{0} \u4E2A(\u5171 {1} \u4E2A\u9519\u8BEF)", "\u51FA\u73B0\u672A\u77E5\u9519\u8BEF\u3002\u6709\u5173\u8BE6\u7EC6\u4FE1\u606F\uFF0C\u8BF7\u53C2\u9605\u65E5\u5FD7\u3002", "Ctrl", "Shift", "Alt", "Windows", "Ctrl", "Shift", "Alt", "Super", "Control", "Shift", "Option", "Command", "Control", "Shift", "Alt", "Windows", "Control", "Shift", "Alt", "Super", "\u6269\u5C55", "\u96C6\u6210\u7EC8\u7AEF", "\u804A\u5929", "\u9065\u6D4B", "\u66F4\u65B0", "\u7F16\u8F91\u5668", "\u73B0\u5728\u65E0\u6CD5\u8BBF\u95EE\u7F16\u8F91\u5668\u3002", "{0} \u82E5\u8981\u542F\u7528\u5C4F\u5E55\u9605\u8BFB\u5668\u4F18\u5316\u6A21\u5F0F\uFF0C\u8BF7\u4F7F\u7528 {1}", "{0} \u82E5\u8981\u542F\u7528\u5C4F\u5E55\u9605\u8BFB\u5668\u4F18\u5316\u6A21\u5F0F\uFF0C\u8BF7\u4F7F\u7528 {1} \u6253\u5F00\u5FEB\u901F\u9009\u53D6\uFF0C\u7136\u540E\u8FD0\u884C\u201C\u5207\u6362\u5C4F\u5E55\u9605\u8BFB\u5668\u8F85\u52A9\u529F\u80FD\u6A21\u5F0F\u201D\u547D\u4EE4\uFF1B\u5F53\u524D\u65E0\u6CD5\u901A\u8FC7\u952E\u76D8\u89E6\u53D1\u6B64\u547D\u4EE4\u3002", "{0} \u8BF7\u901A\u8FC7\u4F7F\u7528 {1} \u8BBF\u95EE\u952E\u7ED1\u5B9A\u7F16\u8F91\u5668\u5E76\u8FD0\u884C\u5B83\uFF0C\u4E3A\u201C\u5207\u6362\u5C4F\u5E55\u9605\u8BFB\u5668\u8F85\u52A9\u529F\u80FD\u6A21\u5F0F\u201D\u547D\u4EE4\u5206\u914D\u952E\u7ED1\u5B9A\u3002", "\u7F16\u8F91\u5668", "\u5373\u4F7F\u8F6C\u5230\u8F83\u957F\u7684\u884C\uFF0C\u4E5F\u4E00\u76F4\u5230\u672B\u5C3E", "\u5373\u4F7F\u8F6C\u5230\u8F83\u957F\u7684\u884C\uFF0C\u4E5F\u4E00\u76F4\u5230\u672B\u5C3E", "\u5DF2\u5220\u9664\u8F85\u52A9\u6E38\u6807", "\u64A4\u6D88(&&U)", "\u64A4\u6D88", "\u64A4\u6D88", "\u6062\u590D(&&R)", "\u6062\u590D", "\u6062\u590D", "\u5168\u9009(&&S)", "\u9009\u62E9\u5168\u90E8", "\u9009\u62E9\u5168\u90E8", "\u4F7F\u7528\u57FA\u4E8E DOM \u7684\u5448\u73B0", "\u5F53\u524D\u662F\u5426\u63A8\u8FDF\u5185\u8054\u8865\u5168", "1 \u5206\u949F", "5 \u5206\u949F", "10 \u5206\u949F", "15 \u5206\u949F", "30 \u5206\u949F", "60 \u5206\u949F", "{0} \u5206\u949F(\u4E0A\u6B21\u4F7F\u7528\u65F6\u95F4)", "\u4E0A\u6B21\u4F7F\u7528\u6301\u7EED\u65F6\u95F4\u81EA\u5B9A\u4E49", "\u81EA\u5B9A\u4E49...", "\u9009\u62E9\u5185\u8054\u5EFA\u8BAE\u7684\u63A8\u8FDF\u65F6\u957F", "\u6301\u7EED\u65F6\u95F4(\u5206\u949F) (\u4F8B\u5982 90)", "\u8F93\u5165\u63A8\u8FDF\u6301\u7EED\u65F6\u95F4(\u5206\u949F)", "\u8BF7\u8F93\u5165\u4E00\u4E2A\u6B63\u6570", "\u63A8\u8FDF\u5185\u8054\u5EFA\u8BAE", "\u53D6\u6D88\u63A8\u8FDF\u5185\u8054\u5EFA\u8BAE", "\u5DF2\u5C06\u5149\u6807\u6570\u9650\u5236\u4E3A {0}\u3002\u8BF7\u8003\u8651\u4F7F\u7528 [\u67E5\u627E\u548C\u66FF\u6362](https://code.visualstudio.com/docs/editor/codebasics#_find-and-replace)\u8FDB\u884C\u8F83\u5927\u7684\u66F4\u6539\u6216\u589E\u52A0\u7F16\u8F91\u5668\u591A\u5149\u6807\u9650\u5236\u8BBE\u7F6E\u3002", "\u589E\u52A0\u591A\u5149\u6807\u9650\u5236", "\u5207\u6362\u6298\u53E0\u672A\u66F4\u6539\u7684\u533A\u57DF", "\u5207\u6362\u663E\u793A\u79FB\u52A8\u7684\u4EE3\u7801\u5757", "\u5728\u7A7A\u95F4\u53D7\u9650\u65F6\u5207\u6362\u4F7F\u7528\u5185\u8054\u89C6\u56FE", "\u5DEE\u5F02\u7F16\u8F91\u5668", "\u5207\u6362\u4FA7\u9762", "\u9000\u51FA\u6BD4\u8F83\u79FB\u52A8", "\u6298\u53E0\u6240\u6709\u672A\u66F4\u6539\u7684\u533A\u57DF", "\u663E\u793A\u6240\u6709\u672A\u66F4\u6539\u7684\u533A\u57DF", "\u8FD8\u539F", "\u53EF\u8BBF\u95EE\u7684\u5DEE\u5F02\u67E5\u770B\u5668", "\u8F6C\u81F3\u4E0B\u4E00\u4E2A\u5DEE\u5F02", "\u8F6C\u81F3\u4E0A\u4E00\u4E2A\u5DEE\u5F02", "\u53EF\u8BBF\u95EE\u5DEE\u5F02\u67E5\u770B\u5668\u4E2D\u201C\u63D2\u5165\u201D\u7684\u56FE\u6807\u3002", "\u53EF\u8BBF\u95EE\u5DEE\u5F02\u67E5\u770B\u5668\u4E2D\u201C\u5220\u9664\u201D\u7684\u56FE\u6807\u3002", "\u53EF\u8BBF\u95EE\u5DEE\u5F02\u67E5\u770B\u5668\u4E2D\u201C\u5173\u95ED\u201D\u7684\u56FE\u6807\u3002", "\u5173\u95ED", "\u53EF\u8BBF\u95EE\u7684\u5DEE\u5F02\u67E5\u770B\u5668\u3002\u4F7F\u7528\u5411\u4E0A\u548C\u5411\u4E0B\u7BAD\u5934\u5BFC\u822A\u3002", "\u672A\u66F4\u6539\u884C", "\u66F4\u6539\u4E86 1 \u884C", "\u66F4\u6539\u4E86 {0} \u884C", "\u5DEE\u5F02 {0}/ {1}: \u539F\u59CB\u884C {2}\uFF0C{3}\uFF0C\u4FEE\u6539\u540E\u7684\u884C {4}\uFF0C{5}", "\u7A7A\u767D", "{0} \u672A\u66F4\u6539\u7684\u884C {1}", "{0}\u539F\u59CB\u884C{1}\u4FEE\u6539\u7684\u884C{2}", "+ {0}\u4FEE\u6539\u7684\u884C{1}", "- {0}\u539F\u59CB\u884C{1}", " \u4F7F\u7528 {0} \u6253\u5F00\u8F85\u52A9\u529F\u80FD\u5E2E\u52A9\u3002", "\u590D\u5236\u5DF2\u5220\u9664\u7684\u884C", "\u590D\u5236\u5DF2\u5220\u9664\u7684\u884C", "\u590D\u5236\u66F4\u6539\u7684\u884C", "\u590D\u5236\u66F4\u6539\u7684\u884C", "\u590D\u5236\u5DF2\u5220\u9664\u7684\u884C({0})", "\u590D\u5236\u66F4\u6539\u7684\u884C({0})", "\u8FD8\u539F\u6B64\u66F4\u6539", "\u7A7A\u95F4\u53D7\u9650\u65F6\u4F7F\u7528\u5185\u8054\u89C6\u56FE", "\u663E\u793A\u79FB\u52A8\u7684\u4EE3\u7801\u5757", "\u8FD8\u539F\u5757", "\u8FD8\u539F\u6240\u9009\u5185\u5BB9", "\u6253\u5F00\u53EF\u8BBF\u95EE\u5DEE\u5F02\u67E5\u770B\u5668", "\u6298\u53E0\u672A\u66F4\u6539\u7684\u533A\u57DF", "{0} \u4E2A\u9690\u85CF\u7684\u884C", "\u5355\u51FB\u6216\u62D6\u52A8\u53EF\u5728\u4E0A\u9762\u663E\u793A\u66F4\u591A\u5185\u5BB9", "\u663E\u793A\u672A\u66F4\u6539\u7684\u533A\u57DF", "\u5355\u51FB\u6216\u62D6\u52A8\u53EF\u5728\u4E0B\u65B9\u663E\u793A\u66F4\u591A\u5185\u5BB9", "{0} \u4E2A\u9690\u85CF\u7684\u884C", "\u53CC\u51FB\u5C55\u5F00", "\u4EE3\u7801\u5DF2\u79FB\u52A8\u81F3\u884C {0}-{1}\uFF0C\u6709\u66F4\u6539", "\u4EE3\u7801\u5DF2\u4ECE\u884C {0}-{1} \u79FB\u52A8\uFF0C\u6709\u66F4\u6539", "\u4EE3\u7801\u5DF2\u79FB\u52A8\u5230\u884C {0} {1}", "\u4EE3\u7801\u5DF2\u4ECE\u884C {0}-{1} \u79FB\u52A8", "\u8FD8\u539F\u6240\u9009\u66F4\u6539", "\u8FD8\u539F\u66F4\u6539", "\u5728\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u79FB\u52A8\u7684\u6587\u672C\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5728\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u79FB\u52A8\u7684\u6587\u672C\u7684\u6D3B\u52A8\u8FB9\u6846\u989C\u8272\u3002", "\u672A\u66F4\u6539\u533A\u57DF\u5C0F\u7EC4\u4EF6\u5468\u56F4\u7684\u9634\u5F71\u989C\u8272\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u63D2\u5165\u9879\u7684\u7EBF\u6761\u4FEE\u9970\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u5220\u9664\u9879\u7684\u7EBF\u6761\u4FEE\u9970\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u6807\u9898\u7684\u80CC\u666F\u8272", "\u591A\u6587\u4EF6\u5DEE\u5F02\u7F16\u8F91\u5668\u7684\u80CC\u666F\u8272", "\u591A\u6587\u4EF6\u5DEE\u5F02\u7F16\u8F91\u5668\u7684\u8FB9\u6846\u989C\u8272", "\u6B63\u5728\u52A0\u8F7D...", "\u6CA1\u6709\u5DF2\u66F4\u6539\u7684\u6587\u4EF6", "\u7F16\u8F91\u5668", "\u4E00\u4E2A\u5236\u8868\u7B26\u7B49\u4E8E\u7684\u7A7A\u683C\u6570\u3002\u5F53 {0} \u6253\u5F00\u65F6\uFF0C\u5C06\u6839\u636E\u6587\u4EF6\u5185\u5BB9\u66FF\u4EE3\u6B64\u8BBE\u7F6E\u3002", '\u7528\u4E8E\u7F29\u8FDB\u6216 `"tabSize"` \u7684\u7A7A\u683C\u6570\uFF0C\u53EF\u4F7F\u7528 `#editor.tabSize#` \u4E2D\u7684\u503C\u3002\u5F53 `#editor.detectIndentation#` \u5904\u4E8E\u6253\u5F00\u72B6\u6001\u65F6\uFF0C\u5C06\u6839\u636E\u6587\u4EF6\u5185\u5BB9\u66FF\u4EE3\u6B64\u8BBE\u7F6E\u3002', "\u6309 `Tab` \u65F6\u63D2\u5165\u7A7A\u683C\u3002\u5F53 {0} \u6253\u5F00\u65F6\uFF0C\u5C06\u6839\u636E\u6587\u4EF6\u5185\u5BB9\u66FF\u4EE3\u6B64\u8BBE\u7F6E\u3002", "\u63A7\u5236\u5728\u57FA\u4E8E\u6587\u4EF6\u5185\u5BB9\u6253\u5F00\u6587\u4EF6\u65F6\u662F\u5426\u81EA\u52A8\u68C0\u6D4B {0} \u548C {1}\u3002", "\u5220\u9664\u81EA\u52A8\u63D2\u5165\u7684\u5C3E\u968F\u7A7A\u767D\u7B26\u53F7\u3002", "\u5BF9\u5927\u578B\u6587\u4EF6\u8FDB\u884C\u7279\u6B8A\u5904\u7406\uFF0C\u7981\u7528\u67D0\u4E9B\u5185\u5B58\u5BC6\u96C6\u578B\u529F\u80FD\u3002", "\u5173\u95ED\u57FA\u4E8E\u5B57\u8BCD\u7684\u5EFA\u8BAE\u3002", "\u5B58\u5728\u5185\u8054\u5EFA\u8BAE\u65F6\u5173\u95ED\u57FA\u4E8E Word \u7684\u5EFA\u8BAE\u3002", "\u4EC5\u5EFA\u8BAE\u6D3B\u52A8\u6587\u6863\u4E2D\u7684\u5B57\u8BCD\u3002", "\u5EFA\u8BAE\u4F7F\u7528\u540C\u4E00\u8BED\u8A00\u7684\u6240\u6709\u6253\u5F00\u7684\u6587\u6863\u4E2D\u7684\u5B57\u8BCD\u3002", "\u5EFA\u8BAE\u6240\u6709\u6253\u5F00\u7684\u6587\u6863\u4E2D\u7684\u5B57\u8BCD\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u6839\u636E\u6587\u6863\u4E2D\u7684\u5B57\u8BCD\u8BA1\u7B97\u8865\u5168\uFF0C\u4EE5\u53CA\u4ECE\u54EA\u4E9B\u6587\u6863\u4E2D\u8BA1\u7B97\u8865\u5168\u3002", "\u5BF9\u6240\u6709\u989C\u8272\u4E3B\u9898\u542F\u7528\u8BED\u4E49\u7A81\u51FA\u663E\u793A\u3002", "\u5BF9\u6240\u6709\u989C\u8272\u4E3B\u9898\u7981\u7528\u8BED\u4E49\u7A81\u51FA\u663E\u793A\u3002", '\u8BED\u4E49\u7A81\u51FA\u663E\u793A\u662F\u7531\u5F53\u524D\u989C\u8272\u4E3B\u9898\u7684 "semanticHighlighting" \u8BBE\u7F6E\u914D\u7F6E\u7684\u3002', "\u63A7\u5236\u662F\u5426\u4E3A\u652F\u6301\u5B83\u7684\u8BED\u8A00\u663E\u793A\u8BED\u4E49\u7A81\u51FA\u663E\u793A\u3002", "\u4FDD\u6301\u901F\u89C8\u7F16\u8F91\u5668\u5904\u4E8E\u6253\u5F00\u72B6\u6001\uFF0C\u5373\u4F7F\u53CC\u51FB\u5176\u4E2D\u7684\u5185\u5BB9\u6216\u8005\u70B9\u51FB `Escape` \u952E\u4E5F\u662F\u5982\u6B64\u3002", "\u7531\u4E8E\u6027\u80FD\u539F\u56E0\uFF0C\u8D85\u8FC7\u8FD9\u4E2A\u957F\u5EA6\u7684\u884C\u5C06\u4E0D\u4F1A\u88AB\u6807\u8BB0", "\u63A7\u5236\u662F\u5426\u5E94\u5728 Web \u8F85\u52A9\u8FDB\u7A0B\u4E0A\u5F02\u6B65\u8FDB\u884C\u6807\u8BB0\u5316\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u8BB0\u5F55\u5F02\u6B65\u8BCD\u6C47\u5207\u5206\u3002\u4EC5\u7528\u4E8E\u8C03\u8BD5\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u5BF9\u65E7\u7248\u540E\u53F0\u4EE4\u724C\u5316\u9A8C\u8BC1\u5F02\u6B65\u4EE4\u724C\u5316\u3002\u53EF\u80FD\u4F1A\u51CF\u6162\u4EE4\u724C\u5316\u901F\u5EA6\u3002\u4EC5\u7528\u4E8E\u8C03\u8BD5\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u542F\u7528\u6811 sitter \u5206\u6790\u548C\u6536\u96C6\u9065\u6D4B\u6570\u636E\u3002\u8BBE\u7F6E `#editor.experimental.preferTreeSitter#` \u4EE5\u4F18\u5148\u4F7F\u7528\u7279\u5B9A\u8BED\u8A00\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u4E3A css \u542F\u7528 Tree Sitter \u5206\u6790\u3002\u5BF9\u4E8E css\uFF0C\u6B64\u64CD\u4F5C\u5C06\u4F18\u5148\u4E8E `#editor.experimental.treeSitterTelemetry#`\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u4E3A Typescript \u542F\u7528 tree sitter \u5206\u6790\u3002\u5BF9\u4E8E Typescript\uFF0C\u6B64\u64CD\u4F5C\u5C06\u4F18\u5148\u4E8E `#editor.experimental.treeSitterTelemetry#`\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u4E3A ini \u542F\u7528 tree sitter \u5206\u6790\u3002\u5BF9\u4E8E ini\uFF0C\u6B64\u64CD\u4F5C\u5C06\u4F18\u5148\u4E8E `#editor.experimental.treeSitterTelemetry#`\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u4E3A\u6B63\u5219\u8868\u8FBE\u5F0F\u542F\u7528 tree sitter \u5206\u6790\u3002\u5BF9\u4E8E\u6B63\u5219\u8868\u8FBE\u5F0F\uFF0C\u6B64\u64CD\u4F5C\u5C06\u4F18\u5148\u4E8E `#editor.experimental.treeSitterTelemetry#`\u3002", "\u5B9A\u4E49\u589E\u52A0\u548C\u51CF\u5C11\u7F29\u8FDB\u7684\u62EC\u53F7\u3002", "\u5DE6\u65B9\u62EC\u53F7\u5B57\u7B26\u6216\u5B57\u7B26\u4E32\u5E8F\u5217\u3002", "\u53F3\u65B9\u62EC\u53F7\u5B57\u7B26\u6216\u5B57\u7B26\u4E32\u5E8F\u5217\u3002", "\u5982\u679C\u542F\u7528\u65B9\u62EC\u53F7\u5BF9\u7740\u8272\uFF0C\u5219\u6309\u7167\u5176\u5D4C\u5957\u7EA7\u522B\u5B9A\u4E49\u5DF2\u7740\u8272\u7684\u65B9\u62EC\u53F7\u5BF9\u3002", "\u5DE6\u65B9\u62EC\u53F7\u5B57\u7B26\u6216\u5B57\u7B26\u4E32\u5E8F\u5217\u3002", "\u53F3\u65B9\u62EC\u53F7\u5B57\u7B26\u6216\u5B57\u7B26\u4E32\u5E8F\u5217\u3002", "\u8D85\u65F6(\u4EE5\u6BEB\u79D2\u4E3A\u5355\u4F4D)\uFF0C\u4E4B\u540E\u5C06\u53D6\u6D88\u5DEE\u5F02\u8BA1\u7B97\u3002\u4F7F\u75280\u8868\u793A\u6CA1\u6709\u8D85\u65F6\u3002", "\u8981\u4E3A\u5176\u8BA1\u7B97\u5DEE\u5F02\u7684\u6700\u5927\u6587\u4EF6\u5927\u5C0F(MB)\u3002\u4F7F\u7528 0 \u8868\u793A\u65E0\u9650\u5236\u3002", "\u63A7\u5236\u5DEE\u5F02\u7F16\u8F91\u5668\u7684\u663E\u793A\u65B9\u5F0F\u662F\u5E76\u6392\u8FD8\u662F\u5185\u8054\u3002", "\u5982\u679C\u5DEE\u5F02\u7F16\u8F91\u5668\u5BBD\u5EA6\u5C0F\u4E8E\u6B64\u503C\uFF0C\u5219\u4F7F\u7528\u5185\u8054\u89C6\u56FE\u3002", "\u5982\u679C\u542F\u7528\u5E76\u4E14\u7F16\u8F91\u5668\u5BBD\u5EA6\u592A\u5C0F\uFF0C\u5219\u4F7F\u7528\u5185\u8054\u89C6\u56FE\u3002", "\u542F\u7528\u540E\uFF0C\u5DEE\u5F02\u7F16\u8F91\u5668\u4F1A\u5728\u5176\u5B57\u5F62\u8FB9\u8DDD\u4E2D\u663E\u793A\u7BAD\u5934\u4EE5\u8FD8\u539F\u66F4\u6539\u3002", "\u542F\u7528\u540E\uFF0C\u5DEE\u5F02\u7F16\u8F91\u5668\u5C06\u663E\u793A\u7528\u4E8E\u8FD8\u539F\u548C\u9636\u6BB5\u64CD\u4F5C\u7684\u7279\u6B8A\u88C5\u8BA2\u7EBF\u3002", "\u542F\u7528\u540E\uFF0C\u5DEE\u5F02\u7F16\u8F91\u5668\u5C06\u5FFD\u7565\u524D\u5BFC\u7A7A\u683C\u6216\u5C3E\u968F\u7A7A\u683C\u4E2D\u7684\u66F4\u6539\u3002", "\u63A7\u5236\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u4E3A\u6DFB\u52A0/\u5220\u9664\u7684\u66F4\u6539\u663E\u793A +/- \u6307\u793A\u7B26\u53F7\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u663E\u793A CodeLens\u3002", "\u6C38\u4E0D\u6362\u884C\u3002", "\u5C06\u5728\u89C6\u533A\u5BBD\u5EA6\u5904\u6362\u884C\u3002", "\u884C\u5C06\u6839\u636E {0} \u8BBE\u7F6E\u8FDB\u884C\u6362\u884C\u3002", "\u4F7F\u7528\u65E7\u5DEE\u5F02\u7B97\u6CD5\u3002", "\u4F7F\u7528\u9AD8\u7EA7\u5DEE\u5F02\u7B97\u6CD5\u3002", "\u4F7F\u7528\u5916\u90E8 `@vscode/diff` \u5305\u63D0\u4F9B\u7684\u9AD8\u7EA7\u5DEE\u5F02\u7B97\u6CD5(\u7EAF JavaScript)\u3002", "\u4F7F\u7528\u5916\u90E8 `@vscode/diff` \u5305\u63D0\u4F9B\u7684\u9AD8\u7EA7\u5DEE\u5F02\u7B97\u6CD5(WebAssembly)\u3002", "\u63A7\u5236\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u672A\u66F4\u6539\u7684\u533A\u57DF\u3002", "\u63A7\u5236\u7528\u4E8E\u672A\u66F4\u6539\u533A\u57DF\u7684\u884C\u6570\u3002", "\u63A7\u5236\u5C06\u591A\u5C11\u884C\u7528\u4F5C\u672A\u66F4\u6539\u533A\u57DF\u7684\u6700\u5C0F\u503C\u3002", "\u63A7\u5236\u5728\u6BD4\u8F83\u672A\u6539\u53D8\u7684\u533A\u57DF\u65F6\u4F7F\u7528\u591A\u5C11\u884C\u4F5C\u4E3A\u4E0A\u4E0B\u6587\u3002", "\u63A7\u5236\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u5E94\u663E\u793A\u68C0\u6D4B\u5230\u7684\u4EE3\u7801\u79FB\u52A8\u3002", "\u63A7\u5236\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u7A7A\u4FEE\u9970\uFF0C\u4EE5\u67E5\u770B\u63D2\u5165\u6216\u5220\u9664\u5B57\u7B26\u7684\u4F4D\u7F6E\u3002", "\u5982\u679C\u5DF2\u542F\u7528\u5E76\u4E14\u7F16\u8F91\u5668\u4F7F\u7528\u5185\u8054\u89C6\u56FE\uFF0C\u5219\u5C06\u4EE5\u5185\u8054\u65B9\u5F0F\u5448\u73B0\u5B57\u8BCD\u66F4\u6539\u3002", "\u8FDE\u63A5\u5C4F\u5E55\u9605\u8BFB\u5668\u540E\u4F7F\u7528\u5E73\u53F0 API \u8FDB\u884C\u68C0\u6D4B\u3002", "\u9488\u5BF9\u5C4F\u5E55\u9605\u8BFB\u5668\u7684\u4F7F\u7528\u8FDB\u884C\u4F18\u5316\u3002", "\u5047\u5B9A\u672A\u8FDE\u63A5\u5C4F\u5E55\u9605\u8BFB\u5668\u3002", "\u63A7\u5236 UI \u662F\u5426\u5E94\u5728\u5DF2\u9488\u5BF9\u5C4F\u5E55\u9605\u8BFB\u5668\u8FDB\u884C\u4F18\u5316\u7684\u6A21\u5F0F\u4E0B\u8FD0\u884C\u3002", "\u63A7\u5236\u5728\u6CE8\u91CA\u65F6\u662F\u5426\u63D2\u5165\u7A7A\u683C\u5B57\u7B26\u3002", "\u63A7\u5236\u5728\u5BF9\u884C\u6CE8\u91CA\u6267\u884C\u5207\u6362\u3001\u6DFB\u52A0\u6216\u5220\u9664\u64CD\u4F5C\u65F6\uFF0C\u662F\u5426\u5E94\u5FFD\u7565\u7A7A\u884C\u3002", "\u63A7\u5236\u5728\u6CA1\u6709\u9009\u62E9\u5185\u5BB9\u65F6\u8FDB\u884C\u590D\u5236\u662F\u5426\u590D\u5236\u5F53\u524D\u884C\u3002", "\u63A7\u5236\u5728\u952E\u5165\u65F6\u5149\u6807\u662F\u5426\u5E94\u8DF3\u8F6C\u4EE5\u67E5\u627E\u5339\u914D\u9879\u3002", "\u5207\u52FF\u4E3A\u7F16\u8F91\u5668\u9009\u62E9\u4E2D\u7684\u641C\u7D22\u5B57\u7B26\u4E32\u8BBE\u5B9A\u79CD\u5B50\u3002", "\u59CB\u7EC8\u4E3A\u7F16\u8F91\u5668\u9009\u62E9\u4E2D\u7684\u641C\u7D22\u5B57\u7B26\u4E32\u8BBE\u5B9A\u79CD\u5B50\uFF0C\u5305\u62EC\u5149\u6807\u4F4D\u7F6E\u7684\u5B57\u8BCD\u3002", "\u4EC5\u4E3A\u7F16\u8F91\u5668\u9009\u62E9\u4E2D\u7684\u641C\u7D22\u5B57\u7B26\u4E32\u8BBE\u5B9A\u79CD\u5B50\u3002", "\u63A7\u5236\u662F\u5426\u5C06\u7F16\u8F91\u5668\u9009\u4E2D\u5185\u5BB9\u4F5C\u4E3A\u641C\u7D22\u8BCD\u586B\u5165\u5230\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u3002", "\u4ECE\u4E0D\u81EA\u52A8\u6253\u5F00\u201C\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E\u201D(\u9ED8\u8BA4)\u3002", "\u59CB\u7EC8\u81EA\u52A8\u6253\u5F00\u201C\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E\u201D\u3002", "\u9009\u62E9\u591A\u884C\u5185\u5BB9\u65F6\uFF0C\u81EA\u52A8\u6253\u5F00\u201C\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E\u201D\u3002", "\u63A7\u5236\u81EA\u52A8\u6253\u5F00\u201C\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E\u201D\u7684\u6761\u4EF6\u3002", "\u63A7\u5236\u201C\u67E5\u627E\u201D\u5C0F\u7EC4\u4EF6\u662F\u5426\u8BFB\u53D6\u6216\u4FEE\u6539 macOS \u7684\u5171\u4EAB\u67E5\u627E\u526A\u8D34\u677F\u3002", '\u63A7\u5236 "\u67E5\u627E\u5C0F\u90E8\u4EF6" \u662F\u5426\u5E94\u5728\u7F16\u8F91\u5668\u9876\u90E8\u6DFB\u52A0\u989D\u5916\u7684\u884C\u3002\u5982\u679C\u4E3A true, \u5219\u53EF\u4EE5\u5728 "\u67E5\u627E\u5C0F\u5DE5\u5177" \u53EF\u89C1\u65F6\u6EDA\u52A8\u5230\u7B2C\u4E00\u884C\u4E4B\u5916\u3002', "\u63A7\u5236\u5728\u627E\u4E0D\u5230\u5176\u4ED6\u5339\u914D\u9879\u65F6\uFF0C\u662F\u5426\u81EA\u52A8\u4ECE\u5F00\u5934(\u6216\u7ED3\u5C3E)\u91CD\u65B0\u5F00\u59CB\u641C\u7D22\u3002", "\u63A7\u5236\u5728\u663E\u5F0F\u67E5\u627E\u5BFC\u822A\u547D\u4EE4\u5B9A\u4F4D\u5230\u7ED3\u679C\u540E\uFF0C\u67E5\u627E\u5C0F\u7EC4\u4EF6\u662F\u5426\u5173\u95ED\u3002", "\u4E0D\u8981\u5B58\u50A8\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u641C\u7D22\u5386\u53F2\u8BB0\u5F55\u3002", "\u8DE8\u6D3B\u52A8\u5DE5\u4F5C\u533A\u5B58\u50A8\u641C\u7D22\u5386\u53F2\u8BB0\u5F55", "\u63A7\u5236\u5982\u4F55\u5B58\u50A8\u67E5\u627E\u5C0F\u7EC4\u4EF6\u5386\u53F2\u8BB0\u5F55", "\u4E0D\u8981\u5B58\u50A8\u66FF\u6362\u5C0F\u7EC4\u4EF6\u7684\u5386\u53F2\u8BB0\u5F55\u3002", "\u8DE8\u6D3B\u52A8\u5DE5\u4F5C\u533A\u5B58\u50A8\u66FF\u6362\u5386\u53F2\u8BB0\u5F55", "\u63A7\u5236\u5982\u4F55\u5B58\u50A8\u66FF\u6362\u5C0F\u7EC4\u4EF6\u5386\u53F2\u8BB0\u5F55", "\u63A7\u5236\u5728\u952E\u5165\u65F6\u662F\u5426\u5E94\u641C\u7D22\u201C\u67E5\u627E\u201D\u5C0F\u7EC4\u4EF6\u3002", '\u542F\u7528/\u7981\u7528\u5B57\u4F53\u8FDE\u5B57("calt" \u548C "liga" \u5B57\u4F53\u7279\u6027)\u3002\u5C06\u6B64\u66F4\u6539\u4E3A\u5B57\u7B26\u4E32\uFF0C\u53EF\u5BF9 "font-feature-settings" CSS \u5C5E\u6027\u8FDB\u884C\u7CBE\u7EC6\u63A7\u5236\u3002', '\u663E\u5F0F "font-feature-settings" CSS \u5C5E\u6027\u3002\u5982\u679C\u53EA\u9700\u6253\u5F00/\u5173\u95ED\u8FDE\u5B57\uFF0C\u53EF\u4EE5\u6539\u4E3A\u4F20\u9012\u5E03\u5C14\u503C\u3002', '\u914D\u7F6E\u5B57\u4F53\u8FDE\u5B57\u6216\u5B57\u4F53\u7279\u6027\u3002\u53EF\u4EE5\u662F\u7528\u4E8E\u542F\u7528/\u7981\u7528\u8FDE\u5B57\u7684\u5E03\u5C14\u503C\uFF0C\u6216\u7528\u4E8E\u8BBE\u7F6E CSS "font-feature-settings" \u5C5E\u6027\u503C\u7684\u5B57\u7B26\u4E32\u3002', "\u542F\u7528/\u7981\u7528\u4ECE font-weight \u5230 font-variation-settings \u7684\u8F6C\u6362\u3002\u5C06\u6B64\u9879\u66F4\u6539\u4E3A\u5B57\u7B26\u4E32\uFF0C\u4EE5\u4FBF\u5BF9\u201Cfont-variation-settings\u201DCSS \u5C5E\u6027\u8FDB\u884C\u7EC6\u5316\u63A7\u5236\u3002", "\u663E\u5F0F\u201Cfont-variation-settings\u201DCSS \u5C5E\u6027\u3002\u5982\u679C\u53EA\u9700\u5C06 font-weight \u8F6C\u6362\u4E3A font-variation-settings\uFF0C\u5219\u53EF\u4EE5\u6539\u4E3A\u4F20\u9012\u5E03\u5C14\u503C\u3002", "\u914D\u7F6E\u5B57\u4F53\u53D8\u4F53\u3002\u53EF\u4EE5\u662F\u7528\u4E8E\u542F\u7528/\u7981\u7528\u4ECE font-weight \u5230 font-variation-settings \u7684\u8F6C\u6362\u7684\u5E03\u5C14\u503C\uFF0C\u4E5F\u53EF\u4EE5\u662F CSS\u201Cfont-variation-settings\u201D\u5C5E\u6027\u503C\u7684\u5B57\u7B26\u4E32\u3002", "\u63A7\u5236\u5B57\u4F53\u5927\u5C0F(\u50CF\u7D20)\u3002", "\u4EC5\u5141\u8BB8\u4F7F\u7528\u5173\u952E\u5B57\u201C\u6B63\u5E38\u201D\u548C\u201C\u52A0\u7C97\u201D\uFF0C\u6216\u4F7F\u7528\u4ECB\u4E8E 1 \u81F3 1000 \u4E4B\u95F4\u7684\u6570\u5B57\u3002", "\u63A7\u5236\u5B57\u4F53\u7C97\u7EC6\u3002\u63A5\u53D7\u5173\u952E\u5B57\u201C\u6B63\u5E38\u201D\u548C\u201C\u52A0\u7C97\u201D\uFF0C\u6216\u8005\u63A5\u53D7\u4ECB\u4E8E 1 \u81F3 1000 \u4E4B\u95F4\u7684\u6570\u5B57\u3002", "\u663E\u793A\u7ED3\u679C\u7684\u901F\u89C8\u89C6\u56FE(\u9ED8\u8BA4)", "\u8F6C\u5230\u4E3B\u7ED3\u679C\u5E76\u663E\u793A\u901F\u89C8\u89C6\u56FE", "\u8F6C\u5230\u4E3B\u7ED3\u679C\uFF0C\u5E76\u5BF9\u5176\u4ED6\u7ED3\u679C\u542F\u7528\u65E0\u901F\u89C8\u5BFC\u822A", '\u6B64\u8BBE\u7F6E\u5DF2\u5F03\u7528\uFF0C\u8BF7\u6539\u7528\u5355\u72EC\u7684\u8BBE\u7F6E\uFF0C\u5982"editor.editor.gotoLocation.multipleDefinitions"\u6216"editor.editor.gotoLocation.multipleImplementations"\u3002', '\u63A7\u5236\u5B58\u5728\u591A\u4E2A\u76EE\u6807\u4F4D\u7F6E\u65F6"\u8F6C\u5230\u5B9A\u4E49"\u547D\u4EE4\u7684\u884C\u4E3A\u3002', '\u63A7\u5236\u5B58\u5728\u591A\u4E2A\u76EE\u6807\u4F4D\u7F6E\u65F6"\u8F6C\u5230\u7C7B\u578B\u5B9A\u4E49"\u547D\u4EE4\u7684\u884C\u4E3A\u3002', '\u63A7\u5236\u5B58\u5728\u591A\u4E2A\u76EE\u6807\u4F4D\u7F6E\u65F6"\u8F6C\u5230\u58F0\u660E"\u547D\u4EE4\u7684\u884C\u4E3A\u3002', '\u63A7\u5236\u5B58\u5728\u591A\u4E2A\u76EE\u6807\u4F4D\u7F6E\u65F6"\u8F6C\u5230\u5B9E\u73B0"\u547D\u4EE4\u7684\u884C\u4E3A\u3002', '\u63A7\u5236\u5B58\u5728\u591A\u4E2A\u76EE\u6807\u4F4D\u7F6E\u65F6"\u8F6C\u5230\u5F15\u7528"\u547D\u4EE4\u7684\u884C\u4E3A\u3002', '\u5F53"\u8F6C\u5230\u5B9A\u4E49"\u7684\u7ED3\u679C\u4E3A\u5F53\u524D\u4F4D\u7F6E\u65F6\u5C06\u8981\u6267\u884C\u7684\u66FF\u4EE3\u547D\u4EE4\u7684 ID\u3002', '\u5F53"\u8F6C\u5230\u7C7B\u578B\u5B9A\u4E49"\u7684\u7ED3\u679C\u662F\u5F53\u524D\u4F4D\u7F6E\u65F6\u6B63\u5728\u6267\u884C\u7684\u5907\u7528\u547D\u4EE4 ID\u3002', '\u5F53"\u8F6C\u5230\u58F0\u660E"\u7684\u7ED3\u679C\u4E3A\u5F53\u524D\u4F4D\u7F6E\u65F6\u5C06\u8981\u6267\u884C\u7684\u66FF\u4EE3\u547D\u4EE4\u7684 ID\u3002', '\u5F53"\u8F6C\u5230\u5B9E\u73B0"\u7684\u7ED3\u679C\u4E3A\u5F53\u524D\u4F4D\u7F6E\u65F6\u5C06\u8981\u6267\u884C\u7684\u66FF\u4EE3\u547D\u4EE4\u7684 ID\u3002', '\u5F53"\u8F6C\u5230\u5F15\u7528"\u7684\u7ED3\u679C\u662F\u5F53\u524D\u4F4D\u7F6E\u65F6\u6B63\u5728\u6267\u884C\u7684\u66FF\u4EE3\u547D\u4EE4 ID\u3002', "\u60AC\u505C\u5DF2\u542F\u7528\u3002", "\u60AC\u505C\u5DF2\u7981\u7528\u3002", "\u6309\u4F4F `{0}` \u6216 `Alt` (`#editor.multiCursorModifier#` \u7684\u76F8\u53CD\u4FEE\u9970\u952E)\u65F6\u663E\u793A\u60AC\u505C", "\u63A7\u5236\u662F\u5426\u663E\u793A\u60AC\u505C\u63D0\u793A\u3002", "\u63A7\u5236\u663E\u793A\u60AC\u505C\u63D0\u793A\u524D\u7684\u7B49\u5F85\u65F6\u95F4 (\u6BEB\u79D2)\u3002", "\u63A7\u5236\u5F53\u9F20\u6807\u79FB\u52A8\u5230\u60AC\u505C\u63D0\u793A\u4E0A\u65F6\uFF0C\u5176\u662F\u5426\u4FDD\u6301\u53EF\u89C1\u3002", "\u63A7\u5236\u9690\u85CF\u60AC\u505C\u63D0\u793A\u524D\u7684\u5EF6\u8FDF\u65F6\u95F4(\u6BEB\u79D2)\u3002\u9700\u8981\u542F\u7528 `#editor.hover.sticky#`\u3002", "\u5982\u679C\u6709\u7A7A\u95F4\uFF0C\u9996\u9009\u5728\u7EBF\u6761\u4E0A\u65B9\u663E\u793A\u60AC\u505C\u3002", "\u63A7\u5236\u662F\u5426\u663E\u793A\u957F\u884C\u8B66\u544A\u60AC\u505C\u63D0\u793A\uFF0C\u4F8B\u5982\u5728\u8DF3\u8FC7\u6807\u8BB0\u5316\u6216\u6682\u505C\u6E32\u67D3\u65F6\u3002", "\u5047\u5B9A\u6240\u6709\u5B57\u7B26\u7684\u5BBD\u5EA6\u76F8\u540C\u3002\u8FD9\u662F\u4E00\u79CD\u5FEB\u901F\u7B97\u6CD5\uFF0C\u9002\u7528\u4E8E\u7B49\u5BBD\u5B57\u4F53\u548C\u67D0\u4E9B\u5B57\u5F62\u5BBD\u5EA6\u76F8\u7B49\u7684\u6587\u5B57(\u5982\u62C9\u4E01\u5B57\u7B26)\u3002", "\u5C06\u6362\u884C\u4F4D\u7F6E\u8BA1\u7B97\u59D4\u6258\u7ED9\u6D4F\u89C8\u5668\u3002\u8FD9\u662F\u4E00\u4E2A\u7F13\u6162\u7B97\u6CD5\uFF0C\u53EF\u80FD\u4F1A\u5BFC\u81F4\u5904\u7406\u5927\u578B\u6587\u4EF6\u8FC7\u7A0B\u4E2D\u5931\u53BB\u54CD\u5E94\uFF0C\u4F46\u5B83\u5728\u6240\u6709\u60C5\u51B5\u4E0B\u90FD\u6B63\u5E38\u5DE5\u4F5C\u3002", "\u63A7\u5236\u8BA1\u7B97\u6362\u884C\u4F4D\u7F6E\u7684\u7B97\u6CD5\u3002\u8BF7\u6CE8\u610F\uFF0C\u5728\u8F85\u52A9\u529F\u80FD\u6A21\u5F0F\u4E0B\uFF0C\u9AD8\u7EA7\u7248\u5C06\u7528\u4E8E\u63D0\u4F9B\u6700\u4F73\u4F53\u9A8C\u3002", "\u7981\u7528\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u3002", "\u5F53\u5149\u6807\u4E0E\u4EE3\u7801\u4E00\u8D77\u6392\u5217\u65F6\uFF0C\u663E\u793A\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u3002", "\u5F53\u5149\u6807\u4E0E\u4EE3\u7801\u4E00\u8D77\u6392\u5217\u6216\u5728\u7A7A\u7684\u884C\u65F6\uFF0C\u663E\u793A\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u3002", "\u5728\u7F16\u8F91\u5668\u4E2D\u542F\u7528\u4EE3\u7801\u64CD\u4F5C\u5C0F\u706F\u6CE1\u63D0\u793A\u3002", "\u5728\u7F16\u8F91\u5668\u9876\u90E8\u7684\u6EDA\u52A8\u8FC7\u7A0B\u4E2D\u663E\u793A\u5D4C\u5957\u7684\u5F53\u524D\u4F5C\u7528\u57DF\u3002", "\u5B9A\u4E49\u8981\u663E\u793A\u7684\u6700\u5927\u7C98\u6EDE\u884C\u6570\u3002", "\u5B9A\u4E49\u7528\u4E8E\u786E\u5B9A\u8981\u7C98\u8D34\u7684\u884C\u7684\u6A21\u578B\u3002\u5982\u679C\u5927\u7EB2\u6A21\u578B\u4E0D\u5B58\u5728\uFF0C\u5B83\u5C06\u56DE\u9000\u5230\u56DE\u9000\u5230\u7F29\u8FDB\u6A21\u578B\u7684\u6298\u53E0\u63D0\u4F9B\u7A0B\u5E8F\u6A21\u578B\u4E0A\u3002\u5728\u6240\u6709\u4E09\u79CD\u60C5\u51B5\u4E0B\u90FD\u9075\u5FAA\u6B64\u987A\u5E8F\u3002", "\u4F7F\u7528\u7F16\u8F91\u5668\u7684\u6C34\u5E73\u6EDA\u52A8\u6761\u542F\u7528\u7C98\u6EDE\u6EDA\u52A8\u3002", "\u5728\u7F16\u8F91\u5668\u4E2D\u542F\u7528\u5185\u8054\u63D0\u793A\u3002", "\u5DF2\u542F\u7528\u5185\u5D4C\u63D0\u793A", "\u9ED8\u8BA4\u60C5\u51B5\u4E0B\u663E\u793A\u5185\u5D4C\u63D0\u793A\uFF0C\u5E76\u5728\u6309\u4F4F {0} \u65F6\u9690\u85CF", "\u9ED8\u8BA4\u60C5\u51B5\u4E0B\u9690\u85CF\u5185\u5D4C\u63D0\u793A\uFF0C\u5E76\u5728\u6309\u4F4F {0} \u65F6\u663E\u793A", "\u5DF2\u7981\u7528\u5185\u5D4C\u63D0\u793A", "\u63A7\u5236\u7F16\u8F91\u5668\u4E2D\u5185\u5D4C\u63D0\u793A\u7684\u5B57\u53F7\u3002\u9ED8\u8BA4\u60C5\u51B5\u4E0B\uFF0C\u5F53\u914D\u7F6E\u7684\u503C\u5C0F\u4E8E {1} \u6216\u5927\u4E8E\u7F16\u8F91\u5668\u5B57\u53F7\u65F6\uFF0C\u5C06\u4F7F\u7528 {0}\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u4E2D\u5185\u5D4C\u63D0\u793A\u7684\u5B57\u4F53\u7CFB\u5217\u3002\u8BBE\u7F6E\u4E3A\u7A7A\u65F6\uFF0C\u5C06\u4F7F\u7528 {0}\u3002", "\u5728\u7F16\u8F91\u5668\u4E2D\u542F\u7528\u5185\u5D4C\u63D0\u793A\u5468\u56F4\u7684\u586B\u5145\u3002", "\u5355\u884C\u5185\u5D4C\u63D0\u793A\u5728\u88AB\u7F16\u8F91\u5668\u622A\u65AD\u524D\u7684\u6700\u5927\u603B\u957F\u5EA6\u3002\u8BBE\u7F6E\u4E3A\u201C0\u201D\u4EE5\u6C38\u4E0D\u622A\u65AD", "\u63A7\u5236\u884C\u9AD8\u3002\r\n - \u4F7F\u7528 0 \u6839\u636E\u5B57\u53F7\u81EA\u52A8\u8BA1\u7B97\u884C\u9AD8\u3002\r\n - \u4ECB\u4E8E 0 \u548C 8 \u4E4B\u95F4\u7684\u503C\u5C06\u7528\u4F5C\u5B57\u53F7\u7684\u4E58\u6570\u3002\r\n - \u5927\u4E8E\u6216\u7B49\u4E8E 8 \u7684\u503C\u5C06\u7528\u4F5C\u6709\u6548\u503C\u3002", "\u63A7\u5236\u662F\u5426\u663E\u793A\u7F29\u7565\u56FE\u3002", "\u7F29\u7565\u56FE\u59CB\u7EC8\u663E\u793A\u3002", "\u9F20\u6807\u4E0D\u5728\u7F29\u7565\u56FE\u4E0A\u65F6\u9690\u85CF\u7F29\u7565\u56FE\uFF0C\u9F20\u6807\u5728\u7F29\u7565\u56FE\u4E0A\u65F6\u663E\u793A\u7F29\u7565\u56FE\u3002", "\u4EC5\u5728\u6EDA\u52A8\u7F16\u8F91\u5668\u65F6\u663E\u793A\u7F29\u7565\u56FE", "\u63A7\u5236\u662F\u5426\u81EA\u52A8\u9690\u85CF\u7F29\u7565\u56FE\u3002", "\u8FF7\u4F60\u5730\u56FE\u7684\u5927\u5C0F\u4E0E\u7F16\u8F91\u5668\u5185\u5BB9\u76F8\u540C(\u5E76\u4E14\u53EF\u80FD\u6EDA\u52A8)\u3002", "\u8FF7\u4F60\u5730\u56FE\u5C06\u6839\u636E\u9700\u8981\u62C9\u4F38\u6216\u7F29\u5C0F\u4EE5\u586B\u5145\u7F16\u8F91\u5668\u7684\u9AD8\u5EA6(\u4E0D\u6EDA\u52A8)\u3002", "\u8FF7\u4F60\u5730\u56FE\u5C06\u6839\u636E\u9700\u8981\u7F29\u5C0F\uFF0C\u6C38\u8FDC\u4E0D\u4F1A\u5927\u4E8E\u7F16\u8F91\u5668(\u4E0D\u6EDA\u52A8)\u3002", "\u63A7\u5236\u8FF7\u4F60\u5730\u56FE\u7684\u5927\u5C0F\u3002", "\u63A7\u5236\u5728\u54EA\u4E00\u4FA7\u663E\u793A\u7F29\u7565\u56FE\u3002", "\u63A7\u5236\u4F55\u65F6\u663E\u793A\u8FF7\u4F60\u5730\u56FE\u6ED1\u5757\u3002", "\u5728\u8FF7\u4F60\u5730\u56FE\u4E2D\u7ED8\u5236\u7684\u5185\u5BB9\u6BD4\u4F8B: 1\u30012 \u6216 3\u3002", "\u6E32\u67D3\u6BCF\u884C\u7684\u5B9E\u9645\u5B57\u7B26\uFF0C\u800C\u4E0D\u662F\u8272\u5757\u3002", "\u9650\u5236\u7F29\u7565\u56FE\u7684\u5BBD\u5EA6\uFF0C\u63A7\u5236\u5176\u6700\u591A\u663E\u793A\u7684\u5217\u6570\u3002", "\u63A7\u5236\u547D\u540D\u533A\u57DF\u662F\u5426\u5728\u7F29\u7565\u56FE\u4E2D\u663E\u793A\u4E3A\u8282\u6807\u9898\u3002", "\u63A7\u5236 MARK: \u547D\u4EE4\u662F\u5426\u5728\u7F29\u7565\u56FE\u4E2D\u663E\u793A\u4E3A\u8282\u6807\u9898\u3002", "\u5B9A\u4E49\u7528\u4E8E\u5728\u6CE8\u91CA\u4E2D\u67E5\u627E\u8282\u6807\u5934\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\u3002\u6B63\u5219\u8868\u8FBE\u5F0F\u5FC5\u987B\u5305\u542B\u547D\u540D\u5339\u914D\u7EC4\u201Clabel\u201D\uFF0C(\u5199\u4E3A \u201C(\uFF1F<label>.+)\u201D) \u5C01\u88C5\u8282\u6807\u5934\uFF0C\u5426\u5219\u5B83\u5C06\u4E0D\u8D77\u4F5C\u7528\u3002\u53EF\u4EE5\u9009\u62E9\u5305\u62EC\u53E6\u4E00\u4E2A\u540D\u4E3A\u201Cseparator\u201D\u7684\u5339\u914D\u7EC4\u3002\u4F7F\u7528\u6A21\u5F0F\u4E2D\u7684 \\n \u5339\u914D\u591A\u884C\u6807\u5934\u3002", "\u63A7\u5236\u7F29\u7565\u56FE\u4E2D\u8282\u6807\u9898\u7684\u5B57\u53F7\u3002", "\u63A7\u5236\u8282\u6807\u5934\u5B57\u7B26\u4E4B\u95F4\u7684\u7A7A\u95F4\u91CF(\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D)\u3002\u8FD9\u6709\u52A9\u4E8E\u63D0\u9AD8\u5C0F\u5B57\u4F53\u5927\u5C0F\u7684\u6807\u9898\u7684\u53EF\u8BFB\u6027\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u7684\u9876\u8FB9\u548C\u7B2C\u4E00\u884C\u4E4B\u95F4\u7684\u95F4\u8DDD\u91CF\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u7684\u5E95\u8FB9\u548C\u6700\u540E\u4E00\u884C\u4E4B\u95F4\u7684\u95F4\u8DDD\u91CF\u3002", "\u5728\u8F93\u5165\u65F6\u663E\u793A\u542B\u6709\u53C2\u6570\u6587\u6863\u548C\u7C7B\u578B\u4FE1\u606F\u7684\u5C0F\u9762\u677F\u3002", "\u63A7\u5236\u53C2\u6570\u63D0\u793A\u83DC\u5355\u5728\u5230\u8FBE\u5217\u8868\u672B\u5C3E\u65F6\u8FDB\u884C\u5FAA\u73AF\u8FD8\u662F\u5173\u95ED\u3002", "\u5FEB\u901F\u5EFA\u8BAE\u663E\u793A\u5728\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u5185", "\u5FEB\u901F\u5EFA\u8BAE\u663E\u793A\u4E3A\u865A\u5F71\u6587\u672C", "\u5DF2\u7981\u7528\u5FEB\u901F\u5EFA\u8BAE", "\u663E\u793A\u5185\u8054\u5B8C\u6210\u65F6\u7981\u7528\u5FEB\u901F\u5EFA\u8BAE", "\u5BF9\u6240\u6709\u4EE4\u724C\u7C7B\u578B\u542F\u7528\u5FEB\u901F\u5EFA\u8BAE", "\u6240\u6709\u4EE4\u724C\u7C7B\u578B\u7684\u5FEB\u901F\u5EFA\u8BAE\u5747\u663E\u793A\u4E3A\u5E7D\u7075\u6587\u672C", "\u5BF9\u6240\u6709\u4EE4\u724C\u7C7B\u578B\u7981\u7528\u5FEB\u901F\u5EFA\u8BAE", "\u663E\u793A\u5185\u8054\u5B8C\u6210\u65F6\uFF0C\u5BF9\u6240\u6709\u4EE4\u724C\u7C7B\u578B\u7981\u7528\u5FEB\u901F\u5EFA\u8BAE", "\u5728\u5B57\u7B26\u4E32\u5185\u542F\u7528\u5FEB\u901F\u5EFA\u8BAE\u3002", "\u5728\u6CE8\u91CA\u5185\u542F\u7528\u5FEB\u901F\u5EFA\u8BAE\u3002", "\u5728\u5B57\u7B26\u4E32\u548C\u6CE8\u91CA\u5916\u542F\u7528\u5FEB\u901F\u5EFA\u8BAE\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u5728\u952E\u5165\u65F6\u81EA\u52A8\u663E\u793A\u5EFA\u8BAE\u3002\u8FD9\u53EF\u4EE5\u7528\u4E8E\u5728\u6CE8\u91CA\u3001\u5B57\u7B26\u4E32\u548C\u5176\u4ED6\u4EE3\u7801\u4E2D\u952E\u5165\u65F6\u8FDB\u884C\u63A7\u5236\u3002\u53EF\u914D\u7F6E\u5FEB\u901F\u5EFA\u8BAE\u4EE5\u663E\u793A\u4E3A\u865A\u5F71\u6587\u672C\u6216\u4F7F\u7528\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u663E\u793A\u3002\u53E6\u8BF7\u6CE8\u610F\u63A7\u5236\u5EFA\u8BAE\u662F\u5426\u7531\u7279\u6B8A\u5B57\u7B26\u89E6\u53D1\u7684 {0} \u8BBE\u7F6E\u3002", "\u4E0D\u663E\u793A\u884C\u53F7\u3002", "\u5C06\u884C\u53F7\u663E\u793A\u4E3A\u7EDD\u5BF9\u884C\u6570\u3002", "\u5C06\u884C\u53F7\u663E\u793A\u4E3A\u4E0E\u5149\u6807\u76F8\u9694\u7684\u884C\u6570\u3002", "\u6BCF 10 \u884C\u663E\u793A\u4E00\u6B21\u884C\u53F7\u3002", "\u63A7\u5236\u884C\u53F7\u7684\u663E\u793A\u3002", "\u6B64\u7F16\u8F91\u5668\u6807\u5C3A\u5C06\u6E32\u67D3\u7684\u7B49\u5BBD\u5B57\u7B26\u6570\u3002", "\u6B64\u7F16\u8F91\u5668\u6807\u5C3A\u7684\u989C\u8272\u3002", "\u5728\u4E00\u5B9A\u6570\u91CF\u7684\u7B49\u5BBD\u5B57\u7B26\u540E\u663E\u793A\u5782\u76F4\u6807\u5C3A\u3002\u8F93\u5165\u591A\u4E2A\u503C\uFF0C\u663E\u793A\u591A\u4E2A\u6807\u5C3A\u3002\u82E5\u6570\u7EC4\u4E3A\u7A7A\uFF0C\u5219\u4E0D\u7ED8\u5236\u6807\u5C3A\u3002", "\u5782\u76F4\u6EDA\u52A8\u6761\u4EC5\u5728\u5FC5\u8981\u65F6\u53EF\u89C1\u3002", "\u5782\u76F4\u6EDA\u52A8\u6761\u5C06\u59CB\u7EC8\u53EF\u89C1\u3002", "\u5782\u76F4\u6EDA\u52A8\u6761\u5C06\u59CB\u7EC8\u9690\u85CF\u3002", "\u63A7\u5236\u5782\u76F4\u6EDA\u52A8\u6761\u7684\u53EF\u89C1\u6027\u3002", "\u6C34\u5E73\u6EDA\u52A8\u6761\u4EC5\u5728\u5FC5\u8981\u65F6\u53EF\u89C1\u3002", "\u6C34\u5E73\u6EDA\u52A8\u6761\u5C06\u59CB\u7EC8\u53EF\u89C1\u3002", "\u6C34\u5E73\u6EDA\u52A8\u6761\u5C06\u59CB\u7EC8\u9690\u85CF\u3002", "\u63A7\u5236\u6C34\u5E73\u6EDA\u52A8\u6761\u7684\u53EF\u89C1\u6027\u3002", "\u5782\u76F4\u6EDA\u52A8\u6761\u7684\u5BBD\u5EA6\u3002", "\u6C34\u5E73\u6EDA\u52A8\u6761\u7684\u9AD8\u5EA6\u3002", "\u63A7\u5236\u5355\u51FB\u6309\u9875\u6EDA\u52A8\u8FD8\u662F\u8DF3\u8F6C\u5230\u5355\u51FB\u4F4D\u7F6E\u3002", "\u8BBE\u7F6E\u540E\uFF0C\u6C34\u5E73\u6EDA\u52A8\u6761\u5C06\u4E0D\u4F1A\u589E\u52A0\u7F16\u8F91\u5668\u5185\u5BB9\u7684\u5927\u5C0F\u3002", "\u63A7\u5236\u662F\u5426\u7A81\u51FA\u663E\u793A\u6240\u6709\u975E\u57FA\u672C ASCII \u5B57\u7B26\u3002\u53EA\u6709\u4ECB\u4E8E U+0020 \u5230 U+007E \u4E4B\u95F4\u7684\u5B57\u7B26\u3001\u5236\u8868\u7B26\u3001\u6362\u884C\u7B26\u548C\u56DE\u8F66\u7B26\u624D\u88AB\u89C6\u4E3A\u57FA\u672C ASCII\u3002", "\u63A7\u5236\u662F\u5426\u7A81\u51FA\u663E\u793A\u4EC5\u4FDD\u7559\u7A7A\u683C\u6216\u5B8C\u5168\u6CA1\u6709\u5BBD\u5EA6\u7684\u5B57\u7B26\u3002", "\u63A7\u5236\u662F\u5426\u7A81\u51FA\u663E\u793A\u53EF\u80FD\u4E0E\u57FA\u672C ASCII \u5B57\u7B26\u6DF7\u6DC6\u7684\u5B57\u7B26\uFF0C\u4F46\u5F53\u524D\u7528\u6237\u533A\u57DF\u8BBE\u7F6E\u4E2D\u5E38\u89C1\u7684\u5B57\u7B26\u9664\u5916\u3002", "\u63A7\u5236\u6CE8\u91CA\u4E2D\u7684\u5B57\u7B26\u662F\u5426\u4E5F\u5E94\u8FDB\u884C Unicode \u7A81\u51FA\u663E\u793A\u3002", "\u63A7\u5236\u5B57\u7B26\u4E32\u4E2D\u7684\u5B57\u7B26\u662F\u5426\u4E5F\u5E94\u8FDB\u884C Unicode \u7A81\u51FA\u663E\u793A\u3002", "\u5B9A\u4E49\u672A\u7A81\u51FA\u663E\u793A\u7684\u5141\u8BB8\u5B57\u7B26\u3002", "\u672A\u7A81\u51FA\u663E\u793A\u5728\u5141\u8BB8\u533A\u57DF\u8BBE\u7F6E\u4E2D\u5E38\u89C1\u7684 Unicode \u5B57\u7B26\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u81EA\u52A8\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u3002", "\u6BCF\u5F53\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u65F6\uFF0C\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u5DE5\u5177\u680F\u3002", "\u5C06\u9F20\u6807\u60AC\u505C\u5728\u5185\u8054\u5EFA\u8BAE\u4E0A\u65F6\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u5DE5\u5177\u680F\u3002", "\u4ECE\u4E0D\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u5DE5\u5177\u680F\u3002", "\u63A7\u5236\u4F55\u65F6\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u5DE5\u5177\u680F\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u7684\u8BED\u6CD5\u7A81\u51FA\u663E\u793A\u3002", "\u63A7\u5236\u5185\u8054\u5EFA\u8BAE\u5982\u4F55\u4E0E\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4EA4\u4E92\u3002\u5982\u679C\u542F\u7528\uFF0C\u5F53\u5185\u8054\u5EFA\u8BAE\u53EF\u7528\u65F6\uFF0C\u4E0D\u4F1A\u81EA\u52A8\u663E\u793A\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u3002", "\u63A7\u5236\u5728\u4EE3\u7801\u7247\u6BB5\u6A21\u5F0F\u4E0B\u662F\u5426\u6291\u5236\u5185\u8054\u5EFA\u8BAE\u3002", "\u63A7\u5236\u952E\u5165\u540E\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u524D\u7684\u6700\u5C0F\u5EF6\u8FDF(\u4EE5\u6BEB\u79D2\u4E3A\u5355\u4F4D)\u3002", "\u6291\u5236\u6307\u5B9A\u6269\u5C55 ID (\u4EE5\u9017\u53F7\u5206\u9694)\u7684\u5185\u8054\u8865\u5168\u529F\u80FD\u3002", "\u63A7\u5236\u662F\u5426\u4ECE\u5185\u8054\u5EFA\u8BAE\u63D0\u4F9B\u8005\u5904\u53D1\u9001\u8BF7\u6C42\u4FE1\u606F\u3002", "\u63A7\u5236\u5185\u8054\u5EFA\u8BAE\u63D0\u4F9B\u7A0B\u5E8F\u66F4\u6539\u65F6\u662F\u5426\u89E6\u53D1\u547D\u4EE4\u3002", "\u63A7\u5236\u662F\u5426\u5728\u5B58\u5728\u5EFA\u8BAE\u51B2\u7A81\u65F6\u663E\u793A\u5185\u8054\u5EFA\u8BAE\u3002", "\u63A7\u5236\u5185\u8054\u5EFA\u8BAE\u7684\u5B57\u4F53\u7CFB\u5217\u3002", "\u63A7\u5236\u663E\u793A\u5EFA\u8BAE\u662F\u5426\u4F1A\u79FB\u52A8\u4EE3\u7801\uFF0C\u4EE5\u4FBF\u4E3A\u5185\u8054\u5EFA\u8BAE\u7559\u51FA\u7A7A\u95F4\u3002", "\u63A7\u5236\u662F\u5426\u663E\u793A\u957F\u8DDD\u79BB\u5185\u8054\u5EFA\u8BAE\u3002", "\u63A7\u5236\u662F\u5426\u53EF\u4EE5\u5E76\u6392\u663E\u793A\u8F83\u5927\u7684\u5EFA\u8BAE\u3002", "\u5982\u679C\u6709\u8DB3\u591F\u7684\u7A7A\u95F4\uFF0C\u8F83\u5927\u7684\u5EFA\u8BAE\u5C06\u5E76\u6392\u663E\u793A\uFF0C\u5426\u5219\u5C06\u663E\u793A\u5728\u4E0B\u9762\u3002", "\u8F83\u5927\u7684\u5EFA\u8BAE\u4ECE\u4E0D\u5E76\u6392\u663E\u793A\uFF0C\u800C\u662F\u59CB\u7EC8\u663E\u793A\u5728\u4E0B\u9762\u3002", "\u63A7\u5236\u5728\u8DF3\u5230\u5EFA\u8BAE\u4E4B\u524D\uFF0C\u5EFA\u8BAE\u662F\u5426\u663E\u793A\u4E3A\u6298\u53E0\u3002", "\u63A7\u5236\u662F\u5426\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002\u8BF7\u4F7F\u7528 {0} \u91CD\u5199\u62EC\u53F7\u7A81\u51FA\u663E\u793A\u989C\u8272\u3002", "\u63A7\u5236\u6BCF\u4E2A\u65B9\u62EC\u53F7\u7C7B\u578B\u662F\u5426\u5177\u6709\u81EA\u5DF1\u7684\u72EC\u7ACB\u989C\u8272\u6C60\u3002", "\u542F\u7528\u62EC\u53F7\u5BF9\u53C2\u8003\u7EBF\u3002", "\u4EC5\u4E3A\u6D3B\u52A8\u62EC\u53F7\u5BF9\u542F\u7528\u62EC\u53F7\u5BF9\u53C2\u8003\u7EBF\u3002", "\u7981\u7528\u62EC\u53F7\u5BF9\u53C2\u8003\u7EBF\u3002", "\u63A7\u5236\u662F\u5426\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u542F\u7528\u6C34\u5E73\u53C2\u8003\u7EBF\u4F5C\u4E3A\u5782\u76F4\u62EC\u53F7\u5BF9\u53C2\u8003\u7EBF\u7684\u6DFB\u52A0\u9879\u3002", "\u4EC5\u4E3A\u6D3B\u52A8\u62EC\u53F7\u5BF9\u542F\u7528\u6C34\u5E73\u53C2\u8003\u7EBF\u3002", "\u7981\u7528\u6C34\u5E73\u62EC\u53F7\u5BF9\u53C2\u8003\u7EBF\u3002", "\u63A7\u5236\u662F\u5426\u542F\u7528\u6C34\u5E73\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u7A81\u51FA\u663E\u793A\u6D3B\u52A8\u7684\u62EC\u53F7\u5BF9\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u7F29\u8FDB\u53C2\u8003\u7EBF\u3002", "\u7A81\u51FA\u663E\u793A\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF\u3002", "\u7A81\u51FA\u663E\u793A\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF\uFF0C\u5373\u4F7F\u7A81\u51FA\u663E\u793A\u4E86\u62EC\u53F7\u53C2\u8003\u7EBF\u3002", "\u4E0D\u8981\u7A81\u51FA\u663E\u793A\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF\u3002", "\u63A7\u5236\u662F\u5426\u7A81\u51FA\u663E\u793A\u7F16\u8F91\u5668\u4E2D\u6D3B\u52A8\u7684\u7F29\u8FDB\u53C2\u8003\u7EBF\u3002", "\u63D2\u5165\u5EFA\u8BAE\u800C\u4E0D\u8986\u76D6\u5149\u6807\u53F3\u4FA7\u7684\u6587\u672C\u3002", "\u63D2\u5165\u5EFA\u8BAE\u5E76\u8986\u76D6\u5149\u6807\u53F3\u4FA7\u7684\u6587\u672C\u3002", "\u63A7\u5236\u63A5\u53D7\u8865\u5168\u65F6\u662F\u5426\u8986\u76D6\u5355\u8BCD\u3002\u8BF7\u6CE8\u610F\uFF0C\u8FD9\u53D6\u51B3\u4E8E\u6269\u5C55\u9009\u62E9\u4F7F\u7528\u6B64\u529F\u80FD\u3002", "\u63A7\u5236\u5BF9\u5EFA\u8BAE\u7684\u7B5B\u9009\u548C\u6392\u5E8F\u662F\u5426\u8003\u8651\u5C0F\u7684\u62FC\u5199\u9519\u8BEF\u3002", "\u63A7\u5236\u6392\u5E8F\u65F6\u662F\u5426\u9996\u9009\u5149\u6807\u9644\u8FD1\u7684\u5B57\u8BCD\u3002", "\u63A7\u5236\u662F\u5426\u5728\u591A\u4E2A\u5DE5\u4F5C\u533A\u548C\u7A97\u53E3\u95F4\u5171\u4EAB\u8BB0\u5FC6\u7684\u5EFA\u8BAE\u9009\u9879(\u9700\u8981 `#editor.suggestSelection#`)\u3002", "\u81EA\u52A8\u89E6\u53D1 IntelliSense \u65F6\u59CB\u7EC8\u9009\u62E9\u5EFA\u8BAE\u3002", "\u81EA\u52A8\u89E6\u53D1 IntelliSense \u65F6\uFF0C\u5207\u52FF\u9009\u62E9\u5EFA\u8BAE\u3002", "\u4EC5\u5F53\u4ECE\u89E6\u53D1\u5668\u5B57\u7B26\u89E6\u53D1 IntelliSense \u65F6\uFF0C\u624D\u9009\u62E9\u5EFA\u8BAE\u3002", "\u4EC5\u5728\u952E\u5165\u65F6\u89E6\u53D1 IntelliSense \u65F6\u624D\u9009\u62E9\u5EFA\u8BAE\u3002", "\u63A7\u5236\u5728\u663E\u793A\u5C0F\u7EC4\u4EF6\u65F6\u662F\u5426\u9009\u62E9\u5EFA\u8BAE\u3002\u8BF7\u6CE8\u610F\uFF0C\u8FD9\u4EC5\u9002\u7528\u4E8E\u81EA\u52A8\u89E6\u53D1\u7684\u5EFA\u8BAE({0} \u548C {1})\uFF0C\u5E76\u4E14\u5728\u663E\u5F0F\u8C03\u7528\u65F6(\u4F8B\u5982\u901A\u8FC7 `Ctrl+Space`)\u59CB\u7EC8\u9009\u62E9\u5EFA\u8BAE\u3002", "\u63A7\u5236\u6D3B\u52A8\u4EE3\u7801\u6BB5\u662F\u5426\u963B\u6B62\u5FEB\u901F\u5EFA\u8BAE\u3002", "\u63A7\u5236\u662F\u5426\u5728\u5EFA\u8BAE\u4E2D\u663E\u793A\u6216\u9690\u85CF\u56FE\u6807\u3002", "\u63A7\u5236\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u5E95\u90E8\u7684\u72B6\u6001\u680F\u7684\u53EF\u89C1\u6027\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u9884\u89C8\u5EFA\u8BAE\u7ED3\u679C\u3002", "\u63A7\u5236\u5EFA\u8BAE\u8BE6\u7EC6\u4FE1\u606F\u662F\u968F\u6807\u7B7E\u5185\u8054\u663E\u793A\u8FD8\u662F\u4EC5\u663E\u793A\u5728\u8BE6\u7EC6\u4FE1\u606F\u5C0F\u7EC4\u4EF6\u4E2D\u3002", "\u6B64\u8BBE\u7F6E\u5DF2\u5F03\u7528\u3002\u73B0\u5728\u53EF\u4EE5\u8C03\u6574\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u5927\u5C0F\u3002", '\u6B64\u8BBE\u7F6E\u5DF2\u5F03\u7528\uFF0C\u8BF7\u6539\u7528\u5355\u72EC\u7684\u8BBE\u7F6E\uFF0C\u5982"editor.suggest.showKeywords"\u6216"editor.suggest.showSnippets"\u3002', "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u65B9\u6CD5\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u51FD\u6570\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u6784\u9020\u51FD\u6570\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A`\u5DF2\u5F03\u7528`\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u7B5B\u9009\u8981\u6C42\u7B2C\u4E00\u4E2A\u5B57\u7B26\u5728\u5355\u8BCD\u5F00\u5934\u5339\u914D\uFF0C\u4F8B\u5982 \u201CConsole\u201D \u6216 \u201CWebContext\u201D \u4E0A\u7684 \u201Cc\u201D\uFF0C\u4F46 \u201Cdescription\u201D \u4E0A\u7684 _not_\u3002\u7981\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u66F4\u591A\u7ED3\u679C\uFF0C\u4F46\u4ECD\u6309\u5339\u914D\u8D28\u91CF\u5BF9\u5176\u8FDB\u884C\u6392\u5E8F\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u5B57\u6BB5\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u53D8\u91CF\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u7C7B\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u7ED3\u6784\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u63A5\u53E3\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u6A21\u5757\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u5C5E\u6027\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u4E8B\u4EF6\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u64CD\u4F5C\u7B26\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u5355\u4F4D\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u503C\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u5E38\u91CF\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u679A\u4E3E\u201D\u5EFA\u8BAE\u3002", '\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A "enumMember" \u5EFA\u8BAE\u3002', "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u5173\u952E\u5B57\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u6587\u672C\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u989C\u8272\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u6587\u4EF6\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u53C2\u8003\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u81EA\u5B9A\u4E49\u989C\u8272\u201D\u5EFA\u8BAE\u3002", "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u6587\u4EF6\u5939\u201D\u5EFA\u8BAE\u3002", '\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A "typeParameter" \u5EFA\u8BAE\u3002', "\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A\u201C\u7247\u6BB5\u201D\u5EFA\u8BAE\u3002", '\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A"\u7528\u6237"\u5EFA\u8BAE\u3002', '\u542F\u7528\u540E\uFF0CIntelliSense \u5C06\u663E\u793A"\u95EE\u9898"\u5EFA\u8BAE\u3002', "\u662F\u5426\u5E94\u59CB\u7EC8\u9009\u62E9\u524D\u5BFC\u548C\u5C3E\u968F\u7A7A\u683C\u3002", "\u662F\u5426\u5E94\u9009\u62E9\u5B50\u5B57(\u5982\u201CfooBar\u201D\u6216\u201Cfoo_bar\u201D\u4E2D\u7684\u201Cfoo\u201D)\u3002", "\u6267\u884C\u4E0E\u5B57\u8BCD\u76F8\u5173\u7684\u5BFC\u822A\u6216\u64CD\u4F5C\u65F6\u7528\u4E8E\u5206\u8BCD\u7684\u533A\u57DF\u8BBE\u7F6E\u3002\u6307\u5B9A\u8981\u8BC6\u522B\u7684\u5B57\u8BCD\u7684 BCP 47 \u8BED\u8A00\u6807\u8BB0(\u5982 ja\u3001zh-CN\u3001zh-Hant-TW \u7B49)\u3002", "\u6CA1\u6709\u7F29\u8FDB\u3002\u6298\u884C\u4ECE\u7B2C 1 \u5217\u5F00\u59CB\u3002", "\u6298\u884C\u7684\u7F29\u8FDB\u91CF\u4E0E\u5176\u7236\u7EA7\u76F8\u540C\u3002", "\u6298\u884C\u7684\u7F29\u8FDB\u91CF\u6BD4\u5176\u7236\u7EA7\u591A 1\u3002", "\u6298\u884C\u7684\u7F29\u8FDB\u91CF\u6BD4\u5176\u7236\u7EA7\u591A 2\u3002", "\u63A7\u5236\u6298\u884C\u7684\u7F29\u8FDB\u3002", "\u63A7\u5236\u662F\u5426\u53EF\u4EE5\u901A\u8FC7\u6309\u4F4F Shift`\u952E\u5C06\u6587\u4EF6\u62D6\u653E\u5230\u7F16\u8F91\u5668\u4E2D\uFF08\u800C\u4E0D\u662F\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\u8BE5\u6587\u4EF6\uFF09\u3002", "\u63A7\u5236\u5C06\u6587\u4EF6\u653E\u5165\u7F16\u8F91\u5668\u65F6\u662F\u5426\u663E\u793A\u5C0F\u7EC4\u4EF6\u3002\u4F7F\u7528\u6B64\u5C0F\u7EC4\u4EF6\u53EF\u4EE5\u63A7\u5236\u6587\u4EF6\u7684\u5220\u9664\u65B9\u5F0F\u3002", "\u5C06\u6587\u4EF6\u653E\u5165\u7F16\u8F91\u5668\u540E\u663E\u793A\u653E\u7F6E\u9009\u62E9\u5668\u5C0F\u7EC4\u4EF6\u3002", "\u5207\u52FF\u663E\u793A\u653E\u7F6E\u9009\u62E9\u5668\u5C0F\u7EC4\u4EF6\u3002\u800C\u662F\u59CB\u7EC8\u4F7F\u7528\u9ED8\u8BA4\u5220\u9664\u63D0\u4F9B\u7A0B\u5E8F\u3002", "\u63A7\u5236\u662F\u5426\u53EF\u4EE5\u4EE5\u4E0D\u540C\u7684\u65B9\u5F0F\u7C98\u8D34\u5185\u5BB9\u3002", "\u63A7\u5236\u5C06\u5185\u5BB9\u7C98\u8D34\u5230\u7F16\u8F91\u5668\u65F6\u662F\u5426\u663E\u793A\u5C0F\u7EC4\u4EF6\u3002\u4F7F\u7528\u6B64\u5C0F\u7EC4\u4EF6\u53EF\u4EE5\u63A7\u5236\u6587\u4EF6\u7684\u7C98\u8D34\u65B9\u5F0F\u3002", "\u5C06\u5185\u5BB9\u7C98\u8D34\u5230\u7F16\u8F91\u5668\u540E\u663E\u793A\u7C98\u8D34\u9009\u62E9\u5668\u5C0F\u7EC4\u4EF6\u3002", "\u5207\u52FF\u663E\u793A\u7C98\u8D34\u9009\u62E9\u5668\u5C0F\u7EC4\u4EF6\u3002\u800C\u662F\u59CB\u7EC8\u4F7F\u7528\u9ED8\u8BA4\u7C98\u8D34\u884C\u4E3A\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u5728\u9047\u5230\u63D0\u4EA4\u5B57\u7B26\u65F6\u63A5\u53D7\u5EFA\u8BAE\u3002\u4F8B\u5982\uFF0C\u5728 JavaScript \u4E2D\uFF0C\u534A\u89D2\u5206\u53F7 (`;`) \u53EF\u4EE5\u4E3A\u63D0\u4EA4\u5B57\u7B26\uFF0C\u80FD\u591F\u5728\u63A5\u53D7\u5EFA\u8BAE\u7684\u540C\u65F6\u952E\u5165\u8BE5\u5B57\u7B26\u3002", "\u4EC5\u5F53\u5EFA\u8BAE\u5305\u542B\u6587\u672C\u6539\u52A8\u65F6\u624D\u53EF\u4F7F\u7528 `Enter` \u952E\u8FDB\u884C\u63A5\u53D7\u3002", "\u63A7\u5236\u9664\u4E86 `Tab` \u952E\u4EE5\u5916\uFF0C `Enter` \u952E\u662F\u5426\u540C\u6837\u53EF\u4EE5\u63A5\u53D7\u5EFA\u8BAE\u3002\u8FD9\u80FD\u51CF\u5C11\u201C\u63D2\u5165\u65B0\u884C\u201D\u548C\u201C\u63A5\u53D7\u5EFA\u8BAE\u201D\u547D\u4EE4\u4E4B\u95F4\u7684\u6B67\u4E49\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u4E2D\u53EF\u7531\u5C4F\u5E55\u9605\u8BFB\u5668\u4E00\u6B21\u8BFB\u51FA\u7684\u884C\u6570\u3002\u6211\u4EEC\u68C0\u6D4B\u5230\u5C4F\u5E55\u9605\u8BFB\u5668\u65F6\uFF0C\u4F1A\u81EA\u52A8\u5C06\u9ED8\u8BA4\u503C\u8BBE\u7F6E\u4E3A 500\u3002\u8B66\u544A: \u5982\u679C\u884C\u6570\u5927\u4E8E\u9ED8\u8BA4\u503C\uFF0C\u53EF\u80FD\u4F1A\u5F71\u54CD\u6027\u80FD\u3002", "\u63A7\u5236\u662F\u5426\u5141\u8BB8\u5728\u7F16\u8F91\u5668\u4E2D\u4F7F\u7528\u53EF\u53D8\u884C\u9AD8\u3002", "\u63A7\u5236\u662F\u5426\u5141\u8BB8\u5728\u7F16\u8F91\u5668\u4E2D\u4F7F\u7528\u53EF\u53D8\u5B57\u4F53\u3002", "\u63A7\u5236\u662F\u5426\u5141\u8BB8\u5728\u8F85\u52A9\u529F\u80FD\u6A21\u5F0F\u4E0B\u5728\u7F16\u8F91\u5668\u4E2D\u4F7F\u7528\u53EF\u53D8\u5B57\u4F53\u3002", "\u7F16\u8F91\u5668\u5185\u5BB9", "\u63A7\u5236\u5185\u8054\u5EFA\u8BAE\u662F\u5426\u7531\u5C4F\u5E55\u9605\u8BFB\u5668\u516C\u5E03\u3002", "\u4F7F\u7528\u8BED\u8A00\u914D\u7F6E\u786E\u5B9A\u4F55\u65F6\u81EA\u52A8\u95ED\u5408\u62EC\u53F7\u3002", "\u4EC5\u5F53\u5149\u6807\u4F4D\u4E8E\u7A7A\u767D\u5B57\u7B26\u5DE6\u4FA7\u65F6\uFF0C\u624D\u81EA\u52A8\u95ED\u5408\u62EC\u53F7\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5728\u5DE6\u62EC\u53F7\u540E\u81EA\u52A8\u63D2\u5165\u53F3\u62EC\u53F7\u3002", "\u4F7F\u7528\u8BED\u8A00\u914D\u7F6E\u786E\u5B9A\u4F55\u65F6\u81EA\u52A8\u5173\u95ED\u6CE8\u91CA\u3002", "\u4EC5\u5F53\u5149\u6807\u4F4D\u4E8E\u7A7A\u683C\u5DE6\u4FA7\u65F6\u81EA\u52A8\u5173\u95ED\u6CE8\u91CA\u3002", "\u63A7\u5236\u5728\u7528\u6237\u6DFB\u52A0\u6253\u5F00\u6CE8\u91CA\u540E\u7F16\u8F91\u5668\u662F\u5426\u5E94\u81EA\u52A8\u5173\u95ED\u6CE8\u91CA\u3002", "\u4EC5\u5728\u81EA\u52A8\u63D2\u5165\u65F6\u624D\u5220\u9664\u76F8\u90BB\u7684\u53F3\u5F15\u53F7\u6216\u53F3\u62EC\u53F7\u3002", "\u63A7\u5236\u5728\u5220\u9664\u65F6\u7F16\u8F91\u5668\u662F\u5426\u5E94\u5220\u9664\u76F8\u90BB\u7684\u53F3\u5F15\u53F7\u6216\u53F3\u65B9\u62EC\u53F7\u3002", "\u4EC5\u5728\u81EA\u52A8\u63D2\u5165\u65F6\u624D\u6539\u5199\u53F3\u5F15\u53F7\u6216\u53F3\u62EC\u53F7\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u6539\u5199\u53F3\u5F15\u53F7\u6216\u53F3\u62EC\u53F7\u3002", "\u4F7F\u7528\u8BED\u8A00\u914D\u7F6E\u786E\u5B9A\u4F55\u65F6\u81EA\u52A8\u95ED\u5408\u5F15\u53F7\u3002", "\u4EC5\u5F53\u5149\u6807\u4F4D\u4E8E\u7A7A\u767D\u5B57\u7B26\u5DE6\u4FA7\u65F6\uFF0C\u624D\u81EA\u52A8\u95ED\u5408\u5F15\u53F7\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5728\u5DE6\u5F15\u53F7\u540E\u81EA\u52A8\u63D2\u5165\u53F3\u5F15\u53F7\u3002", "\u7F16\u8F91\u5668\u4E0D\u4F1A\u81EA\u52A8\u63D2\u5165\u7F29\u8FDB\u3002", "\u7F16\u8F91\u5668\u5C06\u4FDD\u7559\u5F53\u524D\u884C\u7684\u7F29\u8FDB\u3002", "\u7F16\u8F91\u5668\u5C06\u4FDD\u7559\u5F53\u524D\u884C\u7684\u7F29\u8FDB\u5E76\u9075\u5FAA\u8BED\u8A00\u5B9A\u4E49\u7684\u62EC\u53F7\u3002", "\u7F16\u8F91\u5668\u5C06\u4FDD\u7559\u5F53\u524D\u884C\u7684\u7F29\u8FDB\u3001\u4F7F\u7528\u8BED\u8A00\u5B9A\u4E49\u7684\u62EC\u53F7\u5E76\u8C03\u7528\u8BED\u8A00\u5B9A\u4E49\u7684\u7279\u5B9A onEnterRules\u3002", "\u7F16\u8F91\u5668\u5C06\u4FDD\u7559\u5F53\u524D\u884C\u7684\u7F29\u8FDB\uFF0C\u4F7F\u7528\u8BED\u8A00\u5B9A\u4E49\u7684\u62EC\u53F7\uFF0C\u8C03\u7528\u7531\u8BED\u8A00\u5B9A\u4E49\u7684\u7279\u6B8A\u8F93\u5165\u89C4\u5219\uFF0C\u5E76\u9075\u5FAA\u7531\u8BED\u8A00\u5B9A\u4E49\u7684\u7F29\u8FDB\u89C4\u5219\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u5728\u7528\u6237\u952E\u5165\u3001\u7C98\u8D34\u3001\u79FB\u52A8\u6216\u7F29\u8FDB\u884C\u65F6\u81EA\u52A8\u8C03\u6574\u7F29\u8FDB\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u81EA\u52A8\u7F29\u8FDB\u7C98\u8D34\u7684\u5185\u5BB9\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u5728\u7C98\u8D34\u5230\u5B57\u7B26\u4E32\u4E2D\u65F6\u81EA\u52A8\u7F29\u8FDB\u7C98\u8D34\u7684\u5185\u5BB9\u3002\u5F53 autoIndentOnPaste \u4E3A true \u65F6\uFF0C\u6B64\u64CD\u4F5C\u5C06\u4F1A\u751F\u6548\u3002", "\u4F7F\u7528\u8BED\u8A00\u914D\u7F6E\u786E\u5B9A\u4F55\u65F6\u81EA\u52A8\u5305\u4F4F\u6240\u9009\u5185\u5BB9\u3002", "\u4F7F\u7528\u5F15\u53F7\u800C\u975E\u62EC\u53F7\u6765\u5305\u4F4F\u6240\u9009\u5185\u5BB9\u3002", "\u4F7F\u7528\u62EC\u53F7\u800C\u975E\u5F15\u53F7\u6765\u5305\u4F4F\u6240\u9009\u5185\u5BB9\u3002", "\u63A7\u5236\u5728\u952E\u5165\u5F15\u53F7\u6216\u65B9\u62EC\u53F7\u65F6\uFF0C\u7F16\u8F91\u5668\u662F\u5426\u5E94\u81EA\u52A8\u5C06\u6240\u9009\u5185\u5BB9\u62EC\u8D77\u6765\u3002", "\u5728\u4F7F\u7528\u7A7A\u683C\u8FDB\u884C\u7F29\u8FDB\u65F6\u6A21\u62DF\u5236\u8868\u7B26\u7684\u9009\u62E9\u884C\u4E3A\u3002\u6240\u9009\u5185\u5BB9\u5C06\u59CB\u7EC8\u4F7F\u7528\u5236\u8868\u7B26\u505C\u6B62\u4F4D\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u663E\u793A CodeLens\u3002", "\u63A7\u5236 CodeLens \u7684\u5B57\u4F53\u7CFB\u5217\u3002", "\u63A7\u5236 CodeLens \u7684\u5B57\u53F7(\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D)\u3002\u8BBE\u7F6E\u4E3A 0 \u65F6\uFF0C\u5C06\u4F7F\u7528 90% \u7684 `#editor.fontSize#`\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u5185\u8054\u989C\u8272\u4FEE\u9970\u5668\u548C\u989C\u8272\u9009\u53D6\u5668\u3002", "\u5728\u989C\u8272\u4FEE\u9970\u5668\u5355\u51FB\u548C\u60AC\u505C\u65F6\u4F7F\u989C\u8272\u9009\u53D6\u5668\u540C\u65F6\u663E\u793A", "\u4F7F\u989C\u8272\u9009\u53D6\u5668\u5728\u989C\u8272\u4FEE\u9970\u5668\u60AC\u505C\u65F6\u663E\u793A", "\u5355\u51FB\u989C\u8272\u4FEE\u9970\u5668\u65F6\u663E\u793A\u989C\u8272\u9009\u53D6\u5668", "\u63A7\u5236\u4ECE\u989C\u8272\u4FEE\u9970\u5668\u663E\u793A\u989C\u8272\u9009\u53D6\u5668\u7684\u6761\u4EF6\u3002", "\u63A7\u5236\u53EF\u4E00\u6B21\u6027\u5728\u7F16\u8F91\u5668\u4E2D\u5448\u73B0\u7684\u6700\u5927\u989C\u8272\u4FEE\u9970\u5668\u6570\u3002", "\u542F\u7528\u4F7F\u7528\u9F20\u6807\u548C\u952E\u8FDB\u884C\u5217\u9009\u62E9\u3002", "\u63A7\u5236\u5728\u590D\u5236\u65F6\u662F\u5426\u540C\u65F6\u590D\u5236\u8BED\u6CD5\u9AD8\u4EAE\u3002", "\u63A7\u5236\u5149\u6807\u7684\u52A8\u753B\u6837\u5F0F\u3002", "\u5DF2\u7981\u7528\u5E73\u6ED1\u8131\u5B57\u53F7\u52A8\u753B\u3002", "\u4EC5\u5F53\u7528\u6237\u4F7F\u7528\u663E\u5F0F\u624B\u52BF\u79FB\u52A8\u5149\u6807\u65F6\uFF0C\u624D\u542F\u7528\u5E73\u6ED1\u8131\u5B57\u53F7\u52A8\u753B\u3002", "\u59CB\u7EC8\u542F\u7528\u5E73\u6ED1\u8131\u5B57\u53F7\u52A8\u753B\u3002", "\u63A7\u5236\u662F\u5426\u542F\u7528\u5E73\u6ED1\u63D2\u5165\u52A8\u753B\u3002", "\u5728\u63D2\u5165\u8F93\u5165\u6A21\u5F0F\u4E0B\u63A7\u5236\u5149\u6807\u6837\u5F0F\u3002", "\u5728\u6539\u5199\u8F93\u5165\u6A21\u5F0F\u4E2D\u63A7\u5236\u5149\u6807\u6837\u5F0F\u3002", "\u63A7\u5236\u5149\u6807\u5468\u56F4\u53EF\u89C1\u7684\u524D\u7F6E\u884C(\u6700\u5C0F\u503C\u4E3A 0)\u548C\u5C3E\u968F\u884C(\u6700\u5C0F\u503C\u4E3A 1)\u7684\u6700\u5C0F\u6570\u76EE\u3002\u5728\u5176\u4ED6\u4E00\u4E9B\u7F16\u8F91\u5668\u4E2D\u79F0\u4E3A \u201CscrollOff\u201D \u6216 \u201CscrollOffset\u201D\u3002", '\u4EC5\u5F53\u901A\u8FC7\u952E\u76D8\u6216 API \u89E6\u53D1\u65F6\uFF0C\u624D\u4F1A\u5F3A\u5236\u6267\u884C"\u5149\u6807\u73AF\u7ED5\u884C"\u3002', '\u59CB\u7EC8\u5F3A\u5236\u6267\u884C "cursorSurroundingLines"', "\u63A7\u5236\u4F55\u65F6\u5E94\u5F3A\u5236\u6267\u884C `#editor.cursorSurroundingLines#`\u3002", "\u5F53 `#editor.cursorStyle#` \u8BBE\u7F6E\u4E3A `line` \u65F6\uFF0C\u63A7\u5236\u5149\u6807\u7684\u5BBD\u5EA6\u3002", "\u5F53 `#editor.cursorStyle#` \u8BBE\u7F6E\u4E3A `line` \u65F6\uFF0C\u63A7\u5236\u5149\u6807\u7684\u9AD8\u5EA6\u3002\u5149\u6807\u7684\u6700\u5927\u9AD8\u5EA6\u53D6\u51B3\u4E8E\u884C\u9AD8\u3002", "\u63A7\u5236\u53CC\u51FB\u65B9\u62EC\u53F7\u6216\u5F15\u53F7\u65C1\u8FB9\u662F\u5426\u9009\u62E9\u5176\u4E2D\u7684\u5185\u5BB9\u3002", "\u63A7\u5236\u5728\u7F16\u8F91\u5668\u4E2D\u662F\u5426\u5141\u8BB8\u901A\u8FC7\u62D6\u653E\u6765\u79FB\u52A8\u9009\u4E2D\u5185\u5BB9\u3002", "\u8BBE\u7F6E\u662F\u5426\u5E94\u4F7F\u7528 EditContext API \u800C\u4E0D\u662F\u6587\u672C\u533A\u57DF\u6765\u652F\u6301\u5728\u7F16\u8F91\u5668\u4E2D\u8F93\u5165\u3002", "\u542F\u7528 `#editor.editContext#` \u8BBE\u7F6E\u65F6\u662F\u5426\u5448\u73B0\u4E30\u5BCC\u7684\u5C4F\u5E55\u9605\u8BFB\u5668\u5185\u5BB9\u3002", "\u4F7F\u7528\u57FA\u4E8E DOM \u7684\u5E38\u89C4\u5448\u73B0\u3002", "\u4F7F\u7528 GPU \u52A0\u901F\u3002", "\u63A7\u5236\u662F\u5426\u4F7F\u7528\u5B9E\u9A8C\u6027 GPU \u52A0\u901F\u6765\u5448\u73B0\u7F16\u8F91\u5668\u3002", "\u5C06\u65B0\u7684\u5448\u73B0\u65B9\u6CD5\u4E0E svg \u914D\u5408\u4F7F\u7528\u3002", "\u4F7F\u7528\u5305\u542B\u5B57\u4F53\u5B57\u7B26\u7684\u65B0\u5448\u73B0\u65B9\u6CD5\u3002", "\u4F7F\u7528\u7A33\u5B9A\u5448\u73B0\u65B9\u6CD5\u3002", "\u63A7\u5236\u662F\u5426\u4F7F\u7528\u65B0\u7684\u5B9E\u9A8C\u6027\u65B9\u6CD5\u5448\u73B0\u7A7A\u683C\u3002", '\u6309\u4E0B"Alt"\u65F6\u6EDA\u52A8\u901F\u5EA6\u500D\u589E\u3002', "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u542F\u7528\u4E86\u4EE3\u7801\u6298\u53E0\u3002", "\u4F7F\u7528\u7279\u5B9A\u4E8E\u8BED\u8A00\u7684\u6298\u53E0\u7B56\u7565(\u5982\u679C\u53EF\u7528)\uFF0C\u5426\u5219\u4F7F\u7528\u57FA\u4E8E\u7F29\u8FDB\u7684\u7B56\u7565\u3002", "\u4F7F\u7528\u57FA\u4E8E\u7F29\u8FDB\u7684\u6298\u53E0\u7B56\u7565\u3002", "\u63A7\u5236\u8BA1\u7B97\u6298\u53E0\u8303\u56F4\u7684\u7B56\u7565\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u7A81\u51FA\u663E\u793A\u6298\u53E0\u8303\u56F4\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u81EA\u52A8\u6298\u53E0\u5BFC\u5165\u8303\u56F4\u3002", "\u53EF\u6298\u53E0\u533A\u57DF\u7684\u6700\u5927\u6570\u91CF\u3002\u5982\u679C\u5F53\u524D\u6E90\u5177\u6709\u5927\u91CF\u53EF\u6298\u53E0\u533A\u57DF\uFF0C\u90A3\u4E48\u589E\u52A0\u6B64\u503C\u53EF\u80FD\u4F1A\u5BFC\u81F4\u7F16\u8F91\u5668\u7684\u54CD\u5E94\u901F\u5EA6\u53D8\u6162\u3002", "\u63A7\u5236\u5355\u51FB\u5DF2\u6298\u53E0\u7684\u884C\u540E\u9762\u7684\u7A7A\u5185\u5BB9\u662F\u5426\u4F1A\u5C55\u5F00\u8BE5\u884C\u3002", "\u63A7\u5236\u5B57\u4F53\u7CFB\u5217\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u81EA\u52A8\u683C\u5F0F\u5316\u7C98\u8D34\u7684\u5185\u5BB9\u3002\u683C\u5F0F\u5316\u7A0B\u5E8F\u5FC5\u987B\u53EF\u7528\uFF0C\u5E76\u4E14\u80FD\u9488\u5BF9\u6587\u6863\u4E2D\u7684\u67D0\u4E00\u8303\u56F4\u8FDB\u884C\u683C\u5F0F\u5316\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u5728\u952E\u5165\u4E00\u884C\u540E\u662F\u5426\u81EA\u52A8\u683C\u5F0F\u5316\u8BE5\u884C\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u5448\u73B0\u5782\u76F4\u5B57\u5F62\u8FB9\u8DDD\u3002\u5B57\u5F62\u8FB9\u8DDD\u6700\u5E38\u7528\u4E8E\u8C03\u8BD5\u3002", "\u63A7\u5236\u662F\u5426\u5728\u6982\u89C8\u6807\u5C3A\u4E2D\u9690\u85CF\u5149\u6807\u3002", "\u4E3A\u6EDA\u52A8\u8BBE\u7F6E\u60EF\u6027 - \u6700\u9002\u5408\u7528\u4E8E Linux \u4E0A\u7684\u89E6\u6478\u677F\u3002", "\u63A7\u5236\u5B57\u6BCD\u95F4\u8DDD(\u50CF\u7D20)\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5DF2\u542F\u7528\u94FE\u63A5\u7F16\u8F91\u3002\u76F8\u5173\u7B26\u53F7(\u5982 HTML \u6807\u8BB0)\u5C06\u5728\u7F16\u8F91\u65F6\u8FDB\u884C\u66F4\u65B0\uFF0C\u5177\u4F53\u53D6\u51B3\u4E8E\u8BED\u8A00\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u68C0\u6D4B\u94FE\u63A5\u5E76\u4F7F\u5176\u53EF\u88AB\u70B9\u51FB\u3002", "\u7A81\u51FA\u663E\u793A\u5339\u914D\u7684\u62EC\u53F7\u3002", "\u5BF9\u9F20\u6807\u6EDA\u8F6E\u6EDA\u52A8\u4E8B\u4EF6\u7684 `deltaX` \u548C `deltaY` \u4E58\u4E0A\u7684\u7CFB\u6570\u3002", "\u6309\u4F4F Cmd \u952E\u5E76\u6EDA\u52A8\u9F20\u6807\u6EDA\u8F6E\u65F6\u5BF9\u7F16\u8F91\u5668\u5B57\u4F53\u5927\u5C0F\u8FDB\u884C\u7F29\u653E\u3002", "\u6309\u4F4F `Ctrl` \u952E\u5E76\u6EDA\u52A8\u9F20\u6807\u6EDA\u8F6E\u65F6\u5BF9\u7F16\u8F91\u5668\u5B57\u4F53\u5927\u5C0F\u8FDB\u884C\u7F29\u653E\u3002", "\u5F53\u591A\u4E2A\u5149\u6807\u91CD\u53E0\u65F6\u8FDB\u884C\u5408\u5E76\u3002", "\u6620\u5C04\u4E3A `Ctrl` (Windows \u548C Linux) \u6216 `Command` (macOS)\u3002", "\u6620\u5C04\u4E3A `Alt` (Windows \u548C Linux) \u6216 `Option` (macOS)\u3002", "\u7528\u4E8E\u4F7F\u7528\u9F20\u6807\u6DFB\u52A0\u591A\u4E2A\u6E38\u6807\u7684\u4FEE\u9970\u7B26\u3002\u201C\u8F6C\u5230\u5B9A\u4E49\u201D\u548C\u201C\u6253\u5F00\u94FE\u63A5\u201D\u9F20\u6807\u624B\u52BF\u5C06\u8FDB\u884C\u8C03\u6574\uFF0C\u4F7F\u5176\u4E0D\u4E0E [\u591A\u5149\u6807\u4FEE\u9970\u7B26](https://code.visualstudio.com/docs/editor/codebasics#_multicursor-modifier)\u51B2\u7A81\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u4E2D\u5355\u51FB\u9F20\u6807\u4E2D\u952E\u65F6\u7684\u64CD\u4F5C\u3002", "\u6BCF\u4E2A\u5149\u6807\u7C98\u8D34\u4E00\u884C\u6587\u672C\u3002", "\u6BCF\u4E2A\u5149\u6807\u7C98\u8D34\u5168\u6587\u3002", "\u63A7\u5236\u7C98\u8D34\u65F6\u7C98\u8D34\u6587\u672C\u7684\u884C\u8BA1\u6570\u4E0E\u5149\u6807\u8BA1\u6570\u76F8\u5339\u914D\u3002", "\u63A7\u5236\u4E00\u6B21\u53EF\u4EE5\u5728\u6D3B\u52A8\u7F16\u8F91\u5668\u4E2D\u663E\u793A\u7684\u6700\u5927\u6E38\u6807\u6570\u3002", "\u4E0D\u7A81\u51FA\u663E\u793A\u51FA\u73B0\u6B21\u6570\u3002", "\u4EC5\u7A81\u51FA\u663E\u793A\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u51FA\u73B0\u6B21\u6570\u3002", "\u5B9E\u9A8C\u6027: \u7A81\u51FA\u663E\u793A\u6240\u6709\u6709\u6548\u6253\u5F00\u6587\u4EF6\u7684\u51FA\u73B0\u6B21\u6570\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u7A81\u51FA\u663E\u793A\u5728\u6253\u5F00\u7684\u6587\u4EF6\u4E2D\u7684\u51FA\u73B0\u6B21\u6570\u3002", "\u63A7\u5236\u7A81\u51FA\u663E\u793A\u51FA\u73B0\u6B21\u6570\u524D\u7684\u7B49\u5F85\u65F6\u95F4(\u4EE5\u6BEB\u79D2\u4E3A\u5355\u4F4D)\u3002", "\u63A7\u5236\u7C98\u8D34\u662F\u5426\u6539\u5199\u3002", "\u63A7\u5236\u662F\u5426\u5728\u6982\u89C8\u6807\u5C3A\u5468\u56F4\u7ED8\u5236\u8FB9\u6846\u3002", "\u6253\u5F00\u901F\u89C8\u65F6\u805A\u7126\u6811", "\u6253\u5F00\u9884\u89C8\u65F6\u5C06\u7126\u70B9\u653E\u5728\u7F16\u8F91\u5668\u4E0A", "\u63A7\u5236\u662F\u5C06\u7126\u70B9\u653E\u5728\u5185\u8054\u7F16\u8F91\u5668\u4E0A\u8FD8\u662F\u653E\u5728\u9884\u89C8\u5C0F\u90E8\u4EF6\u4E2D\u7684\u6811\u4E0A\u3002", '\u63A7\u5236"\u8F6C\u5230\u5B9A\u4E49"\u9F20\u6807\u624B\u52BF\u662F\u5426\u59CB\u7EC8\u6253\u5F00\u9884\u89C8\u5C0F\u90E8\u4EF6\u3002', "\u63A7\u5236\u663E\u793A\u5FEB\u901F\u5EFA\u8BAE\u524D\u7684\u7B49\u5F85\u65F6\u95F4 (\u6BEB\u79D2)\u3002", "\u63A7\u5236\u662F\u5426\u5728\u7F16\u8F91\u5668\u4E2D\u8F93\u5165\u65F6\u81EA\u52A8\u91CD\u547D\u540D\u3002", "\u5DF2\u5F03\u7528\uFF0C\u8BF7\u6539\u7528 `#editor.linkedEditing#`\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u63A7\u5236\u5B57\u7B26\u3002", "\u5F53\u6587\u4EF6\u4EE5\u6362\u884C\u7B26\u7ED3\u675F\u65F6, \u5448\u73B0\u6700\u540E\u4E00\u884C\u7684\u884C\u53F7\u3002", "\u540C\u65F6\u7A81\u51FA\u663E\u793A\u5BFC\u822A\u7EBF\u548C\u5F53\u524D\u884C\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u7684\u5F53\u524D\u884C\u8FDB\u884C\u9AD8\u4EAE\u663E\u793A\u7684\u65B9\u5F0F\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u4EC5\u5728\u7126\u70B9\u5728\u7F16\u8F91\u5668\u65F6\u7A81\u51FA\u663E\u793A\u5F53\u524D\u884C\u3002", "\u5448\u73B0\u7A7A\u683C\u5B57\u7B26(\u5B57\u8BCD\u4E4B\u95F4\u7684\u5355\u4E2A\u7A7A\u683C\u9664\u5916)\u3002", "\u4EC5\u5728\u9009\u5B9A\u6587\u672C\u4E0A\u5448\u73B0\u7A7A\u767D\u5B57\u7B26\u3002", "\u4EC5\u5448\u73B0\u5C3E\u968F\u7A7A\u683C\u5B57\u7B26\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u5728\u7A7A\u767D\u5B57\u7B26\u4E0A\u663E\u793A\u7B26\u53F7\u7684\u65B9\u5F0F\u3002", "\u63A7\u5236\u9009\u533A\u662F\u5426\u6709\u5706\u89D2\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u6C34\u5E73\u6EDA\u52A8\u65F6\u53EF\u4EE5\u8D85\u8FC7\u8303\u56F4\u7684\u5B57\u7B26\u6570\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u53EF\u4EE5\u6EDA\u52A8\u5230\u6700\u540E\u4E00\u884C\u4E4B\u540E\u3002", "\u63A7\u5236\u5728\u6309\u4E0B\u4E2D\u95F4\u6309\u94AE\u65F6\u7F16\u8F91\u5668\u662F\u5426\u6EDA\u52A8\u3002", "\u540C\u65F6\u5782\u76F4\u548C\u6C34\u5E73\u6EDA\u52A8\u65F6\uFF0C\u4EC5\u6CBF\u4E3B\u8F74\u6EDA\u52A8\u3002\u5728\u89E6\u63A7\u677F\u4E0A\u5782\u76F4\u6EDA\u52A8\u65F6\uFF0C\u53EF\u9632\u6B62\u6C34\u5E73\u6F02\u79FB\u3002", "\u63A7\u5236\u662F\u5426\u652F\u6301 Linux \u4E3B\u526A\u8D34\u677F\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u7A81\u51FA\u663E\u793A\u4E0E\u6240\u9009\u5185\u5BB9\u7C7B\u4F3C\u7684\u5339\u914D\u9879\u3002", "\u63A7\u5236\u5728\u4E0D\u7A81\u51FA\u663E\u793A\u7C7B\u4F3C\u5339\u914D\u9879\u4E4B\u524D\uFF0C\u53EF\u4EE5\u9009\u62E9\u7684\u5B57\u7B26\u6570\u3002\u8BBE\u7F6E\u4E3A\u96F6\u8868\u793A\u65E0\u9650\u5236\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u5E94\u7A81\u51FA\u663E\u793A\u8DE8\u591A\u884C\u7684\u9009\u62E9\u5339\u914D\u9879\u3002", "\u59CB\u7EC8\u663E\u793A\u6298\u53E0\u63A7\u4EF6\u3002", "\u5207\u52FF\u663E\u793A\u6298\u53E0\u63A7\u4EF6\u5E76\u51CF\u5C0F\u88C5\u8BA2\u7EBF\u5927\u5C0F\u3002", "\u4EC5\u5728\u9F20\u6807\u4F4D\u4E8E\u88C5\u8BA2\u7EBF\u4E0A\u65B9\u65F6\u663E\u793A\u6298\u53E0\u63A7\u4EF6\u3002", "\u63A7\u5236\u4F55\u65F6\u663E\u793A\u884C\u53F7\u69FD\u4E0A\u7684\u6298\u53E0\u63A7\u4EF6\u3002", "\u63A7\u5236\u662F\u5426\u6DE1\u5316\u672A\u4F7F\u7528\u7684\u4EE3\u7801\u3002", "\u63A7\u5236\u52A0\u5220\u9664\u7EBF\u88AB\u5F03\u7528\u7684\u53D8\u91CF\u3002", "\u5728\u5176\u4ED6\u5EFA\u8BAE\u4E0A\u65B9\u663E\u793A\u4EE3\u7801\u7247\u6BB5\u5EFA\u8BAE\u3002", "\u5728\u5176\u4ED6\u5EFA\u8BAE\u4E0B\u65B9\u663E\u793A\u4EE3\u7801\u7247\u6BB5\u5EFA\u8BAE\u3002", "\u5728\u5176\u4ED6\u5EFA\u8BAE\u4E2D\u7A7F\u63D2\u663E\u793A\u4EE3\u7801\u7247\u6BB5\u5EFA\u8BAE\u3002", "\u4E0D\u663E\u793A\u4EE3\u7801\u7247\u6BB5\u5EFA\u8BAE\u3002", "\u63A7\u5236\u4EE3\u7801\u7247\u6BB5\u662F\u5426\u4E0E\u5176\u4ED6\u5EFA\u8BAE\u4E00\u8D77\u663E\u793A\u53CA\u5176\u6392\u5217\u7684\u4F4D\u7F6E\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u5426\u4F7F\u7528\u52A8\u753B\u6EDA\u52A8\u3002", "\u63A7\u5236\u5728\u663E\u793A\u5185\u8054\u5B8C\u6210\u65F6\u662F\u5426\u5E94\u5411\u5C4F\u5E55\u9605\u8BFB\u5668\u7528\u6237\u63D0\u4F9B\u8F85\u52A9\u529F\u80FD\u63D0\u793A\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u5B57\u53F7\u3002\u8BBE\u7F6E\u4E3A {0} \u65F6\uFF0C\u5C06\u4F7F\u7528 {1} \u7684\u503C\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u884C\u9AD8\u3002\u8BBE\u7F6E\u4E3A {0} \u65F6\uFF0C\u5C06\u4F7F\u7528 {1} \u7684\u503C\u3002\u6700\u5C0F\u503C\u4E3A 8\u3002", "\u63A7\u5236\u5728\u952E\u5165\u89E6\u53D1\u5B57\u7B26\u540E\u662F\u5426\u81EA\u52A8\u663E\u793A\u5EFA\u8BAE\u3002", "\u59CB\u7EC8\u9009\u62E9\u7B2C\u4E00\u4E2A\u5EFA\u8BAE\u3002", "\u9009\u62E9\u6700\u8FD1\u7684\u5EFA\u8BAE\uFF0C\u9664\u975E\u8FDB\u4E00\u6B65\u952E\u5165\u9009\u62E9\u5176\u4ED6\u9879\u3002\u4F8B\u5982 `console. -> console.log`\uFF0C\u56E0\u4E3A\u6700\u8FD1\u8865\u5168\u8FC7 `log`\u3002", "\u6839\u636E\u4E4B\u524D\u8865\u5168\u8FC7\u7684\u5EFA\u8BAE\u7684\u524D\u7F00\u6765\u8FDB\u884C\u9009\u62E9\u3002\u4F8B\u5982\uFF0C`co -> console`\u3001`con -> const`\u3002", "\u63A7\u5236\u5728\u5EFA\u8BAE\u5217\u8868\u4E2D\u5982\u4F55\u9884\u5148\u9009\u62E9\u5EFA\u8BAE\u3002", "\u5728\u6309\u4E0B Tab \u952E\u65F6\u8FDB\u884C Tab \u8865\u5168\uFF0C\u5C06\u63D2\u5165\u6700\u4F73\u5339\u914D\u5EFA\u8BAE\u3002", "\u7981\u7528 Tab \u8865\u5168\u3002", '\u5728\u524D\u7F00\u5339\u914D\u65F6\u8FDB\u884C Tab \u8865\u5168\u3002\u5728 "quickSuggestions" \u672A\u542F\u7528\u65F6\u4F53\u9A8C\u6700\u597D\u3002', "\u542F\u7528 Tab \u8865\u5168\u3002", "\u63A7\u5236\u5728\u5220\u9664\u65B0\u884C\u65F6\u7F16\u8F91\u5668\u662F\u5426\u8FD8\u4F1A\u5220\u9664\u4E0B\u4E00\u884C\u7684\u7F29\u8FDB\u7A7A\u683C\u3002", "\u81EA\u52A8\u5220\u9664\u5F02\u5E38\u7684\u884C\u7EC8\u6B62\u7B26\u3002", "\u5FFD\u7565\u5F02\u5E38\u7684\u884C\u7EC8\u6B62\u7B26\u3002", "\u63D0\u793A\u5220\u9664\u5F02\u5E38\u7684\u884C\u7EC8\u6B62\u7B26\u3002", "\u5220\u9664\u53EF\u80FD\u5BFC\u81F4\u95EE\u9898\u7684\u5F02\u5E38\u884C\u7EC8\u6B62\u7B26\u3002", "\u7A7A\u683C\u548C\u5236\u8868\u7B26\u7684\u63D2\u5165\u548C\u5220\u9664\u4E0E\u5236\u8868\u4F4D\u5BF9\u9F50\u3002", "\u4F7F\u7528\u9ED8\u8BA4\u6362\u884C\u89C4\u5219\u3002", "\u4E2D\u6587/\u65E5\u8BED/\u97E9\u8BED(CJK)\u6587\u672C\u4E0D\u5E94\u4F7F\u7528\u65AD\u5B57\u529F\u80FD\u3002\u975E CJK \u6587\u672C\u884C\u4E3A\u4E0E\u666E\u901A\u6587\u672C\u884C\u4E3A\u76F8\u540C\u3002", "\u63A7\u5236\u4E2D\u6587/\u65E5\u8BED/\u97E9\u8BED(CJK)\u6587\u672C\u4F7F\u7528\u7684\u65AD\u5B57\u89C4\u5219\u3002", "\u6267\u884C\u5355\u8BCD\u76F8\u5173\u7684\u5BFC\u822A\u6216\u64CD\u4F5C\u65F6\u4F5C\u4E3A\u5355\u8BCD\u5206\u9694\u7B26\u7684\u5B57\u7B26\u3002", "\u6C38\u4E0D\u6362\u884C\u3002", "\u5C06\u5728\u89C6\u533A\u5BBD\u5EA6\u5904\u6362\u884C\u3002", "\u5728 `#editor.wordWrapColumn#` \u5904\u6298\u884C\u3002", "\u5728\u89C6\u533A\u5BBD\u5EA6\u548C `#editor.wordWrapColumn#` \u4E2D\u7684\u8F83\u5C0F\u503C\u5904\u6298\u884C\u3002", "\u63A7\u5236\u6298\u884C\u7684\u65B9\u5F0F\u3002", "\u5728 `#editor.wordWrap#` \u4E3A `wordWrapColumn` \u6216 `bounded` \u65F6\uFF0C\u63A7\u5236\u7F16\u8F91\u5668\u7684\u6298\u884C\u5217\u3002", '\u63A7\u5236\u5728\u542F\u7528 `#editor.wordWrap#` \u65F6\u6587\u672C `\\n` \u662F\u5426\u5E94\u89E6\u53D1 wordWrap\u3002\r\n\r\n\u4F8B\u5982:\r\n```c\r\nchar* str="hello\\nworld"\r\n```\r\n\u5C06\u663E\u793A\u4E3A\r\n```c\r\nchar* str="hello\\n\r\n           world"\r\n```', "\u4EC5\u5F53\u6CA1\u6709\u6269\u5C55\u63D0\u4F9B\u989C\u8272\u4FEE\u9970\u5668\u65F6\u624D\u663E\u793A\u9ED8\u8BA4\u989C\u8272\u4FEE\u9970\u5668\u3002", "\u59CB\u7EC8\u663E\u793A\u9ED8\u8BA4\u989C\u8272\u4FEE\u9970\u5668\u3002", "\u4ECE\u4E0D\u663E\u793A\u9ED8\u8BA4\u989C\u8272\u4FEE\u9970\u5668\u3002", "\u63A7\u5236\u662F\u5426\u5E94\u4F7F\u7528\u9ED8\u8BA4\u6587\u6863\u989C\u8272\u63D0\u4F9B\u7A0B\u5E8F\u663E\u793A\u5185\u8054\u989C\u8272\u4FEE\u9970\u3002", "\u63A7\u5236\u7F16\u8F91\u5668\u662F\u63A5\u6536\u9009\u9879\u5361\u8FD8\u662F\u5C06\u5176\u5EF6\u8FDF\u5230\u5DE5\u4F5C\u53F0\u8FDB\u884C\u5BFC\u822A\u3002", "\u5149\u6807\u6240\u5728\u884C\u9AD8\u4EAE\u5185\u5BB9\u7684\u80CC\u666F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u672A\u805A\u7126\u65F6\uFF0C\u5149\u6807\u6240\u5728\u884C\u7684\u9AD8\u4EAE\u80CC\u666F\u8272\u3002", "\u5149\u6807\u6240\u5728\u884C\u56DB\u5468\u8FB9\u6846\u7684\u80CC\u666F\u989C\u8272\u3002", "\u80CC\u666F\u989C\u8272\u7684\u9AD8\u4EAE\u8303\u56F4\uFF0C\u559C\u6B22\u901A\u8FC7\u5FEB\u901F\u6253\u5F00\u548C\u67E5\u627E\u529F\u80FD\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u9AD8\u4EAE\u533A\u57DF\u8FB9\u6846\u7684\u80CC\u666F\u989C\u8272\u3002", "\u9AD8\u4EAE\u663E\u793A\u7B26\u53F7\u7684\u80CC\u666F\u989C\u8272\uFF0C\u4F8B\u5982\u8F6C\u5230\u5B9A\u4E49\u6216\u8F6C\u5230\u4E0B\u4E00\u4E2A/\u4E0A\u4E00\u4E2A\u7B26\u53F7\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u9AD8\u4EAE\u663E\u793A\u7B26\u53F7\u5468\u56F4\u7684\u8FB9\u6846\u7684\u80CC\u666F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u5149\u6807\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u5149\u6807\u7684\u80CC\u666F\u8272\u3002\u53EF\u4EE5\u81EA\u5B9A\u4E49\u5757\u578B\u5149\u6807\u8986\u76D6\u5B57\u7B26\u7684\u989C\u8272\u3002", "\u5B58\u5728\u591A\u4E2A\u6E38\u6807\u65F6\u4E3B\u8981\u7F16\u8F91\u5668\u6E38\u6807\u7684\u989C\u8272\u3002", "\u5B58\u5728\u591A\u4E2A\u6E38\u6807\u65F6\u4E3B\u8981\u7F16\u8F91\u5668\u6E38\u6807\u7684\u80CC\u666F\u8272\u3002\u5141\u8BB8\u81EA\u5B9A\u4E49\u5757\u6E38\u6807\u91CD\u53E0\u7684\u5B57\u7B26\u7684\u989C\u8272\u3002", "\u5B58\u5728\u591A\u4E2A\u6E38\u6807\u65F6\u8F85\u52A9\u7F16\u8F91\u5668\u6E38\u6807\u7684\u989C\u8272\u3002", "\u5B58\u5728\u591A\u4E2A\u6E38\u6807\u65F6\u8F85\u52A9\u7F16\u8F91\u5668\u6E38\u6807\u7684\u80CC\u666F\u8272\u3002\u5141\u8BB8\u81EA\u5B9A\u4E49\u5757\u6E38\u6807\u91CD\u53E0\u7684\u5B57\u7B26\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u7A7A\u767D\u5B57\u7B26\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u884C\u53F7\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF\u7684\u989C\u8272\u3002", "\u201CeditorIndentGuide.background\u201D \u5DF2\u5F03\u7528\u3002\u8BF7\u6539\u7528 \u201CeditorIndentGuide.background1\u201D\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF\u7684\u989C\u8272\u3002", "\u201CeditorIndentGuide.activeBackground\u201D \u5DF2\u5F03\u7528\u3002\u8BF7\u6539\u7528 \u201CeditorIndentGuide.activeBackground1\u201D\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (1) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (2) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (3) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (4) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (5) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u7F29\u8FDB\u53C2\u8003\u7EBF (6) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (1) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (2) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (3) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (4) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (5) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF (6) \u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6D3B\u52A8\u884C\u53F7\u7684\u989C\u8272", '"Id" \u5DF2\u88AB\u5F03\u7528\uFF0C\u8BF7\u6539\u7528 "editorLineNumber.activeForeground"\u3002', "\u7F16\u8F91\u5668\u6D3B\u52A8\u884C\u53F7\u7684\u989C\u8272", "\u5C06 editor.renderFinalNewline \u8BBE\u7F6E\u4E3A\u7070\u8272\u65F6\u6700\u7EC8\u7F16\u8F91\u5668\u884C\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u5C3A\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668 CodeLens \u7684\u524D\u666F\u8272", "\u5339\u914D\u62EC\u53F7\u7684\u80CC\u666F\u8272", "\u5339\u914D\u62EC\u53F7\u5916\u6846\u7684\u989C\u8272", "\u5339\u914D\u7684\u62EC\u53F7\u7684\u524D\u666F\u8272", "\u6982\u89C8\u6807\u5C3A\u8FB9\u6846\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6982\u8FF0\u6807\u5C3A\u7684\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u5BFC\u822A\u7EBF\u7684\u80CC\u666F\u8272\u3002\u5BFC\u822A\u7EBF\u5305\u62EC\u8FB9\u7F18\u7B26\u53F7\u548C\u884C\u53F7\u3002", "\u7F16\u8F91\u5668\u4E2D\u4E0D\u5FC5\u8981(\u672A\u4F7F\u7528)\u7684\u6E90\u4EE3\u7801\u7684\u8FB9\u6846\u989C\u8272\u3002", '\u975E\u5FC5\u987B(\u672A\u4F7F\u7528)\u4EE3\u7801\u7684\u5728\u7F16\u8F91\u5668\u4E2D\u663E\u793A\u7684\u4E0D\u900F\u660E\u5EA6\u3002\u4F8B\u5982\uFF0C"#000000c0" \u5C06\u4EE5 75% \u7684\u4E0D\u900F\u660E\u5EA6\u663E\u793A\u4EE3\u7801\u3002\u5BF9\u4E8E\u9AD8\u5BF9\u6BD4\u5EA6\u4E3B\u9898\uFF0C\u8BF7\u4F7F\u7528 \u201DeditorUnnecessaryCode.border\u201C \u4E3B\u9898\u6765\u4E3A\u975E\u5FC5\u987B\u4EE3\u7801\u6DFB\u52A0\u4E0B\u5212\u7EBF\uFF0C\u4EE5\u907F\u514D\u989C\u8272\u6DE1\u5316\u3002', "\u7F16\u8F91\u5668\u4E2D\u865A\u5F71\u6587\u672C\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u865A\u5F71\u6587\u672C\u7684\u524D\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u865A\u5F71\u6587\u672C\u7684\u80CC\u666F\u8272\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A\u8303\u56F4\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u6982\u89C8\u6807\u5C3A\u4E2D\u9519\u8BEF\u6807\u8BB0\u7684\u989C\u8272\u3002", "\u6982\u89C8\u6807\u5C3A\u4E2D\u8B66\u544A\u6807\u8BB0\u7684\u989C\u8272\u3002", "\u6982\u89C8\u6807\u5C3A\u4E2D\u4FE1\u606F\u6807\u8BB0\u7684\u989C\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(1)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(2)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(3)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(4)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(5)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u62EC\u53F7\u7684\u524D\u666F\u8272(6)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u7740\u8272\u3002", "\u65B9\u62EC\u53F7\u51FA\u73B0\u610F\u5916\u7684\u524D\u666F\u8272\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(1)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(2)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(3)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(4)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(5)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u975E\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(6)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(1)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(2)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(3)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(4)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(5)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u6D3B\u52A8\u62EC\u53F7\u5BF9\u6307\u5357\u7684\u80CC\u666F\u8272(6)\u3002\u9700\u8981\u542F\u7528\u62EC\u53F7\u5BF9\u6307\u5357\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A Unicode \u5B57\u7B26\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A Unicode \u5B57\u7B26\u7684\u80CC\u666F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6587\u672C\u662F\u5426\u5177\u6709\u7126\u70B9(\u5149\u6807\u662F\u5426\u95EA\u70C1)", "\u7F16\u8F91\u5668\u6216\u7F16\u8F91\u5668\u5C0F\u7EC4\u4EF6\u662F\u5426\u5177\u6709\u7126\u70B9(\u4F8B\u5982\u7126\u70B9\u5728\u201C\u67E5\u627E\u201D\u5C0F\u7EC4\u4EF6\u4E2D)", "\u7F16\u8F91\u5668\u6216 RTF \u8F93\u5165\u662F\u5426\u6709\u7126\u70B9(\u5149\u6807\u662F\u5426\u95EA\u70C1)", "\u7F16\u8F91\u5668\u662F\u5426\u4E3A\u53EA\u8BFB", "\u4E0A\u4E0B\u6587\u662F\u5426\u4E3A\u5DEE\u5F02\u7F16\u8F91\u5668", "\u4E0A\u4E0B\u6587\u662F\u5426\u4E3A\u5D4C\u5165\u5F0F\u5DEE\u5F02\u7F16\u8F91\u5668", "\u4E0A\u4E0B\u6587\u662F\u5426\u4E3A\u591A\u4E2A\u5DEE\u5F02\u7F16\u8F91\u5668", "\u662F\u5426\u6298\u53E0\u591A\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u7684\u6240\u6709\u6587\u4EF6", "\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u6709\u66F4\u6539", "\u662F\u5426\u9009\u62E9\u79FB\u52A8\u7684\u4EE3\u7801\u5757\u8FDB\u884C\u6BD4\u8F83", "\u53EF\u8BBF\u95EE\u5DEE\u5F02\u67E5\u770B\u5668\u662F\u5426\u53EF\u89C1", "\u662F\u5426\u5DF2\u5230\u8FBE\u5DEE\u5F02\u7F16\u8F91\u5668\u5E76\u6392\u5448\u73B0\u5185\u8054\u65AD\u70B9", "\u5185\u8054\u6A21\u5F0F\u662F\u5426\u5904\u4E8E\u6D3B\u52A8\u72B6\u6001", "\u4FEE\u6539\u9879\u5728\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u53EF\u5199", "\u4FEE\u6539\u9879\u5728\u5DEE\u5F02\u7F16\u8F91\u5668\u662F\u5426\u53EF\u5199", "\u539F\u59CB\u6587\u6863\u7684 URI", "\u5DF2\u4FEE\u6539\u7684\u6587\u6863\u7684 URI", '\u662F\u5426\u5DF2\u542F\u7528 "editor.columnSelection"', "\u7F16\u8F91\u5668\u662F\u5426\u5DF2\u9009\u5B9A\u6587\u672C", "\u7F16\u8F91\u5668\u662F\u5426\u6709\u591A\u4E2A\u9009\u62E9", '"Tab" \u662F\u5426\u5C06\u7126\u70B9\u79FB\u51FA\u7F16\u8F91\u5668', "\u7F16\u8F91\u5668\u8F6F\u952E\u76D8\u662F\u5426\u53EF\u89C1", "\u662F\u5426\u805A\u7126\u7F16\u8F91\u5668\u60AC\u505C", "\u662F\u5426\u805A\u7126\u7C98\u6027\u6EDA\u52A8", "\u7C98\u6027\u6EDA\u52A8\u662F\u5426\u53EF\u89C1", "\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u662F\u5426\u53EF\u89C1", "\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u662F\u5426\u805A\u7126", "\u7F16\u8F91\u5668\u662F\u5426\u5904\u4E8E\u7F16\u8F91\u6A21\u5F0F", "\u8BE5\u7F16\u8F91\u5668\u662F\u5426\u662F\u66F4\u5927\u7684\u7F16\u8F91\u5668(\u4F8B\u5982\u7B14\u8BB0\u672C)\u7684\u4E00\u90E8\u5206", "\u7F16\u8F91\u5668\u7684\u8BED\u8A00\u6807\u8BC6\u7B26", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u8865\u5168\u9879\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u4EE3\u7801\u64CD\u4F5C\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709 CodeLens \u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u5B9A\u4E49\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u58F0\u660E\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u5B9E\u73B0\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u7C7B\u578B\u5B9A\u4E49\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u60AC\u505C\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u6587\u6863\u7A81\u51FA\u663E\u793A\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u6587\u6863\u7B26\u53F7\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u5F15\u7528\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u91CD\u547D\u540D\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u7B7E\u540D\u5E2E\u52A9\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u5185\u8054\u63D0\u793A\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u6587\u6863\u683C\u5F0F\u8BBE\u7F6E\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u6587\u6863\u9009\u62E9\u683C\u5F0F\u8BBE\u7F6E\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u5177\u6709\u591A\u4E2A\u6587\u6863\u683C\u5F0F\u8BBE\u7F6E\u63D0\u4F9B\u7A0B\u5E8F", "\u7F16\u8F91\u5668\u662F\u5426\u6709\u591A\u4E2A\u6587\u6863\u9009\u62E9\u683C\u5F0F\u8BBE\u7F6E\u63D0\u4F9B\u7A0B\u5E8F", "\u5F53\u524D\u7F16\u8F91\u5668\u9009\u533A\u4E2D\u662F\u5426\u5B58\u5728\u4EFB\u4F55\u8BCA\u65AD\u4FE1\u606F", "\u65B9\u6CD5", "\u51FD\u6570", "\u6784\u9020\u51FD\u6570", "\u5B57\u6BB5", "\u53D8\u91CF", "\u7C7B", "\u7ED3\u6784", "\u63A5\u53E3", "\u6A21\u5757", "\u5C5E\u6027", "\u4E8B\u4EF6", "\u8FD0\u7B97\u7B26", "\u5355\u4F4D", "\u503C", "\u5E38\u6570", "\u679A\u4E3E", "\u679A\u4E3E\u6210\u5458", "\u5173\u952E\u5B57", "\u6587\u672C", "\u989C\u8272", "\u6587\u4EF6", "\u53C2\u8003", "\u81EA\u5B9A\u4E49\u989C\u8272", "\u6587\u4EF6\u5939", "\u7C7B\u578B\u53C2\u6570", "\u7528\u6237", "\u95EE\u9898", "\u5DE5\u5177", "\u7247\u6BB5", "\u6570\u7EC4", "\u5E03\u5C14\u503C", "\u7C7B", "\u5E38\u6570", "\u6784\u9020\u51FD\u6570", "\u679A\u4E3E", "\u679A\u4E3E\u6210\u5458", "\u4E8B\u4EF6", "\u5B57\u6BB5", "\u6587\u4EF6", "\u51FD\u6570", "\u63A5\u53E3", "\u952E", "\u65B9\u6CD5", "\u6A21\u5757", "\u547D\u540D\u7A7A\u95F4", "Null", "\u6570\u5B57", "\u5BF9\u8C61", "\u8FD0\u7B97\u7B26", "\u5305", "\u5C5E\u6027", "\u5B57\u7B26\u4E32", "\u7ED3\u6784", "\u7C7B\u578B\u53C2\u6570", "\u53D8\u91CF", "{0} ({1})", "\u7EAF\u6587\u672C", "\u8F93\u5165", "\u5F00\u53D1\u4EBA\u5458: \u68C0\u67E5\u4EE4\u724C", "\u8F6C\u5230\u884C/\u5217...", "\u8F6C\u5230\u504F\u79FB\u91CF...", "\u663E\u793A\u6240\u6709\u5FEB\u901F\u8BBF\u95EE\u63D0\u4F9B\u7A0B\u5E8F", "\u547D\u4EE4\u9762\u677F", "\u663E\u793A\u5E76\u8FD0\u884C\u547D\u4EE4", "\u8F6C\u5230\u7B26\u53F7...", "\u6309\u7C7B\u522B\u8F6C\u5230\u7B26\u53F7...", "\u7F16\u8F91\u5668\u5185\u5BB9", "\u5207\u6362\u9AD8\u5BF9\u6BD4\u5EA6\u4E3B\u9898", "\u5728 {1} \u4E2A\u6587\u4EF6\u4E2D\u8FDB\u884C\u4E86 {0} \u6B21\u7F16\u8F91", "\u663E\u793A\u66F4\u591A({0})", "{0} \u5B57\u7B26", "\u9009\u62E9\u5B9A\u4F4D\u70B9", "\u5B9A\u4F4D\u70B9\u8BBE\u7F6E\u4E3A {0}:{1}", "\u8BBE\u7F6E\u9009\u62E9\u5B9A\u4F4D\u70B9", "\u8F6C\u5230\u9009\u62E9\u5B9A\u4F4D\u70B9", "\u9009\u62E9\u4ECE\u5B9A\u4F4D\u70B9\u5230\u5149\u6807", "\u53D6\u6D88\u9009\u62E9\u5B9A\u4F4D\u70B9", "\u6982\u89C8\u6807\u5C3A\u4E0A\u8868\u793A\u5339\u914D\u62EC\u53F7\u7684\u6807\u8BB0\u989C\u8272\u3002", "\u8F6C\u5230\u62EC\u53F7(&&B)", "\u8F6C\u5230\u62EC\u53F7", "\u9009\u62E9\u62EC\u53F7\u6240\u6709\u5185\u5BB9", "\u9009\u62E9\u5176\u4E2D\u7684\u6587\u672C\uFF0C\u5305\u62EC\u62EC\u53F7\u6216\u5927\u62EC\u53F7", "\u5220\u9664\u62EC\u53F7", "\u5411\u5DE6\u79FB\u52A8\u6240\u9009\u6587\u672C", "\u5411\u53F3\u79FB\u52A8\u6240\u9009\u6587\u672C", "\u8F6C\u7F6E\u5B57\u6BCD", "\u526A\u5207(&&T)", "\u526A\u5207", "\u526A\u5207", "\u526A\u5207", "\u590D\u5236(&&C)", "\u590D\u5236", "\u590D\u5236", "\u590D\u5236", "\u7C98\u8D34(&&P)", "\u7C98\u8D34", "\u7C98\u8D34", "\u7C98\u8D34", "\u590D\u5236\u4E3A", "\u590D\u5236\u4E3A", "\u5171\u4EAB", "\u5171\u4EAB", "\u590D\u5236\u5E76\u4FDD\u7559\u8BED\u6CD5\u7A81\u51FA\u663E\u793A", "\u5E94\u7528\u4EE3\u7801\u64CD\u4F5C\u65F6\u53D1\u751F\u672A\u77E5\u9519\u8BEF", "\u8981\u8FD0\u884C\u7684\u4EE3\u7801\u64CD\u4F5C\u7684\u79CD\u7C7B\u3002", "\u63A7\u5236\u4F55\u65F6\u5E94\u7528\u8FD4\u56DE\u7684\u64CD\u4F5C\u3002", "\u59CB\u7EC8\u5E94\u7528\u7B2C\u4E00\u4E2A\u8FD4\u56DE\u7684\u4EE3\u7801\u64CD\u4F5C\u3002", "\u5982\u679C\u4EC5\u8FD4\u56DE\u7684\u7B2C\u4E00\u4E2A\u4EE3\u7801\u64CD\u4F5C\uFF0C\u5219\u5E94\u7528\u8BE5\u64CD\u4F5C\u3002", "\u4E0D\u8981\u5E94\u7528\u8FD4\u56DE\u7684\u4EE3\u7801\u64CD\u4F5C\u3002", "\u5982\u679C\u53EA\u5E94\u8FD4\u56DE\u9996\u9009\u4EE3\u7801\u64CD\u4F5C\uFF0C\u5219\u5E94\u8FD4\u56DE\u63A7\u4EF6\u3002", "\u6CA1\u6709\u53EF\u7528\u7684\u4EE3\u7801\u64CD\u4F5C", '\u6CA1\u6709\u9002\u7528\u4E8E"{0}"\u7684\u9996\u9009\u4EE3\u7801\u64CD\u4F5C', '\u6CA1\u6709\u9002\u7528\u4E8E"{0}"\u7684\u4EE3\u7801\u64CD\u4F5C', "\u6CA1\u6709\u53EF\u7528\u7684\u9996\u9009\u4EE3\u7801\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u4EE3\u7801\u64CD\u4F5C", '\u6CA1\u6709\u9002\u7528\u4E8E"{0}"\u7684\u9996\u9009\u91CD\u6784', '\u6CA1\u6709\u53EF\u7528\u7684"{0}"\u91CD\u6784', "\u6CA1\u6709\u53EF\u7528\u7684\u9996\u9009\u91CD\u6784", "\u6CA1\u6709\u53EF\u7528\u7684\u91CD\u6784\u64CD\u4F5C", '\u6CA1\u6709\u9002\u7528\u4E8E"{0}"\u7684\u9996\u9009\u6E90\u64CD\u4F5C', "\u6CA1\u6709\u9002\u7528\u4E8E\u201C {0}\u201D\u7684\u6E90\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u9996\u9009\u6E90\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u6E90\u4EE3\u7801\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u6574\u7406 import \u8BED\u53E5\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u201C\u5168\u90E8\u4FEE\u590D\u201D\u64CD\u4F5C", "\u6CA1\u6709\u53EF\u7528\u7684\u81EA\u52A8\u4FEE\u590D\u7A0B\u5E8F", "\u5FEB\u901F\u4FEE\u590D...", "\u91CD\u6784...", "\u6E90\u4EE3\u7801\u64CD\u4F5C...", "\u6574\u7406 import \u8BED\u53E5", "\u7EC4\u7EC7\u5F53\u524D\u6587\u4EF6\u4E2D\u7684\u5BFC\u5165\u3002\u4E5F\u88AB\u4E00\u4E9B\u5DE5\u4F5C\u79F0\u4E3A\u201C\u4F18\u5316\u5BFC\u5165\u201D", "\u5168\u90E8\u4FEE\u590D", "\u81EA\u52A8\u4FEE\u590D...", "\u542F\u7528/\u7981\u7528\u5728\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u4E2D\u663E\u793A\u7EC4\u6807\u5934\u3002", "\u542F\u7528/\u7981\u7528\u5728\u5F53\u524D\u672A\u8FDB\u884C\u8BCA\u65AD\u65F6\u663E\u793A\u884C\u5185\u6700\u8FD1\u7684\u5FEB\u901F\u4FEE\u590D\u3002", "\u5F53 {1} \u8BBE\u7F6E\u4E3A {2} \u65F6\uFF0C\u542F\u7528\u89E6\u53D1 {0}\u3002\u4EE3\u7801\u64CD\u4F5C\u5FC5\u987B\u8BBE\u7F6E\u4E3A {3} \u4EE5\u4FBF\u5728\u7A97\u53E3\u548C\u7126\u70B9\u66F4\u6539\u65F6\u89E6\u53D1\u3002", "\u4E0A\u4E0B\u6587: {0} \u4F4D\u4E8E\u884C {1} \u548C\u5217 {2}\u3002", "\u9690\u85CF\u5DF2\u7981\u7528\u9879", "\u663E\u793A\u5DF2\u7981\u7528\u9879", "\u66F4\u591A\u64CD\u4F5C...", "\u5FEB\u901F\u4FEE\u590D", "\u63D0\u53D6", "\u5185\u8054", "\u91CD\u5199", "\u79FB\u52A8", "\u5916\u4FA7\u4EE3\u7801", "\u6E90\u4EE3\u7801\u64CD\u4F5C", "\u5F53\u7F16\u8F91\u5668\u4E2D\u6CA1\u6709\u7A7A\u95F4\u65F6\u4ECE\u88C5\u8BA2\u7EBF\u751F\u6210\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u7684\u56FE\u6807\u3002", "\u5F53\u7F16\u8F91\u5668\u4E2D\u6CA1\u6709\u7A7A\u95F4\uFF0C\u4E14\u5FEB\u901F\u4FEE\u590D\u53EF\u7528\u65F6\u4ECE\u88C5\u8BA2\u7EBF\u751F\u6210\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u7684\u56FE\u6807\u3002", "\u5F53\u7F16\u8F91\u5668\u4E2D\u6CA1\u6709\u7A7A\u95F4\uFF0C\u4E14 AI \u4FEE\u590D\u53EF\u7528\u65F6\u4ECE\u88C5\u8BA2\u7EBF\u751F\u6210\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u7684\u56FE\u6807\u3002", "\u5F53\u7F16\u8F91\u5668\u4E2D\u6CA1\u6709\u7A7A\u95F4\u3001AI \u4FEE\u590D\u548C\u5FEB\u901F\u4FEE\u590D\u53EF\u7528\u65F6\u4ECE\u88C5\u8BA2\u7EBF\u751F\u6210\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u7684\u56FE\u6807\u3002", "\u5F53\u7F16\u8F91\u5668\u4E2D\u6CA1\u6709\u7A7A\u95F4\u3001AI \u4FEE\u590D\u548C\u5FEB\u901F\u4FEE\u590D\u53EF\u7528\u65F6\u4ECE\u88C5\u8BA2\u7EBF\u751F\u6210\u4EE3\u7801\u64CD\u4F5C\u83DC\u5355\u7684\u56FE\u6807\u3002", "\u8FD0\u884C\uFF1A{0}", "\u663E\u793A\u4EE3\u7801\u64CD\u4F5C\u3002\u9996\u9009\u53EF\u7528\u7684\u5FEB\u901F\u4FEE\u590D({0})", "\u663E\u793A\u4EE3\u7801\u64CD\u4F5C({0})", "\u663E\u793A\u4EE3\u7801\u64CD\u4F5C", "\u9009\u62E9\u547D\u4EE4", "\u663E\u793A\u5F53\u524D\u884C\u7684 CodeLens \u547D\u4EE4", "\u7528\u4E8E\u5173\u95ED\u989C\u8272\u9009\u53D6\u5668\u7684\u56FE\u6807", "\u5355\u51FB\u4EE5\u5207\u6362\u989C\u8272\u9009\u9879(rgb/hsl/hex)", "\u6B64\u5904\u6709\u989C\u8272\u9009\u53D6\u5668\u3002", "\u663E\u793A\u6216\u805A\u7126\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668(&&S)", "\u663E\u793A\u6216\u805A\u7126\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668", "\u663E\u793A\u6216\u805A\u7126\u4F7F\u7528\u9ED8\u8BA4\u989C\u8272\u63D0\u4F9B\u7A0B\u5E8F\u7684\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u3002\u5B83\u4F1A\u663E\u793A rgb/hsl/hex \u989C\u8272\u3002", "\u9690\u85CF\u989C\u8272\u9009\u53D6\u5668", "\u9690\u85CF\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u3002", "\u4F7F\u7528\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u63D2\u5165\u989C\u8272", "\u4F7F\u7528\u805A\u7126\u7684\u72EC\u7ACB\u989C\u8272\u9009\u53D6\u5668\u63D2\u5165 hex/rgb/hsl \u989C\u8272\u3002", "\u5207\u6362\u884C\u6CE8\u91CA(&&T)", "\u5207\u6362\u5757\u6CE8\u91CA(&&B)", "\u5207\u6362\u884C\u6CE8\u91CA", "\u6DFB\u52A0\u884C\u6CE8\u91CA", "\u5220\u9664\u884C\u6CE8\u91CA", "\u5207\u6362\u5757\u6CE8\u91CA", "\u7F29\u7565\u56FE", "\u5448\u73B0\u5B57\u7B26", "\u5782\u76F4\u5927\u5C0F", "\u6210\u6BD4\u4F8B", "\u586B\u5145", "\u9002\u5E94", "\u6ED1\u5757", "\u9F20\u6807\u60AC\u505C", "\u59CB\u7EC8", "\u4FA7\u8FB9", "\u53F3\u4FA7", "\u5DE6\u4FA7", "\u663E\u793A\u7F16\u8F91\u5668\u4E0A\u4E0B\u6587\u83DC\u5355", "\u5149\u6807\u64A4\u6D88", "\u5149\u6807\u91CD\u505A", "\u8981\u5C1D\u8BD5\u7C98\u8D34\u7684\u7C98\u8D34\u7F16\u8F91\u7684\u7C7B\u578B\u3002\r\n\u5982\u679C\u6709\u591A\u4E2A\u6B64\u7C7B\u7F16\u8F91\uFF0C\u7F16\u8F91\u5668\u5C06\u663E\u793A\u4E00\u4E2A\u9009\u53D6\u5668\u3002\u5982\u679C\u6CA1\u6709\u6B64\u7C7B\u7F16\u8F91\uFF0C\u7F16\u8F91\u5668\u5C06\u663E\u793A\u9519\u8BEF\u6D88\u606F\u3002", "\u8981\u5C1D\u8BD5\u5E94\u7528\u7684\u9996\u9009\u7C98\u8D34\u7F16\u8F91\u7C7B\u578B\u5217\u8868\u3002\r\n\u5C06\u5E94\u7528\u4E0E\u9996\u9009\u9879\u5339\u914D\u7684\u7B2C\u4E00\u4E2A\u7F16\u8F91\u3002", "\u7C98\u8D34\u4E3A...", "\u7C98\u8D34\u4E3A\u6587\u672C", "\u662F\u5426\u663E\u793A\u7C98\u8D34\u5C0F\u7EC4\u4EF6", "\u663E\u793A\u7C98\u8D34\u9009\u9879...", "\u7A7A", "\u627E\u4E0D\u5230\u201C{0}\u201D\u7684\u7C98\u8D34\u7F16\u8F91", "\u6B63\u5728\u89E3\u6790 '{0}' \u7684\u7C98\u8D34\u7F16\u8F91\u3002\u5355\u51FB\u4EE5\u53D6\u6D88", "\u6B63\u5728\u8FD0\u884C\u7C98\u8D34\u5904\u7406\u7A0B\u5E8F\u3002\u5355\u51FB\u53EF\u53D6\u6D88\u5E76\u8FDB\u884C\u57FA\u672C\u7C98\u8D34", "\u914D\u7F6E\u9ED8\u8BA4\u7C98\u8D34\u64CD\u4F5C", "\u9009\u62E9\u7C98\u8D34\u64CD\u4F5C", "\u6B63\u5728\u8FD0\u884C\u7C98\u8D34\u5904\u7406\u7A0B\u5E8F", "\u63D2\u5165\u7EAF\u6587\u672C", "\u63D2\u5165 URI", "\u63D2\u5165 URI", "\u63D2\u5165\u8DEF\u5F84", "\u63D2\u5165\u8DEF\u5F84", "\u63D2\u5165\u76F8\u5BF9\u8DEF\u5F84", "\u63D2\u5165\u76F8\u5BF9\u8DEF\u5F84", "\u63D2\u5165 HTML", "\u662F\u5426\u663E\u793A\u653E\u7F6E\u5C0F\u7EC4\u4EF6", "\u663E\u793A\u653E\u7F6E\u9009\u9879...", "\u6B63\u5728\u8FD0\u884C\u653E\u7F6E\u5904\u7406\u7A0B\u5E8F\u3002\u5355\u51FB\u4EE5\u53D6\u6D88", "\u89E3\u6790\u7F16\u8F91\u201C{0}\u201D\u65F6\u51FA\u9519:\r\n{1}", "\u5E94\u7528\u7F16\u8F91\u201C{0}\u201D\u65F6\u51FA\u9519:\r\n{1}", "\u7F16\u8F91\u5668\u662F\u5426\u8FD0\u884C\u53EF\u53D6\u6D88\u7684\u64CD\u4F5C\uFF0C\u4F8B\u5982\u201C\u9884\u89C8\u5F15\u7528\u201D", "\u6587\u4EF6\u592A\u5927\uFF0C\u65E0\u6CD5\u6267\u884C\u5168\u90E8\u66FF\u6362\u64CD\u4F5C\u3002", "\u67E5\u627E(&&F)", "\u4E3A\u201C{1}\u201D\u627E\u5230 {0}", "\u65E0\u5339\u914D\u9879\u3002\u8BF7\u5C1D\u8BD5\u641C\u7D22\u5176\u4ED6\u5185\u5BB9\u3002", "\u952E\u5165\u6570\u5B57\u4EE5\u8F6C\u5230\u7279\u5B9A\u5339\u914D\u9879(\u4ECB\u4E8E 1 \u548C {0} \u4E4B\u95F4)", "\u8BF7\u952E\u5165\u4ECB\u4E8E 1 \u548C {0} \u4E4B\u95F4\u7684\u6570\u5B57", "\u8BF7\u952E\u5165\u4ECB\u4E8E 1 \u548C {0} \u4E4B\u95F4\u7684\u6570\u5B57", "\u66FF\u6362(&&R)", "\u67E5\u627E", "\u4F7F\u7528\u53C2\u6570\u67E5\u627E", "\u4F7F\u7528\u6240\u9009\u5185\u5BB9\u67E5\u627E", "\u67E5\u627E\u4E0B\u4E00\u4E2A", "\u67E5\u627E\u4E0A\u4E00\u4E2A", "\u8F6C\u5230\u201C\u5339\u914D\u201D...", "\u67E5\u627E\u4E0B\u4E00\u4E2A\u9009\u62E9", "\u67E5\u627E\u4E0A\u4E00\u4E2A\u9009\u62E9", "\u66FF\u6362", "\u7528\u4E8E\u6307\u793A\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u5DF2\u6298\u53E0\u7684\u56FE\u6807\u3002", "\u7528\u4E8E\u6307\u793A\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u5DF2\u5C55\u5F00\u7684\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u201C\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E\u201D\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u201C\u66FF\u6362\u201D\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u201C\u5168\u90E8\u66FF\u6362\u201D\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u201C\u67E5\u627E\u4E0A\u4E00\u4E2A\u201D\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u67E5\u627E\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u201C\u67E5\u627E\u4E0B\u4E00\u4E2A\u201D\u56FE\u6807\u3002", "\u67E5\u627E/\u66FF\u6362", "\u67E5\u627E", "\u67E5\u627E", "\u4E0A\u4E00\u4E2A\u5339\u914D\u9879", "\u4E0B\u4E00\u4E2A\u5339\u914D\u9879", "\u5728\u9009\u5B9A\u5185\u5BB9\u4E2D\u67E5\u627E", "\u5173\u95ED", "\u66FF\u6362", "\u66FF\u6362", "\u66FF\u6362", "\u5168\u90E8\u66FF\u6362", "\u5207\u6362\u66FF\u6362", "\u4EC5\u9AD8\u4EAE\u4E86\u524D {0} \u4E2A\u7ED3\u679C\uFF0C\u4F46\u6240\u6709\u67E5\u627E\u64CD\u4F5C\u5747\u9488\u5BF9\u5168\u6587\u3002", "\u7B2C {0} \u9879\uFF0C\u5171 {1} \u9879", "\u65E0\u7ED3\u679C", "\u627E\u5230 {0}", "\u4E3A\u201C{1}\u201D\u627E\u5230 {0}", "\u5728 {2} \u5904\u627E\u5230\u201C{1}\u201D\u7684 {0}", "\u4E3A\u201C{1}\u201D\u627E\u5230 {0}", "\u6309 {0} \u53EF\u83B7\u53D6\u8F85\u52A9\u529F\u80FD\u5E2E\u52A9", "{0}\uFF0C{1}", "{0}\uFF0C{1}", "\u5C55\u5F00", "\u4EE5\u9012\u5F52\u65B9\u5F0F\u5C55\u5F00", "\u6298\u53E0", "\u5207\u6362\u6298\u53E0", "\u4EE5\u9012\u5F52\u65B9\u5F0F\u6298\u53E0", "\u4EE5\u9012\u5F52\u65B9\u5F0F\u5207\u6362\u6298\u53E0", "\u6298\u53E0\u6240\u6709\u5757\u6CE8\u91CA", "\u6298\u53E0\u6240\u6709\u533A\u57DF", "\u5C55\u5F00\u6240\u6709\u533A\u57DF", "\u6298\u53E0\u9664\u9009\u5B9A\u9879\u4EE5\u5916\u7684\u6240\u6709\u9879", "\u5C55\u5F00\u9664\u6240\u9009\u533A\u57DF\u4E4B\u5916\u7684\u6240\u6709\u533A\u57DF", "\u5168\u90E8\u6298\u53E0", "\u5168\u90E8\u5C55\u5F00", "\u8DF3\u8F6C\u5230\u7236\u7EA7\u6298\u53E0", "\u8F6C\u5230\u4E0A\u4E00\u4E2A\u6298\u53E0\u8303\u56F4", "\u8F6C\u5230\u4E0B\u4E00\u4E2A\u6298\u53E0\u8303\u56F4", "\u6839\u636E\u6240\u9009\u5185\u5BB9\u521B\u5EFA\u6298\u53E0\u8303\u56F4", "\u5220\u9664\u624B\u52A8\u6298\u53E0\u8303\u56F4", "\u5207\u6362\u5BFC\u5165\u6298\u53E0", "\u6298\u53E0\u7EA7\u522B {0}", "\u6298\u53E0\u8303\u56F4\u540E\u9762\u7684\u80CC\u666F\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u8BBE\u4E3A\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u5E95\u5C42\u88C5\u9970\u3002", "\u5728\u6298\u53E0\u8303\u56F4\u7684\u7B2C\u4E00\u884C\u540E\u7684\u6298\u53E0\u6587\u672C\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u88C5\u8BA2\u7EBF\u4E2D\u6298\u53E0\u63A7\u4EF6\u7684\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u5B57\u5F62\u8FB9\u8DDD\u4E2D\u5DF2\u5C55\u5F00\u7684\u8303\u56F4\u7684\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u5B57\u5F62\u8FB9\u8DDD\u4E2D\u5DF2\u6298\u53E0\u7684\u8303\u56F4\u7684\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u5B57\u5F62\u8FB9\u8DDD\u4E2D\u624B\u52A8\u6298\u53E0\u7684\u8303\u56F4\u7684\u56FE\u6807\u3002", "\u7F16\u8F91\u5668\u5B57\u5F62\u8FB9\u8DDD\u4E2D\u624B\u52A8\u5C55\u5F00\u7684\u8303\u56F4\u7684\u56FE\u6807\u3002", "\u5355\u51FB\u4EE5\u5C55\u5F00\u8303\u56F4\u3002", "\u5355\u51FB\u4EE5\u6298\u53E0\u8303\u56F4\u3002", "\u589E\u5927\u7F16\u8F91\u5668\u5B57\u53F7", "\u51CF\u5C0F\u7F16\u8F91\u5668\u5B57\u53F7", "\u91CD\u7F6E\u7F16\u8F91\u5668\u5B57\u53F7", "\u683C\u5F0F\u5316\u6587\u6863", "\u683C\u5F0F\u5316\u9009\u5B9A\u5185\u5BB9", "\u201C\u8F6C\u5230\u4E0B\u4E00\u4E2A\u201D\u6807\u8BB0\u7684\u56FE\u6807\u3002", "\u201C\u8F6C\u5230\u4E0A\u4E00\u4E2A\u201D\u6807\u8BB0\u7684\u56FE\u6807\u3002", "\u4E0B\u4E00\u4E2A\u95EE\u9898(&&P)", "\u4E0A\u4E00\u4E2A\u95EE\u9898(&&P)", "\u8F6C\u5230\u4E0B\u4E00\u4E2A\u95EE\u9898 (\u9519\u8BEF\u3001\u8B66\u544A\u3001\u4FE1\u606F)", "\u8F6C\u5230\u4E0A\u4E00\u4E2A\u95EE\u9898 (\u9519\u8BEF\u3001\u8B66\u544A\u3001\u4FE1\u606F)", "\u8F6C\u5230\u6587\u4EF6\u4E2D\u7684\u4E0B\u4E00\u4E2A\u95EE\u9898 (\u9519\u8BEF\u3001\u8B66\u544A\u3001\u4FE1\u606F)", "\u8F6C\u5230\u6587\u4EF6\u4E2D\u7684\u4E0A\u4E00\u4E2A\u95EE\u9898 (\u9519\u8BEF\u3001\u8B66\u544A\u3001\u4FE1\u606F)", "\u9519\u8BEF", "\u8B66\u544A", "\u4FE1\u606F", "\u63D0\u793A", "{2} \u51FA\u9519\uFF0C{0}: {1}\u3002", "{0} \u4E2A\u95EE\u9898(\u5171 {1} \u4E2A)", "{0} \u4E2A\u95EE\u9898(\u5171 {1} \u4E2A)", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u9519\u8BEF\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u9519\u8BEF\u6807\u9898\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u8B66\u544A\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u8B66\u544A\u6807\u9898\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u4FE1\u606F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u4FE1\u606F\u6807\u9898\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u6807\u8BB0\u5BFC\u822A\u5C0F\u7EC4\u4EF6\u80CC\u666F\u8272\u3002", "\u5FEB\u901F\u67E5\u770B", "\u5B9A\u4E49", "\u672A\u627E\u5230\u201C{0}\u201D\u7684\u4EFB\u4F55\u5B9A\u4E49", "\u627E\u4E0D\u5230\u5B9A\u4E49", "\u8F6C\u5230\u5B9A\u4E49(&&D)", "\u58F0\u660E", "\u672A\u627E\u5230\u201C{0}\u201D\u7684\u58F0\u660E", "\u672A\u627E\u5230\u58F0\u660E", "\u8F6C\u5230\u58F0\u660E(&&D)", "\u672A\u627E\u5230\u201C{0}\u201D\u7684\u58F0\u660E", "\u672A\u627E\u5230\u58F0\u660E", "\u7C7B\u578B\u5B9A\u4E49", "\u672A\u627E\u5230\u201C{0}\u201D\u7684\u7C7B\u578B\u5B9A\u4E49", "\u672A\u627E\u5230\u7C7B\u578B\u5B9A\u4E49", "\u8F6C\u5230\u7C7B\u578B\u5B9A\u4E49(&&T)", "\u5B9E\u73B0", "\u672A\u627E\u5230\u201C{0}\u201D\u7684\u5B9E\u73B0", "\u672A\u627E\u5230\u5B9E\u73B0", "\u8F6C\u5230\u5B9E\u73B0(&&I)", '\u672A\u627E\u5230"{0}"\u7684\u5F15\u7528', "\u672A\u627E\u5230\u5F15\u7528", "\u8F6C\u5230\u5F15\u7528(&&R)", "\u5F15\u7528", "\u5F15\u7528", "\u4F4D\u7F6E", "\u65E0\u201C{0}\u201D\u7684\u7ED3\u679C", "\u5F15\u7528", "\u8F6C\u5230\u5B9A\u4E49", "\u6253\u5F00\u4FA7\u8FB9\u7684\u5B9A\u4E49", "\u901F\u89C8\u5B9A\u4E49", "\u8F6C\u5230\u58F0\u660E", "\u67E5\u770B\u58F0\u660E", "\u8F6C\u5230\u7C7B\u578B\u5B9A\u4E49", "\u5FEB\u901F\u67E5\u770B\u7C7B\u578B\u5B9A\u4E49", "\u8F6C\u5230\u5B9E\u73B0", "\u67E5\u770B\u5B9E\u73B0", "\u8F6C\u5230\u5F15\u7528", "\u67E5\u770B\u5F15\u7528", "\u8F6C\u5230\u4EFB\u4F55\u7B26\u53F7", "\u5355\u51FB\u663E\u793A {0} \u4E2A\u5B9A\u4E49\u3002", "\u5F15\u7528\u901F\u89C8\u662F\u5426\u53EF\u89C1\uFF0C\u4F8B\u5982\u201C\u901F\u89C8\u5F15\u7528\u201D\u6216\u201C\u901F\u89C8\u5B9A\u4E49\u201D", "\u6B63\u5728\u52A0\u8F7D...", "{0} ({1})", "{0} \u4E2A\u5F15\u7528", "{0} \u4E2A\u5F15\u7528", "\u5F15\u7528", "\u65E0\u53EF\u7528\u9884\u89C8", "\u65E0\u7ED3\u679C", "\u5F15\u7528", "\u5728\u5217 {2} \u884C {1} \u7684 {0} \u4E2D", "\u5728\u5217 {3} \u884C {2} \u7684 {1} \u4E2D\u7684 {0}", "{0} \u4E2D\u6709 1 \u4E2A\u7B26\u53F7\uFF0C\u5B8C\u6574\u8DEF\u5F84: {1}", "{1} \u4E2D\u6709 {0} \u4E2A\u7B26\u53F7\uFF0C\u5B8C\u6574\u8DEF\u5F84: {2}", "\u672A\u627E\u5230\u7ED3\u679C", "\u5728 {0} \u4E2D\u627E\u5230 1 \u4E2A\u7B26\u53F7", "\u5728 {1} \u4E2D\u627E\u5230 {0} \u4E2A\u7B26\u53F7", "\u5728 {1} \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 {0} \u4E2A\u7B26\u53F7", "\u662F\u5426\u5B58\u5728\u53EA\u80FD\u901A\u8FC7\u952E\u76D8\u5BFC\u822A\u7684\u7B26\u53F7\u4F4D\u7F6E\u3002", "{1} \u7684\u7B26\u53F7 {0}\uFF0C\u4E0B\u4E00\u4E2A\u4F7F\u7528 {2}", "{1} \u7684\u7B26\u53F7 {0}", "\u8BB0\u5F55\u7EB9\u7406\u56FE\u96C6\u7EDF\u8BA1\u4FE1\u606F", "\u4FDD\u5B58\u7EB9\u7406\u56FE\u96C6", "\u7ED8\u5236\u5B57\u5F62", "\u5F00\u53D1\u4EBA\u5458: \u8C03\u8BD5\u7F16\u8F91\u5668 GPU \u5448\u73B0\u5668", "\u63D0\u9AD8\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6\u7EA7\u522B", "\u964D\u4F4E\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6\u7EA7\u522B", "\u60AC\u505C\u4E0D\u4F1A\u81EA\u52A8\u83B7\u5F97\u7126\u70B9\u3002", "\u4EC5\u5F53\u60AC\u505C\u5DF2\u53EF\u89C1\u65F6\uFF0C\u624D\u4F1A\u83B7\u5F97\u7126\u70B9\u3002", "\u60AC\u505C\u5728\u51FA\u73B0\u65F6\u4F1A\u81EA\u52A8\u83B7\u5F97\u7126\u70B9\u3002", "\u663E\u793A\u6216\u805A\u7126\u60AC\u505C", "\u663E\u793A\u6216\u805A\u7126\u7F16\u8F91\u5668\u60AC\u505C\uFF0C\u8BE5\u60AC\u505C\u5C06\u5728\u5F53\u524D\u5149\u6807\u4F4D\u7F6E\u663E\u793A\u7B26\u53F7\u7684\u6587\u6863\u3001\u5F15\u7528\u548C\u5176\u4ED6\u5185\u5BB9\u3002", "\u663E\u793A\u5B9A\u4E49\u9884\u89C8\u60AC\u505C", "\u5728\u7F16\u8F91\u5668\u4E2D\u663E\u793A\u5B9A\u4E49\u9884\u89C8\u60AC\u505C\u3002", "\u9690\u85CF\u60AC\u505C", "\u5411\u4E0A\u6EDA\u52A8\u60AC\u505C", "\u5411\u4E0A\u6EDA\u52A8\u7F16\u8F91\u5668\u60AC\u505C\u3002", "\u5411\u4E0B\u6EDA\u52A8\u60AC\u505C", "\u5411\u4E0B\u6EDA\u52A8\u7F16\u8F91\u5668\u60AC\u505C\u3002", "\u5411\u5DE6\u6EDA\u52A8\u60AC\u505C", "\u5411\u5DE6\u6EDA\u52A8\u7F16\u8F91\u5668\u60AC\u505C\u3002", "\u5411\u53F3\u6EDA\u52A8\u60AC\u505C", "\u5411\u53F3\u6EDA\u52A8\u7F16\u8F91\u5668\u60AC\u505C\u3002", "\u5411\u4E0A\u7FFB\u9875\u60AC\u505C", "\u5C06\u7F16\u8F91\u5668\u60AC\u505C\u5411\u4E0A\u7FFB\u9875\u3002", "\u5411\u4E0B\u7FFB\u9875\u60AC\u505C", "\u5C06\u7F16\u8F91\u5668\u60AC\u505C\u5411\u4E0B\u7FFB\u9875\u3002", "\u8F6C\u5230\u9876\u90E8\u60AC\u505C", "\u8F6C\u5230\u7F16\u8F91\u5668\u60AC\u505C\u7684\u9876\u90E8\u3002", "\u8F6C\u5230\u5E95\u90E8\u60AC\u505C", "\u8F6C\u5230\u7F16\u8F91\u5668\u60AC\u505C\u7684\u5E95\u90E8\u3002", "\u590D\u5236", "\u5DF2\u590D\u5236\u5230\u526A\u8D34\u677F", "\u7528\u4E8E\u63D0\u9AD8\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6\u7684\u56FE\u6807\u3002", "\u7528\u4E8E\u964D\u4F4E\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6\u7684\u56FE\u6807\u3002", "\u6B63\u5728\u52A0\u8F7D...", "\u7531\u4E8E\u6027\u80FD\u539F\u56E0\uFF0C\u957F\u7EBF\u7684\u5448\u73B0\u5DF2\u6682\u505C\u3002\u53EF\u901A\u8FC7 `editor.stopRenderingLineAfter` \u914D\u7F6E\u6B64\u8BBE\u7F6E\u3002[\u4E0D\u518D\u663E\u793A](command:{0})", "\u7531\u4E8E\u6027\u80FD\u539F\u56E0\uFF0C\u5728\u8FDB\u884C\u6807\u8BB0\u5316\u65F6\u8DF3\u8FC7\u4E86\u957F\u884C\u3002\u89E3\u6790\u957F\u5EA6\u9608\u503C\u53EF\u901A\u8FC7 `editor.maxTokenizationLineLength` \u8FDB\u884C\u914D\u7F6E\u3002[\u4E0D\u518D\u663E\u793A](command:{0})", "\u63D0\u9AD8\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6", "\u964D\u4F4E\u60AC\u505C\u8BE6\u7EC6\u7A0B\u5EA6", "\u67E5\u770B\u95EE\u9898", "\u6CA1\u6709\u53EF\u7528\u7684\u5FEB\u901F\u4FEE\u590D", "\u6B63\u5728\u68C0\u67E5\u5FEB\u901F\u4FEE\u590D...", "\u6CA1\u6709\u53EF\u7528\u7684\u5FEB\u901F\u4FEE\u590D", "\u5FEB\u901F\u4FEE\u590D...", "\u5DF2\u914D\u7F6E\u5236\u8868\u7B26\u5927\u5C0F", "\u9ED8\u8BA4\u5236\u8868\u7B26\u5927\u5C0F", "\u5F53\u524D\u5236\u8868\u7B26\u5927\u5C0F", "\u9009\u62E9\u5F53\u524D\u6587\u4EF6\u7684\u5236\u8868\u7B26\u5927\u5C0F", "\u5C06\u7F29\u8FDB\u8F6C\u6362\u4E3A\u7A7A\u683C", "\u5C06\u5236\u8868\u7B26\u7F29\u8FDB\u8F6C\u6362\u4E3A\u7A7A\u683C\u3002", "\u5C06\u7F29\u8FDB\u8F6C\u6362\u4E3A\u5236\u8868\u7B26", "\u5C06\u7A7A\u683C\u7F29\u8FDB\u8F6C\u6362\u4E3A\u5236\u8868\u7B26\u3002", "\u4F7F\u7528\u5236\u8868\u7B26\u7F29\u8FDB", "\u4F7F\u7528\u5236\u8868\u7B26\u7F29\u8FDB\u3002", "\u4F7F\u7528\u7A7A\u683C\u7F29\u8FDB", "\u4F7F\u7528\u7A7A\u683C\u7F29\u8FDB\u3002", "\u66F4\u6539\u5236\u8868\u7B26\u663E\u793A\u5927\u5C0F", "\u66F4\u6539\u5236\u8868\u7B26\u7684\u7B49\u6548\u7A7A\u95F4\u5927\u5C0F\u3002", "\u4ECE\u5185\u5BB9\u4E2D\u68C0\u6D4B\u7F29\u8FDB\u65B9\u5F0F", "\u68C0\u6D4B\u5185\u5BB9\u7684\u7F29\u8FDB\u3002", "\u91CD\u65B0\u7F29\u8FDB\u884C", "\u91CD\u65B0\u8BBE\u8BA1\u7F16\u8F91\u5668\u7684\u884C\u7F29\u8FDB\u3002", "\u91CD\u65B0\u7F29\u8FDB\u6240\u9009\u884C", "\u91CD\u65B0\u8BBE\u8BA1\u7F16\u8F91\u5668\u6240\u9009\u884C\u7684\u7F29\u8FDB\u3002", "\u53CC\u51FB\u4EE5\u63D2\u5165", "cmd + \u70B9\u51FB", "ctrl + \u70B9\u51FB", "option + \u70B9\u51FB", "alt + \u70B9\u51FB", "\u8F6C\u5230\u5B9A\u4E49 ({0})\uFF0C\u70B9\u51FB\u53F3\u952E\u4EE5\u67E5\u770B\u8BE6\u7EC6\u4FE1\u606F", "\u8F6C\u5230\u5B9A\u4E49\uFF08{0}\uFF09", "\u6267\u884C\u547D\u4EE4", "\u5728\u7F16\u8F91\u5668\u4E2D\u89E6\u53D1\u5185\u8054\u5EFA\u8BAE\u3002", "\u89E6\u53D1\u5185\u8054\u5EFA\u8BAE\u7684\u9009\u9879\u3002", "\u65E0\u5185\u8054\u5EFA\u8BAE\u53EF\u7528\u3002", "\u63A5\u53D7 Word", "\u63A5\u53D7\u884C", "\u63A5\u53D7", "\u63A5\u53D7", "\u8DF3\u8F6C", "\u62D2\u7EDD", "\u59CB\u7EC8\u663E\u793A\u5DE5\u5177\u680F", "\u5F00\u53D1\u4EBA\u5458: \u63D0\u53D6\u5185\u8054\u5EFA\u8BAE\u72B6\u6001", "\u663E\u793A\u4E0B\u4E00\u4E2A\u5185\u8054\u5EFA\u8BAE", "\u663E\u793A\u4E0A\u4E00\u4E2A\u5185\u8054\u5EFA\u8BAE", "\u89E6\u53D1\u5185\u8054\u5EFA\u8BAE", "\u63A5\u53D7\u5185\u8054\u5EFA\u8BAE\u7684\u4E0B\u4E00\u4E2A\u5B57", "\u63A5\u53D7\u5185\u8054\u5EFA\u8BAE\u7684\u4E0B\u4E00\u884C", "\u63A5\u53D7\u5185\u8054\u5EFA\u8BAE", "\u63A5\u53D7\u5185\u8054\u5EFA\u8BAE\u66FF\u4EE3\u64CD\u4F5C", "\u8DF3\u8F6C\u5230\u4E0B\u4E00\u4E2A\u5185\u8054\u7F16\u8F91", "\u9690\u85CF\u5185\u8054\u5EFA\u8BAE", "\u5207\u6362\u5185\u8054\u5EFA\u8BAE\u663E\u793A\u5DF2\u6298\u53E0", "\u5185\u8054\u5EFA\u8BAE\u662F\u5426\u53EF\u89C1", "\u5185\u8054\u5EFA\u8BAE\u7684\u66FF\u4EE3\u64CD\u4F5C\u662F\u5426\u53EF\u89C1\u3002", "\u5185\u8054\u5EFA\u8BAE\u662F\u5426\u4EE5\u7A7A\u767D\u5F00\u5934", "\u5185\u8054\u5EFA\u8BAE\u662F\u5426\u4EE5\u5C0F\u4E8E\u9009\u9879\u5361\u63D2\u5165\u5185\u5BB9\u7684\u7A7A\u683C\u5F00\u5934", "\u662F\u5426\u5E94\u6291\u5236\u5F53\u524D\u5EFA\u8BAE", "\u5149\u6807\u662F\u5426\u4F4D\u4E8E\u5E7D\u7075\u6587\u672C\u5904", "\u5149\u6807\u662F\u5426\u5904\u4E8E\u7F29\u8FDB\u72B6\u6001", "\u7F16\u8F91\u5668\u662F\u5426\u6709\u9009\u62E9", "\u5149\u6807\u662F\u5426\u5904\u4E8E\u5185\u8054\u7F16\u8F91\u72B6\u6001", "\u5185\u8054\u7F16\u8F91\u662F\u5426\u53EF\u89C1", "\u9009\u9879\u5361\u662F\u5426\u5E94\u8DF3\u8F6C\u5230\u5185\u8054\u7F16\u8F91\u3002", "\u9009\u9879\u5361\u662F\u5426\u5E94\u63A5\u53D7\u5185\u8054\u7F16\u8F91\u3002", "\u5F53\u524D\u4EE3\u7801\u7F16\u8F91\u5668\u662F\u5426\u663E\u793A\u5185\u8054\u7F16\u8F91\u9884\u89C8", "\u5728\u8F85\u52A9\u89C6\u56FE\u4E2D\u68C0\u67E5\u6B64\u9879 ({0})", "\u6B64\u5904\u6709\u5185\u8054\u5B8C\u6210", "\u5EFA\u8BAE:", "\u201C\u663E\u793A\u4E0B\u4E00\u4E2A\u53C2\u6570\u201D\u63D0\u793A\u7684\u56FE\u6807\u3002", "\u201C\u663E\u793A\u4E0A\u4E00\u4E2A\u53C2\u6570\u201D\u63D0\u793A\u7684\u56FE\u6807\u3002", "\u4E0A\u4E00\u6B65", "\u4E0B\u4E00\u6B65", "\u91CD\u547D\u540D", "\u91CD\u547D\u540D", "\u8F6C\u5230/\u63A5\u53D7", "\u62D2\u7EDD", "\u5DF2\u5C55\u5F00\u663E\u793A", "\u663E\u793A\u5DF2\u6298\u53E0", "\u63A8\u8FDF", "\u8BBE\u7F6E", "\u5185\u8054\u5EFA\u8BAE", "{0} 1 \u6B21\u51FA\u73B0", "{0} {1} \u6B21\u51FA\u73B0", "{0} \u663E\u793A\u53D1\u751F\u6B21\u6570", "\u5185\u8054\u7F16\u8F91\u4E2D\u539F\u59CB\u6587\u672C\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u4E2D\u5DF2\u4FEE\u6539\u6587\u672C\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u7684\u539F\u59CB\u6587\u672C\u4E2D\u5DF2\u66F4\u6539\u884C\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u7684\u539F\u59CB\u6587\u672C\u4E2D\u5DF2\u66F4\u6539\u6587\u672C\u7684\u8986\u76D6\u989C\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u7684\u4FEE\u6539\u6587\u672C\u4E2D\u5DF2\u66F4\u6539\u884C\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u7684\u4FEE\u6539\u6587\u672C\u4E2D\u5DF2\u66F4\u6539\u6587\u672C\u7684\u8986\u76D6\u989C\u8272\u3002", "\u4E3B\u8981\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u524D\u666F\u8272\u3002", "\u4E3B\u8981\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u4E3B\u8981\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u80CC\u666F\u8272\u3002", "\u8F85\u52A9\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u524D\u666F\u8272\u3002", "\u8F85\u52A9\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u8F85\u52A9\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u80CC\u666F\u8272\u3002", "\u6210\u529F\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u524D\u666F\u8272\u3002", "\u6210\u529F\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u6210\u529F\u7684\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u88C5\u8BA2\u7EBF\u6307\u793A\u5668\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u4E2D\u539F\u59CB\u6587\u672C\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5185\u8054\u7F16\u8F91\u4E2D\u5DF2\u4FEE\u6539\u6587\u672C\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u6309 Tab \u952E\u63A5\u53D7\u5B83\u65F6\uFF0C\u5185\u8054\u7F16\u8F91\u5C0F\u7EC4\u4EF6\u4FEE\u6539\u540E\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u6309 Tab \u952E\u63A5\u53D7\u5B83\u65F6\uFF0C\u539F\u59CB\u6587\u672C\u4E0A\u65B9\u5185\u8054\u7F16\u8F91\u5C0F\u7EC4\u4EF6\u7684\u539F\u59CB\u8FB9\u6846\u989C\u8272\u3002", "\u66FF\u6362\u4E3A\u4E0A\u4E00\u4E2A\u503C", "\u66FF\u6362\u4E3A\u4E0B\u4E00\u4E2A\u503C", "\u63D2\u5165\u6700\u7EC8\u65B0\u884C", "\u5C55\u5F00\u884C\u9009\u62E9", "\u5411\u4E0A\u590D\u5236\u4E00\u884C(&&C)", "\u5411\u4E0B\u590D\u5236\u4E00\u884C(&&P)", "\u91CD\u590D\u9009\u62E9(&&D)", "\u5411\u4E0A\u79FB\u52A8\u4E00\u884C(&&V)", "\u5411\u4E0B\u79FB\u52A8\u4E00\u884C(&&L)", "\u5411\u4E0A\u590D\u5236\u884C", "\u5411\u4E0B\u590D\u5236\u884C", "\u91CD\u590D\u9009\u62E9", "\u5411\u4E0A\u79FB\u52A8\u884C", "\u5411\u4E0B\u79FB\u52A8\u884C", "\u6309\u5347\u5E8F\u6392\u5217\u884C", "\u6309\u964D\u5E8F\u6392\u5217\u884C", "\u5220\u9664\u91CD\u590D\u884C", "\u53CD\u8F6C\u884C", "\u88C1\u526A\u5C3E\u968F\u7A7A\u683C", "\u5220\u9664\u884C", "\u884C\u7F29\u8FDB", "\u884C\u51CF\u5C11\u7F29\u8FDB", "\u5728\u4E0A\u9762\u63D2\u5165\u884C", "\u5728\u4E0B\u9762\u63D2\u5165\u884C", "\u5220\u9664\u5DE6\u4FA7\u6240\u6709\u5185\u5BB9", "\u5220\u9664\u53F3\u4FA7\u6240\u6709\u5185\u5BB9", "\u5408\u5E76\u884C", "\u8F6C\u7F6E\u5149\u6807\u5904\u7684\u5B57\u7B26", "\u8F6C\u6362\u4E3A\u5927\u5199", "\u8F6C\u6362\u4E3A\u5C0F\u5199", "\u8F6C\u6362\u4E3A\u8BCD\u9996\u5B57\u6BCD\u5927\u5199", "\u8F6C\u6362\u4E3A\u4E0B\u5212\u7EBF\u5C0F\u5199", "\u8F6C\u6362\u4E3A\u9A7C\u5CF0\u5F0F\u5927\u5C0F\u5199", "\u8F6C\u6362\u4E3A\u5E15\u65AF\u5361\u5F0F\u5927\u5C0F\u5199", "\u8F6C\u6362\u4E3A\u77ED\u6A2A\u7EBF\u5C0F\u5199", "\u7F16\u8F91\u5668\u6839\u636E\u7C7B\u578B\u81EA\u52A8\u91CD\u547D\u540D\u65F6\u7684\u80CC\u666F\u8272\u3002", "\u542F\u52A8\u94FE\u63A5\u7F16\u8F91", "\u6B64\u94FE\u63A5\u683C\u5F0F\u4E0D\u6B63\u786E\uFF0C\u65E0\u6CD5\u6253\u5F00: {0}", "\u6B64\u94FE\u63A5\u76EE\u6807\u5DF2\u4E22\u5931\uFF0C\u65E0\u6CD5\u6253\u5F00\u3002", "\u6267\u884C\u547D\u4EE4", "\u6253\u5F00\u94FE\u63A5", "cmd + \u5355\u51FB", "ctrl + \u5355\u51FB", "option + \u5355\u51FB", "alt + \u5355\u51FB", "\u6267\u884C\u547D\u4EE4 {0}", "\u6253\u5F00\u94FE\u63A5", "\u7F16\u8F91\u5668\u5F53\u524D\u662F\u5426\u6B63\u5728\u663E\u793A\u5185\u8054\u6D88\u606F", "\u6DFB\u52A0\u7684\u5149\u6807: {0}", "\u6DFB\u52A0\u7684\u6E38\u6807: {0}", "\u5728\u4E0A\u9762\u6DFB\u52A0\u5149\u6807(&&A)", "\u5728\u4E0B\u9762\u6DFB\u52A0\u5149\u6807(&&D)", "\u5728\u884C\u5C3E\u6DFB\u52A0\u5149\u6807(&&U)", "\u6DFB\u52A0\u4E0B\u4E00\u4E2A\u5339\u914D\u9879(&&N)", "\u6DFB\u52A0\u4E0A\u4E00\u4E2A\u5339\u914D\u9879(&&R)", "\u9009\u62E9\u6240\u6709\u5339\u914D\u9879(&&O)", "\u805A\u7126\u4E0B\u4E00\u4E2A\u5149\u6807", "\u805A\u7126\u4E0A\u4E00\u4E2A\u5149\u6807", "\u5728\u4E0A\u9762\u6DFB\u52A0\u5149\u6807", "\u5728\u4E0B\u9762\u6DFB\u52A0\u5149\u6807", "\u5728\u884C\u5C3E\u6DFB\u52A0\u5149\u6807", "\u5728\u5E95\u90E8\u6DFB\u52A0\u5149\u6807", "\u5728\u9876\u90E8\u6DFB\u52A0\u5149\u6807", "\u5C06\u9009\u62E9\u5185\u5BB9\u6DFB\u52A0\u5230\u4E0B\u4E00\u4E2A\u67E5\u627E\u5339\u914D\u9879", "\u5C06\u9009\u62E9\u5185\u5BB9\u6DFB\u52A0\u5230\u4E0A\u4E00\u4E2A\u67E5\u627E\u5339\u914D\u9879", "\u5C06\u4E0A\u6B21\u9009\u62E9\u5185\u5BB9\u79FB\u52A8\u5230\u4E0B\u4E00\u4E2A\u67E5\u627E\u5339\u914D\u9879", "\u5C06\u4E0A\u6B21\u9009\u62E9\u5185\u5BB9\u79FB\u52A8\u5230\u4E0A\u4E00\u4E2A\u67E5\u627E\u5339\u914D\u9879", "\u9009\u62E9\u6240\u6709\u627E\u5230\u7684\u67E5\u627E\u5339\u914D\u9879", "\u66F4\u6539\u6240\u6709\u5339\u914D\u9879", "\u805A\u7126\u4E0B\u4E00\u4E2A\u5149\u6807", "\u805A\u7126\u4E0A\u4E00\u4E2A\u5149\u6807", "\u89E6\u53D1\u53C2\u6570\u63D0\u793A", "\u201C\u663E\u793A\u4E0B\u4E00\u4E2A\u53C2\u6570\u201D\u63D0\u793A\u7684\u56FE\u6807\u3002", "\u201C\u663E\u793A\u4E0A\u4E00\u4E2A\u53C2\u6570\u201D\u63D0\u793A\u7684\u56FE\u6807\u3002", "{0}\uFF0C\u63D0\u793A", "\u53C2\u6570\u63D0\u793A\u4E2D\u6D3B\u52A8\u9879\u7684\u524D\u666F\u8272\u3002", "\u901F\u89C8\u4E2D\u662F\u5426\u5D4C\u5165\u4E86\u5F53\u524D\u4EE3\u7801\u7F16\u8F91\u5668", "\u5173\u95ED", "\u901F\u89C8\u89C6\u56FE\u6807\u9898\u533A\u57DF\u80CC\u666F\u989C\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u6807\u9898\u989C\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u6807\u9898\u4FE1\u606F\u989C\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u8FB9\u6846\u548C\u7BAD\u5934\u989C\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u80CC\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u4E2D\u884C\u8282\u70B9\u7684\u524D\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u4E2D\u6587\u4EF6\u8282\u70B9\u7684\u524D\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u4E2D\u6240\u9009\u6761\u76EE\u7684\u80CC\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u4E2D\u6240\u9009\u6761\u76EE\u7684\u524D\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u80CC\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u4E2D\u88C5\u8BA2\u7EBF\u7684\u80CC\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u80CC\u666F\u8272\u3002", "\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u88C5\u8BA2\u7EBF\u90E8\u4EF6\u7684\u80CC\u666F\u8272\u3002", "\u5728\u901F\u89C8\u89C6\u56FE\u7ED3\u679C\u5217\u8868\u4E2D\u5339\u914D\u7A81\u51FA\u663E\u793A\u989C\u8272\u3002", "\u5728\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u4E2D\u5339\u914D\u7A81\u51FA\u663E\u793A\u989C\u8272\u3002", "\u5728\u901F\u89C8\u89C6\u56FE\u7F16\u8F91\u5668\u4E2D\u5339\u914D\u9879\u7684\u7A81\u51FA\u663E\u793A\u8FB9\u6846\u3002", "\u7F16\u8F91\u5668\u4E2D\u5360\u4F4D\u7B26\u6587\u672C\u7684\u524D\u666F\u8272\u3002", "\u7B2C {0} \u884C\uFF0C\u7B2C {1} \u5217: {2}", "\u5148\u6253\u5F00\u6587\u672C\u7F16\u8F91\u5668\u7136\u540E\u8DF3\u8F6C\u5230\u884C\u6216\u504F\u79FB\u91CF\u3002", "\u8F6C\u5230\u884C\u3002\u952E\u5165\u884C\u53F7\uFF0C\u53EF\u9009\u62E9\u540E\u8DDF\u5192\u53F7\u548C\u5217\u53F7\u3002", "\u5207\u6362\u57FA\u4E8E\u96F6\u7684\u504F\u79FB", "\u8F6C\u5230\u7B2C {0} \u884C\uFF0C\u7B2C {1} \u5217\u3002\u6309 Enter \u952E\u5BFC\u822A\u3002", "\u5148\u6253\u5F00\u6587\u672C\u7F16\u8F91\u5668\u7136\u540E\u8DF3\u8F6C\u5230\u884C\u6216\u504F\u79FB\u91CF\u3002", "\u952E\u5165\u8981\u8F6C\u5230\u7684\u5B57\u7B26\u4F4D\u7F6E(\u4ECE 0 \u5230 {0})\u3002", "\u952E\u5165\u8981\u8F6C\u5230\u7684\u5B57\u7B26\u4F4D\u7F6E(\u4ECE 1 \u5230 {0})\u3002", '\u6309 "Enter" \u952E\u8F6C\u5230\u7B2C {0} \u884C\uFF0C\u7B2C {1} \u5217\u3002', "\u952E\u5165\u8981\u8F6C\u5230\u7684\u884C\u53F7(\u4ECE 1 \u5230 {0})\u3002", '\u6309 "Enter" \u952E\u8F6C\u5230\u7B2C {0} \u884C\uFF0C\u6216\u8F93\u5165\u5192\u53F7 : \u4EE5\u6DFB\u52A0\u5217\u53F7\u3002', '\u6309 "Enter" \u952E\u8DF3\u8F6C\u5230\u7B2C {0} \u884C\uFF0C\u6216\u8F93\u5165\u5217\u53F7(\u4ECE 1 \u5230 {1})\u3002', '\u6309 "Enter" \u952E\u8F6C\u5230\u7B2C {0} \u884C\uFF0C\u7B2C {1} \u5217\u3002', "\u8981\u8F6C\u5230\u7B26\u53F7\uFF0C\u9996\u5148\u6253\u5F00\u5177\u6709\u7B26\u53F7\u4FE1\u606F\u7684\u6587\u672C\u7F16\u8F91\u5668\u3002", "\u6D3B\u52A8\u6587\u672C\u7F16\u8F91\u5668\u4E0D\u63D0\u4F9B\u7B26\u53F7\u4FE1\u606F\u3002", "\u6CA1\u6709\u5339\u914D\u7684\u7F16\u8F91\u5668\u7B26\u53F7", "\u6CA1\u6709\u7F16\u8F91\u5668\u7B26\u53F7", "\u5728\u4FA7\u8FB9\u6253\u5F00", "\u5728\u5E95\u90E8\u6253\u5F00", "\u7B26\u53F7({0})", "\u5C5E\u6027({0})", "\u65B9\u6CD5({0})", "\u51FD\u6570({0})", "\u6784\u9020\u51FD\u6570 ({0})", "\u53D8\u91CF({0})", "\u7C7B({0})", "\u7ED3\u6784({0})", "\u4E8B\u4EF6({0})", "\u8FD0\u7B97\u7B26({0})", "\u63A5\u53E3({0})", "\u547D\u540D\u7A7A\u95F4({0})", "\u5305({0})", "\u7C7B\u578B\u53C2\u6570({0})", "\u6A21\u5757({0})", "\u5C5E\u6027({0})", "\u679A\u4E3E({0})", "\u679A\u4E3E\u6210\u5458({0})", "\u5B57\u7B26\u4E32({0})", "\u6587\u4EF6({0})", "\u6570\u7EC4({0})", "\u6570\u5B57({0})", "\u5E03\u5C14\u503C({0})", "\u5BF9\u8C61({0})", "\u952E({0})", "\u5B57\u6BB5({0})", "\u5E38\u91CF({0})", "\u65E0\u6CD5\u5728\u53EA\u8BFB\u8F93\u5165\u4E2D\u7F16\u8F91", "\u65E0\u6CD5\u5728\u53EA\u8BFB\u7F16\u8F91\u5668\u4E2D\u7F16\u8F91", "\u65E0\u7ED3\u679C\u3002", "\u89E3\u6790\u91CD\u547D\u540D\u4F4D\u7F6E\u65F6\u53D1\u751F\u672A\u77E5\u9519\u8BEF", "\u6B63\u5728\u5C06\u201C{0}\u201D\u91CD\u547D\u540D\u4E3A\u201C{1}\u201D", "\u5C06 {0} \u91CD\u547D\u540D\u4E3A {1}", "\u6210\u529F\u5C06\u201C{0}\u201D\u91CD\u547D\u540D\u4E3A\u201C{1}\u201D\u3002\u6458\u8981: {2}", "\u91CD\u547D\u540D\u65E0\u6CD5\u5E94\u7528\u4FEE\u6539", "\u91CD\u547D\u540D\u65E0\u6CD5\u8BA1\u7B97\u4FEE\u6539", "\u542F\u7528/\u7981\u7528\u91CD\u547D\u540D\u4E4B\u524D\u9884\u89C8\u66F4\u6539\u7684\u529F\u80FD", "\u91CD\u547D\u540D\u7B26\u53F7", "\u805A\u7126\u4E0B\u4E00\u4E2A\u91CD\u547D\u540D\u5EFA\u8BAE", "\u805A\u7126\u4E0A\u4E00\u4E2A\u91CD\u547D\u540D\u5EFA\u8BAE", "\u91CD\u547D\u540D\u8F93\u5165\u5C0F\u7EC4\u4EF6\u662F\u5426\u53EF\u89C1", "\u662F\u5426\u805A\u7126\u91CD\u547D\u540D\u8F93\u5165\u5C0F\u7EC4\u4EF6", "\u6309 {0} \u8FDB\u884C\u91CD\u547D\u540D\uFF0C\u6309 {1} \u8FDB\u884C\u9884\u89C8", "\u5DF2\u6536\u5230 {0} \u91CD\u547D\u540D\u5EFA\u8BAE", '\u91CD\u547D\u540D\u8F93\u5165\u3002\u952E\u5165\u65B0\u540D\u79F0\u5E76\u6309 "Enter" \u63D0\u4EA4\u3002', "\u751F\u6210\u65B0\u7684\u540D\u79F0\u5EFA\u8BAE", "\u53D6\u6D88", "\u6269\u5927\u9009\u533A(&&E)", "\u7F29\u5C0F\u9009\u533A(&&S)", "\u5C55\u5F00\u9009\u62E9", "\u6536\u8D77\u9009\u62E9", "\u7F16\u8F91\u5668\u76EE\u524D\u662F\u5426\u5728\u4EE3\u7801\u7247\u6BB5\u6A21\u5F0F\u4E0B", "\u5728\u4EE3\u7801\u7247\u6BB5\u6A21\u5F0F\u4E0B\u65F6\u662F\u5426\u5B58\u5728\u4E0B\u4E00\u5236\u8868\u4F4D", "\u5728\u4EE3\u7801\u7247\u6BB5\u6A21\u5F0F\u4E0B\u65F6\u662F\u5426\u5B58\u5728\u4E0A\u4E00\u5236\u8868\u4F4D", "\u5F53\u524D\u4EE3\u7801\u7247\u6BB5\u5236\u8868\u4F4D\u662F\u5426\u4E3A\u9009\u9879", "\u8F6C\u5230\u4E0B\u4E00\u4E2A\u5360\u4F4D\u7B26...", "\u661F\u671F\u5929", "\u661F\u671F\u4E00", "\u661F\u671F\u4E8C", "\u661F\u671F\u4E09", "\u661F\u671F\u56DB", "\u661F\u671F\u4E94", "\u661F\u671F\u516D", "\u5468\u65E5", "\u5468\u4E00", "\u5468\u4E8C", "\u5468\u4E09", "\u5468\u56DB", "\u5468\u4E94", "\u5468\u516D", "\u4E00\u6708", "\u4E8C\u6708", "\u4E09\u6708", "\u56DB\u6708", "5\u6708", "\u516D\u6708", "\u4E03\u6708", "\u516B\u6708", "\u4E5D\u6708", "\u5341\u6708", "\u5341\u4E00\u6708", "\u5341\u4E8C\u6708", "1\u6708", "2\u6708", "3\u6708", "4\u6708", "5\u6708", "6\u6708", "7\u6708", "8\u6708", "9\u6708", "10\u6708", "11 \u6708", "12\u6708", "\u5207\u6362\u7F16\u8F91\u5668\u7C98\u6EDE\u6EDA\u52A8", "\u7C98\u6EDE\u6EDA\u52A8", "\u7C98\u6EDE\u6EDA\u52A8(&&S)", "\u7126\u70B9\u7F16\u8F91\u5668\u7C98\u6EDE\u6EDA\u52A8(&&F)", "\u5207\u6362\u7F16\u8F91\u5668\u7C98\u6EDE\u6EDA\u52A8", "\u5207\u6362/\u542F\u7528\u7F16\u8F91\u5668\u7C98\u6027\u6EDA\u52A8\uFF0C\u8BE5\u6EDA\u52A8\u663E\u793A\u89C6\u533A\u9876\u90E8\u7684\u5D4C\u5957\u8303\u56F4", "\u7126\u70B9\u7F16\u8F91\u5668\u7C98\u6EDE\u6EDA\u52A8", "\u9009\u62E9\u4E0B\u4E00\u4E2A\u7F16\u8F91\u5668\u7C98\u6027\u6EDA\u52A8\u884C", "\u9009\u62E9\u4E0A\u4E00\u4E2A\u7C98\u6027\u6EDA\u52A8\u884C", "\u8F6C\u5230\u805A\u7126\u7684\u7C98\u6027\u6EDA\u52A8\u884C", "\u9009\u62E9\u7F16\u8F91\u5668", "\u662F\u5426\u4EE5\u4EFB\u4F55\u5EFA\u8BAE\u4E3A\u4E2D\u5FC3", "\u5EFA\u8BAE\u8BE6\u7EC6\u4FE1\u606F\u662F\u5426\u53EF\u89C1", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u8BE6\u7EC6\u4FE1\u606F\u7A97\u683C\u662F\u5426\u5177\u6709\u7126\u70B9", "\u662F\u5426\u5B58\u5728\u591A\u6761\u5EFA\u8BAE\u53EF\u4F9B\u9009\u62E9", "\u63D2\u5165\u5F53\u524D\u5EFA\u8BAE\u662F\u5426\u4F1A\u5BFC\u81F4\u66F4\u6539\u6216\u5BFC\u81F4\u5DF2\u952E\u5165\u6240\u6709\u5185\u5BB9", "\u6309 Enter \u65F6\u662F\u5426\u4F1A\u63D2\u5165\u5EFA\u8BAE", "\u5F53\u524D\u5EFA\u8BAE\u662F\u5426\u5177\u6709\u63D2\u5165\u548C\u66FF\u6362\u884C\u4E3A", "\u9ED8\u8BA4\u884C\u4E3A\u662F\u5426\u662F\u63D2\u5165\u6216\u66FF\u6362", "\u5F53\u524D\u5EFA\u8BAE\u662F\u5426\u652F\u6301\u89E3\u6790\u66F4\u591A\u8BE6\u7EC6\u4FE1\u606F", "\u9009\u62E9\u201C{0}\u201D\u540E\u8FDB\u884C\u4E86\u5176\u4ED6 {1} \u6B21\u7F16\u8F91", "\u63D2\u5165", "\u63D2\u5165", "\u66FF\u6362", "\u66FF\u6362", "\u63D2\u5165", "\u9009\u62E9", "\u663E\u793A\u66F4\u5C11", "\u663E\u793A\u66F4\u591A", "\u89E6\u53D1\u5EFA\u8BAE", "\u91CD\u7F6E\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u5927\u5C0F", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u80CC\u666F\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u7684\u524D\u666F\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u6240\u9009\u6761\u76EE\u7684\u524D\u666F\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u6240\u9009\u6761\u76EE\u7684\u56FE\u6807\u524D\u666F\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u6240\u9009\u6761\u76EE\u7684\u80CC\u666F\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u5339\u914D\u5185\u5BB9\u7684\u9AD8\u4EAE\u989C\u8272\u3002", "\u5F53\u67D0\u9879\u83B7\u5F97\u7126\u70B9\u65F6\uFF0C\u5728\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u7A81\u51FA\u663E\u793A\u7684\u5339\u914D\u9879\u7684\u989C\u8272\u3002", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u72B6\u6001\u7684\u524D\u666F\u8272\u3002", "\u6B63\u5728\u52A0\u8F7D...", "\u65E0\u5EFA\u8BAE\u3002", "\u5EFA\u8BAE", "{0} {1}\uFF0C{2}\uFF0C{3}", "{0} {1}\uFF0C{2}", "{0}\uFF0C{1}\uFF0C{2}", "{0}\uFF0C{1}", "{0}\uFF0C\u6587\u6863: {1}", "\u5173\u95ED", "\u6B63\u5728\u52A0\u8F7D\u2026", "\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u7684\u8BE6\u7EC6\u4FE1\u606F\u7684\u56FE\u6807\u3002", "\u4E86\u89E3\u8BE6\u7EC6\u4FE1\u606F", "\u5728\u5355\u8BCD\u7ED3\u5C3E\u65F6\u4E3A true \u7684\u4E0A\u4E0B\u6587\u952E\u3002\u8BF7\u6CE8\u610F\uFF0C\u4EC5\u5728\u542F\u7528\u5236\u8868\u7B26\u5B8C\u6210\u65F6\u624D\u5B9A\u4E49\u6B64\u9879", "\u6570\u7EC4\u7B26\u53F7\u7684\u524D\u666F\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u5C06\u663E\u793A\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u3002", "\u5E03\u5C14\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u7C7B\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u989C\u8272\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5E38\u91CF\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6784\u9020\u51FD\u6570\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u679A\u4E3E\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u679A\u4E3E\u5668\u6210\u5458\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u4E8B\u4EF6\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5B57\u6BB5\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6587\u4EF6\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6587\u4EF6\u5939\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u51FD\u6570\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u63A5\u53E3\u7B26\u53F7\u7684\u524D\u666F\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u5C06\u663E\u793A\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u3002", "\u952E\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5173\u952E\u5B57\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u65B9\u6CD5\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6A21\u5757\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u547D\u540D\u7A7A\u95F4\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u8F6E\u5ED3\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u7A7A\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6570\u5B57\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5BF9\u8C61\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u8FD0\u7B97\u7B26\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5305\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5C5E\u6027\u7B26\u53F7\u7684\u524D\u666F\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u7EC4\u4EF6\u4E2D\u3002", "\u53C2\u8003\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u7247\u6BB5\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5B57\u7B26\u4E32\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u8F6E\u5ED3\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u7ED3\u6784\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u6587\u672C\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u7C7B\u578B\u53C2\u6570\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u5355\u4F4D\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "\u53D8\u91CF\u7B26\u53F7\u7684\u524D\u666F\u989C\u8272\u3002\u8FD9\u4E9B\u7B26\u53F7\u51FA\u73B0\u5728\u5927\u7EB2\u3001\u75D5\u8FF9\u5BFC\u822A\u680F\u548C\u5EFA\u8BAE\u5C0F\u90E8\u4EF6\u4E2D\u3002", "Tab \u952E\u5C06\u79FB\u52A8\u5230\u4E0B\u4E00\u53EF\u805A\u7126\u7684\u5143\u7D20", "Tab \u952E\u5C06\u63D2\u5165\u5236\u8868\u7B26", "\u5207\u6362 Tab \u952E\u79FB\u52A8\u7126\u70B9", "\u786E\u5B9A Tab \u952E\u662F\u5728\u5DE5\u4F5C\u53F0\u5468\u56F4\u79FB\u52A8\u7126\u70B9\uFF0C\u8FD8\u662F\u5728\u5F53\u524D\u7F16\u8F91\u5668\u4E2D\u63D2\u5165\u5236\u8868\u7B26\u3002\u8FD9\u4E5F\u79F0\u4E3A\u5236\u8868\u7B26\u8865\u6F0F\u767D\u3001\u5236\u8868\u7B26\u5BFC\u822A\u6216\u5236\u8868\u7B26\u7126\u70B9\u6A21\u5F0F\u3002", "\u5F00\u53D1\u4EBA\u5458: \u5F3A\u5236\u91CD\u65B0\u8FDB\u884C\u6807\u8BB0", "\u5173\u95ED\u6A2A\u5E45", "\u6269\u5C55\u7F16\u8F91\u5668\u4E2D\u968F\u8B66\u544A\u6D88\u606F\u4E00\u540C\u663E\u793A\u7684\u56FE\u6807\u3002", "\u672C\u6587\u6863\u5305\u542B\u8BB8\u591A\u975E\u57FA\u672C ASCII unicode \u5B57\u7B26", "\u672C\u6587\u6863\u5305\u542B\u8BB8\u591A\u4E0D\u660E\u786E\u7684 unicode \u5B57\u7B26", "\u672C\u6587\u6863\u5305\u542B\u8BB8\u591A\u4E0D\u53EF\u89C1\u7684 unicode \u5B57\u7B26", "\u914D\u7F6E Unicode \u7A81\u51FA\u663E\u793A\u9009\u9879", "\u5B57\u7B26 {0} \u53EF\u80FD\u4F1A\u4E0E ASCII \u5B57\u7B26 {1} \u6DF7\u6DC6\uFF0C\u540E\u8005\u5728\u6E90\u4EE3\u7801\u4E2D\u66F4\u4E3A\u5E38\u89C1\u3002", "\u5B57\u7B26 {0} \u53EF\u80FD\u4F1A\u4E0E\u5B57\u7B26 {1} \u6DF7\u6DC6\uFF0C\u540E\u8005\u5728\u6E90\u4EE3\u7801\u4E2D\u66F4\u4E3A\u5E38\u89C1\u3002", "\u5B57\u7B26 {0} \u4E0D\u53EF\u89C1\u3002", "\u5B57\u7B26 {0} \u4E0D\u662F\u57FA\u672C ASCII \u5B57\u7B26\u3002", "\u8C03\u6574\u8BBE\u7F6E", "\u7981\u7528\u6279\u6CE8\u4E2D\u7684\u7A81\u51FA\u663E\u793A", "\u7981\u7528\u5B57\u7B26\u4E32\u4E2D\u7684\u7A81\u51FA\u663E\u793A", "\u7981\u7528\u4E0D\u660E\u786E\u7684\u7A81\u51FA\u663E\u793A", "\u7981\u7528\u4E0D\u53EF\u89C1\u7A81\u51FA\u663E\u793A", "\u7981\u7528\u975E ASCII \u7A81\u51FA\u663E\u793A", "\u4E0D\u7A81\u51FA\u663E\u793A {0} (\u4E0D\u53EF\u89C1\u5B57\u7B26)", "\u5728\u7A81\u51FA\u663E\u793A\u5185\u5BB9\u4E2D\u6392\u9664{0}", "\u5141\u8BB8\u8BED\u8A00\u201C{0}\u201D\u4E2D\u66F4\u5E38\u89C1\u7684 unicode \u5B57\u7B26\u3002", "\u7981\u7528\u6279\u6CE8\u4E2D\u5B57\u7B26\u7684\u7A81\u51FA\u663E\u793A", "\u7981\u7528\u5B57\u7B26\u4E32\u4E2D\u5B57\u7B26\u7684\u7A81\u51FA\u663E\u793A", "\u7981\u6B62\u7A81\u51FA\u663E\u793A\u6B67\u4E49\u5B57\u7B26", "\u7981\u6B62\u7A81\u51FA\u663E\u793A\u4E0D\u53EF\u89C1\u5B57\u7B26", "\u7981\u6B62\u7A81\u51FA\u663E\u793A\u975E\u57FA\u672C ASCII \u5B57\u7B26", "\u663E\u793A\u6392\u9664\u9009\u9879", "\u5F02\u5E38\u884C\u7EC8\u6B62\u7B26", "\u68C0\u6D4B\u5230\u5F02\u5E38\u884C\u7EC8\u6B62\u7B26", "\u6587\u4EF6\u201C{0}\u201D\u5305\u542B\u4E00\u4E2A\u6216\u591A\u4E2A\u5F02\u5E38\u7684\u884C\u7EC8\u6B62\u7B26\uFF0C\u4F8B\u5982\u884C\u5206\u9694\u7B26(LS)\u6216\u6BB5\u843D\u5206\u9694\u7B26(PS)\u3002\r\n\r\n\u5EFA\u8BAE\u4ECE\u6587\u4EF6\u4E2D\u5220\u9664\u5B83\u4EEC\u3002\u53EF\u901A\u8FC7\u201Ceditor.unusualLineTerminators\u201D\u8FDB\u884C\u914D\u7F6E\u3002", "\u5220\u9664\u5F02\u5E38\u884C\u7EC8\u6B62\u7B26(&&R)", "\u5FFD\u7565", "\u8BFB\u53D6\u8BBF\u95EE\u671F\u95F4\u7B26\u53F7\u7684\u80CC\u666F\u8272\uFF0C\u4F8B\u5982\u8BFB\u53D6\u53D8\u91CF\u65F6\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5199\u5165\u8BBF\u95EE\u8FC7\u7A0B\u4E2D\u7B26\u53F7\u7684\u80CC\u666F\u8272\uFF0C\u4F8B\u5982\u5199\u5165\u53D8\u91CF\u65F6\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7B26\u53F7\u5728\u6587\u672C\u4E2D\u51FA\u73B0\u65F6\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u5C42\u7684\u4FEE\u9970\u3002", "\u7B26\u53F7\u5728\u8FDB\u884C\u8BFB\u53D6\u8BBF\u95EE\u64CD\u4F5C\u65F6\u7684\u8FB9\u6846\u989C\u8272\uFF0C\u4F8B\u5982\u8BFB\u53D6\u53D8\u91CF\u3002", "\u7B26\u53F7\u5728\u8FDB\u884C\u5199\u5165\u8BBF\u95EE\u64CD\u4F5C\u65F6\u7684\u8FB9\u6846\u989C\u8272\uFF0C\u4F8B\u5982\u5199\u5165\u53D8\u91CF\u3002", "\u7B26\u53F7\u5728\u6587\u672C\u4E2D\u51FA\u73B0\u65F6\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A\u7B26\u53F7\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A\u5199\u6743\u9650\u7B26\u53F7\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7B26\u53F7\u5728\u6587\u672C\u4E2D\u51FA\u73B0\u65F6\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u5C42\u7684\u4FEE\u9970\u3002", "\u8F6C\u5230\u4E0B\u4E00\u4E2A\u7A81\u51FA\u663E\u793A\u7684\u7B26\u53F7", "\u8F6C\u5230\u4E0A\u4E00\u4E2A\u7A81\u51FA\u663E\u793A\u7684\u7B26\u53F7", "\u89E6\u53D1\u7B26\u53F7\u9AD8\u4EAE", "\u4EC5\u5220\u9664\u5B57\u8BCD\u5E76\u4FDD\u7559\u5468\u56F4\u7684\u7A7A\u683C", "\u5220\u9664 Word", "\u5220\u9664\u5149\u6807\u5904\u7684\u5B57\u8BCD", "\u51FA\u9519\u4F4D\u7F6E", "\u9519\u8BEF", "\u8B66\u544A\u4F4D\u7F6E", "\u8B66\u544A", "\u884C\u4E0A\u7684\u9519\u8BEF", "\u884C\u4E0A\u7684\u9519\u8BEF", "\u884C\u4E0A\u7684\u8B66\u544A", "\u884C\u4E0A\u7684\u8B66\u544A", "\u884C\u4E0A\u7684\u6298\u53E0\u533A\u57DF", "\u5DF2\u6298\u53E0", "\u884C\u4E0A\u7684\u65AD\u70B9", "\u65AD\u70B9", "\u884C\u4E0A\u7684\u5185\u8054\u5EFA\u8BAE", "\u884C\u4E0A\u7684\u4E0B\u4E00\u4E2A\u7F16\u8F91\u5EFA\u8BAE", "\u4E0B\u4E00\u4E2A\u7F16\u8F91\u5EFA\u8BAE", "\u7EC8\u7AEF\u5FEB\u901F\u4FEE\u590D", "\u5FEB\u901F\u4FEE\u590D", "\u8C03\u8BD5\u7A0B\u5E8F\u5DF2\u5728\u65AD\u70B9\u5904\u505C\u6B62", "\u65AD\u70B9", "\u884C\u4E0A\u65E0\u5185\u5D4C\u63D0\u793A", "\u65E0\u5185\u5D4C\u63D0\u793A", "\u4EFB\u52A1\u5DF2\u5B8C\u6210", "\u4EFB\u52A1\u5DF2\u5B8C\u6210", "\u4EFB\u52A1\u5931\u8D25", "\u4EFB\u52A1\u5931\u8D25", "\u7EC8\u7AEF\u547D\u4EE4\u5931\u8D25", "\u547D\u4EE4\u5931\u8D25", "\u7EC8\u7AEF\u547D\u4EE4\u6210\u529F", "\u547D\u4EE4\u6210\u529F", "\u7EC8\u7AEF\u949F", "\u7EC8\u7AEF\u949F", "\u7B14\u8BB0\u672C\u5355\u5143\u683C\u5DF2\u5B8C\u6210", "\u7B14\u8BB0\u672C\u5355\u5143\u683C\u5DF2\u5B8C\u6210", "\u7B14\u8BB0\u672C\u5355\u5143\u683C\u5931\u8D25", "\u7B14\u8BB0\u672C\u5355\u5143\u683C\u5931\u8D25", "\u5DF2\u63D2\u5165\u5DEE\u5F02\u7EBF", "\u5DF2\u5220\u9664\u5DEE\u5F02\u884C", "\u5DEE\u5F02\u884C\u5DF2\u4FEE\u6539", "\u804A\u5929\u7F16\u8F91\u4FEE\u6539\u7684\u6587\u4EF6", "\u4ECE\u804A\u5929\u7F16\u8F91\u4FEE\u6539\u7684\u6587\u4EF6", "\u5DF2\u53D1\u9001\u804A\u5929\u8BF7\u6C42", "\u5DF2\u53D1\u9001\u804A\u5929\u8BF7\u6C42", "\u5DF2\u6536\u5230\u804A\u5929\u54CD\u5E94", "\u5DF2\u89E6\u53D1\u4EE3\u7801\u64CD\u4F5C\u8BF7\u6C42", "\u5DF2\u89E6\u53D1\u4EE3\u7801\u64CD\u4F5C\u8BF7\u6C42", "\u5DF2\u5E94\u7528\u4EE3\u7801\u64CD\u4F5C", "\u8FDB\u5EA6", "\u8FDB\u5EA6", "\u6E05\u9664", "\u6E05\u9664", "\u4FDD\u5B58", "\u4FDD\u5B58", "\u683C\u5F0F", "\u683C\u5F0F", "\u8BED\u97F3\u5F55\u5236\u5DF2\u542F\u52A8", "\u8BED\u97F3\u5F55\u5236\u5DF2\u505C\u6B62", "\u5DF2\u4FDD\u7559\u7F16\u8F91", "\u5DF2\u4FDD\u7559\u7F16\u8F91", "\u64A4\u6D88\u7F16\u8F91", "\u5DF2\u64A4\u6D88\u7F16\u8F91", "\u9700\u8981\u804A\u5929\u7528\u6237\u64CD\u4F5C", "\u9700\u8981\u804A\u5929\u7528\u6237\u64CD\u4F5C", "\u67E5\u770B", "\u5E2E\u52A9", "\u6D4B\u8BD5", "\u6587\u4EF6", "\u9996\u9009\u9879", "\u5F00\u53D1\u4EBA\u5458", "{0}\r\n[{1}] {2}", "\u6309 {1} \u4EE5 {0}", "{0} ({1})", "\u9690\u85CF", "\u91CD\u7F6E\u83DC\u5355", "\u9690\u85CF\u201C{0}\u201D", "\u914D\u7F6E\u952E\u7ED1\u5B9A", "\u6309 {0} \u4EE5\u5E94\u7528\uFF0C\u6309 {1} \u4EE5\u9884\u89C8", "\u6309 {0} \u4EE5\u5E94\u7528", "\u79FB\u9664", "{0}\uFF0C\u7981\u7528\u539F\u56E0: {1}", "{0}\uFF0C\u6309\u5411\u53F3\u952E\u8BBF\u95EE\u9009\u9879", "\u64CD\u4F5C\u5C0F\u7EC4\u4EF6", "\u641C\u7D22...", "\u7B5B\u9009\u9879\u76EE", "\u64CD\u4F5C\u680F\u4E2D\u5207\u6362\u7684\u64CD\u4F5C\u9879\u7684\u80CC\u666F\u8272\u3002", "\u64CD\u4F5C\u5C0F\u7EC4\u4EF6\u5217\u8868\u662F\u5426\u53EF\u89C1", "\u662F\u5426\u805A\u7126\u64CD\u4F5C\u5C0F\u7EC4\u4EF6\u7B5B\u9009\u5668\u8F93\u5165", "\u9690\u85CF\u64CD\u4F5C\u5C0F\u7EC4\u4EF6", "\u6E05\u9664\u64CD\u4F5C\u5C0F\u7EC4\u4EF6\u7B5B\u9009\u5668", "\u9009\u62E9\u4E0A\u4E00\u4E2A\u64CD\u4F5C", "\u9009\u62E9\u4E0B\u4E00\u4E2A\u64CD\u4F5C", "\u6298\u53E0\u5206\u533A", "\u5C55\u5F00\u5206\u533A", "\u5207\u6362\u90E8\u5206", "\u63A5\u53D7\u6240\u9009\u64CD\u4F5C", "\u9884\u89C8\u6240\u9009\u64CD\u4F5C", "\u9ED8\u8BA4\u8BED\u8A00\u914D\u7F6E\u66FF\u4EE3", "\u914D\u7F6E\u8981\u4E3A {0} \u66FF\u4EE3\u7684\u8BBE\u7F6E\u3002", "\u9488\u5BF9\u67D0\u79CD\u8BED\u8A00\uFF0C\u914D\u7F6E\u66FF\u4EE3\u7F16\u8F91\u5668\u8BBE\u7F6E\u3002", "\u6B64\u8BBE\u7F6E\u4E0D\u652F\u6301\u6309\u8BED\u8A00\u914D\u7F6E\u3002", "\u9488\u5BF9\u67D0\u79CD\u8BED\u8A00\uFF0C\u914D\u7F6E\u66FF\u4EE3\u7F16\u8F91\u5668\u8BBE\u7F6E\u3002", "\u6B64\u8BBE\u7F6E\u4E0D\u652F\u6301\u6309\u8BED\u8A00\u914D\u7F6E\u3002", "\u65E0\u6CD5\u6CE8\u518C\u7A7A\u5C5E\u6027", '\u65E0\u6CD5\u6CE8\u518C\u201C{0}\u201D\u3002\u5176\u7B26\u5408\u63CF\u8FF0\u7279\u5B9A\u8BED\u8A00\u7F16\u8F91\u5668\u8BBE\u7F6E\u7684\u8868\u8FBE\u5F0F "\\\\[.*\\\\]$"\u3002\u8BF7\u4F7F\u7528 "configurationDefaults"\u3002', "\u65E0\u6CD5\u6CE8\u518C\u201C{0}\u201D\u3002\u6B64\u5C5E\u6027\u5DF2\u6CE8\u518C\u3002", '\u65E0\u6CD5\u6CE8\u518C\u201C{0}\u201D\u3002\u8BBE\u7F6E\u4E0D\u5F97\u540C\u65F6\u58F0\u660E "policy" \u548C "policyReference"\u3002', '\u65E0\u6CD5\u6CE8\u518C\u201C{0}\u201D\u3002\u5173\u8054\u7684\u7B56\u7565 {1} \u5DF2\u5411 {2} \u6CE8\u518C\u3002\u82E5\u8981\u5C06\u53E6\u4E00\u4E2A\u8BBE\u7F6E\u9644\u52A0\u5230\u540C\u4E00\u7B56\u7565\uFF0C\u8BF7\u4F7F\u7528 "policyReference"\u3002', "\u7528\u4E8E\u8FD4\u56DE\u4E0A\u4E0B\u6587\u952E\u7684\u76F8\u5173\u4FE1\u606F\u7684\u547D\u4EE4", "\u4E0A\u4E0B\u6587\u952E\u8868\u8FBE\u5F0F\u4E3A\u7A7A", '\u5FD8\u8BB0\u5199\u5165\u8868\u8FBE\u5F0F\u4E86\u5417? \u8FD8\u53EF\u4EE5\u653E\u7F6E "false" \u6216 "true" \u4EE5\u59CB\u7EC8\u5206\u522B\u8BC4\u4F30\u4E3A false \u6216 true\u3002', '"not" \u540E\u9762\u7684 "in"\u3002', '\u53F3\u62EC\u53F7 ")"', "\u610F\u5916\u7684\u4EE4\u724C", "\u5FD8\u8BB0\u5728\u4EE4\u724C\u4E4B\u524D\u653E\u7F6E && \u6216 || \u4E86\u5417?", "\u610F\u5916\u7684\u8868\u8FBE\u5F0F\u7ED3\u5C3E", "\u5FD8\u8BB0\u653E\u7F6E\u4E0A\u4E0B\u6587\u952E\u4E86\u5417?", '\u5E94\u4E3A: {0}\r\n\u6536\u5230\u7684: "{1}"\u3002', "\u64CD\u4F5C\u7CFB\u7EDF\u662F\u5426 macOS", "\u64CD\u4F5C\u7CFB\u7EDF\u662F\u5426\u4E3A Linux", "\u64CD\u4F5C\u7CFB\u7EDF\u662F\u5426\u4E3A Windows", "\u5E73\u53F0\u662F\u5426\u4E3A Web \u6D4F\u89C8\u5668", "\u64CD\u4F5C\u7CFB\u7EDF\u662F\u5426\u662F\u975E\u6D4F\u89C8\u5668\u5E73\u53F0\u4E0A\u7684 macOS", "\u64CD\u4F5C\u7CFB\u7EDF\u662F\u5426\u4E3A iOS", "\u5E73\u53F0\u662F\u5426\u4E3A Web \u6D4F\u89C8\u5668", "VS Code \u7684\u8D28\u91CF\u7C7B\u578B", "\u952E\u76D8\u7126\u70B9\u662F\u5426\u5728\u8F93\u5165\u6846\u4E2D", "\u4F60\u6307\u7684\u662F {0} \u5417?", "\u4F60\u6307\u7684\u662F {0} \u8FD8\u662F {1}?", "\u4F60\u6307\u7684\u662F {0}\u3001{1} \u8FD8\u662F {2}?", "\u5FD8\u8BB0\u5DE6\u5F15\u53F7\u6216\u53F3\u5F15\u53F7\u4E86\u5417?", '\u5FD8\u8BB0\u8F6C\u4E49 "/"(\u659C\u6760)\u5B57\u7B26\u4E86\u5417? \u5728\u8BE5\u5B57\u7B26\u524D\u653E\u7F6E\u4E24\u4E2A\u53CD\u659C\u6760\u4EE5\u8FDB\u884C\u8F6C\u4E49\uFF0C\u4F8B\u5982 "\\\\/"\u3002', "\u5EFA\u8BAE\u662F\u5426\u53EF\u89C1", "\u6309\u4F4F {0} \u952E\u5C06\u9F20\u6807\u60AC\u505C", "\u6B63\u5728\u52A0\u8F7D...", "({0})\u5DF2\u6309\u4E0B\u3002\u6B63\u5728\u7B49\u5F85\u6309\u4E0B\u7B2C\u4E8C\u4E2A\u952E...", "\u5DF2\u6309\u4E0B({0})\u3002\u6B63\u5728\u7B49\u5F85\u7B2C\u4E8C\u4E2A\u952E...", "\u7EC4\u5408\u952E({0}\uFF0C{1})\u4E0D\u662F\u547D\u4EE4\u3002", "\u7EC4\u5408\u952E({0}\uFF0C{1})\u4E0D\u662F\u547D\u4EE4\u3002", "{0} ({1})", "\u5DE5\u4F5C\u53F0", "\u6620\u5C04\u4E3A `Ctrl` (Windows \u548C Linux) \u6216 `Command` (macOS)\u3002", "\u6620\u5C04\u4E3A `Alt` (Windows \u548C Linux) \u6216 `Option` (macOS)\u3002", "\u5728\u901A\u8FC7\u9F20\u6807\u591A\u9009\u6811\u548C\u5217\u8868\u6761\u76EE\u65F6\u4F7F\u7528\u7684\u4FEE\u6539\u952E (\u4F8B\u5982\u201C\u8D44\u6E90\u7BA1\u7406\u5668\u201D\u3001\u201C\u6253\u5F00\u7684\u7F16\u8F91\u5668\u201D\u548C\u201C\u6E90\u4EE3\u7801\u7BA1\u7406\u201D\u89C6\u56FE)\u3002\u201C\u5728\u4FA7\u8FB9\u6253\u5F00\u201D\u529F\u80FD\u6240\u9700\u7684\u9F20\u6807\u52A8\u4F5C (\u82E5\u53EF\u7528) \u5C06\u4F1A\u76F8\u5E94\u8C03\u6574\uFF0C\u4E0D\u4E0E\u591A\u9009\u4FEE\u6539\u952E\u51B2\u7A81\u3002", "\u63A7\u5236\u5982\u4F55\u4F7F\u7528\u9F20\u6807\u6253\u5F00\u6811\u548C\u5217\u8868\u4E2D\u7684\u9879(\u82E5\u652F\u6301)\u3002\u8BF7\u6CE8\u610F\uFF0C\u5982\u679C\u6B64\u8BBE\u7F6E\u4E0D\u9002\u7528\uFF0C\u67D0\u4E9B\u6811\u548C\u5217\u8868\u53EF\u80FD\u4F1A\u9009\u62E9\u5FFD\u7565\u5B83\u3002", "\u63A7\u5236\u5DE5\u4F5C\u53F0\u4E0A\u7684\u5217\u8868\u548C\u6811\u662F\u5426\u652F\u6301\u6C34\u5E73\u6EDA\u52A8\u3002\u8B66\u544A: \u6253\u5F00\u6B64\u8BBE\u7F6E\u4F1A\u5F71\u54CD\u6027\u80FD\u3002", "\u63A7\u5236\u5728\u6EDA\u52A8\u6761\u4E2D\u5355\u51FB\u65F6\u662F\u5426\u9010\u9875\u5355\u51FB\u3002", "\u63A7\u5236\u6811\u7F29\u8FDB(\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D)\u3002", "\u63A7\u5236\u6811\u662F\u5426\u5E94\u5448\u73B0\u7F29\u8FDB\u53C2\u8003\u7EBF\u3002", "\u63A7\u5236\u5217\u8868\u548C\u6811\u662F\u5426\u5177\u6709\u5E73\u6ED1\u6EDA\u52A8\u6548\u679C\u3002", "\u5BF9\u9F20\u6807\u6EDA\u8F6E\u6EDA\u52A8\u4E8B\u4EF6\u7684 `deltaX` \u548C `deltaY` \u4E58\u4E0A\u7684\u7CFB\u6570\u3002", '\u6309\u4E0B"Alt"\u65F6\u6EDA\u52A8\u901F\u5EA6\u500D\u589E\u3002', "\u641C\u7D22\u65F6\u7A81\u51FA\u663E\u793A\u5143\u7D20\u3002\u8FDB\u4E00\u6B65\u5411\u4E0A\u548C\u5411\u4E0B\u5BFC\u822A\u5C06\u4EC5\u904D\u5386\u7A81\u51FA\u663E\u793A\u7684\u5143\u7D20\u3002", "\u641C\u7D22\u65F6\u7B5B\u9009\u5143\u7D20\u3002", "\u63A7\u5236\u5DE5\u4F5C\u53F0\u4E2D\u5217\u8868\u548C\u6811\u7684\u9ED8\u8BA4\u67E5\u627E\u6A21\u5F0F\u3002", "\u7B80\u5355\u952E\u76D8\u5BFC\u822A\u805A\u7126\u4E0E\u952E\u76D8\u8F93\u5165\u76F8\u5339\u914D\u7684\u5143\u7D20\u3002\u4EC5\u5BF9\u524D\u7F00\u8FDB\u884C\u5339\u914D\u3002", "\u9AD8\u4EAE\u952E\u76D8\u5BFC\u822A\u4F1A\u7A81\u51FA\u663E\u793A\u4E0E\u952E\u76D8\u8F93\u5165\u76F8\u5339\u914D\u7684\u5143\u7D20\u3002\u8FDB\u4E00\u6B65\u5411\u4E0A\u548C\u5411\u4E0B\u5BFC\u822A\u5C06\u4EC5\u904D\u5386\u7A81\u51FA\u663E\u793A\u7684\u5143\u7D20\u3002", "\u7B5B\u9009\u5668\u952E\u76D8\u5BFC\u822A\u5C06\u7B5B\u9009\u51FA\u5E76\u9690\u85CF\u4E0E\u952E\u76D8\u8F93\u5165\u4E0D\u5339\u914D\u7684\u6240\u6709\u5143\u7D20\u3002", "\u63A7\u5236\u5DE5\u4F5C\u53F0\u4E2D\u7684\u5217\u8868\u548C\u6811\u7684\u952E\u76D8\u5BFC\u822A\u6837\u5F0F\u3002\u5B83\u53EF\u4E3A\u201C\u7B80\u5355\u201D\u3001\u201C\u7A81\u51FA\u663E\u793A\u201D\u6216\u201C\u7B5B\u9009\u201D\u3002", '\u8BF7\u6539\u7528 "workbench.list.defaultFindMode" \u548C "workbench.list.typeNavigationMode"\u3002', "\u5728\u641C\u7D22\u65F6\u4F7F\u7528\u6A21\u7CCA\u5339\u914D\u3002", "\u5728\u641C\u7D22\u65F6\u4F7F\u7528\u8FDE\u7EED\u5339\u914D\u3002", "\u63A7\u5236\u5728\u5DE5\u4F5C\u53F0\u4E2D\u641C\u7D22\u5217\u8868\u548C\u6811\u65F6\u4F7F\u7528\u7684\u5339\u914D\u7C7B\u578B\u3002", "\u63A7\u5236\u5728\u5355\u51FB\u6587\u4EF6\u5939\u540D\u79F0\u65F6\u5982\u4F55\u6269\u5C55\u6811\u6587\u4EF6\u5939\u3002\u8BF7\u6CE8\u610F\uFF0C\u5982\u679C\u4E0D\u9002\u7528\uFF0C\u67D0\u4E9B\u6811\u548C\u5217\u8868\u53EF\u80FD\u4F1A\u9009\u62E9\u5FFD\u7565\u6B64\u8BBE\u7F6E\u3002", "\u63A7\u5236\u662F\u5426\u5728\u6811\u4E2D\u542F\u7528\u7C98\u6027\u6EDA\u52A8\u3002", "\u63A7\u5236\u542F\u7528 {0} \u65F6\u6811\u4E2D\u663E\u793A\u7684\u7C98\u6EDE\u5143\u7D20\u6570\u3002", "\u63A7\u5236\u7C7B\u578B\u5BFC\u822A\u5728\u5DE5\u4F5C\u53F0\u7684\u5217\u8868\u548C\u6811\u4E2D\u7684\u5DE5\u4F5C\u65B9\u5F0F\u3002\u5982\u679C\u8BBE\u7F6E\u4E3A`trigger`\uFF0C\u5219\u5728\u8FD0\u884C `list.triggerTypeNavigation` \u547D\u4EE4\u540E\uFF0C\u7C7B\u578B\u5BFC\u822A\u5C06\u5F00\u59CB\u3002", "\u9519\u8BEF", "\u8B66\u544A", "\u4FE1\u606F", "\u9519\u8BEF", "\u8B66\u544A", "\u4FE1\u606F", "\u95EE\u9898\u5DF2\u6682\u505C\uFF0C\u56E0\u4E3A:\u201C{0}\u201D", "\u95EE\u9898\u5DF2\u6682\u505C\uFF0C\u56E0\u4E3A:\u201C{0}\u201D\u548C {1} \u7B49", "\u6700\u8FD1\u4F7F\u7528", "\u7C7B\u4F3C\u547D\u4EE4", "\u5E38\u7528", "\u5176\u4ED6\u547D\u4EE4", "\u7C7B\u4F3C\u547D\u4EE4", "{0}, {1}", "\u4ECE\u6700\u8FD1\u4F7F\u7528\u7684\u5185\u5BB9\u4E2D\u79FB\u9664", '\u547D\u4EE4 "{0}" \u5BFC\u81F4\u9519\u8BEF', "{0}, {1}", "\u952E\u76D8\u7126\u70B9\u662F\u5426\u5728\u5FEB\u901F\u8F93\u5165\u63A7\u4EF6\u5185", "\u5FEB\u901F\u8F93\u5165\u9879\u7684\u5BF9\u9F50\u65B9\u5F0F", "\u5F53\u524D\u53EF\u89C1\u5FEB\u901F\u8F93\u5165\u7684\u7C7B\u578B", "\u5FEB\u901F\u8F93\u5165\u4E2D\u7684\u5149\u6807\u662F\u5426\u4F4D\u4E8E\u8F93\u5165\u6846\u7684\u672B\u5C3E", "\u4E0A\u4E00\u6B65", '\u6309 "Enter" \u4EE5\u786E\u8BA4\u6216\u6309 "Esc" \u4EE5\u53D6\u6D88', "{0}/{1}", "\u5728\u6B64\u8F93\u5165\u53EF\u7F29\u5C0F\u7ED3\u679C\u8303\u56F4\u3002", "\u786E\u5B9A", '{0} (\u6309 "Enter" \u4EE5\u786E\u8BA4\u6216\u6309 "Esc" \u4EE5\u53D6\u6D88)', "\u5728\u4EFB\u4F55\u5FEB\u901F\u8F93\u5165\u7684\u4E0A\u4E0B\u6587\u4E2D\u4F7F\u7528\u3002\u5982\u679C\u4E3A\u6B64\u547D\u4EE4\u66F4\u6539\u4E00\u4E2A\u952E\u7ED1\u5B9A\uFF0C\u5219\u8FD8\u5E94\u66F4\u6539\u6B64\u547D\u4EE4\u7684\u6240\u6709\u5176\u4ED6\u952E\u7ED1\u5B9A(\u4FEE\u9970\u7B26\u53D8\u4F53)\u3002", "\u5728\u5FEB\u901F\u9009\u53D6\u4E0A\u4E0B\u6587\u4E2D\u4F7F\u7528\u3002\u5982\u679C\u4E3A\u6B64\u547D\u4EE4\u66F4\u6539\u4E00\u4E2A\u952E\u7ED1\u5B9A\uFF0C\u5219\u8FD8\u5E94\u66F4\u6539\u6B64\u547D\u4EE4\u7684\u6240\u6709\u5176\u4ED6\u952E\u7ED1\u5B9A(\u4FEE\u9970\u7B26\u53D8\u4F53)\u3002", "\u5982\u679C\u6211\u4EEC\u5904\u4E8E\u5FEB\u901F\u8BBF\u95EE\u6A21\u5F0F\uFF0C\u8FD9\u5C06\u5BFC\u822A\u5230\u4E0B\u4E00\u9879\u3002\u5982\u679C\u6211\u4EEC\u672A\u5904\u4E8E\u5FEB\u901F\u8BBF\u95EE\u6A21\u5F0F\uFF0C\u8FD9\u5C06\u5BFC\u822A\u5230\u4E0B\u4E00\u4E2A\u5206\u9694\u7B26\u3002", "\u5982\u679C\u6211\u4EEC\u5904\u4E8E\u5FEB\u901F\u8BBF\u95EE\u6A21\u5F0F\uFF0C\u8FD9\u5C06\u5BFC\u822A\u5230\u4E0A\u4E00\u9879\u3002\u5982\u679C\u6211\u4EEC\u672A\u5904\u4E8E\u5FEB\u901F\u8BBF\u95EE\u6A21\u5F0F\uFF0C\u8FD9\u5C06\u5BFC\u822A\u5230\u4E0A\u4E00\u4E2A\u5206\u9694\u7B26\u3002", "\u5728\u67D0\u4E9B\u5FEB\u901F\u8F93\u5165\u7684\u4E0A\u4E0B\u6587\u4E2D\u4F7F\u7528\u3002\u5982\u679C\u4E3A\u6B64\u547D\u4EE4\u66F4\u6539\u4E00\u4E2A\u952E\u7ED1\u5B9A\uFF0C\u5219\u8FD8\u5E94\u66F4\u6539\u6B64\u547D\u4EE4\u7684\u6240\u6709\u5176\u4ED6\u952E\u7ED1\u5B9A(\u4FEE\u9970\u7B26\u53D8\u4F53)\u3002", "\u5207\u6362\u6240\u6709\u590D\u9009\u6846", "{0} \u4E2A\u7ED3\u679C", "\u5DF2\u9009 {0} \u9879", "\u786E\u5B9A", "\u81EA\u5B9A\u4E49", "\u540E\u9000 ({0})", "\u4E0A\u4E00\u6B65", "\u5FEB\u901F\u8F93\u5165", '\u5355\u51FB\u4EE5\u6267\u884C\u547D\u4EE4 "{0}"', "\u5FEB\u901F\u6811", "\u5728\u6B64\u8F93\u5165\u53EF\u7F29\u5C0F\u7ED3\u679C\u8303\u56F4\u3002", "\u6574\u4F53\u524D\u666F\u8272\u3002\u6B64\u989C\u8272\u4EC5\u5728\u4E0D\u88AB\u7EC4\u4EF6\u8986\u76D6\u65F6\u9002\u7528\u3002", "\u5BF9\u6BD4\u5EA6\u6700\u9AD8\u7684\u524D\u666F\u8272\uFF0C\u9002\u7528\u4E8E\u9700\u8981\u5728\u5404\u79CD\u80CC\u666F\u4E0B\u5B9E\u73B0\u6700\u5927\u53EF\u8BFB\u6027\u7684\u6587\u672C\u6216\u56FE\u6807\u3002\u4EC5\u5728\u672A\u88AB\u7EC4\u4EF6\u8986\u76D6\u65F6\u4F7F\u7528\u6B64\u989C\u8272\u3002", "\u5DF2\u7981\u7528\u5143\u7D20\u7684\u6574\u4F53\u524D\u666F\u8272\u3002\u4EC5\u5728\u672A\u7531\u7EC4\u4EF6\u66FF\u4EE3\u65F6\u624D\u80FD\u4F7F\u7528\u6B64\u989C\u8272\u3002", "\u9519\u8BEF\u4FE1\u606F\u7684\u6574\u4F53\u524D\u666F\u8272\u3002\u6B64\u989C\u8272\u4EC5\u5728\u4E0D\u88AB\u7EC4\u4EF6\u8986\u76D6\u65F6\u9002\u7528\u3002", "\u63D0\u4F9B\u5176\u4ED6\u4FE1\u606F\u7684\u8BF4\u660E\u6587\u672C\u7684\u524D\u666F\u8272\uFF0C\u4F8B\u5982\u6807\u7B7E\u6587\u672C\u3002", "\u5DE5\u4F5C\u53F0\u4E2D\u56FE\u6807\u7684\u9ED8\u8BA4\u989C\u8272\u3002", "\u7126\u70B9\u5143\u7D20\u7684\u6574\u4F53\u8FB9\u6846\u989C\u8272\u3002\u6B64\u989C\u8272\u4EC5\u5728\u4E0D\u88AB\u5176\u4ED6\u7EC4\u4EF6\u8986\u76D6\u65F6\u9002\u7528\u3002", "\u5728\u5143\u7D20\u5468\u56F4\u989D\u5916\u7684\u4E00\u5C42\u8FB9\u6846\uFF0C\u7528\u6765\u63D0\u9AD8\u5BF9\u6BD4\u5EA6\u4ECE\u800C\u533A\u522B\u5176\u4ED6\u5143\u7D20\u3002", "\u5728\u6D3B\u52A8\u5143\u7D20\u5468\u56F4\u989D\u5916\u7684\u4E00\u5C42\u8FB9\u6846\uFF0C\u7528\u6765\u63D0\u9AD8\u5BF9\u6BD4\u5EA6\u4ECE\u800C\u533A\u522B\u5176\u4ED6\u5143\u7D20\u3002", "\u5DE5\u4F5C\u53F0\u6240\u9009\u6587\u672C\u7684\u80CC\u666F\u989C\u8272(\u4F8B\u5982\u8F93\u5165\u5B57\u6BB5\u6216\u6587\u672C\u533A\u57DF)\u3002\u6CE8\u610F\uFF0C\u672C\u8BBE\u7F6E\u4E0D\u9002\u7528\u4E8E\u7F16\u8F91\u5668\u3002", "\u6587\u672C\u4E2D\u94FE\u63A5\u7684\u524D\u666F\u8272\u3002", "\u6587\u672C\u4E2D\u94FE\u63A5\u5728\u70B9\u51FB\u6216\u9F20\u6807\u60AC\u505C\u65F6\u7684\u524D\u666F\u8272 \u3002", "\u6587\u5B57\u5206\u9694\u7B26\u7684\u989C\u8272\u3002", "\u9884\u683C\u5F0F\u5316\u6587\u672C\u6BB5\u7684\u524D\u666F\u8272\u3002", "\u9884\u683C\u5F0F\u5316\u6587\u672C\u6BB5\u7684\u80CC\u666F\u8272\u3002", "\u9884\u683C\u5F0F\u5316\u6587\u672C\u6BB5\u7684\u8FB9\u6846\u8272\u3002", "\u6587\u672C\u4E2D\u5757\u5F15\u7528\u7684\u80CC\u666F\u989C\u8272\u3002", "\u6587\u672C\u4E2D\u5757\u5F15\u7528\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u6587\u672C\u4E2D\u4EE3\u7801\u5757\u7684\u80CC\u666F\u989C\u8272\u3002", "\u56FE\u8868\u4E2D\u4F7F\u7528\u7684\u524D\u666F\u989C\u8272\u3002", "\u7528\u4E8E\u56FE\u8868\u4E2D\u7684\u6C34\u5E73\u7EBF\u6761\u7684\u989C\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u7EA2\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u84DD\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u9EC4\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u6A59\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u7EFF\u8272\u3002", "\u56FE\u8868\u53EF\u89C6\u5316\u6548\u679C\u4E2D\u4F7F\u7528\u7684\u7D2B\u8272\u3002", "\u7F16\u8F91\u5668\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u9ED8\u8BA4\u524D\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u80CC\u666F\u8272", "\u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u88C5\u8BA2\u7EBF\u90E8\u4EF6\u7684\u80CC\u666F\u8272", "\u5728\u7F16\u8F91\u5668\u4E2D\u60AC\u505C\u65F6\u7C98\u6EDE\u6EDA\u52A8\u7684\u80CC\u666F\u8272", "\u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u8FB9\u6846\u989C\u8272", " \u7F16\u8F91\u5668\u4E2D\u7C98\u6EDE\u6EDA\u52A8\u7684\u9634\u5F71\u989C\u8272", "\u7F16\u8F91\u5668\u7EC4\u4EF6(\u5982\u67E5\u627E/\u66FF\u6362)\u80CC\u666F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u5C0F\u90E8\u4EF6\u7684\u524D\u666F\u8272\uFF0C\u5982\u67E5\u627E/\u66FF\u6362\u3002", "\u7F16\u8F91\u5668\u5C0F\u90E8\u4EF6\u7684\u8FB9\u6846\u989C\u8272\u3002\u6B64\u989C\u8272\u4EC5\u5728\u5C0F\u90E8\u4EF6\u6709\u8FB9\u6846\u4E14\u4E0D\u88AB\u5C0F\u90E8\u4EF6\u91CD\u5199\u65F6\u9002\u7528\u3002", "\u7F16\u8F91\u5668\u5C0F\u90E8\u4EF6\u5927\u5C0F\u8C03\u6574\u6761\u7684\u8FB9\u6846\u989C\u8272\u3002\u6B64\u989C\u8272\u4EC5\u5728\u5C0F\u90E8\u4EF6\u6709\u8C03\u6574\u8FB9\u6846\u4E14\u4E0D\u88AB\u5C0F\u90E8\u4EF6\u989C\u8272\u8986\u76D6\u65F6\u4F7F\u7528\u3002", "\u7F16\u8F91\u5668\u4E2D\u9519\u8BEF\u6587\u672C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7F16\u8F91\u5668\u4E2D\u9519\u8BEF\u6CE2\u6D6A\u7EBF\u7684\u524D\u666F\u8272\u3002", "\u5982\u679C\u8BBE\u7F6E\uFF0C\u7F16\u8F91\u5668\u4E2D\u9519\u8BEF\u7684\u53CC\u4E0B\u5212\u7EBF\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u8B66\u544A\u6587\u672C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7F16\u8F91\u5668\u4E2D\u8B66\u544A\u6CE2\u6D6A\u7EBF\u7684\u524D\u666F\u8272\u3002", "\u5982\u679C\u8BBE\u7F6E\uFF0C\u7F16\u8F91\u5668\u4E2D\u8B66\u544A\u7684\u53CC\u4E0B\u5212\u7EBF\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u4FE1\u606F\u6587\u672C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7F16\u8F91\u5668\u4E2D\u4FE1\u606F\u6CE2\u6D6A\u7EBF\u7684\u524D\u666F\u8272\u3002", "\u5982\u679C\u8BBE\u7F6E\uFF0C\u7F16\u8F91\u5668\u4E2D\u4FE1\u606F\u7684\u53CC\u4E0B\u5212\u7EBF\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u4E2D\u63D0\u793A\u6CE2\u6D6A\u7EBF\u7684\u524D\u666F\u8272\u3002", "\u5982\u679C\u8BBE\u7F6E\uFF0C\u7F16\u8F91\u5668\u4E2D\u63D0\u793A\u7684\u53CC\u4E0B\u5212\u7EBF\u989C\u8272\u3002", "\u6D3B\u52A8\u94FE\u63A5\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u6240\u9009\u5185\u5BB9\u7684\u989C\u8272\u3002", "\u7528\u4EE5\u5F70\u663E\u9AD8\u5BF9\u6BD4\u5EA6\u7684\u6240\u9009\u6587\u672C\u7684\u989C\u8272\u3002", "\u975E\u6D3B\u52A8\u7F16\u8F91\u5668\u4E2D\u6240\u9009\u5185\u5BB9\u7684\u989C\u8272\uFF0C\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u88C5\u9970\u6548\u679C\u3002", "\u5177\u6709\u4E0E\u6240\u9009\u9879\u76F8\u5173\u5185\u5BB9\u7684\u533A\u57DF\u7684\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u4E0E\u6240\u9009\u9879\u5185\u5BB9\u76F8\u540C\u7684\u533A\u57DF\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u8F93\u5165\u6CD5\u7EC4\u5408\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5F53\u524D\u641C\u7D22\u5339\u914D\u9879\u7684\u989C\u8272\u3002", "\u5F53\u524D\u641C\u7D22\u5339\u914D\u9879\u7684\u6587\u672C\u989C\u8272\u3002", "\u5176\u4ED6\u641C\u7D22\u5339\u914D\u9879\u7684\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5176\u4ED6\u641C\u7D22\u5339\u914D\u9879\u7684\u524D\u666F\u8272\u3002", "\u9650\u5236\u641C\u7D22\u8303\u56F4\u7684\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5F53\u524D\u641C\u7D22\u5339\u914D\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5176\u4ED6\u641C\u7D22\u5339\u914D\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u9650\u5236\u641C\u7D22\u7684\u8303\u56F4\u7684\u8FB9\u6846\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5728\u4E0B\u9762\u7A81\u51FA\u663E\u793A\u60AC\u505C\u7684\u5B57\u8BCD\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7F16\u8F91\u5668\u60AC\u505C\u63D0\u793A\u7684\u80CC\u666F\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u60AC\u505C\u7684\u524D\u666F\u989C\u8272\u3002", "\u5149\u6807\u60AC\u505C\u65F6\u7F16\u8F91\u5668\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u60AC\u505C\u72B6\u6001\u680F\u7684\u80CC\u666F\u8272\u3002", "\u5185\u8054\u63D0\u793A\u7684\u524D\u666F\u8272", "\u5185\u8054\u63D0\u793A\u7684\u80CC\u666F\u8272", "\u7C7B\u578B\u5185\u8054\u63D0\u793A\u7684\u524D\u666F\u8272", "\u7C7B\u578B\u5185\u8054\u63D0\u793A\u7684\u80CC\u666F\u8272", "\u53C2\u6570\u5185\u8054\u63D0\u793A\u7684\u524D\u666F\u8272", "\u53C2\u6570\u5185\u8054\u63D0\u793A\u7684\u80CC\u666F\u8272", "\u7528\u4E8E\u706F\u6CE1\u64CD\u4F5C\u56FE\u6807\u7684\u989C\u8272\u3002", "\u7528\u4E8E\u706F\u6CE1\u81EA\u52A8\u4FEE\u590D\u64CD\u4F5C\u56FE\u6807\u7684\u989C\u8272\u3002", "\u7528\u4E8E\u706F\u6CE1 AI \u56FE\u6807\u7684\u989C\u8272\u3002", "\u4EE3\u7801\u7247\u6BB5 Tab \u4F4D\u7684\u9AD8\u4EAE\u80CC\u666F\u8272\u3002", "\u4EE3\u7801\u7247\u6BB5 Tab \u4F4D\u7684\u9AD8\u4EAE\u8FB9\u6846\u989C\u8272\u3002", "\u4EE3\u7801\u7247\u6BB5\u4E2D\u6700\u540E\u7684 Tab \u4F4D\u7684\u9AD8\u4EAE\u80CC\u666F\u8272\u3002", "\u4EE3\u7801\u7247\u6BB5\u4E2D\u6700\u540E\u7684\u5236\u8868\u4F4D\u7684\u9AD8\u4EAE\u8FB9\u6846\u989C\u8272\u3002", "\u5DF2\u63D2\u5165\u7684\u6587\u672C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5DF2\u5220\u9664\u7684\u6587\u672C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5DF2\u63D2\u5165\u7684\u884C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5DF2\u5220\u9664\u7684\u884C\u7684\u80CC\u666F\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u63D2\u5165\u884C\u7684\u8FB9\u8DDD\u7684\u80CC\u666F\u8272\u3002", "\u5220\u9664\u884C\u7684\u8FB9\u8DDD\u7684\u80CC\u666F\u8272\u3002", "\u63D2\u5165\u5185\u5BB9\u7684\u5DEE\u5F02\u6982\u8FF0\u6807\u5C3A\u524D\u666F\u3002", "\u5220\u9664\u5185\u5BB9\u7684\u5DEE\u5F02\u6982\u8FF0\u6807\u5C3A\u524D\u666F\u3002", "\u63D2\u5165\u7684\u6587\u672C\u7684\u8F6E\u5ED3\u989C\u8272\u3002", "\u88AB\u5220\u9664\u6587\u672C\u7684\u8F6E\u5ED3\u989C\u8272\u3002", "\u4E24\u4E2A\u6587\u672C\u7F16\u8F91\u5668\u4E4B\u95F4\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u7684\u5BF9\u89D2\u7EBF\u586B\u5145\u989C\u8272\u3002\u5BF9\u89D2\u7EBF\u586B\u5145\u7528\u4E8E\u5E76\u6392\u5DEE\u5F02\u89C6\u56FE\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u672A\u66F4\u6539\u5757\u7684\u80CC\u666F\u8272\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u672A\u66F4\u6539\u5757\u7684\u524D\u666F\u8272\u3002", "\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u672A\u66F4\u6539\u4EE3\u7801\u7684\u80CC\u666F\u8272\u3002", "\u7F16\u8F91\u5668\u5185\u5C0F\u7EC4\u4EF6(\u5982\u67E5\u627E/\u66FF\u6362)\u7684\u9634\u5F71\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u5185\u5C0F\u7EC4\u4EF6(\u5982\u67E5\u627E/\u66FF\u6362)\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u4F7F\u7528\u9F20\u6807\u60AC\u505C\u5728\u64CD\u4F5C\u4E0A\u65F6\u663E\u793A\u5DE5\u5177\u680F\u80CC\u666F", "\u4F7F\u7528\u9F20\u6807\u60AC\u505C\u5728\u64CD\u4F5C\u4E0A\u65F6\u663E\u793A\u5DE5\u5177\u680F\u8F6E\u5ED3", "\u5C06\u9F20\u6807\u60AC\u505C\u5728\u64CD\u4F5C\u4E0A\u65F6\u7684\u5DE5\u5177\u680F\u80CC\u666F", "\u7126\u70B9\u5BFC\u822A\u8DEF\u5F84\u7684\u989C\u8272", "\u5BFC\u822A\u8DEF\u5F84\u9879\u7684\u80CC\u666F\u8272\u3002", "\u7126\u70B9\u5BFC\u822A\u8DEF\u5F84\u7684\u989C\u8272", "\u5DF2\u9009\u5BFC\u822A\u8DEF\u5F84\u9879\u7684\u989C\u8272\u3002", "\u5BFC\u822A\u8DEF\u5F84\u9879\u9009\u62E9\u5668\u7684\u80CC\u666F\u8272\u3002", "\u5F53\u524D\u6807\u9898\u80CC\u666F\u7684\u5185\u8054\u5408\u5E76\u51B2\u7A81\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u7684\u5F53\u524D\u5185\u5BB9\u80CC\u666F\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u7684\u4F20\u5165\u6807\u9898\u80CC\u666F\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u7684\u4F20\u5165\u5185\u5BB9\u80CC\u666F\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u7684\u5E38\u89C1\u7956\u5148\u6807\u5934\u80CC\u666F\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u7684\u5E38\u89C1\u7956\u5148\u5185\u5BB9\u80CC\u666F\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u6807\u5934\u548C\u5206\u5272\u7EBF\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u5F53\u524D\u7248\u672C\u533A\u57DF\u7684\u6982\u89C8\u6807\u5C3A\u524D\u666F\u8272\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u4F20\u5165\u7684\u7248\u672C\u533A\u57DF\u7684\u6982\u89C8\u6807\u5C3A\u524D\u666F\u8272\u3002", "\u5185\u8054\u5408\u5E76\u51B2\u7A81\u4E2D\u5171\u540C\u7956\u5148\u533A\u57DF\u7684\u6982\u89C8\u6807\u5C3A\u524D\u666F\u8272\u3002", "\u7528\u4E8E\u67E5\u627E\u5339\u914D\u9879\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7528\u4E8E\u7A81\u51FA\u663E\u793A\u6240\u9009\u5185\u5BB9\u7684\u6982\u8FF0\u6807\u5C3A\u6807\u8BB0\u989C\u8272\u3002\u989C\u8272\u5FC5\u987B\u900F\u660E\uFF0C\u4EE5\u514D\u9690\u85CF\u4E0B\u9762\u7684\u4FEE\u9970\u6548\u679C\u3002", "\u7528\u4E8E\u95EE\u9898\u9519\u8BEF\u56FE\u6807\u7684\u989C\u8272\u3002", "\u7528\u4E8E\u95EE\u9898\u8B66\u544A\u56FE\u6807\u7684\u989C\u8272\u3002", "\u7528\u4E8E\u95EE\u9898\u4FE1\u606F\u56FE\u6807\u7684\u989C\u8272\u3002", "\u8F93\u5165\u6846\u80CC\u666F\u8272\u3002", "\u8F93\u5165\u6846\u524D\u666F\u8272\u3002", "\u8F93\u5165\u6846\u8FB9\u6846\u3002", "\u8F93\u5165\u5B57\u6BB5\u4E2D\u5DF2\u6FC0\u6D3B\u9009\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u8F93\u5165\u5B57\u6BB5\u4E2D\u6FC0\u6D3B\u9009\u9879\u7684\u80CC\u666F\u989C\u8272\u3002", "\u8F93\u5165\u5B57\u6BB5\u4E2D\u9009\u9879\u7684\u80CC\u666F\u60AC\u505C\u989C\u8272\u3002", "\u8F93\u5165\u5B57\u6BB5\u4E2D\u5DF2\u6FC0\u6D3B\u7684\u9009\u9879\u7684\u524D\u666F\u8272\u3002", "\u8F93\u5165\u6846\u4E2D\u5360\u4F4D\u7B26\u7684\u524D\u666F\u8272\u3002", "\u8F93\u5165\u9A8C\u8BC1\u7ED3\u679C\u4E3A\u4FE1\u606F\u7EA7\u522B\u65F6\u7684\u80CC\u666F\u8272\u3002", "\u8F93\u5165\u9A8C\u8BC1\u7ED3\u679C\u4E3A\u4FE1\u606F\u7EA7\u522B\u65F6\u7684\u524D\u666F\u8272\u3002", "\u4E25\u91CD\u6027\u4E3A\u4FE1\u606F\u65F6\u8F93\u5165\u9A8C\u8BC1\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u4E25\u91CD\u6027\u4E3A\u8B66\u544A\u65F6\u8F93\u5165\u9A8C\u8BC1\u7684\u80CC\u666F\u8272\u3002", "\u8F93\u5165\u9A8C\u8BC1\u7ED3\u679C\u4E3A\u8B66\u544A\u7EA7\u522B\u65F6\u7684\u524D\u666F\u8272\u3002", "\u4E25\u91CD\u6027\u4E3A\u8B66\u544A\u65F6\u8F93\u5165\u9A8C\u8BC1\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u8F93\u5165\u9A8C\u8BC1\u7ED3\u679C\u4E3A\u9519\u8BEF\u7EA7\u522B\u65F6\u7684\u80CC\u666F\u8272\u3002", "\u8F93\u5165\u9A8C\u8BC1\u7ED3\u679C\u4E3A\u9519\u8BEF\u7EA7\u522B\u65F6\u7684\u524D\u666F\u8272\u3002", "\u4E25\u91CD\u6027\u4E3A\u9519\u8BEF\u65F6\u8F93\u5165\u9A8C\u8BC1\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u4E0B\u62C9\u5217\u8868\u80CC\u666F\u8272\u3002", "\u4E0B\u62C9\u5217\u8868\u80CC\u666F\u8272\u3002", "\u4E0B\u62C9\u5217\u8868\u524D\u666F\u8272\u3002", "\u4E0B\u62C9\u5217\u8868\u8FB9\u6846\u3002", "\u6309\u94AE\u524D\u666F\u8272\u3002", "\u6309\u94AE\u5206\u9694\u7B26\u989C\u8272\u3002", "\u6309\u94AE\u80CC\u666F\u8272\u3002", "\u6309\u94AE\u5728\u60AC\u505C\u65F6\u7684\u80CC\u666F\u989C\u8272\u3002", "\u6309\u94AE\u8FB9\u6846\u989C\u8272\u3002", "\u8F85\u52A9\u6309\u94AE\u524D\u666F\u8272\u3002", "\u8F85\u52A9\u6309\u94AE\u80CC\u666F\u8272\u3002", "\u6B21\u8981\u6309\u94AE\u8FB9\u6846\u989C\u8272\u3002", "\u60AC\u505C\u65F6\u7684\u8F85\u52A9\u6309\u94AE\u80CC\u666F\u8272\u3002", "\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u524D\u666F\u8272\u3002", "\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u80CC\u666F\u8272\u3002", "\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u975E\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u524D\u666F\u8272\u3002", "\u975E\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u80CC\u666F\u8272\u3002", "\u975E\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u60AC\u505C\u65F6\u975E\u6D3B\u52A8\u5355\u9009\u9009\u9879\u7684\u80CC\u666F\u8272\u3002", "\u590D\u9009\u6846\u5C0F\u90E8\u4EF6\u7684\u80CC\u666F\u989C\u8272\u3002", "\u9009\u62E9\u590D\u9009\u6846\u5C0F\u7EC4\u4EF6\u6240\u5728\u7684\u5143\u7D20\u65F6\u8BE5\u5C0F\u7EC4\u4EF6\u7684\u80CC\u666F\u8272\u3002", "\u590D\u9009\u6846\u5C0F\u90E8\u4EF6\u7684\u524D\u666F\u8272\u3002", "\u590D\u9009\u6846\u5C0F\u90E8\u4EF6\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u9009\u62E9\u590D\u9009\u6846\u5C0F\u7EC4\u4EF6\u6240\u5728\u7684\u5143\u7D20\u65F6\u8BE5\u5C0F\u7EC4\u4EF6\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u53D8\u6697\u7684\u590D\u9009\u6846\u7684\u80CC\u666F\u3002", "\u53D8\u6697\u7684\u590D\u9009\u6846\u7684\u524D\u666F\u3002", "\u952E\u7ED1\u5B9A\u6807\u7B7E\u80CC\u666F\u8272\u3002\u952E\u7ED1\u5B9A\u6807\u7B7E\u7528\u4E8E\u8868\u793A\u952E\u76D8\u5FEB\u6377\u65B9\u5F0F\u3002", "\u952E\u7ED1\u5B9A\u6807\u7B7E\u524D\u666F\u8272\u3002\u952E\u7ED1\u5B9A\u6807\u7B7E\u7528\u4E8E\u8868\u793A\u952E\u76D8\u5FEB\u6377\u65B9\u5F0F\u3002", "\u952E\u7ED1\u5B9A\u6807\u7B7E\u8FB9\u6846\u8272\u3002\u952E\u7ED1\u5B9A\u6807\u7B7E\u7528\u4E8E\u8868\u793A\u952E\u76D8\u5FEB\u6377\u65B9\u5F0F\u3002", "\u952E\u7ED1\u5B9A\u6807\u7B7E\u8FB9\u6846\u5E95\u90E8\u8272\u3002\u952E\u7ED1\u5B9A\u6807\u7B7E\u7528\u4E8E\u8868\u793A\u952E\u76D8\u5FEB\u6377\u65B9\u5F0F\u3002", "\u7126\u70B9\u9879\u5728\u5217\u8868\u6216\u6811\u6D3B\u52A8\u65F6\u7684\u80CC\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u7126\u70B9\u9879\u5728\u5217\u8868\u6216\u6811\u6D3B\u52A8\u65F6\u7684\u524D\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5217\u8868/\u6811\u6D3B\u52A8\u65F6\uFF0C\u7126\u70B9\u9879\u76EE\u7684\u5217\u8868/\u6811\u8FB9\u6846\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868/\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5F53\u5217\u8868/\u6811\u5904\u4E8E\u6D3B\u52A8\u72B6\u6001\u4E14\u5DF2\u9009\u62E9\u65F6\uFF0C\u91CD\u70B9\u9879\u7684\u5217\u8868/\u6811\u8FB9\u6846\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868/\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u4F46\u975E\u6D3B\u52A8\u7684\u5219\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868\u6216\u6811\u6D3B\u52A8\u65F6\u7684\u80CC\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868\u6216\u6811\u6D3B\u52A8\u65F6\u7684\u524D\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868/\u6811\u6D3B\u52A8\u65F6\u7684\u5217\u8868/\u6811\u56FE\u6807\u524D\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868/\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u5219\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868\u6216\u6811\u975E\u6D3B\u52A8\u65F6\u7684\u80CC\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868\u6216\u6811\u975E\u6D3B\u52A8\u65F6\u7684\u524D\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5DF2\u9009\u9879\u5728\u5217\u8868/\u6811\u975E\u6D3B\u52A8\u65F6\u7684\u56FE\u6807\u524D\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868/\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u5219\u6CA1\u6709\u3002", "\u975E\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u63A7\u4EF6\u4E2D\u7126\u70B9\u9879\u7684\u80CC\u666F\u989C\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868\u6216\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u5217\u8868/\u6570\u975E\u6D3B\u52A8\u65F6\uFF0C\u7126\u70B9\u9879\u76EE\u7684\u5217\u8868/\u6811\u8FB9\u6846\u8272\u3002\u6D3B\u52A8\u7684\u5217\u8868/\u6811\u5177\u6709\u952E\u76D8\u7126\u70B9\uFF0C\u975E\u6D3B\u52A8\u7684\u6CA1\u6709\u3002", "\u4F7F\u7528\u9F20\u6807\u79FB\u52A8\u9879\u76EE\u65F6\uFF0C\u5217\u8868\u6216\u6811\u7684\u80CC\u666F\u989C\u8272\u3002", "\u9F20\u6807\u5728\u9879\u76EE\u4E0A\u60AC\u505C\u65F6\uFF0C\u5217\u8868\u6216\u6811\u7684\u524D\u666F\u989C\u8272\u3002", "\u4F7F\u7528\u9F20\u6807\u79FB\u52A8\u9879\u76EE\u65F6\uFF0C\u5217\u8868\u6216\u6811\u8FDB\u884C\u62D6\u653E\u7684\u80CC\u666F\u989C\u8272\u3002", "\u4F7F\u7528\u9F20\u6807\u5728\u9879\u76EE\u4E4B\u95F4\u79FB\u52A8\u9879\u65F6\uFF0C\u5217\u8868/\u6811\u62D6\u653E\u8FB9\u6846\u7684\u989C\u8272\u3002", "\u5728\u5217\u8868\u6216\u6811\u4E2D\u641C\u7D22\u65F6\uFF0C\u5176\u4E2D\u5339\u914D\u5185\u5BB9\u7684\u9AD8\u4EAE\u989C\u8272\u3002", "\u5728\u5217\u8868\u6216\u6811\u4E2D\u641C\u7D22\u65F6\uFF0C\u5339\u914D\u6D3B\u52A8\u805A\u7126\u9879\u7684\u7A81\u51FA\u663E\u793A\u5185\u5BB9\u7684\u5217\u8868/\u6811\u524D\u666F\u8272\u3002", "\u5217\u8868\u6216\u6811\u4E2D\u65E0\u6548\u9879\u7684\u524D\u666F\u8272\uFF0C\u4F8B\u5982\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u6CA1\u6709\u89E3\u6790\u7684\u6839\u76EE\u5F55\u3002", "\u5305\u542B\u9519\u8BEF\u7684\u5217\u8868\u9879\u7684\u524D\u666F\u989C\u8272\u3002", "\u5305\u542B\u8B66\u544A\u7684\u5217\u8868\u9879\u7684\u524D\u666F\u989C\u8272\u3002", "\u5217\u8868\u548C\u6811\u4E2D\u7C7B\u578B\u7B5B\u9009\u5668\u5C0F\u7EC4\u4EF6\u7684\u80CC\u666F\u8272\u3002", "\u5217\u8868\u548C\u6811\u4E2D\u7C7B\u578B\u7B5B\u9009\u5668\u5C0F\u7EC4\u4EF6\u7684\u8F6E\u5ED3\u989C\u8272\u3002", "\u5F53\u6CA1\u6709\u5339\u914D\u9879\u65F6\uFF0C\u5217\u8868\u548C\u6811\u4E2D\u7C7B\u578B\u7B5B\u9009\u5668\u5C0F\u7EC4\u4EF6\u7684\u8F6E\u5ED3\u989C\u8272\u3002", "\u5217\u8868\u548C\u6811\u4E2D\u7C7B\u578B\u7B5B\u9009\u5668\u5C0F\u7EC4\u4EF6\u7684\u9634\u5F71\u989C\u8272\u3002", "\u7B5B\u9009\u540E\u7684\u5339\u914D\u9879\u7684\u80CC\u666F\u989C\u8272\u3002", "\u7B5B\u9009\u540E\u7684\u5339\u914D\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u53D6\u6D88\u5F3A\u8C03\u7684\u9879\u7684\u5217\u8868/\u6811\u524D\u666F\u8272\u3002", "\u7F29\u8FDB\u53C2\u8003\u7EBF\u7684\u6811\u63CF\u8FB9\u989C\u8272\u3002", "\u975E\u6D3B\u52A8\u7F29\u8FDB\u53C2\u8003\u7EBF\u7684\u6811\u63CF\u8FB9\u989C\u8272\u3002", "\u5217\u4E4B\u95F4\u7684\u8868\u8FB9\u6846\u989C\u8272\u3002", "\u5947\u6570\u8868\u884C\u7684\u80CC\u666F\u8272\u3002", "\u64CD\u4F5C\u5217\u8868\u80CC\u666F\u8272\u3002", "\u64CD\u4F5C\u5217\u8868\u524D\u666F\u8272\u3002", "\u805A\u7126\u9879\u76EE\u7684\u64CD\u4F5C\u5217\u8868\u524D\u666F\u8272\u3002", "\u805A\u7126\u9879\u76EE\u7684\u64CD\u4F5C\u5217\u8868\u80CC\u666F\u8272\u3002", "\u83DC\u5355\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u83DC\u5355\u9879\u7684\u524D\u666F\u989C\u8272\u3002", "\u83DC\u5355\u9879\u7684\u80CC\u666F\u989C\u8272\u3002", "\u83DC\u5355\u4E2D\u9009\u5B9A\u83DC\u5355\u9879\u7684\u524D\u666F\u8272\u3002", "\u83DC\u5355\u4E2D\u6240\u9009\u83DC\u5355\u9879\u7684\u80CC\u666F\u8272\u3002", "\u83DC\u5355\u4E2D\u6240\u9009\u83DC\u5355\u9879\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u83DC\u5355\u4E2D\u5206\u9694\u7EBF\u7684\u989C\u8272\u3002", "\u7528\u4E8E\u67E5\u627E\u5339\u914D\u9879\u7684\u8FF7\u4F60\u5730\u56FE\u6807\u8BB0\u989C\u8272\u3002", "\u7528\u4E8E\u91CD\u590D\u7F16\u8F91\u5668\u9009\u62E9\u7684\u7F29\u7565\u56FE\u6807\u8BB0\u989C\u8272\u3002", "\u7F16\u8F91\u5668\u9009\u533A\u5728\u8FF7\u4F60\u5730\u56FE\u4E2D\u5BF9\u5E94\u7684\u6807\u8BB0\u989C\u8272\u3002", "\u4FE1\u606F\u7684\u8FF7\u4F60\u5730\u56FE\u6807\u8BB0\u989C\u8272\u3002", "\u7528\u4E8E\u8B66\u544A\u7684\u8FF7\u4F60\u5730\u56FE\u6807\u8BB0\u989C\u8272\u3002", "\u7528\u4E8E\u9519\u8BEF\u7684\u8FF7\u4F60\u5730\u56FE\u6807\u8BB0\u989C\u8272\u3002", "\u8FF7\u4F60\u5730\u56FE\u80CC\u666F\u989C\u8272\u3002", '\u5728\u7F29\u7565\u56FE\u4E2D\u5448\u73B0\u7684\u524D\u666F\u5143\u7D20\u7684\u4E0D\u900F\u660E\u5EA6\u3002\u4F8B\u5982\uFF0C"#000000c0" \u5C06\u5448\u73B0\u4E0D\u900F\u660E\u5EA6\u4E3A 75% \u7684\u5143\u7D20\u3002', "\u8FF7\u4F60\u5730\u56FE\u6ED1\u5757\u80CC\u666F\u989C\u8272\u3002", "\u60AC\u505C\u65F6\uFF0C\u8FF7\u4F60\u5730\u56FE\u6ED1\u5757\u7684\u80CC\u666F\u989C\u8272\u3002", "\u5355\u51FB\u65F6\uFF0C\u8FF7\u4F60\u5730\u56FE\u6ED1\u5757\u7684\u80CC\u666F\u989C\u8272\u3002", "\u6D3B\u52A8\u6846\u683C\u7684\u8FB9\u6846\u989C\u8272\u3002", "Badge \u80CC\u666F\u8272\u3002Badge \u662F\u5C0F\u578B\u7684\u4FE1\u606F\u6807\u7B7E\uFF0C\u5982\u8868\u793A\u641C\u7D22\u7ED3\u679C\u6570\u91CF\u7684\u6807\u7B7E\u3002", "Badge \u524D\u666F\u8272\u3002Badge \u662F\u5C0F\u578B\u7684\u4FE1\u606F\u6807\u7B7E\uFF0C\u5982\u8868\u793A\u641C\u7D22\u7ED3\u679C\u6570\u91CF\u7684\u6807\u7B7E\u3002", "\u8B66\u544A\u6D3B\u52A8\u5FBD\u7AE0\u7684\u524D\u666F\u8272", "\u8B66\u544A\u6D3B\u52A8\u5FBD\u7AE0\u7684\u80CC\u666F\u8272", "\u9519\u8BEF\u6D3B\u52A8\u5FBD\u7AE0\u7684\u524D\u666F\u8272", "\u9519\u8BEF\u6D3B\u52A8\u5FBD\u7AE0\u7684\u80CC\u666F\u8272", "\u8868\u793A\u89C6\u56FE\u88AB\u6EDA\u52A8\u7684\u6EDA\u52A8\u6761\u9634\u5F71\u3002", "\u6EDA\u52A8\u6761\u6ED1\u5757\u80CC\u666F\u8272", "\u6EDA\u52A8\u6761\u6ED1\u5757\u5728\u60AC\u505C\u65F6\u7684\u80CC\u666F\u8272", "\u6EDA\u52A8\u6761\u6ED1\u5757\u5728\u88AB\u70B9\u51FB\u65F6\u7684\u80CC\u666F\u8272\u3002", "\u6EDA\u52A8\u6761\u8F68\u9053\u80CC\u666F\u8272\u3002", "\u8868\u793A\u957F\u65F6\u95F4\u64CD\u4F5C\u7684\u8FDB\u5EA6\u6761\u7684\u80CC\u666F\u8272\u3002", "\u56FE\u8868\u7684\u7EBF\u6761\u989C\u8272\u3002", "\u56FE\u8868\u7684\u8F74\u989C\u8272\u3002", "\u56FE\u8868\u7684\u53C2\u8003\u7EBF\u3002", "\u80CC\u666F\u989C\u8272\u5FEB\u901F\u9009\u53D6\u5668\u3002\u5FEB\u901F\u9009\u53D6\u5668\u5C0F\u90E8\u4EF6\u662F\u9009\u53D6\u5668(\u5982\u547D\u4EE4\u8C03\u8272\u677F)\u7684\u5BB9\u5668\u3002", "\u524D\u666F\u989C\u8272\u5FEB\u901F\u9009\u53D6\u5668\u3002\u5FEB\u901F\u9009\u53D6\u5668\u5C0F\u90E8\u4EF6\u662F\u547D\u4EE4\u8C03\u8272\u677F\u7B49\u9009\u53D6\u5668\u7684\u5BB9\u5668\u3002", "\u6807\u9898\u80CC\u666F\u989C\u8272\u5FEB\u901F\u9009\u53D6\u5668\u3002\u5FEB\u901F\u9009\u53D6\u5668\u5C0F\u90E8\u4EF6\u662F\u547D\u4EE4\u8C03\u8272\u677F\u7B49\u9009\u53D6\u5668\u7684\u5BB9\u5668\u3002", "\u5FEB\u901F\u9009\u53D6\u5668\u5206\u7EC4\u6807\u7B7E\u7684\u989C\u8272\u3002", "\u5FEB\u901F\u9009\u53D6\u5668\u5206\u7EC4\u8FB9\u6846\u7684\u989C\u8272\u3002", "\u8BF7\u6539\u7528 quickInputList.focusBackground", "\u7126\u70B9\u9879\u76EE\u7684\u5FEB\u901F\u9009\u62E9\u5668\u524D\u666F\u8272\u3002", "\u7126\u70B9\u9879\u76EE\u7684\u5FEB\u901F\u9009\u53D6\u5668\u56FE\u6807\u524D\u666F\u8272\u3002", "\u7126\u70B9\u9879\u76EE\u7684\u5FEB\u901F\u9009\u62E9\u5668\u80CC\u666F\u8272\u3002", "\u7126\u70B9\u9879\u4E0A\u5339\u914D\u9AD8\u4EAE\u7684\u5FEB\u901F\u9009\u53D6\u5668\u524D\u666F\u8272\u3002", "\u641C\u7D22 Viewlet \u5B8C\u6210\u6D88\u606F\u4E2D\u6587\u672C\u7684\u989C\u8272\u3002", "\u641C\u7D22\u7F16\u8F91\u5668\u67E5\u8BE2\u5339\u914D\u7684\u989C\u8272\u3002", "\u641C\u7D22\u7F16\u8F91\u5668\u67E5\u8BE2\u5339\u914D\u7684\u8FB9\u6846\u989C\u8272\u3002", "\u6B64\u989C\u8272\u5FC5\u987B\u662F\u900F\u660E\u7684\uFF0C\u5426\u5219\u4F1A\u906E\u76D6\u5185\u5BB9", "\u4F7F\u7528\u9ED8\u8BA4\u989C\u8272\u3002", "\u5B57\u4F53 ID \u53EA\u80FD\u5305\u542B\u5B57\u6BCD\u3001\u6570\u5B57\u3001\u4E0B\u5212\u7EBF\u548C\u77ED\u5212\u7EBF\u3002", "\u8981\u4F7F\u7528\u7684\u5B57\u4F53\u7684 ID\u3002\u5982\u679C\u672A\u8BBE\u7F6E\uFF0C\u5219\u4F7F\u7528\u6700\u5148\u5B9A\u4E49\u7684\u5B57\u4F53\u3002", "\u4E0E\u56FE\u6807\u5B9A\u4E49\u5173\u8054\u7684\u5B57\u4F53\u5B57\u7B26\u3002", "\u5C0F\u7EC4\u4EF6\u4E2D\u201C\u5173\u95ED\u201D\u64CD\u4F5C\u7684\u56FE\u6807\u3002", "\u201C\u8F6C\u5230\u4E0A\u4E00\u4E2A\u7F16\u8F91\u5668\u4F4D\u7F6E\u201D\u56FE\u6807\u3002", "\u201C\u8F6C\u5230\u4E0B\u4E00\u4E2A\u7F16\u8F91\u5668\u4F4D\u7F6E\u201D\u56FE\u6807\u3002", "\u4EE5\u4E0B\u6587\u4EF6\u5DF2\u5173\u95ED\u5E76\u4E14\u5DF2\u5728\u78C1\u76D8\u4E0A\u4FEE\u6539: {0}\u3002", "\u4EE5\u4E0B\u6587\u4EF6\u5DF2\u4EE5\u4E0D\u517C\u5BB9\u7684\u65B9\u5F0F\u4FEE\u6539: {0}\u3002", "\u65E0\u6CD5\u5728\u6240\u6709\u6587\u4EF6\u4E2D\u64A4\u6D88\u201C{0}\u201D\u3002{1}", "\u65E0\u6CD5\u5728\u6240\u6709\u6587\u4EF6\u4E2D\u64A4\u6D88\u201C{0}\u201D\u3002{1}", "\u65E0\u6CD5\u64A4\u6D88\u6240\u6709\u6587\u4EF6\u7684\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u5DF2\u66F4\u6539 {1}", "\u65E0\u6CD5\u8DE8\u6240\u6709\u6587\u4EF6\u64A4\u9500\u201C{0}\u201D\uFF0C\u56E0\u4E3A {1} \u4E0A\u5DF2\u6709\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C\u6B63\u5728\u8FD0\u884C", "\u65E0\u6CD5\u8DE8\u6240\u6709\u6587\u4EF6\u64A4\u9500\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u540C\u65F6\u53D1\u751F\u4E86\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C", "\u662F\u5426\u8981\u5728\u6240\u6709\u6587\u4EF6\u4E2D\u64A4\u6D88\u201C{0}\u201D?", "\u5728 {0} \u4E2A\u6587\u4EF6\u4E2D\u64A4\u6D88(&&U)", "\u64A4\u6D88\u6B64\u6587\u4EF6(&&F)", "\u65E0\u6CD5\u64A4\u9500\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u5DF2\u6709\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C\u6B63\u5728\u8FD0\u884C\u3002", "\u662F\u5426\u8981\u64A4\u6D88\u201C{0}\u201D?", "\u662F(&&Y)", "\u5426", "\u65E0\u6CD5\u5728\u6240\u6709\u6587\u4EF6\u4E2D\u91CD\u505A\u201C{0}\u201D\u3002{1}", "\u65E0\u6CD5\u5728\u6240\u6709\u6587\u4EF6\u4E2D\u91CD\u505A\u201C{0}\u201D\u3002{1}", "\u65E0\u6CD5\u5BF9\u6240\u6709\u6587\u4EF6\u91CD\u505A\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u5DF2\u66F4\u6539 {1}", "\u65E0\u6CD5\u8DE8\u6240\u6709\u6587\u4EF6\u91CD\u505A\u201C{0}\u201D\uFF0C\u56E0\u4E3A {1} \u4E0A\u5DF2\u6709\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C\u6B63\u5728\u8FD0\u884C", "\u65E0\u6CD5\u8DE8\u6240\u6709\u6587\u4EF6\u91CD\u505A\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u540C\u65F6\u53D1\u751F\u4E86\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C", "\u65E0\u6CD5\u91CD\u505A\u201C{0}\u201D\uFF0C\u56E0\u4E3A\u5DF2\u6709\u4E00\u9879\u64A4\u6D88\u6216\u91CD\u505A\u64CD\u4F5C\u6B63\u5728\u8FD0\u884C\u3002", "Code \u5DE5\u4F5C\u533A"];
   globalThis._VSCODE_NLS_LANGUAGE = "zh-cn";
+
+  // src/git_graph_i18n.ts
+  var zh_cn = {
+    "common.close": "\u5173\u95ED",
+    "graph.aria_label": "Git Graph \u63D0\u4EA4\u5386\u53F2",
+    "graph.refresh": "\u5237\u65B0\u63D0\u4EA4\u56FE",
+    "graph.load_more": "\u52A0\u8F7D\u66F4\u591A",
+    "graph.branches": "\u5206\u652F\uFF1A",
+    "graph.repository": "\u4ED3\u5E93\uFF1A",
+    "graph.show_remote_branches": "\u663E\u793A\u8FDC\u7AEF\u5206\u652F",
+    "graph.all_branches": "\u5168\u90E8\u5206\u652F",
+    "graph.current_head": "\u5F53\u524D HEAD",
+    "graph.select_multiple_branches": "\u9009\u62E9\u591A\u4E2A\u5206\u652F\u2026",
+    "graph.manage_repositories": "\u7BA1\u7406\u4ED3\u5E93\u2026",
+    "graph.find_placeholder": "\u67E5\u627E\u63D0\u4EA4\u3001\u65E5\u671F\u3001\u4F5C\u8005\u3001\u7F16\u53F7\u548C\u5F15\u7528",
+    "graph.find_history": "\u67E5\u627E Git \u5386\u53F2",
+    "graph.find_commit": "\u67E5\u627E\u63D0\u4EA4",
+    "graph.find_previous": "\u4E0A\u4E00\u4E2A\u5339\u914D\u9879",
+    "graph.find_next": "\u4E0B\u4E00\u4E2A\u5339\u914D\u9879",
+    "graph.find_close": "\u5173\u95ED\u67E5\u627E",
+    "graph.find_no_results": "\u65E0\u7ED3\u679C",
+    "graph.find_position": "{current} / {total}",
+    "graph.open_terminal": "\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u96C6\u6210\u7EC8\u7AEF",
+    "graph.actions_and_settings": "Git \u64CD\u4F5C\u548C\u8BBE\u7F6E",
+    "graph.fetch": "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0",
+    "graph.loading_repository": "\u6B63\u5728\u8BFB\u53D6 Git \u4ED3\u5E93\u2026",
+    "graph.open_repository_first": "\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u6863\uFF0C\u6216\u901A\u8FC7\u201C\u4ED3\u5E93\u201D\u6DFB\u52A0\u6587\u4EF6\u5939\u3002",
+    "graph.operation_pending": "Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002",
+    "graph.detached_head": "\u6E38\u79BB HEAD",
+    "graph.loaded_commits": "\u5DF2\u52A0\u8F7D {count} \u6761\u63D0\u4EA4",
+    "graph.no_commits": "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4",
+    "graph.uncommitted_files": "{count} \u4E2A\u672A\u63D0\u4EA4\u6587\u4EF6",
+    "graph.operation_in_progress": "\u8FDB\u884C\u4E2D\uFF1A{operation}",
+    "graph.operation.merge": "\u5408\u5E76",
+    "graph.operation.rebase": "\u53D8\u57FA",
+    "graph.operation.cherry_pick": "\u62E3\u9009\u63D0\u4EA4",
+    "graph.operation.revert": "\u8FD8\u539F\u63D0\u4EA4",
+    "graph.relative_days": "{count} \u5929\u524D",
+    "graph.today": "\u4ECA\u5929",
+    "graph.column.graph": "\u63D0\u4EA4\u56FE",
+    "graph.column.description": "\u8BF4\u660E",
+    "graph.column.date": "\u65E5\u671F",
+    "graph.column.author": "\u4F5C\u8005",
+    "graph.column.commit": "\u63D0\u4EA4\u7F16\u53F7",
+    "graph.uncommitted_changes": "\u672A\u63D0\u4EA4\u6539\u52A8",
+    "graph.revision.worktree": "\u5DE5\u4F5C\u533A",
+    "graph.revision.index": "\u6682\u5B58\u533A",
+    "graph.revision.empty": "\u7A7A\u6811",
+    "graph.signature_label": "\u7B7E\u540D\uFF1A",
+    "graph.uncommitted_changes_files": "\u672A\u63D0\u4EA4\u6539\u52A8 \xB7 {count} \u4E2A\u6587\u4EF6",
+    "graph.staged_changes": "\u5DF2\u6682\u5B58\u6539\u52A8",
+    "graph.commit_comparison": "\u63D0\u4EA4\u6BD4\u8F83",
+    "graph.comparison": "\u6BD4\u8F83",
+    "graph.compare_with": "\u4E0E\u6B64\u7248\u672C\u6BD4\u8F83",
+    "graph.head_to_worktree": "HEAD \u2192 \u5DE5\u4F5C\u533A",
+    "graph.head_to_index": "HEAD \u2192 \u6682\u5B58\u533A",
+    "graph.index_to_worktree": "\u6682\u5B58\u533A \u2192 \u5DE5\u4F5C\u533A",
+    "graph.author_meta": "\u4F5C\u8005\uFF1A{author} <{email}> \xB7 {date}\n\u63D0\u4EA4\u8005\uFF1A{committer} <{committer_email}> \xB7 {commit_date}",
+    "graph.compare_parent": "\u5BF9\u6BD4\u7236\u63D0\u4EA4",
+    "graph.initial_commit_empty_tree": "\u9996\u6B21\u63D0\u4EA4 \xB7 \u7A7A\u6811",
+    "graph.parent_commit": "\u7236\u63D0\u4EA4 {number} \xB7 {hash}",
+    "graph.selected_comparison": "\u6240\u9009\u6BD4\u8F83\u63D0\u4EA4 \xB7 {hash}",
+    "graph.review_start": "\u5F00\u59CB\u6B64\u63D0\u4EA4\u8BC4\u5BA1",
+    "graph.review_end": "\u7ED3\u675F\u6B64\u63D0\u4EA4\u8BC4\u5BA1",
+    "graph.loading_message": "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026",
+    "graph.files_tree": "\u4EE5\u76EE\u5F55\u6811\u663E\u793A\u66F4\u6539\u6587\u4EF6",
+    "graph.files_list": "\u4EE5\u5217\u8868\u663E\u793A\u66F4\u6539\u6587\u4EF6",
+    "graph.more_commit_actions": "\u66F4\u591A\u63D0\u4EA4\u64CD\u4F5C",
+    "graph.changed_files": "\u66F4\u6539\u7684\u6587\u4EF6",
+    "graph.changed_files_count": "\u66F4\u6539\u7684\u6587\u4EF6\uFF08{count}\uFF09",
+    "graph.no_file_differences": "\u6CA1\u6709\u6587\u4EF6\u5DEE\u5F02\u3002",
+    "graph.details_close": "\u5173\u95ED\u63D0\u4EA4\u8BE6\u60C5",
+    "graph.file_history": "\u6253\u5F00\u6587\u4EF6\u5386\u53F2\uFF08\u65F6\u95F4\u7EBF\uFF09",
+    "graph.open_current_file": "\u6253\u5F00\u5F53\u524D\u6587\u4EF6",
+    "graph.copy_relative_path": "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84",
+    "graph.copy_absolute_path": "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84",
+    "graph.open_side_by_side_diff": "\u6253\u5F00\u53CC\u680F\u5DEE\u5F02",
+    "graph.open_left_revision": "\u67E5\u770B\u5DE6\u4FA7\u5386\u53F2\u7248\u672C",
+    "graph.open_right_revision": "\u67E5\u770B\u53F3\u4FA7\u5386\u53F2\u7248\u672C",
+    "graph.mark_reviewed": "\u6807\u8BB0\u5DF2\u8BC4\u5BA1",
+    "graph.copy_name_or_hash": "\u590D\u5236\u540D\u79F0\u6216\u7F16\u53F7",
+    "graph.copy_commit_hash": "\u590D\u5236\u63D0\u4EA4\u7F16\u53F7",
+    "graph.copy_commit_subject": "\u590D\u5236\u63D0\u4EA4\u6807\u9898",
+    "graph.tag_details": "\u67E5\u770B\u6807\u7B7E\u8BE6\u60C5",
+    "graph.open_pull_request": "\u6253\u5F00 Pull Request \u8868\u5355",
+    "graph.filter_remove": "\u4ECE\u5206\u652F\u7B5B\u9009\u4E2D\u79FB\u9664",
+    "graph.filter_add": "\u52A0\u5165\u5206\u652F\u7B5B\u9009",
+    "graph.archive_zip": "\u5BFC\u51FA\u6B64\u7248\u672C\u7684 ZIP \u5F52\u6863",
+    "graph.reset_columns": "\u91CD\u7F6E\u4E94\u5217\u5BBD\u5EA6",
+    "graph.all_settings": "\u5168\u90E8\u8BBE\u7F6E",
+    "graph.layout_title": "\u63D0\u4EA4\u56FE\u5E03\u5C40",
+    "graph.configure_context_menu": "\u914D\u7F6E\u6B64\u53F3\u952E\u83DC\u5355\u2026",
+    "graph.context_menu_title": "\u53F3\u952E\u83DC\u5355\u663E\u793A\u9879 \xB7 {kind}",
+    "graph.apply": "\u5E94\u7528",
+    "graph.restore_menu": "\u6062\u590D\u6B64\u83DC\u5355\u5168\u90E8\u9879\u76EE",
+    "graph.target.repository": "\u4ED3\u5E93",
+    "graph.target.changes": "\u672A\u63D0\u4EA4\u6539\u52A8",
+    "graph.target.branch": "\u5206\u652F",
+    "graph.target.remote": "\u8FDC\u7AEF\u5206\u652F",
+    "graph.target.tag": "\u6807\u7B7E",
+    "graph.target.commit": "\u63D0\u4EA4",
+    "graph.target.stash": "\u8D2E\u85CF",
+    "graph.target.file": "\u6587\u4EF6",
+    "graph.refresh_short": "\u5237\u65B0",
+    "graph.open_admin_terminal": "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09",
+    "graph.remotes": "\u8FDC\u7AEF\u914D\u7F6E",
+    "graph.copy_repository_root": "\u590D\u5236\u4ED3\u5E93\u6839\u8DEF\u5F84",
+    "graph.column_layout": "\u63D0\u4EA4\u56FE\u5217\u5E03\u5C40",
+    "graph.repository_actions": "\u4ED3\u5E93\u64CD\u4F5C",
+    "graph.changes_actions": "\u672A\u63D0\u4EA4\u6539\u52A8\u64CD\u4F5C",
+    "graph.open_repository_terminal": "\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF",
+    "graph.manage_reviews": "\u7BA1\u7406\u8BC4\u5BA1\u8BB0\u5F55",
+    "graph.clear_avatar_cache": "\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58",
+    "graph.repository_remotes": "\u4ED3\u5E93\u8FDC\u7AEF\u914D\u7F6E",
+    "graph.no_remotes": "\u6B64\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002",
+    "graph.remote_addresses": "{name}\n\u83B7\u53D6\u5730\u5740\uFF1A{fetch}\n\u63A8\u9001\u5730\u5740\uFF1A{push}",
+    "graph.edit_fetch_url": "\u4FEE\u6539\u83B7\u53D6\u5730\u5740",
+    "graph.edit_push_url": "\u4FEE\u6539\u63A8\u9001\u5730\u5740",
+    "graph.prune_remote": "\u6E05\u7406\u8FC7\u671F\u5F15\u7528",
+    "graph.delete": "\u5220\u9664",
+    "graph.add_remote": "\u6DFB\u52A0\u8FDC\u7AEF",
+    "graph.wait_for_repository": "\u8BF7\u7B49\u5F85\u4ED3\u5E93\u8BFB\u53D6\u6216\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002",
+    "graph.repository_target": "\u4ED3\u5E93\uFF1A{root}\n\u76EE\u6807\uFF1A{target}",
+    "graph.sync_confirm": "\u786E\u8BA4\u540C\u6B65",
+    "graph.execute_action": "\u6267\u884C\u6B64\u64CD\u4F5C",
+    "graph.preview_action": "\u9884\u89C8\u64CD\u4F5C",
+    "graph.rebase_todo_ready": "\u5DF2\u751F\u6210\u4EA4\u4E92\u5217\u8868\u3002\u53EF\u4EE5\u8C03\u6574\u987A\u5E8F\u6216\u6539\u4E3A reword / edit / squash / fixup / drop\uFF1Breword \u7684\u6807\u9898\u5C06\u4F5C\u4E3A\u65B0\u8BF4\u660E\u3002\u786E\u8BA4\u5217\u8868\u540E\u518D\u6B21\u9884\u89C8\u3002",
+    "graph.parameters_changed": "\u53C2\u6570\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u3002",
+    "graph.executing": "\u6267\u884C\u4E2D\u2026",
+    "graph.action_complete": "\u64CD\u4F5C\u5B8C\u6210\u3002",
+    "graph.tag_details_title": "\u6807\u7B7E\u8BE6\u60C5 \xB7 {name}",
+    "graph.pull_request_title": "\u521B\u5EFA Pull Request",
+    "graph.pull_request_help": "\u9009\u62E9\u8FDC\u7AEF\u4E0E\u76EE\u6807\u5206\u652F\uFF0C\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u9884\u586B\u8868\u5355\u3002",
+    "graph.open_form": "\u6253\u5F00\u8868\u5355",
+    "graph.archive_title": "\u5BFC\u51FA\u7248\u672C\u5F52\u6863",
+    "graph.export_zip": "\u5BFC\u51FA ZIP",
+    "graph.target_exists": "\u76EE\u6807\u5DF2\u5B58\u5728\uFF0C\u8BF7\u6362\u4E00\u4E2A\u540D\u79F0\u3002",
+    "graph.exported": "\u5DF2\u5BFC\u51FA\uFF1A{path}",
+    "graph.valid_repository_required": "\u8BF7\u5148\u6253\u5F00\u6709\u6548\u4ED3\u5E93\u3002",
+    "graph.select_branches_title": "\u9009\u62E9\u4E00\u4E2A\u6216\u591A\u4E2A\u5206\u652F",
+    "graph.all_branches_button": "\u5168\u90E8\u5206\u652F",
+    "graph.apply_selection": "\u5E94\u7528\u9009\u62E9",
+    "graph.manage_repositories_title": "\u7BA1\u7406 Git \u4ED3\u5E93",
+    "graph.repository_path_placeholder": "\u7C98\u8D34\u4ED3\u5E93\u6587\u4EF6\u5939\u8DEF\u5F84",
+    "graph.open": "\u6253\u5F00",
+    "graph.remove_record": "\u79FB\u9664\u8BB0\u5F55",
+    "graph.add_repository": "\u6DFB\u52A0\u4ED3\u5E93",
+    "graph.discover_subrepositories": "\u53D1\u73B0\u5B50\u4ED3\u5E93",
+    "graph.discovered_repositories": "\u53D1\u73B0 {count} \u4E2A\u4ED3\u5E93\u3002",
+    "graph.settings_title": "Git Graph \u8BBE\u7F6E",
+    "graph.save_settings": "\u4FDD\u5B58\u8BBE\u7F6E",
+    "graph.restore_defaults": "\u6062\u590D\u9ED8\u8BA4",
+    "graph.import_settings": "\u5BFC\u5165\u914D\u7F6E",
+    "graph.export_settings": "\u5BFC\u51FA\u914D\u7F6E",
+    "graph.reviews_title": "\u8BC4\u5BA1\u8BB0\u5F55",
+    "graph.no_reviews": "\u6682\u65E0\u8BC4\u5BA1\u8BB0\u5F55\u3002",
+    "graph.review_record": "{root}\n{from} \u2192 {to} \xB7 \u5DF2\u8BFB {count} \u4E2A\u6587\u4EF6",
+    "graph.resume_review": "\u7EE7\u7EED\u8BC4\u5BA1",
+    "graph.finish": "\u7ED3\u675F",
+    "graph.finish_all_reviews": "\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1",
+    "action.field.remote": "\u8FDC\u7AEF\u540D\u79F0",
+    "action.field.branch": "\u5206\u652F\u540D\u79F0",
+    "action.field.checkout": "\u521B\u5EFA\u540E\u5207\u6362",
+    "action.field.force_delete": "\u5141\u8BB8\u5220\u9664\u672A\u5408\u5E76\u5206\u652F",
+    "action.field.remote_source": "\u8FDC\u7AEF\u5206\u652F",
+    "action.field.force_fetch": "\u5141\u8BB8\u975E\u5FEB\u8FDB\u66F4\u65B0\u672C\u5730\u5206\u652F",
+    "action.field.merge_mode": "\u5408\u5E76\u65B9\u5F0F",
+    "action.field.defer_commit": "\u6682\u4E0D\u521B\u5EFA\u63D0\u4EA4",
+    "action.field.preserve_merges": "\u4FDD\u7559\u5408\u5E76\u7ED3\u6784",
+    "action.field.ignore_date": "\u4F7F\u7528\u5F53\u524D\u4F5C\u8005\u65F6\u95F4",
+    "action.field.interactive": "\u4EA4\u4E92\u5F0F\u8C03\u6574\u63D0\u4EA4",
+    "action.field.rebase_todo": "\u4EA4\u4E92\u5217\u8868\uFF1Apick / reword / edit / squash / fixup / drop + \u5B8C\u6574\u7F16\u53F7 + \u6807\u9898",
+    "action.field.reset_mode": "\u91CD\u7F6E\u65B9\u5F0F",
+    "action.field.apply_only": "\u53EA\u5E94\u7528\u6539\u52A8",
+    "action.field.record_origin": "\u5728\u8BF4\u660E\u4E2D\u8BB0\u5F55\u6765\u6E90\u63D0\u4EA4",
+    "action.field.mainline": "\u5408\u5E76\u63D0\u4EA4\u7684\u7236\u7F16\u53F7",
+    "action.field.tag": "\u6807\u7B7E\u540D\u79F0",
+    "action.field.tag_message": "\u6CE8\u89E3\u8BF4\u660E\uFF08\u7A7A\u4E3A\u8F7B\u91CF\u6807\u7B7E\uFF09",
+    "action.field.sign_tag": "\u7B7E\u7F72\u6807\u7B7E",
+    "action.field.fetch_remote_optional": "\u8FDC\u7AEF\u540D\u79F0\uFF08\u7A7A\u4E3A\u5168\u90E8\uFF09",
+    "action.field.prune": "\u6E05\u7406\u5931\u6548\u8FDC\u7AEF\u5206\u652F",
+    "action.field.prune_tags": "\u540C\u6B65\u6E05\u7406\u6807\u7B7E",
+    "action.field.pull_mode": "\u6574\u5408\u65B9\u5F0F",
+    "action.field.sync_mode": "\u62C9\u53D6\u6574\u5408\u65B9\u5F0F",
+    "action.field.set_upstream": "\u8BBE\u7F6E\u4E0A\u6E38",
+    "action.field.force_with_lease": "\u4F7F\u7528 force-with-lease",
+    "action.field.message_optional": "\u8BF4\u660E",
+    "action.field.include_untracked": "\u5305\u542B\u672A\u8DDF\u8E2A\u6587\u4EF6",
+    "action.field.keep_index": "\u4FDD\u7559\u5DF2\u6682\u5B58\u5185\u5BB9",
+    "action.field.restore_index": "\u6062\u590D\u6682\u5B58\u72B6\u6001",
+    "action.field.clean_directories": "\u5305\u542B\u672A\u8DDF\u8E2A\u76EE\u5F55",
+    "action.field.clean_ignored": "\u540C\u65F6\u5305\u542B\u88AB\u5FFD\u7565\u6587\u4EF6",
+    "action.field.repository_url": "\u4ED3\u5E93 URL",
+    "action.field.target_directory": "\u76EE\u6807\u6587\u4EF6\u5939\uFF08\u5E94\u4E0D\u5B58\u5728\u6216\u4E3A\u7A7A\uFF09",
+    "action.field.remote_url": "\u8FDC\u7AEF URL \u6216\u8DEF\u5F84",
+    "action.field.push_url": "\u8BBE\u7F6E\u72EC\u7ACB\u63A8\u9001 URL",
+    "action.field.discard_untracked": "\u540C\u65F6\u5C06\u6240\u5217\u672A\u8DDF\u8E2A\u6587\u4EF6\u79FB\u5165\u56DE\u6536\u7AD9",
+    "action.field.commit_message": "\u63D0\u4EA4\u8BF4\u660E",
+    "action.field.amend": "\u4FEE\u6539\u4E0A\u4E00\u4E2A\u63D0\u4EA4",
+    "action.title.branch_create": "\u521B\u5EFA\u5206\u652F",
+    "action.title.branch_checkout": "\u5207\u6362\u5206\u652F",
+    "action.title.remote_checkout": "\u68C0\u51FA\u8FDC\u7AEF\u5206\u652F",
+    "action.title.branch_rename": "\u91CD\u547D\u540D\u5206\u652F",
+    "action.title.branch_delete": "\u5220\u9664\u5206\u652F",
+    "action.title.remote_branch_delete": "\u5220\u9664\u8FDC\u7AEF\u5206\u652F",
+    "action.title.branch_fetch": "\u83B7\u53D6\u5230\u672C\u5730\u5206\u652F",
+    "action.title.merge": "\u5408\u5E76\u5230\u5F53\u524D\u5206\u652F",
+    "action.title.rebase": "\u5C06\u5F53\u524D\u5206\u652F\u53D8\u57FA\u5230\u6B64\u5904",
+    "action.title.reset": "\u91CD\u7F6E\u5F53\u524D\u5206\u652F",
+    "action.title.commit_checkout": "\u68C0\u51FA\u6B64\u63D0\u4EA4\uFF08\u6E38\u79BB HEAD\uFF09",
+    "action.title.cherry_pick": "\u62E3\u9009\u63D0\u4EA4\uFF08Cherry-pick\uFF09",
+    "action.title.revert": "\u64A4\u9500\u63D0\u4EA4\uFF08Revert\uFF09",
+    "action.title.drop": "\u4ECE\u5F53\u524D\u5206\u652F\u79FB\u9664\u6B64\u63D0\u4EA4",
+    "action.title.tag_add": "\u6DFB\u52A0\u6807\u7B7E",
+    "action.title.tag_delete": "\u5220\u9664\u6807\u7B7E",
+    "action.title.tag_push": "\u63A8\u9001\u6807\u7B7E",
+    "action.title.fetch": "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0",
+    "action.title.pull": "\u62C9\u53D6\u5230\u5F53\u524D\u5206\u652F",
+    "action.title.sync": "\u540C\u6B65\u66F4\u6539",
+    "action.title.push": "\u63A8\u9001\u5206\u652F",
+    "action.title.stash_create": "\u8D2E\u85CF\u672A\u63D0\u4EA4\u66F4\u6539",
+    "action.title.stash_apply": "\u5E94\u7528\u8D2E\u85CF",
+    "action.title.stash_pop": "\u5F39\u51FA\u8D2E\u85CF",
+    "action.title.stash_drop": "\u5220\u9664\u8D2E\u85CF",
+    "action.title.stash_branch": "\u4ECE\u8D2E\u85CF\u521B\u5EFA\u5206\u652F",
+    "action.title.clean": "\u6E05\u7406\u672A\u8DDF\u8E2A\u6587\u4EF6",
+    "action.title.clone": "\u514B\u9686\u4ED3\u5E93",
+    "action.title.remote_add": "\u6DFB\u52A0\u8FDC\u7AEF",
+    "action.title.remote_edit": "\u4FEE\u6539\u8FDC\u7AEF URL",
+    "action.title.remote_remove": "\u5220\u9664\u8FDC\u7AEF\u914D\u7F6E",
+    "action.title.remote_prune": "\u6E05\u7406\u8FC7\u671F\u8FDC\u7AEF\u8DDF\u8E2A\u5F15\u7528",
+    "action.title.stage": "\u6682\u5B58\u6587\u4EF6",
+    "action.title.unstage": "\u53D6\u6D88\u6682\u5B58",
+    "action.title.stage_all": "\u6682\u5B58\u6240\u6709\u66F4\u6539",
+    "action.title.unstage_all": "\u53D6\u6D88\u6240\u6709\u6682\u5B58",
+    "action.title.discard_file": "\u653E\u5F03\u6587\u4EF6\u66F4\u6539",
+    "action.title.discard_changes": "\u653E\u5F03\u6240\u6709\u66F4\u6539",
+    "action.title.delete_untracked": "\u5220\u9664\u672A\u8DDF\u8E2A\u6587\u4EF6",
+    "action.title.commit": "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9",
+    "action.title.continue": "\u7EE7\u7EED\u5F53\u524D Git \u64CD\u4F5C",
+    "action.title.abort": "\u4E2D\u6B62\u5F53\u524D Git \u64CD\u4F5C",
+    "action.title.skip": "\u8DF3\u8FC7\u5F53\u524D\u63D0\u4EA4",
+    "action.warning.branch_delete": "\u5220\u9664\u6240\u9009\u5206\u652F\u5F15\u7528\u3002",
+    "action.warning.remote_branch_delete": "\u5220\u9664\u670D\u52A1\u5668\u4E0A\u7684\u5206\u652F\u3002",
+    "action.warning.rebase": "\u91CD\u5199\u5F53\u524D\u5206\u652F\u4E0A\u88AB\u91CD\u653E\u7684\u63D0\u4EA4\u3002",
+    "action.warning.reset": "\u79FB\u52A8\u5F53\u524D\u5206\u652F\uFF1Bhard \u4F1A\u4E22\u5F03\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u7684\u672A\u63D0\u4EA4\u5185\u5BB9\u3002",
+    "action.warning.drop": "\u901A\u8FC7 rebase --onto \u91CD\u5199\u540E\u7EE7\u63D0\u4EA4\uFF0C\u79FB\u9664\u6240\u9009\u63D0\u4EA4\u3002",
+    "action.warning.tag_delete": "\u5220\u9664\u672C\u5730\u6807\u7B7E\u5F15\u7528\u3002",
+    "action.warning.push": "\u66F4\u65B0\u670D\u52A1\u5668\u5206\u652F\uFF1Bforce-with-lease \u53EF\u66FF\u6362\u8FDC\u7AEF\u5386\u53F2\u3002",
+    "action.warning.stash_drop": "\u5220\u9664\u6240\u9009 stash \u7684\u5F15\u7528\u3002",
+    "action.warning.clean": "\u6C38\u4E45\u5220\u9664\u9884\u89C8\u4E2D\u5217\u51FA\u7684\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF1BGit \u65E0\u6CD5\u6062\u590D\u8FD9\u4E9B\u5185\u5BB9\u3002",
+    "action.warning.remote_remove": "\u79FB\u9664\u672C\u5730\u8FDC\u7AEF\u914D\u7F6E\u53CA\u5BF9\u5E94\u8DDF\u8E2A\u5F15\u7528\u3002",
+    "action.warning.remote_prune": "\u6E05\u7406\u670D\u52A1\u5668\u4E0A\u5DF2\u4E0D\u5B58\u5728\u7684\u8DDF\u8E2A\u5F15\u7528\u3002",
+    "action.warning.discard_file": "\u5C06\u6B64\u6587\u4EF6\u6062\u590D\u4E3A\u6682\u5B58\u533A\u7248\u672C\uFF0C\u4E22\u5F03\u672A\u6682\u5B58\u5185\u5BB9\u3002",
+    "action.warning.discard_changes": "\u6240\u5217\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u7684\u672A\u6682\u5B58\u5185\u5BB9\u5C06\u88AB\u6682\u5B58\u533A\u7248\u672C\u8986\u76D6\uFF1B\u6682\u5B58\u5185\u5BB9\u4FDD\u6301\u4E0D\u53D8\u3002\u52FE\u9009\u65F6\uFF0C\u6240\u5217\u672A\u8DDF\u8E2A\u6587\u4EF6\u79FB\u5165\u7CFB\u7EDF\u56DE\u6536\u7AD9\u3002",
+    "action.warning.delete_untracked": "\u6C38\u4E45\u5220\u9664\u6240\u9009\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF1BGit \u65E0\u6CD5\u6062\u590D\u3002",
+    "action.warning.commit": "amend \u4F1A\u6539\u5199\u4E0A\u4E00\u4E2A\u63D0\u4EA4\u3002",
+    "action.choice.normal": "\u9ED8\u8BA4\u5408\u5E76",
+    "action.choice.no_ff": "\u521B\u5EFA\u5408\u5E76\u63D0\u4EA4",
+    "action.choice.ff_only": "\u4EC5\u5FEB\u8FDB",
+    "action.choice.squash": "\u538B\u7F29\u6539\u52A8",
+    "action.choice.mixed": "\u6DF7\u5408\u91CD\u7F6E",
+    "action.choice.soft": "\u8F6F\u91CD\u7F6E",
+    "action.choice.hard": "\u786C\u91CD\u7F6E",
+    "action.choice.merge": "\u5408\u5E76",
+    "action.choice.rebase": "\u53D8\u57FA",
+    "action.label.tag_name": "\u6807\u7B7E\u540D\u79F0",
+    "action.label.branch_name": "\u5206\u652F\u540D\u79F0",
+    "action.label.target": "\u76EE\u6807",
+    "action.label.commit": "\u63D0\u4EA4",
+    "action.error.invalid_value": "{name}\u65E0\u6548\u3002",
+    "action.error.detached_sync": "\u6E38\u79BB HEAD \u4E0D\u80FD\u540C\u6B65\uFF0C\u8BF7\u5148\u5207\u6362\u5230\u5206\u652F\u3002",
+    "action.error.missing_upstream": "\u5F53\u524D\u5206\u652F\u5C1A\u672A\u914D\u7F6E\u6709\u6548\u4E0A\u6E38\uFF0C\u8BF7\u5148\u53D1\u5E03\u5206\u652F\u5E76\u8BBE\u7F6E\u4E0A\u6E38\u3002",
+    "action.error.discard_paths": "\u653E\u5F03\u66F4\u6539\u5FC5\u987B\u63D0\u4F9B\u5206\u7EC4\u4E2D\u660E\u786E\u7684\u76F8\u5BF9\u6587\u4EF6\u8DEF\u5F84\uFF0C\u4E0D\u80FD\u4F7F\u7528\u76EE\u5F55\u3002",
+    "action.error.unresolved_conflict": "\u6587\u4EF6\u5B58\u5728\u672A\u89E3\u51B3\u51B2\u7A81\uFF0C\u8BF7\u5148\u5904\u7406\uFF1A{file}",
+    "action.error.submodule": "\u5B50\u6A21\u5757\u9700\u8981\u8FDB\u5165\u5176\u4ED3\u5E93\u5904\u7406\uFF0C\u672A\u653E\u5F03\u66F4\u6539\uFF1A{file}",
+    "action.error.no_unstaged_changes": "\u6587\u4EF6\u5DF2\u6CA1\u6709\u672A\u6682\u5B58\u66F4\u6539\uFF0C\u8BF7\u5237\u65B0\uFF1A{file}",
+    "action.error.file_state_changed": "\u6587\u4EF6\u5DF2\u6539\u53D8\u3001\u88AB\u5FFD\u7565\u6216\u4E0D\u662F\u72EC\u7ACB\u6587\u4EF6\uFF0C\u8BF7\u5237\u65B0\uFF1A{file}",
+    "action.error.nothing_to_discard": "\u6CA1\u6709\u6240\u9009\u7C7B\u578B\u7684\u66F4\u6539\u53EF\u653E\u5F03\u3002",
+    "action.error.unknown_action": "\u672A\u77E5 Git \u64CD\u4F5C\u3002",
+    "action.error.invalid_option": "\u9009\u9879\u65E0\u6548\uFF1A{field}",
+    "action.error.invalid_file_path": "\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002",
+    "action.error.invalid_commit_message": "\u63D0\u4EA4\u8BF4\u660E\u65E0\u6548\u3002",
+    "action.error.invalid_mainline": "\u7236\u7F16\u53F7\u5FC5\u987B\u4E3A\u6B63\u6574\u6570\u3002",
+    "action.error.interactive_preserve_merges": "\u4EA4\u4E92\u5217\u8868\u7F16\u8F91\u7EBF\u6027\u63D0\u4EA4\uFF1B\u4FDD\u7559\u5408\u5E76\u7ED3\u6784\u8BF7\u53D6\u6D88\u4EA4\u4E92\u9009\u9879\u3002",
+    "action.error.invalid_todo_commit": "\u4EA4\u4E92\u5217\u8868\u5305\u542B\u65E0\u6548\u3001\u91CD\u590D\u6216\u8303\u56F4\u5916\u63D0\u4EA4\u3002",
+    "action.error.invalid_todo_first_command": "\u9996\u6761\u4E0D\u80FD\u5408\u5E76\u5230\u5C1A\u4E0D\u5B58\u5728\u7684\u524D\u4E00\u63D0\u4EA4\u3002",
+    "action.error.reword_subject_required": "reword \u540E\u987B\u586B\u5199\u65B0\u7684\u63D0\u4EA4\u6807\u9898\u3002",
+    "action.error.incomplete_todo": "\u4EA4\u4E92\u5217\u8868\u5FC5\u987B\u5217\u51FA\u8303\u56F4\u5185\u6BCF\u6761\u63D0\u4EA4\uFF1B\u5220\u9664\u63D0\u4EA4\u8BF7\u663E\u5F0F\u4F7F\u7528 drop\u3002",
+    "action.error.invalid_reset_mode": "\u91CD\u7F6E\u65B9\u5F0F\u65E0\u6548\u3002",
+    "action.error.invalid_drop_commit": "\u79FB\u9664\u64CD\u4F5C\u8981\u6C42\u6240\u9009\u63D0\u4EA4\u6709\u4E00\u4E2A\u7236\u63D0\u4EA4\uFF1B\u6839\u63D0\u4EA4\u6216\u5408\u5E76\u63D0\u4EA4\u8BF7\u4F7F\u7528\u663E\u5F0F rebase / revert\u3002",
+    "action.error.operation_blocks_sync": "\u8BF7\u5148\u5B8C\u6210\u6216\u4E2D\u6B62\u5F53\u524D Git \u64CD\u4F5C\uFF0C\u518D\u540C\u6B65\u66F4\u6539\u3002",
+    "action.error.invalid_stash": "Stash \u5F15\u7528\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002",
+    "action.error.stash_changed": "Stash \u5217\u8868\u5DF2\u6539\u53D8\uFF0C\u8BF7\u5237\u65B0\u3002",
+    "action.error.no_operation": "\u6CA1\u6709\u53EF\u7EE7\u7EED\u6216\u4E2D\u6B62\u7684\u64CD\u4F5C\u3002",
+    "action.error.merge_cannot_skip": "\u5408\u5E76\u64CD\u4F5C\u4E0D\u652F\u6301\u8DF3\u8FC7\u3002",
+    "action.error.unregistered": "\u64CD\u4F5C\u5C1A\u672A\u6CE8\u518C\u3002",
+    "action.error.invalid_git_argument": "Git \u53C2\u6570\u5305\u542B\u65E0\u6548\u5B57\u7B26\u3002",
+    "action.error.busy": "\u6B64\u4ED3\u5E93\u5DF2\u6709\u64CD\u4F5C\u5728\u6267\u884C\u3002",
+    "action.error.unsaved_document": "\u5F53\u524D Typora \u6587\u6863\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002\u8BF7\u5148\u4FDD\u5B58\uFF0C\u518D\u6267\u884C\u4F1A\u6539\u53D8\u5DE5\u4F5C\u533A\u6587\u4EF6\u7684\u64CD\u4F5C\u3002",
+    "action.error.repository_changed": "\u4ED3\u5E93\u5DF2\u88AB\u5176\u4ED6\u7A0B\u5E8F\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u64CD\u4F5C\u3002",
+    "action.error.untracked_changed": "\u672A\u8DDF\u8E2A\u6587\u4EF6\u5185\u5BB9\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u3002",
+    "action.error.recycle_unavailable": "\u7CFB\u7EDF\u56DE\u6536\u7AD9\u4E0D\u53EF\u7528\uFF0C\u672A\u653E\u5F03\u4EFB\u4F55\u66F4\u6539\u3002\u8BF7\u53D6\u6D88\u5305\u542B\u672A\u8DDF\u8E2A\u6587\u4EF6\u540E\u91CD\u65B0\u9884\u89C8\u3002",
+    "action.error.trash_failed": "\u5DF2\u6062\u590D {restored} \u4E2A\u5DF2\u8DDF\u8E2A\u6587\u4EF6\uFF1B\u79FB\u5165\u56DE\u6536\u7AD9\u5931\u8D25\uFF0C\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002\u8BF7\u68C0\u67E5\u6587\u4EF6\u72B6\u6001\uFF1A{error}",
+    "action.error.sync_target_changed": "\u5F53\u524D\u5206\u652F\u6216\u4E0A\u6E38\u914D\u7F6E\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u540C\u6B65\u3002",
+    "action.error.sync_target_changed_after_pull": "\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u5F53\u524D\u5206\u652F\u6216\u4E0A\u6E38\u914D\u7F6E\u53D1\u751F\u6539\u53D8\uFF0C\u5DF2\u505C\u6B62\u63A8\u9001\u3002\u8BF7\u5237\u65B0\u5E76\u91CD\u65B0\u540C\u6B65\u3002",
+    "action.error.invalid_ahead_count": "\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u65E0\u6CD5\u786E\u8BA4\u5F85\u63A8\u9001\u63D0\u4EA4\uFF0C\u5DF2\u505C\u6B62\u63A8\u9001\u3002",
+    "action.error.push_after_pull_failed": "\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u63A8\u9001\u5931\u8D25\uFF1A{error}",
+    "action.preview.sync": "\u786E\u8BA4\u540C\u6B65\u672C\u5730\u5206\u652F {local_branch} \u4E0E {remote_branch}\u3002\n\u5148\u62C9\u53D6\u5E76\u6574\u5408\u8FDC\u7AEF\u63D0\u4EA4\uFF1B\u6210\u529F\u540E\u63A8\u9001\u5C1A\u672A\u53D1\u5E03\u7684\u63D0\u4EA4\u3002\u62C9\u53D6\u5931\u8D25\u6216\u53D1\u751F\u51B2\u7A81\u65F6\u505C\u6B62\uFF0C\u4E0D\u6267\u884C\u63A8\u9001\u3002\n\n1. {pull_command}\n2. {push_command}\n\n\u6CA1\u6709\u5F85\u63A8\u9001\u63D0\u4EA4\u65F6\u8DF3\u8FC7\u7B2C\u4E8C\u6B65\u3002",
+    "action.preview.discard": "\u6062\u590D\u5230\u6682\u5B58\u533A\u7248\u672C\uFF08{restore_count} \u4E2A\u6587\u4EF6\uFF09\uFF1A\n{restore_lines}\n\n\u79FB\u5165\u7CFB\u7EDF\u56DE\u6536\u7AD9\uFF08{untracked_count} \u4E2A\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF09\uFF1A\n{untracked_lines}{command}\n\n\u4EC5\u5904\u7406\u4E0A\u8FF0\u7CBE\u786E\u6587\u4EF6\uFF1B\u4E0D\u4F1A\u53D6\u6D88\u6682\u5B58\uFF0C\u4E5F\u4E0D\u4F1A\u6E05\u7406\u5176\u4ED6\u6587\u4EF6\u3002",
+    "action.preview.restore_file": "  \u6062\u590D\uFF1A{file}",
+    "action.preview.recycle_file": "  \u56DE\u6536\uFF1A{file}",
+    "action.result.discard": "\u5DF2\u6062\u590D {restored} \u4E2A\u6587\u4EF6\uFF0C{untracked} \u4E2A\u672A\u8DDF\u8E2A\u6587\u4EF6\u5DF2\u79FB\u5165\u56DE\u6536\u7AD9\u3002\u6682\u5B58\u5185\u5BB9\u672A\u6539\u53D8\u3002",
+    "action.result.sync_no_push": "\u540C\u6B65\u5B8C\u6210\uFF0C\u6CA1\u6709\u5F85\u63A8\u9001\u63D0\u4EA4\u3002",
+    "settings.label.graph_style": "\u8FDE\u7EBF\u6837\u5F0F",
+    "settings.label.colors": "\u5206\u652F\u989C\u8272",
+    "settings.label.initial_count": "\u9996\u6B21\u63D0\u4EA4\u6570\u91CF",
+    "settings.label.page_count": "\u7EE7\u7EED\u52A0\u8F7D\u6570\u91CF",
+    "settings.label.auto_load": "\u6EDA\u52A8\u5230\u5E95\u81EA\u52A8\u52A0\u8F7D",
+    "settings.label.order": "\u63D0\u4EA4\u987A\u5E8F",
+    "settings.label.first_parent": "\u4EC5\u6CBF\u7B2C\u4E00\u7236\u63D0\u4EA4",
+    "settings.label.show_remotes": "\u663E\u793A\u8FDC\u7AEF\u5206\u652F",
+    "settings.label.show_remote_heads": "\u663E\u793A\u8FDC\u7AEF HEAD",
+    "settings.label.show_tags": "\u663E\u793A\u6807\u7B7E",
+    "settings.label.tag_only_commits": "\u663E\u793A\u4EC5\u6807\u7B7E\u53EF\u8FBE\u7684\u63D0\u4EA4",
+    "settings.label.show_stashes": "\u663E\u793A stash",
+    "settings.label.show_changes": "\u663E\u793A\u672A\u63D0\u4EA4\u6539\u52A8",
+    "settings.label.show_untracked": "\u663E\u793A\u672A\u8DDF\u8E2A\u6587\u4EF6",
+    "settings.label.include_reflogs": "\u5305\u542B reflog \u63D0\u4EA4",
+    "settings.label.use_mailmap": "\u4F7F\u7528 mailmap",
+    "settings.label.mute_merges": "\u6DE1\u5316\u5408\u5E76\u63D0\u4EA4",
+    "settings.label.mute_unreachable": "\u6DE1\u5316\u4E0D\u5C5E\u4E8E HEAD \u7684\u63D0\u4EA4",
+    "settings.label.show_signature": "\u67E5\u770B\u7B7E\u540D\u72B6\u6001",
+    "settings.label.fetch_avatars": "\u663E\u793A Gravatar \u5934\u50CF\uFF08\u8054\u7F51\uFF09",
+    "settings.label.date_type": "\u65E5\u671F\u6765\u6E90",
+    "settings.label.date_format": "\u65E5\u671F\u683C\u5F0F",
+    "settings.label.column_widths": "\u5217\u5BBD",
+    "settings.label.auto_center": "\u9009\u4E2D\u63D0\u4EA4\u81EA\u52A8\u5C45\u4E2D",
+    "settings.label.file_view": "\u6587\u4EF6\u89C6\u56FE",
+    "settings.label.compact_folders": "\u5408\u5E76\u5355\u5B50\u76EE\u5F55",
+    "settings.label.combine_refs": "\u5408\u5E76\u540C\u540D\u672C\u5730\u548C\u8FDC\u7AEF\u5F15\u7528",
+    "settings.label.uncommitted_style": "\u672A\u63D0\u4EA4\u8282\u70B9\u6837\u5F0F",
+    "settings.label.inline_markdown": "\u63D0\u4EA4\u8BF4\u660E\u884C\u5185 Markdown",
+    "settings.label.branch_globs": "\u81EA\u5B9A\u4E49\u5206\u652F\u7B5B\u9009\uFF08name / glob\uFF09",
+    "settings.label.emoji": "\u81EA\u5B9A\u4E49 emoji \u77ED\u4EE3\u7801",
+    "settings.label.hidden_actions": "\u9690\u85CF\u64CD\u4F5C ID",
+    "settings.label.dialog_defaults": "\u64CD\u4F5C\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C",
+    "settings.label.shortcuts": "\u56FE\u5185\u5FEB\u6377\u952E",
+    "settings.label.on_load_head": "\u6253\u5F00\u65F6\u5B9A\u4F4D HEAD",
+    "settings.label.on_load_branch": "\u6253\u5F00\u65F6\u9009\u62E9\u5F53\u524D\u5206\u652F",
+    "settings.label.on_load_branches": "\u6253\u5F00\u65F6\u6307\u5B9A\u5206\u652F",
+    "settings.label.retain_context": "\u4FDD\u7559\u9690\u85CF\u6807\u7B7E\u5185\u5BB9",
+    "settings.label.fetch_prune": "Fetch \u540C\u65F6\u6E05\u7406\u5206\u652F",
+    "settings.label.fetch_prune_tags": "Fetch \u540C\u65F6\u6E05\u7406\u6807\u7B7E",
+    "settings.label.sign_commits": "\u7B7E\u7F72\u65B0\u63D0\u4EA4",
+    "settings.label.sign_tags": "\u7B7E\u7F72\u6807\u7B7E",
+    "settings.label.issue_pattern": "Issue \u6B63\u5219\uFF08\u6355\u83B7\u7F16\u53F7\uFF09",
+    "settings.label.issue_url": "Issue URL \u6A21\u677F\uFF08{id}\uFF09",
+    "settings.label.pr_url": "\u81EA\u5B9A\u4E49 PR URL\uFF08{base} / {branch} / {remote}\uFF09",
+    "settings.label.pr_base": "PR \u9ED8\u8BA4\u76EE\u6807\u5206\u652F",
+    "settings.label.encoding": "\u5386\u53F2\u6587\u4EF6\u7F16\u7801",
+    "settings.label.git_path": "Git \u53EF\u6267\u884C\u6587\u4EF6",
+    "settings.label.terminal_shell": "\u96C6\u6210\u7EC8\u7AEF Shell\uFF08\u7A7A\u4E3A\u7EC8\u7AEF\u9ED8\u8BA4\u914D\u7F6E\uFF09",
+    "settings.label.new_tab_group": "\u6587\u4EF6\u4E0E\u5DEE\u5F02\u6253\u5F00\u4F4D\u7F6E",
+    "settings.label.open_active_repo": "\u4ECE\u6D3B\u52A8\u6587\u6863\u67E5\u627E\u4ED3\u5E93",
+    "settings.label.search_depth": "\u5B50\u4ED3\u5E93\u53D1\u73B0\u6DF1\u5EA6",
+    "settings.label.repository_order": "\u4ED3\u5E93\u6392\u5E8F",
+    "settings.label.show_status_button": "\u663E\u793A\u72B6\u6001\u680F\u5165\u53E3",
+    "settings.label.file_menu_entry": "\u663E\u793A\u6587\u4EF6\u83DC\u5355\u5165\u53E3",
+    "settings.label.icon_color": "\u5165\u53E3\u56FE\u6807\u989C\u8272\uFF08auto \u6216 CSS \u989C\u8272\uFF09",
+    "settings.choice.graph_style.curved": "\u66F2\u7EBF",
+    "settings.choice.graph_style.straight": "\u76F4\u7EBF",
+    "settings.choice.order.topo": "\u62D3\u6251\u987A\u5E8F",
+    "settings.choice.order.date": "\u63D0\u4EA4\u65F6\u95F4",
+    "settings.choice.order.author_date": "\u4F5C\u8005\u65F6\u95F4",
+    "settings.choice.date_type.author": "\u4F5C\u8005\u65F6\u95F4",
+    "settings.choice.date_type.committer": "\u63D0\u4EA4\u8005\u65F6\u95F4",
+    "settings.choice.date_format.local": "\u672C\u5730\u683C\u5F0F",
+    "settings.choice.date_format.iso": "ISO 8601",
+    "settings.choice.date_format.relative": "\u76F8\u5BF9\u65F6\u95F4",
+    "settings.choice.file_view.tree": "\u76EE\u5F55\u6811",
+    "settings.choice.file_view.list": "\u5217\u8868",
+    "settings.choice.uncommitted_style.row": "\u72EC\u7ACB\u4E00\u884C",
+    "settings.choice.uncommitted_style.connected": "\u8FDE\u63A5\u5230\u63D0\u4EA4\u56FE",
+    "settings.choice.new_tab_group.active": "\u5F53\u524D\u5206\u7EC4",
+    "settings.choice.new_tab_group.right": "\u53F3\u4FA7\u5206\u7EC4",
+    "settings.choice.new_tab_group.down": "\u4E0B\u65B9\u5206\u7EC4",
+    "settings.choice.repository_order.name": "\u6309\u540D\u79F0",
+    "settings.choice.repository_order.path": "\u6309\u8DEF\u5F84",
+    "settings.choice.repository_order.recent": "\u6309\u6700\u8FD1\u4F7F\u7528",
+    "settings.error.object_required": "\u8BBE\u7F6E\u5FC5\u987B\u662F JSON \u5BF9\u8C61\u3002",
+    "settings.error.unknown": "\u672A\u77E5\u8BBE\u7F6E\uFF1A{key}",
+    "settings.error.invalid_type": "\u8BBE\u7F6E\u7C7B\u578B\u4E0D\u6B63\u786E\uFF1A{key}",
+    "settings.error.out_of_range": "\u8BBE\u7F6E\u8D85\u51FA\u8303\u56F4\uFF1A{key}",
+    "settings.error.invalid_choice": "\u8BBE\u7F6E\u53D6\u503C\u65E0\u6548\uFF1A{key}",
+    "settings.error.invalid_colors": "\u5206\u652F\u989C\u8272\u987B\u4E3A\u516D\u4F4D\u5341\u516D\u8FDB\u5236\u989C\u8272\u3002",
+    "settings.error.invalid_branch_globs": "\u5206\u652F\u7B5B\u9009\u987B\u5305\u542B name \u548C glob\u3002",
+    "settings.error.text_array": "\u8BBE\u7F6E\u987B\u4E3A\u6587\u672C\u6570\u7EC4\uFF1A{key}",
+    "settings.error.string_maps": "\u5FEB\u6377\u952E\u548C emoji \u6620\u5C04\u5FC5\u987B\u4E3A\u6587\u672C\u3002",
+    "settings.error.missing_shortcut": "\u7F3A\u5C11\u5FEB\u6377\u952E\uFF1A{key}",
+    "settings.error.missing_column_width": "\u7F3A\u5C11\u5217\u5BBD\uFF1A{key}",
+    "settings.error.invalid_dialog_defaults": "\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C\u987B\u4E3A\u64CD\u4F5C\u540D\u5230\u5B57\u6BB5\u503C\u7684\u5BF9\u8C61\u3002",
+    "settings.error.invalid_column_width": "\u5217\u5BBD\u987B\u5728 40\uFF5E1500 \u4E4B\u95F4\u3002",
+    "settings.error.invalid_encoding": "\u4E0D\u652F\u6301\u7684\u5386\u53F2\u6587\u4EF6\u7F16\u7801\uFF1A{encoding}",
+    "settings.error.issue_pattern_too_long": "Issue \u6B63\u5219\u8FC7\u957F\u3002",
+    "settings.error.invalid_issue_pattern": "Issue \u6B63\u5219\u65E0\u6548\u3002",
+    "view.source_control": "\u6E90\u4EE3\u7801\u7BA1\u7406\uFF08Ctrl+Shift+G\uFF09",
+    "view.command.view": "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE",
+    "view.command.add_repository": "Git Graph\uFF1A\u6DFB\u52A0 Git \u4ED3\u5E93",
+    "view.command.remove_repository": "Git Graph\uFF1A\u79FB\u9664\u4ED3\u5E93\u8BB0\u5F55",
+    "view.command.fetch": "Git Graph\uFF1A\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0",
+    "view.command.reviews": "Git Graph\uFF1A\u7EE7\u7EED\u6216\u7ED3\u675F\u8BC4\u5BA1",
+    "view.command.clear_avatars": "Git Graph\uFF1A\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58",
+    "view.command.end_all_reviews": "Git Graph\uFF1A\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1",
+    "view.command.end_review": "Git Graph\uFF1A\u7ED3\u675F\u6307\u5B9A\u8BC4\u5BA1",
+    "view.command.resume_review": "Git Graph\uFF1A\u6062\u590D\u6307\u5B9A\u8BC4\u5BA1",
+    "view.command.version": "Git Graph\uFF1A\u7248\u672C\u4E0E\u8BCA\u65AD",
+    "view.diagnostics_title": "Git Graph \u8BCA\u65AD",
+    "view.diagnostics_text": "Typora Git Graph \xB7 2\n\u529F\u80FD\u5BF9\u7167\uFF1AVS Code Git Graph 1.30.0\n{root}",
+    "view.file_menu_graph": "Git\uFF1A\u67E5\u770B\u4ED3\u5E93\u63D0\u4EA4\u56FE",
+    "view.file_menu_history": "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u5386\u53F2",
+    "view.file_menu_changes": "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u66F4\u6539",
+    "view.source_control_command": "Git\uFF1A\u6E90\u4EE3\u7801\u7BA1\u7406",
+    "repository.invalid_revision": "\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002",
+    "repository.incomplete_diff": "\u6587\u4EF6\u5DEE\u5F02\u6570\u636E\u4E0D\u5B8C\u6574\u3002",
+    "repository.invalid_history_status": "\u6587\u4EF6\u5386\u53F2\u72B6\u6001\u65E0\u6CD5\u89E3\u6790\u3002",
+    "repository.missing_history_path": "\u6587\u4EF6\u5386\u53F2\u8DEF\u5F84\u7F3A\u5931\u3002",
+    "repository.in_head_history": "\u5C5E\u4E8E HEAD \u5386\u53F2",
+    "repository.not_in_head_history": "\u4E0D\u5C5E\u4E8E HEAD \u5386\u53F2",
+    "repository.no_remote_web_url": "\u6B64\u8FDC\u7AEF\u6CA1\u6709\u53EF\u7528\u7684\u7F51\u9875\u5730\u5740\uFF0C\u8BF7\u914D\u7F6E PR URL\u3002",
+    "repository.pr_template_required": "\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u586B\u5199\u6B64\u670D\u52A1\u5668\u7684 PR URL \u6A21\u677F\u3002",
+    "runtime.git_not_found": "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002",
+    "runtime.result_too_large": "\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002",
+    "runtime.cancelled_or_timed_out": "Git \u8BF7\u6C42\u5DF2\u53D6\u6D88\u6216\u8D85\u65F6\uFF0C\u8BF7\u5237\u65B0\u72B6\u6001\u540E\u91CD\u8BD5\u3002",
+    "ignore.invalid_rule": "\u65E0\u6CD5\u4E3A\u6B64\u6587\u4EF6\u751F\u6210\u7CBE\u786E\u5FFD\u7565\u89C4\u5219\u3002",
+    "ignore.invalid_path": "\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002",
+    "ignore.outside_repository": "\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002",
+    "ignore.ordinary_untracked_only": "\u4EC5\u652F\u6301\u5C06\u672A\u8DDF\u8E2A\u7684\u666E\u901A\u6587\u4EF6\u6DFB\u52A0\u5230 .gitignore\u3002",
+    "ignore.already_tracked": "\u6B64\u6587\u4EF6\u5DF2\u7ECF\u52A0\u5165 Git \u8DDF\u8E2A\uFF0C\u4E0D\u80FD\u901A\u8FC7 .gitignore \u505C\u6B62\u8DDF\u8E2A\uFF1B\u672C\u64CD\u4F5C\u4E0D\u4F1A\u4ECE\u7D22\u5F15\u4E2D\u79FB\u9664\u6587\u4EF6\u3002",
+    "ignore.ordinary_gitignore_required": ".gitignore \u5FC5\u987B\u662F\u65E0\u94FE\u63A5\u7684\u666E\u901A\u6587\u4EF6\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u89C4\u5219\u3002",
+    "ignore.created_concurrently": ".gitignore \u521A\u88AB\u5176\u4ED6\u7A0B\u5E8F\u521B\u5EFA\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002",
+    "ignore.replaced_concurrently": ".gitignore \u5DF2\u88AB\u5176\u4ED6\u7A0B\u5E8F\u66FF\u6362\uFF0C\u8BF7\u91CD\u8BD5\u3002",
+    "ignore.invalid_utf8": ".gitignore \u4E0D\u662F\u6709\u6548 UTF-8 \u6587\u672C\uFF0C\u8BF7\u5148\u5728\u7F16\u8F91\u5668\u4E2D\u786E\u8BA4\u7F16\u7801\u3002",
+    "ignore.invalid_content": ".gitignore \u5305\u542B\u65E0\u6548\u6587\u672C\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u89C4\u5219\u3002",
+    "host.outside_repository": "\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002",
+    "host.expired_view": "\u6B64\u4E34\u65F6\u5386\u53F2\u89C6\u56FE\u5DF2\u91CA\u653E\uFF0C\u8BF7\u4ECE\u63D0\u4EA4\u56FE\u91CD\u65B0\u6253\u5F00\u3002",
+    "host.refresh_diff": "\u5237\u65B0\u5DEE\u5F02",
+    "host.previous_file": "\u4E0A\u4E00\u6587\u4EF6",
+    "host.next_file": "\u4E0B\u4E00\u6587\u4EF6",
+    "host.toggle_sidebar": "\u5207\u6362\u4FA7\u680F",
+    "host.run_complete": "\u5B8C\u6210 \xB7 {duration} ms",
+    "host.no_git_output": "\u6682\u65E0 Git \u8F93\u51FA\u3002",
+    "host.refresh_output": "\u5237\u65B0\u8F93\u51FA",
+    "host.git_output": "Git \u8F93\u51FA",
+    "host.trash_unavailable": "\u5F53\u524D Typora \u65E0\u6CD5\u5C06\u6587\u4EF6\u79FB\u81F3\u56DE\u6536\u7AD9\uFF0C\u672A\u5220\u9664\u6587\u4EF6\u3002",
+    "host.real_directory_outside": "\u6587\u4EF6\u7684\u5B9E\u9645\u76EE\u5F55\u8D85\u51FA\u4ED3\u5E93\uFF0C\u5DF2\u505C\u6B62\u56DE\u6536\uFF1A{file}",
+    "host.files_only_trash": "\u53EA\u652F\u6301\u56DE\u6536\u660E\u786E\u9009\u62E9\u7684\u6587\u4EF6\uFF1A{file}",
+    "host.trash_partial_failure": "\u5DF2\u56DE\u6536 {count} \u4E2A\u6587\u4EF6\uFF1B\u65E0\u6CD5\u56DE\u6536 {file}\uFF0C\u5176\u4F59\u6587\u4EF6\u4FDD\u7559\uFF1A{error}",
+    "host.http_only": "\u53EA\u5141\u8BB8\u6253\u5F00 HTTP \u6216 HTTPS \u94FE\u63A5\u3002",
+    "host.current_file_missing": "\u5F53\u524D\u5DE5\u4F5C\u533A\u5DF2\u6CA1\u6709\u6B64\u6587\u4EF6\uFF0C\u53EF\u67E5\u770B\u5386\u53F2\u7248\u672C\u3002",
+    "host.non_text_comparison": "\u76EE\u5F55\u6216\u5B50\u6A21\u5757\u4E0D\u80FD\u4F5C\u4E3A\u666E\u901A\u6587\u672C\u6BD4\u8F83\uFF0C\u8BF7\u6253\u5F00\u5BF9\u5E94\u4ED3\u5E93\u3002",
+    "host.file_too_large": "\u6587\u4EF6\u8D85\u8FC7 16 MiB\uFF0C\u65E0\u6CD5\u5728\u5386\u53F2\u6587\u672C\u89C6\u56FE\u6253\u5F00\u3002",
+    "host.avatar_unavailable": "\u5934\u50CF\u4E0D\u53EF\u7528",
+    "host.avatar_too_large": "\u5934\u50CF\u8FC7\u5927",
+    "host.avatar_timeout": "\u5934\u50CF\u67E5\u8BE2\u8D85\u65F6",
+    "host.export_configuration": "\u5BFC\u51FA\u914D\u7F6E",
+    "host.save_to_path": "\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84",
+    "host.export_failure_hint": "{error}\uFF1B\u6587\u4EF6\u5DF2\u5B58\u5728\u65F6\u8BF7\u6362\u4E00\u4E2A\u5BFC\u51FA\u540D\u79F0\u3002",
+    "data.invalid_commit_hash": "\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0 Git Graph\u3002",
+    "data.incomplete_history": "Git \u5386\u53F2\u683C\u5F0F\u4E0D\u5B8C\u6574\u3002",
+    "icon.invalid_builtin": "\u65E0\u6548\u7684\u5185\u7F6E Git \u56FE\u6807\uFF1A{name}",
+    "diff.calculating": "\u6B63\u5728\u8BA1\u7B97\u5DEE\u5F02\u2026",
+    "diff.binary_file": "\u4E8C\u8FDB\u5236\u6587\u4EF6\u4E0D\u80FD\u5728\u6587\u672C\u5DEE\u5F02\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\u3002",
+    "diff.original": "\u539F\u59CB\u7248\u672C",
+    "diff.modified": "\u4FEE\u6539\u7248\u672C",
+    "diff.change_count": "{count} \u5904\u66F4\u6539",
+    "diff.incomplete": "\u5DEE\u5F02\u5C1A\u672A\u8BA1\u7B97\u5B8C\u6210",
+    "diff.previous_change_button": "\u4E0A\u4E00\u5904\u66F4\u6539",
+    "diff.next_change_button": "\u4E0B\u4E00\u5904\u66F4\u6539",
+    "diff.readonly_revision": "\u53EA\u8BFB\u5386\u53F2\u7248\u672C",
+    "diff.find": "\u67E5\u627E",
+    "diff.readonly": "\u53EA\u8BFB",
+    "diff.comparison_side": "\u6BD4\u8F83\u4FA7",
+    "diff.end_of_line": "\u884C\u5C3E\u5E8F\u5217",
+    "diff.language_mode": "\u8BED\u8A00\u6A21\u5F0F",
+    "diff.historical_revision": "\u5386\u53F2\u7248\u672C",
+    "diff.cursor_position": "\u884C {line}\uFF0C\u5217 {column}",
+    "diff.became_binary": "\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u7EE7\u7EED\u663E\u793A\u6587\u672C\u5DEE\u5F02\u3002",
+    "diff.copy": "\u590D\u5236",
+    "diff.select_all": "\u5168\u9009",
+    "diff.find_shortcut": "\u67E5\u627E\uFF08Ctrl+F\uFF09",
+    "diff.word_wrap": "\u81EA\u52A8\u6362\u884C",
+    "diff.previous_change": "\u8F6C\u5230\u4E0A\u4E00\u5904\u66F4\u6539",
+    "diff.next_change": "\u8F6C\u5230\u4E0B\u4E00\u5904\u66F4\u6539",
+    "diff.side_by_side": "\u5E76\u6392\u89C6\u56FE",
+    "diff.hide_unchanged": "\u9690\u85CF\u672A\u66F4\u6539\u533A\u57DF",
+    "diff.ignore_whitespace": "\u5FFD\u7565\u9996\u5C3E\u7A7A\u767D\u66F4\u6539",
+    "history.graph": "\u63D0\u4EA4\u56FE",
+    "history.toggle_help": "\u5C55\u5F00\u6216\u6298\u53E0\u63D0\u4EA4\u56FE",
+    "history.refresh": "\u5237\u65B0\u63D0\u4EA4\u56FE",
+    "history.reveal_head": "\u5B9A\u4F4D\u5230 HEAD",
+    "history.open_in_editor": "\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00 Git Graph",
+    "history.filter_branches": "\u7B5B\u9009\u5206\u652F",
+    "history.more": "\u66F4\u591A\u64CD\u4F5C",
+    "history.commit_history": "\u63D0\u4EA4\u5386\u53F2",
+    "history.all_branches": "\u5168\u90E8\u5206\u652F",
+    "history.current_head": "\u5F53\u524D HEAD",
+    "history.select_branches": "\u9009\u62E9\u591A\u4E2A\u5206\u652F\u2026",
+    "history.list_view": "\u4EE5\u5217\u8868\u663E\u793A\u66F4\u6539\u6587\u4EF6",
+    "history.tree_view": "\u4EE5\u76EE\u5F55\u6811\u663E\u793A\u66F4\u6539\u6587\u4EF6",
+    "history.branch_scope": "\u5206\u652F\u8303\u56F4",
+    "history.fetch": "\u83B7\u53D6",
+    "history.pull": "\u62C9\u53D6",
+    "history.push": "\u63A8\u9001",
+    "history.fetch_menu": "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0\u2026",
+    "history.pull_menu": "\u62C9\u53D6\u5230\u5F53\u524D\u5206\u652F\u2026",
+    "history.push_menu": "\u63A8\u9001\u5F53\u524D\u5206\u652F\u2026",
+    "history.settings": "Git Graph \u8BBE\u7F6E\u2026",
+    "history.no_head": "\u5F53\u524D\u4ED3\u5E93\u5C1A\u65E0 HEAD \u63D0\u4EA4\u3002",
+    "history.loading_files": "\u6B63\u5728\u8BFB\u53D6\u66F4\u6539\u6587\u4EF6\u2026",
+    "history.no_filtered_commits": "\u5F53\u524D\u7B5B\u9009\u8303\u56F4\u5185\u6CA1\u6709\u63D0\u4EA4\u3002",
+    "history.no_commits": "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002",
+    "history.load_more": "\u52A0\u8F7D\u66F4\u591A\u63D0\u4EA4",
+    "history.retry": "\u91CD\u8BD5",
+    "history.changed_files_aria": "{count} \u4E2A\u66F4\u6539\u6587\u4EF6{parent}",
+    "history.first_parent_suffix": "\uFF0C\u4E0E\u7B2C\u4E00\u7236\u63D0\u4EA4\u6BD4\u8F83",
+    "status.plugin_name": "Git \u72B6\u6001",
+    "status.repository_status": "Git \u4ED3\u5E93\u72B6\u6001",
+    "status.checking": "\u6B63\u5728\u68C0\u67E5 Git\u2026",
+    "status.open_graph": "\u6253\u5F00\u6216\u5207\u6362\u5230\u5F53\u524D\u4ED3\u5E93\u7684 Git Graph \u63D0\u4EA4\u56FE",
+    "status.no_repository": "\u65E0 Git \u4ED3\u5E93",
+    "status.select_repository_hint": "{message}\uFF1B\u70B9\u51FB\u9009\u62E9\u4ED3\u5E93",
+    "status.open_repository_first": "\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u4EF6\u6216\u6587\u4EF6\u5939",
+    "status.detached_name": "{hash}\uFF08\u6E38\u79BB\uFF09",
+    "status.detached_head": "\u6E38\u79BB HEAD",
+    "status.current_branch": "\u5F53\u524D\u5206\u652F\uFF1A{branch}",
+    "status.initial_suffix": "\uFF08\u5C1A\u65E0\u63D0\u4EA4\uFF09",
+    "status.dirty": "\n\u6709\u672A\u63D0\u4EA4\u66F4\u6539",
+    "status.clean": "\n\u5DE5\u4F5C\u533A\u5E72\u51C0",
+    "status.branch_tooltip": "{root}\n{branch}{initial}{worktree}\n\u70B9\u51FB\u5207\u6362\u5206\u652F\uFF1B\u53F3\u952E\u7BA1\u7406\u5F53\u524D\u5206\u652F",
+    "status.create_commit_first": "\u8BF7\u5148\u5728\u5206\u652F\u4E0A\u521B\u5EFA\u63D0\u4EA4\uFF0C\u518D\u53D1\u5E03\u6216\u540C\u6B65\u66F4\u6539",
+    "status.sync_tooltip": "\u4E0A\u6E38\uFF1A{upstream}\n\u5F85\u62C9\u53D6 {behind}\uFF0C\u5F85\u63A8\u9001 {ahead}\n\u70B9\u51FB\u786E\u8BA4\u540C\u6B65\uFF08\u5148\u62C9\u53D6\u3001\u518D\u63A8\u9001\uFF09\uFF1B\u53F3\u952E\u9009\u62E9\u5176\u4ED6\u64CD\u4F5C",
+    "status.publish_tooltip": "\u5C1A\u672A\u914D\u7F6E\u4E0A\u6E38\uFF1B\u70B9\u51FB\u53D1\u5E03\u5206\u652F\u5E76\u8BBE\u7F6E\u4E0A\u6E38\uFF1B\u53F3\u952E\u9009\u62E9\u5176\u4ED6\u64CD\u4F5C",
+    "status.read_failed": "\u65E0\u6CD5\u8BFB\u53D6 Git \u4ED3\u5E93\uFF1A{error}",
+    "status.select_repository": "\u9009\u62E9 Git \u4ED3\u5E93\u2026",
+    "status.recheck_repository": "\u91CD\u65B0\u68C0\u67E5\u4ED3\u5E93",
+    "status.checkout_remote": "\u68C0\u51FA\u8FDC\u7AEF\u5206\u652F {branch}",
+    "status.create_branch": "\u521B\u5EFA\u5206\u652F\u2026",
+    "status.branch_has_no_commits": "{branch} \u5C1A\u65E0\u63D0\u4EA4",
+    "status.sync_changes": "\u540C\u6B65\u66F4\u6539\uFF08\u5148\u62C9\u53D6\u3001\u518D\u63A8\u9001\uFF09\u2026",
+    "status.fetch": "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0\u2026",
+    "status.pull": "\u62C9\u53D6\u5230\u5F53\u524D\u5206\u652F\u2026",
+    "status.push": "\u63A8\u9001\u5F53\u524D\u5206\u652F\u2026",
+    "status.set_upstream": "\u63A8\u9001\u5E76\u8BBE\u7F6E\u4E0A\u6E38\u5206\u652F\u2026",
+    "status.configure_remotes": "\u914D\u7F6E\u8FDC\u7AEF\u2026",
+    "status.refresh": "\u5237\u65B0\u672C\u5730 Git \u72B6\u6001",
+    "scm.revision.empty": "\u7A7A\u6811",
+    "scm.revision.index": "\u6682\u5B58\u533A",
+    "scm.revision.worktree": "\u5DE5\u4F5C\u533A",
+    "scm.operation.merge": "\u5408\u5E76",
+    "scm.operation.rebase": "\u53D8\u57FA",
+    "scm.operation.cherry_pick": "\u62E3\u9009\u63D0\u4EA4",
+    "scm.operation.revert": "\u8FD8\u539F\u63D0\u4EA4",
+    "scm.source_control": "\u6E90\u4EE3\u7801\u7BA1\u7406",
+    "scm.refresh": "\u5237\u65B0",
+    "scm.select_views": "\u9009\u62E9\u89C6\u56FE",
+    "scm.message_placeholder": "\u6D88\u606F\uFF08Ctrl+Enter \u63D0\u4EA4\uFF09",
+    "scm.commit_message": "\u63D0\u4EA4\u6D88\u606F",
+    "scm.commit": "\u63D0\u4EA4",
+    "scm.more_commit_actions": "\u66F4\u591A\u63D0\u4EA4\u64CD\u4F5C",
+    "scm.commit_staged": "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9",
+    "scm.open_commit_options": "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9\u2026",
+    "scm.amend_last_commit": "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9\u5E76\u4FEE\u6539\u4E0A\u6B21\u63D0\u4EA4\u2026",
+    "scm.filter_changes": "\u7B5B\u9009\u66F4\u6539\u6587\u4EF6",
+    "scm.repository": "\u4ED3\u5E93",
+    "scm.working_tree_changes": "\u5DE5\u4F5C\u6811\u66F4\u6539",
+    "scm.changes_and_operations": "\u66F4\u6539\u548C Git \u64CD\u4F5C",
+    "scm.changes": "\u66F4\u6539",
+    "scm.repositories": "\u4ED3\u5E93",
+    "scm.manage_repositories": "\u7BA1\u7406\u4ED3\u5E93",
+    "scm.resize_sections": "\u8C03\u6574\u66F4\u6539\u548C\u63D0\u4EA4\u56FE\u533A\u57DF\u5927\u5C0F",
+    "scm.graph": "\u63D0\u4EA4\u56FE",
+    "scm.message_required": "\u8BF7\u8F93\u5165\u63D0\u4EA4\u6D88\u606F\u3002",
+    "scm.detached_head": "\u6E38\u79BB HEAD",
+    "scm.checkout_branch": "\u5207\u6362\u5230\u5206\u652F {branch}",
+    "scm.staged_changes": "\u6682\u5B58\u7684\u66F4\u6539",
+    "scm.unstage_all_group": "\u53D6\u6D88\u6682\u5B58\u6B64\u7EC4\u4E2D\u7684\u6240\u6709\u66F4\u6539",
+    "scm.stage_all_group": "\u6682\u5B58\u6B64\u7EC4\u4E2D\u7684\u6240\u6709\u66F4\u6539",
+    "scm.open_group_changes": "\u6253\u5F00\u6B64\u7EC4\u4E2D\u7684\u66F4\u6539",
+    "scm.discard_group_changes": "\u653E\u5F03\u6B64\u7EC4\u4E2D\u7684\u66F4\u6539",
+    "scm.collapse_groups": "\u6298\u53E0\u6240\u6709\u5206\u7EC4",
+    "scm.expand_groups": "\u5C55\u5F00\u6240\u6709\u5206\u7EC4",
+    "scm.tree_view": "\u4EE5\u6811\u5F62\u663E\u793A",
+    "scm.unstage_change": "\u53D6\u6D88\u6682\u5B58\u66F4\u6539",
+    "scm.stage_change": "\u6682\u5B58\u66F4\u6539",
+    "scm.no_changes": "\u65E0\u66F4\u6539",
+    "scm.open_changes": "\u6253\u5F00\u66F4\u6539",
+    "scm.open_file": "\u6253\u5F00\u6587\u4EF6",
+    "scm.file_history": "\u6253\u5F00\u6587\u4EF6\u65F6\u95F4\u7EBF",
+    "scm.copy_relative_path": "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84",
+    "scm.copy_path": "\u590D\u5236\u8DEF\u5F84",
+    "scm.reveal_file": "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A",
+    "scm.add_to_gitignore": "\u6DFB\u52A0\u5230 .gitignore",
+    "scm.discard_change": "\u653E\u5F03\u66F4\u6539\u2026",
+    "scm.added_to_gitignore": "\u5DF2\u5C06 {file} \u6DFB\u52A0\u5230 .gitignore\u3002",
+    "scm.already_ignored": "{file} \u5DF2\u88AB .gitignore \u5FFD\u7565\u3002",
+    "scm.opening_diff": "\u6B63\u5728\u6253\u5F00\u6587\u4EF6\u5DEE\u5F02\u2026",
+    "scm.unresolved_conflict": "\u6587\u4EF6\u5B58\u5728\u672A\u89E3\u51B3\u7684\u51B2\u7A81\uFF0C\u8BF7\u5148\u5B8C\u6210\u51B2\u7A81\u5904\u7406\u3002",
+    "scm.change_title": "{file}\uFF08\u66F4\u6539\uFF09",
+    "scm.readonly_label": "{file}\uFF08{revision}\uFF0C\u53EA\u8BFB\uFF09",
+    "scm.timeline": "{file} \u7684\u65F6\u95F4\u7EBF",
+    "scm.loading_file_history": "\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5386\u53F2\u2026",
+    "scm.open_revision": "\u6253\u5F00\u6B64\u5386\u53F2\u7248\u672C",
+    "scm.copy_commit_hash": "\u590D\u5236\u63D0\u4EA4\u7F16\u53F7",
+    "scm.commit_actions": "\u63D0\u4EA4\u64CD\u4F5C\u2026",
+    "scm.no_file_history": "\u6CA1\u6709\u6587\u4EF6\u5386\u53F2\u3002",
+    "scm.load_more_file_history": "\u52A0\u8F7D\u66F4\u591A\u6587\u4EF6\u5386\u53F2",
+    "scm.fetch_short": "\u83B7\u53D6\u2026",
+    "scm.edit_remote_url": "\u4FEE\u6539\u8FDC\u7AEF URL\u2026",
+    "scm.remove_remote": "\u5220\u9664\u8FDC\u7AEF\u2026",
+    "scm.list_view": "\u4EE5\u5217\u8868\u663E\u793A",
+    "scm.view_and_sort": "\u89C6\u56FE\u4E0E\u6392\u5E8F",
+    "scm.sort_name": "\u6309\u540D\u79F0\u6392\u5E8F",
+    "scm.sort_path": "\u6309\u8DEF\u5F84\u6392\u5E8F",
+    "scm.sort_status": "\u6309\u72B6\u6001\u6392\u5E8F",
+    "scm.checkout": "\u68C0\u51FA\u5230\u2026",
+    "scm.commit_section": "\u63D0\u4EA4",
+    "scm.amend_staged": "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9\u5E76\u4FEE\u6539\u4E0A\u6B21\u63D0\u4EA4\u2026",
+    "scm.changes_section": "\u66F4\u6539",
+    "scm.pull_push_section": "\u62C9\u53D6\u3001\u63A8\u9001",
+    "scm.branches_section": "\u5206\u652F",
+    "scm.create_branch": "\u521B\u5EFA\u5206\u652F\u2026",
+    "scm.remotes_section": "\u8FDC\u7AEF",
+    "scm.add_remote": "\u6DFB\u52A0\u8FDC\u7AEF\u2026",
+    "scm.stashes_section": "\u8D2E\u85CF",
+    "scm.tags_section": "\u6807\u7B7E",
+    "scm.create_tag": "\u521B\u5EFA\u6807\u7B7E\u2026",
+    "scm.show_output": "\u663E\u793A Git \u8F93\u51FA",
+    "scm.open_graph": "\u6253\u5F00 Git Graph",
+    "scm.open_terminal": "\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u7EC8\u7AEF",
+    "scm.open_admin_terminal": "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09",
+    "scm.settings": "Git Graph \u8BBE\u7F6E\u2026"
+  };
+  var en = {
+    "common.close": "Close",
+    "graph.aria_label": "Git Graph commit history",
+    "graph.refresh": "Refresh Graph",
+    "graph.load_more": "Load More",
+    "graph.branches": "Branches:",
+    "graph.repository": "Repository:",
+    "graph.show_remote_branches": "Show Remote Branches",
+    "graph.all_branches": "All Branches",
+    "graph.current_head": "Current HEAD",
+    "graph.select_multiple_branches": "Select Multiple Branches\u2026",
+    "graph.manage_repositories": "Manage Repositories\u2026",
+    "graph.find_placeholder": "Find commits, dates, authors, hashes and refs",
+    "graph.find_history": "Find Git History",
+    "graph.find_commit": "Find Commits",
+    "graph.find_previous": "Previous Match",
+    "graph.find_next": "Next Match",
+    "graph.find_close": "Close Find",
+    "graph.find_no_results": "No results",
+    "graph.find_position": "{current} of {total}",
+    "graph.open_terminal": "Open Integrated Terminal at Repository Root",
+    "graph.actions_and_settings": "Git Actions and Settings",
+    "graph.fetch": "Fetch from Remote(s)",
+    "graph.loading_repository": "Loading Git repository\u2026",
+    "graph.open_repository_first": "Open a document in a repository, or add a folder through Repository.",
+    "graph.operation_pending": "A Git operation is still running. Wait for it to finish.",
+    "graph.detached_head": "Detached HEAD",
+    "graph.loaded_commits": "Loaded {count} commits",
+    "graph.no_commits": "This repository has no commits",
+    "graph.uncommitted_files": "{count} uncommitted files",
+    "graph.operation_in_progress": "In progress: {operation}",
+    "graph.operation.merge": "Merge",
+    "graph.operation.rebase": "Rebase",
+    "graph.operation.cherry_pick": "Cherry-pick",
+    "graph.operation.revert": "Revert",
+    "graph.relative_days": "{count} days ago",
+    "graph.today": "Today",
+    "graph.column.graph": "Graph",
+    "graph.column.description": "Description",
+    "graph.column.date": "Date",
+    "graph.column.author": "Author",
+    "graph.column.commit": "Commit",
+    "graph.uncommitted_changes": "Uncommitted Changes",
+    "graph.revision.worktree": "Working Tree",
+    "graph.revision.index": "Index",
+    "graph.revision.empty": "Empty Tree",
+    "graph.signature_label": "Signature:",
+    "graph.uncommitted_changes_files": "Uncommitted Changes \xB7 {count} files",
+    "graph.staged_changes": "Staged Changes",
+    "graph.commit_comparison": "Commit Comparison",
+    "graph.comparison": "Comparison",
+    "graph.compare_with": "Compare with",
+    "graph.head_to_worktree": "HEAD \u2192 Working Tree",
+    "graph.head_to_index": "HEAD \u2192 Index",
+    "graph.index_to_worktree": "Index \u2192 Working Tree",
+    "graph.author_meta": "Author: {author} <{email}> \xB7 {date}\nCommitter: {committer} <{committer_email}> \xB7 {commit_date}",
+    "graph.compare_parent": "Compare Parent Commit",
+    "graph.initial_commit_empty_tree": "Initial Commit \xB7 Empty Tree",
+    "graph.parent_commit": "Parent {number} \xB7 {hash}",
+    "graph.selected_comparison": "Selected Commit \xB7 {hash}",
+    "graph.review_start": "Start Review for this Commit",
+    "graph.review_end": "End Review for this Commit",
+    "graph.loading_message": "Loading commit message\u2026",
+    "graph.files_tree": "Show Changed Files as Tree",
+    "graph.files_list": "Show Changed Files as List",
+    "graph.more_commit_actions": "More Commit Actions",
+    "graph.changed_files": "Changed Files",
+    "graph.changed_files_count": "Changed Files ({count})",
+    "graph.no_file_differences": "No file differences.",
+    "graph.details_close": "Close Commit Details",
+    "graph.file_history": "Open File History (Timeline)",
+    "graph.open_current_file": "Open Current File",
+    "graph.copy_relative_path": "Copy Relative Path",
+    "graph.copy_absolute_path": "Copy Absolute Path",
+    "graph.open_side_by_side_diff": "Open Side-by-Side Diff",
+    "graph.open_left_revision": "Open Left Revision",
+    "graph.open_right_revision": "Open Right Revision",
+    "graph.mark_reviewed": "Mark as Reviewed",
+    "graph.copy_name_or_hash": "Copy Name or Hash",
+    "graph.copy_commit_hash": "Copy Commit Hash",
+    "graph.copy_commit_subject": "Copy Commit Subject",
+    "graph.tag_details": "View Tag Details",
+    "graph.open_pull_request": "Open Pull Request Form",
+    "graph.filter_remove": "Remove from Branch Filter",
+    "graph.filter_add": "Add to Branch Filter",
+    "graph.archive_zip": "Export this Version as ZIP",
+    "graph.reset_columns": "Reset Five Column Widths",
+    "graph.all_settings": "All Settings",
+    "graph.layout_title": "Graph Column Layout",
+    "graph.configure_context_menu": "Configure this Context Menu\u2026",
+    "graph.context_menu_title": "Context Menu Items \xB7 {kind}",
+    "graph.apply": "Apply",
+    "graph.restore_menu": "Restore All Items in this Menu",
+    "graph.target.repository": "Repository",
+    "graph.target.changes": "Uncommitted Changes",
+    "graph.target.branch": "Branch",
+    "graph.target.remote": "Remote Branch",
+    "graph.target.tag": "Tag",
+    "graph.target.commit": "Commit",
+    "graph.target.stash": "Stash",
+    "graph.target.file": "File",
+    "graph.refresh_short": "Refresh",
+    "graph.open_admin_terminal": "Open Repository Terminal as Administrator (UAC)",
+    "graph.remotes": "Remote Configuration",
+    "graph.copy_repository_root": "Copy Repository Root Path",
+    "graph.column_layout": "Graph Column Layout",
+    "graph.repository_actions": "Repository Actions",
+    "graph.changes_actions": "Uncommitted Changes Actions",
+    "graph.open_repository_terminal": "Open Repository Terminal",
+    "graph.manage_reviews": "Manage Reviews",
+    "graph.clear_avatar_cache": "Clear Avatar Cache",
+    "graph.repository_remotes": "Repository Remotes",
+    "graph.no_remotes": "This repository has no remotes.",
+    "graph.remote_addresses": "{name}\nFetch URL: {fetch}\nPush URL: {push}",
+    "graph.edit_fetch_url": "Edit Fetch URL",
+    "graph.edit_push_url": "Edit Push URL",
+    "graph.prune_remote": "Prune Stale References",
+    "graph.delete": "Delete",
+    "graph.add_remote": "Add Remote",
+    "graph.wait_for_repository": "Wait for the repository to load or the current operation to finish.",
+    "graph.repository_target": "Repository: {root}\nTarget: {target}",
+    "graph.sync_confirm": "Confirm Sync",
+    "graph.execute_action": "Run this Action",
+    "graph.preview_action": "Preview Action",
+    "graph.rebase_todo_ready": "The interactive list is ready. Reorder it or use reword / edit / squash / fixup / drop; a reword title becomes the new message. Preview again after confirming the list.",
+    "graph.parameters_changed": "Parameters changed. Preview the action again.",
+    "graph.executing": "Running\u2026",
+    "graph.action_complete": "Action completed.",
+    "graph.tag_details_title": "Tag Details \xB7 {name}",
+    "graph.pull_request_title": "Create Pull Request",
+    "graph.pull_request_help": "Select the remote and target branch, then open a prefilled form in the browser.",
+    "graph.open_form": "Open Form",
+    "graph.archive_title": "Export Version Archive",
+    "graph.export_zip": "Export ZIP",
+    "graph.target_exists": "The target already exists. Choose another name.",
+    "graph.exported": "Exported: {path}",
+    "graph.valid_repository_required": "Open a valid repository first.",
+    "graph.select_branches_title": "Select One or More Branches",
+    "graph.all_branches_button": "All Branches",
+    "graph.apply_selection": "Apply Selection",
+    "graph.manage_repositories_title": "Manage Git Repositories",
+    "graph.repository_path_placeholder": "Paste a repository folder path",
+    "graph.open": "Open",
+    "graph.remove_record": "Remove Record",
+    "graph.add_repository": "Add Repository",
+    "graph.discover_subrepositories": "Discover Nested Repositories",
+    "graph.discovered_repositories": "Discovered {count} repositories.",
+    "graph.settings_title": "Git Graph Settings",
+    "graph.save_settings": "Save Settings",
+    "graph.restore_defaults": "Restore Defaults",
+    "graph.import_settings": "Import Settings",
+    "graph.export_settings": "Export Settings",
+    "graph.reviews_title": "Review Sessions",
+    "graph.no_reviews": "No review sessions.",
+    "graph.review_record": "{root}\n{from} \u2192 {to} \xB7 {count} files reviewed",
+    "graph.resume_review": "Resume Review",
+    "graph.finish": "End",
+    "graph.finish_all_reviews": "End All Reviews",
+    "action.field.remote": "Remote Name",
+    "action.field.branch": "Branch Name",
+    "action.field.checkout": "Checkout after Creating",
+    "action.field.force_delete": "Allow Deleting an Unmerged Branch",
+    "action.field.remote_source": "Remote Branch",
+    "action.field.force_fetch": "Allow a Non-fast-forward Local Branch Update",
+    "action.field.merge_mode": "Merge Method",
+    "action.field.defer_commit": "Do Not Create a Commit Yet",
+    "action.field.preserve_merges": "Preserve Merge Structure",
+    "action.field.ignore_date": "Use the Current Time as the Author Date",
+    "action.field.interactive": "Edit Commits Interactively",
+    "action.field.rebase_todo": "Interactive List: pick / reword / edit / squash / fixup / drop + full hash + subject",
+    "action.field.reset_mode": "Reset Mode",
+    "action.field.apply_only": "Apply Changes without Committing",
+    "action.field.record_origin": "Record the Source Commit in the Message",
+    "action.field.mainline": "Parent Number for a Merge Commit",
+    "action.field.tag": "Tag Name",
+    "action.field.tag_message": "Annotation Message (empty creates a lightweight tag)",
+    "action.field.sign_tag": "Sign Tag",
+    "action.field.fetch_remote_optional": "Remote Name (empty fetches all)",
+    "action.field.prune": "Prune Stale Remote Branches",
+    "action.field.prune_tags": "Prune Tags as Well",
+    "action.field.pull_mode": "Integration Method",
+    "action.field.sync_mode": "Pull Integration Method",
+    "action.field.set_upstream": "Set Upstream",
+    "action.field.force_with_lease": "Use force-with-lease",
+    "action.field.message_optional": "Message",
+    "action.field.include_untracked": "Include Untracked Files",
+    "action.field.keep_index": "Keep Staged Changes",
+    "action.field.restore_index": "Restore Staged State",
+    "action.field.clean_directories": "Include Untracked Directories",
+    "action.field.clean_ignored": "Include Ignored Files as Well",
+    "action.field.repository_url": "Repository URL",
+    "action.field.target_directory": "Target Folder (must be absent or empty)",
+    "action.field.remote_url": "Remote URL or Path",
+    "action.field.push_url": "Set a Separate Push URL",
+    "action.field.discard_untracked": "Move the Listed Untracked Files to the Recycle Bin as Well",
+    "action.field.commit_message": "Commit Message",
+    "action.field.amend": "Amend the Previous Commit",
+    "action.title.branch_create": "Create Branch",
+    "action.title.branch_checkout": "Checkout Branch",
+    "action.title.remote_checkout": "Checkout Remote Branch",
+    "action.title.branch_rename": "Rename Branch",
+    "action.title.branch_delete": "Delete Branch",
+    "action.title.remote_branch_delete": "Delete Remote Branch",
+    "action.title.branch_fetch": "Fetch into Local Branch",
+    "action.title.merge": "Merge into Current Branch",
+    "action.title.rebase": "Rebase Current Branch onto This",
+    "action.title.reset": "Reset Current Branch",
+    "action.title.commit_checkout": "Checkout This Commit (Detached HEAD)",
+    "action.title.cherry_pick": "Cherry-pick Commit",
+    "action.title.revert": "Revert Commit",
+    "action.title.drop": "Remove This Commit from Current Branch",
+    "action.title.tag_add": "Add Tag",
+    "action.title.tag_delete": "Delete Tag",
+    "action.title.tag_push": "Push Tag",
+    "action.title.fetch": "Fetch from Remote(s)",
+    "action.title.pull": "Pull into Current Branch",
+    "action.title.sync": "Sync Changes",
+    "action.title.push": "Push Branch",
+    "action.title.stash_create": "Stash Uncommitted Changes",
+    "action.title.stash_apply": "Apply Stash",
+    "action.title.stash_pop": "Pop Stash",
+    "action.title.stash_drop": "Drop Stash",
+    "action.title.stash_branch": "Create Branch from Stash",
+    "action.title.clean": "Clean Untracked Files",
+    "action.title.clone": "Clone Repository",
+    "action.title.remote_add": "Add Remote",
+    "action.title.remote_edit": "Edit Remote URL",
+    "action.title.remote_remove": "Remove Remote",
+    "action.title.remote_prune": "Prune Stale Remote-tracking Refs",
+    "action.title.stage": "Stage File",
+    "action.title.unstage": "Unstage File",
+    "action.title.stage_all": "Stage All Changes",
+    "action.title.unstage_all": "Unstage All Changes",
+    "action.title.discard_file": "Discard File Changes",
+    "action.title.discard_changes": "Discard All Changes",
+    "action.title.delete_untracked": "Delete Untracked File",
+    "action.title.commit": "Commit Staged Changes",
+    "action.title.continue": "Continue Current Git Operation",
+    "action.title.abort": "Abort Current Git Operation",
+    "action.title.skip": "Skip Current Commit",
+    "action.warning.branch_delete": "Deletes the selected branch ref.",
+    "action.warning.remote_branch_delete": "Deletes the branch from the server.",
+    "action.warning.rebase": "Rewrites the commits replayed on the current branch.",
+    "action.warning.reset": "Moves the current branch. The hard mode discards uncommitted content in tracked files.",
+    "action.warning.drop": "Uses rebase --onto to rewrite later commits and remove the selected commit.",
+    "action.warning.tag_delete": "Deletes the local tag ref.",
+    "action.warning.push": "Updates the server branch. force-with-lease can replace remote history.",
+    "action.warning.stash_drop": "Deletes the selected stash ref.",
+    "action.warning.clean": "Permanently deletes the untracked files shown in the preview. Git cannot recover them.",
+    "action.warning.remote_remove": "Removes the local remote configuration and its remote-tracking refs.",
+    "action.warning.remote_prune": "Removes remote-tracking refs that no longer exist on the server.",
+    "action.warning.discard_file": "Restores this file from the index and discards its unstaged content.",
+    "action.warning.discard_changes": "Overwrites unstaged content in the listed tracked files with the index versions. Staged content stays unchanged. When selected, the listed untracked files are moved to the system Recycle Bin.",
+    "action.warning.delete_untracked": "Permanently deletes the selected untracked file. Git cannot recover it.",
+    "action.warning.commit": "Amend rewrites the previous commit.",
+    "action.choice.normal": "Default Merge",
+    "action.choice.no_ff": "Create a Merge Commit",
+    "action.choice.ff_only": "Fast-forward Only",
+    "action.choice.squash": "Squash Changes",
+    "action.choice.mixed": "Mixed Reset",
+    "action.choice.soft": "Soft Reset",
+    "action.choice.hard": "Hard Reset",
+    "action.choice.merge": "Merge",
+    "action.choice.rebase": "Rebase",
+    "action.label.tag_name": "tag name",
+    "action.label.branch_name": "branch name",
+    "action.label.target": "target",
+    "action.label.commit": "commit",
+    "action.error.invalid_value": "Invalid {name}.",
+    "action.error.detached_sync": "A detached HEAD cannot be synchronized. Checkout a branch first.",
+    "action.error.missing_upstream": "The current branch has no valid upstream. Publish the branch and set its upstream first.",
+    "action.error.discard_paths": "Discarding changes requires explicit relative file paths from the group. Directories are not allowed.",
+    "action.error.unresolved_conflict": "The file has unresolved conflicts. Resolve them first: {file}",
+    "action.error.submodule": "Open the submodule repository to handle this file. No changes were discarded: {file}",
+    "action.error.no_unstaged_changes": "The file no longer has unstaged changes. Refresh the graph: {file}",
+    "action.error.file_state_changed": "The file changed, is ignored, or is not an individual file. Refresh the graph: {file}",
+    "action.error.nothing_to_discard": "There are no selected changes of this type to discard.",
+    "action.error.unknown_action": "Unknown Git action.",
+    "action.error.invalid_option": "Invalid option: {field}",
+    "action.error.invalid_file_path": "Invalid file path.",
+    "action.error.invalid_commit_message": "Invalid commit message.",
+    "action.error.invalid_mainline": "The parent number must be a positive integer.",
+    "action.error.interactive_preserve_merges": "The interactive list edits linear commits. Turn off Preserve Merge Structure to edit it.",
+    "action.error.invalid_todo_commit": "The interactive list contains an invalid, duplicate, or out-of-range commit.",
+    "action.error.invalid_todo_first_command": "The first entry cannot be combined with a preceding commit because none exists.",
+    "action.error.reword_subject_required": "Enter a new commit subject after reword.",
+    "action.error.incomplete_todo": "The interactive list must contain every commit in range. Use drop explicitly to remove one.",
+    "action.error.invalid_reset_mode": "Invalid reset mode.",
+    "action.error.invalid_drop_commit": "Remove requires a selected commit with one parent. Use an explicit rebase or revert for a root or merge commit.",
+    "action.error.operation_blocks_sync": "Finish or abort the current Git operation before synchronizing changes.",
+    "action.error.invalid_stash": "Invalid stash ref. Refresh the graph.",
+    "action.error.stash_changed": "The stash list changed. Refresh the graph.",
+    "action.error.no_operation": "There is no operation to continue or abort.",
+    "action.error.merge_cannot_skip": "A merge operation cannot skip a commit.",
+    "action.error.unregistered": "The action is not registered.",
+    "action.error.invalid_git_argument": "A Git argument contains invalid characters.",
+    "action.error.busy": "Another operation is already running in this repository.",
+    "action.error.unsaved_document": "The current Typora document has unsaved changes. Save it before running an action that changes working tree files.",
+    "action.error.repository_changed": "Another program changed the repository. Preview the action again.",
+    "action.error.untracked_changed": "The untracked file content changed. Preview the action again.",
+    "action.error.recycle_unavailable": "The system Recycle Bin is unavailable, so no changes were discarded. Clear Include Untracked Files and preview again.",
+    "action.error.trash_failed": "Restored tracked files: {restored}. Moving files to the Recycle Bin failed, and no permanent deletion was performed. Check the file status: {error}",
+    "action.error.sync_target_changed": "The current branch or upstream configuration changed. Preview the synchronization again.",
+    "action.error.sync_target_changed_after_pull": "The pull completed, but the current branch or upstream configuration changed. Push was stopped. Refresh and synchronize again.",
+    "action.error.invalid_ahead_count": "The pull completed, but the commits waiting to be pushed could not be verified. Push was stopped.",
+    "action.error.push_after_pull_failed": "The pull completed, but the push failed: {error}",
+    "action.preview.sync": "Synchronize local branch {local_branch} with {remote_branch}.\nPull and integrate remote commits first, then push commits that have not been published. Stop without pushing if the pull fails or creates conflicts.\n\n1. {pull_command}\n2. {push_command}\n\nSkip step 2 when there are no commits to push.",
+    "action.preview.discard": "Files to restore from the index: {restore_count}\n{restore_lines}\n\nUntracked files to move to the system Recycle Bin: {untracked_count}\n{untracked_lines}{command}\n\nOnly the exact files listed above will be processed. Staged changes remain staged, and no other files will be cleaned.",
+    "action.preview.restore_file": "  Restore: {file}",
+    "action.preview.recycle_file": "  Recycle: {file}",
+    "action.result.discard": "Restored files: {restored}. Untracked files moved to the Recycle Bin: {untracked}. Staged content was not changed.",
+    "action.result.sync_no_push": "Sync complete. There are no commits to push.",
+    "settings.label.graph_style": "Line Style",
+    "settings.label.colors": "Branch Colors",
+    "settings.label.initial_count": "Initial Commit Count",
+    "settings.label.page_count": "Load More Count",
+    "settings.label.auto_load": "Load More Automatically at the Bottom",
+    "settings.label.order": "Commit Order",
+    "settings.label.first_parent": "Follow First Parent Only",
+    "settings.label.show_remotes": "Show Remote Branches",
+    "settings.label.show_remote_heads": "Show Remote HEADs",
+    "settings.label.show_tags": "Show Tags",
+    "settings.label.tag_only_commits": "Show Commits Reachable Only from Tags",
+    "settings.label.show_stashes": "Show Stashes",
+    "settings.label.show_changes": "Show Uncommitted Changes",
+    "settings.label.show_untracked": "Show Untracked Files",
+    "settings.label.include_reflogs": "Include Reflog Commits",
+    "settings.label.use_mailmap": "Use Mailmap",
+    "settings.label.mute_merges": "Dim Merge Commits",
+    "settings.label.mute_unreachable": "Dim Commits Not Reachable from HEAD",
+    "settings.label.show_signature": "Show Signature Status",
+    "settings.label.fetch_avatars": "Show Gravatar Avatars (Uses Network)",
+    "settings.label.date_type": "Date Source",
+    "settings.label.date_format": "Date Format",
+    "settings.label.column_widths": "Column Widths",
+    "settings.label.auto_center": "Center Selected Commit Automatically",
+    "settings.label.file_view": "File View",
+    "settings.label.compact_folders": "Compact Single-child Folders",
+    "settings.label.combine_refs": "Combine Matching Local and Remote Refs",
+    "settings.label.uncommitted_style": "Uncommitted Node Style",
+    "settings.label.inline_markdown": "Inline Markdown in Commit Subjects",
+    "settings.label.branch_globs": "Custom Branch Filters (name / glob)",
+    "settings.label.emoji": "Custom Emoji Shortcodes",
+    "settings.label.hidden_actions": "Hidden Action IDs",
+    "settings.label.dialog_defaults": "Action Dialog Defaults",
+    "settings.label.shortcuts": "Graph Keyboard Shortcuts",
+    "settings.label.on_load_head": "Select HEAD on Open",
+    "settings.label.on_load_branch": "Select Current Branch on Open",
+    "settings.label.on_load_branches": "Branches to Select on Open",
+    "settings.label.retain_context": "Keep Content for Hidden Labels",
+    "settings.label.fetch_prune": "Prune Branches when Fetching",
+    "settings.label.fetch_prune_tags": "Prune Tags when Fetching",
+    "settings.label.sign_commits": "Sign New Commits",
+    "settings.label.sign_tags": "Sign Tags",
+    "settings.label.issue_pattern": "Issue Pattern (capture the number)",
+    "settings.label.issue_url": "Issue URL Template ({id})",
+    "settings.label.pr_url": "Custom PR URL ({base} / {branch} / {remote})",
+    "settings.label.pr_base": "Default PR Base Branch",
+    "settings.label.encoding": "Historical File Encoding",
+    "settings.label.git_path": "Git Executable",
+    "settings.label.terminal_shell": "Integrated Terminal Shell (empty uses the terminal default)",
+    "settings.label.new_tab_group": "Open Files and Diffs In",
+    "settings.label.open_active_repo": "Find Repository from Active Document",
+    "settings.label.search_depth": "Nested Repository Search Depth",
+    "settings.label.repository_order": "Repository Order",
+    "settings.label.show_status_button": "Show Status Bar Entry",
+    "settings.label.file_menu_entry": "Show File Menu Entry",
+    "settings.label.icon_color": "Entry Icon Color (auto or CSS color)",
+    "settings.choice.graph_style.curved": "Curved",
+    "settings.choice.graph_style.straight": "Straight",
+    "settings.choice.order.topo": "Topological Order",
+    "settings.choice.order.date": "Commit Date",
+    "settings.choice.order.author_date": "Author Date",
+    "settings.choice.date_type.author": "Author Date",
+    "settings.choice.date_type.committer": "Committer Date",
+    "settings.choice.date_format.local": "Local Format",
+    "settings.choice.date_format.iso": "ISO 8601",
+    "settings.choice.date_format.relative": "Relative Time",
+    "settings.choice.file_view.tree": "Folder Tree",
+    "settings.choice.file_view.list": "List",
+    "settings.choice.uncommitted_style.row": "Separate Row",
+    "settings.choice.uncommitted_style.connected": "Connected to the Graph",
+    "settings.choice.new_tab_group.active": "Active Group",
+    "settings.choice.new_tab_group.right": "Group on the Right",
+    "settings.choice.new_tab_group.down": "Group Below",
+    "settings.choice.repository_order.name": "By Name",
+    "settings.choice.repository_order.path": "By Path",
+    "settings.choice.repository_order.recent": "By Recent Use",
+    "settings.error.object_required": "Settings must be a JSON object.",
+    "settings.error.unknown": "Unknown setting: {key}",
+    "settings.error.invalid_type": "Incorrect setting type: {key}",
+    "settings.error.out_of_range": "Setting is out of range: {key}",
+    "settings.error.invalid_choice": "Invalid setting value: {key}",
+    "settings.error.invalid_colors": "Branch colors must be six-digit hexadecimal colors.",
+    "settings.error.invalid_branch_globs": "Each branch filter must contain name and glob strings.",
+    "settings.error.text_array": "Setting must be an array of strings: {key}",
+    "settings.error.string_maps": "Keyboard shortcut and emoji mappings must contain only strings.",
+    "settings.error.missing_shortcut": "Missing keyboard shortcut: {key}",
+    "settings.error.missing_column_width": "Missing column width: {key}",
+    "settings.error.invalid_dialog_defaults": "Dialog defaults must map action names to field-value objects.",
+    "settings.error.invalid_column_width": "Column widths must be between 40 and 1500.",
+    "settings.error.invalid_encoding": "Unsupported historical file encoding: {encoding}",
+    "settings.error.issue_pattern_too_long": "The Issue pattern is too long.",
+    "settings.error.invalid_issue_pattern": "The Issue pattern is invalid.",
+    "view.source_control": "Source Control (Ctrl+Shift+G)",
+    "view.command.view": "Git Graph: View Commit Graph",
+    "view.command.add_repository": "Git Graph: Add Git Repository",
+    "view.command.remove_repository": "Git Graph: Remove Repository Record",
+    "view.command.fetch": "Git Graph: Fetch from Remote(s)",
+    "view.command.reviews": "Git Graph: Resume or End Review",
+    "view.command.clear_avatars": "Git Graph: Clear Avatar Cache",
+    "view.command.end_all_reviews": "Git Graph: End All Reviews",
+    "view.command.end_review": "Git Graph: End Review",
+    "view.command.resume_review": "Git Graph: Resume Review",
+    "view.command.version": "Git Graph: Version and Diagnostics",
+    "view.diagnostics_title": "Git Graph Diagnostics",
+    "view.diagnostics_text": "Typora Git Graph \xB7 2\nBased on VS Code Git Graph 1.30.0\n{root}",
+    "view.file_menu_graph": "Git: View Repository Graph",
+    "view.file_menu_history": "Git: Open File History",
+    "view.file_menu_changes": "Git: Open File Changes",
+    "view.source_control_command": "Git: Source Control",
+    "repository.invalid_revision": "The commit hash is invalid. Refresh and try again.",
+    "repository.incomplete_diff": "The file difference data is incomplete.",
+    "repository.invalid_history_status": "The file history status could not be parsed.",
+    "repository.missing_history_path": "The file history path is missing.",
+    "repository.in_head_history": "Contained in HEAD history",
+    "repository.not_in_head_history": "Not contained in HEAD history",
+    "repository.no_remote_web_url": "This remote has no usable web URL. Configure a Pull Request URL.",
+    "repository.pr_template_required": "Enter a Pull Request URL template for this server in Settings.",
+    "runtime.git_not_found": "Git was not found. Install Git, add it to PATH, and restart Typora.",
+    "runtime.result_too_large": "The result exceeds 16 MiB. Narrow the history range or select another file.",
+    "runtime.cancelled_or_timed_out": "The Git request was cancelled or timed out. Refresh and try again.",
+    "ignore.invalid_rule": "An exact ignore rule cannot be created for this file.",
+    "ignore.invalid_path": "The file path is invalid.",
+    "ignore.outside_repository": "The file path is outside the repository.",
+    "ignore.ordinary_untracked_only": "Only an explicitly selected, untracked regular file can be added to .gitignore.",
+    "ignore.already_tracked": "This file is already tracked by Git. .gitignore cannot stop tracking it, and this action will not remove it from the index.",
+    "ignore.ordinary_gitignore_required": ".gitignore must be an unlinked regular file. No rule was written.",
+    "ignore.created_concurrently": ".gitignore was just created by another process. Refresh and try again.",
+    "ignore.replaced_concurrently": ".gitignore was replaced by another process. Try again.",
+    "ignore.invalid_utf8": ".gitignore is not valid UTF-8 text. Confirm its encoding in the editor first.",
+    "ignore.invalid_content": ".gitignore contains invalid text. No rule was written.",
+    "host.outside_repository": "The file path is outside the repository.",
+    "host.expired_view": "This temporary history view has expired. Open it again from Git Graph.",
+    "host.refresh_diff": "Refresh Diff",
+    "host.previous_file": "Previous File",
+    "host.next_file": "Next File",
+    "host.toggle_sidebar": "Toggle Sidebar",
+    "host.run_complete": "Completed \xB7 {duration} ms",
+    "host.no_git_output": "No Git output.",
+    "host.refresh_output": "Refresh Output",
+    "host.git_output": "Git Output",
+    "host.trash_unavailable": "Typora cannot move files to the Recycle Bin. No files were deleted.",
+    "host.real_directory_outside": "The file's real directory is outside the repository. Recycling stopped: {file}",
+    "host.files_only_trash": "Only explicitly selected files can be recycled: {file}",
+    "host.trash_partial_failure": "Recycled {count} files; could not recycle {file}. Remaining files were kept: {error}",
+    "host.http_only": "Only HTTP or HTTPS links can be opened.",
+    "host.current_file_missing": "This file is no longer in the working tree. You can open a historical revision.",
+    "host.non_text_comparison": "A directory or submodule cannot be compared as plain text. Open its repository instead.",
+    "host.file_too_large": "The file exceeds 16 MiB and cannot be opened in the history text view.",
+    "host.avatar_unavailable": "Avatar unavailable",
+    "host.avatar_too_large": "Avatar is too large",
+    "host.avatar_timeout": "Avatar request timed out",
+    "host.export_configuration": "Export Settings",
+    "host.save_to_path": "Save to this Path",
+    "host.export_failure_hint": "{error}; choose a different export name if the file already exists.",
+    "data.invalid_commit_hash": "The commit hash is invalid. Refresh Git Graph.",
+    "data.incomplete_history": "The Git history data is incomplete.",
+    "icon.invalid_builtin": "Invalid built-in Git icon: {name}",
+    "diff.calculating": "Calculating changes\u2026",
+    "diff.binary_file": "Binary files cannot be opened in the text diff editor.",
+    "diff.original": "Original",
+    "diff.modified": "Modified",
+    "diff.change_count": "{count} changes",
+    "diff.incomplete": "The diff has not finished calculating",
+    "diff.previous_change_button": "Previous Change",
+    "diff.next_change_button": "Next Change",
+    "diff.readonly_revision": "Read-only Revision",
+    "diff.find": "Find",
+    "diff.readonly": "Read-only",
+    "diff.comparison_side": "Comparison Side",
+    "diff.end_of_line": "End of Line Sequence",
+    "diff.language_mode": "Language Mode",
+    "diff.historical_revision": "Historical Revision",
+    "diff.cursor_position": "Ln {line}, Col {column}",
+    "diff.became_binary": "The file became binary and can no longer be displayed as a text diff.",
+    "diff.copy": "Copy",
+    "diff.select_all": "Select All",
+    "diff.find_shortcut": "Find (Ctrl+F)",
+    "diff.word_wrap": "Word Wrap",
+    "diff.previous_change": "Go to Previous Change",
+    "diff.next_change": "Go to Next Change",
+    "diff.side_by_side": "Side by Side View",
+    "diff.hide_unchanged": "Hide Unchanged Regions",
+    "diff.ignore_whitespace": "Ignore Trim Whitespace Changes",
+    "history.graph": "Graph",
+    "history.toggle_help": "Expand or Collapse Graph",
+    "history.refresh": "Refresh Graph",
+    "history.reveal_head": "Reveal HEAD",
+    "history.open_in_editor": "Open Git Graph in Editor",
+    "history.filter_branches": "Filter Branches",
+    "history.more": "More Actions",
+    "history.commit_history": "Commit History",
+    "history.all_branches": "All Branches",
+    "history.current_head": "Current HEAD",
+    "history.select_branches": "Select Multiple Branches\u2026",
+    "history.list_view": "Show Changed Files as a List",
+    "history.tree_view": "Show Changed Files as a Tree",
+    "history.branch_scope": "Branch Scope",
+    "history.fetch": "Fetch",
+    "history.pull": "Pull",
+    "history.push": "Push",
+    "history.fetch_menu": "Fetch from Remote(s)\u2026",
+    "history.pull_menu": "Pull into Current Branch\u2026",
+    "history.push_menu": "Push Current Branch\u2026",
+    "history.settings": "Git Graph Settings\u2026",
+    "history.no_head": "The repository does not have a HEAD commit yet.",
+    "history.loading_files": "Loading changed files\u2026",
+    "history.no_filtered_commits": "No commits match the current branch filter.",
+    "history.no_commits": "This repository has no commits.",
+    "history.load_more": "Load More Commits",
+    "history.retry": "Retry",
+    "history.changed_files_aria": "{count} changed files{parent}",
+    "history.first_parent_suffix": ", compared with the first parent",
+    "status.plugin_name": "Git Status",
+    "status.repository_status": "Git Repository Status",
+    "status.checking": "Checking Git\u2026",
+    "status.open_graph": "Open or Switch to the Git Graph for the Current Repository",
+    "status.no_repository": "No Git Repository",
+    "status.select_repository_hint": "{message}; click to select a repository",
+    "status.open_repository_first": "Open a file or folder in a repository first",
+    "status.detached_name": "{hash} (Detached)",
+    "status.detached_head": "Detached HEAD",
+    "status.current_branch": "Current Branch: {branch}",
+    "status.initial_suffix": " (No Commits Yet)",
+    "status.dirty": "\nUncommitted Changes",
+    "status.clean": "\nWorking Tree Clean",
+    "status.branch_tooltip": "{root}\n{branch}{initial}{worktree}\nClick to switch branches; right-click to manage the current branch",
+    "status.create_commit_first": "Create a commit on the branch before publishing or synchronizing changes",
+    "status.sync_tooltip": "Upstream: {upstream}\n{behind} to pull, {ahead} to push\nClick to confirm sync (pull, then push); right-click for other actions",
+    "status.publish_tooltip": "No upstream is configured; click to publish the branch and set its upstream; right-click for other actions",
+    "status.read_failed": "Unable to read the Git repository: {error}",
+    "status.select_repository": "Select Git Repository\u2026",
+    "status.recheck_repository": "Recheck Repository",
+    "status.checkout_remote": "Checkout Remote Branch {branch}",
+    "status.create_branch": "Create Branch\u2026",
+    "status.branch_has_no_commits": "{branch} has no commits",
+    "status.sync_changes": "Sync Changes (Pull, then Push)\u2026",
+    "status.fetch": "Fetch from Remote(s)\u2026",
+    "status.pull": "Pull into Current Branch\u2026",
+    "status.push": "Push Current Branch\u2026",
+    "status.set_upstream": "Push and Set Upstream Branch\u2026",
+    "status.configure_remotes": "Configure Remotes\u2026",
+    "status.refresh": "Refresh Local Git Status",
+    "scm.revision.empty": "Empty Tree",
+    "scm.revision.index": "Index",
+    "scm.revision.worktree": "Working Tree",
+    "scm.operation.merge": "Merge",
+    "scm.operation.rebase": "Rebase",
+    "scm.operation.cherry_pick": "Cherry-pick",
+    "scm.operation.revert": "Revert",
+    "scm.source_control": "Source Control",
+    "scm.refresh": "Refresh",
+    "scm.select_views": "Select Views",
+    "scm.message_placeholder": "Message (Ctrl+Enter to Commit)",
+    "scm.commit_message": "Commit Message",
+    "scm.commit": "Commit",
+    "scm.more_commit_actions": "More Commit Actions",
+    "scm.commit_staged": "Commit Staged",
+    "scm.open_commit_options": "Commit Staged\u2026",
+    "scm.amend_last_commit": "Commit Staged (Amend)\u2026",
+    "scm.filter_changes": "Filter Changes",
+    "scm.repository": "Repository",
+    "scm.working_tree_changes": "Working Tree Changes",
+    "scm.changes_and_operations": "Changes and Git Operations",
+    "scm.changes": "Changes",
+    "scm.repositories": "Repositories",
+    "scm.manage_repositories": "Manage Repositories",
+    "scm.resize_sections": "Resize Changes and Graph Sections",
+    "scm.graph": "Graph",
+    "scm.message_required": "Enter a commit message.",
+    "scm.detached_head": "Detached HEAD",
+    "scm.checkout_branch": "Checkout Branch {branch}",
+    "scm.staged_changes": "Staged Changes",
+    "scm.unstage_all_group": "Unstage All Changes in This Group",
+    "scm.stage_all_group": "Stage All Changes in This Group",
+    "scm.open_group_changes": "Open Changes in This Group",
+    "scm.discard_group_changes": "Discard Changes in This Group",
+    "scm.collapse_groups": "Collapse All Groups",
+    "scm.expand_groups": "Expand All Groups",
+    "scm.tree_view": "View as Tree",
+    "scm.unstage_change": "Unstage Changes",
+    "scm.stage_change": "Stage Changes",
+    "scm.no_changes": "No Changes",
+    "scm.open_changes": "Open Changes",
+    "scm.open_file": "Open File",
+    "scm.file_history": "Open File Timeline",
+    "scm.copy_relative_path": "Copy Relative Path",
+    "scm.copy_path": "Copy Path",
+    "scm.reveal_file": "Reveal in File Explorer",
+    "scm.add_to_gitignore": "Add to .gitignore",
+    "scm.discard_change": "Discard Changes\u2026",
+    "scm.added_to_gitignore": "Added {file} to .gitignore.",
+    "scm.already_ignored": "{file} is already ignored by .gitignore.",
+    "scm.opening_diff": "Opening File Changes\u2026",
+    "scm.unresolved_conflict": "The file has unresolved conflicts. Resolve them first.",
+    "scm.change_title": "{file} (Changes)",
+    "scm.readonly_label": "{file} ({revision}, Read-only)",
+    "scm.timeline": "Timeline for {file}",
+    "scm.loading_file_history": "Loading File History\u2026",
+    "scm.open_revision": "Open This Revision",
+    "scm.copy_commit_hash": "Copy Commit Hash",
+    "scm.commit_actions": "Commit Actions\u2026",
+    "scm.no_file_history": "No file history.",
+    "scm.load_more_file_history": "Load More File History",
+    "scm.fetch_short": "Fetch\u2026",
+    "scm.edit_remote_url": "Edit Remote URL\u2026",
+    "scm.remove_remote": "Remove Remote\u2026",
+    "scm.list_view": "View as List",
+    "scm.view_and_sort": "View & Sort",
+    "scm.sort_name": "Sort by Name",
+    "scm.sort_path": "Sort by Path",
+    "scm.sort_status": "Sort by Status",
+    "scm.checkout": "Checkout to\u2026",
+    "scm.commit_section": "Commit",
+    "scm.amend_staged": "Commit Staged (Amend)\u2026",
+    "scm.changes_section": "Changes",
+    "scm.pull_push_section": "Pull, Push",
+    "scm.branches_section": "Branches",
+    "scm.create_branch": "Create Branch\u2026",
+    "scm.remotes_section": "Remotes",
+    "scm.add_remote": "Add Remote\u2026",
+    "scm.stashes_section": "Stashes",
+    "scm.tags_section": "Tags",
+    "scm.create_tag": "Create Tag\u2026",
+    "scm.show_output": "Show Git Output",
+    "scm.open_graph": "Open Git Graph",
+    "scm.open_terminal": "Open Terminal at Repository Root",
+    "scm.open_admin_terminal": "Open Repository Terminal as Administrator (UAC)",
+    "scm.settings": "Git Graph Settings\u2026"
+  };
+  var dictionaries = { "zh-cn": zh_cn, en };
+  function language_candidates() {
+    const runtime2 = globalThis;
+    const plugin_env = runtime2[Symbol.for("typora-plugin-core@v2:env")];
+    return [
+      plugin_env?.userLang,
+      runtime2._options?.displayLang,
+      runtime2._options?.userLang,
+      runtime2._options?.locale,
+      runtime2.File?.option?.displayLang,
+      runtime2.File?.option?.userLang,
+      runtime2.File?.option?.locale,
+      runtime2.document?.documentElement?.lang,
+      runtime2.document?.body?.lang,
+      ...runtime2.navigator?.languages || [],
+      runtime2.navigator?.language
+    ].filter((value) => typeof value === "string" && Boolean(value.trim()));
+  }
+  function resolve_git_graph_locale(language44) {
+    const selected = language44 || language_candidates()[0] || "zh-cn";
+    return /^zh(?:-|_|$)/iu.test(selected.trim()) ? "zh-cn" : "en";
+  }
+  function git_graph_text(key, values = {}, locale = resolve_git_graph_locale()) {
+    const template = dictionaries[locale]?.[key] ?? dictionaries.en?.[key] ?? String(key);
+    return template.replace(/\{([a-z_]+)\}/giu, (match2, name) => Object.hasOwn(values, name) ? String(values[name]) : match2);
+  }
+  function git_graph_language_tag(locale = resolve_git_graph_locale()) {
+    return locale === "zh-cn" ? "zh-CN" : "en-US";
+  }
+
+  // src/monaco_locale.ts
+  var nls_runtime = globalThis;
+  if (resolve_git_graph_locale() === "en") {
+    delete nls_runtime._VSCODE_NLS_MESSAGES;
+    nls_runtime._VSCODE_NLS_LANGUAGE = "en";
+  }
 
   // src/git_diff_editor.ts
   init_editor_api();
@@ -165170,9 +166184,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         7
         /* TokenType.Pipe */
       )) {
-        const choice2 = new Choice();
+        const choice = new Choice();
         while (true) {
-          if (this._parseChoiceElement(choice2)) {
+          if (this._parseChoiceElement(choice)) {
             if (this._accept(
               2
               /* TokenType.Comma */
@@ -165183,7 +166197,7 @@ var LinuxNoteTyporaEnhancements = (() => {
               7
               /* TokenType.Pipe */
             )) {
-              placeholder.appendChild(choice2);
+              placeholder.appendChild(choice);
               if (this._accept(
                 4
                 /* TokenType.CurlyClose */
@@ -174713,7 +175727,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     "arrow-down": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.854 8.146C13.659 7.951 13.342 7.951 13.147 8.146L9.00096 12.292V2.5C9.00096 2.224 8.77696 2 8.50096 2C8.22496 2 8.00096 2.224 8.00096 2.5V12.293L3.85496 8.147C3.65996 7.952 3.34296 7.952 3.14796 8.147C2.95296 8.342 2.95296 8.659 3.14796 8.854L8.14796 13.854C8.24596 13.952 8.37396 14 8.50196 14C8.62996 14 8.75796 13.951 8.85596 13.854L13.856 8.854C14.051 8.659 14.051 8.342 13.856 8.147L13.854 8.146Z"/></svg>',
     "edit-code": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.854 5.146L11.824 7.116L11.117 7.823L9.147 5.853C8.952 5.658 8.952 5.341 9.147 5.146C9.342 4.951 9.659 4.951 9.854 5.146ZM2 12V4C2 2.895 2.895 2 4 2H12C13.105 2 14 2.895 14 4V6.011C14.044 6.009 14.086 5.998 14.13 5.998C14.431 5.998 14.721 6.057 15 6.146V4C15 2.343 13.657 1 12 1H4C2.343 1 1 2.343 1 4V12C1 13.657 2.343 15 4 15H6.009C6.016 14.884 6.027 14.767 6.055 14.651L6.218 14H4C2.895 14 2 13.105 2 12ZM6.854 10.146L4.708 8L6.854 5.854C7.049 5.659 7.049 5.342 6.854 5.147C6.659 4.952 6.342 4.952 6.147 5.147L3.647 7.647C3.452 7.842 3.452 8.159 3.647 8.354L6.147 10.854C6.342 11.049 6.659 11.049 6.854 10.854C7.049 10.659 7.049 10.342 6.854 10.147V10.146ZM15.452 7.546C14.722 6.816 13.538 6.816 12.807 7.546L7.978 12.375C7.696 12.657 7.497 13.009 7.4 13.396L7.026 14.894C6.863 15.545 7.453 16.135 8.105 15.973L9.603 15.598C9.989 15.501 10.342 15.302 10.624 15.02L15.453 10.191C16.183 9.461 16.183 8.277 15.453 7.546H15.452Z"/></svg>',
     book: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M2.5 2C1.67157 2 1 2.67157 1 3.5V12.5C1 13.3284 1.67157 14 2.5 14H6C6.8178 14 7.54389 13.6073 8 13.0002C8.45612 13.6073 9.1822 14 10 14H13.5C14.3284 14 15 13.3284 15 12.5V3.5C15 2.67157 14.3284 2 13.5 2H10C9.1822 2 8.45612 2.39267 8 2.99976C7.54389 2.39267 6.8178 2 6 2H2.5ZM7.5 4.5V11.5C7.5 12.3284 6.82843 13 6 13H2.5C2.22386 13 2 12.7761 2 12.5V3.5C2 3.22386 2.22386 3 2.5 3H6C6.82843 3 7.5 3.67157 7.5 4.5ZM8.5 11.5V4.5C8.5 3.67157 9.17157 3 10 3H13.5C13.7761 3 14 3.22386 14 3.5V12.5C14 12.7761 13.7761 13 13.5 13H10C9.17157 13 8.5 12.3284 8.5 11.5Z"/></svg>',
-    exclude: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14.682 8.31802C13.838 7.47402 12.693 7.00002 11.5 7.00002C10.61 7.00002 9.74 7.26402 9 7.75802C8.26 8.25202 7.683 8.95502 7.343 9.77802C7.002 10.6 6.913 11.505 7.087 12.378C7.261 13.251 7.689 14.053 8.319 14.682C8.948 15.311 9.75 15.74 10.623 15.914C11.496 16.088 12.401 15.999 13.223 15.658C14.045 15.317 14.748 14.741 15.242 14.001C15.736 13.261 16 12.391 16 11.501C16 10.307 15.526 9.16302 14.682 8.31902V8.31802ZM14.354 11.854C14.26 11.948 14.133 12 14 12H9C8.867 12 8.74 11.947 8.646 11.854C8.552 11.76 8.5 11.633 8.5 11.5C8.5 11.367 8.553 11.24 8.646 11.146C8.74 11.052 8.867 11 9 11H14C14.133 11 14.26 11.053 14.354 11.146C14.448 11.24 14.5 11.367 14.5 11.5C14.5 11.633 14.447 11.76 14.354 11.854ZM5.095 11.188C5.423 11.188 5.732 11.277 6 11.431V12.5H5.724C5.57 12.313 5.345 12.191 5.094 12.191C5.045 12.191 4.995 12.195 4.945 12.204C4.901 12.212 4.857 12.224 4.815 12.239L3.228 12.804C3.183 12.82 3.136 12.828 3.089 12.828C2.974 12.828 2.862 12.78 2.782 12.692C2.118 11.96 1.614 11.097 1.309 10.156C1.258 9.99702 1.307 9.82302 1.435 9.71502L2.721 8.62802C3.069 8.33302 3.112 7.81402 2.816 7.46702C2.787 7.43302 2.755 7.40102 2.721 7.37202L1.435 6.28502C1.307 6.17702 1.257 6.00302 1.309 5.84402C1.615 4.90302 2.118 4.04002 2.782 3.30802C2.862 3.22002 2.974 3.17202 3.089 3.17202C3.135 3.17202 3.183 3.18002 3.228 3.19602L4.815 3.76102C4.907 3.79302 5.001 3.80902 5.093 3.80902C5.433 3.80902 5.751 3.59902 5.872 3.26202C5.887 3.22002 5.899 3.17702 5.907 3.13302L6.209 1.48102C6.239 1.31702 6.366 1.18702 6.53 1.15202C7.01 1.05102 7.502 0.999023 8 0.999023C8.498 0.999023 8.989 1.05002 9.469 1.15202C9.633 1.18702 9.76 1.31702 9.79 1.48102L10.093 3.13302C10.166 3.53102 10.514 3.80902 10.906 3.80902C10.955 3.80902 11.005 3.80402 11.055 3.79502C11.099 3.78702 11.143 3.77502 11.185 3.76002L12.772 3.19502C12.817 3.17902 12.864 3.17102 12.911 3.17102C13.026 3.17102 13.138 3.21902 13.218 3.30702C13.881 4.03902 14.385 4.90202 14.69 5.84302C14.741 6.00202 14.692 6.17602 14.564 6.28402L14.097 6.67902C13.764 6.49902 13.418 6.35602 13.055 6.24902L13.606 5.78302C13.389 5.23802 13.095 4.73202 12.727 4.27202L11.52 4.70202C11.426 4.73502 11.33 4.76002 11.233 4.77802C11.123 4.79802 11.013 4.80802 10.905 4.80802C10.023 4.80802 9.268 4.17902 9.109 3.31202L8.88 2.06102C8.59 2.01902 8.295 1.99802 8 1.99802C7.705 1.99802 7.41 2.02002 7.119 2.06202L6.89 3.31302C6.872 3.41002 6.847 3.50602 6.813 3.60002C6.554 4.32302 5.862 4.80902 5.093 4.80902C4.883 4.80902 4.677 4.77302 4.479 4.70302L3.272 4.27302C2.904 4.73302 2.60999 5.23902 2.39299 5.78402L3.367 6.60702C3.442 6.67102 3.513 6.74202 3.577 6.81702C3.894 7.18902 4.047 7.66102 4.007 8.14702C3.967 8.63302 3.74 9.07502 3.367 9.39002L2.39299 10.213C2.60999 10.758 2.904 11.263 3.272 11.724L4.479 11.294C4.573 11.261 4.668 11.236 4.765 11.218C4.876 11.198 4.987 11.188 5.095 11.188ZM7.057 8.28102C6.831 8.59302 6.634 8.92402 6.476 9.28102C6.183 8.93302 5.999 8.49002 5.999 7.99902C5.999 6.89402 6.894 5.99902 7.999 5.99902C8.49 5.99902 8.934 6.18302 9.281 6.47602C8.992 6.60402 8.71 6.74902 8.443 6.92702C8.385 6.96602 8.335 7.01502 8.278 7.05602C8.188 7.02902 8.098 6.99902 7.998 6.99902C7.446 6.99902 6.998 7.44702 6.998 7.99902C6.998 8.09902 7.028 8.19002 7.055 8.28202L7.057 8.28102Z"/></svg>'
+    exclude: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14.682 8.31802C13.838 7.47402 12.693 7.00002 11.5 7.00002C10.61 7.00002 9.74 7.26402 9 7.75802C8.26 8.25202 7.683 8.95502 7.343 9.77802C7.002 10.6 6.913 11.505 7.087 12.378C7.261 13.251 7.689 14.053 8.319 14.682C8.948 15.311 9.75 15.74 10.623 15.914C11.496 16.088 12.401 15.999 13.223 15.658C14.045 15.317 14.748 14.741 15.242 14.001C15.736 13.261 16 12.391 16 11.501C16 10.307 15.526 9.16302 14.682 8.31902V8.31802ZM14.354 11.854C14.26 11.948 14.133 12 14 12H9C8.867 12 8.74 11.947 8.646 11.854C8.552 11.76 8.5 11.633 8.5 11.5C8.5 11.367 8.553 11.24 8.646 11.146C8.74 11.052 8.867 11 9 11H14C14.133 11 14.26 11.053 14.354 11.146C14.448 11.24 14.5 11.367 14.5 11.5C14.5 11.633 14.447 11.76 14.354 11.854ZM5.095 11.188C5.423 11.188 5.732 11.277 6 11.431V12.5H5.724C5.57 12.313 5.345 12.191 5.094 12.191C5.045 12.191 4.995 12.195 4.945 12.204C4.901 12.212 4.857 12.224 4.815 12.239L3.228 12.804C3.183 12.82 3.136 12.828 3.089 12.828C2.974 12.828 2.862 12.78 2.782 12.692C2.118 11.96 1.614 11.097 1.309 10.156C1.258 9.99702 1.307 9.82302 1.435 9.71502L2.721 8.62802C3.069 8.33302 3.112 7.81402 2.816 7.46702C2.787 7.43302 2.755 7.40102 2.721 7.37202L1.435 6.28502C1.307 6.17702 1.257 6.00302 1.309 5.84402C1.615 4.90302 2.118 4.04002 2.782 3.30802C2.862 3.22002 2.974 3.17202 3.089 3.17202C3.135 3.17202 3.183 3.18002 3.228 3.19602L4.815 3.76102C4.907 3.79302 5.001 3.80902 5.093 3.80902C5.433 3.80902 5.751 3.59902 5.872 3.26202C5.887 3.22002 5.899 3.17702 5.907 3.13302L6.209 1.48102C6.239 1.31702 6.366 1.18702 6.53 1.15202C7.01 1.05102 7.502 0.999023 8 0.999023C8.498 0.999023 8.989 1.05002 9.469 1.15202C9.633 1.18702 9.76 1.31702 9.79 1.48102L10.093 3.13302C10.166 3.53102 10.514 3.80902 10.906 3.80902C10.955 3.80902 11.005 3.80402 11.055 3.79502C11.099 3.78702 11.143 3.77502 11.185 3.76002L12.772 3.19502C12.817 3.17902 12.864 3.17102 12.911 3.17102C13.026 3.17102 13.138 3.21902 13.218 3.30702C13.881 4.03902 14.385 4.90202 14.69 5.84302C14.741 6.00202 14.692 6.17602 14.564 6.28402L14.097 6.67902C13.764 6.49902 13.418 6.35602 13.055 6.24902L13.606 5.78302C13.389 5.23802 13.095 4.73202 12.727 4.27202L11.52 4.70202C11.426 4.73502 11.33 4.76002 11.233 4.77802C11.123 4.79802 11.013 4.80802 10.905 4.80802C10.023 4.80802 9.268 4.17902 9.109 3.31202L8.88 2.06102C8.59 2.01902 8.295 1.99802 8 1.99802C7.705 1.99802 7.41 2.02002 7.119 2.06202L6.89 3.31302C6.872 3.41002 6.847 3.50602 6.813 3.60002C6.554 4.32302 5.862 4.80902 5.093 4.80902C4.883 4.80902 4.677 4.77302 4.479 4.70302L3.272 4.27302C2.904 4.73302 2.60999 5.23902 2.39299 5.78402L3.367 6.60702C3.442 6.67102 3.513 6.74202 3.577 6.81702C3.894 7.18902 4.047 7.66102 4.007 8.14702C3.967 8.63302 3.74 9.07502 3.367 9.39002L2.39299 10.213C2.60999 10.758 2.904 11.263 3.272 11.724L4.479 11.294C4.573 11.261 4.668 11.236 4.765 11.218C4.876 11.198 4.987 11.188 5.095 11.188ZM7.057 8.28102C6.831 8.59302 6.634 8.92402 6.476 9.28102C6.183 8.93302 5.999 8.49002 5.999 7.99902C5.999 6.89402 6.894 5.99902 7.999 5.99902C8.49 5.99902 8.934 6.18302 9.281 6.47602C8.992 6.60402 8.71 6.74902 8.443 6.92702C8.385 6.96602 8.335 7.01502 8.278 7.05602C8.188 7.02902 8.098 6.99902 7.998 6.99902C7.446 6.99902 6.998 7.44702 6.998 7.99902C6.998 8.09902 7.028 8.19002 7.055 8.28202L7.057 8.28102Z"/></svg>',
+    terminal: '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M18.75 1.5H5.25C3.1815 1.5 1.5 3.183 1.5 5.25V18.75C1.5 20.8185 3.1815 22.5 5.25 22.5H18.75C20.8185 22.5 22.5 20.8185 22.5 18.75V5.25C22.5 3.183 20.8185 1.5 18.75 1.5ZM21 18.75C21 19.9905 19.9905 21 18.75 21H5.25C4.0095 21 3 19.9905 3 18.75V5.25C3 4.0095 4.0095 3 5.25 3H18.75C19.9905 3 21 4.0095 21 5.25V18.75ZM10.281 13.281L5.781 17.781C5.634 17.928 5.442 18 5.25 18C5.058 18 4.866 17.9265 4.719 17.781C4.4265 17.4885 4.4265 17.013 4.719 16.7205L8.688 12.7515L4.719 8.7825C4.4265 8.49 4.4265 8.0145 4.719 7.722C5.0115 7.4295 5.487 7.4295 5.7795 7.722L10.2795 12.222C10.572 12.5145 10.572 12.99 10.2795 13.2825L10.281 13.281ZM19.5 17.25C19.5 17.664 19.164 18 18.75 18H11.25C10.836 18 10.5 17.664 10.5 17.25C10.5 16.836 10.836 16.5 11.25 16.5H18.75C19.164 16.5 19.5 16.836 19.5 17.25Z"/></svg>',
+    "settings-gear": '<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12 9C10.3425 9 9.00002 10.3425 9.00002 12C9.00002 13.6575 10.3425 15 12 15C13.6575 15 15 13.6575 15 12C15 10.3425 13.6575 9 12 9ZM12 13.5C11.172 13.5 10.5 12.828 10.5 12C10.5 11.172 11.172 10.5 12 10.5C12.828 10.5 13.5 11.172 13.5 12C13.5 12.828 12.828 13.5 12 13.5ZM21.8475 14.5725L19.9185 12.942C19.8675 12.8985 19.8195 12.8505 19.776 12.7995C19.332 12.279 19.3965 11.5005 19.9185 11.058L21.8475 9.4275C22.0395 9.2655 22.113 9.0045 22.0365 8.766C21.579 7.3545 20.823 6.06 19.8285 4.962C19.7085 4.83 19.5405 4.758 19.368 4.758C19.2975 4.758 19.227 4.77 19.1595 4.794L16.779 5.6415C16.716 5.664 16.65 5.682 16.584 5.694C16.509 5.7075 16.434 5.715 16.3605 5.715C15.7725 5.715 15.2505 5.298 15.141 4.701L14.6865 2.223C14.6415 1.977 14.451 1.782 14.205 1.7295C13.485 1.5765 12.7485 1.5 12.0015 1.5C11.2545 1.5 10.5165 1.578 9.79652 1.7295C9.55052 1.782 9.36002 1.977 9.31502 2.223L8.86202 4.701C8.85002 4.767 8.83202 4.8315 8.80952 4.8945C8.62802 5.4 8.15102 5.715 7.64102 5.715C7.50302 5.715 7.36202 5.691 7.22402 5.643L4.84352 4.7955C4.77602 4.7715 4.70402 4.7595 4.63502 4.7595C4.46252 4.7595 4.29452 4.8315 4.17452 4.9635C3.17852 6.0615 2.42402 7.356 1.96502 8.7675C1.88702 9.006 1.96202 9.267 2.15402 9.429L4.08302 11.0595C4.13402 11.103 4.18202 11.151 4.22552 11.202C4.66952 11.7225 4.60502 12.501 4.08302 12.9435L2.15402 14.574C1.96202 14.736 1.88852 14.997 1.96502 15.2355C2.42252 16.647 3.17852 17.9415 4.17452 19.0395C4.29452 19.1715 4.46252 19.2435 4.63502 19.2435C4.70552 19.2435 4.77602 19.2315 4.84352 19.2075L7.22402 18.36C7.28702 18.3375 7.35302 18.3195 7.41902 18.3075C7.49402 18.294 7.56902 18.288 7.64252 18.288C8.23052 18.288 8.75252 18.705 8.86202 19.302L9.31502 21.78C9.36002 22.026 9.55052 22.221 9.79652 22.2735C10.5165 22.4265 11.2545 22.503 12.0015 22.503C12.7485 22.503 13.4865 22.425 14.205 22.2735C14.451 22.221 14.6415 22.026 14.6865 21.78L15.141 19.302C15.153 19.236 15.171 19.1715 15.1935 19.1085C15.375 18.603 15.852 18.288 16.362 18.288C16.5 18.288 16.641 18.312 16.779 18.36L19.158 19.2075C19.227 19.2315 19.2975 19.2435 19.3665 19.2435C19.539 19.2435 19.707 19.1715 19.827 19.0395C20.823 17.9415 21.5775 16.647 22.035 15.2355C22.113 14.997 22.038 14.736 21.846 14.574L21.8475 14.5725ZM19.092 17.589L17.2815 16.944C16.9845 16.839 16.6755 16.785 16.362 16.785C15.2085 16.785 14.1705 17.514 13.782 18.5985C13.731 18.738 13.6935 18.882 13.6665 19.029L13.3215 20.9055C12.8865 20.9685 12.444 21 12.0015 21C11.559 21 11.1165 20.9685 10.68 20.904L10.3365 19.0275C10.098 17.727 8.96552 16.7835 7.64252 16.7835C7.48052 16.7835 7.31552 16.7985 7.14902 16.8285C7.00352 16.8555 6.86102 16.893 6.72002 16.9425L4.90952 17.5875C4.35752 16.896 3.91652 16.1385 3.59102 15.321L5.05202 14.0865C5.61152 13.614 5.95202 12.951 6.01202 12.222C6.07202 11.493 5.84252 10.785 5.36702 10.227C5.27102 10.1145 5.16452 10.008 5.05202 9.912L3.59102 8.6775C3.91652 7.86 4.35752 7.101 4.90952 6.411L6.72002 7.056C7.01702 7.161 7.32602 7.215 7.64102 7.215C8.79452 7.215 9.83252 6.486 10.221 5.4015C10.272 5.2605 10.3095 5.1165 10.3365 4.971L10.68 3.0945C11.1165 3.0315 11.559 2.9985 12.0015 2.9985C12.444 2.9985 12.8865 3.03 13.3215 3.093L13.665 4.9695C13.9035 6.27 15.036 7.2135 16.359 7.2135C16.521 7.2135 16.686 7.1985 16.851 7.1685C16.9965 7.1415 17.1405 7.104 17.2815 7.0545L19.092 6.4095C19.644 7.0995 20.085 7.8585 20.4105 8.676L18.951 9.9105C18.3915 10.383 18.0495 11.046 17.991 11.775C17.931 12.504 18.1605 13.2135 18.636 13.77C18.7335 13.884 18.8385 13.989 18.9525 14.085L20.4135 15.3195C20.088 16.137 19.647 16.896 19.095 17.586L19.092 17.589Z"/></svg>'
   };
 
   // src/git_icons.ts
@@ -174722,7 +175738,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     let template = templates.get(name);
     if (!template) {
       const parsed = new DOMParser().parseFromString(icons_default[name], "image/svg+xml");
-      if (parsed.documentElement.localName !== "svg") throw new Error("\u65E0\u6548\u7684\u5185\u7F6E Git \u56FE\u6807\uFF1A" + name);
+      if (parsed.documentElement.localName !== "svg") throw new Error(git_graph_text("icon.invalid_builtin", { name }));
       template = document.importNode(parsed.documentElement, true);
       template.setAttribute("width", "16");
       template.setAttribute("height", "16");
@@ -174769,7 +175785,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     node.value = value;
     return node;
   }
-  function workspace_dialog(title) {
+  function workspace_dialog(title, close_title = "\u5173\u95ED") {
     const root = workspace_element("div", "git-graph-dialog-shade");
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
@@ -174814,7 +175830,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       event.stopPropagation();
     });
-    footer.append(workspace_button("\u5173\u95ED", close));
+    footer.append(workspace_button(close_title, close));
     setTimeout(() => panel.querySelector("input,textarea,select,button")?.focus(), 0);
     return { root, content, footer, close };
   }
@@ -174857,11 +175873,11 @@ var LinuxNoteTyporaEnhancements = (() => {
             entry.action();
           }
         });
-        const check2 = workspace_element("span", "git-menu-check");
-        if (entry.checked) check2.append(git_icon("check"));
+        const check = workspace_element("span", "git-menu-check");
+        if (entry.checked) check.append(git_icon("check"));
         const arrow = workspace_element("span", "git-menu-arrow");
         if (entry.children) arrow.append(git_icon("chevron-right"));
-        node.append(check2, workspace_element("span", "git-menu-label", entry.title), arrow);
+        node.append(check, workspace_element("span", "git-menu-label", entry.title), arrow);
         const open_child = (focus = false) => {
           if (!entry.children || node.disabled) return;
           const rect = node.getBoundingClientRect();
@@ -174972,184 +175988,6 @@ var LinuxNoteTyporaEnhancements = (() => {
   function shortcut_matches(event, shortcut) {
     const parts = shortcut.toLowerCase().split("+");
     return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey) && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
-  }
-
-  // src/file_language.ts
-  var FILE_LANGUAGE_RULES = [
-    { language: "markdown", label: "Markdown", suffixes: [".md", ".markdown", ".mdown", ".mkdn", ".mkd"] },
-    { language: "mdx", label: "MDX", suffixes: [".mdx"] },
-    { language: "typescript", label: "TypeScript", suffixes: [".d.ts", ".d.mts", ".d.cts", ".ts", ".tsx", ".mts", ".cts"] },
-    { language: "javascript", label: "JavaScript", suffixes: [".js", ".jsx", ".mjs", ".cjs"] },
-    { language: "json", label: "JSON", filenames: [".babelrc", ".eslintrc", ".prettierrc", ".jshintrc"], suffixes: [".json", ".jsonc", ".jsonl", ".ipynb", ".code-workspace"] },
-    { language: "c", label: "C", suffixes: [".c", ".h", ".i"] },
-    { language: "cpp", label: "C++", suffixes: [".cpp", ".cc", ".cxx", ".c++", ".hpp", ".hh", ".hxx", ".h++", ".ipp", ".tpp", ".ino"] },
-    { language: "cpp", label: "C++", suffixes: [".C", ".H"], case_sensitive: true },
-    { language: "objective-c", label: "Objective-C", suffixes: [".m", ".mm"] },
-    { language: "csharp", label: "C#", suffixes: [".cs", ".csx"] },
-    { language: "rust", label: "Rust", suffixes: [".rs"] },
-    { language: "go", label: "Go", suffixes: [".go"] },
-    { language: "java", label: "Java", suffixes: [".java"] },
-    { language: "kotlin", label: "Kotlin", suffixes: [".kt", ".kts"] },
-    { language: "scala", label: "Scala", suffixes: [".scala", ".sc"] },
-    { language: "swift", label: "Swift", suffixes: [".swift"] },
-    { language: "dart", label: "Dart", suffixes: [".dart"] },
-    { language: "python", label: "Python", filenames: ["SConstruct", "SConscript"], suffixes: [".py", ".pyi", ".pyw", ".pyx", ".pxd"] },
-    { language: "shell", label: "Shell", filenames: [".bashrc", ".bash_profile", ".bash_login", ".profile", ".zshrc", ".zprofile", ".zshenv", ".kshrc"], suffixes: [".sh", ".bash", ".zsh", ".ksh", ".fish"] },
-    { language: "powershell", label: "PowerShell", suffixes: [".ps1", ".psm1", ".psd1"] },
-    { language: "bat", label: "Windows \u6279\u5904\u7406", suffixes: [".bat", ".cmd"] },
-    { language: "makefile", label: "Makefile", filenames: ["Makefile", "GNUmakefile", "Kbuild"], filename_prefixes: ["Makefile.", "GNUmakefile.", "Kbuild."], suffixes: [".mk", ".mak"] },
-    { language: "cmake", label: "CMake", filenames: ["CMakeLists.txt"], suffixes: [".cmake"] },
-    { language: "kconfig", label: "Kconfig", filenames: ["Kconfig"], filename_prefixes: ["Kconfig."] },
-    { language: "dts", label: "\u8BBE\u5907\u6811", suffixes: [".dts", ".dtsi", ".dtso"] },
-    { language: "asm", label: "\u6C47\u7F16", suffixes: [".s", ".asm", ".inc"] },
-    { language: "dockerfile", label: "Dockerfile", filenames: ["Dockerfile", "Containerfile"], filename_prefixes: ["Dockerfile.", "Containerfile."], suffixes: [".dockerfile", ".containerfile"] },
-    { language: "ini", label: "INI / \u73AF\u5883\u53D8\u91CF", filenames: [".env", ".gitconfig", ".gitmodules", ".editorconfig", ".npmrc", ".yarnrc"], filename_prefixes: [".env."], suffixes: [".ini", ".cfg", ".conf", ".properties", ".service", ".socket", ".timer", ".desktop"] },
-    { language: "ignore", label: "\u5FFD\u7565\u89C4\u5219", filenames: [".gitignore", ".gitattributes", ".dockerignore", ".ignore", ".npmignore", ".eslintignore", ".prettierignore"], suffixes: [".gitignore"] },
-    { language: "toml", label: "TOML", filenames: ["Cargo.lock", "poetry.lock", "uv.lock"], suffixes: [".toml"] },
-    { language: "yaml", label: "YAML", suffixes: [".yaml", ".yml"] },
-    { language: "xml", label: "XML", suffixes: [".xml", ".xsd", ".xsl", ".xslt", ".svg", ".plist", ".csproj", ".props", ".targets", ".ui"] },
-    { language: "html", label: "HTML", suffixes: [".html", ".htm", ".xhtml", ".vue", ".svelte"] },
-    { language: "css", label: "CSS", suffixes: [".module.css", ".css"] },
-    { language: "scss", label: "SCSS", suffixes: [".module.scss", ".scss"] },
-    { language: "less", label: "Less", suffixes: [".less"] },
-    { language: "sql", label: "SQL", suffixes: [".sql"] },
-    { language: "graphql", label: "GraphQL", suffixes: [".graphql", ".gql"] },
-    { language: "proto", label: "Protocol Buffers", suffixes: [".proto"] },
-    { language: "hcl", label: "HCL / Terraform", suffixes: [".hcl", ".tf", ".tfvars"] },
-    { language: "ruby", label: "Ruby", filenames: ["Gemfile", "Rakefile", "Guardfile", "Vagrantfile"], suffixes: [".rb", ".rake", ".gemspec"] },
-    { language: "perl", label: "Perl", suffixes: [".pl", ".pm", ".pod"] },
-    { language: "php", label: "PHP", suffixes: [".php", ".phtml"] },
-    { language: "lua", label: "Lua", suffixes: [".lua"] },
-    { language: "r", label: "R", suffixes: [".r", ".rprofile"] },
-    { language: "julia", label: "Julia", suffixes: [".jl"] },
-    { language: "tcl", label: "Tcl", suffixes: [".tcl", ".tk"] },
-    { language: "clojure", label: "Clojure", suffixes: [".clj", ".cljs", ".cljc", ".edn"] },
-    { language: "scheme", label: "Scheme", suffixes: [".scm", ".ss", ".rkt"] },
-    { language: "elixir", label: "Elixir", suffixes: [".ex", ".exs"] },
-    { language: "fsharp", label: "F#", suffixes: [".fs", ".fsi", ".fsx"] },
-    { language: "systemverilog", label: "Verilog / SystemVerilog", suffixes: [".v", ".vh", ".sv", ".svh"] },
-    { language: "restructuredtext", label: "reStructuredText", suffixes: [".rst"] },
-    { language: "plaintext", label: "\u7EAF\u6587\u672C", filenames: ["LICENSE", "COPYING", "AUTHORS", "NOTICE", "README", "CHANGELOG", "COMMIT_EDITMSG", "MERGE_MSG"], suffixes: [".txt", ".text", ".log", ".csv", ".tsv", ".patch", ".diff"] },
-    { language: "plaintext", label: "\u5F52\u6863\u6587\u4EF6", category: "archive", suffixes: [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lz4", ".tgz", ".tbz2", ".txz", ".zip", ".7z", ".rar", ".gz", ".bz2", ".xz", ".zst", ".tar", ".jar", ".war", ".deb", ".rpm"] },
-    { language: "plaintext", label: "\u4E8C\u8FDB\u5236\u6587\u4EF6", category: "binary", suffixes: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".bmp", ".pdf", ".exe", ".dll", ".so", ".a", ".o", ".class", ".pyc", ".wasm", ".woff", ".woff2", ".ttf", ".mp3", ".mp4", ".wav", ".bin", ".dtb"] }
-  ];
-  var suffix_rules = FILE_LANGUAGE_RULES.flatMap((rule) => (rule.suffixes || []).map((suffix) => ({ rule, suffix }))).sort((left, right) => right.suffix.length - left.suffix.length || Number(Boolean(right.rule.case_sensitive)) - Number(Boolean(left.rule.case_sensitive)));
-  function basename3(file_path) {
-    return file_path.replace(/\\/g, "/").split("/").pop() || "";
-  }
-  function from_rule(rule, matched_by, pattern) {
-    return { language: rule.language, label: rule.label, category: rule.category || "text", matched_by, pattern };
-  }
-  function shebang_language(first_line) {
-    const line = first_line.replace(/^\uFEFF/, "").split(/[\r\n]/, 1)[0];
-    if (!line.startsWith("#!")) return;
-    const tokens = line.slice(2).trim().match(/"[^"\r\n]*"|'[^'\r\n]*'|\S+/g) || [];
-    let executable = tokens.shift()?.replace(/^['"]|['"]$/g, "") || "";
-    if (basename3(executable) === "env") {
-      while (tokens.length) {
-        const token = tokens.shift();
-        if (["-u", "--unset", "-C", "--chdir"].includes(token)) {
-          tokens.shift();
-          continue;
-        }
-        if (token.startsWith("-") || /^[A-Za-z_][A-Za-z0-9_]*=/.test(token)) continue;
-        executable = token.replace(/^['"]|['"]$/g, "").split(/\s/)[0];
-        break;
-      }
-    }
-    const command2 = basename3(executable).replace(/\.exe$/i, "");
-    if (/^python(?:\d+(?:\.\d+)*)?$/.test(command2)) return "python";
-    if (/^(?:sh|bash|dash|ash|zsh|ksh|fish)$/.test(command2)) return "shell";
-    if (/^(?:node|nodejs|bun|deno)$/.test(command2)) return "javascript";
-    if (/^(?:pwsh|powershell)$/.test(command2)) return "powershell";
-    if (/^ruby(?:\d+(?:\.\d+)*)?$/.test(command2)) return "ruby";
-    if (/^perl(?:\d+(?:\.\d+)*)?$/.test(command2)) return "perl";
-    if (/^php(?:\d+(?:\.\d+)*)?$/.test(command2)) return "php";
-    if (/^lua(?:\d+(?:\.\d+)*)?$/.test(command2)) return "lua";
-    if (/^Rscript$/.test(command2)) return "r";
-    return;
-  }
-  function match_file_language(file_path, first_line = "") {
-    const name = basename3(file_path), lower_name = name.toLowerCase();
-    for (const rule2 of FILE_LANGUAGE_RULES) {
-      const candidate = rule2.case_sensitive ? name : lower_name;
-      const normalize4 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
-      const exact = rule2.filenames?.find((value) => candidate === normalize4(value));
-      if (exact) return from_rule(rule2, "filename", exact);
-      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize4(value)));
-      if (prefix) return from_rule(rule2, "filename", prefix + "*");
-    }
-    for (const { rule: rule2, suffix } of suffix_rules) {
-      if ((rule2.case_sensitive ? name : lower_name).endsWith(rule2.case_sensitive ? suffix : suffix.toLowerCase())) return from_rule(rule2, "suffix", suffix);
-    }
-    const language44 = shebang_language(first_line);
-    const rule = language44 && FILE_LANGUAGE_RULES.find((candidate) => candidate.language === language44);
-    if (rule) return from_rule(rule, "shebang", "#!");
-    return { language: "plaintext", label: "\u7EAF\u6587\u672C", category: "text", matched_by: "fallback", pattern: "" };
-  }
-  function detect_file_language(file_path, first_line = "") {
-    return match_file_language(file_path, first_line).language;
-  }
-  function is_markdown_file(file_path) {
-    return detect_file_language(file_path) === "markdown";
-  }
-  function byte_prefix(bytes, signature) {
-    return signature.length <= bytes.length && signature.every((value, index) => bytes[index] === value);
-  }
-  function bom_encoding(bytes) {
-    if (byte_prefix(bytes, [239, 187, 191])) return { encoding: "utf-8", offset: 3 };
-    if (byte_prefix(bytes, [255, 254, 0, 0]) || byte_prefix(bytes, [0, 0, 254, 255])) return;
-    if (byte_prefix(bytes, [255, 254])) return { encoding: "utf-16le", offset: 2 };
-    if (byte_prefix(bytes, [254, 255])) return { encoding: "utf-16be", offset: 2 };
-  }
-  function decode_file_bytes(bytes, fallback_encoding = "utf-8") {
-    const bom = bom_encoding(bytes);
-    const decoder = new TextDecoder(bom?.encoding || fallback_encoding, { fatal: true, ignoreBOM: true });
-    return { text: decoder.decode(bom ? bytes.subarray(bom.offset) : bytes), encoding: decoder.encoding, bom: Boolean(bom) };
-  }
-  var BINARY_SIGNATURES = [
-    [137, 80, 78, 71, 13, 10, 26, 10],
-    [255, 216, 255],
-    [71, 73, 70, 56],
-    [37, 80, 68, 70, 45],
-    [127, 69, 76, 70],
-    [80, 75, 3, 4],
-    [80, 75, 5, 6],
-    [80, 75, 7, 8],
-    [31, 139],
-    [253, 55, 122, 88, 90, 0],
-    [66, 90, 104],
-    [55, 122, 188, 175, 39, 28],
-    [82, 97, 114, 33, 26, 7],
-    [0, 97, 115, 109],
-    [40, 181, 47, 253]
-  ];
-  function contains_binary_controls(text3) {
-    if (text3.includes("\0")) return true;
-    const controls = text3.match(/[\x01-\x08\x0e-\x1f\x7f]/g)?.length || 0;
-    return controls > 0 && controls / Math.max(1, text3.length) > 0.1;
-  }
-  function detect_binary_bytes(bytes) {
-    if (BINARY_SIGNATURES.some((signature) => byte_prefix(bytes, signature))) return true;
-    if (bytes.length >= 262 && String.fromCharCode(...bytes.subarray(257, 262)) === "ustar") return true;
-    const bom = bom_encoding(bytes);
-    if (bom) {
-      const limit = Math.min(bytes.length, 8192);
-      const end = bom.encoding.startsWith("utf-16") ? limit - (limit - bom.offset) % 2 : limit;
-      try {
-        return contains_binary_controls(new TextDecoder(bom.encoding, { fatal: true }).decode(bytes.subarray(bom.offset, end), { stream: end < bytes.length }));
-      } catch {
-        return true;
-      }
-    }
-    let controls = 0;
-    const length = Math.min(bytes.length, 8192);
-    for (let index = 0; index < length; index++) {
-      const value = bytes[index];
-      if (!value) return true;
-      if (value < 9 || value > 13 && value < 32 || value === 127) controls++;
-    }
-    return controls > 0 && controls / Math.max(1, length) > 0.1;
   }
 
   // src/workspace_languages.ts
@@ -175505,19 +176343,19 @@ var LinuxNoteTyporaEnhancements = (() => {
     constructor(data, extra_menu = () => []) {
       this.data = data;
       this.extra_menu = extra_menu;
-      if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("\u8FD9\u662F\u4E8C\u8FDB\u5236\u6587\u4EF6\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u6587\u672C\u6BD4\u8F83\u3002\u8BF7\u6253\u5F00\u6587\u4EF6\u6216\u67E5\u770B Git \u6587\u4EF6\u72B6\u6001\u3002");
+      if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(git_graph_text("diff.binary_file"));
       initialize_editor();
       this.container.setAttribute("data-linux-note-monaco-diff", "ready");
       this.container.append(this.toolbar);
       const labels = workspace_element("div", "git-diff-labels");
-      labels.append(workspace_element("div", "", data.left_label || "\u539F\u59CB\u7248\u672C"));
-      if (data.right != null) labels.append(workspace_element("div", "", data.right_label || "\u4FEE\u6539\u7248\u672C"));
+      labels.append(workspace_element("div", "", data.left_label || git_graph_text("diff.original")));
+      if (data.right != null) labels.append(workspace_element("div", "", data.right_label || git_graph_text("diff.modified")));
       this.container.append(labels, this.body);
-      const model = (text3, side) => {
-        if (text3.includes("\0")) throw new Error("\u8FD9\u662F\u4E8C\u8FDB\u5236\u6587\u4EF6\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u6587\u672C\u6BD4\u8F83\u3002\u8BF7\u6253\u5F00\u6587\u4EF6\u6216\u67E5\u770B Git \u6587\u4EF6\u72B6\u6001\u3002");
+      const model = (source, side) => {
+        if (source.includes("\0")) throw new Error(git_graph_text("diff.binary_file"));
         const uri = Uri2.from({ scheme: "linux-note-git", path: "/".concat(++serial, "/").concat(side, "/").concat(data.file || data.title) });
-        const language44 = detect_file_language(data.file || data.title, text3.split(/\r?\n/u, 1)[0]);
-        const result = editor.createModel(text3, language44, uri);
+        const language44 = detect_file_language(data.file || data.title, source.split(/\r?\n/u, 1)[0]);
+        const result = editor.createModel(source, language44, uri);
         this.models.push(result);
         return result;
       };
@@ -175533,21 +176371,21 @@ var LinuxNoteTyporaEnhancements = (() => {
         let revealed2 = false;
         this.subscriptions.push(editor2.onDidUpdateDiff(() => {
           const changes = editor2.getLineChanges();
-          this.status.textContent = changes ? "".concat(changes.length, " \u5904\u6539\u52A8") : "\u5DEE\u5F02\u8BA1\u7B97\u672A\u5B8C\u6210";
+          this.status.textContent = changes ? git_graph_text("diff.change_count", { count: changes.length }) : git_graph_text("diff.incomplete");
           this.container.setAttribute("data-diff-ready", String(changes !== null));
           if (!revealed2 && changes) {
             revealed2 = true;
             editor2.revealFirstDiff();
           }
         }));
-        this.toolbar.append(workspace_button("\u2191 \u4E0A\u4E00\u6539\u52A8", () => editor2.goToDiff("previous")), workspace_button("\u2193 \u4E0B\u4E00\u6539\u52A8", () => editor2.goToDiff("next")));
+        this.toolbar.append(workspace_button(git_graph_text("diff.previous_change_button"), () => editor2.goToDiff("previous")), workspace_button(git_graph_text("diff.next_change_button"), () => editor2.goToDiff("next")));
         for (const view of [editor2.getOriginalEditor(), editor2.getModifiedEditor()]) this.bind_editor(view);
       } else {
         this.editor = editor.create(this.body, { ...options2, model: original });
-        this.status.textContent = "\u53EA\u8BFB\u7248\u672C";
+        this.status.textContent = git_graph_text("diff.readonly_revision");
         this.bind_editor(this.editor);
       }
-      this.toolbar.append(workspace_button("\u67E5\u627E", () => this.focused_editor().getAction("actions.find")?.run()), workspace_button("\u2026", () => {
+      this.toolbar.append(workspace_button(git_graph_text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), workspace_button("\u2026", () => {
         const rect = this.toolbar.getBoundingClientRect();
         this.context_menu(new MouseEvent("contextmenu", { clientX: rect.right - 250, clientY: rect.bottom }));
       }), this.status);
@@ -175565,7 +176403,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     container = workspace_element("section", "git-graph-document");
     toolbar = workspace_element("div", "git-diff-toolbar");
     body = workspace_element("div", "git-monaco-body");
-    status = workspace_element("span", "git-diff-count", "\u6B63\u5728\u8BA1\u7B97\u5DEE\u5F02\u2026");
+    status = workspace_element("span", "git-diff-count", git_graph_text("diff.calculating"));
     editor;
     models = [];
     observer;
@@ -175585,17 +176423,17 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (this.readonly_status) return this.readonly_status;
       const controls = workspace_element("div", "workspace-editor-status-controls");
       this.readonly_status = controls;
-      const side = workspace_element("span", "workspace-file-detail"), location = workspace_element("span", "workspace-file-location"), eol = workspace_element("span", "workspace-file-detail"), language44 = workspace_element("span", "workspace-file-detail"), readonly = workspace_element("span", "workspace-file-detail", "\u53EA\u8BFB");
-      side.setAttribute("aria-label", "\u6BD4\u8F83\u4FA7");
-      eol.setAttribute("aria-label", "\u884C\u5C3E\u5E8F\u5217");
-      language44.setAttribute("aria-label", "\u8BED\u8A00\u6A21\u5F0F");
+      const side = workspace_element("span", "workspace-file-detail"), location = workspace_element("span", "workspace-file-location"), eol = workspace_element("span", "workspace-file-detail"), language44 = workspace_element("span", "workspace-file-detail"), readonly = workspace_element("span", "workspace-file-detail", git_graph_text("diff.readonly"));
+      side.setAttribute("aria-label", git_graph_text("diff.comparison_side"));
+      eol.setAttribute("aria-label", git_graph_text("diff.end_of_line"));
+      language44.setAttribute("aria-label", git_graph_text("diff.language_mode"));
       controls.append(side, location, eol, language44, readonly);
       const refresh = () => {
         const editor2 = this.focused_editor(), model = editor2.getModel(), position2 = editor2.getPosition();
         const original = "getOriginalEditor" in this.editor && editor2 === this.editor.getOriginalEditor();
-        side.textContent = "getOriginalEditor" in this.editor ? original ? "\u539F\u59CB\u7248\u672C" : "\u4FEE\u6539\u7248\u672C" : "\u5386\u53F2\u7248\u672C";
-        side.title = original ? this.data.left_label || "\u539F\u59CB\u7248\u672C" : this.data.right_label || this.data.left_label || "\u5386\u53F2\u7248\u672C";
-        location.textContent = "\u884C ".concat(position2?.lineNumber || 1, "\uFF0C\u5217 ").concat(position2?.column || 1);
+        side.textContent = "getOriginalEditor" in this.editor ? original ? git_graph_text("diff.original") : git_graph_text("diff.modified") : git_graph_text("diff.historical_revision");
+        side.title = original ? this.data.left_label || git_graph_text("diff.original") : this.data.right_label || this.data.left_label || git_graph_text("diff.historical_revision");
+        location.textContent = git_graph_text("diff.cursor_position", { line: position2?.lineNumber || 1, column: position2?.column || 1 });
         eol.textContent = model?.getEOL() === "\r\n" ? "CRLF" : "LF";
         language44.textContent = model?.getLanguageId() || "plaintext";
       };
@@ -175660,7 +176498,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if ("goToDiff" in this.editor) this.editor.goToDiff(direction);
     }
     update(data) {
-      if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error("\u6B64\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u5237\u65B0\u6587\u672C\u5DEE\u5F02\u3002\u8BF7\u6253\u5F00\u6587\u4EF6\u6216\u67E5\u770B Git \u6587\u4EF6\u72B6\u6001\u3002");
+      if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(git_graph_text("diff.became_binary"));
       const replace_models = () => {
         if (this.models[0].getValue() !== data.left) this.models[0].setValue(data.left);
         if (data.right != null && this.models[1].getValue() !== data.right) this.models[1].setValue(data.right);
@@ -175679,10 +176517,10 @@ var LinuxNoteTyporaEnhancements = (() => {
     context_menu(event) {
       const view = this.focused_editor();
       const entries3 = [
-        { id: "copy", title: "\u590D\u5236  Ctrl+C", action: () => void view.getAction("editor.action.clipboardCopyAction")?.run() },
-        { id: "select_all", title: "\u5168\u9009  Ctrl+A", action: () => view.trigger("menu", "editor.action.selectAll", null) },
-        { id: "find", title: "\u67E5\u627E  Ctrl+F", action: () => void view.getAction("actions.find")?.run() },
-        { id: "word_wrap", title: "\u81EA\u52A8\u6362\u884C", checked: this.wrapped, separator: true, action: () => {
+        { id: "copy", title: git_graph_text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run() },
+        { id: "select_all", title: git_graph_text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null) },
+        { id: "find", title: git_graph_text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run() },
+        { id: "word_wrap", title: git_graph_text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => {
           this.wrapped = !this.wrapped;
           this.editor.updateOptions({ wordWrap: this.wrapped ? "on" : "off" });
         } }
@@ -175690,17 +176528,17 @@ var LinuxNoteTyporaEnhancements = (() => {
       if ("getModifiedEditor" in this.editor) {
         const editor2 = this.editor;
         entries3.push(
-          { id: "previous_change", title: "\u4E0A\u4E00\u5904\u6539\u52A8  Shift+F7", action: () => editor2.goToDiff("previous") },
-          { id: "next_change", title: "\u4E0B\u4E00\u5904\u6539\u52A8  F7", action: () => editor2.goToDiff("next") },
-          { id: "side_by_side", title: "\u5E76\u6392\u6BD4\u8F83", checked: this.side_by_side, action: () => {
+          { id: "previous_change", title: git_graph_text("diff.previous_change"), action: () => editor2.goToDiff("previous") },
+          { id: "next_change", title: git_graph_text("diff.next_change"), action: () => editor2.goToDiff("next") },
+          { id: "side_by_side", title: git_graph_text("diff.side_by_side"), checked: this.side_by_side, action: () => {
             this.side_by_side = !this.side_by_side;
             editor2.updateOptions({ renderSideBySide: this.side_by_side });
           } },
-          { id: "hide_unchanged", title: "\u6298\u53E0\u672A\u4FEE\u6539\u533A\u57DF", checked: this.collapsed, action: () => {
+          { id: "hide_unchanged", title: git_graph_text("diff.hide_unchanged"), checked: this.collapsed, action: () => {
             this.collapsed = !this.collapsed;
             editor2.updateOptions({ hideUnchangedRegions: { enabled: this.collapsed } });
           } },
-          { id: "ignore_whitespace", title: "\u5FFD\u7565\u884C\u9996\u5C3E\u7A7A\u767D", checked: this.ignore_whitespace, action: () => {
+          { id: "ignore_whitespace", title: git_graph_text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => {
             this.ignore_whitespace = !this.ignore_whitespace;
             editor2.updateOptions({ ignoreTrimWhitespace: this.ignore_whitespace });
           } }
@@ -176106,7 +176944,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/workspace_editor_status.css
-  var workspace_editor_status_default = "body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }\n.linux-note-editor-status { display:flex; flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }\n.linux-note-editor-status[hidden] { display:none!important; }\n.workspace-editor-status-controls { display:flex; align-items:center; gap:6px; min-width:0; padding:0 4px; font:12px/26px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }\n.workspace-editor-status-controls::-webkit-scrollbar { display:none; }\n.workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\n.workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }\n.workspace-editor-status-controls button:hover { background:var(--item-hover-bg-color,rgba(127,127,127,.12)); }\n.workspace-editor-status-controls :is(.workspace-file-location,.workspace-file-detail) { flex:none; white-space:nowrap; }\nfooter.ty-footer[data-editor-status] > :is(#footer-word-count,#footer-spell-check) { display:none!important; }\nfooter.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; min-width:0; }\nfooter.ty-footer[data-editor-status][data-workspace-footer=ready] > #ty-sidebar-footer { margin-left:4px; }\n/* \u7A7A\u95F4\u4E0D\u8DB3\u65F6\u4FDD\u7559\u539F\u751F\u66F4\u591A\u83DC\u5355\uFF0C\u6E90\u7801\u4FE1\u606F\u5148\u4E8E\u91CD\u590D\u7684\u65B0\u5EFA/\u5217\u8868\u6309\u94AE\u663E\u793A\u3002 */\nfooter.ty-footer[data-editor-status=compact][data-workspace-footer=ready] > #ty-sidebar-footer { flex:0 0 26px; min-width:26px; max-width:26px; }\nfooter.ty-footer[data-editor-status=compact] #ty-sidebar-footer > div > .sidebar-footer-item,\nfooter.ty-footer[data-editor-status=compact] #sidebar-footer-main-item-label { display:none!important; }\n";
+  var workspace_editor_status_default = "body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }\n.linux-note-editor-status { display:flex; flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }\n.linux-note-editor-status[hidden] { display:none!important; }\n.workspace-editor-status-controls { display:flex; align-items:center; gap:6px; min-width:0; padding:0 4px; font:12px/26px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }\n.workspace-editor-status-controls::-webkit-scrollbar { display:none; }\n.workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }\n.workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }\n.workspace-editor-status-controls button:hover { background:var(--item-hover-bg-color,rgba(127,127,127,.12)); }\n.workspace-editor-status-controls :is(.workspace-file-location,.workspace-file-detail) { flex:none; white-space:nowrap; }\nfooter.ty-footer[data-editor-status] > :is(#footer-word-count,#footer-spell-check) { display:none!important; }\nfooter.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; min-width:0; }\n";
 
   // src/workspace_editor_status.ts
   var status_bindings = /* @__PURE__ */ new WeakMap();
@@ -176114,6 +176952,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const existing = status_bindings.get(core);
     if (existing) return existing;
     const footer = document.querySelector("footer.ty-footer");
+    const native_actions = document.querySelector("#ty-sidebar-footer");
     const container = document.createElement("div");
     container.className = "linux-note-editor-status";
     container.hidden = true;
@@ -176137,7 +176976,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (message) message.title = message.textContent || "";
       const other = [...footer.children].filter((node) => node !== container && node.id !== "ty-sidebar-footer" && node.id !== "footer-word-count" && node.id !== "footer-spell-check");
       const reserved = other.reduce((width2, node) => width2 + node.scrollWidth, 0);
-      const actions_width = Number.parseFloat(getComputedStyle(footer).getPropertyValue("--workspace-native-actions-width")) || 210;
+      const actions_width = native_actions?.getBoundingClientRect().width || 0;
       const value = footer.clientWidth < information + reserved + actions_width ? "compact" : "ready";
       if (footer.getAttribute("data-editor-status") !== value) footer.setAttribute("data-editor-status", value);
     };
@@ -176172,6 +177011,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const unsubscribe = core.app.workspace.on("active-leaf:change", refresh);
     const resize = new ResizeObserver(schedule);
     if (footer) resize.observe(footer);
+    if (native_actions) resize.observe(native_actions);
     document.addEventListener("focusin", schedule, true);
     window.addEventListener("resize", schedule);
     const dispose2 = () => {
@@ -176255,6 +177095,75 @@ var LinuxNoteTyporaEnhancements = (() => {
     } };
   }
 
+  // src/workspace_markdown_location.ts
+  var normalize_newlines = (value) => value.replace(/\r\n?/gu, "\n");
+  var frame = () => new Promise((resolve3) => requestAnimationFrame(() => resolve3()));
+  var revealed;
+  function capture_markdown_location() {
+    const editor2 = window.File?.editor;
+    if (!revealed || editor2 !== revealed.editor || normalize_newlines(editor2.getMarkdown()) !== revealed.text || JSON.stringify(editor2.selection.buildUndo()) !== revealed.cursor) return;
+    return { ...revealed.location };
+  }
+  async function reveal_markdown_location(location) {
+    const editor2 = window.File?.editor;
+    if (!editor2?.sourceView?.gotoLine || !editor2.selection?.buildUndo || !editor2.undo?.exeCommand) throw new Error("\u5F53\u524D Typora \u6CA1\u6709\u53EF\u7528\u7684 Markdown \u539F\u751F\u5B9A\u4F4D\u63A5\u53E3\u3002");
+    if (editor2.sourceView.inSourceMode) throw new Error("\u8BF7\u5148\u9000\u51FA Markdown \u6E90\u7801\u6A21\u5F0F\uFF0C\u518D\u6253\u5F00\u6E32\u67D3\u4F4D\u7F6E\u3002");
+    const root = document.querySelector("#write"), scroller = document.querySelector("content");
+    if (!root || !scroller) throw new Error("Markdown \u6B63\u6587\u5C1A\u672A\u51C6\u5907\u597D\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+    const text3 = normalize_newlines(editor2.getMarkdown()), lines = text3.split("\n");
+    const from = { line: (location.line ?? 1) - 1, ch: (location.column ?? 1) - 1 };
+    const to = { line: (location.end_line ?? location.line ?? 1) - 1, ch: (location.end_column ?? location.column ?? 1) - 1 };
+    const offset = (position2) => {
+      if (!Number.isInteger(position2.line) || !Number.isInteger(position2.ch) || position2.line < 0 || position2.line >= lines.length || position2.ch < 0 || position2.ch > lines[position2.line].length) throw new Error("\u76EE\u6807\u884C\u5217\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u8DF3\u8F6C\u7ED3\u679C\u3002");
+      let result = position2.ch;
+      for (let line = 0; line < position2.line; line++) result += lines[line].length + 1;
+      return result;
+    };
+    const start = offset(from), end = offset(to), expected = location.expected_text === void 0 ? text3.slice(start, end) : normalize_newlines(location.expected_text);
+    if (end < start || text3.slice(start, end) !== expected) throw new Error("Markdown \u5F53\u524D\u5185\u5BB9\u4E0E\u641C\u7D22\u4F4D\u7F6E\u4E0D\u4E00\u81F4\uFF0C\u8BF7\u5904\u7406\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u5E76\u5237\u65B0\u7ED3\u679C\u3002");
+    const previous = editor2.selection.buildUndo(), previous_top = scroller.scrollTop, previous_left = scroller.scrollLeft;
+    const goto = (position2) => {
+      editor2.sourceView.gotoLine({ line: position2.line, ch: position2.ch, lineText: lines[position2.line], textBefore: lines[position2.line].slice(0, position2.ch) });
+      const wrapper = document.activeElement?.closest("#write .CodeMirror");
+      const cm = wrapper?.CodeMirror;
+      return { cursor: editor2.selection.buildUndo(), cm, position: cm?.getCursor() };
+    };
+    try {
+      const first = goto(from), last = goto(to);
+      if (first.cm || last.cm) {
+        if (!first.cm || first.cm !== last.cm || !first.position || !last.position || normalize_newlines(first.cm.getRange(first.position, last.position)) !== expected) throw new Error("\u8BE5\u5339\u914D\u8DE8\u8D8A\u4E0D\u540C\u7F16\u8F91\u533A\uFF0C\u65E0\u6CD5\u5B89\u5168\u9009\u4E2D\uFF1B\u8BF7\u7F29\u5C0F\u5173\u952E\u8BCD\u8303\u56F4\u3002");
+        first.cm.setSelection(first.position, last.position);
+        first.cm.focus();
+        first.cm.scrollIntoView({ from: first.position, to: last.position }, 40);
+        await frame();
+        const rect = first.cm.charCoords(first.position, "window"), viewport = scroller.getBoundingClientRect();
+        scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - (rect.bottom - rect.top)) / 2);
+      } else {
+        if (!first.cursor || !last.cursor || typeof first.cursor.start !== "number" || typeof last.cursor.start !== "number") throw new Error("\u8BE5 Markdown \u4F4D\u7F6E\u6CA1\u6709\u53EF\u9009\u4E2D\u7684\u6B63\u6587\u5185\u5BB9\u3002");
+        const first_id = first.cursor.id ?? first.cursor.startId, last_id = last.cursor.id ?? last.cursor.startId;
+        if (!first_id || !last_id) throw new Error("\u65E0\u6CD5\u786E\u8BA4 Markdown \u547D\u4E2D\u6240\u5728\u7684\u6B63\u6587\u5757\u3002");
+        editor2.undo.exeCommand(first_id === last_id ? { type: "cursor", id: first_id, start: first.cursor.start, end: last.cursor.start } : { type: "cursor", startId: first_id, endId: last_id, start: first.cursor.start, end: last.cursor.start });
+        let range2 = editor2.selection.getRangy();
+        if (!range2 || normalize_newlines(range2.toString()) !== expected || !root.contains(range2.startContainer) || !root.contains(range2.endContainer)) throw new Error("\u539F\u751F\u6B63\u6587\u9009\u533A\u4E0E\u547D\u4E2D\u4E0D\u4E00\u81F4\uFF0C\u5DF2\u53D6\u6D88\u5B9A\u4F4D\uFF1B\u8BF7\u5237\u65B0\u6216\u7F29\u5C0F\u5173\u952E\u8BCD\u8303\u56F4\u3002");
+        await frame();
+        range2 = editor2.selection.getRangy();
+        if (!range2 || normalize_newlines(range2.toString()) !== expected) throw new Error("Markdown \u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u547D\u4E2D\u3002");
+        const visible_range = document.createRange();
+        visible_range.setStart(range2.startContainer, range2.startOffset);
+        visible_range.setEnd(range2.endContainer, range2.endOffset);
+        const rect = visible_range.getBoundingClientRect(), viewport = scroller.getBoundingClientRect();
+        scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - rect.height) / 2);
+      }
+      await frame();
+      revealed = { editor: editor2, text: text3, cursor: JSON.stringify(editor2.selection.buildUndo()), location: { ...location } };
+    } catch (error) {
+      if (previous) editor2.undo.exeCommand(previous);
+      scroller.scrollTop = previous_top;
+      scroller.scrollLeft = previous_left;
+      throw error;
+    }
+  }
+
   // src/workspace_files.ts
   init_editor_api();
 
@@ -176262,17 +177171,25 @@ var LinuxNoteTyporaEnhancements = (() => {
   var workspace_files_default = ".linux-note-source-file { display:flex; flex:1 1 0; align-self:stretch; flex-direction:column; box-sizing:border-box; width:100%; height:100%; min-height:0; min-width:0; max-width:none; overflow:hidden; }\n.workspace-file-body { flex:1; min-height:0; min-width:0; overflow:hidden; }\n.workspace-file-body>.git-graph-document { height:100%; }\n.workspace-file-notice { padding:16px; white-space:pre-wrap; overflow-wrap:anywhere; }\n.workspace-file-body>.git-graph-document>.git-diff-labels { display:none; }\n.workspace-file-body>.git-graph-document>.git-diff-toolbar{display:none}\n.workspace-file-dirty{font-size:10px;padding:0 4px}\n";
 
   // src/workspace_files.ts
-  var FILE_VIEW = "linux_note.source_file";
+  var FILES_BINDING = Symbol.for("linux-note.workspace-files@v1");
   var active_host;
   function get_workspace_files() {
     return active_host;
   }
   function bind_workspace_files(core) {
-    const runtime = window;
-    const fs2 = runtime.reqnode("fs");
-    const path_api = runtime.reqnode("path");
-    const shell = runtime.reqnode("electron").shell;
-    const native_open = core.app.openFile.bind(core.app);
+    const binding_owner = core.app;
+    const existing_binding = binding_owner[FILES_BINDING];
+    if (existing_binding) {
+      existing_binding.install();
+      active_host = existing_binding.host;
+      return existing_binding.host;
+    }
+    const runtime2 = window;
+    const fs2 = runtime2.reqnode("fs");
+    const path_api = runtime2.reqnode("path");
+    const shell = runtime2.reqnode("electron").shell;
+    let native_app_open_file = core.app.openFile;
+    const call_native_app_open_file = (target) => native_app_open_file.call(core.app, target);
     const style63 = workspace_element("style");
     style63.textContent = workspace_files_default;
     document.head.append(style63);
@@ -176284,10 +177201,11 @@ var LinuxNoteTyporaEnhancements = (() => {
     const real_path = (leaf) => {
       if (!leaf) return "";
       if (path_api.isAbsolute(leaf.state.path)) return leaf.state.path;
-      if (leaf.state.path.startsWith("typ://".concat(FILE_VIEW, "/"))) return decodeURIComponent(leaf.state.path.slice("typ://".concat(FILE_VIEW, "/").length));
+      const source_path = source_file_path(leaf.state.path, path_api);
+      if (source_path) return source_path;
       return "";
     };
-    const context_root = () => runtime.File?.getMountFolder?.() || core.app.workspace.activeLeaf?.state.git_cwd || path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
+    const context_root = () => runtime2.File?.getMountFolder?.() || core.app.workspace.activeLeaf?.state.git_cwd || path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
     class source_file_view extends core.WorkspaceView {
       containerEl = workspace_element("section", "linux-note-source-file");
       icon = "fa-file-code-o";
@@ -176457,7 +177375,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           return false;
         }
         if (this.saving || this.loading || !this.editor || !this.format) return false;
-        if (runtime.File?.bundle?.filePath === this.file_path && runtime.File?.changeCounter?.isDocumentEdited()) {
+        if (runtime2.File?.bundle?.filePath === this.file_path && runtime2.File?.changeCounter?.isDocumentEdited()) {
           this.status.textContent = "\u8BE5 Markdown \u7684\u6B63\u6587\u7F16\u8F91\u5668\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u5904\u7406\u6B63\u6587\u8349\u7A3F\u3002";
           return false;
         }
@@ -176568,7 +177486,7 @@ var LinuxNoteTyporaEnhancements = (() => {
               this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u6E90\u7801\u4FEE\u6539\uFF0C\u518D\u6253\u5F00 Markdown \u6E32\u67D3\u3002";
               return;
             }
-            native_open(this.file_path);
+            call_native_app_open_file(this.file_path);
           } }] : []
         ];
       }
@@ -176605,24 +177523,26 @@ var LinuxNoteTyporaEnhancements = (() => {
         editor_status.schedule();
       }
     }
-    core.app.viewManager.registerView(FILE_VIEW, (leaf) => new source_file_view(leaf));
+    core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, (leaf) => new source_file_view(leaf));
     const open_file = async (file_path, location = {}, group = "active") => {
       if (renaming) throw new Error("\u6B63\u5728\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u6253\u5F00\u6587\u4EF6\u3002");
-      file_path = path_api.resolve(file_path);
+      const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
+      if (!resolved_path) throw new Error("\u65E0\u6CD5\u89E3\u6790\u6587\u4EF6\u8DEF\u5F84\u3002");
+      file_path = resolved_path;
       if (is_markdown_file(file_path) && !location.source) {
         if ([...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
-        await navigate_reading_target(file_path, { group, locate: location.line == null ? void 0 : () => reveal_markdown_location(location) });
+        await navigate_reading_target(file_path, { group, hash: location.hash, locate: location.line == null ? void 0 : () => reveal_markdown_location(location) });
         return;
       }
-      const uri = "typ://".concat(FILE_VIEW, "/").concat(encodeURIComponent(file_path));
+      const uri = source_file_uri(file_path);
       let existing;
       core.app.workspace.eachLeaves((leaf2) => {
-        if (leaf2.state.path === uri) existing = leaf2;
+        if (is_source_file_uri(leaf2.state.path) && file_key(real_path(leaf2)) === file_key(file_path)) existing = leaf2;
       });
       if (existing && group === "active") {
         const view = existing.view;
         if (location.line != null) view.target = location;
-        core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
+        core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);
         view.reveal();
         return;
       }
@@ -176633,26 +177553,24 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       const parent = core.app.workspace.activeLeaf?.parent;
       if (!parent) throw new Error("\u5F53\u524D\u6CA1\u6709\u53EF\u7528\u7684\u7F16\u8F91\u5668\u7EC4\u3002");
-      const leaf = core.app.workspace.createLeaf({ type: FILE_VIEW, state: { path: uri, git_cwd: path_api.dirname(file_path) } });
+      const leaf = core.app.workspace.createLeaf({ type: SOURCE_FILE_VIEW_ID, state: { path: uri, git_cwd: path_api.dirname(file_path) } });
       if (location.line != null) leaf.view.target = location;
       parent.appendChild(leaf);
       core.app.workspace.activeLeaf = leaf;
     };
-    const markdown_target = (target) => is_markdown_file(target) || is_markdown_file(target.split("#", 1)[0]);
-    core.app.openFile = (target) => {
-      if (!target.startsWith("typ://") && !markdown_target(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
-      if (is_markdown_file(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
-      return native_open(target);
+    const routed_app_open_file = function(target) {
+      const markdown = resolve_markdown_file_target(path_api, context_root(), target);
+      if (markdown) return open_file(markdown.file_path, { hash: markdown.hash });
+      if (!target.startsWith("typ://")) return open_file(target);
+      return native_app_open_file.call(this, target);
     };
-    const library = runtime.File?.editor?.library;
-    if (library?.openFile) {
-      const open = library.openFile;
-      library.openFile = function(target, ...args) {
-        if (typeof target === "string" && !target.startsWith("typ://") && !markdown_target(target)) return open_file(target);
-        return open.call(this, target, ...args);
-      };
-    }
-    const copy = (text3) => runtime.reqnode("electron").clipboard.writeText(text3);
+    let library = runtime2.File?.editor?.library;
+    let native_library_open_file = typeof library?.openFile === "function" ? library.openFile : void 0;
+    const routed_library_open_file = function(target, ...args) {
+      if (typeof target === "string" && !target.startsWith("typ://") && !parse_markdown_file_target(target)) return open_file(target);
+      return native_library_open_file?.call(this, target, ...args);
+    };
+    const copy = (text3) => runtime2.reqnode("electron").clipboard.writeText(text3);
     const file_menu = (event, file_path) => workspace_menu(event, [
       { title: "\u6253\u5F00\u6587\u4EF6", action: () => void open_file(file_path) },
       { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => void open_file(file_path, {}, "right") },
@@ -176661,10 +177579,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => shell.showItemInFolder(file_path) }
     ]);
     const rename_file = async (root, old_path, name) => {
-      if (renaming || runtime.File?._onFileSwitching || runtime.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+      if (renaming || runtime2.File?._onFileSwitching || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
       renaming = true;
       const relocations = [];
-      const library2 = runtime.File?.editor?.library;
+      const library2 = runtime2.File?.editor?.library;
       let paused = false, native_watch_paused = false, old_native_path = "", new_native_path = "", applied = false, renamed_path = "";
       try {
         const plan = await prepare_workspace_rename({ fs: fs2, path_api }, root, old_path, name);
@@ -176676,9 +177594,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (view.loading || view.saving) throw new Error("\u6709\u5173\u6807\u7B7E\u6B63\u5728\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u7A0D\u540E\u518D\u91CD\u547D\u540D\u3002");
           relocations.push({ view, target, transaction: await view.text_document.prepare_relocation(target) });
         }
-        old_native_path = runtime.File?.bundle?.filePath || "";
+        old_native_path = runtime2.File?.bundle?.filePath || "";
         new_native_path = map(old_native_path) || "";
-        if (new_native_path && typeof runtime.doApplyRename !== "function") throw new Error("\u5F53\u524D Typora \u672A\u63D0\u4F9B\u539F\u751F\u6587\u6863\u6539\u540D\u63A5\u53E3\uFF0C\u5DF2\u505C\u6B62\u91CD\u547D\u540D\u4EE5\u4FDD\u7559\u7F16\u8F91\u5185\u5BB9\u3002");
+        if (new_native_path && typeof runtime2.doApplyRename !== "function") throw new Error("\u5F53\u524D Typora \u672A\u63D0\u4F9B\u539F\u751F\u6587\u6863\u6539\u540D\u63A5\u53E3\uFF0C\u5DF2\u505C\u6B62\u91CD\u547D\u540D\u4EE5\u4FDD\u7559\u7F16\u8F91\u5185\u5BB9\u3002");
         const tabs = [];
         const all_leaves = [];
         core.app.workspace.eachLeaves((leaf) => {
@@ -176689,11 +177607,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (!target) return;
           if (all_leaves.some((other) => other !== leaf && !map(real_path(other)) && file_key(real_path(other)) === file_key(target))) throw new Error("\u76EE\u6807\u540D\u79F0\u5DF2\u6709\u6253\u5F00\u7684\u6587\u6863\u6807\u7B7E\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u6807\u7B7E\uFF0C\u907F\u514D\u6DF7\u6DC6\u672A\u4FDD\u5B58\u5185\u5BB9\u3002");
           if (typeof leaf.parent.renameTab !== "function") throw new Error("\u5F53\u524D\u7F16\u8F91\u5668\u7EC4\u4E0D\u652F\u6301\u66F4\u65B0\u6807\u7B7E\u8DEF\u5F84\uFF0C\u5DF2\u505C\u6B62\u91CD\u547D\u540D\u3002");
-          tabs.push({ leaf, target: leaf.state.path.startsWith("typ://".concat(FILE_VIEW, "/")) ? "typ://".concat(FILE_VIEW, "/").concat(encodeURIComponent(target)) : target });
+          tabs.push({ leaf, target: is_source_file_uri(leaf.state.path) ? source_file_uri(target) : target });
         });
         library2?.pauseOnChange?.();
         paused = true;
-        const ipc = runtime.reqnode("electron").ipcRenderer;
+        const ipc = runtime2.reqnode("electron").ipcRenderer;
         if (new_native_path) {
           await ipc.invoke("app.sendEvent", "willRename", { oldPath: plan.old_path });
           native_watch_paused = true;
@@ -176724,11 +177642,11 @@ var LinuxNoteTyporaEnhancements = (() => {
           }
           view.update_status();
         }
-        if (new_native_path) runtime.doApplyRename(new_native_path);
+        if (new_native_path) runtime2.doApplyRename(new_native_path);
         rename_reading_paths(map);
         editor_status.refresh();
         editor_status.schedule();
-        runtime.File?.editor?.quickOpenPanel?.updateCacheByRename?.(plan.old_path, plan.new_path);
+        runtime2.File?.editor?.quickOpenPanel?.updateCacheByRename?.(plan.old_path, plan.new_path);
         window.dispatchEvent(new CustomEvent("linux-note-workspace-renamed", { detail: { old_path: plan.old_path, new_path: plan.new_path, directory: plan.directory } }));
         await ipc.invoke("app.sendEvent", "didRename", { oldPath: plan.old_path, newPath: plan.new_path });
         if (problems.length) throw new Error("\u540D\u79F0\u5DF2\u66F4\u65B0\uFF0C\u4F46\u78C1\u76D8\u5185\u5BB9\u540C\u65F6\u53D1\u751F\u53D8\u5316\u3002\u8349\u7A3F\u4ECD\u4FDD\u7559\uFF0C\u8BF7\u6BD4\u8F83\u540E\u518D\u4FDD\u5B58\u3002\n" + problems.join("\n"));
@@ -176738,13 +177656,49 @@ var LinuxNoteTyporaEnhancements = (() => {
         throw error;
       } finally {
         for (const relocation of relocations) relocation.transaction.cancel();
-        if (!applied && native_watch_paused && old_native_path) runtime.doApplyRename?.(old_native_path);
+        if (!applied && native_watch_paused && old_native_path) runtime2.doApplyRename?.(old_native_path);
         if (paused) library2?.resumeOnChange?.();
         renaming = false;
       }
     };
+    const active_source_view = () => [...views].find((view) => view.leaf === core.app.workspace.activeLeaf);
+    const native_document_active = () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
+    const can_save_active = () => Boolean(active_source_view()) || native_document_active();
+    const save_active = async () => {
+      const source_view = active_source_view();
+      if (source_view) return source_view.save();
+      if (!native_document_active()) return false;
+      await Promise.resolve(runtime2.ClientCommand?.save?.());
+      return true;
+    };
+    const save_all = async () => {
+      const source_saves = [...views].filter((view) => !view.disposed && view.dirty()).map((view) => view.save());
+      const [, source_results] = await Promise.all([
+        Promise.resolve().then(() => runtime2.ClientCommand?.saveAll?.()),
+        Promise.all(source_saves)
+      ]);
+      return source_results.every(Boolean);
+    };
     document.documentElement.setAttribute("data-linux-note-workspace-files", "ready");
     document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
+    let binding;
+    const dispose2 = () => {
+      if (!binding.active) return;
+      binding.active = false;
+      window.removeEventListener("pagehide", dispose2);
+      if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
+      if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
+    };
+    const install = () => {
+      if (binding.active) return;
+      native_app_open_file = core.app.openFile;
+      library = runtime2.File?.editor?.library;
+      native_library_open_file = typeof library?.openFile === "function" ? library.openFile : void 0;
+      core.app.openFile = routed_app_open_file;
+      if (library && native_library_open_file) library.openFile = routed_library_open_file;
+      binding.active = true;
+      window.addEventListener("pagehide", dispose2, { once: true });
+    };
     const host = {
       fs: fs2,
       path_api,
@@ -176754,14 +177708,538 @@ var LinuxNoteTyporaEnhancements = (() => {
       file_menu,
       copy,
       rename_file,
+      can_save_active,
+      save_active,
+      save_all,
       current_file: () => real_path(core.app.workspace.activeLeaf),
-      can_write: (file_path) => ![...views].some((view) => view.file_path === file_path && view.dirty()) && (!runtime.File?.changeCounter?.isDocumentEdited() || runtime.File?.bundle?.filePath !== file_path),
+      can_write: (file_path) => ![...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty()) && (!runtime2.File?.changeCounter?.isDocumentEdited() || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(file_path)),
       refresh_files: (paths) => {
-        for (const view of views) if (paths.includes(view.file_path) && !view.dirty()) void view.load_file();
-      }
+        const keys = new Set(paths.map(file_key));
+        for (const view of views) if (keys.has(file_key(view.file_path)) && !view.dirty()) void view.load_file();
+      },
+      dispose: dispose2
     };
+    binding = { host, active: false, install, dispose: dispose2 };
+    binding_owner[FILES_BINDING] = binding;
+    install();
     active_host = host;
     return host;
+  }
+
+  // src/workspace_bootstrap.ts
+  var WORKSPACE_VERSION = "2.10.15";
+  var WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
+  function get_workspace_app() {
+    return window[Symbol.for(WORKSPACE_NAMESPACE)]?.app;
+  }
+  async function initialize_workspace() {
+    const runtime2 = window;
+    if (!runtime2.reqnode || !runtime2._options?.userDataPath) return;
+    document.documentElement.setAttribute("data-linux-note-workspace", "loading");
+    if (!get_workspace_app()) {
+      window[Symbol.for("".concat(WORKSPACE_NAMESPACE, ":env"))] = { debug: false };
+      await new Promise((resolve3, reject) => {
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "typora://app/userData/plugins/".concat(WORKSPACE_VERSION, "/core.js");
+        script.onload = () => resolve3();
+        script.onerror = () => reject(new Error("Typora workspace core could not load; rerun the configuration installer."));
+        document.head.append(script);
+      });
+    }
+    const app = get_workspace_app();
+    if (!app || app.coreVersion !== WORKSPACE_VERSION) throw new Error("Unexpected Typora workspace core version.");
+    const started = Date.now();
+    const wait_ready = async (ready) => {
+      while (!ready()) {
+        if (Date.now() - started > 15e3) throw new Error("Typora workspace initialization timed out.");
+        await new Promise((resolve3) => setTimeout(resolve3, 50));
+      }
+    };
+    await wait_ready(() => Boolean(app.settings));
+    if (!app.settings.get("internalPlugin.enabledPlugins")?.["internal.workspace"]) {
+      app.settings.set(["internalPlugin.enabledPlugins", "internal.workspace"], true);
+    }
+    for (const [key, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
+      if (app.settings.get(key) !== value) app.settings.set(key, value);
+    }
+    await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
+    document.addEventListener("click", (event) => {
+      const item = event.target instanceof Element ? event.target.closest(".typ-ribbon-item[data-id]") : null;
+      if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
+      const sidebar = app.workspace.sidebar;
+      if (!sidebar.isShown) return;
+      const active_id = sidebar.activePanel?.ribbonButton?.id;
+      if (active_id && !["core.file-explorer", "core.outline"].includes(active_id) && sidebar.activePanel?.containerEl?.isConnected) return;
+      const host_sidebar = document.querySelector("#typora-sidebar");
+      const current_id = host_sidebar?.classList.contains("active-tab-files") ? "core.file-explorer" : host_sidebar?.classList.contains("active-tab-outline") ? "core.outline" : sidebar.activePanel?.ribbonButton?.id;
+      const current = sidebar.panels.find((panel) => panel.ribbonButton?.id === current_id);
+      if (current) sidebar.activePanel = current;
+    }, true);
+    install_workspace_shortcuts(app, runtime2, get_workspace_files);
+    document.documentElement.setAttribute("data-linux-note-workspace", "ready");
+  }
+
+  // src/reading_workspace.ts
+  var reading_delay = (milliseconds) => new Promise((resolve3) => window.setTimeout(resolve3, milliseconds));
+  function create_reading_workspace(native_path, is_busy) {
+    const app = get_workspace_app();
+    const contexts = /* @__PURE__ */ new WeakMap();
+    const native_contexts = /* @__PURE__ */ new Map();
+    const saved = /* @__PURE__ */ new Map();
+    const restoring = /* @__PURE__ */ new Map();
+    const held_paths = /* @__PURE__ */ new Set();
+    const dirty = /* @__PURE__ */ new Map();
+    let next_id = 1;
+    let save_timer = 0;
+    let store;
+    try {
+      store = create_position_store(window.localStorage);
+    } catch {
+    }
+    const context_for = (leaf) => {
+      let context = contexts.get(leaf.view);
+      if (!context) {
+        context = { view_id: next_id++, file_path: leaf.state.path, leaf };
+        contexts.set(leaf.view, context);
+      }
+      context.file_path = leaf.state.path;
+      return context;
+    };
+    const all = () => {
+      if (!app) {
+        const path = native_path();
+        const key = file_key(path);
+        if (!native_contexts.has(key)) native_contexts.set(key, { view_id: next_id++, file_path: path });
+        return [native_contexts.get(key)];
+      }
+      const result = [];
+      app.workspace.eachLeaves((leaf) => {
+        if (typeof leaf.view?.isEditor === "function") result.push(context_for(leaf));
+      });
+      return result;
+    };
+    const active = () => {
+      const leaf = app?.workspace.activeLeaf;
+      return leaf && typeof leaf.view?.isEditor === "function" ? context_for(leaf) : all().find((context) => file_key(context.file_path) === file_key(native_path()));
+    };
+    const elements = (context) => {
+      const view = context.leaf?.view;
+      if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
+      if (!view || view.isEditor()) {
+        if (is_busy() || file_key(context.file_path) !== file_key(native_path())) return null;
+        const scroller = document.querySelector("content");
+        const root2 = document.querySelector("#write");
+        return scroller && root2?.children.length && scroller.getBoundingClientRect().height > 0 ? { scroller, root: root2 } : null;
+      }
+      const root = view.containerEl;
+      return root.children.length && root.classList.contains("typ-markdown-preview") && root.getBoundingClientRect().height > 0 ? { scroller: context.leaf.containerEl, root } : null;
+    };
+    const flush = () => {
+      window.clearTimeout(save_timer);
+      for (const [path, position2] of dirty) store?.set(path, position2);
+      dirty.clear();
+    };
+    const remember = (context, position2, persist = true) => {
+      saved.set(context.view_id, position2);
+      if (context.leaf) context.leaf.state.linux_note_position = position2;
+      const active_context = active();
+      if (persist && (!active_context || file_key(active_context.file_path) !== file_key(context.file_path) || active_context.view_id === context.view_id)) {
+        dirty.set(context.file_path, position2);
+        window.clearTimeout(save_timer);
+        save_timer = window.setTimeout(flush, 300);
+      }
+    };
+    const capture = (context) => {
+      if (restoring.has(context.view_id)) return saved.get(context.view_id) ?? null;
+      const nodes = elements(context);
+      return nodes ? capture_position(nodes.scroller, nodes.root) : saved.get(context.view_id) ?? null;
+    };
+    const checkpoint = () => {
+      for (const context of all()) {
+        if (!elements(context) || restoring.has(context.view_id)) continue;
+        const position2 = capture(context);
+        if (position2) remember(context, position2);
+      }
+    };
+    const restore = async (context, position2) => {
+      const token = {};
+      restoring.set(context.view_id, token);
+      remember(context, position2, false);
+      let applied = false;
+      let previous_geometry = "";
+      let stable_since = Date.now();
+      const started = Date.now();
+      while (restoring.get(context.view_id) === token && Date.now() - started < 5e3) {
+        const nodes = elements(context);
+        if (nodes) {
+          const geometry = "".concat(nodes.root.getBoundingClientRect().height, ":").concat(nodes.scroller.clientHeight, ":").concat(nodes.scroller.scrollHeight);
+          const before_top = nodes.scroller.scrollTop;
+          const before_left = nodes.scroller.scrollLeft;
+          apply_position(nodes.scroller, nodes.root, position2);
+          if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > 0.5 || Math.abs(before_left - nodes.scroller.scrollLeft) > 0.5) {
+            previous_geometry = geometry;
+            stable_since = Date.now();
+          }
+          applied = true;
+          if (applied && Date.now() - stable_since >= 250) break;
+        }
+        await reading_delay(40);
+      }
+      if (restoring.get(context.view_id) === token) {
+        restoring.delete(context.view_id);
+        const nodes = elements(context);
+        if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
+      }
+      return applied;
+    };
+    const stop_restoring = (context) => {
+      if (context) restoring.delete(context.view_id);
+      else restoring.clear();
+    };
+    const patched = /* @__PURE__ */ new WeakSet();
+    const patch_view = (view) => {
+      const prototype = Object.getPrototypeOf(view);
+      if (patched.has(prototype)) return false;
+      patched.add(prototype);
+      const original_on_open = prototype.onOpen;
+      prototype.onOpen = function() {
+        const context = context_for(this.leaf);
+        const position2 = saved.get(context.view_id) ?? this.leaf.state.linux_note_position ?? store?.get(context.file_path);
+        if (!position2 || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
+        restoring.set(context.view_id, {});
+        remember(context, position2, false);
+        try {
+          original_on_open.call(this);
+        } catch (error) {
+          restoring.delete(context.view_id);
+          throw error;
+        }
+        void restore(context, position2);
+      };
+      prototype.getState = function() {
+        const context = context_for(this.leaf);
+        const position2 = capture(context) ?? this.leaf.state.linux_note_position;
+        if (position2) remember(context, position2);
+        return position2 ? { scrollTop: position2.scroll_top, linux_note_position: position2 } : {};
+      };
+      prototype.setState = function(state) {
+        const context = context_for(this.leaf);
+        if (held_paths.has(file_key(context.file_path))) return;
+        const position2 = state.linux_note_position ?? saved.get(context.view_id) ?? store?.get(context.file_path) ?? (typeof state.scrollTop === "number" ? { scroll_top: state.scrollTop, scroll_left: 0 } : null);
+        if (position2) void restore(context, position2);
+      };
+      return true;
+    };
+    for (const context of all()) {
+      if (context.leaf) patch_view(context.leaf.view);
+      const position2 = store?.get(context.file_path);
+      if (position2) void restore(context, position2);
+    }
+    app?.workspace.rootSplit.on("leaf:open", (leaf) => {
+      if (typeof leaf.view?.isEditor !== "function" || !patch_view(leaf.view)) return;
+      const context = context_for(leaf);
+      const position2 = store?.get(context.file_path);
+      if (position2 && !held_paths.has(file_key(context.file_path))) void restore(context, position2);
+    });
+    document.addEventListener("scroll", (event) => {
+      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
+      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
+      const position2 = capture(context);
+      if (position2) remember(context, position2);
+    }, true);
+    for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
+      window.addEventListener(name, (event) => {
+        if (!event.isTrusted) return;
+        const target = event.target;
+        for (const context of all()) {
+          const nodes = elements(context);
+          if (nodes && target instanceof Node && nodes.scroller.contains(target)) stop_restoring(context);
+        }
+      }, true);
+    }
+    window.addEventListener("pagehide", flush);
+    window.addEventListener("beforeunload", flush);
+    return {
+      all,
+      active,
+      elements,
+      capture,
+      checkpoint,
+      remember,
+      restore,
+      stop_restoring,
+      remap_paths(map) {
+        flush();
+        store?.remap_paths(map);
+        for (const [key, context] of [...native_contexts]) {
+          const target = map(context.file_path);
+          if (!target) continue;
+          native_contexts.delete(key);
+          context.file_path = target;
+          native_contexts.set(file_key(target), context);
+        }
+      },
+      hold(path, value) {
+        if (value) held_paths.add(file_key(path));
+        else held_paths.delete(file_key(path));
+      },
+      resume(context) {
+        const position2 = saved.get(context.view_id) ?? store?.get(context.file_path);
+        return position2 ? restore(context, position2) : Promise.resolve(true);
+      }
+    };
+  }
+
+  // src/reading_navigation.ts
+  var bound = false;
+  var navigate_target;
+  var remap_paths;
+  function rename_reading_paths(map) {
+    remap_paths?.(map);
+  }
+  async function navigate_reading_target(path, options2 = {}) {
+    if (!navigate_target || !await navigate_target(path, options2)) throw new Error("\u65E0\u6CD5\u5207\u6362\u5230\u76EE\u6807 Markdown\uFF1B\u8BF7\u5148\u5904\u7406\u6587\u4EF6\u6253\u5F00\u6216\u672A\u4FDD\u5B58\u786E\u8BA4\u540E\u91CD\u8BD5\u3002");
+  }
+  function bind_reading_navigation() {
+    if (bound) return;
+    const file = window.File;
+    const editor2 = file?.editor;
+    if (!file || !editor2 || typeof editor2.tryOpenUrl !== "function" || typeof editor2.library?.openFile !== "function" || typeof editor2.selection?.buildUndo !== "function") return;
+    bound = true;
+    const app = get_workspace_app();
+    const runtime2 = window;
+    const path_api = app ? runtime2.reqnode("path") : void 0;
+    const history = create_reading_history();
+    const publish_history_state = () => {
+      const detail = { back: history.can_travel(-1), forward: history.can_travel(1) };
+      document.documentElement.dataset.linuxNoteHistoryBack = String(detail.back);
+      document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
+      window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
+    };
+    const original_open_url = editor2.tryOpenUrl;
+    const original_open_file = editor2.library.openFile;
+    const native_path = () => file.bundle?.filePath ?? "";
+    const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
+    const workspace = create_reading_workspace(native_path, is_busy);
+    let navigating = false;
+    let pending_from = null;
+    let pending_timer = 0;
+    remap_paths = (map) => {
+      history.remap_paths(map);
+      workspace.remap_paths(map);
+      if (pending_from) pending_from.file_path = map(pending_from.file_path) ?? pending_from.file_path;
+    };
+    const capture = (context = workspace.active()) => {
+      if (!context?.file_path || file.bundle?.unsupported || editor2.sourceView?.inSourceMode) return null;
+      const position2 = workspace.capture(context);
+      if (!position2) return null;
+      let cursor = null;
+      if ((!context.leaf || context.leaf.view.isEditor()) && file_key(context.file_path) === file_key(native_path())) {
+        try {
+          const candidate = editor2.selection.buildUndo();
+          if (candidate?.type === "cursor") {
+            cursor = JSON.parse(JSON.stringify(candidate));
+            const source_location = capture_markdown_location();
+            if (source_location) cursor.linux_note_source_location = source_location;
+          }
+        } catch {
+        }
+      }
+      return { file_path: context.file_path, ...position2, position: position2, cursor, view_id: context.view_id };
+    };
+    const finish_pending = () => {
+      window.clearTimeout(pending_timer);
+      const current = capture();
+      if (pending_from && current && !is_busy() && !navigating) {
+        history.record_jump(pending_from, current);
+        publish_history_state();
+      }
+      pending_from = null;
+    };
+    const wait_for = async (ready) => {
+      const started = Date.now();
+      while (!ready()) {
+        if (Date.now() - started > 15e3) return false;
+        await reading_delay(40);
+      }
+      return true;
+    };
+    const activate = async (context) => {
+      const leaf = context.leaf;
+      if (app && leaf) {
+        if (leaf.parent.activeLeaf !== leaf) leaf.parent.toggleTab(leaf.state.path);
+        app.workspace.activeLeaf = leaf;
+        if (!await wait_for(() => Boolean(workspace.elements(context)))) return false;
+        if (!leaf.view.isEditor()) {
+          leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+        }
+      }
+      return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path) && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
+    };
+    const open_target = async (path, view_id) => {
+      const existing = workspace.all().find((context) => (view_id == null || context.view_id === view_id) && file_key(context.file_path) === file_key(path));
+      if (existing) return await activate(existing) ? existing : void 0;
+      const current = workspace.active();
+      if (current && file_key(current.file_path) === file_key(path)) return await activate(current) ? current : void 0;
+      original_open_file.call(editor2.library, path);
+      let target;
+      if (!await wait_for(() => {
+        target = workspace.active();
+        return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
+      })) return;
+      return target && await activate(target) ? target : void 0;
+    };
+    const report = (error) => console.error("[linux-note reading navigation]", error);
+    const navigate = async (path, hash2, location, options2 = {}) => {
+      if (navigating) return false;
+      path = path_api?.normalize(path) ?? path;
+      finish_pending();
+      const from = capture();
+      workspace.checkpoint();
+      navigating = true;
+      workspace.hold(path, true);
+      try {
+        let target;
+        if (app && options2.group && options2.group !== "active") {
+          app.commands.run(options2.group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [path]);
+          const opened = await wait_for(() => {
+            target = workspace.active();
+            return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
+          });
+          if (!opened || !target || !await activate(target)) target = void 0;
+        } else target = await open_target(path, location?.view_id);
+        if (!target) return false;
+        await reading_delay(100);
+        workspace.stop_restoring(target);
+        if (options2.locate) {
+          await options2.locate();
+        } else if (hash2) {
+          original_open_url.call(editor2, hash2);
+          await reading_delay(100);
+          const heading3 = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
+          const cid = heading3?.getAttribute("cid");
+          if (cid) {
+            const item = Array.from(document.querySelectorAll("#outline-content .outline-label")).find((node) => node.getAttribute("data-ref") === cid);
+            if (item) {
+              for (let parent = item.parentElement; parent?.closest("#outline-content"); parent = parent.parentElement) {
+                if (parent.classList.contains("outline-item-wrapper")) parent.classList.add("outline-item-open");
+              }
+              item.scrollIntoView({ block: "nearest" });
+            }
+          }
+        } else if (location) {
+          try {
+            if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location);
+            else if (location.cursor) editor2.undo?.exeCommand(location.cursor);
+          } catch {
+          }
+          await reading_delay(40);
+          await workspace.restore(target, location.position ?? location);
+        } else await workspace.resume(target);
+        const to = capture(target);
+        if (to) {
+          workspace.remember(target, to.position);
+          if (from && !location) {
+            history.record_jump(from, to);
+            publish_history_state();
+          }
+        }
+        return true;
+      } finally {
+        workspace.hold(path, false);
+        navigating = false;
+      }
+    };
+    navigate_target = async (path, options2) => {
+      const started = Date.now();
+      while (navigating || history.is_navigating()) {
+        if (Date.now() - started > 15e3) return false;
+        await reading_delay(40);
+      }
+      return navigate(path, options2.hash, void 0, options2);
+    };
+    const travel_history = async (direction) => {
+      if (navigating || history.is_navigating() || is_busy()) return false;
+      finish_pending();
+      const current = capture();
+      if (!current) return false;
+      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location));
+      publish_history_state();
+      try {
+        return await pending;
+      } finally {
+        publish_history_state();
+      }
+    };
+    editor2.tryOpenUrl = function(url, ...args) {
+      const local_url = url.trim().replace(/^<|>$/gu, "");
+      if (navigating) return;
+      if (editor2.sourceView?.inSourceMode || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
+        return original_open_url.call(this, url, ...args);
+      }
+      if (local_url.startsWith("#")) {
+        const context = workspace.active();
+        if (context) void navigate(context.file_path, local_url).catch(report);
+        return;
+      }
+      const markdown_target = parse_markdown_file_target(local_url);
+      if (!app && markdown_target) {
+        void navigate(markdown_target.file_path, markdown_target.hash).catch(report);
+        return;
+      }
+      return original_open_url.call(this, url, ...args);
+    };
+    editor2.library.openFile = function(path, callback) {
+      if (navigating || callback || editor2.sourceView?.inSourceMode) return original_open_file.call(this, path, callback);
+      const parsed = parse_markdown_file_target(path);
+      if (!parsed?.hash) {
+        void navigate(path).catch(report);
+        return;
+      }
+      const source = workspace.active()?.file_path;
+      const target = path_api && source ? resolve_workspace_file(path_api, path_api.dirname(source), parsed.file_path) : parsed.file_path;
+      void navigate(target ?? parsed.file_path, parsed.hash).catch(report);
+    };
+    if (app) {
+      const original_workspace_open_file = app.workspace.activeEditor.openFile;
+      app.workspace.activeEditor.openFile = (target) => {
+        if (editor2.sourceView?.inSourceMode) return original_workspace_open_file.call(app.workspace.activeEditor, target);
+        const url = typeof target === "string" ? { pathname: target } : target;
+        void navigate(url.pathname, url.hash).catch(report);
+      };
+      const original_app_open_file = app.openFile;
+      app.openFile = function(path) {
+        const source = workspace.active()?.file_path;
+        return original_app_open_file.call(this, resolve_host_open_file_target(path_api, source ?? "", path));
+      };
+      app.workspace.on("file:will-open", () => {
+        workspace.checkpoint();
+        if (navigating || history.is_navigating() || pending_from) return;
+        pending_from = capture();
+      });
+      app.workspace.on("file:open", () => {
+        if (navigating || history.is_navigating()) return;
+        window.clearTimeout(pending_timer);
+        pending_timer = window.setTimeout(finish_pending, 500);
+      });
+    }
+    window.addEventListener("keydown", (event) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      const active = document.activeElement;
+      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.repeat) return;
+      void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
+    }, true);
+    window.addEventListener("linux-note-reading-history-travel", (event) => {
+      const direction = event.detail?.direction;
+      if (direction === -1 || direction === 1) void travel_history(direction).catch(report);
+    });
+    publish_history_state();
+    document.documentElement.setAttribute("data-linux-note-reading-navigation", "ready");
+    document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
   }
 
   // src/file_path_actions.ts
@@ -176769,18 +178247,16 @@ var LinuxNoteTyporaEnhancements = (() => {
   function bind_file_path_actions() {
     const app = get_workspace_app();
     if (bound2 || !app) return;
-    const runtime = window;
-    if (!runtime.reqnode || !runtime.JSBridge?.invoke) return;
+    const runtime2 = window;
+    if (!runtime2.reqnode || !runtime2.JSBridge?.invoke) return;
     bound2 = true;
-    const api2 = runtime.reqnode("path");
+    const api2 = runtime2.reqnode("path");
     const core = window[Symbol.for("typora-plugin-core@v2")];
     const get_path = (target, relative2) => {
-      if (target.startsWith("typ://linux_note.source_file/")) try {
-        target = decodeURIComponent(target.slice("typ://linux_note.source_file/".length));
-      } catch {
-        return null;
-      }
-      return format_file_path(api2, target, get_workspace_files()?.context_root() || runtime.File.getMountFolder(), relative2);
+      const source_path = source_file_path(target, api2);
+      if (is_source_file_uri(target) && !source_path) return null;
+      if (source_path) target = source_path;
+      return format_file_path(api2, target, get_workspace_files()?.context_root() || runtime2.File.getMountFolder(), relative2);
     };
     const copy_path = (target, relative2) => {
       const text3 = get_path(target, relative2);
@@ -176788,7 +178264,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         new core.Notice("\u8BF7\u5148\u4FDD\u5B58\u6587\u6863\uFF0C\u518D\u590D\u5236\u8DEF\u5F84\u3002", 2e3);
         return;
       }
-      void Promise.resolve().then(() => runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }))).then(() => {
+      void Promise.resolve().then(() => runtime2.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }))).then(() => {
         new core.Notice(relative2 ? "\u5DF2\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84" : "\u5DF2\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", 1500);
       }).catch((error) => {
         console.error("[linux-note copy path]", error);
@@ -176866,13 +178342,13 @@ var LinuxNoteTyporaEnhancements = (() => {
   var GIT_GRAPH_TYPE = "linux_note.git_graph";
   var valid_hash = (hash2) => /^[a-f0-9]{40}(?:[a-f0-9]{24})?$/u.test(hash2);
   function require_hash(hash2) {
-    if (!valid_hash(hash2)) throw new Error("\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0 Git Graph\u3002");
+    if (!valid_hash(hash2)) throw new Error(git_graph_text("data.invalid_commit_hash"));
     return hash2;
   }
   function parse_git_log(source) {
     const fields = source.split("\0");
     if (fields.at(-1) === "") fields.pop();
-    if (fields.length % 5) throw new Error("Git \u5386\u53F2\u683C\u5F0F\u4E0D\u5B8C\u6574\u3002");
+    if (fields.length % 5) throw new Error(git_graph_text("data.incomplete_history"));
     const commits = [];
     for (let index = 0; index < fields.length; index += 5) {
       const [hash2, parent_text, author, date, subject] = fields.slice(index, index + 5);
@@ -176936,14 +178412,14 @@ var LinuxNoteTyporaEnhancements = (() => {
   };
 
   // src/terminal_pty_client.ts
-  function start_terminal_pty(runtime, request, callbacks) {
+  function start_terminal_pty(runtime2, request, callbacks) {
     return new Promise((resolve3, reject) => {
-      const child = runtime.child_process.fork(runtime.broker, [], {
-        execPath: runtime.executable,
+      const child = runtime2.child_process.fork(runtime2.broker, [], {
+        execPath: runtime2.executable,
         execArgv: [],
         windowsHide: true,
         silent: true,
-        env: { ...runtime.process_api.env, ELECTRON_RUN_AS_NODE: "1", NODE_OPTIONS: "" }
+        env: { ...runtime2.process_api.env, ELECTRON_RUN_AS_NODE: "1", NODE_OPTIONS: "" }
       });
       let ready = false;
       let stopped = false;
@@ -181453,7 +182929,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
   };
   Xt = M([S(0, ce), S(1, nt)], Xt);
-  var en = class {
+  var en2 = class {
     constructor(t, e) {
       this._renderCallback = t;
       this._coreBrowserService = e;
@@ -181589,7 +183065,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.onRender = this._onRender.event;
       this._onRefreshRequest = this._register(new v());
       this.onRefreshRequest = this._onRefreshRequest.event;
-      this._renderDebouncer = new en((c, d) => this._renderRows(c, d), this._coreBrowserService), this._register(this._renderDebouncer), this._syncOutputHandler = new xs(this._coreBrowserService, this._coreService, () => this._fullRefresh()), this._register(C(() => this._syncOutputHandler.dispose())), this._register(this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange())), this._register(a.onResize(() => this._fullRefresh())), this._register(a.buffers.onBufferActivate(() => this._renderer.value?.clear())), this._register(this._optionsService.onOptionChange(() => this._handleOptionsChanged())), this._register(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged())), this._register(l.onDecorationRegistered(() => this._fullRefresh())), this._register(l.onDecorationRemoved(() => this._fullRefresh())), this._register(this._optionsService.onMultipleOptionChange(["customGlyphs", "drawBoldTextInBrightColors", "letterSpacing", "lineHeight", "fontFamily", "fontSize", "fontWeight", "fontWeightBold", "minimumContrastRatio", "rescaleOverlappingGlyphs"], () => {
+      this._renderDebouncer = new en2((c, d) => this._renderRows(c, d), this._coreBrowserService), this._register(this._renderDebouncer), this._syncOutputHandler = new xs(this._coreBrowserService, this._coreService, () => this._fullRefresh()), this._register(C(() => this._syncOutputHandler.dispose())), this._register(this._coreBrowserService.onDprChange(() => this.handleDevicePixelRatioChange())), this._register(a.onResize(() => this._fullRefresh())), this._register(a.buffers.onBufferActivate(() => this._renderer.value?.clear())), this._register(this._optionsService.onOptionChange(() => this._handleOptionsChanged())), this._register(this._charSizeService.onCharSizeChange(() => this.handleCharSizeChanged())), this._register(l.onDecorationRegistered(() => this._fullRefresh())), this._register(l.onDecorationRemoved(() => this._fullRefresh())), this._register(this._optionsService.onMultipleOptionChange(["customGlyphs", "drawBoldTextInBrightColors", "letterSpacing", "lineHeight", "fontFamily", "fontSize", "fontWeight", "fontWeightBold", "minimumContrastRatio", "rescaleOverlappingGlyphs"], () => {
         this.clear(), this.handleResize(a.cols, a.rows), this._fullRefresh();
       })), this._register(this._optionsService.onMultipleOptionChange(["cursorBlink", "cursorStyle"], () => this.refreshRows(a.buffer.y, a.buffer.y, true))), this._register(h3.onChangeColors(() => this._fullRefresh())), this._registerIntersectionObserver(this._coreBrowserService.window, i), this._register(this._coreBrowserService.onWindowChange((c) => this._registerIntersectionObserver(c, i)));
     }
@@ -187875,7 +189351,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   var defaults = { profile: "", font_size: 14, scrollback: 1e4, location: "down" };
   function bind_terminal_workspace(host) {
     const core = host.core;
-    const runtime = window;
+    const runtime2 = window;
     const style63 = workspace_element("style");
     style63.textContent = xterm_default + "\n" + terminal_workspace_default;
     document.head.append(style63);
@@ -187906,7 +189382,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     const admin = (root) => {
       try {
         const launch2 = administrator_launch(root, host.process_api, host.path_api);
-        runtime.reqnode("child_process").execFile(launch2.executable, launch2.args, { cwd: root, windowsHide: true, shell: false }, (error) => {
+        runtime2.reqnode("child_process").execFile(launch2.executable, launch2.args, { cwd: root, windowsHide: true, shell: false }, (error) => {
           if (error) fail("\u7BA1\u7406\u5458\u7EC8\u7AEF\u672A\u542F\u52A8\uFF08UAC \u53EF\u80FD\u5DF2\u53D6\u6D88\uFF09\uFF1A" + error.message);
         });
       } catch (error) {
@@ -188079,15 +189555,15 @@ var LinuxNoteTyporaEnhancements = (() => {
         try {
           if (host.process_api.platform !== "win32") throw new Error("\u96C6\u6210\u7EC8\u7AEF\u8FD0\u884C\u5305\u5F53\u524D\u652F\u6301 Windows x64/ARM64\uFF1B\u6B64\u5E73\u53F0\u5C1A\u672A\u63D0\u4F9B\u539F\u751F\u7EC8\u7AEF\u8FD0\u884C\u5305\u3002");
           if (typeof this.root !== "string" || !host.path_api.isAbsolute(this.root) || !host.fs.statSync(this.root).isDirectory()) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u4E0D\u5B58\u5728\u3002");
-          if (host.process_api.platform === "win32" && Number(runtime.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
+          if (host.process_api.platform === "win32" && Number(runtime2.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
           const settings = load_settings();
           const profile = profiles.find((item) => item.id === (this.program || settings.profile)) || (!this.program ? profiles[0] : { executable: this.program, args: [], title: this.program });
-          const broker = host.path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "1.1.0", "terminal_broker.cjs");
+          const broker = host.path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "1.1.0", "terminal_broker.cjs");
           this.resize();
           this.containerEl.dataset.state = "starting";
           this.status.textContent = "\u6B63\u5728\u542F\u52A8 " + profile.title + "\u2026";
           const pty = await start_terminal_pty(
-            { child_process: runtime.reqnode("child_process"), process_api: host.process_api, broker, executable: host.path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe") },
+            { child_process: runtime2.reqnode("child_process"), process_api: host.process_api, broker, executable: host.path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe") },
             { executable: profile.executable, args: profile.args, options: { name: "xterm-256color", cols: this.term.cols, rows: this.term.rows, cwd: this.root, env: terminal_environment(host.process_api.env), useConpty: true, useConptyDll: false } },
             {
               data: (data) => {
@@ -188257,30 +189733,30 @@ var LinuxNoteTyporaEnhancements = (() => {
 
   // src/git_ignore.ts
   function exact_ignore_rule(file) {
-    if (!file || /[\0\r\n]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file) || file.split("/").some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) throw new Error("\u65E0\u6CD5\u4E3A\u6B64\u6587\u4EF6\u751F\u6210\u7CBE\u786E\u5FFD\u7565\u89C4\u5219\u3002");
+    if (!file || /[\0\r\n]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file) || file.split("/").some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) throw new Error(git_graph_text("ignore.invalid_rule"));
     return "/" + file.replace(/[\\*?\[\]#! ]/gu, (character) => "\\" + character);
   }
   async function append_git_ignore(modules, run, root, file) {
     const { fs: fs2, path_api } = modules;
     const rule = exact_ignore_rule(file);
-    if (path_api.sep === "\\" && /[\\:]/u.test(file)) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
+    if (path_api.sep === "\\" && /[\\:]/u.test(file)) throw new Error(git_graph_text("ignore.invalid_path"));
     const real_root = fs2.realpathSync(root);
     const file_path = path_api.resolve(real_root, file);
     const inside_root = (value) => {
       const relative2 = path_api.relative(real_root, value);
       return relative2 && relative2 !== ".." && !relative2.startsWith(".." + path_api.sep) && !path_api.isAbsolute(relative2);
     };
-    if (!inside_root(file_path) || !inside_root(fs2.realpathSync(file_path))) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002");
+    if (!inside_root(file_path) || !inside_root(fs2.realpathSync(file_path))) throw new Error(git_graph_text("ignore.outside_repository"));
     const file_stat = fs2.lstatSync(file_path);
-    if (!file_stat.isFile() || file_stat.isSymbolicLink()) throw new Error("\u4EC5\u652F\u6301\u5C06\u672A\u8DDF\u8E2A\u7684\u666E\u901A\u6587\u4EF6\u6DFB\u52A0\u5230 .gitignore\u3002");
-    if (await run(root, ["ls-files", "--cached", "-z", "--", file])) throw new Error("\u6B64\u6587\u4EF6\u5DF2\u7ECF\u52A0\u5165 Git \u8DDF\u8E2A\uFF0C\u4E0D\u80FD\u901A\u8FC7 .gitignore \u505C\u6B62\u8DDF\u8E2A\uFF1B\u672C\u64CD\u4F5C\u4E0D\u4F1A\u4ECE\u7D22\u5F15\u4E2D\u79FB\u9664\u6587\u4EF6\u3002");
+    if (!file_stat.isFile() || file_stat.isSymbolicLink()) throw new Error(git_graph_text("ignore.ordinary_untracked_only"));
+    if (await run(root, ["ls-files", "--cached", "-z", "--", file])) throw new Error(git_graph_text("ignore.already_tracked"));
     const ignored = await run(root, ["check-ignore", "--quiet", "--", file]).then(() => true, (error) => {
       if (error.code === 1) return false;
       throw error;
     });
     const ignore_path = path_api.join(real_root, ".gitignore");
     const ordinary_file = (stat) => {
-      if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) throw new Error(".gitignore \u5FC5\u987B\u662F\u65E0\u94FE\u63A5\u7684\u666E\u901A\u6587\u4EF6\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u89C4\u5219\u3002");
+      if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) throw new Error(git_graph_text("ignore.ordinary_gitignore_required"));
     };
     let descriptor;
     try {
@@ -188294,22 +189770,22 @@ var LinuxNoteTyporaEnhancements = (() => {
       try {
         descriptor = fs2.openSync(ignore_path, exists ? fs2.constants.O_RDWR | fs2.constants.O_APPEND | (fs2.constants.O_NOFOLLOW || 0) : "ax+");
       } catch (error) {
-        if (error.code === "EEXIST") throw new Error(".gitignore \u521A\u88AB\u5176\u4ED6\u7A0B\u5E8F\u521B\u5EFA\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002");
+        if (error.code === "EEXIST") throw new Error(git_graph_text("ignore.created_concurrently"));
         throw error;
       }
       const opened_stat = fs2.fstatSync(descriptor);
       ordinary_file(opened_stat);
       const current_stat = fs2.lstatSync(ignore_path);
       ordinary_file(current_stat);
-      if (opened_stat.dev !== current_stat.dev || opened_stat.ino !== current_stat.ino) throw new Error(".gitignore \u5DF2\u88AB\u5176\u4ED6\u7A0B\u5E8F\u66FF\u6362\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+      if (opened_stat.dev !== current_stat.dev || opened_stat.ino !== current_stat.ino) throw new Error(git_graph_text("ignore.replaced_concurrently"));
       const existing = fs2.readFileSync(descriptor);
       let content;
       try {
         content = new TextDecoder("utf-8", { fatal: true }).decode(existing);
       } catch {
-        throw new Error(".gitignore \u4E0D\u662F\u6709\u6548 UTF-8 \u6587\u672C\uFF0C\u8BF7\u5148\u5728\u7F16\u8F91\u5668\u4E2D\u786E\u8BA4\u7F16\u7801\u3002");
+        throw new Error(git_graph_text("ignore.invalid_utf8"));
       }
-      if (content.includes("\0")) throw new Error(".gitignore \u5305\u542B\u65E0\u6548\u6587\u672C\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u89C4\u5219\u3002");
+      if (content.includes("\0")) throw new Error(git_graph_text("ignore.invalid_content"));
       if (ignored && content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
       const newline3 = content.match(/\r?\n/u)?.[0] || "\n";
       const addition = (content && !content.endsWith("\n") ? newline3 : "") + rule + newline3;
@@ -188360,7 +189836,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           resolve3(stdout);
           return;
         }
-        const message = error.code === "ENOENT" ? "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002" : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002" : error.killed ? "Git \u8BF7\u6C42\u5DF2\u53D6\u6D88\u6216\u8D85\u65F6\uFF0C\u8BF7\u5237\u65B0\u72B6\u6001\u540E\u91CD\u8BD5\u3002" : (String(stderr || "") || error.message).trim();
+        const message = error.code === "ENOENT" ? git_graph_text("runtime.git_not_found") : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? git_graph_text("runtime.result_too_large") : error.killed ? git_graph_text("runtime.cancelled_or_timed_out") : (String(stderr || "") || error.message).trim();
         reject(Object.assign(new Error(message), { code: error.code }));
       });
       children.add(child);
@@ -188378,6 +189854,7 @@ var LinuxNoteTyporaEnhancements = (() => {
 
   // src/git_graph_settings.ts
   var GRAPH_SETTINGS_KEY = "linux-note-git-graph:v2:";
+  var RETIRED_GRAPH_SETTING_KEYS = ["details_location", "panel_ratio", "show_date", "show_author", "show_hash", "label_alignment"];
   var graph_defaults = {
     graph_style: "curved",
     colors: ["#2684d4", "#b462d6", "#209572", "#db8540", "#d4567d", "#7783cc"],
@@ -188401,16 +189878,10 @@ var LinuxNoteTyporaEnhancements = (() => {
     fetch_avatars: false,
     date_type: "author",
     date_format: "local",
-    show_date: true,
-    show_author: true,
-    show_hash: true,
     column_widths: { subject: 300, author: 110, date: 145, hash: 80 },
-    details_location: "bottom",
-    panel_ratio: 55,
     auto_center: true,
     file_view: "tree",
     compact_folders: true,
-    label_alignment: "inline",
     combine_refs: false,
     uncommitted_style: "row",
     inline_markdown: true,
@@ -188442,103 +189913,131 @@ var LinuxNoteTyporaEnhancements = (() => {
     file_menu_entry: true,
     icon_color: "auto"
   };
-  var settings_labels = {
-    graph_style: "\u8FDE\u7EBF\u6837\u5F0F\uFF08curved / straight\uFF09",
-    colors: "\u5206\u652F\u989C\u8272",
-    initial_count: "\u9996\u6B21\u63D0\u4EA4\u6570\u91CF",
-    page_count: "\u7EE7\u7EED\u52A0\u8F7D\u6570\u91CF",
-    auto_load: "\u6EDA\u52A8\u5230\u5E95\u81EA\u52A8\u52A0\u8F7D",
-    order: "\u63D0\u4EA4\u987A\u5E8F\uFF08topo / date / author-date\uFF09",
-    first_parent: "\u4EC5\u6CBF\u7B2C\u4E00\u7236\u63D0\u4EA4",
-    show_remotes: "\u663E\u793A\u8FDC\u7AEF\u5206\u652F",
-    show_remote_heads: "\u663E\u793A\u8FDC\u7AEF HEAD",
-    show_tags: "\u663E\u793A\u6807\u7B7E",
-    tag_only_commits: "\u663E\u793A\u4EC5\u6807\u7B7E\u53EF\u8FBE\u7684\u63D0\u4EA4",
-    show_stashes: "\u663E\u793A stash",
-    show_changes: "\u663E\u793A\u672A\u63D0\u4EA4\u6539\u52A8",
-    show_untracked: "\u663E\u793A\u672A\u8DDF\u8E2A\u6587\u4EF6",
-    include_reflogs: "\u5305\u542B reflog \u63D0\u4EA4",
-    use_mailmap: "\u4F7F\u7528 mailmap",
-    mute_merges: "\u6DE1\u5316\u5408\u5E76\u63D0\u4EA4",
-    mute_unreachable: "\u6DE1\u5316\u4E0D\u5C5E\u4E8E HEAD \u7684\u63D0\u4EA4",
-    show_signature: "\u67E5\u770B\u7B7E\u540D\u72B6\u6001",
-    fetch_avatars: "\u663E\u793A Gravatar \u5934\u50CF\uFF08\u8054\u7F51\uFF09",
-    date_type: "\u65E5\u671F\u6765\u6E90\uFF08author / committer\uFF09",
-    date_format: "\u65E5\u671F\u683C\u5F0F\uFF08local / iso / relative\uFF09",
-    show_date: "\u663E\u793A\u65E5\u671F\u5217",
-    show_author: "\u663E\u793A\u4F5C\u8005\u5217",
-    show_hash: "\u663E\u793A\u7F16\u53F7\u5217",
-    column_widths: "\u5217\u5BBD",
-    details_location: "\u8BE6\u60C5\u4F4D\u7F6E\uFF08right / bottom / inline\uFF09",
-    panel_ratio: "\u63D0\u4EA4\u5217\u8868\u5360\u9762\u677F\u6BD4\u4F8B\uFF0815\uFF5E85%\uFF09",
-    auto_center: "\u9009\u4E2D\u63D0\u4EA4\u81EA\u52A8\u5C45\u4E2D",
-    file_view: "\u6587\u4EF6\u89C6\u56FE\uFF08tree / list\uFF09",
-    compact_folders: "\u5408\u5E76\u5355\u5B50\u76EE\u5F55",
-    label_alignment: "\u5F15\u7528\u4F4D\u7F6E\uFF08inline / split / graph\uFF09",
-    combine_refs: "\u5408\u5E76\u540C\u540D\u672C\u5730\u548C\u8FDC\u7AEF\u5F15\u7528",
-    uncommitted_style: "\u672A\u63D0\u4EA4\u8282\u70B9\uFF08row / connected\uFF09",
-    inline_markdown: "\u63D0\u4EA4\u8BF4\u660E\u884C\u5185 Markdown",
-    branch_globs: "\u81EA\u5B9A\u4E49\u5206\u652F\u7B5B\u9009\uFF08name / glob\uFF09",
-    emoji: "\u81EA\u5B9A\u4E49 emoji \u77ED\u4EE3\u7801",
-    hidden_actions: "\u9690\u85CF\u64CD\u4F5C ID",
-    dialog_defaults: "\u64CD\u4F5C\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C",
-    shortcuts: "\u56FE\u5185\u5FEB\u6377\u952E",
-    on_load_head: "\u6253\u5F00\u65F6\u5B9A\u4F4D HEAD",
-    on_load_branch: "\u6253\u5F00\u65F6\u9009\u62E9\u5F53\u524D\u5206\u652F",
-    on_load_branches: "\u6253\u5F00\u65F6\u6307\u5B9A\u5206\u652F",
-    retain_context: "\u4FDD\u7559\u9690\u85CF\u6807\u7B7E\u5185\u5BB9",
-    fetch_prune: "Fetch \u540C\u65F6 prune \u5206\u652F",
-    fetch_prune_tags: "Fetch \u540C\u65F6 prune \u6807\u7B7E",
-    sign_commits: "\u7B7E\u7F72\u65B0\u63D0\u4EA4",
-    sign_tags: "\u7B7E\u7F72\u6807\u7B7E",
-    issue_pattern: "Issue \u6B63\u5219\uFF08\u6355\u83B7\u7F16\u53F7\uFF09",
-    issue_url: "Issue URL \u6A21\u677F\uFF08{id}\uFF09",
-    pr_url: "\u81EA\u5B9A\u4E49 PR URL\uFF08{base} / {branch} / {remote}\uFF09",
-    pr_base: "PR \u9ED8\u8BA4\u76EE\u6807\u5206\u652F",
-    encoding: "\u5386\u53F2\u6587\u4EF6\u7F16\u7801",
-    git_path: "Git \u53EF\u6267\u884C\u6587\u4EF6",
-    terminal_shell: "\u96C6\u6210\u7EC8\u7AEF Shell\uFF08\u7A7A\u4E3A\u7EC8\u7AEF\u9ED8\u8BA4\u914D\u7F6E\uFF09",
-    new_tab_group: "\u6587\u4EF6\u4E0E\u5DEE\u5F02\u6253\u5F00\u4F4D\u7F6E\uFF08active / right / down\uFF09",
-    open_active_repo: "\u4ECE\u6D3B\u52A8\u6587\u6863\u67E5\u627E\u4ED3\u5E93",
-    search_depth: "\u5B50\u4ED3\u5E93\u53D1\u73B0\u6DF1\u5EA6",
-    repository_order: "\u4ED3\u5E93\u6392\u5E8F\uFF08name / path / recent\uFF09",
-    show_status_button: "\u663E\u793A\u72B6\u6001\u680F\u5165\u53E3",
-    file_menu_entry: "\u663E\u793A\u6587\u4EF6\u83DC\u5355\u5165\u53E3",
-    icon_color: "\u5165\u53E3\u56FE\u6807\u989C\u8272\uFF08auto \u6216 CSS \u989C\u8272\uFF09"
+  function settings_labels_for(locale) {
+    const label = (key) => git_graph_text(key, {}, locale);
+    return {
+      graph_style: label("settings.label.graph_style"),
+      colors: label("settings.label.colors"),
+      initial_count: label("settings.label.initial_count"),
+      page_count: label("settings.label.page_count"),
+      auto_load: label("settings.label.auto_load"),
+      order: label("settings.label.order"),
+      first_parent: label("settings.label.first_parent"),
+      show_remotes: label("settings.label.show_remotes"),
+      show_remote_heads: label("settings.label.show_remote_heads"),
+      show_tags: label("settings.label.show_tags"),
+      tag_only_commits: label("settings.label.tag_only_commits"),
+      show_stashes: label("settings.label.show_stashes"),
+      show_changes: label("settings.label.show_changes"),
+      show_untracked: label("settings.label.show_untracked"),
+      include_reflogs: label("settings.label.include_reflogs"),
+      use_mailmap: label("settings.label.use_mailmap"),
+      mute_merges: label("settings.label.mute_merges"),
+      mute_unreachable: label("settings.label.mute_unreachable"),
+      show_signature: label("settings.label.show_signature"),
+      fetch_avatars: label("settings.label.fetch_avatars"),
+      date_type: label("settings.label.date_type"),
+      date_format: label("settings.label.date_format"),
+      column_widths: label("settings.label.column_widths"),
+      auto_center: label("settings.label.auto_center"),
+      file_view: label("settings.label.file_view"),
+      compact_folders: label("settings.label.compact_folders"),
+      combine_refs: label("settings.label.combine_refs"),
+      uncommitted_style: label("settings.label.uncommitted_style"),
+      inline_markdown: label("settings.label.inline_markdown"),
+      branch_globs: label("settings.label.branch_globs"),
+      emoji: label("settings.label.emoji"),
+      hidden_actions: label("settings.label.hidden_actions"),
+      dialog_defaults: label("settings.label.dialog_defaults"),
+      shortcuts: label("settings.label.shortcuts"),
+      on_load_head: label("settings.label.on_load_head"),
+      on_load_branch: label("settings.label.on_load_branch"),
+      on_load_branches: label("settings.label.on_load_branches"),
+      retain_context: label("settings.label.retain_context"),
+      fetch_prune: label("settings.label.fetch_prune"),
+      fetch_prune_tags: label("settings.label.fetch_prune_tags"),
+      sign_commits: label("settings.label.sign_commits"),
+      sign_tags: label("settings.label.sign_tags"),
+      issue_pattern: label("settings.label.issue_pattern"),
+      issue_url: label("settings.label.issue_url"),
+      pr_url: label("settings.label.pr_url"),
+      pr_base: label("settings.label.pr_base"),
+      encoding: label("settings.label.encoding"),
+      git_path: label("settings.label.git_path"),
+      terminal_shell: label("settings.label.terminal_shell"),
+      new_tab_group: label("settings.label.new_tab_group"),
+      open_active_repo: label("settings.label.open_active_repo"),
+      search_depth: label("settings.label.search_depth"),
+      repository_order: label("settings.label.repository_order"),
+      show_status_button: label("settings.label.show_status_button"),
+      file_menu_entry: label("settings.label.file_menu_entry"),
+      icon_color: label("settings.label.icon_color")
+    };
+  }
+  var settings_choices = { graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "iso", "relative"], file_view: ["tree", "list"], uncommitted_style: ["row", "connected"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
+  var settings_choice_label_keys = {
+    graph_style: { curved: "settings.choice.graph_style.curved", straight: "settings.choice.graph_style.straight" },
+    order: { topo: "settings.choice.order.topo", date: "settings.choice.order.date", "author-date": "settings.choice.order.author_date" },
+    date_type: { author: "settings.choice.date_type.author", committer: "settings.choice.date_type.committer" },
+    date_format: { local: "settings.choice.date_format.local", iso: "settings.choice.date_format.iso", relative: "settings.choice.date_format.relative" },
+    file_view: { tree: "settings.choice.file_view.tree", list: "settings.choice.file_view.list" },
+    uncommitted_style: { row: "settings.choice.uncommitted_style.row", connected: "settings.choice.uncommitted_style.connected" },
+    new_tab_group: { active: "settings.choice.new_tab_group.active", right: "settings.choice.new_tab_group.right", down: "settings.choice.new_tab_group.down" },
+    repository_order: { name: "settings.choice.repository_order.name", path: "settings.choice.repository_order.path", recent: "settings.choice.repository_order.recent" }
   };
-  var settings_choices = { graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "iso", "relative"], details_location: ["right", "bottom", "inline"], file_view: ["tree", "list"], label_alignment: ["inline", "split", "graph"], uncommitted_style: ["row", "connected"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
+  function settings_choice_label(key, value, locale) {
+    const label_key = settings_choice_label_keys[key]?.[value];
+    return label_key ? git_graph_text(label_key, {}, locale) : value;
+  }
+  function settings_choice_labels_for(locale) {
+    return Object.fromEntries(Object.entries(settings_choices).map(([key, values]) => [
+      key,
+      Object.fromEntries(values.map((value) => [value, settings_choice_label(key, value, locale)]))
+    ]));
+  }
+  var settings_labels = settings_labels_for();
+  var settings_choice_labels = settings_choice_labels_for();
   function validate_settings(value) {
-    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("\u8BBE\u7F6E\u5FC5\u987B\u662F JSON \u5BF9\u8C61\u3002");
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(git_graph_text("settings.error.object_required"));
     const result = structuredClone(graph_defaults);
     for (const [key, item] of Object.entries(value)) {
-      if (!Object.hasOwn(graph_defaults, key)) throw new Error("\u672A\u77E5\u8BBE\u7F6E\uFF1A".concat(key));
+      if (!Object.hasOwn(graph_defaults, key)) throw new Error(git_graph_text("settings.error.unknown", { key }));
       const expected = graph_defaults[key];
-      if (typeof expected !== typeof item || Array.isArray(expected) !== Array.isArray(item) || item == null) throw new Error("\u8BBE\u7F6E\u7C7B\u578B\u4E0D\u6B63\u786E\uFF1A".concat(key));
+      if (typeof expected !== typeof item || Array.isArray(expected) !== Array.isArray(item) || item == null) throw new Error(git_graph_text("settings.error.invalid_type", { key }));
       result[key] = item;
     }
     for (const key of ["initial_count", "page_count", "search_depth"]) {
-      if (!Number.isInteger(result[key]) || result[key] < (key === "search_depth" ? 0 : 1) || result[key] > (key === "search_depth" ? 5 : 2e3)) throw new Error("\u8BBE\u7F6E\u8D85\u51FA\u8303\u56F4\uFF1A".concat(key));
+      if (!Number.isInteger(result[key]) || result[key] < (key === "search_depth" ? 0 : 1) || result[key] > (key === "search_depth" ? 5 : 2e3)) throw new Error(git_graph_text("settings.error.out_of_range", { key }));
     }
     for (const [key, allowed] of Object.entries(settings_choices)) {
-      if (!allowed.includes(String(result[key]))) throw new Error("\u8BBE\u7F6E\u53D6\u503C\u65E0\u6548\uFF1A".concat(key));
+      if (!allowed.includes(String(result[key]))) throw new Error(git_graph_text("settings.error.invalid_choice", { key }));
     }
-    if (!result.colors.length || result.colors.some((color) => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error("\u5206\u652F\u989C\u8272\u987B\u4E3A\u516D\u4F4D\u5341\u516D\u8FDB\u5236\u989C\u8272\u3002");
-    if (result.branch_globs.some((item) => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error("\u5206\u652F\u7B5B\u9009\u987B\u5305\u542B name \u548C glob\u3002");
-    for (const key of ["hidden_actions", "on_load_branches"]) if (result[key].some((item) => typeof item !== "string")) throw new Error("\u8BBE\u7F6E\u987B\u4E3A\u6587\u672C\u6570\u7EC4\uFF1A".concat(key));
-    for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some((item) => typeof item !== "string")) throw new Error("\u5FEB\u6377\u952E\u548C emoji \u6620\u5C04\u5FC5\u987B\u4E3A\u6587\u672C\u3002");
-    for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error("\u7F3A\u5C11\u5FEB\u6377\u952E\uFF1A".concat(key));
-    for (const key of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key)) throw new Error("\u7F3A\u5C11\u5217\u5BBD\uFF1A".concat(key));
-    for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some((value2) => typeof value2 !== "string" && typeof value2 !== "boolean")) throw new Error("\u5BF9\u8BDD\u6846\u9ED8\u8BA4\u503C\u987B\u4E3A\u64CD\u4F5C\u540D\u5230\u5B57\u6BB5\u503C\u7684\u5BF9\u8C61\u3002");
-    for (const width2 of Object.values(result.column_widths)) if (!Number.isFinite(width2) || width2 < 40 || width2 > 1500) throw new Error("\u5217\u5BBD\u987B\u5728 40\uFF5E1500 \u4E4B\u95F4\u3002");
-    if (!Number.isFinite(result.panel_ratio) || result.panel_ratio < 15 || result.panel_ratio > 85) throw new Error("\u9762\u677F\u6BD4\u4F8B\u987B\u5728 15\uFF5E85 \u4E4B\u95F4\u3002");
-    new TextDecoder(result.encoding);
-    if (result.issue_pattern.length > 150) throw new Error("Issue \u6B63\u5219\u8FC7\u957F\u3002");
-    new RegExp(result.issue_pattern, "gu");
+    if (!result.colors.length || result.colors.some((color) => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error(git_graph_text("settings.error.invalid_colors"));
+    if (result.branch_globs.some((item) => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error(git_graph_text("settings.error.invalid_branch_globs"));
+    for (const key of ["hidden_actions", "on_load_branches"]) if (result[key].some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.text_array", { key }));
+    for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.string_maps"));
+    for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error(git_graph_text("settings.error.missing_shortcut", { key }));
+    for (const key of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key)) throw new Error(git_graph_text("settings.error.missing_column_width", { key }));
+    for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some((value2) => typeof value2 !== "string" && typeof value2 !== "boolean")) throw new Error(git_graph_text("settings.error.invalid_dialog_defaults"));
+    for (const width2 of Object.values(result.column_widths)) if (!Number.isFinite(width2) || width2 < 40 || width2 > 1500) throw new Error(git_graph_text("settings.error.invalid_column_width"));
+    try {
+      new TextDecoder(result.encoding);
+    } catch {
+      throw new Error(git_graph_text("settings.error.invalid_encoding", { encoding: result.encoding }));
+    }
+    if (result.issue_pattern.length > 150) throw new Error(git_graph_text("settings.error.issue_pattern_too_long"));
+    try {
+      new RegExp(result.issue_pattern, "gu");
+    } catch {
+      throw new Error(git_graph_text("settings.error.invalid_issue_pattern"));
+    }
     return result;
   }
   function load_graph_settings(storage, root) {
     try {
-      return validate_settings(JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "settings:" + root) || "{}"));
+      const stored = JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "settings:" + root) || "{}");
+      for (const key of RETIRED_GRAPH_SETTING_KEYS) delete stored[key];
+      return validate_settings(stored);
     } catch {
       return structuredClone(graph_defaults);
     }
@@ -188563,7 +190062,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   var INDEX = "INDEX";
   var EMPTY = "EMPTY";
   function require_revision(value) {
-    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error("\u63D0\u4EA4\u7F16\u53F7\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002");
+    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error(git_graph_text("repository.invalid_revision"));
     return value;
   }
   function parse_status(source) {
@@ -188585,7 +190084,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       const status2 = fields[i++];
       const old_path = /^[RC]/u.test(status2) ? fields[i++] : void 0;
       const path = fields[i++];
-      if (!path) throw new Error("\u6587\u4EF6\u5DEE\u5F02\u6570\u636E\u4E0D\u5B8C\u6574\u3002");
+      if (!path) throw new Error(git_graph_text("repository.incomplete_diff"));
       result.push({ status: status2, path, ...old_path ? { old_path } : {} });
     }
     return result;
@@ -188596,7 +190095,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   });
   async function read_repository(run, cwd2, settings, count, branches = []) {
     const root = (await run(cwd2, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-    const [head, branch2, ref_text, stash_text, status_text, remote_text, git_path] = await Promise.all([
+    const [head, branch, ref_text, stash_text, status_text, remote_text, git_path] = await Promise.all([
       quiet_head(run, root),
       run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).then((value) => value.trim()).catch((error) => {
         if (error.code === 1) return "";
@@ -188653,7 +190152,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
     }
     const operation = git_path.trim();
-    return { root, head, branch: branch2, refs, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+    return { root, head, branch, refs, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
   }
   function comparison_args(from, to, head) {
     if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
@@ -188679,10 +190178,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       index += 5;
       while (index < fields.length && fields[index] && !/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(fields[index])) {
         const status2 = fields[index++].replace(/^\n/u, "");
-        if (!/^[ACDMRTUXB][0-9]*$/u.test(status2)) throw new Error("\u6587\u4EF6\u5386\u53F2\u72B6\u6001\u65E0\u6CD5\u89E3\u6790\u3002");
+        if (!/^[ACDMRTUXB][0-9]*$/u.test(status2)) throw new Error(git_graph_text("repository.invalid_history_status"));
         const old_path = /^[RC]/u.test(status2) ? fields[index++] : void 0;
         const path = fields[index++];
-        if (!path) throw new Error("\u6587\u4EF6\u5386\u53F2\u8DEF\u5F84\u7F3A\u5931\u3002");
+        if (!path) throw new Error(git_graph_text("repository.missing_history_path"));
         result.push({ commit, file: { status: status2, path, ...old_path ? { old_path } : {} } });
       }
     }
@@ -188706,38 +190205,39 @@ var LinuxNoteTyporaEnhancements = (() => {
         throw error;
       }
     }));
-    return [in_head ? "\u5C5E\u4E8E HEAD \u5386\u53F2" : "\u4E0D\u5C5E\u4E8E HEAD \u5386\u53F2", refs.trim(), ...stashes.filter(Boolean)].filter(Boolean).join("\n");
+    return [in_head ? git_graph_text("repository.in_head_history") : git_graph_text("repository.not_in_head_history"), refs.trim(), ...stashes.filter(Boolean)].filter(Boolean).join("\n");
   }
-  function pull_request_url(remote2, branch2, base, custom = "") {
-    const web = remote2.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://").replace(/\.git\/?$/u, "");
+  function pull_request_url(remote, branch, base, custom = "") {
+    const web = remote.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://").replace(/\.git\/?$/u, "");
     const url = new URL(web);
-    if (!["http:", "https:"].includes(url.protocol)) throw new Error("\u6B64\u8FDC\u7AEF\u6CA1\u6709\u53EF\u7528\u7684\u7F51\u9875\u5730\u5740\uFF0C\u8BF7\u914D\u7F6E PR URL\u3002");
-    const replacement = (template) => template.replace(/\{(branch|base|remote)\}/gu, (_2, name) => name === "remote" ? web : encodeURIComponent(name === "branch" ? branch2 : base));
+    if (!["http:", "https:"].includes(url.protocol)) throw new Error(git_graph_text("repository.no_remote_web_url"));
+    const replacement = (template) => template.replace(/\{(branch|base|remote)\}/gu, (_2, name) => name === "remote" ? web : encodeURIComponent(name === "branch" ? branch : base));
     if (custom) return replacement(custom);
-    if (url.hostname === "github.com") return "".concat(web, "/compare/").concat(encodeURIComponent(base), "...").concat(encodeURIComponent(branch2), "?expand=1");
-    if (url.hostname === "gitlab.com") return "".concat(web, "/-/merge_requests/new?merge_request[source_branch]=").concat(encodeURIComponent(branch2), "&merge_request[target_branch]=").concat(encodeURIComponent(base));
-    if (url.hostname === "bitbucket.org") return "".concat(web, "/pull-requests/new?source=").concat(encodeURIComponent(branch2), "&dest=").concat(encodeURIComponent(base));
-    throw new Error("\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u586B\u5199\u6B64\u670D\u52A1\u5668\u7684 PR URL \u6A21\u677F\u3002");
+    if (url.hostname === "github.com") return "".concat(web, "/compare/").concat(encodeURIComponent(base), "...").concat(encodeURIComponent(branch), "?expand=1");
+    if (url.hostname === "gitlab.com") return "".concat(web, "/-/merge_requests/new?merge_request[source_branch]=").concat(encodeURIComponent(branch), "&merge_request[target_branch]=").concat(encodeURIComponent(base));
+    if (url.hostname === "bitbucket.org") return "".concat(web, "/pull-requests/new?source=").concat(encodeURIComponent(branch), "&dest=").concat(encodeURIComponent(base));
+    throw new Error(git_graph_text("repository.pr_template_required"));
   }
 
   // src/git_graph_host.ts
+  var graph_dialog = (title) => workspace_dialog(title, git_graph_text("common.close"));
   function create_graph_host(core) {
-    const runtime = window;
-    const fs2 = runtime.reqnode("fs");
-    const path_api = runtime.reqnode("path");
-    const process_api = runtime.reqnode("process");
+    const runtime2 = window;
+    const fs2 = runtime2.reqnode("fs");
+    const path_api = runtime2.reqnode("path");
+    const process_api = runtime2.reqnode("process");
     const editor_status = bind_workspace_editor_status(core);
-    const child_process = runtime.reqnode("child_process");
-    const crypto2 = runtime.reqnode("crypto");
+    const child_process = runtime2.reqnode("child_process");
+    const crypto2 = runtime2.reqnode("crypto");
     const contents = /* @__PURE__ */ new Map();
-    const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
+    const cache_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
     let serial2 = 0;
     const output_lines = /* @__PURE__ */ new Map();
     const redact = (text3) => text3.replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gu, "$1***@").replace(/([?&](?:access_token|token|password)=)[^&\s]+/giu, "$1***");
     const ensure_file_path = (root, file) => {
       const absolute = path_api.resolve(root, file);
       const relative2 = path_api.relative(root, absolute);
-      if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002");
+      if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error(git_graph_text("host.outside_repository"));
       return absolute;
     };
     const add_tab = (type, uri, group) => {
@@ -188778,7 +190278,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           tab.title = title;
         }
         if (!payload) {
-          this.containerEl.textContent = "\u6B64\u4E34\u65F6\u5386\u53F2\u89C6\u56FE\u5DF2\u91CA\u653E\uFF0C\u8BF7\u4ECE\u63D0\u4EA4\u56FE\u91CD\u65B0\u6253\u5F00\u3002";
+          this.containerEl.textContent = git_graph_text("host.expired_view");
           return;
         }
         if (payload === this.document) {
@@ -188803,9 +190303,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
         try {
           this.editor = new git_diff_editor(payload.data, payload.options.menu);
-          if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button("\u5237\u65B0\u5DEE\u5F02", payload.options.refresh));
-          if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button("\u4E0A\u4E00\u6587\u4EF6", () => payload.options.adjacent(-1)), workspace_button("\u4E0B\u4E00\u6587\u4EF6", () => payload.options.adjacent(1)));
-          this.editor.toolbar.append(workspace_button("\u5207\u6362\u4FA7\u680F", () => core.app.workspace.sidebar.toggle()));
+          if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button(git_graph_text("host.refresh_diff"), payload.options.refresh));
+          if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button(git_graph_text("host.previous_file"), () => payload.options.adjacent(-1)), workspace_button(git_graph_text("host.next_file"), () => payload.options.adjacent(1)));
+          this.editor.toolbar.append(workspace_button(git_graph_text("host.toggle_sidebar"), () => core.app.workspace.sidebar.toggle()));
           this.containerEl.append(this.editor.container);
           editor_status.register(this.leaf, this.editor.create_readonly_status());
         } catch (error) {
@@ -188850,10 +190350,10 @@ var LinuxNoteTyporaEnhancements = (() => {
             output_lines.set(root, lines.slice(-100));
           };
           const start = Date.now();
-          record((/* @__PURE__ */ new Date()).toLocaleTimeString() + " > git " + args.map((arg) => JSON.stringify(arg)).join(" "));
+          record((/* @__PURE__ */ new Date()).toLocaleTimeString(git_graph_language_tag()) + " > git " + args.map((arg) => JSON.stringify(arg)).join(" "));
           try {
             const result = await runner.run(root, args, execution);
-            record("\u5B8C\u6210 \xB7 ".concat(Date.now() - start, " ms") + (writable ? "\n" + result.slice(0, 12e3) : ""));
+            record(git_graph_text("host.run_complete", { duration: Date.now() - start }) + (writable ? "\n" + result.slice(0, 12e3) : ""));
             return result;
           } catch (error) {
             record(String(error));
@@ -188864,41 +190364,41 @@ var LinuxNoteTyporaEnhancements = (() => {
       },
       show_output(root) {
         const view = workspace_element("div", "git-output");
-        const text3 = workspace_element("pre");
+        const output = workspace_element("pre");
         const refresh = () => {
-          text3.textContent = (output_lines.get(root) || ["\u6682\u65E0 Git \u8F93\u51FA\u3002"]).join("\n");
-          text3.scrollTop = text3.scrollHeight;
+          output.textContent = (output_lines.get(root) || [git_graph_text("host.no_git_output")]).join("\n");
+          output.scrollTop = output.scrollHeight;
         };
-        view.append(workspace_button("\u5237\u65B0\u8F93\u51FA", refresh), text3);
+        view.append(workspace_button(git_graph_text("host.refresh_output"), refresh), output);
         refresh();
-        this.open_panel("Git \u8F93\u51FA", "git_output", root, view);
+        this.open_panel(git_graph_text("host.git_output"), "git_output", root, view);
       },
       context_path(use_active = true) {
         const active = core.app.workspace.activeLeaf;
-        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
+        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || runtime2.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
       },
       can_change_files() {
-        return !runtime.File?.changeCounter?.isDocumentEdited();
+        return !runtime2.File?.changeCounter?.isDocumentEdited();
       },
       async trash_files(root, files) {
-        const shell = runtime.reqnode("electron").shell;
-        if (typeof shell.trashItem !== "function") throw new Error("\u5F53\u524D Typora \u65E0\u6CD5\u5C06\u6587\u4EF6\u79FB\u81F3\u56DE\u6536\u7AD9\uFF0C\u672A\u5220\u9664\u6587\u4EF6\u3002");
+        const shell = runtime2.reqnode("electron").shell;
+        if (typeof shell.trashItem !== "function") throw new Error(git_graph_text("host.trash_unavailable"));
         const real_root = await fs2.promises.realpath(root);
         const targets = [];
         for (const file of files) {
           const target = ensure_file_path(root, file);
           const parent = await fs2.promises.realpath(path_api.dirname(target));
           const relative2 = path_api.relative(real_root, parent);
-          if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error("\u6587\u4EF6\u7684\u5B9E\u9645\u76EE\u5F55\u8D85\u51FA\u4ED3\u5E93\uFF0C\u5DF2\u505C\u6B62\u56DE\u6536\uFF1A" + file);
+          if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error(git_graph_text("host.real_directory_outside", { file }));
           const stat = await fs2.promises.lstat(target);
-          if (!stat.isFile() && !stat.isSymbolicLink()) throw new Error("\u53EA\u652F\u6301\u56DE\u6536\u660E\u786E\u9009\u62E9\u7684\u6587\u4EF6\uFF1A" + file);
+          if (!stat.isFile() && !stat.isSymbolicLink()) throw new Error(git_graph_text("host.files_only_trash", { file }));
           targets.push(target);
         }
         for (let index = 0; index < targets.length; index++) {
           try {
             await shell.trashItem(targets[index]);
           } catch (error) {
-            throw new Error("\u5DF2\u56DE\u6536 ".concat(index, " \u4E2A\u6587\u4EF6\uFF1B\u65E0\u6CD5\u56DE\u6536 ").concat(files[index], "\uFF0C\u5176\u4F59\u6587\u4EF6\u4FDD\u7559\uFF1A").concat(String(error)));
+            throw new Error(git_graph_text("host.trash_partial_failure", { count: index, file: files[index], error: String(error) }));
           }
         }
       },
@@ -188907,16 +190407,16 @@ var LinuxNoteTyporaEnhancements = (() => {
         return "";
       },
       copy(text3) {
-        return runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }));
+        return runtime2.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }));
       },
       open_url(url) {
         const parsed = new URL(url);
-        if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("\u53EA\u5141\u8BB8\u6253\u5F00 HTTP \u6216 HTTPS \u94FE\u63A5\u3002");
-        return runtime.reqnode("electron").shell.openExternal(parsed.href);
+        if (!["https:", "http:"].includes(parsed.protocol)) throw new Error(git_graph_text("host.http_only"));
+        return runtime2.reqnode("electron").shell.openExternal(parsed.href);
       },
       async open_file(root, file, settings) {
         const target = ensure_file_path(root, file);
-        if (!fs2.existsSync(target)) throw new Error("\u5F53\u524D\u5DE5\u4F5C\u533A\u5DF2\u6CA1\u6709\u6B64\u6587\u4EF6\uFF0C\u53EF\u67E5\u770B\u5386\u53F2\u7248\u672C\u3002");
+        if (!fs2.existsSync(target)) throw new Error(git_graph_text("host.current_file_missing"));
         const file_host = get_workspace_files();
         if (file_host) {
           await file_host.open_file(target, {}, settings.new_tab_group);
@@ -188932,7 +190432,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       },
       file_path: ensure_file_path,
       reveal_file(root, file) {
-        runtime.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
+        runtime2.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
       },
       async revision_text(root, revision, file, settings) {
         if (revision === EMPTY) return "";
@@ -188941,8 +190441,8 @@ var LinuxNoteTyporaEnhancements = (() => {
           if (!fs2.existsSync(target)) return "";
           const stat = await fs2.promises.lstat(target);
           if (stat.isSymbolicLink()) return fs2.promises.readlink(target);
-          if (!stat.isFile()) throw new Error("\u76EE\u5F55\u6216\u5B50\u6A21\u5757\u4E0D\u80FD\u4F5C\u4E3A\u666E\u901A\u6587\u672C\u6BD4\u8F83\uFF0C\u8BF7\u6253\u5F00\u5BF9\u5E94\u4ED3\u5E93\u3002");
-          if (stat.size > 16 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 16 MiB\uFF0C\u65E0\u6CD5\u5728\u5386\u53F2\u6587\u672C\u89C6\u56FE\u6253\u5F00\u3002");
+          if (!stat.isFile()) throw new Error(git_graph_text("host.non_text_comparison"));
+          if (stat.size > 16 * 1024 * 1024) throw new Error(git_graph_text("host.file_too_large"));
           return new TextDecoder(settings.encoding).decode(await fs2.promises.readFile(target));
         }
         const object = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
@@ -188991,10 +190491,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         const target = path_api.join(cache_path, hash2 + ".png");
         if (fs2.existsSync(target)) return "data:image/png;base64," + fs2.readFileSync(target).toString("base64");
         return new Promise((resolve3, reject) => {
-          const request = runtime.reqnode("https").get("https://www.gravatar.com/avatar/".concat(hash2, "?s=32&d=identicon"), (response) => {
+          const request = runtime2.reqnode("https").get("https://www.gravatar.com/avatar/".concat(hash2, "?s=32&d=identicon"), (response) => {
             if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) {
               response.resume();
-              reject(new Error("\u5934\u50CF\u4E0D\u53EF\u7528"));
+              reject(new Error(git_graph_text("host.avatar_unavailable")));
               return;
             }
             const chunks = [];
@@ -189003,17 +190503,17 @@ var LinuxNoteTyporaEnhancements = (() => {
               size += chunk.length;
               if (size > 256e3) {
                 request.destroy();
-                reject(new Error("\u5934\u50CF\u8FC7\u5927"));
+                reject(new Error(git_graph_text("host.avatar_too_large")));
               } else chunks.push(chunk);
             });
             response.on("end", () => {
-              const data = runtime.reqnode("buffer").Buffer.concat(chunks);
+              const data = runtime2.reqnode("buffer").Buffer.concat(chunks);
               fs2.mkdirSync(cache_path, { recursive: true });
               fs2.writeFileSync(target, data);
               resolve3("data:image/png;base64," + data.toString("base64"));
             });
           });
-          request.setTimeout(1e4, () => request.destroy(new Error("\u5934\u50CF\u67E5\u8BE2\u8D85\u65F6")));
+          request.setTimeout(1e4, () => request.destroy(new Error(git_graph_text("host.avatar_timeout"))));
           request.on("error", reject);
         });
       },
@@ -189026,18 +190526,18 @@ var LinuxNoteTyporaEnhancements = (() => {
         else terminal_workspace.open(root, program);
       },
       export_file(root, filename, content) {
-        const dialog = workspace_dialog("\u5BFC\u51FA\u914D\u7F6E");
+        const dialog = graph_dialog(git_graph_text("host.export_configuration"));
         const target = workspace_element("input");
         target.value = path_api.join(root, filename);
         const preview = workspace_element("pre", "", content);
         const error = workspace_element("p");
         dialog.content.append(target, preview, error);
-        dialog.footer.prepend(workspace_button("\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84", () => {
+        dialog.footer.prepend(workspace_button(git_graph_text("host.save_to_path"), () => {
           try {
             fs2.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" });
             dialog.close();
           } catch (problem) {
-            error.textContent = String(problem) + "\uFF1B\u6587\u4EF6\u5DF2\u5B58\u5728\u65F6\u8BF7\u6362\u4E00\u4E2A\u5BFC\u51FA\u540D\u79F0\u3002";
+            error.textContent = git_graph_text("host.export_failure_hint", { error: String(problem) });
           }
         }));
       }
@@ -189047,74 +190547,100 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/git_graph_actions.ts
-  var field = (key, title, optional = false) => ({ key, title, optional });
-  var check = (key, title, initial = false) => ({ key, title, type: "boolean", initial });
-  var choice = (key, title, choices) => ({ key, title, type: "choice", choices, initial: choices[0] });
-  var remote = field("remote", "\u8FDC\u7AEF\u540D\u79F0");
-  var branch = field("branch", "\u5206\u652F\u540D\u79F0");
-  var graph_actions = [
-    { id: "branch_create", title: "\u521B\u5EFA\u5206\u652F", targets: ["commit", "branch", "tag"], fields: [branch, check("checkout", "\u521B\u5EFA\u540E\u5207\u6362")], touches_files: true },
-    { id: "branch_checkout", title: "\u5207\u6362\u5206\u652F", targets: ["branch"], fields: [], touches_files: true },
-    { id: "remote_checkout", title: "\u68C0\u51FA\u8FDC\u7AEF\u5206\u652F", targets: ["remote"], fields: [branch], touches_files: true },
-    { id: "branch_rename", title: "\u91CD\u547D\u540D\u5206\u652F", targets: ["branch"], fields: [branch] },
-    { id: "branch_delete", title: "\u5220\u9664\u5206\u652F", targets: ["branch"], fields: [check("force", "\u5141\u8BB8\u5220\u9664\u672A\u5408\u5E76\u5206\u652F")], destructive: "\u5220\u9664\u6240\u9009\u5206\u652F\u5F15\u7528\u3002" },
-    { id: "remote_branch_delete", title: "\u5220\u9664\u8FDC\u7AEF\u5206\u652F", targets: ["remote"], fields: [remote, branch], destructive: "\u5220\u9664\u670D\u52A1\u5668\u4E0A\u7684\u5206\u652F\u3002" },
-    { id: "branch_fetch", title: "\u83B7\u53D6\u5230\u672C\u5730\u5206\u652F", targets: ["remote"], fields: [remote, field("source", "\u8FDC\u7AEF\u5206\u652F"), branch, check("force", "\u5141\u8BB8\u975E\u5FEB\u8FDB\u66F4\u65B0\u672C\u5730\u5206\u652F")] },
-    { id: "merge", title: "\u5408\u5E76\u5230\u5F53\u524D\u5206\u652F", targets: ["commit", "branch", "remote"], fields: [choice("mode", "\u5408\u5E76\u65B9\u5F0F", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "\u6682\u4E0D\u521B\u5EFA\u63D0\u4EA4")], touches_files: true },
-    { id: "rebase", title: "\u5C06\u5F53\u524D\u5206\u652F\u53D8\u57FA\u5230\u6B64\u5904", targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "\u4FDD\u7559\u5408\u5E76\u7ED3\u6784"), check("ignore_date", "\u4F7F\u7528\u5F53\u524D\u4F5C\u8005\u65F6\u95F4"), check("interactive", "\u4EA4\u4E92\u5F0F\u8C03\u6574\u63D0\u4EA4"), field("todo", "\u4EA4\u4E92\u5217\u8868\uFF1Apick / reword / edit / squash / fixup / drop + \u5B8C\u6574\u7F16\u53F7 + \u6807\u9898", true)], touches_files: true, destructive: "\u91CD\u5199\u5F53\u524D\u5206\u652F\u4E0A\u88AB\u91CD\u653E\u7684\u63D0\u4EA4\u3002" },
-    { id: "reset", title: "\u91CD\u7F6E\u5F53\u524D\u5206\u652F", targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "\u91CD\u7F6E\u65B9\u5F0F", ["mixed", "soft", "hard"])], touches_files: true, destructive: "\u79FB\u52A8\u5F53\u524D\u5206\u652F\uFF1Bhard \u4F1A\u4E22\u5F03\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u7684\u672A\u63D0\u4EA4\u5185\u5BB9\u3002" },
-    { id: "commit_checkout", title: "\u68C0\u51FA\u6B64\u63D0\u4EA4\uFF08\u6E38\u79BB HEAD\uFF09", targets: ["commit", "tag"], fields: [], touches_files: true },
-    { id: "cherry_pick", title: "\u62E3\u9009\u63D0\u4EA4\uFF08Cherry-pick\uFF09", targets: ["commit"], fields: [check("no_commit", "\u53EA\u5E94\u7528\u6539\u52A8"), check("record_origin", "\u5728\u8BF4\u660E\u4E2D\u8BB0\u5F55\u6765\u6E90\u63D0\u4EA4"), field("mainline", "\u5408\u5E76\u63D0\u4EA4\u7684\u7236\u7F16\u53F7", true)], touches_files: true },
-    { id: "revert", title: "\u64A4\u9500\u63D0\u4EA4\uFF08Revert\uFF09", targets: ["commit"], fields: [check("no_commit", "\u53EA\u5E94\u7528\u6539\u52A8"), field("mainline", "\u5408\u5E76\u63D0\u4EA4\u7684\u7236\u7F16\u53F7", true)], touches_files: true },
-    { id: "drop", title: "\u4ECE\u5F53\u524D\u5206\u652F\u79FB\u9664\u6B64\u63D0\u4EA4", targets: ["commit"], fields: [], touches_files: true, destructive: "\u901A\u8FC7 rebase --onto \u91CD\u5199\u540E\u7EE7\u63D0\u4EA4\uFF0C\u79FB\u9664\u6240\u9009\u63D0\u4EA4\u3002" },
-    { id: "tag_add", title: "\u6DFB\u52A0\u6807\u7B7E", targets: ["commit", "branch"], fields: [field("tag", "\u6807\u7B7E\u540D\u79F0"), field("message", "\u6CE8\u89E3\u8BF4\u660E\uFF08\u7A7A\u4E3A\u8F7B\u91CF\u6807\u7B7E\uFF09", true), check("sign", "\u7B7E\u7F72\u6807\u7B7E")] },
-    { id: "tag_delete", title: "\u5220\u9664\u6807\u7B7E", targets: ["tag"], fields: [], destructive: "\u5220\u9664\u672C\u5730\u6807\u7B7E\u5F15\u7528\u3002" },
-    { id: "tag_push", title: "\u63A8\u9001\u6807\u7B7E", targets: ["tag"], fields: [remote] },
-    { id: "fetch", title: "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0", targets: ["repository", "remote"], fields: [field("remote", "\u8FDC\u7AEF\u540D\u79F0\uFF08\u7A7A\u4E3A\u5168\u90E8\uFF09", true), check("prune", "\u6E05\u7406\u5931\u6548\u8FDC\u7AEF\u5206\u652F"), check("prune_tags", "\u540C\u6B65\u6E05\u7406\u6807\u7B7E")] },
-    { id: "pull", title: "\u62C9\u53D6\u5230\u5F53\u524D\u5206\u652F", targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "\u6574\u5408\u65B9\u5F0F", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
-    { id: "sync", title: "\u540C\u6B65\u66F4\u6539", targets: ["repository"], fields: [choice("mode", "\u62C9\u53D6\u6574\u5408\u65B9\u5F0F", ["merge", "rebase", "ff-only"])], touches_files: true },
-    { id: "push", title: "\u63A8\u9001\u5206\u652F", targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "\u8BBE\u7F6E\u4E0A\u6E38"), check("force_lease", "Force-with-lease")], destructive: "\u66F4\u65B0\u670D\u52A1\u5668\u5206\u652F\uFF1BForce-with-lease \u53EF\u66FF\u6362\u8FDC\u7AEF\u5386\u53F2\u3002" },
-    { id: "stash_create", title: "\u8D2E\u85CF\u672A\u63D0\u4EA4\u66F4\u6539", targets: ["changes", "repository"], fields: [field("message", "\u8BF4\u660E", true), check("untracked", "\u5305\u542B\u672A\u8DDF\u8E2A\u6587\u4EF6"), check("keep_index", "\u4FDD\u7559\u5DF2\u6682\u5B58\u5185\u5BB9")], touches_files: true },
-    { id: "stash_apply", title: "\u5E94\u7528\u8D2E\u85CF", targets: ["stash"], fields: [check("index", "\u6062\u590D\u6682\u5B58\u72B6\u6001")], touches_files: true },
-    { id: "stash_pop", title: "\u5F39\u51FA\u8D2E\u85CF", targets: ["stash"], fields: [check("index", "\u6062\u590D\u6682\u5B58\u72B6\u6001")], touches_files: true },
-    { id: "stash_drop", title: "\u5220\u9664\u8D2E\u85CF", targets: ["stash"], fields: [], destructive: "\u5220\u9664\u6240\u9009 stash \u7684\u5F15\u7528\u3002" },
-    { id: "stash_branch", title: "\u4ECE\u8D2E\u85CF\u521B\u5EFA\u5206\u652F", targets: ["stash"], fields: [branch], touches_files: true },
-    { id: "clean", title: "\u6E05\u7406\u672A\u8DDF\u8E2A\u6587\u4EF6", targets: ["changes"], fields: [check("directories", "\u5305\u542B\u672A\u8DDF\u8E2A\u76EE\u5F55"), check("ignored", "\u540C\u65F6\u5305\u542B\u88AB\u5FFD\u7565\u6587\u4EF6")], touches_files: true, destructive: "\u6C38\u4E45\u5220\u9664\u9884\u89C8\u4E2D\u5217\u51FA\u7684\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF1BGit \u65E0\u6CD5\u6062\u590D\u8FD9\u4E9B\u5185\u5BB9\u3002" },
-    { id: "clone", title: "\u514B\u9686\u4ED3\u5E93", targets: ["repository"], fields: [field("url", "\u4ED3\u5E93 URL"), field("directory", "\u76EE\u6807\u6587\u4EF6\u5939\uFF08\u5E94\u4E0D\u5B58\u5728\u6216\u4E3A\u7A7A\uFF09")] },
-    { id: "remote_add", title: "\u6DFB\u52A0\u8FDC\u7AEF", targets: ["repository"], fields: [remote, field("url", "\u8FDC\u7AEF URL \u6216\u8DEF\u5F84")] },
-    { id: "remote_edit", title: "\u4FEE\u6539\u8FDC\u7AEF URL", targets: ["repository"], fields: [remote, field("url", "\u8FDC\u7AEF URL \u6216\u8DEF\u5F84"), check("push_url", "\u8BBE\u7F6E\u72EC\u7ACB\u63A8\u9001 URL")] },
-    { id: "remote_remove", title: "\u5220\u9664\u8FDC\u7AEF\u914D\u7F6E", targets: ["repository"], fields: [remote], destructive: "\u79FB\u9664\u672C\u5730\u8FDC\u7AEF\u914D\u7F6E\u53CA\u5BF9\u5E94\u8DDF\u8E2A\u5F15\u7528\u3002" },
-    { id: "remote_prune", title: "\u6E05\u7406\u8FC7\u671F\u8FDC\u7AEF\u8DDF\u8E2A\u5F15\u7528", targets: ["repository"], fields: [remote], destructive: "\u6E05\u7406\u670D\u52A1\u5668\u4E0A\u5DF2\u4E0D\u5B58\u5728\u7684\u8DDF\u8E2A\u5F15\u7528\u3002" },
-    { id: "stage", title: "\u6682\u5B58\u6587\u4EF6", targets: ["file"], fields: [] },
-    { id: "unstage", title: "\u53D6\u6D88\u6682\u5B58", targets: ["file"], fields: [] },
-    { id: "stage_all", title: "\u6682\u5B58\u6240\u6709\u66F4\u6539", targets: ["changes", "repository"], fields: [] },
-    { id: "unstage_all", title: "\u53D6\u6D88\u6240\u6709\u6682\u5B58", targets: ["changes", "repository"], fields: [] },
-    { id: "discard_file", title: "\u653E\u5F03\u6587\u4EF6\u66F4\u6539", targets: ["file"], fields: [], touches_files: true, destructive: "\u5C06\u6B64\u6587\u4EF6\u6062\u590D\u4E3A\u6682\u5B58\u533A\u7248\u672C\uFF0C\u4E22\u5F03\u672A\u6682\u5B58\u5185\u5BB9\u3002" },
-    { id: "discard_changes", title: "\u653E\u5F03\u6240\u6709\u66F4\u6539", targets: ["changes"], fields: [check("include_untracked", "\u540C\u65F6\u5C06\u6240\u5217\u672A\u8DDF\u8E2A\u6587\u4EF6\u79FB\u5165\u56DE\u6536\u7AD9", true)], touches_files: true, destructive: "\u6240\u5217\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u7684\u672A\u6682\u5B58\u5185\u5BB9\u5C06\u88AB\u6682\u5B58\u533A\u7248\u672C\u8986\u76D6\uFF1B\u6682\u5B58\u5185\u5BB9\u4FDD\u6301\u4E0D\u53D8\u3002\u52FE\u9009\u65F6\uFF0C\u6240\u5217\u672A\u8DDF\u8E2A\u6587\u4EF6\u79FB\u5165\u7CFB\u7EDF\u56DE\u6536\u7AD9\u3002" },
-    { id: "delete_untracked", title: "\u5220\u9664\u672A\u8DDF\u8E2A\u6587\u4EF6", targets: ["file"], fields: [], touches_files: true, destructive: "\u6C38\u4E45\u5220\u9664\u6240\u9009\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF1BGit \u65E0\u6CD5\u6062\u590D\u3002" },
-    { id: "commit", title: "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9", targets: ["changes"], fields: [field("message", "\u63D0\u4EA4\u8BF4\u660E"), check("amend", "\u4FEE\u6539\u4E0A\u4E00\u4E2A\u63D0\u4EA4")], destructive: "amend \u4F1A\u6539\u5199\u4E0A\u4E00\u4E2A\u63D0\u4EA4\u3002" },
-    { id: "continue", title: "\u7EE7\u7EED\u5F53\u524D Git \u64CD\u4F5C", targets: ["repository"], fields: [], touches_files: true },
-    { id: "abort", title: "\u4E2D\u6B62\u5F53\u524D Git \u64CD\u4F5C", targets: ["repository"], fields: [], touches_files: true },
-    { id: "skip", title: "\u8DF3\u8FC7\u5F53\u524D\u63D0\u4EA4", targets: ["repository"], fields: [], touches_files: true }
-  ];
+  function graph_actions_for(locale) {
+    const label = (key) => git_graph_text(key, {}, locale);
+    const field = (key, title, optional = false) => ({ key, title: label(title), optional });
+    const check = (key, title, initial = false) => ({ key, title: label(title), type: "boolean", initial });
+    const choice = (key, title, choices) => ({
+      key,
+      title: label(title),
+      type: "choice",
+      choices,
+      choice_labels: Object.fromEntries(choices.map((value) => [value, graph_action_choice_label(value, locale)])),
+      initial: choices[0]
+    });
+    const remote = field("remote", "action.field.remote");
+    const branch = field("branch", "action.field.branch");
+    return [
+      { id: "branch_create", title: label("action.title.branch_create"), targets: ["commit", "branch", "tag"], fields: [branch, check("checkout", "action.field.checkout")], touches_files: true },
+      { id: "branch_checkout", title: label("action.title.branch_checkout"), targets: ["branch"], fields: [], touches_files: true },
+      { id: "remote_checkout", title: label("action.title.remote_checkout"), targets: ["remote"], fields: [branch], touches_files: true },
+      { id: "branch_rename", title: label("action.title.branch_rename"), targets: ["branch"], fields: [branch] },
+      { id: "branch_delete", title: label("action.title.branch_delete"), targets: ["branch"], fields: [check("force", "action.field.force_delete")], destructive: label("action.warning.branch_delete") },
+      { id: "remote_branch_delete", title: label("action.title.remote_branch_delete"), targets: ["remote"], fields: [remote, branch], destructive: label("action.warning.remote_branch_delete") },
+      { id: "branch_fetch", title: label("action.title.branch_fetch"), targets: ["remote"], fields: [remote, field("source", "action.field.remote_source"), branch, check("force", "action.field.force_fetch")] },
+      { id: "merge", title: label("action.title.merge"), targets: ["commit", "branch", "remote"], fields: [choice("mode", "action.field.merge_mode", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "action.field.defer_commit")], touches_files: true },
+      { id: "rebase", title: label("action.title.rebase"), targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "action.field.preserve_merges"), check("ignore_date", "action.field.ignore_date"), check("interactive", "action.field.interactive"), field("todo", "action.field.rebase_todo", true)], touches_files: true, destructive: label("action.warning.rebase") },
+      { id: "reset", title: label("action.title.reset"), targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "action.field.reset_mode", ["mixed", "soft", "hard"])], touches_files: true, destructive: label("action.warning.reset") },
+      { id: "commit_checkout", title: label("action.title.commit_checkout"), targets: ["commit", "tag"], fields: [], touches_files: true },
+      { id: "cherry_pick", title: label("action.title.cherry_pick"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), check("record_origin", "action.field.record_origin"), field("mainline", "action.field.mainline", true)], touches_files: true },
+      { id: "revert", title: label("action.title.revert"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), field("mainline", "action.field.mainline", true)], touches_files: true },
+      { id: "drop", title: label("action.title.drop"), targets: ["commit"], fields: [], touches_files: true, destructive: label("action.warning.drop") },
+      { id: "tag_add", title: label("action.title.tag_add"), targets: ["commit", "branch"], fields: [field("tag", "action.field.tag"), field("message", "action.field.tag_message", true), check("sign", "action.field.sign_tag")] },
+      { id: "tag_delete", title: label("action.title.tag_delete"), targets: ["tag"], fields: [], destructive: label("action.warning.tag_delete") },
+      { id: "tag_push", title: label("action.title.tag_push"), targets: ["tag"], fields: [remote] },
+      { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check("prune", "action.field.prune"), check("prune_tags", "action.field.prune_tags")] },
+      { id: "pull", title: label("action.title.pull"), targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
+      { id: "sync", title: label("action.title.sync"), targets: ["repository"], fields: [choice("mode", "action.field.sync_mode", ["merge", "rebase", "ff-only"])], touches_files: true },
+      { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
+      { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check("untracked", "action.field.include_untracked"), check("keep_index", "action.field.keep_index")], touches_files: true },
+      { id: "stash_apply", title: label("action.title.stash_apply"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
+      { id: "stash_pop", title: label("action.title.stash_pop"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
+      { id: "stash_drop", title: label("action.title.stash_drop"), targets: ["stash"], fields: [], destructive: label("action.warning.stash_drop") },
+      { id: "stash_branch", title: label("action.title.stash_branch"), targets: ["stash"], fields: [branch], touches_files: true },
+      { id: "clean", title: label("action.title.clean"), targets: ["changes"], fields: [check("directories", "action.field.clean_directories"), check("ignored", "action.field.clean_ignored")], touches_files: true, destructive: label("action.warning.clean") },
+      { id: "clone", title: label("action.title.clone"), targets: ["repository"], fields: [field("url", "action.field.repository_url"), field("directory", "action.field.target_directory")] },
+      { id: "remote_add", title: label("action.title.remote_add"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url")] },
+      { id: "remote_edit", title: label("action.title.remote_edit"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url"), check("push_url", "action.field.push_url")] },
+      { id: "remote_remove", title: label("action.title.remote_remove"), targets: ["repository"], fields: [remote], destructive: label("action.warning.remote_remove") },
+      { id: "remote_prune", title: label("action.title.remote_prune"), targets: ["repository"], fields: [remote], destructive: label("action.warning.remote_prune") },
+      { id: "stage", title: label("action.title.stage"), targets: ["file"], fields: [] },
+      { id: "unstage", title: label("action.title.unstage"), targets: ["file"], fields: [] },
+      { id: "stage_all", title: label("action.title.stage_all"), targets: ["changes", "repository"], fields: [] },
+      { id: "unstage_all", title: label("action.title.unstage_all"), targets: ["changes", "repository"], fields: [] },
+      { id: "discard_file", title: label("action.title.discard_file"), targets: ["file"], fields: [], touches_files: true, destructive: label("action.warning.discard_file") },
+      { id: "discard_changes", title: label("action.title.discard_changes"), targets: ["changes"], fields: [check("include_untracked", "action.field.discard_untracked", true)], touches_files: true, destructive: label("action.warning.discard_changes") },
+      { id: "delete_untracked", title: label("action.title.delete_untracked"), targets: ["file"], fields: [], touches_files: true, destructive: label("action.warning.delete_untracked") },
+      { id: "commit", title: label("action.title.commit"), targets: ["changes"], fields: [field("message", "action.field.commit_message"), check("amend", "action.field.amend")], destructive: label("action.warning.commit") },
+      { id: "continue", title: label("action.title.continue"), targets: ["repository"], fields: [], touches_files: true },
+      { id: "abort", title: label("action.title.abort"), targets: ["repository"], fields: [], touches_files: true },
+      { id: "skip", title: label("action.title.skip"), targets: ["repository"], fields: [], touches_files: true }
+    ];
+  }
+  var action_choice_label_keys = {
+    normal: "action.choice.normal",
+    "no-ff": "action.choice.no_ff",
+    "ff-only": "action.choice.ff_only",
+    squash: "action.choice.squash",
+    mixed: "action.choice.mixed",
+    soft: "action.choice.soft",
+    hard: "action.choice.hard",
+    merge: "action.choice.merge",
+    rebase: "action.choice.rebase"
+  };
+  function graph_action_choice_label(value, locale) {
+    const key = action_choice_label_keys[value];
+    return key ? git_graph_text(key, {}, locale) : value;
+  }
+  var graph_actions = graph_actions_for();
   var busy_repositories = /* @__PURE__ */ new Set();
   var text_value = (value, name, required = true) => {
-    const text3 = typeof value === "string" ? value.trim() : "";
-    if (required && !text3 || /[\0\r\n]/u.test(text3) || text3.startsWith("-")) throw new Error("".concat(name, " \u65E0\u6548\u3002"));
-    return text3;
+    const normalized = typeof value === "string" ? value.trim() : "";
+    if (required && !normalized || /[\0\r\n]/u.test(normalized) || normalized.startsWith("-")) throw new Error(git_graph_text("action.error.invalid_value", { name }));
+    return normalized;
   };
   async function valid_ref(run, root, value, tag3 = false) {
-    const name = text_value(value, tag3 ? "\u6807\u7B7E\u540D\u79F0" : "\u5206\u652F\u540D\u79F0");
+    const name = text_value(value, git_graph_text(tag3 ? "action.label.tag_name" : "action.label.branch_name"));
     await run(root, ["check-ref-format", ...tag3 ? ["refs/tags/".concat(name)] : ["--branch", name]]);
     return name;
   }
   async function read_sync_target(run, root) {
     const local_branch = (await run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).catch(() => "")).trim();
-    if (!local_branch) throw new Error("\u6E38\u79BB HEAD \u4E0D\u80FD\u540C\u6B65\uFF0C\u8BF7\u5148\u5207\u6362\u5230\u5206\u652F\u3002");
+    if (!local_branch) throw new Error(git_graph_text("action.error.detached_sync"));
     const ref = "refs/heads/" + local_branch;
     const source = await run(root, ["for-each-ref", "--format=%(refname)%00%(upstream)%00%(upstream:remotename)%00%(upstream:remoteref)", ref]);
     const parts = source.trimEnd().split("\n").find((line) => line.split("\0")[0] === ref)?.split("\0");
-    if (!parts?.[1] || !parts[2] || !parts[3]?.startsWith("refs/heads/")) throw new Error("\u5F53\u524D\u5206\u652F\u5C1A\u672A\u914D\u7F6E\u6709\u6548\u4E0A\u6E38\uFF0C\u8BF7\u5148\u53D1\u5E03\u5206\u652F\u5E76\u8BBE\u7F6E\u4E0A\u6E38\u3002");
+    if (!parts?.[1] || !parts[2] || !parts[3]?.startsWith("refs/heads/")) throw new Error(git_graph_text("action.error.missing_upstream"));
     const remote_urls = parts[2] === "." ? "." : JSON.stringify(await Promise.all([
       run(root, ["remote", "get-url", "--all", parts[2]]),
       run(root, ["remote", "get-url", "--push", "--all", parts[2]])
@@ -189122,7 +190648,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     return { local_branch, upstream_ref: parts[1], remote: parts[2], remote_ref: parts[3], remote_urls };
   }
   async function plan_discard_changes(run, root, paths, include_untracked) {
-    if (!paths?.length || paths.some((file) => !file || file.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(file) || file.split(/[\\/]/u).some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git"))) throw new Error("\u653E\u5F03\u66F4\u6539\u5FC5\u987B\u63D0\u4F9B\u5206\u7EC4\u4E2D\u660E\u786E\u7684\u76F8\u5BF9\u6587\u4EF6\u8DEF\u5F84\uFF0C\u4E0D\u80FD\u4F7F\u7528\u76EE\u5F55\u3002");
+    if (!paths?.length || paths.some((file) => !file || file.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(file) || file.split(/[\\/]/u).some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git"))) throw new Error(git_graph_text("action.error.discard_paths"));
     const selected = [...new Set(paths)];
     const [index, working, untracked] = await Promise.all([
       run(root, ["ls-files", "--stage", "-z", "--", ...selected]),
@@ -189142,15 +190668,15 @@ var LinuxNoteTyporaEnhancements = (() => {
     for (const file of selected) {
       const stages = entries3.get(file);
       if (stages) {
-        if (stages.length !== 1 || !stages[0].endsWith(" 0")) throw new Error("\u6587\u4EF6\u5B58\u5728\u672A\u89E3\u51B3\u51B2\u7A81\uFF0C\u8BF7\u5148\u5904\u7406\uFF1A".concat(JSON.stringify(file)));
-        if (stages[0].startsWith("160000 ")) throw new Error("\u5B50\u6A21\u5757\u9700\u8981\u8FDB\u5165\u5176\u4ED3\u5E93\u5904\u7406\uFF0C\u672A\u653E\u5F03\u66F4\u6539\uFF1A".concat(JSON.stringify(file)));
-        if (!changed.has(file)) throw new Error("\u6587\u4EF6\u5DF2\u6CA1\u6709\u672A\u6682\u5B58\u66F4\u6539\uFF0C\u8BF7\u5237\u65B0\uFF1A".concat(JSON.stringify(file)));
+        if (stages.length !== 1 || !stages[0].endsWith(" 0")) throw new Error(git_graph_text("action.error.unresolved_conflict", { file: JSON.stringify(file) }));
+        if (stages[0].startsWith("160000 ")) throw new Error(git_graph_text("action.error.submodule", { file: JSON.stringify(file) }));
+        if (!changed.has(file)) throw new Error(git_graph_text("action.error.no_unstaged_changes", { file: JSON.stringify(file) }));
         restore_paths.push(file);
       } else if (others.has(file)) {
         if (include_untracked) untracked_paths.push(file);
-      } else throw new Error("\u6587\u4EF6\u5DF2\u6539\u53D8\u3001\u88AB\u5FFD\u7565\u6216\u4E0D\u662F\u72EC\u7ACB\u6587\u4EF6\uFF0C\u8BF7\u5237\u65B0\uFF1A".concat(JSON.stringify(file)));
+      } else throw new Error(git_graph_text("action.error.file_state_changed", { file: JSON.stringify(file) }));
     }
-    if (!restore_paths.length && !untracked_paths.length) throw new Error("\u6CA1\u6709\u6240\u9009\u7C7B\u578B\u7684\u66F4\u6539\u53EF\u653E\u5F03\u3002");
+    if (!restore_paths.length && !untracked_paths.length) throw new Error(git_graph_text("action.error.nothing_to_discard"));
     const untracked_guards = await Promise.all(untracked_paths.map((file) => run(root, ["hash-object", "--no-filters", "--", file])));
     return { restore_paths, untracked_paths, untracked_guards };
   }
@@ -189169,33 +190695,33 @@ var LinuxNoteTyporaEnhancements = (() => {
     return JSON.stringify([head, status2, refs, working, staged, remotes]);
   }
   async function plan_git_action(run, id, context, values) {
-    const action = graph_actions.find((item) => item.id === id);
-    if (!action) throw new Error("\u672A\u77E5 Git \u64CD\u4F5C\u3002");
+    const action = graph_actions_for().find((item) => item.id === id);
+    if (!action) throw new Error(git_graph_text("action.error.unknown_action"));
     for (const item of action.fields) {
       const value2 = values[item.key];
-      if (item.type === "choice" && !item.choices?.includes(String(value2))) throw new Error("\u9009\u9879\u65E0\u6548\uFF1A".concat(item.title));
-      if (item.type === "boolean" && typeof value2 !== "boolean") throw new Error("\u9009\u9879\u65E0\u6548\uFF1A".concat(item.title));
+      if (item.type === "choice" && !item.choices?.includes(String(value2))) throw new Error(git_graph_text("action.error.invalid_option", { field: item.title }));
+      if (item.type === "boolean" && typeof value2 !== "boolean") throw new Error(git_graph_text("action.error.invalid_option", { field: item.title }));
     }
     const { root } = context;
     const file_action = ["stage", "unstage", "discard_file", "delete_untracked"].includes(id);
-    const target = file_action ? context.target : text_value(context.target, "\u76EE\u6807", false);
-    if (target.includes("\0") || file_action && !target) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
+    const target = file_action ? context.target : text_value(context.target, git_graph_text("action.label.target"), false);
+    if (target.includes("\0") || file_action && !target) throw new Error(git_graph_text("action.error.invalid_file_path"));
     const paths = context.paths || [target];
-    if ((file_action || context.paths) && (!paths.length || paths.some((path) => !path || path.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(path) || path.split(/[\\/]/u).includes("..")))) throw new Error("\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
-    const hash2 = text_value(context.hash, "\u63D0\u4EA4", false);
+    if ((file_action || context.paths) && (!paths.length || paths.some((path) => !path || path.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(path) || path.split(/[\\/]/u).includes("..")))) throw new Error(git_graph_text("action.error.invalid_file_path"));
+    const hash2 = text_value(context.hash, git_graph_text("action.label.commit"), false);
     const value = (key, required = true) => {
-      if (key !== "message" && key !== "todo") return text_value(values[key], key, required);
+      if (key !== "message" && key !== "todo") return text_value(values[key], action.fields.find((item) => item.key === key)?.title || key, required);
       const message = typeof values[key] === "string" ? values[key].trim() : "";
-      if (required && !message || message.includes("\0")) throw new Error("\u63D0\u4EA4\u8BF4\u660E\u65E0\u6548\u3002");
+      if (required && !message || message.includes("\0")) throw new Error(git_graph_text("action.error.invalid_commit_message"));
       return message;
     };
-    const remote2 = () => value("remote");
-    const branch2 = () => valid_ref(run, root, values.branch);
+    const remote = () => value("remote");
+    const branch = () => valid_ref(run, root, values.branch);
     const flag = (key) => values[key] === true;
     const sign = context.sign_commits ? ["-S"] : [];
     const mainline = () => {
       const n2 = value("mainline", false);
-      if (n2 && !/^[1-9]\d*$/u.test(n2)) throw new Error("\u7236\u7F16\u53F7\u5FC5\u987B\u4E3A\u6B63\u6574\u6570\u3002");
+      if (n2 && !/^[1-9]\d*$/u.test(n2)) throw new Error(git_graph_text("action.error.invalid_mainline"));
       return n2 ? ["-m", n2] : [];
     };
     let args;
@@ -189204,7 +190730,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     let discard;
     switch (id) {
       case "branch_create": {
-        const name = await branch2();
+        const name = await branch();
         args = flag("checkout") ? ["checkout", "-b", name, hash2] : ["branch", name, hash2];
         break;
       }
@@ -189212,19 +190738,19 @@ var LinuxNoteTyporaEnhancements = (() => {
         args = ["checkout", target];
         break;
       case "remote_checkout":
-        args = ["checkout", "-b", await branch2(), "--track", target];
+        args = ["checkout", "-b", await branch(), "--track", target];
         break;
       case "branch_rename":
-        args = ["branch", "-m", target, await branch2()];
+        args = ["branch", "-m", target, await branch()];
         break;
       case "branch_delete":
         args = ["branch", flag("force") ? "-D" : "-d", target];
         break;
       case "remote_branch_delete":
-        args = ["push", remote2(), "--delete", await branch2()];
+        args = ["push", remote(), "--delete", await branch()];
         break;
       case "branch_fetch":
-        args = ["fetch", ...flag("force") ? ["--force"] : [], remote2(), "".concat(await valid_ref(run, root, values.source), ":").concat(await branch2())];
+        args = ["fetch", ...flag("force") ? ["--force"] : [], remote(), "".concat(await valid_ref(run, root, values.source), ":").concat(await branch())];
         break;
       case "merge":
         args = ["merge", ...sign, ...values.mode === "normal" ? [] : ["--" + value("mode")], ...flag("no_commit") ? ["--no-commit"] : ["--no-edit"], hash2];
@@ -189232,23 +190758,23 @@ var LinuxNoteTyporaEnhancements = (() => {
       case "rebase": {
         args = ["rebase", ...context.sign_commits ? ["--gpg-sign"] : [], ...flag("ignore_date") ? ["--ignore-date"] : [], ...flag("preserve_merges") ? ["--rebase-merges"] : [], ...flag("interactive") ? ["--interactive"] : [], hash2];
         if (flag("interactive")) {
-          if (flag("preserve_merges")) throw new Error("\u4EA4\u4E92\u5217\u8868\u7F16\u8F91\u7EBF\u6027\u63D0\u4EA4\uFF1B\u4FDD\u7559\u5408\u5E76\u7ED3\u6784\u8BF7\u53D6\u6D88\u4EA4\u4E92\u9009\u9879\u3002");
+          if (flag("preserve_merges")) throw new Error(git_graph_text("action.error.interactive_preserve_merges"));
           const commits = (await run(root, ["rev-list", "--reverse", "--no-merges", "".concat(hash2, "..HEAD")])).trim().split("\n").filter(Boolean);
           todo = value("todo");
           const seen = /* @__PURE__ */ new Set();
           for (const line of todo.split(/\r?\n/u)) {
             const match2 = /^(pick|reword|edit|squash|fixup|drop) ([a-f\d]{40}(?:[a-f\d]{24})?)(?: (.*))?$/u.exec(line.trim());
-            if (!match2 || !commits.includes(match2[2]) || seen.has(match2[2])) throw new Error("\u4EA4\u4E92\u5217\u8868\u5305\u542B\u65E0\u6548\u3001\u91CD\u590D\u6216\u8303\u56F4\u5916\u63D0\u4EA4\u3002");
-            if (!seen.size && ["squash", "fixup"].includes(match2[1])) throw new Error("\u9996\u6761\u4E0D\u80FD\u5408\u5E76\u5230\u5C1A\u4E0D\u5B58\u5728\u7684\u524D\u4E00\u63D0\u4EA4\u3002");
-            if (match2[1] === "reword" && !match2[3]?.trim()) throw new Error("reword \u540E\u987B\u586B\u5199\u65B0\u7684\u63D0\u4EA4\u6807\u9898\u3002");
+            if (!match2 || !commits.includes(match2[2]) || seen.has(match2[2])) throw new Error(git_graph_text("action.error.invalid_todo_commit"));
+            if (!seen.size && ["squash", "fixup"].includes(match2[1])) throw new Error(git_graph_text("action.error.invalid_todo_first_command"));
+            if (match2[1] === "reword" && !match2[3]?.trim()) throw new Error(git_graph_text("action.error.reword_subject_required"));
             seen.add(match2[2]);
           }
-          if (seen.size !== commits.length) throw new Error("\u4EA4\u4E92\u5217\u8868\u5FC5\u987B\u5217\u51FA\u8303\u56F4\u5185\u6BCF\u6761\u63D0\u4EA4\uFF1B\u5220\u9664\u63D0\u4EA4\u8BF7\u663E\u5F0F\u4F7F\u7528 drop\u3002");
+          if (seen.size !== commits.length) throw new Error(git_graph_text("action.error.incomplete_todo"));
         }
         break;
       }
       case "reset":
-        if (!["soft", "mixed", "hard"].includes(value("mode"))) throw new Error("\u91CD\u7F6E\u65B9\u5F0F\u65E0\u6548\u3002");
+        if (!["soft", "mixed", "hard"].includes(value("mode"))) throw new Error(git_graph_text("action.error.invalid_reset_mode"));
         args = ["reset", "--" + value("mode"), hash2 || "HEAD"];
         break;
       case "commit_checkout":
@@ -189261,7 +190787,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       case "drop": {
         await run(root, ["merge-base", "--is-ancestor", hash2, "HEAD"]);
         const parents = (await run(root, ["show", "-s", "--format=%P", hash2])).trim().split(" ").filter(Boolean);
-        if (parents.length !== 1) throw new Error("\u79FB\u9664\u64CD\u4F5C\u8981\u6C42\u6240\u9009\u63D0\u4EA4\u6709\u4E00\u4E2A\u7236\u63D0\u4EA4\uFF1B\u6839\u63D0\u4EA4\u6216\u5408\u5E76\u63D0\u4EA4\u8BF7\u4F7F\u7528\u663E\u5F0F rebase / revert\u3002");
+        if (parents.length !== 1) throw new Error(git_graph_text("action.error.invalid_drop_commit"));
         args = ["rebase", "--rebase-merges", "--onto", parents[0], hash2];
         break;
       }
@@ -189276,23 +190802,23 @@ var LinuxNoteTyporaEnhancements = (() => {
         args = ["tag", "-d", target];
         break;
       case "tag_push":
-        args = ["push", remote2(), "refs/tags/".concat(target)];
+        args = ["push", remote(), "refs/tags/".concat(target)];
         break;
       case "fetch":
         args = ["fetch", ...flag("prune") ? ["--prune"] : [], ...flag("prune_tags") ? ["--prune-tags"] : [], ...value("remote", false) ? [value("remote")] : ["--all"]];
         break;
       case "pull":
-        args = ["pull", ...sign, ...values.mode === "rebase" ? ["--rebase"] : values.mode === "ff-only" ? ["--ff-only"] : ["--no-rebase", "--no-edit", ...values.mode === "merge" ? [] : ["--" + value("mode")]], remote2(), await branch2()];
+        args = ["pull", ...sign, ...values.mode === "rebase" ? ["--rebase"] : values.mode === "ff-only" ? ["--ff-only"] : ["--no-rebase", "--no-edit", ...values.mode === "merge" ? [] : ["--" + value("mode")]], remote(), await branch()];
         break;
       case "sync": {
-        if (context.operation) throw new Error("\u8BF7\u5148\u5B8C\u6210\u6216\u4E2D\u6B62\u5F53\u524D Git \u64CD\u4F5C\uFF0C\u518D\u540C\u6B65\u66F4\u6539\u3002");
+        if (context.operation) throw new Error(git_graph_text("action.error.operation_blocks_sync"));
         const target2 = await read_sync_target(run, root);
         args = ["pull", ...sign, ...values.mode === "rebase" ? ["--rebase"] : values.mode === "ff-only" ? ["--ff-only"] : ["--no-rebase", "--no-edit"], target2.remote, target2.remote_ref];
         sync = { target: target2, push_args: ["push", target2.remote, "refs/heads/".concat(target2.local_branch, ":").concat(target2.remote_ref)] };
         break;
       }
       case "push":
-        args = ["push", ...flag("upstream") ? ["--set-upstream"] : [], ...flag("force_lease") ? ["--force-with-lease"] : [], remote2(), await branch2()];
+        args = ["push", ...flag("upstream") ? ["--set-upstream"] : [], ...flag("force_lease") ? ["--force-with-lease"] : [], remote(), await branch()];
         break;
       case "stash_create":
         args = ["stash", "push", ...flag("untracked") ? ["--include-untracked"] : [], ...flag("keep_index") ? ["--keep-index"] : [], ...value("message", false) ? ["-m", value("message")] : []];
@@ -189301,9 +190827,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       case "stash_pop":
       case "stash_drop":
       case "stash_branch":
-        if (!/^stash@\{\d+\}$/u.test(target)) throw new Error("Stash \u5F15\u7528\u65E0\u6548\uFF0C\u8BF7\u5237\u65B0\u3002");
-        if ((await run(root, ["rev-parse", target])).trim() !== hash2) throw new Error("Stash \u5217\u8868\u5DF2\u6539\u53D8\uFF0C\u8BF7\u5237\u65B0\u3002");
-        args = ["stash", id.slice(6), ...id === "stash_branch" ? [await branch2()] : flag("index") ? ["--index"] : [], target];
+        if (!/^stash@\{\d+\}$/u.test(target)) throw new Error(git_graph_text("action.error.invalid_stash"));
+        if ((await run(root, ["rev-parse", target])).trim() !== hash2) throw new Error(git_graph_text("action.error.stash_changed"));
+        args = ["stash", id.slice(6), ...id === "stash_branch" ? [await branch()] : flag("index") ? ["--index"] : [], target];
         break;
       case "clean":
         args = ["clean", "-f", ...flag("directories") ? ["-d"] : [], ...flag("ignored") ? ["-x"] : []];
@@ -189312,16 +190838,16 @@ var LinuxNoteTyporaEnhancements = (() => {
         args = ["clone", "--", value("url"), value("directory")];
         break;
       case "remote_add":
-        args = ["remote", "add", remote2(), value("url")];
+        args = ["remote", "add", remote(), value("url")];
         break;
       case "remote_edit":
-        args = ["remote", "set-url", ...flag("push_url") ? ["--push"] : [], remote2(), value("url")];
+        args = ["remote", "set-url", ...flag("push_url") ? ["--push"] : [], remote(), value("url")];
         break;
       case "remote_remove":
-        args = ["remote", "remove", remote2()];
+        args = ["remote", "remove", remote()];
         break;
       case "remote_prune":
-        args = ["remote", "prune", remote2()];
+        args = ["remote", "prune", remote()];
         break;
       case "stage":
         args = ["add", "--", ...paths];
@@ -189362,17 +190888,28 @@ var LinuxNoteTyporaEnhancements = (() => {
       case "continue":
       case "abort":
       case "skip":
-        if (!["merge", "rebase", "cherry-pick", "revert"].includes(context.operation)) throw new Error("\u6CA1\u6709\u53EF\u7EE7\u7EED\u6216\u4E2D\u6B62\u7684\u64CD\u4F5C\u3002");
-        if (context.operation === "merge" && id === "skip") throw new Error("\u5408\u5E76\u64CD\u4F5C\u4E0D\u652F\u6301\u8DF3\u8FC7\u3002");
+        if (!["merge", "rebase", "cherry-pick", "revert"].includes(context.operation)) throw new Error(git_graph_text("action.error.no_operation"));
+        if (context.operation === "merge" && id === "skip") throw new Error(git_graph_text("action.error.merge_cannot_skip"));
         args = [context.operation, "--" + id];
         break;
       default:
-        throw new Error("\u64CD\u4F5C\u5C1A\u672A\u6CE8\u518C\u3002");
+        throw new Error(git_graph_text("action.error.unregistered"));
     }
-    if (args.some((arg) => arg.includes("\0"))) throw new Error("Git \u53C2\u6570\u5305\u542B\u65E0\u6548\u5B57\u7B26\u3002");
+    if (args.some((arg) => arg.includes("\0"))) throw new Error(git_graph_text("action.error.invalid_git_argument"));
     let preview = "git " + args.map((arg) => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" ");
-    if (sync) preview = "\u786E\u8BA4\u540C\u6B65\u672C\u5730\u5206\u652F ".concat(sync.target.local_branch, " \u4E0E ").concat(sync.target.remote, "/").concat(sync.target.remote_ref.slice(11), "\u3002\n\u5148\u62C9\u53D6\u5E76\u6574\u5408\u8FDC\u7AEF\u63D0\u4EA4\uFF1B\u6210\u529F\u540E\u63A8\u9001\u5C1A\u672A\u53D1\u5E03\u7684\u63D0\u4EA4\u3002\u62C9\u53D6\u5931\u8D25\u6216\u53D1\u751F\u51B2\u7A81\u65F6\u505C\u6B62\uFF0C\u4E0D\u6267\u884C\u63A8\u9001\u3002\n\n1. ").concat(preview, "\n2. git ").concat(sync.push_args.map((arg) => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" "), "\n\n\u6CA1\u6709\u5F85\u63A8\u9001\u63D0\u4EA4\u65F6\u8DF3\u8FC7\u7B2C\u4E8C\u6B65\u3002");
-    if (discard) preview = ["\u6062\u590D\u5230\u6682\u5B58\u533A\u7248\u672C\uFF08".concat(discard.restore_paths.length, " \u4E2A\u6587\u4EF6\uFF09\uFF1A"), ...discard.restore_paths.map((file) => "  \u6062\u590D\uFF1A" + JSON.stringify(file)), "\n\u79FB\u5165\u7CFB\u7EDF\u56DE\u6536\u7AD9\uFF08".concat(discard.untracked_paths.length, " \u4E2A\u672A\u8DDF\u8E2A\u6587\u4EF6\uFF09\uFF1A"), ...discard.untracked_paths.map((file) => "  \u56DE\u6536\uFF1A" + JSON.stringify(file)), ...args.length ? ["\n" + preview] : [], "\n\u4EC5\u5904\u7406\u4E0A\u8FF0\u7CBE\u786E\u6587\u4EF6\uFF1B\u4E0D\u4F1A\u53D6\u6D88\u6682\u5B58\uFF0C\u4E0D\u4F1A\u6E05\u7406\u5176\u4ED6\u6587\u4EF6\u3002"].join("\n");
+    if (sync) preview = git_graph_text("action.preview.sync", {
+      local_branch: sync.target.local_branch,
+      remote_branch: "".concat(sync.target.remote, "/").concat(sync.target.remote_ref.slice(11)),
+      pull_command: preview,
+      push_command: "git " + sync.push_args.map((arg) => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" ")
+    });
+    if (discard) preview = git_graph_text("action.preview.discard", {
+      restore_count: discard.restore_paths.length,
+      restore_lines: discard.restore_paths.map((file) => git_graph_text("action.preview.restore_file", { file: JSON.stringify(file) })).join("\n"),
+      untracked_count: discard.untracked_paths.length,
+      untracked_lines: discard.untracked_paths.map((file) => git_graph_text("action.preview.recycle_file", { file: JSON.stringify(file) })).join("\n"),
+      command: args.length ? "\n\n" + preview : ""
+    });
     if (id === "clean") preview += "\n\n" + await run(root, args.map((arg) => arg === "-f" ? "-n" : arg));
     if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
     if (todo) preview += "\n\n" + todo;
@@ -189381,37 +190918,37 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
   async function execute_git_action(run, plan, can_change_files, services = {}) {
     const root = plan.context.root;
-    if (busy_repositories.has(root)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709\u64CD\u4F5C\u5728\u6267\u884C\u3002");
+    if (busy_repositories.has(root)) throw new Error(git_graph_text("action.error.busy"));
     busy_repositories.add(root);
     try {
-      if (plan.action.touches_files && !can_change_files()) throw new Error("\u5F53\u524D Typora \u6587\u6863\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002\u8BF7\u5148\u4FDD\u5B58\uFF0C\u518D\u6267\u884C\u4F1A\u6539\u53D8\u5DE5\u4F5C\u533A\u6587\u4EF6\u7684\u64CD\u4F5C\u3002");
-      if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error("\u4ED3\u5E93\u5DF2\u88AB\u5176\u4ED6\u7A0B\u5E8F\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u64CD\u4F5C\u3002");
-      if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error("\u672A\u8DDF\u8E2A\u6587\u4EF6\u5185\u5BB9\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u3002 ");
+      if (plan.action.touches_files && !can_change_files()) throw new Error(git_graph_text("action.error.unsaved_document"));
+      if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error(git_graph_text("action.error.repository_changed"));
+      if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error(git_graph_text("action.error.untracked_changed"));
       if (plan.discard) {
         const { restore_paths, untracked_paths, untracked_guards } = plan.discard;
-        if (untracked_paths.length && !services.trash_files) throw new Error("\u7CFB\u7EDF\u56DE\u6536\u7AD9\u4E0D\u53EF\u7528\uFF0C\u672A\u653E\u5F03\u4EFB\u4F55\u66F4\u6539\u3002\u8BF7\u53D6\u6D88\u5305\u542B\u672A\u8DDF\u8E2A\u6587\u4EF6\u540E\u91CD\u65B0\u9884\u89C8\u3002");
+        if (untracked_paths.length && !services.trash_files) throw new Error(git_graph_text("action.error.recycle_unavailable"));
         const current_guards = await Promise.all(untracked_paths.map((file) => run(root, ["hash-object", "--no-filters", "--", file])));
-        if (current_guards.some((guard, index) => guard !== untracked_guards[index])) throw new Error("\u672A\u8DDF\u8E2A\u6587\u4EF6\u5185\u5BB9\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u653E\u5F03\u66F4\u6539\u3002");
+        if (current_guards.some((guard, index) => guard !== untracked_guards[index])) throw new Error(git_graph_text("action.error.untracked_changed"));
         if (restore_paths.length) await run(root, plan.args);
         try {
           if (untracked_paths.length) await services.trash_files(root, untracked_paths);
         } catch (error) {
-          throw new Error("\u5DF2\u6062\u590D ".concat(restore_paths.length, " \u4E2A\u5DF2\u8DDF\u8E2A\u6587\u4EF6\uFF1B\u79FB\u5165\u56DE\u6536\u7AD9\u5931\u8D25\uFF0C\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002\u8BF7\u68C0\u67E5\u6587\u4EF6\u72B6\u6001\uFF1A").concat(String(error instanceof Error ? error.message : error)));
+          throw new Error(git_graph_text("action.error.trash_failed", { restored: restore_paths.length, error: String(error instanceof Error ? error.message : error) }));
         }
-        return "\u5DF2\u6062\u590D ".concat(restore_paths.length, " \u4E2A\u6587\u4EF6\uFF0C").concat(untracked_paths.length, " \u4E2A\u672A\u8DDF\u8E2A\u6587\u4EF6\u5DF2\u79FB\u5165\u56DE\u6536\u7AD9\u3002\u6682\u5B58\u5185\u5BB9\u672A\u6539\u53D8\u3002");
+        return git_graph_text("action.result.discard", { restored: restore_paths.length, untracked: untracked_paths.length });
       }
       if (plan.sync) {
         const guard = JSON.stringify(plan.sync.target);
-        if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error("\u5F53\u524D\u5206\u652F\u6216\u4E0A\u6E38\u914D\u7F6E\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u540C\u6B65\u3002");
+        if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(git_graph_text("action.error.sync_target_changed"));
         const pulled = await run(root, plan.args);
-        if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error("\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u5F53\u524D\u5206\u652F\u6216\u4E0A\u6E38\u914D\u7F6E\u53D1\u751F\u6539\u53D8\uFF0C\u5DF2\u505C\u6B62\u63A8\u9001\u3002\u8BF7\u5237\u65B0\u5E76\u91CD\u65B0\u540C\u6B65\u3002");
+        if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(git_graph_text("action.error.sync_target_changed_after_pull"));
         const ahead = Number((await run(root, ["rev-list", "--count", "FETCH_HEAD..HEAD"])).trim());
-        if (!Number.isSafeInteger(ahead) || ahead < 0) throw new Error("\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u65E0\u6CD5\u786E\u8BA4\u5F85\u63A8\u9001\u63D0\u4EA4\uFF0C\u5DF2\u505C\u6B62\u63A8\u9001\u3002");
-        if (!ahead) return pulled + "\n\u540C\u6B65\u5B8C\u6210\uFF0C\u6CA1\u6709\u5F85\u63A8\u9001\u63D0\u4EA4\u3002";
+        if (!Number.isSafeInteger(ahead) || ahead < 0) throw new Error(git_graph_text("action.error.invalid_ahead_count"));
+        if (!ahead) return pulled + "\n" + git_graph_text("action.result.sync_no_push");
         try {
           return pulled + "\n" + await run(root, plan.sync.push_args);
         } catch (error) {
-          throw new Error("\u5DF2\u5B8C\u6210\u62C9\u53D6\uFF0C\u4F46\u63A8\u9001\u5931\u8D25\uFF1A" + String(error instanceof Error ? error.message : error));
+          throw new Error(git_graph_text("action.error.push_after_pull_failed", { error: String(error instanceof Error ? error.message : error) }));
         }
       }
       return await run(root, plan.args, { todo: plan.todo });
@@ -189426,25 +190963,25 @@ var LinuxNoteTyporaEnhancements = (() => {
   var git_scm_history = class {
     constructor(owner) {
       this.owner = owner;
-      this.container.setAttribute("aria-label", "\u63D0\u4EA4\u56FE");
+      this.container.setAttribute("aria-label", git_graph_text("history.graph"));
       this.container.setAttribute("data-linux-note-scm-history", "ready");
-      this.toggle = workspace_button("\u63D0\u4EA4\u56FE", () => owner.toggle_history(), "git-scm-history-toggle");
+      this.toggle = workspace_button(git_graph_text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle");
       this.toggle.prepend(git_disclosure());
-      this.toggle.title = "\u5C55\u5F00\u6216\u6298\u53E0\u63D0\u4EA4\u56FE\uFF1B\u53F3\u952E\u7B5B\u9009\u5206\u652F";
+      this.toggle.title = git_graph_text("history.toggle_help");
       this.toggle.setAttribute("aria-expanded", "true");
       this.toggle.append(this.count);
-      const refresh = git_icon_button("refresh", "\u5237\u65B0\u63D0\u4EA4\u5386\u53F2", () => void owner.panel.refresh(false), "git-scm-history-refresh");
-      const current = git_icon_button("target", "\u5B9A\u4F4D\u5F53\u524D\u63D0\u4EA4\uFF08HEAD\uFF09", () => void this.reveal_head(), "git-scm-history-head");
-      const launch = git_icon_button("link-external", "\u5728\u7F16\u8F91\u533A\u6253\u5F00\u63D0\u4EA4\u56FE", () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
-      const branches = git_icon_button("git-branch", "\u7B5B\u9009\u63D0\u4EA4\u5386\u53F2\u5206\u652F", () => {
+      const refresh = git_icon_button("refresh", git_graph_text("history.refresh"), () => void owner.panel.refresh(false), "git-scm-history-refresh");
+      const current = git_icon_button("target", git_graph_text("history.reveal_head"), () => void this.reveal_head(), "git-scm-history-head");
+      const launch = git_icon_button("link-external", git_graph_text("history.open_in_editor"), () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
+      const branches = git_icon_button("git-branch", git_graph_text("history.filter_branches"), () => {
       }, "git-scm-history-branches");
       branches.onclick = (event) => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
-      const more = git_icon_button("more", "\u66F4\u591A\u63D0\u4EA4\u56FE\u64CD\u4F5C", () => {
+      const more = git_icon_button("more", git_graph_text("history.more"), () => {
       }, "git-scm-history-more-menu");
       more.onclick = (event) => this.more_menu(event);
       const tools = workspace_element("span", "git-scm-history-toolbar");
-      const network = [["fetch", "git-fetch", "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0"], ["pull", "repo-pull", "\u62C9\u53D6\u5E76\u6574\u5408\u8FDC\u7AEF\u66F4\u65B0"], ["push", "repo-push", "\u63A8\u9001\u5F53\u524D\u5206\u652F"]].map(([id, icon, title]) => {
-        const action = git_icon_button(icon, title, () => this.network_action(id), "git-scm-history-network");
+      const network = [["fetch", "git-fetch", "history.fetch"], ["pull", "repo-pull", "history.pull"], ["push", "repo-push", "history.push"]].map(([id, icon, title_key]) => {
+        const action = git_icon_button(icon, git_graph_text(title_key), () => this.network_action(id), "git-scm-history-network");
         action.setAttribute("data-history-action", id);
         return action;
       });
@@ -189453,7 +190990,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.header.append(this.toggle, tools);
       this.container.append(this.header, this.list);
       this.header.oncontextmenu = (event) => this.more_menu(event);
-      this.list.setAttribute("aria-label", "\u63D0\u4EA4\u5386\u53F2");
+      this.list.setAttribute("aria-label", git_graph_text("history.commit_history"));
       this.list.addEventListener("keydown", (event) => {
         if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
         const target = event.target;
@@ -189490,10 +191027,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         void panel.refresh();
       };
       return [
-        { id: "all_branches", title: "\u5168\u90E8\u5206\u652F", checked: !panel.branches.length, action: () => select([]) },
-        { id: "current_branch", title: "\u5F53\u524D HEAD", checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"]) },
+        { id: "all_branches", title: git_graph_text("history.all_branches"), checked: !panel.branches.length, action: () => select([]) },
+        { id: "current_branch", title: git_graph_text("history.current_head"), checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"]) },
         ...(panel.state?.refs || []).filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: ref.name.slice(11), checked: panel.branches.length === 1 && panel.branches[0] === ref.name, action: () => select([ref.name]) })),
-        { id: "multiple_branches", title: "\u9009\u62E9\u591A\u4E2A\u5206\u652F\u2026", separator: true, action: () => panel.filter_branches() }
+        { id: "multiple_branches", title: git_graph_text("history.select_branches"), separator: true, action: () => panel.filter_branches() }
       ];
     }
     network_action(id) {
@@ -189507,15 +191044,15 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (panel.state) this.render(panel.state);
       };
       panel.configured_menu(event, "scm_history_toolbar", [
-        { id: "history_list", title: "\u4EE5\u5217\u8868\u663E\u793A", checked: !this.owner.history_tree, action: () => set_tree(false) },
-        { id: "history_tree", title: "\u4EE5\u6811\u5F62\u663E\u793A", checked: this.owner.history_tree, action: () => set_tree(true) },
-        { id: "branches", title: "\u5206\u652F\u8303\u56F4", children: this.branch_entries(), separator: true, action() {
+        { id: "history_list", title: git_graph_text("history.list_view"), checked: !this.owner.history_tree, action: () => set_tree(false) },
+        { id: "history_tree", title: git_graph_text("history.tree_view"), checked: this.owner.history_tree, action: () => set_tree(true) },
+        { id: "branches", title: git_graph_text("history.branch_scope"), children: this.branch_entries(), separator: true, action() {
         } },
-        { id: "head", title: "\u5B9A\u4F4D\u5F53\u524D\u63D0\u4EA4\uFF08HEAD\uFF09", action: () => void this.reveal_head() },
-        ...[["fetch", "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0\u2026"], ["pull", "\u62C9\u53D6\u2026"], ["push", "\u63A8\u9001\u2026"]].map(([id, title]) => ({ id, title, action: () => this.network_action(id) })),
-        { id: "refresh", title: "\u5237\u65B0\u63D0\u4EA4\u5386\u53F2", action: () => void panel.refresh(false) },
-        { id: "open_graph", title: "\u5728\u7F16\u8F91\u533A\u6253\u5F00\u63D0\u4EA4\u56FE", action: () => panel.host.show_history(panel.root) },
-        { id: "settings", title: "\u63D0\u4EA4\u56FE\u8BBE\u7F6E\u2026", separator: true, action: () => panel.settings_dialog() }
+        { id: "head", title: git_graph_text("history.reveal_head"), action: () => void this.reveal_head() },
+        ...[["fetch", "history.fetch_menu"], ["pull", "history.pull_menu"], ["push", "history.push_menu"]].map(([id, title_key]) => ({ id, title: git_graph_text(title_key), action: () => this.network_action(id) })),
+        { id: "refresh", title: git_graph_text("history.refresh"), action: () => void panel.refresh(false) },
+        { id: "open_graph", title: git_graph_text("history.open_in_editor"), action: () => panel.host.show_history(panel.root) },
+        { id: "settings", title: git_graph_text("history.settings"), separator: true, action: () => panel.settings_dialog() }
       ]);
     }
     reset() {
@@ -189530,7 +191067,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     async reveal_head() {
       const panel = this.owner.panel;
       if (!panel.state?.head) {
-        panel.report("\u6B64\u4ED3\u5E93\u5C1A\u65E0\u5F53\u524D\u63D0\u4EA4\u3002");
+        panel.report(git_graph_text("history.no_head"));
         return;
       }
       if (!panel.state.commits.some((commit) => commit.hash === panel.state.head)) {
@@ -189552,7 +191089,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
     }
     set_open(open) {
-      this.toggle.replaceChildren(git_disclosure(), document.createTextNode("\u63D0\u4EA4\u56FE"), this.count);
+      this.toggle.replaceChildren(git_disclosure(), document.createTextNode(git_graph_text("history.graph")), this.count);
       this.toggle.setAttribute("aria-expanded", String(open));
       this.list.hidden = !open;
     }
@@ -189621,14 +191158,14 @@ var LinuxNoteTyporaEnhancements = (() => {
           entry.append(expansion);
           if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash));
           else {
-            files.textContent = "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u6587\u4EF6\u2026";
+            files.textContent = git_graph_text("history.loading_files");
             void this.load_files(state, commit, files, epoch);
           }
         }
         fragment.append(entry);
       }
-      if (!state.commits.length) fragment.append(workspace_element("div", "git-scm-empty", state.head ? "\u5F53\u524D\u5206\u652F\u7B5B\u9009\u6CA1\u6709\u63D0\u4EA4\u3002" : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4\u3002"));
-      if (state.more) fragment.append(workspace_button("\u52A0\u8F7D\u66F4\u591A\u63D0\u4EA4", () => {
+      if (!state.commits.length) fragment.append(workspace_element("div", "git-scm-empty", state.head ? git_graph_text("history.no_filtered_commits") : git_graph_text("history.no_commits")));
+      if (state.more) fragment.append(workspace_button(git_graph_text("history.load_more"), () => {
         if (panel.pending) return;
         panel.count += panel.settings.page_count;
         void panel.refresh(false);
@@ -189671,7 +191208,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       } catch (error) {
         if (epoch === this.epoch) {
           target.textContent = String(error instanceof Error ? error.message : error);
-          target.append(workspace_button("\u91CD\u8BD5", () => {
+          target.append(workspace_button(git_graph_text("history.retry"), () => {
             const current = this.owner.panel.state;
             if (current) this.render(current);
           }));
@@ -189682,7 +191219,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       target.replaceChildren();
       const from = commit.parents[0] || EMPTY;
       target.setAttribute("role", "group");
-      target.setAttribute("aria-label", "".concat(files.length, " \u4E2A\u66F4\u6539\u6587\u4EF6").concat(commit.parents.length > 1 ? " \xB7 \u5BF9\u6BD4\u7B2C\u4E00\u4E2A\u7236\u63D0\u4EA4" : ""));
+      target.setAttribute("aria-label", git_graph_text("history.changed_files_aria", { count: files.length, parent: commit.parents.length > 1 ? git_graph_text("history.first_parent_suffix") : "" }));
       const directories = /* @__PURE__ */ new Map([["", target]]);
       const parent_for = (path) => {
         if (!this.owner.history_tree || !path) return target;
@@ -189788,22 +191325,26 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/git_source_control.ts
-  var short_revision = (revision) => ({ [EMPTY]: "\u7A7A\u6587\u4EF6", [INDEX]: "\u6682\u5B58\u533A", [WORKTREE]: "\u5DE5\u4F5C\u533A" })[revision] || revision.slice(0, 8);
+  var short_revision = (revision) => ({ [EMPTY]: git_graph_text("scm.revision.empty"), [INDEX]: git_graph_text("scm.revision.index"), [WORKTREE]: git_graph_text("scm.revision.worktree") })[revision] || revision.slice(0, 8);
+  var operation_label = (operation) => {
+    const key = { merge: "scm.operation.merge", rebase: "scm.operation.rebase", "cherry-pick": "scm.operation.cherry_pick", revert: "scm.operation.revert" }[operation];
+    return key ? git_graph_text(key) : operation;
+  };
   var git_source_control = class {
     constructor(panel) {
       this.panel = panel;
       this.sidebar.setAttribute("data-linux-note-source-control", "ready");
       this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
       const tools = workspace_element("div", "git-scm-tools");
-      tools.append(git_icon_button("refresh", "\u5237\u65B0\u6E90\u4EE3\u7801\u7BA1\u7406", () => void panel.refresh()), git_icon_button("more", "\u9009\u62E9\u6E90\u4EE3\u7801\u7BA1\u7406\u89C6\u56FE", () => {
+      tools.append(git_icon_button("refresh", git_graph_text("scm.refresh"), () => void panel.refresh()), git_icon_button("more", git_graph_text("scm.select_views"), () => {
       }));
       tools.children[1].addEventListener("click", (event) => this.view_menu(event));
       tools.children[1].classList.add("git-scm-view-menu");
-      tools.children[0].setAttribute("title", "\u5237\u65B0\u6E90\u4EE3\u7801\u7BA1\u7406");
-      tools.children[1].setAttribute("title", "\u9009\u62E9\u6E90\u4EE3\u7801\u7BA1\u7406\u89C6\u56FE");
+      tools.children[0].setAttribute("title", git_graph_text("scm.refresh"));
+      tools.children[1].setAttribute("title", git_graph_text("scm.select_views"));
       this.title.append(tools);
-      this.message.placeholder = "\u6D88\u606F\uFF08Ctrl+Enter \u63D0\u4EA4\uFF09";
-      this.message.setAttribute("aria-label", "\u63D0\u4EA4\u6D88\u606F");
+      this.message.placeholder = git_graph_text("scm.message_placeholder");
+      this.message.setAttribute("aria-label", git_graph_text("scm.commit_message"));
       this.message.rows = 1;
       this.message.oninput = () => {
         localStorage.setItem(this.storage_key("message"), this.message.value);
@@ -189824,42 +191365,42 @@ var LinuxNoteTyporaEnhancements = (() => {
         event.stopPropagation();
         if (!event.repeat) this.commit();
       };
-      const commit = workspace_button("\u63D0\u4EA4", () => this.commit(), "git-scm-commit git-labeled-button");
+      const commit = workspace_button(git_graph_text("scm.commit"), () => this.commit(), "git-scm-commit git-labeled-button");
       commit.prepend(git_icon("check"));
       commit.setAttribute("data-scm-action", "commit");
-      const commit_options = git_icon_button("chevron-down", "\u66F4\u591A\u63D0\u4EA4\u65B9\u5F0F", () => {
+      const commit_options = git_icon_button("chevron-down", git_graph_text("scm.more_commit_actions"), () => {
       }, "git-scm-commit-options");
       commit_options.onclick = (event) => panel.configured_menu(event, "scm_commit_options", [
-        { id: "commit", title: "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9", action: () => this.commit() },
-        { id: "commit_options", title: "\u6253\u5F00\u63D0\u4EA4\u9009\u9879\u2026", action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: false }) },
-        { id: "commit_amend", title: "\u4FEE\u6539\u4E0A\u4E00\u6B21\u63D0\u4EA4\u2026", disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }
+        { id: "commit", title: git_graph_text("scm.commit_staged"), action: () => this.commit() },
+        { id: "commit_options", title: git_graph_text("scm.open_commit_options"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: false }) },
+        { id: "commit_amend", title: git_graph_text("scm.amend_last_commit"), disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }
       ]);
       const commit_bar = workspace_element("div", "git-scm-commit-bar");
       commit_bar.append(commit, commit_options);
-      this.filter.placeholder = "\u7B5B\u9009\u66F4\u6539\u6587\u4EF6";
-      this.filter.setAttribute("aria-label", "\u7B5B\u9009\u66F4\u6539\u6587\u4EF6");
+      this.filter.placeholder = git_graph_text("scm.filter_changes");
+      this.filter.setAttribute("aria-label", git_graph_text("scm.filter_changes"));
       this.filter.oninput = () => this.render_groups();
-      this.repo_select.setAttribute("aria-label", "\u6E90\u4EE3\u7801\u7BA1\u7406\u4ED3\u5E93");
+      this.repo_select.setAttribute("aria-label", git_graph_text("scm.repository"));
       this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
-      this.changes_pane.setAttribute("aria-label", "\u5DE5\u4F5C\u533A\u66F4\u6539");
+      this.changes_pane.setAttribute("aria-label", git_graph_text("scm.working_tree_changes"));
       this.notice.setAttribute("role", "status");
       const input_heading = workspace_element("summary", "git-scm-input-heading");
-      const input_menu = git_icon_button("more", "\u66F4\u6539\u4E0E Git \u64CD\u4F5C", () => {
+      const input_menu = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
       }, "git-scm-operation-menu");
       input_menu.onclick = (event) => this.more_menu(event);
-      input_heading.append(git_disclosure(), workspace_element("span", "git-scm-input-title", "\u66F4\u6539"), this.branch, input_menu);
+      input_heading.append(git_disclosure(), workspace_element("span", "git-scm-input-title", git_graph_text("scm.changes")), this.branch, input_menu);
       const inputs = workspace_element("div", "git-scm-inputs");
       inputs.append(this.message, commit_bar);
       this.input_section.append(input_heading, inputs);
       this.input_section.ontoggle = () => this.save_layout();
-      const repo_heading = workspace_element("div", "git-scm-repositories-heading", "\u4ED3\u5E93");
-      const manage = git_icon_button("more", "\u7BA1\u7406\u4ED3\u5E93", () => panel.manage_repositories());
+      const repo_heading = workspace_element("div", "git-scm-repositories-heading", git_graph_text("scm.repositories"));
+      const manage = git_icon_button("more", git_graph_text("scm.manage_repositories"), () => panel.manage_repositories());
       repo_heading.append(manage);
       this.repositories_view.append(repo_heading, this.repo_select);
       this.changes_pane.append(this.input_section, this.filter, this.groups, this.notice);
       this.history = new git_scm_history(this);
       this.history_sash = create_workspace_sash({
-        label: "\u8C03\u6574\u66F4\u6539\u4E0E\u63D0\u4EA4\u56FE\u533A\u57DF\u9AD8\u5EA6",
+        label: git_graph_text("scm.resize_sections"),
         area: this.sections,
         vertical: () => false,
         ratio: () => this.history_ratio,
@@ -189884,7 +191425,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     filter = workspace_element("input", "git-scm-filter");
     message = workspace_element("textarea", "git-scm-message");
     branch = workspace_element("div", "git-scm-branch");
-    title = workspace_element("div", "git-scm-title", "\u6E90\u4EE3\u7801\u7BA1\u7406");
+    title = workspace_element("div", "git-scm-title", git_graph_text("scm.source_control"));
     repo_select = workspace_element("select", "git-scm-repository");
     notice = workspace_element("div", "git-scm-notice");
     sections = workspace_element("div", "git-scm-sections");
@@ -189947,7 +191488,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.message.style.overflowY = height > 120 ? "auto" : "hidden";
     }
     view_menu(event) {
-      const views = [["show_repositories", "\u4ED3\u5E93"], ["show_changes", "\u66F4\u6539"], ["show_history", "\u63D0\u4EA4\u56FE"]];
+      const views = [["show_repositories", git_graph_text("scm.repositories")], ["show_changes", git_graph_text("scm.changes")], ["show_history", git_graph_text("scm.graph")]];
       const count = views.filter(([key]) => this[key]).length;
       this.panel.configured_menu(event, "source_control_views", views.map(([key, title]) => ({ id: key, title, checked: this[key], disabled: count === 1 && this[key], action: () => {
         this[key] = !this[key];
@@ -189976,7 +191517,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     commit() {
       if (!this.message.value.trim()) {
         this.message.focus();
-        this.panel.report("\u8BF7\u5148\u8F93\u5165\u63D0\u4EA4\u6D88\u606F\u3002");
+        this.panel.report(git_graph_text("scm.message_required"));
         return;
       }
       void this.panel.quick_action("commit", [], { message: this.message.value, amend: false });
@@ -189989,19 +191530,19 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.history.render(state);
       this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map((item) => item.cloneNode(true)));
       this.repo_select.value = this.panel.root;
-      this.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-branch-label", "".concat(state.branch || "\u6E38\u79BB HEAD").concat(state.operation ? " \xB7 " + state.operation : "")));
+      this.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-branch-label", "".concat(state.branch || git_graph_text("scm.detached_head")).concat(state.operation ? " \xB7 " + operation_label(state.operation) : "")));
       this.branch.title = this.panel.root;
       this.branch.onclick = (event) => this.panel.configured_menu(event, "checkout", [
-        ...state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: "\u68C0\u51FA " + ref.name.slice(11), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash) })),
-        { id: "branch_create", title: "\u521B\u5EFA\u5206\u652F\u2026", separator: true, disabled: !state.head, action: () => this.panel.action_dialog("branch_create", "commit", state.head, state.head) }
+        ...state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: git_graph_text("scm.checkout_branch", { branch: ref.name.slice(11) }), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash) })),
+        { id: "branch_create", title: git_graph_text("scm.create_branch"), separator: true, disabled: !state.head, action: () => this.panel.action_dialog("branch_create", "commit", state.head, state.head) }
       ]);
       try {
         const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
         if (epoch !== this.groups_epoch || state !== this.panel.state) return;
         const conflicts = new Set(state.changes.filter((file) => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map((file) => file.path));
         this.groups_state = [
-          { id: "staged", title: "\u6682\u5B58\u7684\u66F4\u6539", from: state.head || EMPTY, to: INDEX, files: staged.filter((file) => !conflicts.has(file.path)) },
-          { id: "changes", title: "\u66F4\u6539", from: INDEX, to: WORKTREE, files: unstaged }
+          { id: "staged", title: git_graph_text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter((file) => !conflicts.has(file.path)) },
+          { id: "changes", title: git_graph_text("scm.changes"), from: INDEX, to: WORKTREE, files: unstaged }
         ];
         this.render_groups();
       } catch (error) {
@@ -190023,15 +191564,15 @@ var LinuxNoteTyporaEnhancements = (() => {
         heading3.append(git_disclosure(), label);
         const action_id = group.id === "staged" ? "unstage" : "stage";
         const group_action = () => void this.panel.quick_action(action_id, [...new Set(group.files.flatMap((file) => [file.path, ...file.old_path ? [file.old_path] : []]))]);
-        const all = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? "\u53D6\u6D88\u672C\u7EC4\u6240\u6709\u6682\u5B58" : "\u6682\u5B58\u672C\u7EC4\u6240\u6709\u66F4\u6539", group_action, "git-scm-inline-action");
-        all.title = group.id === "staged" ? "\u53D6\u6D88\u672C\u7EC4\u6240\u6709\u6682\u5B58" : "\u6682\u5B58\u672C\u7EC4\u6240\u6709\u66F4\u6539";
+        const all = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? git_graph_text("scm.unstage_all_group") : git_graph_text("scm.stage_all_group"), group_action, "git-scm-inline-action");
+        all.title = group.id === "staged" ? git_graph_text("scm.unstage_all_group") : git_graph_text("scm.stage_all_group");
         all.onclick = (event) => {
           event.preventDefault();
           event.stopPropagation();
           group_action();
         };
         all.disabled = !group.files.length;
-        const open = git_icon_button("diff-multiple", "\u6253\u5F00\u672C\u7EC4\u66F4\u6539\uFF08\u53EF\u5207\u6362\u6587\u4EF6\uFF09", () => {
+        const open = git_icon_button("diff-multiple", git_graph_text("scm.open_group_changes"), () => {
         }, "git-scm-inline-action");
         open.disabled = !group.files.length;
         open.onclick = (event) => {
@@ -190039,7 +191580,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           event.stopPropagation();
           if (group.files[0]) void this.open_file(group.files[0], group.from, group.to, group.files);
         };
-        const discard = git_icon_button("discard", "\u653E\u5F03\u672C\u7EC4\u6240\u6709\u66F4\u6539\u2026", () => {
+        const discard = git_icon_button("discard", git_graph_text("scm.discard_group_changes"), () => {
         }, "git-scm-inline-action");
         discard.disabled = group.id === "staged" || !group.files.length;
         discard.onclick = (event) => {
@@ -190054,13 +191595,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         heading3.append(actions, placeholder);
         heading3.oncontextmenu = (event) => this.panel.configured_menu(event, "changes_group", [
           { id: action_id, title: all.title, disabled: !group.files.length, action: group_action },
-          { id: "collapse", title: "\u6298\u53E0\u6240\u6709\u66F4\u6539\u5206\u7EC4", action: () => this.groups.querySelectorAll("details").forEach((item) => {
+          { id: "collapse", title: git_graph_text("scm.collapse_groups"), action: () => this.groups.querySelectorAll("details").forEach((item) => {
             item.open = false;
           }) },
-          { id: "expand", title: "\u5C55\u5F00\u6240\u6709\u66F4\u6539\u5206\u7EC4", action: () => this.groups.querySelectorAll("details").forEach((item) => {
+          { id: "expand", title: git_graph_text("scm.expand_groups"), action: () => this.groups.querySelectorAll("details").forEach((item) => {
             item.open = true;
           }) },
-          { id: "tree", title: "\u4EE5\u6811\u5F62\u663E\u793A", checked: this.tree, action: () => {
+          { id: "tree", title: git_graph_text("scm.tree_view"), checked: this.tree, action: () => {
             this.tree = !this.tree;
             this.save_layout();
             this.render_groups();
@@ -190093,7 +191634,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           label2.append(workspace_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
           if (!this.tree) label2.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
           const action = group.id === "staged" ? "unstage" : "stage";
-          const mini = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? "\u53D6\u6D88\u6682\u5B58" : "\u6682\u5B58\u66F4\u6539", () => {
+          const mini = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), () => {
           }, "git-scm-inline-action");
           mini.onclick = (event) => {
             event.stopPropagation();
@@ -190119,7 +191660,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           row.oncontextmenu = (event) => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
           parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
         }
-        if (!group.files.length) section.append(workspace_element("div", "git-scm-empty", "\u65E0\u66F4\u6539"));
+        if (!group.files.length) section.append(workspace_element("div", "git-scm-empty", git_graph_text("scm.no_changes")));
       }
       this.groups.scrollTop = scroll;
     }
@@ -190129,20 +191670,20 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     file_entries(file, from, to, files) {
       const entries3 = [
-        { id: "open_diff", title: "\u6253\u5F00\u66F4\u6539", action: () => void this.open_file(file, from, to, files) },
-        { id: "open_file", title: "\u6253\u5F00\u6587\u4EF6", action: () => void this.panel.host.open_file(this.panel.root, file.path, this.panel.settings).catch((error) => this.panel.report(error)) },
-        { id: "file_history", title: "\u6253\u5F00\u6587\u4EF6\u5386\u53F2\uFF08\u65F6\u95F4\u7EBF\uFF09", action: () => void this.file_history(file.path) },
-        { id: "copy_relative", title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", separator: true, action: () => void this.panel.host.copy(file.path) },
-        { id: "copy_absolute", title: "\u590D\u5236\u8DEF\u5F84", action: () => void this.panel.host.copy(this.panel.host.file_path(this.panel.root, file.path)) },
-        { id: "reveal_file", title: "\u5728\u6587\u4EF6\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u663E\u793A", action: () => this.panel.host.reveal_file(this.panel.root, file.path) }
+        { id: "open_diff", title: git_graph_text("scm.open_changes"), action: () => void this.open_file(file, from, to, files) },
+        { id: "open_file", title: git_graph_text("scm.open_file"), action: () => void this.panel.host.open_file(this.panel.root, file.path, this.panel.settings).catch((error) => this.panel.report(error)) },
+        { id: "file_history", title: git_graph_text("scm.file_history"), action: () => void this.file_history(file.path) },
+        { id: "copy_relative", title: git_graph_text("scm.copy_relative_path"), separator: true, action: () => void this.panel.host.copy(file.path) },
+        { id: "copy_absolute", title: git_graph_text("scm.copy_path"), action: () => void this.panel.host.copy(this.panel.host.file_path(this.panel.root, file.path)) },
+        { id: "reveal_file", title: git_graph_text("scm.reveal_file"), action: () => this.panel.host.reveal_file(this.panel.root, file.path) }
       ];
       if (to === INDEX || to === WORKTREE) {
         const staged = to === INDEX;
         if (!staged && file.status === "??") entries3.push(
-          { id: "ignore_file", title: "\u6DFB\u52A0\u5230 .gitignore", separator: true, action: () => void this.ignore_file(file.path) }
+          { id: "ignore_file", title: git_graph_text("scm.add_to_gitignore"), separator: true, action: () => void this.ignore_file(file.path) }
         );
-        entries3.push({ id: staged ? "unstage" : "stage", title: staged ? "\u53D6\u6D88\u6682\u5B58\u66F4\u6539" : "\u6682\u5B58\u66F4\u6539", separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...file.old_path ? [file.old_path] : []]) });
-        if (!staged) entries3.push({ id: "discard_file", title: "\u653E\u5F03\u66F4\u6539\u2026", action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, { include_untracked: true }, [file.path]) });
+        entries3.push({ id: staged ? "unstage" : "stage", title: staged ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...file.old_path ? [file.old_path] : []]) });
+        if (!staged) entries3.push({ id: "discard_file", title: git_graph_text("scm.discard_change"), action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, { include_untracked: true }, [file.path]) });
       }
       return entries3;
     }
@@ -190152,7 +191693,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       let message = "";
       try {
         const result = await this.panel.host.ignore_file(this.panel.root, file, this.panel.settings);
-        message = result.changed ? "\u5DF2\u6DFB\u52A0\u5230 .gitignore\uFF1A".concat(file) : "\u5DF2\u5FFD\u7565\uFF1A".concat(file);
+        message = result.changed ? git_graph_text("scm.added_to_gitignore", { file }) : git_graph_text("scm.already_ignored", { file });
       } catch (error) {
         message = String(error);
       } finally {
@@ -190164,15 +191705,15 @@ var LinuxNoteTyporaEnhancements = (() => {
     async open_file(file, from, to, files = [file]) {
       const epoch = ++this.load_epoch;
       const root = this.panel.root;
-      this.panel.status.textContent = "\u6B63\u5728\u6253\u5F00\u6587\u4EF6\u5DEE\u5F02\u2026";
+      this.panel.status.textContent = git_graph_text("scm.opening_diff");
       try {
-        if (file.status === "U") throw new Error("\u6B64\u6587\u4EF6\u6709\u672A\u89E3\u51B3\u7684\u5408\u5E76\u51B2\u7A81\u3002\u8BF7\u7528\u201C\u6253\u5F00\u6587\u4EF6\u201D\u7F16\u8F91\u51B2\u7A81\u6807\u8BB0\uFF0C\u89E3\u51B3\u540E\u6682\u5B58\uFF1B\u6682\u5B58\u533A\u76EE\u524D\u6CA1\u6709\u53EF\u6BD4\u8F83\u7684\u5355\u4E00\u7248\u672C\u3002");
+        if (file.status === "U") throw new Error(git_graph_text("scm.unresolved_conflict"));
         const [left, right] = await Promise.all([
           file.status.startsWith("A") || file.status === "??" ? "" : this.panel.host.revision_text(root, from, file.old_path || file.path, this.panel.settings),
           file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings)
         ]);
         if (epoch !== this.load_epoch || root !== this.panel.root) return;
-        this.panel.host.open_document({ title: file.path.split("/").at(-1) + "\uFF08\u66F4\u6539\uFF09", file: file.path, left, right, left_label: "".concat(file.old_path || file.path, " \xB7 ").concat(short_revision(from), "\uFF08\u53EA\u8BFB\uFF09"), right_label: "".concat(file.path, " \xB7 ").concat(short_revision(to), "\uFF08\u53EA\u8BFB\uFF09") }, "active", {
+        this.panel.host.open_document({ title: git_graph_text("scm.change_title", { file: file.path.split("/").at(-1) }), file: file.path, left, right, left_label: git_graph_text("scm.readonly_label", { file: file.old_path || file.path, revision: short_revision(from) }), right_label: git_graph_text("scm.readonly_label", { file: file.path, revision: short_revision(to) }) }, "active", {
           root,
           key: JSON.stringify([from, to, file.path]),
           menu: () => this.file_entries(file, from, to, files),
@@ -190191,13 +191732,13 @@ var LinuxNoteTyporaEnhancements = (() => {
     async file_history(file) {
       const root = this.panel.root;
       const view = workspace_element("div", "git-file-timeline");
-      const title = workspace_element("div", "git-scm-title", "\u65F6\u95F4\u7EBF \xB7 " + file);
+      const title = workspace_element("div", "git-scm-title", git_graph_text("scm.timeline", { file }));
       const list3 = workspace_element("div", "git-file-timeline-list");
       view.append(title, list3);
       this.panel.host.open_panel("\u25F7 " + file.split("/").at(-1), "timeline:" + file, root, view);
       let count = this.panel.settings.initial_count;
       const load = async () => {
-        list3.textContent = "\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5386\u53F2\u2026";
+        list3.textContent = git_graph_text("scm.loading_file_history");
         try {
           const records = this.panel.state?.head ? await read_file_history(this.panel.runner.run, root, file, count) : [];
           if (root !== this.panel.root) return;
@@ -190206,15 +191747,15 @@ var LinuxNoteTyporaEnhancements = (() => {
             const row = workspace_button(record.commit.subject, () => void this.open_file(record.file, record.commit.parents[0] || EMPTY, record.commit.hash), "git-file-history-row");
             row.append(workspace_element("span", "", "".concat(record.commit.author, " \xB7 ").concat(this.panel.date(record.commit), " \xB7 ").concat(record.commit.hash.slice(0, 8), " \xB7 ").concat(record.file.status, " ").concat(record.file.path)));
             row.oncontextmenu = (event) => this.panel.configured_menu(event, "timeline", [
-              { id: "open_diff", title: "\u6253\u5F00\u66F4\u6539", action: () => row.click() },
-              { id: "open_revision", title: "\u6253\u5F00\u6B64\u7248\u672C", action: () => void this.panel.open_revision(record.commit.hash, record.file.path) },
-              { id: "copy_hash", title: "\u590D\u5236\u63D0\u4EA4\u7F16\u53F7", action: () => void this.panel.host.copy(record.commit.hash) },
-              { id: "commit_actions", title: "\u63D0\u4EA4\u64CD\u4F5C\u2026", action: () => this.panel.target_menu(event, "commit", record.commit.hash, record.commit.hash) }
+              { id: "open_diff", title: git_graph_text("scm.open_changes"), action: () => row.click() },
+              { id: "open_revision", title: git_graph_text("scm.open_revision"), action: () => void this.panel.open_revision(record.commit.hash, record.file.path) },
+              { id: "copy_hash", title: git_graph_text("scm.copy_commit_hash"), action: () => void this.panel.host.copy(record.commit.hash) },
+              { id: "commit_actions", title: git_graph_text("scm.commit_actions"), action: () => this.panel.target_menu(event, "commit", record.commit.hash, record.commit.hash) }
             ]);
             list3.append(row);
           }
-          if (!records.length) list3.textContent = "\u6B64\u6587\u4EF6\u6CA1\u6709 Git \u63D0\u4EA4\u5386\u53F2\u3002";
-          if (records.length >= count) list3.append(workspace_button("\u52A0\u8F7D\u66F4\u591A\u6587\u4EF6\u5386\u53F2", () => {
+          if (!records.length) list3.textContent = git_graph_text("scm.no_file_history");
+          if (records.length >= count) list3.append(workspace_button(git_graph_text("scm.load_more_file_history"), () => {
             count += this.panel.settings.page_count;
             void load();
           }));
@@ -190232,47 +191773,47 @@ var LinuxNoteTyporaEnhancements = (() => {
       const target_actions = (kind, target, hash2) => graph_actions.filter((action) => action.targets.includes(kind)).map((action) => ({ id: action.id, title: action.title, action: () => panel.action_dialog(action.id, kind, target, hash2) }));
       const refs = panel.state?.refs || [];
       const branches = refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => submenu(ref.name.slice(11), target_actions("branch", ref.name.slice(11), ref.hash)));
-      const remotes = (panel.state?.remotes || []).map((remote2) => submenu(remote2.name, [
-        { title: "\u83B7\u53D6", action: () => panel.action_dialog("fetch", "repository", "", "", { remote: remote2.name }) },
-        { title: "\u7F16\u8F91\u8FDC\u7AEF URL\u2026", action: () => panel.action_dialog("remote_edit", "repository", "", "", { remote: remote2.name, url: remote2.fetch }) },
-        { title: "\u79FB\u9664\u8FDC\u7AEF\u2026", action: () => panel.action_dialog("remote_remove", "repository", "", "", { remote: remote2.name }) }
+      const remotes = (panel.state?.remotes || []).map((remote) => submenu(remote.name, [
+        { title: git_graph_text("scm.fetch_short"), action: () => panel.action_dialog("fetch", "repository", "", "", { remote: remote.name }) },
+        { title: git_graph_text("scm.edit_remote_url"), action: () => panel.action_dialog("remote_edit", "repository", "", "", { remote: remote.name, url: remote.fetch }) },
+        { title: git_graph_text("scm.remove_remote"), action: () => panel.action_dialog("remote_remove", "repository", "", "", { remote: remote.name }) }
       ]));
       const stashes = (panel.state?.stashes || []).map((stash) => submenu(stash.subject, target_actions("stash", stash.name, stash.hash)));
       const tags = refs.filter((ref) => ref.name.startsWith("refs/tags/")).map((ref) => submenu(ref.name.slice(10), target_actions("tag", ref.name.slice(10), ref.hash)));
       panel.configured_menu(event, "source_control", [
-        { id: "view_list", title: "\u4EE5\u5217\u8868\u663E\u793A", checked: !this.tree, action: () => {
+        { id: "view_list", title: git_graph_text("scm.list_view"), checked: !this.tree, action: () => {
           this.tree = false;
           this.save_layout();
           this.render_groups();
         } },
-        { id: "view_tree", title: "\u4EE5\u6811\u5F62\u663E\u793A", checked: this.tree, action: () => {
+        { id: "view_tree", title: git_graph_text("scm.tree_view"), checked: this.tree, action: () => {
           this.tree = true;
           this.save_layout();
           this.render_groups();
         } },
-        submenu("\u89C6\u56FE\u4E0E\u6392\u5E8F", [...[["name", "\u6309\u540D\u79F0\u6392\u5E8F"], ["path", "\u6309\u8DEF\u5F84\u6392\u5E8F"], ["status", "\u6309\u72B6\u6001\u6392\u5E8F"]].map(([value, title]) => ({ id: "sort_" + value, title, checked: this.sort_order === value, action: () => {
+        submenu(git_graph_text("scm.view_and_sort"), [...[["name", "scm.sort_name"], ["path", "scm.sort_path"], ["status", "scm.sort_status"]].map(([value, title_key]) => ({ id: "sort_" + value, title: git_graph_text(title_key), checked: this.sort_order === value, action: () => {
           this.sort_order = value;
           this.save_layout();
           this.render_groups();
-        } })), { title: "\u5C55\u5F00\u6240\u6709\u5206\u7EC4", action: () => this.groups.querySelectorAll("details").forEach((item) => {
+        } })), { title: git_graph_text("scm.expand_groups"), action: () => this.groups.querySelectorAll("details").forEach((item) => {
           item.open = true;
-        }) }, { title: "\u6298\u53E0\u6240\u6709\u5206\u7EC4", action: () => this.groups.querySelectorAll("details").forEach((item) => {
+        }) }, { title: git_graph_text("scm.collapse_groups"), action: () => this.groups.querySelectorAll("details").forEach((item) => {
           item.open = false;
         }) }]),
         ...actions(["pull", "push", "clone", "fetch"]),
-        { id: "checkout", title: "\u68C0\u51FA\u5230\u2026", action: () => this.branch.click() },
-        submenu("\u63D0\u4EA4", [...actions(["commit"]), { title: "\u63D0\u4EA4\u5DF2\u6682\u5B58\u5185\u5BB9\u5E76\u4FEE\u6539\u4E0A\u6B21\u63D0\u4EA4\u2026", action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }]),
-        submenu("\u66F4\u6539", actions(["stage_all", "unstage_all", "discard_changes", "stash_create", "clean"])),
-        submenu("\u62C9\u53D6\u3001\u63A8\u9001", actions(["sync", "fetch", "pull", "push"])),
-        submenu("\u5206\u652F", [{ id: "checkout", title: "\u68C0\u51FA\u5230\u2026", action: () => this.branch.click() }, { id: "branch_create", title: "\u521B\u5EFA\u5206\u652F\u2026", action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
-        submenu("\u8FDC\u7AEF", [{ id: "remote_add", title: "\u6DFB\u52A0\u8FDC\u7AEF\u2026", action: () => panel.action_dialog("remote_add", "repository") }, ...remotes]),
-        submenu("\u8D2E\u85CF", [...actions(["stash_create"]), ...stashes]),
-        submenu("\u6807\u7B7E", [{ id: "tag_add", title: "\u521B\u5EFA\u6807\u7B7E\u2026", action: () => panel.action_dialog("tag_add", "commit", "", panel.state?.head) }, ...tags]),
-        { id: "output", title: "\u663E\u793A Git \u8F93\u51FA", separator: true, action: () => panel.host.show_output(panel.root) },
-        { id: "graph", title: "\u6253\u5F00 Git Graph", separator: true, action: () => panel.host.show_history(panel.root) },
-        { id: "terminal", title: "\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u7EC8\u7AEF", action: () => panel.host.terminal(panel.root, panel.settings.terminal_shell) },
-        { id: "terminal_admin", title: "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", action: () => panel.host.terminal(panel.root, "", true) },
-        { id: "settings", title: "Git \u8BBE\u7F6E\u2026", action: () => panel.settings_dialog() }
+        { id: "checkout", title: git_graph_text("scm.checkout"), action: () => this.branch.click() },
+        submenu(git_graph_text("scm.commit_section"), [...actions(["commit"]), { title: git_graph_text("scm.amend_staged"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }]),
+        submenu(git_graph_text("scm.changes_section"), actions(["stage_all", "unstage_all", "discard_changes", "stash_create", "clean"])),
+        submenu(git_graph_text("scm.pull_push_section"), actions(["sync", "fetch", "pull", "push"])),
+        submenu(git_graph_text("scm.branches_section"), [{ id: "checkout", title: git_graph_text("scm.checkout"), action: () => this.branch.click() }, { id: "branch_create", title: git_graph_text("scm.create_branch"), action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
+        submenu(git_graph_text("scm.remotes_section"), [{ id: "remote_add", title: git_graph_text("scm.add_remote"), action: () => panel.action_dialog("remote_add", "repository") }, ...remotes]),
+        submenu(git_graph_text("scm.stashes_section"), [...actions(["stash_create"]), ...stashes]),
+        submenu(git_graph_text("scm.tags_section"), [{ id: "tag_add", title: git_graph_text("scm.create_tag"), action: () => panel.action_dialog("tag_add", "commit", "", panel.state?.head) }, ...tags]),
+        { id: "output", title: git_graph_text("scm.show_output"), separator: true, action: () => panel.host.show_output(panel.root) },
+        { id: "graph", title: git_graph_text("scm.open_graph"), separator: true, action: () => panel.host.show_history(panel.root) },
+        { id: "terminal", title: git_graph_text("scm.open_terminal"), action: () => panel.host.terminal(panel.root, panel.settings.terminal_shell) },
+        { id: "terminal_admin", title: git_graph_text("scm.open_admin_terminal"), action: () => panel.host.terminal(panel.root, "", true) },
+        { id: "settings", title: git_graph_text("scm.settings"), action: () => panel.settings_dialog() }
       ]);
     }
     dispose() {
@@ -212367,6 +213908,23 @@ var LinuxNoteTyporaEnhancements = (() => {
   ];
 
   // src/git_graph_panel.ts
+  var graph_dialog2 = (title) => workspace_dialog(title, git_graph_text("common.close"));
+  var revision_label = (revision) => revision === WORKTREE ? git_graph_text("graph.revision.worktree") : revision === INDEX ? git_graph_text("graph.revision.index") : revision === EMPTY ? git_graph_text("graph.revision.empty") : revision;
+  var short_revision_label = (revision) => revision === WORKTREE || revision === INDEX || revision === EMPTY ? revision_label(revision) : revision.slice(0, 8);
+  var operation_label2 = (operation) => {
+    const key = { merge: "graph.operation.merge", rebase: "graph.operation.rebase", "cherry-pick": "graph.operation.cherry_pick", revert: "graph.operation.revert" }[operation];
+    return key ? git_graph_text(key) : operation;
+  };
+  var target_kind_label = (kind) => git_graph_text({
+    repository: "graph.target.repository",
+    changes: "graph.target.changes",
+    branch: "graph.target.branch",
+    remote: "graph.target.remote",
+    tag: "graph.target.tag",
+    commit: "graph.target.commit",
+    stash: "graph.target.stash",
+    file: "graph.target.file"
+  }[kind] || "graph.target.repository");
   var git_graph_panel = class {
     constructor(host, cwd2) {
       this.host = host;
@@ -212377,57 +213935,78 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.writer = host.runner(this.settings, true);
       this.branches = [...this.settings.on_load_branches];
       if (this.settings.on_load_branch) this.branches = ["HEAD"];
-      this.container.setAttribute("aria-label", "Git Graph \u63D0\u4EA4\u5386\u53F2");
+      this.container.setAttribute("aria-label", git_graph_text("graph.aria_label"));
       this.status.setAttribute("role", "status");
-      this.branch_select.setAttribute("aria-label", "\u5206\u652F\u6216\u6807\u7B7E");
-      this.branch_select.append(workspace_option("", "\u5168\u90E8\u5206\u652F"));
+      this.branch_select.setAttribute("aria-label", git_graph_text("graph.branches"));
+      this.branch_select.append(workspace_option("", git_graph_text("graph.all_branches")));
       this.branch_select.onchange = () => {
+        if (this.branch_select.value === "__multiple__") {
+          this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+          this.filter_branches();
+          return;
+        }
         this.branches = this.branch_select.value ? [this.branch_select.value] : [];
         void this.refresh();
       };
-      this.repo_select.setAttribute("aria-label", "Git \u4ED3\u5E93");
-      this.repo_select.onchange = () => this.switch_repo(this.repo_select.value);
-      this.search.placeholder = "\u67E5\u627E\u63D0\u4EA4\u3001\u65E5\u671F\u3001\u4F5C\u8005\u3001\u7F16\u53F7\u548C\u5F15\u7528";
-      this.search.setAttribute("aria-label", "\u67E5\u627E Git \u5386\u53F2");
+      this.repo_select.setAttribute("aria-label", git_graph_text("graph.repository"));
+      this.repo_select.onchange = () => {
+        if (this.repo_select.value === "__manage__") {
+          this.repo_select.value = this.root;
+          this.manage_repositories();
+          return;
+        }
+        this.switch_repo(this.repo_select.value);
+      };
+      this.show_remote_input.type = "checkbox";
+      this.show_remote_input.checked = this.settings.show_remotes;
+      this.show_remote_input.onchange = () => {
+        this.settings.show_remotes = this.show_remote_input.checked;
+        this.persist_settings();
+        void this.refresh();
+      };
+      this.search.placeholder = git_graph_text("graph.find_placeholder");
+      this.search.setAttribute("aria-label", git_graph_text("graph.find_history"));
+      this.search.oninput = () => {
+        if (!this.search.value) this.find_position.textContent = "";
+      };
       this.search.onkeydown = (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
           this.find_next(event.shiftKey ? -1 : 1);
         }
       };
-      this.toolbar.append(
-        this.repo_select,
-        workspace_button("\u4ED3\u5E93", () => this.manage_repositories()),
-        this.branch_select,
-        workspace_button("\u591A\u9009\u5206\u652F", () => this.filter_branches()),
-        this.refresh_button,
-        workspace_button("\u83B7\u53D6", () => this.action_dialog("fetch", "repository")),
-        workspace_button("\u64CD\u4F5C", () => this.repository_menu()),
-        workspace_button("\u8BBE\u7F6E", () => this.settings_dialog()),
-        this.search,
-        workspace_button("\u67E5\u627E", () => this.find_next())
+      const repo_control = workspace_element("label", "git-graph-control git-graph-repository-control", git_graph_text("graph.repository"));
+      repo_control.append(this.repo_select);
+      const branch_control = workspace_element("label", "git-graph-control git-graph-branch-control", git_graph_text("graph.branches"));
+      branch_control.append(this.branch_select);
+      const remote_control = workspace_element("label", "git-graph-control git-graph-remote-control", git_graph_text("graph.show_remote_branches"));
+      remote_control.prepend(this.show_remote_input);
+      const actions = workspace_element("div", "git-graph-toolbar-actions");
+      actions.append(
+        git_icon_button("search", git_graph_text("graph.find_commit"), () => this.open_find(), "git-graph-find-toggle"),
+        git_icon_button("terminal", git_graph_text("graph.open_terminal"), () => this.host.terminal(this.root, this.settings.terminal_shell), "git-graph-terminal"),
+        git_icon_button("settings-gear", git_graph_text("graph.actions_and_settings"), () => this.repository_menu(), "git-graph-settings"),
+        git_icon_button("git-fetch", git_graph_text("graph.fetch"), () => this.action_dialog("fetch", "repository"), "git-graph-fetch"),
+        this.refresh_button
       );
-      this.sash = create_workspace_sash({
-        label: "\u8C03\u6574\u63D0\u4EA4\u5217\u8868\u4E0E\u8BE6\u60C5\u9762\u677F\u5927\u5C0F",
-        area: this.body,
-        vertical: () => this.settings.details_location === "right" && this.container.clientWidth > 680,
-        ratio: () => this.settings.panel_ratio / 100,
-        change: (ratio) => {
-          this.settings.panel_ratio = Math.round(ratio * 100);
-          this.apply_layout();
-        },
-        save: () => this.persist_settings(),
-        reset: 0.55
-      });
+      this.toolbar.append(repo_control, branch_control, remote_control, actions);
+      this.find_widget.setAttribute("aria-label", git_graph_text("graph.find_commit"));
+      this.find_widget.dataset.open = "false";
+      this.find_widget.append(
+        this.search,
+        this.find_position,
+        git_icon_button("arrow-up", git_graph_text("graph.find_previous"), () => this.find_next(-1)),
+        git_icon_button("arrow-down", git_graph_text("graph.find_next"), () => this.find_next(1)),
+        git_icon_button("close", git_graph_text("graph.find_close"), () => this.close_find())
+      );
       this.header.oncontextmenu = (event) => this.layout_menu(event);
       this.container.oncontextmenu = (event) => {
         if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
         this.background_menu(event);
       };
-      this.toolbar.append(workspace_button("\u7EC8\u7AEF", () => this.host.terminal(this.root, this.settings.terminal_shell)), workspace_button("\u5E03\u5C40", () => this.layout_dialog()));
-      this.body.append(this.list, this.sash, this.details);
+      this.body.append(this.list);
       this.workbench = new git_source_control(this);
-      this.container.append(this.root_label, this.toolbar, this.status, this.body, this.more_button);
+      this.container.append(this.toolbar, this.find_widget, this.status, this.body, this.more_button);
       this.list.addEventListener("scroll", () => {
         if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) {
           this.count += this.settings.page_count;
@@ -212441,22 +214020,23 @@ var LinuxNoteTyporaEnhancements = (() => {
     state;
     container = workspace_element("section", "linux-note-git-graph");
     toolbar = workspace_element("div", "git-graph-toolbar");
-    root_label = workspace_element("div", "git-graph-root");
     status = workspace_element("div", "git-graph-status");
     list = workspace_element("div", "git-graph-list");
-    details = workspace_element("div", "git-graph-details", "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002");
+    details = workspace_element("section", "git-graph-details");
     branch_select = workspace_element("select", "git-graph-branch");
     repo_select = workspace_element("select", "git-graph-repositories");
     search = workspace_element("input", "git-graph-search");
-    sash;
+    show_remote_input = workspace_element("input", "git-graph-show-remote-input");
+    find_widget = workspace_element("div", "git-graph-find-widget");
+    find_position = workspace_element("span", "git-graph-find-position");
     workbench;
     body = workspace_element("div", "git-graph-body");
     header = workspace_element("div", "git-graph-columns");
-    refresh_button = workspace_button("\u5237\u65B0", () => void this.refresh());
-    more_button = workspace_button("\u52A0\u8F7D\u66F4\u591A", () => {
+    refresh_button = git_icon_button("refresh", git_graph_text("graph.refresh"), () => void this.refresh(), "git-graph-refresh");
+    more_button = workspace_button(git_graph_text("graph.load_more"), () => {
       this.count += this.settings.page_count;
       void this.refresh(false);
-    });
+    }, "git-graph-load-more");
     runner;
     writer;
     count;
@@ -212510,7 +214090,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     switch_repo(root) {
       if (this.writing) {
-        this.report("Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002");
+        this.report(git_graph_text("graph.operation_pending"));
         return;
       }
       this.root = root;
@@ -212535,9 +214115,9 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.refresh_button.disabled = true;
       this.more_button.disabled = true;
       this.container.dataset.state = "loading";
-      this.status.textContent = "\u6B63\u5728\u8BFB\u53D6 Git \u4ED3\u5E93\u2026";
+      this.status.textContent = git_graph_text("graph.loading_repository");
       try {
-        if (!this.root) throw new Error("\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u6863\uFF0C\u6216\u901A\u8FC7\u201C\u4ED3\u5E93\u201D\u6DFB\u52A0\u6587\u4EF6\u5939\u3002");
+        if (!this.root) throw new Error(git_graph_text("graph.open_repository_first"));
         let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
         if (epoch !== this.epoch) return;
         if (!this.loaded) {
@@ -212570,14 +214150,17 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.save_repos([this.root, ...this.known_repos()]);
         const repos = this.known_repos();
         if (this.settings.repository_order !== "recent") repos.sort((a, b2) => this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b2)) : a.localeCompare(b2));
-        this.repo_select.replaceChildren(...repos.map((root) => workspace_option(root, this.host.path_api.basename(root) || root)));
+        this.repo_select.replaceChildren(...repos.map((root) => workspace_option(root, this.host.path_api.basename(root) || root)), workspace_option("__manage__", git_graph_text("graph.manage_repositories")));
         this.repo_select.value = this.root;
-        this.root_label.textContent = "".concat(state.root).concat(state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 \u6E38\u79BB HEAD" : "");
-        this.root_label.title = state.root;
-        this.branch_select.replaceChildren(workspace_option("", "\u5168\u90E8\u5206\u652F"), workspace_option("HEAD", "\u5F53\u524D HEAD"));
+        const repository_control = this.repo_select.closest(".git-graph-repository-control");
+        if (repository_control) repository_control.hidden = repos.length <= 1;
+        this.container.title = "".concat(state.root).concat(state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 " + git_graph_text("graph.detached_head") : "");
+        this.branch_select.replaceChildren(workspace_option("", git_graph_text("graph.all_branches")), workspace_option("HEAD", git_graph_text("graph.current_head")));
         for (const ref of state.refs) this.branch_select.append(workspace_option(ref.name, ref.name.replace(/^refs\//u, "")));
         for (const glob of this.settings.branch_globs) this.branch_select.append(workspace_option("glob:" + glob.glob, glob.name));
+        this.branch_select.append(workspace_option("__multiple__", git_graph_text("graph.select_multiple_branches")));
         this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+        this.show_remote_input.checked = this.settings.show_remotes;
         this.ancestors.clear();
         if (this.settings.mute_unreachable && state.head) {
           const hashes = await this.runner.run(this.root, ["rev-list", state.head, "--max-count=".concat(this.count * 4)]);
@@ -212588,16 +214171,11 @@ var LinuxNoteTyporaEnhancements = (() => {
         await this.workbench.refresh();
         if (epoch !== this.epoch) return;
         this.more_button.hidden = !state.more;
-        this.status.textContent = "".concat(state.commits.length ? "\u5DF2\u52A0\u8F7D ".concat(state.commits.length, " \u6761\u63D0\u4EA4") : "\u6B64\u4ED3\u5E93\u5C1A\u65E0\u63D0\u4EA4", " \xB7 ").concat(state.changes.length, " \u4E2A\u672A\u63D0\u4EA4\u6587\u4EF6").concat(state.operation ? " \xB7 \u8FDB\u884C\u4E2D\uFF1A" + state.operation : "");
+        this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label2(state.operation) }) : "");
         this.container.dataset.state = "ready";
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
         if (this.selected && (this.selected === WORKTREE || state.commits.some((commit) => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
-        else {
-          this.selected = "";
-          this.to = "";
-          this.details.textContent = "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\uFF1BCtrl / Cmd \u70B9\u51FB\u7B2C\u4E8C\u6761\u63D0\u4EA4\u8FDB\u884C\u6BD4\u8F83\u3002";
-          this.place_details();
-        }
+        else this.close_details();
       } catch (error) {
         if (epoch === this.epoch) {
           this.report(error);
@@ -212616,11 +214194,11 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (this.settings.date_format === "iso") return source;
       if (this.settings.date_format === "relative") {
         const days = Math.floor((Date.now() - new Date(source).getTime()) / 864e5);
-        return days ? "".concat(days, " \u5929\u524D") : "\u4ECA\u5929";
+        return days ? git_graph_text("graph.relative_days", { count: days }) : git_graph_text("graph.today");
       }
-      return new Date(source).toLocaleString();
+      return new Date(source).toLocaleString(git_graph_language_tag());
     }
-    draw_graph(row, width2, geometry = { lane_width: 18, first_x: 16, right_gap: 20, height: 34 }) {
+    draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }) {
       const ns2 = "http://www.w3.org/2000/svg";
       const svg3 = document.createElementNS(ns2, "svg");
       svg3.setAttribute("width", String((width2 - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap));
@@ -212651,16 +214229,13 @@ var LinuxNoteTyporaEnhancements = (() => {
       const connected = state.changes.length > 0 && this.settings.show_changes && this.settings.uncommitted_style === "connected";
       const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
       const fragment = document.createDocumentFragment();
-      this.container.dataset.details = this.settings.details_location;
-      this.apply_layout();
-      this.container.dataset.labels = this.settings.label_alignment;
+      const graph_width = Math.max(58, (graph.width - 1) * 16 + 20);
+      this.container.style.setProperty("--git-graph-width", graph_width + "px");
       for (const [key, width2] of Object.entries(this.settings.column_widths)) this.container.style.setProperty("--git-".concat(key, "-width"), width2 + "px");
       this.header.replaceChildren();
-      this.header.style.paddingLeft = graph.width * 18 + 26 + "px";
-      for (const [key, title] of [["subject", "\u63D0\u4EA4\u8BF4\u660E"], ["author", "\u4F5C\u8005"], ["date", "\u65E5\u671F"], ["hash", "\u63D0\u4EA4\u7F16\u53F7"]]) {
-        if (key !== "subject" && !this.settings["show_" + key]) continue;
-        const label = workspace_element("div", "git-graph-column", title);
-        label.style.width = "var(--git-".concat(key, "-width)");
+      this.header.append(workspace_element("div", "git-graph-column git-graph-column-graph", git_graph_text("graph.column.graph")));
+      for (const [key, title] of [["subject", git_graph_text("graph.column.description")], ["date", git_graph_text("graph.column.date")], ["author", git_graph_text("graph.column.author")], ["hash", git_graph_text("graph.column.commit")]]) {
+        const label = workspace_element("div", "git-graph-column git-graph-column-" + key, title);
         const handle = workspace_element("span", "git-graph-column-resize");
         label.append(handle);
         handle.onpointerdown = (event) => {
@@ -212680,13 +214255,22 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.header.append(label);
       }
       if (state.changes.length && this.settings.show_changes) {
-        const row = workspace_element("div", "git-graph-row git-graph-worktree", "\u25CF \u672A\u63D0\u4EA4\u6539\u52A8 \xB7 ".concat(state.changes.length, " \u4E2A\u6587\u4EF6"));
+        const row = workspace_element("div", "git-graph-row git-graph-worktree");
         row.dataset.hash = WORKTREE;
         row.tabIndex = 0;
-        if (connected) row.prepend(this.draw_graph(graph.rows[0], graph.width));
+        row.setAttribute("role", "button");
+        row.setAttribute("aria-pressed", String(this.selected === WORKTREE));
+        row.append(connected ? this.draw_graph(graph.rows[0], graph.width) : workspace_element("span", "git-graph-worktree-node", "\u25CF"), workspace_element("span", "git-graph-subject", git_graph_text("graph.uncommitted_changes_files", { count: state.changes.length })), workspace_element("span", "git-graph-date"), workspace_element("span", "git-graph-author"), workspace_element("code", "git-graph-hash", revision_label(WORKTREE)));
         row.onclick = (event) => {
           if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== WORKTREE) void this.show_comparison(this.selected, WORKTREE);
           else {
+            this.selected = WORKTREE;
+            void this.show_comparison(state.head || EMPTY, WORKTREE);
+          }
+        };
+        row.onkeydown = (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
             this.selected = WORKTREE;
             void this.show_comparison(state.head || EMPTY, WORKTREE);
           }
@@ -212706,6 +214290,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         row.tabIndex = 0;
         row.setAttribute("role", "button");
         row.setAttribute("aria-pressed", String(this.selected === commit.hash));
+        if (state.head === commit.hash) row.dataset.head = "true";
         row.title = "".concat(commit.hash, "\n").concat(commit.author, " \xB7 ").concat(this.date(commit), "\n").concat(commit.subject);
         if (this.settings.mute_merges && commit.parents.length > 1 || this.settings.mute_unreachable && !this.ancestors.has(commit.hash)) row.classList.add("git-graph-muted");
         row.onclick = (event) => {
@@ -212760,10 +214345,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           refs.append(badge);
         }
         subject.append(refs, workspace_element("span", "git-graph-subject-text", this.emoji(commit.subject)));
-        row.append(svg3, subject);
-        if (this.settings.show_author) row.append(workspace_element("span", "git-graph-author", commit.author));
-        if (this.settings.show_date) row.append(workspace_element("span", "git-graph-date", this.date(commit)));
-        if (this.settings.show_hash) row.append(workspace_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
+        row.append(svg3, subject, workspace_element("span", "git-graph-date", this.date(commit)), workspace_element("span", "git-graph-author", commit.author), workspace_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
         fragment.append(row);
       });
       const scroll = this.list.scrollTop;
@@ -212772,10 +214354,27 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.list.scrollTop = scroll;
     }
     place_details() {
-      this.container.setAttribute("data-detail-visible", String(Boolean(this.to)));
       const row = [...this.list.querySelectorAll("[data-hash]")].find((item) => item.dataset.hash === this.selected);
-      if (this.settings.details_location === "inline" && row) row.after(this.details);
-      else this.body.append(this.sash, this.details);
+      if (this.to && row) row.after(this.details);
+      else this.details.remove();
+    }
+    close_details() {
+      this.detail_epoch++;
+      this.selected = "";
+      this.to = "";
+      this.files = [];
+      this.details.replaceChildren();
+      this.place_details();
+      for (const row of this.list.querySelectorAll("[data-hash]")) row.setAttribute("aria-pressed", "false");
+    }
+    open_find() {
+      this.find_widget.dataset.open = "true";
+      this.search.focus();
+      this.search.select();
+    }
+    close_find() {
+      this.find_widget.dataset.open = "false";
+      this.find_position.textContent = "";
     }
     emoji(text3) {
       return text3.replace(/:[a-z_0-9+-]+:/giu, (code) => this.settings.emoji[code] || builtin_emoji[code] || code);
@@ -212791,17 +214390,20 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     find_next(direction = 1) {
       const query = this.search.value.trim().toLocaleLowerCase();
-      if (!query || !this.state) return;
+      if (!query || !this.state) {
+        this.find_position.textContent = "";
+        return;
+      }
       const matches = this.state.commits.filter((commit) => [commit.subject, commit.author, this.date(commit), commit.hash, ...this.state.refs.filter((ref) => ref.hash === commit.hash).map((ref) => ref.name)].some((value) => value.toLocaleLowerCase().includes(query)));
       if (!matches.length) {
-        this.status.textContent = "\u5DF2\u52A0\u8F7D\u5386\u53F2\u4E2D\u6CA1\u6709\u5339\u914D\u9879\uFF0C\u53EF\u7EE7\u7EED\u52A0\u8F7D\u3002";
+        this.find_position.textContent = git_graph_text("graph.find_no_results");
         return;
       }
       const current = matches.findIndex((commit) => commit.hash === this.selected);
       const index = current < 0 ? direction > 0 ? 0 : matches.length - 1 : (current + direction + matches.length) % matches.length;
       this.select_commit(matches[index]);
       this.scroll_to(matches[index].hash);
-      this.status.textContent = "\u627E\u5230 ".concat(matches.length, " \u6761 \xB7 \u7B2C ").concat(index + 1, " \u6761");
+      this.find_position.textContent = git_graph_text("graph.find_position", { current: index + 1, total: matches.length });
     }
     review_key() {
       return JSON.stringify([this.root, this.from, this.to]);
@@ -212829,71 +214431,89 @@ var LinuxNoteTyporaEnhancements = (() => {
       this.to = to;
       this.place_details();
       const commit = this.state.commits.find((item) => item.hash === to);
-      this.details.replaceChildren(workspace_element("div", "git-graph-commit-title", to === WORKTREE ? "\u672A\u63D0\u4EA4\u6539\u52A8" : to === INDEX ? "\u5DF2\u6682\u5B58\u6539\u52A8" : commit?.subject || "\u63D0\u4EA4\u6BD4\u8F83"));
-      this.details.append(workspace_element("code", "git-graph-full-hash", "".concat(from, " \u2192 ").concat(to)));
+      const content = workspace_element("div", "git-graph-detail-content");
+      const summary = workspace_element("section", "git-graph-detail-summary");
+      const files_pane = workspace_element("section", "git-graph-detail-files");
+      const controls = workspace_element("nav", "git-graph-detail-controls");
+      summary.append(workspace_element("div", "git-graph-commit-title", to === WORKTREE ? git_graph_text("graph.uncommitted_changes") : to === INDEX ? git_graph_text("graph.staged_changes") : commit?.subject || git_graph_text("graph.commit_comparison")), workspace_element("code", "git-graph-full-hash", "".concat(revision_label(from), " \u2192 ").concat(revision_label(to))));
+      content.append(summary, files_pane);
+      this.details.replaceChildren(content, controls);
       for (const row of this.list.querySelectorAll("[data-hash]")) row.setAttribute("aria-pressed", String(row.dataset.hash === this.selected));
-      const controls = workspace_element("div", "git-graph-detail-controls");
-      this.details.append(controls);
+      controls.append(git_icon_button("close", git_graph_text("graph.details_close"), () => this.close_details(), "git-graph-detail-close"));
       if (to === WORKTREE || to === INDEX) {
         const mode = workspace_element("select", "git-graph-parent");
-        mode.append(workspace_option("all", "HEAD \u2192 \u5DE5\u4F5C\u533A"), workspace_option("staged", "HEAD \u2192 \u6682\u5B58\u533A"), workspace_option("unstaged", "\u6682\u5B58\u533A \u2192 \u5DE5\u4F5C\u533A"));
+        mode.append(workspace_option("all", git_graph_text("graph.head_to_worktree")), workspace_option("staged", git_graph_text("graph.head_to_index")), workspace_option("unstaged", git_graph_text("graph.index_to_worktree")));
         mode.value = to === INDEX ? "staged" : from === INDEX ? "unstaged" : "all";
         mode.onchange = () => void this.show_comparison(mode.value === "unstaged" ? INDEX : this.state.head || EMPTY, mode.value === "staged" ? INDEX : WORKTREE);
-        controls.append(mode);
-        controls.append(workspace_button("\u64CD\u4F5C", () => this.repository_menu("changes")));
+        const mode_label = workspace_element("label", "git-graph-detail-option", git_graph_text("graph.comparison"));
+        mode_label.append(mode);
+        summary.append(mode_label);
       } else {
         if (commit) {
-          this.details.append(workspace_element("div", "git-graph-meta", "\u4F5C\u8005\uFF1A".concat(commit.author, " <").concat(commit.email || "", "> \xB7 ").concat(commit.date, "\n\u63D0\u4EA4\u8005\uFF1A").concat(commit.committer || commit.author, " <").concat(commit.committer_email || "", "> \xB7 ").concat(commit.commit_date || commit.date)));
+          summary.append(workspace_element("div", "git-graph-meta", git_graph_text("graph.author_meta", { author: commit.author, email: commit.email || "", date: commit.date, committer: commit.committer || commit.author, committer_email: commit.committer_email || "", commit_date: commit.commit_date || commit.date })));
           if (this.settings.fetch_avatars && commit.email) {
             const img = workspace_element("img", "git-graph-avatar");
             img.alt = commit.author;
-            this.details.append(img);
+            summary.append(img);
             void this.host.avatar(commit.email).then((url) => {
               if (epoch === this.detail_epoch) img.src = url;
             }).catch(() => img.remove());
           }
           const parent = workspace_element("select", "git-graph-parent");
-          parent.setAttribute("aria-label", "\u5BF9\u6BD4\u7236\u63D0\u4EA4");
-          if (!commit.parents.length) parent.append(workspace_option(EMPTY, "\u9996\u6B21\u63D0\u4EA4 \xB7 \u7A7A\u6811"));
-          commit.parents.forEach((hash2, index) => parent.append(workspace_option(hash2, "\u7236\u63D0\u4EA4 ".concat(index + 1, " \xB7 ").concat(hash2.slice(0, 8)))));
-          if (![...parent.options].some((item) => item.value === from)) parent.append(workspace_option(from, "\u6240\u9009\u6BD4\u8F83\u63D0\u4EA4 \xB7 " + from.slice(0, 8)));
+          parent.setAttribute("aria-label", git_graph_text("graph.compare_parent"));
+          if (!commit.parents.length) parent.append(workspace_option(EMPTY, git_graph_text("graph.initial_commit_empty_tree")));
+          commit.parents.forEach((hash2, index) => parent.append(workspace_option(hash2, git_graph_text("graph.parent_commit", { number: index + 1, hash: hash2.slice(0, 8) }))));
+          if (![...parent.options].some((item) => item.value === from)) parent.append(workspace_option(from, git_graph_text("graph.selected_comparison", { hash: from.slice(0, 8) })));
           parent.value = from;
           parent.onchange = () => void this.show_comparison(parent.value, to);
-          controls.append(parent);
+          const parent_label = workspace_element("label", "git-graph-detail-option", git_graph_text("graph.compare_with"));
+          parent_label.append(parent);
+          summary.append(parent_label);
         }
-        controls.append(workspace_button(this.review_active() ? "\u7ED3\u675F\u8BC4\u5BA1" : "\u5F00\u59CB\u8BC4\u5BA1", () => {
-          const reviews = load_reviews(localStorage);
-          const filtered = reviews.filter((item) => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
-          if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
-          save_reviews(localStorage, filtered);
-          void this.show_comparison(from, to);
-        }));
-        const message = workspace_element("div", "git-graph-message", "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u8BF4\u660E\u2026");
-        this.details.append(message);
-        void this.runner.run(this.root, ["show", "-s", "--format=%B".concat(this.settings.show_signature ? "%n\u7B7E\u540D\uFF1A%G?%n%GS%n%GK" : ""), to, "--"]).then((text3) => {
-          if (epoch === this.detail_epoch) message.replaceChildren(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
+        const review_button = git_icon_button("check", this.review_active() ? git_graph_text("graph.review_end") : git_graph_text("graph.review_start"), () => this.toggle_review(from, to), "git-graph-detail-review");
+        review_button.setAttribute("aria-pressed", String(this.review_active()));
+        controls.append(review_button);
+        const message = workspace_element("div", "git-graph-message", git_graph_text("graph.loading_message"));
+        summary.append(message);
+        void this.runner.run(this.root, ["show", "-s", "--format=%B".concat(this.settings.show_signature ? "%n" + git_graph_text("graph.signature_label") + "%G?%n%GS%n%GK" : ""), to, "--"]).then((message_text) => {
+          if (epoch === this.detail_epoch) message.replaceChildren(inline_message(message_text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
         }).catch((error) => {
           if (epoch === this.detail_epoch) message.textContent = String(error);
         });
       }
-      controls.append(workspace_button(this.settings.file_view === "tree" ? "\u5207\u6362\u5217\u8868" : "\u5207\u6362\u76EE\u5F55\u6811", () => {
-        this.settings.file_view = this.settings.file_view === "tree" ? "list" : "tree";
-        this.persist_settings();
-        void this.show_comparison(from, to);
-      }));
+      const tree_button = git_icon_button("list-tree", git_graph_text("graph.files_tree"), () => this.set_file_view("tree", from, to), "git-graph-detail-tree");
+      tree_button.setAttribute("aria-pressed", String(this.settings.file_view === "tree"));
+      const list_button = git_icon_button("list-flat", git_graph_text("graph.files_list"), () => this.set_file_view("list", from, to), "git-graph-detail-list");
+      list_button.setAttribute("aria-pressed", String(this.settings.file_view === "list"));
+      controls.append(tree_button, list_button, git_icon_button("more", git_graph_text("graph.more_commit_actions"), () => this.repository_menu(to === WORKTREE || to === INDEX ? "changes" : "repository"), "git-graph-detail-more"));
+      const files_heading = workspace_element("div", "git-graph-files-heading", git_graph_text("graph.changed_files"));
       const files = workspace_element("div", "git-graph-files");
-      this.details.append(workspace_element("div", "git-scm-empty", "\u5355\u51FB\u6587\u4EF6\u5728\u4E2D\u592E\u7F16\u8F91\u533A\u6253\u5F00\u5DEE\u5F02\uFF1B\u53F3\u952E\u67E5\u770B\u6587\u4EF6\u64CD\u4F5C\u3002"), files);
+      files_pane.append(files_heading, files);
       try {
         this.files = await compare_files(this.runner.run, this.state, from, to);
         if (epoch !== this.detail_epoch) return;
+        files_heading.textContent = git_graph_text("graph.changed_files_count", { count: this.files.length });
         if (!this.files.length) {
-          files.textContent = "\u6CA1\u6709\u6587\u4EF6\u5DEE\u5F02\u3002";
+          files.textContent = git_graph_text("graph.no_file_differences");
           return;
         }
         this.render_files(files);
       } catch (error) {
         if (epoch === this.detail_epoch) files.textContent = String(error);
       }
+    }
+    toggle_review(from, to) {
+      const reviews = load_reviews(localStorage);
+      const filtered = reviews.filter((item) => JSON.stringify([item.root, item.from, item.to]) !== this.review_key());
+      if (reviews.length === filtered.length) filtered.push({ root: this.root, from, to, reviewed: [], updated_at: Date.now() });
+      save_reviews(localStorage, filtered);
+      void this.show_comparison(from, to);
+    }
+    set_file_view(view, from, to) {
+      if (this.settings.file_view === view) return;
+      this.settings.file_view = view;
+      this.persist_settings();
+      void this.show_comparison(from, to);
     }
     render_files(container) {
       const directories = /* @__PURE__ */ new Map();
@@ -212904,19 +214524,28 @@ var LinuxNoteTyporaEnhancements = (() => {
         const parent = parent_for(parts.slice(0, -1).join("/"));
         const group = workspace_element("details", "git-file-directory");
         group.open = true;
-        group.append(workspace_element("summary", "", parts.at(-1)));
+        const summary = workspace_element("summary");
+        summary.append(git_icon("chevron-right", "git-graph-file-disclosure"), git_icon("folder-opened", "git-graph-file-folder"), workspace_element("span", "git-graph-directory-name", parts.at(-1)));
+        group.append(summary);
+        group.ontoggle = () => {
+          const current = summary.querySelector(".git-graph-file-folder");
+          current?.replaceWith(git_icon(group.open ? "folder-opened" : "folder", "git-graph-file-folder"));
+        };
         parent.append(group);
         directories.set(path, group);
         return group;
       };
       for (const file of this.files) {
-        const row = workspace_button("".concat(file.status, "  ").concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path), () => {
+        const row = workspace_button("", () => {
           for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
           row.classList.add("selected");
           void this.open_diff(file);
         }, "git-graph-file");
         row.dataset.file = file.path;
         row.title = file.path;
+        const display_path = file.old_path ? file.old_path + " \u2192 " + file.path : file.path;
+        const parts = display_path.split("/");
+        row.append(git_icon("file", "git-graph-file-icon"), workspace_element("span", "git-graph-file-name", parts.pop() || display_path), workspace_element("span", "git-graph-file-path", parts.join("/")), workspace_element("span", "git-graph-file-status", file.status));
         if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
         row.oncontextmenu = (event) => this.file_menu(event, file);
         (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(row);
@@ -212926,7 +214555,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           const children = [...directory.children];
           if (children.length === 2 && children[1].tagName === "DETAILS") {
             const child = children[1];
-            directory.querySelector("summary").textContent += "/" + child.querySelector("summary").textContent;
+            directory.querySelector(".git-graph-directory-name").textContent += "/" + child.querySelector(".git-graph-directory-name").textContent;
             directory.append(...[...child.children].slice(1));
             child.remove();
           }
@@ -212935,14 +214564,14 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     file_menu(event, file) {
       const entries3 = [
-        { id: "file_history", title: "\u6253\u5F00\u6587\u4EF6\u5386\u53F2\uFF08\u65F6\u95F4\u7EBF\uFF09", action: () => void this.workbench.file_history(file.path) },
-        { id: "open_file", title: "\u6253\u5F00\u5F53\u524D\u6587\u4EF6", action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch((error) => this.report(error)) },
-        { id: "copy_relative", title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => void this.host.copy(file.path) },
-        { id: "copy_absolute", title: "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
-        { id: "open_diff", title: "\u6253\u5F00\u53CC\u680F\u5DEE\u5F02", action: () => void this.open_diff(file) },
-        { id: "left_revision", title: "\u67E5\u770B\u5DE6\u4FA7\u5386\u53F2\u7248\u672C", action: () => void this.open_revision(this.from, file.old_path || file.path) },
-        { id: "right_revision", title: "\u67E5\u770B\u53F3\u4FA7\u5386\u53F2\u7248\u672C", action: () => void this.open_revision(this.to, file.path) },
-        { id: "reviewed", title: "\u6807\u8BB0\u5DF2\u8BC4\u5BA1", action: () => this.mark_reviewed(file.path) }
+        { id: "file_history", title: git_graph_text("graph.file_history"), action: () => void this.workbench.file_history(file.path) },
+        { id: "open_file", title: git_graph_text("graph.open_current_file"), action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch((error) => this.report(error)) },
+        { id: "copy_relative", title: git_graph_text("graph.copy_relative_path"), action: () => void this.host.copy(file.path) },
+        { id: "copy_absolute", title: git_graph_text("graph.copy_absolute_path"), action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
+        { id: "open_diff", title: git_graph_text("graph.open_side_by_side_diff"), action: () => void this.open_diff(file) },
+        { id: "left_revision", title: git_graph_text("graph.open_left_revision"), action: () => void this.open_revision(this.from, file.old_path || file.path) },
+        { id: "right_revision", title: git_graph_text("graph.open_right_revision"), action: () => void this.open_revision(this.to, file.path) },
+        { id: "reviewed", title: git_graph_text("graph.mark_reviewed"), action: () => this.mark_reviewed(file.path) }
       ];
       if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries3.push({ id, title: graph_actions.find((action) => action.id === id).title, action: () => void this.quick_action(id, [file.path, ...file.old_path ? [file.old_path] : []]) });
       entries3.push(...this.workbench.file_entries(file, this.from, this.to, this.files).filter((entry) => entry.id === "ignore_file"));
@@ -212962,53 +214591,36 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     target_menu(event, kind, target, hash2) {
       const entries3 = graph_actions.filter((action) => action.targets.includes(kind) && !this.settings.hidden_actions.includes(action.id)).map((action) => ({ title: action.title, id: action.id, action: () => this.action_dialog(action.id, kind, target, hash2) }));
-      entries3.push({ title: "\u590D\u5236\u540D\u79F0\u6216\u7F16\u53F7", id: "copy_name", action: () => void this.host.copy(target || hash2) }, { title: "\u590D\u5236\u63D0\u4EA4\u7F16\u53F7", id: "copy_hash", action: () => void this.host.copy(hash2) });
+      entries3.push({ title: git_graph_text("graph.copy_name_or_hash"), id: "copy_name", action: () => void this.host.copy(target || hash2) }, { title: git_graph_text("graph.copy_commit_hash"), id: "copy_hash", action: () => void this.host.copy(hash2) });
       const commit = this.state?.commits.find((item) => item.hash === hash2);
-      if (commit) entries3.push({ title: "\u590D\u5236\u63D0\u4EA4\u6807\u9898", id: "copy_subject", action: () => void this.host.copy(commit.subject) });
-      if (kind === "tag") entries3.push({ title: "\u67E5\u770B\u6807\u7B7E\u8BE6\u60C5", id: "tag_details", action: () => void this.tag_details(target) });
+      if (commit) entries3.push({ title: git_graph_text("graph.copy_commit_subject"), id: "copy_subject", action: () => void this.host.copy(commit.subject) });
+      if (kind === "tag") entries3.push({ title: git_graph_text("graph.tag_details"), id: "tag_details", action: () => void this.tag_details(target) });
       if (kind === "branch" || kind === "remote") {
-        entries3.push({ title: "\u6253\u5F00 Pull Request \u8868\u5355", id: "pull_request", action: () => this.pr_dialog(kind === "remote" ? target.slice(target.indexOf("/") + 1) : target) });
+        entries3.push({ title: git_graph_text("graph.open_pull_request"), id: "pull_request", action: () => this.pr_dialog(kind === "remote" ? target.slice(target.indexOf("/") + 1) : target) });
         const name = kind === "branch" ? "refs/heads/" + target : "refs/remotes/" + target;
-        entries3.push({ title: this.branches.includes(name) ? "\u4ECE\u5206\u652F\u7B5B\u9009\u4E2D\u79FB\u9664" : "\u52A0\u5165\u5206\u652F\u7B5B\u9009", id: "filter", action: () => {
+        entries3.push({ title: this.branches.includes(name) ? git_graph_text("graph.filter_remove") : git_graph_text("graph.filter_add"), id: "filter", action: () => {
           this.branches = this.branches.includes(name) ? this.branches.filter((item) => item !== name) : [...this.branches, name];
           void this.refresh();
         } });
       }
-      if (["branch", "remote", "tag", "commit"].includes(kind)) entries3.push({ title: "\u5BFC\u51FA\u6B64\u7248\u672C\u7684 ZIP \u5F52\u6863", id: "archive", action: () => this.archive_dialog(hash2) });
+      if (["branch", "remote", "tag", "commit"].includes(kind)) entries3.push({ title: git_graph_text("graph.archive_zip"), id: "archive", action: () => this.archive_dialog(hash2) });
       this.configured_menu(event, kind, entries3);
-    }
-    apply_layout() {
-      this.body.style.setProperty("--git-panel-first", this.settings.panel_ratio + "fr");
-      this.body.style.setProperty("--git-panel-second", 100 - this.settings.panel_ratio + "fr");
-      this.sash.hidden = this.settings.details_location === "inline";
     }
     layout_entries() {
       return [
-        ...[["right", "\u8BE6\u60C5\u653E\u53F3\u4FA7"], ["bottom", "\u8BE6\u60C5\u653E\u4E0B\u65B9"], ["inline", "\u8BE6\u60C5\u5D4C\u5165\u63D0\u4EA4\u884C"]].map(([value, title]) => ({ title, checked: this.settings.details_location === value, action: () => {
-          this.settings.details_location = value;
-          this.persist_settings();
-          if (this.state) this.render_history();
-          this.place_details();
-        } })),
-        ...[["show_author", "\u663E\u793A\u4F5C\u8005\u5217"], ["show_date", "\u663E\u793A\u65E5\u671F\u5217"], ["show_hash", "\u663E\u793A\u7F16\u53F7\u5217"]].map(([key, title]) => ({ title, checked: Boolean(this.settings[key]), action: () => {
-          this.settings[key] = !this.settings[key];
-          this.persist_settings();
-          if (this.state) this.render_history();
-        } })),
-        { title: "\u91CD\u7F6E\u5217\u5BBD\u548C\u5206\u754C\u7EBF", separator: true, action: () => {
+        { title: git_graph_text("graph.reset_columns"), action: () => {
           this.settings.column_widths = { ...graph_defaults.column_widths };
-          this.settings.panel_ratio = graph_defaults.panel_ratio;
           this.persist_settings();
           if (this.state) this.render_history();
         } },
-        { title: "\u5168\u90E8\u8BBE\u7F6E", action: () => this.settings_dialog() }
+        { title: git_graph_text("graph.all_settings"), action: () => this.settings_dialog() }
       ];
     }
     layout_menu(event) {
       workspace_menu(event, this.layout_entries());
     }
     layout_dialog() {
-      const dialog = workspace_dialog("\u63D0\u4EA4\u56FE\u5E03\u5C40");
+      const dialog = graph_dialog2(git_graph_text("graph.layout_title"));
       for (const entry of this.layout_entries()) dialog.content.append(workspace_button((entry.checked ? "\u2713 " : "") + entry.title, () => {
         dialog.close();
         entry.action();
@@ -213018,8 +214630,8 @@ var LinuxNoteTyporaEnhancements = (() => {
       const hidden = (id) => this.settings.hidden_actions.includes(id) || this.settings.hidden_actions.includes(kind + ":" + id);
       const filter_entries = (items) => items.filter((entry) => !entry.id || !hidden(entry.id)).map((entry) => entry.children ? { ...entry, children: filter_entries(entry.children) } : entry);
       const all_entries = (items) => items.flatMap((entry) => [entry, ...all_entries(entry.children || [])]);
-      workspace_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: "\u914D\u7F6E\u6B64\u53F3\u952E\u83DC\u5355\u2026", separator: true, action: () => {
-        const dialog = workspace_dialog("\u53F3\u952E\u83DC\u5355\u663E\u793A\u9879 \xB7 " + kind);
+      workspace_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: git_graph_text("graph.configure_context_menu"), separator: true, action: () => {
+        const dialog = graph_dialog2(git_graph_text("graph.context_menu_title", { kind: target_kind_label(kind) }));
         const choices = /* @__PURE__ */ new Map();
         for (const entry of all_entries(entries3)) {
           if (!entry.id || choices.has(entry.id)) continue;
@@ -213032,7 +214644,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           choices.set(entry.id, input);
           dialog.content.append(label);
         }
-        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
+        dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
           for (const [id, input] of choices) {
             this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== kind + ":" + id);
             if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id);
@@ -213040,7 +214652,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           }
           this.persist_settings();
           dialog.close();
-        }), workspace_button("\u6062\u590D\u6B64\u83DC\u5355\u5168\u90E8\u9879\u76EE", () => {
+        }), workspace_button(git_graph_text("graph.restore_menu"), () => {
           this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices.has(id));
           this.persist_settings();
           dialog.close();
@@ -213050,51 +214662,51 @@ var LinuxNoteTyporaEnhancements = (() => {
     background_menu(event) {
       const entries3 = graph_actions.filter((action) => action.targets.includes("repository")).map((action) => ({ id: action.id, title: action.title, disabled: !this.state || this.writing, action: () => this.action_dialog(action.id, "repository", "", this.state?.head) }));
       entries3.push(
-        { id: "refresh", title: "\u5237\u65B0", separator: true, action: () => void this.refresh() },
-        { id: "terminal", title: "\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u96C6\u6210\u7EC8\u7AEF", action: () => this.host.terminal(this.root, this.settings.terminal_shell) },
-        { id: "terminal_admin", title: "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", disabled: this.host.process_api.platform !== "win32", action: () => this.host.terminal(this.root, "", true) },
-        { id: "remotes", title: "\u8FDC\u7AEF\u914D\u7F6E", action: () => this.remotes_dialog() },
-        { id: "copy_root", title: "\u590D\u5236\u4ED3\u5E93\u6839\u8DEF\u5F84", action: () => void this.host.copy(this.root) },
-        { id: "layout", title: "\u9762\u677F\u5E03\u5C40\u4E0E\u5217\u663E\u793A", separator: true, action: () => this.layout_dialog() },
-        { id: "settings", title: "\u5168\u90E8\u8BBE\u7F6E", action: () => this.settings_dialog() }
+        { id: "refresh", title: git_graph_text("graph.refresh_short"), separator: true, action: () => void this.refresh() },
+        { id: "terminal", title: git_graph_text("graph.open_terminal"), action: () => this.host.terminal(this.root, this.settings.terminal_shell) },
+        { id: "terminal_admin", title: git_graph_text("graph.open_admin_terminal"), disabled: this.host.process_api.platform !== "win32", action: () => this.host.terminal(this.root, "", true) },
+        { id: "remotes", title: git_graph_text("graph.remotes"), action: () => this.remotes_dialog() },
+        { id: "copy_root", title: git_graph_text("graph.copy_repository_root"), action: () => void this.host.copy(this.root) },
+        { id: "layout", title: git_graph_text("graph.column_layout"), separator: true, action: () => this.layout_dialog() },
+        { id: "settings", title: git_graph_text("graph.all_settings"), action: () => this.settings_dialog() }
       );
       this.configured_menu(event, "repository", entries3);
     }
     repository_menu(kind = "repository") {
-      const dialog = workspace_dialog(kind === "changes" ? "\u672A\u63D0\u4EA4\u6539\u52A8\u64CD\u4F5C" : "\u4ED3\u5E93\u64CD\u4F5C");
+      const dialog = graph_dialog2(kind === "changes" ? git_graph_text("graph.changes_actions") : git_graph_text("graph.repository_actions"));
       for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(workspace_button(action.title, () => {
         dialog.close();
         this.action_dialog(action.id, kind, "", this.state?.head);
       }));
-      dialog.content.append(workspace_button("\u8FDC\u7AEF\u914D\u7F6E", () => {
+      dialog.content.append(workspace_button(git_graph_text("graph.remotes"), () => {
         dialog.close();
         this.remotes_dialog();
-      }), workspace_button("\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF", () => {
+      }), workspace_button(git_graph_text("graph.open_repository_terminal"), () => {
         this.host.terminal(this.root, this.settings.terminal_shell);
         dialog.close();
-      }), workspace_button("\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", () => {
+      }), workspace_button(git_graph_text("graph.open_admin_terminal"), () => {
         this.host.terminal(this.root, "", true);
         dialog.close();
-      }), workspace_button("\u7BA1\u7406\u8BC4\u5BA1\u8BB0\u5F55", () => {
+      }), workspace_button(git_graph_text("graph.manage_reviews"), () => {
         dialog.close();
         this.reviews_dialog();
-      }), workspace_button("\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => {
+      }), workspace_button(git_graph_text("graph.clear_avatar_cache"), () => {
         this.host.clear_avatars();
         dialog.close();
       }));
     }
     remotes_dialog() {
-      const dialog = workspace_dialog("\u4ED3\u5E93\u8FDC\u7AEF\u914D\u7F6E");
-      if (!this.state?.remotes.length) dialog.content.append(workspace_element("p", "", "\u6B64\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002"));
-      for (const remote2 of this.state?.remotes || []) {
-        const row = workspace_element("div", "git-graph-repo-entry", "".concat(remote2.name, "\n\u83B7\u53D6\u5730\u5740\uFF1A").concat(remote2.fetch, "\n\u63A8\u9001\u5730\u5740\uFF1A").concat(remote2.push));
-        for (const [title, id, preset] of [["\u4FEE\u6539\u83B7\u53D6\u5730\u5740", "remote_edit", { url: remote2.fetch }], ["\u4FEE\u6539\u63A8\u9001\u5730\u5740", "remote_edit", { url: remote2.push, push_url: true }], ["\u83B7\u53D6", "fetch", {}], ["\u6E05\u7406\u8FC7\u671F\u5F15\u7528", "remote_prune", {}], ["\u5220\u9664", "remote_remove", {}]]) row.append(workspace_button(title, () => {
+      const dialog = graph_dialog2(git_graph_text("graph.repository_remotes"));
+      if (!this.state?.remotes.length) dialog.content.append(workspace_element("p", "", git_graph_text("graph.no_remotes")));
+      for (const remote of this.state?.remotes || []) {
+        const row = workspace_element("div", "git-graph-repo-entry", git_graph_text("graph.remote_addresses", { name: remote.name, fetch: remote.fetch, push: remote.push }));
+        for (const [title, id, preset] of [[git_graph_text("graph.edit_fetch_url"), "remote_edit", { url: remote.fetch }], [git_graph_text("graph.edit_push_url"), "remote_edit", { url: remote.push, push_url: true }], [git_graph_text("graph.fetch"), "fetch", {}], [git_graph_text("graph.prune_remote"), "remote_prune", {}], [git_graph_text("graph.delete"), "remote_remove", {}]]) row.append(workspace_button(title, () => {
           dialog.close();
-          this.action_dialog(id, "repository", "", "", { remote: remote2.name, ...preset });
+          this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset });
         }));
         dialog.content.append(row);
       }
-      dialog.footer.prepend(workspace_button("\u6DFB\u52A0\u8FDC\u7AEF", () => {
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.add_remote"), () => {
         dialog.close();
         this.action_dialog("remote_add", "repository");
       }));
@@ -213105,7 +214717,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       let message = "";
       try {
         const plan = await plan_git_action(this.writer.run, id, { root: this.root, target: paths[0] || "", paths: paths.length ? paths : void 0, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
-        message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || "\u64CD\u4F5C\u5B8C\u6210\u3002";
+        message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || git_graph_text("graph.action_complete");
         if (id === "commit") {
           this.workbench.message.value = "";
           localStorage.removeItem(this.workbench.storage_key("message"));
@@ -213120,30 +214732,30 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     action_dialog(id, kind, target = "", hash2 = this.selected, preset = {}, paths) {
       if (!this.state || this.writing) {
-        this.report("\u8BF7\u7B49\u5F85\u4ED3\u5E93\u8BFB\u53D6\u6216\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
+        this.report(git_graph_text("graph.wait_for_repository"));
         return;
       }
       const action = graph_actions.find((item) => item.id === id);
-      const dialog = workspace_dialog(action.title);
+      const dialog = graph_dialog2(action.title);
       const fields = /* @__PURE__ */ new Map();
       if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
       if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
       const defaults2 = { ...this.settings.dialog_defaults[id], ...preset };
-      dialog.content.append(workspace_element("p", "", "\u4ED3\u5E93\uFF1A".concat(this.root, "\n\u76EE\u6807\uFF1A").concat(target || hash2 || this.state.branch)));
+      dialog.content.append(workspace_element("p", "", git_graph_text("graph.repository_target", { root: this.root, target: revision_label(target || hash2 || this.state.branch) })));
       const form = workspace_element("form", "git-graph-form");
       const result = workspace_element("pre", "git-graph-action-preview");
       dialog.content.append(form, result);
       for (const item of action.fields) {
         const input = item.type === "choice" ? workspace_element("select") : ["message", "todo"].includes(item.key) ? workspace_element("textarea") : workspace_element("input");
         let initial = defaults2[item.key] ?? item.initial ?? "";
-        if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter((remote2) => target.startsWith(remote2.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
+        if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter((remote) => target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
         if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
         if (item.key === "source" && kind === "remote") initial = target.slice(target.indexOf("/") + 1);
         if (item.key === "prune") initial = defaults2.prune ?? this.settings.fetch_prune;
         if (item.key === "prune_tags") initial = defaults2.prune_tags ?? this.settings.fetch_prune_tags;
         if (item.key === "sign") initial = defaults2.sign ?? this.settings.sign_tags;
         if (input instanceof HTMLSelectElement) {
-          for (const value of item.choices) input.append(workspace_option(value, value));
+          for (const value of item.choices) input.append(workspace_option(value, item.choice_labels?.[value] || value));
           input.value = String(initial);
         } else if (item.type === "boolean") {
           input.type = "checkbox";
@@ -213157,10 +214769,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       let plan;
       let form_revision = 0;
-      const execute = workspace_button(id === "sync" ? "\u786E\u8BA4\u540C\u6B65" : "\u6267\u884C\u6B64\u64CD\u4F5C", () => void submit());
+      const execute = workspace_button(id === "sync" ? git_graph_text("graph.sync_confirm") : git_graph_text("graph.execute_action"), () => void submit());
       execute.disabled = true;
       execute.setAttribute("data-git-execute", id);
-      const preview = workspace_button("\u9884\u89C8\u64CD\u4F5C", () => void prepare());
+      const preview = workspace_button(git_graph_text("graph.preview_action"), () => void prepare());
       preview.setAttribute("data-git-preview", id);
       form.oninput = () => {
         form_revision++;
@@ -213176,14 +214788,14 @@ var LinuxNoteTyporaEnhancements = (() => {
           for (const [key, input] of fields) values[key] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
           if (id === "rebase" && values.interactive && !values.todo) {
             fields.get("todo").value = await this.runner.run(this.root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", "".concat(hash2, "..HEAD"), "--"]);
-            result.textContent = "\u5DF2\u751F\u6210\u4EA4\u4E92\u5217\u8868\u3002\u53EF\u4EE5\u8C03\u6574\u987A\u5E8F\u6216\u6539\u4E3A reword / edit / squash / fixup / drop\uFF1Breword \u7684\u6807\u9898\u5C06\u4F5C\u4E3A\u65B0\u8BF4\u660E\u3002\u786E\u8BA4\u5217\u8868\u540E\u518D\u6B21\u9884\u89C8\u3002";
+            result.textContent = git_graph_text("graph.rebase_todo_ready");
             return;
           }
           const selected_paths = id === "discard_changes" ? paths || this.workbench.groups_state.find((group) => group.id === "changes")?.files.map((file) => file.path) : paths;
           plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash2 === WORKTREE ? this.state.head : hash2, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
           if (revision !== form_revision) {
             plan = void 0;
-            result.textContent = "\u53C2\u6570\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u9884\u89C8\u3002";
+            result.textContent = git_graph_text("graph.parameters_changed");
             return;
           }
           result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview;
@@ -213199,10 +214811,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.writing = true;
         preview.disabled = true;
         execute.disabled = true;
-        result.textContent += "\n\n\u6267\u884C\u4E2D\u2026";
+        result.textContent += "\n\n" + git_graph_text("graph.executing");
         try {
           const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files(), { trash_files: (root, files) => this.host.trash_files(root, files) });
-          result.textContent += "\n" + (output || "\u64CD\u4F5C\u5B8C\u6210\u3002");
+          result.textContent += "\n" + (output || git_graph_text("graph.action_complete"));
         } catch (error) {
           result.textContent += "\n" + String(error);
         } finally {
@@ -213228,7 +214840,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (id === "sync") void prepare();
     }
     async tag_details(name) {
-      const dialog = workspace_dialog("\u6807\u7B7E\u8BE6\u60C5 \xB7 " + name);
+      const dialog = graph_dialog2(git_graph_text("graph.tag_details_title", { name }));
       try {
         const text3 = await this.runner.run(this.root, ["for-each-ref", "--format=%(refname)%0a%(objecttype)%0a%(taggername) %(taggeremail)%0a%(taggerdate:iso8601)%0a%(contents)", "refs/tags/" + name]);
         dialog.content.append(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
@@ -213236,17 +214848,17 @@ var LinuxNoteTyporaEnhancements = (() => {
         dialog.content.textContent = String(error);
       }
     }
-    pr_dialog(branch2) {
-      const dialog = workspace_dialog("\u521B\u5EFA Pull Request");
-      const remote2 = workspace_element("select");
+    pr_dialog(branch) {
+      const dialog = graph_dialog2(git_graph_text("graph.pull_request_title"));
+      const remote = workspace_element("select");
       const base = workspace_element("input");
       base.value = this.settings.pr_base;
       const error = workspace_element("p");
-      for (const item of this.state.remotes) remote2.append(workspace_option(item.fetch, item.name));
-      dialog.content.append(workspace_element("p", "", "\u9009\u62E9\u8FDC\u7AEF\u4E0E\u76EE\u6807\u5206\u652F\uFF0C\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u9884\u586B\u8868\u5355\u3002"), remote2, base, error);
-      dialog.footer.prepend(workspace_button("\u6253\u5F00\u8868\u5355", () => {
+      for (const item of this.state.remotes) remote.append(workspace_option(item.fetch, item.name));
+      dialog.content.append(workspace_element("p", "", git_graph_text("graph.pull_request_help")), remote, base, error);
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.open_form"), () => {
         try {
-          void this.host.open_url(pull_request_url(remote2.value, branch2, base.value, this.settings.pr_url)).catch((problem) => {
+          void this.host.open_url(pull_request_url(remote.value, branch, base.value, this.settings.pr_url)).catch((problem) => {
             error.textContent = String(problem);
           });
         } catch (problem) {
@@ -213255,16 +214867,16 @@ var LinuxNoteTyporaEnhancements = (() => {
       }));
     }
     archive_dialog(hash2) {
-      const dialog = workspace_dialog("\u5BFC\u51FA\u7248\u672C\u5F52\u6863");
+      const dialog = graph_dialog2(git_graph_text("graph.archive_title"));
       const target = workspace_element("input");
       target.value = this.host.path_api.join(this.root, hash2.slice(0, 8) + ".zip");
       const error = workspace_element("pre");
       dialog.content.append(target, error);
-      dialog.footer.prepend(workspace_button("\u5BFC\u51FA ZIP", () => void (async () => {
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.export_zip"), () => void (async () => {
         try {
-          if (this.host.fs.existsSync(target.value)) throw new Error("\u76EE\u6807\u5DF2\u5B58\u5728\uFF0C\u8BF7\u6362\u4E00\u4E2A\u540D\u79F0\u3002");
+          if (this.host.fs.existsSync(target.value)) throw new Error(git_graph_text("graph.target_exists"));
           await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash2]);
-          error.textContent = "\u5DF2\u5BFC\u51FA\uFF1A" + target.value;
+          error.textContent = git_graph_text("graph.exported", { path: target.value });
         } catch (problem) {
           error.textContent = String(problem);
         }
@@ -213272,34 +214884,34 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     filter_branches() {
       if (!this.state) {
-        this.report("\u8BF7\u5148\u6253\u5F00\u6709\u6548\u4ED3\u5E93\u3002");
+        this.report(git_graph_text("graph.valid_repository_required"));
         return;
       }
-      const dialog = workspace_dialog("\u9009\u62E9\u4E00\u4E2A\u6216\u591A\u4E2A\u5206\u652F");
+      const dialog = graph_dialog2(git_graph_text("graph.select_branches_title"));
       const selected = new Set(this.branches);
-      for (const [name, title] of [["HEAD", "\u5F53\u524D HEAD"], ...this.state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
-        const check2 = workspace_element("input");
-        check2.type = "checkbox";
-        check2.checked = selected.has(name);
-        check2.onchange = () => check2.checked ? selected.add(name) : selected.delete(name);
+      for (const [name, title] of [["HEAD", git_graph_text("graph.current_head")], ...this.state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
+        const check = workspace_element("input");
+        check.type = "checkbox";
+        check.checked = selected.has(name);
+        check.onchange = () => check.checked ? selected.add(name) : selected.delete(name);
         const label = workspace_element("label", "git-graph-filter", title);
-        label.prepend(check2);
+        label.prepend(check);
         dialog.content.append(label);
       }
-      dialog.footer.prepend(workspace_button("\u5168\u90E8\u5206\u652F", () => {
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.all_branches_button"), () => {
         this.branches = [];
         dialog.close();
         void this.refresh();
-      }), workspace_button("\u5E94\u7528\u9009\u62E9", () => {
+      }), workspace_button(git_graph_text("graph.apply_selection"), () => {
         this.branches = [...selected];
         dialog.close();
         void this.refresh();
       }));
     }
     manage_repositories() {
-      const dialog = workspace_dialog("\u7BA1\u7406 Git \u4ED3\u5E93");
+      const dialog = graph_dialog2(git_graph_text("graph.manage_repositories_title"));
       const input = workspace_element("input");
-      input.placeholder = "\u7C98\u8D34\u4ED3\u5E93\u6587\u4EF6\u5939\u8DEF\u5F84";
+      input.placeholder = git_graph_text("graph.repository_path_placeholder");
       input.value = this.root;
       const error = workspace_element("p");
       const list3 = workspace_element("div");
@@ -213307,10 +214919,10 @@ var LinuxNoteTyporaEnhancements = (() => {
         list3.replaceChildren();
         for (const root of this.known_repos()) {
           const row = workspace_element("div", "git-graph-repo-entry", root);
-          row.append(workspace_button("\u6253\u5F00", () => {
+          row.append(workspace_button(git_graph_text("graph.open"), () => {
             this.switch_repo(root);
             dialog.close();
-          }), workspace_button("\u79FB\u9664\u8BB0\u5F55", () => {
+          }), workspace_button(git_graph_text("graph.remove_record"), () => {
             this.save_repos(this.known_repos().filter((item) => item !== root));
             render();
           }));
@@ -213320,16 +214932,16 @@ var LinuxNoteTyporaEnhancements = (() => {
       render();
       dialog.content.append(input, list3, error);
       dialog.footer.prepend(
-        workspace_button("\u6DFB\u52A0\u4ED3\u5E93", () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
+        workspace_button(git_graph_text("graph.add_repository"), () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
           this.save_repos([...this.known_repos(), root.trim()]);
           render();
         }).catch((problem) => {
           error.textContent = String(problem);
         })),
-        workspace_button("\u53D1\u73B0\u5B50\u4ED3\u5E93", () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
+        workspace_button(git_graph_text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
           this.save_repos([...this.known_repos(), ...roots]);
           render();
-          error.textContent = "\u53D1\u73B0 ".concat(roots.length, " \u4E2A\u4ED3\u5E93\u3002");
+          error.textContent = git_graph_text("graph.discovered_repositories", { count: roots.length });
         }).catch((problem) => {
           error.textContent = String(problem);
         }))
@@ -213337,17 +214949,17 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     settings_dialog() {
       if (this.writing) {
-        this.report("Git \u64CD\u4F5C\u4ECD\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u7ED3\u679C\u3002");
+        this.report(git_graph_text("graph.operation_pending"));
         return;
       }
-      const dialog = workspace_dialog("Git Graph \u8BBE\u7F6E");
+      const dialog = graph_dialog2(git_graph_text("graph.settings_title"));
       const form = workspace_element("div", "git-graph-settings-form");
       const fields = /* @__PURE__ */ new Map();
       const error = workspace_element("p");
       for (const [key, value] of Object.entries(this.settings)) {
         const input = settings_choices[key] ? workspace_element("select") : typeof value === "object" ? workspace_element("textarea") : workspace_element("input");
         input.dataset.setting = key;
-        if (input instanceof HTMLSelectElement) for (const value2 of settings_choices[key]) input.append(workspace_option(value2, value2));
+        if (input instanceof HTMLSelectElement) for (const value2 of settings_choices[key]) input.append(workspace_option(value2, settings_choice_labels[key]?.[value2] || value2));
         if (typeof value === "boolean") {
           input.type = "checkbox";
           input.checked = value;
@@ -213383,29 +214995,29 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       });
       dialog.content.append(file);
-      dialog.footer.prepend(workspace_button("\u4FDD\u5B58\u8BBE\u7F6E", () => {
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.save_settings"), () => {
         try {
           const values = {};
           for (const [key, input] of fields) {
             const baseline = graph_defaults[key];
             values[key] = typeof baseline === "boolean" ? input.checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
           }
-          apply4(validate_settings(values));
+          apply4(validate_settings({ ...this.settings, ...values }));
         } catch (problem) {
           error.textContent = String(problem);
         }
-      }), workspace_button("\u6062\u590D\u9ED8\u8BA4", () => apply4(structuredClone(graph_defaults))), workspace_button("\u5BFC\u5165\u914D\u7F6E", () => file.click()), workspace_button("\u5BFC\u51FA\u914D\u7F6E", () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
+      }), workspace_button(git_graph_text("graph.restore_defaults"), () => apply4(structuredClone(graph_defaults))), workspace_button(git_graph_text("graph.import_settings"), () => file.click()), workspace_button(git_graph_text("graph.export_settings"), () => this.host.export_file(this.root, ".typora_git_graph.json", JSON.stringify({ ...this.settings, git_path: "git", terminal_shell: "", fetch_avatars: false }, null, 2))));
     }
     reviews_dialog() {
-      const dialog = workspace_dialog("\u8BC4\u5BA1\u8BB0\u5F55");
+      const dialog = graph_dialog2(git_graph_text("graph.reviews_title"));
       const render = () => {
         dialog.content.replaceChildren();
         const reviews = load_reviews(localStorage);
-        if (!reviews.length) dialog.content.textContent = "\u6682\u65E0\u8BC4\u5BA1\u8BB0\u5F55\u3002";
+        if (!reviews.length) dialog.content.textContent = git_graph_text("graph.no_reviews");
         for (const review of reviews) {
-          const row = workspace_element("div", "git-graph-review", "".concat(review.root, "\n").concat(review.from.slice(0, 8), " \u2192 ").concat(review.to.slice(0, 8), " \xB7 \u5DF2\u8BFB ").concat(review.reviewed.length, " \u4E2A\u6587\u4EF6"));
+          const row = workspace_element("div", "git-graph-review", git_graph_text("graph.review_record", { root: review.root, from: short_revision_label(review.from), to: short_revision_label(review.to), count: review.reviewed.length }));
           row.append(
-            workspace_button("\u7EE7\u7EED\u8BC4\u5BA1", () => {
+            workspace_button(git_graph_text("graph.resume_review"), () => {
               dialog.close();
               if (review.root !== this.root) this.switch_repo(review.root);
               void (async () => {
@@ -213414,7 +215026,7 @@ var LinuxNoteTyporaEnhancements = (() => {
                 void this.show_comparison(review.from, review.to);
               })();
             }),
-            workspace_button("\u7ED3\u675F", () => {
+            workspace_button(git_graph_text("graph.finish"), () => {
               save_reviews(localStorage, reviews.filter((item) => item !== review));
               render();
             })
@@ -213423,7 +215035,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         }
       };
       render();
-      dialog.footer.prepend(workspace_button("\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", () => {
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.finish_all_reviews"), () => {
         save_reviews(localStorage, []);
         render();
       }));
@@ -213439,7 +215051,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
       const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
       let handled = true;
-      if (shortcut_matches(event, this.settings.shortcuts.find)) this.search.focus();
+      if (shortcut_matches(event, this.settings.shortcuts.find)) this.open_find();
       else if (shortcut_matches(event, this.settings.shortcuts.head)) this.scroll_to(this.state?.head || "");
       else if (shortcut_matches(event, this.settings.shortcuts.refresh)) void this.refresh();
       else if (shortcut_matches(event, this.settings.shortcuts.stash_next) || shortcut_matches(event, this.settings.shortcuts.stash_previous)) {
@@ -213459,13 +215071,9 @@ var LinuxNoteTyporaEnhancements = (() => {
           else next = this.state.commits.filter((commit) => commit.parents.includes(current.hash))[event.shiftKey ? 1 : 0];
         } else next = this.state.commits[Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1))];
         if (next) this.select_commit(next);
-      } else if (event.key === "Escape") {
-        this.detail_epoch++;
-        this.details.textContent = "\u9009\u62E9\u63D0\u4EA4\u67E5\u770B\u8BE6\u60C5\u3002";
-        this.selected = "";
-        this.to = "";
-        this.place_details();
-      } else handled = false;
+      } else if (event.key === "Escape" && this.find_widget.dataset.open === "true") this.close_find();
+      else if (event.key === "Escape") this.close_details();
+      else handled = false;
       if (handled) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -213502,20 +215110,20 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
   function bind_git_status_bar(core, host, current_panel, launch_graph) {
     const status_core = core;
-    const plugin = new status_core.Plugin(core.app, { id: "linux_note.git_status", name: "Git \u72B6\u6001\u680F" });
-    const item = plugin.addStatusBarItem({ position: "left", type: "item", hint: "Git \u4ED3\u5E93\u72B6\u6001" });
+    const plugin = new status_core.Plugin(core.app, { id: "linux_note.git_status", name: git_graph_text("status.plugin_name") });
+    const item = plugin.addStatusBarItem({ position: "left", type: "item", hint: git_graph_text("status.repository_status") });
     item.classList.add("linux-note-git-status");
     item.setAttribute("data-linux-note-git-status", "ready");
     item.parentElement?.prepend(item);
     const style63 = workspace_element("style");
     style63.textContent = git_status_bar_default;
     document.head.append(style63);
-    const branch2 = workspace_button("", () => {
+    const branch = workspace_button("", () => {
     }, "git-status-branch");
-    branch2.dataset.gitStatus = "branch";
+    branch.dataset.gitStatus = "branch";
     const branch_icon = git_icon("git-branch");
-    const label = workspace_element("span", "git-status-branch-label", "\u6B63\u5728\u68C0\u67E5 Git\u2026");
-    branch2.append(branch_icon, label);
+    const label = workspace_element("span", "git-status-branch-label", git_graph_text("status.checking"));
+    branch.append(branch_icon, label);
     const sync = workspace_button("", () => {
     }, "git-status-sync");
     sync.dataset.gitStatus = "sync";
@@ -213526,9 +215134,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     graph.dataset.gitStatus = "graph";
     const graph_icon = git_icon("git-branch");
     graph.append(graph_icon, document.createTextNode("Git Graph"));
-    graph.title = "\u6253\u5F00\u6216\u5207\u6362\u5230\u5F53\u524D\u4ED3\u5E93\u7684 Git Graph \u63D0\u4EA4\u56FE";
+    graph.title = git_graph_text("status.open_graph");
     graph.setAttribute("aria-label", graph.title);
-    item.append(branch2, sync, graph);
+    item.append(branch, sync, graph);
     let panel;
     let snapshot;
     let snapshot_root = "";
@@ -213542,9 +215150,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     const unavailable = (message) => {
       snapshot = void 0;
       snapshot_root = "";
-      label.textContent = "\u65E0 Git \u4ED3\u5E93";
-      branch2.title = message + "\uFF1B\u70B9\u51FB\u9009\u62E9\u4ED3\u5E93";
-      branch2.setAttribute("aria-label", branch2.title);
+      label.textContent = git_graph_text("status.no_repository");
+      branch.title = git_graph_text("status.select_repository_hint", { message });
+      branch.setAttribute("aria-label", branch.title);
       sync.disabled = true;
       sync.title = message;
       counts.textContent = "";
@@ -213560,7 +215168,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       if (snapshot_root !== current.root) {
         snapshot = void 0;
-        label.textContent = "\u6B63\u5728\u68C0\u67E5 Git\u2026";
+        label.textContent = git_graph_text("status.checking");
         counts.textContent = "";
         sync.disabled = true;
         item.dataset.repository = "loading";
@@ -213570,7 +215178,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       reader = host.runner(current.settings);
       const root = current.root;
       if (!root) {
-        unavailable("\u8BF7\u5148\u6253\u5F00\u4ED3\u5E93\u4E2D\u7684\u6587\u4EF6\u6216\u6587\u4EF6\u5939");
+        unavailable(git_graph_text("status.open_repository_first"));
         return;
       }
       try {
@@ -213579,18 +215187,18 @@ var LinuxNoteTyporaEnhancements = (() => {
         snapshot = status2;
         snapshot_root = current.root;
         const detached = status2.branch === "(detached)";
-        const name = detached ? status2.head.slice(0, 8) + "\uFF08\u6E38\u79BB\uFF09" : status2.branch || "Git";
+        const name = detached ? git_graph_text("status.detached_name", { hash: status2.head.slice(0, 8) }) : status2.branch || "Git";
         label.textContent = name + (status2.dirty ? "*" : "");
-        branch2.title = "".concat(current.root, "\n").concat(detached ? "\u6E38\u79BB HEAD" : "\u5F53\u524D\u5206\u652F\uFF1A" + name).concat(status2.head === "(initial)" ? "\uFF08\u5C1A\u65E0\u63D0\u4EA4\uFF09" : "").concat(status2.dirty ? "\n\u6709\u672A\u63D0\u4EA4\u66F4\u6539" : "\n\u5DE5\u4F5C\u533A\u5E72\u51C0", "\n\u70B9\u51FB\u5207\u6362\u5206\u652F\uFF1B\u53F3\u952E\u7BA1\u7406\u5F53\u524D\u5206\u652F");
-        branch2.setAttribute("aria-label", branch2.title);
+        branch.title = git_graph_text("status.branch_tooltip", { root: current.root, branch: detached ? git_graph_text("status.detached_head") : git_graph_text("status.current_branch", { branch: name }), initial: status2.head === "(initial)" ? git_graph_text("status.initial_suffix") : "", worktree: status2.dirty ? git_graph_text("status.dirty") : git_graph_text("status.clean") });
+        branch.setAttribute("aria-label", branch.title);
         item.dataset.repository = "ready";
         counts.textContent = status2.upstream && (status2.behind || status2.ahead) ? "\u2193".concat(status2.behind, " \u2191").concat(status2.ahead) : "";
         sync.disabled = detached || status2.head === "(initial)";
         sync.replaceChildren(git_icon(status2.upstream ? "sync" : "cloud-upload"), counts);
-        sync.title = sync.disabled ? "\u8BF7\u5148\u5728\u5206\u652F\u4E0A\u521B\u5EFA\u63D0\u4EA4\uFF0C\u518D\u53D1\u5E03\u6216\u540C\u6B65\u66F4\u6539" : status2.upstream ? "\u4E0A\u6E38\uFF1A".concat(status2.upstream, "\n\u5F85\u62C9\u53D6 ").concat(status2.behind, "\uFF0C\u5F85\u63A8\u9001 ").concat(status2.ahead, "\n\u70B9\u51FB\u786E\u8BA4\u540C\u6B65\uFF08\u5148\u62C9\u53D6\u3001\u518D\u63A8\u9001\uFF09\uFF1B\u53F3\u952E\u9009\u62E9\u5176\u4ED6\u64CD\u4F5C") : "\u5C1A\u672A\u914D\u7F6E\u4E0A\u6E38\uFF1B\u70B9\u51FB\u53D1\u5E03\u5206\u652F\u5E76\u8BBE\u7F6E\u4E0A\u6E38\uFF1B\u53F3\u952E\u9009\u62E9\u5176\u4ED6\u64CD\u4F5C";
+        sync.title = sync.disabled ? git_graph_text("status.create_commit_first") : status2.upstream ? git_graph_text("status.sync_tooltip", { upstream: status2.upstream, behind: status2.behind, ahead: status2.ahead }) : git_graph_text("status.publish_tooltip");
         sync.setAttribute("aria-label", sync.title);
       } catch (error) {
-        if (!disposed && token === epoch) unavailable("\u65E0\u6CD5\u8BFB\u53D6 Git \u4ED3\u5E93\uFF1A" + String(error instanceof Error ? error.message : error));
+        if (!disposed && token === epoch) unavailable(git_graph_text("status.read_failed", { error: String(error instanceof Error ? error.message : error) }));
       }
     };
     const ready = (event, show2) => {
@@ -213602,13 +215210,13 @@ var LinuxNoteTyporaEnhancements = (() => {
         while (current.pending) await new Promise((resolve3) => setTimeout(resolve3, 50));
         if (disposed || current !== current_panel()) return;
         if (!current.state || current.container.dataset.state === "error") {
-          workspace_menu(event, [{ id: "select_repository", title: "\u9009\u62E9 Git \u4ED3\u5E93\u2026", action: () => current.manage_repositories() }, { id: "refresh_status", title: "\u91CD\u65B0\u68C0\u67E5\u4ED3\u5E93", action: () => void refresh() }]);
+          workspace_menu(event, [{ id: "select_repository", title: git_graph_text("status.select_repository"), action: () => current.manage_repositories() }, { id: "refresh_status", title: git_graph_text("status.recheck_repository"), action: () => void refresh() }]);
           return;
         }
         await show2(current);
       })().catch((error) => current.report(error));
     };
-    branch2.onclick = (event) => ready(event, (current) => {
+    branch.onclick = (event) => ready(event, (current) => {
       const state = current.state;
       const entries3 = state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({
         id: "checkout:" + ref.name,
@@ -213618,34 +215226,34 @@ var LinuxNoteTyporaEnhancements = (() => {
       }));
       entries3.push(...state.refs.filter((ref) => ref.name.startsWith("refs/remotes/") && !ref.name.endsWith("/HEAD")).map((ref) => ({
         id: "checkout:" + ref.name,
-        title: "\u68C0\u51FA\u8FDC\u7AEF " + ref.name.slice(13),
+        title: git_graph_text("status.checkout_remote", { branch: ref.name.slice(13) }),
         action: () => current.action_dialog("remote_checkout", "remote", ref.name.slice(13), ref.hash)
       })));
       entries3.push(
-        { id: "branch_create", title: "\u521B\u5EFA\u5206\u652F\u2026", separator: true, disabled: !state.head, action: () => current.action_dialog("branch_create", "commit", state.head, state.head) },
-        { id: "select_repository", title: "\u9009\u62E9 Git \u4ED3\u5E93\u2026", action: () => current.manage_repositories() }
+        { id: "branch_create", title: git_graph_text("status.create_branch"), separator: true, disabled: !state.head, action: () => current.action_dialog("branch_create", "commit", state.head, state.head) },
+        { id: "select_repository", title: git_graph_text("status.select_repository"), action: () => current.manage_repositories() }
       );
       current.configured_menu(event, "status_checkout", entries3);
     });
-    branch2.oncontextmenu = (event) => ready(event, (current) => {
+    branch.oncontextmenu = (event) => ready(event, (current) => {
       const state = current.state;
       if (state.head) current.target_menu(event, state.branch ? "branch" : "commit", state.branch || state.head, state.head);
-      else current.configured_menu(event, "status_unborn", [{ id: "unborn", title: "".concat(state.branch, " \u5C1A\u65E0\u63D0\u4EA4"), disabled: true, action: () => {
-      } }, { id: "select_repository", title: "\u9009\u62E9 Git \u4ED3\u5E93\u2026", action: () => current.manage_repositories() }]);
+      else current.configured_menu(event, "status_unborn", [{ id: "unborn", title: git_graph_text("status.branch_has_no_commits", { branch: state.branch }), disabled: true, action: () => {
+      } }, { id: "select_repository", title: git_graph_text("status.select_repository"), action: () => current.manage_repositories() }]);
     });
     const sync_menu = (event) => ready(event, (current) => {
       const state = current.state;
       const upstream = snapshot_root === current.root && snapshot?.branch === state.branch ? snapshot.upstream : "";
-      const remote2 = state.remotes.filter((item2) => upstream.startsWith(item2.name + "/")).sort((left, right) => right.name.length - left.name.length)[0]?.name || state.remotes[0]?.name || "";
-      const branch3 = upstream.startsWith(remote2 + "/") ? upstream.slice(remote2.length + 1) : state.branch;
+      const remote = state.remotes.filter((item2) => upstream.startsWith(item2.name + "/")).sort((left, right) => right.name.length - left.name.length)[0]?.name || state.remotes[0]?.name || "";
+      const branch2 = upstream.startsWith(remote + "/") ? upstream.slice(remote.length + 1) : state.branch;
       current.configured_menu(event, "status_sync", [
-        { id: "sync", title: "\u540C\u6B65\u66F4\u6539\uFF08\u5148\u62C9\u53D6\u3001\u518D\u63A8\u9001\uFF09\u2026", disabled: !upstream || !state.head || !state.branch, action: () => current.action_dialog("sync", "repository", "", state.head, { mode: "merge" }) },
-        { id: "fetch", title: "\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0\u2026", action: () => current.action_dialog("fetch", "repository", "", state.head, { remote: remote2 }) },
-        { id: "pull", title: "\u62C9\u53D6\u5230\u5F53\u524D\u5206\u652F\u2026", disabled: !state.head || !state.branch, action: () => current.action_dialog("pull", "repository", "", state.head, { remote: remote2, branch: branch3, mode: "ff-only" }) },
-        { id: "push", title: "\u63A8\u9001\u5F53\u524D\u5206\u652F\u2026", disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, { remote: remote2, branch: state.branch }) },
-        { id: "set_upstream", title: "\u63A8\u9001\u5E76\u8BBE\u7F6E\u4E0A\u6E38\u5206\u652F\u2026", separator: true, disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, { remote: remote2, branch: state.branch, upstream: true }) },
-        { id: "remotes", title: "\u914D\u7F6E\u8FDC\u7AEF\u2026", action: () => current.remotes_dialog() },
-        { id: "refresh_status", title: "\u5237\u65B0\u672C\u5730 Git \u72B6\u6001", separator: true, action: () => void refresh() }
+        { id: "sync", title: git_graph_text("status.sync_changes"), disabled: !upstream || !state.head || !state.branch, action: () => current.action_dialog("sync", "repository", "", state.head, { mode: "merge" }) },
+        { id: "fetch", title: git_graph_text("status.fetch"), action: () => current.action_dialog("fetch", "repository", "", state.head, { remote }) },
+        { id: "pull", title: git_graph_text("status.pull"), disabled: !state.head || !state.branch, action: () => current.action_dialog("pull", "repository", "", state.head, { remote, branch: branch2, mode: "ff-only" }) },
+        { id: "push", title: git_graph_text("status.push"), disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, { remote, branch: state.branch }) },
+        { id: "set_upstream", title: git_graph_text("status.set_upstream"), separator: true, disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, { remote, branch: state.branch, upstream: true }) },
+        { id: "remotes", title: git_graph_text("status.configure_remotes"), action: () => current.remotes_dialog() },
+        { id: "refresh_status", title: git_graph_text("status.refresh"), separator: true, action: () => void refresh() }
       ]);
     });
     sync.onclick = (event) => ready(event, async (current) => {
@@ -213679,9 +215287,10 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/git_graph.css
-  var git_graph_default = ":is(.linux-note-git-graph, .linux-note-git-source-control) {\n  container-type: inline-size;\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  flex: 1;\n  min-width: 0;\n  min-height: 0;\n  overflow: hidden;\n  background: var(--bg-color, #fff);\n  color: var(--text-color, #24292f);\n  font: 13px/1.5 system-ui, sans-serif;\n  user-select: text;\n}\n:is(.linux-note-git-graph, .linux-note-git-source-control) *:not(.monaco-editor, .monaco-editor *) { box-sizing: border-box; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *), :is(.linux-note-git-graph, .linux-note-git-source-control) select:not(.monaco-editor *), :is(.linux-note-git-graph, .linux-note-git-source-control) input:not(.monaco-editor *) {\n  font: inherit; color: inherit; background: transparent; border: 1px solid #8885; border-radius: 4px; padding: 4px 8px;\n}\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *) { cursor: pointer; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):hover { background: #8882; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):focus-visible, :is(.linux-note-git-graph, .linux-note-git-source-control) select:not(.monaco-editor *):focus-visible, :is(.linux-note-git-graph, .linux-note-git-source-control) input:not(.monaco-editor *):focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):disabled { opacity: .5; cursor: default; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) [hidden] { display: none !important; }\n.git-graph-root { padding: 10px 12px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; flex: none; }\n.git-graph-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; flex: none; }\n.git-graph-branch { max-width: 220px; min-width: 100px; }\n.git-graph-search { flex: 1; min-width: 160px; }\n.git-graph-status { padding: 2px 12px 8px; opacity: .8; overflow-wrap: anywhere; max-height: 100px; overflow: auto; flex: none; }\n.git-graph-body { display: grid; grid-template-columns: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); flex: 1; min-height: 0; border-top: 1px solid #8884; }\n.git-graph-list { overflow: auto; min-height: 0; position: relative; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row { display: flex; align-items: center; width: max-content; min-width: 100%; height: 34px; padding: 0 8px 0 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; gap: 8px; }\n.git-graph-row svg { flex: none; overflow: visible; }\n.git-graph-row[aria-pressed=\"true\"], :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-file.selected { background: #2684d426; }\n.git-graph-subject { min-width: 80px; width: var(--git-subject-width, 300px); flex: none; overflow: hidden; text-overflow: ellipsis; }\n.git-graph-refs { display: inline-block; max-width: 220px; overflow: hidden; text-overflow: ellipsis; vertical-align: bottom; margin-right: 8px; padding: 0 5px; border-radius: 3px; background: #2684d423; color: #2684d4; }\n.git-graph-author { width: var(--git-author-width, 110px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }\n.git-graph-date { width: var(--git-date-width, 145px); overflow: hidden; text-overflow: ellipsis; opacity: .7; flex: none; }\n.git-graph-hash { width: var(--git-hash-width, 80px); flex: none; font-size: 11px; background: none; }\n.git-graph-details { display: flex; flex-direction: column; gap: 8px; padding: 12px; overflow: auto; min-width: 0; min-height: 0; border-left: 1px solid #8884; }\n.git-graph-commit-title { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }\n.git-graph-full-hash { overflow-wrap: anywhere; font-size: 11px; background: none; flex: none; }\n.git-graph-meta { opacity: .75; white-space: pre-wrap; overflow-wrap: anywhere; }\n.git-graph-parent { width: 100%; flex: none; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) pre { margin: 0; font: 12px/1.65 Consolas, ui-monospace, monospace; background: #8881; border: 0; padding: 8px; user-select: text; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }\n.git-graph-files { overflow: auto; flex: 1; min-height: 80px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-file { display: block; width: 100%; text-align: left; border: 0; overflow-wrap: anywhere; }\n.git-diff-hunk { color: #2684d4; }\n@container (max-width: 680px) {\n  .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); }\n  .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\n}\n/* Git Graph \u7684\u5F39\u7A97\u5C5E\u4E8E\u5BBF\u4E3B\u7A97\u53E3\uFF0C\u4E0D\u80FD\u4F9D\u8D56\u6B63\u6587\u7F16\u8F91\u533A\u7684\u7126\u70B9\u6216\u6837\u5F0F\u3002 */\n.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }\n.git-graph-dialog, .git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font: 13px/1.5 system-ui, sans-serif; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }\n.git-graph-dialog { display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }\n.git-graph-dialog h3 { font: 600 17px/1.5 system-ui; margin: 0; padding: 14px 18px; border-bottom: 1px solid #8884; }\n.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }\n.git-graph-dialog-footer { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }\n.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea, .git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }\n.git-graph-dialog button { cursor: pointer; margin: 2px; }\n.git-graph-dialog button:disabled { opacity: .5; cursor: default; }\n.git-graph-dialog button:hover, .git-graph-menu button:hover, .git-graph-menu button:focus { background: #2684d424; }\n.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }\n.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }\n.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font: 12px/1.6 Consolas, monospace; }\n.git-graph-form label, .git-graph-settings-form label { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #8882; }\n.git-graph-form input[type=checkbox], .git-graph-settings-form input[type=checkbox] { justify-self: start; }\n.git-graph-filter { display: block; padding: 4px; }\n.git-graph-filter input { margin-right: 10px; }\n.git-graph-repo-entry, .git-graph-review { padding: 10px 0; border-bottom: 1px solid #8883; }\n.git-graph-menu { position: fixed; z-index: 110001; padding: 5px; min-width: 190px; max-width: min(360px, 95vw); max-height: 85vh; overflow: auto; }\n.git-graph-menu button { display: block; width: 100%; border: none; border-radius: 3px; text-align: left; cursor: pointer; }\n.git-graph-repositories { max-width: 180px; }\n.git-graph-columns { display: flex; gap: 8px; width: max-content; min-width: 100%; position: sticky; top: 0; z-index: 2; background: var(--bg-color, #fff); border-bottom: 1px solid #8884; height: 30px; }\n.git-graph-column { position: relative; flex: none; overflow: hidden; white-space: nowrap; padding: 4px 8px 4px 0; opacity: .8; }\n.git-graph-column-resize { position: absolute; right: 0; top: 0; width: 7px; height: 100%; cursor: col-resize; border-right: 1px solid #8884; touch-action: none; }\n.git-graph-row { cursor: pointer; }\n.git-graph-row:hover { background: #8881; }\n.git-graph-row:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n.git-graph-muted { opacity: .45; }\n.git-graph-worktree { padding-left: 14px !important; font-weight: 600; }\n.git-graph-worktree.connected { padding-left: 0 !important; }\n.git-graph-refs { cursor: context-menu; }\n.git-ref-tag { color: #946900; background: #eac54f24; }\n.git-ref-remote { color: #22875e; background: #29885824; }\n.git-graph-detail-controls { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }\n.git-graph-detail-controls select { flex: 1; width: auto; min-width: 120px; }\n.git-file-directory { margin-left: 8px; }\n.git-file-directory summary { cursor: pointer; }\n.git-file-unreviewed::before { content: '\u25CF '; color: #2684d4; }\n.git-graph-avatar { width: 32px; height: 32px; border-radius: 50%; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=bottom] .git-graph-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, var(--git-panel-first, 55fr)) 7px minmax(0, var(--git-panel-second, 45fr)); }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=bottom] .git-graph-details { border-left: 0; border-top: 1px solid #8884; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=inline] .git-graph-body { display: flex; flex-direction: column; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=inline] .git-graph-list { flex: 1; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=inline] .git-graph-details { height: 440px; max-width: 100%; border: 1px solid #8884; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-labels=split] .git-graph-subject { display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-labels=graph] .git-graph-labels { display: inline-block; width: 130px; overflow: hidden; vertical-align: bottom; }\n.git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }\n@media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }\n\n/* \u7F16\u8F91\u7EC4\u3001\u63D0\u4EA4\u8BE6\u60C5\u548C\u5386\u53F2\u53CC\u680F\u4F7F\u7528\u4E00\u81F4\u7684\u53EF\u547D\u4E2D\u5206\u754C\u7EBF\u3002 */\n.linux-note-workspace-sash { flex: 0 0 7px; min-width: 7px; min-height: 7px; position: relative; background: #8881; cursor: col-resize; touch-action: none; user-select: none; z-index: 3; }\n.linux-note-workspace-sash:hover, .linux-note-workspace-sash.dragging, .linux-note-workspace-sash:focus-visible { background: #007fd4; outline: none; }\n:is(.linux-note-git-graph, .linux-note-git-source-control)[data-details=bottom] .linux-note-workspace-sash { cursor: row-resize; }\n@container (max-width: 680px) { .git-graph-body > .linux-note-workspace-sash { cursor: row-resize; } }\n.git-graph-menu hr { border: 0; border-top: 1px solid #8884; margin: 5px 2px; }\n.git-graph-menu button:disabled { opacity: .4; cursor: default; }\n.git-graph-toolbar { background: #88808; border-bottom: 1px solid #8882; }\n.git-graph-columns { font-size: 12px; font-weight: 600; }\n.git-graph-details { border-left: none; }\nhr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }\n\n/* \u590D\u7528\u793E\u533A\u6838\u5FC3\u7684\u4E3B\u4FA7\u680F\u3001\u6D3B\u52A8\u680F\u548C\u7F16\u8F91\u6807\u7B7E\u3002 */\n.linux-note-git-source-control { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; color: var(--text-color, #24292f); background: var(--bg-color, #fff); font: 13px/1.5 system-ui, sans-serif; }\n.git-scm-sidebar { --git-scm-actions-width: 72px; --git-scm-status-width: 20px; --git-scm-row-right: 8px; min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0; background: #88808; }\n.git-scm-sidebar > .git-scm-title { padding: 0 12px; }\n.git-scm-sections { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, var(--git-scm-changes-size, 55fr)) 7px minmax(0, var(--git-scm-history-size, 45fr)); }\n.git-scm-sections[data-history-open=false] { grid-template-rows: minmax(0, 1fr) 30px; }\n.git-scm-sections[data-show-changes=false], .git-scm-sections[data-show-history=false] { grid-template-rows: minmax(0, 1fr); }\n.git-scm-changes-pane { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; padding: 0 12px; }\n.git-scm-changes-pane > :not(.git-scm-groups) { flex-shrink: 0; }\n.git-scm-input-section { margin: 0 -12px; }\n.git-scm-input-heading { position: relative; display: flex; align-items: center; min-height: 28px; gap: 6px; padding: 0 7px 0 20px; list-style: none; cursor: pointer; background: #88808; }\n.git-scm-input-heading::-webkit-details-marker, .git-scm-group > summary::-webkit-details-marker { display: none; }\n.git-scm-input-heading > .git-disclosure-icon, .git-scm-group > summary > .git-disclosure-icon { position: absolute; left: 2px; }\n.git-scm-input-title { font-weight: 600; flex: none; }\n.git-scm-input-heading .git-scm-branch { margin-left: auto; min-width: 0; font-size: 11px; opacity: .7; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-input-heading button.git-scm-operation-menu { flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 0; }\n.git-scm-inputs { display: flex; flex-direction: column; gap: 6px; padding: 4px 12px 0; }\n.git-scm-commit-bar { display: grid; grid-template-columns: minmax(0, 1fr) 28px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button { margin: 0; height: 28px; border-radius: 0; border: 0; background: #0078d4; color: white; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button.git-scm-commit-options { border-left: 1px solid #ffffff50; padding: 0; }\n.git-scm-repositories-view { flex: none; padding: 0 12px 8px; border-bottom: 1px solid #8882; }\n.git-scm-repositories-heading { display: flex; align-items: center; justify-content: space-between; height: 28px; font-weight: 600; }\n.git-scm-repositories-view select { width: 100%; }\n.git-scm-title { display: flex; justify-content: space-between; align-items: center; min-height: 36px; font-weight: 600; font-size: 12px; flex: none; }\n.git-scm-tools { display: flex; gap: 3px; }\n.git-scm-tools button { border: none; font-size: 17px; padding: 0 6px; }\n.git-scm-branch { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; cursor: pointer; }\n.git-scm-branch-label { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-message { width: 100%; height: 30px; min-height: 30px; max-height: 120px; resize: none; background: var(--bg-color, white); color: inherit; border: 1px solid #8886; padding: 4px 7px; font: inherit; line-height: 20px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit { color: white; background: #0078d4; border: 0; border-radius: 2px; }\n.git-scm-sync { display: flex; gap: 4px; }\n.git-scm-sync button { flex: 1; padding: 3px; white-space: nowrap; }\n.git-scm-filter { width: 100%; }\n.git-scm-groups { flex: 1; min-height: 64px; overflow: auto; scrollbar-gutter: stable; margin: 0 -12px; }\n.git-scm-group { margin: 0; }\n.git-scm-group > summary { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-actions-width) var(--git-scm-status-width); gap: 6px; align-items: center; min-height: 28px; padding: 0 var(--git-scm-row-right) 0 20px; font-weight: 600; cursor: pointer; background: #8881; white-space: nowrap; border-top: 1px solid #8882; list-style: none; }\n.git-scm-group-label, .git-scm-file-label { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }\n.git-scm-group-name { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-badge { font-weight: 400; padding: 0 6px; margin-left: 6px; border-radius: 9px; background: #8883; font-size: 11px; }\n.git-scm-group-label .git-scm-badge { flex: none; margin: 0; }\n.git-scm-row-actions { display: flex; justify-content: flex-end; align-items: center; width: var(--git-scm-actions-width); min-width: 0; }\n.git-scm-status-slot { width: var(--git-scm-status-width); }\n.git-scm-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-actions-width) var(--git-scm-status-width); align-items: center; gap: 6px; min-height: 28px; padding: 0 var(--git-scm-row-right) 0 18px; cursor: pointer; white-space: nowrap; }\n.git-scm-file:hover { background: #8882; }\n.git-scm-file.selected, .git-scm-file:focus-visible { background: #0078d426; outline: 1px solid #0078d4; outline-offset: -1px; }\n.git-scm-file-name, .git-scm-history-file-name { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }\n.git-scm-file-directory { flex: 1 2 auto; min-width: 0; max-width: 42%; opacity: .55; font-size: 11px; overflow: hidden; text-overflow: ellipsis; }\n.git-scm-file-status { display: block; width: var(--git-scm-status-width); margin: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; font: 12px Consolas, monospace; color: #a87916; }\n.git-scm-file-status[data-status=U], .git-scm-file-status[data-status=A] { color: #278642; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-inline-action { padding: 0 4px; border: 0; font-size: 17px; line-height: 21px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-row-actions button.git-scm-inline-action { flex: 0 0 24px; width: 24px; height: 24px; min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 0; }\n.git-scm-file .git-scm-inline-action { opacity: 0; }\n.git-scm-file:hover .git-scm-inline-action, .git-scm-file:focus-within .git-scm-inline-action { opacity: 1; }\n.git-scm-empty { padding: 6px 12px; opacity: .6; }\n.git-scm-directory { margin-left: 9px; }\n.git-scm-directory > summary { cursor: pointer; font-size: 12px; }\n.git-diff-toolbar { display: flex; align-items: center; flex: none; gap: 4px; padding: 5px 8px; flex-wrap: wrap; font: 12px system-ui; border-bottom: 1px solid #8883; }\n.git-diff-toolbar button { color: inherit; background: transparent; border: 1px solid #8885; border-radius: 2px; padding: 3px 6px; cursor: pointer; }\n.git-diff-count { margin-left: auto; opacity: .7; }\n.git-diff-labels { display: flex; flex: none; min-width: 0; border-bottom: 1px solid #8883; font: 12px/26px system-ui; background: #88808; }\n.git-diff-labels > div { flex: 1; min-width: 0; padding: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #8883; }\n.git-monaco-body { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }\n.git-graph-document .monaco-editor { text-align: left; }\n.git-file-timeline { display: flex; flex-direction: column; min-height: 0; padding: 0 14px; }\n.git-file-timeline-list { flex: 1; overflow: auto; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-file-history-row { display: block; border: 0; border-bottom: 1px solid #8882; text-align: left; width: 100%; padding: 10px; }\n.git-file-history-row span { display: block; font-size: 11px; opacity: .65; padding-top: 4px; }\n\n.git-scm-sidebar { flex: 1; height: 100%; }\n.git-scm-history { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }\n.git-scm-history-header { display: flex; align-items: center; flex: 0 0 30px; min-width: 0; background: #8881; border-top: 1px solid #8883; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-header > button { border: 0; border-radius: 0; padding: 3px 7px; background: transparent; white-space: nowrap; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-toggle { text-align: left; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }\n.git-scm-history-toolbar { display: flex; align-items: center; flex: none; padding-right: 3px; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-toolbar > button { flex: 0 0 24px; width: 24px; height: 26px; border: 0; border-radius: 0; padding: 0; background: transparent; }\n@container (max-width: 400px) { .git-scm-history-network { display: none !important; } }\n@container (max-width: 230px) { .git-scm-history-toolbar .git-scm-graph-launch { display: none !important; } }\n.git-scm-history-list { overflow: auto; scrollbar-gutter: stable; min-width: 0; min-height: 0; flex: 1; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; border-radius: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }\n.git-scm-history-commit[aria-expanded=true] { background: #0078d426 !important; }\n.git-scm-history-disclosure { display: none; }\n.git-scm-history-topology { flex: none; overflow: visible; }\n.git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }\n.git-scm-history-summary { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 40px; padding-right: 6px; overflow: hidden; }\n.git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 12px; line-height: 22px; }\n.git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 45%; min-width: 0; overflow: hidden; white-space: nowrap; font-size: 11px; }\n.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }\n.git-scm-history-ref[data-current=true] { background: #006bff; }\n.git-scm-history-ref-name { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }\n.git-scm-history-author { flex: 0 1 auto; max-width: 30%; overflow: hidden; text-overflow: ellipsis; opacity: .65; font-size: 11px; }\n.git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); }\n.git-scm-history-continuation { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }\n.git-scm-history-files { min-width: 0; font-size: 12px; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; border-radius: 0; box-shadow: none; width: 100%; height: 22px; padding: 0 var(--git-scm-row-right) 0 0; margin: 0; text-align: left; background: transparent; white-space: nowrap; }\n.git-scm-history-directory { margin-left: 8px; }\n.git-scm-history-directory > summary { cursor: pointer; padding: 3px 6px 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-more { width: 100%; border: 0; border-radius: 0; box-shadow: none; font-size: 12px; }\n.git-scm-history-sash { cursor: row-resize; }\n.git-scm-repository { max-width: 100%; }\n#typora-sidebar-resizer:hover { background: #0078d4 !important; }\n\n.git-scm-notice { max-height: 100px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 11px; opacity: .8; flex: none; }\n.git-output { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 12px; }\n.git-output pre { flex: 1; min-height: 0; overflow: auto; white-space: pre-wrap; font: 12px/1.6 Consolas, monospace; }\n#typora-sidebar-resizer { width: 7px !important; cursor: col-resize !important; }\n\n.linux-note-git-graph[data-detail-visible=false] .git-graph-body { display: flex; }\n.linux-note-git-graph[data-detail-visible=false] .git-graph-list { flex: 1; }\n.linux-note-git-graph[data-detail-visible=false] .git-graph-details, .linux-note-git-graph[data-detail-visible=false] .git-graph-body > .linux-note-workspace-sash { display: none; }\n\n:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-commit { background: #0078d4; color: #fff; border: 0; border-radius: 2px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button:hover:not(:disabled) { background: #006cbe; color: #fff; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit:hover:not([aria-expanded=true]),\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file:hover { background: #8882; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-inline-action { border: 0; padding: 0 4px; font-size: 17px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools button { border: 0; padding: 0 5px; }\n\n/* \u6807\u51C6\u56FE\u6807\u7EDF\u4E00 16px \u753B\u5E03\u548C\u547D\u4E2D\u533A\uFF0C\u4E0D\u53D7\u6B63\u6587\u5B57\u4F53\u6216 details \u9ED8\u8BA4\u6807\u8BB0\u5F71\u54CD\u3002 */\n.git-standard-icon { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: middle; fill: currentColor; pointer-events: none; }\n.git-icon-button, .git-labeled-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button,\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-repositories-heading > button.git-icon-button { width: 24px; height: 24px; padding: 0; border: 0; }\n.git-scm-history-toggle { display: flex; align-items: center; gap: 4px; }\n.git-scm-sidebar details > summary { list-style: none; }\n.git-scm-sidebar details > summary::-webkit-details-marker { display: none; }\n.git-scm-sidebar details > summary::marker { content: ''; }\n.git-scm-sidebar details[open] > summary > .git-disclosure-icon,\n.git-scm-history-toggle[aria-expanded=true] > .git-disclosure-icon,\n.git-scm-history-commit[aria-expanded=true] .git-disclosure-icon { transform: rotate(90deg); }\n.git-scm-directory > summary, .git-scm-history-directory > summary { display: flex; align-items: center; gap: 4px; }\n.git-activity-icon, .git-tab-icon { display: inline-flex; align-items: center; justify-content: center; }\n.git-activity-icon > .git-standard-icon { width: 24px; height: 24px; }\n.git-graph-menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr) 16px; align-items: center; gap: 6px; }\n.git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }\n.git-menu-label { min-width: 0; }\n\n/* \u539F\u751F\u6587\u4EF6 footer \u60AC\u6D6E\u5728\u4FA7\u680F\u5E95\u90E8\uFF1B\u81EA\u6709\u9762\u677F\u6302\u8F7D\u671F\u95F4\u7531\u5404\u81EA\u5DE5\u5177\u680F\u627F\u62C5\u6587\u4EF6\u64CD\u4F5C\u3002 */\n#typora-sidebar:has(#sidebar-content > :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) > .sidebar-footer {\n  display: none !important;\n}\n#sidebar-content:has(> :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) {\n  min-height: 0;\n  overflow: hidden;\n  bottom: 0;\n}\n.linux-note-git-source-control > .git-scm-sidebar { flex: 1 1 0; height: auto; max-height: 100%; }\n.git-scm-sections { flex: 1 1 0; overflow: hidden; }\n.git-scm-sections[data-show-changes=true][data-show-history=true][data-history-open=true] {\n  grid-template-rows: minmax(0, var(--git-scm-changes-size, 55fr)) 7px minmax(30px, var(--git-scm-history-size, 45fr));\n}\n.git-scm-history { min-height: 30px; }\n.git-scm-history-header { flex: 0 0 30px; min-height: 30px; }\n";
+  var git_graph_default = ':is(.linux-note-git-graph, .linux-note-git-source-control) {\n  container-type: inline-size;\n  box-sizing: border-box;\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n  width: 100%;\n  flex: 1;\n  min-width: 0;\n  min-height: 0;\n  overflow: hidden;\n  background: var(--bg-color, #fff);\n  color: var(--text-color, #24292f);\n  font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif);\n  font-size: var(--linux-note-ui-font-size, 13px);\n  line-height: 1.5;\n  user-select: text;\n}\n:is(.linux-note-git-graph, .linux-note-git-source-control) *:not(.monaco-editor, .monaco-editor *) { box-sizing: border-box; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *), :is(.linux-note-git-graph, .linux-note-git-source-control) select:not(.monaco-editor *), :is(.linux-note-git-graph, .linux-note-git-source-control) input:not(.monaco-editor *) {\n  font: inherit; color: inherit; background: transparent; border: 1px solid #8885; border-radius: 4px; padding: 4px 8px;\n}\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *) { cursor: pointer; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):hover { background: #8882; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):focus-visible, :is(.linux-note-git-graph, .linux-note-git-source-control) select:not(.monaco-editor *):focus-visible, :is(.linux-note-git-graph, .linux-note-git-source-control) input:not(.monaco-editor *):focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button:not(.monaco-editor *):disabled { opacity: .5; cursor: default; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) [hidden] { display: none !important; }\n.linux-note-git-graph { position: relative; --git-graph-width: 58px; --git-subject-width: 300px; --git-date-width: 145px; --git-author-width: 110px; --git-hash-width: 80px; }\n.git-graph-toolbar { display: flex; align-items: center; flex: 0 0 40px; min-width: 0; height: 40px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; background: #88808; border-bottom: 1px solid #8882; scrollbar-width: none; }\n.git-graph-toolbar::-webkit-scrollbar { display: none; }\n.git-graph-control { display: inline-flex; align-items: center; gap: 6px; flex: none; height: 32px; margin: 4px 10px; }\n.git-graph-control + .git-graph-control { margin-left: 0; }\n.git-graph-control select { width: auto; max-width: 220px; min-width: 104px; height: 24px; padding: 1px 24px 1px 6px; border-radius: 2px; }\n.git-graph-repository-control select { max-width: 180px; }\n.git-graph-remote-control { gap: 5px; cursor: pointer; }\n.git-graph-remote-control input { width: 16px; height: 16px; margin: 0; padding: 0; }\n.git-graph-toolbar-actions { display: flex; align-items: center; gap: 10px; flex: none; margin-left: auto; padding: 0 10px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-toolbar-actions > button { flex: 0 0 20px; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 3px; }\n.git-graph-toolbar-actions .git-standard-icon { width: 18px; height: 18px; }\n.git-graph-toolbar-actions .git-graph-refresh .git-standard-icon { width: 16px; height: 16px; }\n.git-graph-find-widget { position: absolute; z-index: 6; top: 40px; right: 8px; display: flex; align-items: center; gap: 2px; width: min(430px, calc(100% - 16px)); height: 34px; padding: 4px 5px; background: var(--bg-color, #fff); box-shadow: 0 2px 8px #0004; transition: transform .2s ease, opacity .2s ease; }\n.git-graph-find-widget[data-open=false] { visibility: hidden; pointer-events: none; opacity: 0; transform: translateY(-34px); }\n.git-graph-find-widget[data-open=true] { visibility: visible; opacity: 1; transform: translateY(0); }\n.git-graph-search { flex: 1; min-width: 80px; height: 26px; padding: 2px 6px; border-radius: 2px; }\n.git-graph-find-position { flex: none; min-width: 52px; text-align: center; opacity: .7; font-size: .923em; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-find-widget > button { flex: 0 0 24px; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 3px; }\n.git-graph-status { position: absolute; z-index: 5; top: 46px; left: 12px; max-width: calc(100% - 24px); padding: 4px 8px; overflow-wrap: anywhere; border-radius: 3px; background: var(--bg-color, #fff); box-shadow: 0 2px 8px #0003; }\n.git-graph-status:empty, .linux-note-git-graph[data-state=ready] > .git-graph-status { display: none; }\n.git-graph-body { display: flex; flex: 1; min-width: 0; min-height: 0; }\n.git-graph-list { flex: 1; min-width: 0; min-height: 0; overflow: auto; position: relative; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row, .git-graph-columns { display: grid; grid-template-columns: var(--git-graph-width) minmax(var(--git-subject-width), 1fr) var(--git-date-width) var(--git-author-width) var(--git-hash-width); align-items: center; width: 100%; min-width: calc(var(--git-graph-width) + var(--git-subject-width) + var(--git-date-width) + var(--git-author-width) + var(--git-hash-width)); padding: 0; border: 0; border-radius: 0; text-align: left; white-space: nowrap; column-gap: 0; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row { height: 24px; line-height: 24px; }\n.git-graph-row > svg { justify-self: start; overflow: visible; }\n.git-graph-row[aria-pressed=true] { background: rgba(128,128,128,.25); }\n.git-graph-row[aria-pressed=true]:hover { background: rgba(128,128,128,.35); }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-file.selected { background: #2684d426; }\n.git-graph-subject, .git-graph-author, .git-graph-date, .git-graph-hash { display: flex; align-items: center; min-width: 0; height: 24px; padding: 0 4px; overflow: hidden; text-overflow: ellipsis; }\n.git-graph-subject-text, .git-graph-author, .git-graph-date, .git-graph-hash { overflow: hidden; text-overflow: ellipsis; }\n.git-graph-subject-text { min-width: 0; }\n.git-graph-row[data-head=true] .git-graph-subject-text { font-weight: 600; }\n.git-graph-labels { display: inline-flex; align-items: center; flex: none; max-width: 55%; overflow: hidden; }\n.git-graph-refs { display: inline-block; flex: 0 1 auto; max-width: 220px; height: 18px; margin: 2px 5px 2px 0; padding: 0 5px; overflow: hidden; color: #2684d4; border: 1px solid currentColor; border-radius: 5px; font-size: .923em; line-height: 16px; text-overflow: ellipsis; vertical-align: top; }\n.git-graph-author, .git-graph-date { opacity: .75; }\n.git-graph-hash { background: none; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .923em; line-height: 24px; }\n.git-graph-worktree-node { display: block; padding-left: 7px; color: #2684d4; }\n.git-graph-commit-title { font-weight: 600; overflow-wrap: anywhere; }\n.git-graph-full-hash { display: block; margin-top: 4px; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .846em; line-height: 18px; background: none; }\n.git-graph-meta { margin-top: 8px; opacity: .75; white-space: pre-wrap; overflow-wrap: anywhere; }\n.git-graph-detail-option { display: grid; grid-template-columns: auto minmax(120px, 1fr); align-items: center; gap: 8px; margin-top: 8px; }\n.git-graph-parent { width: 100%; min-width: 0; height: 26px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) pre { margin: 0; font-family: Consolas, ui-monospace, monospace; font-size: .923em; line-height: 1.65; background: #8881; border: 0; padding: 8px; user-select: text; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 110px; overflow: auto; flex: none; }\n.git-graph-files { min-height: 0; }\n.git-diff-hunk { color: #2684d4; }\n/* Git Graph \u7684\u5F39\u7A97\u5C5E\u4E8E\u5BBF\u4E3B\u7A97\u53E3\uFF0C\u4E0D\u80FD\u4F9D\u8D56\u6B63\u6587\u7F16\u8F91\u533A\u7684\u7126\u70B9\u6216\u6837\u5F0F\u3002 */\n.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }\n.git-graph-dialog, .git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }\n.git-graph-dialog { display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }\n.git-graph-dialog h3 { font-family: inherit; font-size: 1.308em; font-weight: 600; line-height: 1.5; margin: 0; padding: 14px 18px; border-bottom: 1px solid #8884; }\n.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }\n.git-graph-dialog-footer { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }\n.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea, .git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }\n.git-graph-dialog button { cursor: pointer; margin: 2px; }\n.git-graph-dialog button:disabled { opacity: .5; cursor: default; }\n.git-graph-dialog button:hover, .git-graph-menu button:hover, .git-graph-menu button:focus { background: #2684d424; }\n.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }\n.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }\n.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font-family: Consolas, monospace; font-size: .923em; line-height: 1.6; }\n.git-graph-form label, .git-graph-settings-form label { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #8882; }\n.git-graph-form input[type=checkbox], .git-graph-settings-form input[type=checkbox] { justify-self: start; }\n.git-graph-filter { display: block; padding: 4px; }\n.git-graph-filter input { margin-right: 10px; }\n.git-graph-repo-entry, .git-graph-review { padding: 10px 0; border-bottom: 1px solid #8883; }\n.git-graph-menu { position: fixed; z-index: 110001; padding: 5px; min-width: 190px; max-width: min(360px, 95vw); max-height: 85vh; overflow: auto; }\n.git-graph-menu button { display: block; width: 100%; border: none; border-radius: 3px; text-align: left; cursor: pointer; }\n.git-graph-columns { position: sticky; top: 0; z-index: 2; height: 30px; background: var(--bg-color, #fff); border-bottom: 1px solid #8884; }\n.git-graph-column { position: relative; height: 30px; padding: 6px 12px; overflow: hidden; white-space: nowrap; line-height: 18px; opacity: .8; }\n.git-graph-column-resize { position: absolute; right: 0; top: 0; width: 7px; height: 100%; cursor: col-resize; border-right: 1px solid #8884; touch-action: none; }\n.git-graph-column-graph { text-align: center; }\n.git-graph-row { cursor: pointer; }\n.git-graph-row:hover { background: rgba(128,128,128,.15); }\n.git-graph-row:focus-visible { outline: 2px solid #2684d4; outline-offset: -2px; }\n.git-graph-muted { opacity: .45; }\n.git-graph-worktree { font-weight: 600; }\n.git-graph-refs { cursor: context-menu; }\n.git-ref-tag { color: #946900; background: #eac54f24; }\n.git-ref-remote { color: #22875e; background: #29885824; }\n.git-graph-details { position: relative; width: 100%; min-width: 0; max-width: 100%; height: 300px; overflow: hidden; background: rgba(128,128,128,.1); border-left: 1px solid rgba(128,128,128,.2); border-bottom: 2px solid rgba(128,128,128,.2); cursor: default; font-size: 1em; line-height: 18px; white-space: normal; }\n.git-graph-detail-content { position: absolute; inset: 0 32px 2px 0; display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); min-width: 0; overflow-x: auto; overflow-y: hidden; }\n.git-graph-detail-summary, .git-graph-detail-files { min-width: 0; min-height: 0; overflow-x: hidden; overflow-y: auto; border-right: 1px solid rgba(128,128,128,.2); }\n.git-graph-detail-summary { padding: 10px; user-select: text; }\n.git-graph-detail-files { padding: 4px 8px 8px 0; user-select: none; }\n.git-graph-detail-controls { position: absolute; top: 0; right: 0; bottom: 2px; display: flex; flex-direction: column; align-items: center; width: 32px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-detail-controls > button { flex: 0 0 24px; width: 24px; height: 24px; margin: 4px 4px 0; padding: 0; border: 0; border-radius: 4px; }\n.git-graph-detail-controls > button[aria-pressed=true] { background: #2684d433; color: #1679e8; }\n.git-graph-detail-controls .git-standard-icon { width: 20px; height: 20px; }\n.git-graph-detail-tree { margin-bottom: 0 !important; border-radius: 4px 4px 0 0 !important; }\n.git-graph-detail-list { margin-top: 0 !important; border-radius: 0 0 4px 4px !important; }\n.git-graph-files-heading { height: 24px; padding: 3px 6px 3px 10px; font-weight: 600; line-height: 18px; }\n.git-file-directory { margin-left: 25px; }\n.git-graph-files > .git-file-directory { margin-left: 10px; }\n.git-file-directory > summary { display: flex; align-items: center; height: 18px; margin-top: 4px; overflow: hidden; cursor: pointer; list-style: none; white-space: nowrap; text-overflow: ellipsis; }\n.git-file-directory > summary::-webkit-details-marker { display: none; }\n.git-file-directory > summary::marker { content: \'\'; }\n.git-file-directory:not([open]) > summary > .git-graph-file-disclosure { transform: rotate(0); }\n.git-file-directory[open] > summary > .git-graph-file-disclosure { transform: rotate(90deg); }\n.git-graph-file-disclosure, .git-graph-file-folder, .git-graph-file-icon { flex: 0 0 13px; width: 13px; height: 13px; margin-right: 4px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-file { display: grid; grid-template-columns: 13px minmax(0, auto) minmax(0, 1fr) 24px; align-items: center; gap: 5px; width: 100%; min-width: 0; height: 22px; margin: 2px 0 0; padding: 0 4px 0 10px; overflow: hidden; text-align: left; border: 0; border-radius: 0; }\n.git-graph-file-name, .git-graph-file-path { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }\n.git-graph-file-path { opacity: .6; }\n.git-graph-file-status { text-align: center; color: #a87916; }\n.git-file-unreviewed .git-graph-file-name::before { content: \'\u25CF \'; color: #2684d4; }\n.git-graph-avatar { float: right; width: 32px; height: 32px; margin-left: 8px; border-radius: 50%; }\n.git-graph-load-more { flex: 0 0 28px; width: 100%; border-width: 1px 0 0 !important; border-radius: 0 !important; }\n.git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }\n@media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }\n\n/* \u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u533A\u4E0E\u63D0\u4EA4\u56FE\u4FDD\u7559\u72EC\u7ACB\u7684\u53EF\u547D\u4E2D\u5206\u754C\u7EBF\u3002 */\n.linux-note-workspace-sash { flex: 0 0 7px; min-width: 7px; min-height: 7px; position: relative; background: #8881; cursor: col-resize; touch-action: none; user-select: none; z-index: 3; }\n.linux-note-workspace-sash:hover, .linux-note-workspace-sash.dragging, .linux-note-workspace-sash:focus-visible { background: #007fd4; outline: none; }\n.git-graph-menu hr { border: 0; border-top: 1px solid #8884; margin: 5px 2px; }\n.git-graph-menu button:disabled { opacity: .4; cursor: default; }\n.git-graph-columns { font-size: .923em; font-weight: 600; }\nhr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }\n\n/* \u590D\u7528\u793E\u533A\u6838\u5FC3\u7684\u4E3B\u4FA7\u680F\u3001\u6D3B\u52A8\u680F\u548C\u7F16\u8F91\u6807\u7B7E\u3002 */\n.linux-note-git-source-control { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; }\n.git-scm-sidebar {\n  --git-scm-pane-padding: 11px;\n  --git-scm-row-height: 22px;\n  --git-scm-section-height: 22px;\n  --git-scm-action-size: 22px;\n  --git-scm-status-width: 16px;\n  --git-scm-row-right: 8px;\n  --git-scm-column-gap: 4px;\n  min-width: 0; min-height: 0; overflow: hidden; display: flex; flex-direction: column; padding: 0;\n}\n.git-scm-sidebar > .git-scm-title { padding: 0 var(--git-scm-pane-padding); }\n.git-scm-sections { flex: 1; min-height: 0; display: grid; grid-template-rows: minmax(0, var(--git-scm-changes-size, 55fr)) 7px minmax(0, var(--git-scm-history-size, 45fr)); }\n.git-scm-sections[data-history-open=false] { grid-template-rows: minmax(0, 1fr) 22px; }\n.git-scm-sections[data-show-changes=false], .git-scm-sections[data-show-history=false] { grid-template-rows: minmax(0, 1fr); }\n.git-scm-changes-pane { display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: auto; padding: 0 var(--git-scm-pane-padding); }\n.git-scm-changes-pane > :not(.git-scm-groups) { flex-shrink: 0; }\n.git-scm-input-section { margin: 0 calc(-1 * var(--git-scm-pane-padding)); }\n.git-scm-input-heading { position: relative; display: flex; align-items: center; min-height: var(--git-scm-section-height); gap: 6px; padding: 0 8px 0 20px; list-style: none; cursor: pointer; }\n.git-scm-input-heading::-webkit-details-marker, .git-scm-group > summary::-webkit-details-marker { display: none; }\n.git-scm-input-heading > .git-disclosure-icon, .git-scm-group > summary > .git-disclosure-icon { position: absolute; left: 2px; }\n.git-scm-input-title { font-weight: 600; flex: none; }\n.git-scm-input-heading .git-scm-branch { margin-left: auto; min-width: 0; font-size: .846em; opacity: .7; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-input-heading button.git-scm-operation-menu { flex: 0 0 var(--git-scm-action-size); width: var(--git-scm-action-size); height: var(--git-scm-action-size); padding: 0; border: 0; border-radius: 4px; }\n.git-scm-inputs { display: flex; flex-direction: column; gap: 6px; padding: 4px var(--git-scm-pane-padding) 0; }\n.git-scm-commit-bar { display: grid; grid-template-columns: minmax(0, 1fr) 28px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button { margin: 0; height: 26px; border-radius: 4px 0 0 4px; border: 0; background: #0078d4; color: white; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button.git-scm-commit-options { border-radius: 0 4px 4px 0; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button.git-scm-commit-options { border-left: 1px solid #ffffff50; padding: 0; }\n.git-scm-repositories-view { flex: none; padding: 0 var(--git-scm-pane-padding) 8px; border-bottom: 1px solid #8882; }\n.git-scm-repositories-heading { display: flex; align-items: center; justify-content: space-between; height: var(--git-scm-section-height); font-weight: 600; }\n.git-scm-repositories-view select { width: 100%; }\n.git-scm-title { display: flex; justify-content: space-between; align-items: center; min-height: 35px; font-weight: 600; font-size: .923em; flex: none; }\n.git-scm-tools { display: flex; gap: 3px; }\n.git-scm-tools button { border: none; font-size: 1.308em; padding: 0; }\n.git-scm-branch { display: flex; align-items: center; gap: 4px; overflow: hidden; white-space: nowrap; cursor: pointer; }\n.git-scm-branch-label { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-message { width: 100%; height: 30px; min-height: 30px; max-height: 120px; resize: none; background: var(--bg-color, white); color: inherit; border: 1px solid #8886; border-radius: 4px; padding: 4px 7px; font: inherit; line-height: 20px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit { color: white; background: #0078d4; border: 0; border-radius: 4px 0 0 4px; }\n.git-scm-sync { display: flex; gap: 4px; }\n.git-scm-sync button { flex: 1; padding: 3px; white-space: nowrap; }\n.git-scm-filter { width: 100%; height: 26px; }\n.git-scm-groups { flex: 1; min-height: 64px; overflow: auto; margin: 0 calc(-1 * var(--git-scm-pane-padding)); }\n.git-scm-group { margin: 0; }\n.git-scm-group > summary { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto var(--git-scm-status-width); gap: var(--git-scm-column-gap); align-items: center; height: var(--git-scm-section-height); padding: 0 var(--git-scm-row-right) 0 20px; font-weight: 600; cursor: pointer; white-space: nowrap; border-top: 1px solid #8882; list-style: none; }\n.git-scm-group-label, .git-scm-file-label { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }\n.git-scm-group-name { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-badge { display: inline-block; box-sizing: border-box; min-width: 18px; min-height: 18px; padding: 3px 5px; margin-left: 6px; border-radius: 11px; background: #8883; font-size: .846em; font-weight: 400; line-height: 11px; text-align: center; }\n.git-scm-group-label .git-scm-badge { flex: none; margin: 0; }\n.git-scm-row-actions { display: flex; justify-content: flex-end; align-items: center; width: auto; min-width: 0; max-width: calc(3 * var(--git-scm-action-size)); gap: 2px; }\n.git-scm-status-slot { width: var(--git-scm-status-width); }\n.git-scm-file { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: var(--git-scm-column-gap); min-height: var(--git-scm-row-height); padding: 0 var(--git-scm-row-right) 0 18px; cursor: pointer; white-space: nowrap; }\n.git-scm-file:hover { background: #8882; }\n.git-scm-file.selected, .git-scm-file:focus-visible { background: #0078d426; outline: 1px solid #0078d4; outline-offset: -1px; }\n.git-scm-file-name, .git-scm-history-file-name { min-width: 0; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; }\n.git-scm-file-directory { flex: 1 2 auto; min-width: 0; opacity: .55; font-size: .846em; overflow: hidden; text-overflow: ellipsis; }\n.git-scm-file-status { display: block; width: var(--git-scm-status-width); margin: 0; overflow: hidden; text-overflow: ellipsis; text-align: center; font-family: Consolas, monospace; font-size: .923em; color: #a87916; }\n.git-scm-file-status[data-status=U], .git-scm-file-status[data-status=A] { color: #278642; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-inline-action { padding: 0 4px; border: 0; font-size: 1.308em; line-height: 21px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-row-actions button.git-scm-inline-action { flex: 0 0 var(--git-scm-action-size); width: var(--git-scm-action-size); height: var(--git-scm-action-size); min-width: 0; margin: 0; padding: 0; border: 0; border-radius: 4px; }\n.git-scm-file .git-scm-inline-action { opacity: 0; }\n.git-scm-file > .git-scm-row-actions { position: absolute; z-index: 1; top: 0; right: calc(var(--git-scm-row-right) + var(--git-scm-status-width) + var(--git-scm-column-gap)); height: var(--git-scm-row-height); pointer-events: none; background: transparent; }\n.git-scm-file:hover > .git-scm-row-actions { pointer-events: auto; background: var(--linux-note-shell-hover-background, #8882); }\n.git-scm-file.selected > .git-scm-row-actions, .git-scm-file:focus-within > .git-scm-row-actions { pointer-events: auto; background: var(--linux-note-shell-selection-background, #0078d426); }\n.git-scm-file:hover .git-scm-inline-action, .git-scm-file:focus-within .git-scm-inline-action { opacity: 1; }\n.git-scm-empty { padding: 6px 12px; opacity: .6; }\n.git-scm-directory { margin-left: 9px; }\n.git-scm-directory > summary { cursor: pointer; font-size: .923em; }\n.git-diff-toolbar { display: flex; align-items: center; flex: none; gap: 4px; padding: 5px 8px; flex-wrap: wrap; font-family: inherit; font-size: .923em; border-bottom: 1px solid #8883; }\n.git-diff-toolbar button { color: inherit; background: transparent; border: 1px solid #8885; border-radius: 2px; padding: 3px 6px; cursor: pointer; }\n.git-diff-count { margin-left: auto; opacity: .7; }\n.git-diff-labels { display: flex; flex: none; min-width: 0; border-bottom: 1px solid #8883; font-family: inherit; font-size: .923em; line-height: 26px; background: #88808; }\n.git-diff-labels > div { flex: 1; min-width: 0; padding: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #8883; }\n.git-monaco-body { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }\n.git-graph-document .monaco-editor { text-align: left; }\n.git-file-timeline { display: flex; flex-direction: column; min-height: 0; padding: 0 14px; }\n.git-file-timeline-list { flex: 1; overflow: auto; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-file-history-row { display: block; border: 0; border-bottom: 1px solid #8882; text-align: left; width: 100%; padding: 10px; }\n.git-file-history-row span { display: block; font-size: .846em; opacity: .65; padding-top: 4px; }\n\n.git-scm-sidebar { flex: 1; height: 100%; }\n.git-scm-history { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }\n.git-scm-history-header { display: flex; align-items: center; flex: 0 0 22px; min-width: 0; background: #8881; border-top: 1px solid #8883; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-header > button { border: 0; border-radius: 0; padding: 3px 7px; background: transparent; white-space: nowrap; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-toggle { text-align: left; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }\n.git-scm-history-toolbar { display: flex; align-items: center; flex: none; padding-right: 3px; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history-toolbar > button { flex: 0 0 var(--git-scm-action-size, 22px); width: var(--git-scm-action-size, 22px); height: var(--git-scm-action-size, 22px); border: 0; border-radius: 4px; padding: 0; background: transparent; }\n@container (max-width: 400px) { .git-scm-history-network { display: none !important; } }\n@container (max-width: 230px) { .git-scm-history-toolbar .git-scm-graph-launch { display: none !important; } }\n@container (max-width: 260px) {\n  .git-scm-sidebar { --git-scm-column-gap: 2px; }\n  .git-scm-file-directory { display: none; }\n}\n.git-scm-history-list { overflow: auto; min-width: 0; min-height: 0; flex: 1; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; border-radius: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }\n.git-scm-history-commit[aria-expanded=true] { background: #0078d426 !important; }\n.git-scm-history-disclosure { display: none; }\n.git-scm-history-topology { flex: none; overflow: visible; }\n.git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }\n.git-scm-history-summary { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 40px; padding-right: 6px; overflow: hidden; }\n.git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: .923em; line-height: 22px; }\n.git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 45%; min-width: 0; overflow: hidden; white-space: nowrap; font-size: .846em; }\n.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }\n.git-scm-history-ref[data-current=true] { background: #006bff; }\n.git-scm-history-ref-name { overflow: hidden; text-overflow: ellipsis; }\n.git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }\n.git-scm-history-author { flex: 0 1 auto; max-width: 30%; overflow: hidden; text-overflow: ellipsis; opacity: .65; font-size: .846em; }\n.git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); }\n.git-scm-history-continuation { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }\n.git-scm-history-files { min-width: 0; font-size: .923em; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; border-radius: 0; box-shadow: none; width: 100%; height: 22px; padding: 0 var(--git-scm-row-right) 0 0; margin: 0; text-align: left; background: transparent; white-space: nowrap; }\n.git-scm-history-directory { margin-left: 8px; }\n.git-scm-history-directory > summary { cursor: pointer; padding: 3px 6px 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-more { width: 100%; border: 0; border-radius: 0; box-shadow: none; font-size: .923em; }\n.git-scm-history-sash { cursor: row-resize; }\n.git-scm-repository { max-width: 100%; }\n#typora-sidebar-resizer:hover { background: #0078d4 !important; }\n\n.git-scm-notice { max-height: 100px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .846em; opacity: .8; flex: none; }\n.git-output { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 12px; }\n.git-output pre { flex: 1; min-height: 0; overflow: auto; white-space: pre-wrap; font-family: Consolas, monospace; font-size: .923em; line-height: 1.6; }\n#typora-sidebar-resizer { width: 7px !important; cursor: col-resize !important; }\n\n:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-commit { background: #0078d4; color: #fff; border: 0; border-radius: 4px 0 0 4px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-commit-bar > button:hover:not(:disabled) { background: #006cbe; color: #fff; }\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit:hover:not([aria-expanded=true]),\n:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file:hover { background: #8882; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-inline-action { border: 0; padding: 0 4px; font-size: 1.308em; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools button { border: 0; padding: 0 5px; }\n\n/* \u6807\u51C6\u56FE\u6807\u7EDF\u4E00 16px \u753B\u5E03\u548C\u547D\u4E2D\u533A\uFF0C\u4E0D\u53D7\u6B63\u6587\u5B57\u4F53\u6216 details \u9ED8\u8BA4\u6807\u8BB0\u5F71\u54CD\u3002 */\n.git-standard-icon { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: middle; fill: currentColor; pointer-events: none; }\n.git-icon-button, .git-labeled-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button,\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-repositories-heading > button.git-icon-button { width: var(--git-scm-action-size, 22px); height: var(--git-scm-action-size, 22px); padding: 0; border: 0; border-radius: 4px; }\n:is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button { width: 28px; }\n.git-scm-history-toggle { display: flex; align-items: center; gap: 4px; }\n.git-scm-sidebar details > summary { list-style: none; }\n.git-scm-sidebar details > summary::-webkit-details-marker { display: none; }\n.git-scm-sidebar details > summary::marker { content: \'\'; }\n.git-scm-sidebar details[open] > summary > .git-disclosure-icon,\n.git-scm-history-toggle[aria-expanded=true] > .git-disclosure-icon,\n.git-scm-history-commit[aria-expanded=true] .git-disclosure-icon { transform: rotate(90deg); }\n.git-scm-directory > summary, .git-scm-history-directory > summary { display: flex; align-items: center; gap: 4px; }\n.git-activity-icon, .git-tab-icon { display: inline-flex; align-items: center; justify-content: center; }\n.git-activity-icon > .git-standard-icon { width: 24px; height: 24px; }\n.git-graph-menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr) 16px; align-items: center; gap: 6px; }\n.git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }\n.git-menu-label { min-width: 0; }\n\n/* \u539F\u751F\u6587\u4EF6 footer \u60AC\u6D6E\u5728\u4FA7\u680F\u5E95\u90E8\uFF1B\u81EA\u6709\u9762\u677F\u6302\u8F7D\u671F\u95F4\u7531\u5404\u81EA\u5DE5\u5177\u680F\u627F\u62C5\u6587\u4EF6\u64CD\u4F5C\u3002 */\n#typora-sidebar:has(#sidebar-content > :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) > .sidebar-footer {\n  display: none !important;\n}\n#sidebar-content:has(> :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) {\n  min-height: 0;\n  overflow: hidden;\n  bottom: 0;\n}\n.linux-note-git-source-control > .git-scm-sidebar { flex: 1 1 0; height: auto; max-height: 100%; }\n.git-scm-sections { flex: 1 1 0; overflow: hidden; }\n.git-scm-sections[data-show-changes=true][data-show-history=true][data-history-open=true] {\n  grid-template-rows: minmax(0, var(--git-scm-changes-size, 55fr)) 7px minmax(22px, var(--git-scm-history-size, 45fr));\n}\n.git-scm-history { min-height: 22px; }\n.git-scm-history-header { flex: 0 0 22px; min-height: 22px; }\n';
 
   // src/git_graph_view.ts
+  var graph_dialog3 = (title) => workspace_dialog(title, git_graph_text("common.close"));
   function bind_git_graph() {
     if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
     const core = window[Symbol.for("typora-plugin-core@v2")];
@@ -213711,7 +215320,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       native_observer = new MutationObserver(() => this.clear_native_tabs());
       constructor() {
         super();
-        this.addRibbonButton({ id: "linux_note:source_control", title: "\u6E90\u4EE3\u7801\u7BA1\u7406\uFF08Ctrl+Shift+G\uFF09", icon, group: "top" });
+        this.addRibbonButton({ id: "linux_note:source_control", title: git_graph_text("view.source_control"), icon, group: "top" });
       }
       mount(panel) {
         this.panel = panel;
@@ -213852,34 +215461,34 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
     };
     const commands = [
-      ["view", "Git Graph\uFF1A\u67E5\u770B\u63D0\u4EA4\u5173\u7CFB\u56FE", () => {
+      ["view", "view.command.view", () => {
       }],
-      ["add_repository", "Git Graph\uFF1A\u6DFB\u52A0 Git \u4ED3\u5E93", (panel) => panel.manage_repositories()],
-      ["remove_repository", "Git Graph\uFF1A\u79FB\u9664\u4ED3\u5E93\u8BB0\u5F55", (panel) => panel.manage_repositories()],
-      ["fetch", "Git Graph\uFF1A\u83B7\u53D6\u8FDC\u7AEF\u66F4\u65B0", (panel) => void (async () => {
+      ["add_repository", "view.command.add_repository", (panel) => panel.manage_repositories()],
+      ["remove_repository", "view.command.remove_repository", (panel) => panel.manage_repositories()],
+      ["fetch", "view.command.fetch", (panel) => void (async () => {
         while (panel.pending) await new Promise((resolve3) => setTimeout(resolve3, 50));
         panel.action_dialog("fetch", "repository");
       })()],
-      ["reviews", "Git Graph\uFF1A\u7EE7\u7EED\u6216\u7ED3\u675F\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
-      ["clear_avatars", "Git Graph\uFF1A\u6E05\u7A7A\u5934\u50CF\u7F13\u5B58", () => host.clear_avatars()],
-      ["end_all_reviews", "Git Graph\uFF1A\u7ED3\u675F\u5168\u90E8\u8BC4\u5BA1", (panel) => {
+      ["reviews", "view.command.reviews", (panel) => panel.reviews_dialog()],
+      ["clear_avatars", "view.command.clear_avatars", () => host.clear_avatars()],
+      ["end_all_reviews", "view.command.end_all_reviews", (panel) => {
         save_reviews(localStorage, []);
         if (panel.to) void panel.show_comparison(panel.from, panel.to);
       }],
-      ["end_review", "Git Graph\uFF1A\u7ED3\u675F\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
-      ["resume_review", "Git Graph\uFF1A\u6062\u590D\u6307\u5B9A\u8BC4\u5BA1", (panel) => panel.reviews_dialog()],
-      ["version", "Git Graph\uFF1A\u7248\u672C\u4E0E\u8BCA\u65AD", (panel) => {
-        const dialog = workspace_dialog("Git Graph \u8BCA\u65AD");
-        dialog.content.textContent = "Typora Git Graph \xB7 2\n\u529F\u80FD\u5BF9\u7167\uFF1AVS Code Git Graph 1.30.0\n" + panel.root;
+      ["end_review", "view.command.end_review", (panel) => panel.reviews_dialog()],
+      ["resume_review", "view.command.resume_review", (panel) => panel.reviews_dialog()],
+      ["version", "view.command.version", (panel) => {
+        const dialog = graph_dialog3(git_graph_text("view.diagnostics_title"));
+        dialog.content.textContent = git_graph_text("view.diagnostics_text", { root: panel.root });
         void panel.runner.run(panel.root, ["--version"]).then((version) => {
           dialog.content.textContent += "\n" + version;
         }).catch((error) => {
-          dialog.content.textContent += String(error);
+          dialog.content.textContent += "\n" + String(error);
         });
       }]
     ];
-    core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: commands[0][1], scope: "global", callback: () => launch() });
-    for (const [id, title, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title, scope: "global", callback: () => launch(callback) });
+    core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: git_graph_text(commands[0][1]), scope: "global", callback: () => launch() });
+    for (const [id, title_key, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title: git_graph_text(title_key), scope: "global", callback: () => launch(callback) });
     const settings = context_settings();
     if (settings.icon_color !== "auto") icon.style.color = settings.icon_color;
     const status_bar = bind_git_status_bar(core, host, () => panels.get(core.app.workspace.activeLeaf) || controller_for(host.context_path()), () => launch());
@@ -213898,10 +215507,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       } catch {
         return;
       }
-      for (const [id, title] of [["graph", "Git\uFF1A\u67E5\u770B\u4ED3\u5E93\u63D0\u4EA4\u56FE"], ...!directory ? [["history", "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u5386\u53F2"], ["changes", "Git\uFF1A\u6253\u5F00\u6587\u4EF6\u66F4\u6539"]] : []]) {
+      for (const [id, title_key] of [["graph", "view.file_menu_graph"], ...!directory ? [["history", "view.file_menu_history"], ["changes", "view.file_menu_changes"]] : []]) {
         const item = workspace_element("li");
         item.setAttribute("data-git-graph-launch", id);
-        item.append(workspace_element("a", "", title));
+        item.append(workspace_element("a", "", git_graph_text(title_key)));
         for (const name of ["pointerdown", "mousedown", "mouseup"]) item.addEventListener(name, (event) => {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -213930,7 +215539,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         menu.containerEl.append(item);
       }
     });
-    core.app.commands.register({ id: "linux_note:source_control", title: "Git\uFF1A\u6E90\u4EE3\u7801\u7BA1\u7406", scope: "global", callback: () => show_source_control() });
+    core.app.commands.register({ id: "linux_note:source_control", title: git_graph_text("view.source_control_command"), scope: "global", callback: () => show_source_control() });
     core.app.workspace.on("active-leaf:change", (leaf) => {
       if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
       status_bar.refresh();
@@ -213973,9 +215582,26 @@ var LinuxNoteTyporaEnhancements = (() => {
   // src/workspace_explorer.ts
   var ROW_HEIGHT = 26;
   var EXPLORER_ID = "linux_note:file_explorer";
+  var DOUBLE_CLICK_FALLBACK_MS = 1e3;
+  var DOUBLE_CLICK_EVENT_MARGIN_MS = 50;
+  function system_double_click_interval(runtime2) {
+    const bounded = (value) => Number.isFinite(value) ? Math.min(5e3, Math.max(200, Math.round(value))) : DOUBLE_CLICK_FALLBACK_MS;
+    try {
+      const process_api = runtime2.reqnode("process");
+      if (process_api.platform === "win32") {
+        const child_process = runtime2.reqnode("child_process");
+        const output = child_process.execFileSync("reg.exe", ["query", "HKCU\\Control Panel\\Mouse", "/v", "DoubleClickSpeed"], { encoding: "utf8", windowsHide: true, timeout: 500 });
+        const value = String(output).match(/DoubleClickSpeed\s+REG_SZ\s+(\d+)/iu)?.[1];
+        if (value) return bounded(Number(value));
+      }
+    } catch {
+    }
+    return DOUBLE_CLICK_FALLBACK_MS;
+  }
   function bind_workspace_explorer(core, options2) {
-    const runtime = window;
-    const fs2 = runtime.reqnode("fs"), path_api = runtime.reqnode("path");
+    const runtime2 = window;
+    const fs2 = runtime2.reqnode("fs"), path_api = runtime2.reqnode("path");
+    const double_click_delay_ms = system_double_click_interval(runtime2) + DOUBLE_CLICK_EVENT_MARGIN_MS;
     const sidebar = core.app.workspace.sidebar;
     const style63 = workspace_element("style");
     style63.textContent = workspace_explorer_default;
@@ -214007,6 +215633,10 @@ var LinuxNoteTyporaEnhancements = (() => {
     };
     const run = (operation) => {
       void Promise.resolve().then(operation).catch((error) => set_status(String(error)));
+    };
+    const cancel_pending_click = () => {
+      window.clearTimeout(click_timer);
+      click_timer = 0;
     };
     const icon = (name) => git_icon(name, "workspace-explorer-icon");
     const icon_button = (name, label, action) => {
@@ -214117,13 +215747,14 @@ var LinuxNoteTyporaEnhancements = (() => {
           else if (node.error) row.append(workspace_element("span", "workspace-explorer-note is-error", "\u65E0\u6CD5\u8BFB\u53D6"));
           row.onclick = (event) => {
             if (event.target === rename_state?.input) return;
+            cancel_pending_click();
             if (event.detail > 1) return;
-            window.clearTimeout(click_timer);
-            if (selected_path === node.path && event.target instanceof Element && event.target.closest(".workspace-explorer-name")) {
+            if (event.target instanceof Element && event.target.closest(".workspace-explorer-name")) {
+              select(node, false, true);
               click_timer = window.setTimeout(() => {
                 click_timer = 0;
-                run(() => activate(node));
-              }, 500);
+                if (!disposed && nodes.get(node.path) === node) run(() => activate(node));
+              }, double_click_delay_ms);
               return;
             }
             select(node);
@@ -214133,11 +215764,11 @@ var LinuxNoteTyporaEnhancements = (() => {
             if (!(event.target instanceof Element) || !event.target.closest(".workspace-explorer-name")) return;
             event.preventDefault();
             event.stopPropagation();
-            window.clearTimeout(click_timer);
-            click_timer = 0;
+            cancel_pending_click();
             begin_rename(node);
           };
           row.oncontextmenu = (event) => {
+            cancel_pending_click();
             select(node);
             context_menu(event, node);
           };
@@ -214160,7 +215791,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         else tree.removeAttribute("aria-activedescendant");
       });
     }
-    function select(node, scroll = false) {
+    function select(node, scroll = false, preserve_dom = false) {
       if (rename_state && rename_state.node !== node && !rename_state.busy) rename_state = void 0;
       selected_path = node.path;
       set_status(node.path);
@@ -214170,7 +215801,14 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (top < tree.scrollTop) tree.scrollTop = top;
         else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
       }
-      render();
+      if (preserve_dom) {
+        for (const row of tree.querySelectorAll(".workspace-explorer-row")) {
+          const selected = row.dataset.path === node.path;
+          row.classList.toggle("is-selected", selected);
+          row.setAttribute("aria-selected", String(selected));
+        }
+        tree.setAttribute("aria-activedescendant", node.id);
+      } else render();
     }
     async function load_children(node, force = false) {
       if (rename_state?.busy) return;
@@ -214249,8 +215887,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
     function begin_rename(node) {
       if (!root || node === root || disposed || rename_state?.busy) return;
-      window.clearTimeout(click_timer);
-      click_timer = 0;
+      cancel_pending_click();
       select(node, true);
       const input = workspace_element("input", "workspace-explorer-rename");
       input.value = node.name;
@@ -214418,6 +216055,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       onhide() {
         visible2 = false;
+        cancel_pending_click();
         native_observer.disconnect();
         if (root) close_branch(root);
       }
@@ -214501,7 +216139,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (root) close_branch(root, true);
       if (render_frame) cancelAnimationFrame(render_frame);
       if (refresh_frame) cancelAnimationFrame(refresh_frame);
-      window.clearTimeout(click_timer);
+      cancel_pending_click();
       rename_state = void 0;
       document.removeEventListener("click", activity_click, true);
       window.removeEventListener("focus", window_focus);
@@ -214854,13 +216492,14 @@ var LinuxNoteTyporaEnhancements = (() => {
     async function search2(input_root, options2, callbacks = {}) {
       const root = await files_api.realpath(path_api.resolve(input_root));
       if (!(await files_api.stat(root)).isDirectory()) throw new Error("\u641C\u7D22\u8303\u56F4\u5FC5\u987B\u662F\u6587\u4EF6\u5939\u3002");
-      const selected_paths = options2.file_paths ? new Set(options2.file_paths.map((file) => path_api.resolve(file)).filter((file) => inside(root, file))) : void 0;
+      const selected_files = options2.file_paths?.map((file) => path_api.resolve(file)).filter((file) => inside(root, file));
+      const selected_paths = selected_files ? new Set(selected_files.map(file_key)) : void 0;
       const selected_directories = /* @__PURE__ */ new Set();
-      for (const file of selected_paths || []) {
+      for (const file of selected_files || []) {
         let directory = path_api.dirname(file);
         while (inside(root, directory)) {
-          selected_directories.add(directory);
-          if (directory === root) break;
+          selected_directories.add(file_key(directory));
+          if (file_key(directory) === file_key(root)) break;
           directory = path_api.dirname(directory);
         }
       }
@@ -214913,7 +216552,7 @@ var LinuxNoteTyporaEnhancements = (() => {
           const current = stack.pop();
           let entries3;
           try {
-            if (selected_paths && !selected_directories.has(current.directory)) continue;
+            if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
             if (await files_api.realpath(current.directory) !== current.directory) {
               result.counts.skipped.links++;
               continue;
@@ -214951,7 +216590,7 @@ var LinuxNoteTyporaEnhancements = (() => {
               result.counts.skipped.unreadable++;
               continue;
             }
-            if (selected_paths && !selected_paths.has(file_path)) continue;
+            if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
             result.counts.scanned_files++;
             if (options2.include?.trim() && !include(relative2)) {
               result.counts.skipped.excluded++;
@@ -218274,15 +219913,15 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       return false;
     };
-    const _matchesNameCheck = function _matchesNameCheck2(check2, name) {
-      if (check2 instanceof RegExp) {
-        return regExpTest2(check2, name);
+    const _matchesNameCheck = function _matchesNameCheck2(check, name) {
+      if (check instanceof RegExp) {
+        return regExpTest2(check, name);
       }
-      if (check2 instanceof Function) {
+      if (check instanceof Function) {
         for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
           args[_key - 2] = arguments[_key];
         }
-        return Boolean(check2(name, ...args));
+        return Boolean(check(name, ...args));
       }
       return false;
     };
@@ -219095,20 +220734,20 @@ var LinuxNoteTyporaEnhancements = (() => {
   // src/workspace_selection_search.ts
   var position_compare = (left, right) => left.line - right.line || left.ch - right.ch;
   function bind_workspace_selection_search(core, files, search2) {
-    const runtime = window;
+    const runtime2 = window;
     const source_path = (target) => {
       let path = "";
       core.app.workspace.eachLeaves((leaf) => {
         if (leaf.view.containerEl.contains(target) && files.path_api.isAbsolute(leaf.state.path)) path = leaf.state.path;
       });
-      return path || files.current_file() || runtime.File?.bundle?.filePath || "";
+      return path || files.current_file() || runtime2.File?.bundle?.filePath || "";
     };
     const selected_at = (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target || target.closest("a[href],a[data-href],.monaco-editor,.linux-note-workspace-search,input,textarea,button,select,.CodeMirror-gutters")) return;
       const wrapper = target.closest(".CodeMirror");
       if (wrapper) {
-        const source = runtime.File?.editor?.sourceView;
+        const source = runtime2.File?.editor?.sourceView;
         const cm = wrapper.CodeMirror || (source?.inSourceMode && source.cm?.getWrapperElement() === wrapper ? source.cm : void 0);
         if (!cm || !target.closest(".CodeMirror-code,.CodeMirror-lines")) return;
         const selected_box = [...wrapper.querySelectorAll(".CodeMirror-selected")].some((node) => {
@@ -219177,9 +220816,9 @@ var LinuxNoteTyporaEnhancements = (() => {
     const style63 = workspace_element("style");
     style63.textContent = workspace_search_default;
     document.head.append(style63);
-    const runtime = window;
-    const runner = create_git_runner({ child_process: runtime.reqnode("child_process"), process: runtime.reqnode("process") });
-    const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime.reqnode("process").platform });
+    const runtime2 = window;
+    const runner = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
+    const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime2.reqnode("process").platform });
     const native_sidebar = document.querySelector("#typora-sidebar");
     const input = (label, placeholder = label) => {
       const node = workspace_element("input");
@@ -219497,8 +221136,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.timer = window.setTimeout(() => void this.search(), 250);
       }
       path_key(path) {
-        const resolved = files.path_api.resolve(path);
-        return runtime.reqnode("process").platform === "win32" ? resolved.toLowerCase() : resolved;
+        return file_key(files.path_api.resolve(path));
       }
       async read_git_status(root) {
         const statuses = /* @__PURE__ */ new Map();
@@ -219569,8 +221207,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         this.status.append(stop);
         const open_files = [];
         if (this.only_open) core.app.workspace.eachLeaves((leaf) => {
+          const source_path = source_file_path(leaf.state.path, files.path_api);
           if (files.path_api.isAbsolute(leaf.state.path)) open_files.push(leaf.state.path);
-          else if (leaf.state.path.startsWith("typ://linux_note.source_file/")) open_files.push(decodeURIComponent(leaf.state.path.slice("typ://linux_note.source_file/".length)));
+          else if (source_path) open_files.push(source_path);
         });
         try {
           const root = files.context_root();
@@ -220241,6 +221880,78 @@ var LinuxNoteTyporaEnhancements = (() => {
     document.head.append(style63);
     document.documentElement.setAttribute("data-linux-note-workspace-outline", "ready");
     let clearing = false;
+    let sync_frame = 0;
+    let settle_frame = 0;
+    let outline_open = false;
+    const is_outline_open = () => sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
+    const current_heading = () => {
+      const content = document.querySelector("content");
+      const write2 = document.querySelector("#write");
+      if (!content || !write2) return;
+      const headings = Array.from(write2.children).filter((node) => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
+      if (!headings.length) return;
+      const top = content.scrollTop;
+      let previous = headings[0];
+      for (const heading3 of headings) {
+        if (heading3.offsetTop <= top) previous = heading3;
+        else break;
+      }
+      return previous;
+    };
+    const label_for = (outline, cid) => Array.from(outline.querySelectorAll(".outline-label")).find((label) => label.getAttribute("data-ref") === cid);
+    const reveal = (label) => {
+      const outline = label.closest("#outline-content");
+      const row = label.closest(".outline-item");
+      if (!outline || !row) return;
+      for (let wrapper = row.closest(".outline-item-wrapper"); wrapper && outline.contains(wrapper); wrapper = wrapper.parentElement?.closest(".outline-item-wrapper") ?? null) wrapper.classList.add("outline-item-open");
+      row.scrollIntoView({ block: "nearest" });
+    };
+    const fallback_sync = (outline, heading3) => {
+      const cid = heading3.getAttribute("cid");
+      if (!cid) return;
+      const label = label_for(outline, cid);
+      if (!label) return;
+      outline.querySelectorAll(".outline-active").forEach((node) => node.classList.remove("outline-active"));
+      outline.querySelectorAll(".outline-item-active").forEach((node) => node.classList.remove("outline-item-active"));
+      label.classList.add("outline-active");
+      label.closest(".outline-item")?.classList.add("outline-item-active");
+      reveal(label);
+    };
+    const sync_current_heading = () => {
+      if (!is_outline_open()) return;
+      const outline = sidebar.querySelector("#outline-content");
+      const heading3 = current_heading();
+      if (!outline || !heading3 || !outline.querySelector(".outline-label")) return;
+      const cid = heading3.getAttribute("cid");
+      try {
+        host.outline?.highlightVisibleHeader?.(void 0, void 0, true);
+      } catch {
+      }
+      const active = outline.querySelector(".outline-label.outline-active");
+      if (!active || cid && active.getAttribute("data-ref") !== cid) fallback_sync(outline, heading3);
+      else reveal(active);
+    };
+    const cancel_sync = () => {
+      if (sync_frame) cancelAnimationFrame(sync_frame);
+      if (settle_frame) cancelAnimationFrame(settle_frame);
+      sync_frame = 0;
+      settle_frame = 0;
+    };
+    const schedule_sync = () => {
+      if (!is_outline_open() || sync_frame || settle_frame) return;
+      sync_frame = requestAnimationFrame(() => {
+        sync_frame = 0;
+        settle_frame = requestAnimationFrame(() => {
+          settle_frame = 0;
+          sync_current_heading();
+        });
+      });
+    };
+    const on_document_scroll = (event) => {
+      const target = event.target;
+      if (target instanceof Node && sidebar.contains(target)) return;
+      schedule_sync();
+    };
     const refresh = () => {
       if (clearing) return;
       const filtering = sidebar.classList.contains("ty-show-outline-filter") || sidebar.classList.contains("ty-on-outline-filter") || host.outline?.isSearchShown?.();
@@ -220261,18 +221972,32 @@ var LinuxNoteTyporaEnhancements = (() => {
         clearing = false;
       }
     };
-    const observer = new MutationObserver(refresh);
-    observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
+    const belongs_to_outline = (node) => node instanceof Element && (node.matches("#outline-content") || Boolean(node.closest("#outline-content")) || Boolean(node.querySelector("#outline-content")));
+    const observer = new MutationObserver((records) => {
+      refresh();
+      const open = is_outline_open();
+      const opened = open && !outline_open;
+      outline_open = open;
+      const rebuilt = open && records.some((record) => record.type === "childList" && (belongs_to_outline(record.target) || Array.from(record.addedNodes).some(belongs_to_outline)));
+      if (opened || rebuilt) schedule_sync();
+      else if (!open) cancel_sync();
+    });
+    observer.observe(sidebar, { subtree: true, childList: true, attributes: true, attributeFilter: ["class"] });
+    document.addEventListener("scroll", on_document_scroll, true);
     refresh();
+    outline_open = is_outline_open();
+    if (outline_open) schedule_sync();
     return { refresh, dispose: () => {
       observer.disconnect();
+      document.removeEventListener("scroll", on_document_scroll, true);
+      cancel_sync();
       style63.remove();
       document.documentElement.removeAttribute("data-linux-note-workspace-outline");
     } };
   }
 
   // src/workspace_footer.css
-  var workspace_footer_default = "/* \u539F\u751F\u5E95\u680F\u4E0D\u518D\u5360\u7528\u4FA7\u680F\u7684\u6700\u540E 30px\uFF1B\u9884\u89C8\u548C\u76EE\u5F55\u53EF\u4F7F\u7528\u5B8C\u6574\u9AD8\u5EA6\u3002 */\n#typora-sidebar[data-workspace-footer=moved] > #sidebar-content { bottom:0!important; }\nbody.show-footer footer.ty-footer[data-workspace-footer=ready] {\n  display:flex; align-items:center; gap:0; min-width:0; --workspace-native-actions-width:210px;\n}\nfooter.ty-footer[data-workspace-footer=ready] > .footer-item {\n  float:none; flex:0 0 auto;\n}\nfooter.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {\n  flex:0 1 auto; min-width:0;\n}\nfooter.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {\n  position:relative!important; inset:auto!important; display:flex!important;\n  flex:0 1 210px; min-width:72px; max-width:40%; width:auto!important; height:100%;\n  margin:0 0 0 auto; padding:0; border:0!important; opacity:1!important;\n  animation:none!important; background:inherit; line-height:inherit; overflow:visible; z-index:5;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div {\n  display:flex; align-items:center; width:100%; min-width:0; height:100%;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer .sidebar-footer-item {\n  opacity:1!important; margin:0; padding-top:0; line-height:26px;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div > .sidebar-footer-item {\n  flex:none; width:26px; text-align:center;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {\n  flex:1 1 auto; min-width:20px; overflow:visible;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {\n  min-width:20px; width:100%; overflow:hidden;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label { min-width:0; }\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn .footer-btn { flex:none; }\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {\n  left:auto; right:0; top:auto; bottom:calc(100% + 3px);\n  width:min(320px, calc(100vw - 24px)); max-height:65vh; overflow:auto;\n  background:var(--bg-color,#fff); color:var(--text-color,inherit);\n}\n";
+  var workspace_footer_default = "/* \u539F\u751F\u5E95\u680F\u4E0D\u518D\u5360\u7528\u4FA7\u680F\u7684\u6700\u540E 30px\uFF1B\u9884\u89C8\u548C\u76EE\u5F55\u53EF\u4F7F\u7528\u5B8C\u6574\u9AD8\u5EA6\u3002 */\n#typora-sidebar[data-workspace-footer=moved] > #sidebar-content { bottom:0!important; }\nbody.show-footer footer.ty-footer[data-workspace-footer=ready] {\n  display:flex; align-items:center; gap:0; min-width:0; --workspace-footer-action-size:26px;\n}\nfooter.ty-footer[data-workspace-footer=ready] > .footer-item {\n  float:none; flex:0 0 auto;\n}\nfooter.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {\n  flex:0 1 auto; min-width:0;\n}\nfooter.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {\n  position:relative!important; inset:auto!important; display:flex!important;\n  flex:0 0 auto; min-width:0; max-width:none; width:max-content!important; height:100%;\n  margin:0 0 0 auto; padding:0; border:0!important; opacity:1!important;\n  animation:none!important; background:inherit; line-height:inherit; overflow:visible; z-index:5;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div {\n  display:flex; align-items:center; width:max-content; min-width:0; height:100%;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer .sidebar-footer-item {\n  opacity:1!important; margin:0; padding-top:0; line-height:26px;\n}\nfooter.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div > .sidebar-footer-item {\n  flex:0 0 var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); text-align:center;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {\n  flex:0 0 var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); min-width:var(--workspace-footer-action-size); overflow:visible;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {\n  justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;\n}\n/* \u539F\u751F\u4EE3\u7801\u4ECD\u66F4\u65B0\u8BE5\u6807\u7B7E\uFF1B\u4EC5\u4ECE\u89C6\u89C9\u5E03\u5C40\u79FB\u9664\uFF0C\u907F\u514D\u76EE\u5F55\u540D\u6491\u6210\u957F\u6761\u3002 */\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label {\n  position:absolute!important; width:1px; height:1px; padding:0!important; margin:-1px!important;\n  overflow:hidden!important; clip:rect(0,0,0,0); clip-path:inset(50%); white-space:nowrap!important; border:0;\n}\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn .footer-btn {\n  flex:0 0 var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); padding:0; text-align:center;\n}\nfooter.ty-footer[data-workspace-footer=ready]:has(>.linux-note-editor-status:not([hidden])) > #ty-sidebar-footer { margin-left:4px; }\nfooter.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {\n  left:auto; right:0; top:auto; bottom:calc(100% + 3px);\n  width:min(320px, calc(100vw - 24px)); max-height:65vh; overflow:auto;\n  background:var(--bg-color,#fff); color:var(--text-color,inherit);\n}\n";
 
   // src/workspace_footer.ts
   var footer_bindings = /* @__PURE__ */ new WeakMap();
@@ -220352,7 +222077,6 @@ var LinuxNoteTyporaEnhancements = (() => {
     root.setAttribute("aria-label", "\u5FEB\u901F\u6253\u5F00\u6587\u4EF6");
     const input_row = document.createElement("div");
     input_row.className = "workspace-quick-open-input-row";
-    input_row.append(git_icon("search"));
     const input = document.createElement("input");
     input.type = "text";
     input.placeholder = "\u952E\u5165\u6587\u4EF6\u540D\u8FDB\u884C\u641C\u7D22";
@@ -220365,6 +222089,8 @@ var LinuxNoteTyporaEnhancements = (() => {
     results.setAttribute("role", "listbox");
     const status2 = document.createElement("div");
     status2.className = "workspace-quick-open-status";
+    status2.setAttribute("role", "status");
+    status2.setAttribute("aria-live", "polite");
     root.append(input_row, status2, results);
     document.body.append(root);
     let catalogue = [];
@@ -220522,8 +222248,27 @@ var LinuxNoteTyporaEnhancements = (() => {
   function leaf_present(group, leaf) {
     return group.children.includes(leaf);
   }
+  var CLOSE_DIALOG_SELECTOR = '.git-graph-dialog-shade, [role="dialog"], .modal-dialog, .modal-backdrop, .modal.in';
+  var CLOSE_DIALOG_APPEAR_TIMEOUT_MS = 2e3;
+  function dialog_owner(node) {
+    if (node.classList.contains("modal-backdrop")) return node;
+    return node.closest(".modal") || node;
+  }
+  function visible_dialog(node) {
+    if (!node.isConnected || node.closest(".workspace-quick-open") || node.closest('[hidden], [aria-hidden="true"]')) return false;
+    const style63 = getComputedStyle(node);
+    return style63.display !== "none" && style63.visibility !== "hidden" && style63.visibility !== "collapse" && style63.opacity !== "0" && node.getClientRects().length > 0;
+  }
+  function visible_close_dialogs() {
+    const dialogs = /* @__PURE__ */ new Set();
+    for (const candidate of document.querySelectorAll(CLOSE_DIALOG_SELECTOR)) {
+      const owner = dialog_owner(candidate);
+      if (visible_dialog(owner)) dialogs.add(owner);
+    }
+    return [...dialogs];
+  }
   async function close_leaf(group, leaf) {
-    const before_dialogs = new Set(document.querySelectorAll(".git-graph-dialog-shade"));
+    const before_dialogs = new Set(visible_close_dialogs());
     group.removeTab(leaf.state.path, tab_for(group, leaf.state.path));
     if (!leaf_present(group, leaf)) return true;
     return new Promise((resolve3) => {
@@ -220533,7 +222278,8 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (settled) return;
         settled = true;
         observer.disconnect();
-        window.clearTimeout(timeout2);
+        window.clearTimeout(appearance_timeout);
+        window.clearInterval(visibility_poll);
         resolve3(closed);
       };
       const inspect = () => {
@@ -220541,12 +222287,16 @@ var LinuxNoteTyporaEnhancements = (() => {
           finish(true);
           return;
         }
-        close_dialog ||= [...document.querySelectorAll(".git-graph-dialog-shade")].find((dialog) => !before_dialogs.has(dialog));
-        if (close_dialog && !close_dialog.isConnected) finish(false);
+        close_dialog ||= visible_close_dialogs().find((dialog) => !before_dialogs.has(dialog));
+        if (close_dialog) {
+          window.clearTimeout(appearance_timeout);
+          if (!visible_dialog(close_dialog)) finish(false);
+        }
       };
       const observer = new MutationObserver(inspect);
-      observer.observe(document.body, { childList: true, subtree: true });
-      const timeout2 = window.setTimeout(() => finish(false), 5 * 60 * 1e3);
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden", "aria-hidden", "open"] });
+      const visibility_poll = window.setInterval(inspect, 100);
+      const appearance_timeout = window.setTimeout(() => finish(false), CLOSE_DIALOG_APPEAR_TIMEOUT_MS);
       inspect();
     });
   }
@@ -220613,15 +222363,27 @@ var LinuxNoteTyporaEnhancements = (() => {
     }
   }
 
+  // src/workspace_ui_appearance.css
+  var workspace_ui_appearance_default = ':is(#top-titlebar,.typ-ribbon,.typ-workspace-tab-header,.context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu),\n#typora-sidebar :is(button,input,textarea,select,summary,.workspace-explorer-row,.workspace-outline-row,.workspace-search-heading,.workspace-search-options-row,.workspace-search-status):not(.workspace-lookup-preview *) {\n  font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif)!important;\n  font-size:var(--linux-note-ui-font-size,13px)!important;\n}\n\n/* Only geometry is owned here. Theme padding and all Markdown typography remain authoritative. */\nhtml[data-linux-note-ui-appearance="ready"] body:not(.typora-export) content > #write {\n  box-sizing:border-box;\n  width:var(--linux-note-document-width,100%);\n  max-width:var(--linux-note-document-width,100%)!important;\n  margin-left:auto!important;\n  margin-right:auto!important;\n}\n\n.linux-note-document-margin {\n  display:inline-flex; align-items:center; flex:0 0 auto; gap:4px; height:100%; min-width:0;\n  padding:0 5px; font:12px/22px var(--linux-note-ui-font-family,"Segoe UI",sans-serif); white-space:nowrap;\n}\n.linux-note-document-margin input[type="range"] { width:76px; flex:0 1 76px; }\n.linux-note-document-margin output { width:30px; overflow:hidden; text-align:right; font:inherit; font-variant-numeric:tabular-nums; }\n@media(max-width:900px) {\n  .linux-note-document-margin-label,.linux-note-document-margin output { display:none; }\n  .linux-note-document-margin input[type="range"] { width:58px; }\n}\n';
+
   // src/workspace_ui_appearance.ts
   var SETTINGS_KEY = "linux-note:workspace-ui-appearance:v1";
+  var STYLE_ID = "linux-note-workspace-ui-appearance-style";
   var DEFAULT_FONT = '"Segoe WPC", "Segoe UI", "Microsoft YaHei UI", sans-serif';
   var DEFAULT_SIZE = 13;
+  var DEFAULT_MARGIN = 0;
+  var MINIMUM_MARGIN = 0;
+  var MAXIMUM_MARGIN = 24;
+  var runtime;
+  var active_value = normalize3();
+  var active_dialog;
   function normalize3(value = {}) {
     const font_size = Number(value.font_size);
+    const document_margin_percent = Number(value.document_margin_percent);
     return {
       font_family: String(value.font_family || DEFAULT_FONT).trim() || DEFAULT_FONT,
-      font_size: Number.isFinite(font_size) ? Math.max(11, Math.min(18, Math.round(font_size))) : DEFAULT_SIZE
+      font_size: Number.isFinite(font_size) ? Math.max(11, Math.min(18, Math.round(font_size))) : DEFAULT_SIZE,
+      document_margin_percent: Number.isFinite(document_margin_percent) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(document_margin_percent))) : DEFAULT_MARGIN
     };
   }
   function read2() {
@@ -220631,28 +222393,173 @@ var LinuxNoteTyporaEnhancements = (() => {
       return normalize3();
     }
   }
+  function write(value) {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(value));
+    } catch {
+    }
+  }
+  function sync_range_progress(input) {
+    const minimum = Number(input.min) || 0;
+    const maximum = Number(input.max) || 100;
+    const progress = maximum > minimum ? (Number(input.value) - minimum) * 100 / (maximum - minimum) : 0;
+    input.style.setProperty(
+      "--linux-note-range-progress",
+      String(Math.max(0, Math.min(100, Math.round(progress * 100) / 100))) + "%"
+    );
+  }
+  function sync_margin_control(control, value) {
+    const text3 = String(value.document_margin_percent) + "%";
+    control.input.value = String(value.document_margin_percent);
+    if (control.output.value !== text3) control.output.value = text3;
+    if (control.output.textContent !== text3) control.output.textContent = text3;
+    sync_range_progress(control.input);
+  }
+  function sync_margin_controls(value) {
+    if (!runtime) return;
+    for (const control of runtime.controls.values()) sync_margin_control(control, value);
+  }
   function apply3(value) {
-    document.documentElement.style.setProperty("--linux-note-ui-font-family", value.font_family);
-    document.documentElement.style.setProperty("--linux-note-ui-font-size", "".concat(value.font_size, "px"));
+    active_value = normalize3(value);
+    const root = document.documentElement;
+    root.style.setProperty("--linux-note-ui-font-family", active_value.font_family);
+    root.style.setProperty("--linux-note-ui-font-size", String(active_value.font_size) + "px");
+    root.style.setProperty("--linux-note-document-margin", String(active_value.document_margin_percent) + "%");
+    root.style.setProperty("--linux-note-document-width", String(100 - active_value.document_margin_percent * 2) + "%");
+    sync_margin_controls(active_value);
+  }
+  function ensure_style() {
+    let style63 = document.getElementById(STYLE_ID);
+    if (!style63) {
+      style63 = document.createElement("style");
+      style63.id = STYLE_ID;
+      document.head.append(style63);
+    }
+    style63.dataset.workspaceUiAppearanceStyle = "ready";
+    if (style63.textContent !== workspace_ui_appearance_default) style63.textContent = workspace_ui_appearance_default;
+    for (const duplicate of document.querySelectorAll("style[data-workspace-ui-appearance-style]")) {
+      if (duplicate !== style63) duplicate.remove();
+    }
+  }
+  function create_margin_control(footer) {
+    const container = workspace_element("label", "linux-note-document-margin");
+    container.title = "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD";
+    container.append(workspace_element("span", "linux-note-document-margin-label", "\u8FB9\u8DDD"));
+    const input = workspace_element("input");
+    input.type = "range";
+    input.min = String(MINIMUM_MARGIN);
+    input.max = String(MAXIMUM_MARGIN);
+    input.step = "1";
+    input.setAttribute("aria-label", "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD\u767E\u5206\u6BD4");
+    const output = workspace_element("output");
+    output.setAttribute("aria-live", "polite");
+    const on_input = () => {
+      const document_margin_percent = normalize3({ document_margin_percent: Number(input.value) }).document_margin_percent;
+      write(normalize3({ ...read2(), document_margin_percent }));
+      apply3({ ...active_value, document_margin_percent });
+    };
+    input.addEventListener("input", on_input);
+    container.append(input, output);
+    const control = {
+      container,
+      footer,
+      input,
+      output,
+      dispose() {
+        input.removeEventListener("input", on_input);
+        container.remove();
+      }
+    };
+    sync_margin_control(control, active_value);
+    return control;
+  }
+  function reconcile_footer_controls(state) {
+    for (const [footer, control] of state.controls) {
+      if (!footer.isConnected || control.container.parentElement !== footer) {
+        control.dispose();
+        state.controls.delete(footer);
+      }
+    }
+    for (const footer of document.querySelectorAll("footer.ty-footer")) {
+      let control = state.controls.get(footer);
+      if (!control) {
+        for (const child of [...footer.children]) {
+          if (child.classList?.contains("linux-note-document-margin")) child.remove();
+        }
+        control = create_margin_control(footer);
+        state.controls.set(footer, control);
+      }
+      const right_item = footer.querySelector(".footer-item-right");
+      if (control.container.parentElement !== footer || control.container.nextSibling !== right_item) {
+        footer.insertBefore(control.container, right_item);
+      }
+      sync_margin_control(control, active_value);
+    }
+  }
+  function mutation_affects_footer(record) {
+    if (record.target instanceof Element && record.target.matches("footer.ty-footer")) return true;
+    return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches("footer.ty-footer") || Boolean(node.querySelector("footer.ty-footer"))));
+  }
+  function schedule_footer_reconciliation(state) {
+    if (state.reconcile_pending) return;
+    state.reconcile_pending = true;
+    queueMicrotask(() => {
+      state.reconcile_pending = false;
+      if (runtime === state) reconcile_footer_controls(state);
+    });
   }
   function install_workspace_ui_appearance() {
-    if (document.documentElement.dataset.linuxNoteUiAppearance) return;
+    ensure_style();
     document.documentElement.dataset.linuxNoteUiAppearance = "ready";
-    const style63 = document.createElement("style");
-    style63.dataset.workspaceUiAppearance = "true";
-    style63.textContent = ":is(#top-titlebar,.typ-ribbon,.typ-workspace-tab-header,.context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu),#typora-sidebar :is(button,input,textarea,select,summary,.workspace-explorer-row,.workspace-outline-row,.workspace-search-heading,.workspace-search-options-row,.workspace-search-status):not(.workspace-lookup-preview *){font-family:var(--linux-note-ui-font-family,".concat(DEFAULT_FONT, ")!important;font-size:var(--linux-note-ui-font-size,").concat(DEFAULT_SIZE, "px)!important}");
-    document.head.append(style63);
+    if (runtime) {
+      if (!active_dialog?.root.isConnected) apply3(read2());
+      reconcile_footer_controls(runtime);
+      return runtime.binding;
+    }
     apply3(read2());
+    const controls = /* @__PURE__ */ new Map();
+    let state;
+    const observer = new MutationObserver((records) => {
+      if (records.some(mutation_affects_footer)) schedule_footer_reconciliation(state);
+    });
+    const storage_listener = (event) => {
+      if (event.key === SETTINGS_KEY) apply3(read2());
+    };
+    const binding = { dispose() {
+      if (runtime !== state) return;
+      active_dialog?.cancel();
+      observer.disconnect();
+      window.removeEventListener("storage", storage_listener);
+      for (const control of controls.values()) control.dispose();
+      controls.clear();
+      runtime = void 0;
+      document.getElementById(STYLE_ID)?.remove();
+      delete document.documentElement.dataset.linuxNoteUiAppearance;
+      for (const property of ["--linux-note-ui-font-family", "--linux-note-ui-font-size", "--linux-note-document-margin", "--linux-note-document-width"]) {
+        document.documentElement.style.removeProperty(property);
+      }
+    } };
+    state = { binding, controls, observer, reconcile_pending: false, storage_listener };
+    runtime = state;
+    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+    window.addEventListener("storage", storage_listener);
+    reconcile_footer_controls(state);
+    return binding;
   }
   function open_workspace_ui_appearance() {
+    install_workspace_ui_appearance();
+    if (active_dialog?.root.isConnected) {
+      active_dialog.root.querySelector("input,button")?.focus();
+      return;
+    }
     const current = read2();
-    const dialog = workspace_dialog("\u754C\u9762\u5B57\u4F53");
+    const dialog = workspace_dialog("\u754C\u9762\u5916\u89C2");
     dialog.root.dataset.workspaceUiAppearance = "true";
     const font_label = workspace_element("label", "", "\u754C\u9762\u5B57\u4F53");
     const font = workspace_element("input");
     font.value = current.font_family;
     font.setAttribute("aria-label", "\u754C\u9762\u5B57\u4F53");
-    const size_label = workspace_element("label", "", "\u754C\u9762\u5B57\u53F7 ".concat(current.font_size, "px"));
+    const size_label = workspace_element("label", "", "\u754C\u9762\u5B57\u53F7 " + String(current.font_size) + "px");
     const size = workspace_element("input");
     size.type = "range";
     size.min = "11";
@@ -220660,48 +222567,85 @@ var LinuxNoteTyporaEnhancements = (() => {
     size.step = "1";
     size.value = String(current.font_size);
     size.setAttribute("aria-label", "\u754C\u9762\u5B57\u53F7");
+    const margin_label = workspace_element("label", "", "Markdown \u5355\u4FA7\u8FB9\u8DDD " + String(current.document_margin_percent) + "%");
+    const margin = workspace_element("input");
+    margin.type = "range";
+    margin.min = String(MINIMUM_MARGIN);
+    margin.max = String(MAXIMUM_MARGIN);
+    margin.step = "1";
+    margin.value = String(current.document_margin_percent);
+    margin.setAttribute("aria-label", "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD\u767E\u5206\u6BD4");
     const preview = () => {
-      const value = normalize3({ font_family: font.value, font_size: Number(size.value) });
-      size_label.textContent = "\u754C\u9762\u5B57\u53F7 ".concat(value.font_size, "px");
+      const value = normalize3({ font_family: font.value, font_size: Number(size.value), document_margin_percent: Number(margin.value) });
+      size_label.textContent = "\u754C\u9762\u5B57\u53F7 " + String(value.font_size) + "px";
+      margin_label.textContent = "Markdown \u5355\u4FA7\u8FB9\u8DDD " + String(value.document_margin_percent) + "%";
+      sync_range_progress(size);
+      sync_range_progress(margin);
       apply3(value);
     };
     font.oninput = preview;
     size.oninput = preview;
-    dialog.content.append(font_label, font, size_label, size, workspace_element("p", "", "\u4EC5\u8C03\u6574\u83DC\u5355\u3001\u6807\u7B7E\u3001\u4FA7\u680F\u548C\u5F39\u7A97\uFF1BMarkdown \u6B63\u6587\u6E32\u67D3\u4FDD\u6301\u539F\u6837\u3002"));
-    const close = dialog.close;
+    margin.oninput = preview;
+    sync_range_progress(size);
+    sync_range_progress(margin);
+    dialog.content.append(
+      font_label,
+      font,
+      size_label,
+      size,
+      margin_label,
+      margin,
+      workspace_element("p", "", "\u5B57\u4F53\u4EC5\u5F71\u54CD\u83DC\u5355\u3001\u6807\u7B7E\u3001\u4FA7\u680F\u548C\u5F39\u7A97\uFF1B\u8FB9\u8DDD\u4EC5\u8C03\u6574 Markdown \u6B63\u6587\u5BBD\u5EA6\uFF0C\u4E3B\u9898\u6E32\u67D3\u4FDD\u6301\u539F\u6837\u3002")
+    );
     let saved = false;
-    const observer = new MutationObserver(() => {
-      if (!dialog.root.isConnected) {
-        observer.disconnect();
-        if (!saved) apply3(current);
-      }
+    let finished = false;
+    let observer;
+    let session;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      observer.disconnect();
+      if (!saved) apply3(read2());
+      if (active_dialog === session) active_dialog = void 0;
+    };
+    observer = new MutationObserver(() => {
+      if (!dialog.root.isConnected) finish();
     });
     observer.observe(document.body, { childList: true });
+    session = {
+      root: dialog.root,
+      cancel() {
+        if (finished) return;
+        finish();
+        dialog.close();
+      }
+    };
+    active_dialog = session;
+    const close_button = dialog.footer.querySelector("button");
+    if (close_button) close_button.onclick = session.cancel;
     dialog.footer.prepend(
       workspace_button("\u6062\u590D\u9ED8\u8BA4", () => {
         font.value = DEFAULT_FONT;
         size.value = String(DEFAULT_SIZE);
+        margin.value = String(DEFAULT_MARGIN);
         preview();
       }),
       workspace_button("\u5E94\u7528", () => {
-        const value = normalize3({ font_family: font.value, font_size: Number(size.value) });
-        try {
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(value));
-        } catch {
-        }
+        const value = normalize3({ font_family: font.value, font_size: Number(size.value), document_margin_percent: Number(margin.value) });
+        write(value);
         saved = true;
         apply3(value);
-        close();
+        session.cancel();
       })
     );
   }
 
   // src/workspace_titlebar_entries.ts
-  function command(runtime, name, ...args) {
-    return () => runtime.ClientCommand?.[name]?.(...args);
+  function command(runtime2, name, ...args) {
+    return () => runtime2.ClientCommand?.[name]?.(...args);
   }
-  function create_workspace_titlebar_definitions(files, runtime, open_quickly) {
-    const editor2 = () => runtime.File?.editor;
+  function create_workspace_titlebar_definitions(files, runtime2, open_quickly) {
+    const editor2 = () => runtime2.File?.editor;
     const library = () => editor2()?.library;
     const stylize = (name, ...args) => () => editor2()?.stylize?.[name]?.(...args);
     const native_document_active = () => !String(files.core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
@@ -220709,76 +222653,76 @@ var LinuxNoteTyporaEnhancements = (() => {
     const recent_children = (items) => {
       const usable = (items || []).filter((item) => item.path);
       if (!usable.length) return [{ label: "\u7A7A", disabled: true }];
-      return usable.map((item) => ({ label: item.name || files.path_api.basename(item.path), title: item.path, action: command(runtime, "openWithPath", item.path) }));
+      return usable.map((item) => ({ label: item.name || files.path_api.basename(item.path), title: item.path, action: command(runtime2, "openWithPath", item.path) }));
     };
     const file_entries = async () => {
       let recents = {};
       try {
-        recents = await runtime.JSBridge?.invoke("setting.getRecentFiles") || {};
+        recents = await runtime2.JSBridge?.invoke("setting.getRecentFiles") || {};
       } catch {
       }
       return [
-        { label: "\u65B0\u5EFA", shortcut: "Ctrl+N", action: command(runtime, "newFile") },
-        { label: "\u65B0\u5EFA\u7A97\u53E3", shortcut: "Ctrl+Shift+N", action: command(runtime, "newWindow") },
+        { label: "\u65B0\u5EFA", shortcut: "Ctrl+N", action: command(runtime2, "newFile") },
+        { label: "\u65B0\u5EFA\u7A97\u53E3", shortcut: "Ctrl+Shift+N", action: command(runtime2, "newWindow") },
         { separator: true },
-        { label: "\u6253\u5F00\u2026", shortcut: "Ctrl+O", action: command(runtime, "open") },
-        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: command(runtime, "openFolder") },
+        { label: "\u6253\u5F00\u2026", shortcut: "Ctrl+O", action: command(runtime2, "open") },
+        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: command(runtime2, "openFolder") },
         { label: "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6", children: recent_children(recents.files) },
         { label: "\u6700\u8FD1\u4F7F\u7528\u7684\u76EE\u5F55", children: recent_children(recents.folders) },
-        { label: "\u6E05\u9664\u6700\u8FD1\u6587\u4EF6", action: () => runtime.JSBridge?.invoke("setting.askForClearRecentDocuments") },
+        { label: "\u6E05\u9664\u6700\u8FD1\u6587\u4EF6", action: () => runtime2.JSBridge?.invoke("setting.askForClearRecentDocuments") },
         { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_quickly },
         { separator: true },
-        native_only({ label: "\u9009\u62E9\u7F16\u7801\u91CD\u65B0\u6253\u5F00", children: ["utf-8", "gb18030", "big5", "windows-1252", "utf-16le", "utf-16be"].map((encoding) => ({ label: encoding.toUpperCase(), action: () => runtime.File?.reloadWithEncoding?.(encoding) })) }),
-        native_only({ label: "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", action: command(runtime, "reloadFromDisk") }),
+        native_only({ label: "\u9009\u62E9\u7F16\u7801\u91CD\u65B0\u6253\u5F00", children: ["utf-8", "gb18030", "big5", "windows-1252", "utf-16le", "utf-16be"].map((encoding) => ({ label: encoding.toUpperCase(), action: () => runtime2.File?.reloadWithEncoding?.(encoding) })) }),
+        native_only({ label: "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", action: command(runtime2, "reloadFromDisk") }),
         { separator: true },
-        native_only({ label: "\u4FDD\u5B58", shortcut: "Ctrl+S", action: command(runtime, "save") }),
-        { label: "\u4FDD\u5B58\u5168\u90E8\u6253\u5F00\u7684\u6587\u4EF6", shortcut: "Ctrl+K S", action: command(runtime, "saveAll") },
-        native_only({ label: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", action: command(runtime, "saveAs") }),
+        { label: "\u4FDD\u5B58", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => void files.save_active() },
+        { label: "\u4FDD\u5B58\u5168\u90E8\u6253\u5F00\u7684\u6587\u4EF6", shortcut: "Ctrl+K S", action: () => void files.save_all() },
+        native_only({ label: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", action: command(runtime2, "saveAs") }),
         native_only({ label: "\u521B\u5EFA\u526F\u672C", action: () => library()?.duplicateFileCommand?.() }),
         native_only({ label: "\u91CD\u547D\u540D", shortcut: "F2", action: () => library()?.renameFileCommand?.() }),
-        native_only({ label: "\u79FB\u52A8\u5230\u2026", action: command(runtime, "moveTo") }),
+        native_only({ label: "\u79FB\u52A8\u5230\u2026", action: command(runtime2, "moveTo") }),
         { separator: true },
-        native_only({ label: "\u6253\u5F00\u6587\u4EF6\u4F4D\u7F6E", action: command(runtime, "openFileLocation") }),
+        native_only({ label: "\u6253\u5F00\u6587\u4EF6\u4F4D\u7F6E", action: command(runtime2, "openFileLocation") }),
         native_only({ label: "\u5728\u6587\u6863\u5217\u8868\u4E2D\u663E\u793A", action: () => library()?.revealInFileList?.() }),
         native_only({ label: "\u5728\u6587\u4EF6\u6811\u4E2D\u663E\u793A", action: () => library()?.revealInFileTree?.() }),
         { separator: true },
-        { label: "\u5BFC\u5165\u2026", action: command(runtime, "import") },
-        native_only({ label: "\u5BFC\u51FA\u2026", action: command(runtime, "export") }),
-        native_only({ label: "\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", action: command(runtime, "exportLast") }),
-        native_only({ label: "\u6253\u5370\u2026", action: command(runtime, "print") }),
+        { label: "\u5BFC\u5165\u2026", action: command(runtime2, "import") },
+        native_only({ label: "\u5BFC\u51FA\u2026", action: command(runtime2, "export") }),
+        native_only({ label: "\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", action: command(runtime2, "exportLast") }),
+        native_only({ label: "\u6253\u5370\u2026", action: command(runtime2, "print") }),
         { separator: true },
         { label: "\u5173\u95ED\u6807\u7B7E", shortcut: "Ctrl+W", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => close_active_workspace_tab(files) },
-        { label: "\u5173\u95ED\u6240\u6709\u6807\u7B7E", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => void close_all_workspace_tabs(files) },
-        { label: "\u5173\u95ED\u7A97\u53E3", shortcut: "Alt+F4", action: command(runtime, "close") }
+        { label: "\u5173\u95ED\u6240\u6709\u6807\u7B7E", shortcut: "Ctrl+K W", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => void close_all_workspace_tabs(files) },
+        { label: "\u5173\u95ED\u7A97\u53E3", shortcut: "Alt+F4", action: command(runtime2, "close") }
       ];
     };
     const edit_entries = async () => [
-      native_only({ label: "\u64A4\u6D88", shortcut: "Ctrl+Z", action: command(runtime, "undo") }),
-      native_only({ label: "\u91CD\u505A", shortcut: "Ctrl+Y", action: command(runtime, "redo") }),
+      native_only({ label: "\u64A4\u6D88", shortcut: "Ctrl+Z", action: command(runtime2, "undo") }),
+      native_only({ label: "\u91CD\u505A", shortcut: "Ctrl+Y", action: command(runtime2, "redo") }),
       { separator: true },
-      native_only({ label: "\u526A\u5207", shortcut: "Ctrl+X", action: command(runtime, "cut") }),
-      native_only({ label: "\u590D\u5236", shortcut: "Ctrl+C", action: command(runtime, "copy") }),
-      native_only({ label: "\u7C98\u8D34", shortcut: "Ctrl+V", action: command(runtime, "paste") }),
+      native_only({ label: "\u526A\u5207", shortcut: "Ctrl+X", action: command(runtime2, "cut") }),
+      native_only({ label: "\u590D\u5236", shortcut: "Ctrl+C", action: command(runtime2, "copy") }),
+      native_only({ label: "\u7C98\u8D34", shortcut: "Ctrl+V", action: command(runtime2, "paste") }),
       native_only({ label: "\u590D\u5236\uFF0F\u7C98\u8D34\u4E3A", children: [
-        { label: "\u590D\u5236\u4E3A Markdown", action: command(runtime, "copyAsMarkdown") },
-        { label: "\u590D\u5236\u4E3A HTML \u4EE3\u7801", action: command(runtime, "copyAsHTMLSource") },
-        { label: "\u590D\u5236\u4E3A\u7EAF\u6587\u672C", action: command(runtime, "copyAsPlainText") },
-        { label: "\u590D\u5236\u4E3A\u8BED\u4E49 HTML", action: command(runtime, "copyAsSemanticHTML") },
-        { label: "\u7C98\u8D34\u4E3A\u7EAF\u6587\u672C", shortcut: "Ctrl+Shift+V", action: command(runtime, "pasteAsPlain") }
+        { label: "\u590D\u5236\u4E3A Markdown", action: command(runtime2, "copyAsMarkdown") },
+        { label: "\u590D\u5236\u4E3A HTML \u4EE3\u7801", action: command(runtime2, "copyAsHTMLSource") },
+        { label: "\u590D\u5236\u4E3A\u7EAF\u6587\u672C", action: command(runtime2, "copyAsPlainText") },
+        { label: "\u590D\u5236\u4E3A\u8BED\u4E49 HTML", action: command(runtime2, "copyAsSemanticHTML") },
+        { label: "\u7C98\u8D34\u4E3A\u7EAF\u6587\u672C", shortcut: "Ctrl+Shift+V", action: command(runtime2, "pasteAsPlain") }
       ] }),
       { separator: true },
       native_only({ label: "\u9009\u62E9", children: [
-        { label: "\u5168\u9009", shortcut: "Ctrl+A", action: command(runtime, "selectAll") },
+        { label: "\u5168\u9009", shortcut: "Ctrl+A", action: command(runtime2, "selectAll") },
         { label: "\u9009\u4E2D\u5F53\u524D\u884C\u6216\u53E5", action: () => editor2()?.selection?.selectLine?.() },
         { label: "\u9009\u4E2D\u5F53\u524D\u683C\u5F0F\u6587\u672C", action: () => editor2()?.selection?.selectBlock?.() },
         { label: "\u9009\u4E2D\u5F53\u524D\u8BCD", action: () => editor2()?.selection?.selectWord?.() }
       ] }),
       native_only({ label: "\u5220\u9664", children: [
         { label: "\u5220\u9664\u6240\u9009\u8303\u56F4", action: () => editor2()?.UserOp?.deleteSelectable?.() },
-        { label: "\u5220\u9664\u5F53\u524D\u8BCD", action: command(runtime, "deleteWord") },
-        { label: "\u5220\u9664\u5F53\u524D\u683C\u5F0F\u6587\u672C", action: command(runtime, "deleteScope") },
-        { label: "\u5220\u9664\u5F53\u524D\u884C\u6216\u53E5", action: command(runtime, "deleteLine") },
-        { label: "\u5220\u9664\u5757", action: command(runtime, "deleteBlock") }
+        { label: "\u5220\u9664\u5F53\u524D\u8BCD", action: command(runtime2, "deleteWord") },
+        { label: "\u5220\u9664\u5F53\u524D\u683C\u5F0F\u6587\u672C", action: command(runtime2, "deleteScope") },
+        { label: "\u5220\u9664\u5F53\u524D\u884C\u6216\u53E5", action: command(runtime2, "deleteLine") },
+        { label: "\u5220\u9664\u5757", action: command(runtime2, "deleteBlock") }
       ] }),
       native_only({ label: "\u8DF3\u8F6C\u5230", children: [
         { label: "\u8DF3\u8F6C\u5230\u6587\u9996", shortcut: "Ctrl+Home", action: () => editor2()?.selection?.jumpTop?.() },
@@ -220812,7 +222756,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       native_only({ label: "YAML Front Matter", action: stylize("insertMetaBlock") })
     ];
     const format_entries = async () => [
-      native_only({ label: "\u52A0\u7C97", shortcut: "Ctrl+B", action: stylize("toggleStyle", "strong") }),
+      native_only({ label: "\u52A0\u7C97", action: stylize("toggleStyle", "strong") }),
       native_only({ label: "\u659C\u4F53", shortcut: "Ctrl+I", action: stylize("toggleStyle", "em") }),
       native_only({ label: "\u4E0B\u5212\u7EBF", shortcut: "Ctrl+U", action: stylize("toggleStyle", "underline") }),
       native_only({ label: "\u4EE3\u7801", action: stylize("toggleStyle", "code") }),
@@ -220823,59 +222767,59 @@ var LinuxNoteTyporaEnhancements = (() => {
       native_only({ label: "\u4E0B\u6807", action: stylize("toggleStyle", "subscript") }),
       native_only({ label: "\u6CE8\u91CA", action: stylize("toggleStyle", "comment") }),
       { separator: true },
-      native_only({ label: "\u8D85\u94FE\u63A5", shortcut: "Ctrl+K", action: stylize("toggleStyle", "link") }),
+      native_only({ label: "\u8D85\u94FE\u63A5", action: stylize("toggleStyle", "link") }),
       native_only({ label: "\u56FE\u50CF", action: stylize("toggleStyle", "image") }),
       native_only({ label: "\u6E05\u9664\u6837\u5F0F", shortcut: "Ctrl+\\", action: stylize("clearStyle") })
     ];
     const view_entries = async () => [
-      native_only({ label: "\u6E90\u4EE3\u7801\u6A21\u5F0F", shortcut: "Ctrl+/", checked: Boolean(editor2()?.sourceView?.inSourceMode), action: () => runtime.File?.toggleSourceMode?.() }),
-      native_only({ label: "\u53EA\u8BFB\u6A21\u5F0F", checked: Boolean(runtime.File?.isReadonlyMode), action: () => runtime.File?.toggleReadonlyMode?.() }),
-      native_only({ label: "\u4E13\u6CE8\u6A21\u5F0F", shortcut: "F8", checked: Boolean(runtime.File?.isFocusMode), action: () => editor2()?.toggleFocusMode?.() }),
-      native_only({ label: "\u6253\u5B57\u673A\u6A21\u5F0F", shortcut: "F9", checked: Boolean(runtime.File?.isTypeWriterMode), action: () => editor2()?.toggleTypeWriterMode?.() }),
+      native_only({ label: "\u6E90\u4EE3\u7801\u6A21\u5F0F", shortcut: "Ctrl+/", checked: Boolean(editor2()?.sourceView?.inSourceMode), action: () => runtime2.File?.toggleSourceMode?.() }),
+      native_only({ label: "\u53EA\u8BFB\u6A21\u5F0F", checked: Boolean(runtime2.File?.isReadonlyMode), action: () => runtime2.File?.toggleReadonlyMode?.() }),
+      native_only({ label: "\u4E13\u6CE8\u6A21\u5F0F", shortcut: "F8", checked: Boolean(runtime2.File?.isFocusMode), action: () => editor2()?.toggleFocusMode?.() }),
+      native_only({ label: "\u6253\u5B57\u673A\u6A21\u5F0F", shortcut: "F9", checked: Boolean(runtime2.File?.isTypeWriterMode), action: () => editor2()?.toggleTypeWriterMode?.() }),
       { separator: true },
       { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u8FB9\u680F", shortcut: "Ctrl+B", action: () => files.core.app.workspace.sidebar.toggle() },
-      { label: "\u5927\u7EB2", action: command(runtime, "toggleOutline") },
-      { label: "\u6587\u6863\u5217\u8868", action: command(runtime, "toggleFileList") },
+      { label: "\u5927\u7EB2", action: command(runtime2, "toggleOutline") },
+      { label: "\u6587\u6863\u5217\u8868", action: command(runtime2, "toggleFileList") },
       { label: "\u6587\u4EF6\u6811", shortcut: "Ctrl+Shift+E", action: () => files.core.app.commands.run("linux_note:file_explorer") },
-      { label: "\u72B6\u6001\u680F", action: command(runtime, "toggleStatusBar") },
-      { label: "\u5DE5\u5177\u680F", action: command(runtime, "toggleToolbar") },
+      { label: "\u72B6\u6001\u680F", action: command(runtime2, "toggleStatusBar") },
+      { label: "\u5DE5\u5177\u680F", action: command(runtime2, "toggleToolbar") },
       { separator: true },
-      { label: "\u754C\u9762\u5B57\u4F53\u2026", action: open_workspace_ui_appearance },
-      { label: "\u653E\u5927", shortcut: "Ctrl+=", action: command(runtime, "zoomIn") },
-      { label: "\u7F29\u5C0F", shortcut: "Ctrl+-", action: command(runtime, "zoomOut") },
-      { label: "\u5B9E\u9645\u5927\u5C0F", shortcut: "Ctrl+\u6570\u5B57\u952E\u76D8 0", action: command(runtime, "resetZoom") },
+      { label: "\u754C\u9762\u5916\u89C2\u2026", action: open_workspace_ui_appearance },
+      { label: "\u653E\u5927", shortcut: "Ctrl+=", action: command(runtime2, "zoomIn") },
+      { label: "\u7F29\u5C0F", shortcut: "Ctrl+-", action: command(runtime2, "zoomOut") },
+      { label: "\u5B9E\u9645\u5927\u5C0F", shortcut: "Ctrl+\u6570\u5B57\u952E\u76D8 0", action: command(runtime2, "resetZoom") },
       { separator: true },
-      { label: "\u5F00\u53D1\u8005\u5DE5\u5177", shortcut: "Ctrl+Shift+I", action: command(runtime, "toggleDevTools") }
+      { label: "\u5F00\u53D1\u8005\u5DE5\u5177", shortcut: "Ctrl+Shift+I", action: command(runtime2, "toggleDevTools") }
     ];
     const theme_entries = async () => {
       let theme_data = {};
       try {
-        theme_data = await runtime.JSBridge?.invoke("setting.getThemes");
+        theme_data = await runtime2.JSBridge?.invoke("setting.getThemes");
       } catch {
       }
       const themes = Array.isArray(theme_data?.all) ? theme_data.all : [];
-      const current = String(theme_data?.current ?? runtime.File?.option?.curTheme ?? "").replace(/\.css$/iu, "");
+      const current = String(theme_data?.current ?? runtime2.File?.option?.curTheme ?? "").replace(/\.css$/iu, "");
       return [
         ...themes.map((theme) => {
           const name = String(theme?.name ?? theme?.displayName ?? theme);
           const display = String(theme?.displayName ?? theme?.name ?? theme).replace(/\.css$/iu, "");
-          return { label: display, checked: current === name.replace(/\.css$/iu, "") || theme?.active, action: command(runtime, "setTheme", name) };
+          return { label: display, checked: current === name.replace(/\.css$/iu, "") || theme?.active, action: command(runtime2, "setTheme", name) };
         }),
         ...themes.length ? [{ separator: true }] : [{ label: "\u6CA1\u6709\u53D1\u73B0\u53EF\u7528\u4E3B\u9898", disabled: true }],
-        { label: "\u6253\u5F00\u4E3B\u9898\u6587\u4EF6\u5939", action: () => runtime.JSBridge?.invoke("shell.openItem", "".concat(window._options?.userDataPath || "", "/themes")) }
+        { label: "\u6253\u5F00\u4E3B\u9898\u6587\u4EF6\u5939", action: () => runtime2.JSBridge?.invoke("shell.openItem", "".concat(window._options?.userDataPath || "", "/themes")) }
       ];
     };
     const help_entries = async () => [
-      { label: "\u504F\u597D\u8BBE\u7F6E", shortcut: "Ctrl+,", action: command(runtime, "showPreferencePanel") },
+      { label: "\u504F\u597D\u8BBE\u7F6E", shortcut: "Ctrl+,", action: command(runtime2, "showPreferencePanel") },
       { separator: true },
-      { label: "\u9690\u79C1\u6761\u6B3E", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/privacy/") },
-      { label: "\u9E23\u8C22", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/credits/") },
-      { label: "\u66F4\u65B0\u65E5\u5FD7", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/releases/all") },
-      { label: "\u5B98\u65B9\u7F51\u7AD9", action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/") },
-      { label: "\u53CD\u9988", action: () => runtime.JSBridge?.showInBrowser?.("https://support.typora.io/") },
-      { label: "\u68C0\u67E5\u66F4\u65B0", action: () => runtime.JSBridge?.invoke("app.checkForUpdates") },
+      { label: "\u9690\u79C1\u6761\u6B3E", action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/privacy/") },
+      { label: "\u9E23\u8C22", action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/credits/") },
+      { label: "\u66F4\u65B0\u65E5\u5FD7", action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/releases/all") },
+      { label: "\u5B98\u65B9\u7F51\u7AD9", action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") },
+      { label: "\u53CD\u9988", action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
+      { label: "\u68C0\u67E5\u66F4\u65B0", action: () => runtime2.JSBridge?.invoke("app.checkForUpdates") },
       { separator: true },
-      { label: "\u5173\u4E8E Typora", action: () => runtime.$?.("#about-dialog")?.modal?.("show") }
+      { label: "\u5173\u4E8E Typora", action: () => runtime2.$?.("#about-dialog")?.modal?.("show") }
     ];
     return [
       { label: "\u6587\u4EF6", mnemonic: "F", entries: file_entries },
@@ -220926,9 +222870,9 @@ var LinuxNoteTyporaEnhancements = (() => {
         if (entry.children) item.setAttribute("aria-haspopup", "menu");
         item.disabled = Boolean(entry.disabled);
         item.title = entry.title || "";
-        const check2 = document.createElement("span");
-        check2.className = "workspace-titlebar-check";
-        if (entry.checked) check2.append(git_icon("check"));
+        const check = document.createElement("span");
+        check.className = "workspace-titlebar-check";
+        if (entry.checked) check.append(git_icon("check"));
         const label = document.createElement("span");
         label.className = "workspace-titlebar-popup-label";
         label.textContent = entry.label || "";
@@ -220937,7 +222881,7 @@ var LinuxNoteTyporaEnhancements = (() => {
         const arrow = document.createElement("span");
         arrow.className = "workspace-titlebar-submenu-arrow";
         if (entry.children) arrow.append(git_icon("chevron-right"));
-        item.append(check2, label, shortcut, arrow);
+        item.append(check, label, shortcut, arrow);
         const open_child = (focus = false) => {
           if (!entry.children || item.disabled) return;
           const rect = item.getBoundingClientRect();
@@ -221051,7 +222995,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   }
 
   // src/workspace_titlebar.css
-  var workspace_titlebar_default = 'body.unibody-window{--typ-workspace-top:35px}\nbody.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-items:center;position:fixed;inset:0 0 auto 0!important;height:35px;padding:0;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2;-webkit-app-region:drag}\n#top-titlebar .workspace-titlebar-icon-slot{display:grid;place-items:center;width:35px;height:35px;flex:none}\n#top-titlebar .workspace-titlebar-icon{width:16px;height:16px;object-fit:contain}\n#top-titlebar .workspace-titlebar-menu{display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag}\n#top-titlebar :is(.workspace-titlebar-menu>button,.workspace-titlebar-history,.workspace-titlebar-quick-open){appearance:none;border:0;background:transparent;color:inherit;border-radius:5px;min-width:0;font:inherit;outline-offset:-2px;-webkit-app-region:no-drag}\n#top-titlebar .workspace-titlebar-menu>button{height:30px;margin:2px 0;padding:0 8px;cursor:default}\n#top-titlebar :is(.workspace-titlebar-menu>button:hover,.workspace-titlebar-menu>button:focus-visible,.workspace-titlebar-menu>button[aria-expanded="true"],.workspace-titlebar-history:not(:disabled):hover,.workspace-titlebar-history:focus-visible,.workspace-titlebar-quick-open:hover,.workspace-titlebar-quick-open:focus-visible){background:var(--active-file-bg-color,rgba(127,127,127,.16))}\n#top-titlebar[data-workspace-titlebar] #w-menu-btn{display:none}\n#top-titlebar[data-workspace-titlebar] #w-titlebar-left{float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden}\n#top-titlebar[data-workspace-titlebar] #title-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights{float:none;flex:none;display:flex;align-items:center;height:35px;margin-left:auto;z-index:2}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:46px;height:35px;line-height:35px;margin:0;text-align:center}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon{font-size:12px}\n#top-titlebar[data-workspace-titlebar] #w-top-margin{display:none}\n.workspace-titlebar-command-area{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:min(38vw,600px);height:22px;-webkit-app-region:no-drag}\n.workspace-titlebar-navigation{position:absolute;right:calc(100% + 4px);top:0;display:flex;align-items:center;gap:4px;height:22px}\n#top-titlebar .workspace-titlebar-history{display:grid;place-items:center;width:22px;height:22px;padding:0}\n#top-titlebar .workspace-titlebar-history:disabled{opacity:.4}\n#top-titlebar .workspace-titlebar-history svg{width:16px;height:16px}\n#top-titlebar .workspace-titlebar-quick-open{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;height:22px;margin:0;padding:0 8px;border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.08)}\n#top-titlebar .workspace-titlebar-quick-open span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86}\n#top-titlebar .workspace-titlebar-quick-open svg{flex:none;width:14px;height:14px;opacity:.8}\n.workspace-titlebar-popup{position:fixed;z-index:2200;min-width:260px;max-width:min(440px,calc(100vw - 8px));max-height:calc(100vh - 43px);overflow:auto;padding:4px;border:1px solid rgba(127,127,127,.28);border-radius:5px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.22);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2}\n.workspace-titlebar-popup>button{display:grid;grid-template-columns:16px minmax(145px,1fr) auto 16px;align-items:center;gap:6px;width:100%;height:26px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-titlebar-popup>button:is(:hover,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-titlebar-popup>button:disabled{opacity:.45}\n.workspace-titlebar-popup :is(kbd,.workspace-titlebar-popup-label){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.workspace-titlebar-popup kbd{font:inherit;opacity:.65}\n.workspace-titlebar-check,.workspace-titlebar-submenu-arrow{display:grid;place-items:center}\n.workspace-titlebar-check svg,.workspace-titlebar-submenu-arrow svg{width:16px;height:16px}\n.workspace-titlebar-separator{height:1px;margin:4px 7px;background:rgba(127,127,127,.25)}\n.workspace-quick-open{position:fixed;z-index:2300;top:41px;left:50%;transform:translateX(-50%);width:min(600px,calc(100vw - 16px));max-height:min(70vh,560px);padding:6px;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}\n.workspace-quick-open[hidden]{display:none}\n.workspace-quick-open-input-row{display:flex;align-items:center;gap:7px;height:34px;padding:0 9px;border:1px solid var(--active-file-border-color,#007acc);border-radius:3px}\n.workspace-quick-open-input-row>svg{width:16px;height:16px}\n.workspace-quick-open-input-row input{min-width:0;flex:1;height:30px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}\n.workspace-quick-open-status{min-height:23px;padding:5px 7px 2px;opacity:.7}\n.workspace-quick-open-results{max-height:min(58vh,450px);overflow:auto}\n.workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:29px;padding:0 8px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-quick-open-result>svg{width:16px;height:16px;flex:none}\n.workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}\nbody.unibody-window .typ-ribbon{padding-top:35px;box-sizing:border-box}\nbody.unibody-window #typora-sidebar{top:35px;height:calc(100% - 35px)}\nbody.unibody-window #typora-sidebar-resizer{top:35px}\n@media(max-width:900px){.workspace-titlebar-command-area{right:142px;left:auto;transform:none;width:22px}.workspace-titlebar-navigation{right:calc(100% + 4px)}.workspace-titlebar-quick-open{display:none!important}#top-titlebar .workspace-titlebar-menu>button{padding:0 5px}}\n@media(max-width:650px){.workspace-titlebar-command-area{display:none}}\n';
+  var workspace_titlebar_default = 'body.unibody-window{--typ-workspace-top:35px}\nbody.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-items:center;position:fixed;inset:0 0 auto 0!important;height:35px;padding:0;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2;-webkit-app-region:drag}\n#top-titlebar .workspace-titlebar-icon-slot{display:grid;place-items:center;width:35px;height:35px;flex:none}\n#top-titlebar .workspace-titlebar-icon{width:20px;height:20px;object-fit:contain}\n#top-titlebar .workspace-titlebar-menu{display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag}\n#top-titlebar :is(.workspace-titlebar-menu>button,.workspace-titlebar-history,.workspace-titlebar-quick-open){appearance:none;border:0;background:transparent;color:inherit;border-radius:5px;min-width:0;font:inherit;outline-offset:-2px;-webkit-app-region:no-drag}\n#top-titlebar .workspace-titlebar-menu>button{height:30px;margin:2px 0;padding:0 8px;cursor:default}\n#top-titlebar :is(.workspace-titlebar-menu>button:hover,.workspace-titlebar-menu>button:focus-visible,.workspace-titlebar-menu>button[aria-expanded="true"],.workspace-titlebar-history:not(:disabled):hover,.workspace-titlebar-history:focus-visible,.workspace-titlebar-quick-open:hover,.workspace-titlebar-quick-open:focus-visible){background:var(--active-file-bg-color,rgba(127,127,127,.16))}\n#top-titlebar[data-workspace-titlebar] #w-menu-btn{display:none}\n#top-titlebar[data-workspace-titlebar] #w-titlebar-left{float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden}\n#top-titlebar[data-workspace-titlebar] #title-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights{float:none;flex:none;display:flex;align-items:center;height:35px;margin-left:auto;z-index:2}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:46px;height:35px;line-height:35px;margin:0;text-align:center}\n#top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon{font-size:12px}\n#top-titlebar[data-workspace-titlebar] #w-top-margin{display:none}\n.workspace-titlebar-command-area{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:min(38vw,600px);height:22px;-webkit-app-region:no-drag}\n.workspace-titlebar-navigation{position:absolute;right:calc(100% + 4px);top:0;display:flex;align-items:center;gap:4px;height:22px}\n#top-titlebar .workspace-titlebar-history{display:grid;place-items:center;width:22px;height:22px;padding:0}\n#top-titlebar .workspace-titlebar-history:disabled{opacity:.4}\n#top-titlebar .workspace-titlebar-history svg{width:16px;height:16px}\n#top-titlebar .workspace-titlebar-quick-open{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;height:22px;margin:0;padding:0 8px;border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.08)}\n#top-titlebar .workspace-titlebar-quick-open span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86}\n#top-titlebar .workspace-titlebar-quick-open svg{flex:none;width:14px;height:14px;opacity:.8}\n.workspace-titlebar-popup{position:fixed;z-index:2200;min-width:260px;max-width:min(440px,calc(100vw - 8px));max-height:calc(100vh - 43px);overflow:auto;padding:4px;border:1px solid rgba(127,127,127,.28);border-radius:5px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.22);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2}\n.workspace-titlebar-popup>button{display:grid;grid-template-columns:16px minmax(145px,1fr) auto 16px;align-items:center;gap:6px;width:100%;height:26px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-titlebar-popup>button:is(:hover,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-titlebar-popup>button:disabled{opacity:.45}\n.workspace-titlebar-popup :is(kbd,.workspace-titlebar-popup-label){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.workspace-titlebar-popup kbd{font:inherit;opacity:.65}\n.workspace-titlebar-check,.workspace-titlebar-submenu-arrow{display:grid;place-items:center}\n.workspace-titlebar-check svg,.workspace-titlebar-submenu-arrow svg{width:16px;height:16px}\n.workspace-titlebar-separator{height:1px;margin:4px 7px;background:rgba(127,127,127,.25)}\n.workspace-quick-open{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);width:min(62vw,600px,calc(100vw - 12px));max-height:min(70vh,560px);padding:0;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}\n.workspace-quick-open[hidden]{display:none}\n.workspace-quick-open-input-row{display:flex;align-items:center;height:25px;margin:6px 6px 4px;padding:0 6px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px}\n.workspace-quick-open-input-row input{min-width:0;flex:1;height:23px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}\n.workspace-quick-open-status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}\n.workspace-quick-open-results{max-height:40vh;overflow:auto;padding:0 6px 6px}\n.workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}\n.workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}\n.workspace-quick-open-result>svg{width:16px;height:16px;flex:none}\n.workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}\nbody.unibody-window .typ-ribbon{padding-top:35px;box-sizing:border-box}\nbody.unibody-window #typora-sidebar{top:35px;height:calc(100% - 35px)}\nbody.unibody-window #typora-sidebar-resizer{top:35px}\n@media(max-width:900px){.workspace-titlebar-command-area{right:142px;left:auto;transform:none;width:22px}.workspace-titlebar-navigation{right:calc(100% + 4px)}.workspace-titlebar-quick-open{display:none!important}#top-titlebar .workspace-titlebar-menu>button{padding:0 5px}}\n@media(max-width:650px){.workspace-titlebar-command-area{display:none}}\n';
 
   // src/workspace_titlebar.ts
   function history_button(direction) {
@@ -221066,18 +223010,18 @@ var LinuxNoteTyporaEnhancements = (() => {
     return button;
   }
   function install_workspace_titlebar(files) {
-    const runtime = window;
+    const runtime2 = window;
     const bar = document.querySelector("#top-titlebar");
-    if (!bar || !runtime.File?.isNode || runtime.File.isMac || bar.dataset.workspaceTitlebar) return;
-    const platform3 = runtime.reqnode?.("process").platform;
+    if (!bar || !runtime2.File?.isNode || runtime2.File.isMac || bar.dataset.workspaceTitlebar) return;
+    const platform3 = runtime2.reqnode?.("process").platform;
     if (platform3 && !["win32", "linux"].includes(platform3)) return;
     bar.dataset.workspaceTitlebar = "ready";
     const style63 = document.createElement("style");
     style63.dataset.workspaceTitlebarStyle = "true";
     style63.textContent = workspace_titlebar_default;
     document.head.append(style63);
-    if (!runtime.File.option?.framelessWindow && runtime.reqnode) {
-      void runtime.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", true).then(() => {
+    if (!runtime2.File.option?.framelessWindow && runtime2.reqnode) {
+      void runtime2.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", true).then(() => {
         document.documentElement.dataset.linuxNoteTitlebar = "next-window";
       }).catch(() => {
         document.documentElement.dataset.linuxNoteTitlebar = "setting-failed";
@@ -221092,7 +223036,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     icon.draggable = false;
     icon_slot.append(icon);
     const quick_open = create_workspace_quick_open(files);
-    const definitions = create_workspace_titlebar_definitions(files, runtime, quick_open.open);
+    const definitions = create_workspace_titlebar_definitions(files, runtime2, quick_open.open);
     const titlebar_menu = create_workspace_titlebar_menu(definitions);
     const command_area = document.createElement("div");
     command_area.className = "workspace-titlebar-command-area";
@@ -221126,7 +223070,7 @@ var LinuxNoteTyporaEnhancements = (() => {
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey || event.code !== "Numpad0" || event.isComposing) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      runtime.ClientCommand?.resetZoom?.();
+      runtime2.ClientCommand?.resetZoom?.();
     }, true);
     bar.prepend(icon_slot, titlebar_menu.menu);
     bar.append(command_area);
@@ -221343,6 +223287,35 @@ var LinuxNoteTyporaEnhancements = (() => {
     return binding;
   }
 
+  // src/workspace_chrome.css
+  var workspace_chrome_default = 'html[data-linux-note-workspace-chrome="ready"] {\n  /*\n   * The Markdown theme continues to own #write.  These semantic colours only\n   * describe the workbench chrome around it.  Prefer VS Code tokens when a\n   * theme exposes them, then derive a quiet hierarchy from Typora\'s existing\n   * theme colours instead of assuming a light or dark palette.\n   */\n  --linux-note-shell-editor-background:var(--vscode-editor-background,var(--bg-color,Canvas));\n  --linux-note-shell-foreground:var(--vscode-foreground,var(--text-color,CanvasText));\n  --linux-note-shell-muted-foreground:var(--vscode-descriptionForeground,var(--control-text-color,var(--blur-text-color,color-mix(in srgb,var(--linux-note-shell-foreground) 68%,transparent))));\n  --linux-note-shell-border:var(--vscode-panel-border,var(--window-border-color,color-mix(in srgb,var(--linux-note-shell-foreground) 16%,transparent)));\n  --linux-note-shell-sidebar-border:var(--vscode-sideBar-border,var(--linux-note-shell-border));\n  --linux-note-shell-tab-border:var(--vscode-tab-border,var(--vscode-editorGroupHeader-tabsBorder,var(--linux-note-shell-border)));\n  --linux-note-shell-titlebar-background:var(--vscode-titleBar-activeBackground,color-mix(in srgb,var(--linux-note-shell-editor-background) 95%,var(--linux-note-shell-foreground) 5%));\n  --linux-note-shell-titlebar-foreground:var(--vscode-titleBar-activeForeground,var(--linux-note-shell-foreground));\n  --linux-note-shell-activity-background:var(--vscode-activityBar-background,color-mix(in srgb,var(--linux-note-shell-editor-background) 94%,var(--linux-note-shell-foreground) 6%));\n  --linux-note-shell-activity-foreground:var(--vscode-activityBar-inactiveForeground,var(--linux-note-shell-muted-foreground));\n  --linux-note-shell-activity-active-foreground:var(--vscode-activityBar-foreground,var(--linux-note-shell-foreground));\n  --linux-note-shell-sidebar-background:var(--vscode-sideBar-background,color-mix(in srgb,var(--side-bar-bg-color,var(--linux-note-shell-editor-background)) 97%,var(--linux-note-shell-foreground) 3%));\n  --linux-note-shell-sidebar-foreground:var(--vscode-sideBar-foreground,var(--linux-note-shell-foreground));\n  --linux-note-shell-tabs-background:var(--vscode-editorGroupHeader-tabsBackground,color-mix(in srgb,var(--linux-note-shell-editor-background) 95%,var(--linux-note-shell-foreground) 5%));\n  --linux-note-shell-tab-inactive-background:var(--vscode-tab-inactiveBackground,var(--linux-note-shell-tabs-background));\n  --linux-note-shell-tab-inactive-foreground:var(--vscode-tab-inactiveForeground,var(--linux-note-shell-muted-foreground));\n  --linux-note-shell-tab-active-background:var(--vscode-tab-activeBackground,var(--linux-note-shell-editor-background));\n  --linux-note-shell-tab-active-foreground:var(--vscode-tab-activeForeground,var(--linux-note-shell-foreground));\n  --linux-note-shell-toolbar-background:var(--vscode-sideBarSectionHeader-background,color-mix(in srgb,var(--linux-note-shell-sidebar-background) 96%,var(--linux-note-shell-foreground) 4%));\n  --linux-note-shell-raised-background:var(--vscode-quickInput-background,color-mix(in srgb,var(--linux-note-shell-editor-background) 96%,var(--linux-note-shell-foreground) 4%));\n  --linux-note-shell-input-background:var(--vscode-input-background,var(--linux-note-shell-editor-background));\n  --linux-note-shell-input-foreground:var(--vscode-input-foreground,var(--linux-note-shell-foreground));\n  --linux-note-shell-input-placeholder:var(--vscode-input-placeholderForeground,var(--linux-note-shell-muted-foreground));\n  --linux-note-shell-input-border:var(--vscode-input-border,color-mix(in srgb,var(--linux-note-shell-foreground) 24%,transparent));\n  --linux-note-shell-dropdown-background:var(--vscode-dropdown-background,var(--linux-note-shell-input-background));\n  --linux-note-shell-dropdown-foreground:var(--vscode-dropdown-foreground,var(--linux-note-shell-input-foreground));\n  --linux-note-shell-dropdown-border:var(--vscode-dropdown-border,var(--linux-note-shell-input-border));\n  --linux-note-shell-icon-foreground:var(--vscode-icon-foreground,var(--linux-note-shell-muted-foreground));\n  --linux-note-shell-action-hover-background:var(--vscode-toolbar-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));\n  --linux-note-shell-hover-background:var(--vscode-list-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));\n  --linux-note-shell-hover-foreground:var(--vscode-list-hoverForeground,var(--linux-note-shell-foreground));\n  --linux-note-shell-selection-background:var(--vscode-list-activeSelectionBackground,var(--active-file-bg-color,color-mix(in srgb,var(--primary-color,#0078d4) 20%,transparent)));\n  --linux-note-shell-selection-foreground:var(--vscode-list-activeSelectionForeground,var(--linux-note-shell-foreground));\n  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,color-mix(in srgb,var(--linux-note-shell-foreground) 10%,transparent));\n  --linux-note-shell-list-focus-background:var(--vscode-list-focusBackground,var(--linux-note-shell-selection-background));\n  --linux-note-shell-list-focus-foreground:var(--vscode-list-focusForeground,var(--linux-note-shell-selection-foreground));\n  --linux-note-shell-focus:var(--vscode-focusBorder,var(--active-file-border-color,var(--primary-color,#0078d4)));\n  --linux-note-shell-badge-background:var(--vscode-badge-background,var(--primary-color,#0078d4));\n  --linux-note-shell-badge-foreground:var(--vscode-badge-foreground,#fff);\n  --linux-note-shell-match-background:var(--vscode-editor-findMatchHighlightBackground,var(--search-select-bg-color,rgba(234,92,0,.28)));\n  --linux-note-shell-match-border:var(--vscode-editor-findMatchBorder,color-mix(in srgb,var(--linux-note-shell-foreground) 26%,transparent));\n  --linux-note-shell-button-background:var(--vscode-button-background,var(--primary-color,#0078d4));\n  --linux-note-shell-button-foreground:var(--vscode-button-foreground,#fff);\n  --linux-note-shell-button-hover:var(--vscode-button-hoverBackground,color-mix(in srgb,var(--linux-note-shell-button-background) 86%,#000 14%));\n  --linux-note-shell-git-modified:var(--vscode-gitDecoration-modifiedResourceForeground,#cca700);\n  --linux-note-shell-git-added:var(--vscode-gitDecoration-addedResourceForeground,#73c991);\n  --linux-note-shell-git-deleted:var(--vscode-gitDecoration-deletedResourceForeground,#f14c4c);\n  --linux-note-shell-menu-background:var(--vscode-menu-background,var(--linux-note-shell-raised-background));\n  --linux-note-shell-menu-foreground:var(--vscode-menu-foreground,var(--linux-note-shell-foreground));\n  --linux-note-shell-menu-selection-background:var(--vscode-menu-selectionBackground,var(--linux-note-shell-selection-background));\n  --linux-note-shell-menu-selection-foreground:var(--vscode-menu-selectionForeground,var(--linux-note-shell-selection-foreground));\n  --linux-note-shell-widget-background:var(--vscode-editorWidget-background,var(--linux-note-shell-raised-background));\n  --linux-note-shell-widget-foreground:var(--vscode-editorSuggestWidget-foreground,var(--linux-note-shell-foreground));\n  --linux-note-git-graph-hover-background:rgba(128,128,128,.15);\n  --linux-note-git-graph-selected-background:rgba(128,128,128,.25);\n  --linux-note-git-graph-selected-hover-background:rgba(128,128,128,.35);\n  --linux-note-git-graph-details-background:rgba(128,128,128,.1);\n  --linux-note-git-graph-detail-border:rgba(128,128,128,.2);\n  --linux-note-shell-shadow:var(--vscode-widget-shadow,rgba(0,0,0,.28));\n  --linux-note-scrollbar-thumb:var(--vscode-scrollbarSlider-background,rgba(121,121,121,.4));\n  --linux-note-scrollbar-thumb-hover:var(--vscode-scrollbarSlider-hoverBackground,rgba(100,100,100,.7));\n  --linux-note-scrollbar-thumb-active:var(--vscode-scrollbarSlider-activeBackground,rgba(85,85,85,.8));\n  --linux-note-control-accent:var(--linux-note-shell-focus);\n  --linux-note-range-track:color-mix(in srgb,var(--linux-note-shell-foreground) 28%,transparent);\n}\n\n/* Workbench surfaces.  Deliberately exclude #write so Typora themes retain\n * complete ownership of Markdown background, typography and content colours. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #top-titlebar[data-workspace-titlebar] {\n  color:var(--linux-note-shell-titlebar-foreground);\n  background:var(--linux-note-shell-titlebar-background);\n  border-bottom-color:var(--linux-note-shell-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-ribbon {\n  --workspace-activity-foreground:var(--linux-note-shell-activity-foreground);\n  --workspace-activity-active-foreground:var(--linux-note-shell-activity-active-foreground);\n  --workspace-activity-active-border:var(--vscode-activityBar-activeBorder,var(--linux-note-shell-focus));\n  --workspace-activity-active-background:var(--vscode-activityBar-activeBackground,var(--linux-note-shell-selection-background));\n  --workspace-activity-hover-background:var(--linux-note-shell-action-hover-background);\n  color:var(--linux-note-shell-activity-foreground);\n  background:var(--linux-note-shell-activity-background);\n  border-right-color:var(--linux-note-shell-sidebar-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar,\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #sidebar-content,\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .git-scm-sidebar,\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.git-scm-sidebar) {\n  color:var(--linux-note-shell-sidebar-foreground);\n  background:var(--linux-note-shell-sidebar-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.typ-workspace-tab-header,.typ-tabs) {\n  color:var(--linux-note-shell-tab-inactive-foreground);\n  background:var(--linux-note-shell-tabs-background);\n  border-color:var(--linux-note-shell-tab-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-workspace-tab-header .typ-tab {\n  color:var(--linux-note-shell-tab-inactive-foreground);\n  background:var(--linux-note-shell-tab-inactive-background);\n  border-color:var(--linux-note-shell-tab-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-workspace-tab-header .typ-tab.active {\n  color:var(--linux-note-shell-tab-active-foreground);\n  background:var(--linux-note-shell-tab-active-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.typ-workspace-tab-content,.typ-empty-view) {\n  color:var(--linux-note-shell-foreground);\n  background:var(--linux-note-shell-editor-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) footer.ty-footer {\n  color:var(--linux-note-shell-muted-foreground);\n  background:var(--linux-note-shell-titlebar-background);\n  border-top-color:var(--linux-note-shell-border);\n}\n\n/* Inputs, actions, icons and list states share the same foreground hierarchy. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-activity-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu,\n  .linux-note-git-graph,.linux-note-git-source-control\n) :is(svg,.fa,.ty-icon) { color:var(--linux-note-shell-icon-foreground); fill:currentColor; }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  .typ-ribbon [data-activity-active="true"],.typ-workspace-tab-header .typ-tab.active,\n  #typora-sidebar button[aria-pressed="true"]\n) :is(svg,.fa,.ty-icon) { color:var(--linux-note-shell-activity-active-foreground); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .linux-note-git-graph,.linux-note-git-source-control\n) button:not(:disabled):hover { color:var(--linux-note-shell-hover-foreground); background-color:var(--linux-note-shell-action-hover-background); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .linux-note-git-graph,.linux-note-git-source-control\n) :is(button,input,textarea,select):focus-visible { outline-color:var(--linux-note-shell-focus); }\n\n/* Explorer, outline and unified search use VS Code list and input tokens. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(\n  .workspace-explorer-toolbar,.workspace-explorer-root,.workspace-search-heading,\n  .workspace-search-preview-heading,.git-scm-title,.git-scm-input-heading,\n  .git-scm-group>summary,.git-scm-history-header\n) { background:var(--linux-note-shell-toolbar-background); border-color:var(--linux-note-shell-border); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(\n  .workspace-search-query-box,.workspace-explorer-rename,.git-scm-message,input,textarea,select\n) { color:var(--linux-note-shell-input-foreground); background:var(--linux-note-shell-input-background); border-color:var(--linux-note-shell-input-border); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar select {\n  color:var(--linux-note-shell-dropdown-foreground); background:var(--linux-note-shell-dropdown-background); border-color:var(--linux-note-shell-dropdown-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #typora-sidebar,.linux-note-git-graph,.git-graph-dialog,.git-graph-find-widget\n) :is(input,textarea)::placeholder { color:var(--linux-note-shell-input-placeholder); opacity:1; }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(\n  .workspace-explorer-row,.outline-item,.workspace-search-file>summary,\n  .workspace-search-directory>summary,.workspace-search-match,.git-scm-file,\n  .git-scm-history-commit,.git-scm-history-file\n):hover { color:var(--linux-note-shell-hover-foreground); background:var(--linux-note-shell-hover-background); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(\n  .workspace-explorer-row.is-selected,.workspace-search-file>summary.is-selected,\n  .workspace-search-match.is-selected,.outline-item-active,.git-scm-file.selected,\n  .git-scm-history-commit[aria-expanded="true"]\n) { color:var(--linux-note-shell-selection-foreground); background:var(--linux-note-shell-selection-background); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(\n  .workspace-explorer-status,.workspace-explorer-note,.workspace-search-file-path,\n  .git-scm-history-author,.git-scm-notice\n) { color:var(--linux-note-shell-muted-foreground); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-file-count {\n  color:var(--linux-note-shell-badge-foreground); background:var(--linux-note-shell-badge-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status {\n  color:var(--linux-note-shell-git-modified);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status:is([data-status="U"],[data-status="A"]) {\n  color:var(--linux-note-shell-git-added);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-git-status[data-status="D"] {\n  color:var(--linux-note-shell-git-deleted);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-badge {\n  color:var(--linux-note-shell-badge-foreground); background:var(--linux-note-shell-badge-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status {\n  color:var(--linux-note-shell-git-modified);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status:is([data-status="U"],[data-status="A"]) {\n  color:var(--linux-note-shell-git-added);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-file-status[data-status="D"] {\n  color:var(--linux-note-shell-git-deleted);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-commit-bar>button {\n  color:var(--linux-note-shell-button-foreground);\n  background:var(--linux-note-shell-button-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .linux-note-git-source-control .git-scm-commit-bar>button:not(:disabled):hover {\n  color:var(--linux-note-shell-button-foreground);\n  background:var(--linux-note-shell-button-hover);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-preview-section {\n  background:var(--linux-note-shell-editor-background); border-color:var(--linux-note-shell-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-lookup-preview {\n  color:var(--linux-note-shell-foreground); background:var(--linux-note-shell-editor-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar .workspace-search-preview mark {\n  color:inherit; background:var(--linux-note-shell-match-background); outline-color:var(--linux-note-shell-match-border);\n}\n\n/* Native menus, quick open and extension dialogs are raised workbench widgets. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  .context-menu,.workspace-activity-menu,.workspace-titlebar-popup,.workspace-quick-open\n) {\n  color:var(--linux-note-shell-foreground);\n  background:var(--linux-note-shell-raised-background);\n  border-color:var(--linux-note-shell-border);\n  box-shadow:0 6px 20px var(--linux-note-shell-shadow);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-dialog,.git-graph-menu) {\n  color:var(--linux-note-shell-menu-foreground);\n  background:var(--linux-note-shell-menu-background);\n  border-color:var(--vscode-menu-border,var(--linux-note-shell-border));\n  box-shadow:0 1px 4px 1px var(--linux-note-shell-shadow);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-find-widget,.git-graph-status) {\n  color:var(--linux-note-shell-widget-foreground);\n  background:var(--linux-note-shell-widget-background);\n  border-color:var(--linux-note-shell-border);\n  box-shadow:0 2px 8px var(--linux-note-shell-shadow);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .workspace-titlebar-quick-open {\n  color:var(--linux-note-shell-titlebar-foreground);\n  background:var(--linux-note-shell-raised-background);\n  border-color:var(--linux-note-shell-input-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  .workspace-titlebar-popup>button,.workspace-quick-open-result,.workspace-activity-menu>button,.git-graph-menu>button\n):is(:hover,:focus-visible,.is-selected) {\n  color:var(--linux-note-shell-selection-foreground);\n  background:var(--linux-note-shell-selection-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-menu>button:is(:hover,:focus-visible,.is-selected) {\n  color:var(--linux-note-shell-menu-selection-foreground);\n  background:var(--linux-note-shell-menu-selection-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .workspace-quick-open-input-row {\n  color:var(--linux-note-shell-input-foreground);\n  background:var(--linux-note-shell-input-background);\n  border-color:var(--linux-note-shell-focus);\n}\n\n/* Classic Git Graph keeps the editor canvas quiet and reserves tinted surfaces\n * for its toolbar, column header, selected row and inline commit details. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.git-graph-document) {\n  color:var(--linux-note-shell-foreground); background:var(--linux-note-shell-editor-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-toolbar,.git-graph-columns,.git-diff-labels) {\n  background:var(--linux-note-shell-editor-background); border-color:color-mix(in srgb,var(--linux-note-shell-foreground) 50%,transparent);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-row,.git-graph-file):hover {\n  color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-hover-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  .git-graph-row[aria-pressed="true"],.git-graph-file.selected\n) { color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-selected-background); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-row[aria-pressed="true"]:hover {\n  background:var(--linux-note-git-graph-selected-hover-background);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-details {\n  color:var(--linux-note-shell-foreground); background:var(--linux-note-git-graph-details-background); border-color:var(--linux-note-git-graph-detail-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-detail-info,.git-graph-detail-files) {\n  border-color:var(--linux-note-git-graph-detail-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-toolbar-actions .git-standard-icon {\n  color:var(--linux-note-shell-foreground); opacity:.8;\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-toolbar-actions button:hover .git-standard-icon { opacity:1; }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status) { color:var(--linux-note-shell-git-modified); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status):is(.A,.U,[data-status="A"],[data-status="U"]) { color:var(--linux-note-shell-git-added); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.git-graph-file-name,.git-graph-file-status):is(.D,[data-status="D"]) { color:var(--linux-note-shell-git-deleted); }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.linux-note-git-source-control) :is(input,textarea,select) {\n  color:var(--linux-note-shell-input-foreground); background:var(--linux-note-shell-input-background); border-color:var(--linux-note-shell-input-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(.linux-note-git-graph,.linux-note-git-source-control) select {\n  color:var(--linux-note-shell-dropdown-foreground); background:var(--linux-note-shell-dropdown-background); border-color:var(--linux-note-shell-dropdown-border);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .git-graph-detail-controls>button[aria-pressed="true"] {\n  color:var(--linux-note-shell-selection-foreground); background:var(--linux-note-shell-selection-background);\n}\n\n/* Match the compact 10px VS Code scrollbar lane and keep every movable indicator rounded. */\nhtml[data-linux-note-workspace-chrome="ready"] * {\n  scrollbar-color:var(--linux-note-scrollbar-thumb) transparent;\n  scrollbar-width:thin;\n}\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar { width:10px; height:10px; }\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-track { background:transparent; border-radius:999px; }\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-corner { background:transparent; }\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb {\n  min-width:20px; min-height:20px; border:2px solid transparent; border-radius:999px;\n  background:var(--linux-note-scrollbar-thumb); background-clip:content-box;\n}\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb:hover { background-color:var(--linux-note-scrollbar-thumb-hover); }\nhtml[data-linux-note-workspace-chrome="ready"] *::-webkit-scrollbar-thumb:active { background-color:var(--linux-note-scrollbar-thumb-active); }\n\nhtml[data-linux-note-workspace-chrome="ready"] :is(.monaco-scrollable-element,.xterm)>.scrollbar>.slider,\nhtml[data-linux-note-workspace-chrome="ready"] :is(.typ-global-search-progressbar,.typ-global-search-progressbar-inner) {\n  border-radius:999px!important;\n}\n\n/* Range styling is limited to application chrome so Markdown-embedded controls stay theme-owned. */\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"] {\n  appearance:none; -webkit-appearance:none; height:20px; padding:0; border:0; border-radius:999px;\n  background:linear-gradient(to right,\n    var(--linux-note-control-accent) 0 var(--linux-note-range-progress,0%),\n    var(--linux-note-range-track) var(--linux-note-range-progress,0%) 100%) center/100% 4px no-repeat;\n  accent-color:var(--linux-note-control-accent); box-shadow:none;\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]::-webkit-slider-runnable-track {\n  height:4px; border:0; border-radius:999px; background:transparent;\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]::-webkit-slider-thumb {\n  appearance:none; -webkit-appearance:none; width:12px; height:12px; margin-top:-4px;\n  border:1px solid var(--linux-note-control-accent); border-radius:50%; background:var(--linux-note-control-accent);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]::-moz-range-track {\n  height:4px; border:0; border-radius:999px; background:var(--linux-note-range-track);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]::-moz-range-progress {\n  height:4px; border-radius:999px; background:var(--linux-note-control-accent);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]::-moz-range-thumb {\n  width:12px; height:12px; border:1px solid var(--linux-note-control-accent); border-radius:50%;\n  background:var(--linux-note-control-accent);\n}\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]:focus-visible { outline:1px solid var(--linux-note-control-accent); outline-offset:1px; }\nhtml[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(\n  #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,\n  .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu\n) input[type="range"]:disabled { opacity:.45; }\n';
+
+  // src/workspace_chrome.ts
+  var STYLE_ID2 = "linux-note-workspace-chrome-style";
+  var active_binding2;
+  function ensure_workspace_chrome() {
+    let style63 = document.getElementById(STYLE_ID2);
+    if (!style63) {
+      style63 = document.createElement("style");
+      style63.id = STYLE_ID2;
+      document.head.append(style63);
+    }
+    if (style63.textContent !== workspace_chrome_default) style63.textContent = workspace_chrome_default;
+    document.documentElement.dataset.linuxNoteWorkspaceChrome = "ready";
+  }
+  function install_workspace_chrome() {
+    ensure_workspace_chrome();
+    if (active_binding2) return active_binding2;
+    const binding = { dispose() {
+      if (active_binding2 !== binding) return;
+      active_binding2 = void 0;
+      document.getElementById(STYLE_ID2)?.remove();
+      delete document.documentElement.dataset.linuxNoteWorkspaceChrome;
+    } };
+    active_binding2 = binding;
+    return binding;
+  }
+
   // src/workspace_browser.ts
   function bind_workspace_browser() {
     const core = window[Symbol.for("typora-plugin-core@v2")];
@@ -221352,8 +223325,10 @@ var LinuxNoteTyporaEnhancements = (() => {
     let chosen_root = "";
     const context_root = files.context_root;
     files.context_root = () => chosen_root || context_root();
+    install_workspace_chrome();
     install_workspace_ui_appearance();
     bind_workspace_tab_actions(files);
+    core.app.commands.register({ id: CLOSE_ALL_WORKSPACE_TABS, title: "\u89C6\u56FE\uFF1A\u5173\u95ED\u6240\u6709\u7F16\u8F91\u5668", scope: "global", callback: () => void close_all_workspace_tabs(files) });
     install_workspace_titlebar(files);
     const open_folder = () => new Promise((resolve3) => {
       const dialog = workspace_dialog("\u6253\u5F00\u6587\u4EF6\u5939");
@@ -221449,14 +223424,14 @@ var LinuxNoteTyporaEnhancements = (() => {
     const targets = [];
     if (source?.inSourceMode && source.cm) {
       const owner = source.cm.getWrapperElement();
-      if (visible(owner)) targets.push({ owner, root: owner, scroller: source.cm.getScrollerElement(), source: source.cm, path: "\u6E90\u7801" });
+      if (owner.isConnected) targets.push({ owner, root: owner, scroller: source.cm.getScrollerElement(), source: source.cm, path: "\u6E90\u7801" });
     }
     const content = document.querySelector("content");
-    const write = document.querySelector("#write");
-    if (!source?.inSourceMode && content && write && visible(content) && visible(write)) targets.push({ owner: content, root: write, scroller: content, path: "\u5F53\u524D\u6587\u6863" });
+    const write2 = document.querySelector("#write");
+    if (!source?.inSourceMode && content?.isConnected && write2?.isConnected) targets.push({ owner: content, root: write2, scroller: content, path: "\u5F53\u524D\u6587\u6863" });
     get_workspace_app()?.workspace.eachLeaves((leaf) => {
       const root = leaf.view?.containerEl;
-      if (root?.classList.contains("typ-markdown-preview") && leaf.containerEl.classList.contains("mod-active") && visible(root)) {
+      if (root?.classList.contains("typ-markdown-preview") && leaf.containerEl.isConnected && leaf.containerEl.classList.contains("mod-active")) {
         targets.push({ owner: leaf.containerEl, root, scroller: leaf.containerEl, path: leaf.state.path.split(/[\\/]/u).pop() || "\u9884\u89C8" });
       }
     });
@@ -221481,11 +223456,18 @@ var LinuxNoteTyporaEnhancements = (() => {
     target.owner.setAttribute("data-linux-note-minimap-owner", target.source ? "source" : "reading");
     target.owner.append(rail);
     target.source?.refresh();
+    rail.dataset.ready = "false";
+    rail.dataset.updating = "false";
+    rail.dataset.commitCount = "0";
     let disposed = false;
     let paint_timer = 0;
     let frame2 = 0;
     let generation = 0;
     let rail_height = 1;
+    let content_revision = 0;
+    let committed_signature = "";
+    let requested_signature = "";
+    let active_rows;
     let dragging;
     const info = () => target.source?.getScrollInfo() ?? { top: target.scroller.scrollTop, height: target.scroller.scrollHeight, clientHeight: target.scroller.clientHeight };
     const content_height = () => Math.min(rail_height, info().height * MINIMAP_WIDTH / Math.max(1, target.source ? target.root.clientWidth - 96 : target.root.clientWidth));
@@ -221516,6 +223498,19 @@ var LinuxNoteTyporaEnhancements = (() => {
       rail.hidden = !visible(target.owner);
       update_viewport();
     };
+    const paint_style_signature = () => {
+      const sample = target.source ? target.root.querySelector(".CodeMirror-line") ?? target.root : target.root.querySelector("h1,h2,h3,p,pre,code,li,td") ?? target.root;
+      const values = [target.root, sample].map((node) => {
+        const style63 = getComputedStyle(node);
+        return [style63.fontFamily, style63.fontSize, style63.fontWeight, style63.lineHeight, style63.color, style63.display, style63.visibility].join("|");
+      });
+      return values.join(";");
+    };
+    const geometry_signature = () => {
+      const state = info();
+      return [target.root.clientWidth, state.height, rail_height, Math.min(2, window.devicePixelRatio || 1)].join("|");
+    };
+    const render_signature = () => "".concat(geometry_signature(), "|").concat(paint_style_signature(), "|").concat(content_revision);
     const draw_text = (context, text3, x, y, width2) => {
       if (!text3.trim() || width2 <= 0) return;
       context.fillText(text3, x, y, width2);
@@ -221537,89 +223532,132 @@ var LinuxNoteTyporaEnhancements = (() => {
       const walker = document.createTreeWalker(target.root, NodeFilter.SHOW_TEXT);
       const range2 = document.createRange();
       context.scale(scale_x, scale_y);
-      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-        const parent = node.parentElement;
-        if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar")) continue;
-        range2.selectNodeContents(node);
-        const boxes = Array.from(range2.getClientRects()).filter((box) => box.width > 0 && box.height > 0);
-        if (!boxes.length) continue;
-        const root_bounds = target.root.getBoundingClientRect();
-        const scroller_top = target.scroller.getBoundingClientRect().top;
-        const scroll_top = target.scroller.scrollTop;
-        const style63 = getComputedStyle(parent);
-        if (style63.visibility === "hidden" || style63.display === "none") continue;
-        context.save();
-        for (let ancestor = parent; ancestor && ancestor !== target.root; ancestor = ancestor.parentElement) {
-          const ancestor_style = ancestor === parent ? style63 : getComputedStyle(ancestor);
-          const clips_x = /^(?:auto|scroll|hidden|clip)$/u.test(ancestor_style.overflowX);
-          const clips_y = /^(?:auto|scroll|hidden|clip)$/u.test(ancestor_style.overflowY);
-          if (!clips_x && !clips_y) continue;
-          const bounds = ancestor.getBoundingClientRect();
-          context.beginPath();
-          context.rect(
-            clips_x ? bounds.left + ancestor.clientLeft - root_bounds.left : 0,
-            clips_y ? bounds.top + ancestor.clientTop - scroller_top + scroll_top : 0,
-            clips_x ? ancestor.clientWidth : target.root.scrollWidth,
-            clips_y ? ancestor.clientHeight : target.scroller.scrollHeight
-          );
-          context.clip();
-        }
-        context.font = "".concat(style63.fontWeight, " ").concat(style63.fontSize, " ").concat(style63.fontFamily);
-        context.fillStyle = style63.color;
-        const text3 = /^pre/u.test(style63.whiteSpace) ? node.textContent : node.textContent.replace(/\s+/gu, " ");
-        let offset = 0;
-        for (let index = 0; index < boxes.length; index += 1) {
-          const box = boxes[index];
-          let length = text3.length - offset;
-          if (index < boxes.length - 1) {
-            let low = 1;
-            let high = length;
-            while (low < high) {
-              const middle = Math.ceil((low + high) / 2);
-              if (context.measureText(text3.slice(offset, offset + middle)).width <= box.width + 0.5) low = middle;
-              else high = middle - 1;
-            }
-            length = low;
+      try {
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+          const parent = node.parentElement;
+          if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar")) continue;
+          range2.selectNodeContents(node);
+          const boxes = Array.from(range2.getClientRects()).filter((box) => box.width > 0 && box.height > 0);
+          if (!boxes.length) continue;
+          const root_bounds = target.root.getBoundingClientRect();
+          const scroller_top = target.scroller.getBoundingClientRect().top;
+          const scroll_top = target.scroller.scrollTop;
+          const style63 = getComputedStyle(parent);
+          if (style63.visibility === "hidden" || style63.display === "none") continue;
+          context.save();
+          for (let ancestor = parent; ancestor && ancestor !== target.root; ancestor = ancestor.parentElement) {
+            const ancestor_style = ancestor === parent ? style63 : getComputedStyle(ancestor);
+            const clips_x = /^(?:auto|scroll|hidden|clip)$/u.test(ancestor_style.overflowX);
+            const clips_y = /^(?:auto|scroll|hidden|clip)$/u.test(ancestor_style.overflowY);
+            if (!clips_x && !clips_y) continue;
+            const bounds = ancestor.getBoundingClientRect();
+            context.beginPath();
+            context.rect(
+              clips_x ? bounds.left + ancestor.clientLeft - root_bounds.left : 0,
+              clips_y ? bounds.top + ancestor.clientTop - scroller_top + scroll_top : 0,
+              clips_x ? ancestor.clientWidth : target.root.scrollWidth,
+              clips_y ? ancestor.clientHeight : target.scroller.scrollHeight
+            );
+            context.clip();
           }
-          draw_text(
-            context,
-            text3.slice(offset, offset + length),
-            box.left - root_bounds.left,
-            box.top - scroller_top + scroll_top + Number.parseFloat(style63.fontSize) * 0.85,
-            box.width
-          );
-          offset += length;
+          context.font = "".concat(style63.fontWeight, " ").concat(style63.fontSize, " ").concat(style63.fontFamily);
+          context.fillStyle = style63.color;
+          const text3 = /^pre/u.test(style63.whiteSpace) ? node.textContent : node.textContent.replace(/\s+/gu, " ");
+          let offset = 0;
+          for (let index = 0; index < boxes.length; index += 1) {
+            const box = boxes[index];
+            let length = text3.length - offset;
+            if (index < boxes.length - 1) {
+              let low = 1;
+              let high = length;
+              while (low < high) {
+                const middle = Math.ceil((low + high) / 2);
+                if (context.measureText(text3.slice(offset, offset + middle)).width <= box.width + 0.5) low = middle;
+                else high = middle - 1;
+              }
+              length = low;
+            }
+            draw_text(
+              context,
+              text3.slice(offset, offset + length),
+              box.left - root_bounds.left,
+              box.top - scroller_top + scroll_top + Number.parseFloat(style63.fontSize) * 0.85,
+              box.width
+            );
+            offset += length;
+          }
+          context.restore();
+          yield;
         }
-        context.restore();
-        yield;
+      } finally {
+        range2.detach();
       }
-      range2.detach();
     }
     const paint = () => {
       paint_timer = 0;
       if (disposed) return;
       layout2();
+      if (!visible(target.owner) || !target.root.clientWidth || !rail_height) {
+        requested_signature = "";
+        rail.dataset.updating = "false";
+        return;
+      }
+      const signature = render_signature();
+      if (signature === committed_signature && rail.dataset.ready === "true") {
+        requested_signature = "";
+        rail.dataset.updating = "false";
+        return;
+      }
       const token = ++generation;
-      rail.dataset.ready = "false";
       const ratio = Math.min(2, window.devicePixelRatio || 1);
-      canvas.width = Math.round(MINIMAP_WIDTH * ratio);
-      canvas.height = Math.round(rail_height * ratio);
-      const context = canvas.getContext("2d");
-      if (!context) return;
+      const back = document.createElement("canvas");
+      back.width = Math.round(MINIMAP_WIDTH * ratio);
+      back.height = Math.round(rail_height * ratio);
+      const context = back.getContext("2d");
+      if (!context) {
+        rail.dataset.updating = "false";
+        return;
+      }
       context.scale(ratio, ratio);
       const state = info();
       const scale_x = MINIMAP_WIDTH / Math.max(1, target.source ? target.root.clientWidth - 96 : target.root.clientWidth);
       const scale_y = Math.min(scale_x, rail_height / Math.max(1, state.height));
       const rows = target.source ? source_rows(context, scale_x, scale_y) : rendered_rows(context, scale_x, scale_y);
+      active_rows = rows;
       const advance = () => {
         if (disposed || token !== generation) {
           rows.return(void 0);
+          if (active_rows === rows) active_rows = void 0;
           return;
         }
         const deadline = performance.now() + 6;
         do {
           if (rows.next().done) {
+            if (disposed || token !== generation) return;
+            frame2 = 0;
+            if (active_rows === rows) active_rows = void 0;
+            layout2();
+            if (signature !== render_signature()) {
+              requested_signature = "";
+              schedule_render(false);
+              return;
+            }
+            if (canvas.width !== back.width) canvas.width = back.width;
+            if (canvas.height !== back.height) canvas.height = back.height;
+            const front = canvas.getContext("2d");
+            if (!front) {
+              requested_signature = "";
+              rail.dataset.updating = "false";
+              return;
+            }
+            front.setTransform(1, 0, 0, 1, 0, 0);
+            front.clearRect(0, 0, canvas.width, canvas.height);
+            front.drawImage(back, 0, 0);
+            committed_signature = signature;
+            requested_signature = "";
             rail.dataset.ready = "true";
+            rail.dataset.updating = "false";
+            rail.dataset.commitCount = String(Number(rail.dataset.commitCount || 0) + 1);
             return;
           }
         } while (performance.now() < deadline);
@@ -221627,21 +223665,53 @@ var LinuxNoteTyporaEnhancements = (() => {
       };
       advance();
     };
-    const refresh = () => {
-      if (!disposed && !paint_timer) paint_timer = window.setTimeout(paint, 140);
+    const cancel_render = () => {
+      generation += 1;
+      if (paint_timer) {
+        clearTimeout(paint_timer);
+        paint_timer = 0;
+      }
+      if (frame2) {
+        cancelAnimationFrame(frame2);
+        frame2 = 0;
+      }
+      active_rows?.return(void 0);
+      active_rows = void 0;
     };
+    const schedule_render = (content_changed) => {
+      if (disposed) return;
+      if (content_changed) content_revision += 1;
+      layout2();
+      if (!visible(target.owner) || !target.root.clientWidth || !rail_height) {
+        cancel_render();
+        requested_signature = "";
+        rail.dataset.updating = "false";
+        return;
+      }
+      const signature = render_signature();
+      if (signature === committed_signature && rail.dataset.ready === "true") {
+        cancel_render();
+        requested_signature = "";
+        rail.dataset.updating = "false";
+        return;
+      }
+      if (signature === requested_signature && (paint_timer || active_rows)) return;
+      cancel_render();
+      requested_signature = signature;
+      rail.dataset.updating = "true";
+      paint_timer = window.setTimeout(paint, 160);
+    };
+    const refresh = () => schedule_render(true);
+    const reconcile = () => schedule_render(false);
     const observer = new MutationObserver((records) => {
       if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) refresh();
     });
-    observer.observe(target.root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style"] });
+    if (!target.source) observer.observe(target.root, { subtree: true, childList: true, characterData: true });
     const inner_scroll = (event) => {
       if (event.target !== target.scroller) refresh();
     };
     target.root.addEventListener("scroll", inner_scroll, true);
-    const resize = new ResizeObserver(() => {
-      layout2();
-      refresh();
-    });
+    const resize = new ResizeObserver(reconcile);
     resize.observe(target.owner);
     if (target.root !== target.owner) resize.observe(target.root);
     target.scroller.addEventListener("scroll", update_viewport, { passive: true });
@@ -221684,13 +223754,10 @@ var LinuxNoteTyporaEnhancements = (() => {
       event.stopPropagation();
       scroll_to(state.top + offsets[event.key]);
     });
-    refresh();
-    layout2();
-    return { target, refresh, layout: layout2, dispose() {
+    schedule_render(false);
+    return { target, reconcile, dispose() {
       disposed = true;
-      generation += 1;
-      clearTimeout(paint_timer);
-      cancelAnimationFrame(frame2);
+      cancel_render();
       observer.disconnect();
       resize.disconnect();
       target.scroller.removeEventListener("scroll", update_viewport);
@@ -221721,17 +223788,17 @@ var LinuxNoteTyporaEnhancements = (() => {
       }
       for (const target of targets) {
         if (!maps.has(target.owner)) maps.set(target.owner, create_minimap(target));
-        else maps.get(target.owner).layout();
+        else maps.get(target.owner).reconcile();
       }
     };
     const schedule = () => {
-      if (!scan_timer2) scan_timer2 = window.setTimeout(scan, 100);
+      if (scan_timer2) clearTimeout(scan_timer2);
+      scan_timer2 = window.setTimeout(scan, 100);
     };
     const observer = new MutationObserver((records) => {
-      if (records.some((record) => record.target === document.body && record.type === "attributes")) for (const map of maps.values()) map.refresh();
       if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) schedule();
     });
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     window.addEventListener("resize", schedule, { passive: true });
     window.addEventListener("pagehide", () => {
       observer.disconnect();
@@ -221758,7 +223825,7 @@ var LinuxNoteTyporaEnhancements = (() => {
   var cpp_textmate_grammar = null;
   var scan_timer = 0;
   var mermaid_buttons = /* @__PURE__ */ new Map();
-  function ensure_style() {
+  function ensure_style2() {
     if (document.getElementById(EXTENSION_STYLE_ID)) return;
     const style63 = document.createElement("style");
     style63.id = EXTENSION_STYLE_ID;
@@ -222215,7 +224282,7 @@ var LinuxNoteTyporaEnhancements = (() => {
     mermaid_buttons.set(container, button);
   }
   async function initialize2() {
-    ensure_style();
+    ensure_style2();
     void initialize_workspace().then(() => {
       bind_reading_navigation();
       bind_file_path_actions();

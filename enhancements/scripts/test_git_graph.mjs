@@ -6,13 +6,19 @@ import child_process from 'node:child_process';
 import { build } from 'esbuild';
 
 const compiled = await build({ stdin: { contents: ['git_graph_data', 'git_graph_repository', 'git_graph_settings', 'git_graph_runtime'].map(name => `export * from './src/${name}.ts';`).join('\n'), resolveDir: process.cwd() }, bundle: true, platform: 'node', format: 'esm', write: false });
-const { read_repository, compare_files, compare_patch, EMPTY, build_git_graph, graph_defaults, create_git_runner } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const { read_repository, compare_files, compare_patch, EMPTY, build_git_graph, graph_defaults, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, create_git_runner } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_git_graph_'));
 const runner = create_git_runner({ child_process, process });
 const git = args => child_process.execFileSync('git', ['-c', 'user.name=Graph Test', '-c', 'user.email=graph@example.invalid', '-c', 'commit.gpgsign=false', ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
 const write = (file, value) => fs.writeFileSync(path.join(root, file), value);
 const commit = message => { git(['add', '--all']); git(['commit', '-m', message]); return git(['rev-parse', 'HEAD']).trim(); };
 try {
+  const legacy_settings = { ...graph_defaults, initial_count: 75, details_location: 'right', panel_ratio: 72, show_date: false, show_author: false, show_hash: false, label_alignment: 'graph' };
+  const migrated_settings = load_graph_settings({ getItem: key => key === GRAPH_SETTINGS_KEY + 'settings:legacy' ? JSON.stringify(legacy_settings) : null }, 'legacy');
+  assert.equal(migrated_settings.initial_count, 75);
+  for (const key of ['details_location', 'panel_ratio', 'show_date', 'show_author', 'show_hash', 'label_alignment']) assert(!Object.hasOwn(migrated_settings, key));
+  assert.throws(() => validate_settings({ ...graph_defaults, mistyped_setting: true }), /未知设置：mistyped_setting/);
+  assert.throws(() => validate_settings({ ...graph_defaults, initial_count: '75' }), /设置类型不正确：initial_count/);
   git(['init', '-b', 'main']);
   assert.deepEqual((await read_repository(runner.run, root, graph_defaults, 200)).commits, []);
   const unusual = '中文 空格 #%.md';

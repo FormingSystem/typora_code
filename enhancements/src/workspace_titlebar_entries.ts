@@ -50,8 +50,8 @@ export function create_workspace_titlebar_definitions(
       native_only({ label: "选择编码重新打开", children: ["utf-8", "gb18030", "big5", "windows-1252", "utf-16le", "utf-16be"].map(encoding => ({ label: encoding.toUpperCase(), action: () => runtime.File?.reloadWithEncoding?.(encoding) })) }),
       native_only({ label: "从磁盘重新加载", action: command(runtime, "reloadFromDisk") }),
       { separator: true },
-      native_only({ label: "保存", shortcut: "Ctrl+S", action: command(runtime, "save") }),
-      { label: "保存全部打开的文件", shortcut: "Ctrl+K S", action: command(runtime, "saveAll") },
+      { label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => void files.save_active() },
+      { label: "保存全部打开的文件", shortcut: "Ctrl+K S", action: () => void files.save_all() },
       native_only({ label: "另存为…", shortcut: "Ctrl+Shift+S", action: command(runtime, "saveAs") }),
       native_only({ label: "创建副本", action: () => library()?.duplicateFileCommand?.() }),
       native_only({ label: "重命名", shortcut: "F2", action: () => library()?.renameFileCommand?.() }),
@@ -67,7 +67,7 @@ export function create_workspace_titlebar_definitions(
       native_only({ label: "打印…", action: command(runtime, "print") }),
       { separator: true },
       { label: "关闭标签", shortcut: "Ctrl+W", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => close_active_workspace_tab(files) },
-      { label: "关闭所有标签", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => void close_all_workspace_tabs(files) },
+      { label: "关闭所有标签", shortcut: "Ctrl+K W", disabled: !files.core.app.workspace.activeLeaf?.state.path, action: () => void close_all_workspace_tabs(files) },
       { label: "关闭窗口", shortcut: "Alt+F4", action: command(runtime, "close") },
     ];
   };
@@ -131,7 +131,7 @@ export function create_workspace_titlebar_definitions(
     native_only({ label: "YAML Front Matter", action: stylize("insertMetaBlock") }),
   ];
   const format_entries = async (): Promise<titlebar_menu_entry[]> => [
-    native_only({ label: "加粗", shortcut: "Ctrl+B", action: stylize("toggleStyle", "strong") }),
+    native_only({ label: "加粗", action: stylize("toggleStyle", "strong") }),
     native_only({ label: "斜体", shortcut: "Ctrl+I", action: stylize("toggleStyle", "em") }),
     native_only({ label: "下划线", shortcut: "Ctrl+U", action: stylize("toggleStyle", "underline") }),
     native_only({ label: "代码", action: stylize("toggleStyle", "code") }),
@@ -142,7 +142,7 @@ export function create_workspace_titlebar_definitions(
     native_only({ label: "下标", action: stylize("toggleStyle", "subscript") }),
     native_only({ label: "注释", action: stylize("toggleStyle", "comment") }),
     { separator: true },
-    native_only({ label: "超链接", shortcut: "Ctrl+K", action: stylize("toggleStyle", "link") }),
+    native_only({ label: "超链接", action: stylize("toggleStyle", "link") }),
     native_only({ label: "图像", action: stylize("toggleStyle", "image") }),
     native_only({ label: "清除样式", shortcut: "Ctrl+\\", action: stylize("clearStyle") }),
   ];
@@ -159,7 +159,7 @@ export function create_workspace_titlebar_definitions(
     { label: "状态栏", action: command(runtime, "toggleStatusBar") },
     { label: "工具栏", action: command(runtime, "toggleToolbar") },
     { separator: true },
-    { label: "界面字体…", action: open_workspace_ui_appearance },
+    { label: "界面外观…", action: open_workspace_ui_appearance },
     { label: "放大", shortcut: "Ctrl+=", action: command(runtime, "zoomIn") },
     { label: "缩小", shortcut: "Ctrl+-", action: command(runtime, "zoomOut") },
     { label: "实际大小", shortcut: "Ctrl+数字键盘 0", action: command(runtime, "resetZoom") },

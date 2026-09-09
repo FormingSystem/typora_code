@@ -166,8 +166,8 @@
       commits(split_graph)[commits(split_graph).length - 1].dispatchEvent(new MouseEvent('click', { ctrlKey: true, bubbles: true }));
       await wait(() => panel.to === initial.hash);
       expect(panel.from !== panel.to, 'Ctrl click compares two distinct revisions');
-      panel.settings.details_location = 'inline'; panel.render_history();
-      expect(split_graph.querySelector('.git-graph-list').contains(split_graph.querySelector('.git-graph-details')), 'inline details attach to selected graph row');
+      panel.render_history();
+      expect(split_graph.querySelector('.git-graph-list').contains(split_graph.querySelector('.git-graph-details')), 'fixed inline details attach to selected graph row');
       // 在临时仓库核对 Ctrl+Enter 与提交按钮一样只写入已暂存内容。
       fs.writeFileSync(path.join(probe_root, 'shortcut.txt'), 'staged by shortcut fixture\n');
       await panel.writer.run(probe_root, ['add', '--', 'shortcut.txt']);

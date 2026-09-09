@@ -15,12 +15,30 @@ for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'ini
 for (const marker of bundle_markers) {
   if (!bundle_source.includes(marker)) throw new Error(`prebuilt bundle is missing: ${marker}`);
 }
-for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-workspace-files','data-linux-note-workspace-search','data-linux-note-workspace-explorer','install_workspace_activity','data-linux-note-terminal-theme','data-linux-note-workspace-outline','bind_workspace_selection_search','data-linux-note-lookup-preview','linux-note-search-selection','workspace-search-preview-section','linux-note:lookup:preview-scale:v1','install_workspace_sidebar_sash','data-linux-note-source-editing','install_workspace_footer','bind_workspace_editor_status','linux-note-editor-status','install_workspace_titlebar','workspace-titlebar-menu','create_workspace_titlebar_definitions','create_workspace_titlebar_menu','bind_workspace_tab_actions','install_workspace_ui_appearance']) {
+for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-workspace-files','data-linux-note-workspace-search','data-linux-note-workspace-explorer','install_workspace_activity','data-linux-note-terminal-theme','data-linux-note-workspace-outline','bind_workspace_selection_search','data-linux-note-lookup-preview','linux-note-search-selection','workspace-search-preview-section','linux-note:lookup:preview-scale:v1','install_workspace_sidebar_sash','data-linux-note-source-editing','install_workspace_footer','bind_workspace_editor_status','linux-note-editor-status','install_workspace_titlebar','workspace-titlebar-menu','create_workspace_titlebar_definitions','create_workspace_titlebar_menu','bind_workspace_tab_actions','install_workspace_ui_appearance','install_workspace_chrome','data-linux-note-workspace-chrome','linux-note-document-margin','install_workspace_shortcuts','linux_note:close_all_workspace_tabs']) {
   if(!bundle_markers.includes(marker))throw new Error(`required workspace deployment capability is missing: ${marker}`);
 }
-for(const line of fs.readFileSync('vendor/codicons/SHA256SUMS','utf8').trim().split(/\r?\n/u)) {
+const codicon_root = 'vendor/codicons';
+const codicon_checksums = new Map();
+for(const line of fs.readFileSync(`${codicon_root}/SHA256SUMS`,'utf8').trim().split(/\r?\n/u)) {
   const match=/^([a-f\d]{64})  ([a-zA-Z0-9_./-]+)$/u.exec(line);
-  if(!match||match[2].includes('..')||createHash('sha256').update(fs.readFileSync('vendor/codicons/'+match[2])).digest('hex')!==match[1])throw new Error('Codicons asset hash mismatch');
+  if(!match||match[2].includes('..')||codicon_checksums.has(match[2])||createHash('sha256').update(fs.readFileSync(`${codicon_root}/${match[2]}`)).digest('hex')!==match[1])throw new Error('Codicons asset hash mismatch');
+  codicon_checksums.set(match[2], match[1]);
+}
+const codicon_manifest = JSON.parse(fs.readFileSync(`${codicon_root}/source_manifest.json`, 'utf8'));
+const codicon_icons = JSON.parse(fs.readFileSync(`${codicon_root}/icons.json`, 'utf8'));
+if (codicon_manifest.repository_url !== 'https://github.com/microsoft/vscode-codicons' || !/^[a-f\d]{40}$/u.test(codicon_manifest.revision)) throw new Error('Codicons source identity is invalid');
+if (Object.keys(codicon_icons).sort().join('\n') !== Object.keys(codicon_manifest.icons).sort().join('\n')) throw new Error('Codicons icon indexes differ');
+for (const [icon_name, source] of Object.entries(codicon_manifest.icons)) {
+  if (!/^icons\/[a-z0-9_]+\.svg$/u.test(source.file) || !/^src\/icons\/[a-z0-9-]+\.svg$/u.test(source.source_path) || !/^[a-f\d]{40}$/u.test(source.git_blob_sha1) || !/^[a-f\d]{64}$/u.test(source.sha256)) throw new Error(`Codicons source entry is invalid: ${icon_name}`);
+  const icon_source = fs.readFileSync(`${codicon_root}/${source.file}`, 'utf8');
+  const digest = createHash('sha256').update(icon_source).digest('hex');
+  if (digest !== source.sha256 || codicon_checksums.get(source.file) !== digest || codicon_icons[icon_name] !== icon_source.trim()) throw new Error(`Codicons manifest differs from packaged icon: ${icon_name}`);
+}
+for (const source of codicon_manifest.licenses) {
+  if (!/^[A-Z_]+$/u.test(source.file) || !/^[a-f\d]{40}$/u.test(source.git_blob_sha1) || !/^[a-f\d]{64}$/u.test(source.sha256)) throw new Error(`Codicons license entry is invalid: ${source.file}`);
+  const digest = createHash('sha256').update(fs.readFileSync(`${codicon_root}/${source.file}`)).digest('hex');
+  if (digest !== source.sha256 || codicon_checksums.get(source.file) !== digest) throw new Error(`Codicons manifest differs from packaged license: ${source.file}`);
 }
 if(!bundle_source.includes('Microsoft VS Code Codicons')||!bundle_source.includes('https://creativecommons.org/licenses/by/4.0/'))throw new Error('Codicons attribution is missing from the installed bundle');
 for (const line of fs.readFileSync('vendor/gemoji/SHA256SUMS', 'utf8').trim().split(/\r?\n/u)) {

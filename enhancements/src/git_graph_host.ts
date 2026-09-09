@@ -8,6 +8,9 @@ import type { graph_settings } from "./git_graph_settings";
 import { git_icon } from "./git_icons";
 import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
+import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n";
+
+const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
 export type graph_leaf = { state: { path: string; git_cwd?: string }; view: { containerEl: HTMLElement }; containerEl: HTMLElement;
   parent: { appendChild(leaf: graph_leaf): void; toggleTab(path: string): graph_leaf } };
@@ -40,7 +43,7 @@ export function create_graph_host(core: graph_core) {
   const redact = (text: string) => text.replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/gu, "$1***@").replace(/([?&](?:access_token|token|password)=)[^&\s]+/giu, "$1***");
   const ensure_file_path = (root: string, file: string) => {
     const absolute = path_api.resolve(root, file); const relative = path_api.relative(root, absolute);
-    if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error("文件路径超出仓库。");
+    if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error(text("host.outside_repository"));
     return absolute;
   };
   const add_tab = (type: string, uri: string, group: string) => {
@@ -61,7 +64,7 @@ export function create_graph_host(core: graph_core) {
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = title;
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
       }
-      if (!payload) { this.containerEl.textContent = "此临时历史视图已释放，请从提交图重新打开。"; return; }
+      if (!payload) { this.containerEl.textContent = text("host.expired_view"); return; }
       if (payload === this.document) { this.editor?.editor.layout();editor_status.refresh(); return; }
       if (this.editor && payload.data && this.document?.data) {
         try { this.editor.update(payload.data); this.document = payload; }
@@ -72,9 +75,9 @@ export function create_graph_host(core: graph_core) {
       if (payload.panel) { this.containerEl.append(payload.panel); return; }
       try {
         this.editor = new git_diff_editor(payload.data!, payload.options.menu);
-        if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button("刷新差异", payload.options.refresh));
-        if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button("上一文件", () => payload.options.adjacent!(-1)), workspace_button("下一文件", () => payload.options.adjacent!(1)));
-        this.editor.toolbar.append(workspace_button("切换侧栏", () => core.app.workspace.sidebar.toggle()));
+        if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button(text("host.refresh_diff"), payload.options.refresh));
+        if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button(text("host.previous_file"), () => payload.options.adjacent!(-1)), workspace_button(text("host.next_file"), () => payload.options.adjacent!(1)));
+        this.editor.toolbar.append(workspace_button(text("host.toggle_sidebar"), () => core.app.workspace.sidebar.toggle()));
         this.containerEl.append(this.editor.container);
         editor_status.register(this.leaf,this.editor.create_readonly_status());
       } catch (error) { this.containerEl.append(workspace_element("p", "git-scm-empty", String(error))); }
@@ -94,16 +97,16 @@ export function create_graph_host(core: graph_core) {
       const runner = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
       const run: typeof runner.run = async (root, args, execution) => {
         const record = (text: string) => { const lines = output_lines.get(root) || []; lines.push(redact(text)); output_lines.set(root, lines.slice(-100)); };
-        const start = Date.now(); record(new Date().toLocaleTimeString() + " > git " + args.map(arg => JSON.stringify(arg)).join(" "));
-        try { const result = await runner.run(root, args, execution); record(`完成 · ${Date.now() - start} ms` + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
+        const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.map(arg => JSON.stringify(arg)).join(" "));
+        try { const result = await runner.run(root, args, execution); record(text("host.run_complete", {duration: Date.now() - start}) + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
         catch (error) { record(String(error)); throw error; }
       };
       return {...runner, run};
     },
     show_output(root: string) {
-      const view = workspace_element("div", "git-output"); const text = workspace_element("pre");
-      const refresh = () => { text.textContent = (output_lines.get(root) || ["暂无 Git 输出。"]).join("\n"); text.scrollTop = text.scrollHeight; };
-      view.append(workspace_button("刷新输出", refresh), text); refresh(); this.open_panel("Git 输出", "git_output", root, view);
+      const view = workspace_element("div", "git-output"); const output = workspace_element("pre");
+      const refresh = () => { output.textContent = (output_lines.get(root) || [text("host.no_git_output")]).join("\n"); output.scrollTop = output.scrollHeight; };
+      view.append(workspace_button(text("host.refresh_output"), refresh), output); refresh(); this.open_panel(text("host.git_output"), "git_output", root, view);
     },
     context_path(use_active = true): string {
       const active = core.app.workspace.activeLeaf;
@@ -113,21 +116,21 @@ export function create_graph_host(core: graph_core) {
     can_change_files() { return !runtime.File?.changeCounter?.isDocumentEdited(); },
     async trash_files(root: string, files: string[]): Promise<void> {
       const shell = runtime.reqnode("electron").shell;
-      if (typeof shell.trashItem !== "function") throw new Error("当前 Typora 无法将文件移至回收站，未删除文件。");
+      if (typeof shell.trashItem !== "function") throw new Error(text("host.trash_unavailable"));
       const real_root = await fs.promises.realpath(root);
       const targets: string[] = [];
       for (const file of files) {
         const target = ensure_file_path(root, file);
         const parent = await fs.promises.realpath(path_api.dirname(target));
         const relative = path_api.relative(real_root, parent);
-        if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error("文件的实际目录超出仓库，已停止回收：" + file);
+        if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error(text("host.real_directory_outside", {file}));
         const stat = await fs.promises.lstat(target);
-        if (!stat.isFile() && !stat.isSymbolicLink()) throw new Error("只支持回收明确选择的文件：" + file);
+        if (!stat.isFile() && !stat.isSymbolicLink()) throw new Error(text("host.files_only_trash", {file}));
         targets.push(target);
       }
       for (let index = 0; index < targets.length; index++) {
         try { await shell.trashItem(targets[index]); }
-        catch (error) { throw new Error(`已回收 ${index} 个文件；无法回收 ${files[index]}，其余文件保留：${String(error)}`); }
+        catch (error) { throw new Error(text("host.trash_partial_failure", {count: index, file: files[index], error: String(error)})); }
       }
     },
     operation(git_dir: string): string {
@@ -136,12 +139,12 @@ export function create_graph_host(core: graph_core) {
     },
     copy(text: string) { return runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text })); },
     open_url(url: string) {
-      const parsed = new URL(url); if (!["https:", "http:"].includes(parsed.protocol)) throw new Error("只允许打开 HTTP 或 HTTPS 链接。");
+      const parsed = new URL(url); if (!["https:", "http:"].includes(parsed.protocol)) throw new Error(text("host.http_only"));
       return runtime.reqnode("electron").shell.openExternal(parsed.href);
     },
     async open_file(root: string, file: string, settings: graph_settings) {
       const target = ensure_file_path(root, file);
-      if (!fs.existsSync(target)) throw new Error("当前工作区已没有此文件，可查看历史版本。");
+      if (!fs.existsSync(target)) throw new Error(text("host.current_file_missing"));
       const file_host = get_workspace_files();
       if (file_host) { await file_host.open_file(target, {}, settings.new_tab_group); return; }
       if (/\.(md|markdown)$/iu.test(target)) {
@@ -160,8 +163,8 @@ export function create_graph_host(core: graph_core) {
         if (!fs.existsSync(target)) return "";
         const stat = await fs.promises.lstat(target);
         if (stat.isSymbolicLink()) return fs.promises.readlink(target);
-        if (!stat.isFile()) throw new Error("目录或子模块不能作为普通文本比较，请打开对应仓库。");
-        if (stat.size > 16 * 1024 * 1024) throw new Error("文件超过 16 MiB，无法在历史文本视图打开。");
+        if (!stat.isFile()) throw new Error(text("host.non_text_comparison"));
+        if (stat.size > 16 * 1024 * 1024) throw new Error(text("host.file_too_large"));
         return new TextDecoder(settings.encoding).decode(await fs.promises.readFile(target));
       }
       const object = revision === INDEX ? `:${file}` : `${require_revision(revision)}:${file}`;
@@ -200,11 +203,11 @@ export function create_graph_host(core: graph_core) {
       if (fs.existsSync(target)) return "data:image/png;base64," + fs.readFileSync(target).toString("base64");
       return new Promise((resolve, reject) => {
         const request = runtime.reqnode("https").get(`https://www.gravatar.com/avatar/${hash}?s=32&d=identicon`, (response: any) => {
-          if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) { response.resume(); reject(new Error("头像不可用")); return; }
+          if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) { response.resume(); reject(new Error(text("host.avatar_unavailable"))); return; }
           const chunks: Uint8Array[] = []; let size = 0;
-          response.on("data", (chunk: Uint8Array) => { size += chunk.length; if (size > 256000) { request.destroy(); reject(new Error("头像过大")); } else chunks.push(chunk); });
+          response.on("data", (chunk: Uint8Array) => { size += chunk.length; if (size > 256000) { request.destroy(); reject(new Error(text("host.avatar_too_large"))); } else chunks.push(chunk); });
           response.on("end", () => { const data = runtime.reqnode("buffer").Buffer.concat(chunks); fs.mkdirSync(cache_path, { recursive: true }); fs.writeFileSync(target, data); resolve("data:image/png;base64," + data.toString("base64")); });
-        }); request.setTimeout(10000, () => request.destroy(new Error("头像查询超时"))); request.on("error", reject);
+        }); request.setTimeout(10000, () => request.destroy(new Error(text("host.avatar_timeout")))); request.on("error", reject);
       });
     },
     clear_avatars() {
@@ -213,11 +216,11 @@ export function create_graph_host(core: graph_core) {
     },
     terminal(root: string, program: string, admin = false) { if (admin) terminal_workspace.admin(root); else terminal_workspace.open(root, program); },
     export_file(root: string, filename: string, content: string) {
-      const dialog = workspace_dialog("导出配置"); const target = workspace_element("input"); target.value = path_api.join(root, filename);
+      const dialog = graph_dialog(text("host.export_configuration")); const target = workspace_element("input"); target.value = path_api.join(root, filename);
       const preview = workspace_element("pre", "", content); const error = workspace_element("p"); dialog.content.append(target, preview, error);
-      dialog.footer.prepend(workspace_button("保存到此路径", () => {
+      dialog.footer.prepend(workspace_button(text("host.save_to_path"), () => {
         try { fs.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" }); dialog.close(); }
-        catch (problem) { error.textContent = String(problem) + "；文件已存在时请换一个导出名称。"; }
+        catch (problem) { error.textContent = text("host.export_failure_hint", {error: String(problem)}); }
       }));
     },
   };

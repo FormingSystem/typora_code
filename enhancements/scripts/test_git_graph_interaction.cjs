@@ -7,11 +7,29 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 const { build } = require('esbuild');
 const { editor_plugins } = require('./editor_bundle.cjs');
+// 这些数值从本机 mhutchie.git-graph 1.30.0 的经典界面和 out.min.css 量取，仅作为视觉基准；
+// 本测试没有复制扩展源码、样式或资源。详情高度是本项目的固定展示高度，窄组宽度用于验证响应性。
+const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
+  toolbar_height: 40,
+  header_height: 30,
+  row_height: 24,
+  ref_height: 18,
+  ref_radius: 5,
+  toolbar_action_size: 20,
+  toolbar_icon_size: 18,
+  refresh_icon_size: 16,
+  detail_controls_width: 32,
+  detail_action_size: 24,
+  detail_icon_size: 20,
+  columns: ['提交图', '说明', '日期', '作者', '提交编号']
+});
+const INLINE_DETAIL_HEIGHT = 300;
+const RESPONSIVE_EDITOR_WIDTHS = Object.freeze([640, 360]);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_graph_ui_'));
 const evidence = process.argv[2] || path.join(root, 'evidence'); fs.mkdirSync(evidence, { recursive: true });
 app.setPath('userData', path.join(root, 'user_data')); app.disableHardwareAcceleration();
 const git = args => child_process.execFileSync('git', ['-c', 'user.name=UI Test', '-c', 'user.email=ui@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', '-c', 'core.hooksPath=.git/unused_hooks', ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
-git(['init', '-b', 'main']); fs.writeFileSync(path.join(root, '.git/info/exclude'), 'user_data/\ntest.html\n');
+git(['init', '-b', 'main']); fs.writeFileSync(path.join(root, '.git/info/exclude'), 'user_data/\ntest.html\nevidence/\n');
 git(['remote','add','origin',path.join(root,'remote.git')]);
 const original_code = Array.from({length:80}, (_,i) => 'int value_' + i + ' = ' + i + ';').join('\n') + '\n'; fs.writeFileSync(path.join(root,'sample.c'), original_code);
 const nested_history_path = 'z_docs/nested/history.md'; fs.mkdirSync(path.dirname(path.join(root, nested_history_path)), {recursive:true});
@@ -20,7 +38,7 @@ fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n'); git(['add', 'exa
 git(['checkout', '-b', 'feature']); fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n新增内容\n'); fs.writeFileSync(path.join(root, nested_history_path), '# Nested initial\n嵌套目录中的真实修改\n'); git(['add', 'example.md', nested_history_path]); git(['commit', '-m', '实现 **对比** #12']);
 git(['checkout', 'main']); fs.writeFileSync(path.join(root, 'other.md'), 'main\n'); git(['add', 'other.md']); git(['commit', '-m', '主线更新']); git(['merge', '--no-ff', 'feature', '-m', '合并功能分支']);
 const modified_code = original_code.split('\n'); modified_code[9]='int value_9 = 900;'; modified_code.splice(20,0,'// 新增一行'); modified_code.splice(36,1); fs.writeFileSync(path.join(root,'sample.c'),modified_code.join('\n'));
-const bundle = build({ plugins: editor_plugins(), stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'graph_qa', write: false }).then(result => result.outputFiles[0].text);
+const bundle = build({ plugins: editor_plugins(), stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host"; export { GRAPH_SETTINGS_KEY } from "./src/git_graph_settings";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'graph_qa', write: false }).then(result => result.outputFiles[0].text);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); let test_window;
 const evaluate = source => test_window.webContents.executeJavaScript(source);
 const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluate(source)) return; await delay(50); } throw new Error('Timed out: ' + source); };
@@ -38,10 +56,11 @@ const hover = async selector => {
   test_window.webContents.sendInputEvent({type:'mouseMove',...point}); await delay(100);
   return evaluate(`(() => {const s=getComputedStyle(document.querySelector(${JSON.stringify(selector)}));return {background:s.backgroundColor,color:s.color};})()`);
 };
-const check_disclosure = async (selector, expanded) => {
-  const metric = await evaluate(`(() => {const root=document.querySelector(${JSON.stringify(selector)}),icon=root.querySelector('.git-disclosure-icon'),matrix=new DOMMatrixReadOnly(getComputedStyle(icon).transform);return {icon:icon.dataset.gitIcon,text:icon.textContent.trim(),matrix:[matrix.a,matrix.b,matrix.c,matrix.d],before:getComputedStyle(root,'::before').content};})()`);
+const check_disclosure = async (selector, expanded, visible = true) => {
+  const metric = await evaluate(`(() => {const root=document.querySelector(${JSON.stringify(selector)}),icon=root.querySelector('.git-disclosure-icon'),matrix=new DOMMatrixReadOnly(getComputedStyle(icon).transform);return {icon:icon.dataset.gitIcon,text:icon.textContent.trim(),matrix:[matrix.a,matrix.b,matrix.c,matrix.d],before:getComputedStyle(root,'::before').content,parent_display:getComputedStyle(icon.parentElement).display};})()`);
   assert.equal(metric.icon,'chevron-right'); assert.equal(metric.text,'');
-  const expected = expanded ? [0,1,-1,0] : [1,0,0,1]; metric.matrix.forEach((value,index)=>assert(Math.abs(value-expected[index])<0.001,selector+' rotates the SVG chevron with its open state'));
+  if (visible) { const expected = expanded ? [0,1,-1,0] : [1,0,0,1]; metric.matrix.forEach((value,index)=>assert(Math.abs(value-expected[index])<0.001,selector+' rotates the SVG chevron with its open state: '+JSON.stringify(metric))); }
+  else assert.equal(metric.parent_display,'none',selector+' keeps its decorative disclosure hidden');
   assert(['none','normal','""'].includes(metric.before),selector+' does not render a text chevron');
 };
 const key = async (key_code, modifiers = []) => {
@@ -55,27 +74,33 @@ app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1280, height: 850, webPreferences: { nodeIntegration: true, contextIsolation: false, backgroundThrottling: false, offscreen: true } });
   test_window.webContents.on('console-message', (_event, _level, message) => console.error(message));
   const html = path.join(root, 'test.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}body{display:flex}#sidebar-content{width:260px;flex:none}#editors{flex:1;min-width:0;height:100%}</style><div id=sidebar-content></div><div id=editors></div>'); await test_window.loadFile(html);
+  await evaluate('window._options = {displayLang:"zh-CN"}');
   await evaluate(await bundle);
   await evaluate(`(() => {
     const css = document.createElement('style'); css.textContent = ${JSON.stringify(fs.readFileSync(path.join(__dirname, '../src/git_graph.css'), 'utf8'))}; document.head.append(css);
-    window.reqnode = require; window._options = {userDataPath:${JSON.stringify(root)}}; window.File = {changeCounter:{isDocumentEdited:()=>false}};
+    window.reqnode = require; window._options = {userDataPath:${JSON.stringify(root)},displayLang:'zh-CN'}; window.File = {changeCounter:{isDocumentEdited:()=>false}};
     window.JSBridge = {invoke: async (command, data) => { window.copied = JSON.parse(data).text; }};
     const factories = new Map(); const leaves = []; const core = { WorkspaceView: class {constructor(leaf){this.leaf=leaf;}}, app: {viewManager:{registerView:(type,factory)=>factories.set(type,factory)}, commands:{run(){},register(){}}, workspace:{sidebar:{toggle(){}},on(){},ribbon:{addButton(){}},eachLeaves: callback=>leaves.forEach(callback), activeLeaf:null}}};
     window.core=core; const parent = {appendChild(leaf){leaves.push(leaf);document.querySelector('#editors').replaceChildren(leaf.view.containerEl);leaf.view.onOpen();},toggleTab(uri){const leaf=leaves.find(item=>item.state.path===uri);document.querySelector('#editors').replaceChildren(leaf.view.containerEl);leaf.view.onOpen?.();return leaf;}};
     core.app.workspace.createLeaf = ({type,state}) => {const leaf={state,parent};leaf.view=factories.get(type)(leaf);return leaf;};
     const host = graph_qa.create_graph_host(core); window.panel = new graph_qa.git_graph_panel(host, ${JSON.stringify(root)});
     window.graph_leaf = {state:{path:'graph'},view:{containerEl:panel.container},parent}; leaves.push(graph_leaf); core.app.workspace.activeLeaf = graph_leaf;
-    document.querySelector('#editors').append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.settings.details_location="right";panel.open();
+    document.querySelector('#editors').append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.open();
   })()`);
-  await wait('panel.container.dataset.state === "ready"'); await evaluate('panel.settings.details_location="right";panel.render_history();');
+  await wait('panel.container.dataset.state === "ready"');
+  const ui_metrics = await evaluate(`(() => {document.documentElement.style.setProperty('--linux-note-ui-font-size','15px');document.documentElement.style.setProperty('--linux-note-ui-font-family','Verdana');const graph=getComputedStyle(panel.container),scm=getComputedStyle(document.querySelector('#sidebar-content'));const result={graph_size:graph.fontSize,graph_family:graph.fontFamily,scm_size:scm.fontSize,scm_family:scm.fontFamily};document.documentElement.style.removeProperty('--linux-note-ui-font-size');document.documentElement.style.removeProperty('--linux-note-ui-font-family');return result;})()`);
+  assert.deepEqual(ui_metrics,{graph_size:'15px',graph_family:'Verdana',scm_size:'15px',scm_family:'Verdana'});
   const icon_metrics = await evaluate(`(() => {
     const icons=[...panel.workbench.sidebar.querySelectorAll('svg.git-standard-icon')].map(icon=>({name:icon.dataset.gitIcon,width:getComputedStyle(icon).width,height:getComputedStyle(icon).height,view_box:icon.getAttribute('viewBox'),aria_hidden:icon.getAttribute('aria-hidden'),text:icon.textContent.trim(),paths:icon.querySelectorAll('path').length}));
     const controls=[...panel.workbench.sidebar.querySelectorAll('button.git-icon-button')].map(button=>({text:button.textContent.trim(),title:button.title,label:button.getAttribute('aria-label'),icon:button.querySelector('svg.git-standard-icon')?.dataset.gitIcon}));
-    return {icons,controls};
+    const graph_controls=[...panel.toolbar.querySelectorAll('.git-graph-toolbar-actions > button')].map(button=>{const box=button.getBoundingClientRect(),icon=button.querySelector('svg');return {width:box.width,height:box.height,text:button.textContent.trim(),title:button.title,label:button.getAttribute('aria-label'),icon:icon?.dataset.gitIcon,icon_width:getComputedStyle(icon).width,icon_height:getComputedStyle(icon).height};});
+    return {icons,controls,graph_controls};
   })()`);
   assert(icon_metrics.icons.length>=20); assert(icon_metrics.controls.length>=15);
-  for (const icon of icon_metrics.icons) { assert.equal(icon.width,'16px'); assert.equal(icon.height,'16px'); assert.equal(icon.view_box,'0 0 16 16'); assert.equal(icon.aria_hidden,'true'); assert.equal(icon.text,''); assert(icon.paths>0); }
+  for (const icon of icon_metrics.icons) { assert(['12px','16px'].includes(icon.width)); assert(['12px','16px'].includes(icon.height)); assert(['0 0 16 16','0 0 24 24'].includes(icon.view_box)); assert.equal(icon.aria_hidden,'true'); assert.equal(icon.text,''); assert(icon.paths>0); }
   for (const control of icon_metrics.controls) { assert.equal(control.text,''); assert.equal(control.label,control.title); assert(/[\u3400-\u9fff]/u.test(control.title)); assert(control.icon); }
+  assert.deepEqual(icon_metrics.graph_controls.map(control=>control.icon),['search','terminal','settings-gear','git-fetch','refresh']);
+  for (const control of icon_metrics.graph_controls) { const icon_size=control.icon==='refresh'?CLASSIC_GIT_GRAPH_METRICS.refresh_icon_size:CLASSIC_GIT_GRAPH_METRICS.toolbar_icon_size; assert.equal(control.width,CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size); assert.equal(control.height,CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size); assert.equal(control.text,''); assert.equal(control.title,control.label); assert.equal(control.icon_width,icon_size+'px'); assert.equal(control.icon_height,icon_size+'px'); }
   for (const [selector,name] of [['.git-scm-view-menu','more'],['.git-scm-operation-menu','more'],['.git-scm-commit-options','chevron-down'],['.git-scm-history-branches','git-branch'],['.git-scm-history-head','target'],['.git-scm-history-refresh','refresh'],['[data-history-action=fetch]','git-fetch'],['[data-history-action=pull]','repo-pull'],['[data-history-action=push]','repo-push'],['[data-scm-group=changes] > summary .git-scm-inline-action','diff-multiple']]) {
     assert.equal(await evaluate('document.querySelector('+JSON.stringify(selector)+').querySelector("[data-git-icon]").dataset.gitIcon'),name);
   }
@@ -124,27 +149,56 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('panel.workbench.message.value'),'下拉菜单草稿\n第二行');
   await evaluate('panel.workbench.message.value="";panel.workbench.message.dispatchEvent(new Event("input",{bubbles:true}));panel.workbench.refresh()');
   await evaluate('panel.remotes_dialog()');
-  assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-repo-entry button")].map(button=>button.textContent)'),['修改获取地址','修改推送地址','获取','清理过期引用','删除']); await key('Escape');
-  await click('.git-graph-row:not(.git-graph-worktree)'); await wait('!!document.querySelector(".git-graph-file")'); await click('.git-graph-file'); await wait('!!document.querySelector("[data-diff-ready=true]")'); await capture('default_diff'); await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))'); await capture('history');
-  const sash = '.git-graph-body > .linux-note-workspace-sash';
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-repo-entry button")].map(button=>button.textContent)'),['修改获取地址','修改推送地址','获取远端更新','清理过期引用','删除']); await key('Escape');
+  await click('.git-graph-show-remote-input'); await wait('!panel.pending && panel.settings.show_remotes === false');
+  assert.equal(await evaluate('JSON.parse(localStorage.getItem(graph_qa.GRAPH_SETTINGS_KEY + "settings:" + panel.root)).show_remotes'),false);
+  await click('.git-graph-show-remote-input'); await wait('!panel.pending && panel.settings.show_remotes === true');
+  await evaluate('panel.branch_select.value="__multiple__";panel.branch_select.dispatchEvent(new Event("change",{bubbles:true}))');
+  assert(await evaluate('document.querySelector(".git-graph-dialog h3").textContent === "选择一个或多个分支" && document.querySelectorAll(".git-graph-filter input[type=checkbox]").length >= 3')); await key('Escape');
+  const classic_metrics = await evaluate(`(() => {
+    const toolbar=panel.toolbar.getBoundingClientRect(),header=panel.header.getBoundingClientRect(),rows=[...panel.list.querySelectorAll('.git-graph-row')],columns=[...panel.header.children].map(column=>column.firstChild.textContent),actions=[...panel.toolbar.querySelectorAll('.git-graph-toolbar-actions > button')].map(button=>button.getBoundingClientRect().toJSON());
+    const referenced=rows.find(row=>row.querySelector('.git-graph-refs'));
+    const ref=referenced?.querySelector('.git-graph-refs'),ref_style=ref?getComputedStyle(ref):null;
+    return {toolbar_height:toolbar.height,header_height:header.height,columns,row_heights:rows.map(row=>row.getBoundingClientRect().height),ref_height:ref?.getBoundingClientRect().height,ref_radius:ref_style?parseFloat(ref_style.borderRadius):null,actions,body_children:[...panel.body.children].map(node=>node.className),referenced_order:referenced?[...referenced.querySelector('.git-graph-subject').children].map(node=>node.className):[],legacy_controls:[...panel.toolbar.querySelectorAll('button')].map(button=>button.textContent.trim()).filter(Boolean)};
+  })()`);
+  assert.equal(classic_metrics.toolbar_height,CLASSIC_GIT_GRAPH_METRICS.toolbar_height); assert.equal(classic_metrics.header_height,CLASSIC_GIT_GRAPH_METRICS.header_height); assert.deepEqual(classic_metrics.columns,CLASSIC_GIT_GRAPH_METRICS.columns);
+  assert(classic_metrics.row_heights.length>=4 && classic_metrics.row_heights.every(height=>height===CLASSIC_GIT_GRAPH_METRICS.row_height)); assert.equal(classic_metrics.ref_height,CLASSIC_GIT_GRAPH_METRICS.ref_height); assert.equal(classic_metrics.ref_radius,CLASSIC_GIT_GRAPH_METRICS.ref_radius); assert.deepEqual(classic_metrics.body_children,['git-graph-list']);
+  assert.deepEqual(classic_metrics.referenced_order,['git-graph-labels','git-graph-subject-text']); assert.deepEqual(classic_metrics.legacy_controls,[]);
+  assert(classic_metrics.actions.every(box=>box.width===CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size && box.height===CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size && box.y===classic_metrics.actions[0].y));
+  await click('.git-graph-row:not(.git-graph-worktree)'); await wait('!!document.querySelector(".git-graph-file")');
+  const inline_metrics = await evaluate(`(() => {const node=panel.details,details=node.getBoundingClientRect(),summary=node.querySelector('.git-graph-detail-summary').getBoundingClientRect(),files=node.querySelector('.git-graph-detail-files').getBoundingClientRect(),controls_node=node.querySelector('.git-graph-detail-controls'),controls=controls_node.getBoundingClientRect(),buttons=[...controls_node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON()),icons=[...controls_node.querySelectorAll('[data-git-icon]')];return {previous:node.previousElementSibling?.dataset.hash,selected:panel.selected,width:details.width,height:details.height,summary:summary.width,files:files.width,controls:controls.width,button_sizes:buttons.map(box=>[box.width,box.height]),icon_sizes:icons.map(icon=>[parseFloat(getComputedStyle(icon).width),parseFloat(getComputedStyle(icon).height)]),body_sash:!!panel.body.querySelector('.linux-note-workspace-sash'),icons:icons.map(icon=>icon.dataset.gitIcon)};})()`);
+  assert.equal(inline_metrics.previous,inline_metrics.selected); assert.equal(inline_metrics.height,INLINE_DETAIL_HEIGHT); assert(Math.abs(inline_metrics.summary-inline_metrics.files)<2); assert.equal(inline_metrics.controls,CLASSIC_GIT_GRAPH_METRICS.detail_controls_width); assert(inline_metrics.button_sizes.every(size=>size[0]===CLASSIC_GIT_GRAPH_METRICS.detail_action_size&&size[1]===CLASSIC_GIT_GRAPH_METRICS.detail_action_size)); assert(inline_metrics.icon_sizes.every(size=>size[0]===CLASSIC_GIT_GRAPH_METRICS.detail_icon_size&&size[1]===CLASSIC_GIT_GRAPH_METRICS.detail_icon_size)); assert(!inline_metrics.body_sash); assert(inline_metrics.icons.includes('close') && inline_metrics.icons.includes('list-tree') && inline_metrics.icons.includes('list-flat'));
+  const responsive_metrics = [];
+  for (const target_width of RESPONSIVE_EDITOR_WIDTHS) {
+    await evaluate(`(() => {const editors=document.querySelector('#editors');editors.style.flex='0 0 ${target_width}px';editors.style.width='${target_width}px';})()`); await delay(80);
+    responsive_metrics.push(await evaluate(`(() => {const editors=document.querySelector('#editors'),root=panel.container,list=panel.list,details=panel.details,content=details.querySelector('.git-graph-detail-content'),editor_box=editors.getBoundingClientRect(),root_box=root.getBoundingClientRect(),list_box=list.getBoundingClientRect(),detail_box=details.getBoundingClientRect();return {target_width:${target_width},editor_width:editor_box.width,editor_client_width:editors.clientWidth,editor_scroll_width:editors.scrollWidth,root_width:root_box.width,root_client_width:root.clientWidth,root_scroll_width:root.scrollWidth,list_width:list_box.width,list_client_width:list.clientWidth,list_scroll_width:list.scrollWidth,detail_width:detail_box.width,detail_right:detail_box.right,editor_right:editor_box.right,content_client_width:content.clientWidth,content_scroll_width:content.scrollWidth};})()`));
+  }
+  for (const metric of responsive_metrics) { assert.equal(metric.editor_width,metric.target_width); assert.equal(metric.root_width,metric.target_width); assert.equal(metric.detail_width,metric.list_client_width); assert(metric.detail_right<=metric.editor_right+0.5); assert.equal(metric.editor_scroll_width,metric.editor_client_width); assert.equal(metric.root_scroll_width,metric.root_client_width); assert(metric.list_scroll_width>=metric.list_client_width); }
+  assert.equal(responsive_metrics[0].content_scroll_width,responsive_metrics[0].content_client_width);
+  assert(responsive_metrics[1].content_scroll_width>responsive_metrics[1].content_client_width);
+  await evaluate(`(() => {const editors=document.querySelector('#editors');editors.style.removeProperty('flex');editors.style.removeProperty('width');})()`); await delay(80);
+  await capture('classic_git_graph_inline_details');
+  await click('.git-graph-file'); await wait('!!document.querySelector("[data-diff-ready=true]")'); await capture('default_diff'); await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))'); await capture('history');
   const drag = async (selector, dx, dy) => {
     const point = await evaluate(`(() => {const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)};})()`);
     test_window.webContents.sendInputEvent({type:'mouseDown',...point,button:'left',clickCount:1});
     test_window.webContents.sendInputEvent({type:'mouseMove',x:point.x+dx,y:point.y+dy,button:'left'});
     test_window.webContents.sendInputEvent({type:'mouseUp',x:point.x+dx,y:point.y+dy,button:'left',clickCount:1}); await delay(200);
   };
-  const first_width = await evaluate('panel.list.clientWidth'); await drag(sash, -140, 0); assert(await evaluate('panel.list.clientWidth') < first_width - 80);
+  assert(!await evaluate('!!panel.body.querySelector(".linux-note-workspace-sash")'));
   assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit").length'),4);
   assert.equal(await evaluate('document.querySelector(".git-scm-history-toggle").getAttribute("aria-expanded")'),'true');
   assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit .git-scm-history-topology circle").length'),4);
-  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',false);
+  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',false,false);
   hover_metrics.history_closed = await hover('.git-scm-history-commit'); assert.equal(hover_metrics.history_closed.background,'rgba(136, 136, 136, 0.133)');
   const changes_height = await evaluate('panel.workbench.changes_pane.clientHeight'); await drag('.git-scm-history-sash',0,-70);
   assert(await evaluate('panel.workbench.changes_pane.clientHeight') < changes_height-40);
   await click('.git-scm-history-toggle'); assert.equal(await evaluate('panel.workbench.sections.dataset.historyOpen'),'false');
   await check_disclosure('.git-scm-history-toggle',false);
-  await click('.git-scm-history-toggle'); await click('.git-scm-history-commit'); await wait('!!document.querySelector("[data-history-file]")');
-  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',true);
+  await click('.git-scm-history-toggle');
+  if (!await evaluate('!!document.querySelector(".git-scm-history-commit[aria-expanded=true]")')) await click('.git-scm-history-commit');
+  await wait('!!document.querySelector("[data-history-file]")'); await delay(150);
+  await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit[aria-expanded=true]',true,false);
   await click('[data-history-file]'); await wait('!!document.querySelector("[data-diff-ready=true]")');
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),git(['show','HEAD:example.md']));
   const selected_background = await evaluate('getComputedStyle(document.querySelector(".git-scm-history-commit[aria-expanded=true]")).backgroundColor');
@@ -167,25 +221,23 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('document.querySelector('+JSON.stringify('[data-history-file="'+nested_history_path+'"] .git-scm-file-directory')+').textContent'),'z_docs/nested');
   await click('.git-scm-history-commit','right'); assert(await evaluate('!!document.querySelector("[data-action=branch_create]")')); await key('Escape');
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
-  // 下方提交图调小后，上方测试文件仍可滚动访问。
+  // 源代码管理的提交图仍可独立调节，不再复用主 Git Graph 的详情分界线。
   await drag('.git-scm-history-sash',0,70);
-  assert(await evaluate('JSON.parse(localStorage.getItem("linux-note-git-graph:v2:settings:"+panel.root)).panel_ratio') < 55);
-  await click('.git-graph-columns', 'right'); assert(await evaluate('document.querySelectorAll("[role=menuitemcheckbox]").length') >= 6); await key('Escape');
+  await click('.git-graph-columns', 'right'); assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-menu .git-menu-label")].map(label=>label.textContent)'),['重置五列宽度','全部设置']); assert(!await evaluate('!!document.querySelector("[role=menuitemcheckbox]")')); await key('Escape');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await click('[data-action="configure_menu"]');
   await click('[data-action-id="branch_create"]'); await click('.git-graph-dialog-footer button');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); assert(!await evaluate('!!document.querySelector("[data-action=branch_create]")')); await click('[data-action="configure_menu"]');
   await click('[data-action-id="branch_create"]'); await click('.git-graph-dialog-footer button');
-  await key('f', ['control']); assert(await evaluate('document.activeElement === panel.search'));
-  await key('Escape');
+  await key('f', ['control']); assert(await evaluate('document.activeElement === panel.search && panel.find_widget.dataset.open === "true"'));
+  await key('Escape'); assert.equal(await evaluate('panel.find_widget.dataset.open'),'false');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await capture('context_menu'); await click('[data-action="branch_create"]');
   await click('[data-field="branch"]'); test_window.webContents.insertText('ui-created'); await click('[data-git-preview]'); await wait('!document.querySelector("[data-git-execute]").disabled');
   assert(!git(['branch', '--list', 'ui-created']).trim()); await capture('action_preview'); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector(".git-graph-action-preview").textContent.includes("操作完成")'); assert(git(['branch', '--list', 'ui-created']).includes('ui-created')); await key('Escape');
   await evaluate('panel.settings_dialog()'); await capture('settings');
-  await evaluate('document.querySelector("[data-setting=details_location]").value = "bottom"');
-  await click('.git-graph-dialog-footer button'); await wait('panel.container.dataset.state === "ready" && panel.container.dataset.details === "bottom"');
-  await evaluate('panel.select_commit(panel.state.commits[0])'); await wait('panel.container.dataset.detailVisible === "true" && !!document.querySelector(".git-graph-file")');
-  const first_height = await evaluate('panel.list.clientHeight'); await drag(sash, 0, -80); assert(await evaluate('panel.list.clientHeight') < first_height - 40);
-  assert(await evaluate('localStorage.getItem("linux-note-git-graph:v2:settings:" + panel.root).includes("bottom")'));
+  assert(!await evaluate('["details_location","panel_ratio","show_date","show_author","show_hash","label_alignment"].some(name=>Object.hasOwn(panel.settings,name)||document.querySelector("[data-setting="+name+"]"))')); await key('Escape');
+  await evaluate('panel.select_commit(panel.state.commits[0])'); await wait('panel.details.isConnected && !!document.querySelector(".git-graph-file")');
+  assert(await evaluate('panel.details.previousElementSibling?.dataset.hash === panel.selected && !panel.body.querySelector(".linux-note-workspace-sash")'));
+  await click('.git-graph-detail-close'); assert(await evaluate('panel.details.parentElement === null && panel.selected === "" && panel.to === ""'));
   await evaluate('panel.select_commit(panel.state.commits[0])'); await wait('!!document.querySelector(".git-graph-file")');
   await evaluate('panel.open_diff(panel.files[0])'); await wait('!!document.querySelector(".git-graph-document")'); await wait('!!document.querySelector("[data-diff-ready=true]")'); assert(await evaluate('document.querySelectorAll(".monaco-diff-editor .monaco-editor").length >= 2')); await capture('side_by_side_diff');
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
@@ -243,9 +295,10 @@ app.whenReady().then(async () => {
   await wait('!!document.querySelector("[data-diff-ready=true]")'); assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),modified_code.join('\n'));
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
   for (const selector of ['.git-scm-message','.git-scm-filter','.git-graph-search']) {
+    if (selector === '.git-graph-search') await evaluate('panel.open_find()');
     await evaluate(`window.edit_context_prevented=null;document.querySelector(${JSON.stringify(selector)}).addEventListener('contextmenu',event=>setTimeout(()=>window.edit_context_prevented=event.defaultPrevented,0),{once:true})`);
     await click(selector,'right'); assert.equal(await evaluate('window.edit_context_prevented'),false, selector+' keeps the native edit context menu');
-    assert(!await evaluate('!!document.querySelector(".git-graph-menu")')); await key('Escape');
+    assert(!await evaluate('!!document.querySelector(".git-graph-menu")')); await key('Escape'); if (selector === '.git-graph-search') await evaluate('panel.close_find()');
   }
   await click('.git-scm-title','right'); assert(await evaluate('!!document.querySelector(".git-graph-menu")')); await key('Escape');
   await click('.git-scm-operation-menu'); await capture('source_control_menu');
@@ -312,8 +365,8 @@ app.whenReady().then(async () => {
   await click('[data-git-preview]'); await wait('!document.querySelector("[data-git-execute]").disabled');
   assert.equal(git(['rev-parse','HEAD']),after_manual); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector("[data-git-execute]").disabled'); assert.notEqual(git(['rev-parse','HEAD']),after_manual); await key('Escape');
   console.log(JSON.stringify({status:'PASS',checks:[
-    'real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','horizontal and vertical mouse sash','per-context menu checkbox persistence','column checkbox menu','colored two-column history','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','diff minimaps stay disabled after option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
+    'real pointer context menu','keyboard find and escape','preview has no mutation','execution creates branch','settings and focus','SCM history and diff sashes remain draggable','per-context menu checkbox persistence','classic single-line Git Graph controls','fixed Graph Description Date Author Commit columns','24px rows place refs before descriptions','selected commit opens 50/50 inline details with 32px controls','inline details stay bounded at 640px and 360px editor widths','legacy main graph right and bottom detail layouts are absent','remote toggle persists and multiple branch dialog opens','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','diff minimaps stay disabled after option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
     'view menu persists repositories changes and history visibility','last visible view remains recoverable','message section collapse persists','single line message grows with input','commit dropdown preserves draft and amend choice without mutation','history list and collapsible nested tree open correct revisions','narrow sidebar retains filename ellipsis and aligned columns','hover never shifts file status or action slots','group stage button aligns with file stage buttons','history status aligns with change status','inline action keyboard stages and unstages without opening diff','file row keyboard opens diff','editable fields preserve native context menus','blank sidebar retains Git context menu','remote configuration actions are Chinese','commit buttons retain blue contrast on hover','history hover feedback preserves selected state',
-    'SCM controls use 16px official SVG shapes and Chinese accessible names','icon controls contain no text stand-ins','summary and history disclosure SVG follows open state','menus use SVG checks and submenu arrows','topology circles are independent of control SVGs','standard overview shows 15px red and green lanes','both overview marker lanes accept real clicks and synchronize panes'
-  ],scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));
+    'Graph and SCM follow appearance font variables','SCM controls use 16px official SVG shapes and Chinese accessible names','icon controls contain no text stand-ins','summary and history disclosure SVG follows open state','menus use SVG checks and submenu arrows','topology circles are independent of control SVGs','standard overview shows 15px red and green lanes','both overview marker lanes accept real clicks and synchronize panes'
+  ],classic_metrics,inline_metrics,responsive_metrics,ui_metrics,scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));
 }).catch(async error => { console.error(error); if (test_window) { console.error(await evaluate('document.body.innerText')); await capture('failure'); } process.exitCode = 1; }).finally(() => { if (test_window && !test_window.isDestroyed()) test_window.destroy(); app.exit(process.exitCode || 0); });

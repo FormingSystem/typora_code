@@ -6,6 +6,9 @@ import { bind_git_status_bar } from "./git_status_bar";
 import { GRAPH_SETTINGS_KEY, load_graph_settings, save_reviews } from "./git_graph_settings";
 import graph_css from "./git_graph.css";
 import { git_icon } from "./git_icons";
+import { git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
+
+const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
 export function bind_git_graph(): void {
   if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
@@ -25,7 +28,7 @@ export function bind_git_graph(): void {
   class source_control_sidebar extends core.SidebarPanel {
     containerEl = workspace_element("section", "linux-note-git-source-control"); panel?: git_graph_panel; visible = false;
     native_observer = new MutationObserver(() => this.clear_native_tabs());
-    constructor() { super(); this.addRibbonButton({id: "linux_note:source_control", title: "源代码管理（Ctrl+Shift+G）", icon, group: "top"}); }
+    constructor() { super(); this.addRibbonButton({id: "linux_note:source_control", title: text("view.source_control"), icon, group: "top"}); }
     mount(panel: git_graph_panel) { this.panel = panel; this.containerEl.replaceChildren(panel.workbench.sidebar); }
     clear_native_tabs() {
       const sidebar = document.querySelector("#typora-sidebar");
@@ -99,17 +102,17 @@ export function bind_git_graph(): void {
   host.show_history = cwd => { const panel = open_graph(cwd); if (panel) show_source_control(panel); };
   window.addEventListener("linux-note-open-git", ((event:CustomEvent<{path:string}>)=>{const path=event.detail.path;try{host.show_history(host.fs.statSync(path).isDirectory()?path:host.path_api.dirname(path));}catch(error){console.error(error);}}) as EventListener);
   const launch = (callback?: (panel: git_graph_panel) => void) => { const panel = open_graph(); if (panel) { show_source_control(panel); callback?.(panel); } };
-  const commands: [string, string, (panel: git_graph_panel) => void][] = [
-    ["view", "Git Graph：查看提交关系图", () => {}], ["add_repository", "Git Graph：添加 Git 仓库", panel => panel.manage_repositories()],
-    ["remove_repository", "Git Graph：移除仓库记录", panel => panel.manage_repositories()],
-    ["fetch", "Git Graph：获取远端更新", panel => void (async () => { while (panel.pending) await new Promise(resolve => setTimeout(resolve, 50)); panel.action_dialog("fetch", "repository"); })()],
-    ["reviews", "Git Graph：继续或结束评审", panel => panel.reviews_dialog()], ["clear_avatars", "Git Graph：清空头像缓存", () => host.clear_avatars()],
-    ["end_all_reviews", "Git Graph：结束全部评审", panel => { save_reviews(localStorage, []); if (panel.to) void panel.show_comparison(panel.from, panel.to); }],
-    ["end_review", "Git Graph：结束指定评审", panel => panel.reviews_dialog()], ["resume_review", "Git Graph：恢复指定评审", panel => panel.reviews_dialog()],
-    ["version", "Git Graph：版本与诊断", panel => { const dialog = workspace_dialog("Git Graph 诊断"); dialog.content.textContent = "Typora Git Graph · 2\n功能对照：VS Code Git Graph 1.30.0\n" + panel.root; void panel.runner.run(panel.root, ["--version"]).then(version => { dialog.content.textContent += "\n" + version; }).catch(error => { dialog.content.textContent += String(error); }); }],
+  const commands: [string, git_graph_text_key, (panel: git_graph_panel) => void][] = [
+    ["view", "view.command.view", () => {}], ["add_repository", "view.command.add_repository", panel => panel.manage_repositories()],
+    ["remove_repository", "view.command.remove_repository", panel => panel.manage_repositories()],
+    ["fetch", "view.command.fetch", panel => void (async () => { while (panel.pending) await new Promise(resolve => setTimeout(resolve, 50)); panel.action_dialog("fetch", "repository"); })()],
+    ["reviews", "view.command.reviews", panel => panel.reviews_dialog()], ["clear_avatars", "view.command.clear_avatars", () => host.clear_avatars()],
+    ["end_all_reviews", "view.command.end_all_reviews", panel => { save_reviews(localStorage, []); if (panel.to) void panel.show_comparison(panel.from, panel.to); }],
+    ["end_review", "view.command.end_review", panel => panel.reviews_dialog()], ["resume_review", "view.command.resume_review", panel => panel.reviews_dialog()],
+    ["version", "view.command.version", panel => { const dialog = graph_dialog(text("view.diagnostics_title")); dialog.content.textContent = text("view.diagnostics_text", {root: panel.root}); void panel.runner.run(panel.root, ["--version"]).then(version => { dialog.content.textContent += "\n" + version; }).catch(error => { dialog.content.textContent += "\n" + String(error); }); }],
   ];
-  core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: commands[0][1], scope: "global", callback: () => launch() });
-  for (const [id, title, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title, scope: "global", callback: () => launch(callback) });
+  core.app.commands.register({ id: GIT_GRAPH_COMMAND, title: text(commands[0][1]), scope: "global", callback: () => launch() });
+  for (const [id, title_key, callback] of commands.slice(1)) core.app.commands.register({ id: "linux_note:git_graph_" + id, title: text(title_key), scope: "global", callback: () => launch(callback) });
   const settings = context_settings(); if (settings.icon_color !== "auto") icon.style.color = settings.icon_color;
   const status_bar = bind_git_status_bar(core, host, () => panels.get(core.app.workspace.activeLeaf!) || controller_for(host.context_path()), () => launch());
   status_bar.set_graph_visible(settings.show_status_button);
@@ -118,8 +121,8 @@ export function bind_git_graph(): void {
     menu.containerEl.querySelectorAll("[data-git-graph-launch]").forEach((item: Element) => item.remove());
     if (!context_settings().file_menu_entry) return;
     let directory = false; try { directory = host.fs.statSync(path).isDirectory(); } catch { return; }
-    for (const [id, title] of [["graph", "Git：查看仓库提交图"], ...(!directory ? [["history", "Git：打开文件历史"], ["changes", "Git：打开文件更改"]] : [])]) {
-      const item = workspace_element("li"); item.setAttribute("data-git-graph-launch", id); item.append(workspace_element("a", "", title));
+    for (const [id, title_key] of [["graph", "view.file_menu_graph"], ...(!directory ? [["history", "view.file_menu_history"], ["changes", "view.file_menu_changes"]] : [])] as [string, git_graph_text_key][]) {
+      const item = workspace_element("li"); item.setAttribute("data-git-graph-launch", id); item.append(workspace_element("a", "", text(title_key)));
       for (const name of ["pointerdown", "mousedown", "mouseup"]) item.addEventListener(name, event => { event.preventDefault(); event.stopImmediatePropagation(); });
       item.onclick = event => { event.preventDefault(); event.stopImmediatePropagation(); menu.containerEl.style.display = "none";
         const cwd = directory ? path : host.path_api.dirname(path);
@@ -134,7 +137,7 @@ export function bind_git_graph(): void {
       }; menu.containerEl.append(item);
     }
   });
-  core.app.commands.register({id: "linux_note:source_control", title: "Git：源代码管理", scope: "global", callback: () => show_source_control()});
+  core.app.commands.register({id: "linux_note:source_control", title: text("view.source_control_command"), scope: "global", callback: () => show_source_control()});
   core.app.workspace.on("active-leaf:change", leaf => {
     if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
     status_bar.refresh();

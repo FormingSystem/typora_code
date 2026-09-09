@@ -2,7 +2,12 @@ import outline_css from "./workspace_outline.css";
 
 export type workspace_outline_host = {
   sidebar?: HTMLElement;
-  outline?: {hideSearch?(): void; clearSearch?(): void; isSearchShown?(): boolean};
+  outline?: {
+    hideSearch?(): void;
+    clearSearch?(): void;
+    isSearchShown?(): boolean;
+    highlightVisibleHeader?(headings?: unknown, index?: number, expand?: boolean, blink?: boolean): void;
+  };
 };
 
 /** 大纲只负责标题导航；原生共用过滤框不能残留到其他工作区面板。 */
@@ -15,6 +20,73 @@ export function install_workspace_outline(host: workspace_outline_host) {
   document.head.append(style);
   document.documentElement.setAttribute("data-linux-note-workspace-outline", "ready");
   let clearing = false;
+  let sync_frame = 0;
+  let settle_frame = 0;
+  let outline_open = false;
+  const is_outline_open = () => sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
+  const current_heading = () => {
+    const content = document.querySelector<HTMLElement>("content");
+    const write = document.querySelector<HTMLElement>("#write");
+    if (!content || !write) return;
+    const headings = Array.from(write.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
+    if (!headings.length) return;
+    const top = content.scrollTop;
+    let previous = headings[0];
+    for (const heading of headings) {
+      if (heading.offsetTop <= top) previous = heading;
+      else break;
+    }
+    return previous;
+  };
+  const label_for = (outline: HTMLElement, cid: string) => Array.from(outline.querySelectorAll<HTMLElement>(".outline-label"))
+    .find(label => label.getAttribute("data-ref") === cid);
+  const reveal = (label: HTMLElement) => {
+    const outline = label.closest<HTMLElement>("#outline-content");
+    const row = label.closest<HTMLElement>(".outline-item");
+    if (!outline || !row) return;
+    for (let wrapper = row.closest<HTMLElement>(".outline-item-wrapper"); wrapper && outline.contains(wrapper);
+      wrapper = wrapper.parentElement?.closest<HTMLElement>(".outline-item-wrapper") ?? null) wrapper.classList.add("outline-item-open");
+    row.scrollIntoView({block: "nearest"});
+  };
+  const fallback_sync = (outline: HTMLElement, heading: HTMLElement) => {
+    const cid = heading.getAttribute("cid");
+    if (!cid) return;
+    const label = label_for(outline, cid);
+    if (!label) return;
+    outline.querySelectorAll(".outline-active").forEach(node => node.classList.remove("outline-active"));
+    outline.querySelectorAll(".outline-item-active").forEach(node => node.classList.remove("outline-item-active"));
+    label.classList.add("outline-active");
+    label.closest<HTMLElement>(".outline-item")?.classList.add("outline-item-active");
+    reveal(label);
+  };
+  const sync_current_heading = () => {
+    if (!is_outline_open()) return;
+    const outline = sidebar.querySelector<HTMLElement>("#outline-content");
+    const heading = current_heading();
+    if (!outline || !heading || !outline.querySelector(".outline-label")) return;
+    const cid = heading.getAttribute("cid");
+    try { host.outline?.highlightVisibleHeader?.(undefined, undefined, true); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
+    const active = outline.querySelector<HTMLElement>(".outline-label.outline-active");
+    if (!active || (cid && active.getAttribute("data-ref") !== cid)) fallback_sync(outline, heading);
+    else reveal(active);
+  };
+  const cancel_sync = () => {
+    if (sync_frame) cancelAnimationFrame(sync_frame);
+    if (settle_frame) cancelAnimationFrame(settle_frame);
+    sync_frame = 0; settle_frame = 0;
+  };
+  const schedule_sync = () => {
+    if (!is_outline_open() || sync_frame || settle_frame) return;
+    sync_frame = requestAnimationFrame(() => {
+      sync_frame = 0;
+      settle_frame = requestAnimationFrame(() => { settle_frame = 0; sync_current_heading(); });
+    });
+  };
+  const on_document_scroll = (event: Event) => {
+    const target = event.target;
+    if (target instanceof Node && sidebar.contains(target)) return;
+    schedule_sync();
+  };
   const refresh = () => {
     if (clearing) return;
     const filtering = sidebar.classList.contains("ty-show-outline-filter") || sidebar.classList.contains("ty-on-outline-filter") || host.outline?.isSearchShown?.();
@@ -31,8 +103,22 @@ export function install_workspace_outline(host: workspace_outline_host) {
       if (close) close.style.display = "none";
     } finally { clearing = false; }
   };
-  const observer = new MutationObserver(refresh);
-  observer.observe(sidebar, {attributes: true, attributeFilter: ["class"]});
+  const belongs_to_outline = (node: Node) => node instanceof Element
+    && (node.matches("#outline-content") || Boolean(node.closest("#outline-content")) || Boolean(node.querySelector("#outline-content")));
+  const observer = new MutationObserver(records => {
+    refresh();
+    const open = is_outline_open();
+    const opened = open && !outline_open;
+    outline_open = open;
+    const rebuilt = open && records.some(record => record.type === "childList"
+      && (belongs_to_outline(record.target) || Array.from(record.addedNodes).some(belongs_to_outline)));
+    if (opened || rebuilt) schedule_sync();
+    else if (!open) cancel_sync();
+  });
+  observer.observe(sidebar, {subtree: true, childList: true, attributes: true, attributeFilter: ["class"]});
+  document.addEventListener("scroll", on_document_scroll, true);
   refresh();
-  return {refresh, dispose: () => {observer.disconnect();style.remove();document.documentElement.removeAttribute("data-linux-note-workspace-outline");}};
+  outline_open = is_outline_open();
+  if (outline_open) schedule_sync();
+  return {refresh, dispose: () => {observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();document.documentElement.removeAttribute("data-linux-note-workspace-outline");}};
 }

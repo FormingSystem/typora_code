@@ -1,7 +1,7 @@
 body.unibody-window{--typ-workspace-top:35px}
 body.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-items:center;position:fixed;inset:0 0 auto 0!important;height:35px;padding:0;z-index:850;box-sizing:border-box;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);border-bottom:var(--window-border,1px solid rgba(127,127,127,.16));font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.2;-webkit-app-region:drag}
 #top-titlebar .workspace-titlebar-icon-slot{display:grid;place-items:center;width:35px;height:35px;flex:none}
-#top-titlebar .workspace-titlebar-icon{width:16px;height:16px;object-fit:contain}
+#top-titlebar .workspace-titlebar-icon{width:20px;height:20px;object-fit:contain}
 #top-titlebar .workspace-titlebar-menu{display:flex;align-items:center;flex:none;height:100%;-webkit-app-region:no-drag}
 #top-titlebar :is(.workspace-titlebar-menu>button,.workspace-titlebar-history,.workspace-titlebar-quick-open){appearance:none;border:0;background:transparent;color:inherit;border-radius:5px;min-width:0;font:inherit;outline-offset:-2px;-webkit-app-region:no-drag}
 #top-titlebar .workspace-titlebar-menu>button{height:30px;margin:2px 0;padding:0 8px;cursor:default}
@@ -30,14 +30,13 @@ body.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-it
 .workspace-titlebar-check,.workspace-titlebar-submenu-arrow{display:grid;place-items:center}
 .workspace-titlebar-check svg,.workspace-titlebar-submenu-arrow svg{width:16px;height:16px}
 .workspace-titlebar-separator{height:1px;margin:4px 7px;background:rgba(127,127,127,.25)}
-.workspace-quick-open{position:fixed;z-index:2300;top:41px;left:50%;transform:translateX(-50%);width:min(600px,calc(100vw - 16px));max-height:min(70vh,560px);padding:6px;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}
+.workspace-quick-open{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);width:min(62vw,600px,calc(100vw - 12px));max-height:min(70vh,560px);padding:0;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}
 .workspace-quick-open[hidden]{display:none}
-.workspace-quick-open-input-row{display:flex;align-items:center;gap:7px;height:34px;padding:0 9px;border:1px solid var(--active-file-border-color,#007acc);border-radius:3px}
-.workspace-quick-open-input-row>svg{width:16px;height:16px}
-.workspace-quick-open-input-row input{min-width:0;flex:1;height:30px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}
-.workspace-quick-open-status{min-height:23px;padding:5px 7px 2px;opacity:.7}
-.workspace-quick-open-results{max-height:min(58vh,450px);overflow:auto}
-.workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:29px;padding:0 8px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}
+.workspace-quick-open-input-row{display:flex;align-items:center;height:25px;margin:6px 6px 4px;padding:0 6px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px}
+.workspace-quick-open-input-row input{min-width:0;flex:1;height:23px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}
+.workspace-quick-open-status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
+.workspace-quick-open-results{max-height:40vh;overflow:auto;padding:0 6px 6px}
+.workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
 .workspace-quick-open-result>svg{width:16px;height:16px;flex:none}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

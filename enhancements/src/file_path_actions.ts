@@ -1,6 +1,7 @@
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH, format_file_path, type path_operations } from "./file_paths";
 import { get_workspace_app } from "./workspace_bootstrap";
 import { get_workspace_files } from "./workspace_files";
+import { is_source_file_uri, source_file_path } from "./workspace_file_uri";
 
 let bound = false;
 
@@ -17,7 +18,9 @@ export function bind_file_path_actions(): void {
   const api = runtime.reqnode("path");
   const core = (window as unknown as Record<symbol, { Notice: new (message: string, delay?: number) => unknown }>)[Symbol.for("typora-plugin-core@v2")];
   const get_path = (target: string, relative: boolean) => {
-    if(target.startsWith("typ://linux_note.source_file/"))try{target=decodeURIComponent(target.slice("typ://linux_note.source_file/".length));}catch{return null;}
+    const source_path=source_file_path(target,api);
+    if(is_source_file_uri(target)&&!source_path)return null;
+    if(source_path)target=source_path;
     return format_file_path(api,target,get_workspace_files()?.context_root()||runtime.File.getMountFolder(),relative);
   };
   const copy_path = (target: string, relative: boolean) => {

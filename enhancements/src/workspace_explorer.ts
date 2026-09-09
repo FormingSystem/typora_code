@@ -28,11 +28,28 @@ type explorer_node = {
 };
 const ROW_HEIGHT = 26;
 const EXPLORER_ID = "linux_note:file_explorer";
+const DOUBLE_CLICK_FALLBACK_MS = 1000;
+const DOUBLE_CLICK_EVENT_MARGIN_MS = 50;
+
+function system_double_click_interval(runtime: {reqnode(name: string): any}): number {
+  const bounded = (value: number) => Number.isFinite(value) ? Math.min(5000, Math.max(200, Math.round(value))) : DOUBLE_CLICK_FALLBACK_MS;
+  try {
+    const process_api = runtime.reqnode("process");
+    if (process_api.platform === "win32") {
+      const child_process = runtime.reqnode("child_process");
+      const output = child_process.execFileSync("reg.exe", ["query", "HKCU\\Control Panel\\Mouse", "/v", "DoubleClickSpeed"], {encoding: "utf8", windowsHide: true, timeout: 500});
+      const value = String(output).match(/DoubleClickSpeed\s+REG_SZ\s+(\d+)/iu)?.[1];
+      if (value) return bounded(Number(value));
+    }
+  } catch { /* 无法读取平台设置时使用覆盖常见系统范围的保守窗口。 */ }
+  return DOUBLE_CLICK_FALLBACK_MS;
+}
 
 /** 全文件目录树自行枚举，不修改原生 SupportedFiles 或全局隐藏文件配置。 */
 export function bind_workspace_explorer(core: workspace_explorer_core, options: workspace_explorer_options) {
   const runtime = window as unknown as {reqnode(name: string): any};
   const fs = runtime.reqnode("fs"), path_api = runtime.reqnode("path");
+  const double_click_delay_ms = system_double_click_interval(runtime) + DOUBLE_CLICK_EVENT_MARGIN_MS;
   const sidebar = core.app.workspace.sidebar;
   const style = el("style"); style.textContent = explorer_css; document.head.append(style);
   const container = el("section", "linux-note-workspace-explorer"); container.setAttribute("aria-label", "资源管理器");
@@ -52,6 +69,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
 
   const set_status = (message: string) => { if (!disposed) status.textContent = message; };
   const run = (operation: () => unknown) => { void Promise.resolve().then(operation).catch(error => set_status(String(error))); };
+  const cancel_pending_click = () => { window.clearTimeout(click_timer); click_timer = 0; };
   const icon = (name: git_icon_name) => git_icon(name, "workspace-explorer-icon");
   const icon_button = (name: git_icon_name, label: string, action: () => unknown) => {
     const button = el("button"); button.type = "button"; button.title = label; button.setAttribute("aria-label", label); button.append(icon(name)); button.onclick = () => run(action); return button;
@@ -122,19 +140,24 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
         else if (node.error) row.append(el("span", "workspace-explorer-note is-error", "无法读取"));
         row.onclick = event => {
           if (event.target === rename_state?.input) return;
+          cancel_pending_click();
           if (event.detail > 1) return;
-          window.clearTimeout(click_timer);
-          // 已选中名称的第二次操作留给双击改名；箭头和图标仍立即打开/折叠。
-          if (selected_path === node.path && event.target instanceof Element && event.target.closest(".workspace-explorer-name")) {
-            click_timer = window.setTimeout(() => { click_timer = 0; run(() => activate(node)); }, 500); return;
+          // 浏览器按系统双击窗口产生 dblclick。名称单击等该窗口结束再打开，期间保留同一 DOM 目标供慢双击改名。
+          if (event.target instanceof Element && event.target.closest(".workspace-explorer-name")) {
+            select(node, false, true);
+            click_timer = window.setTimeout(() => {
+              click_timer = 0;
+              if (!disposed && nodes.get(node.path) === node) run(() => activate(node));
+            }, double_click_delay_ms);
+            return;
           }
           select(node); run(() => activate(node));
         };
         row.ondblclick = event => {
           if (!(event.target instanceof Element) || !event.target.closest(".workspace-explorer-name")) return;
-          event.preventDefault(); event.stopPropagation(); window.clearTimeout(click_timer); click_timer = 0; begin_rename(node);
+          event.preventDefault(); event.stopPropagation(); cancel_pending_click(); begin_rename(node);
         };
-        row.oncontextmenu = event => { select(node); context_menu(event, node); };
+        row.oncontextmenu = event => { cancel_pending_click(); select(node); context_menu(event, node); };
         rows.push(row);
       }
       spacer.replaceChildren(...rows);
@@ -148,7 +171,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       else tree.removeAttribute("aria-activedescendant");
     });
   }
-  function select(node: explorer_node, scroll = false) {
+  function select(node: explorer_node, scroll = false, preserve_dom = false) {
     if (rename_state && rename_state.node !== node && !rename_state.busy) rename_state = undefined;
     selected_path = node.path; set_status(node.path); tree.focus({preventScroll: true});
     if (scroll) {
@@ -156,7 +179,13 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       if (top < tree.scrollTop) tree.scrollTop = top;
       else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
     }
-    render();
+    if (preserve_dom) {
+      for (const row of tree.querySelectorAll<HTMLElement>(".workspace-explorer-row")) {
+        const selected = row.dataset.path === node.path;
+        row.classList.toggle("is-selected", selected); row.setAttribute("aria-selected", String(selected));
+      }
+      tree.setAttribute("aria-activedescendant", node.id);
+    } else render();
   }
   async function load_children(node: explorer_node, force = false): Promise<void> {
     if (rename_state?.busy) return;
@@ -216,7 +245,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   }
   function begin_rename(node: explorer_node) {
     if (!root || node === root || disposed || rename_state?.busy) return;
-    window.clearTimeout(click_timer); click_timer = 0; select(node, true);
+    cancel_pending_click(); select(node, true);
     const input = el("input", "workspace-explorer-rename"); input.value = node.name; input.setAttribute("aria-label", "新名称"); input.spellcheck = false;
     rename_state = {node, input, busy: false, focus_requested: true}; set_status("输入新名称，按 Enter 确认，Esc 取消。");
     input.onkeydown = event => {
@@ -306,7 +335,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       if (native_sidebar) native_observer.observe(native_sidebar, {attributes: true, attributeFilter: ["class"]});
       run(async () => { await sync_root(); if (root) watch_visible(root); await reveal(); });
     }
-    onhide() { visible = false; native_observer.disconnect(); if (root) close_branch(root); }
+    onhide() { visible = false; cancel_pending_click(); native_observer.disconnect(); if (root) close_branch(root); }
   }
   const panel = new explorer_sidebar();
   sidebar.addPanel(panel);
@@ -353,7 +382,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     native_observer.disconnect(); resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame); if (refresh_frame) cancelAnimationFrame(refresh_frame);
-    window.clearTimeout(click_timer); rename_state = undefined;
+    cancel_pending_click(); rename_state = undefined;
     document.removeEventListener("click", activity_click, true); window.removeEventListener("focus", window_focus); window.removeEventListener("pagehide", dispose);
     for (const detach of detachers) detach();
     if (sidebar.activePanel === panel) { sidebar.hide(); sidebar.activePanel = sidebar.panels.find(candidate => candidate.ribbonButton?.id === "core.file-explorer"); }

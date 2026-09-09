@@ -8,21 +8,44 @@ import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
 import { prepare_workspace_rename, renamed_workspace_path } from "./workspace_rename";
 import { reveal_markdown_location } from "./workspace_markdown_location";
-import { file_key } from "./reading_positions";
+import { SOURCE_FILE_VIEW_ID, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
 import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
-export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string};
-export type workspace_file_host = ReturnType<typeof bind_workspace_files>;
-const FILE_VIEW = "linux_note.source_file";
+export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string};
+export type workspace_file_host = {
+  fs: any; path_api: any; core: graph_core;
+  open_file(file_path: string, location?: file_location, group?: string): Promise<void>;
+  context_root(): string;
+  file_menu(event: MouseEvent, file_path: string): void;
+  copy(text: string): unknown;
+  rename_file(root: string, old_path: string, name: string): Promise<string>;
+  current_file(): string;
+  can_save_active(): boolean;
+  save_active(): Promise<boolean>;
+  save_all(): Promise<boolean>;
+  can_write(file_path: string): boolean;
+  refresh_files(paths: string[]): void;
+  dispose(): void;
+};
+const FILES_BINDING = Symbol.for("linux-note.workspace-files@v1");
+type workspace_files_binding = {host: workspace_file_host; active: boolean; install(): void; dispose(): void};
 let active_host: workspace_file_host | undefined;
 export function get_workspace_files(): workspace_file_host | undefined { return active_host; }
 
 /** Markdown 默认使用原生编辑面；显式源码视图和其他文本使用 Monaco 标签。 */
-export function bind_workspace_files(core: graph_core) {
-  const runtime = window as unknown as {reqnode(name: string): any; File?: any; doApplyRename?(path: string): void};
+export function bind_workspace_files(core: graph_core): workspace_file_host {
+  const binding_owner = core.app as unknown as Record<symbol, workspace_files_binding | undefined>;
+  const existing_binding = binding_owner[FILES_BINDING];
+  if (existing_binding) {
+    existing_binding.install();
+    active_host = existing_binding.host;
+    return existing_binding.host;
+  }
+  const runtime = window as unknown as {reqnode(name: string): any; File?: any; ClientCommand?: Record<string, (...args: unknown[]) => unknown>; doApplyRename?(path: string): void};
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
-  const native_open = core.app.openFile.bind(core.app);
+  let native_app_open_file = core.app.openFile;
+  const call_native_app_open_file = (target: string) => native_app_open_file.call(core.app, target);
   const style = el("style"); style.textContent = files_css; document.head.append(style);
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
@@ -32,7 +55,8 @@ export function bind_workspace_files(core: graph_core) {
   const real_path = (leaf: graph_leaf | null): string => {
     if (!leaf) return "";
     if (path_api.isAbsolute(leaf.state.path)) return leaf.state.path;
-    if (leaf.state.path.startsWith(`typ://${FILE_VIEW}/`)) return decodeURIComponent(leaf.state.path.slice(`typ://${FILE_VIEW}/`.length));
+    const source_path = source_file_path(leaf.state.path, path_api);
+    if (source_path) return source_path;
     return "";
   };
   const context_root = () => runtime.File?.getMountFolder?.() || core.app.workspace.activeLeaf?.state.git_cwd || path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
@@ -161,7 +185,7 @@ export function bind_workspace_files(core: graph_core) {
       {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
       {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
       {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
-      ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}native_open(this.file_path);}}]:[])
+      ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}call_native_app_open_file(this.file_path);}}]:[])
     ];}
     menu(event:MouseEvent){workspace_menu(event,this.menu_entries());}
     confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=workspace_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
@@ -170,41 +194,41 @@ export function bind_workspace_files(core: graph_core) {
     release_source(){if(this.disposed)return;this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
     onClose(){source_lifecycle.schedule_release(this);editor_status.schedule();}
   }
-  core.app.viewManager.registerView(FILE_VIEW, leaf => new source_file_view(leaf));
+  core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
   const open_file = async (file_path: string, location: file_location = {}, group = "active") => {
     if (renaming) throw new Error("正在重命名，请稍后再打开文件。");
-    file_path = path_api.resolve(file_path);
+    const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
+    if (!resolved_path) throw new Error("无法解析文件路径。");
+    file_path = resolved_path;
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
-      await navigate_reading_target(file_path, {group, locate: location.line == null ? undefined : () => reveal_markdown_location(location)});
+      await navigate_reading_target(file_path, {group, hash: location.hash, locate: location.line == null ? undefined : () => reveal_markdown_location(location)});
       return;
     }
-    const uri = `typ://${FILE_VIEW}/${encodeURIComponent(file_path)}`;
+    const uri = source_file_uri(file_path);
     let existing: graph_leaf | undefined;
-    core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === uri) existing = leaf; });
-    if (existing && group === "active") { const view=existing.view as source_file_view;if(location.line!=null)view.target=location;core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);view.reveal();return; }
+    core.app.workspace.eachLeaves(leaf => { if (is_source_file_uri(leaf.state.path) && file_key(real_path(leaf)) === file_key(file_path)) existing = leaf; });
+    if (existing && group === "active") { const view=existing.view as source_file_view;if(location.line!=null)view.target=location;core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);view.reveal();return; }
     if (group !== "active") { if(location.line!=null)group_locations.set(uri,location);core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]); return; }
     const parent = core.app.workspace.activeLeaf?.parent; if (!parent) throw new Error("当前没有可用的编辑器组。");
-    const leaf = core.app.workspace.createLeaf({type: FILE_VIEW, state: {path: uri, git_cwd: path_api.dirname(file_path)}});
+    const leaf = core.app.workspace.createLeaf({type: SOURCE_FILE_VIEW_ID, state: {path: uri, git_cwd: path_api.dirname(file_path)}});
     if(location.line!=null)(leaf.view as source_file_view).target=location;
     parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
   };
   // 社区核心默认把不支持的文件送到外部程序；所有应用内打开入口统一分流。
-  const markdown_target=(target:string)=>is_markdown_file(target)||is_markdown_file(target.split("#",1)[0]);
-  core.app.openFile = (target: string) => {
-    if (!target.startsWith("typ://") && !markdown_target(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
+  const routed_app_open_file = function (this: typeof core.app, target: string) {
+    const markdown = resolve_markdown_file_target(path_api, context_root(), target);
+    if (markdown) return open_file(markdown.file_path, {hash: markdown.hash});
+    if (!target.startsWith("typ://")) return open_file(target);
     // 原生 bundle 仍指向该文件而中央为工具标签时，核心会直接返回；阅读导航显式激活既有 Markdown leaf。
-    if (is_markdown_file(target)) return open_file(path_api.isAbsolute(target) ? target : path_api.resolve(context_root(), target));
-    return native_open(target);
+    return native_app_open_file.call(this, target);
   };
-  const library = runtime.File?.editor?.library;
-  if (library?.openFile) {
-    const open = library.openFile;
-    library.openFile = function (target: string, ...args: unknown[]) {
-      if (typeof target === "string" && !target.startsWith("typ://") && !markdown_target(target)) return open_file(target);
-      return open.call(this, target, ...args);
-    };
-  }
+  let library = runtime.File?.editor?.library;
+  let native_library_open_file = typeof library?.openFile === "function" ? library.openFile : undefined;
+  const routed_library_open_file = function (this: unknown, target: string, ...args: unknown[]) {
+    if (typeof target === "string" && !target.startsWith("typ://") && !parse_markdown_file_target(target)) return open_file(target);
+    return native_library_open_file?.call(this, target, ...args);
+  };
   const copy = (text: string) => runtime.reqnode("electron").clipboard.writeText(text);
   const file_menu = (event: MouseEvent, file_path: string) => workspace_menu(event, [
     {title: "打开文件", action: () => void open_file(file_path)},
@@ -237,7 +261,7 @@ export function bind_workspace_files(core: graph_core) {
         const target = map(real_path(leaf)); if (!target) return;
         if (all_leaves.some(other => other !== leaf && !map(real_path(other)) && file_key(real_path(other)) === file_key(target))) throw new Error("目标名称已有打开的文档标签，请先处理该标签，避免混淆未保存内容。");
         if (typeof (leaf.parent as unknown as {renameTab?: unknown}).renameTab !== "function") throw new Error("当前编辑器组不支持更新标签路径，已停止重命名。");
-        tabs.push({leaf, target: leaf.state.path.startsWith(`typ://${FILE_VIEW}/`) ? `typ://${FILE_VIEW}/${encodeURIComponent(target)}` : target});
+        tabs.push({leaf, target: is_source_file_uri(leaf.state.path) ? source_file_uri(target) : target});
       });
       library?.pauseOnChange?.(); paused = true;
       // 原生 IPC 负责暂停文件监视；不用社区核心的 directory:rename 前缀匹配，以免 a 误改 abc。
@@ -274,11 +298,54 @@ export function bind_workspace_files(core: graph_core) {
       renaming = false;
     }
   };
+  const active_source_view = () => [...views].find(view => view.leaf === core.app.workspace.activeLeaf);
+  const native_document_active = () => Boolean(core.app.workspace.activeLeaf)
+    && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
+  const can_save_active = () => Boolean(active_source_view()) || native_document_active();
+  const save_active = async () => {
+    const source_view = active_source_view();
+    if (source_view) return source_view.save();
+    if (!native_document_active()) return false;
+    await Promise.resolve(runtime.ClientCommand?.save?.());
+    return true;
+  };
+  const save_all = async () => {
+    const source_saves = [...views].filter(view => !view.disposed && view.dirty()).map(view => view.save());
+    const [, source_results] = await Promise.all([
+      Promise.resolve().then(() => runtime.ClientCommand?.saveAll?.()),
+      Promise.all(source_saves),
+    ]);
+    return source_results.every(Boolean);
+  };
   document.documentElement.setAttribute("data-linux-note-workspace-files", "ready");
   document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file,
+  let binding: workspace_files_binding;
+  // 仅释放本模块拥有的两条打开路由；视图宿主由 Symbol 继续持有，重新绑定时不会重复注册视图或监听器。
+  const dispose = () => {
+    if (!binding.active) return;
+    binding.active = false;
+    window.removeEventListener("pagehide", dispose);
+    if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
+    if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
+  };
+  const install = () => {
+    if (binding.active) return;
+    native_app_open_file = core.app.openFile;
+    library = runtime.File?.editor?.library;
+    native_library_open_file = typeof library?.openFile === "function" ? library.openFile : undefined;
+    core.app.openFile = routed_app_open_file;
+    if (library && native_library_open_file) library.openFile = routed_library_open_file;
+    binding.active = true;
+    window.addEventListener("pagehide", dispose, {once: true});
+  };
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, can_save_active, save_active, save_all,
     current_file: () => real_path(core.app.workspace.activeLeaf),
-    can_write: (file_path: string) => (![...views].some(view=>view.file_path===file_path&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || runtime.File?.bundle?.filePath !== file_path),
-    refresh_files: (paths: string[]) => { for (const view of views) if (paths.includes(view.file_path)&&!view.dirty()) void view.load_file(); }
-  }; active_host=host; return host;
+    can_write: (file_path: string) => (![...views].some(view=>file_key(view.file_path)===file_key(file_path)&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || file_key(runtime.File?.bundle?.filePath || "") !== file_key(file_path)),
+    refresh_files: (paths: string[]) => { const keys=new Set(paths.map(file_key));for (const view of views) if (keys.has(file_key(view.file_path))&&!view.dirty()) void view.load_file(); },
+    dispose
+  };
+  binding = {host, active: false, install, dispose};
+  binding_owner[FILES_BINDING] = binding;
+  install();
+  active_host=host; return host;
 }

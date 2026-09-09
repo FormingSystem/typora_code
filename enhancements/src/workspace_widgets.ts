@@ -7,7 +7,7 @@ export function workspace_button(text: string, action: () => void, class_name = 
 export function workspace_option(value: string, text: string): HTMLOptionElement {
   const node = workspace_element("option", "", text); node.value = value; return node;
 }
-export function workspace_dialog(title: string): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
+export function workspace_dialog(title: string, close_title = "关闭"): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -30,7 +30,7 @@ export function workspace_dialog(title: string): { root: HTMLElement; content: H
     }
     event.stopPropagation();
   });
-  footer.append(workspace_button("关闭", close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
+  footer.append(workspace_button(close_title, close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
   return { root, content, footer, close };
 }
 export type workspace_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };

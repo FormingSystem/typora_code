@@ -7,8 +7,10 @@ import { install_workspace_outline } from "./workspace_outline";
 import { install_workspace_footer } from "./workspace_footer";
 import { install_workspace_titlebar } from "./workspace_titlebar";
 import { install_workspace_sidebar_sash } from "./workspace_sidebar_sash";
-import { bind_workspace_tab_actions } from "./workspace_tabs";
+import { bind_workspace_tab_actions, close_all_workspace_tabs } from "./workspace_tabs";
+import { CLOSE_ALL_WORKSPACE_TABS } from "./workspace_shortcuts";
 import { install_workspace_ui_appearance } from "./workspace_ui_appearance";
+import { install_workspace_chrome } from "./workspace_chrome";
 import { workspace_dialog, workspace_element as el, workspace_button as button } from "./workspace_widgets";
 
 export function bind_workspace_browser() {
@@ -16,8 +18,10 @@ export function bind_workspace_browser() {
   install_workspace_outline({outline:(window as unknown as {File?:{editor?:{library?:{outline?:{hideSearch():void;clearSearch():void;isSearchShown():boolean}}}}}).File?.editor?.library?.outline});
   const files=bind_workspace_files(core);let chosen_root="";
   const context_root=files.context_root;files.context_root=()=>chosen_root||context_root();
+  install_workspace_chrome();
   install_workspace_ui_appearance();
   bind_workspace_tab_actions(files);
+  core.app.commands.register({id:CLOSE_ALL_WORKSPACE_TABS,title:"视图：关闭所有编辑器",scope:"global",callback:()=>void close_all_workspace_tabs(files)});
   install_workspace_titlebar(files);
   const open_folder=()=>new Promise<void>(resolve=>{
     const dialog=workspace_dialog("打开文件夹");const path=el("input");path.setAttribute("aria-label","文件夹路径");path.value=files.context_root();const error=el("p");dialog.content.append(el("p","","输入要在资源管理器中打开的文件夹路径。"),path,error);

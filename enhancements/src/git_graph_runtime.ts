@@ -1,4 +1,5 @@
 import type { git_run } from "./git_graph_data";
+import { git_graph_text as text } from "./git_graph_i18n";
 
 type git_child = { kill(): void; stdin?: { end(): void } };
 type process_error = Error & { code?: string | number; killed?: boolean };
@@ -26,9 +27,9 @@ export function create_git_runner(modules: native_modules, options: { executable
       }, (error, stdout, stderr) => {
         children.delete(child);
         if (!error) { resolve(stdout); return; }
-        const message = error.code === "ENOENT" ? "未找到 Git。请安装 Git 并加入 PATH，然后正常重启 Typora。"
-          : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? "结果超过 16 MiB，请缩小历史范围或选择其他文件。"
-          : error.killed ? "Git 请求已取消或超时，请刷新状态后重试。"
+        const message = error.code === "ENOENT" ? text("runtime.git_not_found")
+          : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? text("runtime.result_too_large")
+          : error.killed ? text("runtime.cancelled_or_timed_out")
           : (String(stderr || "") || error.message).trim();
         reject(Object.assign(new Error(message), { code: error.code }));
       });

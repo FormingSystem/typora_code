@@ -1,5 +1,5 @@
 import { create_reading_history, type reading_location } from "./reading_history";
-import { file_key } from "./reading_positions";
+import { file_key, parse_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file } from "./workspace_file_uri";
 import { create_reading_workspace, reading_delay, type reading_context } from "./reading_workspace";
 import { get_workspace_app } from "./workspace_bootstrap";
 import { capture_markdown_location, reveal_markdown_location } from "./workspace_markdown_location";
@@ -21,7 +21,7 @@ type typora_file_state = {
 };
 
 let bound = false;
-type reading_target_options = { locate?: () => Promise<void>; group?: string };
+type reading_target_options = { locate?: () => Promise<void>; group?: string; hash?: string };
 let navigate_target: ((path: string, options: reading_target_options) => Promise<boolean>) | undefined;
 let remap_paths: ((map: (path: string) => string | undefined) => void) | undefined;
 export function rename_reading_paths(map: (path: string) => string | undefined): void { remap_paths?.(map); }
@@ -190,7 +190,7 @@ export function bind_reading_navigation(): void {
       if (Date.now() - started > 15000) return false;
       await reading_delay(40);
     }
-    return navigate(path, undefined, undefined, options);
+    return navigate(path, options.hash, undefined, options);
   };
   const travel_history = async (direction: -1 | 1) => {
     if (navigating || history.is_navigating() || is_busy()) return false;
@@ -214,16 +214,20 @@ export function bind_reading_navigation(): void {
       if (context) void navigate(context.file_path, local_url).catch(report);
       return;
     }
-    if (!app && /\.md(?:#|$)/iu.test(local_url)) {
-      const [path, hash] = local_url.split(/#(.*)/su);
-      void navigate(path, hash ? `#${hash}` : undefined).catch(report);
+    const markdown_target = parse_markdown_file_target(local_url);
+    if (!app && markdown_target) {
+      void navigate(markdown_target.file_path, markdown_target.hash).catch(report);
       return;
     }
     return original_open_url.call(this, url, ...args);
   };
   editor.library.openFile = function (path, callback) {
     if (navigating || callback || editor.sourceView?.inSourceMode) return original_open_file.call(this, path, callback);
-    void navigate(path).catch(report);
+    const parsed = parse_markdown_file_target(path);
+    if (!parsed?.hash) { void navigate(path).catch(report); return; }
+    const source = workspace.active()?.file_path;
+    const target = path_api && source ? resolve_workspace_file(path_api, path_api.dirname(source), parsed.file_path) : parsed.file_path;
+    void navigate(target ?? parsed.file_path, parsed.hash).catch(report);
   };
   if (app) {
     // 替换核心 openFile 的固定 500ms 全局锚点定时器：文件、栏、标题作为一次操作兑现。
@@ -236,9 +240,7 @@ export function bind_reading_navigation(): void {
     const original_app_open_file = app.openFile;
     app.openFile = function (path) {
       const source = workspace.active()?.file_path;
-      const unwrapped = path.replace(/^<|>$/gu, "");
-      return original_app_open_file.call(this, source && !path_api!.isAbsolute(unwrapped)
-        ? path_api!.resolve(path_api!.dirname(source), unwrapped) : unwrapped);
+      return original_app_open_file.call(this, resolve_host_open_file_target(path_api!, source ?? "", path));
     };
     // 标签切换通过核心保存的 openFile$original，事件用于补齐这条路径。
     app.workspace.on("file:will-open", () => {

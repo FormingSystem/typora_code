@@ -69,3 +69,8 @@ create_workspace_titlebar_definitions
 create_workspace_titlebar_menu
 bind_workspace_tab_actions
 install_workspace_ui_appearance
+install_workspace_chrome
+data-linux-note-workspace-chrome
+linux-note-document-margin
+install_workspace_shortcuts
+linux_note:close_all_workspace_tabs

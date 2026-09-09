@@ -3,6 +3,7 @@ import { compare_files, EMPTY, type graph_change, type graph_commit, type reposi
 import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
 import type { git_source_control } from "./git_source_control";
 import { git_icon_button as icon_button, git_disclosure, git_icon } from "./git_icons";
+import { git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
 
 // 与 VS Code SCM 历史相同的 11px 轨道、22px 行高；只计算当前行仍存在的轨道。
 const HISTORY_LANE_WIDTH = 11;
@@ -16,25 +17,25 @@ export class git_scm_history {
   files_cache = new Map<string, graph_change[]>();
   collapsed_directories = new Set<string>();
   constructor(public owner: git_source_control) {
-    this.container.setAttribute("aria-label", "提交图");
+    this.container.setAttribute("aria-label", text("history.graph"));
     this.container.setAttribute("data-linux-note-scm-history", "ready");
-    this.toggle = button("提交图", () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.prepend(git_disclosure());
-    this.toggle.title = "展开或折叠提交图；右键筛选分支";
+    this.toggle = button(text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.prepend(git_disclosure());
+    this.toggle.title = text("history.toggle_help");
     this.toggle.setAttribute("aria-expanded", "true"); this.toggle.append(this.count);
-    const refresh = icon_button("refresh", "刷新提交历史", () => void owner.panel.refresh(false), "git-scm-history-refresh");
-    const current = icon_button("target", "定位当前提交（HEAD）", () => void this.reveal_head(), "git-scm-history-head");
-    const launch = icon_button("link-external", "在编辑区打开提交图", () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
-    const branches = icon_button("git-branch", "筛选提交历史分支", () => {}, "git-scm-history-branches"); branches.onclick = event => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
-    const more = icon_button("more", "更多提交图操作", () => {}, "git-scm-history-more-menu"); more.onclick = event => this.more_menu(event);
+    const refresh = icon_button("refresh", text("history.refresh"), () => void owner.panel.refresh(false), "git-scm-history-refresh");
+    const current = icon_button("target", text("history.reveal_head"), () => void this.reveal_head(), "git-scm-history-head");
+    const launch = icon_button("link-external", text("history.open_in_editor"), () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
+    const branches = icon_button("git-branch", text("history.filter_branches"), () => {}, "git-scm-history-branches"); branches.onclick = event => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
+    const more = icon_button("more", text("history.more"), () => {}, "git-scm-history-more-menu"); more.onclick = event => this.more_menu(event);
     const tools = el("span", "git-scm-history-toolbar");
-    const network = ([["fetch", "git-fetch", "获取远端更新"], ["pull", "repo-pull", "拉取并整合远端更新"], ["push", "repo-push", "推送当前分支"]] as const).map(([id, icon, title]) => {
-      const action = icon_button(icon, title, () => this.network_action(id), "git-scm-history-network"); action.setAttribute("data-history-action", id); return action;
+    const network = ([["fetch", "git-fetch", "history.fetch"], ["pull", "repo-pull", "history.pull"], ["push", "repo-push", "history.push"]] as const).map(([id, icon, title_key]) => {
+      const action = icon_button(icon, text(title_key), () => this.network_action(id), "git-scm-history-network"); action.setAttribute("data-history-action", id); return action;
     });
     tools.append(branches, current, ...network, refresh, launch, more);
     for (const action of [branches, refresh, more]) action.setAttribute("aria-label", action.title);
     this.header.append(this.toggle, tools); this.container.append(this.header, this.list);
     this.header.oncontextmenu = event => this.more_menu(event);
-    this.list.setAttribute("aria-label", "提交历史");
+    this.list.setAttribute("aria-label", text("history.commit_history"));
     this.list.addEventListener("keydown", event => {
       if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
       const target = event.target as HTMLElement; const row = target.closest<HTMLButtonElement>(".git-scm-history-commit");
@@ -52,10 +53,10 @@ export class git_scm_history {
   branch_entries(): workspace_menu_entry[] {
     const panel = this.owner.panel; const select = (branches: string[]) => { panel.branches = branches; void panel.refresh(); };
     return [
-      {id: "all_branches", title: "全部分支", checked: !panel.branches.length, action: () => select([])},
-      {id: "current_branch", title: "当前 HEAD", checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"])},
+      {id: "all_branches", title: text("history.all_branches"), checked: !panel.branches.length, action: () => select([])},
+      {id: "current_branch", title: text("history.current_head"), checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"])},
       ...(panel.state?.refs || []).filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({id: ref.name, title: ref.name.slice(11), checked: panel.branches.length === 1 && panel.branches[0] === ref.name, action: () => select([ref.name])})),
-      {id: "multiple_branches", title: "选择多个分支…", separator: true, action: () => panel.filter_branches()},
+      {id: "multiple_branches", title: text("history.select_branches"), separator: true, action: () => panel.filter_branches()},
     ];
   }
   network_action(id: string): void { this.owner.panel.action_dialog(id, "repository", "", this.owner.panel.state?.head); }
@@ -63,20 +64,20 @@ export class git_scm_history {
     const panel = this.owner.panel;
     const set_tree = (value: boolean) => { this.owner.history_tree = value; this.owner.save_layout(); if (panel.state) this.render(panel.state); };
     panel.configured_menu(event, "scm_history_toolbar", [
-      {id: "history_list", title: "以列表显示", checked: !this.owner.history_tree, action: () => set_tree(false)},
-      {id: "history_tree", title: "以树形显示", checked: this.owner.history_tree, action: () => set_tree(true)},
-      {id: "branches", title: "分支范围", children: this.branch_entries(), separator: true, action() {}},
-      {id: "head", title: "定位当前提交（HEAD）", action: () => void this.reveal_head()},
-      ...[["fetch", "获取远端更新…"], ["pull", "拉取…"], ["push", "推送…"]].map(([id, title]) => ({id, title, action: () => this.network_action(id)})),
-      {id: "refresh", title: "刷新提交历史", action: () => void panel.refresh(false)},
-      {id: "open_graph", title: "在编辑区打开提交图", action: () => panel.host.show_history(panel.root)},
-      {id: "settings", title: "提交图设置…", separator: true, action: () => panel.settings_dialog()},
+      {id: "history_list", title: text("history.list_view"), checked: !this.owner.history_tree, action: () => set_tree(false)},
+      {id: "history_tree", title: text("history.tree_view"), checked: this.owner.history_tree, action: () => set_tree(true)},
+      {id: "branches", title: text("history.branch_scope"), children: this.branch_entries(), separator: true, action() {}},
+      {id: "head", title: text("history.reveal_head"), action: () => void this.reveal_head()},
+      ...[["fetch", "history.fetch_menu"], ["pull", "history.pull_menu"], ["push", "history.push_menu"]].map(([id, title_key]) => ({id, title: text(title_key as git_graph_text_key), action: () => this.network_action(id)})),
+      {id: "refresh", title: text("history.refresh"), action: () => void panel.refresh(false)},
+      {id: "open_graph", title: text("history.open_in_editor"), action: () => panel.host.show_history(panel.root)},
+      {id: "settings", title: text("history.settings"), separator: true, action: () => panel.settings_dialog()},
     ]);
   }
   reset(): void { this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
-    if (!panel.state?.head) { panel.report("此仓库尚无当前提交。"); return; }
+    if (!panel.state?.head) { panel.report(text("history.no_head")); return; }
     if (!panel.state.commits.some(commit => commit.hash === panel.state!.head)) { panel.branches = ["HEAD"]; await panel.refresh(); }
     const state = panel.state; if (!state?.commits.some(commit => commit.hash === state.head)) return;
     this.selected = state.head; this.owner.history_open = true; this.owner.show_history = true; this.owner.apply_history_layout(); this.owner.save_layout(); this.render(state);
@@ -84,7 +85,7 @@ export class git_scm_history {
     if (row) { this.list.scrollTop += row.getBoundingClientRect().top - this.list.getBoundingClientRect().top - this.list.clientHeight / 2 + row.clientHeight / 2; row.focus({preventScroll: true}); }
   }
   set_open(open: boolean): void {
-    this.toggle.replaceChildren(git_disclosure(), document.createTextNode("提交图"), this.count);
+    this.toggle.replaceChildren(git_disclosure(), document.createTextNode(text("history.graph")), this.count);
     this.toggle.setAttribute("aria-expanded", String(open)); this.list.hidden = !open;
   }
   render(state: repository_state): void {
@@ -132,12 +133,12 @@ export class git_scm_history {
         const files = el("div", "git-scm-history-files"); files.dataset.commit = commit.hash;
         expansion.append(this.continuation(graph_row, outgoing_lanes), files); entry.append(expansion);
         if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash)!);
-        else { files.textContent = "正在读取提交文件…"; void this.load_files(state, commit, files, epoch); }
+        else { files.textContent = text("history.loading_files"); void this.load_files(state, commit, files, epoch); }
       }
       fragment.append(entry);
     }
-    if (!state.commits.length) fragment.append(el("div", "git-scm-empty", state.head ? "当前分支筛选没有提交。" : "此仓库尚无提交。"));
-    if (state.more) fragment.append(button("加载更多提交", () => { if (panel.pending) return; panel.count += panel.settings.page_count; void panel.refresh(false); }, "git-scm-history-more"));
+    if (!state.commits.length) fragment.append(el("div", "git-scm-empty", state.head ? text("history.no_filtered_commits") : text("history.no_commits")));
+    if (state.more) fragment.append(button(text("history.load_more"), () => { if (panel.pending) return; panel.count += panel.settings.page_count; void panel.refresh(false); }, "git-scm-history-more"));
     this.list.replaceChildren(fragment); this.list.scrollTop = scroll;
     if (focused_hash) [...this.list.querySelectorAll<HTMLButtonElement>(".git-scm-history-commit")].find(row => row.dataset.hash === focused_hash)?.focus({preventScroll: true});
   }
@@ -159,12 +160,12 @@ export class git_scm_history {
       const files = await compare_files(this.owner.panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
       if (epoch !== this.epoch || state.root !== this.root) return;
       this.files_cache.set(commit.hash, files); this.render_files(target, commit, files);
-    } catch (error) { if (epoch === this.epoch) { target.textContent = String(error instanceof Error ? error.message : error); target.append(button("重试", () => { const current = this.owner.panel.state; if (current) this.render(current); })); } }
+    } catch (error) { if (epoch === this.epoch) { target.textContent = String(error instanceof Error ? error.message : error); target.append(button(text("history.retry"), () => { const current = this.owner.panel.state; if (current) this.render(current); })); } }
   }
   render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
     target.replaceChildren(); const from = commit.parents[0] || EMPTY;
     target.setAttribute("role", "group");
-    target.setAttribute("aria-label", `${files.length} 个更改文件${commit.parents.length > 1 ? " · 对比第一个父提交" : ""}`);
+    target.setAttribute("aria-label", text("history.changed_files_aria", {count: files.length, parent: commit.parents.length > 1 ? text("history.first_parent_suffix") : ""}));
     const directories = new Map<string, HTMLElement>([["", target]]);
     const parent_for = (path: string): HTMLElement => {
       if (!this.owner.history_tree || !path) return target;

@@ -1,4 +1,5 @@
 import codicons from "../vendor/codicons/icons.json";
+import { git_graph_text as text } from "./git_graph_i18n";
 
 export type git_icon_name = keyof typeof codicons;
 const templates = new Map<git_icon_name, SVGSVGElement>();
@@ -8,7 +9,7 @@ export function git_icon(name: git_icon_name, class_name = ""): SVGSVGElement {
   let template = templates.get(name);
   if (!template) {
     const parsed = new DOMParser().parseFromString(codicons[name], "image/svg+xml");
-    if (parsed.documentElement.localName !== "svg") throw new Error("无效的内置 Git 图标：" + name);
+    if (parsed.documentElement.localName !== "svg") throw new Error(text("icon.invalid_builtin", {name}));
     template = document.importNode(parsed.documentElement, true) as unknown as SVGSVGElement;
     template.setAttribute("width", "16"); template.setAttribute("height", "16");
     template.setAttribute("aria-hidden", "true"); template.setAttribute("focusable", "false");
