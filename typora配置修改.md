@@ -204,6 +204,8 @@ std::vector<int> values;
 
 # 第6章\_PowerShell、UCRT64与Linux一键配置
 
+本章命令均从独立 Typora Code 仓库根目录执行。当前官方社区插件入口迁移的部署、卸载与重复安装回归尚未完成；本章保留已有流程与限制，不作为当前工作分支的验收声明。
+
 ## 6.1\_路径发现不是安装目录猜测
 
 仓库已经保存预构建扩展，普通使用者 **不需要安装 Node.js**。部署脚本也不写死盘符、用户名、`Program Files`、`/usr/share` 或某台机器的 Typora 位置。路径发现顺序为：
@@ -232,13 +234,13 @@ std::vector<int> values;
 在 PowerShell 中执行：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\typora\configure_windows.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .\configure_windows.ps1
 ```
 
-也可以在资源管理器中双击 `tools\typora\configure_windows.cmd`；这个文件只负责转交给同目录 PowerShell 脚本，不包含安装位置。如果自动发现失败，脚本会提示输入路径。自动化环境不允许等待输入时，可以提前设置 `TYPORA_ROOT`，或同时传入 `-typora_root` 与 `-non_interactive`：
+也可以在资源管理器中双击 `configure_windows.cmd`；这个文件只负责转交给同目录 PowerShell 脚本，不包含安装位置。如果自动发现失败，脚本会提示输入路径。自动化环境不允许等待输入时，可以提前设置 `TYPORA_ROOT`，或同时传入 `-typora_root` 与 `-non_interactive`：
 
 ```powershell
-.\tools\typora\configure_windows.ps1 `
+.\configure_windows.ps1 `
   -typora_root $env:TYPORA_ROOT `
   -non_interactive
 ```
@@ -248,7 +250,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\tools\typora\configure_win
 MSYS2 必须打开 **UCRT64** 终端；Git Bash、MINGW64 和其他 MSYS2 子环境不是此脚本的支持目标。UCRT64 与 Linux 都执行同一个入口：
 
 ```bash
-cd tools/typora
+# 在 Typora Code 仓库根目录执行
 bash ./configure.sh
 ```
 
@@ -282,12 +284,12 @@ PowerShell 和 Bash 入口执行同一组动作：
 使用配置输出的备份目录回退：
 
 ```powershell
-.\tools\typora\restore_configuration_windows.ps1 `
+.\restore_configuration_windows.ps1 `
   -backup_root '<配置脚本输出的备份目录>'
 ```
 
 ```bash
-bash ./tools/typora/restore_configuration.sh \
+bash ./restore_configuration.sh \
   --backup-root '<配置脚本输出的备份目录>'
 ```
 
@@ -298,11 +300,11 @@ bash ./tools/typora/restore_configuration.sh \
 以下检查不修改 Typora；缺少安装位置时也遵循同一套发现和询问规则：
 
 ```powershell
-.\tools\typora\check_configuration_windows.ps1
+.\check_configuration_windows.ps1
 ```
 
 ```bash
-bash ./tools/typora/check_configuration.sh
+bash ./check_configuration.sh
 ```
 
 检查通过时会报告平台、已验证的 Typora 根目录、唯一脚本入口数量、主题 SHA-256、bundle SHA-256 和 `status: OK`。检查会分别比较已安装主题、bundle 与当前仓库文件是否一致，并校验全部插件资产；旧主题、旧 bundle 或缺失、损坏的插件文件不能仅凭入口还在就通过。普通安装也会在复制后校验主题、bundle 和插件资产。持续集成或其他非交互环境应增加 `-non_interactive` 或 `--non-interactive`，防止脚本等待终端输入。
@@ -316,7 +318,7 @@ bash ./tools/typora/check_configuration.sh
 只有修改扩展源码、升级 grammar 或依赖时才需要自行准备开发用 Node.js；Windows 安装器会另外管理集成终端的私有运行时：
 
 ```powershell
-cd tools\typora\enhancements
+cd enhancements
 npm ci
 npm run build
 npm run check
