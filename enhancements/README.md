@@ -34,18 +34,20 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
+以下命令从 Typora Code 仓库根目录执行。当前官方社区插件入口迁移尚未完成部署与回退回归，历史验证记录不能代替当前版本验收。
+
 仓库已经提交预构建 bundle，普通用户无需预装 Node.js；Windows 安装器管理终端所需的私有运行时。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
 
 Windows PowerShell 或资源管理器入口：
 
 ```text
-tools\typora\configure_windows.cmd
+configure_windows.cmd
 ```
 
 MSYS2 UCRT64 或 Linux Bash 入口：
 
 ```bash
-cd tools/typora
+# 在 Typora Code 仓库根目录执行
 bash ./configure.sh
 ```
 
@@ -55,8 +57,10 @@ PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识�
 
 ## 1.2\_开发者构建
 
+从 Typora Code 仓库根目录进入 `enhancements` 后执行：
+
 ```powershell
-cd tools/typora/enhancements
+cd enhancements
 npm ci
 npm run build
 npm run check
@@ -158,7 +162,7 @@ Windows 另有终端、路径复制和安装回滚的通过基线；原生 Linux
 powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1
 ```
 
-该脚本复用 `tools/typora/scripts/lib/typora_environment.ps1`，不维护自己的固定安装目录候选。Typora 更新会替换安装目录，更新后若入口消失，应重新运行安装脚本。不要在文档有未保存修改时强制退出 Typora；安装完成后保存文档并正常重启，扩展才会进入新窗口。
+该脚本复用 `scripts/lib/typora_environment.ps1`，不维护自己的固定安装目录候选。Typora 更新会替换安装目录，更新后若入口消失，应重新运行安装脚本。不要在文档有未保存修改时强制退出 Typora；安装完成后保存文档并正常重启，扩展才会进入新窗口。
 
 回退时传入安装输出的备份目录：
 

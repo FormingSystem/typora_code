@@ -2,7 +2,7 @@
 
 typora_environment_init() {
     if [[ "$#" -ne 1 ]]; then
-        printf '%s\n' '[typora] typora_environment_init requires the tools/typora directory.' >&2
+        printf '%s\n' '[typora] typora_environment_init requires the Typora Code project directory.' >&2
         return 2
     fi
 
