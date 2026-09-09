@@ -1,2 +1,2 @@
-dist/*.js text eol=lf
+dist/community_plugin/** -text
 scripts/*.sh text eol=lf

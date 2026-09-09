@@ -1,11 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
-const typora_root = path.resolve("..");
+const enhancement_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const typora_root = path.resolve(enhancement_root, "..");
+process.chdir(enhancement_root);
 const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bundle_markers.txt'), 'utf8')
   .split(/\r?\n/u).map((marker) => marker.trim()).filter(Boolean);
-const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'), 'utf8');
+const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/community_plugin/main.js'), 'utf8');
 for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
   'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
   'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade', 'data-linux-note-source-control', 'data-linux-note-monaco-diff', 'linux_note:source_control',
@@ -19,6 +22,8 @@ for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-w
   if(!bundle_markers.includes(marker))throw new Error(`required workspace deployment capability is missing: ${marker}`);
 }
 const codicon_root = 'vendor/codicons';
+// 这些元数据按Git的eol=lf检出，摘要必须从同一规范字节计算。
+for (const name of ['icons.json', 'source_manifest.json']) if (fs.readFileSync(`${codicon_root}/${name}`, 'utf8').includes('\r')) throw new Error(`Codicons metadata must use LF before calculating checksums: ${name}`);
 const codicon_checksums = new Map();
 for(const line of fs.readFileSync(`${codicon_root}/SHA256SUMS`,'utf8').trim().split(/\r?\n/u)) {
   const match=/^([a-f\d]{64})  ([a-zA-Z0-9_./-]+)$/u.exec(line);
@@ -95,12 +100,12 @@ for (const marker of ["UCRT64", "Linux", "cygpath", "TYPORA_ROOT", "/dev/tty", "
 }
 
 for (const file of ['configure_windows.ps1', 'check_configuration_windows.ps1', 'enhancements/scripts/install_windows.ps1']) {
-  if (!sources.get(file).includes('assert_typora_bundle') || !sources.get(file).includes('bundle_markers.txt')) {
+  if (!sources.get(file).includes('get_typora_community_plugin_assets')) {
     throw new Error(`shared bundle validation is missing from ${file}`);
   }
 }
 for (const file of ['configure.sh', 'check_configuration.sh']) {
-  if (!sources.get(file).includes('typora_validate_bundle') || !sources.get(file).includes('bundle_markers.txt')) {
+  if (!sources.get(file).includes('typora_validate_community_plugin')) {
     throw new Error(`shared bundle validation is missing from ${file}`);
   }
 }
@@ -114,9 +119,9 @@ if (!bootstrap_version || bundled_version !== bootstrap_version) {
   throw new Error('workspace source and prebuilt core versions differ; rebuild the bundle');
 }
 for (const line of asset_lines) {
-  const match = /^([a-f0-9]{64})  ([0-9.]+\/(?:locales\/)?[a-zA-Z0-9._-]+)$/u.exec(line);
+  const match = /^([a-f0-9]{64})  ((?:loader\.(?:js|json))|(?:[0-9.]+\/(?:locales\/)?[a-zA-Z0-9._-]+))$/u.exec(line);
   if (!match || match[2].includes('..')) throw new Error(`invalid workspace asset entry: ${line}`);
-  if (match[2].split('/')[0] !== bootstrap_version) throw new Error(`workspace core version differs from its assets: ${match[2]}`);
+  if (!match[2].startsWith('loader.') && match[2].split('/')[0] !== bootstrap_version) throw new Error(`workspace core version differs from its assets: ${match[2]}`);
   const digest = createHash('sha256').update(fs.readFileSync(path.join(vendor_root, match[2]))).digest('hex');
   if (digest !== match[1]) throw new Error(`workspace asset hash mismatch: ${match[2]}`);
 }
@@ -132,3 +137,16 @@ if (!bundle_source.includes(node_release.version) || !bundle_source.includes('Co
 
 if (!bundle_source.includes('Monaco Editor 0.56.0 (MIT)')) throw new Error('Monaco license is missing');
 if (!bundle_source.includes('_VSCODE_NLS_LANGUAGE')) throw new Error('Monaco Chinese UI is missing');
+
+const plugin_root = path.join(typora_root, 'enhancements/dist/community_plugin');
+const plugin_manifest = JSON.parse(fs.readFileSync(path.join(plugin_root, 'manifest.json'), 'utf8'));
+if (plugin_manifest.id !== 'forming_system.linux_note_enhancements' || plugin_manifest.minCoreVersion !== bootstrap_version) throw new Error('Community plugin manifest identity differs');
+const plugin_files = new Set();
+for (const line of fs.readFileSync(path.join(plugin_root, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/u)) {
+  const match = /^([a-f0-9]{64})  (main\.js|manifest\.json|style\.css)$/u.exec(line);
+  if (!match || plugin_files.has(match[2]) || createHash('sha256').update(fs.readFileSync(path.join(plugin_root, match[2]))).digest('hex') !== match[1]) throw new Error('Community plugin asset digest differs');
+  plugin_files.add(match[2]);
+}
+if (plugin_files.size !== 3) throw new Error('Community plugin package is incomplete');
+if (JSON.parse(fs.readFileSync(path.join(vendor_root, 'loader.json'), 'utf8')).coreVersion !== bootstrap_version) throw new Error('Official loader core version differs');
+if (fs.existsSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'))) throw new Error('Obsolete direct bundle remains in distribution');

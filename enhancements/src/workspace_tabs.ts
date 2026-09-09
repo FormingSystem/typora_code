@@ -104,7 +104,10 @@ export async function close_all_workspace_tabs(files: workspace_file_host, group
 }
 
 /** 补齐 VS Code 式关闭全部标签，并隐藏社区核心为维持树结构而生成的空占位标签。 */
-export function bind_workspace_tab_actions(files: workspace_file_host): void {
+export function bind_workspace_tab_actions(files: workspace_file_host): {dispose(): void} | undefined {
+  const events = new AbortController();
+  let disposed = false;
+  const pending_menus = new Set<number>();
   if (document.documentElement.dataset.linuxNoteWorkspaceTabs) return;
   document.documentElement.dataset.linuxNoteWorkspaceTabs = "ready";
   const style = document.createElement("style");
@@ -117,7 +120,8 @@ export function bind_workspace_tab_actions(files: workspace_file_host): void {
       group.classList.toggle("linux-note-empty-group", tabs.length === 1 && !tabs[0].dataset.id);
     });
   };
-  new MutationObserver(refresh_empty_groups).observe(files.core.app.workspace.rootSplit.containerEl, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-id"] });
+  const observer = new MutationObserver(refresh_empty_groups);
+  observer.observe(files.core.app.workspace.rootSplit.containerEl, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-id"] });
   refresh_empty_groups();
 
   let menu_group: workspace_group | undefined;
@@ -125,7 +129,9 @@ export function bind_workspace_tab_actions(files: workspace_file_host): void {
     const tab = event.target instanceof Element ? event.target.closest<HTMLElement>(".typ-tab") : null;
     if (!tab) return;
     menu_group = group_for_tab(files, tab);
-    window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
+      pending_menus.delete(timer);
+      if (disposed) return;
       const menu = [...document.querySelectorAll<HTMLElement>(".context-menu")]
         .find(candidate => candidate.querySelector('[data-key="removeTab"]'));
       if (!menu || menu.querySelector(".linux-note-close-all-tabs")) return;
@@ -141,7 +147,8 @@ export function bind_workspace_tab_actions(files: workspace_file_host): void {
       const right = menu.querySelector('[data-key="removeRight"]');
       right?.after(item);
     }, 0);
-  }, true);
+    pending_menus.add(timer);
+  }, {capture: true, signal: events.signal});
   for (const event_name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
     document.addEventListener(event_name, event => {
       const item = event.target instanceof Element ? event.target.closest<HTMLElement>(".linux-note-close-all-tabs") : null;
@@ -154,6 +161,13 @@ export function bind_workspace_tab_actions(files: workspace_file_host): void {
         void close_all_workspace_tabs(files, menu_group);
         menu_group = undefined;
       }
-    }, true);
+    }, {capture: true, signal: events.signal});
   }
+  return {dispose() {
+    if (disposed) return; disposed = true; events.abort(); observer.disconnect(); style.remove();
+    for (const timer of pending_menus) window.clearTimeout(timer); pending_menus.clear();
+    document.querySelectorAll(".linux-note-close-all-tabs").forEach(node => node.remove());
+    document.querySelectorAll(".linux-note-empty-group").forEach(node => node.classList.remove("linux-note-empty-group"));
+    delete document.documentElement.dataset.linuxNoteWorkspaceTabs;
+  }};
 }

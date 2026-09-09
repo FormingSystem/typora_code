@@ -3,11 +3,20 @@ import { file_key } from "./workspace_file_uri";
 import { get_workspace_app, type workspace_leaf, type workspace_view } from "./workspace_bootstrap";
 
 export type reading_context = { view_id: number; file_path: string; leaf?: workspace_leaf };
-export const reading_delay = (milliseconds: number) => new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+export const reading_delay = (milliseconds: number, signal?: AbortSignal) => new Promise<void>((resolve) => {
+  if (signal?.aborted) { resolve(); return; }
+  const finish = () => { clearTimeout(timer); signal?.removeEventListener("abort", finish); resolve(); };
+  const timer = window.setTimeout(finish, milliseconds);
+  signal?.addEventListener("abort", finish, { once: true });
+});
 
 /** 为每个栏维护位置；仅当原生编辑器确实装载该文件时，才允许读取它的滚动状态。 */
 export function create_reading_workspace(native_path: () => string, is_busy: () => boolean) {
   const app = get_workspace_app();
+  let disposed = false;
+  const controller = new AbortController();
+  const cleanups: (() => void)[] = [];
+  const collect = (value: unknown) => { if (typeof value === "function") cleanups.push(value as () => void); };
   const contexts = new WeakMap<workspace_view, reading_context>();
   const native_contexts = new Map<string, reading_context>();
   const saved = new Map<number, reading_position>();
@@ -25,6 +34,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     return context;
   };
   const all = (): reading_context[] => {
+    if (disposed) return [];
     if (!app) {
       const path = native_path();
       const key = file_key(path);
@@ -40,6 +50,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     return leaf && typeof leaf.view?.isEditor === "function" ? context_for(leaf) : all().find((context) => file_key(context.file_path) === file_key(native_path()));
   };
   const elements = (context: reading_context): { scroller: HTMLElement; root: HTMLElement } | null => {
+    if (disposed) return null;
     const view = context.leaf?.view;
     if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
     if (!view || view.isEditor()) {
@@ -53,11 +64,13 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       ? { scroller: context.leaf!.containerEl, root } : null;
   };
   const flush = () => {
+    if (disposed) return;
     window.clearTimeout(save_timer);
     for (const [path, position] of dirty) store?.set(path, position);
     dirty.clear();
   };
   const remember = (context: reading_context, position: reading_position, persist = true) => {
+    if (disposed) return;
     saved.set(context.view_id, position);
     if (context.leaf) context.leaf.state.linux_note_position = position;
     const active_context = active();
@@ -81,6 +94,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     }
   };
   const restore = async (context: reading_context, position: reading_position): Promise<boolean> => {
+    if (disposed) return false;
     const token = {};
     restoring.set(context.view_id, token);
     remember(context, position, false);
@@ -89,7 +103,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     let stable_since = Date.now();
     const started = Date.now();
     // 等待异步预览、代码限高与排版；用户开始滚动/编辑时立即停止，避免把新位置拉回去。
-    while (restoring.get(context.view_id) === token && Date.now() - started < 5000) {
+    while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5000) {
       const nodes = elements(context);
       if (nodes) {
         const geometry = `${nodes.root.getBoundingClientRect().height}:${nodes.scroller.clientHeight}:${nodes.scroller.scrollHeight}`;
@@ -104,14 +118,14 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
         applied = true;
         if (applied && Date.now() - stable_since >= 250) break;
       }
-      await reading_delay(40);
+      await reading_delay(40, controller.signal);
     }
     if (restoring.get(context.view_id) === token) {
       restoring.delete(context.view_id);
       const nodes = elements(context);
       if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
     }
-    return applied;
+    return !disposed && applied;
   };
   const stop_restoring = (context?: reading_context) => {
     if (context) restoring.delete(context.view_id);
@@ -121,11 +135,15 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
   // 此处接管阅读状态的两个接口；不修改发行包，也不把别的文件的光标写回来源栏。
   const patched = new WeakSet<object>();
   const patch_view = (view: workspace_view): boolean => {
+    if (disposed) return false;
     const prototype = Object.getPrototypeOf(view) as workspace_view;
     if (patched.has(prototype)) return false;
     patched.add(prototype);
     const original_on_open = prototype.onOpen;
+    const original_get_state = prototype.getState;
+    const original_set_state = prototype.setState;
     prototype.onOpen = function () {
+      if (disposed) return original_on_open.call(this);
       const context = context_for(this.leaf);
       const position = saved.get(context.view_id) ?? this.leaf.state.linux_note_position as reading_position | undefined ?? store?.get(context.file_path);
       if (!position || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
@@ -138,12 +156,14 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       void restore(context, position);
     };
     prototype.getState = function () {
+      if (disposed) return original_get_state.call(this);
       const context = context_for(this.leaf);
       const position = capture(context) ?? this.leaf.state.linux_note_position as reading_position | undefined;
       if (position) remember(context, position);
       return position ? { scrollTop: position.scroll_top, linux_note_position: position } : {};
     };
     prototype.setState = function (state) {
+      if (disposed) return original_set_state.call(this, state);
       const context = context_for(this.leaf);
       if (held_paths.has(file_key(context.file_path))) return;
       const position = state.linux_note_position as reading_position | undefined
@@ -151,6 +171,12 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
         ?? (typeof state.scrollTop === "number" ? { scroll_top: state.scrollTop, scroll_left: 0 } : null);
       if (position) void restore(context, position);
     };
+    const owned_on_open = prototype.onOpen, owned_get_state = prototype.getState, owned_set_state = prototype.setState;
+    cleanups.push(() => {
+      if (prototype.onOpen === owned_on_open) prototype.onOpen = original_on_open;
+      if (prototype.getState === owned_get_state) prototype.getState = original_get_state;
+      if (prototype.setState === owned_set_state) prototype.setState = original_set_state;
+    });
     return true;
   };
   for (const context of all()) {
@@ -159,18 +185,18 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     if (position) void restore(context, position);
   }
   // 从空白欢迎页启动时尚无 MarkdownView，首个文档出现后再接入同一套状态接口。
-  app?.workspace.rootSplit.on("leaf:open", (leaf) => {
+  collect(app?.workspace.rootSplit.on("leaf:open", (leaf) => {
     if (typeof leaf.view?.isEditor !== "function" || !patch_view(leaf.view)) return;
     const context = context_for(leaf);
     const position = store?.get(context.file_path);
     if (position && !held_paths.has(file_key(context.file_path))) void restore(context, position);
-  });
+  }));
   document.addEventListener("scroll", (event) => {
     const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
     if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
     const position = capture(context);
     if (position) remember(context, position);
-  }, true);
+  }, { capture: true, signal: controller.signal });
   for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
     window.addEventListener(name, (event) => {
       if (!event.isTrusted) return;
@@ -180,12 +206,19 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
         const nodes = elements(context);
         if (nodes && target instanceof Node && nodes.scroller.contains(target)) stop_restoring(context);
       }
-    }, true);
+    }, { capture: true, signal: controller.signal });
   }
-  window.addEventListener("pagehide", flush);
-  window.addEventListener("beforeunload", flush);
-  return { all, active, elements, capture, checkpoint, remember, restore, stop_restoring,
+  window.addEventListener("pagehide", flush, { signal: controller.signal });
+  window.addEventListener("beforeunload", flush, { signal: controller.signal });
+  const dispose = () => {
+    if (disposed) return;
+    checkpoint(); flush(); disposed = true; controller.abort(); clearTimeout(save_timer); restoring.clear();
+    for (const cleanup of cleanups.reverse()) cleanup();
+    dirty.clear(); saved.clear(); native_contexts.clear(); held_paths.clear();
+  };
+  return { all, active, elements, capture, checkpoint, remember, restore, stop_restoring, dispose,
     remap_paths(map: (path: string) => string | undefined) {
+      if (disposed) return;
       flush(); store?.remap_paths(map);
       for (const [key, context] of [...native_contexts]) {
         const target = map(context.file_path); if (!target) continue;
@@ -193,6 +226,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       }
     },
     hold(path: string, value: boolean) {
+      if (disposed) return;
       if (value) held_paths.add(file_key(path)); else held_paths.delete(file_key(path));
     },
     resume(context: reading_context) {

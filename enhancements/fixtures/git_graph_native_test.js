@@ -18,6 +18,7 @@
       window.resizeTo(1400, 950); await delay(300);
       const app = window[Symbol.for('typora-plugin-core@v2')].app;
       const source_leaf = app.workspace.activeLeaf;
+      result.language = {plugin:window[Symbol.for('typora-plugin-core@v2:env')]?.userLang,displayLang:window._options?.displayLang,userLang:window._options?.userLang,appLocale:window._options?.appLocale,locale:window._options?.locale,fileDisplayLang:File.option?.displayLang,fileUserLang:File.option?.userLang,fileLocale:File.option?.locale,html:document.documentElement.lang,body:document.body.lang,navigator:navigator.languages};
       await wait(() => document.querySelector('[data-linux-note-git-status]')?.dataset.repository === 'ready');
       expect(document.querySelector('[data-git-status=branch]').textContent.includes('main*'), 'native left status bar shows branch and dirty marker');
       expect(document.querySelector('[data-git-status=sync]') && document.querySelector('[data-git-status=graph]'), 'native status bar exposes sync and graph actions');
@@ -27,18 +28,20 @@
       await delay(1200);
       content.scrollTop = 620; await delay(600); const original_scroll = content.scrollTop;
       expect(original_scroll > 500, 'source starts at a nonzero reading position');
-      // 原生恢复的大纲可能早于社区 activePanel；第一次点击同图标也应收起。
-      File.editor.library.showSidebar(); File.editor.library.switch('outline'); app.workspace.sidebar.activePanel = undefined;
-      app.workspace.ribbon.clickButton('core.outline');
-      await wait(() => !app.workspace.sidebar.isShown); expect(true, 'first outline click collapses native restored sidebar');
-      app.workspace.ribbon.clickButton('core.outline');
-      await wait(() => File.editor.library.isOutlineShown()); expect(true, 'outline click reopens sidebar');
-      app.workspace.ribbon.clickButton('core.file-explorer');
-      await wait(() => app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer'); expect(true, 'switching to files keeps sidebar open');
+      // 大纲属于Explorer内嵌区；命令打开并展开，分组按钮可收起，重复命令恢复。
+      app.commands.run('linux_note:outline');
+      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer' && document.querySelector('.workspace-explorer-outline-content .outline-item'));
+      const outline_toggle = document.querySelector('.workspace-explorer-outline-toggle');
+      expect(outline_toggle.getAttribute('aria-expanded') === 'true', 'outline command reveals populated embedded Explorer outline');
+      outline_toggle.click();
+      expect(outline_toggle.getAttribute('aria-expanded') === 'false' && document.querySelector('.workspace-explorer-outline-content').hidden, 'embedded outline section collapses without hiding Explorer');
+      app.commands.run('linux_note:outline');
+      await wait(() => outline_toggle.getAttribute('aria-expanded') === 'true' && !document.querySelector('.workspace-explorer-outline-content').hidden);
+      expect(app.workspace.activeLeaf === source_leaf, 'restoring embedded outline preserves current document');
       app.workspace.ribbon.clickButton('core.file-explorer');
       await wait(() => !app.workspace.sidebar.isShown); expect(true, 'same file icon collapses sidebar');
       app.workspace.ribbon.clickButton('core.file-explorer');
-      await wait(() => app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer');
+      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer');
       expect(getComputedStyle(document.querySelector('#outline-btn-wrapper')).display === 'none', 'redundant footer sidebar control removed');
       app.workspace.ribbon.clickButton('linux_note:source_control');
       await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:source_control' && document.querySelector('.git-scm-sidebar .git-scm-file'));
@@ -47,15 +50,15 @@
       await wait(() => !app.workspace.sidebar.isShown); expect(true, 'same Git icon collapses sidebar');
       app.workspace.ribbon.clickButton('linux_note:source_control');
       await wait(() => document.querySelector('.git-scm-sidebar .git-scm-file')); expect(true, 'Git icon reopens source control');
-      app.workspace.ribbon.clickButton('core.outline');
-      await wait(() => File.editor.library.isOutlineShown());
+      app.commands.run('linux_note:outline');
+      await wait(() => app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer' && document.querySelector('.workspace-explorer-outline-content .outline-item'));
       app.workspace.ribbon.clickButton('linux_note:source_control');
       await wait(() => document.querySelector('.git-scm-sidebar .git-scm-file'));
-      expect(app.workspace.sidebar.isShown && !File.editor.library.isOutlineShown(), 'switching outline to Git keeps sidebar open');
+      expect(app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:source_control', 'switching embedded outline to Git keeps sidebar open');
       expect(document.querySelectorAll('.git-scm-group').length === 2 && !document.querySelector('[data-scm-group=untracked]'), 'source control has staged and changes groups only');
       const scm_icon = document.querySelector('.typ-ribbon-item[data-id="linux_note:source_control"]');
-      const outline_icon = document.querySelector('.typ-ribbon-item[data-id="core.outline"]');
-      expect(scm_icon.closest('.group.top') && scm_icon.getBoundingClientRect().top > outline_icon.getBoundingClientRect().top, 'Git icon is in top activity group below outline');
+      const explorer_icon = document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]');
+      expect(scm_icon.closest('.group.top') && scm_icon.getBoundingClientRect().top > explorer_icon.getBoundingClientRect().top && getComputedStyle(document.querySelector('.typ-ribbon-item[data-id="core.outline"]')).display === 'none', 'Git follows Explorer in top activity group without duplicate Outline activity');
       expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:git_graph"]'), 'old bottom Git icon removed');
       expect(app.workspace.activeLeaf === source_leaf, 'source control opens sidebar without replacing document');
       expect(document.querySelector('#sidebar-content .git-scm-sidebar'), 'source control uses native primary sidebar');
@@ -72,13 +75,17 @@
       await wait(() => document.querySelector('.linux-note-git-graph')?.dataset.state === 'ready', 'Graph did not load');
       const graph = document.querySelector('.linux-note-git-graph'); const graph_leaf = app.workspace.activeLeaf;
       const graph_tab = [...document.querySelectorAll('.typ-tab[data-id]')].find(tab => tab.dataset.id === graph_leaf.state.path);
-      expect(graph_tab?.querySelector('.typ-file-icon.git-tab-icon [data-git-icon="git-branch"]') && !graph_tab.querySelector('.typ-file-icon.fa-file-o'), 'Git Graph tab has one correct branch icon');
+      const explicit_language = result.language.plugin || result.language.displayLang || result.language.userLang;
+      if(!explicit_language && result.language.appLocale) expect(graph.getAttribute('aria-label') === (/^zh(?:-|_|$)/iu.test(result.language.appLocale) ? 'Git Graph 提交历史' : 'Git Graph commit history'), 'Graph locale matches native appLocale despite document HTML language');
+      const graph_tab_icon = graph_tab?.querySelector('.typ-file-icon.git-tab-icon svg[data-graph-tab-theme]');
+      expect(graph_tab_icon && graph_tab.querySelectorAll('.typ-file-icon svg').length === 1 && graph_tab_icon.dataset.graphTabTheme === graph_leaf.view.panel.settings.tab_icon_theme && graph_tab_icon.querySelectorAll('path').length === 2 && graph_tab_icon.querySelectorAll('circle').length === 3 && !graph_tab.querySelector('.typ-file-icon.fa-file-o'), 'Git Graph tab has one two-lane graph icon using selected colour theme');
       const commits = node => node.querySelectorAll('.git-graph-row:not(.git-graph-worktree)');
-      const refresh = node => [...node.querySelectorAll('.git-graph-toolbar button')].find(button => button.textContent === '刷新').click();
-      expect(normalized(graph.querySelector('.git-graph-root').title) === normalized(probe_root), 'repository discovered from active document');
+      const refresh = node => node.querySelector('.git-graph-refresh').click();
+      expect(normalized(graph_leaf.view.panel.root) === normalized(probe_root), 'repository discovered from active document');
       expect(commits(graph).length === 4, 'real commit history rendered in workspace tab');
-      expect(graph.querySelectorAll('.git-graph-row svg circle').length === 4, 'one graph node per commit');
-      expect(graph.querySelector('.git-graph-row:not(.git-graph-worktree) svg').querySelectorAll('path').length === 2, 'merge node has two parent edges');
+      expect([...commits(graph)].reduce((count,row)=>count+row.querySelectorAll('svg circle').length,0) === 4, 'one graph node per commit');
+      const merge_svg = commits(graph)[0].querySelector('svg'); const merge_y = merge_svg.querySelector('circle').cy.baseVal.value;
+      expect(graph_leaf.view.panel.state.commits[0].parents.length === 2 && [...merge_svg.querySelectorAll('path')].filter(edge=>Math.abs(edge.getPointAtLength(0).y-merge_y)<0.01).length === 2, 'merge node has two outgoing parent edges independently of worktree incoming edge');
       expect(!graph.querySelector('img') && graph.textContent.includes('<img src=x onerror=alert(1)>'), 'commit text is displayed without interpreting HTML');
       expect(File.bundle.filePath === source_leaf.state.path, 'opening graph does not switch native document');
       app.commands.run('linux_note:git_graph');
@@ -93,7 +100,7 @@
       const diff_editor = app.workspace.activeLeaf.view.editor.editor;
       expect(diff_editor.getOriginalEditor().getLayoutInfo().verticalScrollbarWidth === 8 && diff_editor.getModifiedEditor().getLayoutInfo().verticalScrollbarWidth === 8, 'native diff retains a thin scrollbar on each side');
     expect(diff_editor.getOriginalEditor().getLayoutInfo().minimap.minimapWidth === 0 && diff_editor.getModifiedEditor().getLayoutInfo().minimap.minimapWidth === 0, 'native diff omits both full-text minimaps');
-      expect([...document.querySelectorAll('.typ-tab .typ-file-basename')].some(node => node.textContent === '中文 #%.md（更改）'), 'Chinese diff tab name is readable and safely rendered');
+      expect([...document.querySelectorAll('.typ-tab .typ-file-basename')].some(node => ['中文 #%.md（更改）','中文 #%.md (Changes)'].includes(node.textContent)), 'Chinese diff tab name is readable and safely rendered');
       const diff_bounds = document.querySelector('.git-monaco-body').getBoundingClientRect();
       expect(diff_bounds.height > 400 && diff_bounds.width > 500, 'diff occupies central editor area');
       expect(document.querySelector('#sidebar-content .git-scm-sidebar') && document.querySelector('[data-scm-group=changes] [data-file="source.md"]'), 'source control sidebar shows uncommitted draft');
@@ -105,10 +112,14 @@
       const branch = graph.querySelector('.git-graph-branch'); branch.value = 'refs/heads/feature'; branch.dispatchEvent(new Event('change'));
       await wait(() => graph.dataset.state === 'ready' && commits(graph).length === 2);
       expect(true, 'branch selector narrows topology');
-      const search = graph.querySelector('.git-graph-search'); search.value = 'Initial';
-      search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+      const search_panel = graph_leaf.view.panel; search_panel.close_details(); graph.querySelector('.git-graph-find-toggle').click();
+      const search = graph.querySelector('.git-graph-search'); search.value = 'Initial'; search.dispatchEvent(new Event('input',{bubbles:true}));
+      await wait(() => search_panel.finder.matches.length === 1 && graph.querySelector('mark.git-graph-find-match'));
+      expect(!search_panel.selected, 'Find highlights a match without opening details by default');
+      search_panel.finder.details_button.click();
       await wait(() => graph.querySelector('.git-graph-commit-title')?.textContent.includes('Initial'));
-      expect(true, 'search selects matching loaded commit');
+      expect(true, 'Find optional details switch opens matching loaded commit');
+      search_panel.finder.details_button.click(); search_panel.close_find();
       app.workspace.activeLeaf = source_leaf.parent.toggleTab(source_leaf.state.path);
       await wait(() => { result.source_scroll = { expected: original_scroll, actual: content.scrollTop }; return Math.abs(content.scrollTop - original_scroll) < 1; }, 'Source reading position changed');
       expect(true, 'returning to source preserves reading position');
@@ -125,13 +136,14 @@
       app.commands.run('core.workspace:split-right', [graph_leaf.state.path]);
       await wait(() => [...document.querySelectorAll('.linux-note-git-graph')].filter(node => node.dataset.state === 'ready').length === 2);
       const split_graph = app.workspace.activeLeaf.view.containerEl;
-      expect(normalized(split_graph.querySelector('.git-graph-root').title) === normalized(probe_root), 'split graph retains repository context');
+      expect(normalized(app.workspace.activeLeaf.view.panel.root) === normalized(probe_root), 'split graph retains repository context');
       app.workspace.activeLeaf.view.panel.select_commit(app.workspace.activeLeaf.view.panel.state.commits[0]);
       await wait(() => split_graph.querySelector('.git-graph-file'));
       const list_bounds = split_graph.querySelector('.git-graph-list').getBoundingClientRect();
       const details_bounds = split_graph.querySelector('.git-graph-details').getBoundingClientRect();
-      expect(list_bounds.width > 100 && list_bounds.height > 50 && details_bounds.height > 100 && details_bounds.top >= list_bounds.bottom - 1,
-        'narrow split stacks readable history and details inside its viewport');
+      const selected_bounds = [...commits(split_graph)].find(row=>row.dataset.hash === app.workspace.activeLeaf.view.panel.selected).getBoundingClientRect();
+      expect(list_bounds.width > 100 && list_bounds.height > 50 && details_bounds.height > 100 && Math.abs(details_bounds.top-selected_bounds.bottom)<2 && details_bounds.width <= list_bounds.width+1,
+        'narrow split keeps readable inline details immediately below selected row');
       // 非仓库错误保留工具入口；恢复目录后可以继续刷新。
       const split_leaf = app.workspace.activeLeaf;
       split_leaf.view.panel.root = path.dirname(probe_root);
@@ -157,7 +169,7 @@
       expect(true, 'native dialog executes approved branch operation');
       document.querySelector('.git-graph-dialog-shade').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
       panel.select_commit(panel.state.commits[0]); await wait(() => split_graph.querySelector('.git-graph-file'));
-      [...split_graph.querySelectorAll('.git-graph-detail-controls button')].find(button => button.textContent === '开始评审').click();
+      split_graph.querySelector('.git-graph-detail-review').click();
       await wait(() => split_graph.querySelector('.git-file-unreviewed'));
       split_graph.querySelector('.git-graph-file').click();
       await wait(() => panel.is_reviewed('中文 #%.md'));
@@ -183,7 +195,7 @@
       expect((await panel.runner.run(probe_root, ['show', '--pretty=format:', '--name-only', 'HEAD'])).trim() === 'shortcut.txt', 'Ctrl Enter commits staged files only');
       const close_dialog = () => document.querySelector('.git-graph-dialog-shade')?.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true, cancelable:true}));
       // 分组按钮预览全部精确文件；取消预览不改变任何内容。
-      document.querySelector('[data-scm-group=changes] summary button[title="放弃本组所有更改…"]').click();
+      document.querySelector('[data-scm-group=changes] summary button [data-git-icon=discard]').closest('button').click();
       await wait(() => document.querySelector('[data-git-preview=discard_changes]'));
       document.querySelector('[data-git-preview]').click();
       await wait(() => !document.querySelector('[data-git-execute]').disabled);
@@ -197,7 +209,7 @@
       panel.action_dialog('discard_changes', 'file', 'recycle_only.txt', after_shortcut, {include_untracked:true}, ['recycle_only.txt']);
       document.querySelector('[data-git-preview]').click();
       await wait(() => !document.querySelector('[data-git-execute]').disabled);
-      expect(document.querySelector('.git-graph-action-preview').textContent.includes('回收："recycle_only.txt"'), 'discard preview identifies the exact recycle target');
+      expect(['回收："recycle_only.txt"','Recycle: "recycle_only.txt"'].some(value=>document.querySelector('.git-graph-action-preview').textContent.includes(value)), 'discard preview identifies the exact recycle target');
       document.querySelector('[data-git-execute]').click();
       await wait(() => !fs.existsSync(path.join(probe_root, 'recycle_only.txt')) && !panel.writing, 'Native recycle action did not finish');
       expect(fs.readFileSync(path.join(probe_root, '.git/index')).equals(discard_index), 'native recycle preserves index bytes');
@@ -212,10 +224,10 @@
       await wait(() => document.querySelector('[data-git-status=sync]').title.includes('fixture_remote/main'));
       document.querySelector('[data-git-status=sync]').click();
       await wait(() => document.querySelector('[data-git-execute=sync]')?.disabled === false);
-      expect(document.querySelector('[data-git-execute=sync]').textContent === '确认同步' && document.querySelector('.git-graph-action-preview').textContent.includes('先拉取'), 'status sync opens a prepared Chinese pull then push confirmation');
+      expect(['确认同步','Confirm Sync'].includes(document.querySelector('[data-git-execute=sync]').textContent) && ['先拉取','Pull and integrate remote commits first'].some(value=>document.querySelector('.git-graph-action-preview').textContent.includes(value)), 'status sync opens a localized prepared pull then push confirmation');
       const sync_index = fs.readFileSync(path.join(probe_root, '.git/index'));
       document.querySelector('[data-git-execute=sync]').click();
-      await wait(() => document.querySelector('.git-graph-action-preview').textContent.includes('同步完成'), 'Native sync did not finish');
+      await wait(() => ['同步完成','Sync complete.'].some(value=>document.querySelector('.git-graph-action-preview').textContent.includes(value)), 'Native sync did not finish');
       expect(fs.readFileSync(path.join(probe_root, '.git/index')).equals(sync_index) && fs.readFileSync(path.join(probe_root, 'source.md')).equals(source_bytes), 'native sync with no incoming changes preserves index and draft');
       close_dialog();
       result.status = 'PASS';

@@ -295,6 +295,24 @@
       "source_path": "src/icons/settings-gear.svg",
       "git_blob_sha1": "cdc25f1e9d2eb8310dc115588b397755fc77af88",
       "sha256": "fc7d0ccb2d7a74e74e37ce1ba833e31fef326f9e07ce5f74bc17acb64c087669"
+    },
+    "new-folder": {
+      "file": "icons/new_folder.svg",
+      "source_path": "src/icons/new-folder.svg",
+      "git_blob_sha1": "d5547e263f7bdc8953aa70f38e9fb584f2de0103",
+      "sha256": "28d86bd05d71b6fe950b4d947ea316789f5d3d1767795eed1011606bb145181a"
+    },
+    "layout-sidebar-left": {
+      "file": "icons/layout_sidebar_left.svg",
+      "source_path": "src/icons/layout-sidebar-left.svg",
+      "git_blob_sha1": "ccc60a28626ff6d6094fa6dd4b623e1462946c04",
+      "sha256": "534df9174d0e50e6b4b7c3a96d991dea39391d6b7ba288144c7da6cadc0d3dad"
+    },
+    "layout-panel": {
+      "file": "icons/layout_panel.svg",
+      "source_path": "src/icons/layout-panel.svg",
+      "git_blob_sha1": "548fdbc2da630c2b8cbc2a453180bd6ad7aaaee6",
+      "sha256": "05bc28dc8f47e4d56266e10bc0befcd8675cb2d89b79308850632021db320cb7"
     }
   },
   "licenses": [

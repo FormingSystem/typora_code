@@ -19,6 +19,8 @@ export type titlebar_menu_definition = {
 
 /** 渲染彼此独立的顶层菜单和任意级子菜单，不依赖 Typora 的聚合式 menu.popup。 */
 export function create_workspace_titlebar_menu(definitions: titlebar_menu_definition[]) {
+  const events = new AbortController();
+  let disposed = false;
   const menu = document.createElement("nav");
   menu.className = "workspace-titlebar-menu";
   menu.setAttribute("aria-label", "主菜单");
@@ -112,7 +114,7 @@ export function create_workspace_titlebar_menu(definitions: titlebar_menu_defini
     const button = menu.children[index] as HTMLButtonElement;
     button.setAttribute("aria-expanded", "true");
     const entries = await definition.entries();
-    if (open_index !== index) return;
+    if (disposed || open_index !== index) return;
     const rect = button.getBoundingClientRect();
     const panel = show_panel(entries, rect.left, rect.bottom, 0, button);
     panel.setAttribute("aria-label", `${definition.label}菜单`);
@@ -142,7 +144,7 @@ export function create_workspace_titlebar_menu(definitions: titlebar_menu_defini
 
   document.addEventListener("pointerdown", event => {
     if (panels.length && !panels.some(panel => panel.contains(event.target as Node)) && !menu.contains(event.target as Node)) close();
-  }, true);
+  }, {capture: true, signal: events.signal});
   window.addEventListener("keydown", event => {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing) return;
     const index = definitions.findIndex(definition => event.key.toLocaleUpperCase() === definition.mnemonic);
@@ -150,6 +152,6 @@ export function create_workspace_titlebar_menu(definitions: titlebar_menu_defini
     event.preventDefault();
     event.stopImmediatePropagation();
     void open(index, true);
-  }, true);
-  return { menu, close, open };
+  }, {capture: true, signal: events.signal});
+  return { menu, close, open, dispose() { if (disposed) return; disposed = true; events.abort(); close(); menu.remove(); } };
 }

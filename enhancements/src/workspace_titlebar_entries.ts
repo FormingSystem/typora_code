@@ -21,13 +21,14 @@ function command(runtime: titlebar_runtime, name: string, ...args: unknown[]): (
 export function create_workspace_titlebar_definitions(
   files: workspace_file_host,
   runtime: titlebar_runtime,
-  open_quickly: () => void,
+  open_quickly: (prefix?: string) => void,
 ): titlebar_menu_definition[] {
   const editor = () => runtime.File?.editor;
   const library = () => editor()?.library;
   const stylize = (name: string, ...args: unknown[]) => () => editor()?.stylize?.[name]?.(...args);
   const native_document_active = () => !String(files.core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
   const native_only = (entry: titlebar_menu_entry): titlebar_menu_entry => ({ ...entry, disabled: !native_document_active() || entry.disabled });
+  const editing=(entry:titlebar_menu_entry,source_command:string):titlebar_menu_entry=>({...entry,disabled:!native_document_active()&&!files.source_editor_active?.(),action:()=>files.source_editor_active?.()?files.run_editor_command(source_command):entry.action?.()});
   const recent_children = (items: recent_item[] | undefined): titlebar_menu_entry[] => {
     const usable = (items || []).filter(item => item.path);
     if (!usable.length) return [{ label: "空", disabled: true }];
@@ -45,7 +46,7 @@ export function create_workspace_titlebar_definitions(
       { label: "打开最近文件", children: recent_children(recents.files) },
       { label: "最近使用的目录", children: recent_children(recents.folders) },
       { label: "清除最近文件", action: () => runtime.JSBridge?.invoke("setting.askForClearRecentDocuments") },
-      { label: "快速打开…", shortcut: "Ctrl+P", action: open_quickly },
+      { label: "快速打开…", shortcut: "Ctrl+P", action: () => open_quickly() },
       { separator: true },
       native_only({ label: "选择编码重新打开", children: ["utf-8", "gb18030", "big5", "windows-1252", "utf-16le", "utf-16be"].map(encoding => ({ label: encoding.toUpperCase(), action: () => runtime.File?.reloadWithEncoding?.(encoding) })) }),
       native_only({ label: "从磁盘重新加载", action: command(runtime, "reloadFromDisk") }),
@@ -72,12 +73,12 @@ export function create_workspace_titlebar_definitions(
     ];
   };
   const edit_entries = async (): Promise<titlebar_menu_entry[]> => [
-    native_only({ label: "撤消", shortcut: "Ctrl+Z", action: command(runtime, "undo") }),
-    native_only({ label: "重做", shortcut: "Ctrl+Y", action: command(runtime, "redo") }),
+    editing({ label: "撤消", shortcut: "Ctrl+Z", action: command(runtime, "undo") },"undo"),
+    editing({ label: "重做", shortcut: "Ctrl+Y", action: command(runtime, "redo") },"redo"),
     { separator: true },
-    native_only({ label: "剪切", shortcut: "Ctrl+X", action: command(runtime, "cut") }),
-    native_only({ label: "复制", shortcut: "Ctrl+C", action: command(runtime, "copy") }),
-    native_only({ label: "粘贴", shortcut: "Ctrl+V", action: command(runtime, "paste") }),
+    editing({ label: "剪切", shortcut: "Ctrl+X", action: command(runtime, "cut") },"editor.action.clipboardCutAction"),
+    editing({ label: "复制", shortcut: "Ctrl+C", action: command(runtime, "copy") },"editor.action.clipboardCopyAction"),
+    editing({ label: "粘贴", shortcut: "Ctrl+V", action: command(runtime, "paste") },"editor.action.clipboardPasteAction"),
     native_only({ label: "复制／粘贴为", children: [
       { label: "复制为 Markdown", action: command(runtime, "copyAsMarkdown") },
       { label: "复制为 HTML 代码", action: command(runtime, "copyAsHTMLSource") },
@@ -86,12 +87,6 @@ export function create_workspace_titlebar_definitions(
       { label: "粘贴为纯文本", shortcut: "Ctrl+Shift+V", action: command(runtime, "pasteAsPlain") },
     ] }),
     { separator: true },
-    native_only({ label: "选择", children: [
-      { label: "全选", shortcut: "Ctrl+A", action: command(runtime, "selectAll") },
-      { label: "选中当前行或句", action: () => editor()?.selection?.selectLine?.() },
-      { label: "选中当前格式文本", action: () => editor()?.selection?.selectBlock?.() },
-      { label: "选中当前词", action: () => editor()?.selection?.selectWord?.() },
-    ] }),
     native_only({ label: "删除", children: [
       { label: "删除所选范围", action: () => editor()?.UserOp?.deleteSelectable?.() },
       { label: "删除当前词", action: command(runtime, "deleteWord") },
@@ -99,14 +94,37 @@ export function create_workspace_titlebar_definitions(
       { label: "删除当前行或句", action: command(runtime, "deleteLine") },
       { label: "删除块", action: command(runtime, "deleteBlock") },
     ] }),
-    native_only({ label: "跳转到", children: [
-      { label: "跳转到文首", shortcut: "Ctrl+Home", action: () => editor()?.selection?.jumpTop?.() },
-      { label: "跳转到所选内容", action: () => editor()?.selection?.jumpSelection?.() },
-      { label: "跳转到文末", shortcut: "Ctrl+End", action: () => editor()?.selection?.jumpBottom?.() },
-    ] }),
     { separator: true },
-    native_only({ label: "查找", shortcut: "Ctrl+F", action: () => editor()?.searchPanel?.showPanel?.() }),
+    editing({ label: "查找", shortcut: "Ctrl+F", action: () => editor()?.searchPanel?.showPanel?.() },"actions.find"),
+    editing({label:"替换",shortcut:"Ctrl+H",action:()=>editor()?.searchPanel?.showPanel?.()},"editor.action.startFindReplaceAction"),
     { label: "在文件中查找", shortcut: "Ctrl+Shift+F", action: () => files.core.app.commands.run("linux_note:search") },
+    { separator: true },
+    { label: "Markdown 段落", children: await paragraph_entries() },
+    { label: "Markdown 格式", children: await format_entries() },
+  ];
+  const selection_entries = async (): Promise<titlebar_menu_entry[]> => [
+    editing({ label: "全选", shortcut: "Ctrl+A", action: command(runtime, "selectAll") }, "editor.action.selectAll"),
+    editing({ label: "选中当前行", action: () => editor()?.selection?.selectLine?.() }, "expandLineSelection"),
+    editing({ label: "扩大选择范围", action: () => editor()?.selection?.selectBlock?.() }, "editor.action.smartSelect.expand"),
+    native_only({ label: "选中当前词", action: () => editor()?.selection?.selectWord?.() }),
+  ];
+  const go_entries = async (): Promise<titlebar_menu_entry[]> => [
+    { label: "后退", disabled: document.querySelector<HTMLButtonElement>(".workspace-titlebar-history.is-back")?.disabled ?? true, action: () => window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel", { detail: { direction: -1 } })) },
+    { label: "前进", disabled: document.querySelector<HTMLButtonElement>(".workspace-titlebar-history.is-forward")?.disabled ?? true, action: () => window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel", { detail: { direction: 1 } })) },
+    { separator: true },
+    { label: "转到行／列…", shortcut: "Ctrl+G", action: () => open_quickly(":") },
+    { label: "转到文件…", shortcut: "Ctrl+P", action: () => open_quickly() },
+    editing({ label: "转到文首", shortcut: "Ctrl+Home", action: () => editor()?.selection?.jumpTop?.() }, "cursorTop"),
+    native_only({ label: "转到所选内容", action: () => editor()?.selection?.jumpSelection?.() }),
+    editing({ label: "转到文末", shortcut: "Ctrl+End", action: () => editor()?.selection?.jumpBottom?.() }, "cursorBottom"),
+  ];
+  const terminal_entries = async (): Promise<titlebar_menu_entry[]> => [
+    { label: "新建终端", action: () => files.core.app.commands.run("linux_note:terminal") },
+    { label: "以管理员身份新建终端", action: () => files.core.app.commands.run("linux_note:terminal_admin") },
+    { separator: true },
+    { label: "将终端移至编辑器", action: () => files.core.app.commands.run("linux_note:terminal_move_to_editor") },
+    { label: "将终端移至面板", action: () => files.core.app.commands.run("linux_note:terminal_move_to_panel") },
+    { label: "终端设置…", action: () => files.core.app.commands.run("linux_note:terminal_settings") },
   ];
   const paragraph_entries = async (): Promise<titlebar_menu_entry[]> => [
     ...[1, 2, 3, 4, 5, 6].map(level => native_only({ label: `${["一", "二", "三", "四", "五", "六"][level - 1]}级标题`, shortcut: `Ctrl+${level}`, action: () => editor()?.stylize?.changeBlock?.(`header${level}`) })),
@@ -147,19 +165,21 @@ export function create_workspace_titlebar_definitions(
     native_only({ label: "清除样式", shortcut: "Ctrl+\\", action: stylize("clearStyle") }),
   ];
   const view_entries = async (): Promise<titlebar_menu_entry[]> => [
+    { label: "命令面板…", shortcut: "Ctrl+Shift+P", action: () => open_quickly(">") },
     native_only({ label: "源代码模式", shortcut: "Ctrl+/", checked: Boolean(editor()?.sourceView?.inSourceMode), action: () => runtime.File?.toggleSourceMode?.() }),
     native_only({ label: "只读模式", checked: Boolean(runtime.File?.isReadonlyMode), action: () => runtime.File?.toggleReadonlyMode?.() }),
     native_only({ label: "专注模式", shortcut: "F8", checked: Boolean(runtime.File?.isFocusMode), action: () => editor()?.toggleFocusMode?.() }),
     native_only({ label: "打字机模式", shortcut: "F9", checked: Boolean(runtime.File?.isTypeWriterMode), action: () => editor()?.toggleTypeWriterMode?.() }),
     { separator: true },
     { label: "显示／隐藏侧边栏", shortcut: "Ctrl+B", action: () => files.core.app.workspace.sidebar.toggle() },
-    { label: "大纲", action: command(runtime, "toggleOutline") },
+    { label: "大纲", action: () => files.core.app.commands.run("linux_note:outline") },
     { label: "文档列表", action: command(runtime, "toggleFileList") },
     { label: "文件树", shortcut: "Ctrl+Shift+E", action: () => files.core.app.commands.run("linux_note:file_explorer") },
     { label: "状态栏", action: command(runtime, "toggleStatusBar") },
     { label: "工具栏", action: command(runtime, "toggleToolbar") },
     { separator: true },
     { label: "界面外观…", action: open_workspace_ui_appearance },
+    { label: "主题", children: await theme_entries() },
     { label: "放大", shortcut: "Ctrl+=", action: command(runtime, "zoomIn") },
     { label: "缩小", shortcut: "Ctrl+-", action: command(runtime, "zoomOut") },
     { label: "实际大小", shortcut: "Ctrl+数字键盘 0", action: command(runtime, "resetZoom") },
@@ -196,10 +216,10 @@ export function create_workspace_titlebar_definitions(
   return [
     { label: "文件", mnemonic: "F", entries: file_entries },
     { label: "编辑", mnemonic: "E", entries: edit_entries },
-    { label: "段落", mnemonic: "P", entries: paragraph_entries },
-    { label: "格式", mnemonic: "O", entries: format_entries },
+    { label: "选择", mnemonic: "S", entries: selection_entries },
     { label: "视图", mnemonic: "V", entries: view_entries },
-    { label: "主题", mnemonic: "T", entries: theme_entries },
+    { label: "转到", mnemonic: "G", entries: go_entries },
+    { label: "终端", mnemonic: "T", entries: terminal_entries },
     { label: "帮助", mnemonic: "H", entries: help_entries },
   ];
 }

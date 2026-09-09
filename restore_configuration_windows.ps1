@@ -21,7 +21,7 @@ foreach ($required in @($configuration_manifest, $enhancement_restorer)) {
     }
 }
 
-$manifest = Get-Content -LiteralPath $configuration_manifest -Raw | ConvertFrom-Json
+$manifest = Get-Content -Encoding UTF8 -LiteralPath $configuration_manifest -Raw | ConvertFrom-Json
 $expected_theme_target = Join-Path (get_typora_windows_user_data) "themes\cpp_github-consolas.css"
 if ($manifest.theme_target -ne $expected_theme_target) {
     throw "Backup theme target does not match the current Typora user-data path; restore stopped."

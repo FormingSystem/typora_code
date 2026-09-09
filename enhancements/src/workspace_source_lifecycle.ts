@@ -16,6 +16,8 @@ type source_group = graph_leaf["parent"] & {
 export function bind_source_lifecycle(core: graph_core, all_views: () => Iterable<source_lifecycle_view>) {
   const guarded_groups = new WeakSet<object>();
   const guarded_leaves = new WeakSet<object>();
+  const restore_patches: (() => void)[] = [];
+  let disposed = false;
   const moving_leaves = new WeakSet<object>();
   const pending = new Map<source_lifecycle_view, ReturnType<typeof workspace_dialog>>();
   let menu_view: source_lifecycle_view | undefined;
@@ -26,7 +28,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     let found = false; core.app.workspace.eachLeaves(item => { if (item === leaf) found = true; }); return found;
   };
   const release_removed = (view: source_lifecycle_view) => {
-    if (view.disposed || present(view.leaf)) return;
+    if (disposed || view.disposed || present(view.leaf)) return;
     pending.get(view)?.close(); pending.delete(view); view.release_source();
   };
   const schedule_release = (view: source_lifecycle_view) => {
@@ -34,7 +36,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     queueMicrotask(() => release_removed(view));
   };
   const confirm_close = (view: source_lifecycle_view, close: () => void) => {
-    if (pending.get(view)?.root.isConnected) return;
+    if (disposed || pending.get(view)?.root.isConnected) return;
     const dialog = workspace_dialog("保存文件修改"); pending.set(view, dialog);
     dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
     dialog.content.append(el("p", "", `${view.file_path.split(/[\\/]/u).at(-1)} 有未保存的修改。`));
@@ -52,15 +54,16 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     const leaf = view.leaf as source_leaf;
     if (typeof leaf.detach === "function" && !guarded_leaves.has(leaf)) {
       guarded_leaves.add(leaf); const detach = leaf.detach;
-      leaf.detach = function () {
+      const guarded_detach = leaf.detach = function () {
         moving_leaves.add(leaf);
         try { detach.call(leaf); } finally { moving_leaves.delete(leaf); schedule_release(view); }
       };
+      restore_patches.push(() => { if (leaf.detach === guarded_detach) leaf.detach = detach; });
     }
     const group = leaf.parent as source_group;
     if (!group?.removeTab || guarded_groups.has(group)) return;
     guarded_groups.add(group); const remove = group.removeTab;
-    group.removeTab = (path, tab) => {
+    const guarded_remove = group.removeTab = (path, tab) => {
       const target = [...all_views()].find(item => item.leaf.state.path === path && item.leaf.parent === group);
       const close = () => {
         // 对话框打开后标签可能已被其他动作移动；不能用旧组再移除新组的 DOM。
@@ -72,6 +75,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
       if (target?.dirty() && !moving_leaves.has(target.leaf)) { confirm_close(target, close); return; }
       return close();
     };
+    restore_patches.push(() => { if (group.removeTab === guarded_remove) group.removeTab = remove; });
   };
   const move_to_split = (view: source_lifecycle_view, down: boolean) => {
     if (view.disposed || !present(view.leaf)) return;
@@ -136,10 +140,20 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   document.addEventListener("click", menu_click, true);
   // Electron 对 window 目标的 beforeunload 不保证后注册的 capture 先于既有属性处理器。
   // 保留原生关闭函数及返回值，只在用户处理完源码草稿后交还给它。
-  window.onbeforeunload = function (event) {
+  const guarded_before_unload = window.onbeforeunload = function (event) {
     if (before_unload(event)) return false;
     return native_before_unload?.call(this, event);
   };
   Object.defineProperty(window.onbeforeunload, "linux_note_source_guard", {value: true});
-  return {guard, confirm_close, schedule_release, move_to_split};
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    document.removeEventListener("contextmenu", context, true);
+    document.removeEventListener("click", menu_click, true);
+    if (window.onbeforeunload === guarded_before_unload) window.onbeforeunload = native_before_unload;
+    for (const restore of restore_patches.splice(0).reverse()) restore();
+    for (const dialog of pending.values()) dialog.close();
+    pending.clear(); window_dialog?.close(); menu_view = undefined;
+  };
+  return {guard, confirm_close, schedule_release, move_to_split, dispose};
 }

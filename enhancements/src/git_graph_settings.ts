@@ -1,33 +1,40 @@
+import { pull_request_defaults, validate_pull_request_providers, type pull_request_provider } from "./git_graph_pull_request";
 import { git_graph_text as text, type git_graph_locale, type git_graph_text_key } from "./git_graph_i18n";
 
 export const GRAPH_SETTINGS_KEY = "linux-note-git-graph:v2:";
-const RETIRED_GRAPH_SETTING_KEYS = ["details_location", "panel_ratio", "show_date", "show_author", "show_hash", "label_alignment"] as const;
+const RETIRED_GRAPH_SETTING_KEYS = ["panel_ratio"] as const;
 export const graph_defaults = {
-  graph_style: "curved", colors: ["#2684d4", "#b462d6", "#209572", "#db8540", "#d4567d", "#7783cc"],
-  initial_count: 200, page_count: 200, auto_load: false, order: "topo", first_parent: false,
-  show_remotes: true, show_remote_heads: false, show_tags: true, tag_only_commits: true, show_stashes: true,
-  show_changes: true, show_untracked: true, include_reflogs: false, use_mailmap: true,
-  mute_merges: false, mute_unreachable: false, show_signature: false, fetch_avatars: false,
+  graph_style: "curved", colors: ["#0085d9", "#d9008f", "#00d90a", "#d98500", "#a300d9", "#ff0000", "#00d9cc", "#e138e8", "#85d900", "#dc5b23", "#6f24d6", "#ffcc00"],
+  initial_count: 300, page_count: 100, auto_load: true, order: "date", first_parent: false,
+  show_remotes: true, show_remote_heads: true, show_tags: true, tag_only_commits: true, show_stashes: true,
+  show_changes: true, show_untracked: true, include_reflogs: false, use_mailmap: false,
+  mute_merges: true, mute_unreachable: false, show_signature: false, fetch_avatars: false,
   date_type: "author", date_format: "local",
   column_widths: { subject: 300, author: 110, date: 145, hash: 80 },
+  details_location: "inline", show_date: true, show_author: true, show_hash: true, label_alignment: "normal",
   auto_center: true, file_view: "tree", compact_folders: true,
-  combine_refs: false, uncommitted_style: "row", inline_markdown: true,
+  combine_refs: true, uncommitted_style: "connected", inline_markdown: true,
   branch_globs: [] as { name: string; glob: string }[], emoji: {} as Record<string, string>,
-  hidden_actions: [] as string[], dialog_defaults: {} as Record<string, Record<string, string | boolean>>,
+  scm_integration: "inline", reference_space: "none", hidden_actions: [] as string[], dialog_defaults: {merge: {mode: "no-ff", squash_message: "default"}, pull: {mode: "merge", squash_message: "default"}, rebase: {ignore_date: true}, stash_create: {untracked: true}} as Record<string, Record<string, string | boolean>>,
   shortcuts: { find: "Mod+f", head: "Mod+h", refresh: "Mod+r", stash_next: "Mod+s", stash_previous: "Mod+Shift+s" },
   on_load_head: false, on_load_branch: false, on_load_branches: [] as string[], retain_context: true,
   fetch_prune: false, fetch_prune_tags: false, sign_commits: false, sign_tags: false,
+  pr_providers: [] as pull_request_provider[], pr_config: structuredClone(pull_request_defaults), tab_icon_theme: "colour",
   issue_pattern: "#([0-9]+)", issue_url: "", pr_url: "", pr_base: "main",
   encoding: "utf-8", git_path: "git", terminal_shell: "", new_tab_group: "active", open_active_repo: true,
-  search_depth: 2, repository_order: "name", show_status_button: true, file_menu_entry: true, icon_color: "auto",
+  search_depth: 0, repository_order: "path", show_status_button: true, file_menu_entry: true, icon_color: "auto",
 };
 export type graph_settings = typeof graph_defaults;
 export function settings_labels_for(locale?: git_graph_locale): Record<keyof graph_settings, string> {
   const label = (key: git_graph_text_key): string => text(key, {}, locale);
   return {
+    pr_providers:label("settings.label.pr_providers"),pr_config:label("settings.label.pr_config"),tab_icon_theme:label("settings.label.tab_icon_theme"),
+    scm_integration: label("settings.label.scm_integration"),
+    reference_space: label("settings.label.reference_space"),
     graph_style: label("settings.label.graph_style"), colors: label("settings.label.colors"), initial_count: label("settings.label.initial_count"), page_count: label("settings.label.page_count"), auto_load: label("settings.label.auto_load"), order: label("settings.label.order"), first_parent: label("settings.label.first_parent"),
     show_remotes: label("settings.label.show_remotes"), show_remote_heads: label("settings.label.show_remote_heads"), show_tags: label("settings.label.show_tags"), tag_only_commits: label("settings.label.tag_only_commits"), show_stashes: label("settings.label.show_stashes"), show_changes: label("settings.label.show_changes"), show_untracked: label("settings.label.show_untracked"), include_reflogs: label("settings.label.include_reflogs"), use_mailmap: label("settings.label.use_mailmap"), mute_merges: label("settings.label.mute_merges"), mute_unreachable: label("settings.label.mute_unreachable"), show_signature: label("settings.label.show_signature"), fetch_avatars: label("settings.label.fetch_avatars"),
     date_type: label("settings.label.date_type"), date_format: label("settings.label.date_format"), column_widths: label("settings.label.column_widths"),
+    details_location: label("settings.label.details_location"), show_date: label("graph.column.date"), show_author: label("graph.column.author"), show_hash: label("graph.column.commit"), label_alignment: label("settings.label.label_alignment"),
     auto_center: label("settings.label.auto_center"), file_view: label("settings.label.file_view"), compact_folders: label("settings.label.compact_folders"), combine_refs: label("settings.label.combine_refs"), uncommitted_style: label("settings.label.uncommitted_style"), inline_markdown: label("settings.label.inline_markdown"),
     branch_globs: label("settings.label.branch_globs"), emoji: label("settings.label.emoji"), hidden_actions: label("settings.label.hidden_actions"), dialog_defaults: label("settings.label.dialog_defaults"), shortcuts: label("settings.label.shortcuts"),
     on_load_head: label("settings.label.on_load_head"), on_load_branch: label("settings.label.on_load_branch"), on_load_branches: label("settings.label.on_load_branches"), retain_context: label("settings.label.retain_context"), fetch_prune: label("settings.label.fetch_prune"), fetch_prune_tags: label("settings.label.fetch_prune_tags"), sign_commits: label("settings.label.sign_commits"), sign_tags: label("settings.label.sign_tags"),
@@ -36,15 +43,19 @@ export function settings_labels_for(locale?: git_graph_locale): Record<keyof gra
   };
 }
 
-export const settings_choices: Record<string, string[]> = { graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "iso", "relative"], file_view: ["tree", "list"], uncommitted_style: ["row", "connected"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
+export const settings_choices: Record<string, string[]> = { tab_icon_theme: ["colour", "grey"], scm_integration: ["inline", "more"], reference_space: ["none", "-", "_"], details_location: ["inline", "docked"], label_alignment: ["normal", "split", "graph"], graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "date", "iso", "iso_date", "relative"], file_view: ["tree", "list"], uncommitted_style: ["connected", "head"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
 
 const settings_choice_label_keys: Partial<Record<keyof graph_settings, Record<string, git_graph_text_key>>> = {
+  tab_icon_theme:{colour:"settings.choice.tab_icon.colour",grey:"settings.choice.tab_icon.grey"},
+  scm_integration: {inline: "settings.choice.layout.inline", more: "settings.choice.layout.more"},
+  details_location: {inline: "settings.choice.layout.inline", docked: "settings.choice.layout.docked"},
+  label_alignment: {normal: "settings.choice.layout.normal", split: "settings.choice.layout.left", graph: "settings.choice.layout.right"},
   graph_style: {curved: "settings.choice.graph_style.curved", straight: "settings.choice.graph_style.straight"},
   order: {topo: "settings.choice.order.topo", date: "settings.choice.order.date", "author-date": "settings.choice.order.author_date"},
   date_type: {author: "settings.choice.date_type.author", committer: "settings.choice.date_type.committer"},
-  date_format: {local: "settings.choice.date_format.local", iso: "settings.choice.date_format.iso", relative: "settings.choice.date_format.relative"},
+  date_format: {date: "settings.choice.date_format.date", iso_date: "settings.choice.date_format.iso_date", local: "settings.choice.date_format.local", iso: "settings.choice.date_format.iso", relative: "settings.choice.date_format.relative"},
   file_view: {tree: "settings.choice.file_view.tree", list: "settings.choice.file_view.list"},
-  uncommitted_style: {row: "settings.choice.uncommitted_style.row", connected: "settings.choice.uncommitted_style.connected"},
+  uncommitted_style: {head: "settings.choice.uncommitted_style.row", connected: "settings.choice.uncommitted_style.connected"},
   new_tab_group: {active: "settings.choice.new_tab_group.active", right: "settings.choice.new_tab_group.right", down: "settings.choice.new_tab_group.down"},
   repository_order: {name: "settings.choice.repository_order.name", path: "settings.choice.repository_order.path", recent: "settings.choice.repository_order.recent"},
 };
@@ -87,6 +98,8 @@ export function validate_settings(value: unknown): graph_settings {
   for (const key of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key)) throw new Error(text("settings.error.missing_column_width", {key}));
   for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some(value => typeof value !== "string" && typeof value !== "boolean")) throw new Error(text("settings.error.invalid_dialog_defaults"));
   for (const width of Object.values(result.column_widths)) if (!Number.isFinite(width) || width < 40 || width > 1500) throw new Error(text("settings.error.invalid_column_width"));
+  validate_pull_request_providers(result.pr_providers);
+  if(Object.keys(pull_request_defaults).some(key=>typeof result.pr_config[key as keyof typeof pull_request_defaults]!=="string"))throw new Error("PR integration fields must be strings.");
   try { new TextDecoder(result.encoding); }
   catch { throw new Error(text("settings.error.invalid_encoding", {encoding: result.encoding})); }
   if (result.issue_pattern.length > 150) throw new Error(text("settings.error.issue_pattern_too_long"));

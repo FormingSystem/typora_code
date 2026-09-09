@@ -47,6 +47,9 @@ app.whenReady().then(async () => {
   const html = path.join(evidence, "fixture.html");
   fs.writeFileSync(html, fixture);
   await test_window.loadFile(html);
+  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,"../src/workspace_search.css"),"utf8"));
+  test_window.webContents.debugger.attach("1.3");
+  await test_window.webContents.debugger.sendCommand("Emulation.setFocusEmulationEnabled", {enabled:true});
   const bundle = await build({ stdin: { contents: 'export {install_workspace_chrome} from "./src/workspace_chrome";', resolveDir: path.join(__dirname, "..") }, bundle: true, loader: { ".css": "text" }, format: "iife", globalName: "chrome_theme_qa", write: false });
   await evaluate(bundle.outputFiles[0].text);
 
@@ -57,6 +60,11 @@ app.whenReady().then(async () => {
   check(light.tab_active === light.editor && light.tab_inactive !== light.tab_active, "active tab joins the editor while inactive tabs stay on the tab strip", checks);
   check(light.toolbar === light.editor && light.toolbar_border !== "rgba(0, 0, 0, 0)" && light.details !== light.editor && light.selected !== light.editor, "Git Graph uses the classic editor canvas, bordered controls and tinted detail states", checks);
   check(light.active_icon !== light.inactive_icon, "light activity icons distinguish active and inactive foregrounds", checks);
+  check(await evaluate("document.documentElement.dataset.linuxNoteShellTheme==='light'&&surface('.workspace-search-match.is-selected')==='rgb(228, 230, 241)'"), "light inactive selection has a stable visible neutral background", checks);
+  await evaluate("document.querySelector('.workspace-search-match.is-selected').focus()");
+  check(await evaluate("surface('.workspace-search-match.is-selected')==='rgb(0, 96, 192)'&&getComputedStyle(document.querySelector('.workspace-search-match.is-selected')).color==='rgb(255, 255, 255)'"), "focused light selection uses readable active foreground and background", checks);
+  await evaluate("document.activeElement.blur()");
+  check(await evaluate("document.querySelector('.typ-workspace-tab-header').getBoundingClientRect().height===35&&document.querySelector('footer.ty-footer').getBoundingClientRect().height===22"), "tabs and status bar use 35px and 22px workbench geometry", checks);
   nativeTheme.themeSource = "light";
   await settle();
   await capture("workspace_chrome_light");
@@ -68,6 +76,10 @@ app.whenReady().then(async () => {
   check(dark.tab_active === dark.editor && dark.tab_inactive !== dark.tab_active, "dark active and inactive tabs retain the VS Code surface hierarchy", checks);
   check(dark.toolbar === dark.editor && dark.toolbar_border !== "rgba(0, 0, 0, 0)" && dark.details !== dark.editor && dark.selected !== dark.editor, "dark Git Graph surfaces follow the classic extension without a white fallback", checks);
   check(dark.active_icon !== dark.inactive_icon, "dark activity icons distinguish active and inactive foregrounds", checks);
+  check(await evaluate("document.documentElement.dataset.linuxNoteShellTheme==='dark'&&surface('.workspace-search-match.is-selected')==='rgb(55, 55, 61)'"), "dark inactive selection stays distinct from the sidebar", checks);
+  await evaluate("document.documentElement.className='palette-light'"); await settle();
+  check(await evaluate("document.documentElement.dataset.linuxNoteShellTheme==='light'"), "live host theme changes refresh the palette without reinstalling", checks);
+  await evaluate("document.documentElement.className='palette-dark'"); await settle();
   nativeTheme.themeSource = "dark";
   await settle();
   await capture("workspace_chrome_dark");
@@ -75,6 +87,7 @@ app.whenReady().then(async () => {
   await evaluate(`document.documentElement.style.setProperty('--vscode-sideBar-background','#102030');document.documentElement.style.setProperty('--vscode-icon-foreground','#abcdee');document.documentElement.style.setProperty('--vscode-list-activeSelectionBackground','#304860');void 0`);
   check(await evaluate("surface('#typora-sidebar')==='rgb(16, 32, 48)'"), "explicit VS Code sideBar token overrides the derived Typora fallback", checks);
   check(await evaluate("getComputedStyle(document.querySelector('.typ-ribbon-item:not([data-activity-active]) svg')).color==='rgb(171, 205, 238)'"), "explicit VS Code icon.foreground token reaches shell icons", checks);
+  await evaluate("document.querySelector('.workspace-search-match.is-selected').focus()");
   check(await evaluate("surface('.workspace-search-match.is-selected')==='rgb(48, 72, 96)'"), "explicit VS Code list selection token reaches workbench lists", checks);
 
   console.log(JSON.stringify({ status: "PASS", checks, light, dark, evidence, screenshots: [path.join(evidence, "workspace_chrome_light.png"), path.join(evidence, "workspace_chrome_dark.png")] }));

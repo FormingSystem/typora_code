@@ -36,116 +36,69 @@ if [[ "$TYPORA_PLATFORM_ID" == 'windows-ucrt64' ]]; then
 fi
 
 window_html="$typora_root/resources/window.html"
-bundle_source="$typora_tools_root/enhancements/dist/typora_enhancements.js"
 theme_source="$typora_tools_root/cpp_github-consolas.css"
-theme_directory="$TYPORA_USER_DATA/themes"
-theme_target="$theme_directory/cpp_github-consolas.css"
-extension_directory="$TYPORA_USER_DATA/linux_note_enhancements"
-bundle_target="$extension_directory/typora_enhancements.js"
-timestamp="$(date '+%Y%m%d-%H%M%S')"
-backup_root="$TYPORA_USER_DATA/backups/linux_note_typora_configuration/$timestamp"
-manifest_path="$backup_root/configuration_manifest.tsv"
-script_tag='<script defer src="typora://app/userData/linux_note_enhancements/typora_enhancements.js" data-linux-note-enhancements="true"></script>'
-
-for required_path in "$window_html" "$bundle_source" "$theme_source"; do
-    [[ -f "$required_path" ]] || { printf '[typora] Required file is missing: %s\n' "$required_path" >&2; exit 1; }
-done
-typora_validate_bundle "$bundle_source" "$typora_tools_root/enhancements/bundle_markers.txt"
+theme_target="$TYPORA_USER_DATA/themes/cpp_github-consolas.css"
 workspace_vendor="$typora_tools_root/enhancements/vendor/typora_workspace"
 workspace_manifest="$workspace_vendor/SHA256SUMS"
 workspace_target="$TYPORA_USER_DATA/plugins"
-typora_validate_workspace "$workspace_vendor" "$workspace_manifest"
-grep -Fq '</body>' "$window_html" || { printf '%s\n' '[typora] Typora resources/window.html does not contain </body>.' >&2; exit 1; }
-command -v base64 >/dev/null 2>&1 || { printf '%s\n' '[typora] base64 is required.' >&2; exit 1; }
+plugin_source="$typora_tools_root/enhancements/dist/community_plugin"
+plugin_target="$workspace_target/plugins/forming_system.linux_note_enhancements"
+plugin_settings="$workspace_target/settings/plugins.json"
+timestamp="$(date '+%Y%m%d-%H%M%S-%N')"
+backup_root="$TYPORA_USER_DATA/backups/linux_note_typora_configuration/$timestamp"
+manifest_path="$backup_root/configuration_manifest.tsv"
 
-mkdir -p "$backup_root" "$theme_directory" "$extension_directory"
+command -v python3 >/dev/null || { printf '%s\n' '[typora] Python 3 is required to merge community plugin settings.' >&2; exit 1; }
+for required_path in "$window_html" "$theme_source"; do [[ -f "$required_path" ]] || exit 1; done
+typora_validate_workspace "$workspace_vendor" "$workspace_manifest"
+typora_validate_community_plugin "$plugin_source" "$plugin_source/SHA256SUMS"
+grep -Fq '</body>' "$window_html" || { printf '%s\n' '[typora] Missing </body> entry.' >&2; exit 1; }
+[[ ! -d "$theme_target" && ! -d "$plugin_settings" ]] || exit 1
+mkdir -p "$backup_root" "$(dirname "$theme_target")" "$(dirname "$plugin_settings")"
 cp -- "$window_html" "$backup_root/window.html"
 theme_existed=0
-bundle_existed=0
-if [[ -f "$theme_target" ]]; then
-    theme_existed=1
-    cp -- "$theme_target" "$backup_root/cpp_github-consolas.css"
-fi
-if [[ -f "$bundle_target" ]]; then
-    bundle_existed=1
-    cp -- "$bundle_target" "$backup_root/typora_enhancements.js"
-fi
-
-temporary_root="$(mktemp -d)"
-new_window_html="$temporary_root/window.html"
-sed \
-    -e 's#<script defer src="typora://app/userData/linux_note_enhancements/typora_enhancements.js" data-linux-note-enhancements="true"></script>##g' \
-    -e 's#</body>#<script defer src="typora://app/userData/linux_note_enhancements/typora_enhancements.js" data-linux-note-enhancements="true"></script></body>#' \
-    "$window_html" > "$new_window_html"
-entry_count="$(grep -oF "$script_tag" "$new_window_html" | wc -l | tr -d '[:space:]')"
-[[ "$entry_count" == '1' ]] || { printf '[typora] Expected one enhancement entry, found %s.\n' "$entry_count" >&2; exit 1; }
-
-configuration_started=0
-configuration_committed=0
+settings_existed=0
+if [[ -f "$theme_target" ]]; then theme_existed=1; cp -- "$theme_target" "$backup_root/cpp_github-consolas.css"; fi
+if [[ -f "$plugin_settings" ]]; then settings_existed=1; cp -- "$plugin_settings" "$backup_root/plugins.json"; fi
 typora_backup_workspace "$workspace_target" "$backup_root/workspace" "$workspace_manifest"
+typora_backup_workspace "$plugin_target" "$backup_root/community_plugin" "$plugin_source/SHA256SUMS"
+configuration_committed=0
 rollback_configuration() {
     local exit_code=$?
     set +e
-    rm -f -- "$new_window_html"
-    rmdir -- "$temporary_root" 2>/dev/null
-    if [[ "$exit_code" -ne 0 && "$configuration_started" == '1' && "$configuration_committed" == '0' ]]; then
-        printf '%s\n' '[typora] Configuration failed; restoring the pre-change files.' >&2
+    if [[ "$exit_code" -ne 0 && "$configuration_committed" == 0 ]]; then
         typora_restore_workspace "$workspace_target" "$backup_root/workspace" "$timestamp"
+        typora_restore_workspace "$plugin_target" "$backup_root/community_plugin" "$timestamp"
         typora_copy_file "$backup_root/window.html" "$window_html"
-        if [[ "$theme_existed" == '1' ]]; then
-            cp -f -- "$backup_root/cpp_github-consolas.css" "$theme_target"
-        elif [[ -f "$theme_target" ]]; then
-            mv -- "$theme_target" "$theme_target.disabled.$timestamp"
-        fi
-        if [[ "$bundle_existed" == '1' ]]; then
-            cp -f -- "$backup_root/typora_enhancements.js" "$bundle_target"
-        elif [[ -f "$bundle_target" ]]; then
-            mv -- "$bundle_target" "$bundle_target.disabled.$timestamp"
-        fi
+        typora_restore_managed_file "$theme_target" "$backup_root/cpp_github-consolas.css" "$theme_existed" "$timestamp"
+        typora_restore_managed_file "$plugin_settings" "$backup_root/plugins.json" "$settings_existed" "$timestamp"
     fi
     exit "$exit_code"
 }
 trap rollback_configuration EXIT
 
-configuration_started=1
 typora_install_workspace "$workspace_vendor" "$workspace_target" "$workspace_manifest"
+typora_install_community_plugin "$plugin_source" "$plugin_target"
+typora_plugin_settings enable "$plugin_settings" "$backup_root/plugins.json"
 cp -f -- "$theme_source" "$theme_target"
-cp -f -- "$bundle_source" "$bundle_target"
-typora_copy_file "$new_window_html" "$window_html"
-[[ "$(typora_sha256 "$theme_source")" == "$(typora_sha256 "$theme_target")" ]] || {
-    printf '%s\n' '[typora] Installed theme does not match the repository theme.' >&2
-    exit 1
-}
-[[ "$(typora_sha256 "$bundle_source")" == "$(typora_sha256 "$bundle_target")" ]] || {
-    printf '%s\n' '[typora] Installed extension does not match the prebuilt bundle.' >&2
-    exit 1
-}
-
+python3 - "$window_html" "$backup_root/window.installed.html" <<'PY'
+import re, sys
+from pathlib import Path
+source = Path(sys.argv[1]).read_text(encoding='utf-8')
+source = re.sub(r'<script\s+defer\s+src="typora://app/userData/linux_note_enhancements/typora_enhancements\.js"\s+data-linux-note-enhancements="true"></script>', '', source)
+tag = '<script src="typora://app/userData/plugins/loader.js" type="module"></script>'
+source = re.sub(r'<script\s+src="typora://app/userData/plugins/loader\.js"\s+type="module"></script>', '', source)
+source = source.replace('</body>', tag + '</body>')
+if source.count(tag) != 1: raise ValueError('Expected one official loader entry')
+Path(sys.argv[2]).write_text(source, encoding='utf-8')
+PY
+typora_copy_file "$backup_root/window.installed.html" "$window_html"
+[[ "$(typora_sha256 "$theme_source")" == "$(typora_sha256 "$theme_target")" ]] || exit 1
 : > "$manifest_path"
-typora_manifest_put "$manifest_path" schema_version '1'
+for field in typora_root window_html theme_target plugin_target theme_existed settings_existed; do
+    typora_manifest_put "$manifest_path" "$field" "${!field}"
+done
+typora_manifest_put "$manifest_path" schema_version '2'
 typora_manifest_put "$manifest_path" configured_at "$(date -Iseconds)"
-typora_manifest_put "$manifest_path" platform_id "$TYPORA_PLATFORM_ID"
-typora_manifest_put "$manifest_path" typora_root "$typora_root"
-typora_manifest_put "$manifest_path" window_html "$window_html"
-typora_manifest_put "$manifest_path" theme_target "$theme_target"
-typora_manifest_put "$manifest_path" bundle_target "$bundle_target"
-typora_manifest_put "$manifest_path" theme_existed "$theme_existed"
-typora_manifest_put "$manifest_path" bundle_existed "$bundle_existed"
-typora_manifest_put "$manifest_path" workspace_assets 'workspace/assets.tsv'
-typora_manifest_put "$manifest_path" window_sha256 "$(typora_sha256 "$window_html")"
-typora_manifest_put "$manifest_path" theme_sha256 "$(typora_sha256 "$theme_target")"
-typora_manifest_put "$manifest_path" bundle_sha256 "$(typora_sha256 "$bundle_target")"
 configuration_committed=1
-
-printf '%s\n' \
-    '[typora] Configuration completed.' \
-    "[typora] Platform: $TYPORA_PLATFORM_ID" \
-    "[typora] Typora root: $typora_root" \
-    "[typora] Unified backup: $backup_root" \
-    '[typora] Save open documents, restart Typora, and select cpp github consolas.' \
-    '[typora] 已安装全文件目录、隐藏文件、复合后缀识别、源码标签和文件搜索预览。' \
-    '[typora] Git 使用官方 Codicons、双栏差异和红绿概览；活动栏支持排序，终端配色跟随主题。' \
-    '[typora] 搜索支持手动输入和选中文字后 Ctrl+左键；单击预览、双击定位，预览可收放，用滑块或 Ctrl+滚轮调整比例。' \
-    '[typora] 普通源码支持 Ctrl+S 保存、Ctrl+F 查找；全局底栏随当前编辑区更新行列、语言模式、编码和换行格式。' \
-    '[typora] Windows／Linux 新窗口使用单行标题与菜单；保存文档后重启使已有窗口生效。' \
-    '[typora] Git 从 PATH 发现；无需独立安装 Node.js。'
+printf '%s\n' '[typora] Official community loader/core 2.10.15 and TyporaCode plugin installed.' "[typora] Unified backup: $backup_root" '[typora] Save open documents, restart Typora, and select cpp github consolas.'

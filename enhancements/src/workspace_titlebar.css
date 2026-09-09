@@ -10,7 +10,7 @@ body.unibody-window #top-titlebar[data-workspace-titlebar]{display:flex;align-it
 #top-titlebar[data-workspace-titlebar] #w-titlebar-left{float:none;flex:1;min-width:0;max-width:none;text-align:center;overflow:hidden}
 #top-titlebar[data-workspace-titlebar] #title-text{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #top-titlebar[data-workspace-titlebar] #w-traffic-lights{float:none;flex:none;display:flex;align-items:center;height:35px;margin-left:auto;z-index:2}
-#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{width:46px;height:35px;line-height:35px;margin:0;text-align:center}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon{box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;flex:0 0 46px;width:46px;min-width:46px;max-width:46px;height:35px;min-height:35px;padding:0!important;margin:0!important;border:0;border-radius:0;line-height:1;text-align:center;vertical-align:top;-webkit-app-region:no-drag}
 #top-titlebar[data-workspace-titlebar] #w-traffic-lights .ty-icon{font-size:12px}
 #top-titlebar[data-workspace-titlebar] #w-top-margin{display:none}
 .workspace-titlebar-command-area{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:min(38vw,600px);height:22px;-webkit-app-region:no-drag}
@@ -46,3 +46,21 @@ body.unibody-window #typora-sidebar{top:35px;height:calc(100% - 35px)}
 body.unibody-window #typora-sidebar-resizer{top:35px}
 @media(max-width:900px){.workspace-titlebar-command-area{right:142px;left:auto;transform:none;width:22px}.workspace-titlebar-navigation{right:calc(100% + 4px)}.workspace-titlebar-quick-open{display:none!important}#top-titlebar .workspace-titlebar-menu>button{padding:0 5px}}
 @media(max-width:650px){.workspace-titlebar-command-area{display:none}}
+
+/* 原生按钮保留事件目标，隐藏规则明确覆盖通用按钮 display，防止还原按钮额外占位。 */
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights{width:138px;min-width:138px;padding:0;margin:0;gap:0;box-sizing:border-box}
+#top-titlebar[data-workspace-titlebar] #w-max-group{box-sizing:border-box;width:46px;height:35px;padding:0;margin:0;flex:0 0 46px}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights :is(#w-full,#w-pin,#w-unpin,#w-restore){display:none}
+.typora-maxmized #top-titlebar[data-workspace-titlebar] #w-max-group,.always-on-top #top-titlebar[data-workspace-titlebar] #w-max-group{display:none}
+.typora-maxmized #top-titlebar[data-workspace-titlebar] #w-traffic-lights #w-restore,.always-on-top #top-titlebar[data-workspace-titlebar] #w-traffic-lights #w-unpin{display:inline-flex}
+#top-titlebar[data-workspace-titlebar] .workspace-window-icon{width:16px;height:16px;fill:none!important;stroke:currentColor;stroke-width:1;pointer-events:none;color:inherit!important}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights .toolbar-icon:hover{background:var(--linux-note-shell-action-hover-background,#e8e8e8)}
+#top-titlebar[data-workspace-titlebar] #w-traffic-lights #w-close:hover{background:#e81123;color:#fff}
+html[data-linux-note-workspace-chrome="ready"] body.unibody-window #typora-sidebar :is(#sidebar-content,.sidebar-content){top:0!important}
+html[data-linux-note-workspace-chrome="ready"] body.unibody-window .typ-ribbon>.group.top{margin-top:0;padding-top:0}
+
+#top-titlebar .workspace-titlebar-layout-actions{display:flex;align-items:center;gap:4px;padding:0 6px;flex:none;height:35px;-webkit-app-region:no-drag}
+#top-titlebar .workspace-titlebar-layout-actions>button{display:grid;place-items:center;appearance:none;width:22px;height:22px;padding:0;margin:0;border:0;border-radius:5px;background:transparent;color:inherit;outline-offset:-2px;-webkit-app-region:no-drag}
+#top-titlebar .workspace-titlebar-layout-actions>button:is(:hover,:focus-visible){background:var(--linux-note-shell-action-hover-background,rgba(127,127,127,.16))}
+#top-titlebar .workspace-titlebar-layout-actions svg{width:16px;height:16px}
+@media(max-width:900px){.workspace-titlebar-command-area{right:202px}}

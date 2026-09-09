@@ -16,7 +16,7 @@ const expectations = {
     toolbar: ['查找提交', '在仓库根目录打开集成终端', 'Git 操作和设置', '获取远端更新', '刷新提交图'],
     source_control: '源代码管理',
     message: '消息（Ctrl+Enter 提交）',
-    scm_tools: ['刷新', '选择视图'],
+    scm_tools: ['打开 Git Graph', '刷新', '选择视图'],
     view_menu: ['仓库', '更改', '提交图', '配置此右键菜单…'],
     merge_title: '合并到当前分支',
     merge_field: '合并方式',
@@ -33,7 +33,7 @@ const expectations = {
     toolbar: ['Find Commits', 'Open Integrated Terminal at Repository Root', 'Git Actions and Settings', 'Fetch from Remote(s)', 'Refresh Graph'],
     source_control: 'Source Control',
     message: 'Message (Ctrl+Enter to Commit)',
-    scm_tools: ['Refresh', 'Select Views'],
+    scm_tools: ['Open Git Graph', 'Refresh', 'Select Views'],
     view_menu: ['Repositories', 'Changes', 'Graph', 'Configure this Context Menu…'],
     merge_title: 'Merge into Current Branch',
     merge_field: 'Merge Method',
@@ -71,11 +71,11 @@ function host_source() {
   })()`;
 }
 
-async function inspect_locale(bundle, html, locale) {
+async function inspect_locale(bundle, html, locale, environment = {options: {displayLang: locale}, dom: ""}) {
   const window = new BrowserWindow({show: false, width: 1000, height: 760, webPreferences: {nodeIntegration: true, contextIsolation: false}});
   try {
     await window.loadFile(html);
-    await window.webContents.executeJavaScript(`window._options = {displayLang: ${JSON.stringify(locale)}}`);
+    await window.webContents.executeJavaScript(`window._options = ${JSON.stringify(environment.options)};document.documentElement.lang=${JSON.stringify(environment.dom)};window[Symbol.for("typora-plugin-core@v2:env")] = ${JSON.stringify(environment.plugin || {})};`);
     await window.webContents.executeJavaScript(bundle);
     await window.webContents.executeJavaScript(host_source());
     return await window.webContents.executeJavaScript(`(() => {
@@ -128,6 +128,16 @@ app.whenReady().then(async () => {
     const actual = await inspect_locale(bundle, html, locale);
     assert.deepEqual(actual, {...expected, settings_close: expected.close}, `${locale} localizes panel, SCM, tooltips, menu and dialogs as one language`);
   }
-  console.log('git graph DOM i18n: zh-CN and en-US panel, SCM, tooltips, menus and dialogs passed');
+  for (const [name, locale, environment] of [
+    ['native appLocale beats English DOM', 'zh-CN', {options:{appLocale:'zh-CN'},dom:'en'}],
+    ['English appLocale beats Chinese DOM and legacy locale', 'en-US', {options:{appLocale:'en-US',locale:'zh-CN'},dom:'zh-CN'}],
+    ['explicit display language beats appLocale', 'en-US', {options:{displayLang:'en-US',appLocale:'zh-CN'},dom:'zh-CN'}],
+    ['explicit user language beats appLocale', 'en-US', {options:{userLang:'en-US',appLocale:'zh-CN'},dom:'zh-CN'}],
+    ['plugin selected language has highest precedence', 'en-US', {options:{displayLang:'zh-CN',appLocale:'zh-CN'},plugin:{userLang:'en-US'},dom:'zh-CN'}],
+  ]) {
+    const actual=await inspect_locale(bundle,html,locale,environment);const expected=expectations[locale];
+    assert.deepEqual(actual,{...expected,settings_close:expected.close},name+' localizes actual panel, SCM and dialogs consistently');
+  }
+  console.log('git graph DOM i18n: zh-CN and en-US panel, SCM, tooltips, menus, dialogs and native appLocale/explicit-language precedence passed');
   app.exit(0);
 }).catch(error => { console.error(error); app.exit(1); });

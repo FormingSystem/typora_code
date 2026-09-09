@@ -4,7 +4,7 @@ import path from 'node:path';
 import os from 'node:os';
 import {build} from 'esbuild';
 const compiled = await build({stdin:{contents:'export * from "./src/workspace_rename";export * from "./src/workspace_text_document";export * from "./src/reading_positions";export * from "./src/reading_history";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
-const {prepare_workspace_rename,renamed_workspace_path,create_text_document,create_position_store,create_reading_history}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const {prepare_workspace_move,prepare_workspace_rename,renamed_workspace_path,create_text_document,create_position_store,create_reading_history}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_rename_')),workspace=path.join(root,'workspace');fs.mkdirSync(workspace);const checks=[];
 const file=(name,text='original\r\n')=>{const target=path.join(workspace,name);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,text);return target};
 const prepare=(source,name,extra={})=>prepare_workspace_rename({fs:{promises:{...fs.promises,...extra}},path_api:path},workspace,source,name);
@@ -18,6 +18,11 @@ const plan=await prepare(first,'中文 renamed.txt');await plan.apply();assert.e
 if(process.platform==='win32'){const lower=file('case_name.txt');const change=await prepare(lower,'CASE_NAME.txt');await change.apply();assert(fs.readdirSync(workspace).includes('CASE_NAME.txt'));assert.equal(fs.readFileSync(change.new_path,'utf8'),'original\r\n');checks.push('real Windows case-only rename changes the stored spelling without a temporary name');}
 const raced=file('race.txt'),race=await prepare(raced,'new_race.txt');file('new_race.txt','someone else');await assert.rejects(race.apply(),/已存在/u);assert.equal(fs.readFileSync(raced,'utf8'),'original\r\n');assert.equal(fs.readFileSync(path.join(workspace,'new_race.txt'),'utf8'),'someone else');
 const changed=file('changed.txt'),changed_plan=await prepare(changed,'changed2.txt');fs.writeFileSync(changed,'external write longer');await assert.rejects(changed_plan.apply(),/已经变化/u);assert(!fs.existsSync(changed_plan.new_path));checks.push('destination creation and source writes after preparation abort before rename');
+const moving=file('move/source.txt');fs.mkdirSync(path.join(workspace,'destination'));
+const moved=await prepare_workspace_move({fs,path_api:path},workspace,moving,path.join(workspace,'destination','target.txt'));await moved.apply();assert.equal(fs.readFileSync(moved.new_path,'utf8'),'original\r\n');assert(!fs.existsSync(moving));
+await assert.rejects(prepare_workspace_move({fs,path_api:path},workspace,path.join(workspace,'destination'),path.join(workspace,'destination','nested')));
+await assert.rejects(prepare_workspace_move({fs,path_api:path},workspace,moved.new_path,path.join(root,'escape.txt')));
+checks.push('cross-directory move preserves bytes and refuses nesting or workspace escape');
 const original=file('a/inside.c'),prefix=file('abc/inside.c'),directory=path.dirname(original);const dir_plan=await prepare(directory,'b');await dir_plan.apply();assert.equal(fs.readFileSync(path.join(workspace,'b','inside.c'),'utf8'),'original\r\n');assert(fs.existsSync(prefix));
 assert.equal(renamed_workspace_path(path,original,directory,dir_plan.new_path,true),path.join(workspace,'b','inside.c'));assert.equal(renamed_workspace_path(path,prefix,directory,dir_plan.new_path,true),undefined);
 assert.equal(renamed_workspace_path(path,path.join(directory,'child'),directory,dir_plan.new_path,false),undefined);checks.push('directory rename preserves descendants and path mapping excludes same-prefix siblings');

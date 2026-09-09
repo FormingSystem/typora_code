@@ -7,12 +7,17 @@ export function workspace_button(text: string, action: () => void, class_name = 
 export function workspace_option(value: string, text: string): HTMLOptionElement {
   const node = workspace_element("option", "", text); node.value = value; return node;
 }
+const active_dialogs = new Set<() => void>();
+export function dispose_workspace_widgets(): void {
+  close_active_menu?.();
+  for (const close of [...active_dialogs]) close();
+}
 export function workspace_dialog(title: string, close_title = "关闭"): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
   const previous = document.activeElement as HTMLElement | null;
-  const close = () => { window.removeEventListener("keydown", global_key, true); root.remove(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
+  const close = () => { active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
   // 执行按钮禁用后浏览器可能把焦点退回 body；Esc 仍必须关闭最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
     if (document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) !== root) return;
@@ -30,12 +35,14 @@ export function workspace_dialog(title: string, close_title = "关闭"): { root:
     }
     event.stopPropagation();
   });
-  footer.append(workspace_button(close_title, close)); setTimeout(() => panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(), 0);
+  footer.append(workspace_button(close_title, close));
+  const focus_timer = window.setTimeout(() => { if(root.isConnected)panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(); }, 0);
+  active_dialogs.add(close);
   return { root, content, footer, close };
 }
 export type workspace_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
-export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[]): void {
+export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[]): () => void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
   const previous_focus = document.activeElement as HTMLElement | null;
   const menus: HTMLElement[] = [];
@@ -74,6 +81,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
   };
   close_active_menu = close; window.addEventListener("blur", close); window.addEventListener("pointerdown", outside, true);
   show(entries, event.clientX, event.clientY, 0).querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
+  return close;
 }
 
 export function inline_message(text: string, options: { markdown: boolean; emoji: Record<string, string>; issue_pattern: string; issue_url: string }, open_url: (url: string) => void): DocumentFragment {
