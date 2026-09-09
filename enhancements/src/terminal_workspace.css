@@ -9,3 +9,6 @@
 .linux-note-terminal-status { padding: 2px 10px; background: var(--side-bar-bg-color,var(--bg-color,transparent)); min-height: 22px; flex: none; overflow-wrap: anywhere; max-height: 90px; overflow: auto; }
 .linux-note-terminal[data-state=error] .linux-note-terminal-status { color: #f48771; }
 .linux-note-terminal .xterm textarea { resize: none; }
+
+/* xterm 屏幕覆盖不到的尾部与滚动槽跟随终端底色。 */
+.linux-note-terminal .xterm-viewport { background-color: transparent; }

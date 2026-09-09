@@ -105,6 +105,15 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('File.bundle.filePath'), 'chapter_a.md', '跨文件后退复用宿主打开接口');
   await navigate('Right');
   assert.equal(await evaluate('File.bundle.filePath'), 'chapter_b.md', '跨文件前进');
+  for(let cycle=0;cycle<2;cycle++){
+    await evaluate('linux_note_test_plugin.unload();void 0');await delay(100);
+    assert.deepEqual(await evaluate('({ready:document.documentElement.hasAttribute("data-linux-note-typora-enhancements"),navigation:document.documentElement.hasAttribute("data-linux-note-reading-navigation"),toolbars:document.querySelectorAll(".linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar").length,url:File.editor.tryOpenUrl===test_native_open_url,file:File.editor.library.openFile===test_native_open_file})'),{ready:false,navigation:false,toolbars:0,url:true,file:true});
+    await evaluate('linux_note_test_plugin.load();void 0');
+    for(let attempt=0;attempt<60;attempt++){if(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")==="ready"'))break;await delay(50);}
+    assert.equal(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")'),'ready');
+    assert.equal(await evaluate('document.querySelectorAll("#linux-note-typora-enhancements-style").length'),1);
+    assert.equal(await evaluate('document.documentElement.getAttribute("data-linux-note-reading-navigation")'),'ready');
+  }
   console.log(JSON.stringify({ first_click_expand: true, first_click_collapse: true, rebuilt_button: true,
     keyboard: true, idle_mutations: mutation_count, macro_colors: colors, anchor_history: true, file_history: true }, null, 2));
   app.quit();

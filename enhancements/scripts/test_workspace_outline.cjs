@@ -87,5 +87,11 @@ app.whenReady().then(async () => {
   check(await evaluate('document.querySelector("#write").textContent===original_text'), 'outline cleanup leaves document text unchanged');
   await evaluate('outline.dispose()');
   check(await evaluate('getComputedStyle(document.querySelector("#outline-content")).paddingLeft==="18px"&&!document.querySelector("[data-workspace-outline-style]")'), 'dispose removes outline-only layout and observers');
+  await evaluate('document.querySelector("#write").innerHTML="<h2 cid=sync_3>Destination heading</h2>";window.native_pane=document.querySelector("#outline-content");window.native_parent=native_pane.parentNode;window.embedded=document.createElement("section");embedded.className="workspace-explorer-outline-content";embedded.style.cssText="height:140px;overflow:auto";window.embedded_binding=outline_qa.install_workspace_outline({sidebar,container:embedded,document_active:()=>true,outline:native_outline});native_pane.querySelectorAll(".outline-active").forEach(node=>node.classList.remove("outline-active"));document.querySelector("content").dispatchEvent(new Event("scroll"));');await delay(80);
+  check(await evaluate('!native_pane.querySelector(".outline-active")'), 'an unmounted Explorer outline does not claim a current visible heading');
+  await evaluate('document.querySelector("#sidebar-content").append(embedded)');await delay(120);
+
+  check(await evaluate('embedded.querySelector(".outline-active")?.dataset.ref===scroll_expected_cid'), 'opening embedded Outline after a hidden navigation synchronizes the destination heading');
+  await evaluate('embedded_binding.dispose()');check(await evaluate('native_pane.parentNode===native_parent'), 'embedded Outline disposal restores the native node to its original parent');
   console.log(JSON.stringify({status:'PASS',checks,compact,narrow,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});

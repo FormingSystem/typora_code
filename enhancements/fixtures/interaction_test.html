@@ -75,7 +75,9 @@
     getOption() { return current_mode; },
     setOption(name, value) {
       current_mode = value;
-      const mode = mode_factories.get(value)();
+      const factory=mode_factories.get(value);
+      if(!factory){sizer.textContent=source_lines.join("\n");return;}
+      const mode = factory();
       const state = mode.startState();
       sizer.replaceChildren();
       for (const line of source_lines) {
@@ -99,6 +101,8 @@
     },
     refresh() {},
   };
+  window.test_native_open_url=File.editor.tryOpenUrl;
+  window.test_native_open_file=File.editor.library.openFile;
   window.test_host_events = 0;
   for (const event_name of ['mousedown', 'mouseup', 'click']) {
     document.querySelector('#write').addEventListener(event_name, (event) => {
@@ -112,4 +116,13 @@
     });
   }
 </script>
-<script src="../dist/typora_enhancements.js"></script>
+<script type="module">
+  class test_plugin {
+    load() { this.onload(); }
+    unload() { this.onunload(); }
+  }
+  window[Symbol.for("typora-plugin-core@v2")] = { Plugin: test_plugin };
+  const { default: plugin_type } = await import("../dist/community_plugin/main.js");
+  window.linux_note_test_plugin = new plugin_type();
+  window.linux_note_test_plugin.load();
+</script>

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,6 +17,18 @@ const script = Buffer.from(launch.args.at(-1), 'base64').toString('utf16le');
 assert(script.includes('-Verb RunAs')); assert(script.includes(root.replaceAll("'", "''")));
 const inner = /'-EncodedCommand','([A-Za-z0-9+/=]+)'/u.exec(script)[1];
 assert.equal(Buffer.from(inner, 'base64').toString('utf16le'), "Set-Location -LiteralPath '" + root.replaceAll("'", "''") + "'");
+// 启动未就绪时撤销，必须关闭 broker，晚到消息不能继续写入 UI。
+const cancelled_broker = new EventEmitter(); cancelled_broker.connected = true;
+const broker_messages = []; let disconnected = false; let cancelled_data = false;
+cancelled_broker.send = message => broker_messages.push(message);
+cancelled_broker.disconnect = () => { disconnected = true; cancelled_broker.connected = false; };
+const cancellation = new AbortController();
+const pending_start = start_terminal_pty({signal:cancellation.signal,child_process:{fork:()=>cancelled_broker},process_api:process,broker:'fixture',executable:process.execPath},{}, {data(){cancelled_data=true;},exit(){},error(){}});
+cancellation.abort();
+await assert.rejects(pending_start, /取消/u);
+cancelled_broker.emit('message',{type:'ready',pid:42});cancelled_broker.emit('message',{type:'data',data:'late'});
+assert.equal(cancelled_data,false);assert.equal(broker_messages.filter(message=>message.type==='close').length,1);
+await new Promise(resolve=>setTimeout(resolve,1550));assert.equal(disconnected,true);
 let terminal; let text = ''; let exited = false;
 const wait = async predicate => { for (let i = 0; i < 180; i++) { if (predicate()) return; await new Promise(resolve => setTimeout(resolve, 50)); } throw new Error('Terminal test timed out: ' + text.slice(-1000)); };
 try {

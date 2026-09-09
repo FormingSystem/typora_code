@@ -1,6 +1,8 @@
 import "./monaco_locale";
 import * as monaco from "monaco-editor/editor/editor.api";
 import "monaco-editor/editor/browser/coreCommands";
+import "monaco-editor/editor/contrib/lineSelection/browser/lineSelection";
+import "monaco-editor/editor/contrib/smartSelect/browser/smartSelect";
 import "monaco-editor/editor/browser/widget/diffEditor/diffEditor.contribution";
 import "monaco-editor/editor/contrib/find/browser/findController";
 import "monaco-editor/editor/contrib/clipboard/browser/clipboard";

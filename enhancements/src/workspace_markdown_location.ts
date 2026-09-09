@@ -11,7 +11,12 @@ type native_editor = {
   undo: {exeCommand(cursor: native_cursor): void};
 };
 const normalize_newlines = (value: string) => value.replace(/\r\n?/gu, "\n");
-const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+const frame = (signal?: AbortSignal) => new Promise<void>(resolve => {
+  if (signal?.aborted) { resolve(); return; }
+  const finish = () => { cancelAnimationFrame(id); signal?.removeEventListener("abort", finish); resolve(); };
+  const id = requestAnimationFrame(finish);
+  signal?.addEventListener("abort", finish, { once: true });
+});
 let revealed: {editor: native_editor; text: string; cursor: string; location: file_location} | undefined;
 
 /** 只有正文和当前选区仍吻合时，阅读历史才能继续携带这次源码行列定位。 */
@@ -23,7 +28,8 @@ export function capture_markdown_location(): file_location | undefined {
 }
 
 /** 使用 Typora 1.14.9 源码行映射定位原生正文；不切源码模式、不重载正文，也不修改磁盘。 */
-export async function reveal_markdown_location(location: file_location): Promise<void> {
+export async function reveal_markdown_location(location: file_location, signal?: AbortSignal): Promise<void> {
+  signal?.throwIfAborted();
   const editor = (window as unknown as {File?: {editor?: native_editor}}).File?.editor;
   if (!editor?.sourceView?.gotoLine || !editor.selection?.buildUndo || !editor.undo?.exeCommand) throw new Error("当前 Typora 没有可用的 Markdown 原生定位接口。");
   if (editor.sourceView.inSourceMode) throw new Error("请先退出 Markdown 源码模式，再打开渲染位置。");
@@ -51,7 +57,8 @@ export async function reveal_markdown_location(location: file_location): Promise
     if (first.cm || last.cm) {
       if (!first.cm || first.cm !== last.cm || !first.position || !last.position || normalize_newlines(first.cm.getRange(first.position, last.position)) !== expected) throw new Error("该匹配跨越不同编辑区，无法安全选中；请缩小关键词范围。");
       first.cm.setSelection(first.position, last.position); first.cm.focus(); first.cm.scrollIntoView({from: first.position, to: last.position}, 40);
-      await frame();
+      await frame(signal);
+      signal?.throwIfAborted();
       const rect = first.cm.charCoords(first.position, "window"), viewport = scroller.getBoundingClientRect();
       scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - (rect.bottom - rect.top)) / 2);
     } else {
@@ -63,16 +70,19 @@ export async function reveal_markdown_location(location: file_location): Promise
         : {type: "cursor", startId: first_id, endId: last_id, start: first.cursor.start, end: last.cursor.start});
       let range = editor.selection.getRangy();
       if (!range || normalize_newlines(range.toString()) !== expected || !root.contains(range.startContainer) || !root.contains(range.endContainer)) throw new Error("原生正文选区与命中不一致，已取消定位；请刷新或缩小关键词范围。");
-      await frame();
+      await frame(signal);
+      signal?.throwIfAborted();
       range = editor.selection.getRangy();
       if (!range || normalize_newlines(range.toString()) !== expected) throw new Error("Markdown 选区已变化，请重新打开命中。");
       const visible_range = document.createRange(); visible_range.setStart(range.startContainer, range.startOffset); visible_range.setEnd(range.endContainer, range.endOffset);
       const rect = visible_range.getBoundingClientRect(), viewport = scroller.getBoundingClientRect();
       scroller.scrollTop += rect.top - viewport.top - Math.max(20, (viewport.height - rect.height) / 2);
     }
-    await frame();
+    await frame(signal);
+      signal?.throwIfAborted();
     revealed = {editor, text, cursor: JSON.stringify(editor.selection.buildUndo()), location: {...location}};
   } catch (error) {
+    if (signal?.aborted) throw error;
     if (previous) editor.undo.exeCommand(previous);
     scroller.scrollTop = previous_top; scroller.scrollLeft = previous_left;
     throw error;

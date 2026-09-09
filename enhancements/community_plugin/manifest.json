@@ -1,0 +1,12 @@
+{
+  "id": "forming_system.linux_note_enhancements",
+  "name": "Typora Code",
+  "description": "Repository reading workspace, source editor, Git review and integrated terminal for Typora.",
+  "author": "FormingSystem",
+  "authorUrl": "https://github.com/FormingSystem",
+  "repo": "FormingSystem/typora_code",
+  "version": "1.0.0",
+  "minAppVersion": "1.1.0",
+  "minCoreVersion": "2.10.15",
+  "platforms": ["win32", "linux"]
+}

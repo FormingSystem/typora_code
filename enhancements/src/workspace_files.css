@@ -5,3 +5,5 @@
 .workspace-file-body>.git-graph-document>.git-diff-labels { display:none; }
 .workspace-file-body>.git-graph-document>.git-diff-toolbar{display:none}
 .workspace-file-dirty{font-size:10px;padding:0 4px}
+
+.typ-tab.is-workspace-preview .typ-file-basename{font-style:italic}

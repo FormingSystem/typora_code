@@ -57,6 +57,7 @@ function create_minimap(target: minimap_target) {
   const canvas = document.createElement("canvas"); canvas.setAttribute("aria-hidden", "true");
   const viewport = document.createElement("div"); viewport.className = "linux-note-reading-minimap-viewport";
   rail.append(canvas, viewport);
+  const previous_owner = target.owner.getAttribute("data-linux-note-minimap-owner");
   target.owner.setAttribute("data-linux-note-minimap-owner", target.source ? "source" : "reading");
   target.owner.append(rail);
   target.source?.refresh();
@@ -70,6 +71,7 @@ function create_minimap(target: minimap_target) {
   const info = () => target.source?.getScrollInfo() ?? { top: target.scroller.scrollTop, height: target.scroller.scrollHeight, clientHeight: target.scroller.clientHeight };
   const content_height = () => Math.min(rail_height, info().height * MINIMAP_WIDTH / Math.max(1, target.source ? target.root.clientWidth - 96 : target.root.clientWidth));
   const scroll_to = (top: number) => {
+    if (disposed) return;
     const state = info(); const next = clamp(top, 0, Math.max(0, state.height - state.clientHeight));
     if (target.source) target.source.scrollTo(null, next); else target.scroller.scrollTop = next;
     update_viewport();
@@ -268,7 +270,7 @@ function create_minimap(target: minimap_target) {
     scroll_to((client_y - rail.getBoundingClientRect().top - offset) / Math.max(1, content_height() - thumb_height) * Math.max(0, state.height - state.clientHeight));
   };
   rail.addEventListener("pointerdown", event => {
-    if (event.button !== 0) return;
+    if (disposed || event.button !== 0) return;
     event.preventDefault(); event.stopPropagation();
     const box = viewport.getBoundingClientRect();
     const offset = event.clientY >= box.top && event.clientY <= box.bottom ? event.clientY - box.top : box.height / 2;
@@ -285,20 +287,28 @@ function create_minimap(target: minimap_target) {
   });
   schedule_render(false);
   return { target, reconcile, dispose() {
+    if (disposed) return;
     disposed = true; cancel_render(); observer.disconnect(); resize.disconnect();
     target.scroller.removeEventListener("scroll", update_viewport); target.source?.off("changes", refresh); target.source?.off("scroll", update_viewport);
     target.root.removeEventListener("scroll", inner_scroll, true);
-    rail.remove(); target.owner.removeAttribute("data-linux-note-minimap-owner"); target.source?.refresh();
+    rail.remove();
+    if (previous_owner === null) target.owner.removeAttribute("data-linux-note-minimap-owner"); else target.owner.setAttribute("data-linux-note-minimap-owner", previous_owner);
+    target.source?.refresh();
   } };
 }
 
-export function bind_reading_minimap(): void {
-  if (document.getElementById("linux-note-reading-minimap-style")) return;
+let active_dispose: (() => void) | undefined;
+export function bind_reading_minimap(): () => void {
+  if (active_dispose) return active_dispose;
+  if (document.getElementById("linux-note-reading-minimap-style")) return () => {};
+  let disposed = false;
+  const previous_ready = document.documentElement.getAttribute("data-linux-note-reading-minimap");
   const style = document.createElement("style"); style.id = "linux-note-reading-minimap-style"; style.textContent = minimap_css; document.head.append(style);
   const maps = new Map<HTMLElement, ReturnType<typeof create_minimap>>();
   let scan_timer = 0;
   const scan = () => {
     scan_timer = 0;
+    if (disposed) return;
     const targets = current_targets();
     for (const [owner, map] of maps) {
       if (!targets.some(target => target.owner === owner && target.root === map.target.root && target.source === map.target.source)) { map.dispose(); maps.delete(owner); }
@@ -308,12 +318,23 @@ export function bind_reading_minimap(): void {
       else maps.get(target.owner)!.reconcile();
     }
   };
-  const schedule = () => { if (scan_timer) clearTimeout(scan_timer); scan_timer = window.setTimeout(scan, 100); };
+  const schedule = () => { if (disposed) return; if (scan_timer) clearTimeout(scan_timer); scan_timer = window.setTimeout(scan, 100); };
   const observer = new MutationObserver(records => {
     if (records.some(record => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) schedule();
   });
   observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
   window.addEventListener("resize", schedule, { passive: true });
-  window.addEventListener("pagehide", () => { observer.disconnect(); clearTimeout(scan_timer); window.removeEventListener("resize", schedule); for (const map of maps.values()) map.dispose(); maps.clear(); }, { once: true });
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true; observer.disconnect(); clearTimeout(scan_timer);
+    window.removeEventListener("resize", schedule); window.removeEventListener("pagehide", dispose);
+    for (const map of maps.values()) map.dispose(); maps.clear(); style.remove();
+    if (previous_ready === null) document.documentElement.removeAttribute("data-linux-note-reading-minimap");
+    else document.documentElement.setAttribute("data-linux-note-reading-minimap", previous_ready);
+    if (active_dispose === dispose) active_dispose = undefined;
+  };
+  active_dispose = dispose;
+  window.addEventListener("pagehide", dispose, { once: true });
   scan(); document.documentElement.setAttribute("data-linux-note-reading-minimap", "ready");
+  return dispose;
 }

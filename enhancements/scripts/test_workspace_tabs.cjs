@@ -26,7 +26,7 @@ app.whenReady().then(async () => {
     }};
     group.children=[{state:{path:'source.md'},parent:group},{state:{path:'target.md'},parent:group}];
     window.host={core:{app:{workspace:{rootSplit:{containerEl:document.querySelector('#root')},activeLeaf:group.children[0],eachLeaves(callback){group.children.forEach(callback);}}}}};
-    tabs_qa.bind_workspace_tab_actions(host);
+    window.tab_binding=tabs_qa.bind_workspace_tab_actions(host);
   })()`);
   await evaluate(`(()=>{const tab=document.querySelector('.typ-tab[data-id="source.md"]');tab.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,button:2}));const menu=document.createElement('ul');menu.className='context-menu';menu.innerHTML='<li data-key="removeTab">Close</li><li data-key="removeOthers">Others</li><li data-key="removeRight">Right</li>';document.body.append(menu)})()`);
   await wait('document.querySelector(".linux-note-close-all-tabs")');
@@ -108,5 +108,10 @@ app.whenReady().then(async () => {
   assert.deepEqual(await evaluate('role_events'), ['role-confirm','role-cancelled']);
   assert.deepEqual(await evaluate('group.children.map(item=>item.state.path)'), ['role-cancel.md','role-untouched.md']);
   checks.push('a new visible role dialog cancellation stops Close All while the still-visible quick-open remains excluded');
+  await evaluate('tab_binding.dispose();tab_binding.dispose()');
+  assert(await evaluate('!document.documentElement.dataset.linuxNoteWorkspaceTabs&&!document.querySelector("[data-workspace-tab-actions]")&&!document.querySelector(".linux-note-close-all-tabs")'));
+  await evaluate('window.tab_binding=tabs_qa.bind_workspace_tab_actions(host);void 0');
+  assert(await evaluate('document.querySelectorAll("[data-workspace-tab-actions]").length===1'));
+  checks.push('tab actions dispose restores markers and reinstall owns exactly one observer stylesheet');
   console.log(JSON.stringify({ status: 'PASS', checks, evidence })); test_window.destroy(); app.exit(0);
 }).catch(async error => { console.error(JSON.stringify({ status: 'FAIL', checks, error: String(error.stack || error), evidence })); if (test_window && !test_window.isDestroyed()) test_window.destroy(); app.exit(1); });

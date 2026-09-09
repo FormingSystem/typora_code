@@ -1,13 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import vm from "node:vm";
 
-const output = path.resolve("dist/typora_enhancements.js");
-if (!fs.existsSync(output)) throw new Error("dist/typora_enhancements.js is missing; run npm run build");
+const output = path.resolve("dist/community_plugin/main.js");
+if (!fs.existsSync(output)) throw new Error("dist/community_plugin/main.js is missing; run npm run build");
 const source = fs.readFileSync(output, "utf8");
 const enhancement_css = fs.readFileSync(path.resolve("src/typora_enhancements.css"), "utf8");
 const typora_theme = fs.readFileSync(path.resolve("../cpp_github-consolas.css"), "utf8");
-new vm.Script(source, { filename: output });
+if (!/^export\s*\{/mu.test(source)) throw new Error("community plugin bundle is not an ES module");
+if (!source.includes('Symbol.for("typora-plugin-core@v2")')) throw new Error("community plugin core bridge is missing");
+if (!/linux_note_enhancements_plugin\s*=\s*class\s+extends Plugin|class linux_note_enhancements_plugin extends Plugin/u.test(source)) throw new Error("community plugin lifecycle class is missing");
+if (!source.includes("activate_typora_enhancements") || !source.includes("deactivate_typora_enhancements")) {
+  throw new Error("community plugin lifecycle delegation is missing");
+}
 for (const marker of [
   "linux-note-vscode-textmate-c",
   "linux-note-vscode-textmate-cpp",

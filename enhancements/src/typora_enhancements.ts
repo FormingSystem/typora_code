@@ -1,3 +1,8 @@
+import { create_workspace_lifetime } from "./workspace_lifetime";
+import { get_workspace_files } from "./workspace_files";
+import { bind_workspace_editor_status } from "./workspace_editor_status";
+import { dispose_workspace_widgets } from "./workspace_widgets";
+import type { graph_core } from "./git_graph_host";
 import { Registry, INITIAL, parseRawGrammar, type IGrammar, type StateStack } from "vscode-textmate";
 import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
 import oniguruma_wasm from "vscode-oniguruma/release/onig.wasm";
@@ -31,6 +36,7 @@ type code_mirror_instance = {
 
 type code_mirror_constructor = {
   defineMode(name: string, factory: () => unknown): void;
+  modes?: Record<string, () => unknown>;
 };
 
 type textmate_state = {
@@ -61,6 +67,16 @@ let c_textmate_grammar: IGrammar | null = null;
 let cpp_textmate_grammar: IGrammar | null = null;
 let scan_timer = 0;
 const mermaid_buttons = new Map<Element, HTMLButtonElement>();
+let runtime_active = false;
+let runtime_controller: AbortController | undefined;
+let runtime_lifetime = create_workspace_lifetime();
+let graph_binding: ReturnType<typeof bind_git_graph>;
+let reading_binding: ReturnType<typeof bind_reading_navigation>;
+let close_mermaid_viewer: (() => void) | undefined;
+let grammar_loading: Promise<void> | undefined;
+const original_code_modes = new Map<code_mirror_instance, unknown>();
+let runtime_observer: MutationObserver | null = null;
+let dispose_code_toggle_events: (() => void) | null = null;
 
 function ensure_style(): void {
   if (document.getElementById(EXTENSION_STYLE_ID)) return;
@@ -166,6 +182,7 @@ function apply_textmate_mode(fence: Element): void {
   if (!code_mirror) return;
   const mode = language === "c" ? C_MODE_NAME : CPP_MODE_NAME;
   if (code_mirror.getOption("mode") === mode) return;
+  if(!original_code_modes.has(code_mirror))original_code_modes.set(code_mirror,code_mirror.getOption("mode"));
   code_mirror.setOption("mode", mode);
   code_mirror.state.linux_note_textmate_language = language;
   code_mirror.refresh();
@@ -210,7 +227,7 @@ function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expand
   requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
 }
 
-function bind_code_toggle_events(): void {
+function bind_code_toggle_events(): () => void {
   // 在正文处理选区前接管按钮事件。委托到 document，代码块重建后也无需重新绑定。
   const handle_event = (event: Event) => {
     const target = event.target;
@@ -235,6 +252,11 @@ function bind_code_toggle_events(): void {
   for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
     document.addEventListener(event_name, handle_event, true);
   }
+  return () => {
+    for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
+      document.removeEventListener(event_name, handle_event, true);
+    }
+  };
 }
 
 function ensure_code_collapse(fence_element: Element): void {
@@ -279,6 +301,7 @@ function ensure_code_collapse(fence_element: Element): void {
 }
 
 function schedule_scan(): void {
+  if (!runtime_active) return;
   // 分栏布局持续更新时也必须推进扫描，不能被新的 mutation 一直推迟。
   if (scan_timer) return;
   scan_timer = window.setTimeout(() => {
@@ -288,7 +311,8 @@ function schedule_scan(): void {
 }
 
 function scan_document(): void {
-  if (document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") bind_reading_navigation();
+  if (!runtime_active) return;
+  if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding=runtime_lifetime.own(bind_reading_navigation());
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
   document.querySelectorAll(".md-fences").forEach(ensure_code_collapse);
   const diagram_containers = new Set<Element>();
@@ -369,7 +393,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 function open_mermaid_viewer(preview: Element): void {
   const svg = clone_mermaid_svg(preview);
   if (!svg) return;
-  document.querySelector(".linux-note-mermaid-viewer")?.remove();
+  close_mermaid_viewer?.();
   const previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const viewer = document.createElement("div");
   viewer.className = "linux-note-mermaid-viewer";
@@ -443,6 +467,7 @@ function open_mermaid_viewer(preview: Element): void {
     apply_view();
   };
   const close = () => {
+    close_mermaid_viewer=undefined;
     window.removeEventListener("keydown", handle_keydown, true);
     viewer.remove();
     document.body.classList.remove("linux-note-mermaid-viewer-open");
@@ -510,6 +535,7 @@ function open_mermaid_viewer(preview: Element): void {
   canvas.addEventListener("pointerup", end_drag);
   canvas.addEventListener("pointercancel", end_drag);
   canvas.addEventListener("dblclick", fit);
+  close_mermaid_viewer=close;
   window.addEventListener("keydown", handle_keydown, true);
   requestAnimationFrame(() => {
     reset();
@@ -571,41 +597,81 @@ function ensure_mermaid_button(container: Element): void {
   mermaid_buttons.set(container, button);
 }
 
-async function initialize(): Promise<void> {
+async function initialize(controller: AbortController, lifetime: ReturnType<typeof create_workspace_lifetime>): Promise<void> {
   ensure_style();
-  void initialize_workspace().then(() => {
-    bind_reading_navigation();
-    bind_file_path_actions();
-    bind_git_graph();
-    bind_workspace_browser();
-    bind_reading_minimap();
-    schedule_scan();
-  }).catch((error: unknown) => {
-    document.documentElement.setAttribute("data-linux-note-workspace", "failed");
-    console.error("[linux-note Typora workspace]", error);
-    schedule_scan();
-  });
-  await load_textmate_grammars();
+  const current=()=>runtime_controller===controller&&!controller.signal.aborted;
+  lifetime.add(dispose_workspace_widgets);
+  const workspace_ready=initialize_workspace(controller.signal).then(binding=>{lifetime.own(binding);return binding;});
+  grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
+  await Promise.all([workspace_ready,grammar_loading]);
+  if(!current())return;
+  const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-plugin-core@v2")];
+  if(core?.app)lifetime.add(()=>bind_workspace_editor_status(core).dispose());
+  reading_binding=lifetime.own(bind_reading_navigation());
+  lifetime.own(bind_file_path_actions());
+  graph_binding=lifetime.own(bind_git_graph());
+  lifetime.own(bind_workspace_browser());
+  lifetime.own(bind_reading_minimap());
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
-  window.CodeMirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
-  window.CodeMirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
-  bind_code_toggle_events();
+  const code_mirror=window.CodeMirror;
+  const previous_modes=[C_MODE_NAME,CPP_MODE_NAME].map(name=>code_mirror.modes?.[name]);
+  code_mirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
+  code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
+  lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
+  dispose_code_toggle_events = bind_code_toggle_events();
   scan_document();
-  new MutationObserver(schedule_scan).observe(document.body, {
-    subtree: true,
-    childList: true,
-    attributes: true,
-    attributeFilter: ["class", "hidden", "lang"],
-  });
+  runtime_observer = new MutationObserver(schedule_scan);
+  runtime_observer.observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["class","hidden","lang"]});
   window.addEventListener("resize", schedule_scan, { passive: true });
   document.documentElement.setAttribute("data-linux-note-typora-enhancements", "ready");
 }
 
-const initialization_state = document.documentElement.getAttribute("data-linux-note-typora-enhancements");
-if (initialization_state !== "loading" && initialization_state !== "ready") {
-  document.documentElement.setAttribute("data-linux-note-typora-enhancements", "loading");
-  void initialize().catch((error: unknown) => {
-    document.documentElement.setAttribute("data-linux-note-typora-enhancements", "failed");
-    console.error("[linux-note Typora enhancements]", error);
-  });
+export function assert_can_deactivate_typora_enhancements(): void {
+  get_workspace_files()?.assert_can_dispose();
+  graph_binding?.assert_can_dispose();
+}
+
+export async function activate_typora_enhancements(): Promise<void> {
+  if(runtime_active)return;
+  runtime_active=true;
+  const controller=runtime_controller=new AbortController();
+  const lifetime=runtime_lifetime=create_workspace_lifetime();
+  document.documentElement.setAttribute("data-linux-note-typora-enhancements","loading");
+  try { await initialize(controller,lifetime); }
+  catch(error:unknown){
+    if(runtime_controller!==controller||controller.signal.aborted)return;
+    deactivate_typora_enhancements();
+    document.documentElement.setAttribute("data-linux-note-typora-enhancements","failed");
+    throw error;
+  }
+}
+
+export function deactivate_typora_enhancements(): void {
+  assert_can_deactivate_typora_enhancements();
+  runtime_active = false;
+  runtime_controller?.abort();runtime_controller=undefined;
+  if (scan_timer) {
+    window.clearTimeout(scan_timer);
+    scan_timer = 0;
+  }
+  runtime_observer?.disconnect();
+  runtime_observer = null;
+  dispose_code_toggle_events?.();
+  dispose_code_toggle_events = null;
+  window.removeEventListener("resize", schedule_scan);
+  close_mermaid_viewer?.();
+  document.body.classList.remove("linux-note-mermaid-viewer-open");
+  for (const [container] of mermaid_buttons) {
+    container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar").forEach(element => element.remove());
+  }
+  mermaid_buttons.clear();
+  document.querySelectorAll<HTMLElement>(".linux-note-code-collapsible").forEach(remove_code_collapse);
+  for(const [editor,mode]of original_code_modes){
+    try{if([C_MODE_NAME,CPP_MODE_NAME].includes(String(editor.getOption("mode"))))editor.setOption("mode",mode);delete editor.state.linux_note_textmate_language;}catch(error){console.error("[Typora Code restore syntax]",error);}
+  }
+  original_code_modes.clear();
+  runtime_lifetime.dispose();graph_binding=undefined;reading_binding=undefined;
+  document.documentElement.removeAttribute("data-linux-note-workspace");
+  document.getElementById(EXTENSION_STYLE_ID)?.remove();
+  document.documentElement.removeAttribute("data-linux-note-typora-enhancements");
 }

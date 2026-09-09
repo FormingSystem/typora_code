@@ -24,7 +24,7 @@ app.whenReady().then(async () => {
     window.leaves=[leaf]; window[Symbol.for('typora-plugin-core@v2')]={app:{workspace:{eachLeaves:callback=>window.leaves.forEach(callback)}}};
   })()`);
   const bundle = await build({ plugins:editor_plugins(), stdin: { contents:'export { bind_reading_minimap } from "./src/reading_minimap";', resolveDir:path.join(__dirname,'..') }, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'minimap_qa', write:false });
-  await evaluate(bundle.outputFiles[0].text); await evaluate('minimap_qa.bind_reading_minimap()');
+  await evaluate(bundle.outputFiles[0].text); await evaluate('minimap_qa.bind_reading_minimap(); void 0');
   await wait('document.querySelectorAll(".linux-note-reading-minimap[data-ready=true]").length===2');
   assert(await evaluate(`Array.from(document.querySelectorAll('.linux-note-reading-minimap canvas')).every(canvas => {const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return pixels.some((value,index)=>index%4===3&&value>0);})`));
   const initial_state = await evaluate(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');window.stable_minimap_canvas=canvas;return {pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount),ready:rail.dataset.ready};})()`);

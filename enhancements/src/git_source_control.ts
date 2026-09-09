@@ -18,7 +18,7 @@ const operation_label = (operation: string) => {
 export class git_source_control {
   sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups"); filter = el("input", "git-scm-filter");
   message = el("textarea", "git-scm-message"); branch = el("div", "git-scm-branch"); title = el("div", "git-scm-title", text("scm.source_control")); repo_select = el("select", "git-scm-repository");
-  notice = el("div", "git-scm-notice");
+  notice = el("div", "git-scm-notice"); graph_launch: HTMLButtonElement;
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
   input_section = el("details", "git-scm-input-section"); repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
   show_repositories = false; show_changes = true; show_history = true; sort_order = "path"; history_tree = false;
@@ -32,6 +32,7 @@ export class git_source_control {
     tools.children[1].addEventListener("click", event => this.view_menu(event as MouseEvent));
     tools.children[1].classList.add("git-scm-view-menu");
     tools.children[0].setAttribute("title", text("scm.refresh")); tools.children[1].setAttribute("title", text("scm.select_views")); this.title.append(tools);
+    this.graph_launch = icon_button("git-branch", text("scm.open_graph"), () => panel.host.show_history(panel.root), "git-scm-title-graph"); tools.prepend(this.graph_launch);
     this.message.placeholder = text("scm.message_placeholder"); this.message.setAttribute("aria-label", text("scm.commit_message"));
     this.message.rows = 1;
     this.message.oninput = () => { localStorage.setItem(this.storage_key("message"), this.message.value); this.fit_message(); };
@@ -118,7 +119,7 @@ export class git_source_control {
   }
   async refresh(): Promise<void> {
     const state = this.panel.state; if (!state) return; const epoch = ++this.groups_epoch;
-    this.fit_message();
+    this.fit_message(); this.graph_launch.hidden = this.panel.settings.scm_integration !== "inline";
     this.history.render(state);
     this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map(item => item.cloneNode(true))); this.repo_select.value = this.panel.root;
     this.branch.replaceChildren(git_icon("git-branch"), el("span", "git-scm-branch-label", `${state.branch || text("scm.detached_head")}${state.operation ? " · " + operation_label(state.operation) : ""}`));
@@ -292,5 +293,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void { this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); }
+  dispose(): void { this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

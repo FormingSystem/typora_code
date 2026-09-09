@@ -1,3 +1,5 @@
+import { git_graph_find } from "./git_graph_find";
+import { show_pull_request_dialog } from "./git_graph_pull_request_dialog";
 import { git_source_control } from "./git_source_control";
 import { git_icon, git_icon_button } from "./git_icons";
 import type { workspace_menu_entry } from "./workspace_widgets";
@@ -29,13 +31,13 @@ export class git_graph_panel {
   status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("section", "git-graph-details");
   branch_select = el("select", "git-graph-branch"); repo_select = el("select", "git-graph-repositories"); search = el("input", "git-graph-search");
   show_remote_input = el("input", "git-graph-show-remote-input"); find_widget = el("div", "git-graph-find-widget"); find_position = el("span", "git-graph-find-position");
-  workbench: git_source_control;
+  workbench: git_source_control; finder: git_graph_find;
   body = el("div", "git-graph-body"); header = el("div", "git-graph-columns");
   refresh_button = git_icon_button("refresh", text("graph.refresh"), () => void this.refresh(), "git-graph-refresh");
   more_button = button(text("graph.load_more"), () => { this.count += this.settings.page_count; void this.refresh(false); }, "git-graph-load-more");
   runner: ReturnType<graph_host["runner"]>; writer: ReturnType<graph_host["runner"]>;
   count: number; branches: string[] = []; selected = ""; from = EMPTY; to = "";
-  epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false;
+  epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false; disposed = false;
   files: graph_change[] = []; containment = new Map<string, string>(); ancestors = new Set<string>();
   key_handler: (event: KeyboardEvent) => void;
 
@@ -56,9 +58,7 @@ export class git_graph_panel {
     this.show_remote_input.type = "checkbox"; this.show_remote_input.checked = this.settings.show_remotes;
     this.show_remote_input.onchange = () => { this.settings.show_remotes = this.show_remote_input.checked; this.persist_settings(); void this.refresh(); };
     this.search.placeholder = text("graph.find_placeholder"); this.search.setAttribute("aria-label", text("graph.find_history"));
-    this.search.oninput = () => { if (!this.search.value) this.find_position.textContent = ""; };
-    this.search.onkeydown = event => { if (event.key === "Enter") { event.preventDefault(); this.find_next(event.shiftKey ? -1 : 1); } };
-    const repo_control = el("label", "git-graph-control git-graph-repository-control", text("graph.repository")); repo_control.append(this.repo_select);
+    const repo_control = el("label", "git-graph-control git-graph-repository-control", text("graph.repository")); repo_control.hidden = true; repo_control.append(this.repo_select);
     const branch_control = el("label", "git-graph-control git-graph-branch-control", text("graph.branches")); branch_control.append(this.branch_select);
     const remote_control = el("label", "git-graph-control git-graph-remote-control", text("graph.show_remote_branches")); remote_control.prepend(this.show_remote_input);
     const actions = el("div", "git-graph-toolbar-actions");
@@ -71,10 +71,7 @@ export class git_graph_panel {
     );
     this.toolbar.append(repo_control, branch_control, remote_control, actions);
     this.find_widget.setAttribute("aria-label", text("graph.find_commit")); this.find_widget.dataset.open = "false";
-    this.find_widget.append(this.search, this.find_position,
-      git_icon_button("arrow-up", text("graph.find_previous"), () => this.find_next(-1)),
-      git_icon_button("arrow-down", text("graph.find_next"), () => this.find_next(1)),
-      git_icon_button("close", text("graph.find_close"), () => this.close_find()));
+    this.finder = new git_graph_find(this);
     this.header.oncontextmenu = event => this.layout_menu(event);
     this.container.oncontextmenu = event => {
       if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
@@ -87,22 +84,31 @@ export class git_graph_panel {
     this.key_handler = event => this.keydown(event);
   }
   open(): void {
+    if (this.disposed) return;
     this.active = true; window.addEventListener("keydown", this.key_handler, true);
     if (!this.loaded || this.pending || !this.settings.retain_context) void this.refresh(false);
     else if (this.selected) void this.show_comparison(this.from, this.to);
   }
   close(): void { this.active = false; this.epoch++; this.detail_epoch++; this.runner.cancel(); this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; window.removeEventListener("keydown", this.key_handler, true); }
-  report(error: unknown): void { this.status.textContent = String(error instanceof Error ? error.message : error); if (this.workbench) this.workbench.notice.textContent = this.status.textContent; }
+  assert_can_dispose(): void { if (this.writing) throw new Error(text("graph.operation_pending")); }
+  dispose(): void {
+    if (this.disposed) return;
+    this.assert_can_dispose(); this.disposed = true; this.close(); this.writer.cancel(); this.close_details();
+    this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
+    this.finder.close(); this.containment.clear(); this.ancestors.clear();
+  }
+  report(error: unknown): void { if (this.disposed) return; this.status.textContent = String(error instanceof Error ? error.message : error); if (this.workbench) this.workbench.notice.textContent = this.status.textContent; }
   persist_settings(): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings)); window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings })); }
   known_repos(): string[] { try { return JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]").filter((value: unknown) => typeof value === "string"); } catch { return []; } }
   save_repos(repos: string[]): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify([...new Set(repos)])); }
   switch_repo(root: string): void {
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
-    this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.selected = ""; this.branches = [];
+    this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; void this.refresh();
   }
   async refresh(reset = true): Promise<void> {
+    if (this.disposed) return;
     const epoch = ++this.epoch; this.detail_epoch++; this.runner.cancel(); this.pending = true;
     if (reset) this.count = this.settings.initial_count;
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");
@@ -151,7 +157,7 @@ export class git_graph_panel {
       this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
       this.container.dataset.state = "ready";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
-      if (this.selected && (this.selected === WORKTREE || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
+      if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
       else this.close_details();
     } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
     finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; } }
@@ -159,10 +165,16 @@ export class git_graph_panel {
   date(commit: graph_commit): string {
     const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;
     if (this.settings.date_format === "iso") return source;
-    if (this.settings.date_format === "relative") { const days = Math.floor((Date.now() - new Date(source).getTime()) / 86400000); return days ? text("graph.relative_days", {count: days}) : text("graph.today"); }
+    if (this.settings.date_format === "iso_date") return source.slice(0, 10);
+    if (this.settings.date_format === "date") return new Date(source).toLocaleDateString(git_graph_language_tag());
+    if (this.settings.date_format === "relative") {
+      const seconds = (new Date(source).getTime() - Date.now()) / 1000;
+      const unit = Math.abs(seconds) >= 86400 ? "day" : Math.abs(seconds) >= 3600 ? "hour" : Math.abs(seconds) >= 60 ? "minute" : "second";
+      return new Intl.RelativeTimeFormat(git_graph_language_tag(), {numeric: "auto"}).format(Math.round(seconds / ({day: 86400, hour: 3600, minute: 60, second: 1}[unit])), unit);
+    }
     return new Date(source).toLocaleString(git_graph_language_tag());
   }
-  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}): SVGSVGElement {
+  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 22}): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");
     const x = (lane: number) => lane * geometry.lane_width + geometry.first_x;
     const half_height = geometry.height / 2;
@@ -175,10 +187,16 @@ export class git_graph_panel {
   }
   render_history(): void {
     const state = this.state!;
-    const connected = state.changes.length > 0 && this.settings.show_changes && this.settings.uncommitted_style === "connected";
+    this.container.setAttribute("data-details-location", this.settings.details_location);
+    this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
+    for (const key of ["date", "author", "hash"] as const) this.container.dataset["show" + key] = String(this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"]);
+    const columns = ["var(--git-graph-width)", "minmax(var(--git-subject-width), 1fr)", ...(["date", "author", "hash"] as const).filter(key => this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"]).map(key => `var(--git-${key}-width)`)];
+    this.container.style.setProperty("--git-visible-columns", columns.join(" "));
+    this.container.style.setProperty("--git-visible-min-width", `calc(var(--git-graph-width) + var(--git-subject-width)${(["date", "author", "hash"] as const).filter(key => this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"]).map(key => ` + var(--git-${key}-width)`).join("")})`);
+    const connected = state.changes.length > 0 && this.settings.show_changes;
     const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
     const fragment = document.createDocumentFragment();
-    const graph_width = Math.max(58, (graph.width - 1) * 16 + 20); this.container.style.setProperty("--git-graph-width", graph_width + "px");
+    const graph_width = Math.max(58, (graph.width - 1) * 16 + 20) + (this.settings.label_alignment === "graph" ? 140 : 0); this.container.style.setProperty("--git-graph-width", graph_width + "px");
     for (const [key, width] of Object.entries(this.settings.column_widths)) this.container.style.setProperty(`--git-${key}-width`, width + "px");
     this.header.replaceChildren();
     this.header.append(el("div", "git-graph-column git-graph-column-graph", text("graph.column.graph")));
@@ -193,9 +211,10 @@ export class git_graph_panel {
     if (state.changes.length && this.settings.show_changes) {
       const row = el("div", "git-graph-row git-graph-worktree"); row.dataset.hash = WORKTREE; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === WORKTREE));
       row.append(connected ? this.draw_graph(graph.rows[0], graph.width) : el("span", "git-graph-worktree-node", "●"), el("span", "git-graph-subject", text("graph.uncommitted_changes_files", {count: state.changes.length})), el("span", "git-graph-date"), el("span", "git-graph-author"), el("code", "git-graph-hash", revision_label(WORKTREE)));
-      row.onclick = event => { if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== WORKTREE) void this.show_comparison(this.selected, WORKTREE); else { this.selected = WORKTREE; void this.show_comparison(state.head || EMPTY, WORKTREE); } };
-      row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.selected = WORKTREE; void this.show_comparison(state.head || EMPTY, WORKTREE); } };
-      row.oncontextmenu = event => this.target_menu(event, "changes", "", state.head); if (this.settings.uncommitted_style === "connected") row.classList.add("connected"); fragment.append(row);
+      const activate = (event: MouseEvent | KeyboardEvent) => this.activate_row(WORKTREE, state.head || EMPTY, event);
+      row.onclick = activate;
+      row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(event); } };
+      row.oncontextmenu = event => this.target_menu(event, "changes", "", state.head); row.classList.add("connected"); row.dataset.node_style = this.settings.uncommitted_style; fragment.append(row);
     }
     const ref_map = new Map<string, git_ref[]>();
     for (const ref of state.refs) {
@@ -207,11 +226,12 @@ export class git_graph_panel {
       if (state.head === commit.hash) row.dataset.head = "true";
       row.title = `${commit.hash}\n${commit.author} · ${this.date(commit)}\n${commit.subject}`;
       if (this.settings.mute_merges && commit.parents.length > 1 || this.settings.mute_unreachable && !this.ancestors.has(commit.hash)) row.classList.add("git-graph-muted");
-      row.onclick = event => { if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== commit.hash) void this.show_comparison(this.selected === WORKTREE ? commit.hash : this.selected, this.selected === WORKTREE ? WORKTREE : commit.hash); else this.select_commit(commit); };
-      row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); this.select_commit(commit); } };
+      const activate = (event: MouseEvent | KeyboardEvent) => this.activate_row(commit.hash, commit.parents[0] || EMPTY, event);
+      row.onclick = activate;
+      row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(event); } };
       row.oncontextmenu = event => this.target_menu(event, commit.stash ? "stash" : "commit", commit.stash || commit.hash, commit.hash);
       const svg = this.draw_graph(graph.rows[index + (connected ? 1 : 0)], graph.width);
-      svg.onmouseenter = () => { if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then(value => { this.containment.set(commit.hash, value); row.title = value + "\n" + commit.subject; }).catch(() => {}); else row.title = this.containment.get(commit.hash)!; };
+      svg.onmouseenter = () => { const epoch = this.epoch; if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then(value => { if (this.disposed || epoch !== this.epoch) return; this.containment.set(commit.hash, value); row.title = value + "\n" + commit.subject; }).catch(() => {}); else row.title = this.containment.get(commit.hash)!; };
       const subject = el("span", "git-graph-subject"); const refs = el("span", "git-graph-labels");
       if (state.head === commit.hash) refs.append(el("span", "git-graph-refs", "HEAD"));
       if (commit.stash) { const badge = el("span", "git-graph-refs", commit.stash); badge.onclick = event => { event.stopPropagation(); this.target_menu(event, "stash", commit.stash!, commit.hash); }; refs.append(badge); }
@@ -226,33 +246,41 @@ export class git_graph_panel {
         const badge = el("span", "git-graph-refs git-ref-" + kind, name + (combined.length ? " · " + combined.join(", ") : "")); badge.dataset.ref = ref.name; badge.title = ref.name;
         badge.onclick = event => { event.stopPropagation(); this.target_menu(event, kind, name, commit.hash); }; badge.oncontextmenu = event => this.target_menu(event, kind, name, commit.hash); refs.append(badge);
       }
+      const tag_refs = el("span", "git-graph-labels git-graph-tag-labels");
+      if (this.settings.label_alignment !== "normal") for (const badge of [...refs.querySelectorAll(".git-ref-tag")]) tag_refs.append(badge);
       subject.append(refs, el("span", "git-graph-subject-text", this.emoji(commit.subject)));
-      row.append(svg, subject, el("span", "git-graph-date", this.date(commit)), el("span", "git-graph-author", commit.author), el("code", "git-graph-hash", commit.hash.slice(0, 8)));
+      if (tag_refs.childElementCount) subject.append(tag_refs);
+      const graph_cell = el("span", "git-graph-cell"); graph_cell.append(svg);
+      if (this.settings.label_alignment === "graph") graph_cell.append(refs);
+      if (state.head === commit.hash && this.settings.uncommitted_style === "head") row.classList.add("git-graph-open-head");
+      row.append(graph_cell, subject, el("span", "git-graph-date", this.date(commit)), el("span", "git-graph-author", commit.author), el("code", "git-graph-hash", commit.hash.slice(0, 8)));
       fragment.append(row);
     });
-    const scroll = this.list.scrollTop; this.list.replaceChildren(this.header, fragment); this.place_details(); this.list.scrollTop = scroll;
+    const scroll = this.list.scrollTop; this.list.replaceChildren(this.header, fragment); this.place_details(); this.list.scrollTop = scroll; this.finder.update(false);
   }
   place_details(): void {
     const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === this.selected);
-    if (this.to && row) row.after(this.details); else this.details.remove();
+    if (this.to && row) { if (this.settings.details_location === "docked") this.body.append(this.details); else row.after(this.details); } else this.details.remove();
   }
   close_details(): void {
-    this.detail_epoch++; this.selected = ""; this.to = ""; this.files = []; this.details.replaceChildren(); this.place_details();
+    this.detail_epoch++; this.selected = ""; this.from = EMPTY; this.to = ""; this.files = []; this.details.replaceChildren(); this.place_details();
     for (const row of this.list.querySelectorAll<HTMLElement>("[data-hash]")) row.setAttribute("aria-pressed", "false");
   }
-  open_find(): void { this.find_widget.dataset.open = "true"; this.search.focus(); this.search.select(); }
-  close_find(): void { this.find_widget.dataset.open = "false"; this.find_position.textContent = ""; }
+  open_find(): void { this.find_widget.dataset.open = "true"; this.finder.update(false); this.search.focus(); this.search.select(); }
+  close_find(): void { this.find_widget.dataset.open = "false"; this.finder.close(); }
   emoji(text: string): string { return text.replace(/:[a-z_0-9+-]+:/giu, code => this.settings.emoji[code] || builtin_emoji[code] || code); }
   scroll_to(hash: string): void { const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === hash); if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2; }
-  select_commit(commit: graph_commit): void { this.selected = commit.hash; if (this.settings.auto_center) this.scroll_to(commit.hash); void this.show_comparison(commit.parents[0] || EMPTY, commit.hash); }
-  find_next(direction = 1): void {
-    const query = this.search.value.trim().toLocaleLowerCase(); if (!query || !this.state) { this.find_position.textContent = ""; return; }
-    const matches = this.state.commits.filter(commit => [commit.subject, commit.author, this.date(commit), commit.hash, ...this.state!.refs.filter(ref => ref.hash === commit.hash).map(ref => ref.name)].some(value => value.toLocaleLowerCase().includes(query)));
-    if (!matches.length) { this.find_position.textContent = text("graph.find_no_results"); return; }
-    const current = matches.findIndex(commit => commit.hash === this.selected);
-    const index = current < 0 ? direction > 0 ? 0 : matches.length - 1 : (current + direction + matches.length) % matches.length;
-    this.select_commit(matches[index]); this.scroll_to(matches[index].hash); this.find_position.textContent = text("graph.find_position", {current: index + 1, total: matches.length});
+  activate_row(hash: string, parent: string, event: MouseEvent | KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== hash) {
+      void this.show_comparison(this.selected === WORKTREE ? hash : this.selected, this.selected === WORKTREE ? WORKTREE : hash); return;
+    }
+    if (this.selected === hash && !(event.ctrlKey || event.metaKey)) { this.close_details(); return; }
+    this.selected = hash;
+    if (hash !== WORKTREE && this.settings.auto_center) this.scroll_to(hash);
+    void this.show_comparison(parent, hash);
   }
+  select_commit(commit: graph_commit): void { this.selected = commit.hash; if (this.settings.auto_center) this.scroll_to(commit.hash); void this.show_comparison(commit.parents[0] || EMPTY, commit.hash); }
+  find_next(direction = 1): void { this.finder.move(direction); }
   review_key(): string { return JSON.stringify([this.root, this.from, this.to]); }
   is_reviewed(file: string): boolean { return load_reviews(localStorage).find(review => JSON.stringify([review.root, review.from, review.to]) === this.review_key())?.reviewed.includes(file) || false; }
   review_active(): boolean { return load_reviews(localStorage).some(review => JSON.stringify([review.root, review.from, review.to]) === this.review_key()); }
@@ -262,7 +290,7 @@ export class git_graph_panel {
     for (const node of this.details.querySelectorAll<HTMLElement>("[data-file]")) if (node.dataset.file === file) node.classList.remove("git-file-unreviewed");
   }
   async show_comparison(from: string, to: string): Promise<void> {
-    if (!this.state) return; const epoch = ++this.detail_epoch; this.from = from; this.to = to;
+    if (this.disposed || !this.state) return; const epoch = ++this.detail_epoch; this.from = from; this.to = to; this.files = [];
     this.place_details();
     const commit = this.state.commits.find(item => item.hash === to);
     const content = el("div", "git-graph-detail-content"); const summary = el("section", "git-graph-detail-summary"); const files_pane = el("section", "git-graph-detail-files"); const controls = el("nav", "git-graph-detail-controls");
@@ -297,7 +325,8 @@ export class git_graph_panel {
     controls.append(tree_button, list_button, git_icon_button("more", text("graph.more_commit_actions"), () => this.repository_menu(to === WORKTREE || to === INDEX ? "changes" : "repository"), "git-graph-detail-more"));
     const files_heading = el("div", "git-graph-files-heading", text("graph.changed_files")); const files = el("div", "git-graph-files"); files_pane.append(files_heading, files);
     try {
-      this.files = await compare_files(this.runner.run, this.state, from, to); if (epoch !== this.detail_epoch) return;
+      const changes = await compare_files(this.runner.run, this.state, from, to); if (epoch !== this.detail_epoch) return;
+      this.files = changes;
       files_heading.textContent = text("graph.changed_files_count", {count: this.files.length});
       if (!this.files.length) { files.textContent = text("graph.no_file_differences"); return; }
       this.render_files(files);
@@ -356,7 +385,7 @@ export class git_graph_panel {
     this.configured_menu(event, "file", entries);
   }
   async open_revision(revision: string, file: string): Promise<void> {
-    try { const text = await this.host.revision_text(this.root, revision, file, this.settings); this.host.open_document({title: `${revision.slice(0, 8)} · ${file}`, file, left: text}, this.settings.new_tab_group, {root: this.root}); this.mark_reviewed(file); }
+    try { const epoch = this.epoch; const text = await this.host.revision_text(this.root, revision, file, this.settings); if (this.disposed || epoch !== this.epoch) return; this.host.open_document({title: `${revision.slice(0, 8)} · ${file}`, file, left: text}, this.settings.new_tab_group, {root: this.root}); this.mark_reviewed(file); }
     catch (error) { this.report(error); }
   }
   async open_diff(file: graph_change): Promise<void> {
@@ -378,6 +407,7 @@ export class git_graph_panel {
   }
   layout_entries(): workspace_menu_entry[] {
     return [
+      ...(["date", "author", "hash"] as const).map(key => ({ id: "show_" + key, title: text(key === "hash" ? "graph.column.commit" : key === "date" ? "graph.column.date" : "graph.column.author"), checked: this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"], action: () => { const setting = ("show_" + key) as "show_date" | "show_author" | "show_hash"; this.settings[setting] = !this.settings[setting]; this.persist_settings(); if (this.state) this.render_history(); } })),
       { title: text("graph.reset_columns"), action: () => { this.settings.column_widths = { ...graph_defaults.column_widths }; this.persist_settings(); if (this.state) this.render_history(); } },
       { title: text("graph.all_settings"), action: () => this.settings_dialog() },
     ];
@@ -427,7 +457,7 @@ export class git_graph_panel {
     if (!this.state || this.writing) return;
     this.writing = true; let message = "";
     try {
-      const plan = await plan_git_action(this.writer.run, id, {root: this.root, target: paths[0] || "", paths: paths.length ? paths : undefined, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags}, values);
+      const plan = await plan_git_action(this.writer.run, id, {root: this.root, target: paths[0] || "", paths: paths.length ? paths : undefined, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space}, values);
       message = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files()) || text("graph.action_complete");
       if (id === "commit") { this.workbench.message.value = ""; localStorage.removeItem(this.workbench.storage_key("message")); }
     } catch (error) { message = String(error); }
@@ -438,7 +468,7 @@ export class git_graph_panel {
     const action = graph_actions.find(item => item.id === id)!; const dialog = graph_dialog(action.title); const fields = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
     if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
     if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
-    const defaults = { ...this.settings.dialog_defaults[id], ...preset };
+    const defaults = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...(id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}), ...preset };
     dialog.content.append(el("p", "", text("graph.repository_target", {root: this.root, target: revision_label(target || hash || this.state.branch)})));
     const form = el("form", "git-graph-form"); const result = el("pre", "git-graph-action-preview"); dialog.content.append(form, result);
     for (const item of action.fields) {
@@ -446,7 +476,7 @@ export class git_graph_panel {
       let initial = defaults[item.key] ?? item.initial ?? "";
       if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter(remote => target.startsWith(remote.name + "/")).sort((a, b) => b.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
       if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
-      if (item.key === "source" && kind === "remote") initial = target.slice(target.indexOf("/") + 1);
+      if (item.key === "source") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" ? target : "");
       if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
       if (item.key === "prune_tags") initial = defaults.prune_tags ?? this.settings.fetch_prune_tags;
       if (item.key === "sign") initial = defaults.sign ?? this.settings.sign_tags;
@@ -471,7 +501,7 @@ export class git_graph_panel {
           result.textContent = text("graph.rebase_todo_ready"); return;
         }
         const selected_paths = id === "discard_changes" ? paths || this.workbench.groups_state.find(group => group.id === "changes")?.files.map(file => file.path) : paths;
-        plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash === WORKTREE ? this.state!.head : hash, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags }, values);
+        plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash === WORKTREE ? this.state!.head : hash, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
         if (revision !== form_revision) { plan = undefined; result.textContent = text("graph.parameters_changed"); return; }
         result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview; execute.disabled = false;
       } catch (error) { result.textContent = String(error); } finally { preview.disabled = false; }
@@ -496,11 +526,7 @@ export class git_graph_panel {
     }
     catch (error) { dialog.content.textContent = String(error); }
   }
-  pr_dialog(branch: string): void {
-    const dialog = graph_dialog(text("graph.pull_request_title")); const remote = el("select"); const base = el("input"); base.value = this.settings.pr_base; const error = el("p");
-    for (const item of this.state!.remotes) remote.append(option(item.fetch, item.name)); dialog.content.append(el("p", "", text("graph.pull_request_help")), remote, base, error);
-    dialog.footer.prepend(button(text("graph.open_form"), () => { try { void this.host.open_url(pull_request_url(remote.value, branch, base.value, this.settings.pr_url)).catch(problem => { error.textContent = String(problem); }); } catch (problem) { error.textContent = String(problem); } }));
-  }
+  pr_dialog(branch: string): void { show_pull_request_dialog(this,branch); }
   archive_dialog(hash: string): void {
     const dialog = graph_dialog(text("graph.archive_title")); const target = el("input"); target.value = this.host.path_api.join(this.root, hash.slice(0, 8) + ".zip"); const error = el("pre"); dialog.content.append(target, error);
     dialog.footer.prepend(button(text("graph.export_zip"), () => void (async () => {

@@ -39,6 +39,9 @@
       }
       await delay(700);
       if (phase === '1') {
+        // 大纲现在是Explorer内的视图：先走正式入口，不能依赖测试窗口上次遗留的侧栏状态。
+        app.commands.run('linux_note:outline');
+        await wait(() => { const pane=document.querySelector('.workspace-explorer-outline-content');return pane&&!pane.hidden&&pane.getBoundingClientRect().height>0&&pane.querySelector('#outline-content .outline-label'); });
         const source = app.workspace.activeLeaf;
         await wait(() => document.querySelector('content > .linux-note-reading-minimap[data-ready=true]'));
         const minimap = document.querySelector('content > .linux-note-reading-minimap');
@@ -71,7 +74,8 @@
         expect(window.getSelection()?.focusNode?.parentElement?.closest('h2') === heading, 'link places cursor at destination heading');
         expect(heading.getBoundingClientRect().top >= content.getBoundingClientRect().top
           && heading.getBoundingClientRect().bottom <= content.getBoundingClientRect().bottom, 'destination heading is visible');
-        expect(document.querySelector('#outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'), 'outline selects destination heading');
+        await wait(() => document.querySelector('.workspace-explorer-outline-content #outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'));
+        expect(document.querySelector('.workspace-explorer-outline-content #outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'), 'visible embedded outline selects destination heading');
         expect(document.querySelector('#outline-content')?.textContent.includes('Destination'), 'outline belongs to destination document');
         expect(same_position(source_position, visible(source.containerEl, source.view.containerEl)), 'source pane keeps the same paragraph and offset');
         const back_button=document.querySelector('.workspace-titlebar-history.is-back');await wait(()=>back_button&&!back_button.disabled);back_button.click();await delay(1000);
@@ -108,6 +112,7 @@
       result.status = 'PASS';
     } catch (error) {
       result.status = 'FAIL'; result.error = String(error.stack);
+      result.outline_debug = {embedded:document.querySelector('.workspace-explorer-outline-content')?.getBoundingClientRect().toJSON(),document_active:document.querySelector('.workspace-explorer-outline-content')?.dataset.documentOutline,active:document.querySelector('#outline-content .outline-active')?.outerHTML,labels:document.querySelectorAll('#outline-content .outline-label').length,sidebar:document.querySelector('#typora-sidebar')?.className};
       result.resume_debug = { phase, actual: visible(document.querySelector('content'), document.querySelector('#write')),
         scroll_top: document.querySelector('content').scrollTop,
         stored: localStorage.getItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(File.bundle.filePath))) };

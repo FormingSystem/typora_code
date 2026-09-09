@@ -1,4 +1,4 @@
-﻿[CmdletBinding()]
+[CmdletBinding()]
 param(
     [string]$typora_root = "",
     [switch]$non_interactive
@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath $environment_helper -PathType Leaf)) {
 . $environment_helper
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
 $enhancement_root = Join-Path $typora_tools_root "enhancements"
-$bundle_source = Join-Path $enhancement_root "dist\typora_enhancements.js"
+$bundle_source = Join-Path $enhancement_root "dist\community_plugin\main.js"
 $theme_source = Join-Path $typora_tools_root "cpp_github-consolas.css"
 $installer = Join-Path $enhancement_root "scripts\install_windows.ps1"
 $user_data = get_typora_windows_user_data
@@ -38,8 +38,8 @@ foreach ($required in @($bundle_source, $theme_source, $installer)) {
     }
 }
 
-assert_typora_bundle -bundle_path $bundle_source -markers_path (Join-Path $enhancement_root "bundle_markers.txt")
 . (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
+assert_typora_workspace_assets -asset_root (Split-Path -Parent $bundle_source) -assets @(get_typora_community_plugin_assets (Split-Path -Parent $bundle_source))
 $workspace_vendor = Join-Path $enhancement_root "vendor\typora_workspace"
 assert_typora_workspace_assets -asset_root $workspace_vendor -assets @(get_typora_workspace_assets $workspace_vendor)
 

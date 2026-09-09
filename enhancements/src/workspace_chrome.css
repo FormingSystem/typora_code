@@ -1,4 +1,18 @@
 html[data-linux-note-workspace-chrome="ready"] {
+  --linux-note-shell-header-height:35px;
+  --typ-tabs-height:var(--linux-note-shell-header-height);
+  --typ-footer-height:22px;
+  --linux-note-shell-row-height:22px;
+  --linux-note-shell-action-size:22px;
+  --linux-note-shell-icon-size:16px;
+  --linux-note-shell-inset-small:8px;
+  --linux-note-shell-inset:10px;
+  --linux-note-shell-inset-large:12px;
+  --linux-note-shell-fallback-hover:#e8e8e8;
+  --linux-note-shell-fallback-inactive:#e4e6f1;
+  --linux-note-shell-fallback-active:#0060c0;
+  --linux-note-shell-fallback-list-foreground:#333333;
+  --linux-note-shell-fallback-focus:#007fd4;
   /*
    * The Markdown theme continues to own #write.  These semantic colours only
    * describe the workbench chrome around it.  Prefer VS Code tokens when a
@@ -33,15 +47,16 @@ html[data-linux-note-workspace-chrome="ready"] {
   --linux-note-shell-dropdown-foreground:var(--vscode-dropdown-foreground,var(--linux-note-shell-input-foreground));
   --linux-note-shell-dropdown-border:var(--vscode-dropdown-border,var(--linux-note-shell-input-border));
   --linux-note-shell-icon-foreground:var(--vscode-icon-foreground,var(--linux-note-shell-muted-foreground));
-  --linux-note-shell-action-hover-background:var(--vscode-toolbar-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));
-  --linux-note-shell-hover-background:var(--vscode-list-hoverBackground,var(--item-hover-bg-color,color-mix(in srgb,var(--linux-note-shell-foreground) 9%,transparent)));
-  --linux-note-shell-hover-foreground:var(--vscode-list-hoverForeground,var(--linux-note-shell-foreground));
-  --linux-note-shell-selection-background:var(--vscode-list-activeSelectionBackground,var(--active-file-bg-color,color-mix(in srgb,var(--primary-color,#0078d4) 20%,transparent)));
-  --linux-note-shell-selection-foreground:var(--vscode-list-activeSelectionForeground,var(--linux-note-shell-foreground));
-  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,color-mix(in srgb,var(--linux-note-shell-foreground) 10%,transparent));
+  --linux-note-shell-action-hover-background:var(--vscode-toolbar-hoverBackground,var(--linux-note-shell-fallback-hover));
+  --linux-note-shell-hover-background:var(--vscode-list-hoverBackground,var(--linux-note-shell-fallback-hover));
+  --linux-note-shell-hover-foreground:var(--vscode-list-hoverForeground,var(--linux-note-shell-fallback-list-foreground));
+  --linux-note-shell-selection-background:var(--vscode-list-activeSelectionBackground,var(--linux-note-shell-fallback-active));
+  --linux-note-shell-selection-foreground:var(--vscode-list-activeSelectionForeground,#fff);
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,var(--linux-note-shell-fallback-inactive));
+  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,var(--linux-note-shell-fallback-list-foreground));
   --linux-note-shell-list-focus-background:var(--vscode-list-focusBackground,var(--linux-note-shell-selection-background));
   --linux-note-shell-list-focus-foreground:var(--vscode-list-focusForeground,var(--linux-note-shell-selection-foreground));
-  --linux-note-shell-focus:var(--vscode-focusBorder,var(--active-file-border-color,var(--primary-color,#0078d4)));
+  --linux-note-shell-focus:var(--vscode-focusBorder,var(--linux-note-shell-fallback-focus));
   --linux-note-shell-badge-background:var(--vscode-badge-background,var(--primary-color,#0078d4));
   --linux-note-shell-badge-foreground:var(--vscode-badge-foreground,#fff);
   --linux-note-shell-match-background:var(--vscode-editor-findMatchHighlightBackground,var(--search-select-bg-color,rgba(234,92,0,.28)));
@@ -58,9 +73,9 @@ html[data-linux-note-workspace-chrome="ready"] {
   --linux-note-shell-menu-selection-foreground:var(--vscode-menu-selectionForeground,var(--linux-note-shell-selection-foreground));
   --linux-note-shell-widget-background:var(--vscode-editorWidget-background,var(--linux-note-shell-raised-background));
   --linux-note-shell-widget-foreground:var(--vscode-editorSuggestWidget-foreground,var(--linux-note-shell-foreground));
-  --linux-note-git-graph-hover-background:rgba(128,128,128,.15);
-  --linux-note-git-graph-selected-background:rgba(128,128,128,.25);
-  --linux-note-git-graph-selected-hover-background:rgba(128,128,128,.35);
+  --linux-note-git-graph-hover-background:var(--linux-note-shell-hover-background);
+  --linux-note-git-graph-selected-background:var(--linux-note-shell-inactive-selection-background);
+  --linux-note-git-graph-selected-hover-background:var(--linux-note-shell-selection-background);
   --linux-note-git-graph-details-background:rgba(128,128,128,.1);
   --linux-note-git-graph-detail-border:rgba(128,128,128,.2);
   --linux-note-shell-shadow:var(--vscode-widget-shadow,rgba(0,0,0,.28));
@@ -162,7 +177,7 @@ html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-
   .workspace-explorer-row.is-selected,.workspace-search-file>summary.is-selected,
   .workspace-search-match.is-selected,.outline-item-active,.git-scm-file.selected,
   .git-scm-history-commit[aria-expanded="true"]
-) { color:var(--linux-note-shell-selection-foreground); background:var(--linux-note-shell-selection-background); }
+) { color:var(--linux-note-shell-inactive-selection-foreground); background:var(--linux-note-shell-inactive-selection-background); outline:none; }
 html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
   .workspace-explorer-status,.workspace-explorer-note,.workspace-search-file-path,
   .git-scm-history-author,.git-scm-notice
@@ -362,3 +377,35 @@ html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) :is(
   #top-titlebar,#typora-sidebar,.typ-ribbon,.typ-workspace-tab-header,footer.ty-footer,
   .context-menu,.workspace-quick-open,.git-graph-dialog,.git-graph-menu
 ) input[type="range"]:disabled { opacity:.45; }
+
+/* 主题只决定工作台调色板；列表选中态不继承正文主题的浅色 active-file 背景。 */
+html[data-linux-note-workspace-chrome="ready"][data-linux-note-shell-theme="dark"] {
+  --linux-note-shell-fallback-hover:#2a2d2e;
+  --linux-note-shell-fallback-inactive:#37373d;
+  --linux-note-shell-fallback-active:#04395e;
+  --linux-note-shell-fallback-list-foreground:#cccccc;
+  --linux-note-shell-fallback-focus:#007fd4;
+}
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+ .workspace-explorer-tree:focus-within .workspace-explorer-row.is-selected,
+ .workspace-search-file>summary.is-selected:focus-within,.workspace-search-match.is-selected:focus,
+ .outline-item-active:focus-within,.git-scm-file.selected:focus-within,.git-scm-history-commit[aria-expanded="true"]:focus
+) { background:var(--linux-note-shell-selection-background); color:var(--linux-note-shell-selection-foreground); outline:1px solid var(--linux-note-shell-focus); outline-offset:-1px; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) #typora-sidebar :is(
+ .workspace-explorer-row,.outline-item,.workspace-search-file>summary,.workspace-search-match,.git-scm-file,.git-scm-history-commit,.git-scm-history-file
+):focus-visible { outline:1px solid var(--linux-note-shell-focus); outline-offset:-1px; }
+html[data-linux-note-workspace-chrome="ready"] #typora-sidebar :is(.workspace-explorer-row.is-selected,.workspace-search-match.is-selected,.outline-item-active,.git-scm-file.selected) :is(svg,.workspace-explorer-note,.git-scm-file-directory) { color:inherit; }
+/* 面板主标题、节标题和动作分别共享 35、22、22px 几何。 */
+html[data-linux-note-workspace-chrome="ready"] #typora-sidebar :is(.workspace-explorer-toolbar,.workspace-search-heading,.git-scm-title) {
+ box-sizing:border-box; height:var(--linux-note-shell-header-height); min-height:var(--linux-note-shell-header-height); flex-shrink:0;
+ padding:0 var(--linux-note-shell-inset); margin:0; background:var(--linux-note-shell-sidebar-background);
+}
+html[data-linux-note-workspace-chrome="ready"] #typora-sidebar :is(.workspace-explorer-root,.workspace-search-preview-heading,.git-scm-history-header,.git-scm-group>summary) {
+ box-sizing:border-box; height:var(--linux-note-shell-row-height); min-height:var(--linux-note-shell-row-height); padding-top:0; padding-bottom:0;
+}
+html[data-linux-note-workspace-chrome="ready"] :is(.workspace-titlebar-popup,.workspace-activity-menu,.context-menu) :is(button,.typ-menuitem>a) { box-sizing:border-box; min-height:var(--linux-note-shell-row-height); padding-top:0; padding-bottom:0; }
+
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) .typ-workspace-tab-header { height:var(--linux-note-shell-header-height); min-height:var(--linux-note-shell-header-height); box-sizing:border-box; }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) footer.ty-footer { height:var(--typ-footer-height); min-height:var(--typ-footer-height); box-sizing:border-box; line-height:var(--typ-footer-height); }
+html[data-linux-note-workspace-chrome="ready"] body:not(.typora-export) footer.ty-footer .footer-item { line-height:var(--typ-footer-height); }
+html[data-linux-note-workspace-chrome="ready"] :is(.workspace-titlebar-popup,.context-menu) :is(button,.typ-menuitem>a) { height:var(--linux-note-shell-row-height); }

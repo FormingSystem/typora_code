@@ -211,22 +211,6 @@ typora_sha256() {
     fi
 }
 
-typora_validate_bundle() {
-    local bundle_path="$1" markers_path="$2" marker
-    [[ -f "$bundle_path" && -s "$markers_path" ]] || {
-        printf '%s\n' '[typora] Extension bundle or marker list is missing or empty.' >&2
-        return 1
-    }
-    while IFS= read -r marker || [[ -n "$marker" ]]; do
-        marker="${marker%$'\r'}"
-        [[ -n "$marker" ]] || continue
-        grep -Fq -- "$marker" "$bundle_path" || {
-            printf '[typora] Extension bundle failed validation; missing marker: %s\n' "$marker" >&2
-            return 1
-        }
-    done < "$markers_path"
-}
-
 typora_copy_file() {
     local source_path="$1"
     local target_path="$2"

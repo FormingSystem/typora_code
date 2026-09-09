@@ -162,7 +162,7 @@ try {
   const signed_plan = await api.plan_git_action(reader.run, 'commit', { root: signed, target: '', hash: '', operation: '', sign_commits: true }, { message: 'signed', amend: false });
   await api.execute_git_action(writer.run, signed_plan, () => true);
   expect(git(signed, ['show', '-s', '--format=%G?', 'HEAD']) === 'G', 'commit signing is verified with an isolated SSH key');
-  const tag_plan = await api.plan_git_action(reader.run, 'tag_add', { root: signed, target: '', hash: head(signed), operation: '', sign_tags: true }, { tag: 'signed', message: 'signed tag', sign: false });
+  const tag_plan = await api.plan_git_action(reader.run, 'tag_add', { root: signed, target: '', hash: head(signed), operation: '', sign_tags: true }, { ...defaults('tag_add'), tag: 'signed', message: 'signed tag', sign: false });
   await api.execute_git_action(writer.run, tag_plan, () => true); git(signed, ['verify-tag', 'signed']);
   expect(true, 'tag signature verifies with an isolated signing key');
   const archive = path.join(temp, 'version.zip'); await writer.run(signed, ['archive', '--format=zip', '--output=' + archive, 'HEAD']);
@@ -222,6 +222,48 @@ try {
   expect(fs.readdirSync(linked_directory).length === 0, 'symbolic-link or junction ignore path is rejected');
   fs.unlinkSync(ignore_file); const new_ignore = await append_ignore('untouched.md');
   expect(new_ignore.changed && fs.readFileSync(ignore_file, 'utf8') === '/untouched.md\n' && !(await reader.run(ignored_root, ['ls-files', '-z', '--', '.gitignore'])), 'missing root ignore is created without staging the rule file');
+  // 使用真实仓库验证上游选项对应的磁盘结果及复合操作边界。
+  const parity = create_repo('upstream parity'); write(parity, 'base.md', 'base'); const parity_base = commit(parity, 'base');
+  const parity_remote = path.join(temp, 'parity_remote.git'); git(temp, ['init', '--bare', parity_remote]); git(parity, ['remote', 'add', 'origin', parity_remote]);
+  await action(parity, 'tag_add', {tag: 'annotated-default', push: true, remote: 'origin'}, '', parity_base);
+  expect(git(parity, ['cat-file', '-t', 'annotated-default']) === 'tag' && git(parity_remote, ['rev-parse', 'refs/tags/annotated-default^{}']) === parity_base, 'default annotated tag and optional push execute both visible steps');
+  await action(parity, 'tag_add', {tag: 'light', tag_type: 'lightweight'}, '', parity_base);
+  expect(git(parity, ['cat-file', '-t', 'light']) === 'commit', 'explicit lightweight tag points directly at commit');
+  const spaced_plan = await api.plan_git_action(reader.run, 'branch_create', {root: parity, target:'',hash:parity_base,operation:'',reference_space:'-'}, {branch:'feature space',checkout:false});
+  await api.execute_git_action(writer.run, spaced_plan, () => true); expect(git(parity,['rev-parse','feature-space']) === parity_base,'reference space substitution is validated and creates the substituted ref');
+  git(parity,['checkout','-b','squash-source']); write(parity,'squashed.md','squashed'); commit(parity,'source subject'); git(parity,['checkout','main']);
+  const squash_plan = await action(parity,'merge',{mode:'squash',squash_message:'default'},'squash-source',git(parity,['rev-parse','squash-source']));
+  expect(squash_plan.preview.includes('commit') && git(parity,['show','HEAD:squashed.md']) === 'squashed' && git(parity,['show','-s','--format=%P','HEAD']) === parity_base,'squash plan previews and creates a single-parent commit');
+  expect(!git(parity,['diff','--cached','--name-only']),'automatic squash commit clears only successfully committed index');
+  git(parity,['checkout','squash-source']); write(parity,'later.md','later'); commit(parity,'later source'); git(parity,['checkout','main']); const before_deferred = head(parity);
+  await action(parity,'merge',{mode:'squash',no_commit:true},'squash-source',git(parity,['rev-parse','squash-source']));
+  expect(head(parity) === before_deferred && git(parity,['diff','--cached','--name-only']).includes('later.md'),'no-commit squash retains staged changes without creating a commit');
+  const squash_git = create_repo('squash git message'); write(squash_git,'base.md','base'); const squash_base = commit(squash_git,'base');
+  git(squash_git,['checkout','-b','source']); write(squash_git,'change.md','new'); const squash_source = commit(squash_git,'keep source subject'); git(squash_git,['checkout','main']);
+  await action(squash_git,'merge',{mode:'squash',squash_message:'git'},'source',squash_source);
+  expect(git(squash_git,['show','-s','--format=%B','HEAD']).includes('keep source subject'),'Git SQUASH_MSG retains source commit message');
+  const no_change_head = head(squash_git); await action(squash_git,'merge',{mode:'squash'},'HEAD',no_change_head);
+  expect(head(squash_git) === no_change_head,'squash without staged differences skips a redundant empty commit');
+  await assert.rejects(action(squash_git,'tag_add',{tag:'local-after-push-failure',push:true,remote:'missing'},'',squash_base),/第一步已完成/);
+  expect(git(squash_git,['rev-parse','local-after-push-failure^{}']) === squash_base,'failed optional push reports the preserved local tag instead of claiming atomic rollback');
+  // 在真实squash与后续commit之间注入宿主草稿、外部暂存和读取失败。
+  for (const scenario of ['draft', 'index', 'check-error']) {
+    const guarded = create_repo('squash guard '+scenario); write(guarded,'base.md','base'); const guarded_head=commit(guarded,'base');
+    git(guarded,['checkout','-b','source']);write(guarded,'source.md','source');const source_head=commit(guarded,'source');git(guarded,['checkout','main']);
+    const guarded_plan=await api.plan_git_action(reader.run,'merge',{root:guarded,target:'source',hash:source_head},{...defaults('merge'),mode:'squash',squash_message:'default'});
+    let first_done=false, index_reads=0, commit_attempted=false;
+    const guarded_run=async(root,args,...rest)=>{
+      if(args[0]==='commit')commit_attempted=true;
+      if(first_done&&scenario==='check-error'&&args[0]==='diff'&&args.includes('--cached'))throw new Error('injected post-squash check failure');
+      const result=await writer.run(root,args,...rest);
+      if(args[0]==='merge')first_done=true;
+      if(first_done&&scenario==='index'&&args[0]==='ls-files'&&args.includes('--stage')&&++index_reads===1){write(root,'external.md','external staged');git(root,['add','--','external.md']);}
+      return result;
+    };
+    await assert.rejects(api.execute_git_action(guarded_run,guarded_plan,()=>scenario!=='draft'||!first_done),/第一步已完成/u);
+    expect(first_done&&!commit_attempted&&head(guarded)===guarded_head&&git(guarded,['diff','--cached','--name-only']).includes('source.md'),'post-squash '+scenario+' refuses followup and retains completed index changes with partial-success error');
+    if(scenario==='index')expect(git(guarded,['show',':external.md'])==='external staged','concurrent external index content is preserved rather than committed or rolled back');
+  }
   console.log(JSON.stringify({ status: 'PASS', checks }, null, 2));
 } finally {
   reader.cancel(); writer.cancel();

@@ -1,0 +1,68 @@
+// 隔离 Electron 验证阅读/路径模块卸载、重载与异步取消，无真实 Typora 文件写入。
+const { app, BrowserWindow } = require('electron');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { build } = require('esbuild');
+const { editor_plugins } = require('./editor_bundle.cjs');
+const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_reading_lifecycle_'));
+app.setPath('userData', path.join(root, 'user_data')); app.disableHardwareAcceleration();
+let test_window;
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const evaluate = source => test_window.webContents.executeJavaScript(source);
+app.whenReady().then(async () => {
+  test_window = new BrowserWindow({ show: false, width: 900, height: 600, webPreferences: { contextIsolation: false, backgroundThrottling: false, offscreen: true } });
+  const filename = path.join(root, 'test.html');
+  fs.writeFileSync(filename, '<!doctype html><meta charset="utf-8"><style>content{display:block;height:300px;overflow:auto}#write{height:3000px}#menu{display:block}</style><content><div id="write"><p>Reading content</p></div></content><ul id="menu"></ul>');
+  await test_window.loadFile(filename);
+  const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
+  await evaluate(bundle.outputFiles[0].text);
+  await evaluate(`(() => {
+    window.subscriptions=new Map(); window.commands=new Map(); window.notices=[]; window.copy_count=0;
+    const on=(name,callback)=>{let set=subscriptions.get(name);if(!set)subscriptions.set(name,set=new Set());set.add(callback);return()=>set.delete(callback)};
+    window.emit=(name,data)=>{for(const callback of subscriptions.get(name)||[])callback(data)};
+    class View { onOpen(){} getState(){return {original:true}} setState(){} isEditor(){return true} }
+    const leaf={state:{path:'/test/a.md'},containerEl:document.querySelector('content'),view:new View()};leaf.containerEl.classList.add('mod-active');leaf.view.leaf=leaf;leaf.view.containerEl=document.querySelector('#write');leaf.parent={activeLeaf:leaf,toggleTab(){return leaf}};
+    window.leaf=leaf;window.original_methods={onOpen:View.prototype.onOpen,getState:View.prototype.getState,setState:View.prototype.setState};
+    window.host={openFile(){},commands:{register(command){commands.set(command.id,command);return()=>commands.delete(command.id)},run(){}},workspace:{activeLeaf:leaf,eachLeaves(callback){callback(leaf)},rootSplit:{on},on,activeEditor:{openFile(){}}}};
+    window[Symbol.for('typora-plugin-core@v2')]={app:host,Notice:class{constructor(message){notices.push(message)}}};
+    window.File={bundle:{filePath:'/test/a.md'},getMountFolder(){return '/test'},editor:{tryOpenUrl(){},library:{openFile(){}},selection:{buildUndo(){return null}},sourceView:{inSourceMode:false}}};
+    window.reqnode=()=>({normalize:p=>p,isAbsolute:p=>p.startsWith('/'),resolve:(...p)=>p.join('/'),dirname:p=>p.substring(0,p.lastIndexOf('/')),relative:(base,p)=>p.slice(base.length+1),basename:p=>p.split('/').pop(),sep:'/'});
+    window.JSBridge={invoke(){copy_count++;return new Promise(resolve=>window.finish_copy=resolve)}};
+    window.original_url=File.editor.tryOpenUrl;window.original_file=File.editor.library.openFile;window.original_app=host.openFile;window.original_editor=host.workspace.activeEditor.openFile;
+  })()`);
+  await evaluate('window.dispose_nav=qa.bind_reading_navigation(); window.dispose_paths=qa.bind_file_path_actions();window.dispose_map=qa.bind_reading_minimap();void 0;');
+  assert(await evaluate('dispose_nav===qa.bind_reading_navigation()&&dispose_paths===qa.bind_file_path_actions()&&dispose_map===qa.bind_reading_minimap()'));
+  assert.equal(await evaluate('commands.size'),2);
+  await evaluate(`emit('file-menu',{menu:{containerEl:document.querySelector('#menu')},path:'/test/a.md'});commands.values().next().value.callback();`);
+  await delay(30);
+  assert.equal(await evaluate('copy_count'),1);
+  assert.equal(await evaluate('document.querySelectorAll(".linux-note-path-item").length'),3);
+  await evaluate(`window.pending_navigation=qa.navigate_reading_target('/test/missing.md').then(()=>false,()=>true);dispose_nav();dispose_nav();dispose_paths();dispose_paths();dispose_map();dispose_map();finish_copy();`);
+  assert(await evaluate('pending_navigation'));
+  await delay(220);
+  assert(await evaluate('File.editor.tryOpenUrl===original_url&&File.editor.library.openFile===original_file&&host.openFile===original_app&&host.workspace.activeEditor.openFile===original_editor'));
+  assert(await evaluate('leaf.view.onOpen===original_methods.onOpen&&leaf.view.getState===original_methods.getState&&leaf.view.setState===original_methods.setState'));
+  assert.equal(await evaluate('[...subscriptions.values()].reduce((sum,set)=>sum+set.size,0)'),0);
+  assert.equal(await evaluate('commands.size'),0);assert.equal(await evaluate('notices.length'),0);
+  assert.equal(await evaluate('document.querySelectorAll(".linux-note-path-item,.linux-note-reading-minimap,#linux-note-reading-minimap-style").length'),0);
+  assert(await evaluate('![...document.documentElement.attributes].some(a=>/data-linux-note-(reading|copy-path|history)/.test(a.name))'));
+  await evaluate(`window.workspace=qa.create_reading_workspace(()=>File.bundle.filePath,()=>false);window.restore_pending=workspace.restore(workspace.active(),{scroll_top:600,scroll_left:0});workspace.dispose();workspace.dispose();document.querySelector('content').scrollTop=900;`);
+  assert.equal(await evaluate('restore_pending'),false);await delay(100);assert.equal(await evaluate("document.querySelector('content').scrollTop"),900);
+  await evaluate('window.dispose_nav2=qa.bind_reading_navigation();window.dispose_paths2=qa.bind_file_path_actions();window.dispose_map2=qa.bind_reading_minimap();void 0;');
+  assert.equal(await evaluate('commands.size'),2);assert.equal(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length'),1);
+  await evaluate('dispose_nav2();dispose_paths2();dispose_map2();');
+  // 原生定位跨帧等待期间取消：不得滚动新视口或恢复旧选区。
+  await evaluate(`(() => {
+    const wrapper=document.createElement('div');wrapper.className='CodeMirror';wrapper.tabIndex=0;document.querySelector('#write').append(wrapper);
+    let cursor={line:0,ch:0};window.undo_count=0;
+    wrapper.CodeMirror={getCursor:()=>cursor,getRange:()=> 'a',setSelection(){},focus(){wrapper.focus()},scrollIntoView(){},charCoords:()=>({top:100,bottom:120})};
+    File.editor.getMarkdown=()=> 'a';File.editor.sourceView.gotoLine=p=>{cursor={line:p.line,ch:p.ch};wrapper.focus()};File.editor.selection.buildUndo=()=>({type:'cursor',id:'p1',start:0});File.editor.undo={exeCommand(){undo_count++}};
+    window.cancel_location=new AbortController();window.location_pending=qa.reveal_markdown_location({line:1,column:1,end_line:1,end_column:2,expected_text:'a'},cancel_location.signal).then(()=>false,error=>error.name==='AbortError');
+    cancel_location.abort();document.querySelector('content').scrollTop=1000;
+  })()`);
+  assert(await evaluate('location_pending'));await delay(50);assert.equal(await evaluate('undo_count'),0);assert.equal(await evaluate("document.querySelector('content').scrollTop"),1000);
+  console.log('PASS: reading/path dispose, rebind, command/event/DOM cleanup and cancelled navigation/position/reveal.');
+  test_window.destroy();app.quit();
+}).catch(error=>{console.error(error);test_window?.destroy();app.exit(1)});

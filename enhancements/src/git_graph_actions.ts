@@ -21,19 +21,19 @@ export function graph_actions_for(locale?: git_graph_locale): graph_action[] {
     { id: "branch_rename", title: label("action.title.branch_rename"), targets: ["branch"], fields: [branch] },
     { id: "branch_delete", title: label("action.title.branch_delete"), targets: ["branch"], fields: [check("force", "action.field.force_delete")], destructive: label("action.warning.branch_delete") },
     { id: "remote_branch_delete", title: label("action.title.remote_branch_delete"), targets: ["remote"], fields: [remote, branch], destructive: label("action.warning.remote_branch_delete") },
-    { id: "branch_fetch", title: label("action.title.branch_fetch"), targets: ["remote"], fields: [remote, field("source", "action.field.remote_source"), branch, check("force", "action.field.force_fetch")] },
-    { id: "merge", title: label("action.title.merge"), targets: ["commit", "branch", "remote"], fields: [choice("mode", "action.field.merge_mode", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "action.field.defer_commit")], touches_files: true },
+    { id: "branch_fetch", title: label("action.title.branch_fetch"), targets: ["branch", "remote"], fields: [remote, field("source", "action.field.remote_source"), branch, check("force", "action.field.force_fetch")] },
+    { id: "merge", title: label("action.title.merge"), targets: ["commit", "branch", "remote"], fields: [choice("mode", "action.field.merge_mode", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "action.field.defer_commit"), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
     { id: "rebase", title: label("action.title.rebase"), targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "action.field.preserve_merges"), check("ignore_date", "action.field.ignore_date"), check("interactive", "action.field.interactive"), field("todo", "action.field.rebase_todo", true)], touches_files: true, destructive: label("action.warning.rebase") },
     { id: "reset", title: label("action.title.reset"), targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "action.field.reset_mode", ["mixed", "soft", "hard"])], touches_files: true, destructive: label("action.warning.reset") },
     { id: "commit_checkout", title: label("action.title.commit_checkout"), targets: ["commit", "tag"], fields: [], touches_files: true },
     { id: "cherry_pick", title: label("action.title.cherry_pick"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), check("record_origin", "action.field.record_origin"), field("mainline", "action.field.mainline", true)], touches_files: true },
     { id: "revert", title: label("action.title.revert"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), field("mainline", "action.field.mainline", true)], touches_files: true },
     { id: "drop", title: label("action.title.drop"), targets: ["commit"], fields: [], touches_files: true, destructive: label("action.warning.drop") },
-    { id: "tag_add", title: label("action.title.tag_add"), targets: ["commit", "branch"], fields: [field("tag", "action.field.tag"), field("message", "action.field.tag_message", true), check("sign", "action.field.sign_tag")] },
+    { id: "tag_add", title: label("action.title.tag_add"), targets: ["commit", "branch"], fields: [field("tag", "action.field.tag"), choice("tag_type", "action.field.tag_type", ["annotated", "lightweight"]), field("message", "action.field.tag_message", true), check("sign", "action.field.sign_tag"), check("push", "action.field.push_tag"), field("remote", "action.field.remote", true)] },
     { id: "tag_delete", title: label("action.title.tag_delete"), targets: ["tag"], fields: [], destructive: label("action.warning.tag_delete") },
     { id: "tag_push", title: label("action.title.tag_push"), targets: ["tag"], fields: [remote] },
     { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check("prune", "action.field.prune"), check("prune_tags", "action.field.prune_tags")] },
-    { id: "pull", title: label("action.title.pull"), targets: ["repository", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"])], touches_files: true },
+    { id: "pull", title: label("action.title.pull"), targets: ["repository", "branch", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"]), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
     { id: "sync", title: label("action.title.sync"), targets: ["repository"], fields: [choice("mode", "action.field.sync_mode", ["merge", "rebase", "ff-only"])], touches_files: true },
     { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
     { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check("untracked", "action.field.include_untracked"), check("keep_index", "action.field.keep_index")], touches_files: true },
@@ -62,6 +62,7 @@ export function graph_actions_for(locale?: git_graph_locale): graph_action[] {
 }
 
 const action_choice_label_keys: Record<string, git_graph_text_key> = {
+  annotated: "action.choice.annotated", lightweight: "action.choice.lightweight", default: "action.choice.default", git: "action.choice.git",
   normal: "action.choice.normal", "no-ff": "action.choice.no_ff", "ff-only": "action.choice.ff_only", squash: "action.choice.squash",
   mixed: "action.choice.mixed", soft: "action.choice.soft", hard: "action.choice.hard", merge: "action.choice.merge", rebase: "action.choice.rebase",
 };
@@ -72,10 +73,10 @@ export function graph_action_choice_label(value: string, locale?: git_graph_loca
 }
 
 export const graph_actions = graph_actions_for();
-export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean; paths?: string[] };
+export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean; paths?: string[]; reference_space?: string };
 type sync_target = { local_branch: string; upstream_ref: string; remote: string; remote_ref: string; remote_urls: string };
 type discard_plan = {restore_paths: string[]; untracked_paths: string[]; untracked_guards: string[]};
-export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan };
+export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan; followup?: {args: string[]; if_staged: boolean} };
 export type action_services = {trash_files?: (root: string, files: string[]) => Promise<void>};
 const busy_repositories = new Set<string>();
 const text_value = (value: unknown, name: string, required = true): string => {
@@ -162,11 +163,12 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     if ((required && !message) || message.includes("\0")) throw new Error(text("action.error.invalid_commit_message")); return message;
   };
   const remote = () => value("remote");
-  const branch = () => valid_ref(run, root, values.branch);
+  const reference = (value: unknown): unknown => typeof value === "string" && ["-", "_"].includes(context.reference_space || "") ? value.replace(/ /gu, context.reference_space!) : value;
+  const branch = () => valid_ref(run, root, reference(values.branch));
   const flag = (key: string) => values[key] === true;
   const sign = context.sign_commits ? ["-S"] : [];
   const mainline = () => { const n = value("mainline", false); if (n && !/^[1-9]\d*$/u.test(n)) throw new Error(text("action.error.invalid_mainline")); return n ? ["-m", n] : []; };
-  let args: string[]; let todo: string | undefined; let sync: action_plan["sync"]; let discard: discard_plan | undefined;
+  let args: string[]; let todo: string | undefined; let sync: action_plan["sync"]; let discard: discard_plan | undefined; let followup: action_plan["followup"];
   switch (id) {
     case "branch_create": { const name = await branch(); args = flag("checkout") ? ["checkout", "-b", name, hash] : ["branch", name, hash]; break; }
     case "branch_checkout": args = ["checkout", target]; break;
@@ -174,7 +176,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     case "branch_rename": args = ["branch", "-m", target, await branch()]; break;
     case "branch_delete": args = ["branch", flag("force") ? "-D" : "-d", target]; break;
     case "remote_branch_delete": args = ["push", remote(), "--delete", await branch()]; break;
-    case "branch_fetch": args = ["fetch", ...(flag("force") ? ["--force"] : []), remote(), `${await valid_ref(run, root, values.source)}:${await branch()}`]; break;
+    case "branch_fetch": args = ["fetch", ...(flag("force") ? ["--force"] : []), remote(), `${await valid_ref(run, root, reference(values.source))}:${await branch()}`]; break;
     case "merge": args = ["merge", ...sign, ...(values.mode === "normal" ? [] : ["--" + value("mode")]), ...(flag("no_commit") ? ["--no-commit"] : ["--no-edit"]), hash]; break;
     case "rebase": {
       args = ["rebase", ...(context.sign_commits ? ["--gpg-sign"] : []), ...(flag("ignore_date") ? ["--ignore-date"] : []), ...(flag("preserve_merges") ? ["--rebase-merges"] : []), ...(flag("interactive") ? ["--interactive"] : []), hash];
@@ -200,7 +202,11 @@ export async function plan_git_action(run: git_run, id: string, context: action_
       if (parents.length !== 1) throw new Error(text("action.error.invalid_drop_commit"));
       args = ["rebase", "--rebase-merges", "--onto", parents[0], hash]; break;
     }
-    case "tag_add": { const tag = await valid_ref(run, root, values.tag, true); const message = value("message", false); const signed = flag("sign") || context.sign_tags; args = ["tag", ...(signed ? ["-s", "-m", message || tag] : message ? ["-a", "-m", message] : []), tag, hash]; break; }
+    case "tag_add": {
+      const tag = await valid_ref(run, root, reference(values.tag), true); const message = value("message", false); const signed = flag("sign") || context.sign_tags;
+      args = ["tag", ...(signed ? ["-s", "-m", message || tag] : values.tag_type !== "lightweight" ? ["-a", "-m", message || tag] : []), tag, hash];
+      if (flag("push")) followup = {args: ["push", remote(), `refs/tags/${tag}`], if_staged: false}; break;
+    }
     case "tag_delete": args = ["tag", "-d", target]; break;
     case "tag_push": args = ["push", remote(), `refs/tags/${target}`]; break;
     case "fetch": args = ["fetch", ...(flag("prune") ? ["--prune"] : []), ...(flag("prune_tags") ? ["--prune-tags"] : []), ...(value("remote", false) ? [value("remote")] : ["--all"])]; break;
@@ -262,11 +268,15 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     untracked_lines: discard.untracked_paths.map(file => text("action.preview.recycle_file", {file: JSON.stringify(file)})).join("\n"),
     command: args.length ? "\n\n" + preview : "",
   });
+  if (["merge", "pull"].includes(id) && values.mode === "squash" && !flag("no_commit")) {
+    followup = {args: ["commit", ...sign, ...(values.squash_message === "git" ? ["--no-edit"] : ["-m", `Merge '${target || hash || value("branch")}'`])], if_staged: true};
+  }
+  if (followup) preview += "\n\n" + (followup.if_staged ? text("action.preview.if_staged") + "\n" : "") + "git " + followup.args.map(arg => JSON.stringify(arg)).join(" ");
   if (id === "clean") preview += "\n\n" + await run(root, args.map(arg => arg === "-f" ? "-n" : arg));
   if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
   if (todo) preview += "\n\n" + todo;
   const file_guard = id === "delete_untracked" ? await run(root, ["hash-object", "--no-filters", "--", target]) : undefined;
-  return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard };
+  return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup };
 }
 
 export async function execute_git_action(run: git_run, plan: action_plan, can_change_files: () => boolean, services: action_services = {}): Promise<string> {
@@ -299,6 +309,23 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
       try { return pulled + "\n" + await run(root, plan.sync.push_args); }
       catch (error) { throw new Error(text("action.error.push_after_pull_failed", {error: String(error instanceof Error ? error.message : error)})); }
     }
-    return await run(root, plan.args, { todo: plan.todo });
+    const result = await run(root, plan.args, { todo: plan.todo });
+    if (plan.followup) {
+      try {
+        if (plan.followup.if_staged) {
+          if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
+          // 重检squash之后的index，发现两步之间的外部暂存改动。
+          // 插件仓库锁不是外部Git事务锁，最后检查与commit之间仍非跨进程原子操作。
+          const index_snapshot = await run(root, ["ls-files", "--stage", "-z"]);
+          const staged = await run(root, ["diff", "--cached", "--name-only", "-z"]);
+          if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
+          if (await run(root, ["ls-files", "--stage", "-z"]) !== index_snapshot) throw new Error(text("action.error.repository_changed"));
+          if (!staged) return result;
+          if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
+        }
+        return result + "\n" + await run(root, plan.followup.args);
+      } catch (error) { throw new Error(text("action.error.followup_failed", {error: String(error instanceof Error ? error.message : error)})); }
+    }
+    return result;
   } finally { busy_repositories.delete(root); }
 }

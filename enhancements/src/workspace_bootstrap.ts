@@ -1,5 +1,6 @@
 import { install_workspace_shortcuts } from "./workspace_shortcuts";
 import { get_workspace_files } from "./workspace_files";
+import { create_workspace_lifetime } from "./workspace_lifetime";
 
 const WORKSPACE_VERSION = "2.10.15";
 const WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
@@ -42,30 +43,23 @@ export function get_workspace_app(): workspace_app | undefined {
   return (window as unknown as Record<symbol, { app?: workspace_app }>)[Symbol.for(WORKSPACE_NAMESPACE)]?.app;
 }
 
-/** 使用固定版本的社区核心，不执行上游安装器或 env.json 指定的核心加载入口。 */
-export async function initialize_workspace(): Promise<void> {
+/** 社区核心只能由官方 loader 启动；本插件不维护第二条核心加载路径。 */
+export async function initialize_workspace(signal?: AbortSignal) {
+  const lifetime = create_workspace_lifetime();
   const runtime = window as unknown as { reqnode?: unknown; _options?: { userDataPath?: string }; ClientCommand?: Record<string, (...args: unknown[]) => unknown> };
-  if (!runtime.reqnode || !runtime._options?.userDataPath) return;
+  if (!runtime.reqnode || !runtime._options?.userDataPath) return lifetime;
   document.documentElement.setAttribute("data-linux-note-workspace", "loading");
-  if (!get_workspace_app()) {
-    (window as unknown as Record<symbol, unknown>)[Symbol.for(`${WORKSPACE_NAMESPACE}:env`)] = { debug: false };
-    await new Promise<void>((resolve, reject) => {
-      const script = document.createElement("script");
-      script.type = "module";
-      script.src = `typora://app/userData/plugins/${WORKSPACE_VERSION}/core.js`;
-      script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Typora workspace core could not load; rerun the configuration installer."));
-      document.head.append(script);
-    });
-  }
   const app = get_workspace_app();
-  if (!app || app.coreVersion !== WORKSPACE_VERSION) throw new Error("Unexpected Typora workspace core version.");
+  if (!app) throw new Error("Typora Community Plugin core is unavailable; rerun the configuration installer.");
+  if (app.coreVersion !== WORKSPACE_VERSION) throw new Error("Unexpected Typora Community Plugin core version.");
   const started = Date.now();
   const wait_ready = async (ready: () => boolean) => {
     while (!ready()) {
+      signal?.throwIfAborted();
       if (Date.now() - started > 15000) throw new Error("Typora workspace initialization timed out.");
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
+    signal?.throwIfAborted();
   };
   await wait_ready(() => Boolean(app.settings));
   if (!(app.settings.get("internalPlugin.enabledPlugins") as Record<string, unknown>)?.["internal.workspace"]) {
@@ -78,7 +72,7 @@ export async function initialize_workspace(): Promise<void> {
 
   // 核心启动时尚未设置 activePanel，原生侧栏却可能已显示文件或大纲。
   // 点击前按实际面板校正状态，再由核心 switch 执行同项收起、异项切换。
-  document.addEventListener("click", event => {
+  const reconcile_sidebar = (event: MouseEvent) => {
     const item = event.target instanceof Element ? event.target.closest<HTMLElement>(".typ-ribbon-item[data-id]") : null;
     if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
     const sidebar = app.workspace.sidebar; if (!sidebar.isShown) return;
@@ -90,8 +84,11 @@ export async function initialize_workspace(): Promise<void> {
       : host_sidebar?.classList.contains("active-tab-outline") ? "core.outline" : sidebar.activePanel?.ribbonButton?.id;
     const current = sidebar.panels.find(panel => panel.ribbonButton?.id === current_id);
     if (current) sidebar.activePanel = current;
-  }, true);
+  };
+  lifetime.listen(document, "click", reconcile_sidebar as EventListener, true);
 
-  install_workspace_shortcuts(app, runtime, get_workspace_files);
+  lifetime.own(install_workspace_shortcuts(app, runtime, get_workspace_files));
+  lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
   document.documentElement.setAttribute("data-linux-note-workspace", "ready");
+  return lifetime;
 }

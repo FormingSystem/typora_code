@@ -76,12 +76,17 @@ assert.equal(zh_labels.repository_order, '仓库排序');
 assert.equal(en_labels.repository_order, 'Repository Order');
 assert(Object.values(en_labels).every(label => !/\p{Script=Han}/u.test(label)));
 assert.deepEqual(settings_choices, {
+  tab_icon_theme:["colour","grey"],
+  scm_integration: ["inline", "more"],
+  reference_space: ["none", "-", "_"],
+  details_location: ["inline", "docked"],
+  label_alignment: ["normal", "split", "graph"],
   graph_style: ['curved', 'straight'],
   order: ['topo', 'date', 'author-date'],
   date_type: ['author', 'committer'],
-  date_format: ['local', 'iso', 'relative'],
+  date_format: ['local', 'date', 'iso', 'iso_date', 'relative'],
   file_view: ['tree', 'list'],
-  uncommitted_style: ['row', 'connected'],
+  uncommitted_style: ['connected', 'head'],
   new_tab_group: ['active', 'right', 'down'],
   repository_order: ['name', 'path', 'recent'],
 });

@@ -27,7 +27,7 @@ export function parse_branch_status(source: string): branch_status {
 }
 
 /** 使用社区核心原有状态栏；刷新只读取本地 Git，远端写操作仍经过现有预览弹窗。 */
-export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void} {
+export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const status_core = core as status_core;
   const plugin = new status_core.Plugin(core.app, {id: "linux_note.git_status", name: text("status.plugin_name")});
   const item = plugin.addStatusBarItem({position: "left", type: "item", hint: text("status.repository_status")});
@@ -130,7 +130,8 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
   const timer = window.setInterval(() => { if (document.visibilityState !== "hidden" && !panel?.writing) void refresh(); }, 8000);
   const on_focus = () => void refresh(); window.addEventListener("focus", on_focus);
-  window.addEventListener("pagehide", () => { disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); style.remove(); plugin.unload(); }, {once: true});
+  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); style.remove(); plugin.unload(); window.removeEventListener("pagehide",dispose); };
+  window.addEventListener("pagehide", dispose, {once:true});
   void refresh();
-  return {refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};
+  return {dispose, refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};
 }
