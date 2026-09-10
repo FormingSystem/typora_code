@@ -225302,6 +225302,11 @@ https://creativecommons.org/licenses/by/4.0/
     let outline_open = false;
     let selected_heading;
     let selected_label;
+    const heading_boundary_slack = 12;
+    const native_outline = host.outline;
+    const native_highlight = native_outline?.highlightVisibleHeader;
+    const native_highlight_descriptor = native_outline && Object.getOwnPropertyDescriptor(native_outline, "highlightVisibleHeader");
+    let explicit_position;
     const is_outline_open = () => !disposed && host.document_active?.() !== false && sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
     const current_heading = () => {
       const content = document.querySelector("content");
@@ -225309,11 +225314,19 @@ https://creativecommons.org/licenses/by/4.0/
       if (!content || !write) return;
       const headings = Array.from(write.children).filter((node) => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
       if (!headings.length) return;
-      const top = content.scrollTop;
+      const top = content.getBoundingClientRect().top + content.clientTop;
+      const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
+      if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
+      explicit_position = void 0;
       let previous = headings[0];
       for (const heading3 of headings) {
-        if (heading3.offsetTop <= top) previous = heading3;
+        if (heading3.getBoundingClientRect().top <= top) previous = heading3;
         else break;
+      }
+      if (selected_index >= 0) {
+        const next_index = headings.indexOf(previous);
+        if (next_index === selected_index + 1 && previous.getBoundingClientRect().top > top - heading_boundary_slack) return selected_heading;
+        if (next_index < selected_index && selected_heading.getBoundingClientRect().top < top + heading_boundary_slack) return selected_heading;
       }
       return previous;
     };
@@ -225323,7 +225336,12 @@ https://creativecommons.org/licenses/by/4.0/
       const row = label.closest(".outline-item");
       if (!outline || !row) return;
       for (let wrapper = row.closest(".outline-item-wrapper"); wrapper && outline.contains(wrapper); wrapper = wrapper.parentElement?.closest(".outline-item-wrapper") ?? null) wrapper.classList.add("outline-item-open");
-      row.scrollIntoView({ block: "nearest" });
+      const bounds = outline.getBoundingClientRect();
+      const rect = row.getBoundingClientRect();
+      const top = bounds.top + outline.clientTop;
+      const bottom = top + outline.clientHeight;
+      if (rect.top < top) outline.scrollTop += rect.top - top;
+      else if (rect.bottom > bottom) outline.scrollTop += rect.bottom - bottom;
     };
     const fallback_sync = (outline, heading3) => {
       const cid = heading3.getAttribute("cid");
@@ -225347,7 +225365,7 @@ https://creativecommons.org/licenses/by/4.0/
       selected_heading = heading3;
       selected_label = expected;
       try {
-        host.outline?.highlightVisibleHeader?.(void 0, void 0, true, false);
+        native_highlight?.call(native_outline, [heading3], 0, true, false);
       } catch {
       }
       const active = outline.querySelector(".outline-label.outline-active");
@@ -225370,6 +225388,30 @@ https://creativecommons.org/licenses/by/4.0/
         });
       });
     };
+    const coordinated_highlight = function(headings, index, expand, blink) {
+      if (!is_outline_open()) {
+        cancel_sync();
+        selected_heading = void 0;
+        selected_label = void 0;
+        explicit_position = void 0;
+        native_highlight?.call(this, headings, index, expand, blink);
+        return;
+      }
+      const write = document.querySelector("#write");
+      const targets = headings == null ? Array.from(write?.querySelectorAll(":scope > :is(h1,h2,h3,h4,h5,h6)") || []) : Array.from(headings);
+      const explicit_target = (headings != null || index != null) && (index == null ? targets : [targets[index]]).some((node) => node instanceof HTMLElement && node.parentElement === write && node.matches("h1,h2,h3,h4,h5,h6"));
+      if (explicit_target || blink === true) {
+        cancel_sync();
+        native_highlight?.call(this, headings, index, expand, blink);
+        const active = sidebar.querySelector("#outline-content .outline-label.outline-active");
+        selected_label = active;
+        selected_heading = Array.from(document.querySelectorAll("#write > :is(h1,h2,h3,h4,h5,h6)")).find((heading3) => heading3.getAttribute("cid") === active?.getAttribute("data-ref"));
+        explicit_position = document.querySelector("content")?.scrollTop;
+        return;
+      }
+      schedule_sync();
+    };
+    if (native_outline && native_highlight) native_outline.highlightVisibleHeader = coordinated_highlight;
     const on_document_scroll = (event) => {
       const target = event.target;
       if (target instanceof Node && sidebar.contains(target)) return;
@@ -225425,6 +225467,10 @@ https://creativecommons.org/licenses/by/4.0/
       cancel_sync();
       style.remove();
       empty2.remove();
+      if (native_outline?.highlightVisibleHeader === coordinated_highlight) {
+        if (native_highlight_descriptor) Object.defineProperty(native_outline, "highlightVisibleHeader", native_highlight_descriptor);
+        else delete native_outline.highlightVisibleHeader;
+      }
       if (previous_document_outline === null) sidebar.removeAttribute("data-document-outline");
       else sidebar.setAttribute("data-document-outline", previous_document_outline);
       document.documentElement.removeAttribute("data-linux-note-workspace-outline");

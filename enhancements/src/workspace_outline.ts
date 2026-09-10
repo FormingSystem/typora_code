@@ -41,6 +41,12 @@ export function install_workspace_outline(host: workspace_outline_host) {
   let outline_open = false;
   let selected_heading:HTMLElement|undefined;
   let selected_label:HTMLElement|null|undefined;
+  // 相邻章节边界留出 12 CSS px 的双向滞回，避免滚轮惯性／亚像素布局在边界反复改选。
+  const heading_boundary_slack = 12;
+  const native_outline = host.outline;
+  const native_highlight = native_outline?.highlightVisibleHeader;
+  const native_highlight_descriptor = native_outline && Object.getOwnPropertyDescriptor(native_outline, "highlightVisibleHeader");
+  let explicit_position:number|undefined;
   const is_outline_open = () => !disposed && host.document_active?.()!==false && sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
   const current_heading = () => {
     const content = document.querySelector<HTMLElement>("content");
@@ -48,11 +54,20 @@ export function install_workspace_outline(host: workspace_outline_host) {
     if (!content || !write) return;
     const headings = Array.from(write.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
     if (!headings.length) return;
-    const top = content.scrollTop;
+    // offsetTop 的参照物会随正文容器定位变化；与滚动视口在同一坐标系比较。
+    const top = content.getBoundingClientRect().top + content.clientTop;
+    const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
+    if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
+    explicit_position = undefined;
     let previous = headings[0];
     for (const heading of headings) {
-      if (heading.offsetTop <= top) previous = heading;
+      if (heading.getBoundingClientRect().top <= top) previous = heading;
       else break;
+    }
+    if (selected_index >= 0) {
+      const next_index = headings.indexOf(previous);
+      if (next_index === selected_index + 1 && previous.getBoundingClientRect().top > top - heading_boundary_slack) return selected_heading;
+      if (next_index < selected_index && selected_heading!.getBoundingClientRect().top < top + heading_boundary_slack) return selected_heading;
     }
     return previous;
   };
@@ -64,7 +79,13 @@ export function install_workspace_outline(host: workspace_outline_host) {
     if (!outline || !row) return;
     for (let wrapper = row.closest<HTMLElement>(".outline-item-wrapper"); wrapper && outline.contains(wrapper);
       wrapper = wrapper.parentElement?.closest<HTMLElement>(".outline-item-wrapper") ?? null) wrapper.classList.add("outline-item-open");
-    row.scrollIntoView({block: "nearest"});
+    // 仅滚动大纲自己的容器，不能让 scrollIntoView 顺带移动宿主页面或夺走正文位置。
+    const bounds = outline.getBoundingClientRect();
+    const rect = row.getBoundingClientRect();
+    const top = bounds.top + outline.clientTop;
+    const bottom = top + outline.clientHeight;
+    if (rect.top < top) outline.scrollTop += rect.top - top;
+    else if (rect.bottom > bottom) outline.scrollTop += rect.bottom - bottom;
   };
   const fallback_sync = (outline: HTMLElement, heading: HTMLElement) => {
     const cid = heading.getAttribute("cid");
@@ -86,8 +107,8 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const expected=cid?label_for(outline,cid):undefined;
     if(selected_heading===heading&&selected_label===expected&&expected?.classList.contains("outline-active"))return;
     selected_heading=heading;selected_label=expected;
-    // 用户滚动只改变当前位置；禁止宿主每次滚动反复触发标题闪烁。
-    try { host.outline?.highlightVisibleHeader?.(undefined, undefined, true, false); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
+    // 传入已判定的唯一标题。宿主默认查找“首个可见标题”，不能再与当前章节选择竞争。
+    try { native_highlight?.call(native_outline, [heading], 0, true, false); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
     const active = outline.querySelector<HTMLElement>(".outline-label.outline-active");
     if (!active || (cid && active.getAttribute("data-ref") !== cid)) fallback_sync(outline, heading);
     else reveal(active);
@@ -104,6 +125,32 @@ export function install_workspace_outline(host: workspace_outline_host) {
       settle_frame = requestAnimationFrame(() => { settle_frame = 0; sync_current_heading(); });
     });
   };
+  const coordinated_highlight:NonNullable<workspace_outline_host["outline"]>["highlightVisibleHeader"] = function(headings, index, expand, blink) {
+    if (!is_outline_open()) {
+      cancel_sync();selected_heading=undefined;selected_label=undefined;explicit_position=undefined;
+      native_highlight?.call(this, headings, index, expand, blink);
+      return;
+    }
+    const write = document.querySelector<HTMLElement>("#write");
+    const targets = headings == null ? Array.from(write?.querySelectorAll(":scope > :is(h1,h2,h3,h4,h5,h6)") || [])
+      : Array.from(headings as ArrayLike<unknown>);
+    const explicit_target = (headings != null || index != null) && (index == null ? targets : [targets[index]])
+      .some(node => node instanceof HTMLElement && node.parentElement === write && node.matches("h1,h2,h3,h4,h5,h6"));
+    if (explicit_target || blink === true) {
+      // 显式标题跳转和手动“高亮当前标题”仍走原生语义，且取消尚未执行的旧滚动同步。
+      cancel_sync();
+      native_highlight?.call(this, headings, index, expand, blink);
+      const active = sidebar.querySelector<HTMLElement>("#outline-content .outline-label.outline-active");
+      selected_label = active;
+      selected_heading = Array.from(document.querySelectorAll<HTMLElement>("#write > :is(h1,h2,h3,h4,h5,h6)"))
+        .find(heading => heading.getAttribute("cid") === active?.getAttribute("data-ref"));
+      explicit_position = document.querySelector<HTMLElement>("content")?.scrollTop;
+      return;
+    }
+    // scrollAdjust 的非标题目标会传空数组；它和无参延迟高亮统一判定，不能锁住旧章节或改选邻居。
+    schedule_sync();
+  };
+  if (native_outline && native_highlight) native_outline.highlightVisibleHeader = coordinated_highlight;
   const on_document_scroll = (event: Event) => {
     const target = event.target;
     if (target instanceof Node && sidebar.contains(target)) return;
@@ -147,6 +194,10 @@ export function install_workspace_outline(host: workspace_outline_host) {
   return {refresh:()=>{refresh();schedule_sync();}, configure:source_outline.configure, dispose: () => {
     if(disposed)return;disposed=true;
     source_outline.dispose();control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
+    if (native_outline?.highlightVisibleHeader === coordinated_highlight) {
+      if (native_highlight_descriptor) Object.defineProperty(native_outline, "highlightVisibleHeader", native_highlight_descriptor);
+      else delete native_outline.highlightVisibleHeader;
+    }
     if(previous_document_outline===null)sidebar.removeAttribute("data-document-outline");else sidebar.setAttribute("data-document-outline",previous_document_outline);
     document.documentElement.removeAttribute("data-linux-note-workspace-outline");
   }};
