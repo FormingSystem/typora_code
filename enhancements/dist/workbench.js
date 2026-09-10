@@ -158946,6 +158946,7 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.added_to_gitignore": "\u5DF2\u5C06 {file} \u6DFB\u52A0\u5230 .gitignore\u3002",
     "scm.already_ignored": "{file} \u5DF2\u88AB .gitignore \u5FFD\u7565\u3002",
     "scm.opening_diff": "\u6B63\u5728\u6253\u5F00\u6587\u4EF6\u5DEE\u5F02\u2026",
+    "scm.repository_changed": "\u5F53\u524D\u4ED3\u5E93\u5DF2\u53D8\u5316\uFF0C\u8BF7\u4ECE\u539F\u4ED3\u5E93\u91CD\u65B0\u6253\u5F00\u6B64\u6BD4\u8F83\u3002",
     "scm.unresolved_conflict": "\u6587\u4EF6\u5B58\u5728\u672A\u89E3\u51B3\u7684\u51B2\u7A81\uFF0C\u8BF7\u5148\u5B8C\u6210\u51B2\u7A81\u5904\u7406\u3002",
     "scm.change_title": "{file}\uFF08\u66F4\u6539\uFF09",
     "scm.readonly_label": "{file}\uFF08{revision}\uFF0C\u53EA\u8BFB\uFF09",
@@ -159680,6 +159681,7 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.added_to_gitignore": "Added {file} to .gitignore.",
     "scm.already_ignored": "{file} is already ignored by .gitignore.",
     "scm.opening_diff": "Opening File Changes\u2026",
+    "scm.repository_changed": "The repository has changed. Reopen this comparison from its original repository.",
     "scm.unresolved_conflict": "The file has unresolved conflicts. Resolve them first.",
     "scm.change_title": "{file} (Changes)",
     "scm.readonly_label": "{file} ({revision}, Read-only)",
@@ -177670,6 +177672,186 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_quick_open.css
   var workspace_quick_open_default = "";
 
+  // src/terminal_theme.ts
+  function terminal_theme() {
+    const body = getComputedStyle(document.body);
+    const root = getComputedStyle(document.documentElement);
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d");
+    let rgb = [255, 255, 255];
+    if (context) {
+      for (const color of ["#ffffff", root.backgroundColor, body.backgroundColor]) {
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+      }
+      rgb = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+    }
+    const background = "rgb(".concat(rgb.join(", "), ")");
+    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
+    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
+    return {
+      background,
+      foreground: foreground2,
+      cursor: foreground2,
+      cursorAccent: background,
+      selectionBackground: dark ? "#264f78" : "#add6ff",
+      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+      black: dark ? "#000000" : "#24292f",
+      red: dark ? "#cd3131" : "#a31515",
+      green: dark ? "#0dbc79" : "#16713b",
+      yellow: dark ? "#e5e510" : "#795e26",
+      blue: dark ? "#3b8eea" : "#0451a5",
+      magenta: dark ? "#bc3fbc" : "#af00db",
+      cyan: dark ? "#11a8cd" : "#0070a8",
+      white: dark ? "#e5e5e5" : "#555555",
+      brightBlack: dark ? "#666666" : "#666666",
+      brightRed: dark ? "#f14c4c" : "#c72e2e",
+      brightGreen: dark ? "#23d18b" : "#16825d",
+      brightYellow: dark ? "#f5f543" : "#8a6500",
+      brightBlue: dark ? "#3b8eea" : "#0065b3",
+      brightMagenta: dark ? "#d670d6" : "#a626a4",
+      brightCyan: dark ? "#29b8db" : "#007f8b",
+      brightWhite: dark ? "#ffffff" : "#333333"
+    };
+  }
+  function observe_terminal_theme(apply3) {
+    let frame2 = 0;
+    let previous = "";
+    const update = () => {
+      cancelAnimationFrame(frame2);
+      frame2 = requestAnimationFrame(() => {
+        const theme2 = terminal_theme();
+        const key = JSON.stringify(theme2);
+        if (key !== previous) {
+          previous = key;
+          apply3(theme2);
+        }
+      });
+    };
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+    document.head.addEventListener("load", update, true);
+    window.addEventListener("focus", update);
+    update();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame2);
+      document.head.removeEventListener("load", update, true);
+      window.removeEventListener("focus", update);
+    };
+  }
+
+  // vendor/vscode_seti/icon_theme.json
+  var icon_theme_default = { information_for_contributors: ["This file has been generated from data in https://github.com/jesseweed/seti-ui", "- icon definitions: https://github.com/jesseweed/seti-ui/blob/master/styles/_fonts/seti.less", "- icon colors: https://github.com/jesseweed/seti-ui/blob/master/styles/ui-variables.less", "- file associations: https://github.com/jesseweed/seti-ui/blob/master/styles/components/icons/mapping.less", "If you want to provide a fix or improvement, please create a pull request against the jesseweed/seti-ui repository.", "Once accepted there, we are happy to receive an update request."], fonts: [{ id: "seti", src: [{ path: "./seti.woff", format: "woff" }], weight: "normal", style: "normal", size: "150%" }], iconDefinitions: { _R_light: { fontCharacter: "\\E001", fontColor: "#498ba7" }, _R: { fontCharacter: "\\E001", fontColor: "#519aba" }, _argdown_light: { fontCharacter: "\\E003", fontColor: "#498ba7" }, _argdown: { fontCharacter: "\\E003", fontColor: "#519aba" }, _asm_light: { fontCharacter: "\\E004", fontColor: "#b8383d" }, _asm: { fontCharacter: "\\E004", fontColor: "#cc3e44" }, _audio_light: { fontCharacter: "\\E005", fontColor: "#9068b0" }, _audio: { fontCharacter: "\\E005", fontColor: "#a074c4" }, _babel_light: { fontCharacter: "\\E006", fontColor: "#b7b73b" }, _babel: { fontCharacter: "\\E006", fontColor: "#cbcb41" }, _bazel_light: { fontCharacter: "\\E007", fontColor: "#7fae42" }, _bazel: { fontCharacter: "\\E007", fontColor: "#8dc149" }, _bazel_1_light: { fontCharacter: "\\E007", fontColor: "#455155" }, _bazel_1: { fontCharacter: "\\E007", fontColor: "#4d5a5e" }, _bicep_light: { fontCharacter: "\\E008", fontColor: "#498ba7" }, _bicep: { fontCharacter: "\\E008", fontColor: "#519aba" }, _bower_light: { fontCharacter: "\\E009", fontColor: "#cc6d2e" }, _bower: { fontCharacter: "\\E009", fontColor: "#e37933" }, _bsl_light: { fontCharacter: "\\E00A", fontColor: "#b8383d" }, _bsl: { fontCharacter: "\\E00A", fontColor: "#cc3e44" }, _c_light: { fontCharacter: "\\E00C", fontColor: "#498ba7" }, _c: { fontCharacter: "\\E00C", fontColor: "#519aba" }, "_c-sharp_light": { fontCharacter: "\\E00B", fontColor: "#498ba7" }, "_c-sharp": { fontCharacter: "\\E00B", fontColor: "#519aba" }, _c_1_light: { fontCharacter: "\\E00C", fontColor: "#9068b0" }, _c_1: { fontCharacter: "\\E00C", fontColor: "#a074c4" }, _c_2_light: { fontCharacter: "\\E00C", fontColor: "#b7b73b" }, _c_2: { fontCharacter: "\\E00C", fontColor: "#cbcb41" }, _cake_light: { fontCharacter: "\\E00D", fontColor: "#b8383d" }, _cake: { fontCharacter: "\\E00D", fontColor: "#cc3e44" }, _cake_php_light: { fontCharacter: "\\E00E", fontColor: "#b8383d" }, _cake_php: { fontCharacter: "\\E00E", fontColor: "#cc3e44" }, _clock_light: { fontCharacter: "\\E012", fontColor: "#498ba7" }, _clock: { fontCharacter: "\\E012", fontColor: "#519aba" }, _clock_1_light: { fontCharacter: "\\E012", fontColor: "#627379" }, _clock_1: { fontCharacter: "\\E012", fontColor: "#6d8086" }, _clojure_light: { fontCharacter: "\\E013", fontColor: "#7fae42" }, _clojure: { fontCharacter: "\\E013", fontColor: "#8dc149" }, _clojure_1_light: { fontCharacter: "\\E013", fontColor: "#498ba7" }, _clojure_1: { fontCharacter: "\\E013", fontColor: "#519aba" }, "_code-climate_light": { fontCharacter: "\\E014", fontColor: "#7fae42" }, "_code-climate": { fontCharacter: "\\E014", fontColor: "#8dc149" }, "_code-search_light": { fontCharacter: "\\E015", fontColor: "#9068b0" }, "_code-search": { fontCharacter: "\\E015", fontColor: "#a074c4" }, _coffee_light: { fontCharacter: "\\E016", fontColor: "#b7b73b" }, _coffee: { fontCharacter: "\\E016", fontColor: "#cbcb41" }, _coldfusion_light: { fontCharacter: "\\E018", fontColor: "#498ba7" }, _coldfusion: { fontCharacter: "\\E018", fontColor: "#519aba" }, _config_light: { fontCharacter: "\\E019", fontColor: "#627379" }, _config: { fontCharacter: "\\E019", fontColor: "#6d8086" }, _cpp_light: { fontCharacter: "\\E01A", fontColor: "#498ba7" }, _cpp: { fontCharacter: "\\E01A", fontColor: "#519aba" }, _cpp_1_light: { fontCharacter: "\\E01A", fontColor: "#9068b0" }, _cpp_1: { fontCharacter: "\\E01A", fontColor: "#a074c4" }, _cpp_2_light: { fontCharacter: "\\E01A", fontColor: "#b7b73b" }, _cpp_2: { fontCharacter: "\\E01A", fontColor: "#cbcb41" }, _crystal_light: { fontCharacter: "\\E01B", fontColor: "#bfc2c1" }, _crystal: { fontCharacter: "\\E01B", fontColor: "#d4d7d6" }, _crystal_embedded_light: { fontCharacter: "\\E01C", fontColor: "#bfc2c1" }, _crystal_embedded: { fontCharacter: "\\E01C", fontColor: "#d4d7d6" }, _css_light: { fontCharacter: "\\E01D", fontColor: "#498ba7" }, _css: { fontCharacter: "\\E01D", fontColor: "#519aba" }, _csv_light: { fontCharacter: "\\E01E", fontColor: "#7fae42" }, _csv: { fontCharacter: "\\E01E", fontColor: "#8dc149" }, _cu_light: { fontCharacter: "\\E01F", fontColor: "#7fae42" }, _cu: { fontCharacter: "\\E01F", fontColor: "#8dc149" }, _cu_1_light: { fontCharacter: "\\E01F", fontColor: "#9068b0" }, _cu_1: { fontCharacter: "\\E01F", fontColor: "#a074c4" }, _d_light: { fontCharacter: "\\E020", fontColor: "#b8383d" }, _d: { fontCharacter: "\\E020", fontColor: "#cc3e44" }, _dart_light: { fontCharacter: "\\E021", fontColor: "#498ba7" }, _dart: { fontCharacter: "\\E021", fontColor: "#519aba" }, _db_light: { fontCharacter: "\\E022", fontColor: "#dd4b78" }, _db: { fontCharacter: "\\E022", fontColor: "#f55385" }, _db_1_light: { fontCharacter: "\\E022", fontColor: "#498ba7" }, _db_1: { fontCharacter: "\\E022", fontColor: "#519aba" }, _default_light: { fontCharacter: "\\E023", fontColor: "#bfc2c1" }, _default: { fontCharacter: "\\E023", fontColor: "#d4d7d6" }, _docker_light: { fontCharacter: "\\E025", fontColor: "#498ba7" }, _docker: { fontCharacter: "\\E025", fontColor: "#519aba" }, _docker_1_light: { fontCharacter: "\\E025", fontColor: "#455155" }, _docker_1: { fontCharacter: "\\E025", fontColor: "#4d5a5e" }, _docker_2_light: { fontCharacter: "\\E025", fontColor: "#7fae42" }, _docker_2: { fontCharacter: "\\E025", fontColor: "#8dc149" }, _docker_3_light: { fontCharacter: "\\E025", fontColor: "#dd4b78" }, _docker_3: { fontCharacter: "\\E025", fontColor: "#f55385" }, _ejs_light: { fontCharacter: "\\E027", fontColor: "#b7b73b" }, _ejs: { fontCharacter: "\\E027", fontColor: "#cbcb41" }, _elixir_light: { fontCharacter: "\\E028", fontColor: "#9068b0" }, _elixir: { fontCharacter: "\\E028", fontColor: "#a074c4" }, _elixir_script_light: { fontCharacter: "\\E029", fontColor: "#9068b0" }, _elixir_script: { fontCharacter: "\\E029", fontColor: "#a074c4" }, _elm_light: { fontCharacter: "\\E02A", fontColor: "#498ba7" }, _elm: { fontCharacter: "\\E02A", fontColor: "#519aba" }, _eslint_light: { fontCharacter: "\\E02C", fontColor: "#9068b0" }, _eslint: { fontCharacter: "\\E02C", fontColor: "#a074c4" }, _eslint_1_light: { fontCharacter: "\\E02C", fontColor: "#455155" }, _eslint_1: { fontCharacter: "\\E02C", fontColor: "#4d5a5e" }, _ethereum_light: { fontCharacter: "\\E02D", fontColor: "#498ba7" }, _ethereum: { fontCharacter: "\\E02D", fontColor: "#519aba" }, "_f-sharp_light": { fontCharacter: "\\E02E", fontColor: "#498ba7" }, "_f-sharp": { fontCharacter: "\\E02E", fontColor: "#519aba" }, _favicon_light: { fontCharacter: "\\E02F", fontColor: "#b7b73b" }, _favicon: { fontCharacter: "\\E02F", fontColor: "#cbcb41" }, _firebase_light: { fontCharacter: "\\E030", fontColor: "#cc6d2e" }, _firebase: { fontCharacter: "\\E030", fontColor: "#e37933" }, _firefox_light: { fontCharacter: "\\E031", fontColor: "#cc6d2e" }, _firefox: { fontCharacter: "\\E031", fontColor: "#e37933" }, _font_light: { fontCharacter: "\\E033", fontColor: "#b8383d" }, _font: { fontCharacter: "\\E033", fontColor: "#cc3e44" }, _git_light: { fontCharacter: "\\E034", fontColor: "#3b4b52" }, _git: { fontCharacter: "\\E034", fontColor: "#41535b" }, _github_light: { fontCharacter: "\\E037", fontColor: "#bfc2c1" }, _github: { fontCharacter: "\\E037", fontColor: "#d4d7d6" }, _gitlab_light: { fontCharacter: "\\E038", fontColor: "#cc6d2e" }, _gitlab: { fontCharacter: "\\E038", fontColor: "#e37933" }, _go_light: { fontCharacter: "\\E039", fontColor: "#498ba7" }, _go: { fontCharacter: "\\E039", fontColor: "#519aba" }, _go2_light: { fontCharacter: "\\E03A", fontColor: "#498ba7" }, _go2: { fontCharacter: "\\E03A", fontColor: "#519aba" }, _godot_light: { fontCharacter: "\\E03B", fontColor: "#498ba7" }, _godot: { fontCharacter: "\\E03B", fontColor: "#519aba" }, _godot_1_light: { fontCharacter: "\\E03B", fontColor: "#b8383d" }, _godot_1: { fontCharacter: "\\E03B", fontColor: "#cc3e44" }, _godot_2_light: { fontCharacter: "\\E03B", fontColor: "#b7b73b" }, _godot_2: { fontCharacter: "\\E03B", fontColor: "#cbcb41" }, _godot_3_light: { fontCharacter: "\\E03B", fontColor: "#9068b0" }, _godot_3: { fontCharacter: "\\E03B", fontColor: "#a074c4" }, _gradle_light: { fontCharacter: "\\E03C", fontColor: "#498ba7" }, _gradle: { fontCharacter: "\\E03C", fontColor: "#519aba" }, _grails_light: { fontCharacter: "\\E03D", fontColor: "#7fae42" }, _grails: { fontCharacter: "\\E03D", fontColor: "#8dc149" }, _graphql_light: { fontCharacter: "\\E03E", fontColor: "#dd4b78" }, _graphql: { fontCharacter: "\\E03E", fontColor: "#f55385" }, _grunt_light: { fontCharacter: "\\E03F", fontColor: "#cc6d2e" }, _grunt: { fontCharacter: "\\E03F", fontColor: "#e37933" }, _gulp_light: { fontCharacter: "\\E040", fontColor: "#b8383d" }, _gulp: { fontCharacter: "\\E040", fontColor: "#cc3e44" }, _hacklang_light: { fontCharacter: "\\E041", fontColor: "#cc6d2e" }, _hacklang: { fontCharacter: "\\E041", fontColor: "#e37933" }, _haml_light: { fontCharacter: "\\E042", fontColor: "#b8383d" }, _haml: { fontCharacter: "\\E042", fontColor: "#cc3e44" }, _happenings_light: { fontCharacter: "\\E043", fontColor: "#498ba7" }, _happenings: { fontCharacter: "\\E043", fontColor: "#519aba" }, _haskell_light: { fontCharacter: "\\E044", fontColor: "#9068b0" }, _haskell: { fontCharacter: "\\E044", fontColor: "#a074c4" }, _haxe_light: { fontCharacter: "\\E045", fontColor: "#cc6d2e" }, _haxe: { fontCharacter: "\\E045", fontColor: "#e37933" }, _haxe_1_light: { fontCharacter: "\\E045", fontColor: "#b7b73b" }, _haxe_1: { fontCharacter: "\\E045", fontColor: "#cbcb41" }, _haxe_2_light: { fontCharacter: "\\E045", fontColor: "#498ba7" }, _haxe_2: { fontCharacter: "\\E045", fontColor: "#519aba" }, _haxe_3_light: { fontCharacter: "\\E045", fontColor: "#9068b0" }, _haxe_3: { fontCharacter: "\\E045", fontColor: "#a074c4" }, _heroku_light: { fontCharacter: "\\E046", fontColor: "#9068b0" }, _heroku: { fontCharacter: "\\E046", fontColor: "#a074c4" }, _hex_light: { fontCharacter: "\\E047", fontColor: "#b8383d" }, _hex: { fontCharacter: "\\E047", fontColor: "#cc3e44" }, _html_light: { fontCharacter: "\\E048", fontColor: "#498ba7" }, _html: { fontCharacter: "\\E048", fontColor: "#519aba" }, _html_1_light: { fontCharacter: "\\E048", fontColor: "#7fae42" }, _html_1: { fontCharacter: "\\E048", fontColor: "#8dc149" }, _html_2_light: { fontCharacter: "\\E048", fontColor: "#b7b73b" }, _html_2: { fontCharacter: "\\E048", fontColor: "#cbcb41" }, _html_3_light: { fontCharacter: "\\E048", fontColor: "#cc6d2e" }, _html_3: { fontCharacter: "\\E048", fontColor: "#e37933" }, _html_erb_light: { fontCharacter: "\\E049", fontColor: "#b8383d" }, _html_erb: { fontCharacter: "\\E049", fontColor: "#cc3e44" }, _ignored_light: { fontCharacter: "\\E04A", fontColor: "#3b4b52" }, _ignored: { fontCharacter: "\\E04A", fontColor: "#41535b" }, _illustrator_light: { fontCharacter: "\\E04B", fontColor: "#b7b73b" }, _illustrator: { fontCharacter: "\\E04B", fontColor: "#cbcb41" }, _image_light: { fontCharacter: "\\E04C", fontColor: "#9068b0" }, _image: { fontCharacter: "\\E04C", fontColor: "#a074c4" }, _info_light: { fontCharacter: "\\E04D", fontColor: "#498ba7" }, _info: { fontCharacter: "\\E04D", fontColor: "#519aba" }, _ionic_light: { fontCharacter: "\\E04E", fontColor: "#498ba7" }, _ionic: { fontCharacter: "\\E04E", fontColor: "#519aba" }, _jade_light: { fontCharacter: "\\E04F", fontColor: "#b8383d" }, _jade: { fontCharacter: "\\E04F", fontColor: "#cc3e44" }, _java_light: { fontCharacter: "\\E050", fontColor: "#b8383d" }, _java: { fontCharacter: "\\E050", fontColor: "#cc3e44" }, _java_1_light: { fontCharacter: "\\E050", fontColor: "#498ba7" }, _java_1: { fontCharacter: "\\E050", fontColor: "#519aba" }, _javascript_light: { fontCharacter: "\\E051", fontColor: "#b7b73b" }, _javascript: { fontCharacter: "\\E051", fontColor: "#cbcb41" }, _javascript_1_light: { fontCharacter: "\\E051", fontColor: "#cc6d2e" }, _javascript_1: { fontCharacter: "\\E051", fontColor: "#e37933" }, _javascript_2_light: { fontCharacter: "\\E051", fontColor: "#498ba7" }, _javascript_2: { fontCharacter: "\\E051", fontColor: "#519aba" }, _jenkins_light: { fontCharacter: "\\E052", fontColor: "#b8383d" }, _jenkins: { fontCharacter: "\\E052", fontColor: "#cc3e44" }, _jinja_light: { fontCharacter: "\\E053", fontColor: "#b8383d" }, _jinja: { fontCharacter: "\\E053", fontColor: "#cc3e44" }, _json_light: { fontCharacter: "\\E055", fontColor: "#b7b73b" }, _json: { fontCharacter: "\\E055", fontColor: "#cbcb41" }, _json_1_light: { fontCharacter: "\\E055", fontColor: "#7fae42" }, _json_1: { fontCharacter: "\\E055", fontColor: "#8dc149" }, _julia_light: { fontCharacter: "\\E056", fontColor: "#9068b0" }, _julia: { fontCharacter: "\\E056", fontColor: "#a074c4" }, _karma_light: { fontCharacter: "\\E057", fontColor: "#7fae42" }, _karma: { fontCharacter: "\\E057", fontColor: "#8dc149" }, _kotlin_light: { fontCharacter: "\\E058", fontColor: "#cc6d2e" }, _kotlin: { fontCharacter: "\\E058", fontColor: "#e37933" }, _less_light: { fontCharacter: "\\E059", fontColor: "#498ba7" }, _less: { fontCharacter: "\\E059", fontColor: "#519aba" }, _license_light: { fontCharacter: "\\E05A", fontColor: "#b7b73b" }, _license: { fontCharacter: "\\E05A", fontColor: "#cbcb41" }, _license_1_light: { fontCharacter: "\\E05A", fontColor: "#cc6d2e" }, _license_1: { fontCharacter: "\\E05A", fontColor: "#e37933" }, _license_2_light: { fontCharacter: "\\E05A", fontColor: "#b8383d" }, _license_2: { fontCharacter: "\\E05A", fontColor: "#cc3e44" }, _liquid_light: { fontCharacter: "\\E05B", fontColor: "#7fae42" }, _liquid: { fontCharacter: "\\E05B", fontColor: "#8dc149" }, _livescript_light: { fontCharacter: "\\E05C", fontColor: "#498ba7" }, _livescript: { fontCharacter: "\\E05C", fontColor: "#519aba" }, _lock_light: { fontCharacter: "\\E05D", fontColor: "#7fae42" }, _lock: { fontCharacter: "\\E05D", fontColor: "#8dc149" }, _lua_light: { fontCharacter: "\\E05E", fontColor: "#498ba7" }, _lua: { fontCharacter: "\\E05E", fontColor: "#519aba" }, _makefile_light: { fontCharacter: "\\E05F", fontColor: "#cc6d2e" }, _makefile: { fontCharacter: "\\E05F", fontColor: "#e37933" }, _makefile_1_light: { fontCharacter: "\\E05F", fontColor: "#9068b0" }, _makefile_1: { fontCharacter: "\\E05F", fontColor: "#a074c4" }, _makefile_2_light: { fontCharacter: "\\E05F", fontColor: "#627379" }, _makefile_2: { fontCharacter: "\\E05F", fontColor: "#6d8086" }, _makefile_3_light: { fontCharacter: "\\E05F", fontColor: "#498ba7" }, _makefile_3: { fontCharacter: "\\E05F", fontColor: "#519aba" }, _markdown_light: { fontCharacter: "\\E060", fontColor: "#498ba7" }, _markdown: { fontCharacter: "\\E060", fontColor: "#519aba" }, _maven_light: { fontCharacter: "\\E061", fontColor: "#b8383d" }, _maven: { fontCharacter: "\\E061", fontColor: "#cc3e44" }, _mdo_light: { fontCharacter: "\\E062", fontColor: "#b8383d" }, _mdo: { fontCharacter: "\\E062", fontColor: "#cc3e44" }, _mustache_light: { fontCharacter: "\\E063", fontColor: "#cc6d2e" }, _mustache: { fontCharacter: "\\E063", fontColor: "#e37933" }, _nim_light: { fontCharacter: "\\E065", fontColor: "#b7b73b" }, _nim: { fontCharacter: "\\E065", fontColor: "#cbcb41" }, _notebook_light: { fontCharacter: "\\E066", fontColor: "#498ba7" }, _notebook: { fontCharacter: "\\E066", fontColor: "#519aba" }, _npm_light: { fontCharacter: "\\E067", fontColor: "#3b4b52" }, _npm: { fontCharacter: "\\E067", fontColor: "#41535b" }, _npm_1_light: { fontCharacter: "\\E067", fontColor: "#b8383d" }, _npm_1: { fontCharacter: "\\E067", fontColor: "#cc3e44" }, _npm_ignored_light: { fontCharacter: "\\E068", fontColor: "#3b4b52" }, _npm_ignored: { fontCharacter: "\\E068", fontColor: "#41535b" }, _nunjucks_light: { fontCharacter: "\\E069", fontColor: "#7fae42" }, _nunjucks: { fontCharacter: "\\E069", fontColor: "#8dc149" }, _ocaml_light: { fontCharacter: "\\E06A", fontColor: "#cc6d2e" }, _ocaml: { fontCharacter: "\\E06A", fontColor: "#e37933" }, _odata_light: { fontCharacter: "\\E06B", fontColor: "#cc6d2e" }, _odata: { fontCharacter: "\\E06B", fontColor: "#e37933" }, _pddl_light: { fontCharacter: "\\E06C", fontColor: "#9068b0" }, _pddl: { fontCharacter: "\\E06C", fontColor: "#a074c4" }, _pdf_light: { fontCharacter: "\\E06D", fontColor: "#b8383d" }, _pdf: { fontCharacter: "\\E06D", fontColor: "#cc3e44" }, _perl_light: { fontCharacter: "\\E06E", fontColor: "#498ba7" }, _perl: { fontCharacter: "\\E06E", fontColor: "#519aba" }, _photoshop_light: { fontCharacter: "\\E06F", fontColor: "#498ba7" }, _photoshop: { fontCharacter: "\\E06F", fontColor: "#519aba" }, _php_light: { fontCharacter: "\\E070", fontColor: "#9068b0" }, _php: { fontCharacter: "\\E070", fontColor: "#a074c4" }, _pipeline_light: { fontCharacter: "\\E071", fontColor: "#cc6d2e" }, _pipeline: { fontCharacter: "\\E071", fontColor: "#e37933" }, _plan_light: { fontCharacter: "\\E072", fontColor: "#7fae42" }, _plan: { fontCharacter: "\\E072", fontColor: "#8dc149" }, _platformio_light: { fontCharacter: "\\E073", fontColor: "#cc6d2e" }, _platformio: { fontCharacter: "\\E073", fontColor: "#e37933" }, _powershell_light: { fontCharacter: "\\E074", fontColor: "#498ba7" }, _powershell: { fontCharacter: "\\E074", fontColor: "#519aba" }, _prisma_light: { fontCharacter: "\\E075", fontColor: "#498ba7" }, _prisma: { fontCharacter: "\\E075", fontColor: "#519aba" }, _prolog_light: { fontCharacter: "\\E077", fontColor: "#cc6d2e" }, _prolog: { fontCharacter: "\\E077", fontColor: "#e37933" }, _pug_light: { fontCharacter: "\\E078", fontColor: "#b8383d" }, _pug: { fontCharacter: "\\E078", fontColor: "#cc3e44" }, _puppet_light: { fontCharacter: "\\E079", fontColor: "#b7b73b" }, _puppet: { fontCharacter: "\\E079", fontColor: "#cbcb41" }, _purescript_light: { fontCharacter: "\\E07A", fontColor: "#bfc2c1" }, _purescript: { fontCharacter: "\\E07A", fontColor: "#d4d7d6" }, _python_light: { fontCharacter: "\\E07B", fontColor: "#498ba7" }, _python: { fontCharacter: "\\E07B", fontColor: "#519aba" }, _react_light: { fontCharacter: "\\E07D", fontColor: "#498ba7" }, _react: { fontCharacter: "\\E07D", fontColor: "#519aba" }, _react_1_light: { fontCharacter: "\\E07D", fontColor: "#cc6d2e" }, _react_1: { fontCharacter: "\\E07D", fontColor: "#e37933" }, _reasonml_light: { fontCharacter: "\\E07E", fontColor: "#b8383d" }, _reasonml: { fontCharacter: "\\E07E", fontColor: "#cc3e44" }, _rescript_light: { fontCharacter: "\\E07F", fontColor: "#b8383d" }, _rescript: { fontCharacter: "\\E07F", fontColor: "#cc3e44" }, _rescript_1_light: { fontCharacter: "\\E07F", fontColor: "#dd4b78" }, _rescript_1: { fontCharacter: "\\E07F", fontColor: "#f55385" }, _rollup_light: { fontCharacter: "\\E080", fontColor: "#b8383d" }, _rollup: { fontCharacter: "\\E080", fontColor: "#cc3e44" }, _ruby_light: { fontCharacter: "\\E081", fontColor: "#b8383d" }, _ruby: { fontCharacter: "\\E081", fontColor: "#cc3e44" }, _rust_light: { fontCharacter: "\\E082", fontColor: "#627379" }, _rust: { fontCharacter: "\\E082", fontColor: "#6d8086" }, _salesforce_light: { fontCharacter: "\\E083", fontColor: "#498ba7" }, _salesforce: { fontCharacter: "\\E083", fontColor: "#519aba" }, _sass_light: { fontCharacter: "\\E084", fontColor: "#dd4b78" }, _sass: { fontCharacter: "\\E084", fontColor: "#f55385" }, _sbt_light: { fontCharacter: "\\E085", fontColor: "#498ba7" }, _sbt: { fontCharacter: "\\E085", fontColor: "#519aba" }, _scala_light: { fontCharacter: "\\E086", fontColor: "#b8383d" }, _scala: { fontCharacter: "\\E086", fontColor: "#cc3e44" }, _shell_light: { fontCharacter: "\\E089", fontColor: "#7fae42" }, _shell: { fontCharacter: "\\E089", fontColor: "#8dc149" }, _slim_light: { fontCharacter: "\\E08A", fontColor: "#cc6d2e" }, _slim: { fontCharacter: "\\E08A", fontColor: "#e37933" }, _smarty_light: { fontCharacter: "\\E08B", fontColor: "#b7b73b" }, _smarty: { fontCharacter: "\\E08B", fontColor: "#cbcb41" }, _spring_light: { fontCharacter: "\\E08C", fontColor: "#7fae42" }, _spring: { fontCharacter: "\\E08C", fontColor: "#8dc149" }, _stylelint_light: { fontCharacter: "\\E08D", fontColor: "#bfc2c1" }, _stylelint: { fontCharacter: "\\E08D", fontColor: "#d4d7d6" }, _stylelint_1_light: { fontCharacter: "\\E08D", fontColor: "#455155" }, _stylelint_1: { fontCharacter: "\\E08D", fontColor: "#4d5a5e" }, _stylus_light: { fontCharacter: "\\E08E", fontColor: "#7fae42" }, _stylus: { fontCharacter: "\\E08E", fontColor: "#8dc149" }, _sublime_light: { fontCharacter: "\\E08F", fontColor: "#cc6d2e" }, _sublime: { fontCharacter: "\\E08F", fontColor: "#e37933" }, _svelte_light: { fontCharacter: "\\E090", fontColor: "#b8383d" }, _svelte: { fontCharacter: "\\E090", fontColor: "#cc3e44" }, _svg_light: { fontCharacter: "\\E091", fontColor: "#9068b0" }, _svg: { fontCharacter: "\\E091", fontColor: "#a074c4" }, _svg_1_light: { fontCharacter: "\\E091", fontColor: "#498ba7" }, _svg_1: { fontCharacter: "\\E091", fontColor: "#519aba" }, _swift_light: { fontCharacter: "\\E092", fontColor: "#cc6d2e" }, _swift: { fontCharacter: "\\E092", fontColor: "#e37933" }, _terraform_light: { fontCharacter: "\\E093", fontColor: "#9068b0" }, _terraform: { fontCharacter: "\\E093", fontColor: "#a074c4" }, _tex_light: { fontCharacter: "\\E094", fontColor: "#498ba7" }, _tex: { fontCharacter: "\\E094", fontColor: "#519aba" }, _tex_1_light: { fontCharacter: "\\E094", fontColor: "#b7b73b" }, _tex_1: { fontCharacter: "\\E094", fontColor: "#cbcb41" }, _tex_2_light: { fontCharacter: "\\E094", fontColor: "#cc6d2e" }, _tex_2: { fontCharacter: "\\E094", fontColor: "#e37933" }, _tex_3_light: { fontCharacter: "\\E094", fontColor: "#bfc2c1" }, _tex_3: { fontCharacter: "\\E094", fontColor: "#d4d7d6" }, _todo: { fontCharacter: "\\E096" }, _tsconfig_light: { fontCharacter: "\\E097", fontColor: "#498ba7" }, _tsconfig: { fontCharacter: "\\E097", fontColor: "#519aba" }, _twig_light: { fontCharacter: "\\E098", fontColor: "#7fae42" }, _twig: { fontCharacter: "\\E098", fontColor: "#8dc149" }, _typescript_light: { fontCharacter: "\\E099", fontColor: "#498ba7" }, _typescript: { fontCharacter: "\\E099", fontColor: "#519aba" }, _typescript_1_light: { fontCharacter: "\\E099", fontColor: "#cc6d2e" }, _typescript_1: { fontCharacter: "\\E099", fontColor: "#e37933" }, _vala_light: { fontCharacter: "\\E09A", fontColor: "#627379" }, _vala: { fontCharacter: "\\E09A", fontColor: "#6d8086" }, _video_light: { fontCharacter: "\\E09B", fontColor: "#dd4b78" }, _video: { fontCharacter: "\\E09B", fontColor: "#f55385" }, _vite_light: { fontCharacter: "\\E09C", fontColor: "#b7b73b" }, _vite: { fontCharacter: "\\E09C", fontColor: "#cbcb41" }, _vue_light: { fontCharacter: "\\E09D", fontColor: "#7fae42" }, _vue: { fontCharacter: "\\E09D", fontColor: "#8dc149" }, _wasm_light: { fontCharacter: "\\E09E", fontColor: "#9068b0" }, _wasm: { fontCharacter: "\\E09E", fontColor: "#a074c4" }, _wat_light: { fontCharacter: "\\E09F", fontColor: "#9068b0" }, _wat: { fontCharacter: "\\E09F", fontColor: "#a074c4" }, _webpack_light: { fontCharacter: "\\E0A0", fontColor: "#498ba7" }, _webpack: { fontCharacter: "\\E0A0", fontColor: "#519aba" }, _wgt_light: { fontCharacter: "\\E0A1", fontColor: "#498ba7" }, _wgt: { fontCharacter: "\\E0A1", fontColor: "#519aba" }, _windows_light: { fontCharacter: "\\E0A2", fontColor: "#498ba7" }, _windows: { fontCharacter: "\\E0A2", fontColor: "#519aba" }, _word_light: { fontCharacter: "\\E0A3", fontColor: "#498ba7" }, _word: { fontCharacter: "\\E0A3", fontColor: "#519aba" }, _xls_light: { fontCharacter: "\\E0A4", fontColor: "#7fae42" }, _xls: { fontCharacter: "\\E0A4", fontColor: "#8dc149" }, _xml_light: { fontCharacter: "\\E0A5", fontColor: "#cc6d2e" }, _xml: { fontCharacter: "\\E0A5", fontColor: "#e37933" }, _yarn_light: { fontCharacter: "\\E0A6", fontColor: "#498ba7" }, _yarn: { fontCharacter: "\\E0A6", fontColor: "#519aba" }, _yml_light: { fontCharacter: "\\E0A7", fontColor: "#9068b0" }, _yml: { fontCharacter: "\\E0A7", fontColor: "#a074c4" }, _zig_light: { fontCharacter: "\\E0A8", fontColor: "#cc6d2e" }, _zig: { fontCharacter: "\\E0A8", fontColor: "#e37933" }, _zip_light: { fontCharacter: "\\E0A9", fontColor: "#b8383d" }, _zip: { fontCharacter: "\\E0A9", fontColor: "#cc3e44" }, _zip_1_light: { fontCharacter: "\\E0A9", fontColor: "#627379" }, _zip_1: { fontCharacter: "\\E0A9", fontColor: "#6d8086" } }, file: "_default", fileExtensions: { bsl: "_bsl", mdo: "_mdo", cls: "_salesforce", apex: "_salesforce", asm: "_asm", s: "_asm", bicep: "_bicep", bzl: "_bazel", bazel: "_bazel", build: "_bazel", workspace: "_bazel", bazelignore: "_bazel", bazelversion: "_bazel", h: "_c_1", aspx: "_html", ascx: "_html_1", asax: "_html_2", master: "_html_2", hh: "_cpp_1", hpp: "_cpp_1", hxx: "_cpp_1", "h++": "_cpp_1", edn: "_clojure_1", cfc: "_coldfusion", cfm: "_coldfusion", litcoffee: "_coffee", config: "_config", cr: "_crystal", ecr: "_crystal_embedded", slang: "_crystal_embedded", cson: "_json", "css.map": "_css", sss: "_css", csv: "_csv", xls: "_xls", xlsx: "_xls", cuh: "_cu_1", hu: "_cu_1", cake: "_cake", ctp: "_cake_php", d: "_d", doc: "_word", docx: "_word", ejs: "_ejs", ex: "_elixir", exs: "_elixir_script", elm: "_elm", ico: "_favicon", gitconfig: "_git", gitkeep: "_git", gitattributes: "_git", gitmodules: "_git", slide: "_go", article: "_go", gd: "_godot", godot: "_godot_1", tres: "_godot_2", tscn: "_godot_3", gradle: "_gradle", gsp: "_grails", gql: "_graphql", graphql: "_graphql", graphqls: "_graphql", hack: "_hacklang", haml: "_haml", hs: "_haskell", lhs: "_haskell", hx: "_haxe", hxs: "_haxe_1", hxp: "_haxe_2", hxml: "_haxe_3", jade: "_jade", class: "_java_1", classpath: "_java", "js.map": "_javascript", "cjs.map": "_javascript", "mjs.map": "_javascript", "spec.js": "_javascript_1", "spec.cjs": "_javascript_1", "spec.mjs": "_javascript_1", "test.js": "_javascript_1", "test.cjs": "_javascript_1", "test.mjs": "_javascript_1", es: "_javascript", es5: "_javascript", es7: "_javascript", jinja: "_jinja", jinja2: "_jinja", kt: "_kotlin", kts: "_kotlin", liquid: "_liquid", ls: "_livescript", argdown: "_argdown", ad: "_argdown", mustache: "_mustache", stache: "_mustache", nim: "_nim", nims: "_nim", "github-issues": "_github", ipynb: "_notebook", njk: "_nunjucks", nunjucks: "_nunjucks", nunjs: "_nunjucks", nunj: "_nunjucks", njs: "_nunjucks", nj: "_nunjucks", "npm-debug.log": "_npm", npmignore: "_npm_1", npmrc: "_npm_1", ml: "_ocaml", mli: "_ocaml", cmx: "_ocaml", cmxa: "_ocaml", odata: "_odata", "php.inc": "_php", pipeline: "_pipeline", pddl: "_pddl", plan: "_plan", happenings: "_happenings", prisma: "_prisma", pp: "_puppet", epp: "_puppet", purs: "_purescript", "spec.jsx": "_react_1", "test.jsx": "_react_1", cjsx: "_react", "spec.tsx": "_react_1", "test.tsx": "_react_1", re: "_reasonml", res: "_rescript", resi: "_rescript_1", r: "_R", rmd: "_R", erb: "_html_erb", "erb.html": "_html_erb", "html.erb": "_html_erb", sass: "_sass", springbeans: "_spring", slim: "_slim", "smarty.tpl": "_smarty", tpl: "_smarty", sbt: "_sbt", scala: "_scala", sol: "_ethereum", styl: "_stylus", svelte: "_svelte", soql: "_db_1", tf: "_terraform", "tf.json": "_terraform", tfvars: "_terraform", "tfvars.json": "_terraform", dtx: "_tex_2", ins: "_tex_3", toml: "_config", twig: "_twig", "spec.ts": "_typescript_1", "test.ts": "_typescript_1", vala: "_vala", vapi: "_vala", component: "_html_3", vue: "_vue", wasm: "_wasm", wat: "_wat", pro: "_prolog", zig: "_zig", jar: "_zip", zip: "_zip_1", wgt: "_wgt", ai: "_illustrator", psd: "_photoshop", pdf: "_pdf", eot: "_font", ttf: "_font", woff: "_font", woff2: "_font", otf: "_font", avif: "_image", gif: "_image", jpg: "_image", jpeg: "_image", png: "_image", pxm: "_image", svg: "_svg", svgx: "_image", tiff: "_image", webp: "_image", "sublime-project": "_sublime", "sublime-workspace": "_sublime", mov: "_video", ogv: "_video", webm: "_video", avi: "_video", mpg: "_video", mp4: "_video", mp3: "_audio", ogg: "_audio", wav: "_audio", flac: "_audio", "3ds": "_svg_1", "3dm": "_svg_1", stl: "_svg_1", obj: "_svg_1", dae: "_svg_1", babelrc: "_babel", "babelrc.js": "_babel", "babelrc.cjs": "_babel", bazelrc: "_bazel_1", bowerrc: "_bower", dockerignore: "_docker_1", "codeclimate.yml": "_code-climate", eslintrc: "_eslint", "eslintrc.js": "_eslint", "eslintrc.cjs": "_eslint", "eslintrc.yaml": "_eslint", "eslintrc.yml": "_eslint", "eslintrc.json": "_eslint", eslintignore: "_eslint_1", firebaserc: "_firebase", "gitlab-ci.yml": "_gitlab", jshintrc: "_javascript_2", jscsrc: "_javascript_2", stylelintrc: "_stylelint", "stylelintrc.json": "_stylelint", "stylelintrc.yaml": "_stylelint", "stylelintrc.yml": "_stylelint", "stylelintrc.js": "_stylelint", stylelintignore: "_stylelint_1", direnv: "_config", static: "_config", slugignore: "_config", tmp: "_clock_1", htaccess: "_config", key: "_lock", cert: "_lock", cer: "_lock", crt: "_lock", pem: "_lock", ds_store: "_ignored" }, fileNames: { mix: "_hex", "karma.conf.js": "_karma", "karma.conf.cjs": "_karma", "karma.conf.mjs": "_karma", "karma.conf.coffee": "_karma", "readme.md": "_info", "readme.txt": "_info", readme: "_info", "changelog.md": "_clock", "changelog.txt": "_clock", changelog: "_clock", "changes.md": "_clock", "changes.txt": "_clock", changes: "_clock", "version.md": "_clock", "version.txt": "_clock", version: "_clock", mvnw: "_maven", "pom.xml": "_maven", "tsconfig.json": "_tsconfig", "vite.config.js": "_vite", "vite.config.ts": "_vite", "vite.config.mjs": "_vite", "vite.config.mts": "_vite", "vite.config.cjs": "_vite", "vite.config.cts": "_vite", "swagger.json": "_json_1", "swagger.yml": "_json_1", "swagger.yaml": "_json_1", "mime.types": "_config", jenkinsfile: "_jenkins", "babel.config.js": "_babel", "babel.config.json": "_babel", "babel.config.cjs": "_babel", build: "_bazel", "build.bazel": "_bazel", workspace: "_bazel", "workspace.bazel": "_bazel", "bower.json": "_bower", "docker-healthcheck": "_docker_2", "eslint.config.js": "_eslint", "firebase.json": "_firebase", geckodriver: "_firefox", "gruntfile.js": "_grunt", "gruntfile.babel.js": "_grunt", "gruntfile.coffee": "_grunt", gulpfile: "_gulp", "gulpfile.js": "_gulp", "ionic.config.json": "_ionic", "ionic.project": "_ionic", "platformio.ini": "_platformio", "rollup.config.js": "_rollup", "sass-lint.yml": "_sass", "stylelint.config.js": "_stylelint", "stylelint.config.cjs": "_stylelint", "stylelint.config.mjs": "_stylelint", "yarn.clean": "_yarn", "yarn.lock": "_yarn", "webpack.config.js": "_webpack", "webpack.config.cjs": "_webpack", "webpack.config.mjs": "_webpack", "webpack.config.ts": "_webpack", "webpack.config.build.js": "_webpack", "webpack.config.build.cjs": "_webpack", "webpack.config.build.mjs": "_webpack", "webpack.config.build.ts": "_webpack", "webpack.common.js": "_webpack", "webpack.common.cjs": "_webpack", "webpack.common.mjs": "_webpack", "webpack.common.ts": "_webpack", "webpack.dev.js": "_webpack", "webpack.dev.cjs": "_webpack", "webpack.dev.mjs": "_webpack", "webpack.dev.ts": "_webpack", "webpack.prod.js": "_webpack", "webpack.prod.cjs": "_webpack", "webpack.prod.mjs": "_webpack", "webpack.prod.ts": "_webpack", license: "_license", licence: "_license", "license.txt": "_license", "licence.txt": "_license", "license.md": "_license", "licence.md": "_license", copying: "_license", "copying.txt": "_license", "copying.md": "_license", compiling: "_license_1", "compiling.txt": "_license_1", "compiling.md": "_license_1", contributing: "_license_2", "contributing.txt": "_license_2", "contributing.md": "_license_2", qmakefile: "_makefile_1", omakefile: "_makefile_2", "cmakelists.txt": "_makefile_3", procfile: "_heroku", todo: "_todo", "todo.txt": "_todo", "todo.md": "_todo", "npm-debug.log": "_npm_ignored" }, languageIds: { bat: "_windows", clojure: "_clojure", coffeescript: "_coffee", jsonc: "_json", json: "_json", c: "_c", cpp: "_cpp", "cuda-cpp": "_cu", csharp: "_c-sharp", css: "_css", dart: "_dart", dockerfile: "_docker", dotenv: "_config", ignore: "_git", fsharp: "_f-sharp", "git-commit": "_git", go: "_go2", groovy: "_grails", handlebars: "_mustache", html: "_html_3", properties: "_config", java: "_java", javascriptreact: "_react", javascript: "_javascript", julia: "_julia", tex: "_tex_1", latex: "_tex", less: "_less", lua: "_lua", makefile: "_makefile", markdown: "_markdown", "objective-c": "_c_2", "objective-cpp": "_cpp_2", perl: "_perl", php: "_php", powershell: "_powershell", jade: "_pug", python: "_python", r: "_R", razor: "_html", ruby: "_ruby", rust: "_rust", scss: "_sass", "search-result": "_code-search", shellscript: "_shell", sql: "_db", swift: "_swift", typescript: "_typescript", typescriptreact: "_react", xml: "_xml", dockercompose: "_docker_3", yaml: "_yml", argdown: "_argdown", bicep: "_bicep", elixir: "_elixir", elm: "_elm", erb: "_html_erb", "github-issues": "_github", gradle: "_gradle", godot: "_godot", haml: "_haml", haskell: "_haskell", haxe: "_haxe", jinja: "_jinja", kotlin: "_kotlin", mustache: "_mustache", nunjucks: "_nunjucks", ocaml: "_ocaml", rescript: "_rescript", sass: "_sass", stylus: "_stylus", terraform: "_terraform", todo: "_todo", vala: "_vala", vue: "_vue", jsonl: "_json", postcss: "_css", "django-html": "_html_3", blade: "_php", prompt: "_markdown", instructions: "_markdown", chatagent: "_markdown", skill: "_markdown" }, light: { file: "_default_light", fileExtensions: { bsl: "_bsl_light", mdo: "_mdo_light", cls: "_salesforce_light", apex: "_salesforce_light", asm: "_asm_light", s: "_asm_light", bicep: "_bicep_light", bzl: "_bazel_light", bazel: "_bazel_light", build: "_bazel_light", workspace: "_bazel_light", bazelignore: "_bazel_light", bazelversion: "_bazel_light", h: "_c_1_light", aspx: "_html_light", ascx: "_html_1_light", asax: "_html_2_light", master: "_html_2_light", hh: "_cpp_1_light", hpp: "_cpp_1_light", hxx: "_cpp_1_light", "h++": "_cpp_1_light", edn: "_clojure_1_light", cfc: "_coldfusion_light", cfm: "_coldfusion_light", litcoffee: "_coffee_light", config: "_config_light", cr: "_crystal_light", ecr: "_crystal_embedded_light", slang: "_crystal_embedded_light", cson: "_json_light", "css.map": "_css_light", sss: "_css_light", csv: "_csv_light", xls: "_xls_light", xlsx: "_xls_light", cuh: "_cu_1_light", hu: "_cu_1_light", cake: "_cake_light", ctp: "_cake_php_light", d: "_d_light", doc: "_word_light", docx: "_word_light", ejs: "_ejs_light", ex: "_elixir_light", exs: "_elixir_script_light", elm: "_elm_light", ico: "_favicon_light", gitconfig: "_git_light", gitkeep: "_git_light", gitattributes: "_git_light", gitmodules: "_git_light", slide: "_go_light", article: "_go_light", gd: "_godot_light", godot: "_godot_1_light", tres: "_godot_2_light", tscn: "_godot_3_light", gradle: "_gradle_light", gsp: "_grails_light", gql: "_graphql_light", graphql: "_graphql_light", graphqls: "_graphql_light", hack: "_hacklang_light", haml: "_haml_light", hs: "_haskell_light", lhs: "_haskell_light", hx: "_haxe_light", hxs: "_haxe_1_light", hxp: "_haxe_2_light", hxml: "_haxe_3_light", jade: "_jade_light", class: "_java_1_light", classpath: "_java_light", "js.map": "_javascript_light", "cjs.map": "_javascript_light", "mjs.map": "_javascript_light", "spec.js": "_javascript_1_light", "spec.cjs": "_javascript_1_light", "spec.mjs": "_javascript_1_light", "test.js": "_javascript_1_light", "test.cjs": "_javascript_1_light", "test.mjs": "_javascript_1_light", es: "_javascript_light", es5: "_javascript_light", es7: "_javascript_light", jinja: "_jinja_light", jinja2: "_jinja_light", kt: "_kotlin_light", kts: "_kotlin_light", liquid: "_liquid_light", ls: "_livescript_light", argdown: "_argdown_light", ad: "_argdown_light", mustache: "_mustache_light", stache: "_mustache_light", nim: "_nim_light", nims: "_nim_light", "github-issues": "_github_light", ipynb: "_notebook_light", njk: "_nunjucks_light", nunjucks: "_nunjucks_light", nunjs: "_nunjucks_light", nunj: "_nunjucks_light", njs: "_nunjucks_light", nj: "_nunjucks_light", "npm-debug.log": "_npm_light", npmignore: "_npm_1_light", npmrc: "_npm_1_light", ml: "_ocaml_light", mli: "_ocaml_light", cmx: "_ocaml_light", cmxa: "_ocaml_light", odata: "_odata_light", "php.inc": "_php_light", pipeline: "_pipeline_light", pddl: "_pddl_light", plan: "_plan_light", happenings: "_happenings_light", prisma: "_prisma_light", pp: "_puppet_light", epp: "_puppet_light", purs: "_purescript_light", "spec.jsx": "_react_1_light", "test.jsx": "_react_1_light", cjsx: "_react_light", "spec.tsx": "_react_1_light", "test.tsx": "_react_1_light", re: "_reasonml_light", res: "_rescript_light", resi: "_rescript_1_light", r: "_R_light", rmd: "_R_light", erb: "_html_erb_light", "erb.html": "_html_erb_light", "html.erb": "_html_erb_light", sass: "_sass_light", springbeans: "_spring_light", slim: "_slim_light", "smarty.tpl": "_smarty_light", tpl: "_smarty_light", sbt: "_sbt_light", scala: "_scala_light", sol: "_ethereum_light", styl: "_stylus_light", svelte: "_svelte_light", soql: "_db_1_light", tf: "_terraform_light", "tf.json": "_terraform_light", tfvars: "_terraform_light", "tfvars.json": "_terraform_light", dtx: "_tex_2_light", ins: "_tex_3_light", toml: "_config_light", twig: "_twig_light", "spec.ts": "_typescript_1_light", "test.ts": "_typescript_1_light", vala: "_vala_light", vapi: "_vala_light", component: "_html_3_light", vue: "_vue_light", wasm: "_wasm_light", wat: "_wat_light", pro: "_prolog_light", zig: "_zig_light", jar: "_zip_light", zip: "_zip_1_light", wgt: "_wgt_light", ai: "_illustrator_light", psd: "_photoshop_light", pdf: "_pdf_light", eot: "_font_light", ttf: "_font_light", woff: "_font_light", woff2: "_font_light", otf: "_font_light", avif: "_image_light", gif: "_image_light", jpg: "_image_light", jpeg: "_image_light", png: "_image_light", pxm: "_image_light", svg: "_svg_light", svgx: "_image_light", tiff: "_image_light", webp: "_image_light", "sublime-project": "_sublime_light", "sublime-workspace": "_sublime_light", mov: "_video_light", ogv: "_video_light", webm: "_video_light", avi: "_video_light", mpg: "_video_light", mp4: "_video_light", mp3: "_audio_light", ogg: "_audio_light", wav: "_audio_light", flac: "_audio_light", "3ds": "_svg_1_light", "3dm": "_svg_1_light", stl: "_svg_1_light", obj: "_svg_1_light", dae: "_svg_1_light", babelrc: "_babel_light", "babelrc.js": "_babel_light", "babelrc.cjs": "_babel_light", bazelrc: "_bazel_1_light", bowerrc: "_bower_light", dockerignore: "_docker_1_light", "codeclimate.yml": "_code-climate_light", eslintrc: "_eslint_light", "eslintrc.js": "_eslint_light", "eslintrc.cjs": "_eslint_light", "eslintrc.yaml": "_eslint_light", "eslintrc.yml": "_eslint_light", "eslintrc.json": "_eslint_light", eslintignore: "_eslint_1_light", firebaserc: "_firebase_light", "gitlab-ci.yml": "_gitlab_light", jshintrc: "_javascript_2_light", jscsrc: "_javascript_2_light", stylelintrc: "_stylelint_light", "stylelintrc.json": "_stylelint_light", "stylelintrc.yaml": "_stylelint_light", "stylelintrc.yml": "_stylelint_light", "stylelintrc.js": "_stylelint_light", stylelintignore: "_stylelint_1_light", direnv: "_config_light", static: "_config_light", slugignore: "_config_light", tmp: "_clock_1_light", htaccess: "_config_light", key: "_lock_light", cert: "_lock_light", cer: "_lock_light", crt: "_lock_light", pem: "_lock_light", ds_store: "_ignored_light" }, languageIds: { bat: "_windows_light", clojure: "_clojure_light", coffeescript: "_coffee_light", jsonc: "_json_light", json: "_json_light", c: "_c_light", cpp: "_cpp_light", "cuda-cpp": "_cu_light", csharp: "_c-sharp_light", css: "_css_light", dart: "_dart_light", dockerfile: "_docker_light", dotenv: "_config_light", ignore: "_git_light", fsharp: "_f-sharp_light", "git-commit": "_git_light", go: "_go2_light", groovy: "_grails_light", handlebars: "_mustache_light", html: "_html_3_light", properties: "_config_light", java: "_java_light", javascriptreact: "_react_light", javascript: "_javascript_light", julia: "_julia_light", tex: "_tex_1_light", latex: "_tex_light", less: "_less_light", lua: "_lua_light", makefile: "_makefile_light", markdown: "_markdown_light", "objective-c": "_c_2_light", "objective-cpp": "_cpp_2_light", perl: "_perl_light", php: "_php_light", powershell: "_powershell_light", jade: "_pug_light", python: "_python_light", r: "_R_light", razor: "_html_light", ruby: "_ruby_light", rust: "_rust_light", scss: "_sass_light", "search-result": "_code-search_light", shellscript: "_shell_light", sql: "_db_light", swift: "_swift_light", typescript: "_typescript_light", typescriptreact: "_react_light", xml: "_xml_light", dockercompose: "_docker_3_light", yaml: "_yml_light", argdown: "_argdown_light", bicep: "_bicep_light", elixir: "_elixir_light", elm: "_elm_light", erb: "_html_erb_light", "github-issues": "_github_light", gradle: "_gradle_light", godot: "_godot_light", haml: "_haml_light", haskell: "_haskell_light", haxe: "_haxe_light", jinja: "_jinja_light", kotlin: "_kotlin_light", mustache: "_mustache_light", nunjucks: "_nunjucks_light", ocaml: "_ocaml_light", rescript: "_rescript_light", sass: "_sass_light", stylus: "_stylus_light", terraform: "_terraform_light", vala: "_vala_light", vue: "_vue_light", jsonl: "_json_light", postcss: "_css_light", "django-html": "_html_3_light", blade: "_php_light", prompt: "_markdown_light", instructions: "_markdown_light", chatagent: "_markdown_light", skill: "_markdown_light" }, fileNames: { mix: "_hex_light", "karma.conf.js": "_karma_light", "karma.conf.cjs": "_karma_light", "karma.conf.mjs": "_karma_light", "karma.conf.coffee": "_karma_light", "readme.md": "_info_light", "readme.txt": "_info_light", readme: "_info_light", "changelog.md": "_clock_light", "changelog.txt": "_clock_light", changelog: "_clock_light", "changes.md": "_clock_light", "changes.txt": "_clock_light", changes: "_clock_light", "version.md": "_clock_light", "version.txt": "_clock_light", version: "_clock_light", mvnw: "_maven_light", "pom.xml": "_maven_light", "tsconfig.json": "_tsconfig_light", "vite.config.js": "_vite_light", "vite.config.ts": "_vite_light", "vite.config.mjs": "_vite_light", "vite.config.mts": "_vite_light", "vite.config.cjs": "_vite_light", "vite.config.cts": "_vite_light", "swagger.json": "_json_1_light", "swagger.yml": "_json_1_light", "swagger.yaml": "_json_1_light", "mime.types": "_config_light", jenkinsfile: "_jenkins_light", "babel.config.js": "_babel_light", "babel.config.json": "_babel_light", "babel.config.cjs": "_babel_light", build: "_bazel_light", "build.bazel": "_bazel_light", workspace: "_bazel_light", "workspace.bazel": "_bazel_light", "bower.json": "_bower_light", "docker-healthcheck": "_docker_2_light", "eslint.config.js": "_eslint_light", "firebase.json": "_firebase_light", geckodriver: "_firefox_light", "gruntfile.js": "_grunt_light", "gruntfile.babel.js": "_grunt_light", "gruntfile.coffee": "_grunt_light", gulpfile: "_gulp_light", "gulpfile.js": "_gulp_light", "ionic.config.json": "_ionic_light", "ionic.project": "_ionic_light", "platformio.ini": "_platformio_light", "rollup.config.js": "_rollup_light", "sass-lint.yml": "_sass_light", "stylelint.config.js": "_stylelint_light", "stylelint.config.cjs": "_stylelint_light", "stylelint.config.mjs": "_stylelint_light", "yarn.clean": "_yarn_light", "yarn.lock": "_yarn_light", "webpack.config.js": "_webpack_light", "webpack.config.cjs": "_webpack_light", "webpack.config.mjs": "_webpack_light", "webpack.config.ts": "_webpack_light", "webpack.config.build.js": "_webpack_light", "webpack.config.build.cjs": "_webpack_light", "webpack.config.build.mjs": "_webpack_light", "webpack.config.build.ts": "_webpack_light", "webpack.common.js": "_webpack_light", "webpack.common.cjs": "_webpack_light", "webpack.common.mjs": "_webpack_light", "webpack.common.ts": "_webpack_light", "webpack.dev.js": "_webpack_light", "webpack.dev.cjs": "_webpack_light", "webpack.dev.mjs": "_webpack_light", "webpack.dev.ts": "_webpack_light", "webpack.prod.js": "_webpack_light", "webpack.prod.cjs": "_webpack_light", "webpack.prod.mjs": "_webpack_light", "webpack.prod.ts": "_webpack_light", license: "_license_light", licence: "_license_light", "license.txt": "_license_light", "licence.txt": "_license_light", "license.md": "_license_light", "licence.md": "_license_light", copying: "_license_light", "copying.txt": "_license_light", "copying.md": "_license_light", compiling: "_license_1_light", "compiling.txt": "_license_1_light", "compiling.md": "_license_1_light", contributing: "_license_2_light", "contributing.txt": "_license_2_light", "contributing.md": "_license_2_light", qmakefile: "_makefile_1_light", omakefile: "_makefile_2_light", "cmakelists.txt": "_makefile_3_light", procfile: "_heroku_light", "npm-debug.log": "_npm_ignored_light" } }, version: "https://github.com/jesseweed/seti-ui/commit/2d6c5e68b4ded73c92dac291845ee44e1182d511" };
+
+  // src/workspace_file_icons.css
+  var workspace_file_icons_default = "";
+
+  // src/workspace_file_icons.ts
+  var theme = icon_theme_default;
+  var theme_users = 0;
+  var release_theme;
+  var previous_theme = null;
+  function acquire_workspace_file_icons() {
+    const style = acquire_workspace_style("typora-code-style:workspace_file_icons", workspace_file_icons_default);
+    let removed = false;
+    if (theme_users++ === 0) {
+      previous_theme = document.documentElement.getAttribute("data-workspace-file-icon-theme");
+      release_theme = observe_terminal_theme((value) => {
+        const rgb = String(value.background).match(/[\d.]+/g)?.map(Number) || [255, 255, 255];
+        document.documentElement.setAttribute("data-workspace-file-icon-theme", rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light");
+      });
+    }
+    return { remove() {
+      if (removed) return;
+      removed = true;
+      style.remove();
+      if (--theme_users === 0) {
+        release_theme?.();
+        release_theme = void 0;
+        if (previous_theme === null) document.documentElement.removeAttribute("data-workspace-file-icon-theme");
+        else document.documentElement.setAttribute("data-workspace-file-icon-theme", previous_theme);
+      }
+    } };
+  }
+  function definition(file_path, light) {
+    const variant = light ? theme.light : {};
+    const parts = file_path.replace(/\\/g, "/").toLowerCase().split("/");
+    const name = parts.at(-1) || "";
+    const names = { ...theme.fileNames, ...variant.fileNames }, extensions = { ...theme.fileExtensions, ...variant.fileExtensions }, languages2 = { ...theme.languageIds, ...variant.languageIds };
+    const parent = parts.at(-2);
+    if (parent && names[parent + "/" + name]) return names[parent + "/" + name];
+    if (names[name]) return names[name];
+    const suffixes = name.split(".");
+    for (let index = 1; index < suffixes.length; index++) {
+      const suffix = suffixes.slice(index).join(".");
+      if (parent && extensions[parent + "/" + suffix]) return extensions[parent + "/" + suffix];
+      if (extensions[suffix]) return extensions[suffix];
+    }
+    const language44 = detect_file_language(file_path);
+    return languages2[language44] || (language44 === "jsonc" ? languages2.json : void 0) || variant.file || theme.file;
+  }
+  function workspace_file_icon(file_path) {
+    const node = document.createElement("span"), dark_id = definition(file_path, false), light_id = definition(file_path, true);
+    const dark = theme.iconDefinitions[dark_id], light = theme.iconDefinitions[light_id];
+    node.className = "workspace-file-theme-icon";
+    node.dataset.vscodeFileIcon = dark_id;
+    node.dataset.vscodeFileIconLight = light_id;
+    node.dataset.fileIconPath = file_path;
+    node.setAttribute("aria-hidden", "true");
+    node.textContent = String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g, ""), 16));
+    node.style.setProperty("--workspace-file-icon-light", light.fontColor || "currentColor");
+    node.style.setProperty("--workspace-file-icon-dark", dark.fontColor || "currentColor");
+    return node;
+  }
+  function bind_workspace_file_tab_icons(core) {
+    const style = acquire_workspace_file_icons();
+    const originals = /* @__PURE__ */ new Map();
+    let disposed = false;
+    const refresh = () => {
+      if (disposed) return;
+      const live_slots = /* @__PURE__ */ new Set();
+      core.app.workspace.eachLeaves((leaf) => {
+        const view_type = leaf.viewType;
+        if (view_type && view_type !== "core.markdown" && view_type !== "linux_note.source_file") return;
+        const uri = String(leaf.state.path || "");
+        const file_path = source_file_path(uri) || (!uri.startsWith("typ://") ? uri : "");
+        if (!file_path) return;
+        const tab = workspace_leaf_tab(leaf), slot = tab?.querySelector(".typ-file-icon");
+        if (!slot) return;
+        live_slots.add(slot);
+        if (!originals.has(slot)) originals.set(slot, { class_name: slot.className, nodes: [...slot.childNodes] });
+        if (slot.className !== "typ-file-icon workspace-file-theme-slot") slot.className = "typ-file-icon workspace-file-theme-slot";
+        if (slot.firstElementChild?.getAttribute("data-file-icon-path") !== file_path) slot.replaceChildren(workspace_file_icon(file_path));
+      });
+      for (const [node, old] of originals) if (!live_slots.has(node)) {
+        node.className = old.class_name;
+        node.replaceChildren(...old.nodes);
+        originals.delete(node);
+      }
+    };
+    const observer = new MutationObserver(refresh);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
+    refresh();
+    const release = core.app.workspace.on("active-leaf:change", refresh);
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      observer.disconnect();
+      release?.();
+      for (const [node, old] of originals) {
+        node.className = old.class_name;
+        node.replaceChildren(...old.nodes);
+      }
+      originals.clear();
+      style.remove();
+    } };
+  }
+
   // src/workspace_quick_open.ts
   var current_picker;
   function get_workspace_quick_open() {
@@ -177694,6 +177876,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_workspace_quick_open(files) {
     const events = new AbortController();
     const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default);
+    const file_icon_style = acquire_workspace_file_icons();
     let disposed = false;
     const root = document.createElement("section");
     root.className = "workspace-quick-open";
@@ -177761,7 +177944,7 @@ https://creativecommons.org/licenses/by/4.0/
         row.className = "workspace-quick-open-result";
         row.setAttribute("role", "option");
         row.title = file.file_path;
-        row.append(git_icon("file"));
+        row.append(workspace_file_icon(file.file_path));
         const name = document.createElement("span");
         name.className = "workspace-quick-open-name";
         name.textContent = file.name;
@@ -177830,6 +178013,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     input.oninput = render;
     input.onkeydown = (event) => {
+      if (event.isComposing || event.keyCode === 229) return;
       if (event.key === "ArrowDown" || event.key === "ArrowUp") {
         event.preventDefault();
         select(selected_index + (event.key === "ArrowDown" ? 1 : -1));
@@ -177848,6 +178032,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!root.hidden && !root.contains(event.target)) close();
     }, { capture: true, signal: events.signal });
     window.addEventListener("blur", close, { signal: events.signal });
+    window.addEventListener("linux-note-workspace-context-changed", close, { signal: events.signal });
     const binding = { root, input, open, close, dispose() {
       if (disposed) return;
       disposed = true;
@@ -177856,6 +178041,7 @@ https://creativecommons.org/licenses/by/4.0/
       scan_generation += 1;
       root.remove();
       style.remove();
+      file_icon_style.remove();
       if (current_picker === binding) current_picker = void 0;
     } };
     current_picker = binding;
@@ -177941,7 +178127,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         if (!event.shiftKey && ["KeyW", "PageUp", "PageDown"].includes(event.code)) {
           const parent = app.workspace.activeLeaf?.parent?.containerEl;
-          const tabs = parent ? [...(event.code === "KeyW" ? parent : document).querySelectorAll(".typ-workspace-tab-header .typ-tab")].filter((tab) => !tab.dataset.id?.startsWith("typ://empty")) : [];
+          const tabs = parent ? [...parent.querySelectorAll(".typ-workspace-tab-header .typ-tab")].filter((tab) => !tab.dataset.id?.startsWith("typ://core.empty/")) : [];
           const index = tabs.findIndex((tab) => tab.dataset.id === app.workspace.activeLeaf?.state.path);
           if (index >= 0) {
             const target = event.code === "KeyW" ? tabs[index].querySelector(".typ-close") : tabs[(index + (event.code === "PageUp" ? -1 : 1) + tabs.length) % tabs.length];
@@ -179827,186 +180013,6 @@ https://creativecommons.org/licenses/by/4.0/
       rows.push({ lane, color: current.color, edges });
     }
     return { rows, width: width2 };
-  }
-
-  // src/terminal_theme.ts
-  function terminal_theme() {
-    const body = getComputedStyle(document.body);
-    const root = getComputedStyle(document.documentElement);
-    const canvas = document.createElement("canvas");
-    canvas.width = 1;
-    canvas.height = 1;
-    const context = canvas.getContext("2d");
-    let rgb = [255, 255, 255];
-    if (context) {
-      for (const color of ["#ffffff", root.backgroundColor, body.backgroundColor]) {
-        context.fillStyle = color;
-        context.fillRect(0, 0, 1, 1);
-      }
-      rgb = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
-    }
-    const background = "rgb(".concat(rgb.join(", "), ")");
-    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
-    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
-    return {
-      background,
-      foreground: foreground2,
-      cursor: foreground2,
-      cursorAccent: background,
-      selectionBackground: dark ? "#264f78" : "#add6ff",
-      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
-      black: dark ? "#000000" : "#24292f",
-      red: dark ? "#cd3131" : "#a31515",
-      green: dark ? "#0dbc79" : "#16713b",
-      yellow: dark ? "#e5e510" : "#795e26",
-      blue: dark ? "#3b8eea" : "#0451a5",
-      magenta: dark ? "#bc3fbc" : "#af00db",
-      cyan: dark ? "#11a8cd" : "#0070a8",
-      white: dark ? "#e5e5e5" : "#555555",
-      brightBlack: dark ? "#666666" : "#666666",
-      brightRed: dark ? "#f14c4c" : "#c72e2e",
-      brightGreen: dark ? "#23d18b" : "#16825d",
-      brightYellow: dark ? "#f5f543" : "#8a6500",
-      brightBlue: dark ? "#3b8eea" : "#0065b3",
-      brightMagenta: dark ? "#d670d6" : "#a626a4",
-      brightCyan: dark ? "#29b8db" : "#007f8b",
-      brightWhite: dark ? "#ffffff" : "#333333"
-    };
-  }
-  function observe_terminal_theme(apply3) {
-    let frame2 = 0;
-    let previous = "";
-    const update = () => {
-      cancelAnimationFrame(frame2);
-      frame2 = requestAnimationFrame(() => {
-        const theme2 = terminal_theme();
-        const key = JSON.stringify(theme2);
-        if (key !== previous) {
-          previous = key;
-          apply3(theme2);
-        }
-      });
-    };
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-    observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
-    document.head.addEventListener("load", update, true);
-    window.addEventListener("focus", update);
-    update();
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame2);
-      document.head.removeEventListener("load", update, true);
-      window.removeEventListener("focus", update);
-    };
-  }
-
-  // vendor/vscode_seti/icon_theme.json
-  var icon_theme_default = { information_for_contributors: ["This file has been generated from data in https://github.com/jesseweed/seti-ui", "- icon definitions: https://github.com/jesseweed/seti-ui/blob/master/styles/_fonts/seti.less", "- icon colors: https://github.com/jesseweed/seti-ui/blob/master/styles/ui-variables.less", "- file associations: https://github.com/jesseweed/seti-ui/blob/master/styles/components/icons/mapping.less", "If you want to provide a fix or improvement, please create a pull request against the jesseweed/seti-ui repository.", "Once accepted there, we are happy to receive an update request."], fonts: [{ id: "seti", src: [{ path: "./seti.woff", format: "woff" }], weight: "normal", style: "normal", size: "150%" }], iconDefinitions: { _R_light: { fontCharacter: "\\E001", fontColor: "#498ba7" }, _R: { fontCharacter: "\\E001", fontColor: "#519aba" }, _argdown_light: { fontCharacter: "\\E003", fontColor: "#498ba7" }, _argdown: { fontCharacter: "\\E003", fontColor: "#519aba" }, _asm_light: { fontCharacter: "\\E004", fontColor: "#b8383d" }, _asm: { fontCharacter: "\\E004", fontColor: "#cc3e44" }, _audio_light: { fontCharacter: "\\E005", fontColor: "#9068b0" }, _audio: { fontCharacter: "\\E005", fontColor: "#a074c4" }, _babel_light: { fontCharacter: "\\E006", fontColor: "#b7b73b" }, _babel: { fontCharacter: "\\E006", fontColor: "#cbcb41" }, _bazel_light: { fontCharacter: "\\E007", fontColor: "#7fae42" }, _bazel: { fontCharacter: "\\E007", fontColor: "#8dc149" }, _bazel_1_light: { fontCharacter: "\\E007", fontColor: "#455155" }, _bazel_1: { fontCharacter: "\\E007", fontColor: "#4d5a5e" }, _bicep_light: { fontCharacter: "\\E008", fontColor: "#498ba7" }, _bicep: { fontCharacter: "\\E008", fontColor: "#519aba" }, _bower_light: { fontCharacter: "\\E009", fontColor: "#cc6d2e" }, _bower: { fontCharacter: "\\E009", fontColor: "#e37933" }, _bsl_light: { fontCharacter: "\\E00A", fontColor: "#b8383d" }, _bsl: { fontCharacter: "\\E00A", fontColor: "#cc3e44" }, _c_light: { fontCharacter: "\\E00C", fontColor: "#498ba7" }, _c: { fontCharacter: "\\E00C", fontColor: "#519aba" }, "_c-sharp_light": { fontCharacter: "\\E00B", fontColor: "#498ba7" }, "_c-sharp": { fontCharacter: "\\E00B", fontColor: "#519aba" }, _c_1_light: { fontCharacter: "\\E00C", fontColor: "#9068b0" }, _c_1: { fontCharacter: "\\E00C", fontColor: "#a074c4" }, _c_2_light: { fontCharacter: "\\E00C", fontColor: "#b7b73b" }, _c_2: { fontCharacter: "\\E00C", fontColor: "#cbcb41" }, _cake_light: { fontCharacter: "\\E00D", fontColor: "#b8383d" }, _cake: { fontCharacter: "\\E00D", fontColor: "#cc3e44" }, _cake_php_light: { fontCharacter: "\\E00E", fontColor: "#b8383d" }, _cake_php: { fontCharacter: "\\E00E", fontColor: "#cc3e44" }, _clock_light: { fontCharacter: "\\E012", fontColor: "#498ba7" }, _clock: { fontCharacter: "\\E012", fontColor: "#519aba" }, _clock_1_light: { fontCharacter: "\\E012", fontColor: "#627379" }, _clock_1: { fontCharacter: "\\E012", fontColor: "#6d8086" }, _clojure_light: { fontCharacter: "\\E013", fontColor: "#7fae42" }, _clojure: { fontCharacter: "\\E013", fontColor: "#8dc149" }, _clojure_1_light: { fontCharacter: "\\E013", fontColor: "#498ba7" }, _clojure_1: { fontCharacter: "\\E013", fontColor: "#519aba" }, "_code-climate_light": { fontCharacter: "\\E014", fontColor: "#7fae42" }, "_code-climate": { fontCharacter: "\\E014", fontColor: "#8dc149" }, "_code-search_light": { fontCharacter: "\\E015", fontColor: "#9068b0" }, "_code-search": { fontCharacter: "\\E015", fontColor: "#a074c4" }, _coffee_light: { fontCharacter: "\\E016", fontColor: "#b7b73b" }, _coffee: { fontCharacter: "\\E016", fontColor: "#cbcb41" }, _coldfusion_light: { fontCharacter: "\\E018", fontColor: "#498ba7" }, _coldfusion: { fontCharacter: "\\E018", fontColor: "#519aba" }, _config_light: { fontCharacter: "\\E019", fontColor: "#627379" }, _config: { fontCharacter: "\\E019", fontColor: "#6d8086" }, _cpp_light: { fontCharacter: "\\E01A", fontColor: "#498ba7" }, _cpp: { fontCharacter: "\\E01A", fontColor: "#519aba" }, _cpp_1_light: { fontCharacter: "\\E01A", fontColor: "#9068b0" }, _cpp_1: { fontCharacter: "\\E01A", fontColor: "#a074c4" }, _cpp_2_light: { fontCharacter: "\\E01A", fontColor: "#b7b73b" }, _cpp_2: { fontCharacter: "\\E01A", fontColor: "#cbcb41" }, _crystal_light: { fontCharacter: "\\E01B", fontColor: "#bfc2c1" }, _crystal: { fontCharacter: "\\E01B", fontColor: "#d4d7d6" }, _crystal_embedded_light: { fontCharacter: "\\E01C", fontColor: "#bfc2c1" }, _crystal_embedded: { fontCharacter: "\\E01C", fontColor: "#d4d7d6" }, _css_light: { fontCharacter: "\\E01D", fontColor: "#498ba7" }, _css: { fontCharacter: "\\E01D", fontColor: "#519aba" }, _csv_light: { fontCharacter: "\\E01E", fontColor: "#7fae42" }, _csv: { fontCharacter: "\\E01E", fontColor: "#8dc149" }, _cu_light: { fontCharacter: "\\E01F", fontColor: "#7fae42" }, _cu: { fontCharacter: "\\E01F", fontColor: "#8dc149" }, _cu_1_light: { fontCharacter: "\\E01F", fontColor: "#9068b0" }, _cu_1: { fontCharacter: "\\E01F", fontColor: "#a074c4" }, _d_light: { fontCharacter: "\\E020", fontColor: "#b8383d" }, _d: { fontCharacter: "\\E020", fontColor: "#cc3e44" }, _dart_light: { fontCharacter: "\\E021", fontColor: "#498ba7" }, _dart: { fontCharacter: "\\E021", fontColor: "#519aba" }, _db_light: { fontCharacter: "\\E022", fontColor: "#dd4b78" }, _db: { fontCharacter: "\\E022", fontColor: "#f55385" }, _db_1_light: { fontCharacter: "\\E022", fontColor: "#498ba7" }, _db_1: { fontCharacter: "\\E022", fontColor: "#519aba" }, _default_light: { fontCharacter: "\\E023", fontColor: "#bfc2c1" }, _default: { fontCharacter: "\\E023", fontColor: "#d4d7d6" }, _docker_light: { fontCharacter: "\\E025", fontColor: "#498ba7" }, _docker: { fontCharacter: "\\E025", fontColor: "#519aba" }, _docker_1_light: { fontCharacter: "\\E025", fontColor: "#455155" }, _docker_1: { fontCharacter: "\\E025", fontColor: "#4d5a5e" }, _docker_2_light: { fontCharacter: "\\E025", fontColor: "#7fae42" }, _docker_2: { fontCharacter: "\\E025", fontColor: "#8dc149" }, _docker_3_light: { fontCharacter: "\\E025", fontColor: "#dd4b78" }, _docker_3: { fontCharacter: "\\E025", fontColor: "#f55385" }, _ejs_light: { fontCharacter: "\\E027", fontColor: "#b7b73b" }, _ejs: { fontCharacter: "\\E027", fontColor: "#cbcb41" }, _elixir_light: { fontCharacter: "\\E028", fontColor: "#9068b0" }, _elixir: { fontCharacter: "\\E028", fontColor: "#a074c4" }, _elixir_script_light: { fontCharacter: "\\E029", fontColor: "#9068b0" }, _elixir_script: { fontCharacter: "\\E029", fontColor: "#a074c4" }, _elm_light: { fontCharacter: "\\E02A", fontColor: "#498ba7" }, _elm: { fontCharacter: "\\E02A", fontColor: "#519aba" }, _eslint_light: { fontCharacter: "\\E02C", fontColor: "#9068b0" }, _eslint: { fontCharacter: "\\E02C", fontColor: "#a074c4" }, _eslint_1_light: { fontCharacter: "\\E02C", fontColor: "#455155" }, _eslint_1: { fontCharacter: "\\E02C", fontColor: "#4d5a5e" }, _ethereum_light: { fontCharacter: "\\E02D", fontColor: "#498ba7" }, _ethereum: { fontCharacter: "\\E02D", fontColor: "#519aba" }, "_f-sharp_light": { fontCharacter: "\\E02E", fontColor: "#498ba7" }, "_f-sharp": { fontCharacter: "\\E02E", fontColor: "#519aba" }, _favicon_light: { fontCharacter: "\\E02F", fontColor: "#b7b73b" }, _favicon: { fontCharacter: "\\E02F", fontColor: "#cbcb41" }, _firebase_light: { fontCharacter: "\\E030", fontColor: "#cc6d2e" }, _firebase: { fontCharacter: "\\E030", fontColor: "#e37933" }, _firefox_light: { fontCharacter: "\\E031", fontColor: "#cc6d2e" }, _firefox: { fontCharacter: "\\E031", fontColor: "#e37933" }, _font_light: { fontCharacter: "\\E033", fontColor: "#b8383d" }, _font: { fontCharacter: "\\E033", fontColor: "#cc3e44" }, _git_light: { fontCharacter: "\\E034", fontColor: "#3b4b52" }, _git: { fontCharacter: "\\E034", fontColor: "#41535b" }, _github_light: { fontCharacter: "\\E037", fontColor: "#bfc2c1" }, _github: { fontCharacter: "\\E037", fontColor: "#d4d7d6" }, _gitlab_light: { fontCharacter: "\\E038", fontColor: "#cc6d2e" }, _gitlab: { fontCharacter: "\\E038", fontColor: "#e37933" }, _go_light: { fontCharacter: "\\E039", fontColor: "#498ba7" }, _go: { fontCharacter: "\\E039", fontColor: "#519aba" }, _go2_light: { fontCharacter: "\\E03A", fontColor: "#498ba7" }, _go2: { fontCharacter: "\\E03A", fontColor: "#519aba" }, _godot_light: { fontCharacter: "\\E03B", fontColor: "#498ba7" }, _godot: { fontCharacter: "\\E03B", fontColor: "#519aba" }, _godot_1_light: { fontCharacter: "\\E03B", fontColor: "#b8383d" }, _godot_1: { fontCharacter: "\\E03B", fontColor: "#cc3e44" }, _godot_2_light: { fontCharacter: "\\E03B", fontColor: "#b7b73b" }, _godot_2: { fontCharacter: "\\E03B", fontColor: "#cbcb41" }, _godot_3_light: { fontCharacter: "\\E03B", fontColor: "#9068b0" }, _godot_3: { fontCharacter: "\\E03B", fontColor: "#a074c4" }, _gradle_light: { fontCharacter: "\\E03C", fontColor: "#498ba7" }, _gradle: { fontCharacter: "\\E03C", fontColor: "#519aba" }, _grails_light: { fontCharacter: "\\E03D", fontColor: "#7fae42" }, _grails: { fontCharacter: "\\E03D", fontColor: "#8dc149" }, _graphql_light: { fontCharacter: "\\E03E", fontColor: "#dd4b78" }, _graphql: { fontCharacter: "\\E03E", fontColor: "#f55385" }, _grunt_light: { fontCharacter: "\\E03F", fontColor: "#cc6d2e" }, _grunt: { fontCharacter: "\\E03F", fontColor: "#e37933" }, _gulp_light: { fontCharacter: "\\E040", fontColor: "#b8383d" }, _gulp: { fontCharacter: "\\E040", fontColor: "#cc3e44" }, _hacklang_light: { fontCharacter: "\\E041", fontColor: "#cc6d2e" }, _hacklang: { fontCharacter: "\\E041", fontColor: "#e37933" }, _haml_light: { fontCharacter: "\\E042", fontColor: "#b8383d" }, _haml: { fontCharacter: "\\E042", fontColor: "#cc3e44" }, _happenings_light: { fontCharacter: "\\E043", fontColor: "#498ba7" }, _happenings: { fontCharacter: "\\E043", fontColor: "#519aba" }, _haskell_light: { fontCharacter: "\\E044", fontColor: "#9068b0" }, _haskell: { fontCharacter: "\\E044", fontColor: "#a074c4" }, _haxe_light: { fontCharacter: "\\E045", fontColor: "#cc6d2e" }, _haxe: { fontCharacter: "\\E045", fontColor: "#e37933" }, _haxe_1_light: { fontCharacter: "\\E045", fontColor: "#b7b73b" }, _haxe_1: { fontCharacter: "\\E045", fontColor: "#cbcb41" }, _haxe_2_light: { fontCharacter: "\\E045", fontColor: "#498ba7" }, _haxe_2: { fontCharacter: "\\E045", fontColor: "#519aba" }, _haxe_3_light: { fontCharacter: "\\E045", fontColor: "#9068b0" }, _haxe_3: { fontCharacter: "\\E045", fontColor: "#a074c4" }, _heroku_light: { fontCharacter: "\\E046", fontColor: "#9068b0" }, _heroku: { fontCharacter: "\\E046", fontColor: "#a074c4" }, _hex_light: { fontCharacter: "\\E047", fontColor: "#b8383d" }, _hex: { fontCharacter: "\\E047", fontColor: "#cc3e44" }, _html_light: { fontCharacter: "\\E048", fontColor: "#498ba7" }, _html: { fontCharacter: "\\E048", fontColor: "#519aba" }, _html_1_light: { fontCharacter: "\\E048", fontColor: "#7fae42" }, _html_1: { fontCharacter: "\\E048", fontColor: "#8dc149" }, _html_2_light: { fontCharacter: "\\E048", fontColor: "#b7b73b" }, _html_2: { fontCharacter: "\\E048", fontColor: "#cbcb41" }, _html_3_light: { fontCharacter: "\\E048", fontColor: "#cc6d2e" }, _html_3: { fontCharacter: "\\E048", fontColor: "#e37933" }, _html_erb_light: { fontCharacter: "\\E049", fontColor: "#b8383d" }, _html_erb: { fontCharacter: "\\E049", fontColor: "#cc3e44" }, _ignored_light: { fontCharacter: "\\E04A", fontColor: "#3b4b52" }, _ignored: { fontCharacter: "\\E04A", fontColor: "#41535b" }, _illustrator_light: { fontCharacter: "\\E04B", fontColor: "#b7b73b" }, _illustrator: { fontCharacter: "\\E04B", fontColor: "#cbcb41" }, _image_light: { fontCharacter: "\\E04C", fontColor: "#9068b0" }, _image: { fontCharacter: "\\E04C", fontColor: "#a074c4" }, _info_light: { fontCharacter: "\\E04D", fontColor: "#498ba7" }, _info: { fontCharacter: "\\E04D", fontColor: "#519aba" }, _ionic_light: { fontCharacter: "\\E04E", fontColor: "#498ba7" }, _ionic: { fontCharacter: "\\E04E", fontColor: "#519aba" }, _jade_light: { fontCharacter: "\\E04F", fontColor: "#b8383d" }, _jade: { fontCharacter: "\\E04F", fontColor: "#cc3e44" }, _java_light: { fontCharacter: "\\E050", fontColor: "#b8383d" }, _java: { fontCharacter: "\\E050", fontColor: "#cc3e44" }, _java_1_light: { fontCharacter: "\\E050", fontColor: "#498ba7" }, _java_1: { fontCharacter: "\\E050", fontColor: "#519aba" }, _javascript_light: { fontCharacter: "\\E051", fontColor: "#b7b73b" }, _javascript: { fontCharacter: "\\E051", fontColor: "#cbcb41" }, _javascript_1_light: { fontCharacter: "\\E051", fontColor: "#cc6d2e" }, _javascript_1: { fontCharacter: "\\E051", fontColor: "#e37933" }, _javascript_2_light: { fontCharacter: "\\E051", fontColor: "#498ba7" }, _javascript_2: { fontCharacter: "\\E051", fontColor: "#519aba" }, _jenkins_light: { fontCharacter: "\\E052", fontColor: "#b8383d" }, _jenkins: { fontCharacter: "\\E052", fontColor: "#cc3e44" }, _jinja_light: { fontCharacter: "\\E053", fontColor: "#b8383d" }, _jinja: { fontCharacter: "\\E053", fontColor: "#cc3e44" }, _json_light: { fontCharacter: "\\E055", fontColor: "#b7b73b" }, _json: { fontCharacter: "\\E055", fontColor: "#cbcb41" }, _json_1_light: { fontCharacter: "\\E055", fontColor: "#7fae42" }, _json_1: { fontCharacter: "\\E055", fontColor: "#8dc149" }, _julia_light: { fontCharacter: "\\E056", fontColor: "#9068b0" }, _julia: { fontCharacter: "\\E056", fontColor: "#a074c4" }, _karma_light: { fontCharacter: "\\E057", fontColor: "#7fae42" }, _karma: { fontCharacter: "\\E057", fontColor: "#8dc149" }, _kotlin_light: { fontCharacter: "\\E058", fontColor: "#cc6d2e" }, _kotlin: { fontCharacter: "\\E058", fontColor: "#e37933" }, _less_light: { fontCharacter: "\\E059", fontColor: "#498ba7" }, _less: { fontCharacter: "\\E059", fontColor: "#519aba" }, _license_light: { fontCharacter: "\\E05A", fontColor: "#b7b73b" }, _license: { fontCharacter: "\\E05A", fontColor: "#cbcb41" }, _license_1_light: { fontCharacter: "\\E05A", fontColor: "#cc6d2e" }, _license_1: { fontCharacter: "\\E05A", fontColor: "#e37933" }, _license_2_light: { fontCharacter: "\\E05A", fontColor: "#b8383d" }, _license_2: { fontCharacter: "\\E05A", fontColor: "#cc3e44" }, _liquid_light: { fontCharacter: "\\E05B", fontColor: "#7fae42" }, _liquid: { fontCharacter: "\\E05B", fontColor: "#8dc149" }, _livescript_light: { fontCharacter: "\\E05C", fontColor: "#498ba7" }, _livescript: { fontCharacter: "\\E05C", fontColor: "#519aba" }, _lock_light: { fontCharacter: "\\E05D", fontColor: "#7fae42" }, _lock: { fontCharacter: "\\E05D", fontColor: "#8dc149" }, _lua_light: { fontCharacter: "\\E05E", fontColor: "#498ba7" }, _lua: { fontCharacter: "\\E05E", fontColor: "#519aba" }, _makefile_light: { fontCharacter: "\\E05F", fontColor: "#cc6d2e" }, _makefile: { fontCharacter: "\\E05F", fontColor: "#e37933" }, _makefile_1_light: { fontCharacter: "\\E05F", fontColor: "#9068b0" }, _makefile_1: { fontCharacter: "\\E05F", fontColor: "#a074c4" }, _makefile_2_light: { fontCharacter: "\\E05F", fontColor: "#627379" }, _makefile_2: { fontCharacter: "\\E05F", fontColor: "#6d8086" }, _makefile_3_light: { fontCharacter: "\\E05F", fontColor: "#498ba7" }, _makefile_3: { fontCharacter: "\\E05F", fontColor: "#519aba" }, _markdown_light: { fontCharacter: "\\E060", fontColor: "#498ba7" }, _markdown: { fontCharacter: "\\E060", fontColor: "#519aba" }, _maven_light: { fontCharacter: "\\E061", fontColor: "#b8383d" }, _maven: { fontCharacter: "\\E061", fontColor: "#cc3e44" }, _mdo_light: { fontCharacter: "\\E062", fontColor: "#b8383d" }, _mdo: { fontCharacter: "\\E062", fontColor: "#cc3e44" }, _mustache_light: { fontCharacter: "\\E063", fontColor: "#cc6d2e" }, _mustache: { fontCharacter: "\\E063", fontColor: "#e37933" }, _nim_light: { fontCharacter: "\\E065", fontColor: "#b7b73b" }, _nim: { fontCharacter: "\\E065", fontColor: "#cbcb41" }, _notebook_light: { fontCharacter: "\\E066", fontColor: "#498ba7" }, _notebook: { fontCharacter: "\\E066", fontColor: "#519aba" }, _npm_light: { fontCharacter: "\\E067", fontColor: "#3b4b52" }, _npm: { fontCharacter: "\\E067", fontColor: "#41535b" }, _npm_1_light: { fontCharacter: "\\E067", fontColor: "#b8383d" }, _npm_1: { fontCharacter: "\\E067", fontColor: "#cc3e44" }, _npm_ignored_light: { fontCharacter: "\\E068", fontColor: "#3b4b52" }, _npm_ignored: { fontCharacter: "\\E068", fontColor: "#41535b" }, _nunjucks_light: { fontCharacter: "\\E069", fontColor: "#7fae42" }, _nunjucks: { fontCharacter: "\\E069", fontColor: "#8dc149" }, _ocaml_light: { fontCharacter: "\\E06A", fontColor: "#cc6d2e" }, _ocaml: { fontCharacter: "\\E06A", fontColor: "#e37933" }, _odata_light: { fontCharacter: "\\E06B", fontColor: "#cc6d2e" }, _odata: { fontCharacter: "\\E06B", fontColor: "#e37933" }, _pddl_light: { fontCharacter: "\\E06C", fontColor: "#9068b0" }, _pddl: { fontCharacter: "\\E06C", fontColor: "#a074c4" }, _pdf_light: { fontCharacter: "\\E06D", fontColor: "#b8383d" }, _pdf: { fontCharacter: "\\E06D", fontColor: "#cc3e44" }, _perl_light: { fontCharacter: "\\E06E", fontColor: "#498ba7" }, _perl: { fontCharacter: "\\E06E", fontColor: "#519aba" }, _photoshop_light: { fontCharacter: "\\E06F", fontColor: "#498ba7" }, _photoshop: { fontCharacter: "\\E06F", fontColor: "#519aba" }, _php_light: { fontCharacter: "\\E070", fontColor: "#9068b0" }, _php: { fontCharacter: "\\E070", fontColor: "#a074c4" }, _pipeline_light: { fontCharacter: "\\E071", fontColor: "#cc6d2e" }, _pipeline: { fontCharacter: "\\E071", fontColor: "#e37933" }, _plan_light: { fontCharacter: "\\E072", fontColor: "#7fae42" }, _plan: { fontCharacter: "\\E072", fontColor: "#8dc149" }, _platformio_light: { fontCharacter: "\\E073", fontColor: "#cc6d2e" }, _platformio: { fontCharacter: "\\E073", fontColor: "#e37933" }, _powershell_light: { fontCharacter: "\\E074", fontColor: "#498ba7" }, _powershell: { fontCharacter: "\\E074", fontColor: "#519aba" }, _prisma_light: { fontCharacter: "\\E075", fontColor: "#498ba7" }, _prisma: { fontCharacter: "\\E075", fontColor: "#519aba" }, _prolog_light: { fontCharacter: "\\E077", fontColor: "#cc6d2e" }, _prolog: { fontCharacter: "\\E077", fontColor: "#e37933" }, _pug_light: { fontCharacter: "\\E078", fontColor: "#b8383d" }, _pug: { fontCharacter: "\\E078", fontColor: "#cc3e44" }, _puppet_light: { fontCharacter: "\\E079", fontColor: "#b7b73b" }, _puppet: { fontCharacter: "\\E079", fontColor: "#cbcb41" }, _purescript_light: { fontCharacter: "\\E07A", fontColor: "#bfc2c1" }, _purescript: { fontCharacter: "\\E07A", fontColor: "#d4d7d6" }, _python_light: { fontCharacter: "\\E07B", fontColor: "#498ba7" }, _python: { fontCharacter: "\\E07B", fontColor: "#519aba" }, _react_light: { fontCharacter: "\\E07D", fontColor: "#498ba7" }, _react: { fontCharacter: "\\E07D", fontColor: "#519aba" }, _react_1_light: { fontCharacter: "\\E07D", fontColor: "#cc6d2e" }, _react_1: { fontCharacter: "\\E07D", fontColor: "#e37933" }, _reasonml_light: { fontCharacter: "\\E07E", fontColor: "#b8383d" }, _reasonml: { fontCharacter: "\\E07E", fontColor: "#cc3e44" }, _rescript_light: { fontCharacter: "\\E07F", fontColor: "#b8383d" }, _rescript: { fontCharacter: "\\E07F", fontColor: "#cc3e44" }, _rescript_1_light: { fontCharacter: "\\E07F", fontColor: "#dd4b78" }, _rescript_1: { fontCharacter: "\\E07F", fontColor: "#f55385" }, _rollup_light: { fontCharacter: "\\E080", fontColor: "#b8383d" }, _rollup: { fontCharacter: "\\E080", fontColor: "#cc3e44" }, _ruby_light: { fontCharacter: "\\E081", fontColor: "#b8383d" }, _ruby: { fontCharacter: "\\E081", fontColor: "#cc3e44" }, _rust_light: { fontCharacter: "\\E082", fontColor: "#627379" }, _rust: { fontCharacter: "\\E082", fontColor: "#6d8086" }, _salesforce_light: { fontCharacter: "\\E083", fontColor: "#498ba7" }, _salesforce: { fontCharacter: "\\E083", fontColor: "#519aba" }, _sass_light: { fontCharacter: "\\E084", fontColor: "#dd4b78" }, _sass: { fontCharacter: "\\E084", fontColor: "#f55385" }, _sbt_light: { fontCharacter: "\\E085", fontColor: "#498ba7" }, _sbt: { fontCharacter: "\\E085", fontColor: "#519aba" }, _scala_light: { fontCharacter: "\\E086", fontColor: "#b8383d" }, _scala: { fontCharacter: "\\E086", fontColor: "#cc3e44" }, _shell_light: { fontCharacter: "\\E089", fontColor: "#7fae42" }, _shell: { fontCharacter: "\\E089", fontColor: "#8dc149" }, _slim_light: { fontCharacter: "\\E08A", fontColor: "#cc6d2e" }, _slim: { fontCharacter: "\\E08A", fontColor: "#e37933" }, _smarty_light: { fontCharacter: "\\E08B", fontColor: "#b7b73b" }, _smarty: { fontCharacter: "\\E08B", fontColor: "#cbcb41" }, _spring_light: { fontCharacter: "\\E08C", fontColor: "#7fae42" }, _spring: { fontCharacter: "\\E08C", fontColor: "#8dc149" }, _stylelint_light: { fontCharacter: "\\E08D", fontColor: "#bfc2c1" }, _stylelint: { fontCharacter: "\\E08D", fontColor: "#d4d7d6" }, _stylelint_1_light: { fontCharacter: "\\E08D", fontColor: "#455155" }, _stylelint_1: { fontCharacter: "\\E08D", fontColor: "#4d5a5e" }, _stylus_light: { fontCharacter: "\\E08E", fontColor: "#7fae42" }, _stylus: { fontCharacter: "\\E08E", fontColor: "#8dc149" }, _sublime_light: { fontCharacter: "\\E08F", fontColor: "#cc6d2e" }, _sublime: { fontCharacter: "\\E08F", fontColor: "#e37933" }, _svelte_light: { fontCharacter: "\\E090", fontColor: "#b8383d" }, _svelte: { fontCharacter: "\\E090", fontColor: "#cc3e44" }, _svg_light: { fontCharacter: "\\E091", fontColor: "#9068b0" }, _svg: { fontCharacter: "\\E091", fontColor: "#a074c4" }, _svg_1_light: { fontCharacter: "\\E091", fontColor: "#498ba7" }, _svg_1: { fontCharacter: "\\E091", fontColor: "#519aba" }, _swift_light: { fontCharacter: "\\E092", fontColor: "#cc6d2e" }, _swift: { fontCharacter: "\\E092", fontColor: "#e37933" }, _terraform_light: { fontCharacter: "\\E093", fontColor: "#9068b0" }, _terraform: { fontCharacter: "\\E093", fontColor: "#a074c4" }, _tex_light: { fontCharacter: "\\E094", fontColor: "#498ba7" }, _tex: { fontCharacter: "\\E094", fontColor: "#519aba" }, _tex_1_light: { fontCharacter: "\\E094", fontColor: "#b7b73b" }, _tex_1: { fontCharacter: "\\E094", fontColor: "#cbcb41" }, _tex_2_light: { fontCharacter: "\\E094", fontColor: "#cc6d2e" }, _tex_2: { fontCharacter: "\\E094", fontColor: "#e37933" }, _tex_3_light: { fontCharacter: "\\E094", fontColor: "#bfc2c1" }, _tex_3: { fontCharacter: "\\E094", fontColor: "#d4d7d6" }, _todo: { fontCharacter: "\\E096" }, _tsconfig_light: { fontCharacter: "\\E097", fontColor: "#498ba7" }, _tsconfig: { fontCharacter: "\\E097", fontColor: "#519aba" }, _twig_light: { fontCharacter: "\\E098", fontColor: "#7fae42" }, _twig: { fontCharacter: "\\E098", fontColor: "#8dc149" }, _typescript_light: { fontCharacter: "\\E099", fontColor: "#498ba7" }, _typescript: { fontCharacter: "\\E099", fontColor: "#519aba" }, _typescript_1_light: { fontCharacter: "\\E099", fontColor: "#cc6d2e" }, _typescript_1: { fontCharacter: "\\E099", fontColor: "#e37933" }, _vala_light: { fontCharacter: "\\E09A", fontColor: "#627379" }, _vala: { fontCharacter: "\\E09A", fontColor: "#6d8086" }, _video_light: { fontCharacter: "\\E09B", fontColor: "#dd4b78" }, _video: { fontCharacter: "\\E09B", fontColor: "#f55385" }, _vite_light: { fontCharacter: "\\E09C", fontColor: "#b7b73b" }, _vite: { fontCharacter: "\\E09C", fontColor: "#cbcb41" }, _vue_light: { fontCharacter: "\\E09D", fontColor: "#7fae42" }, _vue: { fontCharacter: "\\E09D", fontColor: "#8dc149" }, _wasm_light: { fontCharacter: "\\E09E", fontColor: "#9068b0" }, _wasm: { fontCharacter: "\\E09E", fontColor: "#a074c4" }, _wat_light: { fontCharacter: "\\E09F", fontColor: "#9068b0" }, _wat: { fontCharacter: "\\E09F", fontColor: "#a074c4" }, _webpack_light: { fontCharacter: "\\E0A0", fontColor: "#498ba7" }, _webpack: { fontCharacter: "\\E0A0", fontColor: "#519aba" }, _wgt_light: { fontCharacter: "\\E0A1", fontColor: "#498ba7" }, _wgt: { fontCharacter: "\\E0A1", fontColor: "#519aba" }, _windows_light: { fontCharacter: "\\E0A2", fontColor: "#498ba7" }, _windows: { fontCharacter: "\\E0A2", fontColor: "#519aba" }, _word_light: { fontCharacter: "\\E0A3", fontColor: "#498ba7" }, _word: { fontCharacter: "\\E0A3", fontColor: "#519aba" }, _xls_light: { fontCharacter: "\\E0A4", fontColor: "#7fae42" }, _xls: { fontCharacter: "\\E0A4", fontColor: "#8dc149" }, _xml_light: { fontCharacter: "\\E0A5", fontColor: "#cc6d2e" }, _xml: { fontCharacter: "\\E0A5", fontColor: "#e37933" }, _yarn_light: { fontCharacter: "\\E0A6", fontColor: "#498ba7" }, _yarn: { fontCharacter: "\\E0A6", fontColor: "#519aba" }, _yml_light: { fontCharacter: "\\E0A7", fontColor: "#9068b0" }, _yml: { fontCharacter: "\\E0A7", fontColor: "#a074c4" }, _zig_light: { fontCharacter: "\\E0A8", fontColor: "#cc6d2e" }, _zig: { fontCharacter: "\\E0A8", fontColor: "#e37933" }, _zip_light: { fontCharacter: "\\E0A9", fontColor: "#b8383d" }, _zip: { fontCharacter: "\\E0A9", fontColor: "#cc3e44" }, _zip_1_light: { fontCharacter: "\\E0A9", fontColor: "#627379" }, _zip_1: { fontCharacter: "\\E0A9", fontColor: "#6d8086" } }, file: "_default", fileExtensions: { bsl: "_bsl", mdo: "_mdo", cls: "_salesforce", apex: "_salesforce", asm: "_asm", s: "_asm", bicep: "_bicep", bzl: "_bazel", bazel: "_bazel", build: "_bazel", workspace: "_bazel", bazelignore: "_bazel", bazelversion: "_bazel", h: "_c_1", aspx: "_html", ascx: "_html_1", asax: "_html_2", master: "_html_2", hh: "_cpp_1", hpp: "_cpp_1", hxx: "_cpp_1", "h++": "_cpp_1", edn: "_clojure_1", cfc: "_coldfusion", cfm: "_coldfusion", litcoffee: "_coffee", config: "_config", cr: "_crystal", ecr: "_crystal_embedded", slang: "_crystal_embedded", cson: "_json", "css.map": "_css", sss: "_css", csv: "_csv", xls: "_xls", xlsx: "_xls", cuh: "_cu_1", hu: "_cu_1", cake: "_cake", ctp: "_cake_php", d: "_d", doc: "_word", docx: "_word", ejs: "_ejs", ex: "_elixir", exs: "_elixir_script", elm: "_elm", ico: "_favicon", gitconfig: "_git", gitkeep: "_git", gitattributes: "_git", gitmodules: "_git", slide: "_go", article: "_go", gd: "_godot", godot: "_godot_1", tres: "_godot_2", tscn: "_godot_3", gradle: "_gradle", gsp: "_grails", gql: "_graphql", graphql: "_graphql", graphqls: "_graphql", hack: "_hacklang", haml: "_haml", hs: "_haskell", lhs: "_haskell", hx: "_haxe", hxs: "_haxe_1", hxp: "_haxe_2", hxml: "_haxe_3", jade: "_jade", class: "_java_1", classpath: "_java", "js.map": "_javascript", "cjs.map": "_javascript", "mjs.map": "_javascript", "spec.js": "_javascript_1", "spec.cjs": "_javascript_1", "spec.mjs": "_javascript_1", "test.js": "_javascript_1", "test.cjs": "_javascript_1", "test.mjs": "_javascript_1", es: "_javascript", es5: "_javascript", es7: "_javascript", jinja: "_jinja", jinja2: "_jinja", kt: "_kotlin", kts: "_kotlin", liquid: "_liquid", ls: "_livescript", argdown: "_argdown", ad: "_argdown", mustache: "_mustache", stache: "_mustache", nim: "_nim", nims: "_nim", "github-issues": "_github", ipynb: "_notebook", njk: "_nunjucks", nunjucks: "_nunjucks", nunjs: "_nunjucks", nunj: "_nunjucks", njs: "_nunjucks", nj: "_nunjucks", "npm-debug.log": "_npm", npmignore: "_npm_1", npmrc: "_npm_1", ml: "_ocaml", mli: "_ocaml", cmx: "_ocaml", cmxa: "_ocaml", odata: "_odata", "php.inc": "_php", pipeline: "_pipeline", pddl: "_pddl", plan: "_plan", happenings: "_happenings", prisma: "_prisma", pp: "_puppet", epp: "_puppet", purs: "_purescript", "spec.jsx": "_react_1", "test.jsx": "_react_1", cjsx: "_react", "spec.tsx": "_react_1", "test.tsx": "_react_1", re: "_reasonml", res: "_rescript", resi: "_rescript_1", r: "_R", rmd: "_R", erb: "_html_erb", "erb.html": "_html_erb", "html.erb": "_html_erb", sass: "_sass", springbeans: "_spring", slim: "_slim", "smarty.tpl": "_smarty", tpl: "_smarty", sbt: "_sbt", scala: "_scala", sol: "_ethereum", styl: "_stylus", svelte: "_svelte", soql: "_db_1", tf: "_terraform", "tf.json": "_terraform", tfvars: "_terraform", "tfvars.json": "_terraform", dtx: "_tex_2", ins: "_tex_3", toml: "_config", twig: "_twig", "spec.ts": "_typescript_1", "test.ts": "_typescript_1", vala: "_vala", vapi: "_vala", component: "_html_3", vue: "_vue", wasm: "_wasm", wat: "_wat", pro: "_prolog", zig: "_zig", jar: "_zip", zip: "_zip_1", wgt: "_wgt", ai: "_illustrator", psd: "_photoshop", pdf: "_pdf", eot: "_font", ttf: "_font", woff: "_font", woff2: "_font", otf: "_font", avif: "_image", gif: "_image", jpg: "_image", jpeg: "_image", png: "_image", pxm: "_image", svg: "_svg", svgx: "_image", tiff: "_image", webp: "_image", "sublime-project": "_sublime", "sublime-workspace": "_sublime", mov: "_video", ogv: "_video", webm: "_video", avi: "_video", mpg: "_video", mp4: "_video", mp3: "_audio", ogg: "_audio", wav: "_audio", flac: "_audio", "3ds": "_svg_1", "3dm": "_svg_1", stl: "_svg_1", obj: "_svg_1", dae: "_svg_1", babelrc: "_babel", "babelrc.js": "_babel", "babelrc.cjs": "_babel", bazelrc: "_bazel_1", bowerrc: "_bower", dockerignore: "_docker_1", "codeclimate.yml": "_code-climate", eslintrc: "_eslint", "eslintrc.js": "_eslint", "eslintrc.cjs": "_eslint", "eslintrc.yaml": "_eslint", "eslintrc.yml": "_eslint", "eslintrc.json": "_eslint", eslintignore: "_eslint_1", firebaserc: "_firebase", "gitlab-ci.yml": "_gitlab", jshintrc: "_javascript_2", jscsrc: "_javascript_2", stylelintrc: "_stylelint", "stylelintrc.json": "_stylelint", "stylelintrc.yaml": "_stylelint", "stylelintrc.yml": "_stylelint", "stylelintrc.js": "_stylelint", stylelintignore: "_stylelint_1", direnv: "_config", static: "_config", slugignore: "_config", tmp: "_clock_1", htaccess: "_config", key: "_lock", cert: "_lock", cer: "_lock", crt: "_lock", pem: "_lock", ds_store: "_ignored" }, fileNames: { mix: "_hex", "karma.conf.js": "_karma", "karma.conf.cjs": "_karma", "karma.conf.mjs": "_karma", "karma.conf.coffee": "_karma", "readme.md": "_info", "readme.txt": "_info", readme: "_info", "changelog.md": "_clock", "changelog.txt": "_clock", changelog: "_clock", "changes.md": "_clock", "changes.txt": "_clock", changes: "_clock", "version.md": "_clock", "version.txt": "_clock", version: "_clock", mvnw: "_maven", "pom.xml": "_maven", "tsconfig.json": "_tsconfig", "vite.config.js": "_vite", "vite.config.ts": "_vite", "vite.config.mjs": "_vite", "vite.config.mts": "_vite", "vite.config.cjs": "_vite", "vite.config.cts": "_vite", "swagger.json": "_json_1", "swagger.yml": "_json_1", "swagger.yaml": "_json_1", "mime.types": "_config", jenkinsfile: "_jenkins", "babel.config.js": "_babel", "babel.config.json": "_babel", "babel.config.cjs": "_babel", build: "_bazel", "build.bazel": "_bazel", workspace: "_bazel", "workspace.bazel": "_bazel", "bower.json": "_bower", "docker-healthcheck": "_docker_2", "eslint.config.js": "_eslint", "firebase.json": "_firebase", geckodriver: "_firefox", "gruntfile.js": "_grunt", "gruntfile.babel.js": "_grunt", "gruntfile.coffee": "_grunt", gulpfile: "_gulp", "gulpfile.js": "_gulp", "ionic.config.json": "_ionic", "ionic.project": "_ionic", "platformio.ini": "_platformio", "rollup.config.js": "_rollup", "sass-lint.yml": "_sass", "stylelint.config.js": "_stylelint", "stylelint.config.cjs": "_stylelint", "stylelint.config.mjs": "_stylelint", "yarn.clean": "_yarn", "yarn.lock": "_yarn", "webpack.config.js": "_webpack", "webpack.config.cjs": "_webpack", "webpack.config.mjs": "_webpack", "webpack.config.ts": "_webpack", "webpack.config.build.js": "_webpack", "webpack.config.build.cjs": "_webpack", "webpack.config.build.mjs": "_webpack", "webpack.config.build.ts": "_webpack", "webpack.common.js": "_webpack", "webpack.common.cjs": "_webpack", "webpack.common.mjs": "_webpack", "webpack.common.ts": "_webpack", "webpack.dev.js": "_webpack", "webpack.dev.cjs": "_webpack", "webpack.dev.mjs": "_webpack", "webpack.dev.ts": "_webpack", "webpack.prod.js": "_webpack", "webpack.prod.cjs": "_webpack", "webpack.prod.mjs": "_webpack", "webpack.prod.ts": "_webpack", license: "_license", licence: "_license", "license.txt": "_license", "licence.txt": "_license", "license.md": "_license", "licence.md": "_license", copying: "_license", "copying.txt": "_license", "copying.md": "_license", compiling: "_license_1", "compiling.txt": "_license_1", "compiling.md": "_license_1", contributing: "_license_2", "contributing.txt": "_license_2", "contributing.md": "_license_2", qmakefile: "_makefile_1", omakefile: "_makefile_2", "cmakelists.txt": "_makefile_3", procfile: "_heroku", todo: "_todo", "todo.txt": "_todo", "todo.md": "_todo", "npm-debug.log": "_npm_ignored" }, languageIds: { bat: "_windows", clojure: "_clojure", coffeescript: "_coffee", jsonc: "_json", json: "_json", c: "_c", cpp: "_cpp", "cuda-cpp": "_cu", csharp: "_c-sharp", css: "_css", dart: "_dart", dockerfile: "_docker", dotenv: "_config", ignore: "_git", fsharp: "_f-sharp", "git-commit": "_git", go: "_go2", groovy: "_grails", handlebars: "_mustache", html: "_html_3", properties: "_config", java: "_java", javascriptreact: "_react", javascript: "_javascript", julia: "_julia", tex: "_tex_1", latex: "_tex", less: "_less", lua: "_lua", makefile: "_makefile", markdown: "_markdown", "objective-c": "_c_2", "objective-cpp": "_cpp_2", perl: "_perl", php: "_php", powershell: "_powershell", jade: "_pug", python: "_python", r: "_R", razor: "_html", ruby: "_ruby", rust: "_rust", scss: "_sass", "search-result": "_code-search", shellscript: "_shell", sql: "_db", swift: "_swift", typescript: "_typescript", typescriptreact: "_react", xml: "_xml", dockercompose: "_docker_3", yaml: "_yml", argdown: "_argdown", bicep: "_bicep", elixir: "_elixir", elm: "_elm", erb: "_html_erb", "github-issues": "_github", gradle: "_gradle", godot: "_godot", haml: "_haml", haskell: "_haskell", haxe: "_haxe", jinja: "_jinja", kotlin: "_kotlin", mustache: "_mustache", nunjucks: "_nunjucks", ocaml: "_ocaml", rescript: "_rescript", sass: "_sass", stylus: "_stylus", terraform: "_terraform", todo: "_todo", vala: "_vala", vue: "_vue", jsonl: "_json", postcss: "_css", "django-html": "_html_3", blade: "_php", prompt: "_markdown", instructions: "_markdown", chatagent: "_markdown", skill: "_markdown" }, light: { file: "_default_light", fileExtensions: { bsl: "_bsl_light", mdo: "_mdo_light", cls: "_salesforce_light", apex: "_salesforce_light", asm: "_asm_light", s: "_asm_light", bicep: "_bicep_light", bzl: "_bazel_light", bazel: "_bazel_light", build: "_bazel_light", workspace: "_bazel_light", bazelignore: "_bazel_light", bazelversion: "_bazel_light", h: "_c_1_light", aspx: "_html_light", ascx: "_html_1_light", asax: "_html_2_light", master: "_html_2_light", hh: "_cpp_1_light", hpp: "_cpp_1_light", hxx: "_cpp_1_light", "h++": "_cpp_1_light", edn: "_clojure_1_light", cfc: "_coldfusion_light", cfm: "_coldfusion_light", litcoffee: "_coffee_light", config: "_config_light", cr: "_crystal_light", ecr: "_crystal_embedded_light", slang: "_crystal_embedded_light", cson: "_json_light", "css.map": "_css_light", sss: "_css_light", csv: "_csv_light", xls: "_xls_light", xlsx: "_xls_light", cuh: "_cu_1_light", hu: "_cu_1_light", cake: "_cake_light", ctp: "_cake_php_light", d: "_d_light", doc: "_word_light", docx: "_word_light", ejs: "_ejs_light", ex: "_elixir_light", exs: "_elixir_script_light", elm: "_elm_light", ico: "_favicon_light", gitconfig: "_git_light", gitkeep: "_git_light", gitattributes: "_git_light", gitmodules: "_git_light", slide: "_go_light", article: "_go_light", gd: "_godot_light", godot: "_godot_1_light", tres: "_godot_2_light", tscn: "_godot_3_light", gradle: "_gradle_light", gsp: "_grails_light", gql: "_graphql_light", graphql: "_graphql_light", graphqls: "_graphql_light", hack: "_hacklang_light", haml: "_haml_light", hs: "_haskell_light", lhs: "_haskell_light", hx: "_haxe_light", hxs: "_haxe_1_light", hxp: "_haxe_2_light", hxml: "_haxe_3_light", jade: "_jade_light", class: "_java_1_light", classpath: "_java_light", "js.map": "_javascript_light", "cjs.map": "_javascript_light", "mjs.map": "_javascript_light", "spec.js": "_javascript_1_light", "spec.cjs": "_javascript_1_light", "spec.mjs": "_javascript_1_light", "test.js": "_javascript_1_light", "test.cjs": "_javascript_1_light", "test.mjs": "_javascript_1_light", es: "_javascript_light", es5: "_javascript_light", es7: "_javascript_light", jinja: "_jinja_light", jinja2: "_jinja_light", kt: "_kotlin_light", kts: "_kotlin_light", liquid: "_liquid_light", ls: "_livescript_light", argdown: "_argdown_light", ad: "_argdown_light", mustache: "_mustache_light", stache: "_mustache_light", nim: "_nim_light", nims: "_nim_light", "github-issues": "_github_light", ipynb: "_notebook_light", njk: "_nunjucks_light", nunjucks: "_nunjucks_light", nunjs: "_nunjucks_light", nunj: "_nunjucks_light", njs: "_nunjucks_light", nj: "_nunjucks_light", "npm-debug.log": "_npm_light", npmignore: "_npm_1_light", npmrc: "_npm_1_light", ml: "_ocaml_light", mli: "_ocaml_light", cmx: "_ocaml_light", cmxa: "_ocaml_light", odata: "_odata_light", "php.inc": "_php_light", pipeline: "_pipeline_light", pddl: "_pddl_light", plan: "_plan_light", happenings: "_happenings_light", prisma: "_prisma_light", pp: "_puppet_light", epp: "_puppet_light", purs: "_purescript_light", "spec.jsx": "_react_1_light", "test.jsx": "_react_1_light", cjsx: "_react_light", "spec.tsx": "_react_1_light", "test.tsx": "_react_1_light", re: "_reasonml_light", res: "_rescript_light", resi: "_rescript_1_light", r: "_R_light", rmd: "_R_light", erb: "_html_erb_light", "erb.html": "_html_erb_light", "html.erb": "_html_erb_light", sass: "_sass_light", springbeans: "_spring_light", slim: "_slim_light", "smarty.tpl": "_smarty_light", tpl: "_smarty_light", sbt: "_sbt_light", scala: "_scala_light", sol: "_ethereum_light", styl: "_stylus_light", svelte: "_svelte_light", soql: "_db_1_light", tf: "_terraform_light", "tf.json": "_terraform_light", tfvars: "_terraform_light", "tfvars.json": "_terraform_light", dtx: "_tex_2_light", ins: "_tex_3_light", toml: "_config_light", twig: "_twig_light", "spec.ts": "_typescript_1_light", "test.ts": "_typescript_1_light", vala: "_vala_light", vapi: "_vala_light", component: "_html_3_light", vue: "_vue_light", wasm: "_wasm_light", wat: "_wat_light", pro: "_prolog_light", zig: "_zig_light", jar: "_zip_light", zip: "_zip_1_light", wgt: "_wgt_light", ai: "_illustrator_light", psd: "_photoshop_light", pdf: "_pdf_light", eot: "_font_light", ttf: "_font_light", woff: "_font_light", woff2: "_font_light", otf: "_font_light", avif: "_image_light", gif: "_image_light", jpg: "_image_light", jpeg: "_image_light", png: "_image_light", pxm: "_image_light", svg: "_svg_light", svgx: "_image_light", tiff: "_image_light", webp: "_image_light", "sublime-project": "_sublime_light", "sublime-workspace": "_sublime_light", mov: "_video_light", ogv: "_video_light", webm: "_video_light", avi: "_video_light", mpg: "_video_light", mp4: "_video_light", mp3: "_audio_light", ogg: "_audio_light", wav: "_audio_light", flac: "_audio_light", "3ds": "_svg_1_light", "3dm": "_svg_1_light", stl: "_svg_1_light", obj: "_svg_1_light", dae: "_svg_1_light", babelrc: "_babel_light", "babelrc.js": "_babel_light", "babelrc.cjs": "_babel_light", bazelrc: "_bazel_1_light", bowerrc: "_bower_light", dockerignore: "_docker_1_light", "codeclimate.yml": "_code-climate_light", eslintrc: "_eslint_light", "eslintrc.js": "_eslint_light", "eslintrc.cjs": "_eslint_light", "eslintrc.yaml": "_eslint_light", "eslintrc.yml": "_eslint_light", "eslintrc.json": "_eslint_light", eslintignore: "_eslint_1_light", firebaserc: "_firebase_light", "gitlab-ci.yml": "_gitlab_light", jshintrc: "_javascript_2_light", jscsrc: "_javascript_2_light", stylelintrc: "_stylelint_light", "stylelintrc.json": "_stylelint_light", "stylelintrc.yaml": "_stylelint_light", "stylelintrc.yml": "_stylelint_light", "stylelintrc.js": "_stylelint_light", stylelintignore: "_stylelint_1_light", direnv: "_config_light", static: "_config_light", slugignore: "_config_light", tmp: "_clock_1_light", htaccess: "_config_light", key: "_lock_light", cert: "_lock_light", cer: "_lock_light", crt: "_lock_light", pem: "_lock_light", ds_store: "_ignored_light" }, languageIds: { bat: "_windows_light", clojure: "_clojure_light", coffeescript: "_coffee_light", jsonc: "_json_light", json: "_json_light", c: "_c_light", cpp: "_cpp_light", "cuda-cpp": "_cu_light", csharp: "_c-sharp_light", css: "_css_light", dart: "_dart_light", dockerfile: "_docker_light", dotenv: "_config_light", ignore: "_git_light", fsharp: "_f-sharp_light", "git-commit": "_git_light", go: "_go2_light", groovy: "_grails_light", handlebars: "_mustache_light", html: "_html_3_light", properties: "_config_light", java: "_java_light", javascriptreact: "_react_light", javascript: "_javascript_light", julia: "_julia_light", tex: "_tex_1_light", latex: "_tex_light", less: "_less_light", lua: "_lua_light", makefile: "_makefile_light", markdown: "_markdown_light", "objective-c": "_c_2_light", "objective-cpp": "_cpp_2_light", perl: "_perl_light", php: "_php_light", powershell: "_powershell_light", jade: "_pug_light", python: "_python_light", r: "_R_light", razor: "_html_light", ruby: "_ruby_light", rust: "_rust_light", scss: "_sass_light", "search-result": "_code-search_light", shellscript: "_shell_light", sql: "_db_light", swift: "_swift_light", typescript: "_typescript_light", typescriptreact: "_react_light", xml: "_xml_light", dockercompose: "_docker_3_light", yaml: "_yml_light", argdown: "_argdown_light", bicep: "_bicep_light", elixir: "_elixir_light", elm: "_elm_light", erb: "_html_erb_light", "github-issues": "_github_light", gradle: "_gradle_light", godot: "_godot_light", haml: "_haml_light", haskell: "_haskell_light", haxe: "_haxe_light", jinja: "_jinja_light", kotlin: "_kotlin_light", mustache: "_mustache_light", nunjucks: "_nunjucks_light", ocaml: "_ocaml_light", rescript: "_rescript_light", sass: "_sass_light", stylus: "_stylus_light", terraform: "_terraform_light", vala: "_vala_light", vue: "_vue_light", jsonl: "_json_light", postcss: "_css_light", "django-html": "_html_3_light", blade: "_php_light", prompt: "_markdown_light", instructions: "_markdown_light", chatagent: "_markdown_light", skill: "_markdown_light" }, fileNames: { mix: "_hex_light", "karma.conf.js": "_karma_light", "karma.conf.cjs": "_karma_light", "karma.conf.mjs": "_karma_light", "karma.conf.coffee": "_karma_light", "readme.md": "_info_light", "readme.txt": "_info_light", readme: "_info_light", "changelog.md": "_clock_light", "changelog.txt": "_clock_light", changelog: "_clock_light", "changes.md": "_clock_light", "changes.txt": "_clock_light", changes: "_clock_light", "version.md": "_clock_light", "version.txt": "_clock_light", version: "_clock_light", mvnw: "_maven_light", "pom.xml": "_maven_light", "tsconfig.json": "_tsconfig_light", "vite.config.js": "_vite_light", "vite.config.ts": "_vite_light", "vite.config.mjs": "_vite_light", "vite.config.mts": "_vite_light", "vite.config.cjs": "_vite_light", "vite.config.cts": "_vite_light", "swagger.json": "_json_1_light", "swagger.yml": "_json_1_light", "swagger.yaml": "_json_1_light", "mime.types": "_config_light", jenkinsfile: "_jenkins_light", "babel.config.js": "_babel_light", "babel.config.json": "_babel_light", "babel.config.cjs": "_babel_light", build: "_bazel_light", "build.bazel": "_bazel_light", workspace: "_bazel_light", "workspace.bazel": "_bazel_light", "bower.json": "_bower_light", "docker-healthcheck": "_docker_2_light", "eslint.config.js": "_eslint_light", "firebase.json": "_firebase_light", geckodriver: "_firefox_light", "gruntfile.js": "_grunt_light", "gruntfile.babel.js": "_grunt_light", "gruntfile.coffee": "_grunt_light", gulpfile: "_gulp_light", "gulpfile.js": "_gulp_light", "ionic.config.json": "_ionic_light", "ionic.project": "_ionic_light", "platformio.ini": "_platformio_light", "rollup.config.js": "_rollup_light", "sass-lint.yml": "_sass_light", "stylelint.config.js": "_stylelint_light", "stylelint.config.cjs": "_stylelint_light", "stylelint.config.mjs": "_stylelint_light", "yarn.clean": "_yarn_light", "yarn.lock": "_yarn_light", "webpack.config.js": "_webpack_light", "webpack.config.cjs": "_webpack_light", "webpack.config.mjs": "_webpack_light", "webpack.config.ts": "_webpack_light", "webpack.config.build.js": "_webpack_light", "webpack.config.build.cjs": "_webpack_light", "webpack.config.build.mjs": "_webpack_light", "webpack.config.build.ts": "_webpack_light", "webpack.common.js": "_webpack_light", "webpack.common.cjs": "_webpack_light", "webpack.common.mjs": "_webpack_light", "webpack.common.ts": "_webpack_light", "webpack.dev.js": "_webpack_light", "webpack.dev.cjs": "_webpack_light", "webpack.dev.mjs": "_webpack_light", "webpack.dev.ts": "_webpack_light", "webpack.prod.js": "_webpack_light", "webpack.prod.cjs": "_webpack_light", "webpack.prod.mjs": "_webpack_light", "webpack.prod.ts": "_webpack_light", license: "_license_light", licence: "_license_light", "license.txt": "_license_light", "licence.txt": "_license_light", "license.md": "_license_light", "licence.md": "_license_light", copying: "_license_light", "copying.txt": "_license_light", "copying.md": "_license_light", compiling: "_license_1_light", "compiling.txt": "_license_1_light", "compiling.md": "_license_1_light", contributing: "_license_2_light", "contributing.txt": "_license_2_light", "contributing.md": "_license_2_light", qmakefile: "_makefile_1_light", omakefile: "_makefile_2_light", "cmakelists.txt": "_makefile_3_light", procfile: "_heroku_light", "npm-debug.log": "_npm_ignored_light" } }, version: "https://github.com/jesseweed/seti-ui/commit/2d6c5e68b4ded73c92dac291845ee44e1182d511" };
-
-  // src/workspace_file_icons.css
-  var workspace_file_icons_default = "";
-
-  // src/workspace_file_icons.ts
-  var theme = icon_theme_default;
-  var theme_users = 0;
-  var release_theme;
-  var previous_theme = null;
-  function acquire_workspace_file_icons() {
-    const style = acquire_workspace_style("typora-code-style:workspace_file_icons", workspace_file_icons_default);
-    let removed = false;
-    if (theme_users++ === 0) {
-      previous_theme = document.documentElement.getAttribute("data-workspace-file-icon-theme");
-      release_theme = observe_terminal_theme((value) => {
-        const rgb = String(value.background).match(/[\d.]+/g)?.map(Number) || [255, 255, 255];
-        document.documentElement.setAttribute("data-workspace-file-icon-theme", rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light");
-      });
-    }
-    return { remove() {
-      if (removed) return;
-      removed = true;
-      style.remove();
-      if (--theme_users === 0) {
-        release_theme?.();
-        release_theme = void 0;
-        if (previous_theme === null) document.documentElement.removeAttribute("data-workspace-file-icon-theme");
-        else document.documentElement.setAttribute("data-workspace-file-icon-theme", previous_theme);
-      }
-    } };
-  }
-  function definition(file_path, light) {
-    const variant = light ? theme.light : {};
-    const parts = file_path.replace(/\\/g, "/").toLowerCase().split("/");
-    const name = parts.at(-1) || "";
-    const names = { ...theme.fileNames, ...variant.fileNames }, extensions = { ...theme.fileExtensions, ...variant.fileExtensions }, languages2 = { ...theme.languageIds, ...variant.languageIds };
-    const parent = parts.at(-2);
-    if (parent && names[parent + "/" + name]) return names[parent + "/" + name];
-    if (names[name]) return names[name];
-    const suffixes = name.split(".");
-    for (let index = 1; index < suffixes.length; index++) {
-      const suffix = suffixes.slice(index).join(".");
-      if (parent && extensions[parent + "/" + suffix]) return extensions[parent + "/" + suffix];
-      if (extensions[suffix]) return extensions[suffix];
-    }
-    const language44 = detect_file_language(file_path);
-    return languages2[language44] || (language44 === "jsonc" ? languages2.json : void 0) || variant.file || theme.file;
-  }
-  function workspace_file_icon(file_path) {
-    const node = document.createElement("span"), dark_id = definition(file_path, false), light_id = definition(file_path, true);
-    const dark = theme.iconDefinitions[dark_id], light = theme.iconDefinitions[light_id];
-    node.className = "workspace-file-theme-icon";
-    node.dataset.vscodeFileIcon = dark_id;
-    node.dataset.vscodeFileIconLight = light_id;
-    node.dataset.fileIconPath = file_path;
-    node.setAttribute("aria-hidden", "true");
-    node.textContent = String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g, ""), 16));
-    node.style.setProperty("--workspace-file-icon-light", light.fontColor || "currentColor");
-    node.style.setProperty("--workspace-file-icon-dark", dark.fontColor || "currentColor");
-    return node;
-  }
-  function bind_workspace_file_tab_icons(core) {
-    const style = acquire_workspace_file_icons();
-    const originals = /* @__PURE__ */ new Map();
-    let disposed = false;
-    const refresh = () => {
-      if (disposed) return;
-      const live_slots = /* @__PURE__ */ new Set();
-      core.app.workspace.eachLeaves((leaf) => {
-        const view_type = leaf.viewType;
-        if (view_type && view_type !== "core.markdown" && view_type !== "linux_note.source_file") return;
-        const uri = String(leaf.state.path || "");
-        const file_path = source_file_path(uri) || (!uri.startsWith("typ://") ? uri : "");
-        if (!file_path) return;
-        const tab = workspace_leaf_tab(leaf), slot = tab?.querySelector(".typ-file-icon");
-        if (!slot) return;
-        live_slots.add(slot);
-        if (!originals.has(slot)) originals.set(slot, { class_name: slot.className, nodes: [...slot.childNodes] });
-        if (slot.className !== "typ-file-icon workspace-file-theme-slot") slot.className = "typ-file-icon workspace-file-theme-slot";
-        if (slot.firstElementChild?.getAttribute("data-file-icon-path") !== file_path) slot.replaceChildren(workspace_file_icon(file_path));
-      });
-      for (const [node, old] of originals) if (!live_slots.has(node)) {
-        node.className = old.class_name;
-        node.replaceChildren(...old.nodes);
-        originals.delete(node);
-      }
-    };
-    const observer = new MutationObserver(refresh);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
-    refresh();
-    const release = core.app.workspace.on("active-leaf:change", refresh);
-    return { dispose() {
-      if (disposed) return;
-      disposed = true;
-      observer.disconnect();
-      release?.();
-      for (const [node, old] of originals) {
-        node.className = old.class_name;
-        node.replaceChildren(...old.nodes);
-      }
-      originals.clear();
-      style.remove();
-    } };
   }
 
   // node_runtime.json
@@ -193794,7 +193800,12 @@ https://creativecommons.org/licenses/by/4.0/
       const value = (file) => this.sort_order === "name" ? file.path.split("/").at(-1) : this.sort_order === "status" ? file.status : file.path;
       return value(a).localeCompare(value(b2)) || a.path.localeCompare(b2.path);
     }
-    file_entries(file, from, to, files) {
+    repository_action_available(root) {
+      if (!this.panel.disposed && root === this.panel.root) return true;
+      this.panel.report(git_graph_text("scm.repository_changed"));
+      return false;
+    }
+    file_entries(file, from, to, files, root = this.panel.root) {
       const entries3 = [
         { id: "open_diff", title: git_graph_text("scm.open_changes"), action: () => void this.open_file(file, from, to, files) },
         { id: "open_file", title: git_graph_text("scm.open_file"), disabled: file.status.startsWith("D"), action: () => void this.open_current_file(file) },
@@ -193811,7 +193822,9 @@ https://creativecommons.org/licenses/by/4.0/
         entries3.push({ id: staged ? "unstage" : "stage", title: staged ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...file.old_path ? [file.old_path] : []]) });
         if (!staged) entries3.push({ id: "discard_file", title: git_graph_text("scm.discard_change"), action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, { include_untracked: true }, [file.path]) });
       }
-      return entries3;
+      return entries3.map((entry) => ({ ...entry, action: () => {
+        if (this.repository_action_available(root)) void entry.action?.();
+      } }));
     }
     async ignore_file(file) {
       if (this.panel.writing) return;
@@ -193859,11 +193872,14 @@ https://creativecommons.org/licenses/by/4.0/
         this.panel.host.open_document({ title: git_graph_text("scm.change_title", { file: file.path.split("/").at(-1) }), file: file.path, left, right, left_label: git_graph_text("scm.readonly_label", { file: file.old_path || file.path, revision: short_revision(from) }), right_label: git_graph_text("scm.readonly_label", { file: file.path, revision: short_revision(to) }) }, "active", {
           root,
           key: JSON.stringify([from, to, file.path]),
-          menu: () => this.file_entries(file, from, to, files),
-          refresh: () => void this.open_file(file, from, to, files),
+          menu: () => this.file_entries(file, from, to, files, root),
+          refresh: () => {
+            if (this.repository_action_available(root)) void this.open_file(file, from, to, files);
+          },
           adjacent: (direction) => {
+            if (!this.repository_action_available(root)) return;
             const index = files.findIndex((item) => item.path === file.path);
-            void this.open_file(files[(index + direction + files.length) % files.length], from, to, files);
+            void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files);
           }
         });
         if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);
@@ -216840,7 +216856,7 @@ https://creativecommons.org/licenses/by/4.0/
         const row = workspace_button("", () => {
           for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
           row.classList.add("selected");
-          void this.open_diff(file);
+          void this.workbench.open_default_file(file, this.from, this.to, this.files);
         }, "git-graph-file");
         row.dataset.file = file.path;
         row.title = file.path;
@@ -223439,768 +223455,774 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_search.ts
   function bind_workspace_search(core, files) {
     const lifetime = create_workspace_lifetime();
-    const style = acquire_workspace_style("typora-code-style:workspace_search", workspace_search_default, {});
-    const runtime2 = window;
-    const runner = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
-    const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime2.reqnode("process").platform });
-    const native_sidebar = document.querySelector("#typora-sidebar");
-    const input = (label, placeholder = label) => {
-      const node = workspace_element("input");
-      node.type = "text";
-      node.placeholder = placeholder;
-      node.setAttribute("aria-label", label);
-      node.autocomplete = "off";
-      node.spellcheck = false;
-      return node;
-    };
-    const panels = /* @__PURE__ */ new Map();
-    let serial2 = 0, disposed = false;
-    class search_editor_view extends core.WorkspaceView {
-      containerEl = workspace_element("section", "workspace-search-editor");
-      icon = "fa-search";
-      onOpen() {
-        const panel2 = panels.get(this.leaf.state.path);
-        if (panel2) this.containerEl.replaceChildren(panel2);
-        else this.containerEl.textContent = "\u8BF7\u5728\u641C\u7D22\u4FA7\u680F\u91CD\u65B0\u8FD0\u884C\u641C\u7D22\u3002";
+    try {
+      const style = acquire_workspace_style("typora-code-style:workspace_search", workspace_search_default, {});
+      lifetime.add(() => style.remove());
+      const file_icon_style = acquire_workspace_file_icons();
+      lifetime.add(() => file_icon_style.remove());
+      const runtime2 = window;
+      const runner = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
+      lifetime.add(() => runner.cancel());
+      const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime2.reqnode("process").platform });
+      const native_sidebar = document.querySelector("#typora-sidebar");
+      const input = (label, placeholder = label) => {
+        const node = workspace_element("input");
+        node.type = "text";
+        node.placeholder = placeholder;
+        node.setAttribute("aria-label", label);
+        node.autocomplete = "off";
+        node.spellcheck = false;
+        return node;
+      };
+      const panels = /* @__PURE__ */ new Map();
+      let serial2 = 0, disposed = false;
+      class search_editor_view extends core.WorkspaceView {
+        containerEl = workspace_element("section", "workspace-search-editor");
+        icon = "fa-search";
+        onOpen() {
+          const panel2 = panels.get(this.leaf.state.path);
+          if (panel2) this.containerEl.replaceChildren(panel2);
+          else this.containerEl.textContent = "\u8BF7\u5728\u641C\u7D22\u4FA7\u680F\u91CD\u65B0\u8FD0\u884C\u641C\u7D22\u3002";
+        }
       }
-    }
-    lifetime.add(core.app.viewManager.registerView("linux_note.search_results", (leaf) => new search_editor_view(leaf)));
-    class search_sidebar extends core.SidebarPanel {
-      containerEl = workspace_element("section", "linux-note-workspace-search");
-      query = workspace_element("textarea");
-      replacement = input("\u66FF\u6362");
-      includes = input("\u5305\u542B\u7684\u6587\u4EF6", "\u4F8B\u5982 *.md, src/**");
-      excludes = input("\u6392\u9664\u7684\u6587\u4EF6", "\u4F8B\u5982 *.c, *.h");
-      form = workspace_element("div", "workspace-search-form");
-      results = workspace_element("div", "workspace-search-results");
-      status = workspace_element("div", "workspace-search-status");
-      replace_row = workspace_element("div", "workspace-search-input-row workspace-search-replace");
-      details = workspace_element("div", "workspace-search-details");
-      body = workspace_element("div", "workspace-search-body");
-      split = workspace_element("div", "workspace-search-split");
-      preview = create_lookup_preview(files);
-      preview_section = workspace_element("section", "workspace-search-preview-section");
-      preview_toggle = git_icon_button("chevron-down", "\u6536\u8D77\u9884\u89C8", () => this.set_preview_open(!this.preview_open));
-      preview_open = true;
-      preview_smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() - 5));
-      preview_larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() + 5));
-      preview_slider = workspace_element("input", "workspace-search-preview-slider");
-      preview_scale = workspace_element("output", "workspace-search-preview-scale");
-      scale_observer = new MutationObserver(() => this.update_preview_scale());
-      selected;
-      remembered = /* @__PURE__ */ new Map();
-      open_generation = 0;
-      options = { query: "", use_ignore: true };
-      result;
-      controller;
-      visible = false;
-      timer = 0;
-      tree = false;
-      sort = "path";
-      only_open = false;
-      only_changed = false;
-      history = [];
-      history_index = -1;
-      git_status = /* @__PURE__ */ new Map();
-      native_observer = new MutationObserver(() => this.clear_native());
-      constructor() {
-        super();
-        this.containerEl.setAttribute("data-linux-note-workspace-search", "ready");
-        const heading3 = workspace_element("div", "workspace-search-heading");
-        heading3.append(workspace_element("strong", "", "\u641C\u7D22"));
-        heading3.append(
-          git_icon_button("refresh", "\u5237\u65B0\u641C\u7D22", () => void this.search()),
-          git_icon_button("clear-all", "\u6E05\u9664\u641C\u7D22\u7ED3\u679C", () => {
+      lifetime.add(core.app.viewManager.registerView("linux_note.search_results", (leaf) => new search_editor_view(leaf)));
+      class search_sidebar extends core.SidebarPanel {
+        containerEl = workspace_element("section", "linux-note-workspace-search");
+        query = workspace_element("textarea");
+        replacement = input("\u66FF\u6362");
+        includes = input("\u5305\u542B\u7684\u6587\u4EF6", "\u4F8B\u5982 *.md, src/**");
+        excludes = input("\u6392\u9664\u7684\u6587\u4EF6", "\u4F8B\u5982 *.c, *.h");
+        form = workspace_element("div", "workspace-search-form");
+        results = workspace_element("div", "workspace-search-results");
+        status = workspace_element("div", "workspace-search-status");
+        replace_row = workspace_element("div", "workspace-search-input-row workspace-search-replace");
+        details = workspace_element("div", "workspace-search-details");
+        body = workspace_element("div", "workspace-search-body");
+        split = workspace_element("div", "workspace-search-split");
+        preview = lifetime.own(create_lookup_preview(files));
+        preview_section = workspace_element("section", "workspace-search-preview-section");
+        preview_toggle = git_icon_button("chevron-down", "\u6536\u8D77\u9884\u89C8", () => this.set_preview_open(!this.preview_open));
+        preview_open = true;
+        preview_smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() - 5));
+        preview_larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() + 5));
+        preview_slider = workspace_element("input", "workspace-search-preview-slider");
+        preview_scale = workspace_element("output", "workspace-search-preview-scale");
+        scale_observer = new MutationObserver(() => this.update_preview_scale());
+        selected;
+        remembered = /* @__PURE__ */ new Map();
+        open_generation = 0;
+        options = { query: "", use_ignore: true };
+        result;
+        controller;
+        visible = false;
+        timer = 0;
+        tree = false;
+        sort = "path";
+        only_open = false;
+        only_changed = false;
+        history = [];
+        history_index = -1;
+        git_status = /* @__PURE__ */ new Map();
+        native_observer = new MutationObserver(() => this.clear_native());
+        constructor() {
+          super();
+          lifetime.add(() => {
+            ++this.open_generation;
             clearTimeout(this.timer);
             this.controller?.abort();
-            this.controller = void 0;
-            this.clear_results();
-            this.status.textContent = "";
-          }),
-          git_icon_button("new-file", "\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\u641C\u7D22\u7ED3\u679C", () => this.open_results()),
-          git_icon_button("collapse-all", "\u5168\u90E8\u6298\u53E0\uFF0F\u5C55\u5F00", () => {
-            const nodes = [...this.results.querySelectorAll("details")];
-            const open = nodes.some((node) => !node.open);
-            nodes.forEach((node) => this.set_group_open(node, open));
-          })
-        );
-        const show_options = (event) => workspace_menu(event, [
-          { title: "\u4EE5\u5217\u8868\u663E\u793A", checked: !this.tree, action: () => {
-            this.tree = false;
-            this.render();
-          } },
-          { title: "\u4EE5\u6811\u5F62\u663E\u793A", checked: this.tree, action: () => {
-            this.tree = true;
-            this.render();
-          } },
-          { title: "\u6309\u8DEF\u5F84\u6392\u5E8F", checked: this.sort === "path", action: () => {
-            this.sort = "path";
-            this.render();
-          } },
-          { title: "\u6309\u7ED3\u679C\u6570\u6392\u5E8F", checked: this.sort === "count", action: () => {
-            this.sort = "count";
-            this.render();
-          } }
-        ]);
-        heading3.oncontextmenu = show_options;
-        heading3.append(git_icon_button("more", "\u641C\u7D22\u89C6\u56FE\u9009\u9879", show_options));
-        const query_row = workspace_element("div", "workspace-search-input-row");
-        const disclosure = git_icon_button("chevron-right", "\u5C55\u5F00\u66FF\u6362", () => {
-          const open = this.replace_row.hidden;
-          this.replace_row.hidden = !open;
-          disclosure.setAttribute("aria-expanded", String(open));
-          disclosure.title = open ? "\u6536\u8D77\u66FF\u6362" : "\u5C55\u5F00\u66FF\u6362";
-          disclosure.setAttribute("aria-label", disclosure.title);
-        });
-        disclosure.setAttribute("aria-expanded", "false");
-        disclosure.classList.add("workspace-search-replace-toggle");
-        this.query.rows = 1;
-        this.query.placeholder = "\u641C\u7D22";
-        this.query.setAttribute("aria-label", "\u641C\u7D22\u5185\u5BB9");
-        this.query.spellcheck = false;
-        const query_box = workspace_element("div", "workspace-search-query-box");
-        query_box.append(this.query);
-        const toggles = workspace_element("div", "workspace-search-input-actions");
-        const toggle = (label, key, icon) => {
-          const node = workspace_button("", () => {
-            this.options[key] = !this.options[key];
+            this.native_observer.disconnect();
+            this.scale_observer.disconnect();
+            this.containerEl.remove();
+          });
+          this.containerEl.setAttribute("data-linux-note-workspace-search", "ready");
+          const heading3 = workspace_element("div", "workspace-search-heading");
+          heading3.append(workspace_element("strong", "", "\u641C\u7D22"));
+          heading3.append(
+            git_icon_button("refresh", "\u5237\u65B0\u641C\u7D22", () => void this.search()),
+            git_icon_button("clear-all", "\u6E05\u9664\u641C\u7D22\u7ED3\u679C", () => {
+              clearTimeout(this.timer);
+              this.controller?.abort();
+              this.controller = void 0;
+              this.clear_results();
+              this.status.textContent = "";
+            }),
+            git_icon_button("new-file", "\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\u641C\u7D22\u7ED3\u679C", () => this.open_results()),
+            git_icon_button("collapse-all", "\u5168\u90E8\u6298\u53E0\uFF0F\u5C55\u5F00", () => {
+              const nodes = [...this.results.querySelectorAll("details")];
+              const open = nodes.some((node) => !node.open);
+              nodes.forEach((node) => this.set_group_open(node, open));
+            })
+          );
+          const show_options = (event) => workspace_menu(event, [
+            { title: "\u4EE5\u5217\u8868\u663E\u793A", checked: !this.tree, action: () => {
+              this.tree = false;
+              this.render();
+            } },
+            { title: "\u4EE5\u6811\u5F62\u663E\u793A", checked: this.tree, action: () => {
+              this.tree = true;
+              this.render();
+            } },
+            { title: "\u6309\u8DEF\u5F84\u6392\u5E8F", checked: this.sort === "path", action: () => {
+              this.sort = "path";
+              this.render();
+            } },
+            { title: "\u6309\u7ED3\u679C\u6570\u6392\u5E8F", checked: this.sort === "count", action: () => {
+              this.sort = "count";
+              this.render();
+            } }
+          ]);
+          heading3.oncontextmenu = show_options;
+          heading3.append(git_icon_button("more", "\u641C\u7D22\u89C6\u56FE\u9009\u9879", show_options));
+          const query_row = workspace_element("div", "workspace-search-input-row");
+          const disclosure = git_icon_button("chevron-right", "\u5C55\u5F00\u66FF\u6362", () => {
+            const open = this.replace_row.hidden;
+            this.replace_row.hidden = !open;
+            disclosure.setAttribute("aria-expanded", String(open));
+            disclosure.title = open ? "\u6536\u8D77\u66FF\u6362" : "\u5C55\u5F00\u66FF\u6362";
+            disclosure.setAttribute("aria-label", disclosure.title);
+          });
+          disclosure.setAttribute("aria-expanded", "false");
+          disclosure.classList.add("workspace-search-replace-toggle");
+          this.query.rows = 1;
+          this.query.placeholder = "\u641C\u7D22";
+          this.query.setAttribute("aria-label", "\u641C\u7D22\u5185\u5BB9");
+          this.query.spellcheck = false;
+          const query_box = workspace_element("div", "workspace-search-query-box");
+          query_box.append(this.query);
+          const toggles = workspace_element("div", "workspace-search-input-actions");
+          const toggle = (label, key, icon) => {
+            const node = workspace_button("", () => {
+              this.options[key] = !this.options[key];
+              node.setAttribute("aria-pressed", String(Boolean(this.options[key])));
+              this.schedule();
+            });
+            node.title = label;
+            node.setAttribute("aria-label", label);
             node.setAttribute("aria-pressed", String(Boolean(this.options[key])));
+            node.dataset.searchOption = key;
+            node.replaceChildren(git_icon(icon));
+            return node;
+          };
+          toggles.append(toggle("\u533A\u5206\u5927\u5C0F\u5199", "case_sensitive", "case-sensitive"), toggle("\u5168\u5B57\u5339\u914D", "whole_word", "whole-word"), toggle("\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", "regex", "regex"));
+          query_box.append(toggles);
+          query_row.append(disclosure, query_box);
+          const replace_box = workspace_element("div", "workspace-search-query-box");
+          replace_box.append(this.replacement, toggle("\u4FDD\u7559\u5927\u5C0F\u5199", "preserve_case", "preserve-case"));
+          this.replace_row.append(replace_box, git_icon_button("replace-all", "\u5168\u90E8\u66FF\u6362\uFF08\u5148\u9884\u89C8\uFF09", () => void this.replace()));
+          this.replace_row.hidden = true;
+          const options_row = workspace_element("div", "workspace-search-options-row");
+          const include_label = workspace_element("label", "", "\u5305\u542B\u7684\u6587\u4EF6");
+          this.includes.id = "linux-note-search-include";
+          include_label.htmlFor = this.includes.id;
+          const more = git_icon_button("more", "\u663E\u793A\uFF0F\u9690\u85CF\u641C\u7D22\u8BE6\u7EC6\u4FE1\u606F", () => {
+            this.details.hidden = !this.details.hidden;
+            include_label.hidden = this.details.hidden;
+            more.setAttribute("aria-expanded", String(!this.details.hidden));
+          });
+          more.setAttribute("aria-expanded", "true");
+          options_row.append(include_label, more);
+          const include_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
+          const only_changed = git_icon_button("edit-code", "\u4EC5\u641C\u7D22\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6", () => {
+            this.only_changed = !this.only_changed;
+            if (this.only_changed) this.only_open = false;
+            update_scope();
             this.schedule();
           });
-          node.title = label;
-          node.setAttribute("aria-label", label);
-          node.setAttribute("aria-pressed", String(Boolean(this.options[key])));
-          node.dataset.searchOption = key;
-          node.replaceChildren(git_icon(icon));
-          return node;
-        };
-        toggles.append(toggle("\u533A\u5206\u5927\u5C0F\u5199", "case_sensitive", "case-sensitive"), toggle("\u5168\u5B57\u5339\u914D", "whole_word", "whole-word"), toggle("\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", "regex", "regex"));
-        query_box.append(toggles);
-        query_row.append(disclosure, query_box);
-        const replace_box = workspace_element("div", "workspace-search-query-box");
-        replace_box.append(this.replacement, toggle("\u4FDD\u7559\u5927\u5C0F\u5199", "preserve_case", "preserve-case"));
-        this.replace_row.append(replace_box, git_icon_button("replace-all", "\u5168\u90E8\u66FF\u6362\uFF08\u5148\u9884\u89C8\uFF09", () => void this.replace()));
-        this.replace_row.hidden = true;
-        const options_row = workspace_element("div", "workspace-search-options-row");
-        const include_label = workspace_element("label", "", "\u5305\u542B\u7684\u6587\u4EF6");
-        this.includes.id = "linux-note-search-include";
-        include_label.htmlFor = this.includes.id;
-        const more = git_icon_button("more", "\u663E\u793A\uFF0F\u9690\u85CF\u641C\u7D22\u8BE6\u7EC6\u4FE1\u606F", () => {
-          this.details.hidden = !this.details.hidden;
-          include_label.hidden = this.details.hidden;
-          more.setAttribute("aria-expanded", String(!this.details.hidden));
-        });
-        more.setAttribute("aria-expanded", "true");
-        options_row.append(include_label, more);
-        const include_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
-        const only_changed = git_icon_button("edit-code", "\u4EC5\u641C\u7D22\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6", () => {
-          this.only_changed = !this.only_changed;
-          if (this.only_changed) this.only_open = false;
-          update_scope();
-          this.schedule();
-        });
-        const only_open = git_icon_button("book", "\u4EC5\u641C\u7D22\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668", () => {
-          this.only_open = !this.only_open;
-          if (this.only_open) this.only_changed = false;
-          update_scope();
-          this.schedule();
-        });
-        const update_scope = () => {
-          only_open.setAttribute("aria-pressed", String(this.only_open));
-          only_changed.setAttribute("aria-pressed", String(this.only_changed));
-        };
-        update_scope();
-        include_box.append(this.includes, only_changed, only_open);
-        const exclude_label = workspace_element("label", "workspace-search-exclude-label", "\u6392\u9664\u7684\u6587\u4EF6");
-        this.excludes.id = "linux-note-search-exclude";
-        exclude_label.htmlFor = this.excludes.id;
-        const exclude_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
-        const ignore = git_icon_button("exclude", "\u4F7F\u7528 .gitignore \u548C\u9ED8\u8BA4\u6392\u9664\u8BBE\u7F6E", () => {
-          this.options.use_ignore = !this.options.use_ignore;
-          ignore.setAttribute("aria-pressed", String(this.options.use_ignore));
-          this.schedule();
-        });
-        ignore.setAttribute("aria-pressed", "true");
-        exclude_box.append(this.excludes, ignore);
-        this.details.append(include_box, exclude_label, exclude_box);
-        this.form.append(query_row, this.replace_row, options_row, this.details, this.status);
-        const preview_heading = workspace_element("div", "workspace-search-preview-heading");
-        preview_heading.setAttribute("role", "toolbar");
-        preview_heading.setAttribute("aria-label", "\u9884\u89C8\u5DE5\u5177\u680F");
-        this.preview_toggle.append(workspace_element("span", "", "\u9884\u89C8"));
-        this.preview_toggle.setAttribute("aria-expanded", "true");
-        this.preview_slider.type = "range";
-        this.preview_slider.min = "50";
-        this.preview_slider.max = "150";
-        this.preview_slider.step = "1";
-        this.preview_slider.setAttribute("aria-label", "\u9884\u89C8\u5B57\u53F7\u6BD4\u4F8B");
-        this.preview_slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
-        this.preview_slider.oninput = () => this.preview.set_scale(Number(this.preview_slider.value));
-        this.preview_scale.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
-        const preview_actions = workspace_element("div", "workspace-search-preview-actions");
-        preview_actions.append(this.preview_smaller, this.preview_slider, this.preview_scale, this.preview_larger);
-        preview_heading.append(this.preview_toggle, preview_actions);
-        this.preview_section.append(preview_heading, this.preview.container);
-        this.preview_section.hidden = true;
-        this.scale_observer.observe(this.preview.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
-        this.update_preview_scale();
-        this.split.tabIndex = 0;
-        this.split.setAttribute("role", "separator");
-        this.split.setAttribute("aria-orientation", "horizontal");
-        this.split.setAttribute("aria-label", "\u8C03\u6574\u641C\u7D22\u7ED3\u679C\u4E0E\u9884\u89C8\u9AD8\u5EA6");
-        this.split.setAttribute("aria-valuemin", "15");
-        this.split.setAttribute("aria-valuemax", "75");
-        this.split.hidden = true;
-        this.set_split(40);
-        this.body.append(this.results, this.split, this.preview_section);
-        this.status.setAttribute("role", "status");
-        this.results.setAttribute("aria-label", "\u6587\u4EF6\u641C\u7D22\u7ED3\u679C");
-        this.containerEl.append(heading3, this.form, this.body);
-        this.query.oninput = () => {
-          this.query.style.height = "auto";
-          this.query.style.height = Math.min(100, this.query.scrollHeight) + "px";
-          this.schedule();
-        };
-        this.includes.oninput = this.excludes.oninput = () => this.schedule();
-        this.query.onkeydown = (event) => {
-          if (event.isComposing || event.keyCode === 229) return;
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            void this.search();
-          }
-          if (event.key === "Escape") {
-            event.preventDefault();
-            clearTimeout(this.timer);
-            this.timer = 0;
-            this.controller?.abort();
-            if (this.containerEl.dataset.state === "waiting") {
-              this.containerEl.dataset.state = "stopped";
-              this.status.textContent = "\u5DF2\u505C\u6B62\u641C\u7D22";
-            }
-          }
-          if ((event.key === "ArrowUp" || event.key === "ArrowDown") && event.altKey && this.history.length) {
-            event.preventDefault();
-            this.history_index = Math.max(0, Math.min(this.history.length - 1, this.history_index + (event.key === "ArrowUp" ? 1 : -1)));
-            this.query.value = this.history[this.history_index];
+          const only_open = git_icon_button("book", "\u4EC5\u641C\u7D22\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668", () => {
+            this.only_open = !this.only_open;
+            if (this.only_open) this.only_changed = false;
+            update_scope();
             this.schedule();
-          }
-        };
-        this.containerEl.addEventListener("keydown", (event) => event.stopPropagation());
-        this.split.onpointerdown = (event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          this.split.focus({ preventScroll: true });
-          this.split.setPointerCapture(event.pointerId);
-          const move = (next) => {
-            const box = this.body.getBoundingClientRect();
-            this.set_split((next.clientY - box.top) / Math.max(1, box.height) * 100);
+          });
+          const update_scope = () => {
+            only_open.setAttribute("aria-pressed", String(this.only_open));
+            only_changed.setAttribute("aria-pressed", String(this.only_changed));
           };
-          const stop = () => {
-            this.split.removeEventListener("pointermove", move);
-            this.split.removeEventListener("pointerup", stop);
-            this.split.removeEventListener("pointercancel", stop);
-            this.split.removeEventListener("lostpointercapture", stop);
+          update_scope();
+          include_box.append(this.includes, only_changed, only_open);
+          const exclude_label = workspace_element("label", "workspace-search-exclude-label", "\u6392\u9664\u7684\u6587\u4EF6");
+          this.excludes.id = "linux-note-search-exclude";
+          exclude_label.htmlFor = this.excludes.id;
+          const exclude_box = workspace_element("div", "workspace-search-query-box workspace-search-pattern-box");
+          const ignore = git_icon_button("exclude", "\u4F7F\u7528 .gitignore \u548C\u9ED8\u8BA4\u6392\u9664\u8BBE\u7F6E", () => {
+            this.options.use_ignore = !this.options.use_ignore;
+            ignore.setAttribute("aria-pressed", String(this.options.use_ignore));
+            this.schedule();
+          });
+          ignore.setAttribute("aria-pressed", "true");
+          exclude_box.append(this.excludes, ignore);
+          this.details.append(include_box, exclude_label, exclude_box);
+          this.form.append(query_row, this.replace_row, options_row, this.details, this.status);
+          const preview_heading = workspace_element("div", "workspace-search-preview-heading");
+          preview_heading.setAttribute("role", "toolbar");
+          preview_heading.setAttribute("aria-label", "\u9884\u89C8\u5DE5\u5177\u680F");
+          this.preview_toggle.append(workspace_element("span", "", "\u9884\u89C8"));
+          this.preview_toggle.setAttribute("aria-expanded", "true");
+          this.preview_slider.type = "range";
+          this.preview_slider.min = "50";
+          this.preview_slider.max = "150";
+          this.preview_slider.step = "1";
+          this.preview_slider.setAttribute("aria-label", "\u9884\u89C8\u5B57\u53F7\u6BD4\u4F8B");
+          this.preview_slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
+          this.preview_slider.oninput = () => this.preview.set_scale(Number(this.preview_slider.value));
+          this.preview_scale.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
+          const preview_actions = workspace_element("div", "workspace-search-preview-actions");
+          preview_actions.append(this.preview_smaller, this.preview_slider, this.preview_scale, this.preview_larger);
+          preview_heading.append(this.preview_toggle, preview_actions);
+          this.preview_section.append(preview_heading, this.preview.container);
+          this.preview_section.hidden = true;
+          this.scale_observer.observe(this.preview.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
+          this.update_preview_scale();
+          this.split.tabIndex = 0;
+          this.split.setAttribute("role", "separator");
+          this.split.setAttribute("aria-orientation", "horizontal");
+          this.split.setAttribute("aria-label", "\u8C03\u6574\u641C\u7D22\u7ED3\u679C\u4E0E\u9884\u89C8\u9AD8\u5EA6");
+          this.split.setAttribute("aria-valuemin", "15");
+          this.split.setAttribute("aria-valuemax", "75");
+          this.split.hidden = true;
+          this.set_split(40);
+          this.body.append(this.results, this.split, this.preview_section);
+          this.status.setAttribute("role", "status");
+          this.results.setAttribute("aria-label", "\u6587\u4EF6\u641C\u7D22\u7ED3\u679C");
+          this.containerEl.append(heading3, this.form, this.body);
+          this.query.oninput = () => {
+            this.query.style.height = "auto";
+            this.query.style.height = Math.min(100, this.query.scrollHeight) + "px";
+            this.schedule();
           };
-          this.split.addEventListener("pointermove", move);
-          this.split.addEventListener("pointerup", stop);
-          this.split.addEventListener("pointercancel", stop);
-          this.split.addEventListener("lostpointercapture", stop);
-        };
-        this.split.onkeydown = (event) => {
-          if (["ArrowUp", "ArrowDown"].includes(event.key)) {
+          this.includes.oninput = this.excludes.oninput = () => this.schedule();
+          this.query.onkeydown = (event) => {
+            if (event.isComposing || event.keyCode === 229) return;
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              void this.search();
+            }
+            if (event.key === "Escape") {
+              event.preventDefault();
+              clearTimeout(this.timer);
+              this.timer = 0;
+              this.controller?.abort();
+              if (this.containerEl.dataset.state === "waiting") {
+                this.containerEl.dataset.state = "stopped";
+                this.status.textContent = "\u5DF2\u505C\u6B62\u641C\u7D22";
+              }
+            }
+            if ((event.key === "ArrowUp" || event.key === "ArrowDown") && event.altKey && this.history.length) {
+              event.preventDefault();
+              this.history_index = Math.max(0, Math.min(this.history.length - 1, this.history_index + (event.key === "ArrowUp" ? 1 : -1)));
+              this.query.value = this.history[this.history_index];
+              this.schedule();
+            }
+          };
+          this.containerEl.addEventListener("keydown", (event) => event.stopPropagation());
+          this.split.onpointerdown = (event) => {
+            if (event.button !== 0) return;
             event.preventDefault();
-            this.set_split(Number(this.split.getAttribute("aria-valuenow")) + (event.key === "ArrowUp" ? -5 : 5));
-          }
-        };
-      }
-      set_split(value) {
-        value = Math.max(15, Math.min(75, Math.round(value)));
-        this.body.style.setProperty("--search-results-size", "".concat(value, "%"));
-        this.split.setAttribute("aria-valuenow", String(value));
-      }
-      set_preview_open(open) {
-        this.preview_open = open;
-        this.preview_section.classList.toggle("is-collapsed", !open);
-        this.preview.container.hidden = !open;
-        this.split.hidden = !open || this.preview_section.hidden;
-        this.body.classList.toggle("has-preview", open && !this.preview_section.hidden);
-        this.preview_toggle.setAttribute("aria-expanded", String(open));
-        this.preview_toggle.title = open ? "\u6536\u8D77\u9884\u89C8" : "\u5C55\u5F00\u9884\u89C8";
-        this.preview_toggle.setAttribute("aria-label", this.preview_toggle.title);
-      }
-      clear_results() {
-        ++this.open_generation;
-        this.result = void 0;
-        this.selected = void 0;
-        this.results.replaceChildren();
-        this.preview_section.hidden = true;
-        this.split.hidden = true;
-        this.body.classList.remove("has-preview");
-        this.containerEl.dataset.state = "waiting";
-      }
-      clear_native() {
-        if (this.visible && native_sidebar) {
-          const classes = ["active-tab-files", "active-tab-outline", "ty-show-search", "ty-on-search"];
-          if (classes.some((name) => native_sidebar.classList.contains(name))) native_sidebar.classList.remove(...classes);
+            this.split.focus({ preventScroll: true });
+            this.split.setPointerCapture(event.pointerId);
+            const move = (next) => {
+              const box = this.body.getBoundingClientRect();
+              this.set_split((next.clientY - box.top) / Math.max(1, box.height) * 100);
+            };
+            const stop = () => {
+              this.split.removeEventListener("pointermove", move);
+              this.split.removeEventListener("pointerup", stop);
+              this.split.removeEventListener("pointercancel", stop);
+              this.split.removeEventListener("lostpointercapture", stop);
+            };
+            this.split.addEventListener("pointermove", move);
+            this.split.addEventListener("pointerup", stop);
+            this.split.addEventListener("pointercancel", stop);
+            this.split.addEventListener("lostpointercapture", stop);
+          };
+          this.split.onkeydown = (event) => {
+            if (["ArrowUp", "ArrowDown"].includes(event.key)) {
+              event.preventDefault();
+              this.set_split(Number(this.split.getAttribute("aria-valuenow")) + (event.key === "ArrowUp" ? -5 : 5));
+            }
+          };
         }
-      }
-      onshow() {
-        this.visible = true;
-        this.clear_native();
-        if (native_sidebar) this.native_observer.observe(native_sidebar, { attributes: true, attributeFilter: ["class"] });
-      }
-      onhide() {
-        this.visible = false;
-        this.native_observer.disconnect();
-      }
-      schedule() {
-        clearTimeout(this.timer);
-        this.controller?.abort();
-        this.controller = void 0;
-        this.clear_results();
-        this.status.textContent = "";
-        this.timer = window.setTimeout(() => void this.search(), 250);
-      }
-      path_key(path) {
-        return file_key(files.path_api.resolve(path));
-      }
-      async read_git_status(root) {
-        const statuses = /* @__PURE__ */ new Map();
-        try {
-          const git_root = (await runner.run(root, ["rev-parse", "--show-toplevel"])).trim();
-          const changes = parse_status(await runner.run(git_root, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]));
-          for (const change of changes) {
-            const status2 = change.status === "??" ? "U" : change.work_status?.trim() || change.index_status?.trim() || change.status;
-            statuses.set(this.path_key(files.path_api.resolve(git_root, change.path)), status2);
-          }
-          return { statuses, changed_files: changes.map((change) => files.path_api.resolve(git_root, change.path)) };
-        } catch {
-          return { statuses, changed_files: void 0 };
+        set_split(value) {
+          value = Math.max(15, Math.min(75, Math.round(value)));
+          this.body.style.setProperty("--search-results-size", "".concat(value, "%"));
+          this.split.setAttribute("aria-valuenow", String(value));
         }
-      }
-      update_preview_scale() {
-        const scale = this.preview.get_scale();
-        this.preview_scale.value = "".concat(scale, "%");
-        this.preview_slider.value = String(scale);
-        this.preview_slider.setAttribute("aria-valuetext", "".concat(scale, "%"));
-        this.preview_smaller.disabled = scale <= 50;
-        this.preview_larger.disabled = scale >= 150;
-      }
-      update_status() {
-        const result = this.result;
-        if (!result) return;
-        const count = result.counts;
-        this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "") + (result.limit_reached ? " \xB7 \u5DF2\u8FBE\u5230\u7ED3\u679C\u4E0A\u9650" : "")));
-        if (count.matches) this.status.append(workspace_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
-        if (result.notices.length) {
-          const note = workspace_element("details", "workspace-search-notices");
-          note.append(workspace_element("summary", "", "\u641C\u7D22\u8303\u56F4\u8BF4\u660E"), workspace_element("p", "", result.notices.join("\n")));
-          this.status.append(note);
+        set_preview_open(open) {
+          this.preview_open = open;
+          this.preview_section.classList.toggle("is-collapsed", !open);
+          this.preview.container.hidden = !open;
+          this.split.hidden = !open || this.preview_section.hidden;
+          this.body.classList.toggle("has-preview", open && !this.preview_section.hidden);
+          this.preview_toggle.setAttribute("aria-expanded", String(open));
+          this.preview_toggle.title = open ? "\u6536\u8D77\u9884\u89C8" : "\u5C55\u5F00\u9884\u89C8";
+          this.preview_toggle.setAttribute("aria-label", this.preview_toggle.title);
         }
-      }
-      remove_result(file, group) {
-        const result = this.result;
-        if (!result || !result.files.includes(file)) return;
-        result.files = result.files.filter((item) => item !== file);
-        result.counts.matched_files = result.files.length;
-        result.counts.matches = result.files.reduce((sum, item) => sum + item.matches.length, 0);
-        group.remove();
-        this.update_status();
-        this.render();
-        if (this.selected?.file === file) {
+        clear_results() {
+          ++this.open_generation;
+          this.result = void 0;
           this.selected = void 0;
+          this.results.replaceChildren();
           this.preview_section.hidden = true;
           this.split.hidden = true;
           this.body.classList.remove("has-preview");
-          ++this.open_generation;
+          this.containerEl.dataset.state = "waiting";
         }
-      }
-      async search() {
-        clearTimeout(this.timer);
-        this.timer = 0;
-        this.controller?.abort();
-        this.controller = void 0;
-        this.clear_results();
-        if (!this.query.value || disposed) {
+        clear_native() {
+          if (this.visible && native_sidebar) {
+            const classes = ["active-tab-files", "active-tab-outline", "ty-show-search", "ty-on-search"];
+            if (classes.some((name) => native_sidebar.classList.contains(name))) native_sidebar.classList.remove(...classes);
+          }
+        }
+        onshow() {
+          this.visible = true;
+          this.clear_native();
+          if (native_sidebar) this.native_observer.observe(native_sidebar, { attributes: true, attributeFilter: ["class"] });
+        }
+        onhide() {
+          this.visible = false;
+          this.native_observer.disconnect();
+        }
+        schedule() {
+          clearTimeout(this.timer);
+          this.controller?.abort();
+          this.controller = void 0;
+          this.clear_results();
           this.status.textContent = "";
-          return;
+          this.timer = window.setTimeout(() => void this.search(), 250);
         }
-        const controller = new AbortController();
-        this.controller = controller;
-        this.containerEl.dataset.state = "searching";
-        this.status.textContent = "\u6B63\u5728\u641C\u7D22\u2026";
-        const stop = git_icon_button("search-stop", "\u505C\u6B62\u641C\u7D22", () => controller.abort());
-        this.status.append(stop);
-        const open_files = [];
-        if (this.only_open) core.app.workspace.eachLeaves((leaf) => {
-          const source_path = source_file_path(leaf.state.path, files.path_api);
-          if (files.path_api.isAbsolute(leaf.state.path)) open_files.push(leaf.state.path);
-          else if (source_path) open_files.push(source_path);
-        });
-        try {
-          const root = files.context_root();
-          const git = await this.read_git_status(root);
-          if (disposed || this.controller !== controller) return;
-          if (this.only_changed && !git.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
-          this.git_status = git.statuses;
-          const scope = this.only_changed ? git.changed_files : this.only_open ? open_files : void 0;
-          const result = await engine.search(root, { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {} }, { signal: controller.signal });
-          if (disposed || this.controller !== controller) return;
-          this.result = result;
-          this.containerEl.dataset.state = result.cancelled ? "stopped" : "ready";
-          this.render();
-          this.history = [this.query.value, ...this.history.filter((value) => value !== this.query.value)].slice(0, 30);
-          this.history_index = -1;
+        path_key(path) {
+          return file_key(files.path_api.resolve(path));
+        }
+        async read_git_status(root) {
+          const statuses = /* @__PURE__ */ new Map();
+          try {
+            const git_root = (await runner.run(root, ["rev-parse", "--show-toplevel"])).trim();
+            const changes = parse_status(await runner.run(git_root, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]));
+            for (const change of changes) {
+              const status2 = change.status === "??" ? "U" : change.work_status?.trim() || change.index_status?.trim() || change.status;
+              statuses.set(this.path_key(files.path_api.resolve(git_root, change.path)), status2);
+            }
+            return { statuses, changed_files: changes.map((change) => files.path_api.resolve(git_root, change.path)) };
+          } catch {
+            return { statuses, changed_files: void 0 };
+          }
+        }
+        update_preview_scale() {
+          const scale = this.preview.get_scale();
+          this.preview_scale.value = "".concat(scale, "%");
+          this.preview_slider.value = String(scale);
+          this.preview_slider.setAttribute("aria-valuetext", "".concat(scale, "%"));
+          this.preview_smaller.disabled = scale <= 50;
+          this.preview_larger.disabled = scale >= 150;
+        }
+        update_status() {
+          const result = this.result;
+          if (!result) return;
+          const count = result.counts;
+          this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "") + (result.limit_reached ? " \xB7 \u5DF2\u8FBE\u5230\u7ED3\u679C\u4E0A\u9650" : "")));
+          if (count.matches) this.status.append(workspace_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
+          if (result.notices.length) {
+            const note = workspace_element("details", "workspace-search-notices");
+            note.append(workspace_element("summary", "", "\u641C\u7D22\u8303\u56F4\u8BF4\u660E"), workspace_element("p", "", result.notices.join("\n")));
+            this.status.append(note);
+          }
+        }
+        remove_result(file, group) {
+          const result = this.result;
+          if (!result || !result.files.includes(file)) return;
+          result.files = result.files.filter((item) => item !== file);
+          result.counts.matched_files = result.files.length;
+          result.counts.matches = result.files.reduce((sum, item) => sum + item.matches.length, 0);
+          group.remove();
           this.update_status();
-          if (!result.cancelled && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
-        } catch (error) {
-          if (!disposed && this.controller === controller) {
-            this.containerEl.dataset.state = "error";
-            this.status.textContent = String(error);
-            this.results.replaceChildren();
+          this.render();
+          if (this.selected?.file === file) {
+            this.selected = void 0;
+            this.preview_section.hidden = true;
+            this.split.hidden = true;
+            this.body.classList.remove("has-preview");
+            ++this.open_generation;
           }
         }
-      }
-      set_group_open(group, open) {
-        group.open = open;
-        const toggle = group.querySelector(":scope>summary>.workspace-search-file-toggle");
-        if (toggle) {
-          toggle.setAttribute("aria-expanded", String(open));
-          toggle.title = "".concat(open ? "\u6536\u8D77" : "\u5C55\u5F00", " ").concat(group.querySelector("summary")?.title || "\u6587\u4EF6", " \u7684\u5339\u914D\u9879");
-          toggle.setAttribute("aria-label", toggle.title);
-        }
-      }
-      render(target = this.results) {
-        const open_states = new Map([...target.querySelectorAll("details[data-search-group]")].map((node) => [node.getAttribute("data-search-group"), node.open]));
-        target.replaceChildren();
-        if (!this.result) return;
-        const sorted = [...this.result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : a.relative_path.localeCompare(b2.relative_path, "zh-CN", { numeric: true }));
-        const directories = /* @__PURE__ */ new Map();
-        for (const file of sorted) {
-          let parent = target;
-          if (this.tree) {
-            const parts = file.relative_path.split("/").slice(0, -1);
-            let key = "";
-            for (const part of parts) {
-              key += part + "/";
-              let nested = directories.get(key);
-              if (!nested) {
-                const folder = workspace_element("details", "workspace-search-directory");
-                const state_key2 = "directory:" + key;
-                folder.setAttribute("data-search-group", state_key2);
-                folder.open = open_states.get(state_key2) ?? true;
-                const summary2 = workspace_element("summary");
-                summary2.append(git_disclosure(), workspace_element("span", "", part));
-                folder.append(summary2);
-                parent.append(folder);
-                directories.set(key, folder);
-                nested = folder;
-              }
-              parent = nested;
-            }
+        async search() {
+          clearTimeout(this.timer);
+          this.timer = 0;
+          this.controller?.abort();
+          this.controller = void 0;
+          this.clear_results();
+          if (!this.query.value || disposed) {
+            this.status.textContent = "";
+            return;
           }
-          const group = workspace_element("details", "workspace-search-file"), state_key = "file:" + file.file_path;
-          group.setAttribute("data-search-group", state_key);
-          group.open = open_states.get(state_key) ?? true;
-          group.dataset.path = file.file_path;
-          const summary = workspace_element("summary");
-          summary.title = file.relative_path;
-          summary.tabIndex = 0;
-          const label = workspace_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
-          const path = workspace_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
-          const disclosure = workspace_button("", () => {
-          }, "workspace-search-file-toggle");
-          disclosure.append(git_disclosure());
-          disclosure.onclick = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.set_group_open(group, !group.open);
-          };
-          disclosure.onkeydown = (event) => {
-            if (!["Enter", " "].includes(event.key)) return;
-            event.preventDefault();
-            event.stopPropagation();
-            this.set_group_open(group, !group.open);
-          };
-          summary.append(disclosure, git_icon("file"), label, path);
-          const git_status = this.git_status.get(this.path_key(file.file_path));
-          if (git_status) {
-            const badge = workspace_element("span", "workspace-search-git-status", git_status);
-            badge.dataset.status = git_status;
-            badge.title = { M: "\u5DF2\u4FEE\u6539", A: "\u5DF2\u6DFB\u52A0", D: "\u5DF2\u5220\u9664", R: "\u5DF2\u91CD\u547D\u540D", C: "\u5DF2\u590D\u5236", U: "\u672A\u8DDF\u8E2A\u6216\u5B58\u5728\u51B2\u7A81" }[git_status] || git_status;
-            summary.append(badge);
-          }
-          const actions = workspace_element("span", "workspace-search-file-actions");
-          const count = workspace_element("span", "workspace-search-file-count", String(file.matches.length));
-          const remove = git_icon_button("close", "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", () => this.remove_result(file, group), "workspace-search-remove");
-          remove.onclick = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            this.remove_result(file, group);
-          };
-          actions.append(count, remove);
-          summary.append(actions);
-          summary.onclick = (event) => {
-            if (event.target.closest("button")) return;
-            event.preventDefault();
-            this.select(file, this.file_match(file));
-          };
-          summary.onfocus = () => this.select(file, this.file_match(file));
-          summary.ondblclick = (event) => {
-            if (event.target.closest("button,.git-disclosure-icon")) return;
-            event.preventDefault();
-            this.open_match(file, this.file_match(file));
-          };
-          summary.onkeydown = (event) => {
-            if (event.target !== summary) return;
-            this.navigate(event, summary, file, () => this.file_match(file), target);
-          };
-          summary.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);
-          group.append(summary);
-          this.set_group_open(group, group.open);
-          for (const match2 of file.matches) {
-            const row = workspace_button("", () => this.select(file, match2), "workspace-search-match");
-            row.dataset.matchId = match2.id;
-            row.title = "".concat(file.relative_path, ":").concat(match2.line, ":").concat(match2.column, "\n").concat(match2.preview);
-            row.setAttribute("aria-label", "".concat(file.relative_path, "\uFF0C\u7B2C ").concat(match2.line, " \u884C\uFF0C\u7B2C ").concat(match2.column, " \u5217\uFF1A").concat(match2.preview));
-            row.append(workspace_element("span", "workspace-search-line", String(match2.line)));
-            const preview = workspace_element("span", "workspace-search-preview");
-            let start = 0;
-            for (const range2 of match2.preview_ranges) {
-              preview.append(document.createTextNode(match2.preview.slice(start, range2.start)), workspace_element("mark", "", match2.preview.slice(range2.start, range2.end)));
-              start = range2.end;
-            }
-            preview.append(document.createTextNode(match2.preview.slice(start)));
-            row.append(preview);
-            row.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5339\u914D\u4F4D\u7F6E", action: () => this.open_match(file, match2) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => this.open_match(file, match2, "right") }, { title: "\u590D\u5236\u5339\u914D\u884C", action: () => files.copy(match2.preview) }, { title: "\u66FF\u6362\u6B64\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path, [match2.id]) }]);
-            row.onfocus = () => this.select(file, match2);
-            row.ondblclick = (event) => {
-              event.preventDefault();
-              this.open_match(file, match2);
-            };
-            row.onkeydown = (event) => this.navigate(event, row, file, () => match2, target);
-            group.append(row);
-          }
-          parent.append(group);
-        }
-      }
-      file_match(file) {
-        return file.matches.find((match2) => match2.id === this.remembered.get(file.file_path)) || file.matches[0];
-      }
-      select(file, match2) {
-        if (!match2 || disposed) return;
-        this.preview_section.hidden = false;
-        this.set_preview_open(true);
-        if (this.selected?.file === file && this.selected.match === match2) return;
-        ++this.open_generation;
-        this.selected = { file, match: match2 };
-        this.remembered.set(file.file_path, match2.id);
-        for (const row of this.results.querySelectorAll("[data-match-id]")) {
-          const selected = row.dataset.matchId === match2.id;
-          row.classList.toggle("is-selected", selected);
-          row.setAttribute("aria-current", String(selected));
-        }
-        for (const group of this.results.querySelectorAll(".workspace-search-file")) group.querySelector("summary")?.classList.toggle("is-selected", group.dataset.path === file.file_path);
-        void Promise.resolve(this.preview.show(file, match2)).catch((error) => {
-          if (!disposed && this.selected?.match === match2) this.status.textContent = String(error);
-        });
-      }
-      navigate(event, row, file, match2, target) {
-        if (event.isComposing) return;
-        if (event.key === "Enter") {
-          event.preventDefault();
-          this.open_match(file, match2());
-          return;
-        }
-        if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
-        event.preventDefault();
-        const rows = [...target.querySelectorAll(".workspace-search-file>summary,.workspace-search-match")].filter((node) => node.getClientRects().length);
-        rows[Math.max(0, Math.min(rows.length - 1, rows.indexOf(row) + (event.key === "ArrowUp" ? -1 : 1)))]?.focus();
-      }
-      open_match(file, match2, group = "active") {
-        const generation = ++this.open_generation;
-        const current = () => !disposed && generation === this.open_generation;
-        void (async () => {
-          const stat = await files.fs.promises.stat(file.file_path);
-          if (!current()) return;
-          if (!stat.isFile() || stat.size > 16 * 1024 * 1024) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
-          const bytes = await files.fs.promises.readFile(file.file_path);
-          if (!current()) return;
-          if (detect_binary_bytes(bytes)) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
-          const text3 = decode_file_bytes(bytes).text;
-          const position2 = (offset) => {
-            const newline3 = /\r\n|\r|\n/gu;
-            let line = 1, start = 0, found;
-            while ((found = newline3.exec(text3)) && found.index + found[0].length <= offset) {
-              line++;
-              start = found.index + found[0].length;
-            }
-            return { line, column: offset - start + 1 };
-          };
-          const from = position2(match2.start), to = position2(match2.end);
-          if (text3.slice(match2.start, match2.end) !== match2.text || from.line !== match2.line || from.column !== match2.column || to.line !== match2.end_line || to.column !== match2.end_column) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u540E\u91CD\u65B0\u6253\u5F00\u3002");
-          await files.open_file(file.file_path, { line: match2.line, column: match2.column, end_line: match2.end_line, end_column: match2.end_column, source: !is_markdown_file(file.file_path), expected_text: match2.text }, group);
-        })().catch((error) => {
-          if (current()) this.status.textContent = String(error instanceof Error ? error.message : error);
-        });
-      }
-      open_results() {
-        if (!this.result) return;
-        const panel2 = workspace_element("div", "workspace-search-editor-results");
-        panel2.append(workspace_element("h3", "", "\u641C\u7D22\uFF1A".concat(this.result.options.query)));
-        const list3 = workspace_element("div");
-        this.render(list3);
-        panel2.append(list3);
-        const uri = "typ://linux_note.search_results/".concat(++serial2, "/\u641C\u7D22\u7ED3\u679C");
-        panels.set(uri, panel2);
-        const parent = core.app.workspace.activeLeaf?.parent;
-        if (!parent) return;
-        const leaf = core.app.workspace.createLeaf({ type: "linux_note.search_results", state: { path: uri, git_cwd: files.context_root() } });
-        parent.appendChild(leaf);
-        core.app.workspace.activeLeaf = leaf;
-      }
-      async replace(file_path, match_ids) {
-        if (!this.result) return;
-        const dialog = workspace_dialog("\u66FF\u6362\u9884\u89C8");
-        lifetime.add(() => dialog.close());
-        const editors = [];
-        const original_close = dialog.close;
-        dialog.close = () => {
-          editors.forEach((editor2) => editor2.dispose());
-          original_close();
-        };
-        const cleanup = new MutationObserver(() => {
-          if (!dialog.root.isConnected) {
-            editors.splice(0).forEach((editor2) => editor2.dispose());
-            cleanup.disconnect();
-          }
-        });
-        cleanup.observe(document.body, { childList: true });
-        lifetime.add(() => {
-          cleanup.disconnect();
-          editors.splice(0).forEach((editor2) => editor2.dispose());
-        });
-        try {
-          if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
-          const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
-          const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
-          if (disposed || !dialog.root.isConnected) return;
-          dialog.content.append(workspace_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
-          const picker = workspace_element("select");
-          picker.setAttribute("aria-label", "\u9884\u89C8\u66FF\u6362\u6587\u4EF6");
-          for (const file of plan.files) {
-            const option = workspace_element("option", "", file.relative_path);
-            option.value = file.file_path;
-            picker.append(option);
-          }
-          const preview = workspace_element("div", "workspace-search-replace-preview");
-          dialog.content.append(picker, preview);
-          const show3 = () => {
-            editors.splice(0).forEach((editor2) => editor2.dispose());
-            const file = plan.files.find((file2) => file2.file_path === picker.value);
-            if (file) {
-              const editor2 = new git_diff_editor({ title: file.relative_path, file: file.relative_path, left: file.before_text, right: file.after_text, left_label: "\u66FF\u6362\u524D", right_label: "\u66FF\u6362\u540E" });
-              editors.push(editor2);
-              preview.replaceChildren(editor2.container);
-            }
-          };
-          picker.onchange = show3;
-          show3();
-          const error = workspace_element("p");
-          dialog.content.append(error);
-          const apply3 = workspace_button("\u786E\u8BA4\u66FF\u6362", () => {
-            apply3.disabled = true;
-            void engine.apply_replace(plan, { can_write: (paths) => paths.every(files.can_write) }).then((result) => {
-              files.refresh_files(result.files);
-              dialog.close();
-              void this.search();
-            }).catch((problem) => {
-              error.textContent = String(problem);
-              apply3.disabled = false;
-            });
+          const controller = new AbortController();
+          this.controller = controller;
+          this.containerEl.dataset.state = "searching";
+          this.status.textContent = "\u6B63\u5728\u641C\u7D22\u2026";
+          const stop = git_icon_button("search-stop", "\u505C\u6B62\u641C\u7D22", () => controller.abort());
+          this.status.append(stop);
+          const open_files = [];
+          if (this.only_open) core.app.workspace.eachLeaves((leaf) => {
+            const source_path = source_file_path(leaf.state.path, files.path_api);
+            if (files.path_api.isAbsolute(leaf.state.path)) open_files.push(leaf.state.path);
+            else if (source_path) open_files.push(source_path);
           });
-          apply3.disabled = !plan.match_count;
-          dialog.footer.prepend(apply3);
-        } catch (error) {
-          dialog.content.append(workspace_element("p", "", String(error)));
+          try {
+            const root = files.context_root();
+            const git = await this.read_git_status(root);
+            if (disposed || this.controller !== controller) return;
+            if (this.only_changed && !git.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
+            this.git_status = git.statuses;
+            const scope = this.only_changed ? git.changed_files : this.only_open ? open_files : void 0;
+            const result = await engine.search(root, { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {} }, { signal: controller.signal });
+            if (disposed || this.controller !== controller) return;
+            this.result = result;
+            this.containerEl.dataset.state = result.cancelled ? "stopped" : "ready";
+            this.render();
+            this.history = [this.query.value, ...this.history.filter((value) => value !== this.query.value)].slice(0, 30);
+            this.history_index = -1;
+            this.update_status();
+            if (!result.cancelled && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
+          } catch (error) {
+            if (!disposed && this.controller === controller) {
+              this.containerEl.dataset.state = "error";
+              this.status.textContent = String(error);
+              this.results.replaceChildren();
+            }
+          }
+        }
+        set_group_open(group, open) {
+          group.open = open;
+          const toggle = group.querySelector(":scope>summary>.workspace-search-file-toggle");
+          if (toggle) {
+            toggle.setAttribute("aria-expanded", String(open));
+            toggle.title = "".concat(open ? "\u6536\u8D77" : "\u5C55\u5F00", " ").concat(group.querySelector("summary")?.title || "\u6587\u4EF6", " \u7684\u5339\u914D\u9879");
+            toggle.setAttribute("aria-label", toggle.title);
+          }
+        }
+        render(target = this.results) {
+          const open_states = new Map([...target.querySelectorAll("details[data-search-group]")].map((node) => [node.getAttribute("data-search-group"), node.open]));
+          target.replaceChildren();
+          if (!this.result) return;
+          const sorted = [...this.result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : a.relative_path.localeCompare(b2.relative_path, "zh-CN", { numeric: true }));
+          const directories = /* @__PURE__ */ new Map();
+          for (const file of sorted) {
+            let parent = target;
+            if (this.tree) {
+              const parts = file.relative_path.split("/").slice(0, -1);
+              let key = "";
+              for (const part of parts) {
+                key += part + "/";
+                let nested = directories.get(key);
+                if (!nested) {
+                  const folder = workspace_element("details", "workspace-search-directory");
+                  const state_key2 = "directory:" + key;
+                  folder.setAttribute("data-search-group", state_key2);
+                  folder.open = open_states.get(state_key2) ?? true;
+                  const summary2 = workspace_element("summary");
+                  summary2.append(git_disclosure(), workspace_element("span", "", part));
+                  folder.append(summary2);
+                  parent.append(folder);
+                  directories.set(key, folder);
+                  nested = folder;
+                }
+                parent = nested;
+              }
+            }
+            const group = workspace_element("details", "workspace-search-file"), state_key = "file:" + file.file_path;
+            group.setAttribute("data-search-group", state_key);
+            group.open = open_states.get(state_key) ?? true;
+            group.dataset.path = file.file_path;
+            const summary = workspace_element("summary");
+            summary.title = file.relative_path;
+            summary.tabIndex = 0;
+            const label = workspace_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
+            const path = workspace_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
+            const disclosure = workspace_button("", () => {
+            }, "workspace-search-file-toggle");
+            disclosure.append(git_disclosure());
+            disclosure.onclick = (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              this.set_group_open(group, !group.open);
+            };
+            disclosure.onkeydown = (event) => {
+              if (!["Enter", " "].includes(event.key)) return;
+              event.preventDefault();
+              event.stopPropagation();
+              this.set_group_open(group, !group.open);
+            };
+            summary.append(disclosure, workspace_file_icon(file.file_path), label, path);
+            const git_status = this.git_status.get(this.path_key(file.file_path));
+            if (git_status) {
+              const badge = workspace_element("span", "workspace-search-git-status", git_status);
+              badge.dataset.status = git_status;
+              badge.title = { M: "\u5DF2\u4FEE\u6539", A: "\u5DF2\u6DFB\u52A0", D: "\u5DF2\u5220\u9664", R: "\u5DF2\u91CD\u547D\u540D", C: "\u5DF2\u590D\u5236", U: "\u672A\u8DDF\u8E2A\u6216\u5B58\u5728\u51B2\u7A81" }[git_status] || git_status;
+              summary.append(badge);
+            }
+            const actions = workspace_element("span", "workspace-search-file-actions");
+            const count = workspace_element("span", "workspace-search-file-count", String(file.matches.length));
+            const remove = git_icon_button("close", "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", () => this.remove_result(file, group), "workspace-search-remove");
+            remove.onclick = (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              this.remove_result(file, group);
+            };
+            actions.append(count, remove);
+            summary.append(actions);
+            summary.onclick = (event) => {
+              if (event.target.closest("button")) return;
+              event.preventDefault();
+              this.select(file, this.file_match(file));
+            };
+            summary.onfocus = () => this.select(file, this.file_match(file));
+            summary.ondblclick = (event) => {
+              if (event.target.closest("button,.git-disclosure-icon")) return;
+              event.preventDefault();
+              this.open_match(file, this.file_match(file));
+            };
+            summary.onkeydown = (event) => {
+              if (event.target !== summary) return;
+              this.navigate(event, summary, file, () => this.file_match(file), target);
+            };
+            summary.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);
+            group.append(summary);
+            this.set_group_open(group, group.open);
+            for (const match2 of file.matches) {
+              const row = workspace_button("", () => this.select(file, match2), "workspace-search-match");
+              row.dataset.matchId = match2.id;
+              row.title = "".concat(file.relative_path, ":").concat(match2.line, ":").concat(match2.column, "\n").concat(match2.preview);
+              row.setAttribute("aria-label", "".concat(file.relative_path, "\uFF0C\u7B2C ").concat(match2.line, " \u884C\uFF0C\u7B2C ").concat(match2.column, " \u5217\uFF1A").concat(match2.preview));
+              row.append(workspace_element("span", "workspace-search-line", String(match2.line)));
+              const preview = workspace_element("span", "workspace-search-preview");
+              let start = 0;
+              for (const range2 of match2.preview_ranges) {
+                preview.append(document.createTextNode(match2.preview.slice(start, range2.start)), workspace_element("mark", "", match2.preview.slice(range2.start, range2.end)));
+                start = range2.end;
+              }
+              preview.append(document.createTextNode(match2.preview.slice(start)));
+              row.append(preview);
+              row.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5339\u914D\u4F4D\u7F6E", action: () => this.open_match(file, match2) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => this.open_match(file, match2, "right") }, { title: "\u590D\u5236\u5339\u914D\u884C", action: () => files.copy(match2.preview) }, { title: "\u66FF\u6362\u6B64\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path, [match2.id]) }]);
+              row.onfocus = () => this.select(file, match2);
+              row.ondblclick = (event) => {
+                event.preventDefault();
+                this.open_match(file, match2);
+              };
+              row.onkeydown = (event) => this.navigate(event, row, file, () => match2, target);
+              group.append(row);
+            }
+            parent.append(group);
+          }
+        }
+        file_match(file) {
+          return file.matches.find((match2) => match2.id === this.remembered.get(file.file_path)) || file.matches[0];
+        }
+        select(file, match2) {
+          if (!match2 || disposed) return;
+          this.preview_section.hidden = false;
+          this.set_preview_open(true);
+          if (this.selected?.file === file && this.selected.match === match2) return;
+          ++this.open_generation;
+          this.selected = { file, match: match2 };
+          this.remembered.set(file.file_path, match2.id);
+          for (const row of this.results.querySelectorAll("[data-match-id]")) {
+            const selected = row.dataset.matchId === match2.id;
+            row.classList.toggle("is-selected", selected);
+            row.setAttribute("aria-current", String(selected));
+          }
+          for (const group of this.results.querySelectorAll(".workspace-search-file")) group.querySelector("summary")?.classList.toggle("is-selected", group.dataset.path === file.file_path);
+          void Promise.resolve(this.preview.show(file, match2)).catch((error) => {
+            if (!disposed && this.selected?.match === match2) this.status.textContent = String(error);
+          });
+        }
+        navigate(event, row, file, match2, target) {
+          if (event.isComposing) return;
+          if (event.key === "Enter") {
+            event.preventDefault();
+            this.open_match(file, match2());
+            return;
+          }
+          if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+          event.preventDefault();
+          const rows = [...target.querySelectorAll(".workspace-search-file>summary,.workspace-search-match")].filter((node) => node.getClientRects().length);
+          rows[Math.max(0, Math.min(rows.length - 1, rows.indexOf(row) + (event.key === "ArrowUp" ? -1 : 1)))]?.focus();
+        }
+        open_match(file, match2, group = "active") {
+          const generation = ++this.open_generation;
+          const current = () => !disposed && generation === this.open_generation;
+          void (async () => {
+            const stat = await files.fs.promises.stat(file.file_path);
+            if (!current()) return;
+            if (!stat.isFile() || stat.size > 16 * 1024 * 1024) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
+            const bytes = await files.fs.promises.readFile(file.file_path);
+            if (!current()) return;
+            if (detect_binary_bytes(bytes)) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
+            const text3 = decode_file_bytes(bytes).text;
+            const position2 = (offset) => {
+              const newline3 = /\r\n|\r|\n/gu;
+              let line = 1, start = 0, found;
+              while ((found = newline3.exec(text3)) && found.index + found[0].length <= offset) {
+                line++;
+                start = found.index + found[0].length;
+              }
+              return { line, column: offset - start + 1 };
+            };
+            const from = position2(match2.start), to = position2(match2.end);
+            if (text3.slice(match2.start, match2.end) !== match2.text || from.line !== match2.line || from.column !== match2.column || to.line !== match2.end_line || to.column !== match2.end_column) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u540E\u91CD\u65B0\u6253\u5F00\u3002");
+            await files.open_file(file.file_path, { line: match2.line, column: match2.column, end_line: match2.end_line, end_column: match2.end_column, source: !is_markdown_file(file.file_path), expected_text: match2.text }, group);
+          })().catch((error) => {
+            if (current()) this.status.textContent = String(error instanceof Error ? error.message : error);
+          });
+        }
+        open_results() {
+          if (!this.result) return;
+          const panel2 = workspace_element("div", "workspace-search-editor-results");
+          panel2.append(workspace_element("h3", "", "\u641C\u7D22\uFF1A".concat(this.result.options.query)));
+          const list3 = workspace_element("div");
+          this.render(list3);
+          panel2.append(list3);
+          const uri = "typ://linux_note.search_results/".concat(++serial2, "/\u641C\u7D22\u7ED3\u679C");
+          panels.set(uri, panel2);
+          const parent = core.app.workspace.activeLeaf?.parent;
+          if (!parent) return;
+          const leaf = core.app.workspace.createLeaf({ type: "linux_note.search_results", state: { path: uri, git_cwd: files.context_root() } });
+          parent.appendChild(leaf);
+          core.app.workspace.activeLeaf = leaf;
+        }
+        async replace(file_path, match_ids) {
+          if (!this.result) return;
+          const dialog = workspace_dialog("\u66FF\u6362\u9884\u89C8");
+          lifetime.add(() => dialog.close());
+          const editors = [];
+          const original_close = dialog.close;
+          dialog.close = () => {
+            editors.forEach((editor2) => editor2.dispose());
+            original_close();
+          };
+          const cleanup = new MutationObserver(() => {
+            if (!dialog.root.isConnected) {
+              editors.splice(0).forEach((editor2) => editor2.dispose());
+              cleanup.disconnect();
+            }
+          });
+          cleanup.observe(document.body, { childList: true });
+          lifetime.add(() => {
+            cleanup.disconnect();
+            editors.splice(0).forEach((editor2) => editor2.dispose());
+          });
+          try {
+            if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
+            const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
+            const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
+            if (disposed || !dialog.root.isConnected) return;
+            dialog.content.append(workspace_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
+            const picker = workspace_element("select");
+            picker.setAttribute("aria-label", "\u9884\u89C8\u66FF\u6362\u6587\u4EF6");
+            for (const file of plan.files) {
+              const option = workspace_element("option", "", file.relative_path);
+              option.value = file.file_path;
+              picker.append(option);
+            }
+            const preview = workspace_element("div", "workspace-search-replace-preview");
+            dialog.content.append(picker, preview);
+            const show3 = () => {
+              editors.splice(0).forEach((editor2) => editor2.dispose());
+              const file = plan.files.find((file2) => file2.file_path === picker.value);
+              if (file) {
+                const editor2 = new git_diff_editor({ title: file.relative_path, file: file.relative_path, left: file.before_text, right: file.after_text, left_label: "\u66FF\u6362\u524D", right_label: "\u66FF\u6362\u540E" });
+                editors.push(editor2);
+                preview.replaceChildren(editor2.container);
+              }
+            };
+            picker.onchange = show3;
+            show3();
+            const error = workspace_element("p");
+            dialog.content.append(error);
+            const apply3 = workspace_button("\u786E\u8BA4\u66FF\u6362", () => {
+              apply3.disabled = true;
+              void engine.apply_replace(plan, { can_write: (paths) => paths.every(files.can_write) }).then((result) => {
+                files.refresh_files(result.files);
+                dialog.close();
+                void this.search();
+              }).catch((problem) => {
+                error.textContent = String(problem);
+                apply3.disabled = false;
+              });
+            });
+            apply3.disabled = !plan.match_count;
+            dialog.footer.prepend(apply3);
+          } catch (error) {
+            dialog.content.append(workspace_element("p", "", String(error)));
+          }
         }
       }
-    }
-    const panel = new search_sidebar();
-    lifetime.add(core.app.workspace.sidebar.addPanel(panel));
-    panel.ribbonButton = { id: "linux_note:search" };
-    const show2 = (toggle = false, focus = true) => {
-      if (disposed) return;
-      if (!panel.visible) core.app.workspace.sidebar.switch(search_sidebar);
-      else if (toggle) core.app.workspace.sidebar.toggle();
-      else core.app.workspace.sidebar.show();
-      if (focus && panel.visible) panel.query.focus();
-    };
-    const search2 = async (request) => {
-      if (disposed || typeof request.query !== "string" || !request.query.trim()) return;
-      panel.query.value = request.query;
-      panel.options.regex = false;
-      panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed", "false");
-      panel.containerEl.dataset.sourcePath = request.source_path || "";
-      show2(false, false);
-      await panel.search();
-    };
-    const selection_binding = bind_workspace_selection_search(core, files, search2);
-    const activity_click = (event) => {
-      const target = event.target instanceof Element ? event.target.closest('.typ-ribbon-item[data-id="core.search"]') : null;
-      if (!target) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      show2(true);
-    };
-    document.addEventListener("click", activity_click, true);
-    lifetime.add(core.app.commands.register({ id: "linux_note:search", title: "\u641C\u7D22\uFF1A\u5728\u6587\u4EF6\u4E2D\u67E5\u627E", scope: "global", callback: () => show2() }));
-    const keydown = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f" && !event.altKey && !event.isComposing && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
+      const panel = new search_sidebar();
+      lifetime.add(core.app.workspace.sidebar.addPanel(panel));
+      panel.ribbonButton = { id: "linux_note:search" };
+      const show2 = (toggle = false, focus = true) => {
+        if (disposed) return;
+        if (!panel.visible) core.app.workspace.sidebar.switch(search_sidebar);
+        else if (toggle) core.app.workspace.sidebar.toggle();
+        else core.app.workspace.sidebar.show();
+        if (focus && panel.visible) panel.query.focus();
+      };
+      const search2 = async (request) => {
+        if (disposed || typeof request.query !== "string" || !request.query.trim()) return;
+        panel.query.value = request.query;
+        panel.options.regex = false;
+        panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed", "false");
+        panel.containerEl.dataset.sourcePath = request.source_path || "";
+        show2(false, false);
+        await panel.search();
+      };
+      lifetime.own(bind_workspace_selection_search(core, files, search2));
+      const activity_click = (event) => {
+        const target = event.target instanceof Element ? event.target.closest('.typ-ribbon-item[data-id="core.search"]') : null;
+        if (!target) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        show2();
-      }
-    };
-    window.addEventListener("keydown", keydown, true);
-    const renamed = () => {
-      if (!disposed && panel.query.value.trim()) panel.schedule();
-    };
-    window.addEventListener("linux-note-workspace-renamed", renamed);
-    const dispose2 = () => {
-      if (disposed) return;
-      disposed = true;
-      const leaves = [];
-      core.app.workspace.eachLeaves((leaf) => {
-        if (panels.has(leaf.state.path)) leaves.push(leaf);
-      });
-      for (const leaf of leaves) {
-        leaf.parent.removeTab?.(leaf.state.path);
-        leaf.view.containerEl.remove();
-      }
-      if (core.app.workspace.sidebar.activePanel === panel) {
-        core.app.workspace.sidebar.hide();
-        core.app.workspace.sidebar.activePanel = void 0;
-      }
+        show2(true);
+      };
+      lifetime.listen(document, "click", activity_click, true);
+      lifetime.add(core.app.commands.register({ id: "linux_note:search", title: "\u641C\u7D22\uFF1A\u5728\u6587\u4EF6\u4E2D\u67E5\u627E", scope: "global", callback: () => show2() }));
+      const keydown = (event) => {
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f" && !event.altKey && !event.isComposing && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          show2();
+        }
+      };
+      lifetime.listen(window, "keydown", keydown, true);
+      const renamed = () => {
+        if (!disposed && panel.query.value.trim()) panel.schedule();
+      };
+      lifetime.listen(window, "linux-note-workspace-renamed", renamed);
+      const dispose2 = () => {
+        if (disposed) return;
+        disposed = true;
+        const leaves = [];
+        core.app.workspace.eachLeaves((leaf) => {
+          if (panels.has(leaf.state.path)) leaves.push(leaf);
+        });
+        for (const leaf of leaves) {
+          leaf.parent.removeTab?.(leaf.state.path);
+          leaf.view.containerEl.remove();
+        }
+        if (core.app.workspace.sidebar.activePanel === panel) {
+          core.app.workspace.sidebar.hide();
+          core.app.workspace.sidebar.activePanel = void 0;
+        }
+        lifetime.dispose();
+        panels.clear();
+      };
+      lifetime.listen(window, "unload", dispose2);
+      const refresh_context = () => {
+        if (!disposed) panel.schedule();
+      };
+      return { show: show2, search: search2, refresh_context, container: panel.containerEl, dispose: dispose2 };
+    } catch (error) {
       lifetime.dispose();
-      ++panel.open_generation;
-      clearTimeout(panel.timer);
-      panel.controller?.abort();
-      panel.native_observer.disconnect();
-      panel.scale_observer.disconnect();
-      panel.preview.dispose();
-      panel.containerEl.remove();
-      runner.cancel();
-      style.remove();
-      panels.clear();
-      selection_binding.dispose();
-      document.removeEventListener("click", activity_click, true);
-      window.removeEventListener("keydown", keydown, true);
-      window.removeEventListener("linux-note-workspace-renamed", renamed);
-      window.removeEventListener("unload", dispose2);
-    };
-    window.addEventListener("unload", dispose2);
-    return { show: show2, search: search2, container: panel.containerEl, dispose: dispose2 };
+      throw error;
+    }
   }
 
   // src/workspace_activity.css
@@ -224213,6 +224235,7 @@ https://creativecommons.org/licenses/by/4.0/
   function install_workspace_activity(options2) {
     const ribbon = options2.ribbon;
     const allowed = new Set(options2.item_ids);
+    const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter((id) => allowed.has(id));
     const storage_key = options2.storage_key || "linux-note:workspace:activity-order:v1";
     const style = acquire_workspace_style("typora-code-style:workspace_activity", workspace_activity_default, { "data-workspace-activity-style": "ready" });
     const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", workspace_chrome_default);
@@ -224295,7 +224318,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (item.getAttribute("aria-pressed") !== String(active)) item.setAttribute("aria-pressed", String(active));
         if (item.classList.contains("active") !== active) item.classList.toggle("active", active);
       }
-      if (!drag) reorder(stored_order, false);
+      if (!drag) reorder([...stored_order, ...default_order], false);
       if (ribbon.dataset.workspaceActivity !== "ready") ribbon.dataset.workspaceActivity = "ready";
     };
     const schedule = () => {
@@ -225861,7 +225884,7 @@ https://creativecommons.org/licenses/by/4.0/
         command("\u65B0\u5EFA\u7A97\u53E3", "newWindow", "Ctrl+Shift+N"),
         separator(),
         command("\u6253\u5F00\u2026", "open", "Ctrl+O"),
-        command("\u6253\u5F00\u6587\u4EF6\u5939\u2026", "openFolder", "Ctrl+K Ctrl+O"),
+        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: () => files.core.app.commands.run("linux_note:open_folder") },
         { label: "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6", children: recent_entries(recents.files), disabled: !recents.files?.length },
         { label: "\u6700\u8FD1\u4F7F\u7528\u7684\u76EE\u5F55", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item) => typeof item?.path === "string").map((item) => ({ label: item.name || files.path_api.basename(item.path), action: () => runtime2.ClientCommand?.openWithPath?.(item.path) })), disabled: !recents.folders?.length || !has_command("openWithPath") },
         { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_files },
@@ -226111,9 +226134,10 @@ https://creativecommons.org/licenses/by/4.0/
     search2.addEventListener("click", open_files, { signal: events.signal });
     const refresh_label = () => {
       const folder = files.context_root();
-      search_label.textContent = folder ? files.path_api.basename(folder) : "\u641C\u7D22\u6587\u4EF6";
+      search_label.textContent = folder ? files.path_api.basename(folder) || folder : "\u641C\u7D22\u6587\u4EF6";
     };
     refresh_label();
+    window.addEventListener("linux-note-workspace-context-changed", refresh_label, { signal: events.signal });
     const title = document.querySelector("title"), observer = new MutationObserver(refresh_label);
     if (title) observer.observe(title, { childList: true, characterData: true, subtree: true });
     cleanup.push(() => observer.disconnect());
@@ -226344,12 +226368,6 @@ https://creativecommons.org/licenses/by/4.0/
     try {
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files = lifetime.own(bind_workspace_files(core));
-      let chosen_root = "";
-      const context_root = files.context_root;
-      const chosen_context = files.context_root = () => chosen_root || context_root();
-      lifetime.add(() => {
-        if (files.context_root === chosen_context) files.context_root = context_root;
-      });
       lifetime.own(create_workspace_quick_open(files));
       lifetime.own(bind_workspace_tab_controls(core));
       lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
@@ -226375,9 +226393,15 @@ https://creativecommons.org/licenses/by/4.0/
         });
         const open = () => {
           try {
-            const target = files.path_api.resolve(path.value);
+            if (!path.value.trim()) throw new Error("\u8BF7\u8F93\u5165\u6587\u4EF6\u5939\u8DEF\u5F84\u3002");
+            const current_root = files.context_root();
+            if (!files.path_api.isAbsolute(path.value) && (!current_root || !files.path_api.isAbsolute(current_root))) throw new Error("\u672A\u6253\u5F00\u5DE5\u4F5C\u533A\u65F6\uFF0C\u8BF7\u8F93\u5165\u6587\u4EF6\u5939\u7684\u7EDD\u5BF9\u8DEF\u5F84\u3002");
+            const target = files.path_api.isAbsolute(path.value) ? files.path_api.resolve(path.value) : files.path_api.resolve(current_root, path.value);
             if (!files.fs.statSync(target).isDirectory()) throw new Error("\u6240\u9009\u8DEF\u5F84\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
-            chosen_root = target;
+            const native_file = window.File;
+            if (!native_file?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+            native_file.setMountFolder(target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target);
+            context_changed();
             dialog.close();
             resolve3();
           } catch (problem) {
@@ -226385,7 +226409,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         };
         path.onkeydown = (event) => {
-          if (event.key === "Enter") {
+          if (!event.isComposing && event.keyCode !== 229 && event.key === "Enter") {
             event.preventDefault();
             open();
           }
@@ -226422,6 +226446,18 @@ https://creativecommons.org/licenses/by/4.0/
       };
       lifetime.add(core.app.commands.register({ id: "linux_note:outline", title: "\u89C6\u56FE\uFF1A\u805A\u7126\u5927\u7EB2", scope: "global", callback: reveal_outline }));
       const search2 = lifetime.own(bind_workspace_search(core, files));
+      let known_context = files.context_root();
+      const context_changed = () => {
+        if (lifetime.disposed) return;
+        const current = files.context_root();
+        if (current === known_context) return;
+        known_context = current;
+        window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+        void explorer.refresh().catch((error) => console.error("Typora Code folder refresh:", error));
+        search2.refresh_context();
+        outline_binding?.refresh();
+      };
+      lifetime.add(core.app.vault?.on("mounted", context_changed));
       const focus_explorer = () => {
         explorer.show();
         requestAnimationFrame(() => explorer.container.querySelector(".workspace-explorer-tree")?.focus({ preventScroll: true }));

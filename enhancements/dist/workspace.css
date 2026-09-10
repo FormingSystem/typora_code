@@ -1254,9 +1254,9 @@ body:not(.typora-export) content.typ-deactive { visibility:hidden!important;poin
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
-/* 单行顶栏与工作区采用同一个起点；不能继续让核心的 100vh 活动栏从窗口 y=0 开始。
-   固定上下边界保留底部设置／终端与原有 16px 内边距，缩放时也不把按钮推到窗口外。 */
-body.typora-node.typ-ribbon--enable > .typ-ribbon {
+/* 核心把活动栏挂在原生 header 内的侧栏分界线后，而不是 body 直接子节点。
+   与编辑区共用起点，保留底部设置／终端原有 16px 内边距；每个 48px 槽紧接上一槽。 */
+body.typora-node.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
   position:fixed;top:var(--typ-workspace-top,0px);bottom:0;left:0;height:auto;box-sizing:border-box;
 }
 
@@ -1282,7 +1282,7 @@ body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
 body.typ-ribbon--enable {
   --side-bar-bg-color:var(--workspace-chrome-background);
 }
-body.typ-ribbon--enable > .typ-ribbon {
+body.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
   background:var(--workspace-chrome-background);
   border-right-color:var(--workspace-chrome-border);
 }
@@ -1527,7 +1527,6 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open-results{max-height:40vh;overflow:auto;padding:0 6px 6px}
 .workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
-.workspace-quick-open-result>svg{width:16px;height:16px;flex:none}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}
 
@@ -1614,6 +1613,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 /* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
   display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
+  top:var(--typ-workspace-top,0px);bottom:0;
   right:auto!important; width:7px!important; margin-left:-3px!important; z-index:99;
   touch-action:none; user-select:none; cursor:col-resize; outline:none;
 }

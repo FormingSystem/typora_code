@@ -56,7 +56,8 @@ export class Vault extends Events<VaultEvents> {
   }
 
   private _registerEventHooks() {
-    decorate.afterCall(File, 'setMountFolder', ([folder]) => {
+    decorate.afterCall(File, 'setMountFolder', () => {
+      const folder = File.getMountFolder()
       if (this._path !== folder) {
         this._path = folder
 

@@ -21,7 +21,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 
 本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
 
-> 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。上一版标准窗口的构建、检查、37个 UI 目标（36+1复跑）、原生18项及安装已通过；这些历史结果不覆盖本轮单行顶栏；物理键盘 accelerator 冲突仍未实证。当前范围见 [工作台矩阵](docs/workbench_parity.md) 和 [Git Graph矩阵](enhancements/git_graph_features.md)。
+> 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。此前截图中各项问题的最新复查与验证边界见[反馈复查记录](docs/feedback_review.md)。功能范围见[工作台矩阵](docs/workbench_parity.md)和[Git Graph矩阵](enhancements/git_graph_features.md)；物理键盘 accelerator 冲突不以合成事件通过代替实机验证。
 
 ## 1.1\_安装、检查与恢复
 

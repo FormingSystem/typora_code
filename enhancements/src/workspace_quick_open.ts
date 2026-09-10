@@ -1,6 +1,6 @@
 import css from "./workspace_quick_open.css";
 import {acquire_workspace_style} from "./workspace_styles";
-import { git_icon } from "./git_icons";
+import {acquire_workspace_file_icons, workspace_file_icon} from "./workspace_file_icons";
 import type { workspace_file_host } from "./workspace_files";
 
 type quick_file = { file_path: string; relative_path: string; name: string };
@@ -29,6 +29,7 @@ function fuzzy_score(query: string, candidate: string): number {
 export function create_workspace_quick_open(files: workspace_file_host) {
   const events = new AbortController();
   const style = acquire_workspace_style("typora-code-quick-open-style", css);
+  const file_icon_style = acquire_workspace_file_icons();
   let disposed = false;
   const root = document.createElement("section");
   root.className = "workspace-quick-open";
@@ -101,7 +102,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       row.className = "workspace-quick-open-result";
       row.setAttribute("role", "option");
       row.title = file.file_path;
-      row.append(git_icon("file"));
+      row.append(workspace_file_icon(file.file_path));
       const name = document.createElement("span"); name.className = "workspace-quick-open-name"; name.textContent = file.name;
       const directory = document.createElement("span"); directory.className = "workspace-quick-open-path"; directory.textContent = files.path_api.dirname(file.relative_path).replace(/^\.$/u, "");
       row.append(name, directory);
@@ -156,6 +157,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
 
   input.oninput = render;
   input.onkeydown = event => {
+    if (event.isComposing || event.keyCode === 229) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); select(selected_index + (event.key === "ArrowDown" ? 1 : -1)); }
     else if (event.key === "Enter") { event.preventDefault(); open_selected(); }
     else if (event.key === "Escape") { event.preventDefault(); close(); }
@@ -163,7 +165,8 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   root.onmousedown = event => { if (event.target === root) close(); };
   document.addEventListener("pointerdown", event => { if (!root.hidden && !root.contains(event.target as Node)) close(); }, {capture: true, signal: events.signal});
   window.addEventListener("blur", close, {signal: events.signal});
-  const binding:quick_open_binding = { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(); scan_generation += 1; root.remove(); style.remove(); if(current_picker===binding)current_picker=undefined; } };
+  window.addEventListener("linux-note-workspace-context-changed", close, {signal: events.signal});
+  const binding:quick_open_binding = { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove(); if(current_picker===binding)current_picker=undefined; } };
   current_picker=binding;
   return binding;
 }

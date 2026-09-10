@@ -63,4 +63,4 @@ YAML／相对路径与缺失预检的 `test_workspace_files_search.cjs`、`test_
 
 最终版本已通过真实 Windows 安装及配置核验（`.cache/single_row_live_install.log`、`.cache/single_row_live_check.log`），自动创建事务备份，原始 ASAR 摘要保持不变。未强制关闭或重载用户窗口；保存文档并正常重启即可加载本轮顶栏及大纲。
 
-当前 clangd 大纲、链接可复制提示、活动栏与滚动高亮修复，以及对应验证边界，统一见 [代码大纲与本轮验证](source_outline.md)。
+clangd 大纲与链接提示的实现边界见[代码大纲说明](source_outline.md)。随后发现的活动栏宿主层级、图标复用、Graph新文件默认打开及键盘／文件夹上下文问题，统一跟踪于[反馈复查记录](feedback_review.md)；旧验证计数不能替代这些场景的重新检查。

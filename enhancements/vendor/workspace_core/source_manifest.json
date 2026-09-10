@@ -112,7 +112,7 @@
       "path": "src/io/vault.ts",
       "upstream_path": "src/io/vault.ts",
       "upstream_sha256": "23a14226b43f45ac33f39eeb61732b61e6dc60d69de763fc8f14877d586822f1",
-      "sha256": "3f73a168ca4d935d2ae775266e55a06f3b3ec29ef52ec23275269e7b87320ce4"
+      "sha256": "969249e08121ff690cf9ebf4cce5e577c6bc5301fa7af9c9e297fadeca8b2ad9"
     },
     {
       "path": "src/locales/i18n.ts",

@@ -16,6 +16,8 @@ export function install_workspace_activity(options: workspace_activity_options):
 } {
   const ribbon = options.ribbon;
   const allowed = new Set(options.item_ids);
+  // 核心按注册时序可能先插入搜索；仅没有用户排序的项采用定稿的文件／搜索／大纲／Git 顺序。
+  const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter(id => allowed.has(id));
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
   const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
   const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", chrome_css);
@@ -69,7 +71,7 @@ export function install_workspace_activity(options: workspace_activity_options):
       if (item.getAttribute("aria-pressed") !== String(active)) item.setAttribute("aria-pressed", String(active));
       if (item.classList.contains("active") !== active) item.classList.toggle("active", active);
     }
-    if (!drag) reorder(stored_order, false);
+    if (!drag) reorder([...stored_order, ...default_order], false);
     if (ribbon.dataset.workspaceActivity !== "ready") ribbon.dataset.workspaceActivity = "ready";
   };
   const schedule = () => { if (!disposed && !scheduled) scheduled = requestAnimationFrame(() => { scheduled = 0; refresh(); }); };

@@ -20,6 +20,7 @@ export type graph_core = {
   SidebarPanel: new () => sidebar_panel;
   WorkspaceView: new (leaf: graph_leaf) => { containerEl: HTMLElement; icon: string; leaf: graph_leaf };
   app: {
+    vault?: { on(event: "mounted", callback: (path: string) => void): () => void };
     openFile(path: string): unknown;
     viewManager: { registerView(type: string, factory: (leaf: graph_leaf) => unknown): () => void };
     commands: { register(command: { id: string; title: string; scope: string; callback(): void }): () => void; run(id: string, args?: unknown[]): void };

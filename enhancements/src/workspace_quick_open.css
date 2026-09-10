@@ -6,6 +6,5 @@
 .workspace-quick-open-results{max-height:40vh;overflow:auto;padding:0 6px 6px}
 .workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;border-radius:3px;background:transparent;color:inherit;text-align:left;font:inherit}
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
-.workspace-quick-open-result>svg{width:16px;height:16px;flex:none}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}

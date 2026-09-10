@@ -66,8 +66,9 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const search=document.createElement("button");search.type="button";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
   search.addEventListener("click",open_files,{signal:events.signal});
-  const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?files.path_api.basename(folder):"搜索文件";};
+  const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";};
   refresh_label();
+  window.addEventListener("linux-note-workspace-context-changed",refresh_label,{signal:events.signal});
   const title=document.querySelector("title"),observer=new MutationObserver(refresh_label);if(title)observer.observe(title,{childList:true,characterData:true,subtree:true});cleanup.push(()=>observer.disconnect());
   const release=files.core.app.workspace.on("active-leaf:change",refresh_label);if(typeof release==="function")cleanup.push(release);
   // 原生文件加载仍直接访问 #title-text 等节点，必须保持连接，仅隐藏原来的呈现。

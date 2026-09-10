@@ -1,4 +1,5 @@
 import {acquire_workspace_style} from "./workspace_styles";
+import {acquire_workspace_file_icons, workspace_file_icon} from "./workspace_file_icons";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import type { workspace_file_host } from "./workspace_files";
@@ -17,9 +18,14 @@ import search_css from "./workspace_search.css";
 /** 文件搜索独占一个侧栏面板，输入区固定、结果区单独滚动。 */
 export function bind_workspace_search(core: graph_core, files: workspace_file_host) {
   const lifetime=create_workspace_lifetime();
+  try {
   const style = acquire_workspace_style("typora-code-style:workspace_search", search_css, {});
+  lifetime.add(()=>style.remove());
+  const file_icon_style = acquire_workspace_file_icons();
+  lifetime.add(()=>file_icon_style.remove());
   const runtime = window as unknown as {reqnode(name:string):any};
   const runner = create_git_runner({child_process:runtime.reqnode("child_process"),process:runtime.reqnode("process")});
+  lifetime.add(()=>runner.cancel());
   const engine = create_workspace_search_engine({fs:files.fs,path_api:files.path_api,git_run:runner.run,platform:runtime.reqnode("process").platform});
   const native_sidebar = document.querySelector<HTMLElement>("#typora-sidebar");
   const input = (label: string, placeholder = label) => { const node = el("input"); node.type="text"; node.placeholder=placeholder; node.setAttribute("aria-label",label); node.autocomplete="off"; node.spellcheck=false; return node; };
@@ -35,7 +41,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     form = el("div", "workspace-search-form"); results = el("div", "workspace-search-results"); status = el("div", "workspace-search-status");
     replace_row = el("div", "workspace-search-input-row workspace-search-replace"); details = el("div", "workspace-search-details");
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
-    preview = create_lookup_preview(files); preview_section = el("section", "workspace-search-preview-section");
+    preview = lifetime.own(create_lookup_preview(files)); preview_section = el("section", "workspace-search-preview-section");
     preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true;
     preview_smaller = git_icon_button("remove","缩小预览",()=>this.preview.set_scale(this.preview.get_scale()-5));
     preview_larger = git_icon_button("add","放大预览",()=>this.preview.set_scale(this.preview.get_scale()+5));
@@ -48,6 +54,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     native_observer = new MutationObserver(() => this.clear_native());
     constructor() {
       super();
+      lifetime.add(()=>{++this.open_generation;clearTimeout(this.timer);this.controller?.abort();this.native_observer.disconnect();this.scale_observer.disconnect();this.containerEl.remove();});
       this.containerEl.setAttribute("data-linux-note-workspace-search","ready");
       // Typora 对所有 header 施加 fixed/top:0；工作区工具栏使用独立 div，避免叠到主标题栏。
       const heading = el("div", "workspace-search-heading"); heading.append(el("strong","","搜索"));
@@ -183,7 +190,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const disclosure=button("",()=>{},"workspace-search-file-toggle");disclosure.append(git_disclosure());
         disclosure.onclick=event=>{event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
         disclosure.onkeydown=event=>{if(!["Enter"," "].includes(event.key))return;event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
-        summary.append(disclosure,git_icon("file"),label,path);
+        summary.append(disclosure,workspace_file_icon(file.file_path),label,path);
         const git_status=this.git_status.get(this.path_key(file.file_path));
         if(git_status){const badge=el("span","workspace-search-git-status",git_status);badge.dataset.status=git_status;badge.title=({M:"已修改",A:"已添加",D:"已删除",R:"已重命名",C:"已复制",U:"未跟踪或存在冲突"} as Record<string,string>)[git_status]||git_status;summary.append(badge);}
         const actions=el("span","workspace-search-file-actions");const count=el("span","workspace-search-file-count",String(file.matches.length));
@@ -250,18 +257,20 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
   const panel=new search_sidebar();lifetime.add(core.app.workspace.sidebar.addPanel(panel));panel.ribbonButton={id:"linux_note:search"};
   const show=(toggle=false,focus=true)=>{if(disposed)return;if(!panel.visible)core.app.workspace.sidebar.switch(search_sidebar);else if(toggle)core.app.workspace.sidebar.toggle();else core.app.workspace.sidebar.show();if(focus&&panel.visible)panel.query.focus();};
   const search=async(request:workspace_selection_request)=>{if(disposed||typeof request.query!=="string"||!request.query.trim())return;panel.query.value=request.query;panel.options.regex=false;panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed","false");panel.containerEl.dataset.sourcePath=request.source_path||"";show(false,false);await panel.search();};
-  const selection_binding=bind_workspace_selection_search(core,files,search);
+  lifetime.own(bind_workspace_selection_search(core,files,search));
   const activity_click=(event:MouseEvent)=>{const target=event.target instanceof Element?event.target.closest<HTMLElement>('.typ-ribbon-item[data-id="core.search"]'):null;if(!target)return;event.preventDefault();event.stopImmediatePropagation();show(true);};
-  document.addEventListener("click",activity_click,true);
+  lifetime.listen(document,"click",activity_click as EventListener,true);
   lifetime.add(core.app.commands.register({id:"linux_note:search",title:"搜索：在文件中查找",scope:"global",callback:()=>show()}));
   const keydown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.shiftKey&&event.key.toLowerCase()==="f"&&!event.altKey&&!event.isComposing&&!document.querySelector('[role="dialog"][aria-modal="true"]')){event.preventDefault();event.stopImmediatePropagation();show();}};
-  window.addEventListener("keydown",keydown,true);
+  lifetime.listen(window,"keydown",keydown as EventListener,true);
   const renamed=()=>{if(!disposed&&panel.query.value.trim())panel.schedule();};
-  window.addEventListener("linux-note-workspace-renamed",renamed);
+  lifetime.listen(window,"linux-note-workspace-renamed",renamed);
   const dispose=()=>{if(disposed)return;disposed=true;
     const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(panels.has(leaf.state.path))leaves.push(leaf);});for(const leaf of leaves){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}
     if(core.app.workspace.sidebar.activePanel===panel){core.app.workspace.sidebar.hide();core.app.workspace.sidebar.activePanel=undefined;}
-    lifetime.dispose();++panel.open_generation;clearTimeout(panel.timer);panel.controller?.abort();panel.native_observer.disconnect();panel.scale_observer.disconnect();panel.preview.dispose();panel.containerEl.remove();runner.cancel();style.remove();panels.clear();selection_binding.dispose();document.removeEventListener("click",activity_click,true);window.removeEventListener("keydown",keydown,true);window.removeEventListener("linux-note-workspace-renamed",renamed);window.removeEventListener("unload",dispose);};
-  window.addEventListener("unload",dispose);
-  return {show,search,container:panel.containerEl,dispose};
+    lifetime.dispose();panels.clear();};
+  lifetime.listen(window,"unload",dispose);
+  const refresh_context=()=>{if(!disposed)panel.schedule();};
+  return {show,search,refresh_context,container:panel.containerEl,dispose};
+  } catch(error) { lifetime.dispose(); throw error; }
 }
