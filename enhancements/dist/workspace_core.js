@@ -1438,44 +1438,256 @@ var workspace_core_module = (() => {
     });
   };
 
-  // vendor/workspace_core/src/ui/components/draggable.ts
-  var compare = {
-    x(event, dropEl) {
-      const container = dropEl.offsetParent;
-      return event.clientX - container.offsetLeft <= dropEl.offsetLeft + dropEl.offsetWidth / 2;
-    },
-    y(event, dropEl) {
-      const container = dropEl.offsetParent;
-      return event.clientY - container.offsetTop <= dropEl.offsetTop + dropEl.offsetHeight / 2;
-    }
-  };
-  function draggable(containerEl, direction, onChange) {
-    let draggingEl;
-    containerEl.addEventListener("mousedown", (event) => {
-      if (event.button !== 0) return;
-      event.preventDefault();
-      const el = event.target;
-      draggingEl = el.closest("[draggable=true]");
-      draggingEl?.classList.add("typ-dragging");
-      const onMouseUp = (event2) => {
-        if (event2.button !== 0) return;
-        onChange?.();
-        draggingEl?.classList.remove("typ-dragging");
-        draggingEl = null;
-        document.body.removeEventListener("mouseup", onMouseUp);
-      };
-      document.body.addEventListener("mouseup", onMouseUp);
-    });
-    containerEl.addEventListener("mousemove", (event) => {
-      if (event.button !== 0) return;
-      const el = event.target;
-      const dropEl = el.closest("[draggable=true]");
-      if (draggingEl && dropEl && dropEl !== draggingEl) {
-        const pos = compare[direction](event, dropEl) ? "beforebegin" : "afterend";
-        dropEl.insertAdjacentElement(pos, draggingEl);
-        dropEl.style.cssText = "";
+  // vendor/workspace_core/src/ui/components/pointer-drag.ts
+  var session_key = Symbol.for("typora-code:pointer-drag");
+  function cancel_pointer_drag(view, reason = "cancelled") {
+    view[session_key]?.cancel(reason);
+  }
+  function create_preview(source) {
+    const doc = source.ownerDocument, view = doc.defaultView;
+    const clone = source.cloneNode(true);
+    const originals = [source, ...source.querySelectorAll("*")];
+    const copies = [clone, ...clone.querySelectorAll("*")];
+    for (let index = 0; index < copies.length; index++) {
+      const node = copies[index], original = originals[index], style = view.getComputedStyle(original);
+      node.removeAttribute("id");
+      node.removeAttribute("title");
+      node.removeAttribute("tabindex");
+      node.removeAttribute("draggable");
+      node.setAttribute("aria-hidden", "true");
+      for (const name of node.getAttributeNames()) if (name.startsWith("data-")) node.removeAttribute(name);
+      for (const name of ["font", "color", "fill", "background-color", "border-color", "border-width", "border-style", "border-radius", "padding", "gap", "display", "align-items", "justify-content", "line-height", "white-space", "text-overflow", "overflow", "width", "height", "box-sizing", "flex", "min-width", "max-width"]) {
+        node.style.setProperty(name, style.getPropertyValue(name));
       }
+    }
+    const box = source.getBoundingClientRect();
+    let background = "var(--bg-color, white)";
+    for (let node = source; node; node = node.parentElement) {
+      const color = view.getComputedStyle(node).backgroundColor;
+      if (color !== "transparent" && color !== "rgba(0, 0, 0, 0)") {
+        background = color;
+        break;
+      }
+    }
+    Object.assign(clone.style, { position: "fixed", left: "0", top: "0", width: box.width + "px", height: box.height + "px", margin: "0", pointerEvents: "none", zIndex: "2147483646", backgroundColor: background, opacity: ".95", transition: "none", animation: "none", transform: "none", boxShadow: "0 2px 8px rgba(0,0,0,.2)" });
+    clone.dataset.workspaceDragPreview = "true";
+    doc.body.append(clone);
+    return clone;
+  }
+  function start_pointer_drag(event, options) {
+    if (event.button !== 0 || event.isPrimary === false || !options.source.isConnected) return;
+    const source = options.source, doc = source.ownerDocument, view = doc.defaultView;
+    cancel_pointer_drag(view, "replaced");
+    const start_x = event.clientX, start_y = event.clientY, pointer_id = event.pointerId;
+    const origin = source.getBoundingClientRect(), previous_cursor = doc.documentElement.style.cursor, previous_select = doc.documentElement.style.userSelect, previous_opacity = source.style.opacity;
+    let started = false, ended = false, preview, drop_hint;
+    const events = new AbortController();
+    const observer = new MutationObserver(() => {
+      if (!source.isConnected) cancel("source-removed");
     });
+    const point = (input) => ({ event: input, client_x: input.clientX, client_y: input.clientY, screen_x: input.screenX, screen_y: input.screenY, delta_x: input.clientX - start_x, delta_y: input.clientY - start_y, target: doc.elementFromPoint(input.clientX, input.clientY) });
+    const cleanup = () => {
+      ended = true;
+      events.abort();
+      observer.disconnect();
+      preview?.remove();
+      source.removeAttribute("data-workspace-drag-source");
+      if (started) {
+        doc.documentElement.style.cursor = previous_cursor;
+        doc.documentElement.style.userSelect = previous_select;
+        source.style.opacity = previous_opacity;
+      }
+      if (source.hasPointerCapture?.(pointer_id)) source.releasePointerCapture(pointer_id);
+      if (view[session_key] === session) delete view[session_key];
+      options.on_end?.(started);
+    };
+    const suppress_click = (released) => {
+      const suppression = new AbortController();
+      const clear = () => suppression.abort();
+      doc.addEventListener("click", (input) => {
+        input.preventDefault();
+        input.stopImmediatePropagation();
+        clear();
+      }, { capture: true, signal: suppression.signal });
+      doc.addEventListener("pointerup", (input) => {
+        if (input.pointerId === pointer_id) view.setTimeout(clear, 0);
+      }, { capture: true, signal: suppression.signal });
+      doc.addEventListener("pointerdown", clear, { capture: true, once: true, signal: suppression.signal });
+      view.addEventListener("pagehide", clear, { once: true, signal: suppression.signal });
+      if (released) view.setTimeout(clear, 0);
+    };
+    const cancel = (reason = "cancelled") => {
+      if (ended) return;
+      try {
+        if (started) {
+          suppress_click(false);
+          options.on_cancel?.(reason);
+        }
+      } finally {
+        cleanup();
+      }
+    };
+    const session = { cancel, get started() {
+      return started;
+    }, set_drop_effect(effect) {
+      if (!started || ended) return;
+      doc.documentElement.style.cursor = effect === "none" ? "not-allowed" : options.cursor || "grabbing";
+      if (preview) {
+        preview.dataset.workspaceDropEffect = effect;
+        if (effect === "detach" && !drop_hint) {
+          drop_hint = doc.createElement("span");
+          drop_hint.textContent = "\u79FB\u5230\u65B0\u7A97\u53E3";
+          Object.assign(drop_hint.style, { position: "absolute", top: "100%", left: "0", padding: "3px 6px", font: "12px system-ui", whiteSpace: "nowrap", background: "var(--bg-color, white)", color: "var(--text-color, #333)", border: "1px solid var(--vscode-focusBorder, #0078d4)", borderRadius: "3px" });
+          preview.append(drop_hint);
+          preview.style.overflow = "visible";
+        }
+        if (drop_hint) drop_hint.hidden = effect !== "detach";
+      }
+    } };
+    view[session_key] = session;
+    const move = (input) => {
+      if (ended || input.pointerId !== pointer_id) return;
+      if (!source.isConnected) {
+        cancel("source-removed");
+        return;
+      }
+      if (!(input.buttons & 1)) {
+        cancel("button-lost");
+        return;
+      }
+      const state = point(input);
+      if (!started) {
+        if (Math.hypot(state.delta_x, state.delta_y) < (options.threshold ?? 6)) return;
+        started = true;
+        doc.documentElement.style.cursor = options.cursor || "grabbing";
+        doc.documentElement.style.userSelect = "none";
+        try {
+          if (options.preview !== false) preview = create_preview(source);
+          source.dataset.workspaceDragSource = "true";
+          source.style.opacity = ".45";
+          try {
+            source.setPointerCapture(pointer_id);
+          } catch {
+          }
+          observer.observe(doc.documentElement, { childList: true, subtree: true });
+          options.on_start?.(state);
+        } catch (error) {
+          cancel("error");
+          throw error;
+        }
+      }
+      if (ended) return;
+      input.preventDefault();
+      input.stopPropagation();
+      if (preview) preview.style.transform = `translate3d(${origin.left + state.delta_x}px,${origin.top + state.delta_y}px,0)`;
+      try {
+        options.on_move(state);
+      } catch (error) {
+        cancel("error");
+        throw error;
+      }
+    };
+    const up = (input) => {
+      if (ended || input.pointerId !== pointer_id || input.button !== 0) return;
+      if (started) {
+        input.preventDefault();
+        input.stopPropagation();
+        suppress_click(true);
+      }
+      try {
+        if (started && source.isConnected) options.on_drop(point(input));
+        else if (started) options.on_cancel?.("source-removed");
+      } finally {
+        cleanup();
+      }
+    };
+    doc.addEventListener("pointermove", move, { capture: true, signal: events.signal });
+    doc.addEventListener("pointerup", up, { capture: true, signal: events.signal });
+    doc.addEventListener("pointercancel", (input) => {
+      if (input.pointerId === pointer_id) cancel("pointer-cancel");
+    }, { capture: true, signal: events.signal });
+    source.addEventListener("lostpointercapture", () => cancel("capture-lost"), { signal: events.signal });
+    doc.addEventListener("keydown", (input) => {
+      if (input.key === "Escape") {
+        input.preventDefault();
+        input.stopImmediatePropagation();
+        cancel("escape");
+      }
+    }, { capture: true, signal: events.signal });
+    doc.addEventListener("dragstart", (input) => {
+      input.preventDefault();
+      input.stopImmediatePropagation();
+    }, { capture: true, signal: events.signal });
+    view.addEventListener("blur", () => cancel("window-blur"), { signal: events.signal });
+    view.addEventListener("pagehide", () => cancel("pagehide"), { signal: events.signal });
+    event.preventDefault();
+    event.stopPropagation();
+    return session;
+  }
+  function create_drop_marker(doc) {
+    const marker = doc.createElement("div");
+    marker.dataset.workspaceDropMarker = "true";
+    Object.assign(marker.style, { position: "fixed", pointerEvents: "none", zIndex: "2147483645", background: "var(--vscode-focusBorder, var(--primary-color, #0078d4))" });
+    const place = (rect) => {
+      if (!marker.isConnected) doc.body.append(marker);
+      Object.assign(marker.style, { left: rect.left + "px", top: rect.top + "px", width: rect.width + "px", height: rect.height + "px", display: "block" });
+    };
+    return { show(rect) {
+      place(rect);
+      Object.assign(marker.style, { background: "var(--vscode-focusBorder, var(--primary-color, #0078d4))", border: "none" });
+    }, highlight(rect) {
+      place(rect);
+      Object.assign(marker.style, { boxSizing: "border-box", background: "color-mix(in srgb, var(--vscode-focusBorder, #0078d4) 12%, transparent)", border: "1px solid var(--vscode-focusBorder, #0078d4)" });
+    }, hide() {
+      marker.style.display = "none";
+    }, dispose() {
+      marker.remove();
+    } };
+  }
+
+  // vendor/workspace_core/src/ui/components/draggable.ts
+  function draggable(container_el, direction, on_change) {
+    const doc = container_el.ownerDocument, marker = create_drop_marker(doc);
+    let session;
+    const on_pointer_down = (event) => {
+      const element = event.target instanceof Element ? event.target : null;
+      if (element?.closest(".typ-close,button,input,textarea,select,a")) return;
+      const source = element?.closest("[draggable=true]");
+      if (!source || !container_el.contains(source)) return;
+      const parent = source.parentElement;
+      let destination, before = true;
+      const update = (state) => {
+        marker.hide();
+        destination = void 0;
+        const target = state.target?.closest("[draggable=true]");
+        if (!target || target === source || target.parentElement !== parent) return;
+        destination = target;
+        const box = target.getBoundingClientRect();
+        before = direction === "x" ? state.client_x < box.left + box.width / 2 : state.client_y < box.top + box.height / 2;
+        marker.show(direction === "x" ? { left: before ? box.left : box.right - 2, top: box.top, width: 2, height: box.height } : { left: box.left, top: before ? box.top : box.bottom - 2, width: box.width, height: 2 });
+      };
+      session = start_pointer_drag(event, {
+        source,
+        on_move: update,
+        on_drop(state) {
+          update(state);
+          if (destination && source.parentElement === parent && destination.parentElement === parent) {
+            destination.insertAdjacentElement(before ? "beforebegin" : "afterend", source);
+            on_change?.();
+          }
+        },
+        on_end() {
+          marker.hide();
+          session = void 0;
+        }
+      });
+    };
+    container_el.addEventListener("pointerdown", on_pointer_down);
+    return () => {
+      session?.cancel("dispose");
+      marker.dispose();
+      container_el.removeEventListener("pointerdown", on_pointer_down);
+    };
   }
 
   // vendor/workspace_core/src/ui/components/menu.ts
@@ -4672,67 +4884,132 @@ var workspace_core_module = (() => {
 
   // vendor/workspace_core/src/ui/layout/tabs/draggable.ts
   function draggableTabs(root, workspace = useService("workspace")) {
-    const rootEl = root.containerEl;
-    let startX = 0;
-    let startY = 0;
-    let isMouseDown = false;
-    let draggingTabEl;
-    rootEl.addEventListener("mousedown", onDragStart);
-    function onDragStart(e) {
-      if (e.button !== 0) return;
-      const draggableEl = $(e.target).closest("[draggable=true]")[0];
-      if (!draggableEl) return;
-      e.preventDefault();
-      startX = e.clientX;
-      startY = e.clientY;
-      isMouseDown = true;
-      draggingTabEl = $(draggableEl).closest(".typ-tab")[0];
-      rootEl.addEventListener("mousemove", onDragOver);
-      rootEl.addEventListener("mouseup", onDrop);
-    }
-    function onDragOver(e) {
-      if (!isMouseDown) return;
-      if (moveLessThan9px(e.clientX, e.clientY)) return;
-      $(".mod-drag-over").removeClass("mod-drag-over");
-      const $tabEl = $(e.target).closest(".typ-tab");
-      if ($tabEl)
-        $tabEl.addClass("mod-drag-over");
-      else
-        $(e.target).closest(".typ-workspace-tabs").addClass("mod-drag-over");
-    }
-    function onDrop(e) {
-      isMouseDown = false;
-      rootEl.removeEventListener("mousemove", onDragOver);
-      rootEl.removeEventListener("mouseup", onDrop);
-      if (moveLessThan9px(e.clientX, e.clientY)) {
-        draggingTabEl = null;
-      }
-      if (draggingTabEl == null) return;
-      $(".mod-drag-over").removeClass("mod-drag-over");
-      const draggingLeaf = root.findLeaf((leaf) => leaf.state.path === draggingTabEl.dataset.id);
-      const dragOverTabEl = $(e.target).closest(".typ-tab")[0];
-      const dragOverTabsEl = $(e.target).closest(".typ-workspace-tabs")[0];
-      const dragOverTabs = root.findNode((node) => node.containerEl === dragOverTabsEl);
-      const isDroppingInOriginalTabs = draggingLeaf.parent === dragOverTabs;
-      if (isDroppingInOriginalTabs) {
-        if (dragOverTabEl) {
-          dragOverTabEl.parentElement.insertBefore(draggingTabEl, dragOverTabEl);
+    const root_el = root.containerEl, doc = root_el.ownerDocument, view = doc.defaultView;
+    const marker = create_drop_marker(doc);
+    let session;
+    let scroll_frame = 0;
+    const clear_feedback = () => {
+      marker.hide();
+      root_el.querySelectorAll(".mod-drag-over").forEach((node) => node.classList.remove("mod-drag-over"));
+    };
+    const group_at = (element) => {
+      const group_el = element?.closest(".typ-workspace-tabs");
+      return group_el && root_el.contains(group_el) ? root.findNode((node) => node.containerEl === group_el) : null;
+    };
+    const on_pointer_down = (event) => {
+      if (event.button !== 0 || event.isPrimary === false) return;
+      const element = event.target instanceof Element ? event.target : null;
+      if (element?.closest(".typ-close,button,input,textarea,select,a")) return;
+      const tab = element?.closest(".typ-tab");
+      const source_group = group_at(tab || null);
+      if (!tab || !source_group || tab.parentElement !== source_group.tabHeader.container) return;
+      const leaf = source_group.children.find((node) => node.state.path === tab.dataset.id);
+      if (!leaf) return;
+      session?.cancel("replaced");
+      let target_group, target_index = 0, last_state, scroll_header, blocked_drop = false;
+      const source_bounds = source_group.containerEl.getBoundingClientRect();
+      const resolve_target = (state) => {
+        clear_feedback();
+        target_group = void 0;
+        scroll_header = void 0;
+        blocked_drop = false;
+        const group = group_at(state.target) || (state.target?.closest("content") ? root.findNode((node) => {
+          if (node.type !== "tabs") return false;
+          const box = node.containerEl.getBoundingClientRect();
+          return state.client_x >= box.left && state.client_x <= box.right && state.client_y >= box.top && state.client_y <= box.bottom;
+        }) : null);
+        if (!group || !group.containerEl.isConnected || leaf.parent !== source_group) return;
+        if (group !== source_group && group.children.some((node) => node.state.path === leaf.state.path)) {
+          blocked_drop = true;
+          return;
         }
-      } else {
-        const i = dragOverTabEl ? Array.from(dragOverTabEl.parentElement.children).findIndex((el) => el === dragOverTabEl) : dragOverTabs.children.length;
-        draggingLeaf.detach();
-        dragOverTabs.insertChild(i, draggingLeaf);
-        setTimeout(() => {
-          workspace.activeLeaf = draggingLeaf;
-        });
-      }
-      draggingTabEl = null;
-    }
-    function moveLessThan9px(currentX, currentY) {
-      return Math.abs(startX - currentX) < 9 && Math.abs(startY - currentY) < 9;
-    }
+        const header = group.tabHeader.containerEl, header_box = header.getBoundingClientRect();
+        const tabs = [...group.tabHeader.container.children].filter((node) => node instanceof HTMLElement && node !== tab);
+        const within_header = state.client_y >= header_box.top && state.client_y <= header_box.bottom;
+        target_group = group;
+        if (within_header) {
+          target_index = tabs.findIndex((node) => state.client_x < node.getBoundingClientRect().left + node.getBoundingClientRect().width / 2);
+          if (target_index < 0) target_index = tabs.length;
+          const adjacent = tabs[target_index], previous = tabs[target_index - 1];
+          const x = adjacent?.getBoundingClientRect().left ?? previous?.getBoundingClientRect().right ?? header_box.left;
+          marker.show({ left: Math.max(header_box.left, Math.min(x, header_box.right - 2)), top: header_box.top, width: 2, height: header_box.height });
+          scroll_header = header;
+        } else {
+          target_index = tabs.length;
+          const body = group.tabContentEl.getBoundingClientRect();
+          marker.highlight({ left: body.left, top: body.top, width: body.width, height: body.height });
+        }
+      };
+      const auto_scroll = () => {
+        scroll_frame = 0;
+        if (!session?.started || !last_state) return;
+        if (scroll_header) {
+          const box = scroll_header.getBoundingClientRect(), edge = 24;
+          const direction = last_state.client_x < box.left + edge ? -1 : last_state.client_x > box.right - edge ? 1 : 0;
+          if (direction) {
+            const before = scroll_header.scrollLeft;
+            scroll_header.scrollLeft += direction * 10;
+            if (scroll_header.scrollLeft !== before) resolve_target(last_state);
+          }
+        }
+        scroll_frame = view.requestAnimationFrame(auto_scroll);
+      };
+      const can_detach = (state) => {
+        if (blocked_drop || state.target?.closest(".typ-ribbon,#typora-sidebar,#top-titlebar,footer,.workspace-menu,.workspace-titlebar-menu-panel")) return false;
+        const dx = Math.max(source_bounds.left - state.client_x, 0, state.client_x - source_bounds.right);
+        const dy = Math.max(source_bounds.top - state.client_y, 0, state.client_y - source_bounds.bottom);
+        return Math.max(dx, dy) >= 30;
+      };
+      session = start_pointer_drag(event, {
+        source: tab,
+        on_start() {
+          scroll_frame = view.requestAnimationFrame(auto_scroll);
+        },
+        on_move(state) {
+          last_state = state;
+          resolve_target(state);
+          session?.set_drop_effect(target_group ? "move" : can_detach(state) ? "detach" : "none");
+        },
+        on_drop(state) {
+          resolve_target(state);
+          if (leaf.parent !== source_group || !source_group.containerEl.isConnected) return;
+          if (!target_group) {
+            if (can_detach(state)) doc.dispatchEvent(new CustomEvent("typora-code:tab-detach", { cancelable: true, detail: { leaf, source_group, screen_x: state.screen_x, screen_y: state.screen_y } }));
+            return;
+          }
+          if (target_group === source_group) {
+            const old_index = source_group.children.indexOf(leaf);
+            if (old_index < 0 || old_index === target_index) return;
+            source_group.children.splice(old_index, 1);
+            source_group.children.splice(target_index, 0, leaf);
+            const tabs = [...source_group.tabHeader.container.children].filter((node) => node !== tab);
+            source_group.tabHeader.container.insertBefore(tab, tabs[target_index] || null);
+            const leaves = [...source_group.tabContentEl.children].filter((node) => node !== leaf.containerEl);
+            source_group.tabContentEl.insertBefore(leaf.containerEl, leaves[target_index] || null);
+            root.emit("layout-changed");
+          } else {
+            const destination = target_group;
+            leaf.detach();
+            destination.insertChild(target_index, leaf);
+            view.setTimeout(() => {
+              if (leaf.parent === destination && destination.containerEl.isConnected) workspace.activeLeaf = leaf;
+            });
+          }
+        },
+        on_end() {
+          view.cancelAnimationFrame(scroll_frame);
+          scroll_frame = 0;
+          clear_feedback();
+          session = void 0;
+        }
+      });
+    };
+    root_el.addEventListener("pointerdown", on_pointer_down);
     return () => {
-      rootEl.removeEventListener("mousedown", onDragStart);
+      session?.cancel("dispose");
+      view.cancelAnimationFrame(scroll_frame);
+      marker.dispose();
+      root_el.removeEventListener("pointerdown", on_pointer_down);
     };
   }
 

@@ -9,7 +9,7 @@ domains:
 
 # 第1章\_Typora\_Code阅读工作台
 
-Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链接跳转密集、源码阅读与修改频繁的使用场景，集中提供多文档阅读、位置恢复、源码编辑与 Git 审阅。它也可以打开普通文件夹独立使用，不要求 linux-note 的目录结构、元数据或启动脚本。
+Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集、源码阅读与修改频繁的使用场景，集中提供多文档阅读、位置恢复、源码编辑与 Git 审阅。它也可以打开普通文件夹独立使用，不要求 linux-note 的目录结构、元数据或启动脚本。
 
 本仓库维护主题、常驻工作区核心和阅读增强。配置后，默认在一个桌面窗口内使用多文档标签页，按需向右、向下分栏；文件树显示全部文件及隐藏项目，Markdown 保留原生渲染，源码使用占满编辑组的 Monaco，支持编辑和 Ctrl+S 保存。窗口唯一的全局底栏显示活动源码的行列、语言、编码及换行设置，随标签和编辑组切换。工作区搜索按文件展示路径和高亮结果，悬停可查看行列位置，支持精确跳转、仅搜索 Git 更改文件与替换预览；活动栏可拖动排序并标出当前功能。
 
@@ -19,7 +19,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 
 阅读历史、上次位置恢复、文档缩略图、中文源代码管理与提交图、Monaco 双栏差异和文件历史、提交与远端同步、Git 操作评审、仓库终端及管理员入口、C/C++ 代码高亮、长代码展开／收起和 Mermaid 独立查看器共用这个工作区。
 
-本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
+工作台使用 35px 单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
 
 > 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。此前截图中各项问题的最新复查与验证边界见[反馈复查记录](docs/feedback_review.md)。功能范围见[工作台矩阵](docs/workbench_parity.md)和[Git Graph矩阵](enhancements/git_graph_features.md)；物理键盘 accelerator 冲突不以合成事件通过代替实机验证。
 
@@ -36,7 +36,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 
 当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。此调整仅涉及图标，不恢复 Open Editors、底部 Panel 或预览标签行为；普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
 
-路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应重新检查入口，按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 重新配置。本轮最终验证见 [验证记录](./enhancements/README.md#1.2_开发者构建)，当前 `check` 和 Windows／Python 隔离安装事务已通过，上一版构建的37个 UI 目标（36+1复跑）、原生18项与真实安装核验通过；原生菜单快捷键冲突尚未验证，合成键盘事件不能替代物理键盘验证；原生 Linux／UCRT64 实机验证仍需单独记录。
+路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 检查入口。各次构建、原生实例和安装的验证记录统一维护在 [反馈复查记录](docs/feedback_review.md)，不把旧版通过计数当成当前验证。原生 accelerator／物理键盘冲突和 Linux／UCRT64 实机验证仍有未覆盖范围。
 
 ## 1.2\_按需求阅读
 
@@ -48,6 +48,8 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 | 全文件资源管理器、隐藏目录、源码编辑保存及编码／换行设置 | [文件与语言识别](./enhancements/README.md#1.4.3_全部文件与语言识别) |
 | 按文件搜索、精确行列跳转、范围筛选及替换预览 | [工作区搜索与替换](./enhancements/README.md#1.4.4_工作区搜索与替换) |
 | Ctrl／Cmd 加左键查找选中文字、单击预览及双击打开 | [选中文字的跳转预览](./enhancements/README.md#1.4.6_选中文字的跳转预览) |
+| 多文件时搜索卡顿、渐进结果与性能数据 | [搜索性能](docs/search_performance.md) |
+| 标签及侧栏工具的左键拖动、移至新窗口 | [拖动与多窗口](docs/drag_and_windows.md) |
 | 活动栏排序、侧栏缩窄收起、大纲紧凑布局及减少动画 | [活动栏与侧栏布局](./enhancements/README.md#1.4.5_活动栏与侧栏布局) |
 | 中文源代码管理主侧栏、分支操作、远端同步与评审 | [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图) |
 | 左右源码差异、红绿概览、改动导航及重命名历史 | [差异编辑器与时间线](./enhancements/README.md#1.5.2_中央差异编辑器与文件时间线) |
@@ -80,12 +82,7 @@ Git 双栏差异保留两侧各 8px 滚动条和 30px 原生红绿概览，关�
 
 Windows UCRT64 的安装、检查和回退入口调用同一 PowerShell 实现。当前集成终端运行包支持 Windows 10 1903+ x64 / ARM64；Linux 的工作区和 Git Graph 继续可用，集成终端原生包尚未提供。
 
-上一版标准窗口的真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
 
-本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+C/C++ 大纲统一使用本机 clangd 的 LSP 符号与工程编译数据库，点击符号精确定位；其他五种语言使用内置离线解析，Markdown 保留标题目录。配置与能力边界见 [代码大纲](docs/source_outline.md)。正文边距恢复单侧 0%–24% 控件；链接悬停 1 秒显示可选择、可复制的提示，项目内目标按项目根显示，中文路径和锚点按可读文字展示。
 
-按用户最新要求，C/C++ 大纲统一接入本机 clangd，通过 LSP 使用当前内存正文和工程编译配置，点击符号精确定位；已移除 C/C++ Tree-sitter 路径。其他五种语言继续内置离线解析，Markdown 保留原生标题目录。代码大纲的设置入口支持 clangd 路径、项目相对编译数据库目录和后备参数，失败不覆盖原设置。详细范围见 [代码大纲与解析环境](docs/source_outline.md)。
-
-上一版 `629fc6a` 的单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。
-
-当前 clangd 大纲、链接可复制提示、活动栏与滚动高亮修复，以及对应验证边界，统一见 [代码大纲与本轮验证](docs/source_outline.md)。
+文件名搜索与内容搜索均支持渐进显示及取消。既有可排序对象共用左键拖动会话；真实文件标签拖离编辑组并在有效外部位置松开，可交给新 Typora 窗口。未命名文档与原生 Markdown 草稿的限制、保存基线保护及验证范围见 [拖动与多窗口](docs/drag_and_windows.md)。

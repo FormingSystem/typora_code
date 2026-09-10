@@ -1,6 +1,7 @@
 import {bind_workspace_preferences} from "./workspace_preferences";
 import { create_workspace_quick_open, get_workspace_quick_open } from "./workspace_quick_open";
 import { bind_workspace_tab_controls } from "./workspace_tab_controls";
+import { bind_workspace_detached_window } from "./workspace_detached_window";
 import {bind_workspace_file_tab_icons} from "./workspace_file_icons";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import type { graph_core } from "./git_graph_host";
@@ -91,6 +92,7 @@ export function bind_workspace_browser() {
     if(!sidebar.activePanel?.containerEl?.isConnected){if(native?.classList.contains("active-tab-outline"))active_id="core.outline";else if(native?.classList.contains("active-tab-files"))active_id="core.file-explorer";}
     return{active_id,sidebar_visible:sidebar.isShown};
   }}));
+  lifetime.own(bind_workspace_detached_window(files));
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
   return{files,explorer,search,dispose(){files.assert_can_dispose();lifetime.dispose();}};

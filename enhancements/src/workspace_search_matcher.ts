@@ -36,11 +36,12 @@ export function capture_match(text: string, starts: number[], found: RegExpExecA
 }
 
 export function collect_search_matches(text: string, options: search_query_options, max_results: number): search_match_reply {
-  const expression = query_expression(options); const starts = line_starts(text); const matches: search_captured_match[] = [];
+  const expression = query_expression(options); let starts: number[] | undefined; const matches: search_captured_match[] = [];
   let found: RegExpExecArray | null;
   while ((found = expression.exec(text))) {
     if (!found[0].length) expression.lastIndex += text.codePointAt(expression.lastIndex)! > 0xffff ? 2 : 1;
     if (options.whole_word && !whole_word(text, found.index, found.index + found[0].length)) continue;
+    starts ||= line_starts(text);
     matches.push(capture_match(text, starts, found));
     if (matches.length >= max_results) return {matches, limit_reached: true};
   }

@@ -1,14 +1,16 @@
 # VS Code 界面设计基线
 
-2026-09-10 顶栏回归修复：Windows／Linux 活动栏采用与编辑区相同的 `--typ-workspace-top` 上边界及窗口底边，修正核心 `100vh` 从 y=0 开始被35px顶栏遮住首个按钮的问题；48px功能行与24px官方图标保持。Typora原始64px标识位图含透明边距，按用户要求将图像框由16px改为24px，左右边距改为4px，总占位仍为32px。
+2026-09-10 顶栏回归修复：Windows／Linux 活动栏采用与编辑区相同的 `--typ-workspace-top` 上边界及可用窗口底边，修正核心 `100vh` 从 y=0 开始被35px顶栏遮住首个按钮的问题；48px功能行与24px官方图标保持。Typora原始64px标识位图含透明边距，按用户要求将图像框由16px改为24px，左右边距改为4px，总占位仍为32px。
 
 模块边界采用固定 Light 2026／Dark 2026 的 `sideBar.border`、`editorGroupHeader.tabsBorder`、`statusBar.border` 共用值 `#F0F1F2`／`#2A2B2C`，侧栏和状态栏背景取 `sideBar.background` 的 `#FAFAFD`／`#191A1B`。实现见 `workspace_chrome.css`：侧栏拖拽线不再读取最大化时会变透明的宿主 `--window-border-color`，标签条下沿与状态栏上沿使用1px细线，不新增卡片、圆角或全局留白。活动栏目标验证覆盖0／35px顶距、窗口尺寸变化、125%／150%缩放、Explorer与底部按钮真实点击以及最大化明暗主题边界；标题栏目标核对24px标识和原菜单占位。
 
 当前产品按用户确认，以 `59412a2` 为平直布局和功能范围参考，保留稳定修复，并非恢复整库旧提交。本文中的VS Code数值是此前已核对的研究事实，不再作为强制Modern改造或无限功能扩充目标。
 
+搜索与拖动的当前实现分别见[大目录搜索性能](search_performance.md)和[左键拖动与独立窗口](drag_and_windows.md)。搜索借鉴独立匹配与流式结果职责，不接入VS Code扩展后端；6px起拖和30px离组阈值是本产品规则，独立窗口使用Typora宿主，不冒称VS Code全部辅助窗口能力。
+
 当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；终端默认down编辑组，不提供底部Panel；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
 
-编辑标签条使用13px Segoe UI与Light 2026／Dark 2026状态颜色；Ctrl+P及顶栏中央搜索入口打开 `440ec3f` 中的文件选择器。选择器当前宽度为 `min(62vw, 600px, calc(100vw - 12px))`，最大高度为 `min(70vh, 560px)`；结果行22px、输入框23px。`440ec3f` 是历史提交标识，不是440px尺寸。本轮单行顶栏35px、菜单行24px、搜索框22px、窗控按钮46px宽，取自固定 VS Code 对应源码；原窗口动作由宿主处理。renderer快捷键目标已通过，原生冲突仍在验证。
+编辑标签条使用13px Segoe UI与Light 2026／Dark 2026状态颜色；Ctrl+P及顶栏中央搜索入口打开 `440ec3f` 中的文件选择器。选择器当前宽度为 `min(62vw, 600px, calc(100vw - 12px))`，最大高度为 `min(70vh, 560px)`；结果行22px、输入框23px。`440ec3f` 是历史提交标识，不是440px尺寸。单行顶栏35px、菜单行24px、搜索框22px、窗控按钮46px宽，取自固定 VS Code 对应源码；原窗口动作由宿主处理。物理键盘与原生 accelerator 的冲突尚未实证；验证记录见[反馈复查记录](feedback_review.md)。
 
 ## 已核对的VS Code参考资料
 
@@ -35,7 +37,7 @@
 
 每次界面变更先定位上游规则、状态和生效分支，记入对应矩阵再实现。验证要区分实际CSS布局像素、DPI、窗口zoom、视口和内容滚动，不把不同缩放下的截图尺寸直接相减。宽度随用户拖动的侧栏与编辑组按比例与约束验证，不把截图中的某个拖动位置写死。
 
-链接悬停提示采用固定版本 [hoverWidget.css](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/browser/ui/hover/hoverWidget.css) 的 `4px 8px` 内边距、`500px` 最大内容宽度及 `1.5` 行高，背景和边框读取 Light/Dark 2026 的 `editorHoverWidget.*`。显示延迟为用户指定的 **1000ms**，不是 VS Code 默认延迟；浮层仅显示链接目标，不修改 Typora 正文 DOM、读取目标文件或访问网络。
+链接悬停提示采用固定版本 [hoverWidget.css](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/browser/ui/hover/hoverWidget.css) 的 `4px 8px` 内边距、`500px` 最大内容宽度及 `1.5` 行高，背景和边框读取 Light/Dark 2026 的 `editorHoverWidget.*`。显示延迟为用户指定的 **1000ms**，不是 VS Code 默认延迟；浮层显示原始链接与项目内目标位置，百分号编码的中文路径和标题按可读文字展示；可选择文字或复制原始链接，移入浮层保留250ms宽限。它不修改 Typora 正文 DOM，不读取目标文件或访问网络。
 
 当前表是设计依据，不是全功能或全视觉验收完成声明。完整源码取值、实际样式应用、隐藏Electron交互、真实Typora窗口和同DPI成对截图属于不同证据层；缺哪一层就在[工作台矩阵](workbench_parity.md)中保留缺口。
 
@@ -50,6 +52,7 @@
 [light]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/extensions/theme-defaults/themes/2026-light.json
 [theme]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/common/theme.ts
 
-本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+单行顶栏采用35px高度：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
 
-本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。
+当前实现、历史基线及各层验证结果统一见[反馈复查记录](feedback_review.md)。旧布局的运行计数不能证明后续活动栏、可见标题、边距或底栏遮挡问题已经修复；本文只维护设计来源和实际采用的规则。
+Markdown 正文沿用原有底栏边距滑块：单侧0%～24%、默认0%，只改变活动正文框宽度并保留阅读段落。大纲按完整可见标题同步，文档缩略图和标题识别共用扣除底栏的可读视口；这些是当前阅读行为，不来自旧 Modern 布局尺寸表。操作见[阅读位置与标题定位](../enhancements/README.md#1.4.1_阅读位置与标题定位)。

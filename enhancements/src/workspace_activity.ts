@@ -2,6 +2,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import activity_css from "./workspace_activity.css";
 import chrome_css from "./workspace_chrome.css";
 import { git_icon } from "./git_icons";
+import {start_pointer_drag,create_drop_marker,type pointer_drag_session,type pointer_drag_state} from "../vendor/workspace_core/src/ui/components/pointer-drag";
 
 export type workspace_activity_options = {
   ribbon: HTMLElement;
@@ -27,7 +28,8 @@ export function install_workspace_activity(options: workspace_activity_options):
   let stored_order: string[] = [];
   try { const value: unknown = JSON.parse(localStorage.getItem(storage_key) || "[]"); if (Array.isArray(value)) stored_order = [...new Set(value.filter((id): id is string => typeof id === "string" && allowed.has(id)))]; } catch { /* 损坏的本地排序不影响活动栏。 */ }
   let disposed = false; let scheduled = 0; let suppress_click_until = 0;
-  let drag: {item: HTMLElement; pointer_id: number; x: number; y: number; order: string[]; started: boolean} | undefined;
+  let drag: {item: HTMLElement; order: string[]; session?: pointer_drag_session} | undefined;
+  const marker=create_drop_marker(document);
   let menu: HTMLElement | undefined; let menu_owner: HTMLElement | undefined;
   const top_group = () => ribbon.querySelector<HTMLElement>(":scope > .group.top");
   const items = () => [...(top_group()?.children || [])].filter((item): item is HTMLElement => item instanceof HTMLElement && item.matches(".typ-ribbon-item[data-id]") && allowed.has(item.dataset.id || ""));
@@ -113,34 +115,48 @@ export function install_workspace_activity(options: workspace_activity_options):
     if (menu && !menu.contains(event.target as Node)) close_menu();
     if (event.button !== 0 || !event.isPrimary) return;
     const item = item_at(event.target); if (!item) return;
-    cancel_animations(); drag = {item, pointer_id: event.pointerId, x: event.clientX, y: event.clientY, order: order(), started: false};
+    drag?.session?.cancel('replaced'); cancel_animations(); item.focus({preventScroll:true});
+    const transaction:{item:HTMLElement;order:string[];session?:pointer_drag_session}={item,order:order()};drag=transaction;
+    let pending_order=transaction.order,last_target:HTMLElement|undefined,last_before=true;
+    const update_target=(state:pointer_drag_state)=>{
+        const group=top_group();if(!group)return;
+        const bounds=group.getBoundingClientRect();
+        if(state.client_x<bounds.left||state.client_x>bounds.right||state.client_y<bounds.top||state.client_y>bounds.bottom){marker.hide();transaction.session?.set_drop_effect('none');return;}
+        transaction.session?.set_drop_effect('move');
+        const other=items().filter(node=>node!==item);
+        const target=other.find(node=>state.client_y<node.getBoundingClientRect().bottom)||other[other.length-1];
+        if(!target){marker.hide();return;}
+        const box=target.getBoundingClientRect(),position=(state.client_y-box.top)/box.height;
+        // 固定 VS Code compositeBarActions.ts: 40%/60% 保留中央滞回带，避免落点线抖动。
+        const before=position<=.4?true:position>=.6?false:last_target===target?last_before:position<=.5;
+        last_target=target;last_before=before;
+        const index=other.indexOf(target)+(before?0:1);pending_order=other.map(node=>node.dataset.id!);pending_order.splice(index,0,item.dataset.id!);
+        marker.show({left:bounds.left,top:before?box.top:box.bottom-2,width:bounds.width,height:2});
+    };
+    transaction.session=start_pointer_drag(event,{
+      source:item,
+      on_start(){item.classList.add("workspace-activity-dragging");ribbon.dataset.activityDragging="true";},
+      on_move:update_target,
+      on_drop(state){
+        update_target(state);
+        const bounds=top_group()?.getBoundingClientRect();
+        if(bounds&&state.client_x>=bounds.left&&state.client_x<=bounds.right&&state.client_y>=bounds.top&&state.client_y<=bounds.bottom){reorder(pending_order,true);persist();}
+      },
+      on_cancel(){reorder(transaction.order,true);},
+      on_end(started){
+        if(started)suppress_click_until=performance.now()+400;
+        item.classList.remove("workspace-activity-dragging");marker.hide();delete ribbon.dataset.activityDragging;if(drag===transaction)drag=undefined;schedule();
+      }
+    });
   };
-  // 社区核心的旧排序监听 mousedown；只替换这些功能项的拖动，click 仍由核心切换面板。
+  // 核心的 mousedown 不能再启动第二次排序；click 仍由核心切换面板。
   const on_mouse_down = (event: MouseEvent) => { const item = item_at(event.target); if (item && event.button === 0) { event.preventDefault(); event.stopImmediatePropagation(); item.focus({preventScroll: true}); } };
-  const on_pointer_move = (event: PointerEvent) => {
-    if (!drag || event.pointerId !== drag.pointer_id) return;
-    if (!drag.started && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6) return;
-    drag.started = true; drag.item.classList.add("workspace-activity-dragging"); ribbon.dataset.activityDragging = "true"; event.preventDefault(); event.stopPropagation();
-    const bounds = top_group()!.getBoundingClientRect(); if (event.clientX < bounds.left || event.clientX > bounds.right) return;
-    const other = items().filter(item => item !== drag!.item); let index = other.findIndex(item => event.clientY < item.getBoundingClientRect().top + item.getBoundingClientRect().height / 2); if (index < 0) index = other.length;
-    const ids = other.map(item => item.dataset.id!); ids.splice(index, 0, drag.item.dataset.id!); reorder(ids, true);
-  };
-  const finish_drag = (cancel: boolean) => {
-    if (!drag) return;
-    if (drag.started) { if (cancel) reorder(drag.order, true); else persist(); suppress_click_until = performance.now() + 400; }
-    drag.item.classList.remove("workspace-activity-dragging"); drag = undefined; delete ribbon.dataset.activityDragging; schedule();
-  };
-  const on_pointer_up = (event: PointerEvent) => {
-    if (!drag || event.pointerId !== drag.pointer_id) return;
-    const box = top_group()!.getBoundingClientRect(); finish_drag(event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom);
-  };
-  const on_cancel = () => { finish_drag(true); close_menu(); };
+  const on_cancel = () => { drag?.session?.cancel(); close_menu(); };
   const on_click = (event: MouseEvent) => {
     if (!item_at(event.target)) return;
     if (performance.now() < suppress_click_until) { suppress_click_until = 0; event.preventDefault(); event.stopImmediatePropagation(); } else schedule();
   };
   const on_key_down = (event: KeyboardEvent) => {
-    if (event.key === "Escape" && drag?.started) { event.preventDefault(); event.stopPropagation(); finish_drag(true); return; }
     const item = item_at(event.target); if (!item || event.target !== item) return;
     if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); event.stopImmediatePropagation(); const box = item.getBoundingClientRect(); show_menu(item, box.right, box.top); }
     else if (event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) { event.preventDefault(); event.stopImmediatePropagation(); move(item.dataset.id!, event.key === "ArrowUp" ? -1 : 1); }
@@ -154,12 +170,12 @@ export function install_workspace_activity(options: workspace_activity_options):
   const observer = new MutationObserver(schedule); observer.observe(ribbon, {subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "title", "hidden"]});
   observer.observe(document.body, {attributes: true, attributeFilter: ["class"]}); const sidebar = document.querySelector("#typora-sidebar"); if (sidebar) observer.observe(sidebar, {attributes: true, attributeFilter: ["class", "style", "hidden"]});
   ribbon.addEventListener("mousedown", on_mouse_down, true); ribbon.addEventListener("contextmenu", on_context_menu, true); ribbon.addEventListener("click", on_click, true);
-  document.addEventListener("pointerdown", on_pointer_down, true); document.addEventListener("pointermove", on_pointer_move, true); document.addEventListener("pointerup", on_pointer_up, true); document.addEventListener("pointercancel", on_cancel, true); document.addEventListener("keydown", on_key_down, true);
+  document.addEventListener("pointerdown", on_pointer_down, true); document.addEventListener("keydown", on_key_down, true);
   window.addEventListener("blur", on_cancel); reduced_motion.addEventListener("change", on_motion_change); refresh();
   return {refresh, move, dispose() {
-    disposed = true; finish_drag(true); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove(); chrome_style.remove(); delete ribbon.dataset.workspaceActivity;
+    disposed = true; drag?.session?.cancel("dispose"); marker.dispose(); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove(); chrome_style.remove(); delete ribbon.dataset.workspaceActivity;
     ribbon.removeEventListener("mousedown", on_mouse_down, true); ribbon.removeEventListener("contextmenu", on_context_menu, true); ribbon.removeEventListener("click", on_click, true);
-    document.removeEventListener("pointerdown", on_pointer_down, true); document.removeEventListener("pointermove", on_pointer_move, true); document.removeEventListener("pointerup", on_pointer_up, true); document.removeEventListener("pointercancel", on_cancel, true); document.removeEventListener("keydown", on_key_down, true);
+    document.removeEventListener("pointerdown", on_pointer_down, true); document.removeEventListener("keydown", on_key_down, true);
     window.removeEventListener("blur", on_cancel); reduced_motion.removeEventListener("change", on_motion_change);
     for (const [item, original] of originals) { item.replaceChildren(...original.nodes); item.classList.remove("workspace-activity-item", "workspace-activity-dragging"); delete item.dataset.activityActive; item.removeAttribute("aria-pressed"); for (const [name, value] of [["draggable", original.draggable], ["role", original.role], ["tabindex", original.tabindex], ["aria-label", original.label]] as const) if (value === null) item.removeAttribute(name); else item.setAttribute(name, value); }
   }};

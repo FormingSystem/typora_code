@@ -5,7 +5,10 @@ import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
 import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
-import { create_text_document } from "./workspace_text_document";
+import { create_text_document, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
+import {decode_file_bytes} from "./file_language";
+import {capture_position, apply_position} from "./reading_positions";
+import type {workspace_document_snapshot, workspace_transfer_format} from "./workspace_document_transfer";
 import { bind_source_lifecycle } from "./workspace_source_lifecycle";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
@@ -15,7 +18,7 @@ import { SOURCE_FILE_VIEW_ID, file_key, is_source_file_uri, parse_markdown_file_
 import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
-export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean};
+export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
 export type workspace_file_host = {
   fs: any; path_api: any; core: graph_core;
   open_file(file_path: string, location?: file_location, group?: string): Promise<void>;
@@ -37,6 +40,9 @@ export type workspace_file_host = {
   save_all(): Promise<boolean>;
   can_write(file_path: string): boolean;
   refresh_files(paths: string[]): void;
+  capture_transfer(leaf:graph_leaf,signal?:AbortSignal):Promise<workspace_document_snapshot>;
+  receive_transfer(snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<graph_leaf>;
+  release_transfer(leaf:graph_leaf,snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<boolean>;
   assert_can_dispose(): void;
   dispose(): void;
 };
@@ -229,6 +235,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   }
   const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
   const open_file = async (file_path: string, location: file_location = {}, group = "active") => {
+    if(location.signal?.aborted)throw new Error("打开文件已取消。");
     if (renaming) throw new Error("正在重命名，请稍后再打开文件。");
     const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
     if (!resolved_path) throw new Error("无法解析文件路径。");
@@ -237,7 +244,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
       const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>existing_leaves.add(leaf));
-      await navigate_reading_target(file_path, {group, hash: location.hash, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});
+      await navigate_reading_target(file_path, {group, hash: location.hash, signal:location.signal, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});
+      if(location.signal?.aborted)throw new Error("打开文件已取消。");
       const leaf=core.app.workspace.activeLeaf;
       if(leaf&&file_key(leaf.state.path)===file_key(file_path)&&(!location.preview||!existing_leaves.has(leaf)||leaf.state.workspace_preview))set_preview(leaf,Boolean(location.preview));
       return;
@@ -408,6 +416,168 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     ]);
     return source_results.every(Boolean);
   };
+  const transfer_captures = new WeakMap<graph_leaf,{capture_id:string;fingerprint:string}>();
+  const transfer_present = (leaf:graph_leaf) => {let present=false;core.app.workspace.eachLeaves(item=>{if(item===leaf)present=true;});return present;};
+  const transfer_guard = (signal?:AbortSignal) => {
+    if(signal?.aborted||!binding.active)throw new Error("窗口移交已取消，原标签仍保留。");
+    if(renaming||runtime.File?.isFileLoading?.()||runtime.File?._onFileSwitching||runtime.File?._onInitParse||runtime.File?.inSavingProcess)throw new Error("文件正在读取、切换、保存或重命名，请稍后再移至新窗口。");
+  };
+  const transfer_hash=async(value:Uint8Array|string)=>{
+    const bytes=typeof value==="string"?new TextEncoder().encode(value):value;
+    const digest=await runtime.reqnode("crypto").webcrypto.subtle.digest("SHA-256",bytes);
+    return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
+  };
+  // 分块异步读取并校验同一个句柄及目录入口；慢盘取消不会阻塞输入或迟到覆盖草稿。
+  const transfer_disk=async(file_path:string,signal?:AbortSignal)=>{
+    transfer_guard(signal);const entry=await fs.promises.lstat(file_path);transfer_guard(signal);
+    const real=await fs.promises.realpath(file_path);transfer_guard(signal);
+    if(!entry.isFile()||entry.isSymbolicLink())throw new Error("只能移交真实普通文件，目录或符号链接不支持。");
+    const handle=await fs.promises.open(file_path,"r");
+    try {
+      transfer_guard(signal);const before=await handle.stat();transfer_guard(signal);
+      if(!before.isFile()||before.size>MAX_TEXT_DOCUMENT_BYTES)throw new Error("移交文件超过16 MiB或不是普通文本文件。");
+      const bytes=new Uint8Array(before.size+1);let length=0;
+      while(length<bytes.length){const {bytesRead:count}=await handle.read(bytes,length,Math.min(256*1024,bytes.length-length),length);transfer_guard(signal);if(!count)break;length+=count;}
+      const result=bytes.slice(0,length),sha256=await transfer_hash(result);transfer_guard(signal);
+      const after=await handle.stat();transfer_guard(signal);
+      const current=await fs.promises.lstat(file_path);transfer_guard(signal);
+      const current_real=await fs.promises.realpath(file_path);transfer_guard(signal);
+      const same=(a:any,b:any)=>a.dev===b.dev&&a.ino===b.ino&&a.size===b.size&&a.mtimeMs===b.mtimeMs&&a.ctimeMs===b.ctimeMs;
+      if(!same(before,after)||!same(after,current)||!same(entry,current)||length!==after.size||real!==current_real)throw new Error("移交期间磁盘文件发生变化，原标签仍保留。");
+      return{bytes:result,sha256};
+    }finally{await handle.close();}
+  };
+  const transfer_fingerprint=(snapshot:workspace_document_snapshot)=>transfer_hash(JSON.stringify([
+    snapshot.schema,snapshot.kind,snapshot.file_path,snapshot.root,snapshot.text,snapshot.dirty,snapshot.disk_sha256,
+    snapshot.source_format,snapshot.source_baseline_format,snapshot.source_baseline,snapshot.source_model_eol,snapshot.markdown_baseline,snapshot.language
+  ]));
+  const saved_source_format=(view:source_file_view):workspace_transfer_format=>{
+    const [encoding,bom,eol]=view.saved_format.split(":");return{encoding,bom:bom==="true",eol:eol as workspace_transfer_format["eol"]};
+  };
+  const native_transfer_text=()=>{
+    if(typeof runtime.File?.editor?.getMarkdown!=="function")throw new Error("当前宿主不支持读取原生Markdown草稿。");
+    const text=runtime.File.editor.getMarkdown();if(typeof text!=="string")throw new Error("原生Markdown正文尚未就绪。");return text;
+  };
+  const normalized_transfer_text=(text:string)=>text.replace(/\r\n?/gu,"\n");
+  const collect_transfer=async(leaf:graph_leaf,signal?:AbortSignal):Promise<workspace_document_snapshot>=>{
+    transfer_guard(signal);if(!transfer_present(leaf))throw new Error("要移交的标签已关闭。");
+    const file_path=real_path(leaf);if(!file_path||!path_api.isAbsolute(file_path))throw new Error("请先保存未命名文档，再移至新窗口。");
+    const root=context_root(),source=[...views].find(view=>view.leaf===leaf&&!view.disposed);
+    const snapshot:workspace_document_snapshot={schema:1,capture_id:globalThis.crypto.randomUUID(),capture_fingerprint:"",kind:source?"source":"markdown",file_path,root,text:"",dirty:false,disk_sha256:""};
+    let verify_content=()=>{};
+    if(source){
+      if(source.loading||source.saving||!source.loaded||!source.editor||!source.format)throw new Error("源码标签正在读取或保存，请稍后再移至新窗口。");
+      const model=source.editor.models[0],version=model.getAlternativeVersionId(),format_key=source.format_key(),language=model.getLanguageId();
+      verify_content=()=>{transfer_guard(signal);if(!transfer_present(leaf)||source.disposed||source.loading||source.saving||version!==model.getAlternativeVersionId()||format_key!==source.format_key()||language!==model.getLanguageId())throw new Error("源码在捕获期间发生变化，请重新移交。");};
+      const transaction=await source.text_document.prepare_relocation(source.file_path);
+      try{
+        verify_content();snapshot.disk_sha256=(await transfer_disk(file_path,signal)).sha256;verify_content();
+        snapshot.text=model.getValue();snapshot.dirty=source.dirty();snapshot.language=model.getLanguageId();
+        snapshot.source_format={encoding:source.format.encoding,bom:source.format.bom,eol:source.format.eol};
+        snapshot.source_baseline_format=saved_source_format(source);snapshot.source_baseline=source.format.text;
+        snapshot.source_model_eol=model.getEOL() as "\n"|"\r\n";snapshot.view_state=source.editor.focused_editor().saveViewState();
+      }finally{transaction.cancel();}
+    }else{
+      if(!is_markdown_file(file_path))throw new Error("此标签不是可以移交的源码或Markdown文件。");
+      const disk=await transfer_disk(file_path,signal);transfer_guard(signal);
+      const native_matches=file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path);
+      const decoded=decode_file_bytes(disk.bytes,native_matches?(runtime.File?.bundle?.fileEncode||"utf8").replace(/-bom$/u,""):"utf-8");
+      snapshot.disk_sha256=disk.sha256;snapshot.markdown_baseline=decoded.text;
+      if(native_matches){
+        const saved=runtime.File?.bundle?.savedContent;
+        if(typeof saved!=="string"||normalized_transfer_text(saved)!==normalized_transfer_text(decoded.text))throw new Error("Markdown磁盘内容与当前加载基线不同，请先比较后再移交。");
+        snapshot.text=native_transfer_text();snapshot.dirty=Boolean(runtime.File?.changeCounter?.isDocumentEdited());
+        if(snapshot.dirty&&runtime.File?.option?.enableAutoSave)throw new Error("当前开启了Markdown自动保存，无法保证草稿移交不写入磁盘；请先处理自动保存设置，原标签仍保留。");
+        const content=document.querySelector<HTMLElement>("content"),write=content?.querySelector<HTMLElement>(":scope > #write");
+        if(content&&write)snapshot.reading_position=capture_position(content,write);
+      }else{
+        // 后台Markdown预览没有独立可编辑缓冲；读取磁盘并保留此预览栏自己的滚动位置。
+        snapshot.text=decoded.text;const state=(leaf.view as {getScroll?:()=>{scrollTop:number}}).getScroll?.();
+        snapshot.reading_position={scroll_top:state?.scrollTop??leaf.containerEl.scrollTop,scroll_left:leaf.containerEl.scrollLeft};
+      }
+      if(!snapshot.dirty&&normalized_transfer_text(snapshot.text)!==normalized_transfer_text(decoded.text))throw new Error("Markdown正文与磁盘基线不同，不能作为已保存文档移交。");
+      verify_content=()=>{transfer_guard(signal);const still_native=file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path);if(still_native!==native_matches||still_native&&(native_transfer_text()!==snapshot.text||Boolean(runtime.File?.changeCounter?.isDocumentEdited())!==snapshot.dirty||snapshot.dirty&&runtime.File?.option?.enableAutoSave))throw new Error("Markdown正文或自动保存设置在捕获期间改变，请重新移交。");};
+    }
+    if(snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES)throw new Error("草稿超过16 MiB，原标签仍保留。");
+    snapshot.capture_fingerprint=await transfer_fingerprint(snapshot);verify_content();
+    transfer_guard(signal);if(!transfer_present(leaf)||real_path(leaf)!==file_path||context_root()!==root)throw new Error("标签或工作区在移交期间改变，请重试。");
+    return snapshot;
+  };
+  const capture_transfer=async(leaf:graph_leaf,signal?:AbortSignal)=>{
+    const snapshot=await collect_transfer(leaf,signal);transfer_guard(signal);transfer_captures.set(leaf,{capture_id:snapshot.capture_id,fingerprint:snapshot.capture_fingerprint});return snapshot;
+  };
+  const receive_transfer=async(snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<graph_leaf>=>{
+    transfer_guard(signal);
+    if(!snapshot||snapshot.schema!==1||!["source","markdown"].includes(snapshot.kind)||typeof snapshot.text!=="string"||snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES||typeof snapshot.file_path!=="string"||!path_api.isAbsolute(snapshot.file_path)||typeof snapshot.root!=="string"||typeof snapshot.dirty!=="boolean"||!/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256)||snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))throw new Error("窗口文档快照无效，未修改当前文档。");
+    const check_empty=()=>{transfer_guard(signal);let occupied=false;core.app.workspace.eachLeaves(leaf=>{if(leaf.state.path&&leaf.state.path!=="typ://core.empty/")occupied=true;});if(occupied||runtime.File?.bundle?.filePath||runtime.File?.changeCounter?.isDocumentEdited())throw new Error("目标窗口已打开文档或有草稿，拒绝覆盖。");};
+    check_empty();
+    if(snapshot.kind==="markdown"&&snapshot.dirty&&runtime.File?.option?.enableAutoSave)throw new Error("目标窗口开启Markdown自动保存，未接收未保存草稿，原标签仍保留。");
+    if((await transfer_disk(snapshot.file_path,signal)).sha256!==snapshot.disk_sha256)throw new Error("接收前磁盘文件发生变化，原标签仍保留。");check_empty();
+    if(snapshot.root&&context_root()!==snapshot.root){
+      if(!path_api.isAbsolute(snapshot.root)||typeof runtime.File?.setMountFolder!=="function")throw new Error("目标窗口无法恢复原工作区目录。");
+      const root_stat=await fs.promises.stat(snapshot.root);check_empty();if(!root_stat.isDirectory())throw new Error("目标窗口无法恢复原工作区目录。");
+      runtime.File.setMountFolder(snapshot.root);
+    }
+    if(snapshot.kind==="source"){
+      const valid_format=(format:workspace_transfer_format|undefined)=>format&&typeof format.encoding==="string"&&format.encoding.length<100&&typeof format.bom==="boolean"&&["LF","CRLF","CR","mixed"].includes(format.eol);
+      if(!valid_format(snapshot.source_format)||!valid_format(snapshot.source_baseline_format)||typeof snapshot.source_baseline!=="string"||!['\n','\r\n'].includes(snapshot.source_model_eol||"")||typeof snapshot.language!=="string")throw new Error("源码快照缺少保存基线或格式。");
+      await open_file(snapshot.file_path,{source:true,signal});transfer_guard(signal);
+      const leaf=core.app.workspace.activeLeaf,view=[...views].find(view=>view.leaf===leaf&&!view.disposed);
+      if(!leaf||!view||file_key(view.file_path)!==file_key(snapshot.file_path))throw new Error("目标源码标签未打开。");
+      const check_target=()=>{transfer_guard(signal);if(!transfer_present(leaf)||core.app.workspace.activeLeaf!==leaf||view.disposed||view.saving||view.dirty()||snapshot.root&&context_root()!==snapshot.root)throw new Error("目标窗口状态或草稿发生变化，停止恢复。");};
+      for(let count=0;view.loading&&count<250;count++){await new Promise(resolve=>setTimeout(resolve,20));check_target();}
+      check_target();if(view.loading)throw new Error("目标文件未及时完成读取。");
+      if(!view.loaded||view.format?.encoding!==snapshot.source_baseline_format!.encoding){await view.load_file(snapshot.source_baseline_format!.encoding);check_target();}
+      if(!view.loaded||!view.editor||!view.format||view.format.text!==snapshot.source_baseline||view.saved_format!==`${snapshot.source_baseline_format!.encoding}:${snapshot.source_baseline_format!.bom}:${snapshot.source_baseline_format!.eol}`)throw new Error("目标源码的加载基线与来源不同，未恢复草稿。");
+      const transaction=await view.text_document.prepare_relocation(view.file_path);
+      try{
+        check_target();const disk=await transfer_disk(snapshot.file_path,signal);check_target();if(disk.sha256!==snapshot.disk_sha256)throw new Error("接收期间磁盘文件发生变化。");
+        const editor=view.editor.focused_editor(),model=view.editor.models[0];
+        if(!snapshot.dirty&&(model.getValue()!==snapshot.text||JSON.stringify(snapshot.source_format)!==JSON.stringify(snapshot.source_baseline_format)))throw new Error("已保存源码快照与磁盘内容不一致。");
+        if(snapshot.dirty){editor.pushUndoStop();model.setEOL(snapshot.source_model_eol==="\r\n"?monaco.editor.EndOfLineSequence.CRLF:monaco.editor.EndOfLineSequence.LF);editor.executeEdits("workspace-transfer",[{range:model.getFullModelRange(),text:snapshot.text}]);editor.pushUndoStop();view.saved_version=-1;}
+        Object.assign(view.format,snapshot.source_format);monaco.editor.setModelLanguage(model,snapshot.language!);
+        if(snapshot.view_state)editor.restoreViewState(snapshot.view_state);
+        view.update_status();keep_open(leaf);
+        if(model.getValue()!==snapshot.text||view.dirty()!==snapshot.dirty)throw new Error("目标源码未能完整恢复，原标签仍保留。");
+        return leaf;
+      }finally{transaction.cancel();}
+    }
+    if(!is_markdown_file(snapshot.file_path)||typeof snapshot.markdown_baseline!=="string"||typeof runtime.File?.reloadContent!=="function")throw new Error("目标宿主无法接收Markdown快照。");
+    await open_file(snapshot.file_path,{signal});transfer_guard(signal);
+    const leaf=core.app.workspace.activeLeaf;
+    const check_markdown=()=>{transfer_guard(signal);if(!leaf||!transfer_present(leaf)||core.app.workspace.activeLeaf!==leaf||file_key(real_path(leaf))!==file_key(snapshot.file_path)||file_key(runtime.File?.bundle?.filePath||"")!==file_key(snapshot.file_path)||runtime.File?.changeCounter?.isDocumentEdited()||snapshot.root&&context_root()!==snapshot.root)throw new Error("目标Markdown尚未就绪或已有修改，未恢复草稿。");};
+    check_markdown();const disk=await transfer_disk(snapshot.file_path,signal);check_markdown();
+    if(disk.sha256!==snapshot.disk_sha256||normalized_transfer_text(runtime.File?.bundle?.savedContent||"")!==normalized_transfer_text(snapshot.markdown_baseline)||normalized_transfer_text(native_transfer_text())!==normalized_transfer_text(snapshot.markdown_baseline))throw new Error("目标Markdown与磁盘基线不同，未恢复草稿。");
+    if(snapshot.dirty){
+      if(runtime.File?.option?.enableAutoSave)throw new Error("目标窗口在加载期间开启了Markdown自动保存，未恢复草稿，原标签仍保留。");
+      // 原生1.14.9对象参数签名；不使用skipUndo（它会把文档误标成已保存）。
+      runtime.File.reloadContent(snapshot.text,{delayRefresh:false,skipChangeCount:false,skipStore:true});
+      if(!runtime.File.changeCounter?.isDocumentEdited())runtime.File.updateChangeCount?.(runtime.File.ChangeType?.NSChangeDone);
+      if(!runtime.File.changeCounter?.isDocumentEdited()||normalized_transfer_text(native_transfer_text())!==normalized_transfer_text(snapshot.text))throw new Error("Markdown草稿未完整恢复，原标签仍保留。");
+    }
+    const content=document.querySelector<HTMLElement>("content"),write=content?.querySelector<HTMLElement>(":scope > #write");
+    if(content&&write&&snapshot.reading_position)apply_position(content,write,snapshot.reading_position);
+    keep_open(leaf);return leaf;
+  };
+  const release_transfer=async(leaf:graph_leaf,snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<boolean>=>{
+    const captured=transfer_captures.get(leaf);
+    if(!captured||captured.capture_id!==snapshot.capture_id||captured.fingerprint!==snapshot.capture_fingerprint||signal?.aborted)return false;
+    // dirty原生Markdown关闭会进入宿主异步切换/自动保存；只保留源副本，不伪装已保存。
+    if(snapshot.kind==="markdown"&&snapshot.dirty)return false;
+    try{
+      if(snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))return false;transfer_guard(signal);
+      const current=await collect_transfer(leaf,signal);transfer_guard(signal);
+      if(current.capture_fingerprint!==snapshot.capture_fingerprint||transfer_captures.get(leaf)!==captured||!transfer_present(leaf))return false;
+      if(runtime.File?.changeCounter?.isDocumentEdited())return false;
+      const source=[...views].find(view=>view.leaf===leaf&&!view.disposed),previous_version=source?.saved_version,previous_format=source?.saved_format;
+      if(!leaf.parent.removeTab)return false;
+      // 目标已ACK且指纹重检成功，临时放行源码自身关闭保护；不调用任何保存入口。
+      if(source){source.saved_version=source.editor!.models[0].getAlternativeVersionId();source.saved_format=source.format_key();}
+      try{if(signal?.aborted)return false;leaf.parent.removeTab(leaf.state.path);}
+      finally{if(source&&transfer_present(leaf)){source.saved_version=previous_version!;source.saved_format=previous_format!;source.update_status();}}
+      const removed=!transfer_present(leaf);if(removed)transfer_captures.delete(leaf);return removed;
+    }catch{return false;}
+  };
   document.documentElement.setAttribute("data-linux-note-workspace-files", "ready");
   document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
   let binding: workspace_files_binding;
@@ -471,7 +641,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_leaf, save_all,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     current_file: () => real_path(core.app.workspace.activeLeaf),
     can_write: (file_path: string) => (![...views].some(view=>file_key(view.file_path)===file_key(file_path)&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || file_key(runtime.File?.bundle?.filePath || "") !== file_key(file_path)),
     refresh_files: (paths: string[]) => { const keys=new Set(paths.map(file_key));for (const view of views) if (keys.has(file_key(view.file_path))&&!view.dirty()) void view.load_file(); },

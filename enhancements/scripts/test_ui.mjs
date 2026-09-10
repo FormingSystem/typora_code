@@ -62,6 +62,10 @@ const ui_tests = Object.freeze([
   "test_workspace_titlebar.cjs",
   "test_workspace_titlebar_entries.cjs",
   "test_workspace_tab_controls.cjs",
+  "test_workspace_quick_open_performance.cjs",
+  "test_workspace_drag.cjs",
+  "test_workspace_detached_window.cjs",
+  "test_workspace_document_transfer.cjs",
   "test_workspace_widgets.cjs",
 ]);
 

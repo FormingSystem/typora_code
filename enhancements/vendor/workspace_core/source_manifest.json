@@ -214,7 +214,7 @@
       "path": "src/ui/components/draggable.ts",
       "upstream_path": "src/ui/components/draggable.ts",
       "upstream_sha256": "d6b2f1b0d5239f9b212f5be43bd3f2a5294273f8246dd5302f3bb90c4f0e11c1",
-      "sha256": "d6b2f1b0d5239f9b212f5be43bd3f2a5294273f8246dd5302f3bb90c4f0e11c1"
+      "sha256": "bb4a4a17364d4f57c1a205f8a86fc6efb3d7a34b6e99395b4b105e776b194434"
     },
     {
       "path": "src/ui/components/menu.scss",
@@ -251,6 +251,10 @@
       "upstream_path": "src/ui/components/notice.ts",
       "upstream_sha256": "d28f80f2ef7ec535c295d5b07a37fbd46098274ccb9fb1f54e18b8cee2d37294",
       "sha256": "d28f80f2ef7ec535c295d5b07a37fbd46098274ccb9fb1f54e18b8cee2d37294"
+    },
+    {
+      "path": "src/ui/components/pointer-drag.ts",
+      "sha256": "18479a9fae6dcaa3e1cd0037a14904dcaecbe6aeac358523013b4345afed6ef3"
     },
     {
       "path": "src/ui/components/quick-open.ts",
@@ -448,7 +452,7 @@
       "path": "src/ui/layout/tabs/draggable.ts",
       "upstream_path": "src/ui/layout/tabs/draggable.ts",
       "upstream_sha256": "cb6a0425020b7e1666e8b9aeb5ecf7ceeaac1377ce7cb7a6f57543608c202235",
-      "sha256": "cb6a0425020b7e1666e8b9aeb5ecf7ceeaac1377ce7cb7a6f57543608c202235"
+      "sha256": "3b5bfdb57acbcd7909b71c6072fb58041515cbe6288eb510c78b5600a627f28d"
     },
     {
       "path": "src/ui/layout/tabs/file-tabs.scss",
