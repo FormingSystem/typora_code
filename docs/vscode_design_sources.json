@@ -1,0 +1,98 @@
+{
+  "repository": "https://github.com/microsoft/vscode",
+  "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+  "version": "1.136.2",
+  "verified_on": "2026-09-09",
+  "effective_settings": {
+    "workbench.colorTheme": "Light 2026",
+    "workbench.experimental.modernUI": true,
+    "modern_ui_evidence": "Active local experiment configuration: config.workbench.experimental.modernUI = true",
+    "window.density.layout": "default (no user or workspace override)",
+    "window.zoomLevel": "0 (registered default; no user or workspace override)",
+    "workbench.iconTheme": "vs-seti",
+    "editor.fontSize": 16,
+    "editor.fontFamily": "Consolas, Microsoft YaHei, 'Courier New', monospace"
+  },
+  "source_files": [
+    {
+      "path": "src/vs/workbench/browser/media/style.css",
+      "sha256": "5f7d7c77d4b27a5efb4fa78a2abf966d12ab8bd025511578cfdd4bf3e9daccd6"
+    },
+    {
+      "path": "src/vs/workbench/browser/media/floatingPanels.css",
+      "sha256": "7401f858b8b9476a25a26dd5403f214439c5ce03d8105f091413a0c842c3d548"
+    },
+    {
+      "path": "src/vs/workbench/services/layout/browser/layoutService.ts",
+      "sha256": "8ce63a2d45a19c6931c3c0ebadc1e520363fb649531cc040e91903986a92cd41"
+    },
+    {
+      "path": "src/vs/workbench/browser/parts/activitybar/activitybarPart.ts",
+      "sha256": "3555a48d1f97ce84115ceeea14f46518b25cae8c4d6d3861b2c45e33afa8eda9"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/modernUI.contribution.ts",
+      "sha256": "fd4a19f1a8eb9df56d4a9948886ce0fab2d61904b029754450c0220187c60262"
+    },
+    {
+      "path": "src/vs/platform/theme/common/sizes/baseSizes.ts",
+      "sha256": "001dff025c9e4c1403e0cf16b7967fc9f2842e73696804ab868c693ab57ab63d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/activityBar.css",
+      "sha256": "c95ef26f4d8c7ab3c139b6f768776e6462305163aa17e09a5b7f474367ebba38"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/commandCenter.css",
+      "sha256": "12ac396dd12d0ea4bf90a325d6f3893f895607f818a93bcb108fa29f080e970d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/editorBorder.css",
+      "sha256": "bdabb6ac2ecc0ee2bcbcb7db39217c62ed1c2d87514081210625b7abe8701ae7"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/fontRamp.css",
+      "sha256": "b7c4dd3d2a4d6da812473e9a4fcf892f424dd96f194b76acc09667bf1ea39b92"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/keyboardFocusOnly.css",
+      "sha256": "0298a7140236347bc0a13c629dfd4eefd30973e4499ad6da8ea1ca9531e1ad9d"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/notificationsDialogs.css",
+      "sha256": "c5b759b878b05b15ec1963114224f6e856c1e4f98c699f36ea7ee5318dbea218"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/padding.css",
+      "sha256": "cf2350332b676739c166372b0abdc69bf9effdf7a709a783d74e9c52d0f3a7d3"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/paneHeaders.css",
+      "sha256": "b574868ecbdb63c6bd112196699099a19c9f3f03124a4798172ea303a3d594b2"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/roundedCorners.css",
+      "sha256": "461987fb6faa588a3c2869ae671bb98c23675bdbaf1fdccce12ca1b52fdd407b"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/sashHandles.css",
+      "sha256": "e11ef74dc52a3deb69e3cfb6f230bee457f5f8eed9fe4ee1f6ddb4e5335b0684"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/shadows.css",
+      "sha256": "5f769cbff7581864169eba80fe1b880440fad9deb7464526b0a921357257135a"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/statusBar.css",
+      "sha256": "5a26e1b9f4c2a9bb6b3d022de3a43cd69cd7c396208c537b5ba69bd6ce84074e"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/tabs.css",
+      "sha256": "b41b475c733f3678fd2723c4dd4e20208ff414d5183f0b549be3ba27388273f7"
+    },
+    {
+      "path": "src/vs/workbench/contrib/modernUI/browser/media/titlebar.css",
+      "sha256": "1e925cee685788a389b8da6b4acb863b4d4e0f4a5f79aaf8b09a7704834c0720"
+    }
+  ]
+}

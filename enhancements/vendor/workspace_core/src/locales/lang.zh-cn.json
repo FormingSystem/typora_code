@@ -1,0 +1,170 @@
+{
+  "commandModal": {
+    "commandOpen": "打开命令面板",
+    "placeholder": "输入文本过滤命令"
+  },
+  "config": {
+    "commandUseGlobalConfig": "使用全局设置 (从本地删除 `.typora`)",
+    "commandUseVaultConfig": "使用本地设置 (添加 `.typora` 到本地)"
+  },
+  "net": {
+    "fileDownloadFailed": "下载失败。请稍后重试。或者尝试更换“Github 代理”。"
+  },
+  "githubAPI": {
+    "proxyNotFound": "Github 代理失效，已自动恢复为默认设置。"
+  },
+  "internalPlugins": {
+    "metadata": {
+      "name": "元数据 (测试版)",
+      "description": "索引笔记目录中所有文件的元数据。用于其他插件（如 标签插件 `tag`）。"
+    },
+    "workspace": {
+      "name": "工作区",
+      "description": "支持分栏、多标签布局。提供工作区、文件标签等相关功能。推荐启用“应用设置 → 通用 → 切换文件时自动保存对上一个文件的更改”。",
+      "settings": {
+        "hideExtensionInFileTab": "隐藏文件标签的文件扩展名",
+        "hideExtensionInFileTabDesc": "例如，文件标签 \"File.md\" 会显示为 \"File\"。",
+        "useBlankNewTab": "显示空白 New Tab",
+        "useAutoSwap": "单击预览区域时切换编辑器和预览",
+        "useAutoSwapDesc": "单击预览区域会将其切换为 Typora 编辑器，同时将当前编辑器切换为预览。"
+      }
+    }
+  },
+  "notice": {
+    "clearAll": "Notice: 关闭所有提示信息"
+  },
+  "pluginManager": {
+    "needNewerCoreVersion": "插件 \"{name}\" 需要更高版本的 Typora Community Plugin。请检查更新。",
+    "upToDate": "插件 \"{name}\" 已是最新版本。",
+    "updateSuccessful": "插件 \"{name}\" 更新成功。"
+  },
+  "pluginMarketplace": {
+    "idNotCorrect": "下载的插件 \"{name}\" id 与用户安装的 id 不相同。",
+    "installSuccessful": "插件 \"{name}\" 安装成功。"
+  },
+  "settingModal": {
+    "commandOpen": "打开插件配置对话框",
+    "titleGlobal": "全局设置",
+    "titleVault": "本地设置",
+    "groupCore": "核心设置",
+    "groupInternalPlugins": "内置插件设置",
+    "groupPlugins": "社区插件设置"
+  },
+  "settingTabs": {
+    "fileLink": {
+      "name": "文件与链接",
+      "link": "链接",
+      "openLinkInCurrentWin": "在当前窗口打开 Markdown 超链接",
+      "openLinkInCurrentWinDesc": "Ctrl(⌘)+鼠标单击 Markdown 超链接会直接在当前窗口打开。若使用文件标签页推荐启用该选项。",
+      "mdLinkWithoutExtension": "无后缀 Markdown 超链接",
+      "mdLinkWithoutExtensionDesc": "Markdown 超链接中没有指定文件后缀时，会添加 `.md` 作为后缀来打开。如：`[Note](note)` 会打开 `note.md`。",
+      "quickOpen": "快速打开面板",
+      "quickOpenInCurrentWin": "在当前窗口快速打开文件",
+      "quickOpenInCurrentWinDesc": "在快速打开面板中选取文件会直接在当前窗口打开。若使用文件标签页推荐启用该选项。",
+      "ignoreFileGlob": "在快速打开面板中排除指定文件夹",
+      "ignoreFileGlobDesc": "排除匹配文件夹中的文件（使用逗号分隔），并且不显示在快速打开面板。"
+    },
+    "appearance": {
+      "name": "外观",
+      "fileExplorer": "文件管理",
+      "showNotSupportedFile": "显示不支持的文件",
+      "showNotSupportedFileDesc": "不支持的文件将会使用默认程序打开。",
+      "search": "搜索",
+      "keepSearchResult": "保留搜索结果",
+      "keepSearchResultDesc": "当您切换到另一个面板（例如“文件管理”）然后再切换回搜索面板时，将不会丢失最近的搜索结果。",
+      "searchResultFullPath": "显示搜索结果完整路径",
+      "searchResultFullPathDesc": "将光标悬停于搜索结果的路径上，将会显示完整路径。",
+      "advancedSearchMode": "高级搜索模式",
+      "advancedSearchModeDesc": "使用自定义 ripgrep 引擎替换原生文件搜索，支持正则表达式。启用后搜索栏的正则按钮右侧会出现切换按钮。",
+      "advanced": "高级选项",
+      "ribbon": "显示活动栏",
+      "ribbonDesc": "同时会启用自定义侧边面板。"
+    },
+    "hotkey": {
+      "name": "快捷键",
+      "waitHotkey": "请按下快捷键..."
+    },
+    "internalPlugins": {
+      "name": "内置插件"
+    },
+    "pluginMarketplace": {
+      "name": "插件市场",
+      "downloader": "下载器",
+      "downloaderDesc": "- Typora: 更稳定，显示很少错误信息；\n- Nodejs: 显示更多错误信息。",
+      "githubProxy": "Github 代理",
+      "githubProxyDesc": "用于加载插件列表和下载插件。",
+      "searchPlugin": "搜索插件:",
+      "pluginList": "插件列表",
+      "reloadPluginList": "重新加载插件列表",
+      "author": "作者",
+      "lastUpdate": "最后更新",
+      "size": "大小",
+      "downloads": "下载次数",
+      "installToGlobal": "全局",
+      "installToGlobalDesc": "安装到全局",
+      "installToVault": "笔记库",
+      "installToVaultDesc": "安装到笔记库"
+    },
+    "plugins": {
+      "name": "已安装插件",
+      "searchPlugin": "搜索插件:",
+      "titleInstalled": "已安装插件 (共 {0} 个)",
+      "update": "更新",
+      "uninstall": "卸载"
+    },
+    "about": {
+      "name": "关于",
+      "projectDesc": "一个社区插件系统，适用于",
+      "labelVersion": "版本",
+      "labelBuildTime": "构建时间",
+      "labelAuthor": "作者",
+      "labelHomepage": "项目主页",
+      "buttonUpdate": "更新",
+      "coreUpToDate": "Typora Community Plugin 已是最新版本。",
+      "coreUpdateSuccessful": "Typora Community Plugin 更新成功。(需要重启 Typora)",
+      "lang": "语言",
+      "langDesc": "Typora Community Plugin 的显示语言。(需要重启 Typora)",
+      "debugDownloadUrl": "调试下载 URL",
+      "debugDownloadUrlDesc": "输入 Core 更新包的下载链接，用于开发调试",
+      "debugDownloadEmpty": "请先输入下载 URL"
+    }
+  },
+  "ribbon": {
+    "search": "搜索文件内容",
+    "files": "文件管理",
+    "outline": "大纲",
+    "settings": "设置",
+    "settingOfApp": "打开应用设置",
+    "globalSettingOfPlugin": "打开插件设置 (全局)",
+    "vaultSettingOfPlugin": "打开插件设置 (本地)"
+  },
+  "sidebar": {
+    "search": {
+      "commonMode": "搜索",
+      "advancedMode": "高级搜索",
+      "advancedModeDesc": "搜索语法:\n  空格        = AND\n  OR          = OR\n  -词         = NOT (排除)\n  (分组)      = 优先级分组\n  tag:/title:/filename:值 = 字段搜索\n  \"精确短语\"  = 精确匹配"
+    }
+  },
+  "tabview": {
+    "close": "关闭标签",
+    "closeOthers": "关闭其他标签",
+    "closeRight": "关闭右侧标签",
+    "splitRight": "右侧打开",
+    "splitDown": "下方打开"
+  },
+  "views": {
+    "empty": {
+      "noFile": "无打开文件"
+    }
+  },
+  "workspace": {
+    "commandSplitRight": "Workspace: 右侧打开窗格",
+    "commandSplitDown": "Workspace: 下方打开窗格",
+    "commandReset": "Workspace: 重置",
+    "fileContextMenuSplitRight": "在右侧打开",
+    "rightSplit": {
+      "toggleButton": "切换右侧面板",
+      "empty": "此侧边栏为空。"
+    }
+  }
+}

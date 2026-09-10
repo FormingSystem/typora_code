@@ -7,3 +7,7 @@
 .workspace-file-dirty{font-size:10px;padding:0 4px}
 
 .typ-tab.is-workspace-preview .typ-file-basename{font-style:italic}
+
+/* 系统空叶子不是未保存文档；只移除其占位标签，保留原生空画布。 */
+.typ-workspace-tab-header .typ-tab[data-id^="typ://core.empty/"] { display:none!important; }
+.typ-workspace-tab-header:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) { display:none!important; }

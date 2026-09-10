@@ -1,5 +1,5 @@
 // Hidden-Electron geometry regression for the Source Control sidebar. Values
-// mirror VS Code 1.136.1's workbench CSS: 22px list rows, 22px actions, 18px
+// mirror VS Code 1.136.2's workbench CSS: 22px list rows, 22px actions, 18px
 // count badges, 30px single-line input and a 26px split commit button.
 const { app, BrowserWindow } = require("electron");
 const assert = require("node:assert/strict");
@@ -28,11 +28,11 @@ app.whenReady().then(async () => {
   const html = path.join(evidence, "scm_fixture.html");
   fs.writeFileSync(html, `<!doctype html><html><head><meta charset="utf-8"><style>
     *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;font:13px "Segoe UI",sans-serif;color:#3b3b3b;background:#fff}
-    html{--bg-color:#fff;--side-bar-bg-color:#f8f8f8;--text-color:#3b3b3b;--control-text-color:#717171;--primary-color:#0078d4;--vscode-foreground:#3b3b3b;--vscode-descriptionForeground:#717171;--vscode-sideBar-background:#f8f8f8;--vscode-sideBar-foreground:#3b3b3b;--vscode-sideBarSectionHeader-background:#f3f3f3;--vscode-input-background:#fff;--vscode-input-foreground:#3b3b3b;--vscode-input-border:#cecece;--vscode-button-background:#0078d4;--vscode-button-foreground:#fff;--vscode-button-hoverBackground:#026ec1;--vscode-icon-foreground:#424242;--vscode-list-hoverBackground:#e8e8e8;--vscode-list-activeSelectionBackground:#d6ebff;--vscode-list-activeSelectionForeground:#1f1f1f;--vscode-badge-background:#c4c4c4;--vscode-badge-foreground:#333;--vscode-gitDecoration-modifiedResourceForeground:#895503;--vscode-gitDecoration-addedResourceForeground:#18864b;--vscode-focusBorder:#0078d4}
+    html{--bg-color:#fff;--side-bar-bg-color:#f8f8f8;--text-color:#3b3b3b;--control-text-color:#717171;--primary-color:#0078d4;--vscode-foreground:#3b3b3b;--vscode-descriptionForeground:#717171;--vscode-sideBar-background:#f8f8f8;--vscode-sideBar-foreground:#3b3b3b;--vscode-sideBarSectionHeader-background:#f3f3f3;--vscode-input-background:#fff;--vscode-input-foreground:#3b3b3b;--vscode-input-border:#cecece;--vscode-button-background:#0078d4;--vscode-button-foreground:#fff;--vscode-button-hoverBackground:#026ec1;--vscode-icon-foreground:#424242;--vscode-list-hoverBackground:#e8e8e8;--vscode-list-activeSelectionBackground:#d6ebff;--vscode-list-activeSelectionForeground:#1f1f1f;--vscode-badge-background:#0069cc;--vscode-badge-foreground:#fff;--vscode-gitDecoration-modifiedResourceForeground:#895503;--vscode-gitDecoration-addedResourceForeground:#18864b;--vscode-focusBorder:#0078d4}
     #sidebar-content{height:100%;width:320px;border-right:1px solid #d4d4d4;overflow:hidden}.linux-note-git-source-control{height:100%;width:100%}
   </style></head><body><div id="sidebar-content"></div></body></html>`);
   await test_window.loadFile(html);
-  const bundle = await build({ stdin: { contents: 'export {git_source_control} from "./src/git_source_control";export {install_workspace_chrome} from "./src/workspace_chrome";', resolveDir: path.join(__dirname, "..") }, bundle: true, loader: { ".css": "text", ".svg": "text" }, format: "iife", globalName: "scm_geometry_qa", write: false });
+  const bundle = await build({ stdin: { contents: 'export {git_source_control} from "./src/git_source_control";', resolveDir: path.join(__dirname, "..") }, bundle: true, loader: { ".css": "text", ".svg": "text" }, format: "iife", globalName: "scm_geometry_qa", write: false });
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname, "../src/git_graph.css"), "utf8"))};document.head.append(style);
@@ -42,7 +42,7 @@ app.whenReady().then(async () => {
     const shell=document.createElement('section');shell.className='linux-note-git-source-control';shell.append(scm.sidebar);document.querySelector('#sidebar-content').append(shell);window.shell=shell;
     scm.branch.replaceChildren(document.createTextNode('main'));
     scm.groups_state=[{id:'staged',title:'Staged Changes',from:'head',to:'index',files:[]},{id:'changes',title:'Changes',from:'index',to:'worktree',files:[{path:'knowledge/long folder name/source file with spaces.md',status:'M'},{path:'src/new file.ts',status:'??'}]}];scm.render_groups();
-    window.chrome_binding=scm_geometry_qa.install_workspace_chrome();
+
   })()`);
 
   const inspect = async width => {
@@ -51,7 +51,7 @@ app.whenReady().then(async () => {
     return evaluate(`(()=>{
       const rect=node=>{const box=node.getBoundingClientRect();return{left:box.left,right:box.right,top:box.top,bottom:box.bottom,width:box.width,height:box.height}},box=selector=>rect(document.querySelector(selector));
       const row=document.querySelector('.git-scm-file'),directory=row.querySelector('.git-scm-file-directory'),status=row.querySelector('.git-scm-file-status'),action=row.querySelector('.git-scm-inline-action'),badge=document.querySelector('[data-scm-group="changes"] .git-scm-badge'),row_box=row.getBoundingClientRect();
-      return{width:${width},title:box('.git-scm-title'),title_tool:box('.git-scm-tools .git-icon-button'),input_heading:box('.git-scm-input-heading'),message:box('.git-scm-message'),commit:box('.git-scm-commit'),commit_options:box('.git-scm-commit-options'),filter:box('.git-scm-filter'),group:box('[data-scm-group="changes"]>summary'),row:rect(row),label:rect(row.querySelector('.git-scm-file-label')),action:rect(action),badge:box('[data-scm-group="changes"] .git-scm-badge'),status:rect(status),history_header:box('.git-scm-history-header'),status_right_gap:row_box.right-status.getBoundingClientRect().right,row_overflow:row.scrollWidth-row.clientWidth,row_columns:getComputedStyle(row).gridTemplateColumns,directory_display:getComputedStyle(directory).display,action_opacity:getComputedStyle(action).opacity,commit_radius:getComputedStyle(document.querySelector('.git-scm-commit')).borderRadius,options_radius:getComputedStyle(document.querySelector('.git-scm-commit-options')).borderRadius,badge_radius:getComputedStyle(badge).borderRadius,sidebar_background:getComputedStyle(document.querySelector('.git-scm-sidebar')).backgroundColor,status_color:getComputedStyle(status).color};
+      return{width:${width},title:box('.git-scm-title'),title_tool:box('.git-scm-tools .git-icon-button'),input_heading:box('.git-scm-input-heading'),message:box('.git-scm-message'),commit:box('.git-scm-commit'),commit_options:box('.git-scm-commit-options'),group:box('[data-scm-group="changes"]>summary'),row:rect(row),label:rect(row.querySelector('.git-scm-file-label')),action:rect(action),badge:box('[data-scm-group="changes"] .git-scm-badge'),status:rect(status),history_header:box('.git-scm-history-header'),status_right_gap:row_box.right-status.getBoundingClientRect().right,row_overflow:row.scrollWidth-row.clientWidth,row_columns:getComputedStyle(row).gridTemplateColumns,directory_display:getComputedStyle(directory).display,action_opacity:getComputedStyle(action).opacity,commit_radius:getComputedStyle(document.querySelector('.git-scm-commit')).borderRadius,options_radius:getComputedStyle(document.querySelector('.git-scm-commit-options')).borderRadius,badge_radius:getComputedStyle(badge).borderRadius,sidebar_background:getComputedStyle(document.querySelector('.git-scm-sidebar')).backgroundColor,status_color:getComputedStyle(status).color};
     })()`);
   };
 
@@ -63,7 +63,7 @@ app.whenReady().then(async () => {
   close_to(regular.message.height, 30, "commit message input");
   close_to(regular.commit.height, 26, "commit button");
   close_to(regular.commit_options.height, 26, "commit dropdown");
-  close_to(regular.filter.height, 26, "file filter");
+  assert(await evaluate("!document.querySelector('.git-scm-filter') && scm.changes_body.querySelector('.git-scm-inputs').nextElementSibling === scm.groups"), "SCM groups follow the commit section without a filter input");
   close_to(regular.group.height, 22, "change group header");
   close_to(regular.row.height, 22, "change row");
   close_to(regular.history_header.height, 22, "history pane header");
@@ -80,8 +80,12 @@ app.whenReady().then(async () => {
   assert.equal(regular.commit_radius, "4px 0px 0px 4px");
   assert.equal(regular.options_radius, "0px 4px 4px 0px");
   assert.equal(regular.badge_radius, "11px");
-  assert.equal(regular.sidebar_background, "rgb(248, 248, 248)", "SCM uses the VS Code sidebar surface token");
-  assert.equal(regular.status_color, "rgb(137, 85, 3)", "SCM status uses gitDecoration token");
+  assert.equal(regular.sidebar_background, "rgba(0, 0, 0, 0)", "SCM retains the 59412a2 effective transparent surface");
+  assert.equal(regular.status_color, "rgb(168, 121, 22)", "SCM retains the 59412a2 modified-file colour");
+  assert(await evaluate(`[...document.querySelectorAll('.git-scm-badge')].every(node=>getComputedStyle(node).backgroundColor==='rgb(0, 105, 204)'&&getComputedStyle(node).color==='rgb(255, 255, 255)')`), "all SCM count badges use Light 2026 blue and white including zero");
+  await evaluate(`document.documentElement.style.setProperty('--vscode-badge-background','#307e9f')`);
+  assert(await evaluate(`[...document.querySelectorAll('.git-scm-badge')].every(node=>getComputedStyle(node).backgroundColor==='rgb(48, 126, 159)')`), "count badges honor a changed theme token");
+  await evaluate(`document.documentElement.style.removeProperty('--vscode-badge-background')`);
   await capture("scm_regular");
 
   test_window.webContents.sendInputEvent({ type: "mouseMove", x: Math.round(regular.row.left + 40), y: Math.round(regular.row.top + regular.row.height / 2) });
@@ -100,7 +104,32 @@ app.whenReady().then(async () => {
   assert.equal(narrow.directory_display, "none", "narrow sidebar releases the optional path column");
   await capture("scm_narrow");
 
-  console.log(JSON.stringify({status:"PASS",checks:["VS Code 35px view title, 28x22 title actions and 22px SCM rows","30px input and 26px split commit button","22px inline action target, 18px badge and 16px status column","normal and hovered rows reserve no action column","history pane header matches VS Code's 22px pane header","narrow sidebar hides only optional path text","VS Code sidebar and gitDecoration theme tokens applied"],regular,hovered,narrow,evidence,screenshots:[path.join(evidence,"scm_regular.png"),path.join(evidence,"scm_narrow.png")]}));
+  const group_checks=[];
+  const group_metrics=()=>evaluate(`(()=>{const box=node=>{const rect=node.getBoundingClientRect();return{left:rect.left,right:rect.right,width:rect.width,height:rect.height,top:rect.top}};return [...document.querySelectorAll('.git-scm-group>summary')].map(node=>({heading:box(node),badge:box(node.querySelector('.git-scm-badge')),name:box(node.querySelector('.git-scm-group-label')),actions:box(node.querySelector('.git-scm-row-actions')),actions_display:getComputedStyle(node.querySelector('.git-scm-row-actions')).display,text:node.querySelector('.git-scm-badge').textContent,overflow:node.scrollWidth-node.clientWidth}));})()`);
+  for(const width of [320,236,170])for(const counts of [[1,2],[12,3],[123,45]]){
+    await evaluate(`document.querySelector('#sidebar-content').style.width='${width}px';document.activeElement?.blur();panel.quick_action=(id,files)=>{window.group_invocation={id,files}};scm.groups_state=[{id:'staged',title:'Staged Changes — very long group title',from:'head',to:'index',files:Array.from({length:${counts[0]}},(_,index)=>({path:'staged_'+index+'.ts',status:'M'}))},{id:'changes',title:'Changes',from:'index',to:'worktree',files:Array.from({length:${counts[1]}},(_,index)=>({path:'changed_'+index+'.ts',status:'M'}))}];scm.render_groups();document.querySelectorAll('.git-scm-group').forEach(group=>group.open=false);void 0`);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:600,y:680});await settle();
+    assert(await evaluate('(()=>{const label=document.querySelector(".git-scm-title-label"),tools=document.querySelector(".git-scm-title>.git-scm-tools"),style=getComputedStyle(label),range=document.createRange();range.selectNodeContents(label);return style.whiteSpace==="nowrap"&&style.textOverflow==="ellipsis"&&new Set([...range.getClientRects()].map(rect=>Math.round(rect.top))).size===1&&label.getBoundingClientRect().right<=tools.getBoundingClientRect().left+1&&label.title===label.textContent&&document.querySelector(".git-scm-title").scrollWidth<=document.querySelector(".git-scm-title").clientWidth+1})()'),'SCM main title remains one ellipsized line without overlapping actions at every sidebar width');
+    const idle=await group_metrics();close_to(idle[0].badge.right,idle[1].badge.right,'different group title/count lengths share right edge');
+    for(const [index,item] of idle.entries()){
+      assert.equal(item.text,String(counts[index]));close_to(item.heading.height,22,'group title stays single line');close_to(item.badge.height,18,'count height stays 18px');close_to(item.heading.right-item.badge.right,12,'upstream count right inset');assert(item.badge.width>=18);assert(item.overflow<=1);assert.equal(item.actions_display,'none');assert(item.name.right<=item.badge.left);
+    }
+    const first=idle[0];test_window.webContents.sendInputEvent({type:'mouseMove',x:40,y:Math.round(first.heading.top+11)});await settle();
+    const hovered_groups=await group_metrics();assert.equal(hovered_groups[0].actions_display,'flex');close_to(hovered_groups[0].badge.right,first.badge.right,'hover count remains at fixed right edge');assert(hovered_groups[0].actions.right<=hovered_groups[0].badge.left);assert(hovered_groups[0].name.right<=hovered_groups[0].actions.left+1);assert(hovered_groups[0].name.width<first.name.width,'idle title uses space released by hidden actions');assert(hovered_groups[0].overflow<=1);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:600,y:680});
+    await evaluate('document.querySelector(".git-scm-group>summary").focus()');await settle();assert.equal((await group_metrics())[0].actions_display,'flex','keyboard summary focus reveals actions');
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await settle();
+    assert(await evaluate('document.activeElement.matches(".git-scm-row-actions button")'),'Tab reaches a visible group action');
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await settle();
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});await settle();
+    assert(await evaluate(`window.group_invocation?.id==='unstage'&&group_invocation.files.length===${counts[0]}&&!document.querySelector('.git-scm-group').open`),'keyboard group action receives every path without toggling collapse');
+    await evaluate('document.querySelector(".git-scm-group>summary").focus()');test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});await settle();assert(await evaluate('document.querySelector(".git-scm-group").open'),'Enter expands focused group');
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});await settle();assert(await evaluate('!document.querySelector(".git-scm-group").open'),'Enter collapses group');
+    close_to((await group_metrics())[0].badge.right,first.badge.right,'collapse preserves count alignment');
+    await evaluate('document.querySelectorAll(".git-scm-group>summary")[1].focus()');await settle();const focused_changes=(await group_metrics())[1];assert.equal(focused_changes.actions_display,'flex');close_to(focused_changes.badge.right,first.badge.right,'Changes focus shares the Staged count right edge');assert(focused_changes.actions.right<=focused_changes.badge.left&&focused_changes.name.right<=focused_changes.actions.left+1);assert(focused_changes.overflow<=1);group_checks.push({width,counts});
+  }
+  await evaluate('document.activeElement.blur()');await settle();await capture('scm_group_counts_narrow');
+  console.log(JSON.stringify({status:"PASS",checks:["VS Code 35px view title, 28x22 title actions and 22px SCM rows","30px input and 26px split commit button","22px inline action target, 18px badge and 16px status column","normal and hovered rows reserve no action column","history pane header matches VS Code's 22px pane header","narrow sidebar hides only optional path text","59412a2 SCM surface and status colours without chrome injection"],group_checks,regular,hovered,narrow,evidence,screenshots:[path.join(evidence,"scm_regular.png"),path.join(evidence,"scm_narrow.png")]}));
   test_window.destroy(); app.exit(0);
 }).catch(async error => {
   console.error(error); console.error(evidence);

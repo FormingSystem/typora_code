@@ -1,16 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const output = path.resolve("dist/community_plugin/main.js");
-if (!fs.existsSync(output)) throw new Error("dist/community_plugin/main.js is missing; run npm run build");
+const output = path.resolve("dist/workbench.js");
+if (!fs.existsSync(output)) throw new Error("dist/workbench.js is missing; run npm run build");
 const source = fs.readFileSync(output, "utf8");
 const enhancement_css = fs.readFileSync(path.resolve("src/typora_enhancements.css"), "utf8");
 const typora_theme = fs.readFileSync(path.resolve("../cpp_github-consolas.css"), "utf8");
-if (!/^export\s*\{/mu.test(source)) throw new Error("community plugin bundle is not an ES module");
-if (!source.includes('Symbol.for("typora-plugin-core@v2")')) throw new Error("community plugin core bridge is missing");
-if (!/linux_note_enhancements_plugin\s*=\s*class\s+extends Plugin|class linux_note_enhancements_plugin extends Plugin/u.test(source)) throw new Error("community plugin lifecycle class is missing");
-if (!source.includes("activate_typora_enhancements") || !source.includes("deactivate_typora_enhancements")) {
-  throw new Error("community plugin lifecycle delegation is missing");
+const runtime_source = fs.readFileSync(path.resolve("dist/workspace_core.js"), "utf8");
+const static_css = fs.readFileSync(path.resolve("dist/workspace.css"), "utf8");
+if (!source.includes('Symbol.for("typora-code:workspace")')) throw new Error("resident core bridge is missing");
+if (!source.includes("start_typora_code")) throw new Error("resident startup entry is missing");
+for (const forbidden of ["PluginManager", "InternalPluginManager", "class linux_note_enhancements_plugin", "typora-plugin-core@v2"]) {
+  if (source.includes(forbidden) || runtime_source.includes(forbidden)) throw new Error(`Previous plugin lifecycle remains: ${forbidden}`);
 }
 for (const marker of [
   "linux-note-vscode-textmate-c",
@@ -39,7 +40,7 @@ for (const marker of [
   "--linux-note-code-variable: #005cc5;",
 ]) {
   if (!enhancement_css.includes(marker)) throw new Error(`GitHub Light enhancement color is missing: ${marker}`);
-  if (!source.includes(marker)) throw new Error(`bundled GitHub Light color is missing: ${marker}`);
+  if (!static_css.includes(marker)) throw new Error(`static GitHub Light color is missing: ${marker}`);
 }
 for (const marker of [
   "background-color: #f6f8fa;",

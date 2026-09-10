@@ -16,7 +16,7 @@ const expectations = {
     toolbar: ['查找提交', '在仓库根目录打开集成终端', 'Git 操作和设置', '获取远端更新', '刷新提交图'],
     source_control: '源代码管理',
     message: '消息（Ctrl+Enter 提交）',
-    scm_tools: ['打开 Git Graph', '刷新', '选择视图'],
+    scm_tools: ['选择视图'],
     view_menu: ['仓库', '更改', '提交图', '配置此右键菜单…'],
     merge_title: '合并到当前分支',
     merge_field: '合并方式',
@@ -33,7 +33,7 @@ const expectations = {
     toolbar: ['Find Commits', 'Open Integrated Terminal at Repository Root', 'Git Actions and Settings', 'Fetch from Remote(s)', 'Refresh Graph'],
     source_control: 'Source Control',
     message: 'Message (Ctrl+Enter to Commit)',
-    scm_tools: ['Open Git Graph', 'Refresh', 'Select Views'],
+    scm_tools: ['Select Views'],
     view_menu: ['Repositories', 'Changes', 'Graph', 'Configure this Context Menu…'],
     merge_title: 'Merge into Current Branch',
     merge_field: 'Merge Method',
@@ -75,7 +75,7 @@ async function inspect_locale(bundle, html, locale, environment = {options: {dis
   const window = new BrowserWindow({show: false, width: 1000, height: 760, webPreferences: {nodeIntegration: true, contextIsolation: false}});
   try {
     await window.loadFile(html);
-    await window.webContents.executeJavaScript(`window._options = ${JSON.stringify(environment.options)};document.documentElement.lang=${JSON.stringify(environment.dom)};window[Symbol.for("typora-plugin-core@v2:env")] = ${JSON.stringify(environment.plugin || {})};`);
+    await window.webContents.executeJavaScript(`window._options = ${JSON.stringify(environment.options)};document.documentElement.lang=${JSON.stringify(environment.dom)};window[Symbol.for("typora-code:workspace:env")] = ${JSON.stringify(environment.plugin || {})};`);
     await window.webContents.executeJavaScript(bundle);
     await window.webContents.executeJavaScript(host_source());
     return await window.webContents.executeJavaScript(`(() => {
@@ -83,7 +83,8 @@ async function inspect_locale(bundle, html, locale, environment = {options: {dis
       const result = {
         graph_label: panel.container.getAttribute('aria-label'),
         toolbar: [...panel.toolbar.querySelectorAll('button')].map(button => button.title),
-        source_control: direct_text(panel.workbench.title),
+        source_control: panel.workbench.title.querySelector(".git-scm-title-label").textContent,
+        source_control_title: panel.workbench.title.querySelector(".git-scm-title-label").title,
         message: panel.workbench.message.placeholder,
         scm_tools: [...panel.workbench.title.querySelectorAll('button')].map(button => button.title),
       };
@@ -106,7 +107,7 @@ async function inspect_locale(bundle, html, locale, environment = {options: {dis
       dialog = document.querySelector('.git-graph-dialog-shade');
       result.settings_title = dialog.querySelector('h3').textContent;
       const graph_style = dialog.querySelector('[data-setting="graph_style"]');
-      result.settings_field = direct_text(graph_style.parentElement);
+      result.settings_field = graph_style.getAttribute("aria-label");
       result.settings_choice = graph_style.options[0].textContent;
       result.settings_close = [...dialog.querySelectorAll('.git-graph-dialog-footer button')].at(-1).textContent;
       return result;
@@ -121,12 +122,12 @@ app.whenReady().then(async () => {
   fs.writeFileSync(html, '<!doctype html><html><body></body></html>');
   const compiled = await build({
     stdin: {contents: 'export { git_graph_panel } from "./src/git_graph_panel";', resolveDir: path.join(__dirname, '..')},
-    bundle: true, format: 'iife', globalName: 'graph_i18n_qa', write: false,
+    bundle: true, format: 'iife', globalName: 'graph_i18n_qa', write: false, loader: {'.css': 'text'},
   });
   const bundle = compiled.outputFiles[0].text;
   for (const [locale, expected] of Object.entries(expectations)) {
     const actual = await inspect_locale(bundle, html, locale);
-    assert.deepEqual(actual, {...expected, settings_close: expected.close}, `${locale} localizes panel, SCM, tooltips, menu and dialogs as one language`);
+    assert.deepEqual(actual, {...expected, settings_close: expected.close, source_control_title: expected.source_control}, `${locale} localizes panel, SCM, tooltips, menu and dialogs as one language`);
   }
   for (const [name, locale, environment] of [
     ['native appLocale beats English DOM', 'zh-CN', {options:{appLocale:'zh-CN'},dom:'en'}],
@@ -136,7 +137,7 @@ app.whenReady().then(async () => {
     ['plugin selected language has highest precedence', 'en-US', {options:{displayLang:'zh-CN',appLocale:'zh-CN'},plugin:{userLang:'en-US'},dom:'zh-CN'}],
   ]) {
     const actual=await inspect_locale(bundle,html,locale,environment);const expected=expectations[locale];
-    assert.deepEqual(actual,{...expected,settings_close:expected.close},name+' localizes actual panel, SCM and dialogs consistently');
+    assert.deepEqual(actual,{...expected,settings_close:expected.close,source_control_title:expected.source_control},name+' localizes actual panel, SCM and dialogs consistently');
   }
   console.log('git graph DOM i18n: zh-CN and en-US panel, SCM, tooltips, menus, dialogs and native appLocale/explicit-language precedence passed');
   app.exit(0);

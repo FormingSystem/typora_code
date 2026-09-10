@@ -1,0 +1,9 @@
+/* 原核心 bottom/fa-cog，48px 活动栏与原 fa::before 1.5rem（24px）槽位。 */
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger {
+  appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
+  flex:none;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:0;
+  background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
+}
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger:hover {color:var(--text-color,#202020);}
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger:focus-visible {outline:1px solid var(--active-file-border-color,#0078d4);outline-offset:-3px;}

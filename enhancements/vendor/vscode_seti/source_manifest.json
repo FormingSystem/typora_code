@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/microsoft/vscode",
+  "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+  "version": "1.136.2",
+  "extension": "vscode-theme-seti",
+  "extension_version": "10.0.0",
+  "theme": "vs-seti",
+  "files": {
+    "icon_theme.json": "bbc6de399ac76b43a986237ae86dc714d0fee2df906924cba495d442b9a0066c",
+    "seti.woff": "b127762058f89b37b08d76185e3b0558f5c28859e39a3840a27cb28b9739d6e2",
+    "ThirdPartyNotices.txt": "be25a8e2c617f7214c99a256305fb6b2d976e3a698c44bda424f617079dcff9f",
+    "package.json": "4b2a385edf0c4adab91d44a35074519b7dc81cc5ae9ff4a43a52b279107792b0"
+  }
+}

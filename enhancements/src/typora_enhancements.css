@@ -296,3 +296,8 @@ body.linux-note-mermaid-viewer-open {
 [data-linux-note-workspace="ready"] #outline-btn-wrapper {
   display: none !important;
 }
+
+.linux-note-mermaid-toolbar button>svg,.linux-note-mermaid-close>svg,.linux-note-mermaid-open>svg{width:16px;height:16px;vertical-align:middle;fill:currentColor;stroke:none}
+/* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
+body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
+body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }

@@ -77,7 +77,6 @@ assert.equal(en_labels.repository_order, 'Repository Order');
 assert(Object.values(en_labels).every(label => !/\p{Script=Han}/u.test(label)));
 assert.deepEqual(settings_choices, {
   tab_icon_theme:["colour","grey"],
-  scm_integration: ["inline", "more"],
   reference_space: ["none", "-", "_"],
   details_location: ["inline", "docked"],
   label_alignment: ["normal", "split", "graph"],

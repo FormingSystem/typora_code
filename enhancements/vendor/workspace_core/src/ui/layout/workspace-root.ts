@@ -1,0 +1,230 @@
+import './workspace-root.scss'
+import { editor } from 'typora'
+import decorate from '@plylrnsdy/decorate.js'
+import { Component } from 'src/common/component'
+import { useEventBus } from 'src/common/eventbus'
+import { useService } from 'src/common/service'
+import type { Workspace } from "../workspace"
+import { WorkspaceSplit } from "./split"
+import type { WorkspaceTabs } from './tabs'
+import type { WorkspaceLeaf } from './workspace-leaf'
+import { draggableTabs } from './tabs/draggable'
+import { createTabs, createUntitledTabs, openFileInActiveTabs, splitDown, splitRight } from './workspace-utils'
+import { onTabsContextMenu } from './tabs/contextmenu'
+import { FileTabContainer } from './tabs/file-tabs'
+import { useEditingTabs } from '../views/markdown-view/use-editing-tabs'
+import { usePreviewTabToSwap } from '../views/markdown-view/use-preview-tab-to-swap'
+
+
+export type WorkspaceRootEvents = {
+  'layout-changed'(): void
+  'leaf:open'(leaf: WorkspaceLeaf): void
+  'leaf:active'(leaf: WorkspaceLeaf): void
+  'leaf:will-deactive'(leaf: WorkspaceLeaf): void
+  'leaf:will-close'(leaf: WorkspaceLeaf): void
+  'leaf:close'(leaf: WorkspaceLeaf): void
+}
+
+
+/**
+ * @since v2.5.0
+ */
+export class WorkspaceRoot extends WorkspaceSplit {
+
+  private registry = new Component()
+
+  constructor(
+    workspace: Workspace,
+    app = useService('app'),
+    commands = useService('command-manager'),
+    { t } = useService('i18n'),
+    settings = useService('settings'),
+    vault = useEventBus('vault'),
+  ) {
+    super('vertical')
+
+    $(this.containerEl).addClass('typ-workspace-root')
+
+    this.registry.onload = () => {
+      $(this.containerEl).insertBefore('content')
+
+      this.registry.registerDomEvent(this.containerEl, 'click', e => {
+        const LeafEl = (e.target as HTMLElement).closest('.typ-workspace-leaf')
+        if (LeafEl) workspace.activeLeaf = this.findLeaf(leaf => leaf.containerEl === LeafEl)
+
+        const $anchorEl = $(e.target!).closest('a')
+        if ($anchorEl.length) {
+          const url = $anchorEl.attr('href')
+          if (url) {
+            // fix: clicking on the link out of `div#wirte` will close Typora unexpectly
+            e.preventDefault()
+            e.stopPropagation()
+            app.openLink($anchorEl.attr('href')!)
+          }
+          else {
+            editor.tryOpenLink($anchorEl)
+          }
+        }
+      })
+
+      this.registry.registerDomEvent(this.containerEl, 'contextmenu', onTabsContextMenu(this))
+
+      this.registry.register(draggableTabs(this))
+
+      FileTabContainer.hideTabExtension(settings.get('hideExtensionInFileTab'))
+      this.registry.register(
+        settings.onChange('hideExtensionInFileTab', (_, isHide) => {
+          FileTabContainer.hideTabExtension(isHide)
+        })
+      )
+
+      this.registry.register(
+        workspace.on('file:will-open', (file) => {
+          const { editingTabs } = useEditingTabs()
+          if (
+            // handle: after closing the only file, it should be able to be opened again.
+            file === workspace.activeFile &&
+            // handle: do not re-execute after `openFileInActiveTabs` has be called once.
+            //         [Call Chain] 'file:will-open' → openFileInActiveTabs() → MarkdownView#onOpen() → editor.library.openFile() → 'file:will-open'
+            file !== editingTabs()?.activeLeaf.state.path
+          ) {
+            openFileInActiveTabs(file)
+          }
+        }))
+
+      this.registry.register(
+        decorate(editor.library, 'openFile', fn => (file, callback) => {
+          const { editingTabs, isEditingTabs } = useEditingTabs()
+          const activeTabs = workspace.activeLeaf?.parent as WorkspaceTabs | undefined
+          if (
+            !editingTabs() ||
+            // handle: click file tree → open file in ActivedTabs
+            isEditingTabs(activeTabs as WorkspaceTabs) ||
+            // handle: (drag ActivedTab → close ActivedTab → open SiblingTab → open file in Non-ActivedTabs) in the Tabs with MarkdownEditorView (mode: Typora)
+            editingTabs()!.activeLeaf.state.path === file
+          )
+            fn(file, callback)
+          else
+            setTimeout(() => openFileInActiveTabs(file))
+        }))
+
+      this.registry.register(workspace.on('file:open', (file) => {
+        // Skip during Previewer↔Editor mode swap — the click handler handles everything
+        const { isPreviewFileToSwap } = usePreviewTabToSwap()
+        if (isPreviewFileToSwap(file)) return
+
+        // Skip when the file is already the active leaf — redundant (e.g. right-side tab open,
+        // tab activation). Only process explicit file opens (file tree, quick open, etc.)
+        if (workspace.activeLeaf?.state.path === file) return
+
+        // Skip when the file is already the editing tabs' active leaf — prevents duplicate
+        // tabs when a drag operation updates workspace.activeLeaf before the async file:open
+        // event from KEY_OPENFILE fires.
+        const { editingTabs } = useEditingTabs()
+        if (editingTabs()?.activeLeaf.state.path === file) return
+
+        openFileInActiveTabs(file)
+      }))
+
+      this.registry.register(
+        vault.on('file:rename', (oldPath, newPath) => {
+          const tabs = this.findLeaf(leaf => leaf.state.path === oldPath)?.parent as WorkspaceTabs
+          tabs.renameTab(oldPath, newPath)
+        }))
+
+      this.registry.register(
+        vault.on('directory:rename', (oldDirPath, newDirPath) => {
+          this.eachLeaves(leaf => {
+            if (!leaf.state.path.startsWith(oldDirPath)) return
+            const oldFilePath = leaf.state.path
+            const newFilePath = newDirPath + oldFilePath.slice(oldDirPath.length)
+            const tabs = leaf.parent as WorkspaceTabs
+            tabs.renameTab(oldFilePath, newFilePath)
+          })
+        }))
+
+      this.registry.register(
+        vault.on('file:delete', (file) => {
+          this.findLeaf(leaf => leaf.state.path === file)?.detach()
+        }))
+
+      this.registry.register(
+        workspace.on('file-menu', ({ menu, path }) => {
+          menu.insertItemAfter('[data-action="open"]', item => {
+            item
+              .setKey('typ-split-right')
+              .setTitle(t.workspace.fileContextMenuSplitRight)
+              .onClick(event => splitRight(path))
+          })
+        }))
+
+      this.registry.register(
+        commands.register({
+          id: 'core.workspace:split-right',
+          title: t.workspace.commandSplitRight,
+          scope: 'global',
+          callback: splitRight,
+        }))
+
+      this.registry.register(
+        commands.register({
+          id: 'core.workspace:split-down',
+          title: t.workspace.commandSplitDown,
+          scope: 'global',
+          callback: splitDown,
+        }))
+
+      this.registry.register(
+        commands.register({
+          id: 'core.workspace:reset',
+          title: t.workspace.commandReset,
+          scope: 'global',
+          callback: () => {
+            this.registry.unload()
+            this.registry.load()
+          },
+        }))
+
+      // fix anchor jumping offset
+      this.registry.register(
+        decorate.parameters(editor.selection, 'scrollAdjust', ([$el, offset, p2, p3]) => {
+          if ($el && offset) offset += 28
+          return [$el, offset, p2, p3]
+        })
+      )
+
+
+      if (workspace.activeFile) {
+        this.appendChild(createTabs(workspace.activeFile))
+      }
+      else {
+        this.appendChild(createUntitledTabs())
+      }
+      workspace.activeLeaf = (this.children[0] as WorkspaceTabs).children[0] as WorkspaceLeaf
+    }
+
+    this.registry.onunload = () => {
+      // Removing the current tabs in reverse order causes the left tab to keep reopening, resulting in two tabs remaining after resetting the workspace.
+      // So it is necessary to handle the current Tabs separately.
+      const activeTabs = workspace.activeLeaf?.parent as WorkspaceTabs
+      activeTabs.removeOthers(workspace.activeLeaf?.state.path)
+
+      // Elements need to be deleted in reverse order
+      this.eachLeaves(leaf => leaf.detach())
+      this.children.reverse().forEach(child => child.detach())
+
+      // Also clean up floating views (they are not part of the rootSplit)
+      workspace.floatingSplit.eachLeaves(leaf => leaf.detach())
+
+      this.containerEl.remove()
+      workspace.activeLeaf = null
+      setTimeout(() => editor.writingArea.parentElement!.setAttribute('class', ''))
+
+      const { setEditingTabs } = useEditingTabs()
+      setEditingTabs(null)
+    }
+
+    setTimeout(() => this.registry.load())
+
+  }
+}

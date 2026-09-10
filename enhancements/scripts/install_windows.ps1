@@ -1,143 +1,89 @@
-[CmdletBinding()]
-param(
-    [string]$typora_root = "",
-    [string]$backup_root = "",
-    [switch]$non_interactive
-)
-
-$ErrorActionPreference = "Stop"
-
-function get_sha256([string]$path) {
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $null }
-    return (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-}
-
-function restore_managed_file([string]$target, [bool]$existed, [string]$backup, [string]$timestamp) {
-    if ($existed) {
-        Copy-Item -LiteralPath $backup -Destination $target -Force
-    } elseif (Test-Path -LiteralPath $target -PathType Leaf) {
-        Move-Item -LiteralPath $target -Destination (Join-Path (Split-Path -Parent $target) ("disabled_" + $timestamp + "_" + [guid]::NewGuid().ToString("N")))
-    }
-}
-
-$typora_tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$environment_helper = Join-Path $typora_tools_root "scripts\lib\typora_environment.ps1"
-if (-not (Test-Path -LiteralPath $environment_helper -PathType Leaf)) {
-    throw "Typora environment helper is missing: $environment_helper"
-}
-. $environment_helper
-. (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
-
+﻿[CmdletBinding()]
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme)
+$ErrorActionPreference = 'Stop'
+$tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
-$window_html = Join-Path $typora_root "resources\window.html"
-$user_data = get_typora_windows_user_data
-$community_root = Join-Path $user_data "plugins"
-$community_vendor = Join-Path $typora_tools_root "enhancements\vendor\typora_workspace"
-$community_assets = @(get_typora_workspace_assets $community_vendor)
-$plugin_id = "forming_system.linux_note_enhancements"
-$plugin_source = Join-Path $typora_tools_root "enhancements\dist\community_plugin"
-$plugin_target = Join-Path $community_root "plugins\$plugin_id"
-$plugin_assets = @(get_typora_community_plugin_assets $plugin_source)
-$plugin_settings = Join-Path $community_root "settings\plugins.json"
-$terminal_vendor = Join-Path $typora_tools_root "enhancements\dist\terminal_runtime"
-$terminal_target = Join-Path $user_data "linux_note_enhancements\terminal_runtime"
-. (Join-Path $typora_tools_root "scripts\lib\typora_terminal.ps1")
-$node_stage = prepare_typora_node $typora_tools_root
-$terminal_assets = @(get_typora_terminal_assets $terminal_vendor)
-
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
-if ([string]::IsNullOrWhiteSpace($backup_root)) {
-    $backup_root = Join-Path $user_data "backups\linux_note_typora_enhancements\$timestamp"
+$user_data = [IO.Path]::GetFullPath((get_typora_windows_user_data))
+$source = Join-Path $tools_root 'enhancements/dist'
+$assets = @(assert_typora_release $tools_root)
+assert_typora_migration_available $user_data
+$migrated_settings = get_typora_migrated_settings $user_data
+$head = [IO.File]::ReadAllText((Join-Path $tools_root 'enhancements/runtime_head.html'), [Text.Encoding]::UTF8)
+$window = resolve_typora_asset_path $typora_root 'resources/window.html'
+$window_source = get_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) $head
+assert_typora_window_source $window_source $head
+$terminal_source = Join-Path $source 'terminal_runtime'
+$terminal_assets = @(get_typora_terminal_assets $terminal_source)
+assert_typora_workspace_assets $terminal_source $terminal_assets
+$theme_source = Join-Path $tools_root 'cpp_github-consolas.css'
+if ($include_theme -and -not (Test-Path -LiteralPath $theme_source -PathType Leaf)) { throw 'Theme source is missing.' }
+if (-not $backup_root) { $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
+$backup_root = [IO.Path]::GetFullPath($backup_root)
+$manifest_path = resolve_typora_asset_path $backup_root 'manifest.json'
+if (Test-Path -LiteralPath $backup_root) { throw 'Use a new, empty backup destination for each transaction.' }
+$node_stage = prepare_typora_node $tools_root
+$profile_node = Join-Path $node_stage.root ($node_stage.assets | Where-Object { $_.relative_path.EndsWith('/node.exe') } | Select-Object -First 1).relative_path
+$profile_path = resolve_typora_asset_path $user_data 'profile.data'
+$profile_before = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path
+$profile_changed = $false
+$assets += [pscustomobject]@{relative_path='SHA256SUMS';sha256=(Get-FileHash -LiteralPath (Join-Path $source 'SHA256SUMS') -Algorithm SHA256).Hash}
+$groups = @(
+    [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');assets=@($assets + [pscustomobject]@{relative_path='appearance_bootstrap.js'})},
+    [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');assets=@(get_typora_migration_assets)},
+    [pscustomobject]@{name='terminal';root=(Join-Path $user_data 'linux_note_enhancements/terminal_runtime');assets=@($terminal_assets + $node_stage.assets)},
+    [pscustomobject]@{name='settings';root=(Join-Path $user_data 'plugins/settings');assets=@([pscustomobject]@{relative_path='plugins.json'})},
+    [pscustomobject]@{name='theme';root=(Join-Path $user_data 'themes');assets=$(if ($include_theme) { @([pscustomobject]@{relative_path='cpp_github-consolas.css'}) } else { @() })},
+    [pscustomobject]@{name='native_profile';root=$user_data;assets=@([pscustomobject]@{relative_path='profile.data'})}
+)
+foreach ($group in $groups) {
+    foreach ($asset in $group.assets) {
+        $target = resolve_typora_asset_path $group.root $asset.relative_path
+        if (Test-Path -LiteralPath $target -PathType Container) { throw "Managed file target is a directory: $target" }
+    }
 }
-$window_backup = Join-Path $backup_root "window.html"
-$community_backup = Join-Path $backup_root "community_core"
-$plugin_backup = Join-Path $backup_root "community_plugin"
-$settings_backup = Join-Path $backup_root "plugins.json"
-$terminal_backup = Join-Path $backup_root "terminal_runtime"
-$manifest_path = Join-Path $backup_root "manifest.json"
-$official_tag = '<script src="typora://app/userData/plugins/loader.js" type="module"></script>'
-$official_pattern = '<script\s+src="typora://app/userData/plugins/loader\.js"\s+type="module"></script>'
-$legacy_pattern = '<script\s+defer\s+src="typora://app/userData/linux_note_enhancements/typora_enhancements\.js"\s+data-linux-note-enhancements="true"></script>'
-
-foreach ($required in @($window_html, (Join-Path $plugin_source "main.js"), (Join-Path $plugin_source "manifest.json"))) {
-    if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Required file is missing: $required" }
+New-Item -ItemType Directory -Path $backup_root | Out-Null
+Copy-Item -LiteralPath $window -Destination (Join-Path $backup_root 'window.html')
+$manifest = [ordered]@{schema_version=4;installed_at=(Get-Date).ToString('o');typora_root=$typora_root;user_data=$user_data;window_sha256=(Get-FileHash -LiteralPath (Join-Path $backup_root 'window.html') -Algorithm SHA256).Hash.ToLowerInvariant()}
+foreach ($group in $groups) {
+    $records = @(backup_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.assets)
+    $group | Add-Member -NotePropertyName records -NotePropertyValue $records
+    $manifest[$group.name] = $records
 }
-assert_typora_workspace_assets -asset_root $community_vendor -assets $community_assets
-assert_typora_workspace_assets -asset_root $plugin_source -assets $plugin_assets
-assert_typora_workspace_assets -asset_root $terminal_vendor -assets $terminal_assets
-$plugin_manifest = Get-Content -Encoding UTF8 -LiteralPath (Join-Path $plugin_source "manifest.json") -Raw | ConvertFrom-Json
-if ($plugin_manifest.id -ne $plugin_id -or $plugin_manifest.minCoreVersion -ne "2.10.15") {
-    throw "Community plugin manifest identity or core version is invalid."
-}
-
-$window_source = [System.IO.File]::ReadAllText($window_html)
-$window_source = [regex]::Replace($window_source, $legacy_pattern, "")
-$window_source = [regex]::Replace($window_source, $official_pattern, "")
-if (-not $window_source.Contains("</body>")) {
-    throw "Typora resources/window.html does not contain </body>; installation stopped before overwrite."
-}
-$window_source = $window_source.Replace("</body>", "$official_tag</body>")
-
-New-Item -ItemType Directory -Force -Path $backup_root | Out-Null
-Copy-Item -LiteralPath $window_html -Destination $window_backup
-$settings_existed = Test-Path -LiteralPath $plugin_settings -PathType Leaf
-if (Test-Path -LiteralPath $plugin_settings -PathType Container) { throw "Plugin settings target is a directory: $plugin_settings" }
-if ($settings_existed) { Copy-Item -LiteralPath $plugin_settings -Destination $settings_backup }
-$community_records = @(backup_typora_workspace -asset_root $community_root -backup_root $community_backup -assets $community_assets)
-$plugin_records = @(backup_typora_workspace -asset_root $plugin_target -backup_root $plugin_backup -assets $plugin_assets)
-$terminal_records = @(backup_typora_workspace -asset_root $terminal_target -backup_root $terminal_backup -assets @($terminal_assets + $node_stage.assets))
-
+$settings_target = Join-Path $user_data 'typora_code/settings/workspace.json'
+$created_settings = $false
 try {
-    install_typora_workspace -vendor_root $node_stage.root -asset_root $terminal_target -assets $node_stage.assets
-    install_typora_workspace -vendor_root $terminal_vendor -asset_root $terminal_target -assets $terminal_assets
-    install_typora_workspace -vendor_root $community_vendor -asset_root $community_root -assets $community_assets
-    install_typora_workspace -vendor_root $plugin_source -asset_root $plugin_target -assets $plugin_assets
-    update_typora_plugin_settings -settings_path $plugin_settings -backup_path $settings_backup -operation enable
-    [System.IO.File]::WriteAllText($window_html, $window_source, [System.Text.UTF8Encoding]::new($false))
-
-    $installed_source = [System.IO.File]::ReadAllText($window_html)
-    if (([regex]::Matches($installed_source, [regex]::Escape($official_tag))).Count -ne 1) {
-        throw "Expected one official Typora Community Plugin loader entry after installation."
+    install_typora_workspace $node_stage.root $groups[2].root $node_stage.assets
+    install_typora_workspace $terminal_source $groups[2].root $terminal_assets
+    install_typora_workspace $source $groups[0].root $assets
+    $retired = resolve_typora_asset_path $groups[0].root 'appearance_bootstrap.js'
+    if (Test-Path -LiteralPath $retired -PathType Leaf) { Remove-Item -LiteralPath $retired }
+    foreach ($asset in $groups[1].assets) {
+        $target = resolve_typora_asset_path $groups[1].root $asset.relative_path
+        if (Test-Path -LiteralPath $target -PathType Leaf) { Remove-Item -LiteralPath $target }
     }
-    if (([regex]::Matches($installed_source, $legacy_pattern)).Count -ne 0) {
-        throw "Legacy linux-note bootstrap entry remains after installation."
+    update_typora_plugin_settings (Join-Path $groups[3].root 'plugins.json') (Join-Path $backup_root 'settings/plugins.json') remove
+    if ($null -ne $migrated_settings -and -not (Test-Path -LiteralPath $settings_target)) {
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $settings_target) | Out-Null
+        [IO.File]::WriteAllText($settings_target, $migrated_settings, [Text.UTF8Encoding]::new($false))
+        $created_settings = $true
     }
-    assert_typora_workspace_assets -asset_root $community_root -assets $community_assets
-    assert_typora_workspace_assets -asset_root $plugin_target -assets $plugin_assets
-
-    $manifest = [ordered]@{
-        schema_version = 2
-        installed_at = (Get-Date).ToString("o")
-        typora_root = $typora_root
-        typora_version = get_typora_windows_version $typora_root
-        window_html = $window_html
-        window_backup = $window_backup
-        window_before_sha256 = get_sha256 $window_backup
-        window_after_sha256 = get_sha256 $window_html
-        community_root = $community_root
-        community_assets = $community_records
-        plugin_id = $plugin_id
-        plugin_target = $plugin_target
-        plugin_assets = $plugin_records
-        plugin_settings = $plugin_settings
-        plugin_settings_existed = $settings_existed
-        plugin_settings_backup = if ($settings_existed) { $settings_backup } else { $null }
-        terminal_assets = $terminal_records
-    }
-    [System.IO.File]::WriteAllText($manifest_path, ($manifest | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
+    if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; Copy-Item -LiteralPath $theme_source -Destination (resolve_typora_asset_path $groups[4].root 'cpp_github-consolas.css') -Force }
+    [IO.File]::WriteAllText($window, $window_source, [Text.UTF8Encoding]::new($false))
+    assert_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) $head
+    assert_typora_workspace_assets $groups[0].root $assets
+    $profile_result = invoke_typora_native_profile $profile_node $tools_root install $profile_path $profile_before.sha256
+    $profile_changed = $profile_result.changed
+    [IO.File]::WriteAllText($manifest_path, ($manifest | ConvertTo-Json -Depth 100), [Text.UTF8Encoding]::new($false))
 } catch {
-    restore_typora_workspace -asset_root $terminal_target -backup_root $terminal_backup -records $terminal_records -timestamp $timestamp
-    restore_managed_file -target $plugin_settings -existed $settings_existed -backup $settings_backup -timestamp $timestamp
-    restore_typora_workspace -asset_root $plugin_target -backup_root $plugin_backup -records $plugin_records -timestamp $timestamp
-    restore_typora_workspace -asset_root $community_root -backup_root $community_backup -records $community_records -timestamp $timestamp
-    Copy-Item -LiteralPath $window_backup -Destination $window_html -Force
-    throw
+    $failure = $_
+    foreach ($group in $groups) { if ($group.name -ne 'native_profile') { restore_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.records '' } }
+    if ($profile_changed) { $current_profile = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path; $null = invoke_typora_native_profile $profile_node $tools_root restore $profile_path $current_profile.sha256 (Join-Path $backup_root 'native_profile/profile.data') }
+    if ($created_settings -and (Test-Path -LiteralPath $settings_target -PathType Leaf)) { Move-Item -LiteralPath $settings_target -Destination ($settings_target + '.disabled.' + [guid]::NewGuid().ToString('N')) }
+    Copy-Item -LiteralPath (Join-Path $backup_root 'window.html') -Destination $window -Force
+    throw $failure
 }
-
-Write-Host "Typora enhancements installed as a Typora Community Plugin."
-Write-Host "Typora version: $($manifest.typora_version)"
-Write-Host "Typora root: $typora_root"
-Write-Host "Plugin: $plugin_target"
+Write-Host 'TyporaCode independent workbench installed. Save documents and restart Typora.'
 Write-Host "Backup: $backup_root"
-Write-Host "Restart Typora after saving open documents."
-Write-Host "Integrated terminal: xterm.js + node-pty ConPTY (Windows 10 1903+, x64/ARM64). Administrator terminal uses Windows UAC."

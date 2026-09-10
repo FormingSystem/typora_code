@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import { marked, type TokensList } from "marked";
 import DOMPurify from "dompurify";
 import type { workspace_file_host } from "./workspace_files";
@@ -16,7 +17,7 @@ const markdown_source = (text: string) => text.replace(/\r\n?/gu,"\n").replace(/
 /** 侧栏预览独立于中央编辑器，不切换文档、不创建工作区标签，也不改变正文选区。 */
 export function create_lookup_preview(files: workspace_file_host) {
   const container = el("section", "workspace-lookup-preview");
-  const style = el("style"); style.textContent = preview_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", preview_css, {});
   const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", "命中内容预览");
   const markdown_host = el("div", "workspace-lookup-markdown");
   const shadow = markdown_host.attachShadow({mode: "open"});

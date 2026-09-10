@@ -26,7 +26,7 @@
     const key = direction => window.dispatchEvent(new KeyboardEvent('keydown', {key: direction, code: direction, altKey: true, bubbles: true, cancelable: true}));
     try {
       await wait(() => document.documentElement.dataset.linuxNoteWorkspaceBrowser === 'ready', '工作区未就绪');
-      app = window[Symbol.for('typora-plugin-core@v2')].app; File.getMountFolder = () => root;
+      app = window[Symbol.for('typora-code:workspace')].app; File.getMountFolder = () => root;
       app.workspace.ribbon.clickButton('core.search');
       await wait(() => document.querySelector('.linux-note-workspace-search #linux-note-search-include'), '搜索包含输入框未就绪');
       panel = document.querySelector('.linux-note-workspace-search'); panel.querySelector('#linux-note-search-include').value = 'location.md';

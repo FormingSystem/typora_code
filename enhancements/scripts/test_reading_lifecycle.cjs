@@ -23,23 +23,29 @@ app.whenReady().then(async () => {
     const on=(name,callback)=>{let set=subscriptions.get(name);if(!set)subscriptions.set(name,set=new Set());set.add(callback);return()=>set.delete(callback)};
     window.emit=(name,data)=>{for(const callback of subscriptions.get(name)||[])callback(data)};
     class View { onOpen(){} getState(){return {original:true}} setState(){} isEditor(){return true} }
-    const leaf={state:{path:'/test/a.md'},containerEl:document.querySelector('content'),view:new View()};leaf.containerEl.classList.add('mod-active');leaf.view.leaf=leaf;leaf.view.containerEl=document.querySelector('#write');leaf.parent={activeLeaf:leaf,toggleTab(){return leaf}};
+    const leaf={state:{path:'/test/project-docs/P01.md'},containerEl:document.querySelector('content'),view:new View()};leaf.containerEl.classList.add('mod-active');leaf.view.leaf=leaf;leaf.view.containerEl=document.querySelector('#write');leaf.parent={activeLeaf:leaf,toggleTab(){return leaf}};
     window.leaf=leaf;window.original_methods={onOpen:View.prototype.onOpen,getState:View.prototype.getState,setState:View.prototype.setState};
-    window.host={openFile(){},commands:{register(command){commands.set(command.id,command);return()=>commands.delete(command.id)},run(){}},workspace:{activeLeaf:leaf,eachLeaves(callback){callback(leaf)},rootSplit:{on},on,activeEditor:{openFile(){}}}};
-    window[Symbol.for('typora-plugin-core@v2')]={app:host,Notice:class{constructor(message){notices.push(message)}}};
-    window.File={bundle:{filePath:'/test/a.md'},getMountFolder(){return '/test'},editor:{tryOpenUrl(){},library:{openFile(){}},selection:{buildUndo(){return null}},sourceView:{inSourceMode:false}}};
-    window.reqnode=()=>({normalize:p=>p,isAbsolute:p=>p.startsWith('/'),resolve:(...p)=>p.join('/'),dirname:p=>p.substring(0,p.lastIndexOf('/')),relative:(base,p)=>p.slice(base.length+1),basename:p=>p.split('/').pop(),sep:'/'});
+    window.opened_paths=[];window.host={openFile(path){opened_paths.push(path)},commands:{register(command){commands.set(command.id,command);return()=>commands.delete(command.id)},run(){}},workspace:{activeLeaf:leaf,eachLeaves(callback){callback(leaf)},rootSplit:{on},on,activeEditor:{openFile(){}}}};
+    window[Symbol.for('typora-code:workspace')]={app:host,Notice:class{constructor(message){notices.push(message)}}};
+    window.File={bundle:{filePath:'/test/project-docs/P01.md'},getMountFolder(){return '/test'},editor:{tryOpenUrl(){},library:{openFile(path){opened_paths.push(path)}},selection:{buildUndo(){return null}},sourceView:{inSourceMode:false}}};
+    window.reqnode=name=>name==='fs'?{statSync(path){if(path.endsWith('/missing.md'))throw Error('ENOENT');return{isFile:()=>true}}}:({normalize:p=>p,isAbsolute:p=>p.startsWith('/'),resolve:(...p)=>p.join('/'),dirname:p=>p.substring(0,p.lastIndexOf('/')),relative:(base,p)=>p.slice(base.length+1),basename:p=>p.split('/').pop(),sep:'/'});
     window.JSBridge={invoke(){copy_count++;return new Promise(resolve=>window.finish_copy=resolve)}};
     window.original_url=File.editor.tryOpenUrl;window.original_file=File.editor.library.openFile;window.original_app=host.openFile;window.original_editor=host.workspace.activeEditor.openFile;
   })()`);
   await evaluate('window.dispose_nav=qa.bind_reading_navigation(); window.dispose_paths=qa.bind_file_path_actions();window.dispose_map=qa.bind_reading_minimap();void 0;');
   assert(await evaluate('dispose_nav===qa.bind_reading_navigation()&&dispose_paths===qa.bind_file_path_actions()&&dispose_map===qa.bind_reading_minimap()'));
   assert.equal(await evaluate('commands.size'),2);
-  await evaluate(`emit('file-menu',{menu:{containerEl:document.querySelector('#menu')},path:'/test/a.md'});commands.values().next().value.callback();`);
+  await evaluate(`host.openFile('hardware.md')`);
+  assert.equal(await evaluate('opened_paths.pop()'),'/test/project-docs/hardware.md','relative Markdown links use the source document directory');
+  const missing_before=await evaluate('({html:document.querySelector("#write").innerHTML,path:File.bundle.filePath,leaf:leaf.state.path,scroll:document.querySelector("content").scrollTop,opens:opened_paths.length})');
+  assert(await evaluate(`qa.navigate_reading_target('missing.md').then(()=>false,()=>true)`));
+  assert.deepEqual(await evaluate('({html:document.querySelector("#write").innerHTML,path:File.bundle.filePath,leaf:leaf.state.path,scroll:document.querySelector("content").scrollTop,opens:opened_paths.length})'),missing_before,'missing target cannot clear or switch the current Markdown before failing');
+
+  await evaluate(`emit('file-menu',{menu:{containerEl:document.querySelector('#menu')},path:'/test/project-docs/P01.md'});commands.values().next().value.callback();`);
   await delay(30);
   assert.equal(await evaluate('copy_count'),1);
   assert.equal(await evaluate('document.querySelectorAll(".linux-note-path-item").length'),3);
-  await evaluate(`window.pending_navigation=qa.navigate_reading_target('/test/missing.md').then(()=>false,()=>true);dispose_nav();dispose_nav();dispose_paths();dispose_paths();dispose_map();dispose_map();finish_copy();`);
+  await evaluate(`window.pending_navigation=qa.navigate_reading_target('/test/b.md').then(()=>false,()=>true);dispose_nav();dispose_nav();dispose_paths();dispose_paths();dispose_map();dispose_map();finish_copy();`);
   assert(await evaluate('pending_navigation'));
   await delay(220);
   assert(await evaluate('File.editor.tryOpenUrl===original_url&&File.editor.library.openFile===original_file&&host.openFile===original_app&&host.workspace.activeEditor.openFile===original_editor'));

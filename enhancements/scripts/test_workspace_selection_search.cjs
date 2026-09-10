@@ -43,9 +43,8 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('open_calls.length'),0);assert.equal(await evaluate('core.app.workspace.activeLeaf===native_leaf'),true);assert.equal(await evaluate('native_leaf.view.containerEl.scrollTop'),reading_top);
   assert(await evaluate('[...document.querySelectorAll("[data-path]")].some(node=>node.dataset.path.endsWith("source.md"))'));
   checks.push('real Ctrl-click inside a rendered selection searches all occurrences including its source without moving the central document');
-  assert(await evaluate('document.querySelector(".workspace-search-preview-section").hidden'),'ordinary search has no default lower preview region');
-  await click('[aria-label="搜索视图选项"]');await evaluate('[...document.querySelectorAll(".git-graph-menu button")].find(button=>button.textContent.includes("在搜索下方显示阅读预览")).click()');
-  checks.push('the lower reading preview is an explicit view option and preserves the selected source and central document');
+  assert(!await evaluate('document.querySelector(".workspace-search-preview-section").hidden'),'frozen search shows its lower reading preview by default');
+  checks.push('the default lower reading preview preserves the selected source and central document');
   await wait('!!document.querySelector(".workspace-lookup-preview-body").dataset.previewPath');
   const before_disclosure=await evaluate('({calls:open_calls.length,path:document.querySelector(".workspace-lookup-preview-body").dataset.previewPath,selected:getSelection().toString(),reading_top:native_leaf.view.containerEl.scrollTop})');
   const file_group='.workspace-search-file[data-path$="target.md"]',file_arrow=file_group+'>summary .workspace-search-file-toggle';
@@ -105,7 +104,7 @@ app.whenReady().then(async()=>{
   const target_matches=await evaluate('(()=>{const row=document.querySelector("'+target_selector.replaceAll('"','\\"')+'");return [...row.parentElement.querySelectorAll("[data-match-id]")].map(node=>node.dataset.matchId)})()');
   await click('[data-match-id="'+target_matches[1]+'"]');assert.equal(await evaluate('open_calls.length'),0);
   await double_click(target_selector);await wait('open_calls.length===1');
-  assert.deepEqual(await evaluate('open_calls.at(-1)[1]'),{source:false,line:5,column:8,end_line:5,end_column:14,expected_text:'needle',preview:false,preserve_focus:false});
+  assert.deepEqual(await evaluate('open_calls.at(-1)[1]'),{source:false,line:5,column:8,end_line:5,end_column:14,expected_text:'needle'});
   checks.push('single-click file and match only render lower Markdown preview; double-click file opens its remembered match and selects exact text');
   await evaluate('void(core.app.workspace.activeLeaf=native_leaf)');await double_click('[data-match-id="'+target_matches[0]+'"]');await wait('open_calls.at(-1)[1].line===3');
   assert.equal(await evaluate('open_calls.at(-1)[1].expected_text'),'needle');

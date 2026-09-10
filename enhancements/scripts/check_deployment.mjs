@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import "./test_native_profile.mjs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
@@ -8,7 +9,7 @@ const typora_root = path.resolve(enhancement_root, "..");
 process.chdir(enhancement_root);
 const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bundle_markers.txt'), 'utf8')
   .split(/\r?\n/u).map((marker) => marker.trim()).filter(Boolean);
-const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/community_plugin/main.js'), 'utf8');
+const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/workbench.js'), 'utf8') + fs.readFileSync(path.join(typora_root, 'enhancements/dist/workspace.css'), 'utf8');
 for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
   'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
   'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade', 'data-linux-note-source-control', 'data-linux-note-monaco-diff', 'linux_note:source_control',
@@ -18,7 +19,7 @@ for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'ini
 for (const marker of bundle_markers) {
   if (!bundle_source.includes(marker)) throw new Error(`prebuilt bundle is missing: ${marker}`);
 }
-for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-workspace-files','data-linux-note-workspace-search','data-linux-note-workspace-explorer','install_workspace_activity','data-linux-note-terminal-theme','data-linux-note-workspace-outline','bind_workspace_selection_search','data-linux-note-lookup-preview','linux-note-search-selection','workspace-search-preview-section','linux-note:lookup:preview-scale:v1','install_workspace_sidebar_sash','data-linux-note-source-editing','install_workspace_footer','bind_workspace_editor_status','linux-note-editor-status','install_workspace_titlebar','workspace-titlebar-menu','create_workspace_titlebar_definitions','create_workspace_titlebar_menu','bind_workspace_tab_actions','install_workspace_ui_appearance','install_workspace_chrome','data-linux-note-workspace-chrome','linux-note-document-margin','install_workspace_shortcuts','linux_note:close_all_workspace_tabs']) {
+for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-workspace-files','data-linux-note-workspace-search','data-linux-note-workspace-explorer','install_workspace_activity','data-linux-note-terminal-theme','data-linux-note-workspace-outline','bind_workspace_selection_search','data-linux-note-lookup-preview','linux-note-search-selection','workspace-search-preview-section','linux-note:lookup:preview-scale:v1','install_workspace_sidebar_sash','data-linux-note-source-editing','install_workspace_footer','bind_workspace_editor_status','linux-note-editor-status','install_workspace_titlebar']) {
   if(!bundle_markers.includes(marker))throw new Error(`required workspace deployment capability is missing: ${marker}`);
 }
 const codicon_root = 'vendor/codicons';
@@ -64,6 +65,8 @@ const deployment_files = [
   "scripts/lib/typora_environment.sh",
   "scripts/lib/typora_workspace.ps1",
   "scripts/lib/typora_workspace.sh",
+  "scripts/lib/typora_workspace.py",
+  "enhancements/runtime_head.html",
   "enhancements/scripts/install_windows.ps1",
   "enhancements/scripts/restore_windows.ps1",
 ];
@@ -99,54 +102,37 @@ for (const marker of ["UCRT64", "Linux", "cygpath", "TYPORA_ROOT", "/dev/tty", "
   if (!bash_environment.includes(marker)) throw new Error(`Bash discovery marker is missing: ${marker}`);
 }
 
-for (const file of ['configure_windows.ps1', 'check_configuration_windows.ps1', 'enhancements/scripts/install_windows.ps1']) {
-  if (!sources.get(file).includes('get_typora_community_plugin_assets')) {
-    throw new Error(`shared bundle validation is missing from ${file}`);
-  }
+const release_root = path.join(enhancement_root, 'dist');
+const fontawesome_root = path.join(enhancement_root, 'vendor/fontawesome');
+const fontawesome_manifest = JSON.parse(fs.readFileSync(path.join(fontawesome_root, 'SOURCE.json'), 'utf8'));
+const fontawesome_icons = JSON.parse(fs.readFileSync(path.join(fontawesome_root, 'icons.json'), 'utf8'));
+for (const entry of fontawesome_manifest.files) {
+  if (!['file.svg', 'folder.svg', 'folder-open.svg', 'LICENSE.txt'].includes(entry.file)) throw new Error('Invalid Font Awesome asset');
+  const bytes = fs.readFileSync(path.join(fontawesome_root, entry.file));
+  if (createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw new Error('Font Awesome source hash mismatch');
+  if (entry.file.endsWith('.svg') && fontawesome_icons[entry.file.slice(0, -4)] !== bytes.toString('utf8')) throw new Error('Font Awesome bundled icon differs from original');
 }
-for (const file of ['configure.sh', 'check_configuration.sh']) {
-  if (!sources.get(file).includes('typora_validate_community_plugin')) {
-    throw new Error(`shared bundle validation is missing from ${file}`);
-  }
+if (!bundle_source.includes('Font Awesome Free 6.7.2') || !fs.readFileSync(path.join(release_root, 'licenses/fontawesome.txt'), 'utf8').includes('CC BY 4.0')) throw new Error('Font Awesome attribution missing');
+const required = new Set(['workspace_core.js','workspace_core.css','workspace.css','workbench.js']);
+const seen = new Set();
+for (const line of fs.readFileSync(path.join(release_root, 'SHA256SUMS'),'utf8').trim().split(/\r?\n/u)) {
+  const match = /^([a-f0-9]{64})  (workspace_core\.(?:js|css)|workspace\.css|workbench\.js|(?:assets|locales|licenses)\/[a-zA-Z0-9_./-]+)$/u.exec(line);
+  if (!match || match[2].includes('..') || seen.has(match[2])) throw new Error('Invalid or duplicate product asset manifest');
+  seen.add(match[2]);
+  if (createHash('sha256').update(fs.readFileSync(path.join(release_root,match[2]))).digest('hex') !== match[1]) throw new Error(`Product asset hash mismatch: ${match[2]}`);
 }
-
-const vendor_root = path.join(typora_root, 'enhancements/vendor/typora_workspace');
-const asset_lines = fs.readFileSync(path.join(vendor_root, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/u);
-const bootstrap_source = fs.readFileSync(path.join(typora_root, 'enhancements/src/workspace_bootstrap.ts'), 'utf8');
-const bootstrap_version = /const WORKSPACE_VERSION = "([0-9.]+)"/u.exec(bootstrap_source)?.[1];
-const bundled_version = /WORKSPACE_VERSION = "([0-9.]+)"/u.exec(bundle_source)?.[1];
-if (!bootstrap_version || bundled_version !== bootstrap_version) {
-  throw new Error('workspace source and prebuilt core versions differ; rebuild the bundle');
-}
-for (const line of asset_lines) {
-  const match = /^([a-f0-9]{64})  ((?:loader\.(?:js|json))|(?:[0-9.]+\/(?:locales\/)?[a-zA-Z0-9._-]+))$/u.exec(line);
-  if (!match || match[2].includes('..')) throw new Error(`invalid workspace asset entry: ${line}`);
-  if (!match[2].startsWith('loader.') && match[2].split('/')[0] !== bootstrap_version) throw new Error(`workspace core version differs from its assets: ${match[2]}`);
-  const digest = createHash('sha256').update(fs.readFileSync(path.join(vendor_root, match[2]))).digest('hex');
-  if (digest !== match[1]) throw new Error(`workspace asset hash mismatch: ${match[2]}`);
-}
-console.log(`validated ${deployment_files.length} portable deployment files and ${asset_lines.length} workspace ${bootstrap_version} assets`);
-
+for (const name of required) if (!seen.has(name)) throw new Error(`Missing startup asset ${name}`);
+const head = sources.get('enhancements/runtime_head.html');
+for (const name of required) if ((head.match(new RegExp(`typora://app/userData/typora_code/${name.replaceAll('.', '\\.')}`, 'gu')) || []).length !== 1) throw new Error(`Head must contain one ${name}`);
+if ((head.match(/data-typora-code-style/gu)||[]).length !== 2 || head.indexOf('workspace_core.css') > head.indexOf('workspace.css')) throw new Error('Static startup order is invalid');
+if (head.includes('/plugins/') || head.includes('data-linux-note-enhancements')) throw new Error('Old entry in production head');
+const core_source = fs.readFileSync(path.join(release_root,'workspace_core.js'),'utf8');
+if (!core_source.includes('typora-code:workspace') || !bundle_source.includes('typora-code:workspace')) throw new Error('Independent runtime namespace missing');
 for (const line of fs.readFileSync('dist/terminal_runtime/SHA256SUMS','utf8').trim().split(/\r?\n/u)) {
   const match = /^([a-f0-9]{64})  ([0-9.]+\/(?:node-pty\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9._-]+|terminal_broker.cjs))$/u.exec(line);
   if (!match || match[2].includes('..') || createHash('sha256').update(fs.readFileSync('dist/terminal_runtime/'+match[2])).digest('hex') !== match[1]) throw new Error('Terminal asset hash mismatch');
 }
-for (const marker of ['data-linux-note-terminal','linux_note:terminal','linux-note-workspace-sash']) if (!bundle_markers.includes(marker)) throw new Error('Terminal deployment marker missing');
 const node_release = JSON.parse(fs.readFileSync('node_runtime.json','utf8'));
 if (!bundle_source.includes(node_release.version) || !bundle_source.includes('Copyright (c) 2017-2019, The xterm.js authors')) throw new Error('Terminal runtime version or license is missing');
-
-if (!bundle_source.includes('Monaco Editor 0.56.0 (MIT)')) throw new Error('Monaco license is missing');
-if (!bundle_source.includes('_VSCODE_NLS_LANGUAGE')) throw new Error('Monaco Chinese UI is missing');
-
-const plugin_root = path.join(typora_root, 'enhancements/dist/community_plugin');
-const plugin_manifest = JSON.parse(fs.readFileSync(path.join(plugin_root, 'manifest.json'), 'utf8'));
-if (plugin_manifest.id !== 'forming_system.linux_note_enhancements' || plugin_manifest.minCoreVersion !== bootstrap_version) throw new Error('Community plugin manifest identity differs');
-const plugin_files = new Set();
-for (const line of fs.readFileSync(path.join(plugin_root, 'SHA256SUMS'), 'utf8').trim().split(/\r?\n/u)) {
-  const match = /^([a-f0-9]{64})  (main\.js|manifest\.json|style\.css)$/u.exec(line);
-  if (!match || plugin_files.has(match[2]) || createHash('sha256').update(fs.readFileSync(path.join(plugin_root, match[2]))).digest('hex') !== match[1]) throw new Error('Community plugin asset digest differs');
-  plugin_files.add(match[2]);
-}
-if (plugin_files.size !== 3) throw new Error('Community plugin package is incomplete');
-if (JSON.parse(fs.readFileSync(path.join(vendor_root, 'loader.json'), 'utf8')).coreVersion !== bootstrap_version) throw new Error('Official loader core version differs');
-if (fs.existsSync(path.join(typora_root, 'enhancements/dist/typora_enhancements.js'))) throw new Error('Obsolete direct bundle remains in distribution');
+if (!bundle_source.includes('Monaco Editor 0.56.0 (MIT)') || !bundle_source.includes('_VSCODE_NLS_LANGUAGE')) throw new Error('Monaco license or locale is missing');
+console.log(`validated ${deployment_files.length} portable deployment files and ${seen.size} independent workspace assets`);

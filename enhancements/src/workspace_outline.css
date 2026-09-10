@@ -6,13 +6,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content
   box-sizing: border-box;
 }
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item {
-  box-sizing: border-box;
-  height: var(--linux-note-shell-row-height, 22px);
-  min-height: 22px;
-  line-height: 22px;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-right: var(--linux-note-shell-inset-small, 8px);
+  padding-right: 4px;
 }
 /* 原生 hover 用负边距扩大热区；去外围空白后直接使用行本身，避免横向越界。 */
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item:hover {
@@ -30,6 +24,14 @@ html[data-linux-note-workspace-outline="ready"] #outline-menu > .divider:has(+ [
   display: none !important;
 }
 
-html[data-linux-note-outline-embedded] .workspace-explorer-outline-content #outline-content { display:block!important;position:relative!important;top:auto!important;bottom:auto!important;left:auto!important;right:auto!important;width:100%!important;height:auto!important;max-height:none!important;padding:0!important;overflow:visible!important; }
-html[data-linux-note-outline-embedded] .workspace-explorer-outline-content[data-document-outline="false"] #outline-content {display:none!important;}
-.workspace-outline-empty{margin:0;padding:8px 12px;font-size:12px;color:var(--linux-note-shell-description-foreground,#6c6c6c);}
+html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-outline="false"] #outline-content {display:none!important;}
+.workspace-outline-empty{display:none;margin:0;padding:8px 12px;font-size:12px;color:var(--linux-note-shell-description-foreground,#6c6c6c);}
+#typora-sidebar.active-tab-outline .workspace-outline-empty:not([hidden]){display:block;}
+
+#outline-content .outline-item-open>.outline-item>.outline-expander>svg{transform:rotate(90deg)}
+
+/* 原生末级只隐藏伪元素；替换后的 SVG 依据真实直接子树隐藏，保留缩进槽。 */
+#outline-content .outline-item-wrapper:not(:has(> .outline-children > .outline-item-wrapper)) > .outline-item > .outline-expander > svg {
+  visibility: hidden;
+  pointer-events: none;
+}

@@ -1,3 +1,5 @@
+import {acquire_workspace_style,type workspace_style_handle} from "./workspace_styles";
+import {git_icon} from "./git_icons";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
@@ -18,6 +20,7 @@ import { bind_file_path_actions } from "./file_path_actions";
 import { bind_git_graph } from "./git_graph_view";
 import { bind_workspace_browser } from "./workspace_browser";
 import { bind_reading_minimap } from "./reading_minimap";
+import { bind_reading_link_hover } from "./reading_link_hover";
 
 type code_mirror_stream = {
   string: string;
@@ -78,13 +81,8 @@ const original_code_modes = new Map<code_mirror_instance, unknown>();
 let runtime_observer: MutationObserver | null = null;
 let dispose_code_toggle_events: (() => void) | null = null;
 
-function ensure_style(): void {
-  if (document.getElementById(EXTENSION_STYLE_ID)) return;
-  const style = document.createElement("style");
-  style.id = EXTENSION_STYLE_ID;
-  style.textContent = extension_css;
-  document.head.append(style);
-}
+let extension_style:workspace_style_handle|undefined;
+function ensure_style(): void { extension_style ??= acquire_workspace_style(EXTENSION_STYLE_ID,extension_css); }
 
 function raw_grammar(value: unknown, path: string) {
   return parseRawGrammar(JSON.stringify(value), path);
@@ -402,18 +400,21 @@ function open_mermaid_viewer(preview: Element): void {
   viewer.setAttribute("aria-label", "Mermaid 图表全屏查看");
   viewer.innerHTML = `
     <div class="linux-note-mermaid-toolbar" aria-label="图表缩放控制">
-      <button type="button" data-action="zoom-out" title="缩小">−</button>
+      <button type="button" data-action="zoom-out" title="缩小" aria-label="缩小"></button>
       <output>100%</output>
-      <button type="button" data-action="zoom-in" title="放大">＋</button>
+      <button type="button" data-action="zoom-in" title="放大" aria-label="放大"></button>
       <button type="button" data-action="fit-width">适应宽度</button>
       <button type="button" data-action="fit">适应屏幕</button>
       <button type="button" data-action="reset">100%</button>
     </div>
-    <button type="button" class="linux-note-mermaid-close" data-action="close"><span aria-hidden="true">×</span> 退出全屏</button>
+    <button type="button" class="linux-note-mermaid-close" data-action="close">退出全屏</button>
     <div class="linux-note-mermaid-canvas">
       <div class="linux-note-mermaid-positioner"><div class="linux-note-mermaid-content"></div></div>
     </div>
     <div class="linux-note-mermaid-hint">Ctrl + 滚轮缩放 · 按住左键拖动 · Esc 退出</div>`;
+  viewer.querySelector('[data-action="zoom-out"]')?.append(git_icon("remove"));
+  viewer.querySelector('[data-action="zoom-in"]')?.append(git_icon("add"));
+  viewer.querySelector('[data-action="close"]')?.prepend(git_icon("close"));
   const canvas = viewer.querySelector<HTMLElement>(".linux-note-mermaid-canvas");
   const content = viewer.querySelector<HTMLElement>(".linux-note-mermaid-content");
   const output = viewer.querySelector<HTMLOutputElement>("output");
@@ -586,7 +587,7 @@ function ensure_mermaid_button(container: Element): void {
   button.type = "button";
   button.className = "linux-note-mermaid-open";
   button.title = "全屏查看 Mermaid 图表";
-  button.innerHTML = '<span aria-hidden="true">⛶</span><span>全屏查看</span>';
+  button.append(git_icon("screen-full"),document.createTextNode("全屏查看"));
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -605,13 +606,14 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
   await Promise.all([workspace_ready,grammar_loading]);
   if(!current())return;
-  const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-plugin-core@v2")];
+  const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];
   if(core?.app)lifetime.add(()=>bind_workspace_editor_status(core).dispose());
   reading_binding=lifetime.own(bind_reading_navigation());
   lifetime.own(bind_file_path_actions());
   graph_binding=lifetime.own(bind_git_graph());
   lifetime.own(bind_workspace_browser());
   lifetime.own(bind_reading_minimap());
+  lifetime.own(bind_reading_link_hover());
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
   const code_mirror=window.CodeMirror;
   const previous_modes=[C_MODE_NAME,CPP_MODE_NAME].map(name=>code_mirror.modes?.[name]);
@@ -672,6 +674,6 @@ export function deactivate_typora_enhancements(): void {
   original_code_modes.clear();
   runtime_lifetime.dispose();graph_binding=undefined;reading_binding=undefined;
   document.documentElement.removeAttribute("data-linux-note-workspace");
-  document.getElementById(EXTENSION_STYLE_ID)?.remove();
+  extension_style?.remove();extension_style=undefined;
   document.documentElement.removeAttribute("data-linux-note-typora-enhancements");
 }

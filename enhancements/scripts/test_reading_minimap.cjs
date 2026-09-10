@@ -21,9 +21,9 @@ app.whenReady().then(async () => {
     document.querySelector('#write').innerHTML=source; document.querySelector('.typ-markdown-preview').innerHTML=source.replaceAll('Document content','Independent preview');
     window.original=document.querySelector('#write').innerHTML; window.original_preview=document.querySelector('.typ-markdown-preview').innerHTML;
     const leaf={state:{path:'preview.md'},containerEl:document.querySelector('.typ-workspace-leaf'),view:{containerEl:document.querySelector('.typ-markdown-preview')}};
-    window.leaves=[leaf]; window[Symbol.for('typora-plugin-core@v2')]={app:{workspace:{eachLeaves:callback=>window.leaves.forEach(callback)}}};
+    window.leaves=[leaf]; window[Symbol.for('typora-code:workspace')]={app:{workspace:{eachLeaves:callback=>window.leaves.forEach(callback)}}};
   })()`);
-  const bundle = await build({ plugins:editor_plugins(), stdin: { contents:'export { bind_reading_minimap } from "./src/reading_minimap";', resolveDir:path.join(__dirname,'..') }, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'minimap_qa', write:false });
+  const bundle = await build({ plugins:editor_plugins(), stdin: { contents:'export { bind_reading_minimap } from "./src/reading_minimap";export {git_diff_editor} from "./src/git_diff_editor";', resolveDir:path.join(__dirname,'..') }, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'minimap_qa', write:false });
   await evaluate(bundle.outputFiles[0].text); await evaluate('minimap_qa.bind_reading_minimap(); void 0');
   await wait('document.querySelectorAll(".linux-note-reading-minimap[data-ready=true]").length===2');
   assert(await evaluate(`Array.from(document.querySelectorAll('.linux-note-reading-minimap canvas')).every(canvas => {const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;return pixels.some((value,index)=>index%4===3&&value>0);})`));
@@ -60,6 +60,26 @@ app.whenReady().then(async () => {
   assert(await evaluate('document.querySelector("#write").innerHTML===expected_after_update && document.querySelector(".typ-markdown-preview").innerHTML===original_preview'));
   await evaluate('document.querySelector(".typ-workspace-leaf").remove();window.leaves=[];');
   await wait('document.querySelectorAll(".linux-note-reading-minimap").length===1');
+  // .md 与 .txt/.ts 的真实 Monaco 单文件切换；原生 content 按核心行为归零，不借Graph替代。
+  await evaluate(`(()=>{
+    const style=document.createElement('style');style.textContent='content{transition:width .2s,height .2s,left .2s,top .2s}content.typ-deactive{width:0!important;height:0!important;left:0!important;top:0!important}#non_markdown{position:absolute;left:0;top:32px;width:46%;bottom:25px;display:none}#non_markdown>.git-graph-document{height:100%;width:100%;display:flex;flex-direction:column}#non_markdown .git-monaco-body{flex:1;min-height:0;width:100%;position:relative}';document.head.append(style);window.switch_style=style;
+    const host=document.createElement('section');host.id='non_markdown';document.body.append(host);window.source_doc=new minimap_qa.git_diff_editor({title:'reading.txt',file:'reading.txt',left:Array.from({length:900},(_,index)=>'Line '+index+' actual Monaco source preview').join('\\n')});host.append(source_doc.container);
+    window.reading_rail=document.querySelector('content .linux-note-reading-minimap');window.reading_canvas=reading_rail.querySelector('canvas');window.reading_commits=Number(reading_rail.dataset.commitCount);window.reading_bounds=reading_rail.style.cssText;
+  })()`);
+  for(const extension of ['txt','ts','txt']) {
+    await evaluate(`source_doc.update({title:'reading.${extension}',file:'reading.${extension}',left:Array.from({length:900},(_,index)=>'Line '+index+' actual Monaco preview').join('\\n')});document.querySelector('content').classList.add('typ-deactive');document.querySelector('#non_markdown').style.display='block';source_doc.editor.layout();`);
+    assert.equal(await evaluate('getComputedStyle(reading_rail).display'),'none','deactivation hides fixed reading minimap synchronously');
+    await delay(260);
+    assert(await evaluate('reading_rail.hidden&&reading_rail.style.cssText===reading_bounds&&reading_rail.querySelector("canvas")===reading_canvas&&Number(reading_rail.dataset.commitCount)===reading_commits'),'inactive zero-size Markdown never commits a shrunk canvas or top-left rail');
+    await wait('source_doc.editor.getLayoutInfo().height>300&&source_doc.container.querySelector(".minimap canvas")?.getBoundingClientRect().height>100');
+    assert(await evaluate('(()=>{const root=source_doc.body.getBoundingClientRect(),map=source_doc.container.querySelector(".minimap").getBoundingClientRect();return map.left>=root.left&&map.right<=root.right+1&&map.top>=root.top&&map.bottom<=root.bottom+1&&!source_doc.container.querySelector(".linux-note-reading-minimap")})()'));
+    if(extension==='ts')fs.writeFileSync(path.join(root,'source_minimap_active.png'),(await test_window.webContents.capturePage()).toPNG());
+    await evaluate('document.querySelector("#non_markdown").style.display="none";document.querySelector("content").classList.remove("typ-deactive")');
+    await wait('!reading_rail.hidden&&reading_rail.getBoundingClientRect().height===document.querySelector("content").clientHeight');
+    assert(await evaluate('reading_rail.style.cssText===reading_bounds&&reading_rail.querySelector("canvas")===reading_canvas'));
+  }
+  fs.writeFileSync(path.join(root,'markdown_source_switch.png'),(await test_window.webContents.capturePage()).toPNG());
+  await evaluate('source_doc.dispose();document.querySelector("#non_markdown").remove();switch_style.remove()');
   const clip_commit = await evaluate('Number(document.querySelector("content .linux-note-reading-minimap").dataset.commitCount)');
   await evaluate(`(() => {
     document.querySelector('#write').innerHTML='<div id="clip_box" style="height:100px;overflow:auto;color:rgb(255,0,0);line-height:20px">'+Array.from({length:100},(_,index)=>'<div>Buffered code line '+index+'</div>').join('')+'</div><p style="color:rgb(0,0,255)">Body after the collapsed code block</p><div style="height:1700px"></div>';
@@ -98,6 +118,6 @@ app.whenReady().then(async () => {
   assert(await evaluate('source_handlers.size===0 && !document.querySelector(".CodeMirror .linux-note-reading-minimap")'));
   await evaluate('window.dispatchEvent(new Event("pagehide"))');
   assert(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length===0 && !document.querySelector("[data-linux-note-minimap-owner]")'));
-  console.log(JSON.stringify({status:'PASS',checks:['actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,screenshot:path.join(root,'clipped_minimap.png')},null,2));
+  console.log(JSON.stringify({status:'PASS',checks:['Markdown and real Monaco txt/ts switches hide inactive minimaps synchronously, retain full-size reading canvas and restore bounded source minimaps','actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,screenshot:path.join(root,'clipped_minimap.png')},null,2));
   test_window.destroy(); app.exit(0);
 }).catch(error=>{console.error(error);test_window?.destroy();app.exit(1);});

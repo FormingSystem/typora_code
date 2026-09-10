@@ -1,0 +1,36 @@
+.typ-workspace-floating {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  z-index: 999;
+
+  & > .typ-workspace-node {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  // Resize handle
+  .typ-floating-resize-handle {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nwse-resize;
+    z-index: 1;
+  }
+
+  // Close button
+  .typ-floating-close {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1;
+  }
+}

@@ -1,3 +1,5 @@
+import {acquire_workspace_file_icons,workspace_file_icon} from "./workspace_file_icons";
+import {acquire_workspace_style} from "./workspace_styles";
 import { workspace_element as el, workspace_menu, workspace_dialog, type workspace_menu_entry } from "./workspace_widgets";
 import { format_file_path } from "./file_paths";
 import { git_icon, type git_icon_name } from "./git_icons";
@@ -31,38 +33,28 @@ type explorer_node = {
   display_name?: string; display_depth?: number; compact_parent?: boolean;
   error?: string; loading?: Promise<void>; watcher?: {close(): void}; refresh_timer?: number;
 };
-const ROW_HEIGHT = 22;
+const ROW_HEIGHT = 26;
 const EXPLORER_ID = "linux_note:file_explorer";
 /** 全文件目录树自行枚举，不修改原生 SupportedFiles 或全局隐藏文件配置。 */
 export function bind_workspace_explorer(core: workspace_explorer_core, options: workspace_explorer_options) {
   const runtime = window as unknown as {reqnode(name: string): any};
   const fs = runtime.reqnode("fs"), path_api = runtime.reqnode("path");
   const sidebar = core.app.workspace.sidebar;
-  const style = el("style"); style.textContent = explorer_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_explorer", explorer_css, {});
   const container = el("section", "linux-note-workspace-explorer"); container.setAttribute("aria-label", "资源管理器");
   const toolbar = el("div", "workspace-explorer-toolbar");
   const title = el("strong", "", "资源管理器");
   const actions = el("div", "workspace-explorer-actions");
   const root_label = el("div", "workspace-explorer-root");
   const root_name = el("span", "workspace-explorer-root-name"), root_actions = el("div", "workspace-explorer-actions"); root_label.append(root_name, root_actions);
-  const open_editors_section = el("section", "workspace-explorer-open-editors");
-  const open_editors_toggle = el("button", "workspace-explorer-section-toggle", "打开的编辑器"); open_editors_toggle.type = "button"; open_editors_toggle.setAttribute("aria-expanded", "true");
-  const open_editors_container = el("div", "workspace-explorer-open-editors-content");
-  open_editors_toggle.onclick = () => { const expanded = open_editors_toggle.getAttribute("aria-expanded") !== "true"; open_editors_toggle.setAttribute("aria-expanded", String(expanded)); open_editors_container.hidden = !expanded; };
-  open_editors_section.append(open_editors_toggle, open_editors_container);
-  const outline_section = el("section", "workspace-explorer-outline is-collapsed");
-  const outline_toggle = el("button", "workspace-explorer-outline-toggle", "大纲"); outline_toggle.type = "button"; outline_toggle.setAttribute("aria-expanded", "false");
-  const outline_container = el("div", "workspace-explorer-outline-content"); outline_container.hidden = true;
-  outline_toggle.onclick = () => { const expanded = outline_toggle.getAttribute("aria-expanded") !== "true"; outline_toggle.setAttribute("aria-expanded", String(expanded)); outline_container.hidden = !expanded; outline_section.classList.toggle("is-collapsed", !expanded); };
-  outline_section.append(outline_toggle, outline_container);
   const tree = el("div", "workspace-explorer-tree"); tree.tabIndex = 0; tree.setAttribute("role", "tree"); tree.setAttribute("aria-label", "文件和文件夹");
   const spacer = el("div", "workspace-explorer-spacer"); tree.append(spacer);
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
-  toolbar.append(title, actions); container.append(toolbar, open_editors_section, root_label, tree, status, outline_section);
+  toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
-  let clipboard: {paths: string[]; move: boolean; root: string} | undefined, compact_folders = options.compact_folders !== false;
+  let clipboard: {paths: string[]; move: boolean; root: string} | undefined, compact_folders = false;
   const selection_paths = new Set<string>();
   let operation_busy = false;
   const dialogs = new Set<{close(): void}>();
@@ -84,6 +76,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     keep_row_visible();
   };
   const run = (operation: () => unknown) => { void Promise.resolve().then(operation).catch(error => set_status(String(error))); };
+  const file_icon_style=acquire_workspace_file_icons();
   const icon = (name: git_icon_name) => git_icon(name, "workspace-explorer-icon");
   const icon_button = (name: git_icon_name, label: string, action: () => unknown) => {
     const button = el("button"); button.type = "button"; button.title = label; button.setAttribute("aria-label", label); button.append(icon(name)); button.onclick = () => run(action); return button;
@@ -155,7 +148,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
         row.title = node.path + (node.error ? "\n" + node.error : "");
         const chevron = el("span", "workspace-explorer-chevron");
         if (node.directory) chevron.append(icon(node.expanded ? "chevron-down" : "chevron-right"));
-        row.append(chevron, icon(node.directory ? node.expanded ? "folder-opened" : "folder" : "file"), rename_state?.node === node ? rename_state.input : el("span", "workspace-explorer-name", node.display_name || node.name));
+        row.append(chevron, ...(node.directory ? [] : [workspace_file_icon(node.path)]), rename_state?.node === node ? rename_state.input : el("span", "workspace-explorer-name", node.display_name || node.name));
         if (node.link) row.append(el("span", "workspace-explorer-note", "链接"));
         if (node.loading) row.append(el("span", "workspace-explorer-note", "读取中…"));
         else if (node.error) row.append(el("span", "workspace-explorer-note is-error", "无法读取"));
@@ -166,7 +159,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
             const start = flat_nodes.findIndex(candidate => candidate.path === selected_path), end = flat_nodes.indexOf(node);
             selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
           }
-          select(node, false, true); if (event.detail < 2) run(() => activate(node, true));
+          select(node, false, true); if (event.detail < 2) run(() => activate(node));
         };
         row.ondblclick = event => { event.preventDefault(); event.stopPropagation(); if (!node.directory) run(() => options.open_file(node.path, {preview: false})); };
         row.oncontextmenu = event => { if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
@@ -261,7 +254,6 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     if (node !== root && options.transfer) entries.push({title: "剪切", separator: true, action: () => set_clipboard(true)}, {title: "复制", action: () => set_clipboard(false)});
     if (node.directory && options.transfer) entries.push({title: "粘贴", disabled: !clipboard || clipboard.root !== root?.path || operation_busy, action: () => run(() => paste(node))});
     if (node !== root && options.trash) entries.push({title: "删除", action: () => confirm_trash()});
-    if (node === root) entries.push({title: "紧凑文件夹", checked: compact_folders, action: () => { compact_folders = !compact_folders; run(async () => { await refresh(); rebuild(); }); }});
     if (node !== root) entries.push({title: "重命名（F2）", separator: true, disabled: Boolean(rename_state?.busy), action: () => begin_rename(node)});
     entries.push({title: "复制路径", separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
       {title: "复制相对路径", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
@@ -443,6 +435,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   const window_focus = () => { if (visible) run(() => refresh()); };
   window.addEventListener("focus", window_focus);
   function dispose() {
+    file_icon_style.remove();
     if (disposed) return; disposed = true; generation++; visible = false;
     native_observer.disconnect(); resize_observer.disconnect();
     if (root) close_branch(root, true);
@@ -458,5 +451,5 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   document.documentElement.setAttribute("data-linux-note-workspace-explorer", "ready");
   // 已打开文件侧栏的启动场景立即升级显示；没有展开侧栏时不读目录。
   if (sidebar.isShown && (sidebar.activePanel?.ribbonButton?.id === "core.file-explorer" || document.querySelector("#typora-sidebar")?.classList.contains("active-tab-files"))) show();
-  return {container, outline_container, open_editors_container, refresh, reveal, show, dispose};
+  return {container, refresh, reveal, show, dispose};
 }

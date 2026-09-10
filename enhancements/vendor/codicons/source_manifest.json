@@ -313,6 +313,102 @@
       "source_path": "src/icons/layout-panel.svg",
       "git_blob_sha1": "548fdbc2da630c2b8cbc2a453180bd6ad7aaaee6",
       "sha256": "05bc28dc8f47e4d56266e10bc0befcd8675cb2d89b79308850632021db320cb7"
+    },
+    "files": {
+      "file": "icons/files.svg",
+      "source_path": "src/icons/files.svg",
+      "git_blob_sha1": "9582a9dd099ef224192b45939e02fff1566912f8",
+      "sha256": "0dd44db0b3d654216ab9ac7130e55dc9113bffad4d8debfdb25f80e556d9f1e6"
+    },
+    "chrome-minimize": {
+      "file": "icons/chrome_minimize.svg",
+      "source_path": "src/icons/chrome-minimize.svg",
+      "git_blob_sha1": "ff59c67a94f8e7b466f1ac596a58930a8052fe45",
+      "sha256": "61970afb22ba6828f4e06ddd665dbd4cd55ed4fc05ae33815ee03c07e929c37e"
+    },
+    "chrome-maximize": {
+      "file": "icons/chrome_maximize.svg",
+      "source_path": "src/icons/chrome-maximize.svg",
+      "git_blob_sha1": "bc0f29a9efcaad69a3830bd2d0413aed1ac104de",
+      "sha256": "b2713506aaac02a5cf39531612d142c2752be547ae82f07167a7b07c606f6cf0"
+    },
+    "chrome-restore": {
+      "file": "icons/chrome_restore.svg",
+      "source_path": "src/icons/chrome-restore.svg",
+      "git_blob_sha1": "efd9cebbbbfe3686c338b25884ff2fd24481acbb",
+      "sha256": "451365376e95c99b512f2451d6763caea1f2ad6c82e63a710aede29b5feee294"
+    },
+    "chrome-close": {
+      "file": "icons/chrome_close.svg",
+      "source_path": "src/icons/chrome-close.svg",
+      "git_blob_sha1": "a1c97efdeee4e168b5a64910b0673078d3bc3f49",
+      "sha256": "5858b07d74cd2e32ca421121b09ff940d3eff82ad563d49addcb98bde879cb03"
+    },
+    "tag": {
+      "file": "icons/tag.svg",
+      "source_path": "src/icons/tag.svg",
+      "git_blob_sha1": "788540b4ef7da3adc818ad66f1555e36279e32ae",
+      "sha256": "3c55fc7621b6c5211a3180a1a7885ef080e3bdc76ec8086821f6afbcea3c584c"
+    },
+    "archive": {
+      "file": "icons/archive.svg",
+      "source_path": "src/icons/archive.svg",
+      "git_blob_sha1": "c0e94a754b1786f701d98c087ed5b70aeced0f40",
+      "sha256": "00143ac8b1027067c8a0a1e65f088db62f8ba412dce0236a59d41d5ea92ed5c8"
+    },
+    "symbol-class": {
+      "file": "icons/symbol_class.svg",
+      "source_path": "src/icons/symbol-class.svg",
+      "git_blob_sha1": "26fb8b2a14c29f0f11e94204767338e851aad9ef",
+      "sha256": "befc23573c4c4caf49c3b64f6f86c81cd4bb890ad4930c628eace2009045ff30"
+    },
+    "circle-filled": {
+      "file": "icons/circle_filled.svg",
+      "source_path": "src/icons/circle-filled.svg",
+      "git_blob_sha1": "3e224dabc8c984c5cda29964d0f4683bd04a9475",
+      "sha256": "418354dbab97fd21c7b19aa31bb8478e997beedf3b9e4783e3f6c68effb0cfb9"
+    },
+    "pinned": {
+      "file": "icons/pinned.svg",
+      "source_path": "src/icons/pinned.svg",
+      "git_blob_sha1": "dfb1b33744c53c9e8dacdde4ce1790d6867653a6",
+      "sha256": "d40b9ef21bfc8d6363a6d013d5ac4f5dfcdb94c30d0bbdf70e70df240f08d527"
+    },
+    "screen-full": {
+      "file": "icons/screen_full.svg",
+      "source_path": "src/icons/screen-full.svg",
+      "git_blob_sha1": "32e26e5e799408e19b7ef89745d6f4ccce57c139",
+      "sha256": "46b03d677c0dc53bc0d7496a4f743711318a14672ba90f1c1c90c2b5bd5dd6dc"
+    },
+    "screen-normal": {
+      "file": "icons/screen_normal.svg",
+      "source_path": "src/icons/screen-normal.svg",
+      "git_blob_sha1": "1360f2d4fd17dfcb9a521a02583636b624fa58fb",
+      "sha256": "89fe28e62bcd78eafe5acc3f7cd3f4353862814276bd2ce9be40bc69a1c322d5"
+    },
+    "split-horizontal": {
+      "file": "icons/split_horizontal.svg",
+      "source_path": "src/icons/split-horizontal.svg",
+      "git_blob_sha1": "74b7a5e2386ceb599856c157870d0faa2f92af9c",
+      "sha256": "329ac127b76c970e283e8c573b71e6cafd8f555c9198d9b41ab2cb99ad88d9bc"
+    },
+    "trash": {
+      "file": "icons/trash.svg",
+      "source_path": "src/icons/trash.svg",
+      "git_blob_sha1": "fd1c66aa77fec7a4f98d02a7bb64182887626673",
+      "sha256": "a1cc936852db8aaf0c8c20492368f25880cf9bd59c7d077fc9b4a24306a86e22"
+    },
+    "save-all": {
+      "file": "icons/save_all.svg",
+      "source_path": "src/icons/save-all.svg",
+      "git_blob_sha1": "dd31bceeafe143c656d95e71bbbae199bf519c2c",
+      "sha256": "a31887bca00ff5509742823a72093d561fe3a723996bac93191cc87d11f0682d"
+    },
+    "close-all": {
+      "file": "icons/close_all.svg",
+      "source_path": "src/icons/close-all.svg",
+      "git_blob_sha1": "320f3ccafaf7ac8134c91ddf449ad993cb762356",
+      "sha256": "8c57ad4e49d43f2c79b8077fad54984f499e9d0fe9003d358e70d0282bafa24b"
     }
   },
   "licenses": [

@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import sidebar_sash_css from "./workspace_sidebar_sash.css";
 
 // VS Code SidebarPart.minimumWidth=170、snap=true；SplitView 用最小宽度的一半作为收起阈值。
@@ -22,7 +23,7 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   if (!sash || !sidebar_element || !ribbon) return;
   const existing = bindings.get(sash); if (existing) return existing;
   const root = document.documentElement;
-  const style = document.createElement("style"); style.textContent = sidebar_sash_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", sidebar_sash_css, {});
   const attributes = ["role", "aria-hidden", "aria-label", "aria-orientation", "aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-valuetext", "tabindex", "title"];
   const original_attributes = new Map(attributes.map(name => [name, sash.getAttribute(name)]));
   const read_width = () => Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar_element.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;

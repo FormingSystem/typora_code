@@ -1,0 +1,77 @@
+import { useService } from "src/common/service"
+import { Menu } from "src/ui/components/menu"
+import type { WorkspaceRoot } from "../workspace-root"
+import type { WorkspaceTabs } from "."
+import { splitDown, splitRight } from "../workspace-utils"
+
+
+export function onTabsContextMenu(
+  root: WorkspaceRoot,
+  i18n = useService('i18n'),
+  workspace = useService('workspace'),
+) {
+
+  const { t } = i18n
+
+  const menu = new Menu()
+
+  return function (event: MouseEvent) {
+    const $tabEl = $(event.target!).closest('.typ-tab')
+
+    if (!$tabEl.length) return
+
+    const clickedTabPath = $tabEl.data('id')
+    const tabsEl = $tabEl.closest('.typ-workspace-tabs')[0]
+    const tabs = root.findNode(n => n.containerEl === tabsEl) as WorkspaceTabs
+
+    menu
+      .empty()
+      .addItem(item => {
+        item
+          .setKey('removeTab')
+          .setTitle(t.tabview.close)
+          .onClick(() => tabs.removeTab(clickedTabPath))
+      })
+      .addItem(item => {
+        item
+          .setKey('removeOthers')
+          .setTitle(t.tabview.closeOthers)
+          .onClick(() => {
+            workspace.activeLeaf = tabs.removeOthers(clickedTabPath)
+          })
+      })
+      .addItem(item => {
+        item
+          .setKey('removeRight')
+          .setTitle(t.tabview.closeRight)
+          .onClick(() => {
+            workspace.activeLeaf = tabs.removeRight(clickedTabPath)
+          })
+      })
+
+    if (tabs.children.length > 1) {
+      menu
+        .addSeparator()
+        .addItem(item => {
+          item
+            .setKey('splitRight')
+            .setTitle(t.tabview.splitRight)
+            .onClick(() => {
+              tabs.removeTab(clickedTabPath)
+              setTimeout(() => splitRight(clickedTabPath), 167)
+            })
+        })
+        .addItem(item => {
+          item
+            .setKey('splitDown')
+            .setTitle(t.tabview.splitDown)
+            .onClick(() => {
+              tabs.removeTab(clickedTabPath)
+              setTimeout(() => splitDown(clickedTabPath), 167)
+            })
+        })
+    }
+
+    menu.showAtMouseEvent(event)
+  }
+}

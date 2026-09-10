@@ -16,9 +16,20 @@
     try {
       await wait(() => document.documentElement.getAttribute('data-linux-note-git-graph') === 'ready');
       window.resizeTo(1400, 950); await delay(300);
-      const app = window[Symbol.for('typora-plugin-core@v2')].app;
+      const app = window[Symbol.for('typora-code:workspace')].app;
       const source_leaf = app.workspace.activeLeaf;
-      result.language = {plugin:window[Symbol.for('typora-plugin-core@v2:env')]?.userLang,displayLang:window._options?.displayLang,userLang:window._options?.userLang,appLocale:window._options?.appLocale,locale:window._options?.locale,fileDisplayLang:File.option?.displayLang,fileUserLang:File.option?.userLang,fileLocale:File.option?.locale,html:document.documentElement.lang,body:document.body.lang,navigator:navigator.languages};
+      await wait(() => document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"] [data-git-icon="files"]'));
+      const close_to = (actual, expected) => Math.abs(actual - expected) < .2;
+      const activity_icons = { 'core.file-explorer':'files', 'core.search':'search', 'linux_note:source_control':'source-control' };
+      expect(Object.entries(activity_icons).every(([id, name]) => {
+        const item = document.querySelector(`.typ-ribbon-item[data-id="${id}"]`), icon = item?.querySelector('svg');
+        return icon?.dataset.gitIcon === name && item.querySelectorAll('svg').length === 1 && close_to(icon.getBoundingClientRect().width,24) && close_to(icon.getBoundingClientRect().height,24);
+      }), 'file search and Git activity use official Codicons on equal 24px canvases');
+      const outline_activity = document.querySelector('.typ-ribbon-item[data-id="core.outline"]');
+      expect(outline_activity.querySelector('i.fa.fa-list.typ-lighter-icon') && !outline_activity.querySelector('svg'), 'Outline keeps the original native list icon');
+      expect(document.body.classList.contains('native-window') && !document.querySelector('.workspace-titlebar-menu,.workspace-window-icon'),
+        'standard Typora window owns its menu bar and window controls without duplicate renderer controls');
+      result.language = {plugin:window[Symbol.for('typora-code:workspace:env')]?.userLang,displayLang:window._options?.displayLang,userLang:window._options?.userLang,appLocale:window._options?.appLocale,locale:window._options?.locale,fileDisplayLang:File.option?.displayLang,fileUserLang:File.option?.userLang,fileLocale:File.option?.locale,html:document.documentElement.lang,body:document.body.lang,navigator:navigator.languages};
       await wait(() => document.querySelector('[data-linux-note-git-status]')?.dataset.repository === 'ready');
       expect(document.querySelector('[data-git-status=branch]').textContent.includes('main*'), 'native left status bar shows branch and dirty marker');
       expect(document.querySelector('[data-git-status=sync]') && document.querySelector('[data-git-status=graph]'), 'native status bar exposes sync and graph actions');
@@ -28,16 +39,23 @@
       await delay(1200);
       content.scrollTop = 620; await delay(600); const original_scroll = content.scrollTop;
       expect(original_scroll > 500, 'source starts at a nonzero reading position');
-      // 大纲属于Explorer内嵌区；命令打开并展开，分组按钮可收起，重复命令恢复。
+      // 独立大纲活动入口复用原生树，重复命令只聚焦，不切换文档。
+      const native_outline=document.querySelector('#outline-content');const native_outline_parent=native_outline.parentNode;
+      result.outline_before = { shown: app.workspace.sidebar.isShown, active: app.workspace.sidebar.activePanel?.ribbonButton?.id, classes: native_outline_parent.className, items: native_outline.querySelectorAll('.outline-item').length };
+      // 原生启动会恢复用户上次选择的面板；明确从收起状态验证第一次展开。
+      app.workspace.sidebar.hide();
+      app.workspace.ribbon.clickButton('core.outline');
+      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'core.outline' && native_outline.querySelector('.outline-item'));
+      expect(document.querySelectorAll('#outline-content').length===1 && native_outline.parentNode===native_outline_parent, 'Outline activity reveals the original native tree without relocating it');
+      app.workspace.ribbon.clickButton('core.outline');
+      await wait(() => !app.workspace.sidebar.isShown);
+      expect(true, 'same Outline icon collapses sidebar');
       app.commands.run('linux_note:outline');
-      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer' && document.querySelector('.workspace-explorer-outline-content .outline-item'));
-      const outline_toggle = document.querySelector('.workspace-explorer-outline-toggle');
-      expect(outline_toggle.getAttribute('aria-expanded') === 'true', 'outline command reveals populated embedded Explorer outline');
-      outline_toggle.click();
-      expect(outline_toggle.getAttribute('aria-expanded') === 'false' && document.querySelector('.workspace-explorer-outline-content').hidden, 'embedded outline section collapses without hiding Explorer');
+      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'core.outline');
       app.commands.run('linux_note:outline');
-      await wait(() => outline_toggle.getAttribute('aria-expanded') === 'true' && !document.querySelector('.workspace-explorer-outline-content').hidden);
-      expect(app.workspace.activeLeaf === source_leaf, 'restoring embedded outline preserves current document');
+      expect(app.workspace.sidebar.isShown && app.workspace.activeLeaf === source_leaf && Math.abs(content.scrollTop-original_scroll)<2, 'repeated Outline command preserves current document and reading position');
+      app.workspace.ribbon.clickButton('core.file-explorer');
+      await wait(() => app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer');
       app.workspace.ribbon.clickButton('core.file-explorer');
       await wait(() => !app.workspace.sidebar.isShown); expect(true, 'same file icon collapses sidebar');
       app.workspace.ribbon.clickButton('core.file-explorer');
@@ -51,14 +69,67 @@
       app.workspace.ribbon.clickButton('linux_note:source_control');
       await wait(() => document.querySelector('.git-scm-sidebar .git-scm-file')); expect(true, 'Git icon reopens source control');
       app.commands.run('linux_note:outline');
-      await wait(() => app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:file_explorer' && document.querySelector('.workspace-explorer-outline-content .outline-item'));
+      await wait(() => app.workspace.sidebar.activePanel?.ribbonButton?.id === 'core.outline' && document.querySelector('#outline-content .outline-item'));
       app.workspace.ribbon.clickButton('linux_note:source_control');
       await wait(() => document.querySelector('.git-scm-sidebar .git-scm-file'));
-      expect(app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:source_control', 'switching embedded outline to Git keeps sidebar open');
+      expect(app.workspace.sidebar.isShown && app.workspace.sidebar.activePanel?.ribbonButton?.id === 'linux_note:source_control', 'switching native Outline to Git keeps sidebar open');
       expect(document.querySelectorAll('.git-scm-group').length === 2 && !document.querySelector('[data-scm-group=untracked]'), 'source control has staged and changes groups only');
+      expect(document.querySelectorAll('.git-scm-tools button').length===1&&document.querySelector('.git-scm-tools [data-git-icon=more]'),'SCM top title keeps only view selection menu');
+      expect(document.querySelector('.git-scm-history-refresh')&&document.querySelector('.git-scm-graph-launch'),'Graph retains refresh and open-in-editor actions');
+      const scm_box = node => { const rect=node.getBoundingClientRect(),style=getComputedStyle(node);return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,display:style.display,visibility:style.visibility,opacity:style.opacity,transform:style.transform,color:style.color,font:style.fontSize,weight:style.fontWeight}; };
+      let scm_groups=[...document.querySelectorAll('.git-scm-group')];
+      const previous_open=scm_groups.map(group=>group.open);scm_groups.forEach(group=>{group.open=true;});await delay(40);scm_groups=[...document.querySelectorAll('.git-scm-group')];
+      result.scm_geometry={header_rows:[...document.querySelectorAll('.git-scm-input-heading,.git-scm-history-header')].map(scm_box),groups:scm_groups.map(group=>{const summary=group.querySelector('summary');return{id:group.dataset.scmGroup,empty:!group.querySelector('.git-scm-file'),summary:scm_box(summary),icon:scm_box(summary.querySelector('.git-disclosure-icon')),label:scm_box(summary.querySelector('.git-scm-group-label'))};}),headers:[scm_box(document.querySelector('.git-scm-input-heading>.git-disclosure-icon')),scm_box(document.querySelector('.git-scm-history-toggle>.git-disclosure-icon'))],commit:[...document.querySelectorAll('.git-scm-commit-bar>button')].map(button=>({text:scm_box(button).color,icon:scm_box(button.querySelector('svg')).color}))};
+      expect(result.scm_geometry.header_rows.length===2&&result.scm_geometry.header_rows.every(row=>row.height===22),'SCM view headers retain the flat 22px baseline');
+      expect(result.scm_geometry.groups.some(group=>group.empty),'native fixture covers an empty SCM group');
+      for(const group of result.scm_geometry.groups){expect(group.summary.height===22&&group.summary.font==='13px'&&group.summary.weight==='400','SCM '+group.id+' is a regular 22px tree group');expect(group.icon.width===16&&group.icon.height===16&&group.icon.visibility==='visible'&&group.icon.display!=='none'&&group.icon.opacity==='1'&&group.icon.x+16<=group.label.x,'SCM '+group.id+' has a visible unobscured official twistie');}
+      expect(result.scm_geometry.groups[0].icon.x===result.scm_geometry.groups[1].icon.x,'SCM group twisties share a column');
+      expect(result.scm_geometry.headers[0].x===result.scm_geometry.headers[1].x&&result.scm_geometry.headers.every(icon=>icon.width===16&&icon.height===16),'Changes and Graph view header twisties share a 16px column');
+      expect(result.scm_geometry.commit.every(button=>button.icon===button.text&&button.text==='rgb(255, 255, 255)'),'primary commit check and dropdown glyphs inherit white foreground');
+      expect(!document.querySelector('.git-scm-filter')&&document.querySelector('.git-scm-inputs').nextElementSibling.classList.contains('git-scm-groups'),'SCM resource groups follow commit input without an extra filter box');
+      result.scm_toggle_diagnostics=[];
+      const current_group=id=>document.querySelector('.git-scm-group[data-scm-group="'+id+'"]');
+      const toggle_state=(id,clicked)=>{
+        const live=current_group(id),icon=live?.querySelector('summary>.git-disclosure-icon');
+        return{id,clicked_connected:clicked?.isConnected,clicked_open:clicked?.open,same_node:live===clicked,live_connected:live?.isConnected,live_open:live?.open,transform:icon?getComputedStyle(icon).transform:null};
+      };
+      const toggle_and_check=async(id,open)=>{
+        const clicked=current_group(id);
+        expect(clicked?.isConnected&&clicked.open!==open,'SCM '+id+' toggle starts from the current connected opposite state');
+        result.scm_toggle_diagnostics.push({phase:'before',...toggle_state(id,clicked)});
+        clicked.querySelector('summary').click();
+        let stable=0,last;const deadline=Date.now()+3000;
+        while(Date.now()<deadline){
+          last=toggle_state(id,clicked);
+          const correct=last.live_connected&&last.live_open===open&&last.transform===(open?'matrix(0, 1, -1, 0, 0, 0)':'none');
+          stable=correct?stable+1:0;if(stable>=3)break;await delay(60);
+        }
+        result.scm_toggle_diagnostics.push({phase:'after',...last,stable});
+        expect(stable>=3,'SCM '+id+(open?' expanded points down':' collapsed points right'));
+      };
+      for(const id of ['staged','changes']){await toggle_and_check(id,false);await toggle_and_check(id,true);}
+      ['staged','changes'].forEach((id,index)=>{const group=current_group(id);if(group)group.open=previous_open[index];});
+      const changes_parent=document.querySelector('.git-scm-input-section'),changes_body=changes_parent.querySelector('.git-scm-changes-body');
+      const commit_message=changes_body.querySelector('.git-scm-message'),old_message=commit_message.value;
+      commit_message.value='parent fold draft';commit_message.dispatchEvent(new Event('input',{bubbles:true}));
+      const child_open=[...changes_body.querySelectorAll('.git-scm-group')].map(group=>group.open);
+      const graph_position=document.querySelector('.git-scm-history-header').getBoundingClientRect().y;
+      changes_parent.querySelector(':scope>summary').click();await delay(120);
+      expect(!changes_parent.open&&changes_body.inert&&[...changes_body.querySelectorAll('textarea,button,summary')].every(node=>!node.getClientRects().length),'native Changes parent hides both child groups and commit controls');
+      commit_message.focus();expect(document.activeElement!==commit_message,'native collapsed Changes body cannot receive focus');
+      expect(document.querySelector('.git-scm-history-header').getBoundingClientRect().y===graph_position,'native parent fold leaves Graph position independent');
+      const group_before_refresh=changes_body.querySelector('.git-scm-group');
+      document.querySelector('.git-scm-history-refresh').click();
+      await wait(()=>changes_body.querySelector('.git-scm-group')!==group_before_refresh,'SCM parent-fold refresh did not complete');
+      expect(!changes_parent.open&&changes_body.inert,'native SCM refresh preserves collapsed parent');
+      changes_parent.querySelector(':scope>summary').click();await delay(120);
+      expect(commit_message.value==='parent fold draft'&&[...changes_body.querySelectorAll('.git-scm-group')].every((group,index)=>group.open===child_open[index]),'native parent reopen keeps draft and independent child states');
+      commit_message.value=old_message;commit_message.dispatchEvent(new Event('input',{bubbles:true}));
+      result.scm_geometry.references=[...document.querySelectorAll('.git-scm-history-ref')].map(ref=>({text:scm_box(ref).color,icon:scm_box(ref.querySelector('svg')).color}));
+      expect(result.scm_geometry.references.length>0&&result.scm_geometry.references.every(ref=>ref.text===ref.icon),'SCM history reference glyphs retain the badge foreground');
       const scm_icon = document.querySelector('.typ-ribbon-item[data-id="linux_note:source_control"]');
       const explorer_icon = document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]');
-      expect(scm_icon.closest('.group.top') && scm_icon.getBoundingClientRect().top > explorer_icon.getBoundingClientRect().top && getComputedStyle(document.querySelector('.typ-ribbon-item[data-id="core.outline"]')).display === 'none', 'Git follows Explorer in top activity group without duplicate Outline activity');
+      expect(scm_icon.closest('.group.top') && scm_icon.getBoundingClientRect().top > explorer_icon.getBoundingClientRect().top && getComputedStyle(document.querySelector('.typ-ribbon-item[data-id="core.outline"]')).display !== 'none', 'Git follows Explorer in top activity group alongside the restored Outline activity');
       expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:git_graph"]'), 'old bottom Git icon removed');
       expect(app.workspace.activeLeaf === source_leaf, 'source control opens sidebar without replacing document');
       expect(document.querySelector('#sidebar-content .git-scm-sidebar'), 'source control uses native primary sidebar');
@@ -78,7 +149,21 @@
       const explicit_language = result.language.plugin || result.language.displayLang || result.language.userLang;
       if(!explicit_language && result.language.appLocale) expect(graph.getAttribute('aria-label') === (/^zh(?:-|_|$)/iu.test(result.language.appLocale) ? 'Git Graph 提交历史' : 'Git Graph commit history'), 'Graph locale matches native appLocale despite document HTML language');
       const graph_tab_icon = graph_tab?.querySelector('.typ-file-icon.git-tab-icon svg[data-graph-tab-theme]');
+      await delay(180);
+      expect(graph_tab_icon&&['::before','::after'].every(pseudo=>{const value=getComputedStyle(graph_tab_icon.parentElement,pseudo);return value.content==='none'||value.content==='normal'||value.display==='none'}),'Git Graph owned SVG slot has no late native pseudo glyph');
       expect(graph_tab_icon && graph_tab.querySelectorAll('.typ-file-icon svg').length === 1 && graph_tab_icon.dataset.graphTabTheme === graph_leaf.view.panel.settings.tab_icon_theme && graph_tab_icon.querySelectorAll('path').length === 2 && graph_tab_icon.querySelectorAll('circle').length === 3 && !graph_tab.querySelector('.typ-file-icon.fa-file-o'), 'Git Graph tab has one two-lane graph icon using selected colour theme');
+      const feature_badge = graph.querySelector('[data-ref="refs/heads/feature"]');
+      expect(feature_badge && getComputedStyle(feature_badge.querySelector('svg')).backgroundColor === getComputedStyle(feature_badge.closest('[data-hash]').querySelector('.git-graph-cell circle')).fill, 'native feature reference icon background matches its graph lane colour');
+      const settings_before = JSON.stringify(graph_leaf.view.panel.settings);
+      graph_leaf.view.panel.settings_dialog();
+      await wait(() => document.querySelector('.git-graph-settings-form'));
+      const settings_surface = document.querySelector('.git-graph-settings-form');
+      expect(settings_surface.querySelectorAll('[data-setting]').length === Object.keys(graph_leaf.view.panel.settings).length, 'native simple settings lists every repository setting');
+      expect(!document.querySelector('[data-settings-category],[data-settings-search]'), 'native settings retains the simple baseline form');
+      document.querySelector('[data-settings-action=save]').click();
+      await wait(() => !document.querySelector('.git-graph-settings-form') && !graph_leaf.view.panel.pending);
+      expect(JSON.stringify(graph_leaf.view.panel.settings) === settings_before, 'native no-edit settings save preserves every action default');
+      expect(normalized(File.bundle.filePath) === normalized(path.join(probe_root, 'source.md')), 'native settings save retains the reading document');
       const commits = node => node.querySelectorAll('.git-graph-row:not(.git-graph-worktree)');
       const refresh = node => node.querySelector('.git-graph-refresh').click();
       expect(normalized(graph_leaf.view.panel.root) === normalized(probe_root), 'repository discovered from active document');
@@ -123,6 +208,17 @@
       app.workspace.activeLeaf = source_leaf.parent.toggleTab(source_leaf.state.path);
       await wait(() => { result.source_scroll = { expected: original_scroll, actual: content.scrollTop }; return Math.abs(content.scrollTop - original_scroll) < 1; }, 'Source reading position changed');
       expect(true, 'returning to source preserves reading position');
+      await wait(() => !graph_leaf.view.panel.pending);
+      const existing_row = graph.querySelector('.git-graph-row'), existing_detail = graph.querySelector('.git-graph-detail-content');
+      for (let index = 0; index < 6; index++) {
+        app.workspace.activeLeaf = graph_leaf.parent.toggleTab(graph_leaf.state.path);
+        const hidden_style = getComputedStyle(content);
+        expect(hidden_style.visibility === 'hidden' && hidden_style.transitionDuration === '0s' && content.getAnimations().length === 0, 'native switch ' + index + ' immediately hides Markdown without a shrinking canvas');
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        expect(graph.querySelector('.git-graph-row') === existing_row && graph.querySelector('.git-graph-detail-content') === existing_detail && !graph_leaf.view.panel.pending, 'native switch ' + index + ' retains graph rows and details without restarting a query');
+        app.workspace.activeLeaf = source_leaf.parent.toggleTab(source_leaf.state.path);
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
       app.workspace.activeLeaf = graph_leaf.parent.toggleTab(graph_leaf.state.path);
       await delay(350);
       refresh(graph);
@@ -230,11 +326,41 @@
       await wait(() => ['同步完成','Sync complete.'].some(value=>document.querySelector('.git-graph-action-preview').textContent.includes(value)), 'Native sync did not finish');
       expect(fs.readFileSync(path.join(probe_root, '.git/index')).equals(sync_index) && fs.readFileSync(path.join(probe_root, 'source.md')).equals(source_bytes), 'native sync with no incoming changes preserves index and draft');
       close_dialog();
+      // 两类非 Markdown 文件与原生阅读区互切，逐帧检查右侧缩略图的归属和边界。
+      const visible_box = node => {
+        if (!node || node.hidden) return false;
+        const style = getComputedStyle(node), box = node.getBoundingClientRect();
+        return style.display !== 'none' && style.visibility !== 'hidden' && box.width > 0 && box.height > 0;
+      };
+      for (const extension of ['txt', 'ts']) {
+        const file_path = path.join(probe_root, 'minimap_switch.' + extension);
+        fs.writeFileSync(file_path, Array.from({length:600}, (_, index) => extension === 'ts' ? `const value_${index} = ${index};` : `Text line ${index}`).join('\n'));
+        app.workspace.activeLeaf = source_leaf.parent.toggleTab(source_leaf.state.path);
+        await app.openFile(file_path);
+        await wait(() => normalized(app.workspace.activeLeaf?.view.file_path) === normalized(file_path) && app.workspace.activeLeaf.view.loaded, 'minimap source did not load');
+        const code_leaf = app.workspace.activeLeaf, code_view = code_leaf.view;
+        for (let iteration = 0; iteration < 3; iteration++) {
+          app.workspace.activeLeaf = source_leaf.parent.toggleTab(source_leaf.state.path);
+          await wait(() => visible_box(content.querySelector('.linux-note-reading-minimap')) && content.querySelector('.linux-note-reading-minimap').dataset.ready === 'true', 'Markdown minimap did not return');
+          const reading_rail = content.querySelector('.linux-note-reading-minimap');
+          const rail_box = reading_rail.getBoundingClientRect(), owner_box = content.getBoundingClientRect();
+          expect(rail_box.height > 200 && Math.abs(rail_box.top - owner_box.top - content.clientTop) < 1 && Math.abs(rail_box.height - content.clientHeight) < 1, 'native Markdown from ' + extension + ' keeps the minimap at the full reading viewport height ' + iteration);
+          app.workspace.activeLeaf = code_leaf.parent.toggleTab(code_leaf.state.path);
+          for (let frame = 0; frame < 3; frame++) {
+            expect(![...content.querySelectorAll('.linux-note-reading-minimap')].some(visible_box), 'native ' + extension + ' frame ' + iteration + '/' + frame + ' has no collapsed Markdown minimap at the editor top');
+            await new Promise(resolve => requestAnimationFrame(resolve));
+          }
+          const source_editor = code_view.editor.focused_editor(), info = source_editor.getLayoutInfo();
+          const source_box = source_editor.getDomNode().getBoundingClientRect();
+          expect(info.width > 100 && info.height > 200 && Math.abs(info.height - source_box.height) < 1 && visible_box(code_view.containerEl.querySelector('.monaco-editor .minimap')), 'native ' + extension + ' retains its own Monaco layout and minimap ' + iteration);
+        }
+      }
+      expect(fs.readFileSync(path.join(probe_root, 'source.md')).equals(source_bytes) && fs.readFileSync(path.join(probe_root, '.git/index')).equals(sync_index), 'native Markdown and non-Markdown minimap switches preserve draft and index bytes');
       result.status = 'PASS';
     } catch (error) {
       result.status = 'FAIL'; result.error = String(error.stack);
       result.graph = document.querySelector('.linux-note-git-graph')?.innerText.slice(0, 3000);
-      const sidebar = window[Symbol.for('typora-plugin-core@v2')]?.app.workspace.sidebar;
+      const sidebar = window[Symbol.for('typora-code:workspace')]?.app.workspace.sidebar;
       result.sidebar = {shown: sidebar?.isShown, active: sidebar?.activePanel?.ribbonButton?.id, classes: document.querySelector('#typora-sidebar')?.className, connected: sidebar?.activePanel?.containerEl?.isConnected, visible: sidebar?.activePanel?.visible};
     } finally {
       const prefix = 'linux-note-git-graph:v2:';

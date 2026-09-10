@@ -28,7 +28,7 @@
     const hashes = [digest('source.md'), digest('target.md')];
     try {
       await wait(() => document.documentElement.getAttribute('data-linux-note-reading-positions') === 'ready');
-      const app = window[Symbol.for('typora-plugin-core@v2')].app;
+      const app = window[Symbol.for('typora-code:workspace')].app;
       const content = document.querySelector('content');
       const write = document.querySelector('#write');
       if (phase === '2') {
@@ -39,9 +39,9 @@
       }
       await delay(700);
       if (phase === '1') {
-        // 大纲现在是Explorer内的视图：先走正式入口，不能依赖测试窗口上次遗留的侧栏状态。
+        // 大纲通过正式命令打开独立原生视图，不依赖测试窗口遗留的侧栏状态。
         app.commands.run('linux_note:outline');
-        await wait(() => { const pane=document.querySelector('.workspace-explorer-outline-content');return pane&&!pane.hidden&&pane.getBoundingClientRect().height>0&&pane.querySelector('#outline-content .outline-label'); });
+        await wait(() => { const pane=document.querySelector('#outline-content');return app.workspace.sidebar.isShown&&app.workspace.sidebar.activePanel?.ribbonButton?.id==='core.outline'&&pane&&pane.getBoundingClientRect().height>0&&pane.querySelector('.outline-label'); });
         const source = app.workspace.activeLeaf;
         await wait(() => document.querySelector('content > .linux-note-reading-minimap[data-ready=true]'));
         const minimap = document.querySelector('content > .linux-note-reading-minimap');
@@ -74,14 +74,14 @@
         expect(window.getSelection()?.focusNode?.parentElement?.closest('h2') === heading, 'link places cursor at destination heading');
         expect(heading.getBoundingClientRect().top >= content.getBoundingClientRect().top
           && heading.getBoundingClientRect().bottom <= content.getBoundingClientRect().bottom, 'destination heading is visible');
-        await wait(() => document.querySelector('.workspace-explorer-outline-content #outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'));
-        expect(document.querySelector('.workspace-explorer-outline-content #outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'), 'visible embedded outline selects destination heading');
+        await wait(() => document.querySelector('#outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'));
+        expect(document.querySelector('#outline-content .outline-active')?.getAttribute('data-ref') === heading.getAttribute('cid'), 'visible native Outline selects destination heading');
         expect(document.querySelector('#outline-content')?.textContent.includes('Destination'), 'outline belongs to destination document');
         expect(same_position(source_position, visible(source.containerEl, source.view.containerEl)), 'source pane keeps the same paragraph and offset');
-        const back_button=document.querySelector('.workspace-titlebar-history.is-back');await wait(()=>back_button&&!back_button.disabled);back_button.click();await delay(1000);
-        expect(app.workspace.activeLeaf===right_source&&same_position(from_position,visible(content,write)),'titlebar Back arrow restores the exact prior pane and reading position');
-        const forward_button=document.querySelector('.workspace-titlebar-history.is-forward');await wait(()=>forward_button&&!forward_button.disabled);forward_button.click();await delay(1000);
-        expect(normalized(File.bundle.filePath)===normalized(path.join(probe_root,'target.md')),'titlebar Forward arrow returns to the destination');
+        window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));await delay(1000);
+        expect(app.workspace.activeLeaf===right_source&&same_position(from_position,visible(content,write)),'Back navigation restores the exact prior pane and reading position');
+        window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:1}}));await delay(1000);
+        expect(normalized(File.bundle.filePath)===normalized(path.join(probe_root,'target.md')),'Forward navigation returns to the destination');
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true, cancelable: true }));
         await delay(1000);
         expect(app.workspace.activeLeaf === right_source, 'Alt Left returns to the original pane and tab');
@@ -112,7 +112,7 @@
       result.status = 'PASS';
     } catch (error) {
       result.status = 'FAIL'; result.error = String(error.stack);
-      result.outline_debug = {embedded:document.querySelector('.workspace-explorer-outline-content')?.getBoundingClientRect().toJSON(),document_active:document.querySelector('.workspace-explorer-outline-content')?.dataset.documentOutline,active:document.querySelector('#outline-content .outline-active')?.outerHTML,labels:document.querySelectorAll('#outline-content .outline-label').length,sidebar:document.querySelector('#typora-sidebar')?.className};
+      result.outline_debug = {native:document.querySelector('#outline-content')?.getBoundingClientRect().toJSON(),document_active:document.querySelector('#typora-sidebar')?.dataset.documentOutline,active:document.querySelector('#outline-content .outline-active')?.outerHTML,labels:document.querySelectorAll('#outline-content .outline-label').length,sidebar:document.querySelector('#typora-sidebar')?.className};
       result.resume_debug = { phase, actual: visible(document.querySelector('content'), document.querySelector('#write')),
         scroll_top: document.querySelector('content').scrollTop,
         stored: localStorage.getItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(File.bundle.filePath))) };

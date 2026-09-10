@@ -40,3 +40,22 @@ assert.equal(uri.parse_markdown_file_target(source_uri), undefined, 'explicit so
 assert.deepEqual(uri.resolve_markdown_file_target(path.win32, root, 'docs\\reading #2 50%.md#part'), {file_path:'C:\\Notes\\Workspace\\docs\\reading #2 50%.md',hash:'#part'});
 
 console.log('workspace file URI: source identity, context-root resolution, Windows keys and complex Markdown anchors passed');
+
+const yaml_url = 'file:///C:/Notes/Workspace/project-docs/board%20%231%20100%25.yml';
+assert.equal(uri.resolve_workspace_file(path.win32, root, yaml_url), String.raw`C:\Notes\Workspace\project-docs\board #1 100%.yml`);
+assert.equal(uri.resolve_host_open_file_target(path.win32, String.raw`C:\other\source.md`, yaml_url), yaml_url);
+assert.equal(uri.resolve_workspace_file(path.posix, '/workspace', 'file:///notes/board%20a.yml'), '/notes/board a.yml');
+assert.equal(uri.resolve_workspace_file(path.win32, root, 'file://server/share/board.yml'), String.raw`\\server\share\board.yml`);
+for (const invalid of ['file:///C:/notes/a%2fb.yml','file:///C:/notes/a%5cb.yml','file:///C:/notes/%ZZ.yml','https://example.invalid/board.yml']) {
+  assert.equal(uri.resolve_workspace_file(path.win32, root, invalid), undefined);
+}
+console.log('file URL: Windows, POSIX, UNC, encoded names and invalid scheme boundaries passed');
+
+for(const path_api of [path.win32,path.posix]) {
+  const source=path_api===path.win32?'C:/notes/current.md':'/notes/current.md';
+  for(const scheme of ['https://example.com/a.md','mailto:person@example.com','javascript:alert(1)']) {
+    assert.equal(uri.resolve_host_open_file_target(path_api,source,'<'+scheme+'>'),scheme);
+    assert.equal(uri.resolve_workspace_file(path_api,path_api.dirname(source),uri.resolve_host_open_file_target(path_api,source,scheme)),undefined,'schemes cannot become local filenames');
+  }
+}
+assert.equal(uri.resolve_host_open_file_target(path.win32,'C:/notes/current.md','<'+yaml_url+'>'),yaml_url,'angle-delimited file URLs retain their protocol before decoding');

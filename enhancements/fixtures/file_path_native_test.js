@@ -31,7 +31,7 @@
       };
       // 只替换此测试窗口的根目录查询，不改变实际挂载目录及用户设置。
       File.getMountFolder = () => probe_root;
-      const app = window[Symbol.for('typora-plugin-core@v2')].app;
+      const app = window[Symbol.for('typora-code:workspace')].app;
       const source_path = File.bundle.filePath;
       const source_leaf = app.workspace.activeLeaf;
       const target_path = path.join(probe_root, 'target.md');

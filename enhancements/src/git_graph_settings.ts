@@ -1,8 +1,9 @@
+import { graph_actions_for } from "./git_graph_actions";
 import { pull_request_defaults, validate_pull_request_providers, type pull_request_provider } from "./git_graph_pull_request";
 import { git_graph_text as text, type git_graph_locale, type git_graph_text_key } from "./git_graph_i18n";
 
 export const GRAPH_SETTINGS_KEY = "linux-note-git-graph:v2:";
-const RETIRED_GRAPH_SETTING_KEYS = ["panel_ratio"] as const;
+const RETIRED_GRAPH_SETTING_KEYS = ["panel_ratio", "scm_integration"] as const;
 export const graph_defaults = {
   graph_style: "curved", colors: ["#0085d9", "#d9008f", "#00d90a", "#d98500", "#a300d9", "#ff0000", "#00d9cc", "#e138e8", "#85d900", "#dc5b23", "#6f24d6", "#ffcc00"],
   initial_count: 300, page_count: 100, auto_load: true, order: "date", first_parent: false,
@@ -15,7 +16,7 @@ export const graph_defaults = {
   auto_center: true, file_view: "tree", compact_folders: true,
   combine_refs: true, uncommitted_style: "connected", inline_markdown: true,
   branch_globs: [] as { name: string; glob: string }[], emoji: {} as Record<string, string>,
-  scm_integration: "inline", reference_space: "none", hidden_actions: [] as string[], dialog_defaults: {merge: {mode: "no-ff", squash_message: "default"}, pull: {mode: "merge", squash_message: "default"}, rebase: {ignore_date: true}, stash_create: {untracked: true}} as Record<string, Record<string, string | boolean>>,
+  reference_space: "none", hidden_actions: [] as string[], dialog_defaults: {merge: {mode: "no-ff", squash_message: "default"}, pull: {mode: "merge", squash_message: "default"}, rebase: {ignore_date: true}, stash_create: {untracked: true}} as Record<string, Record<string, string | boolean>>,
   shortcuts: { find: "Mod+f", head: "Mod+h", refresh: "Mod+r", stash_next: "Mod+s", stash_previous: "Mod+Shift+s" },
   on_load_head: false, on_load_branch: false, on_load_branches: [] as string[], retain_context: true,
   fetch_prune: false, fetch_prune_tags: false, sign_commits: false, sign_tags: false,
@@ -29,7 +30,6 @@ export function settings_labels_for(locale?: git_graph_locale): Record<keyof gra
   const label = (key: git_graph_text_key): string => text(key, {}, locale);
   return {
     pr_providers:label("settings.label.pr_providers"),pr_config:label("settings.label.pr_config"),tab_icon_theme:label("settings.label.tab_icon_theme"),
-    scm_integration: label("settings.label.scm_integration"),
     reference_space: label("settings.label.reference_space"),
     graph_style: label("settings.label.graph_style"), colors: label("settings.label.colors"), initial_count: label("settings.label.initial_count"), page_count: label("settings.label.page_count"), auto_load: label("settings.label.auto_load"), order: label("settings.label.order"), first_parent: label("settings.label.first_parent"),
     show_remotes: label("settings.label.show_remotes"), show_remote_heads: label("settings.label.show_remote_heads"), show_tags: label("settings.label.show_tags"), tag_only_commits: label("settings.label.tag_only_commits"), show_stashes: label("settings.label.show_stashes"), show_changes: label("settings.label.show_changes"), show_untracked: label("settings.label.show_untracked"), include_reflogs: label("settings.label.include_reflogs"), use_mailmap: label("settings.label.use_mailmap"), mute_merges: label("settings.label.mute_merges"), mute_unreachable: label("settings.label.mute_unreachable"), show_signature: label("settings.label.show_signature"), fetch_avatars: label("settings.label.fetch_avatars"),
@@ -43,11 +43,10 @@ export function settings_labels_for(locale?: git_graph_locale): Record<keyof gra
   };
 }
 
-export const settings_choices: Record<string, string[]> = { tab_icon_theme: ["colour", "grey"], scm_integration: ["inline", "more"], reference_space: ["none", "-", "_"], details_location: ["inline", "docked"], label_alignment: ["normal", "split", "graph"], graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "date", "iso", "iso_date", "relative"], file_view: ["tree", "list"], uncommitted_style: ["connected", "head"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
+export const settings_choices: Record<string, string[]> = { tab_icon_theme: ["colour", "grey"], reference_space: ["none", "-", "_"], details_location: ["inline", "docked"], label_alignment: ["normal", "split", "graph"], graph_style: ["curved", "straight"], order: ["topo", "date", "author-date"], date_type: ["author", "committer"], date_format: ["local", "date", "iso", "iso_date", "relative"], file_view: ["tree", "list"], uncommitted_style: ["connected", "head"], new_tab_group: ["active", "right", "down"], repository_order: ["name", "path", "recent"] };
 
 const settings_choice_label_keys: Partial<Record<keyof graph_settings, Record<string, git_graph_text_key>>> = {
   tab_icon_theme:{colour:"settings.choice.tab_icon.colour",grey:"settings.choice.tab_icon.grey"},
-  scm_integration: {inline: "settings.choice.layout.inline", more: "settings.choice.layout.more"},
   details_location: {inline: "settings.choice.layout.inline", docked: "settings.choice.layout.docked"},
   label_alignment: {normal: "settings.choice.layout.normal", split: "settings.choice.layout.left", graph: "settings.choice.layout.right"},
   graph_style: {curved: "settings.choice.graph_style.curved", straight: "settings.choice.graph_style.straight"},
@@ -97,6 +96,14 @@ export function validate_settings(value: unknown): graph_settings {
   for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error(text("settings.error.missing_shortcut", {key}));
   for (const key of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key)) throw new Error(text("settings.error.missing_column_width", {key}));
   for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some(value => typeof value !== "string" && typeof value !== "boolean")) throw new Error(text("settings.error.invalid_dialog_defaults"));
+  const actions = graph_actions_for();
+  for (const [id, values] of Object.entries(result.dialog_defaults)) {
+    const action = actions.find(action => action.id === (id === "reset_changes" ? "reset" : id));
+    for (const [name, value] of Object.entries(values)) {
+      const field = action?.fields.find(field => field.key === name);
+      if (field && (field.type === "boolean" ? typeof value !== "boolean" : field.type === "choice" ? !field.choices?.includes(String(value)) : typeof value !== "string")) throw new Error(text("settings.error.invalid_choice", {key: `dialog_defaults.${id}.${name}`}));
+    }
+  }
   for (const width of Object.values(result.column_widths)) if (!Number.isFinite(width) || width < 40 || width > 1500) throw new Error(text("settings.error.invalid_column_width"));
   validate_pull_request_providers(result.pr_providers);
   if(Object.keys(pull_request_defaults).some(key=>typeof result.pr_config[key as keyof typeof pull_request_defaults]!=="string"))throw new Error("PR integration fields must be strings.");

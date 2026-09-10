@@ -1,33 +1,53 @@
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item {
   box-sizing: border-box;
   position: relative;
-  flex: 0 0 var(--typ-ribbon-width, 48px);
-  border-left: 3px solid transparent;
-  border-right: 3px solid transparent;
-  color: var(--workspace-activity-foreground, var(--control-text-color, #616161));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+  width:48px; height:48px; min-height:48px; padding:0;
+  border-left:3px solid transparent;
+  border-right:3px solid transparent;
+  color: var(--workspace-activity-foreground, #606060);
   background: transparent;
   cursor: pointer;
   user-select: none;
   touch-action: none;
   transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease;
 }
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item > svg.git-standard-icon {
+  display: block;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0;
+  margin: 0;
+  fill: currentColor;
+  stroke: none;
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item > svg.git-standard-icon * {
+  fill: currentColor;
+  stroke: none;
+}
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:hover {
-  color: var(--workspace-activity-active-foreground, #005a9e);
-  background: var(--workspace-activity-hover-background, #0078d412);
+  color: var(--workspace-activity-active-foreground, #202020);
+  background: var(--workspace-activity-hover-background, transparent);
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item[data-activity-active=true] {
-  color: var(--workspace-activity-active-foreground, #005a9e);
-  background: var(--workspace-activity-active-background, #0078d421);
-  border-left-color: var(--workspace-activity-active-border, #0078d4);
+  color: var(--workspace-activity-active-foreground, #202020);
+  background:var(--workspace-activity-active-background,#dadada99);
+  border-left-color:var(--workspace-activity-active-border,#000);
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:focus-visible {
-  outline: 1px solid var(--workspace-activity-active-border, #0078d4);
+  outline: 1px solid var(--workspace-activity-active-border, #000000);
   outline-offset: -3px;
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-dragging {
   cursor: grabbing;
-  background: var(--workspace-activity-active-background, #0078d421);
-  outline: 1px dashed var(--workspace-activity-active-border, #0078d4);
+  background: var(--workspace-activity-active-background, #d6d6d6);
+  outline: 1px dashed var(--workspace-activity-active-border, #000000);
   outline-offset: -3px;
   z-index: 1;
 }
@@ -67,9 +87,6 @@
 .workspace-activity-menu .git-standard-icon { width: 16px; height: 16px; flex: none; fill: currentColor; }
 .workspace-activity-menu [data-activity-move=up] > svg { transform: rotate(-90deg); }
 .workspace-activity-menu [data-activity-move=down] > svg { transform: rotate(90deg); }
-@media (prefers-color-scheme: dark) {
-  .typ-ribbon[data-workspace-activity=ready] { --workspace-activity-active-foreground: #9cdcfe; --workspace-activity-active-border: #75beff; --workspace-activity-active-background: #75beff22; --workspace-activity-hover-background: #75beff14; }
-}
 @media (prefers-reduced-motion: reduce) {
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }

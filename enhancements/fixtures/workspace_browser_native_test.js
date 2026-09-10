@@ -11,16 +11,11 @@
     try{
       await wait(()=>document.documentElement.getAttribute('data-linux-note-workspace-browser')==='ready');
       File.getMountFolder=()=>root;window.resizeTo(1400,950);await delay(300);
-      const app=window[Symbol.for('typora-plugin-core@v2')].app;
-      await wait(()=>document.querySelector('.workspace-titlebar-command-area'));
-      expect(document.querySelectorAll('.workspace-titlebar-history').length===2&&document.querySelector('[data-git-icon="arrow-left"]')&&document.querySelector('[data-git-icon="arrow-right"]'),'native titlebar shows official back and forward arrows left of quick open');
-      expect(document.querySelector('.workspace-titlebar-navigation').nextElementSibling.classList.contains('workspace-titlebar-quick-open'),'native titlebar keeps history arrows immediately before the quick open');
-      const top_menus=document.querySelectorAll('.workspace-titlebar-menu>button');top_menus[0].click();
-      await wait(()=>document.querySelector('.workspace-titlebar-popup button'));
-      expect(document.querySelector('.workspace-titlebar-popup').textContent.includes('新建')&&document.querySelector('.workspace-titlebar-popup').textContent.includes('打开最近文件')&&!document.querySelector('.workspace-titlebar-popup').textContent.includes('撤消'),'native File menu contains its own commands and recent locations');
-      top_menus[1].click();await wait(()=>document.querySelector('.workspace-titlebar-popup')?.textContent.includes('撤消'));
-      expect(document.querySelector('.workspace-titlebar-popup').textContent.includes('在文件中查找')&&!document.querySelector('.workspace-titlebar-popup').textContent.includes('打开最近文件'),'native Edit menu contains only Edit commands');
-      document.body.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));
+      const app=window[Symbol.for('typora-code:workspace')].app;
+      await wait(()=>document.querySelector('.workspace-titlebar-menu'));
+      const top_menus=[...document.querySelectorAll('.workspace-titlebar-menu>button')];
+      expect(top_menus.map(node=>node.textContent.trim()).join('/')==='文件/编辑/段落/格式/视图/主题/帮助','native titlebar retains the frozen seven Typora menus');
+      expect(!document.querySelector('.workspace-titlebar-command-area,.workspace-titlebar-popup,.workspace-open-editors'),'frozen workbench has no replacement Command Center, custom menu popup or Open Editors section');
       const hidden=path.join(root,'.hidden');fs.mkdirSync(hidden);fs.writeFileSync(path.join(hidden,'config.test.d.ts'),'export const sampleToken: string;\n');
       fs.writeFileSync(path.join(root,'module.test.ts'),'const sampleToken = 42;\n');fs.writeFileSync(path.join(root,'.env.local'),'MODE=local\n');fs.writeFileSync(path.join(root,'binary.tar.gz'),Buffer.from([31,139,0,1,0]));
       app.workspace.sidebar.hide();window.dispatchEvent(new KeyboardEvent('keydown',{key:'E',code:'KeyE',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true}));
@@ -71,11 +66,15 @@
       expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:search"]'),'search reuses standard activity button without duplicate');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>!app.workspace.sidebar.isShown);expect(true,'same search activity button collapses sidebar');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>app.workspace.sidebar.isShown);expect(true,'search activity button reopens retained results');
-      window.dispatchEvent(new KeyboardEvent('keydown',{key:'p',code:'KeyP',ctrlKey:true,bubbles:true,cancelable:true}));await wait(()=>!document.querySelector('.workspace-quick-open').hidden);
-      const quick_input=document.querySelector('.workspace-quick-open input');quick_input.value='config.test.d.ts';quick_input.dispatchEvent(new Event('input',{bubbles:true}));
-      await wait(()=>document.querySelectorAll('.workspace-quick-open-result').length===1);
-      expect(document.querySelector('.workspace-quick-open-result').textContent.includes('config.test.d.ts'),'Ctrl P quick open finds hidden compound-suffix files');
-      quick_input.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));expect(document.querySelector('.workspace-quick-open').hidden,'Escape closes native quick open');
+      // 实际宿主 frame.js 的 ClientCommand.quickOpen -> editor.quickOpenPanel.show 路由。
+      ClientCommand.quickOpen();
+      const quick_panel=document.querySelector('#typora-quick-open'),quick_input=document.querySelector('#typora-quick-open-input input');
+      await wait(()=>quick_panel&&getComputedStyle(quick_panel).display!=='none'&&document.activeElement===quick_input);
+      quick_input.value='config.test.d.ts';quick_input.dispatchEvent(new Event('input',{bubbles:true}));
+      await wait(()=>[...quick_panel.querySelectorAll('.typora-quick-open-item')].some(node=>norm(node.dataset.path)===norm(path.join(hidden,'config.test.d.ts'))),'native filename search did not find compound-suffix file');
+      expect(true,'native filename search finds hidden compound-suffix files through the existing core cache');
+      File.editor.quickOpenPanel.close();await wait(()=>getComputedStyle(quick_panel).display==='none');
+      expect(true,'native filename search closes without creating a replacement workbench picker');
       app.workspace.ribbon.clickButton('core.file-explorer');await wait(()=>document.querySelector('.workspace-explorer-tree'));
       await app.openFile(path.join(root,'binary.tar.gz'));await wait(()=>app.workspace.activeLeaf.view.containerEl.textContent.includes('二进制'));expect(true,'binary remains visible and opens an explicit non-text notice');
       result.status='PASS';

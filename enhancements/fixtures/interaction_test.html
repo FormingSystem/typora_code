@@ -1,5 +1,6 @@
 <!doctype html>
 <meta charset="utf-8">
+<link id="typora-code-workspace-styles" rel="stylesheet" href="../dist/workspace.css">
 <title>代码按钮事件回归夹具</title>
 <style>
   body { margin: 24px; font-family: sans-serif; }
@@ -116,13 +117,4 @@
     });
   }
 </script>
-<script type="module">
-  class test_plugin {
-    load() { this.onload(); }
-    unload() { this.onunload(); }
-  }
-  window[Symbol.for("typora-plugin-core@v2")] = { Plugin: test_plugin };
-  const { default: plugin_type } = await import("../dist/community_plugin/main.js");
-  window.linux_note_test_plugin = new plugin_type();
-  window.linux_note_test_plugin.load();
-</script>
+<script defer src="../dist/workbench.js"></script>

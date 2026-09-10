@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import minimap_css from "./reading_minimap.css";
 import { get_workspace_app } from "./workspace_bootstrap";
 
@@ -86,16 +87,23 @@ function create_minimap(target: minimap_target) {
     viewport.style.transform = `translateY(${ratio * (height - thumb_height)}px)`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
   };
+  // 固定定位的缩略图会逃离归零中的 content；先判断宿主身份和稳定尺寸，再写入任何几何。
+  const geometry_ready = () => !target.owner.closest(".typ-deactive") && visible(target.owner) && visible(target.root)
+    && target.owner.clientWidth > MINIMAP_WIDTH && target.owner.clientHeight > 0
+    && !target.owner.getAnimations().some(animation => animation instanceof CSSTransition
+      && /^(?:width|height|left|right|top|bottom|inset|transform)$/u.test(animation.transitionProperty));
   const layout = () => {
-    if (disposed) return;
+    if (disposed) return false;
+    if (!geometry_ready()) { rail.hidden = true; return false; }
     const bounds = target.owner.getBoundingClientRect();
     rail_height = Math.max(1, target.owner.clientHeight);
     // 使用 clientWidth 留出宿主自身的细滚动条，不覆盖正文或相邻编辑组。
     rail.style.left = `${bounds.left + target.owner.clientWidth - MINIMAP_WIDTH - 4}px`;
     rail.style.top = `${bounds.top + target.owner.clientTop}px`;
     rail.style.height = `${rail_height}px`;
-    rail.hidden = !visible(target.owner);
+    rail.hidden = false;
     update_viewport();
+    return true;
   };
   const paint_style_signature = () => {
     const sample = target.source ? target.root.querySelector(".CodeMirror-line") ?? target.root
@@ -183,8 +191,7 @@ function create_minimap(target: minimap_target) {
   }
   const paint = () => {
     paint_timer = 0; if (disposed) return;
-    layout();
-    if (!visible(target.owner) || !target.root.clientWidth || !rail_height) {
+    if (!layout()) {
       requested_signature = ""; rail.dataset.updating = "false"; return;
     }
     const signature = render_signature();
@@ -204,7 +211,8 @@ function create_minimap(target: minimap_target) {
     active_rows = rows;
     // 长文按帧写入离屏缓冲；完成后在同一任务内原子提交，界面不会露出空白或半张缩略图。
     const advance = () => {
-      if (disposed || token !== generation) {
+      if (disposed || token !== generation || !geometry_ready()) {
+        if (!disposed && token === generation) { rail.hidden = true; rail.dataset.updating = "false"; requested_signature = ""; frame = 0; }
         rows.return(undefined); if (active_rows === rows) active_rows = undefined; return;
       }
       const deadline = performance.now() + 6;
@@ -239,8 +247,7 @@ function create_minimap(target: minimap_target) {
   const schedule_render = (content_changed: boolean) => {
     if (disposed) return;
     if (content_changed) content_revision += 1;
-    layout();
-    if (!visible(target.owner) || !target.root.clientWidth || !rail_height) {
+    if (!layout()) {
       cancel_render(); requested_signature = ""; rail.dataset.updating = "false"; return;
     }
     const signature = render_signature();
@@ -303,7 +310,7 @@ export function bind_reading_minimap(): () => void {
   if (document.getElementById("linux-note-reading-minimap-style")) return () => {};
   let disposed = false;
   const previous_ready = document.documentElement.getAttribute("data-linux-note-reading-minimap");
-  const style = document.createElement("style"); style.id = "linux-note-reading-minimap-style"; style.textContent = minimap_css; document.head.append(style);
+  const style = acquire_workspace_style("linux-note-reading-minimap-style", minimap_css, {});
   const maps = new Map<HTMLElement, ReturnType<typeof create_minimap>>();
   let scan_timer = 0;
   const scan = () => {

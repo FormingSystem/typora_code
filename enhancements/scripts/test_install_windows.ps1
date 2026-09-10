@@ -1,123 +1,143 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
-$ErrorActionPreference = "Stop"
-
-function assert_equal($actual, $expected, [string]$message) {
-    if ($actual -ne $expected) { throw "$message (actual: $actual; expected: $expected)" }
-}
-function assert_rejected([scriptblock]$operation, [string]$message) {
-    $rejected = $false
-    try { & $operation | Out-Null } catch { $rejected = $true }
-    if (-not $rejected) { throw $message }
-}
-
-# 所有写入都在新建临时目录；显式传入假安装位置并隔离 APPDATA。
-$test_root = Join-Path ([System.IO.Path]::GetTempPath()) ("typora-install-test-" + [guid]::NewGuid().ToString('N'))
-$tools_source = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$tools_copy = Join-Path $test_root "portable checkout"
+$ErrorActionPreference = 'Stop'
+function assert_equal($actual, $expected, [string]$message) { if ($actual -cne $expected) { throw "$message (actual: $actual; expected: $expected)" } }
+function assert_rejected([scriptblock]$operation, [string]$message) { $rejected=$false; try { & $operation | Out-Null } catch { $rejected=$true }; if (-not $rejected) { throw $message } }
+function write_fixture([string]$path, [string]$value) { New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null; [IO.File]::WriteAllText($path,$value,[Text.UTF8Encoding]::new($false)) }
+function write_profile_fixture([string]$path, [object]$data) { write_fixture $path ([BitConverter]::ToString([Text.Encoding]::UTF8.GetBytes(($data | ConvertTo-Json -Depth 100 -Compress))).Replace('-', '').ToLowerInvariant()) }
+function read_profile_fixture([string]$path) { $hex=[IO.File]::ReadAllText($path,[Text.Encoding]::UTF8); $bytes=New-Object byte[] ($hex.Length/2); for ($index=0; $index -lt $bytes.Length; $index++) { $bytes[$index]=[Convert]::ToByte($hex.Substring($index*2,2),16) }; return ([Text.Encoding]::UTF8.GetString($bytes) | ConvertFrom-Json) }
+$test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-direct-install-' + [guid]::NewGuid().ToString('N'))
+$source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative_path in @("configure_windows.ps1", "check_configuration_windows.ps1", "restore_configuration_windows.ps1", "cpp_github-consolas.css", "scripts", "enhancements\scripts", "enhancements\dist", "enhancements\vendor", "enhancements\bundle_markers.txt", "enhancements\node_runtime.json")) {
-    $destination = Join-Path $tools_copy $relative_path
+foreach ($relative in @('configure_windows.ps1','check_configuration_windows.ps1','restore_configuration_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+    $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
-    Copy-Item -LiteralPath (Join-Path $tools_source $relative_path) -Destination $destination -Recurse
+    Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse
 }
-$fake_root = Join-Path $test_root "installation with spaces"
-New-Item -ItemType Directory -Force -Path (Join-Path $fake_root "resources") | Out-Null
-$window_path = Join-Path $fake_root "resources\window.html"
-[System.IO.File]::WriteAllText((Join-Path $fake_root "Typora.exe"), "fixture")
-[System.IO.File]::WriteAllText($window_path, "<html><body>fixture</body></html>")
-$window_original = [System.IO.File]::ReadAllText($window_path)
-$previous_appdata = $env:APPDATA
+$fake_root = Join-Path $test_root 'installation with spaces'
+$window = Join-Path $fake_root 'resources/window.html'
+write_fixture (Join-Path $fake_root 'Typora.exe') 'fixture'
+$original = '<html><head><title>fixture</title></head><body>fixture<script src="typora://app/userData/plugins/loader.js" type="module"></script></body></html>'
+write_fixture $window $original
+$previous_appdata=$env:APPDATA
 try {
-    $env:APPDATA = Join-Path $test_root "user data"
-    $user_data = Join-Path $env:APPDATA "Typora"
-    $reading_store = Join-Path $user_data "Local Storage\leveldb\reading-position-fixture.log"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $reading_store) | Out-Null
-    [System.IO.File]::WriteAllText($reading_store, "existing reading positions")
-    $graph_store = Join-Path $user_data "Local Storage\leveldb\git-graph-fixture.log"
-    $avatar_store = Join-Path $user_data "linux_note_enhancements\git_graph\avatars\fixture.png"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $avatar_store) | Out-Null
-    [IO.File]::WriteAllText($graph_store, "existing reviews and repository settings")
-    [IO.File]::WriteAllText($avatar_store, "existing avatar")
-    $old_core = Join-Path $user_data "plugins\2.10.15\core.js"
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $old_core) | Out-Null
-    [System.IO.File]::WriteAllText($old_core, "previous core")
-    $settings_path = Join-Path $user_data 'plugins/settings/plugins.json'
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $settings_path) | Out-Null
-    [IO.File]::WriteAllText($settings_path, '{"other.plugin":false,"nested":{"中文":[1,2,3]}}', [Text.UTF8Encoding]::new($false))
-    & (Join-Path $tools_copy "configure_windows.ps1") -typora_root $fake_root -non_interactive
-    & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive
-    $settings = [IO.File]::ReadAllText($settings_path) | ConvertFrom-Json
-    assert_equal $settings.'forming_system.linux_note_enhancements' $true 'Plugin not enabled'
-    assert_equal $settings.'other.plugin' $false 'Existing setting changed'
+    $env:APPDATA=Join-Path $test_root 'user data'
+    $user_data=Join-Path $env:APPDATA 'Typora'
+    $installer=Join-Path $tools_copy 'enhancements/scripts/install_windows.ps1'
+    $restore=Join-Path $tools_copy 'enhancements/scripts/restore_windows.ps1'
+    $checker=Join-Path $tools_copy 'check_configuration_windows.ps1'
+    . (Join-Path $tools_copy 'scripts/lib/typora_workspace.ps1')
+    $plugin_settings=Join-Path $user_data 'plugins/settings/plugins.json'
+    write_fixture $plugin_settings '{"forming_system.linux_note_enhancements":true,"other.plugin":false,"nested":{"中文":[1,2,3]}}'
+    $old_settings=Join-Path $user_data 'plugins/settings/core.json'
+    write_fixture $old_settings '{"version":2,"settings":{"displayLang":"zh-cn","internalPlugin.enabledPlugins":["a"],"githubProxy":"private","downloader":{},"fontSize":14,"ribbonState":{"core.settings":true,"core.outline":false}}}'
+    foreach ($asset in get_typora_migration_assets) { write_fixture (Join-Path $user_data ('plugins/' + $asset.relative_path)) ('old:'+$asset.relative_path) }
+    $state=Join-Path $user_data 'Local Storage/leveldb/reading.log'
+    write_fixture $state 'reading positions and Graph reviews'
+    $retired=Join-Path $user_data 'typora_code/appearance_bootstrap.js'
+    write_fixture $retired 'old appearance startup'
+    $profile=Join-Path $user_data 'profile.data'
+    write_profile_fixture $profile @{framelessWindow=$true;nested=@{text='中文';items=@(1,$false)};later=1}
+    $backup=Join-Path $test_root 'first backup'
+    & $installer -typora_root $fake_root -backup_root $backup -include_theme -non_interactive
+    & $checker -typora_root $fake_root -non_interactive
+    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Native window preference was not installed'
+    $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
+    assert_equal (Test-Path -LiteralPath $retired) $false 'Retired bootstrap file remains'
+    assert_equal ([IO.File]::ReadAllText((Join-Path $backup 'product/appearance_bootstrap.js'))) 'old appearance startup' 'Retired bootstrap not backed up'
+    $installed=[IO.File]::ReadAllText($window)
+    assert_equal ([regex]::Matches($installed,'typora-code:begin').Count) 1 'Duplicate head'
+    assert_equal ($installed.Contains('appearance_bootstrap.js')) $false 'Retired appearance bootstrap remains'
+    assert_equal ([regex]::Matches($installed,'data-typora-code-style').Count) 2 'Styles not preloaded'
+    foreach ($asset in get_typora_migration_assets) { assert_equal (Test-Path -LiteralPath (Join-Path $user_data ('plugins/'+$asset.relative_path))) $false 'Old runtime remains' }
+    $settings=[IO.File]::ReadAllText($plugin_settings)|ConvertFrom-Json
+    assert_equal ($null -eq $settings.PSObject.Properties['forming_system.linux_note_enhancements']) $true 'Old registration remains'
+    assert_equal $settings.'other.plugin' $false 'Other settings changed'
+    $new_settings=Join-Path $user_data 'typora_code/settings/workspace.json'
+    $migrated=[IO.File]::ReadAllText($new_settings)|ConvertFrom-Json
+    assert_equal $migrated.version 1 'Wrong settings schema'
+    assert_equal $migrated.settings.displayLang 'zh-cn' 'Language lost'
+    assert_equal $migrated.settings.fontSize 14 'Preference lost'
+    assert_equal ($null -eq $migrated.settings.PSObject.Properties['githubProxy']) $true 'Marketplace setting remains'
+    assert_equal ($null -eq $migrated.settings.ribbonState.PSObject.Properties['core.settings']) $true 'Plugin settings ribbon remains'
+    write_fixture $new_settings '{"version":1,"settings":{"displayLang":"en","custom":"later"}}'
+    & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'repeat backup') -non_interactive
+    assert_equal ([IO.File]::ReadAllText($window)) $installed 'Repeat install changed head'
+    assert_equal ([IO.File]::ReadAllText($new_settings)) '{"version":1,"settings":{"displayLang":"en","custom":"later"}}' 'Repeat install overwrote new settings'
+    $product=Join-Path $user_data 'typora_code/workbench.js'
+    [IO.File]::AppendAllText($product,'corrupted')
+    assert_rejected { & $checker -typora_root $fake_root -non_interactive } 'Corrupted asset accepted'
+    Copy-Item -LiteralPath (Join-Path $tools_copy 'enhancements/dist/workbench.js') -Destination $product -Force
+    # 恢复源摘要错误和越界路径必须在任何目标写入之前拒绝。
+    $saved_window=Join-Path $backup 'window.html'
+    [IO.File]::AppendAllText($saved_window,'corrupted')
+    assert_rejected { & $restore -backup_root $backup } 'Corrupted backup accepted'
+    assert_equal ([IO.File]::ReadAllText($window)) $installed 'Rejected restore changed window'
+    write_fixture $saved_window $original
+    $manifest_path=Join-Path $backup 'manifest.json'
+    $manifest_bytes=[IO.File]::ReadAllText($manifest_path)
+    $manifest=$manifest_bytes|ConvertFrom-Json
+    $manifest.product[0].relative_path='../outside.txt'
+    write_fixture $manifest_path ($manifest|ConvertTo-Json -Depth 100)
+    assert_rejected { & $restore -backup_root $backup } 'Traversal backup accepted'
+    write_fixture $manifest_path $manifest_bytes
     $settings | Add-Member -NotePropertyName 'later.plugin' -NotePropertyValue $true
-    [IO.File]::WriteAllText($settings_path, ($settings | ConvertTo-Json -Depth 10), [Text.UTF8Encoding]::new($false))
-    $installed_theme = Join-Path $user_data "themes\cpp_github-consolas.css"
-    [System.IO.File]::AppendAllText($installed_theme, "/* stale theme fixture */")
-    assert_rejected { & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive } "Stale theme passed installed checks"
-    Copy-Item -LiteralPath (Join-Path $tools_copy "cpp_github-consolas.css") -Destination $installed_theme -Force
-    $unified_backup = @(Get-ChildItem -LiteralPath (Join-Path $user_data "backups\linux_note_typora_configuration") -Directory)[0].FullName
-    $installer = Join-Path $tools_copy "enhancements\scripts\install_windows.ps1"
-    & $installer -typora_root $fake_root -backup_root (Join-Path $test_root "repeat backup") -non_interactive
-    assert_equal ([regex]::Matches([System.IO.File]::ReadAllText($window_path), 'typora://app/userData/plugins/loader\.js').Count) 1 "Repeated installation duplicated the entry"
-    assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Installation changed reading positions"
-    [System.IO.File]::AppendAllText($old_core, "corrupted")
-    assert_rejected { & (Join-Path $tools_copy "check_configuration_windows.ps1") -typora_root $fake_root -non_interactive } "Asset corruption passed installed checks"
-    & (Join-Path $tools_copy "restore_configuration_windows.ps1") -backup_root $unified_backup
-    assert_equal ([System.IO.File]::ReadAllText($window_path)) $window_original "Entry restore failed"
-    assert_equal ([System.IO.File]::ReadAllText($old_core)) "previous core" "Existing core was not restored"
-    assert_equal ([System.IO.File]::ReadAllText($reading_store)) "existing reading positions" "Restore changed reading positions"
-    assert_equal (Test-Path -LiteralPath (Join-Path $user_data "plugins\2.10.15\core.css")) $false "New assets remain active after restore"
-
-    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'linux_note_enhancements/terminal_runtime/1.1.0/terminal_broker.cjs')) $false "New terminal broker remains active after restore"
-    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'linux_note_enhancements/terminal_runtime/node/24.20.0/node.exe')) $false "Private terminal runtime remains active after restore"
-    assert_equal ([IO.File]::ReadAllText($graph_store)) "existing reviews and repository settings" "Install or restore changed Git Graph state"
-    assert_equal ([IO.File]::ReadAllText($avatar_store)) "existing avatar" "Install or restore changed avatar cache"
-    $settings = [IO.File]::ReadAllText($settings_path) | ConvertFrom-Json
+    write_fixture $plugin_settings ($settings|ConvertTo-Json -Depth 100)
+    assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'conflict') -non_interactive } 'Other active plugin accepted'
+    assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'conflict')) $false 'Conflict caused mutation'
+    $global:typora_test_restore_failed=$false
+    $global:typora_test_restore_window=$window
+    function global:Copy-Item {
+        [CmdletBinding()]param([string]$LiteralPath,[string]$Destination,[switch]$Force,[switch]$Recurse)
+        if (-not $global:typora_test_restore_failed -and $Destination -eq $global:typora_test_restore_window) { $global:typora_test_restore_failed=$true; throw 'Injected restore failure' }
+        Microsoft.PowerShell.Management\Copy-Item @PSBoundParameters
+    }
+    try { assert_rejected { & $restore -backup_root $backup } 'Restore fault was ignored' }
+    finally { Remove-Item Function:\Copy-Item }
+    assert_equal $global:typora_test_restore_failed $true 'Fault did not reach restore'
+    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Restore rollback lost installed native preference'
+    assert_equal ([IO.File]::ReadAllText($window)) $installed 'Restore rollback changed window'
+    assert_equal (Test-Path -LiteralPath $product -PathType Leaf) $true 'Restore rollback lost product bundle'
+    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'plugins/loader.js')) $false 'Restore rollback activated old loader'
+    & $restore -backup_root $backup
+    assert_equal ([IO.File]::ReadAllText($window)) $original 'Window restore failed'
+    assert_equal (read_profile_fixture $profile).framelessWindow $true 'Original native preference was not restored'
+    assert_equal (read_profile_fixture $profile).later 2 'Restore overwrote later native settings'
+    assert_equal ([IO.File]::ReadAllText($retired)) 'old appearance startup' 'Retired bootstrap was not restored'
+    foreach ($asset in get_typora_migration_assets) { assert_equal ([IO.File]::ReadAllText((Join-Path $user_data ('plugins/'+$asset.relative_path)))) ('old:'+$asset.relative_path) 'Old asset restore failed' }
+    assert_equal ([IO.File]::ReadAllText($new_settings)) '{"version":1,"settings":{"displayLang":"en","custom":"later"}}' 'Restore removed new business data'
+    assert_equal ([IO.File]::ReadAllText($state)) 'reading positions and Graph reviews' 'Business data changed'
+    $settings=[IO.File]::ReadAllText($plugin_settings)|ConvertFrom-Json
     assert_equal $settings.'later.plugin' $true 'Restore discarded later plugin settings'
-    assert_equal ($null -eq $settings.PSObject.Properties['forming_system.linux_note_enhancements']) $true 'Plugin enablement remains after restore'
-    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'plugins/plugins/forming_system.linux_note_enhancements/main.js')) $false 'Plugin remains active after restore'
-    # 卸载后重新安装，并验证旧 direct 入口迁移为唯一官方入口。
-    $legacy_source = $window_original.Replace('</body>', '<script defer src="typora://app/userData/linux_note_enhancements/typora_enhancements.js" data-linux-note-enhancements="true"></script></body>')
-    [IO.File]::WriteAllText($window_path, $legacy_source)
-    $migration_backup = Join-Path $test_root 'migration backup'
-    & $installer -typora_root $fake_root -backup_root $migration_backup -non_interactive
-    assert_equal ([IO.File]::ReadAllText($window_path).Contains('data-linux-note-enhancements="true"')) $false 'Legacy direct entry remains'
-    & (Join-Path $tools_copy 'enhancements/scripts/restore_windows.ps1') -backup_root $migration_backup
-    assert_equal ([IO.File]::ReadAllText($window_path)) $legacy_source 'Migration rollback failed'
-    [IO.File]::WriteAllText($window_path, $window_original)
-    $bundle_copy = Join-Path $tools_copy "enhancements\dist\community_plugin\main.js"
-    $bundle_original = [IO.File]::ReadAllText($bundle_copy)
-    [IO.File]::WriteAllText($bundle_copy, $bundle_original.Replace('data-linux-note-git-graph-actions', 'missing-full-graph-capability'))
-    assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'old graph rejected') -non_interactive } "Old Git Graph bundle passed full capability check"
-    assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'old graph rejected')) $false "Invalid graph bundle triggered mutations"
-    [IO.File]::WriteAllText($bundle_copy, $bundle_original, [Text.UTF8Encoding]::new($false))
-
-    # 制造提交清单写入失败，检查已复制文件能回滚。
-    $failed_backup = Join-Path $test_root "failed transaction"
-    New-Item -ItemType Directory -Force -Path (Join-Path $failed_backup "manifest.json") | Out-Null
-    assert_rejected { & $installer -typora_root $fake_root -backup_root $failed_backup -non_interactive } "Failed manifest write was not rejected"
-    assert_equal ([System.IO.File]::ReadAllText($window_path)) $window_original "Rollback changed entry"
-    assert_equal ([System.IO.File]::ReadAllText($old_core)) "previous core" "Rollback changed existing core"
-
-    $shared_backup = Join-Path $test_root 'shared core backup'
-    & $installer -typora_root $fake_root -backup_root $shared_backup -non_interactive
-    $other_manifest = Join-Path $user_data 'plugins/plugins/other.plugin/manifest.json'
-    New-Item -ItemType Directory -Force -Path (Split-Path -Parent $other_manifest) | Out-Null
-    [IO.File]::WriteAllText($other_manifest, '{"id":"other.plugin"}')
-    & (Join-Path $tools_copy 'enhancements/scripts/restore_windows.ps1') -backup_root $shared_backup
-    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'plugins/loader.js')) $true 'Shared loader removed'
-    assert_equal ([regex]::Matches([IO.File]::ReadAllText($window_path), 'typora://app/userData/plugins/loader\.js').Count) 1 'Shared loader entry removed'
-    assert_equal ([IO.File]::ReadAllText($other_manifest)) '{"id":"other.plugin"}' 'Other plugin changed'
-    $shared_core_content = [IO.File]::ReadAllText($old_core)
-    $source_core = Join-Path $tools_copy "enhancements\vendor\typora_workspace\2.10.15\core.js"
-    [System.IO.File]::AppendAllText($source_core, "corrupted")
-    $rejected_backup = Join-Path $test_root "rejected before mutation"
-    assert_rejected { & $installer -typora_root $fake_root -backup_root $rejected_backup -non_interactive } "Corrupt release was installed"
-    assert_equal (Test-Path -LiteralPath $rejected_backup) $false "Invalid assets triggered mutations"
-    assert_equal ([System.IO.File]::ReadAllText($old_core)) $shared_core_content "Source validation changed installed core"
-    Write-Host "PASS: portable install, repeat install, hash checks, restore, rollback and preflight rejection."
+    assert_equal $settings.'forming_system.linux_note_enhancements' $true 'Old key not restored'
+    $settings.'later.plugin'=$false
+    write_fixture $plugin_settings ($settings|ConvertTo-Json -Depth 100)
+    # 仅拦截一次实际 Copy-Item，故障发生在若干发布文件已复制后。
+    $global:typora_test_copy_failed=$false
+    $global:typora_test_copy_target=$product
+    function global:Copy-Item {
+        [CmdletBinding()]param([string]$LiteralPath,[string]$Destination,[switch]$Force,[switch]$Recurse)
+        if (-not $global:typora_test_copy_failed -and $Destination -eq $global:typora_test_copy_target) { $global:typora_test_copy_failed=$true; throw 'Injected copy failure' }
+        Microsoft.PowerShell.Management\Copy-Item @PSBoundParameters
+    }
+    try { assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'failed transaction') -include_theme -non_interactive } 'Copy fault was ignored' }
+    finally { Remove-Item Function:\Copy-Item }
+    assert_equal $global:typora_test_copy_failed $true 'Fault did not reach install'
+    assert_equal ([IO.File]::ReadAllText($window)) $original 'Install rollback changed window'
+    assert_equal (Test-Path -LiteralPath $product) $false 'Failed install left product entry'
+    assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'plugins/loader.js'))) 'old:loader.js' 'Rollback lost old loader'
+    # 未知配置编码必须在创建备份前拒绝，且不改原字节。
+    $profile_before=[IO.File]::ReadAllText($profile)
+    write_fixture $profile 'unknown-encoding'
+    assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid profile') -non_interactive } 'Malformed profile accepted'
+    assert_equal ([IO.File]::ReadAllText($profile)) 'unknown-encoding' 'Malformed profile changed'
+    assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid profile')) $false 'Malformed profile created backup'
+    write_fixture $profile $profile_before
+    # 源发布损坏在创建备份或覆盖用户文件前拒绝。
+    [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
+    assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'
+    assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid release')) $false 'Corrupt release mutated backup'
+    Write-Host 'PASS: independent head, repeat install, hashes, migration, settings preservation, conflict, constrained restore and transaction rollback.'
     Write-Host "Fixtures: $test_root"
-} finally {
-    $env:APPDATA = $previous_appdata
-}
+} catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

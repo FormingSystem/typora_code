@@ -1,0 +1,115 @@
+:root {
+  --typ-ribbon-width: 0px;
+}
+
+/*
+ * override base-control.user.css
+ *********************************************/
+
+.typ-ribbon--enable {
+  --typ-ribbon-width: 48px;
+
+  &:not(.megamenu-opened):not(.typora-sourceview-on) {
+
+    #top-titlebar,
+    .md-notification-container,
+    #md-searchpanel,
+    content,
+    footer.ty-footer {
+      left: var(--typ-ribbon-width);
+    }
+
+    &.show-preference-panel #top-titlebar {
+      left: 0;
+    }
+
+    /* 侧栏展开时 */
+    &.pin-outline {
+
+      #typora-sidebar {
+        left: var(--typ-ribbon-width);
+      }
+
+      #top-titlebar,
+      #typora-sidebar-resizer:not(.dragging),
+      .md-notification-container,
+      #md-searchpanel,
+      content,
+      footer.ty-footer {
+        left: calc(var(--typ-ribbon-width) + var(--sidebar-width));
+      }
+    }
+  }
+
+  .info-panel-tab-wrapper {
+    display: none;
+  }
+
+  // Hide sidbar header on Windows/Linux
+  &.typora-node .sidebar-content {
+    top: 18px;
+  }
+
+  // fix: can not show all search panel when showing sidebar on macOS
+  #md-searchpanel {
+    width: auto;
+  }
+}
+
+/**
+ * Ribbon
+ ****************************************/
+
+.typ-ribbon {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+
+  padding-bottom: 16px;
+  width: var(--typ-ribbon-width);
+  height: 100vh;
+
+  border-right: 1px solid rgba(0, 0, 0, .07);
+
+  .html-for-mac.mac-seamless-mode & {
+    padding-top: 28px;
+  }
+
+  .typora-node.megamenu-opened &,
+  .typora-node.typora-sourceview-on &,
+  .typora-node.show-preference-panel & {
+    display: none;
+  }
+
+  &>.group {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+
+    &.top {
+      flex: 1;
+    }
+
+    &>.typ-ribbon-item {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: .25rem 0;
+      height: var(--typ-ribbon-width);
+      font-size: calc(.58 * var(--typ-ribbon-width));
+      color: var(--control-text-color);
+
+      .fa::before {
+        font-size: 1.5rem;
+      }
+
+      .fa.typ-lighter-icon {
+        -webkit-text-stroke: 1px var(--bg-color);
+      }
+    }
+
+    &.top .typ-ribbon-item.active {
+      border-left: var(--typ-indicator-width) solid var(--active-file-border-color);
+    }
+  }
+}

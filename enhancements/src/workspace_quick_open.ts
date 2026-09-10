@@ -1,7 +1,12 @@
+import css from "./workspace_quick_open.css";
+import {acquire_workspace_style} from "./workspace_styles";
 import { git_icon } from "./git_icons";
 import type { workspace_file_host } from "./workspace_files";
 
-type quick_file = { file_path: string; relative_path: string; name: string; action?: () => void; detail?: string };
+type quick_file = { file_path: string; relative_path: string; name: string };
+type quick_open_binding = {root:HTMLElement;input:HTMLInputElement;open():void;close():void;dispose():void};
+let current_picker: quick_open_binding | undefined;
+export function get_workspace_quick_open() { return current_picker; }
 
 function fuzzy_score(query: string, candidate: string): number {
   const needle = query.trim().toLocaleLowerCase();
@@ -23,6 +28,7 @@ function fuzzy_score(query: string, candidate: string): number {
 /** VS Code 式 Ctrl+P 文件快速打开；按需读取目录，不读取文件正文。 */
 export function create_workspace_quick_open(files: workspace_file_host) {
   const events = new AbortController();
+  const style = acquire_workspace_style("typora-code-quick-open-style", css);
   let disposed = false;
   const root = document.createElement("section");
   root.className = "workspace-quick-open";
@@ -80,23 +86,11 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     const target = shown[selected_index];
     if (!target) return;
     close();
-    if (target.action) target.action(); else void files.open_file(target.file_path);
+    void files.open_file(target.file_path);
   };
   const render = () => {
     const query = input.value.trim();
-    const registry = files.core.app.commands as typeof files.core.app.commands & { commandMap?: Record<string, { id: string; title: string; hotkey?: string; showInCommandPanel?: boolean }> };
-    if (query.startsWith(">")) {
-      // 读取社区核心 CommandManager 的公开表，包含继承默认标题与用户快捷键的实时命令对象。
-      shown = Object.values(registry.commandMap || {}).filter(item => item.showInCommandPanel !== false)
-        .map(item => ({ item, score: Math.max(fuzzy_score(query.slice(1), item.title), fuzzy_score(query.slice(1), item.id)) }))
-        .filter(item => item.score >= 0).sort((a, b) => b.score - a.score).slice(0, 100)
-        .map(({item}) => ({ file_path: item.id, relative_path: "", name: item.title, detail: item.hotkey || "", action: () => registry.run(item.id) }));
-    } else if (query.startsWith(":")) {
-      const location = /^:(\d+)(?::(\d+))?$/u.exec(query);
-      const file_path = files.current_file();
-      shown = location && file_path ? [{ file_path, relative_path: "", name: `转到行 ${location[1]}，列 ${location[2] || 1}`, detail: files.path_api.basename(file_path), action: () => void files.open_file(file_path, {line: Math.max(1, Number(location[1])), column: Math.max(1, Number(location[2] || 1)), source: files.source_editor_active?.()}) }] : [];
-    } else if (query.startsWith("@")) shown = [];
-    else shown = catalogue.map(file => ({ file, score: Math.max(fuzzy_score(query, file.name), fuzzy_score(query, file.relative_path)) }))
+    shown = catalogue.map(file => ({ file, score: Math.max(fuzzy_score(query, file.name), fuzzy_score(query, file.relative_path)) }))
       .filter(item => item.score >= 0)
       .sort((left, right) => right.score - left.score || left.file.relative_path.localeCompare(right.file.relative_path, "zh-CN", { numeric: true }))
       .slice(0, 100).map(item => item.file);
@@ -107,16 +101,16 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       row.className = "workspace-quick-open-result";
       row.setAttribute("role", "option");
       row.title = file.file_path;
-      row.append(git_icon(query.startsWith(">") ? "terminal" : "file"));
+      row.append(git_icon("file"));
       const name = document.createElement("span"); name.className = "workspace-quick-open-name"; name.textContent = file.name;
-      const directory = document.createElement("span"); directory.className = "workspace-quick-open-path"; directory.textContent = file.detail ?? files.path_api.dirname(file.relative_path).replace(/^\.$/u, "");
+      const directory = document.createElement("span"); directory.className = "workspace-quick-open-path"; directory.textContent = files.path_api.dirname(file.relative_path).replace(/^\.$/u, "");
       row.append(name, directory);
       row.onmousemove = () => select(index);
       row.onclick = () => { selected_index = index; open_selected(); };
       row.ondblclick = event => event.preventDefault();
       return row;
     }));
-    status.textContent = query.startsWith("@") ? "当前工作区未提供统一符号查询，请使用大纲导航" : query.startsWith(":") ? (shown.length ? "按 Enter 转到指定位置" : "输入 :行号 或 :行号:列号，并先打开文档") : query.startsWith(">") ? (shown.length ? `${shown.length} 个命令` : "没有匹配的命令") : shown.length ? `${shown.length}${catalogue.length > shown.length ? "+" : ""} 个文件` : query ? "没有匹配的文件" : "工作区中没有可打开的文件";
+    status.textContent = shown.length ? `${shown.length}${catalogue.length > shown.length ? "+" : ""} 个文件` : query ? "没有匹配的文件" : "工作区中没有可打开的文件";
     select(0);
   };
   const scan = async () => {
@@ -146,13 +140,13 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     }
     if (generation === scan_generation && !root.hidden) render();
   };
-  const open = (prefix = "") => {
+  const open = () => {
     if (disposed) return;
-    if (!root.hidden) { input.value = prefix; render(); input.focus(); return; }
+    if (!root.hidden) { input.value = ""; render(); input.focus(); return; }
     previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     root.hidden = false;
     root.setAttribute("aria-modal", "true");
-    input.value = prefix;
+    input.value = "";
     catalogue = [];
     results.replaceChildren();
     input.focus();
@@ -168,13 +162,8 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   };
   root.onmousedown = event => { if (event.target === root) close(); };
   document.addEventListener("pointerdown", event => { if (!root.hidden && !root.contains(event.target as Node)) close(); }, {capture: true, signal: events.signal});
-  window.addEventListener("keydown", event => {
-    if (!(event.ctrlKey || event.metaKey) || event.altKey || !["KeyP", "KeyG"].includes(event.code) || event.isComposing || (event.code === "KeyG" && event.shiftKey)) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const prefix = event.code === "KeyG" ? ":" : event.shiftKey ? ">" : "";
-    if (root.hidden || prefix) open(prefix); else close();
-  }, {capture: true, signal: events.signal});
   window.addEventListener("blur", close, {signal: events.signal});
-  return { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(); scan_generation += 1; root.remove(); } };
+  const binding:quick_open_binding = { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(); scan_generation += 1; root.remove(); style.remove(); if(current_picker===binding)current_picker=undefined; } };
+  current_picker=binding;
+  return binding;
 }
