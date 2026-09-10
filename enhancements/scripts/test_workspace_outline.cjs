@@ -32,7 +32,23 @@ app.whenReady().then(async () => {
   check(initial_padding === '18px', 'fixture reproduces the native 18px outline outer padding');
   await evaluate(`(()=>{
     window.sidebar=document.querySelector('#typora-sidebar');window.hide_count=0;window.clear_count=0;window.filter_shown=true;window.selected='';window.original_text=document.querySelector('#write').textContent;
-    window.native_outline={isSearchShown:()=>filter_shown,hideSearch(){hide_count++;filter_shown=false;sidebar.classList.remove('ty-show-outline-filter');},clearSearch(){clear_count++;sidebar.classList.remove('ty-on-outline-filter');document.querySelectorAll('.ty-outline-hit').forEach(node=>node.replaceWith(...node.childNodes));}};
+    window.highlight_count=0;window.highlight_args=[];window.native_auto_calls=0;
+    // 安装前已存在的原生方法：默认选首个可见标题，显式数组则严格采用调用方给定标题。
+    // 入口函数保持不变，测试只切换实现，避免绕过产品安装的协调代理。
+    window.native_highlight_impl=function(headings,index,expand,blink){
+      highlight_count++;highlight_args=[headings,index,expand,blink];
+      const pane=document.querySelector('#outline-content'),content=document.querySelector('content'),visible_top=content.getBoundingClientRect().top;
+      const all=[...document.querySelectorAll('#write > :is(h1,h2,h3,h4,h5,h6)')];
+      const heading=headings?.[index||0]||all.find(node=>node.getBoundingClientRect().top>=visible_top)||all.at(-1);
+      const label=[...pane.querySelectorAll('.outline-label')].find(node=>node.dataset.ref===heading?.getAttribute('cid'));
+      if(!label)return;
+      pane.querySelectorAll('.outline-active,.outline-item-active').forEach(node=>node.classList.remove('outline-active','outline-item-active'));
+      label.classList.add('outline-active');label.parentElement.classList.add('outline-item-active');
+      if(expand)for(let wrapper=label.closest('.outline-item-wrapper');wrapper&&pane.contains(wrapper);wrapper=wrapper.parentElement?.closest('.outline-item-wrapper'))wrapper.classList.add('outline-item-open');
+    };
+    window.original_native_highlight=function(...args){return native_highlight_impl.apply(this,args)};
+    window.native_outline={highlightVisibleHeader:original_native_highlight,isSearchShown:()=>filter_shown,hideSearch(){hide_count++;filter_shown=false;sidebar.classList.remove('ty-show-outline-filter');},clearSearch(){clear_count++;sidebar.classList.remove('ty-on-outline-filter');document.querySelectorAll('.ty-outline-hit').forEach(node=>node.replaceWith(...node.childNodes));}};
+    window.simulate_native_scroll=top=>{const content=document.querySelector('content');content.scrollTop=top;content.dispatchEvent(new Event('scroll'));setTimeout(()=>{native_auto_calls++;native_outline.highlightVisibleHeader()},100)};
     window.outline=outline_qa.install_workspace_outline({sidebar,outline:native_outline});
     document.querySelectorAll('.outline-expander').forEach(node=>node.onclick=()=>node.closest('.outline-item-wrapper').classList.toggle('outline-item-open'));
     document.querySelectorAll('.outline-label').forEach(node=>node.onclick=()=>{selected=node.textContent});
@@ -67,29 +83,61 @@ app.whenReady().then(async () => {
   check(narrow.scroll === narrow.client && narrow.offsets[0] === 0, 'narrow outline hover does not overflow or restore the outer gap');
   await evaluate(`(()=>{
     const write=document.querySelector('#write'), pane=document.querySelector('#outline-content'), content=document.querySelector('content');
-    write.innerHTML=Array.from({length:32},(_,index)=>'<h2 cid="sync_'+index+'" style="height:90px;margin:0">Heading '+index+'</h2>').join('');
-    const children=Array.from({length:31},(_,index)=>'<li class="outline-item-wrapper outline-h2"><div class="outline-item"><span class="outline-expander"></span><span class="outline-label" data-ref="sync_'+(index+1)+'">Heading '+(index+1)+'</span></div></li>').join('');
+    write.innerHTML=Array.from({length:40},(_,index)=>'<h'+(index%3+1)+' cid="sync_'+index+'" style="height:90px;margin:0">Heading '+index+'</h'+(index%3+1)+'>').join('');
+    const children=Array.from({length:39},(_,index)=>'<li class="outline-item-wrapper outline-h2"><div class="outline-item"><span class="outline-expander"></span><span class="outline-label" data-ref="sync_'+(index+1)+'">Heading '+(index+1)+'</span></div></li>').join('');
     window.rebuild_outline=()=>{pane.innerHTML='<li class="outline-item-wrapper outline-h1"><div class="outline-item"><span class="outline-expander"></span><span class="outline-label" data-ref="sync_0">Heading 0</span></div><ul class="outline-children">'+children+'</ul></li>';};
     rebuild_outline(); content.scrollTop=2350;
     // #write 有 140px 顶部内边距；2350 位于高 90px 的 Heading 24 内。预期独立写死，不能复制产品算法计算。
     window.expected_cid='sync_24';
     window.highlight_count=0;window.highlight_args=[];
-    native_outline.highlightVisibleHeader=(headings,index,expand,blink)=>{highlight_count++;highlight_args=[headings,index,expand,blink];pane.querySelectorAll('.outline-active,.outline-item-active').forEach(node=>node.classList.remove('outline-active','outline-item-active'));const label=[...pane.querySelectorAll('.outline-label')].find(node=>node.dataset.ref===expected_cid);label.classList.add('outline-active');label.parentElement.classList.add('outline-item-active');if(expand)for(let wrapper=label.closest('.outline-item-wrapper');wrapper&&pane.contains(wrapper);wrapper=wrapper.parentElement?.closest('.outline-item-wrapper'))wrapper.classList.add('outline-item-open');};
     pane.scrollTop=0;window.document_scroll_before=content.scrollTop;sidebar.classList.add('open');
   })()`);
   await delay(120);
-  check(await evaluate('highlight_count===1&&highlight_args[2]===true'), 'opening the native outline schedules one merged native current-heading sync');
+  check(await evaluate('highlight_count===1&&highlight_args[0]?.length===1&&highlight_args[0][0].getAttribute("cid")===expected_cid&&highlight_args[1]===0&&highlight_args[2]===true'), 'opening passes the single coordinated current heading to the original native method');
   const opening_sync=await evaluate(`(()=>{const pane=document.querySelector('#outline-content'),active=pane.querySelector('.outline-label.outline-active'),row=active?.parentElement,rect=row?.getBoundingClientRect(),bounds=pane.getBoundingClientRect();return{actual:active?.dataset.ref,expected:expected_cid,row_active:row?.classList.contains('outline-item-active'),expanded:active?.closest('.outline-h1').classList.contains('outline-item-open'),top:rect?.top,bottom:rect?.bottom,pane_top:bounds.top,pane_bottom:bounds.bottom};})()`);
   check(opening_sync.actual===opening_sync.expected&&opening_sync.row_active&&opening_sync.expanded&&opening_sync.top>=opening_sync.pane_top-1&&opening_sync.bottom<=opening_sync.pane_bottom+1, 'opening selects, expands and reveals the heading at the current document position: '+JSON.stringify(opening_sync));
   check(await evaluate('document.querySelector("content").scrollTop===document_scroll_before'), 'revealing the outline heading does not move the document');
   check(await evaluate('highlight_args[3]===false'), 'scroll synchronization explicitly disables native blinking');
-  await evaluate('window.old_label=document.querySelector("#outline-content .outline-active");window.scroll_mutations=0;window.scroll_observer=new MutationObserver(records=>scroll_mutations+=records.length);scroll_observer.observe(document.querySelector("#outline-content"),{subtree:true,childList:true,attributes:true});highlight_count=0;');
-  for(let index=0;index<8;index++){await evaluate('document.querySelector("content").scrollTop+=1;document.querySelector("content").dispatchEvent(new Event("scroll"));');await delay(40);}
-  check(await evaluate('highlight_count===0&&scroll_mutations===0&&old_label===document.querySelector("#outline-content .outline-active")'), 'scrolling repeatedly inside one heading preserves the same active node without repaints');
+  await evaluate('document.querySelector("#write").tabIndex=0;document.querySelector("#write").focus({preventScroll:true});window.body_focus=document.activeElement;window.old_label=document.querySelector("#outline-content .outline-active");window.scroll_mutations=0;window.scroll_observer=new MutationObserver(records=>scroll_mutations+=records.length);scroll_observer.observe(document.querySelector("#outline-content"),{subtree:true,childList:true,attributes:true});highlight_count=0;');
+  for(let index=0;index<8;index++){await evaluate('simulate_native_scroll(document.querySelector("content").scrollTop+1)');await delay(40);}await delay(170);
+  check(await evaluate('native_auto_calls===8&&highlight_count===0&&scroll_mutations===0&&old_label===document.querySelector("#outline-content .outline-active")'), 'scrolling inside one heading and delayed native 100ms callbacks preserve one active node without class rewrites');
+  const scroll_to=async top=>{await evaluate(`simulate_native_scroll(${top})`);await delay(180);check(await evaluate(`document.querySelector('content').scrollTop===${top}&&document.activeElement===body_focus`),'outline synchronization preserves document position and focus at '+top);};
+  for(const top of [2388,2392,2387,2394])await scroll_to(top);
+  check(await evaluate('highlight_count===0&&scroll_mutations===0&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_24"'), 'adjacent H1/H2 boundary micro-motion within a few pixels cannot alternate active rows');
+  await scroll_to(2404);
+  check(await evaluate('highlight_count===1&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_25"'), 'crossing beyond the downward boundary updates once despite the later native callback');
+  const crossed_mutations=await evaluate('scroll_mutations');
+  for(const top of [2393,2388,2391,2386])await scroll_to(top);
+  check(await evaluate('highlight_count===1&&scroll_mutations==='+crossed_mutations+'&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_25"'), 'reverse micro-motion retains the selected adjacent H2 without rewriting its classes');
+  await scroll_to(2376);
+  check(await evaluate('highlight_count===2&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_24"'), 'crossing beyond the upward boundary updates exactly once');
+  await evaluate('scroll_observer.disconnect()');
+  await scroll_to(2470);
+  await evaluate('window.explicit_target=[document.querySelector("#write > [cid=sync_26]")];native_outline.highlightVisibleHeader(explicit_target,0,true,false);window.explicit_call_count=highlight_count;setTimeout(()=>native_outline.highlightVisibleHeader(),100)');await delay(180);
+  check(await evaluate('highlight_args[0]===explicit_target&&highlight_args[1]===0&&highlight_args[2]===true&&highlight_args[3]===false&&highlight_count===explicit_call_count&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_26"'), 'explicit native heading targets keep their arguments and survive delayed auto-highlighting at the same scroll position');
+  await scroll_to(2471);
+  check(await evaluate('highlight_count===explicit_call_count&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_26"'), 'a native jump positioned 10px below the top retains its target through a 1px micro-scroll');
+  await evaluate('native_outline.highlightVisibleHeader(undefined,undefined,true,true);window.manual_call_count=highlight_count;setTimeout(()=>native_outline.highlightVisibleHeader(),100)');await delay(180);
+  check(await evaluate('highlight_args[0]===undefined&&highlight_args[1]===undefined&&highlight_args[2]===true&&highlight_args[3]===true&&highlight_count===manual_call_count'), 'manual native blink requests preserve original arguments without later automatic takeover');
+  check(await evaluate('document.querySelector("content").scrollTop===2471&&document.activeElement===body_focus'),'explicit and manual outline highlighting leave document scroll and focus unchanged');
   await evaluate('scroll_observer.disconnect();document.querySelector("content").scrollTop=document_scroll_before;');
   await evaluate('highlight_count=0;rebuild_outline();rebuild_outline();'); await delay(120);
   check(await evaluate('highlight_count===1&&document.querySelector("#outline-content .outline-active")?.dataset.ref===expected_cid'), 'multiple outline child-list rebuilds coalesce into one native synchronization');
-  await evaluate('native_outline.highlightVisibleHeader=undefined;rebuild_outline();document.querySelector("#outline-content").scrollTop=0;'); await delay(120);
+  await evaluate('sidebar.classList.remove("active-tab-outline");native_outline.highlightVisibleHeader();void 0');
+  check(await evaluate('document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_25"'),'native auto-highlighting outside Outline retains its first-visible-heading behavior');
+  await evaluate('sidebar.classList.add("active-tab-outline")');await delay(120);
+  check(await evaluate('document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_24"'),'opening Outline does not inherit a false explicit anchor from another sidebar view');
+  await evaluate('highlight_count=0;native_outline.highlightVisibleHeader([]);void 0');await delay(150);
+  check(await evaluate('highlight_count===0&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_24"'),'empty delayed native target arrays use automatic coordination without clearing or repainting the current heading');
+  await evaluate('window.detached_heading=document.createElement("h2");detached_heading.setAttribute("cid","sync_3");native_outline.highlightVisibleHeader([detached_heading],0,true,false);void 0');await delay(150);
+  check(await evaluate('highlight_count===0&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_24"'),'a delayed target from a detached document cannot select its old matching outline label');
+  await scroll_to(3022);
+  check(await evaluate('highlight_count===1&&document.querySelector("#outline-content .outline-active")?.dataset.ref==="sync_32"'),'dragging across multiple chapters selects the destination immediately even 2px beyond its boundary');
+  await scroll_to(2350);
+  check(await evaluate('document.querySelector("#outline-content .outline-active")?.dataset.ref===expected_cid'),'large reverse jumps follow the destination chapter without keeping an old explicit target');
+  await evaluate('outline.dispose()');
+  check(await evaluate('native_outline.highlightVisibleHeader===original_native_highlight'),'dispose restores the exact native highlight function installed before binding');
+  await evaluate('window.outline=outline_qa.install_workspace_outline({sidebar,outline:{hideSearch:native_outline.hideSearch,clearSearch:native_outline.clearSearch,isSearchShown:native_outline.isSearchShown}});rebuild_outline();document.querySelector("#outline-content").scrollTop=0;'); await delay(120);
   check(await evaluate(`(()=>{const pane=document.querySelector('#outline-content'),active=pane.querySelector('.outline-label.outline-active'),row=active?.parentElement,rect=row?.getBoundingClientRect(),bounds=pane.getBoundingClientRect();return active?.dataset.ref===expected_cid&&row.classList.contains('outline-item-active')&&active.closest('.outline-h1').classList.contains('outline-item-open')&&rect.top>=bounds.top-1&&rect.bottom<=bounds.bottom+1;})()`), 'missing native API uses the same cid-based selection, expansion and reveal semantics');
   check(await evaluate('document.querySelector("content").scrollTop===document_scroll_before'), 'DOM fallback also leaves the document scroll position unchanged');
   await evaluate(`(()=>{const content=document.querySelector('content');content.scrollTop=450;window.scroll_expected_cid='sync_3';window.scrolled_document_position=content.scrollTop;content.dispatchEvent(new Event('scroll'));})()`); await delay(120);
@@ -114,6 +162,6 @@ app.whenReady().then(async () => {
   check(await evaluate('getComputedStyle(document.querySelector(".workspace-outline-empty")).display==="none"'), 'Outline empty state does not leak into another sidebar view');
   await evaluate('document_active=true;sidebar.classList.add("active-tab-outline");native_binding.refresh()');await delay(100);
   check(await evaluate('document.querySelector("content").scrollTop===preserved_scroll&&native_pane.parentNode===native_parent'), 'switching sidebar views preserves reading position and native tree ownership');
-  await evaluate('native_binding.dispose();native_binding.dispose();native_binding.refresh()');check(await evaluate('native_pane.parentNode===native_parent&&!document.querySelector(".workspace-outline-empty")&&!sidebar.hasAttribute("data-document-outline")'), 'idempotent Outline disposal leaves the native tree and clears owned state');
+  await evaluate('native_binding.dispose();native_binding.dispose();native_binding.refresh()');check(await evaluate('native_pane.parentNode===native_parent&&!document.querySelector(".workspace-outline-empty")&&!sidebar.hasAttribute("data-document-outline")&&native_outline.highlightVisibleHeader===original_native_highlight'), 'idempotent Outline disposal leaves the native tree, clears owned state and restores native highlighting');
   console.log(JSON.stringify({status:'PASS',checks,compact,narrow,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});
