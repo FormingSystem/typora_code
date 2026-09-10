@@ -40,7 +40,8 @@ export function bind_workspace_browser() {
       {title:"以管理员身份打开仓库终端（UAC）",disabled:(window as unknown as {reqnode(name:string):any}).reqnode("process").platform!=="win32",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path,admin:true}}))}
     ]});
   lifetime.own(explorer);
-  const outline_binding=lifetime.own(install_workspace_outline({document_active:()=>Boolean(core.app.workspace.activeLeaf)&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
+  const outline_binding=lifetime.own(install_workspace_outline({context_root:files.context_root,document_active:()=>Boolean(core.app.workspace.activeLeaf)&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
+  lifetime.add(core.app.commands.register({id:"linux_note:source_outline_settings",title:"代码大纲：解析环境设置",scope:"global",callback:()=>outline_binding?.configure()}));
   lifetime.add(core.app.workspace.on("active-leaf:change",()=>outline_binding?.refresh()));
   const reveal_outline=()=>{
     const sidebar=core.app.workspace.sidebar as unknown as {panels:{ribbonButton?:{id:string};constructor:Function}[];activePanel?:unknown;switch(type:Function):void;show():void};

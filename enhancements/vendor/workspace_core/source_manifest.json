@@ -64,7 +64,7 @@
       "path": "src/io/config-repository.ts",
       "upstream_path": "src/io/config-repository.ts",
       "upstream_sha256": "8e7fde43b946cc896cef91498977163f74713990acaef3886603e718615e634d",
-      "sha256": "5aff665fd5f3f53bfa375869d74276d89f89df4dcf33026364bf90a01c4c7a10"
+      "sha256": "d66c5e64e3a5ba033448218a3d41e0c53b9fdfae6d56addedaab5d9e344d5fa9"
     },
     {
       "path": "src/io/fs/file-adapter.ts",
@@ -166,7 +166,7 @@
       "path": "src/settings/settings.ts",
       "upstream_path": "src/settings/settings.ts",
       "upstream_sha256": "56c594a047ba51dae12f98110d2ee0d2d37e46e5d267a1cbba2642b383f8b440",
-      "sha256": "72384c0548d44f2822eb6ea674b911b632a3aa0f61a98efabebec582972ccf51"
+      "sha256": "4c66e8e70279d4ef3efd365e8617948560f2c5a106b5fdb175b918f0d94976cf"
     },
     {
       "path": "src/settings/workspace-defaults.ts",

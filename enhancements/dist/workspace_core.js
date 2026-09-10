@@ -3670,8 +3670,30 @@ var workspace_core_module = (() => {
     }
     writeConfigJson(filename, value) {
       const fs2 = reqnode("fs"), path2 = reqnode("path");
+      const target = path2.join(this.configDir, filename + ".json");
+      const contents = JSON.stringify(value, null, 2);
       fs2.mkdirSync(this.configDir, { recursive: true });
-      fs2.writeFileSync(path2.join(this.configDir, filename + ".json"), JSON.stringify(value, null, 2), "utf8");
+      const temporary = target + "." + reqnode("crypto").randomBytes(12).toString("hex") + ".tmp";
+      let descriptor, created = false;
+      try {
+        descriptor = fs2.openSync(temporary, "wx");
+        created = true;
+        fs2.writeFileSync(descriptor, contents, "utf8");
+        fs2.fsyncSync(descriptor);
+        fs2.closeSync(descriptor);
+        descriptor = void 0;
+        fs2.renameSync(temporary, target);
+        created = false;
+      } finally {
+        if (descriptor !== void 0) try {
+          fs2.closeSync(descriptor);
+        } catch {
+        }
+        if (created) try {
+          fs2.unlinkSync(temporary);
+        } catch {
+        }
+      }
     }
   };
 
@@ -3792,7 +3814,9 @@ var workspace_core_module = (() => {
       this._fileVersion = options.version;
       this._migrations = options.migrations;
       this._data = Object.create(this._defaultSettings);
-      this.addChangeListener("*", () => this.save());
+      this.addChangeListener("*", () => {
+        if (!this._is_saving_immediately) this.save();
+      });
       this.load();
     }
     _settingsDir;
@@ -3807,8 +3831,21 @@ var workspace_core_module = (() => {
     _fileVersion = 0;
     _defaultSettings = {};
     _migrations;
+    _is_saving_immediately = false;
     setDefault(settings) {
       Object.assign(this._defaultSettings, settings);
+    }
+    /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
+    set_and_save(key, value) {
+      if (typeof key !== "string") throw new TypeError("Setting key must be a string.");
+      const settings = { ...this._data, [key]: value };
+      this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings });
+      this._is_saving_immediately = true;
+      try {
+        this.set(key, value);
+      } finally {
+        this._is_saving_immediately = false;
+      }
     }
     load() {
       if (this._isSettingsLoaded) {

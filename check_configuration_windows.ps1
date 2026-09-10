@@ -7,7 +7,9 @@ $ErrorActionPreference = 'Stop'
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
 $user_data = get_typora_windows_user_data
 $assets = @(assert_typora_release $PSScriptRoot)
-if (Test-Path -LiteralPath (Join-Path $user_data 'typora_code/appearance_bootstrap.js')) { throw 'Retired appearance bootstrap remains.' }
+foreach ($asset in get_typora_retired_product_assets) {
+    if (Test-Path -LiteralPath (resolve_typora_asset_path (Join-Path $user_data 'typora_code') $asset.relative_path)) { throw "Retired product asset remains: $($asset.relative_path)" }
+}
 assert_typora_workspace_assets (Join-Path $user_data 'typora_code') $assets
 if ((Get-FileHash -LiteralPath (Join-Path $user_data 'typora_code/SHA256SUMS') -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'enhancements/dist/SHA256SUMS') -Algorithm SHA256).Hash) { throw 'Installed release manifest differs.' }
 $head = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'enhancements/runtime_head.html'), [Text.Encoding]::UTF8)

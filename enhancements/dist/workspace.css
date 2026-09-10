@@ -764,13 +764,17 @@ footer.ty-footer .linux-note-git-status {
 /* reading_link_hover.css */
 /* 固定 VS Code 88e44fa hoverWidget.css 的 4×8 内边距、500px最大宽度、1.5行高；2026主题颜色。 */
 .workspace-link-hover {
-  position:fixed;z-index:2147483000;pointer-events:none;box-sizing:border-box;
-  max-width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:hidden;
+  position:fixed;z-index:2147483000;pointer-events:auto;box-sizing:border-box;
+  max-width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;
   padding:4px 8px;border:1px solid var(--vscode-editorHoverWidget-border,#e4e5e6);border-radius:3px;
   color:var(--vscode-editorHoverWidget-foreground,#202020);background:var(--vscode-editorHoverWidget-background,#fafafd);
   box-shadow:0 2px 8px rgba(0,0,0,.16);font:400 13px/1.5 "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
-  white-space:pre-wrap;overflow-wrap:anywhere;user-select:none;
+  white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;
 }
+.workspace-link-hover .workspace-link-original,.workspace-link-hover .workspace-link-target {user-select:text;}
+.workspace-link-hover .workspace-link-target {margin-top:2px;}
+.workspace-link-hover .workspace-link-copy {display:block;margin:4px 0 0 auto;padding:2px 6px;border:0;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer;user-select:none;}
+.workspace-link-hover .workspace-link-copy:hover,.workspace-link-hover .workspace-link-copy:focus-visible {background:var(--vscode-toolbar-hoverBackground,rgba(90,93,94,.1));}
 .workspace-link-hover[hidden] {display:none!important;}
 :root[data-workspace-file-icon-theme="dark"] .workspace-link-hover {
   color:var(--vscode-editorHoverWidget-foreground,#bfbfbf);background:var(--vscode-editorHoverWidget-background,#202122);
@@ -812,6 +816,28 @@ content[data-linux-note-minimap-owner],
 /* 核心切到非 Markdown 时同步隐藏固定缩略图，不等待100ms扫描或ResizeObserver。 */
 content.typ-deactive .linux-note-reading-minimap,
 .linux-note-reading-minimap[hidden] { display:none!important; }
+
+/* source_outline_settings.css */
+/* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
+.source-outline-settings.git-graph-dialog-shade{position:fixed;inset:0;z-index:110000;display:flex;align-items:center;justify-content:center;padding:24px;background:#0005}
+.source-outline-settings>.git-graph-dialog{display:flex;flex-direction:column;width:min(600px,95vw);max-height:90vh;overflow:hidden;color:var(--text-color,#24292f);background:var(--bg-color,#fff);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI",sans-serif);font-size:13px;line-height:1.5;border:1px solid #8885;border-radius:7px;box-shadow:0 8px 32px #0004}
+.source-outline-settings h3{font-family:inherit;font-size:17px;font-weight:600;line-height:1.5;margin:0;padding:14px 18px;border-bottom:1px solid #8884}
+.source-outline-settings .git-graph-dialog-content{overflow:auto;padding:16px 18px;min-height:0;white-space:normal;overflow-wrap:anywhere}
+.source-outline-settings .git-graph-dialog-footer{padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid #8884}
+.source-outline-settings .source-outline-settings-context{margin:0 0 12px;font-size:12px;opacity:.8}
+.source-outline-settings .source-outline-settings-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.source-outline-settings small{font-size:12px;opacity:.75}
+.source-outline-settings button,.source-outline-settings input,.source-outline-settings textarea{box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid #8885;border-radius:4px;padding:6px 9px;margin:0}
+.source-outline-settings input,.source-outline-settings textarea{width:100%;min-width:0}
+.source-outline-settings textarea{resize:vertical;min-height:84px;max-height:25vh;font-family:Consolas,monospace}
+.source-outline-settings button{cursor:pointer}
+.source-outline-settings button:hover{background:#2684d424}
+.source-outline-settings button:disabled{cursor:default;opacity:.5}
+.source-outline-settings :is(input,textarea,button):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
+.source-outline-settings button.source-outline-settings-save{color:var(--linux-note-button-foreground,#fff);background:var(--linux-note-button-background,#0069cc);border-color:transparent}
+.source-outline-settings .source-outline-settings-status{margin:0;white-space:pre-wrap;font-size:12px;min-height:18px}
+.source-outline-settings .source-outline-settings-status.is-error{color:var(--notification-error-color,#c72e0f)}
+@media(max-width:500px){.source-outline-settings.git-graph-dialog-shade{padding:8px}.source-outline-settings>.git-graph-dialog{width:100%;max-height:calc(100vh - 16px)}}
 
 /* terminal_workspace.css */
 .linux-note-terminal { display: flex; flex-direction: column; flex: 1; height: 100%; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg-color,transparent); color: var(--text-color,inherit); font: 12px/1.5 system-ui, sans-serif; }
@@ -1228,12 +1254,58 @@ body:not(.typora-export) content.typ-deactive { visibility:hidden!important;poin
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
+/* 单行顶栏与工作区采用同一个起点；不能继续让核心的 100vh 活动栏从窗口 y=0 开始。
+   固定上下边界保留底部设置／终端与原有 16px 内边距，缩放时也不把按钮推到窗口外。 */
+body.typora-node.typ-ribbon--enable > .typ-ribbon {
+  position:fixed;top:var(--typ-workspace-top,0px);bottom:0;left:0;height:auto;box-sizing:border-box;
+}
+
 /* 核心已隐藏原生 sidebar tabs；其 window.css 的 54/64px 与 core 的 18px 顶距不能继续占位。
    顶层偏移只采用与 editor root 相同的变量：native 0，单行 titlebar 由宿主设定。 */
 body.typ-ribbon--enable #typora-sidebar {
   top:var(--typ-workspace-top,0px);height:auto;bottom:0;padding-top:0;
 }
 body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
+
+/* workspace_chrome.css */
+/* VS Code 88e44fa / Light 2026、Dark 2026：sideBar.border、statusBar.border、
+   editorGroupHeader.tabsBorder 共用主题分界色；sideBar.background 为侧区背景。
+   宿主 --window-border-color 在最大化时透明，不能作为工作区内部的分界色。 */
+:root {
+  --workspace-chrome-border:var(--vscode-sideBar-border,#f0f1f2);
+  --workspace-chrome-background:var(--vscode-sideBar-background,#fafafd);
+}
+:root[data-workspace-file-icon-theme="dark"] {
+  --workspace-chrome-border:var(--vscode-sideBar-border,#2a2b2c);
+  --workspace-chrome-background:var(--vscode-sideBar-background,#191a1b);
+}
+body.typ-ribbon--enable {
+  --side-bar-bg-color:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable > .typ-ribbon {
+  background:var(--workspace-chrome-background);
+  border-right-color:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable #typora-sidebar {
+  background:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]::after {
+  background:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable .typ-workspace-tabs {
+  border-left-color:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable .workspace-tab-strip {
+  box-shadow:inset 0 -1px var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable footer.ty-footer {
+  box-sizing:border-box;
+  border-top:1px solid var(--workspace-chrome-border)!important;
+  background:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
+  border-bottom:1px solid var(--workspace-chrome-border);
+}
 
 /* workspace_control_icons.css */
 .workspace-official-icon-slot::before,.workspace-official-icon-slot::after{content:none!important;display:none!important}.workspace-official-icon-slot>svg{width:16px!important;height:16px!important;flex:none;vertical-align:middle;stroke:none;fill:currentColor}
@@ -1424,6 +1496,16 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-source-symbol-label{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;height:22px;}
 .workspace-source-outline svg{width:16px!important;height:16px!important;flex:0 0 16px;stroke:none!important;fill:currentColor;}
 .workspace-source-outline button:focus-visible{outline:1px solid var(--vscode-focusBorder,#007fd4);outline-offset:-1px;}
+.workspace-source-symbol-label>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.workspace-source-outline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 8px;height:28px;box-sizing:border-box;border-bottom:1px solid var(--linux-note-shell-sidebar-border,#e4e5e6);}
+.workspace-source-outline-toolbar>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.workspace-source-outline-toolbar>.git-icon-button{width:22px;height:22px;flex:none;}
+/* VS Code 88e44fa symbolIcons.ts：函数紫、类型/枚举橙、变量/字段蓝，名称保留正常前景。 */
+.workspace-source-outline{--outline-method:#652d90;--outline-class:#d67e00;--outline-variable:#007acc;}
+.workspace-source-outline[data-theme=dark]{--outline-method:#b180d7;--outline-class:#ee9d28;--outline-variable:#75beff;}
+.workspace-source-symbol:is([data-symbol-kind=function],[data-symbol-kind=method])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-functionForeground,var(--outline-method));}
+.workspace-source-symbol:is([data-symbol-kind=class],[data-symbol-kind=enum])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-classForeground,var(--outline-class));}
+.workspace-source-symbol:is([data-symbol-kind=variable],[data-symbol-kind=field],[data-symbol-kind=interface],[data-symbol-kind=enum-member])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-variableForeground,var(--outline-variable));}
 
 /* workspace_preferences.css */
 /* 原核心 bottom/fa-cog，48px 活动栏与原 fa::before 1.5rem（24px）槽位。 */
@@ -1601,7 +1683,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-left { display:flex;align-items:center;flex:2 1 20%;min-width:64px;height:100%;overflow:hidden; }
 .workspace-titlebar-center { display:flex;align-items:center;justify-content:center;flex:0 1 60%;max-width:fit-content;min-width:90px;margin:0 10px;height:100%; }
 .workspace-titlebar-right { display:flex;justify-content:flex-end;flex:2 0 20%;min-width:138px;height:100%; }
-.workspace-titlebar-logo { width:16px;height:16px;margin:0 8px;flex:none; }
+/* 原 64px Typora 位图含透明边距，24px 图像框让标识可辨；含 margin 的占位仍为 32px。 */
+.workspace-titlebar-logo { width:24px;height:24px;margin:0 4px;padding:0;border:0;flex:none;object-fit:contain; }
 .workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
 .workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;border-radius:4px;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
 .workspace-titlebar-menu>button { height:26px;padding:0 8px;white-space:nowrap; }

@@ -52,6 +52,10 @@ def update_native_profile(path, operation, expected, backup=None):
     return True
 
 CORE_FILES = {'workspace_core.js', 'workspace_core.css', 'workspace.css',  'workbench.js'}
+# 只处理明确退休的产品文件，沿用安装备份和恢复事务，不遍历删除目录。
+RETIRED_PRODUCT_FILES = ['appearance_bootstrap.js',
+                         'assets/source_symbols/tree-sitter-c.wasm', 'assets/source_symbols/tree-sitter-cpp.wasm',
+                         'assets/source_symbols/LICENSE_c', 'assets/source_symbols/LICENSE_cpp']
 PLUGIN_ID = 'forming_system.linux_note_enhancements'
 MIGRATION_FILES = ['loader.js', 'loader.json', '2.10.15/core.js', '2.10.15/core.css',
                    '2.10.15/locales/lang.de.json', '2.10.15/locales/lang.en.json', '2.10.15/locales/lang.zh-cn.json',
@@ -174,7 +178,7 @@ def validate_records(root, backup, records, scope):
     for record in records:
         relative = record['relative_path']
         target, saved = asset_path(root, relative), asset_path(backup, relative)
-        valid = {'product': product_path(relative) or relative == 'appearance_bootstrap.js', 'migration': relative in MIGRATION_FILES,
+        valid = {'product': product_path(relative) or relative in RETIRED_PRODUCT_FILES, 'migration': relative in MIGRATION_FILES,
                  'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative == 'cpp_github-consolas.css',
                  'terminal': bool(re.fullmatch(r'([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))', relative))}[scope]
         if not valid or relative in seen or type(record['existed']) is not bool or target.is_dir():
@@ -217,7 +221,7 @@ def install(tools_root, typora_root, user_data, backup):
     theme.read_bytes()
     assets['SHA256SUMS'] = digest(source / 'SHA256SUMS')
     roots = group_roots(user_data)
-    paths = {'product': list(assets) + ['appearance_bootstrap.js'], 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': ['cpp_github-consolas.css'], 'native_profile': ['profile.data']}
+    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES, 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': ['cpp_github-consolas.css'], 'native_profile': ['profile.data']}
     for name, entries in paths.items():
         for relative in entries:
             if asset_path(roots[name], relative).is_dir():
@@ -236,7 +240,8 @@ def install(tools_root, typora_root, user_data, backup):
             target = asset_path(roots['product'], relative)
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source / relative, target)
-        (roots['product'] / 'appearance_bootstrap.js').unlink(missing_ok=True)
+        for relative in RETIRED_PRODUCT_FILES:
+            asset_path(roots['product'], relative).unlink(missing_ok=True)
         for relative in MIGRATION_FILES:
             asset_path(roots['migration'], relative).unlink(missing_ok=True)
         if PLUGIN_ID in settings:
@@ -268,8 +273,9 @@ def check(tools_root, typora_root, user_data):
     if read_native_profile(asset_path(user_data, 'profile.data'))['data'].get('framelessWindow') is not True:
         raise ValueError('Single-row workspace requires framelessWindow=true')
     source = tools_root / 'enhancements/dist'
-    if (user_data / 'typora_code/appearance_bootstrap.js').exists():
-        raise ValueError('Retired appearance bootstrap remains')
+    for relative in RETIRED_PRODUCT_FILES:
+        if asset_path(user_data / 'typora_code', relative).exists():
+            raise ValueError('Retired product asset remains: ' + relative)
     verify_assets(user_data / 'typora_code', release_assets(source))
     if digest(user_data / 'typora_code/SHA256SUMS') != digest(source / 'SHA256SUMS'):
         raise ValueError('Installed release manifest differs')

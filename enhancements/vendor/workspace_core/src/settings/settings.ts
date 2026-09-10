@@ -39,6 +39,7 @@ export class Settings<T extends Record<string, any>>
   private _fileVersion = 0
   private _defaultSettings = {} as T
   private _migrations: SettingMigrations | undefined
+  private _is_saving_immediately = false
 
   constructor(
     options: SettingsOptions,
@@ -52,12 +53,22 @@ export class Settings<T extends Record<string, any>>
     this._migrations = options.migrations
 
     this._data = Object.create(this._defaultSettings)
-    this.addChangeListener('*', () => this.save())
+    this.addChangeListener('*', () => { if (!this._is_saving_immediately) this.save() })
     this.load()
   }
 
   setDefault<T extends object>(settings: T) {
     Object.assign(this._defaultSettings, settings)
+  }
+
+  /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
+  set_and_save(key: keyof T, value: T[keyof T]) {
+    if (typeof key !== 'string') throw new TypeError('Setting key must be a string.')
+    const settings = { ...this._data, [key]: value }
+    this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings })
+    this._is_saving_immediately = true
+    try { this.set(key, value) }
+    finally { this._is_saving_immediately = false }
   }
 
   load() {

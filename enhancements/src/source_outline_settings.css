@@ -1,0 +1,20 @@
+/* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
+.source-outline-settings.git-graph-dialog-shade{position:fixed;inset:0;z-index:110000;display:flex;align-items:center;justify-content:center;padding:24px;background:#0005}
+.source-outline-settings>.git-graph-dialog{display:flex;flex-direction:column;width:min(600px,95vw);max-height:90vh;overflow:hidden;color:var(--text-color,#24292f);background:var(--bg-color,#fff);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI",sans-serif);font-size:13px;line-height:1.5;border:1px solid #8885;border-radius:7px;box-shadow:0 8px 32px #0004}
+.source-outline-settings h3{font-family:inherit;font-size:17px;font-weight:600;line-height:1.5;margin:0;padding:14px 18px;border-bottom:1px solid #8884}
+.source-outline-settings .git-graph-dialog-content{overflow:auto;padding:16px 18px;min-height:0;white-space:normal;overflow-wrap:anywhere}
+.source-outline-settings .git-graph-dialog-footer{padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid #8884}
+.source-outline-settings .source-outline-settings-context{margin:0 0 12px;font-size:12px;opacity:.8}
+.source-outline-settings .source-outline-settings-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.source-outline-settings small{font-size:12px;opacity:.75}
+.source-outline-settings button,.source-outline-settings input,.source-outline-settings textarea{box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid #8885;border-radius:4px;padding:6px 9px;margin:0}
+.source-outline-settings input,.source-outline-settings textarea{width:100%;min-width:0}
+.source-outline-settings textarea{resize:vertical;min-height:84px;max-height:25vh;font-family:Consolas,monospace}
+.source-outline-settings button{cursor:pointer}
+.source-outline-settings button:hover{background:#2684d424}
+.source-outline-settings button:disabled{cursor:default;opacity:.5}
+.source-outline-settings :is(input,textarea,button):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
+.source-outline-settings button.source-outline-settings-save{color:var(--linux-note-button-foreground,#fff);background:var(--linux-note-button-background,#0069cc);border-color:transparent}
+.source-outline-settings .source-outline-settings-status{margin:0;white-space:pre-wrap;font-size:12px;min-height:18px}
+.source-outline-settings .source-outline-settings-status.is-error{color:var(--notification-error-color,#c72e0f)}
+@media(max-width:500px){.source-outline-settings.git-graph-dialog-shade{padding:8px}.source-outline-settings>.git-graph-dialog{width:100%;max-height:calc(100vh - 16px)}}

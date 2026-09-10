@@ -6,6 +6,7 @@ import outline_css from "./workspace_outline.css";
 export type workspace_outline_host = {
   sidebar?: HTMLElement;
   document_active?(): boolean;
+  context_root?(): string;
   outline?: {
     hideSearch?(): void;
     clearSearch?(): void;
@@ -24,7 +25,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   const empty=document.createElement("p");empty.className="workspace-outline-empty";empty.textContent="当前编辑器不提供文档大纲。";
   (sidebar.querySelector("#sidebar-content")||sidebar).append(empty);
   const control_icons=bind_workspace_control_icons(sidebar,[["#outline-content .outline-expander","chevron-right"]]);
-  const source_outline=install_workspace_source_outline(sidebar);
+  const source_outline=install_workspace_source_outline(sidebar,host.context_root);
   let disposed=false;
   const update_document=()=>{
     const available=host.document_active?.()!==false;
@@ -38,6 +39,8 @@ export function install_workspace_outline(host: workspace_outline_host) {
   let sync_frame = 0;
   let settle_frame = 0;
   let outline_open = false;
+  let selected_heading:HTMLElement|undefined;
+  let selected_label:HTMLElement|null|undefined;
   const is_outline_open = () => !disposed && host.document_active?.()!==false && sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
   const current_heading = () => {
     const content = document.querySelector<HTMLElement>("content");
@@ -80,7 +83,11 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const heading = current_heading();
     if (!outline || !heading || !outline.querySelector(".outline-label")) return;
     const cid = heading.getAttribute("cid");
-    try { host.outline?.highlightVisibleHeader?.(undefined, undefined, true); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
+    const expected=cid?label_for(outline,cid):undefined;
+    if(selected_heading===heading&&selected_label===expected&&expected?.classList.contains("outline-active"))return;
+    selected_heading=heading;selected_label=expected;
+    // 用户滚动只改变当前位置；禁止宿主每次滚动反复触发标题闪烁。
+    try { host.outline?.highlightVisibleHeader?.(undefined, undefined, true, false); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
     const active = outline.querySelector<HTMLElement>(".outline-label.outline-active");
     if (!active || (cid && active.getAttribute("data-ref") !== cid)) fallback_sync(outline, heading);
     else reveal(active);
@@ -137,7 +144,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   refresh();
   outline_open = is_outline_open();
   if (outline_open) schedule_sync();
-  return {refresh:()=>{refresh();schedule_sync();}, dispose: () => {
+  return {refresh:()=>{refresh();schedule_sync();}, configure:source_outline.configure, dispose: () => {
     if(disposed)return;disposed=true;
     source_outline.dispose();control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
     if(previous_document_outline===null)sidebar.removeAttribute("data-document-outline");else sidebar.setAttribute("data-document-outline",previous_document_outline);

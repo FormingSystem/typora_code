@@ -439,6 +439,48 @@
       "source_path": "src/icons/symbol-enum.svg",
       "git_blob_sha1": "c9bc85fadb1c88808110b69051a59730ab78a93b",
       "sha256": "ab7bbd53530a85732492921be3cf1ef6945487d205f46f867f289eaeb75a3dca"
+    },
+    "symbol-structure": {
+      "file": "icons/symbol_structure.svg",
+      "source_path": "src/icons/symbol-structure.svg",
+      "git_blob_sha1": "7cfde962373b8476751706dd9479a9667e0ba0f4",
+      "sha256": "97e059cefa538e176632b9bb5d938754becd3e83110d600e8bd4977f2a3029a6"
+    },
+    "symbol-field": {
+      "file": "icons/symbol_field.svg",
+      "source_path": "src/icons/symbol-field.svg",
+      "git_blob_sha1": "9ee1315e53c125ce674899e9b829e0f6cf3001d3",
+      "sha256": "683daa5c01a839342c1d8fad3e0d270b6d194f2666c6872d4dc4027620deecae"
+    },
+    "symbol-enum-member": {
+      "file": "icons/symbol_enum_member.svg",
+      "source_path": "src/icons/symbol-enum-member.svg",
+      "git_blob_sha1": "b1c6171a5a0cad387472d5dfd32aa6b1bcbd334d",
+      "sha256": "dec55f0a59048fc7e38cd4b45212022a4b1a00b14bab091a1ddd29acf00d95b8"
+    },
+    "symbol-constant": {
+      "file": "icons/symbol_constant.svg",
+      "source_path": "src/icons/symbol-constant.svg",
+      "git_blob_sha1": "f17583b8efe6ad3785b6e1b986b677f3e2f2ef1f",
+      "sha256": "831b83af4c6a1187e3a583348f23388d12f0de05a03f4f6f74a249f50facde9a"
+    },
+    "symbol-interface": {
+      "file": "icons/symbol_interface.svg",
+      "source_path": "src/icons/symbol-interface.svg",
+      "git_blob_sha1": "fcb84d1d7e6e8ad59e12349a3bacb3613386c2dd",
+      "sha256": "a9c390722898eaa0519ca58496a58ebb18665ed2326d0a23f5ea2f77ab807c32"
+    },
+    "symbol-key": {
+      "file": "icons/symbol_key.svg",
+      "source_path": "src/icons/symbol-key.svg",
+      "git_blob_sha1": "326a1cc6c53cafdd68f423af81d978aabd17917f",
+      "sha256": "75774cceadbbb17425ae68a6b56443d0c1f8fc9709252cbb59eef4a67909e3a1"
+    },
+    "symbol-parameter": {
+      "file": "icons/symbol_parameter.svg",
+      "source_path": "src/icons/symbol-parameter.svg",
+      "git_blob_sha1": "f30132dd4996c7401fcf218b5d0cb4f9fd1ef298",
+      "sha256": "b6f546ea92c49416ecf678fdfce22676ec238ea055a667d545207b95731f9f7c"
     }
   },
   "licenses": [

@@ -6,24 +6,6 @@
   "note": "Grammar binary identity is pinned by npm archive and file SHA256. License source tags identify license text, not an assertion of exact grammar build revision for semver-ranged dependencies.",
   "assets": [
     {
-      "language": "c",
-      "file": "tree-sitter-c.wasm",
-      "sha256": "7b80a64003e8ef8cde197329ee0167e9270f67663f2e6c6ef7d67b5425998aac",
-      "bytes": 625921,
-      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-c",
-      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-c/v0.24.1/LICENSE",
-      "license": "MIT"
-    },
-    {
-      "language": "cpp",
-      "file": "tree-sitter-cpp.wasm",
-      "sha256": "285a0d1da90e6cdea639ddf1b925ebca567d24b68d13c418ea92f5a6b7c099dd",
-      "bytes": 3454741,
-      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-cpp",
-      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-cpp/v0.23.4/LICENSE",
-      "license": "MIT"
-    },
-    {
       "language": "javascript",
       "file": "tree-sitter-javascript.wasm",
       "sha256": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",

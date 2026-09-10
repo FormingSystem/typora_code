@@ -60,7 +60,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 | Typora 原生偏好设置 | [原有设置截图](./typora配置展示.md#第1章_文件) |
 | 修改扩展源码、重建 bundle 和运行回归测试 | [开发者构建](./enhancements/README.md#1.2_开发者构建) |
 
-Markdown 使用一个活动的 Typora 原生编辑器，其他分栏显示预览，点击正文后切入编辑；普通源码标签可编辑和保存，格式按文档独立保留，切换与跨组移动保留草稿。关闭未保存标签或窗口时提供保存、不保存或取消，原生 Markdown 的关闭确认继续有效；该 Markdown 的源码草稿未保存时，先处理草稿再打开原生渲染。Git 历史、差异和搜索侧预览仍为只读。语言服务器和 VS Code 扩展宿主不属于本实现。
+Markdown 使用一个活动的 Typora 原生编辑器，其他分栏显示预览，点击正文后切入编辑；普通源码标签可编辑和保存，格式按文档独立保留，切换与跨组移动保留草稿。关闭未保存标签或窗口时提供保存、不保存或取消，原生 Markdown 的关闭确认继续有效；该 Markdown 的源码草稿未保存时，先处理草稿再打开原生渲染。Git 历史、差异和搜索侧预览仍为只读。C/C++ 大纲使用本机 clangd；不提供 VS Code 扩展宿主。
 
 Git 双栏差异保留两侧各 8px 滚动条和 30px 原生红绿概览，关闭全文缩略图；普通单文件源码与 Markdown 阅读继续提供缩略图。侧栏提交历史按紧凑行显示局部拓扑、文件图标和彩色引用标签。大纲去掉最外层重复留白和原生过滤框，保留标题层级；全文搜索集中在搜索功能中。
 
@@ -84,6 +84,8 @@ Windows UCRT64 的安装、检查和回退入口调用同一 PowerShell 实现�
 
 本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
 
-用户本轮另外授权代码大纲、点击定位及可配置解析环境。目标采用内置离线 Tree-sitter，覆盖 C、C++、JavaScript、TypeScript、Python、CMake、YAML 七种语法的定义／声明，按需 worker 解析，无需编译器环境；七种语法的离线解析与点击定位已实现并通过目标验证，本轮原生检查实证 TypeScript 函数解析与行定位。它提取语法定义／声明，不执行宏、构建脚本或编译器语义分析；不把 Markdown 大纲结果当作代码大纲证明。
+按用户最新要求，C/C++ 大纲统一接入本机 clangd，通过 LSP 使用当前内存正文和工程编译配置，点击符号精确定位；已移除 C/C++ Tree-sitter 路径。其他五种语言继续内置离线解析，Markdown 保留原生标题目录。代码大纲的设置入口支持 clangd 路径、项目相对编译数据库目录和后备参数，失败不覆盖原设置。详细范围见 [代码大纲与解析环境](docs/source_outline.md)。
 
-本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。
+上一版 `629fc6a` 的单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。
+
+当前 clangd 大纲、链接可复制提示、活动栏与滚动高亮修复，以及对应验证边界，统一见 [代码大纲与本轮验证](docs/source_outline.md)。
