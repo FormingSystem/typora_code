@@ -91,6 +91,12 @@
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
+/* 单行顶栏与工作区采用同一个起点；不能继续让核心的 100vh 活动栏从窗口 y=0 开始。
+   固定上下边界保留底部设置／终端与原有 16px 内边距，缩放时也不把按钮推到窗口外。 */
+body.typora-node.typ-ribbon--enable > .typ-ribbon {
+  position:fixed;top:var(--typ-workspace-top,0px);bottom:0;left:0;height:auto;box-sizing:border-box;
+}
+
 /* 核心已隐藏原生 sidebar tabs；其 window.css 的 54/64px 与 core 的 18px 顶距不能继续占位。
    顶层偏移只采用与 editor root 相同的变量：native 0，单行 titlebar 由宿主设定。 */
 body.typ-ribbon--enable #typora-sidebar {

@@ -1,5 +1,6 @@
 import {acquire_workspace_style} from "./workspace_styles";
 import activity_css from "./workspace_activity.css";
+import chrome_css from "./workspace_chrome.css";
 import { git_icon } from "./git_icons";
 
 export type workspace_activity_options = {
@@ -17,6 +18,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   const allowed = new Set(options.item_ids);
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
   const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
+  const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", chrome_css);
   const reduced_motion = matchMedia("(prefers-reduced-motion: reduce)");
   const originals = new Map<HTMLElement, {draggable: string | null; role: string | null; tabindex: string | null; label: string | null; nodes: Node[]}>();
   const animations = new Map<HTMLElement, Animation>();
@@ -153,7 +155,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   document.addEventListener("pointerdown", on_pointer_down, true); document.addEventListener("pointermove", on_pointer_move, true); document.addEventListener("pointerup", on_pointer_up, true); document.addEventListener("pointercancel", on_cancel, true); document.addEventListener("keydown", on_key_down, true);
   window.addEventListener("blur", on_cancel); reduced_motion.addEventListener("change", on_motion_change); refresh();
   return {refresh, move, dispose() {
-    disposed = true; finish_drag(true); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove(); delete ribbon.dataset.workspaceActivity;
+    disposed = true; finish_drag(true); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove(); chrome_style.remove(); delete ribbon.dataset.workspaceActivity;
     ribbon.removeEventListener("mousedown", on_mouse_down, true); ribbon.removeEventListener("contextmenu", on_context_menu, true); ribbon.removeEventListener("click", on_click, true);
     document.removeEventListener("pointerdown", on_pointer_down, true); document.removeEventListener("pointermove", on_pointer_move, true); document.removeEventListener("pointerup", on_pointer_up, true); document.removeEventListener("pointercancel", on_cancel, true); document.removeEventListener("keydown", on_key_down, true);
     window.removeEventListener("blur", on_cancel); reduced_motion.removeEventListener("change", on_motion_change);

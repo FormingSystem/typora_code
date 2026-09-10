@@ -42,6 +42,14 @@ function get_typora_migration_assets {
         ForEach-Object { [pscustomobject]@{relative_path = $_} }
 }
 
+function get_typora_retired_product_assets {
+    # 仅退休已发布的确定文件；由安装事务统一备份、移除和恢复，不扫描资产目录。
+    return @('appearance_bootstrap.js',
+        'assets/source_symbols/tree-sitter-c.wasm','assets/source_symbols/tree-sitter-cpp.wasm',
+        'assets/source_symbols/LICENSE_c','assets/source_symbols/LICENSE_cpp') |
+        ForEach-Object { [pscustomobject]@{relative_path = $_} }
+}
+
 function assert_typora_migration_available {
     param([string]$user_data)
     $settings_path = Join-Path $user_data 'plugins/settings/plugins.json'

@@ -1,5 +1,9 @@
 # VS Code 界面设计基线
 
+2026-09-10 顶栏回归修复：Windows／Linux 活动栏采用与编辑区相同的 `--typ-workspace-top` 上边界及窗口底边，修正核心 `100vh` 从 y=0 开始被35px顶栏遮住首个按钮的问题；48px功能行与24px官方图标保持。Typora原始64px标识位图含透明边距，按用户要求将图像框由16px改为24px，左右边距改为4px，总占位仍为32px。
+
+模块边界采用固定 Light 2026／Dark 2026 的 `sideBar.border`、`editorGroupHeader.tabsBorder`、`statusBar.border` 共用值 `#F0F1F2`／`#2A2B2C`，侧栏和状态栏背景取 `sideBar.background` 的 `#FAFAFD`／`#191A1B`。实现见 `workspace_chrome.css`：侧栏拖拽线不再读取最大化时会变透明的宿主 `--window-border-color`，标签条下沿与状态栏上沿使用1px细线，不新增卡片、圆角或全局留白。活动栏目标验证覆盖0／35px顶距、窗口尺寸变化、125%／150%缩放、Explorer与底部按钮真实点击以及最大化明暗主题边界；标题栏目标核对24px标识和原菜单占位。
+
 当前产品按用户确认，以 `59412a2` 为平直布局和功能范围参考，保留稳定修复，并非恢复整库旧提交。本文中的VS Code数值是此前已核对的研究事实，不再作为强制Modern改造或无限功能扩充目标。
 
 当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；终端默认down编辑组，不提供底部Panel；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。

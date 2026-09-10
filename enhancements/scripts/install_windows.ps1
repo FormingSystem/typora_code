@@ -30,8 +30,9 @@ $profile_path = resolve_typora_asset_path $user_data 'profile.data'
 $profile_before = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path
 $profile_changed = $false
 $assets += [pscustomobject]@{relative_path='SHA256SUMS';sha256=(Get-FileHash -LiteralPath (Join-Path $source 'SHA256SUMS') -Algorithm SHA256).Hash}
+$retired_assets = @(get_typora_retired_product_assets)
 $groups = @(
-    [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');assets=@($assets + [pscustomobject]@{relative_path='appearance_bootstrap.js'})},
+    [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');assets=@($assets + $retired_assets)},
     [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');assets=@(get_typora_migration_assets)},
     [pscustomobject]@{name='terminal';root=(Join-Path $user_data 'linux_note_enhancements/terminal_runtime');assets=@($terminal_assets + $node_stage.assets)},
     [pscustomobject]@{name='settings';root=(Join-Path $user_data 'plugins/settings');assets=@([pscustomobject]@{relative_path='plugins.json'})},
@@ -58,8 +59,10 @@ try {
     install_typora_workspace $node_stage.root $groups[2].root $node_stage.assets
     install_typora_workspace $terminal_source $groups[2].root $terminal_assets
     install_typora_workspace $source $groups[0].root $assets
-    $retired = resolve_typora_asset_path $groups[0].root 'appearance_bootstrap.js'
-    if (Test-Path -LiteralPath $retired -PathType Leaf) { Remove-Item -LiteralPath $retired }
+    foreach ($asset in $retired_assets) {
+        $retired = resolve_typora_asset_path $groups[0].root $asset.relative_path
+        if (Test-Path -LiteralPath $retired -PathType Leaf) { Remove-Item -LiteralPath $retired }
+    }
     foreach ($asset in $groups[1].assets) {
         $target = resolve_typora_asset_path $groups[1].root $asset.relative_path
         if (Test-Path -LiteralPath $target -PathType Leaf) { Remove-Item -LiteralPath $target }

@@ -6,7 +6,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-left { display:flex;align-items:center;flex:2 1 20%;min-width:64px;height:100%;overflow:hidden; }
 .workspace-titlebar-center { display:flex;align-items:center;justify-content:center;flex:0 1 60%;max-width:fit-content;min-width:90px;margin:0 10px;height:100%; }
 .workspace-titlebar-right { display:flex;justify-content:flex-end;flex:2 0 20%;min-width:138px;height:100%; }
-.workspace-titlebar-logo { width:16px;height:16px;margin:0 8px;flex:none; }
+/* 原 64px Typora 位图含透明边距，24px 图像框让标识可辨；含 margin 的占位仍为 32px。 */
+.workspace-titlebar-logo { width:24px;height:24px;margin:0 4px;padding:0;border:0;flex:none;object-fit:contain; }
 .workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
 .workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;border-radius:4px;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
 .workspace-titlebar-menu>button { height:26px;padding:0 8px;white-space:nowrap; }

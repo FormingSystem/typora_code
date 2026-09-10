@@ -36,6 +36,15 @@ state.write_text('reading and reviews', encoding='utf-8')
 retired = user / 'typora_code/appearance_bootstrap.js'
 retired.parent.mkdir(parents=True, exist_ok=True)
 retired.write_text('old appearance startup', encoding='utf-8')
+retired_grammars = {name: b'\x00asm\x00\xff' + name.encode('utf-8') for name in [
+    'assets/source_symbols/tree-sitter-c.wasm', 'assets/source_symbols/tree-sitter-cpp.wasm',
+    'assets/source_symbols/LICENSE_c', 'assets/source_symbols/LICENSE_cpp']}
+for name, contents in retired_grammars.items():
+    target = user / 'typora_code' / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(contents)
+unmanaged = user / 'typora_code/assets/source_symbols/user-note.txt'
+unmanaged.write_text('unmanaged content', encoding='utf-8')
 profile = user / 'profile.data'
 def write_profile(data):
     profile.write_text(json.dumps(data, ensure_ascii=False).encode('utf-8').hex(), encoding='ascii')
@@ -47,6 +56,10 @@ assert deployment.read_native_profile(profile)['data']['framelessWindow'] is Tru
 write_profile({**deployment.read_native_profile(profile)['data'], 'later': 2})
 assert not retired.exists()
 assert (backup / 'product/appearance_bootstrap.js').read_text(encoding='utf-8') == 'old appearance startup'
+for name, contents in retired_grammars.items():
+    assert not (user / 'typora_code' / name).exists()
+    assert (backup / 'product' / name).read_bytes() == contents
+assert unmanaged.read_text(encoding='utf-8') == 'unmanaged content'
 installed = window.read_bytes()
 assert window.read_text(encoding='utf-8').count('data-typora-code-style') == 2
 assert all(not (user / 'plugins' / name).exists() for name in deployment.MIGRATION_FILES)
@@ -103,9 +116,11 @@ assert deployment.read_native_profile(profile)['data']['framelessWindow'] is Tru
 assert deployment.read_native_profile(profile)['data']['later'] == 2
 assert restore_failed and window.read_bytes() == installed and product.is_file()
 assert not (user / 'plugins/loader.js').exists()
+assert all(not (user / 'typora_code' / name).exists() for name in retired_grammars)
 deployment.restore(user, backup)
 assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 2}
 assert retired.read_text(encoding='utf-8') == 'old appearance startup'
+assert all((user / 'typora_code' / name).read_bytes() == contents for name, contents in retired_grammars.items())
 assert window.read_text(encoding='utf-8') == original
 assert deployment.read_object(new_settings)['settings']['later'] is True
 assert state.read_text(encoding='utf-8') == 'reading and reviews'
@@ -131,6 +146,7 @@ assert failed
 assert window.read_text(encoding='utf-8') == original
 assert not product.exists()
 assert (user / 'plugins/loader.js').read_text(encoding='utf-8') == 'old:loader.js'
+assert all((user / 'typora_code' / name).read_bytes() == contents for name, contents in retired_grammars.items())
 print('PASS: Linux transaction, head order, migration, hashes, settings, conflicts, constrained restore and rollback')
 print('Fixtures:', fixture)
 
@@ -166,6 +182,8 @@ with patch.object(deployment, 'write_json', manifest_failure):
 assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 2}
 assert window.read_text(encoding='utf-8') == original
 assert not product.exists()
+assert all((user / 'typora_code' / name).read_bytes() == contents for name, contents in retired_grammars.items()), 'late failure must restore already removed grammar/license bytes'
+assert unmanaged.read_text(encoding='utf-8') == 'unmanaged content'
 profile_before = profile.read_bytes()
 profile.write_bytes(b'unknown-encoding')
 rejected(lambda: deployment.install(tools, root, user, fixture / 'invalid profile'))
@@ -180,9 +198,17 @@ assert not product.exists()
 profile.unlink()
 absent_backup = fixture / 'absent profile backup'
 deployment.install(tools, root, user, absent_backup)
+assert all(not (user / 'typora_code' / name).exists() for name in retired_grammars)
+stale_grammar = user / 'typora_code/assets/source_symbols/tree-sitter-c.wasm'
+stale_grammar.write_bytes(retired_grammars['assets/source_symbols/tree-sitter-c.wasm'])
+rejected(lambda: deployment.check(tools, root, user))
+stale_grammar.unlink()
 assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': True}
 assert deployment.read_object(absent_backup / 'manifest.json')['native_profile'][0]['existed'] is False
 write_profile({'framelessWindow': True, 'created_later': {'中文': 4}})
 deployment.restore(user, absent_backup)
 assert deployment.read_native_profile(profile)['data'] == {'created_later': {'中文': 4}}
+assert all((user / 'typora_code' / name).read_bytes() == contents for name, contents in retired_grammars.items())
+assert unmanaged.read_text(encoding='utf-8') == 'unmanaged content'
 print('PASS: late install rollback, malformed profile preflight and absent profile full transaction')
+print('PASS: four retired C/C++ assets backed up, removed, checked, restored and rolled back byte-for-byte; unrelated files preserved')

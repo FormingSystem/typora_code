@@ -19,7 +19,7 @@ export type workspace_leaf = {
 };
 type workspace_app = {
   runtime_version?: number;
-  settings: { get(key: string): unknown; set(key: string | string[], value: unknown): void };
+  settings: { get(key: string): unknown; set(key: string | string[], value: unknown): void; set_and_save(key: string, value: unknown): void };
   commands: {
     run(id: string, args?: unknown[]): void;
     register(command: { id: string; title: string; scope: "global"; callback: () => void }): unknown;

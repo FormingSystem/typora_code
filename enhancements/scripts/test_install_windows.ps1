@@ -37,6 +37,15 @@ try {
     write_fixture $state 'reading positions and Graph reviews'
     $retired=Join-Path $user_data 'typora_code/appearance_bootstrap.js'
     write_fixture $retired 'old appearance startup'
+    $retired_grammars=@{}
+    foreach ($name in @('assets/source_symbols/tree-sitter-c.wasm','assets/source_symbols/tree-sitter-cpp.wasm','assets/source_symbols/LICENSE_c','assets/source_symbols/LICENSE_cpp')) {
+        $retired_grammars[$name]=[byte[]](@(0,97,115,109,0,255) + [Text.Encoding]::UTF8.GetBytes($name))
+        $target=Join-Path $user_data ('typora_code/'+$name)
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+        [IO.File]::WriteAllBytes($target,$retired_grammars[$name])
+    }
+    $unmanaged=Join-Path $user_data 'typora_code/assets/source_symbols/user-note.txt'
+    write_fixture $unmanaged 'unmanaged content'
     $profile=Join-Path $user_data 'profile.data'
     write_profile_fixture $profile @{framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
     $backup=Join-Path $test_root 'first backup'
@@ -46,6 +55,11 @@ try {
     $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
     assert_equal (Test-Path -LiteralPath $retired) $false 'Retired bootstrap file remains'
     assert_equal ([IO.File]::ReadAllText((Join-Path $backup 'product/appearance_bootstrap.js'))) 'old appearance startup' 'Retired bootstrap not backed up'
+    foreach ($name in $retired_grammars.Keys) {
+        assert_equal (Test-Path -LiteralPath (Join-Path $user_data ('typora_code/'+$name))) $false ('Retired grammar/license remains: '+$name)
+        assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $backup ('product/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Retired asset backup differs: '+$name)
+    }
+    assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Unrelated asset changed'
     $installed=[IO.File]::ReadAllText($window)
     assert_equal ([regex]::Matches($installed,'typora-code:begin').Count) 1 'Duplicate head'
     assert_equal ($installed.Contains('appearance_bootstrap.js')) $false 'Retired appearance bootstrap remains'
@@ -100,11 +114,13 @@ try {
     assert_equal ([IO.File]::ReadAllText($window)) $installed 'Restore rollback changed window'
     assert_equal (Test-Path -LiteralPath $product -PathType Leaf) $true 'Restore rollback lost product bundle'
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'plugins/loader.js')) $false 'Restore rollback activated old loader'
+    foreach ($name in $retired_grammars.Keys) { assert_equal (Test-Path -LiteralPath (Join-Path $user_data ('typora_code/'+$name))) $false ('Restore rollback reactivated retired asset: '+$name) }
     & $restore -backup_root $backup
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Window restore failed'
     assert_equal (read_profile_fixture $profile).framelessWindow $false 'Original native preference was not restored'
     assert_equal (read_profile_fixture $profile).later 2 'Restore overwrote later native settings'
     assert_equal ([IO.File]::ReadAllText($retired)) 'old appearance startup' 'Retired bootstrap was not restored'
+    foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Retired asset was not restored: '+$name) }
     foreach ($asset in get_typora_migration_assets) { assert_equal ([IO.File]::ReadAllText((Join-Path $user_data ('plugins/'+$asset.relative_path)))) ('old:'+$asset.relative_path) 'Old asset restore failed' }
     assert_equal ([IO.File]::ReadAllText($new_settings)) '{"version":1,"settings":{"displayLang":"en","custom":"later"}}' 'Restore removed new business data'
     assert_equal ([IO.File]::ReadAllText($state)) 'reading positions and Graph reviews' 'Business data changed'
@@ -127,6 +143,7 @@ try {
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Install rollback changed window'
     assert_equal (Test-Path -LiteralPath $product) $false 'Failed install left product entry'
     assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'plugins/loader.js'))) 'old:loader.js' 'Rollback lost old loader'
+    foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Install rollback lost retired asset: '+$name) }
     # 未知配置编码必须在创建备份前拒绝，且不改原字节。
     $profile_before=[IO.File]::ReadAllText($profile)
     write_fixture $profile 'unknown-encoding'
@@ -152,10 +169,17 @@ try {
     assert_equal (read_profile_fixture $profile).framelessWindow $false 'Late install rollback lost original window preference'
     assert_equal (read_profile_fixture $profile).later 2 'Late rollback removed later preferences'
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Late rollback changed window'
+    foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Late rollback lost already removed retired asset: '+$name) }
+    assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Rollback changed unrelated asset'
     # 缺省 profile 必须创建最小窗口偏好；恢复只移除本字段，保留后续用户数据。
     Remove-Item -LiteralPath $profile
     $absent_backup=Join-Path $test_root 'absent profile'
     & $installer -typora_root $fake_root -backup_root $absent_backup -non_interactive
+    foreach ($name in $retired_grammars.Keys) { assert_equal (Test-Path -LiteralPath (Join-Path $user_data ('typora_code/'+$name))) $false ('Reinstall retained retired asset: '+$name) }
+    $stale_grammar=Join-Path $user_data 'typora_code/assets/source_symbols/tree-sitter-c.wasm'
+    [IO.File]::WriteAllBytes($stale_grammar,$retired_grammars['assets/source_symbols/tree-sitter-c.wasm'])
+    assert_rejected { & $checker -typora_root $fake_root -non_interactive } 'Checker accepted retired grammar'
+    Remove-Item -LiteralPath $stale_grammar
     assert_equal (read_profile_fixture $profile).framelessWindow $true 'Absent profile did not enable single-row window'
     $absent_manifest=[IO.File]::ReadAllText((Join-Path $absent_backup 'manifest.json'))|ConvertFrom-Json
     assert_equal $absent_manifest.native_profile[0].existed $false 'Absent profile backup lost absence'
@@ -164,10 +188,13 @@ try {
     $restored_profile=read_profile_fixture $profile
     assert_equal ($null -eq $restored_profile.PSObject.Properties['framelessWindow']) $true 'Restore did not remove previously absent preference'
     assert_equal $restored_profile.created_later.text '保留' 'Restore removed later preferences'
+    foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Final restore lost retired asset: '+$name) }
+    assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Final restore changed unrelated asset'
     # 源发布损坏在创建备份或覆盖用户文件前拒绝。
     [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid release')) $false 'Corrupt release mutated backup'
     Write-Host 'PASS: independent head, repeat install, hashes, migration, settings preservation, conflict, constrained restore and transaction rollback.'
+    Write-Host 'PASS: four retired C/C++ assets backed up, removed, checked, restored and rolled back byte-for-byte; unrelated files preserved.'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

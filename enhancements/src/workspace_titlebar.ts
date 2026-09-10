@@ -49,7 +49,7 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   }
   const left=document.createElement("div"),center=document.createElement("div"),right=document.createElement("div");
   left.className="workspace-titlebar-left";center.className="workspace-titlebar-center";right.className="workspace-titlebar-right";
-  const logo=document.createElement("img");logo.className="workspace-titlebar-logo";logo.alt="Typora";
+  const logo=document.createElement("img");logo.className="workspace-titlebar-logo";logo.alt="Typora";logo.width=24;logo.height=24;
   logo.src=new URL("./assets/icon/icon_32x32@2x.png",document.baseURI).href;left.append(logo);
   const menu=create_workspace_titlebar_menu(bar,create_workspace_titlebar_definitions(files,runtime,open_files));left.append(menu.element);cleanup.push(()=>menu.dispose());
   const events=new AbortController();cleanup.push(()=>events.abort());

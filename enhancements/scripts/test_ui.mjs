@@ -52,6 +52,7 @@ const ui_tests = Object.freeze([
   "test_workspace_lookup_preview.cjs",
   "test_workspace_outline.cjs",
   "test_workspace_source_outline.cjs",
+  "test_source_outline_settings.cjs",
   "test_workspace_preferences.cjs",
   "test_workspace_selection_search.cjs",
   "test_workspace_shortcuts.cjs",
@@ -67,6 +68,7 @@ const ui_tests = Object.freeze([
 // terminal runtime found in TYPORA_TEST_USER_DATA. Keep it outside the isolated
 // suite so `npm run check:ui` never depends on a Typora installation or profile.
 const excluded_ui_tests = new Map([
+  ["test_workspace_clangd_outline.cjs", "requires installed clangd; run npm run check:clangd-ui"],
   ["test_terminal_interaction.cjs", "requires an installed terminal runtime and starts a real shell"],
 ]);
 

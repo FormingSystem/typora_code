@@ -5,6 +5,7 @@ const fs=require('node:fs');
 const os=require('node:os');
 const path=require('node:path');
 const {build}=require('esbuild');
+const sass=require('sass');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_workspace_activity_'));
 app.setPath('userData',path.join(evidence,'user_data')); app.disableHardwareAcceleration();
 let test_window;
@@ -13,7 +14,7 @@ const evaluate=source=>test_window.webContents.executeJavaScript(source);
 const wait=async source=>{for(let index=0;index<100;index++){if(await evaluate(source))return;await delay(30);}throw new Error('Timed out: '+source);};
 const capture=async name=>fs.writeFileSync(path.join(evidence,name+'.png'),(await test_window.webContents.capturePage()).toPNG());
 const point=selector=>evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)};})()`);
-const click=async(selector,button='left')=>{const position=await point(selector);for(const type of ['mouseMove','mouseDown','mouseUp']){test_window.webContents.sendInputEvent({type,...position,button,clickCount:1});await delay(35);}await delay(160);};
+const click=async(selector,button='left')=>{const position=await point(selector),zoom=test_window.webContents.getZoomFactor();position.x=Math.round(position.x*zoom);position.y=Math.round(position.y*zoom);for(const type of ['mouseMove','mouseDown','mouseUp']){test_window.webContents.sendInputEvent({type,...position,button,clickCount:1});await delay(35);}await delay(160);};
 const key=async(key_code,modifiers=[])=>{test_window.webContents.sendInputEvent({type:'keyDown',keyCode:key_code,modifiers});if(key_code==='Enter'&&!modifiers.length)test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:key_code,modifiers});await delay(100);};
 const item=id=>'[data-id="'+id+'"]';
 app.whenReady().then(async()=>{
@@ -65,9 +66,48 @@ app.whenReady().then(async()=>{
   await test_window.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('matchMedia("(prefers-reduced-motion: reduce)").matches');await evaluate('activity.move("core.search",-1)');
   const reduced_metrics=await evaluate('({animations:[...ribbon.querySelectorAll(".workspace-activity-item")].reduce((count,node)=>count+node.getAnimations().length,0),transition:getComputedStyle(ribbon.querySelector(".workspace-activity-item")).transitionDuration})');assert.equal(reduced_metrics.animations,0);assert.equal(reduced_metrics.transition,'0s');
   await click(item('core.settings'));assert.equal(await evaluate('fixed_clicks'),1);assert(!await evaluate('document.querySelector("[data-id=\\"core.settings\\"]").hasAttribute("data-activity-active")'));
+  // 使用核心实际 ribbon 规则复现：100vh 从 y=0 开始会被新顶栏盖住，而 padding 会越过底边。
+  const core_ribbon_css=sass.compile(path.join(__dirname,'../vendor/workspace_core/src/ui/ribbon/workspace-ribbon.scss')).css;
+  const geometry_css=await test_window.webContents.insertCSS(core_ribbon_css+`
+    body{--typ-workspace-top:0px;--window-border-color:transparent;overflow:hidden}
+    body.unibody-window{--typ-workspace-top:35px}
+    #top-titlebar{position:fixed;inset:0 0 auto;height:var(--typ-workspace-top);z-index:890;box-sizing:border-box}
+    .native-window #top-titlebar{display:none}
+    #typora-sidebar{position:fixed;left:48px;width:240px;bottom:0;box-sizing:border-box}
+    #typora-sidebar-resizer{position:fixed;left:285px;top:var(--typ-workspace-top);bottom:0;width:7px;z-index:99}
+    #typora-sidebar-resizer::after{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:var(--window-border-color)}
+    .fixture-editor{position:fixed;left:288px;right:0;top:var(--typ-workspace-top);bottom:30px;background:white}
+    .typ-workspace-tabs{height:100%;border-left:1px solid transparent}
+    .workspace-tab-strip{height:35px;background:var(--side-bar-bg-color)}
+    footer.ty-footer{position:fixed;left:288px;right:0;bottom:0;height:30px;border:0!important}
+  `);
+  await evaluate(`activity.move('core.file-explorer',-1);document.body.classList.add('typora-node','typ-ribbon--enable');window.geometry_nodes=document.createElement('div');geometry_nodes.innerHTML='<div id="top-titlebar" data-workspace-titlebar="ready"></div><div id="typora-sidebar-resizer" data-workspace-sidebar-sash="ready"></div><div class="fixture-editor"><div class="typ-workspace-tabs"><div class="workspace-tab-strip"></div></div></div><footer class="ty-footer"></footer>';document.body.append(geometry_nodes);ribbon.style.background='';void 0`);
+  const geometry_cases=[];
+  for(const [mode,width,height,zoom] of [['native-window',720,600,1],['unibody-window',720,600,1],['unibody-window',560,540,1.25],['unibody-window',1000,800,1.5]]){
+    test_window.setSize(width,height);test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`document.body.classList.remove('native-window','unibody-window');document.body.classList.add('${mode}');void 0`);await delay(120);
+    const metrics=await evaluate(`(()=>{const rail=ribbon.getBoundingClientRect(),bar=document.querySelector('#top-titlebar').getBoundingClientRect();return{top:rail.top,bottom:rail.bottom,title_bottom:bar.bottom,viewport:innerHeight,buttons:[...ribbon.querySelectorAll('.typ-ribbon-item')].map(node=>{const box=node.getBoundingClientRect(),icon=node.querySelector('svg,i'),glyph=icon.getBoundingClientRect();return{id:node.dataset.id,top:box.top,bottom:box.bottom,width:box.width,height:box.height,icon_top:glyph.top,icon_bottom:glyph.bottom,hit:document.elementFromPoint(box.left+box.width/2,box.top+box.height/2)?.closest('.typ-ribbon-item')===node}})}})()`);
+    assert.equal(metrics.top,mode==='unibody-window'?35:0);assert.equal(metrics.title_bottom,metrics.top);assert(Math.abs(metrics.bottom-metrics.viewport)<1);
+    assert(metrics.buttons.every(button=>button.width>=47&&button.width<=48&&button.height===48&&button.top>=metrics.top&&button.bottom<=metrics.bottom&&button.icon_top>=button.top&&button.icon_bottom<=button.bottom&&button.hit),'all activity and bottom action glyphs and hit targets remain inside the content viewport: '+JSON.stringify(metrics));
+    const before_actions=await evaluate('fixed_clicks');await click(item('core.settings'));await click(item('linux_note:terminal'));assert.equal(await evaluate('fixed_clicks'),before_actions+2);
+    const before_open=await evaluate('clicks');await click(item('core.file-explorer'));assert.equal(await evaluate('clicks'),before_open+1,'Explorer is reachable below the titlebar after resize/zoom');
+    geometry_cases.push({mode,width,height,zoom,metrics});
+  }
+  test_window.webContents.setZoomFactor(1);await delay(80);
+  for(const [theme,border,background] of [['light','rgb(240, 241, 242)','rgb(250, 250, 253)'],['dark','rgb(42, 43, 44)','rgb(25, 26, 27)']]){
+    await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.body.classList.add('typora-maxmized');void 0`);
+    const colors=await evaluate(`(()=>{const style=selector=>getComputedStyle(document.querySelector(selector));return{sidebar:style('#typora-sidebar').backgroundColor,footer:style('footer.ty-footer').backgroundColor,footer_border:style('footer.ty-footer').borderTopColor,footer_width:style('footer.ty-footer').borderTopWidth,sash:getComputedStyle(document.querySelector('#typora-sidebar-resizer'),'::after').backgroundColor,tab:style('.workspace-tab-strip').boxShadow,group:style('.typ-workspace-tabs').borderLeftColor,title:style('#top-titlebar').borderBottomColor}})()`);
+    assert.deepEqual({...colors,tab:undefined},{sidebar:background,footer:background,footer_border:border,footer_width:'1px',sash:border,tab:undefined,group:border,title:border});assert(colors.tab.includes(border)&&colors.tab.includes('inset'));
+  }
+  await delay(80);await capture('titlebar_activity_and_chrome');
+  fs.writeFileSync(path.join(evidence,'geometry.json'),JSON.stringify(geometry_cases,null,2),'utf8');
+  test_window.webContents.setZoomFactor(1);test_window.setSize(720,600);
+  await evaluate(`geometry_nodes.remove();document.body.classList.remove('typora-node','typ-ribbon--enable','native-window','unibody-window','typora-maxmized');document.documentElement.removeAttribute('data-workspace-file-icon-theme');void 0`);await test_window.webContents.removeInsertedCSS(geometry_css);
   await evaluate('state.sidebar_visible=false;activity.refresh()');assert.deepEqual(await evaluate('selected()'),[]);await evaluate('activity.dispose()');assert(!await evaluate('ribbon.hasAttribute("data-workspace-activity") || document.querySelector("[data-workspace-activity-style]")'));
   assert.deepEqual(await evaluate('ids.filter(id=>id!=="core.outline").map(id=>ribbon.querySelector(`[data-id="${id}"] svg`).dataset.gitIcon)'),['diff-multiple','target','source-control'],'dispose restores the exact native icon nodes');
   assert.equal(await evaluate('native_outline_icon.isConnected && native_outline_icon.className==="fa fa-list typ-lighter-icon"'),true,'dispose retains the exact original Outline node');
+  assert.equal(await evaluate('!!document.getElementById("typora-code-style:workspace_chrome")'),false,'dispose also releases shared chrome styles');
+  console.log(JSON.stringify({status:'PASS',checks:['0px/35px shared content inset keeps every activity glyph and hit target visible','real Explorer settings and terminal clicks survive resize and 125/150 percent zoom','maximized Light/Dark shared borders and side/status backgrounds remain visible'],geometry_case_count:geometry_cases.length,evidence}));
   console.log(JSON.stringify({status:'PASS',checks:['active ID overrides stale native selection','active border background foreground and Chinese title','same activity click hides sidebar without stale highlight','file search outline and Git switch without double selection','keyboard navigation opens the intended activity','real pointer drag persists top-item order','drag does not click or invoke legacy sorting','fixed top slot and bottom actions retain positions','reorder animates with real Web Animations','Chinese context menu moves item with keyboard','saved order restores after reinstall','Shift F10 and Alt Arrow provide keyboard sorting','Escape cancels drag without changing saved order','reduced motion removes transition and reorder animation','bottom settings keeps its original click','hidden sidebar clears selection and dispose removes enhancement'],selected_metrics,moving_animations,reduced_metrics,evidence}));
   test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');console.error(await evaluate('({active:document.activeElement?.outerHTML.slice(0,300),order:window.order?.(),text:document.body.innerText})'));test_window.destroy();}app.exit(1);});

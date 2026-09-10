@@ -1,47 +1,18 @@
 import type {Node} from "web-tree-sitter";
 export type source_symbol = {name:string;kind:string;detail:string;start:number;end:number;selection_start:number;selection_end:number;children:source_symbol[]};
-export const SOURCE_SYMBOL_LANGUAGES:Record<string,string>={c:"c",cpp:"cpp",javascript:"javascript",typescript:"typescript",python:"python",cmake:"cmake",yaml:"yaml"};
+export const SOURCE_SYMBOL_LANGUAGES:Record<string,string>={javascript:"javascript",typescript:"typescript",python:"python",cmake:"cmake",yaml:"yaml"};
 
 /** 从正式 grammar 节点提取语法符号；不执行宏、脚本或配置，也不把引用当声明。 */
 export function extract_source_symbols(root:Node,language:string):source_symbol[] {
   let count=0;
   const symbol=(node:Node,name:Node,kind:string,detail:string,children:source_symbol[]=[],label=name.text):source_symbol=>({name:label.slice(0,200),kind,detail,start:node.startIndex,end:node.endIndex,selection_start:name.startIndex,selection_end:name.endIndex,children});
-  const declared_name=(node:Node|null):Node|null=>{
-    if(!node)return null;
-    const declarator=node.childForFieldName("declarator");
-    if(declarator)return declared_name(declarator);
-    if(["identifier","field_identifier","type_identifier","qualified_identifier","operator_name","destructor_name"].includes(node.type))return node;
-    if(node.type==="parenthesized_declarator")return declared_name(node.namedChildren[0]||null);
-    return null;
-  };
-  // 从名字向外遇到的首个绑定决定声明实体；外层函数节点也可能只是指针的返回类型。
-  const declares_function=(node:Node,name:Node):boolean=>{
-    for(let current=name.parent;current&&current.id!==node.parent?.id;current=current.parent){
-      if(current.type==="function_declarator")return true;
-      if(["pointer_declarator","reference_declarator","array_declarator"].includes(current.type))return false;
-    }
-    return false;
-  };
   const walk=(node:Node,depth=0):source_symbol[]=>{
     if(depth>80||count>5000||node.isError||node.isMissing)return [];
     const descend=(target=node)=>target.namedChildren.flatMap(child=>walk(child,depth+1));
     const emit=(name:Node|null,kind:string,detail:string,body?:Node|null,label?:string)=>{
       if(!name)return descend();count++;return [symbol(node,name,kind,detail,body?descend(body):[],label??name.text)];
     };
-    if(language==="c"||language==="cpp"){
-      if(node.type==="function_definition")return emit(declared_name(node.childForFieldName("declarator")),"function","函数定义",node.childForFieldName("body"));
-      if(["struct_specifier","class_specifier","union_specifier","enum_specifier","namespace_definition"].includes(node.type))return emit(node.childForFieldName("name"),node.type==="enum_specifier"?"enum":node.type==="namespace_definition"?"namespace":"class",node.type,node.childForFieldName("body"));
-      if(node.type==="enumerator")return emit(node.childForFieldName("name"),"variable","枚举成员");
-      if(["preproc_def","preproc_function_def"].includes(node.type))return emit(node.childForFieldName("name"),"variable","宏定义（未展开）");
-      if(["declaration","field_declaration","type_definition"].includes(node.type)){
-        const values=node.childrenForFieldName("declarator").flatMap(declarator=>{
-          const name=declared_name(declarator);if(!name)return [];
-          const kind=node.type==="type_definition"?"class":declares_function(declarator,name)?"function":node.type==="field_declaration"?"property":"variable";
-          count++;return [symbol(node,name,kind,kind==="function"?"函数声明":node.type==="type_definition"?"类型别名":"变量/字段")];
-        });
-        const type=node.childForFieldName("type");return [...(type?.childForFieldName("body")?walk(type,depth+1):[]),...values];
-      }
-    } else if(language==="javascript"||language==="typescript"){
+    if(language==="javascript"||language==="typescript"){
       if(["function_declaration","generator_function_declaration","function_signature","method_definition","method_signature","abstract_method_signature"].includes(node.type))return emit(node.childForFieldName("name"),node.type.includes("method")?"method":"function",node.childForFieldName("body")?"函数定义":"函数声明",node.childForFieldName("body"));
       if(["class_declaration","abstract_class_declaration","interface_declaration","enum_declaration","internal_module","type_alias_declaration"].includes(node.type))return emit(node.childForFieldName("name"),node.type==="internal_module"?"namespace":node.type==="enum_declaration"?"enum":"class",node.type,node.childForFieldName("body"));
       if(node.type==="variable_declarator"){

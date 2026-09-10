@@ -1,0 +1,38 @@
+/* VS Code 88e44fa / Light 2026、Dark 2026：sideBar.border、statusBar.border、
+   editorGroupHeader.tabsBorder 共用主题分界色；sideBar.background 为侧区背景。
+   宿主 --window-border-color 在最大化时透明，不能作为工作区内部的分界色。 */
+:root {
+  --workspace-chrome-border:var(--vscode-sideBar-border,#f0f1f2);
+  --workspace-chrome-background:var(--vscode-sideBar-background,#fafafd);
+}
+:root[data-workspace-file-icon-theme="dark"] {
+  --workspace-chrome-border:var(--vscode-sideBar-border,#2a2b2c);
+  --workspace-chrome-background:var(--vscode-sideBar-background,#191a1b);
+}
+body.typ-ribbon--enable {
+  --side-bar-bg-color:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable > .typ-ribbon {
+  background:var(--workspace-chrome-background);
+  border-right-color:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable #typora-sidebar {
+  background:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]::after {
+  background:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable .typ-workspace-tabs {
+  border-left-color:var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable .workspace-tab-strip {
+  box-shadow:inset 0 -1px var(--workspace-chrome-border);
+}
+body.typ-ribbon--enable footer.ty-footer {
+  box-sizing:border-box;
+  border-top:1px solid var(--workspace-chrome-border)!important;
+  background:var(--workspace-chrome-background);
+}
+body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
+  border-bottom:1px solid var(--workspace-chrome-border);
+}
