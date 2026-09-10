@@ -25,8 +25,12 @@
 
 真实文件图标入口为 [workspace_file_icons.ts](../enhancements/src/workspace_file_icons.ts) 与 [workspace_explorer.ts](../enhancements/src/workspace_explorer.ts)：源码 URI 先还原真实路径，Graph、虚拟 diff、终端及第三方视图不按 URI 前缀选择文件字形。自有 Graph／diff SVG 槽单独屏蔽迟到的 FA 伪元素；不修改原生大纲入口。关闭标签立即释放图标原节点引用，卸载恢复仍在使用的原节点与样式。
 
-其他实现入口包括 [git_icons.ts](../enhancements/src/git_icons.ts)、[git_source_control.ts](../enhancements/src/git_source_control.ts)、[git_scm_history.ts](../enhancements/src/git_scm_history.ts) 与 [git_graph_panel.ts](../enhancements/src/git_graph_panel.ts)。详情图标的固定来源和许可见 [Font Awesome 清单](../enhancements/vendor/fontawesome/SOURCE.json)。Typora 原生七菜单和窗口控件由标准窗口承载，已删除自造七按钮及 SVG 窗控，不以此表推导新增自定义 UI。
+其他实现入口包括 [git_icons.ts](../enhancements/src/git_icons.ts)、[git_source_control.ts](../enhancements/src/git_source_control.ts)、[git_scm_history.ts](../enhancements/src/git_scm_history.ts) 与 [git_graph_panel.ts](../enhancements/src/git_graph_panel.ts)。详情图标的固定来源和许可见 [Font Awesome 清单](../enhancements/vendor/fontawesome/SOURCE.json)。本轮35px单行顶栏恢复左七菜单、中间导航搜索和右侧宿主窗口按钮；窗口按钮仅替换为已核官方 Codicons 外观，保留原动作，不绘制近似图标。菜单只复用已核 Typora API，不声称完整原生菜单树等价。
 
-本轮 `test_scm_file_icons.cjs` 已通过通用官方图标、真实点击比较、空／非空分组、箭头及白色按钮检查；`test_git_graph_ref_colors.cjs` 已通过分支／远端／HEAD／tag／stash与自定义调色板检查。同一最终构建的37个 UI 目标已通过（首轮36项通过，Graph 旧断言修正后完整复跑通过）；原生18项通过不表示所有图标槽均已有同DPI截图验收。资源数量不构成完成证明。
+上一版曾通过37个 UI 目标及18项原生检查。本轮 `test_scm_file_icons.cjs` 已改为核对与 Explorer 共用的 Seti 文件识别、颜色和字形，覆盖真实点击比较、空／非空分组、箭头及白色按钮；引用颜色目标仍检查分支／远端／HEAD／tag／stash与自定义调色板。原生通过项不表示所有图标槽均已有同DPI截图验收，资源数量不构成完成证明。
 
 本次 `test_workspace_file_icons.cjs` 与 Explorer 目标通过；新增图标目标覆盖真实字体、明暗字形颜色、源文件标签、虚拟 URI 隔离、迟到原生图标、12 次关闭后的引用释放及 dispose 恢复。单项通过不代表最新统一构建和原生安装已经验收。
+
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+
+本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。

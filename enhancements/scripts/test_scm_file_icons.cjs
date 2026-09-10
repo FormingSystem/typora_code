@@ -1,4 +1,4 @@
-// Frozen SCM uses official generic file icons; resource-group twisties retain their fixed-source geometry.
+// SCM files share Explorer Seti associations; resource-group twisties retain their geometry.
 // Exercise the two host SCM file slots without changing the Git Graph extension's icons.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild');
@@ -40,9 +40,12 @@ app.whenReady().then(async()=>{
  }
  for(const tree of [false,true]){
   await evaluate(`scm.tree=${tree};scm.history_tree=${tree};scm.render_groups();scm.history.render_files(history_target,commit,files)`);
-  assert(await evaluate(`[...document.querySelectorAll('.git-scm-file,.git-scm-history-file')].length===6&&[...document.querySelectorAll('.git-scm-file,.git-scm-history-file')].every(row=>row.querySelector('.git-scm-file-label>svg[data-git-icon=file]')&&!row.querySelector('.workspace-file-theme-icon')&&row.getBoundingClientRect().height===22)`));
+  assert(await evaluate(`[...document.querySelectorAll('.git-scm-file,.git-scm-history-file')].length===6&&[...document.querySelectorAll('.git-scm-file,.git-scm-history-file')].every(row=>row.querySelector('.git-scm-file-label>.workspace-file-theme-icon')&&row.getBoundingClientRect().height===22)`));
  }
  await evaluate('scm.tree=false;scm.history_tree=false;scm.render_groups();scm.history.render_files(history_target,commit,files)');
+ assert.deepEqual(await evaluate(`[...document.querySelectorAll('.git-scm-file-label>.workspace-file-theme-icon')].map(node=>node.dataset.vscodeFileIcon)`),['_markdown','_typescript','_default','_markdown','_typescript','_default']);
+ await evaluate('document.fonts.ready.then(()=>true)');
+ assert(await evaluate(`[...document.querySelectorAll('.git-scm-file-label>.workspace-file-theme-icon')].every(node=>getComputedStyle(node).fontFamily==='typora-code-seti'&&node.getBoundingClientRect().width===16)`));
  for(const selector of ['.git-scm-file','.git-scm-history-file']){
   const point=await evaluate(`(()=>{const node=document.querySelector('${selector}');node.scrollIntoView();const r=node.getBoundingClientRect();return{x:Math.round(r.left+40),y:Math.round(r.top+r.height/2)}})()`);
   test_window.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});test_window.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});
@@ -100,5 +103,5 @@ app.whenReady().then(async()=>{
  await evaluate(`pending_reads.forEach(resolve=>resolve('old pending comparison'));pending_diff`);
  assert.equal(await evaluate('late_diffs'),0,'new-file navigation cancels an older in-flight diff before it can steal the active tab');
  assert.equal(git('ls-files','--stage'),before_index,'opening files and mocked staging do not write index');assert.equal(fs.readFileSync(path.join(repository,'new.md'),'utf8'),'# New Markdown\n');
- console.log(JSON.stringify({status:'PASS',geometry,checks:['parent fold hides commit and both child groups from layout and focus','controlled asynchronous refresh retains parent fold and draft','reopen restores child state and scroll; Graph position unchanged','short window long list scrolls inside groups; fold issues no Git write','empty and populated groups toggle with 16px icons','22px regular group rows and aligned headers','white button glyphs and no filter','official generic file icons in tree/list modes','native click comparison revisions','real Git U and A open current MD and TXT; M D R retain exact comparison revisions','inline open discard and stage do not bubble; discard retains confirmation plan and index bytes','directory expansion does not open a file; late comparisons cannot steal newer navigation'],evidence}));test_window.destroy();app.exit(0);
+ console.log(JSON.stringify({status:'PASS',geometry,checks:['parent fold hides commit and both child groups from layout and focus','controlled asynchronous refresh retains parent fold and draft','reopen restores child state and scroll; Graph position unchanged','short window long list scrolls inside groups; fold issues no Git write','empty and populated groups toggle with 16px icons','22px regular group rows and aligned headers','white button glyphs and no filter','Explorer Seti file associations in SCM tree/list modes, including rename destination and unknown extension','native click comparison revisions','real Git U and A open current MD and TXT; M D R retain exact comparison revisions','inline open discard and stage do not bubble; discard retains confirmation plan and index bytes','directory expansion does not open a file; late comparisons cannot steal newer navigation'],evidence}));test_window.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(evidence);test_window?.destroy();app.exit(1)});

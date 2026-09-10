@@ -409,6 +409,36 @@
       "source_path": "src/icons/close-all.svg",
       "git_blob_sha1": "320f3ccafaf7ac8134c91ddf449ad993cb762356",
       "sha256": "8c57ad4e49d43f2c79b8077fad54984f499e9d0fe9003d358e70d0282bafa24b"
+    },
+    "symbol-method": {
+      "file": "icons/symbol_method.svg",
+      "source_path": "src/icons/symbol-method.svg",
+      "git_blob_sha1": "1ca9ea811d3030c9679bc5db71281bb5feb955cc",
+      "sha256": "6c6cf75dd2f5da7896499a5728f3b83db38dee00e0c28c52b6095b29504a6c09"
+    },
+    "symbol-variable": {
+      "file": "icons/symbol_variable.svg",
+      "source_path": "src/icons/symbol-variable.svg",
+      "git_blob_sha1": "d37f81c32e7cb2f39fcce1957915705213335fc2",
+      "sha256": "bbc36c1aa2450b9d6033b8b98dc1ab0db3c8fe3b08e97562a1b8fa58767bb878"
+    },
+    "symbol-property": {
+      "file": "icons/symbol_property.svg",
+      "source_path": "src/icons/symbol-property.svg",
+      "git_blob_sha1": "ca196ad556eacaf38d0e54cebbdb6a35ff7afb5b",
+      "sha256": "ee1b0b9bc0a6edbae3d19e91fe97aa32faf281f8691a3151dacae1271fc86a5b"
+    },
+    "symbol-namespace": {
+      "file": "icons/symbol_namespace.svg",
+      "source_path": "src/icons/symbol-namespace.svg",
+      "git_blob_sha1": "a3ff4fa00b29fba5b8f40625315e45e64ab97392",
+      "sha256": "599119a929d894146c16ad07bda6ed053b53deef86825b368ba6f863ceee2f92"
+    },
+    "symbol-enum": {
+      "file": "icons/symbol_enum.svg",
+      "source_path": "src/icons/symbol-enum.svg",
+      "git_blob_sha1": "c9bc85fadb1c88808110b69051a59730ab78a93b",
+      "sha256": "ab7bbd53530a85732492921be3cf1ef6945487d205f46f867f289eaeb75a3dca"
     }
   },
   "licenses": [

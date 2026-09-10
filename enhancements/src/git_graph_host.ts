@@ -1,3 +1,4 @@
+import {workspace_file_icon, acquire_workspace_file_icons} from "./workspace_file_icons";
 import { bind_terminal_workspace } from "./terminal_workspace";
 import { git_diff_editor, type diff_document } from "./git_diff_editor";
 import { append_git_ignore } from "./git_ignore";
@@ -34,6 +35,7 @@ export function create_graph_host(core: graph_core) {
   const runtime = window as unknown as { reqnode(name: string): any; File?: native_file; JSBridge: { invoke(command: string, ...args: unknown[]): Promise<unknown> }; _options: { userDataPath: string } };
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const process_api = runtime.reqnode("process");
   const editor_status=bind_workspace_editor_status(core);
+  const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
   type document_options = {root?: string; key?: string; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
@@ -63,7 +65,11 @@ export function create_graph_host(core: graph_core) {
       const payload = contents.get(this.leaf.state.path);
       // 核心把 URI 作为 HTML 标签名插入；URI 保持编码，显示名单独通过 textContent 写入。
       for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
-        const icon = tab.querySelector(".typ-file-icon"); if (icon) { icon.className = "typ-file-icon git-tab-icon"; icon.replaceChildren(git_icon("compare-changes")); }
+        const icon = tab.querySelector(".typ-file-icon"); if (icon) {
+          const file_path = payload?.data?.file;
+          icon.className = file_path ? "typ-file-icon workspace-file-theme-slot" : "typ-file-icon git-tab-icon";
+          icon.replaceChildren(file_path ? workspace_file_icon(file_path) : git_icon("compare-changes"));
+        }
         const title = payload?.data?.title || decodeURIComponent(this.leaf.state.path.split("/").at(-1)!);
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = title;
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
@@ -105,7 +111,7 @@ export function create_graph_host(core: graph_core) {
   const host = {
     core, fs, path_api, process_api,
     dispose(){
-      if(disposed)return;disposed=true;terminal_workspace.dispose();
+      if(disposed)return;disposed=true;file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
       for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
       views.clear();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();

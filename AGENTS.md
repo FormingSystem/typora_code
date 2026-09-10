@@ -24,6 +24,9 @@ TyporaCode 是独立维护的 Typora 工作台增强工程。所有实现、构�
 - 这是在当前稳定实现上收回布局和功能变化，不是整库回退到旧提交。必须保留直接启动、异步取消、未保存草稿保护、文件切换和缩略图稳定性等已验证修复。
 - 变更先说明对应的已知 bug，检查同类区域并验证，不进行未被要求的界面重设计。当前验收范围见 [冻结矩阵](docs/workbench_parity.md)。
 
+- 最新明确授权覆盖上述冻结中的顶栏限制：本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+- 用户本轮另外授权代码大纲、点击定位及可配置解析环境。目标采用内置离线 Tree-sitter，覆盖 C、C++、JavaScript、TypeScript、Python、CMake、YAML 七种语法的定义／声明，按需 worker 解析，无需编译器环境；七种语法的离线解析与点击定位已实现并通过目标验证，本轮原生检查实证 TypeScript 函数解析与行定位。它提取语法定义／声明，不执行宏、构建脚本或编译器语义分析；不把 Markdown 大纲结果当作代码大纲证明。
+
 ## 已核对的设计参考
 
 - 已核对的 VS Code 版本、主题与设计来源见 [界面基线](docs/vscode_design_baseline.md)。这些资料用于修复具体图标或控件问题，不再授权覆盖上述定稿布局；用户升级 VS Code 也不自动改变产品界面。
@@ -62,3 +65,7 @@ refactor(workspace): 收敛常驻工作台启动与清理
 允许类型为 `feat`、`fix`、`refactor`、`perf`、`security`、`content`、`docs`、`test`、`build`、`ci`、`release`、`revert`、`chore`。范围可省略，标题必须包含中文。单一结果用标题表达；只有标题不足时补必要正文。按可独立验证的结果提交，并携带必要测试和说明。
 
 只暂存已审查的明确文件。未经用户授权不得 push，不把发布、强推或改写已交付历史视为普通编辑。不得借仓库迁移处理用户无关改动。
+
+## 本轮单行顶栏验证
+
+本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 保留宿主 `#title-text` 等标题节点的连接状态，不能因外观隐藏删除宿主直接访问的节点。

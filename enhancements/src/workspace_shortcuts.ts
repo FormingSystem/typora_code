@@ -43,6 +43,8 @@ export function install_workspace_shortcuts(
     action();
   };
   const keydown = (event: KeyboardEvent) => {
+    // 先归还编辑焦点，再让既有快捷键执行，避免动作落到浮动菜单或后台文档。
+    if(primary_modifier(event)&&document.querySelector(".workspace-titlebar-popup"))window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
     const active_picker=get_workspace_quick_open();
     if(!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
       run(event,()=>{if(event.shiftKey){active_picker.close();app.commands.run("command:open");}else active_picker.open();});return;

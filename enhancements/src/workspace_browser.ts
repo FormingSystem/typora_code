@@ -23,8 +23,8 @@ export function bind_workspace_browser() {
   const context_root=files.context_root;const chosen_context=files.context_root=()=>chosen_root||context_root();
   lifetime.add(()=>{if(files.context_root===chosen_context)files.context_root=context_root;});
   lifetime.own(create_workspace_quick_open(files));
-  lifetime.own(bind_workspace_tab_controls(core,()=>get_workspace_quick_open()?.open()));
-  lifetime.own(install_workspace_titlebar());
+  lifetime.own(bind_workspace_tab_controls(core));
+  lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
   lifetime.own(bind_workspace_preferences(core));
   const open_folder=()=>new Promise<void>(resolve=>{
     const dialog=workspace_dialog("打开文件夹");lifetime.add(()=>dialog.close());const path=el("input");path.setAttribute("aria-label","文件夹路径");path.value=files.context_root();const error=el("p");dialog.content.append(el("p","","输入要在资源管理器中打开的文件夹路径。"),path,error);

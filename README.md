@@ -19,9 +19,9 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向 linux-note 中链
 
 阅读历史、上次位置恢复、文档缩略图、中文源代码管理与提交图、Monaco 双栏差异和文件历史、提交与远端同步、Git 操作评审、仓库终端及管理员入口、C/C++ 代码高亮、长代码展开／收起和 Mermaid 独立查看器共用这个工作区。
 
-Windows／Linux 使用 Typora 标准原生窗口边框和文件、编辑、段落、格式、视图、主题、帮助七个系统菜单，各栏目由宿主直接打开自己的子菜单。保存文档并正常重启后生效；安装不强制关闭窗口。工作台不再自绘系统标题栏或窗口按钮。
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
 
-> 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。本轮构建、检查、37个 UI 目标（首轮36项通过加 Graph 完整复跑）、原生18项及真实安装核验已通过；物理键盘 accelerator 冲突仍未实证。当前范围见 [工作台矩阵](docs/workbench_parity.md) 和 [Git Graph矩阵](enhancements/git_graph_features.md)。
+> 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。上一版标准窗口的构建、检查、37个 UI 目标（36+1复跑）、原生18项及安装已通过；这些历史结果不覆盖本轮单行顶栏；物理键盘 accelerator 冲突仍未实证。当前范围见 [工作台矩阵](docs/workbench_parity.md) 和 [Git Graph矩阵](enhancements/git_graph_features.md)。
 
 ## 1.1\_安装、检查与恢复
 
@@ -32,11 +32,11 @@ Windows／Linux 使用 Typora 标准原生窗口边框和文件、编辑、段�
 | Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\configure_windows.ps1`，也可双击 `configure_windows.cmd` | `powershell -NoProfile -ExecutionPolicy Bypass -File .\check_configuration_windows.ps1` | `powershell -NoProfile -ExecutionPolicy Bypass -File .\restore_configuration_windows.ps1 -backup_root '<安装输出的备份目录>'` |
 | Linux / MSYS2 UCRT64 Bash | `bash ./configure.sh` | `bash ./check_configuration.sh` | `bash ./restore_configuration.sh --backup-root '<安装输出的备份目录>'` |
 
-安装包括主题 `cpp_github-consolas.css`。发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `false`；原文件不存在时不创建。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 安装完成后保存文档并正常重启 Typora，选择 `cpp github consolas` 主题。
+安装包括主题 `cpp_github-consolas.css`。发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 安装完成后保存文档并正常重启 Typora，选择 `cpp github consolas` 主题。
 
 当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。此调整仅涉及图标，不恢复 Open Editors、底部 Panel 或预览标签行为；普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
 
-路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应重新检查入口，按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 重新配置。本轮最终验证见 [验证记录](./enhancements/README.md#1.2_开发者构建)，当前 `check` 和 Windows／Python 隔离安装事务已通过，同一构建的37个 UI 目标（36+1复跑）、原生18项与真实安装核验通过；原生菜单快捷键冲突尚未验证，合成键盘事件不能替代物理键盘验证；原生 Linux／UCRT64 实机验证仍需单独记录。
+路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应重新检查入口，按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 重新配置。本轮最终验证见 [验证记录](./enhancements/README.md#1.2_开发者构建)，当前 `check` 和 Windows／Python 隔离安装事务已通过，上一版构建的37个 UI 目标（36+1复跑）、原生18项与真实安装核验通过；原生菜单快捷键冲突尚未验证，合成键盘事件不能替代物理键盘验证；原生 Linux／UCRT64 实机验证仍需单独记录。
 
 ## 1.2\_按需求阅读
 
@@ -80,4 +80,10 @@ Git 双栏差异保留两侧各 8px 滚动条和 30px 原生红绿概览，关�
 
 Windows UCRT64 的安装、检查和回退入口调用同一 PowerShell 实现。当前集成终端运行包支持 Windows 10 1903+ x64 / ARM64；Linux 的工作区和 Git Graph 继续可用，集成终端原生包尚未提供。
 
-真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
+上一版标准窗口的真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
+
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+
+用户本轮另外授权代码大纲、点击定位及可配置解析环境。目标采用内置离线 Tree-sitter，覆盖 C、C++、JavaScript、TypeScript、Python、CMake、YAML 七种语法的定义／声明，按需 worker 解析，无需编译器环境；七种语法的离线解析与点击定位已实现并通过目标验证，本轮原生检查实证 TypeScript 函数解析与行定位。它提取语法定义／声明，不执行宏、构建脚本或编译器语义分析；不把 Markdown 大纲结果当作代码大纲证明。
+
+本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。

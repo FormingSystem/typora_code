@@ -90,3 +90,10 @@
 @media (prefers-reduced-motion: reduce) {
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
+
+/* 核心已隐藏原生 sidebar tabs；其 window.css 的 54/64px 与 core 的 18px 顶距不能继续占位。
+   顶层偏移只采用与 editor root 相同的变量：native 0，单行 titlebar 由宿主设定。 */
+body.typ-ribbon--enable #typora-sidebar {
+  top:var(--typ-workspace-top,0px);height:auto;bottom:0;padding-top:0;
+}
+body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}

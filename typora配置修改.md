@@ -204,7 +204,7 @@ std::vector<int> values;
 
 # 第6章\_PowerShell、UCRT64与Linux一键配置
 
-本章命令均从独立 Typora Code 仓库根目录执行。当前采用 head 静态样式与常驻工作台；schema 4 安装及新架构全量结果待最终写回，原生 Linux 尚待实机验证。
+本章命令均从独立 Typora Code 仓库根目录执行。当前采用 head 静态样式与常驻工作台；schema 4 的 Windows 安装与恢复事务已通过，原生 Linux 尚待实机验证。
 
 ## 6.1\_路径发现不是安装目录猜测
 
@@ -277,7 +277,7 @@ PowerShell 和 Bash 入口执行同一组动作：
 
 每次配置创建带时间戳与唯一标识的备份并打印位置。Windows PowerShell 与 Linux Bash／Python 统一使用 schema 4 JSON 清单，UCRT64 调用 PowerShell 事务，不再使用 TSV 格式。
 
-发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `false`；原文件不存在时不创建。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 核心由固定 MIT 上游源码裁剪，不创建插件管理器或市场入口，来源见 [SOURCE.json](enhancements/vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](enhancements/vendor/workspace_core/LICENSE.md)。
+发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 核心由固定 MIT 上游源码裁剪，不创建插件管理器或市场入口，来源见 [SOURCE.json](enhancements/vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](enhancements/vendor/workspace_core/LICENSE.md)。
 
 当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2`、Light 2026／Dark 2026、Modern UI 与 Seti 的取证保留为设计研究参考，不再作为继续扩充或强制覆盖 Typora 的目标。正式控件使用已授权的官方图标；按最新要求，Explorer 与真实文件标签使用固定 Seti，文件夹保留折叠箭头，大纲保留原生列表图标；普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
 
@@ -359,7 +359,7 @@ Typora 没有提供主题 JavaScript 的正式入口，所以该方案需要对�
 
 已有 Windows Typora `1.14.9` 实窗与 PowerShell 5.1 配置、检查、回退的验收基线；UCRT64 代码路径已完成 Bash 语法、Windows/POSIX 路径归一化以及同一 Windows 安装上的配置—检查—回退闭环。当前机器没有独立 UCRT64 终端和原生 Linux Typora 安装，因此这两个正式环境仍需补充各自的实机复核，不能把兼容 shell 测试写成平台验收完成。未来 Typora 版本也必须重新核对入口结构，不能只依据版本号假定兼容。
 
-本轮完整构建、全部UI、四资产安装一致性与真实Typora验证待集成负责人写回。已通过的Graph／SCM目标与验证入口见 [开发者构建与验证](./enhancements/README.md#1.2_开发者构建)，不将旧架构数字作为当前结果。
+本轮构建、39项UI基线、标题及大纲专项回归、27个发布资产安装一致性与真实 Typora 链路验证已通过。范围和证据见 [开发交接](./docs/development_handoff.md)，原生 Linux 与物理键盘 accelerator 验证边界保持单独记录。
 
 # 第8章\_单窗口多文档工作区
 
@@ -392,10 +392,16 @@ Git Graph 工具栏、文件树右键和左侧终端图标均能打开仓库根�
 
 主侧栏正文可缩到 170 CSS px，继续拖至请求宽度低于 85px 自动收起，活动栏保留；再次点功能图标恢复原有效宽度。最大宽度始终预留中央编辑区，窗口缩放不改写偏好；文件、搜索、大纲和 Git 统一使用此布局，预览是搜索的内部区域。键盘调整与完整规则见 [活动栏与侧栏布局](./enhancements/README.md#1.4.5_活动栏与侧栏布局)。
 
-Windows／Linux 使用 Typora 标准原生窗口边框和文件、编辑、段落、格式、视图、主题、帮助七个系统菜单，各栏目由宿主直接打开自己的子菜单。保存文档并正常重启后生效；安装不强制关闭窗口。工作台不再自绘系统标题栏或窗口按钮。
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
 
 资源管理器的文件和文件夹可通过 F2、右键 **重命名** 修改名称。输入框按 Enter 确认、Esc 取消；打开标签及草稿的保存路径随改名更新，搜索列表与阅读历史也同步更新。名称冲突会提示，不将文件名输入当作目录移动命令。
 
 终端背景、前景、光标、选区和 ANSI 配色随 Typora 实际主题更新，切换浅色／深色主题无需重启会话，已有输出保留。文件树、搜索和源代码管理的底部空间由各面板使用，原生文件树工具条不会覆盖结果，正文状态栏保留。
 
 Windows 首次安装下载并校验 Node `24.20.0` 私有运行时，不要求预装 Node，不写系统 PATH，不固定本机安装路径。普通图查询继续使用 Typora 运行时，集成终端通过独立后台进程运行 node-pty。安装、检查与回退同时覆盖运行文件；下载缓存、平台范围和原生验证方法见 [终端运行文件、安装与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证)。
+
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+
+用户本轮另外授权代码大纲、点击定位及可配置解析环境。目标采用内置离线 Tree-sitter，覆盖 C、C++、JavaScript、TypeScript、Python、CMake、YAML 七种语法的定义／声明，按需 worker 解析，无需编译器环境；七种语法的离线解析与点击定位已实现并通过目标验证，本轮原生检查实证 TypeScript 函数解析与行定位。它提取语法定义／声明，不执行宏、构建脚本或编译器语义分析；不把 Markdown 大纲结果当作代码大纲证明。
+
+本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。

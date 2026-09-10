@@ -15,8 +15,7 @@ function read_profile(file) {
 function update_profile(file, operation, expected, backup) {
   const current = read_profile(file);
   if (current.sha256 !== expected) throw Error('Native profile changed concurrently');
-  if (operation === 'install' && !current.exists) return { changed: false, sha256: current.sha256 };
-  const previous = operation === 'restore' ? read_profile(backup).data : { [key]: false };
+  const previous = operation === 'restore' ? read_profile(backup).data : { [key]: true };
   const data = { ...current.data };
   if (Object.hasOwn(previous, key)) data[key] = previous[key]; else delete data[key];
   if (JSON.stringify(data) === JSON.stringify(current.data)) return { changed: false, sha256: current.sha256 };
@@ -37,7 +36,7 @@ if (require.main === module) {
     const [operation, file, expected, backup] = process.argv.slice(2);
     if (operation === 'snapshot' || operation === 'check') {
       const current = read_profile(file);
-      if (operation === 'check' && current.data[key] === true) throw Error('Native menu requires framelessWindow=false');
+      if (operation === 'check' && current.data[key] !== true) throw Error('Single-row workspace requires framelessWindow=true');
       console.log(JSON.stringify({ exists: current.exists, sha256: current.sha256 }));
     } else if (operation === 'install' || operation === 'restore') console.log(JSON.stringify(update_profile(file, operation, expected, backup)));
     else throw Error('Unknown native profile operation');

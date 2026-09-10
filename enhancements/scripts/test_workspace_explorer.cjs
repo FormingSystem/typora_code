@@ -49,6 +49,17 @@ app.whenReady().then(async()=>{
   await click('[data-id="core.file-explorer"]');await wait('document.querySelectorAll(".workspace-explorer-row").length===9');
   assert(await evaluate('document.querySelector(".workspace-explorer-status").hidden&&document.querySelector(".workspace-explorer-status").getBoundingClientRect().height===0'),'default Explorer status has no reserved space');
   const assert_row_visible=async selector=>assert(await evaluate(`(()=>{const row=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(),tree=document.querySelector('.workspace-explorer-tree').getBoundingClientRect();return row.top>=tree.top-1&&row.bottom<=tree.bottom+1})()`),'operation messages keep the selected or edited row fully visible');
+  // 真实 window.css 和 core ribbon.scss 都为已隐藏的原生 tabs 遗留顶部占位。
+  const inset_css=await test_window.webContents.insertCSS('.sidebar-content{top:64px}.native-window .sidebar-content{top:54px}.typ-ribbon--enable.typora-node .sidebar-content{top:18px}body{--typ-workspace-top:0}body.unibody-window{--typ-workspace-top:35px}.fixture-editor-root{position:absolute;top:var(--typ-workspace-top);left:400px}.fixture-editor-tab{height:35px}');
+  const activity_css=await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/workspace_activity.css'),'utf8'));
+  await evaluate(`document.querySelector('#sidebar-content').classList.add('sidebar-content');document.body.classList.add('typ-ribbon--enable','typora-node');window.fixture_editor=document.createElement('div');fixture_editor.className='fixture-editor-root';fixture_editor.innerHTML='<div class="fixture-editor-tab"></div>';document.body.append(fixture_editor);void 0`);
+  for(const [mode,top]of [['native-window',0],['unibody-window',35]]){
+    await evaluate(`document.body.classList.remove('native-window','unibody-window');document.body.classList.add(${JSON.stringify(mode)});void 0`);
+    const inset=await evaluate(`({toolbar:document.querySelector('.workspace-explorer-toolbar').getBoundingClientRect().top,tab:document.querySelector('.fixture-editor-tab').getBoundingClientRect().top,content:document.querySelector('#sidebar-content').getBoundingClientRect().top})`);
+    assert.deepEqual(inset,{toolbar:top,tab:top,content:top},mode+': sidebar title and editor tab begin below exactly one shared titlebar inset');
+  }
+  await evaluate(`document.body.classList.remove('native-window','unibody-window','typ-ribbon--enable','typora-node');document.querySelector('#sidebar-content').classList.remove('sidebar-content');fixture_editor.remove();void 0`);
+  await test_window.webContents.removeInsertedCSS(activity_css);await test_window.webContents.removeInsertedCSS(inset_css);
   const row_geometry=await evaluate(`(()=>{const rows=[...document.querySelectorAll('.workspace-explorer-row')];return rows.map(row=>({top:row.getBoundingClientRect().top,height:row.getBoundingClientRect().height}))})()`);
   assert(row_geometry.every((row,index)=>row.height===26 && (!index || row.top-row_geometry[index-1].top===26)), 'virtual row positions and CSS height share 26px without gaps or overlaps');
   for(const native_window of [false,true]){

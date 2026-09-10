@@ -18,7 +18,8 @@
     "monaco-editor": "0.56.0",
     "node-pty": "1.1.0",
     "vscode-oniguruma": "1.7.0",
-    "vscode-textmate": "9.3.2"
+    "vscode-textmate": "9.3.2",
+    "web-tree-sitter": "0.25.10"
   },
   "devDependencies": {
     "@plylrnsdy/decorate.js": "1.0.4",

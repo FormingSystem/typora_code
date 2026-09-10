@@ -7078,7 +7078,7 @@ https://creativecommons.org/licenses/by/4.0/
   function isWindowsDeviceRoot(code) {
     return code >= CHAR_UPPERCASE_A && code <= CHAR_UPPERCASE_Z || code >= CHAR_LOWERCASE_A && code <= CHAR_LOWERCASE_Z;
   }
-  function normalizeString(path, allowAboveRoot, separator, isPathSeparator3) {
+  function normalizeString(path, allowAboveRoot, separator2, isPathSeparator3) {
     let res = "";
     let lastSegmentLength = 0;
     let lastSlash = -1;
@@ -7097,13 +7097,13 @@ https://creativecommons.org/licenses/by/4.0/
         else if (dots === 2) {
           if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== CHAR_DOT || res.charCodeAt(res.length - 2) !== CHAR_DOT) {
             if (res.length > 2) {
-              const lastSlashIndex = res.lastIndexOf(separator);
+              const lastSlashIndex = res.lastIndexOf(separator2);
               if (lastSlashIndex === -1) {
                 res = "";
                 lastSegmentLength = 0;
               } else {
                 res = res.slice(0, lastSlashIndex);
-                lastSegmentLength = res.length - 1 - res.lastIndexOf(separator);
+                lastSegmentLength = res.length - 1 - res.lastIndexOf(separator2);
               }
               lastSlash = i;
               dots = 0;
@@ -7117,12 +7117,12 @@ https://creativecommons.org/licenses/by/4.0/
             }
           }
           if (allowAboveRoot) {
-            res += res.length > 0 ? "".concat(separator, "..") : "..";
+            res += res.length > 0 ? "".concat(separator2, "..") : "..";
             lastSegmentLength = 2;
           }
         } else {
           if (res.length > 0) {
-            res += "".concat(separator).concat(path.slice(lastSlash + 1, i));
+            res += "".concat(separator2).concat(path.slice(lastSlash + 1, i));
           } else {
             res = path.slice(lastSlash + 1, i);
           }
@@ -22540,7 +22540,7 @@ https://creativecommons.org/licenses/by/4.0/
     return "";
   }
   function isEqualOrParent(base, parentCandidate, ignoreCase, forcePosixSemantics = false) {
-    const separator = forcePosixSemantics ? posix.sep : sep;
+    const separator2 = forcePosixSemantics ? posix.sep : sep;
     if (base === parentCandidate) {
       return true;
     }
@@ -22563,13 +22563,13 @@ https://creativecommons.org/licenses/by/4.0/
         return true;
       }
       let sepOffset = parentCandidate.length;
-      if (parentCandidate.charAt(parentCandidate.length - 1) === separator) {
+      if (parentCandidate.charAt(parentCandidate.length - 1) === separator2) {
         sepOffset--;
       }
-      return base.charAt(sepOffset) === separator;
+      return base.charAt(sepOffset) === separator2;
     }
-    if (parentCandidate.charAt(parentCandidate.length - 1) !== separator) {
-      parentCandidate += separator;
+    if (parentCandidate.charAt(parentCandidate.length - 1) !== separator2) {
+      parentCandidate += separator2;
     }
     return base.indexOf(parentCandidate) === 0;
   }
@@ -126932,7 +126932,7 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/base/browser/ui/iconLabel/iconLabel.js
-  function splitMatches(labels, separator, matches) {
+  function splitMatches(labels, separator2, matches) {
     if (!matches) {
       return void 0;
     }
@@ -126940,7 +126940,7 @@ https://creativecommons.org/licenses/by/4.0/
     return labels.map((label) => {
       const labelRange = { start: labelStart, end: labelStart + label.length };
       const result = matches.map((match2) => Range2.intersect(labelRange, match2)).filter((range2) => !Range2.isEmpty(range2)).map(({ start, end }) => ({ start: start - labelStart, end: end - labelStart }));
-      labelStart = labelRange.end + separator.length;
+      labelStart = labelRange.end + separator2.length;
       return result;
     });
   }
@@ -127192,8 +127192,8 @@ https://creativecommons.org/licenses/by/4.0/
             this.container.textContent = "";
             this.container.classList.add("multiple");
             this.singleLabel = void 0;
-            const separator = options2?.separator || "/";
-            const matches = splitMatches(label, separator, options2?.matches);
+            const separator2 = options2?.separator || "/";
+            const matches = splitMatches(label, separator2, options2?.matches);
             for (let i = 0; i < label.length; i++) {
               const l = label[i];
               const m = matches ? matches[i] : void 0;
@@ -127202,7 +127202,7 @@ https://creativecommons.org/licenses/by/4.0/
               const highlightedLabel = this._labelDisposables.add(new HighlightedLabel(append(this.container, name)));
               highlightedLabel.set(l, m, void 0, options2?.labelEscapeNewLines, supportIcons);
               if (i < label.length - 1) {
-                append(name, $("span.label-separator", void 0, separator));
+                append(name, $("span.label-separator", void 0, separator2));
               }
             }
           }
@@ -127295,10 +127295,10 @@ https://creativecommons.org/licenses/by/4.0/
             this.renderKey(parent, keyLabel, Boolean(match2?.keyCode), "");
           }
         }
-        renderKey(parent, label, highlight, separator) {
+        renderKey(parent, label, highlight, separator2) {
           append(parent, this.createKeyElement(label, highlight ? ".highlight" : ""));
-          if (separator) {
-            append(parent, $7("span.monaco-keybinding-key-separator", void 0, separator));
+          if (separator2) {
+            append(parent, $7("span.monaco-keybinding-key-separator", void 0, separator2));
           }
         }
         renderUnbound(parent) {
@@ -127607,10 +127607,10 @@ https://creativecommons.org/licenses/by/4.0/
         QuickPickSeparatorFocusReason2[QuickPickSeparatorFocusReason2["ACTIVE_ITEM"] = 2] = "ACTIVE_ITEM";
       })(QuickPickSeparatorFocusReason || (QuickPickSeparatorFocusReason = {}));
       QuickPickSeparatorElement = class extends BaseQuickPickItemElement {
-        constructor(index, fireSeparatorButtonTriggered, separator) {
-          super(index, false, separator);
+        constructor(index, fireSeparatorButtonTriggered, separator2) {
+          super(index, false, separator2);
           this.fireSeparatorButtonTriggered = fireSeparatorButtonTriggered;
-          this.separator = separator;
+          this.separator = separator2;
           this.children = new Array();
           this.focusInsideSeparator = QuickPickSeparatorFocusReason.NONE;
         }
@@ -127872,8 +127872,8 @@ https://creativecommons.org/licenses/by/4.0/
         get visibleSeparators() {
           return [...this._visibleSeparatorsFrequency.keys()];
         }
-        isSeparatorVisible(separator) {
-          return this._visibleSeparatorsFrequency.has(separator);
+        isSeparatorVisible(separator2) {
+          return this._visibleSeparatorsFrequency.has(separator2);
         }
         renderElement(node, index, data) {
           const element = node.element;
@@ -127923,15 +127923,15 @@ https://creativecommons.org/licenses/by/4.0/
           }
           super.disposeElement(element, _index, data);
         }
-        addSeparator(separator) {
-          this._visibleSeparatorsFrequency.set(separator, (this._visibleSeparatorsFrequency.get(separator) || 0) + 1);
+        addSeparator(separator2) {
+          this._visibleSeparatorsFrequency.set(separator2, (this._visibleSeparatorsFrequency.get(separator2) || 0) + 1);
         }
-        removeSeparator(separator) {
-          const frequency = this._visibleSeparatorsFrequency.get(separator) || 0;
+        removeSeparator(separator2) {
+          const frequency = this._visibleSeparatorsFrequency.get(separator2) || 0;
           if (frequency > 1) {
-            this._visibleSeparatorsFrequency.set(separator, frequency - 1);
+            this._visibleSeparatorsFrequency.set(separator2, frequency - 1);
           } else {
-            this._visibleSeparatorsFrequency.delete(separator);
+            this._visibleSeparatorsFrequency.delete(separator2);
           }
         }
       };
@@ -128160,42 +128160,42 @@ https://creativecommons.org/licenses/by/4.0/
         _registerSeparatorActionShowingListeners() {
           this._register(this._tree.onDidChangeFocus((e) => {
             const parent = e.elements[0] ? this._tree.getParentElement(e.elements[0]) : null;
-            for (const separator of this._separatorRenderer.visibleSeparators) {
-              const value = separator === parent;
-              const currentActive = !!(separator.focusInsideSeparator & QuickPickSeparatorFocusReason.ACTIVE_ITEM);
+            for (const separator2 of this._separatorRenderer.visibleSeparators) {
+              const value = separator2 === parent;
+              const currentActive = !!(separator2.focusInsideSeparator & QuickPickSeparatorFocusReason.ACTIVE_ITEM);
               if (currentActive !== value) {
                 if (value) {
-                  separator.focusInsideSeparator |= QuickPickSeparatorFocusReason.ACTIVE_ITEM;
+                  separator2.focusInsideSeparator |= QuickPickSeparatorFocusReason.ACTIVE_ITEM;
                 } else {
-                  separator.focusInsideSeparator &= ~QuickPickSeparatorFocusReason.ACTIVE_ITEM;
+                  separator2.focusInsideSeparator &= ~QuickPickSeparatorFocusReason.ACTIVE_ITEM;
                 }
-                this._tree.rerender(separator);
+                this._tree.rerender(separator2);
               }
             }
           }));
           this._register(this._tree.onMouseOver((e) => {
             const parent = e.element ? this._tree.getParentElement(e.element) : null;
-            for (const separator of this._separatorRenderer.visibleSeparators) {
-              if (separator !== parent) {
+            for (const separator2 of this._separatorRenderer.visibleSeparators) {
+              if (separator2 !== parent) {
                 continue;
               }
-              const currentMouse = !!(separator.focusInsideSeparator & QuickPickSeparatorFocusReason.MOUSE_HOVER);
+              const currentMouse = !!(separator2.focusInsideSeparator & QuickPickSeparatorFocusReason.MOUSE_HOVER);
               if (!currentMouse) {
-                separator.focusInsideSeparator |= QuickPickSeparatorFocusReason.MOUSE_HOVER;
-                this._tree.rerender(separator);
+                separator2.focusInsideSeparator |= QuickPickSeparatorFocusReason.MOUSE_HOVER;
+                this._tree.rerender(separator2);
               }
             }
           }));
           this._register(this._tree.onMouseOut((e) => {
             const parent = e.element ? this._tree.getParentElement(e.element) : null;
-            for (const separator of this._separatorRenderer.visibleSeparators) {
-              if (separator !== parent) {
+            for (const separator2 of this._separatorRenderer.visibleSeparators) {
+              if (separator2 !== parent) {
                 continue;
               }
-              const currentMouse = !!(separator.focusInsideSeparator & QuickPickSeparatorFocusReason.MOUSE_HOVER);
+              const currentMouse = !!(separator2.focusInsideSeparator & QuickPickSeparatorFocusReason.MOUSE_HOVER);
               if (currentMouse) {
-                separator.focusInsideSeparator &= ~QuickPickSeparatorFocusReason.MOUSE_HOVER;
-                this._tree.rerender(separator);
+                separator2.focusInsideSeparator &= ~QuickPickSeparatorFocusReason.MOUSE_HOVER;
+                this._tree.rerender(separator2);
               }
             }
           }));
@@ -128240,11 +128240,11 @@ https://creativecommons.org/licenses/by/4.0/
               element = currentSeparatorElement;
             } else {
               const previous = index > 0 ? inputElements[index - 1] : void 0;
-              let separator;
+              let separator2;
               if (previous && previous.type === "separator" && !previous.buttons) {
-                separator = previous;
+                separator2 = previous;
               }
-              const qpi = new QuickPickItemElement(index, currentSeparatorElement?.children ? currentSeparatorElement.children.length : index, this._hasCheckboxes && item.pickable !== false, (e) => this._onButtonTriggered.fire(e), this._elementChecked, item, separator);
+              const qpi = new QuickPickItemElement(index, currentSeparatorElement?.children ? currentSeparatorElement.children.length : index, this._hasCheckboxes && item.pickable !== false, (e) => this._onButtonTriggered.fire(e), this._elementChecked, item, separator2);
               this._itemElements.push(qpi);
               if (currentSeparatorElement) {
                 currentSeparatorElement.children.push(qpi);
@@ -158232,7 +158232,12 @@ https://creativecommons.org/licenses/by/4.0/
     "split-horizontal": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12.5 1H3.5C2.122 1 1 2.122 1 3.5V12.5C1 13.878 2.122 15 3.5 15H12.5C13.878 15 15 13.878 15 12.5V3.5C15 2.122 13.878 1 12.5 1ZM2 12.5V3.5C2 2.673 2.673 2 3.5 2H7.5V14H3.5C2.673 14 2 13.327 2 12.5ZM14 12.5C14 13.327 13.327 14 12.5 14H8.5V2H12.5C13.327 2 14 2.673 14 3.5V12.5Z"/></svg>',
     trash: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14 2H10C10 0.897 9.103 0 8 0C6.897 0 6 0.897 6 2H2C1.724 2 1.5 2.224 1.5 2.5C1.5 2.776 1.724 3 2 3H2.54L3.349 12.708C3.456 13.994 4.55 15 5.84 15H10.159C11.449 15 12.543 13.993 12.65 12.708L13.459 3H13.999C14.275 3 14.499 2.776 14.499 2.5C14.499 2.224 14.275 2 13.999 2H14ZM8 1C8.551 1 9 1.449 9 2H7C7 1.449 7.449 1 8 1ZM11.655 12.625C11.591 13.396 10.934 14 10.16 14H5.841C5.067 14 4.41 13.396 4.346 12.625L3.544 3H12.458L11.656 12.625H11.655ZM7 5.5V11.5C7 11.776 6.776 12 6.5 12C6.224 12 6 11.776 6 11.5V5.5C6 5.224 6.224 5 6.5 5C6.776 5 7 5.224 7 5.5ZM10 5.5V11.5C10 11.776 9.776 12 9.5 12C9.224 12 9 11.776 9 11.5V5.5C9 5.224 9.224 5 9.5 5C9.776 5 10 5.224 10 5.5Z"/></svg>',
     "save-all": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M15 6.12V11C15 12.06 14.58 13.08 13.83 13.83C13.08 14.58 12.06 15 11 15H5C4.91 15 4.82 14.99 4.74 14.98C4.66 14.97 4.58 14.96 4.5 14.93C4.32 14.89 4.15 14.82 4 14.73C3.92 14.68 3.85 14.64 3.78 14.58C3.64 14.48 3.52 14.36 3.42 14.22C3.36 14.15 3.32 14.08 3.27 14H11C11.35 14 11.69 13.94 12 13.82C12.42 13.68 12.8 13.44 13.12 13.12C13.68 12.56 14 11.8 14 11V4.3L14.41 4.71C14.79 5.08 15 5.6 15 6.12ZM11 13H3C1.897 13 1 12.103 1 11V3C1 1.897 1.897 1 3 1H9.879C10.405 1 10.921 1.213 11.293 1.586L12.414 2.707C12.787 3.079 13 3.595 13 4.121V11C13 12.103 12.103 13 11 13ZM5.999 3H8V2H5.999V3ZM9 8H5V12H9V8ZM10 8V12H11C11.551 12 12 11.551 12 11V4.121C12 3.858 11.893 3.6 11.707 3.414L10.586 2.293C10.4 2.107 10.142 2 9.879 2H9V3C9 3.551 8.551 4 8 4H6C5.449 4 5 3.551 5 3V2H3C2.449 2 2 2.449 2 3V11C2 11.551 2.449 12 3 12H4V8C4 7.449 4.449 7 5 7H9C9.551 7 10 7.449 10 8Z"/></svg>',
-    "close-all": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 6V11C15 13.21 13.21 15 11 15H6C5.26 15 4.62 14.6 4.27 14H11C12.65 14 14 12.65 14 11V4.27C14.6 4.62 15 5.26 15 6ZM11 13H4C2.897 13 2 12.103 2 11V4C2 2.897 2.897 2 4 2H11C12.103 2 13 2.897 13 4V11C13 12.103 12.103 13 11 13ZM4 12H11C11.552 12 12 11.552 12 11V4C12 3.449 11.552 3 11 3H4C3.448 3 3 3.449 3 4V11C3 11.552 3.448 12 4 12ZM9.854 5.146C9.659 4.951 9.342 4.951 9.147 5.146L7.501 6.792L5.855 5.146C5.66 4.951 5.343 4.951 5.148 5.146C4.953 5.341 4.953 5.658 5.148 5.853L6.794 7.499L5.148 9.145C4.953 9.34 4.953 9.657 5.148 9.852C5.246 9.95 5.374 9.998 5.502 9.998C5.63 9.998 5.758 9.949 5.856 9.852L7.502 8.206L9.148 9.852C9.246 9.95 9.374 9.998 9.502 9.998C9.63 9.998 9.758 9.949 9.856 9.852C10.051 9.657 10.051 9.34 9.856 9.145L8.21 7.499L9.856 5.853C10.051 5.658 10.051 5.341 9.856 5.146H9.854Z"/></svg>'
+    "close-all": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 6V11C15 13.21 13.21 15 11 15H6C5.26 15 4.62 14.6 4.27 14H11C12.65 14 14 12.65 14 11V4.27C14.6 4.62 15 5.26 15 6ZM11 13H4C2.897 13 2 12.103 2 11V4C2 2.897 2.897 2 4 2H11C12.103 2 13 2.897 13 4V11C13 12.103 12.103 13 11 13ZM4 12H11C11.552 12 12 11.552 12 11V4C12 3.449 11.552 3 11 3H4C3.448 3 3 3.449 3 4V11C3 11.552 3.448 12 4 12ZM9.854 5.146C9.659 4.951 9.342 4.951 9.147 5.146L7.501 6.792L5.855 5.146C5.66 4.951 5.343 4.951 5.148 5.146C4.953 5.341 4.953 5.658 5.148 5.853L6.794 7.499L5.148 9.145C4.953 9.34 4.953 9.657 5.148 9.852C5.246 9.95 5.374 9.998 5.502 9.998C5.63 9.998 5.758 9.949 5.856 9.852L7.502 8.206L9.148 9.852C9.246 9.95 9.374 9.998 9.502 9.998C9.63 9.998 9.758 9.949 9.856 9.852C10.051 9.657 10.051 9.34 9.856 9.145L8.21 7.499L9.856 5.853C10.051 5.658 10.051 5.341 9.856 5.146H9.854Z"/></svg>',
+    "symbol-method": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4.69684 5.04043C4.44303 4.93166 4.14909 5.04923 4.04031 5.30305C3.93153 5.55686 4.04911 5.8508 4.30292 5.95958L7.49988 7.3297V10.5C7.49988 10.7761 7.72374 11 7.99988 11C8.27603 11 8.49988 10.7761 8.49988 10.5V7.3297L11.6968 5.95958C11.9507 5.8508 12.0682 5.55686 11.9595 5.30305C11.8507 5.04923 11.5567 4.93166 11.3029 5.04043L7.99988 6.45602L4.69684 5.04043ZM9.07694 1.37855C8.38373 1.11193 7.61627 1.11193 6.92306 1.37855L1.96153 3.28683C1.38224 3.50964 1 4.06619 1 4.68685V11.3133C1 11.9339 1.38224 12.4905 1.96153 12.7133L6.92306 14.6216C7.61627 14.8882 8.38373 14.8882 9.07694 14.6216L14.0385 12.7133C14.6178 12.4905 15 11.9339 15 11.3133V4.68685C15 4.06619 14.6178 3.50964 14.0385 3.28683L9.07694 1.37855ZM7.28204 2.3119C7.74418 2.13415 8.25582 2.13415 8.71796 2.3119L13.6795 4.22018C13.8726 4.29445 14 4.47997 14 4.68685V11.3133C14 11.5201 13.8726 11.7057 13.6795 11.7799L8.71796 13.6882C8.25582 13.866 7.74418 13.866 7.28204 13.6882L2.32051 11.7799C2.12741 11.7057 2 11.5201 2 11.3133V4.68685C2 4.47997 2.12741 4.29445 2.32051 4.22018L7.28204 2.3119Z"/></svg>',
+    "symbol-variable": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M11.279 5.78975L8.799 5.06575C8.59 5.00575 8.372 5.01475 8.168 5.08975L4.648 6.40975C4.26 6.55575 4 6.93175 4 7.34675V9.13975C4 9.57075 4.274 9.95175 4.684 10.0877L7.165 10.9147C7.268 10.9497 7.376 10.9667 7.483 10.9667C7.611 10.9667 7.739 10.9427 7.859 10.8937L11.376 9.46475C11.755 9.31175 12 8.94775 12 8.53875V6.74975C12 6.30775 11.703 5.91275 11.279 5.78975ZM11 8.53875L7.483 9.96775L5 9.13975V7.34675L8.521 6.02675L11 6.75075V8.53975V8.53875ZM7.48 7.46675L8.807 6.91375C9.06 6.80875 9.355 6.92775 9.461 7.18275C9.566 7.43775 9.446 7.73075 9.191 7.83675L7.999 8.33375V8.62575C7.999 8.90175 7.775 9.12575 7.499 9.12575C7.223 9.12575 6.999 8.90175 6.999 8.62575V8.36075L6.591 8.22475C6.329 8.13775 6.188 7.85475 6.275 7.59275C6.364 7.33075 6.647 7.19175 6.908 7.27675L7.48 7.46675Z"/><path d="M12.5 14H11.5C11.224 14 11 13.776 11 13.5C11 13.224 11.224 13 11.5 13H12.5C12.776 13 13 12.775 13 12.5V3.5C13 3.225 12.776 3 12.5 3H11.5C11.224 3 11 2.776 11 2.5C11 2.224 11.224 2 11.5 2H12.5C13.327 2 14 2.673 14 3.5V12.5C14 13.327 13.327 14 12.5 14ZM5 13.5C5 13.224 4.776 13 4.5 13H3.5C3.224 13 3 12.775 3 12.5V3.5C3 3.225 3.224 3 3.5 3H4.5C4.776 3 5 2.776 5 2.5C5 2.224 4.776 2 4.5 2H3.5C2.673 2 2 2.673 2 3.5V12.5C2 13.327 2.673 14 3.5 14H4.5C4.776 14 5 13.776 5 13.5Z"/></svg>',
+    "symbol-property": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6.99989 5C6.99989 2.79086 8.79075 1 10.9999 1C11.5087 1 11.9964 1.09524 12.4454 1.26931C12.603 1.3304 12.719 1.46698 12.7539 1.63235C12.7888 1.79773 12.7377 1.96953 12.6182 2.08904L10.7072 4.00012L12.0001 5.29302L13.911 3.38207C14.0305 3.26254 14.2023 3.2115 14.3677 3.24637C14.5331 3.28125 14.6697 3.39732 14.7307 3.55493C14.9047 4.0038 14.9999 4.49138 14.9999 5C14.9999 7.20914 13.209 9 10.9999 9C10.6198 9 10.2514 8.94684 9.90215 8.84736L4.89566 13.9192C4.18171 14.6425 3.03692 14.7101 2.24289 14.0757C1.32876 13.3455 1.24088 11.9872 2.05327 11.1453L7.10411 5.91061C7.03588 5.61771 6.99989 5.31279 6.99989 5ZM10.9999 2C9.34303 2 7.99989 3.34315 7.99989 5C7.99989 5.31548 8.04841 5.61868 8.13805 5.90305C8.19313 6.07781 8.14821 6.26869 8.02099 6.40054L2.7729 11.8396C2.3696 12.2576 2.41323 12.9319 2.86703 13.2944C3.26123 13.6093 3.82955 13.5758 4.18398 13.2167L9.40817 7.9243C9.54702 7.78364 9.75569 7.73797 9.9406 7.80777C10.2693 7.93186 10.6261 8 10.9999 8C12.6567 8 13.9999 6.65685 13.9999 5C13.9999 4.9056 13.9955 4.81228 13.987 4.72023L12.3537 6.35368C12.2599 6.44745 12.1327 6.50013 12.0001 6.50013C11.8675 6.50013 11.7403 6.44745 11.6466 6.35368L9.64655 4.35368C9.45129 4.15842 9.45129 3.84185 9.64655 3.64658L11.2802 2.01289C11.188 2.00436 11.0945 2 10.9999 2Z"/></svg>',
+    "symbol-namespace": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M5 2C3.89543 2 3 2.89543 3 4V6.00469C3 6.53494 2.99231 6.79889 2.91088 7.00209C2.84826 7.15835 2.71576 7.33309 2.2764 7.55276C2.10701 7.63745 2 7.81058 2 7.99997C2 8.18935 2.10699 8.36249 2.27638 8.44719C2.71569 8.66685 2.84809 8.84151 2.91076 8.99819C2.99233 9.20211 3 9.46732 3 10L3 12C3 13.1046 3.89543 14 5 14C5.27614 14 5.5 13.7761 5.5 13.5C5.5 13.2239 5.27614 13 5 13C4.44772 13 4 12.5523 4 12L4.00003 9.94145C4.00033 9.49235 4.00065 9.03033 3.83924 8.6268C3.74212 8.384 3.59654 8.17962 3.40072 8.00002C3.59646 7.82057 3.74199 7.61645 3.83912 7.37408C4.00065 6.971 4.00033 6.51001 4.00003 6.063L4 4C4 3.44772 4.44772 3 5 3C5.27614 3 5.5 2.77614 5.5 2.5C5.5 2.22386 5.27614 2 5 2ZM11 2C12.1046 2 13 2.89543 13 4V6.00469C13 6.53494 13.0077 6.79889 13.0891 7.00209C13.1517 7.15835 13.2842 7.33309 13.7236 7.55276C13.893 7.63745 14 7.81058 14 7.99997C14 8.18935 13.893 8.36249 13.7236 8.44719C13.2843 8.66685 13.1519 8.84151 13.0892 8.99819C13.0077 9.20211 13 9.46732 13 10V12C13 13.1046 12.1046 14 11 14C10.7239 14 10.5 13.7761 10.5 13.5C10.5 13.2239 10.7239 13 11 13C11.5523 13 12 12.5523 12 12L12 9.94145C11.9997 9.49235 11.9994 9.03033 12.1608 8.6268C12.2579 8.384 12.4035 8.17962 12.5993 8.00002C12.4035 7.82057 12.258 7.61645 12.1609 7.37408C11.9993 6.971 11.9997 6.51001 12 6.063L12 4C12 3.44772 11.5523 3 11 3C10.7239 3 10.5 2.77614 10.5 2.5C10.5 2.22386 10.7239 2 11 2Z"/></svg>',
+    "symbol-enum": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 3.5V7.5C15 7.9 14.85 8.28 14.56 8.56C14.28 8.84 13.9 9 13.5 9H11V8.5C11 8.33 10.98 8.16 10.95 8H13.5C13.63 8 13.76 7.95 13.85 7.85C13.95 7.76 14 7.63 14 7.5V3.5C14 3.37 13.95 3.24 13.85 3.15C13.76 3.05 13.63 3 13.5 3H7.5C7.37 3 7.24 3.05 7.15 3.15C7.05 3.24 7 3.37 7 3.5V6H6V3.5C6 3.1 6.16 2.72 6.44 2.44C6.72 2.16 7.1 2 7.5 2H13.5C13.9 2 14.28 2.16 14.56 2.44C14.84 2.72 15 3.1 15 3.5ZM12.5 5C12.776 5 13 4.776 13 4.5C13 4.224 12.776 4 12.5 4H8.5C8.224 4 8 4.224 8 4.5C8 4.776 8.224 5 8.5 5H12.5ZM13 6.5C13 6.22 12.78 6 12.5 6H8.5C9.32 6 10.04 6.39 10.5 7H12.5C12.78 7 13 6.78 13 6.5ZM7.5 9H3.5C3.224 9 3 9.224 3 9.5C3 9.776 3.224 10 3.5 10H7.5C7.776 10 8 9.776 8 9.5C8 9.224 7.776 9 7.5 9ZM7.5 11H3.5C3.224 11 3 11.224 3 11.5C3 11.776 3.224 12 3.5 12H7.5C7.776 12 8 11.776 8 11.5C8 11.224 7.776 11 7.5 11ZM10 8.5V12.5C10 13.327 9.327 14 8.5 14H2.5C1.673 14 1 13.327 1 12.5V8.5C1 7.673 1.673 7 2.5 7H8.5C9.327 7 10 7.673 10 8.5ZM9 8.5C9 8.225 8.775 8 8.5 8H2.5C2.225 8 2 8.225 2 8.5V12.5C2 12.775 2.225 13 2.5 13H8.5C8.775 13 9 12.775 9 12.5V8.5Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -176075,9 +176080,9 @@ https://creativecommons.org/licenses/by/4.0/
       menus.push(menu);
       for (const entry of items) {
         if (entry.separator && menu.children.length) {
-          const separator = workspace_element("hr");
-          separator.setAttribute("role", "separator");
-          menu.append(separator);
+          const separator2 = workspace_element("hr");
+          separator2.setAttribute("role", "separator");
+          menu.append(separator2);
         }
         const node = workspace_button("", () => {
           if (entry.children) open_child(true);
@@ -177556,11 +177561,11 @@ https://creativecommons.org/licenses/by/4.0/
   function parse_markdown_file_target(target) {
     const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
     if (!candidate || is_source_file_uri(candidate)) return;
-    let separator = candidate.indexOf("#");
-    while (separator >= 0) {
-      const file_path = candidate.slice(0, separator);
-      if (is_markdown_file(file_path)) return { file_path, hash: candidate.slice(separator) };
-      separator = candidate.indexOf("#", separator + 1);
+    let separator2 = candidate.indexOf("#");
+    while (separator2 >= 0) {
+      const file_path = candidate.slice(0, separator2);
+      if (is_markdown_file(file_path)) return { file_path, hash: candidate.slice(separator2) };
+      separator2 = candidate.indexOf("#", separator2 + 1);
     }
     return is_markdown_file(candidate) ? { file_path: candidate } : void 0;
   }
@@ -177890,6 +177895,7 @@ https://creativecommons.org/licenses/by/4.0/
       action();
     };
     const keydown = (event) => {
+      if (primary_modifier(event) && document.querySelector(".workspace-titlebar-popup")) window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
       const active_picker = get_workspace_quick_open();
       if (!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
         run(event, () => {
@@ -179642,12 +179648,12 @@ https://creativecommons.org/licenses/by/4.0/
         item.remove();
         owned_items.delete(item);
       });
-      const separator = document.createElement("li");
-      separator.className = "divider typ-menuitem linux-note-path-item";
-      separator.setAttribute("for-file", "");
-      separator.setAttribute("for-folder", "");
-      menu.append(separator);
-      owned_items.add(separator);
+      const separator2 = document.createElement("li");
+      separator2.className = "divider typ-menuitem linux-note-path-item";
+      separator2.setAttribute("for-file", "");
+      separator2.setAttribute("for-folder", "");
+      menu.append(separator2);
+      owned_items.add(separator2);
       for (const [relative2, label, key] of [[false, "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", "absolute"], [true, "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", "relative"]]) {
         const item = document.createElement("li");
         item.className = "typ-menuitem linux-note-path-item";
@@ -179814,6 +179820,186 @@ https://creativecommons.org/licenses/by/4.0/
       rows.push({ lane, color: current.color, edges });
     }
     return { rows, width: width2 };
+  }
+
+  // src/terminal_theme.ts
+  function terminal_theme() {
+    const body = getComputedStyle(document.body);
+    const root = getComputedStyle(document.documentElement);
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d");
+    let rgb = [255, 255, 255];
+    if (context) {
+      for (const color of ["#ffffff", root.backgroundColor, body.backgroundColor]) {
+        context.fillStyle = color;
+        context.fillRect(0, 0, 1, 1);
+      }
+      rgb = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+    }
+    const background = "rgb(".concat(rgb.join(", "), ")");
+    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
+    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
+    return {
+      background,
+      foreground: foreground2,
+      cursor: foreground2,
+      cursorAccent: background,
+      selectionBackground: dark ? "#264f78" : "#add6ff",
+      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+      black: dark ? "#000000" : "#24292f",
+      red: dark ? "#cd3131" : "#a31515",
+      green: dark ? "#0dbc79" : "#16713b",
+      yellow: dark ? "#e5e510" : "#795e26",
+      blue: dark ? "#3b8eea" : "#0451a5",
+      magenta: dark ? "#bc3fbc" : "#af00db",
+      cyan: dark ? "#11a8cd" : "#0070a8",
+      white: dark ? "#e5e5e5" : "#555555",
+      brightBlack: dark ? "#666666" : "#666666",
+      brightRed: dark ? "#f14c4c" : "#c72e2e",
+      brightGreen: dark ? "#23d18b" : "#16825d",
+      brightYellow: dark ? "#f5f543" : "#8a6500",
+      brightBlue: dark ? "#3b8eea" : "#0065b3",
+      brightMagenta: dark ? "#d670d6" : "#a626a4",
+      brightCyan: dark ? "#29b8db" : "#007f8b",
+      brightWhite: dark ? "#ffffff" : "#333333"
+    };
+  }
+  function observe_terminal_theme(apply3) {
+    let frame2 = 0;
+    let previous = "";
+    const update = () => {
+      cancelAnimationFrame(frame2);
+      frame2 = requestAnimationFrame(() => {
+        const theme2 = terminal_theme();
+        const key = JSON.stringify(theme2);
+        if (key !== previous) {
+          previous = key;
+          apply3(theme2);
+        }
+      });
+    };
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+    document.head.addEventListener("load", update, true);
+    window.addEventListener("focus", update);
+    update();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame2);
+      document.head.removeEventListener("load", update, true);
+      window.removeEventListener("focus", update);
+    };
+  }
+
+  // vendor/vscode_seti/icon_theme.json
+  var icon_theme_default = { information_for_contributors: ["This file has been generated from data in https://github.com/jesseweed/seti-ui", "- icon definitions: https://github.com/jesseweed/seti-ui/blob/master/styles/_fonts/seti.less", "- icon colors: https://github.com/jesseweed/seti-ui/blob/master/styles/ui-variables.less", "- file associations: https://github.com/jesseweed/seti-ui/blob/master/styles/components/icons/mapping.less", "If you want to provide a fix or improvement, please create a pull request against the jesseweed/seti-ui repository.", "Once accepted there, we are happy to receive an update request."], fonts: [{ id: "seti", src: [{ path: "./seti.woff", format: "woff" }], weight: "normal", style: "normal", size: "150%" }], iconDefinitions: { _R_light: { fontCharacter: "\\E001", fontColor: "#498ba7" }, _R: { fontCharacter: "\\E001", fontColor: "#519aba" }, _argdown_light: { fontCharacter: "\\E003", fontColor: "#498ba7" }, _argdown: { fontCharacter: "\\E003", fontColor: "#519aba" }, _asm_light: { fontCharacter: "\\E004", fontColor: "#b8383d" }, _asm: { fontCharacter: "\\E004", fontColor: "#cc3e44" }, _audio_light: { fontCharacter: "\\E005", fontColor: "#9068b0" }, _audio: { fontCharacter: "\\E005", fontColor: "#a074c4" }, _babel_light: { fontCharacter: "\\E006", fontColor: "#b7b73b" }, _babel: { fontCharacter: "\\E006", fontColor: "#cbcb41" }, _bazel_light: { fontCharacter: "\\E007", fontColor: "#7fae42" }, _bazel: { fontCharacter: "\\E007", fontColor: "#8dc149" }, _bazel_1_light: { fontCharacter: "\\E007", fontColor: "#455155" }, _bazel_1: { fontCharacter: "\\E007", fontColor: "#4d5a5e" }, _bicep_light: { fontCharacter: "\\E008", fontColor: "#498ba7" }, _bicep: { fontCharacter: "\\E008", fontColor: "#519aba" }, _bower_light: { fontCharacter: "\\E009", fontColor: "#cc6d2e" }, _bower: { fontCharacter: "\\E009", fontColor: "#e37933" }, _bsl_light: { fontCharacter: "\\E00A", fontColor: "#b8383d" }, _bsl: { fontCharacter: "\\E00A", fontColor: "#cc3e44" }, _c_light: { fontCharacter: "\\E00C", fontColor: "#498ba7" }, _c: { fontCharacter: "\\E00C", fontColor: "#519aba" }, "_c-sharp_light": { fontCharacter: "\\E00B", fontColor: "#498ba7" }, "_c-sharp": { fontCharacter: "\\E00B", fontColor: "#519aba" }, _c_1_light: { fontCharacter: "\\E00C", fontColor: "#9068b0" }, _c_1: { fontCharacter: "\\E00C", fontColor: "#a074c4" }, _c_2_light: { fontCharacter: "\\E00C", fontColor: "#b7b73b" }, _c_2: { fontCharacter: "\\E00C", fontColor: "#cbcb41" }, _cake_light: { fontCharacter: "\\E00D", fontColor: "#b8383d" }, _cake: { fontCharacter: "\\E00D", fontColor: "#cc3e44" }, _cake_php_light: { fontCharacter: "\\E00E", fontColor: "#b8383d" }, _cake_php: { fontCharacter: "\\E00E", fontColor: "#cc3e44" }, _clock_light: { fontCharacter: "\\E012", fontColor: "#498ba7" }, _clock: { fontCharacter: "\\E012", fontColor: "#519aba" }, _clock_1_light: { fontCharacter: "\\E012", fontColor: "#627379" }, _clock_1: { fontCharacter: "\\E012", fontColor: "#6d8086" }, _clojure_light: { fontCharacter: "\\E013", fontColor: "#7fae42" }, _clojure: { fontCharacter: "\\E013", fontColor: "#8dc149" }, _clojure_1_light: { fontCharacter: "\\E013", fontColor: "#498ba7" }, _clojure_1: { fontCharacter: "\\E013", fontColor: "#519aba" }, "_code-climate_light": { fontCharacter: "\\E014", fontColor: "#7fae42" }, "_code-climate": { fontCharacter: "\\E014", fontColor: "#8dc149" }, "_code-search_light": { fontCharacter: "\\E015", fontColor: "#9068b0" }, "_code-search": { fontCharacter: "\\E015", fontColor: "#a074c4" }, _coffee_light: { fontCharacter: "\\E016", fontColor: "#b7b73b" }, _coffee: { fontCharacter: "\\E016", fontColor: "#cbcb41" }, _coldfusion_light: { fontCharacter: "\\E018", fontColor: "#498ba7" }, _coldfusion: { fontCharacter: "\\E018", fontColor: "#519aba" }, _config_light: { fontCharacter: "\\E019", fontColor: "#627379" }, _config: { fontCharacter: "\\E019", fontColor: "#6d8086" }, _cpp_light: { fontCharacter: "\\E01A", fontColor: "#498ba7" }, _cpp: { fontCharacter: "\\E01A", fontColor: "#519aba" }, _cpp_1_light: { fontCharacter: "\\E01A", fontColor: "#9068b0" }, _cpp_1: { fontCharacter: "\\E01A", fontColor: "#a074c4" }, _cpp_2_light: { fontCharacter: "\\E01A", fontColor: "#b7b73b" }, _cpp_2: { fontCharacter: "\\E01A", fontColor: "#cbcb41" }, _crystal_light: { fontCharacter: "\\E01B", fontColor: "#bfc2c1" }, _crystal: { fontCharacter: "\\E01B", fontColor: "#d4d7d6" }, _crystal_embedded_light: { fontCharacter: "\\E01C", fontColor: "#bfc2c1" }, _crystal_embedded: { fontCharacter: "\\E01C", fontColor: "#d4d7d6" }, _css_light: { fontCharacter: "\\E01D", fontColor: "#498ba7" }, _css: { fontCharacter: "\\E01D", fontColor: "#519aba" }, _csv_light: { fontCharacter: "\\E01E", fontColor: "#7fae42" }, _csv: { fontCharacter: "\\E01E", fontColor: "#8dc149" }, _cu_light: { fontCharacter: "\\E01F", fontColor: "#7fae42" }, _cu: { fontCharacter: "\\E01F", fontColor: "#8dc149" }, _cu_1_light: { fontCharacter: "\\E01F", fontColor: "#9068b0" }, _cu_1: { fontCharacter: "\\E01F", fontColor: "#a074c4" }, _d_light: { fontCharacter: "\\E020", fontColor: "#b8383d" }, _d: { fontCharacter: "\\E020", fontColor: "#cc3e44" }, _dart_light: { fontCharacter: "\\E021", fontColor: "#498ba7" }, _dart: { fontCharacter: "\\E021", fontColor: "#519aba" }, _db_light: { fontCharacter: "\\E022", fontColor: "#dd4b78" }, _db: { fontCharacter: "\\E022", fontColor: "#f55385" }, _db_1_light: { fontCharacter: "\\E022", fontColor: "#498ba7" }, _db_1: { fontCharacter: "\\E022", fontColor: "#519aba" }, _default_light: { fontCharacter: "\\E023", fontColor: "#bfc2c1" }, _default: { fontCharacter: "\\E023", fontColor: "#d4d7d6" }, _docker_light: { fontCharacter: "\\E025", fontColor: "#498ba7" }, _docker: { fontCharacter: "\\E025", fontColor: "#519aba" }, _docker_1_light: { fontCharacter: "\\E025", fontColor: "#455155" }, _docker_1: { fontCharacter: "\\E025", fontColor: "#4d5a5e" }, _docker_2_light: { fontCharacter: "\\E025", fontColor: "#7fae42" }, _docker_2: { fontCharacter: "\\E025", fontColor: "#8dc149" }, _docker_3_light: { fontCharacter: "\\E025", fontColor: "#dd4b78" }, _docker_3: { fontCharacter: "\\E025", fontColor: "#f55385" }, _ejs_light: { fontCharacter: "\\E027", fontColor: "#b7b73b" }, _ejs: { fontCharacter: "\\E027", fontColor: "#cbcb41" }, _elixir_light: { fontCharacter: "\\E028", fontColor: "#9068b0" }, _elixir: { fontCharacter: "\\E028", fontColor: "#a074c4" }, _elixir_script_light: { fontCharacter: "\\E029", fontColor: "#9068b0" }, _elixir_script: { fontCharacter: "\\E029", fontColor: "#a074c4" }, _elm_light: { fontCharacter: "\\E02A", fontColor: "#498ba7" }, _elm: { fontCharacter: "\\E02A", fontColor: "#519aba" }, _eslint_light: { fontCharacter: "\\E02C", fontColor: "#9068b0" }, _eslint: { fontCharacter: "\\E02C", fontColor: "#a074c4" }, _eslint_1_light: { fontCharacter: "\\E02C", fontColor: "#455155" }, _eslint_1: { fontCharacter: "\\E02C", fontColor: "#4d5a5e" }, _ethereum_light: { fontCharacter: "\\E02D", fontColor: "#498ba7" }, _ethereum: { fontCharacter: "\\E02D", fontColor: "#519aba" }, "_f-sharp_light": { fontCharacter: "\\E02E", fontColor: "#498ba7" }, "_f-sharp": { fontCharacter: "\\E02E", fontColor: "#519aba" }, _favicon_light: { fontCharacter: "\\E02F", fontColor: "#b7b73b" }, _favicon: { fontCharacter: "\\E02F", fontColor: "#cbcb41" }, _firebase_light: { fontCharacter: "\\E030", fontColor: "#cc6d2e" }, _firebase: { fontCharacter: "\\E030", fontColor: "#e37933" }, _firefox_light: { fontCharacter: "\\E031", fontColor: "#cc6d2e" }, _firefox: { fontCharacter: "\\E031", fontColor: "#e37933" }, _font_light: { fontCharacter: "\\E033", fontColor: "#b8383d" }, _font: { fontCharacter: "\\E033", fontColor: "#cc3e44" }, _git_light: { fontCharacter: "\\E034", fontColor: "#3b4b52" }, _git: { fontCharacter: "\\E034", fontColor: "#41535b" }, _github_light: { fontCharacter: "\\E037", fontColor: "#bfc2c1" }, _github: { fontCharacter: "\\E037", fontColor: "#d4d7d6" }, _gitlab_light: { fontCharacter: "\\E038", fontColor: "#cc6d2e" }, _gitlab: { fontCharacter: "\\E038", fontColor: "#e37933" }, _go_light: { fontCharacter: "\\E039", fontColor: "#498ba7" }, _go: { fontCharacter: "\\E039", fontColor: "#519aba" }, _go2_light: { fontCharacter: "\\E03A", fontColor: "#498ba7" }, _go2: { fontCharacter: "\\E03A", fontColor: "#519aba" }, _godot_light: { fontCharacter: "\\E03B", fontColor: "#498ba7" }, _godot: { fontCharacter: "\\E03B", fontColor: "#519aba" }, _godot_1_light: { fontCharacter: "\\E03B", fontColor: "#b8383d" }, _godot_1: { fontCharacter: "\\E03B", fontColor: "#cc3e44" }, _godot_2_light: { fontCharacter: "\\E03B", fontColor: "#b7b73b" }, _godot_2: { fontCharacter: "\\E03B", fontColor: "#cbcb41" }, _godot_3_light: { fontCharacter: "\\E03B", fontColor: "#9068b0" }, _godot_3: { fontCharacter: "\\E03B", fontColor: "#a074c4" }, _gradle_light: { fontCharacter: "\\E03C", fontColor: "#498ba7" }, _gradle: { fontCharacter: "\\E03C", fontColor: "#519aba" }, _grails_light: { fontCharacter: "\\E03D", fontColor: "#7fae42" }, _grails: { fontCharacter: "\\E03D", fontColor: "#8dc149" }, _graphql_light: { fontCharacter: "\\E03E", fontColor: "#dd4b78" }, _graphql: { fontCharacter: "\\E03E", fontColor: "#f55385" }, _grunt_light: { fontCharacter: "\\E03F", fontColor: "#cc6d2e" }, _grunt: { fontCharacter: "\\E03F", fontColor: "#e37933" }, _gulp_light: { fontCharacter: "\\E040", fontColor: "#b8383d" }, _gulp: { fontCharacter: "\\E040", fontColor: "#cc3e44" }, _hacklang_light: { fontCharacter: "\\E041", fontColor: "#cc6d2e" }, _hacklang: { fontCharacter: "\\E041", fontColor: "#e37933" }, _haml_light: { fontCharacter: "\\E042", fontColor: "#b8383d" }, _haml: { fontCharacter: "\\E042", fontColor: "#cc3e44" }, _happenings_light: { fontCharacter: "\\E043", fontColor: "#498ba7" }, _happenings: { fontCharacter: "\\E043", fontColor: "#519aba" }, _haskell_light: { fontCharacter: "\\E044", fontColor: "#9068b0" }, _haskell: { fontCharacter: "\\E044", fontColor: "#a074c4" }, _haxe_light: { fontCharacter: "\\E045", fontColor: "#cc6d2e" }, _haxe: { fontCharacter: "\\E045", fontColor: "#e37933" }, _haxe_1_light: { fontCharacter: "\\E045", fontColor: "#b7b73b" }, _haxe_1: { fontCharacter: "\\E045", fontColor: "#cbcb41" }, _haxe_2_light: { fontCharacter: "\\E045", fontColor: "#498ba7" }, _haxe_2: { fontCharacter: "\\E045", fontColor: "#519aba" }, _haxe_3_light: { fontCharacter: "\\E045", fontColor: "#9068b0" }, _haxe_3: { fontCharacter: "\\E045", fontColor: "#a074c4" }, _heroku_light: { fontCharacter: "\\E046", fontColor: "#9068b0" }, _heroku: { fontCharacter: "\\E046", fontColor: "#a074c4" }, _hex_light: { fontCharacter: "\\E047", fontColor: "#b8383d" }, _hex: { fontCharacter: "\\E047", fontColor: "#cc3e44" }, _html_light: { fontCharacter: "\\E048", fontColor: "#498ba7" }, _html: { fontCharacter: "\\E048", fontColor: "#519aba" }, _html_1_light: { fontCharacter: "\\E048", fontColor: "#7fae42" }, _html_1: { fontCharacter: "\\E048", fontColor: "#8dc149" }, _html_2_light: { fontCharacter: "\\E048", fontColor: "#b7b73b" }, _html_2: { fontCharacter: "\\E048", fontColor: "#cbcb41" }, _html_3_light: { fontCharacter: "\\E048", fontColor: "#cc6d2e" }, _html_3: { fontCharacter: "\\E048", fontColor: "#e37933" }, _html_erb_light: { fontCharacter: "\\E049", fontColor: "#b8383d" }, _html_erb: { fontCharacter: "\\E049", fontColor: "#cc3e44" }, _ignored_light: { fontCharacter: "\\E04A", fontColor: "#3b4b52" }, _ignored: { fontCharacter: "\\E04A", fontColor: "#41535b" }, _illustrator_light: { fontCharacter: "\\E04B", fontColor: "#b7b73b" }, _illustrator: { fontCharacter: "\\E04B", fontColor: "#cbcb41" }, _image_light: { fontCharacter: "\\E04C", fontColor: "#9068b0" }, _image: { fontCharacter: "\\E04C", fontColor: "#a074c4" }, _info_light: { fontCharacter: "\\E04D", fontColor: "#498ba7" }, _info: { fontCharacter: "\\E04D", fontColor: "#519aba" }, _ionic_light: { fontCharacter: "\\E04E", fontColor: "#498ba7" }, _ionic: { fontCharacter: "\\E04E", fontColor: "#519aba" }, _jade_light: { fontCharacter: "\\E04F", fontColor: "#b8383d" }, _jade: { fontCharacter: "\\E04F", fontColor: "#cc3e44" }, _java_light: { fontCharacter: "\\E050", fontColor: "#b8383d" }, _java: { fontCharacter: "\\E050", fontColor: "#cc3e44" }, _java_1_light: { fontCharacter: "\\E050", fontColor: "#498ba7" }, _java_1: { fontCharacter: "\\E050", fontColor: "#519aba" }, _javascript_light: { fontCharacter: "\\E051", fontColor: "#b7b73b" }, _javascript: { fontCharacter: "\\E051", fontColor: "#cbcb41" }, _javascript_1_light: { fontCharacter: "\\E051", fontColor: "#cc6d2e" }, _javascript_1: { fontCharacter: "\\E051", fontColor: "#e37933" }, _javascript_2_light: { fontCharacter: "\\E051", fontColor: "#498ba7" }, _javascript_2: { fontCharacter: "\\E051", fontColor: "#519aba" }, _jenkins_light: { fontCharacter: "\\E052", fontColor: "#b8383d" }, _jenkins: { fontCharacter: "\\E052", fontColor: "#cc3e44" }, _jinja_light: { fontCharacter: "\\E053", fontColor: "#b8383d" }, _jinja: { fontCharacter: "\\E053", fontColor: "#cc3e44" }, _json_light: { fontCharacter: "\\E055", fontColor: "#b7b73b" }, _json: { fontCharacter: "\\E055", fontColor: "#cbcb41" }, _json_1_light: { fontCharacter: "\\E055", fontColor: "#7fae42" }, _json_1: { fontCharacter: "\\E055", fontColor: "#8dc149" }, _julia_light: { fontCharacter: "\\E056", fontColor: "#9068b0" }, _julia: { fontCharacter: "\\E056", fontColor: "#a074c4" }, _karma_light: { fontCharacter: "\\E057", fontColor: "#7fae42" }, _karma: { fontCharacter: "\\E057", fontColor: "#8dc149" }, _kotlin_light: { fontCharacter: "\\E058", fontColor: "#cc6d2e" }, _kotlin: { fontCharacter: "\\E058", fontColor: "#e37933" }, _less_light: { fontCharacter: "\\E059", fontColor: "#498ba7" }, _less: { fontCharacter: "\\E059", fontColor: "#519aba" }, _license_light: { fontCharacter: "\\E05A", fontColor: "#b7b73b" }, _license: { fontCharacter: "\\E05A", fontColor: "#cbcb41" }, _license_1_light: { fontCharacter: "\\E05A", fontColor: "#cc6d2e" }, _license_1: { fontCharacter: "\\E05A", fontColor: "#e37933" }, _license_2_light: { fontCharacter: "\\E05A", fontColor: "#b8383d" }, _license_2: { fontCharacter: "\\E05A", fontColor: "#cc3e44" }, _liquid_light: { fontCharacter: "\\E05B", fontColor: "#7fae42" }, _liquid: { fontCharacter: "\\E05B", fontColor: "#8dc149" }, _livescript_light: { fontCharacter: "\\E05C", fontColor: "#498ba7" }, _livescript: { fontCharacter: "\\E05C", fontColor: "#519aba" }, _lock_light: { fontCharacter: "\\E05D", fontColor: "#7fae42" }, _lock: { fontCharacter: "\\E05D", fontColor: "#8dc149" }, _lua_light: { fontCharacter: "\\E05E", fontColor: "#498ba7" }, _lua: { fontCharacter: "\\E05E", fontColor: "#519aba" }, _makefile_light: { fontCharacter: "\\E05F", fontColor: "#cc6d2e" }, _makefile: { fontCharacter: "\\E05F", fontColor: "#e37933" }, _makefile_1_light: { fontCharacter: "\\E05F", fontColor: "#9068b0" }, _makefile_1: { fontCharacter: "\\E05F", fontColor: "#a074c4" }, _makefile_2_light: { fontCharacter: "\\E05F", fontColor: "#627379" }, _makefile_2: { fontCharacter: "\\E05F", fontColor: "#6d8086" }, _makefile_3_light: { fontCharacter: "\\E05F", fontColor: "#498ba7" }, _makefile_3: { fontCharacter: "\\E05F", fontColor: "#519aba" }, _markdown_light: { fontCharacter: "\\E060", fontColor: "#498ba7" }, _markdown: { fontCharacter: "\\E060", fontColor: "#519aba" }, _maven_light: { fontCharacter: "\\E061", fontColor: "#b8383d" }, _maven: { fontCharacter: "\\E061", fontColor: "#cc3e44" }, _mdo_light: { fontCharacter: "\\E062", fontColor: "#b8383d" }, _mdo: { fontCharacter: "\\E062", fontColor: "#cc3e44" }, _mustache_light: { fontCharacter: "\\E063", fontColor: "#cc6d2e" }, _mustache: { fontCharacter: "\\E063", fontColor: "#e37933" }, _nim_light: { fontCharacter: "\\E065", fontColor: "#b7b73b" }, _nim: { fontCharacter: "\\E065", fontColor: "#cbcb41" }, _notebook_light: { fontCharacter: "\\E066", fontColor: "#498ba7" }, _notebook: { fontCharacter: "\\E066", fontColor: "#519aba" }, _npm_light: { fontCharacter: "\\E067", fontColor: "#3b4b52" }, _npm: { fontCharacter: "\\E067", fontColor: "#41535b" }, _npm_1_light: { fontCharacter: "\\E067", fontColor: "#b8383d" }, _npm_1: { fontCharacter: "\\E067", fontColor: "#cc3e44" }, _npm_ignored_light: { fontCharacter: "\\E068", fontColor: "#3b4b52" }, _npm_ignored: { fontCharacter: "\\E068", fontColor: "#41535b" }, _nunjucks_light: { fontCharacter: "\\E069", fontColor: "#7fae42" }, _nunjucks: { fontCharacter: "\\E069", fontColor: "#8dc149" }, _ocaml_light: { fontCharacter: "\\E06A", fontColor: "#cc6d2e" }, _ocaml: { fontCharacter: "\\E06A", fontColor: "#e37933" }, _odata_light: { fontCharacter: "\\E06B", fontColor: "#cc6d2e" }, _odata: { fontCharacter: "\\E06B", fontColor: "#e37933" }, _pddl_light: { fontCharacter: "\\E06C", fontColor: "#9068b0" }, _pddl: { fontCharacter: "\\E06C", fontColor: "#a074c4" }, _pdf_light: { fontCharacter: "\\E06D", fontColor: "#b8383d" }, _pdf: { fontCharacter: "\\E06D", fontColor: "#cc3e44" }, _perl_light: { fontCharacter: "\\E06E", fontColor: "#498ba7" }, _perl: { fontCharacter: "\\E06E", fontColor: "#519aba" }, _photoshop_light: { fontCharacter: "\\E06F", fontColor: "#498ba7" }, _photoshop: { fontCharacter: "\\E06F", fontColor: "#519aba" }, _php_light: { fontCharacter: "\\E070", fontColor: "#9068b0" }, _php: { fontCharacter: "\\E070", fontColor: "#a074c4" }, _pipeline_light: { fontCharacter: "\\E071", fontColor: "#cc6d2e" }, _pipeline: { fontCharacter: "\\E071", fontColor: "#e37933" }, _plan_light: { fontCharacter: "\\E072", fontColor: "#7fae42" }, _plan: { fontCharacter: "\\E072", fontColor: "#8dc149" }, _platformio_light: { fontCharacter: "\\E073", fontColor: "#cc6d2e" }, _platformio: { fontCharacter: "\\E073", fontColor: "#e37933" }, _powershell_light: { fontCharacter: "\\E074", fontColor: "#498ba7" }, _powershell: { fontCharacter: "\\E074", fontColor: "#519aba" }, _prisma_light: { fontCharacter: "\\E075", fontColor: "#498ba7" }, _prisma: { fontCharacter: "\\E075", fontColor: "#519aba" }, _prolog_light: { fontCharacter: "\\E077", fontColor: "#cc6d2e" }, _prolog: { fontCharacter: "\\E077", fontColor: "#e37933" }, _pug_light: { fontCharacter: "\\E078", fontColor: "#b8383d" }, _pug: { fontCharacter: "\\E078", fontColor: "#cc3e44" }, _puppet_light: { fontCharacter: "\\E079", fontColor: "#b7b73b" }, _puppet: { fontCharacter: "\\E079", fontColor: "#cbcb41" }, _purescript_light: { fontCharacter: "\\E07A", fontColor: "#bfc2c1" }, _purescript: { fontCharacter: "\\E07A", fontColor: "#d4d7d6" }, _python_light: { fontCharacter: "\\E07B", fontColor: "#498ba7" }, _python: { fontCharacter: "\\E07B", fontColor: "#519aba" }, _react_light: { fontCharacter: "\\E07D", fontColor: "#498ba7" }, _react: { fontCharacter: "\\E07D", fontColor: "#519aba" }, _react_1_light: { fontCharacter: "\\E07D", fontColor: "#cc6d2e" }, _react_1: { fontCharacter: "\\E07D", fontColor: "#e37933" }, _reasonml_light: { fontCharacter: "\\E07E", fontColor: "#b8383d" }, _reasonml: { fontCharacter: "\\E07E", fontColor: "#cc3e44" }, _rescript_light: { fontCharacter: "\\E07F", fontColor: "#b8383d" }, _rescript: { fontCharacter: "\\E07F", fontColor: "#cc3e44" }, _rescript_1_light: { fontCharacter: "\\E07F", fontColor: "#dd4b78" }, _rescript_1: { fontCharacter: "\\E07F", fontColor: "#f55385" }, _rollup_light: { fontCharacter: "\\E080", fontColor: "#b8383d" }, _rollup: { fontCharacter: "\\E080", fontColor: "#cc3e44" }, _ruby_light: { fontCharacter: "\\E081", fontColor: "#b8383d" }, _ruby: { fontCharacter: "\\E081", fontColor: "#cc3e44" }, _rust_light: { fontCharacter: "\\E082", fontColor: "#627379" }, _rust: { fontCharacter: "\\E082", fontColor: "#6d8086" }, _salesforce_light: { fontCharacter: "\\E083", fontColor: "#498ba7" }, _salesforce: { fontCharacter: "\\E083", fontColor: "#519aba" }, _sass_light: { fontCharacter: "\\E084", fontColor: "#dd4b78" }, _sass: { fontCharacter: "\\E084", fontColor: "#f55385" }, _sbt_light: { fontCharacter: "\\E085", fontColor: "#498ba7" }, _sbt: { fontCharacter: "\\E085", fontColor: "#519aba" }, _scala_light: { fontCharacter: "\\E086", fontColor: "#b8383d" }, _scala: { fontCharacter: "\\E086", fontColor: "#cc3e44" }, _shell_light: { fontCharacter: "\\E089", fontColor: "#7fae42" }, _shell: { fontCharacter: "\\E089", fontColor: "#8dc149" }, _slim_light: { fontCharacter: "\\E08A", fontColor: "#cc6d2e" }, _slim: { fontCharacter: "\\E08A", fontColor: "#e37933" }, _smarty_light: { fontCharacter: "\\E08B", fontColor: "#b7b73b" }, _smarty: { fontCharacter: "\\E08B", fontColor: "#cbcb41" }, _spring_light: { fontCharacter: "\\E08C", fontColor: "#7fae42" }, _spring: { fontCharacter: "\\E08C", fontColor: "#8dc149" }, _stylelint_light: { fontCharacter: "\\E08D", fontColor: "#bfc2c1" }, _stylelint: { fontCharacter: "\\E08D", fontColor: "#d4d7d6" }, _stylelint_1_light: { fontCharacter: "\\E08D", fontColor: "#455155" }, _stylelint_1: { fontCharacter: "\\E08D", fontColor: "#4d5a5e" }, _stylus_light: { fontCharacter: "\\E08E", fontColor: "#7fae42" }, _stylus: { fontCharacter: "\\E08E", fontColor: "#8dc149" }, _sublime_light: { fontCharacter: "\\E08F", fontColor: "#cc6d2e" }, _sublime: { fontCharacter: "\\E08F", fontColor: "#e37933" }, _svelte_light: { fontCharacter: "\\E090", fontColor: "#b8383d" }, _svelte: { fontCharacter: "\\E090", fontColor: "#cc3e44" }, _svg_light: { fontCharacter: "\\E091", fontColor: "#9068b0" }, _svg: { fontCharacter: "\\E091", fontColor: "#a074c4" }, _svg_1_light: { fontCharacter: "\\E091", fontColor: "#498ba7" }, _svg_1: { fontCharacter: "\\E091", fontColor: "#519aba" }, _swift_light: { fontCharacter: "\\E092", fontColor: "#cc6d2e" }, _swift: { fontCharacter: "\\E092", fontColor: "#e37933" }, _terraform_light: { fontCharacter: "\\E093", fontColor: "#9068b0" }, _terraform: { fontCharacter: "\\E093", fontColor: "#a074c4" }, _tex_light: { fontCharacter: "\\E094", fontColor: "#498ba7" }, _tex: { fontCharacter: "\\E094", fontColor: "#519aba" }, _tex_1_light: { fontCharacter: "\\E094", fontColor: "#b7b73b" }, _tex_1: { fontCharacter: "\\E094", fontColor: "#cbcb41" }, _tex_2_light: { fontCharacter: "\\E094", fontColor: "#cc6d2e" }, _tex_2: { fontCharacter: "\\E094", fontColor: "#e37933" }, _tex_3_light: { fontCharacter: "\\E094", fontColor: "#bfc2c1" }, _tex_3: { fontCharacter: "\\E094", fontColor: "#d4d7d6" }, _todo: { fontCharacter: "\\E096" }, _tsconfig_light: { fontCharacter: "\\E097", fontColor: "#498ba7" }, _tsconfig: { fontCharacter: "\\E097", fontColor: "#519aba" }, _twig_light: { fontCharacter: "\\E098", fontColor: "#7fae42" }, _twig: { fontCharacter: "\\E098", fontColor: "#8dc149" }, _typescript_light: { fontCharacter: "\\E099", fontColor: "#498ba7" }, _typescript: { fontCharacter: "\\E099", fontColor: "#519aba" }, _typescript_1_light: { fontCharacter: "\\E099", fontColor: "#cc6d2e" }, _typescript_1: { fontCharacter: "\\E099", fontColor: "#e37933" }, _vala_light: { fontCharacter: "\\E09A", fontColor: "#627379" }, _vala: { fontCharacter: "\\E09A", fontColor: "#6d8086" }, _video_light: { fontCharacter: "\\E09B", fontColor: "#dd4b78" }, _video: { fontCharacter: "\\E09B", fontColor: "#f55385" }, _vite_light: { fontCharacter: "\\E09C", fontColor: "#b7b73b" }, _vite: { fontCharacter: "\\E09C", fontColor: "#cbcb41" }, _vue_light: { fontCharacter: "\\E09D", fontColor: "#7fae42" }, _vue: { fontCharacter: "\\E09D", fontColor: "#8dc149" }, _wasm_light: { fontCharacter: "\\E09E", fontColor: "#9068b0" }, _wasm: { fontCharacter: "\\E09E", fontColor: "#a074c4" }, _wat_light: { fontCharacter: "\\E09F", fontColor: "#9068b0" }, _wat: { fontCharacter: "\\E09F", fontColor: "#a074c4" }, _webpack_light: { fontCharacter: "\\E0A0", fontColor: "#498ba7" }, _webpack: { fontCharacter: "\\E0A0", fontColor: "#519aba" }, _wgt_light: { fontCharacter: "\\E0A1", fontColor: "#498ba7" }, _wgt: { fontCharacter: "\\E0A1", fontColor: "#519aba" }, _windows_light: { fontCharacter: "\\E0A2", fontColor: "#498ba7" }, _windows: { fontCharacter: "\\E0A2", fontColor: "#519aba" }, _word_light: { fontCharacter: "\\E0A3", fontColor: "#498ba7" }, _word: { fontCharacter: "\\E0A3", fontColor: "#519aba" }, _xls_light: { fontCharacter: "\\E0A4", fontColor: "#7fae42" }, _xls: { fontCharacter: "\\E0A4", fontColor: "#8dc149" }, _xml_light: { fontCharacter: "\\E0A5", fontColor: "#cc6d2e" }, _xml: { fontCharacter: "\\E0A5", fontColor: "#e37933" }, _yarn_light: { fontCharacter: "\\E0A6", fontColor: "#498ba7" }, _yarn: { fontCharacter: "\\E0A6", fontColor: "#519aba" }, _yml_light: { fontCharacter: "\\E0A7", fontColor: "#9068b0" }, _yml: { fontCharacter: "\\E0A7", fontColor: "#a074c4" }, _zig_light: { fontCharacter: "\\E0A8", fontColor: "#cc6d2e" }, _zig: { fontCharacter: "\\E0A8", fontColor: "#e37933" }, _zip_light: { fontCharacter: "\\E0A9", fontColor: "#b8383d" }, _zip: { fontCharacter: "\\E0A9", fontColor: "#cc3e44" }, _zip_1_light: { fontCharacter: "\\E0A9", fontColor: "#627379" }, _zip_1: { fontCharacter: "\\E0A9", fontColor: "#6d8086" } }, file: "_default", fileExtensions: { bsl: "_bsl", mdo: "_mdo", cls: "_salesforce", apex: "_salesforce", asm: "_asm", s: "_asm", bicep: "_bicep", bzl: "_bazel", bazel: "_bazel", build: "_bazel", workspace: "_bazel", bazelignore: "_bazel", bazelversion: "_bazel", h: "_c_1", aspx: "_html", ascx: "_html_1", asax: "_html_2", master: "_html_2", hh: "_cpp_1", hpp: "_cpp_1", hxx: "_cpp_1", "h++": "_cpp_1", edn: "_clojure_1", cfc: "_coldfusion", cfm: "_coldfusion", litcoffee: "_coffee", config: "_config", cr: "_crystal", ecr: "_crystal_embedded", slang: "_crystal_embedded", cson: "_json", "css.map": "_css", sss: "_css", csv: "_csv", xls: "_xls", xlsx: "_xls", cuh: "_cu_1", hu: "_cu_1", cake: "_cake", ctp: "_cake_php", d: "_d", doc: "_word", docx: "_word", ejs: "_ejs", ex: "_elixir", exs: "_elixir_script", elm: "_elm", ico: "_favicon", gitconfig: "_git", gitkeep: "_git", gitattributes: "_git", gitmodules: "_git", slide: "_go", article: "_go", gd: "_godot", godot: "_godot_1", tres: "_godot_2", tscn: "_godot_3", gradle: "_gradle", gsp: "_grails", gql: "_graphql", graphql: "_graphql", graphqls: "_graphql", hack: "_hacklang", haml: "_haml", hs: "_haskell", lhs: "_haskell", hx: "_haxe", hxs: "_haxe_1", hxp: "_haxe_2", hxml: "_haxe_3", jade: "_jade", class: "_java_1", classpath: "_java", "js.map": "_javascript", "cjs.map": "_javascript", "mjs.map": "_javascript", "spec.js": "_javascript_1", "spec.cjs": "_javascript_1", "spec.mjs": "_javascript_1", "test.js": "_javascript_1", "test.cjs": "_javascript_1", "test.mjs": "_javascript_1", es: "_javascript", es5: "_javascript", es7: "_javascript", jinja: "_jinja", jinja2: "_jinja", kt: "_kotlin", kts: "_kotlin", liquid: "_liquid", ls: "_livescript", argdown: "_argdown", ad: "_argdown", mustache: "_mustache", stache: "_mustache", nim: "_nim", nims: "_nim", "github-issues": "_github", ipynb: "_notebook", njk: "_nunjucks", nunjucks: "_nunjucks", nunjs: "_nunjucks", nunj: "_nunjucks", njs: "_nunjucks", nj: "_nunjucks", "npm-debug.log": "_npm", npmignore: "_npm_1", npmrc: "_npm_1", ml: "_ocaml", mli: "_ocaml", cmx: "_ocaml", cmxa: "_ocaml", odata: "_odata", "php.inc": "_php", pipeline: "_pipeline", pddl: "_pddl", plan: "_plan", happenings: "_happenings", prisma: "_prisma", pp: "_puppet", epp: "_puppet", purs: "_purescript", "spec.jsx": "_react_1", "test.jsx": "_react_1", cjsx: "_react", "spec.tsx": "_react_1", "test.tsx": "_react_1", re: "_reasonml", res: "_rescript", resi: "_rescript_1", r: "_R", rmd: "_R", erb: "_html_erb", "erb.html": "_html_erb", "html.erb": "_html_erb", sass: "_sass", springbeans: "_spring", slim: "_slim", "smarty.tpl": "_smarty", tpl: "_smarty", sbt: "_sbt", scala: "_scala", sol: "_ethereum", styl: "_stylus", svelte: "_svelte", soql: "_db_1", tf: "_terraform", "tf.json": "_terraform", tfvars: "_terraform", "tfvars.json": "_terraform", dtx: "_tex_2", ins: "_tex_3", toml: "_config", twig: "_twig", "spec.ts": "_typescript_1", "test.ts": "_typescript_1", vala: "_vala", vapi: "_vala", component: "_html_3", vue: "_vue", wasm: "_wasm", wat: "_wat", pro: "_prolog", zig: "_zig", jar: "_zip", zip: "_zip_1", wgt: "_wgt", ai: "_illustrator", psd: "_photoshop", pdf: "_pdf", eot: "_font", ttf: "_font", woff: "_font", woff2: "_font", otf: "_font", avif: "_image", gif: "_image", jpg: "_image", jpeg: "_image", png: "_image", pxm: "_image", svg: "_svg", svgx: "_image", tiff: "_image", webp: "_image", "sublime-project": "_sublime", "sublime-workspace": "_sublime", mov: "_video", ogv: "_video", webm: "_video", avi: "_video", mpg: "_video", mp4: "_video", mp3: "_audio", ogg: "_audio", wav: "_audio", flac: "_audio", "3ds": "_svg_1", "3dm": "_svg_1", stl: "_svg_1", obj: "_svg_1", dae: "_svg_1", babelrc: "_babel", "babelrc.js": "_babel", "babelrc.cjs": "_babel", bazelrc: "_bazel_1", bowerrc: "_bower", dockerignore: "_docker_1", "codeclimate.yml": "_code-climate", eslintrc: "_eslint", "eslintrc.js": "_eslint", "eslintrc.cjs": "_eslint", "eslintrc.yaml": "_eslint", "eslintrc.yml": "_eslint", "eslintrc.json": "_eslint", eslintignore: "_eslint_1", firebaserc: "_firebase", "gitlab-ci.yml": "_gitlab", jshintrc: "_javascript_2", jscsrc: "_javascript_2", stylelintrc: "_stylelint", "stylelintrc.json": "_stylelint", "stylelintrc.yaml": "_stylelint", "stylelintrc.yml": "_stylelint", "stylelintrc.js": "_stylelint", stylelintignore: "_stylelint_1", direnv: "_config", static: "_config", slugignore: "_config", tmp: "_clock_1", htaccess: "_config", key: "_lock", cert: "_lock", cer: "_lock", crt: "_lock", pem: "_lock", ds_store: "_ignored" }, fileNames: { mix: "_hex", "karma.conf.js": "_karma", "karma.conf.cjs": "_karma", "karma.conf.mjs": "_karma", "karma.conf.coffee": "_karma", "readme.md": "_info", "readme.txt": "_info", readme: "_info", "changelog.md": "_clock", "changelog.txt": "_clock", changelog: "_clock", "changes.md": "_clock", "changes.txt": "_clock", changes: "_clock", "version.md": "_clock", "version.txt": "_clock", version: "_clock", mvnw: "_maven", "pom.xml": "_maven", "tsconfig.json": "_tsconfig", "vite.config.js": "_vite", "vite.config.ts": "_vite", "vite.config.mjs": "_vite", "vite.config.mts": "_vite", "vite.config.cjs": "_vite", "vite.config.cts": "_vite", "swagger.json": "_json_1", "swagger.yml": "_json_1", "swagger.yaml": "_json_1", "mime.types": "_config", jenkinsfile: "_jenkins", "babel.config.js": "_babel", "babel.config.json": "_babel", "babel.config.cjs": "_babel", build: "_bazel", "build.bazel": "_bazel", workspace: "_bazel", "workspace.bazel": "_bazel", "bower.json": "_bower", "docker-healthcheck": "_docker_2", "eslint.config.js": "_eslint", "firebase.json": "_firebase", geckodriver: "_firefox", "gruntfile.js": "_grunt", "gruntfile.babel.js": "_grunt", "gruntfile.coffee": "_grunt", gulpfile: "_gulp", "gulpfile.js": "_gulp", "ionic.config.json": "_ionic", "ionic.project": "_ionic", "platformio.ini": "_platformio", "rollup.config.js": "_rollup", "sass-lint.yml": "_sass", "stylelint.config.js": "_stylelint", "stylelint.config.cjs": "_stylelint", "stylelint.config.mjs": "_stylelint", "yarn.clean": "_yarn", "yarn.lock": "_yarn", "webpack.config.js": "_webpack", "webpack.config.cjs": "_webpack", "webpack.config.mjs": "_webpack", "webpack.config.ts": "_webpack", "webpack.config.build.js": "_webpack", "webpack.config.build.cjs": "_webpack", "webpack.config.build.mjs": "_webpack", "webpack.config.build.ts": "_webpack", "webpack.common.js": "_webpack", "webpack.common.cjs": "_webpack", "webpack.common.mjs": "_webpack", "webpack.common.ts": "_webpack", "webpack.dev.js": "_webpack", "webpack.dev.cjs": "_webpack", "webpack.dev.mjs": "_webpack", "webpack.dev.ts": "_webpack", "webpack.prod.js": "_webpack", "webpack.prod.cjs": "_webpack", "webpack.prod.mjs": "_webpack", "webpack.prod.ts": "_webpack", license: "_license", licence: "_license", "license.txt": "_license", "licence.txt": "_license", "license.md": "_license", "licence.md": "_license", copying: "_license", "copying.txt": "_license", "copying.md": "_license", compiling: "_license_1", "compiling.txt": "_license_1", "compiling.md": "_license_1", contributing: "_license_2", "contributing.txt": "_license_2", "contributing.md": "_license_2", qmakefile: "_makefile_1", omakefile: "_makefile_2", "cmakelists.txt": "_makefile_3", procfile: "_heroku", todo: "_todo", "todo.txt": "_todo", "todo.md": "_todo", "npm-debug.log": "_npm_ignored" }, languageIds: { bat: "_windows", clojure: "_clojure", coffeescript: "_coffee", jsonc: "_json", json: "_json", c: "_c", cpp: "_cpp", "cuda-cpp": "_cu", csharp: "_c-sharp", css: "_css", dart: "_dart", dockerfile: "_docker", dotenv: "_config", ignore: "_git", fsharp: "_f-sharp", "git-commit": "_git", go: "_go2", groovy: "_grails", handlebars: "_mustache", html: "_html_3", properties: "_config", java: "_java", javascriptreact: "_react", javascript: "_javascript", julia: "_julia", tex: "_tex_1", latex: "_tex", less: "_less", lua: "_lua", makefile: "_makefile", markdown: "_markdown", "objective-c": "_c_2", "objective-cpp": "_cpp_2", perl: "_perl", php: "_php", powershell: "_powershell", jade: "_pug", python: "_python", r: "_R", razor: "_html", ruby: "_ruby", rust: "_rust", scss: "_sass", "search-result": "_code-search", shellscript: "_shell", sql: "_db", swift: "_swift", typescript: "_typescript", typescriptreact: "_react", xml: "_xml", dockercompose: "_docker_3", yaml: "_yml", argdown: "_argdown", bicep: "_bicep", elixir: "_elixir", elm: "_elm", erb: "_html_erb", "github-issues": "_github", gradle: "_gradle", godot: "_godot", haml: "_haml", haskell: "_haskell", haxe: "_haxe", jinja: "_jinja", kotlin: "_kotlin", mustache: "_mustache", nunjucks: "_nunjucks", ocaml: "_ocaml", rescript: "_rescript", sass: "_sass", stylus: "_stylus", terraform: "_terraform", todo: "_todo", vala: "_vala", vue: "_vue", jsonl: "_json", postcss: "_css", "django-html": "_html_3", blade: "_php", prompt: "_markdown", instructions: "_markdown", chatagent: "_markdown", skill: "_markdown" }, light: { file: "_default_light", fileExtensions: { bsl: "_bsl_light", mdo: "_mdo_light", cls: "_salesforce_light", apex: "_salesforce_light", asm: "_asm_light", s: "_asm_light", bicep: "_bicep_light", bzl: "_bazel_light", bazel: "_bazel_light", build: "_bazel_light", workspace: "_bazel_light", bazelignore: "_bazel_light", bazelversion: "_bazel_light", h: "_c_1_light", aspx: "_html_light", ascx: "_html_1_light", asax: "_html_2_light", master: "_html_2_light", hh: "_cpp_1_light", hpp: "_cpp_1_light", hxx: "_cpp_1_light", "h++": "_cpp_1_light", edn: "_clojure_1_light", cfc: "_coldfusion_light", cfm: "_coldfusion_light", litcoffee: "_coffee_light", config: "_config_light", cr: "_crystal_light", ecr: "_crystal_embedded_light", slang: "_crystal_embedded_light", cson: "_json_light", "css.map": "_css_light", sss: "_css_light", csv: "_csv_light", xls: "_xls_light", xlsx: "_xls_light", cuh: "_cu_1_light", hu: "_cu_1_light", cake: "_cake_light", ctp: "_cake_php_light", d: "_d_light", doc: "_word_light", docx: "_word_light", ejs: "_ejs_light", ex: "_elixir_light", exs: "_elixir_script_light", elm: "_elm_light", ico: "_favicon_light", gitconfig: "_git_light", gitkeep: "_git_light", gitattributes: "_git_light", gitmodules: "_git_light", slide: "_go_light", article: "_go_light", gd: "_godot_light", godot: "_godot_1_light", tres: "_godot_2_light", tscn: "_godot_3_light", gradle: "_gradle_light", gsp: "_grails_light", gql: "_graphql_light", graphql: "_graphql_light", graphqls: "_graphql_light", hack: "_hacklang_light", haml: "_haml_light", hs: "_haskell_light", lhs: "_haskell_light", hx: "_haxe_light", hxs: "_haxe_1_light", hxp: "_haxe_2_light", hxml: "_haxe_3_light", jade: "_jade_light", class: "_java_1_light", classpath: "_java_light", "js.map": "_javascript_light", "cjs.map": "_javascript_light", "mjs.map": "_javascript_light", "spec.js": "_javascript_1_light", "spec.cjs": "_javascript_1_light", "spec.mjs": "_javascript_1_light", "test.js": "_javascript_1_light", "test.cjs": "_javascript_1_light", "test.mjs": "_javascript_1_light", es: "_javascript_light", es5: "_javascript_light", es7: "_javascript_light", jinja: "_jinja_light", jinja2: "_jinja_light", kt: "_kotlin_light", kts: "_kotlin_light", liquid: "_liquid_light", ls: "_livescript_light", argdown: "_argdown_light", ad: "_argdown_light", mustache: "_mustache_light", stache: "_mustache_light", nim: "_nim_light", nims: "_nim_light", "github-issues": "_github_light", ipynb: "_notebook_light", njk: "_nunjucks_light", nunjucks: "_nunjucks_light", nunjs: "_nunjucks_light", nunj: "_nunjucks_light", njs: "_nunjucks_light", nj: "_nunjucks_light", "npm-debug.log": "_npm_light", npmignore: "_npm_1_light", npmrc: "_npm_1_light", ml: "_ocaml_light", mli: "_ocaml_light", cmx: "_ocaml_light", cmxa: "_ocaml_light", odata: "_odata_light", "php.inc": "_php_light", pipeline: "_pipeline_light", pddl: "_pddl_light", plan: "_plan_light", happenings: "_happenings_light", prisma: "_prisma_light", pp: "_puppet_light", epp: "_puppet_light", purs: "_purescript_light", "spec.jsx": "_react_1_light", "test.jsx": "_react_1_light", cjsx: "_react_light", "spec.tsx": "_react_1_light", "test.tsx": "_react_1_light", re: "_reasonml_light", res: "_rescript_light", resi: "_rescript_1_light", r: "_R_light", rmd: "_R_light", erb: "_html_erb_light", "erb.html": "_html_erb_light", "html.erb": "_html_erb_light", sass: "_sass_light", springbeans: "_spring_light", slim: "_slim_light", "smarty.tpl": "_smarty_light", tpl: "_smarty_light", sbt: "_sbt_light", scala: "_scala_light", sol: "_ethereum_light", styl: "_stylus_light", svelte: "_svelte_light", soql: "_db_1_light", tf: "_terraform_light", "tf.json": "_terraform_light", tfvars: "_terraform_light", "tfvars.json": "_terraform_light", dtx: "_tex_2_light", ins: "_tex_3_light", toml: "_config_light", twig: "_twig_light", "spec.ts": "_typescript_1_light", "test.ts": "_typescript_1_light", vala: "_vala_light", vapi: "_vala_light", component: "_html_3_light", vue: "_vue_light", wasm: "_wasm_light", wat: "_wat_light", pro: "_prolog_light", zig: "_zig_light", jar: "_zip_light", zip: "_zip_1_light", wgt: "_wgt_light", ai: "_illustrator_light", psd: "_photoshop_light", pdf: "_pdf_light", eot: "_font_light", ttf: "_font_light", woff: "_font_light", woff2: "_font_light", otf: "_font_light", avif: "_image_light", gif: "_image_light", jpg: "_image_light", jpeg: "_image_light", png: "_image_light", pxm: "_image_light", svg: "_svg_light", svgx: "_image_light", tiff: "_image_light", webp: "_image_light", "sublime-project": "_sublime_light", "sublime-workspace": "_sublime_light", mov: "_video_light", ogv: "_video_light", webm: "_video_light", avi: "_video_light", mpg: "_video_light", mp4: "_video_light", mp3: "_audio_light", ogg: "_audio_light", wav: "_audio_light", flac: "_audio_light", "3ds": "_svg_1_light", "3dm": "_svg_1_light", stl: "_svg_1_light", obj: "_svg_1_light", dae: "_svg_1_light", babelrc: "_babel_light", "babelrc.js": "_babel_light", "babelrc.cjs": "_babel_light", bazelrc: "_bazel_1_light", bowerrc: "_bower_light", dockerignore: "_docker_1_light", "codeclimate.yml": "_code-climate_light", eslintrc: "_eslint_light", "eslintrc.js": "_eslint_light", "eslintrc.cjs": "_eslint_light", "eslintrc.yaml": "_eslint_light", "eslintrc.yml": "_eslint_light", "eslintrc.json": "_eslint_light", eslintignore: "_eslint_1_light", firebaserc: "_firebase_light", "gitlab-ci.yml": "_gitlab_light", jshintrc: "_javascript_2_light", jscsrc: "_javascript_2_light", stylelintrc: "_stylelint_light", "stylelintrc.json": "_stylelint_light", "stylelintrc.yaml": "_stylelint_light", "stylelintrc.yml": "_stylelint_light", "stylelintrc.js": "_stylelint_light", stylelintignore: "_stylelint_1_light", direnv: "_config_light", static: "_config_light", slugignore: "_config_light", tmp: "_clock_1_light", htaccess: "_config_light", key: "_lock_light", cert: "_lock_light", cer: "_lock_light", crt: "_lock_light", pem: "_lock_light", ds_store: "_ignored_light" }, languageIds: { bat: "_windows_light", clojure: "_clojure_light", coffeescript: "_coffee_light", jsonc: "_json_light", json: "_json_light", c: "_c_light", cpp: "_cpp_light", "cuda-cpp": "_cu_light", csharp: "_c-sharp_light", css: "_css_light", dart: "_dart_light", dockerfile: "_docker_light", dotenv: "_config_light", ignore: "_git_light", fsharp: "_f-sharp_light", "git-commit": "_git_light", go: "_go2_light", groovy: "_grails_light", handlebars: "_mustache_light", html: "_html_3_light", properties: "_config_light", java: "_java_light", javascriptreact: "_react_light", javascript: "_javascript_light", julia: "_julia_light", tex: "_tex_1_light", latex: "_tex_light", less: "_less_light", lua: "_lua_light", makefile: "_makefile_light", markdown: "_markdown_light", "objective-c": "_c_2_light", "objective-cpp": "_cpp_2_light", perl: "_perl_light", php: "_php_light", powershell: "_powershell_light", jade: "_pug_light", python: "_python_light", r: "_R_light", razor: "_html_light", ruby: "_ruby_light", rust: "_rust_light", scss: "_sass_light", "search-result": "_code-search_light", shellscript: "_shell_light", sql: "_db_light", swift: "_swift_light", typescript: "_typescript_light", typescriptreact: "_react_light", xml: "_xml_light", dockercompose: "_docker_3_light", yaml: "_yml_light", argdown: "_argdown_light", bicep: "_bicep_light", elixir: "_elixir_light", elm: "_elm_light", erb: "_html_erb_light", "github-issues": "_github_light", gradle: "_gradle_light", godot: "_godot_light", haml: "_haml_light", haskell: "_haskell_light", haxe: "_haxe_light", jinja: "_jinja_light", kotlin: "_kotlin_light", mustache: "_mustache_light", nunjucks: "_nunjucks_light", ocaml: "_ocaml_light", rescript: "_rescript_light", sass: "_sass_light", stylus: "_stylus_light", terraform: "_terraform_light", vala: "_vala_light", vue: "_vue_light", jsonl: "_json_light", postcss: "_css_light", "django-html": "_html_3_light", blade: "_php_light", prompt: "_markdown_light", instructions: "_markdown_light", chatagent: "_markdown_light", skill: "_markdown_light" }, fileNames: { mix: "_hex_light", "karma.conf.js": "_karma_light", "karma.conf.cjs": "_karma_light", "karma.conf.mjs": "_karma_light", "karma.conf.coffee": "_karma_light", "readme.md": "_info_light", "readme.txt": "_info_light", readme: "_info_light", "changelog.md": "_clock_light", "changelog.txt": "_clock_light", changelog: "_clock_light", "changes.md": "_clock_light", "changes.txt": "_clock_light", changes: "_clock_light", "version.md": "_clock_light", "version.txt": "_clock_light", version: "_clock_light", mvnw: "_maven_light", "pom.xml": "_maven_light", "tsconfig.json": "_tsconfig_light", "vite.config.js": "_vite_light", "vite.config.ts": "_vite_light", "vite.config.mjs": "_vite_light", "vite.config.mts": "_vite_light", "vite.config.cjs": "_vite_light", "vite.config.cts": "_vite_light", "swagger.json": "_json_1_light", "swagger.yml": "_json_1_light", "swagger.yaml": "_json_1_light", "mime.types": "_config_light", jenkinsfile: "_jenkins_light", "babel.config.js": "_babel_light", "babel.config.json": "_babel_light", "babel.config.cjs": "_babel_light", build: "_bazel_light", "build.bazel": "_bazel_light", workspace: "_bazel_light", "workspace.bazel": "_bazel_light", "bower.json": "_bower_light", "docker-healthcheck": "_docker_2_light", "eslint.config.js": "_eslint_light", "firebase.json": "_firebase_light", geckodriver: "_firefox_light", "gruntfile.js": "_grunt_light", "gruntfile.babel.js": "_grunt_light", "gruntfile.coffee": "_grunt_light", gulpfile: "_gulp_light", "gulpfile.js": "_gulp_light", "ionic.config.json": "_ionic_light", "ionic.project": "_ionic_light", "platformio.ini": "_platformio_light", "rollup.config.js": "_rollup_light", "sass-lint.yml": "_sass_light", "stylelint.config.js": "_stylelint_light", "stylelint.config.cjs": "_stylelint_light", "stylelint.config.mjs": "_stylelint_light", "yarn.clean": "_yarn_light", "yarn.lock": "_yarn_light", "webpack.config.js": "_webpack_light", "webpack.config.cjs": "_webpack_light", "webpack.config.mjs": "_webpack_light", "webpack.config.ts": "_webpack_light", "webpack.config.build.js": "_webpack_light", "webpack.config.build.cjs": "_webpack_light", "webpack.config.build.mjs": "_webpack_light", "webpack.config.build.ts": "_webpack_light", "webpack.common.js": "_webpack_light", "webpack.common.cjs": "_webpack_light", "webpack.common.mjs": "_webpack_light", "webpack.common.ts": "_webpack_light", "webpack.dev.js": "_webpack_light", "webpack.dev.cjs": "_webpack_light", "webpack.dev.mjs": "_webpack_light", "webpack.dev.ts": "_webpack_light", "webpack.prod.js": "_webpack_light", "webpack.prod.cjs": "_webpack_light", "webpack.prod.mjs": "_webpack_light", "webpack.prod.ts": "_webpack_light", license: "_license_light", licence: "_license_light", "license.txt": "_license_light", "licence.txt": "_license_light", "license.md": "_license_light", "licence.md": "_license_light", copying: "_license_light", "copying.txt": "_license_light", "copying.md": "_license_light", compiling: "_license_1_light", "compiling.txt": "_license_1_light", "compiling.md": "_license_1_light", contributing: "_license_2_light", "contributing.txt": "_license_2_light", "contributing.md": "_license_2_light", qmakefile: "_makefile_1_light", omakefile: "_makefile_2_light", "cmakelists.txt": "_makefile_3_light", procfile: "_heroku_light", "npm-debug.log": "_npm_ignored_light" } }, version: "https://github.com/jesseweed/seti-ui/commit/2d6c5e68b4ded73c92dac291845ee44e1182d511" };
+
+  // src/workspace_file_icons.css
+  var workspace_file_icons_default = "";
+
+  // src/workspace_file_icons.ts
+  var theme = icon_theme_default;
+  var theme_users = 0;
+  var release_theme;
+  var previous_theme = null;
+  function acquire_workspace_file_icons() {
+    const style = acquire_workspace_style("typora-code-style:workspace_file_icons", workspace_file_icons_default);
+    let removed = false;
+    if (theme_users++ === 0) {
+      previous_theme = document.documentElement.getAttribute("data-workspace-file-icon-theme");
+      release_theme = observe_terminal_theme((value) => {
+        const rgb = String(value.background).match(/[\d.]+/g)?.map(Number) || [255, 255, 255];
+        document.documentElement.setAttribute("data-workspace-file-icon-theme", rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light");
+      });
+    }
+    return { remove() {
+      if (removed) return;
+      removed = true;
+      style.remove();
+      if (--theme_users === 0) {
+        release_theme?.();
+        release_theme = void 0;
+        if (previous_theme === null) document.documentElement.removeAttribute("data-workspace-file-icon-theme");
+        else document.documentElement.setAttribute("data-workspace-file-icon-theme", previous_theme);
+      }
+    } };
+  }
+  function definition(file_path, light) {
+    const variant = light ? theme.light : {};
+    const parts = file_path.replace(/\\/g, "/").toLowerCase().split("/");
+    const name = parts.at(-1) || "";
+    const names = { ...theme.fileNames, ...variant.fileNames }, extensions = { ...theme.fileExtensions, ...variant.fileExtensions }, languages2 = { ...theme.languageIds, ...variant.languageIds };
+    const parent = parts.at(-2);
+    if (parent && names[parent + "/" + name]) return names[parent + "/" + name];
+    if (names[name]) return names[name];
+    const suffixes = name.split(".");
+    for (let index = 1; index < suffixes.length; index++) {
+      const suffix = suffixes.slice(index).join(".");
+      if (parent && extensions[parent + "/" + suffix]) return extensions[parent + "/" + suffix];
+      if (extensions[suffix]) return extensions[suffix];
+    }
+    const language44 = detect_file_language(file_path);
+    return languages2[language44] || (language44 === "jsonc" ? languages2.json : void 0) || variant.file || theme.file;
+  }
+  function workspace_file_icon(file_path) {
+    const node = document.createElement("span"), dark_id = definition(file_path, false), light_id = definition(file_path, true);
+    const dark = theme.iconDefinitions[dark_id], light = theme.iconDefinitions[light_id];
+    node.className = "workspace-file-theme-icon";
+    node.dataset.vscodeFileIcon = dark_id;
+    node.dataset.vscodeFileIconLight = light_id;
+    node.dataset.fileIconPath = file_path;
+    node.setAttribute("aria-hidden", "true");
+    node.textContent = String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g, ""), 16));
+    node.style.setProperty("--workspace-file-icon-light", light.fontColor || "currentColor");
+    node.style.setProperty("--workspace-file-icon-dark", dark.fontColor || "currentColor");
+    return node;
+  }
+  function bind_workspace_file_tab_icons(core) {
+    const style = acquire_workspace_file_icons();
+    const originals = /* @__PURE__ */ new Map();
+    let disposed = false;
+    const refresh = () => {
+      if (disposed) return;
+      const live_slots = /* @__PURE__ */ new Set();
+      core.app.workspace.eachLeaves((leaf) => {
+        const view_type = leaf.viewType;
+        if (view_type && view_type !== "core.markdown" && view_type !== "linux_note.source_file") return;
+        const uri = String(leaf.state.path || "");
+        const file_path = source_file_path(uri) || (!uri.startsWith("typ://") ? uri : "");
+        if (!file_path) return;
+        const tab = workspace_leaf_tab(leaf), slot = tab?.querySelector(".typ-file-icon");
+        if (!slot) return;
+        live_slots.add(slot);
+        if (!originals.has(slot)) originals.set(slot, { class_name: slot.className, nodes: [...slot.childNodes] });
+        if (slot.className !== "typ-file-icon workspace-file-theme-slot") slot.className = "typ-file-icon workspace-file-theme-slot";
+        if (slot.firstElementChild?.getAttribute("data-file-icon-path") !== file_path) slot.replaceChildren(workspace_file_icon(file_path));
+      });
+      for (const [node, old] of originals) if (!live_slots.has(node)) {
+        node.className = old.class_name;
+        node.replaceChildren(...old.nodes);
+        originals.delete(node);
+      }
+    };
+    const observer = new MutationObserver(refresh);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
+    refresh();
+    const release = core.app.workspace.on("active-leaf:change", refresh);
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      observer.disconnect();
+      release?.();
+      for (const [node, old] of originals) {
+        node.className = old.class_name;
+        node.replaceChildren(...old.nodes);
+      }
+      originals.clear();
+      style.remove();
+    } };
   }
 
   // node_runtime.json
@@ -190708,79 +190894,6 @@ https://creativecommons.org/licenses/by/4.0/
     return { executable: powershell, args: ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", encode(script)] };
   }
 
-  // src/terminal_theme.ts
-  function terminal_theme() {
-    const body = getComputedStyle(document.body);
-    const root = getComputedStyle(document.documentElement);
-    const canvas = document.createElement("canvas");
-    canvas.width = 1;
-    canvas.height = 1;
-    const context = canvas.getContext("2d");
-    let rgb = [255, 255, 255];
-    if (context) {
-      for (const color of ["#ffffff", root.backgroundColor, body.backgroundColor]) {
-        context.fillStyle = color;
-        context.fillRect(0, 0, 1, 1);
-      }
-      rgb = Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
-    }
-    const background = "rgb(".concat(rgb.join(", "), ")");
-    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
-    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
-    return {
-      background,
-      foreground: foreground2,
-      cursor: foreground2,
-      cursorAccent: background,
-      selectionBackground: dark ? "#264f78" : "#add6ff",
-      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
-      black: dark ? "#000000" : "#24292f",
-      red: dark ? "#cd3131" : "#a31515",
-      green: dark ? "#0dbc79" : "#16713b",
-      yellow: dark ? "#e5e510" : "#795e26",
-      blue: dark ? "#3b8eea" : "#0451a5",
-      magenta: dark ? "#bc3fbc" : "#af00db",
-      cyan: dark ? "#11a8cd" : "#0070a8",
-      white: dark ? "#e5e5e5" : "#555555",
-      brightBlack: dark ? "#666666" : "#666666",
-      brightRed: dark ? "#f14c4c" : "#c72e2e",
-      brightGreen: dark ? "#23d18b" : "#16825d",
-      brightYellow: dark ? "#f5f543" : "#8a6500",
-      brightBlue: dark ? "#3b8eea" : "#0065b3",
-      brightMagenta: dark ? "#d670d6" : "#a626a4",
-      brightCyan: dark ? "#29b8db" : "#007f8b",
-      brightWhite: dark ? "#ffffff" : "#333333"
-    };
-  }
-  function observe_terminal_theme(apply3) {
-    let frame2 = 0;
-    let previous = "";
-    const update = () => {
-      cancelAnimationFrame(frame2);
-      frame2 = requestAnimationFrame(() => {
-        const theme2 = terminal_theme();
-        const key = JSON.stringify(theme2);
-        if (key !== previous) {
-          previous = key;
-          apply3(theme2);
-        }
-      });
-    };
-    const observer = new MutationObserver(update);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-    observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
-    document.head.addEventListener("load", update, true);
-    window.addEventListener("focus", update);
-    update();
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(frame2);
-      document.head.removeEventListener("load", update, true);
-      window.removeEventListener("focus", update);
-    };
-  }
-
   // src/terminal_workspace.ts
   var TERMINAL_TYPE = "linux_note.terminal";
   var TERMINAL_SETTINGS_KEY = "linux-note-terminal:v1:";
@@ -192280,6 +192393,7 @@ https://creativecommons.org/licenses/by/4.0/
     const path_api = runtime2.reqnode("path");
     const process_api = runtime2.reqnode("process");
     const editor_status = bind_workspace_editor_status(core);
+    const file_icon_style = acquire_workspace_file_icons();
     const child_process = runtime2.reqnode("child_process");
     const crypto2 = runtime2.reqnode("crypto");
     const contents = /* @__PURE__ */ new Map();
@@ -192326,8 +192440,9 @@ https://creativecommons.org/licenses/by/4.0/
         for (const tab of document.querySelectorAll(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
           const icon = tab.querySelector(".typ-file-icon");
           if (icon) {
-            icon.className = "typ-file-icon git-tab-icon";
-            icon.replaceChildren(git_icon("compare-changes"));
+            const file_path = payload?.data?.file;
+            icon.className = file_path ? "typ-file-icon workspace-file-theme-slot" : "typ-file-icon git-tab-icon";
+            icon.replaceChildren(file_path ? workspace_file_icon(file_path) : git_icon("compare-changes"));
           }
           const title = payload?.data?.title || decodeURIComponent(this.leaf.state.path.split("/").at(-1));
           const label = tab.querySelector(".typ-file-basename");
@@ -192420,6 +192535,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         if (disposed) return;
         disposed = true;
+        file_icon_style.remove();
         terminal_workspace.dispose();
         for (const runner of runners) runner.cancel();
         runners.clear();
@@ -193222,7 +193338,7 @@ https://creativecommons.org/licenses/by/4.0/
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
         const label = workspace_element("span", "git-scm-file-label");
-        label.append(git_icon("file"), workspace_element("span", "git-scm-history-file-name", file.path.split("/").at(-1)));
+        label.append(workspace_file_icon(file.path), workspace_element("span", "git-scm-history-file-name", file.path.split("/").at(-1)));
         if (!this.owner.history_tree) label.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
         const status2 = workspace_element("span", "git-scm-file-status", file.status);
         status2.title = file.status;
@@ -193402,6 +193518,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       this.load_layout();
     }
+    file_icon_style = acquire_workspace_file_icons();
     sidebar = workspace_element("aside", "git-scm-sidebar");
     groups = workspace_element("div", "git-scm-groups");
     message = workspace_element("textarea", "git-scm-message");
@@ -193613,7 +193730,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.setAttribute("role", "button");
           row.title = "".concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path, "\n").concat(short_revision(group.from), " \u2194 ").concat(short_revision(group.to));
           const label2 = workspace_element("span", "git-scm-file-label");
-          label2.append(git_icon("file"), workspace_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
+          label2.append(workspace_file_icon(file.path), workspace_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
           if (!this.tree) label2.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
           const action = group.id === "staged" ? "unstage" : "stage";
           const mini = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), () => {
@@ -193836,6 +193953,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.file_icon_style.remove();
       this.load_epoch++;
       this.groups_epoch++;
       this.history.dispose();
@@ -216721,7 +216839,9 @@ https://creativecommons.org/licenses/by/4.0/
         row.title = file.path;
         const display_path = file.old_path ? file.old_path + " \u2192 " + file.path : file.path;
         const parts = display_path.split("/");
-        row.append(graph_file_icon("file", "git-graph-file-icon"), workspace_element("span", "git-graph-file-name", parts.pop() || display_path), workspace_element("span", "git-graph-file-path", parts.join("/")), workspace_element("span", "git-graph-file-status", file.status));
+        const file_icon = workspace_file_icon(file.path);
+        file_icon.classList.add("git-graph-file-icon");
+        row.append(file_icon, workspace_element("span", "git-graph-file-name", parts.pop() || display_path), workspace_element("span", "git-graph-file-path", parts.join("/")), workspace_element("span", "git-graph-file-status", file.status));
         row.querySelector(".git-graph-file-name")?.prepend(git_icon("circle-filled", "git-graph-unreviewed-icon"));
         if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
         row.oncontextmenu = (event) => this.file_menu(event, file);
@@ -217891,7 +218011,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_tab_controls.ts
   var bindings2 = /* @__PURE__ */ new WeakMap();
-  function bind_workspace_tab_controls(core, open_files) {
+  function bind_workspace_tab_controls(core) {
     const existing = bindings2.get(core);
     if (existing) return existing;
     const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default);
@@ -217901,7 +218021,6 @@ https://creativecommons.org/licenses/by/4.0/
       frame2 = 0;
       if (disposed) return;
       for (const [header, entry] of strips) if (!header.isConnected) {
-        entry.button.onclick = null;
         if (entry.strip.parentElement) {
           entry.strip.before(header);
           entry.strip.remove();
@@ -217909,26 +218028,11 @@ https://creativecommons.org/licenses/by/4.0/
         strips.delete(header);
       }
       for (const header of document.querySelectorAll(".typ-workspace-tabs > .typ-workspace-tab-header")) {
-        const group = header.parentElement;
         const strip = document.createElement("div");
         strip.className = "workspace-tab-strip";
-        const action = document.createElement("button");
-        action.type = "button";
-        action.className = "workspace-file-search-trigger";
-        action.title = "\u5FEB\u901F\u6253\u5F00\u6587\u4EF6 (Ctrl+P)";
-        action.setAttribute("aria-label", action.title);
-        const label = document.createElement("span");
-        label.textContent = "\u641C\u7D22\u6587\u4EF6";
-        action.append(git_icon("search"), label);
-        action.onclick = () => {
-          core.app.workspace.eachLeaves((leaf) => {
-            if (leaf.parent.containerEl === group && leaf.containerEl.classList.contains("mod-active")) core.app.workspace.activeLeaf = leaf;
-          });
-          open_files();
-        };
         header.before(strip);
-        strip.append(header, action);
-        strips.set(header, { strip, button: action });
+        strip.append(header);
+        strips.set(header, { strip });
       }
     };
     const observer = new MutationObserver(() => {
@@ -217941,8 +218045,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       observer.disconnect();
       cancelAnimationFrame(frame2);
-      for (const [header, { strip, button }] of strips) {
-        button.onclick = null;
+      for (const [header, { strip }] of strips) {
         if (strip.parentElement) {
           strip.before(header);
           strip.remove();
@@ -217954,113 +218057,6 @@ https://creativecommons.org/licenses/by/4.0/
     } };
     bindings2.set(core, binding);
     return binding;
-  }
-
-  // vendor/vscode_seti/icon_theme.json
-  var icon_theme_default = { information_for_contributors: ["This file has been generated from data in https://github.com/jesseweed/seti-ui", "- icon definitions: https://github.com/jesseweed/seti-ui/blob/master/styles/_fonts/seti.less", "- icon colors: https://github.com/jesseweed/seti-ui/blob/master/styles/ui-variables.less", "- file associations: https://github.com/jesseweed/seti-ui/blob/master/styles/components/icons/mapping.less", "If you want to provide a fix or improvement, please create a pull request against the jesseweed/seti-ui repository.", "Once accepted there, we are happy to receive an update request."], fonts: [{ id: "seti", src: [{ path: "./seti.woff", format: "woff" }], weight: "normal", style: "normal", size: "150%" }], iconDefinitions: { _R_light: { fontCharacter: "\\E001", fontColor: "#498ba7" }, _R: { fontCharacter: "\\E001", fontColor: "#519aba" }, _argdown_light: { fontCharacter: "\\E003", fontColor: "#498ba7" }, _argdown: { fontCharacter: "\\E003", fontColor: "#519aba" }, _asm_light: { fontCharacter: "\\E004", fontColor: "#b8383d" }, _asm: { fontCharacter: "\\E004", fontColor: "#cc3e44" }, _audio_light: { fontCharacter: "\\E005", fontColor: "#9068b0" }, _audio: { fontCharacter: "\\E005", fontColor: "#a074c4" }, _babel_light: { fontCharacter: "\\E006", fontColor: "#b7b73b" }, _babel: { fontCharacter: "\\E006", fontColor: "#cbcb41" }, _bazel_light: { fontCharacter: "\\E007", fontColor: "#7fae42" }, _bazel: { fontCharacter: "\\E007", fontColor: "#8dc149" }, _bazel_1_light: { fontCharacter: "\\E007", fontColor: "#455155" }, _bazel_1: { fontCharacter: "\\E007", fontColor: "#4d5a5e" }, _bicep_light: { fontCharacter: "\\E008", fontColor: "#498ba7" }, _bicep: { fontCharacter: "\\E008", fontColor: "#519aba" }, _bower_light: { fontCharacter: "\\E009", fontColor: "#cc6d2e" }, _bower: { fontCharacter: "\\E009", fontColor: "#e37933" }, _bsl_light: { fontCharacter: "\\E00A", fontColor: "#b8383d" }, _bsl: { fontCharacter: "\\E00A", fontColor: "#cc3e44" }, _c_light: { fontCharacter: "\\E00C", fontColor: "#498ba7" }, _c: { fontCharacter: "\\E00C", fontColor: "#519aba" }, "_c-sharp_light": { fontCharacter: "\\E00B", fontColor: "#498ba7" }, "_c-sharp": { fontCharacter: "\\E00B", fontColor: "#519aba" }, _c_1_light: { fontCharacter: "\\E00C", fontColor: "#9068b0" }, _c_1: { fontCharacter: "\\E00C", fontColor: "#a074c4" }, _c_2_light: { fontCharacter: "\\E00C", fontColor: "#b7b73b" }, _c_2: { fontCharacter: "\\E00C", fontColor: "#cbcb41" }, _cake_light: { fontCharacter: "\\E00D", fontColor: "#b8383d" }, _cake: { fontCharacter: "\\E00D", fontColor: "#cc3e44" }, _cake_php_light: { fontCharacter: "\\E00E", fontColor: "#b8383d" }, _cake_php: { fontCharacter: "\\E00E", fontColor: "#cc3e44" }, _clock_light: { fontCharacter: "\\E012", fontColor: "#498ba7" }, _clock: { fontCharacter: "\\E012", fontColor: "#519aba" }, _clock_1_light: { fontCharacter: "\\E012", fontColor: "#627379" }, _clock_1: { fontCharacter: "\\E012", fontColor: "#6d8086" }, _clojure_light: { fontCharacter: "\\E013", fontColor: "#7fae42" }, _clojure: { fontCharacter: "\\E013", fontColor: "#8dc149" }, _clojure_1_light: { fontCharacter: "\\E013", fontColor: "#498ba7" }, _clojure_1: { fontCharacter: "\\E013", fontColor: "#519aba" }, "_code-climate_light": { fontCharacter: "\\E014", fontColor: "#7fae42" }, "_code-climate": { fontCharacter: "\\E014", fontColor: "#8dc149" }, "_code-search_light": { fontCharacter: "\\E015", fontColor: "#9068b0" }, "_code-search": { fontCharacter: "\\E015", fontColor: "#a074c4" }, _coffee_light: { fontCharacter: "\\E016", fontColor: "#b7b73b" }, _coffee: { fontCharacter: "\\E016", fontColor: "#cbcb41" }, _coldfusion_light: { fontCharacter: "\\E018", fontColor: "#498ba7" }, _coldfusion: { fontCharacter: "\\E018", fontColor: "#519aba" }, _config_light: { fontCharacter: "\\E019", fontColor: "#627379" }, _config: { fontCharacter: "\\E019", fontColor: "#6d8086" }, _cpp_light: { fontCharacter: "\\E01A", fontColor: "#498ba7" }, _cpp: { fontCharacter: "\\E01A", fontColor: "#519aba" }, _cpp_1_light: { fontCharacter: "\\E01A", fontColor: "#9068b0" }, _cpp_1: { fontCharacter: "\\E01A", fontColor: "#a074c4" }, _cpp_2_light: { fontCharacter: "\\E01A", fontColor: "#b7b73b" }, _cpp_2: { fontCharacter: "\\E01A", fontColor: "#cbcb41" }, _crystal_light: { fontCharacter: "\\E01B", fontColor: "#bfc2c1" }, _crystal: { fontCharacter: "\\E01B", fontColor: "#d4d7d6" }, _crystal_embedded_light: { fontCharacter: "\\E01C", fontColor: "#bfc2c1" }, _crystal_embedded: { fontCharacter: "\\E01C", fontColor: "#d4d7d6" }, _css_light: { fontCharacter: "\\E01D", fontColor: "#498ba7" }, _css: { fontCharacter: "\\E01D", fontColor: "#519aba" }, _csv_light: { fontCharacter: "\\E01E", fontColor: "#7fae42" }, _csv: { fontCharacter: "\\E01E", fontColor: "#8dc149" }, _cu_light: { fontCharacter: "\\E01F", fontColor: "#7fae42" }, _cu: { fontCharacter: "\\E01F", fontColor: "#8dc149" }, _cu_1_light: { fontCharacter: "\\E01F", fontColor: "#9068b0" }, _cu_1: { fontCharacter: "\\E01F", fontColor: "#a074c4" }, _d_light: { fontCharacter: "\\E020", fontColor: "#b8383d" }, _d: { fontCharacter: "\\E020", fontColor: "#cc3e44" }, _dart_light: { fontCharacter: "\\E021", fontColor: "#498ba7" }, _dart: { fontCharacter: "\\E021", fontColor: "#519aba" }, _db_light: { fontCharacter: "\\E022", fontColor: "#dd4b78" }, _db: { fontCharacter: "\\E022", fontColor: "#f55385" }, _db_1_light: { fontCharacter: "\\E022", fontColor: "#498ba7" }, _db_1: { fontCharacter: "\\E022", fontColor: "#519aba" }, _default_light: { fontCharacter: "\\E023", fontColor: "#bfc2c1" }, _default: { fontCharacter: "\\E023", fontColor: "#d4d7d6" }, _docker_light: { fontCharacter: "\\E025", fontColor: "#498ba7" }, _docker: { fontCharacter: "\\E025", fontColor: "#519aba" }, _docker_1_light: { fontCharacter: "\\E025", fontColor: "#455155" }, _docker_1: { fontCharacter: "\\E025", fontColor: "#4d5a5e" }, _docker_2_light: { fontCharacter: "\\E025", fontColor: "#7fae42" }, _docker_2: { fontCharacter: "\\E025", fontColor: "#8dc149" }, _docker_3_light: { fontCharacter: "\\E025", fontColor: "#dd4b78" }, _docker_3: { fontCharacter: "\\E025", fontColor: "#f55385" }, _ejs_light: { fontCharacter: "\\E027", fontColor: "#b7b73b" }, _ejs: { fontCharacter: "\\E027", fontColor: "#cbcb41" }, _elixir_light: { fontCharacter: "\\E028", fontColor: "#9068b0" }, _elixir: { fontCharacter: "\\E028", fontColor: "#a074c4" }, _elixir_script_light: { fontCharacter: "\\E029", fontColor: "#9068b0" }, _elixir_script: { fontCharacter: "\\E029", fontColor: "#a074c4" }, _elm_light: { fontCharacter: "\\E02A", fontColor: "#498ba7" }, _elm: { fontCharacter: "\\E02A", fontColor: "#519aba" }, _eslint_light: { fontCharacter: "\\E02C", fontColor: "#9068b0" }, _eslint: { fontCharacter: "\\E02C", fontColor: "#a074c4" }, _eslint_1_light: { fontCharacter: "\\E02C", fontColor: "#455155" }, _eslint_1: { fontCharacter: "\\E02C", fontColor: "#4d5a5e" }, _ethereum_light: { fontCharacter: "\\E02D", fontColor: "#498ba7" }, _ethereum: { fontCharacter: "\\E02D", fontColor: "#519aba" }, "_f-sharp_light": { fontCharacter: "\\E02E", fontColor: "#498ba7" }, "_f-sharp": { fontCharacter: "\\E02E", fontColor: "#519aba" }, _favicon_light: { fontCharacter: "\\E02F", fontColor: "#b7b73b" }, _favicon: { fontCharacter: "\\E02F", fontColor: "#cbcb41" }, _firebase_light: { fontCharacter: "\\E030", fontColor: "#cc6d2e" }, _firebase: { fontCharacter: "\\E030", fontColor: "#e37933" }, _firefox_light: { fontCharacter: "\\E031", fontColor: "#cc6d2e" }, _firefox: { fontCharacter: "\\E031", fontColor: "#e37933" }, _font_light: { fontCharacter: "\\E033", fontColor: "#b8383d" }, _font: { fontCharacter: "\\E033", fontColor: "#cc3e44" }, _git_light: { fontCharacter: "\\E034", fontColor: "#3b4b52" }, _git: { fontCharacter: "\\E034", fontColor: "#41535b" }, _github_light: { fontCharacter: "\\E037", fontColor: "#bfc2c1" }, _github: { fontCharacter: "\\E037", fontColor: "#d4d7d6" }, _gitlab_light: { fontCharacter: "\\E038", fontColor: "#cc6d2e" }, _gitlab: { fontCharacter: "\\E038", fontColor: "#e37933" }, _go_light: { fontCharacter: "\\E039", fontColor: "#498ba7" }, _go: { fontCharacter: "\\E039", fontColor: "#519aba" }, _go2_light: { fontCharacter: "\\E03A", fontColor: "#498ba7" }, _go2: { fontCharacter: "\\E03A", fontColor: "#519aba" }, _godot_light: { fontCharacter: "\\E03B", fontColor: "#498ba7" }, _godot: { fontCharacter: "\\E03B", fontColor: "#519aba" }, _godot_1_light: { fontCharacter: "\\E03B", fontColor: "#b8383d" }, _godot_1: { fontCharacter: "\\E03B", fontColor: "#cc3e44" }, _godot_2_light: { fontCharacter: "\\E03B", fontColor: "#b7b73b" }, _godot_2: { fontCharacter: "\\E03B", fontColor: "#cbcb41" }, _godot_3_light: { fontCharacter: "\\E03B", fontColor: "#9068b0" }, _godot_3: { fontCharacter: "\\E03B", fontColor: "#a074c4" }, _gradle_light: { fontCharacter: "\\E03C", fontColor: "#498ba7" }, _gradle: { fontCharacter: "\\E03C", fontColor: "#519aba" }, _grails_light: { fontCharacter: "\\E03D", fontColor: "#7fae42" }, _grails: { fontCharacter: "\\E03D", fontColor: "#8dc149" }, _graphql_light: { fontCharacter: "\\E03E", fontColor: "#dd4b78" }, _graphql: { fontCharacter: "\\E03E", fontColor: "#f55385" }, _grunt_light: { fontCharacter: "\\E03F", fontColor: "#cc6d2e" }, _grunt: { fontCharacter: "\\E03F", fontColor: "#e37933" }, _gulp_light: { fontCharacter: "\\E040", fontColor: "#b8383d" }, _gulp: { fontCharacter: "\\E040", fontColor: "#cc3e44" }, _hacklang_light: { fontCharacter: "\\E041", fontColor: "#cc6d2e" }, _hacklang: { fontCharacter: "\\E041", fontColor: "#e37933" }, _haml_light: { fontCharacter: "\\E042", fontColor: "#b8383d" }, _haml: { fontCharacter: "\\E042", fontColor: "#cc3e44" }, _happenings_light: { fontCharacter: "\\E043", fontColor: "#498ba7" }, _happenings: { fontCharacter: "\\E043", fontColor: "#519aba" }, _haskell_light: { fontCharacter: "\\E044", fontColor: "#9068b0" }, _haskell: { fontCharacter: "\\E044", fontColor: "#a074c4" }, _haxe_light: { fontCharacter: "\\E045", fontColor: "#cc6d2e" }, _haxe: { fontCharacter: "\\E045", fontColor: "#e37933" }, _haxe_1_light: { fontCharacter: "\\E045", fontColor: "#b7b73b" }, _haxe_1: { fontCharacter: "\\E045", fontColor: "#cbcb41" }, _haxe_2_light: { fontCharacter: "\\E045", fontColor: "#498ba7" }, _haxe_2: { fontCharacter: "\\E045", fontColor: "#519aba" }, _haxe_3_light: { fontCharacter: "\\E045", fontColor: "#9068b0" }, _haxe_3: { fontCharacter: "\\E045", fontColor: "#a074c4" }, _heroku_light: { fontCharacter: "\\E046", fontColor: "#9068b0" }, _heroku: { fontCharacter: "\\E046", fontColor: "#a074c4" }, _hex_light: { fontCharacter: "\\E047", fontColor: "#b8383d" }, _hex: { fontCharacter: "\\E047", fontColor: "#cc3e44" }, _html_light: { fontCharacter: "\\E048", fontColor: "#498ba7" }, _html: { fontCharacter: "\\E048", fontColor: "#519aba" }, _html_1_light: { fontCharacter: "\\E048", fontColor: "#7fae42" }, _html_1: { fontCharacter: "\\E048", fontColor: "#8dc149" }, _html_2_light: { fontCharacter: "\\E048", fontColor: "#b7b73b" }, _html_2: { fontCharacter: "\\E048", fontColor: "#cbcb41" }, _html_3_light: { fontCharacter: "\\E048", fontColor: "#cc6d2e" }, _html_3: { fontCharacter: "\\E048", fontColor: "#e37933" }, _html_erb_light: { fontCharacter: "\\E049", fontColor: "#b8383d" }, _html_erb: { fontCharacter: "\\E049", fontColor: "#cc3e44" }, _ignored_light: { fontCharacter: "\\E04A", fontColor: "#3b4b52" }, _ignored: { fontCharacter: "\\E04A", fontColor: "#41535b" }, _illustrator_light: { fontCharacter: "\\E04B", fontColor: "#b7b73b" }, _illustrator: { fontCharacter: "\\E04B", fontColor: "#cbcb41" }, _image_light: { fontCharacter: "\\E04C", fontColor: "#9068b0" }, _image: { fontCharacter: "\\E04C", fontColor: "#a074c4" }, _info_light: { fontCharacter: "\\E04D", fontColor: "#498ba7" }, _info: { fontCharacter: "\\E04D", fontColor: "#519aba" }, _ionic_light: { fontCharacter: "\\E04E", fontColor: "#498ba7" }, _ionic: { fontCharacter: "\\E04E", fontColor: "#519aba" }, _jade_light: { fontCharacter: "\\E04F", fontColor: "#b8383d" }, _jade: { fontCharacter: "\\E04F", fontColor: "#cc3e44" }, _java_light: { fontCharacter: "\\E050", fontColor: "#b8383d" }, _java: { fontCharacter: "\\E050", fontColor: "#cc3e44" }, _java_1_light: { fontCharacter: "\\E050", fontColor: "#498ba7" }, _java_1: { fontCharacter: "\\E050", fontColor: "#519aba" }, _javascript_light: { fontCharacter: "\\E051", fontColor: "#b7b73b" }, _javascript: { fontCharacter: "\\E051", fontColor: "#cbcb41" }, _javascript_1_light: { fontCharacter: "\\E051", fontColor: "#cc6d2e" }, _javascript_1: { fontCharacter: "\\E051", fontColor: "#e37933" }, _javascript_2_light: { fontCharacter: "\\E051", fontColor: "#498ba7" }, _javascript_2: { fontCharacter: "\\E051", fontColor: "#519aba" }, _jenkins_light: { fontCharacter: "\\E052", fontColor: "#b8383d" }, _jenkins: { fontCharacter: "\\E052", fontColor: "#cc3e44" }, _jinja_light: { fontCharacter: "\\E053", fontColor: "#b8383d" }, _jinja: { fontCharacter: "\\E053", fontColor: "#cc3e44" }, _json_light: { fontCharacter: "\\E055", fontColor: "#b7b73b" }, _json: { fontCharacter: "\\E055", fontColor: "#cbcb41" }, _json_1_light: { fontCharacter: "\\E055", fontColor: "#7fae42" }, _json_1: { fontCharacter: "\\E055", fontColor: "#8dc149" }, _julia_light: { fontCharacter: "\\E056", fontColor: "#9068b0" }, _julia: { fontCharacter: "\\E056", fontColor: "#a074c4" }, _karma_light: { fontCharacter: "\\E057", fontColor: "#7fae42" }, _karma: { fontCharacter: "\\E057", fontColor: "#8dc149" }, _kotlin_light: { fontCharacter: "\\E058", fontColor: "#cc6d2e" }, _kotlin: { fontCharacter: "\\E058", fontColor: "#e37933" }, _less_light: { fontCharacter: "\\E059", fontColor: "#498ba7" }, _less: { fontCharacter: "\\E059", fontColor: "#519aba" }, _license_light: { fontCharacter: "\\E05A", fontColor: "#b7b73b" }, _license: { fontCharacter: "\\E05A", fontColor: "#cbcb41" }, _license_1_light: { fontCharacter: "\\E05A", fontColor: "#cc6d2e" }, _license_1: { fontCharacter: "\\E05A", fontColor: "#e37933" }, _license_2_light: { fontCharacter: "\\E05A", fontColor: "#b8383d" }, _license_2: { fontCharacter: "\\E05A", fontColor: "#cc3e44" }, _liquid_light: { fontCharacter: "\\E05B", fontColor: "#7fae42" }, _liquid: { fontCharacter: "\\E05B", fontColor: "#8dc149" }, _livescript_light: { fontCharacter: "\\E05C", fontColor: "#498ba7" }, _livescript: { fontCharacter: "\\E05C", fontColor: "#519aba" }, _lock_light: { fontCharacter: "\\E05D", fontColor: "#7fae42" }, _lock: { fontCharacter: "\\E05D", fontColor: "#8dc149" }, _lua_light: { fontCharacter: "\\E05E", fontColor: "#498ba7" }, _lua: { fontCharacter: "\\E05E", fontColor: "#519aba" }, _makefile_light: { fontCharacter: "\\E05F", fontColor: "#cc6d2e" }, _makefile: { fontCharacter: "\\E05F", fontColor: "#e37933" }, _makefile_1_light: { fontCharacter: "\\E05F", fontColor: "#9068b0" }, _makefile_1: { fontCharacter: "\\E05F", fontColor: "#a074c4" }, _makefile_2_light: { fontCharacter: "\\E05F", fontColor: "#627379" }, _makefile_2: { fontCharacter: "\\E05F", fontColor: "#6d8086" }, _makefile_3_light: { fontCharacter: "\\E05F", fontColor: "#498ba7" }, _makefile_3: { fontCharacter: "\\E05F", fontColor: "#519aba" }, _markdown_light: { fontCharacter: "\\E060", fontColor: "#498ba7" }, _markdown: { fontCharacter: "\\E060", fontColor: "#519aba" }, _maven_light: { fontCharacter: "\\E061", fontColor: "#b8383d" }, _maven: { fontCharacter: "\\E061", fontColor: "#cc3e44" }, _mdo_light: { fontCharacter: "\\E062", fontColor: "#b8383d" }, _mdo: { fontCharacter: "\\E062", fontColor: "#cc3e44" }, _mustache_light: { fontCharacter: "\\E063", fontColor: "#cc6d2e" }, _mustache: { fontCharacter: "\\E063", fontColor: "#e37933" }, _nim_light: { fontCharacter: "\\E065", fontColor: "#b7b73b" }, _nim: { fontCharacter: "\\E065", fontColor: "#cbcb41" }, _notebook_light: { fontCharacter: "\\E066", fontColor: "#498ba7" }, _notebook: { fontCharacter: "\\E066", fontColor: "#519aba" }, _npm_light: { fontCharacter: "\\E067", fontColor: "#3b4b52" }, _npm: { fontCharacter: "\\E067", fontColor: "#41535b" }, _npm_1_light: { fontCharacter: "\\E067", fontColor: "#b8383d" }, _npm_1: { fontCharacter: "\\E067", fontColor: "#cc3e44" }, _npm_ignored_light: { fontCharacter: "\\E068", fontColor: "#3b4b52" }, _npm_ignored: { fontCharacter: "\\E068", fontColor: "#41535b" }, _nunjucks_light: { fontCharacter: "\\E069", fontColor: "#7fae42" }, _nunjucks: { fontCharacter: "\\E069", fontColor: "#8dc149" }, _ocaml_light: { fontCharacter: "\\E06A", fontColor: "#cc6d2e" }, _ocaml: { fontCharacter: "\\E06A", fontColor: "#e37933" }, _odata_light: { fontCharacter: "\\E06B", fontColor: "#cc6d2e" }, _odata: { fontCharacter: "\\E06B", fontColor: "#e37933" }, _pddl_light: { fontCharacter: "\\E06C", fontColor: "#9068b0" }, _pddl: { fontCharacter: "\\E06C", fontColor: "#a074c4" }, _pdf_light: { fontCharacter: "\\E06D", fontColor: "#b8383d" }, _pdf: { fontCharacter: "\\E06D", fontColor: "#cc3e44" }, _perl_light: { fontCharacter: "\\E06E", fontColor: "#498ba7" }, _perl: { fontCharacter: "\\E06E", fontColor: "#519aba" }, _photoshop_light: { fontCharacter: "\\E06F", fontColor: "#498ba7" }, _photoshop: { fontCharacter: "\\E06F", fontColor: "#519aba" }, _php_light: { fontCharacter: "\\E070", fontColor: "#9068b0" }, _php: { fontCharacter: "\\E070", fontColor: "#a074c4" }, _pipeline_light: { fontCharacter: "\\E071", fontColor: "#cc6d2e" }, _pipeline: { fontCharacter: "\\E071", fontColor: "#e37933" }, _plan_light: { fontCharacter: "\\E072", fontColor: "#7fae42" }, _plan: { fontCharacter: "\\E072", fontColor: "#8dc149" }, _platformio_light: { fontCharacter: "\\E073", fontColor: "#cc6d2e" }, _platformio: { fontCharacter: "\\E073", fontColor: "#e37933" }, _powershell_light: { fontCharacter: "\\E074", fontColor: "#498ba7" }, _powershell: { fontCharacter: "\\E074", fontColor: "#519aba" }, _prisma_light: { fontCharacter: "\\E075", fontColor: "#498ba7" }, _prisma: { fontCharacter: "\\E075", fontColor: "#519aba" }, _prolog_light: { fontCharacter: "\\E077", fontColor: "#cc6d2e" }, _prolog: { fontCharacter: "\\E077", fontColor: "#e37933" }, _pug_light: { fontCharacter: "\\E078", fontColor: "#b8383d" }, _pug: { fontCharacter: "\\E078", fontColor: "#cc3e44" }, _puppet_light: { fontCharacter: "\\E079", fontColor: "#b7b73b" }, _puppet: { fontCharacter: "\\E079", fontColor: "#cbcb41" }, _purescript_light: { fontCharacter: "\\E07A", fontColor: "#bfc2c1" }, _purescript: { fontCharacter: "\\E07A", fontColor: "#d4d7d6" }, _python_light: { fontCharacter: "\\E07B", fontColor: "#498ba7" }, _python: { fontCharacter: "\\E07B", fontColor: "#519aba" }, _react_light: { fontCharacter: "\\E07D", fontColor: "#498ba7" }, _react: { fontCharacter: "\\E07D", fontColor: "#519aba" }, _react_1_light: { fontCharacter: "\\E07D", fontColor: "#cc6d2e" }, _react_1: { fontCharacter: "\\E07D", fontColor: "#e37933" }, _reasonml_light: { fontCharacter: "\\E07E", fontColor: "#b8383d" }, _reasonml: { fontCharacter: "\\E07E", fontColor: "#cc3e44" }, _rescript_light: { fontCharacter: "\\E07F", fontColor: "#b8383d" }, _rescript: { fontCharacter: "\\E07F", fontColor: "#cc3e44" }, _rescript_1_light: { fontCharacter: "\\E07F", fontColor: "#dd4b78" }, _rescript_1: { fontCharacter: "\\E07F", fontColor: "#f55385" }, _rollup_light: { fontCharacter: "\\E080", fontColor: "#b8383d" }, _rollup: { fontCharacter: "\\E080", fontColor: "#cc3e44" }, _ruby_light: { fontCharacter: "\\E081", fontColor: "#b8383d" }, _ruby: { fontCharacter: "\\E081", fontColor: "#cc3e44" }, _rust_light: { fontCharacter: "\\E082", fontColor: "#627379" }, _rust: { fontCharacter: "\\E082", fontColor: "#6d8086" }, _salesforce_light: { fontCharacter: "\\E083", fontColor: "#498ba7" }, _salesforce: { fontCharacter: "\\E083", fontColor: "#519aba" }, _sass_light: { fontCharacter: "\\E084", fontColor: "#dd4b78" }, _sass: { fontCharacter: "\\E084", fontColor: "#f55385" }, _sbt_light: { fontCharacter: "\\E085", fontColor: "#498ba7" }, _sbt: { fontCharacter: "\\E085", fontColor: "#519aba" }, _scala_light: { fontCharacter: "\\E086", fontColor: "#b8383d" }, _scala: { fontCharacter: "\\E086", fontColor: "#cc3e44" }, _shell_light: { fontCharacter: "\\E089", fontColor: "#7fae42" }, _shell: { fontCharacter: "\\E089", fontColor: "#8dc149" }, _slim_light: { fontCharacter: "\\E08A", fontColor: "#cc6d2e" }, _slim: { fontCharacter: "\\E08A", fontColor: "#e37933" }, _smarty_light: { fontCharacter: "\\E08B", fontColor: "#b7b73b" }, _smarty: { fontCharacter: "\\E08B", fontColor: "#cbcb41" }, _spring_light: { fontCharacter: "\\E08C", fontColor: "#7fae42" }, _spring: { fontCharacter: "\\E08C", fontColor: "#8dc149" }, _stylelint_light: { fontCharacter: "\\E08D", fontColor: "#bfc2c1" }, _stylelint: { fontCharacter: "\\E08D", fontColor: "#d4d7d6" }, _stylelint_1_light: { fontCharacter: "\\E08D", fontColor: "#455155" }, _stylelint_1: { fontCharacter: "\\E08D", fontColor: "#4d5a5e" }, _stylus_light: { fontCharacter: "\\E08E", fontColor: "#7fae42" }, _stylus: { fontCharacter: "\\E08E", fontColor: "#8dc149" }, _sublime_light: { fontCharacter: "\\E08F", fontColor: "#cc6d2e" }, _sublime: { fontCharacter: "\\E08F", fontColor: "#e37933" }, _svelte_light: { fontCharacter: "\\E090", fontColor: "#b8383d" }, _svelte: { fontCharacter: "\\E090", fontColor: "#cc3e44" }, _svg_light: { fontCharacter: "\\E091", fontColor: "#9068b0" }, _svg: { fontCharacter: "\\E091", fontColor: "#a074c4" }, _svg_1_light: { fontCharacter: "\\E091", fontColor: "#498ba7" }, _svg_1: { fontCharacter: "\\E091", fontColor: "#519aba" }, _swift_light: { fontCharacter: "\\E092", fontColor: "#cc6d2e" }, _swift: { fontCharacter: "\\E092", fontColor: "#e37933" }, _terraform_light: { fontCharacter: "\\E093", fontColor: "#9068b0" }, _terraform: { fontCharacter: "\\E093", fontColor: "#a074c4" }, _tex_light: { fontCharacter: "\\E094", fontColor: "#498ba7" }, _tex: { fontCharacter: "\\E094", fontColor: "#519aba" }, _tex_1_light: { fontCharacter: "\\E094", fontColor: "#b7b73b" }, _tex_1: { fontCharacter: "\\E094", fontColor: "#cbcb41" }, _tex_2_light: { fontCharacter: "\\E094", fontColor: "#cc6d2e" }, _tex_2: { fontCharacter: "\\E094", fontColor: "#e37933" }, _tex_3_light: { fontCharacter: "\\E094", fontColor: "#bfc2c1" }, _tex_3: { fontCharacter: "\\E094", fontColor: "#d4d7d6" }, _todo: { fontCharacter: "\\E096" }, _tsconfig_light: { fontCharacter: "\\E097", fontColor: "#498ba7" }, _tsconfig: { fontCharacter: "\\E097", fontColor: "#519aba" }, _twig_light: { fontCharacter: "\\E098", fontColor: "#7fae42" }, _twig: { fontCharacter: "\\E098", fontColor: "#8dc149" }, _typescript_light: { fontCharacter: "\\E099", fontColor: "#498ba7" }, _typescript: { fontCharacter: "\\E099", fontColor: "#519aba" }, _typescript_1_light: { fontCharacter: "\\E099", fontColor: "#cc6d2e" }, _typescript_1: { fontCharacter: "\\E099", fontColor: "#e37933" }, _vala_light: { fontCharacter: "\\E09A", fontColor: "#627379" }, _vala: { fontCharacter: "\\E09A", fontColor: "#6d8086" }, _video_light: { fontCharacter: "\\E09B", fontColor: "#dd4b78" }, _video: { fontCharacter: "\\E09B", fontColor: "#f55385" }, _vite_light: { fontCharacter: "\\E09C", fontColor: "#b7b73b" }, _vite: { fontCharacter: "\\E09C", fontColor: "#cbcb41" }, _vue_light: { fontCharacter: "\\E09D", fontColor: "#7fae42" }, _vue: { fontCharacter: "\\E09D", fontColor: "#8dc149" }, _wasm_light: { fontCharacter: "\\E09E", fontColor: "#9068b0" }, _wasm: { fontCharacter: "\\E09E", fontColor: "#a074c4" }, _wat_light: { fontCharacter: "\\E09F", fontColor: "#9068b0" }, _wat: { fontCharacter: "\\E09F", fontColor: "#a074c4" }, _webpack_light: { fontCharacter: "\\E0A0", fontColor: "#498ba7" }, _webpack: { fontCharacter: "\\E0A0", fontColor: "#519aba" }, _wgt_light: { fontCharacter: "\\E0A1", fontColor: "#498ba7" }, _wgt: { fontCharacter: "\\E0A1", fontColor: "#519aba" }, _windows_light: { fontCharacter: "\\E0A2", fontColor: "#498ba7" }, _windows: { fontCharacter: "\\E0A2", fontColor: "#519aba" }, _word_light: { fontCharacter: "\\E0A3", fontColor: "#498ba7" }, _word: { fontCharacter: "\\E0A3", fontColor: "#519aba" }, _xls_light: { fontCharacter: "\\E0A4", fontColor: "#7fae42" }, _xls: { fontCharacter: "\\E0A4", fontColor: "#8dc149" }, _xml_light: { fontCharacter: "\\E0A5", fontColor: "#cc6d2e" }, _xml: { fontCharacter: "\\E0A5", fontColor: "#e37933" }, _yarn_light: { fontCharacter: "\\E0A6", fontColor: "#498ba7" }, _yarn: { fontCharacter: "\\E0A6", fontColor: "#519aba" }, _yml_light: { fontCharacter: "\\E0A7", fontColor: "#9068b0" }, _yml: { fontCharacter: "\\E0A7", fontColor: "#a074c4" }, _zig_light: { fontCharacter: "\\E0A8", fontColor: "#cc6d2e" }, _zig: { fontCharacter: "\\E0A8", fontColor: "#e37933" }, _zip_light: { fontCharacter: "\\E0A9", fontColor: "#b8383d" }, _zip: { fontCharacter: "\\E0A9", fontColor: "#cc3e44" }, _zip_1_light: { fontCharacter: "\\E0A9", fontColor: "#627379" }, _zip_1: { fontCharacter: "\\E0A9", fontColor: "#6d8086" } }, file: "_default", fileExtensions: { bsl: "_bsl", mdo: "_mdo", cls: "_salesforce", apex: "_salesforce", asm: "_asm", s: "_asm", bicep: "_bicep", bzl: "_bazel", bazel: "_bazel", build: "_bazel", workspace: "_bazel", bazelignore: "_bazel", bazelversion: "_bazel", h: "_c_1", aspx: "_html", ascx: "_html_1", asax: "_html_2", master: "_html_2", hh: "_cpp_1", hpp: "_cpp_1", hxx: "_cpp_1", "h++": "_cpp_1", edn: "_clojure_1", cfc: "_coldfusion", cfm: "_coldfusion", litcoffee: "_coffee", config: "_config", cr: "_crystal", ecr: "_crystal_embedded", slang: "_crystal_embedded", cson: "_json", "css.map": "_css", sss: "_css", csv: "_csv", xls: "_xls", xlsx: "_xls", cuh: "_cu_1", hu: "_cu_1", cake: "_cake", ctp: "_cake_php", d: "_d", doc: "_word", docx: "_word", ejs: "_ejs", ex: "_elixir", exs: "_elixir_script", elm: "_elm", ico: "_favicon", gitconfig: "_git", gitkeep: "_git", gitattributes: "_git", gitmodules: "_git", slide: "_go", article: "_go", gd: "_godot", godot: "_godot_1", tres: "_godot_2", tscn: "_godot_3", gradle: "_gradle", gsp: "_grails", gql: "_graphql", graphql: "_graphql", graphqls: "_graphql", hack: "_hacklang", haml: "_haml", hs: "_haskell", lhs: "_haskell", hx: "_haxe", hxs: "_haxe_1", hxp: "_haxe_2", hxml: "_haxe_3", jade: "_jade", class: "_java_1", classpath: "_java", "js.map": "_javascript", "cjs.map": "_javascript", "mjs.map": "_javascript", "spec.js": "_javascript_1", "spec.cjs": "_javascript_1", "spec.mjs": "_javascript_1", "test.js": "_javascript_1", "test.cjs": "_javascript_1", "test.mjs": "_javascript_1", es: "_javascript", es5: "_javascript", es7: "_javascript", jinja: "_jinja", jinja2: "_jinja", kt: "_kotlin", kts: "_kotlin", liquid: "_liquid", ls: "_livescript", argdown: "_argdown", ad: "_argdown", mustache: "_mustache", stache: "_mustache", nim: "_nim", nims: "_nim", "github-issues": "_github", ipynb: "_notebook", njk: "_nunjucks", nunjucks: "_nunjucks", nunjs: "_nunjucks", nunj: "_nunjucks", njs: "_nunjucks", nj: "_nunjucks", "npm-debug.log": "_npm", npmignore: "_npm_1", npmrc: "_npm_1", ml: "_ocaml", mli: "_ocaml", cmx: "_ocaml", cmxa: "_ocaml", odata: "_odata", "php.inc": "_php", pipeline: "_pipeline", pddl: "_pddl", plan: "_plan", happenings: "_happenings", prisma: "_prisma", pp: "_puppet", epp: "_puppet", purs: "_purescript", "spec.jsx": "_react_1", "test.jsx": "_react_1", cjsx: "_react", "spec.tsx": "_react_1", "test.tsx": "_react_1", re: "_reasonml", res: "_rescript", resi: "_rescript_1", r: "_R", rmd: "_R", erb: "_html_erb", "erb.html": "_html_erb", "html.erb": "_html_erb", sass: "_sass", springbeans: "_spring", slim: "_slim", "smarty.tpl": "_smarty", tpl: "_smarty", sbt: "_sbt", scala: "_scala", sol: "_ethereum", styl: "_stylus", svelte: "_svelte", soql: "_db_1", tf: "_terraform", "tf.json": "_terraform", tfvars: "_terraform", "tfvars.json": "_terraform", dtx: "_tex_2", ins: "_tex_3", toml: "_config", twig: "_twig", "spec.ts": "_typescript_1", "test.ts": "_typescript_1", vala: "_vala", vapi: "_vala", component: "_html_3", vue: "_vue", wasm: "_wasm", wat: "_wat", pro: "_prolog", zig: "_zig", jar: "_zip", zip: "_zip_1", wgt: "_wgt", ai: "_illustrator", psd: "_photoshop", pdf: "_pdf", eot: "_font", ttf: "_font", woff: "_font", woff2: "_font", otf: "_font", avif: "_image", gif: "_image", jpg: "_image", jpeg: "_image", png: "_image", pxm: "_image", svg: "_svg", svgx: "_image", tiff: "_image", webp: "_image", "sublime-project": "_sublime", "sublime-workspace": "_sublime", mov: "_video", ogv: "_video", webm: "_video", avi: "_video", mpg: "_video", mp4: "_video", mp3: "_audio", ogg: "_audio", wav: "_audio", flac: "_audio", "3ds": "_svg_1", "3dm": "_svg_1", stl: "_svg_1", obj: "_svg_1", dae: "_svg_1", babelrc: "_babel", "babelrc.js": "_babel", "babelrc.cjs": "_babel", bazelrc: "_bazel_1", bowerrc: "_bower", dockerignore: "_docker_1", "codeclimate.yml": "_code-climate", eslintrc: "_eslint", "eslintrc.js": "_eslint", "eslintrc.cjs": "_eslint", "eslintrc.yaml": "_eslint", "eslintrc.yml": "_eslint", "eslintrc.json": "_eslint", eslintignore: "_eslint_1", firebaserc: "_firebase", "gitlab-ci.yml": "_gitlab", jshintrc: "_javascript_2", jscsrc: "_javascript_2", stylelintrc: "_stylelint", "stylelintrc.json": "_stylelint", "stylelintrc.yaml": "_stylelint", "stylelintrc.yml": "_stylelint", "stylelintrc.js": "_stylelint", stylelintignore: "_stylelint_1", direnv: "_config", static: "_config", slugignore: "_config", tmp: "_clock_1", htaccess: "_config", key: "_lock", cert: "_lock", cer: "_lock", crt: "_lock", pem: "_lock", ds_store: "_ignored" }, fileNames: { mix: "_hex", "karma.conf.js": "_karma", "karma.conf.cjs": "_karma", "karma.conf.mjs": "_karma", "karma.conf.coffee": "_karma", "readme.md": "_info", "readme.txt": "_info", readme: "_info", "changelog.md": "_clock", "changelog.txt": "_clock", changelog: "_clock", "changes.md": "_clock", "changes.txt": "_clock", changes: "_clock", "version.md": "_clock", "version.txt": "_clock", version: "_clock", mvnw: "_maven", "pom.xml": "_maven", "tsconfig.json": "_tsconfig", "vite.config.js": "_vite", "vite.config.ts": "_vite", "vite.config.mjs": "_vite", "vite.config.mts": "_vite", "vite.config.cjs": "_vite", "vite.config.cts": "_vite", "swagger.json": "_json_1", "swagger.yml": "_json_1", "swagger.yaml": "_json_1", "mime.types": "_config", jenkinsfile: "_jenkins", "babel.config.js": "_babel", "babel.config.json": "_babel", "babel.config.cjs": "_babel", build: "_bazel", "build.bazel": "_bazel", workspace: "_bazel", "workspace.bazel": "_bazel", "bower.json": "_bower", "docker-healthcheck": "_docker_2", "eslint.config.js": "_eslint", "firebase.json": "_firebase", geckodriver: "_firefox", "gruntfile.js": "_grunt", "gruntfile.babel.js": "_grunt", "gruntfile.coffee": "_grunt", gulpfile: "_gulp", "gulpfile.js": "_gulp", "ionic.config.json": "_ionic", "ionic.project": "_ionic", "platformio.ini": "_platformio", "rollup.config.js": "_rollup", "sass-lint.yml": "_sass", "stylelint.config.js": "_stylelint", "stylelint.config.cjs": "_stylelint", "stylelint.config.mjs": "_stylelint", "yarn.clean": "_yarn", "yarn.lock": "_yarn", "webpack.config.js": "_webpack", "webpack.config.cjs": "_webpack", "webpack.config.mjs": "_webpack", "webpack.config.ts": "_webpack", "webpack.config.build.js": "_webpack", "webpack.config.build.cjs": "_webpack", "webpack.config.build.mjs": "_webpack", "webpack.config.build.ts": "_webpack", "webpack.common.js": "_webpack", "webpack.common.cjs": "_webpack", "webpack.common.mjs": "_webpack", "webpack.common.ts": "_webpack", "webpack.dev.js": "_webpack", "webpack.dev.cjs": "_webpack", "webpack.dev.mjs": "_webpack", "webpack.dev.ts": "_webpack", "webpack.prod.js": "_webpack", "webpack.prod.cjs": "_webpack", "webpack.prod.mjs": "_webpack", "webpack.prod.ts": "_webpack", license: "_license", licence: "_license", "license.txt": "_license", "licence.txt": "_license", "license.md": "_license", "licence.md": "_license", copying: "_license", "copying.txt": "_license", "copying.md": "_license", compiling: "_license_1", "compiling.txt": "_license_1", "compiling.md": "_license_1", contributing: "_license_2", "contributing.txt": "_license_2", "contributing.md": "_license_2", qmakefile: "_makefile_1", omakefile: "_makefile_2", "cmakelists.txt": "_makefile_3", procfile: "_heroku", todo: "_todo", "todo.txt": "_todo", "todo.md": "_todo", "npm-debug.log": "_npm_ignored" }, languageIds: { bat: "_windows", clojure: "_clojure", coffeescript: "_coffee", jsonc: "_json", json: "_json", c: "_c", cpp: "_cpp", "cuda-cpp": "_cu", csharp: "_c-sharp", css: "_css", dart: "_dart", dockerfile: "_docker", dotenv: "_config", ignore: "_git", fsharp: "_f-sharp", "git-commit": "_git", go: "_go2", groovy: "_grails", handlebars: "_mustache", html: "_html_3", properties: "_config", java: "_java", javascriptreact: "_react", javascript: "_javascript", julia: "_julia", tex: "_tex_1", latex: "_tex", less: "_less", lua: "_lua", makefile: "_makefile", markdown: "_markdown", "objective-c": "_c_2", "objective-cpp": "_cpp_2", perl: "_perl", php: "_php", powershell: "_powershell", jade: "_pug", python: "_python", r: "_R", razor: "_html", ruby: "_ruby", rust: "_rust", scss: "_sass", "search-result": "_code-search", shellscript: "_shell", sql: "_db", swift: "_swift", typescript: "_typescript", typescriptreact: "_react", xml: "_xml", dockercompose: "_docker_3", yaml: "_yml", argdown: "_argdown", bicep: "_bicep", elixir: "_elixir", elm: "_elm", erb: "_html_erb", "github-issues": "_github", gradle: "_gradle", godot: "_godot", haml: "_haml", haskell: "_haskell", haxe: "_haxe", jinja: "_jinja", kotlin: "_kotlin", mustache: "_mustache", nunjucks: "_nunjucks", ocaml: "_ocaml", rescript: "_rescript", sass: "_sass", stylus: "_stylus", terraform: "_terraform", todo: "_todo", vala: "_vala", vue: "_vue", jsonl: "_json", postcss: "_css", "django-html": "_html_3", blade: "_php", prompt: "_markdown", instructions: "_markdown", chatagent: "_markdown", skill: "_markdown" }, light: { file: "_default_light", fileExtensions: { bsl: "_bsl_light", mdo: "_mdo_light", cls: "_salesforce_light", apex: "_salesforce_light", asm: "_asm_light", s: "_asm_light", bicep: "_bicep_light", bzl: "_bazel_light", bazel: "_bazel_light", build: "_bazel_light", workspace: "_bazel_light", bazelignore: "_bazel_light", bazelversion: "_bazel_light", h: "_c_1_light", aspx: "_html_light", ascx: "_html_1_light", asax: "_html_2_light", master: "_html_2_light", hh: "_cpp_1_light", hpp: "_cpp_1_light", hxx: "_cpp_1_light", "h++": "_cpp_1_light", edn: "_clojure_1_light", cfc: "_coldfusion_light", cfm: "_coldfusion_light", litcoffee: "_coffee_light", config: "_config_light", cr: "_crystal_light", ecr: "_crystal_embedded_light", slang: "_crystal_embedded_light", cson: "_json_light", "css.map": "_css_light", sss: "_css_light", csv: "_csv_light", xls: "_xls_light", xlsx: "_xls_light", cuh: "_cu_1_light", hu: "_cu_1_light", cake: "_cake_light", ctp: "_cake_php_light", d: "_d_light", doc: "_word_light", docx: "_word_light", ejs: "_ejs_light", ex: "_elixir_light", exs: "_elixir_script_light", elm: "_elm_light", ico: "_favicon_light", gitconfig: "_git_light", gitkeep: "_git_light", gitattributes: "_git_light", gitmodules: "_git_light", slide: "_go_light", article: "_go_light", gd: "_godot_light", godot: "_godot_1_light", tres: "_godot_2_light", tscn: "_godot_3_light", gradle: "_gradle_light", gsp: "_grails_light", gql: "_graphql_light", graphql: "_graphql_light", graphqls: "_graphql_light", hack: "_hacklang_light", haml: "_haml_light", hs: "_haskell_light", lhs: "_haskell_light", hx: "_haxe_light", hxs: "_haxe_1_light", hxp: "_haxe_2_light", hxml: "_haxe_3_light", jade: "_jade_light", class: "_java_1_light", classpath: "_java_light", "js.map": "_javascript_light", "cjs.map": "_javascript_light", "mjs.map": "_javascript_light", "spec.js": "_javascript_1_light", "spec.cjs": "_javascript_1_light", "spec.mjs": "_javascript_1_light", "test.js": "_javascript_1_light", "test.cjs": "_javascript_1_light", "test.mjs": "_javascript_1_light", es: "_javascript_light", es5: "_javascript_light", es7: "_javascript_light", jinja: "_jinja_light", jinja2: "_jinja_light", kt: "_kotlin_light", kts: "_kotlin_light", liquid: "_liquid_light", ls: "_livescript_light", argdown: "_argdown_light", ad: "_argdown_light", mustache: "_mustache_light", stache: "_mustache_light", nim: "_nim_light", nims: "_nim_light", "github-issues": "_github_light", ipynb: "_notebook_light", njk: "_nunjucks_light", nunjucks: "_nunjucks_light", nunjs: "_nunjucks_light", nunj: "_nunjucks_light", njs: "_nunjucks_light", nj: "_nunjucks_light", "npm-debug.log": "_npm_light", npmignore: "_npm_1_light", npmrc: "_npm_1_light", ml: "_ocaml_light", mli: "_ocaml_light", cmx: "_ocaml_light", cmxa: "_ocaml_light", odata: "_odata_light", "php.inc": "_php_light", pipeline: "_pipeline_light", pddl: "_pddl_light", plan: "_plan_light", happenings: "_happenings_light", prisma: "_prisma_light", pp: "_puppet_light", epp: "_puppet_light", purs: "_purescript_light", "spec.jsx": "_react_1_light", "test.jsx": "_react_1_light", cjsx: "_react_light", "spec.tsx": "_react_1_light", "test.tsx": "_react_1_light", re: "_reasonml_light", res: "_rescript_light", resi: "_rescript_1_light", r: "_R_light", rmd: "_R_light", erb: "_html_erb_light", "erb.html": "_html_erb_light", "html.erb": "_html_erb_light", sass: "_sass_light", springbeans: "_spring_light", slim: "_slim_light", "smarty.tpl": "_smarty_light", tpl: "_smarty_light", sbt: "_sbt_light", scala: "_scala_light", sol: "_ethereum_light", styl: "_stylus_light", svelte: "_svelte_light", soql: "_db_1_light", tf: "_terraform_light", "tf.json": "_terraform_light", tfvars: "_terraform_light", "tfvars.json": "_terraform_light", dtx: "_tex_2_light", ins: "_tex_3_light", toml: "_config_light", twig: "_twig_light", "spec.ts": "_typescript_1_light", "test.ts": "_typescript_1_light", vala: "_vala_light", vapi: "_vala_light", component: "_html_3_light", vue: "_vue_light", wasm: "_wasm_light", wat: "_wat_light", pro: "_prolog_light", zig: "_zig_light", jar: "_zip_light", zip: "_zip_1_light", wgt: "_wgt_light", ai: "_illustrator_light", psd: "_photoshop_light", pdf: "_pdf_light", eot: "_font_light", ttf: "_font_light", woff: "_font_light", woff2: "_font_light", otf: "_font_light", avif: "_image_light", gif: "_image_light", jpg: "_image_light", jpeg: "_image_light", png: "_image_light", pxm: "_image_light", svg: "_svg_light", svgx: "_image_light", tiff: "_image_light", webp: "_image_light", "sublime-project": "_sublime_light", "sublime-workspace": "_sublime_light", mov: "_video_light", ogv: "_video_light", webm: "_video_light", avi: "_video_light", mpg: "_video_light", mp4: "_video_light", mp3: "_audio_light", ogg: "_audio_light", wav: "_audio_light", flac: "_audio_light", "3ds": "_svg_1_light", "3dm": "_svg_1_light", stl: "_svg_1_light", obj: "_svg_1_light", dae: "_svg_1_light", babelrc: "_babel_light", "babelrc.js": "_babel_light", "babelrc.cjs": "_babel_light", bazelrc: "_bazel_1_light", bowerrc: "_bower_light", dockerignore: "_docker_1_light", "codeclimate.yml": "_code-climate_light", eslintrc: "_eslint_light", "eslintrc.js": "_eslint_light", "eslintrc.cjs": "_eslint_light", "eslintrc.yaml": "_eslint_light", "eslintrc.yml": "_eslint_light", "eslintrc.json": "_eslint_light", eslintignore: "_eslint_1_light", firebaserc: "_firebase_light", "gitlab-ci.yml": "_gitlab_light", jshintrc: "_javascript_2_light", jscsrc: "_javascript_2_light", stylelintrc: "_stylelint_light", "stylelintrc.json": "_stylelint_light", "stylelintrc.yaml": "_stylelint_light", "stylelintrc.yml": "_stylelint_light", "stylelintrc.js": "_stylelint_light", stylelintignore: "_stylelint_1_light", direnv: "_config_light", static: "_config_light", slugignore: "_config_light", tmp: "_clock_1_light", htaccess: "_config_light", key: "_lock_light", cert: "_lock_light", cer: "_lock_light", crt: "_lock_light", pem: "_lock_light", ds_store: "_ignored_light" }, languageIds: { bat: "_windows_light", clojure: "_clojure_light", coffeescript: "_coffee_light", jsonc: "_json_light", json: "_json_light", c: "_c_light", cpp: "_cpp_light", "cuda-cpp": "_cu_light", csharp: "_c-sharp_light", css: "_css_light", dart: "_dart_light", dockerfile: "_docker_light", dotenv: "_config_light", ignore: "_git_light", fsharp: "_f-sharp_light", "git-commit": "_git_light", go: "_go2_light", groovy: "_grails_light", handlebars: "_mustache_light", html: "_html_3_light", properties: "_config_light", java: "_java_light", javascriptreact: "_react_light", javascript: "_javascript_light", julia: "_julia_light", tex: "_tex_1_light", latex: "_tex_light", less: "_less_light", lua: "_lua_light", makefile: "_makefile_light", markdown: "_markdown_light", "objective-c": "_c_2_light", "objective-cpp": "_cpp_2_light", perl: "_perl_light", php: "_php_light", powershell: "_powershell_light", jade: "_pug_light", python: "_python_light", r: "_R_light", razor: "_html_light", ruby: "_ruby_light", rust: "_rust_light", scss: "_sass_light", "search-result": "_code-search_light", shellscript: "_shell_light", sql: "_db_light", swift: "_swift_light", typescript: "_typescript_light", typescriptreact: "_react_light", xml: "_xml_light", dockercompose: "_docker_3_light", yaml: "_yml_light", argdown: "_argdown_light", bicep: "_bicep_light", elixir: "_elixir_light", elm: "_elm_light", erb: "_html_erb_light", "github-issues": "_github_light", gradle: "_gradle_light", godot: "_godot_light", haml: "_haml_light", haskell: "_haskell_light", haxe: "_haxe_light", jinja: "_jinja_light", kotlin: "_kotlin_light", mustache: "_mustache_light", nunjucks: "_nunjucks_light", ocaml: "_ocaml_light", rescript: "_rescript_light", sass: "_sass_light", stylus: "_stylus_light", terraform: "_terraform_light", vala: "_vala_light", vue: "_vue_light", jsonl: "_json_light", postcss: "_css_light", "django-html": "_html_3_light", blade: "_php_light", prompt: "_markdown_light", instructions: "_markdown_light", chatagent: "_markdown_light", skill: "_markdown_light" }, fileNames: { mix: "_hex_light", "karma.conf.js": "_karma_light", "karma.conf.cjs": "_karma_light", "karma.conf.mjs": "_karma_light", "karma.conf.coffee": "_karma_light", "readme.md": "_info_light", "readme.txt": "_info_light", readme: "_info_light", "changelog.md": "_clock_light", "changelog.txt": "_clock_light", changelog: "_clock_light", "changes.md": "_clock_light", "changes.txt": "_clock_light", changes: "_clock_light", "version.md": "_clock_light", "version.txt": "_clock_light", version: "_clock_light", mvnw: "_maven_light", "pom.xml": "_maven_light", "tsconfig.json": "_tsconfig_light", "vite.config.js": "_vite_light", "vite.config.ts": "_vite_light", "vite.config.mjs": "_vite_light", "vite.config.mts": "_vite_light", "vite.config.cjs": "_vite_light", "vite.config.cts": "_vite_light", "swagger.json": "_json_1_light", "swagger.yml": "_json_1_light", "swagger.yaml": "_json_1_light", "mime.types": "_config_light", jenkinsfile: "_jenkins_light", "babel.config.js": "_babel_light", "babel.config.json": "_babel_light", "babel.config.cjs": "_babel_light", build: "_bazel_light", "build.bazel": "_bazel_light", workspace: "_bazel_light", "workspace.bazel": "_bazel_light", "bower.json": "_bower_light", "docker-healthcheck": "_docker_2_light", "eslint.config.js": "_eslint_light", "firebase.json": "_firebase_light", geckodriver: "_firefox_light", "gruntfile.js": "_grunt_light", "gruntfile.babel.js": "_grunt_light", "gruntfile.coffee": "_grunt_light", gulpfile: "_gulp_light", "gulpfile.js": "_gulp_light", "ionic.config.json": "_ionic_light", "ionic.project": "_ionic_light", "platformio.ini": "_platformio_light", "rollup.config.js": "_rollup_light", "sass-lint.yml": "_sass_light", "stylelint.config.js": "_stylelint_light", "stylelint.config.cjs": "_stylelint_light", "stylelint.config.mjs": "_stylelint_light", "yarn.clean": "_yarn_light", "yarn.lock": "_yarn_light", "webpack.config.js": "_webpack_light", "webpack.config.cjs": "_webpack_light", "webpack.config.mjs": "_webpack_light", "webpack.config.ts": "_webpack_light", "webpack.config.build.js": "_webpack_light", "webpack.config.build.cjs": "_webpack_light", "webpack.config.build.mjs": "_webpack_light", "webpack.config.build.ts": "_webpack_light", "webpack.common.js": "_webpack_light", "webpack.common.cjs": "_webpack_light", "webpack.common.mjs": "_webpack_light", "webpack.common.ts": "_webpack_light", "webpack.dev.js": "_webpack_light", "webpack.dev.cjs": "_webpack_light", "webpack.dev.mjs": "_webpack_light", "webpack.dev.ts": "_webpack_light", "webpack.prod.js": "_webpack_light", "webpack.prod.cjs": "_webpack_light", "webpack.prod.mjs": "_webpack_light", "webpack.prod.ts": "_webpack_light", license: "_license_light", licence: "_license_light", "license.txt": "_license_light", "licence.txt": "_license_light", "license.md": "_license_light", "licence.md": "_license_light", copying: "_license_light", "copying.txt": "_license_light", "copying.md": "_license_light", compiling: "_license_1_light", "compiling.txt": "_license_1_light", "compiling.md": "_license_1_light", contributing: "_license_2_light", "contributing.txt": "_license_2_light", "contributing.md": "_license_2_light", qmakefile: "_makefile_1_light", omakefile: "_makefile_2_light", "cmakelists.txt": "_makefile_3_light", procfile: "_heroku_light", "npm-debug.log": "_npm_ignored_light" } }, version: "https://github.com/jesseweed/seti-ui/commit/2d6c5e68b4ded73c92dac291845ee44e1182d511" };
-
-  // src/workspace_file_icons.css
-  var workspace_file_icons_default = "";
-
-  // src/workspace_file_icons.ts
-  var theme = icon_theme_default;
-  var theme_users = 0;
-  var release_theme;
-  var previous_theme = null;
-  function acquire_workspace_file_icons() {
-    const style = acquire_workspace_style("typora-code-style:workspace_file_icons", workspace_file_icons_default);
-    let removed = false;
-    if (theme_users++ === 0) {
-      previous_theme = document.documentElement.getAttribute("data-workspace-file-icon-theme");
-      release_theme = observe_terminal_theme((value) => {
-        const rgb = String(value.background).match(/[\d.]+/g)?.map(Number) || [255, 255, 255];
-        document.documentElement.setAttribute("data-workspace-file-icon-theme", rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light");
-      });
-    }
-    return { remove() {
-      if (removed) return;
-      removed = true;
-      style.remove();
-      if (--theme_users === 0) {
-        release_theme?.();
-        release_theme = void 0;
-        if (previous_theme === null) document.documentElement.removeAttribute("data-workspace-file-icon-theme");
-        else document.documentElement.setAttribute("data-workspace-file-icon-theme", previous_theme);
-      }
-    } };
-  }
-  function definition(file_path, light) {
-    const variant = light ? theme.light : {};
-    const parts = file_path.replace(/\\/g, "/").toLowerCase().split("/");
-    const name = parts.at(-1) || "";
-    const names = { ...theme.fileNames, ...variant.fileNames }, extensions = { ...theme.fileExtensions, ...variant.fileExtensions }, languages2 = { ...theme.languageIds, ...variant.languageIds };
-    const parent = parts.at(-2);
-    if (parent && names[parent + "/" + name]) return names[parent + "/" + name];
-    if (names[name]) return names[name];
-    const suffixes = name.split(".");
-    for (let index = 1; index < suffixes.length; index++) {
-      const suffix = suffixes.slice(index).join(".");
-      if (parent && extensions[parent + "/" + suffix]) return extensions[parent + "/" + suffix];
-      if (extensions[suffix]) return extensions[suffix];
-    }
-    const language44 = detect_file_language(file_path);
-    return languages2[language44] || (language44 === "jsonc" ? languages2.json : void 0) || variant.file || theme.file;
-  }
-  function workspace_file_icon(file_path) {
-    const node = document.createElement("span"), dark_id = definition(file_path, false), light_id = definition(file_path, true);
-    const dark = theme.iconDefinitions[dark_id], light = theme.iconDefinitions[light_id];
-    node.className = "workspace-file-theme-icon";
-    node.dataset.vscodeFileIcon = dark_id;
-    node.dataset.vscodeFileIconLight = light_id;
-    node.dataset.fileIconPath = file_path;
-    node.setAttribute("aria-hidden", "true");
-    node.textContent = String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g, ""), 16));
-    node.style.setProperty("--workspace-file-icon-light", light.fontColor || "currentColor");
-    node.style.setProperty("--workspace-file-icon-dark", dark.fontColor || "currentColor");
-    return node;
-  }
-  function bind_workspace_file_tab_icons(core) {
-    const style = acquire_workspace_file_icons();
-    const originals = /* @__PURE__ */ new Map();
-    let disposed = false;
-    const refresh = () => {
-      if (disposed) return;
-      const live_slots = /* @__PURE__ */ new Set();
-      core.app.workspace.eachLeaves((leaf) => {
-        const view_type = leaf.viewType;
-        if (view_type && view_type !== "core.markdown" && view_type !== "linux_note.source_file") return;
-        const uri = String(leaf.state.path || "");
-        const file_path = source_file_path(uri) || (!uri.startsWith("typ://") ? uri : "");
-        if (!file_path) return;
-        const tab = workspace_leaf_tab(leaf), slot = tab?.querySelector(".typ-file-icon");
-        if (!slot) return;
-        live_slots.add(slot);
-        if (!originals.has(slot)) originals.set(slot, { class_name: slot.className, nodes: [...slot.childNodes] });
-        if (slot.className !== "typ-file-icon workspace-file-theme-slot") slot.className = "typ-file-icon workspace-file-theme-slot";
-        if (slot.firstElementChild?.getAttribute("data-file-icon-path") !== file_path) slot.replaceChildren(workspace_file_icon(file_path));
-      });
-      for (const [node, old] of originals) if (!live_slots.has(node)) {
-        node.className = old.class_name;
-        node.replaceChildren(...old.nodes);
-        originals.delete(node);
-      }
-    };
-    const observer = new MutationObserver(refresh);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
-    refresh();
-    const release = core.app.workspace.on("active-leaf:change", refresh);
-    return { dispose() {
-      if (disposed) return;
-      disposed = true;
-      observer.disconnect();
-      release?.();
-      for (const [node, old] of originals) {
-        node.className = old.class_name;
-        node.replaceChildren(...old.nodes);
-      }
-      originals.clear();
-      style.remove();
-    } };
   }
 
   // src/workspace_explorer.css
@@ -219079,10 +219075,10 @@ https://creativecommons.org/licenses/by/4.0/
     return output;
   }
   function preserve_case(source, replacement) {
-    for (const separator of ["-", "_"]) {
-      const source_parts = source.split(separator);
-      const replacement_parts = replacement.split(separator);
-      if (source_parts.length > 1 && source_parts.length === replacement_parts.length) return replacement_parts.map((part, index) => preserve_case(source_parts[index], part)).join(separator);
+    for (const separator2 of ["-", "_"]) {
+      const source_parts = source.split(separator2);
+      const replacement_parts = replacement.split(separator2);
+      if (source_parts.length > 1 && source_parts.length === replacement_parts.length) return replacement_parts.map((part, index) => preserve_case(source_parts[index], part)).join(separator2);
     }
     if (source && source === source.toUpperCase() && source !== source.toLowerCase()) return replacement.toUpperCase();
     if (source && source === source.toLowerCase() && source !== source.toUpperCase()) return replacement.toLowerCase();
@@ -224510,6 +224506,228 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/source_symbols.ts
+  var SOURCE_SYMBOL_LANGUAGES = { c: "c", cpp: "cpp", javascript: "javascript", typescript: "typescript", python: "python", cmake: "cmake", yaml: "yaml" };
+
+  // src/source_symbol_service.ts
+  function create_source_symbol_service() {
+    let failure;
+    let disposed = false, worker, url = "", sequence = 0, loading;
+    const sent_languages = /* @__PURE__ */ new Set();
+    let sent_runtime = false;
+    const pending = /* @__PURE__ */ new Map();
+    const runtime2 = window;
+    const assets = /* @__PURE__ */ new Map();
+    const read2 = (name) => {
+      let promise = assets.get(name);
+      if (!promise) {
+        promise = runtime2.reqnode("fs").promises.readFile(runtime2.reqnode("path").join(runtime2._options.userDataPath, "typora_code", "assets", "source_symbols", name)).then((bytes) => new Uint8Array(bytes));
+        assets.set(name, promise);
+      }
+      return promise;
+    };
+    const get_worker = () => loading ??= (async () => {
+      const bytes = await read2("worker.js");
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      url = URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
+      worker = new Worker(url);
+      worker.onmessage = (event) => {
+        const item = pending.get(event.data.id);
+        if (!item) return;
+        pending.delete(event.data.id);
+        event.data.error ? item.reject(new Error(event.data.error)) : item.resolve(event.data);
+      };
+      worker.onerror = (event) => {
+        failure = new Error(event.message || "\u8BED\u6CD5\u89E3\u6790\u8FDB\u7A0B\u5931\u8D25\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u5DE5\u4F5C\u53F0\u3002");
+        worker?.terminate();
+        for (const item of pending.values()) item.reject(failure);
+        pending.clear();
+      };
+      return worker;
+    })();
+    return { async parse(language44, text3, signal) {
+      if (failure) throw failure;
+      if (!SOURCE_SYMBOL_LANGUAGES[language44]) throw new Error("\u6B64\u8BED\u8A00\u5C1A\u672A\u63D0\u4F9B\u8BED\u6CD5\u7B26\u53F7\u5927\u7EB2\u3002");
+      if (text3.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
+      signal.throwIfAborted();
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      const [target, wasm, grammar] = await Promise.all([get_worker(), read2("tree-sitter.wasm"), read2("tree-sitter-".concat(language44, ".wasm"))]);
+      signal.throwIfAborted();
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      if (failure) throw failure;
+      const id = ++sequence;
+      return new Promise((resolve3, reject) => {
+        const abort = () => {
+          pending.delete(id);
+          reject(new DOMException("\u5DF2\u53D6\u6D88", "AbortError"));
+        };
+        pending.set(id, { resolve: (value) => {
+          signal.removeEventListener("abort", abort);
+          resolve3(value);
+        }, reject: (error) => {
+          signal.removeEventListener("abort", abort);
+          reject(error);
+        } });
+        signal.addEventListener("abort", abort, { once: true });
+        target.postMessage({ id, language: language44, text: text3, runtime: sent_runtime ? void 0 : wasm, grammar: sent_languages.has(language44) ? void 0 : grammar });
+        sent_runtime = true;
+        sent_languages.add(language44);
+      });
+    }, dispose() {
+      if (disposed) return;
+      disposed = true;
+      worker?.terminate();
+      if (url) URL.revokeObjectURL(url);
+      for (const item of pending.values()) item.reject(new DOMException("\u5DF2\u5173\u95ED", "AbortError"));
+      pending.clear();
+      assets.clear();
+    } };
+  }
+
+  // src/workspace_source_outline.ts
+  function install_workspace_source_outline(sidebar) {
+    const pane = document.createElement("div");
+    pane.className = "workspace-source-outline";
+    pane.setAttribute("role", "tree");
+    pane.setAttribute("aria-label", "\u4EE3\u7801\u7B26\u53F7\u5927\u7EB2");
+    (sidebar.querySelector("#sidebar-content") || sidebar).append(pane);
+    const service = create_source_symbol_service();
+    let disposed = false, model, editor2, leaf, subscription, language_subscription, timer = 0, version = -1, language44 = "", request;
+    const collapsed2 = /* @__PURE__ */ new Set();
+    const active = () => get_workspace_app()?.workspace.activeLeaf;
+    const source = () => {
+      const candidate = active();
+      return candidate && is_source_file_uri(candidate.state.path) ? candidate : void 0;
+    };
+    const message = (text3) => {
+      pane.replaceChildren();
+      const label = document.createElement("p");
+      label.textContent = text3;
+      pane.append(label);
+    };
+    const current = (target, target_model) => !disposed && active() === target && model === target_model && !target_model.isDisposed();
+    const render = (symbols, target, target_model) => {
+      pane.replaceChildren();
+      const append4 = (items, container, depth, parent_key) => items.forEach((symbol, index) => {
+        const key = parent_key + "/" + symbol.kind + ":" + symbol.name + ":" + index;
+        const row = document.createElement("div");
+        row.className = "workspace-source-symbol";
+        row.setAttribute("role", "treeitem");
+        row.setAttribute("aria-level", String(depth + 1));
+        row.dataset.symbol = symbol.name;
+        row.style.paddingLeft = "".concat(depth * 16, "px");
+        const disclosure = document.createElement(symbol.children.length ? "button" : "span");
+        disclosure.className = "workspace-source-disclosure";
+        const children = document.createElement("div");
+        children.setAttribute("role", "group");
+        if (symbol.children.length) {
+          disclosure.append(git_icon("chevron-right"));
+          disclosure.setAttribute("aria-label", "\u6298\u53E0\u6216\u5C55\u5F00 ".concat(symbol.name));
+          const update = () => {
+            children.hidden = collapsed2.has(key);
+            row.setAttribute("aria-expanded", String(!children.hidden));
+          };
+          update();
+          disclosure.onclick = () => {
+            if (disposed) return;
+            collapsed2.has(key) ? collapsed2.delete(key) : collapsed2.add(key);
+            update();
+          };
+        }
+        const button = document.createElement("button");
+        button.className = "workspace-source-symbol-label";
+        button.title = symbol.detail;
+        button.dataset.symbolName = symbol.name;
+        const icons = { function: "symbol-method", method: "symbol-method", class: "symbol-class", variable: "symbol-variable", property: "symbol-property", namespace: "symbol-namespace", enum: "symbol-enum" };
+        button.append(git_icon(icons[symbol.kind] || "symbol-variable"), document.createTextNode(symbol.name));
+        button.onclick = () => {
+          if (!current(target, target_model) || target_model.getVersionId() !== version) return;
+          const start = target_model.getPositionAt(symbol.selection_start), end = target_model.getPositionAt(symbol.selection_end);
+          const range2 = { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column };
+          editor2.setSelection(range2);
+          editor2.revealRangeInCenter(range2);
+          editor2.focus();
+          pane.querySelectorAll('[aria-selected="true"]').forEach((node) => node.removeAttribute("aria-selected"));
+          row.setAttribute("aria-selected", "true");
+        };
+        row.append(disclosure, button);
+        container.append(row);
+        if (symbol.children.length) {
+          container.append(children);
+          append4(symbol.children, children, depth + 1, key);
+        }
+      });
+      append4(symbols, pane, 0, "");
+      if (!symbols.length) message("\u672A\u627E\u5230\u53EF\u8BC6\u522B\u7684\u8BED\u6CD5\u7B26\u53F7\u3002");
+    };
+    const parse5 = async () => {
+      timer = 0;
+      if (disposed || !model || model.isDisposed()) return;
+      request?.abort();
+      const controller = request = new AbortController(), target = leaf, target_model = model, target_version = model.getVersionId();
+      version = target_version;
+      language44 = model.getLanguageId();
+      message("\u6B63\u5728\u8BFB\u53D6\u8BED\u6CD5\u7B26\u53F7\u2026");
+      try {
+        const result = await service.parse(language44, model.getValue(), controller.signal);
+        if (controller.signal.aborted || !current(target, target_model) || target_model.getVersionId() !== target_version) return;
+        render(result.symbols, target, target_model);
+        pane.dataset.incomplete = String(result.incomplete);
+        if (result.incomplete) {
+          const note = document.createElement("p");
+          note.textContent = "\u8BED\u6CD5\u5C1A\u672A\u5B8C\u6574\uFF0C\u663E\u793A\u53EF\u8BC6\u522B\u7684\u7B26\u53F7\u3002";
+          pane.append(note);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted && current(target, target_model)) message(String(error instanceof Error ? error.message : error));
+      }
+    };
+    const schedule = () => {
+      request?.abort();
+      clearTimeout(timer);
+      timer = window.setTimeout(parse5, 150);
+    };
+    const refresh = () => {
+      if (disposed) return;
+      const target = source(), visible2 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
+      if (pane.hidden === visible2) pane.hidden = !visible2;
+      const next_editor = target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
+      if (next_model !== model || target !== leaf) {
+        subscription?.dispose();
+        language_subscription?.dispose();
+        request?.abort();
+        clearTimeout(timer);
+        timer = 0;
+        model = next_model;
+        editor2 = next_editor;
+        leaf = target;
+        version = -1;
+        collapsed2.clear();
+        if (model) {
+          subscription = model.onDidChangeContent(schedule);
+          language_subscription = model.onDidChangeLanguage(schedule);
+        } else if (target) message("\u6B63\u5728\u7B49\u5F85\u6E90\u7801\u7F16\u8F91\u5668\u2026");
+      }
+      if (visible2 && model && !timer && (version !== model.getVersionId() || language44 !== model.getLanguageId())) schedule();
+    };
+    const observer = new MutationObserver(refresh);
+    observer.observe(document.body, { childList: true, subtree: true });
+    const unsubscribe = get_workspace_app()?.workspace.on("active-leaf:change", refresh);
+    refresh();
+    return { available: () => Boolean(source()), refresh, dispose() {
+      if (disposed) return;
+      disposed = true;
+      observer.disconnect();
+      if (typeof unsubscribe === "function") unsubscribe();
+      subscription?.dispose();
+      language_subscription?.dispose();
+      request?.abort();
+      clearTimeout(timer);
+      service.dispose();
+      pane.remove();
+    } };
+  }
+
   // src/workspace_control_icons.css
   var workspace_control_icons_default = "";
 
@@ -224557,12 +224775,15 @@ https://creativecommons.org/licenses/by/4.0/
     empty2.textContent = "\u5F53\u524D\u7F16\u8F91\u5668\u4E0D\u63D0\u4F9B\u6587\u6863\u5927\u7EB2\u3002";
     (sidebar.querySelector("#sidebar-content") || sidebar).append(empty2);
     const control_icons = bind_workspace_control_icons(sidebar, [["#outline-content .outline-expander", "chevron-right"]]);
+    const source_outline = install_workspace_source_outline(sidebar);
     let disposed = false;
     const update_document = () => {
       const available = host.document_active?.() !== false;
       const value = String(available);
       if (sidebar.dataset.documentOutline !== value) sidebar.dataset.documentOutline = value;
-      if (empty2.hidden !== available) empty2.hidden = available;
+      source_outline.refresh();
+      const has_outline = available || source_outline.available();
+      if (empty2.hidden !== has_outline) empty2.hidden = has_outline;
     };
     let clearing = false;
     let sync_frame = 0;
@@ -224680,6 +224901,7 @@ https://creativecommons.org/licenses/by/4.0/
     }, dispose: () => {
       if (disposed) return;
       disposed = true;
+      source_outline.dispose();
       control_icons.dispose();
       observer.disconnect();
       document.removeEventListener("scroll", on_document_scroll, true);
@@ -224759,43 +224981,662 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/workspace_titlebar_menu.ts
+  function create_workspace_titlebar_menu(bar, definitions) {
+    const element = document.createElement("nav");
+    element.className = "workspace-titlebar-menu";
+    element.setAttribute("role", "menubar");
+    element.setAttribute("aria-label", "\u4E3B\u83DC\u5355");
+    const events = new AbortController(), signal = events.signal;
+    const panels = [];
+    const panel_events = /* @__PURE__ */ new Map();
+    let last_width = -1;
+    let active_index = -1, generation = 0, disposed = false, opener = null;
+    let saved_ranges = [];
+    let saved_input;
+    const save_focus = () => {
+      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const selection = window.getSelection();
+      saved_ranges = [];
+      if (selection) for (let i = 0; i < selection.rangeCount; i++) saved_ranges.push(selection.getRangeAt(i).cloneRange());
+      saved_input = opener instanceof HTMLInputElement || opener instanceof HTMLTextAreaElement ? { start: opener.selectionStart, end: opener.selectionEnd } : void 0;
+    };
+    const restore_focus = () => {
+      if (opener?.isConnected) {
+        opener.focus({ preventScroll: true });
+        if (opener instanceof HTMLInputElement || opener instanceof HTMLTextAreaElement) {
+          if (saved_input?.start !== null && saved_input?.start !== void 0 && saved_input.end !== null) opener.setSelectionRange(saved_input.start, saved_input.end);
+          return;
+        }
+      }
+      const selection = window.getSelection();
+      if (selection && saved_ranges.length && saved_ranges.every((range2) => range2.startContainer.isConnected && range2.endContainer.isConnected)) {
+        selection.removeAllRanges();
+        for (const range2 of saved_ranges) selection.addRange(range2);
+      }
+    };
+    const close_after = (depth) => {
+      for (const panel of panels.splice(depth)) {
+        panel_events.get(panel)?.abort();
+        panel_events.delete(panel);
+        panel.remove();
+      }
+    };
+    const close = (restore = false) => {
+      generation++;
+      close_after(0);
+      active_index = -1;
+      for (const button of buttons) button.setAttribute("aria-expanded", "false");
+      more.setAttribute("aria-expanded", "false");
+      if (restore) restore_focus();
+    };
+    const actionable = (panel) => [...panel.querySelectorAll(":scope > button:not(:disabled)")];
+    const focus_item = (panel, index) => {
+      const items = actionable(panel);
+      if (!items.length) return;
+      const item = items[(index + items.length) % items.length];
+      item.focus({ preventScroll: true });
+      item.scrollIntoView({ block: "nearest" });
+    };
+    const show_panel = (entries3, anchor, depth, focus = false) => {
+      close_after(depth);
+      const panel = document.createElement("div");
+      panel.className = "workspace-titlebar-popup";
+      panel.setAttribute("role", "menu");
+      panel.setAttribute("aria-label", anchor.getAttribute("aria-label") || anchor.textContent || "\u83DC\u5355");
+      const panel_controller = new AbortController(), signal2 = panel_controller.signal;
+      panel_events.set(panel, panel_controller);
+      const top_limit = bar.getBoundingClientRect().bottom;
+      const rect = anchor.getBoundingClientRect();
+      panel.style.maxWidth = Math.max(0, innerWidth - 8) + "px";
+      panel.style.maxHeight = Math.max(10, innerHeight - top_limit - 35) + "px";
+      panel.style.visibility = "hidden";
+      document.body.append(panel);
+      panels.push(panel);
+      for (const entry of entries3) {
+        if (entry.separator) {
+          const line = document.createElement("div");
+          line.className = "workspace-titlebar-separator";
+          line.setAttribute("role", "separator");
+          panel.append(line);
+          continue;
+        }
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "workspace-titlebar-entry";
+        item.disabled = Boolean(entry.disabled);
+        item.title = entry.title || "";
+        item.setAttribute("role", entry.checked !== void 0 ? "menuitemcheckbox" : "menuitem");
+        if (entry.checked !== void 0) item.setAttribute("aria-checked", String(entry.checked));
+        const check = document.createElement("span");
+        check.className = "workspace-titlebar-check";
+        if (entry.checked) check.append(git_icon("check"));
+        const label = document.createElement("span");
+        label.className = "workspace-titlebar-label";
+        label.textContent = entry.label || "";
+        item.append(check, label);
+        if (entry.shortcut) {
+          const shortcut = document.createElement("span");
+          shortcut.className = "workspace-titlebar-shortcut";
+          shortcut.textContent = entry.shortcut;
+          item.append(shortcut);
+        }
+        if (entry.children) {
+          item.setAttribute("aria-haspopup", "menu");
+          item.append(git_icon("chevron-right"));
+        }
+        const activate = (keyboard = false) => {
+          if (item.disabled || !panel.isConnected || panels[depth] !== panel) return;
+          if (entry.children) {
+            show_panel(entry.children, item, depth + 1, keyboard);
+            return;
+          }
+          close(true);
+          try {
+            Promise.resolve(entry.action?.()).catch((error) => console.error("Typora Code menu action:", error));
+          } catch (error) {
+            console.error("Typora Code menu action:", error);
+          }
+        };
+        item.addEventListener("mousedown", (event) => event.preventDefault(), { signal: signal2 });
+        item.addEventListener("click", () => activate(), { signal: signal2 });
+        item.addEventListener("mouseenter", () => {
+          if (item.disabled) return;
+          item.focus({ preventScroll: true });
+          if (entry.children) show_panel(entry.children, item, depth + 1);
+          else close_after(depth + 1);
+        }, { signal: signal2 });
+        item.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowRight" && entry.children) {
+            event.preventDefault();
+            event.stopPropagation();
+            activate(true);
+          }
+        }, { signal: signal2 });
+        panel.append(item);
+      }
+      const size = panel.getBoundingClientRect();
+      const left = depth === 0 ? rect.left : rect.right + size.width <= innerWidth - 4 ? rect.right : rect.left - size.width;
+      const top = depth === 0 ? top_limit : Math.max(top_limit, Math.min(rect.top, innerHeight - size.height - 4));
+      panel.style.left = Math.max(4, Math.min(left, innerWidth - size.width - 4)) + "px";
+      panel.style.top = top + "px";
+      panel.style.visibility = "";
+      panel.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const delta = event.shiftKey ? event.deltaY || event.deltaX : event.deltaY;
+        panel.scrollTop += delta * (event.deltaMode === 1 ? 24 : event.deltaMode === 2 ? panel.clientHeight : 1);
+        close_after(depth + 1);
+      }, { passive: false, signal: signal2 });
+      panel.addEventListener("scroll", () => close_after(depth + 1), { signal: signal2 });
+      panel.addEventListener("keydown", (event) => {
+        const items = actionable(panel), index = items.indexOf(document.activeElement);
+        if (["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          close_after(depth + 1);
+          const count = Math.max(1, Math.floor(panel.clientHeight / 24));
+          focus_item(panel, event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : index + (event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : event.key === "PageDown" ? count : -count));
+        } else if (event.key === "Escape" || event.key === "ArrowLeft" && depth > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (depth) {
+            close_after(depth);
+            anchor.focus({ preventScroll: true });
+          } else close(true);
+        } else if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && depth === 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          void open_menu((active_index + (event.key === "ArrowLeft" ? -1 : 1) + definitions.length) % definitions.length, true);
+        } else if (event.key === "Tab") {
+          event.preventDefault();
+          event.stopPropagation();
+          close(true);
+        }
+      }, { signal: signal2 });
+      if (focus) focus_item(panel, 0);
+    };
+    const open_menu = async (index, focus = false) => {
+      if (disposed) return;
+      if (active_index === -1) save_focus();
+      close();
+      active_index = index;
+      const request = generation;
+      const button = buttons[index];
+      button.setAttribute("aria-expanded", "true");
+      let entries3;
+      try {
+        entries3 = await definitions[index].entries();
+      } catch (error) {
+        console.error("Typora Code menu:", error);
+        entries3 = [{ label: "\u83DC\u5355\u6682\u4E0D\u53EF\u7528", disabled: true }];
+      }
+      if (disposed || generation !== request) return;
+      const anchor = button.hidden ? more : button;
+      anchor.setAttribute("aria-expanded", "true");
+      show_panel(entries3, anchor, 0, focus);
+    };
+    const buttons = definitions.map((definition2, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = definition2.label;
+      button.setAttribute("role", "menuitem");
+      button.setAttribute("aria-haspopup", "menu");
+      button.setAttribute("aria-expanded", "false");
+      button.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
+      button.addEventListener("click", () => {
+        if (active_index === index) close(true);
+        else void open_menu(index);
+      }, { signal });
+      button.addEventListener("mouseenter", () => {
+        if (active_index !== -1 && active_index !== index) void open_menu(index);
+      }, { signal });
+      button.addEventListener("keydown", (event) => {
+        if (["ArrowDown", "Enter", " "].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          void open_menu(index, true);
+        }
+      }, { signal });
+      element.append(button);
+      return button;
+    });
+    const more = document.createElement("button");
+    more.type = "button";
+    more.hidden = true;
+    more.append(git_icon("more"));
+    more.setAttribute("aria-label", "\u66F4\u591A\u83DC\u5355");
+    more.setAttribute("aria-haspopup", "menu");
+    more.setAttribute("aria-expanded", "false");
+    element.append(more);
+    more.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
+    more.addEventListener("click", async () => {
+      if (more.getAttribute("aria-expanded") === "true") {
+        close(true);
+        return;
+      }
+      if (active_index === -1) save_focus();
+      close();
+      active_index = definitions.length;
+      const request = generation;
+      more.setAttribute("aria-expanded", "true");
+      const entries3 = await Promise.all(definitions.map(async (definition2, index) => {
+        if (!buttons[index].hidden) return void 0;
+        try {
+          return { label: definition2.label, children: await definition2.entries() };
+        } catch (error) {
+          console.error("Typora Code menu:", error);
+          return { label: definition2.label, children: [{ label: "\u83DC\u5355\u6682\u4E0D\u53EF\u7528", disabled: true }] };
+        }
+      }));
+      if (!disposed && request === generation) show_panel(entries3.filter(Boolean), more, 0, true);
+    }, { signal });
+    const refresh = () => {
+      if (disposed) return;
+      const width2 = element.clientWidth;
+      if (width2 === last_width) return;
+      last_width = width2;
+      close();
+      for (const button of buttons) button.hidden = false;
+      more.hidden = false;
+      let used = more.getBoundingClientRect().width;
+      const available = element.clientWidth;
+      const widths = buttons.map((button) => button.getBoundingClientRect().width);
+      if (widths.reduce((sum, width3) => sum + width3, 0) <= available) {
+        more.hidden = true;
+        return;
+      }
+      let overflow = false;
+      buttons.forEach((button, index) => {
+        used += widths[index];
+        if (used > available) overflow = true;
+        button.hidden = overflow;
+      });
+    };
+    const observer = new ResizeObserver(refresh);
+    observer.observe(element);
+    document.addEventListener("pointerdown", (event) => {
+      if (!(event.target instanceof Node) || !element.contains(event.target) && !panels.some((panel) => panel.contains(event.target))) close();
+    }, { capture: true, signal });
+    window.addEventListener("keydown", (event) => {
+      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.isComposing) {
+        const index = definitions.findIndex((definition2) => definition2.mnemonic.toLowerCase() === event.key.toLowerCase());
+        if (index !== -1) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          void open_menu(index, true);
+        }
+      }
+      if (active_index !== -1 && (!(event.target instanceof Node) || !panels.some((panel) => panel.contains(event.target)))) {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          close(true);
+        } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && panels[0]) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          focus_item(panels[0], event.key === "ArrowUp" || event.key === "End" ? -1 : 0);
+        }
+      }
+    }, { capture: true, signal });
+    window.addEventListener("workspace-titlebar-dismiss", () => close(true), { signal });
+    window.addEventListener("resize", refresh, { signal });
+    window.addEventListener("blur", () => close(), { signal });
+    return { element, refresh, dispose() {
+      if (disposed) return;
+      disposed = true;
+      close();
+      observer.disconnect();
+      events.abort();
+      element.remove();
+    } };
+  }
+
+  // src/workspace_titlebar_entries.ts
+  var separator = () => ({ separator: true });
+  function create_workspace_titlebar_definitions(files, runtime2, open_files) {
+    const workspace = files.core.app.workspace;
+    const editor2 = () => runtime2.File?.editor;
+    const path_key = (value) => String(value || "").replace(/\\/g, "/");
+    const native_active = () => {
+      const leaf = workspace.activeLeaf;
+      return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime2.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
+    };
+    const native_writable = () => native_active() && !runtime2.File?.isLocked && !runtime2.File?.isReadonlyMode;
+    const rich_writable = () => native_writable() && !editor2()?.sourceView?.inSourceMode;
+    const has_command = (name) => typeof runtime2.ClientCommand?.[name] === "function";
+    const call_command = (name, args = []) => runtime2.ClientCommand[name](...args);
+    const command = (label, name, shortcut) => ({
+      label,
+      shortcut,
+      disabled: !has_command(name),
+      action: () => {
+        if (has_command(name)) return call_command(name);
+      }
+    });
+    const native_entry = (label, target, method, args = [], shortcut, writable = true, rich = false) => {
+      const leaf = workspace.activeLeaf;
+      const available = () => workspace.activeLeaf === leaf && (rich ? rich_writable() : writable ? native_writable() : native_active()) && typeof target()?.[method] === "function";
+      return { label, shortcut, disabled: !available(), action: () => {
+        if (available()) return target()[method](...args);
+      } };
+    };
+    const native_command = (label, name, shortcut, writable = true) => native_entry(label, () => runtime2.ClientCommand, name, [], shortcut, writable);
+    const style = (label, method, args = [], shortcut) => native_entry(label, () => editor2()?.stylize, method, args, shortcut, true, true);
+    const edit_command = (label, native_name, source_name, shortcut, writable = true) => {
+      const leaf = workspace.activeLeaf;
+      const available = () => workspace.activeLeaf === leaf && (files.source_editor_active() || (writable ? native_writable() : native_active()) && has_command(native_name));
+      return { label, shortcut, disabled: !available(), action: () => {
+        if (!available()) return;
+        if (files.source_editor_active()) files.run_editor_command(source_name);
+        else return call_command(native_name);
+      } };
+    };
+    const close_button = () => {
+      const leaf = workspace.activeLeaf;
+      return [...leaf?.parent?.containerEl?.querySelectorAll(".typ-workspace-tab-header .typ-tab") || []].find((tab) => tab.dataset.id === leaf?.state.path)?.querySelector(".typ-close");
+    };
+    const recent_entries = (items) => (Array.isArray(items) ? items : []).filter((item) => typeof item?.path === "string").map((item) => ({
+      label: item.name || files.path_api.basename(item.path),
+      title: item.path,
+      // 复用文件路由和打开保护，不直接调用旧后台 Markdown 文档。
+      action: () => files.open_file(item.path)
+    }));
+    const export_entries = async () => {
+      try {
+        const data = await runtime2.JSBridge?.invoke("setting.loadExports");
+        const [builtin, custom] = typeof data === "string" ? JSON.parse(data) : data;
+        return Object.entries({ ...builtin, ...custom }).filter(([, value]) => value && typeof value === "object").map(([key, value]) => {
+          const item = native_entry(value.name || key, () => runtime2.ClientCommand, "export", [value], void 0, false);
+          return item;
+        });
+      } catch {
+        return [{ label: "\u65E0\u6CD5\u8BFB\u53D6\u5BFC\u51FA\u914D\u7F6E", disabled: true }];
+      }
+    };
+    const file_entries = async () => {
+      let recents = {};
+      try {
+        recents = await runtime2.JSBridge?.invoke("setting.getRecentFiles") || {};
+      } catch {
+      }
+      const exports = await export_entries();
+      const leaf = workspace.activeLeaf;
+      return [
+        command("\u65B0\u5EFA", "newFile", "Ctrl+N"),
+        command("\u65B0\u5EFA\u7A97\u53E3", "newWindow", "Ctrl+Shift+N"),
+        separator(),
+        command("\u6253\u5F00\u2026", "open", "Ctrl+O"),
+        command("\u6253\u5F00\u6587\u4EF6\u5939\u2026", "openFolder", "Ctrl+K Ctrl+O"),
+        { label: "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6", children: recent_entries(recents.files), disabled: !recents.files?.length },
+        { label: "\u6700\u8FD1\u4F7F\u7528\u7684\u76EE\u5F55", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item) => typeof item?.path === "string").map((item) => ({ label: item.name || files.path_api.basename(item.path), action: () => runtime2.ClientCommand?.openWithPath?.(item.path) })), disabled: !recents.folders?.length || !has_command("openWithPath") },
+        { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_files },
+        separator(),
+        { label: "\u4FDD\u5B58", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {
+          if (workspace.activeLeaf === leaf && files.can_save_active()) return files.save_active();
+        } },
+        { label: "\u4FDD\u5B58\u5168\u90E8", action: () => files.save_all() },
+        native_command("\u53E6\u5B58\u4E3A\u2026", "saveAs", "Ctrl+Shift+S"),
+        native_command("\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", "reloadFromDisk", void 0, false),
+        native_command("\u79FB\u52A8\u5230\u2026", "moveTo"),
+        native_command("\u6253\u5F00\u6587\u4EF6\u4F4D\u7F6E", "openFileLocation", void 0, false),
+        separator(),
+        command("\u5BFC\u5165\u2026", "import"),
+        { label: "\u5BFC\u51FA", children: exports, disabled: !native_active() },
+        { ...native_command("\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", "exportLast", void 0, false), disabled: !native_active() || !has_command("exportLast") || !(runtime2.File?.option?.lastExport || runtime2.File?.option?._lastExport) },
+        native_command("\u6253\u5370\u2026", "print", void 0, false),
+        separator(),
+        { label: "\u5173\u95ED\u6807\u7B7E", shortcut: "Ctrl+W", disabled: !close_button(), action: () => {
+          if (workspace.activeLeaf === leaf) close_button()?.click();
+        } },
+        command("\u504F\u597D\u8BBE\u7F6E\u2026", "showPreferencePanel", "Ctrl+,"),
+        command("\u5173\u95ED\u7A97\u53E3", "close", "Alt+F4")
+      ];
+    };
+    const search_entry = (replace) => {
+      const leaf = workspace.activeLeaf;
+      const available = () => workspace.activeLeaf === leaf && (files.source_editor_active() || native_active() && typeof editor2()?.searchPanel?.showPanel === "function");
+      return { label: replace ? "\u67E5\u627E\u548C\u66FF\u6362" : "\u67E5\u627E", shortcut: replace ? "Ctrl+H" : "Ctrl+F", disabled: !available(), action: () => {
+        if (!available()) return;
+        if (files.source_editor_active()) files.run_editor_command(replace ? "editor.action.startFindReplaceAction" : "actions.find");
+        else editor2().searchPanel.showPanel(replace);
+      } };
+    };
+    const edit_entries = async () => [
+      edit_command("\u64A4\u9500", "undo", "undo", "Ctrl+Z"),
+      edit_command("\u91CD\u505A", "redo", "redo", "Ctrl+Y"),
+      separator(),
+      edit_command("\u526A\u5207", "cut", "editor.action.clipboardCutAction", "Ctrl+X"),
+      edit_command("\u590D\u5236", "copy", "editor.action.clipboardCopyAction", "Ctrl+C", false),
+      edit_command("\u7C98\u8D34", "paste", "editor.action.clipboardPasteAction", "Ctrl+V"),
+      native_command("\u590D\u5236\u4E3A Markdown", "copyAsMarkdown", void 0, false),
+      native_command("\u590D\u5236\u4E3A HTML \u4EE3\u7801", "copyAsHTMLSource", void 0, false),
+      native_command("\u590D\u5236\u4E3A\u7EAF\u6587\u672C", "copyAsPlainText", void 0, false),
+      native_command("\u7C98\u8D34\u4E3A\u7EAF\u6587\u672C", "pasteAsPlain", "Ctrl+Shift+V"),
+      separator(),
+      edit_command("\u5168\u9009", "selectAll", "editor.action.selectAll", "Ctrl+A", false),
+      native_command("\u5220\u9664\u5F53\u524D\u8BCD", "deleteWord"),
+      native_command("\u5220\u9664\u5F53\u524D\u683C\u5F0F\u6587\u672C", "deleteScope"),
+      native_command("\u5220\u9664\u5F53\u524D\u884C\uFF0F\u53E5", "deleteLine"),
+      native_command("\u5220\u9664\u5757", "deleteBlock"),
+      separator(),
+      search_entry(false),
+      search_entry(true),
+      { label: "\u5728\u6587\u4EF6\u4E2D\u67E5\u627E", shortcut: "Ctrl+Shift+F", action: () => files.core.app.commands.run("linux_note:search") }
+    ];
+    const paragraph_entries = async () => [
+      ...[1, 2, 3, 4, 5, 6].map((level) => style("".concat(["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"][level - 1], "\u7EA7\u6807\u9898"), "changeBlock", ["header".concat(level)], "Ctrl+".concat(level))),
+      style("\u6B63\u6587", "changeBlock", ["paragraph"], "Ctrl+0"),
+      style("\u63D0\u5347\u6807\u9898\u7EA7\u522B", "increaseHeaderLevel"),
+      style("\u964D\u4F4E\u6807\u9898\u7EA7\u522B", "decreaseHeaderLevel"),
+      separator(),
+      native_entry("\u8868\u683C\u2026", () => editor2()?.tableEdit, "insertTable", [], "Ctrl+T", true, true),
+      style("\u4EE3\u7801\u5757", "toggleFences"),
+      style("\u516C\u5F0F\u5757", "toggleMathBlock"),
+      style("\u5F15\u7528", "toggleIndent", ["blockquote"]),
+      style("\u6709\u5E8F\u5217\u8868", "toggleIndent", ["ol"]),
+      style("\u65E0\u5E8F\u5217\u8868", "toggleIndent", ["ul"]),
+      style("\u4EFB\u52A1\u5217\u8868", "toggleIndent", ["tasklist"]),
+      style("\u5207\u6362\u4EFB\u52A1\u72B6\u6001", "toggleTaskStatus"),
+      native_entry("\u589E\u52A0\u7F29\u8FDB", () => editor2()?.UserOp, "moreIndent", [editor2()], "Ctrl+]", true, true),
+      native_entry("\u51CF\u5C11\u7F29\u8FDB", () => editor2()?.UserOp, "lessIndent", [editor2()], "Ctrl+[", true, true),
+      separator(),
+      style("\u94FE\u63A5\u5F15\u7528", "insertBlock", ["def_link"]),
+      style("\u811A\u6CE8", "insertBlock", ["def_footnote"]),
+      style("\u6C34\u5E73\u5206\u5272\u7EBF", "insertBlock", ["hr"]),
+      style("\u5185\u5BB9\u76EE\u5F55", "insertBlock", ["toc"]),
+      style("YAML Front Matter", "insertMetaBlock")
+    ];
+    const format_entries = async () => {
+      const bookmark = editor2()?.styleBookmark?.style;
+      return [
+        ...[
+          ["\u52A0\u7C97", "strong"],
+          ["\u659C\u4F53", "em"],
+          ["\u4E0B\u5212\u7EBF", "underline"],
+          ["\u4EE3\u7801", "code"],
+          ["\u5185\u8054\u516C\u5F0F", "inline_math"],
+          ["\u5220\u9664\u7EBF", "del"],
+          ["\u9AD8\u4EAE", "highlight"],
+          ["\u4E0A\u6807", "superscript"],
+          ["\u4E0B\u6807", "subscript"],
+          ["\u6CE8\u91CA", "comment"],
+          ["\u8D85\u94FE\u63A5", "link"],
+          ["\u56FE\u50CF", "image"]
+        ].map(([label, name]) => ({ ...style(label, "toggleStyle", [name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name)) })),
+        separator(),
+        style("\u6E05\u9664\u6837\u5F0F", "clearStyle")
+      ];
+    };
+    const view_entries = async () => [
+      { ...native_entry("\u6E90\u4EE3\u7801\u6A21\u5F0F", () => runtime2.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor2()?.sourceView?.inSourceMode) },
+      { ...native_entry("\u53EA\u8BFB\u6A21\u5F0F", () => runtime2.EditHelper, "toggleReadonlyMode", [], void 0, false), checked: Boolean(native_active() && runtime2.File?.isReadonlyMode) },
+      { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime2.File?.isFocusMode) },
+      { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime2.File?.isTypeWriterMode) },
+      separator(),
+      { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", action: () => workspace.sidebar.toggle() },
+      { label: "\u5927\u7EB2", action: () => files.core.app.commands.run("linux_note:outline") },
+      { label: "\u6587\u4EF6\u6811", action: () => files.core.app.commands.run("linux_note:file_explorer") },
+      command("\u72B6\u6001\u680F", "toggleStatusBar"),
+      command("\u5DE5\u5177\u680F", "toggleToolbar"),
+      separator(),
+      command("\u653E\u5927", "zoomIn", "Ctrl+="),
+      command("\u7F29\u5C0F", "zoomOut", "Ctrl+-"),
+      command("\u5B9E\u9645\u5927\u5C0F", "resetZoom")
+    ];
+    const theme_entries = async () => {
+      try {
+        const data = await runtime2.JSBridge?.invoke("setting.getThemes");
+        if (!Array.isArray(data?.all)) throw new Error("invalid themes");
+        return data.all.filter((name) => typeof name === "string").map((name) => {
+          const display = name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_2, letter) => letter.toUpperCase());
+          return { label: display, checked: name === data.current, disabled: !has_command("setTheme"), action: () => {
+            if (has_command("setTheme")) return call_command("setTheme", [name, display]);
+          } };
+        });
+      } catch {
+        return [{ label: "\u65E0\u6CD5\u8BFB\u53D6\u4E3B\u9898\u5217\u8868", disabled: true }];
+      }
+    };
+    const help_entries = async () => [
+      { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
+      { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
+    ];
+    return [
+      { label: "\u6587\u4EF6", mnemonic: "F", entries: file_entries },
+      { label: "\u7F16\u8F91", mnemonic: "E", entries: edit_entries },
+      { label: "\u6BB5\u843D", mnemonic: "P", entries: paragraph_entries },
+      { label: "\u683C\u5F0F", mnemonic: "O", entries: format_entries },
+      { label: "\u89C6\u56FE", mnemonic: "V", entries: view_entries },
+      { label: "\u4E3B\u9898", mnemonic: "T", entries: theme_entries },
+      { label: "\u5E2E\u52A9", mnemonic: "H", entries: help_entries }
+    ];
+  }
+
+  // src/workspace_titlebar.css
+  var workspace_titlebar_default = "";
+
   // src/workspace_titlebar.ts
   var active_binding2;
   var setting_request;
-  function install_workspace_titlebar() {
+  function install_workspace_titlebar(files, open_files) {
     if (active_binding2) return active_binding2;
     const runtime2 = window;
     if (!runtime2.File?.isNode || runtime2.File.isMac) return;
     const platform3 = runtime2.reqnode?.("process").platform;
     if (platform3 && !["win32", "linux"].includes(platform3)) return;
-    const root = document.documentElement, previous = root.getAttribute("data-linux-note-titlebar");
+    const root = document.documentElement, bar = document.querySelector("#top-titlebar");
+    if (!bar) return;
+    const previous = root.getAttribute("data-linux-note-titlebar");
     let disposed = false;
+    const cleanup = [];
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
+      for (const dispose2 of cleanup.reverse()) dispose2();
       if (active_binding2 === binding) active_binding2 = void 0;
       if (previous === null) root.removeAttribute("data-linux-note-titlebar");
       else root.setAttribute("data-linux-note-titlebar", previous);
     } };
     active_binding2 = binding;
     if (runtime2.File.option?.framelessWindow !== true) {
-      root.dataset.linuxNoteTitlebar = "native";
+      root.dataset.linuxNoteTitlebar = "next-window";
+      if (!setting_request) {
+        setting_request = Promise.resolve().then(() => runtime2.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", true));
+        void setting_request.catch(() => {
+          setting_request = void 0;
+        });
+      }
+      void setting_request.catch((error) => {
+        if (!disposed) {
+          root.dataset.linuxNoteTitlebar = "setting-failed";
+          console.error("Typora Code titlebar setting:", error);
+        }
+      });
       return binding;
     }
-    root.dataset.linuxNoteTitlebar = "restoring-native";
-    if (!setting_request) {
-      setting_request = Promise.resolve().then(() => runtime2.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", false));
-      void setting_request.catch(() => {
-        setting_request = void 0;
-      });
+    const traffic = bar.querySelector("#w-traffic-lights");
+    if (!traffic) {
+      binding.dispose();
+      return;
     }
-    void setting_request.then(() => {
-      if (!disposed) root.dataset.linuxNoteTitlebar = "next-window";
-    }, (error) => {
-      if (!disposed) {
-        root.dataset.linuxNoteTitlebar = "setting-failed";
-        console.error("Typora Code restore native window:", error);
-      }
+    const original_nodes = [...bar.childNodes], previous_state = bar.getAttribute("data-workspace-titlebar");
+    const traffic_parent = traffic.parentNode, traffic_next = traffic.nextSibling;
+    const style = acquire_workspace_style("workspace-titlebar-style", workspace_titlebar_default);
+    cleanup.push(() => style.remove());
+    const controls = [["w-min", "chrome-minimize"], ["w-max", "chrome-maximize"], ["w-restore", "chrome-restore"], ["w-close", "chrome-close"]];
+    for (const [id, name] of controls) {
+      const node = traffic.querySelector("#" + id);
+      if (!node) continue;
+      const children = [...node.childNodes];
+      node.replaceChildren(git_icon(name));
+      cleanup.push(() => node.replaceChildren(...children));
+    }
+    const left = document.createElement("div"), center = document.createElement("div"), right = document.createElement("div");
+    left.className = "workspace-titlebar-left";
+    center.className = "workspace-titlebar-center";
+    right.className = "workspace-titlebar-right";
+    const logo = document.createElement("img");
+    logo.className = "workspace-titlebar-logo";
+    logo.alt = "Typora";
+    logo.src = new URL("./assets/icon/icon_32x32@2x.png", document.baseURI).href;
+    left.append(logo);
+    const menu = create_workspace_titlebar_menu(bar, create_workspace_titlebar_definitions(files, runtime2, open_files));
+    left.append(menu.element);
+    cleanup.push(() => menu.dispose());
+    const events = new AbortController();
+    cleanup.push(() => events.abort());
+    const history_button = (name, label, direction) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "workspace-titlebar-history";
+      button.title = label;
+      button.setAttribute("aria-label", label);
+      button.append(git_icon(name));
+      button.addEventListener("click", () => window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel", { detail: { direction } })), { signal: events.signal });
+      center.append(button);
+      return button;
+    };
+    const back = history_button("arrow-left", "\u540E\u9000 (Alt+\u2190)", -1), forward = history_button("arrow-right", "\u524D\u8FDB (Alt+\u2192)", 1);
+    const history_state = (state) => {
+      back.disabled = !state.back;
+      forward.disabled = !state.forward;
+    };
+    history_state({ back: root.dataset.linuxNoteHistoryBack === "true", forward: root.dataset.linuxNoteHistoryForward === "true" });
+    window.addEventListener("linux-note-reading-history-state", (event) => history_state(event.detail || {}), { signal: events.signal });
+    const search2 = document.createElement("button");
+    search2.type = "button";
+    search2.className = "workspace-titlebar-search";
+    search2.title = "\u641C\u7D22\u6587\u4EF6 (Ctrl+P)";
+    search2.setAttribute("aria-label", "\u641C\u7D22\u6587\u4EF6 (Ctrl+P)");
+    const search_label = document.createElement("span");
+    search2.append(git_icon("search"), search_label);
+    center.append(search2);
+    search2.addEventListener("click", open_files, { signal: events.signal });
+    const refresh_label = () => {
+      const folder = files.context_root();
+      search_label.textContent = folder ? files.path_api.basename(folder) : "\u641C\u7D22\u6587\u4EF6";
+    };
+    refresh_label();
+    const title = document.querySelector("title"), observer = new MutationObserver(refresh_label);
+    if (title) observer.observe(title, { childList: true, characterData: true, subtree: true });
+    cleanup.push(() => observer.disconnect());
+    const release = files.core.app.workspace.on("active-leaf:change", refresh_label);
+    if (typeof release === "function") cleanup.push(release);
+    const native_state = document.createElement("div");
+    native_state.hidden = true;
+    native_state.style.setProperty("display", "none", "important");
+    right.append(traffic);
+    native_state.append(...original_nodes.filter((node) => node !== traffic));
+    bar.replaceChildren(left, center, right, native_state);
+    bar.dataset.workspaceTitlebar = "ready";
+    root.dataset.linuxNoteTitlebar = "ready";
+    menu.refresh();
+    cleanup.push(() => {
+      bar.replaceChildren(...original_nodes);
+      if (traffic_parent && traffic_parent !== bar) traffic_parent.insertBefore(traffic, traffic_next);
+      if (previous_state === null) bar.removeAttribute("data-workspace-titlebar");
+      else bar.setAttribute("data-workspace-titlebar", previous_state);
     });
     return binding;
   }
@@ -225014,8 +225855,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (files.context_root === chosen_context) files.context_root = context_root;
       });
       lifetime.own(create_workspace_quick_open(files));
-      lifetime.own(bind_workspace_tab_controls(core, () => get_workspace_quick_open()?.open()));
-      lifetime.own(install_workspace_titlebar());
+      lifetime.own(bind_workspace_tab_controls(core));
+      lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
       lifetime.own(bind_workspace_preferences(core));
       const open_folder = () => new Promise((resolve3) => {
         const dialog = workspace_dialog("\u6253\u5F00\u6587\u4EF6\u5939");
@@ -225598,9 +226439,9 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           const path_api = window.reqnode("path");
           const markdown = parse_markdown_file_target(href);
-          const separator = href.indexOf("#");
-          const file_part = markdown?.file_path ?? (separator < 0 ? href : href.slice(0, separator));
-          const hash2 = markdown?.hash ?? (separator < 0 ? "" : href.slice(separator));
+          const separator2 = href.indexOf("#");
+          const file_part = markdown?.file_path ?? (separator2 < 0 ? href : href.slice(0, separator2));
+          const hash2 = markdown?.hash ?? (separator2 < 0 ? "" : href.slice(separator2));
           const decoded = decodeURIComponent(file_part);
           const target = file_part ? resolve_workspace_file(path_api, path_api.dirname(source), resolve_host_open_file_target(path_api, source, decoded)) : source;
           if (target) return "".concat(href, "\n").concat(target).concat(hash2);

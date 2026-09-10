@@ -1,3 +1,4 @@
+import {workspace_file_icon} from "./workspace_file_icons";
 import { git_graph_find } from "./git_graph_find";
 import { show_pull_request_dialog } from "./git_graph_pull_request_dialog";
 import { git_source_control } from "./git_source_control";
@@ -410,7 +411,8 @@ export class git_graph_panel {
         void this.open_diff(file);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
       const display_path = file.old_path ? file.old_path + " → " + file.path : file.path; const parts = display_path.split("/");
-      row.append(graph_file_icon("file", "git-graph-file-icon"), el("span", "git-graph-file-name", parts.pop() || display_path), el("span", "git-graph-file-path", parts.join("/")), el("span", "git-graph-file-status", file.status));
+      const file_icon = workspace_file_icon(file.path); file_icon.classList.add("git-graph-file-icon");
+      row.append(file_icon, el("span", "git-graph-file-name", parts.pop() || display_path), el("span", "git-graph-file-path", parts.join("/")), el("span", "git-graph-file-status", file.status));
       row.querySelector(".git-graph-file-name")?.prepend(git_icon("circle-filled","git-graph-unreviewed-icon"));
       if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
       row.oncontextmenu = event => this.file_menu(event, file);
