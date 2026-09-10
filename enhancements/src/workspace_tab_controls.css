@@ -1,0 +1,63 @@
+/* VS Code 1.136.2 / 88e44fa: workbench/media/style.css + 2026-light/dark.json.
+   沿用已定稿平直标签布局，只统一 UI 字号及标签状态颜色。 */
+:root {
+  --workspace-tab-active-bg: var(--vscode-tab-activeBackground, #fff);
+  --workspace-tab-active-fg: var(--vscode-tab-activeForeground, #202020);
+  --workspace-tab-inactive-bg: var(--vscode-tab-inactiveBackground, #fafafd);
+  --workspace-tab-inactive-fg: var(--vscode-tab-inactiveForeground, #606060);
+  --workspace-tab-unfocused-active-bg: var(--vscode-tab-unfocusedActiveBackground, #fafafd);
+  --workspace-tab-unfocused-active-fg: var(--vscode-tab-unfocusedActiveForeground, #606060);
+  --workspace-tab-unfocused-inactive-fg: var(--vscode-tab-unfocusedInactiveForeground, #bbb);
+  --workspace-tab-border: var(--vscode-tab-border, #f0f1f2);
+  --workspace-tab-indicator: var(--vscode-tab-activeBorderTop, #000);
+}
+:root[data-workspace-file-icon-theme="dark"] {
+  --workspace-tab-active-bg: var(--vscode-tab-activeBackground, #121314);
+  --workspace-tab-active-fg: var(--vscode-tab-activeForeground, #bfbfbf);
+  --workspace-tab-inactive-bg: var(--vscode-tab-inactiveBackground, #191a1b);
+  --workspace-tab-inactive-fg: var(--vscode-tab-inactiveForeground, #8c8c8c);
+  --workspace-tab-unfocused-active-bg: var(--vscode-tab-unfocusedActiveBackground, #121314);
+  --workspace-tab-unfocused-active-fg: var(--vscode-tab-unfocusedActiveForeground, #8c8c8c);
+  --workspace-tab-unfocused-inactive-fg: var(--vscode-tab-unfocusedInactiveForeground, #444);
+  --workspace-tab-border: var(--vscode-tab-border, #2a2b2c);
+  --workspace-tab-indicator: var(--vscode-tab-activeBorderTop, #3994bc);
+}
+.workspace-tab-strip {
+  display:flex;align-items:center;min-width:0;height:35px;flex:none;container-type:inline-size;
+  background:var(--workspace-tab-inactive-bg);
+  font:400 13px "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
+}
+.workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:35px;background:inherit;}
+.workspace-tab-strip .typ-tabs {height:35px;}
+.workspace-tab-strip .typ-tab {
+  box-sizing:border-box;height:35px;padding:0 8px!important;display:inline-flex;align-items:center;
+  font:inherit;color:var(--workspace-tab-unfocused-inactive-fg);background:var(--workspace-tab-inactive-bg);
+  border:0!important;border-right:1px solid var(--workspace-tab-border)!important;
+}
+.typ-workspace-tabs.mod-active > .workspace-tab-strip .typ-tab {color:var(--workspace-tab-inactive-fg);}
+.workspace-tab-strip .typ-tab.active {
+  color:var(--workspace-tab-unfocused-active-fg);background:var(--workspace-tab-unfocused-active-bg);
+}
+.typ-workspace-tabs.mod-active > .workspace-tab-strip .typ-tab.active {
+  color:var(--workspace-tab-active-fg);background:var(--workspace-tab-active-bg);
+  box-shadow:inset 0 2px var(--workspace-tab-indicator);
+}
+.workspace-tab-strip .typ-tab:hover {background:var(--workspace-tab-active-bg);color:var(--workspace-tab-active-fg);}
+.workspace-tab-strip .typ-file-name,.workspace-tab-strip .typ-file-basename,.workspace-tab-strip .typ-file-ext {font:inherit;color:inherit;}
+.workspace-tab-strip .typ-close::before {font-size:16px;}
+/* 440ec3f 原搜索按钮：22px 高、14px 图标及原边框/底色。
+   132px 宽与下方窄组断点是本次固定动作区适配，不是上游默认尺寸。 */
+.workspace-file-search-trigger {
+  appearance:none;display:flex;align-items:center;justify-content:center;gap:5px;
+  flex:0 0 132px;min-width:0;height:22px;margin:0 8px;padding:0 8px;
+  font:inherit;color:var(--workspace-tab-inactive-fg);border-radius:5px;outline-offset:-2px;
+  border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.08);
+}
+.workspace-file-search-trigger span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86;}
+.workspace-file-search-trigger svg {flex:none;width:14px;height:14px;opacity:.8;}
+.workspace-file-search-trigger:hover,.workspace-file-search-trigger:focus-visible {background:var(--active-file-bg-color,rgba(127,127,127,.16));}
+@container (max-width:480px) {
+  .workspace-file-search-trigger {flex-basis:28px;margin:0 4px;padding:0;}
+  .workspace-file-search-trigger span {display:none;}
+}
+.workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}

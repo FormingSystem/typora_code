@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/typora-community-plugin/typora-community-plugin",
+  "tag": "2.10.15",
+  "commit": "d3fccbd3b8e134dd4268f5486fd17e49fc0ed615",
+  "license": "MIT",
+  "runtime_version": "2.10.15-typora-code.1",
+  "scope": "Actual build input closure; persistent application startup and global product settings replace plugin lifecycle."
+}

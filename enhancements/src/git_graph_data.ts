@@ -30,7 +30,7 @@ export function parse_git_log(source: string): git_commit[] {
 type graph_lane = { hash: string; color: number };
 export type graph_edge = { from: number; to: number; color: number; upper: boolean };
 export type graph_row = { lane: number; color: number; edges: graph_edge[] };
-/** 按拓扑顺序跟踪尚未出现的父提交；汇合复用已有轨道，分叉新增轨道。 */
+/** 按拓扑顺序跟踪尚未出现的父提交；汇合在父节点完成，分叉新增轨道。 */
 export function build_git_graph(commits: git_commit[]): { rows: graph_row[]; width: number } {
   let lanes: graph_lane[] = [];
   let next_color = 0;
@@ -41,21 +41,24 @@ export function build_git_graph(commits: git_commit[]): { rows: graph_row[]; wid
     let lane = lanes.findIndex((item) => item.hash === commit.hash);
     if (lane < 0) { lane = lanes.length; lanes.push({ hash: commit.hash, color: next_color++ }); }
     const current = lanes[lane];
-    const edges: graph_edge[] = incoming.map((item, index) => ({ from: index, to: index, color: item.color, upper: true }));
+    // 不同支线即使等待同一个父提交，也保留各自颜色，直到父节点所在行才汇入。
+    const edges: graph_edge[] = incoming.map((item, index) => ({ from: index, to: item.hash === commit.hash ? lane : index, color: item.color, upper: true }));
     const before = [...lanes];
-    lanes.splice(lane, 1);
-    let insert_at = lane;
-    commit.parents.forEach((hash, index) => {
-      if (!lanes.some((item) => item.hash === hash)) {
-        lanes.splice(insert_at++, 0, { hash, color: index === 0 ? current.color : next_color++ });
+    lanes = lanes.filter(item => item.hash !== commit.hash);
+    let insert_at = Math.min(lane, lanes.length);
+    const parent_lanes = commit.parents.map((hash, index) => {
+      let target = lanes.find(item => item.hash === hash && (index !== 0 || item.color === current.color));
+      if (!target) {
+        target = { hash, color: index === 0 ? current.color : next_color++ };
+        lanes.splice(insert_at++, 0, target);
       }
+      return target;
     });
     before.forEach((item, index) => {
-      if (index !== lane) edges.push({ from: index, to: lanes.findIndex((next) => next.hash === item.hash), color: item.color, upper: false });
+      if (item.hash !== commit.hash) edges.push({ from: index, to: lanes.indexOf(item), color: item.color, upper: false });
     });
-    for (const hash of commit.parents) {
-      const target = lanes.findIndex((item) => item.hash === hash);
-      edges.push({ from: lane, to: target, color: lanes[target].color, upper: false });
+    for (const target of parent_lanes) {
+      edges.push({ from: lane, to: lanes.indexOf(target), color: target.color, upper: false });
     }
     width = Math.max(width, before.length, lanes.length);
     rows.push({ lane, color: current.color, edges });

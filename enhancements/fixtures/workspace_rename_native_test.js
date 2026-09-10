@@ -30,7 +30,7 @@
     };
     try {
       await wait(() => document.documentElement.dataset.linuxNoteWorkspaceBrowser === 'ready', '工作区未就绪');
-      app = window[Symbol.for('typora-plugin-core@v2')].app; File.getMountFolder = () => root;
+      app = window[Symbol.for('typora-code:workspace')].app; File.getMountFolder = () => root;
       fs.writeFileSync(path.join(root, 'rename.md'), '# Rename\n\n' + Array.from({length: 80}, (_, index) => `Paragraph ${index}.\n\n`).join(''));
       fs.writeFileSync(path.join(root, 'draft.ts'), '\ufeffconst value = 1;\r\n');
       fs.mkdirSync(path.join(root, 'a')); fs.mkdirSync(path.join(root, 'abc'));

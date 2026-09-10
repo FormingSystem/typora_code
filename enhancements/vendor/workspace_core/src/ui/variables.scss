@@ -1,0 +1,48 @@
+:root {
+  --typ-layer-editor: 800;
+  --typ-layer-modal: 900;
+  --typ-layer-notice: 1000;
+
+  // color red from https://ant.design/docs/spec/colors
+  --typ-color-red-1: 255, 204, 199;
+  --typ-color-red-2: 255, 120, 117;
+  --typ-color-red-3: 245, 34, 45;
+  --typ-color-red-4: 168, 7, 26;
+  --typ-color-red-5: 92, 0, 17;
+
+  --typ-color-gray-1: 220, 220, 220;
+  --typ-color-gray-2: 200, 200, 200;
+  --typ-color-gray-3: 150, 150, 150;
+  --typ-color-gray-4: 100, 100, 100;
+  --typ-color-gray-5: 50, 50, 50;
+
+  --typ-indicator-width: 2px;
+
+  --typ-text-color: var(--typ-color-gray-5);
+
+  --typ-light-bg-color: var(--typ-color-gray-2);
+
+  --typ-shadow-color: var(--typ-color-gray-2);
+
+  --typ-border-color: var(--typ-color-gray-1);
+
+  @media (prefers-color-scheme: dark) {
+    --typ-text-color: var(--typ-color-gray-2);
+
+    --typ-light-bg-color: var(--typ-color-gray-5);
+
+    --typ-shadow-color: var(--typ-color-gray-5);
+  }
+}
+
+body {
+  --typ-workspace-top: 0;
+
+  &.unibody-window {
+    --typ-workspace-top: 1.75rem;
+  }
+
+  &.html-for-mac.mac-seamless-mode {
+    --typ-workspace-top: var(--typ-tabs-height);
+  }
+}

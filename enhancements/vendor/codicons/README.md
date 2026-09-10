@@ -9,11 +9,11 @@ domains:
 
 # 第1章\_Codicons图标来源与使用
 
-本目录保存 Microsoft 与 Codicons 贡献者提供的 49 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
+本目录保存 Microsoft 与 Codicons 贡献者提供的 66 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
 
 ## 1.1\_图形与操作映射
 
-图标 ID 沿用上游公共名称；本地 SVG 文件名使用 `snake_case`。`icons.json` 按图标 ID 保存原始 SVG 字符串，供构建静态引入。原始文件保存在 `icons/`，用于核对来源；图形路径、填色、尺寸与 `viewBox` 均未修改。`source-control`、`terminal` 和 `settings-gear` 的原始画布为 `24 × 24`，其他选取图标为 `16 × 16`；显示时应保留原始 `viewBox`，通过布局尺寸等比缩放。
+图标 ID 沿用上游公共名称；本地 SVG 文件名使用 `snake_case`。`icons.json` 按图标 ID 保存原始 SVG 字符串，供构建静态引入。原始文件保存在 `icons/`，用于核对来源；图形路径、填色、尺寸与 `viewBox` 均未修改。`source-control`、`terminal` 和 `settings-gear` 的原始画布为 `24 × 24`，其余图标保留各自的上游画布；显示时应保留原始 `viewBox`，通过布局尺寸等比缩放。
 
 | 操作 | 上游图标 ID | 本地原始文件 |
 | --- | --- | --- |
@@ -78,3 +78,5 @@ domains:
 Microsoft 与 Codicons 贡献者保留原始图形及代码的著作权。上游将文档和其他内容按 **CC BY 4.0** 授权，将代码按 **MIT** 授权，详见同一提交的 [上游许可说明](https://github.com/microsoft/vscode-codicons/blob/1c47ab36a4bb845c437866405c2fa67b8ca0fe36/README.md#legal-notices)。本目录保留完整 [LICENSE](LICENSE) 与 [LICENSE_CODE](LICENSE_CODE)；后者对应上游文件 `LICENSE-CODE`，仅文件名变化，内容字节未改。
 
 本仓库的整理工作限于选取上述图标、将本地文件名改为 `snake_case`、建立 JSON 映射与摘要清单，以及编写这份中文说明。SVG 图形保持原样。分发这些图形时应同时保留来源、作者归属、许可文件与上述整理说明。原始图标许可不授予 Microsoft 产品名称、品牌或标志的商标权；这些操作图标仅用于表达对应界面功能。
+
+本轮标题栏使用 `chrome-minimize`、`chrome-maximize`、`chrome-restore`、`chrome-close`；Activity 使用 `files`、`search`、`source-control`、`symbol-class`，分别对应文件、搜索、源代码管理与大纲。Git 引用使用 `tag` 和 `archive`。

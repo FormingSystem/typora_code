@@ -1,0 +1,47 @@
+import './file-tabs.scss'
+import { useService } from "src/common/service"
+import path from "src/path"
+import { Tab, TabContainer } from "src/ui/components/tabs"
+import { truncate } from "src/utils"
+
+
+const MAX_LENGHT = { length: 20, omission: '…' }
+
+export class FileTabContainer extends TabContainer {
+
+  static hideTabExtension(isHide: boolean) {
+    $(document.body).toggleClass('typ-file-ext--hide', isHide)
+  }
+}
+
+export class UntitledTab extends Tab {
+  constructor() {
+    const shortName = 'Untitled'
+
+    super({
+      id: '',
+      text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span>`),
+      title: shortName,
+    })
+  }
+}
+
+export class FileTab extends Tab {
+  constructor(filePath: string, vault = useService('vault')) {
+    const isUri = filePath.startsWith('typ://')
+    const longPath = isUri ? filePath : simplifyFilePath(vault.path, filePath)
+    const ext = path.extname(filePath)
+    const shortName = truncate(path.basename(longPath, ext), MAX_LENGHT)
+
+    super({
+      id: filePath,
+      text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span><span class="typ-file-ext">${ext}</span>`),
+      title: isUri ? shortName : longPath,
+    })
+  }
+}
+
+function simplifyFilePath(root: string, filePath: string) {
+  return path.relative(root, filePath)
+    .replace(/(\.textbundle)[\\/]text\.(?:md|markdown)$/, '$1')
+}

@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import { git_graph_tab_icon } from "./git_graph_tab_icon";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import { GIT_GRAPH_COMMAND, GIT_GRAPH_TYPE } from "./git_graph_data";
@@ -14,13 +15,13 @@ const graph_dialog = (title: string) => workspace_dialog(title, text("common.clo
 
 export function bind_git_graph() {
   if (document.documentElement.hasAttribute("data-linux-note-git-graph")) return;
-  const core = (window as unknown as Record<symbol, graph_core>)[Symbol.for("typora-plugin-core@v2")];
+  const core = (window as unknown as Record<symbol, graph_core>)[Symbol.for("typora-code:workspace")];
   if (!core?.app || !(window as unknown as { reqnode?: unknown }).reqnode) return;
   const lifetime=create_workspace_lifetime();
   try {
   const register_command=(command:Parameters<typeof core.app.commands.register>[0])=>lifetime.add(core.app.commands.register(command));
   const workspace_on=(event:string,callback:(context:any)=>void)=>lifetime.add(core.app.workspace.on(event,callback));
-  const style = workspace_element("style"); style.textContent = graph_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:git_graph_view", graph_css, {});
   const host = lifetime.own(create_graph_host(core)); const panels = new Map<graph_leaf, git_graph_panel>();
   const controllers = new Set<git_graph_panel>();
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});

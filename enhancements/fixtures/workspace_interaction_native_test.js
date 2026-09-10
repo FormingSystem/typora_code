@@ -1,4 +1,4 @@
-// 只操作启动器的临时样例；验证已安装插件在原生 Typora 中的交互接线。
+// 只操作启动器的临时样例；验证常驻工作台在原生 Typora 中的交互接线。
 (() => {
   const script_url = new URL(document.currentScript.src);
   const root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/workspace_interaction_native_test.js$/u, '');
@@ -58,7 +58,7 @@
     };
     try {
       await wait(() => document.documentElement.dataset.linuxNoteWorkspaceBrowser === 'ready' && document.documentElement.dataset.linuxNoteSourceEditing === 'ready', '工作区编辑集成未就绪');
-      app = window[Symbol.for('typora-plugin-core@v2')].app;
+      app = window[Symbol.for('typora-code:workspace')].app;
       File.getMountFolder = () => root; window.resizeTo(1400, 950); await delay(350);
       await wait(() => document.body.classList.contains('unibody-window') && document.querySelector('#top-titlebar[data-workspace-titlebar="ready"]'), '新窗口未采用原生 Unibody 单行标题栏');
       const titlebar=document.querySelector('#top-titlebar'), titlebar_icon=titlebar.querySelector('.workspace-titlebar-icon');
@@ -68,7 +68,7 @@
       expect(Math.abs(titlebar_bounds.height-35)<=1 && Math.abs(titlebar_bounds.left)<=1 && Math.abs(titlebar_bounds.right-window.innerWidth)<=1, 'Unibody 顶栏保持 35 像素单行并横跨整个窗口');
       const titlebar_menus=[...titlebar.querySelectorAll('.workspace-titlebar-menu button')];
       expect(titlebar_menus.length===7 && titlebar_menus.every(node=>node.getBoundingClientRect().top>=titlebar_bounds.top && node.getBoundingClientRect().bottom<=titlebar_bounds.bottom), '七个中文主菜单与窗口标题处于同一行');
-      expect(Math.abs(titlebar_icon.getBoundingClientRect().width-16)<=1 && titlebar_icon.currentSrc.includes('/assets/icon/') && titlebar_icon.complete && titlebar_icon.naturalWidth>0, '标题栏使用已加载的原生 Typora 图标并显示为 16 像素');
+      expect(Math.abs(titlebar_icon.getBoundingClientRect().width-24)<=1 && titlebar_icon.currentSrc.includes('/assets/icon/') && titlebar_icon.complete && titlebar_icon.naturalWidth>0, '标题栏按冻结布局的 24 像素显示已加载的 Typora 品牌图');
       await wait(()=>document.querySelector('.typ-workspace-root')?.getBoundingClientRect().top>=34, '编辑工作区未避开单行标题栏');
       expect(document.querySelector('.typ-workspace-root').getBoundingClientRect().top>=34, '中央编辑工作区排列在单行标题栏下方');
       const native_actions=document.querySelector('#ty-sidebar-footer'), native_status=document.querySelector('footer.ty-footer');
@@ -228,6 +228,7 @@
       const original_leaves = leaves().length;
       if(!document.querySelector('.linux-note-workspace-search'))document.querySelector('.typ-ribbon-item[data-id="core.search"]').click(); await wait(() => document.querySelector('.linux-note-workspace-search'), '跳转侧栏未打开');
       const lookup = document.querySelector('.linux-note-workspace-search'); lookup.querySelector('[aria-label="包含的文件"]').value = 'workspace_samples/lookup*';
+      expect(lookup.querySelector('.workspace-search-preview-section').hidden, '没有命中目标时隐藏空预览区域');
       const request = async query => {
         window.dispatchEvent(new CustomEvent('linux-note-search-selection', {detail: {query, source_path: edit_path, line: 1, column: 1}}));
         await wait(() => lookup.dataset.state === 'ready' && lookup.querySelector('[aria-label="搜索内容"]').value === query, '搜索查询未完成');
@@ -235,6 +236,7 @@
       const preview_body = lookup.querySelector('.workspace-lookup-preview-body');
       await request('workspace_probe_shared');
       await wait(() => lookup.querySelectorAll('.workspace-search-match').length === 3 && preview_body.dataset.previewPath, '多处命中未展示预览');
+      expect(!lookup.querySelector('.workspace-search-preview-section').hidden, '搜索出现命中后默认显示下方阅读预览');
       expect(lookup.querySelectorAll('.workspace-search-file').length === 2 && app.workspace.activeLeaf === central && leaves().length === original_leaves, '多文件查询只显示跳转列表和预览，不创建中央标签');
       expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:lookup"]') && !document.querySelector('.linux-note-workspace-lookup'), '手动搜索和选中文字只使用一个搜索侧栏与活动按钮');
       const group = file_path => [...lookup.querySelectorAll('.workspace-search-file')].find(node => norm(node.dataset.path) === norm(file_path));

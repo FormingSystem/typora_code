@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import type { workspace_file_host } from "./workspace_files";
@@ -16,7 +17,7 @@ import search_css from "./workspace_search.css";
 /** 文件搜索独占一个侧栏面板，输入区固定、结果区单独滚动。 */
 export function bind_workspace_search(core: graph_core, files: workspace_file_host) {
   const lifetime=create_workspace_lifetime();
-  const style = el("style"); style.textContent = search_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_search", search_css, {});
   const runtime = window as unknown as {reqnode(name:string):any};
   const runner = create_git_runner({child_process:runtime.reqnode("child_process"),process:runtime.reqnode("process")});
   const engine = create_workspace_search_engine({fs:files.fs,path_api:files.path_api,git_run:runner.run,platform:runtime.reqnode("process").platform});
@@ -35,7 +36,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     replace_row = el("div", "workspace-search-input-row workspace-search-replace"); details = el("div", "workspace-search-details");
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
     preview = create_lookup_preview(files); preview_section = el("section", "workspace-search-preview-section");
-    preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true; reading_preview = false;
+    preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true;
     preview_smaller = git_icon_button("remove","缩小预览",()=>this.preview.set_scale(this.preview.get_scale()-5));
     preview_larger = git_icon_button("add","放大预览",()=>this.preview.set_scale(this.preview.get_scale()+5));
     preview_slider = el("input","workspace-search-preview-slider"); preview_scale = el("output","workspace-search-preview-scale");
@@ -56,8 +57,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         git_icon_button("collapse-all","全部折叠／展开",()=>{const nodes=[...this.results.querySelectorAll("details")];const open=nodes.some(node=>!node.open);nodes.forEach(node=>this.set_group_open(node,open));}));
       const show_options=(event:MouseEvent)=>workspace_menu(event,[
           {title:"以列表显示",checked:!this.tree,action:()=>{this.tree=false;this.render();}}, {title:"以树形显示",checked:this.tree,action:()=>{this.tree=true;this.render();}},
-          {title:"按路径排序",checked:this.sort==="path",action:()=>{this.sort="path";this.render();}}, {title:"按结果数排序",checked:this.sort==="count",action:()=>{this.sort="count";this.render();}},
-          {title:"在搜索下方显示阅读预览",checked:this.reading_preview,action:()=>this.set_reading_preview(!this.reading_preview)}
+          {title:"按路径排序",checked:this.sort==="path",action:()=>{this.sort="path";this.render();}}, {title:"按结果数排序",checked:this.sort==="count",action:()=>{this.sort="count";this.render();}}
         ]);
       heading.oncontextmenu=show_options;heading.append(git_icon_button("more","搜索视图选项",show_options));
       const query_row=el("div","workspace-search-input-row");
@@ -116,11 +116,6 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       this.split.onkeydown=event=>{if(["ArrowUp","ArrowDown"].includes(event.key)){event.preventDefault();this.set_split(Number(this.split.getAttribute("aria-valuenow"))+(event.key==="ArrowUp"?-5:5));}};
     }
     set_split(value:number){value=Math.max(15,Math.min(75,Math.round(value)));this.body.style.setProperty("--search-results-size",`${value}%`);this.split.setAttribute("aria-valuenow",String(value));}
-    set_reading_preview(enabled:boolean){
-      this.reading_preview=enabled;this.preview_section.hidden=!enabled||!this.selected;this.set_preview_open(this.preview_open);
-      if(enabled&&this.selected)void Promise.resolve(this.preview.show(this.selected.file,this.selected.match)).catch(error=>{if(!disposed)this.status.textContent=String(error);});
-    }
-    activate_match(file:workspace_search_file,match:workspace_search_match){this.select(file,match);if(!this.reading_preview)this.open_match(file,match,"active",true);}
     set_preview_open(open:boolean){this.preview_open=open;this.preview_section.classList.toggle("is-collapsed",!open);this.preview.container.hidden=!open;this.split.hidden=!open||this.preview_section.hidden;this.body.classList.toggle("has-preview",open&&!this.preview_section.hidden);this.preview_toggle.setAttribute("aria-expanded",String(open));this.preview_toggle.title=open?"收起预览":"展开预览";this.preview_toggle.setAttribute("aria-label",this.preview_toggle.title);}
     clear_results(){++this.open_generation;this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
     clear_native(){if(this.visible&&native_sidebar){const classes=["active-tab-files","active-tab-outline","ty-show-search","ty-on-search"];if(classes.some(name=>native_sidebar.classList.contains(name)))native_sidebar.classList.remove(...classes);}}
@@ -193,13 +188,13 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         if(git_status){const badge=el("span","workspace-search-git-status",git_status);badge.dataset.status=git_status;badge.title=({M:"已修改",A:"已添加",D:"已删除",R:"已重命名",C:"已复制",U:"未跟踪或存在冲突"} as Record<string,string>)[git_status]||git_status;summary.append(badge);}
         const actions=el("span","workspace-search-file-actions");const count=el("span","workspace-search-file-count",String(file.matches.length));
         const remove=git_icon_button("close","从结果中移除",()=>this.remove_result(file,group),"workspace-search-remove");remove.onclick=event=>{event.preventDefault();event.stopPropagation();this.remove_result(file,group);};actions.append(count,remove);summary.append(actions);
-        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();this.activate_match(file,this.file_match(file));};
+        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();this.select(file,this.file_match(file));};
         summary.onfocus=()=>this.select(file,this.file_match(file));summary.ondblclick=event=>{if((event.target as Element).closest("button,.git-disclosure-icon"))return;event.preventDefault();this.open_match(file,this.file_match(file));};
         summary.onkeydown=event=>{if(event.target!==summary)return;this.navigate(event,summary,file,()=>this.file_match(file),target);};
         summary.oncontextmenu=event=>workspace_menu(event,[{title:"打开当前预览位置",action:()=>this.open_match(file,this.file_match(file))}, {title:"复制路径",action:()=>files.copy(file.file_path)}, {title:"复制相对路径",action:()=>files.copy(file.relative_path)}, {title:"替换此文件中的匹配项…",action:()=>void this.replace(file.file_path)}, {title:"从结果中移除",action:()=>this.remove_result(file,group)}]);
         group.append(summary);this.set_group_open(group,group.open);
         for(const match of file.matches){
-          const row=button("",()=>this.activate_match(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",`${file.relative_path}，第 ${match.line} 行，第 ${match.column} 列：${match.preview}`);
+          const row=button("",()=>this.select(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",`${file.relative_path}，第 ${match.line} 行，第 ${match.column} 列：${match.preview}`);
           row.append(el("span","workspace-search-line",String(match.line)));const preview=el("span","workspace-search-preview");let start=0;
           for(const range of match.preview_ranges){preview.append(document.createTextNode(match.preview.slice(start,range.start)),el("mark","",match.preview.slice(range.start,range.end)));start=range.end;}preview.append(document.createTextNode(match.preview.slice(start)));row.append(preview);
           row.oncontextmenu=event=>workspace_menu(event,[{title:"打开匹配位置",action:()=>this.open_match(file,match)}, {title:"在右侧打开",action:()=>this.open_match(file,match,"right")}, {title:"复制匹配行",action:()=>files.copy(match.preview)}, {title:"替换此匹配项…",action:()=>void this.replace(file.file_path,[match.id])}]);
@@ -210,22 +205,20 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     file_match(file:workspace_search_file){return file.matches.find(match=>match.id===this.remembered.get(file.file_path))||file.matches[0];}
     select(file:workspace_search_file,match:workspace_search_match){
-      if(!match||disposed)return;this.preview_section.hidden=!this.reading_preview;this.set_preview_open(this.reading_preview);
+      if(!match||disposed)return;this.preview_section.hidden=false;this.set_preview_open(true);
       if(this.selected?.file===file&&this.selected.match===match)return;
       ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
       for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;row.classList.toggle("is-selected",selected);row.setAttribute("aria-current",String(selected));}
       for(const group of this.results.querySelectorAll<HTMLElement>(".workspace-search-file"))group.querySelector("summary")?.classList.toggle("is-selected",group.dataset.path===file.file_path);
-      if(this.reading_preview)void Promise.resolve(this.preview.show(file,match)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
+      void Promise.resolve(this.preview.show(file,match)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
     }
     navigate(event:KeyboardEvent,row:HTMLElement,file:workspace_search_file,match:()=>workspace_search_match,target:HTMLElement){
       if(event.isComposing)return;if(event.key==="Enter"){event.preventDefault();this.open_match(file,match());return;}
       if(!["ArrowUp","ArrowDown"].includes(event.key))return;event.preventDefault();
       const rows=[...target.querySelectorAll<HTMLElement>(".workspace-search-file>summary,.workspace-search-match")].filter(node=>node.getClientRects().length);
       rows[Math.max(0,Math.min(rows.length-1,rows.indexOf(row)+(event.key==="ArrowUp"?-1:1)))]?.focus();
-      if(!this.reading_preview&&this.selected)this.open_match(this.selected.file,this.selected.match,"active",true);
     }
-    open_match(file:workspace_search_file,match:workspace_search_match,group="active",preview=false){
-      const focus=document.activeElement;
+    open_match(file:workspace_search_file,match:workspace_search_match,group="active"){
       const generation=++this.open_generation;const current=()=>!disposed&&generation===this.open_generation;
       void(async()=>{
         const stat=await files.fs.promises.stat(file.file_path);if(!current())return;if(!stat.isFile()||stat.size>16*1024*1024)throw new Error("文件已变化，请刷新搜索结果。");
@@ -234,8 +227,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const position=(offset:number)=>{const newline=/\r\n|\r|\n/gu;let line=1,start=0,found:RegExpExecArray|null;while((found=newline.exec(text))&&found.index+found[0].length<=offset){line++;start=found.index+found[0].length;}return{line,column:offset-start+1};};
         const from=position(match.start),to=position(match.end);
         if(text.slice(match.start,match.end)!==match.text||from.line!==match.line||from.column!==match.column||to.line!==match.end_line||to.column!==match.end_column)throw new Error("文件已变化，请刷新搜索结果后重新打开。");
-        await files.open_file(file.file_path,{line:match.line,column:match.column,end_line:match.end_line,end_column:match.end_column,source:!is_markdown_file(file.file_path),expected_text:match.text,preview,preserve_focus:preview},group);
-        if(current()&&preview&&focus instanceof HTMLElement&&focus.isConnected)focus.focus({preventScroll:true});
+        await files.open_file(file.file_path,{line:match.line,column:match.column,end_line:match.end_line,end_column:match.end_column,source:!is_markdown_file(file.file_path),expected_text:match.text},group);
       })().catch(error=>{if(current())this.status.textContent=String(error instanceof Error?error.message:error);});
     }
     open_results(){if(!this.result)return;const panel=el("div","workspace-search-editor-results");panel.append(el("h3","",`搜索：${this.result.options.query}`));const list=el("div");this.render(list);panel.append(list);const uri=`typ://linux_note.search_results/${++serial}/搜索结果`;panels.set(uri,panel);const parent=core.app.workspace.activeLeaf?.parent;if(!parent)return;const leaf=core.app.workspace.createLeaf({type:"linux_note.search_results",state:{path:uri,git_cwd:files.context_root()}});parent.appendChild(leaf);core.app.workspace.activeLeaf=leaf;}

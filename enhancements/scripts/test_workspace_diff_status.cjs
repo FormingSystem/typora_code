@@ -31,7 +31,7 @@ app.whenReady().then(async()=>{
   await check('document.querySelectorAll(".linux-note-editor-status").length===1 && status_qa.bind_workspace_editor_status(core)===binding','source and Git host factories reuse one shared status instance');
   await check('binding.container.firstChild===source_leaf.view.status_controls && binding.container.textContent.includes("行 2，列 7")','real source view owns the initial global status');
   const diff_data={title:'test.ts 的更改',file:'test.ts',left:'const a = 1;\r\nconst old_value = 2;\r\n',right:'const a = 1;\nconst new_value = 20;\nconst added = 3;\n',left_label:'提交 abc',right_label:'工作区'};
-  await evaluate(`host.open_document(${JSON.stringify(diff_data)},'active',{root:${JSON.stringify(root)}});window.diff_leaf=core.app.workspace.activeLeaf;window.diff=active_editor();void 0;`);
+  await evaluate(`window.open_file_disabled=false;window.open_file_calls=0;host.open_document(${JSON.stringify(diff_data)},'active',{root:${JSON.stringify(root)},menu:()=>[{id:'open_file',title:'打开文件',disabled:open_file_disabled,action:()=>{open_file_calls++;void files.open_file(${JSON.stringify(source_path)});}}]});window.diff_leaf=core.app.workspace.activeLeaf;window.diff=active_editor();void 0;`);
   await wait('diff?.editor.getLineChanges()!==null');await delay(120);
   await check('binding.container.firstChild===diff.readonly_status && !binding.container.querySelector("[aria-label=保存编码]") && binding.container.textContent.includes("只读")','Git diff registers read-only model state without inventing a file encoding');
   await evaluate('window.left=diff.editor.getOriginalEditor();window.right=diff.editor.getModifiedEditor();left.focus();left.setPosition({lineNumber:2,column:5});');await delay(50);
@@ -46,6 +46,14 @@ app.whenReady().then(async()=>{
   await check('binding.container.firstChild===source_leaf.view.status_controls && binding.container.textContent.includes("行 2，列 7")','returning to source restores its own state despite later background diff events');
   await evaluate('core.app.workspace.activeLeaf=diff_leaf;void 0;');await delay(50);
   await check('binding.container.firstChild===diff.readonly_status && binding.container.textContent.includes("修改版本")','reopening a retained diff tab restores its last selected side');
+  await check('(()=>{const toolbar=diff.toolbar.getBoundingClientRect(),button=diff.toolbar.querySelector("[data-diff-open-file]").getBoundingClientRect();return button.width>0&&button.right<=toolbar.right&&toolbar.right-button.right<12})()','Open File remains visible at the comparison toolbar right edge');
+  fs.writeFileSync(path.join(root,'diff_open_file.png'),(await test_window.webContents.capturePage()).toPNG());
+  await evaluate('diff.toolbar.querySelector("[data-diff-open-file]").click()');await wait('core.app.workspace.activeLeaf===source_leaf');
+  await check('open_file_calls===1 && source_leaf.view.loaded && diff.models.every(model=>!model.isDisposed())','diff Open File button invokes the existing real file route and retains comparison models');
+  await evaluate('open_file_disabled=true;core.app.workspace.activeLeaf=diff_leaf;void 0;');
+  await check('diff.toolbar.querySelectorAll("[data-diff-open-file]").length===1 && diff.toolbar.querySelector("[data-diff-open-file]").disabled','retained diff refreshes unavailable current-file state without duplicate toolbar buttons');
+  await evaluate('diff.toolbar.querySelector("[data-diff-open-file]").click()');
+  await check('open_file_calls===1 && core.app.workspace.activeLeaf===diff_leaf','disabled Open File cannot switch from a deleted or unavailable comparison');
   await evaluate('leaves.splice(leaves.indexOf(diff_leaf),1);core.app.workspace.activeLeaf=source_leaf;void 0;');await delay(80);
   await check('diff.models.every(model=>model.isDisposed()) && binding.container.firstChild===source_leaf.view.status_controls && document.querySelectorAll(".linux-note-editor-status").length===1','closing diff disposes its models and restores source with one global bar');
   await evaluate('binding.dispose()');

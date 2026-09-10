@@ -17,26 +17,37 @@ export function workspace_dialog(title: string, close_title = "关闭"): { root:
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
   const previous = document.activeElement as HTMLElement | null;
-  const close = () => { active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove(); if (previous?.isConnected) previous.focus({ preventScroll: true }); };
-  // 执行按钮禁用后浏览器可能把焦点退回 body；Esc 仍必须关闭最上层弹窗。
+  panel.tabIndex = -1;
+  let closed = false;
+  const is_top_dialog = () => document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) === root;
+  // 搜索筛选、折叠或动态禁用后，只让仍可见且可操作的控件参与焦点循环。
+  const focusable_controls = () => [...root.querySelectorAll<HTMLElement>('button,input,textarea,select,a[href],[tabindex]')]
+    .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility))
+    .sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
+  const close = () => {
+    if (closed) return;
+    const restore_focus = is_top_dialog(); closed = true;
+    active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove();
+    if (restore_focus && previous?.isConnected && !previous.matches(":disabled")) previous.focus({ preventScroll: true });
+  };
+  // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
-    if (document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) !== root) return;
+    if (!is_top_dialog()) return;
     if (event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); close(); }
+    if (event.key === "Tab") {
+      const controls = focusable_controls(); const current = controls.indexOf(document.activeElement as HTMLElement);
+      const target = !controls.length ? panel : event.shiftKey && current <= 0 ? controls.at(-1) : !event.shiftKey && (current < 0 || current === controls.length - 1) ? controls[0] : undefined;
+      if (target) { event.preventDefault(); event.stopImmediatePropagation(); target.focus({preventScroll: true}); }
+    }
   };
   panel.append(workspace_element("h3", "", title), content, footer); root.append(panel); document.body.append(root);
   window.addEventListener("keydown", global_key, true);
   root.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); close(); }
-    if (event.key === "Tab") {
-      const focusable = [...root.querySelectorAll<HTMLElement>('button:not([disabled]),input,textarea,select,[tabindex="0"]')];
-      const current = focusable.indexOf(document.activeElement as HTMLElement);
-      if (event.shiftKey && current <= 0) { event.preventDefault(); focusable.at(-1)?.focus(); }
-      if (!event.shiftKey && current === focusable.length - 1) { event.preventDefault(); focusable[0]?.focus(); }
-    }
     event.stopPropagation();
   });
   footer.append(workspace_button(close_title, close));
-  const focus_timer = window.setTimeout(() => { if(root.isConnected)panel.querySelector<HTMLElement>("input,textarea,select,button")?.focus(); }, 0);
+  const focus_timer = window.setTimeout(() => { if (root.isConnected && is_top_dialog()) (focusable_controls()[0] || panel).focus(); }, 0);
   active_dialogs.add(close);
   return { root, content, footer, close };
 }

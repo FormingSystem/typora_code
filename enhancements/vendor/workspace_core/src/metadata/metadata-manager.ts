@@ -1,0 +1,267 @@
+import fs from 'src/io/fs/filesystem'
+import path from 'src/path'
+import { StickyEvents } from 'src/common/events'
+import { useService } from 'src/common/service'
+import { MiniDexie } from 'src/utils/indexed-db'
+import { TagObject } from 'src/utils'
+
+
+class IndexAbortedError extends Error {
+  constructor() {
+    super('Indexing process was aborted.')
+    this.name = 'IndexAbortedError'
+  }
+}
+
+export type MetadataEvents = {
+  // initial
+  'index:start'(total: number): void
+  'index:progress'(current: number): void
+  'index:done'(): void
+
+  // update
+  'index:update'(filePath: string): void
+}
+
+class MetadataProviderContext {
+  constructor(
+    readonly filePath: string,
+    private textContent?: string
+  ) { }
+
+  text(): Promise<string> {
+    return this.textContent
+      ? Promise.resolve(this.textContent)
+      : fs.readText(this.filePath).then(text => this.textContent = text)
+  }
+}
+
+export type MetadataProvider = (ctx: MetadataProviderContext) => Promise<Record<string, any>>
+
+interface Cache {
+  [filePath: string]: CacheEntry
+}
+
+interface CacheEntry {
+  mtime: number // Last modification timestamp
+  metadata: Record<string, any> & {
+    frontmatter: Record<string, any>
+    tags: TagObject[]
+  }
+}
+
+const DB_SCHEMA = {
+  files: 'path, metadata'
+}
+
+export class MetadataManager extends StickyEvents<MetadataEvents> {
+
+  private providers: { [ext: string]: MetadataProvider[] } = {}
+  cache: Cache = {}
+
+  private concurrencyLimit: number
+  private isIndexing: boolean = false
+
+  /**
+   * @param options.concurrency Number of files processed simultaneously, default 10
+   */
+  constructor(
+    options: { concurrency?: number } = {},
+    editor = useService('markdown-editor'),
+    workspace = useService('workspace'),
+    private vault = useService('vault'),
+  ) {
+    super('metadata')
+    this.concurrencyLimit = options.concurrency ?? 10
+
+    this.setSticky('index:done')
+
+    workspace.on('file:will-save', (file) => {
+      this.processFile(this.cache, this.vault.path, file, editor.getMarkdown())
+        .then(() => {
+          const relativePath = path.relative(this.vault.path, file)
+          this.emit('index:update', relativePath)
+        })
+        .catch(() => { })
+    })
+  }
+
+  /**
+   * Register a metadata provider for file extension
+   */
+  register(extension: string, provider: MetadataProvider): void {
+    const ext = extension.startsWith('.') ? extension.toLowerCase() : `.${extension.toLowerCase()}`
+    if (!this.providers[ext]) this.providers[ext] = []
+    this.providers[ext].push(provider)
+  }
+
+  /**
+   * Index files in the vault
+   */
+  async index() {
+    if (this.isIndexing) {
+      throw new Error("Indexing is already in progress.")
+    }
+
+    this.isIndexing = true
+    console.log('[Metadata] Start indexing...')
+
+    const abortController = new AbortController()
+    const dispose = this.vault.on('change', () => abortController.abort())
+
+    try {
+      const { signal } = abortController
+      const vaultPath = this.vault.path
+      const allFiles = await fs.listFiles(vaultPath, { recursive: true, signal })
+      this.emit('index:start', allFiles.length)
+
+      signal.throwIfAborted()
+      const vaultId = this.vault.id
+      const indexingCache = await this.loadFromIndexedDb(vaultId)
+
+      signal.throwIfAborted()
+      await this.processQueue(indexingCache, vaultPath, allFiles, signal)
+
+      this.cache = indexingCache
+      this.emit('index:done')
+      this.saveToIndexedDb(vaultId, indexingCache)
+
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('[Metadata] Indexing stopped, temporary cache discarded')
+      } else {
+        console.error('[Metadata] Indexing failed due to error:', error)
+        throw error
+      }
+    } finally {
+      this.isIndexing = false
+      dispose()
+      console.log('[Metadata] Indexing completed.')
+    }
+  }
+
+  private async processQueue(indexingCache: Cache, vaultPath: string, filePaths: string[], signal: AbortSignal): Promise<void> {
+    const allCount = filePaths.length
+    const worker = async () => {
+      while (filePaths.length > 0) {
+        signal.throwIfAborted()
+        const filePath = filePaths.pop()
+        if (filePath) {
+          await this.processFile(indexingCache, vaultPath, filePath, undefined, signal)
+          this.emit('index:progress', allCount - filePaths.length - 1)
+        }
+      }
+    }
+
+    const count = Math.min(this.concurrencyLimit, filePaths.length)
+    const workers = Array.from({ length: count }, () => worker())
+
+    await Promise.all(workers)
+  }
+
+  /**
+   * Process a single file: with cache check and providers
+   */
+  private async processFile(indexingCache: Cache, vaultPath: string, filePath: string, content?: string, signal?: AbortSignal): Promise<void> {
+    signal?.throwIfAborted()
+
+    const ext = path.extname(filePath).toLowerCase()
+    const providers = this.providers[ext]
+
+    if (!providers || providers.length === 0) return
+
+    try {
+      const stats = await fs.stat(filePath)
+      const mtime = stats.mtimeMs
+      const relativePath = path.relative(vaultPath, filePath)
+
+      const cached = this.cache[relativePath]
+      // When content is provided (from file:will-save with editor content),
+      // skip the mtime check — the file hasn't been written to disk yet so
+      // mtime is still old. Without this, the provider never processes the
+      // new content and the cache stays stale.
+      if (!content && cached && cached.mtime === mtime) {
+        indexingCache[relativePath] = cached
+        return
+      }
+
+      const context = new MetadataProviderContext(filePath, content)
+
+      const results = await Promise.all(
+        providers.map(async (p) => {
+          signal?.throwIfAborted()
+          try {
+            return await p(context)
+          } catch (e) {
+            console.warn(`Provider error in ${filePath}:`, e)
+            return {}
+          }
+        })
+      )
+
+      signal?.throwIfAborted()
+
+      const mergedMetadata = results.reduce((acc, curr) => ({ ...acc, ...curr }), {})
+      indexingCache[relativePath] = {
+        mtime,
+        metadata: mergedMetadata as any,
+      }
+    } catch (error) {
+      if (error instanceof IndexAbortedError) throw error
+      console.error(`Failed to process ${filePath}:`, error)
+    }
+  }
+
+  /**
+   * Get metadata for a file by relative path.
+   */
+  get(relativePath: string): CacheEntry | undefined {
+    return this.cache[relativePath]
+  }
+
+  /**
+   * Clear all cache
+   */
+  clear(): void {
+    this.cache = {}
+  }
+
+  async loadFromIndexedDb(vaultId: string): Promise<Cache> {
+    const loadedCache: Cache = {}
+
+    try {
+      const db = new MiniDexie(`metadata:${vaultId}`)
+        .version(1).stores(DB_SCHEMA)
+
+      const records = await db.files.toArray()
+      for (const record of records) {
+        const { path, metadata } = record
+        loadedCache[path] = metadata as CacheEntry
+      }
+
+      console.log(`[Metadata] Loaded ${records.length} items from IndexedDB.`)
+    } catch (e) {
+      console.error('[Metadata] Failed to load IndexedDB:', e)
+    }
+    finally {
+      return loadedCache
+    }
+  }
+
+  async saveToIndexedDb(vaultId: string, cache: Cache): Promise<void> {
+    try {
+      const db = new MiniDexie(`metadata:${vaultId}`)
+        .version(1).stores(DB_SCHEMA)
+
+      const rows = Object.entries(cache).map(([filePath, metadata]) => ({
+        path: filePath,
+        metadata,
+      }))
+
+      await db.files.bulkPut(rows)
+      console.log(`[Metadata] Saved ${rows.length} items to IndexedDB.`)
+    } catch (e) {
+      console.error('[Metadata] Failed to save IndexedDB:', e)
+    }
+  }
+}

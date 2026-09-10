@@ -178,7 +178,7 @@ export class git_scm_history {
     };
     for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
       const row = button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
-      row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
+      row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
       const label = el("span", "git-scm-file-label"); label.append(git_icon("file"), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
       if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);

@@ -1,0 +1,28 @@
+{
+  "repository": "https://github.com/FortAwesome/Font-Awesome",
+  "tag": "6.7.2",
+  "license": "CC-BY-4.0 (SVG icons)",
+  "files": [
+    {
+      "file": "file.svg",
+      "source": "svgs/solid/file.svg",
+      "sha256": "be78e0672cde3290f8b6e678078c29064ca45e1342e311613797b53a3c0bb9c0"
+    },
+    {
+      "file": "folder.svg",
+      "source": "svgs/solid/folder.svg",
+      "sha256": "34439b2ff127204490027ba3d452301d9e241f50706131c9b159636ad0106f33"
+    },
+    {
+      "file": "folder-open.svg",
+      "source": "svgs/solid/folder-open.svg",
+      "sha256": "a41c1daeea1542925ec914134b4e97e86b830f50898e5ce7f889de92341b4370"
+    },
+    {
+      "file": "LICENSE.txt",
+      "source": "LICENSE.txt",
+      "sha256": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc"
+    }
+  ],
+  "commit": "af620534bfc3c2d4cbefcfeec29603bbe7809e64"
+}

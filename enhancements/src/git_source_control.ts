@@ -16,23 +16,21 @@ const operation_label = (operation: string) => {
 
 /** 源代码管理与可展开提交历史共用主侧栏；完整提交图和文件差异使用中央编辑标签。 */
 export class git_source_control {
-  sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups"); filter = el("input", "git-scm-filter");
-  message = el("textarea", "git-scm-message"); branch = el("div", "git-scm-branch"); title = el("div", "git-scm-title", text("scm.source_control")); repo_select = el("select", "git-scm-repository");
-  notice = el("div", "git-scm-notice"); graph_launch: HTMLButtonElement;
+  sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups");
+  message = el("textarea", "git-scm-message"); branch = el("div", "git-scm-branch"); title = el("div", "git-scm-title"); repo_select = el("select", "git-scm-repository");
+  notice = el("div", "git-scm-notice");
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
-  input_section = el("details", "git-scm-input-section"); repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
+  input_section = el("details", "git-scm-input-section"); changes_body = el("div", "git-scm-changes-body"); groups_scroll = 0; repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
   show_repositories = false; show_changes = true; show_history = true; sort_order = "path"; history_tree = false;
   history: git_scm_history; history_sash: HTMLElement; history_ratio = .55; history_open = true;
   load_epoch = 0; groups_epoch = 0; tree = false; groups_state: change_group[] = [];
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
+    const title_label=el("span", "git-scm-title-label", text("scm.source_control"));title_label.title=text("scm.source_control");this.title.append(title_label);
     const tools = el("div", "git-scm-tools");
-    tools.append(icon_button("refresh", text("scm.refresh"), () => void panel.refresh()), icon_button("more", text("scm.select_views"), () => {}));
-    tools.children[1].addEventListener("click", event => this.view_menu(event as MouseEvent));
-    tools.children[1].classList.add("git-scm-view-menu");
-    tools.children[0].setAttribute("title", text("scm.refresh")); tools.children[1].setAttribute("title", text("scm.select_views")); this.title.append(tools);
-    this.graph_launch = icon_button("git-branch", text("scm.open_graph"), () => panel.host.show_history(panel.root), "git-scm-title-graph"); tools.prepend(this.graph_launch);
+    const views = icon_button("more", text("scm.select_views"), () => {}, "git-scm-view-menu");
+    views.onclick = event => this.view_menu(event); tools.append(views); this.title.append(tools);
     this.message.placeholder = text("scm.message_placeholder"); this.message.setAttribute("aria-label", text("scm.commit_message"));
     this.message.rows = 1;
     this.message.oninput = () => { localStorage.setItem(this.storage_key("message"), this.message.value); this.fit_message(); };
@@ -50,17 +48,23 @@ export class git_source_control {
       {id: "commit_amend", title: text("scm.amend_last_commit"), disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, {message: this.message.value, amend: true})},
     ]);
     const commit_bar = el("div", "git-scm-commit-bar"); commit_bar.append(commit, commit_options);
-    this.filter.placeholder = text("scm.filter_changes"); this.filter.setAttribute("aria-label", text("scm.filter_changes")); this.filter.oninput = () => this.render_groups();
     this.repo_select.setAttribute("aria-label", text("scm.repository")); this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
     this.changes_pane.setAttribute("aria-label", text("scm.working_tree_changes"));
     this.notice.setAttribute("role", "status");
     const input_heading = el("summary", "git-scm-input-heading"); const input_menu = icon_button("more", text("scm.changes_and_operations"), () => {}, "git-scm-operation-menu");
     input_menu.onclick = event => this.more_menu(event); input_heading.append(git_disclosure(), el("span", "git-scm-input-title", text("scm.changes")), this.branch, input_menu);
     const inputs = el("div", "git-scm-inputs"); inputs.append(this.message, commit_bar);
-    this.input_section.append(input_heading, inputs); this.input_section.ontoggle = () => this.save_layout();
+    this.changes_body.append(inputs, this.groups, this.notice);
+    this.input_section.append(input_heading, this.changes_body);
+    this.groups.onscroll = () => { if (this.input_section.open) this.groups_scroll = this.groups.scrollTop; };
+    this.input_section.ontoggle = () => {
+      this.changes_body.inert = !this.input_section.open;
+      if (this.input_section.open) this.groups.scrollTop = this.groups_scroll;
+      this.save_layout();
+    };
     const repo_heading = el("div", "git-scm-repositories-heading", text("scm.repositories")); const manage = icon_button("more", text("scm.manage_repositories"), () => panel.manage_repositories()); repo_heading.append(manage);
     this.repositories_view.append(repo_heading, this.repo_select);
-    this.changes_pane.append(this.input_section, this.filter, this.groups, this.notice);
+    this.changes_pane.append(this.input_section);
     this.history = new git_scm_history(this);
     this.history_sash = create_workspace_sash({ label: text("scm.resize_sections"), area: this.sections, vertical: () => false,
       ratio: () => this.history_ratio, change: ratio => { this.history_ratio = ratio; this.apply_history_layout(); }, save: () => this.save_layout(), reset: .55 });
@@ -119,7 +123,7 @@ export class git_source_control {
   }
   async refresh(): Promise<void> {
     const state = this.panel.state; if (!state) return; const epoch = ++this.groups_epoch;
-    this.fit_message(); this.graph_launch.hidden = this.panel.settings.scm_integration !== "inline";
+    this.fit_message();
     this.history.render(state);
     this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map(item => item.cloneNode(true))); this.repo_select.value = this.panel.root;
     this.branch.replaceChildren(git_icon("git-branch"), el("span", "git-scm-branch-label", `${state.branch || text("scm.detached_head")}${state.operation ? " · " + operation_label(state.operation) : ""}`));
@@ -139,11 +143,11 @@ export class git_source_control {
     } catch (error) { if (epoch === this.groups_epoch) this.panel.report(error); }
   }
   render_groups(): void {
-    const scroll = this.groups.scrollTop; this.groups.replaceChildren(); const filter = this.filter.value.toLowerCase();
+    const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; this.groups.replaceChildren();
     for (const group of this.groups_state) {
       const section = el("details", "git-scm-group"); section.setAttribute("data-scm-group", group.id); section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";
       section.ontoggle = () => localStorage.setItem(this.storage_key("collapsed:" + group.id), String(!section.open));
-      const heading = el("summary", ""); const label = el("span", "git-scm-group-label"); label.append(el("span", "git-scm-group-name", group.title), el("span", "git-scm-badge", String(group.files.length))); heading.append(git_disclosure(), label);
+      const heading = el("summary", ""); const label = el("span", "git-scm-group-label"); label.append(el("span", "git-scm-group-name", group.title)); label.title=group.title; heading.append(git_disclosure(), label);
       const action_id = group.id === "staged" ? "unstage" : "stage";
       const group_action = () => void this.panel.quick_action(action_id, [...new Set(group.files.flatMap(file => [file.path, ...(file.old_path ? [file.old_path] : [])]))]);
       const all = icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? text("scm.unstage_all_group") : text("scm.stage_all_group"), group_action, "git-scm-inline-action");
@@ -153,7 +157,7 @@ export class git_source_control {
       const discard = icon_button("discard", text("scm.discard_group_changes"), () => {}, "git-scm-inline-action"); discard.disabled = group.id === "staged" || !group.files.length;
       discard.onclick = event => { event.preventDefault(); event.stopPropagation(); this.panel.action_dialog("discard_changes", "changes", "", this.panel.state?.head, {include_untracked: true}, group.files.map(file => file.path)); };
       const actions = el("span", "git-scm-row-actions"); actions.append(open, discard, all);
-      const placeholder = el("span", "git-scm-status-slot"); placeholder.setAttribute("aria-hidden", "true"); heading.append(actions, placeholder);
+      heading.append(actions, el("span", "git-scm-badge", String(group.files.length)));
       heading.oncontextmenu = event => this.panel.configured_menu(event, "changes_group", [
         {id: action_id, title: all.title, disabled: !group.files.length, action: group_action},
         {id: "collapse", title: text("scm.collapse_groups"), action: () => this.groups.querySelectorAll("details").forEach(item => { item.open = false; })},
@@ -165,17 +169,22 @@ export class git_source_control {
         if (!this.tree || !path) return section; if (directories.has(path)) return directories.get(path)!;
         const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/")); const directory = el("details", "git-scm-directory"); directory.open = true; const heading = el("summary", "", parts.at(-1)!); heading.prepend(git_disclosure()); directory.append(heading); parent.append(directory); directories.set(path, directory); return directory;
       };
-      for (const file of group.files.filter(file => file.path.toLowerCase().includes(filter)).sort((a, b) => this.sort_files(a, b))) {
-        const row = el("div", "git-scm-file"); row.setAttribute("data-file", file.path); row.tabIndex = 0; row.setAttribute("role", "button"); row.title = `${file.old_path ? file.old_path + " → " : ""}${file.path}\n${short_revision(group.from)} ↔ ${short_revision(group.to)}`;
-        const label = el("span", "git-scm-file-label"); label.append(el("span", "git-scm-file-name", file.path.split("/").at(-1)!));
+      for (const file of [...group.files].sort((a, b) => this.sort_files(a, b))) {
+        const row = el("div", "git-scm-file"); row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-file", file.path); row.tabIndex = 0; row.setAttribute("role", "button"); row.title = `${file.old_path ? file.old_path + " → " : ""}${file.path}\n${short_revision(group.from)} ↔ ${short_revision(group.to)}`;
+        const label = el("span", "git-scm-file-label"); label.append(git_icon("file"), el("span", "git-scm-file-name", file.path.split("/").at(-1)!));
         if (!this.tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
         const action = group.id === "staged" ? "unstage" : "stage";
         const mini = icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? text("scm.unstage_change") : text("scm.stage_change"), () => {}, "git-scm-inline-action");
         mini.onclick = event => { event.stopPropagation(); void this.panel.quick_action(action, [file.path, ...(file.old_path ? [file.old_path] : [])]); };
-        const actions = el("span", "git-scm-row-actions"); actions.append(mini);
+        const actions = el("span", "git-scm-row-actions");
+        const open_current=icon_button("go-to-file",text("scm.open_file"),()=>{},"git-scm-inline-action");open_current.dataset.scmFileAction="open";open_current.disabled=file.status.startsWith("D");
+        open_current.onclick=event=>{event.stopPropagation();if(!open_current.disabled)void this.open_current_file(file);};
+        actions.append(open_current);
+        if(group.to===WORKTREE){const discard_current=icon_button("discard",text("scm.discard_change"),()=>{},"git-scm-inline-action");discard_current.dataset.scmFileAction="discard";discard_current.onclick=event=>{event.stopPropagation();this.panel.action_dialog("discard_changes","file",file.path,this.panel.state?.head,{include_untracked:true},[file.path]);};actions.append(discard_current);}
+        mini.dataset.scmFileAction=action;actions.append(mini);
         const status = el("span", "git-scm-file-status", file.status === "??" ? "U" : file.status); status.title = file.status; status.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
         row.append(label, actions, status);
-        row.onclick = () => { for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected"); row.classList.add("selected"); void this.open_file(file, group.from, group.to, group.files); };
+        row.onclick = () => { for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected"); row.classList.add("selected"); void this.open_default_file(file, group.from, group.to, group.files); };
         row.onkeydown = event => { if (event.target === row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); row.click(); } };
         row.oncontextmenu = event => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
         parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
@@ -191,7 +200,7 @@ export class git_source_control {
   file_entries(file: graph_change, from: string, to: string, files: graph_change[]): workspace_menu_entry[] {
     const entries: workspace_menu_entry[] = [
       {id: "open_diff", title: text("scm.open_changes"), action: () => void this.open_file(file, from, to, files)},
-      {id: "open_file", title: text("scm.open_file"), action: () => void this.panel.host.open_file(this.panel.root, file.path, this.panel.settings).catch(error => this.panel.report(error))},
+      {id: "open_file", title: text("scm.open_file"), disabled: file.status.startsWith("D"), action: () => void this.open_current_file(file)},
       {id: "file_history", title: text("scm.file_history"), action: () => void this.file_history(file.path)},
       {id: "copy_relative", title: text("scm.copy_relative_path"), separator: true, action: () => void this.panel.host.copy(file.path)},
       {id: "copy_absolute", title: text("scm.copy_path"), action: () => void this.panel.host.copy(this.panel.host.file_path(this.panel.root, file.path))},
@@ -213,6 +222,20 @@ export class git_source_control {
     try { const result = await this.panel.host.ignore_file(this.panel.root, file, this.panel.settings); message = result.changed ? text("scm.added_to_gitignore", {file}) : text("scm.already_ignored", {file}); }
     catch (error) { message = String(error); }
     finally { this.panel.writing = false; await this.panel.refresh(false); this.panel.report(message); }
+  }
+  /** 默认资源点击：仅当前比较的新增项没有旧基线；显式比较入口仍走 open_file。 */
+  async open_default_file(file:graph_change,from:string,to:string,files:graph_change[]):Promise<void>{
+    if((to===WORKTREE||to===INDEX)&&(file.status==="??"||/^A[0-9]*$/u.test(file.status))){
+      await this.open_current_file(file);
+      return;
+    }
+    await this.open_file(file,from,to,files);
+  }
+  async open_current_file(file: graph_change): Promise<void> {
+    // 当前文件导航取代仍在读取的比较，避免旧 diff 完成后抢回活动标签。
+    const epoch = ++this.load_epoch; const root = this.panel.root;
+    try { await this.panel.host.open_file(root, file.path, this.panel.settings); }
+    catch (error) { if (epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
   }
   async open_file(file: graph_change, from: string, to: string, files: graph_change[] = [file]): Promise<void> {
     const epoch = ++this.load_epoch; const root = this.panel.root;
@@ -293,5 +316,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void { this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
+  dispose(): void { this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

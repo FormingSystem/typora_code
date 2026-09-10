@@ -1,8 +1,9 @@
+import {acquire_workspace_style} from "./workspace_styles";
+import {bind_workspace_control_icons} from "./workspace_control_icons";
 import outline_css from "./workspace_outline.css";
 
 export type workspace_outline_host = {
   sidebar?: HTMLElement;
-  container?: HTMLElement;
   document_active?(): boolean;
   outline?: {
     hideSearch?(): void;
@@ -16,28 +17,24 @@ export type workspace_outline_host = {
 export function install_workspace_outline(host: workspace_outline_host) {
   const sidebar = host.sidebar || document.querySelector<HTMLElement>("#typora-sidebar");
   if (!sidebar) return;
-  const style = document.createElement("style");
-  style.setAttribute("data-workspace-outline-style", "ready");
-  style.textContent = outline_css;
-  document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_outline", outline_css, {"data-workspace-outline-style":"ready"});
   document.documentElement.setAttribute("data-linux-note-workspace-outline", "ready");
-  const embedded=host.container;
-  let native_outline:HTMLElement|undefined,original_parent:Node|null=null,original_next:Node|null=null;
+  const previous_document_outline=sidebar.getAttribute("data-document-outline");
   const empty=document.createElement("p");empty.className="workspace-outline-empty";empty.textContent="当前编辑器不提供文档大纲。";
-  const mount=()=>{
-    if(!embedded)return;
-    const candidate=sidebar.querySelector<HTMLElement>("#outline-content");
-    if(candidate&&candidate!==native_outline){native_outline=candidate;original_parent=candidate.parentNode;original_next=candidate.nextSibling;embedded.prepend(candidate);}
-    if(!empty.isConnected)embedded.append(empty);
+  (sidebar.querySelector("#sidebar-content")||sidebar).append(empty);
+  const control_icons=bind_workspace_control_icons(sidebar,[["#outline-content .outline-expander","chevron-right"]]);
+  let disposed=false;
+  const update_document=()=>{
     const available=host.document_active?.()!==false;
-    embedded.dataset.documentOutline=String(available);if(empty.hidden!==available)empty.hidden=available;
+    const value=String(available);
+    if(sidebar.dataset.documentOutline!==value)sidebar.dataset.documentOutline=value;
+    if(empty.hidden!==available)empty.hidden=available;
   };
-  if(embedded){document.documentElement.setAttribute("data-linux-note-outline-embedded","true");mount();}
   let clearing = false;
   let sync_frame = 0;
   let settle_frame = 0;
   let outline_open = false;
-  const is_outline_open = () => embedded ? embedded.isConnected&&!embedded.hidden&&embedded.getClientRects().length>0&&host.document_active?.()!==false : sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
+  const is_outline_open = () => !disposed && host.document_active?.()!==false && sidebar.classList.contains("open") && sidebar.classList.contains("active-tab-outline");
   const current_heading = () => {
     const content = document.querySelector<HTMLElement>("content");
     const write = document.querySelector<HTMLElement>("#write");
@@ -102,7 +99,8 @@ export function install_workspace_outline(host: workspace_outline_host) {
     schedule_sync();
   };
   const refresh = () => {
-    mount();
+    if(disposed)return;
+    update_document();
     if (clearing) return;
     const filtering = sidebar.classList.contains("ty-show-outline-filter") || sidebar.classList.contains("ty-on-outline-filter") || host.outline?.isSearchShown?.();
     if (!filtering) return;
@@ -135,5 +133,10 @@ export function install_workspace_outline(host: workspace_outline_host) {
   refresh();
   outline_open = is_outline_open();
   if (outline_open) schedule_sync();
-  return {refresh, dispose: () => {observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();if(native_outline&&original_parent){if(original_next?.parentNode===original_parent)original_parent.insertBefore(native_outline,original_next);else original_parent.appendChild(native_outline);}document.documentElement.removeAttribute("data-linux-note-outline-embedded");document.documentElement.removeAttribute("data-linux-note-workspace-outline");}};
+  return {refresh:()=>{refresh();schedule_sync();}, dispose: () => {
+    if(disposed)return;disposed=true;
+    control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
+    if(previous_document_outline===null)sidebar.removeAttribute("data-document-outline");else sidebar.setAttribute("data-document-outline",previous_document_outline);
+    document.documentElement.removeAttribute("data-linux-note-workspace-outline");
+  }};
 }

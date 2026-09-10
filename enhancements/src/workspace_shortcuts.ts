@@ -1,19 +1,13 @@
+import { get_workspace_quick_open } from "./workspace_quick_open";
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH } from "./file_paths";
-import type { workspace_file_host } from "./workspace_files";
-
-export const CLOSE_ALL_WORKSPACE_TABS = "linux_note:close_all_workspace_tabs";
 
 type shortcut_app = {
   commands: { run(id: string, args?: unknown[]): void };
   workspace: {
     sidebar: { toggle(): void };
     activeFile: string;
-    activeLeaf: { state: { path?: string } } | null;
+    activeLeaf: { state: { path?: string }; parent?: {containerEl?: HTMLElement} } | null;
   };
-};
-
-type shortcut_runtime = {
-  ClientCommand?: Record<string, (...args: unknown[]) => unknown>;
 };
 
 export type workspace_shortcuts_binding = { dispose(): void };
@@ -33,45 +27,59 @@ function visible_modal(): boolean {
   });
 }
 
-/** 集中实现 VS Code 工作区键位，避免标题栏菜单和全局捕获器各维护一套 chord。 */
+/** 文件快速打开及既有工作区键位；编辑器/终端专用按键保持各自所有权。 */
 export function install_workspace_shortcuts(
   app: shortcut_app,
-  runtime: shortcut_runtime,
-  get_file_host: () => Pick<workspace_file_host, "save_all"> | undefined = () => undefined,
 ): workspace_shortcuts_binding {
   if (active_binding) return active_binding;
   let chord_started = 0;
+  const consumed = new Set<string>();
   const reset_chord = () => { chord_started = 0; };
   const run = (event: KeyboardEvent, action: () => void) => {
     event.preventDefault();
     event.stopImmediatePropagation();
+    consumed.add(event.code);
     reset_chord();
     action();
   };
   const keydown = (event: KeyboardEvent) => {
+    const active_picker=get_workspace_quick_open();
+    if(!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
+      run(event,()=>{if(event.shiftKey){active_picker.close();app.commands.run("command:open");}else active_picker.open();});return;
+    }
     if (visible_modal() || event.isComposing) { reset_chord(); return; }
-    if (event.target instanceof Element && event.target.closest(".linux-note-terminal, .git-graph-document")
+    if (event.target instanceof Element && event.target.closest(".linux-note-terminal")
         && !event.target.closest(".linux-note-source-file")) { reset_chord(); return; }
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
 
-    if (primary_modifier(event) && !event.shiftKey && event.code === "KeyB") {
-      run(event, () => app.workspace.sidebar.toggle());
-      return;
+    if (primary_modifier(event)) {
+      if (event.code === "KeyP") {
+        if (event.shiftKey) run(event, () => app.commands.run("command:open"));
+        else { const picker=get_workspace_quick_open(); if(picker)run(event,()=>picker.open()); }
+        return;
+      }
+      if(event.code === "KeyF" && event.shiftKey) { run(event,()=>app.commands.run("linux_note:search")); return; }
+      if(!event.shiftKey && event.code === "KeyB") { run(event,()=>app.workspace.sidebar.toggle()); return; }
+      if(!event.shiftKey && ["KeyW","PageUp","PageDown"].includes(event.code)) {
+        const parent=app.workspace.activeLeaf?.parent?.containerEl;
+        const tabs=parent ? [...(event.code === "KeyW" ? parent : document).querySelectorAll<HTMLElement>(".typ-workspace-tab-header .typ-tab")].filter(tab=>!tab.dataset.id?.startsWith("typ://empty")) : [];
+        const index=tabs.findIndex(tab=>tab.dataset.id===app.workspace.activeLeaf?.state.path);
+        if(index>=0) {
+          const target=event.code === "KeyW" ? tabs[index].querySelector<HTMLElement>(".typ-close") : tabs[(index+(event.code === "PageUp" ? -1 : 1)+tabs.length)%tabs.length];
+          if(target)run(event,()=>target.click());
+        }
+        return;
+      }
     }
 
+    if (event.target instanceof Element && event.target.closest(".git-graph-document") && !event.target.closest(".linux-note-source-file")) { reset_chord(); return; }
     const in_chord = chord_started > 0 && Date.now() - chord_started < 2000;
     if (in_chord) {
       const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
       const primary = primary_modifier(event) && !event.shiftKey;
       if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
+      else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
       else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
-      else if (event.code === "KeyO" && primary) run(event, () => { runtime.ClientCommand?.openFolder?.(); });
-      else if (event.code === "KeyS" && unmodified) run(event, () => {
-        const files = get_file_host();
-        if (files) void files.save_all();
-        else runtime.ClientCommand?.saveAll?.();
-      });
-      else if (event.code === "KeyW" && unmodified) run(event, () => app.commands.run(CLOSE_ALL_WORKSPACE_TABS));
       else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("core.workspace:split-down", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
       else reset_chord();
       return;
@@ -85,6 +93,7 @@ export function install_workspace_shortcuts(
     if (event.code === "KeyK") {
       event.preventDefault();
       event.stopImmediatePropagation();
+      consumed.add(event.code);
       chord_started = Date.now();
       return;
     }
@@ -94,12 +103,17 @@ export function install_workspace_shortcuts(
     }
     reset_chord();
   };
+  const keyup=(event:KeyboardEvent)=>{if(consumed.delete(event.code)){event.preventDefault();event.stopImmediatePropagation();}};
+  const blur=()=>{reset_chord();consumed.clear();};
   window.addEventListener("keydown", keydown, true);
-  window.addEventListener("blur", reset_chord);
+  window.addEventListener("keyup", keyup, true);
+  window.addEventListener("blur", blur);
   const binding: workspace_shortcuts_binding = { dispose() {
     if (active_binding !== binding) return;
     window.removeEventListener("keydown", keydown, true);
-    window.removeEventListener("blur", reset_chord);
+    window.removeEventListener("keyup", keyup, true);
+    consumed.clear();
+    window.removeEventListener("blur", blur);
     reset_chord();
     active_binding = undefined;
   } };

@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import type { graph_core, graph_host } from "./git_graph_host";
 import type { git_graph_panel } from "./git_graph_panel";
@@ -5,8 +6,6 @@ import status_css from "./git_status_bar.css";
 import { git_icon } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 
-type status_plugin = {addStatusBarItem(options: {position: "left"; type: "item"; hint: string}): HTMLElement; unload(): void};
-type status_core = graph_core & {Plugin: new (app: graph_core["app"], manifest: {id: string; name: string}) => status_plugin};
 type branch_status = {branch: string; head: string; upstream: string; ahead: number; behind: number; dirty: boolean};
 
 /** porcelain v2 的分支头与路径记录以 NUL 分隔；重命名的第二个路径不能当成另一条记录。 */
@@ -26,14 +25,15 @@ export function parse_branch_status(source: string): branch_status {
   return status;
 }
 
-/** 使用社区核心原有状态栏；刷新只读取本地 Git，远端写操作仍经过现有预览弹窗。 */
+/** 使用窗口唯一状态栏；刷新只读取本地 Git，远端写操作仍经过现有预览弹窗。 */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
-  const status_core = core as status_core;
-  const plugin = new status_core.Plugin(core.app, {id: "linux_note.git_status", name: text("status.plugin_name")});
-  const item = plugin.addStatusBarItem({position: "left", type: "item", hint: text("status.repository_status")});
-  item.classList.add("linux-note-git-status"); item.setAttribute("data-linux-note-git-status", "ready");
-  item.parentElement?.prepend(item);
-  const style = el("style"); style.textContent = status_css; document.head.append(style);
+  const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
+  if (!footer) throw new Error("Typora Code status bar is unavailable.");
+  const item = el("span", "linux-note-git-status");
+  item.title = text("status.repository_status");
+  item.setAttribute("data-linux-note-git-status", "ready");
+  footer.prepend(item);
+  const style = acquire_workspace_style("typora-code-style:git_status_bar", status_css, {});
   const branch = button("", () => {}, "git-status-branch"); branch.dataset.gitStatus = "branch";
   const branch_icon = git_icon("git-branch");
   const label = el("span", "git-status-branch-label", text("status.checking")); branch.append(branch_icon, label);
@@ -130,7 +130,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
   const timer = window.setInterval(() => { if (document.visibilityState !== "hidden" && !panel?.writing) void refresh(); }, 8000);
   const on_focus = () => void refresh(); window.addEventListener("focus", on_focus);
-  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); style.remove(); plugin.unload(); window.removeEventListener("pagehide",dispose); };
+  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); style.remove(); window.removeEventListener("pagehide",dispose); };
   window.addEventListener("pagehide", dispose, {once:true});
   void refresh();
   return {dispose, refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};

@@ -134,7 +134,16 @@ export function bind_reading_navigation(): () => void {
   const report = (error: unknown) => { if (!disposed) console.error("[linux-note reading navigation]", error); };
   const navigate = async (path: string, hash?: string, location?: reading_location, options: reading_target_options = {}): Promise<boolean> => {
     if (disposed || navigating) return false;
-    path = path_api?.normalize(path) ?? path;
+    const source = workspace.active()?.file_path || native_path();
+    if (path_api) {
+      const target = resolve_host_open_file_target(path_api, source, path);
+      const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target);
+      if (!resolved) throw new Error("无法解析目标 Markdown 路径。");
+      path = resolved;
+      // 宿主收到不存在的文件会先清空编辑面，因此必须在任何状态切换前拒绝。
+      const fs = (runtime as unknown as {reqnode(name: string): {statSync(path: string): {isFile(): boolean}}}).reqnode("fs");
+      if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");
+    }
     finish_pending();
     const from = capture();
     workspace.checkpoint();

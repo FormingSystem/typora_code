@@ -1,81 +1,41 @@
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory = $true)]
-    [string]$backup_root
-)
-
-$ErrorActionPreference = "Stop"
-
-$typora_tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$environment_helper = Join-Path $typora_tools_root "scripts\lib\typora_environment.ps1"
-if (-not (Test-Path -LiteralPath $environment_helper -PathType Leaf)) {
-    throw "Typora environment helper is missing: $environment_helper"
+﻿[CmdletBinding()]
+param([Parameter(Mandatory=$true)][string]$backup_root)
+$ErrorActionPreference = 'Stop'
+$tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
+$context = get_typora_restore_context $backup_root
+$profile_stage = prepare_typora_node $tools_root
+$profile_node = Join-Path $profile_stage.root ($profile_stage.assets | Where-Object { $_.relative_path.EndsWith('/node.exe') } | Select-Object -First 1).relative_path
+$profile_path = resolve_typora_asset_path (get_typora_windows_user_data) 'profile.data'
+$profile_before = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path
+$null = invoke_typora_native_profile $profile_node $tools_root snapshot (Join-Path $context.backup_root 'native_profile/profile.data')
+$profile_changed = $false
+$backup_root = $context.backup_root
+# 全部源和目标先校验，再保存恢复前状态；恢复失败可撤销这次恢复。
+$attempt = Join-Path $backup_root ('restore_' + [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $attempt | Out-Null
+Copy-Item -LiteralPath $context.window -Destination (Join-Path $attempt 'window.html')
+foreach ($group in $context.groups) {
+    $before = @(backup_typora_workspace $group.root (Join-Path $attempt $group.name) $group.records)
+    $group | Add-Member -NotePropertyName before -NotePropertyValue $before
 }
-. $environment_helper
-. (Join-Path $typora_tools_root "scripts\lib\typora_workspace.ps1")
-
-$backup_root = convert_typora_input_path $backup_root
-$backup_root = (Resolve-Path -LiteralPath $backup_root).Path
-$manifest_path = Join-Path $backup_root "manifest.json"
-$window_backup = Join-Path $backup_root "window.html"
-foreach ($required in @($manifest_path, $window_backup)) {
-    if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Required backup file is missing: $required" }
+try {
+    foreach ($group in $context.groups) {
+        if ($group.name -eq 'native_profile') { continue }
+        if ($group.name -eq 'settings') {
+            update_typora_plugin_settings (Join-Path $group.root 'plugins.json') (Join-Path $backup_root 'settings/plugins.json') restore
+        } else { restore_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.records '' }
+    }
+    $profile_result = invoke_typora_native_profile $profile_node $tools_root restore $profile_path $profile_before.sha256 (Join-Path $backup_root 'native_profile/profile.data')
+    $profile_changed = $profile_result.changed
+    Copy-Item -LiteralPath (Join-Path $backup_root 'window.html') -Destination $context.window -Force
+} catch {
+    $failure = $_
+    foreach ($group in $context.groups) { if ($group.name -ne 'native_profile') { restore_typora_workspace $group.root (Join-Path $attempt $group.name) $group.before '' } }
+    if ($profile_changed) { $current_profile = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path; $null = invoke_typora_native_profile $profile_node $tools_root restore $profile_path $current_profile.sha256 (Join-Path $attempt 'native_profile/profile.data') }
+    Copy-Item -LiteralPath (Join-Path $attempt 'window.html') -Destination $context.window -Force
+    throw $failure
 }
-
-$manifest = Get-Content -Encoding UTF8 -LiteralPath $manifest_path -Raw | ConvertFrom-Json
-if ($manifest.schema_version -ne 2) { throw "Unsupported Typora enhancement backup schema: $($manifest.schema_version)" }
-$user_data = get_typora_windows_user_data
-$community_root = Join-Path $user_data "plugins"
-$plugin_id = "forming_system.linux_note_enhancements"
-$expected_plugin_target = Join-Path $community_root "plugins\$plugin_id"
-$expected_settings = Join-Path $community_root "settings\plugins.json"
-$resolved_typora_root = get_typora_root_from_candidate $manifest.window_html
-$expected_window_html = if ($resolved_typora_root) { Join-Path $resolved_typora_root "resources\window.html" } else { $null }
-if (-not $resolved_typora_root -or
-    $manifest.window_html -ne $expected_window_html -or
-    $manifest.community_root -ne $community_root -or
-    $manifest.plugin_id -ne $plugin_id -or
-    $manifest.plugin_target -ne $expected_plugin_target -or
-    $manifest.plugin_settings -ne $expected_settings) {
-    throw "Backup targets do not match the current validated Typora paths; restore stopped."
-}
-if (-not (Test-Path -LiteralPath $manifest.window_html -PathType Leaf)) {
-    throw "Current Typora window.html is missing: $($manifest.window_html)"
-}
-if ($manifest.plugin_settings_existed -and -not (Test-Path -LiteralPath $manifest.plugin_settings_backup -PathType Leaf)) {
-    throw "Recorded plugin settings backup is missing: $($manifest.plugin_settings_backup)"
-}
-
-$community_records = @($manifest.community_assets)
-$plugin_records = @($manifest.plugin_assets)
-$terminal_records = @($manifest.terminal_assets)
-$community_backup = Join-Path $backup_root "community_core"
-$plugin_backup = Join-Path $backup_root "community_plugin"
-$terminal_backup = Join-Path $backup_root "terminal_runtime"
-assert_typora_workspace_backup -backup_root $community_backup -records $community_records
-assert_typora_workspace_backup -backup_root $plugin_backup -records $plugin_records
-assert_typora_workspace_backup -backup_root $terminal_backup -records $terminal_records
-
-$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-$safety_backup = Join-Path $backup_root "window.before_restore.$timestamp.html"
-Copy-Item -LiteralPath $manifest.window_html -Destination $safety_backup
-restore_typora_workspace -asset_root (Join-Path $user_data "linux_note_enhancements\terminal_runtime") -backup_root $terminal_backup -records $terminal_records -timestamp $timestamp
-update_typora_plugin_settings -settings_path $manifest.plugin_settings -backup_path (Join-Path $backup_root "plugins.json") -operation restore
-restore_typora_workspace -asset_root $manifest.plugin_target -backup_root $plugin_backup -records $plugin_records -timestamp $timestamp
-$other_plugins = @(Get-ChildItem -LiteralPath (Join-Path $community_root 'plugins') -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne $plugin_id -and (Test-Path -LiteralPath (Join-Path $_.FullName 'manifest.json') -PathType Leaf) })
-if ($other_plugins.Count -eq 0) {
-    restore_typora_workspace -asset_root $manifest.community_root -backup_root $community_backup -records $community_records -timestamp $timestamp
-    Copy-Item -LiteralPath $window_backup -Destination $manifest.window_html -Force
-} else {
-    # 其他社区插件仍依赖共享核心，保留其官方入口，仅卸载本插件。
-    $window_source = [IO.File]::ReadAllText($window_backup, [Text.Encoding]::UTF8)
-    $window_source = [regex]::Replace($window_source, '<script\s+defer\s+src="typora://app/userData/linux_note_enhancements/typora_enhancements\.js"\s+data-linux-note-enhancements="true"></script>', '')
-    $official_tag = '<script src="typora://app/userData/plugins/loader.js" type="module"></script>'
-    if (-not $window_source.Contains($official_tag)) { $window_source = $window_source.Replace('</body>', "$official_tag</body>") }
-    [IO.File]::WriteAllText($manifest.window_html, $window_source, [Text.UTF8Encoding]::new($false))
-    Write-Host 'Other community plugins remain installed; shared loader/core retained.'
-}
-
-Write-Host "Typora Community Plugin entry and linux-note plugin restored."
-Write-Host "Pre-restore safety copy: $safety_backup"
-Write-Host "Restart Typora after saving open documents."
+Write-Host 'TyporaCode installation restored. Workspace settings, document state and other user data are preserved.'

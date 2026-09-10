@@ -7,16 +7,32 @@ import { build } from 'esbuild';
 
 const compiled = await build({ stdin: { contents: ['git_graph_pull_request', 'git_graph_data', 'git_graph_repository', 'git_graph_settings', 'git_graph_runtime'].map(name => `export * from './src/${name}.ts';`).join('\n'), resolveDir: process.cwd() }, bundle: true, platform: 'node', format: 'esm', write: false });
 const { create_pull_request_url, pull_request_remote, pull_request_defaults, validate_pull_request_providers, read_repository, compare_files, compare_patch, EMPTY, build_git_graph, graph_defaults, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, create_git_runner } = await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const graph_fixture = entries => build_git_graph(entries.map(([hash,parents])=>({hash,parents,author:'',date:'',subject:hash})));
+const branch_graph = graph_fixture([['main',['base']],['feature',['base']],['between',['older']],['base',['older']],['older',[]]]);
+const feature_color = branch_graph.rows[1].color;
+assert.notEqual(feature_color, branch_graph.rows[0].color);
+assert(branch_graph.rows[1].edges.some(edge=>!edge.upper&&edge.from===branch_graph.rows[1].lane&&edge.color===feature_color));
+assert(branch_graph.rows[2].edges.some(edge=>edge.upper&&edge.color===feature_color));
+assert(branch_graph.rows[3].edges.some(edge=>edge.upper&&edge.to===branch_graph.rows[3].lane&&edge.color===feature_color));
+const stash_graph = graph_fixture([['main',['base']],['stash1',['base']],['stash2',['base']],['base',[]]]);
+assert.equal(new Set(stash_graph.rows.slice(0,3).map(row=>row.color)).size,3);
+for (const row of stash_graph.rows.slice(0,3)) assert(stash_graph.rows[3].edges.some(edge=>edge.upper&&edge.to===stash_graph.rows[3].lane&&edge.color===row.color));
+const merge_graph = graph_fixture([['merge',['main','feature']],['main',['base']],['feature',['base']],['base',[]]]);
+assert.deepEqual(merge_graph.rows[0].edges.filter(edge=>!edge.upper).map(edge=>edge.color),[merge_graph.rows[1].color,merge_graph.rows[2].color]);
+for(const graph of [branch_graph,stash_graph,merge_graph]) for(let index=0;index<graph.rows.length-1;index++) for(const edge of graph.rows[index].edges.filter(edge=>!edge.upper)) {
+  assert(graph.rows[index+1].edges.some(next=>next.upper&&next.from===edge.to&&next.color===edge.color),'row boundary retains branch colour');
+  assert(edge.from>=0&&edge.to>=0);
+}
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_git_graph_'));
 const runner = create_git_runner({ child_process, process });
 const git = args => child_process.execFileSync('git', ['-c', 'user.name=Graph Test', '-c', 'user.email=graph@example.invalid', '-c', 'commit.gpgsign=false', ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
 const write = (file, value) => fs.writeFileSync(path.join(root, file), value);
 const commit = message => { git(['add', '--all']); git(['commit', '-m', message]); return git(['rev-parse', 'HEAD']).trim(); };
 try {
-  const legacy_settings = { ...graph_defaults, initial_count: 75, details_location: 'docked', panel_ratio: 72, show_date: false, show_author: false, show_hash: false, label_alignment: 'graph' };
+  const legacy_settings = { ...graph_defaults, initial_count: 75, details_location: 'docked', panel_ratio: 72, scm_integration: "more", show_date: false, show_author: false, show_hash: false, label_alignment: 'graph' };
   const migrated_settings = load_graph_settings({ getItem: key => key === GRAPH_SETTINGS_KEY + 'settings:legacy' ? JSON.stringify(legacy_settings) : null }, 'legacy');
   assert.equal(migrated_settings.initial_count, 75);
-  assert(!Object.hasOwn(migrated_settings, 'panel_ratio'));
+  assert(!Object.hasOwn(migrated_settings, 'panel_ratio')); assert(!Object.hasOwn(migrated_settings, 'scm_integration'));
   assert.equal(migrated_settings.details_location, 'docked'); assert.equal(migrated_settings.label_alignment, 'graph'); assert.equal(migrated_settings.show_date, false);
   assert.throws(() => validate_settings({ ...graph_defaults, mistyped_setting: true }), /未知设置：mistyped_setting/);
   assert.throws(() => validate_settings({ ...graph_defaults, initial_count: '75' }), /设置类型不正确：initial_count/);
@@ -46,6 +62,20 @@ try {
   assert.equal(snapshot.commits.length, 4);
   assert(snapshot.refs.some(ref => ref.name === 'refs/tags/v1' && ref.hash === merge));
   assert(snapshot.refs.some(ref => ref.name === 'refs/remotes/origin/main'));
+  // 两个真实三父stash只显示两个节点，保留普通引用可达的辅助对象。
+  const stash_hashes=[];const helper_hashes=[];
+  for(let index=0;index<2;index++) {
+    write(unusual,'stash tracked '+index);write('untracked_'+index+'.txt','stash extra');git(['stash','push','-u','-m','fixture '+index]);
+    const hash=git(['rev-parse','refs/stash']).trim();stash_hashes.push(hash);helper_hashes.push(...git(['show','-s','--format=%P',hash]).trim().split(' ').slice(1));
+  }
+  const stash_state=await read_repository(runner.run,root,graph_defaults,200);
+  assert.equal(stash_state.commits.length,snapshot.commits.length+2);
+  for(const hash of stash_hashes) assert.deepEqual(stash_state.commits.find(commit=>commit.hash===hash).parents,[merge]);
+  assert(helper_hashes.every(hash=>!stash_state.commits.some(commit=>commit.hash===hash)));
+  const stash_page=await read_repository(runner.run,root,graph_defaults,3);assert.equal(stash_page.commits.length,3);assert(stash_page.more);
+  git(['branch','retained-helper',helper_hashes[0]]);
+  assert((await read_repository(runner.run,root,graph_defaults,200)).commits.some(commit=>commit.hash===helper_hashes[0]));
+  git(['branch','-D','retained-helper']);git(['stash','clear']);
   const graph = build_git_graph(snapshot.commits);
   assert.equal(graph.width, 2);
   assert.deepEqual(graph.rows[0].edges.filter(edge => !edge.upper).map(edge => edge.to), [0, 1]);

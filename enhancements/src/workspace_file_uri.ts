@@ -47,12 +47,28 @@ export function file_key(file_path: string): string {
   return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
 }
 
+/** file URL 只在协议边界解码一次，不能把 file:/ 当作工作区子目录。 */
+function file_url_path(path_api: path_identity_api, target: string): string | undefined {
+  try {
+    const url = new URL(target);
+    if (url.protocol !== "file:" || url.username || url.password || url.port || url.search) return;
+    // 编码的目录分隔符不属于合法文件 URL，防止解码改变路径层级。
+    if (/%2f|%5c/iu.test(url.pathname)) return;
+    const pathname = decodeURIComponent(url.pathname);
+    if (path_api.sep === "\\") {
+      if (url.hostname && url.hostname !== "localhost") return `\\\\${url.hostname}${pathname.replace(/\//gu, "\\")}`;
+      return /^\/[a-z]:\//iu.test(pathname) ? pathname.slice(1).replace(/\//gu, "\\") : undefined;
+    }
+    return !url.hostname || url.hostname === "localhost" ? pathname : undefined;
+  } catch { return; }
+}
+
 /** 所有工作区命令都以显式 context_root 解析相对路径，避免落到 Electron 进程工作目录。 */
 export function resolve_workspace_file(path_api: workspace_path_api, context_root: string, target: string): string | undefined {
   const decoded = source_file_path(target, path_api);
   if (is_source_file_uri(target) && !decoded) return;
-  const candidate = decoded ?? target;
-  if (!candidate || candidate.startsWith("typ://")) return;
+  const candidate = /^file:/iu.test(target) ? file_url_path(path_api, target) : decoded ?? target;
+  if (!candidate || candidate.startsWith("typ://") || (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate))) return;
   if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : undefined;
   if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
   return path_api.resolve(context_root, candidate);
@@ -60,8 +76,9 @@ export function resolve_workspace_file(path_api: workspace_path_api, context_roo
 
 /** 宿主工具 URI 已由工作区注册表解释，绝不能按当前 Markdown 的目录再次解析。 */
 export function resolve_host_open_file_target(path_api: workspace_path_api, source_file: string, target: string): string {
-  if (target.startsWith("typ://")) return target;
   const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+  // 协议保留到统一解析边界；不能先把 https: 等拼成可打开的本地文件名。
+  if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
   return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
 }
 

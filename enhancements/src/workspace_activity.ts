@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import activity_css from "./workspace_activity.css";
 import { git_icon } from "./git_icons";
 
@@ -15,9 +16,9 @@ export function install_workspace_activity(options: workspace_activity_options):
   const ribbon = options.ribbon;
   const allowed = new Set(options.item_ids);
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
-  const style = document.createElement("style"); style.dataset.workspaceActivityStyle = "ready"; style.textContent = activity_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
   const reduced_motion = matchMedia("(prefers-reduced-motion: reduce)");
-  const originals = new Map<HTMLElement, {draggable: string | null; role: string | null; tabindex: string | null; label: string | null}>();
+  const originals = new Map<HTMLElement, {draggable: string | null; role: string | null; tabindex: string | null; label: string | null; nodes: Node[]}>();
   const animations = new Map<HTMLElement, Animation>();
   let stored_order: string[] = [];
   try { const value: unknown = JSON.parse(localStorage.getItem(storage_key) || "[]"); if (Array.isArray(value)) stored_order = [...new Set(value.filter((id): id is string => typeof id === "string" && allowed.has(id)))]; } catch { /* 损坏的本地排序不影响活动栏。 */ }
@@ -53,7 +54,11 @@ export function install_workspace_activity(options: workspace_activity_options):
     const state = options.read_state();
     for (const item of items()) {
       if (!originals.has(item)) {
-        originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label")});
+        originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes]});
+        // 大纲保留原生 fa-list 目录图标和原节点，按用户定稿不再替换。
+        const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control"} as const;
+        const icon_name = icon_names[item.dataset.id as keyof typeof icon_names];
+        if (icon_name) item.replaceChildren(git_icon(icon_name));
         item.classList.add("workspace-activity-item"); item.draggable = false; item.setAttribute("role", "button"); item.tabIndex = 0;
       }
       if (item.title && item.getAttribute("aria-label") !== item.title) item.setAttribute("aria-label", item.title);
@@ -152,6 +157,6 @@ export function install_workspace_activity(options: workspace_activity_options):
     ribbon.removeEventListener("mousedown", on_mouse_down, true); ribbon.removeEventListener("contextmenu", on_context_menu, true); ribbon.removeEventListener("click", on_click, true);
     document.removeEventListener("pointerdown", on_pointer_down, true); document.removeEventListener("pointermove", on_pointer_move, true); document.removeEventListener("pointerup", on_pointer_up, true); document.removeEventListener("pointercancel", on_cancel, true); document.removeEventListener("keydown", on_key_down, true);
     window.removeEventListener("blur", on_cancel); reduced_motion.removeEventListener("change", on_motion_change);
-    for (const [item, original] of originals) { item.classList.remove("workspace-activity-item", "workspace-activity-dragging"); delete item.dataset.activityActive; item.removeAttribute("aria-pressed"); for (const [name, value] of [["draggable", original.draggable], ["role", original.role], ["tabindex", original.tabindex], ["aria-label", original.label]] as const) if (value === null) item.removeAttribute(name); else item.setAttribute(name, value); }
+    for (const [item, original] of originals) { item.replaceChildren(...original.nodes); item.classList.remove("workspace-activity-item", "workspace-activity-dragging"); delete item.dataset.activityActive; item.removeAttribute("aria-pressed"); for (const [name, value] of [["draggable", original.draggable], ["role", original.role], ["tabindex", original.tabindex], ["aria-label", original.label]] as const) if (value === null) item.removeAttribute(name); else item.setAttribute(name, value); }
   }};
 }

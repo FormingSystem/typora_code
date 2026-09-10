@@ -15,7 +15,7 @@
       await wait(() => document.documentElement.getAttribute('data-linux-note-terminal') === 'ready', 'Terminal integration not ready');
       window.resizeTo(1400, 950); await delay(300);
       result.runtime = reqnode('process').versions;
-      app = window[Symbol.for('typora-plugin-core@v2')].app;
+      app = window[Symbol.for('typora-code:workspace')].app;
       const source_leaf = app.workspace.activeLeaf;
       localStorage.setItem(settings_key, JSON.stringify({ profile: 'cmd', location: 'active' }));
       app.commands.run('linux_note:terminal');

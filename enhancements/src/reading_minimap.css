@@ -28,3 +28,7 @@ content[data-linux-note-minimap-owner],
 .CodeMirror[data-linux-note-minimap-owner] { padding-right: 96px; box-sizing: border-box; }
 .typ-workspace-leaf[data-linux-note-minimap-owner] > .typ-markdown-preview { flex: 1; min-width: 0; }
 @media print { .linux-note-reading-minimap { display: none !important; } }
+
+/* 核心切到非 Markdown 时同步隐藏固定缩略图，不等待100ms扫描或ResizeObserver。 */
+content.typ-deactive .linux-note-reading-minimap,
+.linux-note-reading-minimap[hidden] { display:none!important; }

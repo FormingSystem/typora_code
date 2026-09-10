@@ -18,14 +18,15 @@ app.whenReady().then(async () => {
     show: false,
     width: 760,
     height: 480,
-    webPreferences: { contextIsolation: false, offscreen: true, backgroundThrottling: false },
+    webPreferences: { contextIsolation: false, nodeIntegration: true, offscreen: true, backgroundThrottling: false },
   });
   const fixture = path.join(evidence, 'fixture.html');
   fs.writeFileSync(fixture, '<!doctype html><meta charset="utf-8"><input id="editor"><section class="linux-note-terminal"><input id="terminal"></section><section id="dialog" role="dialog" aria-modal="true" hidden></section>');
   await test_window.loadFile(fixture);
   const bundle = await build({
-    stdin: { contents: 'export * from "./src/workspace_shortcuts";', resolveDir: path.join(__dirname, '..') },
+    stdin: { contents: 'export * from "./src/workspace_shortcuts";export * from "./src/workspace_quick_open";', resolveDir: path.join(__dirname, '..') },
     bundle: true,
+    loader: {'.css':'text'},
     format: 'iife',
     globalName: 'shortcut_qa',
     write: false,
@@ -39,8 +40,8 @@ app.whenReady().then(async () => {
     };
     window.file_host={save_all(){calls.push(['workspace_save_all']);}};
     window.runtime={ClientCommand:{openFolder(){calls.push(['open_folder']);},saveAll(){calls.push(['save_all']);}}};
-    window.binding=shortcut_qa.install_workspace_shortcuts(host,runtime,()=>file_host);
-    window.same_binding=shortcut_qa.install_workspace_shortcuts(host,runtime)===binding;
+    window.binding=shortcut_qa.install_workspace_shortcuts(host);
+    window.same_binding=shortcut_qa.install_workspace_shortcuts(host)===binding;
     window.send=(code,options={},selector='#editor')=>{
       const event=new KeyboardEvent('keydown',{bubbles:true,cancelable:true,code,key:options.key||code.replace(/^Key/,''),...options});
       document.querySelector(selector).dispatchEvent(event);
@@ -50,24 +51,47 @@ app.whenReady().then(async () => {
   })()`);
 
   check(await evaluate('same_binding'), 'shortcut installation is idempotent');
-  check(await evaluate(`calls=[];send('KeyB',{key:'b',ctrlKey:true});JSON.stringify(calls)==='[["sidebar"]]'`), 'Ctrl+B toggles the sidebar once');
+  check(await evaluate(`calls=[];send('KeyB',{key:'b',ctrlKey:true})&&calls[0][0]==='sidebar'`), 'Ctrl+B toggles the workspace sidebar');
   check(await evaluate(`calls=[];send('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='core.workspace:split-right'&&calls[0][2][0]==='folder/source.md'`), 'Ctrl+Backslash splits the active editor right');
   check(await evaluate(`calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});calls[0][1]==='linux_note:copy_absolute_path'`), 'Shift+Alt+C copies the absolute path');
   check(await evaluate(`calls=[];chord('KeyP',{key:'p'});calls[0][1]==='linux_note:copy_absolute_path'`), 'Ctrl+K P copies the absolute path');
+  check(await evaluate(`calls=[];chord('KeyO',{key:'o',ctrlKey:true});calls[0][1]==='linux_note:open_folder'`), 'Ctrl+K Ctrl+O opens the existing workspace folder dialog');
   check(await evaluate(`calls=[];chord('KeyC',{key:'c',ctrlKey:true,shiftKey:true});calls[0][1]==='linux_note:copy_relative_path'`), 'Ctrl+K Ctrl+Shift+C copies the relative path');
-  check(await evaluate(`calls=[];chord('KeyO',{key:'o',ctrlKey:true});JSON.stringify(calls)==='[["open_folder"]]'`), 'Ctrl+K Ctrl+O opens a folder');
-  check(await evaluate(`calls=[];chord('KeyS',{key:'s'});JSON.stringify(calls)==='[["workspace_save_all"]]'`), 'Ctrl+K S routes Save All through the workspace file host');
-  check(await evaluate(`calls=[];file_host=undefined;chord('KeyS',{key:'s'});file_host={save_all(){calls.push(['workspace_save_all']);}};JSON.stringify(calls)==='[["save_all"]]'`), 'Ctrl+K S falls back to native Save All before the workspace file host is ready');
-  check(await evaluate(`calls=[];chord('KeyW',{key:'w'});calls[0][1]==='linux_note:close_all_workspace_tabs'`), 'Ctrl+K W closes all editors');
   check(await evaluate(`calls=[];chord('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='core.workspace:split-down'&&calls[0][2][0]==='folder/source.md'`), 'Ctrl+K Ctrl+Backslash splits the active editor down');
   check(await evaluate(`calls=[];const prevented=chord('KeyQ',{key:'q'});!prevented&&calls.length===0`), 'an unknown chord is released to the active editor');
   const terminal_result = await evaluate(`(()=>{try{calls=[];const prevented=send('KeyB',{key:'b',ctrlKey:true},'#terminal');return {passed:!prevented&&calls.length===0};}catch(error){return {passed:false,error:String(error.stack||error)};}})()`);
   check(terminal_result.passed, `terminal focus keeps its own keyboard input${terminal_result.error ? `: ${terminal_result.error}` : ''}`);
   check(await evaluate(`(()=>{calls=[];const first=send('KeyK',{key:'k',ctrlKey:true},'#terminal');const second=send('KeyS',{key:'s'},'#terminal');return !first&&!second&&calls.length===0;})()`), 'terminal focus does not start or finish a workspace chord');
   check(await evaluate(`(()=>{const dialog=document.querySelector('#dialog');dialog.hidden=false;calls=[];const prevented=send('KeyB',{key:'b',ctrlKey:true});dialog.hidden=true;return !prevented&&calls.length===0;})()`), 'an open dialog keeps its own keyboard input');
-  check(await evaluate(`(()=>{calls=[];const prevented=send('KeyB',{key:'b',ctrlKey:true});return prevented&&JSON.stringify(calls)==='[["sidebar"]]';})()`), 'a hidden dialog does not disable workspace shortcuts');
-  check(await evaluate(`binding.dispose();calls=[];send('KeyB',{key:'b',ctrlKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host,runtime,()=>file_host);send('KeyB',{key:'b',ctrlKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
+  check(await evaluate(`(()=>{calls=[];const prevented=send('KeyC',{key:'c',altKey:true,shiftKey:true});return prevented&&calls[0][1]==='linux_note:copy_absolute_path';})()`), 'a hidden dialog does not disable workspace shortcuts');
+  check(await evaluate(`binding.dispose();calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host);send('KeyC',{key:'c',altKey:true,shiftKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
 
+  check(await evaluate(`calls=[];send('KeyP',{key:'P',ctrlKey:true,shiftKey:true})&&calls[0][1]==='command:open'`), 'Ctrl+Shift+P opens the registered command panel');
+  check(await evaluate(`calls=[];send('KeyF',{key:'F',ctrlKey:true,shiftKey:true})&&calls[0][1]==='linux_note:search'`), 'Ctrl+Shift+F opens workspace search');
+  await evaluate(`(()=>{const parent=document.createElement('div');parent.innerHTML='<div class="typ-workspace-tab-header"><div class="typ-tab" data-id="folder/source.md"><i class="typ-close"></i></div><div class="typ-tab" data-id="other.md"></div></div>';document.body.append(parent);host.workspace.activeLeaf.parent={containerEl:parent};parent.querySelector('.typ-close').onclick=()=>calls.push(['close_existing_tab']);parent.querySelector('[data-id="other.md"]').onclick=()=>calls.push(['activate_existing_tab']);})()`);
+  check(await evaluate(`calls=[];send('KeyW',{key:'w',ctrlKey:true})&&calls[0][0]==='close_existing_tab'`), 'Ctrl+W invokes the existing guarded tab close control');
+  for(const code of ['PageUp','PageDown']) check(await evaluate(`calls=[];send('${code}',{key:'${code}',ctrlKey:true})&&calls[0][0]==='activate_existing_tab'`), `Ctrl+${code} navigates existing group tabs`);
+  await evaluate(`(()=>{const group=document.createElement('div');group.innerHTML='<div class="typ-workspace-tab-header"><div class="typ-tab" data-id="third.md"></div></div>';document.body.append(group);group.querySelector('.typ-tab').onclick=()=>calls.push(['activate_other_group']);})()`);
+  check(await evaluate(`calls=[];send('PageUp',{key:'PageUp',ctrlKey:true})&&calls[0][0]==='activate_other_group'`), 'Ctrl+PageUp crosses the group boundary in editor appearance order');
+  check(await evaluate(`(()=>{let leaked=false;const listener=()=>leaked=true;window.addEventListener('keyup',listener);send('KeyB',{key:'b',ctrlKey:true});document.querySelector('#editor').dispatchEvent(new KeyboardEvent('keyup',{bubbles:true,cancelable:true,key:'b',code:'KeyB',ctrlKey:true}));window.removeEventListener('keyup',listener);return !leaked;})()`), 'handled key releases do not invoke the core keyup bindings a second time');
+  const tree=path.join(evidence,'workspace');fs.mkdirSync(path.join(tree,'nested'),{recursive:true});fs.mkdirSync(path.join(tree,'.git'));fs.writeFileSync(path.join(tree,'alpha.md'),'# Alpha');fs.writeFileSync(path.join(tree,'nested','beta.txt'),'Beta');fs.writeFileSync(path.join(tree,'.git','secret'),'Excluded');
+  await evaluate(`(()=>{window.current_root=${JSON.stringify(tree)};window.opened_files=[];window.quick=shortcut_qa.create_workspace_quick_open({fs:require('fs'),path_api:require('path'),context_root:()=>current_root,open_file:async file=>opened_files.push(file)});})()`);
+  const wait=async expression=>{const start=Date.now();while(!await evaluate(expression)){if(Date.now()-start>5000)throw Error('Timed out '+expression);await new Promise(r=>setTimeout(r,20));}};
+  check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true})&&!quick.root.hidden&&document.activeElement===quick.input`), 'Ctrl+P opens and focuses the restored file picker');
+  await wait(`document.querySelectorAll('.workspace-quick-open-result').length===2`);
+  check(await evaluate(`!quick.root.textContent.includes('secret')`), 'picker reads real nested directory entries and excludes Git internals');
+  await test_window.webContents.insertText('beta');await wait(`document.querySelectorAll('.workspace-quick-open-result').length===1`);
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});
+  await wait('opened_files.length===1');
+  check(await evaluate(`quick.root.hidden&&opened_files[0]===${JSON.stringify(path.join(tree,'nested','beta.txt'))}`), 'typing and Enter route the selected real file to open_file');
+  await evaluate(`quick.open()`);await wait(`document.querySelectorAll('.workspace-quick-open-result').length===2`);
+  check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true},'.workspace-quick-open input')&&!quick.root.hidden`), 'repeated Ctrl+P remains in the same picker');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});await wait('quick.root.hidden');
+  await evaluate(`(()=>{quick.dispose();let release;window.pending_scan=new Promise(resolve=>release=resolve);window.release_scan=release;quick=shortcut_qa.create_workspace_quick_open({fs:{promises:{readdir:()=>pending_scan}},path_api:require('path'),context_root:()=>current_root,open_file:async()=>{}});quick.open();quick.close();release_scan([{name:'stale.md',isFile:()=>true,isDirectory:()=>false}]);})()`);
+  await new Promise(r=>setTimeout(r,30));
+  check(await evaluate(`quick.root.hidden&&quick.root.querySelectorAll('.workspace-quick-open-result').length===0`), 'closed picker ignores a late directory scan');
+  await evaluate(`quick.dispose();binding.dispose()`);
+  check(await evaluate(`!document.querySelector('.workspace-quick-open')&&!document.getElementById('typora-code-quick-open-style')`), 'picker disposal removes DOM, styles and active interface');
   console.log(JSON.stringify({ status: 'PASS', checks, evidence }));
   test_window.destroy();
   app.exit(0);

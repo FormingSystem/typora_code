@@ -1,0 +1,112 @@
+import type { App, AppSettings, EnvironmentVariables } from "src/app"
+import type { CommandManager } from "src/command/command-manager"
+import type { ConfigRepository } from "src/io/config-repository"
+import type { ExportManager } from "src/export-manager"
+import type { HotkeyManager } from "src/hotkey-manager"
+import type { ILogger } from "src/io/logger/logger"
+import type { Vault } from "src/io/vault"
+import type { I18n } from "src/locales/i18n"
+import type { MetadataManager } from "src/metadata/metadata-manager"
+import type { InputBox, QuickPick } from "src/ui/components/quick-open"
+import * as Locale from 'src/locales/lang.en.json'
+import type { Settings } from "src/settings/settings"
+import type { MarkdownEditor } from "src/ui/editor/markdown-editor"
+import type { MarkdownRenderer } from "src/ui/editor/markdown-renderer"
+import type { WorkspaceRibbon } from "src/ui/ribbon/workspace-ribbon"
+import type { FileExplorer } from "src/ui/sidebar/file-explorer"
+import type { Sidebar } from "src/ui/sidebar/sidebar"
+import type { ViewManager } from "src/ui/view-manager"
+import type { Workspace } from "src/ui/workspace"
+import type { WorkspaceRoot } from "src/ui/layout/workspace-root"
+import type { WorkspaceFloating } from "src/ui/layout/floating"
+import type { Direction, WorkspaceSplit } from "src/ui/layout/split"
+import type { WorkspaceTabs } from "src/ui/layout/tabs"
+import type { Notice } from "src/ui/components/notice"
+import { isDebug } from "./constants"
+import { wrapWithLoggingProxy } from "src/io/logger/service-logger"
+
+
+type ServiceMap = {
+  'app'(): App
+  'command-manager'(): CommandManager
+  'config-repository'(): ConfigRepository
+  'env'(): EnvironmentVariables
+  'exporter'(): ExportManager
+  'hotkey-manager'(): HotkeyManager
+  'i18n'(): I18n<typeof Locale>
+  'logger'(scope?: string): ILogger
+  'metadata-manager'(): MetadataManager
+  'settings'(): Settings<AppSettings>
+  'vault'(): Vault
+
+  'view-manager'(): ViewManager
+  'workspace'(): Workspace
+  'markdown-editor'(): MarkdownEditor
+  'markdown-renderer'(): MarkdownRenderer
+  'ribbon'(): WorkspaceRibbon
+  'file-explorer'(): FileExplorer
+  'sidebar'(): Sidebar
+  'input-box'(): InputBox
+  'quick-pick'(): QuickPick
+  'notice'(message: string, delay?: number): Notice
+
+  'workspace-root'(): WorkspaceRoot
+  'workspace-floating'(): WorkspaceFloating
+  'workspace-split'(direction: Direction): WorkspaceSplit
+  'workspace-tabs'(): WorkspaceTabs
+}
+
+const services: Partial<ServiceMap> = {}
+const loadedServices: Record<string, boolean> = {}
+const stacks: string[] = []
+const fixedServicesLoadingOrder: (keyof ServiceMap)[] = [
+  'app', 'config-repository', 'settings', 'i18n', 'workspace'
+]
+
+export function registerService<K extends keyof ServiceMap>
+  (id: K, factory: (args: Parameters<ServiceMap[K]>) => ReturnType<ServiceMap[K]>) {
+  services[id] = factory as any
+}
+
+export function useService<K extends keyof ServiceMap>(id: K, args?: Parameters<ServiceMap[K]>): ReturnType<ServiceMap[K]> {
+  if (process.env.IS_DEV) {
+
+    if (!services[id]) {
+      throw Error(`[Service] "${id}" is not registered.`)
+    }
+    if (stacks.includes(id)) {
+      throw Error(`[Service] Circular dependency detected: ${[...stacks, id].join(' → ')}`)
+    }
+    if (fixedServicesLoadingOrder.includes(id)) {
+      const index = fixedServicesLoadingOrder.indexOf(id)
+      if (index !== 0) {
+        throw Error(`[Service] "${id}" should be loaded before: ${fixedServicesLoadingOrder.slice(0, index).join(' → ')}`)
+      }
+      else {
+        fixedServicesLoadingOrder.shift()
+      }
+    }
+  }
+
+  stacks.push(id)
+
+  if (isDebug() && !loadedServices[id]) {
+    loadedServices[id] = true
+    console.log(`[Service] Loading "${stacks.join(' → ')}"...`)
+  }
+
+  let service: any = (<any>services[id])(args)
+  if (process.env.IS_DEV && id !== 'logger') {
+    service = wrapWithLoggingProxy(service, id, useService('logger', [id]), {
+      args: true,
+      entry: true,
+      exit: true,
+      errors: true,
+      perf: false,
+    })
+  }
+
+  stacks.pop()
+
+  return service
+}

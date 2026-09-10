@@ -1,5 +1,5 @@
 import type { git_graph_panel } from "./git_graph_panel";
-import { git_icon_button } from "./git_icons";
+import { git_icon,git_icon_button,type git_icon_name } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 import { GRAPH_SETTINGS_KEY } from "./git_graph_settings";
 
@@ -14,12 +14,12 @@ export class git_graph_find {
     try { const saved = JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "find") || "{}");
       this.case_sensitive = saved.case_sensitive === true; this.regex = saved.regex === true; this.open_details = saved.open_details === true;
     } catch { /* 损坏的本地选项恢复上游默认false。 */ }
-    const modifier = (label: string, title: string, change: () => void) => {
-      const button = document.createElement("button"); button.type = "button"; button.textContent = label; button.title = title; button.setAttribute("aria-label", title);
+    const modifier = (name: git_icon_name, title: string, change: () => void) => {
+      const button = document.createElement("button"); button.type = "button"; button.append(git_icon(name)); button.title = title; button.setAttribute("aria-label", title);
       button.onclick = () => { change(); this.save(); this.update(true); }; return button;
     };
-    this.case_button = modifier("Aa", text("graph.find_case"), () => this.case_sensitive = !this.case_sensitive);
-    this.regex_button = modifier(".*", text("graph.find_regex"), () => this.regex = !this.regex);
+    this.case_button = modifier("case-sensitive", text("graph.find_case"), () => this.case_sensitive = !this.case_sensitive);
+    this.regex_button = modifier("regex", text("graph.find_regex"), () => this.regex = !this.regex);
     this.details_button = git_icon_button("diff-multiple", text("graph.find_open_details"), () => { this.open_details = !this.open_details; this.save(); this.navigate(true); });
     this.previous = git_icon_button("arrow-up", text("graph.find_previous"), () => this.move(-1));
     this.next = git_icon_button("arrow-down", text("graph.find_next"), () => this.move(1));

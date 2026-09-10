@@ -1,3 +1,5 @@
+import design_baseline from "./vscode_design_baseline.json";
+import {git_icon_button} from "./git_icons";
 import "./monaco_locale";
 import * as monaco from "monaco-editor/editor/editor.api";
 import "monaco-editor/editor/browser/coreCommands";
@@ -70,7 +72,7 @@ export class git_diff_editor {
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
     // 普通单文件保留全文缩略图；Git 差异只显示原生红绿改动概览。
     const minimap: monaco.editor.IEditorMinimapOptions = {enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
-    const options = {automaticLayout: true, readOnly: true, fontSize: 14, lineHeight: 22, fontFamily: "Consolas, ui-monospace, monospace", minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
+    const options = {automaticLayout: true, readOnly: true, fontSize: design_baseline.editor_font_size, lineHeight: design_baseline.editor_line_height, fontFamily: design_baseline.editor_font_family, minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
       const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
@@ -87,7 +89,7 @@ export class git_diff_editor {
       this.toolbar.append(button(text("diff.previous_change_button"), () => editor.goToDiff("previous")), button(text("diff.next_change_button"), () => editor.goToDiff("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
     } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
-    this.toolbar.append(button(text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), button("…", () => {
+    this.toolbar.append(button(text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), git_icon_button("more", text("history.more"), () => {
       const rect = this.toolbar.getBoundingClientRect(); this.context_menu(new MouseEvent("contextmenu", {clientX: rect.right - 250, clientY: rect.bottom}));
     }), this.status);
     this.observer = new ResizeObserver(() => this.editor.layout()); this.observer.observe(this.body);

@@ -2,13 +2,18 @@
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const path = require('node:path');
+const fs = require('node:fs');
+const os = require('node:os');
+const {pathToFileURL} = require('node:url');
+const {build} = require('esbuild');
+const {editor_plugins} = require('./editor_bundle.cjs');
 
 app.disableHardwareAcceleration();
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 let test_window;
 
 async function evaluate(source) {
-  return test_window.webContents.executeJavaScript(source);
+  try { return await test_window.webContents.executeJavaScript(source); } catch(error) { throw new Error(source.slice(0,500), {cause:error}); }
 }
 
 async function click(selector, hold_ms = 0) {
@@ -31,7 +36,14 @@ async function expanded() {
 
 app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1000, height: 800, webPreferences: { offscreen: true, backgroundThrottling: false } });
-  await test_window.loadFile(path.join(__dirname, '../fixtures/interaction_test.html'));
+  const fixture_root = fs.mkdtempSync(path.join(os.tmpdir(),'typora_reading_interaction_'));
+  const {static_workspace_css_plugin} = await import('./build_workspace_styles.mjs');
+  const script_path = path.join(fixture_root,'startup.js');
+  await build({stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup"; import "./src/workspace_entry";',resolveDir:path.join(__dirname,'..')},bundle:true,plugins:[static_workspace_css_plugin(),...editor_plugins()],format:'iife',globalName:'reading_startup',platform:'browser',target:['chrome120'],loader:{'.css':'text','.wasm':'binary'},outfile:script_path});
+  const fixture_path = path.join(fixture_root,'index.html');
+  const original = fs.readFileSync(path.join(__dirname,'../fixtures/interaction_test.html'),'utf8');
+  fs.writeFileSync(fixture_path,original.replace('<meta charset="utf-8">','<meta charset="utf-8"><base href="'+pathToFileURL(path.join(__dirname,'../fixtures/')).href+'">').replace('../dist/workbench.js',pathToFileURL(script_path).href),'utf8');
+  await test_window.loadFile(fixture_path);
   for (let attempt = 0; attempt < 60; attempt += 1) {
     if (await evaluate(`document.documentElement.getAttribute('data-linux-note-typora-enhancements') === 'ready'`)) break;
     await delay(100);
@@ -106,12 +118,13 @@ app.whenReady().then(async () => {
   await navigate('Right');
   assert.equal(await evaluate('File.bundle.filePath'), 'chapter_b.md', '跨文件前进');
   for(let cycle=0;cycle<2;cycle++){
-    await evaluate('linux_note_test_plugin.unload();void 0');await delay(100);
+    await evaluate('reading_startup.shutdown_typora_code();void 0');await delay(100);
+    assert.equal(await evaluate('!!document.querySelector("#typora-code-workspace-styles").sheet'),true,'window cleanup preserves preloaded static CSS');
     assert.deepEqual(await evaluate('({ready:document.documentElement.hasAttribute("data-linux-note-typora-enhancements"),navigation:document.documentElement.hasAttribute("data-linux-note-reading-navigation"),toolbars:document.querySelectorAll(".linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar").length,url:File.editor.tryOpenUrl===test_native_open_url,file:File.editor.library.openFile===test_native_open_file})'),{ready:false,navigation:false,toolbars:0,url:true,file:true});
-    await evaluate('linux_note_test_plugin.load();void 0');
+    await evaluate('reading_startup.start_typora_code();void 0');
     for(let attempt=0;attempt<60;attempt++){if(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")==="ready"'))break;await delay(50);}
     assert.equal(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")'),'ready');
-    assert.equal(await evaluate('document.querySelectorAll("#linux-note-typora-enhancements-style").length'),1);
+    assert.equal(await evaluate('document.querySelectorAll("#typora-code-workspace-styles").length'),1);
     assert.equal(await evaluate('document.documentElement.getAttribute("data-linux-note-reading-navigation")'),'ready');
   }
   console.log(JSON.stringify({ first_click_expand: true, first_click_collapse: true, rebuilt_button: true,

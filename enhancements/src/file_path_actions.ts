@@ -24,7 +24,7 @@ export function bind_file_path_actions(): () => void {
   const previous_ready = document.documentElement.getAttribute("data-linux-note-copy-path");
   const collect = (value: unknown) => { if (typeof value === "function") cleanups.push(value as () => void); };
   const api = runtime.reqnode("path");
-  const core = (window as unknown as Record<symbol, { Notice: new (message: string, delay?: number) => unknown }>)[Symbol.for("typora-plugin-core@v2")];
+  const core = (window as unknown as Record<symbol, { Notice: new (message: string, delay?: number) => unknown }>)[Symbol.for("typora-code:workspace")];
   const get_path = (target: string, relative: boolean) => {
     const source_path=source_file_path(target,api);
     if(is_source_file_uri(target)&&!source_path)return null;

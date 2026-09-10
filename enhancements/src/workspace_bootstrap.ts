@@ -1,9 +1,7 @@
 import { install_workspace_shortcuts } from "./workspace_shortcuts";
-import { get_workspace_files } from "./workspace_files";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 
-const WORKSPACE_VERSION = "2.10.15";
-const WORKSPACE_NAMESPACE = "typora-plugin-core@v2";
+const WORKSPACE_NAMESPACE = "typora-code:workspace";
 
 export type workspace_view = {
   containerEl: HTMLElement;
@@ -20,7 +18,7 @@ export type workspace_leaf = {
   parent: { activeLeaf: workspace_leaf; toggleTab(path: string): workspace_leaf };
 };
 type workspace_app = {
-  coreVersion: string;
+  runtime_version?: number;
   settings: { get(key: string): unknown; set(key: string | string[], value: unknown): void };
   commands: {
     run(id: string, args?: unknown[]): void;
@@ -43,15 +41,18 @@ export function get_workspace_app(): workspace_app | undefined {
   return (window as unknown as Record<symbol, { app?: workspace_app }>)[Symbol.for(WORKSPACE_NAMESPACE)]?.app;
 }
 
-/** 社区核心只能由官方 loader 启动；本插件不维护第二条核心加载路径。 */
+/** 静态 head 入口创建唯一常驻核心，增强层仅等待该实例就绪。 */
 export async function initialize_workspace(signal?: AbortSignal) {
   const lifetime = create_workspace_lifetime();
   const runtime = window as unknown as { reqnode?: unknown; _options?: { userDataPath?: string }; ClientCommand?: Record<string, (...args: unknown[]) => unknown> };
   if (!runtime.reqnode || !runtime._options?.userDataPath) return lifetime;
   document.documentElement.setAttribute("data-linux-note-workspace", "loading");
-  const app = get_workspace_app();
-  if (!app) throw new Error("Typora Community Plugin core is unavailable; rerun the configuration installer.");
-  if (app.coreVersion !== WORKSPACE_VERSION) throw new Error("Unexpected Typora Community Plugin core version.");
+  const core = (window as unknown as Record<symbol, {app?: workspace_app;ready?: Promise<void>}>)[Symbol.for(WORKSPACE_NAMESPACE)];
+  if (!core?.ready) throw new Error("Typora Code workspace runtime is unavailable; rerun the configuration installer.");
+  await core.ready;
+  signal?.throwIfAborted();
+  const app = core.app;
+  if (!app) throw new Error("Typora Code workspace did not initialize.");
   const started = Date.now();
   const wait_ready = async (ready: () => boolean) => {
     while (!ready()) {
@@ -62,9 +63,6 @@ export async function initialize_workspace(signal?: AbortSignal) {
     signal?.throwIfAborted();
   };
   await wait_ready(() => Boolean(app.settings));
-  if (!(app.settings.get("internalPlugin.enabledPlugins") as Record<string, unknown>)?.["internal.workspace"]) {
-    app.settings.set(["internalPlugin.enabledPlugins", "internal.workspace"], true);
-  }
   for (const [key, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
     if (app.settings.get(key) !== value) app.settings.set(key, value);
   }
@@ -87,7 +85,7 @@ export async function initialize_workspace(signal?: AbortSignal) {
   };
   lifetime.listen(document, "click", reconcile_sidebar as EventListener, true);
 
-  lifetime.own(install_workspace_shortcuts(app, runtime, get_workspace_files));
+  lifetime.own(install_workspace_shortcuts(app));
   lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
   document.documentElement.setAttribute("data-linux-note-workspace", "ready");
   return lifetime;

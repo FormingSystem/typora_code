@@ -5,7 +5,7 @@ import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
 import { workspace_button, workspace_dialog, workspace_element, type workspace_menu_entry } from "./workspace_widgets";
 import type { graph_settings } from "./git_graph_settings";
-import { git_icon } from "./git_icons";
+import { git_icon, git_icon_button } from "./git_icons";
 import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n";
@@ -69,9 +69,9 @@ export function create_graph_host(core: graph_core) {
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
       }
       if (!payload) { this.containerEl.textContent = text("host.expired_view"); return; }
-      if (payload === this.document) { this.editor?.editor.layout();editor_status.refresh(); return; }
+      if (payload === this.document) { this.editor?.editor.layout();this.sync_file_action();editor_status.refresh(); return; }
       if (this.editor && payload.data && this.document?.data) {
-        try { this.editor.update(payload.data); this.document = payload; }
+        try { this.editor.update(payload.data); this.document = payload;this.sync_file_action(); }
         catch (error) { this.editor.status.textContent = String(error); }
         return;
       }
@@ -82,9 +82,18 @@ export function create_graph_host(core: graph_core) {
         if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button(text("host.refresh_diff"), payload.options.refresh));
         if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button(text("host.previous_file"), () => payload.options.adjacent!(-1)), workspace_button(text("host.next_file"), () => payload.options.adjacent!(1)));
         this.editor.toolbar.append(workspace_button(text("host.toggle_sidebar"), () => core.app.workspace.sidebar.toggle()));
+        this.sync_file_action();
         this.containerEl.append(this.editor.container);
         editor_status.register(this.leaf,this.editor.create_readonly_status());
       } catch (error) { this.containerEl.append(workspace_element("p", "git-scm-empty", String(error))); }
+    }
+    sync_file_action(){
+      if(!this.editor)return;
+      const entry=this.document?.options.menu?.().find(item=>item.id==="open_file");
+      let button=this.editor.toolbar.querySelector<HTMLButtonElement>("[data-diff-open-file]");
+      if(!entry){button?.remove();return;}
+      if(!button){button=git_icon_button("go-to-file",entry.title,()=>{const current=this.document?.options.menu?.().find(item=>item.id==="open_file");if(current&&!current.disabled)void current.action?.();});button.dataset.diffOpenFile="true";button.style.marginLeft="auto";this.editor.toolbar.append(button);}
+      button.disabled=Boolean(entry.disabled);
     }
     onClose() {
       editor_status.schedule();

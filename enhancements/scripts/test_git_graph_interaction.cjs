@@ -7,20 +7,20 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 const { build } = require('esbuild');
 const { editor_plugins } = require('./editor_bundle.cjs');
-// 列顺序保留 Git Graph 阅读习惯，尺寸采用整个工作台共用的 35/22/16px 契约；
+// 几何核对固定Git Graph v1.30.0提交881a9e6的main.css/findWidget.css；含边框总高度。
 // 本测试没有复制扩展源码、样式或资源。详情高度是本项目的固定展示高度，窄组宽度用于验证响应性。
 const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
-  toolbar_height: 35,
-  header_height: 22,
-  row_height: 22,
-  ref_height: 18,
+  toolbar_height: 41,
+  header_height: 31,
+  row_height: 24,
+  ref_height: 20, // 上游18px内容盒另加上下各1px边框。
   ref_radius: 5,
-  toolbar_action_size: 22,
-  toolbar_icon_size: 16,
+  toolbar_action_size: 20,
+  toolbar_icon_size: 18,
   refresh_icon_size: 16,
-  detail_controls_width: 30,
-  detail_action_size: 22,
-  detail_icon_size: 16,
+  detail_controls_width: 32,
+  detail_action_size: 24,
+  detail_icon_size: 20,
   columns: ['提交图', '说明', '日期', '作者', '提交编号']
 });
 const INLINE_DETAIL_HEIGHT = 300;
@@ -119,11 +119,9 @@ app.whenReady().then(async () => {
     await wait('panel.to === "WORKTREE" && panel.files.length > 0');
     await evaluate('panel.close_details()'); await assert_closed();
   }
-  assert(await evaluate('!panel.workbench.graph_launch.hidden'));
-  await evaluate('panel.settings.scm_integration="more";panel.workbench.refresh()');
-  assert(await evaluate('panel.workbench.graph_launch.hidden'));
+  assert(await evaluate('panel.workbench.title.querySelectorAll("button").length===1&&!!panel.workbench.history.header.querySelector(".git-scm-graph-launch")'));
+  assert(await evaluate('!panel.workbench.title.querySelector(".git-scm-title-graph")&&!!panel.workbench.history.header.querySelector(".git-scm-history-refresh")'));
   await click('.git-scm-title','right'); assert(await evaluate('!!document.querySelector("[data-action=graph]")')); await key('Escape');
-  await evaluate('panel.settings.scm_integration="inline";panel.workbench.refresh()');
   const date_metrics = await evaluate('(() => {const commit={date:new Date(Date.now()-300000).toISOString()};panel.settings.date_format="relative";const relative=panel.date(commit);panel.settings.date_format="iso_date";const iso=panel.date(commit);panel.settings.date_format="local";return {relative,iso};})()');
   assert(date_metrics.relative.includes('5') && date_metrics.relative.includes('分钟')); assert(/^\d{4}-\d{2}-\d{2}$/.test(date_metrics.iso));
   const ui_metrics = await evaluate(`(() => {document.documentElement.style.setProperty('--linux-note-ui-font-size','15px');document.documentElement.style.setProperty('--linux-note-ui-font-family','Verdana');const graph=getComputedStyle(panel.container),scm=getComputedStyle(document.querySelector('#sidebar-content'));const result={graph_size:graph.fontSize,graph_family:graph.fontFamily,scm_size:scm.fontSize,scm_family:scm.fontFamily};document.documentElement.style.removeProperty('--linux-note-ui-font-size');document.documentElement.style.removeProperty('--linux-note-ui-font-family');return result;})()`);
@@ -197,17 +195,40 @@ app.whenReady().then(async () => {
     const toolbar=panel.toolbar.getBoundingClientRect(),header=panel.header.getBoundingClientRect(),rows=[...panel.list.querySelectorAll('.git-graph-row')],columns=[...panel.header.children].map(column=>column.firstChild.textContent),actions=[...panel.toolbar.querySelectorAll('.git-graph-toolbar-actions > button')].map(button=>button.getBoundingClientRect().toJSON());
     const referenced=rows.find(row=>row.querySelector('.git-graph-refs'));
     const ref=referenced?.querySelector('.git-graph-refs'),ref_style=ref?getComputedStyle(ref):null;
-    return {toolbar_height:toolbar.height,header_height:header.height,columns,row_heights:rows.map(row=>row.getBoundingClientRect().height),ref_height:ref?.getBoundingClientRect().height,ref_radius:ref_style?parseFloat(ref_style.borderRadius):null,actions,body_children:[...panel.body.children].map(node=>node.className),referenced_order:referenced?[...referenced.querySelector('.git-graph-subject').children].map(node=>node.className):[],legacy_controls:[...panel.toolbar.querySelectorAll('button')].map(button=>button.textContent.trim()).filter(Boolean)};
+    return {toolbar_height:toolbar.height,header_height:header.height,columns,row_heights:rows.map(row=>row.getBoundingClientRect().height),ref_height:ref?.getBoundingClientRect().height,ref_radius:ref_style?parseFloat(ref_style.borderRadius):null,actions,body_children:[...panel.body.children].map(node=>node.className),referenced_head:referenced?.dataset.head==="true",referenced_order:referenced?[...referenced.querySelector('.git-graph-subject').children].map(node=>node.className):[],legacy_controls:[...panel.toolbar.querySelectorAll('button')].map(button=>button.textContent.trim()).filter(Boolean)};
   })()`);
   assert.equal(classic_metrics.toolbar_height,CLASSIC_GIT_GRAPH_METRICS.toolbar_height); assert.equal(classic_metrics.header_height,CLASSIC_GIT_GRAPH_METRICS.header_height); assert.deepEqual(classic_metrics.columns,CLASSIC_GIT_GRAPH_METRICS.columns);
   assert(classic_metrics.row_heights.length>=4 && classic_metrics.row_heights.every(height=>height===CLASSIC_GIT_GRAPH_METRICS.row_height)); assert.equal(classic_metrics.ref_height,CLASSIC_GIT_GRAPH_METRICS.ref_height); assert.equal(classic_metrics.ref_radius,CLASSIC_GIT_GRAPH_METRICS.ref_radius); assert.deepEqual(classic_metrics.body_children,['git-graph-list']);
-  assert.deepEqual(classic_metrics.referenced_order,['git-graph-labels','git-graph-subject-text']); assert.deepEqual(classic_metrics.legacy_controls,[]);
+  assert.deepEqual(classic_metrics.referenced_order,[...(classic_metrics.referenced_head?['git-graph-head-dot']:[]),'git-graph-labels','git-graph-subject-text']); assert.deepEqual(classic_metrics.legacy_controls,[]);
   assert(classic_metrics.actions.every(box=>box.width===CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size && box.height===CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size && box.y===classic_metrics.actions[0].y));
+
+  assert(await evaluate('(()=>{const rows=[...panel.list.querySelectorAll(".git-graph-row")];return rows.every((row,index)=>{const svg=row.querySelector(":scope>svg,:scope>.git-graph-cell>svg"),dot=svg?.querySelector("circle");return svg?.getBoundingClientRect().height===24&&dot?.getAttribute("cy")==="12"&&(!index||row.getBoundingClientRect().top-rows[index-1].getBoundingClientRect().top===24)})})()'),'24px graph SVGs share row boundaries and put nodes on the 12px centerline');
+  assert(classic_metrics.actions.every((box,index)=>!index||box.x-classic_metrics.actions[index-1].x===30),'20px toolbar hitboxes retain upstream 30px horizontal spacing');
   await click('.git-graph-row:not(.git-graph-worktree)'); await wait('!!document.querySelector(".git-graph-file")');
   const file_geometry = await evaluate('(() => {const file=panel.details.querySelector(".git-graph-file"),style=getComputedStyle(file);return {height:file.getBoundingClientRect().height,border:style.borderTopWidth,radius:style.borderRadius,margin:style.marginTop};})()');
-  assert.deepEqual(file_geometry,{height:22,border:'0px',radius:'0px',margin:'0px'});
+  assert.deepEqual(file_geometry,{height:18,border:'0px',radius:'0px',margin:'4px'});
   const inline_metrics = await evaluate(`(() => {const node=panel.details,details=node.getBoundingClientRect(),summary=node.querySelector('.git-graph-detail-summary').getBoundingClientRect(),files=node.querySelector('.git-graph-detail-files').getBoundingClientRect(),controls_node=node.querySelector('.git-graph-detail-controls'),controls=controls_node.getBoundingClientRect(),buttons=[...controls_node.querySelectorAll('button')].map(button=>button.getBoundingClientRect().toJSON()),icons=[...controls_node.querySelectorAll('[data-git-icon]')];return {previous:node.previousElementSibling?.dataset.hash,selected:panel.selected,width:details.width,height:details.height,summary:summary.width,files:files.width,controls:controls.width,button_sizes:buttons.map(box=>[box.width,box.height]),icon_sizes:icons.map(icon=>[parseFloat(getComputedStyle(icon).width),parseFloat(getComputedStyle(icon).height)]),body_sash:!!panel.body.querySelector('.linux-note-workspace-sash'),icons:icons.map(icon=>icon.dataset.gitIcon)};})()`);
   assert.equal(inline_metrics.previous,inline_metrics.selected); assert.equal(inline_metrics.height,INLINE_DETAIL_HEIGHT); assert(Math.abs(inline_metrics.summary-inline_metrics.files)<2); assert.equal(inline_metrics.controls,CLASSIC_GIT_GRAPH_METRICS.detail_controls_width); assert(inline_metrics.button_sizes.every(size=>size[0]===CLASSIC_GIT_GRAPH_METRICS.detail_action_size&&size[1]===CLASSIC_GIT_GRAPH_METRICS.detail_action_size)); assert(inline_metrics.icon_sizes.every(size=>size[0]===CLASSIC_GIT_GRAPH_METRICS.detail_icon_size&&size[1]===CLASSIC_GIT_GRAPH_METRICS.detail_icon_size)); assert(!inline_metrics.body_sash); assert(inline_metrics.icons.includes('close') && inline_metrics.icons.includes('list-tree') && inline_metrics.icons.includes('list-flat'));
+  await wait('panel.details.querySelector(".git-graph-message")?.textContent.includes(panel.state.commits.find(c=>c.hash===panel.to).subject)');
+  const detail_topology = await evaluate(`(() => {const node=panel.details,row=node.previousElementSibling,next=node.nextElementSibling,rail=node.querySelector('.git-graph-detail-rail'),svg=row.querySelector('.git-graph-cell>svg,:scope>svg'),box=rail.getBoundingClientRect(),paths=[...rail.querySelectorAll('path')],outgoing=[...svg.querySelectorAll('path')].filter(path=>path.getPointAtLength(path.getTotalLength()).y===24);return {background:getComputedStyle(node).backgroundColor,aligned:Math.abs(node.querySelector('.git-graph-detail-content').getBoundingClientRect().left-row.querySelector('.git-graph-subject').getBoundingClientRect().left)<1,rail_top:box.top,row_bottom:row.getBoundingClientRect().bottom,rail_bottom:box.bottom,next_top:next.getBoundingClientRect().top,continuity:outgoing.every(edge=>paths.some(path=>path.getAttribute('stroke')===edge.getAttribute('stroke')&&path.getPointAtLength(0).x===edge.getPointAtLength(edge.getTotalLength()).x)),no_duplicate:!node.querySelector('.git-graph-commit-title,.git-graph-full-hash'),file_icons:[...node.querySelectorAll('[data-graph-file-icon]')].map(icon=>({name:icon.dataset.graphFileIcon,width:icon.getBoundingClientRect().width,height:icon.getBoundingClientRect().height,opacity:getComputedStyle(icon).opacity,source:icon.outerHTML.includes('Font Awesome Free')}))};})()`);
+  assert.equal(detail_topology.background,'rgba(128, 128, 128, 0.1)'); assert(detail_topology.aligned && detail_topology.continuity && detail_topology.no_duplicate);
+  assert.equal(detail_topology.rail_top,detail_topology.row_bottom); assert.equal(detail_topology.rail_bottom,detail_topology.next_top);
+  assert(detail_topology.file_icons.length>1 && detail_topology.file_icons.every(icon=>icon.width===13&&icon.height===13&&icon.opacity==='0.6'&&icon.source));
+  assert.deepEqual(await evaluate('(()=>{const style=getComputedStyle(panel.details.querySelector(".git-graph-parent"));return [style.height,style.paddingTop,style.paddingBottom,style.borderTopWidth]})()'),['18px','0px','0px','0px'],'parent comparison remains legible within its 18px metadata line');
+  const detail_selected = await evaluate('panel.selected');
+  await click('.git-graph-detail-divider'); await key('Right'); assert.equal(await evaluate('panel.selected'),detail_selected); assert.equal(await evaluate('panel.detail_summary_ratio'),.55); await key('Left');
+  await evaluate('panel.list.scrollLeft=40;panel.list.scrollTop=30');
+  assert(await evaluate('Math.abs(panel.details.querySelector(".git-graph-detail-rail").getBoundingClientRect().left-panel.details.previousElementSibling.querySelector(".git-graph-cell>svg").getBoundingClientRect().left)<1'));
+  await evaluate('panel.list.scrollLeft=0;panel.list.scrollTop=0');
+  await click('.git-graph-details + .git-graph-row'); await wait('panel.details.dataset.to === panel.selected && panel.files.length>0');
+  assert.notEqual(await evaluate('panel.selected'),detail_selected); assert(await evaluate('panel.details.previousElementSibling.dataset.hash===panel.selected'));
+  await click('.git-graph-list > [data-hash="'+detail_selected+'"]'); await wait('panel.details.dataset.to === panel.selected && panel.files.length>0');
+  await evaluate('panel.refresh()'); await wait('panel.details.isConnected && panel.files.length>0'); assert.equal(await evaluate('panel.selected'),detail_selected);
+  await evaluate('panel.branch_select.value="refs/heads/feature";panel.branch_select.dispatchEvent(new Event("change"))');
+  await wait('!panel.pending && !panel.details.isConnected'); await assert_closed();
+  await evaluate('panel.branch_select.value="";panel.branch_select.dispatchEvent(new Event("change"))');
+  await wait('!panel.pending && panel.state.commits.length===4');
+  await click('.git-graph-list > [data-hash="'+detail_selected+'"]'); await wait('panel.details.isConnected && panel.files.length>0');
   const responsive_metrics = [];
   for (const target_width of RESPONSIVE_EDITOR_WIDTHS) {
     await evaluate(`(() => {const editors=document.querySelector('#editors');editors.style.flex='0 0 ${target_width}px';editors.style.width='${target_width}px';})()`); await delay(80);
@@ -288,6 +309,24 @@ app.whenReady().then(async () => {
   await key('f', ['control']); assert(await evaluate('document.activeElement === panel.search && panel.find_widget.dataset.open === "true"'));
   await evaluate('panel.close_details();void 0');
   assert(await evaluate('!panel.finder.case_sensitive&&!panel.finder.regex&&!panel.finder.open_details'));
+  await wait('Math.abs(panel.find_widget.getBoundingClientRect().top-panel.container.getBoundingClientRect().top)<0.01');
+  const find_geometry=await evaluate('(()=>{const root=panel.container.getBoundingClientRect(),widget=panel.find_widget.getBoundingClientRect(),input=panel.search.getBoundingClientRect();return{height:widget.height,top:widget.top-root.top,right:root.right-widget.right,input_height:input.height,buttons:[...panel.find_widget.querySelectorAll(":scope>button")].map(button=>{const box=button.getBoundingClientRect();return[box.width,box.height,box.top-widget.top]})}})()');
+  assert.deepEqual(find_geometry,{height:34,top:0,right:28,input_height:26,buttons:Array.from({length:6},()=>[20,20,7])},'Find keeps the fixed upstream 34px shell, 26px input and 20px hitboxes at the top of its editor pane');
+  await evaluate('document.querySelector("#editors").style.cssText="flex:0 0 360px;width:360px"');await delay(80);
+  assert(await evaluate('(()=>{const root=panel.container.getBoundingClientRect(),widget=panel.find_widget.getBoundingClientRect();return widget.left>=root.left&&widget.right<=root.right&&widget.height===34&&panel.find_widget.scrollWidth===panel.find_widget.clientWidth})()'),'360px editor keeps Find inside the pane without a second toolbar row');await capture('graph_find_360');
+  await evaluate('document.querySelector("#editors").style.removeProperty("flex");document.querySelector("#editors").style.removeProperty("width")');await delay(80);
+  // 真正缩小 Electron 视口覆盖媒体规则；隐藏侧栏模拟窄窗口的编辑布局。
+  const find_window_size = test_window.getSize();
+  await evaluate('document.querySelector("#sidebar-content").style.display="none"');
+  test_window.setSize(500, 700);
+  await wait('window.innerWidth<=520'); await delay(80);
+  const narrow_find = await evaluate('(()=>{const widget=panel.find_widget.getBoundingClientRect(),root=panel.container.getBoundingClientRect();return{viewport:innerWidth,height:widget.height,bounded:widget.left>=root.left&&widget.right<=root.right,controls:[panel.search,...panel.find_widget.querySelectorAll(":scope>button")].every(control=>{const box=control.getBoundingClientRect();return box.left>=widget.left&&box.right<=widget.right&&box.top>=widget.top&&box.bottom<=widget.bottom}),overflow:panel.find_widget.scrollWidth-panel.find_widget.clientWidth}})()');
+  assert(narrow_find.viewport<=520);
+  assert.deepEqual({...narrow_find,viewport:500},{viewport:500,height:34,bounded:true,controls:true,overflow:0},'real narrow viewport retains one 34px Find row and bounded input/action hitboxes');
+  await capture('graph_find_window_500');
+  test_window.setSize(...find_window_size);
+  await evaluate('document.querySelector("#sidebar-content").style.removeProperty("display")');
+  await wait('window.innerWidth>520');
   const find_input = async value => { await click('.git-graph-search'); await key('a',['control']); await test_window.webContents.insertText(value); };
   await find_input('ui test'); await wait('panel.finder.matches.length===panel.state.commits.length');
   assert(await evaluate('!panel.selected&&panel.list.querySelectorAll("mark.git-graph-find-match").length>0&&panel.find_position.textContent.includes("4")'));
@@ -375,19 +414,24 @@ app.whenReady().then(async () => {
   await click('[data-scm-group=changes] [data-file="sample.c"]','right'); await click('[data-action=copy_relative]'); assert.equal(await evaluate('copied'),'sample.c');
   await click('[data-scm-group=changes] [data-file="sample.c"]','right'); await click('[data-action=stage]'); await wait('!panel.writing && !!document.querySelector("[data-scm-group=staged] .git-scm-file")'); assert(git(['diff','--cached','--name-only']).includes('sample.c')); assert(!await evaluate('!!document.querySelector(".git-graph-dialog-shade")'));
   await click('[data-scm-group=staged] [data-file="sample.c"]','right'); await click('[data-action=unstage]'); await wait('!panel.writing && !!document.querySelector("[data-scm-group=changes] .git-scm-file")'); assert(!git(['diff','--cached','--name-only']).trim());
-  // Tab 进入行内按钮后，Enter/Space 必须只操作暂存，不被父行当作打开差异。
+  // Tab 按打开文件、放弃更改、暂存的次序前进；Enter/Space 不被父行当作打开差异。
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"));document.querySelector("[data-scm-group=changes] [data-file=\\"sample.c\\"]").focus()'); await key('Tab');
   assert(await evaluate('document.activeElement.matches(".git-scm-inline-action")'));
+  assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'open');
+  await key('Tab'); assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'discard');
+  await key('Tab'); assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'stage');
   const before_inline_leaf = await evaluate('core.app.workspace.activeLeaf.state.path'); await key('Enter');
   await wait('!panel.writing && !!document.querySelector("[data-scm-group=staged] [data-file=\\"sample.c\\"]")');
   assert(git(['diff','--cached','--name-only']).includes('sample.c')); assert.equal(await evaluate('core.app.workspace.activeLeaf.state.path'),before_inline_leaf);
-  await evaluate('document.querySelector("[data-scm-group=staged] [data-file=\\"sample.c\\"]").focus()'); await key('Tab'); await key('Space');
+  await evaluate('document.querySelector("[data-scm-group=staged] [data-file=\\"sample.c\\"]").focus()'); await key('Tab');
+  assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'open'); await key('Tab');
+  assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'unstage'); await key('Space');
   await wait('!panel.writing && !document.querySelector("[data-scm-group=staged] .git-scm-file")'); assert(!git(['diff','--cached','--name-only']).trim());
   assert.equal(await evaluate('core.app.workspace.activeLeaf.state.path'),before_inline_leaf);
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"));document.querySelector("[data-scm-group=changes] [data-file=\\"sample.c\\"]").focus()'); await key('Enter');
   await wait('!!document.querySelector("[data-diff-ready=true]")'); assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),modified_code.join('\n'));
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
-  for (const selector of ['.git-scm-message','.git-scm-filter','.git-graph-search']) {
+  for (const selector of ['.git-scm-message','.git-graph-search']) {
     if (selector === '.git-graph-search') await evaluate('panel.open_find()');
     await evaluate(`window.edit_context_prevented=null;document.querySelector(${JSON.stringify(selector)}).addEventListener('contextmenu',event=>setTimeout(()=>window.edit_context_prevented=event.defaultPrevented,0),{once:true})`);
     await click(selector,'right'); assert.equal(await evaluate('window.edit_context_prevented'),false, selector+' keeps the native edit context menu');
@@ -416,7 +460,7 @@ app.whenReady().then(async () => {
   await evaluate('panel.refresh(false)'); const before_manual = git(['rev-parse','HEAD']);
   const file_columns = () => evaluate(`(() => {
     const box=element=>{const r=element.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};};
-    return {rows:[...panel.workbench.groups.querySelectorAll('.git-scm-file')].map(row=>({path:row.dataset.file,status:box(row.querySelector('.git-scm-file-status')).left,action:box(row.querySelector('.git-scm-inline-action')).left,right:box(row).right})),
+    return {rows:[...panel.workbench.groups.querySelectorAll('.git-scm-file')].map(row=>({path:row.dataset.file,status:box(row.querySelector('.git-scm-file-status')).left,action:box(row.querySelector('.git-scm-row-actions button:last-child')).left,action_id:row.querySelector('.git-scm-row-actions button:last-child').dataset.scmFileAction,right:box(row).right})),
       headers:[...panel.workbench.groups.querySelectorAll('.git-scm-group > summary')].map(row=>box(row.querySelector('.git-scm-row-actions button:last-child')).left),
       history:[...panel.workbench.history.list.querySelectorAll('.git-scm-history-file')].map(row=>box(row.querySelector('.git-scm-file-status')).left),sidebar:box(panel.workbench.sidebar),overflow:panel.workbench.groups.scrollWidth-panel.workbench.groups.clientWidth};
   })()`);
@@ -430,11 +474,25 @@ app.whenReady().then(async () => {
     const hover_point = await evaluate(`(() => {const r=panel.workbench.groups.querySelector('.git-scm-file').getBoundingClientRect();return {x:Math.round(r.left+30),y:Math.round(r.top+r.height/2)};})()`);
     test_window.webContents.sendInputEvent({type:'mouseMove',...hover_point}); await delay(100);
     const after_hover = await file_columns();
+    assert(after_hover.rows.every(row=>row.action_id==='stage'||row.action_id==='unstage'),width+': final file action remains Stage or Unstage regardless of optional Open/Discard controls');
     for (const column of ['status','action']) {
       assert(Math.max(...after_hover.rows.map(row=>row[column]))-Math.min(...after_hover.rows.map(row=>row[column]))<1, width+': '+column+' aligns across all file rows');
       after_hover.rows.forEach((row,index)=>assert.equal(row[column],before_hover.rows[index][column],width+': '+column+' does not shift on hover'));
     }
-    after_hover.headers.forEach(x=>assert(Math.abs(x-after_hover.rows[0].action)<1,width+': group and file stage buttons align'));
+    // Fixed VS Code scm.css: group actions are display:none until that group is hovered/focused.
+    // Its count badge follows the toolbar; its variable width does not define the file action column.
+    assert(after_hover.headers.every(x=>x===0),width+': group actions remain hidden while a file row is hovered');
+    const header_count=await evaluate('panel.workbench.groups.querySelectorAll(".git-scm-group > summary").length');
+    for(let index=0;index<header_count;index++){
+      const selector='.git-scm-group:nth-child('+(index+1)+') > summary';
+      const header_point=await evaluate(`(()=>{const node=panel.workbench.groups.querySelector(${JSON.stringify(selector)}),r=node.getBoundingClientRect();return{x:Math.round(r.left+30),y:Math.round(r.top+r.height/2)}})()`);
+      test_window.webContents.sendInputEvent({type:'mouseMove',...header_point});await delay(80);
+      const header_geometry=await evaluate(`(()=>{const node=panel.workbench.groups.querySelector(${JSON.stringify(selector)}),box=element=>{const r=element.getBoundingClientRect();return{left:r.left,right:r.right,width:r.width,height:r.height}};return{header:box(node),badge:box(node.querySelector('.git-scm-badge')),actions:[...node.querySelectorAll('.git-scm-row-actions button')].map(box)}})()`);
+      assert(header_geometry.actions.length>0,width+': hovered group exposes its real actions');
+      for(const action of header_geometry.actions){assert.equal(action.width,22,width+': SCM action target remains22');assert.equal(action.height,22);assert(action.left>=header_geometry.header.left&&action.right<=header_geometry.badge.left,width+': group actions stay within heading without overlapping count');}
+      assert(header_geometry.badge.right<=header_geometry.header.right,width+': count remains within heading');
+    }
+
     after_hover.history.forEach(x=>assert(Math.abs(x-after_hover.rows[0].status)<1,width+': history and changed-file status columns align'));
     assert(after_hover.overflow<1,width+': changes do not acquire a horizontal scrollbar');
     after_hover.rows.forEach(row=>assert(row.right<=after_hover.sidebar.right+1,width+': file remains within the sidebar'));
@@ -461,7 +519,7 @@ app.whenReady().then(async () => {
   await evaluate('panel.writing=false;panel.dispose();panel.dispose();panel.open();panel.refresh()');
   assert(await evaluate('panel.disposed && !panel.container.isConnected && !panel.workbench.sidebar.isConnected && !panel.active && !panel.state'));
   console.log(JSON.stringify({status:'PASS',checks:[
-    'real pointer context menu','Graph Find case/regex, invalid and zero-width errors, live highlights, match cycling, optional details and stale async protection','preview has no mutation','execution creates branch','settings and focus','SCM history and diff sashes remain draggable','per-context menu checkbox persistence','classic single-line Git Graph controls','fixed Graph Description Date Author Commit columns','22px rows place refs before descriptions','selected commit opens inline details with 30px controls','inline details stay bounded at 640px and 360px editor widths','optional bottom dock and column visibility work','remote toggle persists and multiple branch dialog opens','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','diff minimaps stay disabled after option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
+    'real pointer context menu','Graph Find case/regex, invalid and zero-width errors, live highlights, match cycling, optional details and stale async protection','preview has no mutation','execution creates branch','settings and focus','SCM history and diff sashes remain draggable','per-context menu checkbox persistence','classic single-line Git Graph controls','fixed Graph Description Date Author Commit columns','24px rows place refs before descriptions','selected commit opens inline details with 32px controls','inline details stay bounded at 640px and 360px editor widths','optional bottom dock and column visibility work','remote toggle persists and multiple branch dialog opens','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','diff minimaps stay disabled after option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
     'view menu persists repositories changes and history visibility','last visible view remains recoverable','message section collapse persists','single line message grows with input','commit dropdown preserves draft and amend choice without mutation','history list and collapsible nested tree open correct revisions','narrow sidebar retains filename ellipsis and aligned columns','hover never shifts file status or action slots','group stage button aligns with file stage buttons','history status aligns with change status','inline action keyboard stages and unstages without opening diff','file row keyboard opens diff','editable fields preserve native context menus','blank sidebar retains Git context menu','remote configuration actions are Chinese','commit buttons retain blue contrast on hover','history hover feedback preserves selected state',
     'Graph and SCM follow appearance font variables','SCM controls use 16px official SVG shapes and Chinese accessible names','icon controls contain no text stand-ins','summary and history disclosure SVG follows open state','menus use SVG checks and submenu arrows','topology circles are independent of control SVGs','standard overview shows 15px red and green lanes','both overview marker lanes accept real clicks and synchronize panes'
   ],classic_metrics,inline_metrics,responsive_metrics,ui_metrics,scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));

@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import editor_status_css from "./workspace_editor_status.css";
 
@@ -11,7 +12,7 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const native_actions=document.querySelector<HTMLElement>("#ty-sidebar-footer");
   const container=document.createElement("div");container.className="linux-note-editor-status";container.hidden=true;
   container.setAttribute("role","group");container.setAttribute("aria-label","当前编辑器状态");
-  const style=document.createElement("style");style.textContent=editor_status_css;document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_editor_status", editor_status_css, {});
   const owners=new Map<graph_leaf,HTMLElement>();let disposed=false,frame=0,observed_controls:HTMLElement|undefined;
   if(footer)footer.insertBefore(container,footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
   const layout=()=>{

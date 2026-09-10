@@ -1,2 +1,13 @@
-dist/community_plugin/** -text
+dist/** -text whitespace=cr-at-eol
 scripts/*.sh text eol=lf
+scripts/*.py text eol=lf
+# 保留来源摘要及发布摘要对应的原始字节，避免 Windows 检出转换换行。
+# 原样保留上游 CRLF 与文件末尾空行；摘要检查负责上游字节完整性。
+vendor/workspace_core/src/** -text whitespace=cr-at-eol,-blank-at-eof
+vendor/workspace_core/LICENSE.md -text whitespace=cr-at-eol
+vendor/vscode_seti/icon_theme.json -text whitespace=cr-at-eol
+vendor/vscode_seti/package.json -text whitespace=cr-at-eol
+vendor/vscode_seti/ThirdPartyNotices.txt -text whitespace=cr-at-eol
+vendor/vscode_seti/seti.woff -text
+
+vendor/fontawesome/** -text

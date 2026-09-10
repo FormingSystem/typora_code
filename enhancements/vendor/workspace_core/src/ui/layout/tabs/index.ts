@@ -1,0 +1,124 @@
+import './index.scss'
+import { WorkspaceParent } from "../workspace-parent"
+import type { WorkspaceLeaf } from '../workspace-leaf'
+import { createEmptyLeaf } from '../workspace-utils'
+import { WorkspaceNode } from '../workspace-node'
+import { FileTab, FileTabContainer, UntitledTab } from './file-tabs'
+import { useActiveLeaf } from '../use-active-leaf'
+import { EmptyView } from 'src/ui/views/empty-view'
+
+
+export class WorkspaceTabs extends WorkspaceParent {
+
+  type = 'tabs'
+
+  tabHeader = new FileTabContainer({
+    className: 'typ-workspace-tab-header',
+    onToggle: (tabId, tabEl) => {
+      const leaf = this.toggleTab(tabId, tabEl)
+      const [, setActiveLeaf] = useActiveLeaf()
+      setActiveLeaf(leaf)
+    },
+    onClose: (tabId, tabEl) => this.removeTab(tabId, tabEl),
+  })
+
+  tabContentEl: HTMLElement
+
+  constructor() {
+    super()
+
+    $(this.containerEl)
+      .addClass('typ-workspace-tabs')
+      .append(this.tabHeader.containerEl)
+      .append(this.tabContentEl = $('<div class="typ-workspace-tab-content">')[0])
+  }
+
+  insertChild(index: number, child: WorkspaceLeaf) {
+    this.tabHeader.insertTab(index, child.state.path ? new FileTab(child.state.path) : new UntitledTab())
+    super.insertChild(index, child)
+    this.toggleTab(child.state.path)
+
+    if (
+      this.children.length === 2 &&
+      (this.children[0] as WorkspaceLeaf).state.path.startsWith(`typ://${EmptyView.type}`)
+    ) {
+      this.removeChild(this.children[0])
+    }
+  }
+
+  _insertChildEl(index: number, child: WorkspaceLeaf) {
+    this.tabContentEl.querySelector('.mod-active')?.classList.remove('mod-active')
+    child.containerEl.classList.add('mod-active')
+    this.tabContentEl.insertBefore(child.containerEl, this.tabContentEl.children[index])
+  }
+
+  removeChild(child: WorkspaceNode): void {
+    this.removeTab((child as WorkspaceLeaf).state.path)
+  }
+
+  // --------- Tab Operators ---------
+
+  private _activeLeaf!: WorkspaceLeaf
+
+  get activeLeaf() {
+    return this._activeLeaf ?? this.children[0] as WorkspaceLeaf
+  }
+
+  toggleTab(path: string, tabEl?: HTMLElement): WorkspaceLeaf {
+    this.activeLeaf.view.close()
+    this.tabContentEl.querySelector('.mod-active')?.classList.remove('mod-active')
+
+    tabEl ??= this.tabHeader.getTabById(path)
+    this.tabHeader.activeTab(tabEl)
+
+    const leaf = (this.children as WorkspaceLeaf[]).find(c => c.state.path === path)!
+    leaf.containerEl.classList.add('mod-active')
+    leaf.view.open()
+
+    this._activeLeaf = leaf
+
+    this.emit('tab:toggle', leaf)
+    return leaf
+  }
+
+  renameTab(oldPath: string, newPath: string): void {
+    const tabEl = this.tabHeader.getTabById(oldPath)
+    const newTab = new FileTab(newPath)
+    this.tabHeader.renameTab(tabEl, newTab)
+
+    const leaf = (this.children as WorkspaceLeaf[]).find(c => c.state.path === oldPath)!
+    leaf.state.path = newPath
+    leaf.view.setIcon(leaf.view.icon)
+  }
+
+  removeTab(path: string, tabEl?: HTMLElement): void {
+    tabEl ??= this.tabHeader.getTabById(path)
+    if (!tabEl) return
+    this.tabHeader.closeTab(tabEl)
+
+    const leaf = (this.children as WorkspaceLeaf[]).find(c => c.state.path === path)!
+    leaf.view.close()
+    super.removeChild(leaf)
+
+    if (!this.children.length) {
+      if (this.getRoot() !== this.parent || this.parent.children.length > 1) {
+        this.parent!.removeChild(this)
+      }
+      else {
+        this.appendChild(createEmptyLeaf())
+      }
+    }
+  }
+
+  removeOthers(path: string): WorkspaceLeaf {
+    const leaf = this.toggleTab(path)
+    this.tabHeader.closeOtherTabs(this.tabHeader.getTabById(path))
+    return leaf
+  }
+
+  removeRight(path: string): WorkspaceLeaf {
+    const leaf = this.toggleTab(path)
+    this.tabHeader.closeRightTabs(this.tabHeader.getTabById(path))
+    return leaf
+  }
+}

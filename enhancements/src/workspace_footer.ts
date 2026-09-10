@@ -1,3 +1,5 @@
+import {acquire_workspace_style} from "./workspace_styles";
+import {bind_workspace_control_icons} from "./workspace_control_icons";
 import workspace_footer_css from "./workspace_footer.css";
 
 type footer_binding = { dispose(): void };
@@ -15,13 +17,26 @@ export function install_workspace_footer(): footer_binding | undefined {
   const original_role = actions.getAttribute("role"), original_label = actions.getAttribute("aria-label");
   const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
   const original_classes = new Map(mirrored_classes.map(name => [name, actions.classList.contains(name)]));
-  const style = document.createElement("style"); style.dataset.workspaceFooterStyle = "ready";
-  style.textContent = workspace_footer_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_css, {"data-workspace-footer-style":"ready"});
   actions.setAttribute("role", "group"); actions.setAttribute("aria-label", "文件与大纲操作");
   footer.removeAttribute("aria-hidden"); footer.dataset.workspaceFooter = "ready";
   sidebar.dataset.workspaceFooter = "moved";
   // 字数和拼写检查仍在最右侧；整个文件操作组插在它们前面。
   footer.insertBefore(actions, footer.querySelector(".footer-item-right"));
+  const control_icons=bind_workspace_control_icons(footer,[
+    ["#sidebar-new-file-btn>.ty-icon","new-file"],
+    ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon","more"],
+    ["#switch-file-list-btn .switch-file-list-btn-to-list>.ty-icon","list-flat"],
+    ["#switch-file-list-btn .switch-file-list-btn-to-tree>.ty-icon","list-tree"],
+    ["#unpin-outline-btn .ty-export1","pinned"],
+    ["#toggle-sourceview-btn","edit-code"],
+    ["#close-sidebar-menu-btn","close"],
+    ["#ty-group-by-folder-btn","list-tree"],
+    ["#ty-sort-by-natural-btn","list-flat"],
+    ["#ty-sort-by-name-btn","case-sensitive"],
+    ["#ty-sort-by-date-btn","history"],
+    ["#ty-sort-by-create-btn","new-file"]
+  ]);
   const update_context = () => {
     for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
   };
@@ -31,7 +46,7 @@ export function install_workspace_footer(): footer_binding | undefined {
   observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
   let disposed = false;
   const binding: footer_binding = { dispose() {
-    if (disposed) return; disposed = true; observer.disconnect();
+    if (disposed) return; disposed = true; observer.disconnect();control_icons.dispose();
     original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
     for (const [name, present] of original_classes) actions.classList.toggle(name, present);
     if (original_role === null) actions.removeAttribute("role"); else actions.setAttribute("role", original_role);

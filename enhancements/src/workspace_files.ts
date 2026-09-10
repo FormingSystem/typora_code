@@ -1,3 +1,4 @@
+import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import { create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
@@ -10,7 +11,7 @@ import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
 import { prepare_workspace_rename, prepare_workspace_move, renamed_workspace_path } from "./workspace_rename";
 import { reveal_markdown_location } from "./workspace_markdown_location";
-import { SOURCE_FILE_VIEW_ID, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
+import { SOURCE_FILE_VIEW_ID, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
 import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
@@ -32,6 +33,7 @@ export type workspace_file_host = {
   current_file(): string;
   can_save_active(): boolean;
   save_active(): Promise<boolean>;
+  save_leaf(leaf:graph_leaf):Promise<boolean>;
   save_all(): Promise<boolean>;
   can_write(file_path: string): boolean;
   refresh_files(paths: string[]): void;
@@ -56,7 +58,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
   let native_app_open_file = core.app.openFile;
   const call_native_app_open_file = (target: string) => native_app_open_file.call(core.app, target);
-  const style = el("style"); style.textContent = files_css; document.head.append(style);
+  const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
   const preview_leaves=new Map<graph_leaf["parent"],graph_leaf>();
@@ -231,6 +233,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
     if (!resolved_path) throw new Error("无法解析文件路径。");
     file_path = resolved_path;
+    if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
       const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>existing_leaves.add(leaf));
@@ -252,6 +255,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   // 社区核心默认把不支持的文件送到外部程序；所有应用内打开入口统一分流。
   const routed_app_open_file = function (this: typeof core.app, target: string) {
+    const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
+    target = resolve_host_open_file_target(path_api, source, target);
     const markdown = resolve_markdown_file_target(path_api, context_root(), target);
     if (markdown) return open_file(markdown.file_path, {hash: markdown.hash});
     if (!target.startsWith("typ://")) return open_file(target);
@@ -261,7 +266,29 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   let library = runtime.File?.editor?.library;
   let native_library_open_file = typeof library?.openFile === "function" ? library.openFile : undefined;
   const routed_library_open_file = function (this: unknown, target: string, ...args: unknown[]) {
-    if (typeof target === "string" && !target.startsWith("typ://") && !parse_markdown_file_target(target)) return open_file(target);
+    if (typeof target === "string" && !target.startsWith("typ://") && !parse_markdown_file_target(target)) {
+      const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
+      return open_file(resolve_host_open_file_target(path_api, source, target));
+    }
+    if (typeof target === "string" && parse_markdown_file_target(target)) {
+      const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
+      const markdown = resolve_markdown_file_target(path_api, context_root(), resolve_host_open_file_target(path_api, source, target));
+      if (!markdown || !fs.statSync(markdown.file_path).isFile()) throw new Error("目标不是普通文件。");
+      // 检查与使用必须是同一个绝对文件；相对路径、file URL 和锚点不传给原生文件 API。
+      if (markdown.hash) {
+        const callback=args[0];
+        const completed=function(this:unknown,...callback_args:unknown[]) {
+          const result=typeof callback==="function"?callback.apply(this,callback_args):undefined;
+          if(binding.active&&file_key(runtime.File?.bundle?.filePath||"")===file_key(markdown.file_path)
+            &&file_key(real_path(core.app.workspace.activeLeaf))===file_key(markdown.file_path)) {
+            void navigate_reading_target(markdown.file_path,{hash:markdown.hash}).catch(error=>console.error("Typora Code link navigation:",error));
+          }
+          return result;
+        };
+        return native_library_open_file?.call(this,markdown.file_path,completed,...args.slice(1));
+      }
+      return native_library_open_file?.call(this,markdown.file_path,...args);
+    }
     return native_library_open_file?.call(this, target, ...args);
   };
   const copy = (text: string) => runtime.reqnode("electron").clipboard.writeText(text);
@@ -344,13 +371,35 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const source_editor_active=()=>Boolean(active_source_view()?.editor);
   const can_save_active = () => Boolean(active_source_view()) || native_document_active();
-  const save_active = async () => {
-    const source_view = active_source_view();
-    if (source_view) return source_view.save();
-    if (!native_document_active()) return false;
-    await Promise.resolve(runtime.ClientCommand?.save?.());
-    return true;
+  const pending_native_saves=new Set<()=>void>();
+  let native_open_pending=false;
+  const release_save_active=core.app.workspace.on("active-leaf:change",()=>{if(native_document_active())native_open_pending=true;});
+  const release_save_open=core.app.workspace.on("file:open",(opened:string)=>{if(typeof opened==="string"&&file_key(opened)===file_key(core.app.workspace.activeLeaf?.state.path||"")&&file_key(opened)===file_key(runtime.File?.bundle?.filePath||""))native_open_pending=false;});
+  const save_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
+    const source=[...views].find(view=>view.leaf===leaf&&!view.disposed);if(source)return source.save();
+    if(leaf.state.path.startsWith("typ://")||!binding.active)return false;
+    const target=file_key(leaf.state.path),workspace=core.app.workspace;
+    const native_matches=()=>workspace.activeLeaf===leaf&&file_key(runtime.File?.bundle?.filePath||"")===target;
+    const preview_only=()=>typeof (leaf.view as {isEditor?:()=>boolean}).isEditor==="function"&&!(leaf.view as {isEditor:()=>boolean}).isEditor();
+    if(workspace.activeLeaf===leaf&&preview_only())return false;
+    if(workspace.activeLeaf!==leaf||native_open_pending||!native_matches()){
+      const ready=await new Promise<boolean>(resolve=>{
+        let settled=false,activating=false;let stop_open=()=>{},stop_active=()=>{};
+        const finish=(value:boolean)=>{if(settled)return;settled=true;clearTimeout(timeout);stop_open();stop_active();pending_native_saves.delete(cancel);resolve(value);};
+        const cancel=()=>finish(false);const timeout=setTimeout(cancel,5000);pending_native_saves.add(cancel);
+        stop_open=workspace.on("file:open",(opened:string)=>{if(typeof opened==="string"&&file_key(opened)===target&&native_matches())finish(true);});
+        stop_active=workspace.on("active-leaf:change",()=>{if(!activating&&workspace.activeLeaf!==leaf)cancel();});
+        if(workspace.activeLeaf!==leaf){activating=true;workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);activating=false;if(preview_only())finish(false);}
+        if(workspace.activeLeaf!==leaf)cancel();
+      });
+      if(!ready)return false;
+    }
+    if(preview_only())return false;
+    // No await between the final identity check and invocation: never save a newly selected document.
+    if(!binding.active||!native_matches()||typeof runtime.ClientCommand?.save!=="function")return false;
+    await Promise.resolve(runtime.ClientCommand.save());return true;
   };
+  const save_active = async () => {const leaf=core.app.workspace.activeLeaf;return leaf?save_leaf(leaf):false;};
   const save_all = async () => {
     const source_saves = [...views].filter(view => !view.disposed && view.dirty()).map(view => view.save());
     const [, source_results] = await Promise.all([
@@ -372,6 +421,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (!binding.active) return;
     assert_can_dispose();
     binding.active = false;
+    for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
     if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
@@ -421,7 +471,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_all,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_leaf, save_all,
     current_file: () => real_path(core.app.workspace.activeLeaf),
     can_write: (file_path: string) => (![...views].some(view=>file_key(view.file_path)===file_key(file_path)&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || file_key(runtime.File?.bundle?.filePath || "") !== file_key(file_path)),
     refresh_files: (paths: string[]) => { const keys=new Set(paths.map(file_key));for (const view of views) if (keys.has(file_key(view.file_path))&&!view.dirty()) void view.load_file(); },

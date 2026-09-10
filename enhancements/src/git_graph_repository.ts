@@ -67,13 +67,26 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
   });
   const starts = new Set(selected_refs.map(ref => require_revision(ref.hash)));
   if (head && (!branches.length || branches.includes("HEAD"))) starts.add(head);
+  const ordinary_starts = [...starts];
+  const hidden_stash_parents = new Set<string>();
+  if (!branches.length && stashes.length) {
+    const parent_text = await run(root, ["log", "--no-walk=unsorted", "--format=%P", ...stashes.map(stash => require_revision(stash.hash)), "--"]);
+    const helpers = new Set(parent_text.trim().split(/\r?\n/u).flatMap(line => line.split(" ").slice(1)).filter(Boolean));
+    for (const hash of helpers) {
+      // 只隐藏stash私有辅助对象；普通分支／标签仍可达的同一提交不能丢弃。
+      const outside = ordinary_starts.length ? await run(root, ["rev-list", "--max-count=1", require_revision(hash), "--not", ...ordinary_starts, "--"]) : hash;
+      if (outside.trim()) hidden_stash_parents.add(hash);
+    }
+  }
   if (!branches.length) for (const stash of stashes) starts.add(stash.hash);
-  const records = starts.size || settings.include_reflogs ? await run(root, ["log", `--${settings.order}-order`, `--max-count=${Math.max(1, count) + 1}`,
+  const records = starts.size || settings.include_reflogs ? await run(root, ["log", `--${settings.order}-order`, `--max-count=${Math.max(1, count) + 1 + hidden_stash_parents.size}`,
     ...(settings.first_parent ? ["--first-parent"] : []), ...(!branches.length && settings.include_reflogs ? ["--reflog"] : []),
     `--format=%H%x00%P%x00%${settings.use_mailmap ? "aN" : "an"}%x00%aI%x00%s%x00%${settings.use_mailmap ? "aE" : "ae"}%x00%${settings.use_mailmap ? "cN" : "cn"}%x00%cI%x00%${settings.use_mailmap ? "cE" : "ce"}`, "-z", ...starts, "--"]) : "";
   const fields = records.split("\0"); const commits: graph_commit[] = [];
   for (let i = 0; i + 8 < fields.length; i += 9) {
     const base = parse_git_log(fields.slice(i, i + 5).join("\0") + "\0")[0];
+    if (hidden_stash_parents.has(base.hash)) continue;
+    if (stashes.some(item => item.hash === base.hash)) base.parents = base.parents.slice(0, 1);
     commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find(item => item.hash === base.hash)?.name });
   }
   // Git 自身决定工作树状态，文件系统只用于识别进行中的多步操作。

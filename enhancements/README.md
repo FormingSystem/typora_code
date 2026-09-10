@@ -13,11 +13,11 @@ domains:
 
 本扩展补足主题 CSS 无法承担的以下能力：
 
-- 安装固定版本的 Typora Community Plugin 核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
+- 使用由固定 MIT 上游源码裁剪的常驻工作区核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
 - 文件树显示全部文件及隐藏项目，目录按需展开；Markdown 保持原生渲染，普通源码在占满编辑组的 Monaco 中编辑，支持保存与编码、换行格式设置；
 - 按文件搜索并展示路径和匹配高亮，悬停查看行列位置，双击精确选中 Markdown 原生正文或其他文本的源码；支持 Git 更改文件等范围筛选与确认后的替换，活动栏支持选中高亮和拖动排序；
-- 手动搜索和选中文字后 Ctrl／Cmd 加鼠标左键共用搜索侧栏；默认单击在编辑区预览打开，双击或 Enter 保持打开；下方 Markdown／源码阅读预览在搜索视图选项中显式开启，支持预览收放、缩放和上下分区拖动；
-- 顶栏按 VS Code 的单行布局提供文件、编辑、选择、视图、转到、终端和帮助菜单，Markdown 段落与格式收进编辑菜单，主题入口收进视图菜单；居中搜索框支持 `Ctrl + P` 文件查找、`Ctrl + Shift + P` 命令和 `Ctrl + G` 行列定位，左侧箭头用于后退和前进；
+- 手动搜索和选中文字后 Ctrl／Cmd 加鼠标左键共用搜索侧栏；单击在下方 Markdown／源码阅读区预览，双击或 Enter 在编辑区打开文件，支持预览收放、缩放和上下分区拖动；
+- 保留 Typora 原生文件、编辑、段落、格式、视图、主题和帮助七菜单，不追加本轮自定义菜单及命令中心；
 - 使用 `Alt + ←` / `Alt + →` 或顶栏箭头后退、前进，记录文内锚点和跨 Markdown 文件跳转，并恢复光标与滚动位置；
 - 带标题的链接在目标栏定位光标、正文和目录，来源栏保留阅读位置；关闭标签或窗口后重新打开文件，继续上次阅读；
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
@@ -34,7 +34,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-以下命令从 Typora Code 仓库根目录执行。当前使用官方社区插件入口，Windows 隔离部署回归已通过；原生 Linux 与完整界面验收边界见下文，历史记录不能代替当前版本验收。
+以下命令从 Typora Code 仓库根目录执行。当前使用 head 静态样式与常驻工作台，Windows／Python 隔离安装事务已通过；同一构建的37个 UI 目标（36+1复跑）、原生18项和真实安装核验通过。
 
 仓库已经提交预构建 bundle，普通用户无需预装 Node.js；Windows 安装器管理终端所需的私有运行时。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
 
@@ -51,7 +51,7 @@ MSYS2 UCRT64 或 Linux Bash 入口：
 bash ./configure.sh
 ```
 
-PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识别 Windows 与 POSIX 路径；Linux Bash 只接受 Linux 路径。Windows 首次配置会下载并校验官方 Node `24.20.0` 私有运行时，供集成终端使用；无需安装到系统或修改 PATH。再次配置复用校验过的下载缓存。脚本先校验独立插件包、官方 loader/core 与终端资产 `SHA256SUMS`，再统一备份主题、Typora `resources/window.html`、旧 bundle、插件文件和终端运行文件。Windows UCRT64 入口调用同一 PowerShell 安装事务；Linux 保留主题、工作区和 Git Graph，当前没有 Linux 集成终端原生运行包。安装完成后保存文档并重启 Typora。完整安装、检查和回退说明见 [`../typora配置修改.md`](../typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。
+PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识别 Windows 与 POSIX 路径；Linux Bash 只接受 Linux 路径。Windows 首次配置会下载并校验官方 Node `24.20.0` 私有运行时，供集成终端使用；无需安装到系统或修改 PATH。再次配置复用校验过的下载缓存。脚本先校验核心、静态样式、工作台脚本与终端资产 `SHA256SUMS`，再统一备份主题、Typora `resources/window.html`、待迁移旧资产、产品文件和终端运行文件。Windows UCRT64 入口调用同一 PowerShell 安装事务；Linux 保留主题、工作区和 Git Graph，当前没有 Linux 集成终端原生运行包。安装完成后保存文档并重启 Typora。完整安装、检查和回退说明见 [`../typora配置修改.md`](../typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。
 
 搜索侧栏、下方 Markdown／源码预览与选中文字入口一起构建进增强 bundle，复用语言识别、搜索和 Monaco 资源；安装、功能标记检查、备份和回退使用同一组入口。用户的预览缩放、界面字体、界面字号和 Markdown 正文边距设置保存在本地，更新运行文件时保留。
 
@@ -67,11 +67,11 @@ npm run check
 npm run check:ui
 ```
 
-`vendor/vscode_cpp/` 保存 VS Code 内置 C/C++ grammar；`vendor/gemoji/` 保存固定版本的 emoji 数据及随 bundle 安装的 MIT 许可；`vendor/typora_workspace/` 保存社区核心 `2.10.15` 的原始发行文件、许可证、来源与摘要。`npm run check` 保持为平台中立的逻辑检查，核对预构建功能标记、部署入口、源码与 bundle 的核心版本一致性、核心文件摘要、C/C++ 解析、阅读历史状态机和持久化位置存储。
+`vendor/vscode_cpp/` 保存 C/C++ grammar，`vendor/gemoji/` 保存 emoji 数据与许可，`vendor/workspace_core/` 保存固定 `2.10.15` 上游源码裁剪的常驻核心，见 [SOURCE.json](vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](vendor/workspace_core/LICENSE.md)。`scripts/build_workspace_core.mjs` 输出核心脚本、CSS 和三个语言包；总构建输出其余静态样式与工作台脚本。`npm run check` 核对发布摘要、部署入口、核心构建闭包、功能标记、语法及状态逻辑。
 
 `npm run check:ui` 使用精确锁定的 Electron `43.2.0`，顺序运行不启动真实 Typora 的隐藏窗口回归；每项在独立 Electron 进程中执行，涉及文件或用户数据的夹具使用隔离临时目录，并在末尾报告逐项耗时及失败。`npm run check:all` 依次执行平台中立检查和隐藏 UI 检查。用 `npm run check:ui -- --list` 查看固定套件，也可在 `--` 后列出一个或多个测试文件进行聚焦验证。runner 会检查全部 `test_*.cjs` 是否已明确纳入或排除，新增测试不会被静默漏过。`test_terminal_interaction.cjs` 会读取 `TYPORA_TEST_USER_DATA` 中的终端运行文件并启动真实 Shell，因此不属于这组隔离测试，仍按终端章节单独执行。
 
-`vendor/codicons/` 保存 52 个官方 Codicons SVG、供 bundle 导入的 `icons.json`、来源清单与 SHA-256。上游固定到提交 `1c47ab36a4bb845c437866405c2fa67b8ca0fe36`；图标采用 CC BY 4.0，代码采用 MIT，原始许可分别保存在 `LICENSE`、`LICENSE_CODE`。控件使用标准 SVG，折叠箭头按状态旋转，不用字符模拟图标；控件通常按 16px 显示，源代码管理活动图标保留上游 24×24 画布。安装不读取本机 VS Code、不下载字体，许可随运行资源部署。完整归属见 [图标来源说明](./vendor/codicons/README.md#1.2_来源校验与许可归属)。
+当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。此调整仅涉及图标，不恢复 Open Editors、底部 Panel 或预览标签行为；普通安装不读取本机 VS Code。详见 [设计基线](../docs/vscode_design_baseline.md) 和 [图标映射](../docs/icon_mapping.md)。
 
 跳转正文预览直接依赖固定版本的 Marked `14.0.0`（MIT）与 DOMPurify `3.4.14`（Apache-2.0 或 MPL-2.0）；清单、锁文件及构建所用版本一致，Monaco 的同名传递依赖也使用锁定版本。构建在 bundle 开头保留完整许可证，普通安装不另行下载这两个包。
 
@@ -81,7 +81,7 @@ npm run check:ui
 
 Git Graph 开发回归另需 PATH 中的 Git 和 `ssh-keygen`，用于临时仓库及临时密钥签名验证。测试不使用用户密钥和远端账号；普通扩展安装无需这些开发测试依赖。
 
-交互回归由 `npm run check:ui` 调用本包自己的 Electron 可执行文件，并从子进程环境移除 `ELECTRON_RUN_AS_NODE`。其中 `scripts/test_interaction.cjs` 在隐藏的 Chromium 窗口中加载模拟宿主夹具和生产 bundle，发送真实鼠标与键盘输入，检查首次展开/收起、按钮重建、Enter / 空格、空闲 DOM、宏体颜色和 Alt 方向键导航。跨文件夹具包含社区工作区的延迟锚点步骤，后退一次必须回到来源文档。隐藏窗口夹具不替代 Typora 实窗验收。
+交互回归由 `npm run check:ui` 调用本包自己的 Electron 可执行文件，并从子进程环境移除 `ELECTRON_RUN_AS_NODE`。其中 `scripts/test_interaction.cjs` 在隐藏的 Chromium 窗口中加载模拟宿主夹具和生产 bundle，发送真实鼠标与键盘输入，检查首次展开/收起、按钮重建、Enter / 空格、空闲 DOM、宏体颜色和 Alt 方向键导航。跨文件夹具包含常驻工作区的延迟锚点步骤，后退一次必须回到来源文档。隐藏窗口夹具不替代 Typora 实窗验收。
 
 Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test_reading_native.ps1`。脚本通过共享环境助手发现 Typora，生成临时 Markdown，验证预览栏中的中文标题链接、目标光标及目录、来源段落与栏内偏移、Alt 前后导航、关闭标签重开和新窗口续读；比较源文件摘要，确认正文没有被改写。测试入口只对两个临时文档生效，完成后关闭自己的测试窗口并移除入口，不退出其他窗口。结果 JSON 保留在脚本输出的临时目录。
 
@@ -95,7 +95,7 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 
 增加 `-suite rename` 验证文件和目录改名后，原生 Markdown 标签、源码草稿、撤销栈、格式和后续保存路径随之更新；同时检查目录名相同前缀的兄弟目录不受影响。文件系统冲突与名称边界由 `test_workspace_rename.mjs` 检查；F2、选中名称后双击和右键菜单由 `test_workspace_explorer.cjs` 使用真实鼠标与键盘检查。
 
-`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共插件文件事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
+`powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共发布资产与迁移事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
 
 `fixtures/visual_test.md` 用于 Typora 实窗验收；可调试的隔离 Typora 实例还可运行 `node scripts/smoke_typora.mjs <端口> <截图路径>`，脚本会先点击正文，再用鼠标按下/松开分别验证展开和收起。
 
@@ -104,7 +104,9 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 | 验证入口 | 覆盖范围 |
 | --- | --- |
 | `npm run check:ui` | 精确 Electron `43.2.0`：顺序执行全部自包含隐藏窗口夹具，隔离临时目录并汇总耗时和失败 |
-| `test_plugin_lifecycle.cjs` | 实际插件模块：启停／重载、加载取消、草稿阻止停用、构造失败回退、Open Editors／预览标签／大纲／底部终端联动 |
+| `test_workspace_startup.cjs` | 真实工作台模块：启动取消／失败清理、草稿保护、文件夹切换不重建及 Explorer／Search／SCM／Graph／大纲／终端联动 |
+| `test_workspace_core_smoke.cjs` | 真实核心：一次启动、同实例切目录、全局设置保存且不写打开目录 |
+| `test_workspace_first_frame.cjs` | 静态样式、首帧外观与启动时序 |
 | `test_reading_lifecycle.cjs` | 阅读事件、宿主包装、位置恢复取消、卸载与重载清理 |
 | `test_git_graph_pull_request.cjs` | PR服务配置、跨fork、非remote目标、自定义地址与标签图标主题 |
 | `test_workspace_file_operations.mjs` | 真实文件创建、二进制复制、移动、回收站与冲突／失败回退 |
@@ -117,23 +119,21 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 | `test_workspace_source_lifecycle.cjs` | 真实隐藏 Electron 关闭事件：源码先拦截、取消、保存失败、异步保存及原生取消后的再次保护 |
 | `test_workspace_selection_search.cjs` | 隐藏 Electron：选中文字进入统一搜索、单击预览、双击打开、参数、预览收放及上下分区 |
 | `test_workspace_lookup_preview.cjs` | 隐藏 Electron：Markdown 正文、源码高亮、准确命中定位、预览缩放、主题、异步选择及内容净化 |
-| `test_workspace_explorer.cjs` | 隐藏 Electron：全文件、隐藏目录、按需读取、定位及 单击／双击打开、F2／右键重命名、新建、剪贴、回收站与紧凑目录 |
+| `test_workspace_explorer.cjs` | 隐藏 Electron：全文件、隐藏目录、按需读取、定位及 单击／双击打开、F2／右键重命名、新建、剪贴、回收站与普通目录层级 |
 | `test_workspace_activity.cjs` | 隐藏 Electron：选中状态、拖动持久化、键盘调整及减少动画 |
 | `test_workspace_sidebar_sash.cjs` | 隐藏 Electron：最小宽度、拖动收起与恢复、宽度记忆、窗口边界及键盘操作 |
 | `test_workspace_outline.cjs` | 隐藏 Electron：大纲外围留白、原生过滤状态清理、当前标题同步、层级展开与视口定位 |
 | `test_workspace_editor_status.cjs` | 隐藏 Electron：唯一全局底栏的活动源码归属、分组切换、格式控件及窄窗口布局 |
 | `test_workspace_diff_status.cjs` | 隐藏 Electron：真实 Git Diff 宿主的左右状态切换、只读行列与语言、源码返回及销毁 |
-| `test_workspace_titlebar.cjs` | 隐藏 Electron：35px 标题栏、20px 产品图标、原位快速打开、独立菜单、外观设置、Markdown 主题隔离与窄窗口布局 |
-| `test_workspace_tabs.cjs` | 隐藏 Electron：标签右键关闭全部、逐项关闭和不可见空占位 |
+| `test_workspace_core_smoke.cjs` | 真实核心：空画布不显示占位标签，真实未保存草稿标签保留 |
 | `test_workspace_shortcuts.cjs` | 隐藏 Electron：VS Code 工作区直键／组合键、终端和对话框键盘隔离、重复安装与销毁 |
 | `test_workspace_footer.cjs` | 隐藏 Electron：原生控件迁移与事件保留、中央右侧单行布局、窄编辑区防重叠及销毁恢复 |
 | `test_scm_sidebar_layout.cjs` | 隐藏 Electron：小窗口、缩放、长消息及收起提交图的可见性 |
 | `test_scm_history_layout.cjs` | 隐藏 Electron：按活跃轨道计算拓扑宽度、22px 缩进、展开文件及窄宽防溢出 |
-| `test_scm_vscode_geometry.cjs` | 隐藏 Electron：35px 标题、30px 消息框、26px 提交／筛选、22px 分区与文件行、无固定操作列及窄侧栏比例 |
+| `test_scm_vscode_geometry.cjs` | 隐藏 Electron：35px 标题、30px 消息框、26px 提交按钮、22px 分区标题与文件行、无额外筛选框、无固定操作列及窄侧栏比例 |
 | `test_git_graph_actions_settings_i18n.mjs` | 平台中立：697 键中英词典、语言选择、操作／设置元数据和校验消息 |
 | `test_git_graph_interaction.cjs` | 隐藏 Electron：提交历史行与引用、文件操作、固定列、紧凑拓扑和差异布局 |
 | `test_git_graph_i18n.cjs` | 隐藏 Electron：中文／英文面板、源代码管理、提示、菜单、对话框与原始 Git 值边界 |
-| `test_workspace_chrome_theme.cjs` | 隐藏 Electron：VS Code 明暗表面、图标与列表状态颜色，并确认 Markdown 正文主题保持不变 |
 | `test_diff_overview.cjs` | 隐藏 Electron：关闭双栏全文缩略图、30px 红绿概览点击定位、双 8px 滚动条及单文件缩略图 |
 | `test_reading_minimap.cjs` | 隐藏 Electron：稳定前台 canvas、离屏分帧、原子提交、滚动零重绘与侧栏切换防闪烁 |
 | `test_interaction.cjs` | 隐藏 Electron：阅读增强收放、按钮重建、键盘操作、C 宏体高亮及跨文件前后导航 |
@@ -146,25 +146,21 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 | `test_reading_native.ps1 -suite git` | Typora 实窗：源代码管理、提交图、差异、菜单与临时仓库 Git 操作 |
 | `test_reading_native.ps1 -suite terminal` | Typora 实窗：终端会话、输入、切换、分栏与回收 |
 
-2026-09-09 当前基线已通过 `npm run build`、完整 `npm run check` 和 **28／28** 项 `npm run check:ui` 隐藏 Electron 回归。覆盖官方插件加载／卸载／重载与未保存保护，35px标题栏、22px列表／底栏、源码编辑菜单、预览标签与Open Editors、嵌入大纲、底部终端Panel、Graph即时查找／正则／详情异步状态，以及真实临时Git与文件操作。Windows隔离安装、恢复和失败回退通过；以 `core.autocrlf=true` 检出的干净发布副本也通过全部摘要和安装回归。本机 Typora `1.14.9` 安装检查为一个官方入口、7个核心资产、20个终端资产，状态 `OK`。
-
-本轮真实Typora阅读套件两次开窗共 **20项通过**，Git套件 **68项通过**；后者覆盖拓扑、分栏、详情、差异、查找、暂存提交、回收、同步及宿主语言匹配。测试仅写临时文档与临时Git仓库，并验证读取阶段正文和索引字节不变。
-
 这些结果证明列出的实际行为和检查范围；不等于已获得与VS Code所有区域逐像素相同的实窗证据。完整差异与未完成项见[工作台矩阵](../docs/workbench_parity.md)和[Git Graph矩阵](git_graph_features.md)。
-
-2026-09-06 的 Windows Typora `1.14.9` 实窗基线仍保留：最终 `workspace` 实窗通过 **75 项**，覆盖单行顶栏、唯一全局状态栏、统一搜索、下方直接缩放、Markdown／Mermaid 预览和源码草稿；完整窗口画面已检查。`rename` 与 `markdown_location` 实窗各通过 **16 项**，Git 实窗通过 **66 项**。正文／源码预览隐藏 Electron 通过 **31 项**，使用本机 Mermaid `11.13.0` 的独立实例；加载真实 Typora CSS 的搜索布局和 Explorer 各通过 **20 项**，Git Diff 全局状态通过 **10 项**。源码编辑与真实关窗另有 17、8 项通过基线。实窗测试只修改临时样例，核对原文档字节与调用工作树索引并移除测试入口；具体断言以各套件报告为准。
 
 Windows 另有终端、路径复制和安装回滚的通过基线；原生 Linux／UCRT64 仍需各自设备的实机验证，不能把 Windows 或兼容 shell 的结果当成对应平台已经验收。
 
+本轮已通过 Graph／SCM 的简洁设置、语言、引用颜色、标签可见性、综合交互、SCM 专属通用文件图标和独立几何目标。最新 `check` 与 Windows／Python 隔离安装恢复事务已通过；同一构建的37个 UI 目标（36+1复跑）和最新原生18项通过；不沿用旧架构测试项数作为当前完成证明。
+
 ## 1.3\_PowerShell单独安装扩展与备份
 
-安装脚本先把 Typora 的 `resources/window.html`、插件启用设置、本插件文件和同版本核心文件备份到：
+安装脚本将 `resources/window.html`、受管运行资产、待迁移旧设置、终端文件与可选主题备份到：
 
 ```text
-%APPDATA%\Typora\backups\linux_note_typora_enhancements\<时间戳>\
+%APPDATA%\Typora\backups\typora_code_configuration\<时间戳与唯一标识>\
 ```
 
-随后在 `window.html` 的 `</body>` 前保留唯一官方模块入口 `typora://app/userData/plugins/loader.js`，移除旧 direct bundle 入口。官方 loader 根据 `plugins/loader.json` 加载 `plugins/2.10.15/core.js`；核心再加载 `plugins/plugins/forming_system.linux_note_enhancements/` 中的 `main.js`、`manifest.json` 和 `style.css`。构建包位于 `dist/community_plugin/`。安装器只合并 `plugins/settings/plugins.json` 中本插件的启用项，其他插件与嵌套设置保留。Linux 需要 Python 3 处理 JSON。执行：
+发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `false`；原文件不存在时不创建。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 Linux 通过 Python 3 执行 JSON 与文件事务。执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1
@@ -176,20 +172,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
-  -backup_root "$env:APPDATA\Typora\backups\linux_note_typora_enhancements\<时间戳>"
+  -backup_root "$env:APPDATA\Typora\backups\typora_code_configuration\<时间戳与唯一标识>"
 ```
 
-恢复脚本在覆盖当前入口前还会生成 `window.before_restore.<时间戳>.html` 安全副本；恢复原插件文件，并将本次新增的插件文件改名停用。
+恢复脚本先预检完整备份，在原备份目录保存当前状态的安全快照，再按 schema 4 恢复原入口和受管资产、清除本次新增的受管运行文件，保留用户产品设置；恢复失败会回滚恢复操作。旧入口仅在撤销安装时随备份恢复。
 
 ## 1.4\_标签页、分栏与阅读历史
 
 默认布局采用 VS Code 的 **单窗口、一组多标签页** 形式：在当前窗口打开 Markdown 或源码后保留文件标签；需要并排阅读时再拆分。标签支持关闭、拖动排序和组间移动，标签右键菜单提供分栏操作。
 
-Windows 与 Linux 顶栏保持一行：应用图标和七个中文菜单位于左侧，后退、前进及工作区文件搜索位于中央，窗口按钮位于右侧。中央命令中心固定在标题栏原位；点击它或按 `Ctrl + P` 时，文件快速列表从同一位置向下展开，输入框原位覆盖命令中心，不另占一行。每个菜单只显示自己的命令；快速列表按文件名或相对路径模糊筛选，目录扫描包含点开头的隐藏文件和复合后缀文件，但不读取文件正文；`↑` / `↓` 选择，`Enter` 打开，`Esc` 关闭。后退和前进按钮没有对应历史时自动禁用。
+顶栏保留 Typora 原生七菜单：文件、编辑、段落、格式、视图、主题、帮助。菜单使用宿主自己的命令，不加入本轮新增的选择、转到、终端顶级菜单。Ctrl+P 和标签条右侧鼠标入口打开 `440ec3f` 中的文件选择器；阅读历史沿用现有能力。renderer 快捷键目标已通过，原生快捷键冲突仍在验证。选择器宽 `min(62vw, 600px, calc(100vw - 12px))`、最大高 `min(70vh, 560px)`，结果行22px、输入框23px。标签条高35px，使用13px Segoe UI与Light 2026／Dark 2026状态颜色；系统标题栏由宿主管理。
 
-顶栏功能按职责拆分：`workspace_titlebar.ts` 只编排位置，`workspace_titlebar_entries.ts` 映射 Typora 命令与最近记录，`workspace_titlebar_menu.ts` 处理菜单层级和键盘交互，`workspace_quick_open.ts` 管理文件快速打开，`workspace_tabs.ts` 管理关闭事务与空编辑组，`workspace_ui_appearance.ts` 管理应用外壳字体与 Markdown 正文几何边距。弹窗、右键菜单和基础 DOM 构造统一由 `workspace_widgets.ts` 提供，搜索、资源管理、终端和 Git Graph 不再跨域依赖 Git 私有工具模块。各功能通过工作区文件宿主组合，不互相读取内部状态；关闭全部标签时逐个执行未保存确认，最后隐藏宿主为维持树结构生成的空标签。
+工作台通过共享宿主组织文件、搜索、终端与 Git Graph；弹窗、右键菜单和基础 DOM 构造由 `workspace_widgets.ts` 提供。关闭事务保留未保存确认与草稿保护；静态样式和常驻脚本不因切换文件夹重新加载。
 
-“视图 → 界面外观…”可以独立设置菜单、标签、侧栏控件和弹窗的字体与 **11～18px** 字号，并以 **0%～24%** 配置 Markdown 正文的单侧边距。弹窗中的字号和边距滑块即时预览，取消时恢复已保存设置；全局底栏同时提供正文边距滑块，拖动即保存并更新当前文档。外壳字体选择器不匹配 `#write`、Markdown 预览正文或 Monaco 编辑器；边距只调整 `#write` 的宽度与居中位置，Markdown 继续使用 Typora 当前主题，源码编辑器继续使用文件语言对应的编辑器字体。
+已撤回额外的工作台外观配置入口与正文边距滑块。Markdown 正文继续使用 Typora 当前主题；不以外壳布局复原覆盖正文样式。
 
 | 操作 | 结果 |
 | --- | --- |
@@ -207,12 +203,11 @@ Windows 与 Linux 顶栏保持一行：应用图标和七个中文菜单位于�
 | 点击非活动分栏正文 | 切入该分栏的 Typora 编辑器 |
 | `Alt + ←` / `Alt + →`，或顶栏箭头 | 返回上一个／下一个阅读位置 |
 | 标签右键 → 关闭所有标签 | 依次处理未保存确认并留下空编辑组 |
-| 视图 → 界面外观… | 调整应用外壳字体、11～18px 字号及 Markdown 单侧边距；不改变正文主题字体和渲染样式 |
 | 拖动底栏边距滑块 | 以 0%～24% 即时调整并保存 Markdown 正文单侧边距 |
 
 Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览；点击预览正文后交换编辑器所在分栏。普通源码使用独立的 Monaco 编辑标签，保存与关闭保护见 [全部文件与语言识别](#1.4.3_全部文件与语言识别)。切换 Markdown 仍经过 Typora 的保存确认；不会为实现导航自动保存、丢弃或复制正文。新建但尚未命名的文档不进入跨文件历史。历史只保留当前窗口最近 100 个跳转位置，重启清空；源代码模式和输入对话框保留原有方向键行为。
 
-插件管理由 [Typora Community Plugin](https://github.com/typora-community-plugin/typora-community-plugin) 提供，可从侧边工具栏的设置入口管理插件。仓库固定核心版本并附带预构建文件，安装无需联网下载核心，也不需要本机 Node.js；核心升级应更新仓库发行文件、摘要和 bootstrap 版本后重新验收。布局参考 [VS Code 自定义布局](https://code.visualstudio.com/docs/configure/custom-layout)，快捷键参考 [默认键位](https://code.visualstudio.com/docs/reference/default-keybindings)。
+工作区核心是固定 MIT 上游源码的常驻裁剪版本，见 [来源](vendor/workspace_core/SOURCE.json) 与 [许可](vendor/workspace_core/LICENSE.md)。产品不提供插件管理器、市场或启停面板，设置以全局产品作用域保存。布局以 [固定设计基线](../docs/vscode_design_baseline.md) 为准；操作背景可参阅 [VS Code 自定义布局](https://code.visualstudio.com/docs/configure/custom-layout) 与 [默认键位](https://code.visualstudio.com/docs/reference/default-keybindings)。
 
 ### 1.4.1\_阅读位置与标题定位
 
@@ -236,19 +231,17 @@ Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览
 | `Shift + Alt + C` | 复制活动文档的绝对路径 |
 | `Ctrl + K`，再按 `Ctrl + Shift + C` | 复制活动文档相对当前打开文件夹根目录的路径 |
 
-这些键位对应 [VS Code 默认文件命令](https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/files/browser/fileCommands.ts)。文件身份在工作区内部始终以结构化路径字段传递，不从显示文本、URL 片段或文件名后缀反推；展示和复制时才按当前系统格式输出。Windows 使用反斜杠，Linux 使用正斜杠，保留中文、空格、`#`、`%`、方括号和复合后缀，不额外加入引号或 Markdown 转义。普通 `Ctrl + C` 继续复制正文选区；分栏快捷键继续有效。
+这些键位对应 [VS Code 默认文件命令](https://github.com/microsoft/vscode/blob/main/src/vs/workbench/contrib/files/browser/fileCommands.ts)。文件身份在工作区内部始终以结构化路径字段传递，不从显示文本、URL 片段或文件名后缀反推；展示和复制时才按当前系统格式输出。Windows 使用反斜杠，Linux 使用正斜杠，保留中文、空格、`#`、`%`、方括号和复合后缀，不额外加入引号或 Markdown 转义。普通 `Ctrl + C` 继续复制正文选区；分栏快捷键仍保留对应实现。原生菜单 accelerator 冲突尚未验证：renderer 目标与隔离原生夹具的合成按键不等于物理键盘验证，不声明这些键位已全部实机通过。
 
 相对路径的基准是 **Typora 当前打开的文件夹**，不是正在编辑的 Markdown 所在子目录。例如根目录为 `notes`，文件为其中的 `rcu/example.md`，Windows 下复制结果为 `rcu\example.md`。未打开文件夹或文件位于根目录之外时返回完整路径；根目录自身的相对路径为空，与 [VS Code 的路径标签规则](https://github.com/microsoft/vscode/blob/main/src/vs/base/common/labels.ts) 一致。切换文件夹后立即使用新的根目录。尚未保存、没有文件路径的文档不执行复制。
 
 ### 1.4.3\_全部文件与语言识别
 
-资源管理器单击文件立即打开，双击仍执行打开；改名只由 **F2** 或右键菜单进入。根目录标题右侧提供 **新建文件、新建文件夹、刷新、全部折叠**，目录右键也可新建；名称输入按 Enter 确认、Esc 取消。树获得焦点时，Ctrl／Cmd+C、X、V 分别复制、剪切和粘贴文件，Delete 打开移到回收站的确认框；取消不改磁盘。回收站失败会显示错误，不降级为永久删除。Ctrl／Cmd 单击可增减选择，Shift 单击选择连续范围。
+资源管理器单击文件立即打开，双击仍执行打开；改名只由 **F2** 或右键菜单进入。根目录标题右侧提供 **新建文件、新建文件夹、刷新、全部折叠**，目录右键也可新建；名称输入按 Enter 确认、Esc 取消；新文件创建后默认打开并渲染。树获得焦点时，Ctrl／Cmd+C、X、V 分别复制、剪切和粘贴文件，Delete 打开移到回收站的确认框；取消不改磁盘。回收站失败会显示错误，不降级为永久删除。Ctrl／Cmd 单击可增减选择，Shift 单击选择连续范围。
 
-默认启用 **紧凑文件夹**，只有一个子目录的路径链合并成一行；根目录右键可关闭。当前压缩行操作末端目录，尚未提供上游每个路径段的独立焦点与菜单。目录探测在分叉处停止，单链最多探测 32 层；文件树不读取正文。底部 **大纲** 节可展开或收起，活动 Markdown 的原生大纲由工作台编排层嵌入。
+资源管理器按普通目录层级展示，不启用紧凑目录链，也不提供追加的 Open Editors 区域。左侧独立 **大纲** 按钮打开唯一原生 Markdown 大纲；资源管理器底部不复制大纲节。
 
 文件操作只作用于当前工作区，拒绝根目录、符号链接路径、非法名称与同名覆盖。当前文件剪贴板只在本工作台内共享；同目录复制不会自动生成副本名称，新建名称也不接受多级路径。复制失败会回退本次创建的条目；若其他进程替换条目或向新目录加入文件，保留无法安全回退的内容并报告路径。Node 路径接口没有跨进程目录句柄锁；回收站批次也不支持原子撤销，部分成功会明确列出已回收项目。跨设备移动失败会保留错误，不偷偷转为复制后删除。
-
-本轮 `test_workspace_explorer.cjs` 通过新建、剪贴、冲突、删除取消／回收站回调、紧凑目录、大纲 slot 与重命名交互；`test_workspace_file_operations.mjs` 在真实临时树中通过独占创建、递归二进制复制、失败回退、移动回调、回收站部分失败与链接拒绝。草稿跨目录移动与删除拒绝由真实Monaco集成验证；完整28项隐藏UI已通过，原生Typora与上游成对视觉验收分别记录。
 
 资源管理器中，选中文件或文件夹后按 **F2**，或者右键选择 **重命名**，可直接编辑名称；**Enter** 确认，**Esc** 取消。只允许修改当前父目录下的名称，不将名称输入当作移动路径；同名目标、非法名称、工作区根目录和符号链接路径会明确拒绝。目录改名同步其中已打开标签的路径，保留源码草稿、撤销记录和阅读位置；搜索列表重新刷新。磁盘内容同时变化时保留草稿并提示核对，不能将未保存内容偷偷替换为磁盘版本。
 
@@ -314,7 +307,7 @@ Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览
 
 点击活动栏 **搜索**，或按 `Ctrl + Shift + F`，在当前打开的文件夹中搜索磁盘文本。搜索面板使用独立输入区，顶部不会叠加原生“查找”框；紧凑工具栏提供刷新、清除、在编辑器中打开和全部折叠，查询框内切换匹配选项，包含／排除框右侧切换搜索范围与忽略规则，图标均有中文提示。
 
-结果按文件分组，显示文件图标、名称、相对目录、匹配数、Git 状态与高亮片段；行列位置放在悬停提示和可访问标签中，不再单独占一列。每条结果同时保留结构化绝对路径、相对路径和精确起止行列，显示名称只用于界面呈现，不再参与文件解析。文件分组和目录可折叠，可切换列表／树形显示，按路径／结果数排序，也可通过结果统计旁的 **在编辑器中打开** 展示完整结果。默认单击文件或片段在编辑区以预览标签打开；双击或 Enter 保持标签打开，均使用结构化路径和起止行列定位精确匹配。下方阅读预览由 **搜索视图选项** 显式开启，Markdown 使用原生渲染。右键可在右侧打开、复制匹配行或路径。文件组悬停时可 **从结果中移除**，它只更新本轮结果，不删除磁盘文件。
+结果按文件分组，显示文件图标、名称、相对目录、匹配数、Git 状态与高亮片段；行列位置放在悬停提示和可访问标签中，不再单独占一列。每条结果同时保留结构化绝对路径、相对路径和精确起止行列，显示名称只用于界面呈现，不再参与文件解析。文件分组和目录可折叠，可切换列表／树形显示，按路径／结果数排序，也可通过结果统计旁的 **在编辑器中打开** 展示完整结果。单击文件或片段在搜索结果下方预览；双击或 Enter 在编辑区打开文件，使用结构化路径和起止行列定位精确匹配，Markdown 使用原生渲染。右键可在右侧打开、复制匹配行或路径。文件组悬停时可 **从结果中移除**，它只更新本轮结果，不删除磁盘文件。
 
 | 控件 | 行为 |
 | --- | --- |
@@ -334,11 +327,11 @@ Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览
 
 ### 1.4.5\_活动栏与侧栏布局
 
-Windows／Linux 的新窗口采用 Typora 原生 Unibody 样式，顶部使用 **35 CSS px** 的单行布局：**20px** 的随应用分发产品图标位于 35px 图标槽中，中文主菜单、中央命令中心和原生窗口按钮共处一行。后退、前进按钮紧邻中央命令中心左侧；`Ctrl + P` 快速列表在命令中心原位置覆盖并向下展开。菜单按钮调用 Typora 原生命令入口，方向键可在菜单项之间移动；窗口较窄时先收缩或隐藏中央命令中心，保留菜单和关闭按钮。顶部、侧栏与编辑区共用边界，侧栏高度扣除标题行，避免底部溢出。启用窗口样式使用 Typora 原生首选项；已有窗口不会被强制关闭，保存文档后正常重启即可更新其系统边框。
+Windows／Linux 使用 Typora 标准原生窗口边框和文件、编辑、段落、格式、视图、主题、帮助七个系统菜单，各栏目由宿主直接打开自己的子菜单。保存文档并正常重启后生效；安装不强制关闭窗口。工作台不再自绘系统标题栏或窗口按钮。
 
-活动栏以选中边线、背景和图标前景标出当前展开功能；收起侧栏后清除选中，切换文件、搜索、大纲与源代码管理时只高亮实际显示的功能。点击当前功能收起，再点打开；点击其他功能直接切换。每个活动项占 **48×48 CSS px**，Codicon 使用 **24×24 px** 画布；图标和鼠标提示使用中文。
+活动栏为 **48×48px 连续项目**，不使用 Modern 的36px胶囊和项间8px留白；文件、搜索和 SCM 官方图标使用24px画布，大纲保留原生 `fa-list` 字体图标。选中状态跟随当前展开的文件、搜索、大纲或源代码管理；点击当前入口收起，再次点击打开。
 
-主侧栏正文最小宽度为 **170 CSS px**，48px 活动栏另外计算。继续向左拖动，鼠标请求宽度低于 85px 时自动收起；拖回 85px 及以上展开，松手后再次点击功能图标恢复拖动前的有效宽度。最大宽度会为中央编辑区保留 220px，并扣除当前活动栏和右侧面板；窗口缩放不覆盖已记住的用户宽度。文件、搜索、大纲和源代码管理使用相同分界线，搜索预览位于搜索面板内部。
+主侧栏正文最小宽度为 **170 CSS px**，48px 连续活动栏另外计算。继续向左拖动，鼠标请求宽度低于 85px 时自动收起；拖回 85px 及以上展开，松手后再次点击功能图标恢复拖动前的有效宽度。最大宽度会为中央编辑区保留 220px，并扣除当前活动栏和右侧面板；窗口缩放不覆盖已记住的用户宽度。文件、搜索、大纲和源代码管理使用相同分界线，搜索预览位于搜索面板内部。
 
 聚焦侧栏分界线后，左右键每次调整 10px，按住 Shift 调整 50px；Home 调到最小宽度，End 调到当前最大宽度，Enter 收起／展开，收起时右方向键恢复。
 
@@ -354,7 +347,7 @@ Windows／Linux 的新窗口采用 Typora 原生 Unibody 样式，顶部使用 *
 
 | 操作 | 结果 |
 | --- | --- |
-| 单击文件或匹配片段 | 默认在编辑区预览打开；显式开启下方阅读预览时更新该区域 |
+| 单击文件或匹配片段 | 在搜索结果下方预览，不切换中央文档 |
 | 双击匹配片段 | 打开对应文件，定位起止行列并选中匹配内容 |
 | 双击文件 | 打开该文件的当前命中；尚未选择命中时使用首条 |
 | 单击预览标题的折叠按钮 | 收起／展开下方预览，收起后结果列表使用释放的高度 |
@@ -370,13 +363,13 @@ Windows／Linux 的新窗口采用 Typora 原生 Unibody 样式，顶部使用 *
 
 双击打开前会复查磁盘上的命中位置；Markdown 再核对原生编辑器内存中的文本，其他源码核对 Monaco 当前缓冲区。内容变化时明确要求刷新，避免选中错误位置。Markdown 原生标题、普通段落和围栏均保留对应显示方式；无法安全表示的跨编辑区选区会报告原因。
 
-面板复用工作区搜索的包含／排除 glob、区分大小写、全字匹配、正则及忽略规则；文件范围与资源上限见 [工作区搜索与替换](#1.4.4_工作区搜索与替换)。改变查找范围后重新显示结果，文件类型继续使用同一套映射。默认单击在编辑区预览打开，双击或 Enter 保持打开；启用下方阅读预览后单击改为读取该区域；已有同名文本的不同文件都作为候选展示。
+面板复用工作区搜索的包含／排除 glob、区分大小写、全字匹配、正则及忽略规则；文件范围与资源上限见 [工作区搜索与替换](#1.4.4_工作区搜索与替换)。改变查找范围后重新显示结果，文件类型继续使用同一套映射。单击更新下方阅读预览，双击或 Enter 在编辑区打开文件；已有同名文本的不同文件都作为候选展示。
 
 这里查找的是 **工作区磁盘文本的出现位置**，不是编译器或语言服务器解析出的定义、声明或引用关系；例如同名函数、注释与说明文字都可能命中，需要读者通过预览判断。该面板用于阅读定位，不接入聊天或生成内容。
 
 ## 1.5\_Git\_Graph提交关系图
 
-点击左侧活动栏的 **源代码管理** 图标，或按 `Ctrl + Shift + G`，在原有主侧栏打开源代码管理；中央文档保持打开。图标默认位于文件、大纲之后，也可拖动调整顺序。主侧栏下方的 **提交图**、状态栏 **Git Graph** 和命令面板的提交图命令，在上方原有标签栏打开 Git Graph。主侧栏、正文、提交图和差异编辑器复用同一个工作区布局。
+点击左侧活动栏的 **源代码管理** 图标，或按 `Ctrl + Shift + G`，在原有主侧栏打开源代码管理；中央文档保持打开。图标默认位于文件、搜索和大纲之后，也可拖动调整顺序。主侧栏下方的 **提交图**、状态栏 **Git Graph** 和命令面板的提交图命令，在上方原有标签栏打开 Git Graph。主侧栏、正文、提交图和差异编辑器复用同一个工作区布局。
 
 | 阅读或操作目标 | 入口 |
 | --- | --- |
@@ -391,20 +384,20 @@ Windows／Linux 的新窗口采用 Typora 原生 Unibody 样式，顶部使用 *
 
 完整收集结果、操作选项、快捷键及 VS Code 宿主差异集中维护在 [功能对照与操作说明](./git_graph_features.md#第1章_Git_Graph功能对照与操作说明)。历史读取和实际写入共用系统 Git；刷新只读，网络同步和修改操作由用户从图内发起。
 
-普通安装已包含预构建实现，无需额外 Node.js。Git 默认从 Typora 进程的 PATH 查找，也可在图内本地设置中指定可执行文件。安装器不写固定路径、不修改系统 PATH。配置检查报告 `git_graph_features` 和 `git_graph_runtime`，并要求主侧栏、Monaco 差异等完整功能标记、bundle 摘要和社区核心资产均一致。缺少 Git 时图内提供提示，其他阅读增强仍可使用。
+普通安装已包含预构建实现，无需额外 Node.js。Git 默认从 Typora 进程的 PATH 查找，也可在图内本地设置中指定可执行文件。安装器不写固定路径、不修改系统 PATH。配置检查报告 `git_graph_features` 和 `git_graph_runtime`，并要求主侧栏、Monaco 差异等完整功能标记、发布摘要和常驻核心资产均一致。缺少 Git 时图内提供提示，其他阅读增强仍可使用。
 
 默认每次读取 200 条，可调整加载数量、分支范围和自动加载；不再使用旧版 5000 条上限。读取超时 30 秒，写操作 5 分钟，单次输出上限 16 MiB。显示、冲突保护、签名与平台验证的详细边界见 [宿主差异与验证边界](./git_graph_features.md#1.4_宿主差异与验证边界)。
 
-中央提交图按经典 Git Graph 的密度和信息顺序排布：工具栏高 **40px**，五列表头高 **30px**，提交行高 **24px**；顶端使用一行分支筛选、远端分支开关与右侧图标操作，正文固定为 **Graph、Description、Date、Author、Commit** 五列，引用标签放在说明之前。单击提交后，详情紧跟在所选行下方，左半显示提交信息，右半显示更改文件，最右侧使用 32px 图标栏切换文件树／列表及执行相关操作。详情不再切换到右侧或窗口底部，也不再用第二组分界线占用正文空间；表头列宽仍可拖动并按仓库保存。
+中央提交图按经典 Git Graph 的密度和信息顺序排布：单行工具栏含边框高 **41px**，五列表头高 **31px**，提交行与图轨道高 **24px**；顶端使用一行分支筛选、远端分支开关与右侧图标操作，正文固定为 **Graph、Description、Date、Author、Commit** 五列，引用标签放在说明之前。单击提交后，详情紧跟在所选行下方，左半显示提交信息，右半显示更改文件，最右侧使用 32px 图标栏切换文件树／列表及执行相关操作。详情默认跟随提交行，可在设置中改为底部停靠；表头列宽仍可拖动并按仓库保存。工具栏20px动作、18px普通图标与详情24px按钮、20px图标按角色区分；中央Graph采用扩展的专属几何，SCM侧栏仍为22px行高。
 
 
 ### 1.5.1\_主侧栏与中文菜单
 
 源代码管理与文件树、大纲共用左侧原有区域。点击当前展开功能的图标收起侧栏，再点打开；点击其他功能直接切换内容。底部不再显示重复的“显示／隐藏侧边栏”按钮，拖动原有侧栏分界线调整宽度。
 
-源代码管理遵循 VS Code 的紧凑几何：标题区高 **35px**，提交消息框高 **30px**，提交按钮与更改筛选框高 **26px**，更改分组、文件行和下方 **提交图** 标题栏均高 **22px**。文件行只为名称和右侧 **16px** 状态保留固定列；暂存、取消暂存等操作在悬停或聚焦时覆盖名称尾部显示，不占用永久空白列，因此窄侧栏不会留下截图中那类大块空隙。
+源代码管理标题区高 **35px**，提交消息框高 **30px**，提交按钮高 **26px**；按钮下直接排列暂存与更改分组，不保留额外文件筛选框。视图标题与文件行高 **22px**；两个资源分组使用13px常规字重和各自16px官方折叠箭头，空组同样可切换。整体更改与提交图标题箭头同列，提交按钮图标继承白色。文件采用官方通用图标，状态列16px；行内操作仅在悬停或聚焦时显示。
 
-Git Graph 界面文案通过 697 个受类型约束的键成对提供简体中文和英文；根据 Typora／插件语言选择界面语言，面板、源代码管理、提示、菜单、设置、确认框与错误消息一起切换。分支名、提交号、路径、Git 参数和用户输入保持原值，不进行翻译。
+Git Graph 界面文案通过受类型约束的键成对提供简体中文和英文；根据显式工作台语言或 Typora 的 appLocale选择界面语言，面板、源代码管理、提示、菜单、设置、确认框与错误消息一起切换。分支名、提交号、路径、Git 参数和用户输入保持原值，不进行翻译。
 
 文件只分为 **暂存的更改** 和 **更改** 两组，新文件与冲突文件放在“更改”中，通过行内状态区分。同一文件同时存在已暂存和未暂存修改时，会出现在两个对应分组中：点击暂存文件比较 HEAD 与暂存区，点击普通更改比较暂存区与磁盘工作区。首次提交和新文件使用空文件作为左侧基准。
 
@@ -418,7 +411,7 @@ Git Graph 界面文案通过 697 个受类型约束的键成对提供简体中�
 
 侧栏历史使用 11px 轨道间距、22px 行高；每行按当前仍存在的轨道计算图形宽度，较早的多分支不会给后续单线提交留下大块空白。提交前不再另占展开箭头列，展开后直接列文件，不增加一行文件总数。文件行有文件图标和对齐的状态；提交说明优先显示，引用使用带图标的彩色圆角标签，当前引用突出显示，过长名称省略。
 
-顶部省略号勾选 **仓库／更改／提交图** 的显示；“更改”标题旁省略号提供 Git 操作。提交图标题栏提供分支范围、定位当前提交、获取、拉取、推送、刷新与更多，窄栏把网络动作收进更多菜单。提交图文件可切换 **以列表显示／以树形显示**，目录可折叠；更改列表支持按名称、路径或状态排序。文件行的操作槽、状态列固定，悬停不改变列位置。
+顶部省略号勾选 **仓库／更改／提交图** 的显示；“更改”标题旁省略号提供 Git 操作。提交图标题栏提供分支范围、定位当前提交、获取、拉取、推送、刷新与更多，窄栏把网络动作收进更多菜单。提交图文件可切换 **以列表显示／以树形显示**，目录可折叠；更改列表支持按名称、路径或状态排序。文件行的操作槽、状态列固定，悬停不改变列位置。SCM 文件提供打开、丢弃和暂存操作；差异视图可通过打开文件按钮回到文件。
 
 底部左侧状态栏显示当前分支、未提交标记 `*`、上游领先／落后计数和提交图入口。点击分支选择检出目标，右键管理当前分支；点击同步自动展示当前分支与上游的目标，点击 **确认同步** 后先拉取、再推送，拉取失败或冲突时停止，没有待推送提交则跳过推送。无上游时显示发布图标并打开设置上游的推送表单。同步入口右键另提供获取、拉取、推送和远端配置。状态刷新只访问本地 Git。Git Graph 标签使用分支图标，入口复用已经打开的仓库标签。
 
@@ -438,7 +431,7 @@ Monaco 的代码、简体中文界面、图标和浏览器 Worker 全部内嵌�
 
 点击 Git Graph 工具栏的终端图标、左侧底部终端图标，或按 **Ctrl + `** 打开仓库根目录的终端。有活动终端时，该快捷键重新聚焦最近会话；**Ctrl + Shift + `** 新建会话。文件树右键提供 **在所属仓库根目录打开集成终端**，从子目录文件操作时也会先定位 Git 根目录；文件不属于 Git 仓库时使用所在文件夹。
 
-默认在下方编辑组打开，终端设置可选当前组新标签、右侧或下方。终端顶部可以选择 Shell、新建、左右拆分、查找、清屏、终止和设置；右键还可向下拆分、重启 Shell、复制选中文本、粘贴、全选及复制仓库根路径。默认使用 Windows PowerShell，另外提供 Command Prompt、已安装的 PowerShell 7 和 PATH 中的 Bash。选择框决定新会话的 Shell，当前会话的 Shell 不会被静默替换。
+默认在下方编辑组（down）打开，没有独立底部 Panel；终端设置可选当前组新标签、右侧或下方。终端顶部可以选择 Shell、新建、左右拆分、查找、清屏、终止和设置；右键还可向下拆分、重启 Shell、复制选中文本、粘贴、全选及复制仓库根路径。默认使用 Windows PowerShell，另外提供 Command Prompt、已安装的 PowerShell 7 和 PATH 中的 Bash。选择框决定新会话的 Shell，当前会话的 Shell 不会被静默替换。
 
 终端按 Typora 当前实际背景和前景生成浅色／深色配色，同步光标、选区与 ANSI 颜色；切换主题时更新已经打开的终端，不重启 Shell、不清空输出。判断依据是页面计算后的颜色，不依赖主题文件名或本机 VS Code 设置。
 
@@ -448,7 +441,7 @@ Monaco 的代码、简体中文界面、图标和浏览器 Worker 全部内嵌�
 
 **以管理员身份打开仓库终端（UAC）** 位于文件树、Git Graph 空白处和终端的右键菜单中，也能从命令面板执行。它通过 Windows UAC 启动独立的管理员 PowerShell，并用 `Set-Location -LiteralPath` 定位同一仓库根目录；取消 UAC 时显示未启动。普通集成终端和 Typora 本身不会随之提权。自动测试验证命令编码和含中文、引号及特殊字符的路径，不自动接受或触发管理员授权。
 
-只读历史双栏、源代码管理侧栏的更改／提交图分区，以及工作区编辑组继续使用各自的可拖动分界线。中央 Git Graph 的提交详情固定紧跟所选提交行，不再额外拆成右侧或底部面板；五列表头边缘可直接调整各列宽度，表头右键提供 **重置五列宽度** 和完整设置入口。
+只读历史双栏、源代码管理侧栏的更改／提交图分区，以及工作区编辑组继续使用各自的可拖动分界线。中央 Git Graph 默认将详情放在所选提交行下，保留已有可选底部停靠；五列表头边缘可直接调整各列宽度，表头右键提供 **重置五列宽度** 和完整设置入口。
 
 Git Graph 的提交、分支、远端、标签、stash、未提交行、变更文件和空白处菜单均提供 **配置此右键菜单**。勾选决定显示项，修改立即保存在当前仓库配置中；`hidden_actions` 中 `commit:branch_create` 表示只在提交菜单隐藏该项，单独的 `branch_create` 表示全局隐藏。配置入口始终保留，避免隐藏全部操作后无法恢复。
 
@@ -460,9 +453,15 @@ Windows 集成终端要求 Windows 10 1903 或更新版本、x64 或 ARM64。已
 
 独立后台运行时固定为 Node `24.20.0`，官方来源与 x64 / ARM64 ZIP、可执行文件摘要见 [运行时清单](./node_runtime.json)；来源为 [Node 官方发行目录](https://nodejs.org/dist/v24.20.0/)。首次配置下载约 38 MB 的架构对应 ZIP，校验后只提取 `node.exe` 和 `LICENSE`。运行文件安装到 Typora 用户数据中的 `linux_note_enhancements/terminal_runtime/`，不依赖系统 Node，不修改 PATH。离线环境可把相同官方 ZIP 放进 `TYPORA_TERMINAL_CACHE` 指向的目录；默认缓存通过系统本地应用数据目录发现。缓存和提取文件仍须通过摘要校验。
 
-Typora 编辑页不支持 node-pty 的后台排空线程，因此每个会话使用独立的 Node 后台进程，通过 IPC 传递输入、输出和尺寸；输出采用确认与暂停机制限制积压。标签切换不销毁进程；进程断开 IPC 或收到关闭命令后清理伪终端。运行文件与 bundle、工作区核心一起校验、备份、安装和回滚。安装不会覆盖阅读位置、Git 评审、设置或用户后来安装的插件。
+Typora 编辑页不支持 node-pty 的后台排空线程，因此每个会话使用独立的 Node 后台进程，通过 IPC 传递输入、输出和尺寸；输出采用确认与暂停机制限制积压。标签切换不销毁进程；进程断开 IPC 或收到关闭命令后清理伪终端。运行文件与 bundle、工作区核心一起校验、备份、安装和回滚。安装保留阅读位置、Git 评审与已有产品设置；旧插件冲突在写入前预检，不承诺并行运行。
 
 `test_terminal.mjs` 验证真实后台进程、特殊字符工作目录、输入输出、尺寸、退出、环境隔离和 UAC 命令编码。`test_terminal_interaction.cjs` 用隐藏 Electron 发送真实鼠标与键盘，验证输入、方向键历史、Ctrl+C、复制、查找、菜单及窗口缩放。`test_reading_native.ps1 -suite terminal` 则在临时仓库的真实 Typora 窗口中检查会话、切换、分栏与回收；`-suite git`、`-suite reading` 和 `-suite paths` 继续检查原有功能。管理员 UAC 的人工交互和 ARM64、原生 Linux 环境不在已通过的自动验收范围内。
 
 
-部署迁移验证（2026-09-09）：`scripts/test_install_windows.ps1` 使用假安装目录与隔离 APPDATA，验证安装、重复安装、主题与核心损坏拒绝、插件包损坏拒绝、旧 direct 入口迁移、卸载后重装、失败事务回滚、其他插件设置与共享核心保留。`bash scripts/test_workspace_install.sh` 验证核心与独立插件文件事务、摘要拒绝和 JSON 设置合并；本次在 Windows Git Bash 执行库级测试，不能替代原生 Linux 或 MSYS2 UCRT64 入口验收。Linux 分支额外包含隔离 XDG 目录的完整配置、检查、重复安装、恢复及重装用例；这些入口已在 Git Bash 的 Linux 平台分支模拟下通过，但未覆盖真实 Linux 权限与系统发现。
+部署验证入口：`scripts/test_install_windows.ps1` 在假安装树与隔离 APPDATA 检查安装、重装、摘要损坏拒绝、迁移、恢复及失败回滚；`bash scripts/test_workspace_install.sh` 检查 Bash／Python 事务与模拟 Linux 分支。schema 4 的 Windows 隔离安装与 Python 事务目标已通过，覆盖 native_profile 编码拒绝、字段恢复、并发摘要冲突与失败回滚；真实安装及核验已通过，ASAR 未修改，profile 其他设置保留。Python 本轮在 Windows 执行，此前 Git Bash 模拟通过不能替代原生 Linux 权限与发现验证。
+
+最终构建与 `check` 通过。UI 首轮为36/37（`.cache/final_ui.log`），唯一失败是新增打开／丢弃／暂存按钮后的旧 Graph 首按钮列断言；仅修正测试后，完整 Graph 目标复跑通过（`.cache/graph_final_columns_target.log`，64.657秒），同一最终产品构建的37个目标全部通过，并非首轮整批零失败。最新原生集成18/18通过（`.cache/native_integrity_compare/native_integrated_release_final/`），覆盖原始 ASAR 下存活55秒、七菜单与真实未保存草稿。
+
+真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
+
+原生菜单 accelerator 与物理键盘的冲突尚未实证；renderer 或隔离原生夹具中的合成按键不能替代硬件快捷键验证。链接悬停、偏好入口等以 Electron 目标为证据，不归入原生18项。
