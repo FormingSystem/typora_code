@@ -58,6 +58,42 @@ app.whenReady().then(async () => {
   await wait(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap');return rail.dataset.updating==='false'&&Number(rail.dataset.commitCount)===${resize_before.commits + 1};})()`);
   await delay(300); assert.equal(await evaluate('Number(document.querySelector("content .linux-note-reading-minimap").dataset.commitCount)'), resize_before.commits + 1);
   assert(await evaluate('document.querySelector("#write").innerHTML===expected_after_update && document.querySelector(".typ-markdown-preview").innerHTML===original_preview'));
+  // 原生底栏的 z-index 低于 fixed 缩略图，正文容器仍伸入底栏；字数按钮必须保持可点。
+  await evaluate(`(() => {
+    window.footer_clicks=0;
+    window.mount_overlap_footer=owner=>{
+      const bounds=owner.getBoundingClientRect(),footer=document.createElement('footer');footer.className='ty-footer';
+      footer.style.cssText='position:fixed;z-index:4;height:30px;background:white;left:'+bounds.left+'px;width:'+owner.clientWidth+'px;top:'+(bounds.bottom-22)+'px';
+      const count=document.createElement('button');count.id='footer_word_count';count.textContent='755 词';count.style.cssText='position:absolute;right:4px;top:0;width:88px;height:30px';count.onclick=()=>{window.footer_clicks+=1;};
+      footer.append(count);document.body.append(footer);return footer;
+    };
+    window.overlap_footer=mount_overlap_footer(document.querySelector('content'));
+    window.footer_original_scroll=document.querySelector('content').scrollTop;
+  })()`);
+  const native_footer_clip = `Math.abs(document.querySelector('content .linux-note-reading-minimap').getBoundingClientRect().bottom-overlap_footer.getBoundingClientRect().top)<0.1`;
+  const native_full_height = `document.querySelector('content .linux-note-reading-minimap').getBoundingClientRect().height===document.querySelector('content').clientHeight`;
+  await wait(native_footer_clip);
+  assert(await evaluate(`document.querySelector('.typ-workspace-leaf .linux-note-reading-minimap').getBoundingClientRect().height===document.querySelector('.typ-workspace-leaf').clientHeight`), 'a footer in the native pane does not shorten the independent preview');
+  const footer_position = await evaluate(`(() => {const count=document.querySelector('#footer_word_count'),bounds=count.getBoundingClientRect(),x=Math.round(bounds.left+bounds.width/2),y=Math.round(bounds.top+10);return {x,y,hit:count.contains(document.elementFromPoint(x,y)),rail_bottom:document.querySelector('content .linux-note-reading-minimap').getBoundingClientRect().bottom,footer_top:overlap_footer.getBoundingClientRect().top};})()`);
+  assert(footer_position.hit, 'the word count owns the hit target inside the former overlapping minimap area');
+  for (const type of ['mouseMove','mouseDown','mouseUp']) test_window.webContents.sendInputEvent({type,x:footer_position.x,y:footer_position.y,button:'left',clickCount:1});
+  await wait('footer_clicks===1');
+  assert(await evaluate('document.querySelector("content").scrollTop===footer_original_scroll'), 'clicking word count cannot scroll the document through the minimap');
+  fs.writeFileSync(path.join(root,'footer_word_count.png'),(await test_window.webContents.capturePage()).toPNG());
+  for (const [hide,show] of [['overlap_footer.hidden=true','overlap_footer.hidden=false'],['overlap_footer.style.visibility="hidden"','overlap_footer.style.visibility="visible"'],['overlap_footer.style.opacity="0"','overlap_footer.style.opacity="1"']]) {
+    await evaluate(hide); await wait(native_full_height);
+    await evaluate(show); await wait(native_footer_clip);
+  }
+  await evaluate('overlap_footer.style.top=(document.querySelector("content").getBoundingClientRect().bottom-80)+"px"');
+  await wait(native_footer_clip);
+  assert(await evaluate('document.querySelector("content").scrollTop===footer_original_scroll && document.querySelector("#write").innerHTML===expected_after_update'));
+  await evaluate(`(() => {const owner=document.querySelector('.typ-workspace-leaf'),bounds=owner.getBoundingClientRect();overlap_footer.style.left=bounds.left+'px';overlap_footer.style.width=owner.clientWidth+'px';overlap_footer.style.top=(bounds.bottom-34)+'px';})()`);
+  await wait(native_full_height);
+  await wait(`Math.abs(document.querySelector('.typ-workspace-leaf .linux-note-reading-minimap').getBoundingClientRect().bottom-overlap_footer.getBoundingClientRect().top)<0.1`);
+  assert(await evaluate('document.querySelector(".typ-markdown-preview").innerHTML===original_preview'), 'footer movement and preview cropping preserve preview content');
+  await evaluate('overlap_footer.remove()');
+  await wait(`document.querySelector('.typ-workspace-leaf .linux-note-reading-minimap').getBoundingClientRect().height===document.querySelector('.typ-workspace-leaf').clientHeight`);
+  await wait(`document.querySelector('content .linux-note-reading-minimap').dataset.updating==='false'`);
   await evaluate('document.querySelector(".typ-workspace-leaf").remove();window.leaves=[];');
   await wait('document.querySelectorAll(".linux-note-reading-minimap").length===1');
   // .md 与 .txt/.ts 的真实 Monaco 单文件切换；原生 content 按核心行为归零，不借Graph替代。
@@ -113,11 +149,17 @@ app.whenReady().then(async () => {
   await evaluate(`(() => {const lines=document.querySelector('.CodeMirror-lines'),row=document.createElement('pre');row.className='CodeMirror-line';row.textContent='virtual row after source scroll';lines.replaceChildren(row);document.querySelector('.CodeMirror-scroll').dispatchEvent(new Event('scroll'));})()`);
   await delay(350);
   assert.deepEqual(await evaluate(`(() => {const rail=document.querySelector('.CodeMirror .linux-note-reading-minimap'),canvas=rail.querySelector('canvas');return {same:canvas===window.stable_source_canvas,pixels:canvas.toDataURL(),commits:Number(rail.dataset.commitCount)};})()`), {same:true,pixels:source_state.pixels,commits:source_state.commits});
+  await evaluate('window.source_footer_scroll=document.querySelector(".CodeMirror-scroll").scrollTop;overlap_footer=mount_overlap_footer(document.querySelector(".CodeMirror"))');
+  await wait(`Math.abs(document.querySelector('.CodeMirror .linux-note-reading-minimap').getBoundingClientRect().bottom-overlap_footer.getBoundingClientRect().top)<0.1`);
+  assert(await evaluate(`(() => {const count=document.querySelector('#footer_word_count'),bounds=count.getBoundingClientRect();return count.contains(document.elementFromPoint(bounds.left+bounds.width/2,bounds.top+10))&&document.querySelector('.CodeMirror-scroll').scrollTop===source_footer_scroll;})()`), 'source mode reserves the visible footer without changing CodeMirror position');
+  await evaluate('overlap_footer.hidden=true');
+  await wait(`document.querySelector('.CodeMirror .linux-note-reading-minimap').getBoundingClientRect().height===document.querySelector('.CodeMirror').clientHeight`);
+  await evaluate('overlap_footer.remove()');
   await evaluate(`File.editor.sourceView.inSourceMode=false;document.querySelector('#source').style.display='none';document.querySelector('content').style.display='block';`);
   await wait('!!document.querySelector("content .linux-note-reading-minimap[data-ready=true]")');
   assert(await evaluate('source_handlers.size===0 && !document.querySelector(".CodeMirror .linux-note-reading-minimap")'));
   await evaluate('window.dispatchEvent(new Event("pagehide"))');
   assert(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length===0 && !document.querySelector("[data-linux-note-minimap-owner]")'));
-  console.log(JSON.stringify({status:'PASS',checks:['Markdown and real Monaco txt/ts switches hide inactive minimaps synchronously, retain full-size reading canvas and restore bounded source minimaps','actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,screenshot:path.join(root,'clipped_minimap.png')},null,2));
+  console.log(JSON.stringify({status:'PASS',checks:['Markdown and real Monaco txt/ts switches hide inactive minimaps synchronously, retain full-size reading canvas and restore bounded source minimaps','actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','visible overlapping footer owns word-count hit target and mouse click without document scrolling','hidden and transparent footers restore the full reading viewport','footer position and horizontal intersection control native and preview bounds independently','CodeMirror source minimap also reserves the visible footer','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,footer_position,screenshot:path.join(root,'clipped_minimap.png')},null,2));
   test_window.destroy(); app.exit(0);
 }).catch(error=>{console.error(error);test_window?.destroy();app.exit(1);});

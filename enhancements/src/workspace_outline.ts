@@ -1,6 +1,7 @@
 import {install_workspace_source_outline} from "./workspace_source_outline";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
+import {reading_viewport_bounds} from "./reading_viewport";
 import outline_css from "./workspace_outline.css";
 
 export type workspace_outline_host = {
@@ -41,7 +42,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   let outline_open = false;
   let selected_heading:HTMLElement|undefined;
   let selected_label:HTMLElement|null|undefined;
-  // 相邻章节边界留出 12 CSS px 的双向滞回，避免滚轮惯性／亚像素布局在边界反复改选。
+  // 标题完整进入视口后才接管；离开时保留 12 CSS px 余量，避免边缘微动反复改选。
   const heading_boundary_slack = 12;
   const native_outline = host.outline;
   const native_highlight = native_outline?.highlightVisibleHeader;
@@ -55,19 +56,32 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const headings = Array.from(write.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
     if (!headings.length) return;
     // offsetTop 的参照物会随正文容器定位变化；与滚动视口在同一坐标系比较。
-    const top = content.getBoundingClientRect().top + content.clientTop;
+    const {top, bottom} = reading_viewport_bounds(content);
     const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
     if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
     explicit_position = undefined;
-    let previous = headings[0];
-    for (const heading of headings) {
-      if (heading.getBoundingClientRect().top <= top) previous = heading;
-      else break;
-    }
+    const bounds = headings.map(heading => heading.getBoundingClientRect());
+    const readable_top = top + heading_boundary_slack;
+    const readable_bottom = bottom - heading_boundary_slack;
+    const readable_height = Math.max(0, readable_bottom - readable_top);
+    const visible_index = bounds.findIndex(rect => rect.height > 0 && (
+      rect.top >= readable_top && rect.bottom <= readable_bottom
+      // 窄窗中多行标题可能高于整个视口，覆盖可读区时同样视为当前标题。
+      || readable_height > 0 && rect.height > readable_height && rect.top <= readable_top && rect.bottom >= readable_bottom
+    ));
     if (selected_index >= 0) {
-      const next_index = headings.indexOf(previous);
-      if (next_index === selected_index + 1 && previous.getBoundingClientRect().top > top - heading_boundary_slack) return selected_heading;
-      if (next_index < selected_index && selected_heading!.getBoundingClientRect().top < top + heading_boundary_slack) return selected_heading;
+      const selected_bounds = bounds[selected_index];
+      const still_visible = selected_bounds.height > 0 && selected_bounds.top >= top - heading_boundary_slack
+        && selected_bounds.top < bottom + heading_boundary_slack;
+      // 同屏保留正在阅读的标题；向上滚动时，更早的完整标题可以重新接管。
+      if (still_visible && (visible_index < 0 || visible_index >= selected_index)) return selected_heading;
+    }
+    if (visible_index >= 0) return headings[visible_index];
+    // 长段落／表格中没有可读标题时，才按正文所在章节回退，不能要求下个标题先滚出屏幕。
+    let previous = headings[0];
+    for (let index = 0; index < headings.length; index++) {
+      if (bounds[index].top <= top) previous = headings[index];
+      else break;
     }
     return previous;
   };
@@ -107,7 +121,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const expected=cid?label_for(outline,cid):undefined;
     if(selected_heading===heading&&selected_label===expected&&expected?.classList.contains("outline-active"))return;
     selected_heading=heading;selected_label=expected;
-    // 传入已判定的唯一标题。宿主默认查找“首个可见标题”，不能再与当前章节选择竞争。
+    // 原生默认判定与延迟回调统一采用这里的唯一标题，避免两套视口规则竞争。
     try { native_highlight?.call(native_outline, [heading], 0, true, false); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
     const active = outline.querySelector<HTMLElement>(".outline-label.outline-active");
     if (!active || (cid && active.getAttribute("data-ref") !== cid)) fallback_sync(outline, heading);
@@ -132,10 +146,17 @@ export function install_workspace_outline(host: workspace_outline_host) {
       return;
     }
     const write = document.querySelector<HTMLElement>("#write");
+    const content = document.querySelector<HTMLElement>("content");
+    const viewport = content && reading_viewport_bounds(content);
     const targets = headings == null ? Array.from(write?.querySelectorAll(":scope > :is(h1,h2,h3,h4,h5,h6)") || [])
       : Array.from(headings as ArrayLike<unknown>);
     const explicit_target = (headings != null || index != null) && (index == null ? targets : [targets[index]])
-      .some(node => node instanceof HTMLElement && node.parentElement === write && node.matches("h1,h2,h3,h4,h5,h6"));
+      .some(node => {
+        if (!(node instanceof HTMLElement) || node.parentElement !== write || !node.matches("h1,h2,h3,h4,h5,h6") || !viewport) return false;
+        const rect = node.getBoundingClientRect();
+        // 原生点击后的延迟回调可能晚于用户继续滚动；屏外旧目标不能锁住新的阅读位置。
+        return rect.height > 0 && rect.top >= viewport.top - heading_boundary_slack && rect.top < viewport.bottom + heading_boundary_slack;
+      });
     if (explicit_target || blink === true) {
       // 显式标题跳转和手动“高亮当前标题”仍走原生语义，且取消尚未执行的旧滚动同步。
       cancel_sync();

@@ -40,7 +40,7 @@ app.whenReady().then(async()=>{
   await evaluate(`document.dispatchEvent(new Event('scroll'))`);
   assert(await evaluate(`document.querySelector('.workspace-link-hover').hidden`),'scroll dismisses the tooltip');
   await evaluate(`enter('#external')`);await delay(1100);
-  assert.deepEqual(await evaluate('tip_info()'),{original:'https://example.invalid/?q=%3Cimg%3E',target:''});
+  assert.deepEqual(await evaluate('tip_info()'),{original:'https://example.invalid/?q=<img>',target:''});
   assert(await evaluate(`!document.querySelector('.workspace-link-hover img')&&document.querySelector('.workspace-link-hover').getBoundingClientRect().right<=innerWidth`),'target is inert text contained in the viewport');
   await evaluate(`document.querySelector('#external').setAttribute('href','https://example.invalid/changed')`);await delay(20);
   assert(await evaluate(`document.querySelector('.workspace-link-hover').hidden`),'changing a link dismisses stale target information');
@@ -59,6 +59,25 @@ app.whenReady().then(async()=>{
   assert(await evaluate(`!document.querySelector('.workspace-link-hover img')`),'decoded target is rendered with textContent');
   await evaluate(`window.dispatchEvent(new Event('blur'));document.querySelector('#outside').setAttribute('href','../../outside.md');document.querySelector('#external').setAttribute('href','https://example.invalid/?q=%3Cimg%3E')`);
   assert(await evaluate(`document.querySelector('.workspace-link-hover').hidden`),'window blur dismisses interactive tooltip');
+  const encoded_chinese='../'+encodeURIComponent('治理')+'/'+encodeURIComponent('开发规范')+'.md#'+encodeURIComponent('第2章_中文接口🔗');
+  const encoded_file_url=require('node:url').pathToFileURL(path.join(root,'project-docs','原始%标题.md')).href+'#'+encodeURIComponent('章节锚点');
+  const readable_cases=[
+    {href:encoded_chinese,original:'../治理/开发规范.md#第2章_中文接口🔗',target:'项目内：/治理/开发规范.md#第2章_中文接口🔗'},
+    {href:'notes/%25E6%2596%2587.md#%25E6%2596%2587',original:'notes/%E6%96%87.md#%E6%96%87',target:'项目内：/project-docs/notes/%E6%96%87.md#%E6%96%87'},
+    {href:'hardware.md#%E6%8E%A5%E5%8F%A3%2F%23%3F%26%3D%25',original:'hardware.md#接口%2F%23%3F%26%3D%',target:'项目内：/project-docs/hardware.md#接口%2F%23%3F%26%3D%'},
+    {href:'hardware.md#%E6%8E%A5%E5%8F%A3%FF%ZZ%E4%B8%00%0A',original:'hardware.md#接口%FF%ZZ%E4%B8%00%0A',target:'项目内：/project-docs/hardware.md#接口%FF%ZZ%E4%B8%00%0A'},
+    {href:encoded_file_url,original:decodeURI(encoded_file_url),target:'项目内：/project-docs/原始%标题.md#章节锚点'},
+  ];
+  for(const test_case of readable_cases){
+    await evaluate(`window.dispatchEvent(new Event('blur'));document.querySelector('#cancel').setAttribute('href',${JSON.stringify(test_case.href)});enter('#cancel')`);await delay(1100);
+    assert.deepEqual(await evaluate('tip_info()'),{original:test_case.original,target:test_case.target},'link and project-relative target are readable without repeated decoding');
+    assert.equal(await evaluate(`document.querySelector('#cancel').getAttribute('href')`),test_case.href,'display decoding never changes the navigable href');
+    await evaluate(`document.querySelector('.workspace-link-copy').click()`);
+    assert.equal(await evaluate('copied.at(-1)'),test_case.href,'copy retains the exact encoded link including reserved characters and malformed escapes');
+    assert.equal(await evaluate('opens'),1,'readable hover and copy never invoke document navigation');
+    assert(await evaluate(`!document.querySelector('.workspace-link-hover img,.workspace-link-hover script')`),'readable link remains inert text');
+  }
+  await evaluate(`window.dispatchEvent(new Event('blur'));document.querySelector('#cancel').setAttribute('href','missing.yml')`);
   assert(await evaluate(`document.querySelector('#write').innerHTML===original_html`),'tooltip actions preserve the original document and host attributes');
   await evaluate(`leave('#external');enter('#cancel');document.querySelector('#cancel').remove()`);await delay(1100);
   assert(await evaluate(`document.querySelector('.workspace-link-hover').hidden`),'removed document cannot leave a late tooltip');

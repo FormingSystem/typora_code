@@ -24720,10 +24720,10 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/platform/configuration/common/configuration.js
-  function toValuesTree(properties, conflictReporter) {
+  function toValuesTree(properties2, conflictReporter) {
     const root = /* @__PURE__ */ Object.create(null);
-    for (const key in properties) {
-      addToValueTree(root, key, properties[key], conflictReporter);
+    for (const key in properties2) {
+      addToValueTree(root, key, properties2[key], conflictReporter);
     }
     return root;
   }
@@ -25077,17 +25077,17 @@ https://creativecommons.org/licenses/by/4.0/
           return configuration;
         }
         registerConfigurations(configurations, validate = true) {
-          const properties = /* @__PURE__ */ new Set();
-          this.doRegisterConfigurations(configurations, validate, properties);
+          const properties2 = /* @__PURE__ */ new Set();
+          this.doRegisterConfigurations(configurations, validate, properties2);
           contributionRegistry.registerSchema(resourceLanguageSettingsSchemaId, this.resourceLanguageSettingsSchema);
           this._onDidSchemaChange.fire();
-          this._onDidUpdateConfiguration.fire({ properties });
+          this._onDidUpdateConfiguration.fire({ properties: properties2 });
         }
         registerDefaultConfigurations(configurationDefaults) {
-          const properties = /* @__PURE__ */ new Set();
-          this.doRegisterDefaultConfigurations(configurationDefaults, properties);
+          const properties2 = /* @__PURE__ */ new Set();
+          this.doRegisterDefaultConfigurations(configurationDefaults, properties2);
           this._onDidSchemaChange.fire();
-          this._onDidUpdateConfiguration.fire({ properties, defaultsOverrides: true });
+          this._onDidUpdateConfiguration.fire({ properties: properties2, defaultsOverrides: true });
         }
         doRegisterDefaultConfigurations(configurationDefaults, bucket) {
           this.registeredConfigurationDefaults.push(...configurationDefaults);
@@ -25208,10 +25208,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
         validateAndRegisterProperties(configuration, validate = true, extensionInfo, restrictedProperties, scope = 4, bucket) {
           scope = isUndefinedOrNull(configuration.scope) ? scope : configuration.scope;
-          const properties = configuration.properties;
-          if (properties) {
-            for (const key in properties) {
-              const property = properties[key];
+          const properties2 = configuration.properties;
+          if (properties2) {
+            for (const key in properties2) {
+              const property = properties2[key];
               property.section = {
                 id: configuration.id,
                 title: configuration.title,
@@ -25219,11 +25219,11 @@ https://creativecommons.org/licenses/by/4.0/
                 extensionInfo: configuration.extensionInfo
               };
               if (validate && validateProperty(key, property, extensionInfo?.id)) {
-                delete properties[key];
+                delete properties2[key];
                 continue;
               }
               property.source = extensionInfo;
-              property.defaultDefaultValue = properties[key].default;
+              property.defaultDefaultValue = properties2[key].default;
               this.updatePropertyDefaultValue(key, property);
               if (OVERRIDE_PROPERTY_REGEX.test(key)) {
                 property.scope = void 0;
@@ -25240,11 +25240,11 @@ https://creativecommons.org/licenses/by/4.0/
                 console.error("Invalid tag 'onExP' found for property '".concat(key, "'. Please use 'experiment' property instead."));
                 property.experiment = { mode: "startup" };
               }
-              const excluded = properties[key].hasOwnProperty("included") && !properties[key].included;
-              const policyName = properties[key].policy?.name;
-              const policyReferenceName = properties[key].policyReference?.name;
+              const excluded = properties2[key].hasOwnProperty("included") && !properties2[key].included;
+              const policyName = properties2[key].policy?.name;
+              const policyReferenceName = properties2[key].policyReference?.name;
               if (excluded) {
-                this.excludedConfigurationProperties[key] = properties[key];
+                this.excludedConfigurationProperties[key] = properties2[key];
                 if (policyName) {
                   this.policyConfigurations.set(policyName, key);
                   bucket.add(key);
@@ -25253,7 +25253,7 @@ https://creativecommons.org/licenses/by/4.0/
                   this.addPolicyReferenceConfiguration(policyReferenceName, key);
                   bucket.add(key);
                 }
-                delete properties[key];
+                delete properties2[key];
               } else {
                 bucket.add(key);
                 if (policyName) {
@@ -25262,9 +25262,9 @@ https://creativecommons.org/licenses/by/4.0/
                 if (policyReferenceName) {
                   this.addPolicyReferenceConfiguration(policyReferenceName, key);
                 }
-                this.configurationProperties[key] = properties[key];
-                if (!properties[key].deprecationMessage && properties[key].markdownDeprecationMessage) {
-                  properties[key].deprecationMessage = properties[key].markdownDeprecationMessage;
+                this.configurationProperties[key] = properties2[key];
+                if (!properties2[key].deprecationMessage && properties2[key].markdownDeprecationMessage) {
+                  properties2[key].deprecationMessage = properties2[key].markdownDeprecationMessage;
                 }
               }
             }
@@ -25295,10 +25295,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
         registerJSONConfiguration(configuration) {
           const register4 = (configuration2) => {
-            const properties = configuration2.properties;
-            if (properties) {
-              for (const key in properties) {
-                this.updateSchema(key, properties[key]);
+            const properties2 = configuration2.properties;
+            if (properties2) {
+              for (const key in properties2) {
+                this.updateSchema(key, properties2[key]);
               }
             }
             const subNodes = configuration2.allOf;
@@ -38716,18 +38716,18 @@ https://creativecommons.org/licenses/by/4.0/
             }
           };
         }
-        getOrCreateRule(properties) {
-          const key = this.computeUniqueKey(properties);
+        getOrCreateRule(properties2) {
+          const key = this.computeUniqueKey(properties2);
           let existingRule = this._rules.get(key);
           if (!existingRule) {
             const counter = this._counter++;
-            existingRule = new RefCountedCssRule(key, "dyn-rule-".concat(this._instanceId, "-").concat(counter), isInShadowDOM(this._editor.getContainerDomNode()) ? this._editor.getContainerDomNode() : void 0, properties);
+            existingRule = new RefCountedCssRule(key, "dyn-rule-".concat(this._instanceId, "-").concat(counter), isInShadowDOM(this._editor.getContainerDomNode()) ? this._editor.getContainerDomNode() : void 0, properties2);
             this._rules.set(key, existingRule);
           }
           return existingRule;
         }
-        computeUniqueKey(properties) {
-          return JSON.stringify(properties);
+        computeUniqueKey(properties2) {
+          return JSON.stringify(properties2);
         }
         garbageCollect() {
           for (const rule of this._rules.values()) {
@@ -38738,19 +38738,19 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       RefCountedCssRule = class {
-        constructor(key, className2, _containerElement, properties) {
+        constructor(key, className2, _containerElement, properties2) {
           this.key = key;
           this.className = className2;
-          this.properties = properties;
+          this.properties = properties2;
           this._referenceCount = 0;
           this._styleElementDisposables = new DisposableStore();
           this._styleElement = createStyleSheet(_containerElement, void 0, this._styleElementDisposables);
           this._styleElement.textContent = this.getCssText(this.className, this.properties);
         }
-        getCssText(className2, properties) {
+        getCssText(className2, properties2) {
           let str = ".".concat(className2, " {");
-          for (const prop in properties) {
-            const value = properties[prop];
+          for (const prop in properties2) {
+            const value = properties2[prop];
             let cssValue;
             if (typeof value === "object") {
               cssValue = asCssVariable(value.id);
@@ -102994,16 +102994,16 @@ https://creativecommons.org/licenses/by/4.0/
           const overrides = this.toOverrides(raw, (message) => this.logService.error("Conflict in settings file ".concat(this._name, ": ").concat(message)));
           return { contents, keys, overrides, restricted: filtered.restricted, hasExcludedProperties: filtered.hasExcludedProperties };
         }
-        filter(properties, configurationProperties, excludedConfigurationProperties, filterOverriddenProperties, options2) {
+        filter(properties2, configurationProperties, excludedConfigurationProperties, filterOverriddenProperties, options2) {
           let hasExcludedProperties = false;
           if (!options2?.scopes && !options2?.skipRestricted && !options2?.skipUnregistered && !options2?.exclude?.length) {
-            return { raw: properties, restricted: [], hasExcludedProperties };
+            return { raw: properties2, restricted: [], hasExcludedProperties };
           }
           const raw = {};
           const restricted = [];
-          for (const key in properties) {
+          for (const key in properties2) {
             if (OVERRIDE_PROPERTY_REGEX.test(key) && filterOverriddenProperties) {
-              const result = this.filter(properties[key], configurationProperties, excludedConfigurationProperties, false, options2);
+              const result = this.filter(properties2[key], configurationProperties, excludedConfigurationProperties, false, options2);
               raw[key] = result.raw;
               hasExcludedProperties = hasExcludedProperties || result.hasExcludedProperties;
               restricted.push(...result.restricted);
@@ -103013,7 +103013,7 @@ https://creativecommons.org/licenses/by/4.0/
                 restricted.push(key);
               }
               if (this.shouldInclude(key, propertySchema, excludedConfigurationProperties, options2)) {
-                raw[key] = properties[key];
+                raw[key] = properties2[key];
               } else {
                 hasExcludedProperties = true;
               }
@@ -103418,12 +103418,12 @@ https://creativecommons.org/licenses/by/4.0/
         }
         resetConfigurationModel() {
           this._configurationModel = ConfigurationModel.createEmptyModel(this.logService);
-          const properties = Registry.as(Extensions4.Configuration).getConfigurationProperties();
-          this.updateConfigurationModel(Object.keys(properties), properties);
+          const properties2 = Registry.as(Extensions4.Configuration).getConfigurationProperties();
+          this.updateConfigurationModel(Object.keys(properties2), properties2);
         }
-        updateConfigurationModel(properties, configurationProperties) {
+        updateConfigurationModel(properties2, configurationProperties) {
           const configurationDefaultsOverrides = this.getConfigurationDefaultOverrides();
-          for (const key of properties) {
+          for (const key of properties2) {
             const defaultOverrideValue = configurationDefaultsOverrides[key];
             const propertySchema = configurationProperties[key];
             if (defaultOverrideValue !== void 0) {
@@ -225271,6 +225271,32 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/reading_viewport.ts
+  function reading_viewport_bounds(owner) {
+    const rect = owner.getBoundingClientRect();
+    const view = owner.ownerDocument.defaultView;
+    const client_left = rect.left + owner.clientLeft;
+    const client_top = rect.top + owner.clientTop;
+    const left = Math.max(0, client_left);
+    const top = Math.max(0, client_top);
+    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
+      const footer_rect = footer.getBoundingClientRect();
+      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
+      let visible2 = true;
+      for (let element = footer; element; element = element.parentElement) {
+        const style = view?.getComputedStyle(element);
+        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
+          visible2 = false;
+          break;
+        }
+      }
+      if (visible2) bottom = Math.max(top, footer_rect.top);
+    }
+    return { top, bottom, left, right };
+  }
+
   // src/workspace_outline.css
   var workspace_outline_default = "";
 
@@ -225314,19 +225340,25 @@ https://creativecommons.org/licenses/by/4.0/
       if (!content || !write) return;
       const headings = Array.from(write.children).filter((node) => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
       if (!headings.length) return;
-      const top = content.getBoundingClientRect().top + content.clientTop;
+      const { top, bottom } = reading_viewport_bounds(content);
       const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
       if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
       explicit_position = void 0;
-      let previous = headings[0];
-      for (const heading3 of headings) {
-        if (heading3.getBoundingClientRect().top <= top) previous = heading3;
-        else break;
-      }
+      const bounds = headings.map((heading3) => heading3.getBoundingClientRect());
+      const readable_top = top + heading_boundary_slack;
+      const readable_bottom = bottom - heading_boundary_slack;
+      const readable_height = Math.max(0, readable_bottom - readable_top);
+      const visible_index = bounds.findIndex((rect) => rect.height > 0 && (rect.top >= readable_top && rect.bottom <= readable_bottom || readable_height > 0 && rect.height > readable_height && rect.top <= readable_top && rect.bottom >= readable_bottom));
       if (selected_index >= 0) {
-        const next_index = headings.indexOf(previous);
-        if (next_index === selected_index + 1 && previous.getBoundingClientRect().top > top - heading_boundary_slack) return selected_heading;
-        if (next_index < selected_index && selected_heading.getBoundingClientRect().top < top + heading_boundary_slack) return selected_heading;
+        const selected_bounds = bounds[selected_index];
+        const still_visible = selected_bounds.height > 0 && selected_bounds.top >= top - heading_boundary_slack && selected_bounds.top < bottom + heading_boundary_slack;
+        if (still_visible && (visible_index < 0 || visible_index >= selected_index)) return selected_heading;
+      }
+      if (visible_index >= 0) return headings[visible_index];
+      let previous = headings[0];
+      for (let index = 0; index < headings.length; index++) {
+        if (bounds[index].top <= top) previous = headings[index];
+        else break;
       }
       return previous;
     };
@@ -225398,8 +225430,14 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       const write = document.querySelector("#write");
+      const content = document.querySelector("content");
+      const viewport = content && reading_viewport_bounds(content);
       const targets = headings == null ? Array.from(write?.querySelectorAll(":scope > :is(h1,h2,h3,h4,h5,h6)") || []) : Array.from(headings);
-      const explicit_target = (headings != null || index != null) && (index == null ? targets : [targets[index]]).some((node) => node instanceof HTMLElement && node.parentElement === write && node.matches("h1,h2,h3,h4,h5,h6"));
+      const explicit_target = (headings != null || index != null) && (index == null ? targets : [targets[index]]).some((node) => {
+        if (!(node instanceof HTMLElement) || node.parentElement !== write || !node.matches("h1,h2,h3,h4,h5,h6") || !viewport) return false;
+        const rect = node.getBoundingClientRect();
+        return rect.height > 0 && rect.top >= viewport.top - heading_boundary_slack && rect.top < viewport.bottom + heading_boundary_slack;
+      });
       if (explicit_target || blink === true) {
         cancel_sync();
         native_highlight?.call(this, headings, index, expand, blink);
@@ -225477,6 +225515,127 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_document_margin.css
+  var workspace_document_margin_default = "";
+
+  // src/workspace_document_margin.ts
+  var SETTINGS_KEY2 = "linux-note:workspace-ui-appearance:v1";
+  var MINIMUM_MARGIN = 0;
+  var MAXIMUM_MARGIN = 24;
+  var ROOT_ATTRIBUTE = "data-linux-note-document-margin";
+  var properties = ["--linux-note-document-margin", "--linux-note-document-width"];
+  var bindings3 = /* @__PURE__ */ new WeakMap();
+  function normalize_margin(value) {
+    const margin = Number(value);
+    return Number.isFinite(margin) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(margin))) : 0;
+  }
+  function stored_appearance() {
+    const raw = localStorage.getItem(SETTINGS_KEY2);
+    if (!raw) return {};
+    const value = JSON.parse(raw);
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("\u539F\u6709\u5916\u89C2\u8BBE\u7F6E\u65E0\u6CD5\u8BFB\u53D6\u3002");
+    return value;
+  }
+  function read_margin() {
+    try {
+      return normalize_margin(stored_appearance().document_margin_percent);
+    } catch {
+      return 0;
+    }
+  }
+  function preserve_reading_position(change) {
+    const content = document.querySelector("content");
+    const write = content?.querySelector(":scope > #write");
+    const position2 = content && write && write.getBoundingClientRect().height > 0 ? capture_position(content, write) : void 0;
+    change();
+    if (position2 && content?.isConnected && write?.parentElement === content) apply_position(content, write, position2);
+  }
+  function install_workspace_document_margin(footer) {
+    const existing = bindings3.get(footer);
+    if (existing) return existing;
+    const root = document.documentElement;
+    const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
+    const previous_properties = properties.map((name) => ({ name, value: root.style.getPropertyValue(name), priority: root.style.getPropertyPriority(name) }));
+    const style = acquire_workspace_style("typora-code-style:workspace_document_margin", workspace_document_margin_default);
+    const container = document.createElement("label");
+    container.className = "linux-note-document-margin";
+    const description = "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD";
+    container.title = description;
+    const label = document.createElement("span");
+    label.className = "linux-note-document-margin-label";
+    label.textContent = "\u8FB9\u8DDD";
+    const input = document.createElement("input");
+    input.type = "range";
+    input.min = String(MINIMUM_MARGIN);
+    input.max = String(MAXIMUM_MARGIN);
+    input.step = "1";
+    input.setAttribute("aria-label", "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD\u767E\u5206\u6BD4");
+    const output = document.createElement("output");
+    output.setAttribute("aria-live", "polite");
+    container.append(label, input, output);
+    footer.insertBefore(container, footer.querySelector(":scope > .footer-item-right"));
+    let disposed = false;
+    let active_margin = read_margin();
+    const sync_control = () => {
+      input.value = String(active_margin);
+      output.value = "".concat(active_margin, "%");
+      input.style.setProperty("--linux-note-range-progress", "".concat(active_margin * 100 / MAXIMUM_MARGIN, "%"));
+    };
+    const apply3 = (value) => {
+      active_margin = normalize_margin(value);
+      preserve_reading_position(() => {
+        root.setAttribute(ROOT_ATTRIBUTE, "ready");
+        root.style.setProperty(properties[0], "".concat(active_margin, "%"));
+        root.style.setProperty(properties[1], "".concat(100 - active_margin * 2, "%"));
+      });
+      sync_control();
+    };
+    const on_input = () => {
+      const value = normalize_margin(input.value);
+      try {
+        localStorage.setItem(SETTINGS_KEY2, JSON.stringify({ ...stored_appearance(), document_margin_percent: value }));
+      } catch (error) {
+        sync_control();
+        input.setAttribute("aria-invalid", "true");
+        container.title = "\u8FB9\u8DDD\u4FDD\u5B58\u5931\u8D25\uFF1A".concat(String(error?.message || error));
+        console.warn("[Typora Code document margin] \u4FDD\u5B58\u5931\u8D25", error);
+        return;
+      }
+      input.removeAttribute("aria-invalid");
+      container.title = description;
+      apply3(value);
+    };
+    const on_storage = (event) => {
+      if (!disposed && (event.key === SETTINGS_KEY2 || event.key === null)) {
+        input.removeAttribute("aria-invalid");
+        container.title = description;
+        apply3(read_margin());
+      }
+    };
+    input.addEventListener("input", on_input);
+    window.addEventListener("storage", on_storage);
+    apply3(active_margin);
+    const binding = { dispose() {
+      if (disposed) return;
+      disposed = true;
+      input.removeEventListener("input", on_input);
+      window.removeEventListener("storage", on_storage);
+      preserve_reading_position(() => {
+        container.remove();
+        if (previous_attribute === null) root.removeAttribute(ROOT_ATTRIBUTE);
+        else root.setAttribute(ROOT_ATTRIBUTE, previous_attribute);
+        for (const property of previous_properties) {
+          if (property.value) root.style.setProperty(property.name, property.value, property.priority);
+          else root.style.removeProperty(property.name);
+        }
+        style.remove();
+      });
+      bindings3.delete(footer);
+    } };
+    bindings3.set(footer, binding);
+    return binding;
+  }
+
   // src/workspace_footer.css
   var workspace_footer_default = "";
 
@@ -225500,7 +225659,8 @@ https://creativecommons.org/licenses/by/4.0/
     footer.removeAttribute("aria-hidden");
     footer.dataset.workspaceFooter = "ready";
     sidebar.dataset.workspaceFooter = "moved";
-    footer.insertBefore(actions, footer.querySelector(".footer-item-right"));
+    footer.insertBefore(actions, footer.querySelector(":scope > .footer-item-right"));
+    const document_margin = install_workspace_document_margin(footer);
     const control_icons = bind_workspace_control_icons(footer, [
       ["#sidebar-new-file-btn>.ty-icon", "new-file"],
       ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon", "more"],
@@ -225527,6 +225687,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       observer.disconnect();
       control_icons.dispose();
+      document_margin.dispose();
       original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
       for (const [name, present] of original_classes) actions.classList.toggle(name, present);
       if (original_role === null) actions.removeAttribute("role");
@@ -226214,13 +226375,13 @@ https://creativecommons.org/licenses/by/4.0/
   var SIDEBAR_MIN_WIDTH = 170;
   var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
   var EDITOR_MIN_WIDTH = 220;
-  var bindings3 = /* @__PURE__ */ new WeakMap();
+  var bindings4 = /* @__PURE__ */ new WeakMap();
   function install_workspace_sidebar_sash(options2) {
     const sash = document.querySelector("#typora-sidebar-resizer");
     const sidebar_element = document.querySelector("#typora-sidebar");
     const ribbon = document.querySelector(".typ-ribbon");
     if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings3.get(sash);
+    const existing = bindings4.get(sash);
     if (existing) return existing;
     const root = document.documentElement;
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
@@ -226397,10 +226558,10 @@ https://creativecommons.org/licenses/by/4.0/
       delete sash.dataset.workspaceSidebarSash;
       root.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
-      bindings3.delete(sash);
+      bindings4.delete(sash);
     };
     const binding = { element: sash, refresh, dispose: dispose2 };
-    bindings3.set(sash, binding);
+    bindings4.set(sash, binding);
     window.addEventListener("pagehide", dispose2, { once: true });
     refresh();
     return binding;
@@ -226631,10 +226792,14 @@ https://creativecommons.org/licenses/by/4.0/
         rail.hidden = true;
         return false;
       }
-      const bounds = target.owner.getBoundingClientRect();
-      rail_height = Math.max(1, target.owner.clientHeight);
-      rail.style.left = "".concat(bounds.left + target.owner.clientWidth - MINIMAP_WIDTH - 4, "px");
-      rail.style.top = "".concat(bounds.top + target.owner.clientTop, "px");
+      const bounds = reading_viewport_bounds(target.owner);
+      rail_height = bounds.bottom - bounds.top;
+      if (rail_height <= 0 || bounds.right - bounds.left <= MINIMAP_WIDTH) {
+        rail.hidden = true;
+        return false;
+      }
+      rail.style.left = "".concat(bounds.right - MINIMAP_WIDTH - 4, "px");
+      rail.style.top = "".concat(bounds.top, "px");
       rail.style.height = "".concat(rail_height, "px");
       rail.hidden = false;
       update_viewport();
@@ -226977,6 +227142,27 @@ https://creativecommons.org/licenses/by/4.0/
   var reading_link_hover_default = "";
 
   // src/reading_link_hover.ts
+  function readable_link_text(value) {
+    return value.replace(/(?:%[0-9a-f]{2})+/giu, (encoded) => {
+      const bytes = encoded.match(/%[0-9a-f]{2}/giu);
+      let result = "";
+      for (let index = 0; index < bytes.length; ) {
+        const first = Number.parseInt(bytes[index].slice(1), 16);
+        const width2 = first >= 194 && first <= 223 ? 2 : first >= 224 && first <= 239 ? 3 : first >= 240 && first <= 244 ? 4 : 1;
+        if (first < 32 || first === 127) {
+          result += bytes[index++];
+          continue;
+        }
+        try {
+          result += decodeURI(bytes.slice(index, index + width2).join(""));
+          index += width2;
+        } catch {
+          result += bytes[index++];
+        }
+      }
+      return result;
+    });
+  }
   function bind_reading_link_hover() {
     const style = acquire_workspace_style("typora-code-link-hover", reading_link_hover_default);
     const events = new AbortController();
@@ -227048,7 +227234,7 @@ https://creativecommons.org/licenses/by/4.0/
             const relative2 = path_api.relative(project_root, target);
             if (path_api.isAbsolute(relative2)) return { href, target: "\u9879\u76EE\u5916\uFF1A\u76EE\u6807\u4F4D\u4E8E\u5176\u4ED6\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E" };
             const normalized = relative2.split(path_api.sep).join("/"), outside = normalized === ".." || normalized.startsWith("../");
-            return { href, target: "".concat(outside ? "\u9879\u76EE\u5916\uFF1A" : "\u9879\u76EE\u5185\uFF1A/").concat(normalized).concat(hash2) };
+            return { href, target: "".concat(outside ? "\u9879\u76EE\u5916\uFF1A" : "\u9879\u76EE\u5185\uFF1A/").concat(normalized).concat(readable_link_text(hash2 || "")) };
           }
         } catch {
         }
@@ -227058,7 +227244,7 @@ https://creativecommons.org/licenses/by/4.0/
     const render = (link3) => {
       const info = target_info(link3), original = document.createElement("div");
       original.className = "workspace-link-original";
-      original.textContent = info.href;
+      original.textContent = readable_link_text(info.href);
       tip.replaceChildren(original);
       if (info.target) {
         const target = document.createElement("div");
