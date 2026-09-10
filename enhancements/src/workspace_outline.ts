@@ -1,3 +1,4 @@
+import {install_workspace_source_outline} from "./workspace_source_outline";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
 import outline_css from "./workspace_outline.css";
@@ -23,12 +24,15 @@ export function install_workspace_outline(host: workspace_outline_host) {
   const empty=document.createElement("p");empty.className="workspace-outline-empty";empty.textContent="当前编辑器不提供文档大纲。";
   (sidebar.querySelector("#sidebar-content")||sidebar).append(empty);
   const control_icons=bind_workspace_control_icons(sidebar,[["#outline-content .outline-expander","chevron-right"]]);
+  const source_outline=install_workspace_source_outline(sidebar);
   let disposed=false;
   const update_document=()=>{
     const available=host.document_active?.()!==false;
     const value=String(available);
     if(sidebar.dataset.documentOutline!==value)sidebar.dataset.documentOutline=value;
-    if(empty.hidden!==available)empty.hidden=available;
+    source_outline.refresh();
+    const has_outline=available||source_outline.available();
+    if(empty.hidden!==has_outline)empty.hidden=has_outline;
   };
   let clearing = false;
   let sync_frame = 0;
@@ -135,7 +139,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   if (outline_open) schedule_sync();
   return {refresh:()=>{refresh();schedule_sync();}, dispose: () => {
     if(disposed)return;disposed=true;
-    control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
+    source_outline.dispose();control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
     if(previous_document_outline===null)sidebar.removeAttribute("data-document-outline");else sidebar.setAttribute("data-document-outline",previous_document_outline);
     document.documentElement.removeAttribute("data-linux-note-workspace-outline");
   }};

@@ -35,3 +35,15 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
   visibility: hidden;
   pointer-events: none;
 }
+
+.workspace-source-outline{display:none;overflow:auto;min-height:0;flex:1;font-size:13px;}
+#typora-sidebar.active-tab-outline .workspace-source-outline:not([hidden]){display:block;}
+.workspace-source-outline p{padding:8px 12px;margin:0;opacity:.75;}
+.workspace-source-symbol{display:flex;align-items:center;height:22px;box-sizing:border-box;min-width:0;}
+.workspace-source-symbol:hover{background:var(--vscode-list-hoverBackground,rgba(128,128,128,.12));}
+.workspace-source-symbol[aria-selected="true"]{background:var(--vscode-list-inactiveSelectionBackground,rgba(128,128,128,.2));}
+.workspace-source-disclosure{border:0;background:none;color:inherit;padding:0;margin:0;width:16px;height:22px;flex:0 0 16px;display:flex;align-items:center;}
+.workspace-source-symbol[aria-expanded="true"]>.workspace-source-disclosure>svg{transform:rotate(90deg);}
+.workspace-source-symbol-label{display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex:1;border:0;background:none;color:inherit;font:inherit;text-align:left;padding:0;height:22px;}
+.workspace-source-outline svg{width:16px!important;height:16px!important;flex:0 0 16px;stroke:none!important;fill:currentColor;}
+.workspace-source-outline button:focus-visible{outline:1px solid var(--vscode-focusBorder,#007fd4);outline-offset:-1px;}

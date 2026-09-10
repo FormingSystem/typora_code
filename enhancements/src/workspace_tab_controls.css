@@ -45,19 +45,4 @@
 .workspace-tab-strip .typ-tab:hover {background:var(--workspace-tab-active-bg);color:var(--workspace-tab-active-fg);}
 .workspace-tab-strip .typ-file-name,.workspace-tab-strip .typ-file-basename,.workspace-tab-strip .typ-file-ext {font:inherit;color:inherit;}
 .workspace-tab-strip .typ-close::before {font-size:16px;}
-/* 440ec3f 原搜索按钮：22px 高、14px 图标及原边框/底色。
-   132px 宽与下方窄组断点是本次固定动作区适配，不是上游默认尺寸。 */
-.workspace-file-search-trigger {
-  appearance:none;display:flex;align-items:center;justify-content:center;gap:5px;
-  flex:0 0 132px;min-width:0;height:22px;margin:0 8px;padding:0 8px;
-  font:inherit;color:var(--workspace-tab-inactive-fg);border-radius:5px;outline-offset:-2px;
-  border:1px solid rgba(127,127,127,.28);background:rgba(127,127,127,.08);
-}
-.workspace-file-search-trigger span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.86;}
-.workspace-file-search-trigger svg {flex:none;width:14px;height:14px;opacity:.8;}
-.workspace-file-search-trigger:hover,.workspace-file-search-trigger:focus-visible {background:var(--active-file-bg-color,rgba(127,127,127,.16));}
-@container (max-width:480px) {
-  .workspace-file-search-trigger {flex-basis:28px;margin:0 4px;padding:0;}
-  .workspace-file-search-trigger span {display:none;}
-}
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}

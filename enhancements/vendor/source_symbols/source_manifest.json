@@ -1,0 +1,80 @@
+{
+  "artifact": "tree-sitter-wasm",
+  "version": "1.1.8",
+  "source": "https://github.com/Crysthamus/tree-sitter-wasm",
+  "archive_sha256": "f5e5d1b466de21287787738d192de6a7318ac424a15d1574dc88d0ced265a2f6",
+  "note": "Grammar binary identity is pinned by npm archive and file SHA256. License source tags identify license text, not an assertion of exact grammar build revision for semver-ranged dependencies.",
+  "assets": [
+    {
+      "language": "c",
+      "file": "tree-sitter-c.wasm",
+      "sha256": "7b80a64003e8ef8cde197329ee0167e9270f67663f2e6c6ef7d67b5425998aac",
+      "bytes": 625921,
+      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-c",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-c/v0.24.1/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "cpp",
+      "file": "tree-sitter-cpp.wasm",
+      "sha256": "285a0d1da90e6cdea639ddf1b925ebca567d24b68d13c418ea92f5a6b7c099dd",
+      "bytes": 3454741,
+      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-cpp",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-cpp/v0.23.4/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "javascript",
+      "file": "tree-sitter-javascript.wasm",
+      "sha256": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "bytes": 413013,
+      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-javascript",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-javascript/v0.25.0/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "typescript",
+      "file": "tree-sitter-typescript.wasm",
+      "sha256": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "bytes": 1429139,
+      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-typescript",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-typescript/v0.23.2/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "python",
+      "file": "tree-sitter-python.wasm",
+      "sha256": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "bytes": 456587,
+      "grammar_repository": "https://github.com/tree-sitter/tree-sitter-python",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter/tree-sitter-python/v0.25.0/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "cmake",
+      "file": "tree-sitter-cmake.wasm",
+      "sha256": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "bytes": 77192,
+      "grammar_repository": "https://github.com/uyha/tree-sitter-cmake",
+      "license_source": "https://raw.githubusercontent.com/uyha/tree-sitter-cmake/ca627bb5828616b6246aafdc3c3222789e728e37/LICENSE",
+      "license": "MIT"
+    },
+    {
+      "language": "yaml",
+      "file": "tree-sitter-yaml.wasm",
+      "sha256": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "bytes": 192300,
+      "grammar_repository": "https://github.com/tree-sitter-grammars/tree-sitter-yaml",
+      "license_source": "https://raw.githubusercontent.com/tree-sitter-grammars/tree-sitter-yaml/a1c4812a73ec5e089de8e441fdea3a921e8d5079/LICENSE",
+      "license": "MIT"
+    }
+  ],
+  "runtime": {
+    "package": "web-tree-sitter",
+    "version": "0.25.10",
+    "repository": "https://github.com/tree-sitter/tree-sitter",
+    "file": "tree-sitter.wasm",
+    "sha256": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+    "license": "MIT"
+  }
+}

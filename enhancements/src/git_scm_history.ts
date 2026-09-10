@@ -1,3 +1,4 @@
+import {workspace_file_icon} from "./workspace_file_icons";
 import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
 import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
@@ -179,7 +180,7 @@ export class git_scm_history {
     for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
       const row = button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
-      const label = el("span", "git-scm-file-label"); label.append(git_icon("file"), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
+      const label = el("span", "git-scm-file-label"); label.append(workspace_file_icon(file.path), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
       if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
       row.oncontextmenu = event => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files)); parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);

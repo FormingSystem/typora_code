@@ -38,11 +38,11 @@ try {
     $retired=Join-Path $user_data 'typora_code/appearance_bootstrap.js'
     write_fixture $retired 'old appearance startup'
     $profile=Join-Path $user_data 'profile.data'
-    write_profile_fixture $profile @{framelessWindow=$true;nested=@{text='中文';items=@(1,$false)};later=1}
+    write_profile_fixture $profile @{framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
     $backup=Join-Path $test_root 'first backup'
     & $installer -typora_root $fake_root -backup_root $backup -include_theme -non_interactive
     & $checker -typora_root $fake_root -non_interactive
-    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Native window preference was not installed'
+    assert_equal (read_profile_fixture $profile).framelessWindow $true 'Native window preference was not installed'
     $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
     assert_equal (Test-Path -LiteralPath $retired) $false 'Retired bootstrap file remains'
     assert_equal ([IO.File]::ReadAllText((Join-Path $backup 'product/appearance_bootstrap.js'))) 'old appearance startup' 'Retired bootstrap not backed up'
@@ -96,13 +96,13 @@ try {
     try { assert_rejected { & $restore -backup_root $backup } 'Restore fault was ignored' }
     finally { Remove-Item Function:\Copy-Item }
     assert_equal $global:typora_test_restore_failed $true 'Fault did not reach restore'
-    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Restore rollback lost installed native preference'
+    assert_equal (read_profile_fixture $profile).framelessWindow $true 'Restore rollback lost installed native preference'
     assert_equal ([IO.File]::ReadAllText($window)) $installed 'Restore rollback changed window'
     assert_equal (Test-Path -LiteralPath $product -PathType Leaf) $true 'Restore rollback lost product bundle'
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'plugins/loader.js')) $false 'Restore rollback activated old loader'
     & $restore -backup_root $backup
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Window restore failed'
-    assert_equal (read_profile_fixture $profile).framelessWindow $true 'Original native preference was not restored'
+    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Original native preference was not restored'
     assert_equal (read_profile_fixture $profile).later 2 'Restore overwrote later native settings'
     assert_equal ([IO.File]::ReadAllText($retired)) 'old appearance startup' 'Retired bootstrap was not restored'
     foreach ($asset in get_typora_migration_assets) { assert_equal ([IO.File]::ReadAllText((Join-Path $user_data ('plugins/'+$asset.relative_path)))) ('old:'+$asset.relative_path) 'Old asset restore failed' }
@@ -134,6 +134,36 @@ try {
     assert_equal ([IO.File]::ReadAllText($profile)) 'unknown-encoding' 'Malformed profile changed'
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid profile')) $false 'Malformed profile created backup'
     write_fixture $profile $profile_before
+    # 配置字段已改写后再失败，必须回滚到原来的 false。
+    $global:typora_test_manifest_failed=$false
+    function global:ConvertTo-Json {
+        [CmdletBinding()]param([Parameter(ValueFromPipeline=$true)]$InputObject,[int]$Depth=2,[switch]$Compress)
+        process {
+            if ($InputObject -is [System.Collections.IDictionary] -and $InputObject.Contains('schema_version')) {
+                $global:typora_test_manifest_failed=$true
+                throw 'Injected final manifest failure'
+            }
+            Microsoft.PowerShell.Utility\ConvertTo-Json @PSBoundParameters
+        }
+    }
+    try { assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'late profile rollback') -non_interactive } 'Final manifest failure ignored' }
+    finally { Remove-Item Function:\ConvertTo-Json }
+    assert_equal $global:typora_test_manifest_failed $true 'Fault did not reach final manifest'
+    assert_equal (read_profile_fixture $profile).framelessWindow $false 'Late install rollback lost original window preference'
+    assert_equal (read_profile_fixture $profile).later 2 'Late rollback removed later preferences'
+    assert_equal ([IO.File]::ReadAllText($window)) $original 'Late rollback changed window'
+    # 缺省 profile 必须创建最小窗口偏好；恢复只移除本字段，保留后续用户数据。
+    Remove-Item -LiteralPath $profile
+    $absent_backup=Join-Path $test_root 'absent profile'
+    & $installer -typora_root $fake_root -backup_root $absent_backup -non_interactive
+    assert_equal (read_profile_fixture $profile).framelessWindow $true 'Absent profile did not enable single-row window'
+    $absent_manifest=[IO.File]::ReadAllText((Join-Path $absent_backup 'manifest.json'))|ConvertFrom-Json
+    assert_equal $absent_manifest.native_profile[0].existed $false 'Absent profile backup lost absence'
+    write_profile_fixture $profile @{framelessWindow=$true;created_later=@{text='保留'}}
+    & $restore -backup_root $absent_backup
+    $restored_profile=read_profile_fixture $profile
+    assert_equal ($null -eq $restored_profile.PSObject.Properties['framelessWindow']) $true 'Restore did not remove previously absent preference'
+    assert_equal $restored_profile.created_later.text '保留' 'Restore removed later preferences'
     # 源发布损坏在创建备份或覆盖用户文件前拒绝。
     [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'

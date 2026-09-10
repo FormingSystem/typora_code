@@ -27,9 +27,7 @@ def update_native_profile(path, operation, expected, backup=None):
     current = read_native_profile(path)
     if current['sha256'] != expected:
         raise ValueError('Native profile changed concurrently')
-    if operation == 'install' and not current['exists']:
-        return False
-    previous = read_native_profile(backup)['data'] if operation == 'restore' else {'framelessWindow': False}
+    previous = read_native_profile(backup)['data'] if operation == 'restore' else {'framelessWindow': True}
     data = dict(current['data'])
     if 'framelessWindow' in previous:
         data['framelessWindow'] = previous['framelessWindow']
@@ -267,8 +265,8 @@ def install(tools_root, typora_root, user_data, backup):
     print('TyporaCode installed. Backup:', backup)
 
 def check(tools_root, typora_root, user_data):
-    if read_native_profile(asset_path(user_data, 'profile.data'))['data'].get('framelessWindow') is True:
-        raise ValueError('Native menu requires framelessWindow=false')
+    if read_native_profile(asset_path(user_data, 'profile.data'))['data'].get('framelessWindow') is not True:
+        raise ValueError('Single-row workspace requires framelessWindow=true')
     source = tools_root / 'enhancements/dist'
     if (user_data / 'typora_code/appearance_bootstrap.js').exists():
         raise ValueError('Retired appearance bootstrap remains')

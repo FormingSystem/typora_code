@@ -19,7 +19,7 @@ app.whenReady().then(async()=>{
     window.File={getMountFolder:()=>${JSON.stringify(root)},bundle:{filePath:${JSON.stringify(source_path)}},changeCounter:{isDocumentEdited:()=>false},editor:{library:{}}};
     window.factories=new Map();window.listeners=new Map();window.leaves=[];let active=null;
     class view{constructor(leaf){this.leaf=leaf;this.containerEl=document.createElement('div')}onOpen(){}onClose(){}}
-    window.parent_group={containerEl:document.querySelector('main'),appendChild(leaf){leaves.push(leaf)},toggleTab(uri){return leaves.find(leaf=>leaf.state.path===uri)}};
+    window.tab_root=document.createElement('div');document.body.append(tab_root);window.parent_group={containerEl:document.querySelector('main'),appendChild(leaf){leaves.push(leaf);const tab=document.createElement('div');tab.className='typ-tab';tab.dataset.id=leaf.state.path;tab.innerHTML='<i class="typ-file-icon fa fa-code-fork"></i><span class="typ-file-basename"></span>';tab_root.append(tab)},toggleTab(uri){return leaves.find(leaf=>leaf.state.path===uri)}};
     const workspace={activeFile:${JSON.stringify(source_path)},get activeLeaf(){return active},set activeLeaf(leaf){active?.view.onClose?.();active=leaf;document.querySelector('main').replaceChildren(leaf.view.containerEl);leaf.view.onOpen?.();listeners.get('active-leaf:change')?.forEach(callback=>callback(leaf))},eachLeaves(callback){leaves.forEach(callback)},createLeaf(descriptor){const leaf={...descriptor,parent:parent_group,containerEl:document.createElement('div')};leaf.view=factories.get(descriptor.type)(leaf);return leaf},on(name,callback){if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(callback);return()=>listeners.get(name).delete(callback)},ribbon:{addButton(){}},sidebar:{toggle(){}}};
     window.core={WorkspaceView:view,app:{workspace,openFile(){},viewManager:{registerView:(type,factory)=>factories.set(type,factory)},commands:{register(){},run(){}}}};
     const placeholder={state:{path:'placeholder'},parent:parent_group,view:{containerEl:document.createElement('div')}};leaves.push(placeholder);workspace.activeLeaf=placeholder;
@@ -33,6 +33,7 @@ app.whenReady().then(async()=>{
   const diff_data={title:'test.ts 的更改',file:'test.ts',left:'const a = 1;\r\nconst old_value = 2;\r\n',right:'const a = 1;\nconst new_value = 20;\nconst added = 3;\n',left_label:'提交 abc',right_label:'工作区'};
   await evaluate(`window.open_file_disabled=false;window.open_file_calls=0;host.open_document(${JSON.stringify(diff_data)},'active',{root:${JSON.stringify(root)},menu:()=>[{id:'open_file',title:'打开文件',disabled:open_file_disabled,action:()=>{open_file_calls++;void files.open_file(${JSON.stringify(source_path)});}}]});window.diff_leaf=core.app.workspace.activeLeaf;window.diff=active_editor();void 0;`);
   await wait('diff?.editor.getLineChanges()!==null');await delay(120);
+  await check(`(()=>{const icon=[...tab_root.querySelectorAll('.typ-tab')].find(tab=>tab.dataset.id===diff_leaf.state.path)?.querySelector('.workspace-file-theme-icon');return icon?.dataset.vscodeFileIcon==='_typescript'&&icon.dataset.fileIconPath==='test.ts'})()`,'real diff tab uses file type association instead of Git glyph');
   await check('binding.container.firstChild===diff.readonly_status && !binding.container.querySelector("[aria-label=保存编码]") && binding.container.textContent.includes("只读")','Git diff registers read-only model state without inventing a file encoding');
   await evaluate('window.left=diff.editor.getOriginalEditor();window.right=diff.editor.getModifiedEditor();left.focus();left.setPosition({lineNumber:2,column:5});');await delay(50);
   await check('binding.container.textContent.includes("原始版本") && binding.container.textContent.includes("行 2，列 5") && binding.container.querySelector("[aria-label=行尾序列]").textContent==="CRLF"','focusing the original pane shows its actual position and CRLF');
@@ -56,6 +57,12 @@ app.whenReady().then(async()=>{
   await check('open_file_calls===1 && core.app.workspace.activeLeaf===diff_leaf','disabled Open File cannot switch from a deleted or unavailable comparison');
   await evaluate('leaves.splice(leaves.indexOf(diff_leaf),1);core.app.workspace.activeLeaf=source_leaf;void 0;');await delay(80);
   await check('diff.models.every(model=>model.isDisposed()) && binding.container.firstChild===source_leaf.view.status_controls && document.querySelectorAll(".linux-note-editor-status").length===1','closing diff disposes its models and restores source with one global bar');
+  for(const [name,id] of [['docs/guide.md','_markdown'],['boards/board.yml','_yml'],['README.md','_info'],['removed.custom_extension','_default']]) {
+    await evaluate(`host.open_document({title:${JSON.stringify(name)},file:${JSON.stringify(name)},left:'old',right:'new'},'active');void 0`);
+    await check(`(()=>{const leaf=core.app.workspace.activeLeaf;const slot=[...tab_root.querySelectorAll('.typ-tab')].find(tab=>tab.dataset.id===leaf.state.path)?.querySelector('.typ-file-icon');return slot?.querySelector('.workspace-file-theme-icon')?.dataset.vscodeFileIcon===${JSON.stringify(id)}&&!slot.querySelector('svg')})()`,'diff association '+name);
+  }
+  await evaluate(`host.open_document({title:'Command output',left:'log'},'active');void 0`);
+  await check(`(()=>{const leaf=core.app.workspace.activeLeaf;return [...tab_root.querySelectorAll('.typ-tab')].find(tab=>tab.dataset.id===leaf.state.path)?.querySelector('[data-git-icon="compare-changes"]')!==null})()`,'non-file output keeps its tool glyph');
   await evaluate('binding.dispose()');
   console.log(JSON.stringify({status:'PASS',checks,evidence:root},null,2));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);if(test_window&&!test_window.isDestroyed()){fs.writeFileSync(path.join(root,'failure.png'),(await test_window.webContents.capturePage()).toPNG());test_window.destroy()}console.error(root);app.exit(1)});

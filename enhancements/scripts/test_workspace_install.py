@@ -39,11 +39,11 @@ retired.write_text('old appearance startup', encoding='utf-8')
 profile = user / 'profile.data'
 def write_profile(data):
     profile.write_text(json.dumps(data, ensure_ascii=False).encode('utf-8').hex(), encoding='ascii')
-write_profile({'framelessWindow': True, 'nested': {'中文': [1, False]}, 'later': 1})
+write_profile({'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 1})
 backup = fixture / 'first backup'
 deployment.install(tools, root, user, backup)
 deployment.check(tools, root, user)
-assert deployment.read_native_profile(profile)['data']['framelessWindow'] is False
+assert deployment.read_native_profile(profile)['data']['framelessWindow'] is True
 write_profile({**deployment.read_native_profile(profile)['data'], 'later': 2})
 assert not retired.exists()
 assert (backup / 'product/appearance_bootstrap.js').read_text(encoding='utf-8') == 'old appearance startup'
@@ -99,12 +99,12 @@ def restore_copy_failure(source, destination, *args, **kwargs):
 
 with patch.object(deployment.shutil, 'copy2', restore_copy_failure):
     rejected(lambda: deployment.restore(user, backup))
-assert deployment.read_native_profile(profile)['data']['framelessWindow'] is False
+assert deployment.read_native_profile(profile)['data']['framelessWindow'] is True
 assert deployment.read_native_profile(profile)['data']['later'] == 2
 assert restore_failed and window.read_bytes() == installed and product.is_file()
 assert not (user / 'plugins/loader.js').exists()
 deployment.restore(user, backup)
-assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': True, 'nested': {'中文': [1, False]}, 'later': 2}
+assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 2}
 assert retired.read_text(encoding='utf-8') == 'old appearance startup'
 assert window.read_text(encoding='utf-8') == original
 assert deployment.read_object(new_settings)['settings']['later'] is True
@@ -136,8 +136,8 @@ print('Fixtures:', fixture)
 
 # 两个平台遵守相同的严格编码与字段恢复边界。
 codec = fixture / 'codec.data'
-assert deployment.update_native_profile(codec, 'install', 'missing') is False
-assert not codec.exists()
+assert deployment.update_native_profile(codec, 'install', 'missing') is True
+assert deployment.read_native_profile(codec)['data'] == {'framelessWindow': True}
 for invalid in [b'not-hex', b'7B7D', b'5b5d', b'ff', b'7b226672616d656c65737357696e646f77223a317d']:
     codec.write_bytes(invalid)
     rejected(lambda: deployment.read_native_profile(codec))
@@ -163,7 +163,7 @@ def manifest_failure(path, data):
 
 with patch.object(deployment, 'write_json', manifest_failure):
     rejected(lambda: deployment.install(tools, root, user, fixture / 'late install failure'))
-assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': True, 'nested': {'中文': [1, False]}, 'later': 2}
+assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 2}
 assert window.read_text(encoding='utf-8') == original
 assert not product.exists()
 profile_before = profile.read_bytes()
@@ -173,9 +173,14 @@ assert profile.read_bytes() == b'unknown-encoding'
 assert not (fixture / 'invalid profile').exists()
 profile.write_bytes(profile_before)
 profile.unlink()
+with patch.object(deployment, 'write_json', manifest_failure):
+    rejected(lambda: deployment.install(tools, root, user, fixture / 'absent late failure'))
+assert deployment.read_native_profile(profile)['data'] == {}
+assert not product.exists()
+profile.unlink()
 absent_backup = fixture / 'absent profile backup'
 deployment.install(tools, root, user, absent_backup)
-assert not profile.exists()
+assert deployment.read_native_profile(profile)['data'] == {'framelessWindow': True}
 assert deployment.read_object(absent_backup / 'manifest.json')['native_profile'][0]['existed'] is False
 write_profile({'framelessWindow': True, 'created_later': {'中文': 4}})
 deployment.restore(user, absent_backup)

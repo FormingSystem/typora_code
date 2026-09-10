@@ -34,7 +34,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-以下命令从 Typora Code 仓库根目录执行。当前使用 head 静态样式与常驻工作台，Windows／Python 隔离安装事务已通过；同一构建的37个 UI 目标（36+1复跑）、原生18项和真实安装核验通过。
+以下命令从 Typora Code 仓库根目录执行。当前使用 head 静态样式与常驻工作台，Windows／Python 隔离安装事务已通过；上一版构建的37个 UI 目标（36+1复跑）、原生18项和真实安装核验通过。
 
 仓库已经提交预构建 bundle，普通用户无需预装 Node.js；Windows 安装器管理终端所需的私有运行时。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
 
@@ -150,7 +150,7 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 
 Windows 另有终端、路径复制和安装回滚的通过基线；原生 Linux／UCRT64 仍需各自设备的实机验证，不能把 Windows 或兼容 shell 的结果当成对应平台已经验收。
 
-本轮已通过 Graph／SCM 的简洁设置、语言、引用颜色、标签可见性、综合交互、SCM 专属通用文件图标和独立几何目标。最新 `check` 与 Windows／Python 隔离安装恢复事务已通过；同一构建的37个 UI 目标（36+1复跑）和最新原生18项通过；不沿用旧架构测试项数作为当前完成证明。
+本轮已通过 Graph／SCM 的简洁设置、语言、引用颜色、标签可见性、综合交互、SCM 专属通用文件图标和独立几何目标。最新 `check` 与 Windows／Python 隔离安装恢复事务已通过；上一版构建的37个 UI 目标（36+1复跑）和上一版原生18项通过；不沿用旧架构测试项数作为当前完成证明。
 
 ## 1.3\_PowerShell单独安装扩展与备份
 
@@ -160,7 +160,7 @@ Windows 另有终端、路径复制和安装回滚的通过基线；原生 Linux
 %APPDATA%\Typora\backups\typora_code_configuration\<时间戳与唯一标识>\
 ```
 
-发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `false`；原文件不存在时不创建。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 Linux 通过 Python 3 执行 JSON 与文件事务。执行：
+发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 Linux 通过 Python 3 执行 JSON 与文件事务。执行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1
@@ -181,7 +181,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
 
 默认布局采用 VS Code 的 **单窗口、一组多标签页** 形式：在当前窗口打开 Markdown 或源码后保留文件标签；需要并排阅读时再拆分。标签支持关闭、拖动排序和组间移动，标签右键菜单提供分栏操作。
 
-顶栏保留 Typora 原生七菜单：文件、编辑、段落、格式、视图、主题、帮助。菜单使用宿主自己的命令，不加入本轮新增的选择、转到、终端顶级菜单。Ctrl+P 和标签条右侧鼠标入口打开 `440ec3f` 中的文件选择器；阅读历史沿用现有能力。renderer 快捷键目标已通过，原生快捷键冲突仍在验证。选择器宽 `min(62vw, 600px, calc(100vw - 12px))`、最大高 `min(70vh, 560px)`，结果行22px、输入框23px。标签条高35px，使用13px Segoe UI与Light 2026／Dark 2026状态颜色；系统标题栏由宿主管理。
+顶栏保留 Typora 原生七菜单：文件、编辑、段落、格式、视图、主题、帮助。菜单使用宿主自己的命令，不加入本轮新增的选择、转到、终端顶级菜单。Ctrl+P 和顶栏中央搜索入口打开 `440ec3f` 中的文件选择器；阅读历史沿用现有能力。renderer 快捷键目标已通过，原生快捷键冲突仍在验证。选择器宽 `min(62vw, 600px, calc(100vw - 12px))`、最大高 `min(70vh, 560px)`，结果行22px、输入框23px。标签条高35px，使用13px Segoe UI与Light 2026／Dark 2026状态颜色；右侧复用宿主窗口按钮，左中区域由单行顶栏组织。
 
 工作台通过共享宿主组织文件、搜索、终端与 Git Graph；弹窗、右键菜单和基础 DOM 构造由 `workspace_widgets.ts` 提供。关闭事务保留未保存确认与草稿保护；静态样式和常驻脚本不因切换文件夹重新加载。
 
@@ -327,7 +327,7 @@ Markdown 的活动分栏使用 Typora 原生编辑器，其他分栏显示预览
 
 ### 1.4.5\_活动栏与侧栏布局
 
-Windows／Linux 使用 Typora 标准原生窗口边框和文件、编辑、段落、格式、视图、主题、帮助七个系统菜单，各栏目由宿主直接打开自己的子菜单。保存文档并正常重启后生效；安装不强制关闭窗口。工作台不再自绘系统标题栏或窗口按钮。
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
 
 活动栏为 **48×48px 连续项目**，不使用 Modern 的36px胶囊和项间8px留白；文件、搜索和 SCM 官方图标使用24px画布，大纲保留原生 `fa-list` 字体图标。选中状态跟随当前展开的文件、搜索、大纲或源代码管理；点击当前入口收起，再次点击打开。
 
@@ -460,8 +460,14 @@ Typora 编辑页不支持 node-pty 的后台排空线程，因此每个会话使
 
 部署验证入口：`scripts/test_install_windows.ps1` 在假安装树与隔离 APPDATA 检查安装、重装、摘要损坏拒绝、迁移、恢复及失败回滚；`bash scripts/test_workspace_install.sh` 检查 Bash／Python 事务与模拟 Linux 分支。schema 4 的 Windows 隔离安装与 Python 事务目标已通过，覆盖 native_profile 编码拒绝、字段恢复、并发摘要冲突与失败回滚；真实安装及核验已通过，ASAR 未修改，profile 其他设置保留。Python 本轮在 Windows 执行，此前 Git Bash 模拟通过不能替代原生 Linux 权限与发现验证。
 
-最终构建与 `check` 通过。UI 首轮为36/37（`.cache/final_ui.log`），唯一失败是新增打开／丢弃／暂存按钮后的旧 Graph 首按钮列断言；仅修正测试后，完整 Graph 目标复跑通过（`.cache/graph_final_columns_target.log`，64.657秒），同一最终产品构建的37个目标全部通过，并非首轮整批零失败。最新原生集成18/18通过（`.cache/native_integrity_compare/native_integrated_release_final/`），覆盖原始 ASAR 下存活55秒、七菜单与真实未保存草稿。
+上一版标准窗口历史证据：构建与 `check` 通过。UI 首轮为36/37（`.cache/final_ui.log`），唯一失败是新增打开／丢弃／暂存按钮后的旧 Graph 首按钮列断言；仅修正测试后，完整 Graph 目标复跑通过（`.cache/graph_final_columns_target.log`，64.657秒），上一版同一产品构建的37个目标全部通过，并非首轮整批零失败。上一版原生集成18/18通过（`.cache/native_integrity_compare/native_integrated_release_final/`），覆盖原始 ASAR 下存活55秒、七菜单与真实未保存草稿。
 
-真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
+上一版标准窗口的真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
 
 原生菜单 accelerator 与物理键盘的冲突尚未实证；renderer 或隔离原生夹具中的合成按键不能替代硬件快捷键验证。链接悬停、偏好入口等以 Electron 目标为证据，不归入原生18项。
+
+本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+
+用户本轮另外授权代码大纲、点击定位及可配置解析环境。目标采用内置离线 Tree-sitter，覆盖 C、C++、JavaScript、TypeScript、Python、CMake、YAML 七种语法的定义／声明，按需 worker 解析，无需编译器环境；七种语法的离线解析与点击定位已实现并通过目标验证，本轮原生检查实证 TypeScript 函数解析与行定位。它提取语法定义／声明，不执行宏、构建脚本或编译器语义分析；不把 Markdown 大纲结果当作代码大纲证明。
+
+本轮单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。

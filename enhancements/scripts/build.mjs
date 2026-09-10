@@ -1,4 +1,5 @@
 import "./build_terminal_assets.mjs";
+import {build_source_symbol_assets} from "./build_source_symbol_assets.mjs";
 import { build } from "esbuild";
 import fs from "node:fs";
 import { editor_plugins } from "./editor_bundle.cjs";
@@ -13,6 +14,7 @@ fs.mkdirSync('dist',{recursive:true});
 fs.rmSync('dist/workspace_main.cjs',{force:true});
 await build_workspace_core({outdir: path.resolve("dist")});
 await build_workspace_styles({outdir: path.resolve("dist")});
+await build_source_symbol_assets(path.resolve("dist"));
 fs.mkdirSync("dist/licenses",{recursive:true});
 fs.copyFileSync("vendor/fontawesome/LICENSE.txt","dist/licenses/fontawesome.txt");
 

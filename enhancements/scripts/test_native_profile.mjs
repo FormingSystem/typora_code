@@ -2,20 +2,27 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { read_profile, update_profile } = require('../../scripts/lib/typora_native_profile.cjs');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_native_profile_'));
 const file = path.join(root, 'profile.data'), backup = path.join(root, 'previous.data');
 const write = data => fs.writeFileSync(file, Buffer.from(JSON.stringify(data), 'utf8').toString('hex'), 'ascii');
-assert.equal(update_profile(file, 'install', 'missing').changed, false);
+assert.equal(update_profile(file, 'install', 'missing').changed, true);
+assert.deepEqual(read_profile(file).data,{framelessWindow:true});
+update_profile(file,'restore',read_profile(file).sha256,backup);
+assert.deepEqual(read_profile(file).data,{});
+fs.unlinkSync(file);
+assert.equal(update_profile(file,'restore','missing',backup).changed,false);
 assert(!fs.existsSync(file));
-write({ framelessWindow: true, nested: { '中文': [1, false, null] }, later: 1 }); fs.copyFileSync(file, backup);
+write({ framelessWindow: false, nested: { '中文': [1, false, null] }, later: 1 }); fs.copyFileSync(file, backup);
 update_profile(file, 'install', read_profile(file).sha256);
-assert.deepEqual(read_profile(file).data, { framelessWindow: false, nested: { '中文': [1, false, null] }, later: 1 });
+assert.deepEqual(read_profile(file).data, { framelessWindow: true, nested: { '中文': [1, false, null] }, later: 1 });
 write({ ...read_profile(file).data, later: 2 });
 update_profile(file, 'restore', read_profile(file).sha256, backup);
-assert.equal(read_profile(file).data.framelessWindow, true); assert.equal(read_profile(file).data.later, 2);
+assert.equal(read_profile(file).data.framelessWindow, false); assert.equal(read_profile(file).data.later, 2);
 const stale = read_profile(file).sha256; write({ ...read_profile(file).data, later: 3 }); const changed = fs.readFileSync(file);
 assert.throws(() => update_profile(file, 'install', stale), /concurrently/); assert.deepEqual(fs.readFileSync(file), changed);
 for (const invalid of ['not-hex', '7B7D', Buffer.from('[]').toString('hex'), Buffer.from('{"framelessWindow":1}').toString('hex'), 'ff']) {
@@ -30,3 +37,9 @@ update_profile(file, 'restore', read_profile(file).sha256, path.join(root, 'miss
 assert.deepEqual(read_profile(file).data, { created_later: true });
 assert(!fs.readdirSync(root).some(name => name.endsWith('.tmp')));
 console.log('PASS native profile: strict hex/UTF8/object/boolean, field-only restore, missing profile, concurrent write refusal');
+
+write({framelessWindow:true,untouched:1});const already_true=fs.readFileSync(file);assert.equal(update_profile(file,'install',read_profile(file).sha256).changed,false);assert.deepEqual(fs.readFileSync(file),already_true);
+
+const helper=fileURLToPath(new URL('../../scripts/lib/typora_native_profile.cjs',import.meta.url));
+const check=()=>spawnSync(process.execPath,[helper,'check',file],{encoding:'utf8'}).status;
+assert.equal(check(),0);write({framelessWindow:false});assert.equal(check(),1);fs.unlinkSync(file);assert.equal(check(),1);

@@ -426,3 +426,6 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 
 .git-graph-files .git-graph-unreviewed-icon {display:none!important;}
 .git-graph-files .git-file-unreviewed .git-graph-unreviewed-icon {display:inline-block!important;}
+
+/* 文件类型字形复用 Explorer Seti 槽，不套用旧单色文件 SVG 的透明度。 */
+.git-graph-details .git-graph-file-icon.workspace-file-theme-icon {height:16px;flex-basis:16px;opacity:1;}

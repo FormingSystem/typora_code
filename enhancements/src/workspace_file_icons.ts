@@ -27,7 +27,7 @@ export function workspace_file_icon(file_path:string):HTMLElement{
   node.textContent=String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g,""),16));node.style.setProperty("--workspace-file-icon-light",light.fontColor||"currentColor");node.style.setProperty("--workspace-file-icon-dark",dark.fontColor||"currentColor");return node;
 }
 
-/** 仅文件标签适配；虚拟 Graph、diff、终端及第三方视图保持原图标。 */
+/** 仅文件标签适配；虚拟 Graph、终端及第三方视图保持原图标；Git 文件差异由 host 以真实 data.file 调用同一字形接口。 */
 export function bind_workspace_file_tab_icons(core:import("./git_graph_host").graph_core){
   const style=acquire_workspace_file_icons();
   const originals=new Map<HTMLElement,{class_name:string;nodes:Node[]}>();let disposed=false;

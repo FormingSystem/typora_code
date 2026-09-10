@@ -1,0 +1,38 @@
+/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七栏。 */
+body.typora-node.unibody-window { --typ-workspace-top:35px; }
+body.typora-node.unibody-window #top-titlebar { height:35px;left:0!important;right:0;top:0;transition:none!important; }
+body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #title-text { visibility:hidden; }
+#top-titlebar[data-workspace-titlebar=ready] { --tc-title-fg:var(--text-color,#333);--tc-title-bg:var(--side-bar-bg-color,#f8f8f8);--tc-menu-bg:var(--bg-color,#fff);--tc-menu-border:rgba(127,127,127,.25);--tc-menu-hover:rgba(127,127,127,.16);display:flex!important;align-items:center;position:fixed;height:35px;left:0!important;right:0;top:0;z-index:890;box-sizing:border-box;background:var(--tc-title-bg);color:var(--tc-title-fg);font:13px/22px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:drag; }
+.workspace-titlebar-left { display:flex;align-items:center;flex:2 1 20%;min-width:64px;height:100%;overflow:hidden; }
+.workspace-titlebar-center { display:flex;align-items:center;justify-content:center;flex:0 1 60%;max-width:fit-content;min-width:90px;margin:0 10px;height:100%; }
+.workspace-titlebar-right { display:flex;justify-content:flex-end;flex:2 0 20%;min-width:138px;height:100%; }
+.workspace-titlebar-logo { width:16px;height:16px;margin:0 8px;flex:none; }
+.workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
+.workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;border-radius:4px;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
+.workspace-titlebar-menu>button { height:26px;padding:0 8px;white-space:nowrap; }
+.workspace-titlebar-menu>button[hidden] { display:none!important; }
+.workspace-titlebar-menu>button:hover,.workspace-titlebar-menu>button[aria-expanded=true],.workspace-titlebar-center>button:hover:not(:disabled) { background:var(--tc-menu-hover); }
+.workspace-titlebar-menu button:focus-visible,.workspace-titlebar-center button:focus-visible { outline:1px solid #0078d4;outline-offset:-1px; }
+.workspace-titlebar-center>.workspace-titlebar-history { display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:3px; }
+.workspace-titlebar-history:disabled { opacity:.4; }
+.workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);border-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
+.workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
+#top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }
+#top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights .toolbar-icon { width:46px;height:35px;padding:0;margin:0;position:relative;box-sizing:border-box;line-height:35px;text-align:center; }
+#top-titlebar[data-workspace-titlebar=ready] #w-min,#top-titlebar[data-workspace-titlebar=ready] #w-max,#top-titlebar[data-workspace-titlebar=ready] #w-close { display:inline-flex;align-items:center;justify-content:center; }
+#top-titlebar[data-workspace-titlebar=ready] #w-max-group { height:35px; }
+.typora-maxmized #top-titlebar[data-workspace-titlebar=ready] #w-restore { display:inline-flex;align-items:center;justify-content:center; }
+#top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights svg { width:16px;height:16px;vertical-align:middle; }
+#top-titlebar[data-workspace-titlebar=ready] svg,#top-titlebar[data-workspace-titlebar=ready] svg * { stroke:none; }
+@media(max-width:600px) { .workspace-titlebar-center { min-width:88px;margin:0 4px; } }
+.workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(127,127,127,.5) transparent;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
+.workspace-titlebar-popup::-webkit-scrollbar { width:7px; }
+.workspace-titlebar-popup::-webkit-scrollbar-thumb { background:rgba(127,127,127,.5);border-radius:4px; }
+.workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;border-radius:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
+.workspace-titlebar-entry:focus,.workspace-titlebar-entry:hover:not(:disabled) { outline:none;background:var(--item-hover-bg-color,rgba(127,127,127,.16)); }
+.workspace-titlebar-entry:disabled { opacity:.45; }
+.workspace-titlebar-entry>svg,.workspace-titlebar-check { width:16px;height:16px;flex:none;display:flex;align-items:center; }
+.workspace-titlebar-label { flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.workspace-titlebar-shortcut { flex:none;margin-left:20px;white-space:nowrap; }
+.workspace-titlebar-separator { height:1px;margin:4px 12px;background:rgba(127,127,127,.25); }
