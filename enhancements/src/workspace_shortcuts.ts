@@ -64,7 +64,8 @@ export function install_workspace_shortcuts(
       if(!event.shiftKey && event.code === "KeyB") { run(event,()=>app.workspace.sidebar.toggle()); return; }
       if(!event.shiftKey && ["KeyW","PageUp","PageDown"].includes(event.code)) {
         const parent=app.workspace.activeLeaf?.parent?.containerEl;
-        const tabs=parent ? [...(event.code === "KeyW" ? parent : document).querySelectorAll<HTMLElement>(".typ-workspace-tab-header .typ-tab")].filter(tab=>!tab.dataset.id?.startsWith("typ://empty")) : [];
+        // 同一文件可在多个编辑组出现；标签身份必须由当前组与路径共同决定。
+        const tabs=parent ? [...parent.querySelectorAll<HTMLElement>(".typ-workspace-tab-header .typ-tab")].filter(tab=>!tab.dataset.id?.startsWith("typ://core.empty/")) : [];
         const index=tabs.findIndex(tab=>tab.dataset.id===app.workspace.activeLeaf?.state.path);
         if(index>=0) {
           const target=event.code === "KeyW" ? tabs[index].querySelector<HTMLElement>(".typ-close") : tabs[(index+(event.code === "PageUp" ? -1 : 1)+tabs.length)%tabs.length];

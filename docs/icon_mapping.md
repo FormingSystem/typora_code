@@ -6,17 +6,17 @@
 
 | 当前槽位 | 官方图标／行为 | 说明 |
 | --- | --- | --- |
-| Explorer 文件及真实文件标签 | 固定 Seti 文件名／扩展名／语言关联 | 16px 槽；主题字体比例150%，当前13px文本对应19.5px字形字体 |
+| Explorer、搜索、快速打开及真实文件标签 | 固定 Seti 文件名／扩展名／语言关联 | 共用 `workspace_file_icon`；16px 槽，主题字体比例150%，当前13px文本对应19.5px字形字体 |
 | Markdown / TypeScript / TXT | `_markdown` U+E060 / `_typescript` U+E099 / `_default` U+E023 | 浅色前两者 `#498ba7`，TXT `#bfc2c1`；深色按主题对应定义 |
 | Explorer 文件夹 | 无 folder glyph，仅 `chevron-right` | Seti 无 folder / rootFolder 定义；保留展开、折叠和对齐 |
-| SCM更改及历史文件 | `file` | 独立通用官方文件图标，SCM槽位16px，不被Seti覆盖 |
+| SCM更改、历史文件及差异标签 | 固定 Seti 文件类型图标 | 使用实际文件路径调用同一个 `workspace_file_icon`，SCM槽位16px |
 | 目录／SCM分组折叠 | `chevron-right` | 展开旋转90度；SCM空组也显示16px箭头 |
 | 独立大纲 | 原生 `fa-list` 列表图标及原生大纲树 | 用户明确要求恢复原图标，保留原节点；不在Explorer重复嵌入 |
 | Activity文件／搜索／SCM | `files / search / source-control` | 24px图标，48px连续活动项 |
 | 差异／终端／搜索结果标签 | `compare-changes / terminal / search` | 不把功能标签当成普通文件 |
 | Git Graph工具栏 | `search / terminal / settings-gear / git-fetch / refresh` | 保留已验证的扩展专属尺寸 |
 | Git Graph引用 | `git-branch / tag / archive` | 图标背景与行轨道颜色一致，文字遵循主题；HEAD随所属引用 |
-| Git Graph 详情文件树 | Font Awesome Free 6.7.2 实心 `file / folder / folder-open` | 13px，继承灰色；与 Explorer 的 Seti 文件类型图标分开，保留官方 SVG 原路径 |
+| Git Graph 详情文件树 | 文件共用 Seti；目录保留 Font Awesome Free 6.7.2 `folder / folder-open` | 文件按实际路径识别；目录保留 Graph 自身树语义及官方 SVG 原路径 |
 | Graph Find | `case-sensitive / regex / arrow-up / arrow-down / diff-multiple / close` | 保留已有查找能力，不追加新模式 |
 | SCM提交及更多选项 | `check / chevron-down` | 图标继承提交按钮白色前景 |
 | SCM历史引用 | 对应正式引用图标 | 继承彩色标签前景，不被通用灰色覆盖 |

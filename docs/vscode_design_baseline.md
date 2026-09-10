@@ -23,7 +23,7 @@
 | 数字徽标 | 10px / 400；不能让正文的13px覆盖 | [Modern 字体层级][font] |
 | 源码编辑器 | 本机 `editor.fontSize=16`、Consolas/Microsoft YaHei/Courier New；行高由编辑器默认值计算 | 本机有效编辑器配置；已提炼到运行基线 |
 | 常规命令图标 | 官方 Codicons，通常16px；按控件角色保留原字形及状态 | [工作台图标规则](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/browser/media/style.css)、[图标槽位表](icon_mapping.md) |
-| 文件类型图标 | 本机内置 `vs-seti` 主题的 JSON 映射、字形、light颜色覆盖；这是上游主题事实；按最新用户要求用于本项目Explorer与真实文件标签，不覆盖SCM及大纲专属图标 | [内置 Seti](https://github.com/microsoft/vscode/tree/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/extensions/theme-seti) |
+| 文件类型图标 | 内置 `vs-seti` 主题的 JSON 映射、字形、light颜色覆盖；按最新用户要求统一用于 Explorer、搜索、快速打开、SCM/历史/Graph真实文件行及文件/差异标签；Git操作和大纲符号保留其专属图标 | [内置 Seti](https://github.com/microsoft/vscode/tree/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/extensions/theme-seti) |
 | 活动栏 | Modern目标36×36px、图标24px、目标之间8px、选中背景32×32px；44px卡片加外侧4px占位 | [活动栏常量][activity]、[Modern 活动栏][activity_style] |
 | 分区标题 / 文件树行 | Modern分区标题28px；文件树行22px，不共用一个行高 | [Modern初始化][modern]、[Explorer行高][explorer] |
 | 卡片间距、边框与圆角 | 外边距4px、相邻卡片间距4px、内侧0px、边框1px、大圆角8px；共享边界按上游去掉对应圆角/重复边框 | [布局常量][layout]、[浮动面板][floating]、[尺寸注册][sizes] |

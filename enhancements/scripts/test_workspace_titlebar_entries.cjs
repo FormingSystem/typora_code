@@ -17,6 +17,7 @@ app.whenReady().then(async()=>{
  const files={core:{app:{workspace,commands:{run:record('core')}}},path_api:{basename:p=>p.split('/').pop()},source_editor_active:()=>source,run_editor_command:record('source'),can_save_active:()=>true,save_active:async()=>{saves++;return false},save_all:record('save-all'),open_file:record('open')};document.querySelector('.typ-close').onclick=()=>closes++;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,帮助','seven original categories');
+ (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');
  (await get('段落','链接引用')).action();check(calls.at(-1)[1]==='def_link','native link definition type');
  (await get('段落','脚注')).action();check(calls.at(-1)[1]==='def_footnote','native footnote definition type');

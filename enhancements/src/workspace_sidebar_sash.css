@@ -1,6 +1,7 @@
 /* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
   display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
+  top:var(--typ-workspace-top,0px);bottom:0;
   right:auto!important; width:7px!important; margin-left:-3px!important; z-index:99;
   touch-action:none; user-select:none; cursor:col-resize; outline:none;
 }

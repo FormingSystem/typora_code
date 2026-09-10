@@ -12,7 +12,7 @@
 body.typ-ribbon--enable {
   --side-bar-bg-color:var(--workspace-chrome-background);
 }
-body.typ-ribbon--enable > .typ-ribbon {
+body.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
   background:var(--workspace-chrome-background);
   border-right-color:var(--workspace-chrome-border);
 }

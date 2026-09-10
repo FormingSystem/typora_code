@@ -19,9 +19,7 @@ export function bind_workspace_browser() {
   const lifetime=create_workspace_lifetime();
   try {
   lifetime.own(bind_workspace_file_tab_icons(core));
-  const files=lifetime.own(bind_workspace_files(core));let chosen_root="";
-  const context_root=files.context_root;const chosen_context=files.context_root=()=>chosen_root||context_root();
-  lifetime.add(()=>{if(files.context_root===chosen_context)files.context_root=context_root;});
+  const files=lifetime.own(bind_workspace_files(core));
   lifetime.own(create_workspace_quick_open(files));
   lifetime.own(bind_workspace_tab_controls(core));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
@@ -29,8 +27,20 @@ export function bind_workspace_browser() {
   const open_folder=()=>new Promise<void>(resolve=>{
     const dialog=workspace_dialog("打开文件夹");lifetime.add(()=>dialog.close());const path=el("input");path.setAttribute("aria-label","文件夹路径");path.value=files.context_root();const error=el("p");dialog.content.append(el("p","","输入要在资源管理器中打开的文件夹路径。"),path,error);
     const cleanup=new MutationObserver(()=>{if(!dialog.root.isConnected){cleanup.disconnect();resolve();}});cleanup.observe(document.body,{childList:true});lifetime.add(()=>{cleanup.disconnect();resolve();});
-    const open=()=>{try{const target=files.path_api.resolve(path.value);if(!files.fs.statSync(target).isDirectory())throw new Error("所选路径不是文件夹。");chosen_root=target;dialog.close();resolve();}catch(problem){error.textContent=String(problem);}};
-    path.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();open();}};dialog.footer.prepend(button("打开",open));
+    const open=()=>{try{
+      if(!path.value.trim())throw new Error("请输入文件夹路径。");
+      const current_root=files.context_root();
+      if(!files.path_api.isAbsolute(path.value)&&(!current_root||!files.path_api.isAbsolute(current_root)))throw new Error("未打开工作区时，请输入文件夹的绝对路径。");
+      const target=files.path_api.isAbsolute(path.value)?files.path_api.resolve(path.value):files.path_api.resolve(current_root,path.value);
+      if(!files.fs.statSync(target).isDirectory())throw new Error("所选路径不是文件夹。");
+      const native_file=(window as unknown as {File?:{setMountFolder?(folder:string):void}}).File;
+      if(!native_file?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
+      // Typora 1.14.9 这里只更新 mountFolder_，不会打开文件或改动正文；Vault 发布 mounted。
+      // 宿主去掉一个末尾分隔符，盘符根目录需要保留它自己的分隔符。
+      native_file.setMountFolder(target.endsWith(files.path_api.sep)?target+files.path_api.sep:target);
+      context_changed();dialog.close();resolve();
+    }catch(problem){error.textContent=String(problem);}};
+    path.onkeydown=event=>{if(!event.isComposing&&event.keyCode!==229&&event.key==="Enter"){event.preventDefault();open();}};dialog.footer.prepend(button("打开",open));
   });
   lifetime.add(core.app.commands.register({id:"linux_note:open_folder",title:"文件：打开文件夹",scope:"global",callback:()=>{void open_folder();}}));
   const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,
@@ -53,6 +63,15 @@ export function bind_workspace_browser() {
   lifetime.add(core.app.commands.register({id:"linux_note:outline",title:"视图：聚焦大纲",scope:"global",callback:reveal_outline}));
 
   const search=lifetime.own(bind_workspace_search(core,files));
+  let known_context=files.context_root();
+  const context_changed=()=>{
+    if(lifetime.disposed)return;
+    const current=files.context_root();if(current===known_context)return;known_context=current;
+    window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+    void explorer.refresh().catch(error=>console.error("Typora Code folder refresh:",error));
+    search.refresh_context();outline_binding?.refresh();
+  };
+  lifetime.add(core.app.vault?.on("mounted",context_changed));
   const focus_explorer=()=>{explorer.show();requestAnimationFrame(()=>explorer.container.querySelector<HTMLElement>(".workspace-explorer-tree")?.focus({preventScroll:true}));};
   lifetime.add(core.app.commands.register({id:"linux_note:file_explorer",title:"视图：资源管理器",scope:"global",callback:focus_explorer}));
   const explorer_shortcut=(event:KeyboardEvent)=>{

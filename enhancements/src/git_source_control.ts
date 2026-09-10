@@ -199,7 +199,12 @@ export class git_source_control {
     const value = (file: graph_change) => this.sort_order === "name" ? file.path.split("/").at(-1)! : this.sort_order === "status" ? file.status : file.path;
     return value(a).localeCompare(value(b)) || a.path.localeCompare(b.path);
   }
-  file_entries(file: graph_change, from: string, to: string, files: graph_change[]): workspace_menu_entry[] {
+  repository_action_available(root: string): boolean {
+    if (!this.panel.disposed && root === this.panel.root) return true;
+    this.panel.report(text("scm.repository_changed"));
+    return false;
+  }
+  file_entries(file: graph_change, from: string, to: string, files: graph_change[], root = this.panel.root): workspace_menu_entry[] {
     const entries: workspace_menu_entry[] = [
       {id: "open_diff", title: text("scm.open_changes"), action: () => void this.open_file(file, from, to, files)},
       {id: "open_file", title: text("scm.open_file"), disabled: file.status.startsWith("D"), action: () => void this.open_current_file(file)},
@@ -216,7 +221,8 @@ export class git_source_control {
       entries.push({id: staged ? "unstage" : "stage", title: staged ? text("scm.unstage_change") : text("scm.stage_change"), separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...(file.old_path ? [file.old_path] : [])])});
       if (!staged) entries.push({id: "discard_file", title: text("scm.discard_change"), action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, {include_untracked: true}, [file.path])});
     }
-    return entries;
+    // 菜单可能在切换仓库前已创建；执行时仍须核对生成比较的仓库身份。
+    return entries.map(entry => ({...entry, action: () => { if (this.repository_action_available(root)) void entry.action?.(); }}));
   }
   async ignore_file(file: string): Promise<void> {
     if (this.panel.writing) return;
@@ -250,9 +256,9 @@ export class git_source_control {
       ]);
       if (epoch !== this.load_epoch || root !== this.panel.root) return;
       this.panel.host.open_document({title: text("scm.change_title", {file: file.path.split("/").at(-1)!}), file: file.path, left, right, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
-        root, key: JSON.stringify([from, to, file.path]), menu: () => this.file_entries(file, from, to, files),
-        refresh: () => void this.open_file(file, from, to, files),
-        adjacent: direction => { const index = files.findIndex(item => item.path === file.path); void this.open_file(files[(index + direction + files.length) % files.length], from, to, files); },
+        root, key: JSON.stringify([from, to, file.path]), menu: () => this.file_entries(file, from, to, files, root),
+        refresh: () => { if (this.repository_action_available(root)) void this.open_file(file, from, to, files); },
+        adjacent: direction => { if (!this.repository_action_available(root)) return; const index = files.findIndex(item => item.path === file.path); void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files); },
       });
       // 侧栏历史可独立选择版本，不能把同名文件误记到中央页正在进行的另一场评审。
       if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);

@@ -408,7 +408,7 @@ export class git_graph_panel {
     for (const file of this.files) {
       const row = button("", () => {
         for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected"); row.classList.add("selected");
-        void this.open_diff(file);
+        void this.workbench.open_default_file(file, this.from, this.to, this.files);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
       const display_path = file.old_path ? file.old_path + " → " + file.path : file.path; const parts = display_path.split("/");
       const file_icon = workspace_file_icon(file.path); file_icon.classList.add("git-graph-file-icon");
