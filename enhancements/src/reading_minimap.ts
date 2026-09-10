@@ -1,6 +1,7 @@
 import {acquire_workspace_style} from "./workspace_styles";
 import minimap_css from "./reading_minimap.css";
 import { get_workspace_app } from "./workspace_bootstrap";
+import { reading_viewport_bounds } from "./reading_viewport";
 
 // 仅使用宿主已有的 CodeMirror 5 公开方法；读取源码不会移动光标或激活其他编辑组。
 type source_editor = {
@@ -95,11 +96,12 @@ function create_minimap(target: minimap_target) {
   const layout = () => {
     if (disposed) return false;
     if (!geometry_ready()) { rail.hidden = true; return false; }
-    const bounds = target.owner.getBoundingClientRect();
-    rail_height = Math.max(1, target.owner.clientHeight);
+    const bounds = reading_viewport_bounds(target.owner);
+    rail_height = bounds.bottom - bounds.top;
+    if (rail_height <= 0 || bounds.right - bounds.left <= MINIMAP_WIDTH) { rail.hidden = true; return false; }
     // 使用 clientWidth 留出宿主自身的细滚动条，不覆盖正文或相邻编辑组。
-    rail.style.left = `${bounds.left + target.owner.clientWidth - MINIMAP_WIDTH - 4}px`;
-    rail.style.top = `${bounds.top + target.owner.clientTop}px`;
+    rail.style.left = `${bounds.right - MINIMAP_WIDTH - 4}px`;
+    rail.style.top = `${bounds.top}px`;
     rail.style.height = `${rail_height}px`;
     rail.hidden = false;
     update_viewport();

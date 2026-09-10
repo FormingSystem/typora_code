@@ -1,0 +1,20 @@
+/* 恢复 71fcf1d 的正文框百分比和底栏滑块；主题的内边距、字体及渲染样式仍保留。 */
+html[data-linux-note-document-margin="ready"] body:not(.typora-export) content > #write {
+  box-sizing:border-box;
+  width:var(--linux-note-document-width,100%);
+  max-width:var(--linux-note-document-width,100%)!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+.linux-note-document-margin {
+  display:inline-flex;align-items:center;flex:0 0 auto;gap:4px;height:100%;min-width:0;
+  padding:0 5px;font:12px/22px "Segoe UI",sans-serif;white-space:nowrap;
+}
+.linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
+.linux-note-document-margin output {width:30px;overflow:hidden;text-align:right;font:inherit;font-variant-numeric:tabular-nums;}
+/* 沿用原 900px 紧凑阈值，但以底栏可用宽度判断，侧栏变宽后也不挤出字数。 */
+footer.ty-footer:has(> .linux-note-document-margin) {container-type:inline-size;container-name:typora-document-footer;}
+@container typora-document-footer (max-width:900px) {
+  .linux-note-document-margin-label,.linux-note-document-margin output {display:none;}
+  .linux-note-document-margin input[type="range"] {width:58px;}
+}

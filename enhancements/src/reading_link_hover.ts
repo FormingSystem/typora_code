@@ -3,6 +3,21 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {parse_markdown_file_target,resolve_host_open_file_target,resolve_workspace_file} from "./workspace_file_uri";
 
+/** 仅用于显示；逐个 UTF-8 字符解码一次，保留 URI 分隔符、控制字符和损坏的转义。 */
+function readable_link_text(value:string):string{
+  return value.replace(/(?:%[0-9a-f]{2})+/giu,encoded=>{
+    const bytes=encoded.match(/%[0-9a-f]{2}/giu)!;let result="";
+    for(let index=0;index<bytes.length;){
+      const first=Number.parseInt(bytes[index].slice(1),16);
+      const width=first>=0xc2&&first<=0xdf?2:first>=0xe0&&first<=0xef?3:first>=0xf0&&first<=0xf4?4:1;
+      if(first<0x20||first===0x7f){result+=bytes[index++];continue;}
+      try{result+=decodeURI(bytes.slice(index,index+width).join(""));index+=width;}
+      catch{result+=bytes[index++];}
+    }
+    return result;
+  });
+}
+
 /** 悬停只读取链接和所属文档身份，不触发打开、读取正文或改变编辑选区。 */
 export function bind_reading_link_hover() {
   const style=acquire_workspace_style("typora-code-link-hover",css);
@@ -41,14 +56,15 @@ export function bind_reading_link_hover() {
           const relative=path_api.relative(project_root,target);
           if(path_api.isAbsolute(relative))return {href,target:"项目外：目标位于其他磁盘或共享位置"};
           const normalized=relative.split(path_api.sep).join("/"),outside=normalized===".."||normalized.startsWith("../");
-          return {href,target:`${outside?"项目外：":"项目内：/"}${normalized}${hash}`};
+          // normalized 已经过文件路径解析，不能再次解码其中字面存在的百分号序列。
+          return {href,target:`${outside?"项目外：":"项目内：/"}${normalized}${readable_link_text(hash||"")}`};
         }
       }catch{ /* 非法转义保留原链接文本，提示不执行路径猜测或文件访问。 */ }
     }
     return {href,target:""};
   };
   const render=(link:HTMLAnchorElement)=>{
-    const info=target_info(link),original=document.createElement("div");original.className="workspace-link-original";original.textContent=info.href;tip.replaceChildren(original);
+    const info=target_info(link),original=document.createElement("div");original.className="workspace-link-original";original.textContent=readable_link_text(info.href);tip.replaceChildren(original);
     if(info.target){const target=document.createElement("div");target.className="workspace-link-target";target.textContent=info.target;tip.append(target);}
     if(info.href){
       const copy=document.createElement("button");copy.type="button";copy.className="workspace-link-copy";copy.textContent="复制链接";copy.setAttribute("aria-label","复制原始链接");
