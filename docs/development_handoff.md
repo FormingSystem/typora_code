@@ -1,66 +1,56 @@
 # TyporaCode 开发交接
 
-记录日期：2026-09-10。本轮按用户指定，以 `59412a2` 为平直布局和功能范围参考，保留已验证的稳定修复；这不是整库恢复旧提交，不再继续全量一比一功能扩充。
-
 ## 当前定稿边界
 
-- 保留 Typora 原生七菜单：文件、编辑、段落、格式、视图、主题、帮助。
-- Explorer 展示普通目录层级，不提供 Open Editors 区域，不启用紧凑目录链；大纲使用独立入口与唯一原生树。
-- 活动栏为48px连续项目；编辑标签条为35px、13px Segoe UI并使用 Light 2026／Dark 2026 状态色；Explorer树行为26px，SCM文件行与分区标题为22px；本轮顶栏左中区由renderer组织，右侧复用宿主窗口按钮。不恢复Modern卡片、胶囊及外围空隙。
-- Explorer 和真实文件标签使用固定 Seti 字形与颜色，文件夹仅保留展开箭头；大纲保留原始 `fa-list`。正式图标来源与许可见 [图标映射](icon_mapping.md)。
-- 搜索单击在结果下方预览，双击或Enter打开文件；保留阅读定位和草稿保护。
-- 终端默认位于下方编辑组（down），没有独立底部Panel。
-- SCM保留暂存／更改两个分组的独立官方箭头、空组切换、白色提交图标和对齐标题；提交按钮下不增加筛选框。
-- Git Graph保留当前已验证的中央历史、Find、PR与既有Git操作；设置恢复简洁表单，对象使用JSON文本框，不再提供追加的复杂设置编辑器。
+本仓库独立维护 Typora Code；源码、构建、验证与用户说明都在此处，不依赖原知识库。布局以 `59412a2` 的平直工作台为参考，随后依据用户明确要求增加单行顶栏、统一文件图标、clangd 大纲、可见标题同步、边距与可复制链接提示；不恢复 Modern 重设计、Open Editors 或底部终端面板。
+
+2026-09-10 用户继续明确要求多文件搜索提速、标签拖出新窗口，以及侧栏工具等既有对象的统一左键拖动。这几项属于最新授权范围。功能、限制与复现方法分别见[搜索性能](search_performance.md)和[拖动与多窗口](drag_and_windows.md)。
+
+顶栏为35px单行，保留七类菜单、居中搜索与阅读历史，窗口按钮使用原生节点。长菜单在顶栏下方滚动，支持 Shift+滚轮。活动栏连续排列并可排序，齿轮打开原生设置。文件图标统一调用 Seti 映射；文件夹按当前主题保留展开箭头。搜索单击在侧栏下方预览，双击或 Enter 打开；资源管理器按 F2 或右键重命名。
+
+Markdown 使用原生渲染和标题大纲；源码使用可保存的 Monaco。C/C++ 大纲只有 clangd 一条解析路径，使用当前内存正文、工程编译数据库和用户解析配置；其他五种语言内置离线解析。没有 VS Code 扩展宿主或完整语言服务移植。
 
 ## 常驻部署
 
-工程独立维护，不依赖原知识库目录，也不向打开的文件夹写入工作台配置。`window.html` 的head依次加载 `workspace_core.css`、`workspace.css`，再以defer加载 `workspace_core.js`、`workbench.js`。四个核心文件及语言、许可资源安装到用户数据目录 `typora_code/`；已删除首帧外观脚本，不注册社区插件，不因文件或文件夹切换重建工作台。
+唯一入口是 `resources/window.html` 的 head 静态 CSS 与 defer 脚本。`workspace_core.js` 等待宿主和样式就绪，初始化一次并发布 `ready`；`workbench.js` 等待该核心。文件切换不重建工作台。发布23个常驻资产，另有终端独立运行包；以构建生成的 `dist/SHA256SUMS` 为准。
 
-核心来源见 [SOURCE.json](../enhancements/vendor/workspace_core/SOURCE.json) 和 [MIT许可](../enhancements/vendor/workspace_core/LICENSE.md)。安装／恢复使用schema 4清单，预检、备份、摘要校验和失败回滚保持。旧业务设置仅在新 `typora_code/settings/workspace.json` 不存在时迁移；已有用户设置和业务数据不得被恢复操作删除。其他启用插件构成预检冲突，不静默覆盖。
+部署使用 schema 4 事务：预检、完整备份、逐文件摘要验证、失败回滚。`profile.data` 为十六进制 UTF-8 JSON，只调整 `framelessWindow=true`，恢复只还原该字段原值或缺省。保留用户其他设置；不修改 ASAR，不注册社区插件，不部署主进程菜单桥。Windows／UCRT64 使用同一 PowerShell 实现，Linux 使用 Python 实现；Windows 上的 Python 事务测试不代表 Linux 实机权限已验证。
 
-安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。
-
-Ctrl+P 使用 `440ec3f` 中的文件选择器，鼠标入口在顶栏中央搜索框；renderer 快捷键目标通过，原生冲突仍在验证。新建文件默认打开并渲染；SCM 文件提供打开、丢弃、暂存，差异视图提供打开文件按钮。
+新窗口由现有 `app.openFile(null, {mountFolder, anchor})` 创建，随机锚点标识唯一内存频道。`workspace_files` 负责文档快照和基线保护，`workspace_detached_window` 负责双窗确认与生命周期；不保存临时正文，不写工程设置。接收成功也必须复查来源身份，不能按全局路径关闭另一个编辑组的同名标签。
 
 ## 保留的正确性与已知缺陷验证
 
-1. Git Graph重复click／Enter／Space激活同一行关闭详情，清空选择及比较状态；Ctrl／Meta比较保持。
-2. 标签隐藏／显示不取消在途查询，不重复加载，也不重建已完成详情DOM；真正dispose才取消请求并阻止迟到结果写入。
-3. 分支、远端、HEAD、tag和stash引用颜色与对应轨道一致，切换标签不残留图层。
-4. 设置未修改保存保持显式false及空文本；存储失败恢复内存，写操作或仓库变化阻止保存。导入／导出保留本机敏感配置边界。
-5. SCM两个分组箭头可见且不遮挡名称，展开向下、收起向右；提交按钮与引用图标前景正确。检查原生正文主题不会污染这些控件。
-6. 文件保存、重命名、移动和关闭继续检查草稿、格式、路径及冲突；Git写操作只在临时仓库验证。工作台内写锁不等于跨外部Git原子保护。
-7. 保留窄窗口、长名称、空仓库、单／多仓库、失败／取消的交互检查，不以源码字符串或一张截图替代实际操作。
-
-新增路径修复保留已有 YAML/yml 映射，修正应用路由绕过阅读上下文后把相对链接错误解析到挂载根的问题；现在按来源文档父目录解析，同时支持 file URL。文件进入宿主、创建或切换标签前校验存在且为普通文件，缺失文件不清空正文。带 callback 的 Markdown 入口保留原参数、接收对象和回调语义。隐藏目标覆盖缺失路径、草稿及标签身份保持、文件与 Git 索引字节不变，原异步取消检查仍保留。
-
-正文链接悬停 1 秒显示提示；活动栏底部齿轮恢复打开 Typora 原生偏好设置，不包含插件设置或市场。快捷键 renderer 目标已通过，最终原生 accelerator 冲突仍待核对，不能据此声明所有快捷键 live 通过。
+- 保留宿主 `#title-text` 等节点的连接状态。此前删除节点曾中断 `changeCounter.reset`，造成路径变化但正文与标签不同步。
+- 底栏 `.footer-item-right` 可嵌套；插入控件用直接子节点作为参照。大纲和缩略图共用 `reading_viewport_bounds`，扣除底栏实际覆盖区。
+- 大纲优先完整进入视口的标题，保留12px边缘缓冲；无可读标题时回退正文所属章节。宿主自动／延迟回调共用该判定，同一标题不重写样式，不移动正文焦点。
+- 正文边距为单侧0%–24%，保留用户历史值；正文宽度为100%−2×边距。不得把这个恢复扩展为整套外观设置。
+- 链接按来源文档解析，目标存在且为普通文件后才切换；失败保留文档、草稿和标签。悬停1秒显示可复制提示，项目内生成地址以根目录为起点；展示仅解码一次，复制保留原链接。
+- 搜索以会话身份取消旧扫描、Worker与DOM时间片。普通Git装饰不能阻塞首结果；“仅更改文件”和忽略规则不能为提速被跳过。未完成搜索不能授权替换。
+- 拖动统一经过 `pointer-drag.ts`，释放才改模型，取消需清理全局监听器、指针捕获、预览、光标和选区限制。活动栏与标签复用原图标，不能各绘一套。
+- 跨窗的源码草稿保留真实磁盘基线、格式与位置；未命名或虚拟标签不冒充普通文件。原生dirty Markdown在禁用自动保存时仅建立副本，来源继续保留；启用自动保存时前置拒绝。完整撤销历史不迁移。
+- 文件保存、重命名、移动和关闭继续检查草稿、格式、路径及外部冲突。Git写操作仅在临时仓库验证；内部写锁不等于跨外部Git原子保护。旧仓库diff的按钮与迟到操作必须复核仓库身份。
+- Graph同节点再次激活关闭详情；切换标签不重建已完成详情；stash辅助提交不独立成节点，引用颜色跟随轨道。工作区新文件直接打开，历史版本比较继续为明确diff动作。
 
 ## 本轮结果与验证边界
 
-上一版标准窗口历史证据：构建与 `check` 通过。UI 首轮为36/37（`.cache/final_ui.log`），唯一失败是新增打开／丢弃／暂存按钮后的旧 Graph 首按钮列断言；仅修正测试后，完整 Graph 目标复跑通过（`.cache/graph_final_columns_target.log`，64.657秒），上一版同一产品构建的37个目标全部通过，并非首轮整批零失败。上一版原生集成18/18通过（`.cache/native_integrity_compare/native_integrated_release_final/`），覆盖原始 ASAR 下存活55秒、七菜单与真实未保存草稿。 原生菜单 accelerator 与物理键盘的冲突尚未实证；renderer 或隔离原生夹具中的合成按键不能替代硬件快捷键验证。链接悬停、偏好入口等以 Electron 目标为证据，不归入原生18项。
+各提交对应的构建、完整套件、目标复跑、原生取样与安装记录集中在[反馈复查记录](feedback_review.md)。此前 `629fc6a`、`94b47b2`、`36aef2d` 和 `5622258` 的通过数字均属于各自构建，不在此重复标为当前通过。
 
-上一版通过的Graph／SCM目标包括设置、国际化、引用颜色、可见性、行交互、文件图标与几何。本轮文件图标目标已改为验证与 Explorer 相同的 Seti 资源和关联，完整结果见下文。
+在 `enhancements/` 执行：
 
-YAML／相对路径与缺失预检的 `test_workspace_files_search.cjs`、`test_reading_lifecycle.cjs` 2/2 PASS，文件 URI 单元目标通过。上一版 dist 的 Windows 隔离安装／重装／恢复事务和 Python 事务已通过，日志分别为 `.cache/final_windows_install.log`、`.cache/final_python_install.log`；profile codec 与部署 checker 通过（16 个部署文件、8 个发布资产）。Python 在 Windows 执行，不代表原生 Linux 权限验证。最终构建、检查、UI与原生结果见上述记录；本交接不沿用迁移前测试数字。原生Linux、UCRT64实机与管理员UAC人工交互仍需分别说明验证边界。原生fixture应验证最终产品，不加载已经撤销的chrome样式或复杂设置入口。
+```sh
+npm run build
+npm run check
+npm run check:ui
+```
+
+`check:ui` 明确登记隔离隐藏 Electron 目标，使用临时工作区。可传具体测试文件；新 `.cjs` 目标必须登记，依赖真实 clangd 或终端的目标保持独立分类。真实 clangd 另运行 `npm run check:clangd`、`npm run check:clangd-ui`。
+
+vendor源码变化同步 `source_manifest.json`，保留上游摘要并更新当前摘要；新增自有文件不伪造上游身份。build更新 `build_inputs.json` 与预构建资产，多人协作必须串行生成共享产物。测试失败先保留证据，再修复；原生验证使用私有桌面、未改ASAR和隔离文档，不切换用户桌面或取真实草稿做破坏性测试。
+
+物理键盘 accelerator 冲突、Linux／UCRT64实机、管理员UAC人工交互仍需分别记录，合成按键和Windows夹具不能替代这些证据。真实安装需带事务备份及安装后只读检查；不强制关闭或刷新用户窗口。
 
 ## 研究资料使用边界
 
-[VS Code设计取证](vscode_design_baseline.md)保留版本、源码和数值事实，作为已核对参考，不是强制Modern目标。[工作台矩阵](workbench_parity.md)和[Git Graph矩阵](../enhancements/git_graph_features.md)记录当前入口与限制；缺口不自动成为后续扩功能授权。只修已确认bug，新增范围须有新的明确需求。
+[VS Code设计取证](vscode_design_baseline.md)维护固定版本、源文件、数值及采用范围；[工作台矩阵](workbench_parity.md)、[Git矩阵](../enhancements/git_graph_features.md)、[图标映射](icon_mapping.md)、[代码大纲](source_outline.md)分别承担自己的事实。修改功能时同步真实受影响的入口和说明，避免在每个文件复制一份旧验收结果。
 
-上一版标准窗口的真实安装与核验通过（`.cache/final_live_install.log`、`.cache/final_live_check.log`），ASAR 未修改；实际 profile 仅 `framelessWindow:true→false`，其余字段完全一致。未强制关闭或重载用户窗口；请保存文档并正常重启 Typora 加载更新。
-
-本轮按用户新要求恢复35px单行顶栏：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
-
-按用户最新要求，C/C++ 大纲统一接入本机 clangd，通过 LSP 使用当前内存正文和工程编译配置，点击符号精确定位；已移除 C/C++ Tree-sitter 路径。其他五种语言继续内置离线解析，Markdown 保留原生标题目录。代码大纲的设置入口支持 clangd 路径、项目相对编译数据库目录和后备参数，失败不覆盖原设置。详细范围见 [代码大纲与解析环境](source_outline.md)。
-
-上一版 `629fc6a` 的单行顶栏构建、`check` 与整批39/39 UI基线通过（`.cache/single_row_build.log`、`.cache/single_row_check.log`、`.cache/single_row_ui.log`）。保留宿主标题节点的修复后，标题／启动／阅读三个目标回归通过；独立原生实例45项通过，正常存活约60秒，27个发布资产摘要一致；原始 ASAR 和临时文档字节未变。证据位于 `.cache/native_single_row_compare/single_row_title_fix/`。原生场景覆盖七菜单、长菜单 Shift+滚轮、TypeScript 大纲点击定位、Markdown／YAML跳转、真实未保存草稿及缺失目标保护，不等于七种语言都已逐一原生验收或物理键盘 accelerator 已验证。 profile=true 的 PS／Python 隔离安装事务通过；此前标准窗口数字与 true→false 安装记录仅为历史。
-
-本轮原生验证曾发现删除 `#title-text` 会使 Typora 的 `changeCounter.reset` 中断加载，表现为路径已改变但正文与标签仍是来源文件。现将所有宿主标题节点保留在连接的隐藏容器中，窗口按钮保留原节点；修复后完整原生链路45项通过，原生标题与未保存状态检查通过。
-
-原生45项对应标题节点修复后的构建。后续 C 返回函数指针声明、TypeScript 裸枚举项与 Python 链式赋值已补充对应回归，`test_workspace_source_outline.cjs` 的19项真实 grammar／Worker／Monaco 检查通过，不把原生 TypeScript 样例扩展为这些边界已实窗覆盖。最终重建、发布资产与部署检查通过。
-
-最终版本已通过真实 Windows 安装及配置核验（`.cache/single_row_live_install.log`、`.cache/single_row_live_check.log`），自动创建事务备份，原始 ASAR 摘要保持不变。未强制关闭或重载用户窗口；保存文档并正常重启即可加载本轮顶栏及大纲。
-
-clangd 大纲与链接提示的实现边界见[代码大纲说明](source_outline.md)。随后发现的活动栏宿主层级、图标复用、Graph新文件默认打开及键盘／文件夹上下文问题，统一跟踪于[反馈复查记录](feedback_review.md)；旧验证计数不能替代这些场景的重新检查。
+研究缓存只放忽略目录，不作为运行依赖。实现必须尊重当前宿主边界，不把VS Code官方说明或单个截图当成Typora API已可用的证据。

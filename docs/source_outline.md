@@ -23,6 +23,8 @@ C、C++ 和头文件的大纲由本机 **clangd** 提供。工作台通过标准
 - 当前服务关闭后台索引、clang-tidy、磁盘 PCH 和自动 `.clangd` 配置加载；不启用 `query-driver`，不调用工程中的编译器或脚本。当前目标是单文件大纲和定位，不提供跨文件语义引用、补全或重构。编辑器原有词法着色独立保留。
 - JavaScript、TypeScript、Python、CMake、YAML 继续使用随包的离线 Tree-sitter。Markdown 不进入代码解析器。
 
+[工作区内容搜索](search_performance.md)匹配磁盘文本，与当前内存的符号分析分开；[源码跨窗移交](drag_and_windows.md)恢复文档和语言后，新窗口按自身解析环境重新请求符号，不迁移旧窗口的clangd进程或诊断缓存。
+
 符号图标采用固定 VS Code Codicons，颜色来自 `symbolIcon.*`：函数／方法为紫色，类／枚举为橙色，变量／字段／接口为蓝色；其他类别遵循原前景色。明暗主题分别使用上游对应颜色，符号名称保持正常文字颜色。
 
 协议与行为依据：[clangd 工作方式](https://clangd.llvm.org/design/compile-commands)、[clangd 安装与编辑器接入](https://clangd.llvm.org/installation)、[VS Code 文档符号提供器](https://code.visualstudio.com/api/language-extensions/programmatic-language-features#show-all-symbol-definitions-within-a-document)、[固定版本符号配色](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/editor/contrib/symbolIcons/browser/symbolIcons.ts)。
@@ -33,15 +35,10 @@ C、C++ 和头文件的大纲由本机 **clangd** 提供。工作台通过标准
 
 ## 同期交互修复与验证
 
-下列运行记录属于 `8ffad67` 历史基线。后续复查发现该版活动栏选择器没有匹配真实宿主 `header` 层级，旧检查也未验证首槽严格贴合顶栏；活动栏位置及其他遗漏的修复、重新验收见[反馈复查记录](feedback_review.md)。不要将旧 63 项结果解释为这个几何问题已在该版解决。
+Markdown 大纲保留原生目录树。自动高亮优先选择完整进入可读视口的标题，没有可读标题时才回退正文所属章节；相邻标题在视口边缘采用 12px 进入／退出缓冲，不必等待新标题滚出顶边。原生延迟回调与工作台自动选择共用一次同步，避免相邻标题争抢高亮。显式点击目录继续使用原生定位；自动显示当前目录行只滚动大纲自身，不移动正文或光标。
 
-- 活动栏从单行顶栏下方开始，Explorer 图标保持完整的 24px 显示和 48px 点击区。Typora 原图标使用 24px 正方形框，清除宿主图片透明边框造成的压缩；侧栏、标签、底栏采用同一组明暗分界色。
-- 链接悬停仍等待 1 秒，生成的目标位置以项目根目录表示，例如 `/governance/conventions/git_guide.md`。鼠标移入提示浮层后可以选择文字或复制原始链接；浮层与链接之间保留 250ms 移动宽限，不改写文档链接或执行跳转。
-- Markdown 大纲的自动高亮优先选择完整进入可读视口的标题，没有可读标题时才回退正文所属章节；相邻标题在视口边缘采用 12px 进入／退出缓冲，不必等待新标题滚出顶边。向宿主传入明确标题，统一原生延迟回调，同一章节及边界微滚动不重复改选。显式点击目录仍保留原生定位与手动高亮；大纲自动显示当前行只滚动自身容器。后续验证见[反馈复查记录](feedback_review.md)。
-- Windows 与 Python 安装事务会备份并移除已退休的 C/C++ Tree-sitter 资产，恢复或安装失败时按原字节回滚，不扫描删除用户文件。
+可读视口扣除底栏覆盖区域，大纲与文档缩略图共用这一边界，避免把字数栏后的标题当作可见内容。底栏单侧 0%～24% 的 Markdown 边距调整会保留当前阅读段落；它只恢复原有宽度控件，不重新引入整套外观设置。
 
-本轮整批基础检查和 40/40 UI 目标通过（`.cache/clangd_release_check.log`、`.cache/clangd_release_ui.log`）。独立审查后补齐 clangd 管道错误处理；原生窗口检查发现并修正宿主图片和底栏样式覆盖。最终重建后，发布资产检查通过，标题栏／活动栏／大纲／链接提示四个目标全部通过（`.cache/clangd_release_ui_final_targets.log`），真实 clangd 与 Monaco 的 11 组端到端检查通过（`.cache/clangd_release_ui_real.log`）。LSP 服务 16 项检查覆盖进程退出、三路管道错误、多个待处理请求、取消、UTF-16 和当前版本诊断；两套隔离安装事务覆盖退休资产恢复及失败回滚。Python 部署测试在 Windows 执行，不代表原生 Linux 验收。
+安装器仅备份并移除已退休的 C/C++ Tree-sitter grammar 与许可证，恢复或失败时按原字节回滚，不扫描删除用户文件。当前发布资产与 schema 4 部署方式见[安装与备份](../enhancements/README.md#1.3_PowerShell单独安装扩展与备份)。
 
-最终原生 Typora 使用未修改 ASAR，在从未切换到用户前台的私有桌面完成 63 项检查，存活至 60.23 秒后受控清理。真实 C 函数与头文件声明点击定位、设置保存、分类配色、Markdown 同标题滚动、相对 Markdown／YAML 链接及缺失链接保留真实未保存草稿均通过；23 个发布资产与最终构建摘要一致，原 ASAR、原图标和 7 个临时工程文件字节不变。证据为 `.cache/native_single_row_compare/clangd_geometry_final_ready/verification.json`；合成按键仍不等同于物理键盘 accelerator 实机验证。
-
-最终 Windows 安装与配置核验通过（`.cache/clangd_live_install.log`、`.cache/clangd_live_check.log`），事务自动备份旧资产并清除退休资源；安装前后的 ASAR、原生窗口配置和已有工作台设置摘要一致。没有关闭或重载用户窗口，保存文档后正常重启 Typora 加载更新。
+当前结果、历史基线和后续修复的验证计数统一记录在[反馈复查记录](feedback_review.md)。真实 clangd、隐藏 Electron、私有桌面的原生 Typora 及物理键盘是不同证据层；合成按键不证明原生 accelerator 冲突已排除，Windows 上的 Python 部署测试也不代表原生 Linux 验收。

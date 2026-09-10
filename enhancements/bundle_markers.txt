@@ -63,3 +63,6 @@ linux-note-reading-history-travel
 prepare_workspace_rename
 linux-note-workspace-renamed
 install_workspace_shortcuts
+bind_workspace_detached_window
+typora-code:tab-detach
+typora-code:pointer-drag

@@ -8,7 +8,7 @@ export class search_match_failure extends Error {
 }
 
 function browser_matcher(): search_match_worker {
-  if (typeof Worker === "undefined" || !worker_source) throw new Error("此环境没有可隔离运行的搜索 Worker，不能执行正则搜索。请使用普通文本搜索。");
+  if (typeof Worker === "undefined" || !worker_source) throw new Error("此环境没有可隔离运行的搜索 Worker，请检查工作台搜索资源是否完整。");
   const url = URL.createObjectURL(new Blob([worker_source], {type: "text/javascript"})); let worker: Worker;
   try { worker = new Worker(url); } catch (error) { URL.revokeObjectURL(url); throw error; }
   return {postMessage: value => worker.postMessage(value), addEventListener: (type, listener) => worker.addEventListener(type, listener), removeEventListener: (type, listener) => worker.removeEventListener(type, listener), terminate: () => { worker.terminate(); URL.revokeObjectURL(url); }};
@@ -32,7 +32,7 @@ export function create_search_matcher(factory: search_matcher_factory = browser_
         if (event.data.error) { fail("failed", event.data.error); return; }
         cleanup(); resolve({matches: event.data.matches, limit_reached: event.data.limit_reached});
       };
-      const timer = setTimeout(() => fail("timeout", "正则匹配超过 2 秒，已终止该文件的匹配。请简化表达式或缩小范围。"), 2000);
+      const timer = setTimeout(() => fail("timeout", "文本匹配超过 2 秒，已终止该文件的匹配。请简化表达式或缩小范围。"), 2000);
       active.addEventListener("message", message); active.addEventListener("error", error); signal?.addEventListener("abort", abort, {once: true});
       try { active.postMessage({request_id, text, options: {query: options.query, regex: options.regex, case_sensitive: options.case_sensitive, whole_word: options.whole_word}, max_results}); }
       catch (caught) { fail("failed", "无法启动隔离匹配：" + String(caught)); }

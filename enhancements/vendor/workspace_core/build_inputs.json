@@ -45,6 +45,7 @@
     "..\\..\\node_modules\\@plylrnsdy\\decorate.js\\index.js",
     "src\\ui\\ribbon\\workspace-ribbon.scss",
     "src\\ui\\components\\draggable.scss",
+    "src\\ui\\components\\pointer-drag.ts",
     "src\\ui\\components\\draggable.ts",
     "src\\ui\\components\\menu.scss",
     "src\\ui\\components\\menu.ts",

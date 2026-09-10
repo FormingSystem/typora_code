@@ -14,6 +14,7 @@ import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file
 import { bind_workspace_selection_search, type workspace_selection_request } from "./workspace_selection_search";
 import { file_key, source_file_path } from "./workspace_file_uri";
 import search_css from "./workspace_search.css";
+const search_path_order = new Intl.Collator("zh-CN", {numeric: true});
 
 /** 文件搜索独占一个侧栏面板，输入区固定、结果区单独滚动。 */
 export function bind_workspace_search(core: graph_core, files: workspace_file_host) {
@@ -51,6 +52,9 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     options: workspace_search_options = {query:"",use_ignore:true}; result?: workspace_search_result;
     controller?: AbortController; visible=false; timer=0; tree=false; sort="path"; only_open=false; only_changed=false; history: string[]=[]; history_index=-1;
     git_status = new Map<string,string>();
+    render_versions = new WeakMap<HTMLElement,number>();
+    rendered_groups = new WeakMap<HTMLElement,workspace_search_file>();
+    omitted_files = new Set<string>();
     native_observer = new MutationObserver(() => this.clear_native());
     constructor() {
       super();
@@ -124,16 +128,17 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     set_split(value:number){value=Math.max(15,Math.min(75,Math.round(value)));this.body.style.setProperty("--search-results-size",`${value}%`);this.split.setAttribute("aria-valuenow",String(value));}
     set_preview_open(open:boolean){this.preview_open=open;this.preview_section.classList.toggle("is-collapsed",!open);this.preview.container.hidden=!open;this.split.hidden=!open||this.preview_section.hidden;this.body.classList.toggle("has-preview",open&&!this.preview_section.hidden);this.preview_toggle.setAttribute("aria-expanded",String(open));this.preview_toggle.title=open?"收起预览":"展开预览";this.preview_toggle.setAttribute("aria-label",this.preview_toggle.title);}
-    clear_results(){++this.open_generation;this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
+    clear_results(){++this.open_generation;this.render_versions.set(this.results,(this.render_versions.get(this.results)||0)+1);this.omitted_files.clear();this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
     clear_native(){if(this.visible&&native_sidebar){const classes=["active-tab-files","active-tab-outline","ty-show-search","ty-on-search"];if(classes.some(name=>native_sidebar.classList.contains(name)))native_sidebar.classList.remove(...classes);}}
     onshow(){this.visible=true;this.clear_native();if(native_sidebar)this.native_observer.observe(native_sidebar,{attributes:true,attributeFilter:["class"]});}
     onhide(){this.visible=false;this.native_observer.disconnect();}
     schedule(){clearTimeout(this.timer);this.controller?.abort();this.controller=undefined;this.clear_results();this.status.textContent="";this.timer=window.setTimeout(()=>void this.search(),250);}
     path_key(path:string){return file_key(files.path_api.resolve(path));}
-    async read_git_status(root:string){
+    async read_git_status(root:string,signal:AbortSignal){
       const statuses=new Map<string,string>();
       try{
         const git_root=(await runner.run(root,["rev-parse","--show-toplevel"])).trim();
+        if(signal.aborted)return {statuses,changed_files:undefined};
         const changes=parse_status(await runner.run(git_root,["status","--porcelain=v1","-z","--untracked-files=all"]));
         for(const change of changes){const status=change.status==="??"?"U":change.work_status?.trim()||change.index_status?.trim()||change.status;statuses.set(this.path_key(files.path_api.resolve(git_root,change.path)),status);}
         return {statuses,changed_files:changes.map(change=>files.path_api.resolve(git_root,change.path))};
@@ -148,6 +153,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     remove_result(file:workspace_search_file,group:HTMLElement){
       const result=this.result;if(!result||!result.files.includes(file))return;
+      this.omitted_files.add(file.file_path);
       result.files=result.files.filter(item=>item!==file);result.counts.matched_files=result.files.length;result.counts.matches=result.files.reduce((sum,item)=>sum+item.matches.length,0);
       group.remove();this.update_status();this.render();
       if(this.selected?.file===file){this.selected=undefined;this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");++this.open_generation;}
@@ -155,35 +161,64 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     async search(){
       clearTimeout(this.timer);this.timer=0;this.controller?.abort();this.controller=undefined;this.clear_results();if(!this.query.value||disposed){this.status.textContent="";return;}
       const controller=new AbortController();this.controller=controller;this.containerEl.dataset.state="searching";this.status.textContent="正在搜索…";
+      controller.signal.addEventListener("abort",()=>runner.cancel(),{once:true});
       const stop=git_icon_button("search-stop","停止搜索",()=>controller.abort());this.status.append(stop);
       const open_files:string[]=[];if(this.only_open)core.app.workspace.eachLeaves(leaf=>{const source_path=source_file_path(leaf.state.path,files.path_api);if(files.path_api.isAbsolute(leaf.state.path))open_files.push(leaf.state.path);else if(source_path)open_files.push(source_path);});
       try{
-        const root=files.context_root();const git=await this.read_git_status(root);if(disposed||this.controller!==controller)return;
-        if(this.only_changed&&!git.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");
-        this.git_status=git.statuses;
-        const scope=this.only_changed?git.changed_files:this.only_open?open_files:undefined;
-        const result=await engine.search(root,{...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{})},{signal:controller.signal});
-        if(disposed||this.controller!==controller)return;this.result=result;this.containerEl.dataset.state=result.cancelled?"stopped":"ready";this.render();
+        const root=files.context_root();this.git_status=new Map();
+        // Git 装饰与内容查找并行；只有“仅更改文件”需要先取得 Git 范围。
+        const git_pending=this.read_git_status(root,controller.signal).then(git=>{
+          if(!disposed&&this.controller===controller&&!controller.signal.aborted){this.git_status=git.statuses;for(const group of this.results.querySelectorAll<HTMLElement>('.workspace-search-file')){const status=git.statuses.get(this.path_key(group.dataset.path!));if(status&&!group.querySelector('.workspace-search-git-status')){const badge=el('span','workspace-search-git-status',status);badge.dataset.status=status;group.querySelector('summary')?.insertBefore(badge,group.querySelector('.workspace-search-file-actions'));}}}return git;
+        });
+        const git=this.only_changed?await git_pending:undefined;if(disposed||this.controller!==controller)return;
+        if(this.only_changed&&!git?.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");
+        const scope=this.only_changed?git?.changed_files:this.only_open?open_files:undefined;
+        const options={...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{})};
+        const progressive:workspace_search_result={root,options,files:[],counts:{scanned_files:0,searched_files:0,matched_files:0,matches:0,skipped:{binary:0,large:0,ignored:0,excluded:0,links:0,unreadable:0}},cancelled:true,limit_reached:false,notices:[]};
+        this.result=progressive;let progress_time=0;const render_tasks:Promise<void>[]=[];let render_error:unknown;
+        const result=await engine.search(root,options,{signal:controller.signal,on_file:(file,counts)=>{
+          if(disposed||this.controller!==controller||controller.signal.aborted)return;
+          progressive.files.push(file);progressive.counts=counts;render_tasks.push(this.render(this.results,file).catch(error=>{render_error ||= error;}));
+          if(performance.now()-progress_time>=80){progress_time=performance.now();this.status.replaceChildren(el('span','workspace-search-counts',`正在搜索… ${counts.matched_files} 个文件，${counts.matches} 个结果`),stop);}
+        }});
+        await Promise.all(render_tasks);if(disposed||this.controller!==controller)return;if(render_error)throw render_error;
+        if(this.omitted_files.size){result.files=result.files.filter(file=>!this.omitted_files.has(file.file_path));result.counts.matched_files=result.files.length;result.counts.matches=result.files.reduce((sum,file)=>sum+file.matches.length,0);}
+        this.result=result;await this.render();if(disposed||this.controller!==controller)return;this.containerEl.dataset.state=result.cancelled?"stopped":"ready";
         this.history=[this.query.value,...this.history.filter(value=>value!==this.query.value)].slice(0,30);this.history_index=-1;
         this.update_status();
-        if(!result.cancelled&&result.files[0]?.matches[0])this.select(result.files[0],result.files[0].matches[0]);
-      }catch(error){if(!disposed&&this.controller===controller){this.containerEl.dataset.state="error";this.status.textContent=String(error);this.results.replaceChildren();}}
+        if(!result.cancelled&&!this.selected&&result.files[0]?.matches[0])this.select(result.files[0],result.files[0].matches[0]);
+      }catch(error){if(!disposed&&this.controller===controller){this.clear_results();this.containerEl.dataset.state="error";this.status.textContent=String(error);}}
     }
     set_group_open(group:HTMLDetailsElement,open:boolean){
       group.open=open;const toggle=group.querySelector<HTMLButtonElement>(":scope>summary>.workspace-search-file-toggle");
       if(toggle){toggle.setAttribute("aria-expanded",String(open));toggle.title=`${open?"收起":"展开"} ${group.querySelector("summary")?.title||"文件"} 的匹配项`;toggle.setAttribute("aria-label",toggle.title);}
     }
-    render(target:HTMLElement=this.results){
+    async render(target:HTMLElement=this.results,new_file?:workspace_search_file){
       // 排序、视图切换和移除结果只重排当前列表；各文件的开关不应被重置为全部展开。
-      const open_states=new Map([...target.querySelectorAll<HTMLDetailsElement>("details[data-search-group]")].map(node=>[node.getAttribute("data-search-group")!,node.open]));
-      target.replaceChildren();if(!this.result)return;
-      const sorted=[...this.result.files].sort((a,b)=>this.sort==="count"?b.matches.length-a.matches.length:a.relative_path.localeCompare(b.relative_path,"zh-CN",{numeric:true}));
+      const version=(this.render_versions.get(target)||0)+(new_file?0:1);this.render_versions.set(target,version);
+      // 渐进列表完成后复用现有节点，只重排；保留鼠标预览、键盘焦点和滚动位置。
+      if(!new_file&&!this.tree&&this.result){
+        const groups=new Map([...target.querySelectorAll<HTMLElement>(':scope>.workspace-search-file')].map(group=>[group.dataset.path,group]));
+        if(target.children.length===groups.size&&groups.size===this.result.files.length&&this.result.files.every(file=>this.rendered_groups.get(groups.get(file.file_path)!)===file)){
+          const ordered=[...this.result.files].sort((a,b)=>this.sort==='count'?b.matches.length-a.matches.length:search_path_order.compare(a.relative_path,b.relative_path));
+          const focused=document.activeElement instanceof HTMLElement&&target.contains(document.activeElement)?document.activeElement:undefined;const scroll=target.scrollTop;
+          for(let index=0;index<ordered.length;index++){const group=groups.get(ordered[index].file_path)!;if(target.children[index]!==group)target.insertBefore(group,target.children[index]||null);}
+          if(focused?.isConnected&&document.activeElement!==focused)focused.focus({preventScroll:true});target.scrollTop=scroll;return;
+        }
+      }
+      const open_states=new Map(new_file?[]:[...target.querySelectorAll<HTMLDetailsElement>("details[data-search-group]")].map(node=>[node.getAttribute("data-search-group")!,node.open]));
+      if(!new_file)target.replaceChildren();if(!this.result)return;const result=this.result;
+      const current=()=>!disposed&&this.render_versions.get(target)===version&&(target!==this.results||this.result===result);
+      const sorted=new_file?[new_file]:[...result.files].sort((a,b)=>this.sort==="count"?b.matches.length-a.matches.length:search_path_order.compare(a.relative_path,b.relative_path));
       const directories=new Map<string,HTMLElement>();
+      if(new_file)for(const directory of target.querySelectorAll<HTMLElement>('.workspace-search-directory'))directories.set(directory.getAttribute('data-search-group')!.slice('directory:'.length),directory);
+      let rendered=0,deadline=performance.now()+8;
       for(const file of sorted){
+        if(!current())return;
         let parent=target;
         if(this.tree){const parts=file.relative_path.split("/").slice(0,-1);let key="";for(const part of parts){key+=part+"/";let nested=directories.get(key);if(!nested){const folder=el("details","workspace-search-directory");const state_key="directory:"+key;folder.setAttribute("data-search-group",state_key);folder.open=open_states.get(state_key)??true;const summary=el("summary");summary.append(git_disclosure(),el("span","",part));folder.append(summary);parent.append(folder);directories.set(key,folder);nested=folder;}parent=nested;}}
         const group=el("details","workspace-search-file"),state_key="file:"+file.file_path;group.setAttribute("data-search-group",state_key);group.open=open_states.get(state_key)??true;group.dataset.path=file.file_path;
-        const summary=el("summary");summary.title=file.relative_path;summary.tabIndex=0;
+        const summary=el("summary");summary.title=file.relative_path;summary.tabIndex=0;summary.classList.toggle("is-selected",this.selected?.file.file_path===file.file_path);
         const label=el("span","workspace-search-file-name",files.path_api.basename(file.file_path));
         const path=el("span","workspace-search-file-path",files.path_api.dirname(file.relative_path).replace(/^\.$/u,""));
         // SVG 图标保持 pointer-events:none；由真实按钮提供完整命中区，不依赖 SVG 成为 event.target。
@@ -199,15 +234,18 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         summary.onfocus=()=>this.select(file,this.file_match(file));summary.ondblclick=event=>{if((event.target as Element).closest("button,.git-disclosure-icon"))return;event.preventDefault();this.open_match(file,this.file_match(file));};
         summary.onkeydown=event=>{if(event.target!==summary)return;this.navigate(event,summary,file,()=>this.file_match(file),target);};
         summary.oncontextmenu=event=>workspace_menu(event,[{title:"打开当前预览位置",action:()=>this.open_match(file,this.file_match(file))}, {title:"复制路径",action:()=>files.copy(file.file_path)}, {title:"复制相对路径",action:()=>files.copy(file.relative_path)}, {title:"替换此文件中的匹配项…",action:()=>void this.replace(file.file_path)}, {title:"从结果中移除",action:()=>this.remove_result(file,group)}]);
-        group.append(summary);this.set_group_open(group,group.open);
+        group.append(summary);this.set_group_open(group,group.open);parent.append(group);
         for(const match of file.matches){
+          if(rendered++%64===63||performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(!current())return;deadline=performance.now()+8;}
           const row=button("",()=>this.select(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",`${file.relative_path}，第 ${match.line} 行，第 ${match.column} 列：${match.preview}`);
+          const selected=this.selected?.match.id===match.id;row.classList.toggle("is-selected",selected);row.setAttribute("aria-current",String(selected));
           row.append(el("span","workspace-search-line",String(match.line)));const preview=el("span","workspace-search-preview");let start=0;
           for(const range of match.preview_ranges){preview.append(document.createTextNode(match.preview.slice(start,range.start)),el("mark","",match.preview.slice(range.start,range.end)));start=range.end;}preview.append(document.createTextNode(match.preview.slice(start)));row.append(preview);
           row.oncontextmenu=event=>workspace_menu(event,[{title:"打开匹配位置",action:()=>this.open_match(file,match)}, {title:"在右侧打开",action:()=>this.open_match(file,match,"right")}, {title:"复制匹配行",action:()=>files.copy(match.preview)}, {title:"替换此匹配项…",action:()=>void this.replace(file.file_path,[match.id])}]);
           row.onfocus=()=>this.select(file,match);row.ondblclick=event=>{event.preventDefault();this.open_match(file,match);};row.onkeydown=event=>this.navigate(event,row,file,()=>match,target);
           group.append(row);
-        }parent.append(group);
+        }
+        this.rendered_groups.set(group,file);
       }
     }
     file_match(file:workspace_search_file){return file.matches.find(match=>match.id===this.remembered.get(file.file_path))||file.matches[0];}
@@ -243,6 +281,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       const dialog=workspace_dialog("替换预览");lifetime.add(()=>dialog.close());const editors:git_diff_editor[]=[];const original_close=dialog.close;dialog.close=()=>{editors.forEach(editor=>editor.dispose());original_close();};
       const cleanup=new MutationObserver(()=>{if(!dialog.root.isConnected){editors.splice(0).forEach(editor=>editor.dispose());cleanup.disconnect();}});cleanup.observe(document.body,{childList:true});lifetime.add(()=>{cleanup.disconnect();editors.splice(0).forEach(editor=>editor.dispose());});
       try{
+        if(this.containerEl.dataset.state==='searching')throw new Error("搜索仍在进行，请等待完成或停止搜索后再预览替换。");
         if(!match_ids&&(this.result.cancelled||this.result.limit_reached))throw new Error("搜索未完成，请缩小范围后再执行批量替换。");
         const visible_ids=match_ids||this.result.files.filter(file=>!file_path||file.file_path===file_path).flatMap(file=>file.matches.map(match=>match.id));
         const plan=await engine.prepare_replace(this.result,this.replacement.value,{file_path,match_ids:visible_ids});if(disposed||!dialog.root.isConnected)return;

@@ -41,6 +41,31 @@ app.whenReady().then(async () => {
   assert(await evaluate(`qa.navigate_reading_target('missing.md').then(()=>false,()=>true)`));
   assert.deepEqual(await evaluate('({html:document.querySelector("#write").innerHTML,path:File.bundle.filePath,leaf:leaf.state.path,scroll:document.querySelector("content").scrollTop,opens:opened_paths.length})'),missing_before,'missing target cannot clear or switch the current Markdown before failing');
 
+  // 单次取消在原生打开之前生效，不能等其他导航完成后再打开已经取消的移交目标。
+  await evaluate(`window.cancelled_open=new AbortController();cancelled_open.abort();window.cancelled_result=qa.navigate_reading_target('/test/cancelled.md',{signal:cancelled_open.signal}).then(()=>false,error=>/取消/.test(error.message));void 0;`);
+  assert(await evaluate('cancelled_result'));
+  assert.equal(await evaluate('opened_paths.length'),missing_before.opens,'pre-aborted navigation never enters the native opener');
+  await evaluate(`window.blocking_open=new AbortController();window.blocking_result=qa.navigate_reading_target('/test/blocking.md',{signal:blocking_open.signal}).then(()=>false,error=>/取消/.test(error.message));window.queued_open=new AbortController();window.queued_result=qa.navigate_reading_target('/test/queued.md',{signal:queued_open.signal}).then(()=>false,error=>/取消/.test(error.message));void 0;`);
+  await delay(70);
+  assert.deepEqual(await evaluate('opened_paths.slice(-1)'),['/test/blocking.md']);
+  await evaluate('queued_open.abort();void 0;');
+  assert(await evaluate('queued_result'),'queued cancellation settles while the earlier native load is still pending');
+  await evaluate('blocking_open.abort();void 0;');
+  assert(await evaluate('blocking_result'));
+  await delay(100);
+  assert(!await evaluate(`opened_paths.includes('/test/queued.md')`),'cancelled queued target cannot open late');
+  assert.deepEqual(await evaluate('({html:document.querySelector("#write").innerHTML,path:File.bundle.filePath,leaf:leaf.state.path,scroll:document.querySelector("content").scrollTop})'),{html:missing_before.html,path:missing_before.path,leaf:missing_before.leaf,scroll:missing_before.scroll},'cancelled transfer preserves current text, file identity and scroll');
+  await evaluate(`window.locate_abort=new AbortController();window.locate_signal=null;window.locate_finished=false;window.locate_result=qa.navigate_reading_target('/test/project-docs/P01.md',{signal:locate_abort.signal,locate:signal=>{locate_signal=signal;return new Promise(resolve=>signal.addEventListener('abort',()=>{locate_finished=true;resolve()},{once:true}))}}).then(()=>false,error=>/取消/.test(error.message));void 0;`);
+  for(let attempt=0;attempt<50&&!await evaluate('Boolean(locate_signal)');attempt++)await delay(20);
+  assert(await evaluate('Boolean(locate_signal)'));
+  await evaluate('locate_abort.abort();void 0;');
+  assert(await evaluate('locate_result'));assert(await evaluate('locate_signal.aborted&&locate_finished'),'per-operation cancellation reaches the location callback');
+  await evaluate(`document.querySelector('content').scrollTop=360;window.restore_abort=new AbortController();window.transfer_restore=qa.navigate_reading_target('/test/project-docs/P01.md',{signal:restore_abort.signal}).then(()=>false,error=>/取消/.test(error.message));void 0;`);
+  await delay(160);
+  await evaluate(`restore_abort.abort();document.querySelector('content').scrollTop=740;void 0;`);
+  assert(await evaluate('transfer_restore'));await delay(100);
+  assert.equal(await evaluate(`document.querySelector('content').scrollTop`),740,'cancelled operation cannot continue the target position restoration loop');
+
   await evaluate(`emit('file-menu',{menu:{containerEl:document.querySelector('#menu')},path:'/test/project-docs/P01.md'});commands.values().next().value.callback();`);
   await delay(30);
   assert.equal(await evaluate('copy_count'),1);

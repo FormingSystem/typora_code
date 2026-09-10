@@ -177169,6 +177169,163 @@ https://creativecommons.org/licenses/by/4.0/
     }, load, save, prepare_relocation };
   }
 
+  // src/workspace_file_uri.ts
+  var SOURCE_FILE_VIEW_ID = "linux_note.source_file";
+  var SOURCE_FILE_URI_PREFIX = "typ://".concat(SOURCE_FILE_VIEW_ID, "/");
+  var is_windows_absolute_file = (file_path) => /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/iu.test(file_path);
+  var is_absolute_file = (file_path) => file_path.startsWith("/") || is_windows_absolute_file(file_path);
+  var is_platform_absolute_file = (file_path, path_api) => path_api.sep === "\\" ? is_windows_absolute_file(file_path) : file_path.startsWith("/") && path_api.isAbsolute(file_path);
+  function is_source_file_uri(target) {
+    return target.startsWith(SOURCE_FILE_URI_PREFIX);
+  }
+  function source_file_uri(file_path) {
+    if (!is_absolute_file(file_path)) throw new Error("\u6E90\u7801 URI \u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
+    return SOURCE_FILE_URI_PREFIX + encodeURIComponent(file_path);
+  }
+  function source_file_path(target, path_api) {
+    if (!is_source_file_uri(target)) return;
+    try {
+      const file_path = decodeURIComponent(target.slice(SOURCE_FILE_URI_PREFIX.length));
+      return file_path && is_absolute_file(file_path) && (!path_api || is_platform_absolute_file(file_path, path_api)) ? file_path : void 0;
+    } catch {
+      return;
+    }
+  }
+  function file_key(file_path) {
+    const normalized = file_path.replace(/\\/gu, "/");
+    return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
+  }
+  function file_url_path(path_api, target) {
+    try {
+      const url = new URL(target);
+      if (url.protocol !== "file:" || url.username || url.password || url.port || url.search) return;
+      if (/%2f|%5c/iu.test(url.pathname)) return;
+      const pathname = decodeURIComponent(url.pathname);
+      if (path_api.sep === "\\") {
+        if (url.hostname && url.hostname !== "localhost") return "\\\\".concat(url.hostname).concat(pathname.replace(/\//gu, "\\"));
+        return /^\/[a-z]:\//iu.test(pathname) ? pathname.slice(1).replace(/\//gu, "\\") : void 0;
+      }
+      return !url.hostname || url.hostname === "localhost" ? pathname : void 0;
+    } catch {
+      return;
+    }
+  }
+  function resolve_workspace_file(path_api, context_root, target) {
+    const decoded = source_file_path(target, path_api);
+    if (is_source_file_uri(target) && !decoded) return;
+    const candidate = /^file:/iu.test(target) ? file_url_path(path_api, target) : decoded ?? target;
+    if (!candidate || candidate.startsWith("typ://") || !is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return;
+    if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : void 0;
+    if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
+    return path_api.resolve(context_root, candidate);
+  }
+  function resolve_host_open_file_target(path_api, source_file, target) {
+    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+    if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
+    return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
+  }
+  function parse_markdown_file_target(target) {
+    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+    if (!candidate || is_source_file_uri(candidate)) return;
+    let separator2 = candidate.indexOf("#");
+    while (separator2 >= 0) {
+      const file_path = candidate.slice(0, separator2);
+      if (is_markdown_file(file_path)) return { file_path, hash: candidate.slice(separator2) };
+      separator2 = candidate.indexOf("#", separator2 + 1);
+    }
+    return is_markdown_file(candidate) ? { file_path: candidate } : void 0;
+  }
+  function resolve_markdown_file_target(path_api, context_root, target) {
+    const parsed = parse_markdown_file_target(target);
+    if (!parsed) return;
+    const file_path = resolve_workspace_file(path_api, context_root, parsed.file_path);
+    return file_path ? { ...parsed, file_path } : void 0;
+  }
+
+  // src/reading_positions.ts
+  var POSITION_PREFIX = "linux-note-reading-position:v1:";
+  function create_position_store(storage, maximum_entries = 500) {
+    const read_entry = (key) => {
+      try {
+        const entry = JSON.parse(storage.getItem(key) ?? "null");
+        const position2 = entry?.position;
+        if (!Number.isFinite(entry?.updated_at) || !Number.isFinite(position2?.scroll_top) || !Number.isFinite(position2?.scroll_left) || position2.scroll_top < 0 || position2.scroll_left < 0) return null;
+        if (position2.block && (typeof position2.block.text !== "string" || typeof position2.block.tag !== "string" || !Number.isInteger(position2.block.index) || !Number.isFinite(position2.block.offset))) delete position2.block;
+        return entry;
+      } catch {
+        return null;
+      }
+    };
+    return {
+      remap_paths(map) {
+        const updates = [];
+        try {
+          for (let index = 0; index < storage.length; index++) {
+            const key = storage.key(index);
+            if (!key?.startsWith(POSITION_PREFIX)) continue;
+            const target = map(decodeURIComponent(key.slice(POSITION_PREFIX.length)));
+            const value = storage.getItem(key);
+            if (target && value && read_entry(key)) updates.push({ old_key: key, new_key: POSITION_PREFIX + encodeURIComponent(file_key(target)), value });
+          }
+          for (const update of updates) {
+            storage.setItem(update.new_key, update.value);
+            if (update.old_key !== update.new_key) storage.removeItem(update.old_key);
+          }
+        } catch (error) {
+          console.warn("[linux-note reading positions] cannot rename position", error);
+        }
+      },
+      get(path) {
+        return read_entry(POSITION_PREFIX + encodeURIComponent(file_key(path)))?.position ?? null;
+      },
+      set(path, position2) {
+        if (!path || path.startsWith("typ://")) return;
+        try {
+          const key = POSITION_PREFIX + encodeURIComponent(file_key(path));
+          storage.setItem(key, JSON.stringify({ updated_at: Date.now(), position: position2 }));
+          const entries3 = [];
+          for (let index = 0; index < storage.length; index += 1) {
+            const candidate = storage.key(index);
+            if (candidate?.startsWith(POSITION_PREFIX)) entries3.push({ key: candidate, updated_at: read_entry(candidate)?.updated_at ?? 0 });
+          }
+          entries3.sort((left, right) => left.key === key ? -1 : right.key === key ? 1 : right.updated_at - left.updated_at);
+          for (const entry of entries3.slice(maximum_entries)) storage.removeItem(entry.key);
+        } catch (error) {
+          console.warn("[linux-note reading positions] cannot persist position", error);
+        }
+      }
+    };
+  }
+  function blocks(root) {
+    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button, .linux-note-mermaid-inline-toolbar"));
+  }
+  function block_text(block3) {
+    return (block3.textContent ?? "").trim().slice(0, 160);
+  }
+  function capture_position(scroller, root) {
+    const position2 = { scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft };
+    const children = blocks(root);
+    const top = scroller.getBoundingClientRect().top;
+    let index = children.findIndex((block4) => block4.getBoundingClientRect().bottom > top + 16);
+    if (index < 0) index = children.length - 1;
+    const block3 = children[index];
+    if (block3) position2.block = { tag: block3.tagName, text: block_text(block3), index, offset: block3.getBoundingClientRect().top - top };
+    return position2;
+  }
+  function position_block(root, position2) {
+    const saved = position2.block;
+    if (!saved) return;
+    const children = blocks(root);
+    const matches = (block3) => block3.tagName === saved.tag && block_text(block3) === saved.text;
+    if (children[saved.index] && matches(children[saved.index])) return children[saved.index];
+    return children.find(matches);
+  }
+  function apply_position(scroller, root, position2) {
+    const block3 = position_block(root, position2);
+    scroller.scrollTop = block3 && position2.block ? scroller.scrollTop + block3.getBoundingClientRect().top - scroller.getBoundingClientRect().top - position2.block.offset : position2.scroll_top;
+    scroller.scrollLeft = position2.scroll_left;
+  }
+
   // src/workspace_source_lifecycle.ts
   function bind_source_lifecycle(core, all_views) {
     const guarded_groups = /* @__PURE__ */ new WeakSet();
@@ -177512,163 +177669,6 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
-  // src/workspace_file_uri.ts
-  var SOURCE_FILE_VIEW_ID = "linux_note.source_file";
-  var SOURCE_FILE_URI_PREFIX = "typ://".concat(SOURCE_FILE_VIEW_ID, "/");
-  var is_windows_absolute_file = (file_path) => /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/iu.test(file_path);
-  var is_absolute_file = (file_path) => file_path.startsWith("/") || is_windows_absolute_file(file_path);
-  var is_platform_absolute_file = (file_path, path_api) => path_api.sep === "\\" ? is_windows_absolute_file(file_path) : file_path.startsWith("/") && path_api.isAbsolute(file_path);
-  function is_source_file_uri(target) {
-    return target.startsWith(SOURCE_FILE_URI_PREFIX);
-  }
-  function source_file_uri(file_path) {
-    if (!is_absolute_file(file_path)) throw new Error("\u6E90\u7801 URI \u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
-    return SOURCE_FILE_URI_PREFIX + encodeURIComponent(file_path);
-  }
-  function source_file_path(target, path_api) {
-    if (!is_source_file_uri(target)) return;
-    try {
-      const file_path = decodeURIComponent(target.slice(SOURCE_FILE_URI_PREFIX.length));
-      return file_path && is_absolute_file(file_path) && (!path_api || is_platform_absolute_file(file_path, path_api)) ? file_path : void 0;
-    } catch {
-      return;
-    }
-  }
-  function file_key(file_path) {
-    const normalized = file_path.replace(/\\/gu, "/");
-    return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
-  }
-  function file_url_path(path_api, target) {
-    try {
-      const url = new URL(target);
-      if (url.protocol !== "file:" || url.username || url.password || url.port || url.search) return;
-      if (/%2f|%5c/iu.test(url.pathname)) return;
-      const pathname = decodeURIComponent(url.pathname);
-      if (path_api.sep === "\\") {
-        if (url.hostname && url.hostname !== "localhost") return "\\\\".concat(url.hostname).concat(pathname.replace(/\//gu, "\\"));
-        return /^\/[a-z]:\//iu.test(pathname) ? pathname.slice(1).replace(/\//gu, "\\") : void 0;
-      }
-      return !url.hostname || url.hostname === "localhost" ? pathname : void 0;
-    } catch {
-      return;
-    }
-  }
-  function resolve_workspace_file(path_api, context_root, target) {
-    const decoded = source_file_path(target, path_api);
-    if (is_source_file_uri(target) && !decoded) return;
-    const candidate = /^file:/iu.test(target) ? file_url_path(path_api, target) : decoded ?? target;
-    if (!candidate || candidate.startsWith("typ://") || !is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return;
-    if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : void 0;
-    if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
-    return path_api.resolve(context_root, candidate);
-  }
-  function resolve_host_open_file_target(path_api, source_file, target) {
-    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
-    if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
-    return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
-  }
-  function parse_markdown_file_target(target) {
-    const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
-    if (!candidate || is_source_file_uri(candidate)) return;
-    let separator2 = candidate.indexOf("#");
-    while (separator2 >= 0) {
-      const file_path = candidate.slice(0, separator2);
-      if (is_markdown_file(file_path)) return { file_path, hash: candidate.slice(separator2) };
-      separator2 = candidate.indexOf("#", separator2 + 1);
-    }
-    return is_markdown_file(candidate) ? { file_path: candidate } : void 0;
-  }
-  function resolve_markdown_file_target(path_api, context_root, target) {
-    const parsed = parse_markdown_file_target(target);
-    if (!parsed) return;
-    const file_path = resolve_workspace_file(path_api, context_root, parsed.file_path);
-    return file_path ? { ...parsed, file_path } : void 0;
-  }
-
-  // src/reading_positions.ts
-  var POSITION_PREFIX = "linux-note-reading-position:v1:";
-  function create_position_store(storage, maximum_entries = 500) {
-    const read_entry = (key) => {
-      try {
-        const entry = JSON.parse(storage.getItem(key) ?? "null");
-        const position2 = entry?.position;
-        if (!Number.isFinite(entry?.updated_at) || !Number.isFinite(position2?.scroll_top) || !Number.isFinite(position2?.scroll_left) || position2.scroll_top < 0 || position2.scroll_left < 0) return null;
-        if (position2.block && (typeof position2.block.text !== "string" || typeof position2.block.tag !== "string" || !Number.isInteger(position2.block.index) || !Number.isFinite(position2.block.offset))) delete position2.block;
-        return entry;
-      } catch {
-        return null;
-      }
-    };
-    return {
-      remap_paths(map) {
-        const updates = [];
-        try {
-          for (let index = 0; index < storage.length; index++) {
-            const key = storage.key(index);
-            if (!key?.startsWith(POSITION_PREFIX)) continue;
-            const target = map(decodeURIComponent(key.slice(POSITION_PREFIX.length)));
-            const value = storage.getItem(key);
-            if (target && value && read_entry(key)) updates.push({ old_key: key, new_key: POSITION_PREFIX + encodeURIComponent(file_key(target)), value });
-          }
-          for (const update of updates) {
-            storage.setItem(update.new_key, update.value);
-            if (update.old_key !== update.new_key) storage.removeItem(update.old_key);
-          }
-        } catch (error) {
-          console.warn("[linux-note reading positions] cannot rename position", error);
-        }
-      },
-      get(path) {
-        return read_entry(POSITION_PREFIX + encodeURIComponent(file_key(path)))?.position ?? null;
-      },
-      set(path, position2) {
-        if (!path || path.startsWith("typ://")) return;
-        try {
-          const key = POSITION_PREFIX + encodeURIComponent(file_key(path));
-          storage.setItem(key, JSON.stringify({ updated_at: Date.now(), position: position2 }));
-          const entries3 = [];
-          for (let index = 0; index < storage.length; index += 1) {
-            const candidate = storage.key(index);
-            if (candidate?.startsWith(POSITION_PREFIX)) entries3.push({ key: candidate, updated_at: read_entry(candidate)?.updated_at ?? 0 });
-          }
-          entries3.sort((left, right) => left.key === key ? -1 : right.key === key ? 1 : right.updated_at - left.updated_at);
-          for (const entry of entries3.slice(maximum_entries)) storage.removeItem(entry.key);
-        } catch (error) {
-          console.warn("[linux-note reading positions] cannot persist position", error);
-        }
-      }
-    };
-  }
-  function blocks(root) {
-    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button, .linux-note-mermaid-inline-toolbar"));
-  }
-  function block_text(block3) {
-    return (block3.textContent ?? "").trim().slice(0, 160);
-  }
-  function capture_position(scroller, root) {
-    const position2 = { scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft };
-    const children = blocks(root);
-    const top = scroller.getBoundingClientRect().top;
-    let index = children.findIndex((block4) => block4.getBoundingClientRect().bottom > top + 16);
-    if (index < 0) index = children.length - 1;
-    const block3 = children[index];
-    if (block3) position2.block = { tag: block3.tagName, text: block_text(block3), index, offset: block3.getBoundingClientRect().top - top };
-    return position2;
-  }
-  function position_block(root, position2) {
-    const saved = position2.block;
-    if (!saved) return;
-    const children = blocks(root);
-    const matches = (block3) => block3.tagName === saved.tag && block_text(block3) === saved.text;
-    if (children[saved.index] && matches(children[saved.index])) return children[saved.index];
-    return children.find(matches);
-  }
-  function apply_position(scroller, root, position2) {
-    const block3 = position_block(root, position2);
-    scroller.scrollTop = block3 && position2.block ? scroller.scrollTop + block3.getBoundingClientRect().top - scroller.getBoundingClientRect().top - position2.block.offset : position2.scroll_top;
-    scroller.scrollLeft = position2.scroll_left;
-  }
-
   // src/workspace_quick_open.css
   var workspace_quick_open_default = "";
 
@@ -177853,13 +177853,14 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_quick_open.ts
+  var quick_path_order = new Intl.Collator("zh-CN", { numeric: true });
   var current_picker;
   function get_workspace_quick_open() {
     return current_picker;
   }
   function fuzzy_score(query, candidate) {
-    const needle = query.trim().toLocaleLowerCase();
-    const haystack = candidate.toLocaleLowerCase();
+    const needle = query;
+    const haystack = candidate;
     if (!needle) return 1;
     const exact = haystack.indexOf(needle);
     if (exact >= 0) return 1e4 - exact * 10 - candidate.length;
@@ -177906,10 +177907,21 @@ https://creativecommons.org/licenses/by/4.0/
     let shown = [];
     let selected_index = 0;
     let scan_generation = 0;
+    let render_generation = 0;
+    let render_timer = 0;
+    let scanning = false;
+    let limited = false;
+    let rendered_query = "";
+    let pending_open_query;
     let previous_focus = null;
     const close = () => {
       if (root.hidden) return;
       scan_generation += 1;
+      render_generation += 1;
+      clearTimeout(render_timer);
+      render_timer = 0;
+      scanning = false;
+      pending_open_query = void 0;
       root.hidden = true;
       root.setAttribute("aria-modal", "false");
       results.replaceChildren();
@@ -177929,15 +177941,53 @@ https://creativecommons.org/licenses/by/4.0/
       });
     };
     const open_selected = () => {
+      const query = input.value.trim().toLocaleLowerCase();
+      if (query !== rendered_query) {
+        pending_open_query = query;
+        return;
+      }
       const target = shown[selected_index];
       if (!target) return;
       close();
       void files.open_file(target.file_path);
     };
-    const render = () => {
-      const query = input.value.trim();
-      shown = catalogue.map((file) => ({ file, score: Math.max(fuzzy_score(query, file.name), fuzzy_score(query, file.relative_path)) })).filter((item) => item.score >= 0).sort((left, right) => right.score - left.score || left.file.relative_path.localeCompare(right.file.relative_path, "zh-CN", { numeric: true })).slice(0, 100).map((item) => item.file);
-      selected_index = 0;
+    const render = async () => {
+      const generation = ++render_generation;
+      const query = input.value.trim().toLocaleLowerCase();
+      const previous_path = query === rendered_query ? shown[selected_index]?.file_path : void 0;
+      if (query !== rendered_query) {
+        shown = [];
+        results.replaceChildren();
+        status2.textContent = "\u6B63\u5728\u7B5B\u9009\u6587\u4EF6\u2026";
+      }
+      const ranked = [];
+      const order = (left, right) => right.score - left.score || quick_path_order.compare(left.file.relative_path, right.file.relative_path);
+      let deadline = performance.now() + 8;
+      let total = 0;
+      for (let index = 0; index < catalogue.length; index++) {
+        if (index % 256 === 0 && performance.now() > deadline) {
+          await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+          if (disposed || root.hidden || generation !== render_generation) return;
+          deadline = performance.now() + 8;
+        }
+        const file = catalogue[index], score3 = Math.max(fuzzy_score(query, file.lower_name), fuzzy_score(query, file.lower_path));
+        if (score3 < 0) continue;
+        total++;
+        const item = { file, score: score3 };
+        if (ranked.length === 100 && order(item, ranked[99]) >= 0) continue;
+        let low = 0, high = ranked.length;
+        while (low < high) {
+          const middle = low + high >>> 1;
+          if (order(item, ranked[middle]) < 0) high = middle;
+          else low = middle + 1;
+        }
+        ranked.splice(low, 0, item);
+        if (ranked.length > 100) ranked.pop();
+      }
+      if (disposed || root.hidden || generation !== render_generation) return;
+      shown = ranked.map((item) => item.file);
+      rendered_query = query;
+      selected_index = Math.max(0, shown.findIndex((file) => file.file_path === previous_path));
       results.replaceChildren(...shown.map((file, index) => {
         const row = document.createElement("button");
         row.type = "button";
@@ -177960,42 +178010,78 @@ https://creativecommons.org/licenses/by/4.0/
         row.ondblclick = (event) => event.preventDefault();
         return row;
       }));
-      status2.textContent = shown.length ? "".concat(shown.length).concat(catalogue.length > shown.length ? "+" : "", " \u4E2A\u6587\u4EF6") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6" : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6";
-      select(0);
+      status2.textContent = (shown.length ? "".concat(total, " \u4E2A\u6587\u4EF6").concat(total > 100 ? " \xB7 \u663E\u793A\u524D100\u9879" : "") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6" : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6") + (scanning ? " \xB7 \u6B63\u5728\u67E5\u627E\uFF08\u5DF2\u53D1\u73B0 ".concat(catalogue.length, " \u4E2A\u6587\u4EF6\uFF09") : limited ? " \xB7 \u6587\u4EF6\u626B\u63CF\u5DF2\u8FBE\u523050000\u9879\u4E0A\u9650" : "");
+      select(selected_index);
+      if (pending_open_query === query) {
+        pending_open_query = void 0;
+        open_selected();
+      }
+    };
+    const schedule_render = () => {
+      if (!render_timer) render_timer = window.setTimeout(() => {
+        render_timer = 0;
+        void render();
+      }, 80);
     };
     const scan = async () => {
       const generation = ++scan_generation;
       catalogue = [];
+      scanning = true;
+      limited = false;
       status2.textContent = "\u6B63\u5728\u67E5\u627E\u5DE5\u4F5C\u533A\u6587\u4EF6\u2026";
       const workspace_root = files.context_root();
       const stack = workspace_root ? [workspace_root] : [];
-      while (stack.length && catalogue.length < 5e4) {
-        const directory = stack.pop();
+      const pending = /* @__PURE__ */ new Set();
+      const current = () => generation === scan_generation && !root.hidden && !disposed;
+      const read_directory = async (directory) => {
         let entries3;
         try {
           entries3 = await files.fs.promises.readdir(directory, { withFileTypes: true });
         } catch {
-          continue;
+          return;
         }
-        if (generation !== scan_generation || root.hidden) return;
-        entries3.sort((left, right) => left.name.localeCompare(right.name, "zh-CN", { numeric: true }));
+        if (!current()) return;
+        let deadline = performance.now() + 8;
         for (let index = entries3.length - 1; index >= 0; index -= 1) {
+          if (catalogue.length >= 5e4) {
+            limited = true;
+            break;
+          }
+          if (index % 128 === 0 && performance.now() > deadline) {
+            schedule_render();
+            await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+            if (!current()) return;
+            deadline = performance.now() + 8;
+          }
           const entry = entries3[index];
           const file_path = files.path_api.join(directory, entry.name);
           if (entry.isDirectory()) {
             if (![".git", "node_modules"].includes(entry.name)) stack.push(file_path);
           } else if (entry.isFile()) {
             const relative_path = files.path_api.relative(workspace_root, file_path).replaceAll("\\", "/");
-            catalogue.push({ file_path, relative_path, name: entry.name });
+            catalogue.push({ file_path, relative_path, name: entry.name, lower_name: entry.name.toLocaleLowerCase(), lower_path: relative_path.toLocaleLowerCase() });
           }
         }
-        if (catalogue.length % 500 === 0) await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+        if (current()) schedule_render();
+      };
+      while (current() && (stack.length || pending.size) && !limited) {
+        while (stack.length && pending.size < 4 && !limited) {
+          const task = read_directory(stack.pop()).finally(() => pending.delete(task));
+          pending.add(task);
+        }
+        if (pending.size) await Promise.race(pending);
       }
-      if (generation === scan_generation && !root.hidden) render();
+      if (current()) {
+        scanning = false;
+        clearTimeout(render_timer);
+        render_timer = 0;
+        void render();
+      }
     };
     const open = () => {
       if (disposed) return;
       if (!root.hidden) {
+        pending_open_query = void 0;
         input.value = "";
         render();
         input.focus();
@@ -178011,7 +178097,10 @@ https://creativecommons.org/licenses/by/4.0/
       render();
       void scan();
     };
-    input.oninput = render;
+    input.oninput = () => {
+      pending_open_query = void 0;
+      void render();
+    };
     input.onkeydown = (event) => {
       if (event.isComposing || event.keyCode === 229) return;
       if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -178604,7 +178693,8 @@ https://creativecommons.org/licenses/by/4.0/
     remap_paths?.(map);
   }
   async function navigate_reading_target(path, options2 = {}) {
-    if (!navigate_target || !await navigate_target(path, options2)) throw new Error("\u65E0\u6CD5\u5207\u6362\u5230\u76EE\u6807 Markdown\uFF1B\u8BF7\u5148\u5904\u7406\u6587\u4EF6\u6253\u5F00\u6216\u672A\u4FDD\u5B58\u786E\u8BA4\u540E\u91CD\u8BD5\u3002");
+    if (options2.signal?.aborted) throw new Error("\u6587\u4EF6\u8DF3\u8F6C\u5DF2\u53D6\u6D88\u3002");
+    if (!navigate_target || !await navigate_target(path, options2)) throw new Error(options2.signal?.aborted ? "\u6587\u4EF6\u8DF3\u8F6C\u5DF2\u53D6\u6D88\u3002" : "\u65E0\u6CD5\u5207\u6362\u5230\u76EE\u6807 Markdown\uFF1B\u8BF7\u5148\u5904\u7406\u6587\u4EF6\u6253\u5F00\u6216\u672A\u4FDD\u5B58\u786E\u8BA4\u540E\u91CD\u8BD5\u3002");
   }
   function bind_reading_navigation() {
     if (active_dispose) return active_dispose;
@@ -178673,45 +178763,50 @@ https://creativecommons.org/licenses/by/4.0/
       }
       pending_from = null;
     };
-    const wait_for = async (ready) => {
+    const wait_for = async (ready, signal = controller.signal) => {
       const started = Date.now();
-      if (disposed) return false;
+      if (disposed || signal.aborted) return false;
       while (!ready()) {
-        if (disposed || Date.now() - started > 15e3) return false;
-        await reading_delay(40, controller.signal);
+        if (disposed || signal.aborted || Date.now() - started > 15e3) return false;
+        await reading_delay(40, signal);
       }
-      return !disposed;
+      return !disposed && !signal.aborted;
     };
-    const activate = async (context) => {
+    const activate = async (context, signal = controller.signal) => {
+      if (disposed || signal.aborted) return false;
       const leaf = context.leaf;
       if (app && leaf) {
         if (leaf.parent.activeLeaf !== leaf) leaf.parent.toggleTab(leaf.state.path);
         app.workspace.activeLeaf = leaf;
-        if (!await wait_for(() => Boolean(workspace.elements(context)))) return false;
+        if (!await wait_for(() => Boolean(workspace.elements(context)), signal)) return false;
+        if (disposed || signal.aborted) return false;
         if (!leaf.view.isEditor()) {
           leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
         }
       }
-      return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path) && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
+      return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path) && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)), signal);
     };
-    const open_target = async (path, view_id) => {
+    const open_target = async (path, view_id, signal = controller.signal) => {
+      if (disposed || signal.aborted) return;
       const existing = workspace.all().find((context) => (view_id == null || context.view_id === view_id) && file_key(context.file_path) === file_key(path));
-      if (existing) return await activate(existing) ? existing : void 0;
+      if (existing) return await activate(existing, signal) ? existing : void 0;
       const current = workspace.active();
-      if (current && file_key(current.file_path) === file_key(path)) return await activate(current) ? current : void 0;
+      if (current && file_key(current.file_path) === file_key(path)) return await activate(current, signal) ? current : void 0;
+      if (disposed || signal.aborted) return;
       original_open_file.call(editor2.library, path);
       let target;
       if (!await wait_for(() => {
         target = workspace.active();
         return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-      })) return;
-      return target && await activate(target) ? target : void 0;
+      }, signal)) return;
+      return target && await activate(target, signal) ? target : void 0;
     };
     const report = (error) => {
       if (!disposed) console.error("[linux-note reading navigation]", error);
     };
     const navigate = async (path, hash2, location, options2 = {}) => {
-      if (disposed || navigating) return false;
+      const signal = options2.signal ?? controller.signal;
+      if (disposed || navigating || signal.aborted) return false;
       const source = workspace.active()?.file_path || native_path();
       if (path_api) {
         const target = resolve_host_open_file_target(path_api, source, path);
@@ -178721,6 +178816,7 @@ https://creativecommons.org/licenses/by/4.0/
         const fs2 = runtime2.reqnode("fs");
         if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
       }
+      if (disposed || signal.aborted) return false;
       finish_pending();
       const from = capture();
       workspace.checkpoint();
@@ -178729,24 +178825,34 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         let target;
         if (app && options2.group && options2.group !== "active") {
+          if (disposed || signal.aborted) return false;
           app.commands.run(options2.group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [path]);
           const opened = await wait_for(() => {
             target = workspace.active();
             return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-          });
-          if (!opened || !target || !await activate(target)) target = void 0;
-        } else target = await open_target(path, location?.view_id);
-        if (disposed || !target) return false;
-        await reading_delay(100, controller.signal);
-        if (disposed) return false;
+          }, signal);
+          if (!opened || !target || !await activate(target, signal)) target = void 0;
+        } else target = await open_target(path, location?.view_id, signal);
+        if (disposed || signal.aborted || !target) return false;
+        await reading_delay(100, signal);
+        if (disposed || signal.aborted) return false;
         workspace.stop_restoring(target);
+        const restore_position = async (position2) => {
+          const stop = () => workspace.stop_restoring(target);
+          signal.addEventListener("abort", stop, { once: true });
+          try {
+            if (!signal.aborted) await (position2 ? workspace.restore(target, position2) : workspace.resume(target));
+          } finally {
+            signal.removeEventListener("abort", stop);
+          }
+        };
         if (options2.locate) {
-          await options2.locate(controller.signal);
-          if (disposed) return false;
+          await options2.locate(signal);
+          if (disposed || signal.aborted) return false;
         } else if (hash2) {
           original_open_url.call(editor2, hash2);
-          await reading_delay(100, controller.signal);
-          if (disposed) return false;
+          await reading_delay(100, signal);
+          if (disposed || signal.aborted) return false;
           const heading3 = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
           const cid = heading3?.getAttribute("cid");
           if (cid) {
@@ -178760,15 +178866,15 @@ https://creativecommons.org/licenses/by/4.0/
           }
         } else if (location) {
           try {
-            if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location, controller.signal);
+            if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location, signal);
             else if (location.cursor) editor2.undo?.exeCommand(location.cursor);
           } catch {
           }
-          await reading_delay(40, controller.signal);
-          if (disposed) return false;
-          await workspace.restore(target, location.position ?? location);
-        } else await workspace.resume(target);
-        if (disposed) return false;
+          await reading_delay(40, signal);
+          if (disposed || signal.aborted) return false;
+          await restore_position(location.position ?? location);
+        } else await restore_position();
+        if (disposed || signal.aborted) return false;
         const to = capture(target);
         if (to) {
           workspace.remember(target, to.position);
@@ -178784,13 +178890,25 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const owned_navigate_target = navigate_target = async (path, options2) => {
-      if (disposed) return false;
-      const started = Date.now();
-      while (navigating || history.is_navigating()) {
-        if (disposed || Date.now() - started > 15e3) return false;
-        await reading_delay(40, controller.signal);
+      const operation = new AbortController();
+      const abort = () => operation.abort();
+      const signals = [controller.signal, options2.signal].filter((signal) => Boolean(signal));
+      for (const signal of signals) {
+        if (signal.aborted) abort();
+        else signal.addEventListener("abort", abort, { once: true });
       }
-      return navigate(path, options2.hash, void 0, options2);
+      try {
+        if (disposed || operation.signal.aborted) return false;
+        const started = Date.now();
+        while (navigating || history.is_navigating()) {
+          if (disposed || operation.signal.aborted || Date.now() - started > 15e3) return false;
+          await reading_delay(40, operation.signal);
+        }
+        if (disposed || operation.signal.aborted) return false;
+        return await navigate(path, options2.hash, void 0, { ...options2, signal: operation.signal });
+      } finally {
+        for (const signal of signals) signal.removeEventListener("abort", abort);
+      }
     };
     const travel_history = async (direction) => {
       if (disposed || navigating || history.is_navigating() || is_busy()) return false;
@@ -179380,6 +179498,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, (leaf) => new source_file_view(leaf));
     const open_file = async (file_path, location = {}, group = "active") => {
+      if (location.signal?.aborted) throw new Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
       if (renaming) throw new Error("\u6B63\u5728\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u6253\u5F00\u6587\u4EF6\u3002");
       const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
       if (!resolved_path) throw new Error("\u65E0\u6CD5\u89E3\u6790\u6587\u4EF6\u8DEF\u5F84\u3002");
@@ -179389,7 +179508,8 @@ https://creativecommons.org/licenses/by/4.0/
         if ([...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
         const existing_leaves = /* @__PURE__ */ new Set();
         core.app.workspace.eachLeaves((leaf3) => existing_leaves.add(leaf3));
-        await navigate_reading_target(file_path, { group, hash: location.hash, locate: location.line == null ? void 0 : (signal) => reveal_markdown_location(location, signal) });
+        await navigate_reading_target(file_path, { group, hash: location.hash, signal: location.signal, locate: location.line == null ? void 0 : (signal) => reveal_markdown_location(location, signal) });
+        if (location.signal?.aborted) throw new Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
         const leaf2 = core.app.workspace.activeLeaf;
         if (leaf2 && file_key(leaf2.state.path) === file_key(file_path) && (!location.preview || !existing_leaves.has(leaf2) || leaf2.state.workspace_preview)) set_preview(leaf2, Boolean(location.preview));
         return;
@@ -179629,6 +179749,285 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
       return source_results.every(Boolean);
     };
+    const transfer_captures = /* @__PURE__ */ new WeakMap();
+    const transfer_present = (leaf) => {
+      let present = false;
+      core.app.workspace.eachLeaves((item) => {
+        if (item === leaf) present = true;
+      });
+      return present;
+    };
+    const transfer_guard = (signal) => {
+      if (signal?.aborted || !binding.active) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      if (renaming || runtime2.File?.isFileLoading?.() || runtime2.File?._onFileSwitching || runtime2.File?._onInitParse || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
+    };
+    const transfer_hash = async (value) => {
+      const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
+      const digest = await runtime2.reqnode("crypto").webcrypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+    };
+    const transfer_disk = async (file_path, signal) => {
+      transfer_guard(signal);
+      const entry = await fs2.promises.lstat(file_path);
+      transfer_guard(signal);
+      const real = await fs2.promises.realpath(file_path);
+      transfer_guard(signal);
+      if (!entry.isFile() || entry.isSymbolicLink()) throw new Error("\u53EA\u80FD\u79FB\u4EA4\u771F\u5B9E\u666E\u901A\u6587\u4EF6\uFF0C\u76EE\u5F55\u6216\u7B26\u53F7\u94FE\u63A5\u4E0D\u652F\u6301\u3002");
+      const handle = await fs2.promises.open(file_path, "r");
+      try {
+        transfer_guard(signal);
+        const before = await handle.stat();
+        transfer_guard(signal);
+        if (!before.isFile() || before.size > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u79FB\u4EA4\u6587\u4EF6\u8D85\u8FC716 MiB\u6216\u4E0D\u662F\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002");
+        const bytes = new Uint8Array(before.size + 1);
+        let length = 0;
+        while (length < bytes.length) {
+          const { bytesRead: count } = await handle.read(bytes, length, Math.min(256 * 1024, bytes.length - length), length);
+          transfer_guard(signal);
+          if (!count) break;
+          length += count;
+        }
+        const result = bytes.slice(0, length), sha256 = await transfer_hash(result);
+        transfer_guard(signal);
+        const after2 = await handle.stat();
+        transfer_guard(signal);
+        const current = await fs2.promises.lstat(file_path);
+        transfer_guard(signal);
+        const current_real = await fs2.promises.realpath(file_path);
+        transfer_guard(signal);
+        const same = (a, b2) => a.dev === b2.dev && a.ino === b2.ino && a.size === b2.size && a.mtimeMs === b2.mtimeMs && a.ctimeMs === b2.ctimeMs;
+        if (!same(before, after2) || !same(after2, current) || !same(entry, current) || length !== after2.size || real !== current_real) throw new Error("\u79FB\u4EA4\u671F\u95F4\u78C1\u76D8\u6587\u4EF6\u53D1\u751F\u53D8\u5316\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+        return { bytes: result, sha256 };
+      } finally {
+        await handle.close();
+      }
+    };
+    const transfer_fingerprint = (snapshot) => transfer_hash(JSON.stringify([
+      snapshot.schema,
+      snapshot.kind,
+      snapshot.file_path,
+      snapshot.root,
+      snapshot.text,
+      snapshot.dirty,
+      snapshot.disk_sha256,
+      snapshot.source_format,
+      snapshot.source_baseline_format,
+      snapshot.source_baseline,
+      snapshot.source_model_eol,
+      snapshot.markdown_baseline,
+      snapshot.language
+    ]));
+    const saved_source_format = (view) => {
+      const [encoding, bom, eol] = view.saved_format.split(":");
+      return { encoding, bom: bom === "true", eol };
+    };
+    const native_transfer_text = () => {
+      if (typeof runtime2.File?.editor?.getMarkdown !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u8BFB\u53D6\u539F\u751FMarkdown\u8349\u7A3F\u3002");
+      const text3 = runtime2.File.editor.getMarkdown();
+      if (typeof text3 !== "string") throw new Error("\u539F\u751FMarkdown\u6B63\u6587\u5C1A\u672A\u5C31\u7EEA\u3002");
+      return text3;
+    };
+    const normalized_transfer_text = (text3) => text3.replace(/\r\n?/gu, "\n");
+    const collect_transfer = async (leaf, signal) => {
+      transfer_guard(signal);
+      if (!transfer_present(leaf)) throw new Error("\u8981\u79FB\u4EA4\u7684\u6807\u7B7E\u5DF2\u5173\u95ED\u3002");
+      const file_path = real_path(leaf);
+      if (!file_path || !path_api.isAbsolute(file_path)) throw new Error("\u8BF7\u5148\u4FDD\u5B58\u672A\u547D\u540D\u6587\u6863\uFF0C\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
+      const root = context_root(), source = [...views].find((view) => view.leaf === leaf && !view.disposed);
+      const snapshot = { schema: 1, capture_id: globalThis.crypto.randomUUID(), capture_fingerprint: "", kind: source ? "source" : "markdown", file_path, root, text: "", dirty: false, disk_sha256: "" };
+      let verify_content = () => {
+      };
+      if (source) {
+        if (source.loading || source.saving || !source.loaded || !source.editor || !source.format) throw new Error("\u6E90\u7801\u6807\u7B7E\u6B63\u5728\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u7A0D\u540E\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
+        const model = source.editor.models[0], version = model.getAlternativeVersionId(), format_key = source.format_key(), language44 = model.getLanguageId();
+        verify_content = () => {
+          transfer_guard(signal);
+          if (!transfer_present(leaf) || source.disposed || source.loading || source.saving || version !== model.getAlternativeVersionId() || format_key !== source.format_key() || language44 !== model.getLanguageId()) throw new Error("\u6E90\u7801\u5728\u6355\u83B7\u671F\u95F4\u53D1\u751F\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u79FB\u4EA4\u3002");
+        };
+        const transaction2 = await source.text_document.prepare_relocation(source.file_path);
+        try {
+          verify_content();
+          snapshot.disk_sha256 = (await transfer_disk(file_path, signal)).sha256;
+          verify_content();
+          snapshot.text = model.getValue();
+          snapshot.dirty = source.dirty();
+          snapshot.language = model.getLanguageId();
+          snapshot.source_format = { encoding: source.format.encoding, bom: source.format.bom, eol: source.format.eol };
+          snapshot.source_baseline_format = saved_source_format(source);
+          snapshot.source_baseline = source.format.text;
+          snapshot.source_model_eol = model.getEOL();
+          snapshot.view_state = source.editor.focused_editor().saveViewState();
+        } finally {
+          transaction2.cancel();
+        }
+      } else {
+        if (!is_markdown_file(file_path)) throw new Error("\u6B64\u6807\u7B7E\u4E0D\u662F\u53EF\u4EE5\u79FB\u4EA4\u7684\u6E90\u7801\u6216Markdown\u6587\u4EF6\u3002");
+        const disk = await transfer_disk(file_path, signal);
+        transfer_guard(signal);
+        const native_matches = file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
+        const decoded = decode_file_bytes(disk.bytes, native_matches ? (runtime2.File?.bundle?.fileEncode || "utf8").replace(/-bom$/u, "") : "utf-8");
+        snapshot.disk_sha256 = disk.sha256;
+        snapshot.markdown_baseline = decoded.text;
+        if (native_matches) {
+          const saved = runtime2.File?.bundle?.savedContent;
+          if (typeof saved !== "string" || normalized_transfer_text(saved) !== normalized_transfer_text(decoded.text)) throw new Error("Markdown\u78C1\u76D8\u5185\u5BB9\u4E0E\u5F53\u524D\u52A0\u8F7D\u57FA\u7EBF\u4E0D\u540C\uFF0C\u8BF7\u5148\u6BD4\u8F83\u540E\u518D\u79FB\u4EA4\u3002");
+          snapshot.text = native_transfer_text();
+          snapshot.dirty = Boolean(runtime2.File?.changeCounter?.isDocumentEdited());
+          if (snapshot.dirty && runtime2.File?.option?.enableAutoSave) throw new Error("\u5F53\u524D\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u65E0\u6CD5\u4FDD\u8BC1\u8349\u7A3F\u79FB\u4EA4\u4E0D\u5199\u5165\u78C1\u76D8\uFF1B\u8BF7\u5148\u5904\u7406\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+          const content = document.querySelector("content"), write = content?.querySelector(":scope > #write");
+          if (content && write) snapshot.reading_position = capture_position(content, write);
+        } else {
+          snapshot.text = decoded.text;
+          const state = leaf.view.getScroll?.();
+          snapshot.reading_position = { scroll_top: state?.scrollTop ?? leaf.containerEl.scrollTop, scroll_left: leaf.containerEl.scrollLeft };
+        }
+        if (!snapshot.dirty && normalized_transfer_text(snapshot.text) !== normalized_transfer_text(decoded.text)) throw new Error("Markdown\u6B63\u6587\u4E0E\u78C1\u76D8\u57FA\u7EBF\u4E0D\u540C\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u5DF2\u4FDD\u5B58\u6587\u6863\u79FB\u4EA4\u3002");
+        verify_content = () => {
+          transfer_guard(signal);
+          const still_native = file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
+          if (still_native !== native_matches || still_native && (native_transfer_text() !== snapshot.text || Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) !== snapshot.dirty || snapshot.dirty && runtime2.File?.option?.enableAutoSave)) throw new Error("Markdown\u6B63\u6587\u6216\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\u5728\u6355\u83B7\u671F\u95F4\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u79FB\u4EA4\u3002");
+        };
+      }
+      if (snapshot.text.length > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u8349\u7A3F\u8D85\u8FC716 MiB\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      snapshot.capture_fingerprint = await transfer_fingerprint(snapshot);
+      verify_content();
+      transfer_guard(signal);
+      if (!transfer_present(leaf) || real_path(leaf) !== file_path || context_root() !== root) throw new Error("\u6807\u7B7E\u6216\u5DE5\u4F5C\u533A\u5728\u79FB\u4EA4\u671F\u95F4\u6539\u53D8\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+      return snapshot;
+    };
+    const capture_transfer = async (leaf, signal) => {
+      const snapshot = await collect_transfer(leaf, signal);
+      transfer_guard(signal);
+      transfer_captures.set(leaf, { capture_id: snapshot.capture_id, fingerprint: snapshot.capture_fingerprint });
+      return snapshot;
+    };
+    const receive_transfer = async (snapshot, signal) => {
+      transfer_guard(signal);
+      if (!snapshot || snapshot.schema !== 1 || !["source", "markdown"].includes(snapshot.kind) || typeof snapshot.text !== "string" || snapshot.text.length > MAX_TEXT_DOCUMENT_BYTES || typeof snapshot.file_path !== "string" || !path_api.isAbsolute(snapshot.file_path) || typeof snapshot.root !== "string" || typeof snapshot.dirty !== "boolean" || !/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256) || snapshot.capture_fingerprint !== await transfer_fingerprint(snapshot)) throw new Error("\u7A97\u53E3\u6587\u6863\u5FEB\u7167\u65E0\u6548\uFF0C\u672A\u4FEE\u6539\u5F53\u524D\u6587\u6863\u3002");
+      const check_empty = () => {
+        transfer_guard(signal);
+        let occupied = false;
+        core.app.workspace.eachLeaves((leaf2) => {
+          if (leaf2.state.path && leaf2.state.path !== "typ://core.empty/") occupied = true;
+        });
+        if (occupied || runtime2.File?.bundle?.filePath || runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5DF2\u6253\u5F00\u6587\u6863\u6216\u6709\u8349\u7A3F\uFF0C\u62D2\u7EDD\u8986\u76D6\u3002");
+      };
+      check_empty();
+      if (snapshot.kind === "markdown" && snapshot.dirty && runtime2.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F00\u542FMarkdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u63A5\u6536\u672A\u4FDD\u5B58\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      if ((await transfer_disk(snapshot.file_path, signal)).sha256 !== snapshot.disk_sha256) throw new Error("\u63A5\u6536\u524D\u78C1\u76D8\u6587\u4EF6\u53D1\u751F\u53D8\u5316\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      check_empty();
+      if (snapshot.root && context_root() !== snapshot.root) {
+        if (!path_api.isAbsolute(snapshot.root) || typeof runtime2.File?.setMountFolder !== "function") throw new Error("\u76EE\u6807\u7A97\u53E3\u65E0\u6CD5\u6062\u590D\u539F\u5DE5\u4F5C\u533A\u76EE\u5F55\u3002");
+        const root_stat = await fs2.promises.stat(snapshot.root);
+        check_empty();
+        if (!root_stat.isDirectory()) throw new Error("\u76EE\u6807\u7A97\u53E3\u65E0\u6CD5\u6062\u590D\u539F\u5DE5\u4F5C\u533A\u76EE\u5F55\u3002");
+        runtime2.File.setMountFolder(snapshot.root);
+      }
+      if (snapshot.kind === "source") {
+        const valid_format = (format3) => format3 && typeof format3.encoding === "string" && format3.encoding.length < 100 && typeof format3.bom === "boolean" && ["LF", "CRLF", "CR", "mixed"].includes(format3.eol);
+        if (!valid_format(snapshot.source_format) || !valid_format(snapshot.source_baseline_format) || typeof snapshot.source_baseline !== "string" || !["\n", "\r\n"].includes(snapshot.source_model_eol || "") || typeof snapshot.language !== "string") throw new Error("\u6E90\u7801\u5FEB\u7167\u7F3A\u5C11\u4FDD\u5B58\u57FA\u7EBF\u6216\u683C\u5F0F\u3002");
+        await open_file(snapshot.file_path, { source: true, signal });
+        transfer_guard(signal);
+        const leaf2 = core.app.workspace.activeLeaf, view = [...views].find((view2) => view2.leaf === leaf2 && !view2.disposed);
+        if (!leaf2 || !view || file_key(view.file_path) !== file_key(snapshot.file_path)) throw new Error("\u76EE\u6807\u6E90\u7801\u6807\u7B7E\u672A\u6253\u5F00\u3002");
+        const check_target = () => {
+          transfer_guard(signal);
+          if (!transfer_present(leaf2) || core.app.workspace.activeLeaf !== leaf2 || view.disposed || view.saving || view.dirty() || snapshot.root && context_root() !== snapshot.root) throw new Error("\u76EE\u6807\u7A97\u53E3\u72B6\u6001\u6216\u8349\u7A3F\u53D1\u751F\u53D8\u5316\uFF0C\u505C\u6B62\u6062\u590D\u3002");
+        };
+        for (let count = 0; view.loading && count < 250; count++) {
+          await new Promise((resolve3) => setTimeout(resolve3, 20));
+          check_target();
+        }
+        check_target();
+        if (view.loading) throw new Error("\u76EE\u6807\u6587\u4EF6\u672A\u53CA\u65F6\u5B8C\u6210\u8BFB\u53D6\u3002");
+        if (!view.loaded || view.format?.encoding !== snapshot.source_baseline_format.encoding) {
+          await view.load_file(snapshot.source_baseline_format.encoding);
+          check_target();
+        }
+        if (!view.loaded || !view.editor || !view.format || view.format.text !== snapshot.source_baseline || view.saved_format !== "".concat(snapshot.source_baseline_format.encoding, ":").concat(snapshot.source_baseline_format.bom, ":").concat(snapshot.source_baseline_format.eol)) throw new Error("\u76EE\u6807\u6E90\u7801\u7684\u52A0\u8F7D\u57FA\u7EBF\u4E0E\u6765\u6E90\u4E0D\u540C\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
+        const transaction2 = await view.text_document.prepare_relocation(view.file_path);
+        try {
+          check_target();
+          const disk2 = await transfer_disk(snapshot.file_path, signal);
+          check_target();
+          if (disk2.sha256 !== snapshot.disk_sha256) throw new Error("\u63A5\u6536\u671F\u95F4\u78C1\u76D8\u6587\u4EF6\u53D1\u751F\u53D8\u5316\u3002");
+          const editor2 = view.editor.focused_editor(), model = view.editor.models[0];
+          if (!snapshot.dirty && (model.getValue() !== snapshot.text || JSON.stringify(snapshot.source_format) !== JSON.stringify(snapshot.source_baseline_format))) throw new Error("\u5DF2\u4FDD\u5B58\u6E90\u7801\u5FEB\u7167\u4E0E\u78C1\u76D8\u5185\u5BB9\u4E0D\u4E00\u81F4\u3002");
+          if (snapshot.dirty) {
+            editor2.pushUndoStop();
+            model.setEOL(snapshot.source_model_eol === "\r\n" ? editor.EndOfLineSequence.CRLF : editor.EndOfLineSequence.LF);
+            editor2.executeEdits("workspace-transfer", [{ range: model.getFullModelRange(), text: snapshot.text }]);
+            editor2.pushUndoStop();
+            view.saved_version = -1;
+          }
+          Object.assign(view.format, snapshot.source_format);
+          editor.setModelLanguage(model, snapshot.language);
+          if (snapshot.view_state) editor2.restoreViewState(snapshot.view_state);
+          view.update_status();
+          keep_open(leaf2);
+          if (model.getValue() !== snapshot.text || view.dirty() !== snapshot.dirty) throw new Error("\u76EE\u6807\u6E90\u7801\u672A\u80FD\u5B8C\u6574\u6062\u590D\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+          return leaf2;
+        } finally {
+          transaction2.cancel();
+        }
+      }
+      if (!is_markdown_file(snapshot.file_path) || typeof snapshot.markdown_baseline !== "string" || typeof runtime2.File?.reloadContent !== "function") throw new Error("\u76EE\u6807\u5BBF\u4E3B\u65E0\u6CD5\u63A5\u6536Markdown\u5FEB\u7167\u3002");
+      await open_file(snapshot.file_path, { signal });
+      transfer_guard(signal);
+      const leaf = core.app.workspace.activeLeaf;
+      const check_markdown = () => {
+        transfer_guard(signal);
+        if (!leaf || !transfer_present(leaf) || core.app.workspace.activeLeaf !== leaf || file_key(real_path(leaf)) !== file_key(snapshot.file_path) || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(snapshot.file_path) || runtime2.File?.changeCounter?.isDocumentEdited() || snapshot.root && context_root() !== snapshot.root) throw new Error("\u76EE\u6807Markdown\u5C1A\u672A\u5C31\u7EEA\u6216\u5DF2\u6709\u4FEE\u6539\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
+      };
+      check_markdown();
+      const disk = await transfer_disk(snapshot.file_path, signal);
+      check_markdown();
+      if (disk.sha256 !== snapshot.disk_sha256 || normalized_transfer_text(runtime2.File?.bundle?.savedContent || "") !== normalized_transfer_text(snapshot.markdown_baseline) || normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.markdown_baseline)) throw new Error("\u76EE\u6807Markdown\u4E0E\u78C1\u76D8\u57FA\u7EBF\u4E0D\u540C\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
+      if (snapshot.dirty) {
+        if (runtime2.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5728\u52A0\u8F7D\u671F\u95F4\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u6062\u590D\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+        runtime2.File.reloadContent(snapshot.text, { delayRefresh: false, skipChangeCount: false, skipStore: true });
+        if (!runtime2.File.changeCounter?.isDocumentEdited()) runtime2.File.updateChangeCount?.(runtime2.File.ChangeType?.NSChangeDone);
+        if (!runtime2.File.changeCounter?.isDocumentEdited() || normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.text)) throw new Error("Markdown\u8349\u7A3F\u672A\u5B8C\u6574\u6062\u590D\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      }
+      const content = document.querySelector("content"), write = content?.querySelector(":scope > #write");
+      if (content && write && snapshot.reading_position) apply_position(content, write, snapshot.reading_position);
+      keep_open(leaf);
+      return leaf;
+    };
+    const release_transfer = async (leaf, snapshot, signal) => {
+      const captured = transfer_captures.get(leaf);
+      if (!captured || captured.capture_id !== snapshot.capture_id || captured.fingerprint !== snapshot.capture_fingerprint || signal?.aborted) return false;
+      if (snapshot.kind === "markdown" && snapshot.dirty) return false;
+      try {
+        if (snapshot.capture_fingerprint !== await transfer_fingerprint(snapshot)) return false;
+        transfer_guard(signal);
+        const current = await collect_transfer(leaf, signal);
+        transfer_guard(signal);
+        if (current.capture_fingerprint !== snapshot.capture_fingerprint || transfer_captures.get(leaf) !== captured || !transfer_present(leaf)) return false;
+        if (runtime2.File?.changeCounter?.isDocumentEdited()) return false;
+        const source = [...views].find((view) => view.leaf === leaf && !view.disposed), previous_version = source?.saved_version, previous_format = source?.saved_format;
+        if (!leaf.parent.removeTab) return false;
+        if (source) {
+          source.saved_version = source.editor.models[0].getAlternativeVersionId();
+          source.saved_format = source.format_key();
+        }
+        try {
+          if (signal?.aborted) return false;
+          leaf.parent.removeTab(leaf.state.path);
+        } finally {
+          if (source && transfer_present(leaf)) {
+            source.saved_version = previous_version;
+            source.saved_format = previous_format;
+            source.update_status();
+          }
+        }
+        const removed = !transfer_present(leaf);
+        if (removed) transfer_captures.delete(leaf);
+        return removed;
+      } catch {
+        return false;
+      }
+    };
     document.documentElement.setAttribute("data-linux-note-workspace-files", "ready");
     document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
     let binding;
@@ -179723,6 +180122,9 @@ https://creativecommons.org/licenses/by/4.0/
       save_active,
       save_leaf,
       save_all,
+      capture_transfer,
+      receive_transfer,
+      release_transfer,
       current_file: () => real_path(core.app.workspace.activeLeaf),
       can_write: (file_path) => ![...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty()) && (!runtime2.File?.changeCounter?.isDocumentEdited() || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(file_path)),
       refresh_files: (paths) => {
@@ -218082,6 +218484,201 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/workspace_detached_window.ts
+  var TRANSFER_PREFIX = "typora-code-transfer:";
+  var TRANSFER_TIMEOUT_MS = 25e3;
+  var bindings3 = /* @__PURE__ */ new WeakMap();
+  function bind_workspace_detached_window(files, options2 = {}) {
+    const existing = bindings3.get(files);
+    if (existing) return existing;
+    const runtime2 = window;
+    const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
+    const timeout_ms = options2.timeout_ms ?? TRANSFER_TIMEOUT_MS;
+    const notify = options2.notify || ((message) => {
+      const dialog = workspace_dialog("\u79FB\u81F3\u65B0\u7A97\u53E3");
+      dialog.content.append(workspace_element("p", "", message));
+    });
+    const open_window = options2.open_window || ((anchor2, root) => {
+      if (!runtime2.JSBridge?.invoke) return Promise.reject(new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u65B0\u7A97\u53E3\u5165\u53E3\u3002"));
+      return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor: anchor2 });
+    });
+    const cancellations = /* @__PURE__ */ new Set();
+    const pending_leaves = /* @__PURE__ */ new WeakSet();
+    let disposed = false;
+    const report = (error) => {
+      if (!disposed) notify(error instanceof Error ? error.message : String(error));
+    };
+    const send_leaf = async (leaf) => {
+      if (disposed || pending_leaves.has(leaf)) return;
+      pending_leaves.add(leaf);
+      try {
+        const snapshot = await new Promise((resolve3, reject) => {
+          const controller = new AbortController();
+          let finished = false;
+          const finish = (snapshot2, error) => {
+            if (finished) return;
+            finished = true;
+            controller.abort();
+            clearTimeout(timer);
+            cancellations.delete(cancel);
+            if (error) reject(error);
+            else resolve3(snapshot2);
+          };
+          const cancel = () => finish(void 0, new Error("\u6587\u6863\u6355\u83B7\u5DF2\u53D6\u6D88\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002"));
+          const timer = setTimeout(() => finish(void 0, new Error("\u6587\u6863\u8BFB\u53D6\u8D85\u65F6\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002")), timeout_ms);
+          cancellations.add(cancel);
+          void Promise.resolve().then(() => files.capture_transfer(leaf, controller.signal)).then((snapshot2) => finish(snapshot2), (error) => finish(void 0, error));
+        });
+        if (disposed) return;
+        const anchor2 = TRANSFER_PREFIX + crypto.randomUUID();
+        const channel = make_channel(anchor2);
+        await new Promise((resolve3, reject) => {
+          let finished = false, sent = false, accepted = false;
+          const controller = new AbortController();
+          const finish = (error) => {
+            if (finished) return;
+            finished = true;
+            controller.abort();
+            clearTimeout(timer);
+            cancellations.delete(cancel);
+            channel.onmessage = null;
+            channel.onmessageerror = null;
+            channel.close();
+            error ? reject(error) : resolve3();
+          };
+          const cancel = () => {
+            if (finished) return;
+            channel.postMessage({ kind: "cancel" });
+            finish(new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002"));
+          };
+          const timer = setTimeout(() => {
+            channel.postMessage({ kind: "cancel" });
+            finish(new Error("\u7A97\u53E3\u672A\u53CA\u65F6\u5B8C\u6210\u79FB\u4EA4\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002"));
+          }, timeout_ms);
+          cancellations.add(cancel);
+          channel.onmessageerror = () => finish(new Error("\u7A97\u53E3\u901A\u4FE1\u5931\u8D25\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002"));
+          channel.onmessage = (event) => {
+            const message = event.data;
+            if (finished || !message || typeof message.kind !== "string") return;
+            if (message.kind === "ready" && !sent) {
+              sent = true;
+              channel.postMessage({ kind: "payload", snapshot });
+            } else if (message.kind === "accepted" && sent && !accepted) {
+              accepted = true;
+              void (async () => {
+                if (disposed || finished) return;
+                const released = await files.release_transfer(leaf, snapshot, controller.signal);
+                if (finished) return;
+                channel.postMessage({ kind: released ? "committed" : "retained" });
+                finish();
+                if (!released) report(snapshot.kind === "markdown" && snapshot.dirty ? "\u672A\u4FDD\u5B58\u7684 Markdown \u5DF2\u5728\u65B0\u7A97\u53E3\u6253\u5F00\uFF0C\u539F\u7A97\u53E3\u4FDD\u7559\u8349\u7A3F\u526F\u672C\u3002" : "\u65B0\u7A97\u53E3\u5DF2\u63A5\u6536\u6587\u6863\uFF1B\u79FB\u4EA4\u671F\u95F4\u539F\u5185\u5BB9\u6216\u72B6\u6001\u53D1\u751F\u53D8\u5316\uFF0C\u539F\u6807\u7B7E\u5DF2\u4FDD\u7559\u3002");
+              })().catch((error) => {
+                if (!finished) {
+                  channel.postMessage({ kind: "retained" });
+                  finish(error);
+                }
+              });
+            } else if (message.kind === "error") finish(new Error(message.error || "\u65B0\u7A97\u53E3\u8BFB\u53D6\u5931\u8D25\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002"));
+          };
+          void Promise.resolve().then(() => open_window(anchor2, snapshot.root)).catch(finish);
+        });
+      } catch (error) {
+        report(error);
+      } finally {
+        pending_leaves.delete(leaf);
+      }
+    };
+    const detach = (event) => {
+      const detail = event.detail;
+      if (!detail?.leaf || disposed) return;
+      let present = false;
+      files.core.app.workspace.eachLeaves((leaf) => {
+        if (leaf === detail.leaf) present = true;
+      });
+      if (!present) return;
+      event.preventDefault();
+      void send_leaf(detail.leaf);
+    };
+    document.addEventListener("typora-code:tab-detach", detach);
+    const anchor = options2.initial_anchor ?? runtime2._options?.initAnchor ?? "";
+    if (/^typora-code-transfer:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu.test(anchor) && !runtime2._options?.initFilePath && !runtime2.File?.bundle?.filePath && !runtime2.File?.changeCounter?.isDocumentEdited()) {
+      if (runtime2._options?.initAnchor === anchor) runtime2._options.initAnchor = "";
+      const channel = make_channel(anchor);
+      const controller = new AbortController();
+      let finished = false, importing = false, accepted = false, abandoned = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        controller.abort();
+        clearInterval(ready_timer);
+        clearTimeout(timer);
+        cancellations.delete(cancel);
+        channel.onmessage = null;
+        channel.onmessageerror = null;
+        channel.close();
+      };
+      const cancel = () => {
+        if (finished) return;
+        abandoned = true;
+        channel.postMessage({ kind: "error", error: "\u65B0\u7A97\u53E3\u5DF2\u53D6\u6D88\u63A5\u6536\u3002" });
+        finish();
+      };
+      const timer = setTimeout(() => {
+        abandoned = true;
+        channel.postMessage({ kind: "error", error: "\u65B0\u7A97\u53E3\u7B49\u5F85\u79FB\u4EA4\u8D85\u65F6\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002" });
+        finish();
+        report(accepted ? "\u539F\u7A97\u53E3\u672A\u786E\u8BA4\u79FB\u9664\u6807\u7B7E\uFF0C\u6B64\u7A97\u53E3\u4E2D\u7684\u6587\u6863\u5DF2\u4FDD\u7559\u3002" : "\u539F\u7A97\u53E3\u672A\u5B8C\u6210\u79FB\u4EA4\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      }, timeout_ms);
+      const ready_timer = setInterval(() => {
+        if (!importing && !finished) channel.postMessage({ kind: "ready" });
+      }, 150);
+      cancellations.add(cancel);
+      channel.onmessageerror = () => {
+        abandoned = true;
+        finish();
+        report("\u7A97\u53E3\u901A\u4FE1\u5931\u8D25\uFF0C\u5DF2\u4FDD\u7559\u73B0\u6709\u6587\u6863\u3002");
+      };
+      channel.onmessage = (event) => {
+        const message = event.data;
+        if (finished || !message) return;
+        if (message.kind === "payload" && message.snapshot && !importing) {
+          importing = true;
+          clearInterval(ready_timer);
+          void files.receive_transfer(message.snapshot, controller.signal).then(() => {
+            accepted = true;
+            if (!finished && !abandoned) channel.postMessage({ kind: "accepted" });
+          }).catch((error) => {
+            if (!finished) channel.postMessage({ kind: "error", error: String(error instanceof Error ? error.message : error) });
+            if (!finished) {
+              finish();
+              report(error);
+            }
+          });
+        } else if (message.kind === "committed" && accepted) finish();
+        else if (message.kind === "retained" && accepted) {
+          finish();
+          report("\u539F\u7A97\u53E3\u4ECD\u4FDD\u7559\u6587\u6863\u526F\u672C\uFF0C\u6B64\u7A97\u53E3\u4E2D\u7684\u5185\u5BB9\u4E5F\u5DF2\u4FDD\u7559\u3002");
+        } else if (message.kind === "cancel") {
+          abandoned = true;
+          finish();
+          report("\u539F\u7A97\u53E3\u5DF2\u53D6\u6D88\u79FB\u4EA4\uFF0C\u5DF2\u6709\u5185\u5BB9\u4ECD\u4FDD\u7559\u3002");
+        }
+      };
+      channel.postMessage({ kind: "ready" });
+    }
+    const binding = { dispose() {
+      if (disposed) return;
+      disposed = true;
+      document.removeEventListener("typora-code:tab-detach", detach);
+      window.removeEventListener("pagehide", binding.dispose);
+      for (const cancel of [...cancellations]) cancel();
+      bindings3.delete(files);
+    } };
+    window.addEventListener("pagehide", binding.dispose);
+    bindings3.set(files, binding);
+    return binding;
+  }
+
   // src/workspace_explorer.css
   var workspace_explorer_default = "";
 
@@ -218850,7 +219447,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // search-worker:worker
-  var worker_default2 = '(()=>{var p=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function g(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");if(e.query.length>32768)throw new Error("\\u641C\\u7D22\\u8868\\u8FBE\\u5F0F\\u8FC7\\u957F\\u3002");let n=e.regex?e.query:p(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(n,"gmu"+(e.case_sensitive?"":"i"))}catch(r){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(r instanceof Error?r.message:r))}}function _(e){let n=[0],r=/\\r\\n|\\r|\\n/gu,t;for(;t=r.exec(e);)n.push(t.index+t[0].length);return n}function l(e,n){let r=0,t=e.length;for(;r+1<t;){let s=r+t>>>1;e[s]<=n?r=s:t=s}return{line:r+1,column:n-e[r]+1}}function d(e,n,r){let t=n&&[...e.slice(Math.max(0,n-2),n)].at(-1)||"",s=e.slice(r)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(t)&&!/[\\p{L}\\p{N}_]/u.test(s)}function x(e,n,r){let t=r.index,s=t+r[0].length,o=l(n,t),c=l(n,s),i=Math.max(n[o.line-1],t-80),m=Math.min(n[c.line]??e.length,i+400),a=e.slice(i,m).replace(/[\\r\\n]+$/u,"");return{start:t,end:s,...o,end_line:c.line,end_column:c.column,text:r[0],preview:a,preview_ranges:[{start:Math.min(t-i,a.length),end:Math.min(s-i,a.length)}],captures:Array.from(r),groups:r.groups?{...r.groups}:void 0}}function h(e,n,r){let t=g(n),s=_(e),o=[],c;for(;c=t.exec(e);)if(c[0].length||(t.lastIndex+=e.codePointAt(t.lastIndex)>65535?2:1),!(n.whole_word&&!d(e,c.index,c.index+c[0].length))&&(o.push(x(e,s,c)),o.length>=r))return{matches:o,limit_reached:!0};return{matches:o,limit_reached:!1}}var u=globalThis;u.onmessage=e=>{let{request_id:n,text:r,options:t,max_results:s}=e.data;try{u.postMessage({request_id:n,...h(r,t,s)})}catch(o){u.postMessage({request_id:n,error:String(o instanceof Error?o.message:o)})}};})();\n';
+  var worker_default2 = '(()=>{var p=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function g(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");if(e.query.length>32768)throw new Error("\\u641C\\u7D22\\u8868\\u8FBE\\u5F0F\\u8FC7\\u957F\\u3002");let n=e.regex?e.query:p(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(n,"gmu"+(e.case_sensitive?"":"i"))}catch(r){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(r instanceof Error?r.message:r))}}function _(e){let n=[0],r=/\\r\\n|\\r|\\n/gu,t;for(;t=r.exec(e);)n.push(t.index+t[0].length);return n}function l(e,n){let r=0,t=e.length;for(;r+1<t;){let s=r+t>>>1;e[s]<=n?r=s:t=s}return{line:r+1,column:n-e[r]+1}}function d(e,n,r){let t=n&&[...e.slice(Math.max(0,n-2),n)].at(-1)||"",s=e.slice(r)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(t)&&!/[\\p{L}\\p{N}_]/u.test(s)}function x(e,n,r){let t=r.index,s=t+r[0].length,o=l(n,t),c=l(n,s),i=Math.max(n[o.line-1],t-80),m=Math.min(n[c.line]??e.length,i+400),a=e.slice(i,m).replace(/[\\r\\n]+$/u,"");return{start:t,end:s,...o,end_line:c.line,end_column:c.column,text:r[0],preview:a,preview_ranges:[{start:Math.min(t-i,a.length),end:Math.min(s-i,a.length)}],captures:Array.from(r),groups:r.groups?{...r.groups}:void 0}}function h(e,n,r){let t=g(n),s,o=[],c;for(;c=t.exec(e);)if(c[0].length||(t.lastIndex+=e.codePointAt(t.lastIndex)>65535?2:1),!(n.whole_word&&!d(e,c.index,c.index+c[0].length))&&(s||=_(e),o.push(x(e,s,c)),o.length>=r))return{matches:o,limit_reached:!0};return{matches:o,limit_reached:!1}}var u=globalThis;u.onmessage=e=>{let{request_id:n,text:r,options:t,max_results:s}=e.data;try{u.postMessage({request_id:n,...h(r,t,s)})}catch(o){u.postMessage({request_id:n,error:String(o instanceof Error?o.message:o)})}};})();\n';
 
   // src/workspace_search_worker_client.ts
   var search_match_failure = class extends Error {
@@ -218860,7 +219457,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
   function browser_matcher() {
-    if (typeof Worker === "undefined" || !worker_default2) throw new Error("\u6B64\u73AF\u5883\u6CA1\u6709\u53EF\u9694\u79BB\u8FD0\u884C\u7684\u641C\u7D22 Worker\uFF0C\u4E0D\u80FD\u6267\u884C\u6B63\u5219\u641C\u7D22\u3002\u8BF7\u4F7F\u7528\u666E\u901A\u6587\u672C\u641C\u7D22\u3002");
+    if (typeof Worker === "undefined" || !worker_default2) throw new Error("\u6B64\u73AF\u5883\u6CA1\u6709\u53EF\u9694\u79BB\u8FD0\u884C\u7684\u641C\u7D22 Worker\uFF0C\u8BF7\u68C0\u67E5\u5DE5\u4F5C\u53F0\u641C\u7D22\u8D44\u6E90\u662F\u5426\u5B8C\u6574\u3002");
     const url = URL.createObjectURL(new Blob([worker_default2], { type: "text/javascript" }));
     let worker;
     try {
@@ -218912,7 +219509,7 @@ https://creativecommons.org/licenses/by/4.0/
           cleanup();
           resolve3({ matches: event.data.matches, limit_reached: event.data.limit_reached });
         };
-        const timer = setTimeout(() => fail("timeout", "\u6B63\u5219\u5339\u914D\u8D85\u8FC7 2 \u79D2\uFF0C\u5DF2\u7EC8\u6B62\u8BE5\u6587\u4EF6\u7684\u5339\u914D\u3002\u8BF7\u7B80\u5316\u8868\u8FBE\u5F0F\u6216\u7F29\u5C0F\u8303\u56F4\u3002"), 2e3);
+        const timer = setTimeout(() => fail("timeout", "\u6587\u672C\u5339\u914D\u8D85\u8FC7 2 \u79D2\uFF0C\u5DF2\u7EC8\u6B62\u8BE5\u6587\u4EF6\u7684\u5339\u914D\u3002\u8BF7\u7B80\u5316\u8868\u8FBE\u5F0F\u6216\u7F29\u5C0F\u8303\u56F4\u3002"), 2e3);
         active.addEventListener("message", message);
         active.addEventListener("error", error);
         signal?.addEventListener("abort", abort, { once: true });
@@ -218929,6 +219526,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_search_engine.ts
   var DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
   var MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
+  var MAX_READ_CONCURRENCY = 4;
   var pause = () => new Promise((resolve3) => setTimeout(resolve3, 0));
   var escape_regex2 = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   var same_bytes2 = (left, right) => left.length === right.length && left.every((byte, index) => byte === right[index]);
@@ -219157,7 +219755,7 @@ https://creativecommons.org/licenses/by/4.0/
       const snapshots = /* @__PURE__ */ new Map();
       let snapshot_bytes = 0;
       let replace_blocked = false;
-      const matcher = options2.regex ? create_search_matcher(modules.matcher_factory) : void 0;
+      const matcher = options2.regex || modules.matcher_factory || typeof Worker !== "undefined" ? create_search_matcher(modules.matcher_factory) : void 0;
       const notice = (message) => {
         if (result.notices.length < 20 && !result.notices.includes(message)) result.notices.push(message);
       };
@@ -219191,141 +219789,175 @@ https://creativecommons.org/licenses/by/4.0/
         matcher?.start();
         const allowed = await read_ignored(root);
         const stack = [{ directory: root, relative: "", ignore_root: root, allowed }];
-        while (stack.length && !cancelled() && !result.limit_reached) {
-          const current = stack.pop();
-          let entries3;
-          try {
-            if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
-            if (await files_api.realpath(current.directory) !== current.directory) {
-              result.counts.skipped.links++;
-              continue;
-            }
-            entries3 = (await files_api.readdir(current.directory, { withFileTypes: true })).sort((a, b2) => a.name.localeCompare(b2.name));
-          } catch (error) {
-            result.counts.skipped.unreadable++;
-            notice("\u65E0\u6CD5\u8BFB\u53D6\u76EE\u5F55 ".concat(current.relative || ".", "\uFF1A").concat(String(error)));
-            continue;
-          }
-          const directories = [];
-          for (const entry of entries3) {
-            if (cancelled() || result.limit_reached) break;
-            const relative2 = current.relative ? current.relative + "/" + entry.name : entry.name;
-            const file_path = path_api.join(current.directory, entry.name);
-            if (entry.isSymbolicLink()) {
-              result.counts.skipped.links++;
-              continue;
-            }
-            if (exclude(relative2) || options2.use_ignore !== false && settings_exclude(relative2)) {
-              result.counts.skipped.excluded++;
-              continue;
-            }
-            const ignore_relative = path_api.relative(current.ignore_root, file_path).split(path_api.sep).join("/");
-            if (current.allowed && !current.allowed.has(ignore_relative) && !current.allowed.has(ignore_relative + "/")) {
-              result.counts.skipped.ignored++;
-              continue;
-            }
-            if (entry.isDirectory()) {
-              const nested = current.allowed?.has(ignore_relative + "/") ? await read_ignored(file_path) : void 0;
-              directories.push({ directory: file_path, relative: relative2, ignore_root: nested === void 0 ? current.ignore_root : file_path, allowed: nested === void 0 ? current.allowed : nested });
-              continue;
-            }
-            if (!entry.isFile()) {
-              result.counts.skipped.unreadable++;
-              continue;
-            }
-            if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
-            result.counts.scanned_files++;
-            if (options2.include?.trim() && !include(relative2)) {
-              result.counts.skipped.excluded++;
-              continue;
-            }
+        async function* candidates() {
+          while (stack.length && !cancelled() && !result.limit_reached) {
+            const current = stack.pop();
+            let entries3;
             try {
-              const stat = await files_api.lstat(file_path);
-              if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) {
+              if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
+              if (await files_api.realpath(current.directory) !== current.directory) {
                 result.counts.skipped.links++;
                 continue;
               }
-              if (stat.size > max_file_bytes) {
-                result.counts.skipped.large++;
-                continue;
-              }
-              const bytes = new Uint8Array(await files_api.readFile(file_path));
-              if (bytes.length > max_file_bytes) {
-                result.counts.skipped.large++;
-                continue;
-              }
-              if (detect_binary_bytes(bytes)) {
-                result.counts.skipped.binary++;
-                continue;
-              }
-              let decoded;
-              try {
-                decoded = decode_file_bytes(bytes, options2.encoding || "utf-8");
-              } catch {
-                result.counts.skipped.unreadable++;
-                notice("\u65E0\u6CD5\u6309\u6307\u5B9A\u7F16\u7801\u89E3\u7801\uFF1A".concat(relative2));
-                continue;
-              }
-              const after_stat = await files_api.lstat(file_path);
-              if (identity4(stat) !== identity4(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) {
-                result.counts.skipped.unreadable++;
-                notice("\u8BFB\u53D6\u65F6\u6587\u4EF6\u53D1\u751F\u6539\u53D8\uFF0C\u5DF2\u8DF3\u8FC7\uFF1A".concat(relative2));
-                continue;
-              }
-              result.counts.searched_files++;
-              const matches = [];
-              if (matcher) {
-                try {
-                  const reply = await matcher.match(decoded.text, options2, max_results - result.counts.matches, callbacks.signal);
-                  for (const match2 of reply.matches) matches.push({ ...match2, id: "match_".concat(result.files.length, "_").concat(matches.length) });
-                  result.counts.matches += matches.length;
-                  result.limit_reached = reply.limit_reached;
-                } catch (error) {
-                  if (error instanceof search_match_failure && error.reason === "cancelled") result.cancelled = true;
-                  else {
-                    replace_blocked = true;
-                    result.counts.skipped.unreadable++;
-                    notice("".concat(relative2, "\uFF1A").concat(String(error instanceof Error ? error.message : error), " \u672C\u6B21\u641C\u7D22\u4E0D\u5B8C\u6574\uFF0C\u4E0D\u80FD\u6267\u884C\u66FF\u6362\u3002"));
-                  }
-                  continue;
-                }
-              } else {
-                const starts = line_starts(decoded.text);
-                expression.lastIndex = 0;
-                let found;
-                while (!cancelled() && (found = expression.exec(decoded.text))) {
-                  if (!found[0].length) expression.lastIndex += decoded.text.codePointAt(expression.lastIndex) > 65535 ? 2 : 1;
-                  if (options2.whole_word && !whole_word(decoded.text, found.index, found.index + found[0].length)) continue;
-                  matches.push({ ...capture_match(decoded.text, starts, found), id: "match_".concat(result.files.length, "_").concat(matches.length) });
-                  result.counts.matches++;
-                  if (result.counts.matches >= max_results) {
-                    result.limit_reached = true;
-                    break;
-                  }
-                  if (matches.length % 128 === 0) await pause();
-                }
-              }
-              if (matches.length) {
-                if (snapshot_bytes + bytes.length > MAX_SNAPSHOT_BYTES) {
-                  result.counts.matches -= matches.length;
-                  result.limit_reached = true;
-                  notice("\u5339\u914D\u6587\u4EF6\u5FEB\u7167\u8FBE\u5230 64 MiB \u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u641C\u7D22\u8303\u56F4\u3002");
-                  break;
-                }
-                snapshot_bytes += bytes.length;
-                snapshots.set(file_path, { bytes, decoded, identity: identity4(stat), mode: stat.mode, matches });
-                const file = { file_path, relative_path: relative2, matches: matches.map(({ captures, groups, ...match2 }) => match2) };
-                result.files.push(file);
-                result.counts.matched_files++;
-                callbacks.on_file?.(file, structuredClone(result.counts));
-              }
+              entries3 = (await files_api.readdir(current.directory, { withFileTypes: true })).sort((a, b2) => a.name.localeCompare(b2.name));
             } catch (error) {
               result.counts.skipped.unreadable++;
-              notice("\u65E0\u6CD5\u641C\u7D22 ".concat(relative2, "\uFF1A").concat(String(error instanceof Error ? error.message : error)));
+              notice("\u65E0\u6CD5\u8BFB\u53D6\u76EE\u5F55 ".concat(current.relative || ".", "\uFF1A").concat(String(error)));
+              continue;
             }
-            if (result.counts.scanned_files % 32 === 0) await pause();
+            const directories = [];
+            for (const entry of entries3) {
+              if (cancelled() || result.limit_reached) break;
+              const relative2 = current.relative ? current.relative + "/" + entry.name : entry.name;
+              const file_path = path_api.join(current.directory, entry.name);
+              if (entry.isSymbolicLink()) {
+                result.counts.skipped.links++;
+                continue;
+              }
+              if (exclude(relative2) || options2.use_ignore !== false && settings_exclude(relative2)) {
+                result.counts.skipped.excluded++;
+                continue;
+              }
+              const ignore_relative = path_api.relative(current.ignore_root, file_path).split(path_api.sep).join("/");
+              if (current.allowed && !current.allowed.has(ignore_relative) && !current.allowed.has(ignore_relative + "/")) {
+                result.counts.skipped.ignored++;
+                continue;
+              }
+              if (entry.isDirectory()) {
+                const nested = current.allowed?.has(ignore_relative + "/") ? await read_ignored(file_path) : void 0;
+                directories.push({ directory: file_path, relative: relative2, ignore_root: nested === void 0 ? current.ignore_root : file_path, allowed: nested === void 0 ? current.allowed : nested });
+                continue;
+              }
+              if (!entry.isFile()) {
+                result.counts.skipped.unreadable++;
+                continue;
+              }
+              if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
+              result.counts.scanned_files++;
+              if (options2.include?.trim() && !include(relative2)) {
+                result.counts.skipped.excluded++;
+                continue;
+              }
+              yield { file_path, relative: relative2 };
+              if (result.counts.scanned_files % 32 === 0) await pause();
+            }
+            stack.push(...directories.reverse());
+            yield null;
           }
-          stack.push(...directories.reverse());
+        }
+        const read_candidate = async (candidate) => {
+          const { file_path, relative: relative2 } = candidate;
+          try {
+            if (cancelled()) return candidate;
+            const stat = await files_api.lstat(file_path);
+            if (cancelled()) return candidate;
+            if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) return { ...candidate, skipped: "links" };
+            if (stat.size > max_file_bytes) return { ...candidate, skipped: "large" };
+            if (cancelled()) return candidate;
+            const bytes = new Uint8Array(await files_api.readFile(file_path, callbacks.signal ? { signal: callbacks.signal } : void 0));
+            if (cancelled()) return candidate;
+            if (bytes.length > max_file_bytes) return { ...candidate, skipped: "large" };
+            if (detect_binary_bytes(bytes)) return { ...candidate, skipped: "binary" };
+            let decoded;
+            try {
+              decoded = decode_file_bytes(bytes, options2.encoding || "utf-8");
+            } catch {
+              return { ...candidate, skipped: "unreadable", message: "\u65E0\u6CD5\u6309\u6307\u5B9A\u7F16\u7801\u89E3\u7801\uFF1A".concat(relative2) };
+            }
+            const after_stat = await files_api.lstat(file_path);
+            if (identity4(stat) !== identity4(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) return { ...candidate, skipped: "unreadable", message: "\u8BFB\u53D6\u65F6\u6587\u4EF6\u53D1\u751F\u6539\u53D8\uFF0C\u5DF2\u8DF3\u8FC7\uFF1A".concat(relative2) };
+            return { ...candidate, bytes, decoded, stat };
+          } catch (error) {
+            return { ...candidate, skipped: "unreadable", message: "\u65E0\u6CD5\u641C\u7D22 ".concat(relative2, "\uFF1A").concat(String(error)) };
+          }
+        };
+        const iterator = candidates();
+        const pending = [];
+        let exhausted = false;
+        let directory_boundary = false;
+        const fill = async () => {
+          if (directory_boundary && pending.length) return;
+          directory_boundary = false;
+          while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled() && !result.limit_reached) {
+            const next = await iterator.next();
+            exhausted = next.done === true;
+            if (!next.done) {
+              if (next.value === null) {
+                directory_boundary = true;
+                break;
+              }
+              pending.push(read_candidate(next.value));
+            }
+          }
+        };
+        await fill();
+        while ((pending.length || !exhausted) && !cancelled() && !result.limit_reached) {
+          if (!pending.length) {
+            await fill();
+            if (!pending.length) continue;
+          }
+          const { file_path, relative: relative2, bytes, decoded, stat, skipped, message } = await pending.shift();
+          if (cancelled()) break;
+          if (!directory_boundary) await fill();
+          if (skipped) {
+            result.counts.skipped[skipped]++;
+            if (message) notice(message);
+            continue;
+          }
+          if (!bytes || !decoded || !stat) continue;
+          try {
+            result.counts.searched_files++;
+            const matches = [];
+            if (matcher) {
+              try {
+                const reply = await matcher.match(decoded.text, options2, max_results - result.counts.matches, callbacks.signal);
+                for (const match2 of reply.matches) matches.push({ ...match2, id: "match_".concat(result.files.length, "_").concat(matches.length) });
+                result.counts.matches += matches.length;
+                result.limit_reached = reply.limit_reached;
+              } catch (error) {
+                if (error instanceof search_match_failure && error.reason === "cancelled") result.cancelled = true;
+                else {
+                  replace_blocked = true;
+                  result.counts.skipped.unreadable++;
+                  notice("".concat(relative2, "\uFF1A").concat(String(error instanceof Error ? error.message : error), " \u672C\u6B21\u641C\u7D22\u4E0D\u5B8C\u6574\uFF0C\u4E0D\u80FD\u6267\u884C\u66FF\u6362\u3002"));
+                }
+                continue;
+              }
+            } else {
+              let starts;
+              expression.lastIndex = 0;
+              let found;
+              while (!cancelled() && (found = expression.exec(decoded.text))) {
+                if (!found[0].length) expression.lastIndex += decoded.text.codePointAt(expression.lastIndex) > 65535 ? 2 : 1;
+                if (options2.whole_word && !whole_word(decoded.text, found.index, found.index + found[0].length)) continue;
+                starts ||= line_starts(decoded.text);
+                matches.push({ ...capture_match(decoded.text, starts, found), id: "match_".concat(result.files.length, "_").concat(matches.length) });
+                result.counts.matches++;
+                if (result.counts.matches >= max_results) {
+                  result.limit_reached = true;
+                  break;
+                }
+                if (matches.length % 128 === 0) await pause();
+              }
+            }
+            if (matches.length) {
+              if (snapshot_bytes + bytes.length > MAX_SNAPSHOT_BYTES) {
+                result.counts.matches -= matches.length;
+                result.limit_reached = true;
+                notice("\u5339\u914D\u6587\u4EF6\u5FEB\u7167\u8FBE\u5230 64 MiB \u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u641C\u7D22\u8303\u56F4\u3002");
+                break;
+              }
+              snapshot_bytes += bytes.length;
+              snapshots.set(file_path, { bytes, decoded, identity: identity4(stat), mode: stat.mode, matches });
+              const file = { file_path, relative_path: relative2, matches: matches.map(({ captures, groups, ...match2 }) => match2) };
+              result.files.push(file);
+              result.counts.matched_files++;
+              callbacks.on_file?.(file, structuredClone(result.counts));
+            }
+          } catch (error) {
+            result.counts.skipped.unreadable++;
+            notice("\u65E0\u6CD5\u641C\u7D22 ".concat(relative2, "\uFF1A").concat(String(error instanceof Error ? error.message : error)));
+          }
         }
         cancelled();
         if (result.limit_reached) notice("\u641C\u7D22\u5DF2\u8FBE\u5230\u7ED3\u679C\u6216\u5FEB\u7167\u4E0A\u9650\uFF1B\u5F53\u524D\u663E\u793A ".concat(result.counts.matches, " \u5904\u5339\u914D\u3002"));
@@ -223453,6 +224085,7 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_search_default = "";
 
   // src/workspace_search.ts
+  var search_path_order = new Intl.Collator("zh-CN", { numeric: true });
   function bind_workspace_search(core, files) {
     const lifetime = create_workspace_lifetime();
     try {
@@ -223523,6 +224156,9 @@ https://creativecommons.org/licenses/by/4.0/
         history = [];
         history_index = -1;
         git_status = /* @__PURE__ */ new Map();
+        render_versions = /* @__PURE__ */ new WeakMap();
+        rendered_groups = /* @__PURE__ */ new WeakMap();
+        omitted_files = /* @__PURE__ */ new Set();
         native_observer = new MutationObserver(() => this.clear_native());
         constructor() {
           super();
@@ -223759,6 +224395,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
         clear_results() {
           ++this.open_generation;
+          this.render_versions.set(this.results, (this.render_versions.get(this.results) || 0) + 1);
+          this.omitted_files.clear();
           this.result = void 0;
           this.selected = void 0;
           this.results.replaceChildren();
@@ -223793,10 +224431,11 @@ https://creativecommons.org/licenses/by/4.0/
         path_key(path) {
           return file_key(files.path_api.resolve(path));
         }
-        async read_git_status(root) {
+        async read_git_status(root, signal) {
           const statuses = /* @__PURE__ */ new Map();
           try {
             const git_root = (await runner.run(root, ["rev-parse", "--show-toplevel"])).trim();
+            if (signal.aborted) return { statuses, changed_files: void 0 };
             const changes = parse_status(await runner.run(git_root, ["status", "--porcelain=v1", "-z", "--untracked-files=all"]));
             for (const change of changes) {
               const status2 = change.status === "??" ? "U" : change.work_status?.trim() || change.index_status?.trim() || change.status;
@@ -223830,6 +224469,7 @@ https://creativecommons.org/licenses/by/4.0/
         remove_result(file, group) {
           const result = this.result;
           if (!result || !result.files.includes(file)) return;
+          this.omitted_files.add(file.file_path);
           result.files = result.files.filter((item) => item !== file);
           result.counts.matched_files = result.files.length;
           result.counts.matches = result.files.reduce((sum, item) => sum + item.matches.length, 0);
@@ -223858,6 +224498,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.controller = controller;
           this.containerEl.dataset.state = "searching";
           this.status.textContent = "\u6B63\u5728\u641C\u7D22\u2026";
+          controller.signal.addEventListener("abort", () => runner.cancel(), { once: true });
           const stop = git_icon_button("search-stop", "\u505C\u6B62\u641C\u7D22", () => controller.abort());
           this.status.append(stop);
           const open_files = [];
@@ -223868,25 +224509,64 @@ https://creativecommons.org/licenses/by/4.0/
           });
           try {
             const root = files.context_root();
-            const git = await this.read_git_status(root);
+            this.git_status = /* @__PURE__ */ new Map();
+            const git_pending = this.read_git_status(root, controller.signal).then((git2) => {
+              if (!disposed && this.controller === controller && !controller.signal.aborted) {
+                this.git_status = git2.statuses;
+                for (const group of this.results.querySelectorAll(".workspace-search-file")) {
+                  const status2 = git2.statuses.get(this.path_key(group.dataset.path));
+                  if (status2 && !group.querySelector(".workspace-search-git-status")) {
+                    const badge = workspace_element("span", "workspace-search-git-status", status2);
+                    badge.dataset.status = status2;
+                    group.querySelector("summary")?.insertBefore(badge, group.querySelector(".workspace-search-file-actions"));
+                  }
+                }
+              }
+              return git2;
+            });
+            const git = this.only_changed ? await git_pending : void 0;
             if (disposed || this.controller !== controller) return;
-            if (this.only_changed && !git.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
-            this.git_status = git.statuses;
-            const scope = this.only_changed ? git.changed_files : this.only_open ? open_files : void 0;
-            const result = await engine.search(root, { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {} }, { signal: controller.signal });
+            if (this.only_changed && !git?.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
+            const scope = this.only_changed ? git?.changed_files : this.only_open ? open_files : void 0;
+            const options2 = { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {} };
+            const progressive = { root, options: options2, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, large: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: true, limit_reached: false, notices: [] };
+            this.result = progressive;
+            let progress_time = 0;
+            const render_tasks = [];
+            let render_error;
+            const result = await engine.search(root, options2, { signal: controller.signal, on_file: (file, counts) => {
+              if (disposed || this.controller !== controller || controller.signal.aborted) return;
+              progressive.files.push(file);
+              progressive.counts = counts;
+              render_tasks.push(this.render(this.results, file).catch((error) => {
+                render_error ||= error;
+              }));
+              if (performance.now() - progress_time >= 80) {
+                progress_time = performance.now();
+                this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u6B63\u5728\u641C\u7D22\u2026 ".concat(counts.matched_files, " \u4E2A\u6587\u4EF6\uFF0C").concat(counts.matches, " \u4E2A\u7ED3\u679C")), stop);
+              }
+            } });
+            await Promise.all(render_tasks);
             if (disposed || this.controller !== controller) return;
+            if (render_error) throw render_error;
+            if (this.omitted_files.size) {
+              result.files = result.files.filter((file) => !this.omitted_files.has(file.file_path));
+              result.counts.matched_files = result.files.length;
+              result.counts.matches = result.files.reduce((sum, file) => sum + file.matches.length, 0);
+            }
             this.result = result;
+            await this.render();
+            if (disposed || this.controller !== controller) return;
             this.containerEl.dataset.state = result.cancelled ? "stopped" : "ready";
-            this.render();
             this.history = [this.query.value, ...this.history.filter((value) => value !== this.query.value)].slice(0, 30);
             this.history_index = -1;
             this.update_status();
-            if (!result.cancelled && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
+            if (!result.cancelled && !this.selected && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
           } catch (error) {
             if (!disposed && this.controller === controller) {
+              this.clear_results();
               this.containerEl.dataset.state = "error";
               this.status.textContent = String(error);
-              this.results.replaceChildren();
             }
           }
         }
@@ -223899,13 +224579,35 @@ https://creativecommons.org/licenses/by/4.0/
             toggle.setAttribute("aria-label", toggle.title);
           }
         }
-        render(target = this.results) {
-          const open_states = new Map([...target.querySelectorAll("details[data-search-group]")].map((node) => [node.getAttribute("data-search-group"), node.open]));
-          target.replaceChildren();
+        async render(target = this.results, new_file) {
+          const version = (this.render_versions.get(target) || 0) + (new_file ? 0 : 1);
+          this.render_versions.set(target, version);
+          if (!new_file && !this.tree && this.result) {
+            const groups = new Map([...target.querySelectorAll(":scope>.workspace-search-file")].map((group) => [group.dataset.path, group]));
+            if (target.children.length === groups.size && groups.size === this.result.files.length && this.result.files.every((file) => this.rendered_groups.get(groups.get(file.file_path)) === file)) {
+              const ordered = [...this.result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : search_path_order.compare(a.relative_path, b2.relative_path));
+              const focused = document.activeElement instanceof HTMLElement && target.contains(document.activeElement) ? document.activeElement : void 0;
+              const scroll = target.scrollTop;
+              for (let index = 0; index < ordered.length; index++) {
+                const group = groups.get(ordered[index].file_path);
+                if (target.children[index] !== group) target.insertBefore(group, target.children[index] || null);
+              }
+              if (focused?.isConnected && document.activeElement !== focused) focused.focus({ preventScroll: true });
+              target.scrollTop = scroll;
+              return;
+            }
+          }
+          const open_states = new Map(new_file ? [] : [...target.querySelectorAll("details[data-search-group]")].map((node) => [node.getAttribute("data-search-group"), node.open]));
+          if (!new_file) target.replaceChildren();
           if (!this.result) return;
-          const sorted = [...this.result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : a.relative_path.localeCompare(b2.relative_path, "zh-CN", { numeric: true }));
+          const result = this.result;
+          const current = () => !disposed && this.render_versions.get(target) === version && (target !== this.results || this.result === result);
+          const sorted = new_file ? [new_file] : [...result.files].sort((a, b2) => this.sort === "count" ? b2.matches.length - a.matches.length : search_path_order.compare(a.relative_path, b2.relative_path));
           const directories = /* @__PURE__ */ new Map();
+          if (new_file) for (const directory of target.querySelectorAll(".workspace-search-directory")) directories.set(directory.getAttribute("data-search-group").slice("directory:".length), directory);
+          let rendered = 0, deadline = performance.now() + 8;
           for (const file of sorted) {
+            if (!current()) return;
             let parent = target;
             if (this.tree) {
               const parts = file.relative_path.split("/").slice(0, -1);
@@ -223935,6 +224637,7 @@ https://creativecommons.org/licenses/by/4.0/
             const summary = workspace_element("summary");
             summary.title = file.relative_path;
             summary.tabIndex = 0;
+            summary.classList.toggle("is-selected", this.selected?.file.file_path === file.file_path);
             const label = workspace_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
             const path = workspace_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
             const disclosure = workspace_button("", () => {
@@ -223987,11 +224690,20 @@ https://creativecommons.org/licenses/by/4.0/
             summary.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);
             group.append(summary);
             this.set_group_open(group, group.open);
+            parent.append(group);
             for (const match2 of file.matches) {
+              if (rendered++ % 64 === 63 || performance.now() > deadline) {
+                await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+                if (!current()) return;
+                deadline = performance.now() + 8;
+              }
               const row = workspace_button("", () => this.select(file, match2), "workspace-search-match");
               row.dataset.matchId = match2.id;
               row.title = "".concat(file.relative_path, ":").concat(match2.line, ":").concat(match2.column, "\n").concat(match2.preview);
               row.setAttribute("aria-label", "".concat(file.relative_path, "\uFF0C\u7B2C ").concat(match2.line, " \u884C\uFF0C\u7B2C ").concat(match2.column, " \u5217\uFF1A").concat(match2.preview));
+              const selected = this.selected?.match.id === match2.id;
+              row.classList.toggle("is-selected", selected);
+              row.setAttribute("aria-current", String(selected));
               row.append(workspace_element("span", "workspace-search-line", String(match2.line)));
               const preview = workspace_element("span", "workspace-search-preview");
               let start = 0;
@@ -224010,7 +224722,7 @@ https://creativecommons.org/licenses/by/4.0/
               row.onkeydown = (event) => this.navigate(event, row, file, () => match2, target);
               group.append(row);
             }
-            parent.append(group);
+            this.rendered_groups.set(group, file);
           }
         }
         file_match(file) {
@@ -224110,6 +224822,7 @@ https://creativecommons.org/licenses/by/4.0/
             editors.splice(0).forEach((editor2) => editor2.dispose());
           });
           try {
+            if (this.containerEl.dataset.state === "searching") throw new Error("\u641C\u7D22\u4ECD\u5728\u8FDB\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B8C\u6210\u6216\u505C\u6B62\u641C\u7D22\u540E\u518D\u9884\u89C8\u66FF\u6362\u3002");
             if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
             const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
             const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
@@ -224231,6 +224944,213 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_chrome.css
   var workspace_chrome_default = "";
 
+  // vendor/workspace_core/src/ui/components/pointer-drag.ts
+  var session_key = Symbol.for("typora-code:pointer-drag");
+  function cancel_pointer_drag(view, reason = "cancelled") {
+    view[session_key]?.cancel(reason);
+  }
+  function create_preview(source) {
+    const doc = source.ownerDocument, view = doc.defaultView;
+    const clone3 = source.cloneNode(true);
+    const originals = [source, ...source.querySelectorAll("*")];
+    const copies = [clone3, ...clone3.querySelectorAll("*")];
+    for (let index = 0; index < copies.length; index++) {
+      const node = copies[index], original = originals[index], style = view.getComputedStyle(original);
+      node.removeAttribute("id");
+      node.removeAttribute("title");
+      node.removeAttribute("tabindex");
+      node.removeAttribute("draggable");
+      node.setAttribute("aria-hidden", "true");
+      for (const name of node.getAttributeNames()) if (name.startsWith("data-")) node.removeAttribute(name);
+      for (const name of ["font", "color", "fill", "background-color", "border-color", "border-width", "border-style", "border-radius", "padding", "gap", "display", "align-items", "justify-content", "line-height", "white-space", "text-overflow", "overflow", "width", "height", "box-sizing", "flex", "min-width", "max-width"]) {
+        node.style.setProperty(name, style.getPropertyValue(name));
+      }
+    }
+    const box = source.getBoundingClientRect();
+    let background = "var(--bg-color, white)";
+    for (let node = source; node; node = node.parentElement) {
+      const color = view.getComputedStyle(node).backgroundColor;
+      if (color !== "transparent" && color !== "rgba(0, 0, 0, 0)") {
+        background = color;
+        break;
+      }
+    }
+    Object.assign(clone3.style, { position: "fixed", left: "0", top: "0", width: box.width + "px", height: box.height + "px", margin: "0", pointerEvents: "none", zIndex: "2147483646", backgroundColor: background, opacity: ".95", transition: "none", animation: "none", transform: "none", boxShadow: "0 2px 8px rgba(0,0,0,.2)" });
+    clone3.dataset.workspaceDragPreview = "true";
+    doc.body.append(clone3);
+    return clone3;
+  }
+  function start_pointer_drag(event, options2) {
+    if (event.button !== 0 || event.isPrimary === false || !options2.source.isConnected) return;
+    const source = options2.source, doc = source.ownerDocument, view = doc.defaultView;
+    cancel_pointer_drag(view, "replaced");
+    const start_x = event.clientX, start_y = event.clientY, pointer_id = event.pointerId;
+    const origin = source.getBoundingClientRect(), previous_cursor = doc.documentElement.style.cursor, previous_select = doc.documentElement.style.userSelect, previous_opacity = source.style.opacity;
+    let started = false, ended = false, preview, drop_hint;
+    const events = new AbortController();
+    const observer = new MutationObserver(() => {
+      if (!source.isConnected) cancel("source-removed");
+    });
+    const point = (input) => ({ event: input, client_x: input.clientX, client_y: input.clientY, screen_x: input.screenX, screen_y: input.screenY, delta_x: input.clientX - start_x, delta_y: input.clientY - start_y, target: doc.elementFromPoint(input.clientX, input.clientY) });
+    const cleanup = () => {
+      ended = true;
+      events.abort();
+      observer.disconnect();
+      preview?.remove();
+      source.removeAttribute("data-workspace-drag-source");
+      if (started) {
+        doc.documentElement.style.cursor = previous_cursor;
+        doc.documentElement.style.userSelect = previous_select;
+        source.style.opacity = previous_opacity;
+      }
+      if (source.hasPointerCapture?.(pointer_id)) source.releasePointerCapture(pointer_id);
+      if (view[session_key] === session) delete view[session_key];
+      options2.on_end?.(started);
+    };
+    const suppress_click = (released) => {
+      const suppression = new AbortController();
+      const clear = () => suppression.abort();
+      doc.addEventListener("click", (input) => {
+        input.preventDefault();
+        input.stopImmediatePropagation();
+        clear();
+      }, { capture: true, signal: suppression.signal });
+      doc.addEventListener("pointerup", (input) => {
+        if (input.pointerId === pointer_id) view.setTimeout(clear, 0);
+      }, { capture: true, signal: suppression.signal });
+      doc.addEventListener("pointerdown", clear, { capture: true, once: true, signal: suppression.signal });
+      view.addEventListener("pagehide", clear, { once: true, signal: suppression.signal });
+      if (released) view.setTimeout(clear, 0);
+    };
+    const cancel = (reason = "cancelled") => {
+      if (ended) return;
+      try {
+        if (started) {
+          suppress_click(false);
+          options2.on_cancel?.(reason);
+        }
+      } finally {
+        cleanup();
+      }
+    };
+    const session = { cancel, get started() {
+      return started;
+    }, set_drop_effect(effect) {
+      if (!started || ended) return;
+      doc.documentElement.style.cursor = effect === "none" ? "not-allowed" : options2.cursor || "grabbing";
+      if (preview) {
+        preview.dataset.workspaceDropEffect = effect;
+        if (effect === "detach" && !drop_hint) {
+          drop_hint = doc.createElement("span");
+          drop_hint.textContent = "\u79FB\u5230\u65B0\u7A97\u53E3";
+          Object.assign(drop_hint.style, { position: "absolute", top: "100%", left: "0", padding: "3px 6px", font: "12px system-ui", whiteSpace: "nowrap", background: "var(--bg-color, white)", color: "var(--text-color, #333)", border: "1px solid var(--vscode-focusBorder, #0078d4)", borderRadius: "3px" });
+          preview.append(drop_hint);
+          preview.style.overflow = "visible";
+        }
+        if (drop_hint) drop_hint.hidden = effect !== "detach";
+      }
+    } };
+    view[session_key] = session;
+    const move = (input) => {
+      if (ended || input.pointerId !== pointer_id) return;
+      if (!source.isConnected) {
+        cancel("source-removed");
+        return;
+      }
+      if (!(input.buttons & 1)) {
+        cancel("button-lost");
+        return;
+      }
+      const state = point(input);
+      if (!started) {
+        if (Math.hypot(state.delta_x, state.delta_y) < (options2.threshold ?? 6)) return;
+        started = true;
+        doc.documentElement.style.cursor = options2.cursor || "grabbing";
+        doc.documentElement.style.userSelect = "none";
+        try {
+          if (options2.preview !== false) preview = create_preview(source);
+          source.dataset.workspaceDragSource = "true";
+          source.style.opacity = ".45";
+          try {
+            source.setPointerCapture(pointer_id);
+          } catch {
+          }
+          observer.observe(doc.documentElement, { childList: true, subtree: true });
+          options2.on_start?.(state);
+        } catch (error) {
+          cancel("error");
+          throw error;
+        }
+      }
+      if (ended) return;
+      input.preventDefault();
+      input.stopPropagation();
+      if (preview) preview.style.transform = "translate3d(".concat(origin.left + state.delta_x, "px,").concat(origin.top + state.delta_y, "px,0)");
+      try {
+        options2.on_move(state);
+      } catch (error) {
+        cancel("error");
+        throw error;
+      }
+    };
+    const up = (input) => {
+      if (ended || input.pointerId !== pointer_id || input.button !== 0) return;
+      if (started) {
+        input.preventDefault();
+        input.stopPropagation();
+        suppress_click(true);
+      }
+      try {
+        if (started && source.isConnected) options2.on_drop(point(input));
+        else if (started) options2.on_cancel?.("source-removed");
+      } finally {
+        cleanup();
+      }
+    };
+    doc.addEventListener("pointermove", move, { capture: true, signal: events.signal });
+    doc.addEventListener("pointerup", up, { capture: true, signal: events.signal });
+    doc.addEventListener("pointercancel", (input) => {
+      if (input.pointerId === pointer_id) cancel("pointer-cancel");
+    }, { capture: true, signal: events.signal });
+    source.addEventListener("lostpointercapture", () => cancel("capture-lost"), { signal: events.signal });
+    doc.addEventListener("keydown", (input) => {
+      if (input.key === "Escape") {
+        input.preventDefault();
+        input.stopImmediatePropagation();
+        cancel("escape");
+      }
+    }, { capture: true, signal: events.signal });
+    doc.addEventListener("dragstart", (input) => {
+      input.preventDefault();
+      input.stopImmediatePropagation();
+    }, { capture: true, signal: events.signal });
+    view.addEventListener("blur", () => cancel("window-blur"), { signal: events.signal });
+    view.addEventListener("pagehide", () => cancel("pagehide"), { signal: events.signal });
+    event.preventDefault();
+    event.stopPropagation();
+    return session;
+  }
+  function create_drop_marker(doc) {
+    const marker = doc.createElement("div");
+    marker.dataset.workspaceDropMarker = "true";
+    Object.assign(marker.style, { position: "fixed", pointerEvents: "none", zIndex: "2147483645", background: "var(--vscode-focusBorder, var(--primary-color, #0078d4))" });
+    const place = (rect) => {
+      if (!marker.isConnected) doc.body.append(marker);
+      Object.assign(marker.style, { left: rect.left + "px", top: rect.top + "px", width: rect.width + "px", height: rect.height + "px", display: "block" });
+    };
+    return { show(rect) {
+      place(rect);
+      Object.assign(marker.style, { background: "var(--vscode-focusBorder, var(--primary-color, #0078d4))", border: "none" });
+    }, highlight(rect) {
+      place(rect);
+      Object.assign(marker.style, { boxSizing: "border-box", background: "color-mix(in srgb, var(--vscode-focusBorder, #0078d4) 12%, transparent)", border: "1px solid var(--vscode-focusBorder, #0078d4)" });
+    }, hide() {
+      marker.style.display = "none";
+    }, dispose() {
+      marker.remove();
+    } };
+  }
+
   // src/workspace_activity.ts
   function install_workspace_activity(options2) {
     const ribbon = options2.ribbon;
@@ -224252,6 +225172,7 @@ https://creativecommons.org/licenses/by/4.0/
     let scheduled = 0;
     let suppress_click_until = 0;
     let drag;
+    const marker = create_drop_marker(document);
     let menu;
     let menu_owner;
     const top_group = () => ribbon.querySelector(":scope > .group.top");
@@ -224404,8 +225325,64 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.button !== 0 || !event.isPrimary) return;
       const item = item_at(event.target);
       if (!item) return;
+      drag?.session?.cancel("replaced");
       cancel_animations();
-      drag = { item, pointer_id: event.pointerId, x: event.clientX, y: event.clientY, order: order(), started: false };
+      item.focus({ preventScroll: true });
+      const transaction2 = { item, order: order() };
+      drag = transaction2;
+      let pending_order = transaction2.order, last_target, last_before = true;
+      const update_target = (state) => {
+        const group = top_group();
+        if (!group) return;
+        const bounds = group.getBoundingClientRect();
+        if (state.client_x < bounds.left || state.client_x > bounds.right || state.client_y < bounds.top || state.client_y > bounds.bottom) {
+          marker.hide();
+          transaction2.session?.set_drop_effect("none");
+          return;
+        }
+        transaction2.session?.set_drop_effect("move");
+        const other = items().filter((node) => node !== item);
+        const target = other.find((node) => state.client_y < node.getBoundingClientRect().bottom) || other[other.length - 1];
+        if (!target) {
+          marker.hide();
+          return;
+        }
+        const box = target.getBoundingClientRect(), position2 = (state.client_y - box.top) / box.height;
+        const before = position2 <= 0.4 ? true : position2 >= 0.6 ? false : last_target === target ? last_before : position2 <= 0.5;
+        last_target = target;
+        last_before = before;
+        const index = other.indexOf(target) + (before ? 0 : 1);
+        pending_order = other.map((node) => node.dataset.id);
+        pending_order.splice(index, 0, item.dataset.id);
+        marker.show({ left: bounds.left, top: before ? box.top : box.bottom - 2, width: bounds.width, height: 2 });
+      };
+      transaction2.session = start_pointer_drag(event, {
+        source: item,
+        on_start() {
+          item.classList.add("workspace-activity-dragging");
+          ribbon.dataset.activityDragging = "true";
+        },
+        on_move: update_target,
+        on_drop(state) {
+          update_target(state);
+          const bounds = top_group()?.getBoundingClientRect();
+          if (bounds && state.client_x >= bounds.left && state.client_x <= bounds.right && state.client_y >= bounds.top && state.client_y <= bounds.bottom) {
+            reorder(pending_order, true);
+            persist();
+          }
+        },
+        on_cancel() {
+          reorder(transaction2.order, true);
+        },
+        on_end(started) {
+          if (started) suppress_click_until = performance.now() + 400;
+          item.classList.remove("workspace-activity-dragging");
+          marker.hide();
+          delete ribbon.dataset.activityDragging;
+          if (drag === transaction2) drag = void 0;
+          schedule();
+        }
+      });
     };
     const on_mouse_down = (event) => {
       const item = item_at(event.target);
@@ -224415,42 +225392,8 @@ https://creativecommons.org/licenses/by/4.0/
         item.focus({ preventScroll: true });
       }
     };
-    const on_pointer_move = (event) => {
-      if (!drag || event.pointerId !== drag.pointer_id) return;
-      if (!drag.started && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) < 6) return;
-      drag.started = true;
-      drag.item.classList.add("workspace-activity-dragging");
-      ribbon.dataset.activityDragging = "true";
-      event.preventDefault();
-      event.stopPropagation();
-      const bounds = top_group().getBoundingClientRect();
-      if (event.clientX < bounds.left || event.clientX > bounds.right) return;
-      const other = items().filter((item) => item !== drag.item);
-      let index = other.findIndex((item) => event.clientY < item.getBoundingClientRect().top + item.getBoundingClientRect().height / 2);
-      if (index < 0) index = other.length;
-      const ids = other.map((item) => item.dataset.id);
-      ids.splice(index, 0, drag.item.dataset.id);
-      reorder(ids, true);
-    };
-    const finish_drag = (cancel) => {
-      if (!drag) return;
-      if (drag.started) {
-        if (cancel) reorder(drag.order, true);
-        else persist();
-        suppress_click_until = performance.now() + 400;
-      }
-      drag.item.classList.remove("workspace-activity-dragging");
-      drag = void 0;
-      delete ribbon.dataset.activityDragging;
-      schedule();
-    };
-    const on_pointer_up = (event) => {
-      if (!drag || event.pointerId !== drag.pointer_id) return;
-      const box = top_group().getBoundingClientRect();
-      finish_drag(event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom);
-    };
     const on_cancel = () => {
-      finish_drag(true);
+      drag?.session?.cancel();
       close_menu();
     };
     const on_click = (event) => {
@@ -224462,12 +225405,6 @@ https://creativecommons.org/licenses/by/4.0/
       } else schedule();
     };
     const on_key_down = (event) => {
-      if (event.key === "Escape" && drag?.started) {
-        event.preventDefault();
-        event.stopPropagation();
-        finish_drag(true);
-        return;
-      }
       const item = item_at(event.target);
       if (!item || event.target !== item) return;
       if (event.key === "ContextMenu" || event.shiftKey && event.key === "F10") {
@@ -224503,16 +225440,14 @@ https://creativecommons.org/licenses/by/4.0/
     ribbon.addEventListener("contextmenu", on_context_menu, true);
     ribbon.addEventListener("click", on_click, true);
     document.addEventListener("pointerdown", on_pointer_down, true);
-    document.addEventListener("pointermove", on_pointer_move, true);
-    document.addEventListener("pointerup", on_pointer_up, true);
-    document.addEventListener("pointercancel", on_cancel, true);
     document.addEventListener("keydown", on_key_down, true);
     window.addEventListener("blur", on_cancel);
     reduced_motion.addEventListener("change", on_motion_change);
     refresh();
     return { refresh, move, dispose() {
       disposed = true;
-      finish_drag(true);
+      drag?.session?.cancel("dispose");
+      marker.dispose();
       close_menu();
       observer.disconnect();
       if (scheduled) cancelAnimationFrame(scheduled);
@@ -224524,9 +225459,6 @@ https://creativecommons.org/licenses/by/4.0/
       ribbon.removeEventListener("contextmenu", on_context_menu, true);
       ribbon.removeEventListener("click", on_click, true);
       document.removeEventListener("pointerdown", on_pointer_down, true);
-      document.removeEventListener("pointermove", on_pointer_move, true);
-      document.removeEventListener("pointerup", on_pointer_up, true);
-      document.removeEventListener("pointercancel", on_cancel, true);
       document.removeEventListener("keydown", on_key_down, true);
       window.removeEventListener("blur", on_cancel);
       reduced_motion.removeEventListener("change", on_motion_change);
@@ -225524,7 +226456,7 @@ https://creativecommons.org/licenses/by/4.0/
   var MAXIMUM_MARGIN = 24;
   var ROOT_ATTRIBUTE = "data-linux-note-document-margin";
   var properties = ["--linux-note-document-margin", "--linux-note-document-width"];
-  var bindings3 = /* @__PURE__ */ new WeakMap();
+  var bindings4 = /* @__PURE__ */ new WeakMap();
   function normalize_margin(value) {
     const margin = Number(value);
     return Number.isFinite(margin) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(margin))) : 0;
@@ -225551,7 +226483,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (position2 && content?.isConnected && write?.parentElement === content) apply_position(content, write, position2);
   }
   function install_workspace_document_margin(footer) {
-    const existing = bindings3.get(footer);
+    const existing = bindings4.get(footer);
     if (existing) return existing;
     const root = document.documentElement;
     const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
@@ -225630,9 +226562,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         style.remove();
       });
-      bindings3.delete(footer);
+      bindings4.delete(footer);
     } };
-    bindings3.set(footer, binding);
+    bindings4.set(footer, binding);
     return binding;
   }
 
@@ -226375,13 +227307,13 @@ https://creativecommons.org/licenses/by/4.0/
   var SIDEBAR_MIN_WIDTH = 170;
   var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
   var EDITOR_MIN_WIDTH = 220;
-  var bindings4 = /* @__PURE__ */ new WeakMap();
+  var bindings5 = /* @__PURE__ */ new WeakMap();
   function install_workspace_sidebar_sash(options2) {
     const sash = document.querySelector("#typora-sidebar-resizer");
     const sidebar_element = document.querySelector("#typora-sidebar");
     const ribbon = document.querySelector(".typ-ribbon");
     if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings4.get(sash);
+    const existing = bindings5.get(sash);
     if (existing) return existing;
     const root = document.documentElement;
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
@@ -226558,10 +227490,10 @@ https://creativecommons.org/licenses/by/4.0/
       delete sash.dataset.workspaceSidebarSash;
       root.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
-      bindings4.delete(sash);
+      bindings5.delete(sash);
     };
     const binding = { element: sash, refresh, dispose: dispose2 };
-    bindings4.set(sash, binding);
+    bindings5.set(sash, binding);
     window.addEventListener("pagehide", dispose2, { once: true });
     refresh();
     return binding;
@@ -226692,6 +227624,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         return { active_id, sidebar_visible: sidebar.isShown };
       } }));
+      lifetime.own(bind_workspace_detached_window(files));
       document.documentElement.setAttribute("data-linux-note-workspace-browser", "ready");
       lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
       return { files, explorer, search: search2, dispose() {

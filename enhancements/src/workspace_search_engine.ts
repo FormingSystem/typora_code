@@ -22,6 +22,7 @@ type result_snapshot = {root: string; options: workspace_search_options; files: 
 type prepared_file = workspace_replace_file & {snapshot: file_snapshot; bytes: Uint8Array};
 const DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
 const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
+const MAX_READ_CONCURRENCY = 4;
 const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const same_bytes = (left: Uint8Array, right: Uint8Array) => left.length === right.length && left.every((byte, index) => byte === right[index]);
@@ -165,7 +166,8 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const settings_exclude = compile_workspace_globs(options.exclude_settings ?? DEFAULT_EXCLUDES, case_sensitive, false);
     const result: workspace_search_result = {root, options: {...options}, files: [], counts: {scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: {binary: 0, large: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0}}, cancelled: false, limit_reached: false, notices: []};
     const snapshots = new Map<string, file_snapshot>(); let snapshot_bytes = 0; let replace_blocked = false;
-    const matcher = options.regex ? create_search_matcher(modules.matcher_factory) : undefined;
+    // 普通查询也在隔离线程中建立行索引和匹配；无 Worker 的纯 Node 调用仍可执行普通搜索。
+    const matcher = options.regex || modules.matcher_factory || typeof Worker !== "undefined" ? create_search_matcher(modules.matcher_factory) : undefined;
     const notice = (message: string) => { if (result.notices.length < 20 && !result.notices.includes(message)) result.notices.push(message); };
     const cancelled = () => { result.cancelled ||= callbacks.signal?.aborted === true; return result.cancelled; };
     const ignore_cache = new Map<string, Set<string> | null>();
@@ -186,6 +188,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     matcher?.start();
     const allowed = await read_ignored(root);
     const stack: {directory: string; relative: string; ignore_root: string; allowed: Set<string> | null}[] = [{directory: root, relative: "", ignore_root: root, allowed}];
+    async function* candidates(): AsyncGenerator<{file_path: string; relative: string} | null> {
     while (stack.length && !cancelled() && !result.limit_reached) {
       const current = stack.pop()!; let entries: any[];
       try {
@@ -211,18 +214,55 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
         result.counts.scanned_files++;
         if (options.include?.trim() && !include(relative)) { result.counts.skipped.excluded++; continue; }
-        try {
-          const stat = await files_api.lstat(file_path);
-          if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) { result.counts.skipped.links++; continue; }
-          if (stat.size > max_file_bytes) { result.counts.skipped.large++; continue; }
-          const bytes = new Uint8Array(await files_api.readFile(file_path));
-          if (bytes.length > max_file_bytes) { result.counts.skipped.large++; continue; }
-          if (detect_binary_bytes(bytes)) { result.counts.skipped.binary++; continue; }
-          let decoded: decoded_file;
-          try { decoded = decode_file_bytes(bytes, options.encoding || "utf-8"); }
-          catch { result.counts.skipped.unreadable++; notice(`无法按指定编码解码：${relative}`); continue; }
-          const after_stat = await files_api.lstat(file_path);
-          if (identity(stat) !== identity(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) { result.counts.skipped.unreadable++; notice(`读取时文件发生改变，已跳过：${relative}`); continue; }
+        yield {file_path, relative};
+        if (result.counts.scanned_files % 32 === 0) await pause();
+      }
+      stack.push(...directories.reverse());
+      // 目录边界让已读取的文件先交付，不能为凑齐预读数量等待下一个慢目录。
+      yield null;
+    }
+    }
+    type read_candidate = {file_path: string; relative: string; stat?: any; bytes?: Uint8Array; decoded?: decoded_file; skipped?: keyof workspace_search_counts["skipped"]; message?: string};
+    const read_candidate = async (candidate: {file_path: string; relative: string}): Promise<read_candidate> => {
+      const {file_path, relative} = candidate;
+      try {
+        if (cancelled()) return candidate;
+        const stat = await files_api.lstat(file_path);
+        if (cancelled()) return candidate;
+        if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) return {...candidate, skipped: "links"};
+        if (stat.size > max_file_bytes) return {...candidate, skipped: "large"};
+        if (cancelled()) return candidate;
+        const bytes = new Uint8Array(await files_api.readFile(file_path, callbacks.signal ? {signal: callbacks.signal} : undefined));
+        if (cancelled()) return candidate;
+        if (bytes.length > max_file_bytes) return {...candidate, skipped: "large"};
+        if (detect_binary_bytes(bytes)) return {...candidate, skipped: "binary"};
+        let decoded: decoded_file;
+        try { decoded = decode_file_bytes(bytes, options.encoding || "utf-8"); }
+        catch { return {...candidate, skipped: "unreadable", message: `无法按指定编码解码：${relative}`}; }
+        const after_stat = await files_api.lstat(file_path);
+        if (identity(stat) !== identity(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) return {...candidate, skipped: "unreadable", message: `读取时文件发生改变，已跳过：${relative}`};
+        return {...candidate, bytes, decoded, stat};
+      } catch (error) { return {...candidate, skipped: "unreadable", message: `无法搜索 ${relative}：${String(error)}`}; }
+    };
+    // 只预读四个文件，保持确定的目录顺序；不把整个工程正文排进消息队列或内存。
+    const iterator = candidates(); const pending: Promise<read_candidate>[] = []; let exhausted = false; let directory_boundary = false;
+    const fill = async () => {
+      if(directory_boundary&&pending.length)return;
+      directory_boundary=false;
+      while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled() && !result.limit_reached) {
+        const next = await iterator.next(); exhausted = next.done === true;
+        if (!next.done) {if(next.value===null){directory_boundary=true;break;}pending.push(read_candidate(next.value));}
+      }
+    };
+    await fill();
+    while ((pending.length||!exhausted) && !cancelled() && !result.limit_reached) {
+      if(!pending.length){await fill();if(!pending.length)continue;}
+      const {file_path, relative, bytes, decoded, stat, skipped, message} = await pending.shift()!;
+      if (cancelled()) break;
+      if(!directory_boundary)await fill();
+      if (skipped) { result.counts.skipped[skipped]++; if (message) notice(message); continue; }
+      if (!bytes || !decoded || !stat) continue;
+      try {
           result.counts.searched_files++; const matches: captured_match[] = [];
           if (matcher) {
             try {
@@ -235,10 +275,11 @@ export function create_workspace_search_engine(modules: workspace_search_modules
               continue;
             }
           } else {
-            const starts = line_starts(decoded.text); expression.lastIndex = 0; let found: RegExpExecArray | null;
+            let starts: number[] | undefined; expression.lastIndex = 0; let found: RegExpExecArray | null;
             while (!cancelled() && (found = expression.exec(decoded.text))) {
               if (!found[0].length) expression.lastIndex += decoded.text.codePointAt(expression.lastIndex)! > 0xffff ? 2 : 1;
               if (options.whole_word && !whole_word(decoded.text, found.index, found.index + found[0].length)) continue;
+              starts ||= line_starts(decoded.text);
               matches.push({...capture_match(decoded.text, starts, found), id: `match_${result.files.length}_${matches.length}`});
               result.counts.matches++;
               if (result.counts.matches >= max_results) { result.limit_reached = true; break; }
@@ -252,9 +293,6 @@ export function create_workspace_search_engine(modules: workspace_search_modules
             result.files.push(file); result.counts.matched_files++; callbacks.on_file?.(file, structuredClone(result.counts));
           }
         } catch (error) { result.counts.skipped.unreadable++; notice(`无法搜索 ${relative}：${String(error instanceof Error ? error.message : error)}`); }
-        if (result.counts.scanned_files % 32 === 0) await pause();
-      }
-      stack.push(...directories.reverse());
     }
     cancelled();
     if (result.limit_reached) notice(`搜索已达到结果或快照上限；当前显示 ${result.counts.matches} 处匹配。`);

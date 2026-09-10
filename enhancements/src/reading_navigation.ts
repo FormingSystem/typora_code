@@ -21,14 +21,15 @@ type typora_file_state = {
 };
 
 let active_dispose: (() => void) | undefined;
-type reading_target_options = { locate?: (signal?: AbortSignal) => Promise<void>; group?: string; hash?: string };
+type reading_target_options = { locate?: (signal?: AbortSignal) => Promise<void>; group?: string; hash?: string; signal?: AbortSignal };
 let navigate_target: ((path: string, options: reading_target_options) => Promise<boolean>) | undefined;
 let remap_paths: ((map: (path: string) => string | undefined) => void) | undefined;
 export function rename_reading_paths(map: (path: string) => string | undefined): void { remap_paths?.(map); }
 
 /** 定位必须包含在打开、位置保护和阅读历史的同一事务中。 */
 export async function navigate_reading_target(path: string, options: reading_target_options = {}): Promise<void> {
-  if (!navigate_target || !await navigate_target(path, options)) throw new Error("无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。");
+  if (options.signal?.aborted) throw new Error("文件跳转已取消。");
+  if (!navigate_target || !await navigate_target(path, options)) throw new Error(options.signal?.aborted ? "文件跳转已取消。" : "无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。");
 }
 
 export function bind_reading_navigation(): () => void {
@@ -93,47 +94,52 @@ export function bind_reading_navigation(): () => void {
     if (pending_from && current && !is_busy() && !navigating) { history.record_jump(pending_from, current); publish_history_state(); }
     pending_from = null;
   };
-  const wait_for = async (ready: () => boolean): Promise<boolean> => {
+  const wait_for = async (ready: () => boolean, signal = controller.signal): Promise<boolean> => {
     const started = Date.now();
-    if (disposed) return false;
+    if (disposed || signal.aborted) return false;
     while (!ready()) {
-      if (disposed || Date.now() - started > 15000) return false;
-      await reading_delay(40, controller.signal);
+      if (disposed || signal.aborted || Date.now() - started > 15000) return false;
+      await reading_delay(40, signal);
     }
-    return !disposed;
+    return !disposed && !signal.aborted;
   };
-  const activate = async (context: reading_context): Promise<boolean> => {
+  const activate = async (context: reading_context, signal = controller.signal): Promise<boolean> => {
+    if (disposed || signal.aborted) return false;
     const leaf = context.leaf;
     if (app && leaf) {
       if (leaf.parent.activeLeaf !== leaf) leaf.parent.toggleTab(leaf.state.path);
       app.workspace.activeLeaf = leaf;
-      if (!await wait_for(() => Boolean(workspace.elements(context)))) return false;
+      if (!await wait_for(() => Boolean(workspace.elements(context)), signal)) return false;
+      if (disposed || signal.aborted) return false;
       if (!leaf.view.isEditor()) {
         // 复用社区核心的编辑器交换及原生未保存确认；目标接管后目录也属于目标文件。
         leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
       }
     }
     return wait_for(() => !is_busy() && file_key(native_path()) === file_key(context.file_path)
-      && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)));
+      && (!leaf || leaf.view.isEditor()) && Boolean(workspace.elements(context)), signal);
   };
-  const open_target = async (path: string, view_id?: number): Promise<reading_context | undefined> => {
+  const open_target = async (path: string, view_id?: number, signal = controller.signal): Promise<reading_context | undefined> => {
+    if (disposed || signal.aborted) return;
     const existing = workspace.all().find((context) => (view_id == null || context.view_id === view_id)
       && file_key(context.file_path) === file_key(path));
-    if (existing) return await activate(existing) ? existing : undefined;
+    if (existing) return await activate(existing, signal) ? existing : undefined;
     const current = workspace.active();
-    if (current && file_key(current.file_path) === file_key(path)) return await activate(current) ? current : undefined;
+    if (current && file_key(current.file_path) === file_key(path)) return await activate(current, signal) ? current : undefined;
     // 保留宿主打开失败与未保存确认；绝不通过读正文、reloadContent 或自动保存来切换。
+    if (disposed || signal.aborted) return;
     original_open_file.call(editor.library, path);
     let target: reading_context | undefined;
     if (!await wait_for(() => {
       target = workspace.active();
       return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-    })) return;
-    return target && await activate(target) ? target : undefined;
+    }, signal)) return;
+    return target && await activate(target, signal) ? target : undefined;
   };
   const report = (error: unknown) => { if (!disposed) console.error("[linux-note reading navigation]", error); };
   const navigate = async (path: string, hash?: string, location?: reading_location, options: reading_target_options = {}): Promise<boolean> => {
-    if (disposed || navigating) return false;
+    const signal = options.signal ?? controller.signal;
+    if (disposed || navigating || signal.aborted) return false;
     const source = workspace.active()?.file_path || native_path();
     if (path_api) {
       const target = resolve_host_open_file_target(path_api, source, path);
@@ -144,6 +150,7 @@ export function bind_reading_navigation(): () => void {
       const fs = (runtime as unknown as {reqnode(name: string): {statSync(path: string): {isFile(): boolean}}}).reqnode("fs");
       if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");
     }
+    if (disposed || signal.aborted) return false;
     finish_pending();
     const from = capture();
     workspace.checkpoint();
@@ -152,25 +159,32 @@ export function bind_reading_navigation(): () => void {
     try {
       let target: reading_context | undefined;
       if (app && options.group && options.group !== "active") {
+        if (disposed || signal.aborted) return false;
         app.commands.run(options.group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [path]);
         const opened = await wait_for(() => {
           target = workspace.active();
           return Boolean(target && file_key(target.file_path) === file_key(path) && workspace.elements(target));
-        });
-        if (!opened || !target || !await activate(target)) target = undefined;
-      } else target = await open_target(path, location?.view_id);
-      if (disposed || !target) return false;
+        }, signal);
+        if (!opened || !target || !await activate(target, signal)) target = undefined;
+      } else target = await open_target(path, location?.view_id, signal);
+      if (disposed || signal.aborted || !target) return false;
       // 文件事件、交换回调与代码块限高都可能异步改变布局；先让这些步骤完成再定位。
-      await reading_delay(100, controller.signal);
-      if (disposed) return false;
+      await reading_delay(100, signal);
+      if (disposed || signal.aborted) return false;
       workspace.stop_restoring(target);
+      const restore_position = async (position?: reading_location["position"]) => {
+        const stop = () => workspace.stop_restoring(target);
+        signal.addEventListener("abort", stop, {once: true});
+        try { if (!signal.aborted) await (position ? workspace.restore(target!, position) : workspace.resume(target!)); }
+        finally { signal.removeEventListener("abort", stop); }
+      };
       if (options.locate) {
-        await options.locate(controller.signal);
-        if (disposed) return false;
+        await options.locate(signal);
+        if (disposed || signal.aborted) return false;
       } else if (hash) {
         original_open_url.call(editor, hash);
-        await reading_delay(100, controller.signal);
-        if (disposed) return false;
+        await reading_delay(100, signal);
+        if (disposed || signal.aborted) return false;
         const heading = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
         const cid = heading?.getAttribute("cid");
         // 原生目录已按目标文件更新；仅滚动目录自己的容器，不滚动来源文档。
@@ -187,14 +201,14 @@ export function bind_reading_navigation(): () => void {
       } else if (location) {
         // cid 只用于当前窗口的原生历史，持久化位置不保存它；最后恢复滚动，避免选区拉动视口。
         try {
-          if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location as file_location, controller.signal);
+          if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location as file_location, signal);
           else if (location.cursor) editor.undo?.exeCommand(location.cursor);
         } catch { /* 正文发生变化或失效光标不阻止阅读位置恢复。 */ }
-        await reading_delay(40, controller.signal);
-        if (disposed) return false;
-        await workspace.restore(target, location.position ?? location);
-      } else await workspace.resume(target);
-      if (disposed) return false;
+        await reading_delay(40, signal);
+        if (disposed || signal.aborted) return false;
+        await restore_position(location.position ?? location);
+      } else await restore_position();
+      if (disposed || signal.aborted) return false;
       const to = capture(target);
       if (to) {
         workspace.remember(target, to.position!);
@@ -207,14 +221,24 @@ export function bind_reading_navigation(): () => void {
     }
   };
   const owned_navigate_target = navigate_target = async (path, options) => {
-    if (disposed) return false;
-    // 光标先到位而历史滚动仍在稳定时，下一次明确打开应等待事务结束，不能丢掉用户的双击。
-    const started = Date.now();
-    while (navigating || history.is_navigating()) {
-      if (disposed || Date.now() - started > 15000) return false;
-      await reading_delay(40, controller.signal);
+    // 同时接受单次移交取消和阅读模块卸载；取消排队项不能在前次导航结束后再打开文件。
+    const operation = new AbortController();
+    const abort = () => operation.abort();
+    const signals = [controller.signal, options.signal].filter((signal): signal is AbortSignal => Boolean(signal));
+    for (const signal of signals) { if (signal.aborted) abort(); else signal.addEventListener("abort", abort, {once: true}); }
+    try {
+      if (disposed || operation.signal.aborted) return false;
+      // 光标先到位而历史滚动仍在稳定时，下一次明确打开应等待事务结束，不能丢掉用户的双击。
+      const started = Date.now();
+      while (navigating || history.is_navigating()) {
+        if (disposed || operation.signal.aborted || Date.now() - started > 15000) return false;
+        await reading_delay(40, operation.signal);
+      }
+      if (disposed || operation.signal.aborted) return false;
+      return await navigate(path, options.hash, undefined, {...options, signal: operation.signal});
+    } finally {
+      for (const signal of signals) signal.removeEventListener("abort", abort);
     }
-    return navigate(path, options.hash, undefined, options);
   };
   const travel_history = async (direction: -1 | 1) => {
     if (disposed || navigating || history.is_navigating() || is_busy()) return false;
