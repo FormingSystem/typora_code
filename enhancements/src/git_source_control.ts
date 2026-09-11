@@ -205,9 +205,10 @@ export class git_source_control {
     return false;
   }
   file_entries(file: graph_change, from: string, to: string, files: graph_change[], root = this.panel.root): workspace_menu_entry[] {
+    const historical = to !== INDEX && to !== WORKTREE;
     const entries: workspace_menu_entry[] = [
       {id: "open_diff", title: text("scm.open_changes"), action: () => void this.open_file(file, from, to, files)},
-      {id: "open_file", title: text("scm.open_file"), disabled: file.status.startsWith("D"), action: () => void this.open_current_file(file)},
+      {id: "open_file", title: text(historical ? "scm.open_revision" : "scm.open_file"), disabled: historical ? file.status.startsWith("D") && from === EMPTY : file.status.startsWith("D"), action: () => historical ? void this.open_revision_file(file, from, to) : void this.open_current_file(file)},
       {id: "file_history", title: text("scm.file_history"), action: () => void this.file_history(file.path)},
       {id: "copy_relative", title: text("scm.copy_relative_path"), separator: true, action: () => void this.panel.host.copy(file.path)},
       {id: "copy_absolute", title: text("scm.copy_path"), action: () => void this.panel.host.copy(this.panel.host.file_path(this.panel.root, file.path))},
@@ -245,6 +246,18 @@ export class git_source_control {
     try { await this.panel.host.open_file(root, file.path, this.panel.settings); }
     catch (error) { if (epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
   }
+  async open_revision_file(file: graph_change, from: string, to: string): Promise<void> {
+    const deleted = file.status.startsWith("D");
+    await this.open_revision(deleted ? from : to, deleted ? file.old_path || file.path : file.path);
+  }
+  async open_revision(revision: string, file: string): Promise<void> {
+    const epoch = ++this.load_epoch, root = this.panel.root, settings = {...this.panel.settings};
+    try {
+      const content = await this.panel.host.revision_text(root, revision, file, settings);
+      if (this.panel.disposed || epoch !== this.load_epoch || root !== this.panel.root) return;
+      this.panel.host.open_revision_document(root, revision, file, content, settings);
+    } catch (error) { if (!this.panel.disposed && epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
+  }
   async open_file(file: graph_change, from: string, to: string, files: graph_change[] = [file]): Promise<void> {
     const epoch = ++this.load_epoch; const root = this.panel.root;
     this.panel.status.textContent = text("scm.opening_diff");
@@ -255,7 +268,7 @@ export class git_source_control {
         file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings),
       ]);
       if (epoch !== this.load_epoch || root !== this.panel.root) return;
-      this.panel.host.open_document({title: text("scm.change_title", {file: file.path.split("/").at(-1)!}), file: file.path, left, right, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
+      this.panel.host.open_document({title: `${file.path.split("/").at(-1)!} (${short_revision(from)} ↔ ${short_revision(to)})`, file: file.path, left, right, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
         root, key: JSON.stringify([from, to, file.path]), menu: () => this.file_entries(file, from, to, files, root),
         refresh: () => { if (this.repository_action_available(root)) void this.open_file(file, from, to, files); },
         adjacent: direction => { if (!this.repository_action_available(root)) return; const index = files.findIndex(item => item.path === file.path); void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files); },
@@ -280,7 +293,7 @@ export class git_source_control {
           row.append(el("span", "", `${record.commit.author} · ${this.panel.date(record.commit)} · ${record.commit.hash.slice(0, 8)} · ${record.file.status} ${record.file.path}`));
           row.oncontextmenu = event => this.panel.configured_menu(event, "timeline", [
             {id: "open_diff", title: text("scm.open_changes"), action: () => row.click()},
-            {id: "open_revision", title: text("scm.open_revision"), action: () => void this.panel.open_revision(record.commit.hash, record.file.path)},
+            {id: "open_revision", title: text("scm.open_revision"), action: () => {if (this.repository_action_available(root)) void this.open_revision_file(record.file, record.commit.parents[0] || EMPTY, record.commit.hash);}},
             {id: "copy_hash", title: text("scm.copy_commit_hash"), action: () => void this.panel.host.copy(record.commit.hash)},
             {id: "commit_actions", title: text("scm.commit_actions"), action: () => this.panel.target_menu(event, "commit", record.commit.hash, record.commit.hash)},
           ]); list.append(row);

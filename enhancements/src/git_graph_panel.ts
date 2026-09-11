@@ -429,22 +429,22 @@ export class git_graph_panel {
     }
   }
   file_menu(event: MouseEvent, file: graph_change): void {
+    const root = this.root, from = this.from, to = this.to, files = [...this.files];
     const entries: workspace_menu_entry[] = [
       { id: "file_history", title: text("graph.file_history"), action: () => void this.workbench.file_history(file.path) },
-      { id: "open_file", title: text("graph.open_current_file"), action: () => void this.host.open_file(this.root, file.path, this.settings).then(() => this.mark_reviewed(file.path)).catch(error => this.report(error)) },
+      this.workbench.file_entries(file, this.from, this.to, this.files).find(entry => entry.id === "open_file")!,
       { id: "copy_relative", title: text("graph.copy_relative_path"), action: () => void this.host.copy(file.path) }, { id: "copy_absolute", title: text("graph.copy_absolute_path"), action: () => void this.host.copy(this.host.file_path(this.root, file.path)) },
-      { id: "open_diff", title: text("graph.open_side_by_side_diff"), action: () => void this.open_diff(file) },
-      { id: "left_revision", title: text("graph.open_left_revision"), action: () => void this.open_revision(this.from, file.old_path || file.path) },
-      { id: "right_revision", title: text("graph.open_right_revision"), action: () => void this.open_revision(this.to, file.path) },
+      { id: "open_diff", title: text("graph.open_side_by_side_diff"), action: () => void this.workbench.open_file(file, from, to, files) },
+      { id: "left_revision", title: text("graph.open_left_revision"), disabled: from === EMPTY || file.status.startsWith('A') || file.status === '??', action: () => void this.open_revision(from, file.old_path || file.path) },
+      { id: "right_revision", title: text("graph.open_right_revision"), disabled: file.status.startsWith('D'), action: () => void this.open_revision(to, file.path) },
       { id: "reviewed", title: text("graph.mark_reviewed"), action: () => this.mark_reviewed(file.path) },
     ];
     if (this.to === WORKTREE || this.to === INDEX) for (const id of ["stage", "unstage"]) entries.push({ id, title: graph_actions.find(action => action.id === id)!.title, action: () => void this.quick_action(id, [file.path, ...(file.old_path ? [file.old_path] : [])]) });
     entries.push(...this.workbench.file_entries(file, this.from, this.to, this.files).filter(entry => entry.id === "ignore_file"));
-    this.configured_menu(event, "file", entries);
+    this.configured_menu(event, "file", entries.map(entry=>({...entry,action:()=>{if(this.workbench.repository_action_available(root))void entry.action?.();}})));
   }
   async open_revision(revision: string, file: string): Promise<void> {
-    try { const epoch = this.epoch; const text = await this.host.revision_text(this.root, revision, file, this.settings); if (this.disposed || epoch !== this.epoch) return; this.host.open_document({title: `${revision.slice(0, 8)} · ${file}`, file, left: text}, this.settings.new_tab_group, {root: this.root}); this.mark_reviewed(file); }
-    catch (error) { this.report(error); }
+    await this.workbench.open_revision(revision, file);
   }
   async open_diff(file: graph_change): Promise<void> {
     await this.workbench.open_file(file, this.from, this.to, this.files);

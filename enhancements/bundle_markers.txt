@@ -64,5 +64,10 @@ prepare_workspace_rename
 linux-note-workspace-renamed
 install_workspace_shortcuts
 bind_workspace_detached_window
-typora-code:tab-detach
+typora-code:tab-drag-start
+typora-code:tab-drag-end
+typora-code:tab-drop
+#typora-code-window-
+git-revision-reader
+git-diff-toolbar
 typora-code:pointer-drag

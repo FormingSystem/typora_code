@@ -6,11 +6,17 @@
 
 当前产品按用户确认，以 `59412a2` 为平直布局和功能范围参考，保留稳定修复，并非恢复整库旧提交。本文中的VS Code数值是此前已核对的研究事实，不再作为强制Modern改造或无限功能扩充目标。
 
-搜索与拖动的当前实现分别见[大目录搜索性能](search_performance.md)和[左键拖动与独立窗口](drag_and_windows.md)。搜索借鉴独立匹配与流式结果职责，不接入VS Code扩展后端；6px起拖和30px离组阈值是本产品规则，独立窗口使用Typora宿主，不冒称VS Code全部辅助窗口能力。
+搜索与拖动的当前实现分别见[大目录搜索性能](search_performance.md)和[左键拖动与独立窗口](drag_and_windows.md)。搜索借鉴独立匹配与流式结果职责，不接入VS Code扩展后端；标签按固定 VS Code 的原生 HTML DnD、标签图像及实际窗口边界实现，移除30px离组规则；独立窗口使用Typora宿主。活动栏保留6px起拖。
 
 当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；终端默认down编辑组，不提供底部Panel；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
 
 编辑标签条使用13px Segoe UI与Light 2026／Dark 2026状态颜色；Ctrl+P及顶栏中央搜索入口打开 `440ec3f` 中的文件选择器。选择器当前宽度为 `min(62vw, 600px, calc(100vw - 12px))`，最大高度为 `min(70vh, 560px)`；结果行22px、输入框23px。`440ec3f` 是历史提交标识，不是440px尺寸。单行顶栏35px、菜单行24px、搜索框22px、窗控按钮46px宽，取自固定 VS Code 对应源码；原窗口动作由宿主处理。物理键盘与原生 accelerator 的冲突尚未实证；验证记录见[反馈复查记录](feedback_review.md)。
+
+差异编辑器的前后改动、打开版本／文件、查找与更多动作位于所属编辑组的标签行右侧，使用16px Codicons和24px按钮；切换到其他类型标签时撤下该组差异动作。下方保留26px高、13px字体的版本路径行：并排模式分别显示旧、新版本，内联模式同一行显示两版及模式入口。26px是本工作台的紧凑路径行取值，不宣称所有VS Code版本都采用相同高度。
+
+自动布局采用固定VS Code及Monaco 0.56.0的[差异选项默认值][diff_options]：`renderSideBySideInlineBreakpoint=900`、`useInlineViewWhenSpaceIsLimited=true`。普通显示模式下，手动选项为并排时，实际差异编辑器宽度不超过900 CSS px就使用内联，超过900 CSS px恢复并排；依据的是所在编辑组内的编辑器宽度，不是整个窗口宽度。标题跟随Monaco实际渲染模式更新。手动内联与自动窄幅切换独立；手动内联不会因组变宽而恢复并排。`splitViewDefaultRatio=0.5`仅表示初始左右版本各占一半，不参与900px阈值计算。
+
+差异更多菜单接入Monaco实际支持的隐藏未修改区域、`experimental.showMoves`、空间不足时内联和无障碍查看器。`F7`／`Shift + F7`使用无障碍差异查看器的下一处／上一处；普通前后改动保留标签行箭头。模式切换保留当前选择与查看位置，不为未实现的工作台功能添加占位按钮。
 
 ## 已核对的VS Code参考资料
 
@@ -51,6 +57,7 @@
 [sizes]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/platform/theme/common/sizes/baseSizes.ts
 [light]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/extensions/theme-defaults/themes/2026-light.json
 [theme]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/common/theme.ts
+[diff_options]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/editor/common/config/diffEditor.ts
 
 单行顶栏采用35px高度：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
 

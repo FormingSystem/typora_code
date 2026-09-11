@@ -136,6 +136,10 @@ export class git_scm_history {
         if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash)!);
         else { files.textContent = text("history.loading_files"); void this.load_files(state, commit, files, epoch); }
       }
+      const changes = icon_button("diff-multiple", text("history.open_changes"), () => {}, "git-scm-history-commit-action");
+      changes.dataset.historyCommitAction = "open-changes";
+      changes.onclick = event => { event.preventDefault(); event.stopPropagation(); void this.open_changes(state, commit); };
+      entry.append(changes);
       fragment.append(entry);
     }
     if (!state.commits.length) fragment.append(el("div", "git-scm-empty", state.head ? text("history.no_filtered_commits") : text("history.no_commits")));
@@ -163,6 +167,18 @@ export class git_scm_history {
       this.files_cache.set(commit.hash, files); this.render_files(target, commit, files);
     } catch (error) { if (epoch === this.epoch) { target.textContent = String(error instanceof Error ? error.message : error); target.append(button(text("history.retry"), () => { const current = this.owner.panel.state; if (current) this.render(current); })); } }
   }
+  async open_changes(state: repository_state, commit: graph_commit): Promise<void> {
+    const panel = this.owner.panel, root = state.root, epoch = ++this.owner.load_epoch;
+    if (!this.owner.repository_action_available(root)) return;
+    try {
+      const files = this.files_cache.get(commit.hash) || await compare_files(panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
+      if (panel.disposed || root !== panel.root || epoch !== this.owner.load_epoch) return;
+      this.files_cache.set(commit.hash, files); this.selected = commit.hash; this.render(state);
+      if (!files.length) { panel.report(text("history.no_changed_files")); return; }
+      // 同一提交的完整文件表保留在侧栏，现有审阅器携带全部文件及前后导航。
+      await this.owner.open_file(files[0], commit.parents[0] || EMPTY, commit.hash, files);
+    } catch (error) { if (!panel.disposed && root === panel.root && epoch === this.owner.load_epoch) panel.report(error); }
+  }
   render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
     target.replaceChildren(); const from = commit.parents[0] || EMPTY;
     target.setAttribute("role", "group");
@@ -177,13 +193,19 @@ export class git_scm_history {
       directory.ontoggle = () => { if (directory.open) this.collapsed_directories.delete(key); else this.collapsed_directories.add(key); };
       parent.append(directory); directories.set(path, directory); return directory;
     };
+    const root = this.owner.panel.root;
     for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
-      const row = button("", () => void this.owner.open_file(file, from, commit.hash, files), "git-scm-history-file");
+      const wrapper = el("div", "git-scm-history-file-row");
+      const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
       const label = el("span", "git-scm-file-label"); label.append(workspace_file_icon(file.path), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
       if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
-      row.oncontextmenu = event => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files)); parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
+      const revision = icon_button("go-to-file", text("scm.open_revision"), () => {}, "git-scm-history-file-action");
+      revision.dataset.historyFileAction = "open-revision"; revision.dataset.historyPath = file.path;
+      revision.onclick = event => { event.preventDefault(); event.stopPropagation(); if (this.owner.repository_action_available(root)) void this.owner.open_revision_file(file, from, commit.hash); };
+      row.oncontextmenu = event => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files, root));
+      wrapper.append(row, revision); parent_for(file.path.split("/").slice(0, -1).join("/")).append(wrapper);
     }
   }
   dispose(): void { this.epoch++; this.files_cache.clear(); }

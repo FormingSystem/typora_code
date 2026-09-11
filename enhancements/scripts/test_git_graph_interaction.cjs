@@ -45,7 +45,7 @@ const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluat
 const click = async (selector, button = 'left') => {
   // 弹窗的自动获焦在下一任务执行，先让焦点和布局稳定，再读取鼠标位置。
   await delay(120);
-  await evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); const box = element.getBoundingClientRect(); if (box.top < 0 || box.bottom > innerHeight) element.scrollIntoView({block:'center'}); })()`);
+  await evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); const box = element.getBoundingClientRect(), menu=element.closest('.git-graph-menu')?.getBoundingClientRect(); if (box.top < 0 || box.bottom > innerHeight || menu && (box.top<menu.top || box.bottom>menu.bottom)) element.scrollIntoView({block:'nearest'}); })()`);
   await delay(80);
   const point = await evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); const box = element.getBoundingClientRect(); const point = {x:Math.round(box.x+box.width/2),y:Math.round(box.y+box.height/2)}; const hit = document.elementFromPoint(point.x, point.y); return {...point, covered:!element.contains(hit), hit:hit?.outerHTML.slice(0,200), bounds:box.toJSON()}; })()`);
   assert(!point.covered, JSON.stringify({selector,...point}));
@@ -81,11 +81,13 @@ app.whenReady().then(async () => {
     window.reqnode = require; window._options = {userDataPath:${JSON.stringify(root)},displayLang:'zh-CN'}; window.File = {changeCounter:{isDocumentEdited:()=>false}};
     window.JSBridge = {invoke: async (command, data) => { window.copied = JSON.parse(data).text; }};
     const factories = new Map(); const leaves = []; const core = { WorkspaceView: class {constructor(leaf){this.leaf=leaf;}}, app: {viewManager:{registerView:(type,factory)=>factories.set(type,factory)}, commands:{run(){},register(){}}, workspace:{sidebar:{toggle(){}},on(){},ribbon:{addButton(){}},eachLeaves: callback=>leaves.forEach(callback), activeLeaf:null}}};
-    window.core=core; const parent = {appendChild(leaf){leaves.push(leaf);document.querySelector('#editors').replaceChildren(leaf.view.containerEl);leaf.view.onOpen();},toggleTab(uri){const leaf=leaves.find(item=>item.state.path===uri);document.querySelector('#editors').replaceChildren(leaf.view.containerEl);leaf.view.onOpen?.();return leaf;}};
+    const editors=document.querySelector('#editors'),strip=document.createElement('div'),header=document.createElement('div'),editor_body=document.createElement('div');strip.className='workspace-tab-strip';header.className='typ-workspace-tab-header';strip.style.cssText='display:flex;height:35px;min-width:0';header.style.cssText='flex:1;min-width:0';strip.append(header);editor_body.style.cssText='height:calc(100% - 35px);min-height:0';editors.append(strip,editor_body);
+    const activate=leaf=>{core.app.workspace.activeLeaf?.view.onClose?.();editor_body.replaceChildren(leaf.view.containerEl);leaf.view.onOpen?.();};
+    window.core=core; const parent = {containerEl:editors,appendChild(leaf){leaves.push(leaf);activate(leaf);},toggleTab(uri){const leaf=leaves.find(item=>item.state.path===uri);activate(leaf);return leaf;}};
     core.app.workspace.createLeaf = ({type,state}) => {const leaf={state,parent};leaf.view=factories.get(type)(leaf);return leaf;};
     const host = graph_qa.create_graph_host(core); window.panel = new graph_qa.git_graph_panel(host, ${JSON.stringify(root)});
     window.graph_leaf = {state:{path:'graph'},view:{containerEl:panel.container},parent}; leaves.push(graph_leaf); core.app.workspace.activeLeaf = graph_leaf;
-    document.querySelector('#editors').append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.open();
+    editor_body.append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.open();
   })()`);
   await wait('panel.container.dataset.state === "ready"');
   // 仓库选择器只在存在多个仓库时出现；刷新不得恢复关闭的详情。
@@ -529,9 +531,9 @@ app.whenReady().then(async () => {
   const before_repository_a=repository_snapshot(root,git),before_repository_b=repository_snapshot(other_repository,other_git);
   await evaluate(`panel.switch_repo(${JSON.stringify(other_repository)});void 0`);await wait('!panel.pending && panel.container.dataset.state === "ready"');
   await evaluate('core.app.workspace.activeLeaf=retained_diff.parent.toggleTab(retained_diff.state.path);void 0');
-  for(const label of ['上一文件','下一文件','刷新差异']){
-    await evaluate(`[...retained_diff.view.editor.toolbar.querySelectorAll('button')].find(button=>button.textContent===${JSON.stringify(label)}).id='retained-diff-action';void 0`);
-    await click('#retained-diff-action');await evaluate('document.querySelector("#retained-diff-action").removeAttribute("id")');
+  for(const action of ['previous_file','next_file','refresh_diff']){
+    await evaluate(`retained_diff.view.editor.toolbar.querySelector('[data-git-icon=more]').closest('button').id='retained-diff-action';void 0`);
+    await click('#retained-diff-action');await click('.git-graph-menu [data-action='+action+']');await evaluate('document.querySelector("#retained-diff-action").removeAttribute("id")');
   }
   await click('[data-diff-open-file=true]');
   await evaluate(`retained_diff.view.editor.toolbar.querySelector('[data-git-icon=more]').closest('button').id='retained-diff-menu';void 0`);
