@@ -8,6 +8,10 @@ const os = require("node:os");
 const path = require("node:path");
 const { build } = require("esbuild");
 
+// A lost test runner pipe must fail the fixture, not leave a GUI main-process
+// exception dialog behind. The supported launcher waits for Electron's close.
+for (const stream of [process.stdout, process.stderr]) stream.on("error", () => app.exit(1));
+
 const evidence = process.env.TYPORA_THEME_EVIDENCE_DIR
   ? path.resolve(process.env.TYPORA_THEME_EVIDENCE_DIR)
   : fs.mkdtempSync(path.join(os.tmpdir(), "typora_scm_vscode_geometry_"));
@@ -32,7 +36,7 @@ app.whenReady().then(async () => {
     #sidebar-content{height:100%;width:320px;border-right:1px solid #d4d4d4;overflow:hidden}.linux-note-git-source-control{height:100%;width:100%}
   </style></head><body><div id="sidebar-content"></div></body></html>`);
   await test_window.loadFile(html);
-  const bundle = await build({ stdin: { contents: 'export {git_source_control} from "./src/git_source_control";', resolveDir: path.join(__dirname, "..") }, bundle: true, loader: { ".css": "text", ".svg": "text" }, format: "iife", globalName: "scm_geometry_qa", write: false });
+  const bundle = await build({ stdin: { contents: 'export {git_source_control} from "./src/git_source_control"; export {INDEX,WORKTREE} from "./src/git_graph_repository";', resolveDir: path.join(__dirname, "..") }, bundle: true, loader: { ".css": "text", ".svg": "text" }, format: "iife", globalName: "scm_geometry_qa", write: false });
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname, "../src/git_graph.css"), "utf8"))};document.head.append(style);
@@ -41,7 +45,7 @@ app.whenReady().then(async () => {
     window.scm=new scm_geometry_qa.git_source_control(panel);panel.workbench=scm;
     const shell=document.createElement('section');shell.className='linux-note-git-source-control';shell.append(scm.sidebar);document.querySelector('#sidebar-content').append(shell);window.shell=shell;
     scm.branch.replaceChildren(document.createTextNode('main'));
-    scm.groups_state=[{id:'staged',title:'Staged Changes',from:'head',to:'index',files:[]},{id:'changes',title:'Changes',from:'index',to:'worktree',files:[{path:'knowledge/long folder name/source file with spaces.md',status:'M'},{path:'src/new file.ts',status:'??'}]}];scm.render_groups();
+    scm.groups_state=[{id:'staged',title:'Staged Changes',from:'head',to:scm_geometry_qa.INDEX,files:[]},{id:'changes',title:'Changes',from:scm_geometry_qa.INDEX,to:scm_geometry_qa.WORKTREE,files:[{path:'knowledge/long folder name/source file with spaces.md',status:'M'},{path:'src/new file.ts',status:'??'}]}];scm.render_groups();
 
   })()`);
 
@@ -92,9 +96,11 @@ app.whenReady().then(async () => {
   await settle();
   const hovered = await inspect(320);
   assert.equal(hovered.action_opacity, "1", "row action appears on hover");
-  assert.equal(hovered.row_columns, regular.row_columns, "hover does not insert an action column");
-  close_to(hovered.label.width, regular.label.width, "hover keeps label/status column geometry");
-  assert(hovered.action.right <= hovered.status.left - 3, "hover action overlays before the status without moving it");
+  assert.equal(hovered.row_columns.trim().split(/\s+/).length, 3, "visible row actions occupy a separate layout column");
+  assert(hovered.label.width < regular.label.width, "hover releases filename space for actions");
+  assert(hovered.label.right <= hovered.action.left - 3, "filename never paints underneath the first action");
+  close_to(hovered.status.right, regular.status.right, "hover preserves the status right edge");
+  await capture("scm_hovered");
 
   test_window.webContents.sendInputEvent({ type: "mouseMove", x: 600, y: 680 });
   const narrow = await inspect(236);
@@ -104,10 +110,59 @@ app.whenReady().then(async () => {
   assert.equal(narrow.directory_display, "none", "narrow sidebar releases the optional path column");
   await capture("scm_narrow");
 
+  // Fixed upstream scm.css gives visible actions layout space inside the name
+  // label. Cover the real two-action staged and three-action worktree rows,
+  // including selection without hover and themes with translucent row colors.
+  const file_checks = [];
+  const file_metrics = () => evaluate(`(()=>{
+    const box=node=>{const rect=node.getBoundingClientRect();return{left:rect.left,right:rect.right,top:rect.top,width:rect.width,height:rect.height}};
+    const row=document.querySelector('.git-scm-file'),actions=row.querySelector('.git-scm-row-actions'),name=row.querySelector('.git-scm-file-name'),status=row.querySelector('.git-scm-file-status');
+    return{row:box(row),label:box(row.querySelector('.git-scm-file-label')),name:box(name),name_overflow:getComputedStyle(name).textOverflow,actions:box(actions),background:getComputedStyle(actions).backgroundColor,status:box(status),status_text:status.textContent,overflow:row.scrollWidth-row.clientWidth,buttons:[...actions.querySelectorAll('button')].map(button=>{const rect=button.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return{box:box(button),icon:box(button.querySelector('svg')),opacity:getComputedStyle(button).opacity,hit:button===hit||button.contains(hit),action:button.dataset.scmFileAction}})};
+  })()`);
+  for (const theme of ["light", "dark"]) for (const width of [320, 236, 170]) for (const group of ["staged", "changes"]) {
+    await evaluate(`document.querySelector('#sidebar-content').style.width='${width}px';document.documentElement.style.setProperty('--bg-color','${theme === "dark" ? "#202020" : "#ffffff"}');document.documentElement.style.setProperty('--text-color','${theme === "dark" ? "#eeeeee" : "#3b3b3b"}');document.documentElement.style.setProperty('--linux-note-shell-hover-background','#8882');document.documentElement.style.setProperty('--linux-note-shell-inactive-selection-background','#0078d426');window.file_invocation=null;window.row_open_count=0;scm.open_current_file=file=>{window.file_invocation={id:'open',files:[file.path]}};scm.open_default_file=()=>{window.row_open_count++};panel.quick_action=(id,files)=>{window.file_invocation={id,files}};panel.action_dialog=(id,_kind,file)=>{window.file_invocation={id,files:[file]}};scm.groups_state=[{id:'${group}',title:'${group}',from:'${group === "staged" ? "head" : "index"}',to:scm_geometry_qa.${group === "staged" ? "INDEX" : "WORKTREE"},files:[{path:'project-docs/long folder/very_long_中文文件名称_that_must_not_cover_the_actions.md',status:'M'}]}];scm.render_groups();document.querySelector('.git-scm-group').open=true;void 0`);
+    for (const mode of ["hover", "selected", "focus"]) {
+      test_window.webContents.sendInputEvent({ type: "mouseMove", x: 600, y: 680 });
+      await evaluate("document.activeElement?.blur();document.querySelector('.git-scm-file').classList.remove('selected')");
+      await settle();
+      const idle = await file_metrics();
+      if (mode === "hover") test_window.webContents.sendInputEvent({ type: "mouseMove", x: Math.round(idle.row.left + 32), y: Math.round(idle.row.top + 11) });
+      else await evaluate(`document.querySelector('.git-scm-file').${mode === "selected" ? "click" : "focus"}()`);
+      await settle();
+      const current = await file_metrics();
+      assert.equal(current.buttons.length, group === "staged" ? 2 : 3);
+      assert.equal(current.status_text, "M");
+      assert.equal(current.name_overflow, "ellipsis");
+      assert(current.label.right <= current.actions.left - 1, `${theme}/${width}/${group}/${mode}: label must stop before actions`);
+      assert(current.actions.right <= current.status.left - 1, "actions leave the status column clear");
+      assert(current.label.width < idle.label.width, "visible actions reduce available filename width");
+      close_to(current.status.right, idle.status.right, "file status keeps its right edge");
+      assert.equal(current.background, theme === "dark" ? "rgb(32, 32, 32)" : "rgb(255, 255, 255)", "action strip has an opaque theme surface under translucent highlights");
+      assert(current.overflow <= 1, "file row does not overflow even at 170px");
+      for (const button of current.buttons) {
+        close_to(button.box.width, 22, "visible action hit width");close_to(button.box.height, 22, "visible action hit height");
+        close_to(button.icon.width, 16, "visible icon width");close_to(button.icon.height, 16, "visible icon height");
+        assert.equal(button.opacity, "1", `${mode}: each action is visible`);assert(button.hit, "filename cannot intercept an action hit");
+      }
+      file_checks.push({ theme, width, group, mode });
+    }
+    // Tab into the exposed buttons and invoke the final stage/unstage action.
+    test_window.webContents.sendInputEvent({ type: "keyDown", keyCode: "Tab" });test_window.webContents.sendInputEvent({ type: "keyUp", keyCode: "Tab" });
+    await settle();
+    assert(await evaluate("document.activeElement.matches('.git-scm-file .git-scm-inline-action')"), "keyboard reaches a visible file action");
+    await evaluate("document.querySelector('.git-scm-file .git-scm-row-actions button:last-child').focus()");
+    const opened_before = await evaluate("window.row_open_count");
+    test_window.webContents.sendInputEvent({ type: "keyDown", keyCode: "Enter" });test_window.webContents.sendInputEvent({ type: "char", keyCode: "\r" });test_window.webContents.sendInputEvent({ type: "keyUp", keyCode: "Enter" });
+    await settle();
+    assert(await evaluate(`window.file_invocation?.id==='${group === "staged" ? "unstage" : "stage"}'&&file_invocation.files[0]===document.querySelector('.git-scm-file').dataset.file&&window.row_open_count===${opened_before}`), "keyboard file action keeps its own command and never opens the row diff");
+    if (width === 320 && group === "staged") await capture(`scm_file_actions_${theme}`);
+  }
+  await evaluate("for(const key of ['--bg-color','--text-color','--linux-note-shell-hover-background','--linux-note-shell-inactive-selection-background'])document.documentElement.style.removeProperty(key)");
+
   const group_checks=[];
   const group_metrics=()=>evaluate(`(()=>{const box=node=>{const rect=node.getBoundingClientRect();return{left:rect.left,right:rect.right,width:rect.width,height:rect.height,top:rect.top}};return [...document.querySelectorAll('.git-scm-group>summary')].map(node=>({heading:box(node),badge:box(node.querySelector('.git-scm-badge')),name:box(node.querySelector('.git-scm-group-label')),actions:box(node.querySelector('.git-scm-row-actions')),actions_display:getComputedStyle(node.querySelector('.git-scm-row-actions')).display,text:node.querySelector('.git-scm-badge').textContent,overflow:node.scrollWidth-node.clientWidth}));})()`);
   for(const width of [320,236,170])for(const counts of [[1,2],[12,3],[123,45]]){
-    await evaluate(`document.querySelector('#sidebar-content').style.width='${width}px';document.activeElement?.blur();panel.quick_action=(id,files)=>{window.group_invocation={id,files}};scm.groups_state=[{id:'staged',title:'Staged Changes — very long group title',from:'head',to:'index',files:Array.from({length:${counts[0]}},(_,index)=>({path:'staged_'+index+'.ts',status:'M'}))},{id:'changes',title:'Changes',from:'index',to:'worktree',files:Array.from({length:${counts[1]}},(_,index)=>({path:'changed_'+index+'.ts',status:'M'}))}];scm.render_groups();document.querySelectorAll('.git-scm-group').forEach(group=>group.open=false);void 0`);
+    await evaluate(`document.querySelector('#sidebar-content').style.width='${width}px';document.activeElement?.blur();panel.quick_action=(id,files)=>{window.group_invocation={id,files}};scm.groups_state=[{id:'staged',title:'Staged Changes — very long group title',from:'head',to:scm_geometry_qa.INDEX,files:Array.from({length:${counts[0]}},(_,index)=>({path:'staged_'+index+'.ts',status:'M'}))},{id:'changes',title:'Changes',from:scm_geometry_qa.INDEX,to:scm_geometry_qa.WORKTREE,files:Array.from({length:${counts[1]}},(_,index)=>({path:'changed_'+index+'.ts',status:'M'}))}];scm.render_groups();document.querySelectorAll('.git-scm-group').forEach(group=>group.open=false);void 0`);
     test_window.webContents.sendInputEvent({type:'mouseMove',x:600,y:680});await settle();
     assert(await evaluate('(()=>{const label=document.querySelector(".git-scm-title-label"),tools=document.querySelector(".git-scm-title>.git-scm-tools"),style=getComputedStyle(label),range=document.createRange();range.selectNodeContents(label);return style.whiteSpace==="nowrap"&&style.textOverflow==="ellipsis"&&new Set([...range.getClientRects()].map(rect=>Math.round(rect.top))).size===1&&label.getBoundingClientRect().right<=tools.getBoundingClientRect().left+1&&label.title===label.textContent&&document.querySelector(".git-scm-title").scrollWidth<=document.querySelector(".git-scm-title").clientWidth+1})()'),'SCM main title remains one ellipsized line without overlapping actions at every sidebar width');
     const idle=await group_metrics();close_to(idle[0].badge.right,idle[1].badge.right,'different group title/count lengths share right edge');
@@ -129,7 +184,7 @@ app.whenReady().then(async () => {
     await evaluate('document.querySelectorAll(".git-scm-group>summary")[1].focus()');await settle();const focused_changes=(await group_metrics())[1];assert.equal(focused_changes.actions_display,'flex');close_to(focused_changes.badge.right,first.badge.right,'Changes focus shares the Staged count right edge');assert(focused_changes.actions.right<=focused_changes.badge.left&&focused_changes.name.right<=focused_changes.actions.left+1);assert(focused_changes.overflow<=1);group_checks.push({width,counts});
   }
   await evaluate('document.activeElement.blur()');await settle();await capture('scm_group_counts_narrow');
-  console.log(JSON.stringify({status:"PASS",checks:["VS Code 35px view title, 28x22 title actions and 22px SCM rows","30px input and 26px split commit button","22px inline action target, 18px badge and 16px status column","normal and hovered rows reserve no action column","history pane header matches VS Code's 22px pane header","narrow sidebar hides only optional path text","59412a2 SCM surface and status colours without chrome injection"],group_checks,regular,hovered,narrow,evidence,screenshots:[path.join(evidence,"scm_regular.png"),path.join(evidence,"scm_narrow.png")]}));
+  console.log(JSON.stringify({status:"PASS",checks:["VS Code 35px view title, 28x22 title actions and 22px SCM rows","30px input and 26px split commit button","22px inline action target, 18px badge and 16px status column","visible file actions occupy an opaque independent column in hover, focus and selection","history pane header matches VS Code's 22px pane header","narrow sidebar hides only optional path text","59412a2 SCM surface and status colours without chrome injection"],group_checks,file_checks,regular,hovered,narrow,evidence,screenshots:[path.join(evidence,"scm_regular.png"),path.join(evidence,"scm_narrow.png"),path.join(evidence,"scm_hovered.png"),path.join(evidence,"scm_file_actions_light.png"),path.join(evidence,"scm_file_actions_dark.png")]}));
   test_window.destroy(); app.exit(0);
 }).catch(async error => {
   console.error(error); console.error(evidence);

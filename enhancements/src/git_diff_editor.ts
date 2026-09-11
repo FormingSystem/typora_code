@@ -1,7 +1,9 @@
 import design_baseline from "./vscode_design_baseline.json";
-import {git_icon_button} from "./git_icons";
+import {git_icon_button,git_icon} from "./git_icons";
 import "./monaco_locale";
 import * as monaco from "monaco-editor/editor/editor.api";
+import "../node_modules/monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.css";
+import "../node_modules/monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon-modifiers.css";
 import "monaco-editor/editor/browser/coreCommands";
 import "monaco-editor/editor/contrib/lineSelection/browser/lineSelection";
 import "monaco-editor/editor/contrib/smartSelect/browser/smartSelect";
@@ -28,7 +30,7 @@ import "monaco-editor/languages/definitions/go/register";
 import "monaco-editor/languages/definitions/java/register";
 import { createTokenizationSupport } from "monaco-editor/languages/features/json/tokenization";
 import worker_source from "linux_note_monaco_worker";
-import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
+import { workspace_element as el, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import { detect_file_language } from "./file_language";
 import { register_file_languages } from "./workspace_languages";
 import { git_graph_text as text } from "./git_graph_i18n";
@@ -47,20 +49,21 @@ export function initialize_editor(): void {
 export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string};
 export class git_diff_editor {
   container = el("section", "git-graph-document"); toolbar = el("div", "git-diff-toolbar");
+  labels = el("div", "git-diff-labels");
   body = el("div", "git-monaco-body"); status = el("span", "git-diff-count", text("diff.calculating"));
   editor: monaco.editor.IStandaloneDiffEditor | monaco.editor.IStandaloneCodeEditor;
   models: monaco.editor.ITextModel[] = []; observer: ResizeObserver; subscriptions: monaco.IDisposable[] = [];
   side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = false;
+  show_moves = false; inline_when_narrow = true;
+  toolbar_observer?:MutationObserver;
+  mode_observer?:MutationObserver;
   last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
   readonly_status?: HTMLElement;
   constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => []) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.binary_file"));
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
-    const labels = el("div", "git-diff-labels");
-    labels.append(el("div", "", data.left_label || text("diff.original")));
-    if (data.right != null) labels.append(el("div", "", data.right_label || text("diff.modified")));
-    this.container.append(labels, this.body);
+    this.refresh_labels();this.container.append(this.labels, this.body);
     // 每个历史版本拥有独立模型；文件名只用于语言识别，不执行仓库中的任何代码。
     const model = (source: string, side: string) => {
       if (source.includes("\0")) throw new Error(text("diff.binary_file"));
@@ -75,7 +78,8 @@ export class git_diff_editor {
     const options = {automaticLayout: true, readOnly: true, fontSize: design_baseline.editor_font_size, lineHeight: design_baseline.editor_line_height, fontFamily: design_baseline.editor_font_family, minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
-      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: false, originalEditable: false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
+      // 历史比较两侧只读，不实例化需要可写模型的hunk操作菜单及其延迟context订阅。
+      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
       // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
       // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
       // 概览的宽度、点击定位和视口框由上游管理，不额外显示全文缩略图。
@@ -86,22 +90,53 @@ export class git_diff_editor {
         this.container.setAttribute("data-diff-ready", String(changes !== null));
         if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
       }));
-      this.toolbar.append(button(text("diff.previous_change_button"), () => editor.goToDiff("previous")), button(text("diff.next_change_button"), () => editor.goToDiff("next")));
+      this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => editor.goToDiff("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => editor.goToDiff("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
     } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
-    this.toolbar.append(button(text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), git_icon_button("more", text("history.more"), () => {
+    this.toolbar.setAttribute("role","toolbar");this.toolbar.setAttribute("aria-label",text("diff.editor_actions"));
+    this.toolbar.append(git_icon_button("search", text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), git_icon_button("more", text("history.more"), () => {
       const rect = this.toolbar.getBoundingClientRect(); this.context_menu(new MouseEvent("contextmenu", {clientX: rect.right - 250, clientY: rect.bottom}));
     }), this.status);
     this.observer = new ResizeObserver(() => this.editor.layout()); this.observer.observe(this.body);
+    const diff_root=this.body.querySelector(".monaco-diff-editor");
+    if(diff_root){this.mode_observer=new MutationObserver(()=>this.refresh_labels());this.mode_observer.observe(diff_root,{attributes:true,attributeFilter:["class"]});this.refresh_labels();}
     this.container.oncontextmenu = event => this.context_menu(event);
+    this.container.addEventListener("keydown",event=>{
+      if(event.key==="F7"&&"accessibleDiffViewerNext" in this.editor){event.preventDefault();event.stopImmediatePropagation();this.accessible_diff(event.shiftKey);}
+    },true);
     this.container.addEventListener("keydown", event => {
       // 源码编辑器自行处理查找、选择与复制，不能被提交图或 Markdown 快捷键拦截。
-      if (event.key === "F7") { event.preventDefault(); this.navigate(event.shiftKey ? "previous" : "next"); }
       event.stopPropagation();
     });
   }
+  /** 右侧动作属于此编辑组，与标签共享一行；不使用跨组定位或负偏移。 */
+  attach_toolbar(header:HTMLElement):void {
+    this.detach_toolbar();this.toolbar.hidden=true;
+    const mount=()=>{const strip=header.closest<HTMLElement>(".workspace-tab-strip");if(!strip||!header.isConnected)return;strip.append(this.toolbar);this.toolbar.hidden=false;this.toolbar_observer?.disconnect();this.toolbar_observer=undefined;};
+    this.toolbar_observer=new MutationObserver(mount);this.toolbar_observer.observe(header.parentElement||document.body,{childList:true,subtree:true});mount();
+  }
+  detach_toolbar():void {this.toolbar_observer?.disconnect();this.toolbar_observer=undefined;this.toolbar.remove();}
+  refresh_labels():void {
+    const label=(value:string)=>{const node=el("div","",value);node.title=value;return node;};
+    const left=this.data.left_label||text("diff.original"),right=this.data.right_label||text("diff.modified");
+    const inline=this.data.right!=null&&this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side")===false;
+    this.labels.dataset.diffLayout=inline?"inline":"split";
+    this.labels.replaceChildren(label(inline?`${left} ↔ ${right}`:left));
+    if(this.data.right!=null&&!inline)this.labels.append(label(right));
+    if(inline){
+      const mode=el("button","git-diff-mode",text("diff.inline_view"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
+      mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),[
+        {id:"diff_mode_inline",title:text("diff.inline_view"),checked:true,action:()=>this.set_side_by_side(false)},
+        {id:"diff_mode_split",title:text("diff.side_by_side"),checked:false,action:()=>{this.inline_when_narrow=false;this.set_side_by_side(true);}}
+      ]);};this.labels.append(mode);
+    }
+  }
+  accessible_diff(previous=false):void {if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
+  set_side_by_side(value:boolean):void {if(!("getModifiedEditor" in this.editor))return;const state=this.editor.saveViewState();this.side_by_side=value;this.editor.updateOptions({renderSideBySide:value,useInlineViewWhenSpaceIsLimited:this.inline_when_narrow});this.editor.restoreViewState(state);this.refresh_labels();}
   focused_editor(): monaco.editor.IStandaloneCodeEditor {
     if (!("getModifiedEditor" in this.editor)) return this.editor;
+    // 模式切换和无障碍查看器退出后，以真实焦点归属修正Monaco尚未刷新的焦点缓存。
+    for(const view of [this.editor.getOriginalEditor(),this.editor.getModifiedEditor()])if(view.getDomNode()?.contains(document.activeElement)){this.last_focused_editor=view;return view;}
     return this.last_focused_editor || (this.editor.getOriginalEditor().hasTextFocus() ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor());
   }
   /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
@@ -161,7 +196,7 @@ export class git_diff_editor {
     const replace_models = () => { if (this.models[0].getValue() !== data.left) this.models[0].setValue(data.left); if (data.right != null && this.models[1].getValue() !== data.right) this.models[1].setValue(data.right); };
     if ("getModifiedEditor" in this.editor) { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     else { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
-    this.data = data;
+    this.data = data;this.refresh_labels();
   }
   context_menu(event: MouseEvent): void {
     const view = this.focused_editor();
@@ -174,11 +209,14 @@ export class git_diff_editor {
     if ("getModifiedEditor" in this.editor) {
       const editor = this.editor;
       entries.push({id: "previous_change", title: text("diff.previous_change"), action: () => editor.goToDiff("previous")}, {id: "next_change", title: text("diff.next_change"), action: () => editor.goToDiff("next")},
-        {id: "side_by_side", title: text("diff.side_by_side"), checked: this.side_by_side, action: () => { this.side_by_side = !this.side_by_side; editor.updateOptions({renderSideBySide: this.side_by_side}); }},
+        {id: "side_by_side", title: text("diff.inline_view"), checked: !this.side_by_side, action: () => this.set_side_by_side(!this.side_by_side)},
         {id: "hide_unchanged", title: text("diff.hide_unchanged"), checked: this.collapsed, action: () => { this.collapsed = !this.collapsed; editor.updateOptions({hideUnchangedRegions: {enabled: this.collapsed}}); }},
+        {id: "show_moves", title: text("diff.show_moves"), checked: this.show_moves, action: () => {this.show_moves=!this.show_moves;editor.updateOptions({experimental:{showMoves:this.show_moves}});}},
+        {id: "inline_when_narrow", title: text("diff.inline_when_narrow"), checked: this.inline_when_narrow, action: () => {this.inline_when_narrow=!this.inline_when_narrow;editor.updateOptions({useInlineViewWhenSpaceIsLimited:this.inline_when_narrow});}},
+        {id: "accessible_diff", title: text("diff.accessible_diff"), action:()=>this.accessible_diff()},
         {id: "ignore_whitespace", title: text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => { this.ignore_whitespace = !this.ignore_whitespace; editor.updateOptions({ignoreTrimWhitespace: this.ignore_whitespace}); }});
     }
     workspace_menu(event, [...entries, ...this.extra_menu()]);
   }
-  dispose(): void { this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(item => item.dispose()); this.container.remove(); }
+  dispose(): void { this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(item => item.dispose()); this.container.remove(); }
 }

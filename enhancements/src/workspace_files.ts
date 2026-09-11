@@ -8,7 +8,7 @@ import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
 import { create_text_document, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
 import {decode_file_bytes} from "./file_language";
 import {capture_position, apply_position} from "./reading_positions";
-import type {workspace_document_snapshot, workspace_transfer_format} from "./workspace_document_transfer";
+import type {workspace_document_snapshot, workspace_transfer_format, workspace_transfer_target} from "./workspace_document_transfer";
 import { bind_source_lifecycle } from "./workspace_source_lifecycle";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
@@ -41,7 +41,7 @@ export type workspace_file_host = {
   can_write(file_path: string): boolean;
   refresh_files(paths: string[]): void;
   capture_transfer(leaf:graph_leaf,signal?:AbortSignal):Promise<workspace_document_snapshot>;
-  receive_transfer(snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<graph_leaf>;
+  receive_transfer(snapshot:workspace_document_snapshot,target:workspace_transfer_target,signal?:AbortSignal):Promise<graph_leaf>;
   release_transfer(leaf:graph_leaf,snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<boolean>;
   assert_can_dispose(): void;
   dispose(): void;
@@ -60,7 +60,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     active_host = existing_binding.host;
     return existing_binding.host;
   }
-  const runtime = window as unknown as {reqnode(name: string): any; File?: any; ClientCommand?: Record<string, (...args: unknown[]) => unknown>; doApplyRename?(path: string): void};
+  const runtime = window as unknown as {reqnode(name: string): any; File?: any; JSBridge?:{invoke(command:string,...args:unknown[]):Promise<unknown>}; ClientCommand?: Record<string, (...args: unknown[]) => unknown>; doApplyRename?(path: string): void};
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
   let native_app_open_file = core.app.openFile;
   const call_native_app_open_file = (target: string) => native_app_open_file.call(core.app, target);
@@ -506,25 +506,35 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const capture_transfer=async(leaf:graph_leaf,signal?:AbortSignal)=>{
     const snapshot=await collect_transfer(leaf,signal);transfer_guard(signal);transfer_captures.set(leaf,{capture_id:snapshot.capture_id,fingerprint:snapshot.capture_fingerprint});return snapshot;
   };
-  const receive_transfer=async(snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<graph_leaf>=>{
+  const receive_transfer=async(snapshot:workspace_document_snapshot,target:workspace_transfer_target,signal?:AbortSignal):Promise<graph_leaf>=>{
     transfer_guard(signal);
     if(!snapshot||snapshot.schema!==1||!["source","markdown"].includes(snapshot.kind)||typeof snapshot.text!=="string"||snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES||typeof snapshot.file_path!=="string"||!path_api.isAbsolute(snapshot.file_path)||typeof snapshot.root!=="string"||typeof snapshot.dirty!=="boolean"||!/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256)||snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))throw new Error("窗口文档快照无效，未修改当前文档。");
-    const check_empty=()=>{transfer_guard(signal);let occupied=false;core.app.workspace.eachLeaves(leaf=>{if(leaf.state.path&&leaf.state.path!=="typ://core.empty/")occupied=true;});if(occupied||runtime.File?.bundle?.filePath||runtime.File?.changeCounter?.isDocumentEdited())throw new Error("目标窗口已打开文档或有草稿，拒绝覆盖。");};
-    check_empty();
+    const target_root=context_root(),target_group=target?.group as graph_leaf["parent"]&{insertChild?(index:number,leaf:graph_leaf):void};
+    const target_children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target_group)target_children.push(leaf);});
+    if(!target_group||typeof target_group.insertChild!=="function"||!target_children.length||!Number.isInteger(target.index)||target.index<0||target.index>target_children.length)throw new Error("接收编辑组或标签插入位置无效，请重新拖动。");
+    const native_before={path:runtime.File?.bundle?.filePath||"",dirty:Boolean(runtime.File?.changeCounter?.isDocumentEdited()),text:native_transfer_text()};
+    const check_destination=(received?:graph_leaf)=>{
+      transfer_guard(signal);let present=false,duplicate=false;const children:graph_leaf[]=[];
+      core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target_group){present=true;if(leaf!==received)children.push(leaf);}if(leaf!==received&&file_key(real_path(leaf))===file_key(snapshot.file_path))duplicate=true;});
+      if(duplicate)throw new Error("目标窗口已打开同一文件；为保留其内容和草稿，未合并该标签。");
+      if(!present||context_root()!==target_root)throw new Error("接收编辑组或工作区已改变，请重新拖动。");
+      if(!received&&(children.length!==target_children.length||children.some((leaf,index)=>leaf!==target_children[index])))throw new Error("接收编辑组的标签顺序已改变，请重新拖动。");
+      if(snapshot.kind==="source"&&((runtime.File?.bundle?.filePath||"")!==native_before.path||Boolean(runtime.File?.changeCounter?.isDocumentEdited())!==native_before.dirty||native_transfer_text()!==native_before.text))throw new Error("目标窗口的Markdown草稿发生变化，停止恢复并保留当前内容。");
+      if(snapshot.kind==="markdown"&&!received&&runtime.File?.changeCounter?.isDocumentEdited())throw new Error("目标窗口当前有未保存的Markdown草稿，请先保存或处理该草稿，再合并Markdown标签。");
+    };
+    check_destination();
     if(snapshot.kind==="markdown"&&snapshot.dirty&&runtime.File?.option?.enableAutoSave)throw new Error("目标窗口开启Markdown自动保存，未接收未保存草稿，原标签仍保留。");
-    if((await transfer_disk(snapshot.file_path,signal)).sha256!==snapshot.disk_sha256)throw new Error("接收前磁盘文件发生变化，原标签仍保留。");check_empty();
-    if(snapshot.root&&context_root()!==snapshot.root){
-      if(!path_api.isAbsolute(snapshot.root)||typeof runtime.File?.setMountFolder!=="function")throw new Error("目标窗口无法恢复原工作区目录。");
-      const root_stat=await fs.promises.stat(snapshot.root);check_empty();if(!root_stat.isDirectory())throw new Error("目标窗口无法恢复原工作区目录。");
-      runtime.File.setMountFolder(snapshot.root);
-    }
+    if((await transfer_disk(snapshot.file_path,signal)).sha256!==snapshot.disk_sha256)throw new Error("接收前磁盘文件发生变化，原标签仍保留。");check_destination();
+    const insert_received=(type:string,path:string)=>{
+      check_destination();const leaf=core.app.workspace.createLeaf({type,state:{path,git_cwd:target_root}});
+      target_group.insertChild!(target.index,leaf);core.app.workspace.activeLeaf=leaf;return leaf;
+    };
     if(snapshot.kind==="source"){
       const valid_format=(format:workspace_transfer_format|undefined)=>format&&typeof format.encoding==="string"&&format.encoding.length<100&&typeof format.bom==="boolean"&&["LF","CRLF","CR","mixed"].includes(format.eol);
       if(!valid_format(snapshot.source_format)||!valid_format(snapshot.source_baseline_format)||typeof snapshot.source_baseline!=="string"||!['\n','\r\n'].includes(snapshot.source_model_eol||"")||typeof snapshot.language!=="string")throw new Error("源码快照缺少保存基线或格式。");
-      await open_file(snapshot.file_path,{source:true,signal});transfer_guard(signal);
-      const leaf=core.app.workspace.activeLeaf,view=[...views].find(view=>view.leaf===leaf&&!view.disposed);
+      const leaf=insert_received(SOURCE_FILE_VIEW_ID,source_file_uri(snapshot.file_path)),view=[...views].find(view=>view.leaf===leaf&&!view.disposed);
       if(!leaf||!view||file_key(view.file_path)!==file_key(snapshot.file_path))throw new Error("目标源码标签未打开。");
-      const check_target=()=>{transfer_guard(signal);if(!transfer_present(leaf)||core.app.workspace.activeLeaf!==leaf||view.disposed||view.saving||view.dirty()||snapshot.root&&context_root()!==snapshot.root)throw new Error("目标窗口状态或草稿发生变化，停止恢复。");};
+      const check_target=()=>{check_destination(leaf);if(!transfer_present(leaf)||leaf.parent!==target_group||view.disposed||view.saving||view.dirty())throw new Error("目标窗口状态或草稿发生变化，停止恢复。");};
       for(let count=0;view.loading&&count<250;count++){await new Promise(resolve=>setTimeout(resolve,20));check_target();}
       check_target();if(view.loading)throw new Error("目标文件未及时完成读取。");
       if(!view.loaded||view.format?.encoding!==snapshot.source_baseline_format!.encoding){await view.load_file(snapshot.source_baseline_format!.encoding);check_target();}
@@ -543,15 +553,17 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       }finally{transaction.cancel();}
     }
     if(!is_markdown_file(snapshot.file_path)||typeof snapshot.markdown_baseline!=="string"||typeof runtime.File?.reloadContent!=="function")throw new Error("目标宿主无法接收Markdown快照。");
-    await open_file(snapshot.file_path,{signal});transfer_guard(signal);
-    const leaf=core.app.workspace.activeLeaf;
-    const check_markdown=()=>{transfer_guard(signal);if(!leaf||!transfer_present(leaf)||core.app.workspace.activeLeaf!==leaf||file_key(real_path(leaf))!==file_key(snapshot.file_path)||file_key(runtime.File?.bundle?.filePath||"")!==file_key(snapshot.file_path)||runtime.File?.changeCounter?.isDocumentEdited()||snapshot.root&&context_root()!==snapshot.root)throw new Error("目标Markdown尚未就绪或已有修改，未恢复草稿。");};
+    const leaf=insert_received("core.markdown",snapshot.file_path);
+    await navigate_reading_target(snapshot.file_path,{signal});transfer_guard(signal);
+    const inherited_markdown=()=>snapshot.dirty&&Boolean(runtime.File?.changeCounter?.isDocumentEdited())&&normalized_transfer_text(native_transfer_text())===normalized_transfer_text(snapshot.text);
+    const check_markdown=()=>{check_destination(leaf);if(!transfer_present(leaf)||leaf.parent!==target_group||core.app.workspace.activeLeaf!==leaf||file_key(runtime.File?.bundle?.filePath||"")!==file_key(snapshot.file_path)||runtime.File?.changeCounter?.isDocumentEdited()&&!inherited_markdown())throw new Error("目标Markdown尚未就绪或已有修改，未恢复草稿。");};
     check_markdown();const disk=await transfer_disk(snapshot.file_path,signal);check_markdown();
-    if(disk.sha256!==snapshot.disk_sha256||normalized_transfer_text(runtime.File?.bundle?.savedContent||"")!==normalized_transfer_text(snapshot.markdown_baseline)||normalized_transfer_text(native_transfer_text())!==normalized_transfer_text(snapshot.markdown_baseline))throw new Error("目标Markdown与磁盘基线不同，未恢复草稿。");
+    if(disk.sha256!==snapshot.disk_sha256||normalized_transfer_text(runtime.File?.bundle?.savedContent||"")!==normalized_transfer_text(snapshot.markdown_baseline)||!inherited_markdown()&&normalized_transfer_text(native_transfer_text())!==normalized_transfer_text(snapshot.markdown_baseline))throw new Error("目标Markdown与磁盘基线不同，未恢复草稿。");
     if(snapshot.dirty){
       if(runtime.File?.option?.enableAutoSave)throw new Error("目标窗口在加载期间开启了Markdown自动保存，未恢复草稿，原标签仍保留。");
-      // 原生1.14.9对象参数签名；不使用skipUndo（它会把文档误标成已保存）。
-      runtime.File.reloadContent(snapshot.text,{delayRefresh:false,skipChangeCount:false,skipStore:true});
+      // 原生同文件窗口可自动继承共享快照；已继承完整草稿时不再重载或重建撤销记录。
+      // 未继承时使用1.14.9对象参数签名；skipUndo会把文档误标成已保存，不能使用。
+      if(!inherited_markdown())runtime.File.reloadContent(snapshot.text,{delayRefresh:false,skipChangeCount:false,skipStore:true});
       if(!runtime.File.changeCounter?.isDocumentEdited())runtime.File.updateChangeCount?.(runtime.File.ChangeType?.NSChangeDone);
       if(!runtime.File.changeCounter?.isDocumentEdited()||normalized_transfer_text(native_transfer_text())!==normalized_transfer_text(snapshot.text))throw new Error("Markdown草稿未完整恢复，原标签仍保留。");
     }
@@ -562,14 +574,34 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const release_transfer=async(leaf:graph_leaf,snapshot:workspace_document_snapshot,signal?:AbortSignal):Promise<boolean>=>{
     const captured=transfer_captures.get(leaf);
     if(!captured||captured.capture_id!==snapshot.capture_id||captured.fingerprint!==snapshot.capture_fingerprint||signal?.aborted)return false;
-    // dirty原生Markdown关闭会进入宿主异步切换/自动保存；只保留源副本，不伪装已保存。
-    if(snapshot.kind==="markdown"&&snapshot.dirty)return false;
     try{
       if(snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))return false;transfer_guard(signal);
       const current=await collect_transfer(leaf,signal);transfer_guard(signal);
       if(current.capture_fingerprint!==snapshot.capture_fingerprint||transfer_captures.get(leaf)!==captured||!transfer_present(leaf))return false;
-      if(runtime.File?.changeCounter?.isDocumentEdited())return false;
       const source=[...views].find(view=>view.leaf===leaf&&!view.disposed),previous_version=source?.saved_version,previous_format=source?.saved_format;
+      const native_markdown_ready=()=>snapshot.kind==="markdown"&&snapshot.dirty
+        &&file_key(runtime.File?.bundle?.filePath||"")===file_key(snapshot.file_path)
+        &&real_path(leaf)===snapshot.file_path&&context_root()===snapshot.root
+        &&native_transfer_text()===snapshot.text&&Boolean(runtime.File?.changeCounter?.isDocumentEdited())
+        &&normalized_transfer_text(runtime.File?.bundle?.savedContent||"")===normalized_transfer_text(snapshot.markdown_baseline||"")
+        &&!runtime.File?.option?.enableAutoSave;
+      let shared_markdown=false;
+      if(snapshot.kind==="markdown"&&snapshot.dirty){
+        if(!native_markdown_ready()||typeof runtime.JSBridge?.invoke!=="function")return false;
+        // Typora 1.14.9在另一个窗口仍持有同一原生文档时，tryLeaveDocument不保存或丢弃它。
+        // 只有目标已ACK、完整指纹未变、宿主确认共享文档后才移除源叶子。
+        const no_other_window=await runtime.JSBridge.invoke("document.noOtherWindow");transfer_guard(signal);
+        if(no_other_window!==false||!native_markdown_ready()||transfer_captures.get(leaf)!==captured||!transfer_present(leaf))return false;
+        shared_markdown=true;
+      }
+      if(runtime.File?.changeCounter?.isDocumentEdited()&&!shared_markdown){
+        if(!source)return false;
+        const group=leaf.parent as graph_leaf["parent"]&{activeLeaf?:graph_leaf;children?:graph_leaf[]};
+        // 关闭后台源码叶子不切换原生缓冲；活动叶子只允许切至另一独立源码叶子。
+        // 最后一叶移除会重排编辑组，保留它以免间接打开其他Markdown并触发自动保存。
+        const children=group.children||[],index=children.indexOf(leaf),next=children[index-1]||children[index+1];
+        if(!group.activeLeaf||children.length<2||group.activeLeaf===leaf&&!views.has(next?.view as source_file_view))return false;
+      }
       if(!leaf.parent.removeTab)return false;
       // 目标已ACK且指纹重检成功，临时放行源码自身关闭保护；不调用任何保存入口。
       if(source){source.saved_version=source.editor!.models[0].getAlternativeVersionId();source.saved_format=source.format_key();}

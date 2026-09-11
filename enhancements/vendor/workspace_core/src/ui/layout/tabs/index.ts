@@ -38,11 +38,11 @@ export class WorkspaceTabs extends WorkspaceParent {
     super.insertChild(index, child)
     this.toggleTab(child.state.path)
 
-    if (
-      this.children.length === 2 &&
-      (this.children[0] as WorkspaceLeaf).state.path.startsWith(`typ://${EmptyView.type}`)
-    ) {
-      this.removeChild(this.children[0])
+    // 新窗合并到第一个插入点时，空占位叶可能位于真实标签之后。
+    // 仅移除 core.empty，占位位置不应影响结果，也不关闭用户的 Untitled 草稿。
+    if (!child.state.path?.startsWith(`typ://${EmptyView.type}`)) {
+      const empty_leaf = this.children.find(node => node !== child && (node as WorkspaceLeaf).state.path?.startsWith(`typ://${EmptyView.type}`))
+      if (empty_leaf) this.removeChild(empty_leaf)
     }
   }
 

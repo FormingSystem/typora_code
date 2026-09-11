@@ -1,8 +1,11 @@
 import type {editor} from "monaco-editor/editor/editor.api";
 import type {reading_position} from "./reading_positions";
 import type {text_document_eol} from "./workspace_text_document";
+import type {graph_leaf} from "./git_graph_host";
 
 export type workspace_transfer_format = {encoding:string; bom:boolean; eol:text_document_eol};
+/** 接收窗口内的真实编辑组；协议不得序列化或接受来自其他窗口的组对象。 */
+export type workspace_transfer_target = {group:graph_leaf["parent"]; index:number};
 
 /** 仅在两个已握手窗口之间传递的内存快照；不保存到临时文件或工作区。 */
 export type workspace_document_snapshot = {

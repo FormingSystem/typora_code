@@ -4883,133 +4883,207 @@ var workspace_core_module = (() => {
   };
 
   // vendor/workspace_core/src/ui/layout/tabs/draggable.ts
+  var TAB_DRAG_MIME = "application/x-typora-code-tab";
+  var TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
   function draggableTabs(root, workspace = useService("workspace")) {
     const root_el = root.containerEl, doc = root_el.ownerDocument, view = doc.defaultView;
-    const marker = create_drop_marker(doc);
-    let session;
-    let scroll_frame = 0;
+    const marker = create_drop_marker(doc), events = new AbortController();
+    let local, disposed = false, blocked_start = false;
+    let scroll_frame = 0, scroll_header, last_over;
+    const has_transfer = (event) => !!event.dataTransfer && Array.from(event.dataTransfer.types).includes(TAB_DRAG_MIME);
     const clear_feedback = () => {
       marker.hide();
-      root_el.querySelectorAll(".mod-drag-over").forEach((node) => node.classList.remove("mod-drag-over"));
+      scroll_header = void 0;
+      last_over = void 0;
+      view.cancelAnimationFrame(scroll_frame);
+      scroll_frame = 0;
     };
     const group_at = (element) => {
       const group_el = element?.closest(".typ-workspace-tabs");
       return group_el && root_el.contains(group_el) ? root.findNode((node) => node.containerEl === group_el) : null;
     };
-    const on_pointer_down = (event) => {
-      if (event.button !== 0 || event.isPrimary === false) return;
-      const element = event.target instanceof Element ? event.target : null;
-      if (element?.closest(".typ-close,button,input,textarea,select,a")) return;
-      const tab = element?.closest(".typ-tab");
-      const source_group = group_at(tab || null);
-      if (!tab || !source_group || tab.parentElement !== source_group.tabHeader.container) return;
-      const leaf = source_group.children.find((node) => node.state.path === tab.dataset.id);
-      if (!leaf) return;
-      session?.cancel("replaced");
-      let target_group, target_index = 0, last_state, scroll_header, blocked_drop = false;
-      const source_bounds = source_group.containerEl.getBoundingClientRect();
-      const resolve_target = (state) => {
-        clear_feedback();
-        target_group = void 0;
-        scroll_header = void 0;
-        blocked_drop = false;
-        const group = group_at(state.target) || (state.target?.closest("content") ? root.findNode((node) => {
-          if (node.type !== "tabs") return false;
-          const box = node.containerEl.getBoundingClientRect();
-          return state.client_x >= box.left && state.client_x <= box.right && state.client_y >= box.top && state.client_y <= box.bottom;
-        }) : null);
-        if (!group || !group.containerEl.isConnected || leaf.parent !== source_group) return;
-        if (group !== source_group && group.children.some((node) => node.state.path === leaf.state.path)) {
-          blocked_drop = true;
-          return;
-        }
-        const header = group.tabHeader.containerEl, header_box = header.getBoundingClientRect();
-        const tabs = [...group.tabHeader.container.children].filter((node) => node instanceof HTMLElement && node !== tab);
-        const within_header = state.client_y >= header_box.top && state.client_y <= header_box.bottom;
-        target_group = group;
-        if (within_header) {
-          target_index = tabs.findIndex((node) => state.client_x < node.getBoundingClientRect().left + node.getBoundingClientRect().width / 2);
-          if (target_index < 0) target_index = tabs.length;
-          const adjacent = tabs[target_index], previous = tabs[target_index - 1];
-          const x = adjacent?.getBoundingClientRect().left ?? previous?.getBoundingClientRect().right ?? header_box.left;
-          marker.show({ left: Math.max(header_box.left, Math.min(x, header_box.right - 2)), top: header_box.top, width: 2, height: header_box.height });
-          scroll_header = header;
-        } else {
-          target_index = tabs.length;
-          const body = group.tabContentEl.getBoundingClientRect();
-          marker.highlight({ left: body.left, top: body.top, width: body.width, height: body.height });
-        }
-      };
-      const auto_scroll = () => {
-        scroll_frame = 0;
-        if (!session?.started || !last_state) return;
-        if (scroll_header) {
-          const box = scroll_header.getBoundingClientRect(), edge = 24;
-          const direction = last_state.client_x < box.left + edge ? -1 : last_state.client_x > box.right - edge ? 1 : 0;
-          if (direction) {
-            const before = scroll_header.scrollLeft;
-            scroll_header.scrollLeft += direction * 10;
-            if (scroll_header.scrollLeft !== before) resolve_target(last_state);
-          }
-        }
-        scroll_frame = view.requestAnimationFrame(auto_scroll);
-      };
-      const can_detach = (state) => {
-        if (blocked_drop || state.target?.closest(".typ-ribbon,#typora-sidebar,#top-titlebar,footer,.workspace-menu,.workspace-titlebar-menu-panel")) return false;
-        const dx = Math.max(source_bounds.left - state.client_x, 0, state.client_x - source_bounds.right);
-        const dy = Math.max(source_bounds.top - state.client_y, 0, state.client_y - source_bounds.bottom);
-        return Math.max(dx, dy) >= 30;
-      };
-      session = start_pointer_drag(event, {
-        source: tab,
-        on_start() {
-          scroll_frame = view.requestAnimationFrame(auto_scroll);
-        },
-        on_move(state) {
-          last_state = state;
-          resolve_target(state);
-          session?.set_drop_effect(target_group ? "move" : can_detach(state) ? "detach" : "none");
-        },
-        on_drop(state) {
-          resolve_target(state);
-          if (leaf.parent !== source_group || !source_group.containerEl.isConnected) return;
-          if (!target_group) {
-            if (can_detach(state)) doc.dispatchEvent(new CustomEvent("typora-code:tab-detach", { cancelable: true, detail: { leaf, source_group, screen_x: state.screen_x, screen_y: state.screen_y } }));
-            return;
-          }
-          if (target_group === source_group) {
-            const old_index = source_group.children.indexOf(leaf);
-            if (old_index < 0 || old_index === target_index) return;
-            source_group.children.splice(old_index, 1);
-            source_group.children.splice(target_index, 0, leaf);
-            const tabs = [...source_group.tabHeader.container.children].filter((node) => node !== tab);
-            source_group.tabHeader.container.insertBefore(tab, tabs[target_index] || null);
-            const leaves = [...source_group.tabContentEl.children].filter((node) => node !== leaf.containerEl);
-            source_group.tabContentEl.insertBefore(leaf.containerEl, leaves[target_index] || null);
-            root.emit("layout-changed");
-          } else {
-            const destination = target_group;
-            leaf.detach();
-            destination.insertChild(target_index, leaf);
-            view.setTimeout(() => {
-              if (leaf.parent === destination && destination.containerEl.isConnected) workspace.activeLeaf = leaf;
-            });
-          }
-        },
-        on_end() {
-          view.cancelAnimationFrame(scroll_frame);
-          scroll_frame = 0;
-          clear_feedback();
-          session = void 0;
-        }
-      });
+    const valid_source = (drag) => drag.tab.isConnected && drag.source_group.containerEl.isConnected && drag.leaf.parent === drag.source_group && drag.leaf.state.path === drag.source_path;
+    const end = (event, cancelled = false) => {
+      const drag = local;
+      local = void 0;
+      clear_feedback();
+      if (!drag) return;
+      drag.tab.removeAttribute("data-workspace-drag-source");
+      doc.dispatchEvent(new CustomEvent("typora-code:tab-drag-end", { detail: {
+        leaf: drag.leaf,
+        source_group: drag.source_group,
+        transfer_token: drag.transfer_token,
+        local_drop: drag.local_drop,
+        cancelled: cancelled || drag.cancelled,
+        drop_effect: event?.dataTransfer?.dropEffect || "none",
+        screen_x: event?.screenX ?? 0,
+        screen_y: event?.screenY ?? 0,
+        client_x: event?.clientX ?? 0,
+        client_y: event?.clientY ?? 0
+      } }));
     };
-    root_el.addEventListener("pointerdown", on_pointer_down);
+    const resolve_target = (event) => {
+      marker.hide();
+      scroll_header = void 0;
+      const element = doc.elementFromPoint(event.clientX, event.clientY);
+      if (element?.closest(".typ-ribbon,#typora-sidebar,#top-titlebar,footer,.workspace-menu,.workspace-titlebar-menu-panel")) return;
+      const group = group_at(element) || (element?.closest("content") ? root.findNode((node) => {
+        if (node.type !== "tabs") return false;
+        const box = node.containerEl.getBoundingClientRect();
+        return event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
+      }) : null);
+      if (!group || !group.containerEl.isConnected || local && !valid_source(local)) return;
+      if (local && group !== local.source_group && group.children.some((node) => node.state.path === local.source_path)) return;
+      const header = group.tabHeader.containerEl, header_box = header.getBoundingClientRect();
+      const tabs = [...group.tabHeader.container.children].filter((node) => node instanceof HTMLElement && node !== local?.tab);
+      if (event.clientY >= header_box.top && event.clientY <= header_box.bottom) {
+        let index = tabs.findIndex((node) => event.clientX < node.getBoundingClientRect().left + node.getBoundingClientRect().width / 2);
+        if (index < 0) index = tabs.length;
+        const x = tabs[index]?.getBoundingClientRect().left ?? tabs[index - 1]?.getBoundingClientRect().right ?? header_box.left;
+        marker.show({ left: Math.max(header_box.left, Math.min(x, header_box.right - 2)), top: header_box.top, width: 2, height: header_box.height });
+        scroll_header = header;
+        return { group, index, header };
+      }
+      const body = group.tabContentEl.getBoundingClientRect();
+      marker.highlight({ left: body.left, top: body.top, width: body.width, height: body.height });
+      return { group, index: tabs.length };
+    };
+    const auto_scroll = () => {
+      scroll_frame = 0;
+      if (!last_over || disposed) return;
+      if (scroll_header) {
+        const box = scroll_header.getBoundingClientRect(), edge = 24;
+        const direction = last_over.clientX < box.left + edge ? -1 : last_over.clientX > box.right - edge ? 1 : 0;
+        if (direction) {
+          const before = scroll_header.scrollLeft;
+          scroll_header.scrollLeft += direction * 10;
+          if (scroll_header.scrollLeft !== before) resolve_target(last_over);
+        }
+      }
+      scroll_frame = view.requestAnimationFrame(auto_scroll);
+    };
+    const on_start = (event) => {
+      const element = event.target instanceof Element ? event.target : null;
+      const tab = element?.closest(".typ-tab"), source_group = group_at(tab || null);
+      if (!tab || !source_group || tab.parentElement !== source_group.tabHeader.container) return;
+      if (blocked_start || element?.closest(".typ-close,button,input,textarea,select,a") || !event.dataTransfer) {
+        event.preventDefault();
+        return;
+      }
+      const leaf = source_group.children.find((node) => node.state.path === tab.dataset.id);
+      if (!leaf) {
+        event.preventDefault();
+        return;
+      }
+      end(void 0, true);
+      cancel_pointer_drag(view, "native-tab-drag");
+      const transfer_token = view.crypto.randomUUID();
+      local = { leaf, source_group, tab, transfer_token, source_path: leaf.state.path, local_drop: false, cancelled: false };
+      event.dataTransfer.clearData();
+      event.dataTransfer.setData(TAB_DRAG_MIME, transfer_token);
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setDragImage(tab, 0, 0);
+      tab.dataset.workspaceDragSource = "true";
+      event.stopImmediatePropagation();
+      doc.dispatchEvent(new CustomEvent("typora-code:tab-drag-start", { detail: { leaf, source_group, transfer_token } }));
+    };
+    const on_over = (event) => {
+      if (!has_transfer(event)) return;
+      event.stopImmediatePropagation();
+      if (local?.cancelled) {
+        event.dataTransfer.dropEffect = "none";
+        clear_feedback();
+        return;
+      }
+      const target = resolve_target(event);
+      event.dataTransfer.dropEffect = target ? "move" : "none";
+      if (!target) {
+        clear_feedback();
+        return;
+      }
+      event.preventDefault();
+      last_over = event;
+      if (!scroll_frame) scroll_frame = view.requestAnimationFrame(auto_scroll);
+    };
+    const move_local = (drag, target) => {
+      const { leaf, source_group, tab } = drag;
+      drag.local_drop = true;
+      if (source_group === target.group) {
+        const old_index = source_group.children.indexOf(leaf);
+        if (old_index < 0 || old_index === target.index) return;
+        source_group.children.splice(old_index, 1);
+        source_group.children.splice(target.index, 0, leaf);
+        const tabs = [...source_group.tabHeader.container.children].filter((node) => node !== tab);
+        source_group.tabHeader.container.insertBefore(tab, tabs[target.index] || null);
+        const leaves = [...source_group.tabContentEl.children].filter((node) => node !== leaf.containerEl);
+        source_group.tabContentEl.insertBefore(leaf.containerEl, leaves[target.index] || null);
+        root.emit("layout-changed");
+      } else {
+        leaf.detach();
+        target.group.insertChild(target.index, leaf);
+        view.setTimeout(() => {
+          if (leaf.parent === target.group && target.group.containerEl.isConnected) workspace.activeLeaf = leaf;
+        });
+      }
+    };
+    const on_drop = (event) => {
+      if (!has_transfer(event)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const target = resolve_target(event), transfer_token = event.dataTransfer.getData(TAB_DRAG_MIME);
+      clear_feedback();
+      event.dataTransfer.dropEffect = "none";
+      if (!target || !TOKEN_PATTERN.test(transfer_token) || local?.cancelled) return;
+      if (local) {
+        if (local.transfer_token !== transfer_token || !valid_source(local)) return;
+        event.dataTransfer.dropEffect = "move";
+        move_local(local, target);
+        end(event);
+      } else {
+        const request = new CustomEvent("typora-code:tab-drop", { cancelable: true, detail: { transfer_token, target_group: target.group, target_index: target.index } });
+        doc.dispatchEvent(request);
+        if (request.defaultPrevented) event.dataTransfer.dropEffect = "move";
+      }
+    };
+    const on_leave = (event) => {
+      if (!has_transfer(event)) return;
+      event.stopImmediatePropagation();
+      if (!event.relatedTarget || !doc.documentElement.contains(event.relatedTarget)) clear_feedback();
+    };
+    const on_end = (event) => {
+      if (!local) return;
+      event.stopImmediatePropagation();
+      end(event);
+    };
+    const on_escape = (event) => {
+      if (event.key === "Escape" && local) {
+        local.cancelled = true;
+        end(void 0, true);
+      }
+    };
+    const observer = new MutationObserver(() => {
+      if (local && !local.local_drop && !valid_source(local)) end(void 0, true);
+    });
+    observer.observe(root_el, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-id"] });
+    root_el.addEventListener("pointerdown", (event) => {
+      const element = event.target instanceof Element ? event.target : null;
+      blocked_start = event.button !== 0 || !!element?.closest(".typ-close,button,input,textarea,select,a");
+    }, { capture: true, signal: events.signal });
+    doc.addEventListener("dragstart", on_start, { capture: true, signal: events.signal });
+    doc.addEventListener("dragenter", on_over, { capture: true, signal: events.signal });
+    doc.addEventListener("dragover", on_over, { capture: true, signal: events.signal });
+    doc.addEventListener("drop", on_drop, { capture: true, signal: events.signal });
+    doc.addEventListener("dragleave", on_leave, { capture: true, signal: events.signal });
+    doc.addEventListener("dragend", on_end, { capture: true, signal: events.signal });
+    doc.addEventListener("keydown", on_escape, { capture: true, signal: events.signal });
+    view.addEventListener("pagehide", () => end(void 0, true), { signal: events.signal });
     return () => {
-      session?.cancel("dispose");
-      view.cancelAnimationFrame(scroll_frame);
+      if (disposed) return;
+      disposed = true;
+      end(void 0, true);
+      observer.disconnect();
+      events.abort();
       marker.dispose();
-      root_el.removeEventListener("pointerdown", on_pointer_down);
     };
   }
 
@@ -7318,8 +7392,9 @@ ${doc.documentElement.outerHTML}`;
       this.tabHeader.insertTab(index, child.state.path ? new FileTab(child.state.path) : new UntitledTab());
       super.insertChild(index, child);
       this.toggleTab(child.state.path);
-      if (this.children.length === 2 && this.children[0].state.path.startsWith(`typ://${EmptyView.type}`)) {
-        this.removeChild(this.children[0]);
+      if (!child.state.path?.startsWith(`typ://${EmptyView.type}`)) {
+        const empty_leaf = this.children.find((node) => node !== child && node.state.path?.startsWith(`typ://${EmptyView.type}`));
+        if (empty_leaf) this.removeChild(empty_leaf);
       }
     }
     _insertChildEl(index, child) {

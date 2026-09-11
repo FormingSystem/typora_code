@@ -10,6 +10,8 @@ import { git_icon, git_icon_button } from "./git_icons";
 import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n";
+import {is_markdown_file} from "./file_language";
+import {create_git_revision_reader} from "./git_revision_reader";
 
 const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
@@ -38,7 +40,7 @@ export function create_graph_host(core: graph_core) {
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {root?: string; key?: string; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
+  type document_options = {root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
   let serial = 0, disposed = false;
@@ -61,50 +63,61 @@ export function create_graph_host(core: graph_core) {
     containerEl = workspace_element("section", "git-graph-document"); icon = "fa-code-fork";
     editor?: git_diff_editor; document?: typeof contents extends Map<string, infer value> ? value : never;
     constructor(leaf: graph_leaf) { super(leaf); views.add(this); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* 无效 URI 由打开入口处理。 */ } }
+    // WorkspaceView.open/renameTab 共用此上游钩子；自定义文件图标不再启动基类延迟字体图标写入。
+    setIcon(_icon: string): void { this.sync_tab(); }
+    sync_tab(): void {
+      if (disposed) return;
+      // createTabs 先 open 视图再挂载整个新组；通过所属组 API 可访问尚未进入 document 的标签。
+      const tab = this.leaf.parent?.tabHeader?.getTabById(this.leaf.state.path); if (!tab) return;
+      const payload = contents.get(this.leaf.state.path), icon = tab.querySelector('.typ-file-icon');
+      if (icon) {
+        const file_path = payload?.data?.file || payload?.options.file;
+        icon.className = file_path ? 'typ-file-icon workspace-file-theme-slot' : 'typ-file-icon git-tab-icon';
+        icon.replaceChildren(file_path ? workspace_file_icon(file_path) : git_icon('compare-changes'));
+      }
+      const title = payload?.data?.title || decodeURIComponent(this.leaf.state.path.split('/').at(-1)!);
+      const label = tab.querySelector('.typ-file-basename'); if (label) label.textContent = title;
+      tab.querySelector('.typ-file-ext')?.remove(); tab.title = title;
+    }
     onOpen() {
       if(disposed)return;
       const payload = contents.get(this.leaf.state.path);
-      // 核心把 URI 作为 HTML 标签名插入；URI 保持编码，显示名单独通过 textContent 写入。
-      for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
-        const icon = tab.querySelector(".typ-file-icon"); if (icon) {
-          const file_path = payload?.data?.file;
-          icon.className = file_path ? "typ-file-icon workspace-file-theme-slot" : "typ-file-icon git-tab-icon";
-          icon.replaceChildren(file_path ? workspace_file_icon(file_path) : git_icon("compare-changes"));
-        }
-        const title = payload?.data?.title || decodeURIComponent(this.leaf.state.path.split("/").at(-1)!);
-        const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = title;
-        tab.querySelector(".typ-file-ext")?.remove(); tab.title = title;
-      }
+      this.sync_tab();
       if (!payload) { this.containerEl.textContent = text("host.expired_view"); return; }
-      if (payload === this.document) { this.editor?.editor.layout();this.sync_file_action();editor_status.refresh(); return; }
+      if (payload === this.document) { this.editor?.editor.layout();this.sync_file_action();this.attach_toolbar();editor_status.refresh(); return; }
       if (this.editor && payload.data && this.document?.data) {
-        try { this.editor.update(payload.data); this.document = payload;this.sync_file_action(); }
+        try { this.editor.update(payload.data); this.document = payload;this.sync_file_action();this.attach_toolbar(); }
         catch (error) { this.editor.status.textContent = String(error); }
         return;
       }
       this.document = payload; this.containerEl.replaceChildren();
       if (payload.panel) { this.containerEl.append(payload.panel); return; }
       try {
-        this.editor = new git_diff_editor(payload.data!, payload.options.menu);
-        if (payload.options.refresh) this.editor.toolbar.prepend(workspace_button(text("host.refresh_diff"), payload.options.refresh));
-        if (payload.options.adjacent) this.editor.toolbar.prepend(workspace_button(text("host.previous_file"), () => payload.options.adjacent!(-1)), workspace_button(text("host.next_file"), () => payload.options.adjacent!(1)));
-        this.editor.toolbar.append(workspace_button(text("host.toggle_sidebar"), () => core.app.workspace.sidebar.toggle()));
+        this.editor = new git_diff_editor(payload.data!, () => {
+          const options = this.document?.options; const entries: workspace_menu_entry[] = [...(options?.menu?.() || [])];
+          if (options?.adjacent) entries.push({id:"previous_file",title:text("host.previous_file"),action:()=>this.document?.options.adjacent?.(-1)}, {id:"next_file",title:text("host.next_file"),action:()=>this.document?.options.adjacent?.(1)});
+          if (options?.refresh) entries.push({id:"refresh_diff",title:text("host.refresh_diff"),action:()=>this.document?.options.refresh?.()});
+          entries.push({id:"toggle_sidebar",title:text("host.toggle_sidebar"),action:()=>core.app.workspace.sidebar.toggle()}); return entries;
+        });
         this.sync_file_action();
         this.containerEl.append(this.editor.container);
+        this.attach_toolbar();
         editor_status.register(this.leaf,this.editor.create_readonly_status());
       } catch (error) { this.containerEl.append(workspace_element("p", "git-scm-empty", String(error))); }
     }
+    attach_toolbar(){const header=this.leaf.parent.containerEl?.querySelector<HTMLElement>(".typ-workspace-tab-header");if(header)this.editor?.attach_toolbar(header);}
     sync_file_action(){
       if(!this.editor)return;
       const entry=this.document?.options.menu?.().find(item=>item.id==="open_file");
       let button=this.editor.toolbar.querySelector<HTMLButtonElement>("[data-diff-open-file]");
       if(!entry){button?.remove();return;}
       if(!button){button=git_icon_button("go-to-file",entry.title,()=>{const current=this.document?.options.menu?.().find(item=>item.id==="open_file");if(current&&!current.disabled)void current.action?.();});button.dataset.diffOpenFile="true";button.style.marginLeft="auto";this.editor.toolbar.append(button);}
-      button.disabled=Boolean(entry.disabled);
+      button.disabled=Boolean(entry.disabled); button.title=entry.title; button.setAttribute("aria-label",entry.title);
     }
     onClose() {
+      this.editor?.detach_toolbar();
       editor_status.schedule();
-      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) {views.delete(this);editor_status.release(this.leaf);this.editor?.dispose();} if (!payload_exists) contents.delete(this.leaf.state.path); }, 0);
+      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) {views.delete(this);editor_status.release(this.leaf);this.editor?.dispose();} if (!payload_exists) {contents.get(this.leaf.state.path)?.options.dispose?.();contents.delete(this.leaf.state.path);} }, 0);
     }
   }
   const unregister_view=core.app.viewManager.registerView("linux_note.git_document", leaf => new graph_document_view(leaf));
@@ -115,7 +128,7 @@ export function create_graph_host(core: graph_core) {
       if(disposed)return;disposed=true;file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
       for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
-      views.clear();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
+      views.clear();for(const payload of contents.values())payload.options.dispose?.();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
     },
     ignore_file(root: string, file: string, settings: graph_settings) { return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
     show_history: (_root: string) => {},
@@ -207,12 +220,37 @@ export function create_graph_host(core: graph_core) {
       if (existing && group === "active") { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
       else add_tab("linux_note.git_document", uri, group);
     },
-    open_panel(title: string, key: string, root: string, panel: HTMLElement) {
+    open_revision_document(root: string, revision: string, file: string, content: string, settings: graph_settings, fragment = "") {
+      const group = settings.new_tab_group; let reader_disposed = false;
+      const title = `${revision.slice(0, 8)} · ${file}`, label = text("scm.readonly_label", {file, revision: revision.slice(0, 8)});
+      if (!is_markdown_file(file)) { this.open_document({title, file, left: content, left_label: label}, group, {root, key: JSON.stringify(["revision", revision, file])}); return; }
+      const relative_target = (href: string) => {
+        if (!href || /^[a-z][a-z\d+.-]*:/iu.test(href) || /^[\\/]{2}/u.test(href)) throw new Error(text("host.historical_relative_only"));
+        const relative = decodeURIComponent(href.split(/[?#]/u)[0]).replace(/\\/gu, '/');
+        const target = path_api.posix.normalize(relative.startsWith('/') ? relative.slice(1) : path_api.posix.join(path_api.posix.dirname(file), relative));
+        ensure_file_path(root, target); return target;
+      };
+      const reader = create_git_revision_reader(content, label, async href => {
+        if (/^https?:\/\//iu.test(href)) { await this.open_url(href); return; }
+        const target = relative_target(href);
+        const value = await this.revision_text(root, revision, target, settings);
+        if (!disposed && !reader_disposed) this.open_revision_document(root, revision, target, value, settings, href.includes('#') ? href.slice(href.indexOf('#')) : '');
+      }, async href => {
+        const target = relative_target(href), extension = path_api.posix.extname(target).toLowerCase();
+        const mime: Record<string,string> = {'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.webp':'image/webp','.avif':'image/avif','.bmp':'image/bmp'};
+        if (!mime[extension]) throw new Error(text("host.historical_image_unsupported"));
+        const data = await this.runner(settings).run_bytes(root, ['show',`${require_revision(revision)}:${target}`]);
+        return `data:${mime[extension]};base64,${runtime.reqnode('buffer').Buffer.from(data).toString('base64')}`;
+      });
+      this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {file, dispose: () => {reader_disposed = true; reader.dispose();}}, group);
+      reader.reveal_fragment(fragment);
+    },
+    open_panel(title: string, key: string, root: string, panel: HTMLElement, options: document_options = {}, group = "active") {
       const uri = `typ://linux_note.git_document/${encodeURIComponent(root)}/${encodeURIComponent(key)}/${encodeURIComponent(title)}`;
-      contents.set(uri, {panel, options: {root}}); let existing: graph_leaf | undefined;
+      contents.get(uri)?.options.dispose?.(); contents.set(uri, {panel, options: {...options, root}}); let existing: graph_leaf | undefined;
       core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === uri) existing = leaf; });
       if (existing) { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
-      else add_tab("linux_note.git_document", uri, "active");
+      else add_tab("linux_note.git_document", uri, group);
     },
     async discover(root: string, depth: number): Promise<string[]> {
       const found: string[] = []; let visited = 0;
