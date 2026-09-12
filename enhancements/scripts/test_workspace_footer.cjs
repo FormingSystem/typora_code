@@ -23,6 +23,27 @@ app.whenReady().then(async()=>{
   check(await evaluate('getComputedStyle(document.querySelector("#sidebar-content")).bottom==="0px"'), 'sidebar preview receives the old footer height');
   check(await evaluate('(()=>{const ids=["#sidebar-new-file-btn svg","#sidebar-menu-btn .footer-btn svg","#switch-file-list-btn .switch-file-list-btn-to-list svg","#switch-file-list-btn .switch-file-list-btn-to-tree svg","#toggle-sourceview-btn svg"];return ids.map(selector=>document.querySelector(selector)?.dataset.gitIcon).join(",")==="new-file,more,list-flat,list-tree,edit-code"})()'),'relocated native footer uses official glyphs while retaining event targets');
   check(await evaluate('footer_qa.install_workspace_footer()===binding&&document.querySelectorAll("[data-workspace-footer-style]").length===1'), 'repeated initialization does not duplicate controls or styles');
+  // 原生操作都是div；仅装载公共样式、只测自有button无法覆盖此回归。
+  await evaluate('window.original_source=document.querySelector("#toggle-sourceview-btn");window.source_clicks=0;original_source.setAttribute("ty-hint","启用源代码模式");original_source.addEventListener("click",()=>{source_clicks++;document.body.classList.toggle("typora-sourceview-on")});window.hover_expected=document.createElement("span");hover_expected.style.backgroundColor="var(--workspace-action-hover)";document.body.append(hover_expected);void 0');
+  const move_pointer=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`),zoom=test_window.webContents.getZoomFactor();const position={x:Math.round(point.x*zoom),y:Math.round(point.y*zoom)};test_window.webContents.sendInputEvent({type:'mouseMove',...position});await delay(40);return position};
+  const native_controls=['#toggle-sourceview-btn','#sidebar-new-file-btn','#sidebar-menu-btn>.sidebar-footer-item','#switch-file-list-btn','#footer-word-count','#footer-spell-check'];
+  const sample_controls=()=>evaluate(`(${selectors=>selectors.map(selector=>{const n=document.querySelector(selector),s=getComputedStyle(n),r=n.getBoundingClientRect();return{background:s.backgroundColor,geometry:[r.width,r.height,s.padding,s.borderRadius,s.display]}})})(${JSON.stringify(native_controls)})`);
+  for(const theme of ['light','dark'])for(const zoom of [1,1.25]){
+    test_window.webContents.setZoomFactor(zoom);await evaluate(`document.documentElement.dataset.workspaceFileIconTheme=${JSON.stringify(theme)}`);await delay(60);
+    for(const [index,selector] of native_controls.entries()){
+      test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);const before=await sample_controls();await move_pointer(selector);const hovered=await sample_controls();
+      check(hovered[index].background!==before[index].background&&hovered[index].background===await evaluate('getComputedStyle(hover_expected).backgroundColor'),'native control uses shared hover '+selector+' '+theme+' '+zoom);
+      assert.deepEqual(hovered.map(n=>n.geometry),before.map(n=>n.geometry),'hover preserves all native geometry');
+      check(hovered.every((n,i)=>i===index||n.background===before[i].background),'native hover leaves neighbors unchanged '+selector+' '+theme+' '+zoom);
+      test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);assert.deepEqual(await sample_controls(),before,'pointer leave restores every native control');
+    }
+  }
+  test_window.webContents.setZoomFactor(1);await evaluate('document.documentElement.dataset.workspaceFileIconTheme="light"');await delay(60);
+  const source_point=await move_pointer('#toggle-sourceview-btn');test_window.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...source_point});test_window.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...source_point});await delay(50);
+  check(await evaluate('source_clicks===1&&document.body.classList.contains("typora-sourceview-on")&&original_source===document.querySelector("#toggle-sourceview-btn")&&original_source.getAttribute("ty-hint")==="启用源代码模式"'),'real pointer preserves original source action and hint');
+  check((await sample_controls())[0].background===await evaluate('getComputedStyle(hover_expected).backgroundColor'),'shared source hover also works while source mode is active');
+  await evaluate('original_source.click();void 0');test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);
+  check(await evaluate('source_clicks===2&&!document.body.classList.contains("typora-sourceview-on")'),'original source handler switches back without duplicate invocation');
   const action_width_before=await evaluate('old_actions.getBoundingClientRect().width');
   await evaluate('document.querySelector("#sidebar-new-file-btn").click();document.querySelector("#switch-file-list-btn").click();document.querySelector("#sidebar-menu-btn>.sidebar-footer-item").dispatchEvent(new MouseEvent("mousedown",{bubbles:true}));document.querySelector("#open-folder-from-sidebar-menu").dispatchEvent(new MouseEvent("mousedown",{bubbles:true}));');
   await delay(30);
@@ -36,6 +57,9 @@ app.whenReady().then(async()=>{
   // 使用生产终端面板覆盖原生 footer z-index:4，且边距控件启用真实 containment。
   await evaluate('window.terminal_style=document.createElement("style");terminal_style.textContent=footer_qa.terminal_css+footer_qa.status_css;document.head.append(terminal_style);window.terminal_panel=footer_qa.create_terminal_panel(()=>{});terminal_panel.show();void 0');await delay(90);
   const popup_geometry=async(selector,anchor)=>evaluate(`(()=>{const menu=document.querySelector(${JSON.stringify(selector)}),r=menu.getBoundingClientRect(),a=document.querySelector(${JSON.stringify(anchor)}).getBoundingClientRect(),f=document.querySelector("footer.ty-footer").getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,anchor_top:Math.min(a.top,f.top),hit:menu.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)),fits:r.left>=3&&r.right<=innerWidth-3&&r.top>=38&&r.bottom<=Math.min(a.top,f.top)-2}})()`);
+  await move_pointer('#toggle-sourceview-btn');
+  check((await sample_controls())[0].background===await evaluate('getComputedStyle(hover_expected).backgroundColor'),'native source hover remains reachable while terminal is open');
+  test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);
   let popup=await popup_geometry('#sidebar-files-menu','#sidebar-menu-btn');check(popup.fits&&popup.hit,'recent directories stay above their footer trigger and receive pointer input over the terminal');
   await evaluate('terminal_panel.maximize()');await delay(80);popup=await popup_geometry('#sidebar-files-menu','#sidebar-menu-btn');check(popup.fits&&popup.hit,'maximized terminal cannot cover the native recent directories menu');
   await evaluate('old_menu.innerHTML+=Array.from({length:80},(_,i)=>"<li class=show>最近目录 "+i+"</li>").join("");old_menu.querySelectorAll("li.show").forEach(n=>n.classList.add("file-action-item"))');await delay(70);
@@ -107,5 +131,10 @@ app.whenReady().then(async()=>{
   check(await evaluate('old_actions.parentNode.id==="typora-sidebar"&&!document.querySelector("[data-workspace-footer-style]")&&document.querySelector("footer.ty-footer").getAttribute("aria-hidden")==="true"'),'dispose restores original placement, accessibility and styles');
   check(await evaluate('!document.querySelector("[data-workspace-footer-popup]")&&!old_menu.style.getPropertyValue("--workspace-popup-left")&&!document.querySelector("[data-workspace-footer-popup-open]")'),'dispose releases popup geometry and layer attributes');
   check(await evaluate('document.querySelector("#unpin-outline-btn").isConnected&&getComputedStyle(document.querySelector("#footer-spell-check")).paddingBottom==="8px"'),'dispose restores native language box and keeps original outline node');
+  check(await evaluate('!original_source.hasAttribute("data-workspace-interaction")&&!document.querySelector("#footer-word-count").hasAttribute("data-workspace-interaction")'),'dispose removes only adapter-owned native interaction roles');
+  await evaluate('original_source.setAttribute("data-workspace-interaction","none");window.reinstalled=footer_qa.install_workspace_footer();void 0');
+  check(await evaluate('original_source.getAttribute("data-workspace-interaction")==="none"&&document.querySelector("#footer-word-count").getAttribute("data-workspace-interaction")==="action"'),'reinstall respects explicit independent role while registering other native controls');
+  await evaluate('reinstalled.dispose();void 0');
+  check(await evaluate('original_source.getAttribute("data-workspace-interaction")==="none"&&!document.querySelector("#footer-word-count").hasAttribute("data-workspace-interaction")'),'dispose preserves the preexisting independent boundary');
   console.log(JSON.stringify({status:'PASS',checks,metrics,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){fs.writeFileSync(path.join(evidence,'failure.png'),(await test_window.webContents.capturePage()).toPNG());test_window.destroy();}app.exit(1)});

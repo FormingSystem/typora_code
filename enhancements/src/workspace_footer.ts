@@ -1,3 +1,4 @@
+import {workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
@@ -24,11 +25,16 @@ export function install_workspace_footer(): footer_binding | undefined {
   const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_css, {"data-workspace-footer-style":"ready"});
   const layout=acquire_workspace_footer_layout();
   const roles=new Map<HTMLElement,string[]>();
+  const interaction_nodes=new Set<HTMLElement>();
   for(const [selector,role]of[
     ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn","group"],
     ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item","control"],
     ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand","text"],
   ])for(const node of document.querySelectorAll<HTMLElement>(selector)){
+    // 无button语义的原生div也从同一角色登记处接入；已有独立策略保持。
+    if(role==="control"&&!node.hasAttribute("data-workspace-interaction")){
+      workspace_interaction(node);interaction_nodes.add(node);
+    }
     const name="workspace-footer-"+role;
     if(!node.classList.contains(name)){node.classList.add(name);roles.set(node,[...(roles.get(node)||[]),name]);}
   }
@@ -71,6 +77,7 @@ export function install_workspace_footer(): footer_binding | undefined {
     if (original_label === null) actions.removeAttribute("aria-label"); else actions.setAttribute("aria-label", original_label);
     if (original_aria === null) footer.removeAttribute("aria-hidden"); else footer.setAttribute("aria-hidden", original_aria);
     delete footer.dataset.workspaceFooter; delete sidebar.dataset.workspaceFooter;
+    for(const node of interaction_nodes)node.removeAttribute("data-workspace-interaction");interaction_nodes.clear();
     for(const [node,names]of roles)node.classList.remove(...names);roles.clear();layout.remove();
     style.remove(); footer_bindings.delete(actions);
   } };

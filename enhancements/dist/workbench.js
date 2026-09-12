@@ -228964,11 +228964,16 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_default, { "data-workspace-footer-style": "ready" });
     const layout2 = acquire_workspace_footer_layout();
     const roles = /* @__PURE__ */ new Map();
+    const interaction_nodes = /* @__PURE__ */ new Set();
     for (const [selector, role] of [
       ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn", "group"],
       ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "control"],
       ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand", "text"]
     ]) for (const node of document.querySelectorAll(selector)) {
+      if (role === "control" && !node.hasAttribute("data-workspace-interaction")) {
+        workspace_interaction(node);
+        interaction_nodes.add(node);
+      }
       const name = "workspace-footer-" + role;
       if (!node.classList.contains(name)) {
         node.classList.add(name);
@@ -229023,6 +229028,8 @@ https://creativecommons.org/licenses/by/4.0/
       else footer.setAttribute("aria-hidden", original_aria);
       delete footer.dataset.workspaceFooter;
       delete sidebar.dataset.workspaceFooter;
+      for (const node of interaction_nodes) node.removeAttribute("data-workspace-interaction");
+      interaction_nodes.clear();
       for (const [node, names] of roles) node.classList.remove(...names);
       roles.clear();
       layout2.remove();
