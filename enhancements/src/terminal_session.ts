@@ -21,7 +21,8 @@ export class terminal_session {
       if(this.host.process_api.platform!=="win32")throw new Error("集成终端运行包当前支持 Windows x64/ARM64。");
       if(Number(runtime.reqnode("os").release().split(".")[2])<18309)throw new Error("集成终端需要 Windows 10 1903 或更新版本的 ConPTY。");
       // 每次启动从固定的工作区基点解析；相对 cwd 不能在重启时反复追加。
-      const profile=this.settings.profiles().find(item=>item.id===this.profile.id)||this.profile;
+      await this.settings.ready();if(this.disposed||generation!==this.generation)return;
+      const profile=this.settings.select_profile(this.profile.id);
       const launch=resolve_terminal_launch(this.settings.get(),profile,this.launch_root,this.host.process_api,this.host.path_api,this.explicit_cwd);
       if(!this.host.path_api.isAbsolute(launch.cwd)||!this.host.fs.statSync(launch.cwd).isDirectory())throw new Error("终端工作目录不存在。");
       this.root=launch.cwd;

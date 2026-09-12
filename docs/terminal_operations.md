@@ -52,9 +52,25 @@
 
 参数作为数组传入，不拼接 Shell 命令。配置和面板高度保存在 Typora 用户数据中，不向打开的项目写入本机路径或配置文件。主题读取 Typora 当前实际颜色；切换主题更新已有 xterm，不重新启动 Shell。
 
+## Shell 自动识别设计
+
+需求 R006.3.1，2026-09-12：用户截图指出新建菜单只显示四项固定名称，不能像 VS Code 一样识别本机已安装 Shell。修复前 `terminal_runtime` 的静态列表不检查可执行文件，把不存在的 PowerShell 7、Bash 当成可用配置；Git Bash、MSYS2 和 WSL 等安装没有进入同一发现流程。
+
+目标是由一个异步探测服务生成真实可用配置，新建菜单、默认选择、设置和会话启动共用它。Windows 探测系统 PowerShell/CMD、PATH、标准安装目录及注册表中的 PowerShell、Git、MSYS2/Cygwin 安装；WSL 按已注册发行版区分配置，排除内部 Docker 发行版。注册表和 PATH 未覆盖的非标准位置仍可通过用户自定义配置表达。自动发现只核对候选，不遍历全盘，也不启动用户 Shell 配置脚本；终端模拟器自身不作为 Shell 启动。
+
+探测结果是运行时缓存，不写入项目；用户自定义配置仍归 `terminal_settings` 所有，相同编号覆盖自动配置。按规范化路径、参数及必要环境去重，保留不同 MSYS 环境和 WSL 发行版。自动默认优先可用的新版 PowerShell，再回退系统 PowerShell/CMD；已保存的默认编号失效时保留设置并明确提示重新选择，不能把编号当可执行命令启动。
+
+文件与注册表查询异步、有界并发，外部枚举设超时和输出上限，全扫描截止点为 6 秒；同时请求共享进行中的扫描。首次打开等候扫描，后续读取缓存，菜单和设置提供重新检测，并显示局部查询失败提示；设置刷新保留等待期间用户的新选择。卸载取消正在运行的查询，迟到结果不再更新 UI；刷新不影响已运行会话。不可用候选不进入自动列表，局部探测失败不抹去其他有效结果。启动参数以数组交给 PTY，WSL 发行版和工作目录保持独立参数。
+
+验证包括候选存在性、非默认安装路径、去重与环境差异、WSL 编号/参数、局部失败/超时/取消、默认配置保留和自定义覆盖；再以本机实际发现清单及真实 PTY 启动验证。UI 核对新建菜单和默认配置来源一致，刷新不清空运行会话，关闭界面/卸载无迟到更新。Linux 原生运行包、Shell 命令装饰与跨窗口进程不属于这次识别修复，继续保留 R006.3 的其他缺口。
+
+实现参照 [VS Code 终端配置](https://code.visualstudio.com/docs/terminal/profiles) 的发现与自定义分工，并核对固定提交 `88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f` 的 [terminalProfiles.ts](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/platform/terminal/node/terminalProfiles.ts) 和 [powershell.ts](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/node/powershell.ts)：Git Bash 使用 `bash.exe --login -i`，PowerShell 检查多版本与常见分发位置，WSL 使用 UTF-16 枚举及独立发行版参数。MSYS2 各环境按官方 [MSYSTEM 规则](https://www.msys2.org/docs/environments/) 区分，并设置 `CHERE_INVOKING` 保留初始目录。安装注册表与有限固定盘目录的补充探测是针对实际安装问题的独立实现，不宣称逐字复制 VS Code。
+
+2026-09-12 验证：探测单元回归 14 项、设置回归 12 组通过；本机按真实机器／用户 PATH 扫描用时 672ms，发现 Git Bash、Cygwin、系统 PowerShell、CMD 和 6 个 MSYS2 环境。10 个配置经真实 ConPTY 验证标记输出、工作目录、MSYSTEM 与正常退出。启动验证禁用用户配置脚本，不证明各环境工具链或登录脚本完整；本机没有独立安装的 PowerShell 7 或 WSL 发行版，相关发现逻辑仅由夹具覆盖。完整检查、UI 与原生宿主结果见[反馈记录](feedback_review.md)。
+
 ## 职责与边界
 
-`terminal_workspace` 统一编排操作，`terminal_settings` 管配置，`terminal_session` 管 PTY，`terminal_surface` 管显示和输入，`terminal_panel` 管占用空间。创建失败、迟到的进程启动、重启与卸载均按生命周期取消；源码与 Markdown 编辑器不持有终端进程。
+`terminal_workspace` 统一编排操作，`terminal_profile_detection` 管异步发现与查询取消，`terminal_settings` 合并发现结果并管理配置，`terminal_session` 管 PTY，`terminal_surface` 管显示和输入，`terminal_panel` 管占用空间。创建失败、迟到的进程启动、重启与卸载均按生命周期取消；源码与 Markdown 编辑器不持有终端进程。
 
 目前集成运行包支持 Windows 10 1903+ x64／ARM64，其中本轮真实运行验证为 Windows x64；Linux 原生终端运行包尚未提供。关闭 Typora 后不恢复旧进程及缓冲。当前拆分为等宽，会话列表没有拖放排序、拖动宽度和跨窗口进程移交；Shell 集成命令装饰、远端终端、任务、调试器和扩展 API 也未实现。这些差异已记入需求台账，不能把当前面板与设置称为完整 VS Code 终端移植。
 

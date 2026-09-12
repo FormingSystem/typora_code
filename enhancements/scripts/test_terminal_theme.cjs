@@ -25,16 +25,18 @@ app.whenReady().then(async () => {
   test_window = new BrowserWindow({show: false, width: 1100, height: 700, webPreferences: {nodeIntegration: true, contextIsolation: false, offscreen: true, backgroundThrottling: false}});
   test_window.webContents.on('console-message', event => {if(event.level >= 2) console.error(event.message);});
   const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}#host{position:absolute;left:0;right:0;top:0;bottom:22px}footer{position:absolute;bottom:0;height:22px}</style><style id="fixture-theme">'+light+'</style><main id="host" class="typ-workspace-root"></main><footer>状态栏</footer>'); await test_window.loadFile(html);
-  const bundle = (await build({stdin: {contents: 'export { bind_terminal_workspace } from "./src/terminal_workspace"; export { terminal_theme, observe_terminal_theme } from "./src/terminal_theme";', resolveDir: path.join(__dirname, '..')}, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'terminal_qa', write: false})).outputFiles[0].text;
+  // 主题回归只控制已发现的配置目录；不得调用本机探测或启动真实 Shell。
+  const profile_fixture = `export function create_terminal_profile_service(){const values=[{id:'cmd',title:'Command Prompt',executable:'cmd.exe',args:[]}];return {warnings:()=>[],profiles:()=>structuredClone(values),ready:async()=>structuredClone(values),refresh:async()=>structuredClone(values),dispose(){}};}`;
+  const bundle = (await build({plugins:[{name:'theme-profile-fixture',setup(build){build.onLoad({filter:/terminal_profile_detection\.ts$/},()=>({contents:profile_fixture,loader:'js'}));}}],stdin: {contents: 'export { bind_terminal_workspace } from "./src/terminal_workspace"; export { terminal_theme, observe_terminal_theme } from "./src/terminal_theme";', resolveDir: path.join(__dirname, '..')}, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'terminal_qa', write: false})).outputFiles[0].text;
   await evaluate(bundle);
-  await evaluate(`(() => {
-    window.reqnode=()=>{throw new Error('No PTY or node launch allowed');}; window._options={userDataPath:${JSON.stringify(root)}};
+  await evaluate(`(async () => {
+    window.reqnode=name=>{if(name==='child_process')return {};throw new Error('No PTY or node launch allowed');}; window._options={userDataPath:${JSON.stringify(root)}};
     const factories=window.terminal_factories=new Map();window.terminal_commands=new Map(); const leaves=window.terminal_leaves=[]; window.terminal_registrations=0; const registered=()=>{terminal_registrations++;return()=>terminal_registrations--;};
     const core={WorkspaceView:class{constructor(leaf){this.leaf=leaf;}},app:{viewManager:{registerView:(type,factory)=>{factories.set(type,factory);return()=>factories.delete(type);}},commands:{run(id,args){window.split_call={id,args};},register(command){const off=registered();terminal_commands.set(command.id,command);return()=>{off();terminal_commands.delete(command.id);};}},workspace:{activeLeaf:null,eachLeaves:callback=>leaves.forEach(callback),on:registered,ribbon:{addButton:registered}}}};
     const parent={toggleTab(path){const leaf=leaves.find(item=>item.state.path===path);leaf.view.onOpen();return leaf;},removeTab(path){const index=leaves.findIndex(leaf=>leaf.state.path===path);if(index>=0){const leaf=leaves.splice(index,1)[0];leaf.view.onClose();if(core.app.workspace.activeLeaf===leaf)core.app.workspace.activeLeaf={parent};}},appendChild(leaf){leaves.push(leaf);document.querySelector('#host').append(leaf.view.containerEl);leaf.view.start=()=>{leaf.view.status.textContent='现有终端输出';};leaf.view.onOpen();}};
     core.app.workspace.activeLeaf={parent};core.app.workspace.createLeaf=({type,state})=>{const leaf={state,parent};leaf.view=factories.get(type)(leaf);leaf.view.start=()=>{leaf.view.status.textContent="fixture output";};window.view=leaf.view;return leaf;};
     const host={core,fs:require('node:fs'),path_api:require('node:path'),process_api:process,context_path:()=>${JSON.stringify(root)},workspace_path:()=>${JSON.stringify(root)},runner:()=>({run:()=>new Promise(resolve=>window.resolve_terminal_root=resolve)})};
-    localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profile:'cmd',location:'panel'}));window.terminal_host=host;window.terminal_binding=terminal_qa.bind_terminal_workspace(host);window.entry=terminal_binding.open(${JSON.stringify(root)},'cmd');window.view=entry.surface;
+    localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profile:'cmd',location:'panel'}));window.terminal_host=host;window.terminal_binding=terminal_qa.bind_terminal_workspace(host);window.entry=await terminal_binding.open(${JSON.stringify(root)},'cmd');window.view=entry.surface;
     window.output_text=()=>Array.from({length:view.term.buffer.active.length},(_,index)=>view.term.buffer.active.getLine(index)?.translateToString()).join('\\n');
     view.term.write('PRESERVED_OUTPUT\\r\\n\\x1b[31mANSI_RED\\x1b[0m \\x1b[92mANSI_BRIGHT_GREEN\\x1b[0m\\r\\nREADING_POSITION',()=>{window.output_ready=true;});
   })()`);
@@ -81,12 +83,12 @@ app.whenReady().then(async () => {
   await evaluate('terminal_binding.dispose();terminal_binding.dispose();resolve_terminal_root(terminal_host.context_path());void 0'); await delay(100);
   assert(await evaluate('terminal_leaves.length===0&&terminal_factories.size===0&&terminal_registrations===0&&!document.querySelector(".linux-note-terminal")&&!document.querySelector("[data-workspace-terminal-style]")&&!document.documentElement.hasAttribute("data-linux-note-terminal")'));
   checks.push('workspace dispose closes terminal leaves, destroys xterm, unregisters views commands ribbon events and removes owned styles');
-  await evaluate('terminal_binding.open(terminal_host.context_path(),"cmd","editor");window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path:terminal_host.context_path()}}))'); await delay(50);
+  await evaluate('(async()=>{await terminal_binding.open(terminal_host.context_path(),"cmd","editor");window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path:terminal_host.context_path()}}));})()'); await delay(50);
   assert(await evaluate('terminal_leaves.length===0&&terminal_factories.size===0'));
   checks.push('late repository resolution and commands after disposal cannot recreate terminal sessions');
   await evaluate('window.terminal_binding=terminal_qa.bind_terminal_workspace(terminal_host);void 0');
   assert(await evaluate('terminal_factories.size===1&&terminal_registrations===14&&document.querySelectorAll("[data-workspace-terminal-style]").length===1'));
-  await evaluate('localStorage.removeItem("linux-note-terminal:v1:");terminal_binding.open(terminal_host.context_path());void 0');await delay(100);
+  await evaluate('(async()=>{localStorage.removeItem("linux-note-terminal:v1:");await terminal_binding.open(terminal_host.context_path());})()');await delay(100);
   assert(await evaluate('document.querySelector(".typora-terminal-panel")&&!document.querySelector(".typora-terminal-panel").hidden&&terminal_leaves.length===0'));
   await evaluate('terminal_commands.get("linux_note:terminal_move_editor").callback();void 0');await delay(50);
   assert(await evaluate('terminal_leaves.length===1&&document.querySelector("#host .linux-note-terminal .xterm")'));

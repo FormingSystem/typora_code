@@ -4,6 +4,7 @@ import {create_workspace_lifetime} from "./workspace_lifetime";
 import xterm_css from "@xterm/xterm/css/xterm.css";
 import terminal_css from "./terminal_workspace.css";
 import {administrator_launch} from "./terminal_runtime";
+import {create_terminal_profile_service} from "./terminal_profile_detection";
 import {workspace_button as button,workspace_element as el,workspace_dialog,workspace_menu,type workspace_menu_entry} from "./workspace_widgets";
 import type {graph_host,graph_leaf} from "./git_graph_host";
 import {observe_terminal_theme} from "./terminal_theme";
@@ -23,7 +24,8 @@ export function bind_terminal_workspace(host:graph_host){
   try{
   const runtime=window as unknown as{reqnode(name:string):any;_options:{userDataPath:string}};
   const style=acquire_workspace_style("typora-code-style:terminal_workspace",xterm_css+"\n"+terminal_css,{"data-workspace-terminal-style":"ready"});lifetime.add(style.remove);
-  const settings=lifetime.own(create_terminal_settings(localStorage,host.process_api,host.path_api));
+  const profile_service=lifetime.own(create_terminal_profile_service({process_api:host.process_api,path_api:host.path_api,fs:host.fs,child_process:runtime.reqnode("child_process")}));
+  const settings=lifetime.own(create_terminal_settings(localStorage,profile_service));
   const sessions=new Map<string,session_entry>(),groups=new Map<string,HTMLElement>();let serial=0,group_serial=0,active_id="",render_frame=0;
   const panel=lifetime.own(create_terminal_panel(()=>{for(const entry of sessions.values())entry.surface.resize();}));
   const active=()=>sessions.get(active_id);
@@ -31,8 +33,12 @@ export function bind_terminal_workspace(host:graph_host){
   const overlays=new Set<()=>void>();lifetime.add(()=>{for(const close of [...overlays])close();overlays.clear();});
   const dialog=(title:string)=>{const result=workspace_dialog(title,"关闭",()=>overlays.delete(result.close));overlays.add(result.close);return result;};
   const fail=(error:unknown)=>{if(lifetime.disposed)return;dialog("终端").content.textContent=String(error instanceof Error?error.message:error);};
-  const configure=()=>{if(!lifetime.disposed)show_terminal_settings(settings,dialog("终端设置"));};
-  const menu=(event:MouseEvent,entries:workspace_menu_entry[])=>{const close=workspace_menu(event,entries,"workspace-menu-compact",()=>overlays.delete(close));overlays.add(close);};
+  const configure=()=>{
+    if(lifetime.disposed)return;const popup=dialog("终端设置");popup.content.textContent="正在检测已安装的 Shell…";
+    void settings.ready().then(()=>{if(lifetime.disposed||!popup.root.isConnected)return;popup.content.replaceChildren();show_terminal_settings(settings,popup);})
+      .catch(error=>{if(popup.root.isConnected&&!lifetime.disposed)popup.content.textContent=String(error instanceof Error?error.message:error);});
+  };
+  const menu=(event:MouseEvent,entries:workspace_menu_entry[],on_close=()=>{})=>{const close=workspace_menu(event,entries,"workspace-menu-compact",()=>{overlays.delete(close);on_close();});overlays.add(close);return close;};
   const at=(node:HTMLElement)=>{const rect=node.getBoundingClientRect();return new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom});};
   const schedule=()=>{if(!render_frame&&!lifetime.disposed)render_frame=requestAnimationFrame(()=>{render_frame=0;render();});};
   const activate=(id:string,focus=true)=>{const entry=sessions.get(id);if(!entry||lifetime.disposed)return;active_id=id;
@@ -58,9 +64,9 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();entry.moving=false;activate(id);
     if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
   };
-  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false)=>{
-    if(lifetime.disposed)return;
-    const profiles=settings.profiles(),profile=profiles.find(item=>item.id===(program||settings.get().profile))||(!program?profiles[0]:{id:program,title:program,executable:program,args:[]});
+  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false)=>(async()=>{
+    if(lifetime.disposed)return;await settings.ready();if(lifetime.disposed)return;
+    const profile=settings.select_profile(program||settings.get().profile);
     const id="terminal_"+(++serial);let entry:session_entry;
     const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status);schedule();}},explicit_cwd);
     const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,active:()=>{if(active_id!==id)activate(id,false);}});
@@ -68,7 +74,7 @@ export function bind_terminal_workspace(host:graph_host){
     if(split_id&&sessions.get(split_id)?.location==="panel")session.group=sessions.get(split_id)!.session.group;
     surface.container.oncontextmenu=event=>{const config=settings.get();if(!event.shiftKey&&config.right_click!=="menu"){event.preventDefault();if(config.right_click==="copy_paste"&&surface.term.hasSelection())void host.copy(surface.term.getSelection()).catch(fail);else void surface.paste();return;}menu(event,session_menu(id));};
     if(location==="editor")attach_editor(entry);else panel.show();render();surface.mount();surface.focus();void session.start();return entry;
-  };
+  })().catch(fail);
   const split=(id=active_id)=>{const entry=sessions.get(id);if(!entry)return;const root=settings.get().split_cwd==="workspace"?host.workspace_path():entry.session.root;
     if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true);};
   const join=(target:string,id=active_id)=>{const entry=sessions.get(id),other=sessions.get(target);if(!entry||!other||entry===other)return;if(entry.location!=="panel")move("panel",id);entry.session.group=other.session.group;activate(id);};
@@ -128,7 +134,17 @@ export function bind_terminal_workspace(host:graph_host){
   const resolve_root=async(path?:string)=>{let cwd=path||host.workspace_path();if(!host.fs.statSync(cwd).isDirectory())cwd=host.path_api.dirname(cwd);if(!path)return cwd;try{return(await host.runner({git_path:"git"} as Parameters<graph_host["runner"]>[0]).run(cwd,["rev-parse","--show-toplevel"])).trim();}catch{return cwd;}};
   const launch=(admin_mode=false,path?:string)=>{void resolve_root(path).then(root=>{if(!lifetime.disposed)admin_mode?admin(root):open(root);}).catch(fail);};
   const toggle=()=>{if(panel.visible){panel.hide();return;}const entry=[...sessions.values()].find(item=>item.location==="panel");if(entry)activate(entry.session.id);else launch();};
-  const profile_menu=(event:MouseEvent)=>menu(event,[...settings.profiles().map(profile=>({title:profile.title,action:()=>open(host.workspace_path(),profile.id)})),{title:"选择默认配置…",separator:true,action:configure},{title:"配置终端…",action:configure}]);
+  const profile_menu=(event:MouseEvent,refresh=false)=>{
+    let closed=false;const close=menu(event,[{title:"正在检测已安装的 Shell…",disabled:true,action:()=>{}}],()=>{closed=true;});
+    void (refresh?settings.refresh():settings.ready()).then(()=>{
+      if(closed||lifetime.disposed)return;close();const profiles=settings.profiles();
+      menu(event,[...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:profile.title,action:()=>{void open(host.workspace_path(),profile.id);}})),
+        ...(!profiles.length?[{title:"未发现可用的 Shell",disabled:true,action:()=>{}}]:[]),
+        ...settings.warnings().map(title=>({title,disabled:true,action:()=>{}})),
+        {title:"重新检测终端",separator:true,action:()=>profile_menu(event,true)},
+        {title:"选择默认配置…",separator:true,action:configure},{title:"配置终端…",action:configure}]);
+    }).catch(error=>{if(!closed&&!lifetime.disposed){close();fail(error);}});
+  };
   const action=(icon:git_icon_name,title:string,callback:(node:HTMLButtonElement)=>void)=>{const node=git_icon_button(icon,title,()=>callback(node));panel.toolbar.append(node);return node;};
   action("add","新建终端（Ctrl+Shift+`）",()=>launch());action("chevron-down","选择终端配置",node=>profile_menu(at(node)));
   action("split-horizontal","拆分终端",()=>split());action("trash","终止终端",()=>kill());

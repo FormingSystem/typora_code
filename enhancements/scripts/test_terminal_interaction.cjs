@@ -18,7 +18,7 @@ app.whenReady().then(async () => {
   const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}.typ-workspace-root{position:absolute;inset:0 0 24px}</style><main class="typ-workspace-root"></main>'); await test_window.loadFile(html);
   const bundle = (await build({ plugins: editor_plugins(), stdin: { contents: 'export { create_graph_host } from "./src/git_graph_host"; export { bind_terminal_workspace } from "./src/terminal_workspace";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: { '.css':'text' }, format: 'iife', globalName: 'terminal_qa', write: false })).outputFiles[0].text;
   await evaluate(bundle);
-  await evaluate(`(() => {
+  await evaluate(`(async () => {
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
     window.reqnode=require; window._options={userDataPath:${JSON.stringify(runtime_data)}};
     window.JSBridge={invoke:async(command,value)=>{window.copied=JSON.parse(value).text;}};
@@ -27,7 +27,7 @@ app.whenReady().then(async () => {
     const parent={appendChild(leaf){leaves.push(leaf);document.body.replaceChildren(leaf.view.container);leaf.view.onOpen();}};
     core.app.workspace.activeLeaf={parent}; core.app.workspace.createLeaf=({type,state})=>{const leaf={state,parent};leaf.view=factories.get(type)(leaf);window.view=leaf.view;return leaf;};
     localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profile:'cmd',location:'panel'}));
-    window.binding=terminal_qa.bind_terminal_workspace({core,fs:require('node:fs'),path_api:require('node:path'),process_api:process,context_path:()=>${JSON.stringify(root)},workspace_path:()=>${JSON.stringify(root)},copy:async text=>{window.copied=text;},runner:()=>({run:async()=>${JSON.stringify(root)}})});window.entry=binding.open(${JSON.stringify(root)},'cmd');window.view=entry.surface;
+    window.binding=terminal_qa.bind_terminal_workspace({core,fs:require('node:fs'),path_api:require('node:path'),process_api:process,context_path:()=>${JSON.stringify(root)},workspace_path:()=>${JSON.stringify(root)},copy:async text=>{window.copied=text;},runner:()=>({run:async()=>${JSON.stringify(root)}})});window.entry=await binding.open(${JSON.stringify(root)},'cmd');window.view=entry.surface;
     window.output_text=()=>{let text='';for(let index=0;index<view.term.buffer.active.length;index++)text+=view.term.buffer.active.getLine(index)?.translateToString()+'\\n';return text;};
   })()`);
   await wait('view.container.dataset.state === "running" && output_text().includes("Microsoft Windows")');

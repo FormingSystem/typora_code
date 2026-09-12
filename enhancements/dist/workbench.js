@@ -78986,11 +78986,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return false;
         }
-        static _equals(_a6, _b3) {
-          if (!_a6 || !_b3) {
-            return !_a6 && !_b3;
+        static _equals(_a7, _b3) {
+          if (!_a7 || !_b3) {
+            return !_a7 && !_b3;
           }
-          const a = toUint32Array(_a6);
+          const a = toUint32Array(_a7);
           const b2 = toUint32Array(_b3);
           if (a.length !== b2.length) {
             return false;
@@ -180706,15 +180706,6 @@ https://creativecommons.org/licenses/by/4.0/
   var terminal_workspace_default = "";
 
   // src/terminal_runtime.ts
-  function terminal_profiles(process_api, path_api) {
-    if (process_api.platform === "win32") return [
-      { id: "powershell", title: "Windows PowerShell", executable: path_api.join(process_api.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), args: ["-NoLogo"] },
-      { id: "cmd", title: "Command Prompt", executable: process_api.env.ComSpec || "cmd.exe", args: [] },
-      { id: "pwsh", title: "PowerShell 7\uFF08\u9700\u5DF2\u5B89\u88C5\uFF09", executable: "pwsh.exe", args: ["-NoLogo"] },
-      { id: "bash", title: "Bash\uFF08\u9700\u5728 PATH\uFF09", executable: "bash.exe", args: ["--login"] }
-    ];
-    return [{ id: "default", title: "\u9ED8\u8BA4 Shell", executable: process_api.env.SHELL || "/bin/sh", args: ["-l"] }];
-  }
   function terminal_environment(source) {
     const result = {};
     for (const [key, value] of Object.entries(source)) if (value != null && !/^(?:ELECTRON_RUN_AS_NODE|NODE_OPTIONS|GIT_(?:DIR|WORK_TREE|INDEX_FILE|COMMON_DIR|NAMESPACE))$/iu.test(key)) result[key] = value;
@@ -180723,7 +180714,9 @@ https://creativecommons.org/licenses/by/4.0/
   function administrator_launch(root, process_api, path_api) {
     if (process_api.platform !== "win32") throw new Error("\u7BA1\u7406\u5458\u7EC8\u7AEF\u5165\u53E3\u5F53\u524D\u4EC5\u652F\u6301 Windows\u3002");
     if (!root || root.includes("\0")) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u65E0\u6548\u3002");
-    const powershell = terminal_profiles(process_api, path_api)[0].executable;
+    const system_root = Object.entries(process_api.env).find(([key]) => key.toLowerCase() === "systemroot")?.[1];
+    if (typeof system_root !== "string" || !system_root) throw new Error("\u672A\u627E\u5230 Windows \u7CFB\u7EDF\u76EE\u5F55\u3002");
+    const powershell = path_api.join(system_root, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
     const quote = (value) => "'" + value.replace(/'/gu, "''") + "'";
     const inner = "Set-Location -LiteralPath " + quote(root);
     const encode = (value) => {
@@ -180738,6 +180731,336 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const script = "$ErrorActionPreference='Stop'; try { Start-Process -FilePath " + quote(powershell) + " -Verb RunAs -WorkingDirectory " + quote(root) + " -ArgumentList @('-NoLogo','-NoExit','-EncodedCommand','" + encode(inner) + "') } catch { [Console]::Error.WriteLine($_.Exception.Message); exit 1 }";
     return { executable: powershell, args: ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", encode(script)] };
+  }
+
+  // src/terminal_profile_detection.ts
+  var _a5;
+  var WINDOWS_INSTALLATION_QUERY = String.raw(_a5 || (_a5 = __template(["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWAREWOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixGitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixCygwinsetup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftPowerShellCoreInstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftWindowsCurrentVersionUninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:SOFTWAREMicrosoftWindowsCurrentVersionLxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"], ["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWARE\\WOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\GitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\Cygwin\\setup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\PowerShellCore\\InstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\Windows\\CurrentVersion\\Uninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"])));
+  function encode_query(script) {
+    let bytes = "";
+    for (let index = 0; index < script.length; index++) bytes += String.fromCharCode(script.charCodeAt(index) & 255, script.charCodeAt(index) >> 8);
+    return btoa(bytes);
+  }
+  function stable_suffix(value) {
+    let hash2 = 2166136261;
+    for (let index = 0; index < value.length; index++) hash2 = Math.imul(hash2 ^ value.charCodeAt(index), 16777619);
+    return (hash2 >>> 0).toString(36);
+  }
+  function create_terminal_profile_service({ process_api, path_api, fs: fs2, child_process }) {
+    const windows = process_api.platform === "win32";
+    const env2 = {};
+    for (const [name, value] of Object.entries(process_api.env || {})) if (typeof value === "string") env2[name.toLowerCase()] = value;
+    const cancel_queries = /* @__PURE__ */ new Set();
+    let disposed = false, initialized2 = false;
+    let scan_deadline = 0;
+    let detection_warnings = [];
+    const scan_stats = /* @__PURE__ */ new Map();
+    let snapshot = [], pending = null;
+    const clone3 = () => snapshot.map((profile) => ({ ...profile, args: [...profile.args], ...profile.env ? { env: { ...profile.env } } : {} }));
+    const normalize3 = (value) => windows ? path_api.normalize(value).toLowerCase() : path_api.normalize(value);
+    const expand = (value) => value.replace(/%([^%]+)%/gu, (match2, name) => env2[name.toLowerCase()] || match2);
+    const remaining_time = () => Math.max(0, scan_deadline - Date.now());
+    function warn(message) {
+      if (!disposed && !detection_warnings.includes(message)) detection_warnings.push(message);
+    }
+    function bounded(operation, fallback2, timeout_ms = 750) {
+      if (disposed || remaining_time() <= 0) {
+        Promise.resolve(operation).catch(() => {
+        });
+        warn("\u90E8\u5206\u5B89\u88C5\u4F4D\u7F6E\u67E5\u8BE2\u8D85\u65F6\uFF0C\u53EF\u91CD\u65B0\u68C0\u6D4B\u3002");
+        return Promise.resolve(fallback2);
+      }
+      return new Promise((resolve3) => {
+        let settled = false;
+        const finish = (value) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cancel_queries.delete(cancel);
+          resolve3(value);
+        };
+        const cancel = () => finish(fallback2);
+        const timer = setTimeout(cancel, Math.min(timeout_ms, remaining_time()));
+        cancel_queries.add(cancel);
+        Promise.resolve(operation).then((value) => finish(disposed ? fallback2 : value), cancel);
+        if (disposed) cancel();
+      });
+    }
+    async function stat(file_path) {
+      if (disposed || !file_path || file_path.includes("\0")) return null;
+      const key = normalize3(file_path);
+      if (scan_stats.has(key)) return scan_stats.get(key);
+      if (remaining_time() <= 0) {
+        warn("\u90E8\u5206\u5B89\u88C5\u4F4D\u7F6E\u67E5\u8BE2\u8D85\u65F6\uFF0C\u53EF\u91CD\u65B0\u68C0\u6D4B\u3002");
+        return null;
+      }
+      try {
+        const result = await bounded(fs2.promises.stat(file_path), null);
+        if (result) scan_stats.set(key, result);
+        return result;
+      } catch {
+        return null;
+      }
+    }
+    async function exists(file_path) {
+      return !!(await stat(file_path))?.isFile();
+    }
+    async function directory(file_path) {
+      return !!(await stat(file_path))?.isDirectory();
+    }
+    async function list3(folder) {
+      if (disposed || remaining_time() <= 0 || !folder) return [];
+      try {
+        const entries3 = await bounded(fs2.promises.readdir(folder), []);
+        return entries3.filter((name) => typeof name === "string").slice(0, 256).sort();
+      } catch {
+        return [];
+      }
+    }
+    function query(executable, args, encoding = "utf8", query_env = process_api.env, failure_message = "\u90E8\u5206\u5B89\u88C5\u4FE1\u606F\u67E5\u8BE2\u5931\u8D25\uFF0C\u53EF\u91CD\u65B0\u68C0\u6D4B\u3002") {
+      if (disposed || remaining_time() <= 0 || !child_process?.execFile) {
+        warn(failure_message);
+        return Promise.resolve("");
+      }
+      return new Promise((resolve3) => {
+        let child, settled = false;
+        const finish = (text3 = "") => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cancel_queries.delete(cancel);
+          resolve3(disposed ? "" : text3);
+        };
+        const cancel = () => {
+          try {
+            child?.kill();
+          } catch {
+          }
+          warn(failure_message);
+          finish();
+        };
+        const timer = setTimeout(cancel, Math.min(2500, remaining_time()));
+        cancel_queries.add(cancel);
+        try {
+          child = child_process.execFile(executable, args, { encoding, windowsHide: true, timeout: Math.min(2e3, remaining_time()), maxBuffer: 512 * 1024, env: query_env }, (error, output) => {
+            if (error) warn(failure_message);
+            finish(error ? "" : String(output || ""));
+          });
+          if (disposed) cancel();
+        } catch {
+          cancel();
+        }
+      });
+    }
+    async function map_bounded(items, action) {
+      let cursor = 0;
+      await Promise.all(Array.from({ length: Math.min(16, items.length) }, async () => {
+        while (!disposed && cursor < items.length) await action(items[cursor++]);
+      }));
+    }
+    async function scan() {
+      const candidates = [];
+      const add = (id, title, executable, args, priority, profile_env, wsl) => {
+        if (!executable || !path_api.isAbsolute(executable) || candidates.length >= 2048) return;
+        candidates.push({ id, title, executable: path_api.normalize(executable), args, priority, ...profile_env ? { env: profile_env } : {}, ...wsl ? { wsl } : {} });
+      };
+      const path_entries = /* @__PURE__ */ new Set();
+      function add_paths(value) {
+        for (const entry of String(value || "").split(windows ? ";" : ":")) {
+          const normalized = expand(entry.trim().replace(/^"|"$/gu, ""));
+          if (path_entries.size < 256 && path_api.isAbsolute(normalized)) path_entries.add(normalize3(normalized));
+        }
+      }
+      add_paths(env2.path);
+      if (windows) {
+        const system_root = env2.systemroot || env2.windir;
+        const system_folder = system_root ? path_api.join(system_root, env2.processor_architew6432 ? "Sysnative" : "System32") : "";
+        const powershell = system_folder ? path_api.join(system_folder, "WindowsPowerShell", "v1.0", "powershell.exe") : "";
+        if (powershell) add("powershell", "Windows PowerShell", powershell, ["-NoLogo"], 80);
+        if (system_folder) {
+          const command_prompt = path_api.join(system_folder, "cmd.exe");
+          if (await exists(command_prompt)) add("cmd", "Command Prompt", command_prompt, [], 90);
+        }
+        if (env2.comspec) add("cmd", "Command Prompt", env2.comspec, [], 89);
+        let installations = {};
+        if (await exists(powershell)) {
+          const output = await query(powershell, ["-NoLogo", "-NoProfile", "-NonInteractive", "-EncodedCommand", encode_query(WINDOWS_INSTALLATION_QUERY)]);
+          try {
+            installations = JSON.parse(output.replace(/^\uFEFF/u, ""));
+          } catch {
+          }
+        }
+        add_paths(installations.machine_path);
+        add_paths(installations.user_path);
+        const git_roots = /* @__PURE__ */ new Set(), msys_roots = /* @__PURE__ */ new Set(), cygwin_roots = /* @__PURE__ */ new Set(), powershell_roots = /* @__PURE__ */ new Set();
+        const add_root = (roots, value) => {
+          if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize3(value));
+        };
+        for (const installation of Array.isArray(installations.installations) ? installations.installations.slice(0, 256) : []) {
+          const roots = { git: git_roots, msys: msys_roots, cygwin: cygwin_roots, pwsh: powershell_roots }[installation.kind];
+          if (roots) add_root(roots, installation.root);
+        }
+        for (const prefix of [env2.programw6432, env2.programfiles, env2["programfiles(x86)"], env2.localappdata && path_api.join(env2.localappdata, "Programs")].filter(Boolean)) {
+          add_root(git_roots, path_api.join(prefix, "Git"));
+          for (const version of await list3(path_api.join(prefix, "PowerShell"))) if (/^\d+(?:\.\d+)*(?:-preview)?$/iu.test(version)) add_root(powershell_roots, path_api.join(prefix, "PowerShell", version));
+        }
+        if (env2.userprofile) {
+          add_root(powershell_roots, path_api.join(env2.userprofile, ".dotnet", "tools"));
+          for (const app of ["pwsh", "pwsh-preview"]) add_root(powershell_roots, path_api.join(env2.userprofile, "scoop", "apps", app, "current"));
+          for (const app of ["git", "git-with-openssh"]) add_root(git_roots, path_api.join(env2.userprofile, "scoop", "apps", app, "current"));
+          add_root(msys_roots, path_api.join(env2.userprofile, "scoop", "apps", "msys2", "current"));
+        }
+        if (env2.localappdata) {
+          const aliases = path_api.join(env2.localappdata, "Microsoft", "WindowsApps");
+          for (const alias of await list3(aliases)) if (/^Microsoft\.PowerShell(?:Preview)?_/u.test(alias)) add_root(powershell_roots, path_api.join(aliases, alias));
+        }
+        const drives = new Set([env2.homedrive, system_root && path_api.parse(system_root).root, ...Array.isArray(installations.drives) ? installations.drives.slice(0, 26) : []].filter(Boolean));
+        for (const drive of drives) if (/^[a-z]:\\?$/iu.test(drive)) {
+          for (const folder of ["msys64", "msys32", "msys2"]) add_root(msys_roots, path_api.join(drive + "\\", folder));
+          for (const folder of ["cygwin64", "cygwin"]) add_root(cygwin_roots, path_api.join(drive + "\\", folder));
+        }
+        for (const key of ["msys2_root", "msys_root"]) add_root(msys_roots, env2[key]);
+        add_root(cygwin_roots, env2.cygwin_root);
+        const path_bash = [];
+        await map_bounded([...path_entries], async (prefix) => {
+          if (await exists(path_api.join(prefix, "git.exe"))) {
+            add_root(git_roots, path_api.dirname(prefix));
+            add_root(git_roots, path_api.dirname(path_api.dirname(prefix)));
+          }
+          if (await exists(path_api.join(prefix, "bash.exe"))) {
+            path_bash.push(path_api.join(prefix, "bash.exe"));
+            const parent = path_api.dirname(prefix), grandparent = path_api.dirname(parent);
+            if (await exists(path_api.join(grandparent, "msys2_shell.cmd"))) add_root(msys_roots, grandparent);
+            if (await exists(path_api.join(prefix, "cygwin1.dll"))) add_root(cygwin_roots, parent);
+          }
+          for (const [name, title, args, priority] of [["pwsh", "PowerShell", ["-NoLogo"], 20], ["nu", "Nushell", [], 60], ["zsh", "Zsh", ["-l"], 65], ["fish", "Fish", ["-l"], 66]]) {
+            add(name, title, path_api.join(prefix, name + ".exe"), [...args], priority);
+          }
+        });
+        let powershell_rank = 0;
+        for (const root of [...powershell_roots].sort((left, right) => right.localeCompare(left, void 0, { numeric: true }))) {
+          const preview = /preview/iu.test(root);
+          add("pwsh", "PowerShell" + (preview ? " Preview" : "") + " (" + path_api.basename(root) + ")", path_api.join(root, "pwsh.exe"), ["-NoLogo"], (preview ? 30 : 10) + powershell_rank++ / 1e3);
+        }
+        const assigned_bash = /* @__PURE__ */ new Set();
+        async function bash_for_root(root, segments) {
+          let chosen = "";
+          for (const segments_item of segments) {
+            const file_path = path_api.join(root, ...segments_item);
+            if (await exists(file_path)) {
+              assigned_bash.add(normalize3(file_path));
+              if (!chosen) chosen = file_path;
+            }
+          }
+          return chosen;
+        }
+        for (const root of [...git_roots].sort()) {
+          if (msys_roots.has(root) || cygwin_roots.has(root)) continue;
+          const executable = await bash_for_root(root, [["bin", "bash.exe"], ["usr", "bin", "bash.exe"]]);
+          if (executable) add("git_bash_" + stable_suffix(root), "Git Bash", executable, ["--login", "-i"], 40, { CHERE_INVOKING: "1" });
+        }
+        for (const root of [...msys_roots].sort()) {
+          const executable = await bash_for_root(root, [["usr", "bin", "bash.exe"]]);
+          if (!executable) continue;
+          add("msys2_msys_" + stable_suffix(root), "MSYS2 MSYS", executable, ["--login", "-i"], 50, { MSYSTEM: "MSYS", CHERE_INVOKING: "1" });
+          for (const variant of ["ucrt64", "mingw64", "mingw32", "clang64", "clangarm64"]) if (await directory(path_api.join(root, variant, "bin"))) {
+            add("msys2_" + variant + "_" + stable_suffix(root), "MSYS2 " + variant.toUpperCase(), executable, ["--login", "-i"], 51, { MSYSTEM: variant.toUpperCase(), CHERE_INVOKING: "1" });
+          }
+        }
+        for (const root of [...cygwin_roots].sort()) {
+          const executable = await bash_for_root(root, [["bin", "bash.exe"]]);
+          if (executable) add("cygwin_" + stable_suffix(root), "Cygwin", executable, ["--login", "-i"], 55, { CHERE_INVOKING: "1" });
+        }
+        for (const executable of path_bash.sort()) if (!assigned_bash.has(normalize3(executable))) add("bash", "Bash", executable, ["--login", "-i"], 70);
+        if (env2.cmder_root && system_folder && await exists(path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd"))) {
+          add("cmder", "Cmder", path_api.join(system_folder, "cmd.exe"), ["/K", path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd")], 75);
+        }
+        const wsl = system_folder ? path_api.join(system_folder, "wsl.exe") : "";
+        if (!(Array.isArray(installations.wsl_distributions) && installations.wsl_distributions.length === 0) && await exists(wsl)) {
+          const wsl_failure = "WSL \u53D1\u884C\u7248\u67E5\u8BE2\u5931\u8D25\uFF1B\u672C\u6B21\u672A\u53D6\u5F97\u65B0\u7684 WSL \u914D\u7F6E\u3002";
+          const distro_output = await query(wsl, ["--list", "--quiet"], "utf16le", { ...process_api.env, WSL_UTF8: "0" }, wsl_failure);
+          const distros = new Set(distro_output.replace(/^\uFEFF/u, "").replace(/\0/gu, "").split(/\r?\n/u).map((name) => name.trim()).filter((name) => name && !/^docker-desktop/iu.test(name)));
+          for (const name of [...distros].slice(0, 64)) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, void 0, true);
+          if (detection_warnings.includes(wsl_failure)) for (const profile of snapshot.filter((profile2) => profile2.wsl)) candidates.push({ ...profile, priority: 100 });
+        }
+      } else {
+        if (env2.shell) add("default", path_api.basename(env2.shell), env2.shell, ["-l"], 0);
+        let shell_file = "";
+        try {
+          shell_file = await bounded(fs2.promises.readFile("/etc/shells", "utf8"), "");
+        } catch {
+        }
+        for (const value of String(shell_file).split(/\r?\n/u)) {
+          const executable = value.replace(/#.*/u, "").trim();
+          if (path_api.isAbsolute(executable)) add(path_api.basename(executable), path_api.basename(executable), executable, ["-l"], 10);
+        }
+        for (const prefix of path_entries) for (const name of ["bash", "zsh", "fish", "pwsh", "nu", "sh"]) add(name, name, path_api.join(prefix, name), name === "nu" ? [] : ["-l"], 20);
+        add("sh", "sh", "/bin/sh", ["-l"], 30);
+      }
+      const valid = [];
+      await map_bounded(candidates, async (candidate) => {
+        if (!await exists(candidate.executable)) return;
+        if (fs2.promises.realpath) {
+          try {
+            candidate.canonical_path = await bounded(fs2.promises.realpath(candidate.executable), candidate.executable);
+          } catch {
+          }
+        }
+        if (!windows) {
+          try {
+            await bounded(fs2.promises.access(candidate.executable, fs2.constants?.X_OK ?? 1).then(() => true), false).then((result2) => {
+              if (result2) valid.push(candidate);
+            });
+          } catch {
+          }
+        } else valid.push(candidate);
+      });
+      valid.sort((left, right) => left.priority - right.priority || left.executable.localeCompare(right.executable, void 0, { numeric: true }) || left.id.localeCompare(right.id));
+      const keys = /* @__PURE__ */ new Set(), ids = /* @__PURE__ */ new Set(), result = [];
+      for (const candidate of valid) {
+        const key = JSON.stringify([normalize3(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
+        if (keys.has(key)) continue;
+        keys.add(key);
+        const { priority, canonical_path, ...profile } = candidate;
+        if (ids.has(profile.id)) profile.id += "_" + stable_suffix(key);
+        ids.add(profile.id);
+        result.push(profile);
+      }
+      const title_counts = /* @__PURE__ */ new Map();
+      for (const profile of result) title_counts.set(profile.title, (title_counts.get(profile.title) || 0) + 1);
+      for (const profile of result) if ((title_counts.get(profile.title) || 0) > 1) profile.title += " \u2014 " + path_api.dirname(profile.executable);
+      return result;
+    }
+    function refresh() {
+      if (disposed) return Promise.resolve([]);
+      if (pending) return pending;
+      scan_deadline = Date.now() + 6e3;
+      detection_warnings = [];
+      scan_stats.clear();
+      pending = scan().then((result) => {
+        if (!disposed) {
+          snapshot = result;
+          initialized2 = true;
+        }
+        return disposed ? [] : clone3();
+      }).finally(() => {
+        pending = null;
+      });
+      return pending;
+    }
+    return {
+      profiles: clone3,
+      warnings: () => [...detection_warnings],
+      ready: () => disposed ? Promise.resolve([]) : initialized2 ? Promise.resolve(clone3()) : refresh(),
+      refresh,
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        for (const cancel of [...cancel_queries]) cancel();
+        cancel_queries.clear();
+        snapshot = [];
+      }
+    };
   }
 
   // src/terminal_settings.ts
@@ -180831,7 +181154,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return result;
   }
-  function create_terminal_settings(storage, process_api, path_api) {
+  function create_terminal_settings(storage, catalog) {
     let current = structuredClone(terminal_defaults);
     try {
       const data = JSON.parse(storage.getItem(TERMINAL_SETTINGS_KEY) || "{}");
@@ -180843,17 +181166,31 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const listeners = /* @__PURE__ */ new Set();
     const profiles = () => {
-      const values = new Map(terminal_profiles(process_api, path_api).map((item) => [item.id, item]));
+      const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
-      return [...values.values()];
+      return structuredClone([...values.values()]);
     };
     return {
       get: () => structuredClone(current),
       profiles,
+      ready: () => catalog.ready(),
+      refresh: () => catalog.refresh(),
+      warnings: () => catalog.warnings(),
+      select_profile(id = current.profile) {
+        const values = profiles();
+        if (id) {
+          const selected2 = values.find((item) => item.id === id);
+          if (!selected2) throw new Error("\u7EC8\u7AEF\u914D\u7F6E\u4E0D\u53EF\u7528\uFF1A" + id + "\u3002\u8BF7\u91CD\u65B0\u68C0\u6D4B\u6216\u9009\u62E9\u9ED8\u8BA4\u914D\u7F6E\u3002");
+          return selected2;
+        }
+        const selected = ["pwsh", "powershell", "cmd"].map((name) => values.find((item) => item.id === name)).find(Boolean) || values[0];
+        if (!selected) throw new Error("\u672A\u53D1\u73B0\u53EF\u7528\u7684 Shell\uFF0C\u8BF7\u5728\u7EC8\u7AEF\u8BBE\u7F6E\u4E2D\u6DFB\u52A0\u81EA\u5B9A\u4E49\u914D\u7F6E\u3002");
+        return selected;
+      },
       update(value) {
         const next = validate_terminal_settings(value);
-        const ids = new Set([...terminal_profiles(process_api, path_api), ...next.profiles].map((item) => item.id));
-        if (next.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
+        const ids = new Set([...catalog.profiles(), ...next.profiles].map((item) => item.id));
+        if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
         for (const listener of listeners) listener(structuredClone(current));
@@ -180881,7 +181218,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (existing) delete env2[existing];
       if (value !== null) Object.defineProperty(env2, key, { value: expand(value), enumerable: true, writable: true, configurable: true });
     }
-    return { executable: expand(profile.executable), args: profile.args.map(expand), cwd: path_api.isAbsolute(cwd2) ? cwd2 : path_api.resolve(root, cwd2), env: env2 };
+    const resolved_cwd = path_api.isAbsolute(cwd2) ? cwd2 : path_api.resolve(root, cwd2);
+    const args = profile.args.map(expand);
+    if (profile.wsl) args.push("--cd", resolved_cwd);
+    return { executable: expand(profile.executable), args, cwd: resolved_cwd, env: env2 };
   }
 
   // src/terminal_settings_view.ts
@@ -180899,11 +181239,29 @@ https://creativecommons.org/licenses/by/4.0/
       form.append(label_node);
       inputs.set(key, control);
     };
-    const profile = workspace_element("select");
-    profile.append(workspace_option("", "\u9ED8\u8BA4"));
-    for (const item of store.profiles()) profile.append(workspace_option(item.id, item.title));
-    profile.value = current.profile;
+    const profile = workspace_element("select"), detection_status = workspace_element("small");
+    detection_status.setAttribute("role", "status");
+    const fill_profiles = (selected) => {
+      profile.replaceChildren(workspace_option("", "\u81EA\u52A8\u9009\u62E9"));
+      const profiles = store.profiles();
+      for (const item of profiles) profile.append(workspace_option(item.id, item.title));
+      if (selected && !profiles.some((item) => item.id === selected)) profile.append(workspace_option(selected, selected + "\uFF08\u5F53\u524D\u4E0D\u53EF\u7528\uFF09"));
+      profile.value = selected;
+      detection_status.textContent = store.warnings().join(" ");
+    };
+    fill_profiles(current.profile);
     row("profile", "\u9ED8\u8BA4\u914D\u7F6E", profile);
+    const detect = workspace_button("\u91CD\u65B0\u68C0\u6D4B\u7EC8\u7AEF", () => {
+      detect.disabled = true;
+      void store.refresh().then(() => {
+        if (dialog.root.isConnected) fill_profiles(profile.value);
+      }).catch((failure) => {
+        if (dialog.root.isConnected) error.textContent = String(failure instanceof Error ? failure.message : failure);
+      }).finally(() => {
+        if (dialog.root.isConnected) detect.disabled = false;
+      });
+    });
+    profile.parentElement?.append(detect, detection_status);
     for (const [key, label, min, max, step] of [["font_size", "\u5B57\u4F53\u5927\u5C0F", 6, 100, 1], ["line_height", "\u884C\u9AD8\u500D\u6570", 1, 3, 0.1], ["letter_spacing", "\u5B57\u7B26\u95F4\u8DDD", -5, 10, 0.1], ["cursor_width", "\u5149\u6807\u5BBD\u5EA6", 1, 10, 1], ["scrollback", "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", 0, 1e5, 1], ["scroll_sensitivity", "\u6EDA\u8F6E\u901F\u5EA6", 0.1, 20, 0.1], ["fast_scroll_sensitivity", "Alt \u6EDA\u8F6E\u500D\u901F", 1, 20, 1], ["minimum_contrast", "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", 1, 21, 0.5], ["tab_stop_width", "\u5236\u8868\u7B26\u5BBD\u5EA6", 1, 32, 1]]) {
       const input = workspace_element("input");
       input.type = "number";
@@ -180938,7 +181296,7 @@ https://creativecommons.org/licenses/by/4.0/
       control.value = current[key];
       row(key, label, control, key === "cwd" ? "\u7559\u7A7A\u4F7F\u7528\u5F53\u524D\u5DE5\u4F5C\u533A\uFF1B\u76F8\u5BF9\u8DEF\u5F84\u4EE5\u5DE5\u4F5C\u533A\u6839\u76EE\u5F55\u4E3A\u8D77\u70B9\u3002\u652F\u6301 ${workspaceFolder} \u4E0E ${env:\u53D8\u91CF\u540D}\u3002" : "");
     }
-    for (const [key, label, help] of [["env", "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", "\u5B57\u7B26\u4E32\u8BBE\u7F6E\u53D8\u91CF\uFF0Cnull \u5220\u9664\u53D8\u91CF\uFF1B\u66F4\u6539\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u540E\u751F\u6548\u3002"], ["profiles", "\u81EA\u5B9A\u4E49 Shell \u914D\u7F6E\uFF08JSON\uFF09", "\u6BCF\u9879\u5305\u542B id\u3001title\u3001executable\u3001args\uFF0C\u53EF\u9644 cwd\u3001env\u3001icon\u3001color\u3002\u76F8\u540C id \u8986\u76D6\u5185\u7F6E\u914D\u7F6E\u3002"]]) {
+    for (const [key, label, help] of [["env", "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", "\u5B57\u7B26\u4E32\u8BBE\u7F6E\u53D8\u91CF\uFF0Cnull \u5220\u9664\u53D8\u91CF\uFF1B\u66F4\u6539\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u540E\u751F\u6548\u3002"], ["profiles", "\u81EA\u5B9A\u4E49 Shell \u914D\u7F6E\uFF08JSON\uFF09", "\u6BCF\u9879\u5305\u542B id\u3001title\u3001executable\u3001args\uFF0C\u53EF\u9644 cwd\u3001env\u3001icon\u3001color\u3002\u76F8\u540C id \u8986\u76D6\u81EA\u52A8\u68C0\u6D4B\u914D\u7F6E\u3002"]]) {
       const control = workspace_element("textarea");
       control.rows = key === "profiles" ? 10 : 4;
       control.value = JSON.stringify(current[key], null, 2);
@@ -181135,7 +181493,9 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         if (this.host.process_api.platform !== "win32") throw new Error("\u96C6\u6210\u7EC8\u7AEF\u8FD0\u884C\u5305\u5F53\u524D\u652F\u6301 Windows x64/ARM64\u3002");
         if (Number(runtime2.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
-        const profile = this.settings.profiles().find((item) => item.id === this.profile.id) || this.profile;
+        await this.settings.ready();
+        if (this.disposed || generation !== this.generation) return;
+        const profile = this.settings.select_profile(this.profile.id);
         const launch = resolve_terminal_launch(this.settings.get(), profile, this.launch_root, this.host.process_api, this.host.path_api, this.explicit_cwd);
         if (!this.host.path_api.isAbsolute(launch.cwd) || !this.host.fs.statSync(launch.cwd).isDirectory()) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u4E0D\u5B58\u5728\u3002");
         this.root = launch.cwd;
@@ -183189,7 +183549,7 @@ https://creativecommons.org/licenses/by/4.0/
       this._emitter && (this._emitter.dispose(), this._emitter = null);
     }
   };
-  var _a5 = Symbol("MicrotaskDelay");
+  var _a6 = Symbol("MicrotaskDelay");
   var Ye = class {
     constructor(t, e) {
       this._isDisposed = false;
@@ -192352,7 +192712,8 @@ https://creativecommons.org/licenses/by/4.0/
       const runtime2 = window;
       const style = acquire_workspace_style("typora-code-style:terminal_workspace", xterm_default + "\n" + terminal_workspace_default, { "data-workspace-terminal-style": "ready" });
       lifetime.add(style.remove);
-      const settings = lifetime.own(create_terminal_settings(localStorage, host.process_api, host.path_api));
+      const profile_service = lifetime.own(create_terminal_profile_service({ process_api: host.process_api, path_api: host.path_api, fs: host.fs, child_process: runtime2.reqnode("child_process") }));
+      const settings = lifetime.own(create_terminal_settings(localStorage, profile_service));
       const sessions = /* @__PURE__ */ new Map(), groups = /* @__PURE__ */ new Map();
       let serial2 = 0, group_serial = 0, active_id = "", render_frame = 0;
       const panel = lifetime.own(create_terminal_panel(() => {
@@ -192374,11 +192735,25 @@ https://creativecommons.org/licenses/by/4.0/
         dialog("\u7EC8\u7AEF").content.textContent = String(error instanceof Error ? error.message : error);
       };
       const configure = () => {
-        if (!lifetime.disposed) show_terminal_settings(settings, dialog("\u7EC8\u7AEF\u8BBE\u7F6E"));
+        if (lifetime.disposed) return;
+        const popup = dialog("\u7EC8\u7AEF\u8BBE\u7F6E");
+        popup.content.textContent = "\u6B63\u5728\u68C0\u6D4B\u5DF2\u5B89\u88C5\u7684 Shell\u2026";
+        void settings.ready().then(() => {
+          if (lifetime.disposed || !popup.root.isConnected) return;
+          popup.content.replaceChildren();
+          show_terminal_settings(settings, popup);
+        }).catch((error) => {
+          if (popup.root.isConnected && !lifetime.disposed) popup.content.textContent = String(error instanceof Error ? error.message : error);
+        });
       };
-      const menu = (event, entries3) => {
-        const close = workspace_menu(event, entries3, "workspace-menu-compact", () => overlays.delete(close));
+      const menu = (event, entries3, on_close = () => {
+      }) => {
+        const close = workspace_menu(event, entries3, "workspace-menu-compact", () => {
+          overlays.delete(close);
+          on_close();
+        });
         overlays.add(close);
+        return close;
       };
       const at3 = (node) => {
         const rect = node.getBoundingClientRect();
@@ -192453,9 +192828,11 @@ https://creativecommons.org/licenses/by/4.0/
         activate(id);
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
-      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false) => {
+      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false) => (async () => {
         if (lifetime.disposed) return;
-        const profiles = settings.profiles(), profile = profiles.find((item) => item.id === (program || settings.get().profile)) || (!program ? profiles[0] : { id: program, title: program, executable: program, args: [] });
+        await settings.ready();
+        if (lifetime.disposed) return;
+        const profile = settings.select_profile(program || settings.get().profile);
         const id = "terminal_" + ++serial2;
         let entry;
         const session = new terminal_session(id, root, profile, host, settings, (data, done) => surface.term.write(data, done), () => {
@@ -192491,7 +192868,7 @@ https://creativecommons.org/licenses/by/4.0/
         surface.focus();
         void session.start();
         return entry;
-      };
+      })().catch(fail);
       const split = (id = active_id) => {
         const entry = sessions.get(id);
         if (!entry) return;
@@ -192584,7 +192961,35 @@ https://creativecommons.org/licenses/by/4.0/
         if (entry) activate(entry.session.id);
         else launch();
       };
-      const profile_menu = (event) => menu(event, [...settings.profiles().map((profile) => ({ title: profile.title, action: () => open(host.workspace_path(), profile.id) })), { title: "\u9009\u62E9\u9ED8\u8BA4\u914D\u7F6E\u2026", separator: true, action: configure }, { title: "\u914D\u7F6E\u7EC8\u7AEF\u2026", action: configure }]);
+      const profile_menu = (event, refresh = false) => {
+        let closed = false;
+        const close = menu(event, [{ title: "\u6B63\u5728\u68C0\u6D4B\u5DF2\u5B89\u88C5\u7684 Shell\u2026", disabled: true, action: () => {
+        } }], () => {
+          closed = true;
+        });
+        void (refresh ? settings.refresh() : settings.ready()).then(() => {
+          if (closed || lifetime.disposed) return;
+          close();
+          const profiles = settings.profiles();
+          menu(event, [
+            ...profiles.map((profile) => ({ id: "terminal_profile_" + profile.id, title: profile.title, action: () => {
+              void open(host.workspace_path(), profile.id);
+            } })),
+            ...!profiles.length ? [{ title: "\u672A\u53D1\u73B0\u53EF\u7528\u7684 Shell", disabled: true, action: () => {
+            } }] : [],
+            ...settings.warnings().map((title) => ({ title, disabled: true, action: () => {
+            } })),
+            { title: "\u91CD\u65B0\u68C0\u6D4B\u7EC8\u7AEF", separator: true, action: () => profile_menu(event, true) },
+            { title: "\u9009\u62E9\u9ED8\u8BA4\u914D\u7F6E\u2026", separator: true, action: configure },
+            { title: "\u914D\u7F6E\u7EC8\u7AEF\u2026", action: configure }
+          ]);
+        }).catch((error) => {
+          if (!closed && !lifetime.disposed) {
+            close();
+            fail(error);
+          }
+        });
+      };
       const action = (icon, title, callback) => {
         const node = git_icon_button(icon, title, () => callback(node));
         panel.toolbar.append(node);
@@ -227924,6 +228329,85 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/workspace_footer_popups.ts
+  function bind_workspace_footer_popups(footer, actions, sidebar) {
+    const lifetime = create_workspace_lifetime();
+    const definitions = [
+      { selector: "#sidebar-files-menu", anchors: ["#sidebar-menu-btn"] },
+      { selector: "#toc-dropmenu", anchors: ["#unpin-outline-btn", "#outline-btn", "#sidebar-menu-btn"] },
+      { selector: "#footer-word-count-info", anchors: ["#footer-word-count"] },
+      { selector: "#spell-check-panel", anchors: ["#footer-spell-check"] }
+    ];
+    const properties2 = ["--workspace-popup-left", "--workspace-popup-top", "--workspace-popup-max-height"];
+    const entries3 = definitions.flatMap((definition2) => {
+      const menu = document.querySelector(definition2.selector);
+      if (!menu) return [];
+      const attribute = menu.getAttribute("data-workspace-footer-popup");
+      const previous = properties2.map((name) => [name, menu.style.getPropertyValue(name), menu.style.getPropertyPriority(name)]);
+      menu.setAttribute("data-workspace-footer-popup", "ready");
+      lifetime.add(() => {
+        if (attribute === null) menu.removeAttribute("data-workspace-footer-popup");
+        else menu.setAttribute("data-workspace-footer-popup", attribute);
+        for (const [name, value, priority] of previous) {
+          if (value) menu.style.setProperty(name, value, priority);
+          else menu.style.removeProperty(name);
+        }
+      });
+      return [{ menu, anchors: definition2.anchors }];
+    });
+    const initial_layer = footer.getAttribute("data-workspace-footer-popup-open");
+    lifetime.add(() => {
+      if (initial_layer === null) footer.removeAttribute("data-workspace-footer-popup-open");
+      else footer.setAttribute("data-workspace-footer-popup-open", initial_layer);
+    });
+    let frame2 = 0;
+    const visible2 = (node) => Boolean(node?.isConnected && node.getClientRects().length && getComputedStyle(node).display !== "none" && getComputedStyle(node).visibility !== "hidden");
+    const set_property = (node, name, value) => {
+      if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
+    };
+    const layout2 = () => {
+      frame2 = 0;
+      if (lifetime.disposed) return;
+      const footer_visible = visible2(footer), footer_bounds = footer.getBoundingClientRect();
+      const titlebar = document.querySelector("#top-titlebar");
+      const viewport_top = visible2(titlebar) ? Math.max(4, titlebar.getBoundingClientRect().bottom + 4) : 4;
+      let nested_open = false;
+      for (const { menu, anchors } of entries3) {
+        if (!footer_visible || !visible2(menu)) continue;
+        const anchor = anchors.map((selector) => footer.querySelector(selector)).find((node) => visible2(node)) || footer;
+        const anchor_bounds = anchor.getBoundingClientRect();
+        const bottom = Math.min(innerHeight - 4, footer_bounds.top - 3, anchor_bounds.top - 3);
+        set_property(menu, "--workspace-popup-max-height", Math.max(0, Math.min(innerHeight * 0.65, bottom - viewport_top)) + "px");
+        const bounds = menu.getBoundingClientRect(), computed = getComputedStyle(menu);
+        const origin_x = bounds.left - (parseFloat(computed.left) || 0), origin_y = bounds.top - (parseFloat(computed.top) || 0);
+        const left = Math.max(4, Math.min(anchor_bounds.right - bounds.width, innerWidth - bounds.width - 4));
+        const top = Math.max(viewport_top, bottom - bounds.height);
+        set_property(menu, "--workspace-popup-left", left - origin_x + "px");
+        set_property(menu, "--workspace-popup-top", top - origin_y + "px");
+        nested_open = nested_open || footer.contains(menu);
+      }
+      if (nested_open) footer.setAttribute("data-workspace-footer-popup-open", "true");
+      else footer.removeAttribute("data-workspace-footer-popup-open");
+    };
+    const schedule = () => {
+      if (!lifetime.disposed && !frame2) frame2 = requestAnimationFrame(layout2);
+    };
+    const resize = new ResizeObserver(schedule);
+    for (const node of [footer, actions, document.querySelector(".typ-workspace-root"), ...entries3.map((entry) => entry.menu)]) if (node) resize.observe(node);
+    const mutation = new MutationObserver(schedule);
+    for (const node of [sidebar, actions, footer, document.body, document.documentElement, document.querySelector(".typ-workspace-root")]) if (node) mutation.observe(node, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    for (const { menu } of entries3) mutation.observe(menu, { attributes: true, attributeFilter: ["class", "style", "hidden"], childList: true, subtree: true });
+    lifetime.listen(window, "resize", schedule);
+    lifetime.listen(document, "transitionend", schedule, true);
+    lifetime.add(() => {
+      cancelAnimationFrame(frame2);
+      resize.disconnect();
+      mutation.disconnect();
+    });
+    schedule();
+    return { dispose: lifetime.dispose };
+  }
+
   // src/workspace_footer.css
   var workspace_footer_default = "";
 
@@ -227949,6 +228433,7 @@ https://creativecommons.org/licenses/by/4.0/
     sidebar.dataset.workspaceFooter = "moved";
     footer.insertBefore(actions, footer.querySelector(":scope > .footer-item-right"));
     const document_margin = install_workspace_document_margin(footer);
+    const popups = bind_workspace_footer_popups(footer, actions, sidebar);
     const control_icons = bind_workspace_control_icons(footer, [
       ["#sidebar-new-file-btn>.ty-icon", "new-file"],
       ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon", "more"],
@@ -227974,6 +228459,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       observer.disconnect();
+      popups.dispose();
       control_icons.dispose();
       document_margin.dispose();
       original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);

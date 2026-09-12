@@ -1,6 +1,7 @@
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
 import {install_workspace_document_margin} from "./workspace_document_margin";
+import {bind_workspace_footer_popups} from "./workspace_footer_popups";
 import workspace_footer_css from "./workspace_footer.css";
 
 type footer_binding = { dispose(): void };
@@ -25,6 +26,7 @@ export function install_workspace_footer(): footer_binding | undefined {
   // 字数和拼写检查仍在最右侧；整个文件操作组插在它们前面。
   footer.insertBefore(actions, footer.querySelector(":scope > .footer-item-right"));
   const document_margin=install_workspace_document_margin(footer);
+  const popups=bind_workspace_footer_popups(footer,actions,sidebar);
   const control_icons=bind_workspace_control_icons(footer,[
     ["#sidebar-new-file-btn>.ty-icon","new-file"],
     ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon","more"],
@@ -48,7 +50,7 @@ export function install_workspace_footer(): footer_binding | undefined {
   observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
   let disposed = false;
   const binding: footer_binding = { dispose() {
-    if (disposed) return; disposed = true; observer.disconnect();control_icons.dispose();document_margin.dispose();
+    if (disposed) return; disposed = true; observer.disconnect();popups.dispose();control_icons.dispose();document_margin.dispose();
     original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
     for (const [name, present] of original_classes) actions.classList.toggle(name, present);
     if (original_role === null) actions.removeAttribute("role"); else actions.setAttribute("role", original_role);
