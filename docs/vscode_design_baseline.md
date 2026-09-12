@@ -8,7 +8,7 @@
 
 搜索与拖动的当前实现分别见[大目录搜索性能](search_performance.md)和[左键拖动与独立窗口](drag_and_windows.md)。搜索借鉴独立匹配与流式结果职责，不接入VS Code扩展后端；标签按固定 VS Code 的原生 HTML DnD、标签图像及实际窗口边界实现，移除30px离组规则；独立窗口使用Typora宿主。活动栏保留6px起拖。
 
-当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；终端默认down编辑组，不提供底部Panel；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
+当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；2026-09-12 按最新要求，终端默认独立底部面板并可搬移到编辑器；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
 
 编辑标签条使用13px Segoe UI与Light 2026／Dark 2026状态颜色；Ctrl+P及顶栏中央搜索入口打开 `440ec3f` 中的文件选择器。选择器当前宽度为 `min(62vw, 600px, calc(100vw - 12px))`，最大高度为 `min(70vh, 560px)`；结果行22px、输入框23px。`440ec3f` 是历史提交标识，不是440px尺寸。单行顶栏35px、菜单行24px、搜索框22px、窗控按钮46px宽，取自固定 VS Code 对应源码；原窗口动作由宿主处理。物理键盘与原生 accelerator 的冲突尚未实证；验证记录见[反馈复查记录](feedback_review.md)。
 
@@ -19,6 +19,18 @@
 差异更多菜单接入Monaco实际支持的隐藏未修改区域、`experimental.showMoves`、空间不足时内联和无障碍查看器。`F7`／`Shift + F7`使用无障碍差异查看器的下一处／上一处；普通前后改动保留标签行箭头。模式切换保留当前选择与查看位置，不为未实现的工作台功能添加占位按钮。
 
 ## 已核对的VS Code参考资料
+
+2026-09-12 文件与终端采用值仍取自下面固定提交：
+
+| 对象 | 采用值 | 上游位置与本机边界 |
+| --- | --- | --- |
+| 文件树缩进 | 每级8px；文件行没有空展开槽 | `src/vs/platform/list/browser/listService.ts`、`src/vs/workbench/browser/parts/views/media/views.css`；保留本工作台26px行高 |
+| Explorer 与终端弹出菜单 | 13px字体、24px行高、上下4px内边距 | `src/vs/base/browser/ui/menu/menu.ts`；共同组件应用同一几何 |
+| 终端面板 | 初始高度占可用高度40%，用户可调；顶栏35px | `src/vs/workbench/browser/parts/panel/panelPart.ts` 及工作台面板标题规则；扣除本宿主标题栏和底栏 |
+| 终端会话与工具图标 | 列表22px行高，16px字形，22px操作目标 | `src/vs/workbench/contrib/terminal/browser/media/terminal.css`；列表宽度当前为本产品180px，不宣称完整拖动行为等价 |
+| 终端配置默认 | Windows字号14、缓冲1000行、最小对比度4.5、列表在右侧、单会话时隐藏 | `src/vs/workbench/contrib/terminal/common/terminalConfiguration.ts`；实际设置范围见[终端说明](terminal_operations.md) |
+
+系统文件／文件夹选择窗口调用 Typora 1.14.9 已有 `dialog.showOpenDialog`；本地代码不绘制一个路径输入框替代系统选择。菜单行为与服务职责见[文件操作](file_operations.md)和[工作台架构](workspace_architecture.md)。
 
 研究核对日期为 2026-09-09：**VS Code 1.136.2，提交 `88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f`，Light 2026，Modern UI，默认布局密度**。软件版本取自本机发行文件，主题和编辑器字体取自有效用户配置；Modern UI 取自本机实验配置中实际生效的 `config.workbench.experimental.modernUI=true`，不是只看设置文件中的缺省值。
 

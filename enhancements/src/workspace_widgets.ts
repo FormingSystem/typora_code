@@ -1,3 +1,6 @@
+import widget_css from "./workspace_widgets.css";
+import {acquire_workspace_style} from "./workspace_styles";
+
 export function workspace_element<K extends keyof HTMLElementTagNameMap>(tag: K, class_name = "", text = ""): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag); node.className = class_name; node.textContent = text; return node;
 }
@@ -12,7 +15,7 @@ export function dispose_workspace_widgets(): void {
   close_active_menu?.();
   for (const close of [...active_dialogs]) close();
 }
-export function workspace_dialog(title: string, close_title = "关闭"): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
+export function workspace_dialog(title: string, close_title = "关闭", on_close?:()=>void): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -29,6 +32,7 @@ export function workspace_dialog(title: string, close_title = "关闭"): { root:
     const restore_focus = is_top_dialog(); closed = true;
     active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove();
     if (restore_focus && previous?.isConnected && !previous.matches(":disabled")) previous.focus({ preventScroll: true });
+    on_close?.();
   };
   // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
@@ -51,23 +55,27 @@ export function workspace_dialog(title: string, close_title = "关闭"): { root:
   active_dialogs.add(close);
   return { root, content, footer, close };
 }
-export type workspace_menu_entry = { title: string; action: () => void; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
+export type workspace_menu_entry = { title: string; action: () => void; shortcut?:string; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
-export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[]): () => void {
+export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[], class_name="", on_close?:()=>void): () => void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
+  const menu_style=acquire_workspace_style("typora-code-style:widgets",widget_css);
   const previous_focus = document.activeElement as HTMLElement | null;
+  let closed=false;
   const menus: HTMLElement[] = [];
   const close_from = (level: number) => { menus.splice(level).forEach(menu => menu.remove()); };
-  const close = () => { close_from(0); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; };
+  const close = () => { if(closed)return;closed=true;close_from(0);menu_style.remove(); if (previous_focus?.isConnected) previous_focus.focus({preventScroll:true}); window.removeEventListener("pointerdown", outside, true); window.removeEventListener("blur", close); if (close_active_menu === close) close_active_menu = undefined; on_close?.(); };
   const outside = (input: Event) => { if (!menus.some(menu => menu.contains(input.target as Node))) close(); };
   const show = (items: workspace_menu_entry[], x: number, y: number, level: number, parent?: HTMLButtonElement) => {
-    close_from(level); const menu = workspace_element("div", "git-graph-menu"); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
+    close_from(level); const menu = workspace_element("div", "git-graph-menu"+(class_name?" "+class_name:"")); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);
     for (const entry of items) {
       if (entry.separator && menu.children.length) { const separator = workspace_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
       const node = workspace_button("", () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
       const check = workspace_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
       const arrow = workspace_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
-      node.append(check, workspace_element("span", "git-menu-label", entry.title), arrow);
+      node.append(check, workspace_element("span", "git-menu-label", entry.title));
+      if(class_name||entry.shortcut)node.append(workspace_element("span","git-menu-shortcut",entry.shortcut||""));
+      node.append(arrow);
       const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
       node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
       if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }

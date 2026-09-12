@@ -13,7 +13,7 @@ import { install_workspace_outline } from "./workspace_outline";
 import { install_workspace_footer } from "./workspace_footer";
 import { install_workspace_titlebar } from "./workspace_titlebar";
 import { install_workspace_sidebar_sash } from "./workspace_sidebar_sash";
-import { workspace_dialog, workspace_element as el, workspace_button as button } from "./workspace_widgets";
+import {bind_workspace_file_commands} from "./workspace_file_commands";
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -25,26 +25,13 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_tab_controls(core));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
   lifetime.own(bind_workspace_preferences(core));
-  const open_folder=()=>new Promise<void>(resolve=>{
-    const dialog=workspace_dialog("打开文件夹");lifetime.add(()=>dialog.close());const path=el("input");path.setAttribute("aria-label","文件夹路径");path.value=files.context_root();const error=el("p");dialog.content.append(el("p","","输入要在资源管理器中打开的文件夹路径。"),path,error);
-    const cleanup=new MutationObserver(()=>{if(!dialog.root.isConnected){cleanup.disconnect();resolve();}});cleanup.observe(document.body,{childList:true});lifetime.add(()=>{cleanup.disconnect();resolve();});
-    const open=()=>{try{
-      if(!path.value.trim())throw new Error("请输入文件夹路径。");
-      const current_root=files.context_root();
-      if(!files.path_api.isAbsolute(path.value)&&(!current_root||!files.path_api.isAbsolute(current_root)))throw new Error("未打开工作区时，请输入文件夹的绝对路径。");
-      const target=files.path_api.isAbsolute(path.value)?files.path_api.resolve(path.value):files.path_api.resolve(current_root,path.value);
-      if(!files.fs.statSync(target).isDirectory())throw new Error("所选路径不是文件夹。");
-      const native_file=(window as unknown as {File?:{setMountFolder?(folder:string):void}}).File;
-      if(!native_file?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
-      // Typora 1.14.9 这里只更新 mountFolder_，不会打开文件或改动正文；Vault 发布 mounted。
-      // 宿主去掉一个末尾分隔符，盘符根目录需要保留它自己的分隔符。
-      native_file.setMountFolder(target.endsWith(files.path_api.sep)?target+files.path_api.sep:target);
-      context_changed();dialog.close();resolve();
-    }catch(problem){error.textContent=String(problem);}};
-    path.onkeydown=event=>{if(!event.isComposing&&event.keyCode!==229&&event.key==="Enter"){event.preventDefault();open();}};dialog.footer.prepend(button("打开",open));
-  });
-  lifetime.add(core.app.commands.register({id:"linux_note:open_folder",title:"文件：打开文件夹",scope:"global",callback:()=>{void open_folder();}}));
-  const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,
+  const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed()));
+  const open_folder=file_commands.open_folder;
+  const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,create:files.create_entry,transfer:files.transfer_entries,trash:files.trash_entries,
+    reveal_system:path=>(window as unknown as {reqnode(name:string):any}).reqnode("electron").shell.showItemInFolder(path),
+    find_in_folder:path=>search.find_in_folder(path),
+    terminal:cwd=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{cwd}})),
+    compare:async(left,right)=>core.app.commands.run("linux_note:compare_files",[left,right]),
     extra_menu:(path,is_directory)=>[
       {title:"Git：查看仓库提交图",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-git",{detail:{path}}))},
       {title:"在仓库根目录打开终端",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path}}))},

@@ -7,7 +7,7 @@ import {file_key} from "./workspace_file_uri";
 export type workspace_search_options = {
   query: string; case_sensitive?: boolean; whole_word?: boolean; regex?: boolean; include?: string; exclude?: string;
   use_ignore?: boolean; exclude_settings?: string; max_results?: number; max_file_bytes?: number; encoding?: string; glob_case_sensitive?: boolean;
-  preserve_case?: boolean; file_paths?: string[];
+  preserve_case?: boolean; file_paths?: string[]; folder_path?: string;
 };
 export type workspace_search_match = {id: string; start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]};
 export type workspace_search_file = {file_path: string; relative_path: string; matches: workspace_search_match[]};
@@ -153,6 +153,8 @@ export function create_workspace_search_engine(modules: workspace_search_modules
   async function search(input_root: string, options: workspace_search_options, callbacks: {signal?: AbortSignal; on_file?: (file: workspace_search_file, counts: workspace_search_counts) => void} = {}): Promise<workspace_search_result> {
     const root = await files_api.realpath(path_api.resolve(input_root));
     if (!(await files_api.stat(root)).isDirectory()) throw new Error("搜索范围必须是文件夹。");
+    const folder=options.folder_path?await files_api.realpath(path_api.resolve(options.folder_path)):root;
+    if(!inside(root,folder)||!(await files_api.stat(folder)).isDirectory())throw new Error("所选搜索文件夹已不在当前工作区内。");
     // 调用方可限制为已经打开的文件；不接受越界路径，也不把空列表解释成全目录。
     const selected_files = options.file_paths?.map(file => path_api.resolve(file)).filter(file => inside(root, file));
     const selected_paths = selected_files ? new Set(selected_files.map(file_key)) : undefined;
@@ -193,6 +195,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
       const current = stack.pop()!; let entries: any[];
       try {
         if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
+        if(!inside(folder,current.directory)&&!inside(current.directory,folder))continue;
         if (await files_api.realpath(current.directory) !== current.directory) { result.counts.skipped.links++; continue; }
         entries = (await files_api.readdir(current.directory, {withFileTypes: true})).sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
@@ -211,6 +214,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
           directories.push({directory: file_path, relative, ignore_root: nested === undefined ? current.ignore_root : file_path, allowed: nested === undefined ? current.allowed : nested}); continue;
         }
         if (!entry.isFile()) { result.counts.skipped.unreadable++; continue; }
+        if(!inside(folder,file_path))continue;
         if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
         result.counts.scanned_files++;
         if (options.include?.trim() && !include(relative)) { result.counts.skipped.excluded++; continue; }

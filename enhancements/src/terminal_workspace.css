@@ -1,14 +1,39 @@
-.linux-note-terminal { display: flex; flex-direction: column; flex: 1; height: 100%; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg-color,transparent); color: var(--text-color,inherit); font: 12px/1.5 system-ui, sans-serif; }
-.linux-note-terminal-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 5px 10px; background: var(--side-bar-bg-color,var(--bg-color,transparent)); border-bottom: 1px solid var(--item-hover-bg-color,#8885); }
-.linux-note-terminal-title { flex: 1; min-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.linux-note-terminal button, .linux-note-terminal select { color: inherit; background: transparent; border: 1px solid #8887; border-radius: 3px; padding: 3px 7px; font: inherit; cursor: pointer; }
-.linux-note-terminal button:hover { background: var(--item-hover-bg-color,#8882); }
-.linux-note-terminal button:focus-visible { outline: 1px solid #007fd4; }
-.linux-note-terminal-viewport { flex: 1; min-height: 0; min-width: 0; overflow: hidden; padding: 7px 10px 0; }
-.linux-note-terminal-viewport .xterm { height: 100%; }
-.linux-note-terminal-status { padding: 2px 10px; background: var(--side-bar-bg-color,var(--bg-color,transparent)); min-height: 22px; flex: none; overflow-wrap: anywhere; max-height: 90px; overflow: auto; }
-.linux-note-terminal[data-state=error] .linux-note-terminal-status { color: #f48771; }
-.linux-note-terminal .xterm textarea { resize: none; }
-
-/* xterm 屏幕覆盖不到的尾部与滚动槽跟随终端底色。 */
-.linux-note-terminal .xterm-viewport { background-color: transparent; }
+.typora-terminal-panel{position:fixed;z-index:100;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--side-bar-bg-color,var(--bg-color,transparent));color:var(--text-color,inherit);border-top:1px solid var(--workspace-border-color,#8885);font:13px/1.4 system-ui,sans-serif}
+.typora-terminal-panel[hidden],.typora-terminal-panel [hidden],.linux-note-terminal [hidden]{display:none!important}
+.terminal-panel-header{height:35px;min-height:35px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid #8882;gap:8px}
+.terminal-panel-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:1px solid var(--select-text-bg-color,#007acc);height:100%;display:flex;align-items:center;min-width:30px}
+.terminal-panel-actions{display:flex;gap:2px;margin-left:auto;flex:none}
+.terminal-panel-actions .git-icon-button,.terminal-find .git-icon-button,.terminal-tab .git-icon-button{width:22px;height:22px;min-width:22px;min-height:22px;display:flex;align-items:center;justify-content:center;padding:3px;border:0;background:transparent;color:inherit;border-radius:3px;box-shadow:none;cursor:pointer}
+.terminal-panel-actions button:hover,.terminal-tab button:hover,.terminal-find button:hover,.terminal-find [aria-pressed=true]{background:var(--item-hover-bg-color,#8883)}
+.terminal-panel-actions button:focus-visible,.terminal-tab:focus-visible,.terminal-find button:focus-visible{outline:1px solid #007acc;outline-offset:-1px}
+.terminal-panel-sash{position:absolute;left:0;right:0;top:-3px;height:5px;z-index:2;cursor:ns-resize;touch-action:none}
+.terminal-panel-sash:hover,.terminal-panel-sash:focus-visible{background:#007acc}
+.terminal-panel-body{display:flex;flex:1;min-height:0;min-width:0}
+.terminal-panes{flex:1;min-width:0;min-height:0;display:flex}
+.terminal-split-group{display:flex;flex:1;min-height:0;min-width:0}
+.terminal-split-group>.linux-note-terminal+ .linux-note-terminal{border-left:1px solid #8885}
+.terminal-tabs{width:180px;max-width:30%;min-width:74px;flex:none;overflow:auto;border-left:1px solid #8883;padding:0 4px}
+.terminal-panel-body[data-tabs-location=left]>.terminal-tabs{order:-1;border-left:0;border-right:1px solid #8883}
+.terminal-tab{height:22px;display:flex;align-items:center;gap:4px;padding:0 4px;border-radius:3px;cursor:default;user-select:none}
+.terminal-tab>.git-standard-icon{flex:none;width:16px;height:16px}
+.terminal-tab-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.terminal-tab-state{font-size:11px;flex:none}
+.terminal-tab .git-icon-button{display:none;flex:none}
+.terminal-tab:hover .git-icon-button,.terminal-tab[aria-selected=true] .git-icon-button,.terminal-tab:focus-within .git-icon-button{display:flex}
+.terminal-tab[aria-selected=true]{background:var(--active-file-bg-color,#8883)}
+.terminal-tab:hover{background:var(--item-hover-bg-color,#8882)}
+.terminal-editor-host,.linux-note-terminal{height:100%;min-height:0;min-width:0;display:flex;flex:1;overflow:hidden}
+.linux-note-terminal{position:relative;flex-direction:column;background:var(--bg-color,transparent);color:var(--text-color,inherit);font:12px/1.4 system-ui,sans-serif}
+.linux-note-terminal-viewport{flex:1;min-height:0;min-width:0;overflow:hidden;padding:4px 8px 0 16px}
+.linux-note-terminal-viewport .xterm{height:100%}
+.linux-note-terminal .xterm-viewport{background-color:transparent}
+.linux-note-terminal .xterm textarea{resize:none}
+.linux-note-terminal-status{padding:3px 10px;border-top:1px solid #8883;max-height:66px;overflow:auto;flex:none}
+.linux-note-terminal[data-state=error] .linux-note-terminal-status{color:#c42b1c}
+.terminal-find{position:absolute;right:12px;top:0;z-index:2;display:flex;align-items:center;gap:2px;max-width:calc(100% - 20px);padding:4px;background:var(--side-bar-bg-color,var(--bg-color,#fff));box-shadow:0 2px 8px #0003;border:1px solid #8884}
+.terminal-find input{width:160px;min-width:40px;flex:1;height:24px;font:13px system-ui;color:inherit;background:var(--bg-color,#fff);border:1px solid #8885}
+.terminal-find-count{font-size:11px;white-space:nowrap}
+.terminal-settings-form{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px;margin-top:12px}
+.terminal-setting{display:flex;flex-direction:column;gap:4px;font:13px/1.5 system-ui;min-width:0}
+.terminal-setting:has(textarea){grid-column:1/-1}.terminal-setting small{font-size:12px;opacity:.75}.terminal-setting input,.terminal-setting select,.terminal-setting textarea{font:13px/1.5 system-ui;color:inherit;background:var(--bg-color,#fff);border:1px solid #8886;border-radius:2px;padding:3px 6px;min-width:0}.terminal-setting input[type=checkbox]{align-self:flex-start}
+.terminal-setting textarea,.terminal-profile-example pre{font-family:Consolas,monospace}.terminal-settings-error{color:#c42b1c}.terminal-profile-example{margin-top:12px}.terminal-profile-example pre{white-space:pre-wrap}

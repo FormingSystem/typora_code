@@ -43,6 +43,12 @@ try {
   assert.equal((await search(texts, 'needle', {file_paths: []})).counts.matches, 0);
   checks.push('VS Code Search glob prefixes, comma/brace/class syntax, root anchors and explicit open-editor scope are enforced');
 
+  const folder_scope=make_root('folder_scope');
+  write(folder_scope,'literal[1],{two}/inside.md','scoped_needle');write(folder_scope,'literal[1],{two}/deep/inside.c','scoped_needle');write(folder_scope,'other/outside.md','scoped_needle');
+  assert.deepEqual(paths(await search(folder_scope,'scoped_needle',{folder_path:path.join(folder_scope,'literal[1],{two}')})),['literal[1],{two}/deep/inside.c','literal[1],{two}/inside.md']);
+  await assert.rejects(search(folder_scope,'scoped_needle',{folder_path:texts}),/工作区/);
+  checks.push('Explorer folder scope is literal even with glob punctuation and cannot escape the current workspace');
+
   const ignored = make_root('ignored'); git(ignored, ['init', '-b', 'main']);
   write(ignored, '.gitignore', '*.log\n!keep.log\ncache/\nsecret\\[1\\].txt\n');
   write(ignored, 'drop.log', 'marker'); write(ignored, 'keep.log', 'marker'); write(ignored, 'tracked.log', 'marker'); git(ignored, ['add', '-f', '--', 'tracked.log']);

@@ -83,18 +83,20 @@ export function create_workspace_titlebar_definitions(
     const exports = await export_entries();
     const leaf = workspace.activeLeaf;
     return [command("新建", "newFile", "Ctrl+N"), command("新建窗口", "newWindow", "Ctrl+Shift+N"), separator(),
-      command("打开…", "open", "Ctrl+O"), {label:"打开文件夹…",shortcut:"Ctrl+K Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
+      {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Ctrl+K Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
       {label: "打开最近文件", children: recent_entries(recents.files), disabled: !recents.files?.length},
-      {label: "最近使用的目录", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item:any)=>typeof item?.path==="string").map((item:any)=>({label:item.name||files.path_api.basename(item.path),action:()=>runtime.ClientCommand?.openWithPath?.(item.path)})),disabled:!recents.folders?.length||!has_command("openWithPath")},
+      {label: "最近使用的目录", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item:any)=>typeof item?.path==="string").map((item:any)=>({label:item.name||files.path_api.basename(item.path),action:()=>files.core.app.commands.run("linux_note:open_folder_path",[item.path])})),disabled:!recents.folders?.length},
       {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
-      {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.save_active();}},
-      {label: "保存全部", action: () => files.save_all()}, native_command("另存为…", "saveAs", "Ctrl+Shift+S"),
-      native_command("从磁盘重新加载", "reloadFromDisk", undefined, false), native_command("移动到…", "moveTo"),
+      {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
+      {label: "保存全部",shortcut:"Ctrl+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
+      {label:"另存为…",shortcut:"Ctrl+Shift+S",disabled:!files.source_editor_active()&&!native_writable(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:save_as");}},
+      {label:"从磁盘重新加载",disabled:!files.source_editor_active()&&!native_active(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:reload_file");}},native_command("移动到…", "moveTo"),
       native_command("打开文件位置", "openFileLocation", undefined, false), separator(),
       command("导入…", "import"), {label: "导出", children: exports, disabled: !native_active()},
       {...native_command("使用上一次设置导出", "exportLast", undefined, false), disabled: !native_active() || !has_command("exportLast") || !(runtime.File?.option?.lastExport || runtime.File?.option?._lastExport)},
       native_command("打印…", "print", undefined, false), separator(),
-      {label: "关闭标签", shortcut: "Ctrl+W", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) close_button()?.click();}},
+      {label: "关闭标签", shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");}},
+      {label:"关闭文件夹",shortcut:"Ctrl+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
       command("偏好设置…", "showPreferencePanel", "Ctrl+,"), command("关闭窗口", "close", "Alt+F4")];
   };
   const search_entry = (replace: boolean): entry => {

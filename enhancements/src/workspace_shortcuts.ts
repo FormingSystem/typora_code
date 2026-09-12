@@ -60,28 +60,32 @@ export function install_workspace_shortcuts(
         else { const picker=get_workspace_quick_open(); if(picker)run(event,()=>picker.open()); }
         return;
       }
+      if(event.code === "KeyO" && !event.shiftKey && !(chord_started>0 && Date.now()-chord_started<2000)) { run(event,()=>app.commands.run("linux_note:open_file")); return; }
+      if(event.code === "KeyS"&&event.shiftKey){run(event,()=>app.commands.run("linux_note:save_as"));return;}
+      if(["KeyW","F4"].includes(event.code)&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:close_editor"));return;}
       if(event.code === "KeyF" && event.shiftKey) { run(event,()=>app.commands.run("linux_note:search")); return; }
       if(!event.shiftKey && event.code === "KeyB") { run(event,()=>app.workspace.sidebar.toggle()); return; }
-      if(!event.shiftKey && ["KeyW","PageUp","PageDown"].includes(event.code)) {
+      if(!event.shiftKey && ["PageUp","PageDown"].includes(event.code)) {
         const parent=app.workspace.activeLeaf?.parent?.containerEl;
         // 同一文件可在多个编辑组出现；标签身份必须由当前组与路径共同决定。
         const tabs=parent ? [...parent.querySelectorAll<HTMLElement>(".typ-workspace-tab-header .typ-tab")].filter(tab=>!tab.dataset.id?.startsWith("typ://core.empty/")) : [];
         const index=tabs.findIndex(tab=>tab.dataset.id===app.workspace.activeLeaf?.state.path);
         if(index>=0) {
-          const target=event.code === "KeyW" ? tabs[index].querySelector<HTMLElement>(".typ-close") : tabs[(index+(event.code === "PageUp" ? -1 : 1)+tabs.length)%tabs.length];
+          const target=tabs[(index+(event.code === "PageUp" ? -1 : 1)+tabs.length)%tabs.length];
           if(target)run(event,()=>target.click());
         }
         return;
       }
     }
 
-    if (event.target instanceof Element && event.target.closest(".git-graph-document") && !event.target.closest(".linux-note-source-file")) { reset_chord(); return; }
     const in_chord = chord_started > 0 && Date.now() - chord_started < 2000;
     if (in_chord) {
       const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
       const primary = primary_modifier(event) && !event.shiftKey;
       if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
       else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
+      else if (event.code === "KeyS" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:save_all"));
+      else if (event.code === "KeyF" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:close_folder"));
       else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
       else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("core.workspace:split-down", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
       else reset_chord();

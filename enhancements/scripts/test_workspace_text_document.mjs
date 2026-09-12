@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import {build} from 'esbuild';
 const compiled=await build({entryPoints:['src/workspace_text_document.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const {create_text_document,MAX_TEXT_DOCUMENT_BYTES}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const {create_text_document,save_text_document_as,MAX_TEXT_DOCUMENT_BYTES}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_text_document_'));const checks=[];
 const record=(message)=>checks.push(message);
 const file=(name,text)=>{const filename=path.join(root,name);fs.writeFileSync(filename,text);return filename};
@@ -41,4 +41,18 @@ await assert.rejects(document(file('binary.png',Buffer.from([0x89,0x50,0x4e,0x47
 await assert.rejects(document(file('invalid_utf8.txt',Buffer.from([0xc3,0x28]))).load(),/有效的 utf-8/u);
 await assert.rejects(document(file('large.txt',Buffer.alloc(MAX_TEXT_DOCUMENT_BYTES+1,65))).load(),/16 MiB/u);await assert.rejects(unsupported.save('A'.repeat(MAX_TEXT_DOCUMENT_BYTES+1)),/16 MiB/u);record('binary, invalid UTF-8 and over-limit documents are refused');
 const readonly_path=file('readonly.txt','keep\n');fs.chmodSync(readonly_path,0o444);const readonly=document(readonly_path);await readonly.load();await assert.rejects(readonly.save('draft\n'),/只读|权限/u);assert.equal(fs.readFileSync(readonly_path,'utf8'),'keep\n');fs.chmodSync(readonly_path,0o644);assert_no_temporary();record('read-only file remains untouched');
+const copy_format={text:'源\r\n文\n档\r',encoding:'utf-16be',bom:true,eol:'mixed'};
+const copy_path=path.join(root,'saved_copy.txt');
+const copy=await save_text_document_as({fs,path_api:path},copy_path,'新\n文\n档\n',copy_format);
+assert(fs.readFileSync(copy_path).equals(encode('新\r\n文\n档\r','utf-16be',true)));await copy.document.save('再\n文\n档\n');
+assert(fs.readFileSync(copy_path).equals(encode('再\r\n文\n档\r','utf-16be',true)));
+const overwrite_path=file('overwrite_copy.txt',encode('原目标\n只有LF\n','utf-16be',true));
+await save_text_document_as({fs,path_api:path},overwrite_path,'新\n文\n档\n',copy_format);
+assert(fs.readFileSync(overwrite_path).equals(encode('新\r\n文\n档\r','utf-16be',true)));
+const race_path=path.join(root,'race_copy.txt');
+await assert.rejects(save_text_document_as({fs:{promises:{...fs.promises,link:async(from,to)=>{fs.writeFileSync(to,'concurrent writer');return fs.promises.link(from,to);}}},path_api:path},race_path,'draft',copy_format),{code:'EEXIST'});
+assert.equal(fs.readFileSync(race_path,'utf8'),'concurrent writer');assert_no_temporary();
+await assert.rejects(save_text_document_as({fs:{promises:{...fs.promises,open:async(...args)=>{const handle=await fs.promises.open(...args);return args[1]==='wx'?wrap_handle(handle,{sync:async()=>{throw new Error('failed flush')}}):handle;}}},path_api:path},path.join(root,'failed_copy.txt'),'draft',copy_format),/failed flush/);
+assert(!fs.existsSync(path.join(root,'failed_copy.txt')));assert_no_temporary();
+record('Save As preserves source encoding and mixed EOL, advances new document baseline, rejects racing destinations and cleans failed staging');
 console.log(JSON.stringify({status:'PASS',checks,evidence:root},null,2));
