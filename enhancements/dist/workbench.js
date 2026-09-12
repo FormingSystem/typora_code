@@ -177837,6 +177837,37 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/workspace_zoom.ts
+  var WORKSPACE_ZOOM_ACTIONS = [
+    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
+    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
+    { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
+  ];
+  function workspace_zoom_available(runtime2, id) {
+    const action = WORKSPACE_ZOOM_ACTIONS.find((action2) => action2.id === id);
+    return Boolean(action && typeof runtime2.ClientCommand?.[action.native_command] === "function");
+  }
+  function workspace_zoom_shortcut(event) {
+    if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph") || event.ctrlKey === event.metaKey) return;
+    if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
+    if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
+  }
+  function bind_workspace_zoom_commands(app, runtime2) {
+    const lifetime = create_workspace_lifetime();
+    try {
+      for (const action of WORKSPACE_ZOOM_ACTIONS) {
+        if (!workspace_zoom_available(runtime2, action.id)) continue;
+        lifetime.add(app.commands.register({ id: action.id, title: "\u89C6\u56FE\uFF1A" + action.label, scope: "global", callback() {
+          if (!lifetime.disposed && workspace_zoom_available(runtime2, action.id)) runtime2.ClientCommand[action.native_command]();
+        } }));
+      }
+    } catch (error) {
+      lifetime.dispose();
+      throw error;
+    }
+    return lifetime;
+  }
+
   // src/workspace_quick_open.css
   var workspace_quick_open_default = "";
 
@@ -178322,15 +178353,15 @@ https://creativecommons.org/licenses/by/4.0/
   function primary_modifier(event) {
     return (event.ctrlKey || event.metaKey) && !event.altKey;
   }
-  function visible_modal() {
-    const candidates = document.querySelectorAll('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]');
+  function visible_modal(selector = '.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') {
+    const candidates = document.querySelectorAll(selector);
     return Array.from(candidates).some((candidate) => {
       if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
       const style = getComputedStyle(candidate);
       return style.display !== "none" && style.visibility !== "hidden";
     });
   }
-  function install_workspace_shortcuts(app) {
+  function install_workspace_shortcuts(app, runtime2) {
     if (active_binding) return active_binding;
     let chord_started = 0;
     const consumed = /* @__PURE__ */ new Set();
@@ -178346,6 +178377,11 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const keydown = (event) => {
       if (primary_modifier(event) && document.querySelector(".workspace-titlebar-popup")) window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
+      const zoom_command = workspace_zoom_shortcut(event);
+      if (zoom_command && workspace_zoom_available(runtime2, zoom_command) && !visible_modal(".linux-note-mermaid-viewer")) {
+        run(event, () => app.commands.run(zoom_command));
+        return;
+      }
       const active_picker = get_workspace_quick_open();
       if (!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
         run(event, () => {
@@ -178508,7 +178544,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (current) sidebar.activePanel = current;
     };
     lifetime.listen(document, "click", reconcile_sidebar, true);
-    lifetime.own(install_workspace_shortcuts(app));
+    lifetime.own(bind_workspace_zoom_commands(app, runtime2));
+    lifetime.own(install_workspace_shortcuts(app, runtime2));
     lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
     document.documentElement.setAttribute("data-linux-note-workspace", "ready");
     return lifetime;
@@ -228983,9 +229020,14 @@ https://creativecommons.org/licenses/by/4.0/
       command("\u72B6\u6001\u680F", "toggleStatusBar"),
       command("\u5DE5\u5177\u680F", "toggleToolbar"),
       separator(),
-      command("\u653E\u5927", "zoomIn", "Ctrl+="),
-      command("\u7F29\u5C0F", "zoomOut", "Ctrl+-"),
-      command("\u5B9E\u9645\u5927\u5C0F", "resetZoom")
+      ...WORKSPACE_ZOOM_ACTIONS.map(({ id, label, shortcut }) => ({
+        label,
+        shortcut,
+        disabled: !workspace_zoom_available(runtime2, id),
+        action: () => {
+          if (workspace_zoom_available(runtime2, id)) files.core.app.commands.run(id);
+        }
+      }))
     ];
     const theme_entries = async () => {
       try {

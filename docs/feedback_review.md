@@ -197,3 +197,16 @@ R012 统一适配原生底栏目录、大纲、字数详情及拼写浮层，按
 最终原生取样 `footer_native_20260912_e` 的 10 项通过：系统原ASAR、隔离用户数据和文档、从未切换到用户桌面的私有Windows桌面；最近目录可见可点击，原生菜单选择改变隔离挂载根，图钉大纲定位底栏，字数与详情行为保持。各阶段截图及精确几何留在该case目录。中间轮次保留菜单显隐复现、侧栏过渡未稳定时的取样和夹具字符串转义错误；均未修改用户文档或冒充生产异常。此次是原生宿主程序化验收，不代表所有显示器、DPI或物理鼠标场景已覆盖。
 
 修复版已用既有事务安装器安装，配置检查返回 `OK`，备份正常建立。安装前后ASAR、应用图标、原生profile、工作台设置与主题摘要一致；未关闭、刷新或重启用户现有窗口。安装日志 `.cache/shell_footer_install_20260912.log`、`shell_footer_install_check_20260912.log`，保护项证据 `shell_footer_install_verification_20260912.json`。用户保存后正常重启Typora载入。
+
+
+## 2026-09-12 Ctrl+= 与 Ctrl+- 窗口缩放修复
+
+R014：用户再次明确 Ctrl+= 放大、Ctrl+- 缩小，后续取消插件／更新适配工作，本次只改快捷键及其共享菜单命令。`workspace_zoom` 集中适配已核对的原生 ClientCommand，`workspace_shortcuts` 在终端与普通模态退出分支之前处理窗口缩放；每个按下事件执行一次，松键不重复执行，保留图表局部缩放及 Typora Ctrl+0 正文操作。主键盘、Shift加号与小键盘变体共用同一命令，比例与持久化仍由宿主管理。设计见[窗口缩放](workspace_zoom.md)。
+
+构建、完整 `npm run check` 通过，日志 `.cache/zoom_check_20260912.log`。隐藏 Electron 的 `test_workspace_zoom.cjs` 32项通过，含真实 webFrame、实际 Ctrl+= / Ctrl+- 输入与 xterm 字符隔离、模态优先级和卸载；既有快捷键35项、菜单25项通过。生产启动、源码编辑保存与底栏3个UI目标通过，日志 `.cache/zoom_ui_integration_20260912.log`。其余无关历史缺口没有在本次关闭。
+
+原生 Typora 已更新为1.14.10，核对本机原始缩放实现后，用未修改ASAR、隔离配置与临时文档验证17项：Markdown、Monaco源码和diff、真实ConPTY焦点中的缩放与恢复；原生设置与比例一致、相同模型和草稿版本不变、终端PID不变、文件字节不变。证据 `.cache/native_zoom_1_14_10/zoom_native_b/checks.json` 及阶段截图。100%→120%时CSS视口1187×737→989×614，系统DPI1.75，窗口比例分别1/1.2；未通过修改CSS字号或主题实现窗口缩放。
+
+原生取样使用 renderer KeyboardEvent 调用实际宿主接口，隐藏 Electron 另覆盖真实 sendInputEvent 输入；不声称覆盖全部物理键盘／OS accelerator。首个原生case `zoom_native_a` 被宿主拒绝生产主线程调试参数，已保留失败记录；后续正常启动，不修改或绕过宿主检查。测试从未切换到用户桌面，也没有关闭用户窗口。
+
+修复构建已通过既有事务安装器安装到当前1.14.10，配置检查返回 `OK`，备份已建立。ASAR、应用图标、原生profile、工作台设置和主题摘要保持不变；没有刷新或重启用户窗口。安装记录 `.cache/zoom_install_20260912.log`、`zoom_install_check_20260912.log`、`zoom_install_verification_20260912.json`。21份正式文档与本地台账的293个链接、135个锚点和37项需求关联通过；台账继续被Git忽略。

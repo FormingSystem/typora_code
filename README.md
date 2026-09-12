@@ -50,6 +50,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 | Ctrl／Cmd 加左键查找选中文字、单击预览及双击打开 | [选中文字的跳转预览](./enhancements/README.md#1.4.6_选中文字的跳转预览) |
 | 多文件时搜索卡顿、渐进结果与性能数据 | [搜索性能](docs/search_performance.md) |
 | 标签及侧栏工具的左键拖动、移至新窗口 | [拖动与多窗口](docs/drag_and_windows.md) |
+| Ctrl+= 放大、Ctrl+- 缩小整个窗口，含编辑器与终端 | [窗口缩放](docs/workspace_zoom.md) |
 | 活动栏排序、侧栏缩窄收起、大纲紧凑布局及减少动画 | [活动栏与侧栏布局](./enhancements/README.md#1.4.5_活动栏与侧栏布局) |
 | 中文源代码管理主侧栏、分支操作、远端同步与评审 | [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图) |
 | 宽窄自动切换差异、红绿概览、改动导航及只读历史正文 | [差异编辑器与时间线](./enhancements/README.md#1.5.2_中央差异编辑器与文件时间线) |

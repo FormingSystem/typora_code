@@ -40,8 +40,8 @@ app.whenReady().then(async () => {
     };
     window.file_host={save_all(){calls.push(['workspace_save_all']);}};
     window.runtime={ClientCommand:{openFolder(){calls.push(['open_folder']);},saveAll(){calls.push(['save_all']);}}};
-    window.binding=shortcut_qa.install_workspace_shortcuts(host);
-    window.same_binding=shortcut_qa.install_workspace_shortcuts(host)===binding;
+    window.binding=shortcut_qa.install_workspace_shortcuts(host,runtime);
+    window.same_binding=shortcut_qa.install_workspace_shortcuts(host,runtime)===binding;
     window.send=(code,options={},selector='#editor')=>{
       const event=new KeyboardEvent('keydown',{bubbles:true,cancelable:true,code,key:options.key||code.replace(/^Key/,''),...options});
       document.querySelector(selector).dispatchEvent(event);
@@ -68,7 +68,7 @@ app.whenReady().then(async () => {
   check(await evaluate(`(()=>{calls=[];const first=send('KeyK',{key:'k',ctrlKey:true},'#terminal');const second=send('KeyS',{key:'s'},'#terminal');return !first&&!second&&calls.length===0;})()`), 'terminal focus does not start or finish a workspace chord');
   check(await evaluate(`(()=>{const dialog=document.querySelector('#dialog');dialog.hidden=false;calls=[];const prevented=send('KeyB',{key:'b',ctrlKey:true});dialog.hidden=true;return !prevented&&calls.length===0;})()`), 'an open dialog keeps its own keyboard input');
   check(await evaluate(`(()=>{calls=[];const prevented=send('KeyC',{key:'c',altKey:true,shiftKey:true});return prevented&&calls[0][1]==='linux_note:copy_absolute_path';})()`), 'a hidden dialog does not disable workspace shortcuts');
-  check(await evaluate(`binding.dispose();calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host);send('KeyC',{key:'c',altKey:true,shiftKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
+  check(await evaluate(`binding.dispose();calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host,runtime);send('KeyC',{key:'c',altKey:true,shiftKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
 
   check(await evaluate(`calls=[];send('KeyP',{key:'P',ctrlKey:true,shiftKey:true})&&calls[0][1]==='command:open'`), 'Ctrl+Shift+P opens the registered command panel');
   check(await evaluate(`calls=[];send('KeyF',{key:'F',ctrlKey:true,shiftKey:true})&&calls[0][1]==='linux_note:search'`), 'Ctrl+Shift+F opens workspace search');
