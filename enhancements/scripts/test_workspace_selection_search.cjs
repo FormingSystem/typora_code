@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
   test_window=new BrowserWindow({show:false,width:1300,height:900,webPreferences:{contextIsolation:false,nodeIntegration:true,backgroundThrottling:false,offscreen:true}});
   const filename=path.join(root,'test.html');fs.writeFileSync(filename,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden;color:#24292f;background:white;font-family:Arial}#ribbon{position:absolute;left:0;top:0;bottom:0;width:36px}#sidebar-content{position:absolute;left:36px;top:0;bottom:0;width:370px}#editor-group{position:absolute;left:406px;right:0;top:0;bottom:0}.native-document{height:100%;overflow:auto}#write{padding:20px}#write p{margin:20px 0}.typ-ribbon-item{width:34px;height:34px}</style><div id="ribbon"><button class="typ-ribbon-item" data-id="core.search">搜索</button></div><div id="typora-sidebar"><div id="sidebar-content"></div></div><div id="editor-group"></div>');await test_window.loadFile(filename);
   if(native_css)await evaluate(`(()=>{const style=document.createElement('style');style.textContent=${JSON.stringify(native_css)};document.head.prepend(style);document.body.classList.add('pin-outline');document.querySelector('#typora-sidebar').style.width='406px';})()`);
-  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export {bind_workspace_files} from "./src/workspace_files";export {bind_workspace_search} from "./src/workspace_search";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});await evaluate(bundle.outputFiles[0].text);
+  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export {bind_workspace_files} from "./src/workspace_files";export {bind_workspace_search} from "./src/workspace_search";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
     window.workspace_path=${JSON.stringify(workspace)};window.native_opens=[];window.open_calls=[];window.leaves=[];window.factories=new Map();window.commands=new Map();window.listeners=new Map();window.link_clicks=0;
@@ -98,6 +98,26 @@ app.whenReady().then(async()=>{
   await click('[aria-label="收起预览"]');assert(await evaluate('document.querySelector(".workspace-search-preview-section").classList.contains("is-collapsed")'));
   await click('.workspace-search-match');assert(!await evaluate('document.querySelector(".workspace-search-preview-section").classList.contains("is-collapsed")'));assert.equal(await evaluate('open_calls.length'),0);
   checks.push('only one Search panel exists and selecting a result reopens its collapsed lower preview without opening a tab');
+  // 同一命中重复选择必须显式定位，不能为此重新读取或重建预览。
+  for(const extension of ['md','c']){
+    const name='revisit.'+extension;
+    documents[name]=Array.from({length:260},(_,i)=>i===184?'revisit_target exact location':extension==='md'?'Paragraph '+i+' ordinary text.\n':'int filler_'+i+' = 0;').join('\n');
+    fs.writeFileSync(path.join(workspace,name),documents[name]);
+    await evaluate(`search_panel.search({query:'revisit_target'})`);
+    await wait(`search_panel.container.dataset.state==='ready'&&[...document.querySelectorAll('.workspace-search-match')].some(n=>n.closest('[data-path]').dataset.path.endsWith('${name}'))`);
+    const hit='.workspace-search-file[data-path$="'+name+'"] .workspace-search-match';
+    await click(hit);await wait(`document.querySelector('.workspace-lookup-preview-body').dataset.previewPath?.endsWith('${name}')`);await delay(100);
+    await evaluate(`window.preview_body=document.querySelector('.workspace-lookup-preview-body');window.preview_node=preview_body.firstElementChild;window.preview_editor=lookup_qa.monaco.editor.getEditors().find(e=>preview_body.contains(e.getDomNode()));window.preview_model=preview_editor?.getModel();window.preview_reads=0;window.original_read=files.fs.promises.readFile;files.fs.promises.readFile=async(...args)=>{preview_reads++;return original_read(...args)};void 0`);
+    for(const control of [hit,'.workspace-search-file[data-path$="'+name+'"]>summary',hit]){
+      await evaluate(`if(preview_editor){preview_editor.setSelection({startLineNumber:1,startColumn:1,endLineNumber:1,endColumn:1});preview_editor.setScrollTop(0)}else preview_body.scrollTop=0;void 0`);await delay(70);
+      if(control===hit&&await evaluate('preview_reads===0')){await click('[aria-label="收起预览"]')}
+      await click(control);await delay(100);
+      assert(await evaluate(`(()=>{if(preview_editor)return preview_editor.getSelection().startLineNumber===185&&preview_editor.getScrollTop()>0;const mark=preview_body.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('mark'),r=mark.getBoundingClientRect(),b=preview_body.getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom})()`),'same '+extension+' hit reselect returns to original match');
+      assert(await evaluate('preview_body.firstElementChild===preview_node&&(!preview_editor||preview_editor.getModel()===preview_model)'));assert.equal(await evaluate('preview_reads'),0);
+    }
+    await evaluate('files.fs.promises.readFile=original_read;void 0');assert.equal(await evaluate('open_calls.length'),0);assert(await evaluate('core.app.workspace.activeLeaf===native_leaf'));assert.equal(await evaluate('native_leaf.view.containerEl.scrollTop'),reading_top);
+    checks.push(extension+' repeated result/file clicks reuse preview and return to match after scrolling, selection and collapse');
+  }
   await evaluate('search_panel.search({query:"needle"})');await wait('search_panel.container.dataset.state==="ready"');
   const target_selector='.workspace-search-file[data-path$="target.md"]>summary';await click(target_selector);await wait('!!document.querySelector(".workspace-lookup-markdown")');
   assert.equal(await evaluate('open_calls.length'),0);assert(await evaluate('document.querySelector(".workspace-lookup-markdown").shadowRoot.querySelector("strong")?.textContent==="bold text"'));

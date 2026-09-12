@@ -368,6 +368,9 @@ app.whenReady().then(async () => {
     assert.equal(await evaluate('(() => {const input=document.querySelector("[data-field='+field+']");return input.type === "checkbox" ? input.checked : input.value;})()'),value);
     await key('Escape');
   }
+  await evaluate('panel.settings_dialog()');await click('[data-setting="history_always_show_actions"]');await click('[data-settings-action="save"]');await wait('!panel.pending&&panel.settings.history_always_show_actions===true');
+  assert.equal(await evaluate('JSON.parse(localStorage.getItem(graph_qa.GRAPH_SETTINGS_KEY+"settings:"+panel.root)).history_always_show_actions'),true);
+  await evaluate('panel.settings_dialog()');assert(await evaluate('document.querySelector("[data-setting=history_always_show_actions]").checked'));await click('[data-setting="history_always_show_actions"]');await click('[data-settings-action="save"]');await wait('!panel.pending&&panel.settings.history_always_show_actions===false');
   await evaluate('panel.settings_dialog()'); await capture('settings');
   assert(await evaluate('["details_location","show_date","show_author","show_hash","label_alignment"].every(name=>Object.hasOwn(panel.settings,name)&&document.querySelector("[data-setting="+name+"]"))')); await key('Escape');
   await evaluate('panel.select_commit(panel.state.commits[0])'); await wait('panel.details.isConnected && !!document.querySelector(".git-graph-file")');

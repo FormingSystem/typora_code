@@ -97,6 +97,7 @@ export class git_scm_history {
     this.hover.hide();
     if (state.root !== this.root) this.reset();
     const epoch = ++this.epoch; const panel = this.owner.panel; const scroll = this.list.scrollTop;
+    this.container.dataset.historyAlwaysShowActions=String(panel.settings.history_always_show_actions);
     const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
     if (!state.commits.some(commit => commit.hash === this.selected)) this.selected = "";
     const graph = build_git_graph(state.commits); const fragment = document.createDocumentFragment();

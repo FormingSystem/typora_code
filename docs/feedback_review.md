@@ -253,3 +253,17 @@ R020/R021/R022按用户连续截图和最新澄清实施。普通按钮由工厂
 
 
 最终候选在`native_zoom_1_14_10/interaction_native_delivery/checks.json`再次通过同一组13项原生检查。既有事务安装器已安装，配置检查OK；`.cache/interaction_install_20260912.log`、`interaction_install_check_20260912.log`和`interaction_install_verification_20260912.json`记录安装及保护摘要。原生ASAR、应用图标、profile、既有工作台配置与主题均保持，用户窗口未关闭或刷新，保存后正常重启载入。23份文档、47项需求及本地链接/锚点检查通过，台账保持Git忽略。此次交付不包含插件更新适配或远端推送。
+
+## 2026-09-13 Graph配置、卡片避让与预览重选
+
+R022/R023/R024承接9月12日反馈。用户最终撤销“等待1秒”的判断，确认只对齐截图中的按钮、悬停和布局，并记录其余Graph配置差异。核对本机VS Code1.137.0固定提交及本地用户设置后，采用完整列表避让、居中带指示角的紧凑卡片；动作随悬停/焦点立即出现，现有设置新增Graph行操作常显开关。首次提示默认500ms，已显示的同组提示即时切换；未建立单独的1秒策略。共享定位与生命周期不含Git逻辑，领域只提供边界和数据。全部5项`scm.graph.*`及关联规则见[配置核对](git_graph_configuration.md)。
+
+搜索重复选择旧对象曾直接返回，跳过预览定位。现复用`reveal_match`重设Markdown匹配或Monaco精确选区；不重新读取文件、不重建DOM/模型，不打开中央文档。基线新增回归明确复现两项问题，日志`.cache/graph_preview_baseline_20260912.log`。最终构建`graph_preview_build_final_20260913.log`和完整检查`graph_preview_check_final_20260913.log`通过。
+
+8个相关UI目标的最终结果均通过：搜索重选与预览见`graph_preview_ui_20260912.log`；Git完整交互/设置、SCM几何、默认交互与阅读链接见`graph_preview_ui_suite_20260912.log`；该套件中两个初次失败项修正后分别在`graph_preview_geometry_final_20260913.log`（94项）和`graph_preview_history_focus_20260913.log`通过。覆盖真实指针动作点击、200/280/420px侧栏、明暗与缩放、长消息和无可用区域、左/右/上/下回退、异步提交身份、配置持久化、复制、Esc及清理。MD/代码同结果、文件行与折叠重开验证原节点/模型与读取次数；未将一张截图或旧通过记录代替本轮验证。
+
+原生Typora1.14.10在独立profile、临时Git文档和未切换到用户桌面的私有桌面通过17项，证据`native_zoom_1_14_10/graph_preview_native_final_20260913/checks.json`。终端开启时卡片不覆盖列表/滚动条与行末按钮，12px/19px、2px 8px、3px圆角与指示角取样符合规则；重选搜索结果回到实际匹配，原文、修改状态、文件摘要与ConPTY身份不变。已核对卡片及预览截图。原生部分为程序化宿主事件/焦点与几何验证，真实指针由隔离Electron夹具覆盖。
+
+失败与修正保留：常显开关的CSS优先级冲突、ResizeObserver同步尺寸反馈已修复；边界夹具自动滚屏、旧历史夹具把展开当焦点且未模拟窗口焦点、首次原生测试用整数严格比较12.00000095px，均根据实际状态修正断言。一次完整检查在无改动的安全保存测试遇到Windows临时文件占用，单目标与最终完整检查均重跑通过；未为本轮改动无关保存逻辑。首次UI调用中的错误测试名只属于调用错误。
+
+最终构建已通过既有事务安装器安装，配置检查OK；证据`.cache/graph_preview_install_20260913.log`、`graph_preview_install_check_20260913.log`及`graph_preview_install_verification_20260913.json`。原生ASAR、应用图标、profile、既有工作台设置与主题摘要保持；用户窗口未关闭或刷新，保存后正常重启Typora载入。24份仓库文档、49项需求、344个本地链接和171个锚点检查通过，台账继续被Git忽略。此前未完成项保持，本次不包含插件更新适配或远端推送。

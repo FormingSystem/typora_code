@@ -177,6 +177,10 @@ app.whenReady().then(async () => {
     const scale=Number(await evaluate('preview.container.dataset.previewScale'));await wheel(120,['control']);assert.equal(Number(await evaluate('preview.container.dataset.previewScale')),scale+5);const zoomed=await position();assert(zoomed.scroll>10000);assert(zoomed.top>=0&&zoomed.bottom<=zoomed.height);await wheel(-120,['control']);
     await evaluate('document.body.classList.remove("lookup-preview-layout-probe");document.body.style.removeProperty("--lookup-preview-probe");void 0');
   });
+  await verify('Reselect during a pending preview read does not create a second request', async () => {
+    await evaluate('delay_files.set(path_api.join(workspace_path,"slow.md"),180);window.pending_reselect=show_file("slow.md","slow_target");window.reselect_reads=reads.length;preview.reveal_match();preview.reveal_match();void 0');
+    await evaluate('pending_reselect');assert.equal(await evaluate('reads.length-reselect_reads'),1);assert.equal(await evaluate('markdown_root().querySelector("mark").textContent'),'slow_target');
+  });
   await verify('A slow earlier file read cannot overwrite the latest selected preview', async () => {
     await evaluate('delay_files.set(path_api.join(workspace_path,"slow.md"),180);window.old_request=show_file("slow.md","slow_target")');await delay(15);await evaluate('show_file("fast.md","fast_target")');await evaluate('old_request');
     assert.equal(await evaluate('markdown_root().querySelector("h1")?.textContent'),'Latest request');assert.equal(await evaluate('preview.container.querySelector(".workspace-lookup-preview-body").dataset.previewPath'),path.join(workspace,'fast.md'));

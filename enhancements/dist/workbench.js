@@ -158703,6 +158703,7 @@ https://creativecommons.org/licenses/by/4.0/
     "settings.label.reference_space": "\u5206\u652F\u548C\u6807\u7B7E\u540D\u7684\u7A7A\u683C\u66FF\u6362",
     "settings.choice.layout.more": "\u66F4\u591A\u64CD\u4F5C\u83DC\u5355",
     "settings.label.file_view": "\u6587\u4EF6\u89C6\u56FE",
+    "settings.label.history_always_show_actions": "\u63D0\u4EA4\u56FE\u884C\u64CD\u4F5C\u59CB\u7EC8\u663E\u793A",
     "settings.label.compact_folders": "\u5408\u5E76\u5355\u5B50\u76EE\u5F55",
     "settings.label.combine_refs": "\u5408\u5E76\u540C\u540D\u672C\u5730\u548C\u8FDC\u7AEF\u5F15\u7528",
     "settings.label.uncommitted_style": "\u672A\u63D0\u4EA4\u8282\u70B9\u6837\u5F0F",
@@ -159454,6 +159455,7 @@ https://creativecommons.org/licenses/by/4.0/
     "settings.label.reference_space": "Reference Name Space Substitution",
     "settings.choice.layout.more": "More Actions",
     "settings.label.file_view": "File View",
+    "settings.label.history_always_show_actions": "Always Show Graph Row Actions",
     "settings.label.compact_folders": "Compact Single-child Folders",
     "settings.label.combine_refs": "Combine Matching Local and Remote Refs",
     "settings.label.uncommitted_style": "Uncommitted Node Style",
@@ -193884,6 +193886,7 @@ https://creativecommons.org/licenses/by/4.0/
     show_author: true,
     show_hash: true,
     label_alignment: "normal",
+    history_always_show_actions: false,
     auto_center: true,
     file_view: "tree",
     compact_folders: true,
@@ -193957,6 +193960,7 @@ https://creativecommons.org/licenses/by/4.0/
       show_author: label("graph.column.author"),
       show_hash: label("graph.column.commit"),
       label_alignment: label("settings.label.label_alignment"),
+      history_always_show_actions: label("settings.label.history_always_show_actions"),
       auto_center: label("settings.label.auto_center"),
       file_view: label("settings.label.file_view"),
       compact_folders: label("settings.label.compact_folders"),
@@ -198860,10 +198864,10 @@ https://creativecommons.org/licenses/by/4.0/
   var hover_sequence = 0;
   function bind_workspace_hover(container, resolve3, options2 = {}) {
     const delay = (value, fallback2) => value !== void 0 && Number.isFinite(value) && value >= 0 ? value : fallback2;
-    const delay_ms = delay(options2.delay_ms, 300), hide_delay_ms = delay(options2.hide_delay_ms, 250);
+    const delay_ms = delay(options2.delay_ms, 500), hide_delay_ms = delay(options2.hide_delay_ms, 250);
     const style = acquire_workspace_hover_surface(), events = new AbortController();
-    let current, tip, session;
-    let timer = 0, close_timer = 0, description = null, restoring_focus = false;
+    let current, tip, pointer, session;
+    let timer = 0, close_timer = 0, layout_frame = 0, description = null, restoring_focus = false;
     const keep = () => {
       clearTimeout(close_timer);
       close_timer = 0;
@@ -198871,6 +198875,8 @@ https://creativecommons.org/licenses/by/4.0/
     const hide2 = () => {
       clearTimeout(timer);
       keep();
+      cancelAnimationFrame(layout_frame);
+      layout_frame = 0;
       observer.disconnect();
       session?.abort();
       session = void 0;
@@ -198879,18 +198885,56 @@ https://creativecommons.org/licenses/by/4.0/
         else current.anchor.setAttribute("aria-describedby", description);
       }
       tip?.remove();
+      pointer?.remove();
       tip = void 0;
+      pointer = void 0;
       current = void 0;
     };
     const place = () => {
       if (!tip || !current) return;
-      if (!current.anchor.isConnected || !current.anchor.getClientRects().length) return hide2();
-      const anchor = current.anchor.getBoundingClientRect(), box = tip.getBoundingClientRect();
-      const right = anchor.right + 6, left = anchor.left - box.width - 6;
-      tip.style.left = Math.max(8, Math.min(right + box.width <= innerWidth - 8 ? right : left >= 8 ? left : right, innerWidth - box.width - 8)) + "px";
-      tip.style.top = Math.max(8, Math.min(anchor.top, innerHeight - box.height - 8)) + "px";
+      const layout_anchor = current.layout_anchor || current.anchor;
+      if (!current.anchor.isConnected || !layout_anchor.isConnected || !current.anchor.getClientRects().length || !layout_anchor.getClientRects().length) return hide2();
+      const anchor = current.anchor.getBoundingClientRect(), layout2 = layout_anchor.getBoundingClientRect();
+      const edge = 8, gap = 6, right = innerWidth - edge, bottom = innerHeight - edge;
+      if (anchor.bottom <= edge || anchor.top >= bottom || anchor.right <= edge || anchor.left >= right) return hide2();
+      const avoid = { left: Math.min(layout2.left, anchor.left), right: Math.max(layout2.right, anchor.right), top: Math.min(layout2.top, anchor.top), bottom: Math.max(layout2.bottom, anchor.bottom) };
+      tip.style.maxWidth = "";
+      tip.style.maxHeight = "";
+      const natural = tip.getBoundingClientRect(), style2 = getComputedStyle(tip);
+      const pixels = (key) => parseFloat(style2.getPropertyValue(key)) || 0;
+      const min_width = pixels("padding-left") + pixels("padding-right") + pixels("border-left-width") + pixels("border-right-width") + pixels("font-size");
+      const min_height = pixels("padding-top") + pixels("padding-bottom") + pixels("border-top-width") + pixels("border-bottom-width") + pixels("line-height");
+      const areas = [
+        { side: "right", left: Math.max(edge, avoid.right + gap), top: edge, right, bottom },
+        { side: "left", left: edge, top: edge, right: Math.min(right, avoid.left - gap), bottom },
+        { side: "below", left: edge, top: Math.max(edge, avoid.bottom + gap), right, bottom },
+        { side: "above", left: edge, top: edge, right, bottom: Math.min(bottom, avoid.top - gap) }
+      ].map((area2) => ({ ...area2, width: area2.right - area2.left, height: area2.bottom - area2.top })).filter((area2) => area2.width >= min_width && area2.height >= min_height);
+      if (!areas.length) return hide2();
+      const score3 = (area2) => Math.min(area2.width, natural.width) * Math.min(area2.height, natural.height);
+      const area = areas.find((area2) => area2.width >= natural.width && area2.height >= natural.height) || areas.reduce((best, area2) => score3(area2) > score3(best) ? area2 : best);
+      tip.style.maxWidth = Math.min(area.width, natural.width) + "px";
+      tip.style.maxHeight = area.height + "px";
+      const box = tip.getBoundingClientRect(), center_x = (anchor.left + anchor.right) / 2, center_y = (anchor.top + anchor.bottom) / 2;
+      const clamp4 = (value, min, max) => Math.max(min, Math.min(value, max));
+      const left = area.side === "right" ? area.left : area.side === "left" ? area.right - box.width : clamp4(center_x - box.width / 2, area.left, area.right - box.width);
+      const top = area.side === "below" ? area.top : area.side === "above" ? area.bottom - box.height : clamp4(current.show_pointer ? center_y - box.height / 2 : anchor.top, area.top, area.bottom - box.height);
+      tip.style.left = left + "px";
+      tip.style.top = top + "px";
+      tip.dataset.hoverSide = area.side;
+      if (pointer) {
+        const horizontal = area.side === "left" || area.side === "right";
+        pointer.dataset.hoverSide = area.side;
+        pointer.style.left = (horizontal ? area.side === "right" ? left - 3 : left + box.width - 3 : clamp4(center_x - 3, left + 6, left + box.width - 12)) + "px";
+        pointer.style.top = (horizontal ? clamp4(center_y - 3, top + 6, top + box.height - 12) : area.side === "below" ? top - 3 : top + box.height - 3) + "px";
+      }
     };
-    const observer = new ResizeObserver(place);
+    const observer = new ResizeObserver(() => {
+      if (!layout_frame) layout_frame = requestAnimationFrame(() => {
+        layout_frame = 0;
+        place();
+      });
+    });
     const inside = (node) => node instanceof Node && (Boolean(current?.anchor.contains(node)) || Boolean(tip?.contains(node)));
     const leave = () => {
       if (!tip) return hide2();
@@ -198905,9 +198949,10 @@ https://creativecommons.org/licenses/by/4.0/
         keep();
         return;
       }
+      const immediate = options2.grouped && Boolean(tip);
       hide2();
       current = target;
-      timer = window.setTimeout(() => {
+      const show2 = () => {
         if (current !== target || !target.anchor.isConnected) return hide2();
         session = new AbortController();
         tip = document.createElement("div");
@@ -198917,7 +198962,14 @@ https://creativecommons.org/licenses/by/4.0/
         tip.setAttribute("aria-label", target.label);
         description = target.anchor.getAttribute("aria-describedby");
         target.anchor.setAttribute("aria-describedby", [description, tip.id].filter(Boolean).join(" "));
+        tip.classList.toggle("workspace-hover-compact", target.compact === true);
         document.body.append(tip);
+        if (target.show_pointer) {
+          pointer = document.createElement("div");
+          pointer.className = "workspace-hover-pointer";
+          pointer.setAttribute("aria-hidden", "true");
+          document.body.append(pointer);
+        }
         try {
           target.render(tip, session.signal);
         } catch (error) {
@@ -198926,7 +198978,10 @@ https://creativecommons.org/licenses/by/4.0/
           return;
         }
         place();
+        if (!tip || !session) return;
         observer.observe(tip);
+        observer.observe(target.anchor);
+        if (target.layout_anchor) observer.observe(target.layout_anchor);
         tip.addEventListener("pointerenter", keep, { signal: session.signal });
         tip.addEventListener("pointerleave", (event2) => {
           if (!inside(event2.relatedTarget)) leave();
@@ -198935,7 +198990,9 @@ https://creativecommons.org/licenses/by/4.0/
         tip.addEventListener("focusout", (event2) => {
           if (!inside(event2.relatedTarget)) leave();
         }, { signal: session.signal });
-      }, delay_ms);
+      };
+      if (immediate) show2();
+      else timer = window.setTimeout(show2, delay_ms);
     };
     container.addEventListener("pointerover", enter, { signal: events.signal });
     container.addEventListener("focusin", enter, { signal: events.signal });
@@ -198965,7 +199022,7 @@ https://creativecommons.org/licenses/by/4.0/
     window.addEventListener("resize", hide2, { signal: events.signal });
     window.addEventListener("blur", hide2, { signal: events.signal });
     const nodes = new MutationObserver(() => {
-      if (current && !current.anchor.isConnected) hide2();
+      if (current && (!current.anchor.isConnected || current.layout_anchor && !current.layout_anchor.isConnected)) hide2();
     });
     nodes.observe(container, { childList: true, subtree: true });
     return { hide: hide2, dispose() {
@@ -198983,7 +199040,7 @@ https://creativecommons.org/licenses/by/4.0/
       const anchor = target.closest(".git-scm-history-commit");
       const state = panel.state, commit = state?.commits.find((item) => item.hash === anchor?.dataset.hash);
       if (!anchor || !state || !commit) return;
-      return { anchor, label: git_graph_text("history.hover_label"), render(tip, signal) {
+      return { anchor, layout_anchor: list3, compact: true, show_pointer: true, label: git_graph_text("history.hover_label"), render(tip, signal) {
         tip.classList.add("git-commit-hover");
         tip.dataset.hash = commit.hash;
         const heading3 = workspace_element("div", "git-commit-hover-heading"), author = workspace_element("strong", "", commit.author), date = workspace_element("span", "git-commit-hover-date", panel.date(commit));
@@ -199032,7 +199089,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (!signal.aborted) stats.textContent = git_graph_text("history.stats_unavailable");
         });
       } };
-    });
+    }, { grouped: true });
     return { hide: hover.hide, dispose() {
       hover.dispose();
       cache.clear();
@@ -199185,6 +199242,7 @@ https://creativecommons.org/licenses/by/4.0/
       const epoch = ++this.epoch;
       const panel = this.owner.panel;
       const scroll = this.list.scrollTop;
+      this.container.dataset.historyAlwaysShowActions = String(panel.settings.history_always_show_actions);
       const focused_hash = this.list.contains(document.activeElement) ? document.activeElement?.closest(".git-scm-history-commit")?.dataset.hash : void 0;
       if (!state.commits.some((commit) => commit.hash === this.selected)) this.selected = "";
       const graph = build_git_graph(state.commits);
@@ -226064,6 +226122,15 @@ https://creativecommons.org/licenses/by/4.0/
       const block_rect = selected_block.getBoundingClientRect(), body_rect = body.getBoundingClientRect();
       body.scrollTop += block_rect.top - body_rect.top - Math.max(8, (body.clientHeight - Math.min(block_rect.height, body.clientHeight)) / 2);
     };
+    const reveal_match = () => {
+      if (disposed || !selected || !body.isConnected || !body.getClientRects().length) return;
+      const view = editor2?.focused_editor();
+      if (view) {
+        const match2 = selected.match;
+        view.setSelection({ startLineNumber: match2.line, startColumn: match2.column, endLineNumber: match2.end_line, endColumn: match2.end_column });
+        reveal_code();
+      } else reveal();
+    };
     const set_scale = (value) => {
       if (disposed) return;
       scale = clamp_scale(value);
@@ -226183,11 +226250,7 @@ https://creativecommons.org/licenses/by/4.0/
           editor2 = new git_diff_editor({ title: file.relative_path, file: file.file_path, left: text3, left_label: file.relative_path });
           body.replaceChildren(editor2.container);
           apply_scale();
-          const view = editor2.focused_editor();
-          const selection = { startLineNumber: match2.line, startColumn: match2.column, endLineNumber: match2.end_line, endColumn: match2.end_column };
-          view.setSelection(selection);
-          view.layout();
-          view.revealRangeInCenter(selection);
+          reveal_match();
         }
         if (!disposed && request === generation) {
           Object.assign(body.dataset, { previewPath: file.file_path, previewKind: is_markdown_file(file.file_path) ? "markdown" : "source", previewLine: String(match2.line), previewColumn: String(match2.column), previewEndLine: String(match2.end_line), previewEndColumn: String(match2.end_column), previewText: match2.text });
@@ -226205,7 +226268,7 @@ https://creativecommons.org/licenses/by/4.0/
     const resize_observer = new ResizeObserver(reveal_code);
     resize_observer.observe(body);
     apply_scale();
-    return { container, show: show2, get_scale: () => scale, set_scale, dispose() {
+    return { container, show: show2, reveal_match, get_scale: () => scale, set_scale, dispose() {
       disposed = true;
       generation++;
       body.removeEventListener("wheel", wheel, true);
@@ -226947,7 +227010,10 @@ https://creativecommons.org/licenses/by/4.0/
           if (!match2 || disposed) return;
           this.preview_section.hidden = false;
           this.set_preview_open(true);
-          if (this.selected?.file === file && this.selected.match === match2) return;
+          if (this.selected?.file === file && this.selected.match === match2) {
+            this.preview.reveal_match();
+            return;
+          }
           ++this.open_generation;
           this.selected = { file, match: match2 };
           this.remembered.set(file.file_path, match2.id);

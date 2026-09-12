@@ -34,6 +34,10 @@ const {
   validate_settings,
 } = await import(module_url);
 
+assert.equal(graph_defaults.history_always_show_actions,false);
+assert.equal(validate_settings({}).history_always_show_actions,false);
+assert.equal(validate_settings({history_always_show_actions:true}).history_always_show_actions,true);
+assert.throws(()=>validate_settings({history_always_show_actions:1}));
 assert.equal(resolve_git_graph_locale('zh'), 'zh-cn');
 assert.equal(resolve_git_graph_locale('zh-CN'), 'zh-cn');
 assert.equal(resolve_git_graph_locale('zh-TW'), 'zh-cn');

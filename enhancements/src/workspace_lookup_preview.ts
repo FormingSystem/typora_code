@@ -69,6 +69,16 @@ export function create_lookup_preview(files: workspace_file_host) {
     const block_rect = selected_block.getBoundingClientRect(), body_rect = body.getBoundingClientRect();
     body.scrollTop += block_rect.top - body_rect.top - Math.max(8, (body.clientHeight - Math.min(block_rect.height, body.clientHeight)) / 2);
   };
+  /** 重选命中是定位命令；复用当前内容，并恢复原搜索范围而非预览中后来改动的选区。 */
+  const reveal_match = () => {
+    if(disposed||!selected||!body.isConnected||!body.getClientRects().length)return;
+    const view=editor?.focused_editor();
+    if(view){
+      const match=selected.match;
+      view.setSelection({startLineNumber:match.line,startColumn:match.column,endLineNumber:match.end_line,endColumn:match.end_column});
+      reveal_code();
+    }else reveal();
+  };
   const set_scale = (value: number) => {
     if (disposed) return;
     scale = clamp_scale(value);
@@ -145,7 +155,7 @@ export function create_lookup_preview(files: workspace_file_host) {
       else {
         editor = new git_diff_editor({title: file.relative_path, file: file.file_path, left: text, left_label: file.relative_path});
         body.replaceChildren(editor.container); apply_scale();
-        const view = editor.focused_editor(); const selection = {startLineNumber: match.line, startColumn: match.column, endLineNumber: match.end_line, endColumn: match.end_column}; view.setSelection(selection); view.layout(); view.revealRangeInCenter(selection);
+        reveal_match();
       }
       if(!disposed&&request===generation){
         Object.assign(body.dataset,{previewPath:file.file_path,previewKind:is_markdown_file(file.file_path)?"markdown":"source",previewLine:String(match.line),previewColumn:String(match.column),previewEndLine:String(match.end_line),previewEndColumn:String(match.end_column),previewText:match.text});
@@ -156,5 +166,5 @@ export function create_lookup_preview(files: workspace_file_host) {
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
   const resize_observer = new ResizeObserver(reveal_code); resize_observer.observe(body);
   apply_scale();
-  return {container, show, get_scale:()=>scale, set_scale, dispose() {disposed = true; generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  return {container, show, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }
