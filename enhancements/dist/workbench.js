@@ -226220,6 +226220,8 @@ https://creativecommons.org/licenses/by/4.0/
     const dialogs = /* @__PURE__ */ new Set();
     const nodes = /* @__PURE__ */ new Map();
     const detachers = [];
+    const row_views = /* @__PURE__ */ new Map();
+    let click_sequence;
     const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
     function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
       if (!node || !tree.clientHeight) return;
@@ -226331,18 +226333,78 @@ https://creativecommons.org/licenses/by/4.0/
       render();
     }
     function render() {
-      if (disposed) return;
-      if (render_frame) cancelAnimationFrame(render_frame);
+      if (disposed || render_frame) return;
       render_frame = requestAnimationFrame(() => {
         render_frame = 0;
         const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
         const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
-        const rows = [];
+        const shown = new Set(flat_nodes.slice(start, end));
         const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : void 0;
         const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
+        for (const [node, view] of row_views) if (!shown.has(node)) {
+          view.row.remove();
+          row_views.delete(node);
+        }
         for (let index = start; index < end; index++) {
           const node = flat_nodes[index];
-          const row = workspace_element("div", "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : ""));
+          let view = row_views.get(node);
+          if (!view) {
+            const row2 = workspace_element("div", "workspace-explorer-row"), chevron2 = workspace_element("span", "workspace-explorer-chevron");
+            const label2 = workspace_element("span", "workspace-explorer-name"), note2 = workspace_element("span", "workspace-explorer-note");
+            view = { row: row2, chevron: chevron2, label: label2, note: note2, file_icon: workspace_file_icon(node.path) };
+            row_views.set(node, view);
+            row2.onmousedown = (event) => {
+              if (event.target === rename_state?.input) return;
+              if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                click_sequence = void 0;
+                return;
+              }
+              if (event.detail < 2) click_sequence = { node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path), expanded: node.expanded };
+            };
+            row2.onclick = (event) => {
+              if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
+              if (event.ctrlKey || event.metaKey) {
+                if (selection_paths.has(node.path)) selection_paths.delete(node.path);
+                else selection_paths.add(node.path);
+                selected_path = node.path;
+                render();
+                return;
+              }
+              if (event.shiftKey) {
+                const start2 = flat_nodes.findIndex((candidate) => candidate.path === selected_path), end2 = flat_nodes.indexOf(node);
+                selection_paths.clear();
+                for (const candidate of flat_nodes.slice(Math.min(Math.max(start2, 0), end2), Math.max(start2, end2) + 1)) selection_paths.add(candidate.path);
+                render();
+                return;
+              }
+              if (event.altKey || event.detail >= 2) return;
+              select(node, false, true);
+              run(() => activate(node));
+            };
+            row2.ondblclick = (event) => {
+              if (event.target === rename_state?.input) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+              const sequence = click_sequence;
+              click_sequence = void 0;
+              if (sequence?.node === node && sequence.selected) {
+                if (node.directory) {
+                  node.expanded = sequence.expanded;
+                  if (node.expanded) watch_visible(node);
+                  else close_branch(node);
+                }
+                begin_rename(node);
+              }
+            };
+            row2.oncontextmenu = (event) => {
+              click_sequence = void 0;
+              if (!selection_paths.has(node.path)) select(node);
+              context_menu(event, node);
+            };
+          }
+          const { row, chevron, label, note, file_icon } = view;
+          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : "");
           row.id = node.id;
           row.dataset.path = node.path;
           row.dataset.directory = String(node.directory);
@@ -226350,47 +226412,27 @@ https://creativecommons.org/licenses/by/4.0/
           row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1));
           row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
           if (node.directory) row.setAttribute("aria-expanded", String(node.expanded));
+          else row.removeAttribute("aria-expanded");
+          row.setAttribute("aria-busy", String(Boolean(node.loading)));
           row.style.top = index * ROW_HEIGHT + "px";
           row.style.paddingLeft = (node.display_depth ?? node.depth) * 8 + 8 + "px";
           row.title = node.path + (node.error ? "\n" + node.error : "");
-          const chevron = workspace_element("span", "workspace-explorer-chevron");
-          if (node.directory) chevron.append(icon(node.expanded ? "chevron-down" : "chevron-right"));
-          row.append(chevron, ...node.directory ? [] : [workspace_file_icon(node.path)], rename_state?.node === node ? rename_state.input : workspace_element("span", "workspace-explorer-name", node.display_name || node.name));
-          if (node.link) row.append(workspace_element("span", "workspace-explorer-note", "\u94FE\u63A5"));
-          if (node.loading) row.append(workspace_element("span", "workspace-explorer-note", "\u8BFB\u53D6\u4E2D\u2026"));
-          else if (node.error) row.append(workspace_element("span", "workspace-explorer-note is-error", "\u65E0\u6CD5\u8BFB\u53D6"));
-          row.onclick = (event) => {
-            if (event.target === rename_state?.input) return;
-            if (event.ctrlKey || event.metaKey) {
-              if (selection_paths.has(node.path)) selection_paths.delete(node.path);
-              else selection_paths.add(node.path);
-              selected_path = node.path;
-              render();
-              return;
-            }
-            if (event.shiftKey) {
-              const start2 = flat_nodes.findIndex((candidate) => candidate.path === selected_path), end2 = flat_nodes.indexOf(node);
-              selection_paths.clear();
-              for (const candidate of flat_nodes.slice(Math.min(Math.max(start2, 0), end2), Math.max(start2, end2) + 1)) selection_paths.add(candidate.path);
-              render();
-              return;
-            }
-            select(node, false, true);
-            if (event.detail < 2) run(() => activate(node));
-          };
-          row.ondblclick = (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!node.directory) run(() => options2.open_file(node.path, { preview: false }));
-          };
-          row.oncontextmenu = (event) => {
-            if (!selection_paths.has(node.path)) select(node);
-            context_menu(event, node);
-          };
-          rows.push(row);
+          const state = node.directory ? String(node.expanded) : "file";
+          if (chevron.dataset.state !== state) {
+            chevron.dataset.state = state;
+            chevron.replaceChildren(...node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : []);
+          }
+          const name = node.display_name || node.name;
+          if (label.textContent !== name) label.textContent = name;
+          const message = [node.link ? "\u94FE\u63A5" : "", node.loading ? "\u8BFB\u53D6\u4E2D\u2026" : node.error ? "\u65E0\u6CD5\u8BFB\u53D6" : ""].filter(Boolean).join(" ");
+          if (note.textContent !== message) note.textContent = message;
+          note.classList.toggle("is-error", Boolean(node.error) && !node.loading);
+          const children = [chevron, ...node.directory ? [] : [file_icon], rename_state?.node === node ? rename_state.input : label, ...message ? [note] : []];
+          for (const child of [...row.children]) if (!children.includes(child)) child.remove();
+          for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
+          if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
         }
-        spacer.replaceChildren(...rows);
-        if (focused_input?.isConnected) {
+        if (focused_input?.isConnected && document.activeElement !== focused_input) {
           focused_input.focus({ preventScroll: true });
           focused_input.setSelectionRange(selection[0], selection[1]);
         }
@@ -226402,7 +226444,7 @@ https://creativecommons.org/licenses/by/4.0/
           input.setSelectionRange(0, dot > 0 ? dot : node.name.length);
         }
         const selected = nodes.get(selected_path);
-        if (selected && rows.some((row) => row.id === selected.id)) tree.setAttribute("aria-activedescendant", selected.id);
+        if (selected && shown.has(selected)) tree.setAttribute("aria-activedescendant", selected.id);
         else tree.removeAttribute("aria-activedescendant");
       });
     }
@@ -226458,6 +226500,7 @@ https://creativecommons.org/licenses/by/4.0/
           children.sort((left, right) => Number(right.directory) - Number(left.directory) || collator.compare(left.name, right.name) || left.name.localeCompare(right.name));
           node.children = children;
           watch(node);
+          rebuild();
           if (compact_folders && !probing) for (const child of children) {
             let current = child;
             for (let depth = 0; current.directory && !current.link && depth < 32; depth++) {
@@ -226481,19 +226524,23 @@ https://creativecommons.org/licenses/by/4.0/
       return node.loading;
     }
     async function activate(node, preview = false) {
-      if (rename_state) return;
+      if (rename_state || disposed || nodes.get(node.path) !== node) return;
+      const current_generation = generation;
       if (node.link && !node.directory) {
         const stat = await fs2.promises.stat(node.path);
+        if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
         node.directory = stat.isDirectory();
       }
       if (node.directory) {
-        if (node.expanded) collapse(node);
-        else {
+        if (node.expanded) {
+          collapse(node);
+          rebuild();
+        } else {
           node.expanded = true;
+          rebuild();
           await load_children(node);
-          watch_visible(node);
+          if (!disposed && generation === current_generation && nodes.get(node.path) === node && node.expanded) watch_visible(node);
         }
-        rebuild();
       } else await options2.open_file(node.path, { preview });
     }
     function context_menu(event, node) {
@@ -226921,6 +226968,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (root) close_branch(root, true);
       if (render_frame) cancelAnimationFrame(render_frame);
       if (refresh_frame) cancelAnimationFrame(refresh_frame);
+      row_views.clear();
+      click_sequence = void 0;
       rename_state = void 0;
       for (const dialog of dialogs) dialog.close();
       dialogs.clear();
@@ -228411,6 +228460,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         set_group_open(group, open) {
           group.open = open;
+          group.querySelector(":scope>summary")?.setAttribute("aria-expanded", String(open));
           const toggle = group.querySelector(":scope>summary>.workspace-search-file-toggle");
           if (toggle) {
             toggle.setAttribute("aria-expanded", String(open));
@@ -228485,7 +228535,7 @@ https://creativecommons.org/licenses/by/4.0/
             disclosure.onclick = (event) => {
               event.preventDefault();
               event.stopPropagation();
-              this.set_group_open(group, !group.open);
+              if (event.detail < 2) this.set_group_open(group, !group.open);
             };
             disclosure.onkeydown = (event) => {
               if (!["Enter", " "].includes(event.key)) return;
@@ -228511,19 +228561,32 @@ https://creativecommons.org/licenses/by/4.0/
             };
             actions.append(count, remove);
             summary.append(actions);
+            let pointer_open = group.open;
+            summary.onmousedown = (event) => {
+              if (event.button === 0 && event.detail < 2) pointer_open = group.open;
+            };
             summary.onclick = (event) => {
               if (event.target.closest("button")) return;
               event.preventDefault();
+              if (event.detail >= 2) return;
+              this.set_group_open(group, !group.open);
               this.select(file, this.file_match(file));
             };
             summary.onfocus = () => this.select(file, this.file_match(file));
             summary.ondblclick = (event) => {
               if (event.target.closest("button,.git-disclosure-icon")) return;
               event.preventDefault();
+              this.set_group_open(group, pointer_open);
               this.open_match(file, this.file_match(file));
             };
             summary.onkeydown = (event) => {
-              if (event.target !== summary) return;
+              if (event.target !== summary || event.isComposing) return;
+              if ([" ", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+                event.preventDefault();
+                event.stopPropagation();
+                this.set_group_open(group, event.key === "ArrowLeft" ? false : event.key === "ArrowRight" ? true : !group.open);
+                return;
+              }
               this.navigate(event, summary, file, () => this.file_match(file), target);
             };
             summary.oncontextmenu = (event) => workspace_menu(event, [{ title: "\u6253\u5F00\u5F53\u524D\u9884\u89C8\u4F4D\u7F6E", action: () => this.open_match(file, this.file_match(file)) }, { title: "\u590D\u5236\u8DEF\u5F84", action: () => files.copy(file.file_path) }, { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => files.copy(file.relative_path) }, { title: "\u66FF\u6362\u6B64\u6587\u4EF6\u4E2D\u7684\u5339\u914D\u9879\u2026", action: () => void this.replace(file.file_path) }, { title: "\u4ECE\u7ED3\u679C\u4E2D\u79FB\u9664", action: () => this.remove_result(file, group) }]);

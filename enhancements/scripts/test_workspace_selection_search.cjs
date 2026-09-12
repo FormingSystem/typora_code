@@ -65,6 +65,32 @@ app.whenReady().then(async()=>{
   await click('[aria-label="全部折叠／展开"]');assert(await evaluate('[...document.querySelectorAll(".workspace-search-file-toggle")].every(node=>node.getAttribute("aria-expanded")==="true")'));
   await double_click(file_arrow);assert.equal(await evaluate('open_calls.length'),before_disclosure.calls);assert.equal(await evaluate('document.querySelector(".workspace-lookup-preview-body").dataset.previewPath'),before_disclosure.path);
   checks.push('sorting and removing other results preserve each file state; arrow Enter, Space and double-click never navigate documents');
+  for(const [theme,zoom,width]of [['light',1,370],['dark',1.25,220]]){
+    test_window.webContents.setZoomFactor(zoom);await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.documentElement.style.cssText='--text-color:${theme==='dark'?'#ddd':'#333'};--side-bar-bg-color:${theme==='dark'?'#252526':'#f8f8f8'}';document.querySelector('#sidebar-content').style.width='${width}px'`);await delay(80);
+    for(let step=0;step<2;step++){
+      const target=await evaluate(`(()=>{const row=document.querySelector('${file_group}>summary'),b=row.getBoundingClientRect();return{x:b.right-3,y:b.top+b.height/2,open:row.parentElement.open,hit:row.contains(document.elementFromPoint(b.right-3,b.top+b.height/2))&&!document.elementFromPoint(b.right-3,b.top+b.height/2).closest('button')}})()`);
+      assert(target.hit,theme+' scaled search row is reachable');
+      await click_point({x:Math.round(target.x*zoom),y:Math.round(target.y*zoom)});await delay(80);
+      assert.equal(await evaluate(`document.querySelector('${file_group}').open`),!target.open);
+    }
+    fs.writeFileSync(path.join(root,'search_hit_'+theme+'.png'),(await test_window.webContents.capturePage()).toPNG());
+  }
+  test_window.webContents.setZoomFactor(1);await evaluate("document.documentElement.removeAttribute('style');document.documentElement.dataset.workspaceFileIconTheme='light';document.querySelector('#sidebar-content').style.width='370px'");await delay(80);
+  checks.push('light and dark 220/370px file groups toggle at 100/125% page zoom');
+
+  // 文件分组的名称、图标与空白都是同一开关；动作按钮仍有独立入口。
+  for(const target of [file_group+'>summary .workspace-search-file-name',file_group+'>summary>.workspace-file-theme-icon']){
+    for(let index=0;index<2;index++){
+      const before=await evaluate(`document.querySelector('${file_group}').open`);await click(target);
+      assert.equal(await evaluate(`document.querySelector('${file_group}').open`),!before);
+      assert.equal(await evaluate(`document.querySelector('${file_group}>summary').getAttribute('aria-expanded')`),String(!before));
+    }
+  }
+  const summary_blank=await evaluate(`(()=>{const b=document.querySelector('${file_group}>summary').getBoundingClientRect();return{x:Math.round(b.right-3),y:Math.round(b.top+b.height/2)}})()`);
+  const before_blank=await evaluate(`document.querySelector('${file_group}').open`);await click_point(summary_blank);await delay(40);assert.equal(await evaluate(`document.querySelector('${file_group}').open`),!before_blank);
+  await evaluate(`document.querySelector('${file_group}>summary').focus()`);await key('Right');assert(await evaluate(`document.querySelector('${file_group}').open`));await key('Left');assert(!await evaluate(`document.querySelector('${file_group}').open`));await key('Space');assert(await evaluate(`document.querySelector('${file_group}').open`));
+  assert.equal(await evaluate('open_calls.length'),0);assert.equal(await evaluate('document.querySelector(".workspace-explorer-rename")'),null);
+  checks.push('file label, file icon and right whitespace toggle immediately; Space and arrows use the same expanded state without renaming or opening a tab');
   await evaluate('search_panel.search({query:"unique_lookup_value"})');await wait('search_panel.container.dataset.state==="ready" && document.querySelectorAll(".workspace-search-match").length===1');
   assert.equal(await evaluate('open_calls.length'),0);assert(await evaluate('core.app.workspace.activeLeaf===native_leaf'));
   checks.push('a unique result remains a visible list entry with preview and never auto-opens');
@@ -111,6 +137,7 @@ app.whenReady().then(async()=>{
     for(const control of [hit,'.workspace-search-file[data-path$="'+name+'"]>summary',hit]){
       await evaluate(`if(preview_editor){preview_editor.setSelection({startLineNumber:1,startColumn:1,endLineNumber:1,endColumn:1});preview_editor.setScrollTop(0)}else preview_body.scrollTop=0;void 0`);await delay(70);
       if(control===hit&&await evaluate('preview_reads===0')){await click('[aria-label="收起预览"]')}
+      if(control===hit&&!await evaluate(`document.querySelector(${JSON.stringify(hit)}).closest('.workspace-search-file').open`))await click('.workspace-search-file[data-path$="'+name+'"] .workspace-search-file-toggle');
       await click(control);await delay(100);
       assert(await evaluate(`(()=>{if(preview_editor)return preview_editor.getSelection().startLineNumber===185&&preview_editor.getScrollTop()>0;const mark=preview_body.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('mark'),r=mark.getBoundingClientRect(),b=preview_body.getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom})()`),'same '+extension+' hit reselect returns to original match');
       assert(await evaluate('preview_body.firstElementChild===preview_node&&(!preview_editor||preview_editor.getModel()===preview_model)'));assert.equal(await evaluate('preview_reads'),0);
@@ -122,6 +149,8 @@ app.whenReady().then(async()=>{
   const target_selector='.workspace-search-file[data-path$="target.md"]>summary';await click(target_selector);await wait('!!document.querySelector(".workspace-lookup-markdown")');
   assert.equal(await evaluate('open_calls.length'),0);assert(await evaluate('document.querySelector(".workspace-lookup-markdown").shadowRoot.querySelector("strong")?.textContent==="bold text"'));
   const target_matches=await evaluate('(()=>{const row=document.querySelector("'+target_selector.replaceAll('"','\\"')+'");return [...row.parentElement.querySelectorAll("[data-match-id]")].map(node=>node.dataset.matchId)})()');
+  assert(!await evaluate(`document.querySelector(${JSON.stringify(target_selector)}).parentElement.open`),'single-click file row collapses its results while keeping lower preview');
+  await click('.workspace-search-file[data-path$="target.md"] .workspace-search-file-toggle');
   await click('[data-match-id="'+target_matches[1]+'"]');assert.equal(await evaluate('open_calls.length'),0);
   await double_click(target_selector);await wait('open_calls.length===1');
   assert.deepEqual(await evaluate('open_calls.at(-1)[1]'),{source:false,line:5,column:8,end_line:5,end_column:14,expected_text:'needle'});

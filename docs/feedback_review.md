@@ -324,3 +324,17 @@ R027按固定VS Code 1.137.0源码核对工具栏、仓库分区、显隐／快�
 最终完整检查日志为 `.cache/scm_actions_bridge_final_check_20260913.log`，相关界面日志为 `.cache/scm_actions_release_ui_20260913.log` 、`.cache/scm_actions_title_final_ui_20260913.log` 与 `.cache/scm_actions_bridge_ui_20260913.log`；前一轮侧栏夹具仍引用已删除的下拉框，更新为真实仓库行后在标题最终日志通过。原生最终结果为 `.cache/native_zoom_1_14_10/scm_actions_bridge_native_20260913/checks.json`；此前失败尝试保留，最终验收修正了刷新等待及Shadow DOM定位。开窗专项另发现编辑器路由截获空文件调用，已改为与标签移交共用主进程 `app.openFile` 通道和安全 `#` 片段；新增入口回归及既有标签移交22组均通过。
 
 已经事务安装此独立构建，安装后检查OK，ASAR、原生图标、偏好、工作区设置及主题摘要全部不变，保留事务备份且未重启用户窗口。安装证据为 `.cache/scm_actions_install_20260913.log`、`scm_actions_install_check_20260913.log` 和 `scm_actions_install_verification_20260913.json`，发布输入及摘要见 `.cache/scm_actions_release_20260913.json`。截图中的聊天／解释／评审和定义／引用属于外部扩展或语言服务，本轮不标为完成；此前分页等配置差异和R009继续保留原状态。
+
+## 2026-09-13 文件行整行开关与双击重命名
+
+R028：搜索文件组的箭头、图标、名称、路径和空白都可单击开关；移除按钮保持独立，匹配片段单击重新定位下方预览，双击或 Enter 打开。资源管理器文件夹整行立即开关，已单独选中的文件／目录再双击进入改名。首次双击未选中项只打开／展开一次，F2、菜单与原改名事务保持可用。实现及职责见[文件行设计](file_operations.md#r028-文件行的单击双击与加载反馈)。
+
+迟缓原因是目录展开等待读取完成，以及刷新替换可见行导致浏览器连续点击目标丢失。现在先更新展开和读取状态，可见行按节点复用，动画帧合并更新；读取中反复开关只发起一次请求，完成后服从最后一次开关。没有为单击引入等待双击的定时器。
+
+独立发布包从 `a983aee` 构建，未带入 R009 待验收的系统文件剪贴板。构建与完整检查通过，日志为 `.cache/tree_interaction_build_20260913.log` 和 `.cache/tree_interaction_check_20260913.log`。最终 Explorer／Search 两个完整 UI 目标通过，覆盖真实 Chromium 指针双击、名称／图标／空白、2000项虚拟列表、慢读取消和重开、缓存复用、刷新节点身份、多选、键盘、改名冲突／取消、重复预览、Markdown／源码、明暗变量、220px窄栏及100%／125%页面缩放，见 `.cache/tree_interaction_hit_matrix_ui_20260913.log`。生产启动、文件搜索和文档编辑三个相关目标通过，见 `.cache/tree_interaction_related_ui_20260913.log`；文档编辑继续覆盖草稿、模型／撤销与保存路径。
+
+隔离的原生 Typora 1.14.10 最终六项通过：整行命中与节点复用、目录双击改名取消、已打开 Markdown 实际改名并同步原生路径、搜索整行开关、预览复用及双击打开、全部夹具正文字节保留。结果与截图保存在 `.cache/native_zoom_1_14_10/tree_interaction_native_verified_20260913/`，实际资源管理器行高仍为26px，未改动原几何。截图已检查。原生检查由 DOM 事件及实际命中区域驱动，不代表物理鼠标人工验收；Linux／macOS原生实例未验证。
+
+早期原生脚本先遇到侧栏过渡期间命中等待、Python标准输入编码及夹具位于上级 `.cache` 忽略目录的问题；最终脚本显式使用 UTF-8，并通过搜索的忽略设置开关读取临时夹具。早期失败记录保留，未据此修改生产搜索范围或绕过实际文件读取。完整验收以最终六项结果为准。
+
+本次独立构建已经事务安装，安装后检查返回OK；ASAR、原生图标、偏好、工作区设置和主题摘要均不变，已保存配置备份，未重启用户窗口。安装证据为 `.cache/tree_interaction_install_20260913.log`、`tree_interaction_install_check_20260913.log` 和 `tree_interaction_install_verification_20260913.json`。需求索引与全部本地文档链接检查通过；R009及此前其他未完成项保留原状态。
