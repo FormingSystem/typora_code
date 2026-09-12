@@ -7,25 +7,7 @@ import status_css from "./git_status_bar.css";
 import { git_icon } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 
-type branch_status = {branch: string; head: string; upstream: string; ahead: number; behind: number; dirty: boolean};
-
-/** porcelain v2 的分支头与路径记录以 NUL 分隔；重命名的第二个路径不能当成另一条记录。 */
-export function parse_branch_status(source: string): branch_status {
-  const status: branch_status = {branch: "", head: "", upstream: "", ahead: 0, behind: 0, dirty: false};
-  const records = source.split("\0");
-  for (let index = 0; index < records.length; index += 1) {
-    const record = records[index];
-    if (record.startsWith("# branch.head ")) status.branch = record.slice(14);
-    else if (record.startsWith("# branch.oid ")) status.head = record.slice(13);
-    else if (record.startsWith("# branch.upstream ")) status.upstream = record.slice(18);
-    else if (record.startsWith("# branch.ab ")) {
-      const counts = /^# branch\.ab \+(\d+) -(\d+)$/u.exec(record);
-      if (counts) { status.ahead = Number(counts[1]); status.behind = Number(counts[2]); }
-    } else if (/^[12u?] /u.test(record)) { status.dirty = true; if (record.startsWith("2 ")) index += 1; }
-  }
-  return status;
-}
-
+import {parse_branch_status} from "./git_scm_data";
 /** 使用窗口唯一状态栏；刷新只读取本地 Git，远端写操作仍经过现有预览弹窗。 */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");

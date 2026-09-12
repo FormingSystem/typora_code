@@ -73,3 +73,7 @@ R022/R023/R024本轮：搜索重选复用预览的`reveal_match`，定位状态�
 R026在原生选区右键菜单增加“字体颜色…”。`markdown_color_menu` 管理入口及公共对话框；`markdown_color_native` 核对选区身份并使用 Typora 原生 replace/cursor/attr 撤销事务，表格的 `userText` 缓存与单元格一起更新。`markdown_text_color` 只处理规范色彩标签和源文本区间；`markdown_color_theme` 只设置阅读容器变量，不重写正文。
 
 终端和字体颜色复用 `workspace_theme` 的实际背景合成与主题事件。升级宿主后需重新验证选区、局部修改、撤销及表格保存，不能仅依据 DOM 有颜色判断通过。操作、存储边界和适配算法见[字体颜色设计](markdown_text_color.md#r026)，交付证据见[反馈记录](feedback_review.md)。
+
+## 2026-09-13 SCM Graph 操作
+
+R027 将工具栏、仓库列表、文件／提交菜单与工作树管理接入既有 Git 操作服务。`git_scm_data` 唯一解析上游／基线和工作树；`git_scm_toolbar` 共享按钮／更多／快捷键状态；非当前仓库只读摘要先完成切换再启用写操作。切库、刷新及销毁使旧菜单、预览和异步读取失效。公开行为与剩余配置／扩展边界见[SCM 操作设计](git_scm_actions.md#r027)，本轮验证与交付状态见[反馈记录](feedback_review.md)。

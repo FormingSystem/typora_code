@@ -26,8 +26,7 @@ export async function append_git_ignore(modules: ignore_modules, run: git_run, r
   if (!inside_root(file_path) || !inside_root(fs.realpathSync(file_path))) throw new Error(text("ignore.outside_repository"));
   const file_stat = fs.lstatSync(file_path);
   if (!file_stat.isFile() || file_stat.isSymbolicLink()) throw new Error(text("ignore.ordinary_untracked_only"));
-  if (await run(root, ["ls-files", "--cached", "-z", "--", file])) throw new Error(text("ignore.already_tracked"));
-  const ignored = await run(root, ["check-ignore", "--quiet", "--", file]).then(() => true, error => { if (error.code === 1) return false; throw error; });
+  await run(root, ["check-ignore", "--no-index", "--quiet", "--", file]).then(() => true, error => { if (error.code === 1) return false; throw error; });
   const ignore_path = path_api.join(real_root, ".gitignore");
   const ordinary_file = (stat: any) => {
     if (stat.isSymbolicLink() || !stat.isFile() || stat.nlink !== 1) throw new Error(text("ignore.ordinary_gitignore_required"));
@@ -47,7 +46,7 @@ export async function append_git_ignore(modules: ignore_modules, run: git_run, r
     try { content = new TextDecoder("utf-8", { fatal: true }).decode(existing); }
     catch { throw new Error(text("ignore.invalid_utf8")); }
     if (content.includes("\0")) throw new Error(text("ignore.invalid_content"));
-    if (ignored && content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
+    if (content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
     const newline = content.match(/\r?\n/u)?.[0] || "\n";
     const addition = (content && !content.endsWith("\n") ? newline : "") + rule + newline;
     fs.writeFileSync(descriptor, addition, "utf8"); fs.fsyncSync(descriptor);

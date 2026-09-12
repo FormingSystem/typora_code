@@ -65,6 +65,19 @@ export function bind_workspace_browser() {
   lifetime.add(core.app.vault?.on("mounted",context_changed));
   const focus_explorer=()=>{explorer.show();requestAnimationFrame(()=>explorer.container.querySelector<HTMLElement>(".workspace-explorer-tree")?.focus({preventScroll:true}));};
   lifetime.add(core.app.commands.register({id:"linux_note:file_explorer",title:"视图：资源管理器",scope:"global",callback:focus_explorer}));
+  let reveal_epoch=0;
+  lifetime.add(core.app.commands.register({id:"linux_note:reveal_in_explorer",title:"视图：在资源管理器中定位",scope:"global",showInCommandPanel:false,callback:(path:string,root:string)=>{
+    const epoch=++reveal_epoch;
+    void(async()=>{try{
+      if(!files.path_api.isAbsolute(path)||!files.path_api.isAbsolute(root))throw new Error("定位路径无效。");
+      const relative=files.path_api.relative(root,path);if(files.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+files.path_api.sep))throw new Error("定位路径不在仓库内。");
+      await files.fs.promises.stat(path);if(lifetime.disposed||epoch!==reveal_epoch)return;
+      const mounted=files.context_root(),inside=mounted?files.path_api.relative(mounted,path):"..";
+      if(!mounted||files.path_api.isAbsolute(inside)||inside===".."||inside.startsWith(".."+files.path_api.sep))await file_commands.set_folder(root);
+      if(lifetime.disposed||epoch!==reveal_epoch)return;
+      explorer.show();await explorer.reveal(path);
+    }catch(error){if(!lifetime.disposed&&epoch===reveal_epoch)new core.Notice(String(error instanceof Error?error.message:error),5000);}})();
+  }}));
   const explorer_shortcut=(event:KeyboardEvent)=>{
     if(!(event.ctrlKey||event.metaKey)||!event.shiftKey||event.altKey||event.code!=="KeyE"||event.isComposing||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
     event.preventDefault();event.stopImmediatePropagation();focus_explorer();

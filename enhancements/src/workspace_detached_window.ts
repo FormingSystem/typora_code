@@ -1,3 +1,4 @@
+import {open_workspace_window} from "./workspace_open_dialog";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import {workspace_dialog, workspace_element} from "./workspace_widgets";
@@ -35,10 +36,7 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
   const notify = options.notify || ((message: string) => {
     const dialog = workspace_dialog("移动标签"); dialog.content.append(workspace_element("p", "", message));
   });
-  const open_window = options.open_window || ((anchor: string, root: string) => {
-    if (!runtime.JSBridge?.invoke) return Promise.reject(new Error("当前宿主未提供新窗口入口。"));
-    return runtime.JSBridge.invoke("app.openFile", null, {mountFolder: root, anchor});
-  });
+  const open_window = options.open_window || ((anchor: string, root: string) => open_workspace_window(root,anchor));
   const cancellations = new Set<() => void>();
   const pending_leaves = new WeakSet<object>();
   const senders = new Map<string, {leaf: graph_leaf; cancel(): void; detach(): void; wait(): void; claimed(): boolean; releasing(): boolean}>();

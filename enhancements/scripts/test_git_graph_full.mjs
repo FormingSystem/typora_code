@@ -210,8 +210,8 @@ try {
   expect(true, 'ignore rule escapes brackets and anchors the complete path at repository root');
   expect(!(await append_ignore(special)).changed && fs.readFileSync(ignore_file).equals(ignore_bytes), 'repeating an effective exact ignore rule leaves existing bytes unchanged');
   write(ignored_root, 'tracked.md', 'tracked'); await action(ignored_root, 'stage', {}, 'tracked.md');
-  await assert.rejects(append_ignore('tracked.md'), /已经加入 Git 跟踪/);
-  expect((await reader.run(ignored_root, ['ls-files', '-z', '--', 'tracked.md'])) === 'tracked.md\0' && fs.readFileSync(ignore_file).equals(ignore_bytes), 'ignore rejects tracked files without removing index entries or editing rules');
+  const tracked_ignore=await append_ignore('tracked.md');
+  expect(tracked_ignore.changed && (await reader.run(ignored_root, ['ls-files', '-z', '--', 'tracked.md'])) === 'tracked.md\0' && fs.readFileSync(ignore_file,'utf8').includes('/tracked.md'), 'ignore appends a tracked file rule without removing index entries');
   for (const invalid of ['../outside.md', '/absolute.md', 'bad\nname.md', '.git/config']) await assert.rejects(append_ignore(invalid), /精确忽略规则/);
   expect(true, 'ignore rejects traversal, metadata paths and line-breaking filenames');
   const patterns = ['literal*.md', 'question?.md', '#start!.md', 'bracket[ab].md', 'trailing ', ...(process.platform === 'win32' ? [] : ['back\\slash.md'])];

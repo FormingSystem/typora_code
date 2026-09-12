@@ -1,3 +1,4 @@
+import {HISTORY_ACTION_IDS,validate_history_shortcuts,type history_action_id} from "./git_scm_data";
 import { graph_actions_for } from "./git_graph_actions";
 import { pull_request_defaults, validate_pull_request_providers, type pull_request_provider } from "./git_graph_pull_request";
 import { git_graph_text as text, type git_graph_locale, type git_graph_text_key } from "./git_graph_i18n";
@@ -17,6 +18,7 @@ export const graph_defaults = {
   combine_refs: true, uncommitted_style: "connected", inline_markdown: true,
   branch_globs: [] as { name: string; glob: string }[], emoji: {} as Record<string, string>,
   reference_space: "none", hidden_actions: [] as string[], dialog_defaults: {merge: {mode: "no-ff", squash_message: "default"}, pull: {mode: "merge", squash_message: "default"}, rebase: {ignore_date: true}, stash_create: {untracked: true}} as Record<string, Record<string, string | boolean>>,
+  history_toolbar_hidden: [] as string[], history_shortcuts: {} as Record<string,string>,
   shortcuts: { find: "Mod+f", head: "Mod+h", refresh: "Mod+r", stash_next: "Mod+s", stash_previous: "Mod+Shift+s" },
   on_load_head: false, on_load_branch: false, on_load_branches: [] as string[], retain_context: true,
   fetch_prune: false, fetch_prune_tags: false, sign_commits: false, sign_tags: false,
@@ -30,6 +32,7 @@ export function settings_labels_for(locale?: git_graph_locale): Record<keyof gra
   const label = (key: git_graph_text_key): string => text(key, {}, locale);
   return {
     pr_providers:label("settings.label.pr_providers"),pr_config:label("settings.label.pr_config"),tab_icon_theme:label("settings.label.tab_icon_theme"),
+    history_toolbar_hidden:label("scm.toolbar_hidden"),history_shortcuts:label("scm.toolbar_shortcuts"),
     reference_space: label("settings.label.reference_space"),
     graph_style: label("settings.label.graph_style"), colors: label("settings.label.colors"), initial_count: label("settings.label.initial_count"), page_count: label("settings.label.page_count"), auto_load: label("settings.label.auto_load"), order: label("settings.label.order"), first_parent: label("settings.label.first_parent"),
     show_remotes: label("settings.label.show_remotes"), show_remote_heads: label("settings.label.show_remote_heads"), show_tags: label("settings.label.show_tags"), tag_only_commits: label("settings.label.tag_only_commits"), show_stashes: label("settings.label.show_stashes"), show_changes: label("settings.label.show_changes"), show_untracked: label("settings.label.show_untracked"), include_reflogs: label("settings.label.include_reflogs"), use_mailmap: label("settings.label.use_mailmap"), mute_merges: label("settings.label.mute_merges"), mute_unreachable: label("settings.label.mute_unreachable"), show_signature: label("settings.label.show_signature"), fetch_avatars: label("settings.label.fetch_avatars"),
@@ -91,6 +94,8 @@ export function validate_settings(value: unknown): graph_settings {
   }
   if (!result.colors.length || result.colors.some(color => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error(text("settings.error.invalid_colors"));
   if (result.branch_globs.some(item => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error(text("settings.error.invalid_branch_globs"));
+  validate_history_shortcuts(result.history_shortcuts);
+  if(result.history_toolbar_hidden.some(id=>!HISTORY_ACTION_IDS.includes(id as history_action_id)))throw new Error(text("scm.invalid_toolbar"));
   for (const key of ["hidden_actions", "on_load_branches"] as const) if (result[key].some(item => typeof item !== "string")) throw new Error(text("settings.error.text_array", {key}));
   for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some(item => typeof item !== "string")) throw new Error(text("settings.error.string_maps"));
   for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error(text("settings.error.missing_shortcut", {key}));

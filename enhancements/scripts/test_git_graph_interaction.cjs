@@ -121,9 +121,9 @@ app.whenReady().then(async () => {
     await wait('panel.to === "WORKTREE" && panel.files.length > 0');
     await evaluate('panel.close_details()'); await assert_closed();
   }
-  assert(await evaluate('panel.workbench.title.querySelectorAll("button").length===1&&!!panel.workbench.history.header.querySelector(".git-scm-graph-launch")'));
+  assert(await evaluate('panel.workbench.title.querySelectorAll("button").length===1&&!!panel.workbench.history.header.querySelector(".git-scm-history-more-menu")'));
   assert(await evaluate('!panel.workbench.title.querySelector(".git-scm-title-graph")&&!!panel.workbench.history.header.querySelector(".git-scm-history-refresh")'));
-  await click('.git-scm-title','right'); assert(await evaluate('!!document.querySelector("[data-action=graph]")')); await key('Escape');
+  await click('.git-scm-title','right'); assert(await evaluate('!!document.querySelector("[data-action=show_history]")')); await key('Escape');
   const date_metrics = await evaluate('(() => {const commit={date:new Date(Date.now()-300000).toISOString()};panel.settings.date_format="relative";const relative=panel.date(commit);panel.settings.date_format="iso_date";const iso=panel.date(commit);panel.settings.date_format="local";return {relative,iso};})()');
   assert(date_metrics.relative.includes('5') && date_metrics.relative.includes('分钟')); assert(/^\d{4}-\d{2}-\d{2}$/.test(date_metrics.iso));
   const ui_metrics = await evaluate(`(() => {document.documentElement.style.setProperty('--linux-note-ui-font-size','15px');document.documentElement.style.setProperty('--linux-note-ui-font-family','Verdana');const graph=getComputedStyle(panel.container),scm=getComputedStyle(document.querySelector('#sidebar-content'));const result={graph_size:graph.fontSize,graph_family:graph.fontFamily,scm_size:scm.fontSize,scm_family:scm.fontFamily};document.documentElement.style.removeProperty('--linux-note-ui-font-size');document.documentElement.style.removeProperty('--linux-note-ui-font-family');return result;})()`);
@@ -136,10 +136,10 @@ app.whenReady().then(async () => {
   })()`);
   assert(icon_metrics.icons.length>=20); assert(icon_metrics.controls.length>=15);
   for (const icon of icon_metrics.icons) { assert(['12px','16px'].includes(icon.width)); assert(['12px','16px'].includes(icon.height)); assert(['0 0 16 16','0 0 24 24'].includes(icon.view_box)); assert.equal(icon.aria_hidden,'true'); assert.equal(icon.text,''); assert(icon.paths>0); }
-  for (const control of icon_metrics.controls) { assert.equal(control.text,''); assert.equal(control.label,control.title); assert(/[\u3400-\u9fff]/u.test(control.title)); assert(control.icon); }
+  for (const control of icon_metrics.controls) { if(control.icon==='git-branch')assert.equal(control.text,'全部');else assert.equal(control.text,''); assert.equal(control.label,control.title); assert(/[\u3400-\u9fff]/u.test(control.title)); assert(control.icon); }
   assert.deepEqual(icon_metrics.graph_controls.map(control=>control.icon),['search','terminal','settings-gear','git-fetch','refresh']);
   for (const control of icon_metrics.graph_controls) { const icon_size=control.icon==='refresh'?CLASSIC_GIT_GRAPH_METRICS.refresh_icon_size:CLASSIC_GIT_GRAPH_METRICS.toolbar_icon_size; assert.equal(control.width,CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size); assert.equal(control.height,CLASSIC_GIT_GRAPH_METRICS.toolbar_action_size); assert.equal(control.text,''); assert.equal(control.title,control.label); assert.equal(control.icon_width,icon_size+'px'); assert.equal(control.icon_height,icon_size+'px'); }
-  for (const [selector,name] of [['.git-scm-view-menu','more'],['.git-scm-operation-menu','more'],['.git-scm-commit-options','chevron-down'],['.git-scm-history-branches','git-branch'],['.git-scm-history-head','target'],['.git-scm-history-refresh','refresh'],['[data-history-action=fetch]','git-fetch'],['[data-history-action=pull]','repo-pull'],['[data-history-action=push]','repo-push'],['[data-scm-group=changes] > summary .git-scm-inline-action','diff-multiple']]) {
+  for (const [selector,name] of [['.git-scm-view-menu','more'],['.git-scm-operation-menu','more'],['.git-scm-commit-options','chevron-down'],['.git-scm-history-branches','git-branch'],['.git-scm-history-head','target'],['.git-scm-history-refresh','refresh'],['[data-history-action=fetch]','git-fetch'],['[data-history-action=pull]','repo-pull'],['[data-history-action=push]','cloud-upload'],['[data-scm-group=changes] > summary .git-scm-inline-action','diff-multiple']]) {
     assert.equal(await evaluate('document.querySelector('+JSON.stringify(selector)+').querySelector("[data-git-icon]").dataset.gitIcon'),name);
   }
   // 顶部菜单控制三个真实视图；隐藏后的布局必须能从持久化状态恢复。
@@ -147,7 +147,7 @@ app.whenReady().then(async () => {
   const toggle_view = async name => { await click('.git-scm-view-menu'); await click('[data-action="'+name+'"]'); };
   assert(await evaluate('panel.workbench.repositories_view.hidden && !panel.workbench.changes_pane.hidden && !panel.workbench.history.container.hidden'));
   await toggle_view('show_repositories');
-  assert(await evaluate('!panel.workbench.repositories_view.hidden && panel.workbench.repo_select.value === panel.root'));
+  assert(await evaluate('!panel.workbench.repositories_view.hidden && panel.workbench.repositories.container.querySelector("[data-active=true]").dataset.root === panel.root'));
   await toggle_view('show_changes'); await toggle_view('show_history');
   assert(await evaluate('panel.workbench.sections.hidden && panel.workbench.changes_pane.hidden && panel.workbench.history.container.hidden'));
   assert.deepEqual(Object.fromEntries(Object.entries(await saved_layout()).filter(([name])=>name.startsWith('show_'))), {show_repositories:true,show_changes:false,show_history:false});
@@ -458,7 +458,7 @@ app.whenReady().then(async () => {
   assert(!await evaluate('!!document.querySelector("[data-action=intent_to_add]")'));
   await click('[data-action=stage]'); await wait('!panel.writing && !!document.querySelector("[data-scm-group=staged] [data-file=\\"new-track.txt\\"]")');
   assert(git(['diff','--cached','--name-only']).includes('new-track.txt'));
-  await click('[data-scm-group=staged] [data-file="new-track.txt"]','right'); await click('[data-action=unstage]'); await wait('!panel.writing');
+  await click('[data-scm-group=staged] [data-file="new-track.txt"]','right'); await click('[data-action=unstage]'); await wait('!panel.writing && !panel.pending');
   await click('[data-scm-group=changes] [data-file="scratch.tmp"]','right'); await click('[data-action=ignore_file]'); await wait('!panel.writing && !document.querySelector("[data-file=\\"scratch.tmp\\"]")');
   assert.equal(git(['check-ignore','scratch.tmp']).trim(),'scratch.tmp'); assert(fs.existsSync(path.join(root,'scratch.tmp'))); assert(!git(['diff','--cached','--name-only']).trim());
   // Enter 保留多行消息；Ctrl+Enter 提交暂存快照，不带入工作区的另一份修改。

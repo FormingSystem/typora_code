@@ -15,8 +15,11 @@ domains:
 
 图标 ID 沿用上游公共名称；本地 SVG 文件名使用 `snake_case`。`icons.json` 按图标 ID 保存原始 SVG 字符串，供构建静态引入。原始文件保存在 `icons/`，用于核对来源；图形路径、填色、尺寸与 `viewBox` 均未修改。`source-control`、`terminal` 和 `settings-gear` 的原始画布为 `24 × 24`，其余图标保留各自的上游画布；显示时应保留原始 `viewBox`，通过布局尺寸等比缩放。
 
+仓库列表使用 `repo`，依据固定 VS Code `repository.ts` 的普通仓库图标选择；该 SVG 同样取自本目录固定的 Codicons 提交。
+
 | 操作 | 上游图标 ID | 本地原始文件 |
 | --- | --- | --- |
+| Git 仓库 | `repo` | [repo.svg](icons/repo.svg) |
 | 查看本组全部更改 | `diff-multiple` | [diff_multiple.svg](icons/diff_multiple.svg) |
 | 打开单文件更改 | `compare-changes` | [compare_changes.svg](icons/compare_changes.svg) |
 | 打开文件 | `go-to-file` | [go_to_file.svg](icons/go_to_file.svg) |

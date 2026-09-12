@@ -15,7 +15,7 @@ app.whenReady().then(async()=>{
  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
  await evaluate(`(()=>{
  window.opened=[];window.files=[{path:'docs/guide.md',old_path:'docs/guide.ts',status:'R'},{path:'src/main.ts',status:'M'},{path:'unknown.custom_extension',status:'D'}];
- window.panel={root:'fixture',state:{root:'fixture',head:'a'.repeat(40),branch:'main',operation:'',refs:[],commits:[],more:false,changes:[]},settings:{initial_count:50},host:{show_history(){},open_panel(){}},repo_select:document.createElement('select'),refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){},switch_repo(){},manage_repositories(){}};
+ window.panel={root:'fixture',state:{root:'fixture',head:'a'.repeat(40),branch:'main',operation:'',refs:[],commits:[],more:false,changes:[],remotes:[]},branches:[],settings:{initial_count:50,history_toolbar_hidden:[],history_shortcuts:{}},host:{show_history(){},open_panel(){}},repo_select:document.createElement('select'),refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){},switch_repo(){},manage_repositories(){}};
  const option=document.createElement('option');option.value='fixture';panel.repo_select.append(option);
  window.scm=new scm_qa.git_source_control(panel);panel.workbench=scm;scm.open_file=async(file,from,to)=>opened.push({path:file.path,from,to});document.querySelector('#host').append(scm.sidebar);
  scm.groups_state=[{id:'staged',title:'Staged Changes',from:'head',to:'index',files:[]},{id:'changes',title:'Changes',from:'index',to:'worktree',files}];scm.render_groups();
@@ -23,7 +23,7 @@ app.whenReady().then(async()=>{
 
  window.graph_icon=scm_qa.git_icon('file');graph_icon.id='extension-file-icon';document.body.append(graph_icon);
  })()`);
- assert(await evaluate('scm.title.querySelectorAll("button").length===1&&!!scm.title.querySelector("[data-git-icon=more]")&&!!scm.history.header.querySelector(".git-scm-history-refresh")&&!!scm.history.header.querySelector(".git-scm-graph-launch")'));
+ assert(await evaluate('scm.title.querySelectorAll("button").length===1&&!!scm.title.querySelector("[data-git-icon=more]")&&!!scm.history.header.querySelector(".git-scm-history-refresh")&&!!scm.history.header.querySelector(".git-scm-history-more-menu")'));
  const geometry=await evaluate(`(()=>{
  const box=node=>{const r=node.getBoundingClientRect(),s=getComputedStyle(node);return {x:r.x,y:r.y,width:r.width,height:r.height,display:s.display,visibility:s.visibility,opacity:s.opacity,transform:s.transform,color:s.color,font:s.fontSize,weight:s.fontWeight}};
  const groups=[...document.querySelectorAll('.git-scm-group')].map(group=>{const summary=group.querySelector('summary'),icon=summary.querySelector('.git-disclosure-icon'),label=summary.querySelector('.git-scm-group-label');return {id:group.dataset.scmGroup,empty:!group.querySelector('.git-scm-file'),official:icon.tagName.toLowerCase()==='svg'&&icon.dataset.gitIcon==='chevron-right'&&!!icon.querySelector('path'),summary:box(summary),icon:box(icon),label:box(label)}});

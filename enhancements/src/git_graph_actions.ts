@@ -1,3 +1,4 @@
+import {worktree_guard} from "./git_worktrees";
 import type { git_run } from "./git_graph_data";
 import { git_graph_text as text, type git_graph_locale, type git_graph_text_key } from "./git_graph_i18n";
 
@@ -35,13 +36,15 @@ export function graph_actions_for(locale?: git_graph_locale): graph_action[] {
     { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check("prune", "action.field.prune"), check("prune_tags", "action.field.prune_tags")] },
     { id: "pull", title: label("action.title.pull"), targets: ["repository", "branch", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"]), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
     { id: "sync", title: label("action.title.sync"), targets: ["repository"], fields: [choice("mode", "action.field.sync_mode", ["merge", "rebase", "ff-only"])], touches_files: true },
-    { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
+    { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, field("remote_branch","scm.remote_branch",true), check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
     { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check("untracked", "action.field.include_untracked"), check("keep_index", "action.field.keep_index")], touches_files: true },
     { id: "stash_apply", title: label("action.title.stash_apply"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
     { id: "stash_pop", title: label("action.title.stash_pop"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
     { id: "stash_drop", title: label("action.title.stash_drop"), targets: ["stash"], fields: [], destructive: label("action.warning.stash_drop") },
     { id: "stash_branch", title: label("action.title.stash_branch"), targets: ["stash"], fields: [branch], touches_files: true },
     { id: "clean", title: label("action.title.clean"), targets: ["changes"], fields: [check("directories", "action.field.clean_directories"), check("ignored", "action.field.clean_ignored")], touches_files: true, destructive: label("action.warning.clean") },
+    {id:"worktree_add",title:label("scm.worktree_add"),targets:["repository"],fields:[field("directory","action.field.target_directory"),field("branch","scm.worktree_new_branch",true)]},
+    {id:"worktree_remove",title:label("scm.worktree_remove"),targets:["worktree"],fields:[],touches_files:true,destructive:label("scm.worktree_remove_warning")},
     { id: "clone", title: label("action.title.clone"), targets: ["repository"], fields: [field("url", "action.field.repository_url"), field("directory", "action.field.target_directory")] },
     { id: "remote_add", title: label("action.title.remote_add"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url")] },
     { id: "remote_edit", title: label("action.title.remote_edit"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url"), check("push_url", "action.field.push_url")] },
@@ -76,7 +79,7 @@ export const graph_actions = graph_actions_for();
 export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean; paths?: string[]; reference_space?: string };
 type sync_target = { local_branch: string; upstream_ref: string; remote: string; remote_ref: string; remote_urls: string };
 type discard_plan = {restore_paths: string[]; untracked_paths: string[]; untracked_guards: string[]};
-export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan; followup?: {args: string[]; if_staged: boolean} };
+export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan; followup?: {args: string[]; if_staged: boolean}; worktree_guard?:string };
 export type action_services = {trash_files?: (root: string, files: string[]) => Promise<void>};
 const busy_repositories = new Set<string>();
 const text_value = (value: unknown, name: string, required = true): string => {
@@ -168,6 +171,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
   const flag = (key: string) => values[key] === true;
   const sign = context.sign_commits ? ["-S"] : [];
   const mainline = () => { const n = value("mainline", false); if (n && !/^[1-9]\d*$/u.test(n)) throw new Error(text("action.error.invalid_mainline")); return n ? ["-m", n] : []; };
+  let worktree_snapshot:string|undefined;
   let args: string[]; let todo: string | undefined; let sync: action_plan["sync"]; let discard: discard_plan | undefined; let followup: action_plan["followup"];
   switch (id) {
     case "branch_create": { const name = await branch(); args = flag("checkout") ? ["checkout", "-b", name, hash] : ["branch", name, hash]; break; }
@@ -217,13 +221,21 @@ export async function plan_git_action(run: git_run, id: string, context: action_
       args = ["pull", ...sign, ...(values.mode === "rebase" ? ["--rebase"] : values.mode === "ff-only" ? ["--ff-only"] : ["--no-rebase", "--no-edit"]), target.remote, target.remote_ref];
       sync = {target, push_args: ["push", target.remote, `refs/heads/${target.local_branch}:${target.remote_ref}`]}; break;
     }
-    case "push": args = ["push", ...(flag("upstream") ? ["--set-upstream"] : []), ...(flag("force_lease") ? ["--force-with-lease"] : []), remote(), await branch()]; break;
+    case "push": {const local=await branch();const destination=value("remote_branch",false);args=["push",...(flag("upstream")?["--set-upstream"]:[]),...(flag("force_lease")?["--force-with-lease"]:[]),remote(),destination?`refs/heads/${local}:refs/heads/${await valid_ref(run,root,destination)}`:local];break;}
     case "stash_create": args = ["stash", "push", ...(flag("untracked") ? ["--include-untracked"] : []), ...(flag("keep_index") ? ["--keep-index"] : []), ...(value("message", false) ? ["-m", value("message")] : [])]; break;
     case "stash_apply": case "stash_pop": case "stash_drop": case "stash_branch":
       if (!/^stash@\{\d+\}$/u.test(target)) throw new Error(text("action.error.invalid_stash"));
       if ((await run(root, ["rev-parse", target])).trim() !== hash) throw new Error(text("action.error.stash_changed"));
       args = ["stash", id.slice(6), ...(id === "stash_branch" ? [await branch()] : flag("index") ? ["--index"] : []), target]; break;
     case "clean": args = ["clean", "-f", ...(flag("directories") ? ["-d"] : []), ...(flag("ignored") ? ["-x"] : [])]; break;
+    case "worktree_add": {
+      const directory=value("directory");
+      if(!/^(?:[a-z]:[\\/]|\/)/iu.test(directory)||directory.split(/[\\/]/u).some(part=>part===".."||part.toLowerCase()===".git"))throw new Error(text("scm.worktree_absolute"));
+      if(!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(hash))throw new Error(text("action.error.invalid_value",{name:text("action.label.commit")}));
+      const name=value("branch",false);worktree_snapshot=await worktree_guard(run,root);
+      args=["worktree","add",...(name?["-b",await branch()]:["--detach"]),"--",directory,hash];break;
+    }
+    case "worktree_remove": worktree_snapshot=await worktree_guard(run,root,target);args=["worktree","remove","--",target];break;
     case "clone": args = ["clone", "--", value("url"), value("directory")]; break;
     case "remote_add": args = ["remote", "add", remote(), value("url")]; break;
     case "remote_edit": args = ["remote", "set-url", ...(flag("push_url") ? ["--push"] : []), remote(), value("url")]; break;
@@ -276,7 +288,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
   if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
   if (todo) preview += "\n\n" + todo;
   const file_guard = id === "delete_untracked" ? await run(root, ["hash-object", "--no-filters", "--", target]) : undefined;
-  return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup };
+  return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup, worktree_guard:worktree_snapshot };
 }
 
 export async function execute_git_action(run: git_run, plan: action_plan, can_change_files: () => boolean, services: action_services = {}): Promise<string> {
@@ -286,6 +298,7 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
   try {
     if (plan.action.touches_files && !can_change_files()) throw new Error(text("action.error.unsaved_document"));
     if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error(text("action.error.repository_changed"));
+    if(plan.worktree_guard!==undefined&&await worktree_guard(run,root,plan.action.id==="worktree_remove"?plan.context.target:undefined)!==plan.worktree_guard)throw new Error(text("action.error.repository_changed"));
     if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error(text("action.error.untracked_changed"));
     if (plan.discard) {
       const {restore_paths, untracked_paths, untracked_guards} = plan.discard;

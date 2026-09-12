@@ -1,3 +1,4 @@
+import {read_scm_tracking, type scm_tracking} from "./git_scm_data";
 import { parse_git_log, type git_commit, type git_run, type git_ref } from "./git_graph_data";
 import { glob_matches, type graph_settings } from "./git_graph_settings";
 import { git_graph_text as text } from "./git_graph_i18n";
@@ -9,6 +10,7 @@ export type graph_commit = git_commit & { email?: string; committer?: string; co
 export type graph_change = { status: string; path: string; old_path?: string; index_status?: string; work_status?: string };
 export type repository_state = {
   root: string; head: string; branch: string; refs: git_ref[]; commits: graph_commit[]; more: boolean;
+  tracking?: scm_tracking;
   stashes: { hash: string; name: string; subject: string; date: string }[];
   changes: graph_change[]; remotes: { name: string; fetch: string; push: string }[]; operation: string;
 };
@@ -59,14 +61,17 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
     if (!entry) { entry = { name: match[1], fetch: "", push: "" }; remotes.push(entry); }
     entry[match[3] as "fetch" | "push"] = match[2];
   }
+  const tracking=await read_scm_tracking(run,root,branch,head,refs);
+  const automatic=branches.length===1&&branches[0]==="AUTO";
   const selected_refs = refs.filter(ref => {
+    if(automatic)return ["refs/heads/"+branch,tracking.upstream,tracking.base].includes(ref.name);
     if (!settings.show_remotes && ref.name.startsWith("refs/remotes/")) return false;
     if (!settings.show_remote_heads && ref.name.startsWith("refs/remotes/") && ref.name.endsWith("/HEAD")) return false;
     if ((!settings.show_tags || !settings.tag_only_commits) && ref.name.startsWith("refs/tags/")) return false;
     return !branches.length || branches.some(pattern => pattern === ref.name || glob_matches(pattern.replace(/^glob:/u, ""), ref.name.replace(/^refs\//u, "")));
   });
   const starts = new Set(selected_refs.map(ref => require_revision(ref.hash)));
-  if (head && (!branches.length || branches.includes("HEAD"))) starts.add(head);
+  if (head && (!branches.length || automatic || branches.includes("HEAD"))) starts.add(head);
   const ordinary_starts = [...starts];
   const hidden_stash_parents = new Set<string>();
   if (!branches.length && stashes.length) {
@@ -91,7 +96,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
   }
   // Git 自身决定工作树状态，文件系统只用于识别进行中的多步操作。
   const operation = git_path.trim();
-  return { root, head, branch, refs, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+  return { root, head, branch, refs, tracking, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
 }
 
 function comparison_args(from: string, to: string, head: string): string[] {
