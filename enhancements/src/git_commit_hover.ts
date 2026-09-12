@@ -12,7 +12,7 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
     const anchor=target.closest<HTMLElement>(".git-scm-history-commit");
     const state=panel.state,commit=state?.commits.find(item=>item.hash===anchor?.dataset.hash);
     if(!anchor||!state||!commit)return;
-    return {anchor,label:text("history.hover_label"),render(tip,signal){
+    return {anchor,layout_anchor:list,compact:true,show_pointer:true,label:text("history.hover_label"),render(tip,signal){
       tip.classList.add("git-commit-hover");tip.dataset.hash=commit.hash;
       const heading=el("div","git-commit-hover-heading"),author=el("strong","",commit.author),date=el("span","git-commit-hover-date",panel.date(commit));
       heading.append(git_icon("account"),author,date);
@@ -37,6 +37,6 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
         if(cache.size>=128)cache.delete(cache.keys().next().value!);cache.set(key,detail);apply(detail);
       }).catch(()=>{if(!signal.aborted)stats.textContent=text("history.stats_unavailable");});
     }};
-  });
+  },{grouped:true});
   return {hide:hover.hide,dispose(){hover.dispose();cache.clear();}};
 }

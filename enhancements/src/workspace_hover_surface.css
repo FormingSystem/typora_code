@@ -7,6 +7,18 @@
   box-shadow:0 2px 8px rgba(0,0,0,.16);font:400 13px/1.5 "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
   white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;
 }
+/* SCM选用VS Code workbench-hover.compact；普通链接提示保持自己的内容节奏。 */
+.workspace-hover-surface.workspace-hover-compact {font-size:12px;line-height:19px;padding:2px 8px;}
+.workspace-hover-pointer {
+  position:fixed;z-index:2147483001;pointer-events:none;box-sizing:content-box;width:5px;height:5px;
+  background:var(--vscode-editorHoverWidget-background,#fafafd);
+  border-right:1px solid var(--vscode-editorHoverWidget-border,#e4e5e6);border-bottom:1px solid var(--vscode-editorHoverWidget-border,#e4e5e6);
+}
+.workspace-hover-pointer[data-hover-side="right"] {transform:rotate(135deg);}
+.workspace-hover-pointer[data-hover-side="left"] {transform:rotate(315deg);}
+.workspace-hover-pointer[data-hover-side="below"] {transform:rotate(225deg);}
+.workspace-hover-pointer[data-hover-side="above"] {transform:rotate(45deg);}
+:root[data-workspace-file-icon-theme="dark"] .workspace-hover-pointer {background:var(--vscode-editorHoverWidget-background,#202122);border-color:var(--vscode-editorHoverWidget-border,#2a2b2c);}
 .workspace-hover-surface[hidden] {display:none!important;}
 :root[data-workspace-file-icon-theme="dark"] .workspace-hover-surface {
   color:var(--vscode-editorHoverWidget-foreground,#bfbfbf);background:var(--vscode-editorHoverWidget-background,#202122);

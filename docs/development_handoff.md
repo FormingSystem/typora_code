@@ -65,3 +65,5 @@ vendor源码变化同步 `source_manifest.json`，保留上游摘要并更新当
 [VS Code设计取证](vscode_design_baseline.md)维护固定版本、源文件、数值及采用范围；[工作台矩阵](workbench_parity.md)、[Git矩阵](../enhancements/git_graph_features.md)、[图标映射](icon_mapping.md)、[代码大纲](source_outline.md)分别承担自己的事实。修改功能时同步真实受影响的入口和说明，避免在每个文件复制一份旧验收结果。
 
 研究缓存只放忽略目录，不作为运行依赖。实现必须尊重当前宿主边界，不把VS Code官方说明或单个截图当成Typora API已可用的证据。
+
+R022/R023/R024本轮：搜索重选复用预览的`reveal_match`，定位状态仍由所选匹配持有；共享hover把触发/焦点锚点与布局避让区分开，提供紧凑角色、指示角、悬停组与统一尺寸更新，Git只指定整个列表并填充内容。Graph设置沿用仓库原有存储；配置核对与未实现差异集中在[Graph配置](git_graph_configuration.md)。验收及安装状态见本轮反馈记录。

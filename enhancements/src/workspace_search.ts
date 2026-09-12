@@ -252,7 +252,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     file_match(file:workspace_search_file){return file.matches.find(match=>match.id===this.remembered.get(file.file_path))||file.matches[0];}
     select(file:workspace_search_file,match:workspace_search_match){
       if(!match||disposed)return;this.preview_section.hidden=false;this.set_preview_open(true);
-      if(this.selected?.file===file&&this.selected.match===match)return;
+      if(this.selected?.file===file&&this.selected.match===match){this.preview.reveal_match();return;}
       ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
       for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;row.classList.toggle("is-selected",selected);row.setAttribute("aria-current",String(selected));}
       for(const group of this.results.querySelectorAll<HTMLElement>(".workspace-search-file"))group.querySelector("summary")?.classList.toggle("is-selected",group.dataset.path===file.file_path);
