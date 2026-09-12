@@ -25,6 +25,7 @@ const ui_tests = Object.freeze([
   "test_diff_overview.cjs",
   "test_git_graph_i18n.cjs",
   "test_git_graph_interaction.cjs",
+  "test_git_scm_actions.cjs",
   "test_git_revision_reader.cjs",
   "test_git_graph_pull_request.cjs",
   "test_git_graph_ref_colors.cjs",

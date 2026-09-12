@@ -1,8 +1,9 @@
+import {git_scm_toolbar} from "./git_scm_toolbar";
 import {bind_git_commit_hover} from "./git_commit_hover";
 import {git_file_label} from "./git_file_label";
 import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
-import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
+import { workspace_element as el, workspace_button as button } from "./workspace_widgets";
 import type { git_source_control } from "./git_source_control";
 import { git_icon_button as icon_button, git_disclosure, git_icon } from "./git_icons";
 import { git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
@@ -16,6 +17,7 @@ export class git_scm_history {
   container = el("section", "git-scm-history"); header = el("div", "git-scm-history-header");
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
+  toolbar:git_scm_toolbar;
   files_cache = new Map<string, graph_change[]>();
   hover:ReturnType<typeof bind_git_commit_hover>;
   collapsed_directories = new Set<string>();
@@ -23,22 +25,12 @@ export class git_scm_history {
     this.hover=bind_git_commit_hover(this.list,owner.panel);
     this.container.setAttribute("aria-label", text("history.graph"));
     this.container.setAttribute("data-linux-note-scm-history", "ready");
-    this.toggle = button(text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.prepend(git_disclosure());
+    this.toggle = button("", () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.append(git_disclosure(),el("span","git-scm-history-title",text("history.graph")));
     this.toggle.title = text("history.toggle_help");
     this.toggle.setAttribute("aria-expanded", "true"); this.toggle.append(this.count);
-    const refresh = icon_button("refresh", text("history.refresh"), () => void owner.panel.refresh(false), "git-scm-history-refresh");
-    const current = icon_button("target", text("history.reveal_head"), () => void this.reveal_head(), "git-scm-history-head");
-    const launch = icon_button("link-external", text("history.open_in_editor"), () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
-    const branches = icon_button("git-branch", text("history.filter_branches"), () => {}, "git-scm-history-branches"); branches.onclick = event => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
-    const more = icon_button("more", text("history.more"), () => {}, "git-scm-history-more-menu"); more.onclick = event => this.more_menu(event);
-    const tools = el("span", "git-scm-history-toolbar");
-    const network = ([["fetch", "git-fetch", "history.fetch"], ["pull", "repo-pull", "history.pull"], ["push", "repo-push", "history.push"]] as const).map(([id, icon, title_key]) => {
-      const action = icon_button(icon, text(title_key), () => this.network_action(id), "git-scm-history-network"); action.setAttribute("data-history-action", id); return action;
-    });
-    tools.append(branches, current, ...network, refresh, launch, more);
-    for (const action of [branches, refresh, more]) action.setAttribute("aria-label", action.title);
-    this.header.append(this.toggle, tools); this.container.append(this.header, this.list);
-    this.header.oncontextmenu = event => this.more_menu(event);
+    this.toolbar=new git_scm_toolbar(this);
+    this.header.append(this.toggle,this.toolbar.element);this.container.append(this.header,this.list);
+    this.header.oncontextmenu=event=>owner.view_menu(event,"show_history");
     this.list.setAttribute("aria-label", text("history.commit_history"));
     this.list.addEventListener("keydown", event => {
       if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
@@ -54,30 +46,13 @@ export class git_scm_history {
       }
     });
   }
-  branch_entries(): workspace_menu_entry[] {
-    const panel = this.owner.panel; const select = (branches: string[]) => { panel.branches = branches; void panel.refresh(); };
-    return [
-      {id: "all_branches", title: text("history.all_branches"), checked: !panel.branches.length, action: () => select([])},
-      {id: "current_branch", title: text("history.current_head"), checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"])},
-      ...(panel.state?.refs || []).filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({id: ref.name, title: ref.name.slice(11), checked: panel.branches.length === 1 && panel.branches[0] === ref.name, action: () => select([ref.name])})),
-      {id: "multiple_branches", title: text("history.select_branches"), separator: true, action: () => panel.filter_branches()},
-    ];
+  network_action(id:string):void {
+    const panel=this.owner.panel,state=panel.state;if(!state)return;
+    const tracking=state.tracking;
+    const preset:Record<string,string|boolean>=id==="fetch"?{remote:""}:id==="pull"?{remote:tracking?.remote||"",branch:tracking?.remote_ref.replace(/^refs\/heads\//u,"")||""}:{remote:tracking?.remote&&tracking.remote!=="."?tracking.remote:state.remotes[0]?.name||"",branch:state.branch,remote_branch:tracking?.remote_ref.replace(/^refs\/heads\//u,"")||state.branch,upstream:!tracking?.upstream};
+    panel.action_dialog(id,"repository","",state.head,preset);
   }
-  network_action(id: string): void { this.owner.panel.action_dialog(id, "repository", "", this.owner.panel.state?.head); }
-  more_menu(event: MouseEvent): void {
-    const panel = this.owner.panel;
-    const set_tree = (value: boolean) => { this.owner.history_tree = value; this.owner.save_layout(); if (panel.state) this.render(panel.state); };
-    panel.configured_menu(event, "scm_history_toolbar", [
-      {id: "history_list", title: text("history.list_view"), checked: !this.owner.history_tree, action: () => set_tree(false)},
-      {id: "history_tree", title: text("history.tree_view"), checked: this.owner.history_tree, action: () => set_tree(true)},
-      {id: "branches", title: text("history.branch_scope"), children: this.branch_entries(), separator: true, action() {}},
-      {id: "head", title: text("history.reveal_head"), action: () => void this.reveal_head()},
-      ...[["fetch", "history.fetch_menu"], ["pull", "history.pull_menu"], ["push", "history.push_menu"]].map(([id, title_key]) => ({id, title: text(title_key as git_graph_text_key), action: () => this.network_action(id)})),
-      {id: "refresh", title: text("history.refresh"), action: () => void panel.refresh(false)},
-      {id: "open_graph", title: text("history.open_in_editor"), action: () => panel.host.show_history(panel.root)},
-      {id: "settings", title: text("history.settings"), separator: true, action: () => panel.settings_dialog()},
-    ]);
-  }
+  more_menu(event:MouseEvent):void{this.toolbar.more_menu(event);}
   reset(): void { this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
@@ -90,7 +65,7 @@ export class git_scm_history {
   }
   set_open(open: boolean): void {
     if(!open)this.hover.hide();
-    this.toggle.replaceChildren(git_disclosure(), document.createTextNode(text("history.graph")), this.count);
+    this.toggle.replaceChildren(git_disclosure(), el("span","git-scm-history-title",text("history.graph")), this.count);
     this.toggle.setAttribute("aria-expanded", String(open)); this.list.hidden = !open;
   }
   render(state: repository_state): void {
@@ -101,6 +76,7 @@ export class git_scm_history {
     const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
     if (!state.commits.some(commit => commit.hash === this.selected)) this.selected = "";
     const graph = build_git_graph(state.commits); const fragment = document.createDocumentFragment();
+    this.toolbar.update();
     this.count.textContent = String(state.commits.length) + (state.more ? "+" : "");
     const refs = new Map<string, string[]>();
     for (const ref of state.refs) {
@@ -214,5 +190,5 @@ export class git_scm_history {
       wrapper.append(row, revision); parent_for(file.path.split("/").slice(0, -1).join("/")).append(wrapper);
     }
   }
-  dispose(): void { this.hover.dispose();this.epoch++; this.files_cache.clear(); }
+  dispose(): void { this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
 }

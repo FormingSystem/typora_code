@@ -493,6 +493,12 @@
       "source_path": "src/icons/copy.svg",
       "git_blob_sha1": "39a62984ea20fdc90b94b8a31962219eb734d912",
       "sha256": "0fc12b2cb386b45c074e281a7314019810fb816e8fd5cd0c89630e913488f90c"
+    },
+    "repo": {
+      "file": "icons/repo.svg",
+      "source_path": "src/icons/repo.svg",
+      "git_blob_sha1": "7fc12457727d229fc6109e2f592106041c9b1f01",
+      "sha256": "51ce05ace8e0c7dbefaefb3d847f42b003b743086c3568c4803ffb40f83a59b4"
     }
   },
   "licenses": [

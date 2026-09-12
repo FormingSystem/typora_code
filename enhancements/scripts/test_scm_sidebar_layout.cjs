@@ -22,11 +22,11 @@ app.whenReady().then(async()=>{
   const bundle=await build({stdin:{contents:'export {git_source_control} from "./src/git_source_control";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'layout_qa',write:false});await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
-    window.panel={root:'layout-fixture',state:{root:'layout-fixture',head:'',refs:[],commits:[],more:false},settings:{},host:{show_history(){}},refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){}};
+    window.panel={root:'layout-fixture',branches:[],state:{root:'layout-fixture',head:'',refs:[],commits:[],more:false,remotes:[]},settings:{},host:{show_history(){}},refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){}};
     window.scm=new layout_qa.git_source_control(panel);panel.workbench=scm;scm.history.render(panel.state);const shell=document.createElement('section');shell.className='linux-note-git-source-control';shell.append(scm.sidebar);document.querySelector('#sidebar-content').append(shell);window.shell=shell;
     scm.groups_state=[{id:'staged',title:'暂存的更改',from:'head',to:'index',files:[]},{id:'changes',title:'更改',from:'index',to:'worktree',files:Array.from({length:50},(_,index)=>({path:'nested/changed_'+index+'.md',status:'M'}))}];scm.render_groups();
     scm.message.value=Array.from({length:30},(_,index)=>'提交说明第'+index+'行').join('\n');scm.message.dispatchEvent(new Event('input'));
-    scm.notice.textContent=Array.from({length:12},(_,index)=>'操作输出 '+index).join('\n');scm.show_repositories=true;const option=document.createElement('option');option.textContent='测试仓库';scm.repo_select.append(option);scm.apply_history_layout();
+    scm.notice.textContent=Array.from({length:12},(_,index)=>'操作输出 '+index).join('\n');scm.show_repositories=true;const repository=document.createElement('div');repository.className='git-scm-repository-row';repository.textContent='测试仓库';scm.repositories.container.append(repository);scm.apply_history_layout();
   })()`);await delay(200);
   const metrics=[];
   for(const [width,height,zoom]of[[720,600,1],[640,360,1],[720,600,1.5],[720,600,2]]){

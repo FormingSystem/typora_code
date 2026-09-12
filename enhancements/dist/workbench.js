@@ -75853,11 +75853,11 @@ https://creativecommons.org/licenses/by/4.0/
     return cleanClassName("font-decoration-".concat(safeFontFamily, "-").concat(fontSize));
   }
   function sanitizeFontFamilyForClassName(fontFamily) {
-    const normalized = fontFamily.toLowerCase().trim();
-    if (!normalized) {
+    const normalized2 = fontFamily.toLowerCase().trim();
+    if (!normalized2) {
       return "default";
     }
-    return cleanClassName(normalized);
+    return cleanClassName(normalized2);
   }
   function cleanClassName(className2) {
     return className2.replace(/[^a-z0-9_-]/gi, "-");
@@ -158622,11 +158622,51 @@ https://creativecommons.org/licenses/by/4.0/
     "symbol-key": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.00098 5.5C7.63498 5.5 7.29598 5.619 7.00098 5.813V4.5C7.00098 4.224 6.77698 4 6.50098 4C6.22498 4 6.00098 4.224 6.00098 4.5V9.5C6.00098 9.776 6.22498 10 6.50098 10C6.71798 10 6.89798 9.86 6.96698 9.666C7.26998 9.873 7.62098 10 8.00098 10C9.10398 10 10.001 8.991 10.001 7.75C10.001 6.509 9.10398 5.5 8.00098 5.5ZM8.00098 9C7.44898 9 7.00098 8.439 7.00098 7.75C7.00098 7.061 7.44898 6.5 8.00098 6.5C8.55298 6.5 9.00098 7.061 9.00098 7.75C9.00098 8.439 8.55298 9 8.00098 9Z"/><path d="M12.749 10C11.646 10 10.749 8.991 10.749 7.75C10.749 6.509 11.646 5.5 12.749 5.5C12.892 5.5 14.001 5.605 14.001 6.236C14.001 6.511 13.777 6.736 13.5 6.736C13.3671 6.736 13.2817 6.68604 13.1896 6.6321C13.0814 6.5688 12.9639 6.5 12.749 6.5C12.197 6.5 11.749 7.061 11.749 7.75C11.749 8.439 12.197 9 12.749 9C12.9613 9 13.0789 8.93181 13.1874 8.8689C13.2804 8.81502 13.3667 8.765 13.5 8.765C13.779 8.765 14.001 8.992 14.001 9.264C14.001 9.897 12.887 10 12.749 10Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M1.89798 5.646C1.99098 5.553 2.36398 5.25 3.25198 5.25C4.12198 5.25 5.00098 5.765 5.00098 6.75V9.5C5.00098 9.776 4.77698 10 4.50098 10C4.36198 10 4.23698 9.943 4.14598 9.851C3.91198 9.937 3.62298 10 3.25098 10C1.93798 10 1.25098 9.246 1.25098 8.5C1.25098 7.754 1.93798 7 3.25098 7C3.55298 7 3.79698 7.023 4.00098 7.056V6.75C4.00098 6.256 3.28098 6.25 3.25098 6.25C2.78847 6.25 2.60167 6.36312 2.57928 6.37668L2.57698 6.378C2.38098 6.573 2.07798 6.561 1.88398 6.365C1.68898 6.17 1.70298 5.841 1.89798 5.646ZM3.25198 8C2.60298 8 2.25198 8.258 2.25198 8.5C2.25198 8.742 2.60298 9 3.25198 9C3.69898 9 3.90898 8.885 4.00198 8.811V8.074C3.85798 8.038 3.62398 8 3.25198 8Z"/></svg>',
     "symbol-parameter": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4 3.5C4 3.22386 4.22386 3 4.5 3H11.5C11.7761 3 12 3.22386 12 3.5V4.5C12 4.77614 11.7761 5 11.5 5C11.2239 5 11 4.77614 11 4.5V4H8.5V12H9C9.27614 12 9.5 12.2239 9.5 12.5C9.5 12.7761 9.27614 13 9 13H7C6.72386 13 6.5 12.7761 6.5 12.5C6.5 12.2239 6.72386 12 7 12H7.5V4H5V4.5C5 4.77614 4.77614 5 4.5 5C4.22386 5 4 4.77614 4 4.5V3.5ZM4.35355 6.64645C4.54882 6.84171 4.54882 7.15829 4.35355 7.35355L2.20711 9.5L4.35355 11.6464C4.54882 11.8417 4.54882 12.1583 4.35355 12.3536C4.15829 12.5488 3.84171 12.5488 3.64645 12.3536L1.14645 9.85355C0.951184 9.65829 0.951184 9.34171 1.14645 9.14645L3.64645 6.64645C3.84171 6.45118 4.15829 6.45118 4.35355 6.64645ZM14.8536 9.14645L12.3536 6.64645C12.1583 6.45118 11.8417 6.45118 11.6464 6.64645C11.4512 6.84171 11.4512 7.15829 11.6464 7.35355L13.7929 9.5L11.6464 11.6464C11.4512 11.8417 11.4512 12.1583 11.6464 12.3536C11.8417 12.5488 12.1583 12.5488 12.3536 12.3536L14.8536 9.85355C15.0488 9.65829 15.0488 9.34171 14.8536 9.14645Z"/></svg>',
     account: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6 5C6 3.89543 6.89543 3 8 3C9.10457 3 10 3.89543 10 5C10 6.10457 9.10457 7 8 7C6.89543 7 6 6.10457 6 5ZM5.49998 8L10.5 8C11.3284 8 12 8.67157 12 9.5C12 10.6161 11.541 11.5103 10.7879 12.1148C10.0466 12.7098 9.05308 13 8 13C6.94692 13 5.95342 12.7098 5.21215 12.1148C4.45897 11.5103 4 10.6161 4 9.5C4 8.67161 4.67156 8 5.49998 8ZM8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8Z"/></svg>',
-    copy: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3 5V12.73C2.4 12.38 2 11.74 2 11V5C2 2.79 3.79 1 6 1H9C9.74 1 10.38 1.4 10.73 2H6C4.35 2 3 3.35 3 5ZM11 15H6C4.897 15 4 14.103 4 13V5C4 3.897 4.897 3 6 3H11C12.103 3 13 3.897 13 5V13C13 14.103 12.103 15 11 15ZM12 5C12 4.448 11.552 4 11 4H6C5.448 4 5 4.448 5 5V13C5 13.552 5.448 14 6 14H11C11.552 14 12 13.552 12 13V5Z"/></svg>'
+    copy: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3 5V12.73C2.4 12.38 2 11.74 2 11V5C2 2.79 3.79 1 6 1H9C9.74 1 10.38 1.4 10.73 2H6C4.35 2 3 3.35 3 5ZM11 15H6C4.897 15 4 14.103 4 13V5C4 3.897 4.897 3 6 3H11C12.103 3 13 3.897 13 5V13C13 14.103 12.103 15 11 15ZM12 5C12 4.448 11.552 4 11 4H6C5.448 4 5 4.448 5 5V13C5 13.552 5.448 14 6 14H11C11.552 14 12 13.552 12 13V5Z"/></svg>',
+    repo: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12.5 12C12.776 12 13 11.776 13 11.5V3C13 1.895 12.105 1 11 1H5C3.895 1 3 1.895 3 3V13C3 14.105 3.895 15 5 15V15.5C5 15.702 5.122 15.885 5.309 15.962C5.495 16.039 5.711 15.997 5.854 15.854L6.5 15.208L7.146 15.854C7.242 15.95 7.37 16 7.5 16C7.564 16 7.63 15.987 7.691 15.962C7.878 15.885 8 15.702 8 15.5V15H12.5C12.776 15 13 14.776 13 14.5C13 14.224 12.776 14 12.5 14H8V13.5C8 13.224 7.776 13 7.5 13H5.5C5.224 13 5 13.224 5 13.5V14C4.448 14 4 13.552 4 13V12H12.5ZM4 3C4 2.448 4.448 2 5 2H11C11.552 2 12 2.448 12 3V11H4V3Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
   var zh_cn = {
+    "scm.invalid_shortcut": "\u5FEB\u6377\u952E\u65E0\u6548\uFF1A\u4F7F\u7528 Mod\u3001Alt\u3001Shift \u4E0E\u5B57\u6BCD\u3001\u6570\u5B57\u6216 F1\u2013F12\uFF1B\u666E\u901A\u952E\u987B\u5305\u542B Mod \u6216 Alt\u3002",
+    "scm.duplicate_shortcut": "\u6B64\u5FEB\u6377\u952E\u5DF2\u7528\u4E8E\u53E6\u4E00\u4E2A Graph \u52A8\u4F5C\u3002",
+    "scm.toolbar_hidden": "\u63D0\u4EA4\u56FE\uFF1A\u9690\u85CF\u7684\u5DE5\u5177\u680F\u52A8\u4F5C",
+    "scm.toolbar_shortcuts": "\u63D0\u4EA4\u56FE\uFF1A\u4FA7\u680F\u5FEB\u6377\u952E",
+    "scm.invalid_toolbar": "\u5DE5\u5177\u680F\u52A8\u4F5C\u540D\u79F0\u65E0\u6548\u3002",
+    "scm.fetch_all": "\u83B7\u53D6\u6240\u6709\u8FDC\u7AEF",
+    "scm.publish_branch": "\u53D1\u5E03\u5206\u652F",
+    "scm.scope_all": "\u5168\u90E8",
+    "scm.scope_auto": "\u81EA\u52A8",
+    "scm.scope_count": "{count} \u9879",
+    "scm.restore_toolbar": "\u91CD\u7F6E\u5DE5\u5177\u680F",
+    "scm.configure_keybinding": "\u914D\u7F6E\u5FEB\u6377\u952E",
+    "scm.hide_action": "\u9690\u85CF\u201C{name}\u201D",
+    "scm.hide": "\u9690\u85CF",
+    "scm.shortcut_help": "\u5FEB\u6377\u952E\u5728\u6E90\u4EE3\u7801\u7BA1\u7406\u533A\u57DF\u751F\u6548\uFF1B\u8F93\u5165\u6846\u4E2D\u4FDD\u7559\u8F93\u5165\u884C\u4E3A\u3002\u7559\u7A7A\u53D6\u6D88\u7ED1\u5B9A\u3002",
+    "scm.search_references": "\u641C\u7D22\u5206\u652F\u6216\u6807\u7B7E",
+    "scm.remote_branch": "\u8FDC\u7AEF\u5206\u652F\uFF08\u7559\u7A7A\u4F7F\u7528\u672C\u5730\u540D\u79F0\uFF09",
+    "scm.open_github": "\u5728 GitHub \u4E0A\u6253\u5F00",
+    "scm.checkout_detached": "\u68C0\u51FA\u63D0\u4EA4\uFF08\u5206\u79BB HEAD\uFF09",
+    "scm.delete_branch": "\u5220\u9664\u5206\u652F",
+    "scm.compare_remote": "\u4E0E\u8FDC\u7AEF\u6BD4\u8F83",
+    "scm.compare_base": "\u4E0E\u5206\u652F\u57FA\u7EBF\u6BD4\u8F83",
+    "scm.compare_with": "\u6BD4\u8F83\u5BF9\u8C61\u2026",
+    "scm.copy_commit_message": "\u590D\u5236\u5B8C\u6574\u63D0\u4EA4\u4FE1\u606F",
+    "scm.additional_git_actions": "\u66F4\u591A Git \u64CD\u4F5C",
+    "scm.worktrees": "\u5DE5\u4F5C\u6811",
+    "scm.worktree_manage": "\u7BA1\u7406\u5DE5\u4F5C\u6811\u2026",
+    "scm.worktree_add": "\u521B\u5EFA\u5DE5\u4F5C\u6811\u2026",
+    "scm.worktree_new_branch": "\u65B0\u5206\u652F\u540D\u79F0\uFF08\u7559\u7A7A\u4F7F\u7528\u5206\u79BB HEAD\uFF09",
+    "scm.worktree_open": "\u6253\u5F00\u5DE5\u4F5C\u6811",
+    "scm.worktree_new_window": "\u5728\u65B0\u7A97\u53E3\u6253\u5F00",
+    "scm.worktree_remove": "\u5220\u9664\u5DE5\u4F5C\u6811\u2026",
+    "scm.worktree_remove_warning": "\u5220\u9664\u6240\u9009\u9644\u52A0\u5DE5\u4F5C\u6811\u76EE\u5F55\uFF0C\u4FDD\u7559\u5206\u652F\u548C\u63D0\u4EA4\u3002\u76EE\u5F55\u5FC5\u987B\u5E72\u51C0\u4E14\u672A\u9501\u5B9A\u3002",
+    "scm.worktree_protected": "\u4E0D\u80FD\u5220\u9664\u4E3B\u5DE5\u4F5C\u6811\u3001\u5F53\u524D\u5DE5\u4F5C\u6811\u3001\u5DF2\u9501\u5B9A\u6216\u5931\u6548\u7684\u5DE5\u4F5C\u6811\u3002",
+    "scm.worktree_dirty": "\u5DE5\u4F5C\u6811\u5305\u542B\u4FEE\u6539\u3001\u672A\u8DDF\u8E2A\u6216\u5DF2\u5FFD\u7565\u6587\u4EF6\uFF0C\u8BF7\u5148\u5904\u7406\u8FD9\u4E9B\u6587\u4EF6\u3002",
+    "scm.worktree_absolute": "\u5DE5\u4F5C\u6811\u76EE\u5F55\u987B\u4F7F\u7528\u4E0D\u542B .. \u6216 .git \u7684\u7EDD\u5BF9\u8DEF\u5F84\u3002",
+    "scm.open_head": "\u6253\u5F00\u6587\u4EF6\uFF08HEAD\uFF09",
+    "scm.reveal_explorer": "\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u89C6\u56FE\u4E2D\u5B9A\u4F4D",
+    "scm.ignore_keeps_tracking": "\u5FFD\u7565\u89C4\u5219\u5DF2\u4FDD\u7559\uFF1B\u5DF2\u8DDF\u8E2A\u6587\u4EF6\u4ECD\u7531 Git \u8DDF\u8E2A\u3002",
     "common.close": "\u5173\u95ED",
     "history.hover_label": "\u63D0\u4EA4\u8BE6\u60C5",
     "history.stats_loading": "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u7EDF\u8BA1\u2026",
@@ -159161,7 +159201,7 @@ https://creativecommons.org/licenses/by/4.0/
     "ignore.invalid_rule": "\u65E0\u6CD5\u4E3A\u6B64\u6587\u4EF6\u751F\u6210\u7CBE\u786E\u5FFD\u7565\u89C4\u5219\u3002",
     "ignore.invalid_path": "\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002",
     "ignore.outside_repository": "\u6587\u4EF6\u8DEF\u5F84\u8D85\u51FA\u4ED3\u5E93\u3002",
-    "ignore.ordinary_untracked_only": "\u4EC5\u652F\u6301\u5C06\u672A\u8DDF\u8E2A\u7684\u666E\u901A\u6587\u4EF6\u6DFB\u52A0\u5230 .gitignore\u3002",
+    "ignore.ordinary_untracked_only": "\u4EC5\u652F\u6301\u4E3A\u666E\u901A\u6587\u4EF6\u6DFB\u52A0 .gitignore \u89C4\u5219\u3002",
     "ignore.already_tracked": "\u6B64\u6587\u4EF6\u5DF2\u7ECF\u52A0\u5165 Git \u8DDF\u8E2A\uFF0C\u4E0D\u80FD\u901A\u8FC7 .gitignore \u505C\u6B62\u8DDF\u8E2A\uFF1B\u672C\u64CD\u4F5C\u4E0D\u4F1A\u4ECE\u7D22\u5F15\u4E2D\u79FB\u9664\u6587\u4EF6\u3002",
     "ignore.ordinary_gitignore_required": ".gitignore \u5FC5\u987B\u662F\u65E0\u94FE\u63A5\u7684\u666E\u901A\u6587\u4EF6\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u89C4\u5219\u3002",
     "ignore.created_concurrently": ".gitignore \u521A\u88AB\u5176\u4ED6\u7A0B\u5E8F\u521B\u5EFA\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002",
@@ -159379,6 +159419,45 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.settings": "Git Graph \u8BBE\u7F6E\u2026"
   };
   var en = {
+    "scm.invalid_shortcut": "Invalid shortcut. Use Mod/Alt/Shift with a letter, number or F1\u2013F12. Letters and numbers require Mod or Alt.",
+    "scm.duplicate_shortcut": "This shortcut is already assigned to another Graph action.",
+    "scm.toolbar_hidden": "Graph: Hidden Toolbar Actions",
+    "scm.toolbar_shortcuts": "Graph: Sidebar Keybindings",
+    "scm.invalid_toolbar": "Invalid toolbar action.",
+    "scm.fetch_all": "Fetch From All Remotes",
+    "scm.publish_branch": "Publish Branch",
+    "scm.scope_all": "All",
+    "scm.scope_auto": "Auto",
+    "scm.scope_count": "{count} Items",
+    "scm.restore_toolbar": "Reset Toolbar",
+    "scm.configure_keybinding": "Configure Keybinding",
+    "scm.hide_action": "Hide '{name}'",
+    "scm.hide": "Hide",
+    "scm.shortcut_help": "Keybindings apply within Source Control, except text inputs. Leave empty to remove the binding.",
+    "scm.search_references": "Search branches or tags",
+    "scm.remote_branch": "Remote branch (leave empty to use the local name)",
+    "scm.open_github": "Open on GitHub",
+    "scm.checkout_detached": "Checkout (Detached)",
+    "scm.delete_branch": "Delete Branch",
+    "scm.compare_remote": "Compare with Remote",
+    "scm.compare_base": "Compare with Merge Base",
+    "scm.compare_with": "Compare with\u2026",
+    "scm.copy_commit_message": "Copy Commit Message",
+    "scm.additional_git_actions": "More Git Actions",
+    "scm.worktrees": "Worktrees",
+    "scm.worktree_manage": "Manage Worktrees\u2026",
+    "scm.worktree_add": "Create Worktree\u2026",
+    "scm.worktree_new_branch": "New branch name (leave empty for detached HEAD)",
+    "scm.worktree_open": "Open Worktree",
+    "scm.worktree_new_window": "Open in New Window",
+    "scm.worktree_remove": "Delete Worktree\u2026",
+    "scm.worktree_remove_warning": "Delete the selected linked worktree directory, preserving branches and commits. The directory must be clean and unlocked.",
+    "scm.worktree_protected": "Cannot remove the main, current, locked, or unavailable worktree.",
+    "scm.worktree_dirty": "The worktree contains changes, untracked or ignored files. Resolve them before removal.",
+    "scm.worktree_absolute": "Use an absolute worktree path without .. or .git components.",
+    "scm.open_head": "Open File (HEAD)",
+    "scm.reveal_explorer": "Reveal in Explorer View",
+    "scm.ignore_keeps_tracking": "The ignore rule is retained. Already tracked files remain tracked by Git.",
     "common.close": "Close",
     "history.hover_label": "Commit details",
     "history.stats_loading": "Loading commit statistics\u2026",
@@ -159913,7 +159992,7 @@ https://creativecommons.org/licenses/by/4.0/
     "ignore.invalid_rule": "An exact ignore rule cannot be created for this file.",
     "ignore.invalid_path": "The file path is invalid.",
     "ignore.outside_repository": "The file path is outside the repository.",
-    "ignore.ordinary_untracked_only": "Only an explicitly selected, untracked regular file can be added to .gitignore.",
+    "ignore.ordinary_untracked_only": "Only an explicitly selected regular file can be added to .gitignore.",
     "ignore.already_tracked": "This file is already tracked by Git. .gitignore cannot stop tracking it, and this action will not remove it from the index.",
     "ignore.ordinary_gitignore_required": ".gitignore must be an unlinked regular file. No rule was written.",
     "ignore.created_concurrently": ".gitignore was just created by another process. Refresh and try again.",
@@ -160712,8 +160791,8 @@ https://creativecommons.org/licenses/by/4.0/
     const { path_api } = modules, fs2 = modules.fs.promises;
     const destination = await check_directory(modules, root, target_directory);
     if (sources.some((source) => !path_api.isAbsolute(source))) throw new Error("\u6E90\u9879\u76EE\u5FC5\u987B\u662F\u7EDD\u5BF9\u8DEF\u5F84\u3002");
-    const normalized = [...new Set(sources.map((source) => path_api.resolve(source)))];
-    const selected = normalized.filter((source) => !normalized.some((parent) => parent !== source && within(path_api, parent, source, false)));
+    const normalized2 = [...new Set(sources.map((source) => path_api.resolve(source)))];
+    const selected = normalized2.filter((source) => !normalized2.some((parent) => parent !== source && within(path_api, parent, source, false)));
     const plans = [], targets = /* @__PURE__ */ new Set();
     for (const source of selected) {
       const entry = await check_entry(modules, root, source, false), target = path_api.join(destination.path, path_api.basename(source));
@@ -177906,8 +177985,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
   function file_key(file_path) {
-    const normalized = file_path.replace(/\\/gu, "/");
-    return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
+    const normalized2 = file_path.replace(/\\/gu, "/");
+    return /^(?:[a-z]:\/|\/\/)/iu.test(normalized2) ? normalized2.toLowerCase() : normalized2;
   }
   function file_url_path(path_api, target) {
     try {
@@ -181458,8 +181537,8 @@ https://creativecommons.org/licenses/by/4.0/
       const path_entries = /* @__PURE__ */ new Set();
       function add_paths(value) {
         for (const entry of String(value || "").split(windows ? ";" : ":")) {
-          const normalized = expand(entry.trim().replace(/^"|"$/gu, ""));
-          if (path_entries.size < 256 && path_api.isAbsolute(normalized)) path_entries.add(normalize3(normalized));
+          const normalized2 = expand(entry.trim().replace(/^"|"$/gu, ""));
+          if (path_entries.size < 256 && path_api.isAbsolute(normalized2)) path_entries.add(normalize3(normalized2));
         }
       }
       add_paths(env2.path);
@@ -193984,8 +194063,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!inside_root(file_path) || !inside_root(fs2.realpathSync(file_path))) throw new Error(git_graph_text("ignore.outside_repository"));
     const file_stat = fs2.lstatSync(file_path);
     if (!file_stat.isFile() || file_stat.isSymbolicLink()) throw new Error(git_graph_text("ignore.ordinary_untracked_only"));
-    if (await run(root, ["ls-files", "--cached", "-z", "--", file])) throw new Error(git_graph_text("ignore.already_tracked"));
-    const ignored = await run(root, ["check-ignore", "--quiet", "--", file]).then(() => true, (error) => {
+    await run(root, ["check-ignore", "--no-index", "--quiet", "--", file]).then(() => true, (error) => {
       if (error.code === 1) return false;
       throw error;
     });
@@ -194021,7 +194099,7 @@ https://creativecommons.org/licenses/by/4.0/
         throw new Error(git_graph_text("ignore.invalid_utf8"));
       }
       if (content.includes("\0")) throw new Error(git_graph_text("ignore.invalid_content"));
-      if (ignored && content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
+      if (content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
       const newline3 = content.match(/\r?\n/u)?.[0] || "\n";
       const addition = (content && !content.endsWith("\n") ? newline3 : "") + rule + newline3;
       fs2.writeFileSync(descriptor, addition, "utf8");
@@ -194087,10 +194165,147 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/git_scm_data.ts
+  function parse_branch_status(source) {
+    const status2 = { branch: "", head: "", upstream: "", ahead: 0, behind: 0, dirty: false };
+    const records = source.split("\0");
+    for (let index = 0; index < records.length; index++) {
+      const record = records[index];
+      if (record.startsWith("# branch.head ")) status2.branch = record.slice(14);
+      else if (record.startsWith("# branch.oid ")) status2.head = record.slice(13);
+      else if (record.startsWith("# branch.upstream ")) status2.upstream = record.slice(18);
+      else if (record.startsWith("# branch.ab ")) {
+        const counts = /^# branch\.ab \+(\d+) -(\d+)$/u.exec(record);
+        if (counts) {
+          status2.ahead = Number(counts[1]);
+          status2.behind = Number(counts[2]);
+        }
+      } else if (/^[12u?] /u.test(record)) {
+        status2.dirty = true;
+        if (record.startsWith("2 ")) index++;
+      }
+    }
+    return status2;
+  }
+  var read_branch_status = async (run, root) => parse_branch_status(await run(root, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]));
+  var optional = async (run, root, args) => run(root, args).then((value) => value.trim()).catch((error) => {
+    if (error.code === 1) return "";
+    throw error;
+  });
+  async function read_scm_tracking(run, root, branch, head, refs) {
+    const result = { upstream: "", upstream_hash: "", remote: "", remote_ref: "", base: "", base_hash: "", ahead: 0, behind: 0 };
+    if (!branch || !head) return result;
+    const read_upstream = async (name) => {
+      const ref = "refs/heads/" + name;
+      const source = await run(root, ["for-each-ref", "--format=%(refname)%00%(upstream)%00%(upstream:remotename)%00%(upstream:remoteref)", ref]);
+      return source.trimEnd().split("\n").find((line) => line.split("\0")[0] === ref)?.split("\0");
+    };
+    const parts = await read_upstream(branch);
+    if (parts?.[1]) {
+      result.upstream = parts[1];
+      result.remote = parts[2];
+      result.remote_ref = parts[3];
+      result.upstream_hash = refs.find((ref) => ref.name === result.upstream)?.hash || "";
+    }
+    if (result.upstream_hash) {
+      const counts = (await run(root, ["rev-list", "--left-right", "--count", "".concat(head, "...").concat(result.upstream_hash), "--"])).trim().split(/\s+/u).map(Number);
+      if (counts.length === 2 && counts.every(Number.isSafeInteger)) {
+        [result.ahead, result.behind] = counts;
+      }
+    }
+    const remote_ref = (name) => refs.find((ref) => ref.name.startsWith("refs/remotes/") && ref.name === (name.startsWith("refs/") ? name : "refs/remotes/" + name));
+    let base = remote_ref(await optional(run, root, ["config", "--get", "branch.".concat(branch, ".vscode-merge-base")]));
+    if (!base) {
+      const reflog = await run(root, ["reflog", "show", "--format=%gs", "refs/heads/" + branch, "--"]);
+      const created = reflog.split("\n").filter((line) => line.startsWith("branch: Created from "));
+      if (created.length === 1) {
+        let source = created[0].slice(21).trim();
+        if (source === "HEAD") {
+          const movements = (await run(root, ["reflog", "show", "--format=%gs", "HEAD", "--"])).split("\n").filter((line) => line.startsWith("checkout: moving from ") && line.endsWith(" to " + branch));
+          source = movements.at(-1)?.slice(22, -4 - branch.length) || "";
+        }
+        base = remote_ref(source);
+        if (!base && source && source !== branch && refs.some((ref) => ref.name === "refs/heads/" + source)) {
+          const upstream = await read_upstream(source);
+          base = remote_ref(upstream?.[1] || "");
+        }
+      }
+    }
+    if (!base) {
+      const remote = result.remote && result.remote !== "." ? result.remote : "origin";
+      const default_ref = await optional(run, root, ["symbolic-ref", "--quiet", "refs/remotes/".concat(remote, "/HEAD")]);
+      base = refs.find((ref) => ref.name === default_ref);
+    }
+    if (base && base.name !== result.upstream) {
+      result.base = base.name;
+      result.base_hash = base.hash;
+    }
+    return result;
+  }
+  function parse_worktrees(source) {
+    const result = [];
+    let entry;
+    for (const record of source.split("\0")) {
+      if (record.startsWith("worktree ")) {
+        entry = { path: record.slice(9), head: "", branch: "", locked: false, prunable: false, bare: false, main: result.length === 0 };
+        result.push(entry);
+      } else if (entry) {
+        if (record.startsWith("HEAD ")) entry.head = record.slice(5);
+        else if (record.startsWith("branch ")) entry.branch = record.slice(7);
+        else if (/^locked(?: |$)/u.test(record)) entry.locked = true;
+        else if (/^prunable(?: |$)/u.test(record)) entry.prunable = true;
+        else if (record === "bare") entry.bare = true;
+      }
+    }
+    return result;
+  }
+  var read_worktrees = async (run, root) => parse_worktrees(await run(root, ["worktree", "list", "--porcelain", "-z"]));
+  function commit_github_url(remote, hash2) {
+    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(hash2)) return "";
+    try {
+      const url = new URL(remote.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://"));
+      if (url.hostname !== "github.com" || !["https:", "http:"].includes(url.protocol)) return "";
+      const path = url.pathname.replace(/\.git\/?$/u, "").replace(/\/$/u, "");
+      if (!/^\/[^/]+\/[^/]+$/u.test(path)) return "";
+      return "https://github.com".concat(path, "/commit/").concat(hash2);
+    } catch {
+      return "";
+    }
+  }
+  var HISTORY_ACTION_IDS = ["branches", "head", "fetch", "pull", "push", "refresh"];
+  function validate_history_shortcuts(value) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(git_graph_text("scm.invalid_shortcut"));
+    const used = /* @__PURE__ */ new Set();
+    for (const [id, key] of Object.entries(value)) {
+      if (!HISTORY_ACTION_IDS.includes(id) || typeof key !== "string") throw new Error(git_graph_text("scm.invalid_shortcut"));
+      if (!key) continue;
+      const parts = key.toLowerCase().split("+");
+      const modifiers = parts.slice(0, -1);
+      if (!/^(?:[a-z0-9]|f(?:[1-9]|1[0-2]))$/u.test(parts.at(-1)) || modifiers.some((part) => !["mod", "alt", "shift"].includes(part)) || new Set(modifiers).size !== modifiers.length || !modifiers.includes("mod") && !modifiers.includes("alt") && !/^f\d+$/u.test(parts.at(-1))) throw new Error(git_graph_text("scm.invalid_shortcut"));
+      const normalized2 = [...modifiers.sort(), parts.at(-1)].join("+");
+      if (used.has(normalized2)) throw new Error(git_graph_text("scm.duplicate_shortcut"));
+      used.add(normalized2);
+    }
+    return value;
+  }
+
+  // src/git_worktrees.ts
+  var normalized = (path) => /^[a-z]:/iu.test(path) ? path.replace(/\\/gu, "/").replace(/\/$/u, "").toLowerCase() : path.replace(/\/$/u, "");
+  async function worktree_guard(run, root, target) {
+    const entries3 = await read_worktrees(run, root);
+    if (target) {
+      const entry = entries3.find((entry2) => normalized(entry2.path) === normalized(target));
+      const current = (await run(root, ["rev-parse", "--show-toplevel"])).trimEnd();
+      if (!entry || entry.main || entry.bare || entry.locked || entry.prunable || normalized(entry.path) === normalized(current)) throw new Error(git_graph_text("scm.worktree_protected"));
+      if (await run(entry.path, ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignored"])) throw new Error(git_graph_text("scm.worktree_dirty"));
+    }
+    return JSON.stringify(entries3);
+  }
+
   // src/git_graph_actions.ts
   function graph_actions_for(locale) {
     const label = (key) => git_graph_text(key, {}, locale);
-    const field = (key, title, optional = false) => ({ key, title: label(title), optional });
+    const field = (key, title, optional2 = false) => ({ key, title: label(title), optional: optional2 });
     const check = (key, title, initial = false) => ({ key, title: label(title), type: "boolean", initial });
     const choice = (key, title, choices2) => ({
       key,
@@ -194123,13 +194338,15 @@ https://creativecommons.org/licenses/by/4.0/
       { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check("prune", "action.field.prune"), check("prune_tags", "action.field.prune_tags")] },
       { id: "pull", title: label("action.title.pull"), targets: ["repository", "branch", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"]), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
       { id: "sync", title: label("action.title.sync"), targets: ["repository"], fields: [choice("mode", "action.field.sync_mode", ["merge", "rebase", "ff-only"])], touches_files: true },
-      { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
+      { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, field("remote_branch", "scm.remote_branch", true), check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
       { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check("untracked", "action.field.include_untracked"), check("keep_index", "action.field.keep_index")], touches_files: true },
       { id: "stash_apply", title: label("action.title.stash_apply"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
       { id: "stash_pop", title: label("action.title.stash_pop"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
       { id: "stash_drop", title: label("action.title.stash_drop"), targets: ["stash"], fields: [], destructive: label("action.warning.stash_drop") },
       { id: "stash_branch", title: label("action.title.stash_branch"), targets: ["stash"], fields: [branch], touches_files: true },
       { id: "clean", title: label("action.title.clean"), targets: ["changes"], fields: [check("directories", "action.field.clean_directories"), check("ignored", "action.field.clean_ignored")], touches_files: true, destructive: label("action.warning.clean") },
+      { id: "worktree_add", title: label("scm.worktree_add"), targets: ["repository"], fields: [field("directory", "action.field.target_directory"), field("branch", "scm.worktree_new_branch", true)] },
+      { id: "worktree_remove", title: label("scm.worktree_remove"), targets: ["worktree"], fields: [], touches_files: true, destructive: label("scm.worktree_remove_warning") },
       { id: "clone", title: label("action.title.clone"), targets: ["repository"], fields: [field("url", "action.field.repository_url"), field("directory", "action.field.target_directory")] },
       { id: "remote_add", title: label("action.title.remote_add"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url")] },
       { id: "remote_edit", title: label("action.title.remote_edit"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url"), check("push_url", "action.field.push_url")] },
@@ -194170,9 +194387,9 @@ https://creativecommons.org/licenses/by/4.0/
   var graph_actions = graph_actions_for();
   var busy_repositories = /* @__PURE__ */ new Set();
   var text_value = (value, name, required = true) => {
-    const normalized = typeof value === "string" ? value.trim() : "";
-    if (required && !normalized || /[\0\r\n]/u.test(normalized) || normalized.startsWith("-")) throw new Error(git_graph_text("action.error.invalid_value", { name }));
-    return normalized;
+    const normalized2 = typeof value === "string" ? value.trim() : "";
+    if (required && !normalized2 || /[\0\r\n]/u.test(normalized2) || normalized2.startsWith("-")) throw new Error(git_graph_text("action.error.invalid_value", { name }));
+    return normalized2;
   };
   async function valid_ref(run, root, value, tag3 = false) {
     const name = text_value(value, git_graph_text(tag3 ? "action.label.tag_name" : "action.label.branch_name"));
@@ -194270,6 +194487,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (n2 && !/^[1-9]\d*$/u.test(n2)) throw new Error(git_graph_text("action.error.invalid_mainline"));
       return n2 ? ["-m", n2] : [];
     };
+    let worktree_snapshot;
     let args;
     let todo;
     let sync;
@@ -194365,9 +194583,12 @@ https://creativecommons.org/licenses/by/4.0/
         sync = { target: target2, push_args: ["push", target2.remote, "refs/heads/".concat(target2.local_branch, ":").concat(target2.remote_ref)] };
         break;
       }
-      case "push":
-        args = ["push", ...flag("upstream") ? ["--set-upstream"] : [], ...flag("force_lease") ? ["--force-with-lease"] : [], remote(), await branch()];
+      case "push": {
+        const local = await branch();
+        const destination = value("remote_branch", false);
+        args = ["push", ...flag("upstream") ? ["--set-upstream"] : [], ...flag("force_lease") ? ["--force-with-lease"] : [], remote(), destination ? "refs/heads/".concat(local, ":refs/heads/").concat(await valid_ref(run, root, destination)) : local];
         break;
+      }
       case "stash_create":
         args = ["stash", "push", ...flag("untracked") ? ["--include-untracked"] : [], ...flag("keep_index") ? ["--keep-index"] : [], ...value("message", false) ? ["-m", value("message")] : []];
         break;
@@ -194381,6 +194602,19 @@ https://creativecommons.org/licenses/by/4.0/
         break;
       case "clean":
         args = ["clean", "-f", ...flag("directories") ? ["-d"] : [], ...flag("ignored") ? ["-x"] : []];
+        break;
+      case "worktree_add": {
+        const directory = value("directory");
+        if (!/^(?:[a-z]:[\\/]|\/)/iu.test(directory) || directory.split(/[\\/]/u).some((part) => part === ".." || part.toLowerCase() === ".git")) throw new Error(git_graph_text("scm.worktree_absolute"));
+        if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(hash2)) throw new Error(git_graph_text("action.error.invalid_value", { name: git_graph_text("action.label.commit") }));
+        const name = value("branch", false);
+        worktree_snapshot = await worktree_guard(run, root);
+        args = ["worktree", "add", ...name ? ["-b", await branch()] : ["--detach"], "--", directory, hash2];
+        break;
+      }
+      case "worktree_remove":
+        worktree_snapshot = await worktree_guard(run, root, target);
+        args = ["worktree", "remove", "--", target];
         break;
       case "clone":
         args = ["clone", "--", value("url"), value("directory")];
@@ -194466,7 +194700,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (id === "remote_prune") preview += "\n\n" + await run(root, [...args, "--dry-run"]);
     if (todo) preview += "\n\n" + todo;
     const file_guard = id === "delete_untracked" ? await run(root, ["hash-object", "--no-filters", "--", target]) : void 0;
-    return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup };
+    return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup, worktree_guard: worktree_snapshot };
   }
   async function execute_git_action(run, plan, can_change_files, services = {}) {
     const root = plan.context.root;
@@ -194475,6 +194709,7 @@ https://creativecommons.org/licenses/by/4.0/
     try {
       if (plan.action.touches_files && !can_change_files()) throw new Error(git_graph_text("action.error.unsaved_document"));
       if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error(git_graph_text("action.error.repository_changed"));
+      if (plan.worktree_guard !== void 0 && await worktree_guard(run, root, plan.action.id === "worktree_remove" ? plan.context.target : void 0) !== plan.worktree_guard) throw new Error(git_graph_text("action.error.repository_changed"));
       if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error(git_graph_text("action.error.untracked_changed"));
       if (plan.discard) {
         const { restore_paths, untracked_paths, untracked_guards } = plan.discard;
@@ -194657,6 +194892,8 @@ https://creativecommons.org/licenses/by/4.0/
     reference_space: "none",
     hidden_actions: [],
     dialog_defaults: { merge: { mode: "no-ff", squash_message: "default" }, pull: { mode: "merge", squash_message: "default" }, rebase: { ignore_date: true }, stash_create: { untracked: true } },
+    history_toolbar_hidden: [],
+    history_shortcuts: {},
     shortcuts: { find: "Mod+f", head: "Mod+h", refresh: "Mod+r", stash_next: "Mod+s", stash_previous: "Mod+Shift+s" },
     on_load_head: false,
     on_load_branch: false,
@@ -194690,6 +194927,8 @@ https://creativecommons.org/licenses/by/4.0/
       pr_providers: label("settings.label.pr_providers"),
       pr_config: label("settings.label.pr_config"),
       tab_icon_theme: label("settings.label.tab_icon_theme"),
+      history_toolbar_hidden: label("scm.toolbar_hidden"),
+      history_shortcuts: label("scm.toolbar_shortcuts"),
       reference_space: label("settings.label.reference_space"),
       graph_style: label("settings.label.graph_style"),
       colors: label("settings.label.colors"),
@@ -194798,6 +195037,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     if (!result.colors.length || result.colors.some((color) => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error(git_graph_text("settings.error.invalid_colors"));
     if (result.branch_globs.some((item) => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error(git_graph_text("settings.error.invalid_branch_globs"));
+    validate_history_shortcuts(result.history_shortcuts);
+    if (result.history_toolbar_hidden.some((id) => !HISTORY_ACTION_IDS.includes(id))) throw new Error(git_graph_text("scm.invalid_toolbar"));
     for (const key of ["hidden_actions", "on_load_branches"]) if (result[key].some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.text_array", { key }));
     for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.string_maps"));
     for (const key of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key)) throw new Error(git_graph_text("settings.error.missing_shortcut", { key }));
@@ -194919,14 +195160,17 @@ https://creativecommons.org/licenses/by/4.0/
       }
       entry[match2[3]] = match2[2];
     }
+    const tracking = await read_scm_tracking(run, root, branch, head, refs);
+    const automatic = branches.length === 1 && branches[0] === "AUTO";
     const selected_refs = refs.filter((ref) => {
+      if (automatic) return ["refs/heads/" + branch, tracking.upstream, tracking.base].includes(ref.name);
       if (!settings.show_remotes && ref.name.startsWith("refs/remotes/")) return false;
       if (!settings.show_remote_heads && ref.name.startsWith("refs/remotes/") && ref.name.endsWith("/HEAD")) return false;
       if ((!settings.show_tags || !settings.tag_only_commits) && ref.name.startsWith("refs/tags/")) return false;
       return !branches.length || branches.some((pattern) => pattern === ref.name || glob_matches(pattern.replace(/^glob:/u, ""), ref.name.replace(/^refs\//u, "")));
     });
     const starts = new Set(selected_refs.map((ref) => require_revision(ref.hash)));
-    if (head && (!branches.length || branches.includes("HEAD"))) starts.add(head);
+    if (head && (!branches.length || automatic || branches.includes("HEAD"))) starts.add(head);
     const ordinary_starts = [...starts];
     const hidden_stash_parents = /* @__PURE__ */ new Set();
     if (!branches.length && stashes.length) {
@@ -194958,7 +195202,7 @@ https://creativecommons.org/licenses/by/4.0/
       commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
     }
     const operation = git_path.trim();
-    return { root, head, branch, refs, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+    return { root, head, branch, refs, tracking, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
   }
   function comparison_args(from, to, head) {
     if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
@@ -198790,8 +199034,8 @@ https://creativecommons.org/licenses/by/4.0/
       const rgb = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0], dark = rgb[0] + rgb[1] + rgb[2] > 450;
       for (const [name, value] of Object.entries(dark ? { keyword: "#569cd6", string: "#ce9178", comment: "#6a9955", number: "#b5cea8", type: "#4ec9b0" } : { keyword: "#0000ff", string: "#a31515", comment: "#008000", number: "#098658", type: "#267f99" })) article.style.setProperty("--revision-" + name, value);
     };
-    const normalized = source.replace(/\r\n?/gu, "\n").replace(/^---\n[\s\S]*?\n---(?:\n|$)/u, "");
-    const fragment = purify2.sanitize(marked2.parse(normalized, { gfm: true, async: false }), {
+    const normalized2 = source.replace(/\r\n?/gu, "\n").replace(/^---\n[\s\S]*?\n---(?:\n|$)/u, "");
+    const fragment = purify2.sanitize(marked2.parse(normalized2, { gfm: true, async: false }), {
       FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "audio", "video", "source"],
       FORBID_ATTR: ["style", "id", "name", "srcset"],
       ALLOW_DATA_ATTR: false,
@@ -199056,6 +199300,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (typeof unregister_view === "function") unregister_view();
       },
       ignore_file(root, file, settings) {
+        if (get_workspace_files()?.can_write(path_api.join(root, ".gitignore")) === false) throw new Error(git_graph_text("action.error.unsaved_document"));
         return append_git_ignore({ fs: fs2, path_api }, this.runner(settings).run, root, file);
       },
       show_history: (_root) => {
@@ -199081,7 +199326,10 @@ https://creativecommons.org/licenses/by/4.0/
             throw error;
           }
         };
-        return { ...runner, run };
+        return { ...runner, run, dispose: () => {
+          runner.cancel();
+          runners.delete(runner);
+        } };
       },
       show_output(root) {
         const view = workspace_element("div", "git-output");
@@ -199152,6 +199400,12 @@ https://creativecommons.org/licenses/by/4.0/
         }
       },
       file_path: ensure_file_path,
+      open_folder(path, new_window = false) {
+        core.app.commands.run(new_window ? "linux_note:open_folder_new_window" : "linux_note:open_folder_path", [path]);
+      },
+      reveal_explorer(root, file) {
+        core.app.commands.run("linux_note:reveal_in_explorer", [ensure_file_path(root, file), root]);
+      },
       reveal_file(root, file) {
         runtime2.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
       },
@@ -199323,6 +199577,143 @@ https://creativecommons.org/licenses/by/4.0/
     } });
     terminal_workspace = bind_terminal_workspace(host);
     return host;
+  }
+
+  // src/git_scm_menus.ts
+  function checkout_entries(panel, hash2) {
+    const state = panel.state;
+    if (!state) return [];
+    return state.refs.filter((ref) => (!hash2 || ref.hash === hash2) && /^refs\/(heads|remotes)\//u.test(ref.name) && !ref.name.endsWith("/HEAD")).map((ref) => {
+      const local = ref.name.startsWith("refs/heads/"), name = ref.name.replace(/^refs\/(heads|remotes)\//u, "");
+      const remote = state.remotes.filter((remote2) => name.startsWith(remote2.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name || "";
+      return { id: "checkout:" + ref.name, title: name, checked: local && state.branch === name, disabled: panel.writing || local && state.branch === name, action: () => panel.action_dialog(local ? "branch_checkout" : "remote_checkout", local ? "branch" : "remote", name, ref.hash, local ? {} : { branch: name.slice(remote.length + 1) }) };
+    });
+  }
+  async function open_scm_comparison(panel, from, to) {
+    const state = panel.state;
+    if (!state) return;
+    const runner = panel.runner, root = panel.root, epoch = ++panel.workbench.load_epoch;
+    try {
+      const files = await compare_files(runner.run, state, from, to);
+      if (panel.disposed || root !== panel.root || runner !== panel.runner || epoch !== panel.workbench.load_epoch) return;
+      if (!files.length) {
+        panel.report(git_graph_text("history.no_changed_files"));
+        return;
+      }
+      await panel.workbench.open_file(files[0], from, to, files);
+    } catch (error) {
+      if (!panel.disposed && root === panel.root && runner === panel.runner) panel.report(error);
+    }
+  }
+  function commit_entries(panel, hash2) {
+    const state = panel.state;
+    if (!state) return [];
+    const root = panel.root, runner = panel.runner;
+    const read2 = async (action2) => {
+      try {
+        if (!panel.disposed && root === panel.root && runner === panel.runner) await action2();
+      } catch (error) {
+        if (root === panel.root && runner === panel.runner) panel.report(error);
+      }
+    };
+    const action = (id) => ({ id, title: graph_actions.find((action2) => action2.id === id).title, disabled: panel.writing, action: () => panel.action_dialog(id, "commit", hash2, hash2) });
+    const remote = state.remotes.find((remote2) => remote2.name === state.tracking?.remote) || state.remotes.find((remote2) => remote2.name === "origin") || state.remotes[0];
+    const web = commit_github_url(remote?.fetch || "", hash2);
+    const checkout = checkout_entries(panel, hash2);
+    const deletes = state.refs.filter((ref) => ref.hash === hash2 && /^refs\/(heads|remotes)\//u.test(ref.name) && !ref.name.endsWith("/HEAD")).map((ref) => {
+      const local = ref.name.startsWith("refs/heads/"), name = ref.name.replace(/^refs\/(heads|remotes)\//u, "");
+      const remote2 = state.remotes.filter((remote3) => name.startsWith(remote3.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name || "";
+      return { id: "delete:" + ref.name, title: name, disabled: panel.writing || local && name === state.branch || ref.name === state.tracking?.upstream, action: () => panel.action_dialog(local ? "branch_delete" : "remote_branch_delete", local ? "branch" : "remote", name, hash2, local ? {} : { remote: remote2, branch: name.slice(remote2.length + 1) }) };
+    });
+    const open_changes = () => void read2(async () => {
+      const parent = state.commits.find((commit) => commit.hash === hash2)?.parents[0] || (await runner.run(root, ["show", "-s", "--format=%P", require_revision(hash2), "--"])).trim().split(" ")[0] || EMPTY;
+      if (root === panel.root && runner === panel.runner) await open_scm_comparison(panel, parent, hash2);
+    });
+    const compare_with = () => {
+      const dialog = workspace_dialog(git_graph_text("scm.compare_with")), search2 = workspace_element("input"), list3 = workspace_element("div");
+      search2.type = "search";
+      search2.placeholder = git_graph_text("scm.search_references");
+      search2.setAttribute("aria-label", search2.placeholder);
+      dialog.content.append(search2, list3);
+      for (const ref of state.refs) {
+        const node = workspace_button(ref.name.replace(/^refs\//u, ""), () => {
+          dialog.close();
+          if (root === panel.root && runner === panel.runner) void open_scm_comparison(panel, ref.hash, hash2);
+        });
+        node.dataset.compareRef = ref.name;
+        list3.append(node);
+      }
+      search2.oninput = () => {
+        for (const node of list3.children) node.hidden = !node.textContent?.toLocaleLowerCase().includes(search2.value.toLocaleLowerCase());
+      };
+    };
+    return [
+      { id: "open_changes", title: git_graph_text("history.open_changes"), action: open_changes },
+      { id: "open_github", title: git_graph_text("scm.open_github"), disabled: !web, action: () => void read2(() => panel.host.open_url(web)) },
+      { id: "checkout", title: git_graph_text("scm.checkout"), children: checkout, disabled: !checkout.length, separator: true, action() {
+      } },
+      { ...action("commit_checkout"), title: git_graph_text("scm.checkout_detached") },
+      { ...action("branch_create"), separator: true },
+      { id: "delete_branch", title: git_graph_text("scm.delete_branch"), children: deletes, disabled: !deletes.length, action() {
+      } },
+      { ...action("tag_add"), separator: true },
+      { ...action("cherry_pick"), separator: true },
+      { id: "compare_remote", title: git_graph_text("scm.compare_remote"), separator: true, disabled: !state.tracking?.upstream_hash, action: () => void open_scm_comparison(panel, state.tracking.upstream_hash, hash2) },
+      { id: "compare_base", title: git_graph_text("scm.compare_base"), disabled: !state.tracking?.base_hash, action: () => void open_scm_comparison(panel, state.tracking.base_hash, hash2) },
+      { id: "compare_with", title: git_graph_text("scm.compare_with"), disabled: !state.refs.length, action: compare_with },
+      { id: "copy_hash", title: git_graph_text("scm.copy_commit_hash"), separator: true, action: () => void read2(() => panel.host.copy(hash2)) },
+      { id: "copy_message", title: git_graph_text("scm.copy_commit_message"), action: () => void read2(async () => {
+        const message = await runner.run(root, ["show", "-s", "--format=%B", require_revision(hash2), "--"]);
+        if (root === panel.root && runner === panel.runner) await panel.host.copy(message.replace(/\r?\n$/u, ""));
+      }) },
+      { id: "additional_git_actions", title: git_graph_text("scm.additional_git_actions"), separator: true, children: [...graph_actions.filter((item) => item.targets.includes("commit") && !["branch_create", "commit_checkout", "tag_add", "cherry_pick"].includes(item.id)).map((item) => action(item.id)), { id: "archive", title: git_graph_text("graph.archive_zip"), action: () => panel.archive_dialog(hash2) }], action() {
+      } }
+    ];
+  }
+  function show_worktrees(panel) {
+    const root = panel.root, runner = panel.runner, dialog = workspace_dialog(git_graph_text("scm.worktrees"));
+    dialog.content.textContent = git_graph_text("graph.loading_repository");
+    const valid = () => !panel.disposed && root === panel.root && runner === panel.runner && dialog.root.isConnected;
+    void (async () => {
+      try {
+        const entries3 = await read_worktrees(runner.run, root);
+        if (!valid()) return;
+        dialog.content.replaceChildren();
+        for (const entry of entries3) {
+          const row = workspace_element("div", "git-scm-worktree-entry");
+          row.append(workspace_element("strong", "", entry.branch.replace(/^refs\/heads\//u, "") || entry.head.slice(0, 8)), workspace_element("div", "", entry.path));
+          const open = workspace_button(git_graph_text("scm.worktree_open"), () => {
+            if (!valid()) return;
+            dialog.close();
+            panel.host.open_folder(entry.path);
+          });
+          open.disabled = entry.bare || entry.prunable;
+          const new_window = workspace_button(git_graph_text("scm.worktree_new_window"), () => {
+            if (!valid()) return;
+            dialog.close();
+            panel.host.open_folder(entry.path, true);
+          });
+          new_window.disabled = open.disabled;
+          const remove = workspace_button(git_graph_text("scm.worktree_remove"), () => {
+            if (!valid()) return;
+            dialog.close();
+            panel.action_dialog("worktree_remove", "worktree", entry.path, entry.head);
+          });
+          remove.disabled = entry.main || entry.locked || entry.prunable || entry.bare || panel.host.path_api.resolve(entry.path) === panel.host.path_api.resolve(root) || panel.writing;
+          row.append(open, new_window, remove);
+          dialog.content.append(row);
+        }
+      } catch (error) {
+        if (valid()) dialog.content.textContent = String(error);
+      }
+    })();
+    const create4 = workspace_button(git_graph_text("scm.worktree_add"), () => {
+      if (!valid()) return;
+      dialog.close();
+      panel.action_dialog("worktree_add", "repository", "", panel.state?.head);
+    });
+    create4.disabled = !panel.state?.head || panel.writing;
+    dialog.footer.prepend(create4);
   }
 
   // src/git_graph_find.ts
@@ -199611,6 +200002,113 @@ https://creativecommons.org/licenses/by/4.0/
     else complete();
   }
 
+  // src/git_scm_repositories.ts
+  var git_scm_repositories = class {
+    constructor(owner) {
+      this.owner = owner;
+      this.container.setAttribute("aria-label", git_graph_text("scm.repositories"));
+    }
+    container = workspace_element("div", "git-scm-repositories-list");
+    epoch = 0;
+    reader;
+    reader_key = "";
+    update_rows = [];
+    refresh() {
+      this.reader?.cancel();
+      const panel = this.owner.panel, epoch = ++this.epoch;
+      if (!this.reader || this.reader_key !== panel.settings.git_path) {
+        this.reader?.dispose?.();
+        this.reader = panel.host.runner(panel.settings);
+        this.reader_key = panel.settings.git_path;
+      }
+      const reader = this.reader;
+      this.update_rows = [];
+      const roots = panel.repository_paths([panel.root, ...panel.known_repos()]);
+      this.container.replaceChildren();
+      const rows = roots.map((root) => {
+        const row = workspace_element("div", "git-scm-repository-row");
+        row.dataset.root = root;
+        row.dataset.workspaceInteraction = "row";
+        row.dataset.active = String(root === panel.root);
+        const select = workspace_button("", () => {
+          if (!panel.disposed && !panel.writing) void panel.switch_repo(root);
+        }, "git-scm-repository-name");
+        select.title = root;
+        select.append(git_icon("repo"), workspace_element("span", "", panel.host.path_api.basename(root)));
+        select.setAttribute("aria-pressed", String(root === panel.root));
+        select.disabled = panel.writing;
+        const branch = workspace_button("", () => {
+        }, "git-scm-repository-branch"), sync = git_icon_button("sync", git_graph_text("action.title.sync"), () => {
+        }, "git-scm-repository-sync"), more = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
+        }, "git-scm-repository-more");
+        const valid = () => epoch === this.epoch && !panel.disposed && root === panel.root && panel.state?.root === root && !panel.pending && !panel.writing && panel.container.dataset.state !== "error";
+        branch.onclick = (event) => {
+          if (valid()) panel.configured_menu(event, "checkout", checkout_entries(panel));
+        };
+        branch.oncontextmenu = (event) => workspace_menu(event, [{ title: git_graph_text("scm.configure_keybinding"), disabled: true, action() {
+        } }]);
+        sync.onclick = () => {
+          if (valid()) panel.state?.tracking?.upstream ? panel.action_dialog("sync", "repository", "", panel.state.head) : this.owner.history.network_action("push");
+        };
+        more.onclick = (event) => {
+          if (valid()) this.owner.more_menu(event);
+        };
+        row.oncontextmenu = (event) => {
+          if (valid()) this.owner.more_menu(event);
+          else {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        };
+        let loaded = false;
+        const update2 = () => {
+          select.disabled = panel.writing;
+          branch.disabled = more.disabled = !loaded || !valid();
+          sync.disabled = !loaded || !valid() || !panel.state?.branch || !panel.state?.head || !panel.state.remotes.length || !!panel.state.operation;
+        };
+        this.update_rows.push(update2);
+        branch.disabled = sync.disabled = more.disabled = true;
+        row.append(select, branch, sync, more);
+        this.container.append(row);
+        return { root, row, branch, sync, more, valid, ready: () => {
+          loaded = true;
+          update2();
+        } };
+      });
+      let next = 0;
+      const worker = async () => {
+        while (next < rows.length) {
+          const item = rows[next++];
+          try {
+            const status2 = await read_branch_status(reader.run, item.root);
+            if (epoch !== this.epoch) return;
+            const branch = status2.branch === "(detached)" ? status2.head.slice(0, 8) : status2.branch;
+            item.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "", branch + (status2.dirty ? "*" : "")));
+            item.branch.title = branch;
+            item.sync.replaceChildren(git_icon(status2.upstream ? "sync" : "cloud-upload"), workspace_element("span", "", status2.upstream ? "".concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : ""));
+            item.sync.title = status2.upstream ? "".concat(status2.upstream, ": ").concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : git_graph_text("scm.publish_branch");
+            item.ready();
+          } catch (error) {
+            if (epoch === this.epoch) {
+              item.row.title = String(error);
+              item.row.dataset.error = "true";
+            }
+          }
+        }
+      };
+      void Promise.all(Array.from({ length: Math.min(4, rows.length) }, worker));
+    }
+    update_disabled() {
+      for (const update2 of this.update_rows) update2();
+    }
+    dispose() {
+      this.epoch++;
+      this.reader?.dispose?.();
+      this.reader?.cancel();
+      this.update_rows = [];
+    }
+  };
+
   // src/git_file_label.ts
   function git_file_label(file_path, show_directory, name_class = "git-scm-file-name") {
     const parts = file_path.split("/");
@@ -199622,6 +200120,209 @@ https://creativecommons.org/licenses/by/4.0/
     label.append(workspace_file_icon(file_path), text3);
     return label;
   }
+
+  // src/git_scm_toolbar.ts
+  var git_scm_toolbar = class {
+    constructor(history) {
+      this.history = history;
+      const icons2 = { branches: "git-branch", head: "target", fetch: "git-fetch", pull: "repo-pull", push: "repo-push", refresh: "refresh" };
+      for (const id of HISTORY_ACTION_IDS) {
+        const node = git_icon_button(icons2[id], this.title(id), () => {
+        }, "git-scm-history-" + id);
+        node.dataset.historyAction = id;
+        node.onclick = (event) => this.execute(id, event);
+        node.oncontextmenu = (event) => this.context_menu(event, id);
+        this.buttons.set(id, node);
+        this.element.append(node);
+      }
+      this.more = git_icon_button("more", git_graph_text("history.more"), () => {
+      }, "git-scm-history-more-menu");
+      this.more.onclick = (event) => this.more_menu(event);
+      this.more.oncontextmenu = (event) => this.context_menu(event);
+      this.element.append(this.more);
+      history.owner.sidebar.addEventListener("keydown", this.keydown);
+      window.addEventListener("linux-note-git-settings", this.settings_changed);
+      this.observer = new ResizeObserver(() => this.layout());
+      this.observer.observe(history.header);
+    }
+    element = workspace_element("span", "git-scm-history-toolbar");
+    buttons = /* @__PURE__ */ new Map();
+    overflow = /* @__PURE__ */ new Set();
+    more;
+    observer;
+    title(id) {
+      return { branches: git_graph_text("history.filter_branches"), head: git_graph_text("history.reveal_head"), fetch: git_graph_text("scm.fetch_all"), pull: git_graph_text("history.pull"), push: git_graph_text(this.history.owner.panel.state?.tracking?.upstream ? "history.push" : "scm.publish_branch"), refresh: git_graph_text("history.refresh") }[id];
+    }
+    enabled(id) {
+      const panel = this.history.owner.panel, state = panel.state;
+      if (panel.disposed || panel.pending || panel.writing) return false;
+      if (id === "refresh") return !!panel.root;
+      if (!state || state.root !== panel.root || panel.container?.dataset.state === "error") return false;
+      if (id === "head") return !!state.head;
+      if (id === "branches") return !!state.head;
+      if (id === "fetch") return state.remotes.length > 0;
+      if (id === "pull") return !!state.head && !!state.branch && !!state.tracking?.upstream && !state.operation;
+      if (id === "push") return !!state.head && !!state.branch && state.remotes.length > 0 && !state.operation;
+      return true;
+    }
+    execute(id, event) {
+      if (!this.enabled(id)) return;
+      const panel = this.history.owner.panel;
+      if (id === "branches") {
+        panel.filter_branches();
+        return;
+      }
+      if (id === "head") {
+        void this.history.reveal_head();
+        return;
+      }
+      if (id === "refresh") {
+        void panel.refresh(false);
+        return;
+      }
+      this.history.network_action(id);
+    }
+    entry(id) {
+      const panel = this.history.owner.panel, root = panel.root, runner = panel.runner;
+      return { id, title: this.title(id), shortcut: panel.settings.history_shortcuts?.[id], disabled: !this.enabled(id), action: () => {
+        if (root === panel.root && runner === panel.runner) this.execute(id);
+      } };
+    }
+    update() {
+      const panel = this.history.owner.panel;
+      for (const [id, node] of this.buttons) {
+        node.disabled = !this.enabled(id);
+        node.title = this.title(id);
+        node.setAttribute("aria-label", node.title);
+      }
+      const label = panel.branches.length === 0 ? git_graph_text("scm.scope_all") : panel.branches.length === 1 ? panel.branches[0] === "AUTO" ? git_graph_text("scm.scope_auto") : panel.branches[0].replace(/^refs\/(heads|remotes|tags)\//u, "") : git_graph_text("scm.scope_count", { count: panel.branches.length });
+      this.buttons.get("branches").replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-history-scope", label));
+      this.buttons.get("push").replaceChildren(git_icon(panel.state?.tracking?.upstream ? "repo-push" : "cloud-upload"));
+      this.layout();
+    }
+    layout() {
+      const header = this.history.header;
+      if (!header.isConnected || header.clientWidth === 0) return;
+      const hidden = this.history.owner.panel.settings.history_toolbar_hidden || [];
+      this.history.count.hidden = false;
+      this.overflow.clear();
+      for (const [id, node] of this.buttons) node.hidden = hidden.includes(id);
+      const available = header.clientWidth - parseFloat(getComputedStyle(header).paddingLeft || "0") - parseFloat(getComputedStyle(header).paddingRight || "0") - this.more.getBoundingClientRect().width;
+      let total = this.element.getBoundingClientRect().width;
+      for (const id of [...HISTORY_ACTION_IDS].reverse()) {
+        const node = this.buttons.get(id);
+        if (total <= available) break;
+        if (node.hidden) continue;
+        const width2 = node.getBoundingClientRect().width;
+        node.hidden = true;
+        total -= width2;
+        this.overflow.add(id);
+      }
+      const toggle = this.history.toggle, title = toggle.querySelector(".git-scm-history-title"), icon = toggle.querySelector("svg");
+      if (title && icon) {
+        const gap = parseFloat(getComputedStyle(toggle).gap) || 0;
+        this.history.count.hidden = toggle.clientWidth < icon.getBoundingClientRect().width + title.scrollWidth + this.history.count.getBoundingClientRect().width + gap * 2;
+      }
+    }
+    more_menu(event) {
+      const panel = this.history.owner.panel, owner = this.history.owner, root = panel.root, runner = panel.runner;
+      const valid = () => !panel.disposed && root === panel.root && runner === panel.runner;
+      const set_tree = (value) => {
+        if (!valid()) return;
+        owner.history_tree = value;
+        owner.save_layout();
+        if (panel.state) this.history.render(panel.state);
+      };
+      workspace_menu(event, [
+        ...HISTORY_ACTION_IDS.filter((id) => panel.settings.history_toolbar_hidden?.includes(id) || this.overflow.has(id)).map((id) => this.entry(id)),
+        { id: "history_list", title: git_graph_text("history.list_view"), separator: true, checked: !owner.history_tree, action: () => set_tree(false) },
+        { id: "history_tree", title: git_graph_text("history.tree_view"), checked: owner.history_tree, action: () => set_tree(true) },
+        { id: "open_graph", title: git_graph_text("history.open_in_editor"), separator: true, action: () => {
+          if (valid()) panel.host.show_history(root);
+        } },
+        { id: "restore_toolbar", title: git_graph_text("scm.restore_toolbar"), disabled: !panel.settings.history_toolbar_hidden?.length, action: () => {
+          if (valid()) {
+            panel.settings.history_toolbar_hidden = [];
+            panel.persist_settings();
+            this.update();
+          }
+        } }
+      ]);
+    }
+    context_menu(event, id) {
+      const panel = this.history.owner.panel, root = panel.root, runner = panel.runner;
+      const valid = () => !panel.disposed && root === panel.root && runner === panel.runner;
+      const toggle = (key) => {
+        if (!valid()) return;
+        const hidden = panel.settings.history_toolbar_hidden;
+        panel.settings.history_toolbar_hidden = hidden.includes(key) ? hidden.filter((value) => value !== key) : [...hidden, key];
+        panel.persist_settings();
+        this.update();
+      };
+      workspace_menu(event, [
+        { id: "configure_keybinding", title: git_graph_text("scm.configure_keybinding"), disabled: !id, action: () => {
+          if (id && valid()) this.configure_keybinding(id);
+        } },
+        { id: "hide_action", title: id ? git_graph_text("scm.hide_action", { name: this.title(id) }) : git_graph_text("scm.hide"), disabled: !id, action: () => {
+          if (id) toggle(id);
+        } },
+        ...HISTORY_ACTION_IDS.map((key, index) => ({ id: "toggle_" + key, title: this.title(key), separator: index === 0, checked: !panel.settings.history_toolbar_hidden?.includes(key), action: () => toggle(key) })),
+        { id: "restore_toolbar", title: git_graph_text("scm.restore_toolbar"), separator: true, disabled: !panel.settings.history_toolbar_hidden?.length, action: () => {
+          if (valid()) {
+            panel.settings.history_toolbar_hidden = [];
+            panel.persist_settings();
+            this.update();
+          }
+        } }
+      ]);
+    }
+    configure_keybinding(id) {
+      const panel = this.history.owner.panel, root = panel.root, runner = panel.runner, dialog = workspace_dialog(git_graph_text("scm.configure_keybinding"));
+      const input = workspace_element("input");
+      input.value = panel.settings.history_shortcuts[id] || "";
+      input.placeholder = "Mod+Shift+F";
+      input.setAttribute("aria-label", this.title(id));
+      input.dataset.historyKeybinding = id;
+      const label = workspace_element("label", "", this.title(id)), error = workspace_element("p");
+      label.append(input);
+      dialog.content.append(label, workspace_element("p", "", git_graph_text("scm.shortcut_help")), error);
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
+        if (panel.disposed || root !== panel.root || runner !== panel.runner) {
+          dialog.close();
+          return;
+        }
+        try {
+          const next = { ...panel.settings.history_shortcuts, [id]: input.value.trim() };
+          validate_history_shortcuts(next);
+          panel.settings.history_shortcuts = next;
+          panel.persist_settings();
+          dialog.close();
+        } catch (problem) {
+          error.textContent = String(problem instanceof Error ? problem.message : problem);
+        }
+      }));
+    }
+    settings_changed = () => this.update();
+    keydown = (event) => {
+      if (event.isComposing || event.repeat || event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
+      if (document.querySelector(".git-graph-dialog-shade,.git-graph-menu")) return;
+      const settings = this.history.owner.panel.settings;
+      for (const id of HISTORY_ACTION_IDS) {
+        const shortcut = settings.history_shortcuts?.[id];
+        if (shortcut && shortcut_matches(event, shortcut) && this.enabled(id)) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.execute(id);
+          break;
+        }
+      }
+    };
+    dispose() {
+      this.observer.disconnect();
+      this.history.owner.sidebar.removeEventListener("keydown", this.keydown);
+      window.removeEventListener("linux-note-git-settings", this.settings_changed);
+    }
+  };
 
   // src/workspace_hover_surface.css
   var workspace_hover_surface_default = "";
@@ -199876,31 +200577,15 @@ https://creativecommons.org/licenses/by/4.0/
       this.hover = bind_git_commit_hover(this.list, owner.panel);
       this.container.setAttribute("aria-label", git_graph_text("history.graph"));
       this.container.setAttribute("data-linux-note-scm-history", "ready");
-      this.toggle = workspace_button(git_graph_text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle");
-      this.toggle.prepend(git_disclosure());
+      this.toggle = workspace_button("", () => owner.toggle_history(), "git-scm-history-toggle");
+      this.toggle.append(git_disclosure(), workspace_element("span", "git-scm-history-title", git_graph_text("history.graph")));
       this.toggle.title = git_graph_text("history.toggle_help");
       this.toggle.setAttribute("aria-expanded", "true");
       this.toggle.append(this.count);
-      const refresh = git_icon_button("refresh", git_graph_text("history.refresh"), () => void owner.panel.refresh(false), "git-scm-history-refresh");
-      const current = git_icon_button("target", git_graph_text("history.reveal_head"), () => void this.reveal_head(), "git-scm-history-head");
-      const launch = git_icon_button("link-external", git_graph_text("history.open_in_editor"), () => owner.panel.host.show_history(owner.panel.root), "git-scm-graph-launch");
-      const branches = git_icon_button("git-branch", git_graph_text("history.filter_branches"), () => {
-      }, "git-scm-history-branches");
-      branches.onclick = (event) => owner.panel.configured_menu(event, "scm_history_branches", this.branch_entries());
-      const more = git_icon_button("more", git_graph_text("history.more"), () => {
-      }, "git-scm-history-more-menu");
-      more.onclick = (event) => this.more_menu(event);
-      const tools = workspace_element("span", "git-scm-history-toolbar");
-      const network = [["fetch", "git-fetch", "history.fetch"], ["pull", "repo-pull", "history.pull"], ["push", "repo-push", "history.push"]].map(([id, icon, title_key]) => {
-        const action = git_icon_button(icon, git_graph_text(title_key), () => this.network_action(id), "git-scm-history-network");
-        action.setAttribute("data-history-action", id);
-        return action;
-      });
-      tools.append(branches, current, ...network, refresh, launch, more);
-      for (const action of [branches, refresh, more]) action.setAttribute("aria-label", action.title);
-      this.header.append(this.toggle, tools);
+      this.toolbar = new git_scm_toolbar(this);
+      this.header.append(this.toggle, this.toolbar.element);
       this.container.append(this.header, this.list);
-      this.header.oncontextmenu = (event) => this.more_menu(event);
+      this.header.oncontextmenu = (event) => owner.view_menu(event, "show_history");
       this.list.setAttribute("aria-label", git_graph_text("history.commit_history"));
       this.list.addEventListener("keydown", (event) => {
         if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
@@ -199913,8 +200598,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (event.key === "ArrowRight" !== (row.getAttribute("aria-expanded") === "true")) row.click();
         } else if (["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
           const rows = [...this.list.querySelectorAll(".git-scm-history-commit")];
-          const current2 = rows.indexOf(row);
-          const next = event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : Math.max(0, Math.min(rows.length - 1, current2 + (event.key === "ArrowDown" ? 1 : -1)));
+          const current = rows.indexOf(row);
+          const next = event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : Math.max(0, Math.min(rows.length - 1, current + (event.key === "ArrowDown" ? 1 : -1)));
           event.preventDefault();
           event.stopPropagation();
           rows[next]?.focus();
@@ -199929,43 +200614,19 @@ https://creativecommons.org/licenses/by/4.0/
     selected = "";
     epoch = 0;
     root = "";
+    toolbar;
     files_cache = /* @__PURE__ */ new Map();
     hover;
     collapsed_directories = /* @__PURE__ */ new Set();
-    branch_entries() {
-      const panel = this.owner.panel;
-      const select = (branches) => {
-        panel.branches = branches;
-        void panel.refresh();
-      };
-      return [
-        { id: "all_branches", title: git_graph_text("history.all_branches"), checked: !panel.branches.length, action: () => select([]) },
-        { id: "current_branch", title: git_graph_text("history.current_head"), checked: panel.branches.length === 1 && panel.branches[0] === "HEAD", action: () => select(["HEAD"]) },
-        ...(panel.state?.refs || []).filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: ref.name.slice(11), checked: panel.branches.length === 1 && panel.branches[0] === ref.name, action: () => select([ref.name]) })),
-        { id: "multiple_branches", title: git_graph_text("history.select_branches"), separator: true, action: () => panel.filter_branches() }
-      ];
-    }
     network_action(id) {
-      this.owner.panel.action_dialog(id, "repository", "", this.owner.panel.state?.head);
+      const panel = this.owner.panel, state = panel.state;
+      if (!state) return;
+      const tracking = state.tracking;
+      const preset = id === "fetch" ? { remote: "" } : id === "pull" ? { remote: tracking?.remote || "", branch: tracking?.remote_ref.replace(/^refs\/heads\//u, "") || "" } : { remote: tracking?.remote && tracking.remote !== "." ? tracking.remote : state.remotes[0]?.name || "", branch: state.branch, remote_branch: tracking?.remote_ref.replace(/^refs\/heads\//u, "") || state.branch, upstream: !tracking?.upstream };
+      panel.action_dialog(id, "repository", "", state.head, preset);
     }
     more_menu(event) {
-      const panel = this.owner.panel;
-      const set_tree = (value) => {
-        this.owner.history_tree = value;
-        this.owner.save_layout();
-        if (panel.state) this.render(panel.state);
-      };
-      panel.configured_menu(event, "scm_history_toolbar", [
-        { id: "history_list", title: git_graph_text("history.list_view"), checked: !this.owner.history_tree, action: () => set_tree(false) },
-        { id: "history_tree", title: git_graph_text("history.tree_view"), checked: this.owner.history_tree, action: () => set_tree(true) },
-        { id: "branches", title: git_graph_text("history.branch_scope"), children: this.branch_entries(), separator: true, action() {
-        } },
-        { id: "head", title: git_graph_text("history.reveal_head"), action: () => void this.reveal_head() },
-        ...[["fetch", "history.fetch_menu"], ["pull", "history.pull_menu"], ["push", "history.push_menu"]].map(([id, title_key]) => ({ id, title: git_graph_text(title_key), action: () => this.network_action(id) })),
-        { id: "refresh", title: git_graph_text("history.refresh"), action: () => void panel.refresh(false) },
-        { id: "open_graph", title: git_graph_text("history.open_in_editor"), action: () => panel.host.show_history(panel.root) },
-        { id: "settings", title: git_graph_text("history.settings"), separator: true, action: () => panel.settings_dialog() }
-      ]);
+      this.toolbar.more_menu(event);
     }
     reset() {
       this.hover.hide();
@@ -200003,7 +200664,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     set_open(open) {
       if (!open) this.hover.hide();
-      this.toggle.replaceChildren(git_disclosure(), document.createTextNode(git_graph_text("history.graph")), this.count);
+      this.toggle.replaceChildren(git_disclosure(), workspace_element("span", "git-scm-history-title", git_graph_text("history.graph")), this.count);
       this.toggle.setAttribute("aria-expanded", String(open));
       this.list.hidden = !open;
     }
@@ -200018,6 +200679,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!state.commits.some((commit) => commit.hash === this.selected)) this.selected = "";
       const graph = build_git_graph(state.commits);
       const fragment = document.createDocumentFragment();
+      this.toolbar.update();
       this.count.textContent = String(state.commits.length) + (state.more ? "+" : "");
       const refs = /* @__PURE__ */ new Map();
       for (const ref of state.refs) {
@@ -200213,6 +200875,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     dispose() {
+      this.toolbar.dispose();
       this.hover.dispose();
       this.epoch++;
       this.files_cache.clear();
@@ -200337,8 +201000,6 @@ https://creativecommons.org/licenses/by/4.0/
       commit_options.dataset.workspaceInteraction = "primary";
       const commit_bar = workspace_element("div", "git-scm-commit-bar");
       commit_bar.append(commit, commit_options);
-      this.repo_select.setAttribute("aria-label", git_graph_text("scm.repository"));
-      this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
       this.changes_pane.setAttribute("aria-label", git_graph_text("scm.working_tree_changes"));
       this.notice.setAttribute("role", "status");
       const input_heading = workspace_element("summary", "git-scm-input-heading");
@@ -200361,7 +201022,10 @@ https://creativecommons.org/licenses/by/4.0/
       const repo_heading = workspace_element("div", "git-scm-repositories-heading", git_graph_text("scm.repositories"));
       const manage = git_icon_button("more", git_graph_text("scm.manage_repositories"), () => panel.manage_repositories());
       repo_heading.append(manage);
-      this.repositories_view.append(repo_heading, this.repo_select);
+      this.repositories = new git_scm_repositories(this);
+      this.repositories_view.append(repo_heading, this.repositories.container);
+      repo_heading.oncontextmenu = (event) => this.view_menu(event, "show_repositories");
+      input_heading.oncontextmenu = (event) => this.view_menu(event, "show_changes");
       this.changes_pane.append(this.input_section);
       this.history = new git_scm_history(this);
       this.history_sash = create_workspace_sash({
@@ -200381,7 +201045,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.sidebar.append(this.title, this.repositories_view, this.sections);
       this.sidebar.oncontextmenu = (event) => {
         if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
-        this.more_menu(event);
+        this.view_menu(event);
       };
       this.load_layout();
     }
@@ -200392,7 +201056,6 @@ https://creativecommons.org/licenses/by/4.0/
     branch = workspace_button("", () => {
     }, "git-scm-branch");
     title = workspace_element("div", "git-scm-title");
-    repo_select = workspace_element("select", "git-scm-repository");
     interaction_style = acquire_workspace_interaction(this.sidebar);
     notice = workspace_element("div", "git-scm-notice");
     sections = workspace_element("div", "git-scm-sections");
@@ -200407,6 +201070,7 @@ https://creativecommons.org/licenses/by/4.0/
     show_history = true;
     sort_order = "path";
     history_tree = false;
+    repositories;
     history;
     history_sash;
     history_ratio = 0.55;
@@ -200456,14 +201120,24 @@ https://creativecommons.org/licenses/by/4.0/
       this.message.style.height = Math.min(120, Math.max(30, height)) + "px";
       this.message.style.overflowY = height > 120 ? "auto" : "hidden";
     }
-    view_menu(event) {
+    view_menu(event, current) {
       const views = [["show_repositories", git_graph_text("scm.repositories")], ["show_changes", git_graph_text("scm.changes")], ["show_history", git_graph_text("scm.graph")]];
       const count = views.filter(([key]) => this[key]).length;
-      this.panel.configured_menu(event, "source_control_views", views.map(([key, title]) => ({ id: key, title, checked: this[key], disabled: count === 1 && this[key], action: () => {
+      const root = this.panel.root, runner = this.panel.runner;
+      const entries3 = views.map(([key, title]) => ({ id: key, title, checked: this[key], disabled: count === 1 && this[key], action: () => {
+        if (root !== this.panel.root || runner !== this.panel.runner || this.panel.disposed) return;
         this[key] = !this[key];
         this.apply_history_layout();
         this.save_layout();
-      } })));
+        if (this.show_repositories) this.repositories.refresh();
+      } }));
+      if (current) entries3.unshift({ id: "hide_section", title: git_graph_text("scm.hide_action", { name: views.find(([key]) => key === current)[1] }), disabled: count === 1, action: () => {
+        if (root !== this.panel.root || runner !== this.panel.runner || this.panel.disposed) return;
+        this[current] = false;
+        this.apply_history_layout();
+        this.save_layout();
+      } });
+      workspace_menu(event, entries3);
     }
     toggle_history() {
       this.history_open = !this.history_open;
@@ -200497,8 +201171,6 @@ https://creativecommons.org/licenses/by/4.0/
       const epoch = ++this.groups_epoch;
       this.fit_message();
       this.history.render(state);
-      this.repo_select.replaceChildren(...[...this.panel.repo_select.options].map((item) => item.cloneNode(true)));
-      this.repo_select.value = this.panel.root;
       this.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-branch-label", "".concat(state.branch || git_graph_text("scm.detached_head")).concat(state.operation ? " \xB7 " + operation_label(state.operation) : "")));
       this.branch.title = this.panel.root;
       this.branch.onclick = (event) => this.panel.configured_menu(event, "checkout", [
@@ -200660,34 +201332,42 @@ https://creativecommons.org/licenses/by/4.0/
       return false;
     }
     file_entries(file, from, to, files, root = this.panel.root) {
+      const runner = this.panel.runner;
       const historical = to !== INDEX && to !== WORKTREE;
+      const head = this.panel.state?.head || "", change = this.panel.state?.changes.find((item) => item.path === file.path || item.path === file.old_path);
+      const head_path = change?.old_path || file.old_path || file.path;
+      const has_head = !!head && file.status !== "??" && change?.index_status !== "A" && !(to === INDEX && file.status.startsWith("A"));
       const entries3 = [
         { id: "open_diff", title: git_graph_text("scm.open_changes"), action: () => void this.open_file(file, from, to, files) },
         { id: "open_file", title: git_graph_text(historical ? "scm.open_revision" : "scm.open_file"), disabled: historical ? file.status.startsWith("D") && from === EMPTY : file.status.startsWith("D"), action: () => historical ? void this.open_revision_file(file, from, to) : void this.open_current_file(file) },
+        ...!historical ? [{ id: "open_head", title: git_graph_text("scm.open_head"), disabled: !has_head, action: () => void this.open_revision(head, head_path) }] : [],
         { id: "file_history", title: git_graph_text("scm.file_history"), action: () => void this.file_history(file.path) },
         { id: "copy_relative", title: git_graph_text("scm.copy_relative_path"), separator: true, action: () => void this.panel.host.copy(file.path) },
         { id: "copy_absolute", title: git_graph_text("scm.copy_path"), action: () => void this.panel.host.copy(this.panel.host.file_path(this.panel.root, file.path)) },
-        { id: "reveal_file", title: git_graph_text("scm.reveal_file"), action: () => this.panel.host.reveal_file(this.panel.root, file.path) }
+        { id: "reveal_file", title: git_graph_text("scm.reveal_file"), disabled: file.status.startsWith("D"), action: () => this.panel.host.reveal_file(this.panel.root, file.path) },
+        { id: "reveal_explorer", title: git_graph_text("scm.reveal_explorer"), disabled: file.status.startsWith("D"), action: () => this.panel.host.reveal_explorer(root, file.path) }
       ];
       if (to === INDEX || to === WORKTREE) {
         const staged = to === INDEX;
-        if (!staged && file.status === "??") entries3.push(
-          { id: "ignore_file", title: git_graph_text("scm.add_to_gitignore"), separator: true, action: () => void this.ignore_file(file.path) }
+        if (!file.status.startsWith("D")) entries3.push(
+          { id: "ignore_file", title: git_graph_text("scm.add_to_gitignore"), separator: true, action: () => void this.ignore_file(file.path, file.status !== "??") }
         );
         entries3.push({ id: staged ? "unstage" : "stage", title: staged ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...file.old_path ? [file.old_path] : []]) });
         if (!staged) entries3.push({ id: "discard_file", title: git_graph_text("scm.discard_change"), action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, { include_untracked: true }, [file.path]) });
       }
       return entries3.map((entry) => ({ ...entry, action: () => {
-        if (this.repository_action_available(root)) void entry.action?.();
+        if (this.repository_action_available(root) && runner === this.panel.runner && !this.panel.pending && !this.panel.writing) void entry.action?.();
       } }));
     }
-    async ignore_file(file) {
-      if (this.panel.writing) return;
+    async ignore_file(file, tracked = false) {
+      if (this.panel.writing || this.panel.pending || this.panel.disposed) return;
       this.panel.writing = true;
+      this.panel.update_scm_actions();
       let message = "";
       try {
         const result = await this.panel.host.ignore_file(this.panel.root, file, this.panel.settings);
         message = result.changed ? git_graph_text("scm.added_to_gitignore", { file }) : git_graph_text("scm.already_ignored", { file });
+        if (tracked) message += "\n" + git_graph_text("scm.ignore_keeps_tracking");
       } catch (error) {
         message = String(error);
       } finally {
@@ -200830,15 +201510,19 @@ https://creativecommons.org/licenses/by/4.0/
         }) }, { title: git_graph_text("scm.collapse_groups"), action: () => this.groups.querySelectorAll("details").forEach((item) => {
           item.open = false;
         }) }]),
-        ...actions(["pull", "push", "clone", "fetch"]),
-        { id: "checkout", title: git_graph_text("scm.checkout"), action: () => this.branch.click() },
+        ...["pull", "push", "fetch"].map((id) => ({ id, title: graph_actions.find((action) => action.id === id).title, disabled: !this.history.toolbar.enabled(id), action: () => this.history.network_action(id) })),
+        ...actions(["clone"]),
+        { id: "checkout", title: git_graph_text("scm.checkout"), children: checkout_entries(panel), action() {
+        } },
         submenu(git_graph_text("scm.commit_section"), [...actions(["commit"]), { title: git_graph_text("scm.amend_staged"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }]),
         submenu(git_graph_text("scm.changes_section"), actions(["stage_all", "unstage_all", "discard_changes", "stash_create", "clean"])),
         submenu(git_graph_text("scm.pull_push_section"), actions(["sync", "fetch", "pull", "push"])),
-        submenu(git_graph_text("scm.branches_section"), [{ id: "checkout", title: git_graph_text("scm.checkout"), action: () => this.branch.click() }, { id: "branch_create", title: git_graph_text("scm.create_branch"), action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
+        submenu(git_graph_text("scm.branches_section"), [{ id: "checkout", title: git_graph_text("scm.checkout"), children: checkout_entries(panel), action() {
+        } }, { id: "branch_create", title: git_graph_text("scm.create_branch"), action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
         submenu(git_graph_text("scm.remotes_section"), [{ id: "remote_add", title: git_graph_text("scm.add_remote"), action: () => panel.action_dialog("remote_add", "repository") }, ...remotes]),
         submenu(git_graph_text("scm.stashes_section"), [...actions(["stash_create"]), ...stashes]),
         submenu(git_graph_text("scm.tags_section"), [{ id: "tag_add", title: git_graph_text("scm.create_tag"), action: () => panel.action_dialog("tag_add", "commit", "", panel.state?.head) }, ...tags]),
+        { id: "worktrees", ...submenu(git_graph_text("scm.worktrees"), [{ id: "worktree_manage", title: git_graph_text("scm.worktree_manage"), action: () => show_worktrees(panel) }, { id: "worktree_add", title: git_graph_text("scm.worktree_add"), disabled: !panel.state?.head, action: () => panel.action_dialog("worktree_add", "repository", "", panel.state?.head) }]) },
         { id: "output", title: git_graph_text("scm.show_output"), separator: true, action: () => panel.host.show_output(panel.root) },
         { id: "graph", title: git_graph_text("scm.open_graph"), separator: true, action: () => panel.host.show_history(panel.root) },
         { id: "terminal", title: git_graph_text("scm.open_terminal"), action: () => panel.host.terminal(panel.root, panel.settings.terminal_shell) },
@@ -200847,6 +201531,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.repositories.dispose();
       this.interaction_style.remove();
       this.file_icon_style.remove();
       this.load_epoch++;
@@ -223142,17 +223827,28 @@ https://creativecommons.org/licenses/by/4.0/
       localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings));
       window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings }));
     }
+    repository_paths(repos) {
+      const found = /* @__PURE__ */ new Set();
+      return repos.filter((root) => {
+        if (typeof root !== "string" || !root) return false;
+        let key = this.host.path_api.normalize(root);
+        if (this.host.path_api.sep === "\\") key = key.toLowerCase();
+        if (found.has(key)) return false;
+        found.add(key);
+        return true;
+      });
+    }
     known_repos() {
       try {
-        return JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]").filter((value) => typeof value === "string");
+        return this.repository_paths(JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]"));
       } catch {
         return [];
       }
     }
     save_repos(repos) {
-      localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify([...new Set(repos)]));
+      localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify(this.repository_paths(repos)));
     }
-    switch_repo(root) {
+    async switch_repo(root) {
       if (this.writing) {
         this.report(git_graph_text("graph.operation_pending"));
         return;
@@ -223168,7 +223864,11 @@ https://creativecommons.org/licenses/by/4.0/
       this.runner = this.host.runner(this.settings);
       this.writer = this.host.runner(this.settings, true);
       this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches];
-      void this.refresh();
+      await this.refresh();
+    }
+    update_scm_actions() {
+      this.workbench.history.toolbar.update();
+      this.workbench.repositories.update_disabled();
     }
     async refresh(reset2 = true) {
       if (this.disposed) return;
@@ -223181,6 +223881,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.more_button.disabled = true;
       this.container.dataset.state = "loading";
       this.status.textContent = git_graph_text("graph.loading_repository");
+      this.update_scm_actions();
       try {
         if (!this.root) throw new Error(git_graph_text("graph.open_repository_first"));
         let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
@@ -223251,6 +223952,8 @@ https://creativecommons.org/licenses/by/4.0/
           this.pending = false;
           this.refresh_button.disabled = false;
           this.more_button.disabled = false;
+          this.workbench.history.toolbar.update();
+          if (this.workbench.show_repositories) this.workbench.repositories.refresh();
         }
       }
     }
@@ -223779,6 +224482,10 @@ https://creativecommons.org/licenses/by/4.0/
       await this.workbench.open_file(file, this.from, this.to, this.files);
     }
     target_menu(event, kind, target, hash2) {
+      if (kind === "commit") {
+        this.configured_menu(event, kind, commit_entries(this, hash2));
+        return;
+      }
       const entries3 = graph_actions.filter((action) => action.targets.includes(kind) && !this.settings.hidden_actions.includes(action.id)).map((action) => ({ title: action.title, id: action.id, action: () => this.action_dialog(action.id, kind, target, hash2) }));
       entries3.push({ title: git_graph_text("graph.copy_name_or_hash"), id: "copy_name", action: () => void this.host.copy(target || hash2) }, { title: git_graph_text("graph.copy_commit_hash"), id: "copy_hash", action: () => void this.host.copy(hash2) });
       const commit = this.state?.commits.find((item) => item.hash === hash2);
@@ -223822,6 +224529,11 @@ https://creativecommons.org/licenses/by/4.0/
       }));
     }
     configured_menu(event, kind, entries3) {
+      const root = this.root, runner = this.runner;
+      const guard = (items) => items.map((entry) => ({ ...entry, children: entry.children ? guard(entry.children) : void 0, action: () => {
+        if (!this.disposed && root === this.root && runner === this.runner) entry.action();
+      } }));
+      entries3 = guard(entries3);
       const hidden = (id) => this.settings.hidden_actions.includes(id) || this.settings.hidden_actions.includes(kind + ":" + id);
       const filter_entries = (items) => items.filter((entry) => !entry.id || !hidden(entry.id)).map((entry) => entry.children ? { ...entry, children: filter_entries(entry.children) } : entry);
       const all_entries = (items) => items.flatMap((entry) => [entry, ...all_entries(entry.children || [])]);
@@ -223840,6 +224552,10 @@ https://creativecommons.org/licenses/by/4.0/
           dialog.content.append(label);
         }
         dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
+          if (this.disposed || root !== this.root || runner !== this.runner) {
+            dialog.close();
+            return;
+          }
           for (const [id, input] of choices2) {
             this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== kind + ":" + id);
             if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id);
@@ -223848,6 +224564,10 @@ https://creativecommons.org/licenses/by/4.0/
           this.persist_settings();
           dialog.close();
         }), workspace_button(git_graph_text("graph.restore_menu"), () => {
+          if (this.disposed || root !== this.root || runner !== this.runner) {
+            dialog.close();
+            return;
+          }
           this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices2.has(id));
           this.persist_settings();
           dialog.close();
@@ -223907,8 +224627,9 @@ https://creativecommons.org/licenses/by/4.0/
       }));
     }
     async quick_action(id, paths = [], values = {}) {
-      if (!this.state || this.writing) return;
+      if (!this.state || this.writing || this.pending || this.disposed) return;
       this.writing = true;
+      this.update_scm_actions();
       let message = "";
       try {
         const plan = await plan_git_action(this.writer.run, id, { root: this.root, target: paths[0] || "", paths: paths.length ? paths : void 0, hash: this.state.head, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
@@ -223926,13 +224647,15 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     action_dialog(id, kind, target = "", hash2 = this.selected, preset = {}, paths) {
-      if (!this.state || this.writing) {
+      if (!this.state || this.writing || this.pending) {
         this.report(git_graph_text("graph.wait_for_repository"));
         return;
       }
+      const root = this.root, state = this.state, runner = this.runner, writer = this.writer;
       const action = graph_actions.find((item) => item.id === id);
       const dialog = graph_dialog2(action.title);
       const fields = /* @__PURE__ */ new Map();
+      const available = () => !this.disposed && this.root === root && this.runner === runner && dialog.root.isConnected;
       if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
       if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
       const defaults = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}, ...preset };
@@ -223943,7 +224666,7 @@ https://creativecommons.org/licenses/by/4.0/
       for (const item of action.fields) {
         const input = item.type === "choice" ? workspace_element("select") : ["message", "todo"].includes(item.key) ? workspace_element("textarea") : workspace_element("input");
         let initial = defaults[item.key] ?? item.initial ?? "";
-        if (item.key === "remote") initial = (kind === "remote" ? this.state.remotes.filter((remote) => target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
+        if (item.key === "remote" && !Object.hasOwn(preset, "remote")) initial = (kind === "remote" ? this.state.remotes.filter((remote) => target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
         if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
         if (item.key === "source") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" ? target : "");
         if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
@@ -223975,6 +224698,7 @@ https://creativecommons.org/licenses/by/4.0/
         plan = void 0;
       };
       const prepare = async () => {
+        if (!available() || this.writing || preview.disabled) return;
         try {
           const revision = form_revision;
           preview.disabled = true;
@@ -223982,17 +224706,18 @@ https://creativecommons.org/licenses/by/4.0/
           const values = {};
           for (const [key, input] of fields) values[key] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
           if (id === "rebase" && values.interactive && !values.todo) {
-            fields.get("todo").value = await this.runner.run(this.root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", "".concat(hash2, "..HEAD"), "--"]);
+            fields.get("todo").value = await runner.run(root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", "".concat(hash2, "..HEAD"), "--"]);
             result.textContent = git_graph_text("graph.rebase_todo_ready");
             return;
           }
           const selected_paths = id === "discard_changes" ? paths || this.workbench.groups_state.find((group) => group.id === "changes")?.files.map((file) => file.path) : paths;
-          plan = await plan_git_action(this.runner.run, id, { root: this.root, target, paths: selected_paths, hash: hash2 === WORKTREE ? this.state.head : hash2, operation: this.state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
-          if (revision !== form_revision) {
+          const prepared = await plan_git_action(runner.run, id, { root, target, paths: selected_paths, hash: hash2 === WORKTREE ? state.head : hash2, operation: state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
+          if (!available() || revision !== form_revision) {
             plan = void 0;
             result.textContent = git_graph_text("graph.parameters_changed");
             return;
           }
+          plan = prepared;
           result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview;
           execute.disabled = false;
         } catch (error) {
@@ -224002,13 +224727,14 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       const submit = async () => {
-        if (!plan) return;
+        if (!plan || !available() || this.writing) return;
         this.writing = true;
+        this.update_scm_actions();
         preview.disabled = true;
         execute.disabled = true;
         result.textContent += "\n\n" + git_graph_text("graph.executing");
         try {
-          const output = await execute_git_action(this.writer.run, plan, () => this.host.can_change_files(), { trash_files: (root, files) => this.host.trash_files(root, files) });
+          const output = await execute_git_action(writer.run, plan, () => this.host.can_change_files(), { trash_files: (root2, files) => this.host.trash_files(root2, files) });
           result.textContent += "\n" + (output || git_graph_text("graph.action_complete"));
         } catch (error) {
           result.textContent += "\n" + String(error);
@@ -224063,30 +224789,44 @@ https://creativecommons.org/licenses/by/4.0/
       })()));
     }
     filter_branches() {
-      if (!this.state) {
+      const state = this.state;
+      if (!state) {
         this.report(git_graph_text("graph.valid_repository_required"));
         return;
       }
-      const dialog = graph_dialog2(git_graph_text("graph.select_branches_title"));
-      const selected = new Set(this.branches);
-      for (const [name, title] of [["HEAD", git_graph_text("graph.current_head")], ...this.state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
+      const root = this.root, runner = this.runner, dialog = graph_dialog2(git_graph_text("graph.select_branches_title")), selected = new Set(this.branches);
+      const search2 = workspace_element("input");
+      search2.type = "search";
+      search2.placeholder = git_graph_text("scm.search_references");
+      search2.setAttribute("aria-label", search2.placeholder);
+      const list3 = workspace_element("div");
+      dialog.content.append(search2, list3);
+      const apply3 = (branches) => {
+        if (!this.disposed && root === this.root && runner === this.runner) {
+          this.branches = branches;
+          void this.refresh();
+        }
+        dialog.close();
+      };
+      const all = workspace_button(git_graph_text("scm.scope_all"), () => apply3([])), automatic = workspace_button(git_graph_text("scm.scope_auto"), () => apply3(["AUTO"]));
+      all.dataset.scope = "all";
+      automatic.dataset.scope = "auto";
+      dialog.content.prepend(all, automatic);
+      for (const [name, title] of [["HEAD", git_graph_text("graph.current_head")], ...state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
         const check = workspace_element("input");
         check.type = "checkbox";
         check.checked = selected.has(name);
+        check.dataset.historyRef = name;
         check.onchange = () => check.checked ? selected.add(name) : selected.delete(name);
         const label = workspace_element("label", "git-graph-filter", title);
         label.prepend(check);
-        dialog.content.append(label);
+        list3.append(label);
       }
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.all_branches_button"), () => {
-        this.branches = [];
-        dialog.close();
-        void this.refresh();
-      }), workspace_button(git_graph_text("graph.apply_selection"), () => {
-        this.branches = [...selected];
-        dialog.close();
-        void this.refresh();
-      }));
+      search2.oninput = () => {
+        const query = search2.value.toLocaleLowerCase();
+        for (const label of list3.children) label.hidden = !label.textContent?.toLocaleLowerCase().includes(query);
+      };
+      dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => apply3([...selected])));
     }
     manage_repositories() {
       const dialog = graph_dialog2(git_graph_text("graph.manage_repositories_title"));
@@ -224298,27 +225038,6 @@ https://creativecommons.org/licenses/by/4.0/
   var git_status_bar_default = "";
 
   // src/git_status_bar.ts
-  function parse_branch_status(source) {
-    const status2 = { branch: "", head: "", upstream: "", ahead: 0, behind: 0, dirty: false };
-    const records = source.split("\0");
-    for (let index = 0; index < records.length; index += 1) {
-      const record = records[index];
-      if (record.startsWith("# branch.head ")) status2.branch = record.slice(14);
-      else if (record.startsWith("# branch.oid ")) status2.head = record.slice(13);
-      else if (record.startsWith("# branch.upstream ")) status2.upstream = record.slice(18);
-      else if (record.startsWith("# branch.ab ")) {
-        const counts = /^# branch\.ab \+(\d+) -(\d+)$/u.exec(record);
-        if (counts) {
-          status2.ahead = Number(counts[1]);
-          status2.behind = Number(counts[2]);
-        }
-      } else if (/^[12u?] /u.test(record)) {
-        status2.dirty = true;
-        if (record.startsWith("2 ")) index += 1;
-      }
-    }
-    return status2;
-  }
   function bind_git_status_bar(core, host, current_panel, launch_graph) {
     const footer = document.querySelector("footer.ty-footer,footer");
     if (!footer) throw new Error("Typora Code status bar is unavailable.");
@@ -225082,6 +225801,84 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/workspace_open_dialog.ts
+  async function open_workspace_window(root, anchor = "#") {
+    const runtime2 = window;
+    if (!runtime2.JSBridge?.invoke) throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u65B0\u7A97\u53E3\u5165\u53E3\u3002");
+    if (!anchor.startsWith("#") || /[\u0000-\u0020]/u.test(anchor)) throw new Error("\u65B0\u7A97\u53E3\u951A\u70B9\u5FC5\u987B\u662F\u5B89\u5168\u7684\u6587\u5185\u7247\u6BB5\u3002");
+    return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
+  }
+  function bind_workspace_open_dialog(files, changed) {
+    const runtime2 = window;
+    let disposed = false, pending, revision = 0;
+    const set_folder = async (selected) => {
+      if (disposed) return;
+      const current = ++revision;
+      if (!files.path_api.isAbsolute(selected)) throw new Error("\u6587\u4EF6\u5939\u8DEF\u5F84\u65E0\u6548\u3002");
+      const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
+      if (disposed || current !== revision) return;
+      if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
+      if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+      runtime2.File.setMountFolder(target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target);
+      changed();
+    };
+    const open_folder_new_window = async (selected) => {
+      if (disposed) return;
+      if (!files.path_api.isAbsolute(selected)) throw new Error("\u6587\u4EF6\u5939\u8DEF\u5F84\u65E0\u6548\u3002");
+      const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
+      if (disposed) return;
+      if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
+      await open_workspace_window(target);
+    };
+    const choose = (directory) => {
+      if (disposed) return Promise.resolve();
+      if (pending) return pending;
+      const current = revision;
+      pending = (async () => {
+        if (!runtime2.JSBridge?.invoke) throw new Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
+        const root = files.context_root();
+        const result = await runtime2.JSBridge.invoke("dialog.showOpenDialog", {
+          title: directory ? "\u6253\u5F00\u6587\u4EF6\u5939" : "\u6253\u5F00\u6587\u4EF6",
+          properties: directory ? ["openDirectory"] : ["openFile"],
+          ...root && files.path_api.isAbsolute(root) ? { defaultPath: root } : {},
+          // 工作台支持代码与普通文本，默认不将它们过滤为不可选择。
+          ...!directory ? { filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] } : {}
+        });
+        if (disposed || current !== revision || result?.canceled || !result?.filePaths?.length) return;
+        const selected = result.filePaths[0];
+        if (typeof selected !== "string" || !files.path_api.isAbsolute(selected)) throw new Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
+        if (directory) {
+          await set_folder(selected);
+        } else {
+          const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
+          if (disposed || current !== revision) return;
+          if (!stat.isFile()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u3002");
+          await files.open_file(target);
+        }
+      })().finally(() => {
+        pending = void 0;
+      });
+      return pending;
+    };
+    return {
+      open_file: () => choose(false),
+      open_folder: () => choose(true),
+      set_folder,
+      open_folder_new_window,
+      close_folder() {
+        if (disposed) return;
+        if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+        revision++;
+        runtime2.File.setMountFolder("");
+        changed();
+      },
+      dispose() {
+        disposed = true;
+        revision++;
+      }
+    };
+  }
+
   // src/workspace_detached_window.ts
   var WINDOW_ANCHOR_PREFIX = "#typora-code-window-";
   var CHANNEL_PREFIX = "typora-code:tab-transfer:";
@@ -225098,10 +225895,7 @@ https://creativecommons.org/licenses/by/4.0/
       const dialog = workspace_dialog("\u79FB\u52A8\u6807\u7B7E");
       dialog.content.append(workspace_element("p", "", message));
     });
-    const open_window = options2.open_window || ((anchor2, root) => {
-      if (!runtime2.JSBridge?.invoke) return Promise.reject(new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u65B0\u7A97\u53E3\u5165\u53E3\u3002"));
-      return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor: anchor2 });
-    });
+    const open_window = options2.open_window || ((anchor2, root) => open_workspace_window(root, anchor2));
     const cancellations = /* @__PURE__ */ new Set();
     const pending_leaves = /* @__PURE__ */ new WeakSet();
     const senders = /* @__PURE__ */ new Map();
@@ -226919,15 +227713,15 @@ https://creativecommons.org/licenses/by/4.0/
       update_theme();
       const content = document.createDocumentFragment();
       let target_block;
-      const normalized = markdown_source(text3);
+      const normalized2 = markdown_source(text3);
       const start = markdown_source(text3.slice(0, match2.start)).length;
-      const front_matter = normalized.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0] || "";
-      const tokens = marked2.lexer(normalized.slice(front_matter.length), { gfm: true });
+      const front_matter = normalized2.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0] || "";
+      const tokens = marked2.lexer(normalized2.slice(front_matter.length), { gfm: true });
       let offset = front_matter.length;
       if (front_matter && start < front_matter.length) tokens.unshift({ type: "code", raw: front_matter, text: front_matter, lang: "yaml" });
       const rendering = [];
       for (const token of tokens) {
-        const token_start = token.raw === front_matter ? 0 : normalized.indexOf(token.raw, offset);
+        const token_start = token.raw === front_matter ? 0 : normalized2.indexOf(token.raw, offset);
         const safe_start = token_start < 0 ? offset : token_start;
         const block3 = workspace_element("div");
         block3.dataset.sourceStart = String(safe_start);
@@ -226958,7 +227752,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (selected_block && match2.text) {
         const needle = match2.text.replace(/\r\n?/gu, "\n");
         const raw_start = Number(selected_block.dataset.sourceStart);
-        const prefix_tokens = marked2.lexer(normalized.slice(raw_start, start), { gfm: true });
+        const prefix_tokens = marked2.lexer(normalized2.slice(raw_start, start), { gfm: true });
         prefix_tokens.links = tokens.links;
         const prefix = workspace_element("div");
         prefix.innerHTML = purify2.sanitize(marked2.parser(prefix_tokens), { FORBID_TAGS: ["img", "style", "iframe", "object", "embed", "audio", "video", "source"] });
@@ -230721,69 +231515,6 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
-  // src/workspace_open_dialog.ts
-  function bind_workspace_open_dialog(files, changed) {
-    const runtime2 = window;
-    let disposed = false, pending, revision = 0;
-    const set_folder = async (selected) => {
-      if (disposed) return;
-      const current = ++revision;
-      if (!files.path_api.isAbsolute(selected)) throw new Error("\u6587\u4EF6\u5939\u8DEF\u5F84\u65E0\u6548\u3002");
-      const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
-      if (disposed || current !== revision) return;
-      if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
-      if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
-      runtime2.File.setMountFolder(target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target);
-      changed();
-    };
-    const choose = (directory) => {
-      if (disposed) return Promise.resolve();
-      if (pending) return pending;
-      const current = revision;
-      pending = (async () => {
-        if (!runtime2.JSBridge?.invoke) throw new Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
-        const root = files.context_root();
-        const result = await runtime2.JSBridge.invoke("dialog.showOpenDialog", {
-          title: directory ? "\u6253\u5F00\u6587\u4EF6\u5939" : "\u6253\u5F00\u6587\u4EF6",
-          properties: directory ? ["openDirectory"] : ["openFile"],
-          ...root && files.path_api.isAbsolute(root) ? { defaultPath: root } : {},
-          // 工作台支持代码与普通文本，默认不将它们过滤为不可选择。
-          ...!directory ? { filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] } : {}
-        });
-        if (disposed || current !== revision || result?.canceled || !result?.filePaths?.length) return;
-        const selected = result.filePaths[0];
-        if (typeof selected !== "string" || !files.path_api.isAbsolute(selected)) throw new Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
-        if (directory) {
-          await set_folder(selected);
-        } else {
-          const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
-          if (disposed || current !== revision) return;
-          if (!stat.isFile()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u3002");
-          await files.open_file(target);
-        }
-      })().finally(() => {
-        pending = void 0;
-      });
-      return pending;
-    };
-    return {
-      open_file: () => choose(false),
-      open_folder: () => choose(true),
-      set_folder,
-      close_folder() {
-        if (disposed) return;
-        if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
-        revision++;
-        runtime2.File.setMountFolder("");
-        changed();
-      },
-      dispose() {
-        disposed = true;
-        revision++;
-      }
-    };
-  }
-
   // src/workspace_file_commands.ts
   function bind_workspace_file_commands(files, changed) {
     const lifetime = create_workspace_lifetime(), core = files.core;
@@ -230800,6 +231531,7 @@ https://creativecommons.org/licenses/by/4.0/
       ["open_file", "\u6253\u5F00\u6587\u4EF6", picker.open_file],
       ["open_folder", "\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder],
       ["open_folder_path", "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6\u5939", picker.set_folder],
+      ["open_folder_new_window", "\u5728\u65B0\u7A97\u53E3\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder_new_window],
       ["close_folder", "\u5173\u95ED\u6587\u4EF6\u5939", picker.close_folder],
       ["save", "\u4FDD\u5B58", files.save_active],
       ["save_all", "\u4FDD\u5B58\u5168\u90E8", files.save_all],
@@ -230811,12 +231543,12 @@ https://creativecommons.org/licenses/by/4.0/
       }]
     ];
     try {
-      for (const [id, title, callback] of commands) lifetime.add(core.app.commands.register({ id: "linux_note:" + id, title: "\u6587\u4EF6\uFF1A" + title, scope: "global", showInCommandPanel: id !== "open_folder_path", callback: (...args) => run(() => callback(...args)) }));
+      for (const [id, title, callback] of commands) lifetime.add(core.app.commands.register({ id: "linux_note:" + id, title: "\u6587\u4EF6\uFF1A" + title, scope: "global", showInCommandPanel: !["open_folder_path", "open_folder_new_window"].includes(id), callback: (...args) => run(() => callback(...args)) }));
     } catch (error) {
       lifetime.dispose();
       throw error;
     }
-    return { open_folder: () => run(picker.open_folder), dispose: lifetime.dispose };
+    return { open_folder: () => run(picker.open_folder), set_folder: picker.set_folder, dispose: lifetime.dispose };
   }
 
   // src/workspace_browser.ts
@@ -230885,6 +231617,26 @@ https://creativecommons.org/licenses/by/4.0/
         requestAnimationFrame(() => explorer.container.querySelector(".workspace-explorer-tree")?.focus({ preventScroll: true }));
       };
       lifetime.add(core.app.commands.register({ id: "linux_note:file_explorer", title: "\u89C6\u56FE\uFF1A\u8D44\u6E90\u7BA1\u7406\u5668", scope: "global", callback: focus_explorer }));
+      let reveal_epoch = 0;
+      lifetime.add(core.app.commands.register({ id: "linux_note:reveal_in_explorer", title: "\u89C6\u56FE\uFF1A\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u5B9A\u4F4D", scope: "global", showInCommandPanel: false, callback: (path, root) => {
+        const epoch = ++reveal_epoch;
+        void (async () => {
+          try {
+            if (!files.path_api.isAbsolute(path) || !files.path_api.isAbsolute(root)) throw new Error("\u5B9A\u4F4D\u8DEF\u5F84\u65E0\u6548\u3002");
+            const relative2 = files.path_api.relative(root, path);
+            if (files.path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + files.path_api.sep)) throw new Error("\u5B9A\u4F4D\u8DEF\u5F84\u4E0D\u5728\u4ED3\u5E93\u5185\u3002");
+            await files.fs.promises.stat(path);
+            if (lifetime.disposed || epoch !== reveal_epoch) return;
+            const mounted = files.context_root(), inside = mounted ? files.path_api.relative(mounted, path) : "..";
+            if (!mounted || files.path_api.isAbsolute(inside) || inside === ".." || inside.startsWith(".." + files.path_api.sep)) await file_commands.set_folder(root);
+            if (lifetime.disposed || epoch !== reveal_epoch) return;
+            explorer.show();
+            await explorer.reveal(path);
+          } catch (error) {
+            if (!lifetime.disposed && epoch === reveal_epoch) new core.Notice(String(error instanceof Error ? error.message : error), 5e3);
+          }
+        })();
+      } }));
       const explorer_shortcut = (event) => {
         if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.altKey || event.code !== "KeyE" || event.isComposing || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
         event.preventDefault();
@@ -231440,8 +232192,8 @@ https://creativecommons.org/licenses/by/4.0/
             if (!project_root || !path_api.isAbsolute(project_root)) return { href, target: "\u76EE\u6807\uFF1A\u672A\u6253\u5F00\u9879\u76EE\uFF0C\u65E0\u6CD5\u8BA1\u7B97\u9879\u76EE\u76F8\u5BF9\u4F4D\u7F6E" };
             const relative2 = path_api.relative(project_root, target);
             if (path_api.isAbsolute(relative2)) return { href, target: "\u9879\u76EE\u5916\uFF1A\u76EE\u6807\u4F4D\u4E8E\u5176\u4ED6\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E" };
-            const normalized = relative2.split(path_api.sep).join("/"), outside = normalized === ".." || normalized.startsWith("../");
-            return { href, target: "".concat(outside ? "\u9879\u76EE\u5916\uFF1A" : "\u9879\u76EE\u5185\uFF1A/").concat(normalized).concat(readable_link_text(hash2 || "")) };
+            const normalized2 = relative2.split(path_api.sep).join("/"), outside = normalized2 === ".." || normalized2.startsWith("../");
+            return { href, target: "".concat(outside ? "\u9879\u76EE\u5916\uFF1A" : "\u9879\u76EE\u5185\uFF1A/").concat(normalized2).concat(readable_link_text(hash2 || "")) };
           }
         } catch {
         }

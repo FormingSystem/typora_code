@@ -23,6 +23,7 @@ flowchart LR
 | 文件创建、移动、复制和回收站 | 既有文件操作服务，由 `workspace_files` 编排 | Explorer 菜单仅提供选择与动作，不重复实现写入与冲突判断 |
 | 搜索会话 | `workspace_search_engine`、搜索控制器 | 搜索 UI 设置范围并消费渐进结果；身份变化取消旧结果，字面目录范围不冒充 glob |
 | 代码大纲 | 大纲控制器与相应解析服务 | C/C++ 使用 clangd；Markdown 保留标题服务；展示与解析生命周期分别管理 |
+| SCM 工具栏、仓库列表与菜单 | `git_scm_toolbar`、`git_scm_repositories`、`git_scm_menus` | 同一控制器持有当前可写仓库；摘要只读、切库取消，按钮／更多／快捷键共享动作状态，见[SCM 设计](git_scm_actions.md#r027) |
 | Git 操作与差异文档 | Git runner、仓库模型与差异视图 | 历史版本身份来自 Git 文档，不能由“打开文件”按钮猜测为工作区当前版本 |
 | 终端进程和缓冲 | `terminal_session` 管进程，`terminal_surface` 管 xterm | 移动或隐藏视图复用同一实例；终止由会话协调器执行 |
 | 终端配置与面板几何 | `terminal_settings` 与 `terminal_panel` | 配置整体校验并通知视图；几何模块只调整占用空间，不管理 Shell |

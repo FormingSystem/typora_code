@@ -132,7 +132,7 @@ export function create_graph_host(core: graph_core) {
       for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
       views.clear();for(const payload of contents.values())payload.options.dispose?.();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
     },
-    ignore_file(root: string, file: string, settings: graph_settings) { return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
+    ignore_file(root: string, file: string, settings: graph_settings) { if(get_workspace_files()?.can_write(path_api.join(root,".gitignore"))===false)throw new Error(text("action.error.unsaved_document"));return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
     show_history: (_root: string) => {},
     runner(settings: graph_settings, writable = false) {
       const runner = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
@@ -144,7 +144,7 @@ export function create_graph_host(core: graph_core) {
         try { const result = await runner.run(root, args, execution); record(text("host.run_complete", {duration: Date.now() - start}) + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
         catch (error) { record(String(error)); throw error; }
       };
-      return {...runner, run};
+      return {...runner, run, dispose:()=>{runner.cancel();runners.delete(runner);}};
     },
     show_output(root: string) {
       const view = workspace_element("div", "git-output"); const output = workspace_element("pre");
@@ -198,6 +198,8 @@ export function create_graph_host(core: graph_core) {
       }
     },
     file_path: ensure_file_path,
+    open_folder(path:string,new_window=false){core.app.commands.run(new_window?"linux_note:open_folder_new_window":"linux_note:open_folder_path",[path]);},
+    reveal_explorer(root:string,file:string){core.app.commands.run("linux_note:reveal_in_explorer",[ensure_file_path(root,file),root]);},
     reveal_file(root: string, file: string) { runtime.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file)); },
     async revision_text(root: string, revision: string, file: string, settings: graph_settings): Promise<string> {
       if (revision === EMPTY) return "";

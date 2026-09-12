@@ -486,3 +486,21 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-commit-hover-refs {display:flex;flex-wrap:wrap;gap:4px;margin:4px 0;}
 .git-commit-hover-refs .git-scm-history-ref-name {white-space:normal;overflow-wrap:anywhere;}
 .git-commit-hover-copy {display:flex;align-items:center;gap:4px;border:0;background:transparent;box-shadow:none;color:inherit;font:inherit;padding:2px 4px;margin:0;}
+
+/* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */
+.git-scm-history-toolbar > button[hidden] { display: none !important; }
+:is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history-toolbar > .git-scm-history-branches { flex: 0 0 auto; width: auto; display: flex; align-items: center; }
+.git-scm-history-scope { max-width: 100px; padding-right: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 16px; }
+ .git-scm-history-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.git-scm-history-toggle > .git-scm-badge[hidden] { display:none!important; }
+
+/* 仓库摘要复用 SCM 22px 行及官方动作尺寸。 */
+.git-scm-repositories-list { min-width: 0; max-height: 30vh; overflow: auto; }
+.git-scm-repository-row { display: flex; align-items: center; min-width: 0; height: var(--git-scm-row-height,22px); }
+.git-scm-repository-row[data-active=true] { background: var(--workspace-interaction-selected-background,#8882); }
+:is(.linux-note-git-graph,.linux-note-git-source-control) .git-scm-repository-row > button { display: flex; align-items: center; min-width: 0; height: var(--git-scm-row-height,22px); border: 0; padding: 0 2px; background: transparent; font: inherit; color: inherit; }
+.git-scm-repository-row > button > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.git-scm-repository-row > .git-scm-repository-name { flex: 1; }
+.git-scm-repository-row > .git-scm-repository-branch { flex: 0 1 auto; max-width: 40%; }
+.git-scm-repository-row > :is(.git-scm-repository-sync,.git-scm-repository-more) { flex: none; min-width: var(--git-scm-action-size,22px); }
+.git-scm-worktree-entry { margin-bottom: 8px; overflow-wrap: anywhere; }
