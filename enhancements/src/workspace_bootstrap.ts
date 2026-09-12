@@ -1,3 +1,4 @@
+import { bind_workspace_zoom_commands } from "./workspace_zoom";
 import { install_workspace_shortcuts } from "./workspace_shortcuts";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 
@@ -85,7 +86,8 @@ export async function initialize_workspace(signal?: AbortSignal) {
   };
   lifetime.listen(document, "click", reconcile_sidebar as EventListener, true);
 
-  lifetime.own(install_workspace_shortcuts(app));
+  lifetime.own(bind_workspace_zoom_commands(app, runtime));
+  lifetime.own(install_workspace_shortcuts(app, runtime));
   lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
   document.documentElement.setAttribute("data-linux-note-workspace", "ready");
   return lifetime;

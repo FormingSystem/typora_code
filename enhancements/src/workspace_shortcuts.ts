@@ -1,3 +1,4 @@
+import { workspace_zoom_available, workspace_zoom_shortcut, type workspace_zoom_runtime } from "./workspace_zoom";
 import { get_workspace_quick_open } from "./workspace_quick_open";
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH } from "./file_paths";
 
@@ -18,8 +19,8 @@ function primary_modifier(event: KeyboardEvent): boolean {
   return (event.ctrlKey || event.metaKey) && !event.altKey;
 }
 
-function visible_modal(): boolean {
-  const candidates = document.querySelectorAll<HTMLElement>('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]');
+function visible_modal(selector = '.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]'): boolean {
+  const candidates = document.querySelectorAll<HTMLElement>(selector);
   return Array.from(candidates).some((candidate) => {
     if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
     const style = getComputedStyle(candidate);
@@ -27,9 +28,9 @@ function visible_modal(): boolean {
   });
 }
 
-/** 文件快速打开及既有工作区键位；编辑器/终端专用按键保持各自所有权。 */
+/** 窗口缩放优先路由；其余工作区键位尊重编辑器/终端的输入所有权。 */
 export function install_workspace_shortcuts(
-  app: shortcut_app,
+  app: shortcut_app, runtime: workspace_zoom_runtime,
 ): workspace_shortcuts_binding {
   if (active_binding) return active_binding;
   let chord_started = 0;
@@ -45,6 +46,12 @@ export function install_workspace_shortcuts(
   const keydown = (event: KeyboardEvent) => {
     // 先归还编辑焦点，再让既有快捷键执行，避免动作落到浮动菜单或后台文档。
     if(primary_modifier(event)&&document.querySelector(".workspace-titlebar-popup"))window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
+    const zoom_command = workspace_zoom_shortcut(event);
+    if (zoom_command && workspace_zoom_available(runtime, zoom_command) && !visible_modal(".linux-note-mermaid-viewer")) {
+      // 窗口比例是全局操作：普通对话框、代码编辑器与终端均不拦截；图表局部缩放优先。
+      run(event, () => app.commands.run(zoom_command));
+      return;
+    }
     const active_picker=get_workspace_quick_open();
     if(!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
       run(event,()=>{if(event.shiftKey){active_picker.close();app.commands.run("command:open");}else active_picker.open();});return;

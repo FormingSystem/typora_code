@@ -26,6 +26,7 @@ flowchart LR
 | Git 操作与差异文档 | Git runner、仓库模型与差异视图 | 历史版本身份来自 Git 文档，不能由“打开文件”按钮猜测为工作区当前版本 |
 | 终端进程和缓冲 | `terminal_session` 管进程，`terminal_surface` 管 xterm | 移动或隐藏视图复用同一实例；终止由会话协调器执行 |
 | 终端配置与面板几何 | `terminal_settings` 与 `terminal_panel` | 配置整体校验并通知视图；几何模块只调整占用空间，不管理 Shell |
+| 窗口缩放 | Typora 原生缩放状态，`workspace_zoom` 统一命令适配 | 菜单与全局快捷键调用同一入口；终端与编辑器不各自维护窗口比例，详见[缩放设计](workspace_zoom.md) |
 | 窗口与标签移交 | `workspace_detached_window` 与文件快照服务 | 拖放负责目标位置；接收确认和来源身份复查决定何时释放来源 |
 | 监听器、定时任务、命令与 DOM | 各绑定函数的 `workspace_lifetime` | 初始化失败与正常卸载走同一清理路径，清理可以重复调用 |
 

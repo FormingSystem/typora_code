@@ -1,3 +1,4 @@
+import { WORKSPACE_ZOOM_ACTIONS, workspace_zoom_available } from "./workspace_zoom";
 import type { workspace_file_host } from "./workspace_files";
 import type { titlebar_menu_definition, titlebar_menu_entry } from "./workspace_titlebar_menu";
 
@@ -152,7 +153,10 @@ export function create_workspace_titlebar_definitions(
     {label: "大纲", action: () => files.core.app.commands.run("linux_note:outline")},
     {label: "文件树", action: () => files.core.app.commands.run("linux_note:file_explorer")},
     command("状态栏", "toggleStatusBar"), command("工具栏", "toggleToolbar"), separator(),
-    command("放大", "zoomIn", "Ctrl+="), command("缩小", "zoomOut", "Ctrl+-"), command("实际大小", "resetZoom"),
+    ...WORKSPACE_ZOOM_ACTIONS.map(({id, label, shortcut}) => ({label, shortcut,
+      disabled: !workspace_zoom_available(runtime, id), action: () => {
+        if (workspace_zoom_available(runtime, id)) files.core.app.commands.run(id);
+      }})),
   ];
   const theme_entries = async (): Promise<entry[]> => {
     try {

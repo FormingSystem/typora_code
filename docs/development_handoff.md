@@ -40,6 +40,8 @@ Markdown 使用原生渲染和标题大纲；源码使用可保存的 Monaco。C
 
 本机 Shell 识别由 `terminal_profile_detection` 统一提供异步快照，菜单、默认配置、设置和新建／重启共用；查询失败和取消不伪造候选。底栏原生目录、大纲与字数详情由 `workspace_footer_popups` 统一管理锚点、containment 和层叠，保留原节点及事件；计数按钮使用居中盒模型。需求设计分别见[终端](terminal_operations.md#shell-自动识别设计)与[底栏](statusbar_layout.md)，对应 R006.3.1、R012、R013。
 
+R014：`workspace_zoom` 统一视图菜单、命令面板和 `workspace_shortcuts` 的原生窗口缩放；Ctrl+= / Ctrl+- 先于普通模态及终端退出分支处理，图表局部缩放优先。窗口比例、提示与持久化继续归 Typora 所有，见[缩放设计](workspace_zoom.md)。2026-09-12 用户明确取消插件适配，本轮仅修复快捷键。
+
 ## 本轮结果与验证边界
 
 各提交对应的构建、完整套件、目标复跑、原生取样与安装记录集中在[反馈复查记录](feedback_review.md)。此前 `629fc6a`、`94b47b2`、`36aef2d` 和 `5622258` 的通过数字均属于各自构建，不在此重复标为当前通过。
