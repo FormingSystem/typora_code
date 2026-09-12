@@ -1,15 +1,4 @@
-export type terminal_profile = { id: string; title: string; executable: string; args: string[] };
-
-// 可执行文件和工作目录分别传递，仓库名称从不拼接成 shell 命令。
-export function terminal_profiles(process_api: any, path_api: any): terminal_profile[] {
-  if (process_api.platform === "win32") return [
-    { id: "powershell", title: "Windows PowerShell", executable: path_api.join(process_api.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), args: ["-NoLogo"] },
-    { id: "cmd", title: "Command Prompt", executable: process_api.env.ComSpec || "cmd.exe", args: [] },
-    { id: "pwsh", title: "PowerShell 7（需已安装）", executable: "pwsh.exe", args: ["-NoLogo"] },
-    { id: "bash", title: "Bash（需在 PATH）", executable: "bash.exe", args: ["--login"] },
-  ];
-  return [{ id: "default", title: "默认 Shell", executable: process_api.env.SHELL || "/bin/sh", args: ["-l"] }];
-}
+export type terminal_profile = { id: string; title: string; executable: string; args: string[]; env?: Record<string,string|null>; wsl?: boolean };
 
 export function terminal_environment(source: Record<string, string | undefined>): Record<string, string> {
   const result: Record<string, string> = {};
@@ -21,7 +10,9 @@ export function terminal_environment(source: Record<string, string | undefined>)
 export function administrator_launch(root: string, process_api: any, path_api: any): { executable: string; args: string[] } {
   if (process_api.platform !== "win32") throw new Error("管理员终端入口当前仅支持 Windows。");
   if (!root || root.includes("\0")) throw new Error("终端工作目录无效。");
-  const powershell = terminal_profiles(process_api, path_api)[0].executable;
+  const system_root = Object.entries(process_api.env).find(([key])=>key.toLowerCase()==="systemroot")?.[1];
+  if(typeof system_root!=="string"||!system_root)throw new Error("未找到 Windows 系统目录。");
+  const powershell = path_api.join(system_root,"System32","WindowsPowerShell","v1.0","powershell.exe");
   const quote = (value: string) => "'" + value.replace(/'/gu, "''") + "'";
   // Windows 提权启动会改变工作目录，显式在新 PowerShell 中恢复仓库根目录。
   const inner = "Set-Location -LiteralPath " + quote(root);

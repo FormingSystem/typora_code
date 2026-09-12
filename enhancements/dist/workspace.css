@@ -1517,6 +1517,25 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {
   background:var(--bg-color,#fff); color:var(--text-color,inherit);
 }
 
+/* 宿主维护 li.show 的业务显隐；仅恢复该状态的展示，不显示被宿主移除 show 的条目。 */
+footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu li.show {display:block;}
+
+/* 原生浮层仍归属原节点；footer 的层叠上下文仅在自身弹层打开时升到终端之上。 */
+body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-index:101;overflow:visible;}
+[data-workspace-footer-popup=ready] {
+  position:fixed!important;left:var(--workspace-popup-left,0px)!important;top:var(--workspace-popup-top,0px)!important;
+  right:auto!important;bottom:auto!important;margin:0!important;box-sizing:border-box;
+  max-width:calc(100vw - 8px)!important;max-height:var(--workspace-popup-max-height,65vh)!important;
+  overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
+}
+/* 取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
+body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > #footer-word-count {
+  display:flex;align-items:center;justify-content:center;gap:2px;height:100%;box-sizing:border-box;
+  margin:0;padding:0 6px;line-height:1;white-space:nowrap;
+}
+footer.ty-footer[data-workspace-footer=ready] #footer-word-count-label {display:inline-block;line-height:1;}
+footer.ty-footer[data-workspace-footer=ready] .ty-word-count-expand {display:flex;align-items:center;justify-content:center;line-height:1;}
+
 /* workspace_lookup_preview.css */
 .workspace-lookup-preview{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;color:var(--text-color,inherit);background:var(--bg-color,inherit)}
 .workspace-lookup-preview-body{position:relative;flex:1;min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain}

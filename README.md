@@ -54,7 +54,8 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 | 中文源代码管理主侧栏、分支操作、远端同步与评审 | [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图) |
 | 宽窄自动切换差异、红绿概览、改动导航及只读历史正文 | [差异编辑器与时间线](./enhancements/README.md#1.5.2_中央差异编辑器与文件时间线) |
 | 文件菜单、系统选择窗口和资源管理器操作 | [文件操作](docs/file_operations.md) |
-| 终端面板、会话、管理员入口和设置 | [终端操作与配置](docs/terminal_operations.md) |
+| 终端面板、本机 Shell 识别、会话和设置 | [终端操作与配置](docs/terminal_operations.md) |
+| 终端展开时的目录浮层与字数居中 | [底栏布局设计](docs/statusbar_layout.md) |
 | 统一命令、领域服务和资源生命周期 | [工作台架构](docs/workspace_architecture.md) |
 | 需求编号、对应设计文档和持续更新规则 | [需求设计索引](docs/requirements_design.md) |
 | 终端依赖、离线缓存和测试边界 | [终端运行文件与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证) |

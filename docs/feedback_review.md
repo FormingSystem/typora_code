@@ -179,3 +179,21 @@ Diff顶部收为标签同行动作和26px版本行。自动切换使用Monaco固
 收尾审查修正临时界面引用累积：公共菜单／对话框在关闭时通知所属模块，终端只保存仍打开的界面；关闭后释放引用，卸载仍清理当前菜单与设置。修改后重新构建、完整 check 通过，widgets、terminal_panel、terminal_theme、workspace_startup **4/4** 通过，日志 `.cache/check_lifetime_20260912.log` 和 `.cache/ui_lifetime_20260912.log`；关闭、失焦及重复清理只通知一次，不用前面的原生取样代替这次后续验证。
 
 2026-09-12 最终构建已安装，安装事务自动备份，`check_configuration_windows.ps1` 返回 `OK`。安装前后原 ASAR、应用与文件图标、Typora 原生 profile、既有工作台设置及主题摘要一致；没有关闭或刷新用户现有窗口，保存后正常重启载入。最终日志为 `.cache/unified_workbench_install_final_20260912.log`、`unified_workbench_check_final_20260912.log`，保护项核对为 `unified_workbench_install_final_verification.json`。已核对18份自有Markdown的196个本地链接和63个标题锚点，无缺失目标；用户需求台账及研究缓存未纳入提交。
+
+
+## 2026-09-12 Shell 发现与底栏浮层、字数位置修复
+
+R006.3.1 移除终端四项固定菜单，新增独立异步发现服务；安装注册表、PATH 与有限候选目录共同生成可用配置，菜单、设置、默认选择与会话启动共用同一结果。支持重检、局部失败提示和取消；保存的默认项失效时明确提示，不偷偷改开其他 Shell。审查发现设置刷新可能覆盖扫描期间的新选择，已改为保留用户当前选择并增加交互回归。
+
+R012 统一适配原生底栏目录、大纲、字数详情及拼写浮层，按触发按钮定位并修正终端层叠和 containment 坐标；R013 修正字数按钮旧底部留白、负 margin 和行高。保留宿主统计、菜单数据和原节点事件。设计分别见[终端](terminal_operations.md#shell-自动识别设计)、[底栏](statusbar_layout.md)。
+
+构建和完整 `npm run check` 通过（`.cache/terminal_footer_check_20260912.log`）。终端面板、主题、底栏、生产启动、公共菜单 5/5 UI 通过；设置刷新选择修正后再次构建，面板15项通过。底栏另有编辑器状态、边距目标回归，三目标共76项，覆盖22px/30px底栏、多位计数、100%/125%缩放和源码隐藏。截图确认字数文字与箭头居中，图钉弹层位于底栏按钮上方。UI日志为 `.cache/terminal_footer_ui_20260912.log`、`terminal_selection_ui_20260912.log`。
+
+真实机器／用户 PATH（剔除当前工具私有 PATH）发现10个配置，672ms：Git Bash、Cygwin、系统PowerShell、CMD及6个MSYS2环境。隔离真实ConPTY对10项全部验证输出、初始工作目录、MSYSTEM、退出码0及子进程清理；证据 `.cache/terminal_profile_detection_20260912.json`、`terminal_discovery_pty_20260912.json`。使用校验后的私有Node与临时运行包，禁止加载用户启动脚本；不把启动成功当作登录脚本或完整工具链验证。此机器没有独立PowerShell 7／WSL发行版；WSL与其他安装形态仅由探测和UI夹具覆盖。
+
+
+原生 ASAR 隔离取样首次复现最近目录只剩5px阴影：宿主菜单的 `li.show` 规则不能匹配真实DOM，导致已开放条目仍隐藏。已在底栏适配范围恢复宿主 `show` 状态；未开放条目保持隐藏。补充真实选择器回归后，底栏44项及生产启动再次通过；重新构建和完整检查也通过，日志 `.cache/terminal_footer_final_check_20260912.log`、`terminal_footer_native_fix_ui_20260912.log`。
+
+最终原生取样 `footer_native_20260912_e` 的 10 项通过：系统原ASAR、隔离用户数据和文档、从未切换到用户桌面的私有Windows桌面；最近目录可见可点击，原生菜单选择改变隔离挂载根，图钉大纲定位底栏，字数与详情行为保持。各阶段截图及精确几何留在该case目录。中间轮次保留菜单显隐复现、侧栏过渡未稳定时的取样和夹具字符串转义错误；均未修改用户文档或冒充生产异常。此次是原生宿主程序化验收，不代表所有显示器、DPI或物理鼠标场景已覆盖。
+
+修复版已用既有事务安装器安装，配置检查返回 `OK`，备份正常建立。安装前后ASAR、应用图标、原生profile、工作台设置与主题摘要一致；未关闭、刷新或重启用户现有窗口。安装日志 `.cache/shell_footer_install_20260912.log`、`shell_footer_install_check_20260912.log`，保护项证据 `shell_footer_install_verification_20260912.json`。用户保存后正常重启Typora载入。

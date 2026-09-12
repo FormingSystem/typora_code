@@ -1,4 +1,5 @@
-import { terminal_profiles, terminal_environment, type terminal_profile } from "./terminal_runtime";
+import { terminal_environment, type terminal_profile } from "./terminal_runtime";
+import type {terminal_profile_service} from "./terminal_profile_detection";
 
 export const TERMINAL_SETTINGS_KEY = "linux-note-terminal:v1:";
 export type terminal_profile_config = terminal_profile & {env?: Record<string,string|null>; cwd?: string; icon?: string; color?: string};
@@ -62,15 +63,21 @@ export function validate_terminal_settings(value: unknown): terminal_settings {
 }
 
 /** 配置唯一所有者；读取旧设置的有效字段，写入始终整体校验后原子替换。 */
-export function create_terminal_settings(storage: Pick<Storage,"getItem"|"setItem">, process_api:any,path_api:any) {
+export function create_terminal_settings(storage: Pick<Storage,"getItem"|"setItem">, catalog:Pick<terminal_profile_service,"profiles"|"ready"|"refresh"|"warnings">) {
   let current=structuredClone(terminal_defaults);
   try{const data=JSON.parse(storage.getItem(TERMINAL_SETTINGS_KEY)||"{}");
     for(const key of Object.keys(terminal_defaults))try{current=validate_terminal_settings({...current,[key]:data[key]??(current as any)[key]});}catch{/* 单个旧字段不抹去其他有效设置。 */}
   }catch{/* 缺失或损坏数据使用默认配置，不覆盖磁盘。 */}
   const listeners=new Set<(settings:terminal_settings)=>void>();
-  const profiles=()=>{const values=new Map(terminal_profiles(process_api,path_api).map(item=>[item.id,item as terminal_profile_config]));for(const item of current.profiles)values.set(item.id,item);return [...values.values()];};
+  const profiles=()=>{const values=new Map(catalog.profiles().map(item=>[item.id,item as terminal_profile_config]));for(const item of current.profiles)values.set(item.id,item);return structuredClone([...values.values()]);};
   return {get:()=>structuredClone(current),profiles,
-    update(value:unknown){const next=validate_terminal_settings(value);const ids=new Set([...terminal_profiles(process_api,path_api),...next.profiles].map(item=>item.id));if(next.profile&&!ids.has(next.profile))throw new Error("默认 Shell 不存在。");storage.setItem(TERMINAL_SETTINGS_KEY,JSON.stringify(next));current=next;for(const listener of listeners)listener(structuredClone(current));},
+    ready:()=>catalog.ready(),refresh:()=>catalog.refresh(),warnings:()=>catalog.warnings(),
+    select_profile(id=current.profile){const values=profiles();
+      if(id){const selected=values.find(item=>item.id===id);if(!selected)throw new Error("终端配置不可用："+id+"。请重新检测或选择默认配置。");return selected;}
+      const selected=["pwsh","powershell","cmd"].map(name=>values.find(item=>item.id===name)).find(Boolean)||values[0];
+      if(!selected)throw new Error("未发现可用的 Shell，请在终端设置中添加自定义配置。");return selected;
+    },
+    update(value:unknown){const next=validate_terminal_settings(value);const ids=new Set([...catalog.profiles(),...next.profiles].map(item=>item.id));if(next.profile&&next.profile!==current.profile&&!ids.has(next.profile))throw new Error("默认 Shell 不存在。");storage.setItem(TERMINAL_SETTINGS_KEY,JSON.stringify(next));current=next;for(const listener of listeners)listener(structuredClone(current));},
     subscribe(listener:(settings:terminal_settings)=>void){listeners.add(listener);return()=>listeners.delete(listener);},dispose(){listeners.clear();},
   };
 }
@@ -86,5 +93,7 @@ export function resolve_terminal_launch(settings:terminal_settings,profile:termi
     const existing=Object.keys(env).find(name=>process_api.platform==="win32"?name.toLowerCase()===key.toLowerCase():name===key);
     if(existing)delete env[existing];if(value!==null)Object.defineProperty(env,key,{value:expand(value),enumerable:true,writable:true,configurable:true});
   }
-  return {executable:expand(profile.executable),args:profile.args.map(expand),cwd:path_api.isAbsolute(cwd)?cwd:path_api.resolve(root,cwd),env};
+  const resolved_cwd=path_api.isAbsolute(cwd)?cwd:path_api.resolve(root,cwd);
+  const args=profile.args.map(expand);if(profile.wsl)args.push("--cd",resolved_cwd);
+  return {executable:expand(profile.executable),args,cwd:resolved_cwd,env};
 }
