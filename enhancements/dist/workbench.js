@@ -198852,6 +198852,18 @@ https://creativecommons.org/licenses/by/4.0/
     else complete();
   }
 
+  // src/git_file_label.ts
+  function git_file_label(file_path, show_directory, name_class = "git-scm-file-name") {
+    const parts = file_path.split("/");
+    const label = workspace_element("span", "git-scm-file-label");
+    const text3 = workspace_element("span", "git-scm-file-text");
+    text3.append(workspace_element("span", name_class, parts.at(-1)));
+    const directory = parts.slice(0, -1).join("/");
+    if (show_directory && directory) text3.append(workspace_element("span", "git-scm-file-directory", directory));
+    label.append(workspace_file_icon(file_path), text3);
+    return label;
+  }
+
   // src/workspace_hover_surface.css
   var workspace_hover_surface_default = "";
 
@@ -199422,9 +199434,7 @@ https://creativecommons.org/licenses/by/4.0/
         row.style.lineHeight = "var(--git-scm-row-height,22px)";
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
-        const label = workspace_element("span", "git-scm-file-label");
-        label.append(workspace_file_icon(file.path), workspace_element("span", "git-scm-history-file-name", file.path.split("/").at(-1)));
-        if (!this.owner.history_tree) label.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+        const label = git_file_label(file.path, !this.owner.history_tree, "git-scm-history-file-name");
         const status2 = workspace_element("span", "git-scm-file-status", file.status);
         status2.title = file.status;
         status2.setAttribute("data-status", file.status[0]);
@@ -199829,9 +199839,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.tabIndex = 0;
           row.setAttribute("role", "button");
           row.title = "".concat(file.old_path ? file.old_path + " \u2192 " : "").concat(file.path, "\n").concat(short_revision(group.from), " \u2194 ").concat(short_revision(group.to));
-          const label2 = workspace_element("span", "git-scm-file-label");
-          label2.append(workspace_file_icon(file.path), workspace_element("span", "git-scm-file-name", file.path.split("/").at(-1)));
-          if (!this.tree) label2.append(workspace_element("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+          const label2 = git_file_label(file.path, !this.tree);
           const action = group.id === "staged" ? "unstage" : "stage";
           const mini = git_icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? git_graph_text("scm.unstage_change") : git_graph_text("scm.stage_change"), () => {
           }, "git-scm-inline-action");

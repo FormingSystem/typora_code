@@ -2,7 +2,7 @@
 .workspace-explorer-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:38px; box-sizing:border-box; padding:4px 10px 4px 14px; gap:6px; }
 .workspace-explorer-toolbar strong { white-space:nowrap; font-family:var(--font-family,Arial,sans-serif); font-size:12px; font-weight:600; }
 .workspace-explorer-actions { display:flex; align-items:center; gap:2px; }
-.workspace-explorer-actions button { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; padding:0; color:inherit; background:transparent; border:0; border-radius:4px; cursor:pointer; }
+.workspace-explorer-actions button { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; padding:0; color:inherit; background:transparent; border:0; cursor:pointer; }
 
 
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }

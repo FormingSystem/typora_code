@@ -97,7 +97,7 @@ app.whenReady().then(async () => {
   const hovered = await inspect(320);
   assert.equal(hovered.action_opacity, "1", "row action appears on hover");
   assert.equal(hovered.row_columns.trim().split(/\s+/).length, 3, "visible row actions occupy a separate layout column");
-  assert(hovered.label.width < regular.label.width, "hover releases filename space for actions");
+  assert(hovered.label.width < regular.label.width, "hover adjusts only the shared text clipping boundary");
   assert(hovered.label.right <= hovered.action.left - 3, "filename never paints underneath the first action");
   close_to(hovered.status.right, regular.status.right, "hover preserves the status right edge");
   await capture("scm_hovered");
@@ -117,7 +117,7 @@ app.whenReady().then(async () => {
   const file_metrics = () => evaluate(`(()=>{
     const box=node=>{const rect=node.getBoundingClientRect();return{left:rect.left,right:rect.right,top:rect.top,width:rect.width,height:rect.height}};
     const row=document.querySelector('.git-scm-file'),actions=row.querySelector('.git-scm-row-actions'),name=row.querySelector('.git-scm-file-name'),status=row.querySelector('.git-scm-file-status');
-    return{row:box(row),label:box(row.querySelector('.git-scm-file-label')),name:box(name),name_overflow:getComputedStyle(name).textOverflow,actions:box(actions),background:getComputedStyle(actions).backgroundColor,status:box(status),status_text:status.textContent,overflow:row.scrollWidth-row.clientWidth,buttons:[...actions.querySelectorAll('button')].map(button=>{const rect=button.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return{box:box(button),icon:box(button.querySelector('svg')),opacity:getComputedStyle(button).opacity,hit:button===hit||button.contains(hit),action:button.dataset.scmFileAction}})};
+    return{row:box(row),label:box(row.querySelector('.git-scm-file-label')),name:box(name),name_overflow:getComputedStyle(row.querySelector(".git-scm-file-text")).textOverflow,actions:box(actions),background:getComputedStyle(actions).backgroundColor,status:box(status),status_text:status.textContent,overflow:row.scrollWidth-row.clientWidth,buttons:[...actions.querySelectorAll('button')].map(button=>{const rect=button.getBoundingClientRect(),hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return{box:box(button),icon:box(button.querySelector('svg')),opacity:getComputedStyle(button).opacity,hit:button===hit||button.contains(hit),action:button.dataset.scmFileAction}})};
   })()`);
   for (const theme of ["light", "dark"]) for (const width of [320, 236, 170]) for (const group of ["staged", "changes"]) {
     await evaluate(`document.querySelector('#sidebar-content').style.width='${width}px';document.documentElement.style.setProperty('--bg-color','${theme === "dark" ? "#202020" : "#ffffff"}');document.documentElement.style.setProperty('--text-color','${theme === "dark" ? "#eeeeee" : "#3b3b3b"}');document.documentElement.style.setProperty('--linux-note-shell-hover-background','#8882');document.documentElement.style.setProperty('--linux-note-shell-inactive-selection-background','#0078d426');window.file_invocation=null;window.row_open_count=0;scm.open_current_file=file=>{window.file_invocation={id:'open',files:[file.path]}};scm.open_default_file=()=>{window.row_open_count++};panel.quick_action=(id,files)=>{window.file_invocation={id,files}};panel.action_dialog=(id,_kind,file)=>{window.file_invocation={id,files:[file]}};scm.groups_state=[{id:'${group}',title:'${group}',from:'${group === "staged" ? "head" : "index"}',to:scm_geometry_qa.${group === "staged" ? "INDEX" : "WORKTREE"},files:[{path:'project-docs/long folder/very_long_中文文件名称_that_must_not_cover_the_actions.md',status:'M'}]}];scm.render_groups();document.querySelector('.git-scm-group').open=true;void 0`);
@@ -126,16 +126,19 @@ app.whenReady().then(async () => {
       await evaluate("document.activeElement?.blur();document.querySelector('.git-scm-file').classList.remove('selected')");
       await settle();
       const idle = await file_metrics();
+      close_to(idle.row.height,22,"name and smaller directory share a 22px row");
       if (mode === "hover") test_window.webContents.sendInputEvent({ type: "mouseMove", x: Math.round(idle.row.left + 32), y: Math.round(idle.row.top + 11) });
       else await evaluate(`document.querySelector('.git-scm-file').${mode === "selected" ? "click" : "focus"}()`);
       await settle();
       const current = await file_metrics();
+      close_to(current.name.left,idle.name.left,"hover keeps filename origin");
+      close_to(current.name.width,idle.name.width,"filename glyph width does not shrink independently of directory");
       assert.equal(current.buttons.length, group === "staged" ? 2 : 3);
       assert.equal(current.status_text, "M");
       assert.equal(current.name_overflow, "ellipsis");
       assert(current.label.right <= current.actions.left - 1, `${theme}/${width}/${group}/${mode}: label must stop before actions`);
       assert(current.actions.right <= current.status.left - 1, "actions leave the status column clear");
-      assert(current.label.width < idle.label.width, "visible actions reduce available filename width");
+      assert(current.label.width < idle.label.width, "visible actions reduce the shared clipping region, not filename glyph width");
       close_to(current.status.right, idle.status.right, "file status keeps its right edge");
       assert.equal(current.background, theme === "dark" ? "rgb(32, 32, 32)" : "rgb(255, 255, 255)", "action strip has an opaque theme surface under translucent highlights");
       assert(current.overflow <= 1, "file row does not overflow even at 170px");

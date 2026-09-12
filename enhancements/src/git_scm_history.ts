@@ -1,5 +1,5 @@
 import {bind_git_commit_hover} from "./git_commit_hover";
-import {workspace_file_icon} from "./workspace_file_icons";
+import {git_file_label} from "./git_file_label";
 import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
 import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
@@ -205,8 +205,7 @@ export class git_scm_history {
       const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
       row.dataset.workspaceInteraction="row";
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
-      const label = el("span", "git-scm-file-label"); label.append(workspace_file_icon(file.path), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
-      if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+      const label = git_file_label(file.path, !this.owner.history_tree, "git-scm-history-file-name");
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
       const revision = icon_button("go-to-file", text("scm.open_revision"), () => {}, "git-scm-history-file-action");
       revision.dataset.historyFileAction = "open-revision"; revision.dataset.historyPath = file.path;

@@ -1,5 +1,6 @@
 import {acquire_workspace_interaction} from "./workspace_interaction";
-import {workspace_file_icon, acquire_workspace_file_icons} from "./workspace_file_icons";
+import {acquire_workspace_file_icons} from "./workspace_file_icons";
+import {git_file_label} from "./git_file_label";
 import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
 import { compare_files, read_file_history, EMPTY, INDEX, WORKTREE, type graph_change } from "./git_graph_repository";
 import { graph_actions } from "./git_graph_actions";
@@ -176,8 +177,7 @@ export class git_source_control {
       };
       for (const file of [...group.files].sort((a, b) => this.sort_files(a, b))) {
         const row = el("div", "git-scm-file"); row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-file", file.path); row.tabIndex = 0; row.setAttribute("role", "button"); row.title = `${file.old_path ? file.old_path + " → " : ""}${file.path}\n${short_revision(group.from)} ↔ ${short_revision(group.to)}`;
-        const label = el("span", "git-scm-file-label"); label.append(workspace_file_icon(file.path), el("span", "git-scm-file-name", file.path.split("/").at(-1)!));
-        if (!this.tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
+        const label = git_file_label(file.path, !this.tree);
         const action = group.id === "staged" ? "unstage" : "stage";
         const mini = icon_button(group.id === "staged" ? "remove" : "add", group.id === "staged" ? text("scm.unstage_change") : text("scm.stage_change"), () => {}, "git-scm-inline-action");
         mini.onclick = event => { event.stopPropagation(); void this.panel.quick_action(action, [file.path, ...(file.old_path ? [file.old_path] : [])]); };
