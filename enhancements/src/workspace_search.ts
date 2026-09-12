@@ -191,7 +191,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       }catch(error){if(!disposed&&this.controller===controller){this.clear_results();this.containerEl.dataset.state="error";this.status.textContent=String(error);}}
     }
     set_group_open(group:HTMLDetailsElement,open:boolean){
-      group.open=open;const toggle=group.querySelector<HTMLButtonElement>(":scope>summary>.workspace-search-file-toggle");
+      group.open=open;group.querySelector(":scope>summary")?.setAttribute("aria-expanded",String(open));const toggle=group.querySelector<HTMLButtonElement>(":scope>summary>.workspace-search-file-toggle");
       if(toggle){toggle.setAttribute("aria-expanded",String(open));toggle.title=`${open?"收起":"展开"} ${group.querySelector("summary")?.title||"文件"} 的匹配项`;toggle.setAttribute("aria-label",toggle.title);}
     }
     async render(target:HTMLElement=this.results,new_file?:workspace_search_file){
@@ -224,16 +224,23 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const path=el("span","workspace-search-file-path",files.path_api.dirname(file.relative_path).replace(/^\.$/u,""));
         // SVG 图标保持 pointer-events:none；由真实按钮提供完整命中区，不依赖 SVG 成为 event.target。
         const disclosure=button("",()=>{},"workspace-search-file-toggle");disclosure.append(git_disclosure());
-        disclosure.onclick=event=>{event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
+        disclosure.onclick=event=>{event.preventDefault();event.stopPropagation();if(event.detail<2)this.set_group_open(group,!group.open);};
         disclosure.onkeydown=event=>{if(!["Enter"," "].includes(event.key))return;event.preventDefault();event.stopPropagation();this.set_group_open(group,!group.open);};
         summary.append(disclosure,workspace_file_icon(file.file_path),label,path);
         const git_status=this.git_status.get(this.path_key(file.file_path));
         if(git_status){const badge=el("span","workspace-search-git-status",git_status);badge.dataset.status=git_status;badge.title=({M:"已修改",A:"已添加",D:"已删除",R:"已重命名",C:"已复制",U:"未跟踪或存在冲突"} as Record<string,string>)[git_status]||git_status;summary.append(badge);}
         const actions=el("span","workspace-search-file-actions");const count=el("span","workspace-search-file-count",String(file.matches.length));
         const remove=git_icon_button("close","从结果中移除",()=>this.remove_result(file,group),"workspace-search-remove");remove.onclick=event=>{event.preventDefault();event.stopPropagation();this.remove_result(file,group);};actions.append(count,remove);summary.append(actions);
-        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();this.select(file,this.file_match(file));};
-        summary.onfocus=()=>this.select(file,this.file_match(file));summary.ondblclick=event=>{if((event.target as Element).closest("button,.git-disclosure-icon"))return;event.preventDefault();this.open_match(file,this.file_match(file));};
-        summary.onkeydown=event=>{if(event.target!==summary)return;this.navigate(event,summary,file,()=>this.file_match(file),target);};
+        let pointer_open = group.open;
+        summary.onmousedown=event=>{if(event.button===0&&event.detail<2)pointer_open=group.open;};
+        summary.onclick=event=>{if((event.target as Element).closest("button"))return;event.preventDefault();if(event.detail>=2)return;this.set_group_open(group,!group.open);this.select(file,this.file_match(file));};
+        summary.onfocus=()=>this.select(file,this.file_match(file));
+        summary.ondblclick=event=>{if((event.target as Element).closest("button,.git-disclosure-icon"))return;event.preventDefault();this.set_group_open(group,pointer_open);this.open_match(file,this.file_match(file));};
+        summary.onkeydown=event=>{
+          if(event.target!==summary||event.isComposing)return;
+          if([" ","ArrowLeft","ArrowRight"].includes(event.key)){event.preventDefault();event.stopPropagation();this.set_group_open(group,event.key==="ArrowLeft"?false:event.key==="ArrowRight"?true:!group.open);return;}
+          this.navigate(event,summary,file,()=>this.file_match(file),target);
+        };
         summary.oncontextmenu=event=>workspace_menu(event,[{title:"打开当前预览位置",action:()=>this.open_match(file,this.file_match(file))}, {title:"复制路径",action:()=>files.copy(file.file_path)}, {title:"复制相对路径",action:()=>files.copy(file.relative_path)}, {title:"替换此文件中的匹配项…",action:()=>void this.replace(file.file_path)}, {title:"从结果中移除",action:()=>this.remove_result(file,group)}]);
         group.append(summary);this.set_group_open(group,group.open);parent.append(group);
         for(const match of file.matches){

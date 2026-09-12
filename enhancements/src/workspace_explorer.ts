@@ -65,6 +65,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   let operation_busy = false, compare_path = "";
   const dialogs = new Set<{close(): void}>();
   const nodes = new Map<string, explorer_node>(); const detachers: (() => void)[] = [];
+  const row_views = new Map<explorer_node, {row: HTMLDivElement; chevron: HTMLSpanElement; label: HTMLSpanElement; note: HTMLSpanElement; file_icon: HTMLElement}>();
+  let click_sequence: {node: explorer_node; selected: boolean; expanded: boolean} | undefined;
   const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
 
   function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
@@ -135,50 +137,76 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     render();
   }
   function render() {
-    if (disposed) return;
-    if (render_frame) cancelAnimationFrame(render_frame);
+    if (disposed || render_frame) return;
     render_frame = requestAnimationFrame(() => {
       render_frame = 0;
       const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
       const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
-      const rows: HTMLElement[] = [];
+      const shown = new Set(flat_nodes.slice(start, end));
       const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : undefined;
       const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : undefined;
+      // 保留鼠标下的行和名称节点；只回收离屏行，避免刷新切断浏览器双击序列。
+      for (const [node, view] of row_views) if (!shown.has(node)) { view.row.remove(); row_views.delete(node); }
       for (let index = start; index < end; index++) {
         const node = flat_nodes[index];
-        const row = el("div", "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : ""));
+        let view = row_views.get(node);
+        if (!view) {
+          const row = el("div", "workspace-explorer-row"), chevron = el("span", "workspace-explorer-chevron");
+          const label = el("span", "workspace-explorer-name"), note = el("span", "workspace-explorer-note");
+          view = {row, chevron, label, note, file_icon: workspace_file_icon(node.path)}; row_views.set(node, view);
+          row.onmousedown = event => {
+            if (event.target === rename_state?.input) return;
+            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) { click_sequence = undefined; return; }
+            if (event.detail < 2) click_sequence = {node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path), expanded: node.expanded};
+          };
+          row.onclick = event => {
+            if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
+            if (event.ctrlKey || event.metaKey) { if (selection_paths.has(node.path)) selection_paths.delete(node.path); else selection_paths.add(node.path); selected_path = node.path; render(); return; }
+            if (event.shiftKey) {
+              const start = flat_nodes.findIndex(candidate => candidate.path === selected_path), end = flat_nodes.indexOf(node);
+              selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
+            }
+            if (event.altKey || event.detail >= 2) return;
+            select(node, false, true); run(() => activate(node));
+          };
+          row.ondblclick = event => {
+            if (event.target === rename_state?.input) return;
+            event.preventDefault(); event.stopPropagation();
+            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+            const sequence = click_sequence; click_sequence = undefined;
+            if (sequence?.node === node && sequence.selected) {
+              // 单击即时执行；双击确认为改名时恢复手势开始前的目录开关，不等待计时器。
+              if (node.directory) { node.expanded = sequence.expanded; if (node.expanded) watch_visible(node); else close_branch(node); }
+              begin_rename(node);
+            }
+          };
+          row.oncontextmenu = event => { click_sequence = undefined; if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
+        }
+        const {row, chevron, label, note, file_icon} = view;
+        row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : "");
         row.id = node.id; row.dataset.path = node.path; row.dataset.directory = String(node.directory); row.setAttribute("role", "treeitem");
         row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
-        if (node.directory) row.setAttribute("aria-expanded", String(node.expanded));
+        if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
+        row.setAttribute("aria-busy", String(Boolean(node.loading)));
         row.style.top = index * ROW_HEIGHT + "px"; row.style.paddingLeft = ((node.display_depth ?? node.depth) * 8 + 8) + "px";
         row.title = node.path + (node.error ? "\n" + node.error : "");
-        const chevron = el("span", "workspace-explorer-chevron");
-        if (node.directory) chevron.append(icon(node.expanded ? "chevron-down" : "chevron-right"));
-        row.append(chevron, ...(node.directory ? [] : [workspace_file_icon(node.path)]), rename_state?.node === node ? rename_state.input : el("span", "workspace-explorer-name", node.display_name || node.name));
-        if (node.link) row.append(el("span", "workspace-explorer-note", "链接"));
-        if (node.loading) row.append(el("span", "workspace-explorer-note", "读取中…"));
-        else if (node.error) row.append(el("span", "workspace-explorer-note is-error", "无法读取"));
-        row.onclick = event => {
-          if (event.target === rename_state?.input) return;
-          if (event.ctrlKey || event.metaKey) { if (selection_paths.has(node.path)) selection_paths.delete(node.path); else selection_paths.add(node.path); selected_path = node.path; render(); return; }
-          if (event.shiftKey) {
-            const start = flat_nodes.findIndex(candidate => candidate.path === selected_path), end = flat_nodes.indexOf(node);
-            selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
-          }
-          select(node, false, true); if (event.detail < 2) run(() => activate(node));
-        };
-        row.ondblclick = event => { event.preventDefault(); event.stopPropagation(); if (!node.directory) run(() => options.open_file(node.path, {preview: false})); };
-        row.oncontextmenu = event => { if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
-        rows.push(row);
+        const state = node.directory ? String(node.expanded) : "file";
+        if (chevron.dataset.state !== state) { chevron.dataset.state = state; chevron.replaceChildren(...(node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : [])); }
+        const name = node.display_name || node.name; if (label.textContent !== name) label.textContent = name;
+        const message = [node.link ? "链接" : "", node.loading ? "读取中…" : node.error ? "无法读取" : ""].filter(Boolean).join(" ");
+        if (note.textContent !== message) note.textContent = message; note.classList.toggle("is-error", Boolean(node.error) && !node.loading);
+        const children = [chevron, ...(node.directory ? [] : [file_icon]), rename_state?.node === node ? rename_state.input : label, ...(message ? [note] : [])];
+        for (const child of [...row.children]) if (!children.includes(child as HTMLElement)) child.remove();
+        for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
+        if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
       }
-      spacer.replaceChildren(...rows);
-      if (focused_input?.isConnected) { focused_input.focus({preventScroll: true}); focused_input.setSelectionRange(selection![0], selection![1]); }
+      if (focused_input?.isConnected && document.activeElement !== focused_input) { focused_input.focus({preventScroll: true}); focused_input.setSelectionRange(selection![0], selection![1]); }
       if (rename_state?.focus_requested && rename_state.input.isConnected) {
         const {input, node} = rename_state; rename_state.focus_requested = false;
         input.focus({preventScroll: true}); const dot = node.directory ? -1 : node.name.lastIndexOf("."); input.setSelectionRange(0, dot > 0 ? dot : node.name.length);
       }
       const selected = nodes.get(selected_path);
-      if (selected && rows.some(row => row.id === selected.id)) tree.setAttribute("aria-activedescendant", selected.id);
+      if (selected && shown.has(selected)) tree.setAttribute("aria-activedescendant", selected.id);
       else tree.removeAttribute("aria-activedescendant");
     });
   }
@@ -220,7 +248,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
         }
         for (const child of old_children.values()) close_branch(child, true);
         children.sort((left, right) => Number(right.directory) - Number(left.directory) || collator.compare(left.name, right.name) || left.name.localeCompare(right.name));
-        node.children = children; watch(node);
+        node.children = children; watch(node); rebuild();
         // 紧凑文件夹只探测可见目录的单子目录链；遇到分叉即停，不遍历分叉以下正文。
         if (compact_folders && !probing) for (const child of children) {
           let current = child;
@@ -241,15 +269,19 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     render(); return node.loading;
   }
   async function activate(node: explorer_node, preview = false) {
-    if (rename_state) return;
+    if (rename_state || disposed || nodes.get(node.path) !== node) return;
+    const current_generation = generation;
     if (node.link && !node.directory) {
       // 仅在用户点击链接时查询目标；不递归跟随符号链接遍历仓库。
-      const stat = await fs.promises.stat(node.path); node.directory = stat.isDirectory();
+      const stat = await fs.promises.stat(node.path); if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return; node.directory = stat.isDirectory();
     }
     if (node.directory) {
-      if (node.expanded) collapse(node);
-      else { node.expanded = true; await load_children(node); watch_visible(node); }
-      rebuild();
+      if (node.expanded) { collapse(node); rebuild(); }
+      else {
+        node.expanded = true; rebuild();
+        await load_children(node);
+        if (!disposed && generation === current_generation && nodes.get(node.path) === node && node.expanded) watch_visible(node);
+      }
     } else await options.open_file(node.path, {preview});
   }
   function context_menu(event: MouseEvent, node: explorer_node) {
@@ -466,7 +498,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     native_observer.disconnect(); resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame); if (refresh_frame) cancelAnimationFrame(refresh_frame);
-    rename_state = undefined; for (const dialog of dialogs) dialog.close(); dialogs.clear();
+    row_views.clear(); click_sequence = undefined; rename_state = undefined; for (const dialog of dialogs) dialog.close(); dialogs.clear();
     document.removeEventListener("click", activity_click, true); window.removeEventListener("focus", window_focus); window.removeEventListener("pagehide", dispose);
     for (const detach of detachers) detach();
     if (sidebar.activePanel === panel) { sidebar.hide(); sidebar.activePanel = sidebar.panels.find(candidate => candidate.ribbonButton?.id === "core.file-explorer"); }
