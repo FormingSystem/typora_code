@@ -1,6 +1,6 @@
 /* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
-  display:flex;align-items:center;align-content:center;box-sizing:border-box;height:100%;min-height:0;font:inherit;
+  height:100%;min-height:0;font:inherit;
   margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:normal!important;white-space:nowrap;
 }
 /* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
@@ -8,7 +8,7 @@ footer.ty-footer .workspace-footer-control {justify-content:center;text-align:ce
 /* 宿主会内联设置display:block；单图标仍按共同内容盒居中，不改宿主显隐。 */
 footer.ty-footer .workspace-footer-control > svg:only-child {display:block;margin-inline:auto;}
 footer.ty-footer .workspace-footer-text {
-  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  justify-content:center;
   margin:0!important;padding:0!important;font:inherit;line-height:normal!important;color:inherit;white-space:nowrap;
 }
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}

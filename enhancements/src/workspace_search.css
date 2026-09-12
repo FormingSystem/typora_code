@@ -21,14 +21,14 @@
 .workspace-search-details { margin-left:14px; }
 .workspace-search-details .workspace-search-exclude-label { display:block; line-height:22px; margin:2px 0 0; font-size:12px; }
 .workspace-search-pattern-box { width:100%; }
-.linux-note-workspace-search button:hover,.workspace-search-editor button:hover,.workspace-search-file>summary:hover,.workspace-search-directory>summary:hover { background:var(--item-hover-bg-color,#8882); }
+
 .linux-note-workspace-search button[aria-pressed=true] { color:var(--text-color,#174a73); background:#007fd425; border:1px solid #007fd4; }
-.linux-note-workspace-search button:focus-visible,.workspace-search-editor button:focus-visible { outline:1px solid #007fd4; outline-offset:-1px; }
 .workspace-search-status { padding:7px 0 0 14px; overflow-wrap:anywhere; font-size:12px; }
 .workspace-search-status:empty { display:none; }
 .workspace-search-status>.git-icon-button { float:right; }
 .workspace-search-status>.workspace-search-open-editor { display:inline; height:auto; margin:0 0 0 4px; padding:0; border:0; border-radius:0; color:var(--link-color,#006ab1); background:transparent; text-decoration:none; }
-.workspace-search-status>.workspace-search-open-editor:hover { color:var(--link-color,#006ab1); background:transparent; text-decoration:underline; }
+.workspace-search-status>.workspace-search-open-editor {--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--link-color,#006ab1);}
+.workspace-search-status>.workspace-search-open-editor:hover {text-decoration:underline;}
 .workspace-search-notices p { white-space:pre-wrap; margin:3px; }
 .workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }
 .workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:var(--linux-note-shell-row-height,22px); gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }

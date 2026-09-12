@@ -5,5 +5,3 @@
   background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
 }
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
-.typ-ribbon > .group.bottom > .workspace-preferences-trigger:hover {color:var(--text-color,#202020);}
-.typ-ribbon > .group.bottom > .workspace-preferences-trigger:focus-visible {outline:1px solid var(--active-file-border-color,#0078d4);outline-offset:-3px;}

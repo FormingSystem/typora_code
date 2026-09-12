@@ -1,3 +1,4 @@
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_element as el} from "./workspace_widgets";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 
@@ -5,6 +6,7 @@ import {create_workspace_lifetime} from "./workspace_lifetime";
 export function create_terminal_panel(changed:()=>void){
   const lifetime=create_workspace_lifetime();
   const container=el("section","typora-terminal-panel"),header=el("div","terminal-panel-header"),toolbar=el("div","terminal-panel-actions"),body=el("div","terminal-panel-body"),tabs=el("div","terminal-tabs"),panes=el("div","terminal-panes"),sash=el("div","terminal-panel-sash");
+  lifetime.add(acquire_workspace_interaction(container).remove);
   const title=el("span","terminal-panel-title","终端");header.append(title,toolbar);body.append(panes,tabs);container.append(sash,header,body);container.hidden=true;
   container.setAttribute("aria-label","终端面板");tabs.setAttribute("role","tablist");tabs.setAttribute("aria-label","终端会话");tabs.setAttribute("aria-orientation","vertical");
   sash.tabIndex=0;sash.setAttribute("role","separator");sash.setAttribute("aria-label","调整终端面板高度");sash.setAttribute("aria-orientation","horizontal");

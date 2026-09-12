@@ -9,7 +9,7 @@ domains:
 
 # 第1章\_Codicons图标来源与使用
 
-本目录保存 Microsoft 与 Codicons 贡献者提供的 66 个官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
+本目录保存 Microsoft 与 Codicons 贡献者提供的 官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。
 
 ## 1.1\_图形与操作映射
 
@@ -80,3 +80,5 @@ Microsoft 与 Codicons 贡献者保留原始图形及代码的著作权。上游
 本仓库的整理工作限于选取上述图标、将本地文件名改为 `snake_case`、建立 JSON 映射与摘要清单，以及编写这份中文说明。SVG 图形保持原样。分发这些图形时应同时保留来源、作者归属、许可文件与上述整理说明。原始图标许可不授予 Microsoft 产品名称、品牌或标志的商标权；这些操作图标仅用于表达对应界面功能。
 
 本轮标题栏使用 `chrome-minimize`、`chrome-maximize`、`chrome-restore`、`chrome-close`；Activity 使用 `files`、`search`、`source-control`、`symbol-class`，分别对应文件、搜索、源代码管理与大纲。Git 引用使用 `tag` 和 `archive`。
+
+提交悬停卡片新增同一固定提交的 `account` 与 `copy` 原始图标，分别表示作者与复制提交号，来源和摘要统一登记在 `source_manifest.json` 与 `SHA256SUMS`。

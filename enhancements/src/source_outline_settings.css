@@ -11,9 +11,9 @@
 .source-outline-settings input,.source-outline-settings textarea{width:100%;min-width:0}
 .source-outline-settings textarea{resize:vertical;min-height:84px;max-height:25vh;font-family:Consolas,monospace}
 .source-outline-settings button{cursor:pointer}
-.source-outline-settings button:hover{background:#2684d424}
+
 .source-outline-settings button:disabled{cursor:default;opacity:.5}
-.source-outline-settings :is(input,textarea,button):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
+.source-outline-settings :is(input,textarea):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
 .source-outline-settings button.source-outline-settings-save{color:var(--linux-note-button-foreground,#fff);background:var(--linux-note-button-background,#0069cc);border-color:transparent}
 .source-outline-settings .source-outline-settings-status{margin:0;white-space:pre-wrap;font-size:12px;min-height:18px}
 .source-outline-settings .source-outline-settings-status.is-error{color:var(--notification-error-color,#c72e0f)}

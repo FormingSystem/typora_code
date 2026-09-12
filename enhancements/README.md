@@ -469,3 +469,5 @@ Typora 编辑页不支持 node-pty 的后台排空线程，因此每个会话使
 部署验证入口：`scripts/test_install_windows.ps1` 在假安装树与隔离 APPDATA 检查安装、重装、摘要损坏拒绝、迁移、恢复及失败回滚；`bash scripts/test_workspace_install.sh` 检查 Bash／Python 事务与模拟 Linux 分支。schema 4 覆盖 native_profile 编码拒绝、字段恢复、并发摘要冲突、退休资产备份恢复与失败回滚。Windows 上执行的 Python 测试不能替代原生 Linux 的权限与发现验证。
 
 当前结果、安装核验和历次基线统一见[反馈复查记录](../docs/feedback_review.md)。物理键盘与原生菜单 accelerator 的冲突仍需独立验证；隐藏 Electron 或私有原生实例中的合成按键不证明这一层已通过。完整平台与交付信息见[开发交接](../docs/development_handoff.md)。
+
+工作台菜单、活动入口、文件标签、Git、文件管理、搜索和终端共用默认悬停及键盘焦点反馈，特殊控件保留自己的大小、形状和业务状态。Git侧栏提交信息使用可移入、可复制提交号的卡片。开发接入与独立覆写见[交互设计](../docs/workspace_interaction.md)。

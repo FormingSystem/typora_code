@@ -1,4 +1,5 @@
 import {acquire_workspace_style} from "./workspace_styles";
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import activity_css from "./workspace_activity.css";
 import chrome_css from "./workspace_chrome.css";
 import { git_icon } from "./git_icons";
@@ -16,6 +17,8 @@ export function install_workspace_activity(options: workspace_activity_options):
   refresh(): void; move(id: string, direction: -1 | 1): void; dispose(): void;
 } {
   const ribbon = options.ribbon;
+  const interaction=acquire_workspace_interaction(ribbon);
+  const interaction_nodes=new Map<HTMLElement,string|null>();
   const allowed = new Set(options.item_ids);
   // 核心按注册时序可能先插入搜索；仅没有用户排序的项采用定稿的文件／搜索／大纲／Git 顺序。
   const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter(id => allowed.has(id));
@@ -58,6 +61,10 @@ export function install_workspace_activity(options: workspace_activity_options):
   const refresh = () => {
     if (disposed) return;
     const state = options.read_state();
+    for(const item of ribbon.querySelectorAll<HTMLElement>(":scope > .group > .typ-ribbon-item[data-id]")){
+      if(!interaction_nodes.has(item))interaction_nodes.set(item,item.getAttribute("data-workspace-interaction"));
+      item.dataset.workspaceInteraction="activity";
+    }
     for (const item of items()) {
       if (!originals.has(item)) {
         originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes]});
@@ -88,7 +95,7 @@ export function install_workspace_activity(options: workspace_activity_options):
     [ids[index], ids[target]] = [ids[target], ids[index]]; reorder(ids, true); persist();
   };
   const show_menu = (item: HTMLElement, x: number, y: number) => {
-    close_menu(); menu_owner = item; menu = document.createElement("div"); menu.className = "workspace-activity-menu"; menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "活动栏顺序");
+    close_menu(); menu_owner = item; menu = document.createElement("div"); menu.className = "workspace-activity-menu";menu.setAttribute("data-workspace-surface",""); menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "活动栏顺序");
     const ids = order(); const index = ids.indexOf(item.dataset.id!);
     for (const [direction, title] of [[-1, "向上移动"], [1, "向下移动"]] as const) {
       const button = document.createElement("button"); button.type = "button"; button.setAttribute("role", "menuitem"); button.dataset.activityMove = direction < 0 ? "up" : "down";
@@ -173,7 +180,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   document.addEventListener("pointerdown", on_pointer_down, true); document.addEventListener("keydown", on_key_down, true);
   window.addEventListener("blur", on_cancel); reduced_motion.addEventListener("change", on_motion_change); refresh();
   return {refresh, move, dispose() {
-    disposed = true; drag?.session?.cancel("dispose"); marker.dispose(); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove(); chrome_style.remove(); delete ribbon.dataset.workspaceActivity;
+    disposed = true; drag?.session?.cancel("dispose"); marker.dispose(); close_menu(); observer.disconnect(); if (scheduled) cancelAnimationFrame(scheduled); cancel_animations(); style.remove();interaction.remove();for(const [node,value] of interaction_nodes){if(value===null)node.removeAttribute("data-workspace-interaction");else node.setAttribute("data-workspace-interaction",value);}interaction_nodes.clear(); chrome_style.remove(); delete ribbon.dataset.workspaceActivity;
     ribbon.removeEventListener("mousedown", on_mouse_down, true); ribbon.removeEventListener("contextmenu", on_context_menu, true); ribbon.removeEventListener("click", on_click, true);
     document.removeEventListener("pointerdown", on_pointer_down, true); document.removeEventListener("keydown", on_key_down, true);
     window.removeEventListener("blur", on_cancel); reduced_motion.removeEventListener("change", on_motion_change);

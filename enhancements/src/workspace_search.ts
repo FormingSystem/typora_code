@@ -1,3 +1,4 @@
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_file_icons, workspace_file_icon} from "./workspace_file_icons";
 import { create_workspace_lifetime } from "./workspace_lifetime";
@@ -57,7 +58,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     omitted_files = new Set<string>();
     native_observer = new MutationObserver(() => this.clear_native());
     constructor() {
-      super();
+      super();lifetime.add(acquire_workspace_interaction(this.containerEl).remove);
       lifetime.add(()=>{++this.open_generation;clearTimeout(this.timer);this.controller?.abort();this.native_observer.disconnect();this.scale_observer.disconnect();this.containerEl.remove();});
       this.containerEl.setAttribute("data-linux-note-workspace-search","ready");
       // Typora 对所有 header 施加 fixed/top:0；工作区工具栏使用独立 div，避免叠到主标题栏。

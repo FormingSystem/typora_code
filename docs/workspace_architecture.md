@@ -26,6 +26,9 @@ flowchart LR
 | Git 操作与差异文档 | Git runner、仓库模型与差异视图 | 历史版本身份来自 Git 文档，不能由“打开文件”按钮猜测为工作区当前版本 |
 | 终端进程和缓冲 | `terminal_session` 管进程，`terminal_surface` 管 xterm | 移动或隐藏视图复用同一实例；终止由会话协调器执行 |
 | 终端配置与面板几何 | `terminal_settings` 与 `terminal_panel` | 配置整体校验并通知视图；几何模块只调整占用空间，不管理 Shell |
+| 即时悬停与键盘焦点 | `workspace_interaction` | 工厂默认接入，视图登记根范围；几何与业务状态由UI拥有，局部差异通过角色/变量/独立边界表达 |
+| 行内内容居中 | `workspace_inline_layout` | 标签和底栏共同居中实际文字与图标，各自维护区域高度、宽度与截断 |
+| 延迟信息卡片 | `workspace_hover`、`workspace_hover_surface` | 共同负责默认延迟、边界、焦点与清理；领域提供内容、取消信号响应和局部时序，见[交互契约](workspace_interaction.md) |
 | 底栏几何 | `workspace_footer_layout` 共用布局组、操作和文本角色 | 原生适配器声明并恢复角色；Git、文件动作、边距、字数、语言和源码/diff状态只维护自己的内容与宽度，详见[底栏契约](statusbar_layout.md#r0081-统一底栏布局契约) |
 | 视图勾选与原生工具栏 | `workspace_view_state` 读取宿主/侧栏，`workspace_native_toolbar` 限定阅读区域 | 菜单读取实际可见状态，命令经原所有者执行，不以菜单缓存替代原生状态 |
 | 终端菜单状态 | `terminal_workspace` 经 `terminal_state` 提供实时只读查询 | 顶部菜单与领域协调器共享会话身份及面板状态；旧菜单动作不得操作后来的会话 |

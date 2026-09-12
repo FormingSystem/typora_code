@@ -3,6 +3,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {create_workspace_titlebar_menu} from "./workspace_titlebar_menu";
 import {create_workspace_titlebar_definitions, type titlebar_runtime} from "./workspace_titlebar_entries";
 import type {workspace_file_host} from "./workspace_files";
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import css from "./workspace_titlebar.css";
 
 type titlebar_binding={dispose():void};
@@ -41,7 +42,8 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const original_nodes=[...bar.childNodes],previous_state=bar.getAttribute("data-workspace-titlebar");
   const traffic_parent=traffic.parentNode,traffic_next=traffic.nextSibling;
   const style=acquire_workspace_style("workspace-titlebar-style",css);
-  cleanup.push(()=>style.remove());
+  const interaction=acquire_workspace_interaction();
+  cleanup.push(()=>{style.remove();interaction.remove();});
   const controls:[string,git_icon_name][]=[["w-min","chrome-minimize"],["w-max","chrome-maximize"],["w-restore","chrome-restore"],["w-close","chrome-close"]];
   for(const [id,name] of controls){
     const node=traffic.querySelector<HTMLElement>("#"+id);if(!node)continue;
@@ -54,7 +56,7 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const menu=create_workspace_titlebar_menu(bar,create_workspace_titlebar_definitions(files,runtime,open_files));left.append(menu.element);cleanup.push(()=>menu.dispose());
   const events=new AbortController();cleanup.push(()=>events.abort());
   const history_button=(name:git_icon_name,label:string,direction:number)=>{
-    const button=document.createElement("button");button.type="button";button.className="workspace-titlebar-history";
+    const button=document.createElement("button");button.type="button";button.dataset.workspaceInteraction="action";button.className="workspace-titlebar-history";
     button.title=label;button.setAttribute("aria-label",label);button.append(git_icon(name));
     button.addEventListener("click",()=>window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel",{detail:{direction}})),{signal:events.signal});
     center.append(button);return button;
@@ -63,7 +65,7 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const history_state=(state:{back?:boolean;forward?:boolean})=>{back.disabled=!state.back;forward.disabled=!state.forward;};
   history_state({back:root.dataset.linuxNoteHistoryBack==="true",forward:root.dataset.linuxNoteHistoryForward==="true"});
   window.addEventListener("linux-note-reading-history-state",event=>history_state((event as CustomEvent).detail||{}),{signal:events.signal});
-  const search=document.createElement("button");search.type="button";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
+  const search=document.createElement("button");search.type="button";search.dataset.workspaceInteraction="action";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
   search.addEventListener("click",open_files,{signal:events.signal});
   const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";};

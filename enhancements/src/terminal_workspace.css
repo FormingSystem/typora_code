@@ -4,8 +4,7 @@
 .terminal-panel-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:1px solid var(--select-text-bg-color,#007acc);height:100%;display:flex;align-items:center;min-width:30px}
 .terminal-panel-actions{display:flex;gap:2px;margin-left:auto;flex:none}
 .terminal-panel-actions .git-icon-button,.terminal-find .git-icon-button,.terminal-tab .git-icon-button{width:22px;height:22px;min-width:22px;min-height:22px;display:flex;align-items:center;justify-content:center;padding:3px;border:0;background:transparent;color:inherit;border-radius:3px;box-shadow:none;cursor:pointer}
-.terminal-panel-actions button:hover,.terminal-tab button:hover,.terminal-find button:hover,.terminal-find [aria-pressed=true]{background:var(--item-hover-bg-color,#8883)}
-.terminal-panel-actions button:focus-visible,.terminal-tab:focus-visible,.terminal-find button:focus-visible{outline:1px solid #007acc;outline-offset:-1px}
+
 .terminal-panel-sash{position:absolute;left:0;right:0;top:-3px;height:5px;z-index:2;cursor:ns-resize;touch-action:none}
 .terminal-panel-sash:hover,.terminal-panel-sash:focus-visible{background:#007acc}
 .terminal-panel-body{display:flex;flex:1;min-height:0;min-width:0}
@@ -21,7 +20,7 @@
 .terminal-tab .git-icon-button{display:none;flex:none}
 .terminal-tab:hover .git-icon-button,.terminal-tab[aria-selected=true] .git-icon-button,.terminal-tab:focus-within .git-icon-button{display:flex}
 .terminal-tab[aria-selected=true]{background:var(--active-file-bg-color,#8883)}
-.terminal-tab:hover{background:var(--item-hover-bg-color,#8882)}
+
 .terminal-editor-host,.linux-note-terminal{height:100%;min-height:0;min-width:0;display:flex;flex:1;overflow:hidden}
 .linux-note-terminal{position:relative;flex-direction:column;background:var(--bg-color,transparent);color:var(--text-color,inherit);font:12px/1.4 system-ui,sans-serif}
 .linux-note-terminal-viewport{flex:1;min-height:0;min-width:0;overflow:hidden;padding:4px 8px 0 16px}
@@ -37,3 +36,7 @@
 .terminal-setting{display:flex;flex-direction:column;gap:4px;font:13px/1.5 system-ui;min-width:0}
 .terminal-setting:has(textarea){grid-column:1/-1}.terminal-setting small{font-size:12px;opacity:.75}.terminal-setting input,.terminal-setting select,.terminal-setting textarea{font:13px/1.5 system-ui;color:inherit;background:var(--bg-color,#fff);border:1px solid #8886;border-radius:2px;padding:3px 6px;min-width:0}.terminal-setting input[type=checkbox]{align-self:flex-start}
 .terminal-setting textarea,.terminal-profile-example pre{font-family:Consolas,monospace}.terminal-settings-error{color:#c42b1c}.terminal-profile-example{margin-top:12px}.terminal-profile-example pre{white-space:pre-wrap}
+
+.terminal-find [aria-pressed=true]{background:var(--workspace-hover-background)}
+
+.terminal-tab[aria-selected=true]{--workspace-interaction-hover:var(--active-file-bg-color,#8883)}

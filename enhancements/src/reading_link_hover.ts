@@ -1,3 +1,4 @@
+import {acquire_workspace_hover_surface} from "./workspace_hover_surface";
 import css from "./reading_link_hover.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {get_workspace_app} from "./workspace_bootstrap";
@@ -20,9 +21,10 @@ function readable_link_text(value:string):string{
 
 /** 悬停只读取链接和所属文档身份，不触发打开、读取正文或改变编辑选区。 */
 export function bind_reading_link_hover() {
+  const surface=acquire_workspace_hover_surface();
   const style=acquire_workspace_style("typora-code-link-hover",css);
   const events=new AbortController();
-  const tip=document.createElement("div");tip.className="workspace-link-hover";tip.id="typora-code-link-hover";
+  const tip=document.createElement("div");tip.className="workspace-hover-surface workspace-link-hover";tip.id="typora-code-link-hover";
   tip.setAttribute("role","tooltip");tip.hidden=true;document.body.append(tip);
   let anchor:HTMLAnchorElement|undefined,timer=0,close_timer=0;
   const keep=()=>{window.clearTimeout(close_timer);close_timer=0;};
@@ -106,5 +108,5 @@ export function bind_reading_link_hover() {
   tip.addEventListener("pointerdown",event=>event.stopPropagation(),{signal:events.signal});
   tip.addEventListener("click",event=>event.stopPropagation(),{signal:events.signal});
   window.addEventListener("blur",hide,{signal:events.signal});window.addEventListener("resize",hide,{signal:events.signal});
-  return{dispose(){hide();events.abort();tip.remove();style.remove();}};
+  return{dispose(){hide();events.abort();tip.remove();style.remove();surface.remove();}};
 }
