@@ -12,7 +12,7 @@ Markdown 使用原生渲染和标题大纲；源码使用可保存的 Monaco。C
 
 ## 常驻部署
 
-开始工作先读取 Git 忽略的 `.cache/issue_tracking/requirements.md`，新需求必须登记，不得被后续消息覆盖。全项目按职责统一命令、状态、配置与生命周期；各领域服务和界面独立实现，不建立一套囊括所有功能的通用大模块。命令、状态和资源所有者见[工作台架构](workspace_architecture.md)，当前操作见[文件操作](file_operations.md)及[终端配置](terminal_operations.md)。本轮已接通系统文件选择、Explorer 管理操作、保存全部／代码另存为／关闭目录及底部终端；尚未实现的完整 VS Code 生态能力与物理验收缺口继续保留在台账中。
+开始工作先读取[需求设计索引](requirements_design.md)和 Git 忽略的 `.cache/issue_tracking/requirements.md`，每条新需求必须登记编号并关联正式设计小节，实施前补充设计，澄清及实现调整同步更新；不得被后续消息覆盖。设计覆盖与实现进度独立核对，索引中的待设计项不能视为已经完成设计。全项目按职责统一命令、状态、配置与生命周期；各领域服务和界面独立实现，不建立一套囊括所有功能的通用大模块。命令、状态和资源所有者见[工作台架构](workspace_architecture.md)，当前操作见[文件操作](file_operations.md)及[终端配置](terminal_operations.md)。本轮已接通系统文件选择、Explorer 管理操作、保存全部／代码另存为／关闭目录及底部终端；尚未实现的完整 VS Code 生态能力与物理验收缺口继续保留在台账中。
 
 唯一入口是 `resources/window.html` 的 head 静态 CSS 与 defer 脚本。`workspace_core.js` 等待宿主和样式就绪，初始化一次并发布 `ready`；`workbench.js` 等待该核心。文件切换不重建工作台。发布23个常驻资产，另有终端独立运行包；以构建生成的 `dist/SHA256SUMS` 为准。
 
@@ -48,7 +48,7 @@ npm run check
 npm run check:ui
 ```
 
-`check:ui` 明确登记隔离隐藏 Electron 目标，使用临时工作区。可传具体测试文件；新 `.cjs` 目标必须登记，依赖真实 clangd 或终端的目标保持独立分类。真实 clangd 另运行 `npm run check:clangd`、`npm run check:clangd-ui`。
+`check:ui` 由 Node runner 持有输出管道并等待 GUI 测试退出，避免直接启动 GUI 后管道关闭引发 EPIPE；不得绕过 runner 以旧通过记录替代当前验证。它明确登记隔离隐藏 Electron 目标，使用临时工作区。可传具体测试文件；新 `.cjs` 目标必须登记，依赖真实 clangd 或终端的目标保持独立分类。真实 clangd 另运行 `npm run check:clangd`、`npm run check:clangd-ui`。
 
 vendor源码变化同步 `source_manifest.json`，保留上游摘要并更新当前摘要；新增自有文件不伪造上游身份。build更新 `build_inputs.json` 与预构建资产，多人协作必须串行生成共享产物。测试失败先保留证据，再修复；原生验证使用私有桌面、未改ASAR和隔离文档，不切换用户桌面或取真实草稿做破坏性测试。
 

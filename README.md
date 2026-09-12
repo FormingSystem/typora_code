@@ -56,6 +56,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 | 文件菜单、系统选择窗口和资源管理器操作 | [文件操作](docs/file_operations.md) |
 | 终端面板、会话、管理员入口和设置 | [终端操作与配置](docs/terminal_operations.md) |
 | 统一命令、领域服务和资源生命周期 | [工作台架构](docs/workspace_architecture.md) |
+| 需求编号、对应设计文档和持续更新规则 | [需求设计索引](docs/requirements_design.md) |
 | 终端依赖、离线缓存和测试边界 | [终端运行文件与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证) |
 | VS Code Git Graph 功能收集、选项与实现边界 | [完整功能对照](./enhancements/git_graph_features.md#第1章_Git_Graph功能对照与操作说明) |
 | C/C++ 宏、函数和类型的语法高亮 | [语法识别与颜色映射](./typora配置修改.md#4.1_为什么主题CSS不等于语法识别器) |
