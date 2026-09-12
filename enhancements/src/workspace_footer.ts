@@ -18,7 +18,8 @@ export function install_workspace_footer(): footer_binding | undefined {
   const original_parent = actions.parentNode, original_next = actions.nextSibling;
   const original_aria = footer.getAttribute("aria-hidden");
   const original_role = actions.getAttribute("role"), original_label = actions.getAttribute("aria-label");
-  const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
+  const mirrored_classes = ["use-file-list-style", "use-file-tree-style"];
+  const original_context=actions.getAttribute("data-workspace-sidebar-tab");
   const original_classes = new Map(mirrored_classes.map(name => [name, actions.classList.contains(name)]));
   const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_css, {"data-workspace-footer-style":"ready"});
   const layout=acquire_workspace_footer_layout();
@@ -51,7 +52,9 @@ export function install_workspace_footer(): footer_binding | undefined {
     ["#ty-sort-by-date-btn","history"],
     ["#ty-sort-by-create-btn","new-file"]
   ]);
+  // 侧栏模式仅影响直接操作行；不把宿主 active-tab-outline 的后代隐藏规则带进独立文件菜单。
   const update_context = () => {
+    actions.dataset.workspaceSidebarTab=sidebar.classList.contains("active-tab-outline")?"outline":"files";
     for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
   };
   update_context();
@@ -63,6 +66,7 @@ export function install_workspace_footer(): footer_binding | undefined {
     if (disposed) return; disposed = true; observer.disconnect();popups.dispose();control_icons.dispose();document_margin.dispose();
     original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
     for (const [name, present] of original_classes) actions.classList.toggle(name, present);
+    if(original_context===null)actions.removeAttribute("data-workspace-sidebar-tab");else actions.setAttribute("data-workspace-sidebar-tab",original_context);
     if (original_role === null) actions.removeAttribute("role"); else actions.setAttribute("role", original_role);
     if (original_label === null) actions.removeAttribute("aria-label"); else actions.setAttribute("aria-label", original_label);
     if (original_aria === null) footer.removeAttribute("aria-hidden"); else footer.setAttribute("aria-hidden", original_aria);

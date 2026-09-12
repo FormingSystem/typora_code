@@ -228581,7 +228581,8 @@ https://creativecommons.org/licenses/by/4.0/
     const original_parent = actions.parentNode, original_next = actions.nextSibling;
     const original_aria = footer.getAttribute("aria-hidden");
     const original_role = actions.getAttribute("role"), original_label = actions.getAttribute("aria-label");
-    const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
+    const mirrored_classes = ["use-file-list-style", "use-file-tree-style"];
+    const original_context = actions.getAttribute("data-workspace-sidebar-tab");
     const original_classes = new Map(mirrored_classes.map((name) => [name, actions.classList.contains(name)]));
     const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_default, { "data-workspace-footer-style": "ready" });
     const layout2 = acquire_workspace_footer_layout();
@@ -228619,6 +228620,7 @@ https://creativecommons.org/licenses/by/4.0/
       ["#ty-sort-by-create-btn", "new-file"]
     ]);
     const update_context = () => {
+      actions.dataset.workspaceSidebarTab = sidebar.classList.contains("active-tab-outline") ? "outline" : "files";
       for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
     };
     update_context();
@@ -228634,6 +228636,8 @@ https://creativecommons.org/licenses/by/4.0/
       document_margin.dispose();
       original_parent.insertBefore(actions, original_next?.parentNode === original_parent ? original_next : null);
       for (const [name, present] of original_classes) actions.classList.toggle(name, present);
+      if (original_context === null) actions.removeAttribute("data-workspace-sidebar-tab");
+      else actions.setAttribute("data-workspace-sidebar-tab", original_context);
       if (original_role === null) actions.removeAttribute("role");
       else actions.setAttribute("role", original_role);
       if (original_label === null) actions.removeAttribute("aria-label");

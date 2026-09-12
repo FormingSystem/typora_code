@@ -8,7 +8,7 @@ html[data-linux-note-document-margin="ready"] body:not(.typora-export) content >
 }
 .linux-note-document-margin {
   flex:0 0 auto;gap:4px;min-width:0;
-  padding:0 5px;font:12px/22px "Segoe UI",sans-serif;white-space:nowrap;
+  padding:0 5px;white-space:nowrap;
 }
 .linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
 .linux-note-document-margin output {width:30px;overflow:hidden;text-align:center;font-variant-numeric:tabular-nums;}

@@ -1,7 +1,7 @@
 body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }
 .linux-note-editor-status { flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }
 .linux-note-editor-status[hidden] { display:none!important; }
-.workspace-editor-status-controls { gap:6px; min-width:0; padding:0 4px; font:12px/22px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.workspace-editor-status-controls { gap:6px; min-width:0; padding:0 4px; white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
 .workspace-editor-status-controls::-webkit-scrollbar { display:none; }
 .workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }
