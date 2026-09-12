@@ -1,3 +1,4 @@
+import {bind_markdown_color_menu} from "./markdown_color_menu";
 import {acquire_workspace_style,type workspace_style_handle} from "./workspace_styles";
 import {git_icon} from "./git_icons";
 import { create_workspace_lifetime } from "./workspace_lifetime";
@@ -610,6 +611,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   if(core?.app)lifetime.add(()=>bind_workspace_editor_status(core).dispose());
   reading_binding=lifetime.own(bind_reading_navigation());
   lifetime.own(bind_file_path_actions());
+  if(core?.app)lifetime.own(bind_markdown_color_menu(core));
   graph_binding=lifetime.own(bind_git_graph());
   lifetime.own(bind_workspace_browser());
   lifetime.own(bind_reading_minimap());

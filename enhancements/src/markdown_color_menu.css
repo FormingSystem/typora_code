@@ -1,0 +1,11 @@
+/* 新的用户格式操作复用公共对话框、4px 控件圆角和键盘焦点；不修改原生菜单的其他条目。 */
+.workspace-color-dialog .git-graph-dialog{width:360px;max-width:calc(100vw - 24px)}
+.workspace-color-note{margin:0 0 12px}
+.workspace-color-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.workspace-color-grid button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:0;padding:8px 4px;background:transparent;color:inherit;border:1px solid var(--linux-note-shell-border,#d4d4d4);font:inherit}
+.workspace-color-sample{font-size:22px;font-weight:600;line-height:24px}
+.workspace-color-custom{display:flex;align-items:end;flex-wrap:wrap;gap:8px;margin-top:16px}
+.workspace-color-custom label{display:flex;flex:1;min-width:120px;flex-direction:column;gap:4px;font:inherit}
+.workspace-color-custom input[type=text]{width:100%;min-width:0;box-sizing:border-box}
+.workspace-color-custom input[type=color]{width:32px;height:28px;padding:2px;cursor:pointer}
+.workspace-font-color-item.hide{display:none!important}

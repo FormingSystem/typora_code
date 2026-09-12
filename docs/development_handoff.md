@@ -67,3 +67,9 @@ vendor源码变化同步 `source_manifest.json`，保留上游摘要并更新当
 研究缓存只放忽略目录，不作为运行依赖。实现必须尊重当前宿主边界，不把VS Code官方说明或单个截图当成Typora API已可用的证据。
 
 R022/R023/R024本轮：搜索重选复用预览的`reveal_match`，定位状态仍由所选匹配持有；共享hover把触发/焦点锚点与布局避让区分开，提供紧凑角色、指示角、悬停组与统一尺寸更新，Git只指定整个列表并填充内容。Graph设置沿用仓库原有存储；配置核对与未实现差异集中在[Graph配置](git_graph_configuration.md)。验收及安装状态见本轮反馈记录。
+
+## 2026-09-13 Markdown 字体颜色
+
+R026在原生选区右键菜单增加“字体颜色…”。`markdown_color_menu` 管理入口及公共对话框；`markdown_color_native` 核对选区身份并使用 Typora 原生 replace/cursor/attr 撤销事务，表格的 `userText` 缓存与单元格一起更新。`markdown_text_color` 只处理规范色彩标签和源文本区间；`markdown_color_theme` 只设置阅读容器变量，不重写正文。
+
+终端和字体颜色复用 `workspace_theme` 的实际背景合成与主题事件。升级宿主后需重新验证选区、局部修改、撤销及表格保存，不能仅依据 DOM 有颜色判断通过。操作、存储边界和适配算法见[字体颜色设计](markdown_text_color.md#r026)，交付证据见[反馈记录](feedback_review.md)。
