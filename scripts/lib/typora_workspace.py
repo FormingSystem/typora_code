@@ -118,12 +118,15 @@ def check_conflicts(user_data):
         raise ValueError('Other enabled community plugins depend on the old runtime: ' + ', '.join(other))
     return settings
 
-def window_source(source, head):
+def host_window_source(source):
     if len(re.findall('</head>', source, flags=re.I)) != 1:
         raise ValueError('Expected one </head>')
     source = re.sub(r'<!-- typora-code:begin -->.*?<!-- typora-code:end -->\s*', '', source, flags=re.S)
     source = re.sub(r'<script\b[^>]*\bsrc=["\']typora://app/userData/(plugins/loader\.js|linux_note_enhancements/typora_enhancements\.js)["\'][^>]*>\s*</script>', '', source, flags=re.I)
-    source = re.sub('</head>', lambda _: head.rstrip() + '\n</head>', source, flags=re.I)
+    return re.sub(r'\s*</head>', '</head>', source, flags=re.I).strip()
+
+def window_source(source, head):
+    source = re.sub('</head>', lambda _: head.rstrip() + '\n</head>', host_window_source(source), flags=re.I)
     check_window(source, head)
     return source
 
@@ -300,6 +303,8 @@ def restore(user_data, backup):
     saved_window = asset_path(backup, 'window.html')
     if digest(saved_window) != manifest['window_sha256']:
         raise ValueError('Window backup integrity check failed')
+    if host_window_source(window.read_text(encoding='utf-8')) != host_window_source(saved_window.read_text(encoding='utf-8')):
+        raise ValueError('Typora startup page changed outside the managed entry; do not restore across Typora versions')
     roots = group_roots(user_data)
     for name, root in roots.items():
         validate_records(root, backup / name, manifest[name], name)

@@ -1,4 +1,11 @@
-﻿[CmdletBinding()]
+﻿<#
+.SYNOPSIS
+只读核验当前安装与本下载包的启动入口、主题和运行资产是否一致。
+.DESCRIPTION
+失败会返回非零退出码。不会安装、修复或重启 Typora。
+完整说明见 docs/installation.md。
+#>
+[CmdletBinding()]
 param([string]$typora_root='', [switch]$non_interactive)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'scripts/lib/typora_environment.ps1')

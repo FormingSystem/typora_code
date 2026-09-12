@@ -245,6 +245,12 @@ function get_typora_restore_context {
     $window = resolve_typora_asset_path $root 'resources/window.html'
     $saved = resolve_typora_asset_path $backup_root 'window.html'
     if ($manifest.window_sha256 -notmatch '^[a-f0-9]{64}$' -or (Get-FileHash -LiteralPath $saved -Algorithm SHA256).Hash -ne $manifest.window_sha256) { throw 'Window backup integrity check failed.' }
+    # 只忽略本工程拥有的入口；宿主页面其他变化必须先停止恢复。
+    $current_host = get_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) ''
+    $saved_host = get_typora_window_source ([IO.File]::ReadAllText($saved, [Text.Encoding]::UTF8)) ''
+    $current_host = [regex]::Replace($current_host.Replace("`r`n", "`n"), '\s*</head>', '</head>').Trim()
+    $saved_host = [regex]::Replace($saved_host.Replace("`r`n", "`n"), '\s*</head>', '</head>').Trim()
+    if ($current_host -cne $saved_host) { throw 'Typora startup page changed outside the managed entry. Do not restore a backup from another Typora version; reinstall Typora Code for the current version.' }
     $groups = @(
         [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');records=@($manifest.product)},
         [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');records=@($manifest.migration)},

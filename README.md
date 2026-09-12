@@ -9,34 +9,37 @@ domains:
 
 # 第1章\_Typora\_Code阅读工作台
 
-Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集、源码阅读与修改频繁的使用场景，集中提供多文档阅读、位置恢复、源码编辑与 Git 审阅。它也可以打开普通文件夹独立使用，不要求 linux-note 的目录结构、元数据或启动脚本。
+Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git 审阅和集成终端，把 Markdown 阅读与日常项目操作放在同一个窗口内。打开普通文件或文件夹即可使用，无需特定知识库目录或元数据。
 
-本仓库维护主题、常驻工作区核心和阅读增强。配置后，默认在一个桌面窗口内使用多文档标签页，按需向右、向下分栏；文件树显示全部文件及隐藏项目，Markdown 保留原生渲染，源码使用占满编辑组的 Monaco，支持编辑和 Ctrl+S 保存。窗口唯一的全局底栏显示活动源码的行列、语言、编码及换行设置，随标签和编辑组切换。工作区搜索按文件展示路径和高亮结果，悬停可查看行列位置，支持精确跳转、仅搜索 Git 更改文件与替换预览；活动栏可拖动排序并标出当前功能。
+这是独立维护的社区增强项目，需要先安装 Typora。Typora 的下载、许可与更新由其官方提供；本项目维护增强代码、主题、安装脚本及说明文档。
 
-搜索同时支持手动输入和选中文字后 Ctrl／Cmd 加鼠标左键。命中文件统一列在搜索侧栏，单击在搜索结果下方预览，双击或 Enter 打开文件并选中命中内容；Markdown 使用原生渲染视图，标题、段落与代码围栏按行列精确定位，并保留既有标签和阅读历史。预览可以收起、展开，工具栏右侧直接显示百分比滑块，与 Ctrl／Cmd 加滚轮共用字号比例，预览期间保留中央文档的阅读位置。Markdown 预览包含围栏高亮和隔离的 Mermaid 图表，本地随附图表库无需联网下载。
+| 能力 | 使用方式 |
+| --- | --- |
+| 多文档阅读 | 标签切换、左右/上下分栏、阅读前后退、恢复上次位置 |
+| 文件与源码 | 文件树、重命名与管理操作、Monaco 源码编辑、编码和换行设置 |
+| 搜索 | 工作区内容搜索；单击侧栏预览，双击或 Enter 打开；重复单击返回命中位置 |
+| Git | 更改列表、提交图、文件历史、只读差异、提交和远端操作 |
+| 终端 | Windows 本机 Shell、多会话、分屏、查找及终端配置 |
+| Markdown | 原生编辑、标题大纲、缩略图、代码高亮、长代码展开和 Mermaid 查看器 |
 
-资源管理器支持文件与文件夹重命名：选中后按 F2，或使用右键菜单，Enter 确认、Esc 取消。同名目标会提示；改名同步打开标签、源码草稿保存路径、阅读历史和搜索列表。
-
-阅读历史、上次位置恢复、文档缩略图、中文源代码管理与提交图、Monaco 双栏差异和文件历史、提交与远端同步、Git 操作评审、仓库终端及管理员入口、C/C++ 代码高亮、长代码展开／收起和 Mermaid 独立查看器共用这个工作区。
-
-工作台使用 35px 单行顶栏：左侧保留 Typora 七类菜单，并在帮助之前增加终端菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。视图菜单勾选跟随实际侧栏、状态栏、工具栏和终端状态；底栏百分比、字数、语言及按钮共用居中布局，大纲从活动栏或视图菜单进入。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。 保存文档并正常重启后加载窗口模式，安装不强制关闭现有窗口。
-
-> 当前采用 head 静态样式和常驻工作台，不通过插件注册或文件夹切换重载。此前截图中各项问题的最新复查与验证边界见[反馈复查记录](docs/feedback_review.md)。功能范围见[工作台矩阵](docs/workbench_parity.md)和[Git Graph矩阵](enhancements/git_graph_features.md)；物理键盘 accelerator 冲突不以合成事件通过代替实机验证。
+Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供预览；源码标签可分别编辑与保存。C/C++ 符号大纲需要本机 clangd。当前没有 VS Code 扩展宿主。平台支持和未覆盖能力见[环境要求](docs/installation.md#环境要求)与[功能范围](docs/workbench_parity.md)。
 
 ## 1.1\_安装、检查与恢复
 
-以下命令从本目录执行。普通安装使用仓库预构建文件，无需预装 Node.js 或联网下载核心；Windows 首次配置另从 Node 官方下载并校验终端私有运行时，离线环境可提供对应 ZIP 缓存；脚本根据参数、环境变量和系统信息发现 Typora，不包含本机盘符或用户名。
+**Windows 快速开始：**
 
-| 环境 | 安装 | 只读检查 | 恢复 |
-| --- | --- | --- | --- |
-| Windows PowerShell | `powershell -NoProfile -ExecutionPolicy Bypass -File .\configure_windows.ps1`，也可双击 `configure_windows.cmd` | `powershell -NoProfile -ExecutionPolicy Bypass -File .\check_configuration_windows.ps1` | `powershell -NoProfile -ExecutionPolicy Bypass -File .\restore_configuration_windows.ps1 -backup_root '<安装输出的备份目录>'` |
-| Linux / MSYS2 UCRT64 Bash | `bash ./configure.sh` | `bash ./check_configuration.sh` | `bash ./restore_configuration.sh --backup-root '<安装输出的备份目录>'` |
+1. 从 [Typora 官方网站](https://typora.io/)安装 Typora，并确认可以正常打开文档。
+2. 在**本仓库网页**点击 **Code → Download ZIP**，完整解压下载包。进入能看到本文件和 `install_windows.cmd` 的目录。包内已含 `enhancements/dist/`，普通安装无需构建或预装 Node.js。
+3. 保存正在编辑的文档。双击 **`install_windows.cmd`**，按提示完成安装并记下输出的 **Backup** 目录；首次安装需要联网下载经摘要校验的私有 Node 运行时。
+4. 在该目录打开 PowerShell，执行下面的只读检查。返回 **`status: OK`** 后，正常重启 Typora，在“主题”菜单选择 **cpp github consolas**。
 
-安装包括主题 `cpp_github-consolas.css`。发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 安装完成后保存文档并正常重启 Typora，选择 `cpp github consolas` 主题。
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1
+```
 
-当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。图标调整不恢复 Open Editors 或预览标签行为；2026-09-12 后续需求已补充原生文件选择、Explorer 操作和底部终端面板，具体范围见下表。普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
+**安装、离线准备、权限问题、更新、卸载及恢复原配置，统一见[安装与恢复指南](docs/installation.md)。** 卸载使用首次安装前的完整备份；后续备份用于回退增强版本。保留备份，不要直接删除 Typora 用户数据目录。Typora 更新可能替换启动入口，更新后重新检查并安装增强。
 
-路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 检查入口。各次构建、原生实例和安装的验证记录统一维护在 [反馈复查记录](docs/feedback_review.md)，不把旧版通过计数当成当前验证。原生 accelerator／物理键盘冲突和 Linux／UCRT64 实机验证仍有未覆盖范围。
+Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux与ucrt64)开始；Linux 原生环境、Windows ARM64 和 UCRT64 的完整实机验收尚未完成，Linux 暂无集成终端运行包。
 
 ## 1.2\_按需求阅读
 
@@ -67,29 +70,14 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 | Typora 原生偏好设置 | [原有设置截图](./typora配置展示.md#第1章_文件) |
 | 修改扩展源码、重建 bundle 和运行回归测试 | [开发者构建](./enhancements/README.md#1.2_开发者构建) |
 
-Markdown 使用一个活动的 Typora 原生编辑器，其他分栏显示预览，点击正文后切入编辑；普通源码标签可编辑和保存，格式按文档独立保留，切换与跨组移动保留草稿。关闭未保存标签或窗口时提供保存、不保存或取消，原生 Markdown 的关闭确认继续有效；该 Markdown 的源码草稿未保存时，先处理草稿再打开原生渲染。Git 历史、差异和搜索侧预览仍为只读。C/C++ 大纲使用本机 clangd；不提供 VS Code 扩展宿主。
+## 1.3\_维护与参与开发
 
-Git 差异按编辑组实际宽度自动切换：≤900 CSS px行内展示，>900px左右比较；操作图标与标签同行，下面保留紧凑版本行。双栏保留两侧各 8px 滚动条和 30px 原生红绿概览，关闭全文缩略图；普通单文件源码与 Markdown 阅读继续提供缩略图。侧栏提交历史按紧凑行显示局部拓扑、文件图标和彩色引用标签，提供查看全部改动及打开所选历史版本；Markdown历史正文只读渲染，链接和图片来自同一提交。大纲去掉最外层重复留白和原生过滤框，保留标题层级；全文搜索集中在搜索功能中。
-
-## 1.3\_维护文件分工
-
-| 文件或目录 | 职责 |
+| 入口 | 内容 |
 | --- | --- |
-| `configure*`、`check_configuration*`、`restore_configuration*` | 用户安装、校验与恢复入口 |
-| `scripts/lib/typora_environment.*` | 平台检测、路径发现与公共环境操作 |
-| `scripts/lib/typora_workspace.*` | 发布资产摘要、schema 4 备份、迁移与恢复 |
-| `enhancements/src/`、`enhancements/dist/` | 工作台源码及预构建核心、静态样式与脚本 |
-| `enhancements/bundle_markers.txt` | 构建能力检查使用的功能标记清单 |
-| `enhancements/vendor/` | 固定的语法库、Codicons SVG、emoji 数据与常驻工作区核心，以及许可证、来源和摘要 |
-| `enhancements/fixtures/`、`enhancements/scripts/test_*` | 交互、语法、历史状态与安装事务回归 |
+| [安装与恢复指南](docs/installation.md) | 用户下载安装、环境、离线缓存、更新与卸载 |
+| [增强模块说明](enhancements/README.md#1.2_开发者构建) | 源码构建、依赖和测试命令 |
+| [开发交接](docs/development_handoff.md) | 架构边界、当前实现和后续工作 |
+| [需求设计索引](docs/requirements_design.md) | 稳定需求编号与设计入口 |
+| [反馈复查记录](docs/feedback_review.md) | 各次实际验证和交付记录 |
 
-功能变动时同步源码、预构建、功能标记、安装检查入口与操作说明；核心更新另需同步固定来源、源码摘要和启动回归。核心构建使用仓库内 vendor 源码，不依赖研究缓存。配置截图位于 `assets/images/`，新增工作台能力由上述说明维护。
-
-Windows UCRT64 的安装、检查和回退入口调用同一 PowerShell 实现。当前集成终端运行包支持 Windows 10 1903+ x64 / ARM64；Linux 的工作区和 Git Graph 继续可用，集成终端原生包尚未提供。
-
-
-C/C++ 大纲统一使用本机 clangd 的 LSP 符号与工程编译数据库，点击符号精确定位；其他五种语言使用内置离线解析，Markdown 保留标题目录。配置与能力边界见 [代码大纲](docs/source_outline.md)。正文边距恢复单侧 0%–24% 控件；链接悬停 1 秒显示可选择、可复制的提示，项目内目标按项目根显示，中文路径和锚点按可读文字展示。
-
-文件名搜索与内容搜索均支持渐进显示及取消。文件标签使用原生拖放，同窗排序、拖到另一窗口标签栏合并、拖到当前窗口外松开新建窗口；各窗口尺寸共用实际边界。未命名文档与原生 Markdown 草稿的限制、保存基线保护及验证范围见 [拖动与多窗口](docs/drag_and_windows.md)。
-
-Git提交图的行操作、详情卡片与VS Code内置Graph配置核对见[配置差异](docs/git_graph_configuration.md)。搜索预览滚动后，再次单击同一结果可回到匹配位置，保留已有预览内容。
+用户脚本在仓库根目录，以 `install`、`check`、`restore` 命名；平台与事务实现位于 `scripts/`。`enhancements/src/` 保存工作台源码，`enhancements/dist/` 保存配套预构建文件。第三方资产的许可证、来源和摘要随 `enhancements/vendor/` 与 `enhancements/dist/licenses/` 保留。

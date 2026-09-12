@@ -36,26 +36,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-以下命令从 Typora Code 仓库根目录执行。当前使用 head 静态样式与常驻工作台；安装、恢复和运行验证统一记录在[反馈复查记录](../docs/feedback_review.md)，不以旧版本的检查计数证明当前交付。
-
-仓库已经提交预构建 bundle，普通用户无需预装 Node.js；Windows 安装器管理终端所需的私有运行时。部署脚本不写死 Typora 安装位置；它先检查显式参数、`TYPORA_ROOT`、运行进程和系统发现信息，仍找不到时才询问用户。
-
-Windows PowerShell 或资源管理器入口：
-
-```text
-configure_windows.cmd
-```
-
-MSYS2 UCRT64 或 Linux Bash 入口：
-
-```bash
-# 在 Typora Code 仓库根目录执行
-bash ./configure.sh
-```
-
-PowerShell 能识别 Windows、UCRT64 和 WSL 风格路径；UCRT64 Bash 能识别 Windows 与 POSIX 路径；Linux Bash 只接受 Linux 路径。Windows 首次配置会下载并校验官方 Node `24.20.0` 私有运行时，供集成终端使用；无需安装到系统或修改 PATH。再次配置复用校验过的下载缓存。脚本先校验核心、静态样式、工作台脚本与终端资产 `SHA256SUMS`，再统一备份主题、Typora `resources/window.html`、待迁移旧资产、产品文件和终端运行文件。Windows UCRT64 入口调用同一 PowerShell 安装事务；Linux 保留主题、工作区和 Git Graph，当前没有 Linux 集成终端原生运行包。安装完成后保存文档并重启 Typora。完整安装、检查和回退说明见 [`../typora配置修改.md`](../typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。
-
-搜索侧栏、下方 Markdown／源码预览与选中文字入口一起构建进增强 bundle，复用语言识别、搜索和 Monaco 资源；安装、功能标记检查、备份和回退使用同一组入口。用户预览缩放和 Markdown 正文边距保存在本地，更新运行文件时保留；历史外观字段原样保留，但当前没有整套字体／外观设置页，也不重新应用已撤去的界面字号配置。
+从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。
 
 ## 1.2\_开发者构建
 

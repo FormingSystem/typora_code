@@ -10,7 +10,7 @@ $test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-direct-install-' + [g
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative in @('configure_windows.ps1','check_configuration_windows.ps1','restore_configuration_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
     $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse
@@ -24,9 +24,9 @@ $previous_appdata=$env:APPDATA
 try {
     $env:APPDATA=Join-Path $test_root 'user data'
     $user_data=Join-Path $env:APPDATA 'Typora'
-    $installer=Join-Path $tools_copy 'enhancements/scripts/install_windows.ps1'
-    $restore=Join-Path $tools_copy 'enhancements/scripts/restore_windows.ps1'
-    $checker=Join-Path $tools_copy 'check_configuration_windows.ps1'
+    $installer=Join-Path $tools_copy 'install_windows.ps1'
+    $restore=Join-Path $tools_copy 'restore_windows.ps1'
+    $checker=Join-Path $tools_copy 'check_windows.ps1'
     . (Join-Path $tools_copy 'scripts/lib/typora_workspace.ps1')
     $plugin_settings=Join-Path $user_data 'plugins/settings/plugins.json'
     write_fixture $plugin_settings '{"forming_system.linux_note_enhancements":true,"other.plugin":false,"nested":{"中文":[1,2,3]}}'
@@ -49,7 +49,7 @@ try {
     $profile=Join-Path $user_data 'profile.data'
     write_profile_fixture $profile @{framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
     $backup=Join-Path $test_root 'first backup'
-    & $installer -typora_root $fake_root -backup_root $backup -include_theme -non_interactive
+    & $installer -typora_root $fake_root -backup_root $backup -non_interactive
     & $checker -typora_root $fake_root -non_interactive
     assert_equal (read_profile_fixture $profile).framelessWindow $true 'Native window preference was not installed'
     $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
@@ -79,6 +79,13 @@ try {
     & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'repeat backup') -non_interactive
     assert_equal ([IO.File]::ReadAllText($window)) $installed 'Repeat install changed head'
     assert_equal ([IO.File]::ReadAllText($new_settings)) '{"version":1,"settings":{"displayLang":"en","custom":"later"}}' 'Repeat install overwrote new settings'
+    $changed_host=$installed.Replace('<title>fixture</title>','<title>updated host</title>')
+    write_fixture $window $changed_host
+    $attempts_before=@(Get-ChildItem -LiteralPath $backup -Directory).Count
+    assert_rejected { & $restore -backup_root $backup } 'Changed host accepted by restore'
+    assert_equal ([IO.File]::ReadAllText($window)) $changed_host 'Host rejection changed startup page'
+    assert_equal (@(Get-ChildItem -LiteralPath $backup -Directory).Count) $attempts_before 'Host rejection created restore attempt'
+    write_fixture $window $installed
     $product=Join-Path $user_data 'typora_code/workbench.js'
     [IO.File]::AppendAllText($product,'corrupted')
     assert_rejected { & $checker -typora_root $fake_root -non_interactive } 'Corrupted asset accepted'
@@ -137,7 +144,7 @@ try {
         if (-not $global:typora_test_copy_failed -and $Destination -eq $global:typora_test_copy_target) { $global:typora_test_copy_failed=$true; throw 'Injected copy failure' }
         Microsoft.PowerShell.Management\Copy-Item @PSBoundParameters
     }
-    try { assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'failed transaction') -include_theme -non_interactive } 'Copy fault was ignored' }
+    try { assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'failed transaction') -non_interactive } 'Copy fault was ignored' }
     finally { Remove-Item Function:\Copy-Item }
     assert_equal $global:typora_test_copy_failed $true 'Fault did not reach install'
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Install rollback changed window'

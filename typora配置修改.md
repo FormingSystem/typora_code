@@ -204,112 +204,27 @@ std::vector<int> values;
 
 # 第6章\_PowerShell、UCRT64与Linux一键配置
 
-本章命令均从独立 Typora Code 仓库根目录执行。当前采用 head 静态样式与常驻工作台，安装与恢复使用schema 4；当前结果与历史基线见[反馈复查记录](./docs/feedback_review.md)，原生Linux的实机边界独立记录。
+用户安装步骤现统一维护在[安装与恢复指南](docs/installation.md)，包括下载完整包、环境要求、权限、离线缓存、更新、卸载和恢复。以下入口保留便于原有阅读链接跳转。
 
 ## 6.1\_路径发现不是安装目录猜测
 
-仓库已经保存预构建扩展，普通使用者 **不需要安装 Node.js**。部署脚本也不写死盘符、用户名、`Program Files`、`/usr/share` 或某台机器的 Typora 位置。路径发现顺序为：
-
-1. 命令行显式传入的位置；
-2. 用户设置的 `TYPORA_ROOT` 环境变量；
-3. 当前正在运行的 Typora 进程；
-4. `PATH` 中的 `typora`、`Typora` 或 `Typora.exe`；
-5. PowerShell 环境可读取的 Typora 应用注册信息；
-6. 仍未找到时，停下来询问用户输入，不做更多目录猜测。
-
-用户输入不必恰好是安装根目录，也可以是 Typora 可执行文件、`resources` 目录或 `resources/window.html`。脚本只有在确认目标目录含有真实 `resources/window.html`，并在 Windows 上同时确认 `Typora.exe` 后才允许修改。
-
-不同入口接受的路径形式如下：
-
-| 入口 | 可接受路径 |
-| --- | --- |
-| Windows PowerShell | Windows 路径、UCRT64 的 `/盘符/...`、WSL 的 `/mnt/盘符/...` |
-| MSYS2 UCRT64 Bash | Windows 路径或 UCRT64 POSIX 路径 |
-| Linux Bash | Linux 绝对路径或相对路径；不会把 Windows 路径误当作 Linux 目录 |
-
-仓库脚本不保存机器专用绝对路径。配置完成后，备份清单会记录 **本次实际解析并验证的目标路径**，这是回退时精确找回原文件所必需的运行结果，不是硬编码安装位置。
+见[路径与写入范围](docs/installation.md#路径与写入范围)。
 
 ## 6.2\_WindowsPowerShell入口
 
-在 PowerShell 中执行：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\configure_windows.ps1
-```
-
-也可以在资源管理器中双击 `configure_windows.cmd`；这个文件只负责转交给同目录 PowerShell 脚本，不包含安装位置。如果自动发现失败，脚本会提示输入路径。自动化环境不允许等待输入时，可以提前设置 `TYPORA_ROOT`，或同时传入 `-typora_root` 与 `-non_interactive`：
-
-```powershell
-.\configure_windows.ps1 `
-  -typora_root $env:TYPORA_ROOT `
-  -non_interactive
-```
+见[Windows安装](docs/installation.md#windows安装)，公开入口为 `install_windows.cmd` / `install_windows.ps1`。
 
 ## 6.3\_UCRT64与LinuxBash入口
 
-MSYS2 必须打开 **UCRT64** 终端；Git Bash、MINGW64 和其他 MSYS2 子环境不是此脚本的支持目标。UCRT64 与 Linux 都执行同一个入口：
-
-```bash
-# 在 Typora Code 仓库根目录执行
-bash ./configure.sh
-```
-
-如果没有运行中的 Typora，且可执行文件不在 `PATH`，脚本会要求输入位置。也可以显式传递环境变量；UCRT64 会通过 `cygpath` 统一处理 Windows 与 POSIX 路径：
-
-```bash
-bash ./configure.sh --typora-root "$TYPORA_ROOT" --non-interactive
-```
-
-Linux 安装目录通常不允许普通用户修改。当前事务直接以调用者权限写入已验证的 `resources/window.html`，不自动提权；无写权限会失败并尝试回滚。运行资源与备份属于当前用户数据目录，不应通过整段 sudo 改变用户配置归属。
-
-只读挂载的 AppImage 运行目录不能持久写回，脚本会在写入阶段失败并保留备份，不把临时挂载点伪装成已安装成功。Linux 端应使用具有稳定 `resources/window.html` 的安装形态。
+见[Linux与UCRT64](docs/installation.md#linux与ucrt64)，公开入口为 `install.sh`。
 
 ## 6.4\_部署动作与统一备份
 
-PowerShell 和 Bash 入口执行同一组动作：
-
-1. 构建按 `bundle_markers.txt` 校验能力，安装按 `SHA256SUMS` 校验核心、静态样式、工作台与终端资源及许可；
-2. 验证安装根、入口结构与旧插件冲突；
-3. 按 schema 4 备份主题、`resources/window.html`、受管资产及待迁移旧设置；
-4. 安装到当前用户数据目录并核对摘要；
-5. 在 head 放置唯一静态样式与脚本标记块，移除已识别的旧注入；
-6. 记录精确目标、文件原存在状态与摘要，失败回滚本次写入。
-
-每次配置创建带时间戳与唯一标识的备份并打印位置。Windows PowerShell 与 Linux Bash／Python 统一使用 schema 4 JSON 清单，UCRT64 调用 PowerShell 事务，不再使用 TSV 格式。
-
-当前发布清单管理23个资产，包括 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 核心由固定 MIT 上游源码裁剪，不创建插件管理器或市场入口，来源见 [SOURCE.json](enhancements/vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](enhancements/vendor/workspace_core/LICENSE.md)。
-
-当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2`、Light 2026／Dark 2026、Modern UI 与 Seti 的取证保留为设计研究参考，不再作为继续扩充或强制覆盖 Typora 的目标。正式控件使用已授权的官方图标；按最新要求，Explorer 与真实文件标签使用固定 Seti，文件夹保留折叠箭头，大纲保留原生列表图标；普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
-
-使用配置输出的备份目录回退：
-
-```powershell
-.\restore_configuration_windows.ps1 `
-  -backup_root '<配置脚本输出的备份目录>'
-```
-
-```bash
-bash ./restore_configuration.sh \
-  --backup-root '<配置脚本输出的备份目录>'
-```
-
-回退先验证 schema 4 清单和备份资产，并保存恢复前状态的安全快照；随后恢复原入口和受管文件，清除本次新增的受管运行文件，保留用户产品设置。恢复失败会回滚恢复操作。旧入口仅在撤销安装时恢复，不与常驻核心并行运行；旧 schema 2 或 direct bundle 备份不是当前恢复格式。
+见[路径与写入范围](docs/installation.md#路径与写入范围)和[卸载与恢复](docs/installation.md#卸载与恢复)。首次安装前与后续更新备份用途不同，请保留完整目录。
 
 ## 6.5\_只读状态检查
 
-以下检查不修改 Typora；缺少安装位置时也遵循同一套发现和询问规则：
-
-```powershell
-.\check_configuration_windows.ps1
-```
-
-```bash
-bash ./check_configuration.sh
-```
-
-检查报告平台、Typora 根目录、发布摘要与 `status: OK`，要求 head 标记块、静态样式、核心与工作台脚本、语言、主题和适用终端资源一致，拒绝已识别旧入口与注册残留。安装后同样逐项校验。非交互环境增加 `-non_interactive` 或 `--non-interactive`。
-
-`git_graph_features` 报告侧栏提交图、两组文件状态、提交快捷键、文件忽略、分支状态栏、同步双栏差异、红绿概览定位、评审与设置能力；共享标记清单还校验全文件浏览、语言识别、源码查看、统一搜索与下方预览、活动栏及主题跟随等当前入口。预览随增强 bundle 统一安装、备份与回退，其本地缩放设置保留。功能标记与 bundle 摘要共同防止旧版实现误通过，资源完整性不等于交互已经通过原生验收。`git_graph_runtime` 另报告当前检查进程能否从 PATH 发现 Git；它与配置文件完整性分别检查。Git Graph 使用系统 Git 和 Typora 自带的运行时，安装脚本不固定 Git 的绝对路径、不改写系统 PATH，也不要求额外安装 Node.js。详见 [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图)。
+见[检查与更新](docs/installation.md#检查与更新)，公开入口为 `check_windows.ps1` / `check.sh`。
 
 # 第7章\_维护、验收与边界
 
@@ -361,11 +276,7 @@ npm run check
 
 ## 7.3\_Typora升级边界
 
-Typora 没有提供主题 JavaScript 的正式入口，所以该方案需要在安装目录的 `resources\window.html` head加入受管静态入口：先加载核心与工作台CSS，再defer加载对应JavaScript。Typora 更新或重装会替换这个文件；更新后先运行只读检查，若入口消失，重新执行一键配置。不要把旧版 `window.html` 整文件覆盖到新版本，应该让配置脚本基于新文件重新插入唯一一组受管入口。
-
-已有 Windows Typora `1.14.9` 实窗与 PowerShell 5.1 配置、检查、回退的验收基线；UCRT64 代码路径已完成 Bash 语法、Windows/POSIX 路径归一化以及同一 Windows 安装上的配置—检查—回退闭环。当前机器没有独立 UCRT64 终端和原生 Linux Typora 安装，因此这两个正式环境仍需补充各自的实机复核，不能把兼容 shell 测试写成平台验收完成。未来 Typora 版本也必须重新核对入口结构，不能只依据版本号假定兼容。
-
-当前构建、发布资产和真实Typora链路的验证结果统一见[反馈复查记录](./docs/feedback_review.md)。[开发交接](./docs/development_handoff.md)记录交付状态，原生Linux与物理键盘accelerator不因其他层通过而自动升级。
+升级宿主后的入口检查、重新安装和禁止跨宿主还原旧启动文件，统一见[检查与更新](docs/installation.md#检查与更新)。本项目不会阻止 Typora 官方更新。
 
 # 第8章\_单窗口多文档工作区
 

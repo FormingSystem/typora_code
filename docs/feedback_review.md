@@ -289,3 +289,8 @@ R020/R022/R024按最新截图修复。公共交互层统一4px控件圆角，动
 原生Typora1.14.10隔离实例通过15项，证据`native_zoom_1_14_10/round_hover_native_final_20260913/checks.json`。原生底栏/终端默认圆角、分裂接缝、文件行22px与动作命中、源码模式切换及文档/修改状态/PTY身份均保持，已核对原始截图。首次取样发生在宿主侧栏入场动画中，名称横坐标尚在窗口外；修正夹具等待实际布局稳定后通过，未为该夹具修改业务行为。原生部分为程序化宿主验证，真实鼠标状态由隔离Electron测试覆盖。
 
 本次构建已事务安装，配置检查OK；`round_hover_install_20260913.log`、`round_hover_install_check_20260913.log`和`round_hover_install_verification_20260913.json`记录结果。原ASAR、图标、profile、工作台设置与主题摘要不变，用户窗口未重启，保存后正常重启载入。后续安装文档规范化及未完日常操作分别继续实施。
+
+
+## 2026-09-13 安装入口规范化
+
+R025：公开入口现统一为install/check/restore，Windows加_windows，CMD只转交安装；事务脚本归scripts/。本文历史记录中的configure和check_configuration等名称保留原时点含义，当前用户操作统一见[安装指南](installation.md)。首页改为产品介绍与Windows快速开始，平台、离线Node、更新覆盖、卸载与回退备份用途集中说明。恢复对比剥离托管入口后的宿主页面，外部变化时在写入前拒绝；2026-09-13：Windows PowerShell 5.1 公开 install/check/restore 入口在含空格的隔离目录通过首次/重复安装、损坏清单、宿主变化零写入拒绝、原偏好恢复和故障回滚；Python 事务全部通过。完整 npm run check 通过；26份文档、50项需求、354本地链接与187锚点核对通过。Bash 命令所在环境未具备，未运行 UCRT64/Linux 入口或 ARM64 原生实例，已在用户指南明确。日志为 `.cache/install_entry_windows_final_20260913.log`、`install_entry_python_20260913.log`、`install_entry_check_20260913.log`；文档证据为 `.cache/issue_tracking/requirements_install_entry_verification_20260913.json`。测试仅使用临时安装和用户数据目录，未卸载或重启用户 Typora。
