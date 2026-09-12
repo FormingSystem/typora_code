@@ -1,0 +1,12 @@
+/* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
+footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
+  display:flex;align-items:center;box-sizing:border-box;height:100%;min-height:0;
+  margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:1!important;white-space:nowrap;
+}
+/* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
+footer.ty-footer .workspace-footer-control {justify-content:center;margin-left:0!important;margin-right:0!important;}
+footer.ty-footer .workspace-footer-text {
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  margin:0!important;padding:0!important;font:inherit;line-height:1!important;color:inherit;white-space:nowrap;
+}
+footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}

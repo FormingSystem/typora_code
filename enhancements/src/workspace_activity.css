@@ -91,6 +91,12 @@
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
+/* 终端是48px活动栏入口，不能继承普通工具按钮的16px SVG尺寸。 */
+.typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon {
+  display:block;flex:none;width:24px;height:24px;min-width:24px;min-height:24px;margin:0;padding:0;fill:currentColor;stroke:none;
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon * {fill:currentColor;stroke:none;}
+
 /* 核心把活动栏挂在原生 header 内的侧栏分界线后，而不是 body 直接子节点。
    与编辑区共用起点，保留底部设置／终端原有 16px 内边距；每个 48px 槽紧接上一槽。 */
 body.typora-node.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {

@@ -105,7 +105,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
     editor?: git_diff_editor; focus_requested=true; file_path: string; loaded = false; loading = false; disposed=false; target?:file_location;
     status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
-    status_controls = el("div", "workspace-editor-status-controls"); location_label = el("span", "workspace-file-location");
+    status_controls = el("div", "workspace-editor-status-controls workspace-footer-group"); location_label = el("span", "workspace-file-location");
     language_button = button("", () => this.choose_language()); encoding_button = button("", () => this.choose_format("encoding")); eol_button = button("", () => this.choose_format("eol"));
     text_document: ReturnType<typeof create_text_document>; format?: Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>;
     saved_format = ""; saved_version = 0; saving = false;
@@ -117,6 +117,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       this.encoding_button.title = "选择保存编码"; this.encoding_button.setAttribute("aria-label", "保存编码");
       this.encoding_button.textContent="UTF-8";
       this.eol_button.title = "选择行尾序列"; this.eol_button.setAttribute("aria-label", "行尾序列");
+      for(const node of [this.status,this.location_label])node.classList.add("workspace-footer-text");
+      for(const node of [this.encoding_button,this.eol_button,this.language_button])node.classList.add("workspace-footer-control");
       this.status_controls.append(this.status, this.location_label, this.encoding_button, this.eol_button, this.language_button);
       this.containerEl.append(this.body);editor_status.register(this.leaf,this.status_controls);
       const save_keydown=(event:KeyboardEvent)=>{

@@ -1,3 +1,4 @@
+import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
 import {install_workspace_document_margin} from "./workspace_document_margin";
@@ -20,7 +21,17 @@ export function install_workspace_footer(): footer_binding | undefined {
   const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
   const original_classes = new Map(mirrored_classes.map(name => [name, actions.classList.contains(name)]));
   const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_css, {"data-workspace-footer-style":"ready"});
-  actions.setAttribute("role", "group"); actions.setAttribute("aria-label", "文件与大纲操作");
+  const layout=acquire_workspace_footer_layout();
+  const roles=new Map<HTMLElement,string[]>();
+  for(const [selector,role]of[
+    ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn","group"],
+    ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item","control"],
+    ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand","text"],
+  ])for(const node of document.querySelectorAll<HTMLElement>(selector)){
+    const name="workspace-footer-"+role;
+    if(!node.classList.contains(name)){node.classList.add(name);roles.set(node,[...(roles.get(node)||[]),name]);}
+  }
+  actions.setAttribute("role", "group"); actions.setAttribute("aria-label", "文件操作");
   footer.removeAttribute("aria-hidden"); footer.dataset.workspaceFooter = "ready";
   sidebar.dataset.workspaceFooter = "moved";
   // 字数和拼写检查仍在最右侧；整个文件操作组插在它们前面。
@@ -32,7 +43,6 @@ export function install_workspace_footer(): footer_binding | undefined {
     ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon","more"],
     ["#switch-file-list-btn .switch-file-list-btn-to-list>.ty-icon","list-flat"],
     ["#switch-file-list-btn .switch-file-list-btn-to-tree>.ty-icon","list-tree"],
-    ["#unpin-outline-btn .ty-export1","pinned"],
     ["#toggle-sourceview-btn","edit-code"],
     ["#close-sidebar-menu-btn","close"],
     ["#ty-group-by-folder-btn","list-tree"],
@@ -57,6 +67,7 @@ export function install_workspace_footer(): footer_binding | undefined {
     if (original_label === null) actions.removeAttribute("aria-label"); else actions.setAttribute("aria-label", original_label);
     if (original_aria === null) footer.removeAttribute("aria-hidden"); else footer.setAttribute("aria-hidden", original_aria);
     delete footer.dataset.workspaceFooter; delete sidebar.dataset.workspaceFooter;
+    for(const [node,names]of roles)node.classList.remove(...names);roles.clear();layout.remove();
     style.remove(); footer_bindings.delete(actions);
   } };
   footer_bindings.set(actions, binding); return binding;

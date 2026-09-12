@@ -1,3 +1,4 @@
+import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {capture_position, apply_position} from "./reading_positions";
 import {acquire_workspace_style} from "./workspace_styles";
 import margin_css from "./workspace_document_margin.css";
@@ -46,17 +47,18 @@ export function install_workspace_document_margin(footer:HTMLElement):margin_bin
   const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
   const previous_properties = properties.map(name=>({name,value:root.style.getPropertyValue(name),priority:root.style.getPropertyPriority(name)}));
   const style = acquire_workspace_style("typora-code-style:workspace_document_margin", margin_css);
+  const layout=acquire_workspace_footer_layout();
   const container = document.createElement("label");
-  container.className = "linux-note-document-margin";
+  container.className = "linux-note-document-margin workspace-footer-group";
   const description = "Markdown 正文单侧边距";
   container.title = description;
   const label = document.createElement("span");
-  label.className = "linux-note-document-margin-label";
+  label.className = "linux-note-document-margin-label workspace-footer-text";
   label.textContent = "边距";
   const input = document.createElement("input");
   input.type = "range";input.min = String(MINIMUM_MARGIN);input.max = String(MAXIMUM_MARGIN);input.step = "1";
   input.setAttribute("aria-label", "Markdown 正文单侧边距百分比");
-  const output = document.createElement("output");output.setAttribute("aria-live", "polite");
+  const output = document.createElement("output");output.className="workspace-footer-text";output.setAttribute("aria-live", "polite");
   container.append(label,input,output);
   footer.insertBefore(container,footer.querySelector(":scope > .footer-item-right"));
   let disposed = false;
@@ -106,7 +108,7 @@ export function install_workspace_document_margin(footer:HTMLElement):margin_bin
       for (const property of previous_properties) {
         if (property.value) root.style.setProperty(property.name,property.value,property.priority);else root.style.removeProperty(property.name);
       }
-      style.remove();
+      layout.remove();style.remove();
     });
     bindings.delete(footer);
   }};

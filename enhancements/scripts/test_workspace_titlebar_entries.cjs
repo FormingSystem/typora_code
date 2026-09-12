@@ -6,17 +6,17 @@ app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceler
 app.whenReady().then(async()=>{
  test_window=new BrowserWindow({show:false,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true}});
  await test_window.loadURL('data:text/html,<div id="group"><div class="typ-workspace-tab-header"><div class="typ-tab" data-id="C:/docs/test.md"><button class="typ-close">close</button></div></div></div>');
- const bundle=await build({entryPoints:[path.join(__dirname,'../src/workspace_titlebar_entries.ts')],bundle:true,format:'iife',globalName:'entries_api',write:false});
+ const bundle=await build({stdin:{contents:'export {create_workspace_titlebar_definitions} from "./src/workspace_titlebar_entries";export {bind_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'entries_api',write:false});
  await test_window.webContents.executeJavaScript(bundle.outputFiles[0].text);
  const result=await test_window.webContents.executeJavaScript(`(async()=>{
  const checks=[],calls=[];const check=(v,label)=>{if(!v)throw Error(label);checks.push(label);};let source=false,saves=0,closes=0;
  const leaf={state:{path:'C:/docs/test.md'},parent:{containerEl:document.querySelector('#group')},view:{isEditor:()=>true}};
- const workspace={activeLeaf:leaf,sidebar:{toggle(){}}};const record=name=>(...args)=>calls.push([name,...args]);
+ const workspace={activeLeaf:leaf,sidebar:{isShown:false,hide(){this.isShown=false},toggle(){this.isShown=!this.isShown}}};const record=name=>(...args)=>calls.push([name,...args]);
  const editor={stylize:{changeBlock:record('block'),toggleStyle:record('style'),insertBlock:record('insert')},searchPanel:{showPanel:record('search')},sourceView:{inSourceMode:false}};
  const runtime={File:{bundle:{filePath:leaf.state.path},editor,option:{}},ClientCommand:{undo:record('undo'),copy:record('copy'),export:record('export'),setTheme:record('theme')},JSBridge:{async invoke(name){if(name==='setting.getRecentFiles')return{files:[],folders:[]};if(name==='setting.loadExports')return JSON.stringify([{pdf:{type:'pdf'}},{custom:{type:'custom',name:'Report',command:'example'}}]);if(name==='setting.getThemes')return{all:['github.css','night.css'],current:'night.css'};throw Error(name);}}};
  const files={core:{app:{workspace,commands:{run:record('core')}}},context_root:()=>"C:/docs",path_api:{basename:p=>p.split('/').pop()},source_editor_active:()=>source,run_editor_command:record('source'),can_save_active:()=>true,save_active:async()=>{saves++;return false},save_all:record('save-all'),open_file:record('open')};document.querySelector('.typ-close').onclick=()=>closes++;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
- check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,帮助','seven original categories');
+ check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,终端,帮助','seven native categories plus the authorized terminal menu');
  (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');
  (await get('段落','链接引用')).action();check(calls.at(-1)[1]==='def_link','native link definition type');
@@ -34,6 +34,30 @@ app.whenReady().then(async()=>{
  source=true;check(!(await get('文件','另存为…')).disabled,'source Save As available');(await get('文件','另存为…')).action();check(calls.at(-1).join('|')==='core|linux_note:save_as','shared Save As command');source=false;
  (await get('文件','导出')).children[1].action();check(calls.at(-1)[0]==='export'&&calls.at(-1)[1].type==='custom'&&calls.at(-1)[1].command==='example','complete export options');
  const themes=await defs[5].entries();check(themes[1].checked&&!themes[0].checked,'host current theme checked');themes[1].action();check(calls.at(-1).join('|')==='theme|night.css|Night','exact theme filename and display');
+ // 菜单从真正的所有者读取状态；原生设置缓存故意保持旧值。
+ const toolbar=document.createElement('div');toolbar.style.cssText='display:none;width:100px;height:35px';document.body.append(toolbar);editor.toolbar={dom:toolbar};
+ runtime.ClientCommand.toggleStatusBar=()=>{const shown=document.body.classList.toggle('show-footer');document.body.classList.toggle('hide-footer',!shown)};
+ runtime.ClientCommand.toggleToolbar=()=>{toolbar.style.display=toolbar.style.display==='none'?'block':'none'};
+ runtime.File.option.showStatusBar=true;
+ check(!(await get('视图','状态栏')).checked,'status check reads actual body state, not stale native option');
+ (await get('视图','状态栏')).action();check((await get('视图','状态栏')).checked,'native status toggle changes next menu state');
+ (await get('视图','状态栏')).action();check(!(await get('视图','状态栏')).checked,'native status toggle can turn off');
+ check(!(await get('视图','工具栏')).checked,'hidden native toolbar is unchecked');(await get('视图','工具栏')).action();check((await get('视图','工具栏')).checked,'visible native toolbar is checked');
+ source=true;check((await get('视图','工具栏')).disabled&&!(await get('视图','工具栏')).checked,'toolbar cannot target background Markdown');source=false;
+ workspace.sidebar.activePanel={ribbonButton:{id:'core.outline'},containerEl:document.querySelector('#group')};workspace.sidebar.isShown=true;
+ check((await get('视图','大纲')).checked&&!(await get('视图','文件树')).checked,'one sidebar selection owner');(await get('视图','大纲')).action();check(!workspace.sidebar.isShown&&!(await get('视图','大纲')).checked,'checked outline action hides its sidebar');
+ (await get('视图','大纲')).action();check(calls.at(-1).join('|')==='core|linux_note:outline','hidden outline routes through existing focus command');
+ workspace.sidebar.activePanel.ribbonButton.id='linux_note:file_explorer';workspace.sidebar.isShown=true;check((await get('视图','文件树')).checked,'custom explorer normalizes to the shared native identity');(await get('视图','文件树')).action();check(!workspace.sidebar.isShown,'checked explorer action hides sidebar');
+ check((await get('终端','新建终端')).disabled&&(await get('视图','终端')).disabled,'unavailable terminal service is disabled');
+ const terminal={active_id:'',panel_visible:false};const release_terminal=entries_api.bind_terminal_state(files.core.app,()=>terminal);
+ check(!(await get('终端','新建终端')).disabled&&(await get('终端','拆分终端')).disabled,'terminal actions distinguish no session from unavailable service');
+ (await get('终端','新建终端')).action();check(calls.at(-1).join('|')==='core|linux_note:terminal','new terminal uses existing coordinator command');
+ terminal.active_id='session-1';terminal.location='panel';terminal.panel_visible=true;
+ check((await get('视图','终端')).checked&&(await get('终端','显示／隐藏终端')).checked,'both menu surfaces read live panel visibility');
+ check((await get('终端','移动到面板')).disabled&&!(await get('终端','移动到编辑器')).disabled,'move commands read session location');
+ for(const [label,id] of [['拆分终端','terminal_split'],['查找…','terminal_find'],['清屏','terminal_clear'],['重命名…','terminal_rename'],['移动到编辑器','terminal_move_editor'],['重启终端','terminal_restart'],['终止终端','terminal_kill'],['终端设置…','terminal_settings']]){(await get('终端',label)).action();check(calls.at(-1).join('|')==='core|linux_note:'+id,'shared terminal action: '+id)}
+ const stale_kill=await get('终端','终止终端');terminal.active_id='session-2';count=calls.length;stale_kill.action();check(calls.length===count,'stale terminal menu cannot kill a different active session');
+ terminal.panel_visible=false;check(!(await get('视图','终端')).checked,'external panel hide updates menu check');release_terminal();check((await get('终端','新建终端')).disabled,'terminal disposal removes state reader');
  const stale=await get('文件','保存');count=calls.length;workspace.activeLeaf={state:{path:'typ://terminal'}};stale.action();check(calls.length===count,'stale save cannot target another document');return {checks};
  })()`);
  fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(result,null,2),'utf8');console.log('PASS titlebar entries '+result.checks.length+' checks '+evidence);test_window.destroy();app.quit();

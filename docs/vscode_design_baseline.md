@@ -8,7 +8,7 @@
 
 搜索与拖动的当前实现分别见[大目录搜索性能](search_performance.md)和[左键拖动与独立窗口](drag_and_windows.md)。搜索借鉴独立匹配与流式结果职责，不接入VS Code扩展后端；标签按固定 VS Code 的原生 HTML DnD、标签图像及实际窗口边界实现，移除30px离组规则；独立窗口使用Typora宿主。活动栏保留6px起拖。
 
-当前界面：Typora 无边框窗口与35px单行七菜单顶栏、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；2026-09-12 按最新要求，终端默认独立底部面板并可搬移到编辑器；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
+当前界面：Typora 无边框窗口与35px单行顶栏（Typora七类菜单及终端）、48px连续活动栏、35px编辑标签条、26px Explorer树行和22px SCM行；Explorer没有Open Editors和紧凑目录链，大纲独立；Explorer与真实文件标签使用固定Seti，大纲保留原始fa-list。搜索单击下方预览、双击打开；2026-09-12 按最新要求，终端默认独立底部面板并可搬移到编辑器；SCM不增加文件筛选框。中央Git Graph保留已验证的扩展布局与正确性修复。
 
 编辑标签条使用13px Segoe UI与Light 2026／Dark 2026状态颜色；Ctrl+P及顶栏中央搜索入口打开 `440ec3f` 中的文件选择器。选择器当前宽度为 `min(62vw, 600px, calc(100vw - 12px))`，最大高度为 `min(70vh, 560px)`；结果行22px、输入框23px。`440ec3f` 是历史提交标识，不是440px尺寸。单行顶栏35px、菜单行24px、搜索框22px、窗控按钮46px宽，取自固定 VS Code 对应源码；原窗口动作由宿主处理。物理键盘与原生 accelerator 的冲突尚未实证；验证记录见[反馈复查记录](feedback_review.md)。
 
@@ -28,6 +28,7 @@
 | Explorer 与终端弹出菜单 | 13px字体、24px行高、上下4px内边距 | `src/vs/base/browser/ui/menu/menu.ts`；共同组件应用同一几何 |
 | 终端面板 | 初始高度占可用高度40%，用户可调；顶栏35px | `src/vs/workbench/browser/parts/panel/panelPart.ts` 及工作台面板标题规则；扣除本宿主标题栏和底栏 |
 | 终端会话与工具图标 | 列表22px行高，16px字形，22px操作目标 | `src/vs/workbench/contrib/terminal/browser/media/terminal.css`；列表宽度当前为本产品180px，不宣称完整拖动行为等价 |
+| 终端活动栏入口 | 24px字形，48px点击目标 | `activitybarPart.ts` 的 `ICON_SIZE=24`；48px采用当前已确认的连续活动栏功能行，面板工具仍为16px |
 | 终端配置默认 | Windows字号14、缓冲1000行、最小对比度4.5、列表在右侧、单会话时隐藏 | `src/vs/workbench/contrib/terminal/common/terminalConfiguration.ts`；实际设置范围见[终端说明](terminal_operations.md) |
 
 系统文件／文件夹选择窗口调用 Typora 1.14.9 已有 `dialog.showOpenDialog`；本地代码不绘制一个路径输入框替代系统选择。菜单行为与服务职责见[文件操作](file_operations.md)和[工作台架构](workspace_architecture.md)。
@@ -71,7 +72,7 @@
 [theme]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/common/theme.ts
 [diff_options]: https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/editor/common/config/diffEditor.ts
 
-单行顶栏采用35px高度：左侧为 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
+单行顶栏采用35px高度：左侧保留 Typora 文件、编辑、段落、格式、视图、主题、帮助七类菜单，并按2026-09-12后续授权在帮助前增加终端菜单，中间为后退、前进和文件搜索，右侧复用宿主窗口按钮。菜单由本地 renderer 组织，只调用已核对的 Typora API，不使用整棵 `Menu.popup` 或修改 ASAR；能力与动态状态以实际接线为界，不声称完整原生菜单等价。菜单在顶栏下方按可用高度滚动，支持 Shift+滚轮。
 
 当前实现、历史基线及各层验证结果统一见[反馈复查记录](feedback_review.md)。旧布局的运行计数不能证明后续活动栏、可见标题、边距或底栏遮挡问题已经修复；本文只维护设计来源和实际采用的规则。
 Markdown 正文沿用原有底栏边距滑块：单侧0%～24%、默认0%，只改变活动正文框宽度并保留阅读段落。大纲按完整可见标题同步，文档缩略图和标题识别共用扣除底栏的可读视口；这些是当前阅读行为，不来自旧 Modern 布局尺寸表。操作见[阅读位置与标题定位](../enhancements/README.md#1.4.1_阅读位置与标题定位)。
