@@ -173,7 +173,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const git=this.only_changed?await git_pending:undefined;if(disposed||this.controller!==controller)return;
         if(this.only_changed&&!git?.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");
         const scope=this.only_changed?git?.changed_files:this.only_open?open_files:undefined;
-        const options={...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{})};
+        const options={...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{}),...(folder_path?{folder_path}:{})};
         const progressive:workspace_search_result={root,options,files:[],counts:{scanned_files:0,searched_files:0,matched_files:0,matches:0,skipped:{binary:0,large:0,ignored:0,excluded:0,links:0,unreadable:0}},cancelled:true,limit_reached:false,notices:[]};
         this.result=progressive;let progress_time=0;const render_tasks:Promise<void>[]=[];let render_error:unknown;
         const result=await engine.search(root,options,{signal:controller.signal,on_file:(file,counts)=>{
@@ -293,9 +293,14 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       }catch(error){dialog.content.append(el("p","",String(error)));}
     }
   }
+  let folder_path="";
   const panel=new search_sidebar();lifetime.add(core.app.workspace.sidebar.addPanel(panel));panel.ribbonButton={id:"linux_note:search"};
+  const folder_scope=el("div","workspace-search-folder-scope");folder_scope.hidden=true;
+  panel.details.prepend(folder_scope);
+  const clear_folder=()=>{folder_path="";folder_scope.hidden=true;folder_scope.replaceChildren();};
   const show=(toggle=false,focus=true)=>{if(disposed)return;if(!panel.visible)core.app.workspace.sidebar.switch(search_sidebar);else if(toggle)core.app.workspace.sidebar.toggle();else core.app.workspace.sidebar.show();if(focus&&panel.visible)panel.query.focus();};
   const search=async(request:workspace_selection_request)=>{if(disposed||typeof request.query!=="string"||!request.query.trim())return;panel.query.value=request.query;panel.options.regex=false;panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed","false");panel.containerEl.dataset.sourcePath=request.source_path||"";show(false,false);await panel.search();};
+  const find_in_folder=(path:string)=>{if(disposed)return;folder_path=path;folder_scope.hidden=false;const label=el("span","",files.path_api.relative(files.context_root(),path).split(files.path_api.sep).join("/")||"项目根目录");label.title=label.textContent||"";folder_scope.replaceChildren(label,git_icon_button("close","取消文件夹搜索范围",()=>{clear_folder();panel.schedule();}));panel.details.hidden=false;show();panel.schedule();};
   lifetime.own(bind_workspace_selection_search(core,files,search));
   const activity_click=(event:MouseEvent)=>{const target=event.target instanceof Element?event.target.closest<HTMLElement>('.typ-ribbon-item[data-id="core.search"]'):null;if(!target)return;event.preventDefault();event.stopImmediatePropagation();show(true);};
   lifetime.listen(document,"click",activity_click as EventListener,true);
@@ -309,7 +314,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     if(core.app.workspace.sidebar.activePanel===panel){core.app.workspace.sidebar.hide();core.app.workspace.sidebar.activePanel=undefined;}
     lifetime.dispose();panels.clear();};
   lifetime.listen(window,"unload",dispose);
-  const refresh_context=()=>{if(!disposed)panel.schedule();};
-  return {show,search,refresh_context,container:panel.containerEl,dispose};
+  const refresh_context=()=>{if(!disposed){clear_folder();panel.schedule();}};
+  return {show,search,find_in_folder,refresh_context,container:panel.containerEl,dispose};
   } catch(error) { lifetime.dispose(); throw error; }
 }

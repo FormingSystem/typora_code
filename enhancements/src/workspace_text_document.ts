@@ -4,7 +4,7 @@ export const MAX_TEXT_DOCUMENT_BYTES = 16 * 1024 * 1024;
 export type text_document_eol = "LF" | "CRLF" | "CR" | "mixed";
 export type text_document_encoding = "utf-8" | "utf-16le" | "utf-16be";
 export type text_document_value = decoded_file & { eol: text_document_eol };
-export type text_document_save_options = { encoding?: string; bom?: boolean; eol?: text_document_eol };
+export type text_document_save_options = { encoding?: string; bom?: boolean; eol?: text_document_eol; original_text?:string };
 export type text_document = { readonly file_path: string; load(): Promise<text_document_value>; save(text: string, options?: text_document_save_options): Promise<text_document_value>; prepare_relocation(path: string): Promise<{commit(): Promise<void>; cancel(): void}> };
 type file_modules = { fs: any; path_api: {resolve(...paths: string[]): string; dirname(path: string): string; basename(path: string): string; join(...paths: string[]): string} };
 type disk_snapshot = { real_path: string; parent_identity: string; entry_identity: string; stat: any; bytes: Uint8Array };
@@ -103,7 +103,8 @@ export function create_text_document(modules: file_modules, file_path: string, o
     busy = true; const snapshot = baseline; const selected = {...settings}; let temporary = "", temporary_identity = "";
     try {
       const encoding = selected.encoding ?? snapshot.value.encoding; const bom = selected.bom ?? snapshot.value.bom;
-      const formatted = format_eol(text, selected.eol ?? snapshot.value.eol, snapshot.endings);
+      // 另存为沿用源文档的混合换行，不能套用目标文件原来的换行序列。
+      const formatted = format_eol(text, selected.eol ?? snapshot.value.eol, selected.original_text===undefined?snapshot.endings:endings_in(selected.original_text));
       const bytes = encode_text(formatted, encoding, bom);
       const endings = endings_in(formatted); const value = {text: formatted, encoding, bom, eol: endings.length ? detect_eol(endings) : selected.eol ?? snapshot.value.eol};
       await verify(snapshot);
@@ -155,4 +156,36 @@ export function create_text_document(modules: file_modules, file_path: string, o
     };
   };
   return {get file_path() {return file_path;}, load, save, prepare_relocation};
+}
+
+/** 系统另存为确认后的落盘服务；源文件不变，新文件完整写入后才发布目录入口。 */
+export async function save_text_document_as(modules:file_modules,target:string,text:string,source:text_document_value){
+  const {path_api}=modules,fs=modules.fs.promises;
+  target=path_api.resolve(target);
+  const document=create_text_document(modules,target,{encoding:source.encoding});
+  let exists=false;
+  try{await fs.lstat(target);exists=true;}catch(error){if((error as {code?:string}).code!=="ENOENT")throw error;}
+  if(exists){
+    await document.load();
+    const value=await document.save(text,{encoding:source.encoding,bom:source.bom,eol:source.eol,original_text:source.text});
+    return{document,value};
+  }
+  const formatted=format_eol(text,source.eol,endings_in(source.text)),bytes=encode_text(formatted,source.encoding,source.bom);
+  const parent=await fs.realpath(path_api.dirname(target)),parent_identity=identity(await fs.stat(parent));
+  const temporary=path_api.join(parent,`.linux-note-text-${globalThis.crypto.randomUUID()}.tmp`);let temporary_identity="";
+  const handle=await fs.open(temporary,"wx");
+  try{
+    try{temporary_identity=identity(await handle.stat());await handle.writeFile(bytes);await handle.sync();}
+    finally{await handle.close();}
+    if(await fs.realpath(path_api.dirname(target))!==parent||identity(await fs.stat(parent))!==parent_identity)throw conflict();
+    // link 不覆盖抢先出现的目标；源文件和已存在的其他项目始终不受影响。
+    await fs.link(temporary,target);
+    // 移除临时硬链接会改变目标 ctime，完成后才能建立后续保存基线。
+    await fs.unlink(temporary);
+    const value=await document.load();
+    if(value.text!==formatted||identity(await fs.stat(target))!==temporary_identity)throw conflict();
+    return{document,value};
+  }finally{
+    try{const stat=await fs.lstat(temporary);if(identity(stat)===temporary_identity&&stat.isFile()&&!stat.isSymbolicLink())await fs.unlink(temporary);}catch{}
+  }
 }

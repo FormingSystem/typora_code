@@ -34,7 +34,7 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 
 安装包括主题 `cpp_github-consolas.css`。发布资产为 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 安装完成后保存文档并正常重启 Typora，选择 `cpp github consolas` 主题。
 
-当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。此调整仅涉及图标，不恢复 Open Editors、底部 Panel 或预览标签行为；普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
+当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。图标调整不恢复 Open Editors 或预览标签行为；2026-09-12 后续需求已补充原生文件选择、Explorer 操作和底部终端面板，具体范围见下表。普通安装不读取本机 VS Code。详见 [设计基线](docs/vscode_design_baseline.md) 和 [图标映射](docs/icon_mapping.md)。
 
 路径发现、非交互参数、支持环境和备份清单详见 [一键配置](./typora配置修改.md#第6章_PowerShell、UCRT64与Linux一键配置)。Typora 升级后应按 [升级边界](./typora配置修改.md#7.3_Typora升级边界) 检查入口。各次构建、原生实例和安装的验证记录统一维护在 [反馈复查记录](docs/feedback_review.md)，不把旧版通过计数当成当前验证。原生 accelerator／物理键盘冲突和 Linux／UCRT64 实机验证仍有未覆盖范围。
 
@@ -53,7 +53,9 @@ Typora Code 是基于 Typora 的独立阅读工作台，面向链接跳转密集
 | 活动栏排序、侧栏缩窄收起、大纲紧凑布局及减少动画 | [活动栏与侧栏布局](./enhancements/README.md#1.4.5_活动栏与侧栏布局) |
 | 中文源代码管理主侧栏、分支操作、远端同步与评审 | [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图) |
 | 宽窄自动切换差异、红绿概览、改动导航及只读历史正文 | [差异编辑器与时间线](./enhancements/README.md#1.5.2_中央差异编辑器与文件时间线) |
-| 仓库终端、管理员入口、右键配置和面板拖动 | [集成终端与分界线](./enhancements/README.md#1.6_集成终端、管理员入口与分界线) |
+| 文件菜单、系统选择窗口和资源管理器操作 | [文件操作](docs/file_operations.md) |
+| 终端面板、会话、管理员入口和设置 | [终端操作与配置](docs/terminal_operations.md) |
+| 统一命令、领域服务和资源生命周期 | [工作台架构](docs/workspace_architecture.md) |
 | 终端依赖、离线缓存和测试边界 | [终端运行文件与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证) |
 | VS Code Git Graph 功能收集、选项与实现边界 | [完整功能对照](./enhancements/git_graph_features.md#第1章_Git_Graph功能对照与操作说明) |
 | C/C++ 宏、函数和类型的语法高亮 | [语法识别与颜色映射](./typora配置修改.md#4.1_为什么主题CSS不等于语法识别器) |

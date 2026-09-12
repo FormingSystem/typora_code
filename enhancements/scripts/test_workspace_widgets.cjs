@@ -27,7 +27,7 @@ app.whenReady().then(async () => {
   fs.writeFileSync(fixture, '<!doctype html><meta charset="utf-8"><style>.git-graph-dialog-shade{position:fixed;inset:0;background:#eee}.git-graph-dialog{padding:20px}.git-graph-dialog-content{display:grid;gap:8px}.css-hidden{display:none}</style><button id="opener">Open settings</button><button id="outside">Outside</button>');
   test_window = new BrowserWindow({show: false, width: 800, height: 600, webPreferences: {contextIsolation: false, backgroundThrottling: false}});
   await test_window.loadFile(fixture);
-  const bundle = await build({stdin: {contents: 'export { workspace_dialog, dispose_workspace_widgets } from "./src/workspace_widgets";', resolveDir: path.join(__dirname, '..')}, bundle: true, format: 'iife', globalName: 'widgets_qa', write: false});
+  const bundle = await build({stdin: {contents: 'export { workspace_dialog, workspace_menu, dispose_workspace_widgets } from "./src/workspace_widgets";', resolveDir: path.join(__dirname, '..')}, bundle: true, format: 'iife', globalName: 'widgets_qa', write: false, loader: {'.css': 'text'}});
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`document.querySelector('#opener').focus();window.dialog=widgets_qa.workspace_dialog('Settings');dialog.content.innerHTML='<input type=hidden><input disabled><fieldset disabled><input></fieldset><section hidden><input></section><input class=css-hidden><input style="visibility:hidden"><section inert><input></section><input id=first aria-label=Search><input id=second aria-label=Value><section id=filtered hidden><input id=filtered-input></section>';dialog.footer.querySelector('button').id='close';`);
   await delay(60);
@@ -66,6 +66,10 @@ app.whenReady().then(async () => {
   await key('Tab', ['shift']);
   await focus_is('#opener', 'disposal removes modal key handlers and restores ordinary Tab navigation');
   assert.equal(await evaluate("document.querySelectorAll('.git-graph-dialog-shade').length"), 0);
+  await evaluate("window.close_counts={dialog:0,menu:0};window.owned=widgets_qa.workspace_dialog('Owned','Close',()=>close_counts.dialog++);owned.close();owned.close();window.close_menu=widgets_qa.workspace_menu(new MouseEvent('contextmenu'),[{title:'Item',action(){}}],'',()=>close_counts.menu++);window.dispatchEvent(new Event('blur'));close_menu();widgets_qa.dispose_workspace_widgets()");
+  assert.deepEqual(await evaluate('close_counts'), {dialog:1,menu:1});
+  assert.equal(await evaluate("document.querySelectorAll('.git-graph-dialog-shade,.git-graph-menu').length"),0);
+  checks.push('dialog and menu notify their owner exactly once across close, blur and repeated disposal');
   console.log(JSON.stringify({status: 'PASS', checks, evidence}));
   test_window.destroy(); app.exit(0);
 }).catch(error => { console.error(error); console.error(evidence); test_window?.destroy(); app.exit(1); });

@@ -5,7 +5,7 @@ import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
 import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
-import { create_text_document, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
+import { create_text_document, save_text_document_as, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
 import {decode_file_bytes} from "./file_language";
 import {capture_position, apply_position} from "./reading_positions";
 import type {workspace_document_snapshot, workspace_transfer_format, workspace_transfer_target} from "./workspace_document_transfer";
@@ -25,6 +25,7 @@ export type workspace_file_host = {
   context_root(): string;
   file_menu(event: MouseEvent, file_path: string): void;
   copy(text: string): unknown;
+  read_text(file_path:string):Promise<string>;
   rename_file(root: string, old_path: string, name: string): Promise<string>;
   move_file(root: string, old_path: string, target: string): Promise<string>;
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
@@ -36,6 +37,8 @@ export type workspace_file_host = {
   current_file(): string;
   can_save_active(): boolean;
   save_active(): Promise<boolean>;
+  save_as_active():Promise<boolean>;
+  reload_active():void;
   save_leaf(leaf:graph_leaf):Promise<boolean>;
   save_all(): Promise<boolean>;
   can_write(file_path: string): boolean;
@@ -97,7 +100,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (source_path) return source_path;
     return "";
   };
-  const context_root = () => runtime.File?.getMountFolder?.() || core.app.workspace.activeLeaf?.state.git_cwd || path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
+  const context_root = () => runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
   class source_file_view extends core.WorkspaceView {
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
     editor?: git_diff_editor; focus_requested=true; file_path: string; loaded = false; loading = false; disposed=false; target?:file_location;
@@ -199,6 +202,31 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.update_status();return true;}
       catch(error){this.saving=false;this.update_status();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
     }
+    async save_as(){
+      if(this.disposed||this.saving||this.loading||renaming||!this.editor||!this.format||!runtime.JSBridge?.invoke)return false;
+      this.saving=true;this.update_status();
+      try{
+        const result=await runtime.JSBridge.invoke("dialog.showSaveDialog",{title:"另存为",defaultPath:this.file_path,properties:["showOverwriteConfirmation"],filters:[{name:"所有文件",extensions:["*"]}]}) as {canceled?:boolean;filePath?:string};
+        if(this.disposed||core.app.workspace.activeLeaf!==this.leaf||result?.canceled||!result?.filePath)return false;
+        if(!path_api.isAbsolute(result.filePath))throw new Error("系统返回的保存路径无效。");
+        const target=path_api.normalize(result.filePath);
+        if(file_key(target)===file_key(this.file_path)){this.saving=false;return await this.save();}
+        let opened=false;core.app.workspace.eachLeaves(leaf=>{if(leaf!==this.leaf&&file_key(real_path(leaf))===file_key(target))opened=true;});
+        if(opened||file_key(runtime.File?.bundle?.filePath||"")===file_key(target))throw new Error("目标文件已在编辑器中打开，请先关闭目标标签并处理其修改。");
+        const parent=this.leaf.parent as graph_leaf["parent"]&{renameTab(old_path:string,new_path:string):void};
+        if(typeof parent.renameTab!=="function")throw new Error("当前编辑组不支持更新文件身份。");
+        const model=this.editor.models[0],version=model.getAlternativeVersionId(),format={...this.format},format_key=this.format_key();
+        this.editor.focused_editor().pushUndoStop();
+        const saved=await save_text_document_as({fs,path_api},target,model.getValue(),format);
+        this.text_document=saved.document;this.file_path=target;this.leaf.state.git_cwd=path_api.dirname(target);
+        this.editor.data.file=target;this.editor.data.title=path_api.basename(target);this.editor.data.left_label=target;
+        this.format={...saved.value,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saved_version=version;this.saved_format=format_key;
+        parent.renameTab(this.leaf.state.path,source_file_uri(target));keep_open(this.leaf);
+        const tab=workspace_leaf_tab(this.leaf);if(tab){const label=tab.querySelector(".typ-file-basename");if(label)label.textContent=path_api.basename(target);tab.title=target;}
+        return true;
+      }catch(error){this.status.textContent=String(error instanceof Error?error.message:error);new core.Notice(this.status.textContent,5000);return false;}
+      finally{this.saving=false;this.update_status();}
+    }
     choose_language(){
       if(!this.editor||this.loading)return;const dialog=workspace_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
       const choices=new Map(FILE_LANGUAGE_RULES.filter(rule=>!rule.category||rule.category==="text").map(rule=>[rule.language,rule.label]));choices.set("plaintext","纯文本");
@@ -222,6 +250,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     menu_entries(){return [
       {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
+      {title:"另存为…",shortcut:"Ctrl+Shift+S",action:()=>void this.save_as()},
       {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
       {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
       ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}call_native_app_open_file(this.file_path);}}]:[])
@@ -408,6 +437,17 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     await Promise.resolve(runtime.ClientCommand.save());return true;
   };
   const save_active = async () => {const leaf=core.app.workspace.activeLeaf;return leaf?save_leaf(leaf):false;};
+  const native_ready=()=>{
+    const leaf=core.app.workspace.activeLeaf;
+    return binding.active&&native_document_active()&&file_key(leaf!.state.path)===file_key(runtime.File?.bundle?.filePath||"")
+      &&(!(leaf!.view as any).isEditor||(leaf!.view as any).isEditor())&&!runtime.File?._onFileSwitching&&!runtime.File?.inSavingProcess;
+  };
+  const save_as_active=async()=>{
+    const source=active_source_view();if(source)return source.save_as();
+    if(!native_ready()||!runtime.ClientCommand?.saveAs)return false;
+    await Promise.resolve(runtime.ClientCommand.saveAs());return true;
+  };
+  const reload_active=()=>{const source=active_source_view();if(source)source.confirm_reload();else if(native_ready())runtime.ClientCommand?.reloadFromDisk?.();};
   const save_all = async () => {
     const source_saves = [...views].filter(view => !view.disposed && view.dirty()).map(view => view.save());
     const [, source_results] = await Promise.all([
@@ -673,7 +713,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+    read_text:async(file_path:string)=>{
+      if(!binding.active)throw new Error("Typora Code 已停用。");
+      const source=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path)&&view.editor?.models[0]);
+      if(source)return source.editor!.models[0].getValue();
+      if(file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path))return native_transfer_text();
+      return (await create_text_document({fs,path_api},file_path).load()).text;
+    },
     current_file: () => real_path(core.app.workspace.activeLeaf),
     can_write: (file_path: string) => (![...views].some(view=>file_key(view.file_path)===file_key(file_path)&&view.dirty()))&&(!runtime.File?.changeCounter?.isDocumentEdited() || file_key(runtime.File?.bundle?.filePath || "") !== file_key(file_path)),
     refresh_files: (paths: string[]) => { const keys=new Set(paths.map(file_key));for (const view of views) if (keys.has(file_key(view.file_path))&&!view.dirty()) void view.load_file(); },

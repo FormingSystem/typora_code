@@ -10,12 +10,12 @@
 .workspace-explorer-tree::-webkit-scrollbar { width:8px; height:8px; }
 .workspace-explorer-tree::-webkit-scrollbar-thumb { background:#8886; }
 .workspace-explorer-spacer { position:relative; min-width:100%; }
-.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:5px; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
+.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 .workspace-explorer-row:hover { background:#8882; }
 .workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background,#e4e6f1); }
 .workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--linux-note-shell-focus,#007fd4); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
-.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:center; width:12px; }
+.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:22px; }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
 .workspace-explorer-note { font:11px var(--font-family,Arial,sans-serif); color:#777; margin-left:auto; }
 .workspace-explorer-note.is-error { color:#d33; }
@@ -31,3 +31,7 @@
 .workspace-explorer-rename{height:22px}
 
 .workspace-explorer-status[hidden]{display:none}
+
+/* VS Code tree.indent=8；Seti无文件夹图标时，叶子折叠槽归零（views.css）。 */
+.workspace-explorer-row[data-directory="false"]>.workspace-explorer-chevron{display:none}
+.workspace-explorer-row>.workspace-file-theme-icon{margin-right:6px}

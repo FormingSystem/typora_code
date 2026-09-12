@@ -14,7 +14,7 @@ app.whenReady().then(async()=>{
  const workspace={activeLeaf:leaf,sidebar:{toggle(){}}};const record=name=>(...args)=>calls.push([name,...args]);
  const editor={stylize:{changeBlock:record('block'),toggleStyle:record('style'),insertBlock:record('insert')},searchPanel:{showPanel:record('search')},sourceView:{inSourceMode:false}};
  const runtime={File:{bundle:{filePath:leaf.state.path},editor,option:{}},ClientCommand:{undo:record('undo'),copy:record('copy'),export:record('export'),setTheme:record('theme')},JSBridge:{async invoke(name){if(name==='setting.getRecentFiles')return{files:[],folders:[]};if(name==='setting.loadExports')return JSON.stringify([{pdf:{type:'pdf'}},{custom:{type:'custom',name:'Report',command:'example'}}]);if(name==='setting.getThemes')return{all:['github.css','night.css'],current:'night.css'};throw Error(name);}}};
- const files={core:{app:{workspace,commands:{run:record('core')}}},path_api:{basename:p=>p.split('/').pop()},source_editor_active:()=>source,run_editor_command:record('source'),can_save_active:()=>true,save_active:async()=>{saves++;return false},save_all:record('save-all'),open_file:record('open')};document.querySelector('.typ-close').onclick=()=>closes++;
+ const files={core:{app:{workspace,commands:{run:record('core')}}},context_root:()=>"C:/docs",path_api:{basename:p=>p.split('/').pop()},source_editor_active:()=>source,run_editor_command:record('source'),can_save_active:()=>true,save_active:async()=>{saves++;return false},save_all:record('save-all'),open_file:record('open')};document.querySelector('.typ-close').onclick=()=>closes++;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,帮助','seven original categories');
  (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
@@ -30,10 +30,11 @@ app.whenReady().then(async()=>{
  source=true;(await get('编辑','撤销')).action();check(calls.at(-1).join('|')==='source|undo','source undo routes correctly');check((await get('格式','加粗')).disabled,'Monaco native format disabled');
  (await get('编辑','查找和替换')).action();check(calls.at(-1)[1]==='editor.action.startFindReplaceAction','source replace routing');source=false;
  (await get('编辑','查找和替换')).action();check(calls.at(-1)[0]==='search'&&calls.at(-1)[1]===true,'native replace true argument');
- (await get('文件','保存')).action();check(saves===1,'guarded workspace save');(await get('文件','关闭标签')).action();check(closes===1,'existing guarded close button');
+ (await get('文件','保存')).action();check(calls.at(-1).join('|')==='core|linux_note:save','guarded shared save command');(await get('文件','关闭标签')).action();check(calls.at(-1).join('|')==='core|linux_note:close_editor','shared guarded close command');
+ source=true;check(!(await get('文件','另存为…')).disabled,'source Save As available');(await get('文件','另存为…')).action();check(calls.at(-1).join('|')==='core|linux_note:save_as','shared Save As command');source=false;
  (await get('文件','导出')).children[1].action();check(calls.at(-1)[0]==='export'&&calls.at(-1)[1].type==='custom'&&calls.at(-1)[1].command==='example','complete export options');
  const themes=await defs[5].entries();check(themes[1].checked&&!themes[0].checked,'host current theme checked');themes[1].action();check(calls.at(-1).join('|')==='theme|night.css|Night','exact theme filename and display');
- const stale=await get('文件','保存');workspace.activeLeaf={state:{path:'typ://terminal'}};stale.action();check(saves===1,'stale save cannot target another document');return {checks};
+ const stale=await get('文件','保存');count=calls.length;workspace.activeLeaf={state:{path:'typ://terminal'}};stale.action();check(calls.length===count,'stale save cannot target another document');return {checks};
  })()`);
  fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(result,null,2),'utf8');console.log('PASS titlebar entries '+result.checks.length+' checks '+evidence);test_window.destroy();app.quit();
 }).catch(error=>{console.error(error);if(test_window&&!test_window.isDestroyed())test_window.destroy();app.exit(1);});

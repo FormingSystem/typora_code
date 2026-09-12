@@ -15,8 +15,8 @@ const key = async (key_code, modifiers = []) => { for (const type of ['keyDown',
 app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1200, height: 750, webPreferences: { nodeIntegration: true, contextIsolation: false, offscreen: true, backgroundThrottling: false } });
   test_window.webContents.on('console-message', (_event, _level, message) => console.error(message));
-  const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}</style>'); await test_window.loadFile(html);
-  const bundle = (await build({ plugins: editor_plugins(), stdin: { contents: 'export { create_graph_host } from "./src/git_graph_host";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: { '.css':'text' }, format: 'iife', globalName: 'terminal_qa', write: false })).outputFiles[0].text;
+  const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}.typ-workspace-root{position:absolute;inset:0 0 24px}</style><main class="typ-workspace-root"></main>'); await test_window.loadFile(html);
+  const bundle = (await build({ plugins: editor_plugins(), stdin: { contents: 'export { create_graph_host } from "./src/git_graph_host"; export { bind_terminal_workspace } from "./src/terminal_workspace";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: { '.css':'text' }, format: 'iife', globalName: 'terminal_qa', write: false })).outputFiles[0].text;
   await evaluate(bundle);
   await evaluate(`(() => {
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
@@ -24,13 +24,13 @@ app.whenReady().then(async () => {
     window.JSBridge={invoke:async(command,value)=>{window.copied=JSON.parse(value).text;}};
     const factories=new Map(); const leaves=[];
     const core={WorkspaceView:class{constructor(leaf){this.leaf=leaf;}},app:{viewManager:{registerView:(type,factory)=>factories.set(type,factory)},commands:{run(){},register(){}},workspace:{activeLeaf:null,eachLeaves:callback=>leaves.forEach(callback),on(){},ribbon:{addButton(){}}}}};
-    const parent={appendChild(leaf){leaves.push(leaf);document.body.replaceChildren(leaf.view.containerEl);leaf.view.onOpen();}};
+    const parent={appendChild(leaf){leaves.push(leaf);document.body.replaceChildren(leaf.view.container);leaf.view.onOpen();}};
     core.app.workspace.activeLeaf={parent}; core.app.workspace.createLeaf=({type,state})=>{const leaf={state,parent};leaf.view=factories.get(type)(leaf);window.view=leaf.view;return leaf;};
-    localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profile:'cmd',location:'active'}));
-    terminal_qa.create_graph_host(core).terminal(${JSON.stringify(root)},'cmd');
+    localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profile:'cmd',location:'panel'}));
+    window.binding=terminal_qa.bind_terminal_workspace({core,fs:require('node:fs'),path_api:require('node:path'),process_api:process,context_path:()=>${JSON.stringify(root)},workspace_path:()=>${JSON.stringify(root)},copy:async text=>{window.copied=text;},runner:()=>({run:async()=>${JSON.stringify(root)}})});window.entry=binding.open(${JSON.stringify(root)},'cmd');window.view=entry.surface;
     window.output_text=()=>{let text='';for(let index=0;index<view.term.buffer.active.length;index++)text+=view.term.buffer.active.getLine(index)?.translateToString()+'\\n';return text;};
   })()`);
-  await wait('view.containerEl.dataset.state === "running" && output_text().includes("Microsoft Windows")');
+  await wait('view.container.dataset.state === "running" && output_text().includes("Microsoft Windows")');
   await evaluate('view.term.focus()');
   test_window.webContents.insertText('echo INPUT_'); await delay(100);
   for (const letter of 'KEYS') await key(letter);
@@ -39,12 +39,12 @@ app.whenReady().then(async () => {
   test_window.webContents.insertText('ping -t 127.0.0.1'); await key('Enter'); await delay(500); await key('c',['control']);
   test_window.webContents.insertText('echo AFTER_INTERRUPT'); await key('Enter'); await wait('(output_text().match(/AFTER_INTERRUPT/g)||[]).length>=2');
   await evaluate('view.term.selectAll()'); await key('c',['control','shift']); assert((await evaluate('window.copied')).includes('AFTER_INTERRUPT'));
-  await key('f',['control','shift']); await wait('!!document.querySelector(".git-graph-dialog-shade")'); await key('Escape');
+  await key('f',['control','shift']); await wait('!!document.querySelector(".terminal-find:not([hidden])")'); await key('Escape');
   const point=await evaluate('(()=>{const r=view.viewport.getBoundingClientRect();return {x:Math.round(r.x+120),y:Math.round(r.y+120)}})()');
   for(const type of ['mouseMove','mouseDown','mouseUp']) { test_window.webContents.sendInputEvent({type,...point,button:'right',clickCount:1}); await delay(50); }
   await wait('!!document.querySelector("[data-action=terminal_admin]")');
   fs.writeFileSync(path.join(evidence,'terminal.png'),(await test_window.webContents.capturePage()).toPNG()); await key('Escape');
   const before=await evaluate('view.term.cols'); test_window.setSize(750,600); await delay(500); assert(await evaluate('view.term.cols')<before);
-  await evaluate('view.dispose()');
+  await evaluate('binding.dispose()');
   console.log(JSON.stringify({status:'PASS',checks:['typed input','arrow-key command history','Ctrl+C interrupt','Ctrl+Shift+C copy','find shortcut and Escape','real right-click terminal menu','window resize'],evidence}));
-}).catch(async error=>{console.error(error);if(test_window){console.error(await evaluate('document.body.innerText'));await evaluate('window.view?.dispose()');}process.exitCode=1;}).finally(()=>{if(test_window&&!test_window.isDestroyed())test_window.destroy();app.exit(process.exitCode || 0);});
+}).catch(async error=>{console.error(error);if(test_window){console.error(await evaluate('document.body.innerText'));await evaluate('window.binding?.dispose()');}process.exitCode=1;}).finally(()=>{if(test_window&&!test_window.isDestroyed())test_window.destroy();app.exit(process.exitCode || 0);});

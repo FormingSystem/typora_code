@@ -12,6 +12,7 @@ import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n";
 import {is_markdown_file} from "./file_language";
 import {create_git_revision_reader} from "./git_revision_reader";
+import {create_text_document} from "./workspace_text_document";
 
 const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
@@ -19,13 +20,14 @@ export type graph_leaf = { state: { path: string; git_cwd?: string; workspace_pr
   parent: { containerEl?: HTMLElement; tabHeader?: {getTabById(path:string):HTMLElement|undefined}; appendChild(leaf: graph_leaf): void; toggleTab(path: string): graph_leaf; removeTab?(path: string): unknown } };
 type sidebar_panel = {containerEl: HTMLElement; ribbonButton?: unknown; addRibbonButton(button: {id: string; title: string; icon: HTMLElement; group?: string}): void};
 export type graph_core = {
+  Notice: new(message:string,duration?:number)=>unknown;
   SidebarPanel: new () => sidebar_panel;
   WorkspaceView: new (leaf: graph_leaf) => { containerEl: HTMLElement; icon: string; leaf: graph_leaf };
   app: {
     vault?: { on(event: "mounted", callback: (path: string) => void): () => void };
     openFile(path: string): unknown;
     viewManager: { registerView(type: string, factory: (leaf: graph_leaf) => unknown): () => void };
-    commands: { register(command: { id: string; title: string; scope: string; callback(): void }): () => void; run(id: string, args?: unknown[]): void };
+    commands: { register(command: { id: string; title: string; scope: string; showInCommandPanel?:boolean; callback(...args:any[]): void }): () => void; run(id: string, args?: unknown[]): void };
     workspace: { sidebar: {addPanel(panel: sidebar_panel): () => void; switch(panel: new () => sidebar_panel): void; show(): void; hide(): void; toggle(): void; isShown: boolean; activePanel?: sidebar_panel}; activeLeaf: graph_leaf | null; activeFile: string; eachLeaves(callback: (leaf: graph_leaf) => void): void;
       createLeaf(state: { type: string; state: graph_leaf["state"] }): graph_leaf;
       on(event: string, callback: (context: any) => void): () => void;
@@ -125,7 +127,7 @@ export function create_graph_host(core: graph_core) {
   const host = {
     core, fs, path_api, process_api,
     dispose(){
-      if(disposed)return;disposed=true;file_icon_style.remove();terminal_workspace.dispose();
+      if(disposed)return;disposed=true;if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
       for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
       views.clear();for(const payload of contents.values())payload.options.dispose?.();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
@@ -220,6 +222,9 @@ export function create_graph_host(core: graph_core) {
       if (existing && group === "active") { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
       else add_tab("linux_note.git_document", uri, group);
     },
+    workspace_path():string {
+      return get_workspace_files()?.context_root() || this.context_path() || process_api.env.USERPROFILE || process_api.env.HOME || process_api.cwd();
+    },
     open_revision_document(root: string, revision: string, file: string, content: string, settings: graph_settings, fragment = "") {
       const group = settings.new_tab_group; let reader_disposed = false;
       const title = `${revision.slice(0, 8)} · ${file}`, label = text("scm.readonly_label", {file, revision: revision.slice(0, 8)});
@@ -290,6 +295,19 @@ export function create_graph_host(core: graph_core) {
       }));
     },
   };
+  const unregister_compare=core.app.commands.register({id:"linux_note:compare_files",title:"文件：比较所选文件",scope:"global",showInCommandPanel:false,callback:(left:string,right:string)=>{
+    void (async()=>{
+      const files=get_workspace_files();
+      const read=async(target:string)=>{
+        if(typeof target!=="string"||!path_api.isAbsolute(target))throw new Error("比较目标必须是文件。");
+        // 当前内存正文优先，比较不会自动保存或丢弃未保存内容。
+        if(files)return files.read_text(target);
+        return (await create_text_document({fs,path_api},target).load()).text;
+      };
+      const [before,after]=await Promise.all([read(left),read(right)]);if(disposed)return;
+      host.open_document({title:path_api.basename(left)+" ↔ "+path_api.basename(right),file:right,left:before,right:after,left_label:path_api.basename(left),right_label:path_api.basename(right)},"active",{root:files?.context_root(),key:JSON.stringify(["compare",left,right]),menu:()=>[{id:"open_file",title:"打开右侧文件",action:()=>void files?.open_file(right)}]});
+    })().catch(error=>{if(!disposed){const dialog=graph_dialog("比较文件");dialog.content.textContent=String(error instanceof Error?error.message:error);}});
+  }});
   terminal_workspace = bind_terminal_workspace(host);
   return host;
 }

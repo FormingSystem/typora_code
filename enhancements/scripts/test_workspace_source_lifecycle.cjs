@@ -13,7 +13,7 @@ app.whenReady().then(async()=>{
   test_window=new BrowserWindow({show:false,width:700,height:520,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});
   test_window.webContents.on('will-prevent-unload',()=>{});
   const html=path.join(evidence,'test.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><p>Isolated source close fixture</p>');await test_window.loadFile(html);
-  const bundle=await build({entryPoints:[path.join(__dirname,'../src/workspace_source_lifecycle.ts')],bundle:true,write:false,format:'iife',globalName:'lifecycle_qa'});
+  const bundle=await build({entryPoints:[path.join(__dirname,'../src/workspace_source_lifecycle.ts')],bundle:true,write:false,format:'iife',globalName:'lifecycle_qa',loader:{'.css':'text'}});
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`(()=>{
     window.native_calls=0;window.save_calls=0;window.dirty_flag=true;window.save_mode='success';window.release_save=undefined;
