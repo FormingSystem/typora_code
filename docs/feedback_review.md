@@ -294,3 +294,11 @@ R020/R022/R024按最新截图修复。公共交互层统一4px控件圆角，动
 ## 2026-09-13 安装入口规范化
 
 R025：公开入口现统一为install/check/restore，Windows加_windows，CMD只转交安装；事务脚本归scripts/。本文历史记录中的configure和check_configuration等名称保留原时点含义，当前用户操作统一见[安装指南](installation.md)。首页改为产品介绍与Windows快速开始，平台、离线Node、更新覆盖、卸载与回退备份用途集中说明。恢复对比剥离托管入口后的宿主页面，外部变化时在写入前拒绝；2026-09-13：Windows PowerShell 5.1 公开 install/check/restore 入口在含空格的隔离目录通过首次/重复安装、损坏清单、宿主变化零写入拒绝、原偏好恢复和故障回滚；Python 事务全部通过。完整 npm run check 通过；26份文档、50项需求、354本地链接与187锚点核对通过。Bash 命令所在环境未具备，未运行 UCRT64/Linux 入口或 ARM64 原生实例，已在用户指南明确。日志为 `.cache/install_entry_windows_final_20260913.log`、`install_entry_python_20260913.log`、`install_entry_check_20260913.log`；文档证据为 `.cache/issue_tracking/requirements_install_entry_verification_20260913.json`。测试仅使用临时安装和用户数据目录，未卸载或重启用户 Typora。
+
+## 2026-09-13 终端分隔条与列表排序
+
+R006.1：列表默认120px，可拖至46px图标模式或80px～500px文字宽度；分屏宽度按会话身份保留，同组排序跟随会话，同窗跨组拖放移动整个组。列表与分屏使用共同分隔条交互，正常松开提交，取消恢复。搬到编辑器时解除分屏宽度，保持同一个PTY和缓冲。
+
+最终 `test_terminal_panel.cjs` 通过真实Electron指针拖动、取消、左右列表、窄窗口/125%缩放、同组/跨组/空白排序与编辑器满宽验证；`test_terminal_theme.cjs` 覆盖明暗与卸载。列表DnD由浏览器DragEvent/DataTransfer事件链验证，未冒充物理鼠标拖放实测。隔离原生Typora1.14.10的 `terminal_layout_native_20260913/checks.json` 通过11项，包含真实PTY身份、缩放几何、整个组移动与原文档字节保护；截图已检查。发现的border-box分屏偏差和编辑器残留宽度已在共同几何边界修复。
+
+构建与完整检查日志为 `.cache/terminal_layout_build_final_20260913.log`、`.cache/terminal_layout_check_final_20260913.log`，目标UI日志为 `.cache/terminal_layout_ui_final_20260913.log` 与 `.cache/terminal_layout_theme_final_20260913.log`。此条仅记录已实现的同窗布局，跨窗PTY、进程恢复、任务与远端仍保留原未完成编号。安装在本次日常操作功能验证后统一执行，不重启用户窗口。

@@ -192593,6 +192593,267 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/terminal_sash.ts
+  function bind_terminal_sash(node, options2) {
+    const lifetime = create_workspace_lifetime();
+    let drag;
+    node.tabIndex = 0;
+    node.setAttribute("role", "separator");
+    node.setAttribute("aria-orientation", "vertical");
+    const finish = (accept) => {
+      const previous = drag;
+      if (!previous) return;
+      drag = void 0;
+      node.classList.remove("is-dragging");
+      if (!accept) options2.write(previous.value);
+      else options2.commit?.();
+      if (node.hasPointerCapture(previous.id)) node.releasePointerCapture(previous.id);
+    };
+    node.onpointerdown = (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      drag = { id: event.pointerId, x: event.clientX, value: options2.read() };
+      node.classList.add("is-dragging");
+      node.setPointerCapture(event.pointerId);
+    };
+    node.onpointermove = (event) => {
+      if (drag?.id === event.pointerId) options2.write(drag.value + event.clientX - drag.x);
+    };
+    node.onpointerup = (event) => {
+      if (drag?.id === event.pointerId) finish(true);
+    };
+    node.onpointercancel = () => finish(false);
+    node.onlostpointercapture = () => finish(false);
+    node.ondblclick = (event) => {
+      event.preventDefault();
+      finish(false);
+      options2.reset();
+      options2.commit?.();
+    };
+    node.onkeydown = (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      finish(false);
+      if (event.key === "Home") options2.reset();
+      else options2.write(options2.read() + (event.key === "ArrowRight" ? 10 : -10));
+      options2.commit?.();
+    };
+    lifetime.listen(document, "keydown", (event) => {
+      if (event.key === "Escape" && drag) {
+        event.preventDefault();
+        event.stopPropagation();
+        finish(false);
+      }
+    }, true);
+    lifetime.listen(window, "blur", () => finish(false));
+    lifetime.add(() => finish(false));
+    lifetime.add(() => {
+      node.onpointerdown = node.onpointermove = node.onpointerup = node.onpointercancel = node.onlostpointercapture = node.onkeydown = node.ondblclick = null;
+    });
+    return lifetime;
+  }
+
+  // src/terminal_layout.ts
+  var LIST_WIDTH_KEY = "typora-code:terminal-list-width";
+  function create_terminal_layout(body, tabs, changed) {
+    const lifetime = create_workspace_lifetime(), groups = /* @__PURE__ */ new Map(), sash = workspace_element("div", "terminal-tabs-sash");
+    sash.setAttribute("aria-label", "\u8C03\u6574\u7EC8\u7AEF\u5217\u8868\u5BBD\u5EA6");
+    body.append(sash);
+    let width2 = 120, frame2 = 0, direction = 1;
+    try {
+      const saved = Number(localStorage.getItem(LIST_WIDTH_KEY));
+      if (Number.isFinite(saved) && saved >= 46 && saved <= 500) width2 = saved;
+    } catch {
+    }
+    const save = () => {
+      try {
+        localStorage.setItem(LIST_WIDTH_KEY, String(width2));
+      } catch {
+      }
+    };
+    const schedule = () => {
+      if (!frame2 && !lifetime.disposed) frame2 = requestAnimationFrame(layout2);
+    };
+    const list_width = (value) => value < 63 ? 46 : Math.max(80, Math.min(500, value));
+    lifetime.own(bind_terminal_sash(sash, { read: () => {
+      direction = body.dataset.tabsLocation === "left" ? 1 : -1;
+      return width2 * direction;
+    }, write: (value) => {
+      width2 = list_width(value * direction);
+      layout2();
+    }, commit: save, reset: () => {
+      width2 = 120;
+      layout2();
+    } }));
+    function layout2() {
+      frame2 = 0;
+      if (lifetime.disposed) return;
+      const available = body.clientWidth, effective = Math.min(width2, Math.max(46, available - 120));
+      tabs.style.width = effective + "px";
+      tabs.dataset.narrow = String(effective < 80);
+      sash.hidden = tabs.hidden;
+      const bounds = body.getBoundingClientRect(), tab_bounds = tabs.getBoundingClientRect(), left = body.dataset.tabsLocation === "left";
+      sash.style.left = (left ? tab_bounds.right : tab_bounds.left) - bounds.left - 2 + "px";
+      sash.setAttribute("aria-valuemin", "46");
+      sash.setAttribute("aria-valuemax", String(Math.min(500, Math.max(46, available - 120))));
+      sash.setAttribute("aria-valuenow", String(Math.round(effective)));
+      for (const group of groups.values()) {
+        if (group.node.hidden) continue;
+        const total = group.node.clientWidth, count = group.panes.length;
+        if (!count || !total) continue;
+        const minimum = Math.min(80, total / count), remaining = new Set(group.panes), sizes = /* @__PURE__ */ new Map();
+        let space = total;
+        while (remaining.size) {
+          const weight2 = [...remaining].reduce((sum, node) => sum + (group.weights.get(node.dataset.session) || 1), 0);
+          const limited = [...remaining].filter((node) => space * (group.weights.get(node.dataset.session) || 1) / weight2 < minimum);
+          if (!limited.length) {
+            for (const node of remaining) sizes.set(node, space * (group.weights.get(node.dataset.session) || 1) / weight2);
+            break;
+          }
+          for (const node of limited) {
+            sizes.set(node, minimum);
+            space -= minimum;
+            remaining.delete(node);
+          }
+        }
+        let offset = 0;
+        group.panes.forEach((node, index) => {
+          const size = sizes.get(node) || 0;
+          node.style.setProperty("--terminal-pane-width", size + "px");
+          offset += size;
+          const divider = group.node.querySelector('[data-split-index="'.concat(index, '"]'));
+          if (divider) {
+            divider.style.left = offset - 2 + "px";
+            divider.setAttribute("aria-valuenow", String(Math.round(size)));
+            divider.setAttribute("aria-valuemin", String(Math.round(minimum)));
+            divider.setAttribute("aria-valuemax", String(Math.round(total - minimum)));
+          }
+        });
+      }
+      changed();
+    }
+    const observer = new ResizeObserver(schedule);
+    observer.observe(body);
+    lifetime.add(() => observer.disconnect());
+    function update(nodes) {
+      for (const [id, group] of groups) if (!nodes.has(id)) {
+        group.clear();
+        groups.delete(id);
+      }
+      for (const [id, node] of nodes) {
+        const panes = [...node.children].filter((child) => child.matches(".linux-note-terminal")), signature = panes.map((pane) => pane.dataset.session).join("|");
+        let group = groups.get(id);
+        if (group?.signature === signature) continue;
+        group?.clear();
+        const previous = group?.weights || /* @__PURE__ */ new Map(), weights = /* @__PURE__ */ new Map();
+        const retained = panes.filter((pane) => previous.has(pane.dataset.session)), retained_weight = retained.reduce((sum2, pane) => sum2 + (previous.get(pane.dataset.session) || 0), 0);
+        for (const pane of panes) weights.set(pane.dataset.session, previous.has(pane.dataset.session) ? (previous.get(pane.dataset.session) || 0) * retained.length / Math.max(1, panes.length) / Math.max(Number.EPSILON, retained_weight) : 1 / Math.max(1, panes.length));
+        const sum = [...weights.values()].reduce((a, b2) => a + b2, 0) || 1;
+        for (const [key, value] of weights) weights.set(key, value / sum);
+        const bindings6 = create_workspace_lifetime();
+        group = { node, panes, signature, weights, clear: bindings6.dispose };
+        groups.set(id, group);
+        for (let index = 0; index < panes.length - 1; index++) {
+          const left = panes[index], right = panes[index + 1], divider = workspace_element("div", "terminal-split-sash");
+          divider.dataset.splitIndex = String(index);
+          divider.setAttribute("aria-label", "\u8C03\u6574\u7EC8\u7AEF\u5206\u5C4F ".concat(index + 1));
+          node.append(divider);
+          let pair_width = 0;
+          const current = group;
+          bindings6.own(bind_terminal_sash(divider, { read: () => {
+            pair_width = left.getBoundingClientRect().width + right.getBoundingClientRect().width;
+            return left.getBoundingClientRect().width;
+          }, write: (value) => {
+            const minimum = Math.min(80, pair_width / 2), size = Math.max(minimum, Math.min(pair_width - minimum, value)), pair_weight = (weights.get(left.dataset.session) || 0) + (weights.get(right.dataset.session) || 0);
+            weights.set(left.dataset.session, pair_weight * size / Math.max(1, pair_width));
+            weights.set(right.dataset.session, pair_weight * (pair_width - size) / Math.max(1, pair_width));
+            layout2();
+          }, reset: () => {
+            for (const pane of current.panes) weights.set(pane.dataset.session, 1 / current.panes.length);
+            layout2();
+          } }));
+          bindings6.add(() => divider.remove());
+        }
+      }
+      layout2();
+    }
+    lifetime.add(() => {
+      cancelAnimationFrame(frame2);
+      for (const group of groups.values()) group.clear();
+      groups.clear();
+      sash.remove();
+    });
+    return { update, layout: schedule, dispose: lifetime.dispose };
+  }
+
+  // src/terminal_tab_drag.ts
+  var MIME = "application/x-typora-code-terminal-tab";
+  function bind_terminal_tab_drag(tabs, move, settled) {
+    const lifetime = create_workspace_lifetime();
+    let source = "", mark, after2 = false;
+    const clear_mark = () => {
+      mark?.removeAttribute("data-drop-edge");
+      mark = void 0;
+      tabs.classList.remove("is-drop-end");
+    };
+    const finish = () => {
+      clear_mark();
+      if (!source) return;
+      source = "";
+      settled();
+    };
+    lifetime.listen(tabs, "dragstart", (event) => {
+      const drag = event, row = drag.target.closest(".terminal-tab");
+      if (!row || drag.target.closest("button") || !drag.dataTransfer) {
+        drag.preventDefault();
+        return;
+      }
+      source = row.dataset.session || "";
+      drag.dataTransfer.setData(MIME, source);
+      drag.dataTransfer.effectAllowed = "move";
+    });
+    lifetime.listen(tabs, "dragover", (event) => {
+      const drag = event;
+      if (!source || !drag.dataTransfer?.types.includes(MIME)) return;
+      drag.preventDefault();
+      drag.dataTransfer.dropEffect = "move";
+      clear_mark();
+      mark = drag.target.closest(".terminal-tab") || void 0;
+      if (mark) {
+        const rect2 = mark.getBoundingClientRect();
+        after2 = drag.clientY >= rect2.top + rect2.height / 2;
+        mark.dataset.dropEdge = after2 ? "after" : "before";
+      } else tabs.classList.add("is-drop-end");
+      const rect = tabs.getBoundingClientRect();
+      if (drag.clientY < rect.top + 22) tabs.scrollTop -= 22;
+      else if (drag.clientY > rect.bottom - 22) tabs.scrollTop += 22;
+    });
+    lifetime.listen(tabs, "dragleave", (event) => {
+      if (!event.relatedTarget || !tabs.contains(event.relatedTarget)) clear_mark();
+    });
+    lifetime.listen(tabs, "drop", (event) => {
+      const drag = event;
+      if (!source || drag.dataTransfer?.getData(MIME) !== source) return;
+      drag.preventDefault();
+      const id = source, target = mark?.dataset.session || "", edge = after2;
+      source = "";
+      clear_mark();
+      move(id, target, edge);
+      settled();
+    });
+    lifetime.listen(tabs, "dragend", finish);
+    lifetime.listen(window, "blur", finish);
+    lifetime.listen(document, "keydown", (event) => {
+      if (event.key === "Escape") finish();
+    }, true);
+    lifetime.add(finish);
+    return { get active() {
+      return Boolean(source);
+    }, dispose: lifetime.dispose };
+  }
+
   // src/terminal_panel.ts
   function create_terminal_panel(changed) {
     const lifetime = create_workspace_lifetime();
@@ -192739,7 +193000,10 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_terminal_workspace(host) {
     const lifetime = create_workspace_lifetime(), core = host.core;
     try {
-      let session_menu = function(id) {
+      let ordered_panel_entries = function() {
+        const entries3 = [...sessions.values()].filter((item) => item.location === "panel");
+        return [...new Set(entries3.map((item) => item.session.group))].flatMap((group) => entries3.filter((item) => item.session.group === group));
+      }, session_menu = function(id) {
         const entry = sessions.get(id);
         if (!entry) return [];
         const { session, surface } = entry;
@@ -192765,8 +193029,8 @@ https://creativecommons.org/licenses/by/4.0/
           { title: "\u7EC8\u7AEF\u8BBE\u7F6E\u2026", separator: true, action: configure }
         ];
       }, render = function() {
-        if (lifetime.disposed) return;
-        const config = settings.get(), entries3 = [...sessions.values()].filter((item) => item.location === "panel");
+        if (lifetime.disposed || tab_drag.active) return;
+        const config = settings.get(), entries3 = ordered_panel_entries();
         const group_ids = new Set(entries3.map((item) => item.session.group)), active_group = active()?.location === "panel" ? active().session.group : entries3[0]?.session.group;
         panel.body.dataset.tabsLocation = config.tabs_location;
         panel.tabs.hidden = config.tabs_hide === "single_terminal" ? entries3.length < 2 : config.tabs_hide === "single_group" ? group_ids.size < 2 : false;
@@ -192786,13 +193050,15 @@ https://creativecommons.org/licenses/by/4.0/
             panel.panes.append(group);
           }
           group.hidden = session.group !== active_group;
-          if (surface.container.parentElement !== group) group.append(surface.container);
+          const position2 = entries3.filter((item) => item.session.group === session.group).indexOf(entry), existing = [...group.children].filter((node) => node.matches(".linux-note-terminal"))[position2];
+          if (existing !== surface.container) group.insertBefore(surface.container, existing || null);
           surface.mount();
           const row = workspace_element("div", "terminal-tab");
           row.setAttribute("role", "tab");
           row.tabIndex = session.id === active_id ? 0 : -1;
           row.setAttribute("aria-selected", String(session.id === active_id));
           row.dataset.session = session.id;
+          row.draggable = true;
           row.title = "".concat(session.title, "\n").concat(session.root, "\n").concat(session.state).concat(session.pid ? " \xB7 PID " + session.pid : "");
           const icon = git_icon(icons.includes(session.icon) ? session.icon : "terminal");
           if (session.color) icon.style.color = session.color;
@@ -192816,6 +193082,7 @@ https://creativecommons.org/licenses/by/4.0/
           };
           panel.tabs.append(row);
         }
+        layout2.update(groups);
         for (const entry of sessions.values()) if (entry.leaf) {
           const label = entry.leaf.parent.tabHeader?.getTabById(entry.leaf.state.path)?.querySelector(".typ-file-basename");
           if (label) label.textContent = entry.session.title;
@@ -192841,6 +193108,29 @@ https://creativecommons.org/licenses/by/4.0/
       let serial2 = 0, group_serial = 0, active_id = "", render_frame = 0;
       const panel = lifetime.own(create_terminal_panel(() => {
         for (const entry of sessions.values()) entry.surface.resize();
+      }));
+      const layout2 = lifetime.own(create_terminal_layout(panel.body, panel.tabs, () => {
+        for (const entry of sessions.values()) entry.surface.resize();
+      }));
+      const tab_drag = lifetime.own(bind_terminal_tab_drag(panel.tabs, (source, target, after2) => {
+        const entry = sessions.get(source), other = sessions.get(target);
+        if (!entry || entry.location !== "panel" || target && (!other || other.location !== "panel")) return;
+        const entries3 = ordered_panel_entries(), same_group = other?.session.group === entry.session.group;
+        const moving = entries3.filter((item) => same_group ? item === entry : item.session.group === entry.session.group);
+        if (other && moving.includes(other)) return;
+        const remaining = entries3.filter((item) => !moving.includes(item));
+        let index = remaining.length;
+        if (other) {
+          const indices = remaining.map((item, index2) => ({ item, index: index2 })).filter((value) => same_group ? value.item === other : value.item.session.group === other.session.group);
+          index = after2 ? indices.at(-1).index + 1 : indices[0].index;
+        }
+        remaining.splice(index, 0, ...moving);
+        const editors = [...sessions.values()].filter((item) => item.location !== "panel");
+        sessions.clear();
+        for (const item of [...remaining, ...editors]) sessions.set(item.session.id, item);
+        render();
+      }, () => {
+        if (!lifetime.disposed) render();
       }));
       const active = () => sessions.get(active_id);
       lifetime.add(bind_terminal_state(core.app, () => ({ active_id, location: active()?.location, panel_visible: panel.visible })));

@@ -27,7 +27,7 @@
 | 文件树缩进 | 每级8px；文件行没有空展开槽 | `src/vs/platform/list/browser/listService.ts`、`src/vs/workbench/browser/parts/views/media/views.css`；保留本工作台26px行高 |
 | Explorer 与终端弹出菜单 | 13px字体、24px行高、上下4px内边距 | `src/vs/base/browser/ui/menu/menu.ts`；共同组件应用同一几何 |
 | 终端面板 | 初始高度占可用高度40%，用户可调；顶栏35px | `src/vs/workbench/browser/parts/panel/panelPart.ts` 及工作台面板标题规则；扣除本宿主标题栏和底栏 |
-| 终端会话与工具图标 | 列表22px行高，16px字形，22px操作目标 | `src/vs/workbench/contrib/terminal/browser/media/terminal.css`；列表宽度当前为本产品180px，不宣称完整拖动行为等价 |
+| 终端会话与工具图标 | 列表22px行高，16px字形，22px操作目标 | `src/vs/workbench/contrib/terminal/browser/media/terminal.css`；列表默认120px、窄模式46px，拖动边界见下文R006.1 |
 | 终端活动栏入口 | 24px字形，48px点击目标 | `activitybarPart.ts` 的 `ICON_SIZE=24`；48px采用当前已确认的连续活动栏功能行，面板工具仍为16px |
 | 终端配置默认 | Windows字号14、缓冲1000行、最小对比度4.5、列表在右侧、单会话时隐藏 | `src/vs/workbench/contrib/terminal/common/terminalConfiguration.ts`；实际设置范围见[终端说明](terminal_operations.md) |
 
@@ -82,3 +82,6 @@ Markdown 正文沿用原有底栏边距滑块：单侧0%～24%、默认0%，只�
 R024本次从本机发行文件读到VS Code1.137.0、提交`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`。仅用这一固定版本核对内置SCM Graph的按钮、悬停与布局；其余工作台继续使用此前冻结依据。实际用户配置边界、采用数值和全部Graph专用键的差异见[Graph配置核对](git_graph_configuration.md)。不使用已撤销的1秒延迟猜测，也不整体迁移旧基线表。
 
 2026-09-13圆角补充：R020/R022采用同一固定1.137.0源码的`cornerRadius.small=4px`，共享覆盖底栏、Graph提交/文件行和普通操作；分裂接缝保留独立形状。该参考来自Modern UI控件规则，不能泛称所有VS Code配置均有相同圆角；本工程仅采用用户要求的控件默认，完整来源与职责见[圆角设计](workspace_interaction.md#r020-默认圆角与独立形状)。
+
+
+2026-09-13，R006.1：固定1.136.2的 `TerminalTabsListSizes` 定义22px行、46px窄列表、80px宽列表最小、120px默认、500px最大；`terminalTabbedView.ts`定义主终端最小120px，`terminalGroup.ts`定义分屏最小80px。按此增加列表和分屏分隔条，同窗拖放移动组/组内会话。对话最后确认只将物理悬停与点击状态区分，不改变已交付Git动作。Terminal来源为微软官方固定提交，本次缓存已核对，运行不依赖缓存。
