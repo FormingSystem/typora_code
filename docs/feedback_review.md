@@ -302,3 +302,13 @@ R006.1：列表默认120px，可拖至46px图标模式或80px～500px文字宽�
 最终 `test_terminal_panel.cjs` 通过真实Electron指针拖动、取消、左右列表、窄窗口/125%缩放、同组/跨组/空白排序与编辑器满宽验证；`test_terminal_theme.cjs` 覆盖明暗与卸载。列表DnD由浏览器DragEvent/DataTransfer事件链验证，未冒充物理鼠标拖放实测。隔离原生Typora1.14.10的 `terminal_layout_native_20260913/checks.json` 通过11项，包含真实PTY身份、缩放几何、整个组移动与原文档字节保护；截图已检查。发现的border-box分屏偏差和编辑器残留宽度已在共同几何边界修复。
 
 构建与完整检查日志为 `.cache/terminal_layout_build_final_20260913.log`、`.cache/terminal_layout_check_final_20260913.log`，目标UI日志为 `.cache/terminal_layout_ui_final_20260913.log` 与 `.cache/terminal_layout_theme_final_20260913.log`。此条仅记录已实现的同窗布局，跨窗PTY、进程恢复、任务与远端仍保留原未完成编号。安装在本次日常操作功能验证后统一执行，不重启用户窗口。
+
+## 2026-09-13 Markdown 字体颜色与明暗主题适配
+
+R026已实现原生选区右键菜单的常用色、自定义色和恢复默认，使用同色系亮度调整适配背景。一次格式操作进入一个原生撤销事务，主题切换不改 Markdown 或撤销栈。表格源码缓存与单元格写入共同撤销，完整行内代码、转义字符和实体保留语法；不可安全映射的选区保持原文。使用说明与具体边界见[字体颜色设计](markdown_text_color.md#r026)。
+
+最终独立发布包的 `npm run build` 和完整 `npm run check` 通过；新增纯逻辑4组通过，字体颜色菜单6组、共享终端主题9组及工作台启动12组隐藏Electron回归通过。菜单测试使用实际公共对话框样式，检查常用／自定义颜色、无效输入、方向键、Esc、换文档拒绝、4px圆角、窄窗口及卸载恢复。日志为 `.cache/text_color_release_build_20260913.log`、`text_color_release_check_20260913.log` 和 `text_color_release_ui_20260913.log`。
+
+Windows Typora1.14.10私有桌面的最终发布包通过原生11组回归，覆盖中文与emoji、格式与链接、重复／局部恢复、跨段落、行内代码、表格保存、转义实体、过期身份及真实GitHub／Night主题。在新实例重新打开上一实例保存的文件，颜色与单个菜单入口保留，主题切换后文件字节和dirty状态不变；另用真实菜单动作验证常用／自定义色及原生撤销。原生交互由DOM事件和宿主API驱动，没有将其称为物理鼠标人工验收；截图已检查。完整证据为 `.cache/native_zoom_1_14_10/text_color_release_native_20260913/checks.json`，Linux／macOS原生实例未验证。
+
+本功能从已验证终端基线 `f90b409` 独立构建并事务安装，未带入其他待验收的文件操作代码。安装检查返回OK，ASAR、图标、原生偏好、工作区设置和主题摘要全部不变；已保存备份，未重启用户窗口。安装证据为 `.cache/text_color_install_20260913.log`、`text_color_install_check_20260913.log` 和 `text_color_install_verification_20260913.json`；隔离发布的输入与摘要记录在 `.cache/text_color_release_20260913.json`。

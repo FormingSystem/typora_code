@@ -50,6 +50,7 @@ Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux
 | 复制文件或文件夹的相对路径、绝对路径 | [复制文件路径](./enhancements/README.md#1.4.2_复制文件路径) |
 | 全文件资源管理器、隐藏目录、源码编辑保存及编码／换行设置 | [文件与语言识别](./enhancements/README.md#1.4.3_全部文件与语言识别) |
 | 按文件搜索、精确行列跳转、范围筛选及替换预览 | [工作区搜索与替换](./enhancements/README.md#1.4.4_工作区搜索与替换) |
+| 选中文字设置常用／自定义字体颜色、恢复默认及明暗主题适配 | [Markdown 字体颜色](docs/markdown_text_color.md) |
 | Ctrl／Cmd 加左键查找选中文字、单击预览及双击打开 | [选中文字的跳转预览](./enhancements/README.md#1.4.6_选中文字的跳转预览) |
 | 多文件时搜索卡顿、渐进结果与性能数据 | [搜索性能](docs/search_performance.md) |
 | 标签及侧栏工具的左键拖动、移至新窗口 | [拖动与多窗口](docs/drag_and_windows.md) |

@@ -39,6 +39,7 @@ const ui_tests = Object.freeze([
   "test_scm_file_icons.cjs",
   "test_scm_sidebar_layout.cjs",
   "test_scm_vscode_geometry.cjs",
+  "test_markdown_color.cjs",
   "test_terminal_theme.cjs",
   "test_terminal_panel.cjs",
   "test_workspace_activity.cjs",
