@@ -1,0 +1,14 @@
+/* 固定 VS Code hoverWidget.css：4×8px内容内距、500px最大宽度、自然1.5行高。 */
+.workspace-hover-surface {
+  position:fixed;z-index:2147483000;pointer-events:auto;box-sizing:border-box;
+  max-width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;
+  padding:4px 8px;border:1px solid var(--vscode-editorHoverWidget-border,#e4e5e6);border-radius:3px;
+  color:var(--vscode-editorHoverWidget-foreground,#202020);background:var(--vscode-editorHoverWidget-background,#fafafd);
+  box-shadow:0 2px 8px rgba(0,0,0,.16);font:400 13px/1.5 "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
+  white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;
+}
+.workspace-hover-surface[hidden] {display:none!important;}
+:root[data-workspace-file-icon-theme="dark"] .workspace-hover-surface {
+  color:var(--vscode-editorHoverWidget-foreground,#bfbfbf);background:var(--vscode-editorHoverWidget-background,#202122);
+  border-color:var(--vscode-editorHoverWidget-border,#2a2b2c);
+}

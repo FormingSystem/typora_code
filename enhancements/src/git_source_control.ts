@@ -1,3 +1,4 @@
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_file_icon, acquire_workspace_file_icons} from "./workspace_file_icons";
 import { workspace_element as el, workspace_button as button, type workspace_menu_entry } from "./workspace_widgets";
 import { compare_files, read_file_history, EMPTY, INDEX, WORKTREE, type graph_change } from "./git_graph_repository";
@@ -19,7 +20,8 @@ const operation_label = (operation: string) => {
 export class git_source_control {
   private file_icon_style = acquire_workspace_file_icons();
   sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups");
-  message = el("textarea", "git-scm-message"); branch = el("div", "git-scm-branch"); title = el("div", "git-scm-title"); repo_select = el("select", "git-scm-repository");
+  message = el("textarea", "git-scm-message"); branch = button("", () => {}, "git-scm-branch"); title = el("div", "git-scm-title"); repo_select = el("select", "git-scm-repository");
+  private interaction_style = acquire_workspace_interaction(this.sidebar);
   notice = el("div", "git-scm-notice");
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
   input_section = el("details", "git-scm-input-section"); changes_body = el("div", "git-scm-changes-body"); groups_scroll = 0; repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
@@ -49,6 +51,7 @@ export class git_source_control {
       {id: "commit_options", title: text("scm.open_commit_options"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, {message: this.message.value, amend: false})},
       {id: "commit_amend", title: text("scm.amend_last_commit"), disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, {message: this.message.value, amend: true})},
     ]);
+    commit.dataset.workspaceInteraction="primary";commit_options.dataset.workspaceInteraction="primary";
     const commit_bar = el("div", "git-scm-commit-bar"); commit_bar.append(commit, commit_options);
     this.repo_select.setAttribute("aria-label", text("scm.repository")); this.repo_select.onchange = () => panel.switch_repo(this.repo_select.value);
     this.changes_pane.setAttribute("aria-label", text("scm.working_tree_changes"));
@@ -337,5 +340,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void { this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
+  dispose(): void { this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

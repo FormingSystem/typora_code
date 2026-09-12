@@ -30,7 +30,7 @@
 .workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:35px;background:inherit;}
 .workspace-tab-strip .typ-tabs {height:35px;}
 .workspace-tab-strip .typ-tab {
-  box-sizing:border-box;height:35px;padding:0 8px!important;display:inline-flex;align-items:center;
+  box-sizing:border-box;height:35px;padding:0 8px!important;
   font:inherit;color:var(--workspace-tab-unfocused-inactive-fg);background:var(--workspace-tab-inactive-bg);
   border:0!important;border-right:1px solid var(--workspace-tab-border)!important;
 }
@@ -42,7 +42,8 @@
   color:var(--workspace-tab-active-fg);background:var(--workspace-tab-active-bg);
   box-shadow:inset 0 2px var(--workspace-tab-indicator);
 }
-.workspace-tab-strip .typ-tab:hover {background:var(--workspace-tab-active-bg);color:var(--workspace-tab-active-fg);}
-.workspace-tab-strip .typ-file-name,.workspace-tab-strip .typ-file-basename,.workspace-tab-strip .typ-file-ext {font:inherit;color:inherit;}
-.workspace-tab-strip .typ-close::before {font-size:16px;}
+/* VS Code action-label：16px 图标 + 两侧2px命中区，清除 core 的 rem 行高和单边补偿。 */
+.workspace-tab-strip .typ-close {display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;margin-left:4px;padding:0;border-radius:4px;font-style:normal;line-height:normal;}
+.workspace-tab-strip .typ-close::before {display:block;font-size:16px;line-height:16px;padding:0;}
+.workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;height:16px;line-height:16px;margin-top:0;margin-bottom:0;}
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}

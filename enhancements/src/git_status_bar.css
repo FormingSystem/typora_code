@@ -20,9 +20,7 @@ footer.ty-footer .linux-note-git-status {
   cursor: pointer;
 }
 .linux-note-git-status button[hidden] { display: none; }
-.linux-note-git-status button:hover:not(:disabled) { background: var(--vscode-statusBarItem-hoverBackground, var(--item-hover-bg-color, #8882)); color:var(--vscode-statusBarItem-hoverForeground, inherit); }
 .linux-note-git-status button:active:not(:disabled) { background:var(--vscode-statusBarItem-activeBackground, var(--item-hover-bg-color, #8882)); }
-.linux-note-git-status button:focus-visible { outline: 1px solid var(--primary-color, #007acc); outline-offset: -1px; }
 .linux-note-git-status button:disabled { cursor: default; opacity: .5; }
 .git-status-branch { flex: 0 1 auto; max-width: min(300px, 35vw); }
 .git-status-branch-label { overflow: hidden; text-overflow: ellipsis; }

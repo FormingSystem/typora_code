@@ -1,3 +1,4 @@
+import {workspace_interaction} from "./workspace_interaction";
 import codicons from "../vendor/codicons/icons.json";
 import { git_graph_text as text } from "./git_graph_i18n";
 
@@ -25,6 +26,7 @@ export function git_icon(name: git_icon_name, class_name = ""): SVGSVGElement {
 export function git_icon_button(name: git_icon_name, title: string, action: () => void, class_name = ""): HTMLButtonElement {
   const button = document.createElement("button"); button.type = "button";
   button.className = "git-icon-button" + (class_name ? " " + class_name : "");
+  workspace_interaction(button);
   button.title = title; button.setAttribute("aria-label", title); button.onclick = action; button.append(git_icon(name)); return button;
 }
 

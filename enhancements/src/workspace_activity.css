@@ -31,18 +31,10 @@
   fill: currentColor;
   stroke: none;
 }
-.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:hover {
-  color: var(--workspace-activity-active-foreground, #202020);
-  background: var(--workspace-activity-hover-background, transparent);
-}
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item[data-activity-active=true] {
   color: var(--workspace-activity-active-foreground, #202020);
   background:var(--workspace-activity-active-background,#dadada99);
   border-left-color:var(--workspace-activity-active-border,#000);
-}
-.typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item:focus-visible {
-  outline: 1px solid var(--workspace-activity-active-border, #000000);
-  outline-offset: -3px;
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-dragging {
   cursor: grabbing;
@@ -78,11 +70,7 @@
   font: inherit;
   cursor: pointer;
 }
-.workspace-activity-menu > button:hover:not(:disabled), .workspace-activity-menu > button:focus-visible {
-  outline: none;
-  color: #fff;
-  background: #0078d4;
-}
+
 .workspace-activity-menu > button:disabled { opacity: .45; cursor: default; }
 .workspace-activity-menu .git-standard-icon { width: 16px; height: 16px; flex: none; fill: currentColor; }
 .workspace-activity-menu [data-activity-move=up] > svg { transform: rotate(-90deg); }

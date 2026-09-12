@@ -151,3 +151,23 @@ export function pull_request_url(remote: string, branch: string, base: string, c
   if (url.hostname === "bitbucket.org") return `${web}/pull-requests/new?source=${encodeURIComponent(branch)}&dest=${encodeURIComponent(base)}`;
   throw new Error(text("repository.pr_template_required"));
 }
+
+export type commit_hover_detail = {message:string;files:number;insertions:number;deletions:number};
+export async function read_commit_hover_detail(run:git_run,state:repository_state,commit:graph_commit):Promise<commit_hover_detail>{
+  const hash=require_revision(commit.hash);
+  const [message,source]=await Promise.all([
+    run(state.root,["show","-s","--format=%B",hash,"--"]),
+    run(state.root,[...comparison_args(commit.parents[0]||EMPTY,hash,state.head),"--numstat","-z","--find-renames","--no-ext-diff","--no-textconv","--"])
+  ]);
+  let files=0,insertions=0,deletions=0;
+  const records=source.split("\0");
+  for(let index=0;index<records.length;index++){
+    const record=records[index];if(!record)continue;
+    const match=/^(\d+|-)\t(\d+|-)\t([\s\S]*)$/u.exec(record);
+    if(!match)throw new Error(text("history.stats_unavailable"));
+    files++;if(match[1]!=="-")insertions+=Number(match[1]);if(match[2]!=="-")deletions+=Number(match[2]);
+    // -z重命名以空路径引出旧名、新名；文件名中的制表符不能作为下一条记录。
+    if(!match[3])index+=2;
+  }
+  return {message:message.trim(),files,insertions,deletions};
+}

@@ -1,3 +1,4 @@
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_file_icons,workspace_file_icon} from "./workspace_file_icons";
 import {acquire_workspace_style} from "./workspace_styles";
 import { workspace_element as el, workspace_menu, workspace_dialog, type workspace_menu_entry } from "./workspace_widgets";
@@ -46,6 +47,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   const sidebar = core.app.workspace.sidebar;
   const style = acquire_workspace_style("typora-code-style:workspace_explorer", explorer_css, {});
   const container = el("section", "linux-note-workspace-explorer"); container.setAttribute("aria-label", "资源管理器");
+  const interaction=acquire_workspace_interaction(container);
   const toolbar = el("div", "workspace-explorer-toolbar");
   const title = el("strong", "", "资源管理器");
   const actions = el("div", "workspace-explorer-actions");
@@ -460,7 +462,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   window.addEventListener("focus", window_focus);
   function dispose() {
     file_icon_style.remove();
-    if (disposed) return; disposed = true; generation++; visible = false;
+    if (disposed) return; disposed = true;interaction.remove(); generation++; visible = false;
     native_observer.disconnect(); resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame); if (refresh_frame) cancelAnimationFrame(refresh_frame);

@@ -43,6 +43,17 @@ try {
   expect(git(root, ['cat-file', '-t', 'v1']) === 'tag', 'annotated tag stores multiline message');
   const state = await api.read_repository(reader.run, root, api.graph_defaults, 200);
   expect(state.commits.some(item => item.email === 'graph@example.invalid'), 'history reads author and committer metadata');
+  const root_hover = await api.read_commit_hover_detail(reader.run, state, state.commits.find(item => item.hash === first));
+  assert.deepEqual(root_hover, {message:'开始 :tada:',files:1,insertions:1,deletions:0});
+  const merge_hover = await api.read_commit_hover_detail(reader.run, state, state.commits.find(item => item.hash === merge));
+  expect(merge_hover.files===1&&merge_hover.insertions===1&&merge_hover.deletions===0,'commit hover compares merge against its first parent');
+  const hover_root=create_repo('hover stats');write(hover_root,'old name.md','one\ntwo\n');write(hover_root,'binary.dat',Buffer.from([0,1,2]));commit(hover_root,'含二进制的首笔');
+  git(hover_root,['mv','old name.md','new name.md']);write(hover_root,'binary.dat',Buffer.from([0,3,4]));write(hover_root,'added.md','added\n');const hover_hash=commit(hover_root,'完整提交信息\n\n保留 <img> 和换行');
+  const hover_state=await api.read_repository(reader.run,hover_root,api.graph_defaults,20);
+  const hover_detail=await api.read_commit_hover_detail(reader.run,hover_state,hover_state.commits.find(item=>item.hash===hover_hash));
+  assert.deepEqual(hover_detail,{message:'完整提交信息\n\n保留 <img> 和换行',files:3,insertions:1,deletions:0});
+  await assert.rejects(api.read_commit_hover_detail(reader.run,hover_state,{hash:'--bad',parents:[]}),/./u);
+  expect(!git(hover_root,['status','--porcelain'])&&head(hover_root)===hover_hash,'commit hover preserves repository and handles root, rename, binary and full message safely');
   const contained = await api.commit_containment(reader.run, state, first);
   expect(contained.includes('属于 HEAD') && contained.includes('refs/tags/v1'), 'containment reports HEAD and including refs');
   const branch_state = await api.read_repository(reader.run, root, api.graph_defaults, 200, ['refs/heads/feature']);

@@ -1,0 +1,7 @@
+/* 共同内容行：自然字体行盒，不以正文行高、top 或单边 padding 补偿。 */
+:is(footer.ty-footer .workspace-footer-group,footer.ty-footer .workspace-footer-control,.workspace-tab-strip .typ-tab) {
+  display:flex;align-items:center;align-content:center;box-sizing:border-box;line-height:normal!important;
+}
+:is(footer.ty-footer .workspace-footer-text,.workspace-tab-strip .typ-file-name,.workspace-tab-strip .typ-file-basename,.workspace-tab-strip .typ-file-ext) {
+  display:inline-flex;align-items:center;box-sizing:border-box;font:inherit;line-height:normal!important;color:inherit;
+}

@@ -481,6 +481,18 @@
       "source_path": "src/icons/symbol-parameter.svg",
       "git_blob_sha1": "f30132dd4996c7401fcf218b5d0cb4f9fd1ef298",
       "sha256": "b6f546ea92c49416ecf678fdfce22676ec238ea055a667d545207b95731f9f7c"
+    },
+    "account": {
+      "file": "icons/account.svg",
+      "source_path": "src/icons/account.svg",
+      "git_blob_sha1": "ca37ef5298050f66ae7441b876bb416d4f041805",
+      "sha256": "dcc60807438a20e22df9f3175487190c3a12a1b14f8f57abafdb91a57c0dc01e"
+    },
+    "copy": {
+      "file": "icons/copy.svg",
+      "source_path": "src/icons/copy.svg",
+      "git_blob_sha1": "39a62984ea20fdc90b94b8a31962219eb734d912",
+      "sha256": "0fc12b2cb386b45c074e281a7314019810fb816e8fd5cd0c89630e913488f90c"
     }
   },
   "licenses": [

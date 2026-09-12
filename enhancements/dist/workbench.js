@@ -158163,6 +158163,30 @@ https://creativecommons.org/licenses/by/4.0/
     return handle;
   }
 
+  // src/workspace_interaction.css
+  var workspace_interaction_default = "";
+
+  // src/workspace_interaction.ts
+  function workspace_interaction(node, role = "action") {
+    node.setAttribute("data-workspace-interaction", role);
+    return node;
+  }
+  function acquire_workspace_interaction(root) {
+    const previous = root?.getAttribute("data-workspace-surface") ?? null;
+    root?.setAttribute("data-workspace-surface", "");
+    const style = acquire_workspace_style("typora-code-style:workspace_interaction", workspace_interaction_default);
+    let removed = false;
+    return { remove() {
+      if (removed) return;
+      removed = true;
+      style.remove();
+      if (root) {
+        if (previous === null) root.removeAttribute("data-workspace-surface");
+        else root.setAttribute("data-workspace-surface", previous);
+      }
+    } };
+  }
+
   // vendor/codicons/icons.json
   var icons_default = {
     "arrow-left": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.5 8.00023H3.70701L7.85301 3.85423C8.04801 3.65923 8.04801 3.34223 7.85301 3.14723C7.65801 2.95223 7.34101 2.95223 7.14601 3.14723L2.14601 8.14723C1.95101 8.34223 1.95101 8.65923 2.14601 8.85423L7.14601 13.8542C7.24401 13.9522 7.37201 14.0002 7.50001 14.0002C7.62801 14.0002 7.75601 13.9512 7.85401 13.8542C8.04901 13.6592 8.04901 13.3422 7.85401 13.1472L3.70801 9.00123H13.501C13.777 9.00123 14.001 8.77723 14.001 8.50123C14.001 8.22523 13.777 8.00123 13.501 8.00123L13.5 8.00023Z"/></svg>',
@@ -158244,12 +158268,20 @@ https://creativecommons.org/licenses/by/4.0/
     "symbol-constant": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M4.5 2C3.83696 2 3.20107 2.26339 2.73223 2.73223C2.26339 3.20107 2 3.83696 2 4.5V11.5C2 12.163 2.26339 12.7989 2.73223 13.2678C3.20107 13.7366 3.83696 14 4.5 14H11.5C12.163 14 12.7989 13.7366 13.2678 13.2678C13.7366 12.7989 14 12.163 14 11.5V4.5C14 3.83696 13.7366 3.20107 13.2678 2.73223C12.7989 2.26339 12.163 2 11.5 2H4.5ZM3 4.5C3 4.10218 3.15804 3.72064 3.43934 3.43934C3.72064 3.15804 4.10218 3 4.5 3H11.5C11.8978 3 12.2794 3.15804 12.5607 3.43934C12.842 3.72064 13 4.10218 13 4.5V11.5C13 11.8978 12.842 12.2794 12.5607 12.5607C12.2794 12.842 11.8978 13 11.5 13H4.5C4.10218 13 3.72064 12.842 3.43934 12.5607C3.15804 12.2794 3 11.8978 3 11.5V4.5Z"/><path d="M5 6.5C5 6.36739 5.05268 6.24021 5.14645 6.14645C5.24021 6.05268 5.36739 6 5.5 6H10.5C10.6326 6 10.7598 6.05268 10.8536 6.14645C10.9473 6.24021 11 6.36739 11 6.5C11 6.63261 10.9473 6.75979 10.8536 6.85355C10.7598 6.94732 10.6326 7 10.5 7H5.5C5.36739 7 5.24021 6.94732 5.14645 6.85355C5.05268 6.75979 5 6.63261 5 6.5ZM10.5 9H5.5C5.36739 9 5.24021 9.05268 5.14645 9.14645C5.05268 9.24021 5 9.36739 5 9.5C5 9.63261 5.05268 9.75979 5.14645 9.85355C5.24021 9.94732 5.36739 10 5.5 10H10.5C10.6326 10 10.7598 9.94732 10.8536 9.85355C10.9473 9.75979 11 9.63261 11 9.5C11 9.36739 10.9473 9.24021 10.8536 9.14645C10.7598 9.05268 10.6326 9 10.5 9Z"/></svg>',
     "symbol-interface": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M11.5 4.5C9.742 4.5 8.296 5.808 8.051 7.5H4.929C4.705 6.64 3.929 6 3 6C1.897 6 1 6.897 1 8C1 9.103 1.897 10 3 10C3.929 10 4.705 9.36 4.929 8.5H8.051C8.296 10.192 9.742 11.5 11.5 11.5C13.43 11.5 15 9.93 15 8C15 6.07 13.43 4.5 11.5 4.5ZM3 9C2.448 9 2 8.551 2 8C2 7.449 2.448 7 3 7C3.552 7 4 7.449 4 8C4 8.551 3.552 9 3 9ZM11.5 10.5C10.121 10.5 9 9.378 9 8C9 6.622 10.121 5.5 11.5 5.5C12.879 5.5 14 6.622 14 8C14 9.378 12.879 10.5 11.5 10.5Z"/></svg>',
     "symbol-key": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M8.00098 5.5C7.63498 5.5 7.29598 5.619 7.00098 5.813V4.5C7.00098 4.224 6.77698 4 6.50098 4C6.22498 4 6.00098 4.224 6.00098 4.5V9.5C6.00098 9.776 6.22498 10 6.50098 10C6.71798 10 6.89798 9.86 6.96698 9.666C7.26998 9.873 7.62098 10 8.00098 10C9.10398 10 10.001 8.991 10.001 7.75C10.001 6.509 9.10398 5.5 8.00098 5.5ZM8.00098 9C7.44898 9 7.00098 8.439 7.00098 7.75C7.00098 7.061 7.44898 6.5 8.00098 6.5C8.55298 6.5 9.00098 7.061 9.00098 7.75C9.00098 8.439 8.55298 9 8.00098 9Z"/><path d="M12.749 10C11.646 10 10.749 8.991 10.749 7.75C10.749 6.509 11.646 5.5 12.749 5.5C12.892 5.5 14.001 5.605 14.001 6.236C14.001 6.511 13.777 6.736 13.5 6.736C13.3671 6.736 13.2817 6.68604 13.1896 6.6321C13.0814 6.5688 12.9639 6.5 12.749 6.5C12.197 6.5 11.749 7.061 11.749 7.75C11.749 8.439 12.197 9 12.749 9C12.9613 9 13.0789 8.93181 13.1874 8.8689C13.2804 8.81502 13.3667 8.765 13.5 8.765C13.779 8.765 14.001 8.992 14.001 9.264C14.001 9.897 12.887 10 12.749 10Z"/><path fill-rule="evenodd" clip-rule="evenodd" d="M1.89798 5.646C1.99098 5.553 2.36398 5.25 3.25198 5.25C4.12198 5.25 5.00098 5.765 5.00098 6.75V9.5C5.00098 9.776 4.77698 10 4.50098 10C4.36198 10 4.23698 9.943 4.14598 9.851C3.91198 9.937 3.62298 10 3.25098 10C1.93798 10 1.25098 9.246 1.25098 8.5C1.25098 7.754 1.93798 7 3.25098 7C3.55298 7 3.79698 7.023 4.00098 7.056V6.75C4.00098 6.256 3.28098 6.25 3.25098 6.25C2.78847 6.25 2.60167 6.36312 2.57928 6.37668L2.57698 6.378C2.38098 6.573 2.07798 6.561 1.88398 6.365C1.68898 6.17 1.70298 5.841 1.89798 5.646ZM3.25198 8C2.60298 8 2.25198 8.258 2.25198 8.5C2.25198 8.742 2.60298 9 3.25198 9C3.69898 9 3.90898 8.885 4.00198 8.811V8.074C3.85798 8.038 3.62398 8 3.25198 8Z"/></svg>',
-    "symbol-parameter": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4 3.5C4 3.22386 4.22386 3 4.5 3H11.5C11.7761 3 12 3.22386 12 3.5V4.5C12 4.77614 11.7761 5 11.5 5C11.2239 5 11 4.77614 11 4.5V4H8.5V12H9C9.27614 12 9.5 12.2239 9.5 12.5C9.5 12.7761 9.27614 13 9 13H7C6.72386 13 6.5 12.7761 6.5 12.5C6.5 12.2239 6.72386 12 7 12H7.5V4H5V4.5C5 4.77614 4.77614 5 4.5 5C4.22386 5 4 4.77614 4 4.5V3.5ZM4.35355 6.64645C4.54882 6.84171 4.54882 7.15829 4.35355 7.35355L2.20711 9.5L4.35355 11.6464C4.54882 11.8417 4.54882 12.1583 4.35355 12.3536C4.15829 12.5488 3.84171 12.5488 3.64645 12.3536L1.14645 9.85355C0.951184 9.65829 0.951184 9.34171 1.14645 9.14645L3.64645 6.64645C3.84171 6.45118 4.15829 6.45118 4.35355 6.64645ZM14.8536 9.14645L12.3536 6.64645C12.1583 6.45118 11.8417 6.45118 11.6464 6.64645C11.4512 6.84171 11.4512 7.15829 11.6464 7.35355L13.7929 9.5L11.6464 11.6464C11.4512 11.8417 11.4512 12.1583 11.6464 12.3536C11.8417 12.5488 12.1583 12.5488 12.3536 12.3536L14.8536 9.85355C15.0488 9.65829 15.0488 9.34171 14.8536 9.14645Z"/></svg>'
+    "symbol-parameter": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4 3.5C4 3.22386 4.22386 3 4.5 3H11.5C11.7761 3 12 3.22386 12 3.5V4.5C12 4.77614 11.7761 5 11.5 5C11.2239 5 11 4.77614 11 4.5V4H8.5V12H9C9.27614 12 9.5 12.2239 9.5 12.5C9.5 12.7761 9.27614 13 9 13H7C6.72386 13 6.5 12.7761 6.5 12.5C6.5 12.2239 6.72386 12 7 12H7.5V4H5V4.5C5 4.77614 4.77614 5 4.5 5C4.22386 5 4 4.77614 4 4.5V3.5ZM4.35355 6.64645C4.54882 6.84171 4.54882 7.15829 4.35355 7.35355L2.20711 9.5L4.35355 11.6464C4.54882 11.8417 4.54882 12.1583 4.35355 12.3536C4.15829 12.5488 3.84171 12.5488 3.64645 12.3536L1.14645 9.85355C0.951184 9.65829 0.951184 9.34171 1.14645 9.14645L3.64645 6.64645C3.84171 6.45118 4.15829 6.45118 4.35355 6.64645ZM14.8536 9.14645L12.3536 6.64645C12.1583 6.45118 11.8417 6.45118 11.6464 6.64645C11.4512 6.84171 11.4512 7.15829 11.6464 7.35355L13.7929 9.5L11.6464 11.6464C11.4512 11.8417 11.4512 12.1583 11.6464 12.3536C11.8417 12.5488 12.1583 12.5488 12.3536 12.3536L14.8536 9.85355C15.0488 9.65829 15.0488 9.34171 14.8536 9.14645Z"/></svg>',
+    account: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6 5C6 3.89543 6.89543 3 8 3C9.10457 3 10 3.89543 10 5C10 6.10457 9.10457 7 8 7C6.89543 7 6 6.10457 6 5ZM5.49998 8L10.5 8C11.3284 8 12 8.67157 12 9.5C12 10.6161 11.541 11.5103 10.7879 12.1148C10.0466 12.7098 9.05308 13 8 13C6.94692 13 5.95342 12.7098 5.21215 12.1148C4.45897 11.5103 4 10.6161 4 9.5C4 8.67161 4.67156 8 5.49998 8ZM8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8Z"/></svg>',
+    copy: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3 5V12.73C2.4 12.38 2 11.74 2 11V5C2 2.79 3.79 1 6 1H9C9.74 1 10.38 1.4 10.73 2H6C4.35 2 3 3.35 3 5ZM11 15H6C4.897 15 4 14.103 4 13V5C4 3.897 4.897 3 6 3H11C12.103 3 13 3.897 13 5V13C13 14.103 12.103 15 11 15ZM12 5C12 4.448 11.552 4 11 4H6C5.448 4 5 4.448 5 5V13C5 13.552 5.448 14 6 14H11C11.552 14 12 13.552 12 13V5Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
   var zh_cn = {
     "common.close": "\u5173\u95ED",
+    "history.hover_label": "\u63D0\u4EA4\u8BE6\u60C5",
+    "history.stats_loading": "\u6B63\u5728\u8BFB\u53D6\u63D0\u4EA4\u7EDF\u8BA1\u2026",
+    "history.stats_unavailable": "\u63D0\u4EA4\u7EDF\u8BA1\u6682\u4E0D\u53EF\u7528",
+    "history.stats_files": "{count} \u4E2A\u6587\u4EF6\u53D8\u66F4",
+    "history.copy_done": "\u5DF2\u590D\u5236\u63D0\u4EA4\u7F16\u53F7",
+    "history.copy_failed": "\u590D\u5236\u5931\u8D25",
     "graph.aria_label": "Git Graph \u63D0\u4EA4\u5386\u53F2",
     "settings.view.search": "\u641C\u7D22\u8BBE\u7F6E\uFF08\u540D\u79F0\u3001\u8BF4\u660E\u6216\u4E0A\u6E38\u952E\uFF09",
     "settings.view.modified_only": "\u4EC5\u663E\u793A\u5DF2\u4FEE\u6539",
@@ -158995,6 +159027,12 @@ https://creativecommons.org/licenses/by/4.0/
   };
   var en = {
     "common.close": "Close",
+    "history.hover_label": "Commit details",
+    "history.stats_loading": "Loading commit statistics\u2026",
+    "history.stats_unavailable": "Commit statistics unavailable",
+    "history.stats_files": "{count} files changed",
+    "history.copy_done": "Commit hash copied",
+    "history.copy_failed": "Copy failed",
     "graph.aria_label": "Git Graph commit history",
     "settings.view.search": "Search settings (name, description or upstream key)",
     "settings.view.modified_only": "Show Modified Only",
@@ -159794,6 +159832,7 @@ https://creativecommons.org/licenses/by/4.0/
     const button = document.createElement("button");
     button.type = "button";
     button.className = "git-icon-button" + (class_name ? " " + class_name : "");
+    workspace_interaction(button);
     button.title = title;
     button.setAttribute("aria-label", title);
     button.onclick = action;
@@ -176007,6 +176046,7 @@ https://creativecommons.org/licenses/by/4.0/
     const node = document.createElement(tag3);
     node.className = class_name;
     node.textContent = text3;
+    if (tag3 === "button" || tag3 === "summary") workspace_interaction(node);
     return node;
   }
   function workspace_button(text3, action, class_name = "") {
@@ -176033,6 +176073,7 @@ https://creativecommons.org/licenses/by/4.0/
     const panel = workspace_element("section", "git-graph-dialog");
     const content = workspace_element("div", "git-graph-dialog-content");
     const footer = workspace_element("div", "git-graph-dialog-footer");
+    const interaction = acquire_workspace_interaction(root);
     const previous = document.activeElement;
     panel.tabIndex = -1;
     let closed = false;
@@ -176046,6 +176087,7 @@ https://creativecommons.org/licenses/by/4.0/
       window.clearTimeout(focus_timer);
       window.removeEventListener("keydown", global_key, true);
       root.remove();
+      interaction.remove();
       if (restore_focus && previous?.isConnected && !previous.matches(":disabled")) previous.focus({ preventScroll: true });
       on_close?.();
     };
@@ -176090,6 +176132,7 @@ https://creativecommons.org/licenses/by/4.0/
     close_active_menu?.();
     event.preventDefault();
     event.stopPropagation();
+    const interaction = acquire_workspace_interaction();
     const menu_style = acquire_workspace_style("typora-code-style:widgets", workspace_widgets_default);
     const previous_focus = document.activeElement;
     let closed = false;
@@ -176102,6 +176145,7 @@ https://creativecommons.org/licenses/by/4.0/
       closed = true;
       close_from(0);
       menu_style.remove();
+      interaction.remove();
       if (previous_focus?.isConnected) previous_focus.focus({ preventScroll: true });
       window.removeEventListener("pointerdown", outside, true);
       window.removeEventListener("blur", close);
@@ -177695,12 +177739,26 @@ https://creativecommons.org/licenses/by/4.0/
     return { guard, confirm_close, schedule_release, move_to_split, dispose: dispose2 };
   }
 
+  // src/workspace_inline_layout.css
+  var workspace_inline_layout_default = "";
+
+  // src/workspace_inline_layout.ts
+  function acquire_workspace_inline_layout() {
+    return acquire_workspace_style("typora-code-style:workspace_inline_layout", workspace_inline_layout_default);
+  }
+
   // src/workspace_footer_layout.css
   var workspace_footer_layout_default = "";
 
   // src/workspace_footer_layout.ts
   function acquire_workspace_footer_layout() {
-    return acquire_workspace_style("typora-code-style:workspace_footer_layout", workspace_footer_layout_default);
+    const interaction = acquire_workspace_interaction();
+    const inline4 = acquire_workspace_inline_layout(), style = acquire_workspace_style("typora-code-style:workspace_footer_layout", workspace_footer_layout_default);
+    return { remove() {
+      style.remove();
+      inline4.remove();
+      interaction.remove();
+    } };
   }
 
   // src/workspace_editor_status.css
@@ -192537,6 +192595,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_terminal_panel(changed) {
     const lifetime = create_workspace_lifetime();
     const container = workspace_element("section", "typora-terminal-panel"), header = workspace_element("div", "terminal-panel-header"), toolbar = workspace_element("div", "terminal-panel-actions"), body = workspace_element("div", "terminal-panel-body"), tabs = workspace_element("div", "terminal-tabs"), panes = workspace_element("div", "terminal-panes"), sash = workspace_element("div", "terminal-panel-sash");
+    lifetime.add(acquire_workspace_interaction(container).remove);
     const title = workspace_element("span", "terminal-panel-title", "\u7EC8\u7AEF");
     header.append(title, toolbar);
     body.append(panes, tabs);
@@ -194201,6 +194260,26 @@ https://creativecommons.org/licenses/by/4.0/
     if (url.hostname === "gitlab.com") return "".concat(web, "/-/merge_requests/new?merge_request[source_branch]=").concat(encodeURIComponent(branch), "&merge_request[target_branch]=").concat(encodeURIComponent(base));
     if (url.hostname === "bitbucket.org") return "".concat(web, "/pull-requests/new?source=").concat(encodeURIComponent(branch), "&dest=").concat(encodeURIComponent(base));
     throw new Error(git_graph_text("repository.pr_template_required"));
+  }
+  async function read_commit_hover_detail(run, state, commit) {
+    const hash2 = require_revision(commit.hash);
+    const [message, source] = await Promise.all([
+      run(state.root, ["show", "-s", "--format=%B", hash2, "--"]),
+      run(state.root, [...comparison_args(commit.parents[0] || EMPTY, hash2, state.head), "--numstat", "-z", "--find-renames", "--no-ext-diff", "--no-textconv", "--"])
+    ]);
+    let files = 0, insertions = 0, deletions = 0;
+    const records = source.split("\0");
+    for (let index = 0; index < records.length; index++) {
+      const record = records[index];
+      if (!record) continue;
+      const match2 = /^(\d+|-)\t(\d+|-)\t([\s\S]*)$/u.exec(record);
+      if (!match2) throw new Error(git_graph_text("history.stats_unavailable"));
+      files++;
+      if (match2[1] !== "-") insertions += Number(match2[1]);
+      if (match2[2] !== "-") deletions += Number(match2[2]);
+      if (!match2[3]) index += 2;
+    }
+    return { message: message.trim(), files, insertions, deletions };
   }
 
   // node_modules/marked/lib/marked.esm.js
@@ -198769,12 +198848,204 @@ https://creativecommons.org/licenses/by/4.0/
     else complete();
   }
 
+  // src/workspace_hover_surface.css
+  var workspace_hover_surface_default = "";
+
+  // src/workspace_hover_surface.ts
+  function acquire_workspace_hover_surface() {
+    return acquire_workspace_style("typora-code-style:workspace_hover_surface", workspace_hover_surface_default);
+  }
+
+  // src/workspace_hover.ts
+  var hover_sequence = 0;
+  function bind_workspace_hover(container, resolve3, options2 = {}) {
+    const delay = (value, fallback2) => value !== void 0 && Number.isFinite(value) && value >= 0 ? value : fallback2;
+    const delay_ms = delay(options2.delay_ms, 300), hide_delay_ms = delay(options2.hide_delay_ms, 250);
+    const style = acquire_workspace_hover_surface(), events = new AbortController();
+    let current, tip, session;
+    let timer = 0, close_timer = 0, description = null, restoring_focus = false;
+    const keep = () => {
+      clearTimeout(close_timer);
+      close_timer = 0;
+    };
+    const hide2 = () => {
+      clearTimeout(timer);
+      keep();
+      observer.disconnect();
+      session?.abort();
+      session = void 0;
+      if (current && tip) {
+        if (description === null) current.anchor.removeAttribute("aria-describedby");
+        else current.anchor.setAttribute("aria-describedby", description);
+      }
+      tip?.remove();
+      tip = void 0;
+      current = void 0;
+    };
+    const place = () => {
+      if (!tip || !current) return;
+      if (!current.anchor.isConnected || !current.anchor.getClientRects().length) return hide2();
+      const anchor = current.anchor.getBoundingClientRect(), box = tip.getBoundingClientRect();
+      const right = anchor.right + 6, left = anchor.left - box.width - 6;
+      tip.style.left = Math.max(8, Math.min(right + box.width <= innerWidth - 8 ? right : left >= 8 ? left : right, innerWidth - box.width - 8)) + "px";
+      tip.style.top = Math.max(8, Math.min(anchor.top, innerHeight - box.height - 8)) + "px";
+    };
+    const observer = new ResizeObserver(place);
+    const inside = (node) => node instanceof Node && (Boolean(current?.anchor.contains(node)) || Boolean(tip?.contains(node)));
+    const leave = () => {
+      if (!tip) return hide2();
+      keep();
+      close_timer = window.setTimeout(hide2, hide_delay_ms);
+    };
+    const enter = (event) => {
+      if (restoring_focus || !(event.target instanceof Element)) return;
+      const target = resolve3(event.target);
+      if (!target) return;
+      if (current?.anchor === target.anchor) {
+        keep();
+        return;
+      }
+      hide2();
+      current = target;
+      timer = window.setTimeout(() => {
+        if (current !== target || !target.anchor.isConnected) return hide2();
+        session = new AbortController();
+        tip = document.createElement("div");
+        tip.className = "workspace-hover-surface";
+        tip.id = "workspace-hover-" + ++hover_sequence;
+        tip.setAttribute("role", "tooltip");
+        tip.setAttribute("aria-label", target.label);
+        description = target.anchor.getAttribute("aria-describedby");
+        target.anchor.setAttribute("aria-describedby", [description, tip.id].filter(Boolean).join(" "));
+        document.body.append(tip);
+        try {
+          target.render(tip, session.signal);
+        } catch (error) {
+          hide2();
+          console.error("[workspace-hover] \u5185\u5BB9\u5448\u73B0\u5931\u8D25", error);
+          return;
+        }
+        place();
+        observer.observe(tip);
+        tip.addEventListener("pointerenter", keep, { signal: session.signal });
+        tip.addEventListener("pointerleave", (event2) => {
+          if (!inside(event2.relatedTarget)) leave();
+        }, { signal: session.signal });
+        tip.addEventListener("focusin", keep, { signal: session.signal });
+        tip.addEventListener("focusout", (event2) => {
+          if (!inside(event2.relatedTarget)) leave();
+        }, { signal: session.signal });
+      }, delay_ms);
+    };
+    container.addEventListener("pointerover", enter, { signal: events.signal });
+    container.addEventListener("focusin", enter, { signal: events.signal });
+    container.addEventListener("pointerout", (event) => {
+      if (!inside(event.relatedTarget)) leave();
+    }, { signal: events.signal });
+    container.addEventListener("focusout", (event) => {
+      if (!inside(event.relatedTarget)) leave();
+    }, { signal: events.signal });
+    document.addEventListener("pointerdown", (event) => {
+      if (!(event.target instanceof Node && tip?.contains(event.target))) hide2();
+    }, { capture: true, signal: events.signal });
+    document.addEventListener("scroll", (event) => {
+      if (!(event.target instanceof Node && tip?.contains(event.target))) hide2();
+    }, { capture: true, signal: events.signal });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && current) {
+        const anchor = current.anchor, restore = tip?.contains(document.activeElement);
+        hide2();
+        if (restore) {
+          restoring_focus = true;
+          anchor.focus({ preventScroll: true });
+          restoring_focus = false;
+        }
+      }
+    }, { capture: true, signal: events.signal });
+    window.addEventListener("resize", hide2, { signal: events.signal });
+    window.addEventListener("blur", hide2, { signal: events.signal });
+    const nodes = new MutationObserver(() => {
+      if (current && !current.anchor.isConnected) hide2();
+    });
+    nodes.observe(container, { childList: true, subtree: true });
+    return { hide: hide2, dispose() {
+      hide2();
+      events.abort();
+      nodes.disconnect();
+      style.remove();
+    } };
+  }
+
+  // src/git_commit_hover.ts
+  function bind_git_commit_hover(list3, panel) {
+    const cache = /* @__PURE__ */ new Map();
+    const hover = bind_workspace_hover(list3, (target) => {
+      const anchor = target.closest(".git-scm-history-commit");
+      const state = panel.state, commit = state?.commits.find((item) => item.hash === anchor?.dataset.hash);
+      if (!anchor || !state || !commit) return;
+      return { anchor, label: git_graph_text("history.hover_label"), render(tip, signal) {
+        tip.classList.add("git-commit-hover");
+        tip.dataset.hash = commit.hash;
+        const heading3 = workspace_element("div", "git-commit-hover-heading"), author = workspace_element("strong", "", commit.author), date = workspace_element("span", "git-commit-hover-date", panel.date(commit));
+        heading3.append(git_icon("account"), author, date);
+        const message = workspace_element("div", "git-commit-hover-message", panel.emoji(commit.subject));
+        const stats = workspace_element("div", "git-commit-hover-stats", git_graph_text("history.stats_loading"));
+        stats.setAttribute("role", "status");
+        const labels = workspace_element("div", "git-commit-hover-refs");
+        for (const ref of anchor.querySelectorAll(".git-scm-history-ref")) labels.append(ref.cloneNode(true));
+        const copy = workspace_button(commit.hash.slice(0, 8), () => {
+        }, "git-commit-hover-copy");
+        copy.dataset.workspaceInteraction = "action";
+        copy.prepend(git_icon("copy"));
+        copy.title = git_graph_text("graph.copy_commit_hash");
+        copy.setAttribute("aria-label", copy.title);
+        copy.onclick = () => {
+          void Promise.resolve().then(() => panel.host.copy(commit.hash)).then(() => {
+            if (!signal.aborted) {
+              copy.textContent = git_graph_text("history.copy_done");
+              copy.prepend(git_icon("check"));
+            }
+          }).catch(() => {
+            if (!signal.aborted) copy.textContent = git_graph_text("history.copy_failed");
+          });
+        };
+        tip.append(heading3, message, stats);
+        if (labels.childNodes.length) tip.append(labels);
+        tip.append(copy);
+        const key = state.root + "\0" + commit.hash;
+        const apply3 = (detail) => {
+          if (signal.aborted || panel.root !== state.root) return;
+          message.textContent = panel.emoji(detail.message || commit.subject);
+          stats.replaceChildren(workspace_element("span", "", git_graph_text("history.stats_files", { count: detail.files })), workspace_element("span", "git-commit-hover-added", "+" + detail.insertions), workspace_element("span", "git-commit-hover-deleted", "\u2212" + detail.deletions));
+        };
+        const cached = cache.get(key);
+        if (cached) {
+          apply3(cached);
+          return;
+        }
+        void read_commit_hover_detail(panel.runner.run, state, commit).then((detail) => {
+          if (signal.aborted || panel.root !== state.root) return;
+          if (cache.size >= 128) cache.delete(cache.keys().next().value);
+          cache.set(key, detail);
+          apply3(detail);
+        }).catch(() => {
+          if (!signal.aborted) stats.textContent = git_graph_text("history.stats_unavailable");
+        });
+      } };
+    });
+    return { hide: hover.hide, dispose() {
+      hover.dispose();
+      cache.clear();
+    } };
+  }
+
   // src/git_scm_history.ts
   var HISTORY_LANE_WIDTH = 11;
   var HISTORY_ROW_HEIGHT = 22;
   var git_scm_history = class {
     constructor(owner) {
       this.owner = owner;
+      this.hover = bind_git_commit_hover(this.list, owner.panel);
       this.container.setAttribute("aria-label", git_graph_text("history.graph"));
       this.container.setAttribute("data-linux-note-scm-history", "ready");
       this.toggle = workspace_button(git_graph_text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle");
@@ -198831,6 +199102,7 @@ https://creativecommons.org/licenses/by/4.0/
     epoch = 0;
     root = "";
     files_cache = /* @__PURE__ */ new Map();
+    hover;
     collapsed_directories = /* @__PURE__ */ new Set();
     branch_entries() {
       const panel = this.owner.panel;
@@ -198868,6 +199140,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     reset() {
+      this.hover.hide();
       this.epoch++;
       this.root = this.owner.panel.root;
       this.selected = "";
@@ -198901,11 +199174,13 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     set_open(open) {
+      if (!open) this.hover.hide();
       this.toggle.replaceChildren(git_disclosure(), document.createTextNode(git_graph_text("history.graph")), this.count);
       this.toggle.setAttribute("aria-expanded", String(open));
       this.list.hidden = !open;
     }
     render(state) {
+      this.hover.hide();
       if (state.root !== this.root) this.reset();
       const epoch = ++this.epoch;
       const panel = this.owner.panel;
@@ -198933,7 +199208,8 @@ https://creativecommons.org/licenses/by/4.0/
         row.setAttribute("aria-expanded", String(expanded2));
         const names = [...refs.get(commit.hash) || []].sort((a, b2) => Number(b2 === state.branch) - Number(a === state.branch));
         if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
-        row.title = "".concat(commit.subject, "\n").concat(commit.author, " \xB7 ").concat(panel.date(commit), "\n").concat(commit.hash).concat(names.length ? "\n" + names.join("\u3001") : "");
+        row.dataset.workspaceInteraction = "row";
+        row.setAttribute("aria-label", "".concat(commit.subject, ", ").concat(commit.author, ", ").concat(panel.date(commit)));
         const disclosure = workspace_element("span", "git-scm-history-disclosure");
         disclosure.append(git_disclosure());
         disclosure.setAttribute("aria-hidden", "true");
@@ -198942,10 +199218,8 @@ https://creativecommons.org/licenses/by/4.0/
         summary.append(subject);
         if (names.length) {
           const labels = workspace_element("span", "git-scm-history-refs");
-          labels.title = names.join("\u3001");
           for (const name of names) {
             const badge = workspace_element("span", "git-scm-history-ref");
-            badge.title = name;
             badge.dataset.current = String(commit.hash === state.head && (name === state.branch || name === "HEAD"));
             badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), workspace_element("span", "git-scm-history-ref-name", name));
             labels.append(badge);
@@ -199086,6 +199360,7 @@ https://creativecommons.org/licenses/by/4.0/
         const row = workspace_button("", () => {
           if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files);
         }, "git-scm-history-file");
+        row.dataset.workspaceInteraction = "row";
         row.style.lineHeight = "var(--git-scm-row-height,22px)";
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
@@ -199111,6 +199386,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     dispose() {
+      this.hover.dispose();
       this.epoch++;
       this.files_cache.clear();
     }
@@ -199230,6 +199506,8 @@ https://creativecommons.org/licenses/by/4.0/
         { id: "commit_options", title: git_graph_text("scm.open_commit_options"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: false }) },
         { id: "commit_amend", title: git_graph_text("scm.amend_last_commit"), disabled: !panel.state?.head, action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }
       ]);
+      commit.dataset.workspaceInteraction = "primary";
+      commit_options.dataset.workspaceInteraction = "primary";
       const commit_bar = workspace_element("div", "git-scm-commit-bar");
       commit_bar.append(commit, commit_options);
       this.repo_select.setAttribute("aria-label", git_graph_text("scm.repository"));
@@ -199284,9 +199562,11 @@ https://creativecommons.org/licenses/by/4.0/
     sidebar = workspace_element("aside", "git-scm-sidebar");
     groups = workspace_element("div", "git-scm-groups");
     message = workspace_element("textarea", "git-scm-message");
-    branch = workspace_element("div", "git-scm-branch");
+    branch = workspace_button("", () => {
+    }, "git-scm-branch");
     title = workspace_element("div", "git-scm-title");
     repo_select = workspace_element("select", "git-scm-repository");
+    interaction_style = acquire_workspace_interaction(this.sidebar);
     notice = workspace_element("div", "git-scm-notice");
     sections = workspace_element("div", "git-scm-sections");
     changes_pane = workspace_element("section", "git-scm-changes-pane");
@@ -199742,6 +200022,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.interaction_style.remove();
       this.file_icon_style.remove();
       this.load_epoch++;
       this.groups_epoch++;
@@ -223917,12 +224198,19 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_tab_controls(core) {
     const existing = bindings2.get(core);
     if (existing) return existing;
+    const interaction = acquire_workspace_interaction(), inline4 = acquire_workspace_inline_layout();
+    const marked3 = /* @__PURE__ */ new Map();
     const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default);
     const strips = /* @__PURE__ */ new Map();
     let frame2 = 0, disposed = false;
     const refresh = () => {
       frame2 = 0;
       if (disposed) return;
+      for (const node of marked3.keys()) if (!node.isConnected) marked3.delete(node);
+      for (const node of document.querySelectorAll(".typ-workspace-tab-header .typ-tab,.typ-workspace-tab-header .typ-close")) {
+        if (!marked3.has(node)) marked3.set(node, node.getAttribute("data-workspace-interaction"));
+        node.dataset.workspaceInteraction = node.classList.contains("typ-tab") ? "tab" : "action";
+      }
       for (const [header, entry] of strips) if (!header.isConnected) {
         if (entry.strip.parentElement) {
           entry.strip.before(header);
@@ -223955,7 +224243,14 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       strips.clear();
+      for (const [node, value] of marked3) {
+        if (value === null) node.removeAttribute("data-workspace-interaction");
+        else node.setAttribute("data-workspace-interaction", value);
+      }
+      marked3.clear();
       style.remove();
+      inline4.remove();
+      interaction.remove();
       bindings2.delete(core);
     } };
     bindings2.set(core, binding);
@@ -224279,6 +224574,7 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
     const container = workspace_element("section", "linux-note-workspace-explorer");
     container.setAttribute("aria-label", "\u8D44\u6E90\u7BA1\u7406\u5668");
+    const interaction = acquire_workspace_interaction(container);
     const toolbar = workspace_element("div", "workspace-explorer-toolbar");
     const title = workspace_element("strong", "", "\u8D44\u6E90\u7BA1\u7406\u5668");
     const actions = workspace_element("div", "workspace-explorer-actions");
@@ -224998,6 +225294,7 @@ https://creativecommons.org/licenses/by/4.0/
       file_icon_style.remove();
       if (disposed) return;
       disposed = true;
+      interaction.remove();
       generation++;
       visible2 = false;
       native_observer.disconnect();
@@ -226079,6 +226376,7 @@ https://creativecommons.org/licenses/by/4.0/
         native_observer = new MutationObserver(() => this.clear_native());
         constructor() {
           super();
+          lifetime.add(acquire_workspace_interaction(this.containerEl).remove);
           lifetime.add(() => {
             ++this.open_generation;
             clearTimeout(this.timer);
@@ -227097,6 +227395,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_activity.ts
   function install_workspace_activity(options2) {
     const ribbon = options2.ribbon;
+    const interaction = acquire_workspace_interaction(ribbon);
+    const interaction_nodes = /* @__PURE__ */ new Map();
     const allowed = new Set(options2.item_ids);
     const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter((id) => allowed.has(id));
     const storage_key = options2.storage_key || "linux-note:workspace:activity-order:v1";
@@ -227165,6 +227465,10 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       if (disposed) return;
       const state = options2.read_state();
+      for (const item of ribbon.querySelectorAll(":scope > .group > .typ-ribbon-item[data-id]")) {
+        if (!interaction_nodes.has(item)) interaction_nodes.set(item, item.getAttribute("data-workspace-interaction"));
+        item.dataset.workspaceInteraction = "activity";
+      }
       for (const item of items()) {
         if (!originals.has(item)) {
           originals.set(item, { draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes] });
@@ -227211,6 +227515,7 @@ https://creativecommons.org/licenses/by/4.0/
       menu_owner = item;
       menu = document.createElement("div");
       menu.className = "workspace-activity-menu";
+      menu.setAttribute("data-workspace-surface", "");
       menu.setAttribute("role", "menu");
       menu.setAttribute("aria-label", "\u6D3B\u52A8\u680F\u987A\u5E8F");
       const ids = order();
@@ -227396,6 +227701,12 @@ https://creativecommons.org/licenses/by/4.0/
       if (scheduled) cancelAnimationFrame(scheduled);
       cancel_animations();
       style.remove();
+      interaction.remove();
+      for (const [node, value] of interaction_nodes) {
+        if (value === null) node.removeAttribute("data-workspace-interaction");
+        else node.setAttribute("data-workspace-interaction", value);
+      }
+      interaction_nodes.clear();
       chrome_style.remove();
       delete ribbon.dataset.workspaceActivity;
       ribbon.removeEventListener("mousedown", on_mouse_down, true);
@@ -228717,6 +229028,7 @@ https://creativecommons.org/licenses/by/4.0/
       close_after(depth);
       const panel = document.createElement("div");
       panel.className = "workspace-titlebar-popup";
+      panel.setAttribute("data-workspace-surface", "");
       panel.setAttribute("role", "menu");
       panel.setAttribute("aria-label", anchor.getAttribute("aria-label") || anchor.textContent || "\u83DC\u5355");
       const panel_controller = new AbortController(), signal2 = panel_controller.signal;
@@ -228854,6 +229166,7 @@ https://creativecommons.org/licenses/by/4.0/
     const buttons = definitions.map((definition2, index) => {
       const button = document.createElement("button");
       button.type = "button";
+      button.dataset.workspaceInteraction = "menu";
       button.textContent = definition2.label;
       button.setAttribute("role", "menuitem");
       button.setAttribute("aria-haspopup", "menu");
@@ -228878,6 +229191,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
     const more = document.createElement("button");
     more.type = "button";
+    more.dataset.workspaceInteraction = "menu";
     more.hidden = true;
     more.append(git_icon("more"));
     more.setAttribute("aria-label", "\u66F4\u591A\u83DC\u5355");
@@ -228928,6 +229242,7 @@ https://creativecommons.org/licenses/by/4.0/
         button.hidden = overflow;
       });
     };
+    const interaction = acquire_workspace_interaction(element);
     const observer = new ResizeObserver(refresh);
     observer.observe(element);
     document.addEventListener("pointerdown", (event) => {
@@ -228963,6 +229278,7 @@ https://creativecommons.org/licenses/by/4.0/
       close();
       observer.disconnect();
       events.abort();
+      interaction.remove();
       element.remove();
     } };
   }
@@ -229279,7 +229595,11 @@ https://creativecommons.org/licenses/by/4.0/
     const original_nodes = [...bar.childNodes], previous_state = bar.getAttribute("data-workspace-titlebar");
     const traffic_parent = traffic.parentNode, traffic_next = traffic.nextSibling;
     const style = acquire_workspace_style("workspace-titlebar-style", workspace_titlebar_default);
-    cleanup.push(() => style.remove());
+    const interaction = acquire_workspace_interaction();
+    cleanup.push(() => {
+      style.remove();
+      interaction.remove();
+    });
     const controls = [["w-min", "chrome-minimize"], ["w-max", "chrome-maximize"], ["w-restore", "chrome-restore"], ["w-close", "chrome-close"]];
     for (const [id, name] of controls) {
       const node = traffic.querySelector("#" + id);
@@ -229307,6 +229627,7 @@ https://creativecommons.org/licenses/by/4.0/
     const history_button = (name, label, direction) => {
       const button = document.createElement("button");
       button.type = "button";
+      button.dataset.workspaceInteraction = "action";
       button.className = "workspace-titlebar-history";
       button.title = label;
       button.setAttribute("aria-label", label);
@@ -229324,6 +229645,7 @@ https://creativecommons.org/licenses/by/4.0/
     window.addEventListener("linux-note-reading-history-state", (event) => history_state(event.detail || {}), { signal: events.signal });
     const search2 = document.createElement("button");
     search2.type = "button";
+    search2.dataset.workspaceInteraction = "action";
     search2.className = "workspace-titlebar-search";
     search2.title = "\u641C\u7D22\u6587\u4EF6 (Ctrl+P)";
     search2.setAttribute("aria-label", "\u641C\u7D22\u6587\u4EF6 (Ctrl+P)");
@@ -230208,10 +230530,11 @@ https://creativecommons.org/licenses/by/4.0/
     });
   }
   function bind_reading_link_hover() {
+    const surface = acquire_workspace_hover_surface();
     const style = acquire_workspace_style("typora-code-link-hover", reading_link_hover_default);
     const events = new AbortController();
     const tip = document.createElement("div");
-    tip.className = "workspace-link-hover";
+    tip.className = "workspace-hover-surface workspace-link-hover";
     tip.id = "typora-code-link-hover";
     tip.setAttribute("role", "tooltip");
     tip.hidden = true;
@@ -230374,6 +230697,7 @@ https://creativecommons.org/licenses/by/4.0/
       events.abort();
       tip.remove();
       style.remove();
+      surface.remove();
     } };
   }
 

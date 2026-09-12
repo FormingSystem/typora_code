@@ -1,3 +1,4 @@
+import {acquire_workspace_interaction} from "./workspace_interaction";
 import {git_icon} from "./git_icons";
 
 export type titlebar_menu_entry={label?:string;shortcut?:string;title?:string;separator?:boolean;checked?:boolean;disabled?:boolean;children?:titlebar_menu_entry[];action?:()=>unknown};
@@ -27,7 +28,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const focus_item=(panel:HTMLElement,index:number)=>{const items=actionable(panel);if(!items.length)return;const item=items[(index+items.length)%items.length];item.focus({preventScroll:true});item.scrollIntoView({block:"nearest"});};
   const show_panel=(entries:titlebar_menu_entry[],anchor:HTMLElement,depth:number,focus=false)=>{
     close_after(depth);
-    const panel=document.createElement("div");panel.className="workspace-titlebar-popup";panel.setAttribute("role","menu");panel.setAttribute("aria-label",anchor.getAttribute("aria-label")||anchor.textContent||"菜单");
+    const panel=document.createElement("div");panel.className="workspace-titlebar-popup";panel.setAttribute("data-workspace-surface","");panel.setAttribute("role","menu");panel.setAttribute("aria-label",anchor.getAttribute("aria-label")||anchor.textContent||"菜单");
     const panel_controller=new AbortController(),signal=panel_controller.signal;panel_events.set(panel,panel_controller);
     const top_limit=bar.getBoundingClientRect().bottom;
     const rect=anchor.getBoundingClientRect();
@@ -85,14 +86,14 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     const anchor=button.hidden?more:button;anchor.setAttribute("aria-expanded","true");show_panel(entries,anchor,0,focus);
   };
   const buttons=definitions.map((definition,index)=>{
-    const button=document.createElement("button");button.type="button";button.textContent=definition.label;button.setAttribute("role","menuitem");button.setAttribute("aria-haspopup","menu");button.setAttribute("aria-expanded","false");
+    const button=document.createElement("button");button.type="button";button.dataset.workspaceInteraction="menu";button.textContent=definition.label;button.setAttribute("role","menuitem");button.setAttribute("aria-haspopup","menu");button.setAttribute("aria-expanded","false");
     button.addEventListener("mousedown",event=>event.preventDefault(),{signal});
     button.addEventListener("click",()=>{if(active_index===index)close(true);else void open_menu(index);},{signal});
     button.addEventListener("mouseenter",()=>{if(active_index!==-1&&active_index!==index)void open_menu(index);},{signal});
     button.addEventListener("keydown",event=>{if(["ArrowDown","Enter"," "].includes(event.key)){event.preventDefault();event.stopPropagation();void open_menu(index,true);}},{signal});
     element.append(button);return button;
   });
-  const more=document.createElement("button");more.type="button";more.hidden=true;more.append(git_icon("more"));more.setAttribute("aria-label","更多菜单");more.setAttribute("aria-haspopup","menu");more.setAttribute("aria-expanded","false");element.append(more);
+  const more=document.createElement("button");more.type="button";more.dataset.workspaceInteraction="menu";more.hidden=true;more.append(git_icon("more"));more.setAttribute("aria-label","更多菜单");more.setAttribute("aria-haspopup","menu");more.setAttribute("aria-expanded","false");element.append(more);
   more.addEventListener("mousedown",event=>event.preventDefault(),{signal});
   more.addEventListener("click",async()=>{
     if(more.getAttribute("aria-expanded")==="true"){close(true);return;}
@@ -111,6 +112,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     if(widths.reduce((sum,width)=>sum+width,0)<=available){more.hidden=true;return;}
     let overflow=false;buttons.forEach((button,index)=>{used+=widths[index];if(used>available)overflow=true;button.hidden=overflow;});
   };
+  const interaction=acquire_workspace_interaction(element);
   const observer=new ResizeObserver(refresh);observer.observe(element);
   document.addEventListener("pointerdown",event=>{if(!(event.target instanceof Node)||(!element.contains(event.target)&&!panels.some(panel=>panel.contains(event.target as Node))))close();},{capture:true,signal});
   window.addEventListener("keydown",event=>{
@@ -122,5 +124,5 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   },{capture:true,signal});
   window.addEventListener("workspace-titlebar-dismiss",()=>close(true),{signal});
   window.addEventListener("resize",refresh,{signal});window.addEventListener("blur",()=>close(),{signal});
-  return {element,refresh,dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();element.remove();}};
+  return {element,refresh,dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();interaction.remove();element.remove();}};
 }

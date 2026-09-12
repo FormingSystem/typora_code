@@ -2,6 +2,12 @@ export type git_graph_locale = "zh-cn" | "en";
 
 const zh_cn = {
   "common.close": "关闭",
+  "history.hover_label": "提交详情",
+  "history.stats_loading": "正在读取提交统计…",
+  "history.stats_unavailable": "提交统计暂不可用",
+  "history.stats_files": "{count} 个文件变更",
+  "history.copy_done": "已复制提交编号",
+  "history.copy_failed": "复制失败",
   "graph.aria_label": "Git Graph 提交历史",
   "settings.view.search": "搜索设置（名称、说明或上游键）",
   "settings.view.modified_only": "仅显示已修改",
@@ -751,6 +757,12 @@ export type git_graph_text_key = keyof typeof zh_cn;
 
 const en: Record<git_graph_text_key, string> = {
   "common.close": "Close",
+  "history.hover_label": "Commit details",
+  "history.stats_loading": "Loading commit statistics…",
+  "history.stats_unavailable": "Commit statistics unavailable",
+  "history.stats_files": "{count} files changed",
+  "history.copy_done": "Commit hash copied",
+  "history.copy_failed": "Copy failed",
   "graph.aria_label": "Git Graph commit history",
   "settings.view.search": "Search settings (name, description or upstream key)",
   "settings.view.modified_only": "Show Modified Only",

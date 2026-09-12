@@ -1,3 +1,4 @@
+import {bind_git_commit_hover} from "./git_commit_hover";
 import {workspace_file_icon} from "./workspace_file_icons";
 import { build_git_graph, type graph_row } from "./git_graph_data";
 import { compare_files, EMPTY, type graph_change, type graph_commit, type repository_state } from "./git_graph_repository";
@@ -16,8 +17,10 @@ export class git_scm_history {
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
   files_cache = new Map<string, graph_change[]>();
+  hover:ReturnType<typeof bind_git_commit_hover>;
   collapsed_directories = new Set<string>();
   constructor(public owner: git_source_control) {
+    this.hover=bind_git_commit_hover(this.list,owner.panel);
     this.container.setAttribute("aria-label", text("history.graph"));
     this.container.setAttribute("data-linux-note-scm-history", "ready");
     this.toggle = button(text("history.graph"), () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.prepend(git_disclosure());
@@ -75,7 +78,7 @@ export class git_scm_history {
       {id: "settings", title: text("history.settings"), separator: true, action: () => panel.settings_dialog()},
     ]);
   }
-  reset(): void { this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
+  reset(): void { this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
     if (!panel.state?.head) { panel.report(text("history.no_head")); return; }
@@ -86,10 +89,12 @@ export class git_scm_history {
     if (row) { this.list.scrollTop += row.getBoundingClientRect().top - this.list.getBoundingClientRect().top - this.list.clientHeight / 2 + row.clientHeight / 2; row.focus({preventScroll: true}); }
   }
   set_open(open: boolean): void {
+    if(!open)this.hover.hide();
     this.toggle.replaceChildren(git_disclosure(), document.createTextNode(text("history.graph")), this.count);
     this.toggle.setAttribute("aria-expanded", String(open)); this.list.hidden = !open;
   }
   render(state: repository_state): void {
+    this.hover.hide();
     if (state.root !== this.root) this.reset();
     const epoch = ++this.epoch; const panel = this.owner.panel; const scroll = this.list.scrollTop;
     const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
@@ -108,14 +113,14 @@ export class git_scm_history {
       row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
       const names = [...(refs.get(commit.hash) || [])].sort((a, b) => Number(b === state.branch) - Number(a === state.branch));
       if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
-      row.title = `${commit.subject}\n${commit.author} · ${panel.date(commit)}\n${commit.hash}${names.length ? "\n" + names.join("、") : ""}`;
+      row.dataset.workspaceInteraction="row";row.setAttribute("aria-label",`${commit.subject}, ${commit.author}, ${panel.date(commit)}`);
       const disclosure = el("span", "git-scm-history-disclosure"); disclosure.append(git_disclosure()); disclosure.setAttribute("aria-hidden", "true");
       const summary = el("span", "git-scm-history-summary"); const subject = el("span", "git-scm-history-subject", panel.emoji(commit.subject));
       summary.append(subject);
       if (names.length) {
-        const labels = el("span", "git-scm-history-refs"); labels.title = names.join("、");
+        const labels = el("span", "git-scm-history-refs");
         for (const name of names) {
-          const badge = el("span", "git-scm-history-ref"); badge.title = name;
+          const badge = el("span", "git-scm-history-ref");
           badge.dataset.current = String(commit.hash === state.head && (name === state.branch || name === "HEAD"));
           badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), el("span", "git-scm-history-ref-name", name)); labels.append(badge);
         }
@@ -197,6 +202,7 @@ export class git_scm_history {
     for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
       const wrapper = el("div", "git-scm-history-file-row");
       const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
+      row.dataset.workspaceInteraction="row";
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
       const label = el("span", "git-scm-file-label"); label.append(workspace_file_icon(file.path), el("span", "git-scm-history-file-name", file.path.split("/").at(-1)!));
       if (!this.owner.history_tree) label.append(el("span", "git-scm-file-directory", file.path.split("/").slice(0, -1).join("/")));
@@ -208,5 +214,5 @@ export class git_scm_history {
       wrapper.append(row, revision); parent_for(file.path.split("/").slice(0, -1).join("/")).append(wrapper);
     }
   }
-  dispose(): void { this.epoch++; this.files_cache.clear(); }
+  dispose(): void { this.hover.dispose();this.epoch++; this.files_cache.clear(); }
 }

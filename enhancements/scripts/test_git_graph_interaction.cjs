@@ -271,7 +271,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('document.querySelector(".git-scm-history-toggle").getAttribute("aria-expanded")'),'true');
   assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit .git-scm-history-topology circle").length'),4);
   await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',false,false);
-  hover_metrics.history_closed = await hover('.git-scm-history-commit'); assert.equal(hover_metrics.history_closed.background,'rgba(136, 136, 136, 0.133)');
+  hover_metrics.history_closed = await hover('.git-scm-history-commit'); assert.equal(hover_metrics.history_closed.background,'rgba(0, 0, 0, 0.08)');
   const changes_height = await evaluate('panel.workbench.changes_pane.clientHeight'); await drag('.git-scm-history-sash',0,-70);
   assert(await evaluate('panel.workbench.changes_pane.clientHeight') < changes_height-40);
   await click('.git-scm-history-toggle'); assert.equal(await evaluate('panel.workbench.sections.dataset.historyOpen'),'false');
@@ -284,7 +284,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),git(['show','HEAD:example.md']));
   const selected_background = await evaluate('getComputedStyle(document.querySelector(".git-scm-history-commit[aria-expanded=true]")).backgroundColor');
   hover_metrics.history_selected = await hover('.git-scm-history-commit[aria-expanded=true]'); assert.equal(hover_metrics.history_selected.background,selected_background); assert.notEqual(selected_background,hover_metrics.history_closed.background);
-  hover_metrics.history_file = await hover('[data-history-file]'); assert.equal(hover_metrics.history_file.background,'rgba(136, 136, 136, 0.133)');
+  hover_metrics.history_file = await hover('[data-history-file]'); assert.equal(hover_metrics.history_file.background,'rgba(0, 0, 0, 0.08)');
   await click('.git-scm-history-more-menu'); await click('[data-action=history_tree]');
   await wait('document.querySelectorAll("[data-history-directory]").length === 2'); assert.equal((await saved_layout()).history_tree,true);
   const nested_directory = '[data-history-directory="z_docs/nested"]';
