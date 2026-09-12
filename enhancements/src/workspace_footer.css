@@ -30,6 +30,8 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
+/* 原生侧栏模式只限制直接操作行，不能隐藏文件菜单中的同名 file-action-item。 */
+footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer[data-workspace-sidebar-tab=outline] > div > .file-action-item {display:none!important;}
 /* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
 footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
 
@@ -63,3 +65,5 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
 body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
   gap:2px;padding-left:6px;padding-right:6px;
 }
+/* 文档语言是持续状态；原生菜单及源码/diff显隐继续归宿主管理。 */
+footer.ty-footer[data-workspace-footer=ready] > #footer-spell-check {opacity:1;transition:none;}

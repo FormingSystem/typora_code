@@ -1374,7 +1374,7 @@ html[data-linux-note-document-margin="ready"] body:not(.typora-export) content >
 }
 .linux-note-document-margin {
   flex:0 0 auto;gap:4px;min-width:0;
-  padding:0 5px;font:12px/22px "Segoe UI",sans-serif;white-space:nowrap;
+  padding:0 5px;white-space:nowrap;
 }
 .linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
 .linux-note-document-margin output {width:30px;overflow:hidden;text-align:center;font-variant-numeric:tabular-nums;}
@@ -1389,7 +1389,7 @@ footer.ty-footer:has(> .linux-note-document-margin) {container-type:inline-size;
 body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }
 .linux-note-editor-status { flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }
 .linux-note-editor-status[hidden] { display:none!important; }
-.workspace-editor-status-controls { gap:6px; min-width:0; padding:0 4px; font:12px/22px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.workspace-editor-status-controls { gap:6px; min-width:0; padding:0 4px; white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
 .workspace-editor-status-controls::-webkit-scrollbar { display:none; }
 .workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }
@@ -1502,6 +1502,8 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
+/* 原生侧栏模式只限制直接操作行，不能隐藏文件菜单中的同名 file-action-item。 */
+footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer[data-workspace-sidebar-tab=outline] > div > .file-action-item {display:none!important;}
 /* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
 footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
 
@@ -1535,18 +1537,22 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
 body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
   gap:2px;padding-left:6px;padding-right:6px;
 }
+/* 文档语言是持续状态；原生菜单及源码/diff显隐继续归宿主管理。 */
+footer.ty-footer[data-workspace-footer=ready] > #footer-spell-check {opacity:1;transition:none;}
 
 /* workspace_footer_layout.css */
 /* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
-  display:flex;align-items:center;box-sizing:border-box;height:100%;min-height:0;
-  margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:1!important;white-space:nowrap;
+  display:flex;align-items:center;align-content:center;box-sizing:border-box;height:100%;min-height:0;font:inherit;
+  margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:normal!important;white-space:nowrap;
 }
 /* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
-footer.ty-footer .workspace-footer-control {justify-content:center;margin-left:0!important;margin-right:0!important;}
+footer.ty-footer .workspace-footer-control {justify-content:center;text-align:center;margin-left:0!important;margin-right:0!important;}
+/* 宿主会内联设置display:block；单图标仍按共同内容盒居中，不改宿主显隐。 */
+footer.ty-footer .workspace-footer-control > svg:only-child {display:block;margin-inline:auto;}
 footer.ty-footer .workspace-footer-text {
   display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
-  margin:0!important;padding:0!important;font:inherit;line-height:1!important;color:inherit;white-space:nowrap;
+  margin:0!important;padding:0!important;font:inherit;line-height:normal!important;color:inherit;white-space:nowrap;
 }
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}
 

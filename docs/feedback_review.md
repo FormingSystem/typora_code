@@ -227,3 +227,15 @@ R012.1按用户最终要求取消底栏重复大纲操作，保留原DOM供宿�
 此前终端持久化、跨窗口、Shell集成、完整VS Code配置及Tasks/Debug/远端能力，以及系统文件剪贴板、多根工作区等未完成项仍在台账中；插件/更新适配仍按用户要求取消。
 
 最终构建已事务安装，`check_configuration_windows.ps1`结果OK；日志`.cache/footer_menu_install_20260912.log`、`footer_menu_install_check_20260912.log`及`footer_menu_install_verification_20260912.json`。原生ASAR、图标、profile、工作台设置与主题摘要不变，用户窗口未关闭或刷新，保存文档后正常重启载入。22份仓库文档、44个需求编号、314个本地链接、152个锚点验证通过；本地台账被Git忽略。
+
+
+## 2026-09-12 底栏目录菜单与语言常显复修
+
+R012、R008.1、R015按再次反馈重新打开。旧验收漏掉大纲上下文对文件菜单后代的隐藏、语言入口的非悬停opacity，以及文本裁剪/原生块布局图标；本次补齐真实宿主状态再修共享规则。底栏只把侧栏模式映射到直接操作行，菜单仍依据宿主show状态；公共文字继承底栏字体并使用自然行高，单图标在宿主块布局中居中。语言入口在当前文档激活期间持续显示，原生内容、状态图标及语言菜单保持。正式设计见[复查](statusbar_layout.md#2026-09-12-底栏重复缺陷复查)。
+
+新增测试在旧实现明确失败于“大纲上下文隐藏可用菜单行”，日志`.cache/footer_regression_reproduced_20260912.log`；此前夹具引号错误和一次错误测试文件名分别保留在`footer_regression_before_20260912.log`及`footer_regression_ui_20260912.log`，未当作产品缺陷。修复后底栏、边距、编辑器状态与diff四个UI目标通过，日志`footer_regression_ui_valid_20260912.log`；构建和完整check通过，日志`footer_regression_build_20260912.log`、`footer_regression_check_20260912.log`。
+
+原生1.14.10使用未修改ASAR、当前cpp主题、独立profile与临时文档，在从未切换到用户桌面的私有桌面验证。`.cache/native_zoom_1_14_10/footer_regression_before/`记录菜单5.90px复现，`footer_regression_after/checks.json`记录修复后的14项通过：大纲显示/隐藏、文件树和真实ConPTY下目录菜单均可见可命中，原生最近目录选择成功且文档和PTY身份不变；语言离开hover、关闭菜单、终端聚焦及无关布局变动后仍可见。100%→120%→100%文字Range中心差最大0.24px，字形无裁剪，源码图标居中。已核对修复后菜单、语言和终端三张原始截图，所有原始文档摘要保持。程序化宿主事件与几何证据不等同全部平台/物理鼠标人工验收。
+
+
+最终构建已通过既有事务安装器安装，配置检查OK；日志`.cache/footer_regression_install_20260912.log`、`footer_regression_install_check_20260912.log`与`footer_regression_install_verification_20260912.json`。原生ASAR、应用图标、profile、既有工作台设置和主题摘要均保持；用户窗口没有关闭或刷新，保存后正常重启载入。22份仓库文档、44个需求编号、316个本地链接和154个锚点验证通过，本地台账保持Git忽略。
