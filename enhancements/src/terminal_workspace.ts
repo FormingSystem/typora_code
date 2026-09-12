@@ -1,3 +1,4 @@
+import {bind_terminal_state} from "./terminal_state";
 import {acquire_workspace_style} from "./workspace_styles";
 import {git_icon,git_icon_button,type git_icon_name} from "./git_icons";
 import {create_workspace_lifetime} from "./workspace_lifetime";
@@ -29,6 +30,7 @@ export function bind_terminal_workspace(host:graph_host){
   const sessions=new Map<string,session_entry>(),groups=new Map<string,HTMLElement>();let serial=0,group_serial=0,active_id="",render_frame=0;
   const panel=lifetime.own(create_terminal_panel(()=>{for(const entry of sessions.values())entry.surface.resize();}));
   const active=()=>sessions.get(active_id);
+  lifetime.add(bind_terminal_state(core.app,()=>({active_id,location:active()?.location,panel_visible:panel.visible})));
   // 只保留仍打开的临时界面；关闭后立即解除所有者引用，避免挂住会话与xterm缓冲。
   const overlays=new Set<()=>void>();lifetime.add(()=>{for(const close of [...overlays])close();overlays.clear();});
   const dialog=(title:string)=>{const result=workspace_dialog(title,"关闭",()=>overlays.delete(result.close));overlays.add(result.close);return result;};

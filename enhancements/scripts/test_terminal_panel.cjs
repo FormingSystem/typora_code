@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
     window.profile_scans.push(record);refresh();
     return {warnings:()=>[],profiles:()=>structuredClone(record.values),ready:()=>record.pending||Promise.resolve(structuredClone(record.values)),refresh,dispose(){record.disposed=true;}};
   }`;
-  const bundle=await build({stdin:{contents:'export {bind_terminal_workspace} from "./src/terminal_workspace";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[{name:'terminal-fixture',setup(build){
+  const bundle=await build({stdin:{contents:'export {bind_terminal_workspace} from "./src/terminal_workspace";export {read_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[{name:'terminal-fixture',setup(build){
     build.onLoad({filter:/terminal_pty_client\.ts$/},()=>({contents:pty_mock,loader:'js'}));
     build.onLoad({filter:/terminal_profile_detection\.ts$/},()=>({contents:discovery_mock,loader:'js'}));
   }}]});await evaluate(bundle.outputFiles[0].text);
@@ -51,7 +51,8 @@ app.whenReady().then(async()=>{
   assert(await evaluate('Math.abs(document.querySelector(".typ-workspace-root").getBoundingClientRect().bottom-document.querySelector(".typora-terminal-panel").getBoundingClientRect().top)<2'));
   await evaluate('pty_starts[0].ready();void 0');await wait('first.session.state==="running"');
   await evaluate('pty_starts[0].callbacks.data("KEEP_OUTPUT\\r\\n");void 0');await delay(100);
-  await evaluate('binding.toggle();void 0');assert(await evaluate('document.querySelector(".typora-terminal-panel").hidden&&pty_starts[0].killed===0'));
+  assert(await evaluate('panel_api.read_terminal_state(core.app).active_id===first.session.id&&panel_api.read_terminal_state(core.app).panel_visible'),'menu state reads coordinator session and panel');
+  await evaluate('binding.toggle();void 0');assert(await evaluate('!panel_api.read_terminal_state(core.app).panel_visible'),'menu state follows external hide');assert(await evaluate('document.querySelector(".typora-terminal-panel").hidden&&pty_starts[0].killed===0'));
   await evaluate('binding.toggle();commands.get("linux_note:terminal_split").callback();void 0');await wait('pty_starts.length===2');
   assert(await evaluate('!document.querySelector(".terminal-tabs").hidden&&document.querySelectorAll(".terminal-split-group:not([hidden])>.linux-note-terminal").length===2'));
   await evaluate('pty_starts[1].ready();void 0');await delay(100);
@@ -128,5 +129,6 @@ app.whenReady().then(async()=>{
   await evaluate(`profile_scans[0].complete(${JSON.stringify(profiles)});void 0`);
   assert(await evaluate('(async()=>await pending_after_dispose===undefined)()'));await delay(50);
   assert(await evaluate('profile_scans[0].disposed&&pty_starts.length===8&&commands.size===0&&factories.size===0&&!document.querySelector(".typora-terminal-panel,.git-graph-menu,.git-graph-dialog-shade")&&document.querySelector(".typ-workspace-root").style.bottom===""&&pty_starts.every(item=>item.killed===1)'));
+  assert(await evaluate('panel_api.read_terminal_state(core.app)===undefined'),'dispose releases menu state');
   console.log(JSON.stringify({status:'PASS',checks:['panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;if(win){fs.writeFileSync(path.join(root,'failure.png'),(await win.webContents.capturePage()).toPNG());await evaluate('window.binding?.dispose()');}}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

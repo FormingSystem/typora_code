@@ -25,7 +25,7 @@
 
 真实文件图标入口为 [workspace_file_icons.ts](../enhancements/src/workspace_file_icons.ts) 与 [workspace_explorer.ts](../enhancements/src/workspace_explorer.ts)：源码 URI 先还原真实路径；Graph 差异标签由其真实文件路径提供 Seti 图标。没有真实文件身份的 Graph、终端及第三方视图不按 URI 前缀猜测文件字形。自有 Graph／diff SVG 槽单独屏蔽迟到的 FA 伪元素；不修改原生大纲入口。关闭标签立即释放图标原节点引用，卸载恢复仍在使用的原节点与样式。[拖动跟随预览](drag_and_windows.md)使用来源已有图标和名称，不维护第二套文件类型映射；[渐进搜索结果](search_performance.md)同样沿用共享Seti入口。
 
-其他实现入口包括 [git_icons.ts](../enhancements/src/git_icons.ts)、[git_source_control.ts](../enhancements/src/git_source_control.ts)、[git_scm_history.ts](../enhancements/src/git_scm_history.ts) 与 [git_graph_panel.ts](../enhancements/src/git_graph_panel.ts)。详情图标的固定来源和许可见 [Font Awesome 清单](../enhancements/vendor/fontawesome/SOURCE.json)。35px单行顶栏使用左七菜单、中间导航搜索和右侧宿主窗口按钮；窗口按钮仅替换为已核官方 Codicons 外观，保留原动作，不绘制近似图标。菜单只复用已核 Typora API，不声称完整原生菜单树等价。
+其他实现入口包括 [git_icons.ts](../enhancements/src/git_icons.ts)、[git_source_control.ts](../enhancements/src/git_source_control.ts)、[git_scm_history.ts](../enhancements/src/git_scm_history.ts) 与 [git_graph_panel.ts](../enhancements/src/git_graph_panel.ts)。详情图标的固定来源和许可见 [Font Awesome 清单](../enhancements/vendor/fontawesome/SOURCE.json)。35px单行顶栏使用左侧原生七菜单及新增终端菜单、中间导航搜索和右侧宿主窗口按钮；窗口按钮仅替换为已核官方 Codicons 外观，保留原动作，不绘制近似图标。菜单只复用已核 Typora API，不声称完整原生菜单树等价。
 
 验证入口包括 `test_workspace_file_icons.cjs`、`test_scm_file_icons.cjs`、Explorer、搜索及文件选择器目标，检查共享识别结果、真实字体、明暗颜色、虚拟 URI 隔离、点击打开和图标资源释放。引用颜色另按分支、远端、HEAD、tag、stash 及自定义调色板检查。代码大纲的分类图标与配色见[代码大纲与解析环境](source_outline.md)。
 

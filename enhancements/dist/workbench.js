@@ -176943,12 +176943,13 @@ https://creativecommons.org/licenses/by/4.0/
     /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
     create_readonly_status() {
       if (this.readonly_status) return this.readonly_status;
-      const controls = workspace_element("div", "workspace-editor-status-controls");
+      const controls = workspace_element("div", "workspace-editor-status-controls workspace-footer-group");
       this.readonly_status = controls;
       const side = workspace_element("span", "workspace-file-detail"), location = workspace_element("span", "workspace-file-location"), eol = workspace_element("span", "workspace-file-detail"), language44 = workspace_element("span", "workspace-file-detail"), readonly = workspace_element("span", "workspace-file-detail", git_graph_text("diff.readonly"));
       side.setAttribute("aria-label", git_graph_text("diff.comparison_side"));
       eol.setAttribute("aria-label", git_graph_text("diff.end_of_line"));
       language44.setAttribute("aria-label", git_graph_text("diff.language_mode"));
+      for (const node of [side, location, eol, language44, readonly]) node.classList.add("workspace-footer-text");
       controls.append(side, location, eol, language44, readonly);
       const refresh = () => {
         const editor2 = this.focused_editor(), model = editor2.getModel(), position2 = editor2.getPosition();
@@ -177694,6 +177695,14 @@ https://creativecommons.org/licenses/by/4.0/
     return { guard, confirm_close, schedule_release, move_to_split, dispose: dispose2 };
   }
 
+  // src/workspace_footer_layout.css
+  var workspace_footer_layout_default = "";
+
+  // src/workspace_footer_layout.ts
+  function acquire_workspace_footer_layout() {
+    return acquire_workspace_style("typora-code-style:workspace_footer_layout", workspace_footer_layout_default);
+  }
+
   // src/workspace_editor_status.css
   var workspace_editor_status_default = "";
 
@@ -177705,11 +177714,12 @@ https://creativecommons.org/licenses/by/4.0/
     const footer = document.querySelector("footer.ty-footer");
     const native_actions = document.querySelector("#ty-sidebar-footer");
     const container = document.createElement("div");
-    container.className = "linux-note-editor-status";
+    container.className = "linux-note-editor-status workspace-footer-group";
     container.hidden = true;
     container.setAttribute("role", "group");
     container.setAttribute("aria-label", "\u5F53\u524D\u7F16\u8F91\u5668\u72B6\u6001");
     const style = acquire_workspace_style("typora-code-style:workspace_editor_status", workspace_editor_status_default, {});
+    const layout_style = acquire_workspace_footer_layout();
     const owners = /* @__PURE__ */ new Map();
     let disposed = false, frame2 = 0, observed_controls;
     if (footer) footer.insertBefore(container, footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
@@ -177776,6 +177786,7 @@ https://creativecommons.org/licenses/by/4.0/
       owners.clear();
       container.remove();
       footer?.removeAttribute("data-editor-status");
+      layout_style.remove();
       style.remove();
       status_bindings.delete(core);
     };
@@ -179403,7 +179414,7 @@ https://creativecommons.org/licenses/by/4.0/
       target;
       status = workspace_element("span", "workspace-file-status");
       body = workspace_element("div", "workspace-file-body");
-      status_controls = workspace_element("div", "workspace-editor-status-controls");
+      status_controls = workspace_element("div", "workspace-editor-status-controls workspace-footer-group");
       location_label = workspace_element("span", "workspace-file-location");
       language_button = workspace_button("", () => this.choose_language());
       encoding_button = workspace_button("", () => this.choose_format("encoding"));
@@ -179429,6 +179440,8 @@ https://creativecommons.org/licenses/by/4.0/
         this.encoding_button.textContent = "UTF-8";
         this.eol_button.title = "\u9009\u62E9\u884C\u5C3E\u5E8F\u5217";
         this.eol_button.setAttribute("aria-label", "\u884C\u5C3E\u5E8F\u5217");
+        for (const node of [this.status, this.location_label]) node.classList.add("workspace-footer-text");
+        for (const node of [this.encoding_button, this.eol_button, this.language_button]) node.classList.add("workspace-footer-control");
         this.status_controls.append(this.status, this.location_label, this.encoding_button, this.eol_button, this.language_button);
         this.containerEl.append(this.body);
         editor_status.register(this.leaf, this.status_controls);
@@ -179937,7 +179950,7 @@ https://creativecommons.org/licenses/by/4.0/
     const rename_file = (root, old_path, name) => relocate_file(root, old_path, name);
     const move_file = (root, old_path, target) => relocate_file(root, old_path, target, true);
     const active_source_view = () => [...views].find((view) => view.leaf === core.app.workspace.activeLeaf);
-    const native_document_active = () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
+    const native_document_active2 = () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
     const run_editor_command = (command) => {
       const editor2 = active_source_view()?.editor?.focused_editor();
       if (!editor2) return;
@@ -179947,11 +179960,11 @@ https://creativecommons.org/licenses/by/4.0/
       else editor2.trigger("workspace-menu", command, null);
     };
     const source_editor_active = () => Boolean(active_source_view()?.editor);
-    const can_save_active = () => Boolean(active_source_view()) || native_document_active();
+    const can_save_active = () => Boolean(active_source_view()) || native_document_active2();
     const pending_native_saves = /* @__PURE__ */ new Set();
     let native_open_pending = false;
     const release_save_active = core.app.workspace.on("active-leaf:change", () => {
-      if (native_document_active()) native_open_pending = true;
+      if (native_document_active2()) native_open_pending = true;
     });
     const release_save_open = core.app.workspace.on("file:open", (opened) => {
       if (typeof opened === "string" && file_key(opened) === file_key(core.app.workspace.activeLeaf?.state.path || "") && file_key(opened) === file_key(runtime2.File?.bundle?.filePath || "")) native_open_pending = false;
@@ -180009,7 +180022,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const native_ready = () => {
       const leaf = core.app.workspace.activeLeaf;
-      return binding.active && native_document_active() && file_key(leaf.state.path) === file_key(runtime2.File?.bundle?.filePath || "") && (!leaf.view.isEditor || leaf.view.isEditor()) && !runtime2.File?._onFileSwitching && !runtime2.File?.inSavingProcess;
+      return binding.active && native_document_active2() && file_key(leaf.state.path) === file_key(runtime2.File?.bundle?.filePath || "") && (!leaf.view.isEditor || leaf.view.isEditor()) && !runtime2.File?._onFileSwitching && !runtime2.File?.inSavingProcess;
     };
     const save_as_active = async () => {
       const source = active_source_view();
@@ -180734,6 +180747,18 @@ https://creativecommons.org/licenses/by/4.0/
       rows.push({ lane, color: current.color, edges });
     }
     return { rows, width: width2 };
+  }
+
+  // src/terminal_state.ts
+  var readers = /* @__PURE__ */ new WeakMap();
+  function bind_terminal_state(owner, read2) {
+    readers.set(owner, read2);
+    return () => {
+      if (readers.get(owner) === read2) readers.delete(owner);
+    };
+  }
+  function read_terminal_state(owner) {
+    return readers.get(owner)?.();
   }
 
   // node_modules/@xterm/xterm/css/xterm.css
@@ -192539,9 +192564,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (lifetime.disposed) return;
       const root_rect = root?.getBoundingClientRect();
       const footer = document.querySelector("footer.ty-footer"), footer_rect = footer?.getBoundingClientRect();
-      const bottom = footer_rect && footer_rect.height && getComputedStyle(footer).display !== "none" ? innerHeight - footer_rect.top : parseFloat(base_bottom) || 0;
+      const bottom = footer ? footer_rect?.height && getComputedStyle(footer).display !== "none" ? innerHeight - footer_rect.top : 0 : parseFloat(base_bottom) || 0;
       const top = root_rect?.top || 0, available = Math.max(0, innerHeight - bottom - top), height = visible2 ? Math.min(available, Math.max(120, maximized ? available : available * height_ratio)) : 0;
-      if (root) root.style.bottom = visible2 ? "calc(".concat(base_bottom, " + ").concat(height, "px)") : initial_bottom;
+      if (root) root.style.bottom = visible2 ? "".concat(bottom + height, "px") : initial_bottom;
       container.style.left = (root_rect?.left || 0) + "px";
       container.style.width = (root_rect?.width || innerWidth) + "px";
       container.style.bottom = bottom + "px";
@@ -192757,6 +192782,7 @@ https://creativecommons.org/licenses/by/4.0/
         for (const entry of sessions.values()) entry.surface.resize();
       }));
       const active = () => sessions.get(active_id);
+      lifetime.add(bind_terminal_state(core.app, () => ({ active_id, location: active()?.location, panel_visible: panel.visible })));
       const overlays = /* @__PURE__ */ new Set();
       lifetime.add(() => {
         for (const close of [...overlays]) close();
@@ -223190,24 +223216,25 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_git_status_bar(core, host, current_panel, launch_graph) {
     const footer = document.querySelector("footer.ty-footer,footer");
     if (!footer) throw new Error("Typora Code status bar is unavailable.");
-    const item = workspace_element("span", "linux-note-git-status");
+    const layout2 = acquire_workspace_footer_layout();
+    const item = workspace_element("span", "linux-note-git-status workspace-footer-group");
     item.title = git_graph_text("status.repository_status");
     item.setAttribute("data-linux-note-git-status", "ready");
     footer.prepend(item);
     const style = acquire_workspace_style("typora-code-style:git_status_bar", git_status_bar_default, {});
     const branch = workspace_button("", () => {
-    }, "git-status-branch");
+    }, "git-status-branch workspace-footer-control");
     branch.dataset.gitStatus = "branch";
     const branch_icon = git_icon("git-branch");
     const label = workspace_element("span", "git-status-branch-label", git_graph_text("status.checking"));
     branch.append(branch_icon, label);
     const sync = workspace_button("", () => {
-    }, "git-status-sync");
+    }, "git-status-sync workspace-footer-control");
     sync.dataset.gitStatus = "sync";
     const sync_icon = git_icon("sync");
     const counts = workspace_element("span", "git-status-sync-counts");
     sync.append(sync_icon, counts);
-    const graph = workspace_button("", launch_graph, "git-status-graph");
+    const graph = workspace_button("", launch_graph, "git-status-graph workspace-footer-control");
     graph.dataset.gitStatus = "graph";
     const graph_icon = git_icon("git-branch");
     graph.append(graph_icon, document.createTextNode("Git Graph"));
@@ -223355,6 +223382,7 @@ https://creativecommons.org/licenses/by/4.0/
       observer.disconnect();
       window.removeEventListener("focus", on_focus);
       item.remove();
+      layout2.remove();
       style.remove();
       window.removeEventListener("pagehide", dispose2);
     };
@@ -223710,6 +223738,123 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.dispose();
       throw error;
     }
+  }
+
+  // src/workspace_view_state.ts
+  function read_workspace_sidebar_state(sidebar) {
+    let active_id = sidebar.activePanel?.ribbonButton?.id || null;
+    if (active_id === "linux_note:file_explorer") active_id = "core.file-explorer";
+    if (active_id === "linux_note:search") active_id = "core.search";
+    const native = document.querySelector("#typora-sidebar");
+    if (!sidebar.activePanel?.containerEl?.isConnected) {
+      if (native?.classList.contains("active-tab-outline")) active_id = "core.outline";
+      else if (native?.classList.contains("active-tab-files")) active_id = "core.file-explorer";
+    }
+    return { active_id, sidebar_visible: sidebar.isShown };
+  }
+  function native_document_active(files, runtime2) {
+    const leaf = files.core.app.workspace.activeLeaf;
+    const path_key = (value) => String(value || "").replace(/\\/g, "/");
+    return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime2.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
+  }
+
+  // src/reading_viewport.ts
+  function reading_viewport_bounds(owner) {
+    const rect = owner.getBoundingClientRect();
+    const view = owner.ownerDocument.defaultView;
+    const client_left = rect.left + owner.clientLeft;
+    const client_top = rect.top + owner.clientTop;
+    const left = Math.max(0, client_left);
+    const top = Math.max(0, client_top);
+    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
+      const footer_rect = footer.getBoundingClientRect();
+      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
+      let visible2 = true;
+      for (let element = footer; element; element = element.parentElement) {
+        const style = view?.getComputedStyle(element);
+        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
+          visible2 = false;
+          break;
+        }
+      }
+      if (visible2) bottom = Math.max(top, footer_rect.top);
+    }
+    return { top, bottom, left, right };
+  }
+
+  // src/workspace_native_toolbar.css
+  var workspace_native_toolbar_default = "";
+
+  // src/workspace_native_toolbar.ts
+  function bind_workspace_native_toolbar(files, runtime2) {
+    const lifetime = create_workspace_lifetime();
+    const style = acquire_workspace_style("typora-code-style:workspace_native_toolbar", workspace_native_toolbar_default);
+    lifetime.add(style.remove);
+    let toolbar, toolbar_height = 0, frame2 = 0;
+    const set = (name, value) => {
+      if (toolbar?.style.getPropertyValue(name) !== value) toolbar?.style.setProperty(name, value);
+    };
+    const layout2 = () => {
+      frame2 = 0;
+      if (lifetime.disposed) return;
+      const node = runtime2.File?.editor?.toolbar?.dom;
+      if (node instanceof HTMLElement && node !== toolbar) {
+        toolbar = node;
+        const attributes = ["data-workspace-native-toolbar", "data-workspace-toolbar-suspended"].map((name) => [name, node.getAttribute(name)]);
+        const properties2 = ["--workspace-toolbar-left", "--workspace-toolbar-top", "--workspace-toolbar-width"].map((name) => [name, node.style.getPropertyValue(name)]);
+        lifetime.add(() => {
+          for (const [name, value] of attributes) {
+            if (value === null) node.removeAttribute(name);
+            else node.setAttribute(name, value);
+          }
+          for (const [name, value] of properties2) {
+            if (value) node.style.setProperty(name, value);
+            else node.style.removeProperty(name);
+          }
+        });
+        node.dataset.workspaceNativeToolbar = "ready";
+        resize.observe(node);
+        mutation.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
+      }
+      if (!toolbar) return;
+      const active = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
+      const owner = leaf?.containerEl;
+      const bounds = owner?.isConnected ? reading_viewport_bounds(owner) : void 0;
+      const root2 = document.querySelector(".typ-workspace-root")?.getBoundingClientRect();
+      const bottom = bounds ? Math.min(bounds.bottom, root2?.bottom ?? bounds.bottom) : 0;
+      const suspended = String(!active || !bounds || bottom - bounds.top < toolbar_height + 16);
+      if (toolbar.dataset.workspaceToolbarSuspended !== suspended) toolbar.dataset.workspaceToolbarSuspended = suspended;
+      if (suspended === "true" || !bounds || !toolbar.getClientRects().length || getComputedStyle(toolbar).display === "none") return;
+      set("--workspace-toolbar-width", Math.max(0, bounds.right - bounds.left - 16) + "px");
+      const rect = toolbar.getBoundingClientRect();
+      toolbar_height = rect.height;
+      if (bottom - bounds.top < toolbar_height + 16) {
+        toolbar.dataset.workspaceToolbarSuspended = "true";
+        return;
+      }
+      set("--workspace-toolbar-left", Math.max(bounds.left + 8, (bounds.left + bounds.right - rect.width) / 2) + "px");
+      set("--workspace-toolbar-top", Math.max(bounds.top, bottom - rect.height - 8) + "px");
+    };
+    const schedule = () => {
+      if (!frame2 && !lifetime.disposed) frame2 = requestAnimationFrame(layout2);
+    };
+    const resize = new ResizeObserver(schedule), mutation = new MutationObserver(schedule);
+    const root = document.querySelector(".typ-workspace-root");
+    if (root) resize.observe(root);
+    for (const node of [document.body, document.documentElement]) mutation.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
+    mutation.observe(document.body, { childList: true });
+    lifetime.add(files.core.app.workspace.on("active-leaf:change", schedule));
+    lifetime.listen(window, "resize", schedule);
+    lifetime.listen(document, "transitionend", schedule, true);
+    lifetime.add(() => {
+      cancelAnimationFrame(frame2);
+      resize.disconnect();
+      mutation.disconnect();
+    });
+    schedule();
+    return { dispose: lifetime.dispose };
   }
 
   // src/workspace_preferences.css
@@ -228001,32 +228146,6 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/reading_viewport.ts
-  function reading_viewport_bounds(owner) {
-    const rect = owner.getBoundingClientRect();
-    const view = owner.ownerDocument.defaultView;
-    const client_left = rect.left + owner.clientLeft;
-    const client_top = rect.top + owner.clientTop;
-    const left = Math.max(0, client_left);
-    const top = Math.max(0, client_top);
-    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
-    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
-    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
-      const footer_rect = footer.getBoundingClientRect();
-      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
-      let visible2 = true;
-      for (let element = footer; element; element = element.parentElement) {
-        const style = view?.getComputedStyle(element);
-        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
-          visible2 = false;
-          break;
-        }
-      }
-      if (visible2) bottom = Math.max(top, footer_rect.top);
-    }
-    return { top, bottom, left, right };
-  }
-
   // src/workspace_outline.css
   var workspace_outline_default = "";
 
@@ -228287,12 +228406,13 @@ https://creativecommons.org/licenses/by/4.0/
     const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
     const previous_properties = properties.map((name) => ({ name, value: root.style.getPropertyValue(name), priority: root.style.getPropertyPriority(name) }));
     const style = acquire_workspace_style("typora-code-style:workspace_document_margin", workspace_document_margin_default);
+    const layout2 = acquire_workspace_footer_layout();
     const container = document.createElement("label");
-    container.className = "linux-note-document-margin";
+    container.className = "linux-note-document-margin workspace-footer-group";
     const description = "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD";
     container.title = description;
     const label = document.createElement("span");
-    label.className = "linux-note-document-margin-label";
+    label.className = "linux-note-document-margin-label workspace-footer-text";
     label.textContent = "\u8FB9\u8DDD";
     const input = document.createElement("input");
     input.type = "range";
@@ -228301,6 +228421,7 @@ https://creativecommons.org/licenses/by/4.0/
     input.step = "1";
     input.setAttribute("aria-label", "Markdown \u6B63\u6587\u5355\u4FA7\u8FB9\u8DDD\u767E\u5206\u6BD4");
     const output = document.createElement("output");
+    output.className = "workspace-footer-text";
     output.setAttribute("aria-live", "polite");
     container.append(label, input, output);
     footer.insertBefore(container, footer.querySelector(":scope > .footer-item-right"));
@@ -228358,6 +228479,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (property.value) root.style.setProperty(property.name, property.value, property.priority);
           else root.style.removeProperty(property.name);
         }
+        layout2.remove();
         style.remove();
       });
       bindings4.delete(footer);
@@ -228371,7 +228493,6 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = create_workspace_lifetime();
     const definitions = [
       { selector: "#sidebar-files-menu", anchors: ["#sidebar-menu-btn"] },
-      { selector: "#toc-dropmenu", anchors: ["#unpin-outline-btn", "#outline-btn", "#sidebar-menu-btn"] },
       { selector: "#footer-word-count-info", anchors: ["#footer-word-count"] },
       { selector: "#spell-check-panel", anchors: ["#footer-spell-check"] }
     ];
@@ -228463,8 +228584,21 @@ https://creativecommons.org/licenses/by/4.0/
     const mirrored_classes = ["active-tab-files", "active-tab-outline", "use-file-list-style", "use-file-tree-style"];
     const original_classes = new Map(mirrored_classes.map((name) => [name, actions.classList.contains(name)]));
     const style = acquire_workspace_style("typora-code-style:workspace_footer", workspace_footer_default, { "data-workspace-footer-style": "ready" });
+    const layout2 = acquire_workspace_footer_layout();
+    const roles = /* @__PURE__ */ new Map();
+    for (const [selector, role] of [
+      ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn", "group"],
+      ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "control"],
+      ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand", "text"]
+    ]) for (const node of document.querySelectorAll(selector)) {
+      const name = "workspace-footer-" + role;
+      if (!node.classList.contains(name)) {
+        node.classList.add(name);
+        roles.set(node, [...roles.get(node) || [], name]);
+      }
+    }
     actions.setAttribute("role", "group");
-    actions.setAttribute("aria-label", "\u6587\u4EF6\u4E0E\u5927\u7EB2\u64CD\u4F5C");
+    actions.setAttribute("aria-label", "\u6587\u4EF6\u64CD\u4F5C");
     footer.removeAttribute("aria-hidden");
     footer.dataset.workspaceFooter = "ready";
     sidebar.dataset.workspaceFooter = "moved";
@@ -228476,7 +228610,6 @@ https://creativecommons.org/licenses/by/4.0/
       ["#sidebar-menu-btn>.sidebar-footer-item .footer-btn>.ty-icon", "more"],
       ["#switch-file-list-btn .switch-file-list-btn-to-list>.ty-icon", "list-flat"],
       ["#switch-file-list-btn .switch-file-list-btn-to-tree>.ty-icon", "list-tree"],
-      ["#unpin-outline-btn .ty-export1", "pinned"],
       ["#toggle-sourceview-btn", "edit-code"],
       ["#close-sidebar-menu-btn", "close"],
       ["#ty-group-by-folder-btn", "list-tree"],
@@ -228509,6 +228642,9 @@ https://creativecommons.org/licenses/by/4.0/
       else footer.setAttribute("aria-hidden", original_aria);
       delete footer.dataset.workspaceFooter;
       delete sidebar.dataset.workspaceFooter;
+      for (const [node, names] of roles) node.classList.remove(...names);
+      roles.clear();
+      layout2.remove();
       style.remove();
       footer_bindings.delete(actions);
     } };
@@ -228832,11 +228968,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_workspace_titlebar_definitions(files, runtime2, open_files) {
     const workspace = files.core.app.workspace;
     const editor2 = () => runtime2.File?.editor;
-    const path_key = (value) => String(value || "").replace(/\\/g, "/");
-    const native_active = () => {
-      const leaf = workspace.activeLeaf;
-      return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime2.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
-    };
+    const native_active = () => native_document_active(files, runtime2);
     const native_writable = () => native_active() && !runtime2.File?.isLocked && !runtime2.File?.isReadonlyMode;
     const rich_writable = () => native_writable() && !editor2()?.sourceView?.inSourceMode;
     const has_command = (name) => typeof runtime2.ClientCommand?.[name] === "function";
@@ -229008,27 +229140,61 @@ https://creativecommons.org/licenses/by/4.0/
         style("\u6E05\u9664\u6837\u5F0F", "clearStyle")
       ];
     };
-    const view_entries = async () => [
-      { ...native_entry("\u6E90\u4EE3\u7801\u6A21\u5F0F", () => runtime2.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor2()?.sourceView?.inSourceMode) },
-      { ...native_entry("\u53EA\u8BFB\u6A21\u5F0F", () => runtime2.EditHelper, "toggleReadonlyMode", [], void 0, false), checked: Boolean(native_active() && runtime2.File?.isReadonlyMode) },
-      { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime2.File?.isFocusMode) },
-      { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime2.File?.isTypeWriterMode) },
-      separator(),
-      { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", action: () => workspace.sidebar.toggle() },
-      { label: "\u5927\u7EB2", action: () => files.core.app.commands.run("linux_note:outline") },
-      { label: "\u6587\u4EF6\u6811", action: () => files.core.app.commands.run("linux_note:file_explorer") },
-      command("\u72B6\u6001\u680F", "toggleStatusBar"),
-      command("\u5DE5\u5177\u680F", "toggleToolbar"),
-      separator(),
-      ...WORKSPACE_ZOOM_ACTIONS.map(({ id, label, shortcut }) => ({
-        label,
-        shortcut,
-        disabled: !workspace_zoom_available(runtime2, id),
-        action: () => {
-          if (workspace_zoom_available(runtime2, id)) files.core.app.commands.run(id);
-        }
-      }))
-    ];
+    const terminal_entries = async () => {
+      const state = read_terminal_state(files.core.app), session_id = state?.active_id;
+      const terminal_entry = (label, id, session = false, shortcut) => ({ label, shortcut, disabled: !state || session && !state.active_id, action: () => {
+        const current = read_terminal_state(files.core.app);
+        if (current && (!session || Boolean(current.active_id) && current.active_id === session_id)) files.core.app.commands.run("linux_note:" + id);
+      } });
+      return [
+        terminal_entry("\u65B0\u5EFA\u7EC8\u7AEF", "terminal", false, "Ctrl+Shift+`"),
+        terminal_entry("\u62C6\u5206\u7EC8\u7AEF", "terminal_split", true),
+        { ...terminal_entry("\u663E\u793A\uFF0F\u9690\u85CF\u7EC8\u7AEF", "terminal_toggle", false, "Ctrl+`"), checked: Boolean(state?.panel_visible) },
+        separator(),
+        terminal_entry("\u67E5\u627E\u2026", "terminal_find", true),
+        terminal_entry("\u6E05\u5C4F", "terminal_clear", true),
+        terminal_entry("\u91CD\u547D\u540D\u2026", "terminal_rename", true),
+        separator(),
+        { ...terminal_entry("\u79FB\u52A8\u5230\u7F16\u8F91\u5668", "terminal_move_editor", true), disabled: !state?.active_id || state.location === "editor" },
+        { ...terminal_entry("\u79FB\u52A8\u5230\u9762\u677F", "terminal_move_panel", true), disabled: !state?.active_id || state.location === "panel" },
+        separator(),
+        terminal_entry("\u91CD\u542F\u7EC8\u7AEF", "terminal_restart", true),
+        terminal_entry("\u7EC8\u6B62\u7EC8\u7AEF", "terminal_kill", true),
+        separator(),
+        terminal_entry("\u7EC8\u7AEF\u8BBE\u7F6E\u2026", "terminal_settings")
+      ];
+    };
+    const toggle_sidebar_view = (id, command_id) => {
+      const current = read_workspace_sidebar_state(workspace.sidebar);
+      if (current.sidebar_visible && current.active_id === id) workspace.sidebar.hide();
+      else files.core.app.commands.run(command_id);
+    };
+    const view_entries = async () => {
+      const sidebar = read_workspace_sidebar_state(workspace.sidebar), terminal = read_terminal_state(files.core.app);
+      const toolbar = editor2()?.toolbar?.dom;
+      return [
+        { ...native_entry("\u6E90\u4EE3\u7801\u6A21\u5F0F", () => runtime2.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor2()?.sourceView?.inSourceMode) },
+        { ...native_entry("\u53EA\u8BFB\u6A21\u5F0F", () => runtime2.EditHelper, "toggleReadonlyMode", [], void 0, false), checked: Boolean(native_active() && runtime2.File?.isReadonlyMode) },
+        { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime2.File?.isFocusMode) },
+        { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime2.File?.isTypeWriterMode) },
+        separator(),
+        { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", checked: sidebar.sidebar_visible, action: () => workspace.sidebar.toggle() },
+        { label: "\u5927\u7EB2", checked: sidebar.sidebar_visible && sidebar.active_id === "core.outline", action: () => toggle_sidebar_view("core.outline", "linux_note:outline") },
+        { label: "\u6587\u4EF6\u6811", checked: sidebar.sidebar_visible && sidebar.active_id === "core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer", "linux_note:file_explorer") },
+        { ...command("\u72B6\u6001\u680F", "toggleStatusBar"), checked: document.body.classList.contains("show-footer") },
+        { ...native_command("\u5DE5\u5177\u680F", "toggleToolbar", void 0, false), checked: Boolean(native_active() && toolbar?.getClientRects().length && getComputedStyle(toolbar).display !== "none") },
+        { label: "\u7EC8\u7AEF", shortcut: "Ctrl+`", checked: Boolean(terminal?.panel_visible), disabled: !terminal, action: () => files.core.app.commands.run("linux_note:terminal_toggle") },
+        separator(),
+        ...WORKSPACE_ZOOM_ACTIONS.map(({ id, label, shortcut }) => ({
+          label,
+          shortcut,
+          disabled: !workspace_zoom_available(runtime2, id),
+          action: () => {
+            if (workspace_zoom_available(runtime2, id)) files.core.app.commands.run(id);
+          }
+        }))
+      ];
+    };
     const theme_entries = async () => {
       try {
         const data = await runtime2.JSBridge?.invoke("setting.getThemes");
@@ -229054,6 +229220,7 @@ https://creativecommons.org/licenses/by/4.0/
       { label: "\u683C\u5F0F", mnemonic: "O", entries: format_entries },
       { label: "\u89C6\u56FE", mnemonic: "V", entries: view_entries },
       { label: "\u4E3B\u9898", mnemonic: "T", entries: theme_entries },
+      { label: "\u7EC8\u7AEF", mnemonic: "R", entries: terminal_entries },
       { label: "\u5E2E\u52A9", mnemonic: "H", entries: help_entries }
     ];
   }
@@ -229496,6 +229663,7 @@ https://creativecommons.org/licenses/by/4.0/
       const files = lifetime.own(bind_workspace_files(core));
       lifetime.own(create_workspace_quick_open(files));
       lifetime.own(bind_workspace_tab_controls(core));
+      lifetime.own(bind_workspace_native_toolbar(files, window));
       lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
       lifetime.own(bind_workspace_preferences(core));
       const file_commands = lifetime.own(bind_workspace_file_commands(files, () => context_changed()));
@@ -229562,17 +229730,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(install_workspace_sidebar_sash({ sidebar: core.app.workspace.sidebar, save_width: (width2) => window.JSBridge.putSetting("sidebar-width", width2) }));
       const sidebar = core.app.workspace.sidebar;
       const ribbon = document.querySelector(".typ-ribbon");
-      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control"], read_state: () => {
-        let active_id = sidebar.activePanel?.ribbonButton?.id || null;
-        if (active_id === "linux_note:file_explorer") active_id = "core.file-explorer";
-        if (active_id === "linux_note:search") active_id = "core.search";
-        const native = document.querySelector("#typora-sidebar");
-        if (!sidebar.activePanel?.containerEl?.isConnected) {
-          if (native?.classList.contains("active-tab-outline")) active_id = "core.outline";
-          else if (native?.classList.contains("active-tab-files")) active_id = "core.file-explorer";
-        }
-        return { active_id, sidebar_visible: sidebar.isShown };
-      } }));
+      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control"], read_state: () => read_workspace_sidebar_state(sidebar) }));
       lifetime.own(bind_workspace_detached_window(files));
       document.documentElement.setAttribute("data-linux-note-workspace-browser", "ready");
       lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace-browser"));

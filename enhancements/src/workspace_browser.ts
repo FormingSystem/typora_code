@@ -1,3 +1,5 @@
+import {read_workspace_sidebar_state} from "./workspace_view_state";
+import {bind_workspace_native_toolbar} from "./workspace_native_toolbar";
 import {bind_workspace_preferences} from "./workspace_preferences";
 import { create_workspace_quick_open, get_workspace_quick_open } from "./workspace_quick_open";
 import { bind_workspace_tab_controls } from "./workspace_tab_controls";
@@ -23,6 +25,7 @@ export function bind_workspace_browser() {
   const files=lifetime.own(bind_workspace_files(core));
   lifetime.own(create_workspace_quick_open(files));
   lifetime.own(bind_workspace_tab_controls(core));
+  lifetime.own(bind_workspace_native_toolbar(files,window as any));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
   lifetime.own(bind_workspace_preferences(core));
   const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed()));
@@ -71,14 +74,7 @@ export function bind_workspace_browser() {
   lifetime.own(install_workspace_sidebar_sash({sidebar:core.app.workspace.sidebar,save_width:width=>(window as unknown as {JSBridge:{putSetting(key:string,value:number):void}}).JSBridge.putSetting("sidebar-width",width)}));
   const sidebar=core.app.workspace.sidebar as unknown as {isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}};
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");
-  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control"],read_state:()=>{
-    let active_id=sidebar.activePanel?.ribbonButton?.id||null;
-    if(active_id==="linux_note:file_explorer")active_id="core.file-explorer";
-    if(active_id==="linux_note:search")active_id="core.search";
-    const native=document.querySelector("#typora-sidebar");
-    if(!sidebar.activePanel?.containerEl?.isConnected){if(native?.classList.contains("active-tab-outline"))active_id="core.outline";else if(native?.classList.contains("active-tab-files"))active_id="core.file-explorer";}
-    return{active_id,sidebar_visible:sidebar.isShown};
-  }}));
+  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
   lifetime.own(bind_workspace_detached_window(files));
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));

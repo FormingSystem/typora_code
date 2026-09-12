@@ -1,3 +1,4 @@
+import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
 import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
 import type { graph_core, graph_host } from "./git_graph_host";
@@ -29,18 +30,19 @@ export function parse_branch_status(source: string): branch_status {
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
   if (!footer) throw new Error("Typora Code status bar is unavailable.");
-  const item = el("span", "linux-note-git-status");
+  const layout=acquire_workspace_footer_layout();
+  const item = el("span", "linux-note-git-status workspace-footer-group");
   item.title = text("status.repository_status");
   item.setAttribute("data-linux-note-git-status", "ready");
   footer.prepend(item);
   const style = acquire_workspace_style("typora-code-style:git_status_bar", status_css, {});
-  const branch = button("", () => {}, "git-status-branch"); branch.dataset.gitStatus = "branch";
+  const branch = button("", () => {}, "git-status-branch workspace-footer-control"); branch.dataset.gitStatus = "branch";
   const branch_icon = git_icon("git-branch");
   const label = el("span", "git-status-branch-label", text("status.checking")); branch.append(branch_icon, label);
-  const sync = button("", () => {}, "git-status-sync"); sync.dataset.gitStatus = "sync";
+  const sync = button("", () => {}, "git-status-sync workspace-footer-control"); sync.dataset.gitStatus = "sync";
   const sync_icon = git_icon("sync");
   const counts = el("span", "git-status-sync-counts"); sync.append(sync_icon, counts);
-  const graph = button("", launch_graph, "git-status-graph"); graph.dataset.gitStatus = "graph";
+  const graph = button("", launch_graph, "git-status-graph workspace-footer-control"); graph.dataset.gitStatus = "graph";
   const graph_icon = git_icon("git-branch"); graph.append(graph_icon, document.createTextNode("Git Graph"));
   graph.title = text("status.open_graph"); graph.setAttribute("aria-label", graph.title);
   item.append(branch, sync, graph);
@@ -130,7 +132,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
   const timer = window.setInterval(() => { if (document.visibilityState !== "hidden" && !panel?.writing) void refresh(); }, 8000);
   const on_focus = () => void refresh(); window.addEventListener("focus", on_focus);
-  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); style.remove(); window.removeEventListener("pagehide",dispose); };
+  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); layout.remove();style.remove(); window.removeEventListener("pagehide",dispose); };
   window.addEventListener("pagehide", dispose, {once:true});
   void refresh();
   return {dispose, refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};

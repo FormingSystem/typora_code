@@ -1,4 +1,4 @@
-/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七栏。 */
+/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七类菜单并补充终端入口。 */
 body.typora-node.unibody-window { --typ-workspace-top:35px; }
 body.typora-node.unibody-window #top-titlebar { height:35px;left:0!important;right:0;top:0;transition:none!important; }
 body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #title-text { visibility:hidden; }

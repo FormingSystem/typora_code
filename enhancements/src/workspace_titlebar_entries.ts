@@ -1,3 +1,5 @@
+import {read_terminal_state} from "./terminal_state";
+import {native_document_active,read_workspace_sidebar_state} from "./workspace_view_state";
 import { WORKSPACE_ZOOM_ACTIONS, workspace_zoom_available } from "./workspace_zoom";
 import type { workspace_file_host } from "./workspace_files";
 import type { titlebar_menu_definition, titlebar_menu_entry } from "./workspace_titlebar_menu";
@@ -25,13 +27,7 @@ export function create_workspace_titlebar_definitions(
 ): titlebar_menu_definition[] {
   const workspace = files.core.app.workspace;
   const editor = () => runtime.File?.editor;
-  const path_key = (value: unknown) => String(value || "").replace(/\\/g, "/");
-  const native_active = () => {
-    const leaf = workspace.activeLeaf;
-    return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://")
-      && path_key(leaf?.state.path) === path_key(runtime.File?.bundle?.filePath)
-      && (!(leaf?.view as any)?.isEditor || (leaf!.view as any).isEditor());
-  };
+  const native_active = () => native_document_active(files,runtime);
   const native_writable = () => native_active() && !runtime.File?.isLocked && !runtime.File?.isReadonlyMode;
   const rich_writable = () => native_writable() && !editor()?.sourceView?.inSourceMode;
   const has_command = (name: string) => typeof runtime.ClientCommand?.[name] === "function";
@@ -144,20 +140,44 @@ export function create_workspace_titlebar_definitions(
       ["超链接","link"], ["图像","image"] ] as const).map(([label,name]) => ({...style(label,"toggleStyle",[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name))})),
       separator(), style("清除样式", "clearStyle")];
   };
-  const view_entries = async (): Promise<entry[]> => [
+  const terminal_entries=async():Promise<entry[]>=>{
+    const state=read_terminal_state(files.core.app),session_id=state?.active_id;
+    const terminal_entry=(label:string,id:string,session=false,shortcut?:string):entry=>({label,shortcut,disabled:!state||(session&&!state.active_id),action:()=>{
+      const current=read_terminal_state(files.core.app);
+      if(current&&(!session||Boolean(current.active_id)&&current.active_id===session_id))files.core.app.commands.run("linux_note:"+id);
+    }});
+    return [terminal_entry("新建终端","terminal",false,"Ctrl+Shift+`"),terminal_entry("拆分终端","terminal_split",true),
+      {...terminal_entry("显示／隐藏终端","terminal_toggle",false,"Ctrl+`"),checked:Boolean(state?.panel_visible)},separator(),
+      terminal_entry("查找…","terminal_find",true),terminal_entry("清屏","terminal_clear",true),terminal_entry("重命名…","terminal_rename",true),separator(),
+      {...terminal_entry("移动到编辑器","terminal_move_editor",true),disabled:!state?.active_id||state.location==="editor"},
+      {...terminal_entry("移动到面板","terminal_move_panel",true),disabled:!state?.active_id||state.location==="panel"},separator(),
+      terminal_entry("重启终端","terminal_restart",true),terminal_entry("终止终端","terminal_kill",true),separator(),terminal_entry("终端设置…","terminal_settings")];
+  };
+  const toggle_sidebar_view=(id:string,command_id:string)=>{
+    const current=read_workspace_sidebar_state(workspace.sidebar);
+    if(current.sidebar_visible&&current.active_id===id)workspace.sidebar.hide();
+    else files.core.app.commands.run(command_id);
+  };
+  const view_entries = async (): Promise<entry[]> => {
+    const sidebar=read_workspace_sidebar_state(workspace.sidebar),terminal=read_terminal_state(files.core.app);
+    const toolbar=editor()?.toolbar?.dom;
+    return [
     {...native_entry("源代码模式", () => runtime.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor()?.sourceView?.inSourceMode)},
     {...native_entry("只读模式", () => runtime.EditHelper, "toggleReadonlyMode", [], undefined, false), checked: Boolean(native_active() && runtime.File?.isReadonlyMode)},
     {...native_entry("专注模式", editor, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime.File?.isFocusMode)},
     {...native_entry("打字机模式", editor, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime.File?.isTypeWriterMode)}, separator(),
-    {label: "显示／隐藏侧栏", shortcut: "Ctrl+B", action: () => workspace.sidebar.toggle()},
-    {label: "大纲", action: () => files.core.app.commands.run("linux_note:outline")},
-    {label: "文件树", action: () => files.core.app.commands.run("linux_note:file_explorer")},
-    command("状态栏", "toggleStatusBar"), command("工具栏", "toggleToolbar"), separator(),
+    {label: "显示／隐藏侧栏", shortcut: "Ctrl+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
+    {label: "大纲", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
+    {label: "文件树", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
+    {...command("状态栏", "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},
+    {...native_command("工具栏", "toggleToolbar",undefined,false),checked:Boolean(native_active()&&toolbar?.getClientRects().length&&getComputedStyle(toolbar).display!=="none")},
+    {label:"终端",shortcut:"Ctrl+`",checked:Boolean(terminal?.panel_visible),disabled:!terminal,action:()=>files.core.app.commands.run("linux_note:terminal_toggle")},separator(),
     ...WORKSPACE_ZOOM_ACTIONS.map(({id, label, shortcut}) => ({label, shortcut,
       disabled: !workspace_zoom_available(runtime, id), action: () => {
         if (workspace_zoom_available(runtime, id)) files.core.app.commands.run(id);
       }})),
   ];
+  };
   const theme_entries = async (): Promise<entry[]> => {
     try {
       const data = await runtime.JSBridge?.invoke("setting.getThemes");
@@ -176,6 +196,7 @@ export function create_workspace_titlebar_definitions(
     {label: "文件", mnemonic: "F", entries: file_entries}, {label: "编辑", mnemonic: "E", entries: edit_entries},
     {label: "段落", mnemonic: "P", entries: paragraph_entries}, {label: "格式", mnemonic: "O", entries: format_entries},
     {label: "视图", mnemonic: "V", entries: view_entries}, {label: "主题", mnemonic: "T", entries: theme_entries},
+    {label: "终端", mnemonic: "R", entries: terminal_entries},
     {label: "帮助", mnemonic: "H", entries: help_entries},
   ];
 }

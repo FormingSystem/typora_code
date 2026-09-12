@@ -5,7 +5,6 @@ export function bind_workspace_footer_popups(footer:HTMLElement, actions:HTMLEle
   const lifetime=create_workspace_lifetime();
   const definitions=[
     {selector:"#sidebar-files-menu",anchors:["#sidebar-menu-btn"]},
-    {selector:"#toc-dropmenu",anchors:["#unpin-outline-btn","#outline-btn","#sidebar-menu-btn"]},
     {selector:"#footer-word-count-info",anchors:["#footer-word-count"]},
     {selector:"#spell-check-panel",anchors:["#footer-spell-check"]}
   ];

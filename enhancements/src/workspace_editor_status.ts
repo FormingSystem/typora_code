@@ -1,3 +1,4 @@
+import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import editor_status_css from "./workspace_editor_status.css";
@@ -10,9 +11,10 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const existing=status_bindings.get(core);if(existing)return existing;
   const footer=document.querySelector<HTMLElement>("footer.ty-footer");
   const native_actions=document.querySelector<HTMLElement>("#ty-sidebar-footer");
-  const container=document.createElement("div");container.className="linux-note-editor-status";container.hidden=true;
+  const container=document.createElement("div");container.className="linux-note-editor-status workspace-footer-group";container.hidden=true;
   container.setAttribute("role","group");container.setAttribute("aria-label","当前编辑器状态");
   const style = acquire_workspace_style("typora-code-style:workspace_editor_status", editor_status_css, {});
+  const layout_style=acquire_workspace_footer_layout();
   const owners=new Map<graph_leaf,HTMLElement>();let disposed=false,frame=0,observed_controls:HTMLElement|undefined;
   if(footer)footer.insertBefore(container,footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
   const layout=()=>{
@@ -40,7 +42,7 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const unsubscribe=(core.app.workspace as unknown as {on(name:string,callback:()=>void):void|(()=>void)}).on("active-leaf:change",refresh);
   const resize=new ResizeObserver(schedule);if(footer)resize.observe(footer);if(native_actions)resize.observe(native_actions);
   document.addEventListener("focusin",schedule,true);window.addEventListener("resize",schedule);
-  const dispose=()=>{if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);resize.disconnect();contents.disconnect();if(typeof unsubscribe==="function")unsubscribe();document.removeEventListener("focusin",schedule,true);window.removeEventListener("resize",schedule);window.removeEventListener("unload",dispose);owners.clear();container.remove();footer?.removeAttribute("data-editor-status");style.remove();status_bindings.delete(core);};
+  const dispose=()=>{if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);resize.disconnect();contents.disconnect();if(typeof unsubscribe==="function")unsubscribe();document.removeEventListener("focusin",schedule,true);window.removeEventListener("resize",schedule);window.removeEventListener("unload",dispose);owners.clear();container.remove();footer?.removeAttribute("data-editor-status");layout_style.remove();style.remove();status_bindings.delete(core);};
   window.addEventListener("unload",dispose);
   const binding={container,register(leaf:graph_leaf,controls:HTMLElement){owners.set(leaf,controls);refresh();},release(leaf:graph_leaf){owners.delete(leaf);refresh();},refresh,schedule,dispose};
   status_bindings.set(core,binding);return binding;

@@ -142,9 +142,10 @@ export class git_diff_editor {
   /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
   create_readonly_status(): HTMLElement {
     if(this.readonly_status)return this.readonly_status;
-    const controls=el("div","workspace-editor-status-controls");this.readonly_status=controls;
+    const controls=el("div","workspace-editor-status-controls workspace-footer-group");this.readonly_status=controls;
     const side=el("span","workspace-file-detail"),location=el("span","workspace-file-location"),eol=el("span","workspace-file-detail"),language=el("span","workspace-file-detail"),readonly=el("span","workspace-file-detail",text("diff.readonly"));
     side.setAttribute("aria-label",text("diff.comparison_side"));eol.setAttribute("aria-label",text("diff.end_of_line"));language.setAttribute("aria-label",text("diff.language_mode"));
+    for(const node of [side,location,eol,language,readonly])node.classList.add("workspace-footer-text");
     controls.append(side,location,eol,language,readonly);
     const refresh=()=>{
       const editor=this.focused_editor(),model=editor.getModel(),position=editor.getPosition();

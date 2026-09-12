@@ -753,21 +753,15 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 /* git_status_bar.css */
 footer.ty-footer .linux-note-git-status {
   float: left;
-  display: inline-flex;
-  align-items: center;
   gap: 2px;
-  height: 100%;
   max-width: 65%;
   padding: 0 4px;
   overflow: hidden;
   color: var(--text-color, #424242);
 }
 .linux-note-git-status button {
-  display: inline-flex;
-  align-items: center;
   gap: 5px;
   min-width: 0;
-  height: 100%;
   border: 0;
   border-radius: 0;
   padding: 0 7px;
@@ -868,7 +862,7 @@ content.typ-deactive .linux-note-reading-minimap,
 @media(max-width:500px){.source-outline-settings.git-graph-dialog-shade{padding:8px}.source-outline-settings>.git-graph-dialog{width:100%;max-height:calc(100vh - 16px)}}
 
 /* terminal_workspace.css */
-.typora-terminal-panel{position:fixed;z-index:100;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--side-bar-bg-color,var(--bg-color,transparent));color:var(--text-color,inherit);border-top:1px solid var(--workspace-border-color,#8885);font:13px/1.4 system-ui,sans-serif}
+.typora-terminal-panel{box-sizing:border-box;position:fixed;z-index:100;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--side-bar-bg-color,var(--bg-color,transparent));color:var(--text-color,inherit);border-top:1px solid var(--workspace-border-color,#8885);font:13px/1.4 system-ui,sans-serif}
 .typora-terminal-panel[hidden],.typora-terminal-panel [hidden],.linux-note-terminal [hidden]{display:none!important}
 .terminal-panel-header{height:35px;min-height:35px;display:flex;align-items:center;padding:0 6px 0 16px;border-bottom:1px solid #8882;gap:8px}
 .terminal-panel-title{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-bottom:1px solid var(--select-text-bg-color,#007acc);height:100%;display:flex;align-items:center;min-width:30px}
@@ -1307,6 +1301,12 @@ body:not(.typora-export) content.typ-deactive { visibility:hidden!important;poin
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
+/* 终端是48px活动栏入口，不能继承普通工具按钮的16px SVG尺寸。 */
+.typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon {
+  display:block;flex:none;width:24px;height:24px;min-width:24px;min-height:24px;margin:0;padding:0;fill:currentColor;stroke:none;
+}
+.typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon * {fill:currentColor;stroke:none;}
+
 /* 核心把活动栏挂在原生 header 内的侧栏分界线后，而不是 body 直接子节点。
    与编辑区共用起点，保留底部设置／终端原有 16px 内边距；每个 48px 槽紧接上一槽。 */
 body.typora-node.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
@@ -1373,23 +1373,23 @@ html[data-linux-note-document-margin="ready"] body:not(.typora-export) content >
   margin-right:auto!important;
 }
 .linux-note-document-margin {
-  display:inline-flex;align-items:center;flex:0 0 auto;gap:4px;height:100%;min-width:0;
+  flex:0 0 auto;gap:4px;min-width:0;
   padding:0 5px;font:12px/22px "Segoe UI",sans-serif;white-space:nowrap;
 }
 .linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
-.linux-note-document-margin output {width:30px;overflow:hidden;text-align:right;font:inherit;font-variant-numeric:tabular-nums;}
+.linux-note-document-margin output {width:30px;overflow:hidden;text-align:center;font-variant-numeric:tabular-nums;}
 /* 沿用原 900px 紧凑阈值，但以底栏可用宽度判断，侧栏变宽后也不挤出字数。 */
 footer.ty-footer:has(> .linux-note-document-margin) {container-type:inline-size;container-name:typora-document-footer;}
 @container typora-document-footer (max-width:900px) {
-  .linux-note-document-margin-label,.linux-note-document-margin output {display:none;}
+  footer.ty-footer .linux-note-document-margin-label,footer.ty-footer .linux-note-document-margin output {display:none;}
   .linux-note-document-margin input[type="range"] {width:58px;}
 }
 
 /* workspace_editor_status.css */
 body.show-footer footer.ty-footer:has(>.linux-note-editor-status) { display:flex; align-items:center; min-width:0; }
-.linux-note-editor-status { display:flex; flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }
+.linux-note-editor-status { flex:0 1 auto; min-width:0; margin-left:auto; overflow:hidden; }
 .linux-note-editor-status[hidden] { display:none!important; }
-.workspace-editor-status-controls { display:flex; align-items:center; gap:6px; min-width:0; padding:0 4px; height:22px; box-sizing:border-box; font:12px/22px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
+.workspace-editor-status-controls { gap:6px; min-width:0; padding:0 4px; font:12px/22px var(--monospace,Consolas,monospace); white-space:nowrap; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; }
 .workspace-editor-status-controls::-webkit-scrollbar { display:none; }
 .workspace-editor-status-controls .workspace-file-status { flex:0 1 auto; max-width:16em; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .workspace-editor-status-controls button { flex:none; border:0; background:transparent; color:inherit; white-space:nowrap; font:inherit; padding:0 4px; cursor:pointer; }
@@ -1483,15 +1483,15 @@ footer.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {
 }
 footer.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {
   position:relative!important; inset:auto!important; display:flex!important;
-  flex:0 0 auto; min-width:0; max-width:none; width:max-content!important; height:100%;
+  flex:0 0 auto; min-width:0; max-width:none; width:max-content!important;
   margin:0 0 0 auto; padding:0; border:0!important; opacity:1!important;
   animation:none!important; background:inherit; line-height:inherit; overflow:visible; z-index:5;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div {
-  display:flex; align-items:center; width:max-content; min-width:0; height:100%;
+  width:max-content; min-width:0;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer .sidebar-footer-item {
-  opacity:1!important; margin:0; padding-top:0; line-height:22px;
+  opacity:1!important;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div > .sidebar-footer-item {
   flex:0 0 var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); text-align:center;
@@ -1502,6 +1502,9 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
+/* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
+footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
+
 /* 原生代码仍更新该标签；仅从视觉布局移除，避免目录名撑成长条。 */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label {
   position:absolute!important; width:1px; height:1px; padding:0!important; margin:-1px!important;
@@ -1528,13 +1531,24 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
   max-width:calc(100vw - 8px)!important;max-height:var(--workspace-popup-max-height,65vh)!important;
   overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
 }
-/* 取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
-body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > #footer-word-count {
-  display:flex;align-items:center;justify-content:center;gap:2px;height:100%;box-sizing:border-box;
-  margin:0;padding:0 6px;line-height:1;white-space:nowrap;
+/* 字数与语言共用盒模型；取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
+body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
+  gap:2px;padding-left:6px;padding-right:6px;
 }
-footer.ty-footer[data-workspace-footer=ready] #footer-word-count-label {display:inline-block;line-height:1;}
-footer.ty-footer[data-workspace-footer=ready] .ty-word-count-expand {display:flex;align-items:center;justify-content:center;line-height:1;}
+
+/* workspace_footer_layout.css */
+/* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
+footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
+  display:flex;align-items:center;box-sizing:border-box;height:100%;min-height:0;
+  margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:1!important;white-space:nowrap;
+}
+/* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
+footer.ty-footer .workspace-footer-control {justify-content:center;margin-left:0!important;margin-right:0!important;}
+footer.ty-footer .workspace-footer-text {
+  display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;
+  margin:0!important;padding:0!important;font:inherit;line-height:1!important;color:inherit;white-space:nowrap;
+}
+footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}
 
 /* workspace_lookup_preview.css */
 .workspace-lookup-preview{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;color:var(--text-color,inherit);background:var(--bg-color,inherit)}
@@ -1543,6 +1557,15 @@ footer.ty-footer[data-workspace-footer=ready] .ty-word-count-expand {display:fle
 .workspace-lookup-preview-body .git-diff-toolbar,.workspace-lookup-preview-body .git-diff-labels{display:none}
 .workspace-lookup-preview-body .git-monaco-body{flex:1;min-height:0}
 .workspace-lookup-preview-message{padding:10px;font-size:12px}
+
+/* workspace_native_toolbar.css */
+/* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */
+body.hide-footer {--typ-footer-height:0px;}
+.ty-editor-toolbar[data-workspace-native-toolbar=ready] {
+  left:var(--workspace-toolbar-left)!important;top:var(--workspace-toolbar-top)!important;bottom:auto!important;
+  max-width:var(--workspace-toolbar-width);box-sizing:border-box;
+}
+.ty-editor-toolbar[data-workspace-toolbar-suspended=true] {display:none!important;}
 
 /* workspace_outline.css */
 /* 原生外围有 18px padding，标题行还有按级缩进；仅移除重复的外围留白。 */
@@ -1775,7 +1798,7 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}
 
 /* workspace_titlebar.css */
-/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七栏。 */
+/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七类菜单并补充终端入口。 */
 body.typora-node.unibody-window { --typ-workspace-top:35px; }
 body.typora-node.unibody-window #top-titlebar { height:35px;left:0!important;right:0;top:0;transition:none!important; }
 body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #title-text { visibility:hidden; }

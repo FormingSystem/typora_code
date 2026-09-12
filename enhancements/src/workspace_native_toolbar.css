@@ -1,0 +1,7 @@
+/* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */
+body.hide-footer {--typ-footer-height:0px;}
+.ty-editor-toolbar[data-workspace-native-toolbar=ready] {
+  left:var(--workspace-toolbar-left)!important;top:var(--workspace-toolbar-top)!important;bottom:auto!important;
+  max-width:var(--workspace-toolbar-width);box-sizing:border-box;
+}
+.ty-editor-toolbar[data-workspace-toolbar-suspended=true] {display:none!important;}

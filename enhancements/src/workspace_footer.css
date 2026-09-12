@@ -11,15 +11,15 @@ footer.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {
 }
 footer.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {
   position:relative!important; inset:auto!important; display:flex!important;
-  flex:0 0 auto; min-width:0; max-width:none; width:max-content!important; height:100%;
+  flex:0 0 auto; min-width:0; max-width:none; width:max-content!important;
   margin:0 0 0 auto; padding:0; border:0!important; opacity:1!important;
   animation:none!important; background:inherit; line-height:inherit; overflow:visible; z-index:5;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div {
-  display:flex; align-items:center; width:max-content; min-width:0; height:100%;
+  width:max-content; min-width:0;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer .sidebar-footer-item {
-  opacity:1!important; margin:0; padding-top:0; line-height:22px;
+  opacity:1!important;
 }
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer > div > .sidebar-footer-item {
   flex:0 0 var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); text-align:center;
@@ -30,6 +30,9 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
+/* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
+footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
+
 /* 原生代码仍更新该标签；仅从视觉布局移除，避免目录名撑成长条。 */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label {
   position:absolute!important; width:1px; height:1px; padding:0!important; margin:-1px!important;
@@ -56,10 +59,7 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
   max-width:calc(100vw - 8px)!important;max-height:var(--workspace-popup-max-height,65vh)!important;
   overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
 }
-/* 取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
-body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > #footer-word-count {
-  display:flex;align-items:center;justify-content:center;gap:2px;height:100%;box-sizing:border-box;
-  margin:0;padding:0 6px;line-height:1;white-space:nowrap;
+/* 字数与语言共用盒模型；取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
+body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
+  gap:2px;padding-left:6px;padding-right:6px;
 }
-footer.ty-footer[data-workspace-footer=ready] #footer-word-count-label {display:inline-block;line-height:1;}
-footer.ty-footer[data-workspace-footer=ready] .ty-word-count-expand {display:flex;align-items:center;justify-content:center;line-height:1;}

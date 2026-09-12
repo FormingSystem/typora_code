@@ -210,3 +210,20 @@ R014：用户再次明确 Ctrl+= 放大、Ctrl+- 缩小，后续取消插件／�
 原生取样使用 renderer KeyboardEvent 调用实际宿主接口，隐藏 Electron 另覆盖真实 sendInputEvent 输入；不声称覆盖全部物理键盘／OS accelerator。首个原生case `zoom_native_a` 被宿主拒绝生产主线程调试参数，已保留失败记录；后续正常启动，不修改或绕过宿主检查。测试从未切换到用户桌面，也没有关闭用户窗口。
 
 修复构建已通过既有事务安装器安装到当前1.14.10，配置检查返回 `OK`，备份已建立。ASAR、应用图标、原生profile、工作台设置和主题摘要保持不变；没有刷新或重启用户窗口。安装记录 `.cache/zoom_install_20260912.log`、`zoom_install_check_20260912.log`、`zoom_install_verification_20260912.json`。21份正式文档与本地台账的293个链接、135个锚点和37项需求关联通过；台账继续被Git忽略。
+
+
+## 2026-09-12 底栏统一布局与菜单状态修复
+
+R008.1、R019、R015统一到`workspace_footer_layout`的布局组、操作和文本角色。Git、文件动作、源码模式、边距输出、字数、语言和源码/diff状态采用共用高度、内边距与文字基线；业务宽度、内容、状态和事件仍由各模块维护。清除Typora1.14.10 Bootstrap的output顶部7px内边距、语言/字数底部8px内边距，以及实机发现的字数右侧-8px外边距，避免文字偏移和命中区域重叠。AGENTS及[架构](workspace_architecture.md)已要求同类问题先修共用规则并做整体回归。
+
+R012.1按用户最终要求取消底栏重复大纲操作，保留原DOM供宿主访问及卸载恢复，仍从活动栏或视图菜单进入。R016恢复24px官方终端图标与既有48px活动槽。R017新增顶部终端菜单；`terminal_state`只读取领域协调器的实时会话身份，旧菜单在会话切换后不能操作新会话。R018视图勾选读取实际可见状态，状态栏隐藏释放编辑/终端空间，原生Markdown工具栏限制在当前阅读区；它的节点、开关和配置仍由宿主管理。
+
+最终构建及完整`npm run check`通过，日志`.cache/footer_menu_build_final_20260912.log`、`.cache/footer_menu_check_final_20260912.log`。收敛共享布局后的11个相关UI目标全部通过，日志`.cache/footer_menu_ui_contract_20260912.log`；实机发现负横向间距后，最终底栏、边距、编辑器状态和diff四个直接受影响目标再次全部通过，日志`.cache/footer_menu_ui_final_20260912.log`。包含公共规则卸载恢复、明暗状态、缩放、长文字/窄栏、侧栏与终端状态，以及原生和自有菜单动作。
+
+前两轮UI失败记录保留在`.cache/footer_menu_ui_20260912.log`与`footer_menu_ui_followup_20260912.log`：修复过期会话动作捕获、终端border-box几何后，更新八菜单和清理序列化夹具。首轮原生`footer_menu_after`因测试脚本选择器转义错误停止；修正脚本后的`footer_menu_after_b`通过23项，发现负横向间距后最终`native_zoom_1_14_10/footer_menu_final`通过25项。未将这些失败改写为一次通过。
+
+原生验证使用Typora1.14.10原始ASAR（SHA256 `4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53`）、私有桌面、独立配置和测试文档；renderer事件调用实际菜单及宿主动作。核对100%→120%→100%缩放、6%居中、字数/语言点击区不重叠、显示/隐藏状态栏及工具栏、大纲勾选和真实ConPTY新建/拆分/隐藏/终止；隐藏保留两个PTY，初始PID不变，正文/修改状态及全部原始文件摘要保持。原始阶段截图已逐张核对。此证据不冒充用户桌面人工操作或全部平台验收，测试未切换用户桌面。
+
+此前终端持久化、跨窗口、Shell集成、完整VS Code配置及Tasks/Debug/远端能力，以及系统文件剪贴板、多根工作区等未完成项仍在台账中；插件/更新适配仍按用户要求取消。
+
+最终构建已事务安装，`check_configuration_windows.ps1`结果OK；日志`.cache/footer_menu_install_20260912.log`、`footer_menu_install_check_20260912.log`及`footer_menu_install_verification_20260912.json`。原生ASAR、图标、profile、工作台设置与主题摘要不变，用户窗口未关闭或刷新，保存文档后正常重启载入。22份仓库文档、44个需求编号、314个本地链接、152个锚点验证通过；本地台账被Git忽略。

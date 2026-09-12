@@ -17,9 +17,9 @@ export function create_terminal_panel(changed:()=>void){
     frame=0;if(lifetime.disposed)return;
     const root_rect=root?.getBoundingClientRect();
     const footer=document.querySelector<HTMLElement>("footer.ty-footer"),footer_rect=footer?.getBoundingClientRect();
-    const bottom=footer_rect&&footer_rect.height&&getComputedStyle(footer!).display!=="none"?innerHeight-footer_rect.top:parseFloat(base_bottom)||0;
+    const bottom=footer?footer_rect?.height&&getComputedStyle(footer).display!=="none"?innerHeight-footer_rect.top:0:parseFloat(base_bottom)||0;
     const top=root_rect?.top||0,available=Math.max(0,innerHeight-bottom-top),height=visible?Math.min(available,Math.max(120,maximized?available:available*height_ratio)):0;
-    if(root)root.style.bottom=visible?`calc(${base_bottom} + ${height}px)`:initial_bottom;
+    if(root)root.style.bottom=visible?`${bottom+height}px`:initial_bottom;
     container.style.left=(root_rect?.left||0)+"px";container.style.width=(root_rect?.width||innerWidth)+"px";container.style.bottom=bottom+"px";container.style.height=height+"px";
     container.dataset.maximized=String(maximized);sash.setAttribute("aria-valuenow",String(Math.round(height)));changed();
   };
