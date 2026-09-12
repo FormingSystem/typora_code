@@ -87,6 +87,12 @@ saved.write_bytes(saved.read_bytes() + b'corrupted')
 rejected(lambda: deployment.restore(user, backup))
 assert window.read_bytes() == installed
 saved.write_text(original, encoding='utf-8')
+changed_host = installed.replace(b'<title>fixture</title>', b'<title>updated host</title>')
+window.write_bytes(changed_host)
+attempts_before = set(backup.iterdir())
+rejected(lambda: deployment.restore(user, backup))
+assert window.read_bytes() == changed_host and set(backup.iterdir()) == attempts_before
+window.write_bytes(installed)
 manifest = backup / 'manifest.json'
 manifest_bytes = manifest.read_bytes()
 data = deployment.read_object(manifest)

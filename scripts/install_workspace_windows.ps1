@@ -1,7 +1,7 @@
 ﻿[CmdletBinding()]
 param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme)
 $ErrorActionPreference = 'Stop'
-$tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$tools_root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')

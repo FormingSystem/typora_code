@@ -53,13 +53,13 @@ for (const line of fs.readFileSync('vendor/gemoji/SHA256SUMS', 'utf8').trim().sp
 }
 if (!bundle_source.includes('Copyright (c) 2019 GitHub, Inc.')) throw new Error('Gemoji license is missing from installed bundle');
 const deployment_files = [
-  "configure_windows.cmd",
-  "configure_windows.ps1",
-  "check_configuration_windows.ps1",
-  "restore_configuration_windows.ps1",
-  "configure.sh",
-  "check_configuration.sh",
-  "restore_configuration.sh",
+  "install_windows.cmd",
+  "install_windows.ps1",
+  "check_windows.ps1",
+  "restore_windows.ps1",
+  "install.sh",
+  "check.sh",
+  "restore.sh",
   "scripts/lib/typora_environment.ps1",
   "scripts/lib/typora_terminal.ps1",
   "scripts/lib/typora_environment.sh",
@@ -67,8 +67,8 @@ const deployment_files = [
   "scripts/lib/typora_workspace.sh",
   "scripts/lib/typora_workspace.py",
   "enhancements/runtime_head.html",
-  "enhancements/scripts/install_windows.ps1",
-  "enhancements/scripts/restore_windows.ps1",
+  "scripts/install_workspace_windows.ps1",
+  "scripts/restore_workspace_windows.ps1",
 ];
 
 const sources = new Map(deployment_files.map((relative_path) => {
