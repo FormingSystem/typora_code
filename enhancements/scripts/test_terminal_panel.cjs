@@ -56,7 +56,60 @@ app.whenReady().then(async()=>{
   await evaluate('binding.toggle();commands.get("linux_note:terminal_split").callback();void 0');await wait('pty_starts.length===2');
   assert(await evaluate('!document.querySelector(".terminal-tabs").hidden&&document.querySelectorAll(".terminal-split-group:not([hidden])>.linux-note-terminal").length===2'));
   await evaluate('pty_starts[1].ready();void 0');await delay(100);
-  await evaluate('commands.get("linux_note:terminal_move_editor").callback();void 0');await wait('leaves.length===1');assert(await evaluate('pty_starts.every(item=>item.killed===0)'));
+
+  // 使用真实输入路径拖动分隔条；每次变化只调整表面几何，不创建或结束PTY。
+  const sash_drag=async(selector,dx,cancel=false)=>{
+    const rect=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
+    win.webContents.sendInputEvent({type:'mouseMove',...rect});win.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...rect});await delay(30);
+    win.webContents.sendInputEvent({type:'mouseMove',x:rect.x+dx,y:rect.y,movementX:dx,movementY:0});await delay(60);
+    if(cancel){win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});}
+    win.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,x:rect.x+dx,y:rect.y});await delay(80);
+  };
+  const list_width=()=>evaluate('document.querySelector(".terminal-tabs").getBoundingClientRect().width');
+  const widths=()=>evaluate('[...document.querySelectorAll(".terminal-split-group:not([hidden])>.linux-note-terminal")].map(node=>node.getBoundingClientRect().width)');
+  assert.equal(Math.round(await list_width()),120);
+  await sash_drag('.terminal-tabs-sash',-110);assert.equal(Math.round(await list_width()),230);
+  await sash_drag('.terminal-tabs-sash',70,true);assert.equal(Math.round(await list_width()),230,'Esc restores list width');
+  assert.equal(await evaluate('Number(localStorage.getItem("typora-code:terminal-list-width"))'),230);
+  await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');assert.equal(Math.round(await list_width()),120);
+  const original_sizes=await widths();await sash_drag('.terminal-split-group:not([hidden]) .terminal-split-sash',60);const resized=await widths();
+  assert(Math.abs(resized[0]-original_sizes[0]-60)<2&&Math.abs(resized[1]-original_sizes[1]+60)<2,'split resize follows pointer');
+  await sash_drag('.terminal-split-group:not([hidden]) .terminal-split-sash',-40,true);assert.deepEqual((await widths()).map(Math.round),resized.map(Math.round),'split cancel restores size');
+  await evaluate('document.querySelector(".terminal-split-group:not([hidden]) .terminal-split-sash").dispatchEvent(new MouseEvent("dblclick",{bubbles:true}));void 0');const equal=await widths();assert(Math.abs(equal[0]-equal[1])<1);
+  await sash_drag('.terminal-tabs-sash',100);assert.equal(Math.round(await list_width()),46);assert(await evaluate('getComputedStyle(document.querySelector(".terminal-tab-label")).display==="none"'));
+  await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
+  await open_settings();await evaluate('document.querySelector("[data-setting=tabs_location]").value="left";void 0');await dialog_action('应用');
+  await sash_drag('.terminal-tabs-sash',60);assert.equal(Math.round(await list_width()),180,'left list grows towards right');
+  await open_settings();await evaluate('document.querySelector("[data-setting=tabs_location]").value="right";void 0');await dialog_action('应用');
+  await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
+  assert(await evaluate('pty_starts.length===2&&pty_starts.every(item=>item.killed===0)&&first.surface.term.buffer.active.getLine(0).translateToString().includes("KEEP_OUTPUT")'));
+  // 生产DnD事件路径验证身份、取消与重排；真实指针分隔条与HTML拖放分别测试。
+  await evaluate(`window.drag_terminal=(source,target,after=false,commit=true)=>{
+    const row=document.querySelector('.terminal-tab[data-session="'+source+'"]'),list=document.querySelector('.terminal-tabs');const data=new DataTransfer();
+    row.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:data}));
+    const destination=target?document.querySelector('.terminal-tab[data-session="'+target+'"]'):list,r=destination.getBoundingClientRect();
+    destination.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:data,clientY:after?r.bottom-1:r.top+1}));
+    if(commit)destination.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:data}));
+    row.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:data}));
+  };void 0`);
+  const order=()=>evaluate('[...document.querySelectorAll(".terminal-tab")].map(node=>node.dataset.session)');
+  const baseline_order=await order();await evaluate('drag_terminal("terminal_2","terminal_1",false,false);void 0');assert.deepEqual(await order(),baseline_order);
+  await evaluate('drag_terminal("terminal_2","terminal_1");void 0');assert.deepEqual(await order(),['terminal_2','terminal_1']);
+  assert.deepEqual(await evaluate('[...document.querySelectorAll(".terminal-split-group:not([hidden])>.linux-note-terminal")].map(node=>node.dataset.session)'),['terminal_2','terminal_1']);
+  assert.equal(await evaluate('panel_api.read_terminal_state(core.app).active_id'),'terminal_2','reorder preserves active session');
+  await evaluate('drag_terminal("terminal_1","terminal_2");void 0');
+  await sash_drag('.terminal-split-group:not([hidden]) .terminal-split-sash',55);const unequal=await widths();
+  await evaluate('drag_terminal("terminal_2","terminal_1");void 0');assert.deepEqual((await widths()).map(Math.round),[...unequal].reverse().map(Math.round),'sizes follow session identity');
+  await evaluate('drag_terminal("terminal_1","terminal_2");void 0');
+  win.webContents.setZoomFactor(1.25);await delay(180);assert.equal(Math.round(await list_width()),120);assert((await widths()).every(value=>value>=80));
+  win.webContents.setZoomFactor(1);win.setContentSize(580,800);await delay(180);
+  await sash_drag('.terminal-tabs-sash',-600);assert((await list_width())<=await evaluate('document.querySelector(".terminal-panel-body").clientWidth-119.5'));assert((await widths()).every(value=>value>=59));
+  const narrow=await evaluate('(()=>{const b=document.querySelector(".terminal-panel-body"),p=document.querySelector(".terminal-panes");return b.scrollWidth<=b.clientWidth+1&&p.clientWidth>=119})()');assert(narrow,'narrow window retains terminal area without body overflow');
+  win.setContentSize(1200,800);await delay(100);assert.equal(Math.round(await list_width()),500);
+  await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
+  fs.writeFileSync(path.join(root,'terminal_split_layout.png'),(await win.webContents.capturePage()).toPNG());
+
+  await evaluate('commands.get("linux_note:terminal_move_editor").callback();void 0');await wait('leaves.length===1');assert(await evaluate('pty_starts.every(item=>item.killed===0)'));assert(await evaluate('(()=>{const h=document.querySelector(".terminal-editor-host"),s=h.querySelector(".linux-note-terminal");return Math.abs(h.getBoundingClientRect().width-s.getBoundingClientRect().width)<1})()'),'editor terminal releases split width');
   await evaluate('commands.get("linux_note:terminal_move_panel").callback();void 0');await wait('leaves.length===0');assert(await evaluate('pty_starts.length===2&&pty_starts.every(item=>item.killed===0)'));
   await open_settings();
   const before=await evaluate('localStorage.getItem("linux-note-terminal:v1:")');
@@ -76,6 +129,13 @@ app.whenReady().then(async()=>{
   await click_menu('Git Bash');await wait('pty_starts.length===5');
   assert.deepEqual(await evaluate('({executable:pty_starts[4].request.executable,args:pty_starts[4].request.args})'),{executable:profiles[2].executable,args:profiles[2].args});
   await evaluate('pty_starts[4].ready();void 0');
+  const before_group_drag=await order();const before_killed=await evaluate('pty_starts.map(item=>item.killed)');
+  await evaluate('drag_terminal("terminal_1","terminal_3",true);void 0');assert.deepEqual(await order(),['terminal_2','terminal_3','terminal_1']);
+  await evaluate('drag_terminal("terminal_2","",true);void 0');assert.deepEqual(await order(),['terminal_3','terminal_1','terminal_2']);
+  assert.deepEqual(await evaluate('pty_starts.map(item=>item.killed)'),before_killed);
+  // 未由本列表开始的外部拖放，即使复制了MIME名称，也不能移动会话。
+  const before_external=await order();await evaluate(`(()=>{const d=new DataTransfer();d.setData('application/x-typora-code-terminal-tab','terminal_3');document.querySelector('.terminal-tabs').dispatchEvent(new DragEvent('drop',{bubbles:true,dataTransfer:d}));})()`);assert.deepEqual(await order(),before_external);
+
   await open_profiles();await click_menu('选择默认配置…');await wait('Boolean(document.querySelector("[data-setting=profile]"))');
   assert.deepEqual(await evaluate('[...document.querySelector("[data-setting=profile]").options].filter(item=>item.value).map(item=>({id:item.value,title:item.textContent}))'),menu_profiles);
   assert.equal(await evaluate('profile_scans[0].scans'),1);
@@ -130,5 +190,5 @@ app.whenReady().then(async()=>{
   assert(await evaluate('(async()=>await pending_after_dispose===undefined)()'));await delay(50);
   assert(await evaluate('profile_scans[0].disposed&&pty_starts.length===8&&commands.size===0&&factories.size===0&&!document.querySelector(".typora-terminal-panel,.git-graph-menu,.git-graph-dialog-shade")&&document.querySelector(".typ-workspace-root").style.bottom===""&&pty_starts.every(item=>item.killed===1)'));
   assert(await evaluate('panel_api.read_terminal_state(core.app)===undefined'),'dispose releases menu state');
-  console.log(JSON.stringify({status:'PASS',checks:['panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
+  console.log(JSON.stringify({status:'PASS',checks:['list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;if(win){fs.writeFileSync(path.join(root,'failure.png'),(await win.webContents.capturePage()).toPNG());await evaluate('window.binding?.dispose()');}}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

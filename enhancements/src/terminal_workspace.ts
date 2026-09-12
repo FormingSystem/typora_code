@@ -13,6 +13,8 @@ import {create_terminal_settings} from "./terminal_settings";
 import {show_terminal_settings} from "./terminal_settings_view";
 import {terminal_session} from "./terminal_session";
 import {terminal_surface} from "./terminal_surface";
+import {create_terminal_layout} from "./terminal_layout";
+import {bind_terminal_tab_drag} from "./terminal_tab_drag";
 import {create_terminal_panel} from "./terminal_panel";
 
 const TERMINAL_TYPE="linux_note.terminal";
@@ -29,6 +31,17 @@ export function bind_terminal_workspace(host:graph_host){
   const settings=lifetime.own(create_terminal_settings(localStorage,profile_service));
   const sessions=new Map<string,session_entry>(),groups=new Map<string,HTMLElement>();let serial=0,group_serial=0,active_id="",render_frame=0;
   const panel=lifetime.own(create_terminal_panel(()=>{for(const entry of sessions.values())entry.surface.resize();}));
+  const layout=lifetime.own(create_terminal_layout(panel.body,panel.tabs,()=>{for(const entry of sessions.values())entry.surface.resize();}));
+  const tab_drag=lifetime.own(bind_terminal_tab_drag(panel.tabs,(source,target,after)=>{
+    const entry=sessions.get(source),other=sessions.get(target);if(!entry||entry.location!=="panel"||(target&&(!other||other.location!=="panel")))return;
+    const entries=ordered_panel_entries(),same_group=other?.session.group===entry.session.group;
+    const moving=entries.filter(item=>same_group?item===entry:item.session.group===entry.session.group);
+    if(other&&moving.includes(other))return;
+    const remaining=entries.filter(item=>!moving.includes(item));let index=remaining.length;
+    if(other){const indices=remaining.map((item,index)=>({item,index})).filter(value=>same_group?value.item===other:value.item.session.group===other.session.group);index=after?indices.at(-1)!.index+1:indices[0].index;}
+    remaining.splice(index,0,...moving);const editors=[...sessions.values()].filter(item=>item.location!=="panel");sessions.clear();for(const item of [...remaining,...editors])sessions.set(item.session.id,item);render();
+  },()=>{if(!lifetime.disposed)render();}));
+  function ordered_panel_entries(){const entries=[...sessions.values()].filter(item=>item.location==="panel");return [...new Set(entries.map(item=>item.session.group))].flatMap(group=>entries.filter(item=>item.session.group===group));}
   const active=()=>sessions.get(active_id);
   lifetime.add(bind_terminal_state(core.app,()=>({active_id,location:active()?.location,panel_visible:panel.visible})));
   // 只保留仍打开的临时界面；关闭后立即解除所有者引用，避免挂住会话与xterm缓冲。
@@ -103,8 +116,8 @@ export function bind_terminal_workspace(host:graph_host){
     ];
   }
   function render(){
-    if(lifetime.disposed)return;
-    const config=settings.get(),entries=[...sessions.values()].filter(item=>item.location==="panel");
+    if(lifetime.disposed||tab_drag.active)return;
+    const config=settings.get(),entries=ordered_panel_entries();
     const group_ids=new Set(entries.map(item=>item.session.group)),active_group=active()?.location==="panel"?active()!.session.group:entries[0]?.session.group;
     panel.body.dataset.tabsLocation=config.tabs_location;
     panel.tabs.hidden=config.tabs_hide==="single_terminal"?entries.length<2:config.tabs_hide==="single_group"?group_ids.size<2:false;
@@ -114,8 +127,9 @@ export function bind_terminal_workspace(host:graph_host){
     for(const entry of entries){
       const {session,surface}=entry;let group=groups.get(session.group);
       if(!group){group=el("div","terminal-split-group");groups.set(session.group,group);panel.panes.append(group);}group.hidden=session.group!==active_group;
-      if(surface.container.parentElement!==group)group.append(surface.container);surface.mount();
-      const row=el("div","terminal-tab");row.setAttribute("role","tab");row.tabIndex=session.id===active_id?0:-1;row.setAttribute("aria-selected",String(session.id===active_id));row.dataset.session=session.id;
+      const position=entries.filter(item=>item.session.group===session.group).indexOf(entry),existing=[...group.children].filter(node=>node.matches(".linux-note-terminal"))[position];
+      if(existing!==surface.container)group.insertBefore(surface.container,existing||null);surface.mount();
+      const row=el("div","terminal-tab");row.setAttribute("role","tab");row.tabIndex=session.id===active_id?0:-1;row.setAttribute("aria-selected",String(session.id===active_id));row.dataset.session=session.id;row.draggable=true;
       row.title=`${session.title}\n${session.root}\n${session.state}${session.pid?" · PID "+session.pid:""}`;
       const icon=git_icon(icons.includes(session.icon as git_icon_name)?session.icon as git_icon_name:"terminal");if(session.color)icon.style.color=session.color;
       row.append(icon,el("span","terminal-tab-label",session.title),el("span","terminal-tab-state",session.state==="running"?"":session.state==="starting"?"…":session.state==="error"?"!":"○"),git_icon_button("split-horizontal","拆分终端",()=>split(session.id)),git_icon_button("trash","终止终端",()=>kill(session.id)));
@@ -123,6 +137,7 @@ export function bind_terminal_workspace(host:graph_host){
       row.onkeydown=event=>{if(event.key==="Delete"){event.preventDefault();kill(session.id);}else if(event.key==="F2")edit_identity("title",session.id);else if(["ArrowDown","ArrowUp","Enter"].includes(event.key)){event.preventDefault();const index=entries.indexOf(entry);activate(event.key==="Enter"?session.id:entries[(index+(event.key==="ArrowDown"?1:entries.length-1))%entries.length].session.id);panel.tabs.querySelector<HTMLElement>(`[data-session="${active_id}"]`)?.focus();}};
       panel.tabs.append(row);
     }
+    layout.update(groups);
     for(const entry of sessions.values())if(entry.leaf){const label=entry.leaf.parent.tabHeader?.getTabById(entry.leaf.state.path)?.querySelector(".typ-file-basename");if(label)label.textContent=entry.session.title;}
   }
   class terminal_editor_view extends core.WorkspaceView{
