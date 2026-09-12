@@ -28,7 +28,7 @@
 | 悬停组 | `scm-history-item`，已显示时同组切换即时更新 | 由共同hover的grouped局部策略实现；退出/点击/滚动/取消后恢复首次等待 |
 | 位置 | RIGHT，目标是完整history-item，带指示角；纵向居中 | Git提供完整列表避让区，额外包括滚动条；触发与焦点仍归提交行。右、左、下、上候选及空间约束由公共层处理，绝不覆盖操作区域 |
 | 外形 | compact=true，12px字号、19px行高、2px 8px内距；with-pointer圆角3px | 共同紧凑角色与指示角，Git只组织内容；长消息换行，最大内容边界沿用公共500px，空间不足时内部滚动 |
-| 图形/字段 | 行22px、轨道11px、引用18px、字段/动作间隔4px | 保留现有行高、轨道和引用；提交动作显示槽22px，鼠标或焦点出现才占位；展开文件行保留22px动作槽与状态列，文字自动截断 |
+| 图形/字段 | 行22px、轨道11px、引用18px、字段/动作间隔4px | 保留现有行高、轨道和引用；提交动作显示槽22px，鼠标或焦点出现才占位；展开文件行在悬停/焦点或常显设置下分配22px动作槽，状态列固定；名称/目录共用末端裁切 |
 | 关闭与异步 | 点击/离开/Esc、失效目标取消；旧详情不能替换新对象 | 共同取消信号与250ms移入宽限；滚动/窗口缩放关闭，仓库+提交缓存不变。不会执行Git写操作 |
 
 位置与外形依据[Graph渲染器](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/scm/browser/scmHistoryViewPane.ts)、[SCM样式](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/scm/browser/media/scm.css)、[HoverWidget](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/hover/browser/hoverWidget.ts)和[hover.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/hover/browser/hover.css)；时序依据[配置注册](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/workbench.contribution.ts)和[HoverService](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/hover/browser/hoverService.ts)。未复制上游实现。
@@ -42,3 +42,7 @@ Typora还有排序/首父、stash/reflog、图线样式/颜色、中央列宽与
 ## 验收
 
 基线复现相同结果不回预览及卡片遮住动作；真实Chromium指针验证动作即时出现、卡片与整个列表/滚动条不重叠、移入复制和行末操作可点击。覆盖明暗、不同缩放、窄宽侧栏、展开/焦点、长消息、边缘回退、异步增长、刷新/销毁，以及设置保存重载。原生Typora隔离验证与构建、脚本检查分别记录证据；未完成测试不得用旧通过代替。交付状态集中在[反馈记录](feedback_review.md)，本地台账管理本轮进度。
+
+2026-09-13圆角补充：R020/R022采用同一固定1.137.0源码的`cornerRadius.small=4px`，共享覆盖底栏、Graph提交/文件行和普通操作；分裂接缝保留独立形状。该参考来自Modern UI控件规则，不能泛称所有VS Code配置均有相同圆角；本工程仅采用用户要求的控件默认，完整来源与职责见[圆角设计](workspace_interaction.md#r020-默认圆角与独立形状)。
+
+文件行追加核对：采用VS Code资源标签的“行内名称和目录共用裁切区、操作按hover/focus显示”规则，修正分别压缩名称/目录及历史文件行常驻操作空列的问题；不把用户已撤回的覆盖层或点击选中假设写成实现依据。见[文件名称与行尾操作](workspace_interaction.md#r022-文件名称与行尾操作)。

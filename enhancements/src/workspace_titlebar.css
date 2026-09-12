@@ -9,12 +9,12 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 /* 原 64px Typora 位图含透明边距，24px 图像框让标识可辨；含 margin 的占位仍为 32px。 */
 .workspace-titlebar-logo { width:24px;height:24px;margin:0 4px;padding:0;border:0;flex:none;object-fit:contain; }
 .workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
-.workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;border-radius:4px;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
+.workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
 .workspace-titlebar-menu>button { height:26px;padding:0 8px;white-space:nowrap; }
 .workspace-titlebar-menu>button[hidden] { display:none!important; }
 .workspace-titlebar-center>.workspace-titlebar-history { display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:3px; }
 .workspace-titlebar-history:disabled { opacity:.4; }
-.workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);border-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
+.workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
 .workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }
@@ -28,7 +28,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(127,127,127,.5) transparent;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
 .workspace-titlebar-popup::-webkit-scrollbar { width:7px; }
 .workspace-titlebar-popup::-webkit-scrollbar-thumb { background:rgba(127,127,127,.5);border-radius:4px; }
-.workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;border-radius:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
+.workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
 
 .workspace-titlebar-entry:disabled { opacity:.45; }
 .workspace-titlebar-entry>svg,.workspace-titlebar-check { width:16px;height:16px;flex:none;display:flex;align-items:center; }

@@ -1,4 +1,4 @@
 .workspace-link-hover .workspace-link-original,.workspace-link-hover .workspace-link-target {user-select:text;}
 .workspace-link-hover .workspace-link-target {margin-top:2px;}
-.workspace-link-hover .workspace-link-copy {display:block;margin:4px 0 0 auto;padding:2px 6px;border:0;border-radius:3px;color:inherit;background:transparent;font:inherit;cursor:pointer;user-select:none;}
+.workspace-link-hover .workspace-link-copy {display:block;margin:4px 0 0 auto;padding:2px 6px;border:0;color:inherit;background:transparent;font:inherit;cursor:pointer;user-select:none;}
 .workspace-link-hover .workspace-link-copy:hover,.workspace-link-hover .workspace-link-copy:focus-visible {background:var(--vscode-toolbar-hoverBackground,rgba(90,93,94,.1));}

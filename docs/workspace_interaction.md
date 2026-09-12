@@ -4,7 +4,7 @@
 
 ## R020
 
-鼠标悬停、按下、键盘焦点、菜单展开、当前选中和禁用是不同状态。共同交互层管理颜色来源、状态优先级、焦点轮廓与作用范围；各模块声明操作/标签/行等角色，并提供已有真实状态。悬停只作用于当前目标，不把整个组或邻居一起染色；禁用项不表现成可执行项。活动栏底部按钮和顶部按钮适用相同交互规则，但底部按钮不因此参加顶部排序或侧栏选择。
+鼠标悬停、按下、键盘焦点、菜单展开、当前选中和禁用是不同状态。共同交互层管理颜色来源、默认控件圆角、状态优先级、焦点轮廓与作用范围；各模块声明操作/标签/行等角色，并提供已有真实状态。悬停只作用于当前目标，不把整个组或邻居一起染色；禁用项不表现成可执行项。活动栏底部按钮和顶部按钮适用相同交互规则，但底部按钮不因此参加顶部排序或侧栏选择。
 
 不新增悬停状态存储和全局鼠标监听；可由CSS表达的交互由浏览器状态维护。共同样式复用现有静态构建和引用计数生命周期，避免局部补丁或首次加载后闪变。已核对生产层叠、宿主规则及固定VS Code状态颜色，具体采用值见下文。标题栏拖动区域仍保留，按钮必须命中可交互区域。
 
@@ -24,7 +24,7 @@
 
 ## 固定参考与采用规则
 
-基线为VS Code `88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f`（1.136.2）。`extensions/theme-defaults/themes/2026-light.json`、`2026-dark.json` 的 `list.hoverBackground` 分别为 `#00000014`、`#ffffff14`，统一供行、活动入口和标签使用；标签采用 `modernUI/browser/media/tabs.css` 引用的列表悬停色，保留现有平直35px形状。菜单使用 `menubar.selectionBackground` 的 `#eaeaea`/`#242526`；操作按钮使用 `toolbar.hoverBackground` 的 `#0000001f`/暗色注册默认 `#5a5d5e50`（`editorColors.ts`）；焦点使用主题 `focusBorder`。不设置整组悬停背景，不删除现有选中边界。
+基线为VS Code `88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f`（1.136.2）。`extensions/theme-defaults/themes/2026-light.json`、`2026-dark.json` 的 `list.hoverBackground` 分别为 `#00000014`、`#ffffff14`，统一供行、活动入口和标签使用；标签采用 `modernUI/browser/media/tabs.css` 引用的列表悬停色，保留现有35px标签布局；控件圆角按2026-09-13追加要求统一，见下文。菜单使用 `menubar.selectionBackground` 的 `#eaeaea`/`#242526`；操作按钮使用 `toolbar.hoverBackground` 的 `#0000001f`/暗色注册默认 `#5a5d5e50`（`editorColors.ts`）；焦点使用主题 `focusBorder`。不设置整组悬停背景，不删除现有选中边界。
 
 `scm/browser/media/scm.css` 的history-item使用22px行高、18px引用标记、4px字段间距，操作随当前行悬停/焦点显示。采用这些紧凑参数，取消常驻隐藏操作槽。`scmHistoryViewPane.ts` 使用右侧延迟信息浮层；本工程独立实现相同方向的安全文本卡片，保留窗口边界与异步身份检查。
 
@@ -32,9 +32,9 @@
 
 2026-09-12追加澄清：覆盖未逐项指出的控件，至少提供统一默认和独立管理。公共控件工厂自动声明交互；模块根通过 `acquire_workspace_interaction(root)` 声明UI范围，范围内后来插入的button、summary及button/tab/treeitem/menuitem语义节点自动获得默认反馈。原生适配器只登记既有操作节点。正文、Monaco、CodeMirror、xterm及 `data-workspace-interaction="none"` 子树排除在默认规则外。
 
-公共层只绘制控件已有边框盒内的背景/前景和内侧焦点线，不设置尺寸、padding、圆角、display、定位或transform，因此长文本按钮、圆形图标、整行、标签和不同缩放自动沿用各自形状。嵌套操作被命中时外层行不重复高亮。浏览器维护hover/focus，业务层继续独立维护selected/expanded/disabled；不通过全局指针追踪或遍历DOM重写样式。
+公共层在控件已有边框盒内绘制背景/前景、统一默认圆角和内侧焦点线，不设置尺寸、padding、display、定位或transform。2026-09-13的圆角反馈替代此前“圆角完全交给控件”的约定：长按钮、行和动态控件默认4px，圆形及分裂等特殊形状显式声明，所有形状在悬停前后保持稳定。嵌套操作被命中时外层行不重复高亮。浏览器维护hover/focus，业务层继续独立维护selected/expanded/disabled；不通过全局指针追踪或遍历DOM重写样式。
 
-默认操作使用toolbar颜色；菜单、列表/标签和活动入口通过角色选用共同语义颜色。领域可在自身样式中覆盖 `--workspace-interaction-hover`、`--workspace-interaction-foreground`，仍走同一悬停/焦点规则；例如蓝色提交分裂按钮保留原有 `#006cbe`/白色悬停，选中活动项沿用活动栏状态颜色。`none` 是明确的独立绘制边界，可用于第三方编辑器或特殊交互；不允许为普通按钮复制另一套hover规则。
+默认操作使用toolbar颜色；菜单、列表/标签和活动入口通过角色选用共同语义颜色。领域可在自身样式中覆盖 `--workspace-interaction-hover`、`--workspace-interaction-foreground`、`--workspace-interaction-radius`，仍走同一悬停/焦点规则；例如蓝色提交分裂按钮保留原有 `#006cbe`/白色悬停，选中活动项沿用活动栏状态颜色。`none` 是明确的独立绘制边界，可用于第三方编辑器或特殊交互；不允许为普通按钮复制另一套hover规则。
 
 普通工厂调用方（文件、搜索、Git、终端及弹窗）自动接入；原生菜单、活动栏、标签、底栏由各自适配器接入。新增视图只登记一次根，不登记每一个后续按钮。引用计数负责公共样式寿命，根范围和原生角色随适配器销毁恢复。验证新增圆形/长矩形、运行时插入、局部颜色覆写、none子树、禁用、键盘焦点及选中优先级，并保留提交按钮语义回归。
 
@@ -70,3 +70,21 @@ R022/R024本轮补充：Git选用共同紧凑外观（12px/19px、2px 8px内距�
 2026-09-13，源码模式入口缺少悬停。该宿主节点是div，既没有button语义也没有公共交互属性；原生底栏适配此前仅登记布局角色，加载公共样式本身不能使无语义节点自动成为操作。底栏适配器在现有control角色登记处同时接入公共action默认，统一覆盖源码模式、字数、语言、新建、目录菜单和列表切换，不新增按按钮ID绘制的hover规则，也不向正文或菜单内容扩散。
 
 公共层继续管理颜色、焦点与禁用优先级，沿用本页固定VS Code操作色；原生适配器只拥有新增的角色属性并在卸载时清理。已显式声明的独立角色或none边界保持；原DOM、原生事件、提示、源码模式与显隐均不改变，不复制业务状态或新增指针监听。回归使用真实指针验证每个原生操作的悬停/移出、邻居隔离、明暗/缩放、阅读/源码状态及终端开关；核对原处理器和节点身份、卸载与重复安装，并在隔离Typora验证实际源码切换。
+
+### R020 默认圆角与独立形状
+
+2026-09-13，用户再次指出底栏和Git提交/文件行的直角悬停。此前公共层只负责颜色，各模块的`border-radius:0`仍有效，导致“统一反馈”没有统一形状默认值。本轮将默认圆角收拢进`workspace_interaction.css`，原生适配器和控件工厂复用已有接入方式；不增加逐节点扫描、计时器或业务状态。
+
+固定参考为VS Code1.137.0、提交`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：[控件与列表规则](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/modernUI/browser/media/roundedCorners.css#L47)、[底栏规则](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/modernUI/browser/media/statusBar.css#L19)均引用`cornerRadius.small`；[尺寸注册](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/theme/common/sizes/baseSizes.ts#L98)为4px。VS Code这些规则受Modern UI开关控制，其注册默认false且允许自动实验；本机Light 2026用户设置无显式Modern UI或圆角覆写，仅凭用户设置文件不能确定实验后的有效开关。本工程按本次明确需求采用这一控件层级，不整体开启或移植Modern UI布局。
+
+共同`--workspace-control-radius`默认引用上述4px值；`--workspace-interaction-radius`是单控件覆写口，支持百分比及四角简写。每个控件将局部覆写重置为initial，避免父行的圆形/分裂形状意外传给子操作；改变全域默认使用前一变量。普通行、标签、菜单和按钮默认圆角一致；圆形可声明50%，分裂按钮只圆外侧、接缝为0。`none`子树和正文/第三方编辑器仍由自身管理。公共圆角在所有状态生效，禁用不改变形状但不获得可执行悬停颜色。圆角只调整既有边框盒，不加外层、不裁剪内容、不改点击事件；列表轨道、滚动和行末操作布局继续由Git管理。
+
+验收以生产样式与真实指针检查默认/移入/移出、选中、禁用、焦点及动态加入；覆盖明暗和100%/120%/125%缩放、局部圆形/分裂/直角覆写、嵌套隔离及卸载恢复。底栏核对原生源码/字数/语言和Git分支操作；Graph检查提交与展开文件行的圆角、动作可达和拓扑连续。原生隔离实例复查宿主层叠与源码切换、终端身份，交付证据写入反馈记录。
+
+### R022 文件名称与行尾操作
+
+2026-09-13，用户补充“操作出现不挤压文件名”的截图，并最终澄清比较的是悬停与移出，不能将其理解为点击选中或要求绝对定位覆盖。固定1.137.0的[HistoryItemChangeRenderer](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/scm/browser/scmHistoryViewPane.ts#L674)在资源标签内部追加操作；[iconlabel.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/iconLabel/iconlabel.css#L44)将名称和目录作为一个flex:1区域内的行内内容，统一溢出省略；[scm.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/scm/browser/media/scm.css#L315)在hover/focused时显示动作。动作有自己的空间，标签可见右边界可以缩小，但不会按两个flex子项分别压缩名称和目录，更不会缩小字号或盖住字形。
+
+本工程共享`git_file_label`构建图标及统一裁切的行内名称/目录，源码改动列表与历史文件列表共同使用。行首图标、名称起点及字形自然宽度保持；先裁切目录，必要时才裁切超长文件名。沿用既有字体和密度，本轮不更改文件状态、选中模型或命令。历史文件行移除常驻操作空列，hover/focus-within或已有“操作常显”配置时才给行尾动作分配22px；动作与状态字段不重叠，普通态不阻挡行点击，键盘聚焦时可见且可执行。悬停圆角、颜色继续走公共层。
+
+回归比较真实指针移入前后及移出后的名称起点、字号、字形自然宽度、末端裁切区域、按钮和状态命中；覆盖长中文文件名、长目录、目录树/平铺、窄宽侧栏、明暗与缩放、按钮常显开关。保留历史文件打开对比/读取版本、提交展开、异步取消与原生终端/草稿保护。页面和操作均只使用安全文本；该改动不读写用户文件。

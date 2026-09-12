@@ -31,7 +31,7 @@ app.whenReady().then(async()=>{
   for(const theme of ['light','dark'])for(const zoom of [1,1.25]){
     test_window.webContents.setZoomFactor(zoom);await evaluate(`document.documentElement.dataset.workspaceFileIconTheme=${JSON.stringify(theme)}`);await delay(60);
     for(const [index,selector] of native_controls.entries()){
-      test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);const before=await sample_controls();await move_pointer(selector);const hovered=await sample_controls();
+      test_window.webContents.sendInputEvent({type:'mouseMove',x:400,y:100});await delay(40);const before=await sample_controls();assert(before.every(n=>n.geometry[3]==='4px'),'all native footer controls use the shared 4px radius');await move_pointer(selector);const hovered=await sample_controls();
       check(hovered[index].background!==before[index].background&&hovered[index].background===await evaluate('getComputedStyle(hover_expected).backgroundColor'),'native control uses shared hover '+selector+' '+theme+' '+zoom);
       assert.deepEqual(hovered.map(n=>n.geometry),before.map(n=>n.geometry),'hover preserves all native geometry');
       check(hovered.every((n,i)=>i===index||n.background===before[i].background),'native hover leaves neighbors unchanged '+selector+' '+theme+' '+zoom);
