@@ -139,3 +139,14 @@ R022/R024本轮补充：Git选用共同紧凑外观（12px/19px、2px 8px内距�
 外部点击和焦点离开使用取消但不恢复旧焦点；Esc、关闭按钮仍在所属焦点有效时恢复。字体颜色取消回调接收恢复意图，不在外部关闭时重放选区。普通设置对话框不因打开系统颜色选择器而关闭；文件／命令选择器及菜单才接管窗口失焦。图片查看器的画布拖动仍属于内部操作。原生系统确认和宿主原有菜单保持其所有权，不用覆盖层模拟系统输入。
 
 回归在真实 Chromium 下验证内外点击、一次点击聚焦、普通输入和 Shadow DOM、菜单／对话框嵌套、右键替换、键盘恢复、扫描中取消后晚到结果、销毁后的事件清理，并补充宿主 mousedown 路径。隔离 Typora 核对实际快速打开、核心命令选择器、菜单和原生正文／配置不改写；合成事件与物理输入证据分别记录。
+
+
+## R035 更改与提交图覆盖式分隔条
+
+2026-09-13，用户指出更改与提交图间的拖动边界提前预留一行，增加视觉间隔。当前7px网格行和常态底色应移除：两个面板直接相接，分隔条只在交界处覆盖命中，不消耗布局尺寸。
+
+固定参考为 VS Code 1.137.0 提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：[sash.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/sash/sash.css) 定义绝对定位、4px命中与高亮厚度及透明常态；[sash.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/sash/sash.ts) 定义300ms默认悬停延迟；[splitview.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/splitview/splitview.css) 将sash放入独立覆盖层；[Modern sashHandles.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/modernUI/browser/media/sashHandles.css) 明确不为面板内部边界绘制常驻握柄。本次采用以上面板内部交界规则。
+
+SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保留同一节点和键盘顺序，以第二轨道的起点作为绝对定位边界，4px命中区上下各覆盖2px；这会自动跟随比例、容器尺寸和提交图22px最小标题高度，不另算百分比或增加观察器。悬停300ms后显示既有强调色；拖动与键盘焦点即时显示，移开后消失，所有状态的轨道尺寸一致。折叠提交图或隐藏任一面板时同时隐藏分隔条；原比例、持久化、双击复位与方向键归既有SCM和workspace_sash所有，不新建状态存储。
+
+检查现有侧栏外缘和终端面板／列表／分屏已使用覆盖命中，本次不改变其业务或几何。验证真实SCM结构中更改底边与提交图顶边相接，鼠标穿过／悬停／拖动、键盘调节、折叠和显隐后恢复、窄窗、极端比例、明暗及缩放；高亮不得挡住提交图标题中央的点击区域。取消、销毁、保存和未完成的其他能力沿用已有职责。

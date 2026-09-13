@@ -28,6 +28,28 @@ app.whenReady().then(async()=>{
     scm.message.value=Array.from({length:30},(_,index)=>'提交说明第'+index+'行').join('\n');scm.message.dispatchEvent(new Event('input'));
     scm.notice.textContent=Array.from({length:12},(_,index)=>'操作输出 '+index).join('\n');scm.show_repositories=true;const repository=document.createElement('div');repository.className='git-scm-repository-row';repository.textContent='测试仓库';scm.repositories.container.append(repository);scm.apply_history_layout();
   })()`);await delay(200);
+  // 分隔条必须覆盖真实边界；显隐、鼠标和键盘均不能额外占用内容高度。
+  const read_sash=()=>evaluate(`(()=>{const top=scm.changes_pane.getBoundingClientRect(),bottom=scm.history.container.getBoundingClientRect(),sash=scm.history_sash.getBoundingClientRect();return{gap:bottom.top-top.bottom,center:sash.top+sash.height/2,boundary:bottom.top,height:sash.height,x:sash.left+sash.width/2,y:sash.top+sash.height/2,color:getComputedStyle(scm.history_sash,'::before').backgroundColor,position:getComputedStyle(scm.history_sash).position,dragging:scm.history_sash.classList.contains('dragging'),ratio:scm.history_ratio,rows:getComputedStyle(scm.sections).gridTemplateRows};})()`);
+  const pointer=(type,x,y,extra={})=>{const zoom=test_window.webContents.getZoomFactor();test_window.webContents.sendInputEvent({type,x:Math.round(x*zoom),y:Math.round(y*zoom),...extra});};
+  const assert_overlay=async()=>{const m=await read_sash();assert(Math.abs(m.gap)<.1,'分隔条预留了额外高度：'+JSON.stringify(m));assert.equal(m.position,'absolute');assert(Math.abs(m.height-4)<.1);assert(Math.abs(m.center-m.boundary)<.1,'命中区没有对准实际轨道边界：'+JSON.stringify(m));return m;};
+  await assert_overlay();
+  const idle=await read_sash();assert.equal(idle.color,'rgba(0, 0, 0, 0)');
+  pointer('mouseMove',idle.x,idle.y);await delay(70);assert.equal((await read_sash()).color,'rgba(0, 0, 0, 0)','穿过边界不应立即闪烁');await delay(350);
+  const hovered=await assert_overlay();assert.equal(hovered.color,'rgb(0, 127, 212)');assert.equal(hovered.rows,idle.rows);await capture('sash_hover');
+  pointer('mouseMove',600,20);await delay(50);assert.equal((await read_sash()).color,'rgba(0, 0, 0, 0)');await capture('sash_idle');
+  pointer('mouseMove',idle.x,idle.y);pointer('mouseDown',idle.x,idle.y,{button:'left',clickCount:1});await delay(25);assert((await read_sash()).dragging);assert.equal((await read_sash()).color,'rgb(0, 127, 212)');
+  const target=await evaluate('(()=>{const r=scm.sections.getBoundingClientRect();return r.top+r.height*.7})()');pointer('mouseMove',idle.x,target,{button:'left'});await delay(60);assert(Math.abs((await assert_overlay()).ratio-.7)<.01);pointer('mouseUp',idle.x,target,{button:'left',clickCount:1});await delay(40);assert(!(await read_sash()).dragging);
+  pointer('mouseMove',600,20);await delay(50);assert.equal((await read_sash()).color,'rgba(0, 0, 0, 0)','鼠标松开并离开后不残留常亮');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Home'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Home'});await delay(50);assert.equal((await read_sash()).ratio,.55);
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Down'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Down'});await delay(50);assert(Math.abs((await assert_overlay()).ratio-.57)<.001);
+  await evaluate('scm.history_sash.blur();scm.sections.style.flex="none";scm.sections.style.height="90px";scm.history_ratio=.85;scm.apply_history_layout()');await assert_overlay();assert.equal(await evaluate('scm.history.header.getBoundingClientRect().height'),22);
+  await evaluate('scm.sections.style.flex="";scm.sections.style.height=""');
+  for(const [width,height,zoom]of[[720,600,1],[640,360,1],[720,600,1.5],[720,600,2]]){
+    test_window.setSize(width,height);test_window.webContents.setZoomFactor(zoom);await delay(120);
+    for(const ratio of [.15,.55,.85]){await evaluate('scm.history_ratio='+ratio+';scm.apply_history_layout()');await assert_overlay();}
+  }
+  for(const key of ['show_changes','show_history']){await evaluate('scm.'+key+'=false;scm.apply_history_layout()');assert.equal(await evaluate('getComputedStyle(scm.history_sash).display'),'none');await evaluate('scm.'+key+'=true;scm.apply_history_layout()');await assert_overlay();}
+  await evaluate('scm.history_ratio=.55;scm.apply_history_layout()');
   const metrics=[];
   for(const [width,height,zoom]of[[720,600,1],[640,360,1],[720,600,1.5],[720,600,2]]){
     test_window.setSize(width,height);test_window.webContents.setZoomFactor(zoom);await delay(180);
@@ -38,5 +60,5 @@ app.whenReady().then(async()=>{
   }
   for(const class_name of ['linux-note-workspace-search','linux-note-workspace-explorer']){await evaluate('shell.className='+JSON.stringify(class_name));assert.equal(await evaluate('getComputedStyle(document.querySelector(".sidebar-footer")).display'),'none');}
   assert.notEqual(await evaluate('getComputedStyle(document.querySelector("footer.ty-footer")).display'),'none');await evaluate('shell.remove()');assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".sidebar-footer")).display'),'none');
-  console.log(JSON.stringify({status:'PASS',checks:['native file footer cannot cover a mounted Git panel','collapsed history keeps its VS Code 22px pane header visible','real toggle remains clickable in small windows','150 and 200 percent zoom preserve header visibility','long message and command output scroll inside Changes','native file footer stays hidden for custom Search and Explorer','editor status bar remains available','switching away restores the native file footer'],metrics,evidence}));test_window.destroy();app.exit(0);
+  console.log(JSON.stringify({status:'PASS',checks:['zero-gap overlay sash across sizes, ratios, zoom and visibility','300ms hover without layout shift and instant drag feedback','actual mouse drag and keyboard keep existing ratio controls','native file footer cannot cover a mounted Git panel','collapsed history keeps its VS Code 22px pane header visible','real toggle remains clickable in small windows','150 and 200 percent zoom preserve header visibility','long message and command output scroll inside Changes','native file footer stays hidden for custom Search and Explorer','editor status bar remains available','switching away restores the native file footer'],metrics,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});
