@@ -36,6 +36,10 @@ async function require_absent(fs: any, target: string) {
   try { await fs.lstat(target); } catch (error) { if ((error as {code?: string}).code === "ENOENT") return; throw error; }
   throw new Error("同名文件或文件夹已存在，未覆盖任何内容：" + target);
 }
+/** 复制到系统剪贴板前核对源文件；不保存编辑器草稿。 */
+export async function validate_workspace_entries(modules:workspace_file_modules,root:string,paths:string[]):Promise<void>{
+  for(const source of paths)await check_entry(modules,root,source,false);
+}
 /** 创建使用独占打开或非递归 mkdir；同名项目永不覆盖。 */
 export async function create_workspace_entry(modules: workspace_file_modules, root: string, parent: string, name: string, directory: boolean): Promise<string> {
   const {path_api} = modules, fs = modules.fs.promises;
@@ -59,27 +63,32 @@ async function rollback_created(fs: any, created: created_entry[]) {
   return failures;
 }
 /** 整批先检查冲突；复制失败回退本批创建项。Node 路径 API 无跨进程目录句柄锁，不能承诺外部并发改名时的原子 CAS。 */
-export async function transfer_workspace_entries(modules: workspace_file_modules, root: string, sources: string[], target_directory: string, move?: workspace_move_callback): Promise<string[]> {
+export async function transfer_workspace_entries(modules: workspace_file_modules, root: string, sources: string[], target_directory: string, move?: workspace_move_callback, external = false): Promise<string[]> {
   const {path_api} = modules, fs = modules.fs.promises;
+  if(external&&move)throw new Error("跨工作区剪贴板仅支持复制，源文件保留。");
   const destination = await check_directory(modules, root, target_directory);
   if (sources.some(source => !path_api.isAbsolute(source))) throw new Error("源项目必须是绝对路径。");
+  if(sources.some(source=>/[\x00-\x1f]/u.test(source)||source.startsWith("\\\\?\\")||source.startsWith("\\\\.\\")))throw new Error("不支持设备路径或含控制字符的源路径。");
   const normalized = [...new Set(sources.map(source => path_api.resolve(source)))];
   const selected = normalized.filter(source => !normalized.some(parent => parent !== source && within(path_api, parent, source, false)));
-  const plans: {source: string; target: string; identity: string}[] = [], targets = new Set<string>();
+  const plans: {source: string; source_root: string; target: string; identity: string}[] = [], targets = new Set<string>();
   for (const source of selected) {
-    const entry = await check_entry(modules, root, source, false), target = path_api.join(destination.path, path_api.basename(source));
+    // 外部来源逐层验证其卷根以下路径；写入边界仍为用户选定的工作区。
+    const source_root=external?path_api.parse(source).root:root;
+    validate_name(path_api,path_api.basename(source));
+    const entry = await check_entry(modules, source_root, source, false), target = path_api.join(destination.path, path_api.basename(source));
     if (entry.stat.isDirectory() && within(path_api, source, destination.path)) throw new Error("不能把文件夹复制或移入自身。");
     const key = path_api.sep === "\\" ? target.toLowerCase() : target;
     if (targets.has(key)) throw new Error("所选项目包含同名目标，未执行操作。"); targets.add(key);
-    await require_absent(fs, target); plans.push({source, target, identity: entry_identity(entry.stat)});
+    await require_absent(fs, target); plans.push({source, source_root, target, identity: entry_identity(entry.stat)});
   }
   const created: created_entry[] = [], moved: {source: string; target: string}[] = [];
-  const copy_entry = async (source: string, target: string): Promise<void> => {
-    const entry = await check_entry(modules, root, source, false);
+  const copy_entry = async (source: string, target: string, source_root: string): Promise<void> => {
+    const entry = await check_entry(modules, source_root, source, false);
     await check_directory(modules, root, path_api.dirname(target));
     if (entry.stat.isDirectory()) {
       await fs.mkdir(target); created.push({path: target, identity: entry_identity(await fs.lstat(target)), directory: true});
-      for (const name of await fs.readdir(source)) await copy_entry(path_api.join(source, name), path_api.join(target, name));
+      for (const name of await fs.readdir(source)) { validate_name(path_api,name); await copy_entry(path_api.join(source, name), path_api.join(target, name),source_root); }
     } else {
       // 独占目标句柄由本次操作持有，读写失败也可准确回退半成品。
       const output = await fs.open(target, "wx"); created.push({path: target, identity: entry_identity(await output.stat()), directory: false});
@@ -101,11 +110,11 @@ export async function transfer_workspace_entries(modules: workspace_file_modules
   };
   try {
     for (const plan of plans) {
-      const current = await check_entry(modules, root, plan.source, false);
+      const current = await check_entry(modules, plan.source_root, plan.source, false);
       if (entry_identity(current.stat) !== plan.identity || entry_identity((await check_directory(modules, root, destination.path)).stat) !== entry_identity(destination.stat)) throw new Error("项目或目标目录已变化，请刷新后重试。");
       await require_absent(fs, plan.target);
       if (move) { await move(root, plan.source, plan.target); moved.push(plan); }
-      else await copy_entry(plan.source, plan.target);
+      else await copy_entry(plan.source, plan.target,plan.source_root);
     }
     return plans.map(plan => plan.target);
   } catch (error) {

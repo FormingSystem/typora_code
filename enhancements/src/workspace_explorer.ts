@@ -4,6 +4,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import { workspace_element as el, workspace_menu, workspace_dialog, type workspace_menu_entry } from "./workspace_widgets";
 import { format_file_path } from "./file_paths";
 import { git_icon, type git_icon_name } from "./git_icons";
+import type {workspace_file_clipboard} from "./workspace_file_clipboard";
 import explorer_css from "./workspace_explorer.css";
 
 type sidebar_panel = {containerEl: HTMLElement; ribbonButton?: {id: string}; show(): void; hide(): void};
@@ -27,7 +28,7 @@ export type workspace_explorer_options = {
   compare?(left:string,right:string):Promise<void>;
   rename(root: string, old_path: string, name: string): Promise<string>;
   create?(root: string, parent: string, name: string, directory: boolean): Promise<string>;
-  transfer?(root: string, paths: string[], target_directory: string, move: boolean): Promise<string[]>;
+  file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
   compact_folders?: boolean;
   extra_menu?(path: string, is_directory: boolean): workspace_menu_entry[];
@@ -60,7 +61,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
-  let clipboard: {paths: string[]; move: boolean; root: string} | undefined, compact_folders = false;
+  let compact_folders = false;
   const selection_paths = new Set<string>();
   let operation_busy = false, compare_path = "";
   const dialogs = new Set<{close(): void}>();
@@ -180,7 +181,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
           row.oncontextmenu = event => { click_sequence = undefined; if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
         }
         const {row, chevron, label, note, file_icon} = view;
-        row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : "");
+        row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
         row.id = node.id; row.dataset.path = node.path; row.dataset.directory = String(node.directory); row.setAttribute("role", "treeitem");
         row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
         if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
@@ -296,8 +297,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       if(compare_path&&compare_path!==node.path)entries.push({title:"与已选项目比较",action:()=>run(()=>options.compare!(compare_path,node.path))});
       if(selected_files.length===2)entries.push({title:"比较所选文件",action:()=>run(()=>options.compare!(selected_files[0],selected_files[1]))});
     }
-    if (node !== root && options.transfer) entries.push({title: "剪切",shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => set_clipboard(true)}, {title: "复制",shortcut:"Ctrl+C", action: () => set_clipboard(false)});
-    if (node.directory && options.transfer) entries.push({title: "粘贴",shortcut:"Ctrl+V", disabled: !clipboard || clipboard.root !== root?.path || operation_busy, action: () => run(() => paste(node))});
+    if (node !== root && options.file_clipboard) entries.push({title: "剪切",shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => run(() => set_clipboard(true))}, {title: "复制",shortcut:"Ctrl+C", disabled:operation_busy, action: () => run(() => set_clipboard(false))});
+    if (node.directory && options.file_clipboard) entries.push({title: "粘贴",shortcut:"Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node))});
     entries.push({title: "复制路径",shortcut:"Shift+Alt+C",separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
       {title: "复制相对路径",shortcut:"Ctrl+K Ctrl+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
     if (node !== root) entries.push({title: "重命名",shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
@@ -356,16 +357,21 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     const node = create_node(path_api.join(parent.path, ".workspace-new-" + ++serial), "", directory, false, parent);
     parent.children = [node, ...parent.children || []]; rebuild(); begin_rename(node); if (rename_state) { rename_state.creating = true; rebuild(); }
   }
-  function set_clipboard(move: boolean) {
-    if (!root) return; const paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
-    if (!paths.length) return; clipboard = {paths, move, root: root.path}; set_status(move ? "已剪切，选择目标文件夹后粘贴。" : "已复制，选择目标文件夹后粘贴。"); render();
+  async function set_clipboard(move: boolean) {
+    if (!root || !options.file_clipboard || operation_busy) return;
+    const current_root=root, paths=selection_paths.size?[...selection_paths]:selected_path?[selected_path]:[];
+    if(!paths.length)return;operation_busy=true;set_status("正在写入系统剪贴板…");
+    try { await options.file_clipboard.copy(current_root.path,paths,move,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path);
+      if(!disposed&&root===current_root)set_status(move?"已剪切，选择目标文件夹后粘贴。":"已复制到系统剪贴板。");
+    } finally { operation_busy=false;if(!disposed)render(); }
   }
   async function paste(target = nodes.get(selected_path) || root) {
-    if (!root || !target || !clipboard || clipboard.root !== root.path || !options.transfer || operation_busy) return;
-    const batch = clipboard, current_root = root; if (!target.directory) target = target.parent || root;
-    operation_busy = true;
-    try { const paths = await options.transfer(current_root.path, batch.paths, target.path, batch.move); if (batch.move && clipboard === batch) clipboard = undefined; if (!disposed && root === current_root) { await refresh(); if (paths[0]) await reveal(paths[0]); set_status("粘贴完成。"); } }
-    finally { operation_busy = false; if (!disposed) await refresh(); }
+    if (!root || !target || !options.file_clipboard || operation_busy) return;
+    const current_root=root;if(!target.directory)target=target.parent||root;
+    const destination=target;operation_busy=true;set_status("正在粘贴文件…");
+    try { const result=await options.file_clipboard.paste(current_root.path,destination.path,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path&&nodes.get(destination.path)===destination);
+      if(!disposed&&root===current_root){await refresh();if(result.paths[0])await reveal(result.paths[0]);set_status(result.message);}
+    } finally { operation_busy=false;if(!disposed)await refresh(); }
   }
   function confirm_trash() {
     if (!root || !options.trash || operation_busy) return;
@@ -386,7 +392,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) await load_children(root, true); return; }
     generation++;
-    rename_state = undefined; clipboard=undefined;selection_paths.clear();compare_path="";
+    rename_state = undefined; selection_paths.clear();compare_path="";
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
     selected_path = ""; root_name.textContent = root.name; root_label.title = root.path; tree.scrollTop = 0;
@@ -462,7 +468,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     if (event.ctrlKey || event.metaKey) {
       const key = event.key.toLowerCase(); if (!["c", "x", "v", "a"].includes(key)) return;
       event.preventDefault(); event.stopPropagation();
-      if (key === "v") run(() => paste()); else if (key === "a") { selection_paths.clear(); for (const node of flat_nodes) selection_paths.add(node.path); render(); } else set_clipboard(key === "x"); return;
+      if (key === "v") run(() => paste()); else if (key === "a") { selection_paths.clear(); for (const node of flat_nodes) selection_paths.add(node.path); render(); } else run(()=>set_clipboard(key === "x")); return;
     }
     if (event.key === "Delete") { event.preventDefault(); event.stopPropagation(); confirm_trash(); return; }
     let index = Math.max(0, flat_nodes.findIndex(node => node.path === selected_path));
@@ -487,7 +493,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);
   const active_change = () => { if (!visible || disposed || refresh_frame) return; refresh_frame = requestAnimationFrame(() => { refresh_frame = 0; run(() => reveal()); }); };
   for (const event of ["active-leaf:change", "file:open"]) { const detach = core.app.workspace.on(event, active_change); if (typeof detach === "function") detachers.push(detach as () => void); }
-  const window_focus = () => { if (visible) run(() => refresh()); };
+  if(options.file_clipboard)detachers.push(options.file_clipboard.subscribe(()=>{if(!disposed)render();}));
+  const window_focus = () => { run(()=>options.file_clipboard?.refresh());if (visible) run(() => refresh()); };
   window.addEventListener("focus", window_focus);
   function dispose() {
     file_icon_style.remove();
