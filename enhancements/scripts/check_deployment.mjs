@@ -63,6 +63,7 @@ const deployment_files = [
   "check.sh",
   "restore.sh",
   "scripts/lib/typora_environment.ps1",
+  "scripts/lib/typora_install_log.ps1",
   "scripts/lib/typora_terminal.ps1",
   "scripts/lib/typora_environment.sh",
   "scripts/lib/typora_workspace.ps1",

@@ -24,8 +24,20 @@
 
 验收在独立安装目录和 APPDATA 中覆盖：仅安装前备份、后续更新备份、多个候选及取消、自定义路径、不同用户/宿主、缺失或损坏备份、宿主已更新、运行进程拒绝、CMD 参数与退出码，以及实际恢复后正文、设置和阅读记录保持。此次不构建/安装工作台 bundle，不卸载用户正在使用的 Typora；Windows 原生安装位置的真实卸载未执行。
 
+## R025 安装过程日志
+
+2026-09-14，用户反馈 install 过程中看不出正在执行什么，要求正式、清晰的安装日志。Windows install / CMD / UCRT64 共用 Windows 事务日志；Linux 的 Python 安装事务采用同样的时间戳、阶段与结果格式。显示实际阶段与耗时，不生成估算百分比：环境检查、安装包校验、运行时准备、备份、安装和最终验证。Node 下载前说明来源和等待原因，缓存命中、校验、解压分别反馈。完成时给出备份、日志位置及正常重启提示。
+
+日志由每次安装的独立上下文持有，UTF-8 文件放在用户数据 `logs/installation/`，目录不可写时回退系统临时目录；记录器失败只警告并继续控制台输出，不改变安装结果或阻断既有回滚。日志写入信息流／stderr，不污染函数返回对象或检查命令的输出。预检失败明确尚未修改安装目标；事务失败记录原错误、回滚开始、成功或未完成，不在失败路径打印安装成功。保留既有退出码、备份及托管文件范围，不启动或关闭用户窗口、不改全局日志配置、不输出整份环境变量或用户设置。
+
+验收复用独立 APPDATA、假宿主、私有离线 Node 缓存和原有安装／恢复事务测试，补充阶段顺序、下载与缓存执行分支、日志 UTF-8、失败／回滚结论、日志存储不可用及重复调用隔离。下载使用本地 ZIP 替身验证消息和摘要链，不把替身称作真实网络下载。此侧会话只修改安装日志及说明，不构建或部署主会话工作台资产。
+
 ## 本次验证
+
+2026-09-14 安装日志：Windows PowerShell 5.1 的 `test_install_windows.ps1` 通过首次／重复安装、校验拒绝和事务回滚，并验证六阶段顺序、每次独立 UTF-8 日志、失败状态及返回值隔离；`test_install_logging.ps1` 通过缓存命中、模拟下载与损坏归档、日志文件独占锁、临时目录降级。Python 的 `test_workspace_install.py` 通过原事务与新增五阶段日志、预检／回滚结果、日志保存失败，以及回滚自身失败时保留原安装错误。`check_deployment.mjs` 通过20个部署文件和23个工作台资产。证据保存在 `.cache/install_logging_side_20260914/`，其中 `windows_install.log`、`logging_failures.log`、`python_transaction.log`、`deployment.log` 分别对应上述检查。本次 Python 事务在 Windows 临时文件系统执行，未运行 Linux/UCRT64 Bash 或 ARM64 原生环境；没有安装、关闭或重启用户 Typora，没有重建工作台发布包。
 
 2026-09-14：Windows PowerShell 5.1 卸载夹具通过38项断言，覆盖安装前/更新备份区分、多个候选和安装位置过滤、不同用户、宿主升级、损坏备份与越界记录、运行进程拒绝，以及实际 CMD 的成功、失败退出码和取消零写入。含空格及方括号的独立包调用原恢复事务，确认启动页、主题和原窗口字段恢复，正文、阅读记录与后来修改的偏好保留。部署检查通过，包含19个公开入口/共享部署文件与23个工作台资产；这不代表执行了工作台全量测试或真实安装卸载。证据：`.cache/uninstall_windows_verification_20260914.log`、`.cache/uninstall_deployment_verification_20260914.log`。
 
 2026-09-13：Windows PowerShell 5.1 公开 install/check/restore 入口在含空格的隔离目录通过首次/重复安装、损坏清单、宿主变化零写入拒绝、原偏好恢复和故障回滚；Python 事务全部通过。完整 npm run check 通过；26份文档、50项需求、354本地链接与187锚点核对通过。Bash 命令所在环境未具备，未运行 UCRT64/Linux 入口或 ARM64 原生实例，已在用户指南明确。日志为 `.cache/install_entry_windows_final_20260913.log`、`install_entry_python_20260913.log`、`install_entry_check_20260913.log`；文档证据为 `.cache/issue_tracking/requirements_install_entry_verification_20260913.json`。测试仅使用临时安装和用户数据目录，未卸载或重启用户 Typora。
+
+2026-09-14 全量整合复验：用户将全部当前改动纳入统一构建和安装后，以上 Windows 安装日志、公开 install/check/restore 事务、卸载入口及 Python 事务再次在临时目录通过。Windows 卸载为38项断言，安装复验包含首次／重复安装、受损资产拒绝、配置保护、故障回滚与日志顺序；日志专测覆盖本地 ZIP 下载替身、缓存、坏摘要及存储降级。Windows 安装使用通过正式摘要校验的 Node24.20.0/x64 缓存副本；Python 事务仍是在 Windows 文件系统运行，不代表 Linux 原生验证。证据为 `.cache/all_changes_windows_install_20260914.log`、`.cache/all_changes_uninstall_20260914.log`、`.cache/all_changes_install_logging_20260914.log` 和 `.cache/all_changes_python_install_20260914.log`。本轮回归未操作用户安装／卸载；完整工作台构建、原生验收和最终安装由整合交付记录汇总。

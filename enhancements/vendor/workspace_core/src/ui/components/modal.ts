@@ -77,7 +77,7 @@ export class Modal extends View implements Closeable {
     this.opened=true
     this.previous_focus=capture_workspace_focus()
     this.containerEl.style.display = ""
-    this.escape_layer=register_workspace_dismissal(()=>[this.containerEl],reason=>this.close(reason==="escape"),{inside:()=>[this.modal],window_blur:true})
+    this.escape_layer=register_workspace_dismissal(()=>[this.containerEl],reason=>this.close(reason==="escape"||reason==="outside"),{inside:()=>[this.modal],window_blur:true,consume_outside:true})
   }
 
   close(restore=true) {
@@ -87,7 +87,7 @@ export class Modal extends View implements Closeable {
     this.escape_layer?.dispose()
     this.escape_layer=undefined
     this.containerEl.style.display = "none"
-    // 隐藏前保存的所属焦点只在本层取消时恢复；外部点击不重写编辑选区。
+    // 本层 Escape 或遮罩取消消费完整手势，再恢复仍有效的原焦点和选区。
     $('input', this.containerEl).each((i, el) => el.blur())
     if(restore&&owned)this.previous_focus?.restore()
     this.previous_focus=undefined

@@ -96,7 +96,7 @@ export class git_scm_toolbar {
   private settings_changed=()=>this.update();
   private keydown=(event:KeyboardEvent)=>{
     if(event.isComposing||event.repeat||event.target instanceof Element&&event.target.closest("input,textarea,select,[contenteditable=true]"))return;
-    if(document.querySelector(".git-graph-dialog-shade,.git-graph-menu"))return;
+    if(document.querySelector(".git-graph-dialog-shade,.git-graph-menu,.git-scm-ref-picker"))return;
     const settings=this.history.owner.panel.settings;
     for(const id of HISTORY_ACTION_IDS){const shortcut=settings.history_shortcuts?.[id];if(shortcut&&shortcut_matches(event,shortcut)&&this.enabled(id)){event.preventDefault();event.stopPropagation();this.execute(id);break;}}
   };

@@ -1,4 +1,5 @@
 import {read_breadcrumb_settings,set_breadcrumb_enabled} from "./workspace_breadcrumbs_settings";
+import {read_workspace_save_settings} from "./workspace_save_settings";
 import {read_terminal_state} from "./terminal_state";
 import {native_document_active,read_workspace_sidebar_state} from "./workspace_view_state";
 import { WORKSPACE_ZOOM_ACTIONS, workspace_zoom_available } from "./workspace_zoom";
@@ -87,6 +88,8 @@ export function create_workspace_titlebar_definitions(
       {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
       {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
       {label: "保存全部",shortcut:"Ctrl+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
+      {label:"自动保存",checked:read_workspace_save_settings()["files.autoSave"]!=="off",action:()=>files.core.app.commands.run("linux_note:auto_save")},
+      {label:"自动保存与本地历史设置…",action:()=>files.core.app.commands.run("linux_note:save_settings")},
       {label:"另存为…",shortcut:"Ctrl+Shift+S",disabled:!files.source_editor_active()&&!native_writable(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:save_as");}},
       {label:"从磁盘重新加载",disabled:!files.source_editor_active()&&!native_active(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:reload_file");}},native_command("移动到…", "moveTo"),
       native_command("打开文件位置", "openFileLocation", undefined, false), separator(),

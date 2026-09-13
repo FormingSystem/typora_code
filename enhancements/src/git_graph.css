@@ -513,3 +513,19 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-repository-row > .git-scm-repository-branch { flex: 0 1 auto; max-width: 40%; }
 .git-scm-repository-row > :is(.git-scm-repository-sync,.git-scm-repository-more) { flex: none; min-width: var(--git-scm-action-size,22px); }
 .git-scm-worktree-entry { margin-bottom: 8px; overflow-wrap: anywhere; }
+
+/* 放弃更改的对象和选项使用共享对话框颜色、控件与关闭路径。 */
+.git-discard-confirmation .git-graph-dialog { width: min(580px, 100%); }
+.git-discard-confirmation .git-graph-dialog-content { white-space: normal; }
+.git-discard-confirmation .git-discard-message { display: flex; align-items: flex-start; gap: 12px; }
+.git-discard-confirmation .git-discard-message > .git-standard-icon { flex: 0 0 24px; width: 24px; height: 24px; margin-top: 2px; }
+.git-discard-confirmation .git-discard-paragraphs { min-width: 0; flex: 1; }
+.git-discard-confirmation .git-discard-paragraphs p { margin: 0 0 12px; }
+.git-discard-confirmation .git-discard-paragraphs p:last-child { margin-bottom: 0; }
+.git-discard-confirmation .git-discard-path { font-size: .923em; }
+.git-discard-confirmation .git-discard-files { margin-top: 12px; }
+.git-discard-confirmation .git-discard-files summary { cursor: pointer; }
+.git-discard-confirmation .git-discard-files ul { margin: 4px 0 12px; padding-inline-start: 20px; }
+.git-discard-confirmation .git-discard-files p { margin: 12px 0 0; }
+.git-discard-confirmation .git-graph-dialog-footer { justify-content: flex-end; }
+.git-discard-confirmation .git-graph-dialog-footer button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }

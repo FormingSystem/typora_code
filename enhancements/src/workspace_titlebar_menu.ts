@@ -11,7 +11,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const events=new AbortController(),signal=events.signal;
   const panels:HTMLElement[]=[];
   const panel_events=new Map<HTMLElement,AbortController>();
-  let last_width=-1;
+  let last_width=-1,compact=false;
   let active_index=-1,generation=0,disposed=false;
   let previous_focus:workspace_focus_snapshot|undefined,escape_layer:workspace_dismiss_layer|undefined;
   const parents=new Map<HTMLElement,HTMLElement>();
@@ -101,7 +101,8 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   },{signal});
   const refresh=()=>{
     if(disposed)return;const width=element.clientWidth;if(width===last_width)return;last_width=width;
-    close();for(const button of buttons)button.hidden=false;more.hidden=false;
+    close();for(const button of buttons)button.hidden=compact;more.hidden=false;
+    if(compact)return;
     let used=more.getBoundingClientRect().width;const available=element.clientWidth;
     const widths=buttons.map(button=>button.getBoundingClientRect().width);
     if(widths.reduce((sum,width)=>sum+width,0)<=available){more.hidden=true;return;}
@@ -117,5 +118,8 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   },{capture:true,signal});
   window.addEventListener("workspace-titlebar-dismiss",()=>close(true),{signal});
   window.addEventListener("resize",refresh,{signal});
-  return {element,refresh,dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();interaction.remove();element.remove();}};
+  return {element,refresh,close,set_compact(value:boolean){
+    if(disposed||compact===value)return;compact=value;last_width=-1;
+    element.classList.toggle("workspace-titlebar-menu-compact",value);more.setAttribute("aria-label",value?"主菜单":"更多菜单");refresh();
+  },dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();interaction.remove();element.remove();}};
 }

@@ -1,8 +1,10 @@
 """真实临时目录验证 Linux 部署事务；不访问已安装 Typora。"""
 import importlib.util
+import io
 import json
 import shutil
 import tempfile
+from contextlib import redirect_stdout, redirect_stderr
 from pathlib import Path
 from unittest.mock import patch
 
@@ -50,7 +52,10 @@ def write_profile(data):
     profile.write_text(json.dumps(data, ensure_ascii=False).encode('utf-8').hex(), encoding='ascii')
 write_profile({'framelessWindow': False, 'nested': {'中文': [1, False]}, 'later': 1})
 backup = fixture / 'first backup'
-deployment.install(tools, root, user, backup)
+install_output = io.StringIO()
+with redirect_stdout(install_output):
+    deployment.install(tools, root, user, backup)
+assert install_output.getvalue() == '', 'Installation logs must not pollute command output'
 deployment.check(tools, root, user)
 assert deployment.read_native_profile(profile)['data']['framelessWindow'] is True
 write_profile({**deployment.read_native_profile(profile)['data'], 'later': 2})
@@ -218,3 +223,48 @@ assert all((user / 'typora_code' / name).read_bytes() == contents for name, cont
 assert unmanaged.read_text(encoding='utf-8') == 'unmanaged content'
 print('PASS: late install rollback, malformed profile preflight and absent profile full transaction')
 print('PASS: four retired C/C++ assets backed up, removed, checked, restored and rolled back byte-for-byte; unrelated files preserved')
+
+# 对真实事务结果核对日志：成功阶段完整，失败不能误报完成或回滚。
+logs = [path.read_text(encoding='utf-8') for path in (user / 'logs/installation').glob('*.log')]
+success_logs = [text for text in logs if '[SUCCESS]' in text]
+assert len(success_logs) == 3
+for text in success_logs:
+    positions = [text.index(f'[STEP {number}/5]') for number in range(1, 6)]
+    assert positions == sorted(positions)
+    assert '[ERROR]' not in text and 'Backup:' in text and 'Log:' in text
+failure_logs = [text for text in logs if '[SUCCESS]' not in text]
+assert all('[ERROR]' in text for text in failure_logs)
+assert sum('已回滚本次安装' in text for text in failure_logs) == 3
+assert sum('尚未写入目标文件' in text for text in failure_logs) == 2
+
+# 日志不可写时降级到临时目录；保存日志失败不能让安装函数失败。
+blocked_user = fixture / 'blocked logs'
+blocked_user.mkdir()
+(blocked_user / 'logs').write_text('not a directory', encoding='utf-8')
+with redirect_stderr(io.StringIO()) as fallback_output, patch.object(deployment.tempfile, 'gettempdir', return_value=str(fixture)):
+    fallback_log = deployment.install_log(blocked_user)
+    assert fallback_log.path.is_relative_to(fixture / 'TyporaCode/install_logs')
+    with patch.object(Path, 'open', side_effect=OSError('Injected log write failure')):
+        fallback_log.write('INFO', '日志失效后仍继续')
+    assert fallback_log.path is None
+assert '日志文件无法继续写入' in fallback_output.getvalue()
+
+# 回滚自身失败必须说明未完成，并保留最初的安装错误。
+real_verify_assets = deployment.verify_assets
+def installed_verification_failure(path, assets):
+    if path == user / 'typora_code':
+        raise OSError('Injected verification failure')
+    return real_verify_assets(path, assets)
+
+with redirect_stderr(io.StringIO()) as failed_rollback_output:
+    with patch.object(deployment, 'verify_assets', installed_verification_failure), patch.object(deployment, 'restore_records', side_effect=OSError('Injected rollback failure')):
+        try:
+            deployment.install(tools, root, user, fixture / 'failed rollback')
+        except OSError as error:
+            assert str(error) == 'Injected verification failure'
+        else:
+            raise AssertionError('Failed installation must still raise its original error')
+    text = failed_rollback_output.getvalue()
+    assert '自动回滚未完成' in text and 'Injected rollback failure' in text
+    assert '[SUCCESS]' not in text and '已回滚本次安装' not in text
+print('PASS: ordered stages, UTF-8 logs, clean output, log failure fallback and truthful rollback failure')

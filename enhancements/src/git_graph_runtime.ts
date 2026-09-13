@@ -1,7 +1,7 @@
 import type { git_run } from "./git_graph_data";
 import { git_graph_text as text } from "./git_graph_i18n";
 
-type git_child = { kill(): void; stdin?: { end(): void } };
+type git_child = { kill(): void; stdin?: { end(input?: string): void; on?(event: string, listener: (error: Error) => void): void } };
 type process_error = Error & { code?: string | number; killed?: boolean };
 type native_modules = {
   child_process: { execFile(file: string, args: string[], options: Record<string, unknown>, callback: (error: process_error | null, stdout: any, stderr: any) => void): git_child };
@@ -13,7 +13,7 @@ export function create_git_runner(modules: native_modules, options: { executable
   const children = new Set<git_child>();
   const env: Record<string, string | undefined> = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
   for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env[key];
-  const execute = (cwd: string, args: string[], binary = false, todo = ""): Promise<any> => new Promise((resolve, reject) => {
+  const execute = (cwd: string, args: string[], binary = false, todo = "", input?: string): Promise<any> => new Promise((resolve, reject) => {
       // 命令文本固定；用户批准的 todo 仅通过被双引号保护的环境数据传入 Git 自带的 shell。
       const sequence_editor = `sh -c 'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"' --`;
       const message_editor = `sh -c 'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi' --`;
@@ -34,10 +34,11 @@ export function create_git_runner(modules: native_modules, options: { executable
         reject(Object.assign(new Error(message), { code: error.code }));
       });
       children.add(child);
-      child.stdin?.end();
+      child.stdin?.on?.("error", () => { /* Git 提前失败时由 execFile 回调报告；防止 stdin EPIPE 成为未捕获异常。 */ });
+      child.stdin?.end(input);
     });
   return {
-    run: (cwd, args, execution) => execute(cwd, args, false, execution?.todo),
+    run: (cwd, args, execution) => execute(cwd, args, false, execution?.todo, execution?.stdin),
     run_bytes: (cwd, args) => execute(cwd, args, true),
     cancel() { for (const child of children) child.kill(); children.clear(); },
   };

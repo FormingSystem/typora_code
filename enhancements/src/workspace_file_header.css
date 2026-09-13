@@ -1,0 +1,10 @@
+/* VS Code 645f29c editor/title：拆分与更多在所属组标签行内；16px Codicon + 两侧2px命中内边距。 */
+.workspace-tab-strip > .workspace-file-header {
+  display:flex;align-items:center;flex:0 0 auto;gap:4px;height:100%;padding:0 4px;
+  color:var(--workspace-tab-active-fg);background:var(--workspace-tab-strip-bg);
+}
+.workspace-file-header > .git-icon-button {
+  display:inline-flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;
+  width:20px;height:20px;padding:2px;margin:0;border:0;background:transparent;color:inherit;
+}
+.workspace-file-header .git-standard-icon {display:block;flex:none;width:16px;height:16px;}

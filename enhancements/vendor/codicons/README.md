@@ -25,6 +25,10 @@ domains:
 | 打开单文件更改 | `compare-changes` | [compare_changes.svg](icons/compare_changes.svg) |
 | 打开文件 | `go-to-file` | [go_to_file.svg](icons/go_to_file.svg) |
 | 放弃更改 | `discard` | [discard.svg](icons/discard.svg) |
+| Diff 空白字符显示 | `whitespace` | [whitespace.svg](icons/whitespace.svg) |
+| 远端历史引用 | `cloud` | [cloud.svg](icons/cloud.svg) |
+| 放弃更改确认警告 | `warning` | [warning.svg](icons/warning.svg) |
+| 时间线来源筛选 | `filter` | [filter.svg](icons/filter.svg) |
 | 暂存更改 | `add` | [add.svg](icons/add.svg) |
 | 取消暂存 | `remove` | [remove.svg](icons/remove.svg) |
 | 提交、已选菜单项 | `check` | [check.svg](icons/check.svg) |

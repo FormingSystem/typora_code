@@ -38,10 +38,11 @@ for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCo
 assert(await win.webContents.executeJavaScript(`pick_result==='waiting'&&!document.querySelector('.git-graph-menu')&&!!document.activeElement.closest('.typ-modal__wrapper')`));
 for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCode:'Escape'});await new Promise(r=>setTimeout(r,60));
 assert(await win.webContents.executeJavaScript(`pick_result===undefined&&document.activeElement===focus_input`));
-await win.webContents.executeJavaScript(`window.outside_result='waiting';openInputBox({title:'Outside test'}).then(value=>outside_result=value);document.querySelector('.typ-modal__body').dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));void 0`);
+await win.webContents.executeJavaScript(`focus_input.focus();focus_input.setSelectionRange(2,4,'backward');window.outside_result='waiting';openInputBox({title:'Outside test'}).then(value=>outside_result=value);document.querySelector('.typ-modal__body').dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));void 0`);
 assert(await win.webContents.executeJavaScript(`outside_result==='waiting'`));
 await win.webContents.executeJavaScript(`const shade=[...document.querySelectorAll('.typ-modal__wrapper')].find(n=>getComputedStyle(n).display!=='none');for(const type of ['pointerdown','mousedown','mouseup'])shade.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true}));void 0`);
-await new Promise(r=>setTimeout(r,40));assert(await win.webContents.executeJavaScript(`outside_result===undefined&&document.activeElement!==focus_input`));
+await new Promise(r=>setTimeout(r,40));assert(await win.webContents.executeJavaScript(`outside_result===undefined&&document.activeElement===focus_input&&focus_input.selectionStart===2&&focus_input.selectionEnd===4&&focus_input.selectionDirection==='backward'`),'consumed core modal backdrop cancellation restores the original input selection');
+await win.webContents.insertText('cd');assert(await win.webContents.executeJavaScript(`focus_input.value==='abcdef'`),'typing immediately after core modal backdrop cancellation replaces the saved selection');
 await win.webContents.executeJavaScript(`window.core_menu=runtime.app.workspace.ribbon.ribbonView.dispalyMenu;core_menu.empty().addItem(item=>item.setKey('test').setTitle('Test'));core_menu.showAtPosition({x:100,y:100});void 0`);await new Promise(r=>setTimeout(r,40));
 assert(await win.webContents.executeJavaScript(`getComputedStyle(core_menu.containerEl).display!=='none'`));
 await win.webContents.executeJavaScript(`for(const type of ['mousedown','mouseup'])focus_input.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true}));void 0`);

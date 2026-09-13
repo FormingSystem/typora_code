@@ -517,6 +517,30 @@
       "source_path": "src/icons/zoom-out.svg",
       "git_blob_sha1": "5ba7bd004a2f842bf00c15cf6f49e4821db8f67a",
       "sha256": "c7ecdcfbb8b9cbd24756eed5ef6da34fa265657c9a8ac2d3c680882e4c9aeeff"
+    },
+    "warning": {
+      "file": "icons/warning.svg",
+      "source_path": "src/icons/warning.svg",
+      "git_blob_sha1": "104147bec2f26b96184b169334c574ede5971ff9",
+      "sha256": "e3e4cb7573830716be647b7c930595daca925dd6c2bc3ff99a5b2a6b087cc060"
+    },
+    "cloud": {
+      "file": "icons/cloud.svg",
+      "source_path": "src/icons/cloud.svg",
+      "git_blob_sha1": "c22c3c159abb839497a342ebd427821c62bdcf17",
+      "sha256": "6fbd71ada39f4391fc45ecfd864b72c7d580831841c28bd4f6237487a1395b68"
+    },
+    "whitespace": {
+      "file": "icons/whitespace.svg",
+      "source_path": "src/icons/whitespace.svg",
+      "git_blob_sha1": "345ce3a82ffa70c4ccb896eeabc3568204270e13",
+      "sha256": "ccf118c27bc7dbf090cf69cdad0ee57a324b5d9e95ea4e883535b79c8ae31bea"
+    },
+    "filter": {
+      "file": "icons/filter.svg",
+      "source_path": "src/icons/filter.svg",
+      "git_blob_sha1": "9c5b6fddbb5543ec4ac3bea603b80a1efc0ec8cf",
+      "sha256": "737b12312754c5a2e4c43f8d7e2d0126c0d5789d4ecfc77d6f42c28dbf848fe4"
     }
   },
   "licenses": [

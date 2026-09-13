@@ -22,7 +22,7 @@ app.whenReady().then(async()=>{
   const bundle=await build({stdin:{contents:'export {git_source_control} from "./src/git_source_control";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'layout_qa',write:false});await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
-    window.panel={root:'layout-fixture',branches:[],state:{root:'layout-fixture',head:'',refs:[],commits:[],more:false,remotes:[]},settings:{},host:{show_history(){}},refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){}};
+    window.panel={root:'layout-fixture',container:document.createElement("div"),branches:[],state:{root:'layout-fixture',head:'',refs:[],commits:[],more:false,remotes:[]},settings:{},host:{show_history(){}},refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){}};
     window.scm=new layout_qa.git_source_control(panel);panel.workbench=scm;scm.history.render(panel.state);const shell=document.createElement('section');shell.className='linux-note-git-source-control';shell.append(scm.sidebar);document.querySelector('#sidebar-content').append(shell);window.shell=shell;
     scm.groups_state=[{id:'staged',title:'暂存的更改',from:'head',to:'index',files:[]},{id:'changes',title:'更改',from:'index',to:'worktree',files:Array.from({length:50},(_,index)=>({path:'nested/changed_'+index+'.md',status:'M'}))}];scm.render_groups();
     scm.message.value=Array.from({length:30},(_,index)=>'提交说明第'+index+'行').join('\n');scm.message.dispatchEvent(new Event('input'));

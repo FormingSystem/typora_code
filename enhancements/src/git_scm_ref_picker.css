@@ -1,0 +1,19 @@
+/* VS Code 1.137.0 QuickPick: 600px宽、22px行、6px边距；位置遵守工作台现有QuickOpen入口。 */
+.git-scm-ref-picker{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(600px,calc(100vw - 12px));max-height:calc(100vh - 12px);display:flex;flex-direction:column;border:1px solid var(--item-hover-bg-color,rgba(127,127,127,.28));border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:22px}
+.git-scm-ref-header{display:flex;align-items:center;gap:6px;padding:6px 6px 4px;flex:none}
+.git-scm-ref-input{flex:1;display:flex;align-items:center;min-width:0;box-sizing:border-box;height:26px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px;background:var(--bg-color,#fff)}
+.git-scm-ref-picker .git-scm-ref-filter{flex:1;min-width:0;box-sizing:border-box;height:24px;margin:0;padding:2px 6px;border:0;border-radius:4px;background:transparent;color:inherit;font:inherit;line-height:20px;outline:0;box-shadow:none}
+.git-scm-ref-count{flex:none;max-width:45%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:4px;padding:2px 4px;border-radius:2px;background:var(--active-file-bg-color,var(--item-hover-bg-color,#eee));color:var(--active-file-text-color,var(--text-color,#333));font-size:11px;line-height:normal}
+.git-scm-ref-picker .git-scm-ref-accept{flex:none;box-sizing:border-box;height:26px;margin:0;padding:0 8px;border:1px solid var(--item-hover-bg-color,rgba(127,127,127,.4));background:transparent;color:inherit;font:inherit;line-height:24px}
+.git-scm-ref-list{min-height:0;max-height:min(440px,calc(100vh - 62px));overflow:auto;padding:0 6px 7px;outline:none}
+.git-scm-ref-picker .git-scm-ref-item{box-sizing:border-box;display:flex;align-items:center;gap:6px;width:100%;height:22px;min-height:22px;margin:0;padding:0 6px;border:0;background:transparent;color:inherit;font:inherit;line-height:22px;text-align:left;white-space:nowrap;overflow:hidden}
+.git-scm-ref-item.is-active{--workspace-interaction-hover:var(--active-file-bg-color,rgba(0,122,204,.18));--workspace-interaction-foreground:var(--active-file-text-color,var(--text-color,#333));background:var(--workspace-interaction-hover)!important;color:var(--workspace-interaction-foreground)!important}
+.git-scm-ref-item>.git-standard-icon{flex:none;width:16px;height:16px}
+.git-scm-ref-check{display:flex;align-items:center;justify-content:center;flex:none;box-sizing:border-box;width:16px;height:16px;border:1px solid currentColor;border-radius:3px}
+.git-scm-ref-check>.git-standard-icon{width:14px;height:14px;visibility:hidden}
+.git-scm-ref-item[aria-selected=true] .git-scm-ref-check>.git-standard-icon{visibility:visible}
+.git-scm-ref-label{min-width:0;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+.git-scm-ref-description{min-width:0;overflow:hidden;text-overflow:ellipsis;opacity:.65;flex:1 2 auto}
+.git-scm-ref-separator{height:22px;box-sizing:border-box;border-top:1px solid var(--item-hover-bg-color,rgba(127,127,127,.25));padding:0 6px;color:var(--control-text-color,var(--text-color,#555));font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.git-scm-ref-empty{padding:0 6px;line-height:22px}
+.git-scm-ref-status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}

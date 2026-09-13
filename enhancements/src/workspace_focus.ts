@@ -36,7 +36,7 @@ export function capture_workspace_focus(fallback?:HTMLElement):workspace_focus_s
 
 
 export type workspace_dismiss_reason='escape'|'outside'|'focus-out'|'window-blur';
-type dismissal_options={inside?:()=>Element[];outside?:boolean;focus_out?:boolean;window_blur?:boolean};
+type dismissal_options={inside?:()=>Element[];outside?:boolean;consume_outside?:boolean;focus_out?:boolean;window_blur?:boolean};
 type dismiss_record={roots:()=>Element[];cancel:(reason:workspace_dismiss_reason)=>void;options:dismissal_options;focused:boolean};
 type dismiss_service={add(record:dismiss_record):workspace_dismiss_layer};
 const service_key=Symbol.for('typora-code:workspace-dismissal');
@@ -46,15 +46,16 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
   if(!runtime[service_key]){
     const stack:dismiss_record[]=[];
     let pending:dismiss_record|undefined,listening=false,dismissing=false;
-    let gesture:{owner:dismiss_record|undefined;button:number;pointer:boolean;dismissed:boolean}|undefined;
+    let gesture:{owner:dismiss_record|undefined;button:number;pointer:boolean;dismissed:boolean;consumed:boolean}|undefined;
+    let gesture_timer:number|undefined;
     const top=()=>stack.findLast(record=>record.roots().some(visible));
     const inside=(record:dismiss_record,node:Element|null)=> (record.options.inside?.()||record.roots()).some(root=>within(root,node));
-    const consume=(event:KeyboardEvent)=>{event.preventDefault();event.stopImmediatePropagation();};
+    const consume=(event:Event)=>{event.preventDefault();event.stopImmediatePropagation();};
     const cancel_record=(record:dismiss_record,reason:workspace_dismiss_reason)=>{if(dismissing)return;dismissing=true;try{record.cancel(reason);}finally{dismissing=false;}};
-    const handlers:Record<string,EventListener>={keydown:event=>keydown(event as KeyboardEvent),keyup:event=>keyup(event as KeyboardEvent),pointerdown:event=>down(event as MouseEvent,true),mousedown:event=>down(event as MouseEvent,false),mouseup:()=>finish(),pointercancel:()=>finish(),focusin:()=>focus_changed(),focusout:()=>focus_changed(),blur:()=>blur()};
+    const handlers:Record<string,EventListener>={keydown:event=>keydown(event as KeyboardEvent),keyup:event=>keyup(event as KeyboardEvent),pointerdown:event=>down(event as MouseEvent,true),mousedown:event=>down(event as MouseEvent,false),pointerup:event=>release(event as MouseEvent),mouseup:event=>release(event as MouseEvent),click:event=>complete(event as MouseEvent),auxclick:event=>complete(event as MouseEvent),contextmenu:event=>swallow(event as MouseEvent),pointercancel:event=>{swallow(event as MouseEvent);finish();},focusin:()=>focus_changed(),focusout:()=>focus_changed(),blur:()=>blur()};
     const cleanup=()=>{if(!stack.length&&!pending&&!gesture&&listening){listening=false;for(const [name,handler]of Object.entries(handlers))window.removeEventListener(name,handler,name!=='blur');}};
     const keydown=(event:KeyboardEvent)=>{
-      gesture=undefined;
+      if(!gesture?.consumed)gesture=undefined;
       if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
       if(pending){consume(event);return;}
       const owner=top();if(!owner)return;consume(event);if(!event.repeat)pending=owner;
@@ -66,13 +67,19 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
     };
     const down=(event:MouseEvent,pointer:boolean)=>{
       // pointerdown 后紧随的兼容 mousedown 属于同一次手势，不能重新选择背景层。
-      if(!pointer&&gesture?.pointer&&gesture.button===event.button){gesture.pointer=false;return;}
-      const owner=top();gesture={owner,button:event.button,pointer,dismissed:false};
+      if(!pointer&&gesture?.pointer&&gesture.button===event.button){gesture.pointer=false;if(gesture.consumed)consume(event);return;}
+      window.clearTimeout(gesture_timer);gesture_timer=undefined;
+      const owner=top();gesture={owner,button:event.button,pointer,dismissed:false,consumed:false};
       if(!owner||owner.options.outside===false)return;
       const hit=event.composedPath().some(node=>node instanceof Element&&inside(owner,node));
-      if(!hit){gesture.dismissed=true;cancel_record(owner,'outside');}
+      if(!hit){gesture.dismissed=true;gesture.consumed=owner.options.consume_outside===true;if(gesture.consumed)consume(event);cancel_record(owner,'outside');}
     };
-    const finish=()=>{const current=gesture;queueMicrotask(()=>{if(gesture===current)gesture=undefined;cleanup();});};
+    // 模态遮罩关闭后，同次释放和 click 仍属于遮罩；不能让新露出的正文收到半次手势。
+    // 使用任务尾清理，避免 mouseup 后的微任务早于浏览器紧随的 click。
+    const swallow=(event:MouseEvent)=>{if(gesture?.consumed&&gesture.button===event.button)consume(event);};
+    const finish=()=>{const current=gesture;window.clearTimeout(gesture_timer);gesture_timer=window.setTimeout(()=>{gesture_timer=undefined;if(gesture===current)gesture=undefined;cleanup();},0);};
+    const release=(event:MouseEvent)=>{swallow(event);finish();};
+    const complete=(event:MouseEvent)=>{swallow(event);if(gesture?.button===event.button){window.clearTimeout(gesture_timer);gesture_timer=undefined;gesture=undefined;}cleanup();};
     const focus_changed=()=>{
       if(dismissing)return;const owner=top();if(!owner)return;
       if(inside(owner,active_element()))owner.focused=true;
@@ -84,7 +91,7 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
         cancel_record(owner,'focus-out');cleanup();
       });
     };
-    const blur=()=>{pending=undefined;gesture=undefined;const owner=top();if(owner?.options.window_blur)cancel_record(owner,'window-blur');cleanup();};
+    const blur=()=>{pending=undefined;window.clearTimeout(gesture_timer);gesture_timer=undefined;gesture=undefined;const owner=top();if(owner?.options.window_blur)cancel_record(owner,'window-blur');cleanup();};
     runtime[service_key]={add(record){
       record.focused=inside(record,active_element());stack.push(record);
       if(!listening){listening=true;for(const [name,handler]of Object.entries(handlers))window.addEventListener(name,handler,name!=='blur');}

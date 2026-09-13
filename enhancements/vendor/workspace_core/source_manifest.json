@@ -238,7 +238,7 @@
       "path": "src/ui/components/modal.ts",
       "upstream_path": "src/ui/components/modal.ts",
       "upstream_sha256": "3cdd01d4e0ca39bd1b9f211c1c675f28a60b1eb39a9b56952b2e206fe1798a8e",
-      "sha256": "ae88b0eab45ff51cb2c10bce4fccd9976418aa2d8543adc9f9c9e8289ff9205b"
+      "sha256": "0aa3dd3a48fe616323d50ca749b99cb0f872c1335965b8c73ab1aab4c8c3c81e"
     },
     {
       "path": "src/ui/components/notice.scss",

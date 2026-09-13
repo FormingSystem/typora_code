@@ -7,7 +7,56 @@ import shutil
 import uuid
 import os
 import tempfile
+import sys
+import time
+from datetime import datetime
 from pathlib import Path
+
+class install_log:
+    """每次安装的日志独立保存；记录失败不改变安装或回滚结果。"""
+    def __init__(self, user_data):
+        self.started = time.monotonic()
+        self.step_started = self.started
+        self.current = ''
+        self.rollback = 'not_required'
+        self.path = None
+        filename = 'install-' + datetime.now().strftime('%Y%m%d-%H%M%S-') + uuid.uuid4().hex + '.log'
+        for directory in [user_data / 'logs/installation', Path(tempfile.gettempdir()) / 'TyporaCode/install_logs']:
+            try:
+                directory.mkdir(parents=True, exist_ok=True)
+                path = directory / filename
+                path.write_text('', encoding='utf-8')
+                self.path = path
+                break
+            except OSError:
+                pass
+        self.write('INFO', 'Typora Code | 安装程序')
+        self.write('INFO' if self.path else 'WARN', 'Log: ' + str(self.path) if self.path else '无法保存日志文件，本次过程仍会在此窗口显示。')
+
+    def write(self, level, message):
+        line = f'[{datetime.now():%H:%M:%S}] [{level}] {message}'
+        try:
+            print(line, file=sys.stderr, flush=True)
+        except (OSError, UnicodeError):
+            pass
+        if self.path:
+            try:
+                with self.path.open('a', encoding='utf-8') as stream:
+                    stream.write(line + '\n')
+            except (OSError, UnicodeError):
+                self.path = None
+                self.write('WARN', '日志文件无法继续写入，安装过程仍会在此窗口显示。')
+
+    def complete(self):
+        if self.current:
+            self.write('OK', f'{self.current}完成，用时 {time.monotonic() - self.step_started:.1f} 秒。')
+            self.current = ''
+
+    def step(self, number, name):
+        self.complete()
+        self.current = name
+        self.step_started = time.monotonic()
+        self.write(f'STEP {number}/5', name)
 
 def read_native_profile(path):
     if not path.exists():
@@ -207,12 +256,29 @@ def group_roots(user_data):
             'settings': user_data / 'plugins/settings', 'theme': user_data / 'themes', 'native_profile': user_data}
 
 def install(tools_root, typora_root, user_data, backup):
+    log = install_log(user_data)
+    try:
+        install_files(tools_root, typora_root, user_data, backup, log)
+    except Exception as error:
+        log.write('ERROR', f'{log.current}失败：{error}')
+        if log.rollback == 'not_required':
+            log.write('INFO', '安装尚未写入目标文件，无须回滚。')
+        if log.path:
+            log.write('INFO', 'Log: ' + str(log.path))
+        raise
+
+def install_files(tools_root, typora_root, user_data, backup, log):
+    log.step(1, '校验安装包')
     source = tools_root / 'enhancements/dist'
     assets = release_assets(source)
     bundle = (source / 'workbench.js').read_text(encoding='utf-8') + (source / 'workspace.css').read_text(encoding='utf-8')
     for marker in (tools_root / 'enhancements/bundle_markers.txt').read_text(encoding='utf-8').splitlines():
         if marker.strip() and marker.strip() not in bundle:
             raise ValueError('Incomplete workbench release: ' + marker)
+    log.write('INFO', f'已校验 {len(assets)} 项工作台资源。')
+    log.step(2, '检查安装环境')
+    log.write('INFO', '安装位置：' + str(typora_root))
+    log.write('INFO', '用户数据：' + str(user_data))
     profile_path = asset_path(user_data, 'profile.data')
     profile_before = read_native_profile(profile_path)
     settings = check_conflicts(user_data)
@@ -232,6 +298,8 @@ def install(tools_root, typora_root, user_data, backup):
     asset_path(backup, 'manifest.json')
     if backup.exists():
         raise ValueError('Use a new backup destination')
+    log.step(3, '备份现有配置')
+    log.write('INFO', 'Backup: ' + str(backup))
     backup.mkdir(parents=True)
     shutil.copy2(window, backup / 'window.html')
     records = {name: snapshot(roots[name], backup / name, entries) for name, entries in paths.items()}
@@ -239,6 +307,7 @@ def install(tools_root, typora_root, user_data, backup):
     profile_changed = False
     settings_target = user_data / 'typora_code/settings/workspace.json'
     try:
+        log.step(4, '安装工作台')
         for relative in assets:
             target = asset_path(roots['product'], relative)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -256,21 +325,36 @@ def install(tools_root, typora_root, user_data, backup):
         roots['theme'].mkdir(parents=True, exist_ok=True)
         shutil.copy2(theme, roots['theme'] / theme.name)
         window.write_text(updated, encoding='utf-8')
+        log.step(5, '验证安装结果')
         verify_assets(roots['product'], assets)
         check_window(window.read_text(encoding='utf-8'), head)
         profile_changed = update_native_profile(profile_path, 'install', profile_before['sha256'])
         write_json(backup / 'manifest.json', {'schema_version': 4, 'typora_root': str(typora_root), 'user_data': str(user_data), 'window_sha256': digest(backup / 'window.html'), **records})
-    except Exception:
-        for name, entries in records.items():
-            if name != 'native_profile':
-                restore_records(roots[name], backup / name, entries)
-        if profile_changed:
-            update_native_profile(profile_path, 'restore', read_native_profile(profile_path)['sha256'], backup / 'native_profile/profile.data')
-        if created:
-            settings_target.rename(settings_target.with_suffix('.disabled.' + uuid.uuid4().hex))
-        shutil.copy2(backup / 'window.html', window)
+    except Exception as error:
+        log.rollback = 'running'
+        log.write('WARN', '安装未完成，正在恢复安装前状态。原因：' + str(error))
+        try:
+            for name, entries in records.items():
+                if name != 'native_profile':
+                    restore_records(roots[name], backup / name, entries)
+            if profile_changed:
+                update_native_profile(profile_path, 'restore', read_native_profile(profile_path)['sha256'], backup / 'native_profile/profile.data')
+            if created:
+                settings_target.rename(settings_target.with_suffix('.disabled.' + uuid.uuid4().hex))
+            shutil.copy2(backup / 'window.html', window)
+            log.rollback = 'completed'
+            log.write('OK', '已回滚本次安装，备份已保留。')
+        except Exception as rollback_error:
+            log.rollback = 'failed'
+            log.write('ERROR', '自动回滚未完成：' + str(rollback_error))
+            log.write('INFO', '请保留备份和日志用于恢复。Backup: ' + str(backup))
         raise
-    print('TyporaCode installed. Backup:', backup)
+    log.complete()
+    log.write('SUCCESS', f'安装完成，总用时 {time.monotonic() - log.started:.1f} 秒。')
+    log.write('INFO', 'Backup: ' + str(backup))
+    if log.path:
+        log.write('INFO', 'Log: ' + str(log.path))
+    log.write('INFO', '保存文档后正常重启 Typora，在“主题”菜单选择 cpp github consolas。')
 
 def check(tools_root, typora_root, user_data):
     if read_native_profile(asset_path(user_data, 'profile.data'))['data'].get('framelessWindow') is not True:

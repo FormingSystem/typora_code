@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';import {build} from 'esbuild';
+const compiled=await build({entryPoints:['src/workspace_native_save.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const {bind_native_save}=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
+const changes=[],saved=[],settings=[];let dirty=false,foreground=false;
+const file={isNode:true,option:{enableAutoSave:true,noUnsavedDraftsBackup:false},bundle:{filePath:'/fixture/a.md'},changeCounter:{isDocumentEdited:()=>dirty},
+  updateChangeCount(value){assert.equal(this,file);dirty=value;return 'counter-result';},isActiveWindow(){assert.equal(this,file);return foreground;}};
+const bridge={invoke(...args){assert.equal(this,bridge);if(args[0]==='reject')throw Error('IPC failure');return args;}};
+const originals={change:file.updateChangeCount,active:file.isActiveWindow,invoke:bridge.invoke};
+const binding=bind_native_save({File:file,JSBridge:bridge},{changed:path=>changes.push(path),saved:path=>saved.push(path),auto_save_changed:enabled=>settings.push(enabled)});
+assert.equal(file.option.enableAutoSave,false);assert.equal(file.option.noUnsavedDraftsBackup,false);assert.deepEqual(settings,[]);
+file.option.enableAutoSave=false;file.option.enableAutoSave=true;assert.deepEqual(settings,[false,true]);assert.equal(file.option.enableAutoSave,false);
+assert.equal(file.updateChangeCount(true),'counter-result');file.updateChangeCount(false);assert.deepEqual(changes,['/fixture/a.md']);
+assert.deepEqual(bridge.invoke('app.sendEvent','willSave','/fixture/a.md'),['app.sendEvent','willSave','/fixture/a.md']);assert.deepEqual(saved,[]);
+bridge.invoke('app.sendEvent','didSave',{path:'/fixture/a.md'});bridge.invoke('app.sendEvent','didSave',{path:'/fixture/new-name.md'});bridge.invoke('app.sendEvent','didSave',{wrong:'invalid'});
+assert.deepEqual(saved,['/fixture/a.md','/fixture/new-name.md']);assert.throws(()=>bridge.invoke('reject'),/IPC failure/);
+assert.equal(file.isActiveWindow(),false);assert.equal(binding.save(()=>file.isActiveWindow()),true);assert.equal(file.isActiveWindow(),false);
+let release;const pending=binding.save(()=>{assert.equal(file.isActiveWindow(),true);return new Promise(resolve=>release=resolve);});assert.equal(file.isActiveWindow(),false);release();await pending;
+assert.throws(()=>binding.save(()=>{throw Error('save failure');}),/save failure/);assert.equal(file.isActiveWindow(),false);
+const first_options=file.option;file.option={enableAutoSave:true,noUnsavedDraftsBackup:true};binding.sync_options();assert.equal(file.option.enableAutoSave,false);assert.equal(file.option.noUnsavedDraftsBackup,true);
+binding.dispose();assert.equal(file.option.enableAutoSave,true);assert.equal(first_options.enableAutoSave,true);assert.equal(file.updateChangeCount,originals.change);assert.equal(file.isActiveWindow,originals.active);assert.equal(bridge.invoke,originals.invoke);
+const other=bind_native_save({File:file,JSBridge:bridge},{changed(){},saved(){},auto_save_changed(){}}),replacement=()=>7;bridge.invoke=replacement;other.dispose();assert.equal(bridge.invoke,replacement);
+console.log(JSON.stringify({status:'PASS',checks:['one runtime auto-save owner while draft backups remain enabled','native settings route to shared save policy','native dirty changes and successful didSave only','Save As records resulting path','this, return values and exceptions preserved','window-blur save permission ends before asynchronous continuation','option replacement and cleanup preserve later owners']}));

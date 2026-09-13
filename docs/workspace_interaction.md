@@ -134,9 +134,11 @@ R022/R024本轮补充：Git选用共同紧凑外观（12px/19px、2px 8px内距�
 
 依据固定 VS Code 1.137.0 的 [quickInputController.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/quickinput/browser/quickInputController.ts#L331)：默认 ignoreFocusOut 为 false，焦点移动到容器内部不隐藏，离开时以 Blur 取消。[contextMenuHandler.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/contextview/browser/contextMenuHandler.ts#L97) 将菜单取消、焦点离开、窗口失焦和菜单外 mousedown 接入关闭；焦点已移动时不归还旧位置。R032 的配对 Esc 与子菜单返回规则继续生效。
 
-`workspace_focus` 统一持有可见临时层、关闭原因和一次鼠标手势的归属；core 与 workbench 共用窗口单例。真实指针在窗口捕获阶段判断，兼顾宿主仅产生 mousedown 的路径；后续兼容鼠标事件和焦点转移不能让同一手势继续关闭下一层。不拦截外部目标的默认操作，因此一次点击即可进入新的输入位置。点击弹窗内部空白、输入框、滚动列表或已打开子菜单不取消；遮罩属于外部，子菜单从共同菜单族判断边界。Shadow DOM 使用 composedPath 和跨宿主焦点判定。
+`workspace_focus` 统一持有可见临时层、关闭原因和一次鼠标手势的归属；core 与 workbench 共用窗口单例。真实指针在窗口捕获阶段判断，兼顾宿主仅产生 mousedown 的路径；后续兼容鼠标事件和焦点转移不能让同一手势继续关闭下一层。非模态菜单和快速选择器不拦截外部目标的默认操作，因此一次点击即可进入新的输入位置。点击弹窗内部空白、输入框、滚动列表或已打开子菜单不取消；遮罩属于外部，子菜单从共同菜单族判断边界。Shadow DOM 使用 composedPath 和跨宿主焦点判定。
 
-外部点击和焦点离开使用取消但不恢复旧焦点；Esc、关闭按钮仍在所属焦点有效时恢复。字体颜色取消回调接收恢复意图，不在外部关闭时重放选区。普通设置对话框不因打开系统颜色选择器而关闭；文件／命令选择器及菜单才接管窗口失焦。图片查看器的画布拖动仍属于内部操作。原生系统确认和宿主原有菜单保持其所有权，不用覆盖层模拟系统输入。
+非模态层外部点击和焦点离开使用取消但不恢复旧焦点；Esc、关闭按钮仍在所属焦点有效时恢复。字体颜色取消回调接收恢复意图，不在外部关闭时重放选区。普通设置对话框不因打开系统颜色选择器而关闭；文件／命令选择器及菜单才接管窗口失焦。图片查看器的画布拖动仍属于内部操作。原生系统确认和宿主原有菜单保持其所有权，不用覆盖层模拟系统输入。
+
+2026-09-14 原生验收发现，模态遮罩在 pointerdown 关闭后，兼容鼠标释放会落到刚露出的 Typora 正文，导致正文未变却被标记为未保存。模态构造显式启用 `consume_outside`：同一次 pointer／mouse down、up、click及右／中键终结事件归遮罩所有，不能传给正文或继续关闭底层弹窗。手势结束、新手势及窗口失焦统一清理。由于本次点击已被模态消耗，外点取消与 Esc 一样恢复仍有效的原焦点和选区，用户可立即继续输入。核心与工作台共用同一服务和修复版本；普通菜单和快速选择器保留外点直接操作目标的行为。
 
 回归在真实 Chromium 下验证内外点击、一次点击聚焦、普通输入和 Shadow DOM、菜单／对话框嵌套、右键替换、键盘恢复、扫描中取消后晚到结果、销毁后的事件清理，并补充宿主 mousedown 路径。隔离 Typora 核对实际快速打开、核心命令选择器、菜单和原生正文／配置不改写；合成事件与物理输入证据分别记录。
 
@@ -159,6 +161,20 @@ SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保�
 
 回归覆盖同一长分支在列表和详情卡中的不同呈现、多个引用、超长无空格名称、明暗主题和 100%／125% 缩放。检查文本行盒均在徽章内、完整 textContent 保留、卡片没有横向溢出，以及打开引用菜单与提交操作保持可用。
 
+## H001.1 顶栏右键显示配置
+
+2026-09-14，用户指出顶端功能区右键仍弹出 Typora 原生“文件／编辑／段落…”根菜单，要求采用 VS Code 顶栏组件显示配置。右键配置此区域的呈现，左键仍打开已有主菜单。
+
+固定参考为 VS Code 1.137.0 提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：[titlebarPart.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts) 将顶栏右键交给 `TitleBarContext`；[titlebarActions.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/parts/titlebar/titlebarActions.ts) 的开关直接更新配置，导航项只在命令中心启用时提供；[layout.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/layout.ts) 对自定义菜单栏在 classic 与 compact 之间切换。[workbench.contribution.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/workbench.contribution.ts) 的命令中心及导航默认均为 true。
+
+接入“菜单栏、命令中心、导航控件”三个真实组件，默认均显示。取消菜单栏后类别收进现有更多菜单入口，Alt 助记键仍可用；产品继续复用现有 more 图标。取消命令中心后显示纯窗口标题并隐藏前后退，但不清除导航选项；重新启用时按此前选择恢复。菜单按已实现的组件贡献，不显示没有提供者的 Share、Agents、Integrated Browser 或尚未实现的顶栏 Layout Controls 占位。原生窗口按钮保持宿主所有权。
+
+`workspace_titlebar_settings` 唯一解析默认值和保存值，持久化到既有用户设置的 `titlebar` 对象（`menu_bar`、`command_center`、`navigation_controls`），不写打开的仓库。切换前重新读取并保留同对象其他字段；`set_and_save` 成功后才通知呈现。保存失败保留原状态并报告实际错误，不增加确认步骤。隐藏不销毁节点、历史或文档；纯标题读取宿主 title，`#title-text` 保持连接。
+
+在捕获阶段阻止顶栏控件的原生根菜单，关闭已有顶栏下拉，调用公共紧凑 `workspace_menu`，复用勾选、主题、24px菜单行、16px图标、视口定位及退出栈。Shift+F10／菜单键从顶栏控件打开同一菜单；Esc恢复原焦点及选区，外部点击保留新目标焦点。设置变化和卸载清理菜单及监听器，隐藏命令中心后可从菜单区或纯标题恢复。
+
+回归覆盖真实鼠标右键、左键主菜单、一次点击一次保存、开关依赖和恢复、损坏配置默认、保存失败、重新挂载、助记键、Shift+F10、Esc与外点、明暗／宽窄／125%缩放、隐藏控件不占位和宿主节点／正文保持。侧会话编译本次源码并运行隔离 Electron 测试，不覆盖主会话正在修改的共享发布包；源码验证与安装验收分别记录。
+
 ## R020 选中行的明暗主题
 
 2026-09-13，用户反馈Night主题中资源管理器选中目录仍为浅底浅字。现有视图读取的 `--linux-note-shell-inactive-selection-background` 在生产样式中没有定义，落回浅色后备值；测试手工注入深色值，未覆盖真实缺陷。
@@ -173,3 +189,7 @@ SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保�
 有显式VS Code主题变量时优先引用它们，否则采用上述配对值。继续复用现有 `observe_workspace_theme` → `observe_terminal_theme` → 文件图标主题属性链，根据宿主实际合成背景识别深浅；不新增主题名称判断、监听器或配置。主题变化只更新颜色，选中身份、展开状态、滚动及行高仍归视图管理。共享选中hover同时保持选中前景，Explorer文字和箭头继承同一前景；Graph／SCM现有消费者复用同组变量。共同选中hover同时识别现有 `selected` 按钮状态，避免SCM文件行被普通action底色覆盖；嵌套行尾按钮仍按各自控件重置默认hover，不继承整行选中底色。独立标签、面包屑、搜索选中样式继续使用原局部覆写，正文和第三方编辑器不纳入公共重绘。
 
 回归须通过实际body主题样式触发日→夜→日传播，不允许向夹具注入待测选中变量。检查同一选中目录在鼠标离开、真实悬停和键盘焦点时文字及箭头对比度、26px行高、名称位置、滚动、展开和文件字节保持；另覆盖同类Graph／SCM及公共交互、局部覆写。主题加载前使用共同浅色默认，加载后沿既有观察链更新；失败或卸载不改变原选中模型。原生Typora验证与Chromium夹具、物理用户操作分别记载，不以旧通过记录替代本轮结果。
+
+### 2026-09-14 菜单分隔线主题隔离
+
+原生 Night 主题对正文 hr 使用强制24px上下边距，曾使普通文件更多菜单每个分隔处出现大片空白。公共 workspace_widgets.css 仅在 .git-graph-menu 内明确1px边框盒、零padding及标准5px／紧凑4px上下边距；局部 important 抵消宿主正文主题的强制边距，不改变文档正文。普通文件、比较页、终端及其他公共菜单共享这一规则。回归加载原生同等强度的明暗 hr 规则，检查实际分隔间距及正文保持；原生两主题截图与最终安装见本轮反馈。
