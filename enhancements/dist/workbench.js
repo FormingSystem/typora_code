@@ -201306,7 +201306,10 @@ https://creativecommons.org/licenses/by/4.0/
         disclosure.setAttribute("aria-hidden", "true");
         const summary = workspace_element("span", "git-scm-history-summary");
         const subject = workspace_element("span", "git-scm-history-subject", panel.emoji(commit.subject));
-        summary.append(subject);
+        const label = workspace_element("span", "git-scm-history-label");
+        label.append(subject);
+        if (commit.author) label.append(workspace_element("span", "git-scm-history-author", commit.author));
+        summary.append(label);
         if (names.length) {
           const labels = workspace_element("span", "git-scm-history-refs");
           for (const name of names) {
@@ -201316,7 +201319,7 @@ https://creativecommons.org/licenses/by/4.0/
             labels.append(badge);
           }
           summary.append(labels);
-        } else summary.append(workspace_element("span", "git-scm-history-author", commit.author));
+        }
         const graph_row = graph.rows[index];
         const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
         const svg3 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT });

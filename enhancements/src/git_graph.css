@@ -278,13 +278,18 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; padding-right: 4px; overflow: hidden; }
-.git-scm-history-subject { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: inherit; line-height: normal; }
-.git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 45%; min-width: 0; overflow: hidden; white-space: nowrap; font-size: .846em; }
-.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
+/* VS Code IconLabel：名称和作者共享裁切区，不能将作者另做一列。 */
+.git-scm-history-label { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
+.git-scm-history-subject { white-space: pre; font-size: inherit; }
+.git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: calc(100% - 4px); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
+.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
 .git-scm-history-ref[data-current=true] { background: #006bff; }
-.git-scm-history-ref-name { overflow: hidden; text-overflow: ellipsis; }
+.git-scm-history-ref-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
 .git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }
-.git-scm-history-author { flex: 0 1 auto; max-width: 30%; overflow: hidden; text-overflow: ellipsis; opacity: .65; font-size: .846em; }
+.git-scm-history-author { margin-left: .5em; opacity: .7; font-size: .9em; white-space: pre; }
+html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .95; }
+.git-scm-history-commit:focus .git-scm-history-author { opacity: 1; }
+.git-scm-history-commit[data-head=true] :is(.git-scm-history-subject, .git-scm-history-author) { font-weight: 600; }
 .git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); }
 .git-scm-history-continuation { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }
 .git-scm-history-files { min-width: 0; font-size: .923em; }
