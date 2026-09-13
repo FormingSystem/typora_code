@@ -459,3 +459,14 @@ R022按用户补充的两张截图区分显示：提交列表长分支用省略�
 另用独立真实Git仓库在原生Typora中验证R022，13项通过：明暗与100%／125%缩放下，列表使用省略号，详情卡中的完整分支名及换行字形全部位于徽章内；普通长名超过100px，极长名撑高。最终明暗代表截图已核对，正文磁盘与内存保持不变。证据为 `.cache/native_zoom_1_14_10/breadcrumbs_refs_native_20260913/checks.json`；该临时仓库仅用本地提交，不访问远端。
 
 最终构建已通过现有事务安装器部署，安装后检查 `status: OK`，24项常驻安装资产与验证发布清单核对；ASAR、应用图标、原生偏好、工作区设置和主题摘要保持，保留事务备份。用户窗口未重启，保存后正常重启Typora即可加载。安装证据为 `.cache/breadcrumbs_install_20260913.log`、`breadcrumbs_install_check_20260913.log` 和 `breadcrumbs_install_verification_20260913.json`。最终合并、提交与保护审计在 `.cache/breadcrumbs_audit_20260913/`；原18项R009差量及其他未完成项继续保持独立。
+
+
+## 2026-09-13 文件夹单击与连续响应纠正
+
+R028按用户最新纠正取消文件夹双击重命名。箭头、名称和行内空白的每次单击立即切换，包括浏览器双击序列中的第二击；删除旧的目录双击选择快照和展开状态恢复。文件夹改名继续使用 F2 或右键，已选中文件双击改名保持。慢读重开仍复用同一请求，完成后遵守用户最后的折叠状态。固定 VS Code 来源、交互与失败边界见[文件行设计](file_operations.md#r028-文件行的单击双击与加载反馈)。
+
+隔离发布基于 `fa6f490`，未混入原18项R009差量。原代码在新增 Chromium 鼠标回归中复现目录双击进入改名；修复后build、完整check及5个相关UI目标通过，覆盖资源管理器、文件编辑、工作台启动、搜索和Esc。目录测试的11次快速点击均在下一渲染帧更新，当前夹具测得0.5～15.8ms；这是本轮夹具结果，不代表任意设备或目录的枚举耗时。慢读、2000项虚拟列表、未选中／已选中目录、文件双击、F2／菜单、明暗／窄栏及缩放均通过。验证观察器修正事件顺序后通过，首轮与最终日志分别保留于独立发布 `enhancements/.cache_folder_click_before.log`、`.cache_folder_click_after.log`、`.cache_folder_click_verified.log`、`.cache_folder_click_related_ui.log` 和 `.cache_folder_click_check.log`。
+
+隔离原生Typora1.14.10最终18项通过，明暗与100%／125%截图已核对，全部临时文件内容及路径保持。原生采用私有桌面DOM事件及实际命中区域，Chromium真实鼠标／键盘证据单独记录；测试行尾不覆盖已有侧栏拖动边界。前两次夹具等待／命中点问题已保留，最终证据为 `.cache/native_zoom_1_14_10/folder_click_native_verified_20260913/checks.json`，汇总在 `.cache/folder_click_audit_20260913/test_summary.json`。
+
+事务安装与安装后检查通过，24项常驻资产与隔离发布摘要一致；ASAR、应用图标、当前原生偏好、工作区设置和主题摘要保持，用户窗口未重启，保存后正常重启Typora加载。首次安装因运行中的原生配置并发更新触发事务回滚，重新读取最新配置后安装成功；没有覆盖新的原生设置。安装证据为 `.cache/folder_click_install_20260913.log`、`folder_click_install_check_20260913.log` 与 `folder_click_install_verification_20260913.json`，最终提交及保护审计在 `.cache/folder_click_audit_20260913/`。原18项R009差量与其他未完成项继续独立保留。

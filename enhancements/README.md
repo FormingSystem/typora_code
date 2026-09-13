@@ -78,7 +78,7 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 
 增加 `-suite markdown_location` 验证双击 Markdown 的原生定位：标题、粗体段落、相同词的不同段落、含制表符围栏中同行第二次命中，以及 Alt 后退／前进、快速连续跳转、已有标签复用和源码草稿保护。用临时文件的字节与原生修改计数确认定位没有改写正文。
 
-增加 `-suite rename` 验证文件和目录改名后，原生 Markdown 标签、源码草稿、撤销栈、格式和后续保存路径随之更新；同时检查目录名相同前缀的兄弟目录不受影响。文件系统冲突与名称边界由 `test_workspace_rename.mjs` 检查；F2、已选中行双击和右键菜单由 `test_workspace_explorer.cjs` 使用 Chromium 指针与键盘事件检查。
+增加 `-suite rename` 验证文件和目录改名后，原生 Markdown 标签、源码草稿、撤销栈、格式和后续保存路径随之更新；同时检查目录名相同前缀的兄弟目录不受影响。文件系统冲突与名称边界由 `test_workspace_rename.mjs` 检查；F2、已选中文件双击和右键菜单由 `test_workspace_explorer.cjs` 使用 Chromium 指针与键盘事件检查。
 
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共发布资产与迁移事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
 
@@ -105,7 +105,7 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 | `test_workspace_source_lifecycle.cjs` | 真实隐藏 Electron 关闭事件：源码先拦截、取消、保存失败、异步保存及原生取消后的再次保护 |
 | `test_workspace_selection_search.cjs` | 隐藏 Electron：选中文字进入统一搜索、文件组整行开关、单击预览／重复定位、双击打开、动作隔离、键盘、明暗／缩放及上下分区 |
 | `test_workspace_lookup_preview.cjs` | 隐藏 Electron：Markdown 正文、源码高亮、准确命中定位、预览缩放、主题、异步选择及内容净化 |
-| `test_workspace_explorer.cjs` | 隐藏 Electron：整行即时开关、慢读期间反复点击、节点复用、单击打开、已选中行双击／F2／菜单改名、多选、新建、剪贴、回收站、虚拟列表及明暗／窄栏／缩放 |
+| `test_workspace_explorer.cjs` | 隐藏 Electron：目录整行即时开关、快速连续点击与慢读反馈、节点复用、文件单击打开、已选中文件双击／F2／菜单改名、多选、新建、剪贴、回收站、虚拟列表及明暗／窄栏／缩放 |
 | `test_workspace_activity.cjs` | 隐藏 Electron：选中状态、拖动持久化、键盘调整及减少动画 |
 | `test_workspace_sidebar_sash.cjs` | 隐藏 Electron：最小宽度、拖动收起与恢复、宽度记忆、窗口边界及键盘操作 |
 | `test_workspace_outline.cjs` | 隐藏 Electron：大纲外围留白、原生过滤清理、可见标题同步、延迟回调、层级展开及显式定位 |

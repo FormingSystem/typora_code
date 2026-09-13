@@ -66,7 +66,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
   const dialogs = new Set<{close(): void}>();
   const nodes = new Map<string, explorer_node>(); const detachers: (() => void)[] = [];
   const row_views = new Map<explorer_node, {row: HTMLDivElement; chevron: HTMLSpanElement; label: HTMLSpanElement; note: HTMLSpanElement; file_icon: HTMLElement}>();
-  let click_sequence: {node: explorer_node; selected: boolean; expanded: boolean} | undefined;
+  let click_sequence: {node: explorer_node; selected: boolean} | undefined;
   const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
 
   function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
@@ -156,8 +156,8 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
           view = {row, chevron, label, note, file_icon: workspace_file_icon(node.path)}; row_views.set(node, view);
           row.onmousedown = event => {
             if (event.target === rename_state?.input) return;
-            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) { click_sequence = undefined; return; }
-            if (event.detail < 2) click_sequence = {node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path), expanded: node.expanded};
+            if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) { click_sequence = undefined; return; }
+            if (event.detail < 2) click_sequence = {node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path)};
           };
           row.onclick = event => {
             if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
@@ -166,19 +166,16 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
               const start = flat_nodes.findIndex(candidate => candidate.path === selected_path), end = flat_nodes.indexOf(node);
               selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
             }
-            if (event.altKey || event.detail >= 2) return;
+            // 目录逐次响应 click；只有文件区分双击，避免吞掉快速连点的第二击。
+            if (event.altKey || !node.directory && event.detail >= 2) return;
             select(node, false, true); run(() => activate(node));
           };
           row.ondblclick = event => {
             if (event.target === rename_state?.input) return;
             event.preventDefault(); event.stopPropagation();
-            if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+            if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
             const sequence = click_sequence; click_sequence = undefined;
-            if (sequence?.node === node && sequence.selected) {
-              // 单击即时执行；双击确认为改名时恢复手势开始前的目录开关，不等待计时器。
-              if (node.directory) { node.expanded = sequence.expanded; if (node.expanded) watch_visible(node); else close_branch(node); }
-              begin_rename(node);
-            }
+            if (sequence?.node === node && sequence.selected) begin_rename(node);
           };
           row.oncontextmenu = event => { click_sequence = undefined; if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
         }
