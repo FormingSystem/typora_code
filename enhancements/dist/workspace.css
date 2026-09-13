@@ -1942,7 +1942,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-menu>button[hidden] { display:none!important; }
 .workspace-titlebar-center>.workspace-titlebar-history { display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:3px; }
 .workspace-titlebar-history:disabled { opacity:.4; }
-.workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
+/* 搜索入口独立于普通工具栏底色；保留公共角色、焦点与既有形状（R029）。 */
+.workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--tc-title-fg);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
 .workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }

@@ -2,8 +2,8 @@ const {app,BrowserWindow}=require('electron');const {build}=require('esbuild');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_single_row_titlebar_'));app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceleration();let win;
 app.whenReady().then(async()=>{
- win=new BrowserWindow({width:1280,height:800,show:false,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true}});
- await win.loadURL('data:text/html,'+encodeURIComponent(`<html><head><title>draft.md</title><style>body{margin:0;--typ-workspace-top:0px}.unibody-window{--typ-workspace-top:24px}#top-titlebar{height:24px;position:absolute;left:300px}#w-restore{display:none}#w-max-group{display:inline-block}#write{position:absolute;top:var(--typ-workspace-top);padding:30px}#w-full,#w-pin{display:none}</style></head><body class="typora-node unibody-window"><div id="top-titlebar"><button id="w-menu-btn">native root</button><span id="title-text">draft</span><div id="w-traffic-lights"><button class="toolbar-icon" id="w-min">min</button><span id="w-max-group"><button class="toolbar-icon" id="w-max">max</button><span id="w-full"></span><span id="w-pin"></span></span><button class="toolbar-icon" id="w-restore">restore</button><button class="toolbar-icon" id="w-close">close</button></div></div><div id="write" contenteditable="true">preserve my draft and selection</div></body></html>`));
+ win=new BrowserWindow({width:1280,height:800,show:false,frame:false,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});
+ await win.loadURL('data:text/html,'+encodeURIComponent(`<!doctype html><html><head><title>draft.md</title><style>body{margin:0;--typ-workspace-top:0px}.unibody-window{--typ-workspace-top:24px}#top-titlebar{height:24px;position:absolute;left:300px}#w-restore{display:none}#w-max-group{display:inline-block}#write{position:absolute;top:var(--typ-workspace-top);padding:30px}#w-full,#w-pin{display:none}</style></head><body class="typora-node unibody-window"><div id="top-titlebar"><button id="w-menu-btn">native root</button><span id="title-text">draft</span><div id="w-traffic-lights"><button class="toolbar-icon" id="w-min">min</button><span id="w-max-group"><button class="toolbar-icon" id="w-max">max</button><span id="w-full"></span><span id="w-pin"></span></span><button class="toolbar-icon" id="w-restore">restore</button><button class="toolbar-icon" id="w-close">close</button></div></div><div id="write" contenteditable="true">preserve my draft and selection</div></body></html>`));
  win.webContents.on('console-message',event=>{if(event.level==='error')console.error('renderer: '+event.message);});
  const run=async source=>{const result=await win.webContents.executeJavaScript(`(async()=>{try{return{ok:true,value:await (0,eval)(${JSON.stringify(source)})}}catch(error){return{ok:false,error:error.stack}}})()`);if(!result.ok)throw Error(result.error);return result.value;};const tick=()=>run('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
  await run(`const base=document.createElement('base');base.href='file:///E:/Typora/resources/window.html';document.head.prepend(base);void 0`);
@@ -32,6 +32,35 @@ app.whenReady().then(async()=>{
  await run(`document.querySelector('.workspace-titlebar-search').click();window.dispatchEvent(new CustomEvent('linux-note-reading-history-state',{detail:{back:true,forward:false}}));window.travel=[];window.addEventListener('linux-note-reading-history-travel',event=>travel.push(event.detail.direction));document.querySelector('.workspace-titlebar-history').click();document.querySelectorAll('.workspace-titlebar-history')[1].click();void 0`);
  assert.deepEqual(await run('travel'),[-1]);assert.equal(await run('calls.at(-1)[0]'),'search');
  await run(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-state',{detail:{back:true,forward:true}}));document.querySelectorAll('.workspace-titlebar-history')[1].click();void 0`);assert.deepEqual(await run('travel'),[-1,1]);
+
+ // R029：搜索入口保留中性外观；用真实指针和键盘验证，不能只检查角色或CSS文本。
+ win.webContents.debugger.attach();await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ const move_pointer=async selector=>{const point=await run(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`),zoom=win.webContents.getZoomFactor();const position={x:Math.round(point.x*zoom),y:Math.round(point.y*zoom)};win.webContents.sendInputEvent({type:'mouseMove',...position});await pause(45);return position;};
+ const appearance=selector=>run(`(()=>{const n=document.querySelector(${JSON.stringify(selector)}),s=getComputedStyle(n),r=n.getBoundingClientRect();return{background:s.backgroundColor,foreground:s.color,border:s.borderColor,radius:s.borderRadius,rect:[r.x,r.y,r.width,r.height]}})()`);
+ const hover_evidence=[];
+ for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [1280,500]){
+  win.setSize(width,800);win.webContents.setZoomFactor(zoom);
+  await run(`document.documentElement.dataset.workspaceFileIconTheme=${JSON.stringify(theme)};document.body.style.setProperty('--text-color',${JSON.stringify(theme==='dark'?'#ccd6df':'#3f4652')});document.body.style.setProperty('--side-bar-bg-color',${JSON.stringify(theme==='dark'?'#191a1b':'#fafafd')});document.querySelector('#write').focus();void 0`);await pause(70);
+  await move_pointer('#write');const before=await appearance('.workspace-titlebar-search'),navigation_before=await appearance('.workspace-titlebar-history'),calls_before=await run('calls.length');
+  const position=await move_pointer('.workspace-titlebar-search');
+  assert(await run(`document.querySelector('.workspace-titlebar-search').matches(':hover')&&document.activeElement===document.querySelector('#write')`),'hover reaches the search box without moving focus');
+  assert.deepEqual(await appearance('.workspace-titlebar-search'),before,`neutral search hover ${theme}/${zoom}/${width}`);
+  assert.equal(await run('calls.length'),calls_before,'hover must not activate search');
+  assert(await run(`!document.querySelector('.workspace-titlebar-search').hasAttribute('aria-selected')&&!document.querySelector('.workspace-titlebar-search').hasAttribute('aria-pressed')&&document.querySelector('.workspace-titlebar-search').title==='搜索文件 (Ctrl+P)'`));
+  for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,button:'left',clickCount:1,...position});await pause(35);
+  assert.equal(await run('calls.length'),calls_before+1,'one pointer click opens search once');assert.equal(await run('calls.at(-1)[0]'),'search');
+  await move_pointer('.workspace-titlebar-history');assert.notEqual((await appearance('.workspace-titlebar-history')).background,navigation_before.background,'nearby navigation keeps normal hover feedback');assert.deepEqual(await appearance('.workspace-titlebar-search'),before,'leaving search restores its neutral appearance');
+  hover_evidence.push({theme,zoom,width,...before});
+ }
+ win.setSize(1280,800);win.webContents.setZoomFactor(1);await run(`document.documentElement.dataset.workspaceFileIconTheme='light';document.body.style.removeProperty('--text-color');document.body.style.removeProperty('--side-bar-bg-color');void 0`);await pause(70);await move_pointer('#write');
+ // 导航末项后按Tab进入搜索，检查焦点线及标准按钮键盘激活。
+ await run(`document.querySelectorAll('.workspace-titlebar-history')[1].focus();void 0`);
+ for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCode:'Tab'});await pause(35);
+ assert(await run(`document.activeElement===document.querySelector('.workspace-titlebar-search')&&document.activeElement.matches(':focus-visible')&&getComputedStyle(document.activeElement).outlineWidth==='1px'`),'keyboard search focus stays visible');
+ for(const key_code of ['Return','Space']){const before=await run('calls.length');win.webContents.sendInputEvent({type:'keyDown',keyCode:key_code});win.webContents.sendInputEvent({type:'char',keyCode:key_code==='Return'?'\r':' '});win.webContents.sendInputEvent({type:'keyUp',keyCode:key_code});await pause(35);assert.equal(await run('calls.length'),before+1,key_code+' opens search once');assert.equal(await run('calls.at(-1)[0]'),'search');}
+ fs.writeFileSync(path.join(evidence,'search_hover.json'),JSON.stringify(hover_evidence,null,2));
+
  // 真实命令定义直接打开自己的条目，不先弹完整根菜单。
  await run(`window.editor=document.querySelector('#write');editor.focus();window.range=document.createRange();range.setStart(editor.firstChild,9);range.setEnd(editor.firstChild,17);getSelection().removeAllRanges();getSelection().addRange(range);document.querySelectorAll('.workspace-titlebar-menu>button')[2].click();void 0`);await tick();
  assert(await run(`document.querySelector('.workspace-titlebar-popup').textContent.includes('一级标题')&&!document.querySelector('.workspace-titlebar-popup').textContent.includes('新建窗口')`));
@@ -57,5 +86,5 @@ app.whenReady().then(async()=>{
  fs.writeFileSync(path.join(evidence,'titlebar.png'),(await win.webContents.capturePage()).toPNG());
  await run(`binding.dispose();binding.dispose();void 0`);assert(await run('original_nodes.every((node,i)=>document.querySelector("#top-titlebar").childNodes[i]===node)&&document.querySelector("#w-close")===original_close&&callbacks.length===0&&!document.querySelector(".workspace-titlebar-popup")&&document.documentElement.dataset.linuxNoteTitlebar==="external"'));
  assert.equal(await run('editor.textContent'),'preserve my draft and selection');
- fs.writeFileSync(path.join(evidence,'geometry.json'),JSON.stringify(geometry,null,2));console.log('PASS single row titlebar: next-window setting; direct menus; selection preservation; bounded Shift-wheel; nested bounds; stale results; navigation; narrow overflow; original controls; disposal. '+evidence);win.destroy();app.exit(0);
+ fs.writeFileSync(path.join(evidence,'geometry.json'),JSON.stringify(geometry,null,2));console.log('PASS single row titlebar: neutral search hover in 8 theme/zoom/width cases, pointer and keyboard activation; next-window setting; direct menus; selection preservation; bounded Shift-wheel; nested bounds; stale results; navigation; narrow overflow; original controls; disposal. '+evidence);win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);win?.destroy();app.exit(1)});
