@@ -521,3 +521,13 @@ R020：修复Night资源管理器选中目录出现浅底浅字。共同交互�
 隔离原生Typora1.14.10最终20项通过，真实github.css→night.css→github.css切换保留同一目录、正文、编辑状态和26px行高；Night对比11.79，浅色13.16。三张实际截图已核对，主题边界的亚像素宽差0.57px、切回完全恢复。首次采样遇到私有启动器尚未完成窗口尺寸调整，延后至就绪后重新验证；最终证据在`.cache/native_zoom_1_14_10/explorer_night_native_20260913_final/`。这是私有桌面的宿主API／DOM与实际渲染验证，不冒充用户物理鼠标操作。
 
 本次通过既有事务备份安装，安装后检查OK，23项产品资产中仅workspace.css及其SHA256SUMS清单变化。安装脚本基线仍为已验收`7885b59`，R009已提交但尚未验收的系统剪贴板脚本未部署；当前源码／dist继续保留该阶段实现。ASAR、图标、原生偏好、工作区设置和主题摘要不变，用户窗口未重启，保存文档后正常重启Typora加载。发布与安装记录在`.cache/selection_theme_audit_20260913/`，日志为`.cache/selection_theme_install_20260913.log`与`selection_theme_install_check_20260913.log`。按每轮及时提交约定，本轮代码、测试、设计及对应构建一并提交，其他未完成项继续保留。
+
+## 2026-09-13 全屏查看悬停入口保持不透明
+
+R031：按钮原有阅读底色被公共action的半透明hover背景覆盖，导致文字或图片透底。在唯一的reading_media_entry.css中声明局部公共hover背景与前景，引用宿主阅读背景和正文文字色，图片与Mermaid同时生效。显隐、外侧右上覆盖位置、命中桥和正文零占位不变；设计见[不透明入口](reading_media_viewer.md#r031-悬停入口的不透明底色)。
+
+旧样式在真实Chromium鼠标移入按钮后复现亮色alpha0.122、暗色0.314。回归使用生产主题观察链，覆盖媒体移入、按钮移入和离开；修复后图片／Mermaid、亮／暗四组显示时opacity与背景alpha均为1，文字与图标对比可读，正文DOM、段落／图片矩形和按钮身份不变。媒体查看器47项与公共交互56项通过，保留单击选中、双击及按钮打开、缩放拖动和Esc退出验证；build与完整check通过。前后日志为`.cache/media_entry_opaque_before_fullpage_20260913.log`、`media_entry_opaque_after_20260913.log`，公共回归、构建与检查日志为`.cache/media_opaque_shared_ui_20260913.log`、`media_opaque_build_20260913.log`、`media_opaque_check_20260913.log`。
+
+隔离原生Typora1.14.10最终23项通过，github.css与night.css下图片／Mermaid四组均真实触发CSS :hover；显示完全不透明，离开隐藏且不拦截正文指针，无占位行和排版变化，正文、dirty状态及夹具文件保持。四张实际截图已视检，证据在`.cache/native_zoom_1_14_10/media_hover_native_20260913_final/`。首次远程调试参数被原生生产限制拒绝后，改用私有桌面窗口WM_MOUSEMOVE完成验证，未绕过限制或修改ASAR；此为私有窗口消息和实际渲染验证，不冒充用户物理鼠标操作。
+
+既有事务安装及安装后检查OK，23项产品资产中仅workspace.css及其SHA256SUMS清单更新，包含上一轮明暗选中配色。已安装脚本仍为已验收7885b59，未部署R009待原生互通验收的阶段脚本。ASAR、图标、原生偏好、工作区设置和主题摘要保持，用户窗口未重启；保存后正常重启Typora加载。安装日志为`.cache/media_opaque_install_20260913.log`与`media_opaque_install_check_20260913.log`，发布、保护与提交核对保存在`.cache/media_opaque_audit_20260913/`。本轮代码、测试、设计和对应构建及时提交，其他未完成项保持原状态。
