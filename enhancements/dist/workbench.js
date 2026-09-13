@@ -228810,11 +228810,11 @@ https://creativecommons.org/licenses/by/4.0/
             row_views.set(node, view);
             row2.onmousedown = (event) => {
               if (event.target === rename_state?.input) return;
-              if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
                 click_sequence = void 0;
                 return;
               }
-              if (event.detail < 2) click_sequence = { node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path), expanded: node.expanded };
+              if (event.detail < 2) click_sequence = { node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path) };
             };
             row2.onclick = (event) => {
               if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
@@ -228832,7 +228832,7 @@ https://creativecommons.org/licenses/by/4.0/
                 render();
                 return;
               }
-              if (event.altKey || event.detail >= 2) return;
+              if (event.altKey || !node.directory && event.detail >= 2) return;
               select(node, false, true);
               run(() => activate(node));
             };
@@ -228840,17 +228840,10 @@ https://creativecommons.org/licenses/by/4.0/
               if (event.target === rename_state?.input) return;
               event.preventDefault();
               event.stopPropagation();
-              if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
               const sequence = click_sequence;
               click_sequence = void 0;
-              if (sequence?.node === node && sequence.selected) {
-                if (node.directory) {
-                  node.expanded = sequence.expanded;
-                  if (node.expanded) watch_visible(node);
-                  else close_branch(node);
-                }
-                begin_rename(node);
-              }
+              if (sequence?.node === node && sequence.selected) begin_rename(node);
             };
             row2.oncontextmenu = (event) => {
               click_sequence = void 0;

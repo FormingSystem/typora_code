@@ -146,9 +146,41 @@ app.whenReady().then(async()=>{
   assert(await evaluate(`stable_row===document.querySelector(${JSON.stringify(row('slow_folder'))})&&stable_name===stable_row.querySelector('.workspace-explorer-name')&&!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`),'late data keeps the collapsed state and original hit target');
   const reads_cached=await evaluate('reads.length');
   await click(row('slow_folder'));await wait(`!!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`);assert.equal(await evaluate('reads.length'),reads_cached,'cached expansion does not read again');
-  await double_click(row('slow_folder'));await wait('!!document.querySelector(".workspace-explorer-rename")');
-  assert.equal(await evaluate('document.querySelector(".workspace-explorer-rename").value'),'slow_folder');await key('Escape');
-  assert(await evaluate(`document.querySelector(${JSON.stringify(row('slow_folder'))}).getAttribute('aria-expanded')==='true'`),'rename and cancel preserve expansion before the double-click');
+  // 连续点击使用真实 Chromium clickCount，旧的 count=1 夹具不能发现第二击被吞掉。
+  const rapid_clicks=async(selector,counts)=>{
+    await evaluate(`window.click_feedback=[];(()=>{const row=document.querySelector(${JSON.stringify(selector)}),signal=(window.click_audit=new AbortController()).signal;let before,started;
+      row.addEventListener('click',()=>{before=row.getAttribute('aria-expanded');started=performance.now()},{capture:true,signal});
+      row.addEventListener('click',event=>{
+        if(event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+        const count=event.detail;
+        requestAnimationFrame(()=>window.click_feedback.push({count,before,after:row.getAttribute('aria-expanded'),milliseconds:performance.now()-started,renaming:!!document.querySelector('.workspace-explorer-rename')}));
+      },{signal});
+    })()`);
+    for(const count of counts){
+      const point=await evaluate(`(()=>{const b=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(b.left+b.width-5),y:Math.round(b.top+b.height/2)}})()`);
+      for(const type of ['mouseMove','mouseDown','mouseUp'])test_window.webContents.sendInputEvent({type,...point,button:'left',clickCount:count});
+      await wait('click_feedback.length==='+counts.indexOf(count)+'+1');
+      const feedback=(await evaluate('click_feedback')).at(-1);
+      assert.equal(feedback.count,count);assert.notEqual(feedback.after,feedback.before,'every folder click changes expansion by its next rendered frame, including double-click sequence '+count);assert.equal(feedback.renaming,false,'folder clicks never rename');
+    }
+    const feedback=await evaluate('click_feedback');await evaluate('click_audit.abort()');return feedback;
+  };
+  await double_click(row('slow_folder'));
+  assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false,'selected folder double-click never renames');
+  assert(await evaluate(`document.querySelector(${JSON.stringify(row('slow_folder'))}).getAttribute('aria-expanded')==='true'`),'two folder clicks toggle twice without a double-click rollback');
+  const folder_click_feedback=await rapid_clicks(row('slow_folder'),[1,2,3,4,5,6]);
+  await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');
+  assert.deepEqual(await evaluate('(()=>{const input=document.querySelector(".workspace-explorer-rename");return[input.value,input.selectionStart,input.selectionEnd]})()'),['slow_folder',0,11]);await key('Escape');
+  assert(await evaluate(`document.querySelector(${JSON.stringify(row('slow_folder'))}).getAttribute('aria-expanded')==='true'`),'F2 and cancellation preserve expansion');
+  await key('Up');assert.equal(await evaluate('stable_row.getAttribute("aria-selected")'),'false');
+  await double_click(row('slow_folder'));assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false,'unselected folder double-click never renames');
+  await evaluate(`window.slow_directory=${JSON.stringify(slow_folder)};window.slow_release=undefined;void instance.refresh()`);await wait('!!window.slow_release');
+  folder_click_feedback.push(...await rapid_clicks(row('slow_folder'),[1,2,3,4,5]));
+  const pending_reads=await evaluate(`reads.filter(value=>value===${JSON.stringify(slow_folder)}).length`);
+  assert.equal(pending_reads,reads_before_release+1,'forced refresh and rapid reopen still share a single pending read');
+  await evaluate('slow_directory="";slow_release()');await wait('stable_row.getAttribute("aria-busy")==="false"');
+  assert(await evaluate(`!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`),'late refresh does not undo the final rapid collapse');
+  await click(row('slow_folder'));await wait(`!!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`);
   await evaluate(`window.stable_row=document.querySelector(${JSON.stringify(row('slow_folder'))});window.stable_name=stable_row.querySelector('.workspace-explorer-name');instance.refresh()`);await delay(70);
   assert(await evaluate(`stable_row===document.querySelector(${JSON.stringify(row('slow_folder'))})&&stable_name===stable_row.querySelector('.workspace-explorer-name')`),'refresh keeps unchanged visible row and label identities');
   const point_blank=await evaluate('(()=>{const b=stable_row.getBoundingClientRect();return{x:Math.round(b.right-5),y:Math.round(b.top+b.height/2)}})()');
@@ -174,5 +206,5 @@ app.whenReady().then(async()=>{
   await evaluate('instance.dispose()');assert.equal(await evaluate('watchers'),0);assert.equal(await evaluate('get_listeners()'),0);assert.equal(await evaluate('document.querySelector(".linux-note-workspace-explorer")'),null);
   await click('[data-id="core.file-explorer"]');assert.equal(await evaluate('native_clicks'),1,'dispose restores native button handling');
   assert(fs.readFileSync(path.join(workspace,'README.zh-CN.md')).equals(original));
-  console.log(JSON.stringify({status:'PASS',checks:['native header rules preserve explorer toolbar bounds and tree flow in both window modes','closed sidebar reads no directories','all files including dot names, hidden directories and binary extensions visible','official SVG icons render at 16px without a font dependency','native files button selects and toggles custom panel without duplicate ribbon','only clicked directories enumerated','file click forwards binary and unknown names to opener','context menu copies correct relative path','hide closes watchers and show restores expanded watches','native late outline class cannot cover explorer','2000-file directory renders bounded visible rows','reveal opens ancestors and scrolls to file without stealing editor focus','manual refresh discovers new files','F2 selects basename and Enter renames on disk','existing target is rejected and Escape cancels without writes','selected file and folder double-click rename; first double-click opens once','slow directory supports repeated toggles with one request and no late reopening','refresh preserves row and label identity','right-side whitespace toggles and modifier selection stays independent','light and dark 220/320px rows remain clickable at 100/125% page zoom','single click opens immediately','context-menu folder rename preserves descendants','dispose cleans observers, watchers and event subscriptions','native file button restored after dispose','source Markdown remains byte-identical','inline create file and folder','clipboard copy and move through keyboard','collision paste preserves source','delete cancel and recycle callback','Explorer has no duplicate Outline section or obsolete slot'],before_dispose,evidence:root},null,2));test_window.destroy();app.exit(0);
+  console.log(JSON.stringify({status:'PASS',checks:['native header rules preserve explorer toolbar bounds and tree flow in both window modes','closed sidebar reads no directories','all files including dot names, hidden directories and binary extensions visible','official SVG icons render at 16px without a font dependency','native files button selects and toggles custom panel without duplicate ribbon','only clicked directories enumerated','file click forwards binary and unknown names to opener','context menu copies correct relative path','hide closes watchers and show restores expanded watches','native late outline class cannot cover explorer','2000-file directory renders bounded visible rows','reveal opens ancestors and scrolls to file without stealing editor focus','manual refresh discovers new files','F2 selects basename and Enter renames on disk','existing target is rejected and Escape cancels without writes','selected file double-click renames; selected and unselected folders never rename on double-click','rapid folder clicks including counts 2-6 update by the next rendered frame; pending reads are shared and never reopen a collapsed folder','refresh preserves row and label identity','right-side whitespace toggles and modifier selection stays independent','light and dark 220/320px rows remain clickable at 100/125% page zoom','single click opens immediately','context-menu folder rename preserves descendants','dispose cleans observers, watchers and event subscriptions','native file button restored after dispose','source Markdown remains byte-identical','inline create file and folder','clipboard copy and move through keyboard','collision paste preserves source','delete cancel and recycle callback','Explorer has no duplicate Outline section or obsolete slot'],folder_click_feedback,before_dispose,evidence:root},null,2));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);if(test_window){fs.writeFileSync(path.join(root,'failure.html'),await evaluate('document.body.outerHTML'));fs.writeFileSync(path.join(root,'failure.png'),(await test_window.webContents.capturePage()).toPNG());console.error(root);console.error(await evaluate('({focus:document.activeElement?.outerHTML,status:document.querySelector(".workspace-explorer-status")?.textContent})'));}test_window?.destroy();app.exit(1)});
