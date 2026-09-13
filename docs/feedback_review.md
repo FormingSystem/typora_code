@@ -338,3 +338,16 @@ R028：搜索文件组的箭头、图标、名称、路径和空白都可单击�
 早期原生脚本先遇到侧栏过渡期间命中等待、Python标准输入编码及夹具位于上级 `.cache` 忽略目录的问题；最终脚本显式使用 UTF-8，并通过搜索的忽略设置开关读取临时夹具。早期失败记录保留，未据此修改生产搜索范围或绕过实际文件读取。完整验收以最终六项结果为准。
 
 本次独立构建已经事务安装，安装后检查返回OK；ASAR、原生图标、偏好、工作区设置和主题摘要均不变，已保存配置备份，未重启用户窗口。安装证据为 `.cache/tree_interaction_install_20260913.log`、`tree_interaction_install_check_20260913.log` 和 `tree_interaction_install_verification_20260913.json`。需求索引与全部本地文档链接检查通过；R009及此前其他未完成项保留原状态。
+
+
+## 2026-09-13 顶栏搜索取消整框悬停选中色
+
+R029：鼠标移入顶栏搜索时保留中性背景及原主题文字颜色，旁边的历史导航和其他按钮继续使用公共悬停。保留原按钮节点、公共action角色、提示、5px圆角、22px内容高度、Tab焦点和点击／Enter／Space搜索。固定来源与局部覆写职责见[搜索入口设计](workspace_interaction.md#r029-顶栏搜索入口的悬停外观)。生产修改仅为两个公共外观变量；没有新增全局监听或搜索状态。
+
+顶栏回归先复现旧版从透明变为 `rgba(0,0,0,0.12)` 的背景变化，再验证最终结果。八种组合覆盖明暗自定义前景、1280／500px窗口、100%／125%页面缩放，比较背景、前景、边框、几何、焦点与调用次数；旁边导航继续变色，每次鼠标／键盘激活只打开一次。最终日志为 `.cache/titlebar_search_verified_ui_20260913.log`。旧夹具缺失doctype造成怪异模式，现使用标准模式和无边框窗口；输入使用完整鼠标与键盘事件序列。标题、原菜单、选区、窄窗及卸载回归同时通过。
+
+最终构建与完整检查通过，日志为 `.cache/titlebar_search_final_build_20260913.log`、`titlebar_search_final_check_20260913.log`。相关生产启动通过，见 `.cache/titlebar_search_final_ui_20260913.log`；该轮公共悬停测试因旧Graph夹具缺少branches字段失败，补齐现有字段并将几何布局与聚焦分步后，94项公共悬停检查通过，见 `.cache/titlebar_search_related_final_ui_20260913.log`。没有为测试修改生产Graph或浮层行为。
+
+隔离原生Typora1.14.10最终七项通过，结果和已检查的截图位于 `.cache/native_zoom_1_14_10/titlebar_search_native_final_20260913/`，包含实际主题变量、整框命中、可见焦点、真实搜索打开／取消、125%缩放及正文字节保持。原生使用DOM激活和实际计算样式；真实Chromium指针及键盘序列由Electron夹具覆盖，不冒充物理鼠标人工验收。原生检查发现自定义属性直接写inherit并不能传递颜色，已改为引用 `--tc-title-fg` 并增加不同于默认色的夹具；高DPI轮廓按实际可见性及亚像素精度核对。宿主拒绝额外调试启动参数的早期尝试保留为失败证据，最终使用原有普通启动／文件RPC入口，未修改ASAR。
+
+本次从 `ae30dff` 独立构建并事务安装，安装后检查OK；原程序、原生图标、偏好、工作区设置和主题摘要全部不变，保留配置备份，未重启用户窗口。证据为 `.cache/titlebar_search_install_20260913.log`、`titlebar_search_install_check_20260913.log`、`titlebar_search_install_verification_20260913.json` 和 `titlebar_search_release_20260913.json`。R009系统文件剪贴板原差量及其他未完成项保持独立状态。
