@@ -37,10 +37,7 @@
 .workspace-tab-strip .workspace-tab-label .typ-file-basename {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;}
 .workspace-tab-strip .workspace-tab-label .typ-file-ext {flex:none;}
 .workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:16px;line-height:16px;margin:0 6px 0 0;}
-.workspace-tab-strip .workspace-tab-preview-icon {display:none;width:16px;height:16px;flex:none;margin-right:6px;}
-.workspace-tab-strip .workspace-tab-preview-label {display:none;flex:none;margin-right:4px;}
-.workspace-tab-strip .is-workspace-markdown-preview .workspace-tab-preview-icon,.workspace-tab-strip .is-workspace-markdown-preview .workspace-tab-preview-label {display:block;}
-.workspace-tab-strip .is-workspace-markdown-preview .typ-file-icon,.workspace-tab-strip .prefix-preview::before {display:none;}
+.workspace-tab-strip .prefix-preview::before {display:none;}
 .workspace-tab-strip .is-workspace-preview .typ-file-ext {font-style:italic;}
 .workspace-tab-strip .typ-tab:is(.is-workspace-dirty,.is-workspace-pinned) {padding-right:28px!important;}
 .workspace-tab-strip .workspace-file-dirty {display:none;}

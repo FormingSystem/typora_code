@@ -45,14 +45,11 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
       if(!tabs.has(tab)){
         const label=document.createElement("span"),actions=document.createElement("span");label.className="workspace-tab-label";actions.className="workspace-tab-actions";
         label.append(...[...tab.childNodes].filter(node=>node!==close));tab.prepend(label);close.before(actions);actions.append(close);
-        const preview_icon=git_icon("preview","workspace-tab-preview-icon"),preview_label=document.createElement("span");preview_label.className="workspace-tab-preview-label";preview_label.textContent="预览";label.prepend(preview_icon,preview_label);
         const close_icon=git_icon("close","workspace-tab-close-icon"),dirty_icon=git_icon("circle-filled","workspace-tab-dirty-icon");close.append(close_icon,dirty_icon);
-        const classes=["is-workspace-dirty","is-workspace-markdown-preview"].filter(name=>!tab.classList.contains(name));
-        tabs.set(tab,{label,actions,close,owned:[preview_icon,preview_label,close_icon,dirty_icon],classes});
+        const classes=["is-workspace-dirty"].filter(name=>!tab.classList.contains(name));
+        tabs.set(tab,{label,actions,close,owned:[close_icon,dirty_icon],classes});
       }
-      const view=leaf.view as typeof leaf.view&{isEditor?():boolean};
       tab.classList.toggle("is-workspace-dirty",Boolean(files?.editor_state(leaf).dirty||tab.querySelector(".workspace-file-dirty")));
-      tab.classList.toggle("is-workspace-markdown-preview",typeof view.isEditor==="function"&&!view.isEditor());
       attr(tab,"data-workspace-interaction","tab");attr(tab,"role","tab");attr(tab,"aria-selected",String(tab.classList.contains("active")));attr(tab,"tabindex",tab.classList.contains("active")?"0":"-1");
       attr(close,"data-workspace-interaction","action");attr(close,"role","button");attr(close,"tabindex","0");
       attr(close,"aria-label",leaf.state.workspace_pinned?"取消固定":"关闭（Ctrl+F4）");attr(close,"title","");
