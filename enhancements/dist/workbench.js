@@ -160180,6 +160180,170 @@ https://creativecommons.org/licenses/by/4.0/
     return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey) && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
   }
 
+  // src/reading_viewport.ts
+  function reading_viewport_bounds(owner) {
+    const rect = owner.getBoundingClientRect();
+    const view = owner.ownerDocument.defaultView;
+    const client_left = rect.left + owner.clientLeft;
+    const client_top = rect.top + owner.clientTop;
+    const left = Math.max(0, client_left);
+    const top = Math.max(0, client_top);
+    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
+      const footer_rect = footer.getBoundingClientRect();
+      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
+      let visible2 = true;
+      for (let element = footer; element; element = element.parentElement) {
+        const style = view?.getComputedStyle(element);
+        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
+          visible2 = false;
+          break;
+        }
+      }
+      if (visible2) bottom = Math.max(top, footer_rect.top);
+    }
+    return { top, bottom, left, right };
+  }
+
+  // src/reading_media_entry.css
+  var reading_media_entry_default = "";
+
+  // src/reading_media_entry.ts
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  function bind_reading_media_entries(root = document.body) {
+    const layer = workspace_element("div", "reading-media-entries"), style = acquire_workspace_style("typora-code-style:reading_media_entry", reading_media_entry_default), interaction = acquire_workspace_interaction(layer);
+    layer.contentEditable = "false";
+    document.body.append(layer);
+    const controller = new AbortController(), { signal } = controller;
+    const entries3 = /* @__PURE__ */ new Map();
+    let disposed = false, frame3 = 0;
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
+    };
+    const resize = new ResizeObserver(schedule);
+    function update2() {
+      frame3 = 0;
+      if (disposed) return;
+      for (const [button, entry] of entries3) {
+        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;
+        const enabled = entry.enabled && source.isConnected && width2 >= 48 && rect.height > 0;
+        const height = enabled ? entry.toolbar.offsetHeight : 0;
+        if (entry.slot.style.height !== "".concat(height, "px")) entry.slot.style.height = "".concat(height, "px");
+        if (entry.slot.style.display !== (enabled ? "block" : "none")) entry.slot.style.display = enabled ? "block" : "none";
+        button.classList.toggle("is-small", width2 < 160);
+        const slot = entry.slot.getBoundingClientRect();
+        let left = 0, right = innerWidth, top = 0, bottom = innerHeight, shown = enabled;
+        for (let node = source; shown && node; node = parent_element(node)) {
+          const computed = getComputedStyle(node);
+          if (computed.display === "none" || computed.visibility !== "visible" || Number(computed.opacity) === 0 || node.hasAttribute("hidden") || node.hasAttribute("inert")) {
+            shown = false;
+            break;
+          }
+          if (node !== source && node !== document.body && node !== document.documentElement) {
+            const bounds = node.getBoundingClientRect();
+            if (/auto|scroll|hidden|clip/.test(computed.overflowX)) {
+              left = Math.max(left, bounds.left + node.clientLeft);
+              right = Math.min(right, bounds.left + node.clientLeft + node.clientWidth);
+            }
+            if (/auto|scroll|hidden|clip/.test(computed.overflowY)) {
+              top = Math.max(top, bounds.top + node.clientTop);
+              bottom = Math.min(bottom, bounds.top + node.clientTop + node.clientHeight);
+            }
+          }
+          if (node instanceof HTMLElement && node.tagName === "CONTENT") {
+            const bounds = reading_viewport_bounds(node);
+            left = Math.max(left, bounds.left);
+            right = Math.min(right, bounds.right);
+            top = Math.max(top, bounds.top);
+            bottom = Math.min(bottom, bounds.bottom);
+          }
+        }
+        const x = Math.max(left, rect.left), end = Math.min(right, rect.right);
+        shown = shown && slot.top >= top && slot.top + height <= bottom && end - x >= 48;
+        button.hidden = !shown;
+        entry.toolbar.style.left = "".concat(x, "px");
+        entry.toolbar.style.top = "".concat(slot.top, "px");
+        entry.toolbar.style.width = "".concat(Math.max(0, end - x), "px");
+      }
+    }
+    const observer2 = new MutationObserver((changes) => {
+      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-entry-slot,.reading-media-viewer")))) schedule();
+    });
+    observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    if (root.getRootNode() instanceof ShadowRoot) observer2.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    document.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
+    if (root !== document.body) root.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
+    window.addEventListener("resize", schedule, { passive: true, signal });
+    const activate = (event) => {
+      const button = event.composedPath().find((node) => node instanceof HTMLButtonElement && entries3.has(node));
+      if (!button || button.hidden) return;
+      const entry = entries3.get(button);
+      if (event instanceof KeyboardEvent) {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (!event.repeat && (event.key === "Enter" && event.type === "keydown" || event.key === " " && event.type === "keyup")) entry.options.open();
+        return;
+      }
+      event.stopPropagation();
+      if (event.type === "mousedown" || event.type === "click") event.preventDefault();
+      if (event.type === "click") entry.options.open();
+    };
+    for (const name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) document.addEventListener(name, activate, { capture: true, signal });
+    return {
+      add(options2) {
+        const slot = workspace_element("span", "reading-media-entry-slot ".concat(options2.slot_class || "").trim()), toolbar = workspace_element("div", "reading-media-entry"), button = workspace_element("button", "reading-media-open ".concat(options2.button_class));
+        slot.contentEditable = "false";
+        slot.setAttribute("aria-hidden", "true");
+        slot.style.cssText = "display:block;box-sizing:border-box;height:0;width:100%;margin:0;padding:0;border:0;line-height:0;pointer-events:none;user-select:none";
+        button.type = "button";
+        button.hidden = true;
+        button.title = options2.label;
+        button.setAttribute("aria-label", options2.label);
+        button.append(git_icon("screen-full"), workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
+        toolbar.append(button);
+        layer.append(toolbar);
+        options2.host.insertBefore(slot, options2.before ?? null);
+        const state = { options: options2, toolbar, slot, enabled: true };
+        entries3.set(button, state);
+        resize.observe(options2.source);
+        resize.observe(slot);
+        resize.observe(toolbar);
+        schedule();
+        let removed = false;
+        return { button, slot, set_enabled(value) {
+          if (state.enabled !== value) {
+            state.enabled = value;
+            schedule();
+          }
+        }, dispose() {
+          if (removed) return;
+          removed = true;
+          entries3.delete(button);
+          resize.unobserve(options2.source);
+          resize.unobserve(slot);
+          resize.unobserve(toolbar);
+          slot.remove();
+          toolbar.remove();
+        } };
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        controller.abort();
+        cancelAnimationFrame(frame3);
+        observer2.disconnect();
+        resize.disconnect();
+        for (const entry of entries3.values()) entry.slot.remove();
+        entries3.clear();
+        layer.remove();
+        interaction.remove();
+        style.remove();
+      }
+    };
+  }
+
   // src/workspace_theme.ts
   function workspace_surface_background(element) {
     const canvas = document.createElement("canvas");
@@ -160436,158 +160600,73 @@ https://creativecommons.org/licenses/by/4.0/
     return close;
   }
 
-  // src/reading_viewport.ts
-  function reading_viewport_bounds(owner) {
-    const rect = owner.getBoundingClientRect();
-    const view = owner.ownerDocument.defaultView;
-    const client_left = rect.left + owner.clientLeft;
-    const client_top = rect.top + owner.clientTop;
-    const left = Math.max(0, client_left);
-    const top = Math.max(0, client_top);
-    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
-    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
-    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
-      const footer_rect = footer.getBoundingClientRect();
-      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
-      let visible2 = true;
-      for (let element = footer; element; element = element.parentElement) {
-        const style = view?.getComputedStyle(element);
-        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
-          visible2 = false;
-          break;
-        }
-      }
-      if (visible2) bottom = Math.max(top, footer_rect.top);
-    }
-    return { top, bottom, left, right };
-  }
-
   // src/reading_image_viewer.ts
-  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
   function bind_reading_images(root, selector = "img") {
-    const layer = workspace_element("div", "reading-image-actions");
-    layer.contentEditable = "false";
-    const style = acquire_workspace_style("typora-code-style:reading_media_viewer", reading_media_viewer_default), interaction = acquire_workspace_interaction(layer);
-    document.body.append(layer);
-    const entries3 = /* @__PURE__ */ new Map(), visible2 = /* @__PURE__ */ new Set();
-    let disposed = false, frame3 = 0, scan_needed = true, session;
-    const controller = new AbortController(), signal = controller.signal;
+    const controls = bind_reading_media_entries(root), entries3 = /* @__PURE__ */ new Map();
+    const controller = new AbortController(), { signal } = controller;
+    let disposed = false, frame3 = 0;
+    let session;
+    const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
     const close_session = () => {
       session?.close();
       session = void 0;
     };
-    const schedule = (scan2 = false) => {
-      if (disposed) return;
-      scan_needed ||= scan2;
-      if (!frame3) frame3 = requestAnimationFrame(update2);
-    };
-    const resize = new ResizeObserver(() => schedule());
-    const intersection2 = new IntersectionObserver((changes) => {
-      for (const change of changes) {
-        if (change.isIntersecting) visible2.add(change.target);
-        else visible2.delete(change.target);
-      }
-      schedule();
-    });
-    const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
     const open = (image, entry, from_image = false) => {
       const url = source_url(image);
-      if (!url || !image.isConnected || !from_image && entry.button.hidden) return;
+      if (!url) return;
+      close_session();
       const copy = new Image();
       copy.alt = image.alt;
       copy.draggable = false;
-      const close = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label: image.alt ? "\u56FE\u7247\u5168\u5C4F\u67E5\u770B\uFF1A".concat(image.alt) : "\u56FE\u7247\u5168\u5C4F\u67E5\u770B", origin: from_image ? void 0 : entry.button, initial_fit: true });
-      copy.src = url;
+      const close = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label: image.alt || "\u56FE\u7247\u5168\u5C4F\u67E5\u770B", origin: from_image ? void 0 : entry.control.button, initial_fit: true });
       session = { image, url, close };
+      copy.src = url;
     };
-    const scan = () => {
-      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
-      for (const [image, entry] of entries3) if (!images.has(image)) {
-        entry.button.remove();
-        entries3.delete(image);
-        visible2.delete(image);
-        resize.unobserve(image);
-        intersection2.unobserve(image);
+    const release = (image, entry) => {
+      entry.control.dispose();
+      if (entry.wrapped) {
+        if (image.parentElement === entry.host) entry.host.replaceWith(image);
+        else entry.host.remove();
+      } else {
+        entry.host.classList.remove("reading-media-image-host");
+        if (entry.original_class === null && !entry.host.className) entry.host.removeAttribute("class");
       }
-      for (const image of images) {
-        if (entries3.has(image)) continue;
-        const button = workspace_element("button", "reading-image-open");
-        button.type = "button";
-        button.hidden = true;
-        button.title = "\u5168\u5C4F\u67E5\u770B\u56FE\u7247";
-        button.setAttribute("aria-label", image.alt ? "\u5168\u5C4F\u67E5\u770B\u56FE\u7247\uFF1A".concat(image.alt) : "\u5168\u5C4F\u67E5\u770B\u56FE\u7247");
-        button.append(git_icon("screen-full"), workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
-        const entry = { button, url: "" };
-        entries3.set(image, entry);
-        layer.append(button);
-        resize.observe(image);
-        intersection2.observe(image);
-        button.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          open(image, entry);
-        }, { signal });
-      }
+    };
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
     };
     function update2() {
       frame3 = 0;
       if (disposed) return;
-      if (scan_needed) {
-        scan_needed = false;
-        scan();
+      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
+      for (const [image, entry] of entries3) if (!images.has(image) || !entry.control.slot.isConnected) {
+        release(image, entry);
+        entries3.delete(image);
       }
-      const available = /* @__PURE__ */ new Set();
-      for (const [image, entry] of entries3) {
-        const url = source_url(image);
-        entry.url = url;
-        const rect = image.getBoundingClientRect();
-        let left = Math.max(0, rect.left), right = Math.min(window.innerWidth, rect.right), top = Math.max(0, rect.top), bottom = Math.min(window.innerHeight, rect.bottom);
-        let shown = Boolean(url && image.isConnected && visible2.has(image) && getComputedStyle(image).visibility === "visible");
-        for (let node = image; shown && node; node = parent_element(node)) {
-          const computed = getComputedStyle(node);
-          if (computed.display === "none" || computed.visibility !== "visible" || Number(computed.opacity) === 0 || node.hasAttribute("hidden") || node.hasAttribute("inert")) {
-            shown = false;
-            break;
-          }
-          if (node !== image && node !== document.body && node !== document.documentElement && /auto|scroll|hidden|clip/.test(computed.overflowX + computed.overflowY)) {
-            const bounds = node.getBoundingClientRect();
-            if (/auto|scroll|hidden|clip/.test(computed.overflowX)) {
-              left = Math.max(left, bounds.left + node.clientLeft);
-              right = Math.min(right, bounds.left + node.clientLeft + node.clientWidth);
-            }
-            if (/auto|scroll|hidden|clip/.test(computed.overflowY)) {
-              top = Math.max(top, bounds.top + node.clientTop);
-              bottom = Math.min(bottom, bounds.top + node.clientTop + node.clientHeight);
-            }
-          }
-          if (node instanceof HTMLElement && node.tagName === "CONTENT") {
-            const bounds = reading_viewport_bounds(node);
-            left = Math.max(left, bounds.left);
-            right = Math.min(right, bounds.right);
-            top = Math.max(top, bounds.top);
-            bottom = Math.min(bottom, bounds.bottom);
-          }
+      for (const image of images) {
+        let entry = entries3.get(image);
+        if (!entry) {
+          const native = image.parentElement?.matches('.md-image[md-inline="image"]') ? image.parentElement : null;
+          const host = native || document.createElement("span"), original_class = host.getAttribute("class");
+          if (!native) {
+            host.style.cssText = "display:inline-block;max-width:100%";
+            image.replaceWith(host);
+            host.append(image);
+          } else host.classList.add("reading-media-image-host");
+          const control = controls.add({ source: image, host, before: image, label: image.alt ? "\u5168\u5C4F\u67E5\u770B\u56FE\u7247\uFF1A".concat(image.alt) : "\u5168\u5C4F\u67E5\u770B\u56FE\u7247", button_class: "reading-image-open", open: () => open(image, entries3.get(image)) });
+          entry = { control, host, wrapped: !native, original_class };
+          entries3.set(image, entry);
         }
-        if (shown && right > left && bottom > top) available.add(image);
-        shown = shown && right - left >= 32 && bottom - top >= 32;
-        entry.button.hidden = !shown;
-        if (shown) {
-          const small = right - left < 160;
-          entry.button.classList.toggle("is-small", small);
-          entry.button.style.left = "".concat(Math.max(left, right - entry.button.offsetWidth - 4), "px");
-          entry.button.style.top = "".concat(Math.min(bottom - 32, top + 4), "px");
-        }
+        entry.control.set_enabled(Boolean(source_url(image)));
       }
-      if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url || !available.has(session.image))) close_session();
+      if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
     }
     const observer2 = new MutationObserver((changes) => {
-      const relevant = changes.filter((change) => !(change.target instanceof Element && change.target.closest(".reading-image-actions,.reading-media-viewer")));
-      if (relevant.length) schedule(relevant.some((change) => change.type === "childList"));
+      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-entry-slot,.reading-media-viewer")))) schedule();
     });
-    observer2.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
-    const geometry = new MutationObserver(() => schedule());
-    geometry.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    observer2.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
+    root.addEventListener("load", schedule, { capture: true, signal });
+    root.addEventListener("error", schedule, { capture: true, signal });
     root.addEventListener("dblclick", (event) => {
       if (!(event instanceof MouseEvent) || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
       const image = event.composedPath().find((node) => node instanceof HTMLImageElement && entries3.has(node));
@@ -160596,12 +160675,7 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopImmediatePropagation();
       open(image, entries3.get(image), true);
     }, { capture: true, signal });
-    root.addEventListener("load", () => schedule(), { capture: true, signal });
-    root.addEventListener("error", () => schedule(), { capture: true, signal });
-    root.addEventListener("scroll", () => schedule(), { capture: true, passive: true, signal });
-    document.addEventListener("scroll", () => schedule(), { capture: true, passive: true, signal });
-    window.addEventListener("resize", () => schedule(), { passive: true, signal });
-    schedule(true);
+    schedule();
     return { dispose() {
       if (disposed) return;
       disposed = true;
@@ -160609,14 +160683,9 @@ https://creativecommons.org/licenses/by/4.0/
       controller.abort();
       cancelAnimationFrame(frame3);
       observer2.disconnect();
-      geometry.disconnect();
-      resize.disconnect();
-      intersection2.disconnect();
+      for (const [image, entry] of entries3) release(image, entry);
       entries3.clear();
-      visible2.clear();
-      layer.remove();
-      interaction.remove();
-      style.remove();
+      controls.dispose();
     } };
   }
 
@@ -233175,6 +233244,7 @@ https://creativecommons.org/licenses/by/4.0/
   var cpp_textmate_grammar = null;
   var scan_timer = 0;
   var mermaid_buttons = /* @__PURE__ */ new Map();
+  var mermaid_entries;
   var runtime_active = false;
   var runtime_controller;
   var runtime_lifetime = create_workspace_lifetime();
@@ -233316,10 +233386,9 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_reading_action_events() {
     const handle_event = (event) => {
       const target = event.target;
-      const button = target instanceof Element ? target.closest(".linux-note-code-toggle,.linux-note-mermaid-open") : null;
+      const button = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
       const fence = button?.closest(".md-fences");
-      const preview = button?.closest(".md-diagram-panel-preview");
-      if (!button || !preview && (!fence || !button.parentElement?.classList.contains("linux-note-code-toolbar"))) return;
+      if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
       if (event instanceof KeyboardEvent) {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.stopPropagation();
@@ -233330,8 +233399,7 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
       if (event.type === "click") {
-        if (preview) open_mermaid_viewer(preview);
-        else if (fence) set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+        set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
       }
     };
     for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -233399,10 +233467,12 @@ https://creativecommons.org/licenses/by/4.0/
       diagram_containers.add(mermaid_container_for_preview(preview));
     });
     diagram_containers.forEach(ensure_mermaid_button);
-    for (const [container, button] of mermaid_buttons) {
+    for (const [container, entry] of mermaid_buttons) {
       if (!container.isConnected) {
+        entry.dispose();
         mermaid_buttons.delete(container);
-      } else if (!button.isConnected) {
+      } else if (!entry.slot.isConnected) {
+        entry.dispose();
         mermaid_buttons.delete(container);
         ensure_mermaid_button(container);
       }
@@ -233494,22 +233564,12 @@ https://creativecommons.org/licenses/by/4.0/
   function ensure_mermaid_button(container) {
     const preview = select_mermaid_preview(container);
     if (!preview) return;
-    const existing_button = mermaid_buttons.get(container);
-    const existing_toolbar = existing_button?.closest(".linux-note-mermaid-inline-toolbar");
-    const toolbars = Array.from(container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar"));
-    if (existing_button?.isConnected && existing_toolbar?.parentElement === preview && toolbars.length === 1) return;
-    toolbars.forEach((toolbar2) => toolbar2.remove());
-    const toolbar = document.createElement("div");
-    toolbar.className = "linux-note-mermaid-inline-toolbar";
-    toolbar.contentEditable = "false";
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "linux-note-mermaid-open";
-    button.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
-    button.append(git_icon("screen-full"), document.createTextNode("\u5168\u5C4F\u67E5\u770B"));
-    toolbar.append(button);
-    preview.prepend(toolbar);
-    mermaid_buttons.set(container, button);
+    const existing = mermaid_buttons.get(container);
+    if (existing?.slot.isConnected && existing.slot.parentElement === preview) return;
+    existing?.dispose();
+    mermaid_entries ??= bind_reading_media_entries();
+    const entry = mermaid_entries.add({ source: preview, host: preview, before: preview.firstElementChild, label: "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868", button_class: "linux-note-mermaid-open", slot_class: "linux-note-mermaid-inline-toolbar", open: () => open_mermaid_viewer(preview) });
+    mermaid_buttons.set(container, entry);
   }
   async function initialize2(controller, lifetime) {
     ensure_style();
@@ -233592,9 +233652,9 @@ https://creativecommons.org/licenses/by/4.0/
     dispose_reading_action_events = null;
     window.removeEventListener("resize", schedule_scan);
     close_reading_media();
-    for (const [container] of mermaid_buttons) {
-      container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar").forEach((element) => element.remove());
-    }
+    for (const entry of mermaid_buttons.values()) entry.dispose();
+    mermaid_entries?.dispose();
+    mermaid_entries = void 0;
     mermaid_buttons.clear();
     document.querySelectorAll(".linux-note-code-collapsible").forEach(remove_code_collapse);
     for (const [editor2, mode] of original_code_modes) {

@@ -17,7 +17,7 @@ bind_git_graph
 data-linux-note-git-graph
 linux_note:git_graph
 mermaid_container_for_preview
-preview.prepend(toolbar)
+bind_reading_media_entries
 fit-width
 data-linux-note-typora-enhancements
 data-linux-note-git-graph-actions

@@ -21,7 +21,7 @@ for (const marker of [
   "linux-note-code-collapsible",
   "linux-note-code-toggle",
   "is-code-collapsed",
-  "preview.prepend(toolbar)",
+  "bind_reading_media_entries",
   "mermaid_container_for_preview",
   "fit-width",
   "data-linux-note-typora-enhancements",

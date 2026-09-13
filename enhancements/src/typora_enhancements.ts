@@ -1,3 +1,4 @@
+import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {open_reading_media,close_reading_media} from "./reading_media_viewer";
 import {bind_reading_images} from "./reading_image_viewer";
 import {bind_markdown_color_menu} from "./markdown_color_menu";
@@ -69,7 +70,8 @@ const CODE_COLLAPSE_TOLERANCE = 48;
 let c_textmate_grammar: IGrammar | null = null;
 let cpp_textmate_grammar: IGrammar | null = null;
 let scan_timer = 0;
-const mermaid_buttons = new Map<Element, HTMLButtonElement>();
+const mermaid_buttons = new Map<Element, reading_media_entry>();
+let mermaid_entries:ReturnType<typeof bind_reading_media_entries>|undefined;
 let runtime_active = false;
 let runtime_controller: AbortController | undefined;
 let runtime_lifetime = create_workspace_lifetime();
@@ -228,10 +230,10 @@ function bind_reading_action_events(): () => void {
   // 在正文处理选区前接管按钮事件。委托到 document，代码块重建后也无需重新绑定。
   const handle_event = (event: Event) => {
     const target = event.target;
-    const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle,.linux-note-mermaid-open") : null;
+    const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle") : null;
     const fence = button?.closest<HTMLElement>(".md-fences");
-    const preview=button?.closest(".md-diagram-panel-preview");
-    if (!button || (!preview && (!fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")))) return;
+
+    if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
     if (event instanceof KeyboardEvent) {
       if (event.key !== "Enter" && event.key !== " ") return;
       event.stopPropagation();
@@ -244,8 +246,7 @@ function bind_reading_action_events(): () => void {
     // 保持正文光标位置；鼠标仍由 click 切换，按下后移出按钮则不会切换。
     if (event.type === "mousedown" || event.type === "click") event.preventDefault();
     if (event.type === "click") {
-      if(preview)open_mermaid_viewer(preview);
-      else if(fence)set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+      set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
     }
   };
   for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -319,11 +320,11 @@ function scan_document(): void {
     diagram_containers.add(mermaid_container_for_preview(preview));
   });
   diagram_containers.forEach(ensure_mermaid_button);
-  for (const [container, button] of mermaid_buttons) {
+  for (const [container, entry] of mermaid_buttons) {
     if (!container.isConnected) {
-      mermaid_buttons.delete(container);
-    } else if (!button.isConnected) {
-      mermaid_buttons.delete(container);
+      entry.dispose();mermaid_buttons.delete(container);
+    } else if (!entry.slot.isConnected) {
+      entry.dispose();mermaid_buttons.delete(container);
       ensure_mermaid_button(container);
     }
   }
@@ -422,25 +423,12 @@ function select_mermaid_preview(container: Element): Element | null {
 function ensure_mermaid_button(container: Element): void {
   const preview = select_mermaid_preview(container);
   if (!preview) return;
-  const existing_button = mermaid_buttons.get(container);
-  const existing_toolbar = existing_button?.closest(".linux-note-mermaid-inline-toolbar");
-  const toolbars = Array.from(container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar"));
-  if (existing_button?.isConnected
-      && existing_toolbar?.parentElement === preview
-      && toolbars.length === 1) return;
-  toolbars.forEach((toolbar) => toolbar.remove());
-
-  const toolbar = document.createElement("div");
-  toolbar.className = "linux-note-mermaid-inline-toolbar";
-  toolbar.contentEditable = "false";
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "linux-note-mermaid-open";
-  button.title = "全屏查看 Mermaid 图表";
-  button.append(git_icon("screen-full"),document.createTextNode("全屏查看"));
-  toolbar.append(button);
-  preview.prepend(toolbar);
-  mermaid_buttons.set(container, button);
+  const existing=mermaid_buttons.get(container);
+  if(existing?.slot.isConnected&&existing.slot.parentElement===preview)return;
+  existing?.dispose();
+  mermaid_entries??=bind_reading_media_entries();
+  const entry=mermaid_entries.add({source:preview as HTMLElement,host:preview,before:preview.firstElementChild,label:"全屏查看 Mermaid 图表",button_class:"linux-note-mermaid-open",slot_class:"linux-note-mermaid-inline-toolbar",open:()=>open_mermaid_viewer(preview)});
+  mermaid_buttons.set(container,entry);
 }
 
 async function initialize(controller: AbortController, lifetime: ReturnType<typeof create_workspace_lifetime>): Promise<void> {
@@ -511,9 +499,8 @@ export function deactivate_typora_enhancements(): void {
   dispose_reading_action_events = null;
   window.removeEventListener("resize", schedule_scan);
   close_reading_media();
-  for (const [container] of mermaid_buttons) {
-    container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar").forEach(element => element.remove());
-  }
+  for(const entry of mermaid_buttons.values())entry.dispose();
+  mermaid_entries?.dispose();mermaid_entries=undefined;
   mermaid_buttons.clear();
   document.querySelectorAll<HTMLElement>(".linux-note-code-collapsible").forEach(remove_code_collapse);
   for(const [editor,mode]of original_code_modes){

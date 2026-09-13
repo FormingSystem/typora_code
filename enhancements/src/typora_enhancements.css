@@ -115,42 +115,7 @@
   outline: none;
 }
 
-.linux-note-mermaid-open {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 6px 10px;
-  color: #0969da;
-  background: rgb(255 255 255 / 94%);
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgb(31 35 40 / 8%);
-  font: 600 12px/1.2 "Segoe UI", "Microsoft YaHei UI", sans-serif;
-  cursor: pointer;
-}
-
-.linux-note-mermaid-inline-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  box-sizing: border-box;
-  width: calc(100% - 16px);
-  min-height: 32px;
-  margin: 0 8px 8px;
-  pointer-events: auto;
-}
-
-.linux-note-mermaid-open:hover,
-.linux-note-mermaid-open:focus-visible {
-  color: #ffffff;
-  background: #0969da;
-  border-color: #0969da;
-  outline: none;
-}
-
 @media (prefers-color-scheme: dark) {
-  .linux-note-mermaid-open,
   .linux-note-code-toggle {
     color: #c9d1d9;
     background: #0d1117;
@@ -170,8 +135,7 @@
     overflow-y: visible !important;
   }
 
-  .linux-note-code-toolbar,
-  .linux-note-mermaid-open {
+  .linux-note-code-toolbar {
     display: none !important;
   }
 }
@@ -179,7 +143,6 @@
   display: none !important;
 }
 
-.linux-note-mermaid-open>svg{width:16px;height:16px;vertical-align:middle;fill:currentColor;stroke:none}
 /* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }
