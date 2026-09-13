@@ -8,3 +8,7 @@
 .reading-media-image-host{display:inline-block;max-width:100%}
 body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 @media print{.reading-media-entries,.reading-media-entry-slot{display:none!important}}
+
+/* 常态隐藏，键盘仍可进入；整个图像及上方工具行共同保持悬停入口。 */
+.reading-media-entry .reading-media-open{opacity:0;pointer-events:none}
+.reading-media-entry.is-revealed .reading-media-open,.reading-media-entry:focus-within .reading-media-open{opacity:1;pointer-events:auto}

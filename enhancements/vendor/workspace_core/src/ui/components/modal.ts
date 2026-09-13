@@ -1,3 +1,4 @@
+import {capture_workspace_focus,register_workspace_escape,type workspace_focus_snapshot,type workspace_escape_layer} from "../../../../../src/workspace_focus"
 import './modal.scss'
 import { Closeable, View } from "src/ui/common/view"
 import { html } from 'src/utils'
@@ -14,6 +15,10 @@ export class Modal extends View implements Closeable {
   body: HTMLElement
   footer?: HTMLElement
 
+  private previous_focus?:workspace_focus_snapshot
+  private escape_layer?:workspace_escape_layer
+  private opened=false
+
   private closeListeners: Array<() => void> = []
 
   constructor(props: ModalProps) {
@@ -23,11 +28,7 @@ export class Modal extends View implements Closeable {
       $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>')
         .on('click', event => {
           if (event.target !== this.containerEl) return
-          this.close()
-        })
-        .on('keyup', event => {
-          if (event.key !== "Escape") return
-          this.close()
+          this.close(false)
         })
         .append(this.modal =
           $(`<div class="typ-modal ${props.className ?? ''}"></div>`)
@@ -76,14 +77,24 @@ export class Modal extends View implements Closeable {
   }
 
   open() {
+    if(this.opened)return
+    this.opened=true
+    this.previous_focus=capture_workspace_focus()
     this.containerEl.style.display = ""
+    this.escape_layer=register_workspace_escape(()=>[this.containerEl],()=>this.close())
   }
 
-  close() {
-    this.closeListeners.forEach(callback => callback())
+  close(restore=true) {
+    if(!this.opened)return
+    const owned=this.escape_layer?.owns_focus()
+    this.opened=false
+    this.escape_layer?.dispose()
+    this.escape_layer=undefined
     this.containerEl.style.display = "none"
-
-    // fix: cannot update a text setting after closing the Settings Modal because it does not lose focus.
+    // 隐藏前保存的所属焦点只在本层取消时恢复；外部点击不重写编辑选区。
     $('input', this.containerEl).each((i, el) => el.blur())
+    if(restore&&owned)this.previous_focus?.restore()
+    this.previous_focus=undefined
+    this.closeListeners.forEach(callback => callback())
   }
 }

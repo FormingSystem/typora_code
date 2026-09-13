@@ -157,7 +157,7 @@ app.whenReady().then(async()=>{
 
   // 菜单关闭后迟到的扫描不再弹出；失效默认仍显示原选择，不能偷偷改为自动模式。
   await open_profiles();await click_menu('重新检测终端');assert.equal(await evaluate('profile_scans[0].scans'),3);
-  await evaluate('document.querySelector(".git-graph-menu").dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));void 0');
+  await evaluate('document.querySelector(".git-graph-menu").dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));window.dispatchEvent(new KeyboardEvent("keyup",{key:"Escape",bubbles:true}));void 0');
   await evaluate(`profile_scans[0].complete(${JSON.stringify([profiles[0],profiles[1],wsl])});void 0`);await delay(50);
   assert(await evaluate('!document.querySelector(".git-graph-menu")'));
   await evaluate('(async()=>{window.missing_default=await binding.open('+JSON.stringify(root)+');return missing_default===undefined})()');

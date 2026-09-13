@@ -1,3 +1,4 @@
+import {capture_workspace_focus,register_workspace_escape,type workspace_focus_snapshot,type workspace_escape_layer} from "./workspace_focus";
 import css from "./workspace_quick_open.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_file_icons, workspace_file_icon} from "./workspace_file_icons";
@@ -63,10 +64,11 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   let scan_generation = 0;
   let render_generation = 0; let render_timer = 0; let scanning = false; let limited = false; let rendered_query = "";
   let pending_open_query: string | undefined;
-  let previous_focus: HTMLElement | null = null;
+  let previous_focus:workspace_focus_snapshot|undefined;let escape_layer:workspace_escape_layer|undefined;
 
-  const close = () => {
+  const close = (restore=true) => {
     if (root.hidden) return;
+    const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;
     scan_generation += 1;
     render_generation += 1;clearTimeout(render_timer);render_timer=0;scanning=false;
     pending_open_query=undefined;
@@ -74,8 +76,8 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     root.setAttribute("aria-modal", "false");
     results.replaceChildren();
     shown = [];
-    if (previous_focus?.isConnected) previous_focus.focus({ preventScroll: true });
-    previous_focus = null;
+    if(restore&&owned)previous_focus?.restore();
+    previous_focus=undefined;
   };
   const select = (index: number) => {
     const rows = [...results.querySelectorAll<HTMLButtonElement>(".workspace-quick-open-result")];
@@ -169,7 +171,8 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   const open = () => {
     if (disposed) return;
     if (!root.hidden) { pending_open_query=undefined;input.value = "";render(); input.focus(); return; }
-    previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    previous_focus=capture_workspace_focus();
+    escape_layer=register_workspace_escape(()=>[root],()=>close());
     root.hidden = false;
     root.setAttribute("aria-modal", "true");
     input.value = "";
@@ -185,13 +188,12 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     if (event.isComposing || event.keyCode === 229) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); select(selected_index + (event.key === "ArrowDown" ? 1 : -1)); }
     else if (event.key === "Enter") { event.preventDefault(); open_selected(); }
-    else if (event.key === "Escape") { event.preventDefault(); close(); }
   };
-  root.onmousedown = event => { if (event.target === root) close(); };
-  document.addEventListener("pointerdown", event => { if (!root.hidden && !root.contains(event.target as Node)) close(); }, {capture: true, signal: events.signal});
-  window.addEventListener("blur", close, {signal: events.signal});
-  window.addEventListener("linux-note-workspace-context-changed", close, {signal: events.signal});
-  const binding:quick_open_binding = { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove(); if(current_picker===binding)current_picker=undefined; } };
+  root.onmousedown = event => { if (event.target === root) close(false); };
+  document.addEventListener("pointerdown", event => { if (!root.hidden && !root.contains(event.target as Node)) close(false); }, {capture: true, signal: events.signal});
+  window.addEventListener("blur", ()=>close(false), {signal: events.signal});
+  window.addEventListener("linux-note-workspace-context-changed", ()=>close(false), {signal: events.signal});
+  const binding:quick_open_binding = { root, input, open, close, dispose() { if (disposed) return; disposed = true; events.abort(); close(false); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove(); if(current_picker===binding)current_picker=undefined; } };
   current_picker=binding;
   return binding;
 }

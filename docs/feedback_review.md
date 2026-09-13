@@ -396,3 +396,16 @@ R031追加反馈：图片入口原来投影在图像可见部分的右上角，�
 
 
 最终构建已事务安装，安装后检查 `status: OK`；ASAR、应用图标、原生偏好、工作区设置和主题摘要不变，保留本次事务备份，用户窗口未重启。安装日志为 `.cache/media_entry_install_20260913.log`、`media_entry_install_check_20260913.log` 和 `media_entry_install_verification_20260913.json`。保存文档后正常重启即可载入。原18项R009系统文件剪贴板差量保持独立，未带入本次构建与安装；其他未完成项维持原状态。
+
+
+## 2026-09-13 Esc恢复与媒体悬停入口
+
+R032按固定VS Code1.137.0的焦点归还、对子菜单逐层取消及Esc按下／释放配对规则实现。菜单、对话框、文件搜索、核心输入框／选择器和图片／Mermaid查看器复用同一焦点与退出管理。鼠标打开后Esc可回到原光标／选区继续输入；键盘从入口打开则返回入口。焦点已转移、来源更换或销毁时仅清理，不恢复失效位置。R031最后确认外侧右上方悬停显示，保留稳定空工具行，按钮默认隐藏、移入显示、移出隐藏，键盘焦点可见；单击图片仍选中，双击打开。见[退出设计](workspace_interaction.md#r032-esc退出与原操作恢复)和[媒体设计](reading_media_viewer.md)。
+
+从 `30755cd` 独立构建，`npm run build`、完整 `npm run check` 通过。完整UI首次执行50个目标通过；四处旧夹具只发送Esc按下而没有释放，补全后通过。另两处Git夹具在上一交付版也失败：视图菜单多期待一个已移除的入口，同步子进程未将status映射到正式运行器的code契约；修正夹具后均通过。生产Git逻辑未改。最终56个UI目标全部完成复查，日志为 `.cache/escape_focus_release_20260913/escape_full_ui.log`、`escape_corrected_ui.log`、`escape_full_check.log`，旧版对照在 `.cache/media_entry_release_20260913/escape_baseline_ui.log`。
+
+新增Esc专项21项使用真实Chromium键盘，覆盖反向输入选区、contenteditable、Shadow DOM输入、真实Monaco与xterm、父子菜单／对话框、重复按键、组合输入、外部失焦和文档更换；退出后立即输入验证无需再点击。核心烟雾测试验证两个实际构建包共享退出所有权。媒体专项44项覆盖悬停移入移出和跨间隙移动、不移动排版、鼠标与键盘返回、原生单击／双击、明暗、宽窄、缩放和生命周期。
+
+隔离原生Typora1.14.10通过29项，证据 `.cache/native_zoom_1_14_10/escape_focus_native_round3_20260913/checks.json`。实际Markdown选区在查看器／文件搜索／核心输入框Esc后恢复；紧接着输入替换选中文字，宿主撤销还原正文。图片、Mermaid、Night截图逐张检查，入口与图像保持外侧间隔、原图属性不变。早期夹具的文本节点选择及离屏入口激活已修正，失败记录保留；原生验证使用私有桌面的宿主API／DOM，真实鼠标键盘由Electron测试覆盖，未据此宣称其他平台实机验收。
+
+最终构建已事务安装，安装后检查 `status: OK`，24项安装资产逐项核对；ASAR、应用图标、原生偏好、工作区设置和主题摘要不变，保留安装备份，用户窗口未重启。日志为 `.cache/escape_focus_install_20260913.log`、`escape_focus_install_check_20260913.log`、`escape_focus_install_verification_20260913.json`。保存文档后正常重启即可载入。原18项R009系统文件剪贴板差量保持独立，未带入此次构建与安装；其他未完成项维持原台账。

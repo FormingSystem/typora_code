@@ -6,9 +6,9 @@ type image_entry={control:reading_media_entry;host:HTMLElement;wrapped:boolean;o
 export function bind_reading_images(root:HTMLElement,selector="img"){
   const controls=bind_reading_media_entries(root),entries=new Map<HTMLImageElement,image_entry>();
   const controller=new AbortController(),{signal}=controller;let disposed=false,frame=0;
-  let session:{image:HTMLImageElement;url:string;close:()=>void}|undefined;
+  let session:{image:HTMLImageElement;url:string;close:(restore?:boolean)=>void}|undefined;
   const source_url=(image:HTMLImageElement)=>image.complete&&image.naturalWidth&&image.naturalHeight?(image.currentSrc||image.src):"";
-  const close_session=()=>{session?.close();session=undefined;};
+  const close_session=()=>{session?.close(false);session=undefined;};
   const open=(image:HTMLImageElement,entry:image_entry,from_image=false)=>{
     const url=source_url(image);if(!url)return;close_session();
     const copy=new Image();copy.alt=image.alt;copy.draggable=false;
