@@ -41,7 +41,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。
+从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。Windows 卸载增强时，保存文档并退出 Typora，双击 `uninstall_windows.cmd`，自动查找安装前备份；版本回退使用 `restore_windows.ps1`。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。
 
 ## 1.2\_开发者构建
 
@@ -84,6 +84,8 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 增加 `-suite rename` 验证文件和目录改名后，原生 Markdown 标签、源码草稿、撤销栈、格式和后续保存路径随之更新；同时检查目录名相同前缀的兄弟目录不受影响。文件系统冲突与名称边界由 `test_workspace_rename.mjs` 检查；F2、已选中文件双击和右键菜单由 `test_workspace_explorer.cjs` 使用 Chromium 指针与键盘事件检查。
 
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_install_windows.ps1` 在临时副本、含空格路径和隔离的 `APPDATA` 中测试安装、重复安装、摘要检查、恢复、失败回滚与预检拒绝。`bash scripts/test_workspace_install.sh` 测试公共发布资产与迁移事务；仅在兼容 shell 中通过时，不能据此宣称原生 Linux 或 UCRT64 平台验收完成。
+
+在 `enhancements/` 运行 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test_uninstall_windows.ps1`，验证 Windows uninstall 的备份发现、排除更新、目标校验、取消和运行进程拒绝，以及 CMD 转交的实际隔离恢复。夹具使用专属临时安装、APPDATA 和 Node 缓存，保留用户真实安装。
 
 `fixtures/visual_test.md` 用于 Typora 实窗验收；可调试的隔离 Typora 实例还可运行 `node scripts/smoke_typora.mjs <端口> <截图路径>`，脚本会先点击正文，再用鼠标按下/松开分别验证展开和收起。
 
@@ -154,15 +156,16 @@ Windows 另有终端、路径复制和安装回滚的通过基线；原生 Linux
 当前发布清单管理23个资产，包括 `workspace_core.css`、`workspace.css`、`workspace_core.js`、`workbench.js` 与语言、许可资源，安装到用户数据目录 `typora_code/`。`window.html` 的 head 先加载两份静态 CSS，再 defer 启动核心与工作台。核心等待宿主及样式就绪后只初始化一次，工作台等待其 `ready`，切换文件或文件夹不会重建。当前安装与恢复使用 schema 4 JSON 清单；先预检、备份、复制校验，失败回滚。 安装使用 schema 4 的 `native_profile` 记录完整备份及 SHA：`profile.data` 是 UTF-8 JSON 的小写十六进制文本，只把 `framelessWindow` 设为 `true`；原 profile 不存在时创建仅含该字段的最小 HEX JSON，并记录原文件缺省。恢复只还原该字段原值或缺省，保留安装后其他设置。未知编码、非对象、非布尔窗口设置及写前摘要冲突均拒绝写入，失败按事务回滚。安装不修改 `app.asar`，也不部署主进程菜单桥接。旧业务设置仅在新配置不存在时迁移至 `typora_code/settings/workspace.json`，后续安装保留用户设置，不在打开的文件夹写配置。旧列表仍启用其他插件时拒绝写入，要求先停用，其他插件文件不被覆盖；不保留并行运行的旧插件入口。 Linux 通过 Python 3 执行 JSON 与文件事务。执行：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\install_windows.ps1
+# 在仓库根目录运行
+powershell -ExecutionPolicy Bypass -File .\install_windows.ps1
 ```
 
 该脚本复用 `scripts/lib/typora_environment.ps1`，不维护自己的固定安装目录候选。Typora 更新会替换安装目录，更新后若入口消失，应重新运行安装脚本。不要在文档有未保存修改时强制退出 Typora；安装完成后保存文档并正常重启，扩展才会进入新窗口。
 
-回退时传入安装输出的备份目录：
+以下命令均在仓库根目录运行。回退时传入安装输出的备份目录：
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\restore_windows.ps1 `
+powershell -ExecutionPolicy Bypass -File .\restore_windows.ps1 `
   -backup_root "$env:APPDATA\Typora\backups\typora_code_configuration\<时间戳与唯一标识>"
 ```
 

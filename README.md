@@ -39,7 +39,9 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1
 ```
 
-**安装、离线准备、权限问题、更新、卸载及恢复原配置，统一见[安装与恢复指南](docs/installation.md)。** 卸载使用首次安装前的完整备份；后续备份用于回退增强版本。保留备份，不要直接删除 Typora 用户数据目录。Typora 更新可能替换启动入口，更新后重新检查并安装增强。
+**Windows 卸载：**保存文档并退出 Typora，双击 **`uninstall_windows.cmd`**。脚本自动查找当前用户的有效安装前备份；只有多个候选时才需要选择，空输入取消。它卸载 Typora Code 增强并保留文档、用户设置和备份。
+
+**安装、离线准备、权限问题、更新、卸载及恢复原配置，统一见[安装与恢复指南](docs/installation.md)。** 后续更新备份通过 `restore_windows.ps1` 回退版本，不能用于卸载。保留备份，不要直接删除 Typora 用户数据目录。Typora 更新可能替换启动入口，更新后重新检查并安装增强。
 
 Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux与ucrt64)开始；Linux 原生环境、Windows ARM64 和 UCRT64 的完整实机验收尚未完成，Linux 暂无集成终端运行包。
 
@@ -83,7 +85,7 @@ Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux
 | [需求设计索引](docs/requirements_design.md) | 稳定需求编号与设计入口 |
 | [反馈复查记录](docs/feedback_review.md) | 各次实际验证和交付记录 |
 
-用户脚本在仓库根目录，以 `install`、`check`、`restore` 命名；平台与事务实现位于 `scripts/`。`enhancements/src/` 保存工作台源码，`enhancements/dist/` 保存配套预构建文件。第三方资产的许可证、来源和摘要随 `enhancements/vendor/` 与 `enhancements/dist/licenses/` 保留。
+用户脚本在仓库根目录，以 `install`、`check`、`uninstall`（Windows 卸载）、`restore`（备份恢复）命名；平台与事务实现位于 `scripts/`。`enhancements/src/` 保存工作台源码，`enhancements/dist/` 保存配套预构建文件。第三方资产的许可证、来源和摘要随 `enhancements/vendor/` 与 `enhancements/dist/licenses/` 保留。
 
 ## 1.4\_版权与来源声明
 
