@@ -97,16 +97,30 @@ export function splitDown(path?: string) {
  */
 function split(direction: Direction, path?: string) {
   const workspace = useService('workspace')
-  const previousTabs = workspace.activeLeaf?.closest('tabs')
-  const parentSplit = previousTabs?.closest('split') as WorkspaceSplit
-  if (parentSplit.direction === direction)
-    parentSplit.appendChild(createTabs(path))
-  else {
-    const newSplit = useService('workspace-split', [direction])
-    parentSplit.replaceChild(previousTabs, newSplit)
-    newSplit.appendChild(previousTabs)
-    newSplit.appendChild(createTabs(path))
+  const source = workspace.activeLeaf
+  if (!source) return
+  const target = split_workspace_group(source, direction === 'vertical' ? 'right' : 'down')
+  const leaf = path ? path.startsWith('typ://') ? createCustomLeaf(path) : createEditorLeaf(path) : createEmptyLeaf()
+  target.appendChild(leaf)
+  workspace.activeLeaf = leaf
+}
+
+/** 创建紧邻目标组的新组，不关闭或重新读取原文档。 */
+export function split_workspace_group(leaf: WorkspaceLeaf, side: 'left' | 'right' | 'up' | 'down'): WorkspaceTabs {
+  const direction: Direction = side === 'left' || side === 'right' ? 'vertical' : 'horizontal'
+  const previous_group = leaf.parent as WorkspaceTabs
+  const parent_split = previous_group.parent as WorkspaceSplit
+  const next_group = useService('workspace-tabs')
+  const before = side === 'left' || side === 'up'
+  if (parent_split.direction === direction) {
+    parent_split.insertChild(parent_split.children.indexOf(previous_group) + (before ? 0 : 1), next_group)
+  } else {
+    const next_split = useService('workspace-split', [direction])
+    parent_split.replaceChild(previous_group, next_split)
+    next_split.appendChild(before ? next_group : previous_group)
+    next_split.appendChild(before ? previous_group : next_group)
   }
+  return next_group
 }
 
 // ---------- workspace.rightSplit ----------

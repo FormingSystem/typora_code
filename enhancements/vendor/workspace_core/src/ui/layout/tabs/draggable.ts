@@ -1,3 +1,4 @@
+import { move_workspace_leaf } from "../workspace_leaf_actions"
 import { useService } from "src/common/service"
 import {cancel_pointer_drag, create_drop_marker} from '../../components/pointer-drag'
 import type { WorkspaceTabs } from "."
@@ -114,21 +115,8 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
     if (!scroll_frame) scroll_frame = view.requestAnimationFrame(auto_scroll);
   };
   const move_local = (drag: local_drag, target: drop_target) => {
-    const {leaf, source_group, tab} = drag;
     drag.local_drop = true;
-    if (source_group === target.group) {
-      const old_index = source_group.children.indexOf(leaf);
-      if (old_index < 0 || old_index === target.index) return;
-      source_group.children.splice(old_index, 1); source_group.children.splice(target.index, 0, leaf);
-      const tabs = [...source_group.tabHeader.container.children].filter(node => node !== tab);
-      source_group.tabHeader.container.insertBefore(tab, tabs[target.index] || null);
-      const leaves = [...source_group.tabContentEl.children].filter(node => node !== leaf.containerEl);
-      source_group.tabContentEl.insertBefore(leaf.containerEl, leaves[target.index] || null);
-      root.emit('layout-changed');
-    } else {
-      leaf.detach(); target.group.insertChild(target.index, leaf);
-      view.setTimeout(() => {if (leaf.parent === target.group && target.group.containerEl.isConnected) workspace.activeLeaf = leaf;});
-    }
+    move_workspace_leaf(drag.leaf, target.group, target.index, workspace);
   };
   const on_drop = (event: DragEvent) => {
     if (!has_transfer(event)) return;

@@ -179,6 +179,16 @@ app.whenReady().then(async()=>{
     release_drag_checks.push(removal_timing);
   }
   await evaluate(release_source,'binding.dispose();protocol_tap.close();void 0');
-  console.log(JSON.stringify({status:'PASS',checks:22,close_checks,channel_failure_checks:6,window_bounds_checks,release_drag_checks,evidence}));
+  const direct=await open();mode='normal';const previous_child=last_child;
+  await evaluate(direct,'binding.open(leaf,true);void 0');
+  for(let attempt=0;attempt<180;attempt++){if(last_child!==previous_child&&last_child&&await evaluate(last_child,'received.length===1'))break;await delay(20);}
+  await wait(last_child,'received.length===1');await delay(100);
+  assert.equal(await evaluate(direct,'releases'),0,'copy menu waits for ACK but never releases the original draft');
+  assert.equal(await evaluate(last_child,'received[0].text'),'int dirty_value = 7;','copy window receives the live draft');
+  assert.deepEqual(await evaluate(direct,'notices'),[]);
+  await evaluate(direct,'binding.open(leaf);void 0');await wait(direct,'releases===1');
+  assert.equal(await evaluate(last_child,'received.length'),1,'move menu receives exactly one payload before releasing the source');
+  await evaluate(direct,'binding.dispose();void 0');
+  console.log(JSON.stringify({status:'PASS',checks:26,close_checks,channel_failure_checks:6,window_bounds_checks,release_drag_checks,evidence}));
   for(const win of windows)if(!win.isDestroyed())win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(evidence);for(const win of windows)if(!win.isDestroyed())win.destroy();app.exit(1);});

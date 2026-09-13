@@ -34,6 +34,8 @@ export class WorkspaceTabs extends WorkspaceParent {
   }
 
   insertChild(index: number, child: WorkspaceLeaf) {
+    const fixed_count = (this.children as WorkspaceLeaf[]).filter(leaf => leaf.state.workspace_pinned).length
+    index = child.state.workspace_pinned ? Math.min(index, fixed_count) : Math.max(index, fixed_count)
     this.tabHeader.insertTab(index, child.state.path ? new FileTab(child.state.path) : new UntitledTab())
     super.insertChild(index, child)
     this.toggleTab(child.state.path)

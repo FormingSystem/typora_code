@@ -177392,6 +177392,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_diff_editor.ts
   var initialized = false;
   var serial = 0;
+  var model_users = /* @__PURE__ */ new WeakMap();
   function initialize_editor() {
     if (initialized) return;
     const worker_url = URL.createObjectURL(new Blob([worker_default], { type: "text/javascript" }));
@@ -177402,7 +177403,7 @@ https://creativecommons.org/licenses/by/4.0/
     initialized = true;
   }
   var git_diff_editor = class {
-    constructor(data, extra_menu = () => []) {
+    constructor(data, extra_menu = () => [], shared_model) {
       this.data = data;
       this.extra_menu = extra_menu;
       if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(git_graph_text("diff.binary_file"));
@@ -177417,9 +177418,14 @@ https://creativecommons.org/licenses/by/4.0/
         const language44 = detect_file_language(data.file || data.title, source.split(/\r?\n/u, 1)[0]);
         const result = editor.createModel(source, language44, uri);
         this.models.push(result);
+        model_users.set(result, 1);
         return result;
       };
-      const original = model(data.left, "original");
+      const original = shared_model && data.right == null ? shared_model : model(data.left, "original");
+      if (original === shared_model) {
+        this.models.push(original);
+        model_users.set(original, (model_users.get(original) || 0) + 1);
+      }
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
       const minimap = { enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1 };
       const options2 = { automaticLayout: true, readOnly: true, fontSize: vscode_design_baseline_default.editor_font_size, lineHeight: vscode_design_baseline_default.editor_line_height, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
@@ -177706,7 +177712,14 @@ https://creativecommons.org/licenses/by/4.0/
       this.observer.disconnect();
       this.subscriptions.forEach((item) => item.dispose());
       this.editor.dispose();
-      this.models.forEach((item) => item.dispose());
+      this.models.forEach((model) => {
+        const count = (model_users.get(model) || 1) - 1;
+        if (count) model_users.set(model, count);
+        else {
+          model_users.delete(model);
+          model.dispose();
+        }
+      });
       this.container.remove();
     }
   };
@@ -178127,7 +178140,6 @@ https://creativecommons.org/licenses/by/4.0/
     let disposed = false;
     const moving_leaves = /* @__PURE__ */ new WeakSet();
     const pending = /* @__PURE__ */ new Map();
-    let menu_view;
     let allow_close_once = false;
     let window_dialog;
     const native_before_unload = window.onbeforeunload;
@@ -178140,7 +178152,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const release_removed = (view) => {
       if (disposed || view.disposed || present(view.leaf)) return;
-      pending.get(view)?.close();
+      pending.get(view)?.dialog.close();
       pending.delete(view);
       view.release_source();
     };
@@ -178148,28 +178160,37 @@ https://creativecommons.org/licenses/by/4.0/
       queueMicrotask(() => release_removed(view));
     };
     const confirm_close = (view, close) => {
-      if (disposed || pending.get(view)?.root.isConnected) return;
-      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
-      pending.set(view, dialog);
+      if (disposed) return Promise.resolve(false);
+      const previous = pending.get(view);
+      if (previous) return previous.result;
+      let resolve_result, completed = false;
+      const result = new Promise((resolve3) => {
+        resolve_result = resolve3;
+      });
+      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
+        pending.delete(view);
+        resolve_result(completed);
+      });
+      pending.set(view, { dialog, result });
       dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
       dialog.content.append(workspace_element("p", "", "".concat(view.file_path.split(/[\\/]/u).at(-1), " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
       let saving = false;
-      const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
-        dialog.close();
-        pending.delete(view);
+      const finish = () => {
+        if (!dialog.root.isConnected || view.disposed) return;
         close();
-      });
+        completed = !present(view.leaf);
+        dialog.close();
+      };
+      const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", finish);
       const save_button = workspace_button("\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         if (saving) return;
         saving = true;
         save_button.disabled = true;
         discard_button.disabled = true;
         void view.save().then((saved) => {
-          if (dialog.root.isConnected && saved && !view.dirty()) {
-            dialog.close();
-            pending.delete(view);
-            close();
-          }
+          if (saved && !view.dirty()) finish();
+        }).catch((error) => {
+          if (dialog.root.isConnected) new core.Notice(String(error), 5e3);
         }).finally(() => {
           saving = false;
           save_button.disabled = false;
@@ -178177,6 +178198,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
       });
       dialog.footer.prepend(save_button, discard_button);
+      return result;
     };
     const guard = (view) => {
       const leaf = view.leaf;
@@ -178208,49 +178230,12 @@ https://creativecommons.org/licenses/by/4.0/
           if (target) schedule_release(target);
           return result;
         };
-        if (target?.dirty() && !moving_leaves.has(target.leaf)) {
-          confirm_close(target, close);
-          return;
-        }
+        if (target?.dirty() && (target.close_requires_save?.() ?? true) && !moving_leaves.has(target.leaf)) return confirm_close(target, close);
         return close();
       };
       restore_patches.push(() => {
         if (group.removeTab === guarded_remove) group.removeTab = remove;
       });
-    };
-    const move_to_split = (view, down) => {
-      if (view.disposed || !present(view.leaf)) return;
-      const leaf = view.leaf;
-      const old_group = leaf.parent;
-      core.app.workspace.activeLeaf = old_group.toggleTab(leaf.state.path);
-      core.app.commands.run(down ? "core.workspace:split-down" : "core.workspace:split-right", [leaf.state.path]);
-      const temporary = core.app.workspace.activeLeaf;
-      if (!temporary || temporary === leaf || temporary.state.path !== leaf.state.path || temporary.parent === old_group) return;
-      const target_group = temporary.parent;
-      if (typeof leaf.detach !== "function" || typeof target_group.replaceChild !== "function") return;
-      leaf.detach();
-      temporary.view.close?.();
-      target_group.replaceChild(temporary, leaf);
-      core.app.workspace.activeLeaf = target_group.toggleTab(leaf.state.path);
-      guard(view);
-      const temporary_view = [...all_views()].find((item) => item.leaf === temporary);
-      if (temporary_view) release_removed(temporary_view);
-    };
-    const context = (event) => {
-      const tab = event.target instanceof Element ? event.target.closest(".typ-tab[data-id]") : null;
-      const group = tab?.closest(".typ-workspace-tabs");
-      menu_view = tab ? [...all_views()].find((view) => view.leaf.state.path === tab.dataset.id && view.leaf.parent?.containerEl === group) : void 0;
-    };
-    const menu_click = (event) => {
-      const item = event.target instanceof Element ? event.target.closest(".context-menu .typ-menuitem[data-key]") : null;
-      const key = item?.dataset.key;
-      if (!menu_view || !item || !["splitRight", "splitDown"].includes(key || "")) return;
-      const view = menu_view;
-      menu_view = void 0;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      item.closest(".context-menu")?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      move_to_split(view, key === "splitDown");
     };
     const request_window_close = () => {
       allow_close_once = true;
@@ -178297,8 +178282,6 @@ https://creativecommons.org/licenses/by/4.0/
       dialog.footer.prepend(save_button, discard_button);
       return true;
     };
-    document.addEventListener("contextmenu", context, true);
-    document.addEventListener("click", menu_click, true);
     const guarded_before_unload = window.onbeforeunload = function(event) {
       if (before_unload(event)) return false;
       return native_before_unload?.call(this, event);
@@ -178307,16 +178290,13 @@ https://creativecommons.org/licenses/by/4.0/
     const dispose2 = () => {
       if (disposed) return;
       disposed = true;
-      document.removeEventListener("contextmenu", context, true);
-      document.removeEventListener("click", menu_click, true);
       if (window.onbeforeunload === guarded_before_unload) window.onbeforeunload = native_before_unload;
       for (const restore of restore_patches.splice(0).reverse()) restore();
-      for (const dialog of pending.values()) dialog.close();
+      for (const { dialog } of pending.values()) dialog.close();
       pending.clear();
       window_dialog?.close();
-      menu_view = void 0;
     };
-    return { guard, confirm_close, schedule_release, move_to_split, dispose: dispose2 };
+    return { guard, confirm_close, schedule_release, dispose: dispose2 };
   }
 
   // src/workspace_inline_layout.css
@@ -179037,7 +179017,7 @@ https://creativecommons.org/licenses/by/4.0/
           run(event, () => app.commands.run("linux_note:save_as"));
           return;
         }
-        if (["KeyW", "F4"].includes(event.code) && !event.shiftKey) {
+        if (["KeyW", "F4"].includes(event.code) && !event.shiftKey && !(chord_started > 0 && Date.now() - chord_started < 2e3)) {
           run(event, () => app.commands.run("linux_note:close_editor"));
           return;
         }
@@ -179065,12 +179045,20 @@ https://creativecommons.org/licenses/by/4.0/
         const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
         const primary = primary_modifier(event) && !event.shiftKey;
         if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
+        else if (event.code === "KeyW" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_all"));
+        else if (event.code === "KeyU" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_saved"));
+        else if (event.code === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) run(event, () => app.commands.run(event.shiftKey ? "linux_note:editor_pin" : "linux_note:editor_keep_open"));
+        else if (event.code === "KeyO" && unmodified) run(event, () => app.commands.run("linux_note:editor_copy_window"));
         else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
         else if (event.code === "KeyS" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:save_all"));
         else if (event.code === "KeyF" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:close_folder"));
         else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
-        else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("core.workspace:split-down", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
+        else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("linux_note:editor_split_down"));
         else reset_chord();
+        return;
+      }
+      if (event.code === "KeyR" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+        run(event, () => app.commands.run("linux_note:editor_reveal_system"));
         return;
       }
       if (event.code === "KeyC" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
@@ -179089,7 +179077,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       if (event.code === "Backslash") {
-        run(event, () => app.commands.run("core.workspace:split-right", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
+        run(event, () => app.commands.run("linux_note:editor_split_right"));
         return;
       }
       reset_chord();
@@ -179969,6 +179957,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const set_preview = (leaf, preview) => {
       if (!leaf) return;
+      if (leaf.state.workspace_pinned) preview = false;
       if (!preview) {
         keep_open(leaf);
         return;
@@ -180015,9 +180004,6 @@ https://creativecommons.org/licenses/by/4.0/
       icon = "fa-file-code-o";
       editor;
       focus_requested = true;
-      file_path;
-      loaded = false;
-      loading = false;
       disposed = false;
       target;
       status = workspace_element("span", "workspace-file-status");
@@ -180027,20 +180013,87 @@ https://creativecommons.org/licenses/by/4.0/
       language_button = workspace_button("", () => this.choose_language());
       encoding_button = workspace_button("", () => this.choose_format("encoding"));
       eol_button = workspace_button("", () => this.choose_format("eol"));
-      text_document;
-      format;
-      saved_format = "";
-      saved_version = 0;
-      saving = false;
+      shared;
+      get file_path() {
+        return this.shared.file_path;
+      }
+      set file_path(value) {
+        this.shared.file_path = value;
+      }
+      get text_document() {
+        return this.shared.text_document;
+      }
+      set text_document(value) {
+        this.shared.text_document = value;
+      }
+      get format() {
+        return this.shared.format;
+      }
+      set format(value) {
+        this.shared.format = value;
+      }
+      get saved_format() {
+        return this.shared.saved_format;
+      }
+      set saved_format(value) {
+        this.shared.saved_format = value;
+      }
+      get saved_version() {
+        return this.shared.saved_version;
+      }
+      set saved_version(value) {
+        this.shared.saved_version = value;
+      }
+      get saving() {
+        return this.shared.saving;
+      }
+      set saving(value) {
+        this.shared.saving = value;
+      }
+      get loading() {
+        return this.shared.loading;
+      }
+      set loading(value) {
+        this.shared.loading = value;
+      }
+      get loaded() {
+        return this.shared.loaded;
+      }
+      set loaded(value) {
+        this.shared.loaded = value;
+      }
+      close_requires_save() {
+        return ![...views].some((view) => view !== this && !view.disposed && view.shared === this.shared);
+      }
+      refresh_shared() {
+        for (const view of views) if (view.shared === this.shared) {
+          view.attach_shared_editor();
+          view.editor?.focused_editor().updateOptions({ readOnly: this.loading });
+          for (const control of [view.language_button, view.encoding_button, view.eol_button]) control.disabled = this.loading;
+          view.update_status();
+        }
+      }
+      attach_shared_editor() {
+        if (this.disposed || this.editor || !this.loaded || !this.format) return;
+        const original = [...views].find((view) => view !== this && !view.disposed && view.shared === this.shared && view.editor);
+        if (!original?.editor) return;
+        this.editor = new git_diff_editor({ title: path_api.basename(this.file_path), file: this.file_path, left: original.editor.models[0].getValue(), left_label: this.file_path }, () => this.menu_entries(), original.editor.models[0]);
+        this.body.replaceChildren(this.editor.container);
+        const editor2 = this.editor.focused_editor();
+        editor2.updateOptions({ readOnly: false });
+        this.editor.subscriptions.push(editor2.onDidChangeModelContent(() => queueMicrotask(() => {
+          if (!this.disposed) this.update_status();
+        })), editor2.onDidChangeCursorPosition(() => this.update_status()), editor2.onDidFocusEditorText(() => editor_status.schedule()));
+      }
       constructor(leaf) {
         super(leaf);
-        this.file_path = real_path(leaf);
+        const file_path = real_path(leaf);
+        this.shared = [...views].find((view) => !view.disposed && file_key(view.file_path) === file_key(file_path))?.shared || { file_path, text_document: create_text_document({ fs: fs2, path_api }, file_path), saved_format: "", saved_version: 0, saving: false, loading: false, loaded: false };
         leaf.state.git_cwd = path_api.dirname(this.file_path);
         views.add(this);
         this.target = group_locations.get(leaf.state.path);
         this.focus_requested = !this.target?.preserve_focus;
         group_locations.delete(leaf.state.path);
-        this.text_document = create_text_document({ fs: fs2, path_api }, this.file_path);
         this.language_button.title = "\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F\uFF08\u4EC5\u6539\u53D8\u8BED\u6CD5\u9AD8\u4EAE\uFF09";
         this.language_button.setAttribute("aria-label", "\u8BED\u8A00\u6A21\u5F0F");
         this.encoding_button.title = "\u9009\u62E9\u4FDD\u5B58\u7F16\u7801";
@@ -180072,6 +180125,7 @@ https://creativecommons.org/licenses/by/4.0/
           tab.querySelector(".typ-file-ext")?.remove();
           tab.title = this.file_path;
         }
+        this.attach_shared_editor();
         this.update_status();
         editor_status.refresh();
         editor_status.schedule();
@@ -180088,6 +180142,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         if (this.loading || this.saving || this.disposed) return;
         this.loading = true;
+        this.refresh_shared();
         this.status.textContent = "\u6B63\u5728\u8BFB\u53D6\u2026";
         const previous_version = this.editor?.models[0].getAlternativeVersionId(), previous_format = this.format_key();
         const candidate = create_text_document({ fs: fs2, path_api }, this.file_path, { encoding: encoding ?? this.format?.encoding });
@@ -180116,7 +180171,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.editor.focused_editor().updateOptions({ readOnly: false });
           this.saved_version = this.editor.models[0].getAlternativeVersionId();
           this.loaded = true;
-          this.update_status();
+          this.refresh_shared();
           this.reveal();
           if (this.focus_requested && core.app.workspace.activeLeaf === this.leaf) this.editor.focused_editor().focus();
         } catch (error) {
@@ -180125,11 +180180,10 @@ https://creativecommons.org/licenses/by/4.0/
           if (!this.editor) this.body.replaceChildren(workspace_element("p", "workspace-file-notice", String(error)), workspace_button("\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00", () => void shell.openPath(this.file_path)));
           else this.status.textContent = String(error);
         } finally {
+          const status2 = this.status.textContent;
           this.loading = false;
-          if (!this.disposed) {
-            this.editor?.focused_editor().updateOptions({ readOnly: false });
-            for (const control of [this.language_button, this.encoding_button, this.eol_button]) control.disabled = false;
-          }
+          this.refresh_shared();
+          if (status2 && status2 !== "\u6B63\u5728\u8BFB\u53D6\u2026") this.status.textContent = status2;
         }
       }
       reveal() {
@@ -180191,18 +180245,18 @@ https://creativecommons.org/licenses/by/4.0/
         this.editor.focused_editor().pushUndoStop();
         const model = this.editor.models[0], version = model.getAlternativeVersionId(), format_key = this.format_key();
         this.saving = true;
-        this.update_status();
+        this.refresh_shared();
         try {
           const saved = await this.text_document.save(model.getValue(), { encoding: this.format.encoding, bom: this.format.bom, eol: this.format.eol });
           this.saved_version = version;
           this.saved_format = format_key;
           this.format = { ...saved, encoding: this.format.encoding, bom: this.format.bom, eol: this.format.eol };
           this.saving = false;
-          this.update_status();
+          this.refresh_shared();
           return true;
         } catch (error) {
           this.saving = false;
-          this.update_status();
+          this.refresh_shared();
           this.status.textContent = String(error instanceof Error ? error.message : error);
           return false;
         }
@@ -180210,7 +180264,7 @@ https://creativecommons.org/licenses/by/4.0/
       async save_as() {
         if (this.disposed || this.saving || this.loading || renaming || !this.editor || !this.format || !runtime2.JSBridge?.invoke) return false;
         this.saving = true;
-        this.update_status();
+        this.refresh_shared();
         try {
           const result = await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u53E6\u5B58\u4E3A", defaultPath: this.file_path, properties: ["showOverwriteConfirmation"], filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] });
           if (this.disposed || core.app.workspace.activeLeaf !== this.leaf || result?.canceled || !result?.filePath) return false;
@@ -180239,7 +180293,23 @@ https://creativecommons.org/licenses/by/4.0/
           this.format = { ...saved.value, encoding: this.format.encoding, bom: this.format.bom, eol: this.format.eol };
           this.saved_version = version;
           this.saved_format = format_key;
-          parent.renameTab(this.leaf.state.path, source_file_uri(target));
+          for (const view of views) if (view.shared === this.shared) {
+            const group = view.leaf.parent;
+            group.renameTab(view.leaf.state.path, source_file_uri(target));
+            view.leaf.state.git_cwd = path_api.dirname(target);
+            if (view.editor) {
+              view.editor.data.file = target;
+              view.editor.data.title = path_api.basename(target);
+              view.editor.data.left_label = target;
+            }
+            keep_open(view.leaf);
+            const tab2 = workspace_leaf_tab(view.leaf);
+            if (tab2) {
+              const label = tab2.querySelector(".typ-file-basename");
+              if (label) label.textContent = path_api.basename(target);
+              tab2.title = target;
+            }
+          }
           keep_open(this.leaf);
           const tab = workspace_leaf_tab(this.leaf);
           if (tab) {
@@ -180254,7 +180324,7 @@ https://creativecommons.org/licenses/by/4.0/
           return false;
         } finally {
           this.saving = false;
-          this.update_status();
+          this.refresh_shared();
         }
       }
       choose_language() {
@@ -180274,7 +180344,7 @@ https://creativecommons.org/licenses/by/4.0/
         dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
           if (this.loading) return;
           editor.setModelLanguage(this.editor.models[0], select.value);
-          this.update_status();
+          this.refresh_shared();
           dialog.close();
           if (core.app.workspace.activeLeaf === this.leaf) this.editor?.focused_editor().focus();
         }));
@@ -180302,7 +180372,7 @@ https://creativecommons.org/licenses/by/4.0/
             this.format.encoding = select.value === "utf-8-bom" ? "utf-8" : select.value;
             this.format.bom = select.value !== "utf-8";
           } else this.format.eol = select.value;
-          this.update_status();
+          this.refresh_shared();
           dialog.close();
           if (core.app.workspace.activeLeaf === this.leaf) this.editor?.focused_editor().focus();
         }));
@@ -180572,7 +180642,7 @@ https://creativecommons.org/licenses/by/4.0/
     const pending_native_saves = /* @__PURE__ */ new Set();
     let native_open_pending = false;
     const release_save_active = core.app.workspace.on("active-leaf:change", () => {
-      if (native_document_active2()) native_open_pending = true;
+      if (native_document_active2()) native_open_pending = file_key(core.app.workspace.activeLeaf?.state.path || "") !== file_key(runtime2.File?.bundle?.filePath || "") || Boolean(runtime2.File?.isFileLoading?.() || runtime2.File?._onInitParse || runtime2.File?._onFileSwitching);
     });
     const release_save_open = core.app.workspace.on("file:open", (opened) => {
       if (typeof opened === "string" && file_key(opened) === file_key(core.app.workspace.activeLeaf?.state.path || "") && file_key(opened) === file_key(runtime2.File?.bundle?.filePath || "")) native_open_pending = false;
@@ -180614,13 +180684,16 @@ https://creativecommons.org/licenses/by/4.0/
             workspace.activeLeaf = leaf.parent.toggleTab(leaf.state.path);
             activating = false;
             if (preview_only()) finish(false);
+            else if (!native_open_pending && native_matches()) finish(true);
           }
           if (workspace.activeLeaf !== leaf) cancel();
         });
         if (!ready) return false;
       }
       if (preview_only()) return false;
-      if (!binding.active || !native_matches() || typeof runtime2.ClientCommand?.save !== "function") return false;
+      if (!binding.active || !native_matches()) return false;
+      if (runtime2.File?.isNode && typeof runtime2.File.saveUseNode === "function") return await runtime2.File.saveUseNode(false) === true;
+      if (typeof runtime2.ClientCommand?.save !== "function") return false;
       await Promise.resolve(runtime2.ClientCommand.save());
       return true;
     };
@@ -180645,12 +180718,170 @@ https://creativecommons.org/licenses/by/4.0/
       else if (native_ready()) runtime2.ClientCommand?.reloadFromDisk?.();
     };
     const save_all = async () => {
-      const source_saves = [...views].filter((view) => !view.disposed && view.dirty()).map((view) => view.save());
+      const owners = /* @__PURE__ */ new Set();
+      const source_saves = [...views].filter((view) => {
+        if (view.disposed || !view.dirty() || owners.has(view.shared)) return false;
+        owners.add(view.shared);
+        return true;
+      }).map((view) => view.save());
       const [, source_results] = await Promise.all([
         Promise.resolve().then(() => runtime2.ClientCommand?.saveAll?.()),
         Promise.all(source_saves)
       ]);
       return source_results.every(Boolean);
+    };
+    const editor_state = (leaf) => {
+      const source = [...views].find((view) => view.leaf === leaf && !view.disposed), file_path = real_path(leaf);
+      const markdown = !source && (is_markdown_file(file_path) || leaf.state.path === "");
+      const native_same = markdown && file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
+      return {
+        file_path,
+        kind: source ? "source" : markdown ? "markdown" : "other",
+        dirty: source ? source.dirty() : Boolean(native_same && runtime2.File?.changeCounter?.isDocumentEdited()),
+        busy: Boolean(renaming || source?.saving || source?.loading || native_same && (runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || runtime2.File?._onFileSwitching))
+      };
+    };
+    const native_close_dialogs = /* @__PURE__ */ new Map();
+    const close_leaf = async (leaf) => {
+      if (!transfer_present(leaf)) return true;
+      if (editor_state(leaf).busy) return false;
+      const group = leaf.parent, path = leaf.state.path, state = editor_state(leaf);
+      const remove = async () => {
+        if (!transfer_present(leaf)) return true;
+        if (leaf.parent !== group || leaf.state.path !== path) return false;
+        await group.removeTab?.(path);
+        return !transfer_present(leaf);
+      };
+      if (state.kind !== "markdown" || !state.dirty) return remove();
+      let shared = false;
+      core.app.workspace.eachLeaves((other) => {
+        if (other !== leaf && other.state.path === path) shared = true;
+      });
+      if (shared) return remove();
+      const pending = native_close_dialogs.get(leaf);
+      if (pending) return pending.result;
+      let resolve_result, finished = false, saving = false;
+      const result = new Promise((resolve3) => {
+        resolve_result = resolve3;
+      });
+      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
+        native_close_dialogs.delete(leaf);
+        if (!finished) resolve_result(false);
+      });
+      native_close_dialogs.set(leaf, { dialog, result });
+      dialog.root.dataset.workspaceTabClose = path;
+      dialog.content.append(workspace_element("p", "", "".concat(path_api.basename(path) || "\u672A\u547D\u540D\u6587\u6863", " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
+      const identity5 = () => transfer_present(leaf) && leaf.parent === group && leaf.state.path === path;
+      const finish = async () => {
+        if (!dialog.root.isConnected || !identity5()) return;
+        const closed = await remove();
+        finished = true;
+        resolve_result(closed);
+        dialog.close();
+      };
+      const message = workspace_element("p");
+      dialog.content.append(message);
+      const controls = [];
+      const set_busy = (value) => {
+        saving = value;
+        for (const control of controls) control.disabled = value;
+      };
+      const save_button = workspace_button("\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+        if (saving) return;
+        set_busy(true);
+        void save_leaf(leaf).then(async (saved) => {
+          if (saved && identity5() && !editor_state(leaf).dirty) await finish();
+          else if (dialog.root.isConnected) message.textContent = "\u6587\u4EF6\u5C1A\u672A\u4FDD\u5B58\uFF0C\u6807\u7B7E\u5DF2\u4FDD\u7559\u3002";
+        }).catch((error) => {
+          message.textContent = String(error);
+        }).finally(() => set_busy(false));
+      });
+      controls.push(save_button);
+      dialog.footer.prepend(save_button);
+      if (path && typeof runtime2.File?.reloadFromDisk === "function") {
+        const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
+          if (saving || !identity5()) return;
+          set_busy(true);
+          void (async () => {
+            if (file_key(runtime2.File?.bundle?.filePath || "") !== file_key(path)) return;
+            await runtime2.File.reloadFromDisk(true);
+            if (dialog.root.isConnected && identity5() && !editor_state(leaf).dirty) await finish();
+          })().catch((error) => {
+            message.textContent = String(error);
+          }).finally(() => set_busy(false));
+        });
+        controls.push(discard_button);
+        dialog.footer.insertBefore(discard_button, dialog.footer.lastElementChild);
+      }
+      return result;
+    };
+    const duplicate_leaf = async (leaf, group) => {
+      if (!transfer_present(leaf) || editor_state(leaf).busy) throw new Error("\u6587\u6863\u5C1A\u672A\u5C31\u7EEA\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+      const state = editor_state(leaf);
+      if (state.kind === "other") throw new Error("\u6B64\u5DE5\u5177\u6807\u7B7E\u4E0D\u652F\u6301\u6587\u6863\u5206\u5C4F\u3002");
+      const duplicate = core.app.workspace.createLeaf({ type: state.kind === "source" ? SOURCE_FILE_VIEW_ID : "core.markdown", state: { ...leaf.state, workspace_preview: false, workspace_pinned: false } });
+      group.appendChild(duplicate);
+      core.app.workspace.activeLeaf = duplicate;
+      return duplicate;
+    };
+    const reopen_dialogs = /* @__PURE__ */ new Map();
+    const save_before_reopen = (leaf) => {
+      const pending = reopen_dialogs.get(leaf);
+      if (pending) return pending.result;
+      let resolve_result, completed = false, saving = false;
+      const result = new Promise((resolve3) => {
+        resolve_result = resolve3;
+      });
+      const group = leaf.parent, path = leaf.state.path;
+      const dialog = workspace_dialog("\u5207\u6362\u7F16\u8F91\u65B9\u5F0F", "\u53D6\u6D88", () => {
+        reopen_dialogs.delete(leaf);
+        resolve_result(completed);
+      });
+      reopen_dialogs.set(leaf, { dialog, result });
+      dialog.root.dataset.workspaceReopen = path;
+      dialog.content.append(workspace_element("p", "", "\u6B64\u6587\u6863\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u4FDD\u5B58\u540E\u7EE7\u7EED\u5207\u6362\u7F16\u8F91\u65B9\u5F0F\u3002"));
+      const message = workspace_element("p");
+      dialog.content.append(message);
+      const save = workspace_button("\u4FDD\u5B58\u5E76\u7EE7\u7EED", () => {
+        if (saving) return;
+        saving = true;
+        save.disabled = true;
+        void save_leaf(leaf).then((saved) => {
+          if (!dialog.root.isConnected) return;
+          completed = saved && transfer_present(leaf) && leaf.parent === group && leaf.state.path === path && !editor_state(leaf).dirty;
+          if (completed) dialog.close();
+          else message.textContent = "\u4FDD\u5B58\u672A\u5B8C\u6210\uFF0C\u5DF2\u4FDD\u7559\u5F53\u524D\u7F16\u8F91\u5668\u3002";
+        }).catch((error) => {
+          message.textContent = String(error);
+        }).finally(() => {
+          saving = false;
+          save.disabled = false;
+        });
+      });
+      dialog.footer.prepend(save);
+      return result;
+    };
+    const reopen_leaf = async (leaf, source) => {
+      const state = editor_state(leaf);
+      if (!state.file_path || !is_markdown_file(state.file_path) || state.busy) return false;
+      if (state.kind === "source" === source) {
+        core.app.workspace.activeLeaf = leaf.parent.toggleTab(leaf.state.path);
+        return true;
+      }
+      if (state.dirty && !await save_before_reopen(leaf)) return false;
+      if (!transfer_present(leaf) || editor_state(leaf).busy || editor_state(leaf).dirty) return false;
+      const group = leaf.parent;
+      core.app.workspace.activeLeaf = group.toggleTab(leaf.state.path);
+      await open_file(state.file_path, { source });
+      const opened = core.app.workspace.activeLeaf;
+      if (!opened || opened === leaf || opened.parent !== group) return opened === leaf;
+      const pinned = Boolean(leaf.state.workspace_pinned);
+      if (!await close_leaf(leaf)) return false;
+      if (pinned) {
+        opened.state.workspace_pinned = true;
+        core.move_workspace_leaf(opened, group, 0);
+      }
+      return true;
     };
     const transfer_captures = /* @__PURE__ */ new WeakMap();
     const transfer_present = (leaf) => {
@@ -180946,7 +181177,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (signal?.aborted) return false;
           leaf.parent.removeTab(leaf.state.path);
         } finally {
-          if (source && transfer_present(leaf)) {
+          if (source && !source.disposed) {
             source.saved_version = previous_version;
             source.saved_format = previous_format;
             source.update_status();
@@ -180978,6 +181209,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
       if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
       source_lifecycle.dispose();
+      for (const { dialog } of native_close_dialogs.values()) dialog.close();
+      native_close_dialogs.clear();
+      for (const { dialog } of reopen_dialogs.values()) dialog.close();
+      reopen_dialogs.clear();
       document.removeEventListener("dblclick", keep_clicked_tab, true);
       document.removeEventListener("input", keep_edited_native, true);
       for (const leaf of [...preview_leaves.values()]) keep_open(leaf);
@@ -181047,6 +181282,10 @@ https://creativecommons.org/licenses/by/4.0/
       transfer_entries,
       trash_entries,
       keep_open,
+      editor_state,
+      close_leaf,
+      duplicate_leaf,
+      reopen_leaf,
       source_editor_active,
       run_editor_command,
       can_save_active,
@@ -181139,9 +181378,7 @@ https://creativecommons.org/licenses/by/4.0/
     let disposed = false;
     const controller = new AbortController();
     const cleanups = [];
-    const timers = /* @__PURE__ */ new Set();
     const owned_items = /* @__PURE__ */ new Set();
-    const menu_geometry = /* @__PURE__ */ new Map();
     const previous_ready = document.documentElement.getAttribute("data-linux-note-copy-path");
     const collect = (value) => {
       if (typeof value === "function") cleanups.push(value);
@@ -181217,25 +181454,6 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     collect(app.workspace.on("file-menu", ({ menu, path }) => add_items(menu.containerEl, path)));
-    document.addEventListener("contextmenu", (event) => {
-      const tab = event.target instanceof Element ? event.target.closest(".typ-tab") : null;
-      if (!tab) return;
-      const menu = Array.from(document.querySelectorAll(".context-menu")).find((candidate) => candidate.querySelector('[data-key="removeTab"]'));
-      if (!menu) return;
-      add_items(menu, tab.getAttribute("data-id") ?? "");
-      const timer = window.setTimeout(() => {
-        timers.delete(timer);
-        if (disposed) return;
-        const previous = menu_geometry.get(menu) ?? { top: menu.style.top, left: menu.style.left, owned_top: "", owned_left: "" };
-        const bounds = menu.getBoundingClientRect();
-        menu.style.top = Math.max(0, Math.min(bounds.top, window.innerHeight - bounds.height - 4)) + "px";
-        menu.style.left = Math.max(0, Math.min(bounds.left, window.innerWidth - bounds.width - 4)) + "px";
-        previous.owned_top = menu.style.top;
-        previous.owned_left = menu.style.left;
-        menu_geometry.set(menu, previous);
-      }, 0);
-      timers.add(timer);
-    }, { signal: controller.signal });
     for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
       document.addEventListener(name, (event) => {
         const item = event.target instanceof Element ? event.target.closest("[data-linux-note-copy-path]") : null;
@@ -181251,16 +181469,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       controller.abort();
-      for (const timer of timers) clearTimeout(timer);
-      timers.clear();
       for (const cleanup of cleanups.reverse()) cleanup();
       for (const item of owned_items) item.remove();
       owned_items.clear();
-      for (const [menu, previous] of menu_geometry) {
-        if (menu.style.top === previous.owned_top) menu.style.top = previous.top;
-        if (menu.style.left === previous.owned_left) menu.style.left = previous.left;
-      }
-      menu_geometry.clear();
       if (previous_ready === null) document.documentElement.removeAttribute("data-linux-note-copy-path");
       else document.documentElement.setAttribute("data-linux-note-copy-path", previous_ready);
       if (active_dispose2 === dispose2) active_dispose2 = void 0;
@@ -225565,6 +225776,227 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_editor_actions.ts
+  function bind_workspace_editor_actions(files, windows) {
+    const core = files.core, workspace = core.app.workspace;
+    const runtime2 = window;
+    const cleanups = [], batches = /* @__PURE__ */ new WeakSet();
+    let disposed = false, close_menu;
+    const present = (leaf) => {
+      let found = false;
+      workspace.eachLeaves((item) => {
+        if (item === leaf) found = true;
+      });
+      return found;
+    };
+    const is_document = (leaf) => !leaf.state.path.startsWith("typ://core.empty/");
+    const group_leaves = (leaf) => leaf.parent.children.filter(is_document);
+    const run = (action) => {
+      if (!disposed) void Promise.resolve().then(() => !disposed && action()).catch((error) => {
+        if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 5e3);
+      });
+    };
+    const refresh = () => {
+      if (disposed) return;
+      workspace.eachLeaves((leaf) => {
+        const tab = workspace_leaf_tab(leaf), close = tab?.querySelector(".typ-close");
+        if (!tab || !close) return;
+        const pinned = Boolean(leaf.state.workspace_pinned);
+        tab.classList.toggle("is-workspace-pinned", pinned);
+        if (pinned && !close.querySelector(".workspace-tab-pin")) close.append(git_icon("pinned", "workspace-tab-pin"));
+        if (!pinned) close.querySelector(".workspace-tab-pin")?.remove();
+        close.title = pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u5173\u95ED\u6807\u7B7E";
+        close.setAttribute("aria-label", close.title);
+        tab.classList.toggle("is-workspace-preview", Boolean(leaf.state.workspace_preview));
+      });
+    };
+    const pin = (leaf, value = !leaf.state.workspace_pinned) => {
+      if (!present(leaf)) return;
+      files.keep_open(leaf);
+      leaf.state.workspace_pinned = value;
+      const active = workspace.activeLeaf, group = leaf.parent;
+      const fixed = group.children.filter((item) => item !== leaf && item.state.workspace_pinned).length;
+      core.move_workspace_leaf(leaf, group, fixed);
+      if (active && present(active)) workspace.activeLeaf = active.parent.toggleTab(active.state.path);
+      refresh();
+    };
+    const candidates = (leaf, mode) => {
+      const leaves = group_leaves(leaf), index = leaves.indexOf(leaf);
+      return leaves.filter((item, i) => !item.state.workspace_pinned && (mode !== "others" || item !== leaf) && (mode !== "right" || i > index) && (mode !== "saved" || !files.editor_state(item).dirty));
+    };
+    const close_batch = async (leaf, mode) => {
+      if (!present(leaf)) return;
+      const group = leaf.parent;
+      if (batches.has(group)) return;
+      batches.add(group);
+      try {
+        if (mode === "others") files.keep_open(leaf);
+        for (const item of candidates(leaf, mode)) {
+          if (disposed) break;
+          if (!present(item) || item.parent !== group || item.state.workspace_pinned) continue;
+          if (mode === "saved" && files.editor_state(item).dirty) continue;
+          if (!await files.close_leaf(item)) break;
+        }
+      } finally {
+        batches.delete(group);
+      }
+    };
+    const neighbor = (leaf, side) => {
+      const source = leaf.parent, origin = source.containerEl.getBoundingClientRect(), groups = /* @__PURE__ */ new Set();
+      workspace.rootSplit.eachLeaves((item) => {
+        if (item.parent !== source && item.parent.containerEl?.getClientRects().length) groups.add(item.parent);
+      });
+      const horizontal = side === "left" || side === "right", forward = side === "right" || side === "down";
+      const center = (rect) => horizontal ? (rect.left + rect.right) / 2 : (rect.top + rect.bottom) / 2;
+      return [...groups].filter((group) => {
+        const rect = group.containerEl.getBoundingClientRect();
+        return (forward ? center(rect) > center(origin) : center(rect) < center(origin)) && (horizontal ? Math.min(rect.bottom, origin.bottom) > Math.max(rect.top, origin.top) : Math.min(rect.right, origin.right) > Math.max(rect.left, origin.left)) && !group.children.some((item) => item.state.path === leaf.state.path);
+      }).sort((a, b2) => Math.abs(center(a.containerEl.getBoundingClientRect()) - center(origin)) - Math.abs(center(b2.containerEl.getBoundingClientRect()) - center(origin)))[0];
+    };
+    const split = async (leaf, side) => {
+      if (!present(leaf) || files.editor_state(leaf).busy) return;
+      const group = core.split_workspace_group(leaf, side);
+      try {
+        await files.duplicate_leaf(leaf, group);
+      } catch (error) {
+        if (!group.children.length) group.parent?.removeChild(group);
+        throw error;
+      }
+      refresh();
+    };
+    const move = (leaf, side) => {
+      if (!present(leaf) || files.editor_state(leaf).busy) return;
+      const group = neighbor(leaf, side);
+      if (!group) return;
+      core.move_workspace_leaf(leaf, group, group.children.length);
+      files.keep_open(leaf);
+      refresh();
+    };
+    const copy_path = (leaf, kind) => {
+      if (!present(leaf)) return;
+      const path = files.editor_state(leaf).file_path;
+      const value = format_file_path(files.path_api, path, files.context_root(), kind !== "absolute");
+      if (value == null) return;
+      return files.copy(kind === "breadcrumbs" ? value.split(/[\\/]/u).filter(Boolean).join(" > ") : value);
+    };
+    const reveal = (leaf, system) => {
+      const path = files.editor_state(leaf).file_path;
+      if (!path || !present(leaf)) return;
+      if (system) return runtime2.reqnode("electron").shell.showItemInFolder(path);
+      const root = files.context_root(), relative2 = files.path_api.relative(root, path);
+      const inside = relative2 !== ".." && !relative2.startsWith(".." + files.path_api.sep) && !files.path_api.isAbsolute(relative2);
+      core.app.commands.run("linux_note:reveal_in_explorer", [path, inside ? root : files.path_api.dirname(path)]);
+    };
+    const preview = async (leaf) => {
+      if (!await files.reopen_leaf(leaf, false)) return;
+      const active = workspace.activeLeaf;
+      if (active && files.editor_state(active).kind === "markdown" && runtime2.File?.editor?.sourceView?.inSourceMode && runtime2.File?.bundle?.filePath === active.state.path) runtime2.File.toggleSourceMode();
+      refresh();
+    };
+    const entries3 = (leaf) => {
+      const state = files.editor_state(leaf), file = Boolean(state.file_path), markdown = is_markdown_file(state.file_path), ordinary = state.kind !== "other";
+      const entry = (id, title, action, options2 = {}) => ({ id, title, action: () => run(() => present(leaf) && action()), ...options2 });
+      const split_items = [];
+      for (const [side, title] of [["up", "\u4E0A\u65B9"], ["down", "\u4E0B\u65B9"], ["left", "\u5DE6\u4FA7"], ["right", "\u53F3\u4FA7"]])
+        split_items.push(entry("split_" + side, "\u5411" + title + "\u62C6\u5206", () => split(leaf, side), { disabled: !ordinary || state.busy }));
+      for (const [side, title] of [["up", "\u4E0A\u65B9"], ["down", "\u4E0B\u65B9"], ["left", "\u5DE6\u4FA7"], ["right", "\u53F3\u4FA7"]])
+        split_items.push(entry("move_" + side, "\u79FB\u52A8\u5230" + title + "\u7EC4", () => move(leaf, side), { separator: side === "up", disabled: state.busy || !neighbor(leaf, side) }));
+      return [
+        entry("close", "\u5173\u95ED", () => files.close_leaf(leaf), { shortcut: "Ctrl+F4", disabled: state.busy }),
+        ...[["others", "\u5173\u95ED\u5176\u4ED6", ""], ["right", "\u5173\u95ED\u53F3\u4FA7", ""], ["saved", "\u5173\u95ED\u5DF2\u4FDD\u5B58", "Ctrl+K U"], ["all", "\u5173\u95ED\u5168\u90E8", "Ctrl+K W"]].map(([mode, title, shortcut]) => entry("close_" + mode, title, () => close_batch(leaf, mode), { shortcut, disabled: !candidates(leaf, mode).length || batches.has(leaf.parent) })),
+        entry("copy_path", "\u590D\u5236\u8DEF\u5F84", () => copy_path(leaf, "absolute"), { shortcut: "Shift+Alt+C", separator: true, disabled: !file }),
+        entry("copy_relative_path", "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", () => copy_path(leaf, "relative"), { shortcut: "Ctrl+K Ctrl+Shift+C", disabled: !file }),
+        entry("copy_breadcrumbs_path", "\u590D\u5236\u9762\u5305\u5C51\u8DEF\u5F84", () => copy_path(leaf, "breadcrumbs"), { disabled: !file }),
+        ...markdown ? [
+          entry("preview", "\u6253\u5F00\u9884\u89C8", () => preview(leaf), { separator: true, disabled: state.busy }),
+          entry("reopen", "\u91CD\u65B0\u6253\u5F00\u65B9\u5F0F\u2026", () => {
+          }, { children: [
+            entry("reopen_markdown", "Markdown \u7F16\u8F91\u5668", () => preview(leaf), { checked: state.kind === "markdown", disabled: state.busy }),
+            entry("reopen_source", "\u6587\u672C\u7F16\u8F91\u5668", async () => {
+              await files.reopen_leaf(leaf, true);
+              refresh();
+            }, { checked: state.kind === "source", disabled: state.busy })
+          ] })
+        ] : [],
+        entry("reveal_system", "\u5728\u7CFB\u7EDF\u6587\u4EF6\u7BA1\u7406\u5668\u4E2D\u663E\u793A", () => reveal(leaf, true), { shortcut: "Shift+Alt+R", separator: true, disabled: !file }),
+        entry("reveal_explorer", "\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u89C6\u56FE\u4E2D\u663E\u793A", () => reveal(leaf, false), { disabled: !file }),
+        entry("keep_open", "\u4FDD\u6301\u6253\u5F00", () => {
+          files.keep_open(leaf);
+          refresh();
+        }, { separator: true, shortcut: "Ctrl+K Enter", disabled: !leaf.state.workspace_preview }),
+        entry("pin", leaf.state.workspace_pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A", () => pin(leaf), { shortcut: "Ctrl+K Shift+Enter" }),
+        entry("split_right", "\u5411\u53F3\u62C6\u5206", () => split(leaf, "right"), { separator: true, shortcut: "Ctrl+\\", disabled: !ordinary || state.busy }),
+        entry("split_move", "\u62C6\u5206\u4E0E\u79FB\u52A8", () => {
+        }, { children: split_items }),
+        entry("move_window", "\u79FB\u52A8\u5230\u65B0\u7A97\u53E3", () => windows.open(leaf), { separator: true, disabled: !file || !ordinary || state.busy }),
+        entry("copy_window", "\u590D\u5236\u5230\u65B0\u7A97\u53E3", () => windows.open(leaf, true), { shortcut: "Ctrl+K O", disabled: !file || !ordinary || state.busy })
+      ];
+    };
+    const context = (event) => {
+      const detail = event.detail;
+      if (!detail || !present(detail.leaf) || !is_document(detail.leaf)) return;
+      close_menu = workspace_menu(detail.event, entries3(detail.leaf), "workspace-menu-compact workspace-editor-menu", () => {
+        close_menu = void 0;
+      });
+    };
+    const find_tab = (event) => {
+      const tab = event.target instanceof Element ? event.target.closest(".typ-tab[data-id]") : null;
+      let leaf;
+      if (tab) workspace.eachLeaves((item) => {
+        if (workspace_leaf_tab(item) === tab) leaf = item;
+      });
+      return leaf;
+    };
+    const click = (event) => {
+      if (event.button !== 0 || !(event.target instanceof Element) || !event.target.closest(".typ-close")) return;
+      const leaf = find_tab(event);
+      if (!leaf) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      run(() => leaf.state.workspace_pinned ? pin(leaf, false) : files.close_leaf(leaf));
+    };
+    const middle = (event) => {
+      if (event.button !== 1) return;
+      const leaf = find_tab(event);
+      if (!leaf) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      run(() => files.close_leaf(leaf));
+    };
+    document.addEventListener("typora-code:tab-context-menu", context);
+    document.addEventListener("click", click, true);
+    document.addEventListener("mousedown", middle, true);
+    const command = (id, title, action) => cleanups.push(core.app.commands.register({ id: "linux_note:editor_" + id, title: "\u7F16\u8F91\u5668\uFF1A" + title, scope: "global", callback: () => {
+      const leaf = workspace.activeLeaf;
+      if (leaf) run(() => action(leaf));
+    } }));
+    command("close_saved", "\u5173\u95ED\u5DF2\u4FDD\u5B58", (leaf) => close_batch(leaf, "saved"));
+    command("close_all", "\u5173\u95ED\u5168\u90E8", (leaf) => close_batch(leaf, "all"));
+    command("keep_open", "\u4FDD\u6301\u6253\u5F00", (leaf) => {
+      files.keep_open(leaf);
+      refresh();
+    });
+    command("pin", "\u5207\u6362\u56FA\u5B9A", (leaf) => pin(leaf));
+    command("copy_window", "\u590D\u5236\u5230\u65B0\u7A97\u53E3", (leaf) => windows.open(leaf, true));
+    command("move_window", "\u79FB\u52A8\u5230\u65B0\u7A97\u53E3", (leaf) => windows.open(leaf));
+    command("reveal_system", "\u5728\u7CFB\u7EDF\u6587\u4EF6\u7BA1\u7406\u5668\u4E2D\u663E\u793A", (leaf) => reveal(leaf, true));
+    command("split_right", "\u5411\u53F3\u62C6\u5206", (leaf) => split(leaf, "right"));
+    command("split_down", "\u5411\u4E0B\u62C6\u5206", (leaf) => split(leaf, "down"));
+    cleanups.push(workspace.on("layout-changed", () => queueMicrotask(refresh)), workspace.on("active-leaf:change", () => queueMicrotask(refresh)));
+    refresh();
+    return { entries: entries3, close_batch, pin, split, move, refresh, dispose() {
+      if (disposed) return;
+      disposed = true;
+      close_menu?.();
+      for (const cleanup of cleanups.reverse()) cleanup();
+      document.removeEventListener("typora-code:tab-context-menu", context);
+      document.removeEventListener("click", click, true);
+      document.removeEventListener("mousedown", middle, true);
+      document.querySelectorAll(".workspace-tab-pin").forEach((node) => node.remove());
+      document.querySelectorAll(".is-workspace-pinned").forEach((node) => node.classList.remove("is-workspace-pinned"));
+    } };
+  }
+
   // src/workspace_view_state.ts
   function read_workspace_sidebar_state(sidebar) {
     let active_id = sidebar.activePanel?.ribbonButton?.id || null;
@@ -225930,7 +226362,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       await runtime2.JSBridge.invoke("window.close");
     };
-    const start_sender = (leaf, token) => {
+    const start_sender = (leaf, token, copy = false) => {
       if (disposed || pending_leaves.has(leaf) || senders.has(token) || !owns_leaf(leaf)) return;
       let channel;
       try {
@@ -226009,6 +226441,11 @@ https://creativecommons.org/licenses/by/4.0/
           void (async () => {
             const snapshot = await capture();
             if (finished) return;
+            if (copy) {
+              post("committed");
+              finish();
+              return;
+            }
             const released = await files.release_transfer(leaf, snapshot, controller.signal);
             if (finished) return;
             post(released ? "committed" : "retained");
@@ -226165,7 +226602,11 @@ https://creativecommons.org/licenses/by/4.0/
       });
       if (initial_leaf) receive(initial_token, { group: initial_leaf.parent, index: 0 });
     }
-    const binding = { dispose() {
+    const binding = { open(leaf, copy = false) {
+      const token = crypto.randomUUID();
+      start_sender(leaf, token, copy);
+      senders.get(token)?.detach();
+    }, dispose() {
       if (disposed) return;
       disposed = true;
       document.removeEventListener("typora-code:tab-drag-start", drag_start);
@@ -231602,7 +232043,7 @@ https://creativecommons.org/licenses/by/4.0/
       ["reload_file", "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", files.reload_active],
       ["close_editor", "\u5173\u95ED\u7F16\u8F91\u5668", () => {
         const leaf = core.app.workspace.activeLeaf;
-        if (leaf) workspace_leaf_tab(leaf)?.querySelector(".typ-close")?.click();
+        if (leaf) return files.close_leaf(leaf);
       }]
     ];
     try {
@@ -231712,7 +232153,8 @@ https://creativecommons.org/licenses/by/4.0/
       const sidebar = core.app.workspace.sidebar;
       const ribbon = document.querySelector(".typ-ribbon");
       if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control"], read_state: () => read_workspace_sidebar_state(sidebar) }));
-      lifetime.own(bind_workspace_detached_window(files));
+      const detached = lifetime.own(bind_workspace_detached_window(files));
+      lifetime.own(bind_workspace_editor_actions(files, detached));
       document.documentElement.setAttribute("data-linux-note-workspace-browser", "ready");
       lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
       return { files, explorer, search: search2, dispose() {

@@ -1925,6 +1925,10 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;height:16px;line-height:16px;margin-top:0;margin-bottom:0;}
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}
 
+/* 固定标签在原关闭动作槽显示官方 pinned，保留20px动作尺寸。 */
+.workspace-tab-strip .is-workspace-pinned .typ-close::before {display:none;}
+.workspace-tab-strip .workspace-tab-pin {display:block;flex:none;width:16px;height:16px;}
+
 /* workspace_titlebar.css */
 /* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七类菜单并补充终端入口。 */
 body.typora-node.unibody-window { --typ-workspace-top:35px; }

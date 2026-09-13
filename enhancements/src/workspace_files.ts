@@ -32,6 +32,10 @@ export type workspace_file_host = {
   transfer_entries(root:string,paths:string[],target:string,move:boolean):Promise<string[]>;
   trash_entries(root:string,paths:string[]):Promise<void>;
   keep_open(leaf?:graph_leaf):void;
+  editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
+  close_leaf(leaf:graph_leaf):Promise<boolean>;
+  duplicate_leaf(leaf:graph_leaf,group:graph_leaf["parent"]):Promise<graph_leaf>;
+  reopen_leaf(leaf:graph_leaf,source:boolean):Promise<boolean>;
   source_editor_active(): boolean;
   run_editor_command(command: string): void;
   current_file(): string;
@@ -76,7 +80,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     workspace_leaf_tab(leaf)?.classList.remove("is-workspace-preview");
   };
   const set_preview=(leaf:graph_leaf|null,preview:boolean)=>{
-    if(!leaf)return;if(!preview){keep_open(leaf);return;}
+    if(!leaf)return;if(leaf.state.workspace_pinned)preview=false;if(!preview){keep_open(leaf);return;}
     const previous=preview_leaves.get(leaf.parent);
     let previous_exists=false;core.app.workspace.eachLeaves(item=>{if(item===previous)previous_exists=true;});
     if(previous&&previous!==leaf&&previous_exists){
@@ -103,16 +107,39 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const context_root = () => runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
   class source_file_view extends core.WorkspaceView {
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
-    editor?: git_diff_editor; focus_requested=true; file_path: string; loaded = false; loading = false; disposed=false; target?:file_location;
+    editor?: git_diff_editor; focus_requested=true; disposed=false; target?:file_location;
     status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
     status_controls = el("div", "workspace-editor-status-controls workspace-footer-group"); location_label = el("span", "workspace-file-location");
     language_button = button("", () => this.choose_language()); encoding_button = button("", () => this.choose_format("encoding")); eol_button = button("", () => this.choose_format("eol"));
-    text_document: ReturnType<typeof create_text_document>; format?: Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>;
-    saved_format = ""; saved_version = 0; saving = false;
+    shared: {
+      file_path:string; text_document:ReturnType<typeof create_text_document>;
+      format?:Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>;
+      saved_format:string; saved_version:number; saving:boolean; loading:boolean; loaded:boolean;
+    };
+    get file_path(){return this.shared.file_path;} set file_path(value:string){this.shared.file_path=value;}
+    get text_document(){return this.shared.text_document;} set text_document(value:ReturnType<typeof create_text_document>){this.shared.text_document=value;}
+    get format(){return this.shared.format;} set format(value:Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>|undefined){this.shared.format=value;}
+    get saved_format(){return this.shared.saved_format;} set saved_format(value:string){this.shared.saved_format=value;}
+    get saved_version(){return this.shared.saved_version;} set saved_version(value:number){this.shared.saved_version=value;}
+    get saving(){return this.shared.saving;} set saving(value:boolean){this.shared.saving=value;}
+    get loading(){return this.shared.loading;} set loading(value:boolean){this.shared.loading=value;}
+    get loaded(){return this.shared.loaded;} set loaded(value:boolean){this.shared.loaded=value;}
+    close_requires_save(){return ![...views].some(view=>view!==this&&!view.disposed&&view.shared===this.shared);}
+    refresh_shared(){for(const view of views)if(view.shared===this.shared){view.attach_shared_editor();view.editor?.focused_editor().updateOptions({readOnly:this.loading});for(const control of[view.language_button,view.encoding_button,view.eol_button])control.disabled=this.loading;view.update_status();}}
+    attach_shared_editor(){
+      if(this.disposed||this.editor||!this.loaded||!this.format)return;
+      const original=[...views].find(view=>view!==this&&!view.disposed&&view.shared===this.shared&&view.editor);
+      if(!original?.editor)return;
+      this.editor=new git_diff_editor({title:path_api.basename(this.file_path),file:this.file_path,left:original.editor.models[0].getValue(),left_label:this.file_path},()=>this.menu_entries(),original.editor.models[0]);
+      this.body.replaceChildren(this.editor.container);const editor=this.editor.focused_editor();editor.updateOptions({readOnly:false});
+      this.editor.subscriptions.push(editor.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed)this.update_status();})),editor.onDidChangeCursorPosition(()=>this.update_status()),editor.onDidFocusEditorText(()=>editor_status.schedule()));
+    }
     constructor(leaf: graph_leaf) {
-      super(leaf); this.file_path = real_path(leaf); leaf.state.git_cwd = path_api.dirname(this.file_path); views.add(this);
+      super(leaf); const file_path=real_path(leaf);
+      this.shared=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path))?.shared
+        ||{file_path,text_document:create_text_document({fs,path_api},file_path),saved_format:"",saved_version:0,saving:false,loading:false,loaded:false};
+      leaf.state.git_cwd = path_api.dirname(this.file_path); views.add(this);
       this.target=group_locations.get(leaf.state.path);this.focus_requested=!this.target?.preserve_focus;group_locations.delete(leaf.state.path);
-      this.text_document = create_text_document({fs,path_api}, this.file_path);
       this.language_button.title = "选择语言模式（仅改变语法高亮）"; this.language_button.setAttribute("aria-label", "语言模式");
       this.encoding_button.title = "选择保存编码"; this.encoding_button.setAttribute("aria-label", "保存编码");
       this.encoding_button.textContent="UTF-8";
@@ -133,14 +160,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = path_api.basename(this.file_path);
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = this.file_path;
       }
-      this.update_status();
+      this.attach_shared_editor();this.update_status();
       editor_status.refresh();editor_status.schedule();
       if (!this.loaded && !this.loading) void this.load_file(); else this.reveal();
       queueMicrotask(()=>{if(!this.disposed&&this.focus_requested&&core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();});
     }
     async load_file(encoding?: string) {
       if (renaming) { this.status.textContent = "正在重命名，请稍后再读取文件。"; return; }
-      if (this.loading||this.saving||this.disposed) return; this.loading = true; this.status.textContent = "正在读取…";
+      if (this.loading||this.saving||this.disposed) return; this.loading = true; this.refresh_shared(); this.status.textContent = "正在读取…";
       const previous_version=this.editor?.models[0].getAlternativeVersionId(),previous_format=this.format_key();
       // 读取候选快照后才替换保存基线；读取期间禁止输入及格式修改。
       const candidate=create_text_document({fs,path_api},this.file_path,{encoding:encoding??this.format?.encoding});
@@ -160,14 +187,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         }
         this.editor.focused_editor().updateOptions({readOnly:false});
         this.saved_version=this.editor.models[0].getAlternativeVersionId();
-        this.loaded = true; this.update_status(); this.reveal();
+        this.loaded = true; this.refresh_shared(); this.reveal();
         if(this.focus_requested&&core.app.workspace.activeLeaf===this.leaf)this.editor.focused_editor().focus();
       } catch (error) {
         if(this.disposed)return;
         this.status.textContent = "无法作为文本预览";
         if (!this.editor) this.body.replaceChildren(el("p", "workspace-file-notice", String(error)), button("使用系统程序打开", () => void shell.openPath(this.file_path)));
         else this.status.textContent = String(error);
-      } finally { this.loading = false;if(!this.disposed){this.editor?.focused_editor().updateOptions({readOnly:false});for(const control of[this.language_button,this.encoding_button,this.eol_button])control.disabled=false;} }
+      } finally { const status=this.status.textContent;this.loading = false;this.refresh_shared();if(status&&status!=="正在读取…")this.status.textContent=status; }
     }
     reveal() {
       if(this.disposed)return;this.editor?.editor.layout();
@@ -200,13 +227,13 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(runtime.File?.bundle?.filePath===this.file_path&&runtime.File?.changeCounter?.isDocumentEdited()){this.status.textContent="该 Markdown 的正文编辑器有未保存修改，请先处理正文草稿。";return false;}
       this.editor.focused_editor().pushUndoStop();
       const model=this.editor.models[0],version=model.getAlternativeVersionId(),format_key=this.format_key();
-      this.saving=true;this.update_status();
-      try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.update_status();return true;}
-      catch(error){this.saving=false;this.update_status();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
+      this.saving=true;this.refresh_shared();
+      try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.refresh_shared();return true;}
+      catch(error){this.saving=false;this.refresh_shared();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
     }
     async save_as(){
       if(this.disposed||this.saving||this.loading||renaming||!this.editor||!this.format||!runtime.JSBridge?.invoke)return false;
-      this.saving=true;this.update_status();
+      this.saving=true;this.refresh_shared();
       try{
         const result=await runtime.JSBridge.invoke("dialog.showSaveDialog",{title:"另存为",defaultPath:this.file_path,properties:["showOverwriteConfirmation"],filters:[{name:"所有文件",extensions:["*"]}]}) as {canceled?:boolean;filePath?:string};
         if(this.disposed||core.app.workspace.activeLeaf!==this.leaf||result?.canceled||!result?.filePath)return false;
@@ -223,24 +250,29 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         this.text_document=saved.document;this.file_path=target;this.leaf.state.git_cwd=path_api.dirname(target);
         this.editor.data.file=target;this.editor.data.title=path_api.basename(target);this.editor.data.left_label=target;
         this.format={...saved.value,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saved_version=version;this.saved_format=format_key;
-        parent.renameTab(this.leaf.state.path,source_file_uri(target));keep_open(this.leaf);
+        for(const view of views)if(view.shared===this.shared){
+          const group=view.leaf.parent as typeof parent;
+          group.renameTab(view.leaf.state.path,source_file_uri(target));view.leaf.state.git_cwd=path_api.dirname(target);
+          if(view.editor){view.editor.data.file=target;view.editor.data.title=path_api.basename(target);view.editor.data.left_label=target;}
+          keep_open(view.leaf);const tab=workspace_leaf_tab(view.leaf);if(tab){const label=tab.querySelector(".typ-file-basename");if(label)label.textContent=path_api.basename(target);tab.title=target;}
+        }keep_open(this.leaf);
         const tab=workspace_leaf_tab(this.leaf);if(tab){const label=tab.querySelector(".typ-file-basename");if(label)label.textContent=path_api.basename(target);tab.title=target;}
         return true;
       }catch(error){this.status.textContent=String(error instanceof Error?error.message:error);new core.Notice(this.status.textContent,5000);return false;}
-      finally{this.saving=false;this.update_status();}
+      finally{this.saving=false;this.refresh_shared();}
     }
     choose_language(){
       if(!this.editor||this.loading)return;const dialog=workspace_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
       const choices=new Map(FILE_LANGUAGE_RULES.filter(rule=>!rule.category||rule.category==="text").map(rule=>[rule.language,rule.label]));choices.set("plaintext","纯文本");
       for(const [value,label]of choices){const option=el("option","",label);option.value=value;select.append(option);}select.value=this.editor.models[0].getLanguageId();
-      dialog.content.append(select,el("p","","语言模式只改变高亮；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
+      dialog.content.append(select,el("p","","语言模式只改变高亮；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.refresh_shared();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
     }
     choose_format(kind:"encoding"|"eol"){
       if(this.loading)return;
       if(!this.format){if(kind==="encoding")this.choose_reopen_encoding();return;}const dialog=workspace_dialog(kind==="encoding"?"选择保存编码":"选择行尾序列");const select=el("select");select.setAttribute("aria-label",kind==="encoding"?"文件保存编码":"文件行尾序列");
       const values=kind==="encoding"?["utf-8","utf-8-bom","utf-16le","utf-16be"]:["LF","CRLF","CR",...(this.format.eol==="mixed"?["mixed"]:[])];
       for(const value of values){const option=el("option","",value==="mixed"?"保留混合换行":value.toUpperCase());option.value=value;select.append(option);}select.value=kind==="encoding"?(this.format.encoding==="utf-8"&&this.format.bom?"utf-8-bom":this.format.encoding):this.format.eol;
-      dialog.content.append(select,el("p","","选择后按 Ctrl+S 保存，当前文件不会立即改写。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;if(kind==="encoding"){this.format!.encoding=select.value==="utf-8-bom"?"utf-8":select.value;this.format!.bom=select.value!=="utf-8";}else this.format!.eol=select.value as typeof this.format.eol;this.update_status();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
+      dialog.content.append(select,el("p","","选择后按 Ctrl+S 保存，当前文件不会立即改写。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;if(kind==="encoding"){this.format!.encoding=select.value==="utf-8-bom"?"utf-8":select.value;this.format!.bom=select.value!=="utf-8";}else this.format!.eol=select.value as typeof this.format.eol;this.refresh_shared();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
       if(kind==="encoding")dialog.footer.prepend(button("以编码重新打开…",()=>{dialog.close();this.choose_reopen_encoding();}));
     }
     choose_reopen_encoding(){
@@ -412,7 +444,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const can_save_active = () => Boolean(active_source_view()) || native_document_active();
   const pending_native_saves=new Set<()=>void>();
   let native_open_pending=false;
-  const release_save_active=core.app.workspace.on("active-leaf:change",()=>{if(native_document_active())native_open_pending=true;});
+  const release_save_active=core.app.workspace.on("active-leaf:change",()=>{
+    if(native_document_active())native_open_pending=file_key(core.app.workspace.activeLeaf?.state.path||"")!==file_key(runtime.File?.bundle?.filePath||"")
+      ||Boolean(runtime.File?.isFileLoading?.()||runtime.File?._onInitParse||runtime.File?._onFileSwitching);
+  });
   const release_save_open=core.app.workspace.on("file:open",(opened:string)=>{if(typeof opened==="string"&&file_key(opened)===file_key(core.app.workspace.activeLeaf?.state.path||"")&&file_key(opened)===file_key(runtime.File?.bundle?.filePath||""))native_open_pending=false;});
   const save_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
     const source=[...views].find(view=>view.leaf===leaf&&!view.disposed);if(source)return source.save();
@@ -428,14 +463,21 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         const cancel=()=>finish(false);const timeout=setTimeout(cancel,5000);pending_native_saves.add(cancel);
         stop_open=workspace.on("file:open",(opened:string)=>{if(typeof opened==="string"&&file_key(opened)===target&&native_matches())finish(true);});
         stop_active=workspace.on("active-leaf:change",()=>{if(!activating&&workspace.activeLeaf!==leaf)cancel();});
-        if(workspace.activeLeaf!==leaf){activating=true;workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);activating=false;if(preview_only())finish(false);}
+        if(workspace.activeLeaf!==leaf){
+          activating=true;workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);activating=false;
+          if(preview_only())finish(false);
+          else if(!native_open_pending&&native_matches())finish(true);
+        }
         if(workspace.activeLeaf!==leaf)cancel();
       });
       if(!ready)return false;
     }
     if(preview_only())return false;
     // No await between the final identity check and invocation: never save a newly selected document.
-    if(!binding.active||!native_matches()||typeof runtime.ClientCommand?.save!=="function")return false;
+    if(!binding.active||!native_matches())return false;
+    // Windows/Linux 的已核对入口返回实际写盘结果，不能把菜单回调返回当作保存完成。
+    if(runtime.File?.isNode&&typeof runtime.File.saveUseNode==="function")return await runtime.File.saveUseNode(false)===true;
+    if(typeof runtime.ClientCommand?.save!=="function")return false;
     await Promise.resolve(runtime.ClientCommand.save());return true;
   };
   const save_active = async () => {const leaf=core.app.workspace.activeLeaf;return leaf?save_leaf(leaf):false;};
@@ -451,12 +493,96 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const reload_active=()=>{const source=active_source_view();if(source)source.confirm_reload();else if(native_ready())runtime.ClientCommand?.reloadFromDisk?.();};
   const save_all = async () => {
-    const source_saves = [...views].filter(view => !view.disposed && view.dirty()).map(view => view.save());
+    const owners = new Set<object>();
+    const source_saves = [...views].filter(view => {if(view.disposed||!view.dirty()||owners.has(view.shared))return false;owners.add(view.shared);return true;}).map(view => view.save());
     const [, source_results] = await Promise.all([
       Promise.resolve().then(() => runtime.ClientCommand?.saveAll?.()),
       Promise.all(source_saves),
     ]);
     return source_results.every(Boolean);
+  };
+  const editor_state=(leaf:graph_leaf)=>{
+    const source=[...views].find(view=>view.leaf===leaf&&!view.disposed),file_path=real_path(leaf);
+    const markdown=!source&&(is_markdown_file(file_path)||leaf.state.path==="");
+    const native_same=markdown&&file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path);
+    return {file_path,kind:(source?"source":markdown?"markdown":"other") as "source"|"markdown"|"other",
+      dirty:source?source.dirty():Boolean(native_same&&runtime.File?.changeCounter?.isDocumentEdited()),
+      busy:Boolean(renaming||source?.saving||source?.loading||native_same&&(runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||runtime.File?._onFileSwitching))};
+  };
+  const native_close_dialogs=new Map<graph_leaf,{dialog:ReturnType<typeof workspace_dialog>;result:Promise<boolean>}>();
+  const close_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
+    if(!transfer_present(leaf))return true;if(editor_state(leaf).busy)return false;
+    const group=leaf.parent,path=leaf.state.path,state=editor_state(leaf);
+    const remove=async()=>{if(!transfer_present(leaf))return true;if(leaf.parent!==group||leaf.state.path!==path)return false;await group.removeTab?.(path);return !transfer_present(leaf);};
+    if(state.kind!=="markdown"||!state.dirty)return remove();
+    let shared=false;core.app.workspace.eachLeaves(other=>{if(other!==leaf&&other.state.path===path)shared=true;});
+    if(shared)return remove();
+    const pending=native_close_dialogs.get(leaf);if(pending)return pending.result;
+    let resolve_result!:(value:boolean)=>void,finished=false,saving=false;
+    const result=new Promise<boolean>(resolve=>{resolve_result=resolve;});
+    const dialog=workspace_dialog("保存文件修改","取消",()=>{native_close_dialogs.delete(leaf);if(!finished)resolve_result(false);});
+    native_close_dialogs.set(leaf,{dialog,result});
+    dialog.root.dataset.workspaceTabClose=path;dialog.content.append(el("p","",`${path_api.basename(path)||"未命名文档"} 有未保存的修改。`));
+    const identity=()=>transfer_present(leaf)&&leaf.parent===group&&leaf.state.path===path;
+    const finish=async()=>{if(!dialog.root.isConnected||!identity())return;const closed=await remove();finished=true;resolve_result(closed);dialog.close();};
+    const message=el("p");dialog.content.append(message);
+    const controls:HTMLButtonElement[]=[];
+    const set_busy=(value:boolean)=>{saving=value;for(const control of controls)control.disabled=value;};
+    const save_button=button("保存并关闭",()=>{if(saving)return;set_busy(true);
+      void save_leaf(leaf).then(async saved=>{
+        if(saved&&identity()&&!editor_state(leaf).dirty)await finish();
+        else if(dialog.root.isConnected)message.textContent="文件尚未保存，标签已保留。";
+      }).catch(error=>{message.textContent=String(error);}).finally(()=>set_busy(false));});
+    controls.push(save_button);dialog.footer.prepend(save_button);
+    if(path&&typeof runtime.File?.reloadFromDisk==="function"){
+      const discard_button=button("不保存并关闭",()=>{if(saving||!identity())return;set_busy(true);
+        void(async()=>{
+          if(file_key(runtime.File?.bundle?.filePath||"")!==file_key(path))return;
+          await runtime.File.reloadFromDisk(true);
+          if(dialog.root.isConnected&&identity()&&!editor_state(leaf).dirty)await finish();
+        })().catch(error=>{message.textContent=String(error);}).finally(()=>set_busy(false));});
+      controls.push(discard_button);dialog.footer.insertBefore(discard_button,dialog.footer.lastElementChild);
+    }
+    return result;
+  };
+  const duplicate_leaf=async(leaf:graph_leaf,group:graph_leaf["parent"])=>{
+    if(!transfer_present(leaf)||editor_state(leaf).busy)throw new Error("文档尚未就绪，请稍后重试。");
+    const state=editor_state(leaf);if(state.kind==="other")throw new Error("此工具标签不支持文档分屏。");
+    const duplicate=core.app.workspace.createLeaf({type:state.kind==="source"?SOURCE_FILE_VIEW_ID:"core.markdown",state:{...leaf.state,workspace_preview:false,workspace_pinned:false}});
+    group.appendChild(duplicate);core.app.workspace.activeLeaf=duplicate;
+    return duplicate;
+  };
+  const reopen_dialogs=new Map<graph_leaf,{dialog:ReturnType<typeof workspace_dialog>;result:Promise<boolean>}>();
+  const save_before_reopen=(leaf:graph_leaf):Promise<boolean>=>{
+    const pending=reopen_dialogs.get(leaf);if(pending)return pending.result;
+    let resolve_result!:(value:boolean)=>void,completed=false,saving=false;
+    const result=new Promise<boolean>(resolve=>{resolve_result=resolve;});
+    const group=leaf.parent,path=leaf.state.path;
+    const dialog=workspace_dialog("切换编辑方式","取消",()=>{reopen_dialogs.delete(leaf);resolve_result(completed);});
+    reopen_dialogs.set(leaf,{dialog,result});dialog.root.dataset.workspaceReopen=path;
+    dialog.content.append(el("p","","此文档有未保存的修改。保存后继续切换编辑方式。"));
+    const message=el("p");dialog.content.append(message);
+    const save=button("保存并继续",()=>{if(saving)return;saving=true;save.disabled=true;
+      void save_leaf(leaf).then(saved=>{
+        if(!dialog.root.isConnected)return;
+        completed=saved&&transfer_present(leaf)&&leaf.parent===group&&leaf.state.path===path&&!editor_state(leaf).dirty;
+        if(completed)dialog.close();else message.textContent="保存未完成，已保留当前编辑器。";
+      }).catch(error=>{message.textContent=String(error);}).finally(()=>{saving=false;save.disabled=false;});
+    });dialog.footer.prepend(save);return result;
+  };
+  const reopen_leaf=async(leaf:graph_leaf,source:boolean)=>{
+    const state=editor_state(leaf);if(!state.file_path||!is_markdown_file(state.file_path)||state.busy)return false;
+    if((state.kind==="source")===source){core.app.workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);return true;}
+    if(state.dirty&&!await save_before_reopen(leaf))return false;
+    if(!transfer_present(leaf)||editor_state(leaf).busy||editor_state(leaf).dirty)return false;
+    const group=leaf.parent;core.app.workspace.activeLeaf=group.toggleTab(leaf.state.path);
+    await open_file(state.file_path,{source});
+    const opened=core.app.workspace.activeLeaf;
+    if(!opened||opened===leaf||opened.parent!==group)return opened===leaf;
+    const pinned=Boolean(leaf.state.workspace_pinned);
+    if(!await close_leaf(leaf))return false;
+    if(pinned){opened.state.workspace_pinned=true;(core as graph_core&{move_workspace_leaf(leaf:graph_leaf,group:graph_leaf["parent"],index:number):void}).move_workspace_leaf(opened,group,0);}
+    return true;
   };
   const transfer_captures = new WeakMap<graph_leaf,{capture_id:string;fingerprint:string}>();
   const transfer_present = (leaf:graph_leaf) => {let present=false;core.app.workspace.eachLeaves(item=>{if(item===leaf)present=true;});return present;};
@@ -648,7 +774,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       // 目标已ACK且指纹重检成功，临时放行源码自身关闭保护；不调用任何保存入口。
       if(source){source.saved_version=source.editor!.models[0].getAlternativeVersionId();source.saved_format=source.format_key();}
       try{if(signal?.aborted)return false;leaf.parent.removeTab(leaf.state.path);}
-      finally{if(source&&transfer_present(leaf)){source.saved_version=previous_version!;source.saved_format=previous_format!;source.update_status();}}
+      finally{if(source&&!source.disposed){source.saved_version=previous_version!;source.saved_format=previous_format!;source.update_status();}}
       const removed=!transfer_present(leaf);if(removed)transfer_captures.delete(leaf);return removed;
     }catch{return false;}
   };
@@ -670,6 +796,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
     if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
     source_lifecycle.dispose();
+    for(const {dialog} of native_close_dialogs.values())dialog.close();native_close_dialogs.clear();
+    for(const {dialog} of reopen_dialogs.values())dialog.close();reopen_dialogs.clear();
     document.removeEventListener("dblclick",keep_clicked_tab,true);document.removeEventListener("input",keep_edited_native,true);
     for(const leaf of [...preview_leaves.values()])keep_open(leaf);preview_leaves.clear();
     for (const view of [...views]) {
@@ -715,7 +843,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     read_text:async(file_path:string)=>{
       if(!binding.active)throw new Error("Typora Code 已停用。");
       const source=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path)&&view.editor?.models[0]);

@@ -69,7 +69,7 @@ export function install_workspace_shortcuts(
       }
       if(event.code === "KeyO" && !event.shiftKey && !(chord_started>0 && Date.now()-chord_started<2000)) { run(event,()=>app.commands.run("linux_note:open_file")); return; }
       if(event.code === "KeyS"&&event.shiftKey){run(event,()=>app.commands.run("linux_note:save_as"));return;}
-      if(["KeyW","F4"].includes(event.code)&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:close_editor"));return;}
+      if(["KeyW","F4"].includes(event.code)&&!event.shiftKey&&!(chord_started>0&&Date.now()-chord_started<2000)){run(event,()=>app.commands.run("linux_note:close_editor"));return;}
       if(event.code === "KeyF" && event.shiftKey) { run(event,()=>app.commands.run("linux_note:search")); return; }
       if(!event.shiftKey && event.code === "KeyB") { run(event,()=>app.workspace.sidebar.toggle()); return; }
       if(!event.shiftKey && ["PageUp","PageDown"].includes(event.code)) {
@@ -90,15 +90,20 @@ export function install_workspace_shortcuts(
       const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
       const primary = primary_modifier(event) && !event.shiftKey;
       if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
+      else if (event.code === "KeyW" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:editor_close_all"));
+      else if (event.code === "KeyU" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:editor_close_saved"));
+      else if (event.code === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) run(event, () => app.commands.run(event.shiftKey?"linux_note:editor_pin":"linux_note:editor_keep_open"));
+      else if (event.code === "KeyO" && unmodified) run(event, () => app.commands.run("linux_note:editor_copy_window"));
       else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
       else if (event.code === "KeyS" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:save_all"));
       else if (event.code === "KeyF" && (unmodified||primary)) run(event, () => app.commands.run("linux_note:close_folder"));
       else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
-      else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("core.workspace:split-down", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
+      else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("linux_note:editor_split_down"));
       else reset_chord();
       return;
     }
 
+    if (event.code === "KeyR" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {run(event,()=>app.commands.run("linux_note:editor_reveal_system"));return;}
     if (event.code === "KeyC" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
       run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
       return;
@@ -112,7 +117,7 @@ export function install_workspace_shortcuts(
       return;
     }
     if (event.code === "Backslash") {
-      run(event, () => app.commands.run("core.workspace:split-right", [app.workspace.activeLeaf?.state.path ?? app.workspace.activeFile]));
+      run(event, () => app.commands.run("linux_note:editor_split_right"));
       return;
     }
     reset_chord();

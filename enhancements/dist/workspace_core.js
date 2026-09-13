@@ -175,7 +175,9 @@ var workspace_core_module = (() => {
     Events: () => Events,
     Notice: () => Notice,
     SidebarPanel: () => SidebarPanel,
-    WorkspaceView: () => WorkspaceView
+    WorkspaceView: () => WorkspaceView,
+    move_workspace_leaf: () => move_workspace_leaf,
+    split_workspace_group: () => split_workspace_group
   });
 
   // vendor/workspace_core/src/common/component.ts
@@ -1224,6 +1226,193 @@ var workspace_core_module = (() => {
     }
   };
 
+  // node_modules/@plylrnsdy/decorate.js/index.js
+  function decorate(object, method, wrapper) {
+    const originalKey = Symbol.for(`${method}$original`);
+    const decoratorsKey = Symbol.for(`${method}$decorators`);
+    const original = object[originalKey] ?? object[method];
+    if (!object[decoratorsKey]) {
+      object[originalKey] = original;
+      object[decoratorsKey] = [];
+    }
+    object[decoratorsKey].push(wrapper);
+    wrap(object, method, original, object[decoratorsKey]);
+    return () => {
+      object[decoratorsKey] = object[decoratorsKey].filter((fn) => fn !== wrapper);
+      wrap(object, method, original, object[decoratorsKey]);
+    };
+  }
+  function wrap(object, method, original, wrappers) {
+    object[method] = wrappers.reduce((res, wrapper) => wrapper(res.bind(object), res), original);
+  }
+  decorate.parameters = function(object, method, wrapper) {
+    return decorate(object, method, (_, fn) => function(...args) {
+      return fn.call(this, ...wrapper.call(this, args));
+    });
+  };
+  decorate.returnValue = function(object, method, wrapper) {
+    return decorate(object, method, (_, fn) => function(...args) {
+      const res = fn.call(this, ...args);
+      const wrapped = (ret) => wrapper.call(this, args, ret);
+      return res instanceof Promise ? res.then(wrapped) : wrapped(res);
+    });
+  };
+  decorate.beforeCall = function(object, method, listener) {
+    return decorate.parameters(object, method, function(args) {
+      return listener.call(this, args), args;
+    });
+  };
+  decorate.afterCall = function(object, method, listener) {
+    return decorate.returnValue(object, method, function(args, res) {
+      return listener.call(this, args, res), res;
+    });
+  };
+
+  // vendor/workspace_core/src/ui/layout/workspace-node.ts
+  var WorkspaceNode = class extends Events {
+    parent = null;
+    containerEl;
+    resizeHandleEl;
+    constructor() {
+      super();
+      this.containerEl = $('<div class="typ-workspace-node">').append(this.resizeHandleEl = $('<hr class="typ-workspace-leaf-resize-handle">').on("mousedown", (e) => this.onResizeStart(e.originalEvent))[0])[0];
+    }
+    closest(type) {
+      let node = this;
+      while (node != null && node.type !== type) node = node.parent;
+      return node;
+    }
+    setParent(parent) {
+      this.parent = parent;
+    }
+    getRoot() {
+      return useService("workspace").rootSplit;
+    }
+    detach() {
+      this.parent?.removeChild(this);
+    }
+    onResizeStart(event) {
+      if (event.button === 0 && this.parent?.type === "split") {
+        this.parent.onChildResizeStart(this, event);
+      }
+    }
+  };
+
+  // vendor/workspace_core/src/ui/layout/workspace-leaf.ts
+  var WorkspaceLeaf = class extends WorkspaceNode {
+    constructor(view, viewManager = useService("view-manager")) {
+      super();
+      this.viewManager = viewManager;
+      this.containerEl.classList.add("typ-workspace-leaf");
+      this.view = view;
+    }
+    type = "leaf";
+    state = {};
+    viewType;
+    view;
+    isLeaf() {
+      return true;
+    }
+    setState(state) {
+      const factory = this.viewManager.getViewCreatorByType(state.type);
+      this.state = state.state ?? {};
+      this.viewType = state.type;
+      this.view = factory(this, state);
+      this.containerEl.append(this.view.containerEl);
+      return this;
+    }
+    toJSON() {
+      return {
+        type: "leaf",
+        state: this.state
+      };
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-editing-tabs.ts
+  var useEditingTabs = memorize(() => {
+    let editingTabs = null;
+    return {
+      /**
+       * @tips Cannot be used outside the Workspace API; otherwise, `null` will be returned after the Workspace is disabled.
+       */
+      editingTabs() {
+        return editingTabs;
+      },
+      setEditingTabs(tabs) {
+        editingTabs = tabs;
+      },
+      isEditingTabs(tabs) {
+        return editingTabs === tabs;
+      },
+      isEditingSingleChildTabs() {
+        return editingTabs?.children.length === 1;
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/md-editor-mode.ts
+  var MdEditorMode = class _MdEditorMode {
+    constructor(workspace = useService("workspace")) {
+      this.workspace = workspace;
+    }
+    static getInstance = memorize(() => new _MdEditorMode());
+    contentEl = editor.writingArea.parentElement;
+    _parentTabs = null;
+    _resizeObserver = null;
+    handleSettingActiveLeaf = null;
+    enter(ctx) {
+      const { containerEl, leaf } = ctx;
+      containerEl.classList.add("mode-typora");
+      containerEl.innerHTML = '<object type="text/html" data="about:blank"></object>';
+      const { setEditingTabs } = useEditingTabs();
+      setEditingTabs(ctx.leaf.parent);
+      this.contentEl.classList.add("typ-workspace-binding");
+      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
+      this.contentEl.addEventListener("mousedown", this.handleSettingActiveLeaf = () => {
+        this.workspace.activeLeaf = leaf;
+      });
+      this._parentTabs = leaf.parent;
+      this.syncSize();
+      this.unregisterObserver();
+      this.registerObserver();
+    }
+    exit(ctx) {
+      ctx.containerEl.classList.remove("mode-typora");
+      ctx.containerEl.innerHTML = "";
+      this.contentEl.classList.remove("typ-workspace-binding");
+      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
+      this.unregisterObserver();
+    }
+    getScroll() {
+      return { scrollTop: this.contentEl.scrollTop };
+    }
+    applyScroll(state) {
+      this.contentEl.scrollTop = state.scrollTop;
+    }
+    registerObserver() {
+      this._resizeObserver = new ResizeObserver(() => this.syncSize());
+      if (this._parentTabs) {
+        this._resizeObserver.observe(this._parentTabs.tabContentEl);
+      }
+    }
+    unregisterObserver() {
+      this._resizeObserver?.disconnect();
+      this._resizeObserver = null;
+    }
+    syncSize() {
+      const parent = this._parentTabs;
+      if (!parent) return;
+      const { style } = document.body;
+      const targetEl = parent.tabContentEl;
+      const rect = targetEl.getBoundingClientRect();
+      style.setProperty("--typ-editor-top", rect.top + "px");
+      style.setProperty("--typ-editor-left", rect.left + "px");
+      style.setProperty("--typ-editor-width", rect.width + "px");
+      style.setProperty("--typ-editor-height", rect.height + "px");
+    }
+  };
+
   // vendor/workspace_core/src/io/fs/file-adapter.ts
   var FileAdapter = class {
     /**
@@ -1396,47 +1585,565 @@ var workspace_core_module = (() => {
   var filesystem = File.isNode ? new NodeFS() : new MacFS();
   var filesystem_default = filesystem;
 
-  // node_modules/@plylrnsdy/decorate.js/index.js
-  function decorate(object, method, wrapper) {
-    const originalKey = Symbol.for(`${method}$original`);
-    const decoratorsKey = Symbol.for(`${method}$decorators`);
-    const original = object[originalKey] ?? object[method];
-    if (!object[decoratorsKey]) {
-      object[originalKey] = original;
-      object[decoratorsKey] = [];
+  // vendor/workspace_core/src/ui/views/markdown-view/md-previewer-mode.ts
+  var MdPreviewerMode = class {
+    constructor(mdRenderer = useService("markdown-renderer")) {
+      this.mdRenderer = mdRenderer;
     }
-    object[decoratorsKey].push(wrapper);
-    wrap(object, method, original, object[decoratorsKey]);
+    _containerEl = null;
+    render_sequence = 0;
+    cleanup = [];
+    enter(ctx) {
+      const { containerEl, filePath } = ctx;
+      containerEl.classList.add("mode-previewer");
+      this._containerEl = containerEl;
+      const refresh = async () => {
+        const sequence = ++this.render_sequence;
+        const native_matches = () => (File.bundle.filePath || "") === filePath && !File.isFileLoading();
+        try {
+          let markdown2 = native_matches() ? editor.getMarkdown() : filePath ? await filesystem_default.readText(filePath) : "";
+          if (sequence !== this.render_sequence || this._containerEl !== containerEl) return;
+          if (native_matches()) markdown2 = editor.getMarkdown();
+          const scroll_top = containerEl.parentElement?.scrollTop || 0;
+          this.mdRenderer.renderTo(markdown2, containerEl);
+          if (containerEl.parentElement) containerEl.parentElement.scrollTop = scroll_top;
+        } catch (error) {
+          if (sequence === this.render_sequence && this._containerEl === containerEl) containerEl.textContent = String(error);
+        }
+      };
+      this.cleanup.push(useService("markdown-editor").on("edit", refresh), useService("workspace").on("file:open", refresh));
+      void refresh();
+    }
+    exit(ctx) {
+      this.render_sequence++;
+      for (const cleanup of this.cleanup.splice(0)) cleanup();
+      ctx.containerEl.classList.remove("mode-previewer");
+      ctx.containerEl.innerHTML = "";
+      this._containerEl = null;
+    }
+    getScroll() {
+      return {
+        scrollTop: this._containerEl?.parentElement.scrollTop ?? 0
+      };
+    }
+    applyScroll(state) {
+      if (this._containerEl)
+        this._containerEl.parentElement.scrollTop = state.scrollTop;
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-preview-tab-to-swap.ts
+  var usePreviewTabToSwap = memorize(() => {
+    let previewTabToSwap = null;
+    return {
+      beginSwap(leaf) {
+        previewTabToSwap = leaf;
+      },
+      endSwap() {
+        previewTabToSwap = null;
+      },
+      previewFileToSwap() {
+        return previewTabToSwap?.state.path;
+      },
+      isPreviewFileToSwap(path2) {
+        return previewTabToSwap?.state.path === path2;
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-record.ts
+  var useRecord = memorize(() => {
+    return {
+      saveStateToLeaf(view) {
+        view.leaf.state = { ...view.leaf.state, ...view.getState() };
+      },
+      restoreStateFromLeaf(view) {
+        view.setState(view.leaf.state);
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts
+  var KEY_OPENFILE = Symbol.for("openFile$original");
+  var SwapCommand = class extends Component {
+    constructor(settings = useService("settings"), workspace = useService("workspace")) {
+      super();
+      this.settings = settings;
+      this.workspace = workspace;
+      const SETTING_KEY = "useAutoSwap";
+      if (settings.get(SETTING_KEY)) {
+        this.load();
+      }
+      settings.onChange(SETTING_KEY, (_, isEnabled) => {
+        isEnabled ? this.load() : this.unload();
+      });
+    }
+    execute(editorLeaf, previewLeaf) {
+      if (!this._loaded) return;
+      const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path;
+      const previewView = previewLeaf.view;
+      const writeEl = editor.writingArea.parentElement;
+      const { saveStateToLeaf, restoreStateFromLeaf } = useRecord();
+      const { beginSwap, endSwap } = usePreviewTabToSwap();
+      saveStateToLeaf(editorLeaf.view);
+      saveStateToLeaf(previewView);
+      editorLeaf.view.setMode("previewer");
+      beginSwap(previewLeaf);
+      this._hideEditor(writeEl);
+      this._setParent(previewLeaf);
+      this._openFile(previewLeaf.state.path);
+      const doSwap = () => {
+        previewView.setMode("typora");
+        this._syncEditorSize(previewView);
+        this._showEditor(writeEl);
+        setTimeout(() => {
+          restoreStateFromLeaf(editorLeaf.view);
+          restoreStateFromLeaf(previewView);
+          endSwap();
+        });
+      };
+      if (isSwappingSameFile) {
+        doSwap();
+      } else {
+        this.workspace.once("file:open", doSwap);
+      }
+    }
+    _hideEditor(writeEl) {
+      writeEl.style.display = "none";
+      writeEl.classList.remove("typ-deactive");
+    }
+    _setParent(previewLeaf) {
+      const { setEditingTabs } = useEditingTabs();
+      setEditingTabs(previewLeaf.parent);
+    }
+    _openFile(filePath) {
+      editor.library[KEY_OPENFILE](filePath);
+    }
+    _syncEditorSize(previewView) {
+      const mode = previewView._modeState;
+      mode.syncSize();
+    }
+    _showEditor(writeEl) {
+      writeEl.style.display = "";
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/index.ts
+  var KEY_OPENFILE2 = Symbol.for("openFile$original");
+  var MarkdownView = class _MarkdownView extends WorkspaceView {
+    constructor(leaf, workspace = useService("workspace"), mdEditor = useService("markdown-editor"), mdRenderer = useService("markdown-renderer")) {
+      super(leaf);
+      this.leaf = leaf;
+      this.workspace = workspace;
+      this.mdEditor = mdEditor;
+      this.mdRenderer = mdRenderer;
+    }
+    static type = "core.markdown";
+    /** @override */
+    containerEl = $('<div class="typ-markdown-view"></div>')[0];
+    _modeState = null;
+    _swapCommand = new SwapCommand();
+    get filePath() {
+      return this.leaf.state.path;
+    }
+    get _modeCtx() {
+      return {
+        filePath: this.filePath,
+        leaf: this.leaf,
+        containerEl: this.containerEl
+      };
+    }
+    /** @override */
+    onload() {
+      this.addChild(this._swapCommand);
+      setTimeout(() => this.autoSetMode());
+      this.register(
+        this.leaf.getRoot().on("layout-changed", () => this.autoSetMode())
+      );
+      this.registerDomEvent(this.containerEl, "mousedown", (e) => {
+        if (this.isEditor()) return;
+        if (e.target.closest("a")) return;
+        const { editingTabs } = useEditingTabs();
+        const editorLeaf = editingTabs()?.findLeaf(
+          (leaf) => leaf.viewType === _MarkdownView.type && leaf.view.isEditor()
+        );
+        if (!editorLeaf) return;
+        this._swapCommand.execute(editorLeaf, this.leaf);
+      });
+    }
+    isEditor() {
+      return this._modeState instanceof MdEditorMode;
+    }
+    /** @override */
+    getScroll() {
+      return this._modeState?.getScroll() ?? super.getScroll();
+    }
+    /** @override */
+    applyScroll(state) {
+      this._modeState?.applyScroll(state);
+    }
+    /** @private */
+    autoSetMode() {
+      const { editingTabs, isEditingTabs } = useEditingTabs();
+      if (!editingTabs() || isEditingTabs(this.leaf.parent)) {
+        this.setMode("typora");
+      } else {
+        this.setMode("previewer");
+      }
+    }
+    /** @override */
+    onOpen() {
+      this.autoSetMode();
+      const doRestore = () => {
+        const { restoreStateFromLeaf } = useRecord();
+        restoreStateFromLeaf(this);
+      };
+      if (this.isEditor()) {
+        editor.writingArea.parentElement.classList.remove("typ-deactive");
+        editor.library[KEY_OPENFILE2](this.filePath);
+        this.workspace.once("file:open", doRestore);
+      } else {
+        setTimeout(doRestore);
+      }
+    }
+    /** @override */
+    onClose() {
+      const { saveStateToLeaf } = useRecord();
+      saveStateToLeaf(this);
+      if (this.isEditor()) {
+        if (this.workspace.activeFile === this.filePath)
+          editor.writingArea.parentElement.classList.add("typ-deactive");
+        const { setEditingTabs, isEditingTabs, isEditingSingleChildTabs } = useEditingTabs();
+        if (isEditingTabs(this.leaf.parent)) {
+          this._modeState?.exit(this._modeCtx);
+          this._modeState = null;
+          if (isEditingSingleChildTabs()) {
+            setEditingTabs(null);
+            const nextMdLeaf = this.leaf.getRoot().findLeaf((leaf) => leaf.viewType === _MarkdownView.type && leaf !== this.leaf);
+            if (nextMdLeaf) nextMdLeaf.parent.activeLeaf.view.onOpen();
+          }
+        } else {
+          this._modeState = null;
+        }
+      } else {
+        this._modeState?.exit(this._modeCtx);
+        this._modeState = null;
+      }
+    }
+    /** @private */
+    setMode(mode) {
+      const prevMode = this._modeState;
+      if (prevMode instanceof MdEditorMode) {
+        this._modeCtx.containerEl.classList.remove("mode-typora");
+        this._modeCtx.containerEl.innerHTML = "";
+      } else {
+        prevMode?.exit(this._modeCtx);
+      }
+      this._modeState = mode === "typora" ? MdEditorMode.getInstance() : new MdPreviewerMode();
+      this._modeState.enter(this._modeCtx);
+      this.setIcon(mode === "typora" ? "fa-file-text-o" : "fa-file-text");
+    }
+    getState() {
+      const state = this.getScroll();
+      if (this.isEditor()) {
+        state.cursorOffset = this.mdEditor.selection.getCursor();
+      }
+      return state;
+    }
+    setState(state) {
+      requestAnimationFrame(() => {
+        if (state.scrollTop != null) {
+          this.applyScroll(state);
+        }
+        if (state.cursorOffset != null && this.isEditor()) {
+          this.mdEditor.selection.setCursor(state.cursorOffset);
+        }
+      });
+    }
+    getCodeMirrorInstance(cid) {
+      return this.isEditor() ? editor.fences.getCm(cid) : this.mdRenderer.getCodeMirrorInstance(cid);
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/empty-view.ts
+  var EmptyView = class extends WorkspaceView {
+    constructor(leaf, settings = useService("settings")) {
+      super(leaf);
+      this.settings = settings;
+    }
+    static type = "core.empty";
+    containerEl = html`<div></div>`;
+    onload() {
+      if (this.settings.get("useBlankNewTab")) return;
+      $(this.containerEl).addClass("typ-empty-view").empty().append(html`<div><div class="typ-empty-title"></div><div class="typ-empty-hotkey"></div></div>`);
+      setTimeout(() => {
+        const config = useService("config-repository");
+        const commands = useService("command-manager");
+        const { t } = useService("i18n");
+        const getHotky = (id) => commands.commandMap[id].hotkey?.split("+").map((k) => `<kbd>${k}</kbd>`).join("+") ?? "";
+        $(this.containerEl).find(".typ-empty-title").text(t.views.empty.noFile).end().find(".typ-empty-hotkey").append(html`<dl><dt>${t.commandModal.commandOpen}</dt><dd>${getHotky("command:open")}</dd></dl>`).append(html`<dl><dt>${t.ribbon.settingOfApp}</dt><dd><kbd>Ctrl</kbd>+<kbd>,</kbd></dd></dl>`);
+      });
+    }
+  };
+
+  // vendor/workspace_core/src/ui/layout/floating/theme.ts
+  function defaultTheme(containerEl) {
+    containerEl.classList.add("typ-theme-default");
+  }
+  function windowTheme(containerEl, title) {
+    containerEl.classList.add("typ-theme-window");
+    const titleBar = document.createElement("div");
+    titleBar.className = "typ-titlebar";
+    const iconEl = document.createElement("span");
+    iconEl.className = "typ-titlebar-icon";
+    iconEl.innerHTML = '<i class="fa fa-window-maximize"></i>';
+    const textEl = document.createElement("span");
+    textEl.className = "typ-titlebar-text";
+    textEl.textContent = title || "Floating View";
+    titleBar.appendChild(iconEl);
+    titleBar.appendChild(textEl);
+    containerEl.prepend(titleBar);
+  }
+
+  // vendor/workspace_core/src/ui/layout/floating/resizable.ts
+  function resizable(containerEl, options) {
+    const minWidth = options?.minWidth ?? 120;
+    const minHeight = options?.minHeight ?? 80;
+    const handle = document.createElement("div");
+    handle.className = "typ-floating-resize-handle";
+    const prevPosition = getComputedStyle(containerEl).position;
+    if (!["absolute", "fixed"].includes(prevPosition)) {
+      containerEl.style.position = "relative";
+    }
+    let startX = 0;
+    let startY = 0;
+    let startWidth = 0;
+    let startHeight = 0;
+    function onMouseMove(e) {
+      const width = Math.max(minWidth, startWidth + e.clientX - startX);
+      const height = Math.max(minHeight, startHeight + e.clientY - startY);
+      containerEl.style.width = `${width}px`;
+      containerEl.style.height = `${height}px`;
+    }
+    function onMouseUp() {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+    function onHandleMouseDown(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = containerEl.offsetWidth;
+      startHeight = containerEl.offsetHeight;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    }
+    handle.addEventListener("mousedown", onHandleMouseDown);
+    containerEl.appendChild(handle);
     return () => {
-      object[decoratorsKey] = object[decoratorsKey].filter((fn) => fn !== wrapper);
-      wrap(object, method, original, object[decoratorsKey]);
+      handle.removeEventListener("mousedown", onHandleMouseDown);
+      handle.remove();
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
     };
   }
-  function wrap(object, method, original, wrappers) {
-    object[method] = wrappers.reduce((res, wrapper) => wrapper(res.bind(object), res), original);
+
+  // vendor/workspace_core/src/ui/layout/floating/draggable.ts
+  function draggable(containerEl, handleEl) {
+    const handle = handleEl ?? containerEl;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    function onMouseMove(e) {
+      containerEl.style.left = `${startLeft + e.clientX - startX}px`;
+      containerEl.style.top = `${startTop + e.clientY - startY}px`;
+    }
+    function onMouseUp() {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+    function onHandleMouseDown(e) {
+      if (e.button !== 0) return;
+      const rect = containerEl.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      if (!containerEl.style.position || !["fixed", "absolute"].includes(containerEl.style.position)) {
+        containerEl.style.position = "fixed";
+      }
+      containerEl.style.left = `${rect.left}px`;
+      containerEl.style.top = `${rect.top}px`;
+      containerEl.style.right = "";
+      containerEl.style.bottom = "";
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    }
+    handle.addEventListener("mousedown", onHandleMouseDown);
+    return () => {
+      handle.removeEventListener("mousedown", onHandleMouseDown);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
   }
-  decorate.parameters = function(object, method, wrapper) {
-    return decorate(object, method, (_, fn) => function(...args) {
-      return fn.call(this, ...wrapper.call(this, args));
+
+  // vendor/workspace_core/src/ui/layout/floating/closable.ts
+  function closable(containerEl, onClose) {
+    const closeBtn = document.createElement("div");
+    closeBtn.className = "typ-floating-close";
+    closeBtn.innerHTML = `<i class="typ-icon typ-close"></i>`;
+    function onClick(e) {
+      e.stopPropagation();
+      onClose();
+    }
+    closeBtn.addEventListener("click", onClick);
+    containerEl.appendChild(closeBtn);
+    return () => {
+      closeBtn.removeEventListener("click", onClick);
+    };
+  }
+
+  // vendor/workspace_core/src/ui/layout/workspace-utils.ts
+  function createUntitledTabs() {
+    const tabs = useService("workspace-tabs");
+    tabs.appendChild(createEditorLeaf(""));
+    tabs.once("tab:toggle", () => tabs.removeTab(""));
+    return tabs;
+  }
+  function createTabs(path2) {
+    const workspace = useService("workspace");
+    const tabs = useService("workspace-tabs");
+    const newLeaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
+    tabs.appendChild(newLeaf);
+    workspace.activeLeaf = newLeaf;
+    return tabs;
+  }
+  function openFileInActiveTabs(file) {
+    const workspace = useService("workspace");
+    const activeTabs = workspace.activeLeaf?.parent;
+    if (activeTabs.findLeaf((leaf) => leaf.state.path === file)) {
+      workspace.activeLeaf = activeTabs.toggleTab(file);
+      return;
+    }
+    activeTabs.appendChild(createEditorLeaf(file));
+    workspace.activeLeaf = activeTabs.activeLeaf;
+  }
+  function createLeaf(state) {
+    const leaf = new WorkspaceLeaf();
+    if (state) leaf.setState(state);
+    return leaf;
+  }
+  function createEditorLeaf(filePath) {
+    return createLeaf({
+      type: MarkdownView.type,
+      state: {
+        path: filePath
+      }
     });
-  };
-  decorate.returnValue = function(object, method, wrapper) {
-    return decorate(object, method, (_, fn) => function(...args) {
-      const res = fn.call(this, ...args);
-      const wrapped = (ret) => wrapper.call(this, args, ret);
-      return res instanceof Promise ? res.then(wrapped) : wrapped(res);
+  }
+  var RE_TYPE = /^typ:\/\/([^/]+)/;
+  function createCustomLeaf(path2) {
+    const type = (path2.match(RE_TYPE) ?? [])[1];
+    if (!type) throw Error(`View "${type}" has not registered.`);
+    return createLeaf({
+      type,
+      state: {
+        path: path2
+      }
     });
-  };
-  decorate.beforeCall = function(object, method, listener) {
-    return decorate.parameters(object, method, function(args) {
-      return listener.call(this, args), args;
+  }
+  function createEmptyLeaf() {
+    return createLeaf({
+      type: EmptyView.type,
+      state: {
+        path: uniqueId(`typ://${EmptyView.type}/`) + "/New tab"
+      }
     });
-  };
-  decorate.afterCall = function(object, method, listener) {
-    return decorate.returnValue(object, method, function(args, res) {
-      return listener.call(this, args, res), res;
+  }
+  function splitRight(path2) {
+    split("vertical", path2);
+  }
+  function splitDown(path2) {
+    split("horizontal", path2);
+  }
+  function split(direction, path2) {
+    const workspace = useService("workspace");
+    const source = workspace.activeLeaf;
+    if (!source) return;
+    const target = split_workspace_group(source, direction === "vertical" ? "right" : "down");
+    const leaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
+    target.appendChild(leaf);
+    workspace.activeLeaf = leaf;
+  }
+  function split_workspace_group(leaf, side) {
+    const direction = side === "left" || side === "right" ? "vertical" : "horizontal";
+    const previous_group = leaf.parent;
+    const parent_split = previous_group.parent;
+    const next_group = useService("workspace-tabs");
+    const before = side === "left" || side === "up";
+    if (parent_split.direction === direction) {
+      parent_split.insertChild(parent_split.children.indexOf(previous_group) + (before ? 0 : 1), next_group);
+    } else {
+      const next_split = useService("workspace-split", [direction]);
+      parent_split.replaceChild(previous_group, next_split);
+      next_split.appendChild(before ? next_group : previous_group);
+      next_split.appendChild(before ? previous_group : next_group);
+    }
+    return next_group;
+  }
+  function ensureRightSidedockLeaf(uri) {
+    const workspace = useService("workspace");
+    const type = (uri.match(RE_TYPE) ?? [])[1];
+    const existing = workspace.rightSplit.findLeaf((leaf2) => leaf2.type === type);
+    if (existing) return;
+    const tabs = useService("workspace-tabs");
+    const leaf = createCustomLeaf(uri);
+    tabs.appendChild(leaf);
+    workspace.rightSplit.appendChild(tabs);
+  }
+  function openFloatingLeaf(arg0) {
+    const workspace = useService("workspace");
+    const tabs = useService("workspace-tabs");
+    const leaf = typeof arg0 === "string" ? createCustomLeaf(arg0) : arg0;
+    const { view, state } = leaf;
+    const { containerEl } = view;
+    let titlebar;
+    containerEl.classList.add("typ-workspace-floating");
+    decorate.afterCall(view, "onload", () => {
+      state.theme === "default" && defaultTheme(containerEl);
+      state.theme === "window" && (windowTheme(containerEl, state.path.split("/").pop()), titlebar = containerEl.querySelector(".typ-titlebar"));
+      state.resizable && view.register(resizable(containerEl));
+      state.draggable && view.register(draggable(containerEl, titlebar));
+      state.onClose && view.register(closable(titlebar ?? containerEl, state.onClose));
     });
-  };
+    tabs.appendChild(leaf);
+    workspace.floatingSplit.appendChild(tabs);
+  }
+
+  // vendor/workspace_core/src/ui/layout/workspace_leaf_actions.ts
+  function move_workspace_leaf(leaf, target, index, workspace = useService("workspace")) {
+    const source = leaf.parent;
+    const fixed_count = target.children.filter((child) => child !== leaf && child.state.workspace_pinned).length;
+    const next_index = leaf.state.workspace_pinned ? Math.min(index, fixed_count) : Math.max(index, fixed_count);
+    if (source === target) {
+      const old_index = target.children.indexOf(leaf);
+      if (old_index < 0) return;
+      target.children.splice(old_index, 1);
+      target.children.splice(next_index, 0, leaf);
+      const tab = target.tabHeader.getTabById(leaf.state.path);
+      const other_tabs = [...target.tabHeader.container.children].filter((child) => child !== tab);
+      const other_leaves = [...target.tabContentEl.children].filter((child) => child !== leaf.containerEl);
+      target.tabHeader.container.insertBefore(tab, other_tabs[next_index] || null);
+      target.tabContentEl.insertBefore(leaf.containerEl, other_leaves[next_index] || null);
+      target.getRoot().emit("layout-changed");
+    } else {
+      leaf.detach();
+      target.insertChild(next_index, leaf);
+    }
+    workspace.activeLeaf = target.toggleTab(leaf.state.path);
+  }
 
   // vendor/workspace_core/src/ui/components/pointer-drag.ts
   var session_key = Symbol.for("typora-code:pointer-drag");
@@ -1646,7 +2353,7 @@ var workspace_core_module = (() => {
   }
 
   // vendor/workspace_core/src/ui/components/draggable.ts
-  function draggable(container_el, direction, on_change) {
+  function draggable2(container_el, direction, on_change) {
     const doc = container_el.ownerDocument, marker = create_drop_marker(doc);
     let session;
     const on_pointer_down = (event) => {
@@ -1986,7 +2693,7 @@ var workspace_core_module = (() => {
         this.groupBottom = html`<div class="group bottom"></div>`
       );
       this.props.buttons.sort((a, b) => a.order - b.order).forEach((btn) => this.renderButton(btn));
-      draggable(this.groupTop, "y", () => {
+      draggable2(this.groupTop, "y", () => {
         const el = this.groupTop;
         Array.from(el.children).forEach((icon, i) => {
           const btn = this.props.buttons.find((btn2) => btn2.id === icon.dataset.id);
@@ -4653,36 +5360,6 @@ var workspace_core_module = (() => {
     }
   };
 
-  // vendor/workspace_core/src/ui/layout/workspace-node.ts
-  var WorkspaceNode = class extends Events {
-    parent = null;
-    containerEl;
-    resizeHandleEl;
-    constructor() {
-      super();
-      this.containerEl = $('<div class="typ-workspace-node">').append(this.resizeHandleEl = $('<hr class="typ-workspace-leaf-resize-handle">').on("mousedown", (e) => this.onResizeStart(e.originalEvent))[0])[0];
-    }
-    closest(type) {
-      let node = this;
-      while (node != null && node.type !== type) node = node.parent;
-      return node;
-    }
-    setParent(parent) {
-      this.parent = parent;
-    }
-    getRoot() {
-      return useService("workspace").rootSplit;
-    }
-    detach() {
-      this.parent?.removeChild(this);
-    }
-    onResizeStart(event) {
-      if (event.button === 0 && this.parent?.type === "split") {
-        this.parent.onChildResizeStart(this, event);
-      }
-    }
-  };
-
   // vendor/workspace_core/src/ui/layout/workspace-parent.ts
   var WorkspaceParent = class extends WorkspaceNode {
     children = [];
@@ -5006,25 +5683,8 @@ var workspace_core_module = (() => {
       if (!scroll_frame) scroll_frame = view.requestAnimationFrame(auto_scroll);
     };
     const move_local = (drag, target) => {
-      const { leaf, source_group, tab } = drag;
       drag.local_drop = true;
-      if (source_group === target.group) {
-        const old_index = source_group.children.indexOf(leaf);
-        if (old_index < 0 || old_index === target.index) return;
-        source_group.children.splice(old_index, 1);
-        source_group.children.splice(target.index, 0, leaf);
-        const tabs = [...source_group.tabHeader.container.children].filter((node) => node !== tab);
-        source_group.tabHeader.container.insertBefore(tab, tabs[target.index] || null);
-        const leaves = [...source_group.tabContentEl.children].filter((node) => node !== leaf.containerEl);
-        source_group.tabContentEl.insertBefore(leaf.containerEl, leaves[target.index] || null);
-        root.emit("layout-changed");
-      } else {
-        leaf.detach();
-        target.group.insertChild(target.index, leaf);
-        view.setTimeout(() => {
-          if (leaf.parent === target.group && target.group.containerEl.isConnected) workspace.activeLeaf = leaf;
-        });
-      }
+      move_workspace_leaf(drag.leaf, target.group, target.index, workspace);
     };
     const on_drop = (event) => {
       if (!has_transfer(event)) return;
@@ -5087,662 +5747,16 @@ var workspace_core_module = (() => {
     };
   }
 
-  // vendor/workspace_core/src/ui/layout/workspace-leaf.ts
-  var WorkspaceLeaf = class extends WorkspaceNode {
-    constructor(view, viewManager = useService("view-manager")) {
-      super();
-      this.viewManager = viewManager;
-      this.containerEl.classList.add("typ-workspace-leaf");
-      this.view = view;
-    }
-    type = "leaf";
-    state = {};
-    viewType;
-    view;
-    isLeaf() {
-      return true;
-    }
-    setState(state) {
-      const factory = this.viewManager.getViewCreatorByType(state.type);
-      this.state = state.state ?? {};
-      this.viewType = state.type;
-      this.view = factory(this, state);
-      this.containerEl.append(this.view.containerEl);
-      return this;
-    }
-    toJSON() {
-      return {
-        type: "leaf",
-        state: this.state
-      };
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/markdown-view/use-editing-tabs.ts
-  var useEditingTabs = memorize(() => {
-    let editingTabs = null;
-    return {
-      /**
-       * @tips Cannot be used outside the Workspace API; otherwise, `null` will be returned after the Workspace is disabled.
-       */
-      editingTabs() {
-        return editingTabs;
-      },
-      setEditingTabs(tabs) {
-        editingTabs = tabs;
-      },
-      isEditingTabs(tabs) {
-        return editingTabs === tabs;
-      },
-      isEditingSingleChildTabs() {
-        return editingTabs?.children.length === 1;
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/md-editor-mode.ts
-  var MdEditorMode = class _MdEditorMode {
-    constructor(workspace = useService("workspace")) {
-      this.workspace = workspace;
-    }
-    static getInstance = memorize(() => new _MdEditorMode());
-    contentEl = editor.writingArea.parentElement;
-    _parentTabs = null;
-    _resizeObserver = null;
-    handleSettingActiveLeaf = null;
-    enter(ctx) {
-      const { containerEl, leaf } = ctx;
-      containerEl.classList.add("mode-typora");
-      containerEl.innerHTML = '<object type="text/html" data="about:blank"></object>';
-      const { setEditingTabs } = useEditingTabs();
-      setEditingTabs(ctx.leaf.parent);
-      this.contentEl.classList.add("typ-workspace-binding");
-      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
-      this.contentEl.addEventListener("mousedown", this.handleSettingActiveLeaf = () => {
-        this.workspace.activeLeaf = leaf;
-      });
-      this._parentTabs = leaf.parent;
-      this.syncSize();
-      this.unregisterObserver();
-      this.registerObserver();
-    }
-    exit(ctx) {
-      ctx.containerEl.classList.remove("mode-typora");
-      ctx.containerEl.innerHTML = "";
-      this.contentEl.classList.remove("typ-workspace-binding");
-      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
-      this.unregisterObserver();
-    }
-    getScroll() {
-      return { scrollTop: this.contentEl.scrollTop };
-    }
-    applyScroll(state) {
-      this.contentEl.scrollTop = state.scrollTop;
-    }
-    registerObserver() {
-      this._resizeObserver = new ResizeObserver(() => this.syncSize());
-      if (this._parentTabs) {
-        this._resizeObserver.observe(this._parentTabs.tabContentEl);
-      }
-    }
-    unregisterObserver() {
-      this._resizeObserver?.disconnect();
-      this._resizeObserver = null;
-    }
-    syncSize() {
-      const parent = this._parentTabs;
-      if (!parent) return;
-      const { style } = document.body;
-      const targetEl = parent.tabContentEl;
-      const rect = targetEl.getBoundingClientRect();
-      style.setProperty("--typ-editor-top", rect.top + "px");
-      style.setProperty("--typ-editor-left", rect.left + "px");
-      style.setProperty("--typ-editor-width", rect.width + "px");
-      style.setProperty("--typ-editor-height", rect.height + "px");
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/markdown-view/md-previewer-mode.ts
-  var MdPreviewerMode = class {
-    constructor(mdRenderer = useService("markdown-renderer")) {
-      this.mdRenderer = mdRenderer;
-    }
-    _containerEl = null;
-    enter(ctx) {
-      const { containerEl, filePath } = ctx;
-      containerEl.classList.add("mode-previewer");
-      this._containerEl = containerEl;
-      filesystem_default.readText(filePath).then((md) => this.mdRenderer.renderTo(md, containerEl));
-    }
-    exit(ctx) {
-      ctx.containerEl.classList.remove("mode-previewer");
-      ctx.containerEl.innerHTML = "";
-      this._containerEl = null;
-    }
-    getScroll() {
-      return {
-        scrollTop: this._containerEl?.parentElement.scrollTop ?? 0
-      };
-    }
-    applyScroll(state) {
-      if (this._containerEl)
-        this._containerEl.parentElement.scrollTop = state.scrollTop;
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/markdown-view/use-preview-tab-to-swap.ts
-  var usePreviewTabToSwap = memorize(() => {
-    let previewTabToSwap = null;
-    return {
-      beginSwap(leaf) {
-        previewTabToSwap = leaf;
-      },
-      endSwap() {
-        previewTabToSwap = null;
-      },
-      previewFileToSwap() {
-        return previewTabToSwap?.state.path;
-      },
-      isPreviewFileToSwap(path2) {
-        return previewTabToSwap?.state.path === path2;
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/use-record.ts
-  var useRecord = memorize(() => {
-    return {
-      saveStateToLeaf(view) {
-        view.leaf.state = { ...view.leaf.state, ...view.getState() };
-      },
-      restoreStateFromLeaf(view) {
-        view.setState(view.leaf.state);
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts
-  var KEY_OPENFILE = Symbol.for("openFile$original");
-  var SwapCommand = class extends Component {
-    constructor(settings = useService("settings"), workspace = useService("workspace")) {
-      super();
-      this.settings = settings;
-      this.workspace = workspace;
-      const SETTING_KEY = "useAutoSwap";
-      if (settings.get(SETTING_KEY)) {
-        this.load();
-      }
-      settings.onChange(SETTING_KEY, (_, isEnabled) => {
-        isEnabled ? this.load() : this.unload();
-      });
-    }
-    execute(editorLeaf, previewLeaf) {
-      if (!this._loaded) return;
-      const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path;
-      const previewView = previewLeaf.view;
-      const writeEl = editor.writingArea.parentElement;
-      const { saveStateToLeaf, restoreStateFromLeaf } = useRecord();
-      const { beginSwap, endSwap } = usePreviewTabToSwap();
-      saveStateToLeaf(editorLeaf.view);
-      saveStateToLeaf(previewView);
-      editorLeaf.view.setMode("previewer");
-      beginSwap(previewLeaf);
-      this._hideEditor(writeEl);
-      this._setParent(previewLeaf);
-      this._openFile(previewLeaf.state.path);
-      const doSwap = () => {
-        previewView.setMode("typora");
-        this._syncEditorSize(previewView);
-        this._showEditor(writeEl);
-        setTimeout(() => {
-          restoreStateFromLeaf(editorLeaf.view);
-          restoreStateFromLeaf(previewView);
-          endSwap();
-        });
-      };
-      if (isSwappingSameFile) {
-        doSwap();
-      } else {
-        this.workspace.once("file:open", doSwap);
-      }
-    }
-    _hideEditor(writeEl) {
-      writeEl.style.display = "none";
-      writeEl.classList.remove("typ-deactive");
-    }
-    _setParent(previewLeaf) {
-      const { setEditingTabs } = useEditingTabs();
-      setEditingTabs(previewLeaf.parent);
-    }
-    _openFile(filePath) {
-      editor.library[KEY_OPENFILE](filePath);
-    }
-    _syncEditorSize(previewView) {
-      const mode = previewView._modeState;
-      mode.syncSize();
-    }
-    _showEditor(writeEl) {
-      writeEl.style.display = "";
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/markdown-view/index.ts
-  var KEY_OPENFILE2 = Symbol.for("openFile$original");
-  var MarkdownView = class _MarkdownView extends WorkspaceView {
-    constructor(leaf, workspace = useService("workspace"), mdEditor = useService("markdown-editor"), mdRenderer = useService("markdown-renderer")) {
-      super(leaf);
-      this.leaf = leaf;
-      this.workspace = workspace;
-      this.mdEditor = mdEditor;
-      this.mdRenderer = mdRenderer;
-    }
-    static type = "core.markdown";
-    /** @override */
-    containerEl = $('<div class="typ-markdown-view"></div>')[0];
-    _modeState = null;
-    _swapCommand = new SwapCommand();
-    get filePath() {
-      return this.leaf.state.path;
-    }
-    get _modeCtx() {
-      return {
-        filePath: this.filePath,
-        leaf: this.leaf,
-        containerEl: this.containerEl
-      };
-    }
-    /** @override */
-    onload() {
-      this.addChild(this._swapCommand);
-      setTimeout(() => this.autoSetMode());
-      this.register(
-        this.leaf.getRoot().on("layout-changed", () => this.autoSetMode())
-      );
-      this.registerDomEvent(this.containerEl, "mousedown", (e) => {
-        if (this.isEditor()) return;
-        if (e.target.closest("a")) return;
-        const { editingTabs } = useEditingTabs();
-        const editorLeaf = editingTabs()?.findLeaf(
-          (leaf) => leaf.viewType === _MarkdownView.type && leaf.view.isEditor()
-        );
-        if (!editorLeaf) return;
-        this._swapCommand.execute(editorLeaf, this.leaf);
-      });
-    }
-    isEditor() {
-      return this._modeState instanceof MdEditorMode;
-    }
-    /** @override */
-    getScroll() {
-      return this._modeState?.getScroll() ?? super.getScroll();
-    }
-    /** @override */
-    applyScroll(state) {
-      this._modeState?.applyScroll(state);
-    }
-    /** @private */
-    autoSetMode() {
-      const { editingTabs, isEditingTabs } = useEditingTabs();
-      if (!editingTabs() || isEditingTabs(this.leaf.parent)) {
-        this.setMode("typora");
-      } else {
-        this.setMode("previewer");
-      }
-    }
-    /** @override */
-    onOpen() {
-      this.autoSetMode();
-      const doRestore = () => {
-        const { restoreStateFromLeaf } = useRecord();
-        restoreStateFromLeaf(this);
-      };
-      if (this.isEditor()) {
-        editor.writingArea.parentElement.classList.remove("typ-deactive");
-        editor.library[KEY_OPENFILE2](this.filePath);
-        this.workspace.once("file:open", doRestore);
-      } else {
-        setTimeout(doRestore);
-      }
-    }
-    /** @override */
-    onClose() {
-      const { saveStateToLeaf } = useRecord();
-      saveStateToLeaf(this);
-      if (this.isEditor()) {
-        if (this.workspace.activeFile === this.filePath)
-          editor.writingArea.parentElement.classList.add("typ-deactive");
-        const { setEditingTabs, isEditingTabs, isEditingSingleChildTabs } = useEditingTabs();
-        if (isEditingTabs(this.leaf.parent)) {
-          this._modeState?.exit(this._modeCtx);
-          this._modeState = null;
-          if (isEditingSingleChildTabs()) {
-            setEditingTabs(null);
-            const nextMdLeaf = this.leaf.getRoot().findLeaf((leaf) => leaf.viewType === _MarkdownView.type && leaf !== this.leaf);
-            if (nextMdLeaf) nextMdLeaf.parent.activeLeaf.view.onOpen();
-          }
-        } else {
-          this._modeState = null;
-        }
-      } else {
-        this._modeState?.exit(this._modeCtx);
-        this._modeState = null;
-      }
-    }
-    /** @private */
-    setMode(mode) {
-      const prevMode = this._modeState;
-      if (prevMode instanceof MdEditorMode) {
-        this._modeCtx.containerEl.classList.remove("mode-typora");
-        this._modeCtx.containerEl.innerHTML = "";
-      } else {
-        prevMode?.exit(this._modeCtx);
-      }
-      this._modeState = mode === "typora" ? MdEditorMode.getInstance() : new MdPreviewerMode();
-      this._modeState.enter(this._modeCtx);
-      this.setIcon(mode === "typora" ? "fa-file-text-o" : "fa-file-text");
-    }
-    getState() {
-      const state = this.getScroll();
-      if (this.isEditor()) {
-        state.cursorOffset = this.mdEditor.selection.getCursor();
-      }
-      return state;
-    }
-    setState(state) {
-      requestAnimationFrame(() => {
-        if (state.scrollTop != null) {
-          this.applyScroll(state);
-        }
-        if (state.cursorOffset != null && this.isEditor()) {
-          this.mdEditor.selection.setCursor(state.cursorOffset);
-        }
-      });
-    }
-    getCodeMirrorInstance(cid) {
-      return this.isEditor() ? editor.fences.getCm(cid) : this.mdRenderer.getCodeMirrorInstance(cid);
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/empty-view.ts
-  var EmptyView = class extends WorkspaceView {
-    constructor(leaf, settings = useService("settings")) {
-      super(leaf);
-      this.settings = settings;
-    }
-    static type = "core.empty";
-    containerEl = html`<div></div>`;
-    onload() {
-      if (this.settings.get("useBlankNewTab")) return;
-      $(this.containerEl).addClass("typ-empty-view").empty().append(html`<div><div class="typ-empty-title"></div><div class="typ-empty-hotkey"></div></div>`);
-      setTimeout(() => {
-        const config = useService("config-repository");
-        const commands = useService("command-manager");
-        const { t } = useService("i18n");
-        const getHotky = (id) => commands.commandMap[id].hotkey?.split("+").map((k) => `<kbd>${k}</kbd>`).join("+") ?? "";
-        $(this.containerEl).find(".typ-empty-title").text(t.views.empty.noFile).end().find(".typ-empty-hotkey").append(html`<dl><dt>${t.commandModal.commandOpen}</dt><dd>${getHotky("command:open")}</dd></dl>`).append(html`<dl><dt>${t.ribbon.settingOfApp}</dt><dd><kbd>Ctrl</kbd>+<kbd>,</kbd></dd></dl>`);
-      });
-    }
-  };
-
-  // vendor/workspace_core/src/ui/layout/floating/theme.ts
-  function defaultTheme(containerEl) {
-    containerEl.classList.add("typ-theme-default");
-  }
-  function windowTheme(containerEl, title) {
-    containerEl.classList.add("typ-theme-window");
-    const titleBar = document.createElement("div");
-    titleBar.className = "typ-titlebar";
-    const iconEl = document.createElement("span");
-    iconEl.className = "typ-titlebar-icon";
-    iconEl.innerHTML = '<i class="fa fa-window-maximize"></i>';
-    const textEl = document.createElement("span");
-    textEl.className = "typ-titlebar-text";
-    textEl.textContent = title || "Floating View";
-    titleBar.appendChild(iconEl);
-    titleBar.appendChild(textEl);
-    containerEl.prepend(titleBar);
-  }
-
-  // vendor/workspace_core/src/ui/layout/floating/resizable.ts
-  function resizable(containerEl, options) {
-    const minWidth = options?.minWidth ?? 120;
-    const minHeight = options?.minHeight ?? 80;
-    const handle = document.createElement("div");
-    handle.className = "typ-floating-resize-handle";
-    const prevPosition = getComputedStyle(containerEl).position;
-    if (!["absolute", "fixed"].includes(prevPosition)) {
-      containerEl.style.position = "relative";
-    }
-    let startX = 0;
-    let startY = 0;
-    let startWidth = 0;
-    let startHeight = 0;
-    function onMouseMove(e) {
-      const width = Math.max(minWidth, startWidth + e.clientX - startX);
-      const height = Math.max(minHeight, startHeight + e.clientY - startY);
-      containerEl.style.width = `${width}px`;
-      containerEl.style.height = `${height}px`;
-    }
-    function onMouseUp() {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    }
-    function onHandleMouseDown(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      startX = e.clientX;
-      startY = e.clientY;
-      startWidth = containerEl.offsetWidth;
-      startHeight = containerEl.offsetHeight;
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    }
-    handle.addEventListener("mousedown", onHandleMouseDown);
-    containerEl.appendChild(handle);
-    return () => {
-      handle.removeEventListener("mousedown", onHandleMouseDown);
-      handle.remove();
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-  }
-
-  // vendor/workspace_core/src/ui/layout/floating/draggable.ts
-  function draggable2(containerEl, handleEl) {
-    const handle = handleEl ?? containerEl;
-    let startX = 0;
-    let startY = 0;
-    let startLeft = 0;
-    let startTop = 0;
-    function onMouseMove(e) {
-      containerEl.style.left = `${startLeft + e.clientX - startX}px`;
-      containerEl.style.top = `${startTop + e.clientY - startY}px`;
-    }
-    function onMouseUp() {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    }
-    function onHandleMouseDown(e) {
-      if (e.button !== 0) return;
-      const rect = containerEl.getBoundingClientRect();
-      startX = e.clientX;
-      startY = e.clientY;
-      startLeft = rect.left;
-      startTop = rect.top;
-      if (!containerEl.style.position || !["fixed", "absolute"].includes(containerEl.style.position)) {
-        containerEl.style.position = "fixed";
-      }
-      containerEl.style.left = `${rect.left}px`;
-      containerEl.style.top = `${rect.top}px`;
-      containerEl.style.right = "";
-      containerEl.style.bottom = "";
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
-    }
-    handle.addEventListener("mousedown", onHandleMouseDown);
-    return () => {
-      handle.removeEventListener("mousedown", onHandleMouseDown);
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
-    };
-  }
-
-  // vendor/workspace_core/src/ui/layout/floating/closable.ts
-  function closable(containerEl, onClose) {
-    const closeBtn = document.createElement("div");
-    closeBtn.className = "typ-floating-close";
-    closeBtn.innerHTML = `<i class="typ-icon typ-close"></i>`;
-    function onClick(e) {
-      e.stopPropagation();
-      onClose();
-    }
-    closeBtn.addEventListener("click", onClick);
-    containerEl.appendChild(closeBtn);
-    return () => {
-      closeBtn.removeEventListener("click", onClick);
-    };
-  }
-
-  // vendor/workspace_core/src/ui/layout/workspace-utils.ts
-  function createUntitledTabs() {
-    const tabs = useService("workspace-tabs");
-    tabs.appendChild(createEditorLeaf(""));
-    tabs.once("tab:toggle", () => tabs.removeTab(""));
-    return tabs;
-  }
-  function createTabs(path2) {
-    const workspace = useService("workspace");
-    const tabs = useService("workspace-tabs");
-    const newLeaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
-    tabs.appendChild(newLeaf);
-    workspace.activeLeaf = newLeaf;
-    return tabs;
-  }
-  function openFileInActiveTabs(file) {
-    const workspace = useService("workspace");
-    const activeTabs = workspace.activeLeaf?.parent;
-    if (activeTabs.findLeaf((leaf) => leaf.state.path === file)) {
-      workspace.activeLeaf = activeTabs.toggleTab(file);
-      return;
-    }
-    activeTabs.appendChild(createEditorLeaf(file));
-    workspace.activeLeaf = activeTabs.activeLeaf;
-  }
-  function createLeaf(state) {
-    const leaf = new WorkspaceLeaf();
-    if (state) leaf.setState(state);
-    return leaf;
-  }
-  function createEditorLeaf(filePath) {
-    return createLeaf({
-      type: MarkdownView.type,
-      state: {
-        path: filePath
-      }
-    });
-  }
-  var RE_TYPE = /^typ:\/\/([^/]+)/;
-  function createCustomLeaf(path2) {
-    const type = (path2.match(RE_TYPE) ?? [])[1];
-    if (!type) throw Error(`View "${type}" has not registered.`);
-    return createLeaf({
-      type,
-      state: {
-        path: path2
-      }
-    });
-  }
-  function createEmptyLeaf() {
-    return createLeaf({
-      type: EmptyView.type,
-      state: {
-        path: uniqueId(`typ://${EmptyView.type}/`) + "/New tab"
-      }
-    });
-  }
-  function splitRight(path2) {
-    split("vertical", path2);
-  }
-  function splitDown(path2) {
-    split("horizontal", path2);
-  }
-  function split(direction, path2) {
-    const workspace = useService("workspace");
-    const previousTabs = workspace.activeLeaf?.closest("tabs");
-    const parentSplit = previousTabs?.closest("split");
-    if (parentSplit.direction === direction)
-      parentSplit.appendChild(createTabs(path2));
-    else {
-      const newSplit = useService("workspace-split", [direction]);
-      parentSplit.replaceChild(previousTabs, newSplit);
-      newSplit.appendChild(previousTabs);
-      newSplit.appendChild(createTabs(path2));
-    }
-  }
-  function ensureRightSidedockLeaf(uri) {
-    const workspace = useService("workspace");
-    const type = (uri.match(RE_TYPE) ?? [])[1];
-    const existing = workspace.rightSplit.findLeaf((leaf2) => leaf2.type === type);
-    if (existing) return;
-    const tabs = useService("workspace-tabs");
-    const leaf = createCustomLeaf(uri);
-    tabs.appendChild(leaf);
-    workspace.rightSplit.appendChild(tabs);
-  }
-  function openFloatingLeaf(arg0) {
-    const workspace = useService("workspace");
-    const tabs = useService("workspace-tabs");
-    const leaf = typeof arg0 === "string" ? createCustomLeaf(arg0) : arg0;
-    const { view, state } = leaf;
-    const { containerEl } = view;
-    let titlebar;
-    containerEl.classList.add("typ-workspace-floating");
-    decorate.afterCall(view, "onload", () => {
-      state.theme === "default" && defaultTheme(containerEl);
-      state.theme === "window" && (windowTheme(containerEl, state.path.split("/").pop()), titlebar = containerEl.querySelector(".typ-titlebar"));
-      state.resizable && view.register(resizable(containerEl));
-      state.draggable && view.register(draggable2(containerEl, titlebar));
-      state.onClose && view.register(closable(titlebar ?? containerEl, state.onClose));
-    });
-    tabs.appendChild(leaf);
-    workspace.floatingSplit.appendChild(tabs);
-  }
-
   // vendor/workspace_core/src/ui/layout/tabs/contextmenu.ts
-  function onTabsContextMenu(root, i18n = useService("i18n"), workspace = useService("workspace")) {
-    const { t } = i18n;
-    const menu = new Menu();
+  function onTabsContextMenu(root) {
     return function(event) {
-      const $tabEl = $(event.target).closest(".typ-tab");
-      if (!$tabEl.length) return;
-      const clickedTabPath = $tabEl.data("id");
-      const tabsEl = $tabEl.closest(".typ-workspace-tabs")[0];
-      const tabs = root.findNode((n) => n.containerEl === tabsEl);
-      menu.empty().addItem((item) => {
-        item.setKey("removeTab").setTitle(t.tabview.close).onClick(() => tabs.removeTab(clickedTabPath));
-      }).addItem((item) => {
-        item.setKey("removeOthers").setTitle(t.tabview.closeOthers).onClick(() => {
-          workspace.activeLeaf = tabs.removeOthers(clickedTabPath);
-        });
-      }).addItem((item) => {
-        item.setKey("removeRight").setTitle(t.tabview.closeRight).onClick(() => {
-          workspace.activeLeaf = tabs.removeRight(clickedTabPath);
-        });
-      });
-      if (tabs.children.length > 1) {
-        menu.addSeparator().addItem((item) => {
-          item.setKey("splitRight").setTitle(t.tabview.splitRight).onClick(() => {
-            tabs.removeTab(clickedTabPath);
-            setTimeout(() => splitRight(clickedTabPath), 167);
-          });
-        }).addItem((item) => {
-          item.setKey("splitDown").setTitle(t.tabview.splitDown).onClick(() => {
-            tabs.removeTab(clickedTabPath);
-            setTimeout(() => splitDown(clickedTabPath), 167);
-          });
-        });
-      }
-      menu.showAtMouseEvent(event);
+      const tab = event.target instanceof Element ? event.target.closest(".typ-tab[data-id]") : null;
+      if (!tab) return;
+      const group = root.findNode((node) => node.containerEl === tab.closest(".typ-workspace-tabs"));
+      const leaf = group?.children.find((child) => child.state.path === tab.dataset.id);
+      if (!leaf) return;
+      event.preventDefault();
+      document.dispatchEvent(new CustomEvent("typora-code:tab-context-menu", { detail: { leaf, event } }));
     };
   }
 
@@ -5781,7 +5795,7 @@ var workspace_core_module = (() => {
           }
         }).get(0)
       );
-      if (props.draggable) draggable(this.containerEl, "x");
+      if (props.draggable) draggable2(this.containerEl, "x");
     }
     container;
     showTab(tabEl) {
@@ -7389,6 +7403,8 @@ ${doc.documentElement.outerHTML}`;
       $(this.containerEl).addClass("typ-workspace-tabs").append(this.tabHeader.containerEl).append(this.tabContentEl = $('<div class="typ-workspace-tab-content">')[0]);
     }
     insertChild(index, child) {
+      const fixed_count = this.children.filter((leaf) => leaf.state.workspace_pinned).length;
+      index = child.state.workspace_pinned ? Math.min(index, fixed_count) : Math.max(index, fixed_count);
       this.tabHeader.insertTab(index, child.state.path ? new FileTab(child.state.path) : new UntitledTab());
       super.insertChild(index, child);
       this.toggleTab(child.state.path);

@@ -351,3 +351,15 @@ R029：鼠标移入顶栏搜索时保留中性背景及原主题文字颜色，�
 隔离原生Typora1.14.10最终七项通过，结果和已检查的截图位于 `.cache/native_zoom_1_14_10/titlebar_search_native_final_20260913/`，包含实际主题变量、整框命中、可见焦点、真实搜索打开／取消、125%缩放及正文字节保持。原生使用DOM激活和实际计算样式；真实Chromium指针及键盘序列由Electron夹具覆盖，不冒充物理鼠标人工验收。原生检查发现自定义属性直接写inherit并不能传递颜色，已改为引用 `--tc-title-fg` 并增加不同于默认色的夹具；高DPI轮廓按实际可见性及亚像素精度核对。宿主拒绝额外调试启动参数的早期尝试保留为失败证据，最终使用原有普通启动／文件RPC入口，未修改ASAR。
 
 本次从 `ae30dff` 独立构建并事务安装，安装后检查OK；原程序、原生图标、偏好、工作区设置和主题摘要全部不变，保留配置备份，未重启用户窗口。证据为 `.cache/titlebar_search_install_20260913.log`、`titlebar_search_install_check_20260913.log`、`titlebar_search_install_verification_20260913.json` 和 `titlebar_search_release_20260913.json`。R009系统文件剪贴板原差量及其他未完成项保持独立状态。
+
+## 2026-09-13 文档标签右键菜单
+
+R030按固定VS Code 1.137.0源码完善文档标签菜单：关闭其他／右侧／已保存／全部，路径与面包屑复制、文件定位、Markdown预览／重新打开、保持打开／固定、四方向分屏与相邻组移动、移动／复制到新窗口。菜单绑定右键目标，批量关闭仅作用于所属组且保留固定项，取消或保存失败停止后续关闭。使用与能力边界见[标签菜单](editor_tab_menu.md)。
+
+同窗源码副本共享Monaco模型、格式及保存基线，另存为同步全部路径；关闭最后一个副本才释放草稿。Markdown分屏使用当前原生内存并订阅编辑更新。原生保存等待实际写盘结果，放弃修改重新加载磁盘。原生复查发现已经加载的同一Markdown重激活后不会再发`file:open`，旧等待使保存超时；现按当前路径及实际加载状态决定等待，后台已加载文档也覆盖该路径。测试夹具曾提前恢复保存接口造成一次误报，已修正恢复顺序，原失败日志保留。
+
+最终构建与完整 `npm run check` 通过，日志为 `.cache/tab_menu_release_20260913/enhancements/build_tab_menu_final.log` 和 `check_tab_menu_verified.log`。文档动作28项与启动12组最终通过（`ui_tab_menu_save_final.log`）；相关源码编辑、关闭保护、快捷键、标签控件、核心、文档移交和原生标签拖动目标通过，早期相关日志为该发布目录的 `ui_tab_menu.log`、`ui_tab_menu_final.log`，后者的启动夹具失败由最终启动日志替代。跨窗测试通过真实双renderer的复制不释放、确认后移动及失败／取消保护；保留原接收确认与来源身份复查。
+
+最终隔离Typora1.14.10通过18项，包含后台右键、实际保存／放弃／取消、编辑方式切换、当前内存分屏、实时预览及固定图标，证据 `.cache/native_zoom_1_14_10/tab_menu_native_verified_20260913/checks.json`。菜单截图已检查。原生使用私有桌面、原ASAR、隔离文档、宿主API和DOM动作；实际Chromium指针与键盘由Electron测试覆盖，未冒充物理设备人工验收。未验证Linux／macOS原生环境。
+
+最终构建已事务安装，安装后检查OK，ASAR、应用图标、原生偏好、工作台设置和主题摘要不变。日志为 `.cache/tab_menu_install_20260913.log`、`tab_menu_install_check_20260913.log` 和 `tab_menu_install_verification_20260913.json`；用户窗口未重启，保存后正常重启载入。R009系统文件剪贴板的18项原工作区差量独立保留，未带入本次安装。Share、Chat／Codex及语言服务引用提供者仍属于未接入能力，不以无效菜单冒充实现。

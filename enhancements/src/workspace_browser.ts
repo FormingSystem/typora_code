@@ -1,3 +1,4 @@
+import {bind_workspace_editor_actions} from "./workspace_editor_actions";
 import {read_workspace_sidebar_state} from "./workspace_view_state";
 import {bind_workspace_native_toolbar} from "./workspace_native_toolbar";
 import {bind_workspace_preferences} from "./workspace_preferences";
@@ -88,7 +89,8 @@ export function bind_workspace_browser() {
   const sidebar=core.app.workspace.sidebar as unknown as {isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}};
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");
   if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
-  lifetime.own(bind_workspace_detached_window(files));
+  const detached=lifetime.own(bind_workspace_detached_window(files));
+  lifetime.own(bind_workspace_editor_actions(files,detached));
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
   return{files,explorer,search,dispose(){files.assert_can_dispose();lifetime.dispose();}};

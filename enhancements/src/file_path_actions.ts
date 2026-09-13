@@ -18,9 +18,7 @@ export function bind_file_path_actions(): () => void {
   let disposed = false;
   const controller = new AbortController();
   const cleanups: (() => void)[] = [];
-  const timers = new Set<number>();
   const owned_items = new Set<Element>();
-  const menu_geometry = new Map<HTMLElement, { top: string; left: string; owned_top: string; owned_left: string }>();
   const previous_ready = document.documentElement.getAttribute("data-linux-note-copy-path");
   const collect = (value: unknown) => { if (typeof value === "function") cleanups.push(value as () => void); };
   const api = runtime.reqnode("path");
@@ -85,24 +83,6 @@ export function bind_file_path_actions(): () => void {
     }
   };
   collect(app.workspace.on("file-menu", ({ menu, path }) => add_items(menu.containerEl, path)));
-  // 标签菜单没有扩展事件；在根布局完成菜单重建后，向该菜单追加两个条目。
-  document.addEventListener("contextmenu", (event) => {
-    const tab = event.target instanceof Element ? event.target.closest<HTMLElement>(".typ-tab") : null;
-    if (!tab) return;
-    const menu = Array.from(document.querySelectorAll<HTMLElement>(".context-menu"))
-      .find((candidate) => candidate.querySelector('[data-key="removeTab"]'));
-    if (!menu) return;
-    add_items(menu, tab.getAttribute("data-id") ?? "");
-    const timer = window.setTimeout(() => {
-      timers.delete(timer); if (disposed) return;
-      const previous = menu_geometry.get(menu) ?? { top: menu.style.top, left: menu.style.left, owned_top: "", owned_left: "" };
-      const bounds = menu.getBoundingClientRect();
-      menu.style.top = Math.max(0, Math.min(bounds.top, window.innerHeight - bounds.height - 4)) + "px";
-      menu.style.left = Math.max(0, Math.min(bounds.left, window.innerWidth - bounds.width - 4)) + "px";
-      previous.owned_top = menu.style.top; previous.owned_left = menu.style.left; menu_geometry.set(menu, previous);
-    }, 0);
-    timers.add(timer);
-  }, { signal: controller.signal });
   // 原生文件菜单在 mousedown 时执行动作。接管整个按钮手势，防止宿主提前关闭菜单或移动正文光标。
   for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
     document.addEventListener(name, (event) => {
@@ -117,14 +97,9 @@ export function bind_file_path_actions(): () => void {
   document.documentElement.setAttribute("data-linux-note-copy-path", "ready");
   const dispose = () => {
     if (disposed) return;
-    disposed = true; controller.abort(); for (const timer of timers) clearTimeout(timer); timers.clear();
+    disposed = true; controller.abort();
     for (const cleanup of cleanups.reverse()) cleanup();
     for (const item of owned_items) item.remove(); owned_items.clear();
-    for (const [menu, previous] of menu_geometry) {
-      if (menu.style.top === previous.owned_top) menu.style.top = previous.top;
-      if (menu.style.left === previous.owned_left) menu.style.left = previous.left;
-    }
-    menu_geometry.clear();
     if (previous_ready === null) document.documentElement.removeAttribute("data-linux-note-copy-path");
     else document.documentElement.setAttribute("data-linux-note-copy-path", previous_ready);
     if (active_dispose === dispose) active_dispose = undefined;

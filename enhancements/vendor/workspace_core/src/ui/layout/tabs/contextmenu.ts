@@ -1,77 +1,15 @@
-import { useService } from "src/common/service"
-import { Menu } from "src/ui/components/menu"
 import type { WorkspaceRoot } from "../workspace-root"
 import type { WorkspaceTabs } from "."
-import { splitDown, splitRight } from "../workspace-utils"
 
-
-export function onTabsContextMenu(
-  root: WorkspaceRoot,
-  i18n = useService('i18n'),
-  workspace = useService('workspace'),
-) {
-
-  const { t } = i18n
-
-  const menu = new Menu()
-
+// 文档菜单由工作台动作服务管理，核心仅提供精确的右键叶子身份。
+export function onTabsContextMenu(root: WorkspaceRoot) {
   return function (event: MouseEvent) {
-    const $tabEl = $(event.target!).closest('.typ-tab')
-
-    if (!$tabEl.length) return
-
-    const clickedTabPath = $tabEl.data('id')
-    const tabsEl = $tabEl.closest('.typ-workspace-tabs')[0]
-    const tabs = root.findNode(n => n.containerEl === tabsEl) as WorkspaceTabs
-
-    menu
-      .empty()
-      .addItem(item => {
-        item
-          .setKey('removeTab')
-          .setTitle(t.tabview.close)
-          .onClick(() => tabs.removeTab(clickedTabPath))
-      })
-      .addItem(item => {
-        item
-          .setKey('removeOthers')
-          .setTitle(t.tabview.closeOthers)
-          .onClick(() => {
-            workspace.activeLeaf = tabs.removeOthers(clickedTabPath)
-          })
-      })
-      .addItem(item => {
-        item
-          .setKey('removeRight')
-          .setTitle(t.tabview.closeRight)
-          .onClick(() => {
-            workspace.activeLeaf = tabs.removeRight(clickedTabPath)
-          })
-      })
-
-    if (tabs.children.length > 1) {
-      menu
-        .addSeparator()
-        .addItem(item => {
-          item
-            .setKey('splitRight')
-            .setTitle(t.tabview.splitRight)
-            .onClick(() => {
-              tabs.removeTab(clickedTabPath)
-              setTimeout(() => splitRight(clickedTabPath), 167)
-            })
-        })
-        .addItem(item => {
-          item
-            .setKey('splitDown')
-            .setTitle(t.tabview.splitDown)
-            .onClick(() => {
-              tabs.removeTab(clickedTabPath)
-              setTimeout(() => splitDown(clickedTabPath), 167)
-            })
-        })
-    }
-
-    menu.showAtMouseEvent(event)
+    const tab = event.target instanceof Element ? event.target.closest<HTMLElement>('.typ-tab[data-id]') : null
+    if (!tab) return
+    const group = root.findNode(node => node.containerEl === tab.closest('.typ-workspace-tabs')) as WorkspaceTabs | undefined
+    const leaf = group?.children.find(child => child.state.path === tab.dataset.id)
+    if (!leaf) return
+    event.preventDefault()
+    document.dispatchEvent(new CustomEvent('typora-code:tab-context-menu', {detail: {leaf, event}}))
   }
 }

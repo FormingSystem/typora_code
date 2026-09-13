@@ -8,7 +8,8 @@ const WINDOW_ANCHOR_PREFIX = "#typora-code-window-";
 const CHANNEL_PREFIX = "typora-code:tab-transfer:";
 const TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const TRANSFER_TIMEOUT_MS = 25000;
-const bindings = new WeakMap<object, {dispose(): void}>();
+export type detached_window_binding = {open(leaf:graph_leaf,copy?:boolean):void;dispose():void};
+const bindings = new WeakMap<object, detached_window_binding>();
 type transfer_snapshot = Awaited<ReturnType<workspace_file_host["capture_transfer"]>>;
 type transfer_target = {group: graph_leaf["parent"]; index: number};
 type transfer_message = {kind: "ready" | "payload" | "accepted" | "committed" | "retained" | "error" | "cancel"; peer_id: string; snapshot?: transfer_snapshot; error?: string};
@@ -68,7 +69,7 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
     await runtime.JSBridge.invoke("window.close");
   };
 
-  const start_sender = (leaf: graph_leaf, token: string) => {
+  const start_sender = (leaf: graph_leaf, token: string, copy = false) => {
     if (disposed || pending_leaves.has(leaf) || senders.has(token) || !owns_leaf(leaf)) return;
     let channel: channel_like;
     try { channel = make_channel(CHANNEL_PREFIX + token); } catch (error) { report(error); return; }
@@ -112,6 +113,7 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
         accepted = true;
         void (async () => {
           const snapshot = await capture(); if (finished) return;
+          if(copy){post("committed");finish();return;}
           const released = await files.release_transfer(leaf, snapshot, controller.signal);
           if (finished) return;
           post(released ? "committed" : "retained"); finish();
@@ -208,7 +210,9 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
     if (!initial_leaf) files.core.app.workspace.eachLeaves(leaf => { initial_leaf ||= leaf; });
     if (initial_leaf) receive(initial_token, {group: initial_leaf.parent, index: 0});
   }
-  const binding = {dispose() {
+  const binding:detached_window_binding = {open(leaf,copy=false){
+    const token=crypto.randomUUID();start_sender(leaf,token,copy);senders.get(token)?.detach();
+  },dispose() {
     if (disposed) return; disposed = true;
     document.removeEventListener("typora-code:tab-drag-start", drag_start);
     document.removeEventListener("typora-code:tab-drop", drop);
