@@ -1,3 +1,4 @@
+import {bind_workspace_zoom_status} from "./workspace_zoom_status";
 import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
 import {bind_workspace_editor_actions} from "./workspace_editor_actions";
 import {read_workspace_sidebar_state} from "./workspace_view_state";
@@ -87,6 +88,7 @@ export function bind_workspace_browser() {
   };
   lifetime.listen(window,"keydown",explorer_shortcut as EventListener,true);
   lifetime.own(install_workspace_footer());
+  lifetime.own(bind_workspace_zoom_status(core.app,window as any));
   lifetime.own(install_workspace_sidebar_sash({sidebar:core.app.workspace.sidebar,save_width:width=>(window as unknown as {JSBridge:{putSetting(key:string,value:number):void}}).JSBridge.putSetting("sidebar-width",width)}));
   const sidebar=core.app.workspace.sidebar as unknown as {isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}};
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");

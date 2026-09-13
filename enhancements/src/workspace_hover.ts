@@ -3,10 +3,10 @@ import {acquire_workspace_hover_surface} from "./workspace_hover_surface";
 export type workspace_hover_target = {
   anchor:HTMLElement; label:string;
   /** 触发目标与需要避开的完整操作区域独立；未声明时避开目标自身。 */
-  layout_anchor?:HTMLElement; compact?:boolean; show_pointer?:boolean;
+  layout_anchor?:HTMLElement; compact?:boolean; show_pointer?:boolean; preferred_side?:"above";
   render(content:HTMLElement,signal:AbortSignal):void;
 };
-export type workspace_hover_options = {delay_ms?:number;hide_delay_ms?:number;grouped?:boolean};
+export type workspace_hover_options = {delay_ms?:number;hide_delay_ms?:number;grouped?:boolean;interactive?:boolean};
 let hover_sequence=0;
 
 /** 展示层拥有延迟、焦点、屏幕边界与取消信号；内容和异步数据由调用方拥有。 */
@@ -22,6 +22,8 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
     if(current&&tip){if(description===null)current.anchor.removeAttribute("aria-describedby");else current.anchor.setAttribute("aria-describedby",description);}
     tip?.remove();pointer?.remove();tip=undefined;pointer=undefined;current=undefined;
   };
+  // 恢复入口焦点时禁止focusin再启动悬停，覆盖Esc与调用方取消。
+  const hide_with_focus=(restore?:()=>void)=>{hide();if(!restore)return;restoring_focus=true;try{restore();}finally{restoring_focus=false;}};
   const place=()=>{
     if(!tip||!current)return;
     const layout_anchor=current.layout_anchor||current.anchor;
@@ -41,7 +43,7 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
       {side:"left",left:edge,top:edge,right:Math.min(right,avoid.left-gap),bottom},
       {side:"below",left:edge,top:Math.max(edge,avoid.bottom+gap),right,bottom},
       {side:"above",left:edge,top:edge,right,bottom:Math.min(bottom,avoid.top-gap)},
-    ].map(area=>({...area,width:area.right-area.left,height:area.bottom-area.top}))
+    ].sort((left,right)=>Number(right.side===current!.preferred_side)-Number(left.side===current!.preferred_side)).map(area=>({...area,width:area.right-area.left,height:area.bottom-area.top}))
       .filter(area=>area.width>=min_width&&area.height>=min_height);
     if(!areas.length)return hide();
     const score=(area:typeof areas[number])=>Math.min(area.width,natural.width)*Math.min(area.height,natural.height);
@@ -62,18 +64,16 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
   // 尺寸通知只合并安排下一帧，避免在观察器交付期间反向改变被观察对象。
   const observer=new ResizeObserver(()=>{if(!layout_frame)layout_frame=requestAnimationFrame(()=>{layout_frame=0;place();});});
   const inside=(node:EventTarget|null)=>node instanceof Node&&(Boolean(current?.anchor.contains(node))||Boolean(tip?.contains(node)));
-  const leave=()=>{if(!tip)return hide();keep();close_timer=window.setTimeout(hide,hide_delay_ms);};
-  const enter=(event:Event)=>{
-    if(restoring_focus||!(event.target instanceof Element))return;
-    const target=resolve(event.target);if(!target)return;
-    if(current?.anchor===target.anchor){keep();return;}
-    // 同一绑定可声明为一个悬停组；仅已显示卡片之间即时切换，离开后重新等待。
-    const immediate=options.grouped&&Boolean(tip);
+  const leave=()=>{if(!tip)return hide();if(options.interactive&&tip.contains(document.activeElement))return;keep();close_timer=window.setTimeout(hide,hide_delay_ms);};
+  const show_target=(target:workspace_hover_target,immediate=false)=>{
+    if(current?.anchor===target.anchor&&(!immediate||tip)){keep();return tip;}
+    // 同一绑定可声明为一个悬停组；点击入口则立即显示同一浮层。
+    immediate=immediate||Boolean(options.grouped&&tip);
     hide();current=target;
     const show=()=>{
       if(current!==target||!target.anchor.isConnected)return hide();
       session=new AbortController();tip=document.createElement("div");tip.className="workspace-hover-surface";
-      tip.id="workspace-hover-"+(++hover_sequence);tip.setAttribute("role","tooltip");tip.setAttribute("aria-label",target.label);
+      tip.id="workspace-hover-"+(++hover_sequence);tip.setAttribute("role",options.interactive?"dialog":"tooltip");tip.setAttribute("aria-label",target.label);
       description=target.anchor.getAttribute("aria-describedby");target.anchor.setAttribute("aria-describedby",[description,tip.id].filter(Boolean).join(" "));
       tip.classList.toggle("workspace-hover-compact",target.compact===true);
       document.body.append(tip);
@@ -89,14 +89,19 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
       tip.addEventListener("focusout",event=>{if(!inside(event.relatedTarget))leave();},{signal:session.signal});
     };
     if(immediate)show();else timer=window.setTimeout(show,delay_ms);
+    return tip;
+  };
+  const enter=(event:Event)=>{
+    if(restoring_focus||!(event.target instanceof Element))return;
+    const target=resolve(event.target);if(target)show_target(target);
   };
   container.addEventListener("pointerover",enter,{signal:events.signal});container.addEventListener("focusin",enter,{signal:events.signal});
   container.addEventListener("pointerout",event=>{if(!inside(event.relatedTarget))leave();},{signal:events.signal});
   container.addEventListener("focusout",event=>{if(!inside(event.relatedTarget))leave();},{signal:events.signal});
-  document.addEventListener("pointerdown",event=>{if(!(event.target instanceof Node&&tip?.contains(event.target)))hide();},{capture:true,signal:events.signal});
+  document.addEventListener("pointerdown",event=>{if(options.interactive&&tip)return;if(!(event.target instanceof Node&&tip?.contains(event.target)))hide();},{capture:true,signal:events.signal});
   document.addEventListener("scroll",event=>{if(!(event.target instanceof Node&&tip?.contains(event.target)))hide();},{capture:true,signal:events.signal});
-  document.addEventListener("keydown",event=>{if(event.key==="Escape"&&current){const anchor=current.anchor,restore=tip?.contains(document.activeElement);hide();if(restore){restoring_focus=true;anchor.focus({preventScroll:true});restoring_focus=false;}}},{capture:true,signal:events.signal});
-  window.addEventListener("resize",hide,{signal:events.signal});window.addEventListener("blur",hide,{signal:events.signal});
+  document.addEventListener("keydown",event=>{if((!options.interactive||!tip)&&event.key==="Escape"&&current){const anchor=current.anchor,restore=tip?.contains(document.activeElement);hide_with_focus(restore?()=>anchor.focus({preventScroll:true}):undefined);}},{capture:true,signal:events.signal});
+  window.addEventListener("resize",options.interactive?place:hide,{signal:events.signal});window.addEventListener("blur",hide,{signal:events.signal});
   const nodes=new MutationObserver(()=>{if(current&&(!current.anchor.isConnected||current.layout_anchor&&!current.layout_anchor.isConnected))hide();});nodes.observe(container,{childList:true,subtree:true});
-  return {hide,dispose(){hide();events.abort();nodes.disconnect();style.remove();}};
+  return {hide:hide_with_focus,show:(target:workspace_hover_target)=>show_target(target,true),reposition:place,dispose(){hide();events.abort();nodes.disconnect();style.remove();}};
 }
