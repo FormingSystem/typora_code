@@ -1,6 +1,6 @@
 /** 临时界面共用焦点快照；原生编辑器只在本文档、编辑组仍有效时恢复选区。 */
 export type workspace_focus_snapshot={restore():void};
-export type workspace_escape_layer={dispose():void;is_top():boolean;owns_focus():boolean};
+export type workspace_dismiss_layer={dispose():void;is_top():boolean;owns_focus():boolean};
 const active_element=():Element|null=>{let node=document.activeElement;while(node?.shadowRoot?.activeElement)node=node.shadowRoot.activeElement;return node;};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 const within=(root:Element,node:Element|null):boolean=>{for(let current=node;current;current=parent_element(current))if(root===current)return true;return false;};
@@ -34,18 +34,27 @@ export function capture_workspace_focus(fallback?:HTMLElement):workspace_focus_s
   }};
 }
 
-type escape_record={roots:()=>Element[];cancel:()=>void};
-type escape_service={add(record:escape_record):workspace_escape_layer};
-const service_key=Symbol.for('typora-code:workspace-escape');
-/** 核心包和工作台包共享窗口级退出栈，每次按下/释放只归最上层所有者。 */
-export function register_workspace_escape(roots:()=>Element[],cancel:()=>void):workspace_escape_layer{
-  const runtime=window as unknown as {[key:symbol]:escape_service|undefined};
+
+export type workspace_dismiss_reason='escape'|'outside'|'focus-out'|'window-blur';
+type dismissal_options={inside?:()=>Element[];outside?:boolean;focus_out?:boolean;window_blur?:boolean};
+type dismiss_record={roots:()=>Element[];cancel:(reason:workspace_dismiss_reason)=>void;options:dismissal_options;focused:boolean};
+type dismiss_service={add(record:dismiss_record):workspace_dismiss_layer};
+const service_key=Symbol.for('typora-code:workspace-dismissal');
+/** 核心与工作台共用退出栈。一次按键或指针手势只取消当时最上层，不抢外部目标焦点。 */
+export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:workspace_dismiss_reason)=>void,options:dismissal_options={}):workspace_dismiss_layer{
+  const runtime=window as unknown as {[key:symbol]:dismiss_service|undefined};
   if(!runtime[service_key]){
-    const stack:escape_record[]=[];let pending:escape_record|undefined,listening=false;
+    const stack:dismiss_record[]=[];
+    let pending:dismiss_record|undefined,listening=false,dismissing=false;
+    let gesture:{owner:dismiss_record|undefined;button:number;pointer:boolean;dismissed:boolean}|undefined;
     const top=()=>stack.findLast(record=>record.roots().some(visible));
+    const inside=(record:dismiss_record,node:Element|null)=> (record.options.inside?.()||record.roots()).some(root=>within(root,node));
     const consume=(event:KeyboardEvent)=>{event.preventDefault();event.stopImmediatePropagation();};
-    const cleanup=()=>{if(!stack.length&&!pending&&listening){listening=false;window.removeEventListener('keydown',keydown,true);window.removeEventListener('keyup',keyup,true);window.removeEventListener('blur',blur);}};
+    const cancel_record=(record:dismiss_record,reason:workspace_dismiss_reason)=>{if(dismissing)return;dismissing=true;try{record.cancel(reason);}finally{dismissing=false;}};
+    const handlers:Record<string,EventListener>={keydown:event=>keydown(event as KeyboardEvent),keyup:event=>keyup(event as KeyboardEvent),pointerdown:event=>down(event as MouseEvent,true),mousedown:event=>down(event as MouseEvent,false),mouseup:()=>finish(),pointercancel:()=>finish(),focusin:()=>focus_changed(),focusout:()=>focus_changed(),blur:()=>blur()};
+    const cleanup=()=>{if(!stack.length&&!pending&&!gesture&&listening){listening=false;for(const [name,handler]of Object.entries(handlers))window.removeEventListener(name,handler,name!=='blur');}};
     const keydown=(event:KeyboardEvent)=>{
+      gesture=undefined;
       if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
       if(pending){consume(event);return;}
       const owner=top();if(!owner)return;consume(event);if(!event.repeat)pending=owner;
@@ -53,13 +62,34 @@ export function register_workspace_escape(roots:()=>Element[],cancel:()=>void):w
     const keyup=(event:KeyboardEvent)=>{
       if(event.key!=='Escape'||!pending)return;
       const owner=pending;pending=undefined;consume(event);
-      if(!event.isComposing&&top()===owner&&stack.includes(owner))owner.cancel();cleanup();
+      if(!event.isComposing&&top()===owner&&stack.includes(owner))cancel_record(owner,'escape');cleanup();
     };
-    const blur=()=>{pending=undefined;cleanup();};
+    const down=(event:MouseEvent,pointer:boolean)=>{
+      // pointerdown 后紧随的兼容 mousedown 属于同一次手势，不能重新选择背景层。
+      if(!pointer&&gesture?.pointer&&gesture.button===event.button){gesture.pointer=false;return;}
+      const owner=top();gesture={owner,button:event.button,pointer,dismissed:false};
+      if(!owner||owner.options.outside===false)return;
+      const hit=event.composedPath().some(node=>node instanceof Element&&inside(owner,node));
+      if(!hit){gesture.dismissed=true;cancel_record(owner,'outside');}
+    };
+    const finish=()=>{const current=gesture;queueMicrotask(()=>{if(gesture===current)gesture=undefined;cleanup();});};
+    const focus_changed=()=>{
+      if(dismissing)return;const owner=top();if(!owner)return;
+      if(inside(owner,active_element()))owner.focused=true;
+      queueMicrotask(()=>{
+        if(dismissing||top()!==owner||!stack.includes(owner)||!owner.focused||owner.options.focus_out===false)return;
+        if(gesture&&(gesture.dismissed||gesture.owner!==owner))return;
+        // 窗口失焦由独立策略决定，系统颜色选择器不能取消所属设置对话框。
+        if(active_element()===document.body||active_element()===document.documentElement||inside(owner,active_element()))return;
+        cancel_record(owner,'focus-out');cleanup();
+      });
+    };
+    const blur=()=>{pending=undefined;gesture=undefined;const owner=top();if(owner?.options.window_blur)cancel_record(owner,'window-blur');cleanup();};
     runtime[service_key]={add(record){
-      stack.push(record);if(!listening){listening=true;window.addEventListener('keydown',keydown,true);window.addEventListener('keyup',keyup,true);window.addEventListener('blur',blur);}
+      record.focused=inside(record,active_element());stack.push(record);
+      if(!listening){listening=true;for(const [name,handler]of Object.entries(handlers))window.addEventListener(name,handler,name!=='blur');}
       return {is_top:()=>top()===record,owns_focus:()=>top()===record&&(active_element()===document.body||record.roots().some(root=>within(root,active_element()))),dispose(){const index=stack.indexOf(record);if(index!==-1)stack.splice(index,1);cleanup();}};
     }};
   }
-  return runtime[service_key]!.add({roots,cancel});
+  return runtime[service_key]!.add({roots,cancel,options,focused:false});
 }

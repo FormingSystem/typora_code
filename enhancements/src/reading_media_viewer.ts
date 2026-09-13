@@ -1,4 +1,4 @@
-import {capture_workspace_focus,register_workspace_escape} from "./workspace_focus";
+import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_focus";
 import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -59,7 +59,7 @@ export function open_reading_media(media:reading_media):(restore?:boolean)=>void
     controller.abort();source_observer.disconnect();cancelAnimationFrame(ready_frame);resize.disconnect();dispose_theme();viewer.remove();interaction.remove();style.remove();document.body.classList.remove("reading-media-viewer-open");
     if(restore&&owns_focus)previous.restore();
   };
-  const escape_layer=register_workspace_escape(()=>[viewer],()=>close());
+  const escape_layer=register_workspace_dismissal(()=>[viewer],()=>close(),{outside:false,focus_out:false});
   const source_observer=new MutationObserver(()=>{
     if(media.source&&(!media.source.isConnected||!media.source.getClientRects().length||getComputedStyle(media.source).visibility!=="visible"))close(false);
   });

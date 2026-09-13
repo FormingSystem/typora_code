@@ -852,20 +852,22 @@ footer.ty-footer .linux-note-git-status {
 .workspace-link-hover .workspace-link-copy:hover,.workspace-link-hover .workspace-link-copy:focus-visible {background:var(--vscode-toolbar-hoverBackground,rgba(90,93,94,.1));}
 
 /* reading_media_entry.css */
-/* 与原 Mermaid 流内工具行一致：32px 控件、8px 两侧留白、8px 图像前间距。 */
+/* 共享悬停覆盖层：保留32px控件和8px间隙，全部位于正文排版之外。 */
 .reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style}
 .reading-media-entry{position:absolute;display:flex;align-items:flex-start;justify-content:flex-end;box-sizing:border-box;height:40px;padding:0 8px 8px;margin:0;pointer-events:none}
-.reading-media-open{display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
+.reading-media-open{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
 .reading-media-open>svg{width:16px;height:16px;fill:currentColor;stroke:none;flex:none}
 .reading-media-open[hidden],.reading-media-open.is-small span{display:none!important}
 .reading-media-open.is-small{padding:6px}
-.reading-media-image-host{display:inline-block;max-width:100%}
 body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
-@media print{.reading-media-entries,.reading-media-entry-slot{display:none!important}}
+@media print{.reading-media-entries{display:none!important}}
 
-/* 常态隐藏，键盘仍可进入；整个图像及上方工具行共同保持悬停入口。 */
+/* 常态隐藏，键盘仍可进入；整个图像及上方浮层共同保持悬停入口。 */
 .reading-media-entry .reading-media-open{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-open,.reading-media-entry:focus-within .reading-media-open{opacity:1;pointer-events:auto}
+
+/* 只在入口显示时提供跨过8px间隙的命中桥，普通阅读不拦截指针。 */
+.reading-media-entry.is-revealed,.reading-media-entry:focus-within{pointer-events:auto}
 
 /* reading_media_viewer.css */
 .reading-media-viewer{position:fixed;z-index:2147483646;inset:0;display:flex;flex-direction:column;box-sizing:border-box;color:var(--reading-media-foreground,#24292f);background:var(--reading-media-background,#fff);font:12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;--reading-media-border:#d0d7de;--reading-media-muted:#57606a;--workspace-interaction-foreground:var(--reading-media-foreground,#24292f)}

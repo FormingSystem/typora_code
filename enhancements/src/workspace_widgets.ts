@@ -1,4 +1,4 @@
-import {capture_workspace_focus,register_workspace_escape} from "./workspace_focus";
+import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_focus";
 import {workspace_interaction,acquire_workspace_interaction} from "./workspace_interaction";
 import widget_css from "./workspace_widgets.css";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -17,7 +17,7 @@ export function dispose_workspace_widgets(): void {
   close_active_menu?.();
   for (const close of [...active_dialogs]) close();
 }
-export function workspace_dialog(title: string, close_title = "关闭", on_close?:()=>void): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(): void } {
+export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -30,14 +30,14 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   const focusable_controls = () => [...root.querySelectorAll<HTMLElement>('button,input,textarea,select,a[href],[tabindex]')]
     .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility))
     .sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
-  const close = () => {
+  const close = (restore=true) => {
     if (closed) return;
-    const restore_focus = escape_layer.owns_focus(); closed = true; escape_layer.dispose();
+    const restore_focus = restore && escape_layer.owns_focus(); closed = true; escape_layer.dispose();
     active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove();interaction.remove();
     if (restore_focus) previous.restore();
-    on_close?.();
+    on_close?.(restore_focus);
   };
-  const escape_layer=register_workspace_escape(()=>[root],close);
+  const escape_layer=register_workspace_dismissal(()=>[root],reason=>close(reason==="escape"),{inside:()=>[panel]});
   // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
     if (!is_top_dialog()) return;
@@ -52,7 +52,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   root.addEventListener("keydown", event => {
     event.stopPropagation();
   });
-  footer.append(workspace_button(close_title, close));
+  footer.append(workspace_button(close_title, ()=>close()));
   const focus_timer = window.setTimeout(() => { if (root.isConnected && is_top_dialog()) (focusable_controls()[0] || panel).focus(); }, 0);
   active_dialogs.add(close);
   return { root, content, footer, close };
@@ -68,10 +68,8 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
   const menus: HTMLElement[] = [];
   const parents=new Map<HTMLElement,HTMLButtonElement>();
   const close_from = (level: number) => { menus.splice(level).forEach(menu => {parents.delete(menu);menu.remove();}); };
-  const close = (restore=true) => { if(closed)return;const owned=escape_layer.owns_focus();closed=true;escape_layer.dispose();close_from(0);menu_style.remove();interaction.remove();if(restore&&owned)previous_focus.restore();window.removeEventListener("pointerdown",outside,true);window.removeEventListener("blur",blur);if(close_active_menu===close)close_active_menu=undefined;on_close?.(); };
-  const blur=()=>close(false);
-  const outside = (input: Event) => { if (!menus.some(menu => menu.contains(input.target as Node))) close(false); };
-  const escape_layer=register_workspace_escape(()=>menus,()=>{const child=menus.at(-1),parent=child&&parents.get(child);if(parent){close_from(menus.length-1);parent.focus({preventScroll:true});}else close();});
+  const close = (restore=true) => { if(closed)return;const owned=escape_layer.owns_focus();closed=true;escape_layer.dispose();close_from(0);menu_style.remove();interaction.remove();if(restore&&owned)previous_focus.restore();if(close_active_menu===close)close_active_menu=undefined;on_close?.(); };
+  const escape_layer=register_workspace_dismissal(()=>menus,reason=>{if(reason!=="escape"){close(false);return;}const child=menus.at(-1),parent=child&&parents.get(child);if(parent){close_from(menus.length-1);parent.focus({preventScroll:true});}else close();},{window_blur:true});
   const show = (items: workspace_menu_entry[], x: number, y: number, level: number, parent?: HTMLButtonElement) => {
     close_from(level); const menu = workspace_element("div", "git-graph-menu"+(class_name?" "+class_name:"")); menu.setAttribute("role", "menu"); menu.setAttribute("data-menu-level", String(level)); menus.push(menu);if(parent)parents.set(menu,parent);
     for (const entry of items) {
@@ -103,7 +101,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
     menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
     return menu;
   };
-  close_active_menu = close; window.addEventListener("blur", blur); window.addEventListener("pointerdown", outside, true);
+  close_active_menu = close;
   show(entries, event.clientX, event.clientY, 0).querySelector<HTMLButtonElement>("button:not([disabled])")?.focus();
   return close;
 }

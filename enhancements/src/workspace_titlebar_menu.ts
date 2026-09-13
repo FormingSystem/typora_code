@@ -1,4 +1,4 @@
-import {capture_workspace_focus,register_workspace_escape,type workspace_focus_snapshot,type workspace_escape_layer} from "./workspace_focus";
+import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {git_icon} from "./git_icons";
 
@@ -13,7 +13,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const panel_events=new Map<HTMLElement,AbortController>();
   let last_width=-1;
   let active_index=-1,generation=0,disposed=false;
-  let previous_focus:workspace_focus_snapshot|undefined,escape_layer:workspace_escape_layer|undefined;
+  let previous_focus:workspace_focus_snapshot|undefined,escape_layer:workspace_dismiss_layer|undefined;
   const parents=new Map<HTMLElement,HTMLElement>();
   const save_focus=()=>{previous_focus=capture_workspace_focus();};
   const close_after=(depth:number)=>{for(const panel of panels.splice(depth)){panel_events.get(panel)?.abort();panel_events.delete(panel);parents.delete(panel);panel.remove();}};
@@ -29,7 +29,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     panel.style.maxWidth=Math.max(0,innerWidth-8)+"px";
     panel.style.maxHeight=Math.max(10,innerHeight-top_limit-35)+"px";
     panel.style.visibility="hidden";document.body.append(panel);panels.push(panel);parents.set(panel,anchor);
-    escape_layer??=register_workspace_escape(()=>panels,()=>{if(panels.length>1){const parent=parents.get(panels.at(-1)!);close_after(panels.length-1);parent?.focus({preventScroll:true});}else close(true);});
+    escape_layer??=register_workspace_dismissal(()=>panels,reason=>{if(reason!=="escape"){close();return;}if(panels.length>1){const parent=parents.get(panels.at(-1)!);close_after(panels.length-1);parent?.focus({preventScroll:true});}else close(true);},{inside:()=>[element,...panels],window_blur:true});
     for(const entry of entries){
       if(entry.separator){const line=document.createElement("div");line.className="workspace-titlebar-separator";line.setAttribute("role","separator");panel.append(line);continue;}
       const item=document.createElement("button");item.type="button";item.className="workspace-titlebar-entry";item.disabled=Boolean(entry.disabled);item.title=entry.title||"";
@@ -109,7 +109,6 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   };
   const interaction=acquire_workspace_interaction(element);
   const observer=new ResizeObserver(refresh);observer.observe(element);
-  document.addEventListener("pointerdown",event=>{if(!(event.target instanceof Node)||(!element.contains(event.target)&&!panels.some(panel=>panel.contains(event.target as Node))))close();},{capture:true,signal});
   window.addEventListener("keydown",event=>{
     if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.isComposing){const index=definitions.findIndex(definition=>definition.mnemonic.toLowerCase()===event.key.toLowerCase());if(index!==-1){event.preventDefault();event.stopImmediatePropagation();void open_menu(index,true);}}
     if(active_index!==-1&&(!(event.target instanceof Node)||!panels.some(panel=>panel.contains(event.target as Node)))){
@@ -117,6 +116,6 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     }
   },{capture:true,signal});
   window.addEventListener("workspace-titlebar-dismiss",()=>close(true),{signal});
-  window.addEventListener("resize",refresh,{signal});window.addEventListener("blur",()=>close(),{signal});
+  window.addEventListener("resize",refresh,{signal});
   return {element,refresh,dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();interaction.remove();element.remove();}};
 }

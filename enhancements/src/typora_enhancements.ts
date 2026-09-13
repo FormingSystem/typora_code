@@ -323,7 +323,7 @@ function scan_document(): void {
   for (const [container, entry] of mermaid_buttons) {
     if (!container.isConnected) {
       entry.dispose();mermaid_buttons.delete(container);
-    } else if (!entry.slot.isConnected) {
+    } else if (!entry.source.isConnected) {
       entry.dispose();mermaid_buttons.delete(container);
       ensure_mermaid_button(container);
     }
@@ -356,7 +356,7 @@ function namespace_svg_ids(svg: SVGSVGElement): void {
 }
 
 function clone_mermaid_svg(preview: Element): SVGSVGElement | null {
-  const source = [...preview.querySelectorAll("svg")].find(svg=>!svg.closest(".linux-note-mermaid-inline-toolbar"));
+  const source = preview.querySelector("svg");
   if (!(source instanceof SVGSVGElement)) return null;
   const svg = source.cloneNode(true) as SVGSVGElement;
   namespace_svg_ids(svg);
@@ -424,10 +424,10 @@ function ensure_mermaid_button(container: Element): void {
   const preview = select_mermaid_preview(container);
   if (!preview) return;
   const existing=mermaid_buttons.get(container);
-  if(existing?.slot.isConnected&&existing.slot.parentElement===preview)return;
+  if(existing?.source===preview&&existing.button.isConnected)return;
   existing?.dispose();
   mermaid_entries??=bind_reading_media_entries();
-  const entry=mermaid_entries.add({source:preview as HTMLElement,host:preview,before:preview.firstElementChild,label:"全屏查看 Mermaid 图表",button_class:"linux-note-mermaid-open",slot_class:"linux-note-mermaid-inline-toolbar",open:()=>open_mermaid_viewer(preview)});
+  const entry=mermaid_entries.add({source:preview as HTMLElement,host:preview,label:"全屏查看 Mermaid 图表",button_class:"linux-note-mermaid-open",open:()=>open_mermaid_viewer(preview)});
   mermaid_buttons.set(container,entry);
 }
 

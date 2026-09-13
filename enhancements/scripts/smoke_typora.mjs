@@ -96,11 +96,10 @@ const result = { code_collapsed_before, code_expanded_after, code_expanded_label
   const function_span = lines.flatMap((line) => Array.from(line.querySelectorAll('span')))
     .find((span) => span.textContent === "rcu_replace_pointer" || span.textContent === "call_rcu");
   const mermaid_button = document.querySelector('.linux-note-mermaid-open');
-  const mermaid_toolbar = mermaid_button?.closest('.linux-note-mermaid-inline-toolbar');
-  const mermaid_preview = mermaid_toolbar?.parentElement;
+  const mermaid_toolbar = mermaid_button?.closest('.reading-media-entry');
+  const mermaid_preview = document.querySelector('.md-diagram-panel-preview');
   const toolbar_position = mermaid_toolbar ? getComputedStyle(mermaid_toolbar).position : null;
-  const duplicate_toolbars = Array.from(document.querySelectorAll('.md-fences'))
-    .some((fence) => fence.querySelectorAll('.linux-note-mermaid-inline-toolbar').length > 1);
+  const duplicate_toolbars = document.querySelectorAll('.linux-note-mermaid-open').length > document.querySelectorAll('.md-fences[lang="mermaid"]').length;
   mermaid_button?.click();
   return {
     enhancement: document.documentElement.getAttribute("data-linux-note-typora-enhancements"),
@@ -109,7 +108,7 @@ const result = { code_collapsed_before, code_expanded_after, code_expanded_label
     function_class: function_span?.className ?? null,
     code_toggles: document.querySelectorAll('.linux-note-code-toggle').length,
     mermaid_buttons: document.querySelectorAll('.linux-note-mermaid-open').length,
-    toolbar_inside_preview: Boolean(mermaid_preview?.matches('.md-diagram-panel-preview')),
+    toolbar_outside_preview: Boolean(mermaid_toolbar&&!mermaid_preview?.contains(mermaid_toolbar)),
     toolbar_position,
     duplicate_toolbars,
     viewer_open: Boolean(document.querySelector('.reading-media-viewer')),
@@ -130,7 +129,7 @@ if (!String(result.function_class).includes("cm-tm-function")) throw new Error(`
 if (!result.code_toggles || !result.code_collapsed_before || !result.code_expanded_after || !result.code_collapsed_after || result.code_expanded_label !== "↥收起代码") {
   throw new Error(`long code collapse smoke check failed: ${JSON.stringify(result)}`);
 }
-if (!result.toolbar_inside_preview || result.toolbar_position !== "static" || result.duplicate_toolbars) {
-  throw new Error(`Mermaid toolbar is not unique and static inside preview: ${JSON.stringify(result)}`);
+if (!result.toolbar_outside_preview || result.toolbar_position !== "absolute" || result.duplicate_toolbars) {
+  throw new Error(`Mermaid overlay is not unique and outside preview: ${JSON.stringify(result)}`);
 }
 if (!result.mermaid_buttons || !result.viewer_open || !result.viewer_svg) throw new Error("Mermaid viewer smoke check failed");

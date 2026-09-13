@@ -51,8 +51,8 @@ app.whenReady().then(async () => {
   }
   assert.equal(await evaluate(`document.documentElement.getAttribute('data-linux-note-typora-enhancements')`), 'ready');
   assert.equal(await expanded(), false);
-  await evaluate(`(() => {const fence=document.createElement('div');fence.id='diagram-fixture';fence.className='md-fences';fence.setAttribute('lang','mermaid');fence.innerHTML='<div class="md-diagram-panel-preview"><svg width="400" height="150" viewBox="0 0 400 150"><defs><marker id="arrow"><path d="M 0 0 L 10 5 L 0 10"/></marker></defs><path d="M10 50L300 50" stroke="blue" marker-end="url(#arrow)"/></svg></div>';document.querySelector('#write').prepend(fence)})()`);
-  await delay(900);await evaluate(`document.querySelector('.linux-note-mermaid-inline-toolbar').scrollIntoView({block:'center'})`);await delay(120);await click('.linux-note-mermaid-open');
+  await evaluate(`(() => {const fence=document.createElement('div');fence.id='diagram-fixture';fence.style.marginTop='50px';fence.className='md-fences';fence.setAttribute('lang','mermaid');fence.innerHTML='<div class="md-diagram-panel-preview"><svg width="400" height="150" viewBox="0 0 400 150"><defs><marker id="arrow"><path d="M 0 0 L 10 5 L 0 10"/></marker></defs><path d="M10 50L300 50" stroke="blue" marker-end="url(#arrow)"/></svg></div>';document.querySelector('#write').prepend(fence)})()`);
+  await delay(900);await evaluate(`document.querySelector('#diagram-fixture').scrollIntoView({block:'center'});document.querySelector('.md-diagram-panel-preview').dispatchEvent(new PointerEvent('pointerenter'))`);await delay(120);await click('.linux-note-mermaid-open');
   assert(await evaluate(`Boolean(document.querySelector('.reading-media-viewer svg'))`),'Mermaid button opens shared viewer on first click');
   assert(await evaluate(`document.querySelector('.reading-media-viewer marker').id!=='arrow'&&document.querySelector('#diagram-fixture marker').id==='arrow'`),'Mermaid SVG IDs remain isolated');
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await delay(80);
@@ -128,7 +128,7 @@ app.whenReady().then(async () => {
   for(let cycle=0;cycle<2;cycle++){
     await evaluate('reading_startup.shutdown_typora_code();void 0');await delay(100);
     assert.equal(await evaluate('!!document.querySelector("#typora-code-workspace-styles").sheet'),true,'window cleanup preserves preloaded static CSS');
-    assert.deepEqual(await evaluate('({ready:document.documentElement.hasAttribute("data-linux-note-typora-enhancements"),navigation:document.documentElement.hasAttribute("data-linux-note-reading-navigation"),toolbars:document.querySelectorAll(".linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar").length,url:File.editor.tryOpenUrl===test_native_open_url,file:File.editor.library.openFile===test_native_open_file})'),{ready:false,navigation:false,toolbars:0,url:true,file:true});
+    assert.deepEqual(await evaluate('({ready:document.documentElement.hasAttribute("data-linux-note-typora-enhancements"),navigation:document.documentElement.hasAttribute("data-linux-note-reading-navigation"),toolbars:document.querySelectorAll(".linux-note-code-toolbar,.reading-media-entry").length,url:File.editor.tryOpenUrl===test_native_open_url,file:File.editor.library.openFile===test_native_open_file})'),{ready:false,navigation:false,toolbars:0,url:true,file:true});
     await evaluate('reading_startup.start_typora_code();void 0');
     for(let attempt=0;attempt<60;attempt++){if(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")==="ready"'))break;await delay(50);}
     assert.equal(await evaluate('document.documentElement.getAttribute("data-linux-note-typora-enhancements")'),'ready');

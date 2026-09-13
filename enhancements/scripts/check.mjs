@@ -17,7 +17,7 @@ for (const marker of [
   "linux-note-vscode-textmate-c",
   "linux-note-vscode-textmate-cpp",
   "reading-media-viewer",
-  "linux-note-mermaid-inline-toolbar",
+  "reading-media-entry",
   "linux-note-code-collapsible",
   "linux-note-code-toggle",
   "is-code-collapsed",

@@ -409,3 +409,18 @@ R032按固定VS Code1.137.0的焦点归还、对子菜单逐层取消及Esc按�
 隔离原生Typora1.14.10通过29项，证据 `.cache/native_zoom_1_14_10/escape_focus_native_round3_20260913/checks.json`。实际Markdown选区在查看器／文件搜索／核心输入框Esc后恢复；紧接着输入替换选中文字，宿主撤销还原正文。图片、Mermaid、Night截图逐张检查，入口与图像保持外侧间隔、原图属性不变。早期夹具的文本节点选择及离屏入口激活已修正，失败记录保留；原生验证使用私有桌面的宿主API／DOM，真实鼠标键盘由Electron测试覆盖，未据此宣称其他平台实机验收。
 
 最终构建已事务安装，安装后检查 `status: OK`，24项安装资产逐项核对；ASAR、应用图标、原生偏好、工作区设置和主题摘要不变，保留安装备份，用户窗口未重启。日志为 `.cache/escape_focus_install_20260913.log`、`escape_focus_install_check_20260913.log`、`escape_focus_install_verification_20260913.json`。保存文档后正常重启即可载入。原18项R009系统文件剪贴板差量保持独立，未带入此次构建与安装；其他未完成项维持原台账。
+
+
+## 2026-09-13 弹窗外部关闭与媒体入口取消占位
+
+R033：文件搜索、核心命令输入／选择器、普通对话框和右键菜单接入共同关闭所有者。外部点击、宿主mousedown及焦点离开走取消；内部空白和子菜单维持打开。兼容鼠标和焦点事件共享一次手势，不连带关闭父层。Esc继续逐层恢复原焦点与选区；外部点击保留新目标的默认操作。普通设置不因打开系统颜色选择器而取消。设计及固定VS Code源码见[关闭与焦点](workspace_interaction.md#r033-弹窗外部关闭与焦点转移)。
+
+R031：用户再次指出预留一行会拉大正文与图片距离。本次删除共享占位和图片包装，图片／Mermaid按钮只在正文外的固定层悬停显示，位置取自原图矩形；不增加margin、padding或行高。浮层命中桥仅限按钮，不挡住同一行的其他正文。原生Mermaid的横向滚动壳带overflow-y:hidden，旧裁剪算法误将外侧入口隐藏；现在分别判断来源可见性和阅读视口范围，无需重加空白行。图片单击选中、双击放大保持。见[媒体设计](reading_media_viewer.md)。此前“保留稳定工具行”的交付记录属于旧实现，本节及权威设计取代该约定。
+
+独立发布基于 `c91ded7`，未带入原18项R009差量。最终 `npm run build`、完整 `npm run check` 通过，证据为 `.cache/outside_dismiss_release_20260913/.cache/build_outside.log` 和 `check_outside.log`。完整UI共57个目标全部通过（`ui_outside_full.log`）；后续对按钮命中宽度、核心菜单族焦点及原生Mermaid裁剪修正，分别复跑受影响媒体／核心和媒体／Mermaid目标全部通过（`ui_outside_final.log`、`ui_outside_clip.log`）。完整检查再次基于最终构建通过。
+
+新增关闭专项19项先复现旧行为，再通过真实Chromium外部点击及键盘验证；显式FocusEvent与宿主mousedown兼容路径单独标注，隐藏Electron不提供操作系统焦点事件，不能混称物理焦点验收。Esc专项21项保留Monaco、xterm与原生风格输入连续编辑。最终媒体专项46项覆盖挂载与悬停前后正文DOM／图片／段落矩形不变、宽窄／明暗／缩放、命中桥、无效资源、Shadow DOM、滚动裁剪、单击／双击及卸载。发布校验将被删除的旧工具行marker替换为真实共享浮层marker。
+
+隔离原生Typora1.14.10最终31项通过，证据 `.cache/native_zoom_1_14_10/outside_dismiss_native_verified_20260913/checks.json`。图片和Mermaid没有正文占位／包装，悬停前后几何及DOM一致，实际Night主题仍可读；按钮、图片双击、Esc和直接编辑／撤销正常。文件搜索及核心命令框内部点击保持、外部点击取消，实际核心菜单外部点击关闭，Markdown与全部原始夹具文件摘要保持。图片常态／悬停、Mermaid和Night截图已核对。早期原生失败定位到上述Mermaid裁剪问题并保留证据；此次原生验证使用私有桌面中的宿主API／DOM激活，Chromium指针与键盘证据另记，不宣称原生物理鼠标或其他平台验收。
+
+最终构建已事务安装，安装后检查 `status: OK`。ASAR、应用图标、原生偏好、工作区设置和主题摘要不变，保留事务备份，用户窗口未重启；保存后正常重启Typora即可载入。安装证据为 `.cache/outside_dismiss_install_20260913.log`、`outside_dismiss_install_check_20260913.log`、`outside_dismiss_install_verification_20260913.json`。R009与其他未完项继续保持原状态，本轮只交付关闭与媒体占位修复。

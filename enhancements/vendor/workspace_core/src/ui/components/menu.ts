@@ -1,7 +1,7 @@
+import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "../../../../../src/workspace_focus"
 import './menu.scss'
 import { getElementPagePosition, html } from "src/utils"
 import { Closeable, View } from '../common/view'
-import { Component } from 'src/common/component'
 
 
 interface MenuPositionDef {
@@ -13,14 +13,19 @@ export class Menu extends View implements Closeable {
 
   private submenus: Record<string, Menu> = {}
 
-  private component = new Component()
+  private dismiss_layer?:workspace_dismiss_layer
+  private previous_focus?:workspace_focus_snapshot
+  private open_timer?:ReturnType<typeof setTimeout>
+  private parent_menu?:Menu
+  private parent_item?:HTMLElement
+  private opened=false
   private _mouseoverListeners: Record<string, Function> = {}
   private _mouseoutListeners: Record<string, Function> = {}
 
   constructor() {
     super()
     this.containerEl = $(`<ul class="dropdown-menu context-menu" role="menu">`)
-      .on('click', () => this.close())
+      .on('click', event => {if(!(event.target as Element).closest('.has-extra-menu'))this.close_family()})
       .get(0)
 
     document.body.append(this.containerEl)
@@ -105,21 +110,38 @@ export class Menu extends View implements Closeable {
    *
    * Do not use it directly. Use `showAtMouseEvent()` or `showAtPosition()` instead.
    */
+  private family():Menu {return this.parent_menu?.family()||this}
+
+  private roots():Element[] {return [this.containerEl,...Object.values(this.submenus).filter(menu=>menu.opened).flatMap(menu=>menu.roots())]}
+
+  private close_family() {this.family().close(true)}
+
   open() {
-    setTimeout(() => {
-      this.containerEl.style.display = 'block'
-      this.component.registerDomEvent(document.body, 'click', event => {
-        if ((<HTMLElement>event.target).closest('.context-menu')) return
-        this.close()
-      })
+    clearTimeout(this.open_timer)
+    if(this.opened)return
+    this.previous_focus=capture_workspace_focus()
+    this.open_timer=setTimeout(()=>{
+      this.open_timer=undefined;this.opened=true;this.containerEl.style.display='block'
+      this.containerEl.tabIndex=-1
+      this.dismiss_layer=register_workspace_dismissal(()=>[this.containerEl],reason=>{
+        if(reason==='escape')this.close(true)
+        else this.family().close(false)
+      },{inside:()=>this.family().roots(),window_blur:true})
+      this.containerEl.focus({preventScroll:true})
     })
   }
 
-  close(): this {
-    this.containerEl.style.display = 'none'
-    this.component.unload()
+  close(restore=false): this {
+    clearTimeout(this.open_timer);this.open_timer=undefined
+    const owned=this.dismiss_layer?.owns_focus()||this.roots().some(root=>root.contains(document.activeElement))
+    for(const menu of Object.values(this.submenus))menu.close(false)
+    this.opened=false;this.dismiss_layer?.dispose();this.dismiss_layer=undefined
+    this.containerEl.style.display='none'
+    if(restore&&owned){if(this.parent_menu?.opened)this.parent_item?.focus({preventScroll:true});else this.previous_focus?.restore()}
+    this.previous_focus=undefined
     return this
   }
+
 }
 
 class MenuItem {
@@ -180,6 +202,11 @@ class MenuItem {
     const submenuKey = itemKey + ':submenu'
     // @ts-ignore
     const submenu = (this.menu.submenus[submenuKey] ??= new Menu())
+    // @ts-ignore
+    submenu.parent_menu=this.menu
+    // @ts-ignore
+    submenu.parent_item=this.anchorEl
+    this.anchorEl.tabIndex=-1
     submenu.empty()
     build(submenu)
 

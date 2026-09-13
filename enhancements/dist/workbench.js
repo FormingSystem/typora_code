@@ -158171,26 +158171,37 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } };
   }
-  var service_key = Symbol.for("typora-code:workspace-escape");
-  function register_workspace_escape(roots, cancel) {
+  var service_key = Symbol.for("typora-code:workspace-dismissal");
+  function register_workspace_dismissal(roots, cancel, options2 = {}) {
     const runtime2 = window;
     if (!runtime2[service_key]) {
       const stack = [];
-      let pending, listening = false;
+      let pending, listening = false, dismissing = false;
+      let gesture;
       const top = () => stack.findLast((record) => record.roots().some(visible));
+      const inside = (record, node) => (record.options.inside?.() || record.roots()).some((root) => within(root, node));
       const consume = (event) => {
         event.preventDefault();
         event.stopImmediatePropagation();
       };
+      const cancel_record = (record, reason) => {
+        if (dismissing) return;
+        dismissing = true;
+        try {
+          record.cancel(reason);
+        } finally {
+          dismissing = false;
+        }
+      };
+      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), mouseup: () => finish(), pointercancel: () => finish(), focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
       const cleanup = () => {
-        if (!stack.length && !pending && listening) {
+        if (!stack.length && !pending && !gesture && listening) {
           listening = false;
-          window.removeEventListener("keydown", keydown, true);
-          window.removeEventListener("keyup", keyup, true);
-          window.removeEventListener("blur", blur);
+          for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
         }
       };
       const keydown = (event) => {
+        gesture = void 0;
         if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
         if (pending) {
           consume(event);
@@ -158206,20 +158217,56 @@ https://creativecommons.org/licenses/by/4.0/
         const owner = pending;
         pending = void 0;
         consume(event);
-        if (!event.isComposing && top() === owner && stack.includes(owner)) owner.cancel();
+        if (!event.isComposing && top() === owner && stack.includes(owner)) cancel_record(owner, "escape");
         cleanup();
+      };
+      const down = (event, pointer) => {
+        if (!pointer && gesture?.pointer && gesture.button === event.button) {
+          gesture.pointer = false;
+          return;
+        }
+        const owner = top();
+        gesture = { owner, button: event.button, pointer, dismissed: false };
+        if (!owner || owner.options.outside === false) return;
+        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
+        if (!hit) {
+          gesture.dismissed = true;
+          cancel_record(owner, "outside");
+        }
+      };
+      const finish = () => {
+        const current = gesture;
+        queueMicrotask(() => {
+          if (gesture === current) gesture = void 0;
+          cleanup();
+        });
+      };
+      const focus_changed = () => {
+        if (dismissing) return;
+        const owner = top();
+        if (!owner) return;
+        if (inside(owner, active_element())) owner.focused = true;
+        queueMicrotask(() => {
+          if (dismissing || top() !== owner || !stack.includes(owner) || !owner.focused || owner.options.focus_out === false) return;
+          if (gesture && (gesture.dismissed || gesture.owner !== owner)) return;
+          if (active_element() === document.body || active_element() === document.documentElement || inside(owner, active_element())) return;
+          cancel_record(owner, "focus-out");
+          cleanup();
+        });
       };
       const blur = () => {
         pending = void 0;
+        gesture = void 0;
+        const owner = top();
+        if (owner?.options.window_blur) cancel_record(owner, "window-blur");
         cleanup();
       };
       runtime2[service_key] = { add(record) {
+        record.focused = inside(record, active_element());
         stack.push(record);
         if (!listening) {
           listening = true;
-          window.addEventListener("keydown", keydown, true);
-          window.addEventListener("keyup", keyup, true);
-          window.addEventListener("blur", blur);
+          for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");
         }
         return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
           const index = stack.indexOf(record);
@@ -158228,7 +158275,7 @@ https://creativecommons.org/licenses/by/4.0/
         } };
       } };
     }
-    return runtime2[service_key].add({ roots, cancel });
+    return runtime2[service_key].add({ roots, cancel, options: options2, focused: false });
   }
 
   // src/workspace_interaction.css
@@ -160080,9 +160127,9 @@ https://creativecommons.org/licenses/by/4.0/
     let closed = false;
     const is_top_dialog = () => escape_layer.is_top();
     const focusable_controls = () => [...root.querySelectorAll("button,input,textarea,select,a[href],[tabindex]")].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
-    const close = () => {
+    const close = (restore = true) => {
       if (closed) return;
-      const restore_focus = escape_layer.owns_focus();
+      const restore_focus = restore && escape_layer.owns_focus();
       closed = true;
       escape_layer.dispose();
       active_dialogs.delete(close);
@@ -160091,9 +160138,9 @@ https://creativecommons.org/licenses/by/4.0/
       root.remove();
       interaction.remove();
       if (restore_focus) previous.restore();
-      on_close?.();
+      on_close?.(restore_focus);
     };
-    const escape_layer = register_workspace_escape(() => [root], close);
+    const escape_layer = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape"), { inside: () => [panel] });
     const global_key = (event) => {
       if (!is_top_dialog()) return;
       if (event.key === "Tab") {
@@ -160114,7 +160161,7 @@ https://creativecommons.org/licenses/by/4.0/
     root.addEventListener("keydown", (event) => {
       event.stopPropagation();
     });
-    footer.append(workspace_button(close_title, close));
+    footer.append(workspace_button(close_title, () => close()));
     const focus_timer = window.setTimeout(() => {
       if (root.isConnected && is_top_dialog()) (focusable_controls()[0] || panel).focus();
     }, 0);
@@ -160147,22 +160194,20 @@ https://creativecommons.org/licenses/by/4.0/
       menu_style.remove();
       interaction.remove();
       if (restore && owned2) previous_focus.restore();
-      window.removeEventListener("pointerdown", outside, true);
-      window.removeEventListener("blur", blur);
       if (close_active_menu === close) close_active_menu = void 0;
       on_close?.();
     };
-    const blur = () => close(false);
-    const outside = (input) => {
-      if (!menus.some((menu) => menu.contains(input.target))) close(false);
-    };
-    const escape_layer = register_workspace_escape(() => menus, () => {
+    const escape_layer = register_workspace_dismissal(() => menus, (reason) => {
+      if (reason !== "escape") {
+        close(false);
+        return;
+      }
       const child = menus.at(-1), parent = child && parents.get(child);
       if (parent) {
         close_from(menus.length - 1);
         parent.focus({ preventScroll: true });
       } else close();
-    });
+    }, { window_blur: true });
     const show2 = (items, x, y, level, parent) => {
       close_from(level);
       const menu = workspace_element("div", "git-graph-menu" + (class_name ? " " + class_name : ""));
@@ -160240,8 +160285,6 @@ https://creativecommons.org/licenses/by/4.0/
       return menu;
     };
     close_active_menu = close;
-    window.addEventListener("blur", blur);
-    window.addEventListener("pointerdown", outside, true);
     show2(entries3, event.clientX, event.clientY, 0).querySelector("button:not([disabled])")?.focus();
     return close;
   }
@@ -160347,11 +160390,9 @@ https://creativecommons.org/licenses/by/4.0/
       for (const [button, entry] of entries3) {
         const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;
         const enabled = entry.enabled && source.isConnected && width2 >= 48 && rect.height > 0;
-        const height = enabled ? entry.toolbar.offsetHeight : 0;
-        if (entry.slot.style.height !== "".concat(height, "px")) entry.slot.style.height = "".concat(height, "px");
-        if (entry.slot.style.display !== (enabled ? "block" : "none")) entry.slot.style.display = enabled ? "block" : "none";
+        const height = entry.toolbar.offsetHeight;
         button.classList.toggle("is-small", width2 < 160);
-        const slot = entry.slot.getBoundingClientRect();
+        const entry_top = rect.top - height;
         let left = 0, right = innerWidth, top = 0, bottom = innerHeight, shown = enabled;
         for (let node = source; shown && node; node = parent_element2(node)) {
           const computed = getComputedStyle(node);
@@ -160366,8 +160407,11 @@ https://creativecommons.org/licenses/by/4.0/
               right = Math.min(right, bounds.left + node.clientLeft + node.clientWidth);
             }
             if (/auto|scroll|hidden|clip/.test(computed.overflowY)) {
-              top = Math.max(top, bounds.top + node.clientTop);
-              bottom = Math.min(bottom, bounds.top + node.clientTop + node.clientHeight);
+              const clip_top = bounds.top + node.clientTop, clip_bottom = clip_top + node.clientHeight;
+              if (/auto|scroll/.test(computed.overflowY) || node === root || node.scrollTop !== 0) {
+                top = Math.max(top, clip_top);
+                bottom = Math.min(bottom, clip_bottom);
+              } else shown = rect.top >= clip_top && rect.top < clip_bottom;
             }
           }
           if (node instanceof HTMLElement && node.tagName === "CONTENT") {
@@ -160379,15 +160423,16 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const x = Math.max(left, rect.left), end = Math.min(right, rect.right);
-        shown = shown && slot.top >= top && slot.top + height <= bottom && end - x >= 48;
+        shown = shown && entry_top >= top && rect.top <= bottom && end - x >= 48;
         button.hidden = !shown;
-        entry.toolbar.style.left = "".concat(x, "px");
-        entry.toolbar.style.top = "".concat(slot.top, "px");
-        entry.toolbar.style.width = "".concat(Math.max(0, end - x), "px");
+        const entry_width = Math.min(Math.max(0, end - x), button.offsetWidth + 16);
+        entry.toolbar.style.left = "".concat(end - entry_width, "px");
+        entry.toolbar.style.top = "".concat(entry_top, "px");
+        entry.toolbar.style.width = "".concat(entry_width, "px");
       }
     }
     const observer2 = new MutationObserver((changes) => {
-      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-entry-slot,.reading-media-viewer")))) schedule();
+      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
     });
     observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     if (root.getRootNode() instanceof ShadowRoot) observer2.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
@@ -160412,10 +160457,7 @@ https://creativecommons.org/licenses/by/4.0/
     for (const name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) document.addEventListener(name, activate, { capture: true, signal });
     return {
       add(options2) {
-        const slot = workspace_element("span", "reading-media-entry-slot ".concat(options2.slot_class || "").trim()), toolbar = workspace_element("div", "reading-media-entry"), button = workspace_element("button", "reading-media-open ".concat(options2.button_class));
-        slot.contentEditable = "false";
-        slot.setAttribute("aria-hidden", "true");
-        slot.style.cssText = "display:block;box-sizing:border-box;height:0;width:100%;margin:0;padding:0;border:0;line-height:0;pointer-events:none;user-select:none";
+        const toolbar = workspace_element("div", "reading-media-entry"), button = workspace_element("button", "reading-media-open ".concat(options2.button_class));
         button.type = "button";
         button.hidden = true;
         button.title = options2.label;
@@ -160423,7 +160465,6 @@ https://creativecommons.org/licenses/by/4.0/
         button.append(git_icon("screen-full"), workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
         toolbar.append(button);
         layer.append(toolbar);
-        options2.host.insertBefore(slot, options2.before ?? null);
         const entry_events = new AbortController();
         const reveal = (event) => {
           const target = event.relatedTarget;
@@ -160432,14 +160473,13 @@ https://creativecommons.org/licenses/by/4.0/
         };
         for (const node of [options2.host, toolbar]) for (const name of ["pointerenter", "pointerleave"]) node.addEventListener(name, reveal, { signal: entry_events.signal });
         if (options2.host.matches(":hover")) toolbar.classList.add("is-revealed");
-        const state = { options: options2, toolbar, slot, enabled: true, events: entry_events };
+        const state = { options: options2, toolbar, enabled: true, events: entry_events };
         entries3.set(button, state);
         resize.observe(options2.source);
-        resize.observe(slot);
         resize.observe(toolbar);
         schedule();
         let removed = false;
-        return { button, slot, set_enabled(value) {
+        return { button, source: options2.source, set_enabled(value) {
           if (state.enabled !== value) {
             state.enabled = value;
             schedule();
@@ -160450,9 +160490,7 @@ https://creativecommons.org/licenses/by/4.0/
           entry_events.abort();
           entries3.delete(button);
           resize.unobserve(options2.source);
-          resize.unobserve(slot);
           resize.unobserve(toolbar);
-          slot.remove();
           toolbar.remove();
         } };
       },
@@ -160465,7 +160503,6 @@ https://creativecommons.org/licenses/by/4.0/
         resize.disconnect();
         for (const entry of entries3.values()) {
           entry.events.abort();
-          entry.slot.remove();
         }
         entries3.clear();
         layer.remove();
@@ -160632,7 +160669,7 @@ https://creativecommons.org/licenses/by/4.0/
       document.body.classList.remove("reading-media-viewer-open");
       if (restore && owns_focus) previous.restore();
     };
-    const escape_layer = register_workspace_escape(() => [viewer], () => close());
+    const escape_layer = register_workspace_dismissal(() => [viewer], () => close(), { outside: false, focus_out: false });
     const source_observer = new MutationObserver(() => {
       if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close(false);
     });
@@ -160750,16 +160787,6 @@ https://creativecommons.org/licenses/by/4.0/
       session = { image, url, close };
       copy.src = url;
     };
-    const release = (image, entry) => {
-      entry.control.dispose();
-      if (entry.wrapped) {
-        if (image.parentElement === entry.host) entry.host.replaceWith(image);
-        else entry.host.remove();
-      } else {
-        entry.host.classList.remove("reading-media-image-host");
-        if (entry.original_class === null && !entry.host.className) entry.host.removeAttribute("class");
-      }
-    };
     const schedule = () => {
       if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
     };
@@ -160767,22 +160794,15 @@ https://creativecommons.org/licenses/by/4.0/
       frame3 = 0;
       if (disposed) return;
       const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
-      for (const [image, entry] of entries3) if (!images.has(image) || !entry.control.slot.isConnected) {
-        release(image, entry);
+      for (const [image, entry] of entries3) if (!images.has(image) || !entry.control.button.isConnected) {
+        entry.control.dispose();
         entries3.delete(image);
       }
       for (const image of images) {
         let entry = entries3.get(image);
         if (!entry) {
-          const native = image.parentElement?.matches('.md-image[md-inline="image"]') ? image.parentElement : null;
-          const host = native || document.createElement("span"), original_class = host.getAttribute("class");
-          if (!native) {
-            host.style.cssText = "display:inline-block;max-width:100%";
-            image.replaceWith(host);
-            host.append(image);
-          } else host.classList.add("reading-media-image-host");
-          const control = controls.add({ source: image, host, before: image, label: image.alt ? "\u5168\u5C4F\u67E5\u770B\u56FE\u7247\uFF1A".concat(image.alt) : "\u5168\u5C4F\u67E5\u770B\u56FE\u7247", button_class: "reading-image-open", open: () => open(image, entries3.get(image)) });
-          entry = { control, host, wrapped: !native, original_class };
+          const control = controls.add({ source: image, host: image, label: image.alt ? "\u5168\u5C4F\u67E5\u770B\u56FE\u7247\uFF1A".concat(image.alt) : "\u5168\u5C4F\u67E5\u770B\u56FE\u7247", button_class: "reading-image-open", open: () => open(image, entries3.get(image)) });
+          entry = { control };
           entries3.set(image, entry);
         }
         entry.control.set_enabled(Boolean(source_url(image)));
@@ -160790,7 +160810,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
     }
     const observer2 = new MutationObserver((changes) => {
-      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-entry-slot,.reading-media-viewer")))) schedule();
+      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
     });
     observer2.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
     root.addEventListener("load", schedule, { capture: true, signal });
@@ -160811,7 +160831,7 @@ https://creativecommons.org/licenses/by/4.0/
       controller.abort();
       cancelAnimationFrame(frame3);
       observer2.disconnect();
-      for (const [image, entry] of entries3) release(image, entry);
+      for (const [image, entry] of entries3) entry.control.dispose();
       entries3.clear();
       controls.dispose();
     } };
@@ -161167,8 +161187,8 @@ https://creativecommons.org/licenses/by/4.0/
       const current_color = selected_colors.size === 1 ? [...selected_colors][0] : "";
       e.contextMenu.hide();
       dialog?.close();
-      const restore = () => {
-        if (runtime2.File?.bundle === selection.bundle && owner() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
+      const restore = (restore_focus) => {
+        if (restore_focus && runtime2.File?.bundle === selection.bundle && owner() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
       };
       const panel = dialog = workspace_dialog("\u5B57\u4F53\u989C\u8272", "\u53D6\u6D88", restore);
       panel.root.classList.add("workspace-color-dialog");
@@ -161252,7 +161272,7 @@ https://creativecommons.org/licenses/by/4.0/
     return { dispose() {
       if (disposed) return;
       disposed = true;
-      dialog?.close();
+      dialog?.close(false);
       events.abort();
       if (e.contextMenu.show === show2) e.contextMenu.show = native_show;
       item.remove();
@@ -178687,7 +178707,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
   function blocks(root) {
-    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button, .linux-note-mermaid-inline-toolbar"));
+    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button"));
   }
   function block_text(block3) {
     return (block3.textContent ?? "").trim().slice(0, 160);
@@ -179474,7 +179494,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       previous_focus = capture_workspace_focus();
-      escape_layer = register_workspace_escape(() => [root], () => close());
+      escape_layer = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape"), { window_blur: true });
       root.hidden = false;
       root.setAttribute("aria-modal", "true");
       input.value = "";
@@ -179498,13 +179518,6 @@ https://creativecommons.org/licenses/by/4.0/
         open_selected();
       }
     };
-    root.onmousedown = (event) => {
-      if (event.target === root) close(false);
-    };
-    document.addEventListener("pointerdown", (event) => {
-      if (!root.hidden && !root.contains(event.target)) close(false);
-    }, { capture: true, signal: events.signal });
-    window.addEventListener("blur", () => close(false), { signal: events.signal });
     window.addEventListener("linux-note-workspace-context-changed", () => close(false), { signal: events.signal });
     const binding = { root, input, open, close, dispose() {
       if (disposed) return;
@@ -230112,6 +230125,7 @@ https://creativecommons.org/licenses/by/4.0/
     let suppress_click_until = 0;
     let drag;
     const marker = create_drop_marker(document);
+    let menu_layer;
     let menu;
     let menu_owner;
     const top_group = () => ribbon.querySelector(":scope > .group.top");
@@ -230192,9 +230206,12 @@ https://creativecommons.org/licenses/by/4.0/
       });
     };
     const close_menu = (restore_focus = false) => {
+      const owned2 = menu_layer?.owns_focus();
+      menu_layer?.dispose();
+      menu_layer = void 0;
       menu?.remove();
       menu = void 0;
-      if (restore_focus && menu_owner?.isConnected) menu_owner.focus({ preventScroll: true });
+      if (restore_focus && owned2 && menu_owner?.isConnected) menu_owner.focus({ preventScroll: true });
       menu_owner = void 0;
     };
     const move = (id, direction) => {
@@ -230234,12 +230251,6 @@ https://creativecommons.org/licenses/by/4.0/
         event.stopPropagation();
       });
       menu.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          event.stopPropagation();
-          close_menu(true);
-          return;
-        }
         if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
         event.preventDefault();
         event.stopPropagation();
@@ -230251,6 +230262,7 @@ https://creativecommons.org/licenses/by/4.0/
       const bounds = menu.getBoundingClientRect();
       menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px";
       menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
+      menu_layer = register_workspace_dismissal(() => menu ? [menu] : [], (reason) => close_menu(reason === "escape"), { window_blur: true });
       const opened_menu = menu;
       requestAnimationFrame(() => {
         if (menu === opened_menu) opened_menu.querySelector("button:not(:disabled)")?.focus();
@@ -230265,7 +230277,6 @@ https://creativecommons.org/licenses/by/4.0/
       show_menu(item, event.clientX || box.right, event.clientY || box.top);
     };
     const on_pointer_down = (event) => {
-      if (menu && !menu.contains(event.target)) close_menu();
       if (event.button !== 0 || !event.isPrimary) return;
       const item = item_at(event.target);
       if (!item) return;
@@ -231730,13 +231741,17 @@ https://creativecommons.org/licenses/by/4.0/
       document.body.append(panel);
       panels.push(panel);
       parents.set(panel, anchor);
-      escape_layer ??= register_workspace_escape(() => panels, () => {
+      escape_layer ??= register_workspace_dismissal(() => panels, (reason) => {
+        if (reason !== "escape") {
+          close();
+          return;
+        }
         if (panels.length > 1) {
           const parent = parents.get(panels.at(-1));
           close_after(panels.length - 1);
           parent?.focus({ preventScroll: true });
         } else close(true);
-      });
+      }, { inside: () => [element, ...panels], window_blur: true });
       for (const entry of entries3) {
         if (entry.separator) {
           const line = document.createElement("div");
@@ -231942,9 +231957,6 @@ https://creativecommons.org/licenses/by/4.0/
     const interaction = acquire_workspace_interaction(element);
     const observer2 = new ResizeObserver(refresh);
     observer2.observe(element);
-    document.addEventListener("pointerdown", (event) => {
-      if (!(event.target instanceof Node) || !element.contains(event.target) && !panels.some((panel) => panel.contains(event.target))) close();
-    }, { capture: true, signal });
     window.addEventListener("keydown", (event) => {
       if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.isComposing) {
         const index = definitions.findIndex((definition2) => definition2.mnemonic.toLowerCase() === event.key.toLowerCase());
@@ -231964,7 +231976,6 @@ https://creativecommons.org/licenses/by/4.0/
     }, { capture: true, signal });
     window.addEventListener("workspace-titlebar-dismiss", () => close(true), { signal });
     window.addEventListener("resize", refresh, { signal });
-    window.addEventListener("blur", () => close(), { signal });
     return { element, refresh, dispose() {
       if (disposed) return;
       disposed = true;
@@ -232861,7 +232872,7 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         for (let node = walker.nextNode(); node; node = walker.nextNode()) {
           const parent = node.parentElement;
-          if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar")) continue;
+          if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
           range2.selectNodeContents(node);
           const boxes = Array.from(range2.getClientRects()).filter((box) => box.width > 0 && box.height > 0);
           if (!boxes.length) continue;
@@ -233592,7 +233603,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!container.isConnected) {
         entry.dispose();
         mermaid_buttons.delete(container);
-      } else if (!entry.slot.isConnected) {
+      } else if (!entry.source.isConnected) {
         entry.dispose();
         mermaid_buttons.delete(container);
         ensure_mermaid_button(container);
@@ -233624,7 +233635,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
   }
   function clone_mermaid_svg(preview) {
-    const source = [...preview.querySelectorAll("svg")].find((svg4) => !svg4.closest(".linux-note-mermaid-inline-toolbar"));
+    const source = preview.querySelector("svg");
     if (!(source instanceof SVGSVGElement)) return null;
     const svg3 = source.cloneNode(true);
     namespace_svg_ids(svg3);
@@ -233686,10 +233697,10 @@ https://creativecommons.org/licenses/by/4.0/
     const preview = select_mermaid_preview(container);
     if (!preview) return;
     const existing = mermaid_buttons.get(container);
-    if (existing?.slot.isConnected && existing.slot.parentElement === preview) return;
+    if (existing?.source === preview && existing.button.isConnected) return;
     existing?.dispose();
     mermaid_entries ??= bind_reading_media_entries();
-    const entry = mermaid_entries.add({ source: preview, host: preview, before: preview.firstElementChild, label: "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868", button_class: "linux-note-mermaid-open", slot_class: "linux-note-mermaid-inline-toolbar", open: () => open_mermaid_viewer(preview) });
+    const entry = mermaid_entries.add({ source: preview, host: preview, label: "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868", button_class: "linux-note-mermaid-open", open: () => open_mermaid_viewer(preview) });
     mermaid_buttons.set(container, entry);
   }
   async function initialize2(controller, lifetime) {

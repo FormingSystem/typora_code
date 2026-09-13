@@ -1,3 +1,4 @@
+import {register_workspace_dismissal,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import activity_css from "./workspace_activity.css";
@@ -33,7 +34,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   let disposed = false; let scheduled = 0; let suppress_click_until = 0;
   let drag: {item: HTMLElement; order: string[]; session?: pointer_drag_session} | undefined;
   const marker=create_drop_marker(document);
-  let menu: HTMLElement | undefined; let menu_owner: HTMLElement | undefined;
+  let menu_layer:workspace_dismiss_layer|undefined;let menu: HTMLElement | undefined; let menu_owner: HTMLElement | undefined;
   const top_group = () => ribbon.querySelector<HTMLElement>(":scope > .group.top");
   const items = () => [...(top_group()?.children || [])].filter((item): item is HTMLElement => item instanceof HTMLElement && item.matches(".typ-ribbon-item[data-id]") && allowed.has(item.dataset.id || ""));
   const order = () => items().map(item => item.dataset.id!);
@@ -85,8 +86,8 @@ export function install_workspace_activity(options: workspace_activity_options):
   };
   const schedule = () => { if (!disposed && !scheduled) scheduled = requestAnimationFrame(() => { scheduled = 0; refresh(); }); };
   const close_menu = (restore_focus = false) => {
-    menu?.remove(); menu = undefined;
-    if (restore_focus && menu_owner?.isConnected) menu_owner.focus({preventScroll: true});
+    const owned=menu_layer?.owns_focus();menu_layer?.dispose();menu_layer=undefined;menu?.remove(); menu = undefined;
+    if (restore_focus && owned && menu_owner?.isConnected) menu_owner.focus({preventScroll: true});
     menu_owner = undefined;
   };
   const move = (id: string, direction: -1 | 1) => {
@@ -104,12 +105,12 @@ export function install_workspace_activity(options: workspace_activity_options):
     }
     menu.addEventListener("mousedown", event => { event.preventDefault(); event.stopPropagation(); });
     menu.addEventListener("keydown", event => {
-      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close_menu(true); return; }
       if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
       event.preventDefault(); event.stopPropagation(); const buttons = [...menu!.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")]; const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
       buttons[event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
     });
     document.body.append(menu); const bounds = menu.getBoundingClientRect(); menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
+    menu_layer=register_workspace_dismissal(()=>menu?[menu]:[],reason=>close_menu(reason==="escape"),{window_blur:true});
     const opened_menu = menu;
     // 右键的宿主获焦发生在同一鼠标事件尾部，下一帧再把焦点交给菜单。
     requestAnimationFrame(() => { if (menu === opened_menu) opened_menu.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus(); });
@@ -119,7 +120,6 @@ export function install_workspace_activity(options: workspace_activity_options):
     event.preventDefault(); event.stopImmediatePropagation(); const box = item.getBoundingClientRect(); show_menu(item, event.clientX || box.right, event.clientY || box.top);
   };
   const on_pointer_down = (event: PointerEvent) => {
-    if (menu && !menu.contains(event.target as Node)) close_menu();
     if (event.button !== 0 || !event.isPrimary) return;
     const item = item_at(event.target); if (!item) return;
     drag?.session?.cancel('replaced'); cancel_animations(); item.focus({preventScroll:true});
