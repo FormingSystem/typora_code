@@ -158,3 +158,18 @@ SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保�
 列表与详情卡继续使用同一徽章、图标和完整原始名称。共享规则以 CSS 变量表达场景差异：列表采用 18px 单行及 100px 名称上限；详情卡取消该名称上限，在卡片可用宽度内显示全名，超长名称允许断行，徽章高度随内容增加。多个徽章仍可整体换行。图标、圆角、颜色、文字行高和名称内容归共享组件管理，卡片只声明宽度和换行策略；不靠 title 提示替代全名。
 
 回归覆盖同一长分支在列表和详情卡中的不同呈现、多个引用、超长无空格名称、明暗主题和 100%／125% 缩放。检查文本行盒均在徽章内、完整 textContent 保留、卡片没有横向溢出，以及打开引用菜单与提交操作保持可用。
+
+## R020 选中行的明暗主题
+
+2026-09-13，用户反馈Night主题中资源管理器选中目录仍为浅底浅字。现有视图读取的 `--linux-note-shell-inactive-selection-background` 在生产样式中没有定义，落回浅色后备值；测试手工注入深色值，未覆盖真实缺陷。
+
+共同交互层集中提供选中背景与前景，采用固定 VS Code 1.137.0、提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c` 的 [Light 2026](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/extensions/theme-defaults/themes/2026-light.json#L69) 和 [Dark 2026](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/extensions/theme-defaults/themes/2026-dark.json#L59) 中 `list.inactiveSelectionBackground`／`list.inactiveSelectionForeground`：
+
+| 状态 | 背景 | 前景 |
+| --- | --- | --- |
+| 浅色 | `#DADADA99` | `#202020` |
+| 深色 | `#2C2D2E` | `#ededed` |
+
+有显式VS Code主题变量时优先引用它们，否则采用上述配对值。继续复用现有 `observe_workspace_theme` → `observe_terminal_theme` → 文件图标主题属性链，根据宿主实际合成背景识别深浅；不新增主题名称判断、监听器或配置。主题变化只更新颜色，选中身份、展开状态、滚动及行高仍归视图管理。共享选中hover同时保持选中前景，Explorer文字和箭头继承同一前景；Graph／SCM现有消费者复用同组变量。共同选中hover同时识别现有 `selected` 按钮状态，避免SCM文件行被普通action底色覆盖；嵌套行尾按钮仍按各自控件重置默认hover，不继承整行选中底色。独立标签、面包屑、搜索选中样式继续使用原局部覆写，正文和第三方编辑器不纳入公共重绘。
+
+回归须通过实际body主题样式触发日→夜→日传播，不允许向夹具注入待测选中变量。检查同一选中目录在鼠标离开、真实悬停和键盘焦点时文字及箭头对比度、26px行高、名称位置、滚动、展开和文件字节保持；另覆盖同类Graph／SCM及公共交互、局部覆写。主题加载前使用共同浅色默认，加载后沿既有观察链更新；失败或卸载不改变原选中模型。原生Typora验证与Chromium夹具、物理用户操作分别记载，不以旧通过记录替代本轮结果。

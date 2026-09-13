@@ -196,10 +196,73 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('stable_row.getAttribute("aria-expanded")'),'false','right-side empty area toggles the folder');
   for(const type of ['mouseDown','mouseUp'])test_window.webContents.sendInputEvent({type,...point_blank,button:'left',clickCount:1,modifiers:['control']});await delay(60);
   assert.equal(await evaluate('stable_row.getAttribute("aria-expanded")'),'false','multi-select never toggles');
-  // 明暗变量、窄栏和真实页面缩放下，行尾仍是同一个展开目标。
+  // 通过宿主实际颜色触发生产主题观察链，不注入选中色或直接改主题判定属性。
+  // 隐藏离屏窗口仍执行浏览器真实焦点伪类，和其他交互目标使用相同的焦点模拟。
+  test_window.webContents.debugger.attach();await test_window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
+  const body_theme_before=await evaluate('document.body.getAttribute("style")');
+  const apply_theme=async theme=>{
+    await evaluate(`document.body.style.backgroundColor='${theme==='dark'?'#252526':'#ffffff'}';document.body.style.color='${theme==='dark'?'#ddd':'#333'}';document.body.style.setProperty('--text-color','${theme==='dark'?'#ddd':'#333'}');document.body.style.setProperty('--side-bar-bg-color','${theme==='dark'?'#252526':'#f8f8f8'}');void 0`);
+    await wait(`document.documentElement.dataset.workspaceFileIconTheme===${JSON.stringify(theme)}`);
+    await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
+  };
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(workspace,'large','entry_0000.c'))})`);
+  await evaluate(`instance.reveal(${JSON.stringify(slow_folder)})`);await delay(80);
+  await evaluate(`window.theme_row=document.querySelector(${JSON.stringify(row('slow_folder'))});window.theme_name=theme_row.querySelector('.workspace-explorer-name');window.theme_tree=document.querySelector('.workspace-explorer-tree');window.theme_scroll=theme_tree.scrollTop;window.theme_selection=[...document.querySelectorAll('.workspace-explorer-row[aria-selected="true"]')].map(node=>node.dataset.path);window.theme_expanded=theme_row.getAttribute('aria-expanded');window.theme_editor_value=document.querySelector('#editor').value;void 0`);
+  assert(await evaluate('theme_scroll>0'),'theme switching exercises a selected row at a nonzero scroll position');
+  const luminance=rgb=>rgb.map(value=>{const srgb=value/255;return srgb<=.04045?srgb/12.92:((srgb+.055)/1.055)**2.4;}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
+  const contrast=(foreground,background)=>{const levels=[luminance(foreground),luminance(background)].sort((left,right)=>right-left);return(levels[0]+.05)/(levels[1]+.05);};
+  const theme_selection_metrics=[];
+  const sample_selection=async(theme,state,cycle)=>{
+    const sample=await evaluate(`(()=>{
+      const target=document.querySelector(${JSON.stringify(row('slow_folder'))}),name=target.querySelector('.workspace-explorer-name'),arrow=target.querySelector('.workspace-explorer-chevron svg');
+      const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const context=canvas.getContext('2d');
+      const pixel=()=>Array.from(context.getImageData(0,0,1,1).data).slice(0,3);
+      context.fillStyle='#fff';context.fillRect(0,0,1,1);const chain=[];for(let node=target;node;node=node.parentElement)chain.unshift(node);
+      for(const node of chain){context.fillStyle=getComputedStyle(node).backgroundColor;context.fillRect(0,0,1,1);}const background=pixel();
+      const foreground=node=>{context.fillStyle='rgb('+background.join(',')+')';context.fillRect(0,0,1,1);context.fillStyle=getComputedStyle(node).color;context.fillRect(0,0,1,1);return pixel();};
+      return{theme:document.documentElement.dataset.workspaceFileIconTheme,background,background_css:getComputedStyle(target).backgroundColor,text:foreground(name),arrow:foreground(arrow),hover:target.matches(':hover'),tree_focused:document.activeElement===theme_tree,focus_visible:theme_tree.matches(':focus-visible'),height:target.getBoundingClientRect().height,arrow_width:arrow.getBoundingClientRect().width,arrow_height:arrow.getBoundingClientRect().height,row_identity:target===theme_row,name_identity:name===theme_name,selection:[...document.querySelectorAll('.workspace-explorer-row[aria-selected="true"]')].map(node=>node.dataset.path),scroll:theme_tree.scrollTop,original_scroll:theme_scroll,expanded:target.getAttribute('aria-expanded'),original_expanded:theme_expanded,editor_unchanged:document.querySelector('#editor').value===theme_editor_value};
+    })()`);
+    sample.cycle=cycle;sample.state=state;sample.expected_theme=theme;sample.text_contrast=contrast(sample.text,sample.background);sample.arrow_contrast=contrast(sample.arrow,sample.background);theme_selection_metrics.push(sample);
+    fs.writeFileSync(path.join(root,'explorer_selection_metrics.json'),JSON.stringify(theme_selection_metrics,null,2));
+    fs.writeFileSync(path.join(root,'explorer_selection_'+cycle+'_'+theme+'_'+state+'.png'),(await test_window.webContents.capturePage()).toPNG());
+  };
+  for(const [cycle,theme]of [[0,'light'],[1,'dark'],[2,'light']]){
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:900,y:600});
+    await evaluate('document.querySelector("#editor").focus({preventScroll:true});void 0');
+    await apply_theme(theme);await sample_selection(theme,'idle',cycle);
+    const point=await evaluate('(()=>{const box=theme_row.getBoundingClientRect();return{x:Math.round(box.right-5),y:Math.round(box.top+box.height/2)}})()');
+    test_window.webContents.sendInputEvent({type:'mouseMove',...point});await delay(60);await sample_selection(theme,'hover',cycle);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:900,y:600});
+    for(const type of ['keyDown','keyUp'])test_window.webContents.sendInputEvent({type,keyCode:'Tab',modifiers:['shift']});
+    await wait('document.activeElement===theme_tree');await delay(60);await sample_selection(theme,'keyboard',cycle);
+    assert(fs.readFileSync(path.join(workspace,'README.zh-CN.md')).equals(original),'theme switch does not write the source Markdown');
+  }
+  // 完整采样后断言，失败时也保留日夜与各交互状态截图。
+  const expected_selection=await evaluate('theme_selection');
+  const night_idle=theme_selection_metrics.find(sample=>sample.theme==='dark'&&sample.state==='idle');
+  assert(night_idle&&night_idle.text_contrast>=4.5,'Night selected row without hover must retain readable text; actual '+night_idle?.text_contrast.toFixed(2));
+  for(const sample of theme_selection_metrics){
+    const description=sample.expected_theme+'/'+sample.state+'/cycle'+sample.cycle;
+    assert.equal(sample.theme,sample.expected_theme,description+' uses production theme observation');
+    assert(sample.row_identity&&sample.name_identity,description+' preserves the selected row and name nodes');
+    assert.deepEqual(sample.selection,expected_selection,description+' preserves selection identity');
+    assert.equal(sample.scroll,sample.original_scroll,description+' preserves the nonzero tree scroll');
+    assert.equal(sample.expanded,sample.original_expanded,description+' preserves folder expansion');
+    assert.equal(sample.height,26,description+' preserves 26px row geometry');
+    assert(sample.arrow_width>0&&sample.arrow_height>0&&sample.editor_unchanged,description+' retains the visible arrow and source editor value');
+    assert.equal(sample.hover,sample.state==='hover',description+' tests the requested hover state');
+    assert.equal(sample.tree_focused,sample.state==='keyboard',description+' tests the requested focus owner');
+    if(sample.state==='keyboard')assert(sample.focus_visible,description+' receives keyboard focus with visible browser focus state');
+    assert(sample.text_contrast>=4.5,description+' text contrast is at least 4.5:1; actual '+sample.text_contrast.toFixed(2));
+    assert(sample.arrow_contrast>=3,description+' arrow contrast is at least 3:1; actual '+sample.arrow_contrast.toFixed(2));
+    assert.equal(sample.background_css,sample.theme==='dark'?'rgb(44, 45, 46)':'rgba(218, 218, 218, 0.6)',description+' uses the fixed VS Code inactive-selection background');
+    assert.deepEqual(sample.text,sample.theme==='dark'?[237,237,237]:[32,32,32],description+' uses the fixed selected foreground');
+    if(sample.theme==='dark')assert(Math.max(...sample.background)<80,description+' never paints a bright selection over Night');
+  }
+  // 窄栏和真实页面缩放仍使用同一生产主题链，行尾仍是同一个展开目标。
   for(const [theme,zoom,width]of [['light',1,320],['dark',1.25,220]]){
     test_window.webContents.setZoomFactor(zoom);
-    await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.documentElement.style.cssText='--text-color:${theme==='dark'?'#ddd':'#333'};--side-bar-bg-color:${theme==='dark'?'#252526':'#f8f8f8'};--linux-note-shell-inactive-selection-background:${theme==='dark'?'#37373d':'#e4e6f1'}';document.querySelector('#typora-sidebar').style.width='${width}px';instance.reveal(${JSON.stringify(slow_folder)})`);await delay(100);
+    await apply_theme(theme);await evaluate(`document.querySelector('#typora-sidebar').style.width='${width}px';instance.reveal(${JSON.stringify(slow_folder)})`);await delay(100);
     for(let step=0;step<2;step++){
       const target=await evaluate(`(()=>{const row=document.querySelector(${JSON.stringify(row('slow_folder'))}),b=row.getBoundingClientRect();return{x:b.right-3,y:b.top+b.height/2,open:row.getAttribute('aria-expanded')==='true',hit:row.contains(document.elementFromPoint(b.right-3,b.top+b.height/2))}})()`);
       assert(target.hit,theme+' scaled folder row is reachable');
@@ -208,11 +271,11 @@ app.whenReady().then(async()=>{
     }
     fs.writeFileSync(path.join(root,'explorer_hit_'+theme+'.png'),(await test_window.webContents.capturePage()).toPNG());
   }
-  test_window.webContents.setZoomFactor(1);await evaluate("document.documentElement.removeAttribute('style');document.documentElement.dataset.workspaceFileIconTheme='light';document.querySelector('#typora-sidebar').style.width='320px'");
+  test_window.webContents.setZoomFactor(1);await evaluate(`if(${JSON.stringify(body_theme_before)}===null)document.body.removeAttribute('style');else document.body.setAttribute('style',${JSON.stringify(body_theme_before)});document.querySelector('#typora-sidebar').style.width='320px';void 0`);await wait('document.documentElement.dataset.workspaceFileIconTheme==="light"');
   await evaluate('instance.reveal(root_path)');
   const before_dispose=await evaluate('({watchers,listeners:get_listeners(),rows:document.querySelectorAll(".workspace-explorer-row").length,reads})');
   await evaluate('instance.dispose()');assert.equal(await evaluate('watchers'),0);assert.equal(await evaluate('get_listeners()'),0);assert.equal(await evaluate('document.querySelector(".linux-note-workspace-explorer")'),null);
   await click('[data-id="core.file-explorer"]');assert.equal(await evaluate('native_clicks'),1,'dispose restores native button handling');
   assert(fs.readFileSync(path.join(workspace,'README.zh-CN.md')).equals(original));
-  console.log(JSON.stringify({status:'PASS',checks:['native header rules preserve explorer toolbar bounds and tree flow in both window modes','closed sidebar reads no directories','all files including dot names, hidden directories and binary extensions visible','official SVG icons render at 16px without a font dependency','native files button selects and toggles custom panel without duplicate ribbon','only clicked directories enumerated','file click forwards binary and unknown names to opener','context menu copies correct relative path','hide closes watchers and show restores expanded watches','native late outline class cannot cover explorer','2000-file directory renders bounded visible rows','reveal opens ancestors and scrolls to file without stealing editor focus','manual refresh discovers new files','F2 selects basename and Enter renames on disk','existing target is rejected and Escape cancels without writes','selected file double-click renames; selected and unselected folders never rename on double-click','rapid folder clicks including counts 2-6 update by the next rendered frame; pending reads are shared and never reopen a collapsed folder','refresh preserves row and label identity','right-side whitespace toggles and modifier selection stays independent','light and dark 220/320px rows remain clickable at 100/125% page zoom','single click opens immediately','context-menu folder rename preserves descendants','dispose cleans observers, watchers and event subscriptions','native file button restored after dispose','source Markdown remains byte-identical','inline create file and folder','clipboard copy and move through keyboard','external binary paste preserves source','clipboard replacement refreshes cut markers','editor text shortcuts remain independent','collision paste preserves source','delete cancel and recycle callback','Explorer has no duplicate Outline section or obsolete slot'],folder_click_feedback,before_dispose,evidence:root},null,2));test_window.destroy();app.exit(0);
+  console.log(JSON.stringify({status:'PASS',checks:['native header rules preserve explorer toolbar bounds and tree flow in both window modes','closed sidebar reads no directories','all files including dot names, hidden directories and binary extensions visible','official SVG icons render at 16px without a font dependency','native files button selects and toggles custom panel without duplicate ribbon','only clicked directories enumerated','file click forwards binary and unknown names to opener','context menu copies correct relative path','hide closes watchers and show restores expanded watches','native late outline class cannot cover explorer','2000-file directory renders bounded visible rows','reveal opens ancestors and scrolls to file without stealing editor focus','manual refresh discovers new files','F2 selects basename and Enter renames on disk','existing target is rejected and Escape cancels without writes','selected file double-click renames; selected and unselected folders never rename on double-click','rapid folder clicks including counts 2-6 update by the next rendered frame; pending reads are shared and never reopen a collapsed folder','refresh preserves row and label identity','right-side whitespace toggles and modifier selection stays independent','day-night-day production theme observation preserves selected row contrast, identity, 26px geometry, scroll and source content across idle, hover and keyboard focus','light and dark 220/320px rows remain clickable at 100/125% page zoom','single click opens immediately','context-menu folder rename preserves descendants','dispose cleans observers, watchers and event subscriptions','native file button restored after dispose','source Markdown remains byte-identical','inline create file and folder','clipboard copy and move through keyboard','external binary paste preserves source','clipboard replacement refreshes cut markers','editor text shortcuts remain independent','collision paste preserves source','delete cancel and recycle callback','Explorer has no duplicate Outline section or obsolete slot'],folder_click_feedback,theme_selection_metrics,before_dispose,evidence:root},null,2));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);if(test_window){fs.writeFileSync(path.join(root,'failure.html'),await evaluate('document.body.outerHTML'));fs.writeFileSync(path.join(root,'failure.png'),(await test_window.webContents.capturePage()).toPNG());console.error(root);console.error(await evaluate('({focus:document.activeElement?.outerHTML,status:document.querySelector(".workspace-explorer-status")?.textContent})'));}test_window?.destroy();app.exit(1)});

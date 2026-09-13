@@ -8,6 +8,9 @@
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
+  /* 645f29c Light/Dark 2026：选中背景和前景必须成对切换。 */
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
+  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
 :root[data-workspace-file-icon-theme="dark"] {
   --workspace-hover-background:var(--vscode-list-hoverBackground,#ffffff14);
@@ -16,6 +19,8 @@
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#242526);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#3994bc26);
   --workspace-focus-border:var(--vscode-focusBorder,#3994bcb3);
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#2c2d2e);
+  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#ededed);
 }
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))) { --workspace-default-hover:var(--workspace-action-hover);--workspace-default-foreground:var(--workspace-hover-foreground); }
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
@@ -26,7 +31,7 @@
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
 /* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
-:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"]) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background,#e4e6e8); }
+:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
 /* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
