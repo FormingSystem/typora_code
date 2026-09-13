@@ -60,7 +60,7 @@ export function create_position_store(storage: Pick<Storage, "getItem" | "setIte
 
 function blocks(root: HTMLElement): HTMLElement[] {
   return Array.from(root.children).filter((node): node is HTMLElement => node instanceof HTMLElement
-    && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button, .linux-note-mermaid-inline-toolbar"));
+    && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button"));
 }
 
 function block_text(block: HTMLElement): string {

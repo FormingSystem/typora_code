@@ -34,7 +34,7 @@ export function bind_markdown_color_menu(core:graph_core){
     const selected_colors=new Set(selection.blocks.flatMap(block=>block.runs.filter(run=>block.selected.some(hit=>hit.start<run.end&&hit.end>run.start)).map(run=>run.color||"")));
     const current_color=selected_colors.size===1?[...selected_colors][0]:"";
     e.contextMenu.hide();dialog?.close();
-    const restore=()=>{if(runtime.File?.bundle===selection.bundle&&owner()===selection.owner&&e.getMarkdown()===selection.markdown)e.undo.exeCommand(selection.cursor);};
+    const restore=(restore_focus:boolean)=>{if(restore_focus&&runtime.File?.bundle===selection.bundle&&owner()===selection.owner&&e.getMarkdown()===selection.markdown)e.undo.exeCommand(selection.cursor);};
     const panel=dialog=workspace_dialog("字体颜色","取消",restore);panel.root.classList.add("workspace-color-dialog");panel.content.setAttribute("data-workspace-color-preview", "");
     panel.content.append(el("p","workspace-color-note","颜色会随文档的明暗主题调整。"));
     const apply=(color?:string)=>{try{if(color)color=normalize_text_color(color);panel.close();dialog=undefined;apply_text_color(runtime,owner(),selection,color);theme.refresh();}catch(error){fail(error);}};
@@ -50,5 +50,5 @@ export function bind_markdown_color_menu(core:graph_core){
     theme.refresh();grid.querySelector("button")?.focus();
   };
   for(const name of ["pointerdown","mousedown","mouseup","click","keydown"]){document.addEventListener(name,event=>{if(!(event.target instanceof Node)||!item.contains(event.target))return;if(event instanceof KeyboardEvent&&!["Enter"," "].includes(event.key))return;event.preventDefault();event.stopImmediatePropagation();if(name==="click"||(event instanceof KeyboardEvent&&!event.repeat))open();},{capture:true,signal:events.signal});}
-  return {dispose(){if(disposed)return;disposed=true;dialog?.close();events.abort();if(e.contextMenu.show===show)e.contextMenu.show=native_show;item.remove();interaction.remove();style.remove();theme.dispose();snapshot=undefined;}};
+  return {dispose(){if(disposed)return;disposed=true;dialog?.close(false);events.abort();if(e.contextMenu.show===show)e.contextMenu.show=native_show;item.remove();interaction.remove();style.remove();theme.dispose();snapshot=undefined;}};
 }

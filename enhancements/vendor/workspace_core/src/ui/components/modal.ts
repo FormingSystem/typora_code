@@ -1,4 +1,4 @@
-import {capture_workspace_focus,register_workspace_escape,type workspace_focus_snapshot,type workspace_escape_layer} from "../../../../../src/workspace_focus"
+import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "../../../../../src/workspace_focus"
 import './modal.scss'
 import { Closeable, View } from "src/ui/common/view"
 import { html } from 'src/utils'
@@ -16,7 +16,7 @@ export class Modal extends View implements Closeable {
   footer?: HTMLElement
 
   private previous_focus?:workspace_focus_snapshot
-  private escape_layer?:workspace_escape_layer
+  private escape_layer?:workspace_dismiss_layer
   private opened=false
 
   private closeListeners: Array<() => void> = []
@@ -26,10 +26,6 @@ export class Modal extends View implements Closeable {
 
     this.containerEl =
       $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>')
-        .on('click', event => {
-          if (event.target !== this.containerEl) return
-          this.close(false)
-        })
         .append(this.modal =
           $(`<div class="typ-modal ${props.className ?? ''}"></div>`)
             .append(this.body =
@@ -81,7 +77,7 @@ export class Modal extends View implements Closeable {
     this.opened=true
     this.previous_focus=capture_workspace_focus()
     this.containerEl.style.display = ""
-    this.escape_layer=register_workspace_escape(()=>[this.containerEl],()=>this.close())
+    this.escape_layer=register_workspace_dismissal(()=>[this.containerEl],reason=>this.close(reason==="escape"),{inside:()=>[this.modal],window_blur:true})
   }
 
   close(restore=true) {

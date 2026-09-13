@@ -2397,15 +2397,184 @@ var workspace_core_module = (() => {
     };
   }
 
+  // src/workspace_focus.ts
+  var active_element = () => {
+    let node = document.activeElement;
+    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
+    return node;
+  };
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  var within = (root, node) => {
+    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
+    return false;
+  };
+  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
+  var file_state = () => window.File;
+  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
+  function capture_workspace_focus(fallback) {
+    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
+    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
+    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback) || null;
+    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
+    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
+    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
+    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
+    let rangy;
+    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
+      try {
+        rangy = file?.editor?.selection?.getRangy();
+      } catch {
+      }
+    }
+    const scroll = [];
+    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
+    return { restore() {
+      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
+      const now = workspace_state();
+      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
+      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
+      previous.focus({ preventScroll: true });
+      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
+      else if (rangy) {
+        try {
+          rangy.select();
+        } catch {
+        }
+      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
+        try {
+          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
+        } catch {
+        }
+      }
+      for (const item of scroll) if (item.node.isConnected) {
+        item.node.scrollTop = item.top;
+        item.node.scrollLeft = item.left;
+      }
+    } };
+  }
+  var service_key = Symbol.for("typora-code:workspace-dismissal");
+  function register_workspace_dismissal(roots, cancel, options = {}) {
+    const runtime = window;
+    if (!runtime[service_key]) {
+      const stack = [];
+      let pending, listening = false, dismissing = false;
+      let gesture;
+      const top = () => stack.findLast((record) => record.roots().some(visible));
+      const inside = (record, node) => (record.options.inside?.() || record.roots()).some((root) => within(root, node));
+      const consume = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      const cancel_record = (record, reason) => {
+        if (dismissing) return;
+        dismissing = true;
+        try {
+          record.cancel(reason);
+        } finally {
+          dismissing = false;
+        }
+      };
+      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), mouseup: () => finish(), pointercancel: () => finish(), focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
+      const cleanup = () => {
+        if (!stack.length && !pending && !gesture && listening) {
+          listening = false;
+          for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
+        }
+      };
+      const keydown = (event) => {
+        gesture = void 0;
+        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
+        if (pending) {
+          consume(event);
+          return;
+        }
+        const owner = top();
+        if (!owner) return;
+        consume(event);
+        if (!event.repeat) pending = owner;
+      };
+      const keyup = (event) => {
+        if (event.key !== "Escape" || !pending) return;
+        const owner = pending;
+        pending = void 0;
+        consume(event);
+        if (!event.isComposing && top() === owner && stack.includes(owner)) cancel_record(owner, "escape");
+        cleanup();
+      };
+      const down = (event, pointer) => {
+        if (!pointer && gesture?.pointer && gesture.button === event.button) {
+          gesture.pointer = false;
+          return;
+        }
+        const owner = top();
+        gesture = { owner, button: event.button, pointer, dismissed: false };
+        if (!owner || owner.options.outside === false) return;
+        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
+        if (!hit) {
+          gesture.dismissed = true;
+          cancel_record(owner, "outside");
+        }
+      };
+      const finish = () => {
+        const current = gesture;
+        queueMicrotask(() => {
+          if (gesture === current) gesture = void 0;
+          cleanup();
+        });
+      };
+      const focus_changed = () => {
+        if (dismissing) return;
+        const owner = top();
+        if (!owner) return;
+        if (inside(owner, active_element())) owner.focused = true;
+        queueMicrotask(() => {
+          if (dismissing || top() !== owner || !stack.includes(owner) || !owner.focused || owner.options.focus_out === false) return;
+          if (gesture && (gesture.dismissed || gesture.owner !== owner)) return;
+          if (active_element() === document.body || active_element() === document.documentElement || inside(owner, active_element())) return;
+          cancel_record(owner, "focus-out");
+          cleanup();
+        });
+      };
+      const blur = () => {
+        pending = void 0;
+        gesture = void 0;
+        const owner = top();
+        if (owner?.options.window_blur) cancel_record(owner, "window-blur");
+        cleanup();
+      };
+      runtime[service_key] = { add(record) {
+        record.focused = inside(record, active_element());
+        stack.push(record);
+        if (!listening) {
+          listening = true;
+          for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");
+        }
+        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
+          const index = stack.indexOf(record);
+          if (index !== -1) stack.splice(index, 1);
+          cleanup();
+        } };
+      } };
+    }
+    return runtime[service_key].add({ roots, cancel, options, focused: false });
+  }
+
   // vendor/workspace_core/src/ui/components/menu.ts
   var Menu = class extends View {
     submenus = {};
-    component = new Component();
+    dismiss_layer;
+    previous_focus;
+    open_timer;
+    parent_menu;
+    parent_item;
+    opened = false;
     _mouseoverListeners = {};
     _mouseoutListeners = {};
     constructor() {
       super();
-      this.containerEl = $(`<ul class="dropdown-menu context-menu" role="menu">`).on("click", () => this.close()).get(0);
+      this.containerEl = $(`<ul class="dropdown-menu context-menu" role="menu">`).on("click", (event) => {
+        if (!event.target.closest(".has-extra-menu")) this.close_family();
+      }).get(0);
       document.body.append(this.containerEl);
       this._registerEvent();
     }
@@ -2467,18 +2636,45 @@ var workspace_core_module = (() => {
      *
      * Do not use it directly. Use `showAtMouseEvent()` or `showAtPosition()` instead.
      */
+    family() {
+      return this.parent_menu?.family() || this;
+    }
+    roots() {
+      return [this.containerEl, ...Object.values(this.submenus).filter((menu) => menu.opened).flatMap((menu) => menu.roots())];
+    }
+    close_family() {
+      this.family().close(true);
+    }
     open() {
-      setTimeout(() => {
+      clearTimeout(this.open_timer);
+      if (this.opened) return;
+      this.previous_focus = capture_workspace_focus();
+      this.open_timer = setTimeout(() => {
+        this.open_timer = void 0;
+        this.opened = true;
         this.containerEl.style.display = "block";
-        this.component.registerDomEvent(document.body, "click", (event) => {
-          if (event.target.closest(".context-menu")) return;
-          this.close();
-        });
+        this.containerEl.tabIndex = -1;
+        this.dismiss_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => {
+          if (reason === "escape") this.close(true);
+          else this.family().close(false);
+        }, { inside: () => this.family().roots(), window_blur: true });
+        this.containerEl.focus({ preventScroll: true });
       });
     }
-    close() {
+    close(restore = false) {
+      clearTimeout(this.open_timer);
+      this.open_timer = void 0;
+      const owned = this.dismiss_layer?.owns_focus() || this.roots().some((root) => root.contains(document.activeElement));
+      for (const menu of Object.values(this.submenus)) menu.close(false);
+      this.opened = false;
+      this.dismiss_layer?.dispose();
+      this.dismiss_layer = void 0;
       this.containerEl.style.display = "none";
-      this.component.unload();
+      if (restore && owned) {
+        if (this.parent_menu?.opened) this.parent_item?.focus({ preventScroll: true });
+        else this.previous_focus?.restore();
+      }
+      this.previous_focus = void 0;
       return this;
     }
   };
@@ -2528,6 +2724,9 @@ var workspace_core_module = (() => {
       const itemKey = this.containerEl.dataset.key;
       const submenuKey = itemKey + ":submenu";
       const submenu = this.menu.submenus[submenuKey] ??= new Menu();
+      submenu.parent_menu = this.menu;
+      submenu.parent_item = this.anchorEl;
+      this.anchorEl.tabIndex = -1;
       submenu.empty();
       build(submenu);
       this.menu._onMouseOver(itemKey, (event) => {
@@ -4993,121 +5192,6 @@ var workspace_core_module = (() => {
     }
   };
 
-  // src/workspace_focus.ts
-  var active_element = () => {
-    let node = document.activeElement;
-    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
-    return node;
-  };
-  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
-  var within = (root, node) => {
-    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
-    return false;
-  };
-  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
-  var file_state = () => window.File;
-  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
-  function capture_workspace_focus(fallback) {
-    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
-    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
-    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback) || null;
-    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
-    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
-    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
-    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
-    let rangy;
-    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
-      try {
-        rangy = file?.editor?.selection?.getRangy();
-      } catch {
-      }
-    }
-    const scroll = [];
-    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
-    return { restore() {
-      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
-      const now = workspace_state();
-      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
-      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
-      previous.focus({ preventScroll: true });
-      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
-      else if (rangy) {
-        try {
-          rangy.select();
-        } catch {
-        }
-      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
-        try {
-          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
-        } catch {
-        }
-      }
-      for (const item of scroll) if (item.node.isConnected) {
-        item.node.scrollTop = item.top;
-        item.node.scrollLeft = item.left;
-      }
-    } };
-  }
-  var service_key = Symbol.for("typora-code:workspace-escape");
-  function register_workspace_escape(roots, cancel) {
-    const runtime = window;
-    if (!runtime[service_key]) {
-      const stack = [];
-      let pending, listening = false;
-      const top = () => stack.findLast((record) => record.roots().some(visible));
-      const consume = (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      };
-      const cleanup = () => {
-        if (!stack.length && !pending && listening) {
-          listening = false;
-          window.removeEventListener("keydown", keydown, true);
-          window.removeEventListener("keyup", keyup, true);
-          window.removeEventListener("blur", blur);
-        }
-      };
-      const keydown = (event) => {
-        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
-        if (pending) {
-          consume(event);
-          return;
-        }
-        const owner = top();
-        if (!owner) return;
-        consume(event);
-        if (!event.repeat) pending = owner;
-      };
-      const keyup = (event) => {
-        if (event.key !== "Escape" || !pending) return;
-        const owner = pending;
-        pending = void 0;
-        consume(event);
-        if (!event.isComposing && top() === owner && stack.includes(owner)) owner.cancel();
-        cleanup();
-      };
-      const blur = () => {
-        pending = void 0;
-        cleanup();
-      };
-      runtime[service_key] = { add(record) {
-        stack.push(record);
-        if (!listening) {
-          listening = true;
-          window.addEventListener("keydown", keydown, true);
-          window.addEventListener("keyup", keyup, true);
-          window.addEventListener("blur", blur);
-        }
-        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
-          const index = stack.indexOf(record);
-          if (index !== -1) stack.splice(index, 1);
-          cleanup();
-        } };
-      } };
-    }
-    return runtime[service_key].add({ roots, cancel });
-  }
-
   // vendor/workspace_core/src/ui/components/modal.ts
   var Modal = class extends View {
     modal;
@@ -5120,10 +5204,7 @@ var workspace_core_module = (() => {
     closeListeners = [];
     constructor(props) {
       super();
-      this.containerEl = $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>').on("click", (event) => {
-        if (event.target !== this.containerEl) return;
-        this.close(false);
-      }).append(
+      this.containerEl = $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>').append(
         this.modal = $(`<div class="typ-modal ${props.className ?? ""}"></div>`).append(
           this.body = html`<div class="typ-modal__body"></div>`
         ).get(0)
@@ -5162,7 +5243,7 @@ var workspace_core_module = (() => {
       this.opened = true;
       this.previous_focus = capture_workspace_focus();
       this.containerEl.style.display = "";
-      this.escape_layer = register_workspace_escape(() => [this.containerEl], () => this.close());
+      this.escape_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => this.close(reason === "escape"), { inside: () => [this.modal], window_blur: true });
     }
     close(restore = true) {
       if (!this.opened) return;

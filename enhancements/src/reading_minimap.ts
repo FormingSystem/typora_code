@@ -145,7 +145,7 @@ function create_minimap(target: minimap_target) {
     try {
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const parent = node.parentElement;
-        if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar,.linux-note-mermaid-inline-toolbar")) continue;
+        if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
         range.selectNodeContents(node);
         const boxes = Array.from(range.getClientRects()).filter(box => box.width > 0 && box.height > 0);
         if (!boxes.length) continue;
