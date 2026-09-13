@@ -1,6 +1,9 @@
 export type git_graph_locale = "zh-cn" | "en";
 
 const zh_cn = {
+  "progress.show":"显示 Git 操作进度",
+  "progress.running":"正在{action}…",
+  "progress.waiting_remote":"等待选择远端",
   "diff.split_editor": "向右拆分编辑器",
   "ref_picker.remote_description": "远端分支位于 {hash}",
   "ref_picker.tag_description": "标签位于 {hash}",
@@ -843,6 +846,9 @@ const zh_cn = {
 export type git_graph_text_key = keyof typeof zh_cn;
 
 const en: Record<git_graph_text_key, string> = {
+  "progress.show":"Show Git operation progress",
+  "progress.running":"{action} in progress…",
+  "progress.waiting_remote":"Waiting for remote selection",
   "diff.split_editor": "Split Editor Right",
   "ref_picker.remote_description": "Remote branch at {hash}",
   "ref_picker.tag_description": "Tag at {hash}",

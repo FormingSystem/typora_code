@@ -9,7 +9,7 @@ export const graph_defaults = {
   graph_style: "curved", colors: ["#0085d9", "#d9008f", "#00d90a", "#d98500", "#a300d9", "#ff0000", "#00d9cc", "#e138e8", "#85d900", "#dc5b23", "#6f24d6", "#ffcc00"],
   initial_count: 300, page_count: 100, auto_load: true, order: "date", first_parent: false,
   show_remotes: true, show_remote_heads: true, show_tags: true, tag_only_commits: true, show_stashes: true,
-  show_changes: true, show_untracked: true, include_reflogs: false, use_mailmap: false,
+  show_changes: true, show_progress:true, show_untracked: true, include_reflogs: false, use_mailmap: false,
   mute_merges: true, mute_unreachable: false, show_signature: false, fetch_avatars: false,
   date_type: "author", date_format: "local",
   column_widths: { subject: 300, author: 110, date: 145, hash: 80 },
@@ -31,6 +31,7 @@ export type graph_settings = typeof graph_defaults;
 export function settings_labels_for(locale?: git_graph_locale): Record<keyof graph_settings, string> {
   const label = (key: git_graph_text_key): string => text(key, {}, locale);
   return {
+    show_progress:label("progress.show"),
     pr_providers:label("settings.label.pr_providers"),pr_config:label("settings.label.pr_config"),tab_icon_theme:label("settings.label.tab_icon_theme"),
     history_toolbar_hidden:label("scm.toolbar_hidden"),history_shortcuts:label("scm.toolbar_shortcuts"),
     reference_space: label("settings.label.reference_space"),

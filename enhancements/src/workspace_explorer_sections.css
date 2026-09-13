@@ -36,7 +36,7 @@
 .workspace-timeline-entry svg{height:16px;width:16px;flex:none}
 .workspace-timeline-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workspace-timeline-date{font-size:11px;color:var(--linux-note-shell-description-foreground,#888);flex:none}
-.workspace-history-document{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.workspace-history-document{display:flex;flex:1 1 0;align-self:stretch;flex-direction:column;width:100%;height:100%;min-height:0;min-width:0;overflow:hidden}
 .workspace-history-document>.git-graph-document{flex:1;min-height:0}
 .workspace-save-setting{display:grid;grid-template-columns:minmax(180px,1fr) minmax(150px,1fr);align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid var(--linux-note-shell-border,rgba(128,128,128,.2))}
 .workspace-save-setting input:not([type=checkbox]),.workspace-save-setting select,.workspace-save-setting textarea{width:100%;box-sizing:border-box;color:inherit;background:var(--linux-note-shell-background);border:1px solid var(--linux-note-shell-border,#888);padding:5px;font:inherit}

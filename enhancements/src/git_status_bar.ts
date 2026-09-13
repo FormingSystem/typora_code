@@ -30,15 +30,25 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   item.append(branch, sync, graph);
   let panel: git_graph_panel | undefined; let snapshot: branch_status | undefined; let snapshot_root = ""; let epoch = 0; let disposed = false;
   let reader: ReturnType<graph_host["runner"]> | undefined;
+  let stop_progress:(()=>void)|undefined,normal_sync_title="",normal_sync_disabled=true;
+  const render_progress=()=>{
+    const state=panel?.progress.state,busy=state?.busy===true,spinning=state?.running===true&&["fetch","pull","push","sync"].includes(state.kind);
+    branch.disabled=busy;sync.disabled=busy||normal_sync_disabled;
+    const icon=spinning?"sync":snapshot?.upstream?"sync":"cloud-upload";
+    if(sync.firstElementChild?.getAttribute("data-git-icon")!==icon)sync.firstElementChild?.replaceWith(git_icon(icon));
+    sync.classList.toggle("git-operation-spinning",spinning);sync.title=busy?state!.label:normal_sync_title;sync.setAttribute("aria-label",sync.title);
+    item.dataset.gitOperation=busy?state!.kind:"idle";item.setAttribute("aria-busy",String(busy));item.title=busy?state!.label:text("status.repository_status");
+  };
   const observer = new MutationObserver(() => { if (panel && !panel.pending) void refresh(); else window.setTimeout(() => void refresh(), 0); });
   const unavailable = (message: string) => {
     snapshot = undefined; snapshot_root = ""; label.textContent = text("status.no_repository"); branch.title = text("status.select_repository_hint", {message});
     branch.setAttribute("aria-label", branch.title); sync.disabled = true; sync.title = message; counts.textContent = ""; item.dataset.repository = "none";
+    normal_sync_title=message;normal_sync_disabled=true;render_progress();
   };
   const refresh = async () => {
     if (disposed) return;
     const current = current_panel();
-    if (current !== panel) { panel = current; observer.disconnect(); observer.observe(panel.container, {attributes: true, attributeFilter: ["data-state"]}); }
+    if (current !== panel) { stop_progress?.();panel = current;stop_progress=panel.progress.subscribe(render_progress); observer.disconnect(); observer.observe(panel.container, {attributes: true, attributeFilter: ["data-state"]}); }
     if (snapshot_root !== current.root) { snapshot = undefined; label.textContent = text("status.checking"); counts.textContent = ""; sync.disabled = true; item.dataset.repository = "loading"; }
     const token = ++epoch; reader?.cancel(); reader = host.runner(current.settings);
     const root = current.root;
@@ -56,6 +66,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       sync.replaceChildren(git_icon(status.upstream ? "sync" : "cloud-upload"), counts);
       sync.title = sync.disabled ? text("status.create_commit_first") : status.upstream ? text("status.sync_tooltip", {upstream: status.upstream, behind: status.behind, ahead: status.ahead}) : text("status.publish_tooltip");
       sync.setAttribute("aria-label", sync.title);
+      normal_sync_title=sync.title;normal_sync_disabled=sync.disabled;render_progress();
     } catch (error) { if (!disposed && token === epoch) unavailable(text("status.read_failed", {error: String(error instanceof Error ? error.message : error)})); }
   };
   const ready = (event: MouseEvent, show: (panel: git_graph_panel, available: () => boolean) => void | Promise<void>) => {
@@ -67,7 +78,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       while (current.pending && available()) await new Promise(resolve => setTimeout(resolve, 50));
       if (!available()) return;
       if (!current.state || current.container.dataset.state === "error") {
-        workspace_menu(event, [{id: "select_repository", title: text("status.select_repository"), action: () => current.manage_repositories()}, {id: "refresh_status", title: text("status.recheck_repository"), action: () => void refresh()}]); return;
+        workspace_menu(event, [{id: "select_repository", title: text("status.select_repository"), action: () => current.manage_repositories()}, {id: "refresh_status", title: text("status.recheck_repository"), action: () => void current.refresh(false)}]); return;
       }
       await show(current, available);
     })().catch(error => current.report(error));
@@ -99,7 +110,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       {id: "push", title: text("status.push"), disabled: !state.head || !state.branch, action: () => void current.network_action("push")},
       {id: "set_upstream", title: text("status.set_upstream"), separator: true, disabled: !state.head || !state.branch, action: () => void current.network_action("push", {publish: true})},
       {id: "remotes", title: text("status.configure_remotes"), action: () => current.remotes_dialog()},
-      {id: "refresh_status", title: text("status.refresh"), separator: true, action: () => void refresh()},
+      {id: "refresh_status", title: text("status.refresh"), separator: true, action: () => void current.refresh(false)},
     ]);
   });
   sync.onclick = event => ready(event, async (current, available) => {
@@ -111,7 +122,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
   const timer = window.setInterval(() => { if (document.visibilityState !== "hidden" && !panel?.writing) void refresh(); }, 8000);
   const on_focus = () => void refresh(); window.addEventListener("focus", on_focus);
-  const dispose = () => { if(disposed)return; disposed = true; epoch++; reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); layout.remove();style.remove(); window.removeEventListener("pagehide",dispose); };
+  const dispose = () => { if(disposed)return; disposed = true; epoch++;stop_progress?.(); reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); layout.remove();style.remove(); window.removeEventListener("pagehide",dispose); };
   window.addEventListener("pagehide", dispose, {once:true});
   void refresh();
   return {dispose, refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};

@@ -28,6 +28,7 @@ export class git_source_control {
   notice = el("div", "git-scm-notice");
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
   input_section = el("details", "git-scm-input-section"); changes_body = el("div", "git-scm-changes-body"); groups_scroll = 0; repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
+  input_heading=el("summary","git-scm-input-heading");
   show_repositories = false; show_changes = true; show_history = true; sort_order = "path"; history_tree = false;
   repositories:git_scm_repositories;
   history: git_scm_history; history_sash: HTMLElement; history_ratio = .55; history_open = true;
@@ -59,7 +60,7 @@ export class git_source_control {
     const commit_bar = el("div", "git-scm-commit-bar"); commit_bar.append(commit, commit_options);
     this.changes_pane.setAttribute("aria-label", text("scm.working_tree_changes"));
     this.notice.setAttribute("role", "status");
-    const input_heading = el("summary", "git-scm-input-heading"); const input_menu = icon_button("more", text("scm.changes_and_operations"), () => {}, "git-scm-operation-menu");
+    const input_heading = this.input_heading; const input_menu = icon_button("more", text("scm.changes_and_operations"), () => {}, "git-scm-operation-menu");
     const input_actions = el("div", "git-scm-input-actions");
     for (const [id, icon, label] of [["commit", "check", text("scm.commit")], ["refresh", "refresh", text("history.refresh")], ["graph", "git-branch", text("scm.open_graph")]] as const) {
       const control = icon_button(icon, label, () => {});
@@ -153,6 +154,7 @@ export class git_source_control {
     return id === "refresh" || !!panel.state && panel.state.root === panel.root && panel.container.dataset.state !== "error";
   }
   update_actions(): void {
+    this.message.disabled=this.panel.writing&&this.panel.progress.state.kind==="commit";
     for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
     for (const control of this.changes_body.querySelectorAll<HTMLButtonElement>(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
   }
@@ -268,10 +270,10 @@ export class git_source_control {
   }
   async ignore_file(file: string,tracked=false): Promise<void> {
     if (this.panel.writing||this.panel.pending||this.panel.disposed) return;
-    this.panel.writing = true; this.panel.update_scm_actions();let message = "";
-    try { const result = await this.panel.host.ignore_file(this.panel.root, file, this.panel.settings); message = result.changed ? text("scm.added_to_gitignore", {file}) : text("scm.already_ignored", {file});if(tracked)message+="\n"+text("scm.ignore_keeps_tracking"); }
+    let message = "";
+    try { const result = await this.panel.run_operation("ignore",()=>this.panel.host.ignore_file(this.panel.root, file, this.panel.settings)); message = result.changed ? text("scm.added_to_gitignore", {file}) : text("scm.already_ignored", {file});if(tracked)message+="\n"+text("scm.ignore_keeps_tracking"); }
     catch (error) { message = String(error); }
-    finally { this.panel.writing = false; await this.panel.refresh(false); this.panel.report(message); }
+    finally { this.panel.report(message); }
   }
   /** 默认资源点击：仅当前比较的新增项没有旧基线；显式比较入口仍走 open_file。 */
   async open_default_file(file:graph_change,from:string,to:string,files:graph_change[]):Promise<void>{
@@ -322,7 +324,7 @@ export class git_source_control {
                 if(host.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+host.path_api.sep))throw new Error(text("host.outside_repository"));
                 const bytes=await host.fs.promises.readFile(target);
                 return plan_git_diff_ranges(writer.run,{action,root,file:file.path,original_revision:from,modified_revision:to,...snapshot,worktree_bytes:new Uint8Array(bytes),encoding:"utf-8"});
-              });
+              },this.panel.writer,action==="stage"?"stage":"discard_changes");
               if (this.repository_action_available(root)) await this.open_file(file,from,to,files);
             }catch(error){this.panel.report(error);throw error;}
           }
