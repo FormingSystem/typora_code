@@ -158116,355 +158116,6 @@ https://creativecommons.org/licenses/by/4.0/
     }
   });
 
-  // src/markdown_text_color.ts
-  var text_color_presets = [
-    ["\u7EA2\u8272", "b42318"],
-    ["\u6A59\u8272", "b54708"],
-    ["\u9EC4\u8272", "946800"],
-    ["\u7EFF\u8272", "18794e"],
-    ["\u9752\u8272", "087e8b"],
-    ["\u84DD\u8272", "175cd3"],
-    ["\u7D2B\u8272", "7f3fbf"],
-    ["\u7C89\u8272", "b4236c"]
-  ];
-  var text_color_prefix = "--typora-code-color-";
-  function normalize_text_color(value) {
-    const color = value.replace(/^#/u, "").toLowerCase();
-    if (!/^[0-9a-f]{6}$/u.test(color)) throw new Error("\u8BF7\u8F93\u5165\u516D\u4F4D\u5341\u516D\u8FDB\u5236\u989C\u8272\uFF0C\u4F8B\u5982 #B42318\u3002");
-    return color;
-  }
-  function text_color_open(color) {
-    color = normalize_text_color(color);
-    return '<span style="color:var('.concat(text_color_prefix).concat(color, ", #").concat(color, ')">');
-  }
-  function read_text_color_open(value) {
-    const match2 = /^<span style="color:var\(--typora-code-color-([0-9a-f]{6}), #\1\)">$/u.exec(value);
-    return match2?.[1];
-  }
-  function color_luminance(rgb) {
-    return rgb.map((value) => {
-      const c = value / 255;
-      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-    }).reduce((sum, c, index) => sum + c * [0.2126, 0.7152, 0.0722][index], 0);
-  }
-  function color_contrast(left, right) {
-    const a = color_luminance(left), b2 = color_luminance(right);
-    return (Math.max(a, b2) + 0.05) / (Math.min(a, b2) + 0.05);
-  }
-  function adaptive_text_color(color, background) {
-    color = normalize_text_color(color);
-    const rgb = [0, 2, 4].map((offset) => parseInt(color.slice(offset, offset + 2), 16));
-    if (color_contrast(rgb, background) >= 4.5) return "#" + color;
-    const target = color_contrast([0, 0, 0], background) >= color_contrast([255, 255, 255], background) ? 0 : 255;
-    const mix = (amount) => rgb.map((c) => Math.round(c + (target - c) * amount));
-    let low = 0, high = 1;
-    for (let i = 0; i < 24; i++) {
-      const mid = (low + high) / 2;
-      if (color_contrast(mix(mid), background) >= 4.5) high = mid;
-      else low = mid;
-    }
-    return "#" + mix(high).map((c) => c.toString(16).padStart(2, "0")).join("");
-  }
-  function rewrite_text_colors(source, runs, cuts, selection) {
-    const sorted = runs.filter((run) => run.end > run.start).sort((a, b2) => a.start - b2.start);
-    cuts = [...cuts].sort((a, b2) => a.start - b2.start);
-    for (const list3 of [sorted, cuts]) for (let i = 0; i < list3.length; i++) {
-      const item = list3[i];
-      if (!Number.isInteger(item.start) || !Number.isInteger(item.end) || item.start < 0 || item.end > source.length || item.end < item.start || i > 0 && item.start < list3[i - 1].end) throw new Error("\u6587\u5B57\u989C\u8272\u533A\u95F4\u5DF2\u5931\u6548\u3002");
-    }
-    let text3 = "", cursor = 0;
-    const copies = [];
-    const copy = (start, end) => {
-      let offset = start;
-      for (const cut of cuts) {
-        if (cut.end <= offset) continue;
-        if (cut.start >= end) break;
-        if (cut.start > offset) {
-          copies.push({ start: offset, end: cut.start, output: text3.length });
-          text3 += source.slice(offset, cut.start);
-        }
-        offset = Math.max(offset, Math.min(end, cut.end));
-      }
-      if (offset < end) {
-        copies.push({ start: offset, end, output: text3.length });
-        text3 += source.slice(offset, end);
-      }
-    };
-    for (const run of sorted) {
-      copy(cursor, run.start);
-      if (run.color) text3 += text_color_open(run.color);
-      copy(run.start, run.end);
-      if (run.color) text3 += "</span>";
-      cursor = run.end;
-    }
-    copy(cursor, source.length);
-    const map = (offset, end) => {
-      const matches = copies.filter((part2) => part2.start <= offset && part2.end >= offset);
-      const part = end ? matches[0] : matches.at(-1);
-      if (!part) throw new Error("\u6587\u5B57\u989C\u8272\u9009\u533A\u65E0\u6CD5\u6062\u590D\u3002");
-      return part.output + offset - part.start;
-    };
-    return { text: text3, selection: selection ? { start: map(selection.start, false), end: map(selection.end, true) } : void 0 };
-  }
-
-  // src/markdown_color_native.ts
-  var meta_selector = ".md-meta,.md-content";
-  var forbidden_selector = ".CodeMirror,.md-math,.md-inline-math,.md-image,.md-fences,.md-rawblock,script,style,textarea,input";
-  var clone = (value) => JSON.parse(JSON.stringify(value));
-  function capture_text_color(runtime2, owner) {
-    const file = runtime2.File, e = file?.editor, root = document.querySelector("#write"), s15 = window.getSelection();
-    if (!e?.undo?.UndoManager?.buildReplaceUndo || !e.contextMenu?.hide || !file?.bundle || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || !root || !s15 || s15.isCollapsed || s15.rangeCount !== 1) return;
-    const range2 = s15.getRangeAt(0);
-    if (!root.contains(range2.startContainer) || !root.contains(range2.endContainer)) return;
-    const cursor = e.selection.buildUndo();
-    if (!cursor || cursor.type !== "cursor") return;
-    const blocks2 = [];
-    for (const block3 of root.querySelectorAll("[cid]")) {
-      if (block3.querySelector("[cid]") || !range2.intersectsNode(block3)) continue;
-      const id = block3.getAttribute("cid"), node = e.getNode(id);
-      if (!node) continue;
-      const source = block3.textContent || "";
-      const texts = [];
-      const walker = document.createTreeWalker(block3, NodeFilter.SHOW_TEXT);
-      let offset = 0, current;
-      while (current = walker.nextNode()) {
-        const text3 = current, start = offset, end = offset + text3.length;
-        offset = end;
-        let selected2;
-        if (text3.length && range2.comparePoint(text3, 0) !== 1 && range2.comparePoint(text3, text3.length) !== -1) {
-          const left = range2.startContainer === text3 ? range2.startOffset : 0, right = range2.endContainer === text3 ? range2.endOffset : text3.length;
-          if (right > left) selected2 = { start: start + left, end: start + right };
-        }
-        texts.push({ node: text3, start, end, selected: selected2 });
-      }
-      const visible2 = texts.filter((item) => !item.node.parentElement?.closest(meta_selector) || item.node.parentElement?.closest('[md-inline="html_entity"]'));
-      if (!visible2.some((item) => item.selected)) continue;
-      if (!["paragraph", "heading", "table_cell", "def_footnote"].includes(String(node.get("type"))) || visible2.some((item) => item.selected && item.node.parentElement?.closest(forbidden_selector))) throw new Error("\u5B57\u4F53\u989C\u8272\u9002\u7528\u4E8E\u666E\u901A Markdown \u6587\u5B57\uFF1B\u8BF7\u907F\u5F00\u4EE3\u7801\u5757\u3001\u516C\u5F0F\u548C\u56FE\u7247\u3002");
-      if (node.get("text") !== source) throw new Error("\u5F53\u524D\u6BB5\u843D\u542B\u6709\u65E0\u6CD5\u5B89\u5168\u6620\u5C04\u7684\u7279\u6B8A\u8BED\u6CD5\uFF0C\u8BF7\u91CD\u65B0\u9009\u53D6\u666E\u901A\u6587\u5B57\u3002");
-      const managed = /* @__PURE__ */ new Map(), cuts = [];
-      const cut_element = (element) => {
-        const inside = texts.filter((item) => element.contains(item.node));
-        if (inside.length) cuts.push({ start: inside[0].start, end: inside.at(-1).end });
-      };
-      for (const wrapper of block3.querySelectorAll('[md-inline="html_inline"]')) {
-        const before = wrapper.querySelector(":scope > .md-before"), after2 = wrapper.querySelector(":scope > .md-after");
-        const color = before && read_text_color_open(before.textContent || "");
-        if (color && after2?.textContent === "</span>") {
-          managed.set(wrapper, color);
-          cut_element(before);
-          cut_element(after2);
-        }
-      }
-      const color_at = (element) => {
-        while (element && element !== block3) {
-          const color = managed.get(element);
-          if (color) return color;
-          element = element.parentElement;
-        }
-        return void 0;
-      };
-      const runs = [], selected = [];
-      const code_seen = /* @__PURE__ */ new Set();
-      for (const item of visible2) {
-        const code = item.node.parentElement?.closest('[md-inline="code"],[md-inline="escape"],[md-inline="html_entity"]');
-        if (code) {
-          if (code_seen.has(code)) continue;
-          code_seen.add(code);
-          const content = visible2.filter((part) => code.contains(part.node));
-          const all = texts.filter((part) => code.contains(part.node));
-          const hits = content.filter((part) => part.selected);
-          if (hits.length && (hits.length !== content.length || hits.some((part) => part.selected.start !== part.start || part.selected.end !== part.end))) throw new Error("\u884C\u5185\u4EE3\u7801\u6216\u8F6C\u4E49\u5B57\u7B26\u8BF7\u5B8C\u6574\u9009\u4E2D\u540E\u8BBE\u8272\uFF0C\u907F\u514D\u6539\u53D8\u539F\u5185\u5BB9\u3002");
-          const span = { start: all[0].start, end: all.at(-1).end };
-          runs.push({ ...span, color: color_at(code) });
-          if (hits.length) selected.push(span);
-          continue;
-        }
-        if (item.end > item.start) runs.push({ start: item.start, end: item.end, color: color_at(item.node.parentElement) });
-        if (item.selected) selected.push(item.selected);
-      }
-      blocks2.push({ id, table_id: block3.closest('[mdtype="table"][cid]')?.getAttribute("cid") || void 0, source, runs, cuts, selected });
-    }
-    if (!blocks2.length) return;
-    return { editor: e, bundle: file.bundle, owner, markdown: e.getMarkdown(), cursor: clone(cursor), blocks: blocks2 };
-  }
-  function apply_text_color(runtime2, owner, snapshot, color) {
-    const e = snapshot.editor, file = runtime2.File;
-    if (!file || file.editor !== e || file.bundle !== snapshot.bundle || owner !== snapshot.owner || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || e.getMarkdown() !== snapshot.markdown) throw new Error("\u6587\u6863\u6216\u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u4E2D\u6587\u5B57\u540E\u8BBE\u7F6E\u989C\u8272\u3002");
-    const changes = snapshot.blocks.map((block3) => {
-      const node = e.getNode(block3.id);
-      if (!node || node.get("text") !== block3.source) throw new Error("\u6BB5\u843D\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u3002");
-      const runs = [];
-      for (const run of block3.runs) {
-        let pos = run.start;
-        for (const hit of block3.selected) {
-          const left = Math.max(run.start, hit.start), right = Math.min(run.end, hit.end);
-          if (right <= left) continue;
-          if (left > pos) runs.push({ start: pos, end: left, color: run.color });
-          runs.push({ start: left, end: right, color });
-          pos = right;
-        }
-        if (pos < run.end) runs.push({ start: pos, end: run.end, color: run.color });
-      }
-      const result = rewrite_text_colors(block3.source, runs, block3.cuts, { start: block3.selected[0].start, end: block3.selected.at(-1).end });
-      const before = clone(e.undo.UndoManager.buildReplaceUndo(node)), after2 = clone(before);
-      if (!after2.json?.content || typeof after2.json.content.text !== "string") throw new Error("\u5F53\u524D Typora \u4E0D\u652F\u6301\u5B89\u5168\u7684\u6BB5\u843D\u989C\u8272\u4E8B\u52A1\u3002");
-      after2.json.content.text = result.text;
-      return { block: block3, before, after: after2, result };
-    });
-    if (changes.every((change) => change.result.text === change.block.source)) return false;
-    const table_commands = [...new Set(changes.map((change) => change.block.table_id).filter(Boolean))].map((id) => {
-      const table = e.getNode(id), build = e.undo.UndoManager.buildAttrUndo;
-      if (!table || !build) throw new Error("\u5F53\u524D Typora \u4E0D\u652F\u6301\u5B89\u5168\u7684\u8868\u683C\u989C\u8272\u4E8B\u52A1\u3002");
-      const before = clone(build(table, "userText")), after2 = { ...before, value: void 0 };
-      return { before, after: after2 };
-    });
-    e.undo.endSnap(true);
-    if (e.getMarkdown() !== snapshot.markdown) throw new Error("\u6BB5\u843D\u8F93\u5165\u5C1A\u672A\u7ED3\u675F\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u540E\u8BBE\u8272\u3002");
-    const first = changes[0], last = changes.at(-1);
-    const cursor = { type: "cursor", ...first === last ? { id: first.block.id } : { startId: first.block.id, endId: last.block.id }, start: first.result.selection.start, end: last.result.selection.end };
-    try {
-      for (const change of changes) e.undo.exeCommand(clone(change.after));
-      for (const command of table_commands) e.undo.exeCommand(clone(command.after));
-      e.undo.exeCommand(clone(cursor));
-      e.undo.register({ undo: [snapshot.cursor, ...table_commands.map((c) => c.before), ...changes.map((c) => c.before)], redo: [...changes.map((c) => c.after), ...table_commands.map((c) => c.after), cursor] });
-    } catch (error) {
-      for (const change of changes) e.undo.exeCommand(clone(change.before));
-      for (const command of table_commands) e.undo.exeCommand(clone(command.before));
-      e.undo.exeCommand(clone(snapshot.cursor));
-      throw error;
-    }
-    return true;
-  }
-
-  // src/workspace_theme.ts
-  function workspace_surface_background(element) {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 1;
-    const context = canvas.getContext("2d");
-    if (!context) return [255, 255, 255];
-    const chain = [];
-    for (let node = element; node; node = node.parentElement) chain.unshift(node);
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, 1, 1);
-    for (const node of chain) {
-      context.fillStyle = getComputedStyle(node).backgroundColor;
-      context.fillRect(0, 0, 1, 1);
-    }
-    return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
-  }
-  var listeners = /* @__PURE__ */ new Set();
-  var observer;
-  var frame = 0;
-  var scheme = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : void 0;
-  var update = () => {
-    if (frame) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0;
-      for (const listener of listeners) listener();
-    });
-  };
-  function observe_workspace_theme(listener) {
-    listeners.add(listener);
-    if (!observer) {
-      observer = new MutationObserver(update);
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
-      observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-      observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
-      document.head.addEventListener("load", update, true);
-      window.addEventListener("focus", update);
-      scheme?.addEventListener("change", update);
-    }
-    update();
-    return () => {
-      listeners.delete(listener);
-      if (!listeners.size) {
-        observer?.disconnect();
-        observer = void 0;
-        cancelAnimationFrame(frame);
-        frame = 0;
-        document.head.removeEventListener("load", update, true);
-        window.removeEventListener("focus", update);
-        scheme?.removeEventListener("change", update);
-      }
-    };
-  }
-
-  // src/markdown_color_theme.ts
-  function bind_markdown_color_theme() {
-    let frame3 = 0, disposed = false;
-    const owned2 = /* @__PURE__ */ new Map();
-    const release = (root, key, entry) => {
-      if (root.style.getPropertyValue(key) === entry.value) {
-        if (entry.previous) root.style.setProperty(key, entry.previous, entry.priority);
-        else root.style.removeProperty(key);
-      }
-    };
-    const refresh = () => {
-      if (disposed) return;
-      const roots = /* @__PURE__ */ new Map();
-      for (const span of document.querySelectorAll('span[style*="--typora-code-color-"]')) {
-        if (span.closest(".CodeMirror,.monaco-editor,.xterm")) continue;
-        const root = span.closest("#write,[data-workspace-color-preview]");
-        if (!root) continue;
-        const match2 = /^var\(--typora-code-color-([a-f0-9]{6}),\s*#[a-f0-9]{6}\)$/u.exec(span.style.color);
-        if (!match2) continue;
-        if (!roots.has(root)) roots.set(root, /* @__PURE__ */ new Set());
-        roots.get(root).add(match2[1]);
-      }
-      for (const [root, entries3] of owned2) {
-        const active = roots.get(root);
-        for (const [key, entry] of entries3) if (!active?.has(key.slice(text_color_prefix.length))) {
-          release(root, key, entry);
-          entries3.delete(key);
-        }
-        if (!entries3.size) owned2.delete(root);
-      }
-      for (const [root, colors] of roots) {
-        const background = workspace_surface_background(root);
-        let entries3 = owned2.get(root);
-        if (!entries3) {
-          entries3 = /* @__PURE__ */ new Map();
-          owned2.set(root, entries3);
-        }
-        for (const color of colors) {
-          const key = text_color_prefix + color, value = adaptive_text_color(color, background);
-          let entry = entries3.get(key);
-          if (!entry) {
-            entry = { previous: root.style.getPropertyValue(key), priority: root.style.getPropertyPriority(key), value };
-            entries3.set(key, entry);
-          }
-          if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
-          entry.value = value;
-        }
-      }
-    };
-    const schedule = () => {
-      if (!frame3 && !disposed) frame3 = requestAnimationFrame(() => {
-        frame3 = 0;
-        refresh();
-      });
-    };
-    const selector = "#write,[data-workspace-color-preview]";
-    const observer2 = new MutationObserver((records) => {
-      if (records.some((record) => {
-        const target = record.target instanceof Element ? record.target : record.target.parentElement;
-        if (target?.closest(selector)) return true;
-        return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches(selector) || node.querySelector(selector)));
-      })) schedule();
-    });
-    observer2.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
-    const release_theme2 = observe_workspace_theme(schedule);
-    schedule();
-    return { refresh, dispose() {
-      disposed = true;
-      observer2.disconnect();
-      release_theme2();
-      cancelAnimationFrame(frame3);
-      for (const [root, entries3] of owned2) for (const [key, entry] of entries3) release(root, key, entry);
-      owned2.clear();
-    } };
-  }
-
   // src/workspace_interaction.css
   var workspace_interaction_default = "";
 
@@ -160527,6 +160178,742 @@ https://creativecommons.org/licenses/by/4.0/
   function shortcut_matches(event, shortcut) {
     const parts = shortcut.toLowerCase().split("+");
     return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey) && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
+  }
+
+  // src/workspace_theme.ts
+  function workspace_surface_background(element) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext("2d");
+    if (!context) return [255, 255, 255];
+    const chain = [];
+    for (let node = element; node; node = node.parentElement) chain.unshift(node);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, 1, 1);
+    for (const node of chain) {
+      context.fillStyle = getComputedStyle(node).backgroundColor;
+      context.fillRect(0, 0, 1, 1);
+    }
+    return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+  }
+  var listeners = /* @__PURE__ */ new Set();
+  var observer;
+  var frame = 0;
+  var scheme = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : void 0;
+  var update = () => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      for (const listener of listeners) listener();
+    });
+  };
+  function observe_workspace_theme(listener) {
+    listeners.add(listener);
+    if (!observer) {
+      observer = new MutationObserver(update);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
+      observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+      observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+      document.head.addEventListener("load", update, true);
+      window.addEventListener("focus", update);
+      scheme?.addEventListener("change", update);
+    }
+    update();
+    return () => {
+      listeners.delete(listener);
+      if (!listeners.size) {
+        observer?.disconnect();
+        observer = void 0;
+        cancelAnimationFrame(frame);
+        frame = 0;
+        document.head.removeEventListener("load", update, true);
+        window.removeEventListener("focus", update);
+        scheme?.removeEventListener("change", update);
+      }
+    };
+  }
+
+  // src/reading_media_viewer.css
+  var reading_media_viewer_default = "";
+
+  // src/reading_media_viewer.ts
+  var MAXIMUM_ZOOM = 6;
+  var ZOOM_FACTOR = 1.25;
+  var active_close;
+  function close_reading_media() {
+    active_close?.();
+  }
+  function open_reading_media(media) {
+    active_close?.();
+    const previous = media.origin || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    const viewer = workspace_element("section", "reading-media-viewer"), header = workspace_element("div", "reading-media-header"), toolbar = workspace_element("div", "reading-media-toolbar");
+    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("aria-modal", "true");
+    viewer.setAttribute("aria-label", media.label);
+    toolbar.setAttribute("aria-label", "\u7F29\u653E\u63A7\u5236");
+    const output = workspace_element("output"), canvas = workspace_element("div", "reading-media-canvas"), positioner = workspace_element("div", "reading-media-positioner"), content = workspace_element("div", "reading-media-content");
+    const hint = workspace_element("div", "reading-media-hint", "Ctrl + \u6EDA\u8F6E\u7F29\u653E \xB7 \u6309\u4F4F\u5DE6\u952E\u62D6\u52A8 \xB7 Esc \u9000\u51FA");
+    const button = (action, label, icon) => {
+      const node = workspace_element("button", "", icon ? "" : label);
+      node.type = "button";
+      node.dataset.action = action;
+      node.title = label;
+      node.setAttribute("aria-label", label);
+      if (icon) node.append(git_icon(icon));
+      return node;
+    };
+    const close_button = button("close", "\u9000\u51FA\u5168\u5C4F");
+    close_button.prepend(git_icon("close"));
+    toolbar.append(button("zoom-out", "\u7F29\u5C0F", "remove"), output, button("zoom-in", "\u653E\u5927", "add"), button("fit-width", "\u9002\u5E94\u5BBD\u5EA6"), button("fit", "\u9002\u5E94\u5C4F\u5E55"), button("reset", "100%"));
+    header.append(toolbar, close_button);
+    content.append(media.content);
+    positioner.append(content);
+    canvas.append(positioner);
+    viewer.append(header, canvas, hint);
+    const style = acquire_workspace_style("typora-code-style:reading_media_viewer", reading_media_viewer_default), interaction = acquire_workspace_interaction(viewer);
+    document.body.append(viewer);
+    document.body.classList.add("reading-media-viewer-open");
+    let closed = false, ready_frame = 0, failed = false, fit_initial = false, mode = "manual";
+    const controller = new AbortController(), signal = controller.signal;
+    const view = { scale: 1, x: 0, y: 0 };
+    let drag;
+    const controls = () => [...viewer.querySelectorAll("button")].filter((node) => !node.disabled);
+    const apply3 = () => {
+      viewer.style.setProperty("--reading-media-scale", String(view.scale));
+      viewer.style.setProperty("--reading-media-pan-x", "".concat(view.x, "px"));
+      viewer.style.setProperty("--reading-media-pan-y", "".concat(view.y, "px"));
+      output.value = "".concat(Number((view.scale * 100).toFixed(view.scale < 0.1 ? 2 : 0)), "%");
+      output.textContent = output.value;
+    };
+    const fit_scale = () => Math.min(canvas.clientWidth / media.width, canvas.clientHeight / media.height) * 0.88;
+    const zoom = (scale, x = 0, y = 0) => {
+      if (failed) return;
+      mode = "manual";
+      const next = Math.max(Math.min(0.2, fit_scale()), Math.min(MAXIMUM_ZOOM, scale)), ratio = next / view.scale;
+      view.x = x - (x - view.x) * ratio;
+      view.y = y - (y - view.y) * ratio;
+      view.scale = next;
+      apply3();
+    };
+    const fit = (width2 = false, initial = false) => {
+      if (failed || !canvas.clientWidth || !canvas.clientHeight) return;
+      fit_initial = initial;
+      mode = width2 ? "fit-width" : "fit";
+      view.scale = Math.min(initial ? 1 : MAXIMUM_ZOOM, width2 ? canvas.clientWidth / media.width * 0.92 : fit_scale());
+      view.x = view.y = 0;
+      apply3();
+    };
+    const reset2 = () => {
+      if (failed) return;
+      mode = "manual";
+      view.scale = 1;
+      view.x = view.y = 0;
+      apply3();
+    };
+    const dispose_theme = observe_workspace_theme(() => {
+      const background = workspace_surface_background(document.querySelector("content > #write") || document.body);
+      const dark = background[0] * 0.2126 + background[1] * 0.7152 + background[2] * 0.0722 < 128;
+      viewer.style.setProperty("--reading-media-background", "rgb(".concat(background.join(","), ")"));
+      viewer.dataset.theme = dark ? "dark" : "light";
+    });
+    const resize = new ResizeObserver(() => {
+      if (mode !== "manual") fit(mode === "fit-width", fit_initial);
+    });
+    resize.observe(canvas);
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      if (active_close === close) active_close = void 0;
+      controller.abort();
+      source_observer.disconnect();
+      cancelAnimationFrame(ready_frame);
+      resize.disconnect();
+      dispose_theme();
+      viewer.remove();
+      interaction.remove();
+      style.remove();
+      document.body.classList.remove("reading-media-viewer-open");
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+    };
+    const source_observer = new MutationObserver(() => {
+      if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close();
+    });
+    if (media.source) {
+      source_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+      const root = media.source.getRootNode();
+      if (root instanceof ShadowRoot) source_observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+    }
+    active_close = close;
+    const error = () => {
+      if (closed) return;
+      failed = true;
+      content.replaceChildren(workspace_element("p", "reading-media-error", "\u56FE\u7247\u65E0\u6CD5\u52A0\u8F7D\uFF0C\u8BF7\u5173\u95ED\u540E\u91CD\u65B0\u6253\u5F00\u3002"));
+      content.style.transform = "none";
+      for (const node of toolbar.querySelectorAll("button")) node.disabled = true;
+      output.value = "";
+      output.textContent = "";
+      drag = void 0;
+      viewer.classList.remove("is-dragging");
+    };
+    if (media.content instanceof HTMLImageElement) media.content.addEventListener("error", error, { signal });
+    viewer.addEventListener("click", (event) => {
+      const action = event.target.closest("button[data-action]")?.dataset.action;
+      if (!action) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (action === "close") close();
+      else if (action === "zoom-in") zoom(view.scale * ZOOM_FACTOR);
+      else if (action === "zoom-out") zoom(view.scale / ZOOM_FACTOR);
+      else if (action === "fit") fit();
+      else if (action === "fit-width") fit(true);
+      else if (action === "reset") reset2();
+    }, { signal });
+    window.addEventListener("keydown", (event) => {
+      if (closed) return;
+      const primary = (event.ctrlKey || event.metaKey) && !event.altKey;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        close();
+        return;
+      }
+      if (event.key === "Tab") {
+        const nodes = controls(), index = nodes.indexOf(document.activeElement);
+        const target = event.shiftKey ? index <= 0 ? nodes.at(-1) : nodes[index - 1] : nodes[(index + 1) % nodes.length];
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        target?.focus({ preventScroll: true });
+        return;
+      }
+      if (primary && ["+", "=", "-", "0"].includes(event.key)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event.key === "0") reset2();
+        else zoom(view.scale * (event.key === "-" ? 1 / ZOOM_FACTOR : ZOOM_FACTOR));
+        return;
+      }
+      if (primary) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, { capture: true, signal });
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const bounds = canvas.getBoundingClientRect();
+      zoom(view.scale * Math.exp(-event.deltaY * 2e-3), event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
+    }, { passive: false, signal });
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || failed) return;
+      event.preventDefault();
+      drag = { pointer_id: event.pointerId, x: event.clientX, y: event.clientY, origin_x: view.x, origin_y: view.y };
+      canvas.setPointerCapture(event.pointerId);
+      viewer.classList.add("is-dragging");
+    }, { signal });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drag || event.pointerId !== drag.pointer_id) return;
+      mode = "manual";
+      view.x = drag.origin_x + event.clientX - drag.x;
+      view.y = drag.origin_y + event.clientY - drag.y;
+      apply3();
+    }, { signal });
+    const end_drag = (event) => {
+      if (drag?.pointer_id !== event.pointerId) return;
+      drag = void 0;
+      viewer.classList.remove("is-dragging");
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    };
+    canvas.addEventListener("pointerup", end_drag, { signal });
+    canvas.addEventListener("pointercancel", end_drag, { signal });
+    canvas.addEventListener("lostpointercapture", end_drag, { signal });
+    canvas.addEventListener("dblclick", () => fit(), { signal });
+    ready_frame = requestAnimationFrame(() => {
+      if (closed) return;
+      media.initial_fit ? fit(false, true) : reset2();
+      close_button.focus({ preventScroll: true });
+    });
+    return close;
+  }
+
+  // src/reading_viewport.ts
+  function reading_viewport_bounds(owner) {
+    const rect = owner.getBoundingClientRect();
+    const view = owner.ownerDocument.defaultView;
+    const client_left = rect.left + owner.clientLeft;
+    const client_top = rect.top + owner.clientTop;
+    const left = Math.max(0, client_left);
+    const top = Math.max(0, client_top);
+    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
+      const footer_rect = footer.getBoundingClientRect();
+      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
+      let visible2 = true;
+      for (let element = footer; element; element = element.parentElement) {
+        const style = view?.getComputedStyle(element);
+        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
+          visible2 = false;
+          break;
+        }
+      }
+      if (visible2) bottom = Math.max(top, footer_rect.top);
+    }
+    return { top, bottom, left, right };
+  }
+
+  // src/reading_image_viewer.ts
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  function bind_reading_images(root, selector = "img") {
+    const layer = workspace_element("div", "reading-image-actions");
+    layer.contentEditable = "false";
+    const style = acquire_workspace_style("typora-code-style:reading_media_viewer", reading_media_viewer_default), interaction = acquire_workspace_interaction(layer);
+    document.body.append(layer);
+    const entries3 = /* @__PURE__ */ new Map(), visible2 = /* @__PURE__ */ new Set();
+    let disposed = false, frame3 = 0, scan_needed = true, session;
+    const controller = new AbortController(), signal = controller.signal;
+    const close_session = () => {
+      session?.close();
+      session = void 0;
+    };
+    const schedule = (scan2 = false) => {
+      if (disposed) return;
+      scan_needed ||= scan2;
+      if (!frame3) frame3 = requestAnimationFrame(update2);
+    };
+    const resize = new ResizeObserver(() => schedule());
+    const intersection2 = new IntersectionObserver((changes) => {
+      for (const change of changes) {
+        if (change.isIntersecting) visible2.add(change.target);
+        else visible2.delete(change.target);
+      }
+      schedule();
+    });
+    const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
+    const open = (image, entry, from_image = false) => {
+      const url = source_url(image);
+      if (!url || !image.isConnected || !from_image && entry.button.hidden) return;
+      const copy = new Image();
+      copy.alt = image.alt;
+      copy.draggable = false;
+      const close = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label: image.alt ? "\u56FE\u7247\u5168\u5C4F\u67E5\u770B\uFF1A".concat(image.alt) : "\u56FE\u7247\u5168\u5C4F\u67E5\u770B", origin: from_image ? void 0 : entry.button, initial_fit: true });
+      copy.src = url;
+      session = { image, url, close };
+    };
+    const scan = () => {
+      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
+      for (const [image, entry] of entries3) if (!images.has(image)) {
+        entry.button.remove();
+        entries3.delete(image);
+        visible2.delete(image);
+        resize.unobserve(image);
+        intersection2.unobserve(image);
+      }
+      for (const image of images) {
+        if (entries3.has(image)) continue;
+        const button = workspace_element("button", "reading-image-open");
+        button.type = "button";
+        button.hidden = true;
+        button.title = "\u5168\u5C4F\u67E5\u770B\u56FE\u7247";
+        button.setAttribute("aria-label", image.alt ? "\u5168\u5C4F\u67E5\u770B\u56FE\u7247\uFF1A".concat(image.alt) : "\u5168\u5C4F\u67E5\u770B\u56FE\u7247");
+        button.append(git_icon("screen-full"), workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
+        const entry = { button, url: "" };
+        entries3.set(image, entry);
+        layer.append(button);
+        resize.observe(image);
+        intersection2.observe(image);
+        button.addEventListener("mousedown", (event) => event.preventDefault(), { signal });
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          open(image, entry);
+        }, { signal });
+      }
+    };
+    function update2() {
+      frame3 = 0;
+      if (disposed) return;
+      if (scan_needed) {
+        scan_needed = false;
+        scan();
+      }
+      const available = /* @__PURE__ */ new Set();
+      for (const [image, entry] of entries3) {
+        const url = source_url(image);
+        entry.url = url;
+        const rect = image.getBoundingClientRect();
+        let left = Math.max(0, rect.left), right = Math.min(window.innerWidth, rect.right), top = Math.max(0, rect.top), bottom = Math.min(window.innerHeight, rect.bottom);
+        let shown = Boolean(url && image.isConnected && visible2.has(image) && getComputedStyle(image).visibility === "visible");
+        for (let node = image; shown && node; node = parent_element(node)) {
+          const computed = getComputedStyle(node);
+          if (computed.display === "none" || computed.visibility !== "visible" || Number(computed.opacity) === 0 || node.hasAttribute("hidden") || node.hasAttribute("inert")) {
+            shown = false;
+            break;
+          }
+          if (node !== image && node !== document.body && node !== document.documentElement && /auto|scroll|hidden|clip/.test(computed.overflowX + computed.overflowY)) {
+            const bounds = node.getBoundingClientRect();
+            if (/auto|scroll|hidden|clip/.test(computed.overflowX)) {
+              left = Math.max(left, bounds.left + node.clientLeft);
+              right = Math.min(right, bounds.left + node.clientLeft + node.clientWidth);
+            }
+            if (/auto|scroll|hidden|clip/.test(computed.overflowY)) {
+              top = Math.max(top, bounds.top + node.clientTop);
+              bottom = Math.min(bottom, bounds.top + node.clientTop + node.clientHeight);
+            }
+          }
+          if (node instanceof HTMLElement && node.tagName === "CONTENT") {
+            const bounds = reading_viewport_bounds(node);
+            left = Math.max(left, bounds.left);
+            right = Math.min(right, bounds.right);
+            top = Math.max(top, bounds.top);
+            bottom = Math.min(bottom, bounds.bottom);
+          }
+        }
+        if (shown && right > left && bottom > top) available.add(image);
+        shown = shown && right - left >= 32 && bottom - top >= 32;
+        entry.button.hidden = !shown;
+        if (shown) {
+          const small = right - left < 160;
+          entry.button.classList.toggle("is-small", small);
+          entry.button.style.left = "".concat(Math.max(left, right - entry.button.offsetWidth - 4), "px");
+          entry.button.style.top = "".concat(Math.min(bottom - 32, top + 4), "px");
+        }
+      }
+      if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url || !available.has(session.image))) close_session();
+    }
+    const observer2 = new MutationObserver((changes) => {
+      const relevant = changes.filter((change) => !(change.target instanceof Element && change.target.closest(".reading-image-actions,.reading-media-viewer")));
+      if (relevant.length) schedule(relevant.some((change) => change.type === "childList"));
+    });
+    observer2.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
+    const geometry = new MutationObserver(() => schedule());
+    geometry.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    root.addEventListener("dblclick", (event) => {
+      if (!(event instanceof MouseEvent) || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      const image = event.composedPath().find((node) => node instanceof HTMLImageElement && entries3.has(node));
+      if (!image || !source_url(image)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      open(image, entries3.get(image), true);
+    }, { capture: true, signal });
+    root.addEventListener("load", () => schedule(), { capture: true, signal });
+    root.addEventListener("error", () => schedule(), { capture: true, signal });
+    root.addEventListener("scroll", () => schedule(), { capture: true, passive: true, signal });
+    document.addEventListener("scroll", () => schedule(), { capture: true, passive: true, signal });
+    window.addEventListener("resize", () => schedule(), { passive: true, signal });
+    schedule(true);
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      close_session();
+      controller.abort();
+      cancelAnimationFrame(frame3);
+      observer2.disconnect();
+      geometry.disconnect();
+      resize.disconnect();
+      intersection2.disconnect();
+      entries3.clear();
+      visible2.clear();
+      layer.remove();
+      interaction.remove();
+      style.remove();
+    } };
+  }
+
+  // src/markdown_text_color.ts
+  var text_color_presets = [
+    ["\u7EA2\u8272", "b42318"],
+    ["\u6A59\u8272", "b54708"],
+    ["\u9EC4\u8272", "946800"],
+    ["\u7EFF\u8272", "18794e"],
+    ["\u9752\u8272", "087e8b"],
+    ["\u84DD\u8272", "175cd3"],
+    ["\u7D2B\u8272", "7f3fbf"],
+    ["\u7C89\u8272", "b4236c"]
+  ];
+  var text_color_prefix = "--typora-code-color-";
+  function normalize_text_color(value) {
+    const color = value.replace(/^#/u, "").toLowerCase();
+    if (!/^[0-9a-f]{6}$/u.test(color)) throw new Error("\u8BF7\u8F93\u5165\u516D\u4F4D\u5341\u516D\u8FDB\u5236\u989C\u8272\uFF0C\u4F8B\u5982 #B42318\u3002");
+    return color;
+  }
+  function text_color_open(color) {
+    color = normalize_text_color(color);
+    return '<span style="color:var('.concat(text_color_prefix).concat(color, ", #").concat(color, ')">');
+  }
+  function read_text_color_open(value) {
+    const match2 = /^<span style="color:var\(--typora-code-color-([0-9a-f]{6}), #\1\)">$/u.exec(value);
+    return match2?.[1];
+  }
+  function color_luminance(rgb) {
+    return rgb.map((value) => {
+      const c = value / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    }).reduce((sum, c, index) => sum + c * [0.2126, 0.7152, 0.0722][index], 0);
+  }
+  function color_contrast(left, right) {
+    const a = color_luminance(left), b2 = color_luminance(right);
+    return (Math.max(a, b2) + 0.05) / (Math.min(a, b2) + 0.05);
+  }
+  function adaptive_text_color(color, background) {
+    color = normalize_text_color(color);
+    const rgb = [0, 2, 4].map((offset) => parseInt(color.slice(offset, offset + 2), 16));
+    if (color_contrast(rgb, background) >= 4.5) return "#" + color;
+    const target = color_contrast([0, 0, 0], background) >= color_contrast([255, 255, 255], background) ? 0 : 255;
+    const mix = (amount) => rgb.map((c) => Math.round(c + (target - c) * amount));
+    let low = 0, high = 1;
+    for (let i = 0; i < 24; i++) {
+      const mid = (low + high) / 2;
+      if (color_contrast(mix(mid), background) >= 4.5) high = mid;
+      else low = mid;
+    }
+    return "#" + mix(high).map((c) => c.toString(16).padStart(2, "0")).join("");
+  }
+  function rewrite_text_colors(source, runs, cuts, selection) {
+    const sorted = runs.filter((run) => run.end > run.start).sort((a, b2) => a.start - b2.start);
+    cuts = [...cuts].sort((a, b2) => a.start - b2.start);
+    for (const list3 of [sorted, cuts]) for (let i = 0; i < list3.length; i++) {
+      const item = list3[i];
+      if (!Number.isInteger(item.start) || !Number.isInteger(item.end) || item.start < 0 || item.end > source.length || item.end < item.start || i > 0 && item.start < list3[i - 1].end) throw new Error("\u6587\u5B57\u989C\u8272\u533A\u95F4\u5DF2\u5931\u6548\u3002");
+    }
+    let text3 = "", cursor = 0;
+    const copies = [];
+    const copy = (start, end) => {
+      let offset = start;
+      for (const cut of cuts) {
+        if (cut.end <= offset) continue;
+        if (cut.start >= end) break;
+        if (cut.start > offset) {
+          copies.push({ start: offset, end: cut.start, output: text3.length });
+          text3 += source.slice(offset, cut.start);
+        }
+        offset = Math.max(offset, Math.min(end, cut.end));
+      }
+      if (offset < end) {
+        copies.push({ start: offset, end, output: text3.length });
+        text3 += source.slice(offset, end);
+      }
+    };
+    for (const run of sorted) {
+      copy(cursor, run.start);
+      if (run.color) text3 += text_color_open(run.color);
+      copy(run.start, run.end);
+      if (run.color) text3 += "</span>";
+      cursor = run.end;
+    }
+    copy(cursor, source.length);
+    const map = (offset, end) => {
+      const matches = copies.filter((part2) => part2.start <= offset && part2.end >= offset);
+      const part = end ? matches[0] : matches.at(-1);
+      if (!part) throw new Error("\u6587\u5B57\u989C\u8272\u9009\u533A\u65E0\u6CD5\u6062\u590D\u3002");
+      return part.output + offset - part.start;
+    };
+    return { text: text3, selection: selection ? { start: map(selection.start, false), end: map(selection.end, true) } : void 0 };
+  }
+
+  // src/markdown_color_native.ts
+  var meta_selector = ".md-meta,.md-content";
+  var forbidden_selector = ".CodeMirror,.md-math,.md-inline-math,.md-image,.md-fences,.md-rawblock,script,style,textarea,input";
+  var clone = (value) => JSON.parse(JSON.stringify(value));
+  function capture_text_color(runtime2, owner) {
+    const file = runtime2.File, e = file?.editor, root = document.querySelector("#write"), s15 = window.getSelection();
+    if (!e?.undo?.UndoManager?.buildReplaceUndo || !e.contextMenu?.hide || !file?.bundle || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || !root || !s15 || s15.isCollapsed || s15.rangeCount !== 1) return;
+    const range2 = s15.getRangeAt(0);
+    if (!root.contains(range2.startContainer) || !root.contains(range2.endContainer)) return;
+    const cursor = e.selection.buildUndo();
+    if (!cursor || cursor.type !== "cursor") return;
+    const blocks2 = [];
+    for (const block3 of root.querySelectorAll("[cid]")) {
+      if (block3.querySelector("[cid]") || !range2.intersectsNode(block3)) continue;
+      const id = block3.getAttribute("cid"), node = e.getNode(id);
+      if (!node) continue;
+      const source = block3.textContent || "";
+      const texts = [];
+      const walker = document.createTreeWalker(block3, NodeFilter.SHOW_TEXT);
+      let offset = 0, current;
+      while (current = walker.nextNode()) {
+        const text3 = current, start = offset, end = offset + text3.length;
+        offset = end;
+        let selected2;
+        if (text3.length && range2.comparePoint(text3, 0) !== 1 && range2.comparePoint(text3, text3.length) !== -1) {
+          const left = range2.startContainer === text3 ? range2.startOffset : 0, right = range2.endContainer === text3 ? range2.endOffset : text3.length;
+          if (right > left) selected2 = { start: start + left, end: start + right };
+        }
+        texts.push({ node: text3, start, end, selected: selected2 });
+      }
+      const visible2 = texts.filter((item) => !item.node.parentElement?.closest(meta_selector) || item.node.parentElement?.closest('[md-inline="html_entity"]'));
+      if (!visible2.some((item) => item.selected)) continue;
+      if (!["paragraph", "heading", "table_cell", "def_footnote"].includes(String(node.get("type"))) || visible2.some((item) => item.selected && item.node.parentElement?.closest(forbidden_selector))) throw new Error("\u5B57\u4F53\u989C\u8272\u9002\u7528\u4E8E\u666E\u901A Markdown \u6587\u5B57\uFF1B\u8BF7\u907F\u5F00\u4EE3\u7801\u5757\u3001\u516C\u5F0F\u548C\u56FE\u7247\u3002");
+      if (node.get("text") !== source) throw new Error("\u5F53\u524D\u6BB5\u843D\u542B\u6709\u65E0\u6CD5\u5B89\u5168\u6620\u5C04\u7684\u7279\u6B8A\u8BED\u6CD5\uFF0C\u8BF7\u91CD\u65B0\u9009\u53D6\u666E\u901A\u6587\u5B57\u3002");
+      const managed = /* @__PURE__ */ new Map(), cuts = [];
+      const cut_element = (element) => {
+        const inside = texts.filter((item) => element.contains(item.node));
+        if (inside.length) cuts.push({ start: inside[0].start, end: inside.at(-1).end });
+      };
+      for (const wrapper of block3.querySelectorAll('[md-inline="html_inline"]')) {
+        const before = wrapper.querySelector(":scope > .md-before"), after2 = wrapper.querySelector(":scope > .md-after");
+        const color = before && read_text_color_open(before.textContent || "");
+        if (color && after2?.textContent === "</span>") {
+          managed.set(wrapper, color);
+          cut_element(before);
+          cut_element(after2);
+        }
+      }
+      const color_at = (element) => {
+        while (element && element !== block3) {
+          const color = managed.get(element);
+          if (color) return color;
+          element = element.parentElement;
+        }
+        return void 0;
+      };
+      const runs = [], selected = [];
+      const code_seen = /* @__PURE__ */ new Set();
+      for (const item of visible2) {
+        const code = item.node.parentElement?.closest('[md-inline="code"],[md-inline="escape"],[md-inline="html_entity"]');
+        if (code) {
+          if (code_seen.has(code)) continue;
+          code_seen.add(code);
+          const content = visible2.filter((part) => code.contains(part.node));
+          const all = texts.filter((part) => code.contains(part.node));
+          const hits = content.filter((part) => part.selected);
+          if (hits.length && (hits.length !== content.length || hits.some((part) => part.selected.start !== part.start || part.selected.end !== part.end))) throw new Error("\u884C\u5185\u4EE3\u7801\u6216\u8F6C\u4E49\u5B57\u7B26\u8BF7\u5B8C\u6574\u9009\u4E2D\u540E\u8BBE\u8272\uFF0C\u907F\u514D\u6539\u53D8\u539F\u5185\u5BB9\u3002");
+          const span = { start: all[0].start, end: all.at(-1).end };
+          runs.push({ ...span, color: color_at(code) });
+          if (hits.length) selected.push(span);
+          continue;
+        }
+        if (item.end > item.start) runs.push({ start: item.start, end: item.end, color: color_at(item.node.parentElement) });
+        if (item.selected) selected.push(item.selected);
+      }
+      blocks2.push({ id, table_id: block3.closest('[mdtype="table"][cid]')?.getAttribute("cid") || void 0, source, runs, cuts, selected });
+    }
+    if (!blocks2.length) return;
+    return { editor: e, bundle: file.bundle, owner, markdown: e.getMarkdown(), cursor: clone(cursor), blocks: blocks2 };
+  }
+  function apply_text_color(runtime2, owner, snapshot, color) {
+    const e = snapshot.editor, file = runtime2.File;
+    if (!file || file.editor !== e || file.bundle !== snapshot.bundle || owner !== snapshot.owner || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || e.getMarkdown() !== snapshot.markdown) throw new Error("\u6587\u6863\u6216\u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u4E2D\u6587\u5B57\u540E\u8BBE\u7F6E\u989C\u8272\u3002");
+    const changes = snapshot.blocks.map((block3) => {
+      const node = e.getNode(block3.id);
+      if (!node || node.get("text") !== block3.source) throw new Error("\u6BB5\u843D\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u3002");
+      const runs = [];
+      for (const run of block3.runs) {
+        let pos = run.start;
+        for (const hit of block3.selected) {
+          const left = Math.max(run.start, hit.start), right = Math.min(run.end, hit.end);
+          if (right <= left) continue;
+          if (left > pos) runs.push({ start: pos, end: left, color: run.color });
+          runs.push({ start: left, end: right, color });
+          pos = right;
+        }
+        if (pos < run.end) runs.push({ start: pos, end: run.end, color: run.color });
+      }
+      const result = rewrite_text_colors(block3.source, runs, block3.cuts, { start: block3.selected[0].start, end: block3.selected.at(-1).end });
+      const before = clone(e.undo.UndoManager.buildReplaceUndo(node)), after2 = clone(before);
+      if (!after2.json?.content || typeof after2.json.content.text !== "string") throw new Error("\u5F53\u524D Typora \u4E0D\u652F\u6301\u5B89\u5168\u7684\u6BB5\u843D\u989C\u8272\u4E8B\u52A1\u3002");
+      after2.json.content.text = result.text;
+      return { block: block3, before, after: after2, result };
+    });
+    if (changes.every((change) => change.result.text === change.block.source)) return false;
+    const table_commands = [...new Set(changes.map((change) => change.block.table_id).filter(Boolean))].map((id) => {
+      const table = e.getNode(id), build = e.undo.UndoManager.buildAttrUndo;
+      if (!table || !build) throw new Error("\u5F53\u524D Typora \u4E0D\u652F\u6301\u5B89\u5168\u7684\u8868\u683C\u989C\u8272\u4E8B\u52A1\u3002");
+      const before = clone(build(table, "userText")), after2 = { ...before, value: void 0 };
+      return { before, after: after2 };
+    });
+    e.undo.endSnap(true);
+    if (e.getMarkdown() !== snapshot.markdown) throw new Error("\u6BB5\u843D\u8F93\u5165\u5C1A\u672A\u7ED3\u675F\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u540E\u8BBE\u8272\u3002");
+    const first = changes[0], last = changes.at(-1);
+    const cursor = { type: "cursor", ...first === last ? { id: first.block.id } : { startId: first.block.id, endId: last.block.id }, start: first.result.selection.start, end: last.result.selection.end };
+    try {
+      for (const change of changes) e.undo.exeCommand(clone(change.after));
+      for (const command of table_commands) e.undo.exeCommand(clone(command.after));
+      e.undo.exeCommand(clone(cursor));
+      e.undo.register({ undo: [snapshot.cursor, ...table_commands.map((c) => c.before), ...changes.map((c) => c.before)], redo: [...changes.map((c) => c.after), ...table_commands.map((c) => c.after), cursor] });
+    } catch (error) {
+      for (const change of changes) e.undo.exeCommand(clone(change.before));
+      for (const command of table_commands) e.undo.exeCommand(clone(command.before));
+      e.undo.exeCommand(clone(snapshot.cursor));
+      throw error;
+    }
+    return true;
+  }
+
+  // src/markdown_color_theme.ts
+  function bind_markdown_color_theme() {
+    let frame3 = 0, disposed = false;
+    const owned2 = /* @__PURE__ */ new Map();
+    const release = (root, key, entry) => {
+      if (root.style.getPropertyValue(key) === entry.value) {
+        if (entry.previous) root.style.setProperty(key, entry.previous, entry.priority);
+        else root.style.removeProperty(key);
+      }
+    };
+    const refresh = () => {
+      if (disposed) return;
+      const roots = /* @__PURE__ */ new Map();
+      for (const span of document.querySelectorAll('span[style*="--typora-code-color-"]')) {
+        if (span.closest(".CodeMirror,.monaco-editor,.xterm")) continue;
+        const root = span.closest("#write,[data-workspace-color-preview]");
+        if (!root) continue;
+        const match2 = /^var\(--typora-code-color-([a-f0-9]{6}),\s*#[a-f0-9]{6}\)$/u.exec(span.style.color);
+        if (!match2) continue;
+        if (!roots.has(root)) roots.set(root, /* @__PURE__ */ new Set());
+        roots.get(root).add(match2[1]);
+      }
+      for (const [root, entries3] of owned2) {
+        const active = roots.get(root);
+        for (const [key, entry] of entries3) if (!active?.has(key.slice(text_color_prefix.length))) {
+          release(root, key, entry);
+          entries3.delete(key);
+        }
+        if (!entries3.size) owned2.delete(root);
+      }
+      for (const [root, colors] of roots) {
+        const background = workspace_surface_background(root);
+        let entries3 = owned2.get(root);
+        if (!entries3) {
+          entries3 = /* @__PURE__ */ new Map();
+          owned2.set(root, entries3);
+        }
+        for (const color of colors) {
+          const key = text_color_prefix + color, value = adaptive_text_color(color, background);
+          let entry = entries3.get(key);
+          if (!entry) {
+            entry = { previous: root.style.getPropertyValue(key), priority: root.style.getPropertyPriority(key), value };
+            entries3.set(key, entry);
+          }
+          if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
+          entry.value = value;
+        }
+      }
+    };
+    const schedule = () => {
+      if (!frame3 && !disposed) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        refresh();
+      });
+    };
+    const selector = "#write,[data-workspace-color-preview]";
+    const observer2 = new MutationObserver((records) => {
+      if (records.some((record) => {
+        const target = record.target instanceof Element ? record.target : record.target.parentElement;
+        if (target?.closest(selector)) return true;
+        return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches(selector) || node.querySelector(selector)));
+      })) schedule();
+    });
+    observer2.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
+    const release_theme2 = observe_workspace_theme(schedule);
+    schedule();
+    return { refresh, dispose() {
+      disposed = true;
+      observer2.disconnect();
+      release_theme2();
+      cancelAnimationFrame(frame3);
+      for (const [root, entries3] of owned2) for (const [key, entry] of entries3) release(root, key, entry);
+      owned2.clear();
+    } };
   }
 
   // src/markdown_color_menu.css
@@ -178952,7 +179339,7 @@ https://creativecommons.org/licenses/by/4.0/
   function primary_modifier(event) {
     return (event.ctrlKey || event.metaKey) && !event.altKey;
   }
-  function visible_modal(selector = '.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') {
+  function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') {
     const candidates = document.querySelectorAll(selector);
     return Array.from(candidates).some((candidate) => {
       if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
@@ -178977,7 +179364,7 @@ https://creativecommons.org/licenses/by/4.0/
     const keydown = (event) => {
       if (primary_modifier(event) && document.querySelector(".workspace-titlebar-popup")) window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
       const zoom_command = workspace_zoom_shortcut(event);
-      if (zoom_command && workspace_zoom_available(runtime2, zoom_command) && !visible_modal(".linux-note-mermaid-viewer")) {
+      if (zoom_command && workspace_zoom_available(runtime2, zoom_command) && !visible_modal(".reading-media-viewer")) {
         run(event, () => app.commands.run(zoom_command));
         return;
       }
@@ -179810,7 +180197,7 @@ https://creativecommons.org/licenses/by/4.0/
     window.addEventListener("keydown", (event) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active = document.activeElement;
-      if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
+      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (event.repeat) return;
@@ -199230,6 +199617,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.append(heading3, body);
     const diagrams = create_preview_diagrams();
     let disposed = false;
+    const image_viewer = bind_reading_images(article);
     const update_theme = () => {
       const rules = [];
       for (const sheet of [...document.styleSheets]) {
@@ -199313,6 +199701,7 @@ https://creativecommons.org/licenses/by/4.0/
     return { container, reveal_fragment, dispose() {
       if (disposed) return;
       disposed = true;
+      image_viewer.dispose();
       observer2.disconnect();
       diagrams.dispose();
     } };
@@ -226015,32 +226404,6 @@ https://creativecommons.org/licenses/by/4.0/
     return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime2.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
   }
 
-  // src/reading_viewport.ts
-  function reading_viewport_bounds(owner) {
-    const rect = owner.getBoundingClientRect();
-    const view = owner.ownerDocument.defaultView;
-    const client_left = rect.left + owner.clientLeft;
-    const client_top = rect.top + owner.clientTop;
-    const left = Math.max(0, client_left);
-    const top = Math.max(0, client_top);
-    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
-    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
-    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
-      const footer_rect = footer.getBoundingClientRect();
-      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
-      let visible2 = true;
-      for (let element = footer; element; element = element.parentElement) {
-        const style = view?.getComputedStyle(element);
-        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
-          visible2 = false;
-          break;
-        }
-      }
-      if (visible2) bottom = Math.max(top, footer_rect.top);
-    }
-    return { top, bottom, left, right };
-  }
-
   // src/workspace_native_toolbar.css
   var workspace_native_toolbar_default = "";
 
@@ -232802,9 +233165,6 @@ https://creativecommons.org/licenses/by/4.0/
   var EXTENSION_STYLE_ID = "linux-note-typora-enhancements-style";
   var C_MODE_NAME = "linux-note-vscode-textmate-c";
   var CPP_MODE_NAME = "linux-note-vscode-textmate-cpp";
-  var MINIMUM_ZOOM = 0.2;
-  var MAXIMUM_ZOOM = 6;
-  var ZOOM_FACTOR = 1.25;
   var MINIMUM_COLLAPSED_CODE_HEIGHT = 320;
   var MAXIMUM_COLLAPSED_CODE_HEIGHT = 560;
   var CODE_COLLAPSE_TOLERANCE = 48;
@@ -232817,11 +233177,10 @@ https://creativecommons.org/licenses/by/4.0/
   var runtime_lifetime = create_workspace_lifetime();
   var graph_binding;
   var reading_binding;
-  var close_mermaid_viewer;
   var grammar_loading;
   var original_code_modes = /* @__PURE__ */ new Map();
   var runtime_observer = null;
-  var dispose_code_toggle_events = null;
+  var dispose_reading_action_events = null;
   var extension_style;
   function ensure_style() {
     extension_style ??= acquire_workspace_style(EXTENSION_STYLE_ID, typora_enhancements_default);
@@ -232951,12 +233310,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
   }
-  function bind_code_toggle_events() {
+  function bind_reading_action_events() {
     const handle_event = (event) => {
       const target = event.target;
-      const button = target instanceof Element ? target.closest(".linux-note-code-toggle") : null;
+      const button = target instanceof Element ? target.closest(".linux-note-code-toggle,.linux-note-mermaid-open") : null;
       const fence = button?.closest(".md-fences");
-      if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
+      const preview = button?.closest(".md-diagram-panel-preview");
+      if (!button || !preview && (!fence || !button.parentElement?.classList.contains("linux-note-code-toolbar"))) return;
       if (event instanceof KeyboardEvent) {
         if (event.key !== "Enter" && event.key !== " ") return;
         event.stopPropagation();
@@ -232967,7 +233327,8 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
       if (event.type === "click") {
-        set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+        if (preview) open_mermaid_viewer(preview);
+        else if (fence) set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
       }
     };
     for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -233069,7 +233430,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
   }
   function clone_mermaid_svg(preview) {
-    const source = preview.querySelector("svg");
+    const source = [...preview.querySelectorAll("svg")].find((svg4) => !svg4.closest(".linux-note-mermaid-inline-toolbar"));
     if (!(source instanceof SVGSVGElement)) return null;
     const svg3 = source.cloneNode(true);
     namespace_svg_ids(svg3);
@@ -233104,143 +233465,7 @@ https://creativecommons.org/licenses/by/4.0/
   function open_mermaid_viewer(preview) {
     const svg3 = clone_mermaid_svg(preview);
     if (!svg3) return;
-    close_mermaid_viewer?.();
-    const previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const viewer = document.createElement("div");
-    viewer.className = "linux-note-mermaid-viewer";
-    viewer.setAttribute("role", "dialog");
-    viewer.setAttribute("aria-modal", "true");
-    viewer.setAttribute("aria-label", "Mermaid \u56FE\u8868\u5168\u5C4F\u67E5\u770B");
-    viewer.innerHTML = '\n    <div class="linux-note-mermaid-toolbar" aria-label="\u56FE\u8868\u7F29\u653E\u63A7\u5236">\n      <button type="button" data-action="zoom-out" title="\u7F29\u5C0F" aria-label="\u7F29\u5C0F"></button>\n      <output>100%</output>\n      <button type="button" data-action="zoom-in" title="\u653E\u5927" aria-label="\u653E\u5927"></button>\n      <button type="button" data-action="fit-width">\u9002\u5E94\u5BBD\u5EA6</button>\n      <button type="button" data-action="fit">\u9002\u5E94\u5C4F\u5E55</button>\n      <button type="button" data-action="reset">100%</button>\n    </div>\n    <button type="button" class="linux-note-mermaid-close" data-action="close">\u9000\u51FA\u5168\u5C4F</button>\n    <div class="linux-note-mermaid-canvas">\n      <div class="linux-note-mermaid-positioner"><div class="linux-note-mermaid-content"></div></div>\n    </div>\n    <div class="linux-note-mermaid-hint">Ctrl + \u6EDA\u8F6E\u7F29\u653E \xB7 \u6309\u4F4F\u5DE6\u952E\u62D6\u52A8 \xB7 Esc \u9000\u51FA</div>';
-    viewer.querySelector('[data-action="zoom-out"]')?.append(git_icon("remove"));
-    viewer.querySelector('[data-action="zoom-in"]')?.append(git_icon("add"));
-    viewer.querySelector('[data-action="close"]')?.prepend(git_icon("close"));
-    const canvas = viewer.querySelector(".linux-note-mermaid-canvas");
-    const content = viewer.querySelector(".linux-note-mermaid-content");
-    const output = viewer.querySelector("output");
-    if (!canvas || !content || !output) return;
-    content.append(svg3);
-    document.body.append(viewer);
-    document.body.classList.add("linux-note-mermaid-viewer-open");
-    const view = { scale: 1, x: 0, y: 0 };
-    const drag = { active: false, pointer_id: 0, start_x: 0, start_y: 0, origin_x: 0, origin_y: 0 };
-    const apply_view = () => {
-      viewer.style.setProperty("--linux-note-mermaid-scale", String(view.scale));
-      viewer.style.setProperty("--linux-note-mermaid-pan-x", "".concat(view.x, "px"));
-      viewer.style.setProperty("--linux-note-mermaid-pan-y", "".concat(view.y, "px"));
-      output.value = "".concat(Math.round(view.scale * 100), "%");
-      output.textContent = output.value;
-    };
-    const set_zoom = (scale, pointer_x = 0, pointer_y = 0) => {
-      const next_scale = clamp3(scale, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-      const ratio = next_scale / view.scale;
-      view.x = pointer_x - (pointer_x - view.x) * ratio;
-      view.y = pointer_y - (pointer_y - view.y) * ratio;
-      view.scale = next_scale;
-      apply_view();
-    };
-    const fit = () => {
-      const view_box = svg3.viewBox.baseVal;
-      const width2 = view_box.width || Number(svg3.getAttribute("width"));
-      const height = view_box.height || Number(svg3.getAttribute("height"));
-      const bounds = canvas.getBoundingClientRect();
-      if (!width2 || !height || !bounds.width || !bounds.height) return;
-      view.scale = clamp3(Math.min(bounds.width / width2, bounds.height / height) * 0.88, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-      view.x = 0;
-      view.y = 0;
-      apply_view();
-    };
-    const fit_width = () => {
-      const view_box = svg3.viewBox.baseVal;
-      const width2 = view_box.width || Number(svg3.getAttribute("width"));
-      const bounds = canvas.getBoundingClientRect();
-      if (!width2 || !bounds.width) return;
-      view.scale = clamp3(bounds.width / width2 * 0.92, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-      view.x = 0;
-      view.y = 0;
-      apply_view();
-    };
-    const reset2 = () => {
-      view.scale = 1;
-      view.x = 0;
-      view.y = 0;
-      apply_view();
-    };
-    const close = () => {
-      close_mermaid_viewer = void 0;
-      window.removeEventListener("keydown", handle_keydown, true);
-      viewer.remove();
-      document.body.classList.remove("linux-note-mermaid-viewer-open");
-      previous_focus?.focus();
-    };
-    const handle_keydown = (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        close();
-      } else if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
-        event.preventDefault();
-        set_zoom(view.scale * ZOOM_FACTOR);
-      } else if (event.ctrlKey && event.key === "-") {
-        event.preventDefault();
-        set_zoom(view.scale / ZOOM_FACTOR);
-      } else if (event.ctrlKey && event.key === "0") {
-        event.preventDefault();
-        reset2();
-      }
-    };
-    viewer.addEventListener("click", (event) => {
-      const button = event.target.closest("button[data-action]");
-      if (!button) return;
-      const action = button.dataset.action;
-      if (action === "close") close();
-      else if (action === "zoom-out") set_zoom(view.scale / ZOOM_FACTOR);
-      else if (action === "zoom-in") set_zoom(view.scale * ZOOM_FACTOR);
-      else if (action === "fit-width") fit_width();
-      else if (action === "fit") fit();
-      else if (action === "reset") reset2();
-    });
-    canvas.addEventListener("wheel", (event) => {
-      if (!event.ctrlKey) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const bounds = canvas.getBoundingClientRect();
-      const pointer_x = event.clientX - bounds.left - bounds.width / 2;
-      const pointer_y = event.clientY - bounds.top - bounds.height / 2;
-      set_zoom(view.scale * Math.exp(-event.deltaY * 2e-3), pointer_x, pointer_y);
-    }, { passive: false });
-    canvas.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
-      drag.active = true;
-      drag.pointer_id = event.pointerId;
-      drag.start_x = event.clientX;
-      drag.start_y = event.clientY;
-      drag.origin_x = view.x;
-      drag.origin_y = view.y;
-      canvas.setPointerCapture(event.pointerId);
-      viewer.classList.add("is-dragging");
-    });
-    canvas.addEventListener("pointermove", (event) => {
-      if (!drag.active || event.pointerId !== drag.pointer_id) return;
-      view.x = drag.origin_x + event.clientX - drag.start_x;
-      view.y = drag.origin_y + event.clientY - drag.start_y;
-      apply_view();
-    });
-    const end_drag = (event) => {
-      if (event.pointerId !== drag.pointer_id) return;
-      drag.active = false;
-      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-      viewer.classList.remove("is-dragging");
-    };
-    canvas.addEventListener("pointerup", end_drag);
-    canvas.addEventListener("pointercancel", end_drag);
-    canvas.addEventListener("dblclick", fit);
-    close_mermaid_viewer = close;
-    window.addEventListener("keydown", handle_keydown, true);
-    requestAnimationFrame(() => {
-      reset2();
-      viewer.querySelector(".linux-note-mermaid-close")?.focus();
-    });
+    open_reading_media({ content: svg3, source: preview, width: Number(svg3.getAttribute("width")), height: Number(svg3.getAttribute("height")), label: "Mermaid \u56FE\u8868\u5168\u5C4F\u67E5\u770B" });
   }
   function mermaid_container_for_preview(preview) {
     return preview.closest(".md-fences") ?? preview.closest(".md-diagram-panel") ?? preview.parentElement ?? preview;
@@ -233279,11 +233504,6 @@ https://creativecommons.org/licenses/by/4.0/
     button.className = "linux-note-mermaid-open";
     button.title = "\u5168\u5C4F\u67E5\u770B Mermaid \u56FE\u8868";
     button.append(git_icon("screen-full"), document.createTextNode("\u5168\u5C4F\u67E5\u770B"));
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      open_mermaid_viewer(preview);
-    });
     toolbar.append(button);
     preview.prepend(toolbar);
     mermaid_buttons.set(container, button);
@@ -233311,6 +233531,11 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.own(bind_workspace_browser());
     lifetime.own(bind_reading_minimap());
     lifetime.own(bind_reading_link_hover());
+    lifetime.add(() => {
+      close_reading_media();
+    });
+    const images = bind_reading_images(document.body, "content > #write img");
+    lifetime.add(() => images.dispose());
     if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
     const code_mirror = window.CodeMirror;
     const previous_modes = [C_MODE_NAME, CPP_MODE_NAME].map((name) => code_mirror.modes?.[name]);
@@ -233323,7 +233548,7 @@ https://creativecommons.org/licenses/by/4.0/
         else delete code_mirror.modes[name];
       }
     });
-    dispose_code_toggle_events = bind_code_toggle_events();
+    dispose_reading_action_events = bind_reading_action_events();
     scan_document();
     runtime_observer = new MutationObserver(schedule_scan);
     runtime_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden", "lang"] });
@@ -233360,11 +233585,10 @@ https://creativecommons.org/licenses/by/4.0/
     }
     runtime_observer?.disconnect();
     runtime_observer = null;
-    dispose_code_toggle_events?.();
-    dispose_code_toggle_events = null;
+    dispose_reading_action_events?.();
+    dispose_reading_action_events = null;
     window.removeEventListener("resize", schedule_scan);
-    close_mermaid_viewer?.();
-    document.body.classList.remove("linux-note-mermaid-viewer-open");
+    close_reading_media();
     for (const [container] of mermaid_buttons) {
       container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar").forEach((element) => element.remove());
     }

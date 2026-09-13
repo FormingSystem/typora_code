@@ -10,7 +10,7 @@ const check=async(source,label)=>{assert(await evaluate(source),label);checks.pu
 app.whenReady().then(async()=>{
  test_window=new BrowserWindow({show:false,width:1100,height:740,webPreferences:{contextIsolation:false,nodeIntegration:true,offscreen:true,backgroundThrottling:false}});
  const html=path.join(evidence,'fixture.html');
- fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;color:#333;background:#fff}#editor{margin:20px}#terminal{height:300px;position:absolute;left:0;right:0;bottom:0}.linux-note-terminal,.linux-note-terminal-viewport{height:100%}[hidden]{display:none!important}</style><input id="editor" value="unchanged draft"><input id="search" value="query"><section id="dialog" role="dialog" aria-modal="true" hidden><input id="dialog-input"></section><section class="linux-note-mermaid-viewer" hidden><button>diagram</button></section><div id="terminal"></div>','utf8');
+ fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;color:#333;background:#fff}#editor{margin:20px}#terminal{height:300px;position:absolute;left:0;right:0;bottom:0}.linux-note-terminal,.linux-note-terminal-viewport{height:100%}[hidden]{display:none!important}</style><input id="editor" value="unchanged draft"><input id="search" value="query"><section id="dialog" role="dialog" aria-modal="true" hidden><input id="dialog-input"></section><section class="reading-media-viewer" hidden><button>diagram</button></section><div id="terminal"></div>','utf8');
  await test_window.loadFile(html);
  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../node_modules/@xterm/xterm/css/xterm.css'),'utf8'));
  const bundle=await build({stdin:{contents:'export * from "./src/workspace_zoom";export * from "./src/workspace_shortcuts";export * from "./src/workspace_titlebar_entries";export {terminal_surface} from "./src/terminal_surface";export {terminal_defaults} from "./src/terminal_settings";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'zoom_qa',write:false});
@@ -40,8 +40,8 @@ app.whenReady().then(async()=>{
  await check(`document.querySelector('#dialog').hidden=true;reset();send('Equal','=',{});send('Equal','=',{repeat:true});frame.getZoomLevel()===2&&calls.length===2&&keyup_leaks===0`,'held key repeats once per keydown without keyup duplication');
  for(const options of [{ctrlKey:false},{altKey:true},{metaKey:true},{isComposing:true},{keyCode:229}])await check(`reset();!send('Equal','=',${JSON.stringify(options)})&&calls.length===0&&frame.getZoomLevel()===0`,'non-shortcut or composing input does not zoom '+JSON.stringify(options));
  await check(`reset();!send('Digit0','0')&&calls.length===0`,'Ctrl+0 remains owned by native paragraph formatting');
- await check(`reset();document.querySelector('.linux-note-mermaid-viewer').hidden=false;!send('Equal','=')&&calls.length===0`,'visible diagram viewer retains local zoom priority');
- await check(`document.querySelector('.linux-note-mermaid-viewer').hidden=true;reset();send('Equal','=')&&calls.length===1`,'hidden diagram viewer does not suppress window zoom');
+ await check(`reset();document.querySelector('.reading-media-viewer').hidden=false;!send('Equal','=')&&calls.length===0`,'visible diagram viewer retains local zoom priority');
+ await check(`document.querySelector('.reading-media-viewer').hidden=true;reset();send('Equal','=')&&calls.length===1`,'hidden diagram viewer does not suppress window zoom');
  // 真实 Electron 输入进入实际编辑控件及 xterm，验证字符不会被写入草稿或发给 PTY。
  for(const [selector,terminal]of [['#editor',false],['.xterm-helper-textarea',true]]){
   await evaluate(`reset();document.querySelector(${JSON.stringify(selector)}).focus();terminal_input.length=0;`);

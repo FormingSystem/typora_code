@@ -1,0 +1,21 @@
+.reading-media-viewer{position:fixed;z-index:2147483646;inset:0;display:flex;flex-direction:column;box-sizing:border-box;color:var(--reading-media-foreground,#24292f);background:var(--reading-media-background,#fff);font:12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;--reading-media-border:#d0d7de;--reading-media-muted:#57606a;--workspace-interaction-foreground:var(--reading-media-foreground,#24292f)}
+.reading-media-viewer[data-theme=dark]{--reading-media-foreground:#c9d1d9;--reading-media-border:#30363d;--reading-media-muted:#8b949e}
+.reading-media-header{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;padding:16px 20px;flex:none}
+.reading-media-toolbar{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.reading-media-header button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:6px 10px;color:inherit;background:var(--reading-media-background,#fff);border:1px solid var(--reading-media-border);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer}
+.reading-media-toolbar output{min-width:58px;margin:0;padding:0;color:var(--reading-media-muted);font:12px/1.2 Consolas,monospace;text-align:center}
+.reading-media-canvas{position:relative;flex:1;min-height:0;margin:0 20px;overflow:hidden;cursor:grab;touch-action:none;user-select:none}
+.reading-media-viewer.is-dragging .reading-media-canvas{cursor:grabbing}
+.reading-media-positioner{position:absolute;top:50%;left:50%;width:max-content;height:max-content;transform:translate(-50%,-50%) translate3d(var(--reading-media-pan-x,0px),var(--reading-media-pan-y,0px),0);will-change:transform}
+.reading-media-content{width:max-content;height:max-content;line-height:0;transform:scale(var(--reading-media-scale,1));transform-origin:center;will-change:transform}
+.reading-media-content>svg,.reading-media-content>img{display:block;width:auto;max-width:none;height:auto;max-height:none;margin:0;padding:0;border:0;filter:none;opacity:1}
+.reading-media-error{font-size:14px;line-height:1.5}
+.reading-media-hint{flex:none;box-sizing:border-box;min-height:34px;padding:9px 12px;text-align:center;color:var(--reading-media-muted);font-size:11px;line-height:16px}
+.reading-media-header button>svg,.reading-image-open>svg{width:16px;height:16px;flex:none;fill:currentColor;stroke:none}
+body.reading-media-viewer-open{overflow:hidden!important}
+.reading-image-actions{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style;--workspace-interaction-radius:4px}
+.reading-image-open{position:absolute;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
+.reading-image-open[hidden],.reading-image-open.is-small span{display:none!important}
+.reading-image-open.is-small{padding:6px}
+body.reading-media-viewer-open .reading-image-actions{visibility:hidden}
+@media print{.reading-media-viewer,.reading-image-actions{display:none!important}}

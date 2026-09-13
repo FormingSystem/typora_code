@@ -17,9 +17,10 @@ async function evaluate(source) {
 }
 
 async function click(selector, hold_ms = 0) {
-  const point = await evaluate(`(() => {
+  const point = await evaluate(`(async () => {
     const element = document.querySelector(${JSON.stringify(selector)});
     element.scrollIntoView({ block: 'center' });
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
     const bounds = element.getBoundingClientRect();
     return { x: Math.round(bounds.x + bounds.width / 2), y: Math.round(bounds.y + bounds.height / 2) };
   })()`);
@@ -50,6 +51,13 @@ app.whenReady().then(async () => {
   }
   assert.equal(await evaluate(`document.documentElement.getAttribute('data-linux-note-typora-enhancements')`), 'ready');
   assert.equal(await expanded(), false);
+  await evaluate(`(() => {const fence=document.createElement('div');fence.id='diagram-fixture';fence.className='md-fences';fence.setAttribute('lang','mermaid');fence.innerHTML='<div class="md-diagram-panel-preview"><svg width="400" height="150" viewBox="0 0 400 150"><defs><marker id="arrow"><path d="M 0 0 L 10 5 L 0 10"/></marker></defs><path d="M10 50L300 50" stroke="blue" marker-end="url(#arrow)"/></svg></div>';document.querySelector('#write').prepend(fence)})()`);
+  await delay(900);await click('.linux-note-mermaid-open');
+  assert(await evaluate(`Boolean(document.querySelector('.reading-media-viewer svg'))`),'Mermaid button opens shared viewer on first click');
+  assert(await evaluate(`document.querySelector('.reading-media-viewer marker').id!=='arrow'&&document.querySelector('#diagram-fixture marker').id==='arrow'`),'Mermaid SVG IDs remain isolated');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await delay(80);
+  assert(!await evaluate(`Boolean(document.querySelector('.reading-media-viewer'))`));await evaluate(`document.querySelector('#diagram-fixture').remove()`);
+
   await click('#outside');
   const host_events = await evaluate('window.test_host_events');
   assert.ok(host_events > 0, '正文鼠标事件仍然进入宿主');

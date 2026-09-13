@@ -1,3 +1,5 @@
+import {open_reading_media,close_reading_media} from "./reading_media_viewer";
+import {bind_reading_images} from "./reading_image_viewer";
 import {bind_markdown_color_menu} from "./markdown_color_menu";
 import {acquire_workspace_style,type workspace_style_handle} from "./workspace_styles";
 import {git_icon} from "./git_icons";
@@ -60,9 +62,6 @@ declare global {
 const EXTENSION_STYLE_ID = "linux-note-typora-enhancements-style";
 const C_MODE_NAME = "linux-note-vscode-textmate-c";
 const CPP_MODE_NAME = "linux-note-vscode-textmate-cpp";
-const MINIMUM_ZOOM = 0.2;
-const MAXIMUM_ZOOM = 6;
-const ZOOM_FACTOR = 1.25;
 const MINIMUM_COLLAPSED_CODE_HEIGHT = 320;
 const MAXIMUM_COLLAPSED_CODE_HEIGHT = 560;
 const CODE_COLLAPSE_TOLERANCE = 48;
@@ -76,11 +75,10 @@ let runtime_controller: AbortController | undefined;
 let runtime_lifetime = create_workspace_lifetime();
 let graph_binding: ReturnType<typeof bind_git_graph>;
 let reading_binding: ReturnType<typeof bind_reading_navigation>;
-let close_mermaid_viewer: (() => void) | undefined;
 let grammar_loading: Promise<void> | undefined;
 const original_code_modes = new Map<code_mirror_instance, unknown>();
 let runtime_observer: MutationObserver | null = null;
-let dispose_code_toggle_events: (() => void) | null = null;
+let dispose_reading_action_events: (() => void) | null = null;
 
 let extension_style:workspace_style_handle|undefined;
 function ensure_style(): void { extension_style ??= acquire_workspace_style(EXTENSION_STYLE_ID,extension_css); }
@@ -226,13 +224,14 @@ function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expand
   requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
 }
 
-function bind_code_toggle_events(): () => void {
+function bind_reading_action_events(): () => void {
   // 在正文处理选区前接管按钮事件。委托到 document，代码块重建后也无需重新绑定。
   const handle_event = (event: Event) => {
     const target = event.target;
-    const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle") : null;
+    const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle,.linux-note-mermaid-open") : null;
     const fence = button?.closest<HTMLElement>(".md-fences");
-    if (!button || !fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")) return;
+    const preview=button?.closest(".md-diagram-panel-preview");
+    if (!button || (!preview && (!fence || !button.parentElement?.classList.contains("linux-note-code-toolbar")))) return;
     if (event instanceof KeyboardEvent) {
       if (event.key !== "Enter" && event.key !== " ") return;
       event.stopPropagation();
@@ -245,7 +244,8 @@ function bind_code_toggle_events(): () => void {
     // 保持正文光标位置；鼠标仍由 click 切换，按下后移出按钮则不会切换。
     if (event.type === "mousedown" || event.type === "click") event.preventDefault();
     if (event.type === "click") {
-      set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+      if(preview)open_mermaid_viewer(preview);
+      else if(fence)set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
     }
   };
   for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -355,7 +355,7 @@ function namespace_svg_ids(svg: SVGSVGElement): void {
 }
 
 function clone_mermaid_svg(preview: Element): SVGSVGElement | null {
-  const source = preview.querySelector("svg");
+  const source = [...preview.querySelectorAll("svg")].find(svg=>!svg.closest(".linux-note-mermaid-inline-toolbar"));
   if (!(source instanceof SVGSVGElement)) return null;
   const svg = source.cloneNode(true) as SVGSVGElement;
   namespace_svg_ids(svg);
@@ -390,159 +390,8 @@ function clamp(value: number, minimum: number, maximum: number): number {
 }
 
 function open_mermaid_viewer(preview: Element): void {
-  const svg = clone_mermaid_svg(preview);
-  if (!svg) return;
-  close_mermaid_viewer?.();
-  const previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-  const viewer = document.createElement("div");
-  viewer.className = "linux-note-mermaid-viewer";
-  viewer.setAttribute("role", "dialog");
-  viewer.setAttribute("aria-modal", "true");
-  viewer.setAttribute("aria-label", "Mermaid 图表全屏查看");
-  viewer.innerHTML = `
-    <div class="linux-note-mermaid-toolbar" aria-label="图表缩放控制">
-      <button type="button" data-action="zoom-out" title="缩小" aria-label="缩小"></button>
-      <output>100%</output>
-      <button type="button" data-action="zoom-in" title="放大" aria-label="放大"></button>
-      <button type="button" data-action="fit-width">适应宽度</button>
-      <button type="button" data-action="fit">适应屏幕</button>
-      <button type="button" data-action="reset">100%</button>
-    </div>
-    <button type="button" class="linux-note-mermaid-close" data-action="close">退出全屏</button>
-    <div class="linux-note-mermaid-canvas">
-      <div class="linux-note-mermaid-positioner"><div class="linux-note-mermaid-content"></div></div>
-    </div>
-    <div class="linux-note-mermaid-hint">Ctrl + 滚轮缩放 · 按住左键拖动 · Esc 退出</div>`;
-  viewer.querySelector('[data-action="zoom-out"]')?.append(git_icon("remove"));
-  viewer.querySelector('[data-action="zoom-in"]')?.append(git_icon("add"));
-  viewer.querySelector('[data-action="close"]')?.prepend(git_icon("close"));
-  const canvas = viewer.querySelector<HTMLElement>(".linux-note-mermaid-canvas");
-  const content = viewer.querySelector<HTMLElement>(".linux-note-mermaid-content");
-  const output = viewer.querySelector<HTMLOutputElement>("output");
-  if (!canvas || !content || !output) return;
-  content.append(svg);
-  document.body.append(viewer);
-  document.body.classList.add("linux-note-mermaid-viewer-open");
-
-  const view = { scale: 1, x: 0, y: 0 };
-  const drag = { active: false, pointer_id: 0, start_x: 0, start_y: 0, origin_x: 0, origin_y: 0 };
-  const apply_view = () => {
-    viewer.style.setProperty("--linux-note-mermaid-scale", String(view.scale));
-    viewer.style.setProperty("--linux-note-mermaid-pan-x", `${view.x}px`);
-    viewer.style.setProperty("--linux-note-mermaid-pan-y", `${view.y}px`);
-    output.value = `${Math.round(view.scale * 100)}%`;
-    output.textContent = output.value;
-  };
-  const set_zoom = (scale: number, pointer_x = 0, pointer_y = 0) => {
-    const next_scale = clamp(scale, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-    const ratio = next_scale / view.scale;
-    view.x = pointer_x - (pointer_x - view.x) * ratio;
-    view.y = pointer_y - (pointer_y - view.y) * ratio;
-    view.scale = next_scale;
-    apply_view();
-  };
-  const fit = () => {
-    const view_box = svg.viewBox.baseVal;
-    const width = view_box.width || Number(svg.getAttribute("width"));
-    const height = view_box.height || Number(svg.getAttribute("height"));
-    const bounds = canvas.getBoundingClientRect();
-    if (!width || !height || !bounds.width || !bounds.height) return;
-    view.scale = clamp(Math.min(bounds.width / width, bounds.height / height) * 0.88, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-    view.x = 0;
-    view.y = 0;
-    apply_view();
-  };
-  const fit_width = () => {
-    const view_box = svg.viewBox.baseVal;
-    const width = view_box.width || Number(svg.getAttribute("width"));
-    const bounds = canvas.getBoundingClientRect();
-    if (!width || !bounds.width) return;
-    view.scale = clamp((bounds.width / width) * 0.92, MINIMUM_ZOOM, MAXIMUM_ZOOM);
-    view.x = 0;
-    view.y = 0;
-    apply_view();
-  };
-  const reset = () => {
-    view.scale = 1;
-    view.x = 0;
-    view.y = 0;
-    apply_view();
-  };
-  const close = () => {
-    close_mermaid_viewer=undefined;
-    window.removeEventListener("keydown", handle_keydown, true);
-    viewer.remove();
-    document.body.classList.remove("linux-note-mermaid-viewer-open");
-    previous_focus?.focus();
-  };
-  const handle_keydown = (event: KeyboardEvent) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      close();
-    } else if (event.ctrlKey && (event.key === "+" || event.key === "=")) {
-      event.preventDefault();
-      set_zoom(view.scale * ZOOM_FACTOR);
-    } else if (event.ctrlKey && event.key === "-") {
-      event.preventDefault();
-      set_zoom(view.scale / ZOOM_FACTOR);
-    } else if (event.ctrlKey && event.key === "0") {
-      event.preventDefault();
-      reset();
-    }
-  };
-  viewer.addEventListener("click", (event) => {
-    const button = (event.target as Element).closest<HTMLButtonElement>("button[data-action]");
-    if (!button) return;
-    const action = button.dataset.action;
-    if (action === "close") close();
-    else if (action === "zoom-out") set_zoom(view.scale / ZOOM_FACTOR);
-    else if (action === "zoom-in") set_zoom(view.scale * ZOOM_FACTOR);
-    else if (action === "fit-width") fit_width();
-    else if (action === "fit") fit();
-    else if (action === "reset") reset();
-  });
-  canvas.addEventListener("wheel", (event) => {
-    if (!event.ctrlKey) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const bounds = canvas.getBoundingClientRect();
-    const pointer_x = event.clientX - bounds.left - bounds.width / 2;
-    const pointer_y = event.clientY - bounds.top - bounds.height / 2;
-    set_zoom(view.scale * Math.exp(-event.deltaY * 0.002), pointer_x, pointer_y);
-  }, { passive: false });
-  canvas.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) return;
-    drag.active = true;
-    drag.pointer_id = event.pointerId;
-    drag.start_x = event.clientX;
-    drag.start_y = event.clientY;
-    drag.origin_x = view.x;
-    drag.origin_y = view.y;
-    canvas.setPointerCapture(event.pointerId);
-    viewer.classList.add("is-dragging");
-  });
-  canvas.addEventListener("pointermove", (event) => {
-    if (!drag.active || event.pointerId !== drag.pointer_id) return;
-    view.x = drag.origin_x + event.clientX - drag.start_x;
-    view.y = drag.origin_y + event.clientY - drag.start_y;
-    apply_view();
-  });
-  const end_drag = (event: PointerEvent) => {
-    if (event.pointerId !== drag.pointer_id) return;
-    drag.active = false;
-    if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-    viewer.classList.remove("is-dragging");
-  };
-  canvas.addEventListener("pointerup", end_drag);
-  canvas.addEventListener("pointercancel", end_drag);
-  canvas.addEventListener("dblclick", fit);
-  close_mermaid_viewer=close;
-  window.addEventListener("keydown", handle_keydown, true);
-  requestAnimationFrame(() => {
-    reset();
-    viewer.querySelector<HTMLButtonElement>(".linux-note-mermaid-close")?.focus();
-  });
+  const svg=clone_mermaid_svg(preview);if(!svg)return;
+  open_reading_media({content:svg,source:preview,width:Number(svg.getAttribute("width")),height:Number(svg.getAttribute("height")),label:"Mermaid 图表全屏查看"});
 }
 
 function mermaid_container_for_preview(preview: Element): Element {
@@ -589,11 +438,6 @@ function ensure_mermaid_button(container: Element): void {
   button.className = "linux-note-mermaid-open";
   button.title = "全屏查看 Mermaid 图表";
   button.append(git_icon("screen-full"),document.createTextNode("全屏查看"));
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    open_mermaid_viewer(preview);
-  });
   toolbar.append(button);
   preview.prepend(toolbar);
   mermaid_buttons.set(container, button);
@@ -616,13 +460,16 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   lifetime.own(bind_workspace_browser());
   lifetime.own(bind_reading_minimap());
   lifetime.own(bind_reading_link_hover());
+  lifetime.add(()=>{close_reading_media();});
+  const images=bind_reading_images(document.body,"content > #write img");
+  lifetime.add(()=>images.dispose());
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
   const code_mirror=window.CodeMirror;
   const previous_modes=[C_MODE_NAME,CPP_MODE_NAME].map(name=>code_mirror.modes?.[name]);
   code_mirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
   code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
   lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
-  dispose_code_toggle_events = bind_code_toggle_events();
+  dispose_reading_action_events = bind_reading_action_events();
   scan_document();
   runtime_observer = new MutationObserver(schedule_scan);
   runtime_observer.observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["class","hidden","lang"]});
@@ -660,11 +507,10 @@ export function deactivate_typora_enhancements(): void {
   }
   runtime_observer?.disconnect();
   runtime_observer = null;
-  dispose_code_toggle_events?.();
-  dispose_code_toggle_events = null;
+  dispose_reading_action_events?.();
+  dispose_reading_action_events = null;
   window.removeEventListener("resize", schedule_scan);
-  close_mermaid_viewer?.();
-  document.body.classList.remove("linux-note-mermaid-viewer-open");
+  close_reading_media();
   for (const [container] of mermaid_buttons) {
     container.querySelectorAll(":scope .linux-note-mermaid-inline-toolbar").forEach(element => element.remove());
   }

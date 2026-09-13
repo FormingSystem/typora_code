@@ -19,7 +19,7 @@ function primary_modifier(event: KeyboardEvent): boolean {
   return (event.ctrlKey || event.metaKey) && !event.altKey;
 }
 
-function visible_modal(selector = '.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]'): boolean {
+function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]'): boolean {
   const candidates = document.querySelectorAll<HTMLElement>(selector);
   return Array.from(candidates).some((candidate) => {
     if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
@@ -47,7 +47,7 @@ export function install_workspace_shortcuts(
     // 先归还编辑焦点，再让既有快捷键执行，避免动作落到浮动菜单或后台文档。
     if(primary_modifier(event)&&document.querySelector(".workspace-titlebar-popup"))window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
     const zoom_command = workspace_zoom_shortcut(event);
-    if (zoom_command && workspace_zoom_available(runtime, zoom_command) && !visible_modal(".linux-note-mermaid-viewer")) {
+    if (zoom_command && workspace_zoom_available(runtime, zoom_command) && !visible_modal(".reading-media-viewer")) {
       // 窗口比例是全局操作：普通对话框、代码编辑器与终端均不拦截；图表局部缩放优先。
       run(event, () => app.commands.run(zoom_command));
       return;
