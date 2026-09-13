@@ -1,6 +1,8 @@
 import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
-import { create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
+import {create_platform_file_clipboard} from "./file_clipboard_platform";
+import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./workspace_file_clipboard";
+import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
@@ -29,7 +31,7 @@ export type workspace_file_host = {
   rename_file(root: string, old_path: string, name: string): Promise<string>;
   move_file(root: string, old_path: string, target: string): Promise<string>;
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
-  transfer_entries(root:string,paths:string[],target:string,move:boolean):Promise<string[]>;
+  file_clipboard:workspace_file_clipboard;
   trash_entries(root:string,paths:string[]):Promise<void>;
   keep_open(leaf?:graph_leaf):void;
   editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
@@ -362,7 +364,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     return native_library_open_file?.call(this, target, ...args);
   };
-  const copy = (text: string) => runtime.reqnode("electron").clipboard.writeText(text);
+  const copy = (text: string) => { if(file_clipboard.is_busy())throw new Error("文件剪贴板正在处理，请稍后复制路径。");file_clipboard.invalidate(); runtime.reqnode("electron").clipboard.writeText(text); };
   const file_menu = (event: MouseEvent, file_path: string) => workspace_menu(event, [
     {title: "打开文件", action: () => void open_file(file_path)},
     {title: "在右侧打开", action: () => void open_file(file_path, {}, "right")},
@@ -782,7 +784,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
   let binding: workspace_files_binding;
   const assert_can_dispose = () => {
-    if(file_operation_count)throw new Error("文件操作正在执行，请完成后再停用 Typora Code。");
+    if(file_operation_count||file_clipboard.is_busy())throw new Error("文件操作正在执行，请完成后再停用 Typora Code。");
     if (renaming || [...views].some(view => view.saving)) throw new Error("文件正在保存或重命名，请完成后再停用 Typora Code。");
     if ([...views].some(view => !view.disposed && view.dirty())) throw new Error("源码标签有未保存修改，请先保存，或关闭标签并处理修改，再停用 Typora Code。");
   };
@@ -790,7 +792,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
-    binding.active = false;
+    binding.active = false;file_clipboard.dispose();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
@@ -827,7 +829,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     try{return await action();}finally{file_operation_count--;}
   };
   const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(()=>create_workspace_entry({fs,path_api},root,parent,name,directory));
-  const transfer_entries=(root:string,paths:string[],target:string,move:boolean)=>file_operation(()=>transfer_workspace_entries({fs,path_api},root,paths,target,move?move_file:undefined));
+  const file_clipboard=create_workspace_file_clipboard(create_platform_file_clipboard(name=>runtime.reqnode(name)),{
+    validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths)),
+    transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_workspace_entries({fs,path_api},root,paths,target,move?move_file:undefined,external))
+  });
   const trash_entries=(root:string,paths:string[])=>file_operation(async()=>{
     const includes=(candidate:string)=>paths.some(path=>renamed_workspace_path(path_api,candidate,path,path,true)!==undefined);
     const affected=[...views].filter(view=>includes(view.file_path));
@@ -843,7 +848,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, transfer_entries, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     read_text:async(file_path:string)=>{
       if(!binding.active)throw new Error("Typora Code 已停用。");
       const source=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path)&&view.editor?.models[0]);

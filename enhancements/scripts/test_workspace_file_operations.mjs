@@ -27,5 +27,17 @@ try {
   await assert.rejects(trash(modules,root,[root],async()=>assert.fail("root never reaches recycle")));
   const link=path.join(root,"link");let link_supported=true;try{fs.symlinkSync(source,link,process.platform==="win32"?"junction":"dir")}catch{link_supported=false}
   if(link_supported){await assert.rejects(create(modules,root,link,"escape.txt",false),/符号链接/);await assert.rejects(transfer(modules,root,[link],failure),/符号链接/);}
-  console.log(JSON.stringify({status:"PASS",checks:["exclusive creation and workspace boundary","recursive binary copy","collision preserves target","copy into self rejected","copy failure rollback","concurrent external file retained during rollback","move callback and batch rollback","recycle partial completion report","root protection","symlink rejection"],link_supported}));
+  const outside=path.join(temporary,'外部 folder'),outside_target=path.join(root,'external_target');fs.mkdirSync(outside);fs.mkdirSync(outside_target);fs.writeFileSync(path.join(outside,'unicode 空格.bin'),Buffer.from([0,128,255]));
+  await assert.rejects(transfer(modules,root,[outside],outside_target),/工作区/);
+  await transfer(modules,root,[outside,path.join(outside,'unicode 空格.bin')],outside_target,undefined,true);
+  assert.deepEqual(fs.readFileSync(path.join(outside_target,'外部 folder','unicode 空格.bin')),Buffer.from([0,128,255]));assert(fs.existsSync(outside));
+  await assert.rejects(transfer(modules,root,[outside],outside_target,undefined,true),/同名/);
+  await assert.rejects(transfer(modules,root,[outside],outside_target,move,true),/仅支持复制/);
+  await assert.rejects(transfer(modules,root,[root],outside_target,undefined,true),/自身/);
+  const outside_failure=path.join(root,'external_failure');fs.mkdirSync(outside_failure);
+  const bad_external={...fs,promises:{...fs.promises,open:async(file,flags)=>{if(file===path.join(outside,'unicode 空格.bin')&&flags==='r')throw Error('external read failed');return fs.promises.open(file,flags)}}};
+  await assert.rejects(transfer({fs:bad_external,path_api:path},root,[outside],outside_failure,undefined,true),/external read failed/);assert.deepEqual(fs.readdirSync(outside_failure),[]);
+  if(link_supported){const outside_link=path.join(temporary,'outside_link');fs.symlinkSync(outside,outside_link,process.platform==='win32'?'junction':'dir');await assert.rejects(transfer(modules,root,[path.join(outside_link,'unicode 空格.bin')],outside_failure,undefined,true),/符号链接/);}
+  await assert.rejects(transfer(modules,root,['relative'],outside_target,undefined,true),/绝对路径/);
+  console.log(JSON.stringify({status:"PASS",checks:["exclusive creation and workspace boundary","recursive binary copy","collision preserves target","copy into self rejected","copy failure rollback","concurrent external file retained during rollback","move callback and batch rollback","recycle partial completion report","root protection","symlink rejection","external Unicode folder and binary copy","external source survives failures","separate source and destination boundaries","external move and ancestor symlink rejected"],link_supported}));
 } finally { fs.rmSync(temporary,{recursive:true,force:true}); }

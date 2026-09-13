@@ -21834,7 +21834,7 @@ https://creativecommons.org/licenses/by/4.0/
   function isEntries(arg) {
     return Array.isArray(arg);
   }
-  var _a, _b, _c, ResourceMapEntry, ResourceMap, ResourceSet, LinkedMap, Cache, LRUCache, BidirectionalMap, SetMap, NKeyMap;
+  var _a2, _b, _c, ResourceMapEntry, ResourceMap, ResourceSet, LinkedMap, Cache, LRUCache, BidirectionalMap, SetMap, NKeyMap;
   var init_map = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/map.js"() {
       ResourceMapEntry = class {
@@ -21848,7 +21848,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.defaultToKey = (resource) => resource.toString();
         }
         constructor(arg, toKey) {
-          this[_a] = "ResourceMap";
+          this[_a2] = "ResourceMap";
           if (arg instanceof _ResourceMap) {
             this.map = new Map(arg.map);
             this.toKey = toKey ?? _ResourceMap.defaultToKey;
@@ -21905,7 +21905,7 @@ https://creativecommons.org/licenses/by/4.0/
             yield [entry.uri, entry.value];
           }
         }
-        *[(_a = Symbol.toStringTag, Symbol.iterator)]() {
+        *[(_a2 = Symbol.toStringTag, Symbol.iterator)]() {
           for (const [, entry] of this.map) {
             yield [entry.uri, entry.value];
           }
@@ -68455,17 +68455,17 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return result;
   }
-  var _a2, SetWithKey;
+  var _a3, SetWithKey;
   var init_collections = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/collections.js"() {
       SetWithKey = class {
         static {
-          _a2 = Symbol.toStringTag;
+          _a3 = Symbol.toStringTag;
         }
         constructor(values, toKey) {
           this.toKey = toKey;
           this._map = /* @__PURE__ */ new Map();
-          this[_a2] = "SetWithKey";
+          this[_a3] = "SetWithKey";
           for (const value of values) {
             this.add(value);
           }
@@ -78986,11 +78986,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return false;
         }
-        static _equals(_a7, _b3) {
-          if (!_a7 || !_b3) {
-            return !_a7 && !_b3;
+        static _equals(_a8, _b3) {
+          if (!_a8 || !_b3) {
+            return !_a8 && !_b3;
           }
-          const a = toUint32Array(_a7);
+          const a = toUint32Array(_a8);
           const b2 = toUint32Array(_b3);
           if (a.length !== b2.length) {
             return false;
@@ -104542,7 +104542,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!uri) {
       return asFragment("url('')");
     }
-    return inline2(_a3 || (_a3 = __template(["url('", "')"])), asFragment(CSS.escape(FileAccess.uriToBrowserUri(uri).toString(true))));
+    return inline2(_a4 || (_a4 = __template(["url('", "')"])), asFragment(CSS.escape(FileAccess.uriToBrowserUri(uri).toString(true))));
   }
   function className(value, escapingExpected = false) {
     const out = CSS.escape(value);
@@ -104557,7 +104557,7 @@ https://creativecommons.org/licenses/by/4.0/
       return result + str + value;
     }, ""));
   }
-  var _a3, Builder;
+  var _a4, Builder;
   var init_cssValue = __esm({
     "node_modules/monaco-editor/esm/vs/base/browser/cssValue.js"() {
       init_network();
@@ -131772,7 +131772,7 @@ https://creativecommons.org/licenses/by/4.0/
             continue;
           }
           const fontContribution = definition2.font;
-          const fontFamilyVar = inline2(_a4 || (_a4 = __template(["--vscode-icon-", "-font-family"])), className(contribution.id));
+          const fontFamilyVar = inline2(_a5 || (_a5 = __template(["--vscode-icon-", "-font-family"])), className(contribution.id));
           const contentVar = inline2(_b2 || (_b2 = __template(["--vscode-icon-", "-content"])), className(contribution.id));
           if (fontContribution) {
             usedFontIds[fontContribution.id] = fontContribution.definition;
@@ -131798,7 +131798,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
   }
-  var _a4, _b2, _c2, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, UnthemedProductIconTheme;
+  var _a5, _b2, _c2, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, UnthemedProductIconTheme;
   var init_iconsStyleSheet = __esm({
     "node_modules/monaco-editor/esm/vs/platform/theme/browser/iconsStyleSheet.js"() {
       init_cssValue();
@@ -161325,6 +161325,160 @@ https://creativecommons.org/licenses/by/4.0/
     return [...(group || document).querySelectorAll(".typ-tab[data-id]")].find((tab) => tab.dataset.id === leaf.state.path);
   }
 
+  // src/file_clipboard_windows.ts
+  var _a;
+  var WINDOWS_CLIPBOARD_SCRIPT = String.raw(_a || (_a = __template(['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);if(count>512)throw new Exception("Too many clipboard files (maximum 512).");\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0||length>32767)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\0",paths)+"\0\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'], ['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);if(count>512)throw new Exception("Too many clipboard files (maximum 512).");\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0||length>32767)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\\0",paths)+"\\0\\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'])));
+  function create_windows_file_clipboard(reqnode) {
+    const process_api = reqnode("process"), path_api = reqnode("path"), child_process = reqnode("child_process"), buffer = reqnode("buffer").Buffer;
+    const program = path_api.join(process_api.env.SystemRoot || process_api.env.WINDIR || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+    const args = ["-NoProfile", "-NonInteractive", "-STA", "-EncodedCommand", buffer.from(WINDOWS_CLIPBOARD_SCRIPT, "utf16le").toString("base64")];
+    const children = /* @__PURE__ */ new Set();
+    let disposed = false;
+    const invoke = (request) => new Promise((resolve3, reject) => {
+      if (disposed) {
+        reject(new Error("\u6587\u4EF6\u526A\u8D34\u677F\u5DF2\u5173\u95ED\u3002"));
+        return;
+      }
+      const child = child_process.execFile(program, args, { windowsHide: true, shell: false, timeout: 6e3, maxBuffer: 4 * 1024 * 1024, encoding: "utf8" }, (error, stdout) => {
+        children.delete(child);
+        if (disposed) {
+          reject(new Error("\u6587\u4EF6\u526A\u8D34\u677F\u5DF2\u5173\u95ED\u3002"));
+          return;
+        }
+        try {
+          const result = JSON.parse(stdout);
+          if (result.error) throw new Error(result.error);
+          if (error) throw error;
+          resolve3(result.value);
+        } catch (problem) {
+          reject(new Error("\u7CFB\u7EDF\u6587\u4EF6\u526A\u8D34\u677F\u64CD\u4F5C\u5931\u8D25\uFF1A" + String(problem instanceof Error ? problem.message : problem)));
+        }
+      });
+      children.add(child);
+      child.stdin.on("error", () => {
+      });
+      child.stdin.end(JSON.stringify(request), "utf8");
+    });
+    return { read: () => invoke({ action: "read" }), write: (paths) => invoke({ action: "write", paths }), clear: (version) => invoke({ action: "clear", version }), dispose() {
+      disposed = true;
+      for (const child of children) child.kill();
+      children.clear();
+    } };
+  }
+
+  // src/file_clipboard_platform.ts
+  function create_platform_file_clipboard(reqnode) {
+    const platform3 = reqnode("process").platform;
+    if (platform3 === "win32") return create_windows_file_clipboard(reqnode);
+    const clipboard = reqnode("electron").clipboard, buffer = reqnode("buffer").Buffer, url = reqnode("url"), crypto2 = reqnode("crypto");
+    const version = (format3, raw) => crypto2.createHash("sha256").update(format3 + "\0" + raw).digest("hex");
+    const read2 = () => {
+      if (platform3 !== "linux") throw new Error("\u5F53\u524D\u5E73\u53F0\u5C1A\u672A\u63D0\u4F9B\u7CFB\u7EDF\u6587\u4EF6\u526A\u8D34\u677F\u3002");
+      const formats = clipboard.availableFormats(), format3 = formats.includes("x-special/gnome-copied-files") ? "x-special/gnome-copied-files" : "text/uri-list";
+      const raw = clipboard.readBuffer(format3).toString("utf8"), lines = raw.split(/\r?\n/u), moving = format3 !== "text/uri-list" && lines.shift() === "cut";
+      const paths = lines.filter((line) => line && !line.startsWith("#")).map((line) => {
+        const parsed = new URL(line);
+        if (parsed.protocol !== "file:" || parsed.hostname && parsed.hostname !== "localhost") throw new Error("\u526A\u8D34\u677F\u5305\u542B\u975E\u672C\u5730\u6587\u4EF6\u5730\u5740\u3002");
+        return url.fileURLToPath(parsed);
+      });
+      return { paths, move_requested: moving, version: version(format3, raw) };
+    };
+    return { read: async () => read2(), write: async (paths) => {
+      if (platform3 !== "linux") throw new Error("\u5F53\u524D\u5E73\u53F0\u5C1A\u672A\u63D0\u4F9B\u7CFB\u7EDF\u6587\u4EF6\u526A\u8D34\u677F\u3002");
+      const raw = "# typora-code:" + crypto2.randomUUID() + "\r\n" + paths.map((path) => url.pathToFileURL(path).href).join("\r\n") + "\r\n";
+      clipboard.writeBuffer("text/uri-list", buffer.from(raw, "utf8"));
+      return { paths: [...paths], move_requested: false, version: version("text/uri-list", raw) };
+    }, clear: async () => {
+      return false;
+    }, dispose() {
+    } };
+  }
+
+  // src/workspace_file_clipboard.ts
+  function create_workspace_file_clipboard(adapter, actions) {
+    let cut, disposed = false, busy = false;
+    const listeners2 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners2) listener();
+    };
+    const validate = (snapshot) => {
+      if (!snapshot || !Array.isArray(snapshot.paths) || snapshot.paths.length > 512 || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || path.length > 32767 || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
+      return snapshot;
+    };
+    const invalidate = () => {
+      cut = void 0;
+      notify();
+    };
+    const read2 = async () => {
+      const expected_cut = cut, snapshot = validate(await adapter.read());
+      if (cut === expected_cut && cut && (cut.snapshot.version !== snapshot.version || JSON.stringify(cut.snapshot.paths) !== JSON.stringify(snapshot.paths))) invalidate();
+      return snapshot;
+    };
+    const perform = async (action) => {
+      if (disposed) throw new Error("\u6587\u4EF6\u526A\u8D34\u677F\u5DF2\u5173\u95ED\u3002");
+      if (busy) throw new Error("\u6B63\u5728\u5904\u7406\u6587\u4EF6\u526A\u8D34\u677F\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+      busy = true;
+      try {
+        return await action();
+      } finally {
+        busy = false;
+      }
+    };
+    return {
+      is_busy: () => busy,
+      is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
+      invalidate,
+      subscribe(listener) {
+        listeners2.add(listener);
+        return () => listeners2.delete(listener);
+      },
+      async refresh() {
+        if (disposed || busy || !cut) return;
+        const expected_cut = cut;
+        try {
+          await read2();
+        } catch {
+          if (cut === expected_cut) invalidate();
+        }
+      },
+      copy: (root, paths, move, valid = () => true) => perform(async () => {
+        const selected = [...new Set(paths)];
+        validate({ paths: selected, version: "", move_requested: false });
+        if (!selected.length) return;
+        await actions.validate(root, selected);
+        if (disposed || !valid()) throw new Error("\u64CD\u4F5C\u4E0A\u4E0B\u6587\u5DF2\u6539\u53D8\uFF0C\u672A\u590D\u5236\u6587\u4EF6\u3002");
+        invalidate();
+        const snapshot = validate(await adapter.write(selected));
+        if (JSON.stringify(snapshot.paths) !== JSON.stringify(selected)) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u590D\u5236\u6587\u4EF6\u3002");
+        if (!disposed && move && valid()) {
+          cut = { root, snapshot };
+          notify();
+        }
+      }),
+      paste: (root, target, valid = () => true) => perform(async () => {
+        const snapshot = await read2();
+        if (disposed || !valid()) throw new Error("\u76EE\u6807\u5DF2\u6539\u53D8\uFF0C\u672A\u7C98\u8D34\u6587\u4EF6\u3002");
+        if (!snapshot.paths.length) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u6CA1\u6709\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u3002");
+        const move = Boolean(cut && cut.root === root && cut.snapshot.version === snapshot.version), paths = await actions.transfer(root, snapshot.paths, target, move, !move);
+        let warning = "";
+        if (move) {
+          invalidate();
+          try {
+            await adapter.clear(snapshot.version);
+          } catch {
+            warning = "\u6587\u4EF6\u5DF2\u79FB\u52A8\uFF0C\u4F46\u526A\u8D34\u677F\u6E05\u7406\u5931\u8D25\u3002";
+          }
+        }
+        return { paths, message: warning || (move ? "\u79FB\u52A8\u5B8C\u6210\u3002" : snapshot.move_requested ? "\u590D\u5236\u5B8C\u6210\uFF0C\u6E90\u6587\u4EF6\u4FDD\u7559\u3002" : "\u590D\u5236\u5B8C\u6210\u3002") };
+      }),
+      dispose() {
+        disposed = true;
+        cut = void 0;
+        listeners2.clear();
+        adapter.dispose();
+      }
+    };
+  }
+
   // src/workspace_file_operations.ts
   var entry_identity = (stat) => "".concat(stat.dev, ":").concat(stat.ino);
   function within2(path_api, root, candidate, allow_root = true) {
@@ -161366,6 +161520,9 @@ https://creativecommons.org/licenses/by/4.0/
     }
     throw new Error("\u540C\u540D\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u5DF2\u5B58\u5728\uFF0C\u672A\u8986\u76D6\u4EFB\u4F55\u5185\u5BB9\uFF1A" + target);
   }
+  async function validate_workspace_entries(modules, root, paths) {
+    for (const source of paths) await check_entry(modules, root, source, false);
+  }
   async function create_workspace_entry(modules, root, parent, name, directory) {
     const { path_api } = modules, fs2 = modules.fs.promises;
     validate_name(path_api, name);
@@ -161392,30 +161549,37 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return failures;
   }
-  async function transfer_workspace_entries(modules, root, sources, target_directory, move) {
+  async function transfer_workspace_entries(modules, root, sources, target_directory, move, external = false) {
     const { path_api } = modules, fs2 = modules.fs.promises;
+    if (external && move) throw new Error("\u8DE8\u5DE5\u4F5C\u533A\u526A\u8D34\u677F\u4EC5\u652F\u6301\u590D\u5236\uFF0C\u6E90\u6587\u4EF6\u4FDD\u7559\u3002");
     const destination = await check_directory(modules, root, target_directory);
     if (sources.some((source) => !path_api.isAbsolute(source))) throw new Error("\u6E90\u9879\u76EE\u5FC5\u987B\u662F\u7EDD\u5BF9\u8DEF\u5F84\u3002");
+    if (sources.some((source) => /[\x00-\x1f]/u.test(source) || source.startsWith("\\\\?\\") || source.startsWith("\\\\.\\"))) throw new Error("\u4E0D\u652F\u6301\u8BBE\u5907\u8DEF\u5F84\u6216\u542B\u63A7\u5236\u5B57\u7B26\u7684\u6E90\u8DEF\u5F84\u3002");
     const normalized2 = [...new Set(sources.map((source) => path_api.resolve(source)))];
     const selected = normalized2.filter((source) => !normalized2.some((parent) => parent !== source && within2(path_api, parent, source, false)));
     const plans = [], targets = /* @__PURE__ */ new Set();
     for (const source of selected) {
-      const entry = await check_entry(modules, root, source, false), target = path_api.join(destination.path, path_api.basename(source));
+      const source_root = external ? path_api.parse(source).root : root;
+      validate_name(path_api, path_api.basename(source));
+      const entry = await check_entry(modules, source_root, source, false), target = path_api.join(destination.path, path_api.basename(source));
       if (entry.stat.isDirectory() && within2(path_api, source, destination.path)) throw new Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u590D\u5236\u6216\u79FB\u5165\u81EA\u8EAB\u3002");
       const key = path_api.sep === "\\" ? target.toLowerCase() : target;
       if (targets.has(key)) throw new Error("\u6240\u9009\u9879\u76EE\u5305\u542B\u540C\u540D\u76EE\u6807\uFF0C\u672A\u6267\u884C\u64CD\u4F5C\u3002");
       targets.add(key);
       await require_absent(fs2, target);
-      plans.push({ source, target, identity: entry_identity(entry.stat) });
+      plans.push({ source, source_root, target, identity: entry_identity(entry.stat) });
     }
     const created = [], moved = [];
-    const copy_entry = async (source, target) => {
-      const entry = await check_entry(modules, root, source, false);
+    const copy_entry = async (source, target, source_root) => {
+      const entry = await check_entry(modules, source_root, source, false);
       await check_directory(modules, root, path_api.dirname(target));
       if (entry.stat.isDirectory()) {
         await fs2.mkdir(target);
         created.push({ path: target, identity: entry_identity(await fs2.lstat(target)), directory: true });
-        for (const name of await fs2.readdir(source)) await copy_entry(path_api.join(source, name), path_api.join(target, name));
+        for (const name of await fs2.readdir(source)) {
+          validate_name(path_api, name);
+          await copy_entry(path_api.join(source, name), path_api.join(target, name), source_root);
+        }
       } else {
         const output = await fs2.open(target, "wx");
         created.push({ path: target, identity: entry_identity(await output.stat()), directory: false });
@@ -161446,13 +161610,13 @@ https://creativecommons.org/licenses/by/4.0/
     };
     try {
       for (const plan of plans) {
-        const current = await check_entry(modules, root, plan.source, false);
+        const current = await check_entry(modules, plan.source_root, plan.source, false);
         if (entry_identity(current.stat) !== plan.identity || entry_identity((await check_directory(modules, root, destination.path)).stat) !== entry_identity(destination.stat)) throw new Error("\u9879\u76EE\u6216\u76EE\u6807\u76EE\u5F55\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002");
         await require_absent(fs2, plan.target);
         if (move) {
           await move(root, plan.source, plan.target);
           moved.push(plan);
-        } else await copy_entry(plan.source, plan.target);
+        } else await copy_entry(plan.source, plan.target, plan.source_root);
       }
       return plans.map((plan) => plan.target);
     } catch (error) {
@@ -181136,7 +181300,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
       return native_library_open_file?.call(this, target, ...args);
     };
-    const copy = (text3) => runtime2.reqnode("electron").clipboard.writeText(text3);
+    const copy = (text3) => {
+      if (file_clipboard.is_busy()) throw new Error("\u6587\u4EF6\u526A\u8D34\u677F\u6B63\u5728\u5904\u7406\uFF0C\u8BF7\u7A0D\u540E\u590D\u5236\u8DEF\u5F84\u3002");
+      file_clipboard.invalidate();
+      runtime2.reqnode("electron").clipboard.writeText(text3);
+    };
     const file_menu = (event, file_path) => workspace_menu(event, [
       { title: "\u6253\u5F00\u6587\u4EF6", action: () => void open_file(file_path) },
       { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => void open_file(file_path, {}, "right") },
@@ -181796,7 +181964,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
     let binding;
     const assert_can_dispose = () => {
-      if (file_operation_count) throw new Error("\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u505C\u7528 Typora Code\u3002");
+      if (file_operation_count || file_clipboard.is_busy()) throw new Error("\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u505C\u7528 Typora Code\u3002");
       if (renaming || [...views].some((view) => view.saving)) throw new Error("\u6587\u4EF6\u6B63\u5728\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u505C\u7528 Typora Code\u3002");
       if ([...views].some((view) => !view.disposed && view.dirty())) throw new Error("\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\uFF0C\u6216\u5173\u95ED\u6807\u7B7E\u5E76\u5904\u7406\u4FEE\u6539\uFF0C\u518D\u505C\u7528 Typora Code\u3002");
     };
@@ -181804,6 +181972,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!binding.active) return;
       assert_can_dispose();
       binding.active = false;
+      file_clipboard.dispose();
       for (const cancel of [...pending_native_saves]) cancel();
       release_save_active();
       release_save_open();
@@ -181852,7 +182021,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const create_entry = (root, parent, name, directory) => file_operation(() => create_workspace_entry({ fs: fs2, path_api }, root, parent, name, directory));
-    const transfer_entries = (root, paths, target, move) => file_operation(() => transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, move ? move_file : void 0));
+    const file_clipboard = create_workspace_file_clipboard(create_platform_file_clipboard((name) => runtime2.reqnode(name)), {
+      validate: (root, paths) => file_operation(() => validate_workspace_entries({ fs: fs2, path_api }, root, paths)),
+      transfer: (root, paths, target, move, external) => file_operation(() => transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, move ? move_file : void 0, external))
+    });
     const trash_entries = (root, paths) => file_operation(async () => {
       const includes = (candidate) => paths.some((path) => renamed_workspace_path(path_api, candidate, path, path, true) !== void 0);
       const affected = [...views].filter((view) => includes(view.file_path));
@@ -181881,7 +182053,7 @@ https://creativecommons.org/licenses/by/4.0/
       rename_file,
       move_file,
       create_entry,
-      transfer_entries,
+      file_clipboard,
       trash_entries,
       keep_open,
       editor_state,
@@ -182217,8 +182389,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/terminal_profile_detection.ts
-  var _a5;
-  var WINDOWS_INSTALLATION_QUERY = String.raw(_a5 || (_a5 = __template(["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWAREWOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixGitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixCygwinsetup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftPowerShellCoreInstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftWindowsCurrentVersionUninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:SOFTWAREMicrosoftWindowsCurrentVersionLxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"], ["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWARE\\WOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\GitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\Cygwin\\setup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\PowerShellCore\\InstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\Windows\\CurrentVersion\\Uninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"])));
+  var _a6;
+  var WINDOWS_INSTALLATION_QUERY = String.raw(_a6 || (_a6 = __template(["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWAREWOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixGitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive$registry_prefixCygwinsetup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftPowerShellCoreInstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive$registry_prefixMicrosoftWindowsCurrentVersionUninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:SOFTWAREMicrosoftWindowsCurrentVersionLxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"], ["\n$ErrorActionPreference = 'SilentlyContinue'\n$ProgressPreference = 'SilentlyContinue'\n[Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)\n$detected_installations = @()\nforeach ($registry_hive in @('HKLM:', 'HKCU:')) {\n  foreach ($registry_prefix in @('SOFTWARE', 'SOFTWARE\\WOW6432Node')) {\n    $git_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\GitForWindows\"\n    if ($git_installation.InstallPath) { $detected_installations += @{kind='git';root=$git_installation.InstallPath} }\n    $cygwin_installation = Get-ItemProperty -LiteralPath \"$registry_hive\\$registry_prefix\\Cygwin\\setup\"\n    if ($cygwin_installation.rootdir) { $detected_installations += @{kind='cygwin';root=$cygwin_installation.rootdir} }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\PowerShellCore\\InstalledVersions\" | ForEach-Object {\n      $powershell_installation = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($powershell_installation.InstallLocation) { $detected_installations += @{kind='pwsh';root=$powershell_installation.InstallLocation} }\n    }\n    Get-ChildItem -LiteralPath \"$registry_hive\\$registry_prefix\\Microsoft\\Windows\\CurrentVersion\\Uninstall\" | ForEach-Object {\n      $installed_program = Get-ItemProperty -LiteralPath $_.PSPath\n      if ($installed_program.InstallLocation) {\n        if ($installed_program.DisplayName -match '^MSYS2') { $detected_installations += @{kind='msys';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Cygwin') { $detected_installations += @{kind='cygwin';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^PowerShell') { $detected_installations += @{kind='pwsh';root=$installed_program.InstallLocation} }\n        elseif ($installed_program.DisplayName -match '^Git($| version)') { $detected_installations += @{kind='git';root=$installed_program.InstallLocation} }\n      }\n    }\n  }\n}\n$fixed_drives = @([System.IO.DriveInfo]::GetDrives() | Where-Object {$_.DriveType -eq 'Fixed'} | ForEach-Object {$_.Name})\n$wsl_distributions = @(Get-ChildItem -LiteralPath 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Lxss' | ForEach-Object {(Get-ItemProperty -LiteralPath $_.PSPath).DistributionName} | Where-Object {$_})\n@{installations=$detected_installations;machine_path=[Environment]::GetEnvironmentVariable('Path','Machine');user_path=[Environment]::GetEnvironmentVariable('Path','User');drives=$fixed_drives;wsl_distributions=$wsl_distributions} | ConvertTo-Json -Depth 4 -Compress\n"])));
   function encode_query(script) {
     let bytes = "";
     for (let index = 0; index < script.length; index++) bytes += String.fromCharCode(script.charCodeAt(index) & 255, script.charCodeAt(index) >> 8);
@@ -185032,7 +185204,7 @@ https://creativecommons.org/licenses/by/4.0/
       this._emitter && (this._emitter.dispose(), this._emitter = null);
     }
   };
-  var _a6 = Symbol("MicrotaskDelay");
+  var _a7 = Symbol("MicrotaskDelay");
   var Ye = class {
     constructor(t, e) {
       this._isDisposed = false;
@@ -228663,7 +228835,7 @@ https://creativecommons.org/licenses/by/4.0/
     let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
     let flat_nodes = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
     let rename_state;
-    let clipboard, compact_folders = false;
+    let compact_folders = false;
     const selection_paths = /* @__PURE__ */ new Set();
     let operation_busy = false, compare_path = "";
     const dialogs = /* @__PURE__ */ new Set();
@@ -228846,7 +229018,7 @@ https://creativecommons.org/licenses/by/4.0/
             };
           }
           const { row, chevron, label, note, file_icon } = view;
-          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (clipboard?.move && clipboard.paths.includes(node.path) ? " is-cut" : "");
+          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
           row.id = node.id;
           row.dataset.path = node.path;
           row.dataset.directory = String(node.directory);
@@ -229004,8 +229176,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (compare_path && compare_path !== node.path) entries3.push({ title: "\u4E0E\u5DF2\u9009\u9879\u76EE\u6BD4\u8F83", action: () => run(() => options2.compare(compare_path, node.path)) });
         if (selected_files.length === 2) entries3.push({ title: "\u6BD4\u8F83\u6240\u9009\u6587\u4EF6", action: () => run(() => options2.compare(selected_files[0], selected_files[1])) });
       }
-      if (node !== root && options2.transfer) entries3.push({ title: "\u526A\u5207", shortcut: "Ctrl+X", separator: true, disabled: operation_busy, action: () => set_clipboard(true) }, { title: "\u590D\u5236", shortcut: "Ctrl+C", action: () => set_clipboard(false) });
-      if (node.directory && options2.transfer) entries3.push({ title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: !clipboard || clipboard.root !== root?.path || operation_busy, action: () => run(() => paste(node)) });
+      if (node !== root && options2.file_clipboard) entries3.push({ title: "\u526A\u5207", shortcut: "Ctrl+X", separator: true, disabled: operation_busy, action: () => run(() => set_clipboard(true)) }, { title: "\u590D\u5236", shortcut: "Ctrl+C", disabled: operation_busy, action: () => run(() => set_clipboard(false)) });
+      if (node.directory && options2.file_clipboard) entries3.push({ title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node)) });
       entries3.push(
         { title: "\u590D\u5236\u8DEF\u5F84", shortcut: "Shift+Alt+C", separator: true, action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, false) || node.path)) },
         { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", shortcut: "Ctrl+K Ctrl+Shift+C", action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, true) || node.name)) }
@@ -229119,26 +229291,33 @@ https://creativecommons.org/licenses/by/4.0/
         rebuild();
       }
     }
-    function set_clipboard(move) {
-      if (!root) return;
-      const paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
+    async function set_clipboard(move) {
+      if (!root || !options2.file_clipboard || operation_busy) return;
+      const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
       if (!paths.length) return;
-      clipboard = { paths, move, root: root.path };
-      set_status(move ? "\u5DF2\u526A\u5207\uFF0C\u9009\u62E9\u76EE\u6807\u6587\u4EF6\u5939\u540E\u7C98\u8D34\u3002" : "\u5DF2\u590D\u5236\uFF0C\u9009\u62E9\u76EE\u6807\u6587\u4EF6\u5939\u540E\u7C98\u8D34\u3002");
-      render();
+      operation_busy = true;
+      set_status("\u6B63\u5728\u5199\u5165\u7CFB\u7EDF\u526A\u8D34\u677F\u2026");
+      try {
+        await options2.file_clipboard.copy(current_root.path, paths, move, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path);
+        if (!disposed && root === current_root) set_status(move ? "\u5DF2\u526A\u5207\uFF0C\u9009\u62E9\u76EE\u6807\u6587\u4EF6\u5939\u540E\u7C98\u8D34\u3002" : "\u5DF2\u590D\u5236\u5230\u7CFB\u7EDF\u526A\u8D34\u677F\u3002");
+      } finally {
+        operation_busy = false;
+        if (!disposed) render();
+      }
     }
     async function paste(target = nodes.get(selected_path) || root) {
-      if (!root || !target || !clipboard || clipboard.root !== root.path || !options2.transfer || operation_busy) return;
-      const batch = clipboard, current_root = root;
+      if (!root || !target || !options2.file_clipboard || operation_busy) return;
+      const current_root = root;
       if (!target.directory) target = target.parent || root;
+      const destination = target;
       operation_busy = true;
+      set_status("\u6B63\u5728\u7C98\u8D34\u6587\u4EF6\u2026");
       try {
-        const paths = await options2.transfer(current_root.path, batch.paths, target.path, batch.move);
-        if (batch.move && clipboard === batch) clipboard = void 0;
+        const result = await options2.file_clipboard.paste(current_root.path, destination.path, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path && nodes.get(destination.path) === destination);
         if (!disposed && root === current_root) {
           await refresh();
-          if (paths[0]) await reveal(paths[0]);
-          set_status("\u7C98\u8D34\u5B8C\u6210\u3002");
+          if (result.paths[0]) await reveal(result.paths[0]);
+          set_status(result.message);
         }
       } finally {
         operation_busy = false;
@@ -229199,7 +229378,6 @@ https://creativecommons.org/licenses/by/4.0/
       }
       generation++;
       rename_state = void 0;
-      clipboard = void 0;
       selection_paths.clear();
       compare_path = "";
       if (root) close_branch(root, true);
@@ -229328,7 +229506,7 @@ https://creativecommons.org/licenses/by/4.0/
           selection_paths.clear();
           for (const node2 of flat_nodes) selection_paths.add(node2.path);
           render();
-        } else set_clipboard(key === "x");
+        } else run(() => set_clipboard(key === "x"));
         return;
       }
       if (event.key === "Delete") {
@@ -229394,7 +229572,11 @@ https://creativecommons.org/licenses/by/4.0/
       const detach = core.app.workspace.on(event, active_change);
       if (typeof detach === "function") detachers.push(detach);
     }
+    if (options2.file_clipboard) detachers.push(options2.file_clipboard.subscribe(() => {
+      if (!disposed) render();
+    }));
     const window_focus = () => {
+      run(() => options2.file_clipboard?.refresh());
       if (visible3) run(() => refresh());
     };
     window.addEventListener("focus", window_focus);
@@ -233526,7 +233708,7 @@ https://creativecommons.org/licenses/by/4.0/
         copy: files.copy,
         rename: files.rename_file,
         create: files.create_entry,
-        transfer: files.transfer_entries,
+        file_clipboard: files.file_clipboard,
         trash: files.trash_entries,
         reveal_system: (path) => window.reqnode("electron").shell.showItemInFolder(path),
         find_in_folder: (path) => search2.find_in_folder(path),
