@@ -119,17 +119,22 @@ export class git_diff_editor {
   }
   detach_toolbar():void {this.toolbar_observer?.disconnect();this.toolbar_observer=undefined;this.toolbar.remove();}
   refresh_labels():void {
-    const label=(value:string)=>{const node=el("div","",value);node.title=value;return node;};
     const left=this.data.left_label||text("diff.original"),right=this.data.right_label||text("diff.modified");
     const inline=this.data.right!=null&&this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side")===false;
     this.labels.dataset.diffLayout=inline?"inline":"split";
-    this.labels.replaceChildren(label(inline?`${left} ↔ ${right}`:left));
-    if(this.data.right!=null&&!inline)this.labels.append(label(right));
-    if(inline){
-      const mode=el("button","git-diff-mode",text("diff.inline_view"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
+    const path=el("div","git-editor-path"),file=this.data.file||this.data.title;
+    const parts=file.replace(/\\/gu,"/").split("/").filter(Boolean);
+    for(const [index,part] of parts.entries()){
+      if(index)path.append(git_icon("chevron-right"));
+      path.append(el("span","git-editor-path-segment",part));
+    }
+    path.title=this.data.right!=null?`${file} — ${left} ↔ ${right}`:`${file} — ${left}`;
+    path.setAttribute("aria-label",path.title);this.labels.replaceChildren(path);
+    if(this.data.right!=null){
+      const mode=el("button","git-diff-mode",text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
       mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),[
-        {id:"diff_mode_inline",title:text("diff.inline_view"),checked:true,action:()=>this.set_side_by_side(false)},
-        {id:"diff_mode_split",title:text("diff.side_by_side"),checked:false,action:()=>{this.inline_when_narrow=false;this.set_side_by_side(true);}}
+        {id:"diff_mode_inline",title:text("diff.inline_view"),checked:inline,action:()=>this.set_side_by_side(false)},
+        {id:"diff_mode_split",title:text("diff.side_by_side"),checked:!inline,action:()=>{this.inline_when_narrow=false;this.set_side_by_side(true);}}
       ]);};this.labels.append(mode);
     }
   }

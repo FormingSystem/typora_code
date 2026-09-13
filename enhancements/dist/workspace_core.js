@@ -348,29 +348,6 @@ var workspace_core_module = (() => {
     return Math.random().toString(36).slice(2, 8);
   }
 
-  // vendor/workspace_core/src/utils/string/truncate.ts
-  var DEFAULT_OPTS = {
-    length: 30,
-    omission: "..."
-  };
-  function truncate(string, options = DEFAULT_OPTS) {
-    if (typeof options !== "object") {
-      throw new TypeError("`truncate()`'s argument `options` must be an object.");
-    }
-    const opts = Object.assign({}, DEFAULT_OPTS, options);
-    if (typeof opts.length !== "number") {
-      throw new TypeError("`truncate()`'s argument `options.length` must be a number.");
-    }
-    if (string.length <= opts.length) {
-      return string;
-    }
-    const omission = opts.omission.toString();
-    if (opts.length <= omission.length) {
-      return omission;
-    }
-    return string.slice(0, opts.length - omission.length) + omission;
-  }
-
   // vendor/workspace_core/src/utils/string/yaml.ts
   var keyValRegex = /^\s*([^\s\[\{:]+)\s*:\s*(.*)$/;
   var quotedKeyRegex = /^\s*(\"([^"]+)\"|\'([^']+)\')\s*:\s*(.*)/;
@@ -5973,7 +5950,7 @@ var workspace_core_module = (() => {
           const $tab = $clickedEl.closest(".typ-tab");
           if (!$tab.length) return;
           const tabId = $tab.data("id");
-          if ($clickedEl.hasClass("typ-close")) {
+          if ($clickedEl.closest(".typ-close").length) {
             this.props.onClose(tabId, $tab[0]);
           } else {
             if ($tab.hasClass("active")) return;
@@ -6058,7 +6035,6 @@ var workspace_core_module = (() => {
   };
 
   // vendor/workspace_core/src/ui/layout/tabs/file-tabs.ts
-  var MAX_LENGHT = { length: 20, omission: "\u2026" };
   var FileTabContainer = class extends TabContainer {
     static hideTabExtension(isHide) {
       $(document.body).toggleClass("typ-file-ext--hide", isHide);
@@ -6069,7 +6045,7 @@ var workspace_core_module = (() => {
       const shortName = "Untitled";
       super({
         id: "",
-        text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span>`),
+        text: () => tab_label(shortName),
         title: shortName
       });
     }
@@ -6079,16 +6055,19 @@ var workspace_core_module = (() => {
       const isUri = filePath.startsWith("typ://");
       const longPath = isUri ? filePath : simplifyFilePath(vault.path, filePath);
       const ext = path_default.extname(filePath);
-      const shortName = truncate(path_default.basename(longPath, ext), MAX_LENGHT);
+      const shortName = path_default.basename(longPath, ext);
       super({
         id: filePath,
-        text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span><span class="typ-file-ext">${ext}</span>`),
+        text: () => tab_label(shortName, ext),
         title: isUri ? shortName : longPath
       });
     }
   };
   function simplifyFilePath(root, filePath) {
     return path_default.relative(root, filePath).replace(/(\.textbundle)[\\/]text\.(?:md|markdown)$/, "$1");
+  }
+  function tab_label(name, extension = "") {
+    return $('<i class="typ-file-icon fa fa-file-o"></i>').add($('<span class="typ-file-basename"></span>').text(name)).add($('<span class="typ-file-ext"></span>').text(extension));
   }
 
   // vendor/workspace_core/src/ui/layout/workspace-root.ts

@@ -1,53 +1,63 @@
-/* VS Code 1.136.2 / 88e44fa: workbench/media/style.css + 2026-light/dark.json.
-   沿用已定稿平直标签布局，只统一 UI 字号及标签状态颜色。 */
+/* VS Code 1.137.0 / 645f29c：modernUI/tabs.css、theme.ts、baseSizes.ts。
+   32px连续命中区包住24px圆角背景；动作覆盖，不参与标题测量。 */
 :root {
-  --workspace-tab-active-bg: var(--vscode-tab-activeBackground, #fff);
-  --workspace-tab-active-fg: var(--vscode-tab-activeForeground, #202020);
-  --workspace-tab-inactive-bg: var(--vscode-tab-inactiveBackground, #fafafd);
-  --workspace-tab-inactive-fg: var(--vscode-tab-inactiveForeground, #606060);
-  --workspace-tab-unfocused-active-bg: var(--vscode-tab-unfocusedActiveBackground, #fafafd);
-  --workspace-tab-unfocused-active-fg: var(--vscode-tab-unfocusedActiveForeground, #606060);
-  --workspace-tab-unfocused-inactive-fg: var(--vscode-tab-unfocusedInactiveForeground, #bbb);
-  --workspace-tab-border: var(--vscode-tab-border, #f0f1f2);
-  --workspace-tab-indicator: var(--vscode-tab-activeBorderTop, #000);
+  --workspace-tab-height:32px;
+  --workspace-tab-strip-bg:var(--vscode-editor-background,#fff);
+  --workspace-tab-active-bg:var(--vscode-modernEditorTab-activeBackground,var(--vscode-list-inactiveSelectionBackground,#dadada99));
+  --workspace-tab-active-fg:var(--vscode-modernEditorTab-activeForeground,var(--vscode-foreground,#202020));
+  --workspace-tab-hover-bg:var(--vscode-modernEditorTab-hoverBackground,var(--workspace-hover-background));
+  --workspace-tab-inactive-fg:color-mix(in srgb,var(--vscode-foreground,#202020) 50%,transparent);
+  --workspace-tab-action-bg:var(--vscode-modernEditorTab-hoverActionBackground,#ebebeb);
 }
 :root[data-workspace-file-icon-theme="dark"] {
-  --workspace-tab-active-bg: var(--vscode-tab-activeBackground, #121314);
-  --workspace-tab-active-fg: var(--vscode-tab-activeForeground, #bfbfbf);
-  --workspace-tab-inactive-bg: var(--vscode-tab-inactiveBackground, #191a1b);
-  --workspace-tab-inactive-fg: var(--vscode-tab-inactiveForeground, #8c8c8c);
-  --workspace-tab-unfocused-active-bg: var(--vscode-tab-unfocusedActiveBackground, #121314);
-  --workspace-tab-unfocused-active-fg: var(--vscode-tab-unfocusedActiveForeground, #8c8c8c);
-  --workspace-tab-unfocused-inactive-fg: var(--vscode-tab-unfocusedInactiveForeground, #444);
-  --workspace-tab-border: var(--vscode-tab-border, #2a2b2c);
-  --workspace-tab-indicator: var(--vscode-tab-activeBorderTop, #3994bc);
+  --workspace-tab-strip-bg:var(--vscode-editor-background,#121314);
+  --workspace-tab-active-bg:var(--vscode-modernEditorTab-activeBackground,var(--vscode-list-inactiveSelectionBackground,#2c2d2e));
+  --workspace-tab-active-fg:var(--vscode-modernEditorTab-activeForeground,var(--vscode-foreground,#bfbfbf));
+  --workspace-tab-inactive-fg:color-mix(in srgb,var(--vscode-foreground,#bfbfbf) 50%,transparent);
+  --workspace-tab-action-bg:var(--vscode-modernEditorTab-hoverActionBackground,#252627);
 }
 .workspace-tab-strip {
-  display:flex;align-items:center;min-width:0;height:35px;flex:none;container-type:inline-size;
-  background:var(--workspace-tab-inactive-bg);
-  font:400 13px "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
+  display:flex;align-items:center;min-width:0;height:var(--workspace-tab-height);flex:none;container-type:inline-size;
+  background:var(--workspace-tab-strip-bg);font:400 13px "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
 }
-.workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:35px;background:inherit;}
-.workspace-tab-strip .typ-tabs {height:35px;}
+.workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:var(--workspace-tab-height);background:inherit;position:relative;overflow-x:auto;overflow-y:hidden;}
+.workspace-tab-strip .typ-tabs {height:var(--workspace-tab-height);box-sizing:border-box;padding-left:2px;}
+.workspace-tab-strip .typ-tabs::after {padding:0;border:0;}
 .workspace-tab-strip .typ-tab {
-  box-sizing:border-box;height:35px;padding:0 8px!important;
-  font:inherit;color:var(--workspace-tab-unfocused-inactive-fg);background:var(--workspace-tab-inactive-bg);
-  border:0!important;border-right:1px solid var(--workspace-tab-border)!important;
+  position:relative;box-sizing:border-box;flex:0 0 auto;min-width:0;max-width:100%;height:var(--workspace-tab-height);padding:0 8px 0 6px!important;
+  font:inherit;color:var(--workspace-tab-inactive-fg);background:transparent;border:0!important;box-shadow:none!important;
+  --workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--workspace-tab-active-fg);
 }
-.typ-workspace-tabs.mod-active > .workspace-tab-strip .typ-tab {color:var(--workspace-tab-inactive-fg);}
-.workspace-tab-strip .typ-tab.active {
-  color:var(--workspace-tab-unfocused-active-fg);background:var(--workspace-tab-unfocused-active-bg);
+.workspace-tab-strip .typ-tab::after {content:"";position:absolute;inset:4px 2px;z-index:0;pointer-events:none;border-radius:var(--workspace-control-radius);background:transparent;}
+.workspace-tab-strip .typ-tab:is(.active,:hover) {color:var(--workspace-tab-active-fg);}
+.workspace-tab-strip .typ-tab.active::after {background:var(--workspace-tab-active-bg);}
+.workspace-tab-strip .typ-tab:hover::after {background:var(--workspace-tab-hover-bg);}
+.workspace-tab-strip .typ-tab.mod-drag-over::after {box-shadow:inset 2px 0 var(--workspace-focus-border);}
+.workspace-tab-strip .workspace-tab-label {position:relative;z-index:1;display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;}
+.workspace-tab-strip .workspace-tab-label .typ-file-basename {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.workspace-tab-strip .workspace-tab-label .typ-file-ext {flex:none;}
+.workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:16px;line-height:16px;margin:0 6px 0 0;}
+.workspace-tab-strip .workspace-tab-preview-icon {display:none;width:16px;height:16px;flex:none;margin-right:6px;}
+.workspace-tab-strip .workspace-tab-preview-label {display:none;flex:none;margin-right:4px;}
+.workspace-tab-strip .is-workspace-markdown-preview .workspace-tab-preview-icon,.workspace-tab-strip .is-workspace-markdown-preview .workspace-tab-preview-label {display:block;}
+.workspace-tab-strip .is-workspace-markdown-preview .typ-file-icon,.workspace-tab-strip .prefix-preview::before {display:none;}
+.workspace-tab-strip .is-workspace-preview .typ-file-ext {font-style:italic;}
+.workspace-tab-strip .typ-tab:is(.is-workspace-dirty,.is-workspace-pinned) {padding-right:28px!important;}
+.workspace-tab-strip .workspace-file-dirty {display:none;}
+.workspace-tab-strip .workspace-tab-actions {
+  position:absolute;right:2px;top:4px;bottom:4px;width:24px;z-index:2;display:flex;align-items:center;justify-content:center;
+  border-radius:0 var(--workspace-control-radius) var(--workspace-control-radius) 0;pointer-events:none;
 }
-.typ-workspace-tabs.mod-active > .workspace-tab-strip .typ-tab.active {
-  color:var(--workspace-tab-active-fg);background:var(--workspace-tab-active-bg);
-  box-shadow:inset 0 2px var(--workspace-tab-indicator);
-}
-/* VS Code action-label：16px 图标 + 两侧2px命中区，清除 core 的 rem 行高和单边补偿。 */
-.workspace-tab-strip .typ-close {display:inline-flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;margin-left:4px;padding:0;border-radius:4px;font-style:normal;line-height:normal;}
-.workspace-tab-strip .typ-close::before {display:block;font-size:16px;line-height:16px;padding:0;}
-.workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;height:16px;line-height:16px;margin-top:0;margin-bottom:0;}
+.workspace-tab-strip .typ-tab:is(:hover,:focus-within) .workspace-tab-actions {background:var(--workspace-tab-action-bg);pointer-events:auto;}
+.workspace-tab-strip .typ-tab:focus-within:not(:hover) .workspace-tab-actions {background:var(--workspace-tab-strip-bg);}
+.workspace-tab-strip .typ-tab.active:focus-within:not(:hover) .workspace-tab-actions {background:var(--vscode-modernEditorTab-activeActionBackground,color-mix(in srgb,#dadada 60%,#fff));}
+:root[data-workspace-file-icon-theme="dark"] .workspace-tab-strip .typ-tab.active:focus-within:not(:hover) .workspace-tab-actions {background:var(--vscode-modernEditorTab-activeActionBackground,#2c2d2e);}
+.workspace-tab-strip .typ-tab:is(:hover,:focus-within):not(.is-workspace-dirty):not(.is-workspace-pinned) .workspace-tab-actions::before {content:"";position:absolute;right:100%;width:16px;top:0;bottom:0;background:linear-gradient(to right,transparent,var(--workspace-tab-action-bg));pointer-events:none;}
+.workspace-tab-strip .typ-close {display:inline-flex!important;align-items:center;justify-content:center;flex:none;width:20px;height:20px;margin:0;padding:0;border:0;font-style:normal;line-height:normal;opacity:0;pointer-events:none;--workspace-interaction-hover:var(--workspace-action-hover);}
+.workspace-tab-strip .typ-close::before {display:none;}
+.workspace-tab-strip .typ-tab:is(:hover,:focus-within,.is-workspace-dirty,.is-workspace-pinned) .typ-close {opacity:1;pointer-events:auto;}
+.workspace-tab-strip .typ-close > svg {display:block;flex:none;width:16px;height:16px;}
+.workspace-tab-strip .typ-close > .workspace-tab-dirty-icon {display:none;}
+.workspace-tab-strip .is-workspace-dirty:not(:hover):not(:focus-within):not(.is-workspace-pinned) .workspace-tab-dirty-icon {display:block;}
+.workspace-tab-strip .is-workspace-dirty:not(:hover):not(:focus-within) .workspace-tab-close-icon,.workspace-tab-strip .is-workspace-pinned .workspace-tab-close-icon,.workspace-tab-strip .is-workspace-pinned .workspace-tab-dirty-icon {display:none;}
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}
-
-/* 固定标签在原关闭动作槽显示官方 pinned，保留20px动作尺寸。 */
-.workspace-tab-strip .is-workspace-pinned .typ-close::before {display:none;}
-.workspace-tab-strip .workspace-tab-pin {display:block;flex:none;width:16px;height:16px;}

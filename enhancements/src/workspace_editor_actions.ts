@@ -33,7 +33,7 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
       const pinned=Boolean(leaf.state.workspace_pinned);tab.classList.toggle("is-workspace-pinned",pinned);
       if(pinned&&!close.querySelector(".workspace-tab-pin"))close.append(git_icon("pinned","workspace-tab-pin"));
       if(!pinned)close.querySelector(".workspace-tab-pin")?.remove();
-      close.title=pinned?"取消固定":"关闭标签";close.setAttribute("aria-label",close.title);
+      close.title="";close.setAttribute("aria-label",pinned?"取消固定":"关闭（Ctrl+F4）");
       tab.classList.toggle("is-workspace-preview",Boolean(leaf.state.workspace_preview));
     });
   };

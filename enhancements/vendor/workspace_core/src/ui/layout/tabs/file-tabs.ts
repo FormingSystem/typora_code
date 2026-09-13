@@ -2,10 +2,8 @@ import './file-tabs.scss'
 import { useService } from "src/common/service"
 import path from "src/path"
 import { Tab, TabContainer } from "src/ui/components/tabs"
-import { truncate } from "src/utils"
 
 
-const MAX_LENGHT = { length: 20, omission: '…' }
 
 export class FileTabContainer extends TabContainer {
 
@@ -20,7 +18,7 @@ export class UntitledTab extends Tab {
 
     super({
       id: '',
-      text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span>`),
+      text: () => tab_label(shortName),
       title: shortName,
     })
   }
@@ -31,11 +29,11 @@ export class FileTab extends Tab {
     const isUri = filePath.startsWith('typ://')
     const longPath = isUri ? filePath : simplifyFilePath(vault.path, filePath)
     const ext = path.extname(filePath)
-    const shortName = truncate(path.basename(longPath, ext), MAX_LENGHT)
+    const shortName = path.basename(longPath, ext)
 
     super({
       id: filePath,
-      text: () => $(`<i class="typ-file-icon fa fa-file-o"></i><span class="typ-file-basename">${shortName}</span><span class="typ-file-ext">${ext}</span>`),
+      text: () => tab_label(shortName, ext),
       title: isUri ? shortName : longPath,
     })
   }
@@ -44,4 +42,11 @@ export class FileTab extends Tab {
 function simplifyFilePath(root: string, filePath: string) {
   return path.relative(root, filePath)
     .replace(/(\.textbundle)[\\/]text\.(?:md|markdown)$/, '$1')
+}
+
+/** 文件名作为文本写入；完整名称由标签布局按可用空间裁剪。 */
+function tab_label(name: string, extension = '') {
+  return $('<i class="typ-file-icon fa fa-file-o"></i>')
+    .add($('<span class="typ-file-basename"></span>').text(name))
+    .add($('<span class="typ-file-ext"></span>').text(extension))
 }

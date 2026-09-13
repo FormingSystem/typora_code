@@ -272,7 +272,7 @@
       "path": "src/ui/components/tabs.ts",
       "upstream_path": "src/ui/components/tabs.ts",
       "upstream_sha256": "6e7e09151f5e516115430df8de11b1e84330d6bbae012faf8c9c29707d0ef05a",
-      "sha256": "6e7e09151f5e516115430df8de11b1e84330d6bbae012faf8c9c29707d0ef05a"
+      "sha256": "ffad29fa2471bd0aa995b072826e09f9536eaf461e250c113e5a0d8fe0e089f7"
     },
     {
       "path": "src/ui/editor/link.ts",
@@ -464,7 +464,7 @@
       "path": "src/ui/layout/tabs/file-tabs.ts",
       "upstream_path": "src/ui/layout/tabs/file-tabs.ts",
       "upstream_sha256": "61b1d6e9fcd7444e0974ee0315ee4e5d22f4ea6ac6c42e1699c0b349c14b62eb",
-      "sha256": "61b1d6e9fcd7444e0974ee0315ee4e5d22f4ea6ac6c42e1699c0b349c14b62eb"
+      "sha256": "b92924de2f49502f72e96b0a914a86eb6b953627faa1ea993b204a1997f2fb1b"
     },
     {
       "path": "src/ui/layout/tabs/index.scss",

@@ -28,7 +28,7 @@ export class TabContainer extends View {
           if (!$tab.length) return
 
           const tabId = $tab.data('id')
-          if ($clickedEl.hasClass('typ-close')) {
+          if ($clickedEl.closest('.typ-close').length) {
             this.props.onClose(tabId, $tab[0])
           }
           else {
