@@ -15,16 +15,14 @@ import { git_graph_text as text, type git_graph_text_key } from "./git_graph_i18
 
 type change_group = {id: string; title: string; from: string; to: string; files: graph_change[]};
 const short_revision = (revision: string) => ({[EMPTY]: text("scm.revision.empty"), [INDEX]: text("scm.revision.index"), [WORKTREE]: text("scm.revision.worktree")}[revision] || revision.slice(0, 8));
-const operation_label = (operation: string) => {
-  const key = ({merge: "scm.operation.merge", rebase: "scm.operation.rebase", "cherry-pick": "scm.operation.cherry_pick", revert: "scm.operation.revert"} as Record<string, git_graph_text_key>)[operation];
-  return key ? text(key) : operation;
-};
+
 
 /** 源代码管理与可展开提交历史共用主侧栏；完整提交图和文件差异使用中央编辑标签。 */
 export class git_source_control {
   private file_icon_style = acquire_workspace_file_icons();
   sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups");
-  message = el("textarea", "git-scm-message"); branch = button("", () => {}, "git-scm-branch"); title = el("div", "git-scm-title");
+  message = el("textarea", "git-scm-message"); title = el("div", "git-scm-title");
+  private input_actions = new Map<"commit" | "refresh" | "graph", HTMLButtonElement>();
   private interaction_style = acquire_workspace_interaction(this.sidebar);
   notice = el("div", "git-scm-notice");
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
@@ -61,7 +59,24 @@ export class git_source_control {
     this.changes_pane.setAttribute("aria-label", text("scm.working_tree_changes"));
     this.notice.setAttribute("role", "status");
     const input_heading = el("summary", "git-scm-input-heading"); const input_menu = icon_button("more", text("scm.changes_and_operations"), () => {}, "git-scm-operation-menu");
-    input_menu.onclick = event => this.more_menu(event); input_heading.append(git_disclosure(), el("span", "git-scm-input-title", text("scm.changes")), this.branch, input_menu);
+    const input_actions = el("div", "git-scm-input-actions");
+    for (const [id, icon, label] of [["commit", "check", text("scm.commit")], ["refresh", "refresh", text("history.refresh")], ["graph", "git-branch", text("scm.open_graph")]] as const) {
+      const control = icon_button(icon, label, () => {});
+      control.dataset.scmTitleAction = id;
+      control.onclick = event => {
+        // summary 内的操作按钮不参与折叠；键盘激活同样走原生 click。
+        event.preventDefault(); event.stopPropagation();
+        if (!this.input_action_enabled(id)) return;
+        if (id === "commit") this.commit();
+        else if (id === "refresh") this.history.toolbar.execute("refresh");
+        else panel.host.show_history(panel.root);
+      };
+      this.input_actions.set(id, control); input_actions.append(control);
+    }
+    input_menu.onclick = event => { event.preventDefault(); event.stopPropagation(); this.more_menu(event); };
+    input_actions.append(input_menu);
+    const input_title = el("span", "git-scm-input-title", text("scm.changes")); input_title.title = text("scm.changes");
+    input_heading.append(git_disclosure(), input_title, input_actions);
     const inputs = el("div", "git-scm-inputs"); inputs.append(this.message, commit_bar);
     this.changes_body.append(inputs, this.groups, this.notice);
     this.input_section.append(input_heading, this.changes_body);
@@ -85,7 +100,7 @@ export class git_source_control {
       if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
       this.view_menu(event);
     };
-    this.load_layout();
+    this.load_layout(); this.update_actions();
   }
   storage_key(suffix: string): string { return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root; }
   load_layout(): void {
@@ -131,19 +146,28 @@ export class git_source_control {
     this.sections.style.setProperty("--git-scm-history-size", (1 - this.history_ratio) * 100 + "fr");
     this.history.set_open(this.history_open);
   }
+  input_action_enabled(id: "commit" | "refresh" | "graph"): boolean {
+    const panel = this.panel;
+    if (!this.history.toolbar.enabled("refresh")) return false;
+    return id === "refresh" || !!panel.state && panel.state.root === panel.root && panel.container.dataset.state !== "error";
+  }
+  update_actions(): void {
+    for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
+    for (const control of this.changes_body.querySelectorAll<HTMLButtonElement>(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
+  }
   commit(): void {
-    if (!this.message.value.trim()) { this.message.focus(); this.panel.report(text("scm.message_required")); return; }
+    if (!this.input_action_enabled("commit")) return;
+    if (!this.message.value.trim()) {
+      // 标题在折叠时仍可操作；需要输入消息时先显式展开并解除 inert。
+      this.input_section.open = true; this.changes_body.inert = false;
+      this.message.focus(); this.panel.report(text("scm.message_required")); return;
+    }
     void this.panel.quick_action("commit", [], {message: this.message.value, amend: false});
   }
   async refresh(): Promise<void> {
     const state = this.panel.state; if (!state) return; const epoch = ++this.groups_epoch;
     this.fit_message();
     this.history.render(state);
-    this.branch.replaceChildren(git_icon("git-branch"), el("span", "git-scm-branch-label", `${state.branch || text("scm.detached_head")}${state.operation ? " · " + operation_label(state.operation) : ""}`));
-    this.branch.title = this.panel.root; this.branch.onclick = event => this.panel.configured_menu(event, "checkout", [
-      ...state.refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({id: ref.name, title: text("scm.checkout_branch", {branch: ref.name.slice(11)}), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash)})),
-      {id: "branch_create", title: text("scm.create_branch"), separator: true, disabled: !state.head, action: () => this.panel.action_dialog("branch_create", "commit", state.head, state.head)},
-    ]);
     try {
       const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
       if (epoch !== this.groups_epoch || state !== this.panel.state) return;
@@ -354,5 +378,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void {this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
+  dispose(): void {this.update_actions();this.input_actions.clear();this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

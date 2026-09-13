@@ -543,3 +543,13 @@ R014新增右下角窗口缩放入口，使用固定官方Codicons的zoom-in／z
 原始Typora1.14.10私有实例最终70项通过，实际缩放、正负入口、重置、外部原生命令同步、明暗×22／30px及120%／144%定位与命中、同一面板保持、Esc／外点、设置入口、原生提示恢复和正文／磁盘保持均通过。初轮外点误选隐藏的原生输入框，改为可见正文继续验收；补测初次聚焦又被宿主选区收尾移走，在宿主稳定后明确激活入口完成复核。截图已视检；证据在`.cache/native_zoom_1_14_10/zoom_status_native_20260913_c_final/`。指针通过私有桌面Win32窗口消息，Esc通过renderer KeyboardEvent，补充键盘入口路径使用focus与button.click模拟，不冒充用户物理操作；原始ASAR未修改，用户窗口未操作。
 
 既有事务安装及安装后检查OK，23项产品资产只更新workbench.js、workspace.css及清单。安装脚本为已验收7885b59加本轮R014及共享hover修复，保留前两轮明暗选中色与不透明媒体入口；源码HEAD的R009系统文件剪贴板阶段实现仍待原生互通验收，未部署。ASAR、应用图标、原生偏好、工作区设置及主题摘要保持，用户窗口未重启，保存文档后正常重启Typora加载。日志为`.cache/zoom_status_install_20260913.log`与`zoom_status_install_check_20260913.log`，资产和保护核对保存在`.cache/zoom_status_audit_20260913/`。本轮经检查的代码、图标、测试、设计及构建及时提交，不推送。
+
+## 2026-09-13 更改标题提交、刷新与Graph入口
+
+R027：更改标题只创建了分支与更多，补齐提交、刷新和打开完整Git Graph三个操作，顺序与用户截图一致；使用已分发的官方check、refresh和git-branch。提交与主按钮共用原有事务，刷新保留分页，Graph复用已有编辑标签入口。状态随控制器统一更新，读取/写入时禁用，仓库失败仍可刷新恢复。按钮不误触summary；复查发现折叠时空消息无法聚焦，现先显式展开并解除inert，再提示输入。来源、标题尺寸及Graph产品集成差异见[设计](git_scm_actions.md#2026-09-13-更改标题操作补齐)。
+
+新增目标18组检查通过：临时仓库真实单次提交、消息与草稿保护、下拉预览取消、实际慢读/慢写防重复、错误恢复、Graph目标、折叠、Tab/Enter和销毁闭包。180/240/380px明暗六组验证22px标题及按钮、16px图标、不重叠与对比度。旧回归初次暴露精简panel夹具缺容器状态、已删除branch访问，以及把所有git-branch都当引用筛选按钮的判定；仅补齐夹具和语义定位。文件图标、Graph交互和SCM几何三个目标最终各自通过。日志为`.cache/scm_title_actions_20260913.log`、`scm_title_ui_regression_20260913.log`和最终`scm_title_geometry_regression_20260913.log`；完整check通过，见`scm_title_check_final_20260913.log`。
+
+隔离原生Typora1.14.10最终80项通过，10次私有Win32指针点击经renderer观察为isTrusted；实际读取Git状态、忙碌禁用、折叠空消息聚焦、仅私有仓库的一次预期提交及重复打开Graph复用标签均通过。明暗×180/240/380px八张新截图及指标保存在`.cache/native_zoom_1_14_10/scm_heading_native_20260913_a/`，明暗180px截图已视检。宽度调节和Esc使用renderer KeyboardEvent，主题走原生接口；此为私有原生实例验证，不冒充用户物理操作。原始ASAR与正文/dirty状态、磁盘文档保持；测试实例已退出。
+
+按既有事务安装并检查OK，23项产品资产只更新workbench.js、workspace.css及清单。候选基于已验收的底栏缩放版本叠加本轮三份源码，保留选中行明暗、媒体不透明和窗口缩放修复；R009已提交但未通过原生互通验收的阶段脚本继续不部署。保护检查确认ASAR、应用图标、原生偏好、工作区设置及主题摘要不变，用户窗口未重启；保存后正常重启Typora加载。安装日志为`.cache/scm_title_install_20260913.log`和`scm_title_install_check_20260913.log`，发布及安装核对见`.cache/scm_title_audit_20260913/`。本轮已验证代码、测试、设计与构建及时提交，不推送；其他未完成项保持原边界。

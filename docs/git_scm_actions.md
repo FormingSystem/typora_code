@@ -67,3 +67,15 @@ VS Code 1.137.0，提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：
 ### 验收
 
 临时仓库构造多远端／无上游、分离HEAD、空仓、重命名／新增／删除、合并及工作树；验证真实Git结果、取消／失败零意外写入和执行前身份变化。UI覆盖所有入口、显隐持久化、键盘、窄栏、明暗、旧菜单切库、销毁及异步乱序。最后单独核对原生Typora布局与文件／版本阅读，完整check与相关UI通过后交付。旧验证不能代替本轮验收。
+
+### 2026-09-13 更改标题操作补齐
+
+用户截图中的更改标题缺少提交、刷新和Graph入口。原实现只放置分支和更多，按钮未被创建。本次标题顺序改为 **提交、刷新、打开Git Graph、更多**；分支选择继续使用仓库行、底栏和已有菜单。主提交按钮和标题提交共用 `git_source_control.commit()`，空消息时显式展开更改分区并聚焦输入框，填写消息后走原有提交事务；不会新增第二套写命令。刷新复用控制器刷新且保留当前分页，Graph调用已有编辑区完整提交图入口。
+
+`git_source_control`拥有标题呈现，`git_graph_panel`统一分发读取/写入状态变化。正在读取或执行操作时禁用动作；空路径、仓库身份不符或读取失败时禁用提交和Graph，保留空闲时刷新有效路径以恢复。首次空仓仍可提交暂存内容并打开空Graph。每次执行复查当前状态；销毁后旧按钮不能触发动作。按钮点击不触发summary折叠，标题正文仍执行折叠。共享按钮工厂管理悬停、明暗、4px圆角和键盘焦点。
+
+固定VS Code 1.137.0的[Git菜单声明](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/extensions/git/package.json)在`scm/title`的navigation组贡献`git.commit`、`git.refresh`，使用官方`check`与`refresh`，条件为Git provider且无operationInProgress。原生SCM Graph是独立视图区，标题中的Graph可能由扩展贡献；本产品按用户要求将既有完整Graph放进更改标题，采用已有官方`git-branch`图标，不声称它是VS Code内置标题命令，也不依赖扩展宿主。
+
+上游基础pane标题22px；[paneview.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/splitview/paneview.css)给16px图标2px内距，通用[actionbar.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/actionbar/actionbar.css)为3px内距。此处沿用本产品已核对的22px标题、22px操作槽、16px官方图标和公共交互规则。标题文字弹性省略，四个按钮保持可点击；保持既有标题动作常驻策略，未引入上游`workbench.view.alwaysShowHeaderActions`配置。Graph历史工具栏的显隐设置继续只管理其六个历史动作。
+
+本轮回归覆盖临时仓库真实提交与刷新、Graph仓库目标、空消息和异步忙碌、错误恢复、空仓与销毁；验证按钮鼠标/键盘不误折叠、180/240/380px明暗几何，并在隔离原生Typora核对。完成后记录实际构建、测试和安装证据。

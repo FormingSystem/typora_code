@@ -201948,10 +201948,6 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_source_control.ts
   var short_revision = (revision) => ({ [EMPTY]: git_graph_text("scm.revision.empty"), [INDEX]: git_graph_text("scm.revision.index"), [WORKTREE]: git_graph_text("scm.revision.worktree") })[revision] || revision.slice(0, 8);
-  var operation_label = (operation) => {
-    const key = { merge: "scm.operation.merge", rebase: "scm.operation.rebase", "cherry-pick": "scm.operation.cherry_pick", revert: "scm.operation.revert" }[operation];
-    return key ? git_graph_text(key) : operation;
-  };
   var git_source_control = class {
     constructor(panel) {
       this.panel = panel;
@@ -202007,8 +202003,31 @@ https://creativecommons.org/licenses/by/4.0/
       const input_heading = workspace_element("summary", "git-scm-input-heading");
       const input_menu = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
       }, "git-scm-operation-menu");
-      input_menu.onclick = (event) => this.more_menu(event);
-      input_heading.append(git_disclosure(), workspace_element("span", "git-scm-input-title", git_graph_text("scm.changes")), this.branch, input_menu);
+      const input_actions = workspace_element("div", "git-scm-input-actions");
+      for (const [id, icon, label] of [["commit", "check", git_graph_text("scm.commit")], ["refresh", "refresh", git_graph_text("history.refresh")], ["graph", "git-branch", git_graph_text("scm.open_graph")]]) {
+        const control = git_icon_button(icon, label, () => {
+        });
+        control.dataset.scmTitleAction = id;
+        control.onclick = (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!this.input_action_enabled(id)) return;
+          if (id === "commit") this.commit();
+          else if (id === "refresh") this.history.toolbar.execute("refresh");
+          else panel.host.show_history(panel.root);
+        };
+        this.input_actions.set(id, control);
+        input_actions.append(control);
+      }
+      input_menu.onclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.more_menu(event);
+      };
+      input_actions.append(input_menu);
+      const input_title = workspace_element("span", "git-scm-input-title", git_graph_text("scm.changes"));
+      input_title.title = git_graph_text("scm.changes");
+      input_heading.append(git_disclosure(), input_title, input_actions);
       const inputs = workspace_element("div", "git-scm-inputs");
       inputs.append(this.message, commit_bar);
       this.changes_body.append(inputs, this.groups, this.notice);
@@ -202050,14 +202069,14 @@ https://creativecommons.org/licenses/by/4.0/
         this.view_menu(event);
       };
       this.load_layout();
+      this.update_actions();
     }
     file_icon_style = acquire_workspace_file_icons();
     sidebar = workspace_element("aside", "git-scm-sidebar");
     groups = workspace_element("div", "git-scm-groups");
     message = workspace_element("textarea", "git-scm-message");
-    branch = workspace_button("", () => {
-    }, "git-scm-branch");
     title = workspace_element("div", "git-scm-title");
+    input_actions = /* @__PURE__ */ new Map();
     interaction_style = acquire_workspace_interaction(this.sidebar);
     notice = workspace_element("div", "git-scm-notice");
     sections = workspace_element("div", "git-scm-sections");
@@ -202159,8 +202178,20 @@ https://creativecommons.org/licenses/by/4.0/
       this.sections.style.setProperty("--git-scm-history-size", (1 - this.history_ratio) * 100 + "fr");
       this.history.set_open(this.history_open);
     }
+    input_action_enabled(id) {
+      const panel = this.panel;
+      if (!this.history.toolbar.enabled("refresh")) return false;
+      return id === "refresh" || !!panel.state && panel.state.root === panel.root && panel.container.dataset.state !== "error";
+    }
+    update_actions() {
+      for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
+      for (const control of this.changes_body.querySelectorAll(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
+    }
     commit() {
+      if (!this.input_action_enabled("commit")) return;
       if (!this.message.value.trim()) {
+        this.input_section.open = true;
+        this.changes_body.inert = false;
         this.message.focus();
         this.panel.report(git_graph_text("scm.message_required"));
         return;
@@ -202173,12 +202204,6 @@ https://creativecommons.org/licenses/by/4.0/
       const epoch = ++this.groups_epoch;
       this.fit_message();
       this.history.render(state);
-      this.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "git-scm-branch-label", "".concat(state.branch || git_graph_text("scm.detached_head")).concat(state.operation ? " \xB7 " + operation_label(state.operation) : "")));
-      this.branch.title = this.panel.root;
-      this.branch.onclick = (event) => this.panel.configured_menu(event, "checkout", [
-        ...state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({ id: ref.name, title: git_graph_text("scm.checkout_branch", { branch: ref.name.slice(11) }), checked: ref.name.slice(11) === state.branch, action: () => this.panel.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash) })),
-        { id: "branch_create", title: git_graph_text("scm.create_branch"), separator: true, disabled: !state.head, action: () => this.panel.action_dialog("branch_create", "commit", state.head, state.head) }
-      ]);
       try {
         const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
         if (epoch !== this.groups_epoch || state !== this.panel.state) return;
@@ -202533,6 +202558,8 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.update_actions();
+      this.input_actions.clear();
       this.repositories.dispose();
       this.interaction_style.remove();
       this.file_icon_style.remove();
@@ -224656,7 +224683,7 @@ https://creativecommons.org/licenses/by/4.0/
   var graph_dialog2 = (title) => workspace_dialog(title, git_graph_text("common.close"));
   var revision_label = (revision) => revision === WORKTREE ? git_graph_text("graph.revision.worktree") : revision === INDEX ? git_graph_text("graph.revision.index") : revision === EMPTY ? git_graph_text("graph.revision.empty") : revision;
   var short_revision_label = (revision) => revision === WORKTREE || revision === INDEX || revision === EMPTY ? revision_label(revision) : revision.slice(0, 8);
-  var operation_label2 = (operation) => {
+  var operation_label = (operation) => {
     const key = { merge: "graph.operation.merge", rebase: "graph.operation.rebase", "cherry-pick": "graph.operation.cherry_pick", revert: "graph.operation.revert" }[operation];
     return key ? git_graph_text(key) : operation;
   };
@@ -224871,6 +224898,7 @@ https://creativecommons.org/licenses/by/4.0/
     update_scm_actions() {
       this.workbench.history.toolbar.update();
       this.workbench.repositories.update_disabled();
+      this.workbench.update_actions();
     }
     async refresh(reset2 = true) {
       if (this.disposed) return;
@@ -224939,7 +224967,7 @@ https://creativecommons.org/licenses/by/4.0/
         await this.workbench.refresh();
         if (epoch !== this.epoch) return;
         this.more_button.hidden = !state.more;
-        this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label2(state.operation) }) : "");
+        this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label(state.operation) }) : "");
         this.container.dataset.state = "ready";
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
         if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some((commit) => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
@@ -224954,7 +224982,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.pending = false;
           this.refresh_button.disabled = false;
           this.more_button.disabled = false;
-          this.workbench.history.toolbar.update();
+          this.update_scm_actions();
           if (this.workbench.show_repositories) this.workbench.repositories.refresh();
         }
       }
