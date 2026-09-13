@@ -22,6 +22,7 @@ macOS、Git Bash、MSYS2 MINGW64 和 Windows 32 位不属于当前安装支持�
 ```text
 install_windows.cmd / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
+uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
 cpp_github-consolas.css
 scripts/
@@ -108,6 +109,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1
 恢复脚本会拒绝启动页面中**本工程入口以外**的内容变化，防止旧备份盖掉升级或外部改动后的页面；这不是完整宿主版本检测。不要跨 Typora 版本恢复旧的 `window.html`，也不要手工用旧文件绕过拒绝。新宿主需要修复时使用其官方安装包，再安装匹配的增强版本。
 
 ## 卸载与恢复
+
+**Windows 卸载增强：**保存文档并退出 Typora，双击根目录 `uninstall_windows.cmd`。它自动发现当前用户默认备份目录中的有效安装前备份；唯一候选直接使用，多个候选显示时间、安装位置和备份路径，输入编号选择，直接按 Enter 或输入 Q 取消。结果窗口保留供查看。
+
+`uninstall` 会排除更新备份，并使用原有恢复事务完成卸载。目标 Typora 仍在运行时会停止并提示退出，不会关闭进程。没有有效备份时会报错，不会把最近一次更新备份当作卸载来源，也不会删除整个用户数据目录。需要限定安装位置、自定义备份位置或用于自动化时，在包根目录运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -non_interactive
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -backup_root '<安装前完整备份目录>' -non_interactive
+```
+
+以上为三种独立用法。`-non_interactive` 遇到缺失或多个候选直接失败，不等待输入；加 `-Verbose` 可查看备份被跳过的原因。CMD 也接受相同参数。卸载保留 Typora 本体、文档、用户设置、阅读记录与备份；最初从旧插件迁入的环境会恢复该备份中的旧插件。
+
+**回退增强版本，或在 Linux / UCRT64 手动恢复：**继续使用 `restore`，显式指定所选备份。
 
 先保存文档并退出 Typora，然后选择正确的备份目录：
 

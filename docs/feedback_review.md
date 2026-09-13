@@ -553,3 +553,7 @@ R027：更改标题只创建了分支与更多，补齐提交、刷新和打开�
 隔离原生Typora1.14.10最终80项通过，10次私有Win32指针点击经renderer观察为isTrusted；实际读取Git状态、忙碌禁用、折叠空消息聚焦、仅私有仓库的一次预期提交及重复打开Graph复用标签均通过。明暗×180/240/380px八张新截图及指标保存在`.cache/native_zoom_1_14_10/scm_heading_native_20260913_a/`，明暗180px截图已视检。宽度调节和Esc使用renderer KeyboardEvent，主题走原生接口；此为私有原生实例验证，不冒充用户物理操作。原始ASAR与正文/dirty状态、磁盘文档保持；测试实例已退出。
 
 按既有事务安装并检查OK，23项产品资产只更新workbench.js、workspace.css及清单。候选基于已验收的底栏缩放版本叠加本轮三份源码，保留选中行明暗、媒体不透明和窗口缩放修复；R009已提交但未通过原生互通验收的阶段脚本继续不部署。保护检查确认ASAR、应用图标、原生偏好、工作区设置及主题摘要不变，用户窗口未重启；保存后正常重启Typora加载。安装日志为`.cache/scm_title_install_20260913.log`和`scm_title_install_check_20260913.log`，发布及安装核对见`.cache/scm_title_audit_20260913/`。本轮已验证代码、测试、设计与构建及时提交，不推送；其他未完成项保持原边界。
+
+## 2026-09-14 Windows uninstall 双击入口
+
+R025：新增 uninstall_windows.cmd / uninstall_windows.ps1，自动筛选当前用户的安装前完整备份，排除更新备份；多个候选才选择，空输入取消，非交互遇歧义失败。复用原恢复事务，保留文档、阅读记录和用户偏好，目标 Typora 未退出时拒绝执行。首页、安装指南、部署清单及增强说明同步；增强说明的旧 scripts/install_windows.ps1、scripts/restore_windows.ps1 路径已修正。Windows PowerShell 5.1 隔离 CMD 与恢复38项断言、部署检查均通过，证据和边界见[卸载入口设计](installation_design.md#r025-卸载入口)。未执行真实用户安装卸载。
