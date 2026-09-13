@@ -212,7 +212,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   refresh();
   outline_open = is_outline_open();
   if (outline_open) schedule_sync();
-  return {refresh:()=>{refresh();schedule_sync();}, configure:source_outline.configure, dispose: () => {
+  return {current_heading:()=>{selected_heading=current_heading();return selected_heading;},select_heading:(heading:HTMLElement)=>{selected_heading=heading;explicit_position=document.querySelector<HTMLElement>("content")?.scrollTop;schedule_sync();},refresh:()=>{refresh();schedule_sync();}, configure:source_outline.configure, dispose: () => {
     if(disposed)return;disposed=true;
     source_outline.dispose();control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
     if (native_outline?.highlightVisibleHeader === coordinated_highlight) {

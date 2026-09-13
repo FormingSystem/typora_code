@@ -1,3 +1,4 @@
+import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
 import {bind_workspace_editor_actions} from "./workspace_editor_actions";
 import {read_workspace_sidebar_state} from "./workspace_view_state";
 import {bind_workspace_native_toolbar} from "./workspace_native_toolbar";
@@ -43,6 +44,7 @@ export function bind_workspace_browser() {
     ]});
   lifetime.own(explorer);
   const outline_binding=lifetime.own(install_workspace_outline({context_root:files.context_root,document_active:()=>Boolean(core.app.workspace.activeLeaf)&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
+  lifetime.own(bind_workspace_breadcrumbs(core,files,outline_binding));
   lifetime.add(core.app.commands.register({id:"linux_note:source_outline_settings",title:"代码大纲：解析环境设置",scope:"global",callback:()=>outline_binding?.configure()}));
   lifetime.add(core.app.workspace.on("active-leaf:change",()=>outline_binding?.refresh()));
   const reveal_outline=()=>{

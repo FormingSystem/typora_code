@@ -34,6 +34,7 @@ const ui_tests = Object.freeze([
   "test_interaction.cjs",
   "test_reading_media_viewer.cjs",
   "test_workspace_startup.cjs",
+  "test_workspace_breadcrumbs.cjs",
   "test_reading_minimap.cjs",
   "test_reading_lifecycle.cjs",
   "test_reading_link_hover.cjs",
