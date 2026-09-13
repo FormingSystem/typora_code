@@ -64,7 +64,7 @@ app.whenReady().then(async()=>{
  // 真实命令定义直接打开自己的条目，不先弹完整根菜单。
  await run(`window.editor=document.querySelector('#write');editor.focus();window.range=document.createRange();range.setStart(editor.firstChild,9);range.setEnd(editor.firstChild,17);getSelection().removeAllRanges();getSelection().addRange(range);document.querySelectorAll('.workspace-titlebar-menu>button')[2].click();void 0`);await tick();
  assert(await run(`document.querySelector('.workspace-titlebar-popup').textContent.includes('一级标题')&&!document.querySelector('.workspace-titlebar-popup').textContent.includes('新建窗口')`));
- await run(`window.stale_item=document.querySelector('.workspace-titlebar-entry:not(:disabled)');editor.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));window.before_stale=calls.length;stale_item.click();void 0`);assert(await run('calls.length===before_stale&&!document.querySelector(".workspace-titlebar-popup")'));
+ await run(`window.stale_item=document.querySelector('.workspace-titlebar-entry:not(:disabled)');for(const type of ['keydown','keyup'])editor.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));window.before_stale=calls.length;stale_item.click();void 0`);assert(await run('calls.length===before_stale&&!document.querySelector(".workspace-titlebar-popup")'));
  await run(`document.querySelectorAll('.workspace-titlebar-menu>button')[2].click();void 0`);await tick();
  await run(`document.querySelector('.workspace-titlebar-entry:not(:disabled)').click();void 0`);assert.deepEqual(await run('calls.at(-1)'),['block','header1']);assert.equal(await run('getSelection().toString()'),'my draft');assert(await run('document.activeElement===editor'));
  // 用真实菜单组件跑超长/嵌套/迟到结果和窄窗，而非仅检查CSS文本。
@@ -80,7 +80,7 @@ app.whenReady().then(async()=>{
  await run(`menu.dispose();owned_menu.style.display='';void 0`);await win.setSize(1280,800);await tick();
  assert.equal(await run('[...owned_menu.children].filter(button=>!button.hidden).map(button=>button.textContent).join(",")'),'文件,编辑,段落,格式,视图,主题,终端,');
  await run(`window.input=document.createElement('input');input.value='abcdef';document.body.append(input);input.focus();input.setSelectionRange(2,4);owned_menu.children[2].click();void 0`);await tick();
- await run(`window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));void 0`);assert(await run('!document.querySelector(".workspace-titlebar-popup")&&document.activeElement===input&&input.selectionStart===2&&input.selectionEnd===4'));
+ await run(`for(const type of ['keydown','keyup'])window.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));void 0`);assert(await run('!document.querySelector(".workspace-titlebar-popup")&&document.activeElement===input&&input.selectionStart===2&&input.selectionEnd===4'));
  await run('input.remove();editor.focus();void 0');
  await run(`document.querySelector('#w-close').click();void 0`);assert.equal(await run('calls.at(-1)[0]'),'close');
  fs.writeFileSync(path.join(evidence,'titlebar.png'),(await win.webContents.capturePage()).toPNG());

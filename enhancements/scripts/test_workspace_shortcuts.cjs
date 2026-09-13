@@ -96,7 +96,7 @@ app.whenReady().then(async () => {
   check(await evaluate(`quick.root.hidden&&opened_files[0]===${JSON.stringify(path.join(tree,'nested','beta.txt'))}`), 'typing and Enter route the selected real file to open_file');
   await evaluate(`quick.open()`);await wait(`document.querySelectorAll('.workspace-quick-open-result').length===2`);
   check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true},'.workspace-quick-open input')&&!quick.root.hidden`), 'repeated Ctrl+P remains in the same picker');
-  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});await wait('quick.root.hidden');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await wait('quick.root.hidden');
   await evaluate(`(()=>{quick.dispose();let release;window.pending_scan=new Promise(resolve=>release=resolve);window.release_scan=release;quick=shortcut_qa.create_workspace_quick_open({fs:{promises:{readdir:()=>pending_scan}},path_api:require('path'),context_root:()=>current_root,open_file:async()=>{}});quick.open();quick.close();release_scan([{name:'stale.md',isFile:()=>true,isDirectory:()=>false}]);})()`);
   await new Promise(r=>setTimeout(r,30));
   check(await evaluate(`quick.root.hidden&&quick.root.querySelectorAll('.workspace-quick-open-result').length===0`), 'closed picker ignores a late directory scan');

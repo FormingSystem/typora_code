@@ -105,6 +105,7 @@
     "src\\ui\\sidebar\\sidebar.ts",
     "src\\ui\\sidebar\\outline.ts",
     "src\\ui\\commands\\command-modal.scss",
+    "..\\..\\src\\workspace_focus.ts",
     "src\\ui\\components\\modal.scss",
     "src\\ui\\components\\modal.ts",
     "src\\ui\\components\\quick-open.ts",

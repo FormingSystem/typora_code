@@ -1,3 +1,4 @@
+import {capture_workspace_focus,register_workspace_escape} from "./workspace_focus";
 import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -7,14 +8,14 @@ import css from "./reading_media_viewer.css";
 
 type reading_media = {content:HTMLElement|SVGSVGElement;width:number;height:number;label:string;origin?:HTMLElement;source?:Element;initial_fit?:boolean};
 const MAXIMUM_ZOOM=6, ZOOM_FACTOR=1.25;
-let active_close:(()=>void)|undefined;
+let active_close:((restore?:boolean)=>void)|undefined;
 
-export function close_reading_media():void {active_close?.();}
+export function close_reading_media():void {active_close?.(false);}
 
 /** 只持有阅读副本，图片与图表共用缩放、焦点和生命周期。 */
-export function open_reading_media(media:reading_media):()=>void {
-  active_close?.();
-  const previous=media.origin|| (document.activeElement instanceof HTMLElement?document.activeElement:null);
+export function open_reading_media(media:reading_media):(restore?:boolean)=>void {
+  active_close?.(false);
+  const previous=capture_workspace_focus(media.origin);
   const viewer=el("section","reading-media-viewer"),header=el("div","reading-media-header"),toolbar=el("div","reading-media-toolbar");
   viewer.setAttribute("role","dialog");viewer.setAttribute("aria-modal","true");viewer.setAttribute("aria-label",media.label);
   toolbar.setAttribute("aria-label","缩放控制");
@@ -53,13 +54,14 @@ export function open_reading_media(media:reading_media):()=>void {
     viewer.style.setProperty("--reading-media-background",`rgb(${background.join(",")})`);viewer.dataset.theme=dark?"dark":"light";
   });
   const resize=new ResizeObserver(()=>{if(mode!=="manual")fit(mode==="fit-width",fit_initial);});resize.observe(canvas);
-  const close=()=>{
-    if(closed)return;closed=true;if(active_close===close)active_close=undefined;
+  const close=(restore=true)=>{
+    if(closed)return;const owns_focus=escape_layer.owns_focus();closed=true;if(active_close===close)active_close=undefined;escape_layer.dispose();
     controller.abort();source_observer.disconnect();cancelAnimationFrame(ready_frame);resize.disconnect();dispose_theme();viewer.remove();interaction.remove();style.remove();document.body.classList.remove("reading-media-viewer-open");
-    if(previous?.isConnected)previous.focus({preventScroll:true});
+    if(restore&&owns_focus)previous.restore();
   };
+  const escape_layer=register_workspace_escape(()=>[viewer],()=>close());
   const source_observer=new MutationObserver(()=>{
-    if(media.source&&(!media.source.isConnected||!media.source.getClientRects().length||getComputedStyle(media.source).visibility!=="visible"))close();
+    if(media.source&&(!media.source.isConnected||!media.source.getClientRects().length||getComputedStyle(media.source).visibility!=="visible"))close(false);
   });
   if(media.source){source_observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","style"]});const root=media.source.getRootNode();if(root instanceof ShadowRoot)source_observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","style"]});}
   active_close=close;
@@ -74,9 +76,8 @@ export function open_reading_media(media:reading_media):()=>void {
     if(action==="close")close();else if(action==="zoom-in")zoom(view.scale*ZOOM_FACTOR);else if(action==="zoom-out")zoom(view.scale/ZOOM_FACTOR);else if(action==="fit")fit();else if(action==="fit-width")fit(true);else if(action==="reset")reset();
   },{signal});
   window.addEventListener("keydown",event=>{
-    if(closed)return;
+    if(closed||!escape_layer.is_top())return;
     const primary=(event.ctrlKey||event.metaKey)&&!event.altKey;
-    if(event.key==="Escape"){event.preventDefault();event.stopImmediatePropagation();close();return;}
     if(event.key==="Tab"){
       const nodes=controls(),index=nodes.indexOf(document.activeElement as HTMLButtonElement);
       const target=event.shiftKey?(index<=0?nodes.at(-1):nodes[index-1]):nodes[(index+1)%nodes.length];

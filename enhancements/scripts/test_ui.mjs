@@ -77,6 +77,7 @@ const ui_tests = Object.freeze([
   "test_workspace_detached_window.cjs",
   "test_workspace_document_transfer.cjs",
   "test_workspace_widgets.cjs",
+  "test_workspace_escape_focus.cjs",
 ]);
 
 // This is still a useful focused test, but it starts a real shell through the

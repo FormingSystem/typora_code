@@ -4993,21 +4993,136 @@ var workspace_core_module = (() => {
     }
   };
 
+  // src/workspace_focus.ts
+  var active_element = () => {
+    let node = document.activeElement;
+    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
+    return node;
+  };
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  var within = (root, node) => {
+    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
+    return false;
+  };
+  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
+  var file_state = () => window.File;
+  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
+  function capture_workspace_focus(fallback) {
+    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
+    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
+    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback) || null;
+    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
+    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
+    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
+    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
+    let rangy;
+    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
+      try {
+        rangy = file?.editor?.selection?.getRangy();
+      } catch {
+      }
+    }
+    const scroll = [];
+    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
+    return { restore() {
+      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
+      const now = workspace_state();
+      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
+      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
+      previous.focus({ preventScroll: true });
+      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
+      else if (rangy) {
+        try {
+          rangy.select();
+        } catch {
+        }
+      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
+        try {
+          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
+        } catch {
+        }
+      }
+      for (const item of scroll) if (item.node.isConnected) {
+        item.node.scrollTop = item.top;
+        item.node.scrollLeft = item.left;
+      }
+    } };
+  }
+  var service_key = Symbol.for("typora-code:workspace-escape");
+  function register_workspace_escape(roots, cancel) {
+    const runtime = window;
+    if (!runtime[service_key]) {
+      const stack = [];
+      let pending, listening = false;
+      const top = () => stack.findLast((record) => record.roots().some(visible));
+      const consume = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      const cleanup = () => {
+        if (!stack.length && !pending && listening) {
+          listening = false;
+          window.removeEventListener("keydown", keydown, true);
+          window.removeEventListener("keyup", keyup, true);
+          window.removeEventListener("blur", blur);
+        }
+      };
+      const keydown = (event) => {
+        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
+        if (pending) {
+          consume(event);
+          return;
+        }
+        const owner = top();
+        if (!owner) return;
+        consume(event);
+        if (!event.repeat) pending = owner;
+      };
+      const keyup = (event) => {
+        if (event.key !== "Escape" || !pending) return;
+        const owner = pending;
+        pending = void 0;
+        consume(event);
+        if (!event.isComposing && top() === owner && stack.includes(owner)) owner.cancel();
+        cleanup();
+      };
+      const blur = () => {
+        pending = void 0;
+        cleanup();
+      };
+      runtime[service_key] = { add(record) {
+        stack.push(record);
+        if (!listening) {
+          listening = true;
+          window.addEventListener("keydown", keydown, true);
+          window.addEventListener("keyup", keyup, true);
+          window.addEventListener("blur", blur);
+        }
+        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
+          const index = stack.indexOf(record);
+          if (index !== -1) stack.splice(index, 1);
+          cleanup();
+        } };
+      } };
+    }
+    return runtime[service_key].add({ roots, cancel });
+  }
+
   // vendor/workspace_core/src/ui/components/modal.ts
   var Modal = class extends View {
     modal;
     header;
     body;
     footer;
+    previous_focus;
+    escape_layer;
+    opened = false;
     closeListeners = [];
     constructor(props) {
       super();
       this.containerEl = $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>').on("click", (event) => {
         if (event.target !== this.containerEl) return;
-        this.close();
-      }).on("keyup", (event) => {
-        if (event.key !== "Escape") return;
-        this.close();
+        this.close(false);
       }).append(
         this.modal = $(`<div class="typ-modal ${props.className ?? ""}"></div>`).append(
           this.body = html`<div class="typ-modal__body"></div>`
@@ -5043,12 +5158,23 @@ var workspace_core_module = (() => {
       return this;
     }
     open() {
+      if (this.opened) return;
+      this.opened = true;
+      this.previous_focus = capture_workspace_focus();
       this.containerEl.style.display = "";
+      this.escape_layer = register_workspace_escape(() => [this.containerEl], () => this.close());
     }
-    close() {
-      this.closeListeners.forEach((callback) => callback());
+    close(restore = true) {
+      if (!this.opened) return;
+      const owned = this.escape_layer?.owns_focus();
+      this.opened = false;
+      this.escape_layer?.dispose();
+      this.escape_layer = void 0;
       this.containerEl.style.display = "none";
       $("input", this.containerEl).each((i, el) => el.blur());
+      if (restore && owned) this.previous_focus?.restore();
+      this.previous_focus = void 0;
+      this.closeListeners.forEach((callback) => callback());
     }
   };
 
@@ -5068,15 +5194,14 @@ var workspace_core_module = (() => {
     });
   }
   var InputBox = class extends Component {
-    constructor(markdownEditor = useService("markdown-editor")) {
-      super();
-      this.markdownEditor = markdownEditor;
-    }
     modal;
     input;
     options;
     resolve;
     resolved = false;
+    constructor() {
+      super();
+    }
     onload() {
       this.render();
       super.onload();
@@ -5087,7 +5212,6 @@ var workspace_core_module = (() => {
       this.options = options;
       $(this.modal.containerEl).find(".typ-command-modal__title").text(options.title ?? "").end().find(".typ-command-modal__form input").attr("placeholder", this.options.placeholder ?? "").end().find(".typ-command-modal__prompt").text(options.prompt ?? "");
       this.modal.open();
-      this.markdownEditor.selection.save();
       this.input.focus();
     }
     close() {
@@ -5096,7 +5220,6 @@ var workspace_core_module = (() => {
       }
       this.resolve = void 0;
       this.input.value = "";
-      this.markdownEditor.selection.restore();
     }
     render() {
       this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {
@@ -5119,10 +5242,6 @@ var workspace_core_module = (() => {
     };
   };
   var QuickPick = class extends Component {
-    constructor(markdownEditor = useService("markdown-editor")) {
-      super();
-      this.markdownEditor = markdownEditor;
-    }
     modal;
     input;
     results;
@@ -5133,6 +5252,9 @@ var workspace_core_module = (() => {
     options;
     resolve;
     resolved = false;
+    constructor() {
+      super();
+    }
     onload() {
       this.render();
       super.onload();
@@ -5146,7 +5268,6 @@ var workspace_core_module = (() => {
       this.filteredItems = items;
       this.renderItems();
       this.modal.open();
-      this.markdownEditor.selection.save();
       this.input.focus();
     }
     closePickMany() {
@@ -5165,7 +5286,6 @@ var workspace_core_module = (() => {
       this.input.value = "";
       this.selected = -1;
       this.picked = {};
-      this.markdownEditor.selection.restore();
     }
     render() {
       this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {

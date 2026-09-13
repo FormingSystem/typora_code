@@ -59,7 +59,6 @@ export class InputBox extends Component {
   private resolved: boolean = false
 
   constructor(
-    private markdownEditor = useService('markdown-editor'),
   ) {
     super()
   }
@@ -85,7 +84,6 @@ export class InputBox extends Component {
       .text(options.prompt ?? '')
 
     this.modal.open()
-    this.markdownEditor.selection.save()
     this.input.focus()
   }
 
@@ -96,7 +94,6 @@ export class InputBox extends Component {
     this.resolve = undefined
 
     this.input.value = ""
-    this.markdownEditor.selection.restore()
   }
 
   private render() {
@@ -145,7 +142,6 @@ export class QuickPick extends Component {
   private resolved: boolean = false
 
   constructor(
-    private markdownEditor = useService('markdown-editor'),
   ) {
     super()
   }
@@ -178,7 +174,6 @@ export class QuickPick extends Component {
     this.filteredItems = items
     this.renderItems()
     this.modal.open()
-    this.markdownEditor.selection.save()
     this.input.focus()
   }
 
@@ -200,7 +195,6 @@ export class QuickPick extends Component {
     this.input.value = ""
     this.selected = -1
     this.picked = {}
-    this.markdownEditor.selection.restore()
   }
 
   private render() {

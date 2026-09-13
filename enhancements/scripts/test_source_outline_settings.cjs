@@ -49,7 +49,7 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('settings_qa.read_source_outline_settings(workspace_one).fallback_flags[0]'),'-Iinclude with spaces','parameters retain whitespace within one argument');
   assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_two).fallback_flags'),['-std=c++20'],'other workspace unchanged');
   const saved_bytes=fs.readFileSync(settings_file,'utf8');
-  await evaluate(`dialog=settings_qa.open_source_outline_settings(workspace_one);dialog.root.querySelector('[data-field="clangd_path"]').value='cancelled';window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));void 0`);await pause();
+  await evaluate(`dialog=settings_qa.open_source_outline_settings(workspace_one);dialog.root.querySelector('[data-field="clangd_path"]').value='cancelled';window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));window.dispatchEvent(new KeyboardEvent('keyup',{key:'Escape',bubbles:true,cancelable:true}));void 0`);await pause();
   assert.equal(fs.readFileSync(settings_file,'utf8'),saved_bytes,'Escape does not save drafts');
   assert.equal(await evaluate(`document.querySelectorAll('.source-outline-settings').length`),0);
   await evaluate(`dialog=settings_qa.open_source_outline_settings(workspace_one);settings_qa.save_source_outline_settings(workspace_two,{clangd_path:'new-global',compile_commands_dir:'out',fallback_flags:['-std=c++20']});dialog.root.querySelector('[data-field="compile_commands_dir"]').value='different-build';dialog.root.querySelector('[data-action="save"]').click();void 0`);await pause();

@@ -1,3 +1,4 @@
+import {capture_workspace_focus,register_workspace_escape,type workspace_focus_snapshot,type workspace_escape_layer} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {git_icon} from "./git_icons";
 
@@ -11,19 +12,12 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const panels:HTMLElement[]=[];
   const panel_events=new Map<HTMLElement,AbortController>();
   let last_width=-1;
-  let active_index=-1,generation=0,disposed=false,opener:HTMLElement|null=null;
-  let saved_ranges:Range[]=[];let saved_input:{start:number|null;end:number|null}|undefined;
-  const save_focus=()=>{
-    opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
-    const selection=window.getSelection();saved_ranges=[];if(selection)for(let i=0;i<selection.rangeCount;i++)saved_ranges.push(selection.getRangeAt(i).cloneRange());
-    saved_input=opener instanceof HTMLInputElement||opener instanceof HTMLTextAreaElement?{start:opener.selectionStart,end:opener.selectionEnd}:undefined;
-  };
-  const restore_focus=()=>{
-    if(opener?.isConnected){opener.focus({preventScroll:true});if(opener instanceof HTMLInputElement||opener instanceof HTMLTextAreaElement){if(saved_input?.start!==null&&saved_input?.start!==undefined&&saved_input.end!==null)opener.setSelectionRange(saved_input.start,saved_input.end);return;}}
-    const selection=window.getSelection();if(selection&&saved_ranges.length&&saved_ranges.every(range=>range.startContainer.isConnected&&range.endContainer.isConnected)){selection.removeAllRanges();for(const range of saved_ranges)selection.addRange(range);}
-  };
-  const close_after=(depth:number)=>{for(const panel of panels.splice(depth)){panel_events.get(panel)?.abort();panel_events.delete(panel);panel.remove();}};
-  const close=(restore=false)=>{generation++;close_after(0);active_index=-1;for(const button of buttons)button.setAttribute("aria-expanded","false");more.setAttribute("aria-expanded","false");if(restore)restore_focus();};
+  let active_index=-1,generation=0,disposed=false;
+  let previous_focus:workspace_focus_snapshot|undefined,escape_layer:workspace_escape_layer|undefined;
+  const parents=new Map<HTMLElement,HTMLElement>();
+  const save_focus=()=>{previous_focus=capture_workspace_focus();};
+  const close_after=(depth:number)=>{for(const panel of panels.splice(depth)){panel_events.get(panel)?.abort();panel_events.delete(panel);parents.delete(panel);panel.remove();}};
+  const close=(restore=false)=>{const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;generation++;close_after(0);active_index=-1;for(const button of buttons)button.setAttribute("aria-expanded","false");more.setAttribute("aria-expanded","false");if(restore&&owned)previous_focus?.restore();};
   const actionable=(panel:HTMLElement)=>[...panel.querySelectorAll<HTMLButtonElement>(":scope > button:not(:disabled)")];
   const focus_item=(panel:HTMLElement,index:number)=>{const items=actionable(panel);if(!items.length)return;const item=items[(index+items.length)%items.length];item.focus({preventScroll:true});item.scrollIntoView({block:"nearest"});};
   const show_panel=(entries:titlebar_menu_entry[],anchor:HTMLElement,depth:number,focus=false)=>{
@@ -34,7 +28,8 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     const rect=anchor.getBoundingClientRect();
     panel.style.maxWidth=Math.max(0,innerWidth-8)+"px";
     panel.style.maxHeight=Math.max(10,innerHeight-top_limit-35)+"px";
-    panel.style.visibility="hidden";document.body.append(panel);panels.push(panel);
+    panel.style.visibility="hidden";document.body.append(panel);panels.push(panel);parents.set(panel,anchor);
+    escape_layer??=register_workspace_escape(()=>panels,()=>{if(panels.length>1){const parent=parents.get(panels.at(-1)!);close_after(panels.length-1);parent?.focus({preventScroll:true});}else close(true);});
     for(const entry of entries){
       if(entry.separator){const line=document.createElement("div");line.className="workspace-titlebar-separator";line.setAttribute("role","separator");panel.append(line);continue;}
       const item=document.createElement("button");item.type="button";item.className="workspace-titlebar-entry";item.disabled=Boolean(entry.disabled);item.title=entry.title||"";
@@ -69,7 +64,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
       if(["ArrowDown","ArrowUp","Home","End","PageDown","PageUp"].includes(event.key)){
         event.preventDefault();event.stopPropagation();close_after(depth+1);
         const count=Math.max(1,Math.floor(panel.clientHeight/24));focus_item(panel,event.key==="Home"?0:event.key==="End"?items.length-1:index+(event.key==="ArrowDown"?1:event.key==="ArrowUp"?-1:event.key==="PageDown"?count:-count));
-      }else if(event.key==="Escape"||(event.key==="ArrowLeft"&&depth>0)){
+      }else if(event.key==="ArrowLeft"&&depth>0){
         event.preventDefault();event.stopPropagation();if(depth){close_after(depth);anchor.focus({preventScroll:true});}else close(true);
       }else if((event.key==="ArrowLeft"||event.key==="ArrowRight")&&depth===0){event.preventDefault();event.stopPropagation();void open_menu((active_index+(event.key==="ArrowLeft"?-1:1)+definitions.length)%definitions.length,true);}
       else if(event.key==="Tab"){event.preventDefault();event.stopPropagation();close(true);}
@@ -118,8 +113,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   window.addEventListener("keydown",event=>{
     if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.isComposing){const index=definitions.findIndex(definition=>definition.mnemonic.toLowerCase()===event.key.toLowerCase());if(index!==-1){event.preventDefault();event.stopImmediatePropagation();void open_menu(index,true);}}
     if(active_index!==-1&&(!(event.target instanceof Node)||!panels.some(panel=>panel.contains(event.target as Node)))){
-      if(event.key==="Escape"){event.preventDefault();event.stopImmediatePropagation();close(true);}
-      else if(["ArrowDown","ArrowUp","Home","End"].includes(event.key)&&panels[0]){event.preventDefault();event.stopImmediatePropagation();focus_item(panels[0],event.key==="ArrowUp"||event.key==="End"?-1:0);}
+      if(["ArrowDown","ArrowUp","Home","End"].includes(event.key)&&panels[0]){event.preventDefault();event.stopImmediatePropagation();focus_item(panels[0],event.key==="ArrowUp"||event.key==="End"?-1:0);}
     }
   },{capture:true,signal});
   window.addEventListener("workspace-titlebar-dismiss",()=>close(true),{signal});

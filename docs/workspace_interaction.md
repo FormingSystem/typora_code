@@ -113,3 +113,16 @@ R022/R024本轮补充：Git选用共同紧凑外观（12px/19px、2px 8px内距�
 鼠标移入／离开只允许原提示显示，不抢焦点或选中文字；单击和键盘 Enter／Space 仍打开原文件搜索，关闭／取消仍归已有搜索模块管理。原生标题节点、未保存正文、窗口拖动区域及搜索名称更新由原适配器管理，不改写宿主文件或配置。
 
 回归复用顶栏 UI 测试，用真实 Chromium 指针比较明暗主题、宽窄窗口和100%／125%缩放下的背景、文字、边框与几何；验证移入不激活搜索、移出恢复、邻近导航仍有悬停、键盘焦点可见、鼠标及键盘各只触发一次、卸载还原。构建和安装后另核对隔离 Typora 的实际层叠；原生 DOM／样式检查与物理鼠标验收分别说明。结果记录在反馈复查文档。
+
+
+## R032 Esc退出与原操作恢复
+
+2026-09-13，用户反馈退出放大查看等界面后必须再次鼠标聚焦才能编辑。问题来自入口按钮被当作固定返回目标，以及菜单、查看器、快速打开分别处理 Esc。统一由 `workspace_focus` 保存原焦点、输入框选择方向和正文选区；原生 Markdown 通过已核对的 `File.editor.selection.getRangy().select()` 适配，源码编辑器与终端恢复原输入节点。恢复前核对来源节点、文档 bundle 和活动编辑组，切换文档、销毁或点击其他区域时不抢回焦点。
+
+使用固定 VS Code 1.137.0（`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`）作为行为依据：[contextMenuHandler.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/contextview/browser/contextMenuHandler.ts#L143) 仅在焦点仍归菜单时恢复原控件；[quickInputController.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/quickinput/browser/quickInputController.ts#L829) 保留打开前目标并避免覆盖已转移焦点；[dialog.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/dialog/dialog.ts#L504) 配对消费 Escape 按下和释放；[menu.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/menu/menu.ts#L953) 子菜单取消只返回父菜单。
+
+本产品的窗口级退出栈由两个现有构建包共享同一个实例。最上层拥有一次完整 Esc 按下／释放，释放时退出；重复按下不会继续关闭背景层，输入法组合期间不接管 Esc。菜单先退出最深子菜单，再退出父菜单，最后才到背景对话框。没有临时界面时不覆盖源码补全、查找、终端、重命名等领域自己的 Esc。Tab 圈定与焦点恢复也遵循当前层归属。
+
+鼠标点击放大入口和顶栏搜索保留打开前的编辑位置；键盘从入口启动则返回该入口。关闭操作恢复原光标／选区及滚动，不修改正文。外部点击、失焦、来源替换和增强销毁只清理界面；已经失效的来源不会被强制聚焦。核心命令输入框移除自己的 Markdown 选区恢复分支，复用同一所有者。
+
+验收覆盖原生 Markdown 光标与选区、普通输入框和反向选择、源码输入、父子菜单与对话框、鼠标／键盘入口、重复 Esc、组合输入、失焦和来源移除。使用真实 Chromium 按下／释放及后续输入验证可连续编辑，并在隔离 Typora 中复查实际正文／图片／Mermaid 和配置字节；记录构建、测试和安装证据，未执行的场景不得标为通过。

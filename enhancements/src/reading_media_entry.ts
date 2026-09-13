@@ -14,7 +14,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
   const layer=el("div","reading-media-entries"),style=acquire_workspace_style("typora-code-style:reading_media_entry",css),interaction=acquire_workspace_interaction(layer);
   layer.contentEditable="false";document.body.append(layer);
   const controller=new AbortController(),{signal}=controller;
-  const entries=new Map<HTMLButtonElement,{options:entry_options;toolbar:HTMLElement;slot:HTMLSpanElement;enabled:boolean}>();
+  const entries=new Map<HTMLButtonElement,{options:entry_options;toolbar:HTMLElement;slot:HTMLSpanElement;enabled:boolean;events:AbortController}>();
   let disposed=false,frame=0;
   const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(update);};
   const resize=new ResizeObserver(schedule);
@@ -74,10 +74,14 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       // 空占位跨 Shadow DOM 使用相同的最小盒模型，不引入正文文字或编辑控件。
       slot.style.cssText="display:block;box-sizing:border-box;height:0;width:100%;margin:0;padding:0;border:0;line-height:0;pointer-events:none;user-select:none";
       button.type="button";button.hidden=true;button.title=options.label;button.setAttribute("aria-label",options.label);button.append(git_icon("screen-full"),el("span","","全屏查看"));toolbar.append(button);layer.append(toolbar);options.host.insertBefore(slot,options.before??null);
-      const state={options,toolbar,slot,enabled:true};entries.set(button,state);resize.observe(options.source);resize.observe(slot);resize.observe(toolbar);schedule();
+      const entry_events=new AbortController();
+      const reveal=(event:PointerEvent)=>{const target=event.relatedTarget;const inside=target instanceof Node&&(options.host.contains(target)||toolbar.contains(target));if(event.type==='pointerenter'||!inside)toolbar.classList.toggle('is-revealed',event.type==='pointerenter');};
+      for(const node of [options.host,toolbar])for(const name of ['pointerenter','pointerleave'])node.addEventListener(name,reveal as EventListener,{signal:entry_events.signal});
+      if(options.host.matches(':hover'))toolbar.classList.add('is-revealed');
+      const state={options,toolbar,slot,enabled:true,events:entry_events};entries.set(button,state);resize.observe(options.source);resize.observe(slot);resize.observe(toolbar);schedule();
       let removed=false;
-      return {button,slot,set_enabled(value){if(state.enabled!==value){state.enabled=value;schedule();}},dispose(){if(removed)return;removed=true;entries.delete(button);resize.unobserve(options.source);resize.unobserve(slot);resize.unobserve(toolbar);slot.remove();toolbar.remove();}};
+      return {button,slot,set_enabled(value){if(state.enabled!==value){state.enabled=value;schedule();}},dispose(){if(removed)return;removed=true;entry_events.abort();entries.delete(button);resize.unobserve(options.source);resize.unobserve(slot);resize.unobserve(toolbar);slot.remove();toolbar.remove();}};
     },
-    dispose(){if(disposed)return;disposed=true;controller.abort();cancelAnimationFrame(frame);observer.disconnect();resize.disconnect();for(const entry of entries.values())entry.slot.remove();entries.clear();layer.remove();interaction.remove();style.remove();}
+    dispose(){if(disposed)return;disposed=true;controller.abort();cancelAnimationFrame(frame);observer.disconnect();resize.disconnect();for(const entry of entries.values()){entry.events.abort();entry.slot.remove();}entries.clear();layer.remove();interaction.remove();style.remove();}
   };
 }

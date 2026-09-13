@@ -67,6 +67,7 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   window.addEventListener("linux-note-reading-history-state",event=>history_state((event as CustomEvent).detail||{}),{signal:events.signal});
   const search=document.createElement("button");search.type="button";search.dataset.workspaceInteraction="action";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
+  search.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
   search.addEventListener("click",open_files,{signal:events.signal});
   const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";};
   refresh_label();

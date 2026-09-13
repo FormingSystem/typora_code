@@ -16749,8 +16749,8 @@ https://creativecommons.org/licenses/by/4.0/
   function $(description, attrs, ...children) {
     return _$(Namespace.HTML, description, attrs, ...children);
   }
-  function setVisibility(visible2, ...elements) {
-    if (visible2) {
+  function setVisibility(visible3, ...elements) {
+    if (visible3) {
       show(...elements);
     } else {
       hide(...elements);
@@ -109210,9 +109210,9 @@ https://creativecommons.org/licenses/by/4.0/
             skipTelemetry: this.options.skipTelemetry
           };
           this.dropdownMenu = this._register(new DropdownMenu(container, options2));
-          this._register(this.dropdownMenu.onDidChangeVisibility((visible2) => {
-            this.element?.setAttribute("aria-expanded", "".concat(visible2));
-            this._onDidChangeVisibility.fire(visible2);
+          this._register(this.dropdownMenu.onDidChangeVisibility((visible3) => {
+            this.element?.setAttribute("aria-expanded", "".concat(visible3));
+            this._onDidChangeVisibility.fire(visible3);
           }));
           this.dropdownMenu.menuOptions = {
             actionViewItemProvider: this.options.actionViewItemProvider,
@@ -114053,20 +114053,20 @@ https://creativecommons.org/licenses/by/4.0/
         get visible() {
           return typeof this._cachedVisibleSize === "undefined";
         }
-        setVisible(visible2, size) {
-          if (visible2 === this.visible) {
+        setVisible(visible3, size) {
+          if (visible3 === this.visible) {
             return;
           }
-          if (visible2) {
+          if (visible3) {
             this.size = clamp(this._cachedVisibleSize, this.viewMinimumSize, this.viewMaximumSize);
             this._cachedVisibleSize = void 0;
           } else {
             this._cachedVisibleSize = typeof size === "number" ? size : this.size;
             this.size = 0;
           }
-          this.container.classList.toggle("visible", visible2);
+          this.container.classList.toggle("visible", visible3);
           try {
-            this.view.setVisible?.(visible2);
+            this.view.setVisible?.(visible3);
           } catch (e) {
             console.error("Splitview: Failed to set visible view");
             console.error(e);
@@ -114642,15 +114642,15 @@ https://creativecommons.org/licenses/by/4.0/
           let snapped = false;
           if (snapBefore) {
             const snapView = this.viewItems[snapBefore.index];
-            const visible2 = delta >= snapBefore.limitDelta;
-            snapped = visible2 !== snapView.visible;
-            snapView.setVisible(visible2, snapBefore.size);
+            const visible3 = delta >= snapBefore.limitDelta;
+            snapped = visible3 !== snapView.visible;
+            snapView.setVisible(visible3, snapBefore.size);
           }
           if (!snapped && snapAfter) {
             const snapView = this.viewItems[snapAfter.index];
-            const visible2 = delta < snapAfter.limitDelta;
-            snapped = visible2 !== snapView.visible;
-            snapView.setVisible(visible2, snapAfter.size);
+            const visible3 = delta < snapAfter.limitDelta;
+            snapped = visible3 !== snapView.visible;
+            snapView.setVisible(visible3, snapAfter.size);
           }
           if (snapped) {
             return this.resize(index, delta, sizes, lowPriorityIndexes, highPriorityIndexes, overloadMinDelta, overloadMaxDelta);
@@ -116714,7 +116714,7 @@ https://creativecommons.org/licenses/by/4.0/
           recurseSplice(lastStartO, lastStartM, lastStartO);
         }
         spliceSimple(location, deleteCount, toInsert = Iterable.empty(), { onDidCreateNode, onDidDeleteNode, diffIdentityProvider }) {
-          const { parentNode, listIndex, revealed: revealed2, visible: visible2 } = this.getParentNodeWithListIndex(location);
+          const { parentNode, listIndex, revealed: revealed2, visible: visible3 } = this.getParentNodeWithListIndex(location);
           const treeListElementsToInsert = [];
           const nodesToInsertIterator = Iterable.map(toInsert, (el2) => this.createTreeNode(el2, parentNode, parentNode.visible ? 1 : 0, revealed2, treeListElementsToInsert, onDidCreateNode));
           const lastIndex = location[location.length - 1];
@@ -116766,7 +116766,7 @@ https://creativecommons.org/licenses/by/4.0/
             };
             deletedNodes.forEach(visit);
           }
-          if (revealed2 && visible2) {
+          if (revealed2 && visible3) {
             const visibleDeleteCount = deletedNodes.reduce((r4, node2) => r4 + (node2.visible ? node2.renderNodeCount : 0), 0);
             this._updateAncestorsRenderNodeCount(parentNode, renderNodeCount - visibleDeleteCount);
             this._onDidSpliceRenderedNodes.fire({ start: listIndex, deleteCount: visibleDeleteCount, elements: treeListElementsToInsert });
@@ -116794,8 +116794,8 @@ https://creativecommons.org/licenses/by/4.0/
           return this.hasTreeNode(location);
         }
         getListIndex(location) {
-          const { listIndex, visible: visible2, revealed: revealed2 } = this.getTreeNodeWithListIndex(location);
-          return visible2 && revealed2 ? listIndex : -1;
+          const { listIndex, visible: visible3, revealed: revealed2 } = this.getTreeNodeWithListIndex(location);
+          return visible3 && revealed2 ? listIndex : -1;
         }
         getListRenderCount(location) {
           return this.getTreeNode(location).renderNodeCount;
@@ -117067,15 +117067,15 @@ https://creativecommons.org/licenses/by/4.0/
           if (location.length === 0) {
             return { node: this.root, listIndex: -1, revealed: true, visible: false };
           }
-          const { parentNode, listIndex, revealed: revealed2, visible: visible2 } = this.getParentNodeWithListIndex(location);
+          const { parentNode, listIndex, revealed: revealed2, visible: visible3 } = this.getParentNodeWithListIndex(location);
           const index = location[location.length - 1];
           if (index < 0 || index > parentNode.children.length) {
             throw new TreeError(this.user, "Invalid tree location");
           }
           const node = parentNode.children[index];
-          return { node, listIndex, revealed: revealed2, visible: visible2 && node.visible };
+          return { node, listIndex, revealed: revealed2, visible: visible3 && node.visible };
         }
-        getParentNodeWithListIndex(location, node = this.root, listIndex = 0, revealed2 = true, visible2 = true) {
+        getParentNodeWithListIndex(location, node = this.root, listIndex = 0, revealed2 = true, visible3 = true) {
           const [index, ...rest] = location;
           if (index < 0 || index > node.children.length) {
             throw new TreeError(this.user, "Invalid tree location");
@@ -117084,11 +117084,11 @@ https://creativecommons.org/licenses/by/4.0/
             listIndex += node.children[i].renderNodeCount;
           }
           revealed2 = revealed2 && !node.collapsed;
-          visible2 = visible2 && node.visible;
+          visible3 = visible3 && node.visible;
           if (rest.length === 0) {
-            return { parentNode: node, listIndex, revealed: revealed2, visible: visible2 };
+            return { parentNode: node, listIndex, revealed: revealed2, visible: visible3 };
           }
-          return this.getParentNodeWithListIndex(rest, node.children[index], listIndex + 1, revealed2, visible2);
+          return this.getParentNodeWithListIndex(rest, node.children[index], listIndex + 1, revealed2, visible3);
         }
         getNode(location = []) {
           return this.getTreeNode(location);
@@ -118279,9 +118279,9 @@ https://creativecommons.org/licenses/by/4.0/
           container.setAttribute("aria-selected", String(false));
           return result;
         }
-        setVisible(visible2) {
-          this._rootDomNode.classList.toggle("empty", !visible2);
-          if (!visible2) {
+        setVisible(visible3) {
+          this._rootDomNode.classList.toggle("empty", !visible3);
+          if (!visible3) {
             this.stickyScrollFocus.updateElements([], void 0);
           }
         }
@@ -133803,9 +133803,9 @@ https://creativecommons.org/licenses/by/4.0/
           this._models = _models;
           this._instantiationService = _instantiationService;
           this._state = derived(this, (reader) => {
-            const visible2 = this._visible.read(reader);
-            this._parentNode.style.visibility = visible2 ? "visible" : "hidden";
-            if (!visible2) {
+            const visible3 = this._visible.read(reader);
+            this._parentNode.style.visibility = visible3 ? "visible" : "hidden";
+            if (!visible3) {
               return null;
             }
             const model = reader.store.add(this._instantiationService.createInstance(ViewModel2, this._diffs, this._models, this._setVisible, this._canClose));
@@ -139264,7 +139264,7 @@ https://creativecommons.org/licenses/by/4.0/
               scrollState = void 0;
             }
           }, modViewZoneIdsToIgnore));
-          this._accessibleDiffViewer = derivedDisposable(this, (reader) => this._instantiationService.createInstance(readHotReloadableExport(AccessibleDiffViewer), this.elements.accessibleDiffViewer, this._accessibleDiffViewerVisible, (visible2, tx) => this._accessibleDiffViewerShouldBeVisible.set(visible2, tx), this._options.onlyShowAccessibleDiffViewer.map((v2) => !v2), this._rootSizeObserver.width, this._rootSizeObserver.height, this._diffModel.map((m, r4) => m?.diff.read(r4)?.mappings.map((m2) => m2.lineRangeMapping)), new AccessibleDiffViewerModelFromEditors(this._editors))).recomputeInitiallyAndOnChange(this._store);
+          this._accessibleDiffViewer = derivedDisposable(this, (reader) => this._instantiationService.createInstance(readHotReloadableExport(AccessibleDiffViewer), this.elements.accessibleDiffViewer, this._accessibleDiffViewerVisible, (visible3, tx) => this._accessibleDiffViewerShouldBeVisible.set(visible3, tx), this._options.onlyShowAccessibleDiffViewer.map((v2) => !v2), this._rootSizeObserver.width, this._rootSizeObserver.height, this._diffModel.map((m, r4) => m?.diff.read(r4)?.mappings.map((m2) => m2.lineRangeMapping)), new AccessibleDiffViewerModelFromEditors(this._editors))).recomputeInitiallyAndOnChange(this._store);
           const visibility = this._accessibleDiffViewerVisible.map((v2) => v2 ? "hidden" : "visible");
           this._register(applyStyle(this.elements.modified, { visibility }));
           this._register(applyStyle(this.elements.original, { visibility }));
@@ -158116,6 +158116,121 @@ https://creativecommons.org/licenses/by/4.0/
     }
   });
 
+  // src/workspace_focus.ts
+  var active_element = () => {
+    let node = document.activeElement;
+    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
+    return node;
+  };
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  var within = (root, node) => {
+    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
+    return false;
+  };
+  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
+  var file_state = () => window.File;
+  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
+  function capture_workspace_focus(fallback2) {
+    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
+    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
+    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback2) || null;
+    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
+    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
+    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
+    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
+    let rangy;
+    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
+      try {
+        rangy = file?.editor?.selection?.getRangy();
+      } catch {
+      }
+    }
+    const scroll = [];
+    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
+    return { restore() {
+      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
+      const now = workspace_state();
+      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
+      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
+      previous.focus({ preventScroll: true });
+      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
+      else if (rangy) {
+        try {
+          rangy.select();
+        } catch {
+        }
+      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
+        try {
+          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
+        } catch {
+        }
+      }
+      for (const item of scroll) if (item.node.isConnected) {
+        item.node.scrollTop = item.top;
+        item.node.scrollLeft = item.left;
+      }
+    } };
+  }
+  var service_key = Symbol.for("typora-code:workspace-escape");
+  function register_workspace_escape(roots, cancel) {
+    const runtime2 = window;
+    if (!runtime2[service_key]) {
+      const stack = [];
+      let pending, listening = false;
+      const top = () => stack.findLast((record) => record.roots().some(visible));
+      const consume = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      const cleanup = () => {
+        if (!stack.length && !pending && listening) {
+          listening = false;
+          window.removeEventListener("keydown", keydown, true);
+          window.removeEventListener("keyup", keyup, true);
+          window.removeEventListener("blur", blur);
+        }
+      };
+      const keydown = (event) => {
+        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
+        if (pending) {
+          consume(event);
+          return;
+        }
+        const owner = top();
+        if (!owner) return;
+        consume(event);
+        if (!event.repeat) pending = owner;
+      };
+      const keyup = (event) => {
+        if (event.key !== "Escape" || !pending) return;
+        const owner = pending;
+        pending = void 0;
+        consume(event);
+        if (!event.isComposing && top() === owner && stack.includes(owner)) owner.cancel();
+        cleanup();
+      };
+      const blur = () => {
+        pending = void 0;
+        cleanup();
+      };
+      runtime2[service_key] = { add(record) {
+        stack.push(record);
+        if (!listening) {
+          listening = true;
+          window.addEventListener("keydown", keydown, true);
+          window.addEventListener("keyup", keyup, true);
+          window.addEventListener("blur", blur);
+        }
+        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
+          const index = stack.indexOf(record);
+          if (index !== -1) stack.splice(index, 1);
+          cleanup();
+        } };
+      } };
+    }
+    return runtime2[service_key].add({ roots, cancel });
+  }
+
   // src/workspace_interaction.css
   var workspace_interaction_default = "";
 
@@ -159960,30 +160075,27 @@ https://creativecommons.org/licenses/by/4.0/
     const content = workspace_element("div", "git-graph-dialog-content");
     const footer = workspace_element("div", "git-graph-dialog-footer");
     const interaction = acquire_workspace_interaction(root);
-    const previous = document.activeElement;
+    const previous = capture_workspace_focus();
     panel.tabIndex = -1;
     let closed = false;
-    const is_top_dialog = () => document.querySelectorAll(".git-graph-dialog-shade").item(document.querySelectorAll(".git-graph-dialog-shade").length - 1) === root;
+    const is_top_dialog = () => escape_layer.is_top();
     const focusable_controls = () => [...root.querySelectorAll("button,input,textarea,select,a[href],[tabindex]")].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
     const close = () => {
       if (closed) return;
-      const restore_focus = is_top_dialog();
+      const restore_focus = escape_layer.owns_focus();
       closed = true;
+      escape_layer.dispose();
       active_dialogs.delete(close);
       window.clearTimeout(focus_timer);
       window.removeEventListener("keydown", global_key, true);
       root.remove();
       interaction.remove();
-      if (restore_focus && previous?.isConnected && !previous.matches(":disabled")) previous.focus({ preventScroll: true });
+      if (restore_focus) previous.restore();
       on_close?.();
     };
+    const escape_layer = register_workspace_escape(() => [root], close);
     const global_key = (event) => {
       if (!is_top_dialog()) return;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        close();
-      }
       if (event.key === "Tab") {
         const controls = focusable_controls();
         const current = controls.indexOf(document.activeElement);
@@ -160000,10 +160112,6 @@ https://creativecommons.org/licenses/by/4.0/
     document.body.append(root);
     window.addEventListener("keydown", global_key, true);
     root.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        close();
-      }
       event.stopPropagation();
     });
     footer.append(workspace_button(close_title, close));
@@ -160020,33 +160128,48 @@ https://creativecommons.org/licenses/by/4.0/
     event.stopPropagation();
     const interaction = acquire_workspace_interaction();
     const menu_style = acquire_workspace_style("typora-code-style:widgets", workspace_widgets_default);
-    const previous_focus = document.activeElement;
+    const previous_focus = capture_workspace_focus();
     let closed = false;
     const menus = [];
+    const parents = /* @__PURE__ */ new Map();
     const close_from = (level) => {
-      menus.splice(level).forEach((menu) => menu.remove());
+      menus.splice(level).forEach((menu) => {
+        parents.delete(menu);
+        menu.remove();
+      });
     };
-    const close = () => {
+    const close = (restore = true) => {
       if (closed) return;
+      const owned2 = escape_layer.owns_focus();
       closed = true;
+      escape_layer.dispose();
       close_from(0);
       menu_style.remove();
       interaction.remove();
-      if (previous_focus?.isConnected) previous_focus.focus({ preventScroll: true });
+      if (restore && owned2) previous_focus.restore();
       window.removeEventListener("pointerdown", outside, true);
-      window.removeEventListener("blur", close);
+      window.removeEventListener("blur", blur);
       if (close_active_menu === close) close_active_menu = void 0;
       on_close?.();
     };
+    const blur = () => close(false);
     const outside = (input) => {
-      if (!menus.some((menu) => menu.contains(input.target))) close();
+      if (!menus.some((menu) => menu.contains(input.target))) close(false);
     };
+    const escape_layer = register_workspace_escape(() => menus, () => {
+      const child = menus.at(-1), parent = child && parents.get(child);
+      if (parent) {
+        close_from(menus.length - 1);
+        parent.focus({ preventScroll: true });
+      } else close();
+    });
     const show2 = (items, x, y, level, parent) => {
       close_from(level);
       const menu = workspace_element("div", "git-graph-menu" + (class_name ? " " + class_name : ""));
       menu.setAttribute("role", "menu");
       menu.setAttribute("data-menu-level", String(level));
       menus.push(menu);
+      if (parent) parents.set(menu, parent);
       for (const entry of items) {
         if (entry.separator && menu.children.length) {
           const separator2 = workspace_element("hr");
@@ -160096,10 +160219,6 @@ https://creativecommons.org/licenses/by/4.0/
         input.stopPropagation();
       });
       menu.addEventListener("keydown", (input) => {
-        if (input.key === "Escape") {
-          input.preventDefault();
-          close();
-        }
         if (input.key === "ArrowLeft" && parent) {
           input.preventDefault();
           close_from(level);
@@ -160121,7 +160240,7 @@ https://creativecommons.org/licenses/by/4.0/
       return menu;
     };
     close_active_menu = close;
-    window.addEventListener("blur", close);
+    window.addEventListener("blur", blur);
     window.addEventListener("pointerdown", outside, true);
     show2(entries3, event.clientX, event.clientY, 0).querySelector("button:not([disabled])")?.focus();
     return close;
@@ -160193,15 +160312,15 @@ https://creativecommons.org/licenses/by/4.0/
     for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
       const footer_rect = footer.getBoundingClientRect();
       if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
-      let visible2 = true;
+      let visible3 = true;
       for (let element = footer; element; element = element.parentElement) {
         const style = view?.getComputedStyle(element);
         if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
-          visible2 = false;
+          visible3 = false;
           break;
         }
       }
-      if (visible2) bottom = Math.max(top, footer_rect.top);
+      if (visible3) bottom = Math.max(top, footer_rect.top);
     }
     return { top, bottom, left, right };
   }
@@ -160210,7 +160329,7 @@ https://creativecommons.org/licenses/by/4.0/
   var reading_media_entry_default = "";
 
   // src/reading_media_entry.ts
-  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  var parent_element2 = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
   function bind_reading_media_entries(root = document.body) {
     const layer = workspace_element("div", "reading-media-entries"), style = acquire_workspace_style("typora-code-style:reading_media_entry", reading_media_entry_default), interaction = acquire_workspace_interaction(layer);
     layer.contentEditable = "false";
@@ -160234,7 +160353,7 @@ https://creativecommons.org/licenses/by/4.0/
         button.classList.toggle("is-small", width2 < 160);
         const slot = entry.slot.getBoundingClientRect();
         let left = 0, right = innerWidth, top = 0, bottom = innerHeight, shown = enabled;
-        for (let node = source; shown && node; node = parent_element(node)) {
+        for (let node = source; shown && node; node = parent_element2(node)) {
           const computed = getComputedStyle(node);
           if (computed.display === "none" || computed.visibility !== "visible" || Number(computed.opacity) === 0 || node.hasAttribute("hidden") || node.hasAttribute("inert")) {
             shown = false;
@@ -160305,7 +160424,15 @@ https://creativecommons.org/licenses/by/4.0/
         toolbar.append(button);
         layer.append(toolbar);
         options2.host.insertBefore(slot, options2.before ?? null);
-        const state = { options: options2, toolbar, slot, enabled: true };
+        const entry_events = new AbortController();
+        const reveal = (event) => {
+          const target = event.relatedTarget;
+          const inside = target instanceof Node && (options2.host.contains(target) || toolbar.contains(target));
+          if (event.type === "pointerenter" || !inside) toolbar.classList.toggle("is-revealed", event.type === "pointerenter");
+        };
+        for (const node of [options2.host, toolbar]) for (const name of ["pointerenter", "pointerleave"]) node.addEventListener(name, reveal, { signal: entry_events.signal });
+        if (options2.host.matches(":hover")) toolbar.classList.add("is-revealed");
+        const state = { options: options2, toolbar, slot, enabled: true, events: entry_events };
         entries3.set(button, state);
         resize.observe(options2.source);
         resize.observe(slot);
@@ -160320,6 +160447,7 @@ https://creativecommons.org/licenses/by/4.0/
         }, dispose() {
           if (removed) return;
           removed = true;
+          entry_events.abort();
           entries3.delete(button);
           resize.unobserve(options2.source);
           resize.unobserve(slot);
@@ -160335,7 +160463,10 @@ https://creativecommons.org/licenses/by/4.0/
         cancelAnimationFrame(frame3);
         observer2.disconnect();
         resize.disconnect();
-        for (const entry of entries3.values()) entry.slot.remove();
+        for (const entry of entries3.values()) {
+          entry.events.abort();
+          entry.slot.remove();
+        }
         entries3.clear();
         layer.remove();
         interaction.remove();
@@ -160405,11 +160536,11 @@ https://creativecommons.org/licenses/by/4.0/
   var ZOOM_FACTOR = 1.25;
   var active_close;
   function close_reading_media() {
-    active_close?.();
+    active_close?.(false);
   }
   function open_reading_media(media) {
-    active_close?.();
-    const previous = media.origin || (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    active_close?.(false);
+    const previous = capture_workspace_focus(media.origin);
     const viewer = workspace_element("section", "reading-media-viewer"), header = workspace_element("div", "reading-media-header"), toolbar = workspace_element("div", "reading-media-toolbar");
     viewer.setAttribute("role", "dialog");
     viewer.setAttribute("aria-modal", "true");
@@ -160484,10 +160615,12 @@ https://creativecommons.org/licenses/by/4.0/
       if (mode !== "manual") fit(mode === "fit-width", fit_initial);
     });
     resize.observe(canvas);
-    const close = () => {
+    const close = (restore = true) => {
       if (closed) return;
+      const owns_focus = escape_layer.owns_focus();
       closed = true;
       if (active_close === close) active_close = void 0;
+      escape_layer.dispose();
       controller.abort();
       source_observer.disconnect();
       cancelAnimationFrame(ready_frame);
@@ -160497,10 +160630,11 @@ https://creativecommons.org/licenses/by/4.0/
       interaction.remove();
       style.remove();
       document.body.classList.remove("reading-media-viewer-open");
-      if (previous?.isConnected) previous.focus({ preventScroll: true });
+      if (restore && owns_focus) previous.restore();
     };
+    const escape_layer = register_workspace_escape(() => [viewer], () => close());
     const source_observer = new MutationObserver(() => {
-      if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close();
+      if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close(false);
     });
     if (media.source) {
       source_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
@@ -160533,14 +160667,8 @@ https://creativecommons.org/licenses/by/4.0/
       else if (action === "reset") reset2();
     }, { signal });
     window.addEventListener("keydown", (event) => {
-      if (closed) return;
+      if (closed || !escape_layer.is_top()) return;
       const primary = (event.ctrlKey || event.metaKey) && !event.altKey;
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        close();
-        return;
-      }
       if (event.key === "Tab") {
         const nodes = controls(), index = nodes.indexOf(document.activeElement);
         const target = event.shiftKey ? index <= 0 ? nodes.at(-1) : nodes[index - 1] : nodes[(index + 1) % nodes.length];
@@ -160608,7 +160736,7 @@ https://creativecommons.org/licenses/by/4.0/
     let session;
     const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
     const close_session = () => {
-      session?.close();
+      session?.close(false);
       session = void 0;
     };
     const open = (image, entry, from_image = false) => {
@@ -160810,9 +160938,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         texts.push({ node: text3, start, end, selected: selected2 });
       }
-      const visible2 = texts.filter((item) => !item.node.parentElement?.closest(meta_selector) || item.node.parentElement?.closest('[md-inline="html_entity"]'));
-      if (!visible2.some((item) => item.selected)) continue;
-      if (!["paragraph", "heading", "table_cell", "def_footnote"].includes(String(node.get("type"))) || visible2.some((item) => item.selected && item.node.parentElement?.closest(forbidden_selector))) throw new Error("\u5B57\u4F53\u989C\u8272\u9002\u7528\u4E8E\u666E\u901A Markdown \u6587\u5B57\uFF1B\u8BF7\u907F\u5F00\u4EE3\u7801\u5757\u3001\u516C\u5F0F\u548C\u56FE\u7247\u3002");
+      const visible3 = texts.filter((item) => !item.node.parentElement?.closest(meta_selector) || item.node.parentElement?.closest('[md-inline="html_entity"]'));
+      if (!visible3.some((item) => item.selected)) continue;
+      if (!["paragraph", "heading", "table_cell", "def_footnote"].includes(String(node.get("type"))) || visible3.some((item) => item.selected && item.node.parentElement?.closest(forbidden_selector))) throw new Error("\u5B57\u4F53\u989C\u8272\u9002\u7528\u4E8E\u666E\u901A Markdown \u6587\u5B57\uFF1B\u8BF7\u907F\u5F00\u4EE3\u7801\u5757\u3001\u516C\u5F0F\u548C\u56FE\u7247\u3002");
       if (node.get("text") !== source) throw new Error("\u5F53\u524D\u6BB5\u843D\u542B\u6709\u65E0\u6CD5\u5B89\u5168\u6620\u5C04\u7684\u7279\u6B8A\u8BED\u6CD5\uFF0C\u8BF7\u91CD\u65B0\u9009\u53D6\u666E\u901A\u6587\u5B57\u3002");
       const managed = /* @__PURE__ */ new Map(), cuts = [];
       const cut_element = (element) => {
@@ -160838,12 +160966,12 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const runs = [], selected = [];
       const code_seen = /* @__PURE__ */ new Set();
-      for (const item of visible2) {
+      for (const item of visible3) {
         const code = item.node.parentElement?.closest('[md-inline="code"],[md-inline="escape"],[md-inline="html_entity"]');
         if (code) {
           if (code_seen.has(code)) continue;
           code_seen.add(code);
-          const content = visible2.filter((part) => code.contains(part.node));
+          const content = visible3.filter((part) => code.contains(part.node));
           const all = texts.filter((part) => code.contains(part.node));
           const hits = content.filter((part) => part.selected);
           if (hits.length && (hits.length !== content.length || hits.some((part) => part.selected.start !== part.start || part.selected.end !== part.end))) throw new Error("\u884C\u5185\u4EE3\u7801\u6216\u8F6C\u4E49\u5B57\u7B26\u8BF7\u5B8C\u6574\u9009\u4E2D\u540E\u8BBE\u8272\uFF0C\u907F\u514D\u6539\u53D8\u539F\u5185\u5BB9\u3002");
@@ -161178,7 +161306,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_file_operations.ts
   var entry_identity = (stat) => "".concat(stat.dev, ":").concat(stat.ino);
-  function within(path_api, root, candidate, allow_root = true) {
+  function within2(path_api, root, candidate, allow_root = true) {
     const relative2 = path_api.relative(root, candidate);
     return (allow_root || Boolean(relative2)) && !path_api.isAbsolute(relative2) && relative2 !== ".." && !relative2.startsWith(".." + path_api.sep);
   }
@@ -161191,14 +161319,14 @@ https://creativecommons.org/licenses/by/4.0/
     if (![root, candidate].every((value) => path_api.isAbsolute(value))) throw new Error("\u6587\u4EF6\u64CD\u4F5C\u9700\u8981\u5DE5\u4F5C\u533A\u5185\u7684\u7EDD\u5BF9\u8DEF\u5F84\u3002");
     root = path_api.resolve(root);
     candidate = path_api.resolve(candidate);
-    if (!within(path_api, root, candidate, allow_root)) throw new Error("\u4E0D\u80FD\u64CD\u4F5C\u5DE5\u4F5C\u533A\u4EE5\u5916\u7684\u9879\u76EE\u6216\u5DE5\u4F5C\u533A\u6839\u76EE\u5F55\u3002");
+    if (!within2(path_api, root, candidate, allow_root)) throw new Error("\u4E0D\u80FD\u64CD\u4F5C\u5DE5\u4F5C\u533A\u4EE5\u5916\u7684\u9879\u76EE\u6216\u5DE5\u4F5C\u533A\u6839\u76EE\u5F55\u3002");
     const root_real = await fs2.realpath(root);
     let cursor = root;
     for (const part of path_api.relative(root, candidate).split(path_api.sep).filter(Boolean)) {
       cursor = path_api.join(cursor, part);
       if ((await fs2.lstat(cursor)).isSymbolicLink()) throw new Error("\u6587\u4EF6\u64CD\u4F5C\u4E0D\u80FD\u7ECF\u8FC7\u7B26\u53F7\u94FE\u63A5\uFF0C\u8BF7\u6253\u5F00\u771F\u5B9E\u76EE\u5F55\u3002");
     }
-    if (!within(path_api, root_real, await fs2.realpath(candidate))) throw new Error("\u9879\u76EE\u5DF2\u79FB\u51FA\u5DE5\u4F5C\u533A\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002");
+    if (!within2(path_api, root_real, await fs2.realpath(candidate))) throw new Error("\u9879\u76EE\u5DF2\u79FB\u51FA\u5DE5\u4F5C\u533A\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002");
     const stat = await fs2.stat(candidate);
     if (!stat.isFile() && !stat.isDirectory()) throw new Error("\u53EA\u80FD\u64CD\u4F5C\u666E\u901A\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u3002");
     return { path: candidate, stat };
@@ -161248,11 +161376,11 @@ https://creativecommons.org/licenses/by/4.0/
     const destination = await check_directory(modules, root, target_directory);
     if (sources.some((source) => !path_api.isAbsolute(source))) throw new Error("\u6E90\u9879\u76EE\u5FC5\u987B\u662F\u7EDD\u5BF9\u8DEF\u5F84\u3002");
     const normalized2 = [...new Set(sources.map((source) => path_api.resolve(source)))];
-    const selected = normalized2.filter((source) => !normalized2.some((parent) => parent !== source && within(path_api, parent, source, false)));
+    const selected = normalized2.filter((source) => !normalized2.some((parent) => parent !== source && within2(path_api, parent, source, false)));
     const plans = [], targets = /* @__PURE__ */ new Set();
     for (const source of selected) {
       const entry = await check_entry(modules, root, source, false), target = path_api.join(destination.path, path_api.basename(source));
-      if (entry.stat.isDirectory() && within(path_api, source, destination.path)) throw new Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u590D\u5236\u6216\u79FB\u5165\u81EA\u8EAB\u3002");
+      if (entry.stat.isDirectory() && within2(path_api, source, destination.path)) throw new Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u590D\u5236\u6216\u79FB\u5165\u81EA\u8EAB\u3002");
       const key = path_api.sep === "\\" ? target.toLowerCase() : target;
       if (targets.has(key)) throw new Error("\u6240\u9009\u9879\u76EE\u5305\u542B\u540C\u540D\u76EE\u6807\uFF0C\u672A\u6267\u884C\u64CD\u4F5C\u3002");
       targets.add(key);
@@ -161321,7 +161449,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function trash_workspace_entries(modules, root, sources, trash) {
     if (sources.some((source) => !modules.path_api.isAbsolute(source))) throw new Error("\u6E90\u9879\u76EE\u5FC5\u987B\u662F\u7EDD\u5BF9\u8DEF\u5F84\u3002");
-    const selected = [...new Set(sources.map((source) => modules.path_api.resolve(source)))].filter((source, _index, all) => !all.some((parent) => parent !== source && within(modules.path_api, parent, source, false)));
+    const selected = [...new Set(sources.map((source) => modules.path_api.resolve(source)))].filter((source, _index, all) => !all.some((parent) => parent !== source && within2(modules.path_api, parent, source, false)));
     const entries3 = await Promise.all(selected.map((source) => check_entry(modules, root, source, false))), completed = [];
     try {
       for (const entry of entries3) {
@@ -168819,7 +168947,7 @@ https://creativecommons.org/licenses/by/4.0/
     _applyFilter(skipTextFilter = false, fireLayout = true) {
       const filterLower = skipTextFilter ? "" : this._filterText.toLowerCase();
       const isFiltering = !skipTextFilter && filterLower.length > 0;
-      const visible2 = [];
+      const visible3 = [];
       const focusedIndexes = this._list.getFocus();
       let focusedItem;
       if (focusedIndexes.length > 0) {
@@ -168831,9 +168959,9 @@ https://creativecommons.org/licenses/by/4.0/
         let hasMatchingActionInSection = false;
         const flushFilteredSection = () => {
           if (pendingSeparator && hasMatchingActionInSection) {
-            visible2.push(pendingSeparator);
+            visible3.push(pendingSeparator);
           }
-          visible2.push(...filteredSectionItems);
+          visible3.push(...filteredSectionItems);
           pendingSeparator = void 0;
           filteredSectionItems = [];
           hasMatchingActionInSection = false;
@@ -168868,19 +168996,19 @@ https://creativecommons.org/licenses/by/4.0/
       } else {
         for (const item of this._allMenuItems) {
           if (item.kind === "header") {
-            visible2.push(item);
+            visible3.push(item);
             continue;
           }
           if (item.kind === "separator") {
             if (item.section && this._collapsedSections.has(item.section)) {
               continue;
             }
-            visible2.push(item);
+            visible3.push(item);
             continue;
           }
           if (item.isSectionToggle && item.section) {
             const collapsed2 = this._collapsedSections.has(item.section);
-            visible2.push({
+            visible3.push({
               ...item,
               group: { ...item.group, icon: collapsed2 ? Codicon.chevronRight : Codicon.chevronDown }
             });
@@ -168889,46 +169017,46 @@ https://creativecommons.org/licenses/by/4.0/
           if (item.section && this._collapsedSections.has(item.section)) {
             continue;
           }
-          visible2.push(item);
+          visible3.push(item);
         }
       }
       const hasActionBefore = [];
       let seenAction = false;
-      for (let i = 0; i < visible2.length; i++) {
+      for (let i = 0; i < visible3.length; i++) {
         hasActionBefore[i] = seenAction;
-        if (visible2[i].kind === "action") {
+        if (visible3[i].kind === "action") {
           seenAction = true;
         }
       }
       const hasActionBeforeNextSeparator = [];
       let seenActionInSection = false;
-      for (let i = visible2.length - 1; i >= 0; i--) {
-        if (visible2[i].kind === "action") {
+      for (let i = visible3.length - 1; i >= 0; i--) {
+        if (visible3[i].kind === "action") {
           seenActionInSection = true;
           continue;
         }
-        if (visible2[i].kind !== "separator") {
+        if (visible3[i].kind !== "separator") {
           continue;
         }
         hasActionBeforeNextSeparator[i] = seenActionInSection;
         seenActionInSection = false;
       }
-      for (let i = visible2.length - 1; i >= 0; i--) {
-        const item = visible2[i];
+      for (let i = visible3.length - 1; i >= 0; i--) {
+        const item = visible3[i];
         if (item.kind !== "separator") {
           continue;
         }
         const hasFollowingActionInSection = hasActionBeforeNextSeparator[i];
         const isLeadingUnlabeledDivider = !item.label && !hasActionBefore[i];
         if (!hasFollowingActionInSection || isLeadingUnlabeledDivider) {
-          visible2.splice(i, 1);
+          visible3.splice(i, 1);
         }
       }
       if (this._options?.showGroupTitleOnFirstItem) {
-        this._recomputeGroupTitles(visible2);
+        this._recomputeGroupTitles(visible3);
       }
       const filterInputHasFocus = this._filterInput && isActiveElement(this._filterInput);
-      this._list.splice(0, this._list.length, visible2);
+      this._list.splice(0, this._list.length, visible3);
       if (fireLayout) {
         this._onDidRequestLayout.fire();
       }
@@ -179167,9 +179295,13 @@ https://creativecommons.org/licenses/by/4.0/
     let limited = false;
     let rendered_query = "";
     let pending_open_query;
-    let previous_focus = null;
-    const close = () => {
+    let previous_focus;
+    let escape_layer;
+    const close = (restore = true) => {
       if (root.hidden) return;
+      const owned2 = escape_layer?.owns_focus();
+      escape_layer?.dispose();
+      escape_layer = void 0;
       scan_generation += 1;
       render_generation += 1;
       clearTimeout(render_timer);
@@ -179180,8 +179312,8 @@ https://creativecommons.org/licenses/by/4.0/
       root.setAttribute("aria-modal", "false");
       results.replaceChildren();
       shown = [];
-      if (previous_focus?.isConnected) previous_focus.focus({ preventScroll: true });
-      previous_focus = null;
+      if (restore && owned2) previous_focus?.restore();
+      previous_focus = void 0;
     };
     const select = (index) => {
       const rows = [...results.querySelectorAll(".workspace-quick-open-result")];
@@ -179341,7 +179473,8 @@ https://creativecommons.org/licenses/by/4.0/
         input.focus();
         return;
       }
-      previous_focus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      previous_focus = capture_workspace_focus();
+      escape_layer = register_workspace_escape(() => [root], () => close());
       root.hidden = false;
       root.setAttribute("aria-modal", "true");
       input.value = "";
@@ -179363,24 +179496,21 @@ https://creativecommons.org/licenses/by/4.0/
       } else if (event.key === "Enter") {
         event.preventDefault();
         open_selected();
-      } else if (event.key === "Escape") {
-        event.preventDefault();
-        close();
       }
     };
     root.onmousedown = (event) => {
-      if (event.target === root) close();
+      if (event.target === root) close(false);
     };
     document.addEventListener("pointerdown", (event) => {
-      if (!root.hidden && !root.contains(event.target)) close();
+      if (!root.hidden && !root.contains(event.target)) close(false);
     }, { capture: true, signal: events.signal });
-    window.addEventListener("blur", close, { signal: events.signal });
-    window.addEventListener("linux-note-workspace-context-changed", close, { signal: events.signal });
+    window.addEventListener("blur", () => close(false), { signal: events.signal });
+    window.addEventListener("linux-note-workspace-context-changed", () => close(false), { signal: events.signal });
     const binding = { root, input, open, close, dispose() {
       if (disposed) return;
       disposed = true;
       events.abort();
-      close();
+      close(false);
       scan_generation += 1;
       root.remove();
       style.remove();
@@ -194090,7 +194220,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.body.append(container);
     const root = document.querySelector(".typ-workspace-root");
     const initial_bottom = root?.style.bottom ?? "", base_bottom = root ? getComputedStyle(root).bottom : "0px";
-    let visible2 = false, maximized = false, frame3 = 0, height_ratio = 0.4;
+    let visible3 = false, maximized = false, frame3 = 0, height_ratio = 0.4;
     try {
       const value = Number(localStorage.getItem("linux-note-terminal-panel-height"));
       if (value >= 0.15 && value <= 0.9) height_ratio = value;
@@ -194102,8 +194232,8 @@ https://creativecommons.org/licenses/by/4.0/
       const root_rect = root?.getBoundingClientRect();
       const footer = document.querySelector("footer.ty-footer"), footer_rect = footer?.getBoundingClientRect();
       const bottom = footer ? footer_rect?.height && getComputedStyle(footer).display !== "none" ? innerHeight - footer_rect.top : 0 : parseFloat(base_bottom) || 0;
-      const top = root_rect?.top || 0, available = Math.max(0, innerHeight - bottom - top), height = visible2 ? Math.min(available, Math.max(120, maximized ? available : available * height_ratio)) : 0;
-      if (root) root.style.bottom = visible2 ? "".concat(bottom + height, "px") : initial_bottom;
+      const top = root_rect?.top || 0, available = Math.max(0, innerHeight - bottom - top), height = visible3 ? Math.min(available, Math.max(120, maximized ? available : available * height_ratio)) : 0;
+      if (root) root.style.bottom = visible3 ? "".concat(bottom + height, "px") : initial_bottom;
       container.style.left = (root_rect?.left || 0) + "px";
       container.style.width = (root_rect?.width || innerWidth) + "px";
       container.style.bottom = bottom + "px";
@@ -194182,20 +194312,20 @@ https://creativecommons.org/licenses/by/4.0/
       tabs,
       panes,
       get visible() {
-        return visible2;
+        return visible3;
       },
       get maximized() {
         return maximized;
       },
       show() {
         if (lifetime.disposed) return;
-        visible2 = true;
+        visible3 = true;
         container.hidden = false;
         schedule();
       },
       hide() {
         if (lifetime.disposed) return;
-        visible2 = false;
+        visible3 = false;
         container.hidden = true;
         layout2();
       },
@@ -225885,8 +226015,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     window.addEventListener("pagehide", dispose2, { once: true });
     void refresh();
-    return { dispose: dispose2, refresh: () => void refresh(), set_graph_visible: (visible2) => {
-      graph.hidden = !visible2;
+    return { dispose: dispose2, refresh: () => void refresh(), set_graph_visible: (visible3) => {
+      graph.hidden = !visible3;
     } };
   }
 
@@ -227087,7 +227217,7 @@ https://creativecommons.org/licenses/by/4.0/
     status2.hidden = true;
     toolbar.append(title, actions);
     container.append(toolbar, root_label, tree, status2);
-    let root, selected_path = "", visible2 = false, disposed = false, generation = 0, serial2 = 0;
+    let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
     let flat_nodes = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
     let rename_state;
     let clipboard, compact_folders = false;
@@ -227155,13 +227285,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (forget) nodes.delete(node.path);
     }
     function watch(node) {
-      if (!visible2 || disposed || !node.expanded && !node.compact_parent || node.watcher || watcher_count >= 128) return;
+      if (!visible3 || disposed || !node.expanded && !node.compact_parent || node.watcher || watcher_count >= 128) return;
       try {
         node.watcher = fs2.watch(node.path, { persistent: false }, () => {
           if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
           node.refresh_timer = window.setTimeout(() => {
             node.refresh_timer = void 0;
-            if (visible2 && node.expanded) void load_children(node, true);
+            if (visible3 && node.expanded) void load_children(node, true);
           }, 250);
         });
         watcher_count++;
@@ -227696,13 +227826,13 @@ https://creativecommons.org/licenses/by/4.0/
     const clear_native_tabs = () => {
       const native_sidebar = document.querySelector("#typora-sidebar");
       const classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
-      if (visible2 && native_sidebar && classes.some((name) => native_sidebar.classList.contains(name))) native_sidebar.classList.remove(...classes);
+      if (visible3 && native_sidebar && classes.some((name) => native_sidebar.classList.contains(name))) native_sidebar.classList.remove(...classes);
     };
     const native_observer = new MutationObserver(clear_native_tabs);
     class explorer_sidebar extends core.SidebarPanel {
       containerEl = container;
       onshow() {
-        visible2 = true;
+        visible3 = true;
         clear_native_tabs();
         core.app.workspace.ribbon.activeButton("core.file-explorer");
         const native_sidebar = document.querySelector("#typora-sidebar");
@@ -227714,7 +227844,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
       }
       onhide() {
-        visible2 = false;
+        visible3 = false;
         native_observer.disconnect();
         if (root) close_branch(root);
       }
@@ -227818,7 +227948,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
     resize_observer.observe(tree);
     const active_change = () => {
-      if (!visible2 || disposed || refresh_frame) return;
+      if (!visible3 || disposed || refresh_frame) return;
       refresh_frame = requestAnimationFrame(() => {
         refresh_frame = 0;
         run(() => reveal());
@@ -227829,7 +227959,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (typeof detach === "function") detachers.push(detach);
     }
     const window_focus = () => {
-      if (visible2) run(() => refresh());
+      if (visible3) run(() => refresh());
     };
     window.addEventListener("focus", window_focus);
     function dispose2() {
@@ -227838,7 +227968,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       interaction.remove();
       generation++;
-      visible2 = false;
+      visible3 = false;
       native_observer.disconnect();
       resize_observer.disconnect();
       if (root) close_branch(root, true);
@@ -228686,15 +228816,15 @@ https://creativecommons.org/licenses/by/4.0/
         const walker = document.createTreeWalker(target_content, NodeFilter.SHOW_TEXT);
         let node;
         const nodes = [];
-        let visible2 = "";
+        let visible3 = "";
         while (node = walker.nextNode()) {
-          const start2 = visible2.length;
-          visible2 += node.textContent || "";
-          nodes.push({ node, start: start2, end: visible2.length });
+          const start2 = visible3.length;
+          visible3 += node.textContent || "";
+          nodes.push({ node, start: start2, end: visible3.length });
         }
         let found = -1;
         for (let index = 0; index <= occurrence; index++) {
-          const next = visible2.indexOf(needle, found + 1);
+          const next = visible3.indexOf(needle, found + 1);
           if (next < 0) break;
           found = next;
         }
@@ -230237,9 +230367,9 @@ https://creativecommons.org/licenses/by/4.0/
       } else if (!event.ctrlKey && !event.metaKey && !event.altKey && ["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        const visible2 = items().filter((node) => node.getBoundingClientRect().height > 0);
-        const index = visible2.indexOf(item);
-        visible2[event.key === "Home" ? 0 : event.key === "End" ? visible2.length - 1 : (index + (event.key === "ArrowDown" ? 1 : visible2.length - 1)) % visible2.length]?.focus();
+        const visible3 = items().filter((node) => node.getBoundingClientRect().height > 0);
+        const index = visible3.indexOf(item);
+        visible3[event.key === "Home" ? 0 : event.key === "End" ? visible3.length - 1 : (index + (event.key === "ArrowDown" ? 1 : visible3.length - 1)) % visible3.length]?.focus();
       }
     };
     const on_motion_change = () => {
@@ -230950,8 +231080,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const refresh = () => {
       if (disposed) return;
-      const target = source(), visible2 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
-      if (pane.hidden === visible2) pane.hidden = !visible2;
+      const target = source(), visible3 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
+      if (pane.hidden === visible3) pane.hidden = !visible3;
       const next_editor = target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
       if (next_model !== model || target !== leaf) {
         subscription?.dispose();
@@ -230969,7 +231099,7 @@ https://creativecommons.org/licenses/by/4.0/
           language_subscription = model.onDidChangeLanguage(schedule);
         } else if (target) message("\u6B63\u5728\u7B49\u5F85\u6E90\u7801\u7F16\u8F91\u5668\u2026");
       }
-      if (visible2 && model && !timer && (version !== model.getVersionId() || language44 !== model.getLanguageId())) schedule();
+      if (visible3 && model && !timer && (version !== model.getVersionId() || language44 !== model.getLanguageId())) schedule();
     };
     const observer2 = new MutationObserver(refresh);
     observer2.observe(document.body, { childList: true, subtree: true });
@@ -231396,20 +231526,20 @@ https://creativecommons.org/licenses/by/4.0/
       else footer.setAttribute("data-workspace-footer-popup-open", initial_layer);
     });
     let frame3 = 0;
-    const visible2 = (node) => Boolean(node?.isConnected && node.getClientRects().length && getComputedStyle(node).display !== "none" && getComputedStyle(node).visibility !== "hidden");
+    const visible3 = (node) => Boolean(node?.isConnected && node.getClientRects().length && getComputedStyle(node).display !== "none" && getComputedStyle(node).visibility !== "hidden");
     const set_property = (node, name, value) => {
       if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
     };
     const layout2 = () => {
       frame3 = 0;
       if (lifetime.disposed) return;
-      const footer_visible = visible2(footer), footer_bounds = footer.getBoundingClientRect();
+      const footer_visible = visible3(footer), footer_bounds = footer.getBoundingClientRect();
       const titlebar = document.querySelector("#top-titlebar");
-      const viewport_top = visible2(titlebar) ? Math.max(4, titlebar.getBoundingClientRect().bottom + 4) : 4;
+      const viewport_top = visible3(titlebar) ? Math.max(4, titlebar.getBoundingClientRect().bottom + 4) : 4;
       let nested_open = false;
       for (const { menu, anchors } of entries3) {
-        if (!footer_visible || !visible2(menu)) continue;
-        const anchor = anchors.map((selector) => footer.querySelector(selector)).find((node) => visible2(node)) || footer;
+        if (!footer_visible || !visible3(menu)) continue;
+        const anchor = anchors.map((selector) => footer.querySelector(selector)).find((node) => visible3(node)) || footer;
         const anchor_bounds = anchor.getBoundingClientRect();
         const bottom = Math.min(innerHeight - 4, footer_bounds.top - 3, anchor_bounds.top - 3);
         set_property(menu, "--workspace-popup-max-height", Math.max(0, Math.min(innerHeight * 0.65, bottom - viewport_top)) + "px");
@@ -231550,44 +231680,30 @@ https://creativecommons.org/licenses/by/4.0/
     const panels = [];
     const panel_events = /* @__PURE__ */ new Map();
     let last_width = -1;
-    let active_index = -1, generation = 0, disposed = false, opener = null;
-    let saved_ranges = [];
-    let saved_input;
+    let active_index = -1, generation = 0, disposed = false;
+    let previous_focus, escape_layer;
+    const parents = /* @__PURE__ */ new Map();
     const save_focus = () => {
-      opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      const selection = window.getSelection();
-      saved_ranges = [];
-      if (selection) for (let i = 0; i < selection.rangeCount; i++) saved_ranges.push(selection.getRangeAt(i).cloneRange());
-      saved_input = opener instanceof HTMLInputElement || opener instanceof HTMLTextAreaElement ? { start: opener.selectionStart, end: opener.selectionEnd } : void 0;
-    };
-    const restore_focus = () => {
-      if (opener?.isConnected) {
-        opener.focus({ preventScroll: true });
-        if (opener instanceof HTMLInputElement || opener instanceof HTMLTextAreaElement) {
-          if (saved_input?.start !== null && saved_input?.start !== void 0 && saved_input.end !== null) opener.setSelectionRange(saved_input.start, saved_input.end);
-          return;
-        }
-      }
-      const selection = window.getSelection();
-      if (selection && saved_ranges.length && saved_ranges.every((range2) => range2.startContainer.isConnected && range2.endContainer.isConnected)) {
-        selection.removeAllRanges();
-        for (const range2 of saved_ranges) selection.addRange(range2);
-      }
+      previous_focus = capture_workspace_focus();
     };
     const close_after = (depth) => {
       for (const panel of panels.splice(depth)) {
         panel_events.get(panel)?.abort();
         panel_events.delete(panel);
+        parents.delete(panel);
         panel.remove();
       }
     };
     const close = (restore = false) => {
+      const owned2 = escape_layer?.owns_focus();
+      escape_layer?.dispose();
+      escape_layer = void 0;
       generation++;
       close_after(0);
       active_index = -1;
       for (const button of buttons) button.setAttribute("aria-expanded", "false");
       more.setAttribute("aria-expanded", "false");
-      if (restore) restore_focus();
+      if (restore && owned2) previous_focus?.restore();
     };
     const actionable = (panel) => [...panel.querySelectorAll(":scope > button:not(:disabled)")];
     const focus_item = (panel, index) => {
@@ -231613,6 +231729,14 @@ https://creativecommons.org/licenses/by/4.0/
       panel.style.visibility = "hidden";
       document.body.append(panel);
       panels.push(panel);
+      parents.set(panel, anchor);
+      escape_layer ??= register_workspace_escape(() => panels, () => {
+        if (panels.length > 1) {
+          const parent = parents.get(panels.at(-1));
+          close_after(panels.length - 1);
+          parent?.focus({ preventScroll: true });
+        } else close(true);
+      });
       for (const entry of entries3) {
         if (entry.separator) {
           const line = document.createElement("div");
@@ -231697,7 +231821,7 @@ https://creativecommons.org/licenses/by/4.0/
           close_after(depth + 1);
           const count = Math.max(1, Math.floor(panel.clientHeight / 24));
           focus_item(panel, event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : index + (event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : event.key === "PageDown" ? count : -count));
-        } else if (event.key === "Escape" || event.key === "ArrowLeft" && depth > 0) {
+        } else if (event.key === "ArrowLeft" && depth > 0) {
           event.preventDefault();
           event.stopPropagation();
           if (depth) {
@@ -231831,11 +231955,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       if (active_index !== -1 && (!(event.target instanceof Node) || !panels.some((panel) => panel.contains(event.target)))) {
-        if (event.key === "Escape") {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          close(true);
-        } else if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && panels[0]) {
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && panels[0]) {
           event.preventDefault();
           event.stopImmediatePropagation();
           focus_item(panels[0], event.key === "ArrowUp" || event.key === "End" ? -1 : 0);
@@ -232225,6 +232345,7 @@ https://creativecommons.org/licenses/by/4.0/
     const search_label = document.createElement("span");
     search2.append(git_icon("search"), search_label);
     center.append(search2);
+    search2.addEventListener("mousedown", (event) => event.preventDefault(), { signal: events.signal });
     search2.addEventListener("click", open_files, { signal: events.signal });
     const refresh_label = () => {
       const folder = files.context_root();
@@ -232307,9 +232428,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       sync_sash();
     };
-    const set_visible = (visible2) => {
-      if (options2.sidebar.isShown === visible2) return;
-      if (visible2) options2.sidebar.show();
+    const set_visible = (visible3) => {
+      if (options2.sidebar.isShown === visible3) return;
+      if (visible3) options2.sidebar.show();
       else options2.sidebar.hide();
       if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
       notify_layout();
@@ -232608,7 +232729,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/reading_minimap.ts
   var MINIMAP_WIDTH = 88;
   var clamp2 = (value, low, high) => Math.max(low, Math.min(high, value));
-  function visible(element) {
+  function visible2(element) {
     const bounds = element.getBoundingClientRect();
     return element.isConnected && bounds.width > 0 && bounds.height > 0 && getComputedStyle(element).visibility !== "hidden";
   }
@@ -232683,7 +232804,7 @@ https://creativecommons.org/licenses/by/4.0/
       viewport.style.transform = "translateY(".concat(ratio * (height - thumb_height), "px)");
       rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
     };
-    const geometry_ready = () => !target.owner.closest(".typ-deactive") && visible(target.owner) && visible(target.root) && target.owner.clientWidth > MINIMAP_WIDTH && target.owner.clientHeight > 0 && !target.owner.getAnimations().some((animation) => animation instanceof CSSTransition && /^(?:width|height|left|right|top|bottom|inset|transform)$/u.test(animation.transitionProperty));
+    const geometry_ready = () => !target.owner.closest(".typ-deactive") && visible2(target.owner) && visible2(target.root) && target.owner.clientWidth > MINIMAP_WIDTH && target.owner.clientHeight > 0 && !target.owner.getAnimations().some((animation) => animation instanceof CSSTransition && /^(?:width|height|left|right|top|bottom|inset|transform)$/u.test(animation.transitionProperty));
     const layout2 = () => {
       if (disposed) return false;
       if (!geometry_ready()) {
@@ -233552,8 +233673,8 @@ https://creativecommons.org/licenses/by/4.0/
     for (const preview of candidates) {
       const style = getComputedStyle(preview);
       const bounds = preview.getBoundingClientRect();
-      const visible2 = style.display !== "none" && style.visibility !== "hidden" && bounds.width > 0 && bounds.height > 0;
-      const area = visible2 ? bounds.width * bounds.height : 0;
+      const visible3 = style.display !== "none" && style.visibility !== "hidden" && bounds.width > 0 && bounds.height > 0;
+      const area = visible3 ? bounds.width * bounds.height : 0;
       if (area >= selected_area) {
         selected = preview;
         selected_area = area;
