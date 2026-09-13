@@ -97,3 +97,7 @@ R030将标签菜单与快捷键收敛到 `workspace_editor_actions`，后台目�
 ## R031 图片与图表查看器
 
 图片阅读层由 `reading_image_viewer` 绑定原生正文和历史阅读器，按钮不插入正文，单击保留原生选中、双击图片打开；`reading_media_viewer`统一管理图片／图表副本、缩放拖动、主题和焦点。正文切换、来源重建及卸载均清理；Mermaid只选择真正的图表SVG，阅读按钮捕获事件避免首次聚焦重建造成失效。见[设计](reading_media_viewer.md)。
+
+## 2026-09-13 提交节点文本布局
+
+R022追加反馈按固定 VS Code 1.137.0的 IconLabel / SCM布局实现，见[提交标题与作者](workspace_interaction.md#r022-提交标题与作者连续排列)。`git_scm_history`在引用存在时也渲染作者；`git_graph.css`只对共同文本区域做末端省略，引用描述最大100px。没有增加状态存储、悬停计时器或 Git 业务路径。历史文件行和中央 Graph 独立列保持原职责。构建、完整检查、16组提交文本场景与5个相关UI目标及原生几何验证结果见对应反馈记录。

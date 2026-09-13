@@ -93,7 +93,11 @@ export class git_scm_history {
       row.dataset.workspaceInteraction="row";row.setAttribute("aria-label",`${commit.subject}, ${commit.author}, ${panel.date(commit)}`);
       const disclosure = el("span", "git-scm-history-disclosure"); disclosure.append(git_disclosure()); disclosure.setAttribute("aria-hidden", "true");
       const summary = el("span", "git-scm-history-summary"); const subject = el("span", "git-scm-history-subject", panel.emoji(commit.subject));
-      summary.append(subject);
+      // 标题和作者作为一段行内文本，由共同区域从末端裁切；引用不替代作者。
+      const label = el("span", "git-scm-history-label");
+      label.append(subject);
+      if (commit.author) label.append(el("span", "git-scm-history-author", commit.author));
+      summary.append(label);
       if (names.length) {
         const labels = el("span", "git-scm-history-refs");
         for (const name of names) {
@@ -102,7 +106,7 @@ export class git_scm_history {
           badge.append(git_icon(badge.dataset.current === "true" ? "target" : "git-branch"), el("span", "git-scm-history-ref-name", name)); labels.append(badge);
         }
         summary.append(labels);
-      } else summary.append(el("span", "git-scm-history-author", commit.author));
+      }
       const graph_row = graph.rows[index];
       const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap(edge => [edge.from, edge.to])) + 1;
       const svg = panel.draw_graph(graph_row, row_lanes, {lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT});

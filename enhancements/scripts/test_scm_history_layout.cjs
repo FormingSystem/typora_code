@@ -63,5 +63,53 @@ app.whenReady().then(async()=>{
   assert.deepEqual(await evaluate('revisions'),[[{path:'README.md',status:'A'},'single','tip']]);assert.equal(await evaluate('opened.length'),2,'read revision action must not bubble into diff/commit expansion');
   await evaluate(`owner.panel.root='another-repository';document.querySelector('[data-hash=tip]').nextElementSibling.querySelector('[data-history-file-action]').click();document.querySelector('[data-hash=tip]').parentElement.querySelector('[data-history-commit-action]').click()`);await delay(30);
   assert.deepEqual(await evaluate('[opened.length,revisions.length]'),[2,1],'stale history buttons cannot act on a newly selected repository');
-  console.log(JSON.stringify({status:'PASS',checks:['later 12-lane merge cannot widen current single-lane row','single-lane file list begins at 22px without an extra count row','separate twistie column is removed','continuation and next commit retain identical lane coordinates','multi-parent expansion preserves all 12 live lanes','branches retain distinct tracks until their common parent then return to one-lane file indentation','narrow and wide sidebars keep status alignment and avoid overflow','file click still opens the selected comparison and commit click collapses it'],hover_checks,metrics,merge,converged,evidence}));test_window.destroy();app.exit(0);
+
+  // 提交标签按自然文字顺序裁切；用真实指针验证操作出现前后没有作者列或字形挤压。
+  await evaluate(`(()=>{
+    const make=(hash,subject,author)=>({hash,subject,author,parents:[],date:'2026-09-13'});
+    window.label_state={...state,head:'reference',refs:[{name:'refs/heads/main',hash:'reference'},{name:'refs/heads/feature/'+ 'very-long-branch-'.repeat(8),hash:'multiple'},{name:'refs/remotes/origin/feature/'+ 'remote-branch-'.repeat(8),hash:'multiple'}],commits:[
+      make('short','修复图形','lizhaojun'),make('long','fix(workspace):  修复历史提交节点的标题作者排列与行尾裁切'.repeat(4),'lizhaojun'),
+      make('author','短标题','a_very_long_author_name_'.repeat(12)),make('reference','当前提交','lizhaojun'),
+      make('multiple','多个分支','lizhaojun'),make('empty','没有作者','')],more:false};
+    owner.panel.root=label_state.root;owner.panel.state=label_state;history_view.selected='';
+    window.commit_label_metrics=hash=>{
+      const row=history_view.list.querySelector('[data-hash="'+hash+'"]'),subject=row.querySelector('.git-scm-history-subject'),author=row.querySelector('.git-scm-history-author'),label=subject.parentElement,action=row.parentElement.querySelector('[data-history-commit-action]');
+      const box=n=>{if(!n)return null;const r=n.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,width:r.width,height:r.height}};
+      const author_style=author&&getComputedStyle(author),subject_style=getComputedStyle(subject),label_style=getComputedStyle(label);
+      return {row:box(row),subject:box(subject),author:box(author),label:box(label),action:box(action),subject_font:subject_style.font,subject_size:parseFloat(subject_style.fontSize),weight:subject_style.fontWeight,author_size:author_style&&parseFloat(author_style.fontSize),author_margin:author_style&&parseFloat(author_style.marginLeft),author_opacity:author_style?.opacity,author_weight:author_style?.fontWeight,white_space:subject_style.whiteSpace,overflow:history_view.list.scrollWidth-history_view.list.clientWidth,label_overflow:label.scrollWidth-label.clientWidth,ellipsis:label_style.textOverflow,action_opacity:getComputedStyle(action).opacity,refs:[...row.querySelectorAll('.git-scm-history-ref-name')].map(box)};
+    };
+  })()`);
+  const commit_labels=[];
+  for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [220,300,480,600]){
+    test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`document.querySelector('#sidebar').style.width='${width}px';document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.documentElement.style.setProperty('--bg-color','${theme==='dark'?'#1e1e1e':'#fff'}');document.body.style.background='${theme==='dark'?'#1e1e1e':'#fff'}';document.body.style.color='${theme==='dark'?'#ddd':'#333'}';document.documentElement.style.setProperty('--text-color','${theme==='dark'?'#ddd':'#333'}');owner.panel.settings.history_always_show_actions=false;history_view.render(label_state);document.activeElement?.blur()`);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:760,y:700});await delay(60);
+    const idle=await evaluate(`commit_label_metrics('short')`);
+    assert(idle.author,'short commit includes author');
+    assert(Math.abs(idle.author.left-idle.subject.right-idle.author_margin)<.2,'author follows subject with only the description margin');
+    assert.equal(idle.ellipsis,'ellipsis','subject and author share one terminal ellipsis');
+    assert.equal(idle.white_space,'pre','subject preserves consecutive spaces');
+    assert(Math.abs(idle.author_size-idle.subject_size*.9)<.02,'author uses upstream description scale');
+    assert(Math.abs(idle.author_margin-idle.author_size*.5)<.02,'author uses upstream half-em separation');
+    assert.equal(idle.author_opacity,theme==='light'?'0.95':'0.7');
+    assert.equal(idle.action.width,0);assert(idle.overflow<=1);
+    const long=await evaluate(`commit_label_metrics('long')`),author=await evaluate(`commit_label_metrics('author')`),ref=await evaluate(`commit_label_metrics('reference')`),multiple=await evaluate(`commit_label_metrics('multiple')`),empty=await evaluate(`commit_label_metrics('empty')`);
+    assert(long.subject.width>long.label.width&&long.author.left>long.label.right,'long subject clips before author instead of reserving an author column');
+    assert(author.author.width>author.label.width&&author.label_overflow>0,'long author clips in the common text region');
+    assert(ref.author&&multiple.author,'refs never remove author metadata');assert.equal(ref.weight,'600');assert.equal(ref.author_weight,'600');
+    for(const item of [ref,multiple]){assert(item.overflow<=1);assert(item.refs.every(r=>r.width<=100.1),'each ref description has a 100px cap');}
+    assert(!empty.author||empty.author.width===0,'missing author leaves no visible label');
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:Math.round((idle.row.left+30)*zoom),y:Math.round((idle.row.top+11)*zoom)});await delay(60);
+    const hovered=await evaluate(`commit_label_metrics('short')`);assert.equal(hovered.action.width,22);assert.equal(hovered.action_opacity,'1');
+    assert.equal(hovered.subject.left,idle.subject.left);assert.equal(hovered.subject.width,idle.subject.width);assert.equal(hovered.author.left,idle.author.left);assert.equal(hovered.subject_font,idle.subject_font);assert(Math.abs(idle.label.width-hovered.label.width-22)<.2);assert(hovered.label.right<=hovered.action.left);
+    const hit=await evaluate(`(()=>{const n=history_view.list.querySelector('[data-hash=short]').parentElement.querySelector('[data-history-commit-action]'),r=n.getBoundingClientRect();return n.contains(document.elementFromPoint(r.left+r.width/2,r.top+11))})()`);assert(hit);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:760,y:700});await delay(60);assert.deepEqual(await evaluate(`commit_label_metrics('short')`),idle,'pointer leave restores exact layout');
+    await evaluate(`history_view.list.querySelector('[data-hash=short]').focus({preventScroll:true})`);const focused=await evaluate(`commit_label_metrics('short')`);assert.equal(focused.action.width,22);assert.equal(focused.author_opacity,'1');
+    await evaluate(`document.activeElement.blur();owner.panel.settings.history_always_show_actions=true;history_view.render(label_state)`);assert.equal((await evaluate(`commit_label_metrics('short')`)).action.width,22);
+    commit_labels.push({theme,zoom,width,idle,hovered,long,ref,multiple});
+    if(zoom===1&&[300,600].includes(width))await capture('commit_labels_'+theme+'_'+width);
+  }
+  fs.writeFileSync(path.join(evidence,'commit_labels.json'),JSON.stringify(commit_labels,null,2));
+
+  console.log(JSON.stringify({status:'PASS',checks:['later 12-lane merge cannot widen current single-lane row','single-lane file list begins at 22px without an extra count row','separate twistie column is removed','continuation and next commit retain identical lane coordinates','multi-parent expansion preserves all 12 live lanes','branches retain distinct tracks until their common parent then return to one-lane file indentation','narrow and wide sidebars keep status alignment and avoid overflow','file click still opens the selected comparison and commit click collapses it'],commit_label_scenarios:commit_labels.length,hover_checks,metrics,merge,converged,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});
