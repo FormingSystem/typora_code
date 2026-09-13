@@ -290,9 +290,9 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-history-label { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
 .git-scm-history-subject { white-space: pre; font-size: inherit; }
 .git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: calc(100% - 4px); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
-.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; min-width: 0; height: 18px; border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
+.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; max-width: 100%; height: var(--git-scm-ref-height,18px); min-height: 18px; line-height: 18px; white-space: var(--git-scm-ref-white-space,nowrap); border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
 .git-scm-history-ref[data-current=true] { background: #006bff; }
-.git-scm-history-ref-name { max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+.git-scm-history-ref-name { min-width: 0; max-width: var(--git-scm-ref-name-max-width,100px); white-space: inherit; overflow-wrap: anywhere; overflow: hidden; text-overflow: ellipsis; }
 .git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }
 .git-scm-history-author { margin-left: .5em; opacity: .7; font-size: .9em; white-space: pre; }
 html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .95; }
@@ -496,8 +496,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#ad0707);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-added {color:var(--vscode-scmGraph-historyItemHoverAdditionsForeground,#81b88b);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#c74e39);}
-.git-commit-hover-refs {display:flex;flex-wrap:wrap;gap:4px;margin:4px 0;}
-.git-commit-hover-refs .git-scm-history-ref-name {white-space:normal;overflow-wrap:anywhere;}
+.git-commit-hover-refs {--git-scm-ref-name-max-width:100%;--git-scm-ref-height:auto;--git-scm-ref-white-space:normal;display:flex;flex-wrap:wrap;min-width:0;gap:4px;margin:4px 0;}
 .git-commit-hover-copy {display:flex;align-items:center;gap:4px;border:0;background:transparent;box-shadow:none;color:inherit;font:inherit;padding:2px 4px;margin:0;}
 
 /* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */

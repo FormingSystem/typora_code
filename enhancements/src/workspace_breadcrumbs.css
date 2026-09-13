@@ -1,0 +1,33 @@
+/* VS Code 1.137.0 breadcrumbsControl / breadcrumbsWidget / breadcrumbsPicker。 */
+.workspace-breadcrumbs {display:flex;align-items:center;flex:0 0 22px;box-sizing:border-box;height:22px;min-height:22px;min-width:0;width:100%;padding:0 4px 0 8px;background:var(--bg-color,#fff);color:var(--text-color,#333);font:13px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);border:0;user-select:none;}
+.workspace-breadcrumbs[hidden] {display:none;}
+.workspace-breadcrumb-trail {display:flex;align-items:center;flex:1;min-width:0;height:22px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;}
+.workspace-breadcrumb-trail::-webkit-scrollbar {height:0;}
+.workspace-breadcrumbs button.workspace-breadcrumb-segment {--workspace-interaction-hover:transparent;--workspace-interaction-radius:0;display:flex;align-items:center;flex:0 0 auto;min-width:0;max-width:80%;height:22px;padding:0 2px;border:0;margin:0;box-shadow:none;background:transparent;color:inherit;opacity:.8;font:inherit;line-height:22px;cursor:pointer;}
+.workspace-breadcrumb-segment > span:last-child {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.workspace-breadcrumb-segment:is(:hover,:focus-visible,[aria-expanded=true]) {opacity:1;}
+.workspace-breadcrumb-segment:is(:focus-visible,[aria-expanded=true]) > span:last-child {text-decoration:underline;}
+.workspace-breadcrumbs .git-standard-icon,.workspace-breadcrumb-picker .git-standard-icon,.workspace-breadcrumbs .workspace-file-theme-icon,.workspace-breadcrumb-picker .workspace-file-theme-icon {flex:none;width:16px;height:16px;vertical-align:middle;}
+.workspace-breadcrumbs .workspace-file-theme-icon,.workspace-breadcrumb-picker .workspace-file-theme-icon {height:22px;}
+.workspace-breadcrumb-segment > :is(.git-standard-icon,.workspace-file-theme-icon) {margin-right:6px;}
+.workspace-breadcrumb-trail > .git-standard-icon {flex:none;}
+.workspace-breadcrumb-editor-type {flex:0 1 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:11px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);padding:0 4px 0 8px;}
+.workspace-breadcrumb-editor-type:empty {display:none;}
+.workspace-breadcrumb-editor-type button {font:inherit;line-height:22px;max-width:100%;border:0;background:transparent;color:inherit;margin:0;padding:0;box-shadow:none;}
+.workspace-breadcrumb-editor-type button > .git-standard-icon {width:13px;height:13px;margin-left:2px;}
+.workspace-breadcrumbs-managed .git-diff-labels {display:none;}
+.workspace-breadcrumb-picker {--workspace-breadcrumb-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);--workspace-breadcrumb-selection-foreground:var(--vscode-list-inactiveSelectionForeground,var(--text-color,#202020));position:fixed;z-index:100100;display:flex;flex-direction:column;box-sizing:border-box;min-width:0;padding:0;background:var(--vscode-editorWidget-background,var(--bg-color,#fff));color:var(--text-color,#333);border:1px solid var(--vscode-editorHoverWidget-border,#8885);border-radius:4px;box-shadow:0 2px 8px #0003;font:13px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);overflow:hidden;}
+:root[data-workspace-file-icon-theme="dark"] .workspace-breadcrumb-picker {--workspace-breadcrumb-selection-background:var(--vscode-list-inactiveSelectionBackground,#2c2d2e);}
+.workspace-breadcrumb-filter {height:36px;min-height:36px;box-sizing:border-box;padding:5px 9px;}
+.workspace-breadcrumb-filter > input {box-sizing:border-box;width:100%;height:26px;margin:0;padding:2px 5px;border:1px solid #8888;border-radius:2px;background:var(--bg-color,#fff);color:inherit;font:inherit;box-shadow:none;}
+.workspace-breadcrumb-tree {overflow:auto;min-height:0;outline:none;padding-bottom:2px;}
+.workspace-breadcrumb-item {display:flex;align-items:center;box-sizing:border-box;height:22px;min-height:22px;white-space:nowrap;cursor:pointer;}
+.workspace-breadcrumb-item[aria-selected=true] {--workspace-interaction-hover:var(--workspace-breadcrumb-selection-background);--workspace-interaction-foreground:var(--workspace-breadcrumb-selection-foreground);background:var(--workspace-breadcrumb-selection-background);color:var(--workspace-breadcrumb-selection-foreground);outline:1px solid var(--workspace-focus-border);outline-offset:-1px;}
+.workspace-breadcrumb-disclosure {display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:22px;}
+.workspace-breadcrumb-label {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;margin:0 5px;line-height:22px;}
+.workspace-breadcrumb-status {padding:4px 9px;overflow-wrap:anywhere;}
+.workspace-breadcrumb-setting-scopes {display:flex;gap:8px;margin-bottom:12px;}
+.workspace-breadcrumb-setting {display:flex;align-items:center;gap:8px;margin:8px 0;font:inherit;}
+.workspace-breadcrumb-setting > span {flex:1;}
+.workspace-breadcrumb-setting > input[type=text] {width:120px;}
+.workspace-breadcrumb-kind {display:inline-flex;align-items:center;margin:4px 10px 4px 0;}

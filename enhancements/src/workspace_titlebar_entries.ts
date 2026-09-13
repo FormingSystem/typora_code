@@ -1,3 +1,4 @@
+import {read_breadcrumb_settings,set_breadcrumb_enabled} from "./workspace_breadcrumbs_settings";
 import {read_terminal_state} from "./terminal_state";
 import {native_document_active,read_workspace_sidebar_state} from "./workspace_view_state";
 import { WORKSPACE_ZOOM_ACTIONS, workspace_zoom_available } from "./workspace_zoom";
@@ -167,6 +168,8 @@ export function create_workspace_titlebar_definitions(
     {...native_entry("专注模式", editor, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime.File?.isFocusMode)},
     {...native_entry("打字机模式", editor, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime.File?.isTypeWriterMode)}, separator(),
     {label: "显示／隐藏侧栏", shortcut: "Ctrl+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
+    {label:"面包屑导航",checked:read_breadcrumb_settings(files.context_root()).enabled,action:()=>set_breadcrumb_enabled(files.context_root(),!read_breadcrumb_settings(files.context_root()).enabled)},
+    {label:"面包屑设置…",action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
     {label: "大纲", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
     {label: "文件树", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
     {...command("状态栏", "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},

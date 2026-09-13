@@ -1007,9 +1007,9 @@ https://creativecommons.org/licenses/by/4.0/
     if (isUndefinedOrNull(obj)) {
       return obj;
     }
-    const changed = changer(obj);
-    if (typeof changed !== "undefined") {
-      return changed;
+    const changed2 = changer(obj);
+    if (typeof changed2 !== "undefined") {
+      return changed2;
     }
     if (Array.isArray(obj)) {
       const r1 = [];
@@ -1680,8 +1680,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ImmortalReference = class {
-        constructor(object) {
-          this.object = object;
+        constructor(object2) {
+          this.object = object2;
         }
         dispose() {
         }
@@ -33982,10 +33982,10 @@ https://creativecommons.org/licenses/by/4.0/
           if (config.wordBasedSuggestions === "offWithInlineSuggestions" && this.languageFeaturesService.inlineCompletionsProvider.has(model) && isCompletionsEnabledWithTextResourceConfig(this._configurationService, model.uri, model.getLanguageId())) {
             return void 0;
           }
-          const models = [];
+          const models2 = [];
           if (config.wordBasedSuggestions === "currentDocument") {
             if (canSyncModel(this._modelService, model.uri)) {
-              models.push(model.uri);
+              models2.push(model.uri);
             }
           } else {
             for (const candidate of this._modelService.getModels()) {
@@ -33993,13 +33993,13 @@ https://creativecommons.org/licenses/by/4.0/
                 continue;
               }
               if (candidate === model) {
-                models.unshift(candidate.uri);
+                models2.unshift(candidate.uri);
               } else if (config.wordBasedSuggestions === "allDocuments" || candidate.getLanguageId() === model.getLanguageId()) {
-                models.push(candidate.uri);
+                models2.push(candidate.uri);
               }
             }
           }
-          if (models.length === 0) {
+          if (models2.length === 0) {
             return void 0;
           }
           const wordDefRegExp = this.languageConfigurationService.getLanguageConfiguration(model.getLanguageId()).getWordDefinition();
@@ -34008,7 +34008,7 @@ https://creativecommons.org/licenses/by/4.0/
           const insert = replace.setEndPosition(position2.lineNumber, position2.column);
           this.logService.trace("[WordBasedCompletionItemProvider]", 'word: "'.concat(word?.word || "", '", wordDef: "').concat(wordDefRegExp, '", replace: [').concat(replace.toString(), "], insert: [").concat(insert.toString(), "]"));
           const client = await this._workerManager.withWorker();
-          const data = await client.textualSuggest(models, word?.word, wordDefRegExp);
+          const data = await client.textualSuggest(models2, word?.word, wordDefRegExp);
           if (!data) {
             return void 0;
           }
@@ -34051,8 +34051,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (!this._editorWorkerClient) {
             return;
           }
-          const models = this._modelService.getModels();
-          if (models.length === 0) {
+          const models2 = this._modelService.getModels();
+          if (models2.length === 0) {
             this._editorWorkerClient.dispose();
             this._editorWorkerClient = null;
           }
@@ -37638,9 +37638,9 @@ https://creativecommons.org/licenses/by/4.0/
           const result = [];
           let somethingChanged = false;
           for (const editorOption of editorOptionsRegistry) {
-            const changed = !_EditorOptionsUtil._deepEquals(a._read(editorOption.id), b2._read(editorOption.id));
-            result[editorOption.id] = changed;
-            if (changed) {
+            const changed2 = !_EditorOptionsUtil._deepEquals(a._read(editorOption.id), b2._read(editorOption.id));
+            result[editorOption.id] = changed2;
+            if (changed2) {
               somethingChanged = true;
             }
           }
@@ -37651,15 +37651,15 @@ https://creativecommons.org/licenses/by/4.0/
          * Modifies `options`.
         */
         static applyUpdate(options2, update2) {
-          let changed = false;
+          let changed2 = false;
           for (const editorOption of editorOptionsRegistry) {
             if (update2.hasOwnProperty(editorOption.name)) {
               const result = editorOption.applyUpdate(options2[editorOption.name], update2[editorOption.name]);
               options2[editorOption.name] = result.newValue;
-              changed = changed || result.didChange;
+              changed2 = changed2 || result.didChange;
             }
           }
-          return changed;
+          return changed2;
         }
       };
     }
@@ -70678,9 +70678,9 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/common/model/bracketPairsTextModelPart/bracketPairsImpl.js
-  function createDisposableRef(object, disposable) {
+  function createDisposableRef(object2, disposable) {
     return {
-      object,
+      object: object2,
       dispose: () => disposable?.dispose()
     };
   }
@@ -93738,13 +93738,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return array;
   }
-  function clone2(object) {
+  function clone2(object2) {
     const newObject = create(null);
-    for (const _ref22 of entries(object)) {
+    for (const _ref22 of entries(object2)) {
       var _ref3 = _slicedToArray(_ref22, 2);
       const property = _ref3[0];
       const value = _ref3[1];
-      const isPropertyExist = objectHasOwnProperty(object, property);
+      const isPropertyExist = objectHasOwnProperty(object2, property);
       if (isPropertyExist) {
         if (arrayIsArray(value)) {
           newObject[property] = cleanArray(value);
@@ -93795,9 +93795,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   }
-  function lookupGetter(object, prop) {
-    while (object !== null) {
-      const desc = getOwnPropertyDescriptor(object, prop);
+  function lookupGetter(object2, prop) {
+    while (object2 !== null) {
+      const desc = getOwnPropertyDescriptor(object2, prop);
       if (desc) {
         if (desc.get) {
           return unapply(desc.get);
@@ -93806,7 +93806,7 @@ https://creativecommons.org/licenses/by/4.0/
           return unapply(desc.value);
         }
       }
-      object = getPrototypeOf(object);
+      object2 = getPrototypeOf(object2);
     }
     function fallbackValue() {
       return null;
@@ -99008,17 +99008,17 @@ https://creativecommons.org/licenses/by/4.0/
           if (this.state === StorageState.Closed) {
             return;
           }
-          let changed = false;
+          let changed2 = false;
           if (isUndefinedOrNull(value)) {
-            changed = this.cache.delete(key);
+            changed2 = this.cache.delete(key);
           } else {
             const currentValue = this.cache.get(key);
             if (currentValue !== value) {
               this.cache.set(key, value);
-              changed = true;
+              changed2 = true;
             }
           }
-          if (changed) {
+          if (changed2) {
             this._onDidChangeStorage.fire({ key, external: true });
           }
         }
@@ -133636,9 +133636,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       BaseRefCounted = class extends RefCounted {
-        constructor(object, _disposable, _debugOwner) {
+        constructor(object2, _disposable, _debugOwner) {
           super();
-          this.object = object;
+          this.object = object2;
           this._disposable = _disposable;
           this._debugOwner = _debugOwner;
           this._refCount = 1;
@@ -161143,7 +161143,7 @@ https://creativecommons.org/licenses/by/4.0/
     const theme2 = bind_markdown_color_theme();
     if (!e?.contextMenu?.show || !menu) return { dispose: () => theme2.dispose() };
     const style = acquire_workspace_style("typora-code-style:markdown_color", markdown_color_menu_default), events = new AbortController();
-    let snapshot, reason = "", disposed = false, dialog;
+    let snapshot, reason = "", disposed = false, dialog2;
     const item = workspace_element("li", "workspace-font-color-item hide");
     item.dataset.key = "typora-code-font-color";
     const anchor = workspace_element("a", "", "\u5B57\u4F53\u989C\u8272\u2026");
@@ -161187,11 +161187,11 @@ https://creativecommons.org/licenses/by/4.0/
       const selected_colors = new Set(selection.blocks.flatMap((block4) => block4.runs.filter((run) => block4.selected.some((hit) => hit.start < run.end && hit.end > run.start)).map((run) => run.color || "")));
       const current_color = selected_colors.size === 1 ? [...selected_colors][0] : "";
       e.contextMenu.hide();
-      dialog?.close();
+      dialog2?.close();
       const restore = (restore_focus) => {
         if (restore_focus && runtime2.File?.bundle === selection.bundle && owner() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
       };
-      const panel = dialog = workspace_dialog("\u5B57\u4F53\u989C\u8272", "\u53D6\u6D88", restore);
+      const panel = dialog2 = workspace_dialog("\u5B57\u4F53\u989C\u8272", "\u53D6\u6D88", restore);
       panel.root.classList.add("workspace-color-dialog");
       panel.content.setAttribute("data-workspace-color-preview", "");
       panel.content.append(workspace_element("p", "workspace-color-note", "\u989C\u8272\u4F1A\u968F\u6587\u6863\u7684\u660E\u6697\u4E3B\u9898\u8C03\u6574\u3002"));
@@ -161199,7 +161199,7 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           if (color) color = normalize_text_color(color);
           panel.close();
-          dialog = void 0;
+          dialog2 = void 0;
           apply_text_color(runtime2, owner(), selection, color);
           theme2.refresh();
         } catch (error) {
@@ -161273,7 +161273,7 @@ https://creativecommons.org/licenses/by/4.0/
     return { dispose() {
       if (disposed) return;
       disposed = true;
-      dialog?.close(false);
+      dialog2?.close(false);
       events.abort();
       if (e.contextMenu.show === show2) e.contextMenu.show = native_show;
       item.remove();
@@ -178774,19 +178774,19 @@ https://creativecommons.org/licenses/by/4.0/
       const result = new Promise((resolve3) => {
         resolve_result = resolve3;
       });
-      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
+      const dialog2 = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
         pending.delete(view);
         resolve_result(completed);
       });
-      pending.set(view, { dialog, result });
-      dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
-      dialog.content.append(workspace_element("p", "", "".concat(view.file_path.split(/[\\/]/u).at(-1), " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
+      pending.set(view, { dialog: dialog2, result });
+      dialog2.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
+      dialog2.content.append(workspace_element("p", "", "".concat(view.file_path.split(/[\\/]/u).at(-1), " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
       let saving = false;
       const finish = () => {
-        if (!dialog.root.isConnected || view.disposed) return;
+        if (!dialog2.root.isConnected || view.disposed) return;
         close();
         completed = !present(view.leaf);
-        dialog.close();
+        dialog2.close();
       };
       const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", finish);
       const save_button = workspace_button("\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
@@ -178797,14 +178797,14 @@ https://creativecommons.org/licenses/by/4.0/
         void view.save().then((saved) => {
           if (saved && !view.dirty()) finish();
         }).catch((error) => {
-          if (dialog.root.isConnected) new core.Notice(String(error), 5e3);
+          if (dialog2.root.isConnected) new core.Notice(String(error), 5e3);
         }).finally(() => {
           saving = false;
           save_button.disabled = false;
           discard_button.disabled = false;
         });
       });
-      dialog.footer.prepend(save_button, discard_button);
+      dialog2.footer.prepend(save_button, discard_button);
       return result;
     };
     const guard = (view) => {
@@ -178859,12 +178859,12 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopImmediatePropagation();
       event.returnValue = "";
       if (window_dialog?.root.isConnected) return true;
-      const dialog = window_dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
-      dialog.root.setAttribute("data-workspace-save-close", "true");
-      dialog.content.append(workspace_element("p", "", "".concat(dirty.length, " \u4E2A\u6E90\u7801\u6587\u4EF6\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
+      const dialog2 = window_dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
+      dialog2.root.setAttribute("data-workspace-save-close", "true");
+      dialog2.content.append(workspace_element("p", "", "".concat(dirty.length, " \u4E2A\u6E90\u7801\u6587\u4EF6\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
       let saving = false;
       const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
-        dialog.close();
+        dialog2.close();
         request_window_close();
       });
       const save_button = workspace_button("\u5168\u90E8\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
@@ -178874,11 +178874,11 @@ https://creativecommons.org/licenses/by/4.0/
         discard_button.disabled = true;
         void (async () => {
           for (const view of dirty) {
-            if (!dialog.root.isConnected) return;
+            if (!dialog2.root.isConnected) return;
             if (!view.disposed && (!await view.save() || view.dirty())) return;
           }
-          if (!dialog.root.isConnected || [...all_views()].some((view) => !view.disposed && view.dirty())) return;
-          dialog.close();
+          if (!dialog2.root.isConnected || [...all_views()].some((view) => !view.disposed && view.dirty())) return;
+          dialog2.close();
           request_window_close();
         })().finally(() => {
           saving = false;
@@ -178886,7 +178886,7 @@ https://creativecommons.org/licenses/by/4.0/
           discard_button.disabled = false;
         });
       });
-      dialog.footer.prepend(save_button, discard_button);
+      dialog2.footer.prepend(save_button, discard_button);
       return true;
     };
     const guarded_before_unload = window.onbeforeunload = function(event) {
@@ -178899,7 +178899,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       if (window.onbeforeunload === guarded_before_unload) window.onbeforeunload = native_before_unload;
       for (const restore of restore_patches.splice(0).reverse()) restore();
-      for (const { dialog } of pending.values()) dialog.close();
+      for (const { dialog: dialog2 } of pending.values()) dialog2.close();
       pending.clear();
       window_dialog?.close();
     };
@@ -180931,7 +180931,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       choose_language() {
         if (!this.editor || this.loading) return;
-        const dialog = workspace_dialog("\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F");
+        const dialog2 = workspace_dialog("\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F");
         const select = workspace_element("select");
         select.setAttribute("aria-label", "\u6587\u4EF6\u8BED\u8A00\u6A21\u5F0F");
         const choices2 = new Map(FILE_LANGUAGE_RULES.filter((rule) => !rule.category || rule.category === "text").map((rule) => [rule.language, rule.label]));
@@ -180942,12 +180942,12 @@ https://creativecommons.org/licenses/by/4.0/
           select.append(option);
         }
         select.value = this.editor.models[0].getLanguageId();
-        dialog.content.append(select, workspace_element("p", "", "\u8BED\u8A00\u6A21\u5F0F\u53EA\u6539\u53D8\u9AD8\u4EAE\uFF1B\u4FDD\u5B58\u6CBF\u7528\u539F\u6587\u4EF6\u540D\u548C\u540E\u7F00\u3002"));
-        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
+        dialog2.content.append(select, workspace_element("p", "", "\u8BED\u8A00\u6A21\u5F0F\u53EA\u6539\u53D8\u9AD8\u4EAE\uFF1B\u4FDD\u5B58\u6CBF\u7528\u539F\u6587\u4EF6\u540D\u548C\u540E\u7F00\u3002"));
+        dialog2.footer.prepend(workspace_button("\u5E94\u7528", () => {
           if (this.loading) return;
           editor.setModelLanguage(this.editor.models[0], select.value);
           this.refresh_shared();
-          dialog.close();
+          dialog2.close();
           if (core.app.workspace.activeLeaf === this.leaf) this.editor?.focused_editor().focus();
         }));
       }
@@ -180957,7 +180957,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (kind === "encoding") this.choose_reopen_encoding();
           return;
         }
-        const dialog = workspace_dialog(kind === "encoding" ? "\u9009\u62E9\u4FDD\u5B58\u7F16\u7801" : "\u9009\u62E9\u884C\u5C3E\u5E8F\u5217");
+        const dialog2 = workspace_dialog(kind === "encoding" ? "\u9009\u62E9\u4FDD\u5B58\u7F16\u7801" : "\u9009\u62E9\u884C\u5C3E\u5E8F\u5217");
         const select = workspace_element("select");
         select.setAttribute("aria-label", kind === "encoding" ? "\u6587\u4EF6\u4FDD\u5B58\u7F16\u7801" : "\u6587\u4EF6\u884C\u5C3E\u5E8F\u5217");
         const values = kind === "encoding" ? ["utf-8", "utf-8-bom", "utf-16le", "utf-16be"] : ["LF", "CRLF", "CR", ...this.format.eol === "mixed" ? ["mixed"] : []];
@@ -180967,19 +180967,19 @@ https://creativecommons.org/licenses/by/4.0/
           select.append(option);
         }
         select.value = kind === "encoding" ? this.format.encoding === "utf-8" && this.format.bom ? "utf-8-bom" : this.format.encoding : this.format.eol;
-        dialog.content.append(select, workspace_element("p", "", "\u9009\u62E9\u540E\u6309 Ctrl+S \u4FDD\u5B58\uFF0C\u5F53\u524D\u6587\u4EF6\u4E0D\u4F1A\u7ACB\u5373\u6539\u5199\u3002"));
-        dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
+        dialog2.content.append(select, workspace_element("p", "", "\u9009\u62E9\u540E\u6309 Ctrl+S \u4FDD\u5B58\uFF0C\u5F53\u524D\u6587\u4EF6\u4E0D\u4F1A\u7ACB\u5373\u6539\u5199\u3002"));
+        dialog2.footer.prepend(workspace_button("\u5E94\u7528", () => {
           if (this.loading) return;
           if (kind === "encoding") {
             this.format.encoding = select.value === "utf-8-bom" ? "utf-8" : select.value;
             this.format.bom = select.value !== "utf-8";
           } else this.format.eol = select.value;
           this.refresh_shared();
-          dialog.close();
+          dialog2.close();
           if (core.app.workspace.activeLeaf === this.leaf) this.editor?.focused_editor().focus();
         }));
-        if (kind === "encoding") dialog.footer.prepend(workspace_button("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u2026", () => {
-          dialog.close();
+        if (kind === "encoding") dialog2.footer.prepend(workspace_button("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u2026", () => {
+          dialog2.close();
           this.choose_reopen_encoding();
         }));
       }
@@ -180989,7 +180989,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u6216\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D\uFF0C\u907F\u514D\u91CD\u65B0\u89E3\u7801\u4E22\u5931\u8349\u7A3F\u3002";
           return;
         }
-        const dialog = workspace_dialog("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00");
+        const dialog2 = workspace_dialog("\u4EE5\u7F16\u7801\u91CD\u65B0\u6253\u5F00");
         const select = workspace_element("select");
         select.setAttribute("aria-label", "\u91CD\u65B0\u6253\u5F00\u7F16\u7801");
         for (const value of ["utf-8", "utf-16le", "utf-16be", "gb18030", "big5", "windows-1252"]) {
@@ -180997,13 +180997,13 @@ https://creativecommons.org/licenses/by/4.0/
           option.value = value;
           select.append(option);
         }
-        dialog.content.append(select);
-        dialog.footer.prepend(workspace_button("\u91CD\u65B0\u6253\u5F00", () => {
+        dialog2.content.append(select);
+        dialog2.footer.prepend(workspace_button("\u91CD\u65B0\u6253\u5F00", () => {
           if (this.dirty() || this.loading) {
             this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u4FEE\u6539\uFF0C\u518D\u4EE5\u5176\u4ED6\u7F16\u7801\u91CD\u65B0\u6253\u5F00\u3002";
             return;
           }
-          dialog.close();
+          dialog2.close();
           void this.load_file(select.value);
         }));
       }
@@ -181030,10 +181030,10 @@ https://creativecommons.org/licenses/by/4.0/
           void this.load_file();
           return;
         }
-        const dialog = workspace_dialog("\u91CD\u65B0\u52A0\u8F7D\u6587\u4EF6");
-        dialog.content.append(workspace_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6807\u7B7E\u4E2D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
-        dialog.footer.prepend(workspace_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
-          dialog.close();
+        const dialog2 = workspace_dialog("\u91CD\u65B0\u52A0\u8F7D\u6587\u4EF6");
+        dialog2.content.append(workspace_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6807\u7B7E\u4E2D\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
+        dialog2.footer.prepend(workspace_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
+          dialog2.close();
           void this.load_file();
         }));
       }
@@ -181366,23 +181366,23 @@ https://creativecommons.org/licenses/by/4.0/
       const result = new Promise((resolve3) => {
         resolve_result = resolve3;
       });
-      const dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
+      const dialog2 = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539", "\u53D6\u6D88", () => {
         native_close_dialogs.delete(leaf);
         if (!finished) resolve_result(false);
       });
-      native_close_dialogs.set(leaf, { dialog, result });
-      dialog.root.dataset.workspaceTabClose = path;
-      dialog.content.append(workspace_element("p", "", "".concat(path_api.basename(path) || "\u672A\u547D\u540D\u6587\u6863", " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
+      native_close_dialogs.set(leaf, { dialog: dialog2, result });
+      dialog2.root.dataset.workspaceTabClose = path;
+      dialog2.content.append(workspace_element("p", "", "".concat(path_api.basename(path) || "\u672A\u547D\u540D\u6587\u6863", " \u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002")));
       const identity5 = () => transfer_present(leaf) && leaf.parent === group && leaf.state.path === path;
       const finish = async () => {
-        if (!dialog.root.isConnected || !identity5()) return;
+        if (!dialog2.root.isConnected || !identity5()) return;
         const closed = await remove();
         finished = true;
         resolve_result(closed);
-        dialog.close();
+        dialog2.close();
       };
       const message = workspace_element("p");
-      dialog.content.append(message);
+      dialog2.content.append(message);
       const controls = [];
       const set_busy = (value) => {
         saving = value;
@@ -181393,13 +181393,13 @@ https://creativecommons.org/licenses/by/4.0/
         set_busy(true);
         void save_leaf(leaf).then(async (saved) => {
           if (saved && identity5() && !editor_state(leaf).dirty) await finish();
-          else if (dialog.root.isConnected) message.textContent = "\u6587\u4EF6\u5C1A\u672A\u4FDD\u5B58\uFF0C\u6807\u7B7E\u5DF2\u4FDD\u7559\u3002";
+          else if (dialog2.root.isConnected) message.textContent = "\u6587\u4EF6\u5C1A\u672A\u4FDD\u5B58\uFF0C\u6807\u7B7E\u5DF2\u4FDD\u7559\u3002";
         }).catch((error) => {
           message.textContent = String(error);
         }).finally(() => set_busy(false));
       });
       controls.push(save_button);
-      dialog.footer.prepend(save_button);
+      dialog2.footer.prepend(save_button);
       if (path && typeof runtime2.File?.reloadFromDisk === "function") {
         const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
           if (saving || !identity5()) return;
@@ -181407,13 +181407,13 @@ https://creativecommons.org/licenses/by/4.0/
           void (async () => {
             if (file_key(runtime2.File?.bundle?.filePath || "") !== file_key(path)) return;
             await runtime2.File.reloadFromDisk(true);
-            if (dialog.root.isConnected && identity5() && !editor_state(leaf).dirty) await finish();
+            if (dialog2.root.isConnected && identity5() && !editor_state(leaf).dirty) await finish();
           })().catch((error) => {
             message.textContent = String(error);
           }).finally(() => set_busy(false));
         });
         controls.push(discard_button);
-        dialog.footer.insertBefore(discard_button, dialog.footer.lastElementChild);
+        dialog2.footer.insertBefore(discard_button, dialog2.footer.lastElementChild);
       }
       return result;
     };
@@ -181435,23 +181435,23 @@ https://creativecommons.org/licenses/by/4.0/
         resolve_result = resolve3;
       });
       const group = leaf.parent, path = leaf.state.path;
-      const dialog = workspace_dialog("\u5207\u6362\u7F16\u8F91\u65B9\u5F0F", "\u53D6\u6D88", () => {
+      const dialog2 = workspace_dialog("\u5207\u6362\u7F16\u8F91\u65B9\u5F0F", "\u53D6\u6D88", () => {
         reopen_dialogs.delete(leaf);
         resolve_result(completed);
       });
-      reopen_dialogs.set(leaf, { dialog, result });
-      dialog.root.dataset.workspaceReopen = path;
-      dialog.content.append(workspace_element("p", "", "\u6B64\u6587\u6863\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u4FDD\u5B58\u540E\u7EE7\u7EED\u5207\u6362\u7F16\u8F91\u65B9\u5F0F\u3002"));
+      reopen_dialogs.set(leaf, { dialog: dialog2, result });
+      dialog2.root.dataset.workspaceReopen = path;
+      dialog2.content.append(workspace_element("p", "", "\u6B64\u6587\u6863\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u4FDD\u5B58\u540E\u7EE7\u7EED\u5207\u6362\u7F16\u8F91\u65B9\u5F0F\u3002"));
       const message = workspace_element("p");
-      dialog.content.append(message);
+      dialog2.content.append(message);
       const save = workspace_button("\u4FDD\u5B58\u5E76\u7EE7\u7EED", () => {
         if (saving) return;
         saving = true;
         save.disabled = true;
         void save_leaf(leaf).then((saved) => {
-          if (!dialog.root.isConnected) return;
+          if (!dialog2.root.isConnected) return;
           completed = saved && transfer_present(leaf) && leaf.parent === group && leaf.state.path === path && !editor_state(leaf).dirty;
-          if (completed) dialog.close();
+          if (completed) dialog2.close();
           else message.textContent = "\u4FDD\u5B58\u672A\u5B8C\u6210\uFF0C\u5DF2\u4FDD\u7559\u5F53\u524D\u7F16\u8F91\u5668\u3002";
         }).catch((error) => {
           message.textContent = String(error);
@@ -181460,7 +181460,7 @@ https://creativecommons.org/licenses/by/4.0/
           save.disabled = false;
         });
       });
-      dialog.footer.prepend(save);
+      dialog2.footer.prepend(save);
       return result;
     };
     const reopen_leaf = async (leaf, source) => {
@@ -181811,9 +181811,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
       if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
       source_lifecycle.dispose();
-      for (const { dialog } of native_close_dialogs.values()) dialog.close();
+      for (const { dialog: dialog2 } of native_close_dialogs.values()) dialog2.close();
       native_close_dialogs.clear();
-      for (const { dialog } of reopen_dialogs.values()) dialog.close();
+      for (const { dialog: dialog2 } of reopen_dialogs.values()) dialog2.close();
       reopen_dialogs.clear();
       document.removeEventListener("dblclick", keep_clicked_tab, true);
       document.removeEventListener("input", keep_edited_native, true);
@@ -182708,7 +182708,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/terminal_settings_view.ts
-  function show_terminal_settings(store, dialog) {
+  function show_terminal_settings(store, dialog2) {
     const form = workspace_element("div", "terminal-settings-form"), filter = workspace_element("input");
     filter.placeholder = "\u641C\u7D22\u7EC8\u7AEF\u8BBE\u7F6E";
     filter.setAttribute("aria-label", "\u641C\u7D22\u7EC8\u7AEF\u8BBE\u7F6E");
@@ -182737,11 +182737,11 @@ https://creativecommons.org/licenses/by/4.0/
     const detect = workspace_button("\u91CD\u65B0\u68C0\u6D4B\u7EC8\u7AEF", () => {
       detect.disabled = true;
       void store.refresh().then(() => {
-        if (dialog.root.isConnected) fill_profiles(profile.value);
+        if (dialog2.root.isConnected) fill_profiles(profile.value);
       }).catch((failure) => {
-        if (dialog.root.isConnected) error.textContent = String(failure instanceof Error ? failure.message : failure);
+        if (dialog2.root.isConnected) error.textContent = String(failure instanceof Error ? failure.message : failure);
       }).finally(() => {
-        if (dialog.root.isConnected) detect.disabled = false;
+        if (dialog2.root.isConnected) detect.disabled = false;
       });
     });
     profile.parentElement?.append(detect, detection_status);
@@ -182790,28 +182790,28 @@ https://creativecommons.org/licenses/by/4.0/
     example.append(summary, workspace_element("pre", "", JSON.stringify({ id: "project_shell", title: "\u9879\u76EE Shell", executable: "${env:SystemRoot}/System32/WindowsPowerShell/v1.0/powershell.exe", args: ["-NoLogo"], cwd: "${workspaceFolder}", env: { PROJECT_MODE: "dev" }, icon: "terminal", color: "#007ACC" }, null, 2)));
     const error = workspace_element("p", "terminal-settings-error");
     error.setAttribute("role", "alert");
-    dialog.content.append(filter, form, example, error);
+    dialog2.content.append(filter, form, example, error);
     filter.oninput = () => {
       for (const label of form.children) if (label instanceof HTMLElement) label.hidden = !label.textContent?.toLowerCase().includes(filter.value.toLowerCase());
     };
-    dialog.footer.prepend(workspace_button("\u5E94\u7528", () => {
+    dialog2.footer.prepend(workspace_button("\u5E94\u7528", () => {
       try {
         const result = { ...current };
         for (const [key, input] of inputs) result[key] = input instanceof HTMLTextAreaElement ? JSON.parse(input.value) : input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input instanceof HTMLInputElement && input.type === "number" ? Number(input.value) : input.value;
         store.update(result);
-        dialog.close();
+        dialog2.close();
       } catch (failure) {
         error.textContent = String(failure instanceof Error ? failure.message : failure);
       }
     }), workspace_button("\u6062\u590D\u9ED8\u8BA4\u8BBE\u7F6E", () => {
       try {
         store.update(terminal_defaults);
-        dialog.close();
+        dialog2.close();
       } catch (failure) {
         error.textContent = String(failure);
       }
     }));
-    return dialog;
+    return dialog2;
   }
 
   // node_runtime.json
@@ -182933,13 +182933,13 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/terminal_session.ts
   var terminal_session = class {
-    constructor(id, root, profile, host, settings, output, changed, explicit_cwd = false) {
+    constructor(id, root, profile, host, settings, output, changed2, explicit_cwd = false) {
       this.id = id;
       this.profile = profile;
       this.host = host;
       this.settings = settings;
       this.output = output;
-      this.changed = changed;
+      this.changed = changed2;
       this.explicit_cwd = explicit_cwd;
       this.title = profile.title;
       this.root = root;
@@ -193923,13 +193923,13 @@ https://creativecommons.org/licenses/by/4.0/
     paste_text(text3) {
       if (this.lifetime.disposed) return;
       if (this.settings.confirm_multiline && /[\r\n]/u.test(text3)) {
-        const dialog = workspace_dialog("\u7C98\u8D34\u591A\u884C\u547D\u4EE4");
-        this.lifetime.add(dialog.close);
-        dialog.content.append(workspace_element("pre", "", text3));
-        dialog.footer.prepend(workspace_button("\u7C98\u8D34\u5230\u7EC8\u7AEF", () => {
+        const dialog2 = workspace_dialog("\u7C98\u8D34\u591A\u884C\u547D\u4EE4");
+        this.lifetime.add(dialog2.close);
+        dialog2.content.append(workspace_element("pre", "", text3));
+        dialog2.footer.prepend(workspace_button("\u7C98\u8D34\u5230\u7EC8\u7AEF", () => {
           if (this.lifetime.disposed) return;
           this.term.paste(text3);
-          dialog.close();
+          dialog2.close();
           this.focus();
         }));
       } else {
@@ -194018,7 +194018,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/terminal_layout.ts
   var LIST_WIDTH_KEY = "typora-code:terminal-list-width";
-  function create_terminal_layout(body, tabs, changed) {
+  function create_terminal_layout(body, tabs, changed2) {
     const lifetime = create_workspace_lifetime(), groups = /* @__PURE__ */ new Map(), sash = workspace_element("div", "terminal-tabs-sash");
     sash.setAttribute("aria-label", "\u8C03\u6574\u7EC8\u7AEF\u5217\u8868\u5BBD\u5EA6");
     body.append(sash);
@@ -194093,7 +194093,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         });
       }
-      changed();
+      changed2();
     }
     const observer2 = new ResizeObserver(schedule);
     observer2.observe(body);
@@ -194216,7 +194216,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/terminal_panel.ts
-  function create_terminal_panel(changed) {
+  function create_terminal_panel(changed2) {
     const lifetime = create_workspace_lifetime();
     const container = workspace_element("section", "typora-terminal-panel"), header = workspace_element("div", "terminal-panel-header"), toolbar = workspace_element("div", "terminal-panel-actions"), body = workspace_element("div", "terminal-panel-body"), tabs = workspace_element("div", "terminal-tabs"), panes = workspace_element("div", "terminal-panes"), sash = workspace_element("div", "terminal-panel-sash");
     lifetime.add(acquire_workspace_interaction(container).remove);
@@ -194256,7 +194256,7 @@ https://creativecommons.org/licenses/by/4.0/
       container.style.height = height + "px";
       container.dataset.maximized = String(maximized);
       sash.setAttribute("aria-valuenow", String(Math.round(height)));
-      changed();
+      changed2();
     };
     const schedule = () => {
       if (!frame3 && !lifetime.disposed) frame3 = requestAnimationFrame(layout2);
@@ -194500,18 +194500,18 @@ https://creativecommons.org/licenses/by/4.0/
         for (const close of [...overlays]) close();
         overlays.clear();
       });
-      const dialog = (title) => {
+      const dialog2 = (title) => {
         const result = workspace_dialog(title, "\u5173\u95ED", () => overlays.delete(result.close));
         overlays.add(result.close);
         return result;
       };
       const fail = (error) => {
         if (lifetime.disposed) return;
-        dialog("\u7EC8\u7AEF").content.textContent = String(error instanceof Error ? error.message : error);
+        dialog2("\u7EC8\u7AEF").content.textContent = String(error instanceof Error ? error.message : error);
       };
       const configure = () => {
         if (lifetime.disposed) return;
-        const popup = dialog("\u7EC8\u7AEF\u8BBE\u7F6E");
+        const popup = dialog2("\u7EC8\u7AEF\u8BBE\u7F6E");
         popup.content.textContent = "\u6B63\u5728\u68C0\u6D4B\u5DF2\u5B89\u88C5\u7684 Shell\u2026";
         void settings.ready().then(() => {
           if (lifetime.disposed || !popup.root.isConnected) return;
@@ -194564,7 +194564,7 @@ https://creativecommons.org/licenses/by/4.0/
       const edit_identity = (kind, id = active_id) => {
         const entry = sessions.get(id);
         if (!entry) return;
-        const popup = dialog(kind === "title" ? "\u91CD\u547D\u540D\u7EC8\u7AEF" : kind === "color" ? "\u66F4\u6539\u7EC8\u7AEF\u989C\u8272" : "\u66F4\u6539\u7EC8\u7AEF\u56FE\u6807");
+        const popup = dialog2(kind === "title" ? "\u91CD\u547D\u540D\u7EC8\u7AEF" : kind === "color" ? "\u66F4\u6539\u7EC8\u7AEF\u989C\u8272" : "\u66F4\u6539\u7EC8\u7AEF\u56FE\u6807");
         const input = kind === "icon" ? workspace_element("select") : workspace_element("input");
         if (input instanceof HTMLInputElement) {
           input.type = kind === "color" ? "color" : "text";
@@ -195236,7 +195236,7 @@ https://creativecommons.org/licenses/by/4.0/
       const file = record.slice(tab + 1);
       entries3.set(file, [...entries3.get(file) || [], record.slice(0, tab)]);
     }
-    const changed = new Set(working.split("\0"));
+    const changed2 = new Set(working.split("\0"));
     const others = new Set(untracked.split("\0"));
     const restore_paths = [];
     const untracked_paths = [];
@@ -195245,7 +195245,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (stages) {
         if (stages.length !== 1 || !stages[0].endsWith(" 0")) throw new Error(git_graph_text("action.error.unresolved_conflict", { file: JSON.stringify(file) }));
         if (stages[0].startsWith("160000 ")) throw new Error(git_graph_text("action.error.submodule", { file: JSON.stringify(file) }));
-        if (!changed.has(file)) throw new Error(git_graph_text("action.error.no_unstaged_changes", { file: JSON.stringify(file) }));
+        if (!changed2.has(file)) throw new Error(git_graph_text("action.error.no_unstaged_changes", { file: JSON.stringify(file) }));
         restore_paths.push(file);
       } else if (others.has(file)) {
         if (include_untracked) untracked_paths.push(file);
@@ -198293,13 +198293,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return array;
   }
-  function clone3(object) {
+  function clone3(object2) {
     const newObject = create3(null);
-    for (const _ref22 of entries2(object)) {
+    for (const _ref22 of entries2(object2)) {
       var _ref3 = _slicedToArray2(_ref22, 2);
       const property = _ref3[0];
       const value = _ref3[1];
-      const isPropertyExist = objectHasOwnProperty2(object, property);
+      const isPropertyExist = objectHasOwnProperty2(object2, property);
       if (isPropertyExist) {
         if (arrayIsArray2(value)) {
           newObject[property] = cleanArray2(value);
@@ -198350,9 +198350,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   }
-  function lookupGetter2(object, prop) {
-    while (object !== null) {
-      const desc = getOwnPropertyDescriptor2(object, prop);
+  function lookupGetter2(object2, prop) {
+    while (object2 !== null) {
+      const desc = getOwnPropertyDescriptor2(object2, prop);
       if (desc) {
         if (desc.get) {
           return unapply2(desc.get);
@@ -198361,7 +198361,7 @@ https://creativecommons.org/licenses/by/4.0/
           return unapply2(desc.value);
         }
       }
-      object = getPrototypeOf2(object);
+      object2 = getPrototypeOf2(object2);
     }
     function fallbackValue() {
       return null;
@@ -200235,9 +200235,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (stat.size > 16 * 1024 * 1024) throw new Error(git_graph_text("host.file_too_large"));
           return new TextDecoder(settings.encoding).decode(await fs2.promises.readFile(target));
         }
-        const object = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
+        const object2 = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
         const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
-        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object]));
+        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object2]));
       },
       open_document(data, group = "active", options2 = {}) {
         const uri = "typ://linux_note.git_document/".concat(encodeURIComponent(options2.root || ""), "/").concat(encodeURIComponent(options2.key || String(++serial2)), "/").concat(encodeURIComponent(data.title));
@@ -200356,16 +200356,16 @@ https://creativecommons.org/licenses/by/4.0/
         else terminal_workspace.open(root, program);
       },
       export_file(root, filename, content) {
-        const dialog = graph_dialog(git_graph_text("host.export_configuration"));
+        const dialog2 = graph_dialog(git_graph_text("host.export_configuration"));
         const target = workspace_element("input");
         target.value = path_api.join(root, filename);
         const preview = workspace_element("pre", "", content);
         const error = workspace_element("p");
-        dialog.content.append(target, preview, error);
-        dialog.footer.prepend(workspace_button(git_graph_text("host.save_to_path"), () => {
+        dialog2.content.append(target, preview, error);
+        dialog2.footer.prepend(workspace_button(git_graph_text("host.save_to_path"), () => {
           try {
             fs2.writeFileSync(target.value, content, { encoding: "utf8", flag: "wx" });
-            dialog.close();
+            dialog2.close();
           } catch (problem) {
             error.textContent = git_graph_text("host.export_failure_hint", { error: String(problem) });
           }
@@ -200385,8 +200385,8 @@ https://creativecommons.org/licenses/by/4.0/
         host.open_document({ title: path_api.basename(left) + " \u2194 " + path_api.basename(right), file: right, left: before, right: after2, left_label: path_api.basename(left), right_label: path_api.basename(right) }, "active", { root: files?.context_root(), key: JSON.stringify(["compare", left, right]), menu: () => [{ id: "open_file", title: "\u6253\u5F00\u53F3\u4FA7\u6587\u4EF6", action: () => void files?.open_file(right) }] });
       })().catch((error) => {
         if (!disposed) {
-          const dialog = graph_dialog("\u6BD4\u8F83\u6587\u4EF6");
-          dialog.content.textContent = String(error instanceof Error ? error.message : error);
+          const dialog2 = graph_dialog("\u6BD4\u8F83\u6587\u4EF6");
+          dialog2.content.textContent = String(error instanceof Error ? error.message : error);
         }
       });
     } });
@@ -200445,14 +200445,14 @@ https://creativecommons.org/licenses/by/4.0/
       if (root === panel.root && runner === panel.runner) await open_scm_comparison(panel, parent, hash2);
     });
     const compare_with = () => {
-      const dialog = workspace_dialog(git_graph_text("scm.compare_with")), search2 = workspace_element("input"), list3 = workspace_element("div");
+      const dialog2 = workspace_dialog(git_graph_text("scm.compare_with")), search2 = workspace_element("input"), list3 = workspace_element("div");
       search2.type = "search";
       search2.placeholder = git_graph_text("scm.search_references");
       search2.setAttribute("aria-label", search2.placeholder);
-      dialog.content.append(search2, list3);
+      dialog2.content.append(search2, list3);
       for (const ref of state.refs) {
         const node = workspace_button(ref.name.replace(/^refs\//u, ""), () => {
-          dialog.close();
+          dialog2.close();
           if (root === panel.root && runner === panel.runner) void open_scm_comparison(panel, ref.hash, hash2);
         });
         node.dataset.compareRef = ref.name;
@@ -200486,49 +200486,49 @@ https://creativecommons.org/licenses/by/4.0/
     ];
   }
   function show_worktrees(panel) {
-    const root = panel.root, runner = panel.runner, dialog = workspace_dialog(git_graph_text("scm.worktrees"));
-    dialog.content.textContent = git_graph_text("graph.loading_repository");
-    const valid = () => !panel.disposed && root === panel.root && runner === panel.runner && dialog.root.isConnected;
+    const root = panel.root, runner = panel.runner, dialog2 = workspace_dialog(git_graph_text("scm.worktrees"));
+    dialog2.content.textContent = git_graph_text("graph.loading_repository");
+    const valid = () => !panel.disposed && root === panel.root && runner === panel.runner && dialog2.root.isConnected;
     void (async () => {
       try {
         const entries3 = await read_worktrees(runner.run, root);
         if (!valid()) return;
-        dialog.content.replaceChildren();
+        dialog2.content.replaceChildren();
         for (const entry of entries3) {
           const row = workspace_element("div", "git-scm-worktree-entry");
           row.append(workspace_element("strong", "", entry.branch.replace(/^refs\/heads\//u, "") || entry.head.slice(0, 8)), workspace_element("div", "", entry.path));
           const open = workspace_button(git_graph_text("scm.worktree_open"), () => {
             if (!valid()) return;
-            dialog.close();
+            dialog2.close();
             panel.host.open_folder(entry.path);
           });
           open.disabled = entry.bare || entry.prunable;
           const new_window = workspace_button(git_graph_text("scm.worktree_new_window"), () => {
             if (!valid()) return;
-            dialog.close();
+            dialog2.close();
             panel.host.open_folder(entry.path, true);
           });
           new_window.disabled = open.disabled;
           const remove = workspace_button(git_graph_text("scm.worktree_remove"), () => {
             if (!valid()) return;
-            dialog.close();
+            dialog2.close();
             panel.action_dialog("worktree_remove", "worktree", entry.path, entry.head);
           });
           remove.disabled = entry.main || entry.locked || entry.prunable || entry.bare || panel.host.path_api.resolve(entry.path) === panel.host.path_api.resolve(root) || panel.writing;
           row.append(open, new_window, remove);
-          dialog.content.append(row);
+          dialog2.content.append(row);
         }
       } catch (error) {
-        if (valid()) dialog.content.textContent = String(error);
+        if (valid()) dialog2.content.textContent = String(error);
       }
     })();
     const create4 = workspace_button(git_graph_text("scm.worktree_add"), () => {
       if (!valid()) return;
-      dialog.close();
+      dialog2.close();
       panel.action_dialog("worktree_add", "repository", "", panel.state?.head);
     });
     create4.disabled = !panel.state?.head || panel.writing;
-    dialog.footer.prepend(create4);
+    dialog2.footer.prepend(create4);
   }
 
   // src/git_graph_find.ts
@@ -200713,18 +200713,18 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const complete = () => {
       if (panel.disposed) return;
-      const dialog = form(git_graph_text("graph.pull_request_title"));
+      const dialog2 = form(git_graph_text("graph.pull_request_title"));
       const source = workspace_element("input");
       source.value = branch;
       const target = workspace_element("input");
       target.value = config.destination_branch;
-      row(dialog.content, git_graph_text("pr.source_branch"), source);
-      row(dialog.content, git_graph_text("pr.target_branch"), target);
-      dialog.content.append(workspace_element("p", "", "".concat(config.provider, ": ").concat(config.source_owner, "/").concat(config.source_repository, " \u2192 ").concat(config.destination_owner, "/").concat(config.destination_repository)));
+      row(dialog2.content, git_graph_text("pr.source_branch"), source);
+      row(dialog2.content, git_graph_text("pr.target_branch"), target);
+      dialog2.content.append(workspace_element("p", "", "".concat(config.provider, ": ").concat(config.source_owner, "/").concat(config.source_repository, " \u2192 ").concat(config.destination_owner, "/").concat(config.destination_repository)));
       const error = workspace_element("p");
-      dialog.content.append(error);
-      dialog.footer.prepend(workspace_button(git_graph_text("pr.configure"), () => {
-        dialog.close();
+      dialog2.content.append(error);
+      dialog2.footer.prepend(workspace_button(git_graph_text("pr.configure"), () => {
+        dialog2.close();
         step_one();
       }), workspace_button(git_graph_text("graph.open_form"), () => {
         try {
@@ -200732,7 +200732,7 @@ https://creativecommons.org/licenses/by/4.0/
           const remote = remotes.find((item) => item.name === config.source_remote)?.fetch || "";
           const url = panel.settings.pr_url ? pull_request_url(remote, source.value, target.value, panel.settings.pr_url) : create_pull_request_url(selected, source.value, panel.settings.pr_providers);
           void panel.host.open_url(url).catch((problem) => {
-            if (dialog.root.isConnected) error.textContent = String(problem);
+            if (dialog2.root.isConnected) error.textContent = String(problem);
           });
         } catch (problem) {
           error.textContent = String(problem);
@@ -200740,19 +200740,19 @@ https://creativecommons.org/licenses/by/4.0/
       }));
     };
     const step_two = (candidate) => {
-      const dialog = form(git_graph_text("pr.configure_second"));
+      const dialog2 = form(git_graph_text("pr.configure_second"));
       const fields = [["host", "pr.host"], ["source_owner", "pr.source_owner"], ["source_repository", "pr.source_repository"], ["destination_owner", "pr.target_owner"], ["destination_repository", "pr.target_repository"], ["destination_project", "pr.target_project"], ["destination_branch", "pr.target_branch"]];
       const inputs = /* @__PURE__ */ new Map();
       for (const [key, label] of fields) {
         const input = workspace_element("input");
         input.value = candidate[key];
         inputs.set(key, input);
-        row(dialog.content, git_graph_text(label), input);
+        row(dialog2.content, git_graph_text(label), input);
       }
       const error = workspace_element("p");
-      dialog.content.append(error);
-      dialog.footer.prepend(workspace_button(git_graph_text("pr.back"), () => {
-        dialog.close();
+      dialog2.content.append(error);
+      dialog2.footer.prepend(workspace_button(git_graph_text("pr.back"), () => {
+        dialog2.close();
         step_one();
       }), workspace_button(git_graph_text("pr.save"), () => {
         try {
@@ -200761,7 +200761,7 @@ https://creativecommons.org/licenses/by/4.0/
           Object.assign(config, candidate);
           panel.settings.pr_config = structuredClone(config);
           panel.persist_settings();
-          dialog.close();
+          dialog2.close();
           complete();
         } catch (problem) {
           error.textContent = String(problem);
@@ -200769,7 +200769,7 @@ https://creativecommons.org/licenses/by/4.0/
       }));
     };
     const step_one = () => {
-      const dialog = form(git_graph_text("pr.configure_first"));
+      const dialog2 = form(git_graph_text("pr.configure_first"));
       const source = workspace_element("select"), destination = workspace_element("select"), provider = workspace_element("select");
       for (const name of ["GitHub", "GitLab", "Bitbucket", ...panel.settings.pr_providers.map((item) => item.name)].sort()) provider.append(workspace_option(name, name));
       for (const remote of remotes) {
@@ -200784,29 +200784,29 @@ https://creativecommons.org/licenses/by/4.0/
       } catch {
         provider.value = config.provider || "GitHub";
       }
-      row(dialog.content, git_graph_text("pr.provider"), provider);
-      row(dialog.content, git_graph_text("pr.source_remote"), source);
-      row(dialog.content, git_graph_text("pr.target_remote"), destination);
+      row(dialog2.content, git_graph_text("pr.provider"), provider);
+      row(dialog2.content, git_graph_text("pr.source_remote"), source);
+      row(dialog2.content, git_graph_text("pr.target_remote"), destination);
       const error = workspace_element("p");
-      dialog.content.append(error);
-      dialog.footer.prepend(workspace_button(git_graph_text("pr.next"), () => {
+      dialog2.content.append(error);
+      dialog2.footer.prepend(workspace_button(git_graph_text("pr.next"), () => {
         try {
           const from = pull_request_remote(remotes.find((item) => item.name === source.value)?.fetch || "");
           const to = destination.value ? pull_request_remote(remotes.find((item) => item.name === destination.value)?.fetch || "") : void 0;
-          const changed = source.value !== config.source_remote || destination.value !== config.destination_remote || provider.value !== config.provider;
+          const changed2 = source.value !== config.source_remote || destination.value !== config.destination_remote || provider.value !== config.provider;
           const candidate = {
             ...config,
             provider: provider.value,
             source_remote: source.value,
             destination_remote: destination.value,
-            host: changed ? from.host : config.host,
-            source_owner: changed ? from.owner : config.source_owner,
-            source_repository: changed ? from.repository : config.source_repository,
-            destination_owner: changed ? to?.owner || config.destination_owner : config.destination_owner,
-            destination_repository: changed ? to?.repository || config.destination_repository : config.destination_repository,
+            host: changed2 ? from.host : config.host,
+            source_owner: changed2 ? from.owner : config.source_owner,
+            source_repository: changed2 ? from.repository : config.source_repository,
+            destination_owner: changed2 ? to?.owner || config.destination_owner : config.destination_owner,
+            destination_repository: changed2 ? to?.repository || config.destination_repository : config.destination_repository,
             destination_branch: config.destination_branch || panel.settings.pr_base
           };
-          dialog.close();
+          dialog2.close();
           step_two(candidate);
         } catch (problem) {
           error.textContent = String(problem);
@@ -200940,9 +200940,9 @@ https://creativecommons.org/licenses/by/4.0/
   var git_scm_toolbar = class {
     constructor(history) {
       this.history = history;
-      const icons2 = { branches: "git-branch", head: "target", fetch: "git-fetch", pull: "repo-pull", push: "repo-push", refresh: "refresh" };
+      const icons3 = { branches: "git-branch", head: "target", fetch: "git-fetch", pull: "repo-pull", push: "repo-push", refresh: "refresh" };
       for (const id of HISTORY_ACTION_IDS) {
-        const node = git_icon_button(icons2[id], this.title(id), () => {
+        const node = git_icon_button(icons3[id], this.title(id), () => {
         }, "git-scm-history-" + id);
         node.dataset.historyAction = id;
         node.onclick = (event) => this.execute(id, event);
@@ -201092,7 +201092,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     configure_keybinding(id) {
-      const panel = this.history.owner.panel, root = panel.root, runner = panel.runner, dialog = workspace_dialog(git_graph_text("scm.configure_keybinding"));
+      const panel = this.history.owner.panel, root = panel.root, runner = panel.runner, dialog2 = workspace_dialog(git_graph_text("scm.configure_keybinding"));
       const input = workspace_element("input");
       input.value = panel.settings.history_shortcuts[id] || "";
       input.placeholder = "Mod+Shift+F";
@@ -201100,10 +201100,10 @@ https://creativecommons.org/licenses/by/4.0/
       input.dataset.historyKeybinding = id;
       const label = workspace_element("label", "", this.title(id)), error = workspace_element("p");
       label.append(input);
-      dialog.content.append(label, workspace_element("p", "", git_graph_text("scm.shortcut_help")), error);
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
+      dialog2.content.append(label, workspace_element("p", "", git_graph_text("scm.shortcut_help")), error);
+      dialog2.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
         if (panel.disposed || root !== panel.root || runner !== panel.runner) {
-          dialog.close();
+          dialog2.close();
           return;
         }
         try {
@@ -201111,7 +201111,7 @@ https://creativecommons.org/licenses/by/4.0/
           validate_history_shortcuts(next);
           panel.settings.history_shortcuts = next;
           panel.persist_settings();
-          dialog.close();
+          dialog2.close();
         } catch (problem) {
           error.textContent = String(problem instanceof Error ? problem.message : problem);
         }
@@ -225340,9 +225340,9 @@ https://creativecommons.org/licenses/by/4.0/
       workspace_menu(event, this.layout_entries());
     }
     layout_dialog() {
-      const dialog = graph_dialog2(git_graph_text("graph.layout_title"));
-      for (const entry of this.layout_entries()) dialog.content.append(workspace_button((entry.checked ? "\u2713 " : "") + entry.title, () => {
-        dialog.close();
+      const dialog2 = graph_dialog2(git_graph_text("graph.layout_title"));
+      for (const entry of this.layout_entries()) dialog2.content.append(workspace_button((entry.checked ? "\u2713 " : "") + entry.title, () => {
+        dialog2.close();
         entry.action();
       }));
     }
@@ -225356,7 +225356,7 @@ https://creativecommons.org/licenses/by/4.0/
       const filter_entries = (items) => items.filter((entry) => !entry.id || !hidden(entry.id)).map((entry) => entry.children ? { ...entry, children: filter_entries(entry.children) } : entry);
       const all_entries = (items) => items.flatMap((entry) => [entry, ...all_entries(entry.children || [])]);
       workspace_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: git_graph_text("graph.configure_context_menu"), separator: true, action: () => {
-        const dialog = graph_dialog2(git_graph_text("graph.context_menu_title", { kind: target_kind_label(kind) }));
+        const dialog2 = graph_dialog2(git_graph_text("graph.context_menu_title", { kind: target_kind_label(kind) }));
         const choices2 = /* @__PURE__ */ new Map();
         for (const entry of all_entries(entries3)) {
           if (!entry.id || choices2.has(entry.id)) continue;
@@ -225367,11 +225367,11 @@ https://creativecommons.org/licenses/by/4.0/
           input.setAttribute("data-action-id", entry.id);
           label.prepend(input);
           choices2.set(entry.id, input);
-          dialog.content.append(label);
+          dialog2.content.append(label);
         }
-        dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
+        dialog2.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
           if (this.disposed || root !== this.root || runner !== this.runner) {
-            dialog.close();
+            dialog2.close();
             return;
           }
           for (const [id, input] of choices2) {
@@ -225380,15 +225380,15 @@ https://creativecommons.org/licenses/by/4.0/
             else this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== id);
           }
           this.persist_settings();
-          dialog.close();
+          dialog2.close();
         }), workspace_button(git_graph_text("graph.restore_menu"), () => {
           if (this.disposed || root !== this.root || runner !== this.runner) {
-            dialog.close();
+            dialog2.close();
             return;
           }
           this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices2.has(id));
           this.persist_settings();
-          dialog.close();
+          dialog2.close();
         }));
       } }]);
     }
@@ -225406,41 +225406,41 @@ https://creativecommons.org/licenses/by/4.0/
       this.configured_menu(event, "repository", entries3);
     }
     repository_menu(kind = "repository") {
-      const dialog = graph_dialog2(kind === "changes" ? git_graph_text("graph.changes_actions") : git_graph_text("graph.repository_actions"));
-      for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog.content.append(workspace_button(action.title, () => {
-        dialog.close();
+      const dialog2 = graph_dialog2(kind === "changes" ? git_graph_text("graph.changes_actions") : git_graph_text("graph.repository_actions"));
+      for (const action of graph_actions.filter((item) => item.targets.includes(kind) && !this.settings.hidden_actions.includes(item.id))) dialog2.content.append(workspace_button(action.title, () => {
+        dialog2.close();
         this.action_dialog(action.id, kind, "", this.state?.head);
       }));
-      dialog.content.append(workspace_button(git_graph_text("graph.remotes"), () => {
-        dialog.close();
+      dialog2.content.append(workspace_button(git_graph_text("graph.remotes"), () => {
+        dialog2.close();
         this.remotes_dialog();
       }), workspace_button(git_graph_text("graph.open_repository_terminal"), () => {
         this.host.terminal(this.root, this.settings.terminal_shell);
-        dialog.close();
+        dialog2.close();
       }), workspace_button(git_graph_text("graph.open_admin_terminal"), () => {
         this.host.terminal(this.root, "", true);
-        dialog.close();
+        dialog2.close();
       }), workspace_button(git_graph_text("graph.manage_reviews"), () => {
-        dialog.close();
+        dialog2.close();
         this.reviews_dialog();
       }), workspace_button(git_graph_text("graph.clear_avatar_cache"), () => {
         this.host.clear_avatars();
-        dialog.close();
+        dialog2.close();
       }));
     }
     remotes_dialog() {
-      const dialog = graph_dialog2(git_graph_text("graph.repository_remotes"));
-      if (!this.state?.remotes.length) dialog.content.append(workspace_element("p", "", git_graph_text("graph.no_remotes")));
+      const dialog2 = graph_dialog2(git_graph_text("graph.repository_remotes"));
+      if (!this.state?.remotes.length) dialog2.content.append(workspace_element("p", "", git_graph_text("graph.no_remotes")));
       for (const remote of this.state?.remotes || []) {
         const row = workspace_element("div", "git-graph-repo-entry", git_graph_text("graph.remote_addresses", { name: remote.name, fetch: remote.fetch, push: remote.push }));
         for (const [title, id, preset] of [[git_graph_text("graph.edit_fetch_url"), "remote_edit", { url: remote.fetch }], [git_graph_text("graph.edit_push_url"), "remote_edit", { url: remote.push, push_url: true }], [git_graph_text("graph.fetch"), "fetch", {}], [git_graph_text("graph.prune_remote"), "remote_prune", {}], [git_graph_text("graph.delete"), "remote_remove", {}]]) row.append(workspace_button(title, () => {
-          dialog.close();
+          dialog2.close();
           this.action_dialog(id, "repository", "", "", { remote: remote.name, ...preset });
         }));
-        dialog.content.append(row);
+        dialog2.content.append(row);
       }
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.add_remote"), () => {
-        dialog.close();
+      dialog2.footer.prepend(workspace_button(git_graph_text("graph.add_remote"), () => {
+        dialog2.close();
         this.action_dialog("remote_add", "repository");
       }));
     }
@@ -225471,16 +225471,16 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const root = this.root, state = this.state, runner = this.runner, writer = this.writer;
       const action = graph_actions.find((item) => item.id === id);
-      const dialog = graph_dialog2(action.title);
+      const dialog2 = graph_dialog2(action.title);
       const fields = /* @__PURE__ */ new Map();
-      const available = () => !this.disposed && this.root === root && this.runner === runner && dialog.root.isConnected;
-      if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
-      if (id === "discard_changes") dialog.root.setAttribute("data-linux-note-git-discard", "ready");
+      const available = () => !this.disposed && this.root === root && this.runner === runner && dialog2.root.isConnected;
+      if (id === "sync") dialog2.root.setAttribute("data-linux-note-git-sync", "ready");
+      if (id === "discard_changes") dialog2.root.setAttribute("data-linux-note-git-discard", "ready");
       const defaults = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}, ...preset };
-      dialog.content.append(workspace_element("p", "", git_graph_text("graph.repository_target", { root: this.root, target: revision_label(target || hash2 || this.state.branch) })));
+      dialog2.content.append(workspace_element("p", "", git_graph_text("graph.repository_target", { root: this.root, target: revision_label(target || hash2 || this.state.branch) })));
       const form = workspace_element("form", "git-graph-form");
       const result = workspace_element("pre", "git-graph-action-preview");
-      dialog.content.append(form, result);
+      dialog2.content.append(form, result);
       for (const item of action.fields) {
         const input = item.type === "choice" ? workspace_element("select") : ["message", "todo"].includes(item.key) ? workspace_element("textarea") : workspace_element("input");
         let initial = defaults[item.key] ?? item.initial ?? "";
@@ -225568,35 +225568,35 @@ https://creativecommons.org/licenses/by/4.0/
         if (plan && !execute.disabled) void submit();
         else void prepare();
       };
-      dialog.root.addEventListener("keydown", (event) => {
+      dialog2.root.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement)) {
           event.preventDefault();
           if (plan && !execute.disabled) void submit();
           else void prepare();
         }
       });
-      dialog.footer.prepend(preview, execute);
+      dialog2.footer.prepend(preview, execute);
       if (id === "sync") void prepare();
     }
     async tag_details(name) {
-      const dialog = graph_dialog2(git_graph_text("graph.tag_details_title", { name }));
+      const dialog2 = graph_dialog2(git_graph_text("graph.tag_details_title", { name }));
       try {
         const text3 = await this.runner.run(this.root, ["for-each-ref", "--format=%(refname)%0a%(objecttype)%0a%(taggername) %(taggeremail)%0a%(taggerdate:iso8601)%0a%(contents)", "refs/tags/" + name]);
-        dialog.content.append(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
+        dialog2.content.append(inline_message(text3, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
       } catch (error) {
-        dialog.content.textContent = String(error);
+        dialog2.content.textContent = String(error);
       }
     }
     pr_dialog(branch) {
       show_pull_request_dialog(this, branch);
     }
     archive_dialog(hash2) {
-      const dialog = graph_dialog2(git_graph_text("graph.archive_title"));
+      const dialog2 = graph_dialog2(git_graph_text("graph.archive_title"));
       const target = workspace_element("input");
       target.value = this.host.path_api.join(this.root, hash2.slice(0, 8) + ".zip");
       const error = workspace_element("pre");
-      dialog.content.append(target, error);
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.export_zip"), () => void (async () => {
+      dialog2.content.append(target, error);
+      dialog2.footer.prepend(workspace_button(git_graph_text("graph.export_zip"), () => void (async () => {
         try {
           if (this.host.fs.existsSync(target.value)) throw new Error(git_graph_text("graph.target_exists"));
           await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash2]);
@@ -225612,24 +225612,24 @@ https://creativecommons.org/licenses/by/4.0/
         this.report(git_graph_text("graph.valid_repository_required"));
         return;
       }
-      const root = this.root, runner = this.runner, dialog = graph_dialog2(git_graph_text("graph.select_branches_title")), selected = new Set(this.branches);
+      const root = this.root, runner = this.runner, dialog2 = graph_dialog2(git_graph_text("graph.select_branches_title")), selected = new Set(this.branches);
       const search2 = workspace_element("input");
       search2.type = "search";
       search2.placeholder = git_graph_text("scm.search_references");
       search2.setAttribute("aria-label", search2.placeholder);
       const list3 = workspace_element("div");
-      dialog.content.append(search2, list3);
+      dialog2.content.append(search2, list3);
       const apply3 = (branches) => {
         if (!this.disposed && root === this.root && runner === this.runner) {
           this.branches = branches;
           void this.refresh();
         }
-        dialog.close();
+        dialog2.close();
       };
       const all = workspace_button(git_graph_text("scm.scope_all"), () => apply3([])), automatic = workspace_button(git_graph_text("scm.scope_auto"), () => apply3(["AUTO"]));
       all.dataset.scope = "all";
       automatic.dataset.scope = "auto";
-      dialog.content.prepend(all, automatic);
+      dialog2.content.prepend(all, automatic);
       for (const [name, title] of [["HEAD", git_graph_text("graph.current_head")], ...state.refs.map((ref) => [ref.name, ref.name.replace(/^refs\//u, "")]), ...this.settings.branch_globs.map((item) => ["glob:" + item.glob, item.name])]) {
         const check = workspace_element("input");
         check.type = "checkbox";
@@ -225644,10 +225644,10 @@ https://creativecommons.org/licenses/by/4.0/
         const query = search2.value.toLocaleLowerCase();
         for (const label of list3.children) label.hidden = !label.textContent?.toLocaleLowerCase().includes(query);
       };
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => apply3([...selected])));
+      dialog2.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => apply3([...selected])));
     }
     manage_repositories() {
-      const dialog = graph_dialog2(git_graph_text("graph.manage_repositories_title"));
+      const dialog2 = graph_dialog2(git_graph_text("graph.manage_repositories_title"));
       const input = workspace_element("input");
       input.placeholder = git_graph_text("graph.repository_path_placeholder");
       input.value = this.root;
@@ -225659,7 +225659,7 @@ https://creativecommons.org/licenses/by/4.0/
           const row = workspace_element("div", "git-graph-repo-entry", root);
           row.append(workspace_button(git_graph_text("graph.open"), () => {
             this.switch_repo(root);
-            dialog.close();
+            dialog2.close();
           }), workspace_button(git_graph_text("graph.remove_record"), () => {
             this.save_repos(this.known_repos().filter((item) => item !== root));
             render();
@@ -225668,8 +225668,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       render();
-      dialog.content.append(input, list3, error);
-      dialog.footer.prepend(
+      dialog2.content.append(input, list3, error);
+      dialog2.footer.prepend(
         workspace_button(git_graph_text("graph.add_repository"), () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then((root) => {
           this.save_repos([...this.known_repos(), root.trim()]);
           render();
@@ -225691,7 +225691,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.report(git_graph_text("graph.operation_pending"));
         return;
       }
-      const root = this.root, dialog = graph_dialog2(git_graph_text("graph.settings_title"));
+      const root = this.root, dialog2 = graph_dialog2(git_graph_text("graph.settings_title"));
       const form = workspace_element("div", "git-graph-settings-form"), error = workspace_element("p");
       error.setAttribute("role", "alert");
       const fields = /* @__PURE__ */ new Map();
@@ -225713,9 +225713,9 @@ https://creativecommons.org/licenses/by/4.0/
         form.append(label);
         fields.set(key, input);
       }
-      dialog.content.append(form, error);
+      dialog2.content.append(form, error);
       const apply3 = (settings) => {
-        if (this.disposed || this.writing || this.root !== root || !dialog.root.isConnected) throw new Error(git_graph_text("graph.operation_pending"));
+        if (this.disposed || this.writing || this.root !== root || !dialog2.root.isConnected) throw new Error(git_graph_text("graph.operation_pending"));
         const previous = this.settings;
         this.settings = settings;
         try {
@@ -225728,7 +225728,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.writer.cancel();
         this.runner = this.host.runner(settings);
         this.writer = this.host.runner(settings, true);
-        dialog.close();
+        dialog2.close();
         void this.refresh();
       };
       const file = workspace_element("input");
@@ -225743,7 +225743,7 @@ https://creativecommons.org/licenses/by/4.0/
           error.textContent = String(problem);
         }
       });
-      dialog.content.append(file);
+      dialog2.content.append(file);
       const save = workspace_button(git_graph_text("graph.save_settings"), () => {
         try {
           const values = {};
@@ -225762,7 +225762,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       });
       save.dataset.settingsAction = "save";
-      dialog.footer.prepend(
+      dialog2.footer.prepend(
         save,
         workspace_button(git_graph_text("graph.restore_defaults"), () => {
           try {
@@ -225778,16 +225778,16 @@ https://creativecommons.org/licenses/by/4.0/
       );
     }
     reviews_dialog() {
-      const dialog = graph_dialog2(git_graph_text("graph.reviews_title"));
+      const dialog2 = graph_dialog2(git_graph_text("graph.reviews_title"));
       const render = () => {
-        dialog.content.replaceChildren();
+        dialog2.content.replaceChildren();
         const reviews = load_reviews(localStorage);
-        if (!reviews.length) dialog.content.textContent = git_graph_text("graph.no_reviews");
+        if (!reviews.length) dialog2.content.textContent = git_graph_text("graph.no_reviews");
         for (const review of reviews) {
           const row = workspace_element("div", "git-graph-review", git_graph_text("graph.review_record", { root: review.root, from: short_revision_label(review.from), to: short_revision_label(review.to), count: review.reviewed.length }));
           row.append(
             workspace_button(git_graph_text("graph.resume_review"), () => {
-              dialog.close();
+              dialog2.close();
               if (review.root !== this.root) this.switch_repo(review.root);
               void (async () => {
                 while (this.pending) await new Promise((resolve3) => setTimeout(resolve3, 50));
@@ -225800,11 +225800,11 @@ https://creativecommons.org/licenses/by/4.0/
               render();
             })
           );
-          dialog.content.append(row);
+          dialog2.content.append(row);
         }
       };
       render();
-      dialog.footer.prepend(workspace_button(git_graph_text("graph.finish_all_reviews"), () => {
+      dialog2.footer.prepend(workspace_button(git_graph_text("graph.finish_all_reviews"), () => {
         save_reviews(localStorage, []);
         render();
       }));
@@ -226247,12 +226247,12 @@ https://creativecommons.org/licenses/by/4.0/
         ["end_review", "view.command.end_review", (panel) => panel.reviews_dialog()],
         ["resume_review", "view.command.resume_review", (panel) => panel.reviews_dialog()],
         ["version", "view.command.version", (panel) => {
-          const dialog = graph_dialog3(git_graph_text("view.diagnostics_title"));
-          dialog.content.textContent = git_graph_text("view.diagnostics_text", { root: panel.root });
+          const dialog2 = graph_dialog3(git_graph_text("view.diagnostics_title"));
+          dialog2.content.textContent = git_graph_text("view.diagnostics_text", { root: panel.root });
           void panel.runner.run(panel.root, ["--version"]).then((version) => {
-            dialog.content.textContent += "\n" + version;
+            dialog2.content.textContent += "\n" + version;
           }).catch((error) => {
-            dialog.content.textContent += "\n" + String(error);
+            dialog2.content.textContent += "\n" + String(error);
           });
         }]
       ];
@@ -226381,6 +226381,1352 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.dispose();
       throw error;
     }
+  }
+
+  // src/workspace_breadcrumbs.css
+  var workspace_breadcrumbs_default = "";
+
+  // src/workspace_breadcrumbs_picker.ts
+  function open_breadcrumb_picker(anchor, items, options2) {
+    const root = workspace_element("section", "workspace-breadcrumb-picker"), filter_box = workspace_element("div", "workspace-breadcrumb-filter"), filter = workspace_element("input"), tree = workspace_element("div", "workspace-breadcrumb-tree");
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-label", options2.label);
+    filter.type = "search";
+    filter.placeholder = "\u8F93\u5165\u4EE5\u7B5B\u9009";
+    filter.setAttribute("aria-label", options2.label + "\u7B5B\u9009");
+    tree.setAttribute("role", "tree");
+    tree.setAttribute("aria-label", options2.label);
+    tree.tabIndex = 0;
+    filter_box.append(filter);
+    root.append(filter_box, tree);
+    const focus = options2.focus || capture_workspace_focus();
+    document.body.append(root);
+    const interaction = acquire_workspace_interaction(root);
+    let closed = false, roots = [], flat = [], selected = options2.selected || "", pending = 0;
+    const expanded2 = /* @__PURE__ */ new Set(), loaded = /* @__PURE__ */ new Map(), loading = /* @__PURE__ */ new Set();
+    const place = () => {
+      const r4 = anchor.getBoundingClientRect(), width2 = Math.min(innerWidth - 8, Math.max(240, (innerWidth - 8) / 4.17));
+      root.style.width = width2 + "px";
+      root.style.left = Math.max(4, Math.min(r4.left, innerWidth - width2 - 4)) + "px";
+      const desired = Math.min(300, innerHeight * 0.7), below = innerHeight - r4.bottom - 30, above = r4.top - 8;
+      const down = below >= Math.min(desired, 160) || below >= above;
+      root.dataset.direction = down ? "down" : "up";
+      root.style.maxHeight = Math.max(44, Math.min(desired, down ? below : above)) + "px";
+      root.style.top = (down ? r4.bottom + 8 : Math.max(4, r4.top - root.getBoundingClientRect().height - 8)) + "px";
+    };
+    const close = (restore = false) => {
+      if (closed) return;
+      closed = true;
+      pending++;
+      dismiss.dispose();
+      interaction.remove();
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("scroll", scroll, true);
+      root.remove();
+      anchor.removeAttribute("aria-expanded");
+      if (restore) focus.restore();
+      options2.closed?.();
+    };
+    const dismiss = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape"), { inside: () => [root, anchor], window_blur: true });
+    const resize = () => close(false), scroll = (event) => {
+      if (!(event.target instanceof Node) || !root.contains(event.target)) close(false);
+    };
+    window.addEventListener("resize", resize);
+    document.addEventListener("scroll", scroll, true);
+    anchor.setAttribute("aria-expanded", "true");
+    const children = (item) => loaded.get(item.id) || (Array.isArray(item.children) ? item.children : []);
+    const valid = () => !closed && anchor.isConnected && options2.valid?.() !== false;
+    const visible_selection = () => {
+      const row = [...tree.querySelectorAll('[role="treeitem"]')].find((node) => node.dataset.itemId === selected);
+      if (row) {
+        const r4 = row.getBoundingClientRect(), t = tree.getBoundingClientRect();
+        if (r4.top < t.top) tree.scrollTop += r4.top - t.top;
+        else if (r4.bottom > t.bottom) tree.scrollTop += r4.bottom - t.bottom;
+        tree.setAttribute("aria-activedescendant", row.id);
+      }
+    };
+    const mark = (id) => {
+      selected = id;
+      for (const row of tree.querySelectorAll('[role="treeitem"]')) row.setAttribute("aria-selected", String(row.dataset.itemId === selected));
+      visible_selection();
+    };
+    const activate = async (item) => {
+      if (!valid()) return close(false);
+      if (!item.select) return toggle(item);
+      close(false);
+      try {
+        await item.select();
+      } catch (error) {
+        options2.error?.(String(error instanceof Error ? error.message : error));
+      }
+    };
+    const toggle = async (item) => {
+      if (!item.children || !valid()) return;
+      if (expanded2.has(item.id)) {
+        expanded2.delete(item.id);
+        render();
+        return;
+      }
+      expanded2.add(item.id);
+      if (typeof item.children === "function" && !loaded.has(item.id) && !loading.has(item.id)) {
+        loading.add(item.id);
+        render();
+        try {
+          const result = await item.children();
+          if (!valid()) return;
+          loaded.set(item.id, result);
+        } catch (error) {
+          if (valid()) loaded.set(item.id, [{ id: item.id + "/error", label: String(error instanceof Error ? error.message : error) }]);
+        } finally {
+          loading.delete(item.id);
+        }
+      }
+      if (valid()) render();
+    };
+    const matches = (item, query) => item.label.toLocaleLowerCase().includes(query) || children(item).some((child) => matches(child, query));
+    const render = () => {
+      if (!valid()) return;
+      const query = filter.value.toLocaleLowerCase();
+      flat = [];
+      tree.replaceChildren();
+      const append4 = (items2, depth, parent) => {
+        for (const item of items2) {
+          if (query && !matches(item, query)) continue;
+          flat.push({ item, depth, parent });
+          const row = workspace_element("div", "workspace-breadcrumb-item"), arrow = workspace_element("span", "workspace-breadcrumb-disclosure"), label = workspace_element("span", "workspace-breadcrumb-label", item.label);
+          row.id = "workspace-breadcrumb-item-" + flat.length;
+          row.dataset.itemId = item.id;
+          row.setAttribute("role", "treeitem");
+          row.setAttribute("aria-level", String(depth + 1));
+          row.setAttribute("aria-selected", String(item.id === selected));
+          row.style.paddingLeft = depth * 16 + "px";
+          row.title = item.title || item.label;
+          if (item.children) {
+            const open = !!query || expanded2.has(item.id);
+            arrow.append(git_icon(open ? "chevron-down" : "chevron-right"));
+            row.setAttribute("aria-expanded", String(open));
+            arrow.onclick = (event) => {
+              event.stopPropagation();
+              mark(item.id);
+              void toggle(item);
+            };
+          }
+          if (item.icon) row.append(arrow, item.icon(), label);
+          else row.append(arrow, label);
+          row.onmousedown = (event) => {
+            event.preventDefault();
+            tree.focus({ preventScroll: true });
+          };
+          row.onclick = () => {
+            mark(item.id);
+            void activate(item);
+          };
+          tree.append(row);
+          if (item.children && (query || expanded2.has(item.id))) {
+            if (loading.has(item.id)) tree.append(workspace_element("div", "workspace-breadcrumb-status", "\u6B63\u5728\u8BFB\u53D6\u76EE\u5F55\u2026"));
+            else append4(children(item), depth + 1, item.id);
+          }
+        }
+      };
+      append4(roots, 0);
+      if (!flat.length) tree.append(workspace_element("div", "workspace-breadcrumb-status", pending ? "\u6B63\u5728\u8BFB\u53D6\u2026" : "\u6CA1\u6709\u5339\u914D\u7684\u6761\u76EE\u3002"));
+      if (!flat.some((entry) => entry.item.id === selected)) selected = flat[0]?.item.id || "";
+      mark(selected);
+      place();
+    };
+    root.onkeydown = (event) => {
+      if (event.isComposing) return;
+      const index = flat.findIndex((entry2) => entry2.item.id === selected), entry = flat[index];
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && (event.target !== filter || !["Home", "End"].includes(event.key))) {
+        event.preventDefault();
+        event.stopPropagation();
+        const next = event.key === "Home" ? 0 : event.key === "End" ? flat.length - 1 : Math.max(0, Math.min(flat.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)));
+        if (flat[next]) mark(flat[next].item.id);
+        return;
+      }
+      if (event.key === "Enter" && entry) {
+        event.preventDefault();
+        event.stopPropagation();
+        void activate(entry.item);
+      }
+      if (event.target === tree && entry && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === "ArrowRight") {
+          if (entry.item.children && !expanded2.has(entry.item.id)) void toggle(entry.item);
+          else if (flat[index + 1]?.parent === entry.item.id) mark(flat[index + 1].item.id);
+        } else if (expanded2.has(entry.item.id)) void toggle(entry.item);
+        else if (entry.parent) mark(entry.parent);
+      }
+      if (event.target === tree && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        filter.value += event.key;
+        filter.focus();
+        render();
+      }
+    };
+    filter.oninput = render;
+    filter.focus({ preventScroll: true });
+    place();
+    pending++;
+    Promise.resolve(items).then((value) => {
+      if (!valid()) return;
+      pending = 0;
+      roots = value;
+      const collect = (nodes) => {
+        for (const item of nodes) {
+          if (item.expanded) expanded2.add(item.id);
+          if (Array.isArray(item.children)) collect(item.children);
+        }
+      };
+      collect(roots);
+      render();
+    }, (error) => {
+      if (!valid()) return;
+      pending = 0;
+      tree.replaceChildren(workspace_element("div", "workspace-breadcrumb-status", String(error instanceof Error ? error.message : error)));
+      place();
+    });
+    tree.append(workspace_element("div", "workspace-breadcrumb-status", "\u6B63\u5728\u8BFB\u53D6\u2026"));
+    return { root, close };
+  }
+
+  // src/workspace_breadcrumbs_settings.ts
+  var BREADCRUMB_DEFAULTS = Object.freeze({ enabled: true, file_path: "on", symbol_path: "on", icons: true, show_editor_type: true, symbol_sort_order: "position", symbol_path_separator: "." });
+  var BREADCRUMB_KINDS = ["file", "module", "namespace", "package", "class", "method", "property", "field", "constructor", "enum", "interface", "function", "variable", "constant", "string", "number", "boolean", "array", "object", "key", "null", "enum-member", "struct", "event", "operator", "type-parameter"];
+  var KEY = "breadcrumbs";
+  var changed = /* @__PURE__ */ new Set();
+  var dialog;
+  var object = (v2) => v2 && typeof v2 === "object" && !Array.isArray(v2) ? v2 : {};
+  function root_key(root) {
+    if (!root) return "";
+    const runtime2 = window, p = runtime2.reqnode("path").resolve(root);
+    return runtime2.reqnode("process").platform === "win32" ? p.toLowerCase() : p;
+  }
+  function stored_settings() {
+    return object(get_workspace_app()?.settings.get(KEY));
+  }
+  function clean(value) {
+    const source = object(value), result = {};
+    for (const key of ["enabled", "icons", "show_editor_type"]) if (typeof source[key] === "boolean") result[key] = source[key];
+    for (const key of ["file_path", "symbol_path"]) if (["on", "off", "last"].includes(source[key])) result[key] = source[key];
+    if (["position", "name", "type"].includes(source.symbol_sort_order)) result.symbol_sort_order = source.symbol_sort_order;
+    if (typeof source.symbol_path_separator === "string" && source.symbol_path_separator.length <= 16 && !/[\r\n\0]/.test(source.symbol_path_separator)) result.symbol_path_separator = source.symbol_path_separator;
+    const kinds = object(source.symbol_kinds);
+    if (Object.keys(kinds).length) result.symbol_kinds = Object.fromEntries(BREADCRUMB_KINDS.filter((k2) => typeof kinds[k2] === "boolean").map((k2) => [k2, kinds[k2]]));
+    return result;
+  }
+  function read_breadcrumb_settings(root = "", language44 = "") {
+    const value = stored_settings(), user = object(value.user), workspace = object(object(value.workspaces)[root_key(root)]);
+    const result = { ...BREADCRUMB_DEFAULTS, symbol_kinds: {} };
+    const merge = (v2, language_only = false) => {
+      const next = clean(v2);
+      if (language_only) {
+        for (const key of Object.keys(next)) if (!["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key)) delete next[key];
+      }
+      Object.assign(result, { ...next, symbol_kinds: { ...result.symbol_kinds, ...next.symbol_kinds } });
+    };
+    merge(user.values);
+    merge(workspace.values);
+    if (language44) {
+      merge(object(user.languages)[language44], true);
+      merge(object(workspace.languages)[language44], true);
+    }
+    return result;
+  }
+  function update_breadcrumb_settings(root, scope, key, value, language44 = "") {
+    const settings = get_workspace_app()?.settings;
+    if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
+    if (scope === "workspace" && !root) throw new Error("\u8BF7\u5148\u6253\u5F00\u6587\u4EF6\u5939\u518D\u914D\u7F6E\u5DE5\u4F5C\u533A\u3002");
+    if (language44 && !["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key)) throw new Error("\u6B64\u9009\u9879\u4E0D\u652F\u6301\u8BED\u8A00\u8986\u76D6\u3002");
+    const next = JSON.parse(JSON.stringify(stored_settings()));
+    const owner = scope === "user" ? next.user ??= {} : (next.workspaces ??= {})[root_key(root)] ??= {};
+    const target = language44 ? (owner.languages ??= {})[language44] ??= {} : owner.values ??= {};
+    if (value === void 0) delete target[key];
+    else {
+      const valid = clean({ [key]: value });
+      if (!(key in valid)) throw new Error("\u914D\u7F6E\u503C\u65E0\u6548\u3002");
+      Object.assign(target, valid);
+    }
+    settings.set_and_save(KEY, next);
+    for (const listener of changed) listener();
+  }
+  function set_breadcrumb_enabled(root, enabled) {
+    const workspace = clean(object(object(stored_settings().workspaces)[root_key(root)]).values);
+    update_breadcrumb_settings(root, typeof workspace.enabled === "boolean" ? "workspace" : "user", "enabled", enabled);
+  }
+  function observe_breadcrumb_settings(listener) {
+    changed.add(listener);
+    return () => {
+      changed.delete(listener);
+    };
+  }
+  function open_breadcrumb_settings(root, language44 = "") {
+    dialog?.close(false);
+    const view = dialog = workspace_dialog("\u9762\u5305\u5C51\u5BFC\u822A\u8BBE\u7F6E", "\u5173\u95ED\u8BBE\u7F6E", () => {
+      if (dialog === view) dialog = void 0;
+    });
+    view.root.classList.add("workspace-breadcrumb-settings");
+    const selectors = workspace_element("div", "workspace-breadcrumb-setting-scopes"), scope = workspace_element("select"), language_scope = workspace_element("select");
+    scope.setAttribute("aria-label", "\u8BBE\u7F6E\u4F5C\u7528\u57DF");
+    for (const [value, label] of [["user", "\u7528\u6237"], ["workspace", "\u5DE5\u4F5C\u533A"]]) {
+      const option = workspace_element("option", "", label);
+      option.value = value;
+      option.disabled = value === "workspace" && !root;
+      scope.append(option);
+    }
+    language_scope.setAttribute("aria-label", "\u8BED\u8A00\u8986\u76D6");
+    const all = workspace_element("option", "", "\u6240\u6709\u8BED\u8A00");
+    all.value = "";
+    language_scope.append(all);
+    if (language44) {
+      const option = workspace_element("option", "", language44);
+      option.value = language44;
+      language_scope.append(option);
+    }
+    selectors.append(scope, language_scope);
+    const rows = workspace_element("div"), status2 = workspace_element("p");
+    status2.setAttribute("role", "status");
+    view.content.append(selectors, rows, status2);
+    const render = () => {
+      rows.replaceChildren();
+      const current = read_breadcrumb_settings(scope.value === "user" ? "" : root, language_scope.value);
+      const data = stored_settings(), owner = scope.value === "user" ? object(data.user) : object(object(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object(owner.languages)[language_scope.value] : owner.values);
+      const change = (key, value) => {
+        try {
+          update_breadcrumb_settings(root, scope.value, key, value, language_scope.value);
+          status2.textContent = "\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\u5E76\u751F\u6548\u3002";
+        } catch (error) {
+          status2.textContent = String(error instanceof Error ? error.message : error);
+        }
+        render();
+      };
+      const definitions = [["enabled", "\u663E\u793A\u9762\u5305\u5C51"], ["file_path", "\u6587\u4EF6\u8DEF\u5F84", ["on", "off", "last"]], ["symbol_path", "\u7B26\u53F7\u8DEF\u5F84", ["on", "off", "last"]], ["icons", "\u663E\u793A\u56FE\u6807"], ["show_editor_type", "\u663E\u793A\u7F16\u8F91\u5668\u7C7B\u578B"], ["symbol_sort_order", "\u7B26\u53F7\u6392\u5E8F", ["position", "name", "type"]], ["symbol_path_separator", "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84\u5206\u9694\u7B26"]];
+      const labels = { on: "\u5B8C\u6574\u8DEF\u5F84", off: "\u5173\u95ED", last: "\u4EC5\u672B\u7EA7", position: "\u6587\u6863\u4F4D\u7F6E", name: "\u540D\u79F0", type: "\u7C7B\u578B" };
+      for (const [key, label, options2] of definitions) {
+        if (language_scope.value && !["symbol_sort_order", "symbol_path_separator"].includes(key)) continue;
+        const row = workspace_element("label", "workspace-breadcrumb-setting"), name = workspace_element("span", "", label);
+        let control;
+        if (options2) {
+          const select = workspace_element("select");
+          for (const value of options2) {
+            const option = workspace_element("option", "", labels[value]);
+            option.value = value;
+            select.append(option);
+          }
+          select.value = String(current[key]);
+          control = select;
+        } else {
+          const input = workspace_element("input");
+          input.type = typeof current[key] === "boolean" ? "checkbox" : "text";
+          input.checked = current[key] === true;
+          input.value = String(current[key]);
+          control = input;
+        }
+        control.setAttribute("aria-label", label);
+        control.onchange = () => change(key, control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : control.value);
+        row.append(name, control, workspace_button("\u91CD\u7F6E", () => change(key, void 0)));
+        rows.append(row);
+      }
+      const kinds = workspace_element("details"), summary = workspace_element("summary", "", "\u663E\u793A\u7684\u7B26\u53F7\u7C7B\u578B");
+      kinds.append(summary);
+      for (const kind of BREADCRUMB_KINDS) {
+        const label = workspace_element("label", "workspace-breadcrumb-kind"), input = workspace_element("input");
+        input.type = "checkbox";
+        input.checked = current.symbol_kinds[kind] !== false;
+        input.onchange = () => change("symbol_kinds", { ...values.symbol_kinds, [kind]: input.checked });
+        label.append(input, workspace_element("span", "", kind));
+        kinds.append(label);
+      }
+      kinds.append(workspace_button("\u91CD\u7F6E\u7B26\u53F7\u7C7B\u578B", () => change("symbol_kinds", void 0)));
+      rows.append(kinds);
+    };
+    scope.onchange = render;
+    language_scope.onchange = render;
+    render();
+  }
+
+  // src/source_symbols.ts
+  var SOURCE_SYMBOL_LANGUAGES = { javascript: "javascript", typescript: "typescript", python: "python", cmake: "cmake", yaml: "yaml" };
+
+  // src/source_symbol_service.ts
+  function create_source_symbol_service() {
+    let failure;
+    let disposed = false, worker, url = "", sequence = 0, loading;
+    const sent_languages = /* @__PURE__ */ new Set();
+    let sent_runtime = false;
+    const pending = /* @__PURE__ */ new Map();
+    const runtime2 = window;
+    const assets = /* @__PURE__ */ new Map();
+    const read2 = (name) => {
+      let promise = assets.get(name);
+      if (!promise) {
+        promise = runtime2.reqnode("fs").promises.readFile(runtime2.reqnode("path").join(runtime2._options.userDataPath, "typora_code", "assets", "source_symbols", name)).then((bytes) => new Uint8Array(bytes));
+        assets.set(name, promise);
+      }
+      return promise;
+    };
+    const get_worker = () => loading ??= (async () => {
+      const bytes = await read2("worker.js");
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      url = URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
+      worker = new Worker(url);
+      worker.onmessage = (event) => {
+        const item = pending.get(event.data.id);
+        if (!item) return;
+        pending.delete(event.data.id);
+        event.data.error ? item.reject(new Error(event.data.error)) : item.resolve(event.data);
+      };
+      worker.onerror = (event) => {
+        failure = new Error(event.message || "\u8BED\u6CD5\u89E3\u6790\u8FDB\u7A0B\u5931\u8D25\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u5DE5\u4F5C\u53F0\u3002");
+        worker?.terminate();
+        for (const item of pending.values()) item.reject(failure);
+        pending.clear();
+      };
+      return worker;
+    })();
+    return { async parse(language44, text3, signal) {
+      if (failure) throw failure;
+      if (!SOURCE_SYMBOL_LANGUAGES[language44]) throw new Error("\u6B64\u8BED\u8A00\u5C1A\u672A\u63D0\u4F9B\u8BED\u6CD5\u7B26\u53F7\u5927\u7EB2\u3002");
+      if (text3.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
+      signal.throwIfAborted();
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      const [target, wasm, grammar] = await Promise.all([get_worker(), read2("tree-sitter.wasm"), read2("tree-sitter-".concat(language44, ".wasm"))]);
+      signal.throwIfAborted();
+      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
+      if (failure) throw failure;
+      const id = ++sequence;
+      return new Promise((resolve3, reject) => {
+        const abort = () => {
+          pending.delete(id);
+          reject(new DOMException("\u5DF2\u53D6\u6D88", "AbortError"));
+        };
+        pending.set(id, { resolve: (value) => {
+          signal.removeEventListener("abort", abort);
+          resolve3(value);
+        }, reject: (error) => {
+          signal.removeEventListener("abort", abort);
+          reject(error);
+        } });
+        signal.addEventListener("abort", abort, { once: true });
+        target.postMessage({ id, language: language44, text: text3, runtime: sent_runtime ? void 0 : wasm, grammar: sent_languages.has(language44) ? void 0 : grammar });
+        sent_runtime = true;
+        sent_languages.add(language44);
+      });
+    }, dispose() {
+      if (disposed) return;
+      disposed = true;
+      worker?.terminate();
+      if (url) URL.revokeObjectURL(url);
+      for (const item of pending.values()) item.reject(new DOMException("\u5DF2\u5173\u95ED", "AbortError"));
+      pending.clear();
+      assets.clear();
+    } };
+  }
+
+  // src/clangd_transport.ts
+  function create_clangd_transport(node, executable, args, cwd2, on_notification) {
+    const bytes = node("buffer").Buffer;
+    const child = node("child_process").spawn(executable, args, { cwd: cwd2, shell: false, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
+    let buffer = bytes.alloc(0), next_id = 0, failed, closed = false, stderr = "";
+    const pending = /* @__PURE__ */ new Map();
+    const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
+    const fail = (error, terminate = false) => {
+      if (failed) return;
+      failed = error;
+      for (const item of pending.values()) item.finish(error);
+      pending.clear();
+      if (terminate && child.exitCode === null) child.kill();
+    };
+    const send = (message) => {
+      if (failed) throw failed;
+      if (closed) throw abort_error();
+      const body = bytes.from(JSON.stringify({ jsonrpc: "2.0", ...message }), "utf8");
+      child.stdin.write(bytes.concat([bytes.from("Content-Length: ".concat(body.length, "\r\n\r\n"), "ascii"), body]));
+    };
+    child.on("error", (error) => {
+      if (!closed) fail(new Error("\u65E0\u6CD5\u542F\u52A8 clangd\uFF1A".concat(error.message)), true);
+    });
+    child.on("exit", (code) => {
+      if (!closed) fail(new Error("clangd \u5DF2\u9000\u51FA\uFF08".concat(code ?? "\u4FE1\u53F7", "\uFF09").concat(stderr ? "\uFF1A" + stderr.trim() : "")));
+    });
+    for (const channel of ["stdin", "stdout", "stderr"]) child[channel].on("error", (error) => {
+      if (!closed) fail(new Error("clangd ".concat(channel, " \u901A\u4FE1\u5931\u8D25\uFF1A").concat(error.message)), true);
+    });
+    child.stderr.on("data", (data) => {
+      stderr = (stderr + bytes.from(data).toString("utf8")).slice(-4096);
+    });
+    child.stdout.on("data", (data) => {
+      if (failed || closed) return;
+      buffer = bytes.concat([buffer, data]);
+      try {
+        for (; ; ) {
+          const boundary = buffer.indexOf("\r\n\r\n");
+          if (boundary < 0) {
+            if (buffer.length > 8192) throw new Error("clangd \u534F\u8BAE\u5934\u8D85\u8FC7\u9650\u5236\u3002");
+            break;
+          }
+          const header = buffer.subarray(0, boundary).toString("ascii"), match2 = /^Content-Length:\s*(\d+)\s*$/im.exec(header);
+          if (!match2) throw new Error("clangd \u672A\u8FD4\u56DE\u6709\u6548\u7684 LSP \u534F\u8BAE\u5934\u3002");
+          const length = Number(match2[1]);
+          if (!Number.isSafeInteger(length) || length > 32 * 1024 * 1024) throw new Error("clangd \u54CD\u5E94\u8D85\u8FC7\u9650\u5236\u3002");
+          if (buffer.length < boundary + 4 + length) break;
+          const message = JSON.parse(buffer.subarray(boundary + 4, boundary + 4 + length).toString("utf8"));
+          buffer = buffer.subarray(boundary + 4 + length);
+          if (message.method) {
+            if (message.id !== void 0) {
+              send(message.method === "workspace/configuration" ? { id: message.id, result: (message.params?.items || []).map(() => null) } : { id: message.id, error: { code: -32601, message: "Method not supported" } });
+            } else on_notification(message.method, message.params);
+          } else if (typeof message.id === "number") {
+            pending.get(message.id)?.finish(message.error ? new Error("clangd\uFF1A".concat(String(message.error.message || "\u8BF7\u6C42\u5931\u8D25"))) : void 0, message.result);
+          }
+        }
+      } catch (error) {
+        fail(error instanceof Error ? error : new Error(String(error)), true);
+      }
+    });
+    const request = (method, params, signal, timeout_ms = 2e4) => {
+      if (signal?.aborted) return Promise.reject(abort_error());
+      if (failed) return Promise.reject(failed);
+      if (closed) return Promise.reject(abort_error());
+      const id = ++next_id;
+      return new Promise((resolve3, reject) => {
+        const finish = (error, value) => {
+          if (!pending.has(id)) return;
+          pending.delete(id);
+          clearTimeout(timer);
+          signal?.removeEventListener("abort", abort);
+          error ? reject(error) : resolve3(value);
+        };
+        const abort = () => {
+          try {
+            send({ method: "$/cancelRequest", params: { id } });
+          } catch {
+          }
+          finish(abort_error());
+        };
+        const timer = setTimeout(() => {
+          try {
+            send({ method: "$/cancelRequest", params: { id } });
+          } catch {
+          }
+          finish(new Error("clangd \u5206\u6790\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u7F16\u8BD1\u6570\u636E\u5E93\u6216\u91CD\u65B0\u9009\u62E9\u89E3\u6790\u5668\u3002"));
+        }, timeout_ms);
+        pending.set(id, { finish });
+        signal?.addEventListener("abort", abort, { once: true });
+        try {
+          send({ id, method, params });
+        } catch (error) {
+          finish(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
+    };
+    return { request, notify: (method, params) => send({ method, params }), get failure() {
+      return failed;
+    }, get process_id() {
+      return child.pid;
+    }, async dispose() {
+      if (closed) return;
+      for (const item of [...pending.values()]) item.finish(abort_error());
+      try {
+        if (!failed) {
+          await request("shutdown", null, void 0, 500);
+          send({ method: "exit" });
+        }
+      } catch {
+      }
+      closed = true;
+      child.stdin.end();
+      if (child.exitCode === null) {
+        const timer = setTimeout(() => child.kill(), 500);
+        child.once("exit", () => clearTimeout(timer));
+      }
+    } };
+  }
+
+  // src/clangd_symbol_service.ts
+  var host_node = (name) => window.reqnode(name);
+  async function discover_clangd_environment(options2 = {}, node = host_node) {
+    const fs2 = node("fs").promises, path = node("path"), process2 = node("process"), env2 = process2.env, is_windows = process2.platform === "win32";
+    const name = is_windows ? "clangd.exe" : "clangd", candidates = [], seen = /* @__PURE__ */ new Set();
+    const regular = async (file) => {
+      try {
+        return (await fs2.stat(file)).isFile();
+      } catch {
+        return false;
+      }
+    };
+    const add = (file) => {
+      if (!file) return;
+      const resolved = path.resolve(file), key = is_windows ? resolved.toLowerCase() : resolved;
+      if (!seen.has(key)) {
+        seen.add(key);
+        candidates.push(resolved);
+      }
+    };
+    const path_dirs = String(env2.PATH || env2.Path || "").split(path.delimiter).filter(Boolean).map((item) => item.replace(/^"|"$/g, ""));
+    if (options2.executable?.trim()) {
+      const value = options2.executable.trim();
+      if (path.isAbsolute(value)) add(value);
+      else if (!/[\\/]/.test(value)) for (const directory of path_dirs) add(path.join(directory, is_windows && !path.extname(value) ? value + ".exe" : value));
+      else throw new Error("clangd \u8DEF\u5F84\u5FC5\u987B\u4E3A\u7EDD\u5BF9\u8DEF\u5F84\u6216 PATH \u4E2D\u7684\u547D\u4EE4\u540D\u3002");
+    } else {
+      if (env2.CLANGD_PATH && path.isAbsolute(env2.CLANGD_PATH)) add(env2.CLANGD_PATH);
+      for (const directory of path_dirs) add(path.join(directory, name));
+      if (env2.LLVM_PATH) {
+        add(path.join(env2.LLVM_PATH, "bin", name));
+        add(path.join(env2.LLVM_PATH, name));
+      }
+      if (is_windows) {
+        for (const directory of [env2.ProgramFiles, env2["ProgramFiles(x86)"]].filter(Boolean)) add(path.join(directory, "LLVM", "bin", name));
+      } else for (const directory of ["/usr/bin", "/usr/local/bin", "/opt/homebrew/opt/llvm/bin", "/usr/local/opt/llvm/bin"]) add(path.join(directory, name));
+    }
+    const available = [];
+    for (const candidate of candidates) {
+      if (is_windows && path.extname(candidate).toLowerCase() !== ".exe") continue;
+      if (await regular(candidate)) {
+        try {
+          if (!is_windows) await fs2.access(candidate, node("fs").constants.X_OK);
+          available.push(candidate);
+        } catch {
+        }
+      }
+    }
+    if (!available.length) throw new Error(options2.executable ? "\u6307\u5B9A\u7684 clangd \u4E0D\u5B58\u5728\uFF0C\u8BF7\u5728\u5927\u7EB2\u89E3\u6790\u8BBE\u7F6E\u4E2D\u9009\u62E9 clangd \u53EF\u6267\u884C\u6587\u4EF6\u3002" : "\u672A\u627E\u5230 clangd\u3002\u8BF7\u5728\u5927\u7EB2\u89E3\u6790\u8BBE\u7F6E\u4E2D\u9009\u62E9 clangd\uFF0C\u6216\u5C06 LLVM \u7684 bin \u76EE\u5F55\u52A0\u5165 PATH\u3002");
+    const compile_commands_candidates = [];
+    const database = async (directory) => {
+      if (await regular(path.join(directory, "compile_commands.json")) || await regular(path.join(directory, "compile_flags.txt"))) compile_commands_candidates.push(directory);
+    };
+    const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? path.resolve(options2.workspace_root) : "";
+    if (options2.compile_commands_dir?.trim()) {
+      const value = options2.compile_commands_dir.trim();
+      if (!path.isAbsolute(value) && !root) throw new Error("\u76F8\u5BF9\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\u9700\u8981\u5DF2\u6253\u5F00\u7684\u5DE5\u4F5C\u533A\u3002");
+      const directory = path.resolve(root || "", value);
+      await database(directory);
+      if (!compile_commands_candidates.length) throw new Error("\u6240\u9009\u76EE\u5F55\u672A\u627E\u5230 compile_commands.json \u6216 compile_flags.txt\u3002");
+    } else if (root) {
+      await database(root);
+      const build_dir = path.join(root, "build");
+      await database(build_dir);
+      try {
+        const directories = (await fs2.readdir(build_dir, { withFileTypes: true })).filter((entry) => entry.isDirectory()).sort((a, b2) => a.name.localeCompare(b2.name)).slice(0, 64);
+        for (const entry of directories) await database(path.join(build_dir, entry.name));
+      } catch {
+      }
+    }
+    return { executable: available[0], compile_commands_dir: compile_commands_candidates[0] || "", candidates: available, compile_commands_candidates };
+  }
+  function clangd_document_symbols(items, text3) {
+    const starts = [0];
+    for (let index = 0; index < text3.length; index++) if (text3.charCodeAt(index) === 10) starts.push(index + 1);
+    const offset = (position2) => {
+      const line = position2?.line, character = position2?.character;
+      if (!Number.isInteger(line) || !Number.isInteger(character) || line < 0 || character < 0 || line >= starts.length) return void 0;
+      const start = starts[line], end = line + 1 < starts.length ? starts[line + 1] - 1 : text3.length;
+      return Math.min(start + character, end);
+    };
+    const kinds = { 1: "file", 2: "namespace", 3: "namespace", 4: "namespace", 5: "class", 6: "method", 7: "property", 8: "field", 9: "method", 10: "enum", 11: "interface", 12: "function", 13: "variable", 14: "constant", 15: "string", 16: "number", 17: "boolean", 18: "array", 19: "object", 20: "property", 21: "namespace", 22: "enum-member", 23: "struct", 24: "event", 25: "operator", 26: "type-parameter" };
+    let count = 0;
+    const map = (values, depth = 0, parent_kind = 0) => {
+      if (depth > 80) return [];
+      return values.flatMap((item) => {
+        if (++count > 5e3 || typeof item?.name !== "string") return [];
+        const range2 = item.range || item.location?.range, selection = item.selectionRange || range2;
+        const start = offset(range2?.start), end = offset(range2?.end), selection_start = offset(selection?.start), selection_end = offset(selection?.end);
+        if (start === void 0 || end === void 0 || selection_start === void 0 || selection_end === void 0 || start > end || selection_start > selection_end) return [];
+        return [{ name: item.name.slice(0, 200), kind: item.kind === 5 && item.detail === "struct" ? "struct" : item.kind === 10 && parent_kind === 10 ? "enum-member" : kinds[item.kind] || "variable", detail: typeof item.detail === "string" ? item.detail : "", start, end, selection_start, selection_end, children: Array.isArray(item.children) ? map(item.children, depth + 1, item.kind) : [] }];
+      });
+    };
+    return Array.isArray(items) ? map(items) : [];
+  }
+  function create_clangd_symbol_service(node = host_node) {
+    const path = node("path"), url = node("url");
+    let disposed = false, transport, environment, configuration = "", document_uri = "", document_text = "", document_language = "", document_version = 0;
+    let active, queue = Promise.resolve();
+    const diagnostics = /* @__PURE__ */ new Map();
+    const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
+    const close = async () => {
+      const previous = transport;
+      transport = void 0;
+      configuration = "";
+      document_uri = "";
+      document_text = "";
+      document_language = "";
+      diagnostics.clear();
+      await previous?.dispose();
+    };
+    const parse5 = async (options2, signal) => {
+      if (disposed || signal.aborted) throw abort_error();
+      if (!path.isAbsolute(options2.file_path)) throw new Error("\u4EE3\u7801\u5927\u7EB2\u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
+      if (options2.language !== "c" && options2.language !== "cpp") throw new Error("clangd \u4EC5\u7528\u4E8E C/C++ \u5927\u7EB2\u3002");
+      if (options2.text.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
+      if (options2.fallback_flags && (!Array.isArray(options2.fallback_flags) || options2.fallback_flags.some((flag) => typeof flag !== "string" || flag.includes("\0")))) throw new Error("\u5907\u7528\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u4E3A\u5B57\u7B26\u4E32\u5217\u8868\u3002");
+      active?.abort();
+      const controller = active = new AbortController();
+      const abort = () => controller.abort();
+      signal.addEventListener("abort", abort, { once: true });
+      const check = () => {
+        if (disposed || controller.signal.aborted) throw abort_error();
+      };
+      const operation = queue.catch(() => {
+      }).then(async () => {
+        check();
+        const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? options2.workspace_root : path.dirname(options2.file_path);
+        const key = JSON.stringify([root, options2.executable || "", options2.compile_commands_dir || "", options2.fallback_flags || []]);
+        if (key !== configuration || !transport || transport.failure) {
+          await close();
+          check();
+          environment = await discover_clangd_environment({ ...options2, workspace_root: root }, node);
+          check();
+          const args = ["--background-index=false", "--clang-tidy=false", "--pch-storage=memory", "--log=error", "--enable-config=false"];
+          if (environment.compile_commands_dir) args.push("--compile-commands-dir=".concat(environment.compile_commands_dir));
+          transport = create_clangd_transport(node, environment.executable, args, root, (method, params) => {
+            if (method === "textDocument/publishDiagnostics" && typeof params?.uri === "string" && Array.isArray(params.diagnostics)) diagnostics.set(params.uri, { version: params.version, items: params.diagnostics });
+          });
+          try {
+            const response = await transport.request("initialize", { processId: node("process").pid, rootUri: url.pathToFileURL(root).href, clientInfo: { name: "TyporaCode", version: "1" }, capabilities: { general: { positionEncodings: ["utf-16"] }, offsetEncoding: ["utf-16"], textDocument: { documentSymbol: { hierarchicalDocumentSymbolSupport: true, symbolKind: { valueSet: Array.from({ length: 26 }, (_2, index) => index + 1) } }, publishDiagnostics: { versionSupport: true } } }, initializationOptions: { fallbackFlags: options2.fallback_flags || [] } }, controller.signal);
+            const encoding = response?.capabilities?.positionEncoding || response?.offsetEncoding || "utf-16";
+            if (encoding !== "utf-16") throw new Error("clangd \u672A\u63A5\u53D7 UTF-16 \u5B9A\u4F4D\u534F\u8BAE\u3002");
+            if (!response?.capabilities?.documentSymbolProvider) throw new Error("\u6240\u9009 clangd \u672A\u63D0\u4F9B\u6587\u6863\u7B26\u53F7\u5206\u6790\u80FD\u529B\u3002");
+            transport.notify("initialized", {});
+            configuration = key;
+          } catch (error) {
+            await close();
+            throw error;
+          }
+        }
+        check();
+        const target = transport, uri = url.pathToFileURL(options2.file_path).href;
+        if (document_uri !== uri || document_language !== options2.language) {
+          if (document_uri) target.notify("textDocument/didClose", { textDocument: { uri: document_uri } });
+          diagnostics.clear();
+          document_uri = uri;
+          document_language = options2.language;
+          document_text = options2.text;
+          document_version++;
+          target.notify("textDocument/didOpen", { textDocument: { uri, languageId: options2.language, version: document_version, text: options2.text } });
+        } else if (document_text !== options2.text) {
+          document_text = options2.text;
+          document_version++;
+          diagnostics.delete(uri);
+          target.notify("textDocument/didChange", { textDocument: { uri, version: document_version }, contentChanges: [{ text: options2.text }] });
+        }
+        const items = await target.request("textDocument/documentSymbol", { textDocument: { uri } }, controller.signal);
+        check();
+        const latest = diagnostics.get(uri), received = Boolean(latest && latest.version === document_version), valid = received ? latest.items : [];
+        return { symbols: clangd_document_symbols(items, options2.text), incomplete: false, provider: "clangd", executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
+      });
+      queue = operation;
+      try {
+        return await operation;
+      } finally {
+        signal.removeEventListener("abort", abort);
+      }
+    };
+    return { parse: parse5, async dispose() {
+      if (disposed) return;
+      disposed = true;
+      active?.abort();
+      await queue.catch(() => {
+      });
+      await close();
+    } };
+  }
+
+  // src/source_outline_settings.css
+  var source_outline_settings_default = "";
+
+  // src/source_outline_settings.ts
+  var SETTINGS_KEY = "source_outline";
+  var current_dialog;
+  function workspace_key(root) {
+    if (!root) return "";
+    const runtime2 = window;
+    const resolved = runtime2.reqnode("path").resolve(root);
+    return runtime2.reqnode("process").platform === "win32" ? resolved.toLowerCase() : resolved;
+  }
+  function relative_database(root, directory) {
+    if (!root || !directory) return directory;
+    const path_api = window.reqnode("path");
+    return path_api.isAbsolute(directory) ? path_api.relative(root, directory) || "." : directory;
+  }
+  function read_stored_settings() {
+    const value = get_workspace_app()?.settings.get(SETTINGS_KEY);
+    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  }
+  function validate_settings2(value) {
+    for (const field of ["clangd_path", "compile_commands_dir"]) {
+      if (typeof value[field] !== "string" || /[\r\n\0]/u.test(value[field])) throw new Error("\u8DEF\u5F84\u5FC5\u987B\u662F\u5355\u884C\u6587\u672C\u3002");
+    }
+    if (!Array.isArray(value.fallback_flags) || value.fallback_flags.length > 256 || value.fallback_flags.some((flag) => typeof flag !== "string" || /[\r\n\0]/u.test(flag))) throw new Error("\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u6BCF\u884C\u4E00\u9879\uFF0C\u6700\u591A256\u9879\u3002");
+    if (value.fallback_flags.join("\n").length > 32768) throw new Error("\u7F16\u8BD1\u53C2\u6570\u8FC7\u957F\u3002");
+    return { clangd_path: value.clangd_path.trim(), compile_commands_dir: value.compile_commands_dir.trim(), fallback_flags: value.fallback_flags.map((flag) => flag.trim()).filter(Boolean) };
+  }
+  function read_source_outline_settings(root) {
+    const stored = read_stored_settings(), key = workspace_key(root);
+    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
+    const project = Object.hasOwn(projects, key) ? projects[key] : void 0;
+    return { clangd_path: typeof stored.clangd_path === "string" ? stored.clangd_path : "", compile_commands_dir: typeof project?.compile_commands_dir === "string" ? relative_database(root, project.compile_commands_dir) : "", fallback_flags: Array.isArray(project?.fallback_flags) ? project.fallback_flags.filter((flag) => typeof flag === "string") : [] };
+  }
+  function save_source_outline_settings(root, value) {
+    const settings = get_workspace_app()?.settings;
+    if (!settings) throw new Error("\u5DE5\u4F5C\u533A\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
+    const next = validate_settings2(value), stored = read_stored_settings(), key = workspace_key(root);
+    next.compile_commands_dir = relative_database(root, next.compile_commands_dir);
+    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
+    settings.set_and_save(SETTINGS_KEY, { ...stored, clangd_path: next.clangd_path, workspaces: { ...projects, [key]: { compile_commands_dir: next.compile_commands_dir, fallback_flags: next.fallback_flags } } });
+  }
+  function open_source_outline_settings(root, on_saved) {
+    current_dialog?.close();
+    const dialog2 = workspace_dialog("C/C++ \u8BED\u8A00\u670D\u52A1\u914D\u7F6E", "\u53D6\u6D88");
+    current_dialog = dialog2;
+    dialog2.root.classList.add("source-outline-settings");
+    const style = acquire_workspace_style("typora-code-source-outline-settings", source_outline_settings_default, {}, dialog2.root);
+    const initial = read_source_outline_settings(root);
+    const context = workspace_element("p", "source-outline-settings-context", root ? "\u5F53\u524D\u6587\u4EF6\u5939\uFF1A".concat(window.reqnode("path").basename(root)) : "\u5F53\u524D\u6CA1\u6709\u6253\u5F00\u6587\u4EF6\u5939\uFF0C\u914D\u7F6E\u7528\u4E8E\u72EC\u7ACB\u6587\u4EF6\u3002");
+    dialog2.content.append(context);
+    const add_field = (name, title, hint, multiline = false) => {
+      const label = workspace_element("label", "source-outline-settings-field");
+      const input = workspace_element(multiline ? "textarea" : "input");
+      input.dataset.field = name;
+      input.setAttribute("aria-label", title);
+      input.spellcheck = false;
+      if (input instanceof HTMLInputElement) {
+        input.type = "text";
+        input.autocomplete = "off";
+      } else input.rows = 4;
+      label.append(workspace_element("span", "", title), input, workspace_element("small", "", hint));
+      dialog2.content.append(label);
+      return input;
+    };
+    const executable = add_field("clangd_path", "clangd \u53EF\u6267\u884C\u6587\u4EF6\uFF08\u6240\u6709\u5DE5\u4F5C\u533A\uFF09", "\u7559\u7A7A\u81EA\u52A8\u67E5\u627E\u672C\u673A clangd\uFF1B\u53EF\u586B\u5199\u5B8C\u6574\u53EF\u6267\u884C\u6587\u4EF6\u8DEF\u5F84\u3002");
+    executable.value = initial.clangd_path;
+    const database = add_field("compile_commands_dir", "\u7F16\u8BD1\u6570\u636E\u5E93\u6587\u4EF6\u5939\uFF08\u5F53\u524D\u6587\u4EF6\u5939\uFF09", "\u586B\u5199\u5305\u542B compile_commands.json \u7684\u76EE\u5F55\uFF0C\u5982 build/bringup\uFF1B\u7559\u7A7A\u81EA\u52A8\u67E5\u627E\u3002");
+    database.value = initial.compile_commands_dir;
+    const flags = add_field("fallback_flags", "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08\u5F53\u524D\u6587\u4EF6\u5939\uFF09", "\u4EC5\u5728\u6CA1\u6709\u7F16\u8BD1\u547D\u4EE4\u65F6\u4F7F\u7528\u3002\u6BCF\u884C\u4E00\u4E2A\u53C2\u6570\uFF0C\u542B\u7A7A\u683C\u4E5F\u4E0D\u52A0\u989D\u5916\u5F15\u53F7\u3002", true);
+    flags.value = initial.fallback_flags.join("\n");
+    const status2 = workspace_element("p", "source-outline-settings-status");
+    status2.setAttribute("role", "status");
+    status2.setAttribute("aria-live", "polite");
+    dialog2.content.append(status2);
+    const read_form = () => validate_settings2({ clangd_path: executable.value, compile_commands_dir: database.value, fallback_flags: flags.value.split(/\r?\n/u) });
+    let generation = 0;
+    const report = (message, error = false) => {
+      status2.textContent = message;
+      status2.classList.toggle("is-error", error);
+    };
+    const detect = workspace_button("\u68C0\u6D4B\u8DEF\u5F84", () => {
+      let value;
+      try {
+        value = read_form();
+      } catch (error) {
+        report(String(error.message || error), true);
+        return;
+      }
+      const request = ++generation;
+      detect.disabled = true;
+      report("\u6B63\u5728\u67E5\u627E clangd \u548C\u7F16\u8BD1\u6570\u636E\u5E93\u2026");
+      void discover_clangd_environment({ executable: value.clangd_path, workspace_root: root, compile_commands_dir: value.compile_commands_dir }).then((environment) => {
+        if (!dialog2.root.isConnected || request !== generation) return;
+        const database_text = environment.compile_commands_dir ? "\u7F16\u8BD1\u6570\u636E\u5E93\uFF1A".concat(relative_database(root, environment.compile_commands_dir)) : "\u672A\u627E\u5230\u7F16\u8BD1\u6570\u636E\u5E93\uFF0C\u5C06\u4F7F\u7528\u540E\u5907\u53C2\u6570\u3002";
+        report("clangd\uFF1A".concat(environment.executable, "\n").concat(database_text));
+      }).catch((error) => {
+        if (dialog2.root.isConnected && request === generation) report(String(error?.message || error), true);
+      }).finally(() => {
+        if (dialog2.root.isConnected && request === generation) detect.disabled = false;
+      });
+    });
+    detect.dataset.action = "detect";
+    const save = workspace_button("\u4FDD\u5B58", () => {
+      try {
+        const value = read_form();
+        if (value.clangd_path === initial.clangd_path) value.clangd_path = read_source_outline_settings(root).clangd_path;
+        save_source_outline_settings(root, value);
+      } catch (error) {
+        report("\u4FDD\u5B58\u5931\u8D25\uFF1A".concat(String(error.message || error)), true);
+        return;
+      }
+      generation++;
+      dialog2.close();
+      style.remove();
+      if (current_dialog === dialog2) current_dialog = void 0;
+      on_saved?.();
+    }, "source-outline-settings-save");
+    save.dataset.action = "save";
+    dialog2.footer.prepend(detect, save);
+    for (const input of [executable, database, flags]) input.addEventListener("input", () => {
+      generation++;
+      detect.disabled = false;
+      report("");
+    });
+    return dialog2;
+  }
+
+  // src/workspace_document_symbols.ts
+  var models = /* @__PURE__ */ new WeakMap();
+  function markdown_document_symbols(text3) {
+    const source = text3.replace(/\r\n?/g, "\n"), lines = text3.match(/[^\r\n]*(?:\r\n|\r|\n|$)/g) || [], starts = [0];
+    for (const line of lines) starts.push(starts.at(-1) + line.length);
+    const offset = (n2) => {
+      const before = source.slice(0, n2), line = before.split("\n").length - 1;
+      return (starts[line] || 0) + n2 - (before.lastIndexOf("\n") + 1);
+    };
+    const roots = [], stack = [];
+    let position2 = 0;
+    for (const token of marked2.lexer(source)) {
+      if (token.type === "heading") {
+        while (stack.length && stack.at(-1).depth >= token.depth) stack.pop().symbol.end = offset(position2);
+        const symbol = { name: token.text, kind: "string", detail: "#".repeat(token.depth) + " " + token.text, start: offset(position2), end: text3.length, selection_start: offset(position2), selection_end: offset(position2 + token.raw.trimEnd().split("\n")[0].length), children: [] };
+        (stack.at(-1)?.symbol.children || roots).push(symbol);
+        stack.push({ depth: token.depth, symbol });
+      }
+      position2 += token.raw.length;
+    }
+    return roots;
+  }
+  function document_symbol_chain(symbols, offset) {
+    for (const symbol of [...symbols].reverse()) if (symbol.start <= offset && offset <= symbol.end) return [symbol, ...document_symbol_chain(symbol.children, offset)];
+    return [];
+  }
+  function subscribe_document_symbols(model, file_path, workspace_root, listener) {
+    let entries3 = models.get(model);
+    if (!entries3) models.set(model, entries3 = /* @__PURE__ */ new Map());
+    const key = file_path + "\0" + workspace_root;
+    let owner = entries3.get(key);
+    if (!owner) {
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners2 = /* @__PURE__ */ new Set();
+      let disposed = false, timer = 0, request, worker, clangd;
+      const notify = () => {
+        for (const callback of listeners2) callback(state);
+      };
+      const parse5 = async () => {
+        timer = 0;
+        if (disposed || model.isDisposed()) return;
+        const controller = request = new AbortController(), version = model.getVersionId(), language45 = model.getLanguageId();
+        Object.assign(state, { loading: true, symbols: [], error: "", notice: "", language: language45, version: -1 });
+        notify();
+        try {
+          const compiled = language45 === "c" || language45 === "cpp", settings = compiled ? read_source_outline_settings(workspace_root) : void 0;
+          const result = language45 === "markdown" ? { symbols: markdown_document_symbols(model.getValue()), incomplete: false } : compiled ? await (clangd ??= create_clangd_symbol_service()).parse({ file_path, workspace_root, language: language45, text: model.getValue(), executable: settings.clangd_path, compile_commands_dir: settings.compile_commands_dir, fallback_flags: settings.fallback_flags }, controller.signal) : await (worker ??= create_source_symbol_service()).parse(language45, model.getValue(), controller.signal);
+          if (disposed || controller.signal.aborted || model.isDisposed() || version !== model.getVersionId()) return;
+          const notice = "provider" in result ? result.diagnostics.errors ? "clangd \u62A5\u544A ".concat(result.diagnostics.errors, " \u9879\u8BCA\u65AD\uFF1B\u8BF7\u6838\u5BF9\u89E3\u6790\u8BBE\u7F6E\u3002") : !result.compile_commands_dir ? "\u672A\u627E\u5230\u7F16\u8BD1\u6570\u636E\u5E93\uFF0C\u4F7F\u7528\u540E\u5907\u53C2\u6570\u3002" : "" : result.incomplete ? "\u8BED\u6CD5\u5C1A\u672A\u5B8C\u6574\uFF0C\u663E\u793A\u53EF\u8BC6\u522B\u7B26\u53F7\u3002" : "";
+          Object.assign(state, { symbols: result.symbols, version, loading: false, incomplete: result.incomplete, provider: compiled ? "clangd" : language45 === "markdown" ? "markdown" : "tree-sitter", notice });
+          notify();
+        } catch (error) {
+          if (!disposed && !controller.signal.aborted) {
+            Object.assign(state, { symbols: [], loading: false, error: String(error instanceof Error ? error.message : error), version });
+            notify();
+          }
+        }
+      };
+      const refresh = () => {
+        request?.abort();
+        clearTimeout(timer);
+        Object.assign(state, { symbols: [], loading: true, version: -1, error: "" });
+        notify();
+        timer = window.setTimeout(parse5, 150);
+      };
+      const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
+      owner = { state, listeners: listeners2, refresh, dispose() {
+        if (disposed) return;
+        disposed = true;
+        clearTimeout(timer);
+        request?.abort();
+        content.dispose();
+        language44.dispose();
+        worker?.dispose();
+        void clangd?.dispose();
+        listeners2.clear();
+      } };
+      entries3.set(key, owner);
+      refresh();
+    }
+    const target = owner;
+    target.listeners.add(listener);
+    listener(target.state);
+    let released = false;
+    return { get state() {
+      return target.state;
+    }, refresh: target.refresh, dispose() {
+      if (released) return;
+      released = true;
+      target.listeners.delete(listener);
+      if (!target.listeners.size) {
+        target.dispose();
+        entries3.delete(key);
+        if (!entries3.size) models.delete(model);
+      }
+    } };
+  }
+
+  // src/workspace_breadcrumbs.ts
+  var icons2 = { string: "symbol-key", function: "symbol-method", method: "symbol-method", class: "symbol-class", struct: "symbol-structure", interface: "symbol-interface", variable: "symbol-variable", constant: "symbol-constant", property: "symbol-property", field: "symbol-field", namespace: "symbol-namespace", enum: "symbol-enum", "enum-member": "symbol-enum-member", "type-parameter": "symbol-parameter" };
+  function breadcrumb_path_items(path, root, path_api) {
+    const relative2 = root ? path_api.relative(root, path) : "..", inside = !!root && !path_api.isAbsolute(relative2) && relative2 !== ".." && !relative2.startsWith(".." + path_api.sep);
+    const base = inside ? root : path_api.parse(path).root, parts = (inside ? relative2 : path.slice(base.length)).split(/[\\/]/).filter(Boolean);
+    let current = base;
+    const items = parts.map((name, index) => {
+      current = path_api.join(current, name);
+      return { label: name, path: current, file: index === parts.length - 1 };
+    });
+    if (!inside && base) items.unshift({ label: base, path: base, file: false });
+    return items;
+  }
+  function bind_workspace_breadcrumbs(core, files, outline) {
+    const style = acquire_workspace_style("typora-code-style:breadcrumbs", workspace_breadcrumbs_default), file_icons = acquire_workspace_file_icons(), groups = /* @__PURE__ */ new Map();
+    let disposed = false, frame3 = 0, picker, picker_owner;
+    const error = (message) => new core.Notice(message, 5e3);
+    const close_picker = (restore = false) => {
+      const open = picker;
+      picker = void 0;
+      picker_owner = void 0;
+      open?.close(restore);
+    };
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        refresh();
+      });
+    };
+    const group_active = (state) => state.leaf?.parent?.activeLeaf || state.leaf;
+    const valid = (state, leaf = state.leaf, model = state.model, version = model?.getVersionId()) => !disposed && state.group.isConnected && state.leaf === leaf && group_active(state) === leaf && (!model || state.model === model && !model.isDisposed() && model.getVersionId() === version);
+    const file_path = (leaf) => {
+      const path = source_file_path(leaf.state.path) || (!String(leaf.state.path).startsWith("typ://") ? leaf.state.path : "");
+      if (path && files.path_api.isAbsolute(path)) return path;
+      const document2 = leaf.view?.document, editor2 = leaf.view?.editor, name = editor2?.data?.file || document2?.options?.file, root = document2?.options?.root || leaf.state.git_cwd;
+      if (name && root) return files.path_api.resolve(root, name);
+      return "";
+    };
+    const clear_model = (state) => {
+      state.symbols?.dispose();
+      state.symbols = void 0;
+      state.symbol_state = void 0;
+      for (const listener of state.listeners) listener.dispose();
+      state.listeners = [];
+    };
+    const open_items = (state, anchor, items, label, selected) => {
+      close_picker(false);
+      const leaf = state.leaf, model = state.model, version = model?.getVersionId();
+      picker_owner = state;
+      picker = open_breadcrumb_picker(anchor, items, { label, selected, focus: state.focus, valid: () => valid(state, leaf, model, version), closed: () => {
+        picker = void 0;
+        picker_owner = void 0;
+      }, error });
+    };
+    const directory_items = async (state, directory, leaf) => {
+      const entries3 = await files.fs.promises.readdir(directory, { withFileTypes: true });
+      return entries3.filter((entry) => entry.isFile() || entry.isDirectory() || entry.isSymbolicLink()).sort((a, b2) => Number(b2.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b2.name, void 0, { numeric: true })).map((entry) => {
+        const path = files.path_api.join(directory, entry.name), folder = entry.isDirectory();
+        return { id: path, label: entry.name, title: path, icon: !folder && state.settings?.icons ? () => workspace_file_icon(path) : void 0, children: folder ? () => directory_items(state, path, leaf) : void 0, select: folder ? void 0 : async () => {
+          if (!valid(state, leaf)) return;
+          await files.open_file(path, { preview: true }, leaf.parent);
+        } };
+      });
+    };
+    const native_tree = (state) => {
+      state.chain = [];
+      const native = state.leaf.view?.isEditor?.();
+      const host = window.File, host_file = host?.bundle?.filePath;
+      if (native && (!host_file || host.isFileLoading?.() || files.path_api.relative(state.file, host_file) !== "")) return [];
+      const container = native ? document.querySelector("#write") : state.leaf.view?.containerEl;
+      if (!container || !native && !container.matches(".typ-markdown-view")) return [];
+      const elements = [...container.querySelectorAll("h1,h2,h3,h4,h5,h6")].filter((node) => !node.closest("pre,code,.workspace-breadcrumbs")), roots = [], stack = [];
+      for (const [index, element] of elements.entries()) {
+        const depth = Number(element.tagName[1]);
+        while (stack.length && stack.at(-1).depth >= depth) stack.pop();
+        const name = element.textContent || "", symbol = { name, kind: "string", detail: "#".repeat(depth) + " " + name, start: index, end: elements.length, selection_start: index, selection_end: index, element, children: [] };
+        (stack.at(-1)?.symbol.children || roots).push(symbol);
+        stack.push({ depth, symbol });
+      }
+      const selected = native ? outline?.current_heading?.() : void 0, scroller = native ? document.querySelector("content") : state.leaf.containerEl;
+      let current = selected;
+      if (!current && scroller) {
+        const top = reading_viewport_bounds(scroller).top + 12;
+        current = elements[0];
+        for (const element of elements) {
+          if (element.getBoundingClientRect().top <= top) current = element;
+          else break;
+        }
+      }
+      const chain = (items) => {
+        for (const item of items) {
+          if (item.element === current) return [item];
+          const result = chain(item.children);
+          if (result.length) return [item, ...result];
+        }
+        return [];
+      };
+      state.chain = chain(roots);
+      return roots;
+    };
+    const reveal = (state, symbol) => {
+      if (!valid(state)) return;
+      core.app.workspace.activeLeaf = state.leaf;
+      if (state.model) {
+        if (state.symbol_state?.version !== state.model.getVersionId()) return;
+        const start = state.model.getPositionAt(symbol.selection_start), end = state.model.getPositionAt(symbol.selection_end), range2 = { startLineNumber: start.lineNumber, startColumn: start.column, endLineNumber: end.lineNumber, endColumn: end.column };
+        state.editor.setSelection(range2);
+        state.editor.revealRangeInCenter(range2);
+        state.editor.focus();
+      } else if (symbol.element?.isConnected) {
+        const native = state.leaf.view?.isEditor?.(), scroller = native ? document.querySelector("content") : state.leaf.containerEl;
+        if (scroller) {
+          scroller.scrollTop += symbol.element.getBoundingClientRect().top - reading_viewport_bounds(scroller).top - 12;
+        }
+        if (native) {
+          outline?.select_heading?.(symbol.element);
+          const selection = window.getSelection(), range2 = document.createRange();
+          range2.selectNodeContents(symbol.element);
+          range2.collapse(true);
+          selection?.removeAllRanges();
+          selection?.addRange(range2);
+          document.querySelector("#write")?.focus({ preventScroll: true });
+        } else {
+          state.leaf.containerEl.tabIndex = -1;
+          state.leaf.containerEl.focus({ preventScroll: true });
+        }
+      }
+      schedule();
+    };
+    const symbol_items = (state, items) => {
+      const settings2 = state.settings, kept = items.filter((item) => settings2.symbol_kinds[item.kind] !== false);
+      if (settings2.symbol_sort_order !== "position") kept.sort((a, b2) => (settings2.symbol_sort_order === "type" ? a.kind.localeCompare(b2.kind) : 0) || a.name.localeCompare(b2.name));
+      return kept.map((item) => ({ id: "symbol:" + item.selection_start, label: item.kind === "string" ? item.detail : item.name, title: item.detail || item.name, icon: settings2.icons ? () => git_icon(icons2[item.kind] || "symbol-variable") : void 0, children: item.children.length ? symbol_items(state, item.children) : void 0, expanded: state.chain.includes(item), select: () => reveal(state, item) }));
+    };
+    const render = (state) => {
+      const settings2 = state.settings, paths = breadcrumb_path_items(state.file, state.root, files.path_api), trail = state.trail;
+      const shown_paths = settings2.file_path === "off" ? [] : settings2.file_path === "last" ? paths.slice(-1) : paths;
+      const chain = state.chain.filter((item) => settings2.symbol_kinds[item.kind] !== false), shown_symbols = settings2.symbol_path === "off" ? [] : settings2.symbol_path === "last" ? chain.slice(-1) : chain;
+      const language44 = state.language, has_symbols = state.headings.length > 0;
+      const signature = JSON.stringify([state.file, settings2, shown_symbols.map((s15) => [s15.selection_start, s15.name, s15.detail]), state.symbol_state?.loading, state.symbol_state?.error, has_symbols, state.leaf.view?.isEditor?.(), state.leaf.view?.editor?.data?.right != null]);
+      if (state.signature === signature) return;
+      state.signature = signature;
+      const focused = trail.contains(document.activeElement), focus_index = [...trail.querySelectorAll("button")].indexOf(document.activeElement);
+      trail.replaceChildren();
+      const segment = (label, title, icon, open) => {
+        if (trail.childElementCount) trail.append(git_icon("chevron-right"));
+        const button = workspace_element("button", "workspace-breadcrumb-segment");
+        button.type = "button";
+        button.title = title;
+        button.setAttribute("aria-haspopup", "tree");
+        button.tabIndex = -1;
+        if (icon) button.append(icon);
+        button.append(workspace_element("span", "", label));
+        button.onmousedown = (event) => {
+          if (event.button === 0) {
+            state.focus = capture_workspace_focus();
+            event.preventDefault();
+          }
+        };
+        button.onclick = () => {
+          if (picker_owner === state && button.getAttribute("aria-expanded") === "true") close_picker(true);
+          else open(button);
+        };
+        trail.append(button);
+      };
+      for (const part of shown_paths) segment(part.label, part.path, settings2.icons && part.file ? workspace_file_icon(part.path) : void 0, (button) => open_items(state, button, directory_items(state, files.path_api.dirname(part.path), state.leaf), "\u9009\u62E9\u6587\u4EF6", part.path));
+      for (const symbol of shown_symbols) segment(symbol.kind === "string" ? symbol.detail : symbol.name, symbol.detail || symbol.name, settings2.icons ? git_icon(icons2[symbol.kind] || "symbol-variable") : void 0, (button) => open_items(state, button, symbol_items(state, state.headings), language44 === "markdown" ? "\u9009\u62E9\u6807\u9898" : "\u9009\u62E9\u7B26\u53F7", "symbol:" + symbol.selection_start));
+      if (settings2.symbol_path !== "off" && !shown_symbols.length) {
+        const status2 = state.symbol_state?.loading ? "\u6B63\u5728\u8BFB\u53D6\u7B26\u53F7\u2026" : state.symbol_state?.error || (!has_symbols ? "\u5F53\u524D\u6587\u4EF6\u6CA1\u6709\u53EF\u663E\u793A\u7684\u7B26\u53F7" : "\u9009\u62E9\u6807\u9898\u6216\u7B26\u53F7");
+        segment("\u2026", status2, void 0, (button) => open_items(state, button, has_symbols ? symbol_items(state, state.headings) : [{ id: "status", label: status2 }], "\u9009\u62E9\u6807\u9898\u6216\u7B26\u53F7"));
+      }
+      const buttons = [...trail.querySelectorAll("button")];
+      if (buttons.length) {
+        const target = buttons[Math.max(0, Math.min(buttons.length - 1, focused ? focus_index : buttons.length - 1))];
+        target.tabIndex = 0;
+        if (focused) target.focus({ preventScroll: true });
+      }
+      trail.scrollLeft = trail.scrollWidth;
+      state.type.replaceChildren();
+      if (settings2.show_editor_type) {
+        const diff = state.leaf.view?.editor?.data?.right != null;
+        if (diff) {
+          const mode = workspace_element("button", "", "\u5DEE\u5F02\u7F16\u8F91\u5668");
+          mode.append(git_icon("chevron-down"));
+          mode.onclick = () => {
+            const r4 = mode.getBoundingClientRect(), editor2 = state.leaf.view.editor;
+            workspace_menu(new MouseEvent("contextmenu", { clientX: r4.left, clientY: r4.bottom }), [{ title: "\u5185\u8054\u663E\u793A", action: () => editor2.set_side_by_side(false) }, { title: "\u5E76\u6392\u663E\u793A", action: () => {
+              editor2.inline_when_narrow = false;
+              editor2.set_side_by_side(true);
+            } }]);
+          };
+          state.type.append(mode);
+        } else if (/\.(md|markdown|mdown)$/i.test(state.file)) {
+          const mode = workspace_element("button", "", state.model ? "\u6587\u672C\u7F16\u8F91\u5668" : state.leaf.view?.isEditor?.() ? "Markdown \u7F16\u8F91\u5668" : "Markdown \u9884\u89C8");
+          mode.append(git_icon("chevron-down"));
+          mode.onclick = () => {
+            const leaf = state.leaf, r4 = mode.getBoundingClientRect();
+            workspace_menu(new MouseEvent("contextmenu", { clientX: r4.left, clientY: r4.bottom }), [{ title: "Markdown \u7F16\u8F91\u5668", checked: !state.model, action: () => {
+              void files.reopen_leaf(leaf, false).catch((e) => error(String(e)));
+            } }, { title: "\u6587\u672C\u7F16\u8F91\u5668", checked: !!state.model, action: () => {
+              void files.reopen_leaf(leaf, true).catch((e) => error(String(e)));
+            } }]);
+          };
+          state.type.append(mode);
+        }
+      }
+    };
+    const refresh = () => {
+      if (disposed) return;
+      const active = /* @__PURE__ */ new Map();
+      core.app.workspace.eachLeaves((leaf) => {
+        const group = leaf.parent?.containerEl;
+        if (group?.isConnected && (leaf.parent.activeLeaf === leaf || !active.has(group))) active.set(group, leaf);
+      });
+      for (const [group, leaf] of active) {
+        const strip = group.querySelector(":scope > .workspace-tab-strip");
+        if (!strip) continue;
+        const file = file_path(leaf);
+        let state = groups.get(group);
+        if (!state) {
+          const bar = workspace_element("nav", "workspace-breadcrumbs"), trail = workspace_element("div", "workspace-breadcrumb-trail"), type = workspace_element("div", "workspace-breadcrumb-editor-type");
+          bar.setAttribute("aria-label", "\u6587\u4EF6\u4E0E\u7B26\u53F7\u5BFC\u822A");
+          bar.append(trail, type);
+          strip.after(bar);
+          group.classList.add("workspace-breadcrumbs-managed");
+          state = { group, bar, trail, type, leaf: null, file: "", model: null, editor: null, listeners: [], signature: "", interaction: acquire_workspace_interaction(bar), root: "", language: "", headings: [], chain: [] };
+          groups.set(group, state);
+          const owner = state;
+          bar.oncontextmenu = (event) => {
+            event.preventDefault();
+            workspace_menu(event, [{ title: "\u663E\u793A\u9762\u5305\u5C51", checked: read_breadcrumb_settings(files.context_root()).enabled, action: () => {
+              try {
+                set_breadcrumb_enabled(files.context_root(), false);
+              } catch (e) {
+                error(String(e));
+              }
+            } }, { title: "\u590D\u5236\u9762\u5305\u5C51\u8DEF\u5F84", action: () => files.copy([...breadcrumb_path_items(owner.file, owner.root, files.path_api).map((item) => item.label), ...owner.chain.map((item) => item.name)].join(" > ")) }, { title: "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84", disabled: !owner.chain.length, action: () => files.copy(owner.chain.map((item) => item.name).join(owner.settings?.symbol_path_separator ?? ".")) }, { title: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => open_breadcrumb_settings(owner.root, owner.language) }]);
+          };
+          bar.onkeydown = (event) => {
+            if (event.isComposing) return;
+            const buttons = [...trail.querySelectorAll("button")], index = buttons.indexOf(document.activeElement);
+            if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+              event.preventDefault();
+              event.stopPropagation();
+              const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : Math.max(0, Math.min(buttons.length - 1, index + (event.key === "ArrowLeft" ? -1 : 1)));
+              for (const b2 of buttons) b2.tabIndex = -1;
+              buttons[next]?.focus({ preventScroll: true });
+              if (buttons[next]) {
+                buttons[next].tabIndex = 0;
+                const r4 = buttons[next].getBoundingClientRect(), t = trail.getBoundingClientRect();
+                if (r4.left < t.left) trail.scrollLeft += r4.left - t.left;
+                else if (r4.right > t.right) trail.scrollLeft += r4.right - t.right;
+              }
+            } else if (event.key === "ArrowDown") {
+              event.preventDefault();
+              buttons[index]?.click();
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              event.stopPropagation();
+              owner.focus?.restore();
+            }
+          };
+        }
+        const editor2 = leaf.view?.editor?.focused_editor?.(), model = editor2?.getModel(), root = files.context_root();
+        if (state.leaf !== leaf || state.model !== model || state.file !== file || state.root !== root) {
+          if (picker_owner === state) close_picker(false);
+          clear_model(state);
+          Object.assign(state, { leaf, model, editor: editor2, file, root, signature: "", headings: [], chain: [] });
+          if (model) {
+            state.language = model.getLanguageId();
+            const owner = state;
+            state.symbols = subscribe_document_symbols(model, file, root, (result) => {
+              owner.symbol_state = result;
+              owner.language = result.language;
+              if (picker_owner === owner) close_picker(false);
+              schedule();
+            });
+            state.listeners.push(editor2.onDidChangeCursorPosition(schedule));
+          }
+        }
+        state.settings = read_breadcrumb_settings(root, state.language);
+        state.bar.hidden = !file || !state.settings.enabled;
+        if (state.bar.hidden) {
+          if (picker_owner === state) close_picker(false);
+          continue;
+        }
+        if (model) {
+          state.headings = state.symbol_state?.symbols || [];
+          state.chain = document_symbol_chain(state.headings, model.getOffsetAt(editor2.getPosition() || { lineNumber: 1, column: 1 }));
+        } else {
+          state.language = "markdown";
+          state.headings = native_tree(state);
+        }
+        render(state);
+      }
+      for (const [group, state] of groups) if (!active.has(group) || !group.isConnected) {
+        if (picker_owner === state) close_picker(false);
+        clear_model(state);
+        state.interaction.remove();
+        state.bar.remove();
+        group.classList.remove("workspace-breadcrumbs-managed");
+        groups.delete(group);
+      }
+    };
+    const focus_last = (open = false) => {
+      const leaf = core.app.workspace.activeLeaf, state = leaf && groups.get(leaf.parent?.containerEl);
+      if (!state) return;
+      if (!state.settings?.enabled) {
+        try {
+          set_breadcrumb_enabled(state.root, true);
+        } catch (e) {
+          error(String(e));
+          return;
+        }
+        refresh();
+      }
+      state.focus = capture_workspace_focus();
+      const button = state.trail.querySelector("button:last-child");
+      button?.focus({ preventScroll: true });
+      if (open) button?.click();
+    };
+    const key = (event) => {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && !event.isComposing && ["Period", "Semicolon"].includes(event.code) && !document.querySelector("[aria-modal=true]")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        focus_last(event.code === "Period");
+      }
+    };
+    const mutation = new MutationObserver((records) => {
+      if (records.some((record) => !(record.target instanceof Element) || !record.target.closest(".workspace-breadcrumbs,.workspace-breadcrumb-picker,.workspace-breadcrumb-settings"))) schedule();
+    });
+    mutation.observe(document.body, { childList: true, subtree: true, characterData: true });
+    const unsubscribe = core.app.workspace.on("active-leaf:change", schedule), settings = observe_breadcrumb_settings(() => {
+      close_picker(false);
+      for (const state of groups.values()) state.signature = "";
+      schedule();
+    });
+    const config = core.app.commands.register({ id: "linux_note:breadcrumbs_settings", title: "\u89C6\u56FE\uFF1A\u9762\u5305\u5C51\u5BFC\u822A\u8BBE\u7F6E", scope: "global", callback: () => open_breadcrumb_settings(files.context_root(), core.app.workspace.activeLeaf?.view?.editor?.focused_editor?.()?.getModel()?.getLanguageId() || "markdown") });
+    window.addEventListener("keydown", key, true);
+    document.addEventListener("focusin", schedule, true);
+    document.addEventListener("selectionchange", schedule);
+    document.addEventListener("scroll", schedule, true);
+    window.addEventListener("linux-note-workspace-context-changed", schedule);
+    refresh();
+    return { refresh, dispose() {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      close_picker(false);
+      mutation.disconnect();
+      if (typeof unsubscribe === "function") unsubscribe();
+      if (typeof config === "function") config();
+      settings();
+      window.removeEventListener("keydown", key, true);
+      document.removeEventListener("focusin", schedule, true);
+      document.removeEventListener("selectionchange", schedule);
+      document.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("linux-note-workspace-context-changed", schedule);
+      for (const state of groups.values()) {
+        clear_model(state);
+        state.interaction.remove();
+        state.bar.remove();
+        state.group.classList.remove("workspace-breadcrumbs-managed");
+      }
+      groups.clear();
+      style.remove();
+      file_icons.remove();
+    } };
   }
 
   // src/workspace_editor_actions.ts
@@ -226908,7 +228254,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!anchor.startsWith("#") || /[\u0000-\u0020]/u.test(anchor)) throw new Error("\u65B0\u7A97\u53E3\u951A\u70B9\u5FC5\u987B\u662F\u5B89\u5168\u7684\u6587\u5185\u7247\u6BB5\u3002");
     return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
   }
-  function bind_workspace_open_dialog(files, changed) {
+  function bind_workspace_open_dialog(files, changed2) {
     const runtime2 = window;
     let disposed = false, pending, revision = 0;
     const set_folder = async (selected) => {
@@ -226920,7 +228266,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
       if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       runtime2.File.setMountFolder(target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target);
-      changed();
+      changed2();
     };
     const open_folder_new_window = async (selected) => {
       if (disposed) return;
@@ -226970,7 +228316,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
         revision++;
         runtime2.File.setMountFolder("");
-        changed();
+        changed2();
       },
       dispose() {
         disposed = true;
@@ -226992,8 +228338,8 @@ https://creativecommons.org/licenses/by/4.0/
     const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
     const timeout_ms = options2.timeout_ms ?? TRANSFER_TIMEOUT_MS;
     const notify = options2.notify || ((message) => {
-      const dialog = workspace_dialog("\u79FB\u52A8\u6807\u7B7E");
-      dialog.content.append(workspace_element("p", "", message));
+      const dialog2 = workspace_dialog("\u79FB\u52A8\u6807\u7B7E");
+      dialog2.content.append(workspace_element("p", "", message));
     });
     const open_window = options2.open_window || ((anchor2, root) => open_workspace_window(root, anchor2));
     const cancellations = /* @__PURE__ */ new Set();
@@ -227816,17 +229162,17 @@ https://creativecommons.org/licenses/by/4.0/
       if (!root || !options2.trash || operation_busy) return;
       const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
       if (!paths.length) return;
-      const dialog = workspace_dialog("\u5220\u9664"), message = workspace_element("p", "", "\u786E\u5B9A\u8981\u5C06 ".concat(paths.length, " \u4E2A\u9879\u76EE\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F"));
-      dialogs.add(dialog);
-      dialog.content.append(message);
+      const dialog2 = workspace_dialog("\u5220\u9664"), message = workspace_element("p", "", "\u786E\u5B9A\u8981\u5C06 ".concat(paths.length, " \u4E2A\u9879\u76EE\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F"));
+      dialogs.add(dialog2);
+      dialog2.content.append(message);
       const cancel = workspace_element("button", "", "\u53D6\u6D88"), accept = workspace_element("button", "", "\u79FB\u5230\u56DE\u6536\u7AD9");
       cancel.onclick = () => {
-        dialog.close();
-        dialogs.delete(dialog);
+        dialog2.close();
+        dialogs.delete(dialog2);
       };
       accept.onclick = () => {
-        dialog.close();
-        dialogs.delete(dialog);
+        dialog2.close();
+        dialogs.delete(dialog2);
         run(async () => {
           if (disposed || root !== current_root) return;
           operation_busy = true;
@@ -227841,7 +229187,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         });
       };
-      dialog.footer.replaceChildren(cancel, accept);
+      dialog2.footer.replaceChildren(cancel, accept);
       cancel.focus();
     }
     async function sync_root(force = false) {
@@ -228080,7 +229426,7 @@ https://creativecommons.org/licenses/by/4.0/
       row_views.clear();
       click_sequence = void 0;
       rename_state = void 0;
-      for (const dialog of dialogs) dialog.close();
+      for (const dialog2 of dialogs) dialog2.close();
       dialogs.clear();
       document.removeEventListener("click", activity_click, true);
       window.removeEventListener("focus", window_focus);
@@ -229816,16 +231162,16 @@ https://creativecommons.org/licenses/by/4.0/
         }
         async replace(file_path, match_ids) {
           if (!this.result) return;
-          const dialog = workspace_dialog("\u66FF\u6362\u9884\u89C8");
-          lifetime.add(() => dialog.close());
+          const dialog2 = workspace_dialog("\u66FF\u6362\u9884\u89C8");
+          lifetime.add(() => dialog2.close());
           const editors = [];
-          const original_close = dialog.close;
-          dialog.close = () => {
+          const original_close = dialog2.close;
+          dialog2.close = () => {
             editors.forEach((editor2) => editor2.dispose());
             original_close();
           };
           const cleanup = new MutationObserver(() => {
-            if (!dialog.root.isConnected) {
+            if (!dialog2.root.isConnected) {
               editors.splice(0).forEach((editor2) => editor2.dispose());
               cleanup.disconnect();
             }
@@ -229840,8 +231186,8 @@ https://creativecommons.org/licenses/by/4.0/
             if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
             const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
             const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
-            if (disposed || !dialog.root.isConnected) return;
-            dialog.content.append(workspace_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
+            if (disposed || !dialog2.root.isConnected) return;
+            dialog2.content.append(workspace_element("p", "", "\u5C06\u66FF\u6362 ".concat(plan.files.length, " \u4E2A\u6587\u4EF6\u4E2D\u7684 ").concat(plan.match_count, " \u4E2A\u5339\u914D\u9879\u3002")));
             const picker = workspace_element("select");
             picker.setAttribute("aria-label", "\u9884\u89C8\u66FF\u6362\u6587\u4EF6");
             for (const file of plan.files) {
@@ -229850,7 +231196,7 @@ https://creativecommons.org/licenses/by/4.0/
               picker.append(option);
             }
             const preview = workspace_element("div", "workspace-search-replace-preview");
-            dialog.content.append(picker, preview);
+            dialog2.content.append(picker, preview);
             const show3 = () => {
               editors.splice(0).forEach((editor2) => editor2.dispose());
               const file = plan.files.find((file2) => file2.file_path === picker.value);
@@ -229863,12 +231209,12 @@ https://creativecommons.org/licenses/by/4.0/
             picker.onchange = show3;
             show3();
             const error = workspace_element("p");
-            dialog.content.append(error);
+            dialog2.content.append(error);
             const apply3 = workspace_button("\u786E\u8BA4\u66FF\u6362", () => {
               apply3.disabled = true;
               void engine.apply_replace(plan, { can_write: (paths) => paths.every(files.can_write) }).then((result) => {
                 files.refresh_files(result.files);
-                dialog.close();
+                dialog2.close();
                 void this.search();
               }).catch((problem) => {
                 error.textContent = String(problem);
@@ -229876,9 +231222,9 @@ https://creativecommons.org/licenses/by/4.0/
               });
             });
             apply3.disabled = !plan.match_count;
-            dialog.footer.prepend(apply3);
+            dialog2.footer.prepend(apply3);
           } catch (error) {
-            dialog.content.append(workspace_element("p", "", String(error)));
+            dialog2.content.append(workspace_element("p", "", String(error)));
           }
         }
       }
@@ -230524,522 +231870,6 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/source_symbols.ts
-  var SOURCE_SYMBOL_LANGUAGES = { javascript: "javascript", typescript: "typescript", python: "python", cmake: "cmake", yaml: "yaml" };
-
-  // src/source_symbol_service.ts
-  function create_source_symbol_service() {
-    let failure;
-    let disposed = false, worker, url = "", sequence = 0, loading;
-    const sent_languages = /* @__PURE__ */ new Set();
-    let sent_runtime = false;
-    const pending = /* @__PURE__ */ new Map();
-    const runtime2 = window;
-    const assets = /* @__PURE__ */ new Map();
-    const read2 = (name) => {
-      let promise = assets.get(name);
-      if (!promise) {
-        promise = runtime2.reqnode("fs").promises.readFile(runtime2.reqnode("path").join(runtime2._options.userDataPath, "typora_code", "assets", "source_symbols", name)).then((bytes) => new Uint8Array(bytes));
-        assets.set(name, promise);
-      }
-      return promise;
-    };
-    const get_worker = () => loading ??= (async () => {
-      const bytes = await read2("worker.js");
-      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
-      url = URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
-      worker = new Worker(url);
-      worker.onmessage = (event) => {
-        const item = pending.get(event.data.id);
-        if (!item) return;
-        pending.delete(event.data.id);
-        event.data.error ? item.reject(new Error(event.data.error)) : item.resolve(event.data);
-      };
-      worker.onerror = (event) => {
-        failure = new Error(event.message || "\u8BED\u6CD5\u89E3\u6790\u8FDB\u7A0B\u5931\u8D25\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u5DE5\u4F5C\u53F0\u3002");
-        worker?.terminate();
-        for (const item of pending.values()) item.reject(failure);
-        pending.clear();
-      };
-      return worker;
-    })();
-    return { async parse(language44, text3, signal) {
-      if (failure) throw failure;
-      if (!SOURCE_SYMBOL_LANGUAGES[language44]) throw new Error("\u6B64\u8BED\u8A00\u5C1A\u672A\u63D0\u4F9B\u8BED\u6CD5\u7B26\u53F7\u5927\u7EB2\u3002");
-      if (text3.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
-      signal.throwIfAborted();
-      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
-      const [target, wasm, grammar] = await Promise.all([get_worker(), read2("tree-sitter.wasm"), read2("tree-sitter-".concat(language44, ".wasm"))]);
-      signal.throwIfAborted();
-      if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
-      if (failure) throw failure;
-      const id = ++sequence;
-      return new Promise((resolve3, reject) => {
-        const abort = () => {
-          pending.delete(id);
-          reject(new DOMException("\u5DF2\u53D6\u6D88", "AbortError"));
-        };
-        pending.set(id, { resolve: (value) => {
-          signal.removeEventListener("abort", abort);
-          resolve3(value);
-        }, reject: (error) => {
-          signal.removeEventListener("abort", abort);
-          reject(error);
-        } });
-        signal.addEventListener("abort", abort, { once: true });
-        target.postMessage({ id, language: language44, text: text3, runtime: sent_runtime ? void 0 : wasm, grammar: sent_languages.has(language44) ? void 0 : grammar });
-        sent_runtime = true;
-        sent_languages.add(language44);
-      });
-    }, dispose() {
-      if (disposed) return;
-      disposed = true;
-      worker?.terminate();
-      if (url) URL.revokeObjectURL(url);
-      for (const item of pending.values()) item.reject(new DOMException("\u5DF2\u5173\u95ED", "AbortError"));
-      pending.clear();
-      assets.clear();
-    } };
-  }
-
-  // src/clangd_transport.ts
-  function create_clangd_transport(node, executable, args, cwd2, on_notification) {
-    const bytes = node("buffer").Buffer;
-    const child = node("child_process").spawn(executable, args, { cwd: cwd2, shell: false, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
-    let buffer = bytes.alloc(0), next_id = 0, failed, closed = false, stderr = "";
-    const pending = /* @__PURE__ */ new Map();
-    const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
-    const fail = (error, terminate = false) => {
-      if (failed) return;
-      failed = error;
-      for (const item of pending.values()) item.finish(error);
-      pending.clear();
-      if (terminate && child.exitCode === null) child.kill();
-    };
-    const send = (message) => {
-      if (failed) throw failed;
-      if (closed) throw abort_error();
-      const body = bytes.from(JSON.stringify({ jsonrpc: "2.0", ...message }), "utf8");
-      child.stdin.write(bytes.concat([bytes.from("Content-Length: ".concat(body.length, "\r\n\r\n"), "ascii"), body]));
-    };
-    child.on("error", (error) => {
-      if (!closed) fail(new Error("\u65E0\u6CD5\u542F\u52A8 clangd\uFF1A".concat(error.message)), true);
-    });
-    child.on("exit", (code) => {
-      if (!closed) fail(new Error("clangd \u5DF2\u9000\u51FA\uFF08".concat(code ?? "\u4FE1\u53F7", "\uFF09").concat(stderr ? "\uFF1A" + stderr.trim() : "")));
-    });
-    for (const channel of ["stdin", "stdout", "stderr"]) child[channel].on("error", (error) => {
-      if (!closed) fail(new Error("clangd ".concat(channel, " \u901A\u4FE1\u5931\u8D25\uFF1A").concat(error.message)), true);
-    });
-    child.stderr.on("data", (data) => {
-      stderr = (stderr + bytes.from(data).toString("utf8")).slice(-4096);
-    });
-    child.stdout.on("data", (data) => {
-      if (failed || closed) return;
-      buffer = bytes.concat([buffer, data]);
-      try {
-        for (; ; ) {
-          const boundary = buffer.indexOf("\r\n\r\n");
-          if (boundary < 0) {
-            if (buffer.length > 8192) throw new Error("clangd \u534F\u8BAE\u5934\u8D85\u8FC7\u9650\u5236\u3002");
-            break;
-          }
-          const header = buffer.subarray(0, boundary).toString("ascii"), match2 = /^Content-Length:\s*(\d+)\s*$/im.exec(header);
-          if (!match2) throw new Error("clangd \u672A\u8FD4\u56DE\u6709\u6548\u7684 LSP \u534F\u8BAE\u5934\u3002");
-          const length = Number(match2[1]);
-          if (!Number.isSafeInteger(length) || length > 32 * 1024 * 1024) throw new Error("clangd \u54CD\u5E94\u8D85\u8FC7\u9650\u5236\u3002");
-          if (buffer.length < boundary + 4 + length) break;
-          const message = JSON.parse(buffer.subarray(boundary + 4, boundary + 4 + length).toString("utf8"));
-          buffer = buffer.subarray(boundary + 4 + length);
-          if (message.method) {
-            if (message.id !== void 0) {
-              send(message.method === "workspace/configuration" ? { id: message.id, result: (message.params?.items || []).map(() => null) } : { id: message.id, error: { code: -32601, message: "Method not supported" } });
-            } else on_notification(message.method, message.params);
-          } else if (typeof message.id === "number") {
-            pending.get(message.id)?.finish(message.error ? new Error("clangd\uFF1A".concat(String(message.error.message || "\u8BF7\u6C42\u5931\u8D25"))) : void 0, message.result);
-          }
-        }
-      } catch (error) {
-        fail(error instanceof Error ? error : new Error(String(error)), true);
-      }
-    });
-    const request = (method, params, signal, timeout_ms = 2e4) => {
-      if (signal?.aborted) return Promise.reject(abort_error());
-      if (failed) return Promise.reject(failed);
-      if (closed) return Promise.reject(abort_error());
-      const id = ++next_id;
-      return new Promise((resolve3, reject) => {
-        const finish = (error, value) => {
-          if (!pending.has(id)) return;
-          pending.delete(id);
-          clearTimeout(timer);
-          signal?.removeEventListener("abort", abort);
-          error ? reject(error) : resolve3(value);
-        };
-        const abort = () => {
-          try {
-            send({ method: "$/cancelRequest", params: { id } });
-          } catch {
-          }
-          finish(abort_error());
-        };
-        const timer = setTimeout(() => {
-          try {
-            send({ method: "$/cancelRequest", params: { id } });
-          } catch {
-          }
-          finish(new Error("clangd \u5206\u6790\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u7F16\u8BD1\u6570\u636E\u5E93\u6216\u91CD\u65B0\u9009\u62E9\u89E3\u6790\u5668\u3002"));
-        }, timeout_ms);
-        pending.set(id, { finish });
-        signal?.addEventListener("abort", abort, { once: true });
-        try {
-          send({ id, method, params });
-        } catch (error) {
-          finish(error instanceof Error ? error : new Error(String(error)));
-        }
-      });
-    };
-    return { request, notify: (method, params) => send({ method, params }), get failure() {
-      return failed;
-    }, get process_id() {
-      return child.pid;
-    }, async dispose() {
-      if (closed) return;
-      for (const item of [...pending.values()]) item.finish(abort_error());
-      try {
-        if (!failed) {
-          await request("shutdown", null, void 0, 500);
-          send({ method: "exit" });
-        }
-      } catch {
-      }
-      closed = true;
-      child.stdin.end();
-      if (child.exitCode === null) {
-        const timer = setTimeout(() => child.kill(), 500);
-        child.once("exit", () => clearTimeout(timer));
-      }
-    } };
-  }
-
-  // src/clangd_symbol_service.ts
-  var host_node = (name) => window.reqnode(name);
-  async function discover_clangd_environment(options2 = {}, node = host_node) {
-    const fs2 = node("fs").promises, path = node("path"), process2 = node("process"), env2 = process2.env, is_windows = process2.platform === "win32";
-    const name = is_windows ? "clangd.exe" : "clangd", candidates = [], seen = /* @__PURE__ */ new Set();
-    const regular = async (file) => {
-      try {
-        return (await fs2.stat(file)).isFile();
-      } catch {
-        return false;
-      }
-    };
-    const add = (file) => {
-      if (!file) return;
-      const resolved = path.resolve(file), key = is_windows ? resolved.toLowerCase() : resolved;
-      if (!seen.has(key)) {
-        seen.add(key);
-        candidates.push(resolved);
-      }
-    };
-    const path_dirs = String(env2.PATH || env2.Path || "").split(path.delimiter).filter(Boolean).map((item) => item.replace(/^"|"$/g, ""));
-    if (options2.executable?.trim()) {
-      const value = options2.executable.trim();
-      if (path.isAbsolute(value)) add(value);
-      else if (!/[\\/]/.test(value)) for (const directory of path_dirs) add(path.join(directory, is_windows && !path.extname(value) ? value + ".exe" : value));
-      else throw new Error("clangd \u8DEF\u5F84\u5FC5\u987B\u4E3A\u7EDD\u5BF9\u8DEF\u5F84\u6216 PATH \u4E2D\u7684\u547D\u4EE4\u540D\u3002");
-    } else {
-      if (env2.CLANGD_PATH && path.isAbsolute(env2.CLANGD_PATH)) add(env2.CLANGD_PATH);
-      for (const directory of path_dirs) add(path.join(directory, name));
-      if (env2.LLVM_PATH) {
-        add(path.join(env2.LLVM_PATH, "bin", name));
-        add(path.join(env2.LLVM_PATH, name));
-      }
-      if (is_windows) {
-        for (const directory of [env2.ProgramFiles, env2["ProgramFiles(x86)"]].filter(Boolean)) add(path.join(directory, "LLVM", "bin", name));
-      } else for (const directory of ["/usr/bin", "/usr/local/bin", "/opt/homebrew/opt/llvm/bin", "/usr/local/opt/llvm/bin"]) add(path.join(directory, name));
-    }
-    const available = [];
-    for (const candidate of candidates) {
-      if (is_windows && path.extname(candidate).toLowerCase() !== ".exe") continue;
-      if (await regular(candidate)) {
-        try {
-          if (!is_windows) await fs2.access(candidate, node("fs").constants.X_OK);
-          available.push(candidate);
-        } catch {
-        }
-      }
-    }
-    if (!available.length) throw new Error(options2.executable ? "\u6307\u5B9A\u7684 clangd \u4E0D\u5B58\u5728\uFF0C\u8BF7\u5728\u5927\u7EB2\u89E3\u6790\u8BBE\u7F6E\u4E2D\u9009\u62E9 clangd \u53EF\u6267\u884C\u6587\u4EF6\u3002" : "\u672A\u627E\u5230 clangd\u3002\u8BF7\u5728\u5927\u7EB2\u89E3\u6790\u8BBE\u7F6E\u4E2D\u9009\u62E9 clangd\uFF0C\u6216\u5C06 LLVM \u7684 bin \u76EE\u5F55\u52A0\u5165 PATH\u3002");
-    const compile_commands_candidates = [];
-    const database = async (directory) => {
-      if (await regular(path.join(directory, "compile_commands.json")) || await regular(path.join(directory, "compile_flags.txt"))) compile_commands_candidates.push(directory);
-    };
-    const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? path.resolve(options2.workspace_root) : "";
-    if (options2.compile_commands_dir?.trim()) {
-      const value = options2.compile_commands_dir.trim();
-      if (!path.isAbsolute(value) && !root) throw new Error("\u76F8\u5BF9\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\u9700\u8981\u5DF2\u6253\u5F00\u7684\u5DE5\u4F5C\u533A\u3002");
-      const directory = path.resolve(root || "", value);
-      await database(directory);
-      if (!compile_commands_candidates.length) throw new Error("\u6240\u9009\u76EE\u5F55\u672A\u627E\u5230 compile_commands.json \u6216 compile_flags.txt\u3002");
-    } else if (root) {
-      await database(root);
-      const build_dir = path.join(root, "build");
-      await database(build_dir);
-      try {
-        const directories = (await fs2.readdir(build_dir, { withFileTypes: true })).filter((entry) => entry.isDirectory()).sort((a, b2) => a.name.localeCompare(b2.name)).slice(0, 64);
-        for (const entry of directories) await database(path.join(build_dir, entry.name));
-      } catch {
-      }
-    }
-    return { executable: available[0], compile_commands_dir: compile_commands_candidates[0] || "", candidates: available, compile_commands_candidates };
-  }
-  function clangd_document_symbols(items, text3) {
-    const starts = [0];
-    for (let index = 0; index < text3.length; index++) if (text3.charCodeAt(index) === 10) starts.push(index + 1);
-    const offset = (position2) => {
-      const line = position2?.line, character = position2?.character;
-      if (!Number.isInteger(line) || !Number.isInteger(character) || line < 0 || character < 0 || line >= starts.length) return void 0;
-      const start = starts[line], end = line + 1 < starts.length ? starts[line + 1] - 1 : text3.length;
-      return Math.min(start + character, end);
-    };
-    const kinds = { 1: "file", 2: "namespace", 3: "namespace", 4: "namespace", 5: "class", 6: "method", 7: "property", 8: "field", 9: "method", 10: "enum", 11: "interface", 12: "function", 13: "variable", 14: "constant", 15: "string", 16: "number", 17: "boolean", 18: "array", 19: "object", 20: "property", 21: "namespace", 22: "enum-member", 23: "struct", 24: "event", 25: "operator", 26: "type-parameter" };
-    let count = 0;
-    const map = (values, depth = 0, parent_kind = 0) => {
-      if (depth > 80) return [];
-      return values.flatMap((item) => {
-        if (++count > 5e3 || typeof item?.name !== "string") return [];
-        const range2 = item.range || item.location?.range, selection = item.selectionRange || range2;
-        const start = offset(range2?.start), end = offset(range2?.end), selection_start = offset(selection?.start), selection_end = offset(selection?.end);
-        if (start === void 0 || end === void 0 || selection_start === void 0 || selection_end === void 0 || start > end || selection_start > selection_end) return [];
-        return [{ name: item.name.slice(0, 200), kind: item.kind === 5 && item.detail === "struct" ? "struct" : item.kind === 10 && parent_kind === 10 ? "enum-member" : kinds[item.kind] || "variable", detail: typeof item.detail === "string" ? item.detail : "", start, end, selection_start, selection_end, children: Array.isArray(item.children) ? map(item.children, depth + 1, item.kind) : [] }];
-      });
-    };
-    return Array.isArray(items) ? map(items) : [];
-  }
-  function create_clangd_symbol_service(node = host_node) {
-    const path = node("path"), url = node("url");
-    let disposed = false, transport, environment, configuration = "", document_uri = "", document_text = "", document_language = "", document_version = 0;
-    let active, queue = Promise.resolve();
-    const diagnostics = /* @__PURE__ */ new Map();
-    const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
-    const close = async () => {
-      const previous = transport;
-      transport = void 0;
-      configuration = "";
-      document_uri = "";
-      document_text = "";
-      document_language = "";
-      diagnostics.clear();
-      await previous?.dispose();
-    };
-    const parse5 = async (options2, signal) => {
-      if (disposed || signal.aborted) throw abort_error();
-      if (!path.isAbsolute(options2.file_path)) throw new Error("\u4EE3\u7801\u5927\u7EB2\u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
-      if (options2.language !== "c" && options2.language !== "cpp") throw new Error("clangd \u4EC5\u7528\u4E8E C/C++ \u5927\u7EB2\u3002");
-      if (options2.text.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
-      if (options2.fallback_flags && (!Array.isArray(options2.fallback_flags) || options2.fallback_flags.some((flag) => typeof flag !== "string" || flag.includes("\0")))) throw new Error("\u5907\u7528\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u4E3A\u5B57\u7B26\u4E32\u5217\u8868\u3002");
-      active?.abort();
-      const controller = active = new AbortController();
-      const abort = () => controller.abort();
-      signal.addEventListener("abort", abort, { once: true });
-      const check = () => {
-        if (disposed || controller.signal.aborted) throw abort_error();
-      };
-      const operation = queue.catch(() => {
-      }).then(async () => {
-        check();
-        const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? options2.workspace_root : path.dirname(options2.file_path);
-        const key = JSON.stringify([root, options2.executable || "", options2.compile_commands_dir || "", options2.fallback_flags || []]);
-        if (key !== configuration || !transport || transport.failure) {
-          await close();
-          check();
-          environment = await discover_clangd_environment({ ...options2, workspace_root: root }, node);
-          check();
-          const args = ["--background-index=false", "--clang-tidy=false", "--pch-storage=memory", "--log=error", "--enable-config=false"];
-          if (environment.compile_commands_dir) args.push("--compile-commands-dir=".concat(environment.compile_commands_dir));
-          transport = create_clangd_transport(node, environment.executable, args, root, (method, params) => {
-            if (method === "textDocument/publishDiagnostics" && typeof params?.uri === "string" && Array.isArray(params.diagnostics)) diagnostics.set(params.uri, { version: params.version, items: params.diagnostics });
-          });
-          try {
-            const response = await transport.request("initialize", { processId: node("process").pid, rootUri: url.pathToFileURL(root).href, clientInfo: { name: "TyporaCode", version: "1" }, capabilities: { general: { positionEncodings: ["utf-16"] }, offsetEncoding: ["utf-16"], textDocument: { documentSymbol: { hierarchicalDocumentSymbolSupport: true, symbolKind: { valueSet: Array.from({ length: 26 }, (_2, index) => index + 1) } }, publishDiagnostics: { versionSupport: true } } }, initializationOptions: { fallbackFlags: options2.fallback_flags || [] } }, controller.signal);
-            const encoding = response?.capabilities?.positionEncoding || response?.offsetEncoding || "utf-16";
-            if (encoding !== "utf-16") throw new Error("clangd \u672A\u63A5\u53D7 UTF-16 \u5B9A\u4F4D\u534F\u8BAE\u3002");
-            if (!response?.capabilities?.documentSymbolProvider) throw new Error("\u6240\u9009 clangd \u672A\u63D0\u4F9B\u6587\u6863\u7B26\u53F7\u5206\u6790\u80FD\u529B\u3002");
-            transport.notify("initialized", {});
-            configuration = key;
-          } catch (error) {
-            await close();
-            throw error;
-          }
-        }
-        check();
-        const target = transport, uri = url.pathToFileURL(options2.file_path).href;
-        if (document_uri !== uri || document_language !== options2.language) {
-          if (document_uri) target.notify("textDocument/didClose", { textDocument: { uri: document_uri } });
-          diagnostics.clear();
-          document_uri = uri;
-          document_language = options2.language;
-          document_text = options2.text;
-          document_version++;
-          target.notify("textDocument/didOpen", { textDocument: { uri, languageId: options2.language, version: document_version, text: options2.text } });
-        } else if (document_text !== options2.text) {
-          document_text = options2.text;
-          document_version++;
-          diagnostics.delete(uri);
-          target.notify("textDocument/didChange", { textDocument: { uri, version: document_version }, contentChanges: [{ text: options2.text }] });
-        }
-        const items = await target.request("textDocument/documentSymbol", { textDocument: { uri } }, controller.signal);
-        check();
-        const latest = diagnostics.get(uri), received = Boolean(latest && latest.version === document_version), valid = received ? latest.items : [];
-        return { symbols: clangd_document_symbols(items, options2.text), incomplete: false, provider: "clangd", executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
-      });
-      queue = operation;
-      try {
-        return await operation;
-      } finally {
-        signal.removeEventListener("abort", abort);
-      }
-    };
-    return { parse: parse5, async dispose() {
-      if (disposed) return;
-      disposed = true;
-      active?.abort();
-      await queue.catch(() => {
-      });
-      await close();
-    } };
-  }
-
-  // src/source_outline_settings.css
-  var source_outline_settings_default = "";
-
-  // src/source_outline_settings.ts
-  var SETTINGS_KEY = "source_outline";
-  var current_dialog;
-  function workspace_key(root) {
-    if (!root) return "";
-    const runtime2 = window;
-    const resolved = runtime2.reqnode("path").resolve(root);
-    return runtime2.reqnode("process").platform === "win32" ? resolved.toLowerCase() : resolved;
-  }
-  function relative_database(root, directory) {
-    if (!root || !directory) return directory;
-    const path_api = window.reqnode("path");
-    return path_api.isAbsolute(directory) ? path_api.relative(root, directory) || "." : directory;
-  }
-  function read_stored_settings() {
-    const value = get_workspace_app()?.settings.get(SETTINGS_KEY);
-    return value && typeof value === "object" && !Array.isArray(value) ? value : {};
-  }
-  function validate_settings2(value) {
-    for (const field of ["clangd_path", "compile_commands_dir"]) {
-      if (typeof value[field] !== "string" || /[\r\n\0]/u.test(value[field])) throw new Error("\u8DEF\u5F84\u5FC5\u987B\u662F\u5355\u884C\u6587\u672C\u3002");
-    }
-    if (!Array.isArray(value.fallback_flags) || value.fallback_flags.length > 256 || value.fallback_flags.some((flag) => typeof flag !== "string" || /[\r\n\0]/u.test(flag))) throw new Error("\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u6BCF\u884C\u4E00\u9879\uFF0C\u6700\u591A256\u9879\u3002");
-    if (value.fallback_flags.join("\n").length > 32768) throw new Error("\u7F16\u8BD1\u53C2\u6570\u8FC7\u957F\u3002");
-    return { clangd_path: value.clangd_path.trim(), compile_commands_dir: value.compile_commands_dir.trim(), fallback_flags: value.fallback_flags.map((flag) => flag.trim()).filter(Boolean) };
-  }
-  function read_source_outline_settings(root) {
-    const stored = read_stored_settings(), key = workspace_key(root);
-    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
-    const project = Object.hasOwn(projects, key) ? projects[key] : void 0;
-    return { clangd_path: typeof stored.clangd_path === "string" ? stored.clangd_path : "", compile_commands_dir: typeof project?.compile_commands_dir === "string" ? relative_database(root, project.compile_commands_dir) : "", fallback_flags: Array.isArray(project?.fallback_flags) ? project.fallback_flags.filter((flag) => typeof flag === "string") : [] };
-  }
-  function save_source_outline_settings(root, value) {
-    const settings = get_workspace_app()?.settings;
-    if (!settings) throw new Error("\u5DE5\u4F5C\u533A\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
-    const next = validate_settings2(value), stored = read_stored_settings(), key = workspace_key(root);
-    next.compile_commands_dir = relative_database(root, next.compile_commands_dir);
-    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
-    settings.set_and_save(SETTINGS_KEY, { ...stored, clangd_path: next.clangd_path, workspaces: { ...projects, [key]: { compile_commands_dir: next.compile_commands_dir, fallback_flags: next.fallback_flags } } });
-  }
-  function open_source_outline_settings(root, on_saved) {
-    current_dialog?.close();
-    const dialog = workspace_dialog("C/C++ \u8BED\u8A00\u670D\u52A1\u914D\u7F6E", "\u53D6\u6D88");
-    current_dialog = dialog;
-    dialog.root.classList.add("source-outline-settings");
-    const style = acquire_workspace_style("typora-code-source-outline-settings", source_outline_settings_default, {}, dialog.root);
-    const initial = read_source_outline_settings(root);
-    const context = workspace_element("p", "source-outline-settings-context", root ? "\u5F53\u524D\u6587\u4EF6\u5939\uFF1A".concat(window.reqnode("path").basename(root)) : "\u5F53\u524D\u6CA1\u6709\u6253\u5F00\u6587\u4EF6\u5939\uFF0C\u914D\u7F6E\u7528\u4E8E\u72EC\u7ACB\u6587\u4EF6\u3002");
-    dialog.content.append(context);
-    const add_field = (name, title, hint, multiline = false) => {
-      const label = workspace_element("label", "source-outline-settings-field");
-      const input = workspace_element(multiline ? "textarea" : "input");
-      input.dataset.field = name;
-      input.setAttribute("aria-label", title);
-      input.spellcheck = false;
-      if (input instanceof HTMLInputElement) {
-        input.type = "text";
-        input.autocomplete = "off";
-      } else input.rows = 4;
-      label.append(workspace_element("span", "", title), input, workspace_element("small", "", hint));
-      dialog.content.append(label);
-      return input;
-    };
-    const executable = add_field("clangd_path", "clangd \u53EF\u6267\u884C\u6587\u4EF6\uFF08\u6240\u6709\u5DE5\u4F5C\u533A\uFF09", "\u7559\u7A7A\u81EA\u52A8\u67E5\u627E\u672C\u673A clangd\uFF1B\u53EF\u586B\u5199\u5B8C\u6574\u53EF\u6267\u884C\u6587\u4EF6\u8DEF\u5F84\u3002");
-    executable.value = initial.clangd_path;
-    const database = add_field("compile_commands_dir", "\u7F16\u8BD1\u6570\u636E\u5E93\u6587\u4EF6\u5939\uFF08\u5F53\u524D\u6587\u4EF6\u5939\uFF09", "\u586B\u5199\u5305\u542B compile_commands.json \u7684\u76EE\u5F55\uFF0C\u5982 build/bringup\uFF1B\u7559\u7A7A\u81EA\u52A8\u67E5\u627E\u3002");
-    database.value = initial.compile_commands_dir;
-    const flags = add_field("fallback_flags", "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08\u5F53\u524D\u6587\u4EF6\u5939\uFF09", "\u4EC5\u5728\u6CA1\u6709\u7F16\u8BD1\u547D\u4EE4\u65F6\u4F7F\u7528\u3002\u6BCF\u884C\u4E00\u4E2A\u53C2\u6570\uFF0C\u542B\u7A7A\u683C\u4E5F\u4E0D\u52A0\u989D\u5916\u5F15\u53F7\u3002", true);
-    flags.value = initial.fallback_flags.join("\n");
-    const status2 = workspace_element("p", "source-outline-settings-status");
-    status2.setAttribute("role", "status");
-    status2.setAttribute("aria-live", "polite");
-    dialog.content.append(status2);
-    const read_form = () => validate_settings2({ clangd_path: executable.value, compile_commands_dir: database.value, fallback_flags: flags.value.split(/\r?\n/u) });
-    let generation = 0;
-    const report = (message, error = false) => {
-      status2.textContent = message;
-      status2.classList.toggle("is-error", error);
-    };
-    const detect = workspace_button("\u68C0\u6D4B\u8DEF\u5F84", () => {
-      let value;
-      try {
-        value = read_form();
-      } catch (error) {
-        report(String(error.message || error), true);
-        return;
-      }
-      const request = ++generation;
-      detect.disabled = true;
-      report("\u6B63\u5728\u67E5\u627E clangd \u548C\u7F16\u8BD1\u6570\u636E\u5E93\u2026");
-      void discover_clangd_environment({ executable: value.clangd_path, workspace_root: root, compile_commands_dir: value.compile_commands_dir }).then((environment) => {
-        if (!dialog.root.isConnected || request !== generation) return;
-        const database_text = environment.compile_commands_dir ? "\u7F16\u8BD1\u6570\u636E\u5E93\uFF1A".concat(relative_database(root, environment.compile_commands_dir)) : "\u672A\u627E\u5230\u7F16\u8BD1\u6570\u636E\u5E93\uFF0C\u5C06\u4F7F\u7528\u540E\u5907\u53C2\u6570\u3002";
-        report("clangd\uFF1A".concat(environment.executable, "\n").concat(database_text));
-      }).catch((error) => {
-        if (dialog.root.isConnected && request === generation) report(String(error?.message || error), true);
-      }).finally(() => {
-        if (dialog.root.isConnected && request === generation) detect.disabled = false;
-      });
-    });
-    detect.dataset.action = "detect";
-    const save = workspace_button("\u4FDD\u5B58", () => {
-      try {
-        const value = read_form();
-        if (value.clangd_path === initial.clangd_path) value.clangd_path = read_source_outline_settings(root).clangd_path;
-        save_source_outline_settings(root, value);
-      } catch (error) {
-        report("\u4FDD\u5B58\u5931\u8D25\uFF1A".concat(String(error.message || error)), true);
-        return;
-      }
-      generation++;
-      dialog.close();
-      style.remove();
-      if (current_dialog === dialog) current_dialog = void 0;
-      on_saved?.();
-    }, "source-outline-settings-save");
-    save.dataset.action = "save";
-    dialog.footer.prepend(detect, save);
-    for (const input of [executable, database, flags]) input.addEventListener("input", () => {
-      generation++;
-      detect.disabled = false;
-      report("");
-    });
-    return dialog;
-  }
-
   // src/workspace_source_outline.ts
   function install_workspace_source_outline(sidebar, context_root) {
     const pane = document.createElement("div");
@@ -231058,13 +231888,12 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.append(provider, git_icon_button("settings-gear", "\u4EE3\u7801\u5927\u7EB2\uFF1A\u89E3\u6790\u73AF\u5883\u8BBE\u7F6E", configure));
     pane.append(toolbar, tree);
     (sidebar.querySelector("#sidebar-content") || sidebar).append(pane);
-    const service = create_source_symbol_service();
-    let clangd;
+    let symbols_binding;
     const release_theme2 = observe_terminal_theme((theme2) => {
       const rgb = String(theme2.background).match(/[\d.]+/g)?.map(Number) || [255, 255, 255];
       pane.dataset.theme = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light";
     });
-    let disposed = false, model, editor2, leaf, subscription, language_subscription, timer = 0, version = -1, language44 = "", request;
+    let disposed = false, model, editor2, leaf, version = -1;
     const collapsed2 = /* @__PURE__ */ new Set();
     const active = () => get_workspace_app()?.workspace.activeLeaf;
     const source = () => {
@@ -231111,10 +231940,10 @@ https://creativecommons.org/licenses/by/4.0/
         button.className = "workspace-source-symbol-label";
         button.title = symbol.detail;
         button.dataset.symbolName = symbol.name;
-        const icons2 = { function: "symbol-method", method: "symbol-method", class: "symbol-class", struct: "symbol-structure", interface: "symbol-interface", variable: "symbol-variable", constant: "symbol-constant", property: "symbol-property", field: "symbol-field", namespace: "symbol-namespace", enum: "symbol-enum", "enum-member": "symbol-enum-member", "type-parameter": "symbol-parameter" };
+        const icons3 = { function: "symbol-method", method: "symbol-method", class: "symbol-class", struct: "symbol-structure", interface: "symbol-interface", variable: "symbol-variable", constant: "symbol-constant", property: "symbol-property", field: "symbol-field", namespace: "symbol-namespace", enum: "symbol-enum", "enum-member": "symbol-enum-member", "type-parameter": "symbol-parameter" };
         const label = document.createElement("span");
         label.textContent = symbol.name;
-        button.append(git_icon(icons2[symbol.kind] || "symbol-variable"), label);
+        button.append(git_icon(icons3[symbol.kind] || "symbol-variable"), label);
         button.onclick = () => {
           if (!current(target, target_model) || target_model.getVersionId() !== version) return;
           const start = target_model.getPositionAt(symbol.selection_start), end = target_model.getPositionAt(symbol.selection_end);
@@ -231135,72 +231964,43 @@ https://creativecommons.org/licenses/by/4.0/
       append4(symbols, tree, 0, "");
       if (!symbols.length) message("\u5F53\u524D\u6587\u4EF6\u6CA1\u6709\u53EF\u663E\u793A\u7684\u7B26\u53F7\u3002");
     };
-    const parse5 = async () => {
-      timer = 0;
-      if (disposed || !model || model.isDisposed()) return;
-      request?.abort();
-      const controller = request = new AbortController(), target = leaf, target_model = model, target_version = model.getVersionId();
-      version = target_version;
-      language44 = model.getLanguageId();
-      const compiled = language44 === "c" || language44 === "cpp";
-      provider.textContent = compiled ? "C/C++ \xB7 clangd" : "\u4EE3\u7801\u5927\u7EB2";
-      provider.title = "";
-      pane.dataset.provider = compiled ? "clangd" : "tree-sitter";
-      message(compiled ? "clangd \u6B63\u5728\u5206\u6790\u2026" : "\u6B63\u5728\u8BFB\u53D6\u8BED\u6CD5\u7B26\u53F7\u2026");
-      try {
-        const workspace_root = context_root?.() || "";
-        const settings = compiled ? read_source_outline_settings(workspace_root) : void 0;
-        const file_path = source_file_path(target.state.path);
-        if (compiled && !file_path) throw new Error("\u4EE3\u7801\u5927\u7EB2\u65E0\u6CD5\u53D6\u5F97\u5F53\u524D\u6587\u4EF6\u8DEF\u5F84\u3002");
-        const result = compiled ? await (clangd ??= create_clangd_symbol_service()).parse({ file_path, language: language44, text: target_model.getValue(), workspace_root, executable: settings.clangd_path, compile_commands_dir: settings.compile_commands_dir, fallback_flags: settings.fallback_flags }, controller.signal) : await service.parse(language44, target_model.getValue(), controller.signal);
-        if (controller.signal.aborted || !current(target, target_model) || target_model.getVersionId() !== target_version) return;
-        render(result.symbols, target, target_model);
-        pane.dataset.incomplete = String(result.incomplete);
-        if ("provider" in result) {
-          provider.title = result.compile_commands_dir ? "clangd \xB7 \u4F7F\u7528\u5DE5\u7A0B\u7F16\u8BD1\u914D\u7F6E" : "clangd \xB7 \u4F7F\u7528\u540E\u5907\u7F16\u8BD1\u53C2\u6570";
-          if (!result.compile_commands_dir || result.diagnostics.errors) {
-            const note = document.createElement("p");
-            note.className = "workspace-source-outline-notice";
-            note.textContent = result.diagnostics.errors ? "clangd \u62A5\u544A ".concat(result.diagnostics.errors, " \u9879\u8BCA\u65AD\uFF1B\u53EF\u5728\u89E3\u6790\u8BBE\u7F6E\u6838\u5BF9\u5934\u6587\u4EF6\u8DEF\u5F84\u548C\u7F16\u8BD1\u53C2\u6570\u3002") : "\u672A\u627E\u5230\u7F16\u8BD1\u6570\u636E\u5E93\uFF0C\u5F53\u524D\u4F7F\u7528\u540E\u5907\u53C2\u6570\uFF1B\u53EF\u5728\u89E3\u6790\u8BBE\u7F6E\u9009\u62E9\u6784\u5EFA\u76EE\u5F55\u3002";
-            note.title = result.diagnostics.messages.join("\n");
-            tree.append(note);
-          }
-        } else if (result.incomplete) {
-          const note = document.createElement("p");
-          note.textContent = "\u8BED\u6CD5\u5C1A\u672A\u5B8C\u6574\uFF0C\u663E\u793A\u53EF\u8BC6\u522B\u7684\u7B26\u53F7\u3002";
-          tree.append(note);
-        }
-      } catch (error) {
-        if (!controller.signal.aborted && current(target, target_model)) message(String(error instanceof Error ? error.message : error));
-      }
-    };
-    const schedule = () => {
-      request?.abort();
-      clearTimeout(timer);
-      timer = window.setTimeout(parse5, 150);
-    };
+    const schedule = () => symbols_binding?.refresh();
     const refresh = () => {
       if (disposed) return;
       const target = source(), visible3 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
       if (pane.hidden === visible3) pane.hidden = !visible3;
       const next_editor = target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
-      if (next_model !== model || target !== leaf) {
-        subscription?.dispose();
-        language_subscription?.dispose();
-        request?.abort();
-        clearTimeout(timer);
-        timer = 0;
+      if (next_model !== model || target !== leaf || !visible3) {
+        symbols_binding?.dispose();
+        symbols_binding = void 0;
         model = next_model;
         editor2 = next_editor;
         leaf = target;
         version = -1;
         collapsed2.clear();
-        if (model) {
-          subscription = model.onDidChangeContent(schedule);
-          language_subscription = model.onDidChangeLanguage(schedule);
-        } else if (target) message("\u6B63\u5728\u7B49\u5F85\u6E90\u7801\u7F16\u8F91\u5668\u2026");
       }
-      if (visible3 && model && !timer && (version !== model.getVersionId() || language44 !== model.getLanguageId())) schedule();
+      if (visible3 && model && !symbols_binding) {
+        const target_model = model;
+        symbols_binding = subscribe_document_symbols(model, source_file_path(target.state.path) || "", context_root?.() || "", (state) => {
+          if (!current(target, target_model)) return;
+          version = state.version;
+          provider.textContent = state.provider === "clangd" ? "C/C++ \xB7 clangd" : "\u4EE3\u7801\u5927\u7EB2";
+          provider.title = state.notice;
+          pane.dataset.provider = state.provider;
+          pane.dataset.incomplete = String(state.incomplete);
+          if (state.loading) message("\u6B63\u5728\u8BFB\u53D6\u8BED\u6CD5\u7B26\u53F7\u2026");
+          else if (state.error) message(state.error);
+          else {
+            render(state.symbols, target, target_model);
+            if (state.notice) {
+              const note = document.createElement("p");
+              note.className = "workspace-source-outline-notice";
+              note.textContent = state.notice;
+              tree.append(note);
+            }
+          }
+        });
+      }
     };
     const observer2 = new MutationObserver(refresh);
     observer2.observe(document.body, { childList: true, subtree: true });
@@ -231211,12 +232011,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       observer2.disconnect();
       if (typeof unsubscribe === "function") unsubscribe();
-      subscription?.dispose();
-      language_subscription?.dispose();
-      request?.abort();
-      clearTimeout(timer);
-      service.dispose();
-      void clangd?.dispose();
+      symbols_binding?.dispose();
       release_theme2();
       pane.remove();
     } };
@@ -231449,7 +232244,14 @@ https://creativecommons.org/licenses/by/4.0/
     refresh();
     outline_open = is_outline_open();
     if (outline_open) schedule_sync();
-    return { refresh: () => {
+    return { current_heading: () => {
+      selected_heading = current_heading();
+      return selected_heading;
+    }, select_heading: (heading3) => {
+      selected_heading = heading3;
+      explicit_position = document.querySelector("content")?.scrollTop;
+      schedule_sync();
+    }, refresh: () => {
       refresh();
       schedule_sync();
     }, configure: source_outline.configure, dispose: () => {
@@ -232293,6 +233095,8 @@ https://creativecommons.org/licenses/by/4.0/
         { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime2.File?.isTypeWriterMode) },
         separator(),
         { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", checked: sidebar.sidebar_visible, action: () => workspace.sidebar.toggle() },
+        { label: "\u9762\u5305\u5C51\u5BFC\u822A", checked: read_breadcrumb_settings(files.context_root()).enabled, action: () => set_breadcrumb_enabled(files.context_root(), !read_breadcrumb_settings(files.context_root()).enabled) },
+        { label: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => files.core.app.commands.run("linux_note:breadcrumbs_settings") },
         { label: "\u5927\u7EB2", checked: sidebar.sidebar_visible && sidebar.active_id === "core.outline", action: () => toggle_sidebar_view("core.outline", "linux_note:outline") },
         { label: "\u6587\u4EF6\u6811", checked: sidebar.sidebar_visible && sidebar.active_id === "core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer", "linux_note:file_explorer") },
         { ...command("\u72B6\u6001\u680F", "toggleStatusBar"), checked: document.body.classList.contains("show-footer") },
@@ -232677,9 +233481,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_file_commands.ts
-  function bind_workspace_file_commands(files, changed) {
+  function bind_workspace_file_commands(files, changed2) {
     const lifetime = create_workspace_lifetime(), core = files.core;
-    const picker = lifetime.own(bind_workspace_open_dialog(files, changed));
+    const picker = lifetime.own(bind_workspace_open_dialog(files, changed2));
     const run = (action) => {
       if (lifetime.disposed) return;
       return Promise.resolve().then(() => {
@@ -232749,6 +233553,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       lifetime.own(explorer);
       const outline_binding = lifetime.own(install_workspace_outline({ context_root: files.context_root, document_active: () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://"), outline: window.File?.editor?.library?.outline }));
+      lifetime.own(bind_workspace_breadcrumbs(core, files, outline_binding));
       lifetime.add(core.app.commands.register({ id: "linux_note:source_outline_settings", title: "\u4EE3\u7801\u5927\u7EB2\uFF1A\u89E3\u6790\u73AF\u5883\u8BBE\u7F6E", scope: "global", callback: () => outline_binding?.configure() }));
       lifetime.add(core.app.workspace.on("active-leaf:change", () => outline_binding?.refresh()));
       const reveal_outline = () => {

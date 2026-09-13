@@ -6,7 +6,7 @@ app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceler
 app.whenReady().then(async()=>{
  test_window=new BrowserWindow({show:false,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true}});
  await test_window.loadURL('data:text/html,<div id="group"><div class="typ-workspace-tab-header"><div class="typ-tab" data-id="C:/docs/test.md"><button class="typ-close">close</button></div></div></div>');
- const bundle=await build({stdin:{contents:'export {create_workspace_titlebar_definitions} from "./src/workspace_titlebar_entries";export {bind_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'entries_api',write:false});
+ const bundle=await build({stdin:{contents:'export {create_workspace_titlebar_definitions} from "./src/workspace_titlebar_entries";export {bind_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'entries_api',write:false,loader:{'.css':'text'}});
  await test_window.webContents.executeJavaScript(bundle.outputFiles[0].text);
  const result=await test_window.webContents.executeJavaScript(`(async()=>{
  const checks=[],calls=[];const check=(v,label)=>{if(!v)throw Error(label);checks.push(label);};let source=false,saves=0,closes=0;
@@ -15,7 +15,9 @@ app.whenReady().then(async()=>{
  const editor={stylize:{changeBlock:record('block'),toggleStyle:record('style'),insertBlock:record('insert')},searchPanel:{showPanel:record('search')},sourceView:{inSourceMode:false}};
  const runtime={File:{bundle:{filePath:leaf.state.path},editor,option:{}},ClientCommand:{undo:record('undo'),copy:record('copy'),export:record('export'),setTheme:record('theme')},JSBridge:{async invoke(name){if(name==='setting.getRecentFiles')return{files:[],folders:[]};if(name==='setting.loadExports')return JSON.stringify([{pdf:{type:'pdf'}},{custom:{type:'custom',name:'Report',command:'example'}}]);if(name==='setting.getThemes')return{all:['github.css','night.css'],current:'night.css'};throw Error(name);}}};
  const files={core:{app:{workspace,commands:{run:record('core')}}},context_root:()=>"C:/docs",path_api:{basename:p=>p.split('/').pop()},source_editor_active:()=>source,run_editor_command:record('source'),can_save_active:()=>true,save_active:async()=>{saves++;return false},save_all:record('save-all'),open_file:record('open')};document.querySelector('.typ-close').onclick=()=>closes++;
+ window.reqnode=require;const preferences={};files.core.app.settings={get:k=>preferences[k],set_and_save:(k,v)=>preferences[k]=v};window[Symbol.for('typora-code:workspace')]=files.core;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
+ check((await get('视图','面包屑导航')).checked,'breadcrumbs menu reads shared defaults');(await get('视图','面包屑导航')).action();check(!(await get('视图','面包屑导航')).checked,'breadcrumbs menu writes shared settings');
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,终端,帮助','seven native categories plus the authorized terminal menu');
  (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');

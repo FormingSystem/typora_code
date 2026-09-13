@@ -71,6 +71,17 @@ app.whenReady().then(async()=>{
   await move('.git-scm-history-entry:nth-child(3)>.git-scm-history-commit');await pause(550);await move('.git-scm-history-entry:nth-child(4)>.git-scm-history-commit');await pause(550);await ev('(window.pending_resolves||[]).forEach(r=>r())');await pause(50);await check('stale asynchronous commit cannot replace current','document.querySelector(".git-commit-hover")?.dataset.hash===panel.state.commits[3].hash&&!document.querySelector(".git-commit-hover").textContent.includes("旧提交A")');
   fs.writeFileSync(path.join(evidence,'graph_hover.png'),(await win.webContents.capturePage()).toPNG());
   await ev('scm.history.render(panel.state)');await check('refresh cancels visible hover','!document.querySelector(".git-commit-hover")');
+
+  // 详情必须真正显示全名；文字行盒、徽章和浮层均不能裁掉长名称。
+  for(const theme of ['light','dark'])for(const zoom of [1,1.25]){
+    win.webContents.setZoomFactor(zoom);await move('#safe');
+    await ev(`window.full_refs=['codex/sync-arm-external-resources','origin/'+ 'very_long_branch_name_'.repeat(16)];document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.querySelector('#scm').style.width='280px';panel.state.refs=full_refs.map((name,i)=>({name:(i?'refs/remotes/':'refs/heads/')+name,hash:panel.state.head}));scm.history.render(panel.state);void 0`);
+    await move('.git-scm-history-entry:first-child>.git-scm-history-commit');await pause(550);
+    await check('full branch text stays visible in detail '+theme+' '+zoom,`(()=>{const tip=document.querySelector('.git-commit-hover');if(!tip)return false;const names=[...tip.querySelectorAll('.git-scm-history-ref-name')],expected=['main',...full_refs];return names.length===3&&names.every((n,i)=>{const badge=n.closest('.git-scm-history-ref'),b=badge.getBoundingClientRect(),range=document.createRange();range.selectNodeContents(n);return n.textContent===expected[i]&&n.scrollWidth<=n.clientWidth+1&&n.scrollHeight<=n.clientHeight+1&&[...range.getClientRects()].every(r=>r.top>=b.top-.6&&r.bottom<=b.bottom+.6&&r.left>=b.left-.6&&r.right<=b.right+.6)})&&names[1].getBoundingClientRect().width>100&&names[2].parentElement.getBoundingClientRect().height>18&&tip.scrollWidth<=tip.clientWidth+1})()`);
+    await check('list keeps single-line clipped ref '+theme+' '+zoom,`[...document.querySelector('.git-scm-history-commit').querySelectorAll('.git-scm-history-ref-name')].every(n=>n.getBoundingClientRect().width<=100.1&&n.parentElement.getBoundingClientRect().height===18)`);
+    fs.writeFileSync(path.join(evidence,'full_refs_'+theme+'_'+zoom+'.png'),(await win.webContents.capturePage()).toPNG());
+  }
+  win.webContents.setZoomFactor(1);await move('#safe');await ev('scm.history.render(panel.state)');
   await move('#safe');await move('.git-scm-history-entry:first-child>.git-scm-history-commit');await pause(550);await ev('scm.dispose();activity.dispose();tabs.dispose()');await check('dispose removes cards and adapter roles','!document.querySelector(".git-commit-hover")&&!document.querySelector(".typ-tab[data-workspace-interaction]")');
   // 独立模块可以改变延迟，仍复用呈现失败和卸载的统一清理。
   await ev(`window.local_hover=qa.bind_workspace_hover(document.querySelector('#safe'),target=>({anchor:target,label:'局部提示',render(){throw Error('expected render failure')}}),{delay_ms:0,hide_delay_ms:0});document.querySelector('#safe').focus();void 0`);await pause(80);

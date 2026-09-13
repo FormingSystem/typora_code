@@ -65,7 +65,7 @@
 | R008.1 | 底栏统一布局契约 | [设计章节](statusbar_layout.md#r0081-统一底栏布局契约) | 原生及自有控件共用组、操作、文本几何和字体行盒；检查实际字形与原生块布局图标，业务状态与显隐仍归所属模块 |
 | R020 | 工作台统一悬停与键盘反馈 | [设计章节](workspace_interaction.md#r020) | 共同默认与独立覆写；[默认圆角](workspace_interaction.md#r020-默认圆角与独立形状)；[原生底栏补充](workspace_interaction.md#r020-原生底栏操作接入)覆盖无button语义的宿主操作，验证见领域文档 |
 | R021 | 文件标签的共同垂直布局 | [设计章节](workspace_interaction.md#r021) | 已实现；共同默认、独立覆写、固定来源及本次验证见领域文档 |
-| R022 | Git侧栏提交排版与信息悬停 | [设计章节](workspace_interaction.md#r022)、[详情避让](workspace_interaction.md#r022-详情卡片避让) | 追加完整列表避让；[文件名称与动作](workspace_interaction.md#r022-文件名称与行尾操作)共用末端裁切，按悬停/移出验收；[提交标题与作者](workspace_interaction.md#r022-提交标题与作者连续排列)连续排列并共同裁切 |
+| R022 | Git侧栏提交排版与信息悬停 | [设计章节](workspace_interaction.md#r022)、[详情避让](workspace_interaction.md#r022-详情卡片避让) | 追加完整列表避让；[文件名称与动作](workspace_interaction.md#r022-文件名称与行尾操作)共用末端裁切，按悬停/移出验收；[提交标题与作者](workspace_interaction.md#r022-提交标题与作者连续排列)连续排列并共同裁切；[长分支徽章](workspace_interaction.md#r022-长分支徽章完整名称)列表省略、详情展示完整名称 |
 | R023 | 再次选择搜索结果恢复预览定位 | [设计章节](search_performance.md#r023) | 已有身份去重与显式定位分工、加载取消及回归设计 |
 | R024 | 核对VS Code Graph配置并修正截图相关交互 | [设计与差异表](git_graph_configuration.md#r024) | 实现按钮、卡片定位与形状；其余配置只记录差异，不擅自扩项 |
 | R025 | 安装脚本命名、环境与用户安装恢复文档 | [设计章节](installation_design.md#r025) | 统一公开入口和用户指南，沿用事务与备份语义；验证结果见领域设计 |
@@ -77,7 +77,7 @@
 | R031 | 图片与图表共用放大查看器 | [设计](reading_media_viewer.md) | 图片／Mermaid共享外侧右上方悬停入口，缩放拖动、主题与来源生命周期 |
 | R032 | Esc逐层退出并恢复原操作 | [设计](workspace_interaction.md#r032-esc退出与原操作恢复) | 共同焦点与选区恢复、按下释放配对、来源身份及取消边界 |
 | R033 | 弹窗外部关闭 | [设计](workspace_interaction.md#r033-弹窗外部关闭与焦点转移) | 外部点击与焦点离开取消，Esc恢复，内部交互与手势归属 |
-| R034 | 文件标签与编辑器顶部 | [设计](editor_header.md) | 紧凑圆角标签、真实预览状态、悬停关闭和路径行 |
+| R034 | 文件标签与编辑器顶部 | [设计](editor_header.md) | 紧凑标签及[标题／函数面包屑](editor_header.md#r034-标题与函数面包屑)、分组定位及集中配置 |
 | R035 | 更改与提交图覆盖式分隔条 | [设计](workspace_interaction.md#r035-更改与提交图覆盖式分隔条) | 删除网格占位，按实际交界覆盖命中与悬停高亮 |
 | H001 | 七类菜单、居中搜索与阅读前后退 | [设计章节](../enhancements/README.md#1.4.5_活动栏与侧栏布局) | 已有交互与宿主边界 |
 | H002 | 长菜单内部滚动 | [设计章节](../enhancements/README.md#1.4.5_活动栏与侧栏布局) | 已有顶栏下沿、可用高度和滚轮规则 |
