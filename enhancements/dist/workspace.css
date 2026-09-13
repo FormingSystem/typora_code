@@ -512,7 +512,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-row-actions { display: flex; justify-content: flex-end; align-items: center; width: auto; min-width: 0; max-width: calc(3 * var(--git-scm-action-size)); gap: 2px; }
 .git-scm-file { --git-scm-row-background: transparent; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: var(--git-scm-column-gap); min-height: var(--git-scm-row-height); padding: 0 var(--git-scm-row-right) 0 18px; cursor: pointer; white-space: nowrap; background: var(--git-scm-row-background); }
 .git-scm-file:hover { --git-scm-row-background: var(--linux-note-shell-hover-background, #8882); }
-.git-scm-file.selected, .git-scm-file:focus-within { --git-scm-row-background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); }
+.git-scm-file.selected, .git-scm-file:focus-within { --git-scm-row-background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-file:focus-visible { --git-scm-row-background: var(--linux-note-shell-selection-background, #0060c0); color: var(--linux-note-shell-selection-foreground, #fff); outline: 1px solid var(--linux-note-shell-focus-border, #0078d4); outline-offset: -1px; }
 .git-scm-file > .git-scm-file-label { grid-row: 1; grid-column: 1; }
 .git-scm-file > .git-scm-file-status { grid-row: 1; grid-column: -2 / -1; }
@@ -573,7 +573,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 }
 .git-scm-history-list { overflow-x:hidden;overflow-y:auto;scrollbar-width:thin; min-width: 0; min-height: 0; flex: 1; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
-.git-scm-history-commit[aria-expanded=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8) !important; }
+.git-scm-history-commit[aria-expanded=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8) !important; color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }
@@ -1388,8 +1388,8 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 .workspace-explorer-spacer { position:relative; min-width:100%; }
 .workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
-.workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background,#e4e6f1); }
-.workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--linux-note-shell-focus,#007fd4); outline-offset:-1px; }
+.workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background); color:var(--linux-note-shell-inactive-selection-foreground); }
+.workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--workspace-focus-border); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
 .workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:22px; }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
@@ -1576,6 +1576,9 @@ footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspac
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
+  /* 645f29c Light/Dark 2026：选中背景和前景必须成对切换。 */
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
+  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
 :root[data-workspace-file-icon-theme="dark"] {
   --workspace-hover-background:var(--vscode-list-hoverBackground,#ffffff14);
@@ -1584,6 +1587,8 @@ footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspac
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#242526);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#3994bc26);
   --workspace-focus-border:var(--vscode-focusBorder,#3994bcb3);
+  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#2c2d2e);
+  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#ededed);
 }
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))) { --workspace-default-hover:var(--workspace-action-hover);--workspace-default-foreground:var(--workspace-hover-foreground); }
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
@@ -1594,7 +1599,7 @@ footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspac
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
 /* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
-:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"]) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background,#e4e6e8); }
+:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
 /* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
