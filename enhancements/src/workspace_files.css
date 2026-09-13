@@ -2,7 +2,7 @@
 .workspace-file-body { flex:1; min-height:0; min-width:0; overflow:hidden; }
 .workspace-file-body>.git-graph-document { height:100%; }
 .workspace-file-notice { padding:16px; white-space:pre-wrap; overflow-wrap:anywhere; }
-.workspace-file-body>.git-graph-document>.git-diff-labels { display:none; }
+
 .workspace-file-body>.git-graph-document>.git-diff-toolbar{display:none}
 .workspace-file-dirty{font-size:10px;padding:0 4px}
 

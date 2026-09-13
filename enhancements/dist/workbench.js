@@ -158436,7 +158436,8 @@ https://creativecommons.org/licenses/by/4.0/
     "symbol-parameter": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M4 3.5C4 3.22386 4.22386 3 4.5 3H11.5C11.7761 3 12 3.22386 12 3.5V4.5C12 4.77614 11.7761 5 11.5 5C11.2239 5 11 4.77614 11 4.5V4H8.5V12H9C9.27614 12 9.5 12.2239 9.5 12.5C9.5 12.7761 9.27614 13 9 13H7C6.72386 13 6.5 12.7761 6.5 12.5C6.5 12.2239 6.72386 12 7 12H7.5V4H5V4.5C5 4.77614 4.77614 5 4.5 5C4.22386 5 4 4.77614 4 4.5V3.5ZM4.35355 6.64645C4.54882 6.84171 4.54882 7.15829 4.35355 7.35355L2.20711 9.5L4.35355 11.6464C4.54882 11.8417 4.54882 12.1583 4.35355 12.3536C4.15829 12.5488 3.84171 12.5488 3.64645 12.3536L1.14645 9.85355C0.951184 9.65829 0.951184 9.34171 1.14645 9.14645L3.64645 6.64645C3.84171 6.45118 4.15829 6.45118 4.35355 6.64645ZM14.8536 9.14645L12.3536 6.64645C12.1583 6.45118 11.8417 6.45118 11.6464 6.64645C11.4512 6.84171 11.4512 7.15829 11.6464 7.35355L13.7929 9.5L11.6464 11.6464C11.4512 11.8417 11.4512 12.1583 11.6464 12.3536C11.8417 12.5488 12.1583 12.5488 12.3536 12.3536L14.8536 9.85355C15.0488 9.65829 15.0488 9.34171 14.8536 9.14645Z"/></svg>',
     account: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6 5C6 3.89543 6.89543 3 8 3C9.10457 3 10 3.89543 10 5C10 6.10457 9.10457 7 8 7C6.89543 7 6 6.10457 6 5ZM5.49998 8L10.5 8C11.3284 8 12 8.67157 12 9.5C12 10.6161 11.541 11.5103 10.7879 12.1148C10.0466 12.7098 9.05308 13 8 13C6.94692 13 5.95342 12.7098 5.21215 12.1148C4.45897 11.5103 4 10.6161 4 9.5C4 8.67161 4.67156 8 5.49998 8ZM8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8Z"/></svg>',
     copy: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3 5V12.73C2.4 12.38 2 11.74 2 11V5C2 2.79 3.79 1 6 1H9C9.74 1 10.38 1.4 10.73 2H6C4.35 2 3 3.35 3 5ZM11 15H6C4.897 15 4 14.103 4 13V5C4 3.897 4.897 3 6 3H11C12.103 3 13 3.897 13 5V13C13 14.103 12.103 15 11 15ZM12 5C12 4.448 11.552 4 11 4H6C5.448 4 5 4.448 5 5V13C5 13.552 5.448 14 6 14H11C11.552 14 12 13.552 12 13V5Z"/></svg>',
-    repo: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12.5 12C12.776 12 13 11.776 13 11.5V3C13 1.895 12.105 1 11 1H5C3.895 1 3 1.895 3 3V13C3 14.105 3.895 15 5 15V15.5C5 15.702 5.122 15.885 5.309 15.962C5.495 16.039 5.711 15.997 5.854 15.854L6.5 15.208L7.146 15.854C7.242 15.95 7.37 16 7.5 16C7.564 16 7.63 15.987 7.691 15.962C7.878 15.885 8 15.702 8 15.5V15H12.5C12.776 15 13 14.776 13 14.5C13 14.224 12.776 14 12.5 14H8V13.5C8 13.224 7.776 13 7.5 13H5.5C5.224 13 5 13.224 5 13.5V14C4.448 14 4 13.552 4 13V12H12.5ZM4 3C4 2.448 4.448 2 5 2H11C11.552 2 12 2.448 12 3V11H4V3Z"/></svg>'
+    repo: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12.5 12C12.776 12 13 11.776 13 11.5V3C13 1.895 12.105 1 11 1H5C3.895 1 3 1.895 3 3V13C3 14.105 3.895 15 5 15V15.5C5 15.702 5.122 15.885 5.309 15.962C5.495 16.039 5.711 15.997 5.854 15.854L6.5 15.208L7.146 15.854C7.242 15.95 7.37 16 7.5 16C7.564 16 7.63 15.987 7.691 15.962C7.878 15.885 8 15.702 8 15.5V15H12.5C12.776 15 13 14.776 13 14.5C13 14.224 12.776 14 12.5 14H8V13.5C8 13.224 7.776 13 7.5 13H5.5C5.224 13 5 13.224 5 13.5V14C4.448 14 4 13.552 4 13V12H12.5ZM4 3C4 2.448 4.448 2 5 2H11C11.552 2 12 2.448 12 3V11H4V3Z"/></svg>',
+    preview: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M12.5 1H3.5C2.122 1 1 2.122 1 3.5V12.5C1 13.878 2.122 15 3.5 15H12.5C13.878 15 15 13.878 15 12.5V3.5C15 2.122 13.878 1 12.5 1ZM14 12.5C14 13.327 13.327 14 12.5 14H3.5C2.673 14 2 13.327 2 12.5V3.5C2 2.673 2.673 2 3.5 2H12.5C13.327 2 14 2.673 14 3.5V12.5ZM11 4H5C4.448 4 4 4.448 4 5V7C4 7.552 4.448 8 5 8H11C11.552 8 12 7.552 12 7V5C12 4.448 11.552 4 11 4ZM11 7H5V5H11V7ZM11 9H10C9.448 9 9 9.448 9 10V11C9 11.552 9.448 12 10 12H11C11.552 12 12 11.552 12 11V10C12 9.448 11.552 9 11 9ZM11 11H10V10H11V11ZM8 9.5C8 9.776 7.776 10 7.5 10H4.5C4.224 10 4 9.776 4 9.5C4 9.224 4.224 9 4.5 9H7.5C7.776 9 8 9.224 8 9.5ZM8 11.5C8 11.776 7.776 12 7.5 12H4.5C4.224 12 4 11.776 4 11.5C4 11.224 4.224 11 4.5 11H7.5C7.776 11 8 11.224 8 11.5Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -178122,18 +178123,20 @@ https://creativecommons.org/licenses/by/4.0/
       this.toolbar.remove();
     }
     refresh_labels() {
-      const label = (value) => {
-        const node = workspace_element("div", "", value);
-        node.title = value;
-        return node;
-      };
       const left = this.data.left_label || git_graph_text("diff.original"), right = this.data.right_label || git_graph_text("diff.modified");
       const inline4 = this.data.right != null && this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side") === false;
       this.labels.dataset.diffLayout = inline4 ? "inline" : "split";
-      this.labels.replaceChildren(label(inline4 ? "".concat(left, " \u2194 ").concat(right) : left));
-      if (this.data.right != null && !inline4) this.labels.append(label(right));
-      if (inline4) {
-        const mode = workspace_element("button", "git-diff-mode", git_graph_text("diff.inline_view"));
+      const path = workspace_element("div", "git-editor-path"), file = this.data.file || this.data.title;
+      const parts = file.replace(/\\/gu, "/").split("/").filter(Boolean);
+      for (const [index, part] of parts.entries()) {
+        if (index) path.append(git_icon("chevron-right"));
+        path.append(workspace_element("span", "git-editor-path-segment", part));
+      }
+      path.title = this.data.right != null ? "".concat(file, " \u2014 ").concat(left, " \u2194 ").concat(right) : "".concat(file, " \u2014 ").concat(left);
+      path.setAttribute("aria-label", path.title);
+      this.labels.replaceChildren(path);
+      if (this.data.right != null) {
+        const mode = workspace_element("button", "git-diff-mode", git_graph_text(inline4 ? "diff.inline_view" : "diff.side_by_side"));
         mode.type = "button";
         mode.append(git_icon("chevron-down"));
         mode.title = git_graph_text("diff.editor_mode");
@@ -178142,8 +178145,8 @@ https://creativecommons.org/licenses/by/4.0/
         mode.onclick = () => {
           const rect = mode.getBoundingClientRect();
           workspace_menu(new MouseEvent("contextmenu", { clientX: rect.left, clientY: rect.bottom }), [
-            { id: "diff_mode_inline", title: git_graph_text("diff.inline_view"), checked: true, action: () => this.set_side_by_side(false) },
-            { id: "diff_mode_split", title: git_graph_text("diff.side_by_side"), checked: false, action: () => {
+            { id: "diff_mode_inline", title: git_graph_text("diff.inline_view"), checked: inline4, action: () => this.set_side_by_side(false) },
+            { id: "diff_mode_split", title: git_graph_text("diff.side_by_side"), checked: !inline4, action: () => {
               this.inline_when_narrow = false;
               this.set_side_by_side(true);
             } }
@@ -226409,8 +226412,8 @@ https://creativecommons.org/licenses/by/4.0/
         tab.classList.toggle("is-workspace-pinned", pinned);
         if (pinned && !close.querySelector(".workspace-tab-pin")) close.append(git_icon("pinned", "workspace-tab-pin"));
         if (!pinned) close.querySelector(".workspace-tab-pin")?.remove();
-        close.title = pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u5173\u95ED\u6807\u7B7E";
-        close.setAttribute("aria-label", close.title);
+        close.title = "";
+        close.setAttribute("aria-label", pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u5173\u95ED\uFF08Ctrl+F4\uFF09");
         tab.classList.toggle("is-workspace-preview", Boolean(leaf.state.workspace_preview));
       });
     };
@@ -226749,22 +226752,45 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_tab_controls.ts
   var bindings2 = /* @__PURE__ */ new WeakMap();
-  function bind_workspace_tab_controls(core) {
+  function bind_workspace_tab_controls(core, files) {
     const existing = bindings2.get(core);
     if (existing) return existing;
     const interaction = acquire_workspace_interaction(), inline4 = acquire_workspace_inline_layout();
+    const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default), events = new AbortController();
     const marked3 = /* @__PURE__ */ new Map();
-    const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default);
     const strips = /* @__PURE__ */ new Map();
+    const tabs = /* @__PURE__ */ new Map();
     let frame3 = 0, disposed = false;
+    const attr = (node, name, value) => {
+      if (!marked3.has(node)) marked3.set(node, /* @__PURE__ */ new Map());
+      const old = marked3.get(node);
+      if (!old.has(name)) old.set(name, node.getAttribute(name));
+      if (node.getAttribute(name) !== value) node.setAttribute(name, value);
+    };
+    const restore_attributes = (node) => {
+      const values = marked3.get(node);
+      if (!values) return;
+      for (const [name, value] of values) {
+        if (value === null) node.removeAttribute(name);
+        else node.setAttribute(name, value);
+      }
+      marked3.delete(node);
+    };
+    const release_tab = (tab) => {
+      const entry = tabs.get(tab);
+      if (!entry) return;
+      entry.owned.forEach((node) => node.remove());
+      entry.label.replaceWith(...entry.label.childNodes);
+      entry.actions.replaceWith(entry.close);
+      entry.classes.forEach((name) => tab.classList.remove(name));
+      restore_attributes(tab);
+      restore_attributes(entry.close);
+      tabs.delete(tab);
+    };
     const refresh = () => {
       frame3 = 0;
       if (disposed) return;
-      for (const node of marked3.keys()) if (!node.isConnected) marked3.delete(node);
-      for (const node of document.querySelectorAll(".typ-workspace-tab-header .typ-tab,.typ-workspace-tab-header .typ-close")) {
-        if (!marked3.has(node)) marked3.set(node, node.getAttribute("data-workspace-interaction"));
-        node.dataset.workspaceInteraction = node.classList.contains("typ-tab") ? "tab" : "action";
-      }
+      for (const tab of tabs.keys()) if (!tab.isConnected) release_tab(tab);
       for (const [header, entry] of strips) if (!header.isConnected) {
         if (entry.strip.parentElement) {
           entry.strip.before(header);
@@ -226779,29 +226805,93 @@ https://creativecommons.org/licenses/by/4.0/
         strip.append(header);
         strips.set(header, { strip });
       }
+      core.app.workspace.eachLeaves((leaf) => {
+        const tab = workspace_leaf_tab(leaf), close = tab?.querySelector(".typ-close");
+        if (!tab || !close || !tab.isConnected) return;
+        if (!tabs.has(tab)) {
+          const label = document.createElement("span"), actions = document.createElement("span");
+          label.className = "workspace-tab-label";
+          actions.className = "workspace-tab-actions";
+          label.append(...[...tab.childNodes].filter((node) => node !== close));
+          tab.prepend(label);
+          close.before(actions);
+          actions.append(close);
+          const preview_icon = git_icon("preview", "workspace-tab-preview-icon"), preview_label = document.createElement("span");
+          preview_label.className = "workspace-tab-preview-label";
+          preview_label.textContent = "\u9884\u89C8";
+          label.prepend(preview_icon, preview_label);
+          const close_icon = git_icon("close", "workspace-tab-close-icon"), dirty_icon = git_icon("circle-filled", "workspace-tab-dirty-icon");
+          close.append(close_icon, dirty_icon);
+          const classes = ["is-workspace-dirty", "is-workspace-markdown-preview"].filter((name) => !tab.classList.contains(name));
+          tabs.set(tab, { label, actions, close, owned: [preview_icon, preview_label, close_icon, dirty_icon], classes });
+        }
+        const view = leaf.view;
+        tab.classList.toggle("is-workspace-dirty", Boolean(files?.editor_state(leaf).dirty || tab.querySelector(".workspace-file-dirty")));
+        tab.classList.toggle("is-workspace-markdown-preview", typeof view.isEditor === "function" && !view.isEditor());
+        attr(tab, "data-workspace-interaction", "tab");
+        attr(tab, "role", "tab");
+        attr(tab, "aria-selected", String(tab.classList.contains("active")));
+        attr(tab, "tabindex", tab.classList.contains("active") ? "0" : "-1");
+        attr(close, "data-workspace-interaction", "action");
+        attr(close, "role", "button");
+        attr(close, "tabindex", "0");
+        attr(close, "aria-label", leaf.state.workspace_pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u5173\u95ED\uFF08Ctrl+F4\uFF09");
+        attr(close, "title", "");
+      });
+      for (const node of marked3.keys()) if (!node.isConnected) restore_attributes(node);
     };
-    const observer2 = new MutationObserver(() => {
-      if (!frame3) frame3 = requestAnimationFrame(refresh);
+    const schedule = () => {
+      if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
+    };
+    const observer2 = new MutationObserver(schedule);
+    observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
+    const cleanups = [core.app.workspace.on("active-leaf:change", schedule), core.app.workspace.on("layout-changed", schedule)];
+    document.addEventListener("input", schedule, { capture: true, signal: events.signal });
+    document.addEventListener("keydown", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || event.altKey || event.ctrlKey || event.metaKey) return;
+      const tab = target.closest(".workspace-tab-strip .typ-tab");
+      if (!tab || !tabs.has(tab)) return;
+      if (["Enter", " "].includes(event.key)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const close = target.closest(".typ-close");
+        if (close) close.click();
+        else tab.click();
+        return;
+      }
+      if (target !== tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+      const siblings = [...tab.parentElement.querySelectorAll(".typ-tab")].filter((node) => node.getClientRects().length), index = siblings.indexOf(tab);
+      const next = event.key === "Home" ? siblings[0] : event.key === "End" ? siblings.at(-1) : siblings[(index + (event.key === "ArrowRight" ? 1 : -1) + siblings.length) % siblings.length];
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      next?.focus({ preventScroll: true });
+      next?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }, { capture: true, signal: events.signal });
+    const hover = bind_workspace_hover(document.body, (target) => {
+      const close = target.closest(".workspace-tab-strip .typ-close");
+      if (!close) return;
+      const label = close.getAttribute("aria-label") || "\u5173\u95ED\uFF08Ctrl+F4\uFF09";
+      return { anchor: close, label, compact: true, render: (content) => {
+        content.textContent = label;
+      } };
     });
-    observer2.observe(document.body, { childList: true, subtree: true });
     refresh();
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
       observer2.disconnect();
       cancelAnimationFrame(frame3);
-      for (const [header, { strip }] of strips) {
-        if (strip.parentElement) {
-          strip.before(header);
-          strip.remove();
-        }
+      events.abort();
+      cleanups.forEach((release) => release?.());
+      hover.dispose();
+      for (const tab of tabs.keys()) release_tab(tab);
+      for (const [header, { strip }] of strips) if (strip.parentElement) {
+        strip.before(header);
+        strip.remove();
       }
       strips.clear();
-      for (const [node, value] of marked3) {
-        if (value === null) node.removeAttribute("data-workspace-interaction");
-        else node.setAttribute("data-workspace-interaction", value);
-      }
-      marked3.clear();
+      for (const node of marked3.keys()) restore_attributes(node);
       style.remove();
       inline4.remove();
       interaction.remove();
@@ -232631,7 +232721,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files = lifetime.own(bind_workspace_files(core));
       lifetime.own(create_workspace_quick_open(files));
-      lifetime.own(bind_workspace_tab_controls(core));
+      lifetime.own(bind_workspace_tab_controls(core, files));
       lifetime.own(bind_workspace_native_toolbar(files, window));
       lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
       lifetime.own(bind_workspace_preferences(core));

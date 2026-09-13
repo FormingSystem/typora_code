@@ -25,7 +25,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
   lifetime.own(create_workspace_quick_open(files));
-  lifetime.own(bind_workspace_tab_controls(core));
+  lifetime.own(bind_workspace_tab_controls(core,files));
   lifetime.own(bind_workspace_native_toolbar(files,window as any));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
   lifetime.own(bind_workspace_preferences(core));

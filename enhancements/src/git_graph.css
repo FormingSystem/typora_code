@@ -245,10 +245,14 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-diff-toolbar > button.git-icon-button:focus-visible { outline: 1px solid var(--vscode-focusBorder, #0078d4); outline-offset: -1px; }
 .git-diff-toolbar .git-standard-icon { display: block; flex: none; width: 16px; height: 16px; }
 .git-diff-count { margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: .7; }
-.workspace-tab-strip > .git-diff-toolbar { height: 35px; padding: 0 4px; background: var(--workspace-tab-active-bg, #fff); }
+.workspace-tab-strip > .git-diff-toolbar { height: var(--workspace-tab-height,32px); padding: 0 4px; background: var(--workspace-tab-strip-bg, #fff); }
 .workspace-tab-strip > .git-diff-toolbar .git-diff-count { display: none; }
-.git-diff-labels { display: flex; flex: 0 0 26px; box-sizing: border-box; min-width: 0; height: 26px; border-bottom: 1px solid #8883; font: 400 13px/25px "Segoe WPC", "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--vscode-editor-background, #fff); }
-.git-diff-labels > div { flex: 1; min-width: 0; padding: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border-right: 1px solid #8883; }
+.git-diff-labels { display:flex;align-items:center;flex:0 0 22px;box-sizing:border-box;min-width:0;height:22px;border-bottom:1px solid #8883;font:400 13px/22px "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;background:var(--workspace-tab-strip-bg,var(--vscode-editor-background,#fff)); }
+.git-diff-labels > .git-editor-path { display:flex;align-items:center;flex:1;min-width:0;overflow:hidden;white-space:nowrap;padding:0 8px;opacity:.8; }
+.git-editor-path > .git-standard-icon {flex:none;width:16px;height:16px;}
+.git-editor-path-segment {flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+.git-editor-path-segment:last-child {flex:0 0 auto;max-width:100%;}
+.git-diff-labels .git-diff-mode {max-width:40%;font-size:11px;white-space:nowrap;overflow:hidden;}
 .git-diff-mode { display: inline-flex; align-items: center; flex: none; gap: 3px; margin: 0; padding: 0 6px; border: 0; background: transparent; color: inherit; font: inherit; line-height: inherit; cursor: pointer; }
 .git-diff-mode .git-standard-icon { width: 16px; height: 16px; }
 .git-monaco-body { position: relative; flex: 1; min-height: 0; min-width: 0; overflow: hidden; }

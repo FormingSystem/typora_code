@@ -96,3 +96,7 @@ R027 沿用已核对的 VS Code 1.137.0 固定提交，核对 `scm/history/title
 ## 2026-09-13 文档标签菜单
 
 R030核对固定VS Code 1.137.0提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c` 的 `editor.contribution.ts`、`editorCommands.ts` 与 `fileActions.contribution.ts`。采用标签目标与所属组、关闭分组、预览／固定的独立状态、相邻分屏／移动和文件动作可用条件；菜单复用现有公共尺寸、圆角、主题和视口定位。源码链接、实现职责与扩展提供者差异见[标签菜单设计](editor_tab_menu.md#r030目标与参考)，没有借此增加VS Code扩展宿主。
+
+## 2026-09-13 文件标签与编辑器顶部
+
+R034按用户新截图采用固定VS Code 1.137.0提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c` 的 Modern 标签：32px命中行、内缩24px圆角底色、13px标题、悬停覆盖关闭槽；Markdown阅读预览使用官方 preview 图标。取消文件名20字符预截断，超宽由实际组宽裁剪。源码和diff使用22px路径栏，diff操作保留在所属组标签右侧。该区域早先的平直35px标签及黑色顶部线被本次授权替代；原生菜单顶栏仍是35px，不受影响。来源、状态分工与验收见[文件顶部设计](editor_header.md)。
