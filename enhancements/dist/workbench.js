@@ -228162,18 +228162,12 @@ https://creativecommons.org/licenses/by/4.0/
           tab.prepend(label);
           close.before(actions);
           actions.append(close);
-          const preview_icon = git_icon("preview", "workspace-tab-preview-icon"), preview_label = document.createElement("span");
-          preview_label.className = "workspace-tab-preview-label";
-          preview_label.textContent = "\u9884\u89C8";
-          label.prepend(preview_icon, preview_label);
           const close_icon = git_icon("close", "workspace-tab-close-icon"), dirty_icon = git_icon("circle-filled", "workspace-tab-dirty-icon");
           close.append(close_icon, dirty_icon);
-          const classes = ["is-workspace-dirty", "is-workspace-markdown-preview"].filter((name) => !tab.classList.contains(name));
-          tabs.set(tab, { label, actions, close, owned: [preview_icon, preview_label, close_icon, dirty_icon], classes });
+          const classes = ["is-workspace-dirty"].filter((name) => !tab.classList.contains(name));
+          tabs.set(tab, { label, actions, close, owned: [close_icon, dirty_icon], classes });
         }
-        const view = leaf.view;
         tab.classList.toggle("is-workspace-dirty", Boolean(files?.editor_state(leaf).dirty || tab.querySelector(".workspace-file-dirty")));
-        tab.classList.toggle("is-workspace-markdown-preview", typeof view.isEditor === "function" && !view.isEditor());
         attr(tab, "data-workspace-interaction", "tab");
         attr(tab, "role", "tab");
         attr(tab, "aria-selected", String(tab.classList.contains("active")));
