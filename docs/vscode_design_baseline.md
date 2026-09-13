@@ -92,3 +92,7 @@ R027 沿用已核对的 VS Code 1.137.0 固定提交，核对 `scm/history/title
 
 
 2026-09-13，R029：重新核对固定1.136.2的 `titlebarpart.css` 第244行 Command Center 悬停规则，以及 Light／Dark 2026 独立颜色。按用户要求让顶栏搜索维持中性背景，使用公共交互变量引用原顶栏前景；没有将普通 toolbar 的选中色应用到搜索框。上游仍存在主题相关悬停反馈，来源、采用差异和验收见[顶栏搜索设计](workspace_interaction.md#r029-顶栏搜索入口的悬停外观)。
+
+## 2026-09-13 文档标签菜单
+
+R030核对固定VS Code 1.137.0提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c` 的 `editor.contribution.ts`、`editorCommands.ts` 与 `fileActions.contribution.ts`。采用标签目标与所属组、关闭分组、预览／固定的独立状态、相邻分屏／移动和文件动作可用条件；菜单复用现有公共尺寸、圆角、主题和视口定位。源码链接、实现职责与扩展提供者差异见[标签菜单设计](editor_tab_menu.md#r030目标与参考)，没有借此增加VS Code扩展宿主。

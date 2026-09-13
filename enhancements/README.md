@@ -13,7 +13,7 @@ domains:
 
 本扩展补足主题 CSS 无法承担的以下能力：
 
-- 使用由固定 MIT 上游源码裁剪的常驻工作区核心：同一个桌面窗口内使用多文档标签页，按需向右、向下拆分编辑区；
+- 使用由固定 MIT 上游源码裁剪的常驻工作区核心：同一个桌面窗口内使用多文档标签页，[标签右键菜单](../docs/editor_tab_menu.md)支持批量关闭、预览、固定、路径与定位、四方向分屏、相邻组移动及移动／复制到新窗口；
 - 原生 Markdown 选区右键菜单支持[字体颜色](../docs/markdown_text_color.md)：常用色、自定义色、恢复默认、明暗主题适配以及原生撤销和保存；
 - 文件树显示全部文件及隐藏项目，目录按需展开；Markdown 保持原生渲染，普通源码在占满编辑组的 Monaco 中编辑，支持保存与编码、换行格式设置；
 - C/C++文件与头文件使用本机clangd识别代码大纲，点击符号定位；JavaScript、TypeScript、Python、CMake、YAML使用随包离线语法，Markdown显示标题目录；
@@ -97,6 +97,7 @@ Windows 安装当前 bundle 后，可从本目录运行 `powershell -NoProfile -
 | `test_workspace_search.mjs` | 临时目录／Git 后端：匹配、范围、忽略规则、编码及替换保护 |
 | `test_workspace_search_worker.mjs` | 真实 Worker：捕获组、取消、单文件超时及不完整结果禁止替换 |
 | `test_workspace_files_search.cjs` | 隐藏 Electron：源码查看、语言映射、结构化路径、搜索分组、精确选区与搜索布局 |
+| `test_workspace_editor_actions.cjs` | 真实核心与Monaco：后台右键目标、固定与批量关闭、共享草稿／保存／另存为、相邻分屏移动、键盘、明暗窄窗和菜单边界 |
 | `test_workspace_file_editing.cjs` | 隐藏 Electron：普通源码编辑、保存、格式、撤销、加载事务及未保存保护 |
 | `test_workspace_text_document.mjs` | 真实文件：编码、BOM、换行、保存冲突、权限、容量及临时文件事务 |
 | `test_workspace_rename.mjs` | 真实文件：文件／目录改名、非法名称、同名冲突、路径边界、大小写、草稿与历史路径迁移 |

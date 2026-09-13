@@ -52,16 +52,17 @@ app.whenReady().then(async () => {
 
   check(await evaluate('same_binding'), 'shortcut installation is idempotent');
   check(await evaluate(`calls=[];send('KeyB',{key:'b',ctrlKey:true})&&calls[0][0]==='sidebar'`), 'Ctrl+B toggles the workspace sidebar');
-  check(await evaluate(`calls=[];send('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='core.workspace:split-right'&&calls[0][2][0]==='folder/source.md'`), 'Ctrl+Backslash splits the active editor right');
+  check(await evaluate(`calls=[];send('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='linux_note:editor_split_right'`), 'Ctrl+Backslash splits the active editor right');
   check(await evaluate(`calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});calls[0][1]==='linux_note:copy_absolute_path'`), 'Shift+Alt+C copies the absolute path');
   check(await evaluate(`calls=[];chord('KeyP',{key:'p'});calls[0][1]==='linux_note:copy_absolute_path'`), 'Ctrl+K P copies the absolute path');
   check(await evaluate(`calls=[];chord('KeyO',{key:'o',ctrlKey:true});calls[0][1]==='linux_note:open_folder'`), 'Ctrl+K Ctrl+O opens the existing workspace folder dialog');
+  for(const [code,options,command] of [['KeyW',{key:'w',ctrlKey:true},'close_all'],['KeyU',{key:'u'},'close_saved'],['KeyO',{key:'o'},'copy_window'],['Enter',{key:'Enter'},'keep_open'],['Enter',{key:'Enter',shiftKey:true},'pin']])check(await evaluate(`calls=[];chord('${code}',${JSON.stringify(options)});calls.length===1&&calls[0][1]==='linux_note:editor_${command}'`),`editor chord ${command} routes once to shared actions`);
   check(await evaluate(`calls=[];chord('KeyS',{key:'s'});calls[0][1]==='linux_note:save_all'`),'Ctrl+K S uses shared Save All');
   check(await evaluate(`calls=[];chord('KeyF',{key:'f'});calls[0][1]==='linux_note:close_folder'`),'Ctrl+K F closes the folder through the shared command');
   check(await evaluate(`calls=[];send('KeyS',{key:'S',ctrlKey:true,shiftKey:true});calls[0][1]==='linux_note:save_as'`),'Ctrl+Shift+S uses shared Save As');
   check(await evaluate(`calls=[];send('F4',{key:'F4',ctrlKey:true});calls[0][1]==='linux_note:close_editor'`),'Ctrl+F4 uses shared guarded editor close');
   check(await evaluate(`calls=[];chord('KeyC',{key:'c',ctrlKey:true,shiftKey:true});calls[0][1]==='linux_note:copy_relative_path'`), 'Ctrl+K Ctrl+Shift+C copies the relative path');
-  check(await evaluate(`calls=[];chord('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='core.workspace:split-down'&&calls[0][2][0]==='folder/source.md'`), 'Ctrl+K Ctrl+Backslash splits the active editor down');
+  check(await evaluate(`calls=[];chord('Backslash',{key:'\\\\',ctrlKey:true});calls[0][1]==='linux_note:editor_split_down'`), 'Ctrl+K Ctrl+Backslash splits the active editor down');
   check(await evaluate(`calls=[];const prevented=chord('KeyQ',{key:'q'});!prevented&&calls.length===0`), 'an unknown chord is released to the active editor');
   const terminal_result = await evaluate(`(()=>{try{calls=[];const prevented=send('KeyB',{key:'b',ctrlKey:true},'#terminal');return {passed:!prevented&&calls.length===0};}catch(error){return {passed:false,error:String(error.stack||error)};}})()`);
   check(terminal_result.passed, `terminal focus keeps its own keyboard input${terminal_result.error ? `: ${terminal_result.error}` : ''}`);

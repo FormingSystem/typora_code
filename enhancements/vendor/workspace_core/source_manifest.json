@@ -58,7 +58,7 @@
       "path": "src/index.ts",
       "upstream_path": "src/index.ts",
       "upstream_sha256": "052780c972bfcaced615f760548b7fc7bd5e0bb047c594fe7147efa17d03e2b2",
-      "sha256": "b9fc4d03fd2d2bcdcb70cada7909db6867ed29a6230a32f5dfc7ad87696c9191"
+      "sha256": "2ce7f65f0995f544fcbf4bd3c4c093d82863f6611e8a5249221609f7bdc8bf5f"
     },
     {
       "path": "src/io/config-repository.ts",
@@ -446,13 +446,13 @@
       "path": "src/ui/layout/tabs/contextmenu.ts",
       "upstream_path": "src/ui/layout/tabs/contextmenu.ts",
       "upstream_sha256": "053dd8df49071cb835fd0cce509c722da31b876db99771e320ad5064190e5c72",
-      "sha256": "053dd8df49071cb835fd0cce509c722da31b876db99771e320ad5064190e5c72"
+      "sha256": "1c294e06ad51d28f78897da1ec3de20c9a359903144cb80828540382590e9a79"
     },
     {
       "path": "src/ui/layout/tabs/draggable.ts",
       "upstream_path": "src/ui/layout/tabs/draggable.ts",
       "upstream_sha256": "cb6a0425020b7e1666e8b9aeb5ecf7ceeaac1377ce7cb7a6f57543608c202235",
-      "sha256": "4b4066e395742ee9b604b2335b4728087976ddf54bb4ab4348c1da17153e9427"
+      "sha256": "abf787961cca9b4a44e40033cc03f207c6579a7be23b8ea99fbd33f63fb86c52"
     },
     {
       "path": "src/ui/layout/tabs/file-tabs.scss",
@@ -476,7 +476,7 @@
       "path": "src/ui/layout/tabs/index.ts",
       "upstream_path": "src/ui/layout/tabs/index.ts",
       "upstream_sha256": "49faf8858e076cc406aab88e575ae6b30e6fead6937773ddbe168377015e52e3",
-      "sha256": "a756ec501cd02b1b65a5163bbe7fc776f6e6d04326e1ecfebe9f59559ccd96ba"
+      "sha256": "82972831ee9e294221e48d78c985402e60e4cac85316defc67426296c40f9cc6"
     },
     {
       "path": "src/ui/layout/use-active-leaf.ts",
@@ -524,7 +524,7 @@
       "path": "src/ui/layout/workspace-utils.ts",
       "upstream_path": "src/ui/layout/workspace-utils.ts",
       "upstream_sha256": "6a988f11b41eaf64afb44fe16800b55c0dc9140c2e90f7063f9a2fa0dc50e0ef",
-      "sha256": "6a988f11b41eaf64afb44fe16800b55c0dc9140c2e90f7063f9a2fa0dc50e0ef"
+      "sha256": "3e857e85ab865bd304bd8dfc072f61f34bcd22121d1e0b4d1ea586363287b8e3"
     },
     {
       "path": "src/ui/layout/workspace-view.ts",
@@ -776,7 +776,7 @@
       "path": "src/ui/views/markdown-view/md-previewer-mode.ts",
       "upstream_path": "src/ui/views/markdown-view/md-previewer-mode.ts",
       "upstream_sha256": "b66d93d3b72eb3abc938def3137a833b974c24c23e6423abb714b5c2ee318f3d",
-      "sha256": "b66d93d3b72eb3abc938def3137a833b974c24c23e6423abb714b5c2ee318f3d"
+      "sha256": "d584bb5b7dcc8b8cbcdfaaf9e6681ebc2ec5c76f2d4b7cab45a727b765d42834"
     },
     {
       "path": "src/ui/views/markdown-view/mode-controller.ts",
@@ -945,6 +945,11 @@
       "upstream_path": "src/utils/versions.ts",
       "upstream_sha256": "3138af398f91d18dcaefbcede4a9b47cfc8e61a22a7b31575733c9da32e619a7",
       "sha256": "3138af398f91d18dcaefbcede4a9b47cfc8e61a22a7b31575733c9da32e619a7"
+    },
+    {
+      "path": "src/ui/layout/workspace_leaf_actions.ts",
+      "sha256": "ec2d5c6b036b3c0c8dc4d12d6948ad4e631eabe712c48b8a26d87ea35fbc5cf0",
+      "upstream_sha256": null
     }
   ]
 }

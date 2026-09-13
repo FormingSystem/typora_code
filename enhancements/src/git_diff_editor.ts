@@ -37,6 +37,7 @@ import { git_graph_text as text } from "./git_graph_i18n";
 
 let initialized = false;
 let serial = 0;
+const model_users = new WeakMap<monaco.editor.ITextModel, number>();
 export function initialize_editor(): void {
   if (initialized) return;
   const worker_url = URL.createObjectURL(new Blob([worker_source], {type: "text/javascript"}));
@@ -59,7 +60,7 @@ export class git_diff_editor {
   mode_observer?:MutationObserver;
   last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
   readonly_status?: HTMLElement;
-  constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => []) {
+  constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => [], shared_model?: monaco.editor.ITextModel) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.binary_file"));
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
@@ -69,9 +70,10 @@ export class git_diff_editor {
       if (source.includes("\0")) throw new Error(text("diff.binary_file"));
       const uri = monaco.Uri.from({scheme: "linux-note-git", path: `/${++serial}/${side}/${data.file || data.title}`});
       const language = detect_file_language(data.file || data.title, source.split(/\r?\n/u, 1)[0]);
-      const result = monaco.editor.createModel(source, language, uri); this.models.push(result); return result;
+      const result = monaco.editor.createModel(source, language, uri); this.models.push(result); model_users.set(result, 1); return result;
     };
-    const original = model(data.left, "original");
+    const original = shared_model && data.right == null ? shared_model : model(data.left, "original");
+    if (original === shared_model) { this.models.push(original); model_users.set(original, (model_users.get(original) || 0) + 1); }
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
     // 普通单文件保留全文缩略图；Git 差异只显示原生红绿改动概览。
     const minimap: monaco.editor.IEditorMinimapOptions = {enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
@@ -219,5 +221,5 @@ export class git_diff_editor {
     }
     workspace_menu(event, [...entries, ...this.extra_menu()]);
   }
-  dispose(): void { this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(item => item.dispose()); this.container.remove(); }
+  dispose(): void { this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
 }

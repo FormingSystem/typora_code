@@ -16,7 +16,7 @@ import {create_text_document} from "./workspace_text_document";
 
 const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
-export type graph_leaf = { state: { path: string; git_cwd?: string; workspace_preview?: boolean }; view: { containerEl: HTMLElement }; containerEl: HTMLElement;
+export type graph_leaf = { state: { path: string; git_cwd?: string; workspace_preview?: boolean; workspace_pinned?: boolean }; view: { containerEl: HTMLElement }; containerEl: HTMLElement;
   parent: { containerEl?: HTMLElement; tabHeader?: {getTabById(path:string):HTMLElement|undefined}; appendChild(leaf: graph_leaf): void; toggleTab(path: string): graph_leaf; removeTab?(path: string): unknown } };
 type sidebar_panel = {containerEl: HTMLElement; ribbonButton?: unknown; addRibbonButton(button: {id: string; title: string; icon: HTMLElement; group?: string}): void};
 export type graph_core = {

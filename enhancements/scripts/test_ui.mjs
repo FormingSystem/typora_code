@@ -68,6 +68,7 @@ const ui_tests = Object.freeze([
   "test_workspace_titlebar_entries.cjs",
   "test_workspace_view_layout.cjs",
   "test_workspace_tab_controls.cjs",
+  "test_workspace_editor_actions.cjs",
   "test_workspace_interaction.cjs",
   "test_workspace_interaction_defaults.cjs",
   "test_workspace_quick_open_performance.cjs",
