@@ -149,123 +149,9 @@
   outline: none;
 }
 
-.linux-note-mermaid-viewer {
-  position: fixed;
-  z-index: 2147483646;
-  inset: 0;
-  color: #24292f;
-  background: #ffffff;
-  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
-}
-
-.linux-note-mermaid-toolbar {
-  position: absolute;
-  z-index: 3;
-  top: 16px;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transform: translateX(-50%);
-}
-
-.linux-note-mermaid-toolbar button,
-.linux-note-mermaid-close {
-  min-height: 34px;
-  padding: 6px 10px;
-  color: #24292f;
-  background: #ffffff;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  font: 600 12px/1.2 "Segoe UI", "Microsoft YaHei UI", sans-serif;
-  cursor: pointer;
-}
-
-.linux-note-mermaid-toolbar button:hover,
-.linux-note-mermaid-toolbar button:focus-visible,
-.linux-note-mermaid-close:hover,
-.linux-note-mermaid-close:focus-visible {
-  color: #ffffff;
-  background: #0969da;
-  border-color: #0969da;
-  outline: none;
-}
-
-.linux-note-mermaid-toolbar output {
-  min-width: 58px;
-  color: #57606a;
-  font: 12px/1.2 Consolas, monospace;
-  text-align: center;
-}
-
-.linux-note-mermaid-close {
-  position: absolute;
-  z-index: 3;
-  top: 16px;
-  right: 20px;
-}
-
-.linux-note-mermaid-canvas {
-  position: absolute;
-  inset: 66px 20px 34px;
-  overflow: hidden;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-}
-
-.linux-note-mermaid-viewer.is-dragging .linux-note-mermaid-canvas {
-  cursor: grabbing;
-}
-
-.linux-note-mermaid-positioner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: max-content;
-  height: max-content;
-  transform: translate(-50%, -50%) translate3d(var(--linux-note-mermaid-pan-x), var(--linux-note-mermaid-pan-y), 0);
-  will-change: transform;
-}
-
-.linux-note-mermaid-content {
-  width: max-content;
-  height: max-content;
-  line-height: 0;
-  transform: scale(var(--linux-note-mermaid-scale));
-  transform-origin: center center;
-  will-change: transform;
-}
-
-.linux-note-mermaid-content svg {
-  display: block;
-  width: auto;
-  max-width: none;
-  height: auto;
-  max-height: none;
-}
-
-.linux-note-mermaid-hint {
-  position: absolute;
-  z-index: 2;
-  bottom: 9px;
-  left: 50%;
-  color: #57606a;
-  transform: translateX(-50%);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-body.linux-note-mermaid-viewer-open {
-  overflow: hidden !important;
-}
-
 @media (prefers-color-scheme: dark) {
   .linux-note-mermaid-open,
-  .linux-note-code-toggle,
-  .linux-note-mermaid-viewer,
-  .linux-note-mermaid-toolbar button,
-  .linux-note-mermaid-close {
+  .linux-note-code-toggle {
     color: #c9d1d9;
     background: #0d1117;
     border-color: #30363d;
@@ -275,10 +161,7 @@ body.linux-note-mermaid-viewer-open {
     border-top-color: #30363d;
   }
 
-  .linux-note-mermaid-toolbar output,
-  .linux-note-mermaid-hint {
-    color: #8b949e;
-  }
+
 }
 
 @media print {
@@ -288,8 +171,7 @@ body.linux-note-mermaid-viewer-open {
   }
 
   .linux-note-code-toolbar,
-  .linux-note-mermaid-open,
-  .linux-note-mermaid-viewer {
+  .linux-note-mermaid-open {
     display: none !important;
   }
 }
@@ -297,7 +179,7 @@ body.linux-note-mermaid-viewer-open {
   display: none !important;
 }
 
-.linux-note-mermaid-toolbar button>svg,.linux-note-mermaid-close>svg,.linux-note-mermaid-open>svg{width:16px;height:16px;vertical-align:middle;fill:currentColor;stroke:none}
+.linux-note-mermaid-open>svg{width:16px;height:16px;vertical-align:middle;fill:currentColor;stroke:none}
 /* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }

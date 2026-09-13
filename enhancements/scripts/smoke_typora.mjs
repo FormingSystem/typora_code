@@ -112,8 +112,8 @@ const result = { code_collapsed_before, code_expanded_after, code_expanded_label
     toolbar_inside_preview: Boolean(mermaid_preview?.matches('.md-diagram-panel-preview')),
     toolbar_position,
     duplicate_toolbars,
-    viewer_open: Boolean(document.querySelector('.linux-note-mermaid-viewer')),
-    viewer_svg: Boolean(document.querySelector('.linux-note-mermaid-viewer svg'))
+    viewer_open: Boolean(document.querySelector('.reading-media-viewer')),
+    viewer_svg: Boolean(document.querySelector('.reading-media-viewer svg'))
   };
 })()`) };
 

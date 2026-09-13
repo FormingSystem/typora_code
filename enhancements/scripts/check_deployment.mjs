@@ -10,7 +10,7 @@ process.chdir(enhancement_root);
 const bundle_markers = fs.readFileSync(path.join(typora_root, 'enhancements/bundle_markers.txt'), 'utf8')
   .split(/\r?\n/u).map((marker) => marker.trim()).filter(Boolean);
 const bundle_source = fs.readFileSync(path.join(typora_root, 'enhancements/dist/workbench.js'), 'utf8') + fs.readFileSync(path.join(typora_root, 'enhancements/dist/workspace.css'), 'utf8');
-for (const marker of ['bind_code_toggle_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
+for (const marker of ['bind_reading_action_events', 'bind_reading_navigation', 'initialize_workspace', 'create_reading_workspace',
   'linux-note-reading-position:v1:', 'data-linux-note-reading-positions', 'bind_file_path_actions', 'data-linux-note-copy-path',
   'bind_git_graph', 'data-linux-note-git-graph', 'linux_note:git_graph', 'data-linux-note-git-graph-actions', 'plan_git_action', 'linux-note-git-graph:v2:', 'git-graph-dialog-shade', 'data-linux-note-source-control', 'data-linux-note-monaco-diff', 'linux_note:source_control',
   'data-linux-note-git-commit-shortcut', 'data-linux-note-scm-history', 'append_git_ignore', '#outline-btn-wrapper', 'data-linux-note-reading-minimap', 'bind_reading_minimap', 'data-linux-note-git-status', 'data-linux-note-git-sync', 'data-linux-note-git-discard', 'trashItem']) {

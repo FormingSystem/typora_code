@@ -316,7 +316,7 @@ export function bind_reading_navigation(): () => void {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing
         || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
     const active = document.activeElement;
-    if (document.querySelector('.linux-note-mermaid-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
+    if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
         || editor.sourceView?.inSourceMode
         || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write"))) return;
     event.preventDefault();

@@ -1,3 +1,4 @@
+import {bind_reading_images} from "./reading_image_viewer";
 import {marked} from "marked";
 import DOMPurify from "dompurify";
 import {workspace_element as el} from "./workspace_widgets";
@@ -12,6 +13,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
   const shadow = host.attachShadow({mode: "open"}), article = el("article"), style = el("style");
   article.id = "write"; article.contentEditable = "false"; shadow.append(style, article); body.append(host); container.append(heading, body);
   const diagrams = create_preview_diagrams(); let disposed = false;
+  const image_viewer=bind_reading_images(article);
   const update_theme = () => {
     const rules: string[] = [];
     for (const sheet of [...document.styleSheets]) {
@@ -63,5 +65,5 @@ export function create_git_revision_reader(source: string, label: string, on_lin
       if (!disposed) await highlight_preview_code(code);
     }
   })().catch(() => {});
-  return {container, reveal_fragment, dispose() {if (disposed) return; disposed = true; observer.disconnect(); diagrams.dispose();}};
+  return {container, reveal_fragment, dispose() {if (disposed) return; disposed = true; image_viewer.dispose(); observer.disconnect(); diagrams.dispose();}};
 }

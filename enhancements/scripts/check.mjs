@@ -16,7 +16,7 @@ for (const forbidden of ["PluginManager", "InternalPluginManager", "class linux_
 for (const marker of [
   "linux-note-vscode-textmate-c",
   "linux-note-vscode-textmate-cpp",
-  "linux-note-mermaid-viewer",
+  "reading-media-viewer",
   "linux-note-mermaid-inline-toolbar",
   "linux-note-code-collapsible",
   "linux-note-code-toggle",

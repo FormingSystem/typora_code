@@ -363,3 +363,14 @@ R030按固定VS Code 1.137.0源码完善文档标签菜单：关闭其他／右�
 最终隔离Typora1.14.10通过18项，包含后台右键、实际保存／放弃／取消、编辑方式切换、当前内存分屏、实时预览及固定图标，证据 `.cache/native_zoom_1_14_10/tab_menu_native_verified_20260913/checks.json`。菜单截图已检查。原生使用私有桌面、原ASAR、隔离文档、宿主API和DOM动作；实际Chromium指针与键盘由Electron测试覆盖，未冒充物理设备人工验收。未验证Linux／macOS原生环境。
 
 最终构建已事务安装，安装后检查OK，ASAR、应用图标、原生偏好、工作台设置和主题摘要不变。日志为 `.cache/tab_menu_install_20260913.log`、`tab_menu_install_check_20260913.log` 和 `tab_menu_install_verification_20260913.json`；用户窗口未重启，保存后正常重启载入。R009系统文件剪贴板的18项原工作区差量独立保留，未带入本次安装。Share、Chat／Codex及语言服务引用提供者仍属于未接入能力，不以无效菜单冒充实现。
+
+
+## 2026-09-13 图片按钮与双击放大
+
+R031：原生 Markdown 与 Git 历史阅读中的已加载图片增加“全屏查看”按钮，图片本身只响应左键双击放大，单击保留 Typora 选中。图片与 Mermaid 共用查看器，支持缩放、适应宽度／屏幕、100%、拖动、Ctrl+滚轮和 Esc；图片首次完整适应窗口且不放大小图。入口位于正文外的阅读层，切换来源、资源变化和销毁均清理。具体设计与边界见[图片与图表查看器](reading_media_viewer.md)。
+
+本次从 `a21af8d` 独立构建，未带入 R009 系统文件剪贴板的原有18项未提交差量。最终 `npm run build` 与完整 `npm run check` 通过，日志为 `.cache/image_viewer_build_final_20260913.log`、`image_viewer_final_check_20260913.log`。图片专项26项以及 Mermaid 交互、窗口缩放、阅读生命周期、历史阅读共5个 UI 目标通过，见 `.cache/image_viewer_complete_ui_20260913.log`；使用真实 Chromium 指针和键盘，覆盖单击／双击、大图低于20%、小图与微小图片、原始选区、拖动、明暗、窄窗口、加载失败及卸载。修复了 Mermaid 复制到按钮SVG而非图表的问题，并在共同捕获入口保持首次点击有效。
+
+隔离的原生 Typora 1.14.10 最终12项通过，证据与已复查的四张截图位于 `.cache/native_zoom_1_14_10/image_viewer_native_visible_20260913/`。实际本地图片、按钮与双击、100%／Ctrl缩放、主题背景、Mermaid、切换文档清理均正常；Markdown、dirty状态、来源图片节点和文档字节保持。原生测试使用宿主API与DOM激活，指针与键盘输入由独立Electron测试覆盖，未验证Linux／macOS原生环境。早期原生脚本的启动超时、首帧尺寸假设及隐藏图表副本定位失败保留在缓存；最终脚本等待截图完成并选择实际可见入口，不据此修改宿主渲染行为。
+
+最终构建已经事务安装，安装后检查OK；原ASAR、应用图标、原生偏好、工作区设置和主题摘要全部不变，保留事务备份，未重启用户窗口。日志为 `.cache/image_viewer_install_20260913.log`、`image_viewer_install_check_20260913.log` 和 `image_viewer_install_verification_20260913.json`。保存文档后正常重启即可载入；R009与其他未完成项保持原状态。
