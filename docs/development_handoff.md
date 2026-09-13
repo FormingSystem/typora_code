@@ -96,7 +96,7 @@ R030将标签菜单与快捷键收敛到 `workspace_editor_actions`，后台目�
 
 ## R031 图片与图表查看器
 
-图片阅读层由 `reading_image_viewer` 绑定原生正文和历史阅读器，按钮不插入正文，单击保留原生选中、双击图片打开；`reading_media_viewer`统一管理图片／图表副本、缩放拖动、主题和焦点。正文切换、来源重建及卸载均清理；Mermaid只选择真正的图表SVG，阅读按钮捕获事件避免首次聚焦重建造成失效。见[设计](reading_media_viewer.md)。
+图片阅读层由 `reading_image_viewer` 绑定原生正文和历史阅读器；`reading_media_entry`统一管理图片与Mermaid上方的工具行、正文外按钮层、裁剪和入口事件，按钮随正文滚动，不覆盖图像。空占位不含正文文字，按钮不插入正文，单击保留原生选中、双击图片打开；`reading_media_viewer`统一管理图片／图表副本、缩放拖动、主题和焦点。正文切换、来源重建及卸载均清理；Mermaid只选择真正的图表SVG，阅读按钮捕获事件避免首次聚焦重建造成失效。见[设计](reading_media_viewer.md)。
 
 ## 2026-09-13 提交节点文本布局
 
