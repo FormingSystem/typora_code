@@ -46,6 +46,8 @@ domains:
 | 工作区搜索 | `search` | [search.svg](icons/search.svg) |
 | 集成终端 | `terminal` | [terminal.svg](icons/terminal.svg) |
 | 设置 | `settings-gear` | [settings_gear.svg](icons/settings_gear.svg) |
+| 窗口放大状态入口 | `zoom-in` | [zoom_in.svg](icons/zoom_in.svg) |
+| 窗口缩小状态入口 | `zoom-out` | [zoom_out.svg](icons/zoom_out.svg) |
 | 返回上一个编辑位置 | `arrow-left` | [arrow_left.svg](icons/arrow_left.svg) |
 | 前进到下一个编辑位置 | `arrow-right` | [arrow_right.svg](icons/arrow_right.svg) |
 | 区分大小写 | `case-sensitive` | [case_sensitive.svg](icons/case_sensitive.svg) |

@@ -505,6 +505,18 @@
       "source_path": "src/icons/preview.svg",
       "git_blob_sha1": "5cc7898644b1c49b1059da6b2d013feb75bb63e9",
       "sha256": "e356c9eb624b96c395daa87c91684acccfe92d6cb8eaf171e3e6d3fdb1721971"
+    },
+    "zoom-in": {
+      "file": "icons/zoom_in.svg",
+      "source_path": "src/icons/zoom-in.svg",
+      "git_blob_sha1": "4b0c39f76f05f3ed27ae788afa48132cade477a1",
+      "sha256": "2aa70bdfdf29f965bd8d883e69c94a38b9baaaa8781305d713fcf9d2f50a9158"
+    },
+    "zoom-out": {
+      "file": "icons/zoom_out.svg",
+      "source_path": "src/icons/zoom-out.svg",
+      "git_blob_sha1": "5ba7bd004a2f842bf00c15cf6f49e4821db8f67a",
+      "sha256": "c7ecdcfbb8b9cbd24756eed5ef6da34fa265657c9a8ac2d3c680882e4c9aeeff"
     }
   },
   "licenses": [

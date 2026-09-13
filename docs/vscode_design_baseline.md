@@ -113,3 +113,7 @@ R034继续固定VS Code 1.137.0提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`
 R022依据用户最后两张VS Code截图明确两个显示上下文：列表中的长分支名称末端省略，详情卡呈现全名。共享徽章的列表默认保持18px单行与100px名称限宽；详情取消该名称限宽，超出卡片可用宽度时换行并撑高。图标、配色与圆角继续共用。此前换行文字受18px固定高度裁切的问题由同一可配置盒模型修正，验收检查实际字形边界，见[详情徽章设计](workspace_interaction.md#r022-长分支徽章完整名称)。
 
 2026-09-13，R020：选中行补齐固定1.137.0 Light／Dark 2026的非活动选中背景与前景，统一交互层管理、实际宿主主题驱动。来源、采用值及避免测试注入掩盖缺陷的验收见[选中行明暗主题](workspace_interaction.md#r020-选中行的明暗主题)。
+
+## 2026-09-13 底栏窗口缩放
+
+R014核对固定VS Code1.137.0提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c的WindowZoomStatusEntry、statusbarItem/statusbarPart、window.css、hover.css与desktop.contribution。采用非默认级别入口、官方方向放大镜、实际级别及减／加／重置／齿轮顺序；12px紧凑文案、2px 8px内距和10px右组间隔复用在公共浮层中。图标仍来自固定Codicons1c47ab36原始SVG，plus复用同映射add。宿主比例和设置保持Typora所有权，底栏高度、22px操作目标及4px控件圆角沿用本产品公共规则；原生偏好没有缩放深链，使用无参入口。逐项来源与回归见[窗口缩放](workspace_zoom.md#r014-底栏缩放入口)。

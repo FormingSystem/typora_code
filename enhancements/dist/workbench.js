@@ -158437,7 +158437,9 @@ https://creativecommons.org/licenses/by/4.0/
     account: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6 5C6 3.89543 6.89543 3 8 3C9.10457 3 10 3.89543 10 5C10 6.10457 9.10457 7 8 7C6.89543 7 6 6.10457 6 5ZM5.49998 8L10.5 8C11.3284 8 12 8.67157 12 9.5C12 10.6161 11.541 11.5103 10.7879 12.1148C10.0466 12.7098 9.05308 13 8 13C6.94692 13 5.95342 12.7098 5.21215 12.1148C4.45897 11.5103 4 10.6161 4 9.5C4 8.67161 4.67156 8 5.49998 8ZM8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0ZM1 8C1 4.13401 4.13401 1 8 1C11.866 1 15 4.13401 15 8C15 11.866 11.866 15 8 15C4.13401 15 1 11.866 1 8Z"/></svg>',
     copy: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3 5V12.73C2.4 12.38 2 11.74 2 11V5C2 2.79 3.79 1 6 1H9C9.74 1 10.38 1.4 10.73 2H6C4.35 2 3 3.35 3 5ZM11 15H6C4.897 15 4 14.103 4 13V5C4 3.897 4.897 3 6 3H11C12.103 3 13 3.897 13 5V13C13 14.103 12.103 15 11 15ZM12 5C12 4.448 11.552 4 11 4H6C5.448 4 5 4.448 5 5V13C5 13.552 5.448 14 6 14H11C11.552 14 12 13.552 12 13V5Z"/></svg>',
     repo: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M12.5 12C12.776 12 13 11.776 13 11.5V3C13 1.895 12.105 1 11 1H5C3.895 1 3 1.895 3 3V13C3 14.105 3.895 15 5 15V15.5C5 15.702 5.122 15.885 5.309 15.962C5.495 16.039 5.711 15.997 5.854 15.854L6.5 15.208L7.146 15.854C7.242 15.95 7.37 16 7.5 16C7.564 16 7.63 15.987 7.691 15.962C7.878 15.885 8 15.702 8 15.5V15H12.5C12.776 15 13 14.776 13 14.5C13 14.224 12.776 14 12.5 14H8V13.5C8 13.224 7.776 13 7.5 13H5.5C5.224 13 5 13.224 5 13.5V14C4.448 14 4 13.552 4 13V12H12.5ZM4 3C4 2.448 4.448 2 5 2H11C11.552 2 12 2.448 12 3V11H4V3Z"/></svg>',
-    preview: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M12.5 1H3.5C2.122 1 1 2.122 1 3.5V12.5C1 13.878 2.122 15 3.5 15H12.5C13.878 15 15 13.878 15 12.5V3.5C15 2.122 13.878 1 12.5 1ZM14 12.5C14 13.327 13.327 14 12.5 14H3.5C2.673 14 2 13.327 2 12.5V3.5C2 2.673 2.673 2 3.5 2H12.5C13.327 2 14 2.673 14 3.5V12.5ZM11 4H5C4.448 4 4 4.448 4 5V7C4 7.552 4.448 8 5 8H11C11.552 8 12 7.552 12 7V5C12 4.448 11.552 4 11 4ZM11 7H5V5H11V7ZM11 9H10C9.448 9 9 9.448 9 10V11C9 11.552 9.448 12 10 12H11C11.552 12 12 11.552 12 11V10C12 9.448 11.552 9 11 9ZM11 11H10V10H11V11ZM8 9.5C8 9.776 7.776 10 7.5 10H4.5C4.224 10 4 9.776 4 9.5C4 9.224 4.224 9 4.5 9H7.5C7.776 9 8 9.224 8 9.5ZM8 11.5C8 11.776 7.776 12 7.5 12H4.5C4.224 12 4 11.776 4 11.5C4 11.224 4.224 11 4.5 11H7.5C7.776 11 8 11.224 8 11.5Z"/></svg>'
+    preview: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M12.5 1H3.5C2.122 1 1 2.122 1 3.5V12.5C1 13.878 2.122 15 3.5 15H12.5C13.878 15 15 13.878 15 12.5V3.5C15 2.122 13.878 1 12.5 1ZM14 12.5C14 13.327 13.327 14 12.5 14H3.5C2.673 14 2 13.327 2 12.5V3.5C2 2.673 2.673 2 3.5 2H12.5C13.327 2 14 2.673 14 3.5V12.5ZM11 4H5C4.448 4 4 4.448 4 5V7C4 7.552 4.448 8 5 8H11C11.552 8 12 7.552 12 7V5C12 4.448 11.552 4 11 4ZM11 7H5V5H11V7ZM11 9H10C9.448 9 9 9.448 9 10V11C9 11.552 9.448 12 10 12H11C11.552 12 12 11.552 12 11V10C12 9.448 11.552 9 11 9ZM11 11H10V10H11V11ZM8 9.5C8 9.776 7.776 10 7.5 10H4.5C4.224 10 4 9.776 4 9.5C4 9.224 4.224 9 4.5 9H7.5C7.776 9 8 9.224 8 9.5ZM8 11.5C8 11.776 7.776 12 7.5 12H4.5C4.224 12 4 11.776 4 11.5C4 11.224 4.224 11 4.5 11H7.5C7.776 11 8 11.224 8 11.5Z"/></svg>',
+    "zoom-in": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6.5 4C6.77614 4 7 4.22386 7 4.5V6H8.5C8.77614 6 9 6.22386 9 6.5C9 6.77614 8.77614 7 8.5 7H7V8.5C7 8.77614 6.77614 9 6.5 9C6.22386 9 6 8.77614 6 8.5V7H4.5C4.22386 7 4 6.77614 4 6.5C4 6.22386 4.22386 6 4.5 6H6V4.5C6 4.22386 6.22386 4 6.5 4ZM6.5 1C9.53757 1 12 3.46243 12 6.5C12 7.83875 11.5216 9.06578 10.7266 10.0195L13.8535 13.1465C14.0488 13.3417 14.0488 13.6583 13.8535 13.8535C13.6583 14.0488 13.3417 14.0488 13.1465 13.8535L10.0195 10.7266C9.06578 11.5216 7.83875 12 6.5 12C3.46243 12 1 9.53757 1 6.5C1 3.46243 3.46243 1 6.5 1ZM6.5 2C4.01472 2 2 4.01472 2 6.5C2 8.98528 4.01472 11 6.5 11C8.98528 11 11 8.98528 11 6.5C11 4.01472 8.98528 2 6.5 2Z"/></svg>',
+    "zoom-out": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M8.5 6C8.77614 6 9 6.22386 9 6.5C9 6.77614 8.77614 7 8.5 7H4.5C4.22386 7 4 6.77614 4 6.5C4 6.22386 4.22386 6 4.5 6H8.5ZM6.5 1C9.53757 1 12 3.46243 12 6.5C12 7.83875 11.5216 9.06578 10.7266 10.0195L13.8535 13.1465C14.0488 13.3417 14.0488 13.6583 13.8535 13.8535C13.6583 14.0488 13.3417 14.0488 13.1465 13.8535L10.0195 10.7266C9.06578 11.5216 7.83875 12 6.5 12C3.46243 12 1 9.53757 1 6.5C1 3.46243 3.46243 1 6.5 1ZM6.5 2C4.01472 2 2 4.01472 2 6.5C2 8.98528 4.01472 11 6.5 11C8.98528 11 11 8.98528 11 6.5C11 4.01472 8.98528 2 6.5 2Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -194285,8 +194287,8 @@ https://creativecommons.org/licenses/by/4.0/
         for (const pane of panes) weights.set(pane.dataset.session, previous.has(pane.dataset.session) ? (previous.get(pane.dataset.session) || 0) * retained.length / Math.max(1, panes.length) / Math.max(Number.EPSILON, retained_weight) : 1 / Math.max(1, panes.length));
         const sum = [...weights.values()].reduce((a, b2) => a + b2, 0) || 1;
         for (const [key, value] of weights) weights.set(key, value / sum);
-        const bindings6 = create_workspace_lifetime();
-        group = { node, panes, signature, weights, clear: bindings6.dispose };
+        const bindings7 = create_workspace_lifetime();
+        group = { node, panes, signature, weights, clear: bindings7.dispose };
         groups.set(id, group);
         for (let index = 0; index < panes.length - 1; index++) {
           const left = panes[index], right = panes[index + 1], divider = workspace_element("div", "terminal-split-sash");
@@ -194295,7 +194297,7 @@ https://creativecommons.org/licenses/by/4.0/
           node.append(divider);
           let pair_width = 0;
           const current = group;
-          bindings6.own(bind_terminal_sash(divider, { read: () => {
+          bindings7.own(bind_terminal_sash(divider, { read: () => {
             pair_width = left.getBoundingClientRect().width + right.getBoundingClientRect().width;
             return left.getBoundingClientRect().width;
           }, write: (value) => {
@@ -194307,7 +194309,7 @@ https://creativecommons.org/licenses/by/4.0/
             for (const pane of current.panes) weights.set(pane.dataset.session, 1 / current.panes.length);
             layout2();
           } }));
-          bindings6.add(() => divider.remove());
+          bindings7.add(() => divider.remove());
         }
       }
       layout2();
@@ -201349,6 +201351,16 @@ https://creativecommons.org/licenses/by/4.0/
       pointer = void 0;
       current = void 0;
     };
+    const hide_with_focus = (restore) => {
+      hide2();
+      if (!restore) return;
+      restoring_focus = true;
+      try {
+        restore();
+      } finally {
+        restoring_focus = false;
+      }
+    };
     const place = () => {
       if (!tip || !current) return;
       const layout_anchor = current.layout_anchor || current.anchor;
@@ -201368,7 +201380,7 @@ https://creativecommons.org/licenses/by/4.0/
         { side: "left", left: edge, top: edge, right: Math.min(right, avoid.left - gap), bottom },
         { side: "below", left: edge, top: Math.max(edge, avoid.bottom + gap), right, bottom },
         { side: "above", left: edge, top: edge, right, bottom: Math.min(bottom, avoid.top - gap) }
-      ].map((area2) => ({ ...area2, width: area2.right - area2.left, height: area2.bottom - area2.top })).filter((area2) => area2.width >= min_width && area2.height >= min_height);
+      ].sort((left2, right2) => Number(right2.side === current.preferred_side) - Number(left2.side === current.preferred_side)).map((area2) => ({ ...area2, width: area2.right - area2.left, height: area2.bottom - area2.top })).filter((area2) => area2.width >= min_width && area2.height >= min_height);
       if (!areas.length) return hide2();
       const score3 = (area2) => Math.min(area2.width, natural.width) * Math.min(area2.height, natural.height);
       const area = areas.find((area2) => area2.width >= natural.width && area2.height >= natural.height) || areas.reduce((best, area2) => score3(area2) > score3(best) ? area2 : best);
@@ -201397,18 +201409,16 @@ https://creativecommons.org/licenses/by/4.0/
     const inside = (node) => node instanceof Node && (Boolean(current?.anchor.contains(node)) || Boolean(tip?.contains(node)));
     const leave = () => {
       if (!tip) return hide2();
+      if (options2.interactive && tip.contains(document.activeElement)) return;
       keep();
       close_timer = window.setTimeout(hide2, hide_delay_ms);
     };
-    const enter = (event) => {
-      if (restoring_focus || !(event.target instanceof Element)) return;
-      const target = resolve3(event.target);
-      if (!target) return;
-      if (current?.anchor === target.anchor) {
+    const show_target = (target, immediate = false) => {
+      if (current?.anchor === target.anchor && (!immediate || tip)) {
         keep();
-        return;
+        return tip;
       }
-      const immediate = options2.grouped && Boolean(tip);
+      immediate = immediate || Boolean(options2.grouped && tip);
       hide2();
       current = target;
       const show2 = () => {
@@ -201417,7 +201427,7 @@ https://creativecommons.org/licenses/by/4.0/
         tip = document.createElement("div");
         tip.className = "workspace-hover-surface";
         tip.id = "workspace-hover-" + ++hover_sequence;
-        tip.setAttribute("role", "tooltip");
+        tip.setAttribute("role", options2.interactive ? "dialog" : "tooltip");
         tip.setAttribute("aria-label", target.label);
         description = target.anchor.getAttribute("aria-describedby");
         target.anchor.setAttribute("aria-describedby", [description, tip.id].filter(Boolean).join(" "));
@@ -201442,16 +201452,22 @@ https://creativecommons.org/licenses/by/4.0/
         observer2.observe(target.anchor);
         if (target.layout_anchor) observer2.observe(target.layout_anchor);
         tip.addEventListener("pointerenter", keep, { signal: session.signal });
-        tip.addEventListener("pointerleave", (event2) => {
-          if (!inside(event2.relatedTarget)) leave();
+        tip.addEventListener("pointerleave", (event) => {
+          if (!inside(event.relatedTarget)) leave();
         }, { signal: session.signal });
         tip.addEventListener("focusin", keep, { signal: session.signal });
-        tip.addEventListener("focusout", (event2) => {
-          if (!inside(event2.relatedTarget)) leave();
+        tip.addEventListener("focusout", (event) => {
+          if (!inside(event.relatedTarget)) leave();
         }, { signal: session.signal });
       };
       if (immediate) show2();
       else timer = window.setTimeout(show2, delay_ms);
+      return tip;
+    };
+    const enter = (event) => {
+      if (restoring_focus || !(event.target instanceof Element)) return;
+      const target = resolve3(event.target);
+      if (target) show_target(target);
     };
     container.addEventListener("pointerover", enter, { signal: events.signal });
     container.addEventListener("focusin", enter, { signal: events.signal });
@@ -201462,29 +201478,25 @@ https://creativecommons.org/licenses/by/4.0/
       if (!inside(event.relatedTarget)) leave();
     }, { signal: events.signal });
     document.addEventListener("pointerdown", (event) => {
+      if (options2.interactive && tip) return;
       if (!(event.target instanceof Node && tip?.contains(event.target))) hide2();
     }, { capture: true, signal: events.signal });
     document.addEventListener("scroll", (event) => {
       if (!(event.target instanceof Node && tip?.contains(event.target))) hide2();
     }, { capture: true, signal: events.signal });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && current) {
+      if ((!options2.interactive || !tip) && event.key === "Escape" && current) {
         const anchor = current.anchor, restore = tip?.contains(document.activeElement);
-        hide2();
-        if (restore) {
-          restoring_focus = true;
-          anchor.focus({ preventScroll: true });
-          restoring_focus = false;
-        }
+        hide_with_focus(restore ? () => anchor.focus({ preventScroll: true }) : void 0);
       }
     }, { capture: true, signal: events.signal });
-    window.addEventListener("resize", hide2, { signal: events.signal });
+    window.addEventListener("resize", options2.interactive ? place : hide2, { signal: events.signal });
     window.addEventListener("blur", hide2, { signal: events.signal });
     const nodes = new MutationObserver(() => {
       if (current && (!current.anchor.isConnected || current.layout_anchor && !current.layout_anchor.isConnected)) hide2();
     });
     nodes.observe(container, { childList: true, subtree: true });
-    return { hide: hide2, dispose() {
+    return { hide: hide_with_focus, show: (target) => show_target(target, true), reposition: place, dispose() {
       hide2();
       events.abort();
       nodes.disconnect();
@@ -226555,6 +226567,161 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_zoom_status.css
+  var workspace_zoom_status_default = "";
+
+  // src/workspace_zoom_status.ts
+  var bindings = /* @__PURE__ */ new WeakMap();
+  function bind_workspace_zoom_status(app, runtime2 = window) {
+    const footer = document.querySelector("footer.ty-footer");
+    if (!footer) return;
+    const existing = bindings.get(footer);
+    if (existing) return existing;
+    let frame3;
+    try {
+      frame3 = runtime2.reqnode?.("electron")?.webFrame;
+      if (!frame3 || typeof frame3.getZoomLevel !== "function" || typeof frame3.getZoomFactor !== "function") return;
+    } catch {
+      return;
+    }
+    const lifetime = create_workspace_lifetime(), layout2 = acquire_workspace_footer_layout(), style = acquire_workspace_style("typora-code-style:workspace_zoom_status", workspace_zoom_status_default);
+    lifetime.add(() => layout2.remove());
+    lifetime.add(() => style.remove());
+    const group = workspace_element("div", "workspace-zoom-status workspace-footer-group"), trigger = workspace_button("", () => open(), "workspace-footer-control");
+    trigger.dataset.zoomAction = "toggle";
+    trigger.setAttribute("aria-label", "\u7A97\u53E3\u7F29\u653E");
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-expanded", "false");
+    group.append(trigger);
+    footer.append(group);
+    let popup, previous, update_popup, update_frame = 0;
+    const read2 = () => {
+      try {
+        const level = frame3.getZoomLevel(), factor2 = frame3.getZoomFactor();
+        return Number.isFinite(level) && Number.isFinite(factor2) && factor2 > 0 ? { level, factor: factor2 } : void 0;
+      } catch {
+        return;
+      }
+    };
+    const close = (restore = false) => {
+      const focus = previous;
+      hover.hide(restore ? () => focus?.restore() : void 0);
+    };
+    const sync = () => {
+      update_frame = 0;
+      if (lifetime.disposed) return;
+      const state = read2(), hidden = !state || Math.abs(state.level) < 1e-4;
+      if (hidden && popup) close(popup.contains(document.activeElement));
+      group.hidden = hidden;
+      if (!state) return;
+      const name = state.level < 0 ? "zoom-out" : "zoom-in";
+      if (trigger.firstElementChild?.getAttribute("data-git-icon") !== name) trigger.replaceChildren(git_icon(name));
+      trigger.setAttribute("aria-label", "\u7A97\u53E3\u7F29\u653E\uFF1A".concat(Math.round(state.factor * 100), "%"));
+      update_popup?.();
+      hover.reposition();
+    };
+    const schedule = () => {
+      if (!lifetime.disposed && !update_frame) update_frame = requestAnimationFrame(sync);
+    };
+    const run = (id) => {
+      if (!workspace_zoom_available(runtime2, id)) return;
+      try {
+        app.commands.run(id);
+        sync();
+      } catch (error) {
+        if (popup) {
+          popup.setAttribute("aria-label", "\u7A97\u53E3\u7F29\u653E\u5931\u8D25");
+          popup.title = String(error);
+        }
+        schedule();
+      }
+    };
+    const target = { anchor: trigger, label: "\u7A97\u53E3\u7F29\u653E", preferred_side: "above", show_pointer: true, render(content, signal) {
+      popup = content;
+      content.classList.add("workspace-zoom-controls");
+      content.tabIndex = -1;
+      previous ??= capture_workspace_focus(trigger);
+      trigger.setAttribute("aria-expanded", "true");
+      document.body.setAttribute("data-workspace-zoom-controls-open", "");
+      const interaction = acquire_workspace_interaction(content);
+      const layer = register_workspace_dismissal(() => [content], (reason) => close(reason === "escape"), { inside: () => [content, trigger], window_blur: true });
+      signal.addEventListener("abort", () => {
+        layer.dispose();
+        interaction.remove();
+        trigger.setAttribute("aria-expanded", "false");
+        document.body.removeAttribute("data-workspace-zoom-controls-open");
+        popup = void 0;
+        update_popup = void 0;
+        previous = void 0;
+      }, { once: true });
+      const button = (name, label, action, callback) => {
+        const node = workspace_button("", callback);
+        node.dataset.zoomAction = action;
+        node.title = label;
+        node.setAttribute("aria-label", label);
+        node.append(git_icon(name));
+        return node;
+      };
+      const out = button("remove", "\u7F29\u5C0F\uFF08Ctrl+-\uFF09", "out", () => run("linux_note:zoom_out"));
+      const value = workspace_element("span", "workspace-zoom-level");
+      value.setAttribute("aria-live", "polite");
+      const into = button("add", "\u653E\u5927\uFF08Ctrl+=\uFF09", "in", () => run("linux_note:zoom_in"));
+      const right = workspace_element("div", "workspace-zoom-controls-right");
+      const reset2 = workspace_button("\u91CD\u7F6E", () => run("linux_note:zoom_reset"));
+      reset2.dataset.zoomAction = "reset";
+      reset2.title = "\u6062\u590D\u5B9E\u9645\u5927\u5C0F\uFF08100%\uFF09";
+      const settings = button("settings-gear", "\u7F29\u653E\u8BBE\u7F6E\uFF08\u504F\u597D\u8BBE\u7F6E \u2192 \u5916\u89C2\uFF09", "settings", () => {
+        if (typeof runtime2.ClientCommand?.showPreferencePanel !== "function") return;
+        close(true);
+        runtime2.ClientCommand.showPreferencePanel();
+      });
+      right.append(reset2, settings);
+      content.append(out, value, into, right);
+      update_popup = () => {
+        const state = read2();
+        value.textContent = state ? String(Math.round(state.level * 100) / 100) : "";
+        value.title = state ? "\u7F29\u653E\u6BD4\u4F8B\uFF1A".concat(Math.round(state.factor * 100), "%") : "\u65E0\u6CD5\u8BFB\u53D6\u7A97\u53E3\u6BD4\u4F8B";
+        out.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_out");
+        into.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_in");
+        reset2.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_reset");
+        settings.disabled = typeof runtime2.ClientCommand?.showPreferencePanel !== "function";
+      };
+      update_popup();
+      content.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const controls = [...content.querySelectorAll("button:not(:disabled)")], index = controls.indexOf(document.activeElement);
+        controls[event.key === "Home" ? 0 : event.key === "End" ? controls.length - 1 : (index + (event.key === "ArrowLeft" ? controls.length - 1 : 1)) % controls.length]?.focus({ preventScroll: true });
+      }, { signal });
+    } };
+    const hover = bind_workspace_hover(group, (node) => trigger.contains(node) && !group.hidden ? target : void 0, { interactive: true });
+    const open = () => {
+      if (group.hidden) return;
+      previous ??= capture_workspace_focus(trigger);
+      const view = hover.show(target);
+      view?.querySelector("button:not(:disabled)")?.focus({ preventScroll: true });
+    };
+    lifetime.listen(trigger, "pointerdown", () => {
+      if (!popup) previous = capture_workspace_focus(trigger);
+    });
+    lifetime.listen(window, "resize", schedule);
+    lifetime.listen(window, "focus", schedule);
+    const hint = document.querySelector("#zoom-hint-current"), observer2 = new MutationObserver(schedule);
+    if (hint) observer2.observe(hint, { childList: true, characterData: true, subtree: true });
+    lifetime.add(() => {
+      cancelAnimationFrame(update_frame);
+      observer2.disconnect();
+      hover.dispose();
+      group.remove();
+      bindings.delete(footer);
+    });
+    const binding = { dispose: lifetime.dispose };
+    bindings.set(footer, binding);
+    sync();
+    return binding;
+  }
+
   // src/workspace_breadcrumbs.css
   var workspace_breadcrumbs_default = "";
 
@@ -228217,9 +228384,9 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_preferences_default = "";
 
   // src/workspace_preferences.ts
-  var bindings = /* @__PURE__ */ new WeakMap();
+  var bindings2 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_preferences(core) {
-    const existing = bindings.get(core);
+    const existing = bindings2.get(core);
     if (existing) return existing;
     const style = acquire_workspace_style("typora-code-preferences", workspace_preferences_default);
     const button = document.createElement("button");
@@ -228259,9 +228426,9 @@ https://creativecommons.org/licenses/by/4.0/
       button.onclick = null;
       button.remove();
       style.remove();
-      bindings.delete(core);
+      bindings2.delete(core);
     } };
-    bindings.set(core, binding);
+    bindings2.set(core, binding);
     return binding;
   }
 
@@ -228269,9 +228436,9 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_tab_controls_default = "";
 
   // src/workspace_tab_controls.ts
-  var bindings2 = /* @__PURE__ */ new WeakMap();
+  var bindings3 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_tab_controls(core, files) {
-    const existing = bindings2.get(core);
+    const existing = bindings3.get(core);
     if (existing) return existing;
     const interaction = acquire_workspace_interaction(), inline4 = acquire_workspace_inline_layout();
     const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default), events = new AbortController();
@@ -228407,9 +228574,9 @@ https://creativecommons.org/licenses/by/4.0/
       style.remove();
       inline4.remove();
       interaction.remove();
-      bindings2.delete(core);
+      bindings3.delete(core);
     } };
-    bindings2.set(core, binding);
+    bindings3.set(core, binding);
     return binding;
   }
 
@@ -228496,9 +228663,9 @@ https://creativecommons.org/licenses/by/4.0/
   var CHANNEL_PREFIX = "typora-code:tab-transfer:";
   var TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
   var TRANSFER_TIMEOUT_MS = 25e3;
-  var bindings3 = /* @__PURE__ */ new WeakMap();
+  var bindings4 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_detached_window(files, options2 = {}) {
-    const existing = bindings3.get(files);
+    const existing = bindings4.get(files);
     if (existing) return existing;
     const runtime2 = window;
     const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
@@ -228794,10 +228961,10 @@ https://creativecommons.org/licenses/by/4.0/
       document.removeEventListener("typora-code:tab-drag-end", drag_end);
       window.removeEventListener("pagehide", binding.dispose);
       for (const cancel of [...cancellations]) cancel();
-      bindings3.delete(files);
+      bindings4.delete(files);
     } };
     window.addEventListener("pagehide", binding.dispose);
-    bindings3.set(files, binding);
+    bindings4.set(files, binding);
     return binding;
   }
 
@@ -232452,7 +232619,7 @@ https://creativecommons.org/licenses/by/4.0/
   var MAXIMUM_MARGIN = 24;
   var ROOT_ATTRIBUTE = "data-linux-note-document-margin";
   var properties = ["--linux-note-document-margin", "--linux-note-document-width"];
-  var bindings4 = /* @__PURE__ */ new WeakMap();
+  var bindings5 = /* @__PURE__ */ new WeakMap();
   function normalize_margin(value) {
     const margin = Number(value);
     return Number.isFinite(margin) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(margin))) : 0;
@@ -232479,7 +232646,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (position2 && content?.isConnected && write?.parentElement === content) apply_position(content, write, position2);
   }
   function install_workspace_document_margin(footer) {
-    const existing = bindings4.get(footer);
+    const existing = bindings5.get(footer);
     if (existing) return existing;
     const root = document.documentElement;
     const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
@@ -232561,9 +232728,9 @@ https://creativecommons.org/licenses/by/4.0/
         layout2.remove();
         style.remove();
       });
-      bindings4.delete(footer);
+      bindings5.delete(footer);
     } };
-    bindings4.set(footer, binding);
+    bindings5.set(footer, binding);
     return binding;
   }
 
@@ -233457,13 +233624,13 @@ https://creativecommons.org/licenses/by/4.0/
   var SIDEBAR_MIN_WIDTH = 170;
   var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
   var EDITOR_MIN_WIDTH = 220;
-  var bindings5 = /* @__PURE__ */ new WeakMap();
+  var bindings6 = /* @__PURE__ */ new WeakMap();
   function install_workspace_sidebar_sash(options2) {
     const sash = document.querySelector("#typora-sidebar-resizer");
     const sidebar_element = document.querySelector("#typora-sidebar");
     const ribbon = document.querySelector(".typ-ribbon");
     if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings5.get(sash);
+    const existing = bindings6.get(sash);
     if (existing) return existing;
     const root = document.documentElement;
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
@@ -233640,10 +233807,10 @@ https://creativecommons.org/licenses/by/4.0/
       delete sash.dataset.workspaceSidebarSash;
       root.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
-      bindings5.delete(sash);
+      bindings6.delete(sash);
     };
     const binding = { element: sash, refresh, dispose: dispose2 };
-    bindings5.set(sash, binding);
+    bindings6.set(sash, binding);
     window.addEventListener("pagehide", dispose2, { once: true });
     refresh();
     return binding;
@@ -233780,6 +233947,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       lifetime.listen(window, "keydown", explorer_shortcut, true);
       lifetime.own(install_workspace_footer());
+      lifetime.own(bind_workspace_zoom_status(core.app, window));
       lifetime.own(install_workspace_sidebar_sash({ sidebar: core.app.workspace.sidebar, save_width: (width2) => window.JSBridge.putSetting("sidebar-width", width2) }));
       const sidebar = core.app.workspace.sidebar;
       const ribbon = document.querySelector(".typ-ribbon");

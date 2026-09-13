@@ -531,3 +531,15 @@ R031：按钮原有阅读底色被公共action的半透明hover背景覆盖，�
 隔离原生Typora1.14.10最终23项通过，github.css与night.css下图片／Mermaid四组均真实触发CSS :hover；显示完全不透明，离开隐藏且不拦截正文指针，无占位行和排版变化，正文、dirty状态及夹具文件保持。四张实际截图已视检，证据在`.cache/native_zoom_1_14_10/media_hover_native_20260913_final/`。首次远程调试参数被原生生产限制拒绝后，改用私有桌面窗口WM_MOUSEMOVE完成验证，未绕过限制或修改ASAR；此为私有窗口消息和实际渲染验证，不冒充用户物理鼠标操作。
 
 既有事务安装及安装后检查OK，23项产品资产中仅workspace.css及其SHA256SUMS清单更新，包含上一轮明暗选中配色。已安装脚本仍为已验收7885b59，未部署R009待原生互通验收的阶段脚本。ASAR、图标、原生偏好、工作区设置和主题摘要保持，用户窗口未重启；保存后正常重启Typora加载。安装日志为`.cache/media_opaque_install_20260913.log`与`media_opaque_install_check_20260913.log`，发布、保护与提交核对保存在`.cache/media_opaque_audit_20260913/`。本轮代码、测试、设计和对应构建及时提交，其他未完成项保持原状态。
+
+## 2026-09-13 底栏窗口缩放入口
+
+R014新增右下角窗口缩放入口，使用固定官方Codicons的zoom-in／zoom-out图标；非零级显示，恢复100%隐藏。悬停或点击打开紧凑浮层，依次提供缩小、实际级别、放大、重置及原生设置入口。比例只读webFrame，操作复用已有命令，快捷键／菜单外改经原生提示节点、resize和focus同步；设置打开原生偏好，未新增比例配置。布局、明暗、hover与退出由公共层负责，来源及宿主适配见[窗口缩放设计](workspace_zoom.md#r014-底栏缩放入口)。
+
+目标回归最终67项通过，保留原32项快捷键，并覆盖真实webFrame、xterm缓冲／草稿／正文、能力缺失、原生外改、小数级别、Esc／外点和卸载重绑。明暗×22／30px×125%／83%的8组矩形、图标及对比度检查与截图通过。初始几何断言将22px实际21.99375误作失败，按Chromium亚像素精度改为0.05px容差；键盘夹具补齐Enter的char事件。只读复核另发现焦点恢复会重开浮层、等待显示期间Esc不取消计时；新增3组650ms等待先复现旧代码，再由共同hover的恢复焦点保护及pending取消修复，指针或焦点仍在入口时也保持关闭。证据为`.cache/zoom_status_escape_before_20260913.log`、`zoom_status_escape_verified_20260913.log`，目标脚本输出包含escape_timing.json和截图位置。
+
+共享交互、阅读链接悬停、公共默认交互3个UI目标，以及启动／底栏2目标通过；最终build和完整check通过，日志分别为`.cache/zoom_status_hover_regression_20260913.log`、`zoom_status_footer_startup_20260913.log`、`zoom_status_build_20260913.log`、`zoom_status_check_20260913.log`。共享Esc追加修复后的3目标结果随`zoom_status_escape_verified_20260913.log`记录。安装候选使用既有脚本基线加本轮源文件，依赖junction最初导致候选CSS扫描读到实际路径，候选构建启用preserveSymlinks后通过；生产构建规则未修改，未变化资产保留已安装字节。
+
+原始Typora1.14.10私有实例最终70项通过，实际缩放、正负入口、重置、外部原生命令同步、明暗×22／30px及120%／144%定位与命中、同一面板保持、Esc／外点、设置入口、原生提示恢复和正文／磁盘保持均通过。初轮外点误选隐藏的原生输入框，改为可见正文继续验收；补测初次聚焦又被宿主选区收尾移走，在宿主稳定后明确激活入口完成复核。截图已视检；证据在`.cache/native_zoom_1_14_10/zoom_status_native_20260913_c_final/`。指针通过私有桌面Win32窗口消息，Esc通过renderer KeyboardEvent，补充键盘入口路径使用focus与button.click模拟，不冒充用户物理操作；原始ASAR未修改，用户窗口未操作。
+
+既有事务安装及安装后检查OK，23项产品资产只更新workbench.js、workspace.css及清单。安装脚本为已验收7885b59加本轮R014及共享hover修复，保留前两轮明暗选中色与不透明媒体入口；源码HEAD的R009系统文件剪贴板阶段实现仍待原生互通验收，未部署。ASAR、应用图标、原生偏好、工作区设置及主题摘要保持，用户窗口未重启，保存文档后正常重启Typora加载。日志为`.cache/zoom_status_install_20260913.log`与`zoom_status_install_check_20260913.log`，资产和保护核对保存在`.cache/zoom_status_audit_20260913/`。本轮经检查的代码、图标、测试、设计及构建及时提交，不推送。

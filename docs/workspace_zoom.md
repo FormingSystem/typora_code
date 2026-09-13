@@ -29,3 +29,33 @@
 目标回归覆盖主键盘与小键盘、长按、keyup 去重、输入法与 Alt 组合、模态优先级、菜单与命令一致、卸载和重装。隔离 Electron 使用真实键盘输入与真实窗口缩放，检查比例变化、正文与终端输入不被污染。
 
 原生 Typora 隔离配置验证 Markdown、代码/diff 和终端焦点下缩放与恢复，检查缩放提示、底栏与弹层几何、编辑器模型/草稿和终端会话保持。构建、相关启动回归及安装检查通过后记录交付证据；不能把测试环境安装等同于用户现有窗口已经加载。
+
+## R014 底栏缩放入口
+
+2026-09-13，按用户截图增加底栏窗口缩放入口。入口使用固定官方Codicons放大镜，控件使用remove、add和settings-gear；图标只负责呈现，仍调用已有R014窗口缩放命令。比例与持久化只归Typora原生层所有，读实际Electron webFrame级别／比例；不使用包含系统DPI的devicePixelRatio推算，不为底栏另存一份比例。
+
+底栏控件复用共享group、control和text角色；小面板在入口上方覆盖显示，不占正文和底栏新行。点击打开并支持键盘进入，悬停延迟与离开关闭使用统一机制；Esc取消并恢复打开前焦点／选区，外部点击关闭后继续操作目标，不抢焦点。缩放后重新读取实际值，持续同步来自快捷键或原生菜单的改变。宿主能力缺失时禁用相应动作，读取失败不显示伪造比例；卸载删除入口、浮层、监听及样式。
+
+本轮对照VS Code 1.137.0固定提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c的WindowZoomStatusEntry，采用下列已核对规则及宿主适配。回归实际webFrame、同一命令所有权、明暗、底栏高度、缩放后的弹层定位、普通编辑与终端焦点、原生隔离实例和安装资产；不把UI测试当作其他待验收功能已完成。
+
+### 固定来源与采用策略
+
+| 固定VS Code源码 | 核对结果与本产品采用方式 |
+| --- | --- |
+| `src/vs/workbench/electron-browser/window.ts:1132–1256` | 偏离配置默认值时显示，正／负方向用zoom-in／zoom-out；弹层顺序为remove、实际level、plus、Reset、settings-gear。Typora重置为原生level0，因此本产品在非零级显示、恢复100%后隐藏；level与百分比都读取当前窗口，不从用户配置或DPI推断。 |
+| `src/vs/workbench/browser/parts/statusbar/statusbarPart.ts:186–211` | HTML悬停500ms、compact模式，点击聚焦后可持续操作；本产品复用bind_workspace_hover，增加显式打开、交互焦点保留及上方优先定位，不复制定时器／边界算法。 |
+| `src/vs/platform/hover/browser/hover.css:37–48`、`src/vs/workbench/electron-browser/media/window.css:6–35` | 紧凑正文12px、内距2px 8px、图形16px、右组间隔10px。保留公共浮层主题、边框和公共控件4px圆角；本产品按钮保持22px操作目标，底栏高度完全由现有共同布局决定。 |
+| `src/vs/workbench/browser/parts/statusbar/statusbarItem.ts:153–164,230–231` | 鼠标／Enter／Space打开并聚焦。本产品浮层按钮按Tab或左右方向移动，Esc与外点取消复用统一退出栈；不用截图中的减号或加号字符代替图标。 |
+| `src/vs/workbench/electron-browser/desktop.contribution.ts:203–215` | zoomLevel默认0，支持小数；zoomPerWindow默认true，没有专门的入口显隐设置。本产品不复制这两项配置，保持宿主本窗口命令及原生持久化。 |
+
+上述路径均固定到提交`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`。图形来自本项目已固定的Codicons提交`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`，新增zoom-in、zoom-out原始SVG；plus与已有add是上游同一图形映射，复用add，remove和settings-gear也复用既有资源，许可与摘要随vendor清单维护。
+
+Typora1.14.10的`appsrc/window/frame.js`中zoomIn／zoomOut读取webFrame级别±1，再调用setZoomLevel；后者更新原生持久化、File.option.zoomFactor与`#zoom-hint-current`。因此入口通过该节点只读观察、窗口resize及focus合并读取实际状态，无轮询、函数替换或窗口广播。自有控制面板打开时仅用限定样式隐藏顶部原生`#zoom-hint`，保留节点、文本更新和3秒生命周期；关闭或卸载恢复。
+
+齿轮调用已核对的无参`ClientCommand.showPreferencePanel()`，用户在原生“外观 → 缩放”设置比例及Ctrl+滚轮选项。原生makeHighlight不支持缩放深链，因此不传入猜测的定位参数；入口提示注明设置位置，未引入另一套比例表单或持久化字段。
+
+入口使用同提交2026-light.json的statusBarItem.prominentBackground `#0069CCDD`、前景 `#FFFFFF` 和hover背景 `#0069CC`；Night引用2026-dark.json的 `#3994BC` 背景／hover与白色前景。配置变量可覆写，公共交互层应用hover，不将显著状态色扩散到浮层普通按钮。
+
+### 底栏入口验收结果
+
+67项目标回归、共享悬停3目标、启动／底栏2目标、完整check与隔离原生验收通过。补测Esc后的650ms稳定状态，覆盖键盘恢复到入口及焦点／鼠标等待显示，均保持关闭；共同hover在恢复焦点期间抑制再进入。真实主题、几何、安装资产边界与原生输入方法统一记录在[反馈](feedback_review.md#2026-09-13-底栏窗口缩放入口)。

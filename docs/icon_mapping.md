@@ -30,3 +30,7 @@
 验证入口包括 `test_workspace_file_icons.cjs`、`test_scm_file_icons.cjs`、Explorer、搜索及文件选择器目标，检查共享识别结果、真实字体、明暗颜色、虚拟 URI 隔离、点击打开和图标资源释放。引用颜色另按分支、远端、HEAD、tag、stash 及自定义调色板检查。代码大纲的分类图标与配色见[代码大纲与解析环境](source_outline.md)。
 
 运行结果与历史计数统一见[反馈复查记录](feedback_review.md)。已通过的具体场景不代表所有图标槽均有同 DPI 的成对截图，资源数量也不构成全视觉验收证明。
+
+## 底栏窗口缩放
+
+R014新增官方zoom-in／zoom-out放大镜表示当前窗口正／负缩放。控制浮层使用既有remove、add（固定上游plus同图形映射）和settings-gear；保留原始SVG及viewBox，显示16px，随公共明暗前景切换。来源与采用值见[窗口缩放](workspace_zoom.md#固定来源与采用策略)及vendor/codicons/source_manifest.json，不绘制近似图形。
