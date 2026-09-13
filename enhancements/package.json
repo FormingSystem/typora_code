@@ -2,6 +2,7 @@
   "name": "linux-note-typora-enhancements",
   "version": "1.0.0",
   "private": true,
+  "license": "GPL-2.0-only",
   "description": "Typora editor groups, reading navigation, TextMate C/C++ colors and Mermaid viewer.",
   "scripts": {
     "build": "node scripts/build.mjs",

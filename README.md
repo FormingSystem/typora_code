@@ -11,7 +11,9 @@ domains:
 
 Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git 审阅和集成终端，把 Markdown 阅读与日常项目操作放在同一个窗口内。打开普通文件或文件夹即可使用，无需特定知识库目录或元数据。
 
-这是独立维护的社区增强项目，需要先安装 Typora。Typora 的下载、许可与更新由其官方提供；本项目维护增强代码、主题、安装脚本及说明文档。
+工作台布局、交互方式和部分功能设计参考并模仿 [Visual Studio Code（VS Code）](https://code.visualstudio.com/)，设计来源见 [界面基线](docs/vscode_design_baseline.md)。
+
+这是独立维护的社区增强项目，并非 Typora 或 VS Code 官方产品，需要先安装 Typora。Typora 的下载、许可与更新由其官方提供；本项目维护增强代码、主题、安装脚本及说明文档。
 
 | 能力 | 使用方式 |
 | --- | --- |
@@ -82,3 +84,11 @@ Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux
 | [反馈复查记录](docs/feedback_review.md) | 各次实际验证和交付记录 |
 
 用户脚本在仓库根目录，以 `install`、`check`、`restore` 命名；平台与事务实现位于 `scripts/`。`enhancements/src/` 保存工作台源码，`enhancements/dist/` 保存配套预构建文件。第三方资产的许可证、来源和摘要随 `enhancements/vendor/` 与 `enhancements/dist/licenses/` 保留。
+
+## 1.4\_版权与来源声明
+
+本项目的原创代码、界面、文档、主题和安装脚本，除特别说明外，采用根目录 [LICENSE](LICENSE) 中的 **GNU GPL version 2（GPL-2.0-only）** 发布。
+
+原创维护者为 **FormingSystem**，联系邮箱为 `lizhaojun97@qq.com`，项目地址为 [FormingSystem/typora_code](https://github.com/FormingSystem/typora_code)。原创署名、二次开发与官方贡献、非官方分叉及未来版本边界统一见 [版权、开源与贡献声明](COPYRIGHT.md)。
+
+Typora Code 是独立维护的社区增强项目。Typora 本体、第三方依赖与资源保留其原有版权和许可证；用户打开、编辑和导出的文档仍归各自权利人。本项目的许可证不重新授权这些内容。
