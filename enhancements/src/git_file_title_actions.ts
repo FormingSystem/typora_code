@@ -53,7 +53,7 @@ export function bind_git_file_title_actions(host:graph_host,controller_for:(root
           // 计划期间用户仍可能换标签、关闭文件或修改正文，返回事务之前再次验收所有者。
           if(disposed||!current()||!writable())throw new Error("文件状态已变化，请重新打开文件菜单后重试。");
           return plan;
-        },writer).then(message=>{if(!disposed)panel.report(message);}).catch(error=>{if(!disposed)new host.core.Notice(String(error instanceof Error?error.message:error),5000);});
+        },writer,id).then(message=>{if(!disposed)panel.report(message);}).catch(error=>{if(!disposed)new host.core.Notice(String(error instanceof Error?error.message:error),5000);});
       }});
       return [
         ...(change.status==="??"||change.work_status!==" "?[action("stage")]:[]),

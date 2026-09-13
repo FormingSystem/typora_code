@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {build} from 'esbuild';
+const compiled=await build({stdin:{contents:'export {git_operation_progress} from "./src/git_operation_progress";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
+const {git_operation_progress}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const progress=new git_operation_progress(),states=[],stop=progress.subscribe(state=>states.push(state));
+assert.equal(progress.state.busy,false);
+const write=progress.begin('fetch','Fetching'),read=progress.begin('refresh','Refreshing');
+assert.equal(progress.state.kind,'fetch');read.finish();assert.equal(progress.state.kind,'fetch');
+write.phase('Choose remote',true);assert.equal(progress.state.busy,true);assert.equal(progress.state.running,false);
+write.phase('Publishing');assert.equal(progress.state.running,true);
+progress.configure(false);assert.equal(progress.state.enabled,false);assert.equal(progress.state.busy,true);
+progress.reset();const next=progress.begin('pull','Pulling');write.finish();read.finish();assert.equal(progress.state.kind,'pull');
+next.finish();assert.equal(progress.state.busy,false);assert(states.every((state,index)=>index===0||state.revision>states[index-1].revision));
+const last=progress.begin('commit','Committing');progress.dispose();assert.equal(progress.state.busy,false);const count=states.length;last.finish();progress.begin('fetch','Late').finish();assert.equal(states.length,count);stop();
+console.log('PASS Git operation progress: nested refresh, waiting, visibility-only setting, stale completion, disposal and subscribers');

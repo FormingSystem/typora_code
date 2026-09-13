@@ -47,3 +47,11 @@
 ### 2026-09-14 原始宿主保存与恢复补验
 
 完整候选在原始 Typora 1.14.10 的独立用户目录、私有桌面通过73项原生保存与历史检查。使用原生 CodeMirror 修改专属临时 Markdown、真实 saveUseNode/didSave，验证默认自动保存关闭、延迟自动保存、历史SHA256、先保存草稿再恢复、取消零写入、原生正文异步重载，以及明暗Explorer分区。证据 `.cache/native_zoom_1_14_10/explorer_history_native_20260914_c`；Win32指针、renderer Esc与物理键盘输入明确区分。此前“尚无原生保存验证”的阶段记录由本次证据补齐，其他平台边界继续保留。
+
+## 2026-09-14 集成检查：历史比较宽度
+
+原生截图复查发现历史比较没有占满编辑组。实际组的叶子使用横向 flex，而历史视图未声明剩余宽度，导致 Monaco 停留在初始内容宽度；这与自动保存或历史数据无关。历史视图采用已有源码文档的几何契约：`flex:1 1 0`、`width:100%`、`min-width:0` 和 `align-self:stretch`，比较正文继续由同一个 `git_diff_editor` 响应尺寸变化，不增加固定像素或补偿空白。
+
+回归在真实工作台核心下比较叶子、历史视图和 Monaco 容器宽度，并继续覆盖取消恢复、保存草稿与销毁清理。新增断言在修复前失败；修复后34项历史界面检查通过，完整UI回归中的该目标也通过。证据分别为 `.cache/history_geometry_red_20260914.log`、`.cache/history_geometry_green_20260914.log` 与 `.cache/git_progress_final_ui_20260914.log`。本轮原生复核及安装结果另记在反馈记录。
+
+最终原始Typora同一构建通过74项保存／历史检查，新增的实际叶子、视图和Monaco宽度一致断言通过，截图已复查；证据为 `.cache/native_zoom_1_14_10/history_geometry_native_20260914_a`。本次全量候选已安装且校验OK，运行中的用户窗口需正常重启加载；详见[本次交付](feedback_review.md#2026-09-14-全量安装与git动态进度收尾)。
