@@ -1,3 +1,4 @@
+import {read_git_network_guard} from "./git_remote_data";
 import {worktree_guard} from "./git_worktrees";
 import type { git_run } from "./git_graph_data";
 import { git_graph_text as text, type git_graph_locale, type git_graph_text_key } from "./git_graph_i18n";
@@ -78,8 +79,8 @@ export function graph_action_choice_label(value: string, locale?: git_graph_loca
 export const graph_actions = graph_actions_for();
 export type action_context = { target: string; hash: string; root: string; operation: string; sign_commits?: boolean; sign_tags?: boolean; paths?: string[]; reference_space?: string };
 type sync_target = { local_branch: string; upstream_ref: string; remote: string; remote_ref: string; remote_urls: string };
-type discard_plan = {restore_paths: string[]; untracked_paths: string[]; untracked_guards: string[]};
-export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan; followup?: {args: string[]; if_staged: boolean}; worktree_guard?:string };
+type discard_plan = {restore_paths: string[]; deleted_paths: string[]; untracked_paths: string[]; untracked_guards: string[]};
+export type action_plan = { action: graph_action; args: string[]; preview: string; fingerprint: string; context: action_context; todo?: string; stdin?: string; index_guard?: string; network_guard?: string; file_guard?: string; sync?: {target: sync_target; push_args: string[]}; discard?: discard_plan; followup?: {args: string[]; if_staged: boolean}; worktree_guard?:string };
 export type action_services = {trash_files?: (root: string, files: string[]) => Promise<void>};
 const busy_repositories = new Set<string>();
 const text_value = (value: unknown, name: string, required = true): string => {
@@ -110,7 +111,7 @@ async function plan_discard_changes(run: git_run, root: string, paths: string[] 
   const selected = [...new Set(paths)];
   const [index, working, untracked] = await Promise.all([
     run(root, ["ls-files", "--stage", "-z", "--", ...selected]),
-    run(root, ["diff", "--name-only", "--no-renames", "--no-ext-diff", "--no-textconv", "-z", "--", ...selected]),
+    run(root, ["diff", "--name-status", "--no-renames", "--no-ext-diff", "--no-textconv", "-z", "--", ...selected]),
     run(root, ["ls-files", "--others", "--exclude-standard", "-z", "--", ...selected]),
   ]);
   const entries = new Map<string, string[]>();
@@ -118,8 +119,11 @@ async function plan_discard_changes(run: git_run, root: string, paths: string[] 
     const tab = record.indexOf("\t"); const file = record.slice(tab + 1);
     entries.set(file, [...entries.get(file) || [], record.slice(0, tab)]);
   }
-  const changed = new Set(working.split("\0")); const others = new Set(untracked.split("\0"));
-  const restore_paths: string[] = []; const untracked_paths: string[] = [];
+  // --no-renames 使每条记录固定为状态、原始路径两个 NUL 分隔字段，路径中的空格或制表符不会误分列。
+  const changed = new Map<string, string>(); const records = working.split("\0");
+  for (let index = 0; index + 1 < records.length; index += 2) changed.set(records[index + 1], records[index]);
+  const others = new Set(untracked.split("\0"));
+  const restore_paths: string[] = []; const deleted_paths: string[] = []; const untracked_paths: string[] = [];
   for (const file of selected) {
     const stages = entries.get(file);
     if (stages) {
@@ -127,12 +131,34 @@ async function plan_discard_changes(run: git_run, root: string, paths: string[] 
       if (stages[0].startsWith("160000 ")) throw new Error(text("action.error.submodule", {file: JSON.stringify(file)}));
       if (!changed.has(file)) throw new Error(text("action.error.no_unstaged_changes", {file: JSON.stringify(file)}));
       restore_paths.push(file);
+      if (changed.get(file) === "D") deleted_paths.push(file);
     } else if (others.has(file)) { if (include_untracked) untracked_paths.push(file); }
     else throw new Error(text("action.error.file_state_changed", {file: JSON.stringify(file)}));
   }
   if (!restore_paths.length && !untracked_paths.length) throw new Error(text("action.error.nothing_to_discard"));
   const untracked_guards = await Promise.all(untracked_paths.map(file => run(root, ["hash-object", "--no-filters", "--", file])));
-  return {restore_paths, untracked_paths, untracked_guards};
+  return {restore_paths, deleted_paths, untracked_paths, untracked_guards};
+}
+function discard_preview(discard: discard_plan, args: string[]): string {
+  return text("action.preview.discard", {
+    restore_count: discard.restore_paths.length,
+    restore_lines: discard.restore_paths.map(file => text("action.preview.restore_file", {file: JSON.stringify(file)})).join("\n"),
+    untracked_count: discard.untracked_paths.length,
+    untracked_lines: discard.untracked_paths.map(file => text("action.preview.recycle_file", {file: JSON.stringify(file)})).join("\n"),
+    command: args.length ? "\n\ngit " + args.map(arg => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" ") : "",
+  });
+}
+/** 从已确认的同一快照缩小范围；不能重新读取 Git，否则按钮选择可能认领后来出现的更改。 */
+export function select_discard_scope(plan: action_plan, scope: "tracked" | "all"): action_plan {
+  if (plan.action.id !== "discard_changes" || !plan.discard || scope !== "tracked" && scope !== "all") throw new Error(text("action.error.unknown_action"));
+  const discard: discard_plan = {
+    restore_paths: [...plan.discard.restore_paths], deleted_paths: [...plan.discard.deleted_paths],
+    untracked_paths: scope === "all" ? [...plan.discard.untracked_paths] : [],
+    untracked_guards: scope === "all" ? [...plan.discard.untracked_guards] : [],
+  };
+  if (!discard.restore_paths.length && !discard.untracked_paths.length) throw new Error(text("action.error.nothing_to_discard"));
+  const args = [...plan.args];
+  return {...plan, args, discard, preview: discard_preview(discard, args)};
 }
 export async function repository_fingerprint(run: git_run, root: string): Promise<string> {
   const [head, status, refs, working, staged, remotes] = await Promise.all([
@@ -273,13 +299,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     pull_command: preview,
     push_command: "git " + sync.push_args.map(arg => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" "),
   });
-  if (discard) preview = text("action.preview.discard", {
-    restore_count: discard.restore_paths.length,
-    restore_lines: discard.restore_paths.map(file => text("action.preview.restore_file", {file: JSON.stringify(file)})).join("\n"),
-    untracked_count: discard.untracked_paths.length,
-    untracked_lines: discard.untracked_paths.map(file => text("action.preview.recycle_file", {file: JSON.stringify(file)})).join("\n"),
-    command: args.length ? "\n\n" + preview : "",
-  });
+  if (discard) preview = discard_preview(discard, args);
   if (["merge", "pull"].includes(id) && values.mode === "squash" && !flag("no_commit")) {
     followup = {args: ["commit", ...sign, ...(values.squash_message === "git" ? ["--no-edit"] : ["-m", `Merge '${target || hash || value("branch")}'`])], if_staged: true};
   }
@@ -298,6 +318,7 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
   try {
     if (plan.action.touches_files && !can_change_files()) throw new Error(text("action.error.unsaved_document"));
     if (await repository_fingerprint(run, root) !== plan.fingerprint) throw new Error(text("action.error.repository_changed"));
+    if (plan.network_guard !== undefined && await read_git_network_guard(run, root) !== plan.network_guard) throw new Error(text("quick.target_changed"));
     if(plan.worktree_guard!==undefined&&await worktree_guard(run,root,plan.action.id==="worktree_remove"?plan.context.target:undefined)!==plan.worktree_guard)throw new Error(text("action.error.repository_changed"));
     if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error(text("action.error.untracked_changed"));
     if (plan.discard) {
@@ -305,24 +326,37 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
       if (untracked_paths.length && !services.trash_files) throw new Error(text("action.error.recycle_unavailable"));
       const current_guards = await Promise.all(untracked_paths.map(file => run(root, ["hash-object", "--no-filters", "--", file])));
       if (current_guards.some((guard, index) => guard !== untracked_guards[index])) throw new Error(text("action.error.untracked_changed"));
+      // 文件校验包含异步读取；用户可能在等待期间开始编辑，必须在第一笔写入前再次核对。
+      if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
       if (restore_paths.length) await run(root, plan.args);
-      try { if (untracked_paths.length) await services.trash_files!(root, untracked_paths); }
+      try {
+        if (untracked_paths.length) {
+          // 已跟踪文件恢复也会等待 Git，继续回收前仍需保护此时新出现的编辑器草稿。
+          if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
+          await services.trash_files!(root, untracked_paths);
+        }
+      }
       catch (error) { throw new Error(text("action.error.trash_failed", {restored: restore_paths.length, error: String(error instanceof Error ? error.message : error)})); }
       return text("action.result.discard", {restored: restore_paths.length, untracked: untracked_paths.length});
     }
     if (plan.sync) {
       const guard = JSON.stringify(plan.sync.target);
       if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(text("action.error.sync_target_changed"));
+      // 上游校验经过异步读取，必须在开始拉取前再次保护此时新出现的草稿。
+      if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
       // 一个仓库操作锁覆盖两步；pull 抛错时不会进入 push，也不自动解决冲突或提交未暂存内容。
       const pulled = await run(root, plan.args);
       if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(text("action.error.sync_target_changed_after_pull"));
+      if (plan.network_guard !== undefined && await read_git_network_guard(run, root) !== plan.network_guard) throw new Error(text("quick.target_changed"));
       const ahead = Number((await run(root, ["rev-list", "--count", "FETCH_HEAD..HEAD"])).trim());
       if (!Number.isSafeInteger(ahead) || ahead < 0) throw new Error(text("action.error.invalid_ahead_count"));
       if (!ahead) return pulled + "\n" + text("action.result.sync_no_push");
       try { return pulled + "\n" + await run(root, plan.sync.push_args); }
       catch (error) { throw new Error(text("action.error.push_after_pull_failed", {error: String(error instanceof Error ? error.message : error)})); }
     }
-    const result = await run(root, plan.args, { todo: plan.todo });
+    if (plan.index_guard !== undefined && await run(root, ["ls-files", "--stage", "-z", "--", plan.context.target]) !== plan.index_guard) throw new Error(text("action.error.repository_changed"));
+    if (plan.action.touches_files && !can_change_files()) throw new Error(text("action.error.unsaved_document"));
+    const result = await run(root, plan.args, { todo: plan.todo, stdin: plan.stdin });
     if (plan.followup) {
       try {
         if (plan.followup.if_staged) {

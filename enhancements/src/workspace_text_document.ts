@@ -1,4 +1,5 @@
 import { decode_file_bytes, detect_binary_bytes, type decoded_file } from "./file_language";
+import {publish_workspace_file_saved} from "./workspace_file_events";
 
 export const MAX_TEXT_DOCUMENT_BYTES = 16 * 1024 * 1024;
 export type text_document_eol = "LF" | "CRLF" | "CR" | "mixed";
@@ -109,7 +110,7 @@ export function create_text_document(modules: file_modules, file_path: string, o
       const endings = endings_in(formatted); const value = {text: formatted, encoding, bom, eol: endings.length ? detect_eol(endings) : selected.eol ?? snapshot.value.eol};
       await verify(snapshot);
       if (!(snapshot.stat.mode & 0o222)) throw new Error("文件为只读，当前编辑内容仍保留；请先修改文件权限。");
-      if (same_bytes(bytes, snapshot.bytes)) { baseline = {...snapshot, value, endings}; return {...value}; }
+      if (same_bytes(bytes, snapshot.bytes)) { baseline = {...snapshot, value, endings}; publish_workspace_file_saved({file_path,bytes}); return {...value}; }
       temporary = path_api.join(path_api.dirname(snapshot.real_path), `.linux-note-text-${globalThis.crypto.randomUUID()}.tmp`);
       const handle = await fs.open(temporary, "wx", snapshot.stat.mode & 0o777);
       try {
@@ -122,7 +123,7 @@ export function create_text_document(modules: file_modules, file_path: string, o
       await fs.rename(temporary, snapshot.real_path); temporary = "";
       const committed = await read_disk();
       if (identity(committed.stat) !== temporary_identity || committed.real_path !== snapshot.real_path || !same_bytes(committed.bytes, bytes)) throw new Error("保存后文件又被其他进程更改，请先比较磁盘内容；当前编辑内容仍保留。");
-      baseline = {...committed, value, endings}; return {...value};
+      baseline = {...committed, value, endings}; publish_workspace_file_saved({file_path,bytes}); return {...value};
     } catch (error) {
       const problem = error as { code?: string; message?: string };
       if (["EACCES", "EPERM", "EROFS"].includes(problem.code || "")) throw new Error("没有写入权限，或文件正在被其他程序占用；当前编辑内容仍保留。");
@@ -184,6 +185,7 @@ export async function save_text_document_as(modules:file_modules,target:string,t
     await fs.unlink(temporary);
     const value=await document.load();
     if(value.text!==formatted||identity(await fs.stat(target))!==temporary_identity)throw conflict();
+    publish_workspace_file_saved({file_path:target,bytes});
     return{document,value};
   }finally{
     try{const stat=await fs.lstat(temporary);if(identity(stat)===temporary_identity&&stat.isFile()&&!stat.isSymbolicLink())await fs.unlink(temporary);}catch{}

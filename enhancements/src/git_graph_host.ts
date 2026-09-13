@@ -1,6 +1,8 @@
+import {request_workspace_editor_title_entries} from "./workspace_editor_actions";
+import {select_workspace_editor_group} from "./workspace_editor_settings";
 import {workspace_file_icon, acquire_workspace_file_icons} from "./workspace_file_icons";
 import { bind_terminal_workspace } from "./terminal_workspace";
-import { git_diff_editor, type diff_document } from "./git_diff_editor";
+import { git_diff_editor, type diff_document, type diff_range_snapshot } from "./git_diff_editor";
 import { append_git_ignore } from "./git_ignore";
 import { create_git_runner } from "./git_graph_runtime";
 import { EMPTY, INDEX, WORKTREE, require_revision } from "./git_graph_repository";
@@ -42,7 +44,7 @@ export function create_graph_host(core: graph_core) {
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
+  type document_options = {range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
   let serial = 0, disposed = false;
@@ -58,7 +60,7 @@ export function create_graph_host(core: graph_core) {
   const add_tab = (type: string, uri: string, group: string) => {
     if(disposed)return;
     if (group !== "active") { core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]); return; }
-    const parent = core.app.workspace.activeLeaf?.parent; if (!parent) return;
+    const parent = select_workspace_editor_group(core, uri);
     const leaf = core.app.workspace.createLeaf({ type, state: { path: uri } }); parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
   };
   class graph_document_view extends core.WorkspaceView {
@@ -101,6 +103,10 @@ export function create_graph_host(core: graph_core) {
           if (options?.refresh) entries.push({id:"refresh_diff",title:text("host.refresh_diff"),action:()=>this.document?.options.refresh?.()});
           entries.push({id:"toggle_sidebar",title:text("host.toggle_sidebar"),action:()=>core.app.workspace.sidebar.toggle()}); return entries;
         });
+        this.editor.title_entries=()=>request_workspace_editor_title_entries(this.leaf);
+        this.editor.report_error=error=>{new core.Notice(String(error instanceof Error?error.message:error),5000);};
+        const split=git_icon_button("split-horizontal",text("diff.split_editor"),()=>{const current=this.document;if(current?.data)host.open_document(current.data,"right",current.options);});
+        split.dataset.diffAction="split_editor";this.editor.toolbar.querySelector('[data-diff-action="more"]')?.before(split);
         this.sync_file_action();
         this.containerEl.append(this.editor.container);
         this.attach_toolbar();
@@ -110,10 +116,12 @@ export function create_graph_host(core: graph_core) {
     attach_toolbar(){const header=this.leaf.parent.containerEl?.querySelector<HTMLElement>(".typ-workspace-tab-header");if(header)this.editor?.attach_toolbar(header);}
     sync_file_action(){
       if(!this.editor)return;
+      this.editor.range_action=this.document?.options.range_action;
+      this.editor.range_available=()=>Boolean(this.document?.options.range_available?.());
       const entry=this.document?.options.menu?.().find(item=>item.id==="open_file");
       let button=this.editor.toolbar.querySelector<HTMLButtonElement>("[data-diff-open-file]");
       if(!entry){button?.remove();return;}
-      if(!button){button=git_icon_button("go-to-file",entry.title,()=>{const current=this.document?.options.menu?.().find(item=>item.id==="open_file");if(current&&!current.disabled)void current.action?.();});button.dataset.diffOpenFile="true";button.style.marginLeft="auto";this.editor.toolbar.append(button);}
+      if(!button){button=git_icon_button("go-to-file",entry.title,()=>{const current=this.document?.options.menu?.().find(item=>item.id==="open_file");if(current&&!current.disabled)void current.action?.();});button.dataset.diffOpenFile="true";this.editor.toolbar.prepend(button);}
       button.disabled=Boolean(entry.disabled); button.title=entry.title; button.setAttribute("aria-label",entry.title);
     }
     onClose() {
@@ -156,7 +164,12 @@ export function create_graph_host(core: graph_core) {
       return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path)
         : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
     },
-    can_change_files() { return !runtime.File?.changeCounter?.isDocumentEdited(); },
+    can_change_files() {
+      if(runtime.File?.changeCounter?.isDocumentEdited())return false;
+      const files=get_workspace_files();let allowed=true;
+      if(files)core.app.workspace.eachLeaves(leaf=>{const state=files.editor_state(leaf);if(state.dirty||state.busy)allowed=false;});
+      return allowed;
+    },
     async trash_files(root: string, files: string[]): Promise<void> {
       const shell = runtime.reqnode("electron").shell;
       if (typeof shell.trashItem !== "function") throw new Error(text("host.trash_unavailable"));

@@ -47,10 +47,7 @@ export class git_scm_history {
     });
   }
   network_action(id:string):void {
-    const panel=this.owner.panel,state=panel.state;if(!state)return;
-    const tracking=state.tracking;
-    const preset:Record<string,string|boolean>=id==="fetch"?{remote:""}:id==="pull"?{remote:tracking?.remote||"",branch:tracking?.remote_ref.replace(/^refs\/heads\//u,"")||""}:{remote:tracking?.remote&&tracking.remote!=="."?tracking.remote:state.remotes[0]?.name||"",branch:state.branch,remote_branch:tracking?.remote_ref.replace(/^refs\/heads\//u,"")||state.branch,upstream:!tracking?.upstream};
-    panel.action_dialog(id,"repository","",state.head,preset);
+    if(id==="fetch"||id==="pull"||id==="push"||id==="sync")void this.owner.panel.network_action(id);
   }
   more_menu(event:MouseEvent):void{this.toolbar.more_menu(event);}
   reset(): void { this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }

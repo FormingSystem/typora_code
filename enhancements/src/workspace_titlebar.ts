@@ -4,6 +4,8 @@ import {create_workspace_titlebar_menu} from "./workspace_titlebar_menu";
 import {create_workspace_titlebar_definitions, type titlebar_runtime} from "./workspace_titlebar_entries";
 import type {workspace_file_host} from "./workspace_files";
 import {acquire_workspace_interaction} from "./workspace_interaction";
+import {workspace_menu,workspace_dialog,type workspace_menu_entry} from "./workspace_widgets";
+import {TITLEBAR_SETTINGS_KEY,read_titlebar_settings,toggle_titlebar_setting,type titlebar_settings,type titlebar_settings_store} from "./workspace_titlebar_settings";
 import css from "./workspace_titlebar.css";
 
 type titlebar_binding={dispose():void};
@@ -67,17 +69,53 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   window.addEventListener("linux-note-reading-history-state",event=>history_state((event as CustomEvent).detail||{}),{signal:events.signal});
   const search=document.createElement("button");search.type="button";search.dataset.workspaceInteraction="action";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
+  const plain_title=document.createElement("span");plain_title.className="workspace-titlebar-window-title";plain_title.hidden=true;center.append(plain_title);
   search.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
   search.addEventListener("click",open_files,{signal:events.signal});
-  const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";};
+  const title=document.querySelector("title");
+  const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";plain_title.textContent=title?.textContent?.trim()||search_label.textContent;};
   refresh_label();
   window.addEventListener("linux-note-workspace-context-changed",refresh_label,{signal:events.signal});
-  const title=document.querySelector("title"),observer=new MutationObserver(refresh_label);if(title)observer.observe(title,{childList:true,characterData:true,subtree:true});cleanup.push(()=>observer.disconnect());
+  const observer=new MutationObserver(refresh_label);if(title)observer.observe(title,{childList:true,characterData:true,subtree:true});cleanup.push(()=>observer.disconnect());
   const release=files.core.app.workspace.on("active-leaf:change",refresh_label);if(typeof release==="function")cleanup.push(release);
   // 原生文件加载仍直接访问 #title-text 等节点，必须保持连接，仅隐藏原来的呈现。
   const native_state=document.createElement("div");native_state.hidden=true;native_state.style.setProperty("display","none","important");
   right.append(traffic);native_state.append(...original_nodes.filter(node=>node!==traffic));
   bar.replaceChildren(left,center,right,native_state);bar.dataset.workspaceTitlebar="ready";root.dataset.linuxNoteTitlebar="ready";
+  const settings=files.core.app.settings as titlebar_settings_store|undefined;
+  let close_context:(()=>void)|undefined,setting_error:ReturnType<typeof workspace_dialog>|undefined;
+  const apply_settings=()=>{
+    if(disposed)return;close_context?.();
+    const value=read_titlebar_settings(settings);menu.set_compact(!value.menu_bar);
+    search.hidden=!value.command_center;plain_title.hidden=value.command_center;
+    back.hidden=forward.hidden=!value.command_center||!value.navigation_controls;
+  };
+  const release_settings=settings?.addChangeListener?.(TITLEBAR_SETTINGS_KEY,apply_settings);
+  if(release_settings)cleanup.push(release_settings);
+  const open_context=(event:MouseEvent)=>{
+    event.preventDefault();event.stopImmediatePropagation();menu.close(true);
+    const value=read_titlebar_settings(settings);
+    const toggle=(key:keyof titlebar_settings,label:string):workspace_menu_entry=>({id:key,title:label,checked:value[key],disabled:!settings,action:()=>{
+      if(disposed)return;
+      try{toggle_titlebar_setting(settings,key);apply_settings();}
+      catch(error){setting_error?.close(false);setting_error=workspace_dialog("顶栏设置保存失败");setting_error.content.textContent=String(error instanceof Error?error.message:error);}
+    }});
+    const entries=[toggle("menu_bar","菜单栏"),toggle("command_center","命令中心")];
+    if(value.command_center)entries.push(toggle("navigation_controls","导航控件"));
+    close_context=workspace_menu(event,entries,"workspace-menu-compact workspace-titlebar-context",()=>{close_context=undefined;});
+  };
+  const owns_target=(target:EventTarget|null)=>target instanceof Node&&bar.contains(target)&&!traffic.contains(target)&&!native_state.contains(target);
+  // 先于宿主 root-menu 处理右键；窗控、正文和文件标签继续由各自所有者处理。
+  window.addEventListener("mousedown",event=>{if(event.button===2&&owns_target(event.target)){event.preventDefault();event.stopImmediatePropagation();}},{capture:true,signal:events.signal});
+  window.addEventListener("contextmenu",event=>{if(owns_target(event.target))open_context(event);},{capture:true,signal:events.signal});
+  window.addEventListener("keydown",event=>{
+    if(owns_target(event.target)&&(event.key==="ContextMenu"||(event.shiftKey&&event.key==="F10"))&&!event.isComposing){
+      event.preventDefault();event.stopImmediatePropagation();const rect=(event.target as HTMLElement).getBoundingClientRect();
+      open_context(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}));
+    }
+  },{capture:true,signal:events.signal});
+  cleanup.push(()=>{close_context?.();setting_error?.close(false);});
+  apply_settings();
   menu.refresh();
   cleanup.push(()=>{bar.replaceChildren(...original_nodes);if(traffic_parent&&traffic_parent!==bar)traffic_parent.insertBefore(traffic,traffic_next);if(previous_state===null)bar.removeAttribute("data-workspace-titlebar");else bar.setAttribute("data-workspace-titlebar",previous_state);});
   return binding;

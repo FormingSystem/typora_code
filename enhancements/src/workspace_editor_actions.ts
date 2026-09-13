@@ -6,6 +6,7 @@ import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {format_file_path} from "./file_paths";
 import {is_markdown_file} from "./file_language";
 import {git_icon} from "./git_icons";
+import {read_workspace_editor_settings,set_workspace_editor_preview,workspace_editor_group_locked,set_workspace_editor_group_locked,open_workspace_editor_settings,close_workspace_editor_settings} from "./workspace_editor_settings";
 
 type direction="left"|"right"|"up"|"down";
 type editor_group=graph_leaf["parent"]&{children:graph_leaf[];containerEl:HTMLElement;parent?:{removeChild(group:editor_group):void};root?:{emit(event:string):void}};
@@ -15,6 +16,12 @@ type layout_core=graph_core&{
   move_workspace_leaf(leaf:graph_leaf,group:editor_group,index:number):void;
 };
 type close_mode="others"|"right"|"saved"|"all";
+const TITLE_ENTRIES_EVENT = "typora-code:editor-title-entries";
+/** 只向当前窗口已绑定的文档动作所有者请求同步贡献，不保留过期叶子的菜单缓存。 */
+export function request_workspace_editor_title_entries(leaf:graph_leaf):workspace_menu_entry[]{
+  const detail:{leaf:graph_leaf;entries:workspace_menu_entry[]|undefined}={leaf,entries:undefined};
+  document.dispatchEvent(new CustomEvent(TITLE_ENTRIES_EVENT,{detail}));return detail.entries||[];
+}
 
 /** 菜单、快捷键和标签关闭按钮共用文档服务，操作始终绑定实际叶子。 */
 export function bind_workspace_editor_actions(files:workspace_file_host,windows:detached_window_binding){
@@ -22,6 +29,7 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
   const runtime=window as unknown as {reqnode(name:string):any;File?:any};
   const cleanups:(()=>void)[]=[],batches=new WeakSet<object>();
   let disposed=false,close_menu:(()=>void)|undefined;
+  const owned_locks=new Set<graph_leaf["parent"]>();
   const present=(leaf:graph_leaf)=>{let found=false;workspace.eachLeaves(item=>{if(item===leaf)found=true;});return found;};
   const is_document=(leaf:graph_leaf)=>!leaf.state.path.startsWith("typ://core.empty/");
   const group_leaves=(leaf:graph_leaf)=>(leaf.parent as editor_group).children.filter(is_document);
@@ -137,6 +145,22 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
       entry("copy_window","复制到新窗口",()=>windows.open(leaf,true),{shortcut:"Ctrl+K O",disabled:!file||!ordinary||state.busy})
     ];
   };
+  const title_entries=(leaf:graph_leaf):workspace_menu_entry[]=>{
+    if(!present(leaf))return [];
+    const group=leaf.parent;
+    const entry=(id:string,title:string,action:()=>unknown,options:Partial<workspace_menu_entry>={}):workspace_menu_entry=>({id,title,action:()=>run(()=>present(leaf)&&leaf.parent===group&&action()),...options});
+    const opened=group_leaves(leaf);
+    return [
+      entry("show_opened_editors","显示已打开的编辑器",()=>{}, {children:opened.map((item,index)=>entry("opened_editor_"+index,files.editor_state(item).file_path?.split(/[\\/]/u).at(-1)||item.state.path.split("/").at(-1)||"未命名",()=>{if(present(item)&&item.parent===group){workspace.activeLeaf=group.toggleTab(item.state.path);(item.view as any).editor?.focused_editor?.().focus();}}, {checked:(group as editor_group&{activeLeaf?:graph_leaf}).activeLeaf===item}))}),
+      entry("close_all","关闭全部",()=>close_batch(leaf,"all"),{separator:true,disabled:!candidates(leaf,"all").length||batches.has(group)}),
+      entry("close_saved","关闭已保存",()=>close_batch(leaf,"saved"),{disabled:!candidates(leaf,"saved").length||batches.has(group)}),
+      entry("enable_preview_editors","启用预览编辑器",()=>set_workspace_editor_preview(!read_workspace_editor_settings().enable_preview),{separator:true,checked:read_workspace_editor_settings().enable_preview}),
+      entry("lock_group","锁定编辑组",()=>{const locked=!workspace_editor_group_locked(group);set_workspace_editor_group_locked(group,locked);if(locked)owned_locks.add(group);else owned_locks.delete(group);},{separator:true,checked:workspace_editor_group_locked(group)}),
+      entry("configure_editors","配置编辑器…",()=>open_workspace_editor_settings(),{separator:true}),
+    ];
+  };
+  const contribute_title=(event:Event)=>{const detail=(event as CustomEvent<{leaf:graph_leaf;entries?:workspace_menu_entry[]}>).detail;if(detail&&!detail.entries&&present(detail.leaf))detail.entries=title_entries(detail.leaf);};
+  document.addEventListener(TITLE_ENTRIES_EVENT,contribute_title);
   const context=(event:Event)=>{
     const detail=(event as CustomEvent<{leaf:graph_leaf;event:MouseEvent}>).detail;
     if(!detail||!present(detail.leaf)||!is_document(detail.leaf))return;
@@ -161,8 +185,9 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
   command("reveal_system","在系统文件管理器中显示",leaf=>reveal(leaf,true));
   command("split_right","向右拆分",leaf=>split(leaf,"right"));command("split_down","向下拆分",leaf=>split(leaf,"down"));
   cleanups.push(workspace.on("layout-changed",()=>queueMicrotask(refresh)),workspace.on("active-leaf:change",()=>queueMicrotask(refresh)));refresh();
-  return {entries,close_batch,pin,split,move,refresh,dispose(){
-    if(disposed)return;disposed=true;close_menu?.();for(const cleanup of cleanups.reverse())cleanup();
+  return {entries,title_entries,close_batch,pin,split,move,refresh,dispose(){
+    if(disposed)return;disposed=true;close_menu?.();close_workspace_editor_settings();for(const cleanup of cleanups.reverse())cleanup();
+    document.removeEventListener(TITLE_ENTRIES_EVENT,contribute_title);for(const group of owned_locks)set_workspace_editor_group_locked(group,false);owned_locks.clear();
     document.removeEventListener("typora-code:tab-context-menu",context);document.removeEventListener("click",click,true);document.removeEventListener("mousedown",middle,true);
     document.querySelectorAll(".workspace-tab-pin").forEach(node=>node.remove());
     document.querySelectorAll(".is-workspace-pinned").forEach(node=>node.classList.remove("is-workspace-pinned"));

@@ -37,7 +37,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
     if (restore_focus) previous.restore();
     on_close?.(restore_focus);
   };
-  const escape_layer=register_workspace_dismissal(()=>[root],reason=>close(reason==="escape"),{inside:()=>[panel]});
+  const escape_layer=register_workspace_dismissal(()=>[root],reason=>close(reason==="escape"||reason==="outside"),{inside:()=>[panel],consume_outside:true});
   // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
     if (!is_top_dialog()) return;
@@ -59,7 +59,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
 }
 export type workspace_menu_entry = { title: string; action: () => void; shortcut?:string; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
-export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[], class_name="", on_close?:()=>void): () => void {
+export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[], class_name="", on_close?:()=>void, options:{anchor?:HTMLElement;align?:"left"|"right"}={}): () => void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
   const interaction=acquire_workspace_interaction();
   const menu_style=acquire_workspace_style("typora-code-style:widgets",widget_css);
@@ -97,6 +97,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
       } input.stopPropagation();
     });
     document.body.append(menu); const bounds = menu.getBoundingClientRect();
+    if(!parent&&options.anchor?.isConnected){const anchor=options.anchor.getBoundingClientRect();x=options.align==="right"?anchor.right-bounds.width:anchor.left;y=anchor.bottom;}
     if (parent && x + bounds.width > innerWidth - 4) x = parent.getBoundingClientRect().left - bounds.width + 2;
     menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
     return menu;

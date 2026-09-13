@@ -305,8 +305,9 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     if (node !== root && options.trash) entries.push({title: "删除",shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
     if (node.directory) entries.push({title: "刷新文件夹",separator:true, action: () => run(() => load_children(node, true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
+    container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu",{detail:{path:node.path,directory:node.directory,entries}}));
     // 根目录已切换或目标节点消失时，关闭旧菜单不能再操作旧选择。
-    for(const entry of entries){const action=entry.action;entry.action=()=>{if(!disposed&&generation===current_generation&&nodes.get(node.path)===node)action();};}
+    const guard=(items:workspace_menu_entry[])=>{for(const entry of items){const action=entry.action;entry.action=()=>{if(!disposed&&generation===current_generation&&nodes.get(node.path)===node)action();};if(entry.children)guard(entry.children);}};guard(entries);
     workspace_menu(event, entries, "workspace-explorer-menu workspace-menu-compact");
   }
   function begin_rename(node: explorer_node) {

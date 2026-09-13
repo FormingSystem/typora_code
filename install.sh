@@ -27,6 +27,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
+printf '%s\n' 'Typora Code | 正在检查安装环境与 Typora 位置…' >&2
 typora_environment_init "$typora_tools_root"
 typora_root="$(typora_resolve_root "$requested_root" "$non_interactive")"
 # Windows 的安装、下载、校验与回滚统一交给同一实现。

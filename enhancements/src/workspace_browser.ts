@@ -1,6 +1,7 @@
 import {bind_workspace_zoom_status} from "./workspace_zoom_status";
 import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
 import {bind_workspace_editor_actions} from "./workspace_editor_actions";
+import {bind_workspace_file_header} from "./workspace_file_header";
 import {read_workspace_sidebar_state} from "./workspace_view_state";
 import {bind_workspace_native_toolbar} from "./workspace_native_toolbar";
 import {bind_workspace_preferences} from "./workspace_preferences";
@@ -19,6 +20,8 @@ import { install_workspace_footer } from "./workspace_footer";
 import { install_workspace_titlebar } from "./workspace_titlebar";
 import { install_workspace_sidebar_sash } from "./workspace_sidebar_sash";
 import {bind_workspace_file_commands} from "./workspace_file_commands";
+import {bind_workspace_save_service} from "./workspace_save_service";
+import {bind_workspace_explorer_sections} from "./workspace_explorer_sections";
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -94,7 +97,10 @@ export function bind_workspace_browser() {
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");
   if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
   const detached=lifetime.own(bind_workspace_detached_window(files));
-  lifetime.own(bind_workspace_editor_actions(files,detached));
+  const editor_actions=lifetime.own(bind_workspace_editor_actions(files,detached));
+  lifetime.own(bind_workspace_file_header(files,editor_actions));
+  const saves=lifetime.own(bind_workspace_save_service(files));
+  lifetime.own(bind_workspace_explorer_sections(files,explorer,saves,editor_actions.entries));
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
   return{files,explorer,search,dispose(){files.assert_can_dispose();lifetime.dispose();}};

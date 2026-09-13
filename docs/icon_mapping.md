@@ -20,6 +20,9 @@
 | Graph Find | `case-sensitive / regex / arrow-up / arrow-down / diff-multiple / close` | 保留已有查找能力，不追加新模式 |
 | SCM提交及更多选项 | `check / chevron-down` | 图标继承提交按钮白色前景 |
 | SCM更改标题 | `check / refresh / git-branch / more` | 提交、刷新、打开完整Graph、更多；16px图标和22px共享槽，继承当前主题前景；[来源与产品适配](git_scm_actions.md#2026-09-13-更改标题操作补齐) |
+| SCM放弃更改确认 | `warning` | 固定上游 `src/icons/warning.svg` 原始16×16画布；警告色由确认对话框语义控制；[确认设计](git_scm_actions.md#2026-09-13-放弃更改确认) |
+| SCM远端引用 | `cloud` | VS Code 固定版本 Git `Icons.remoteBranch`；原始SVG取自既定Codicons版本的 `src/icons/cloud.svg` |
+| Diff空白字符显示 | `whitespace` | 固定Codicons版本的 `src/icons/whitespace.svg` 原始16×16画布；状态由diff空白显示配置控制 |
 | SCM历史引用 | 对应正式引用图标 | 继承彩色标签前景，不被通用灰色覆盖 |
 | 共享菜单 | `check / chevron-right` | 勾选和子菜单语义 |
 | Mermaid工具 | `remove / add / close / screen-full` | 保留阅读增强入口 |

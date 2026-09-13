@@ -54,6 +54,24 @@ try {
   await assert.rejects(api.execute_git_action(record_run(calls), changed_upstream, () => true), /上游|重新预览/); assert.equal(writes(calls).length, 0);
   checks.push('unsaved documents, changed repository contents, and changed upstream invalidate the preview before networking');
 
+  const late_dirty = pair('late_dirty'); commit(late_dirty.other, 'remote.md', 'remote content awaiting pull\n'); git(late_dirty.other, ['push']);
+  const late_plan = await plan(late_dirty.local), late_calls = [], late_head = git(late_dirty.local, ['rev-parse', 'HEAD']);
+  const late_index = fs.readFileSync(path.join(late_dirty.local, '.git/index')), late_remote = git(late_dirty.remote, ['rev-parse', 'published']);
+  let editable = true, entered, release;
+  const entered_promise = new Promise(resolve => {entered = resolve;}), release_promise = new Promise(resolve => {release = resolve;});
+  const waiting_run = async (root, args, execution) => {
+    late_calls.push(args); const result = await writer.run(root, args, execution);
+    if (args[0] === 'remote' && args[1] === 'get-url' && args.includes('--push')) {entered(); await release_promise;}
+    return result;
+  };
+  const late_pending = api.execute_git_action(waiting_run, late_plan, () => editable);
+  await entered_promise; editable = false; release();
+  await assert.rejects(late_pending, /未保存/); assert.equal(writes(late_calls).length, 0);
+  assert.equal(git(late_dirty.local, ['rev-parse', 'HEAD']), late_head); assert(fs.readFileSync(path.join(late_dirty.local, '.git/index')).equals(late_index));
+  assert.equal(fs.readFileSync(path.join(late_dirty.local, 'shared.md'), 'utf8'), 'base\n'); assert(!fs.existsSync(path.join(late_dirty.local, 'remote.md')));
+  assert.equal(git(late_dirty.remote, ['rev-parse', 'published']), late_remote);
+  checks.push('a draft created while the final upstream lookup is pending prevents both pull and push and preserves the index, worktree, HEAD and remote');
+
   const staged = pair('staged'); commit(staged.local, 'local.md', 'publish this commit\n');
   write(staged.local, 'draft.md', 'staged but uncommitted\n'); git(staged.local, ['add', '--', 'draft.md']); write(staged.local, 'working.md', 'uncommitted working draft\n');
   const staged_before = git(staged.local, ['diff', '--cached', '--binary']); const working_before = git(staged.local, ['diff', '--binary']);

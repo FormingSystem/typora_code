@@ -50,6 +50,7 @@ app.whenReady().then(async()=>{
   assert(await evaluate('core.app.workspace.activeLeaf===original_leaf&&document.querySelector(".terminal-tabs").hidden'));
   assert(await evaluate('Math.abs(document.querySelector(".typ-workspace-root").getBoundingClientRect().bottom-document.querySelector(".typora-terminal-panel").getBoundingClientRect().top)<2'));
   await evaluate('pty_starts[0].ready();void 0');await wait('first.session.state==="running"');
+
   await evaluate('pty_starts[0].callbacks.data("KEEP_OUTPUT\\r\\n");void 0');await delay(100);
   assert(await evaluate('panel_api.read_terminal_state(core.app).active_id===first.session.id&&panel_api.read_terminal_state(core.app).panel_visible'),'menu state reads coordinator session and panel');
   await evaluate('binding.toggle();void 0');assert(await evaluate('!panel_api.read_terminal_state(core.app).panel_visible'),'menu state follows external hide');assert(await evaluate('document.querySelector(".typora-terminal-panel").hidden&&pty_starts[0].killed===0'));
@@ -108,6 +109,62 @@ app.whenReady().then(async()=>{
   win.setContentSize(1200,800);await delay(100);assert.equal(Math.round(await list_width()),500);
   await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
   fs.writeFileSync(path.join(root,'terminal_split_layout.png'),(await win.webContents.capturePage()).toPNG());
+
+  // R006.7：真实 Chromium 组合输入交给 xterm，PTY 边界只记录写入，不运行用户命令。
+  // CDP 输入放在 sendInputEvent 指针检查之后，避免调试会话影响 offscreen DPI 坐标。
+  win.webContents.debugger.attach('1.3');
+  const ime = (text) => win.webContents.debugger.sendCommand('Input.imeSetComposition',{text,selectionStart:text.length,selectionEnd:text.length});
+  const commit_text = (text) => win.webContents.debugger.sendCommand('Input.insertText',{text});
+  const press = async(keyCode,modifiers=[])=>{win.webContents.sendInputEvent({type:'keyDown',keyCode,modifiers});win.webContents.sendInputEvent({type:'keyUp',keyCode,modifiers});await delay(30);};
+  await evaluate(`window.terminal_input_events=[];window.input_events_lifetime=new AbortController();
+    for(const type of ['keydown','keypress','keyup','beforeinput','input','compositionstart','compositionupdate','compositionend']){
+      document.body.addEventListener(type,event=>{if(first.surface.container.contains(event.target))terminal_input_events.push(event.type);},{signal:input_events_lifetime.signal});
+    }
+    first.surface.focus();void 0`);
+  await ime('zhongwen');await delay(20);await commit_text('中文');await delay(30);
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),'中文','Chinese composition commits once');
+  await ime('git');await delay(20);
+  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Shift',modifiers:['shift']});
+  await commit_text('git');
+  win.webContents.sendInputEvent({type:'keyUp',keyCode:'Shift'});await delay(30);
+  await press('a');await press('b');await press('1');await press('2');
+  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Shift',modifiers:['shift']});
+  win.webContents.sendInputEvent({type:'keyDown',keyCode:'X',modifiers:['shift']});
+  win.webContents.sendInputEvent({type:'char',keyCode:'X',modifiers:['shift']});
+  win.webContents.sendInputEvent({type:'keyUp',keyCode:'X',modifiers:['shift']});
+  win.webContents.sendInputEvent({type:'keyUp',keyCode:'Shift'});await delay(30);
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),'中文gitab12X','Shift commit and subsequent English input have no missing or duplicate characters');
+  assert(await evaluate('document.activeElement===first.surface.term.textarea'),'typing retains terminal focus');
+  assert.deepEqual(await evaluate('terminal_input_events'),[],'terminal input never reaches host editor bubble handlers');
+  await ime('quxiao');await delay(20);await ime('');await delay(30);await press('n');
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),'中文gitab12Xn','cancelled candidates are not sent to PTY');
+  for(let index=0;index<3;index++){
+    await ime('pin');await delay(10);await press('Shift');await commit_text('pin');await delay(20);await press('m');
+  }
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),'中文gitab12Xnpinmpinmpinm','repeated IME mode transitions remain writable');
+  await commit_text('DIRECT');await delay(30);
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),'中文gitab12XnpinmpinmpinmDIRECT','direct insertText without a composition also commits once');
+  const before_copy=await evaluate('pty_starts[0].writes.join("")');
+  await evaluate('first.surface.term.selectAll();void 0');await press('c',['control','shift']);
+  assert((await evaluate('copied')).includes('KEEP_OUTPUT'),'Ctrl+Shift+C still copies terminal selection');
+  assert.equal(await evaluate('pty_starts[0].writes.join("")'),before_copy,'copy does not send a shell command');
+  await evaluate('first.surface.term.clearSelection();void 0');await press('c',['control']);
+  assert.equal(await evaluate('pty_starts[0].writes.at(-1)'),'\u0003','Ctrl+C without a selection still interrupts the shell');
+  // 输入法可能使用 isComposing 或遗留 229；两条路径都不能打开查找并移走候选焦点。
+  for(const flags of [{isComposing:true,keyCode:70},{keyCode:229}]){
+    assert(await evaluate(`(()=>{const event=new KeyboardEvent('keydown',{key:'f',code:'KeyF',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true,...${JSON.stringify(flags)}});first.surface.term.textarea.dispatchEvent(event);return !event.defaultPrevented&&first.surface.container.querySelector('.terminal-find').hidden&&document.activeElement===first.surface.term.textarea})()`),'IME owns shortcut keys');
+  }
+  await press('f',['control','shift']);
+  assert(await evaluate('!first.surface.container.querySelector(".terminal-find").hidden'),'normal terminal find shortcut works');
+  for(const flags of [{isComposing:true,keyCode:13},{keyCode:229}]){
+    for(const key of ['Enter','Escape'])assert(await evaluate(`(()=>{const input=first.surface.container.querySelector('.terminal-find input');const event=new KeyboardEvent('keydown',{key:${JSON.stringify(key)},bubbles:true,cancelable:true,...${JSON.stringify(flags)}});input.dispatchEvent(event);return !event.defaultPrevented&&!first.surface.container.querySelector('.terminal-find').hidden&&document.activeElement===input})()`),'IME selection keys do not close or navigate terminal find');
+  }
+  await press('Escape');assert(await evaluate('document.activeElement===first.surface.term.textarea'),'normal Escape returns focus to terminal');
+  await press('z');assert.equal(await evaluate('pty_starts[0].writes.at(-1)'),'z','typing resumes after find closes');
+  assert.deepEqual(await evaluate('terminal_input_events'),[],'terminal find events share the same host boundary');
+  await evaluate('input_events_lifetime.abort();pty_starts[0].writes.length=0;void 0');
+  win.webContents.debugger.detach();
+
 
   await evaluate('commands.get("linux_note:terminal_move_editor").callback();void 0');await wait('leaves.length===1');assert(await evaluate('pty_starts.every(item=>item.killed===0)'));assert(await evaluate('(()=>{const h=document.querySelector(".terminal-editor-host"),s=h.querySelector(".linux-note-terminal");return Math.abs(h.getBoundingClientRect().width-s.getBoundingClientRect().width)<1})()'),'editor terminal releases split width');
   await evaluate('commands.get("linux_note:terminal_move_panel").callback();void 0');await wait('leaves.length===0');assert(await evaluate('pty_starts.length===2&&pty_starts.every(item=>item.killed===0)'));
@@ -190,5 +247,6 @@ app.whenReady().then(async()=>{
   assert(await evaluate('(async()=>await pending_after_dispose===undefined)()'));await delay(50);
   assert(await evaluate('profile_scans[0].disposed&&pty_starts.length===8&&commands.size===0&&factories.size===0&&!document.querySelector(".typora-terminal-panel,.git-graph-menu,.git-graph-dialog-shade")&&document.querySelector(".typ-workspace-root").style.bottom===""&&pty_starts.every(item=>item.killed===1)'));
   assert(await evaluate('panel_api.read_terminal_state(core.app)===undefined'),'dispose releases menu state');
-  console.log(JSON.stringify({status:'PASS',checks:['list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
+  assert(await evaluate(`(()=>{const input=document.createElement('input'),surface=first.surface.container;surface.append(input);document.body.append(surface);let reached=false;const listener=()=>reached=true;document.body.addEventListener('keyup',listener,{once:true});input.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',bubbles:true}));document.body.removeEventListener('keyup',listener);surface.remove();return reached})()`),'disposed terminal releases input event listeners');
+  console.log(JSON.stringify({status:'PASS',checks:['Chinese composition, Shift English commit, cancellation and repeated input send exactly once','terminal IME and key releases stay local without blocking browser defaults','IME shortcuts preserve focus; normal copy, interrupt, find and Escape still work','disposed terminal releases input event listeners','list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;if(win){fs.writeFileSync(path.join(root,'failure.png'),(await win.webContents.capturePage()).toPNG());await evaluate('window.binding?.dispose()');}}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

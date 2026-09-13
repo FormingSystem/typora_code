@@ -15,4 +15,3 @@ Typora 安装目录、可执行文件或 resources/window.html；省略时自动
 param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive)
 $ErrorActionPreference = 'Stop'
 & (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme
-Write-Host "Select 'cpp github consolas' from the Typora Theme menu. Existing preferences are preserved."

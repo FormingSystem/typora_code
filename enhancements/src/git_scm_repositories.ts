@@ -20,7 +20,7 @@ export class git_scm_repositories {
       const branch=button("",()=>{},"git-scm-repository-branch"),sync=git_icon_button("sync",text("action.title.sync"),()=>{},"git-scm-repository-sync"),more=git_icon_button("more",text("scm.changes_and_operations"),()=>{},"git-scm-repository-more");
       const valid=()=>epoch===this.epoch&&!panel.disposed&&root===panel.root&&panel.state?.root===root&&!panel.pending&&!panel.writing&&panel.container.dataset.state!=="error";
       branch.onclick=event=>{if(valid())panel.configured_menu(event,"checkout",checkout_entries(panel));};branch.oncontextmenu=event=>workspace_menu(event,[{title:text("scm.configure_keybinding"),disabled:true,action(){}}]);
-      sync.onclick=()=>{if(valid())panel.state?.tracking?.upstream?panel.action_dialog("sync","repository","",panel.state.head):this.owner.history.network_action("push");};
+      sync.onclick=()=>{if(valid())void panel.network_action("sync");};
       more.onclick=event=>{if(valid())this.owner.more_menu(event);};row.oncontextmenu=event=>{if(valid())this.owner.more_menu(event);else{event.preventDefault();event.stopPropagation();}};
       let loaded=false;const update=()=>{select.disabled=panel.writing;branch.disabled=more.disabled=!loaded||!valid();sync.disabled=!loaded||!valid()||!panel.state?.branch||!panel.state?.head||!panel.state.remotes.length||!!panel.state.operation;};this.update_rows.push(update);
       branch.disabled=sync.disabled=more.disabled=true;row.append(select,branch,sync,more);this.container.append(row);return {root,row,branch,sync,more,valid,ready:()=>{loaded=true;update();}};

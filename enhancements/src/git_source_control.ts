@@ -1,3 +1,4 @@
+import {plan_git_diff_ranges} from "./git_diff_ranges";
 import {git_scm_repositories} from "./git_scm_repositories";
 import {checkout_entries,show_worktrees} from "./git_scm_menus";
 import {workspace_menu} from "./workspace_widgets";
@@ -309,6 +310,23 @@ export class git_source_control {
       ]);
       if (epoch !== this.load_epoch || root !== this.panel.root) return;
       this.panel.host.open_document({title: `${file.path.split("/").at(-1)!} (${short_revision(from)} ↔ ${short_revision(to)})`, file: file.path, left, right, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
+        ...(from===INDEX&&to===WORKTREE&&file.status!=="??"&&!/^[ADRUT]/u.test(file.status)?{
+          range_available:()=>this.repository_action_available(root)&&!this.panel.writing&&!this.panel.pending&&!this.panel.disposed,
+          range_action:async(action,snapshot)=>{
+            if(!this.repository_action_available(root))return;
+            try{
+              await this.panel.prepare_and_execute_action(async writer=>{
+                const host=this.panel.host,target=host.file_path(root,file.path),stat=await host.fs.promises.lstat(target);
+                if(!stat.isFile()||stat.isSymbolicLink()||stat.size>16*1024*1024)throw new Error(text("diff.range_file_unsupported"));
+                const [real_root,real_target]=await Promise.all([host.fs.promises.realpath(root),host.fs.promises.realpath(target)]),relative=host.path_api.relative(real_root,real_target);
+                if(host.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+host.path_api.sep))throw new Error(text("host.outside_repository"));
+                const bytes=await host.fs.promises.readFile(target);
+                return plan_git_diff_ranges(writer.run,{action,root,file:file.path,original_revision:from,modified_revision:to,...snapshot,worktree_bytes:new Uint8Array(bytes),encoding:"utf-8"});
+              });
+              if (this.repository_action_available(root)) await this.open_file(file,from,to,files);
+            }catch(error){this.panel.report(error);throw error;}
+          }
+        }:{}),
         root, key: JSON.stringify([from, to, file.path]), menu: () => this.file_entries(file, from, to, files, root),
         refresh: () => { if (this.repository_action_available(root)) void this.open_file(file, from, to, files); },
         adjacent: direction => { if (!this.repository_action_available(root)) return; const index = files.findIndex(item => item.path === file.path); void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files); },
@@ -347,7 +365,7 @@ export class git_source_control {
     const panel = this.panel;
     const actions = (ids: string[]) => ids.map(id => ({id, title: graph_actions.find(action => action.id === id)!.title, action: () => ["stage_all", "unstage_all"].includes(id) ? void panel.quick_action(id) : id === "commit" ? this.commit() : panel.action_dialog(id, id.startsWith("stash") ? "changes" : "repository", "", panel.state?.head)}));
     const submenu = (title: string, entries: workspace_menu_entry[]): workspace_menu_entry => ({title, children: entries, disabled: !entries.length, action() {}});
-    const target_actions = (kind: string, target: string, hash: string) => graph_actions.filter(action => action.targets.includes(kind)).map(action => ({id: action.id, title: action.title, action: () => panel.action_dialog(action.id, kind, target, hash)}));
+    const target_actions = (kind: string, target: string, hash: string) => graph_actions.filter(action => action.targets.includes(kind)).map(action => ({id: action.id, title: action.title, disabled: !panel.target_action_enabled(action.id, kind, target), action: () => panel.action_dialog(action.id, kind, target, hash)}));
     const refs = panel.state?.refs || [];
     const branches = refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => submenu(ref.name.slice(11), target_actions("branch", ref.name.slice(11), ref.hash)));
     const remotes = (panel.state?.remotes || []).map(remote => submenu(remote.name, [

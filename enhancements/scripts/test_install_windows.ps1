@@ -49,7 +49,8 @@ try {
     $profile=Join-Path $user_data 'profile.data'
     write_profile_fixture $profile @{framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
     $backup=Join-Path $test_root 'first backup'
-    & $installer -typora_root $fake_root -backup_root $backup -non_interactive
+    $install_output=@(& $installer -typora_root $fake_root -backup_root $backup -non_interactive)
+    assert_equal $install_output.Count 0 'Installation logs contaminated the success output stream'
     & $checker -typora_root $fake_root -non_interactive
     assert_equal (read_profile_fixture $profile).framelessWindow $true 'Native window preference was not installed'
     $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
@@ -203,5 +204,27 @@ try {
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid release')) $false 'Corrupt release mutated backup'
     Write-Host 'PASS: independent head, repeat install, hashes, migration, settings preservation, conflict, constrained restore and transaction rollback.'
     Write-Host 'PASS: four retired C/C++ assets backed up, removed, checked, restored and rolled back byte-for-byte; unrelated files preserved.'
+    $install_logs=@(Get-ChildItem -LiteralPath (Join-Path $user_data 'logs/installation') -Filter '*.log')
+    if ($install_logs.Count -lt 5) { throw 'Missing separate installation logs' }
+    $success_logs=0; $rollback_logs=0; $preflight_logs=0
+    foreach ($log_file in $install_logs) {
+        $log_text=[IO.File]::ReadAllText($log_file.FullName,[Text.UTF8Encoding]::new($false,$true))
+        if ($log_text -match '\[SUCCESS\]') {
+            $success_logs++
+            $last_position=-1
+            foreach ($step_number in 1..6) {
+                $position=$log_text.IndexOf("[STEP $step_number/6]")
+                if ($position -le $last_position) { throw 'Installation stage sequence is incomplete' }
+                $last_position=$position
+            }
+            if ($log_text -match '\[ERROR\]' -or $log_text -notmatch 'Backup:' -or $log_text -notmatch 'Log:') { throw 'Invalid success summary' }
+        } else {
+            if ($log_text -notmatch '\[ERROR\]') { throw 'Failure log lost the error' }
+            if ($log_text -match '已回滚本次安装') { $rollback_logs++ }
+            if ($log_text -match '尚未写入目标文件') { $preflight_logs++ }
+        }
+    }
+    if ($success_logs -lt 3 -or $rollback_logs -lt 2 -or $preflight_logs -lt 1) { throw 'Missing success, rollback or preflight log coverage' }
+    Write-Host 'PASS: ordered stages, UTF-8 per-run logs, clean output streams and truthful rollback/preflight outcomes'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

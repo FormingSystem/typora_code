@@ -1,4 +1,5 @@
 import {acquire_workspace_style} from "./workspace_styles";
+import {bind_git_file_title_actions} from "./git_file_title_actions";
 import { git_graph_tab_icon } from "./git_graph_tab_icon";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import { GIT_GRAPH_COMMAND, GIT_GRAPH_TYPE } from "./git_graph_data";
@@ -32,6 +33,7 @@ export function bind_git_graph() {
     }
     const panel = new git_graph_panel(host, cwd); controllers.add(panel); void panel.refresh(false); return panel;
   };
+  lifetime.own(bind_git_file_title_actions(host,controller_for));
   const icon = workspace_element("span", "git-activity-icon"); icon.append(git_icon("source-control"));
   class source_control_sidebar extends core.SidebarPanel {
     containerEl = workspace_element("section", "linux-note-git-source-control"); panel?: git_graph_panel; visible = false;
@@ -115,7 +117,7 @@ export function bind_git_graph() {
   const commands: [string, git_graph_text_key, (panel: git_graph_panel) => void][] = [
     ["view", "view.command.view", () => {}], ["add_repository", "view.command.add_repository", panel => panel.manage_repositories()],
     ["remove_repository", "view.command.remove_repository", panel => panel.manage_repositories()],
-    ["fetch", "view.command.fetch", panel => void (async () => { while (panel.pending && !lifetime.disposed) await new Promise(resolve => setTimeout(resolve, 50)); if(lifetime.disposed)return; panel.action_dialog("fetch", "repository"); })()],
+    ["fetch", "view.command.fetch", panel => void (async () => { const repository_epoch=panel.repository_epoch; const available=()=>!lifetime.disposed&&!panel.disposed&&panel.repository_epoch===repository_epoch; while (panel.pending&&available()) await new Promise(resolve => setTimeout(resolve, 50)); if(!available())return; void panel.network_action("fetch"); })()],
     ["reviews", "view.command.reviews", panel => panel.reviews_dialog()], ["clear_avatars", "view.command.clear_avatars", () => host.clear_avatars()],
     ["end_all_reviews", "view.command.end_all_reviews", panel => { save_reviews(localStorage, []); if (panel.to) void panel.show_comparison(panel.from, panel.to); }],
     ["end_review", "view.command.end_review", panel => panel.reviews_dialog()], ["resume_review", "view.command.resume_review", panel => panel.reviews_dialog()],
@@ -152,12 +154,12 @@ export function bind_git_graph() {
     if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
     status_bar.refresh();
   });
-  const refresh_visible = () => { const panel = source_sidebar.panel; if (source_sidebar.visible && document.visibilityState !== "hidden" && panel && !panel.pending && !panel.writing && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu")) void panel.refresh(false); };
+  const refresh_visible = () => { const panel = source_sidebar.panel; if (source_sidebar.visible && document.visibilityState !== "hidden" && panel && !panel.pending && !panel.writing && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) void panel.refresh(false); };
   const refresh_timer=window.setInterval(refresh_visible,8000);lifetime.add(()=>window.clearInterval(refresh_timer));
   workspace_on("file:will-save", () => { const timer=window.setTimeout(() => { if(!lifetime.disposed){refresh_visible();status_bar.refresh();} },600);lifetime.add(()=>window.clearTimeout(timer)); });
   lifetime.listen(window, "focus", () => { const panel = source_sidebar.panel; if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false); });
   lifetime.listen(window, "keydown", event => {
-    if (event.isComposing || document.querySelector(".git-graph-dialog-shade, .git-graph-menu")) return;
+    if (event.isComposing || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") { event.preventDefault(); event.stopImmediatePropagation(); show_source_control(); source_sidebar.panel?.workbench.message.focus(); }
     else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "b" && (source_sidebar.containerEl.contains(event.target as Node) || (event.target as Element)?.closest?.(".git-graph-document"))) { event.preventDefault(); event.stopImmediatePropagation(); core.app.workspace.sidebar.toggle(); }
   }, true);

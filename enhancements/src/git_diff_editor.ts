@@ -1,3 +1,8 @@
+import {StandaloneServices} from "monaco-editor/editor/standalone/browser/standaloneServices.js";
+import {IInstantiationService} from "monaco-editor/platform/instantiation/common/instantiation.js";
+import {WorkbenchHoverDelegate} from "monaco-editor/platform/hover/browser/hover.js";
+import {setHoverDelegateFactory} from "monaco-editor/base/browser/ui/hover/hoverDelegateFactory.js";
+import {read_git_diff_preferences,update_git_diff_preferences,watch_git_diff_preferences,type git_diff_preferences} from "./git_diff_settings";
 import design_baseline from "./vscode_design_baseline.json";
 import {git_icon_button,git_icon} from "./git_icons";
 import "./monaco_locale";
@@ -48,20 +53,31 @@ export function initialize_editor(): void {
   initialized = true;
 }
 export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string};
+export type diff_range_snapshot = {original_text:string;modified_text:string;line_changes:monaco.editor.ILineChange[];selections:monaco.Selection[]};
 export class git_diff_editor {
   container = el("section", "git-graph-document"); toolbar = el("div", "git-diff-toolbar");
   labels = el("div", "git-diff-labels");
   body = el("div", "git-monaco-body"); status = el("span", "git-diff-count", text("diff.calculating"));
   editor: monaco.editor.IStandaloneDiffEditor | monaco.editor.IStandaloneCodeEditor;
   models: monaco.editor.ITextModel[] = []; observer: ResizeObserver; subscriptions: monaco.IDisposable[] = [];
-  side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = false;
+  side_by_side = true; wrapped = false; collapsed = false; ignore_whitespace = true;
   show_moves = false; inline_when_narrow = true;
   toolbar_observer?:MutationObserver;
   mode_observer?:MutationObserver;
   last_focused_editor?: monaco.editor.IStandaloneCodeEditor;
   readonly_status?: HTMLElement;
+  title_entries:()=>workspace_menu_entry[] = ()=>[];
+  report_error?:(error:unknown)=>void;
+  range_action?: (action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;
+  range_available:()=>boolean = ()=>false;
+  range_pending=false;
+  private disposed=false;
+  private range_chord_until=0;
+  private close_menu?:()=>void;
+  private release_settings?:()=>void;
   constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => [], shared_model?: monaco.editor.ITextModel) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.binary_file"));
+    const preferences=read_git_diff_preferences();this.side_by_side=preferences.render_side_by_side;this.inline_when_narrow=preferences.inline_when_narrow;this.ignore_whitespace=preferences.ignore_trim_whitespace;this.collapsed=preferences.hide_unchanged;this.show_moves=preferences.show_moves;
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
     this.refresh_labels();this.container.append(this.labels, this.body);
@@ -81,7 +97,7 @@ export class git_diff_editor {
     if (data.right != null) {
       const modified = model(data.right, "modified");
       // 历史比较两侧只读，不实例化需要可写模型的hunk操作菜单及其延迟context订阅。
-      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: true, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: false, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
+      const editor = monaco.editor.createDiffEditor(this.body, {...options, renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions:{enabled:this.collapsed}, experimental:{showMoves:this.show_moves}, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
       // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
       // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
       // 概览的宽度、点击定位和视口框由上游管理，不额外显示全文缩略图。
@@ -95,15 +111,28 @@ export class git_diff_editor {
       this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => editor.goToDiff("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => editor.goToDiff("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
     } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
+    // Monaco 0.56 的全局 hover factory 会被最新编辑器的子容器覆盖。
+    // 绑定到窗口级服务，关闭某个比较页后其余页的 F7/动作提示仍有有效的服务所有者。
+    const hover_owner=StandaloneServices.get(IInstantiationService);
+    setHoverDelegateFactory((placement,instant)=>hover_owner.createInstance(WorkbenchHoverDelegate,placement,{instantHover:instant},{}));
     this.toolbar.setAttribute("role","toolbar");this.toolbar.setAttribute("aria-label",text("diff.editor_actions"));
-    this.toolbar.append(git_icon_button("search", text("diff.find"), () => this.focused_editor().getAction("actions.find")?.run()), git_icon_button("more", text("history.more"), () => {
-      const rect = this.toolbar.getBoundingClientRect(); this.context_menu(new MouseEvent("contextmenu", {clientX: rect.right - 250, clientY: rect.bottom}));
-    }), this.status);
+    const find=git_icon_button("search",text("diff.find"),()=>this.focused_editor().getAction("actions.find")?.run());find.dataset.diffAction="find";
+    if(data.right!=null){const whitespace=git_icon_button("whitespace",text("diff.ignore_whitespace"),()=>this.set_preferences({ignore_trim_whitespace:!this.ignore_whitespace}));whitespace.dataset.diffAction="ignore_whitespace";whitespace.setAttribute("aria-pressed",String(this.ignore_whitespace));this.toolbar.append(whitespace);}
+    const more=git_icon_button("more",text("history.more"),()=>{const rect=more.getBoundingClientRect();this.title_menu(new MouseEvent("contextmenu",{clientX:rect.right,clientY:rect.bottom}));});more.dataset.diffAction="more";
+    this.toolbar.append(find,more,this.status);
+    this.release_settings=watch_git_diff_preferences(value=>this.apply_preferences(value));
     this.observer = new ResizeObserver(() => this.editor.layout()); this.observer.observe(this.body);
     const diff_root=this.body.querySelector(".monaco-diff-editor");
     if(diff_root){this.mode_observer=new MutationObserver(()=>this.refresh_labels());this.mode_observer.observe(diff_root,{attributes:true,attributeFilter:["class"]});this.refresh_labels();}
     this.container.oncontextmenu = event => this.context_menu(event);
     this.container.addEventListener("keydown",event=>{
+      if(this.disposed)return;
+      const now=Date.now(),modifier=event.ctrlKey||event.metaKey;
+      if(this.range_action&&modifier&&event.key.toLowerCase()==="k"&&!event.altKey&&!event.shiftKey){this.range_chord_until=now+2000;event.preventDefault();event.stopImmediatePropagation();return;}
+      if(this.range_chord_until&&!["Control","Meta","Alt","Shift"].includes(event.key)){
+        const pending=now<=this.range_chord_until;this.range_chord_until=0;
+        if(pending&&modifier&&event.altKey&&!event.shiftKey&&["s","r"].includes(event.key.toLowerCase())){event.preventDefault();event.stopImmediatePropagation();void this.run_ranges(event.key.toLowerCase()==="s"?"stage":"revert");return;}
+      }
       if(event.key==="F7"&&"accessibleDiffViewerNext" in this.editor){event.preventDefault();event.stopImmediatePropagation();this.accessible_diff(event.shiftKey);}
     },true);
     this.container.addEventListener("keydown", event => {
@@ -132,14 +161,56 @@ export class git_diff_editor {
     path.setAttribute("aria-label",path.title);this.labels.replaceChildren(path);
     if(this.data.right!=null){
       const mode=el("button","git-diff-mode",text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
-      mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),[
-        {id:"diff_mode_inline",title:text("diff.inline_view"),checked:inline,action:()=>this.set_side_by_side(false)},
-        {id:"diff_mode_split",title:text("diff.side_by_side"),checked:!inline,action:()=>{this.inline_when_narrow=false;this.set_side_by_side(true);}}
-      ]);};this.labels.append(mode);
+      mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),this.view_entries());};this.labels.append(mode);
     }
   }
   accessible_diff(previous=false):void {if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
-  set_side_by_side(value:boolean):void {if(!("getModifiedEditor" in this.editor))return;const state=this.editor.saveViewState();this.side_by_side=value;this.editor.updateOptions({renderSideBySide:value,useInlineViewWhenSpaceIsLimited:this.inline_when_narrow});this.editor.restoreViewState(state);this.refresh_labels();}
+  set_side_by_side(value:boolean):void {this.set_preferences({render_side_by_side:value});}
+  set_preferences(change:Partial<git_diff_preferences>):void {update_git_diff_preferences(change);}
+  apply_preferences(value:git_diff_preferences):void {
+    this.side_by_side=value.render_side_by_side;this.inline_when_narrow=value.inline_when_narrow;this.ignore_whitespace=value.ignore_trim_whitespace;this.collapsed=value.hide_unchanged;this.show_moves=value.show_moves;
+    if("getModifiedEditor" in this.editor){const state=this.editor.saveViewState();this.editor.updateOptions({renderSideBySide:this.side_by_side,useInlineViewWhenSpaceIsLimited:this.inline_when_narrow,ignoreTrimWhitespace:this.ignore_whitespace,hideUnchangedRegions:{enabled:this.collapsed},experimental:{showMoves:this.show_moves}});this.editor.restoreViewState(state);this.refresh_labels();}
+    this.toolbar.querySelector('[data-diff-action="ignore_whitespace"]')?.setAttribute("aria-pressed",String(this.ignore_whitespace));
+  }
+  view_entries():workspace_menu_entry[] {
+    const inline=this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side")===false;
+    return [
+      {id:"diff_mode_inline",title:text("diff.inline_view"),checked:!this.side_by_side,action:()=>this.set_preferences({render_side_by_side:false})},
+      {id:"diff_mode_split",title:text("diff.side_by_side"),checked:this.side_by_side&&!this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:false})},
+      {id:"diff_mode_auto",title:text(inline?"diff.automatic_inline":"diff.automatic_split"),checked:this.side_by_side&&this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:true})}
+    ];
+  }
+  range_snapshot():diff_range_snapshot|undefined {
+    if(this.disposed||!this.range_action||!this.range_available()||this.range_pending||!("getModifiedEditor" in this.editor))return;
+    if(this.focused_editor()!==this.editor.getModifiedEditor())return;
+    const model=this.editor.getModel(),changes=this.editor.getLineChanges(),selections=this.editor.getModifiedEditor().getSelections();
+    if(!model||!changes?.length||!selections?.some(selection=>!selection.isEmpty()))return;
+    return {original_text:model.original.getValue(),modified_text:model.modified.getValue(),line_changes:changes,selections};
+  }
+  async run_ranges(action:"stage"|"revert",snapshot=this.range_snapshot()):Promise<void> {
+    if(this.disposed||!snapshot||!this.range_action||!this.range_available()||this.range_pending)return;
+    this.range_pending=true;
+    try{await this.range_action(action,snapshot);}
+    catch(error){this.status.textContent=String(error instanceof Error?error.message:error);if(!this.disposed)this.report_error?.(error);}
+    finally{this.range_pending=false;}
+  }
+  title_menu(event:MouseEvent):void {
+    if(this.disposed)return;
+    const entries:workspace_menu_entry[]=[];
+    if("getModifiedEditor" in this.editor)entries.push(
+      {id:"hide_unchanged",title:text("diff.hide_unchanged"),checked:this.collapsed,action:()=>this.set_preferences({hide_unchanged:!this.collapsed})},
+      {id:"diff_view",title:text("diff.view"),separator:true,children:this.view_entries(),action:()=>{}},
+      {id:"show_moves",title:text("diff.show_moves"),checked:this.show_moves,action:()=>this.set_preferences({show_moves:!this.show_moves})},
+      {id:"ignore_whitespace",title:text("diff.ignore_whitespace"),checked:this.ignore_whitespace,action:()=>this.set_preferences({ignore_trim_whitespace:!this.ignore_whitespace})},
+      {id:"accessible_diff",title:text("diff.accessible_diff"),shortcut:"F7",separator:true,action:()=>this.accessible_diff()});
+    const file_entries=this.extra_menu().filter(entry=>["stage","unstage","open_file","refresh_diff","previous_file","next_file"].includes(entry.id||""));
+    if(file_entries[0])file_entries[0]={...file_entries[0],separator:true};entries.push(...file_entries);
+    if(this.range_action){const snapshot=this.range_snapshot();entries.push(
+      {id:"stage_ranges",title:text("diff.stage_ranges"),shortcut:"Ctrl+K Ctrl+Alt+S",separator:true,disabled:!snapshot,action:()=>void this.run_ranges("stage",snapshot)},
+      {id:"revert_ranges",title:text("diff.revert_ranges"),shortcut:"Ctrl+K Ctrl+Alt+R",disabled:!snapshot,action:()=>void this.run_ranges("revert",snapshot)});}
+    entries.push(...this.title_entries());
+    this.close_menu=workspace_menu(event,entries,"workspace-menu-compact git-diff-title-menu");
+  }
   focused_editor(): monaco.editor.IStandaloneCodeEditor {
     if (!("getModifiedEditor" in this.editor)) return this.editor;
     // 模式切换和无障碍查看器退出后，以真实焦点归属修正Monaco尚未刷新的焦点缓存。
@@ -218,13 +289,13 @@ export class git_diff_editor {
       const editor = this.editor;
       entries.push({id: "previous_change", title: text("diff.previous_change"), action: () => editor.goToDiff("previous")}, {id: "next_change", title: text("diff.next_change"), action: () => editor.goToDiff("next")},
         {id: "side_by_side", title: text("diff.inline_view"), checked: !this.side_by_side, action: () => this.set_side_by_side(!this.side_by_side)},
-        {id: "hide_unchanged", title: text("diff.hide_unchanged"), checked: this.collapsed, action: () => { this.collapsed = !this.collapsed; editor.updateOptions({hideUnchangedRegions: {enabled: this.collapsed}}); }},
-        {id: "show_moves", title: text("diff.show_moves"), checked: this.show_moves, action: () => {this.show_moves=!this.show_moves;editor.updateOptions({experimental:{showMoves:this.show_moves}});}},
-        {id: "inline_when_narrow", title: text("diff.inline_when_narrow"), checked: this.inline_when_narrow, action: () => {this.inline_when_narrow=!this.inline_when_narrow;editor.updateOptions({useInlineViewWhenSpaceIsLimited:this.inline_when_narrow});}},
+        {id: "hide_unchanged", title: text("diff.hide_unchanged"), checked: this.collapsed, action: () => { this.set_preferences({hide_unchanged:!this.collapsed}); }},
+        {id: "show_moves", title: text("diff.show_moves"), checked: this.show_moves, action: () => {this.set_preferences({show_moves:!this.show_moves});}},
+        {id: "inline_when_narrow", title: text("diff.inline_when_narrow"), checked: this.inline_when_narrow, action: () => {this.set_preferences({inline_when_narrow:!this.inline_when_narrow});}},
         {id: "accessible_diff", title: text("diff.accessible_diff"), action:()=>this.accessible_diff()},
-        {id: "ignore_whitespace", title: text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => { this.ignore_whitespace = !this.ignore_whitespace; editor.updateOptions({ignoreTrimWhitespace: this.ignore_whitespace}); }});
+        {id: "ignore_whitespace", title: text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => { this.set_preferences({ignore_trim_whitespace:!this.ignore_whitespace}); }});
     }
     workspace_menu(event, [...entries, ...this.extra_menu()]);
   }
-  dispose(): void { this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
+  dispose(): void { if(this.disposed)return;this.disposed=true;this.range_action=undefined;this.range_available=()=>false;this.title_entries=()=>[];this.close_menu?.();this.release_settings?.();this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
 }

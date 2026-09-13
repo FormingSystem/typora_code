@@ -25,10 +25,12 @@ export class terminal_surface {
       const control=git_icon_button(icon,title,()=>{options[key]=!options[key];control.setAttribute("aria-pressed",String(options[key]));find();});control.setAttribute("aria-pressed","false");return control;
     });
     this.find_bar.append(input,...toggles,count,git_icon_button("arrow-up","上一个匹配",()=>find(true)),git_icon_button("arrow-down","下一个匹配",()=>find()),git_icon_button("close","关闭查找",()=>{this.find_bar.hidden=true;this.search.clearDecorations();this.term.focus();}));
-    input.oninput=()=>find();input.onkeydown=event=>{event.stopPropagation();if(event.key==="Enter"){event.preventDefault();find(event.shiftKey);}if(event.key==="Escape"){this.find_bar.hidden=true;this.term.focus();}};
+    input.oninput=()=>find();input.onkeydown=event=>{event.stopPropagation();if(event.isComposing||event.keyCode===229)return;if(event.key==="Enter"){event.preventDefault();find(event.shiftKey);}if(event.key==="Escape"){this.find_bar.hidden=true;this.term.focus();}};
     this.lifetime.own(this.term.onData(data=>actions.input(data)));
     this.lifetime.own(this.term.onSelectionChange(()=>{if(this.settings.copy_on_selection&&this.term.hasSelection())void actions.copy(this.term.getSelection()).catch(actions.error);}));
     this.term.attachCustomKeyEventHandler(event=>{
+      // 候选选择与中英切换交给输入法及 xterm，不能因快捷键移走输入焦点。
+      if(event.isComposing||event.keyCode===229)return true;
       const key=event.key.toLowerCase(),control=event.ctrlKey||event.metaKey;
       if(control&&(event.shiftKey&&["c","v","f"].includes(key)||key==="c"&&this.term.hasSelection())){
         if(event.type==="keydown"){event.preventDefault();if(key==="c")void actions.copy(this.term.getSelection()).catch(actions.error);else if(key==="v")void this.paste();else this.find();}return false;
@@ -36,7 +38,11 @@ export class terminal_surface {
       return true;
     });
     this.container.onpointerdown=()=>actions.active();
-    this.viewport.addEventListener("keydown",event=>event.stopPropagation());
+    // xterm 先处理目标事件；包括 Shift 抬起在内的完整输入链不冒泡到宿主编辑器。
+    // 仅停止冒泡，保留浏览器默认输入与 xterm 的组合上屏、按键状态清理。
+    for(const type of ["keydown","keypress","keyup","beforeinput","input","compositionstart","compositionupdate","compositionend"]){
+      this.lifetime.listen(this.container,type,event=>event.stopPropagation());
+    }
     // Ctrl+V、系统粘贴和菜单粘贴经过同一策略，不能绕过多行确认设置。
     this.viewport.addEventListener("paste",event=>{event.preventDefault();event.stopImmediatePropagation();if(event.clipboardData)this.paste_text(event.clipboardData.getData("text/plain"));},true);
     const observer=new ResizeObserver(()=>this.resize());observer.observe(this.viewport);this.lifetime.add(()=>observer.disconnect());

@@ -40,7 +40,7 @@ app.whenReady().then(async () => {
   const fixture_root = fs.mkdtempSync(path.join(os.tmpdir(),'typora_reading_interaction_'));
   const {static_workspace_css_plugin} = await import('./build_workspace_styles.mjs');
   const script_path = path.join(fixture_root,'startup.js');
-  await build({stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup"; import "./src/workspace_entry";',resolveDir:path.join(__dirname,'..')},bundle:true,plugins:[static_workspace_css_plugin(),...editor_plugins()],format:'iife',globalName:'reading_startup',platform:'browser',target:['chrome120'],loader:{'.css':'text','.wasm':'binary'},outfile:script_path});
+  await build({preserveSymlinks:true,stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup"; import "./src/workspace_entry";',resolveDir:path.join(__dirname,'..')},bundle:true,plugins:[static_workspace_css_plugin(),...editor_plugins()],format:'iife',globalName:'reading_startup',platform:'browser',target:['chrome120'],loader:{'.css':'text','.wasm':'binary'},outfile:script_path});
   const fixture_path = path.join(fixture_root,'index.html');
   const original = fs.readFileSync(path.join(__dirname,'../fixtures/interaction_test.html'),'utf8');
   fs.writeFileSync(fixture_path,original.replace('<meta charset="utf-8">','<meta charset="utf-8"><base href="'+pathToFileURL(path.join(__dirname,'../fixtures/')).href+'">').replace('../dist/workbench.js',pathToFileURL(script_path).href),'utf8');

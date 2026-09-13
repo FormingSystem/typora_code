@@ -1,4 +1,6 @@
 import {acquire_workspace_style} from "./workspace_styles";
+import {publish_workspace_file_changed} from "./workspace_file_events";
+import {read_workspace_editor_settings,observe_workspace_editor_settings,select_workspace_editor_group,workspace_editor_group_locked} from "./workspace_editor_settings";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {create_platform_file_clipboard} from "./file_clipboard_platform";
 import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./workspace_file_clipboard";
@@ -35,6 +37,7 @@ export type workspace_file_host = {
   trash_entries(root:string,paths:string[]):Promise<void>;
   keep_open(leaf?:graph_leaf):void;
   editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
+  has_editor_errors(leaf:graph_leaf):boolean;
   close_leaf(leaf:graph_leaf):Promise<boolean>;
   duplicate_leaf(leaf:graph_leaf,group:graph_leaf["parent"]):Promise<graph_leaf>;
   reopen_leaf(leaf:graph_leaf,source:boolean):Promise<boolean>;
@@ -46,6 +49,7 @@ export type workspace_file_host = {
   save_as_active():Promise<boolean>;
   reload_active():void;
   save_leaf(leaf:graph_leaf):Promise<boolean>;
+  auto_save_leaf(leaf:graph_leaf):Promise<boolean>;
   save_all(): Promise<boolean>;
   can_write(file_path: string): boolean;
   refresh_files(paths: string[]): void;
@@ -72,7 +76,6 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const runtime = window as unknown as {reqnode(name: string): any; File?: any; JSBridge?:{invoke(command:string,...args:unknown[]):Promise<unknown>}; ClientCommand?: Record<string, (...args: unknown[]) => unknown>; doApplyRename?(path: string): void};
   const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
   let native_app_open_file = core.app.openFile;
-  const call_native_app_open_file = (target: string) => native_app_open_file.call(core.app, target);
   const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
@@ -82,7 +85,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     workspace_leaf_tab(leaf)?.classList.remove("is-workspace-preview");
   };
   const set_preview=(leaf:graph_leaf|null,preview:boolean)=>{
-    if(!leaf)return;if(leaf.state.workspace_pinned)preview=false;if(!preview){keep_open(leaf);return;}
+    if(!leaf)return;if(leaf.state.workspace_pinned||!read_workspace_editor_settings().enable_preview)preview=false;if(!preview){keep_open(leaf);return;}
     const previous=preview_leaves.get(leaf.parent);
     let previous_exists=false;core.app.workspace.eachLeaves(item=>{if(item===previous)previous_exists=true;});
     if(previous&&previous!==leaf&&previous_exists){
@@ -92,6 +95,30 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     leaf.state.workspace_preview=true;preview_leaves.set(leaf.parent,leaf);
     workspace_leaf_tab(leaf)?.classList.add("is-workspace-preview");
+  };
+  const apply_editor_settings=()=>{if(!read_workspace_editor_settings().enable_preview)core.app.workspace.eachLeaves(leaf=>{if(leaf.state.workspace_preview)keep_open(leaf);});};
+  const stop_editor_settings=observe_workspace_editor_settings(apply_editor_settings);apply_editor_settings();
+  // 原生 Markdown 打开依赖当前组；新建组先放安全空叶子，让原有打开与未保存确认继续拥有事务。
+  const route_native_group=(file_path:string,activate_existing=false)=>{
+    let existing:graph_leaf|undefined;core.app.workspace.eachLeaves(leaf=>{if(file_key(leaf.state.path)===file_key(file_path))existing=leaf;});
+    if(existing){if(activate_existing){core.app.workspace.activeLeaf=existing;existing.parent.toggleTab(existing.state.path);}return;}
+    const group=select_workspace_editor_group(core,file_path);
+    if(group===core.app.workspace.activeLeaf?.parent)return;
+    const active=group.activeLeaf||group.children?.[0];
+    if(active){core.app.workspace.activeLeaf=group.toggleTab(active.state.path);return;}
+    const placeholder=core.app.workspace.createLeaf({type:"core.empty",state:{path:"typ://core.empty/"+globalThis.crypto.randomUUID()+"/New tab"}});
+    group.appendChild(placeholder);core.app.workspace.activeLeaf=placeholder;return placeholder;
+  };
+  const native_placeholders=new Map<graph_leaf,()=>void>();
+  const watch_native_placeholder=(leaf:graph_leaf)=>{
+    const cleanup=()=>{if(!native_placeholders.has(leaf))return;native_placeholders.delete(leaf);for(const release of releases)release();leaf.parent.removeTab?.(leaf.state.path);};
+    const check=()=>queueMicrotask(()=>{
+      if(!native_placeholders.has(leaf))return;
+      const children=(leaf.parent as graph_leaf["parent"]&{children?:graph_leaf[]}).children||[];
+      if(!children.includes(leaf)||children.some(item=>item!==leaf)||core.app.workspace.activeLeaf!==leaf)cleanup();
+    });
+    const releases=[core.app.workspace.on("layout-changed",check),core.app.workspace.on("active-leaf:change",check),core.app.workspace.on("file:open",check)];
+    native_placeholders.set(leaf,cleanup);check();
   };
   const keep_clicked_tab=(event:MouseEvent)=>{const tab=event.target instanceof Element?event.target.closest<HTMLElement>(".typ-tab[data-id]"):null;if(tab)core.app.workspace.eachLeaves(leaf=>{if(workspace_leaf_tab(leaf)===tab)keep_open(leaf);});};
   const keep_edited_native=(event:Event)=>{if(event.target instanceof Element&&event.target.closest("#write"))keep_open();};
@@ -134,7 +161,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(!original?.editor)return;
       this.editor=new git_diff_editor({title:path_api.basename(this.file_path),file:this.file_path,left:original.editor.models[0].getValue(),left_label:this.file_path},()=>this.menu_entries(),original.editor.models[0]);
       this.body.replaceChildren(this.editor.container);const editor=this.editor.focused_editor();editor.updateOptions({readOnly:false});
-      this.editor.subscriptions.push(editor.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed)this.update_status();})),editor.onDidChangeCursorPosition(()=>this.update_status()),editor.onDidFocusEditorText(()=>editor_status.schedule()));
+      this.editor.subscriptions.push(editor.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),editor.onDidChangeCursorPosition(()=>this.update_status()),editor.onDidFocusEditorText(()=>editor_status.schedule()));
     }
     constructor(leaf: graph_leaf) {
       super(leaf); const file_path=real_path(leaf);
@@ -185,7 +212,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         else {
           this.editor = new git_diff_editor(data,()=>this.menu_entries()); this.body.replaceChildren(this.editor.container);
           const view=this.editor.focused_editor();
-          this.editor.subscriptions.push(view.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed)this.update_status();})),view.onDidChangeCursorPosition(()=>this.update_status()),view.onDidFocusEditorText(()=>editor_status.schedule()));
+          this.editor.subscriptions.push(view.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),view.onDidChangeCursorPosition(()=>this.update_status()),view.onDidFocusEditorText(()=>editor_status.schedule()));
         }
         this.editor.focused_editor().updateOptions({readOnly:false});
         this.saved_version=this.editor.models[0].getAlternativeVersionId();
@@ -289,7 +316,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       {title:"另存为…",shortcut:"Ctrl+Shift+S",action:()=>void this.save_as()},
       {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
       {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
-      ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}call_native_app_open_file(this.file_path);}}]:[])
+      ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}void open_file(this.file_path);}}]:[])
     ];}
     menu(event:MouseEvent){workspace_menu(event,this.menu_entries());}
     confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=workspace_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
@@ -309,18 +336,21 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
       const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>existing_leaves.add(leaf));
-      await navigate_reading_target(file_path, {group, hash: location.hash, signal:location.signal, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});
+      const placeholder=group==="active"?route_native_group(file_path):undefined;
+      try {await navigate_reading_target(file_path, {group, hash: location.hash, signal:location.signal, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});}
+      finally {if(placeholder)placeholder.parent.removeTab?.(placeholder.state.path);}
       if(location.signal?.aborted)throw new Error("打开文件已取消。");
       const leaf=core.app.workspace.activeLeaf;
       if(leaf&&file_key(leaf.state.path)===file_key(file_path)&&(!location.preview||!existing_leaves.has(leaf)||leaf.state.workspace_preview))set_preview(leaf,Boolean(location.preview));
       return;
     }
     const uri = source_file_uri(file_path);
+    const parent = group === "active" ? select_workspace_editor_group(core,uri) : undefined;
     let existing: graph_leaf | undefined;
-    core.app.workspace.eachLeaves(leaf => { if (leaf.parent===core.app.workspace.activeLeaf?.parent && is_source_file_uri(leaf.state.path) && file_key(real_path(leaf)) === file_key(file_path)) existing = leaf; });
+    core.app.workspace.eachLeaves(leaf => { if (leaf.parent===parent && is_source_file_uri(leaf.state.path) && file_key(real_path(leaf)) === file_key(file_path)) existing = leaf; });
     if (existing && group === "active") { const view=existing.view as source_file_view;view.focus_requested=!location.preserve_focus;if(location.line!=null)view.target=location;core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);view.reveal();if(!location.preview||existing.state.workspace_preview)set_preview(existing,Boolean(location.preview));return; }
     if (group !== "active") { group_locations.set(uri,location);core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]);set_preview(core.app.workspace.activeLeaf,Boolean(location.preview)); return; }
-    const parent = core.app.workspace.activeLeaf?.parent; if (!parent) throw new Error("当前没有可用的编辑器组。");
+    if (!parent) throw new Error("当前没有可用的编辑器组。");
     const leaf = core.app.workspace.createLeaf({type: SOURCE_FILE_VIEW_ID, state: {path: uri, git_cwd: path_api.dirname(file_path)}});
     (leaf.view as source_file_view).focus_requested=!location.preserve_focus;
     if(location.line!=null)(leaf.view as source_file_view).target=location;
@@ -347,6 +377,12 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
       const markdown = resolve_markdown_file_target(path_api, context_root(), resolve_host_open_file_target(path_api, source, target));
       if (!markdown || !fs.statSync(markdown.file_path).isFile()) throw new Error("目标不是普通文件。");
+      const active_group=core.app.workspace.activeLeaf?.parent;
+      let existing_in_group=false;core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===active_group&&file_key(leaf.state.path)===file_key(markdown.file_path))existing_in_group=true;});
+      if(active_group&&workspace_editor_group_locked(active_group)&&!existing_in_group){
+        // 只选择目标组；仍由下方原生调用拥有参数、回调接收者、返回值和未保存确认。
+        const placeholder=route_native_group(markdown.file_path,true);if(placeholder)watch_native_placeholder(placeholder);
+      }
       // 检查与使用必须是同一个绝对文件；相对路径、file URL 和锚点不传给原生文件 API。
       if (markdown.hash) {
         const callback=args[0];
@@ -483,6 +519,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     await Promise.resolve(runtime.ClientCommand.save());return true;
   };
   const save_active = async () => {const leaf=core.app.workspace.activeLeaf;return leaf?save_leaf(leaf):false;};
+  const auto_save_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
+    if(!binding.active||!transfer_present(leaf))return false;
+    const state=editor_state(leaf);if(!state.file_path||state.busy||!state.dirty)return false;
+    const source=[...views].find(view=>view.leaf===leaf&&!view.disposed);if(source)return source.save();
+    // 自动保存只写宿主当前内存文档，不激活其他标签；silent参数禁止弹另存为或失败对话框。
+    if(state.kind!=="markdown"||file_key(runtime.File?.bundle?.filePath||"")!==file_key(state.file_path)||runtime.File?.isReadonlyMode||runtime.File?.isLocked)return false;
+    return runtime.File?.isNode&&typeof runtime.File.saveUseNode==="function"?await runtime.File.saveUseNode(false,true)===true:false;
+  };
   const native_ready=()=>{
     const leaf=core.app.workspace.activeLeaf;
     return binding.active&&native_document_active()&&file_key(leaf!.state.path)===file_key(runtime.File?.bundle?.filePath||"")
@@ -797,7 +841,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
     if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
-    source_lifecycle.dispose();
+    source_lifecycle.dispose();stop_editor_settings();for(const cleanup of [...native_placeholders.values()])cleanup();native_placeholders.clear();
     for(const {dialog} of native_close_dialogs.values())dialog.close();native_close_dialogs.clear();
     for(const {dialog} of reopen_dialogs.values())dialog.close();reopen_dialogs.clear();
     document.removeEventListener("dblclick",keep_clicked_tab,true);document.removeEventListener("input",keep_edited_native,true);
@@ -848,7 +892,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+    has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{
       if(!binding.active)throw new Error("Typora Code 已停用。");
       const source=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path)&&view.editor?.models[0]);

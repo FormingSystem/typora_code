@@ -24,7 +24,7 @@ app.whenReady().then(async()=>{
  await evaluate(`window.fixture_root=${JSON.stringify(repository)};window.fixture_source=${JSON.stringify(source_path)};`);
  await evaluate(fs.readFileSync(path.join(__dirname,'../fixtures/workspace_host.js'),'utf8'));await evaluate(`window._options.userDataPath=${JSON.stringify(evidence)};void 0`);await evaluate('window.original_outline=document.querySelector("#outline-content");window.original_outline_parent=original_outline.parentNode');
  await evaluate('fixture_core.app.vault={on:fixture_core.app.workspace.on};void 0');
- const bundle=await build({stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup";export {get_workspace_files} from "./src/workspace_files";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},plugins:[static_workspace_css_plugin(),...editor_plugins()],bundle:true,format:'iife',globalName:'qa',write:false,loader:{'.css':'text','.svg':'text','.png':'dataurl','.wasm':'binary'},define:{'process.env.NODE_ENV':'"production"'}});
+ const bundle=await build({preserveSymlinks:true,stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup";export {get_workspace_files} from "./src/workspace_files";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},plugins:[static_workspace_css_plugin(),...editor_plugins()],bundle:true,format:'iife',globalName:'qa',write:false,loader:{'.css':'text','.svg':'text','.png':'dataurl','.wasm':'binary'},define:{'process.env.NODE_ENV':'"production"'}});
  await evaluate(bundle.outputFiles[0].text);
  // Monaco 的 ContextKey/Clipboard 单例是宿主窗口级；先显式预热并销毁临时 editor，避免把首次惰性初始化误算为插件泄漏。
  await evaluate('(()=>{const node=document.createElement("div");document.body.append(node);const editor=qa.monaco.editor.create(node,{value:"warmup",language:"plaintext"});const model=editor.getModel();editor.dispose();model.dispose();node.remove();})()');await delay(50);
@@ -90,6 +90,8 @@ app.whenReady().then(async()=>{
  checks.push('Close Folder clears the shared root while preserving open document and draft; recent-folder command restores the same root');
 
  await evaluate(`window.explorer_menu=label=>{const menu=document.querySelector('.workspace-explorer-menu');const action=[...menu.querySelectorAll('button')].find(button=>button.querySelector('.git-menu-label')?.textContent===label);if(!action)throw Error('Missing production action '+label);action.click();};document.querySelector('.workspace-explorer-root-name').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));void 0`);
+ assert(await evaluate(`['打开的编辑器','文件夹','时间线','资源管理器与保存设置…'].every(label=>[...document.querySelectorAll('.workspace-menu-compact .git-menu-label')].some(item=>item.textContent===label))`));
+ await evaluate(`document.querySelector('.workspace-explorer-tree').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));void 0`);
  assert(await evaluate(`['新建文件…','新建文件夹…','在系统文件资源管理器中显示','在集成终端中打开','在文件夹中查找…','粘贴'].every(label=>[...document.querySelectorAll('.workspace-explorer-menu .git-menu-label')].some(item=>item.textContent===label))`));
  await evaluate(`explorer_menu('新建文件…');void 0`);await wait('Boolean(document.querySelector(".workspace-explorer-rename"))');
  await evaluate(`{const input=document.querySelector('.workspace-explorer-rename');input.value='created_via_menu.txt';input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));}void 0`);
@@ -134,6 +136,25 @@ app.whenReady().then(async()=>{
  await evaluate('File.setMountFolder(fixture_root);void 0');await wait('document.querySelector(".linux-note-workspace-search").dataset.state==="ready"&&Boolean(document.querySelector(\'.workspace-search-file[data-path$="source.ts"]\'))');
  await evaluate('fixture_commands.get("linux_note:source_control").callback();void 0');await wait('Boolean(document.querySelector(".git-scm-title"))');await capture('plugin_scm');
  await evaluate('fixture_commands.get("linux_note:git_graph").callback();void 0');await wait('document.querySelectorAll(".git-graph-row").length>0');await capture('plugin_graph');
+ // 等待中的全局命令和底栏动作属于发起时的仓库；实际切库不能把命令转给新目标。
+ const wait_remote=path.join(evidence,'wait_remote.git'),wait_other=path.join(evidence,'wait_other');
+ git('init','--bare',wait_remote);git('remote','add','wait-origin',wait_remote);git('push','-u','wait-origin','main');git('clone','-b','main',wait_remote,wait_other);
+ await evaluate(`window.wait_other=${JSON.stringify(wait_other)};window.wait_panel=fixture_core.app.workspace.activeLeaf.view.panel;window.wait_network_calls=[];window.wait_network_original=wait_panel.network_action.bind(wait_panel);wait_panel.network_action=(...args)=>{wait_network_calls.push({root:wait_panel.root,action:args[0]});return wait_network_original(...args);};window.arm_wait_lookup=()=>{const runner=wait_panel.runner,native=runner.run;let paused=false;runner.run=async(...args)=>{const result=await native(...args);if(!paused&&args[1][0]==='rev-parse'&&args[1].includes('--show-toplevel')){paused=true;await new Promise(resolve=>window.release_wait_lookup=()=>{runner.run=native;delete window.release_wait_lookup;resolve();});}return result;};};void 0`);
+ await evaluate('wait_panel.refresh(false)');await wait('!wait_panel.pending&&!wait_panel.writing');
+ await evaluate('arm_wait_lookup();void wait_panel.refresh(false);void 0');await wait('typeof release_wait_lookup==="function"');
+ await evaluate('fixture_commands.get("linux_note:git_graph_fetch").callback();void 0');await evaluate('wait_panel.switch_repo(wait_other)');
+ await evaluate('release_wait_lookup();void 0');await delay(160);assert.equal(await evaluate('wait_network_calls.length'),0,'loading global Fetch must not follow a same-controller repository switch');
+ await evaluate('wait_panel.switch_repo(fixture_root)');await wait('!wait_panel.pending&&!wait_panel.writing');
+ await evaluate('arm_wait_lookup();void wait_panel.refresh(false);void 0');await wait('typeof release_wait_lookup==="function"');
+ await evaluate('fixture_commands.get("linux_note:git_graph_fetch").callback();release_wait_lookup();void 0');await wait('wait_network_calls.length===1&&!wait_panel.pending&&!wait_panel.writing');
+ assert.equal(await evaluate('wait_network_calls[0].root'),repository.replace(/\\/g,'/'));assert.equal(await evaluate('wait_network_calls[0].action'),'fetch');
+ await wait('!document.querySelector(".git-status-sync").disabled');
+ await evaluate('arm_wait_lookup();document.querySelector(".git-status-sync").click();void 0');await wait('typeof release_wait_lookup==="function"');
+ await evaluate('wait_panel.switch_repo(wait_other)');await evaluate('release_wait_lookup();void 0');await delay(160);
+ assert.equal(await evaluate('wait_network_calls.length'),1,'status-bar Sync must not follow a repository switch while its readiness refresh is pending');
+ await evaluate('wait_panel.switch_repo(fixture_root)');await wait('!wait_panel.pending&&!wait_panel.writing');
+ await evaluate('wait_panel.network_action=wait_network_original;delete window.wait_network_original;delete window.arm_wait_lookup;void 0');
+ checks.push('global Fetch waits for its original repository and executes once; switching the same controller cancels waiting global Fetch and footer Sync before networking');
  await evaluate('window.graph_size=document.querySelector(".git-graph-row").getBoundingClientRect().height;for(const node of [document.documentElement,document.body]){node.style.setProperty("--bg-color","#1e1e1e");node.style.setProperty("--text-color","#cccccc");}void 0');await delay(100);
  assert(await evaluate('document.querySelector(".git-graph-row").getBoundingClientRect().height===graph_size'),'host dark theme retains Graph row geometry');await capture('workspace_graph_dark');
  await evaluate('for(const node of [document.documentElement,document.body]){node.style.removeProperty("--bg-color");node.style.removeProperty("--text-color");}void 0');

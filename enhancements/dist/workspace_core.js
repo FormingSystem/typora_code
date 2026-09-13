@@ -2436,6 +2436,7 @@ var workspace_core_module = (() => {
       const stack = [];
       let pending, listening = false, dismissing = false;
       let gesture;
+      let gesture_timer;
       const top = () => stack.findLast((record) => record.roots().some(visible));
       const inside = (record, node) => (record.options.inside?.() || record.roots()).some((root) => within(root, node));
       const consume = (event) => {
@@ -2451,7 +2452,10 @@ var workspace_core_module = (() => {
           dismissing = false;
         }
       };
-      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), mouseup: () => finish(), pointercancel: () => finish(), focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
+      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), pointerup: (event) => release(event), mouseup: (event) => release(event), click: (event) => complete(event), auxclick: (event) => complete(event), contextmenu: (event) => swallow(event), pointercancel: (event) => {
+        swallow(event);
+        finish();
+      }, focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
       const cleanup = () => {
         if (!stack.length && !pending && !gesture && listening) {
           listening = false;
@@ -2459,7 +2463,7 @@ var workspace_core_module = (() => {
         }
       };
       const keydown = (event) => {
-        gesture = void 0;
+        if (!gesture?.consumed) gesture = void 0;
         if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
         if (pending) {
           consume(event);
@@ -2481,23 +2485,46 @@ var workspace_core_module = (() => {
       const down = (event, pointer) => {
         if (!pointer && gesture?.pointer && gesture.button === event.button) {
           gesture.pointer = false;
+          if (gesture.consumed) consume(event);
           return;
         }
+        window.clearTimeout(gesture_timer);
+        gesture_timer = void 0;
         const owner = top();
-        gesture = { owner, button: event.button, pointer, dismissed: false };
+        gesture = { owner, button: event.button, pointer, dismissed: false, consumed: false };
         if (!owner || owner.options.outside === false) return;
         const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
         if (!hit) {
           gesture.dismissed = true;
+          gesture.consumed = owner.options.consume_outside === true;
+          if (gesture.consumed) consume(event);
           cancel_record(owner, "outside");
         }
       };
+      const swallow = (event) => {
+        if (gesture?.consumed && gesture.button === event.button) consume(event);
+      };
       const finish = () => {
         const current = gesture;
-        queueMicrotask(() => {
+        window.clearTimeout(gesture_timer);
+        gesture_timer = window.setTimeout(() => {
+          gesture_timer = void 0;
           if (gesture === current) gesture = void 0;
           cleanup();
-        });
+        }, 0);
+      };
+      const release = (event) => {
+        swallow(event);
+        finish();
+      };
+      const complete = (event) => {
+        swallow(event);
+        if (gesture?.button === event.button) {
+          window.clearTimeout(gesture_timer);
+          gesture_timer = void 0;
+          gesture = void 0;
+        }
+        cleanup();
       };
       const focus_changed = () => {
         if (dismissing) return;
@@ -2514,6 +2541,8 @@ var workspace_core_module = (() => {
       };
       const blur = () => {
         pending = void 0;
+        window.clearTimeout(gesture_timer);
+        gesture_timer = void 0;
         gesture = void 0;
         const owner = top();
         if (owner?.options.window_blur) cancel_record(owner, "window-blur");
@@ -5220,7 +5249,7 @@ var workspace_core_module = (() => {
       this.opened = true;
       this.previous_focus = capture_workspace_focus();
       this.containerEl.style.display = "";
-      this.escape_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => this.close(reason === "escape"), { inside: () => [this.modal], window_blur: true });
+      this.escape_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => this.close(reason === "escape" || reason === "outside"), { inside: () => [this.modal], window_blur: true, consume_outside: true });
     }
     close(restore = true) {
       if (!this.opened) return;

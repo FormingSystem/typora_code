@@ -11,21 +11,24 @@ function get_typora_node_release {
 }
 
 function prepare_typora_node {
-    param([string]$tools_root)
+    param([string]$tools_root, [scriptblock]$report = { param($message) Write-Host $message })
     $release = get_typora_node_release $tools_root
     $cache_root = if ($env:TYPORA_TERMINAL_CACHE) { [IO.Path]::GetFullPath($env:TYPORA_TERMINAL_CACHE) } else { Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Typora/terminal_downloads' }
     New-Item -ItemType Directory -Force -Path $cache_root | Out-Null
     $name = "node-v$($release.version)-win-$($release.arch)"
     $archive = Join-Path $cache_root ($name + '.zip')
+    & $report ("检查 Node $($release.version) / $($release.arch) 的本地缓存。")
     if (!(Test-Path -LiteralPath $archive -PathType Leaf) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $release.sha256) {
         $partial = Join-Path $cache_root ($name + '.' + [Guid]::NewGuid().ToString('N') + '.part')
-        Write-Host "Preparing private terminal runtime: $name (official download, SHA-256 verified)."
+        & $report '正在从 nodejs.org 下载运行时；首次安装可能需要几分钟，请保持此窗口打开。'
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -UseBasicParsing -Uri "https://nodejs.org/dist/v$($release.version)/$name.zip" -OutFile $partial
+        & $report '下载完成，正在校验 SHA-256。'
         if ((Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash -ne $release.sha256) { throw 'Terminal Node archive digest mismatch; installation stopped.' }
         Move-Item -LiteralPath $partial -Destination $archive -Force
-    }
+    } else { & $report '已复用通过 SHA-256 校验的缓存，无须重新下载。' }
+    & $report '正在解压并校验运行时文件。'
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $stage = Join-Path $cache_root ($name + '-verified')
     $target_directory = Join-Path $stage "node/$($release.version)"
@@ -43,6 +46,7 @@ function prepare_typora_node {
     if ((Get-FileHash -LiteralPath (Join-Path $target_directory 'LICENSE') -Algorithm SHA256).Hash -ne $release.license_sha256) { throw 'Terminal Node license digest mismatch.' }
     $assets = @()
     foreach ($filename in @('node.exe', 'LICENSE')) { $assets += [pscustomobject]@{ relative_path = "node/$($release.version)/$filename"; sha256 = (Get-FileHash -LiteralPath (Join-Path $target_directory $filename) -Algorithm SHA256).Hash } }
+    & $report '运行时已就绪。'
     return [pscustomobject]@{ root = $stage; assets = $assets }
 }
 

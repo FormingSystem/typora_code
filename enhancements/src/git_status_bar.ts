@@ -8,7 +8,7 @@ import { git_icon } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 
 import {parse_branch_status} from "./git_scm_data";
-/** 使用窗口唯一状态栏；刷新只读取本地 Git，远端写操作仍经过现有预览弹窗。 */
+/** 使用窗口唯一状态栏；刷新只读取本地 Git，网络快捷操作复用控制器的自动目标与一次执行。 */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
   if (!footer) throw new Error("Typora Code status bar is unavailable.");
@@ -58,17 +58,18 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       sync.setAttribute("aria-label", sync.title);
     } catch (error) { if (!disposed && token === epoch) unavailable(text("status.read_failed", {error: String(error instanceof Error ? error.message : error)})); }
   };
-  const ready = (event: MouseEvent, show: (panel: git_graph_panel) => void | Promise<void>) => {
+  const ready = (event: MouseEvent, show: (panel: git_graph_panel, available: () => boolean) => void | Promise<void>) => {
     event.preventDefault(); event.stopPropagation();
-    const current = current_panel();
+    const current = current_panel(), repository_epoch = current.repository_epoch;
+    const available = () => !disposed && !current.disposed && current === current_panel() && current.repository_epoch === repository_epoch;
     void (async () => {
       if (!current.pending && !current.writing) await current.refresh(false);
-      while (current.pending) await new Promise(resolve => setTimeout(resolve, 50));
-      if (disposed || current !== current_panel()) return;
+      while (current.pending && available()) await new Promise(resolve => setTimeout(resolve, 50));
+      if (!available()) return;
       if (!current.state || current.container.dataset.state === "error") {
         workspace_menu(event, [{id: "select_repository", title: text("status.select_repository"), action: () => current.manage_repositories()}, {id: "refresh_status", title: text("status.recheck_repository"), action: () => void refresh()}]); return;
       }
-      await show(current);
+      await show(current, available);
     })().catch(error => current.report(error));
   };
   branch.onclick = event => ready(event, current => {
@@ -91,24 +92,20 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   });
   const sync_menu = (event: MouseEvent) => ready(event, current => {
     const state = current.state!; const upstream = snapshot_root === current.root && snapshot?.branch === state.branch ? snapshot.upstream : "";
-    // 远端名允许包含斜杠；优先完整的最长名称，避免把 origin/team 误认为 origin。
-    const remote = state.remotes.filter(item => upstream.startsWith(item.name + "/")).sort((left, right) => right.name.length - left.name.length)[0]?.name || state.remotes[0]?.name || "";
-    const branch = upstream.startsWith(remote + "/") ? upstream.slice(remote.length + 1) : state.branch;
     current.configured_menu(event, "status_sync", [
-      {id: "sync", title: text("status.sync_changes"), disabled: !upstream || !state.head || !state.branch, action: () => current.action_dialog("sync", "repository", "", state.head, {mode: "merge"})},
-      {id: "fetch", title: text("status.fetch"), action: () => current.action_dialog("fetch", "repository", "", state.head, {remote})},
-      {id: "pull", title: text("status.pull"), disabled: !state.head || !state.branch, action: () => current.action_dialog("pull", "repository", "", state.head, {remote, branch, mode: "ff-only"})},
-      {id: "push", title: text("status.push"), disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, {remote, branch: state.branch})},
-      {id: "set_upstream", title: text("status.set_upstream"), separator: true, disabled: !state.head || !state.branch, action: () => current.action_dialog("push", "repository", "", state.head, {remote, branch: state.branch, upstream: true})},
+      {id: "sync", title: text("status.sync_changes"), disabled: !upstream || !state.head || !state.branch, action: () => void current.network_action("sync")},
+      {id: "fetch", title: text("status.fetch"), action: () => void current.network_action("fetch")},
+      {id: "pull", title: text("status.pull"), disabled: !state.head || !state.branch, action: () => void current.network_action("pull")},
+      {id: "push", title: text("status.push"), disabled: !state.head || !state.branch, action: () => void current.network_action("push")},
+      {id: "set_upstream", title: text("status.set_upstream"), separator: true, disabled: !state.head || !state.branch, action: () => void current.network_action("push", {publish: true})},
       {id: "remotes", title: text("status.configure_remotes"), action: () => current.remotes_dialog()},
       {id: "refresh_status", title: text("status.refresh"), separator: true, action: () => void refresh()},
     ]);
   });
-  sync.onclick = event => ready(event, async current => {
+  sync.onclick = event => ready(event, async (current, available) => {
     await refresh();
-    if (snapshot_root !== current.root || !snapshot || sync.disabled) return;
-    if (snapshot.upstream) current.action_dialog("sync", "repository", "", current.state!.head, {mode: "merge"});
-    else current.action_dialog("push", "repository", "", current.state!.head, {remote: current.state!.remotes[0]?.name || "", branch: snapshot.branch, upstream: true});
+    if (!available() || snapshot_root !== current.root || !snapshot || sync.disabled) return;
+    await current.network_action("sync");
   });
   sync.oncontextmenu = sync_menu;
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
