@@ -862,7 +862,8 @@ footer.ty-footer .linux-note-git-status {
 /* 共享悬停覆盖层：保留32px控件和8px间隙，全部位于正文排版之外。 */
 .reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style}
 .reading-media-entry{position:absolute;display:flex;align-items:flex-start;justify-content:flex-end;box-sizing:border-box;height:40px;padding:0 8px 8px;margin:0;pointer-events:none}
-.reading-media-open{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
+/* 悬停覆盖入口使用实体阅读底色，不能被通用工具栏的半透明hover替换。 */
+.reading-media-open{--workspace-interaction-hover:var(--bg-color,#fff);--workspace-interaction-foreground:var(--text-color,#24292f);display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
 .reading-media-open>svg{width:16px;height:16px;fill:currentColor;stroke:none;flex:none}
 .reading-media-open[hidden],.reading-media-open.is-small span{display:none!important}
 .reading-media-open.is-small{padding:6px}
