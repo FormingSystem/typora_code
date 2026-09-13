@@ -115,7 +115,7 @@ export class git_graph_panel {
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; await this.refresh();
   }
-  update_scm_actions():void{this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();}
+  update_scm_actions():void{this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();}
   async refresh(reset = true): Promise<void> {
     if (this.disposed) return;
     const epoch = ++this.epoch; this.detail_epoch++; this.runner.cancel(); this.pending = true;
@@ -169,7 +169,7 @@ export class git_graph_panel {
       if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
       else this.close_details();
     } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
-    finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; this.workbench.history.toolbar.update(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); } }
+    finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); } }
   }
   date(commit: graph_commit): string {
     const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;

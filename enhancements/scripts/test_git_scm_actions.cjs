@@ -11,7 +11,7 @@ app.setPath('userData',path.join(temp,'user_data'));app.disableHardwareAccelerat
 const evaluate=async source=>{try{return await win.webContents.executeJavaScript(source);}catch(error){console.error(source);throw error;}};
 const wait=async source=>{for(let i=0;i<160;i++){if(await evaluate(source))return;await delay(50);}throw new Error('Timed out: '+source);};
 const click=async(selector,mouse='left')=>{await delay(60);const p=await evaluate(`(()=>{const node=document.querySelector(${JSON.stringify(selector)});if(!node)throw new Error('Missing '+${JSON.stringify(selector)});node.scrollIntoView({block:'nearest'});const r=node.getBoundingClientRect(),x=r.x+r.width/2,y=r.y+r.height/2;return {x:Math.round(x),y:Math.round(y),hit:node.contains(document.elementFromPoint(x,y)),width:r.width,disabled:node.disabled};})()`);assert(p.hit&&p.width>0,JSON.stringify({selector,...p}));for(const type of ['mouseMove','mouseDown','mouseUp']){win.webContents.sendInputEvent({type,x:p.x,y:p.y,button:mouse,clickCount:1});await delay(20);}};
-const key=async(keyCode,modifiers=[])=>{for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCode,modifiers});await delay(80);};
+const key=async(keyCode,modifiers=[])=>{win.webContents.sendInputEvent({type:'keyDown',keyCode,modifiers});if(keyCode==='Enter')win.webContents.sendInputEvent({type:'char',keyCode:'\r',modifiers});win.webContents.sendInputEvent({type:'keyUp',keyCode,modifiers});await delay(80);};
 const capture=async name=>fs.writeFileSync(path.join(temp,name+'.png'),(await win.webContents.capturePage()).toPNG());
 app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1050,height:800,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});win.webContents.on('console-message',(_e,_l,message)=>console.error(message));
@@ -44,6 +44,95 @@ app.whenReady().then(async()=>{
   await click('.git-scm-operation-menu');await click('[data-action=worktrees]');await click('[data-action=worktree_manage]');await wait('document.querySelector(".git-scm-worktree-entry")');assert(await evaluate('[...document.querySelectorAll(".git-scm-worktree-entry button")].find(node=>node.textContent.includes("删除")).disabled'));await key('Escape');checks.push('repository Worktrees entry reads Git and protects the main worktree');
   await click('[data-history-action=fetch]');await click('[data-git-preview=fetch]');await wait('!document.querySelector("[data-git-execute=fetch]").disabled');await evaluate(`void panel.switch_repo(${JSON.stringify(other)})`);await wait(`!panel.pending&&panel.root===${JSON.stringify(other.replace(/\\/g,"/"))}`);await click('[data-git-execute=fetch]');await delay(100);assert(!await evaluate('panel.writing'));await key('Escape');checks.push('prepared action cannot execute after repository switch');
   const late_menu=await evaluate(`(()=>{window.stale=panel.workbench.file_entries({path:'before.md',status:'M'},'INDEX','WORKTREE',[],panel.root).find(entry=>entry.id==='open_head');return true})()`);assert(late_menu);await evaluate(`void panel.switch_repo(${JSON.stringify(root)})`);await wait(`!panel.pending&&panel.root===${JSON.stringify(root.replace(/\\/g,"/"))}`);await evaluate('stale.action()');assert.equal(await evaluate('revisions.length'),1);checks.push('stale file menu cannot open an object in the new repository');
-  await evaluate('panel.dispose();host.dispose()');assert.equal(await evaluate('document.querySelectorAll(".git-scm-sidebar").length'),0);checks.push('SCM lifetime releases observers, listeners and rows');
+  // 标题操作复用生产事务；所有读写均限制在本脚本创建的临时仓库。
+  const title_selector=id=>`[data-scm-title-action=${id}]`;
+  const title_buttons=await evaluate(`(()=>{const heading=document.querySelector('summary.git-scm-input-heading'),actions=heading.querySelector('.git-scm-input-actions');return {branch:!!heading.querySelector('.git-scm-branch'),order:actions&&[...actions.querySelectorAll('button')].map(node=>node.dataset.scmTitleAction||'more'),accessible:actions&&[...actions.querySelectorAll('button')].every(node=>node.tabIndex>=0&&(node.getAttribute('aria-label')||node.title))};})()`);
+  assert.equal(title_buttons.branch,false,'Changes heading no longer contains the old branch control');
+  assert.deepEqual(title_buttons.order,['commit','refresh','graph','more']);assert(title_buttons.accessible);
+  const starting_status=git(root,['status','--porcelain=v1']),starting_index=git(root,['write-tree']);
+  await evaluate(`(()=>{
+    window.title_calls={refresh:[],graph:[],quick:[],writer:[]};window.title_refresh_original=panel.refresh.bind(panel);window.title_quick_original=panel.quick_action.bind(panel);
+    window.title_runner=panel.runner;window.title_run_original=panel.runner.run;window.title_writer=panel.writer;window.title_write_original=panel.writer.run;
+    panel.refresh=(...args)=>{title_calls.refresh.push(args);return title_refresh_original(...args)};
+    panel.quick_action=(...args)=>{title_calls.quick.push(args);return title_quick_original(...args)};
+    host.show_history=root=>title_calls.graph.push(root);
+    panel.runner.run=async(...args)=>{if(window.title_hold_read){window.title_hold_read=false;window.title_read_pending=true;await new Promise(resolve=>window.title_release_read=resolve);window.title_read_pending=false;}return title_run_original(...args)};
+    panel.writer.run=async(...args)=>{title_calls.writer.push(args);if(args[1][0]==='commit'){window.title_write_pending=true;await new Promise(resolve=>window.title_release_write=resolve);window.title_write_pending=false;}return title_write_original(...args)};
+  })()`);
+  const assert_title_disabled=async expected=>{
+    const actual=await evaluate(`Object.fromEntries([...document.querySelectorAll('[data-scm-title-action],.git-scm-commit')].map(node=>[node.dataset.scmTitleAction||'main',node.disabled]))`);
+    assert.deepEqual(actual,expected);
+  };
+  const ready_buttons={commit:false,refresh:false,graph:false,main:false},busy_buttons={commit:true,refresh:true,graph:true,main:true};
+  await assert_title_disabled(ready_buttons);
+  await click(title_selector('commit'));assert(await evaluate('document.activeElement===panel.workbench.message&&panel.workbench.input_section.open'));
+  await click('.git-scm-commit');assert(await evaluate('document.activeElement===panel.workbench.message'));
+  assert.equal(await evaluate('title_calls.quick.length'),0);assert.equal(await evaluate('title_calls.writer.length'),0);assert.equal(git(root,['rev-parse','HEAD']),head);
+  checks.push('title and main commit reject empty messages, focus the input and never start a Git transaction');
+
+  await click('.git-scm-message');await key('A',['control']);await key('Backspace');
+  const title_message='SCM title action QA';for(const character of title_message)win.webContents.sendInputEvent({type:'char',keyCode:character});
+  await wait(`panel.workbench.message.value===${JSON.stringify(title_message)}`);
+  assert.equal(await evaluate('localStorage.getItem(panel.workbench.storage_key("message"))'),title_message);
+  await click('.git-scm-commit-options');await click('[data-action=commit_options]');await click('[data-git-preview=commit]');await wait('!document.querySelector("[data-git-execute=commit]").disabled');
+  assert(await evaluate('document.querySelector(".git-graph-action-preview").textContent.includes("SCM title action QA")'));await key('Escape');
+  assert.equal(git(root,['rev-parse','HEAD']),head);assert.equal(git(root,['status','--porcelain=v1']),starting_status);assert.equal(git(root,['write-tree']),starting_index);assert.equal(await evaluate('title_calls.writer.length'),0);
+  checks.push('commit options retain their existing preview and cancelling leaves HEAD, index and working files unchanged');
+
+  await click('summary.git-scm-input-heading');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
+  await click(title_selector('commit'));await wait('panel.writing&&window.title_write_pending');await assert_title_disabled(busy_buttons);assert.equal(await evaluate('panel.workbench.input_section.open'),false,'a populated title commit leaves the Changes section collapsed');
+  await click('summary.git-scm-input-heading');assert(await evaluate('panel.workbench.input_section.open'));
+  const writing_calls=await evaluate('JSON.stringify(title_calls)');
+  for(const id of ['commit','refresh','graph'])await click(title_selector(id));await click('.git-scm-commit');
+  await click('.git-scm-message');await key('Enter',['control']);assert.equal(await evaluate('JSON.stringify(title_calls)'),writing_calls,'busy pointer and keyboard activation cannot start another transaction');
+  await evaluate('title_release_write()');await wait('!panel.writing&&!panel.pending&&panel.state.commits.length===3');await assert_title_disabled(ready_buttons);
+  const title_head=git(root,['rev-parse','HEAD']);assert.notEqual(title_head,head);assert.equal(git(root,['rev-parse','HEAD^']),head);assert.equal(git(root,['rev-list','--count','HEAD']), '3');assert.equal(git(root,['show','-s','--format=%B','HEAD']),title_message);
+  assert.deepEqual(await evaluate('title_calls.quick.map(args=>args[0])'),['commit']);assert.equal(await evaluate('title_calls.writer.filter(args=>args[1][0]==="commit").length'),1);
+  assert.equal(await evaluate('panel.workbench.message.value'),'');assert.equal(await evaluate('localStorage.getItem(panel.workbench.storage_key("message"))'),null);
+  assert.equal(fs.readFileSync(path.join(root,'renamed.md'),'utf8'),'# Edited\n');assert.equal(fs.readFileSync(path.join(root,'new.md'),'utf8'),'# New\n');assert.equal(git(root,['diff','--cached','--name-only']),'');
+  checks.push('title commit runs exactly one existing Git transaction in the temporary repository, clears the saved message and preserves working text');
+
+  const refresh_before=await evaluate('title_calls.refresh.length');await evaluate('window.title_hold_read=true');await click(title_selector('refresh'));await wait('panel.pending&&window.title_read_pending');await assert_title_disabled(busy_buttons);
+  const pending_calls=await evaluate('JSON.stringify(title_calls)');for(const id of ['commit','refresh','graph'])await click(title_selector(id));await click('.git-scm-commit');assert.equal(await evaluate('JSON.stringify(title_calls)'),pending_calls);
+  await evaluate('title_release_read()');await wait('!panel.pending&&panel.container.dataset.state==="ready"');await assert_title_disabled(ready_buttons);
+  assert.equal(await evaluate('title_calls.refresh.length'),refresh_before+1);assert.deepEqual(await evaluate('title_calls.refresh.at(-1)'),[false]);assert.equal(git(root,['rev-parse','HEAD']),title_head);
+  await click(title_selector('graph'));assert.deepEqual(await evaluate('title_calls.graph'),[root.replace(/\\/g,'/')]);assert(await evaluate('panel.workbench.input_section.open'));
+  checks.push('title refresh performs one real read without resetting history, blocks duplicate actions while pending and Graph receives the active root');
+
+  // 同一仍有效仓库的读取错误必须禁用写入，但保留刷新恢复入口。
+  await evaluate('panel.runner.run=async()=>{throw new Error("SCM title controlled read failure")};void panel.refresh(false)');await wait('!panel.pending&&panel.container.dataset.state==="error"');
+  await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});await evaluate('void (panel.runner.run=title_run_original)');await click(title_selector('refresh'));await wait('!panel.pending&&panel.container.dataset.state==="ready"');await assert_title_disabled(ready_buttons);
+  await evaluate('window.title_saved_state=panel.state;window.title_saved_root=panel.root;panel.state=undefined;panel.update_scm_actions()');await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});
+  await evaluate(`panel.state=title_saved_state;panel.root=${JSON.stringify(other.replace(/\\/g,'/'))};panel.update_scm_actions()`);await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});
+  await evaluate('panel.root="";panel.update_scm_actions()');await assert_title_disabled(busy_buttons);
+  await evaluate('panel.state=title_saved_state;panel.root=title_saved_root;panel.update_scm_actions()');await assert_title_disabled(ready_buttons);
+  checks.push('read errors and invalid state disable both commit entries and Graph; an idle root keeps Refresh available for recovery, while no root disables it');
+
+  // 原生 summary 的点击与键盘折叠不得由内部标题动作触发。
+  await click('summary.git-scm-input-heading');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
+  await click(title_selector('refresh'));await wait('!panel.pending');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
+  await click(title_selector('graph'));assert.equal(await evaluate('panel.workbench.input_section.open'),false);
+  await click('.git-scm-operation-menu');assert(await evaluate('!!document.querySelector("[data-action=worktrees]")'));assert.equal(await evaluate('panel.workbench.input_section.open'),false);await key('Escape');
+  const empty_collapsed_calls=await evaluate('title_calls.quick.length');await click(title_selector('commit'));assert(await evaluate('panel.workbench.input_section.open&&!panel.workbench.changes_body.inert&&document.activeElement===panel.workbench.message'),'an empty collapsed commit reveals and focuses its editable message');assert.equal(await evaluate('title_calls.quick.length'),empty_collapsed_calls);assert.equal(git(root,['rev-parse','HEAD']),title_head);
+  await click('summary.git-scm-input-heading');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
+  await evaluate('document.querySelector(".git-scm-input-heading").focus()');await key('Tab');assert.equal(await evaluate('document.activeElement.dataset.scmTitleAction'),'commit');assert(await evaluate('document.activeElement.matches(":focus-visible")'));await key('Enter');assert(await evaluate('panel.workbench.input_section.open&&!panel.workbench.changes_body.inert&&document.activeElement===panel.workbench.message'),'keyboard commit also reveals an empty collapsed input');assert.equal(await evaluate('title_calls.quick.length'),empty_collapsed_calls);
+  await evaluate('document.querySelector(".git-scm-input-heading").focus()');await key('Tab');await key('Tab');assert.equal(await evaluate('document.activeElement.dataset.scmTitleAction'),'refresh');const keyboard_refresh=await evaluate('title_calls.refresh.length');await key('Enter');await wait('!panel.pending');assert.equal(await evaluate('title_calls.refresh.length'),keyboard_refresh+1);
+  await evaluate('document.querySelector(".git-scm-input-heading").focus()');for(let i=0;i<3;i++)await key('Tab');assert.equal(await evaluate('document.activeElement.dataset.scmTitleAction'),'graph');const keyboard_graph=await evaluate('title_calls.graph.length');await key('Enter');assert.equal(await evaluate('title_calls.graph.length'),keyboard_graph+1);
+  await key('Tab');assert(await evaluate('document.activeElement.matches(".git-scm-operation-menu")'));await key('Enter');assert(await evaluate('!!document.querySelector("[data-action=worktrees]")&&panel.workbench.input_section.open'));await key('Escape');
+  checks.push('refresh, Graph, More and populated commits preserve collapse; empty commits reveal the input; all actions follow native Tab/Enter order with a visible focus ring');
+
+  const title_layouts=[];
+  for(const width of [180,240,380])for(const dark of [false,true]){
+    await evaluate(`document.querySelector('#sidebar').style.width='${width}px';document.body.style.backgroundColor='${dark?'#202020':'#fff'}';document.documentElement.style.setProperty('--bg-color','${dark?'#202020':'#fff'}');document.documentElement.style.setProperty('--text-color','${dark?'#eee':'#222'}');document.documentElement.style.color='${dark?'#eee':'#222'}';panel.workbench.history.toolbar.update()`);await delay(100);
+    win.webContents.sendInputEvent({type:'mouseMove',x:1000,y:700});await delay(100);
+    const layout=await evaluate(`(()=>{const heading=document.querySelector('.git-scm-input-heading'),rect=heading.getBoundingClientRect(),label=heading.querySelector('.git-scm-input-title'),label_rect=label?.getBoundingClientRect(),nodes=[...heading.querySelectorAll('.git-scm-input-actions button')];const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const context=canvas.getContext('2d',{willReadFrequently:true}),luminance=rgb=>rgb.slice(0,3).map(value=>value/255).map(value=>value<=.04045?value/12.92:((value+.055)/1.055)**2.4).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);const icon_contrast=node=>{context.fillStyle='#fff';context.fillRect(0,0,1,1);const chain=[];for(let parent=node;parent;parent=parent.parentElement)chain.unshift(parent);for(const parent of chain){context.fillStyle=getComputedStyle(parent).backgroundColor;context.fillRect(0,0,1,1)}const background=luminance([...context.getImageData(0,0,1,1).data]);context.fillStyle=getComputedStyle(node.querySelector('svg')).color;context.fillRect(0,0,1,1);const foreground=luminance([...context.getImageData(0,0,1,1).data]);return (Math.max(background,foreground)+.05)/(Math.min(background,foreground)+.05)};return {overflow:heading.scrollWidth-heading.clientWidth,left:rect.left,right:rect.right,label_right:label_rect?.right||rect.left,buttons:nodes.map(node=>{const r=node.getBoundingClientRect(),svg=node.querySelector('svg').getBoundingClientRect();return {id:node.dataset.scmTitleAction||'more',left:r.left,right:r.right,width:r.width,height:r.height,svg_width:svg.width,svg_height:svg.height,color:getComputedStyle(node).color,contrast:icon_contrast(node),hit:node.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}})};})()`);
+    assert(layout.overflow<=1,JSON.stringify({width,dark,...layout}));assert(layout.label_right<=layout.buttons[0].left+1,JSON.stringify(layout));
+    for(const [index,button]of layout.buttons.entries()){assert(Math.abs(button.width-22)<.1&&Math.abs(button.height-22)<.1,JSON.stringify(button));assert(Math.abs(button.svg_width-16)<.1&&Math.abs(button.svg_height-16)<.1,JSON.stringify(button));assert(button.hit,JSON.stringify(button));assert(button.contrast>=3,JSON.stringify(button));assert(button.left>=layout.left&&button.right<=layout.right+1,JSON.stringify(layout));if(index)assert(layout.buttons[index-1].right<=button.left+.1,JSON.stringify(layout));}
+    title_layouts.push({width,dark,...layout});await capture(`changes_title_${width}_${dark?'dark':'light'}`);
+  }
+  fs.writeFileSync(path.join(temp,'changes_title_layouts.json'),JSON.stringify(title_layouts,null,2));checks.push('180/240/380 pixel light and dark headings retain four unobstructed 22px targets with 16px SVGs and no label overlap and readable icon contrast');
+  await evaluate('window.title_disposed_buttons=[...document.querySelectorAll("[data-scm-title-action],.git-scm-commit")];window.title_dispose_calls=JSON.stringify(title_calls);panel.dispose();host.dispose()');
+  assert.equal(await evaluate('document.querySelectorAll(".git-scm-sidebar").length'),0);assert(await evaluate('title_disposed_buttons.every(node=>node.disabled)'),'disposed title and main buttons remain disabled even when retained by a caller');await evaluate('for(const node of title_disposed_buttons){node.click();node.onclick?.(new MouseEvent("click",{cancelable:true}))}');assert.equal(await evaluate('JSON.stringify(title_calls)'),await evaluate('title_dispose_calls'));assert.equal(git(root,['rev-parse','HEAD']),title_head);
+  checks.push('SCM lifetime releases observers, listeners and rows and disables retained title and main commit controls');
   console.log(JSON.stringify({status:'PASS',checks,evidence:temp},null,2));win.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(temp);if(win&&!win.isDestroyed()){await capture('failure');win.destroy();}app.exit(1);});

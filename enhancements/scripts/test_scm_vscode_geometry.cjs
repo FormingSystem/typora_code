@@ -40,11 +40,12 @@ app.whenReady().then(async () => {
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(String.raw`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname, "../src/git_graph.css"), "utf8"))};document.head.append(style);
-    window.panel={root:'geometry-fixture',state:{root:'geometry-fixture',head:'0123456789abcdef',branch:'main',operation:'',refs:[],commits:[],more:false,changes:[],remotes:[]},branches:[],settings:{initial_count:50,history_toolbar_hidden:[],history_shortcuts:{}},host:{show_history(){},open_panel(){}},repo_select:document.createElement('select'),refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){},switch_repo(){},manage_repositories(){}};
+    window.panel={container:document.createElement('section'),disposed:false,pending:false,writing:false,root:'geometry-fixture',state:{root:'geometry-fixture',head:'0123456789abcdef',branch:'main',operation:'',refs:[],commits:[],more:false,changes:[],remotes:[]},branches:[],settings:{initial_count:50,history_toolbar_hidden:[],history_shortcuts:{}},host:{show_history(){},open_panel(){}},repo_select:document.createElement('select'),refresh(){},configured_menu(){},action_dialog(){},quick_action(){},report(){},switch_repo(){},manage_repositories(){}};
+    panel.container.className='linux-note-git-graph';panel.container.dataset.state='ready';
     const option=document.createElement('option');option.value='geometry-fixture';panel.repo_select.append(option);
     window.scm=new scm_geometry_qa.git_source_control(panel);panel.workbench=scm;
     const shell=document.createElement('section');shell.className='linux-note-git-source-control';shell.append(scm.sidebar);document.querySelector('#sidebar-content').append(shell);window.shell=shell;
-    scm.branch.replaceChildren(document.createTextNode('main'));
+
     scm.groups_state=[{id:'staged',title:'Staged Changes',from:'head',to:scm_geometry_qa.INDEX,files:[]},{id:'changes',title:'Changes',from:scm_geometry_qa.INDEX,to:scm_geometry_qa.WORKTREE,files:[{path:'knowledge/long folder name/source file with spaces.md',status:'M'},{path:'src/new file.ts',status:'??'}]}];scm.render_groups();
 
   })()`);
