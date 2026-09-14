@@ -6,6 +6,8 @@ import { create_workspace_lifetime } from "./workspace_lifetime";
 import { GIT_GRAPH_COMMAND, GIT_GRAPH_TYPE } from "./git_graph_data";
 import { create_graph_host, type graph_core, type graph_leaf } from "./git_graph_host";
 import { git_graph_panel } from "./git_graph_panel";
+import { git_refresh_scheduler } from "./git_refresh_scheduler";
+import { observe_workspace_file_saved } from "./workspace_file_events";
 import { workspace_element, workspace_dialog } from "./workspace_widgets";
 import { bind_git_status_bar } from "./git_status_bar";
 import { GRAPH_SETTINGS_KEY, load_graph_settings, save_reviews } from "./git_graph_settings";
@@ -26,13 +28,25 @@ export function bind_git_graph() {
   const style = acquire_workspace_style("typora-code-style:git_graph_view", graph_css, {});
   const host = lifetime.own(create_graph_host(core)); const panels = new Map<graph_leaf, git_graph_panel>();
   const controllers = new Set<git_graph_panel>();
+  const refresh_schedulers = new Map<git_graph_panel, git_refresh_scheduler>();
+  let sync_refresh_visibility = () => {};
+  const track_panel = (panel: git_graph_panel) => {
+    controllers.add(panel);
+    const scheduler = new git_refresh_scheduler({refresh: () => panel.refresh(false), busy: () => panel.pending || panel.writing,
+      allowed: () => !panel.disposed && document.visibilityState !== "hidden" && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker"),
+      last_refresh: () => panel.last_refreshed_at, last_started: () => panel.refresh_started_at});
+    refresh_schedulers.set(panel, scheduler);
+    lifetime.add(panel.subscribe_state(() => { if (panel.disposed) scheduler.dispose(); else if (!panel.pending && panel.last_refreshed_at) scheduler.settled(); }));
+    lifetime.add(() => scheduler.dispose());
+    return panel;
+  };
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});
   const controller_for = (cwd: string): git_graph_panel => {
     for (const panel of controllers) {
       const relative = host.path_api.relative(panel.root, cwd);
       if (panel.root === cwd || panel.loaded && relative !== ".." && !relative.startsWith(".." + host.path_api.sep) && !host.path_api.isAbsolute(relative)) return panel;
     }
-    const panel = new git_graph_panel(host, cwd); controllers.add(panel); void panel.refresh(false); return panel;
+    const panel = track_panel(new git_graph_panel(host, cwd)); void panel.refresh(false); return panel;
   };
   lifetime.own(bind_git_file_title_actions(host,controller_for));
   const icon = workspace_element("span", "git-activity-icon"); icon.append(git_icon("source-control"));
@@ -40,7 +54,7 @@ export function bind_git_graph() {
     containerEl = workspace_element("section", "linux-note-git-source-control"); panel?: git_graph_panel; visible = false;
     native_observer = new MutationObserver(() => this.clear_native_tabs());
     constructor() { super(); this.addRibbonButton({id: "linux_note:source_control", title: text("view.source_control"), icon, group: "top"}); }
-    mount(panel: git_graph_panel) { this.panel = panel; this.containerEl.replaceChildren(panel.workbench.sidebar); }
+    mount(panel: git_graph_panel) { this.panel = panel; if (this.containerEl.firstElementChild !== panel.workbench.sidebar) this.containerEl.replaceChildren(panel.workbench.sidebar); sync_refresh_visibility(); }
     clear_native_tabs() {
       const sidebar = document.querySelector("#typora-sidebar");
       const classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
@@ -51,11 +65,15 @@ export function bind_git_graph() {
       const native_sidebar = document.querySelector("#typora-sidebar");
       // showSidebar 与延迟大纲刷新会恢复原生标签 class；Git 面板显示期间由本面板持有显示状态。
       if (native_sidebar) this.native_observer.observe(native_sidebar, {attributes: true, attributeFilter: ["class"]});
-      this.mount(controller_for(host.context_path())); if (this.panel && !this.panel.pending) void this.panel.refresh(false);
+      this.mount(controller_for(host.context_path()));
     }
-    onhide() { this.visible = false; this.native_observer.disconnect(); }
+    onhide() { this.visible = false; this.native_observer.disconnect(); sync_refresh_visibility(); }
   }
   const source_sidebar = new source_control_sidebar();lifetime.add(()=>{source_sidebar.onhide();source_sidebar.containerEl.remove();}); lifetime.add(core.app.workspace.sidebar.addPanel(source_sidebar));
+  sync_refresh_visibility = () => {
+    for (const [panel, scheduler] of refresh_schedulers) scheduler.set_visible(!lifetime.disposed && !panel.disposed && document.visibilityState !== "hidden" &&
+      (panel.active || source_sidebar.visible && source_sidebar.panel === panel));
+  };
   const show_source_control = (panel?: git_graph_panel, toggle = false) => {
     if(lifetime.disposed)return;
     if (!source_sidebar.visible) core.app.workspace.sidebar.switch(source_control_sidebar);
@@ -82,7 +100,7 @@ export function bind_git_graph() {
       if (!cwd) for (const [existing, panel] of panels) if (existing.state.path === leaf.state.path) { cwd = panel.root; break; }
       if (!cwd) try { cwd = decodeURIComponent(leaf.state.path.split("/")[3] || ""); } catch { /* 显示仓库选择入口。 */ }
       const available = [...controllers].find(panel => panel.root === cwd && ![...panels.values()].includes(panel));
-      this.panel = available || new git_graph_panel(host, cwd || host.context_path()); controllers.add(this.panel);
+      this.panel = available || track_panel(new git_graph_panel(host, cwd || host.context_path()));
       this.containerEl = this.panel.container; panels.set(leaf, this.panel);
     }
     onOpen() {
@@ -92,10 +110,10 @@ export function bind_git_graph() {
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = "Git Graph";
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = "Git Graph · " + this.panel.root;
       }
-      this.panel.open();
+      this.panel.open(); sync_refresh_visibility();
     }
     onClose() {
-      this.panel.close();
+      this.panel.close(); sync_refresh_visibility();
       setTimeout(() => { let exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf === this.leaf) exists = true; }); if (!exists) { panels.delete(this.leaf); } }, 0);
     }
   }
@@ -155,10 +173,14 @@ export function bind_git_graph() {
     if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
     status_bar.refresh();
   });
-  const refresh_visible = () => { const panel = source_sidebar.panel; if (source_sidebar.visible && document.visibilityState !== "hidden" && panel && !panel.pending && !panel.writing && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) void panel.refresh(false); };
-  const refresh_timer=window.setInterval(refresh_visible,8000);lifetime.add(()=>window.clearInterval(refresh_timer));
-  workspace_on("file:will-save", () => { const timer=window.setTimeout(() => { if(!lifetime.disposed){refresh_visible();status_bar.refresh();} },600);lifetime.add(()=>window.clearTimeout(timer)); });
-  lifetime.listen(window, "focus", () => { const panel = source_sidebar.panel; if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false); });
+  lifetime.add(observe_workspace_file_saved(({file_path: path}) => {
+    for (const [panel, scheduler] of refresh_schedulers) {
+      const relative = typeof path === "string" ? host.path_api.relative(panel.root, path) : "";
+      if (!host.path_api.isAbsolute(relative) && relative !== ".." && !relative.startsWith(".." + host.path_api.sep)) scheduler.invalidate();
+    }
+  }));
+  lifetime.listen(window, "focus", () => { for (const scheduler of refresh_schedulers.values()) scheduler.resume(); });
+  lifetime.listen(document, "visibilitychange", () => sync_refresh_visibility());
   lifetime.listen(window, "keydown", event => {
     if (is_composing_key(event) || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") { event.preventDefault(); event.stopImmediatePropagation(); show_source_control(); source_sidebar.panel?.workbench.message.focus(); }
@@ -175,7 +197,7 @@ export function bind_git_graph() {
     if(core.app.workspace.sidebar.activePanel===source_sidebar){core.app.workspace.sidebar.hide();core.app.workspace.sidebar.activePanel=undefined;}
     for(const panel of controllers)panel.dispose();
     for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}
-    lifetime.dispose();host.dispose();source_sidebar.containerEl.remove();style.remove();panels.clear();controllers.clear();
+    lifetime.dispose();host.dispose();source_sidebar.containerEl.remove();style.remove();panels.clear();controllers.clear();refresh_schedulers.clear();
     document.querySelectorAll('[data-git-graph-launch]').forEach(item=>item.remove());
     for(const attribute of ["source-control","monaco-diff","git-graph","git-graph-actions"])document.documentElement.removeAttribute("data-linux-note-"+attribute);
   }};

@@ -33,6 +33,7 @@ export class git_source_control {
   repositories:git_scm_repositories;
   history: git_scm_history; history_sash: HTMLElement; history_ratio = .55; history_open = true;
   load_epoch = 0; groups_epoch = 0; tree = false; groups_state: change_group[] = [];
+  private groups_layout_changed = true;
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
@@ -106,6 +107,7 @@ export class git_source_control {
   }
   storage_key(suffix: string): string { return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root; }
   load_layout(): void {
+    this.groups_layout_changed = true;
     this.tree = false; this.history_ratio = .55; this.history_open = true; this.input_section.open = true;
     this.show_repositories = false; this.show_changes = true; this.show_history = true; this.sort_order = "path"; this.history_tree = false;
     try {
@@ -167,22 +169,25 @@ export class git_source_control {
     }
     void this.panel.quick_action("commit", [], {message: this.message.value, amend: false});
   }
-  async refresh(): Promise<void> {
+  async refresh(history_changed = true): Promise<void> {
     const state = this.panel.state; if (!state) return; const epoch = ++this.groups_epoch;
     this.fit_message();
-    this.history.render(state);
+    if (history_changed) this.history.render(state);
     try {
       const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
       if (epoch !== this.groups_epoch || state !== this.panel.state) return;
       const conflicts = new Set(state.changes.filter(file => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map(file => file.path));
-      this.groups_state = [
+      const groups_state = [
         {id: "staged", title: text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter(file => !conflicts.has(file.path))},
         {id: "changes", title: text("scm.changes"), from: INDEX, to: WORKTREE, files: unstaged},
       ];
-      this.render_groups();
+      const changed = JSON.stringify(groups_state) !== JSON.stringify(this.groups_state);
+      this.groups_state = groups_state;
+      if (changed || this.groups_layout_changed || !this.groups.childElementCount) this.render_groups();
     } catch (error) { if (epoch === this.groups_epoch) this.panel.report(error); }
   }
   render_groups(): void {
+    this.groups_layout_changed = false;
     const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; this.groups.replaceChildren();
     for (const group of this.groups_state) {
       const section = el("details", "git-scm-group"); section.setAttribute("data-scm-group", group.id); section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";

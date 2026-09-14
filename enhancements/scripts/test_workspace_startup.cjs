@@ -149,12 +149,17 @@ app.whenReady().then(async()=>{
  await evaluate('fixture_commands.get("linux_note:git_graph_fetch").callback();release_wait_lookup();void 0');await wait('wait_network_calls.length===1&&!wait_panel.pending&&!wait_panel.writing');
  assert.equal(await evaluate('wait_network_calls[0].root'),repository.replace(/\\/g,'/'));assert.equal(await evaluate('wait_network_calls[0].action'),'fetch');
  await wait('!document.querySelector(".git-status-sync").disabled');
- await evaluate('arm_wait_lookup();document.querySelector(".git-status-sync").click();void 0');await wait('typeof release_wait_lookup==="function"');
+ // 底栏已使用共享快照，不再为点击主动刷新。先暂停真正的面板刷新，再回放其开始前已排队的点击。
+ await evaluate('arm_wait_lookup();void wait_panel.refresh(false);void 0');await wait('typeof release_wait_lookup==="function"');
+ await evaluate('document.querySelector(".git-status-sync").dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));void 0');
  await evaluate('wait_panel.switch_repo(wait_other)');await evaluate('release_wait_lookup();void 0');await delay(160);
- assert.equal(await evaluate('wait_network_calls.length'),1,'status-bar Sync must not follow a repository switch while its readiness refresh is pending');
+ assert.equal(await evaluate('wait_network_calls.length'),1,'queued status-bar Sync must not follow a repository switch while the shared refresh is pending');
  await evaluate('wait_panel.switch_repo(fixture_root)');await wait('!wait_panel.pending&&!wait_panel.writing');
+ await evaluate('arm_wait_lookup();void wait_panel.refresh(false);void 0');await wait('typeof release_wait_lookup==="function"');
+ await evaluate('document.querySelector(".git-status-sync").dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));release_wait_lookup();void 0');await wait('wait_network_calls.length===2&&!wait_panel.pending&&!wait_panel.writing');
+ assert.equal(await evaluate('wait_network_calls[1].root'),repository.replace(/\\/g,'/'));assert.equal(await evaluate('wait_network_calls[1].action'),'sync');
  await evaluate('wait_panel.network_action=wait_network_original;delete window.wait_network_original;delete window.arm_wait_lookup;void 0');
- checks.push('global Fetch waits for its original repository and executes once; switching the same controller cancels waiting global Fetch and footer Sync before networking');
+ checks.push('global Fetch and queued footer Sync wait for the shared refresh and execute once on the original repository; switching the same controller cancels either before networking');
  await evaluate('window.graph_size=document.querySelector(".git-graph-row").getBoundingClientRect().height;for(const node of [document.documentElement,document.body]){node.style.setProperty("--bg-color","#1e1e1e");node.style.setProperty("--text-color","#cccccc");}void 0');await delay(100);
  assert(await evaluate('document.querySelector(".git-graph-row").getBoundingClientRect().height===graph_size'),'host dark theme retains Graph row geometry');await capture('workspace_graph_dark');
  await evaluate('for(const node of [document.documentElement,document.body]){node.style.removeProperty("--bg-color");node.style.removeProperty("--text-color");}void 0');

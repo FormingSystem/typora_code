@@ -1,5 +1,5 @@
-/** 文件保存事件只报告已经写盘的字节；订阅者失败不能改变文件保存结果。 */
-export type workspace_saved_file = {file_path:string; bytes:Uint8Array; source?:string};
+/** 仅在文件成功写盘后通知；原生宿主只提供路径，源码事务可附已验证字节，订阅者失败不改变保存结果。 */
+export type workspace_saved_file = {file_path:string; bytes?:Uint8Array; source?:string};
 const saved_listeners=new Set<(file:workspace_saved_file)=>void>();
 const change_listeners=new Set<(file_path:string)=>void>();
 export function observe_workspace_file_saved(listener:(file:workspace_saved_file)=>void){saved_listeners.add(listener);return()=>{saved_listeners.delete(listener);};}
