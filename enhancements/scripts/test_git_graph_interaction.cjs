@@ -38,7 +38,7 @@ fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n'); git(['add', 'exa
 git(['checkout', '-b', 'feature']); fs.writeFileSync(path.join(root, 'example.md'), '# Initial\n新增内容\n'); fs.writeFileSync(path.join(root, nested_history_path), '# Nested initial\n嵌套目录中的真实修改\n'); git(['add', 'example.md', nested_history_path]); git(['commit', '-m', '实现 **对比** #12']);
 git(['checkout', 'main']); fs.writeFileSync(path.join(root, 'other.md'), 'main\n'); git(['add', 'other.md']); git(['commit', '-m', '主线更新']); git(['merge', '--no-ff', 'feature', '-m', '合并功能分支']); git(['-c','tag.gpgsign=false','tag','v-ui']);
 const modified_code = original_code.split('\n'); modified_code[9]='int value_9 = 900;'; modified_code.splice(20,0,'// 新增一行'); modified_code.splice(36,1); fs.writeFileSync(path.join(root,'sample.c'),modified_code.join('\n'));
-const bundle = build({ plugins: editor_plugins(), stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host"; export { GRAPH_SETTINGS_KEY } from "./src/git_graph_settings";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'graph_qa', write: false }).then(result => result.outputFiles[0].text);
+const bundle = build({ plugins: editor_plugins(), stdin: { contents: 'export { git_graph_panel } from "./src/git_graph_panel"; export { create_graph_host } from "./src/git_graph_host"; export { GRAPH_SETTINGS_KEY } from "./src/git_graph_settings"; export { terminal_surface } from "./src/terminal_surface"; export { terminal_defaults } from "./src/terminal_settings";', resolveDir: path.join(__dirname, '..') }, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'graph_qa', write: false }).then(result => result.outputFiles[0].text);
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); let test_window;
 const evaluate = async source => { try { return await test_window.webContents.executeJavaScript(source); } catch (error) { console.error('Evaluation failed:', source); throw error; } };
 const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluate(source)) return; await delay(50); } throw new Error('Timed out: ' + source); };
@@ -90,6 +90,39 @@ app.whenReady().then(async () => {
     editor_body.append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.open();
   })()`);
   await wait('panel.container.dataset.state === "ready"');
+  // 底部终端保留中央 Graph 的活动叶子；真实窗口捕获必须按事件目标归还输入。
+  const keyboard_ownership = await evaluate(`(() => {
+    const results=[],record=(name,passed,detail={})=>results.push({name,passed,...detail});
+    const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname, '../node_modules/@xterm/xterm/css/xterm.css'), 'utf8'))};document.head.append(style);
+    const writes=[],surface=new graph_qa.terminal_surface(graph_qa.terminal_defaults,{input:data=>writes.push(data),resize(){},copy:async()=>{},active(){},error:error=>{throw error;}});
+    surface.container.style.cssText='position:fixed;left:260px;right:0;bottom:0;height:180px;z-index:100;background:white';surface.viewport.style.cssText='height:140px;width:100%';document.body.append(surface.container);surface.mount();
+    const original_tabindex=panel.container.getAttribute('tabindex');panel.container.tabIndex=-1;
+    let target_reached=0,default_before_target=false;
+    const observe=event=>{target_reached++;default_before_target=event.defaultPrevented;};document.addEventListener('keydown',observe,true);
+    const send=(target,key,options={})=>{target_reached=0;default_before_target=false;const key_code=key==='Escape'?27:key==='Enter'?13:key.toUpperCase().charCodeAt(0);const event=new KeyboardEvent('keydown',{key,keyCode:key_code,bubbles:true,cancelable:true,...options});target.dispatchEvent(event);return {reached:target_reached===1,default_before_target,default_prevented:event.defaultPrevented};};
+    try{
+      surface.focus();record('底部终端获焦时中央 Graph 仍为活动叶子',core.app.workspace.activeLeaf===graph_leaf&&panel.active&&document.activeElement===surface.term.textarea);
+      panel.close_find();surface.focus();let event=send(surface.term.textarea,'f',{code:'KeyF',ctrlKey:true});
+      record('终端 Ctrl+F 到达 xterm 且不打开 Graph 查找',event.reached&&!event.default_before_target&&panel.find_widget.dataset.open==='false'&&document.activeElement===surface.term.textarea&&writes.at(-1)==='\u0006',{event,find_open:panel.find_widget.dataset.open,focused:document.activeElement.className,writes:[...writes]});
+      panel.open_find();surface.focus();event=send(surface.term.textarea,'Escape',{code:'Escape'});
+      record('终端 Escape 到达 xterm 且不关闭 Graph 查找',event.reached&&!event.default_before_target&&panel.find_widget.dataset.open==='true'&&document.activeElement===surface.term.textarea&&writes.at(-1)==='\u001b',{event,find_open:panel.find_widget.dataset.open,writes:[...writes]});
+      panel.open_find();surface.find();const find_input=surface.container.querySelector('.terminal-find input');event=send(find_input,'Enter',{code:'Enter'});
+      record('终端查找 Enter 保留 Graph 和当前输入焦点',event.reached&&panel.find_widget.dataset.open==='true'&&document.activeElement===find_input);
+      event=send(find_input,'Escape',{code:'Escape'});record('终端查找 Escape 只关闭自己的查找',event.reached&&panel.find_widget.dataset.open==='true'&&surface.container.querySelector('.terminal-find').hidden&&document.activeElement===surface.term.textarea);
+      for(const flags of [{isComposing:true},{keyCode:229}]){
+        for(const key of ['f','r','Escape']){
+          panel.close_find();panel.container.focus();const epoch=panel.epoch;event=send(panel.container,key,{code:key==='Escape'?'Escape':'Key'+key.toUpperCase(),ctrlKey:key!=='Escape',...flags});
+          record('Graph 输入法事件不执行 '+key+' '+JSON.stringify(flags),event.reached&&!event.default_prevented&&panel.find_widget.dataset.open==='false'&&panel.epoch===epoch&&document.activeElement===panel.container,{event,epoch_before:epoch,epoch_after:panel.epoch});
+        }
+      }
+      panel.close_find();panel.container.focus();event=send(panel.container,'f',{code:'KeyF',ctrlKey:true});record('Graph 自己的 Ctrl+F 正常打开并聚焦查找',event.default_prevented&&panel.find_widget.dataset.open==='true'&&document.activeElement===panel.search);
+      event=send(panel.search,'Escape',{code:'Escape'});record('Graph 自己的 Escape 正常关闭查找',event.default_prevented&&panel.find_widget.dataset.open==='false');
+      return results;
+    }finally{document.removeEventListener('keydown',observe,true);surface.dispose();style.remove();panel.close_find();if(original_tabindex===null)panel.container.removeAttribute('tabindex');else panel.container.setAttribute('tabindex',original_tabindex);}
+  })()`);
+  fs.writeFileSync(path.join(evidence,'keyboard_ownership.json'),JSON.stringify(keyboard_ownership,null,2),'utf8');
+  assert(keyboard_ownership.every(item=>item.passed),'Graph/终端捕获输入归属失败：'+JSON.stringify(keyboard_ownership.filter(item=>!item.passed)));
+  await wait('!panel.pending');
   // 仓库选择器只在存在多个仓库时出现；刷新不得恢复关闭的详情。
   assert(await evaluate('panel.repo_select.closest("label").hidden'));
   await evaluate('panel.save_repos([panel.root,panel.root+"/second"]);panel.refresh(false)');
@@ -552,9 +585,10 @@ app.whenReady().then(async () => {
   await evaluate('panel.writing=false;panel.dispose();panel.dispose();panel.open();panel.refresh()');
   assert(await evaluate('panel.disposed && !panel.container.isConnected && !panel.workbench.sidebar.isConnected && !panel.active && !panel.state'));
   console.log(JSON.stringify({status:'PASS',checks:[
+    'Graph active leaf preserves real bottom xterm Ctrl+F/Escape and terminal find input; IME/229 cannot invoke Graph shortcuts while normal Graph find remains available',
     'retained repository A diff rejects refresh, adjacent, Open Current and prebuilt menu writes after switching to B while preserving both repositories and buffers',
     'real pointer context menu','Graph Find case/regex, invalid and zero-width errors, live highlights, match cycling, optional details and stale async protection','preview has no mutation','execution creates branch','settings and focus','SCM history and diff sashes remain draggable','per-context menu checkbox persistence','classic single-line Git Graph controls','fixed Graph Description Date Author Commit columns','24px rows place refs before descriptions','selected commit opens inline details with 32px controls','inline details stay bounded at 640px and 360px editor widths','optional bottom dock and column visibility work','remote toggle persists and multiple reference QuickPick opens','source sidebar correct index/worktree comparison','three aligned hunks and C syntax','one-click stage and unstage','nested menu keyboard navigation','file timeline opens original revision','sidebar refresh survives closing busy graph','two file sections including new files','new file stages directly','ignore keeps disk file and index','Enter inserts newline and Ctrl Enter commits','shortcut commits staged content only','failed commit retains draft','commit dialog preserves multiline message','thin scrollbars on both sides','both panes wheel scroll together','diff center remains draggable','diff minimaps stay disabled after option changes','sidebar renders real commit graph','sidebar history expands actual files and opens revision diff','sidebar graph supports commit context menu','sidebar history collapses and resizes',
     'view menu persists repositories changes and history visibility','last visible view remains recoverable','message section collapse persists','single line message grows with input','commit dropdown preserves draft and amend choice without mutation','history list and collapsible nested tree open correct revisions','narrow sidebar retains filename ellipsis and aligned columns','hover never shifts file status or action slots','group stage button aligns with file stage buttons','history status aligns with change status','inline action keyboard stages and unstages without opening diff','file row keyboard opens diff','editable fields preserve native context menus','blank sidebar retains Git context menu','remote configuration actions are Chinese','commit buttons retain blue contrast on hover','history hover feedback preserves selected state',
     'Graph and SCM follow appearance font variables','SCM controls use 16px official SVG shapes and Chinese accessible names','icon controls contain no text stand-ins','summary and history disclosure SVG follows open state','menus use SVG checks and submenu arrows','topology circles are independent of control SVGs','standard overview shows 15px red and green lanes','both overview marker lanes accept real clicks and synchronize panes'
-  ],classic_metrics,inline_metrics,responsive_metrics,ui_metrics,scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));
+  ],keyboard_ownership,classic_metrics,inline_metrics,responsive_metrics,ui_metrics,scroll_metrics,column_metrics,hover_metrics,icon_metrics,overview_metrics,evidence}));
 }).catch(async error => { console.error(error); if (test_window) { console.error(await evaluate('document.body.innerText')); await capture('failure'); } process.exitCode = 1; }).finally(() => { if (test_window && !test_window.isDestroyed()) test_window.destroy(); app.exit(process.exitCode || 0); });

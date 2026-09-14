@@ -1,3 +1,4 @@
+import {is_composing_key,is_terminal_input} from "./workspace_keyboard";
 import { workspace_zoom_available, workspace_zoom_shortcut, type workspace_zoom_runtime } from "./workspace_zoom";
 import { get_workspace_quick_open } from "./workspace_quick_open";
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH } from "./file_paths";
@@ -44,6 +45,7 @@ export function install_workspace_shortcuts(
     action();
   };
   const keydown = (event: KeyboardEvent) => {
+    if(is_composing_key(event)){reset_chord();return;}
     // 先归还编辑焦点，再让既有快捷键执行，避免动作落到浮动菜单或后台文档。
     if(primary_modifier(event)&&document.querySelector(".workspace-titlebar-popup"))window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
     const zoom_command = workspace_zoom_shortcut(event);
@@ -53,12 +55,10 @@ export function install_workspace_shortcuts(
       return;
     }
     const active_picker=get_workspace_quick_open();
-    if(!event.isComposing && active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
+    if(active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
       run(event,()=>{if(event.shiftKey){active_picker.close();app.commands.run("command:open");}else active_picker.open();});return;
     }
-    if (visible_modal() || event.isComposing) { reset_chord(); return; }
-    if (event.target instanceof Element && event.target.closest(".linux-note-terminal")
-        && !event.target.closest(".linux-note-source-file")) { reset_chord(); return; }
+    if (visible_modal() || is_terminal_input(event)) { reset_chord(); return; }
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
 
     if (primary_modifier(event)) {
@@ -122,7 +122,7 @@ export function install_workspace_shortcuts(
     }
     reset_chord();
   };
-  const keyup=(event:KeyboardEvent)=>{if(consumed.delete(event.code)){event.preventDefault();event.stopImmediatePropagation();}};
+  const keyup=(event:KeyboardEvent)=>{const handled=consumed.delete(event.code);if(handled&&!is_composing_key(event)){event.preventDefault();event.stopImmediatePropagation();}};
   const blur=()=>{reset_chord();consumed.clear();};
   window.addEventListener("keydown", keydown, true);
   window.addEventListener("keyup", keyup, true);

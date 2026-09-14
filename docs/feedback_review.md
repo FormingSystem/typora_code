@@ -625,3 +625,15 @@ R037三个资源管理器分区统一标题行、箭头、文字行盒、UI字�
 最终原始Typora 1.14.10私有窗口77项通过，证据`.cache/native_zoom_1_14_10/shift_headers_final5_20260914`。分区点击、明暗布局和真实本地bare远端Fetch使用私有桌面Win32指针；系统减少动画开启时实际移动矩阵持续变化，完成后按300ms反馈收尾。终端在面板与编辑器间复用同一表面，renderer组合回放的实际onData为`中文`、`pin`、`pin`、`a`，原Markdown、dirty和Git暂存内容保持。此前原生夹具复跑修正了完成反馈等待、焦点协议数据计入文本和无视keydown取消而强发keypress的假设，期间候选未改动；没有把renderer回放称为搜狗物理按键验证。明暗标题及活动提示截图已视检。
 
 已使用现有安装、备份和检查入口安装同一完整候选，检查`status: OK`，23项资产与候选一致，ASAR、应用图标、原生偏好、工作台设置和主题5项摘要保持。备份编号`20260914-095652-398-636dd991a6a24c608f9ad40223525b76`；逐项证据`.cache/shift_headers_install_verification_20260914.json`。本次workbench.js摘要`eb75c4d0a772534935615d16f102da6f5148c1e7daf396d3695c2c75e69017f2`，workspace.css摘要`ac8e3a2ccc66c143088cefcee76c1182ffa16abbd0d5011b99997729b29078cc`。用户窗口未重启，保存文档后正常重启加载。物理搜狗按键仍待用户实际输入确认；其他既有平台验收缺口未被本次缩进或进度修复关闭。本轮按用户明确授权提交并普通推送远端，不强推或改写历史。
+
+## 2026-09-14 终端全局快捷键捕获归属
+
+从已安装并推送的`1a427fa`继续核对用户关于Shift与搜狗快捷键的追问。未找到纯Shift被工作台取消的路径，也未收到重启后仍复现的确认；但新增回归证实window捕获早于终端冒泡隔离，中央Graph会抢走底部终端Ctrl+F/Escape，全局搜索会抢走终端Ctrl+Shift+F，若干全局入口遗漏229输入法标记。按[R006.7设计](terminal_operations.md#2026-09-14-全局捕获与终端焦点)修正这组独立缺陷，不把它们直接当作物理搜狗丢拼音的已证实根因。
+
+共享`workspace_keyboard`只判定输入法事件和实际终端输入目标，不维护候选状态。终端、搜索、Graph、Explorer、面包屑、顶栏及工作区捕获入口复用IME/229判断；Graph按事件目标让行底部终端，终端查找不会再打开工作区搜索。快捷键抬键清理旧消费记录，但不取消输入法事件。普通全局命令保持，原有`terminal_composition`没有改动。
+
+旧版Graph专项6项、捕获集成6项及抬键扩展2项先失败后通过。最终完整`npm run check`和12个相关UI目标一次全绿；新增集成目标39项、Graph输入归属13项均通过。日志`.cache/terminal_capture_check_20260914.log`与`terminal_capture_ui_20260914.log`。构建曾出现一次workspace.css写入UNKNOWN错误，保留失败日志后原命令重跑通过，没有绕过安装或文件校验。
+
+原始Typora 1.14.10私有桌面采用同一最终观察器：旧版29/41、新版41/41通过，证据`.cache/native_zoom_1_14_10/terminal_capture_red3_20260914`与`terminal_capture_final2_20260914`。旧版12项失败覆盖终端、搜索、Graph、Explorer、SCM、面包屑及菜单捕获；新版Ctrl+F/Escape各到达一次xterm并生成正确控制字节，中文、pin、pin、a依次提交且焦点保持。纯Shift、keyup、取消及搬移正常，原Markdown、dirty和三套私有Git夹具的HEAD、暂存对象、差量与文件字节不变。首次新版观察器在xterm之后注册冒泡监听，错误地将合法消费后的零计数判为失败，已改为不拦截的捕获观察器并对旧、新两个候选重跑；未修改产品来适配夹具。截图已视检，输入采用renderer事件和实际xterm管线，不能替代搜狗物理键盘验证。
+
+已通过现有安装事务交付，安装后检查`status: OK`，23项资产与本次原生候选一致，五项用户配置及宿主保护摘要保持。备份`20260914-104535-024-06619dd16f0c440ab04d966f89df8c4f`，证据`.cache/terminal_capture_install_verification_20260914.json`。workbench.js摘要`bc17f8a82deae889f615a9fe1fcae7526d692a6894c9179c0f90067787f3a8ba`；CSS未变。用户窗口未关闭或重启，保存后正常重启加载。源码、测试、设计与同一构建按用户授权一起提交并普通推送；物理搜狗及此前独立平台验收缺口继续保留。

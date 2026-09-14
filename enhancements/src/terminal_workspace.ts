@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import {bind_terminal_state} from "./terminal_state";
 import {acquire_workspace_style} from "./workspace_styles";
 import {git_icon,git_icon_button,type git_icon_name} from "./git_icons";
@@ -189,7 +190,7 @@ export function bind_terminal_workspace(host:graph_host){
   }));
   lifetime.listen(window,"linux-note-open-terminal",((event:CustomEvent<{path?:string;cwd?:string;admin?:boolean}>)=>{if(event.detail.cwd)open(event.detail.cwd,"",settings.get().location,"",true);else launch(Boolean(event.detail.admin),event.detail.path);}) as EventListener);
   lifetime.listen(window,"keydown",((event:KeyboardEvent)=>{
-    if(!event.ctrlKey||event.altKey||event.metaKey||event.isComposing||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
+    if(is_composing_key(event)||!event.ctrlKey||event.altKey||event.metaKey||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
     if(event.code==="Backquote"){event.preventDefault();event.stopImmediatePropagation();event.shiftKey?launch():toggle();}
     else if(event.shiftKey&&event.code==="Digit5"&&event.target instanceof Element&&event.target.closest(".linux-note-terminal")){event.preventDefault();event.stopImmediatePropagation();split();}
   }) as EventListener,true);

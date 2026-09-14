@@ -50,6 +50,7 @@ const ui_tests = Object.freeze([
   "test_terminal_theme.cjs",
   "test_terminal_panel.cjs",
   "test_terminal_composition.cjs",
+  "test_terminal_capture.cjs",
   "test_workspace_activity.cjs",
   "test_workspace_core_smoke.cjs",
   "test_workspace_diff_status.cjs",

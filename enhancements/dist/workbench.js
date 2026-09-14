@@ -161519,6 +161519,15 @@ https://creativecommons.org/licenses/by/4.0/
     return lifetime;
   }
 
+  // src/workspace_keyboard.ts
+  function is_composing_key(event) {
+    return event.isComposing || event.keyCode === 229;
+  }
+  function is_terminal_input(event) {
+    const target = event.composedPath().find((node) => node instanceof Element) || event.target;
+    return target instanceof Element && !!target.closest(".linux-note-terminal") && !target.closest(".linux-note-source-file");
+  }
+
   // src/workspace_quick_open.css
   var workspace_quick_open_default = "";
 
@@ -162250,6 +162259,10 @@ https://creativecommons.org/licenses/by/4.0/
       action();
     };
     const keydown = (event) => {
+      if (is_composing_key(event)) {
+        reset_chord();
+        return;
+      }
       if (primary_modifier(event) && document.querySelector(".workspace-titlebar-popup")) window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
       const zoom_command = workspace_zoom_shortcut(event);
       if (zoom_command && workspace_zoom_available(runtime2, zoom_command) && !visible_modal(".reading-media-viewer")) {
@@ -162257,7 +162270,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       const active_picker2 = get_workspace_quick_open();
-      if (!event.isComposing && active_picker2 && !active_picker2.root.hidden && primary_modifier(event) && event.code === "KeyP") {
+      if (active_picker2 && !active_picker2.root.hidden && primary_modifier(event) && event.code === "KeyP") {
         run(event, () => {
           if (event.shiftKey) {
             active_picker2.close();
@@ -162266,11 +162279,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
         return;
       }
-      if (visible_modal() || event.isComposing) {
-        reset_chord();
-        return;
-      }
-      if (event.target instanceof Element && event.target.closest(".linux-note-terminal") && !event.target.closest(".linux-note-source-file")) {
+      if (visible_modal() || is_terminal_input(event)) {
         reset_chord();
         return;
       }
@@ -162358,7 +162367,8 @@ https://creativecommons.org/licenses/by/4.0/
       reset_chord();
     };
     const keyup = (event) => {
-      if (consumed.delete(event.code)) {
+      const handled = consumed.delete(event.code);
+      if (handled && !is_composing_key(event)) {
         event.preventDefault();
         event.stopImmediatePropagation();
       }
@@ -196100,7 +196110,7 @@ https://creativecommons.org/licenses/by/4.0/
       input.oninput = () => find();
       input.onkeydown = (event) => {
         event.stopPropagation();
-        if (event.isComposing || event.keyCode === 229) return;
+        if (is_composing_key(event)) return;
         if (event.key === "Enter") {
           event.preventDefault();
           find(event.shiftKey);
@@ -196115,7 +196125,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (this.settings.copy_on_selection && this.term.hasSelection()) void actions.copy(this.term.getSelection()).catch(actions.error);
       }));
       this.term.attachCustomKeyEventHandler((event) => {
-        if (event.isComposing || event.keyCode === 229) return true;
+        if (is_composing_key(event)) return true;
         const key2 = event.key.toLowerCase(), control = event.ctrlKey || event.metaKey;
         if (control && (event.shiftKey && ["c", "v", "f"].includes(key2) || key2 === "c" && this.term.hasSelection())) {
           if (event.type === "keydown") {
@@ -197094,7 +197104,7 @@ https://creativecommons.org/licenses/by/4.0/
         else launch(Boolean(event.detail.admin), event.detail.path);
       }));
       lifetime.listen(window, "keydown", ((event) => {
-        if (!event.ctrlKey || event.altKey || event.metaKey || event.isComposing || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+        if (is_composing_key(event) || !event.ctrlKey || event.altKey || event.metaKey || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
         if (event.code === "Backquote") {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -227842,7 +227852,7 @@ https://creativecommons.org/licenses/by/4.0/
       }));
     }
     keydown(event) {
-      if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker") || event.isComposing) return;
+      if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker") || is_composing_key(event) || is_terminal_input(event)) return;
       if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") {
         event.preventDefault();
@@ -228391,7 +228401,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false);
       });
       lifetime.listen(window, "keydown", (event) => {
-        if (event.isComposing || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
+        if (is_composing_key(event) || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
         if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") {
           event.preventDefault();
           event.stopImmediatePropagation();
@@ -229892,7 +229902,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (open) button?.click();
     };
     const key2 = (event) => {
-      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && !event.isComposing && ["Period", "Semicolon"].includes(event.code) && !document.querySelector("[aria-modal=true]")) {
+      if (is_composing_key(event)) return;
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && ["Period", "Semicolon"].includes(event.code) && !document.querySelector("[aria-modal=true]")) {
         event.preventDefault();
         event.stopImmediatePropagation();
         focus_last(event.code === "Period");
@@ -233466,7 +233477,8 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.listen(document, "click", activity_click, true);
       lifetime.add(core.app.commands.register({ id: "linux_note:search", title: "\u641C\u7D22\uFF1A\u5728\u6587\u4EF6\u4E2D\u67E5\u627E", scope: "global", callback: () => show2() }));
       const keydown = (event) => {
-        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f" && !event.altKey && !event.isComposing && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
+        if (is_composing_key(event) || is_terminal_input(event)) return;
+        if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f" && !event.altKey && !document.querySelector('[role="dialog"][aria-modal="true"]')) {
           event.preventDefault();
           event.stopImmediatePropagation();
           show2();
@@ -235036,7 +235048,8 @@ https://creativecommons.org/licenses/by/4.0/
     const observer2 = new ResizeObserver(refresh);
     observer2.observe(element);
     window.addEventListener("keydown", (event) => {
-      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.isComposing) {
+      if (is_composing_key(event)) return;
+      if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
         const index = definitions.findIndex((definition2) => definition2.mnemonic.toLowerCase() === event.key.toLowerCase());
         if (index !== -1) {
           event.preventDefault();
@@ -237232,7 +237245,7 @@ https://creativecommons.org/licenses/by/4.0/
         })();
       } }));
       const explorer_shortcut = (event) => {
-        if (!(event.ctrlKey || event.metaKey) || !event.shiftKey || event.altKey || event.code !== "KeyE" || event.isComposing || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+        if (is_composing_key(event) || !(event.ctrlKey || event.metaKey) || !event.shiftKey || event.altKey || event.code !== "KeyE" || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         focus_explorer();

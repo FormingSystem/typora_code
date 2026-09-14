@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {git_icon} from "./git_icons";
@@ -111,7 +112,8 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const interaction=acquire_workspace_interaction(element);
   const observer=new ResizeObserver(refresh);observer.observe(element);
   window.addEventListener("keydown",event=>{
-    if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.isComposing){const index=definitions.findIndex(definition=>definition.mnemonic.toLowerCase()===event.key.toLowerCase());if(index!==-1){event.preventDefault();event.stopImmediatePropagation();void open_menu(index,true);}}
+    if(is_composing_key(event))return;
+    if(event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){const index=definitions.findIndex(definition=>definition.mnemonic.toLowerCase()===event.key.toLowerCase());if(index!==-1){event.preventDefault();event.stopImmediatePropagation();void open_menu(index,true);}}
     if(active_index!==-1&&(!(event.target instanceof Node)||!panels.some(panel=>panel.contains(event.target as Node)))){
       if(["ArrowDown","ArrowUp","Home","End"].includes(event.key)&&panels[0]){event.preventDefault();event.stopImmediatePropagation();focus_item(panels[0],event.key==="ArrowUp"||event.key==="End"?-1:0);}
     }
