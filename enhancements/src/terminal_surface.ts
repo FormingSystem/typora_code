@@ -5,6 +5,7 @@ import {git_icon_button} from "./git_icons";
 import {workspace_element as el,workspace_button as button,workspace_dialog} from "./workspace_widgets";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 import {terminal_theme} from "./terminal_theme";
+import {bind_terminal_composition} from "./terminal_composition";
 import type {terminal_settings} from "./terminal_settings";
 
 /** 同一会话始终复用同一终端屏幕；移动容器不重建缓冲或 PTY。 */
@@ -48,7 +49,7 @@ export class terminal_surface {
     const observer=new ResizeObserver(()=>this.resize());observer.observe(this.viewport);this.lifetime.add(()=>observer.disconnect());
     this.lifetime.add(()=>{cancelAnimationFrame(this.frame);this.term.dispose();this.container.remove();});
   }
-  mount(){if(this.lifetime.disposed)return;if(!this.opened){this.opened=true;this.term.open(this.viewport);}this.resize();}
+  mount(){if(this.lifetime.disposed)return;if(!this.opened){this.opened=true;this.term.open(this.viewport);if(this.term.textarea)this.lifetime.own(bind_terminal_composition(this.term.textarea));}this.resize();}
   apply_settings(settings:terminal_settings){this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:settings.font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();}
   resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{this.fit.fit();this.actions.resize(this.term.cols,this.term.rows);}catch{/* 初次布局等待可用尺寸。 */}});}
   focus(){if(!this.lifetime.disposed)this.term.focus();}

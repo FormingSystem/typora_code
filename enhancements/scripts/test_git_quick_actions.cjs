@@ -40,6 +40,34 @@ app.whenReady().then(async()=>{
   assert(await evaluate('[...document.querySelectorAll(".git-operation-progress")].every(bar=>!bar.hidden&&getComputedStyle(bar).height==="2px"&&getComputedStyle(bar).pointerEvents==="none"&&!bar.hasAttribute("aria-valuenow"))'));
   assert(await evaluate('document.querySelectorAll(".git-operation-progress").length===3&&document.querySelector("[data-git-status=sync]").classList.contains("git-operation-spinning")&&document.querySelector("[data-git-status=sync]").disabled'));
   const transform=await evaluate('getComputedStyle(document.querySelector(".git-operation-progress-bit")).transform');await delay(100);assert.notEqual(await evaluate('getComputedStyle(document.querySelector(".git-operation-progress-bit")).transform'),transform,'progress is animated while actual fetch is pending');
+  const motion_evidence=[];
+  for(const reduced_motion of ['reduce','no-preference']){
+    await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:reduced_motion}]});
+    for(const dark of [false,true]){
+      await evaluate(`document.documentElement.style.setProperty('--bg-color',${JSON.stringify(dark?'#1e1e1e':'#ffffff')});document.documentElement.style.setProperty('--text-color',${JSON.stringify(dark?'#cccccc':'#24292f')});document.querySelector('#sidebar').style.width='260px'`);
+      assert.equal(await evaluate('getComputedStyle(document.querySelector(".linux-note-git-source-control")).backgroundColor'),dark?'rgb(30, 30, 30)':'rgb(255, 255, 255)');
+      const narrow_geometry=await evaluate('progress_geometry()');
+      const read_motion=()=>evaluate('[...document.querySelectorAll(".git-operation-progress-bit")].map(bit=>{const css=getComputedStyle(bit),bar=bit.parentElement;return {transform:css.transform,width:bit.offsetWidth,bar_width:bar.clientWidth,height:bar.clientHeight,timing:css.animationTimingFunction,hidden:bar.hidden}})');
+      const before=await read_motion();await delay(180);const after=await read_motion();
+      assert.equal(after.length,3);
+      for(let i=0;i<after.length;i++){
+        assert(!after[i].hidden&&after[i].height===2);
+        assert(Math.abs(after[i].width-after[i].bar_width*.02)<=1,'busy indicator remains a short moving bit, not a static full-width line');
+        assert.notEqual(after[i].transform,before[i].transform,`progress surface ${i} must move with reduced motion ${reduced_motion} and dark ${dark}`);
+      }
+      assert.deepEqual(await evaluate('progress_geometry()'),narrow_geometry);
+      motion_evidence.push({reduced_motion,dark,before,after});
+    }
+  }
+  await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
+  await wait('[...document.querySelectorAll(".git-operation-progress")].every(bar=>bar.classList.contains("is-long-running"))');
+  const long_before=await evaluate('[...document.querySelectorAll(".git-operation-progress-bit")].map(bit=>getComputedStyle(bit).transform)');await delay(180);
+  const long_after=await evaluate('[...document.querySelectorAll(".git-operation-progress-bit")].map(bit=>({transform:getComputedStyle(bit).transform,timing:getComputedStyle(bit).animationTimingFunction}))');
+  long_after.forEach((bit,index)=>{assert.equal(bit.timing,'steps(100)');assert.notEqual(bit.transform,long_before[index]);});
+  fs.writeFileSync(path.join(temp,'progress_motion.json'),JSON.stringify({motion_evidence,long_before,long_after},null,2));
+  await evaluate('document.documentElement.style.removeProperty("--bg-color");document.documentElement.style.removeProperty("--text-color");document.querySelector("#sidebar").style.width="390px"');
+  assert.deepEqual(await evaluate('progress_geometry()'),geometry);
+  checks.push('all three short overlay indicators move in light/dark narrow panels with either OS motion preference, including throttled long-running operations');
   await evaluate('panel.settings.show_progress=false;panel.persist_settings()');assert(await evaluate('[...document.querySelectorAll(".git-operation-progress")].every(bar=>bar.hidden)&&panel.progress.state.busy&&panel.writing'));
   await evaluate('panel.settings.show_progress=true;panel.persist_settings()');assert(await evaluate('[...document.querySelectorAll(".git-operation-progress")].every(bar=>!bar.hidden)'));
   await evaluate('window.pause_fetch=false;window.release_fetch();delete window.release_fetch');await wait('!panel.writing&&!panel.pending&&panel.state.tracking.behind===1');assert(await evaluate(`panel.state.commits.some(item=>item.hash===${JSON.stringify(remote_head)})`));assert.equal(git(root,['rev-parse','HEAD']),git(root,['rev-parse','main']));await no_form();

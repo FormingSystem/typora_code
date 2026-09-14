@@ -38,18 +38,19 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   ];};
   const toolbar=container.querySelector(".workspace-explorer-toolbar .workspace-explorer-actions")!;
   const menu=git_icon_button("more","资源管理器视图",()=>{});menu.onclick=event=>workspace_menu(event,visibility(),"workspace-menu-compact");toolbar.append(menu);
-  const root_title=root.querySelector<HTMLElement>(".workspace-explorer-root-name")!,old_context=root.oncontextmenu,old_title_context=root_title.oncontextmenu,old_click=root_title.onclick;
+  const root_title=root.querySelector<HTMLElement>(".workspace-explorer-root-name")!,old_context=root.oncontextmenu,old_title_context=root_title.oncontextmenu;
+  const folder_toggle=el("button","workspace-explorer-section-title"),folder_caret=el("span","workspace-explorer-folder-caret"),folder_actions=root.querySelector<HTMLElement>(".workspace-explorer-actions")!;
+  folder_toggle.type="button";folder_caret.setAttribute("aria-hidden","true");root_title.before(folder_toggle);folder_toggle.append(folder_caret,root_title);
+  root.classList.add("workspace-explorer-section-heading");root_title.classList.add("workspace-explorer-section-label");folder_actions.classList.add("workspace-explorer-section-actions");
   const section_menu=(event:MouseEvent)=>{event.preventDefault();event.stopPropagation();workspace_menu(event,visibility(),"workspace-menu-compact");};
   root.oncontextmenu=section_menu;root_title.oncontextmenu=section_menu;
-  root_title.onclick=()=>{collapsed.folders=!collapsed.folders;remember();render_layout();};root_title.setAttribute("role","button");root_title.tabIndex=0;
-  const root_key=(event:KeyboardEvent)=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();root_title.click();}};root_title.addEventListener("keydown",root_key);
-  const folder_caret=el("span","workspace-explorer-folder-caret");folder_caret.setAttribute("aria-hidden","true");folder_caret.onclick=()=>root_title.click();root_title.before(folder_caret);
+  folder_toggle.onclick=()=>{collapsed.folders=!collapsed.folders;remember();render_layout();};
   toggle.onclick=()=>{collapsed.open=!collapsed.open;remember();render_layout();};heading.oncontextmenu=event=>{event.preventDefault();workspace_menu(event,visibility(),"workspace-menu-compact");};
   function render_layout(){
     const value=read_workspace_save_settings();opened.hidden=!value["explorer.openEditors.enabled"];body.hidden=collapsed.open;
-    toggle.replaceChildren(git_icon(collapsed.open?"chevron-right":"chevron-down"),document.createTextNode("打开的编辑器"));toggle.setAttribute("aria-expanded",String(!collapsed.open));
+    opened.classList.toggle("is-collapsed",collapsed.open);toggle.replaceChildren(git_icon(collapsed.open?"chevron-right":"chevron-down"),el("span","workspace-explorer-section-label","打开的编辑器"));toggle.setAttribute("aria-expanded",String(!collapsed.open));
     folder_caret.replaceChildren(git_icon(collapsed.folders?"chevron-right":"chevron-down"));
-    root_title.setAttribute("aria-expanded",String(!collapsed.folders));tree.hidden=collapsed.folders;status.hidden=collapsed.folders;folders.classList.toggle("is-collapsed",collapsed.folders);
+    folder_toggle.setAttribute("aria-expanded",String(!collapsed.folders));tree.hidden=collapsed.folders;status.hidden=collapsed.folders;folders.classList.toggle("is-collapsed",collapsed.folders);
     body.style.maxHeight=value["explorer.openEditors.visible"]*22+"px";body.style.minHeight=Math.min(value["explorer.openEditors.minVisible"],value["explorer.openEditors.visible"])*22+"px";
     render_opened();
   }
@@ -89,6 +90,6 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
     entries.splice(2,0,{title:"打开方式…",children,action:()=>{}},{title:"与剪贴板比较",action:()=>run(async()=>{const right=await files.read_text(path),left=(window as any).reqnode("electron").clipboard.readText();if(left.length>16*1024*1024)throw new Error("剪贴板文本超过16 MiB。");viewer.open({title:files.path_api.basename(path)+"（剪贴板比较）",file:path,left,right,left_label:"剪贴板",right_label:path});})});
     entries.push({title:"打开时间线",separator:true,action:()=>timeline.open(path)});
   }) as EventListener);
-  render_layout();lifetime.add(()=>{if(frame)cancelAnimationFrame(frame);menu.remove();folder_caret.remove();root.oncontextmenu=old_context;root_title.oncontextmenu=old_title_context;root_title.onclick=old_click;root_title.removeEventListener("keydown",root_key);root_title.removeAttribute("role");root_title.removeAttribute("tabindex");root_title.removeAttribute("aria-expanded");tree.hidden=false;status.hidden=false;folders.before(root,tree,status);folders.remove();opened.remove();});
+  render_layout();lifetime.add(()=>{if(frame)cancelAnimationFrame(frame);menu.remove();folder_toggle.before(root_title);folder_toggle.remove();root.classList.remove("workspace-explorer-section-heading");root_title.classList.remove("workspace-explorer-section-label");folder_actions.classList.remove("workspace-explorer-section-actions");root.oncontextmenu=old_context;root_title.oncontextmenu=old_title_context;tree.hidden=false;status.hidden=false;folders.before(root,tree,status);folders.remove();opened.remove();});
   return{dispose:()=>lifetime.dispose()};
 }

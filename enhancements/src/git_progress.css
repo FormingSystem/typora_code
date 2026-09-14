@@ -6,4 +6,5 @@
 .git-operation-spinning .git-standard-icon{animation:git-operation-spin 1.5s steps(30) infinite;transform-origin:center center}
 @keyframes git-operation-progress{from{transform:translateX(0) scaleX(1)}50%{transform:translateX(2500%) scaleX(3)}to{transform:translateX(4900%) scaleX(1)}}
 @keyframes git-operation-spin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.git-operation-progress-bit{animation:none;width:100%;opacity:.7}.git-operation-spinning .git-standard-icon{animation:none}}
+/* 与上游ProgressBar一致，执行进度保留横向移动，不将未知总量画成满宽静止线。 */
+@media(prefers-reduced-motion:reduce){.git-operation-spinning .git-standard-icon{animation:none}}
