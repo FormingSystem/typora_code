@@ -196025,6 +196025,11 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_terminal_composition(textarea) {
     const lifetime = create_workspace_lifetime();
     let prefix = "", composing = false, timer = 0;
+    const input_parent = textarea.parentElement;
+    if (input_parent) lifetime.listen(input_parent, "keydown", (event) => {
+      const key2 = event;
+      if (event.target === textarea && !composing && !key2.isComposing && key2.keyCode !== 229 && !key2.ctrlKey && !key2.altKey && !key2.metaKey && !key2.getModifierState("AltGraph") && (key2.key === "Shift" || key2.keyCode === 16)) event.stopPropagation();
+    }, true);
     let pending;
     const normalize3 = (record) => {
       if (lifetime.disposed || !textarea.isConnected || textarea.value !== record.committed) return;
