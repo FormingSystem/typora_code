@@ -183830,6 +183830,16 @@ https://creativecommons.org/licenses/by/4.0/
   var WORKTREE = "WORKTREE";
   var INDEX = "INDEX";
   var EMPTY = "EMPTY";
+  function repository_branch_status(state) {
+    return state.status || {
+      branch: state.branch || "(detached)",
+      head: state.head || "(initial)",
+      upstream: state.tracking?.upstream?.replace(/^refs\/remotes\//u, "") || "",
+      ahead: state.tracking?.ahead || 0,
+      behind: state.tracking?.behind || 0,
+      dirty: state.changes.length > 0
+    };
+  }
   function require_revision(value) {
     if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error(git_graph_text("repository.invalid_revision"));
     return value;
@@ -183864,7 +183874,7 @@ https://creativecommons.org/licenses/by/4.0/
   });
   async function read_repository(run, cwd2, settings, count, branches = []) {
     const root = (await run(cwd2, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-    const [head, branch, ref_text, stash_text, status_text, remote_text, git_path] = await Promise.all([
+    const [head, branch, ref_text, stash_text, status_text, remote_text, git_path, status2] = await Promise.all([
       quiet_head(run, root),
       run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).then((value) => value.trim()).catch((error) => {
         if (error.code === 1) return "";
@@ -183874,7 +183884,8 @@ https://creativecommons.org/licenses/by/4.0/
       settings.show_stashes ? run(root, ["stash", "list", "--format=%H%x00%gd%x00%gs%x00%aI", "-z"]) : "",
       settings.show_changes ? run(root, ["status", "--porcelain=v1", "-z", settings.show_untracked ? "--untracked-files=all" : "--untracked-files=no"]) : "",
       run(root, ["remote", "-v"]),
-      run(root, ["rev-parse", "--absolute-git-dir"])
+      run(root, ["rev-parse", "--absolute-git-dir"]),
+      read_branch_status(run, root)
     ]);
     const refs = ref_text.split("\n").filter((line) => /\0commit(?:\0|$)/u.test(line)).map((line) => {
       const [hash2, peeled, name] = line.replace(/\r$/u, "").split("\0");
@@ -183936,7 +183947,7 @@ https://creativecommons.org/licenses/by/4.0/
       commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
     }
     const operation = git_path.trim();
-    return { root, head, branch, refs, tracking, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+    return { root, head, branch, refs, tracking, status: status2, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
   }
   function comparison_args(from, to, head) {
     if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
@@ -202715,101 +202726,53 @@ https://creativecommons.org/licenses/by/4.0/
       this.owner = owner;
       this.container.setAttribute("aria-label", git_graph_text("scm.repositories"));
       this.stop_progress = owner.panel.progress.subscribe(() => this.update_disabled());
+      this.stop_state = owner.panel.subscribe_state(() => this.paint_current());
     }
     container = workspace_element("div", "git-scm-repositories-list");
     epoch = 0;
     reader;
     reader_key = "";
-    update_rows = [];
+    rows = /* @__PURE__ */ new Map();
+    disposed = false;
+    active_root = "";
     stop_progress;
+    stop_state;
     refresh() {
+      if (this.disposed) return;
       this.reader?.cancel();
-      const panel = this.owner.panel, epoch = ++this.epoch;
+      const panel = this.owner.panel, roots = panel.repository_paths([panel.root, ...panel.known_repos()]);
+      for (const [root, item] of this.rows) if (!roots.includes(root)) {
+        item.row.remove();
+        this.rows.delete(root);
+      }
+      roots.forEach((root, index) => {
+        let item = this.rows.get(root);
+        if (!item) {
+          item = this.create_row(root);
+          this.rows.set(root, item);
+        }
+        if (this.container.children[index] !== item.row) this.container.insertBefore(item.row, this.container.children[index] || null);
+      });
+      this.paint_current();
+      const epoch = ++this.epoch;
+      const rows = roots.filter((root) => root !== panel.root).map((root) => this.rows.get(root));
+      if (!rows.length) return;
       if (!this.reader || this.reader_key !== panel.settings.git_path) {
         this.reader?.dispose?.();
         this.reader = panel.host.runner(panel.settings);
         this.reader_key = panel.settings.git_path;
       }
       const reader = this.reader;
-      this.update_rows = [];
-      const roots = panel.repository_paths([panel.root, ...panel.known_repos()]);
-      this.container.replaceChildren();
-      const rows = roots.map((root) => {
-        const row = workspace_element("div", "git-scm-repository-row");
-        row.dataset.root = root;
-        row.dataset.workspaceInteraction = "row";
-        row.dataset.active = String(root === panel.root);
-        const select = workspace_button("", () => {
-          if (!panel.disposed && !panel.writing) void panel.switch_repo(root);
-        }, "git-scm-repository-name");
-        select.title = root;
-        select.append(git_icon("repo"), workspace_element("span", "", panel.host.path_api.basename(root)));
-        select.setAttribute("aria-pressed", String(root === panel.root));
-        select.disabled = panel.writing;
-        const branch = workspace_button("", () => {
-        }, "git-scm-repository-branch"), sync = git_icon_button("sync", git_graph_text("action.title.sync"), () => {
-        }, "git-scm-repository-sync"), more = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
-        }, "git-scm-repository-more");
-        const valid = () => epoch === this.epoch && !panel.disposed && root === panel.root && panel.state?.root === root && !panel.pending && !panel.writing && panel.container.dataset.state !== "error";
-        branch.onclick = (event) => {
-          if (valid()) panel.configured_menu(event, "checkout", checkout_entries(panel));
-        };
-        branch.oncontextmenu = (event) => workspace_menu(event, [{ title: git_graph_text("scm.configure_keybinding"), disabled: true, action() {
-        } }]);
-        sync.onclick = () => {
-          if (valid()) void panel.network_action("sync");
-        };
-        more.onclick = (event) => {
-          if (valid()) this.owner.more_menu(event);
-        };
-        row.oncontextmenu = (event) => {
-          if (valid()) this.owner.more_menu(event);
-          else {
-            event.preventDefault();
-            event.stopPropagation();
-          }
-        };
-        let loaded = false, normal_title = sync.title, normal_icon = "sync";
-        const update2 = () => {
-          select.disabled = panel.writing;
-          branch.disabled = more.disabled = !loaded || !valid();
-          sync.disabled = !loaded || !valid() || !panel.state?.branch || !panel.state?.head || !panel.state.remotes.length || !!panel.state.operation;
-          const state = panel.progress.state, busy = root === panel.root && state.busy, spinning = busy && state.running && ["fetch", "pull", "push", "sync"].includes(state.kind);
-          normal_icon = sync.dataset.normalIcon || normal_icon;
-          normal_title = sync.dataset.normalTitle || normal_title;
-          const icon = spinning ? "sync" : normal_icon;
-          if (sync.firstElementChild?.getAttribute("data-git-icon") !== icon) sync.firstElementChild?.replaceWith(git_icon(icon));
-          row.setAttribute("aria-busy", String(busy));
-          sync.classList.toggle("git-operation-spinning", spinning);
-          sync.title = busy ? state.label : normal_title;
-          sync.setAttribute("aria-label", sync.title);
-        };
-        this.update_rows.push(update2);
-        branch.disabled = sync.disabled = more.disabled = true;
-        row.append(select, branch, sync, more);
-        this.container.append(row);
-        return { root, row, branch, sync, more, valid, ready: () => {
-          loaded = true;
-          update2();
-        } };
-      });
       let next = 0;
       const worker = async () => {
         while (next < rows.length) {
           const item = rows[next++];
           try {
             const status2 = await read_branch_status(reader.run, item.root);
-            if (epoch !== this.epoch) return;
-            const branch = status2.branch === "(detached)" ? status2.head.slice(0, 8) : status2.branch;
-            item.branch.replaceChildren(git_icon("git-branch"), workspace_element("span", "", branch + (status2.dirty ? "*" : "")));
-            item.branch.title = branch;
-            item.sync.replaceChildren(git_icon(status2.upstream ? "sync" : "cloud-upload"), workspace_element("span", "", status2.upstream ? "".concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : ""));
-            item.sync.title = status2.upstream ? "".concat(status2.upstream, ": ").concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : git_graph_text("scm.publish_branch");
-            item.sync.dataset.normalTitle = item.sync.title;
-            item.sync.dataset.normalIcon = status2.upstream ? "sync" : "cloud-upload";
-            item.ready();
+            if (this.disposed || epoch !== this.epoch) return;
+            item.paint(status2);
           } catch (error) {
-            if (epoch === this.epoch) {
+            if (!this.disposed && epoch === this.epoch) {
               item.row.title = String(error);
               item.row.dataset.error = "true";
             }
@@ -202818,15 +202781,99 @@ https://creativecommons.org/licenses/by/4.0/
       };
       void Promise.all(Array.from({ length: Math.min(4, rows.length) }, worker));
     }
+    create_row(root) {
+      const panel = this.owner.panel;
+      const row = workspace_element("div", "git-scm-repository-row");
+      row.dataset.root = root;
+      row.dataset.workspaceInteraction = "row";
+      row.dataset.active = String(root === panel.root);
+      const select = workspace_button("", () => {
+        if (!panel.disposed && !panel.writing) void panel.switch_repo(root);
+      }, "git-scm-repository-name");
+      select.title = root;
+      select.append(git_icon("repo"), workspace_element("span", "", panel.host.path_api.basename(root)));
+      select.setAttribute("aria-pressed", String(root === panel.root));
+      select.disabled = panel.writing;
+      const branch = workspace_button("", () => {
+      }, "git-scm-repository-branch"), sync = git_icon_button("sync", git_graph_text("action.title.sync"), () => {
+      }, "git-scm-repository-sync"), more = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
+      }, "git-scm-repository-more");
+      const valid = () => !this.disposed && this.rows.get(root)?.row === row && !panel.disposed && root === panel.root && panel.state?.root === root && !panel.pending && !panel.writing && panel.container.dataset.state !== "error";
+      branch.onclick = (event) => {
+        if (valid()) panel.configured_menu(event, "checkout", checkout_entries(panel));
+      };
+      branch.oncontextmenu = (event) => workspace_menu(event, [{ title: git_graph_text("scm.configure_keybinding"), disabled: true, action() {
+      } }]);
+      sync.onclick = () => {
+        if (valid()) void panel.network_action("sync");
+      };
+      more.onclick = (event) => {
+        if (valid()) this.owner.more_menu(event);
+      };
+      row.oncontextmenu = (event) => {
+        if (valid()) this.owner.more_menu(event);
+        else {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      };
+      let loaded = false, normal_title = sync.title, normal_icon = "sync";
+      const branch_label = workspace_element("span", ""), sync_counts = workspace_element("span", "");
+      branch.append(git_icon("git-branch"), branch_label);
+      sync.append(sync_counts);
+      const update2 = () => {
+        select.disabled = panel.disposed || panel.writing;
+        row.dataset.active = String(root === panel.root);
+        select.setAttribute("aria-pressed", String(root === panel.root));
+        branch.disabled = more.disabled = !loaded || !valid();
+        sync.disabled = !loaded || !valid() || !panel.state?.branch || !panel.state?.head || !panel.state.remotes.length || !!panel.state.operation;
+        const state = panel.progress.state, busy = root === panel.root && state.busy, spinning = busy && state.running && ["fetch", "pull", "push", "sync"].includes(state.kind);
+        const icon = spinning ? "sync" : normal_icon;
+        if (sync.firstElementChild?.getAttribute("data-git-icon") !== icon) sync.firstElementChild?.replaceWith(git_icon(icon));
+        row.setAttribute("aria-busy", String(busy));
+        sync.classList.toggle("git-operation-spinning", spinning);
+        sync.title = busy ? state.label : normal_title;
+        sync.setAttribute("aria-label", sync.title);
+      };
+      const paint = (status2) => {
+        const name = status2.branch === "(detached)" ? status2.head.slice(0, 8) : status2.branch, label = name + (status2.dirty ? "*" : ""), counts = status2.upstream ? "".concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : "";
+        if (branch_label.textContent !== label) branch_label.textContent = label;
+        if (sync_counts.textContent !== counts) sync_counts.textContent = counts;
+        branch.title = name;
+        normal_title = status2.upstream ? "".concat(status2.upstream, ": ").concat(status2.behind, "\u2193 ").concat(status2.ahead, "\u2191") : git_graph_text("scm.publish_branch");
+        normal_icon = status2.upstream ? "sync" : "cloud-upload";
+        row.removeAttribute("data-error");
+        row.removeAttribute("title");
+        loaded = true;
+        update2();
+      };
+      branch.disabled = sync.disabled = more.disabled = true;
+      row.append(select, branch, sync, more);
+      return { root, row, select, branch, sync, update: update2, paint };
+    }
+    paint_current() {
+      if (this.disposed) return;
+      const panel = this.owner.panel;
+      if (this.active_root !== panel.root) {
+        this.active_root = panel.root;
+        this.epoch++;
+        this.reader?.cancel();
+      }
+      if (panel.state?.root === panel.root) this.rows.get(panel.root)?.paint(repository_branch_status(panel.state));
+      this.update_disabled();
+    }
     update_disabled() {
-      for (const update2 of this.update_rows) update2();
+      for (const row of this.rows.values()) row.update();
     }
     dispose() {
+      if (this.disposed) return;
+      this.disposed = true;
       this.stop_progress();
+      this.stop_state();
       this.epoch++;
       this.reader?.dispose?.();
       this.reader?.cancel();
-      this.update_rows = [];
+      this.rows.clear();
     }
   };
 
@@ -203829,10 +203876,12 @@ https://creativecommons.org/licenses/by/4.0/
     groups_epoch = 0;
     tree = false;
     groups_state = [];
+    groups_layout_changed = true;
     storage_key(suffix) {
       return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root;
     }
     load_layout() {
+      this.groups_layout_changed = true;
       this.tree = false;
       this.history_ratio = 0.55;
       this.history_open = true;
@@ -203928,26 +203977,29 @@ https://creativecommons.org/licenses/by/4.0/
       }
       void this.panel.quick_action("commit", [], { message: this.message.value, amend: false });
     }
-    async refresh() {
+    async refresh(history_changed = true) {
       const state = this.panel.state;
       if (!state) return;
       const epoch = ++this.groups_epoch;
       this.fit_message();
-      this.history.render(state);
+      if (history_changed) this.history.render(state);
       try {
         const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
         if (epoch !== this.groups_epoch || state !== this.panel.state) return;
         const conflicts = new Set(state.changes.filter((file) => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map((file) => file.path));
-        this.groups_state = [
+        const groups_state = [
           { id: "staged", title: git_graph_text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter((file) => !conflicts.has(file.path)) },
           { id: "changes", title: git_graph_text("scm.changes"), from: INDEX, to: WORKTREE, files: unstaged }
         ];
-        this.render_groups();
+        const changed2 = JSON.stringify(groups_state) !== JSON.stringify(this.groups_state);
+        this.groups_state = groups_state;
+        if (changed2 || this.groups_layout_changed || !this.groups.childElementCount) this.render_groups();
       } catch (error) {
         if (epoch === this.groups_epoch) this.panel.report(error);
       }
     }
     render_groups() {
+      this.groups_layout_changed = false;
       const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll;
       this.groups.replaceChildren();
       for (const group of this.groups_state) {
@@ -226567,6 +226619,14 @@ https://creativecommons.org/licenses/by/4.0/
     loaded = false;
     active = false;
     disposed = false;
+    last_refreshed_at = 0;
+    refresh_started_at = 0;
+    state_listeners = /* @__PURE__ */ new Set();
+    refresh_task;
+    refresh_request = "";
+    rendered_snapshot = "";
+    refresh_runner;
+    detail_refresh_needed = false;
     files = [];
     containment = /* @__PURE__ */ new Map();
     ancestors = /* @__PURE__ */ new Set();
@@ -226617,6 +226677,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.container.remove();
       this.container.replaceChildren();
       this.state = void 0;
+      this.publish_state();
+      this.state_listeners.clear();
       this.finder.close();
       this.containment.clear();
       this.ancestors.clear();
@@ -226669,6 +226731,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.loaded = false;
       this.close_details();
       this.branches = [];
+      this.last_refreshed_at = 0;
+      this.publish_state();
       this.settings = load_graph_settings(localStorage, root);
       this.runner.cancel();
       this.runner = this.host.runner(this.settings);
@@ -226684,11 +226748,37 @@ https://creativecommons.org/licenses/by/4.0/
       this.discard_confirmation.update_state();
       this.ref_picker.update_state();
     }
-    async refresh(reset2 = true) {
+    subscribe_state(listener) {
+      this.state_listeners.add(listener);
+      listener();
+      return () => this.state_listeners.delete(listener);
+    }
+    publish_state() {
+      for (const listener of this.state_listeners) listener();
+    }
+    refresh(reset2 = true) {
+      if (this.disposed) return Promise.resolve();
+      const request = JSON.stringify([this.repository_epoch, this.root, this.settings, reset2 ? this.settings.initial_count : this.count, this.branches]);
+      if (this.pending && this.refresh_task && this.refresh_request === request && this.refresh_runner === this.runner) return this.refresh_task;
+      if (this.refresh_runner && this.refresh_runner !== this.runner) this.detail_refresh_needed = true;
+      this.refresh_runner = this.runner;
+      this.refresh_request = request;
+      const task = this.refresh_repository(reset2);
+      this.refresh_task = task;
+      void task.then(() => {
+        if (this.refresh_task === task) this.refresh_task = void 0;
+      });
+      return task;
+    }
+    async refresh_repository(reset2) {
       if (this.disposed) return;
+      this.refresh_started_at = Date.now();
       const epoch = ++this.epoch;
-      this.detail_epoch++;
-      this.runner.cancel();
+      if (this.pending) {
+        this.detail_epoch++;
+        this.detail_refresh_needed = true;
+        this.runner.cancel();
+      }
       this.pending = true;
       const previous_progress = this.read_progress, activity = this.progress.begin("refresh", git_graph_text("graph.loading_repository"));
       this.read_progress = activity;
@@ -226725,40 +226815,48 @@ https://creativecommons.org/licenses/by/4.0/
         }
         const first_load = !this.loaded;
         state.operation = this.host.operation(state.operation);
+        const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
+        const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
+        const changed2 = first_load || snapshot !== this.rendered_snapshot;
         this.state = state;
         this.root = state.root;
         this.loaded = true;
-        this.containment.clear();
-        if (first_load && !this.workbench.message.value) this.workbench.load_layout();
-        this.save_repos([this.root, ...this.known_repos()]);
-        const repos = this.known_repos();
-        if (this.settings.repository_order !== "recent") repos.sort((a, b2) => this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b2)) : a.localeCompare(b2));
-        this.repo_select.replaceChildren(...repos.map((root) => workspace_option(root, this.host.path_api.basename(root) || root)), workspace_option("__manage__", git_graph_text("graph.manage_repositories")));
-        this.repo_select.value = this.root;
-        const repository_control = this.repo_select.closest(".git-graph-repository-control");
-        if (repository_control) repository_control.hidden = repos.length <= 1;
-        this.container.title = "".concat(state.root).concat(state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 " + git_graph_text("graph.detached_head") : "");
-        this.branch_select.replaceChildren(workspace_option("", git_graph_text("graph.all_branches")), workspace_option("HEAD", git_graph_text("graph.current_head")));
-        for (const ref of state.refs) this.branch_select.append(workspace_option(ref.name, ref.name.replace(/^refs\//u, "")));
-        for (const glob of this.settings.branch_globs) this.branch_select.append(workspace_option("glob:" + glob.glob, glob.name));
-        this.branch_select.append(workspace_option("__multiple__", git_graph_text("graph.select_multiple_branches")));
-        this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
-        this.show_remote_input.checked = this.settings.show_remotes;
-        this.ancestors.clear();
-        if (this.settings.mute_unreachable && state.head) {
-          const hashes = await this.runner.run(this.root, ["rev-list", state.head, "--max-count=".concat(this.count * 4)]);
-          if (epoch !== this.epoch) return;
-          this.ancestors = new Set(hashes.trim().split("\n"));
+        if (changed2) {
+          this.containment.clear();
+          if (first_load && !this.workbench.message.value) this.workbench.load_layout();
+          this.save_repos(repository_paths);
+          const repos = this.known_repos();
+          if (this.settings.repository_order !== "recent") repos.sort((a, b2) => this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b2)) : a.localeCompare(b2));
+          this.repo_select.replaceChildren(...repos.map((root) => workspace_option(root, this.host.path_api.basename(root) || root)), workspace_option("__manage__", git_graph_text("graph.manage_repositories")));
+          this.repo_select.value = this.root;
+          const repository_control = this.repo_select.closest(".git-graph-repository-control");
+          if (repository_control) repository_control.hidden = repos.length <= 1;
+          this.container.title = "".concat(state.root).concat(state.branch ? " \xB7 " + state.branch : state.head ? " \xB7 " + git_graph_text("graph.detached_head") : "");
+          this.branch_select.replaceChildren(workspace_option("", git_graph_text("graph.all_branches")), workspace_option("HEAD", git_graph_text("graph.current_head")));
+          for (const ref of state.refs) this.branch_select.append(workspace_option(ref.name, ref.name.replace(/^refs\//u, "")));
+          for (const glob of this.settings.branch_globs) this.branch_select.append(workspace_option("glob:" + glob.glob, glob.name));
+          this.branch_select.append(workspace_option("__multiple__", git_graph_text("graph.select_multiple_branches")));
+          this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+          this.show_remote_input.checked = this.settings.show_remotes;
+          this.ancestors.clear();
+          if (this.settings.mute_unreachable && state.head) {
+            const hashes = await this.runner.run(this.root, ["rev-list", state.head, "--max-count=".concat(this.count * 4)]);
+            if (epoch !== this.epoch) return;
+            this.ancestors = new Set(hashes.trim().split("\n"));
+          }
+          this.render_history();
         }
-        this.render_history();
-        await this.workbench.refresh();
+        await this.workbench.refresh(changed2);
         if (epoch !== this.epoch) return;
         this.more_button.hidden = !state.more;
+        this.rendered_snapshot = snapshot;
         this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label(state.operation) }) : "");
         this.container.dataset.state = "ready";
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
-        if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some((commit) => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
-        else this.close_details();
+        if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some((commit) => commit.hash === this.selected))) {
+          if (changed2 || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
+        } else this.close_details();
+        this.detail_refresh_needed = false;
       } catch (error) {
         if (epoch === this.epoch) {
           this.report(error);
@@ -226767,10 +226865,12 @@ https://creativecommons.org/licenses/by/4.0/
       } finally {
         if (epoch === this.epoch) {
           this.pending = false;
+          this.last_refreshed_at = Date.now();
           this.refresh_button.disabled = false;
           this.more_button.disabled = false;
           this.update_scm_actions();
           if (this.workbench.show_repositories) this.workbench.repositories.refresh();
+          this.publish_state();
         }
         activity.finish();
         if (this.read_progress === activity) this.read_progress = void 0;
@@ -227899,6 +227999,97 @@ https://creativecommons.org/licenses/by/4.0/
   var builtin_emoji = { ":art:": "\u{1F3A8}", ":zap:": "\u26A1\uFE0F", ":fire:": "\u{1F525}", ":bug:": "\u{1F41B}", ":ambulance:": "\u{1F691}\uFE0F", ":sparkles:": "\u2728", ":memo:": "\u{1F4DD}", ":rocket:": "\u{1F680}", ":lipstick:": "\u{1F484}", ":tada:": "\u{1F389}", ":white_check_mark:": "\u2705", ":lock:": "\u{1F512}\uFE0F", ":closed_lock_with_key:": "\u{1F510}", ":bookmark:": "\u{1F516}", ":rotating_light:": "\u{1F6A8}", ":construction:": "\u{1F6A7}", ":green_heart:": "\u{1F49A}", ":arrow_down:": "\u2B07\uFE0F", ":arrow_up:": "\u2B06\uFE0F", ":pushpin:": "\u{1F4CC}", ":construction_worker:": "\u{1F477}", ":chart_with_upwards_trend:": "\u{1F4C8}", ":recycle:": "\u267B\uFE0F", ":heavy_plus_sign:": "\u2795", ":heavy_minus_sign:": "\u2796", ":wrench:": "\u{1F527}", ":hammer:": "\u{1F528}", ":globe_with_meridians:": "\u{1F310}", ":pencil2:": "\u270F\uFE0F", ":poop:": "\u{1F4A9}", ":rewind:": "\u23EA\uFE0F", ":twisted_rightwards_arrows:": "\u{1F500}", ":package:": "\u{1F4E6}\uFE0F", ":alien:": "\u{1F47D}\uFE0F", ":truck:": "\u{1F69A}", ":page_facing_up:": "\u{1F4C4}", ":boom:": "\u{1F4A5}", ":bento:": "\u{1F371}", ":wheelchair:": "\u267F\uFE0F", ":bulb:": "\u{1F4A1}", ":beers:": "\u{1F37B}", ":speech_balloon:": "\u{1F4AC}", ":card_file_box:": "\u{1F5C3}\uFE0F", ":loud_sound:": "\u{1F50A}", ":mute:": "\u{1F507}", ":busts_in_silhouette:": "\u{1F465}", ":children_crossing:": "\u{1F6B8}", ":building_construction:": "\u{1F3D7}\uFE0F", ":iphone:": "\u{1F4F1}", ":clown_face:": "\u{1F921}", ":egg:": "\u{1F95A}", ":see_no_evil:": "\u{1F648}", ":camera_flash:": "\u{1F4F8}", ":alembic:": "\u2697\uFE0F", ":mag:": "\u{1F50D}\uFE0F", ":label:": "\u{1F3F7}\uFE0F", ":seedling:": "\u{1F331}", ":triangular_flag_on_post:": "\u{1F6A9}", ":goal_net:": "\u{1F945}", ":dizzy:": "\u{1F4AB}", ":wastebasket:": "\u{1F5D1}\uFE0F", ":passport_control:": "\u{1F6C2}", ":adhesive_bandage:": "\u{1FA79}", ":monocle_face:": "\u{1F9D0}", ":coffin:": "\u26B0\uFE0F", ":test_tube:": "\u{1F9EA}", ":necktie:": "\u{1F454}", ":stethoscope:": "\u{1FA7A}", ":bricks:": "\u{1F9F1}", ":technologist:": "\u{1F9D1}\u200D\u{1F4BB}", ":money_with_wings:": "\u{1F4B8}", ":thread:": "\u{1F9F5}", ":safety_vest:": "\u{1F9BA}", ":smile:": "\u{1F604}", ":thumbsup:": "\u{1F44D}", ":heart:": "\u2764\uFE0F" };
   for (const item of emoji_default) for (const alias of item.aliases) builtin_emoji[":" + alias + ":"] ??= item.emoji;
 
+  // src/git_refresh_scheduler.ts
+  var default_clock = {
+    now: () => Date.now(),
+    set_timeout: (callback, delay) => setTimeout(callback, delay),
+    clear_timeout: (timer) => clearTimeout(timer)
+  };
+  var REFRESH_INTERVAL = 30 * 60 * 1e3;
+  var SAVE_DELAY = 1e3;
+  var REFRESH_COOLDOWN = 5e3;
+  var BLOCKED_RETRY = 1e3;
+  var git_refresh_scheduler = class {
+    constructor(options2, clock = default_clock) {
+      this.options = options2;
+      this.clock = clock;
+    }
+    visible = false;
+    opened = false;
+    initial_due = false;
+    running = false;
+    disposed = false;
+    last_attempt = 0;
+    own_started = 0;
+    timer;
+    dirty;
+    set_visible(visible3) {
+      if (this.disposed) return;
+      this.visible = visible3;
+      if (visible3 && !this.opened) {
+        this.opened = true;
+        this.initial_due = !this.options.busy() && !this.running;
+      }
+      this.schedule();
+    }
+    invalidate() {
+      if (this.disposed) return;
+      this.dirty = { at: this.clock.now(), during_read: this.running || this.options.busy() };
+      this.schedule();
+    }
+    /** 聚焦或弹层关闭只唤醒已经到期/有改动的读取，不把窗口事件当作刷新命令。 */
+    resume() {
+      if (!this.disposed) this.schedule();
+    }
+    /** 控制器每次读取的 finally 调用，包括用户命令和失败；读取中到达的保存继续保留。 */
+    settled() {
+      if (this.disposed) return;
+      this.last_attempt = this.clock.now();
+      this.initial_due = false;
+      const started = Math.max(this.own_started, this.options.last_started());
+      if (this.dirty && (this.dirty.at < started || this.dirty.at === started && !this.dirty.during_read)) this.dirty = void 0;
+      this.schedule();
+    }
+    clear_timer() {
+      if (this.timer !== void 0) this.clock.clear_timeout(this.timer);
+      this.timer = void 0;
+    }
+    schedule() {
+      this.clear_timer();
+      if (this.disposed || !this.visible) return;
+      const now = this.clock.now();
+      const completed = Math.max(this.last_attempt, this.options.last_refresh());
+      const due = this.initial_due ? now : this.dirty ? Math.max(this.dirty.at + SAVE_DELAY, completed + REFRESH_COOLDOWN) : completed + REFRESH_INTERVAL;
+      if (due > now) {
+        this.timer = this.clock.set_timeout(() => this.schedule(), due - now);
+        return;
+      }
+      if (this.running || this.options.busy() || !this.options.allowed()) {
+        this.timer = this.clock.set_timeout(() => this.schedule(), BLOCKED_RETRY);
+        return;
+      }
+      this.running = true;
+      this.initial_due = false;
+      this.own_started = now;
+      this.dirty = void 0;
+      void (async () => {
+        try {
+          await this.options.refresh();
+        } catch {
+        } finally {
+          this.running = false;
+          this.settled();
+        }
+      })();
+    }
+    dispose() {
+      if (this.disposed) return;
+      this.disposed = true;
+      this.clear_timer();
+      this.dirty = void 0;
+    }
+  };
+
   // src/git_status_bar.css
   var git_status_bar_default = "";
 
@@ -227934,10 +228125,8 @@ https://creativecommons.org/licenses/by/4.0/
     let panel;
     let snapshot;
     let snapshot_root = "";
-    let epoch = 0;
     let disposed = false;
-    let reader;
-    let stop_progress, normal_sync_title = "", normal_sync_disabled = true;
+    let stop_progress, stop_state, normal_sync_title = "", normal_sync_disabled = true;
     const render_progress = () => {
       const state = panel?.progress.state, busy = state?.busy === true, spinning = state?.running === true && ["fetch", "pull", "push", "sync"].includes(state.kind);
       branch.disabled = busy;
@@ -227951,10 +228140,6 @@ https://creativecommons.org/licenses/by/4.0/
       item.setAttribute("aria-busy", String(busy));
       item.title = busy ? state.label : git_graph_text("status.repository_status");
     };
-    const observer2 = new MutationObserver(() => {
-      if (panel && !panel.pending) void refresh();
-      else window.setTimeout(() => void refresh(), 0);
-    });
     const unavailable = (message) => {
       snapshot = void 0;
       snapshot_root = "";
@@ -227969,53 +228154,58 @@ https://creativecommons.org/licenses/by/4.0/
       normal_sync_disabled = true;
       render_progress();
     };
-    const refresh = async () => {
+    const paint = (current) => {
+      if (disposed || current !== panel) return;
+      if (current.disposed || !current.root) {
+        unavailable(git_graph_text("status.open_repository_first"));
+        return;
+      }
+      if (!current.pending && current.container.dataset.state === "error") {
+        unavailable(git_graph_text("status.read_failed", { error: current.status.textContent || "Git" }));
+        return;
+      }
+      if (snapshot_root !== current.root) {
+        snapshot = void 0;
+        snapshot_root = "";
+        label.textContent = git_graph_text("status.checking");
+        counts.textContent = "";
+        normal_sync_disabled = true;
+        normal_sync_title = git_graph_text("status.checking");
+        item.dataset.repository = "loading";
+      }
+      if (!current.state || current.state.root !== current.root) {
+        render_progress();
+        return;
+      }
+      const status2 = repository_branch_status(current.state);
+      snapshot = status2;
+      snapshot_root = current.root;
+      const detached = status2.branch === "(detached)";
+      const name = detached ? git_graph_text("status.detached_name", { hash: status2.head.slice(0, 8) }) : status2.branch || "Git";
+      const branch_label = name + (status2.dirty ? "*" : "");
+      if (label.textContent !== branch_label) label.textContent = branch_label;
+      branch.title = git_graph_text("status.branch_tooltip", { root: current.root, branch: detached ? git_graph_text("status.detached_head") : git_graph_text("status.current_branch", { branch: name }), initial: status2.head === "(initial)" ? git_graph_text("status.initial_suffix") : "", worktree: status2.dirty ? git_graph_text("status.dirty") : git_graph_text("status.clean") });
+      branch.setAttribute("aria-label", branch.title);
+      item.dataset.repository = "ready";
+      const count_label = status2.upstream && (status2.behind || status2.ahead) ? "\u2193".concat(status2.behind, " \u2191").concat(status2.ahead) : "";
+      if (counts.textContent !== count_label) counts.textContent = count_label;
+      sync.disabled = detached || status2.head === "(initial)";
+      sync.title = sync.disabled ? git_graph_text("status.create_commit_first") : status2.upstream ? git_graph_text("status.sync_tooltip", { upstream: status2.upstream, behind: status2.behind, ahead: status2.ahead }) : git_graph_text("status.publish_tooltip");
+      sync.setAttribute("aria-label", sync.title);
+      normal_sync_title = sync.title;
+      normal_sync_disabled = sync.disabled;
+      render_progress();
+    };
+    const refresh = () => {
       if (disposed) return;
       const current = current_panel();
       if (current !== panel) {
         stop_progress?.();
+        stop_state?.();
         panel = current;
-        stop_progress = panel.progress.subscribe(render_progress);
-        observer2.disconnect();
-        observer2.observe(panel.container, { attributes: true, attributeFilter: ["data-state"] });
-      }
-      if (snapshot_root !== current.root) {
-        snapshot = void 0;
-        label.textContent = git_graph_text("status.checking");
-        counts.textContent = "";
-        sync.disabled = true;
-        item.dataset.repository = "loading";
-      }
-      const token = ++epoch;
-      reader?.cancel();
-      reader = host.runner(current.settings);
-      const root = current.root;
-      if (!root) {
-        unavailable(git_graph_text("status.open_repository_first"));
-        return;
-      }
-      try {
-        const status2 = parse_branch_status(await reader.run(root, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]));
-        if (disposed || token !== epoch || current !== panel || root !== current.root) return;
-        snapshot = status2;
-        snapshot_root = current.root;
-        const detached = status2.branch === "(detached)";
-        const name = detached ? git_graph_text("status.detached_name", { hash: status2.head.slice(0, 8) }) : status2.branch || "Git";
-        label.textContent = name + (status2.dirty ? "*" : "");
-        branch.title = git_graph_text("status.branch_tooltip", { root: current.root, branch: detached ? git_graph_text("status.detached_head") : git_graph_text("status.current_branch", { branch: name }), initial: status2.head === "(initial)" ? git_graph_text("status.initial_suffix") : "", worktree: status2.dirty ? git_graph_text("status.dirty") : git_graph_text("status.clean") });
-        branch.setAttribute("aria-label", branch.title);
-        item.dataset.repository = "ready";
-        counts.textContent = status2.upstream && (status2.behind || status2.ahead) ? "\u2193".concat(status2.behind, " \u2191").concat(status2.ahead) : "";
-        sync.disabled = detached || status2.head === "(initial)";
-        sync.replaceChildren(git_icon(status2.upstream ? "sync" : "cloud-upload"), counts);
-        sync.title = sync.disabled ? git_graph_text("status.create_commit_first") : status2.upstream ? git_graph_text("status.sync_tooltip", { upstream: status2.upstream, behind: status2.behind, ahead: status2.ahead }) : git_graph_text("status.publish_tooltip");
-        sync.setAttribute("aria-label", sync.title);
-        normal_sync_title = sync.title;
-        normal_sync_disabled = sync.disabled;
-        render_progress();
-      } catch (error) {
-        if (!disposed && token === epoch) unavailable(git_graph_text("status.read_failed", { error: String(error instanceof Error ? error.message : error) }));
-      }
+        stop_progress = current.progress.subscribe(render_progress);
+        stop_state = current.subscribe_state(() => paint(current));
+      } else paint(current);
     };
     const ready = (event, show2) => {
       event.preventDefault();
@@ -228023,7 +228213,7 @@ https://creativecommons.org/licenses/by/4.0/
       const current = current_panel(), repository_epoch = current.repository_epoch;
       const available = () => !disposed && !current.disposed && current === current_panel() && current.repository_epoch === repository_epoch;
       void (async () => {
-        if (!current.pending && !current.writing) await current.refresh(false);
+        if (!current.state && !current.pending && !current.writing) await current.refresh(false);
         while (current.pending && available()) await new Promise((resolve3) => setTimeout(resolve3, 50));
         if (!available()) return;
         if (!current.state || current.container.dataset.state === "error") {
@@ -228072,26 +228262,17 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     });
     sync.onclick = (event) => ready(event, async (current, available) => {
-      await refresh();
+      refresh();
       if (!available() || snapshot_root !== current.root || !snapshot || sync.disabled) return;
       await current.network_action("sync");
     });
     sync.oncontextmenu = sync_menu;
     graph.oncontextmenu = (event) => ready(event, (current) => current.background_menu(event));
-    const timer = window.setInterval(() => {
-      if (document.visibilityState !== "hidden" && !panel?.writing) void refresh();
-    }, 8e3);
-    const on_focus = () => void refresh();
-    window.addEventListener("focus", on_focus);
     const dispose2 = () => {
       if (disposed) return;
       disposed = true;
-      epoch++;
       stop_progress?.();
-      reader?.cancel();
-      clearInterval(timer);
-      observer2.disconnect();
-      window.removeEventListener("focus", on_focus);
+      stop_state?.();
       item.remove();
       layout2.remove();
       style.remove();
@@ -228121,6 +228302,26 @@ https://creativecommons.org/licenses/by/4.0/
       const host = lifetime.own(create_graph_host(core));
       const panels = /* @__PURE__ */ new Map();
       const controllers = /* @__PURE__ */ new Set();
+      const refresh_schedulers = /* @__PURE__ */ new Map();
+      let sync_refresh_visibility = () => {
+      };
+      const track_panel = (panel) => {
+        controllers.add(panel);
+        const scheduler = new git_refresh_scheduler({
+          refresh: () => panel.refresh(false),
+          busy: () => panel.pending || panel.writing,
+          allowed: () => !panel.disposed && document.visibilityState !== "hidden" && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker"),
+          last_refresh: () => panel.last_refreshed_at,
+          last_started: () => panel.refresh_started_at
+        });
+        refresh_schedulers.set(panel, scheduler);
+        lifetime.add(panel.subscribe_state(() => {
+          if (panel.disposed) scheduler.dispose();
+          else if (!panel.pending && panel.last_refreshed_at) scheduler.settled();
+        }));
+        lifetime.add(() => scheduler.dispose());
+        return panel;
+      };
       lifetime.add(() => {
         for (const panel of controllers) panel.dispose();
         for (const leaf of panels.keys()) {
@@ -228136,8 +228337,7 @@ https://creativecommons.org/licenses/by/4.0/
           const relative2 = host.path_api.relative(panel2.root, cwd2);
           if (panel2.root === cwd2 || panel2.loaded && relative2 !== ".." && !relative2.startsWith(".." + host.path_api.sep) && !host.path_api.isAbsolute(relative2)) return panel2;
         }
-        const panel = new git_graph_panel(host, cwd2);
-        controllers.add(panel);
+        const panel = track_panel(new git_graph_panel(host, cwd2));
         void panel.refresh(false);
         return panel;
       };
@@ -228155,7 +228355,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
         mount(panel) {
           this.panel = panel;
-          this.containerEl.replaceChildren(panel.workbench.sidebar);
+          if (this.containerEl.firstElementChild !== panel.workbench.sidebar) this.containerEl.replaceChildren(panel.workbench.sidebar);
+          sync_refresh_visibility();
         }
         clear_native_tabs() {
           const sidebar = document.querySelector("#typora-sidebar");
@@ -228168,11 +228369,11 @@ https://creativecommons.org/licenses/by/4.0/
           const native_sidebar = document.querySelector("#typora-sidebar");
           if (native_sidebar) this.native_observer.observe(native_sidebar, { attributes: true, attributeFilter: ["class"] });
           this.mount(controller_for(host.context_path()));
-          if (this.panel && !this.panel.pending) void this.panel.refresh(false);
         }
         onhide() {
           this.visible = false;
           this.native_observer.disconnect();
+          sync_refresh_visibility();
         }
       }
       const source_sidebar = new source_control_sidebar();
@@ -228181,6 +228382,9 @@ https://creativecommons.org/licenses/by/4.0/
         source_sidebar.containerEl.remove();
       });
       lifetime.add(core.app.workspace.sidebar.addPanel(source_sidebar));
+      sync_refresh_visibility = () => {
+        for (const [panel, scheduler] of refresh_schedulers) scheduler.set_visible(!lifetime.disposed && !panel.disposed && document.visibilityState !== "hidden" && (panel.active || source_sidebar.visible && source_sidebar.panel === panel));
+      };
       const show_source_control = (panel, toggle = false) => {
         if (lifetime.disposed) return;
         if (!source_sidebar.visible) core.app.workspace.sidebar.switch(source_control_sidebar);
@@ -228223,8 +228427,7 @@ https://creativecommons.org/licenses/by/4.0/
           } catch {
           }
           const available = [...controllers].find((panel) => panel.root === cwd2 && ![...panels.values()].includes(panel));
-          this.panel = available || new git_graph_panel(host, cwd2 || host.context_path());
-          controllers.add(this.panel);
+          this.panel = available || track_panel(new git_graph_panel(host, cwd2 || host.context_path()));
           this.containerEl = this.panel.container;
           panels.set(leaf, this.panel);
         }
@@ -228241,9 +228444,11 @@ https://creativecommons.org/licenses/by/4.0/
             tab.title = "Git Graph \xB7 " + this.panel.root;
           }
           this.panel.open();
+          sync_refresh_visibility();
         }
         onClose() {
           this.panel.close();
+          sync_refresh_visibility();
           setTimeout(() => {
             let exists = false;
             core.app.workspace.eachLeaves((leaf) => {
@@ -228386,25 +228591,16 @@ https://creativecommons.org/licenses/by/4.0/
         if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
         status_bar.refresh();
       });
-      const refresh_visible = () => {
-        const panel = source_sidebar.panel;
-        if (source_sidebar.visible && document.visibilityState !== "hidden" && panel && !panel.pending && !panel.writing && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) void panel.refresh(false);
-      };
-      const refresh_timer = window.setInterval(refresh_visible, 8e3);
-      lifetime.add(() => window.clearInterval(refresh_timer));
-      workspace_on("file:will-save", () => {
-        const timer = window.setTimeout(() => {
-          if (!lifetime.disposed) {
-            refresh_visible();
-            status_bar.refresh();
-          }
-        }, 600);
-        lifetime.add(() => window.clearTimeout(timer));
-      });
+      lifetime.add(observe_workspace_file_saved(({ file_path: path }) => {
+        for (const [panel, scheduler] of refresh_schedulers) {
+          const relative2 = typeof path === "string" ? host.path_api.relative(panel.root, path) : "";
+          if (!host.path_api.isAbsolute(relative2) && relative2 !== ".." && !relative2.startsWith(".." + host.path_api.sep)) scheduler.invalidate();
+        }
+      }));
       lifetime.listen(window, "focus", () => {
-        const panel = source_sidebar.panel;
-        if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false);
+        for (const scheduler of refresh_schedulers.values()) scheduler.resume();
       });
+      lifetime.listen(document, "visibilitychange", () => sync_refresh_visibility());
       lifetime.listen(window, "keydown", (event) => {
         if (is_composing_key(event) || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
         if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") {
@@ -228445,6 +228641,7 @@ https://creativecommons.org/licenses/by/4.0/
         style.remove();
         panels.clear();
         controllers.clear();
+        refresh_schedulers.clear();
         document.querySelectorAll("[data-git-graph-launch]").forEach((item) => item.remove());
         for (const attribute of ["source-control", "monaco-diff", "git-graph", "git-graph-actions"]) document.documentElement.removeAttribute("data-linux-note-" + attribute);
       } };
@@ -236326,9 +236523,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const native = lifetime.own(bind_native_save(runtime2, {
       changed: publish_workspace_file_changed,
-      saved: (path) => {
-        void history.capture(path).then(notify_history).catch((error) => report("\u6587\u4EF6\u5DF2\u4FDD\u5B58\uFF0C\u4F46\u672C\u5730\u5386\u53F2\u5199\u5165\u5931\u8D25\uFF1A" + String(error)));
-      },
+      saved: (path) => publish_workspace_file_saved({ file_path: path }),
       auto_save_changed: (enabled) => set_workspace_save_settings({ "files.autoSave": enabled ? "afterDelay" : "off" })
     }));
     let composing = false;
@@ -236359,7 +236554,8 @@ https://creativecommons.org/licenses/by/4.0/
       notify();
     }));
     lifetime.add(observe_workspace_file_saved((file) => {
-      void history.record(file.file_path, file.bytes, file.source).then(notify_history).catch((error) => report("\u6587\u4EF6\u5DF2\u4FDD\u5B58\uFF0C\u4F46\u672C\u5730\u5386\u53F2\u5199\u5165\u5931\u8D25\uFF1A" + String(error)));
+      const recorded = file.bytes === void 0 ? history.capture(file.file_path, file.source) : history.record(file.file_path, file.bytes, file.source);
+      void recorded.then(notify_history).catch((error) => report("\u6587\u4EF6\u5DF2\u4FDD\u5B58\uFF0C\u4F46\u672C\u5730\u5386\u53F2\u5199\u5165\u5931\u8D25\uFF1A" + String(error)));
     }));
     lifetime.add(observe_workspace_save_settings(() => {
       auto.configure(leaves());

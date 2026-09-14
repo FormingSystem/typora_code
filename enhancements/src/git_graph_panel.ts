@@ -55,6 +55,10 @@ export class git_graph_panel {
   runner: ReturnType<graph_host["runner"]>; writer: ReturnType<graph_host["runner"]>;
   count: number; branches: string[] = []; selected = ""; from = EMPTY; to = "";
   repository_epoch = 0; epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false; disposed = false;
+  last_refreshed_at = 0; refresh_started_at = 0;
+  private state_listeners = new Set<() => void>();
+  private refresh_task?: Promise<void>; private refresh_request = ""; private rendered_snapshot = "";
+  private refresh_runner?: typeof this.runner; private detail_refresh_needed = false;
   files: graph_change[] = []; containment = new Map<string, string>(); ancestors = new Set<string>();
   detail_graph_rows = new Map<string, graph_row>();
   detail_summary_ratio = .5;
@@ -123,6 +127,7 @@ export class git_graph_panel {
     this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
     this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
+    this.publish_state(); this.state_listeners.clear();
     this.finder.close(); this.containment.clear(); this.ancestors.clear();
   }
   report(error: unknown): void { if (this.disposed) return; this.status.textContent = String(error instanceof Error ? error.message : error); if (this.workbench) this.workbench.notice.textContent = this.status.textContent; }
@@ -137,13 +142,32 @@ export class git_graph_panel {
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
     this.ref_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
     this.progress.reset();this.repository_epoch++; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
+    this.last_refreshed_at = 0; this.publish_state();
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; await this.refresh();
   }
   update_scm_actions():void{this.progress.configure(this.settings.show_progress);this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();this.discard_confirmation.update_state();this.ref_picker.update_state();}
-  async refresh(reset = true): Promise<void> {
+  subscribe_state(listener: () => void): () => void { this.state_listeners.add(listener); listener(); return () => this.state_listeners.delete(listener); }
+  private publish_state(): void { for (const listener of this.state_listeners) listener(); }
+  refresh(reset = true): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    const request = JSON.stringify([this.repository_epoch, this.root, this.settings, reset ? this.settings.initial_count : this.count, this.branches]);
+    // 同一目标的并发入口共享读取；筛选、配置或切库变化仍使旧请求失效。
+    if (this.pending && this.refresh_task && this.refresh_request === request && this.refresh_runner === this.runner) return this.refresh_task;
+    if (this.refresh_runner && this.refresh_runner !== this.runner) this.detail_refresh_needed = true;
+    this.refresh_runner = this.runner;
+    this.refresh_request = request;
+    const task = this.refresh_repository(reset); this.refresh_task = task;
+    void task.then(() => { if (this.refresh_task === task) this.refresh_task = undefined; });
+    return task;
+  }
+  private async refresh_repository(reset: boolean): Promise<void> {
     if (this.disposed) return;
-    const epoch = ++this.epoch; this.detail_epoch++; this.runner.cancel(); this.pending = true;
+    this.refresh_started_at = Date.now();
+    const epoch = ++this.epoch;
+    // 正常刷新不取消仍在读取的历史详情；替换在途查询时才使旧详情失效。
+    if (this.pending) { this.detail_epoch++; this.detail_refresh_needed = true; this.runner.cancel(); }
+    this.pending = true;
     const previous_progress=this.read_progress,activity=this.progress.begin("refresh",text("graph.loading_repository"));this.read_progress=activity;previous_progress?.finish();
     if (reset) this.count = this.settings.initial_count;
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");this.update_scm_actions();
@@ -170,32 +194,45 @@ export class git_graph_panel {
         }
       }
       const first_load = !this.loaded;
-      state.operation = this.host.operation(state.operation); this.state = state; this.root = state.root; this.loaded = true; this.containment.clear();
-      if (first_load && !this.workbench.message.value) this.workbench.load_layout();
-      this.save_repos([this.root, ...this.known_repos()]); const repos = this.known_repos();
-      if (this.settings.repository_order !== "recent") repos.sort((a, b) => (this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b)) : a.localeCompare(b)));
-      this.repo_select.replaceChildren(...repos.map(root => option(root, this.host.path_api.basename(root) || root)), option("__manage__", text("graph.manage_repositories"))); this.repo_select.value = this.root;
-      const repository_control = this.repo_select.closest<HTMLElement>(".git-graph-repository-control"); if (repository_control) repository_control.hidden = repos.length <= 1;
-      this.container.title = `${state.root}${state.branch ? " · " + state.branch : state.head ? " · " + text("graph.detached_head") : ""}`;
-      this.branch_select.replaceChildren(option("", text("graph.all_branches")), option("HEAD", text("graph.current_head")));
-      for (const ref of state.refs) this.branch_select.append(option(ref.name, ref.name.replace(/^refs\//u, "")));
-      for (const glob of this.settings.branch_globs) this.branch_select.append(option("glob:" + glob.glob, glob.name));
-      this.branch_select.append(option("__multiple__", text("graph.select_multiple_branches")));
-      this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
-      this.show_remote_input.checked = this.settings.show_remotes;
-      this.ancestors.clear();
-      if (this.settings.mute_unreachable && state.head) {
-        const hashes = await this.runner.run(this.root, ["rev-list", state.head, `--max-count=${this.count * 4}`]); if (epoch !== this.epoch) return;
-        this.ancestors = new Set(hashes.trim().split("\n"));
+      state.operation = this.host.operation(state.operation);
+      const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
+      const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
+      const changed = first_load || snapshot !== this.rendered_snapshot;
+      this.state = state; this.root = state.root; this.loaded = true;
+      if (changed) {
+        this.containment.clear();
+        if (first_load && !this.workbench.message.value) this.workbench.load_layout();
+        this.save_repos(repository_paths); const repos = this.known_repos();
+        if (this.settings.repository_order !== "recent") repos.sort((a, b) => (this.settings.repository_order === "name" ? this.host.path_api.basename(a).localeCompare(this.host.path_api.basename(b)) : a.localeCompare(b)));
+        this.repo_select.replaceChildren(...repos.map(root => option(root, this.host.path_api.basename(root) || root)), option("__manage__", text("graph.manage_repositories"))); this.repo_select.value = this.root;
+        const repository_control = this.repo_select.closest<HTMLElement>(".git-graph-repository-control"); if (repository_control) repository_control.hidden = repos.length <= 1;
+        this.container.title = `${state.root}${state.branch ? " · " + state.branch : state.head ? " · " + text("graph.detached_head") : ""}`;
+        this.branch_select.replaceChildren(option("", text("graph.all_branches")), option("HEAD", text("graph.current_head")));
+        for (const ref of state.refs) this.branch_select.append(option(ref.name, ref.name.replace(/^refs\//u, "")));
+        for (const glob of this.settings.branch_globs) this.branch_select.append(option("glob:" + glob.glob, glob.name));
+        this.branch_select.append(option("__multiple__", text("graph.select_multiple_branches")));
+        this.branch_select.value = this.branches.length === 1 ? this.branches[0] : "";
+        this.show_remote_input.checked = this.settings.show_remotes;
+        this.ancestors.clear();
+        if (this.settings.mute_unreachable && state.head) {
+          const hashes = await this.runner.run(this.root, ["rev-list", state.head, `--max-count=${this.count * 4}`]); if (epoch !== this.epoch) return;
+          this.ancestors = new Set(hashes.trim().split("\n"));
+        }
+        this.render_history();
       }
-      this.render_history(); await this.workbench.refresh(); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
+      await this.workbench.refresh(changed); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
+      this.rendered_snapshot = snapshot;
       this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
       this.container.dataset.state = "ready";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
-      if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) void this.show_comparison(this.from, this.to);
+      if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) {
+        // 文件仍为M不代表内容未变；可变版本继续取内容，历史版本保留阅读位置。
+        if (changed || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
+      }
       else this.close_details();
+      this.detail_refresh_needed = false;
     } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
-    finally { if (epoch === this.epoch) { this.pending = false; this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
+    finally { if (epoch === this.epoch) { this.pending = false; this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
   }
   date(commit: graph_commit): string {
     const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;

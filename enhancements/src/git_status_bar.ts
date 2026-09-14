@@ -7,8 +7,9 @@ import status_css from "./git_status_bar.css";
 import { git_icon } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 
-import {parse_branch_status} from "./git_scm_data";
-/** 使用窗口唯一状态栏；刷新只读取本地 Git，网络快捷操作复用控制器的自动目标与一次执行。 */
+import type {branch_status} from "./git_scm_data";
+import {repository_branch_status} from "./git_graph_repository";
+/** 使用控制器发布的同一仓库快照；底栏不另行轮询或因面板状态变化重复读取 Git。 */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
   if (!footer) throw new Error("Typora Code status bar is unavailable.");
@@ -28,9 +29,8 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   const graph_icon = git_icon("git-branch"); graph.append(graph_icon, document.createTextNode("Git Graph"));
   graph.title = text("status.open_graph"); graph.setAttribute("aria-label", graph.title);
   item.append(branch, sync, graph);
-  let panel: git_graph_panel | undefined; let snapshot: branch_status | undefined; let snapshot_root = ""; let epoch = 0; let disposed = false;
-  let reader: ReturnType<graph_host["runner"]> | undefined;
-  let stop_progress:(()=>void)|undefined,normal_sync_title="",normal_sync_disabled=true;
+  let panel: git_graph_panel | undefined; let snapshot: branch_status | undefined; let snapshot_root = ""; let disposed = false;
+  let stop_progress:(()=>void)|undefined,stop_state:(()=>void)|undefined,normal_sync_title="",normal_sync_disabled=true;
   const render_progress=()=>{
     const state=panel?.progress.state,busy=state?.busy===true,spinning=state?.running===true&&["fetch","pull","push","sync"].includes(state.kind);
     branch.disabled=busy;sync.disabled=busy||normal_sync_disabled;
@@ -39,42 +39,47 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
     sync.classList.toggle("git-operation-spinning",spinning);sync.title=busy?state!.label:normal_sync_title;sync.setAttribute("aria-label",sync.title);
     item.dataset.gitOperation=busy?state!.kind:"idle";item.setAttribute("aria-busy",String(busy));item.title=busy?state!.label:text("status.repository_status");
   };
-  const observer = new MutationObserver(() => { if (panel && !panel.pending) void refresh(); else window.setTimeout(() => void refresh(), 0); });
   const unavailable = (message: string) => {
     snapshot = undefined; snapshot_root = ""; label.textContent = text("status.no_repository"); branch.title = text("status.select_repository_hint", {message});
     branch.setAttribute("aria-label", branch.title); sync.disabled = true; sync.title = message; counts.textContent = ""; item.dataset.repository = "none";
     normal_sync_title=message;normal_sync_disabled=true;render_progress();
   };
-  const refresh = async () => {
+  const paint = (current: git_graph_panel) => {
+    if (disposed || current !== panel) return;
+    if (current.disposed || !current.root) { unavailable(text("status.open_repository_first")); return; }
+    if (!current.pending && current.container.dataset.state === "error") { unavailable(text("status.read_failed", {error: current.status.textContent || "Git"})); return; }
+    if (snapshot_root !== current.root) {
+      snapshot = undefined; snapshot_root = ""; label.textContent = text("status.checking"); counts.textContent = "";
+      normal_sync_disabled = true; normal_sync_title = text("status.checking"); item.dataset.repository = "loading";
+    }
+    if (!current.state || current.state.root !== current.root) { render_progress(); return; }
+    const status = repository_branch_status(current.state);
+    snapshot = status; snapshot_root = current.root; const detached = status.branch === "(detached)";
+    const name = detached ? text("status.detached_name", {hash: status.head.slice(0, 8)}) : status.branch || "Git";
+    const branch_label = name + (status.dirty ? "*" : ""); if (label.textContent !== branch_label) label.textContent = branch_label;
+    branch.title = text("status.branch_tooltip", {root: current.root, branch: detached ? text("status.detached_head") : text("status.current_branch", {branch: name}), initial: status.head === "(initial)" ? text("status.initial_suffix") : "", worktree: status.dirty ? text("status.dirty") : text("status.clean")});
+    branch.setAttribute("aria-label", branch.title); item.dataset.repository = "ready";
+    const count_label = status.upstream && (status.behind || status.ahead) ? `↓${status.behind} ↑${status.ahead}` : ""; if (counts.textContent !== count_label) counts.textContent = count_label;
+    sync.disabled = detached || status.head === "(initial)";
+    sync.title = sync.disabled ? text("status.create_commit_first") : status.upstream ? text("status.sync_tooltip", {upstream: status.upstream, behind: status.behind, ahead: status.ahead}) : text("status.publish_tooltip");
+    sync.setAttribute("aria-label", sync.title);
+    normal_sync_title=sync.title;normal_sync_disabled=sync.disabled;render_progress();
+  };
+  const refresh = () => {
     if (disposed) return;
     const current = current_panel();
-    if (current !== panel) { stop_progress?.();panel = current;stop_progress=panel.progress.subscribe(render_progress); observer.disconnect(); observer.observe(panel.container, {attributes: true, attributeFilter: ["data-state"]}); }
-    if (snapshot_root !== current.root) { snapshot = undefined; label.textContent = text("status.checking"); counts.textContent = ""; sync.disabled = true; item.dataset.repository = "loading"; }
-    const token = ++epoch; reader?.cancel(); reader = host.runner(current.settings);
-    const root = current.root;
-    if (!root) { unavailable(text("status.open_repository_first")); return; }
-    try {
-      const status = parse_branch_status(await reader.run(root, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]));
-      if (disposed || token !== epoch || current !== panel || root !== current.root) return;
-      snapshot = status; snapshot_root = current.root; const detached = status.branch === "(detached)";
-      const name = detached ? text("status.detached_name", {hash: status.head.slice(0, 8)}) : status.branch || "Git";
-      label.textContent = name + (status.dirty ? "*" : "");
-      branch.title = text("status.branch_tooltip", {root: current.root, branch: detached ? text("status.detached_head") : text("status.current_branch", {branch: name}), initial: status.head === "(initial)" ? text("status.initial_suffix") : "", worktree: status.dirty ? text("status.dirty") : text("status.clean")});
-      branch.setAttribute("aria-label", branch.title); item.dataset.repository = "ready";
-      counts.textContent = status.upstream && (status.behind || status.ahead) ? `↓${status.behind} ↑${status.ahead}` : "";
-      sync.disabled = detached || status.head === "(initial)";
-      sync.replaceChildren(git_icon(status.upstream ? "sync" : "cloud-upload"), counts);
-      sync.title = sync.disabled ? text("status.create_commit_first") : status.upstream ? text("status.sync_tooltip", {upstream: status.upstream, behind: status.behind, ahead: status.ahead}) : text("status.publish_tooltip");
-      sync.setAttribute("aria-label", sync.title);
-      normal_sync_title=sync.title;normal_sync_disabled=sync.disabled;render_progress();
-    } catch (error) { if (!disposed && token === epoch) unavailable(text("status.read_failed", {error: String(error instanceof Error ? error.message : error)})); }
+    if (current !== panel) {
+      stop_progress?.(); stop_state?.(); panel = current;
+      stop_progress = current.progress.subscribe(render_progress);
+      stop_state = current.subscribe_state(() => paint(current));
+    } else paint(current);
   };
   const ready = (event: MouseEvent, show: (panel: git_graph_panel, available: () => boolean) => void | Promise<void>) => {
     event.preventDefault(); event.stopPropagation();
     const current = current_panel(), repository_epoch = current.repository_epoch;
     const available = () => !disposed && !current.disposed && current === current_panel() && current.repository_epoch === repository_epoch;
     void (async () => {
-      if (!current.pending && !current.writing) await current.refresh(false);
+      if (!current.state && !current.pending && !current.writing) await current.refresh(false);
       while (current.pending && available()) await new Promise(resolve => setTimeout(resolve, 50));
       if (!available()) return;
       if (!current.state || current.container.dataset.state === "error") {
@@ -114,15 +119,13 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
     ]);
   });
   sync.onclick = event => ready(event, async (current, available) => {
-    await refresh();
+    refresh();
     if (!available() || snapshot_root !== current.root || !snapshot || sync.disabled) return;
     await current.network_action("sync");
   });
   sync.oncontextmenu = sync_menu;
   graph.oncontextmenu = event => ready(event, current => current.background_menu(event));
-  const timer = window.setInterval(() => { if (document.visibilityState !== "hidden" && !panel?.writing) void refresh(); }, 8000);
-  const on_focus = () => void refresh(); window.addEventListener("focus", on_focus);
-  const dispose = () => { if(disposed)return; disposed = true; epoch++;stop_progress?.(); reader?.cancel(); clearInterval(timer); observer.disconnect(); window.removeEventListener("focus", on_focus); item.remove(); layout.remove();style.remove(); window.removeEventListener("pagehide",dispose); };
+  const dispose = () => { if(disposed)return; disposed = true;stop_progress?.();stop_state?.();item.remove();layout.remove();style.remove();window.removeEventListener("pagehide",dispose); };
   window.addEventListener("pagehide", dispose, {once:true});
   void refresh();
   return {dispose, refresh: () => void refresh(), set_graph_visible: visible => { graph.hidden = !visible; }};

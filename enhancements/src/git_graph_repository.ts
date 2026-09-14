@@ -1,4 +1,4 @@
-import {read_scm_tracking, type scm_tracking} from "./git_scm_data";
+import {read_scm_tracking, read_branch_status, type branch_status, type scm_tracking} from "./git_scm_data";
 import { parse_git_log, type git_commit, type git_run, type git_ref } from "./git_graph_data";
 import { glob_matches, type graph_settings } from "./git_graph_settings";
 import { git_graph_text as text } from "./git_graph_i18n";
@@ -10,10 +10,16 @@ export type graph_commit = git_commit & { email?: string; committer?: string; co
 export type graph_change = { status: string; path: string; old_path?: string; index_status?: string; work_status?: string };
 export type repository_state = {
   root: string; head: string; branch: string; refs: git_ref[]; commits: graph_commit[]; more: boolean;
-  tracking?: scm_tracking;
+  tracking?: scm_tracking; status?: branch_status;
   stashes: { hash: string; name: string; subject: string; date: string }[];
   changes: graph_change[]; remotes: { name: string; fetch: string; push: string }[]; operation: string;
 };
+/** 底栏和仓库行读取同一状态；精简模型也保留未出生分支和分离HEAD语义。 */
+export function repository_branch_status(state: repository_state): branch_status {
+  return state.status || {branch: state.branch || "(detached)", head: state.head || "(initial)",
+    upstream: state.tracking?.upstream?.replace(/^refs\/remotes\//u, "") || "", ahead: state.tracking?.ahead || 0,
+    behind: state.tracking?.behind || 0, dirty: state.changes.length > 0};
+}
 export function require_revision(value: string): string {
   if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error(text("repository.invalid_revision")); return value;
 }
@@ -40,7 +46,7 @@ const quiet_head = async (run: git_run, root: string) => run(root, ["rev-parse",
 
 export async function read_repository(run: git_run, cwd: string, settings: graph_settings, count: number, branches: string[] = []): Promise<repository_state> {
   const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-  const [head, branch, ref_text, stash_text, status_text, remote_text, git_path] = await Promise.all([
+  const [head, branch, ref_text, stash_text, status_text, remote_text, git_path, status] = await Promise.all([
     quiet_head(run, root),
     run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).then(value => value.trim()).catch(error => { if (error.code === 1) return ""; throw error; }),
     run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)%00%(objecttype)%00%(*objecttype)", "refs/heads", "refs/remotes", "refs/tags"]),
@@ -48,6 +54,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
     settings.show_changes ? run(root, ["status", "--porcelain=v1", "-z", settings.show_untracked ? "--untracked-files=all" : "--untracked-files=no"]) : "",
     run(root, ["remote", "-v"]),
     run(root, ["rev-parse", "--absolute-git-dir"]),
+    read_branch_status(run, root),
   ]);
   const refs = ref_text.split("\n").filter(line => /\0commit(?:\0|$)/u.test(line)).map(line => {
     const [hash, peeled, name] = line.replace(/\r$/u, "").split("\0"); return { hash: peeled || hash, name };
@@ -96,7 +103,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
   }
   // Git 自身决定工作树状态，文件系统只用于识别进行中的多步操作。
   const operation = git_path.trim();
-  return { root, head, branch, refs, tracking, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+  return { root, head, branch, refs, tracking, status, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
 }
 
 function comparison_args(from: string, to: string, head: string): string[] {

@@ -4,7 +4,7 @@ import {file_key} from "./workspace_file_uri";
 import {create_local_history_store} from "./workspace_local_history";
 import {create_auto_save} from "./workspace_auto_save";
 import {bind_native_save} from "./workspace_native_save";
-import {observe_workspace_file_changed,observe_workspace_file_saved,publish_workspace_file_changed} from "./workspace_file_events";
+import {observe_workspace_file_changed,observe_workspace_file_saved,publish_workspace_file_changed,publish_workspace_file_saved} from "./workspace_file_events";
 import {read_workspace_save_settings,observe_workspace_save_settings,open_workspace_save_settings,close_workspace_save_settings,set_workspace_save_settings} from "./workspace_save_settings";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 
@@ -22,7 +22,7 @@ export function bind_workspace_save_service(files:workspace_file_host,runtime:an
   const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
   const native=lifetime.own(bind_native_save(runtime,{
     changed:publish_workspace_file_changed,
-    saved:path=>{void history.capture(path).then(notify_history).catch(error=>report("文件已保存，但本地历史写入失败："+String(error)));},
+    saved:path=>publish_workspace_file_saved({file_path:path}),
     auto_save_changed:enabled=>set_workspace_save_settings({"files.autoSave":enabled?"afterDelay":"off"}),
   }));
   let composing=false;const tracked=new Set<graph_leaf>();
@@ -36,7 +36,10 @@ export function bind_workspace_save_service(files:workspace_file_host,runtime:an
     },save:leaf=>native.save(()=>files.auto_save_leaf(leaf)),report:(_leaf,error)=>report(error)});
   lifetime.add(auto.dispose);
   lifetime.add(observe_workspace_file_changed(path=>{if(lifetime.disposed)return;const active=workspace.activeLeaf,leaf=active&&file_key(files.editor_state(active).file_path)===file_key(path)?active:leaves().find(item=>file_key(files.editor_state(item).file_path)===file_key(path));if(leaf){tracked.add(leaf);auto.changed(leaf);}notify();}));
-  lifetime.add(observe_workspace_file_saved(file=>{void history.record(file.file_path,file.bytes,file.source).then(notify_history).catch(error=>report("文件已保存，但本地历史写入失败："+String(error)));}));
+  lifetime.add(observe_workspace_file_saved(file=>{
+    const recorded=file.bytes===undefined?history.capture(file.file_path,file.source):history.record(file.file_path,file.bytes,file.source);
+    void recorded.then(notify_history).catch(error=>report("文件已保存，但本地历史写入失败："+String(error)));
+  }));
   lifetime.add(observe_workspace_save_settings(()=>{auto.configure(leaves());notify();}));
   lifetime.listen(document,"focusout",((event:FocusEvent)=>{
     const leaf=workspace.activeLeaf;if(!leaf)return;
