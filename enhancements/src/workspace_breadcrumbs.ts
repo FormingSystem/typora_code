@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import css from "./workspace_breadcrumbs.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -112,7 +113,7 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
     for(const [group,state]of groups)if(!active.has(group)||!group.isConnected){if(picker_owner===state)close_picker(false);clear_model(state);state.interaction.remove();state.bar.remove();group.classList.remove("workspace-breadcrumbs-managed");groups.delete(group);}
   };
   const focus_last=(open=false)=>{const leaf=core.app.workspace.activeLeaf as any,state=leaf&&groups.get(leaf.parent?.containerEl);if(!state)return;if(!state.settings?.enabled){try{set_breadcrumb_enabled(state.root,true);}catch(e){error(String(e));return;}refresh();}state.focus=capture_workspace_focus();const button=state.trail.querySelector<HTMLButtonElement>("button:last-child");button?.focus({preventScroll:true});if(open)button?.click();};
-  const key=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.shiftKey&&!event.altKey&&!event.isComposing&&["Period","Semicolon"].includes(event.code)&&!document.querySelector('[aria-modal=true]')){event.preventDefault();event.stopImmediatePropagation();focus_last(event.code==="Period");}};
+  const key=(event:KeyboardEvent)=>{if(is_composing_key(event))return;if((event.ctrlKey||event.metaKey)&&event.shiftKey&&!event.altKey&&["Period","Semicolon"].includes(event.code)&&!document.querySelector('[aria-modal=true]')){event.preventDefault();event.stopImmediatePropagation();focus_last(event.code==="Period");}};
   const mutation=new MutationObserver(records=>{if(records.some(record=>!(record.target instanceof Element)||!record.target.closest(".workspace-breadcrumbs,.workspace-breadcrumb-picker,.workspace-breadcrumb-settings")))schedule();});mutation.observe(document.body,{childList:true,subtree:true,characterData:true});
   const unsubscribe=core.app.workspace.on("active-leaf:change",schedule),settings=observe_breadcrumb_settings(()=>{close_picker(false);for(const state of groups.values())state.signature="";schedule();});
   const config=core.app.commands.register({id:"linux_note:breadcrumbs_settings",title:"视图：面包屑导航设置",scope:"global",callback:()=>open_breadcrumb_settings(files.context_root(),(core.app.workspace.activeLeaf as any)?.view?.editor?.focused_editor?.()?.getModel()?.getLanguageId()||"markdown")});

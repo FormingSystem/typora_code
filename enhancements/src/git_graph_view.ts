@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_git_file_title_actions} from "./git_file_title_actions";
 import { git_graph_tab_icon } from "./git_graph_tab_icon";
@@ -159,7 +160,7 @@ export function bind_git_graph() {
   workspace_on("file:will-save", () => { const timer=window.setTimeout(() => { if(!lifetime.disposed){refresh_visible();status_bar.refresh();} },600);lifetime.add(()=>window.clearTimeout(timer)); });
   lifetime.listen(window, "focus", () => { const panel = source_sidebar.panel; if (source_sidebar.visible && panel && !panel.pending && !panel.writing) void panel.refresh(false); });
   lifetime.listen(window, "keydown", event => {
-    if (event.isComposing || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
+    if (is_composing_key(event) || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") { event.preventDefault(); event.stopImmediatePropagation(); show_source_control(); source_sidebar.panel?.workbench.message.focus(); }
     else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "b" && (source_sidebar.containerEl.contains(event.target as Node) || (event.target as Element)?.closest?.(".git-graph-document"))) { event.preventDefault(); event.stopImmediatePropagation(); core.app.workspace.sidebar.toggle(); }
   }, true);

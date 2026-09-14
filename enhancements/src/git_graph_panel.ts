@@ -18,6 +18,7 @@ import { read_repository, compare_files, commit_containment, pull_request_url, W
 import { graph_defaults, settings_choices, settings_labels_for, settings_choice_label, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
 import { graph_actions, plan_git_action, execute_git_action, type graph_action, type action_plan } from "./git_graph_actions";
 import { workspace_element as el, workspace_button as button, workspace_option as option, workspace_dialog, workspace_menu, inline_message, shortcut_matches } from "./workspace_widgets";
+import { is_composing_key, is_terminal_input } from "./workspace_keyboard";
 import type { graph_host } from "./git_graph_host";
 import { git_graph_language_tag, git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
 
@@ -757,7 +758,7 @@ export class git_graph_panel {
     }; render(); dialog.footer.prepend(button(text("graph.finish_all_reviews"), () => { save_reviews(localStorage, []); render(); }));
   }
   keydown(event: KeyboardEvent): void {
-    if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector('.git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker') || event.isComposing) return;
+    if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector('.git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker') || is_composing_key(event) || is_terminal_input(event)) return;
     if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") { event.preventDefault(); this.host.core.app.workspace.sidebar.toggle(); return; }
     if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;

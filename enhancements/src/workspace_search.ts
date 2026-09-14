@@ -1,3 +1,4 @@
+import {is_composing_key,is_terminal_input} from "./workspace_keyboard";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_file_icons, workspace_file_icon} from "./workspace_file_icons";
@@ -313,7 +314,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
   const activity_click=(event:MouseEvent)=>{const target=event.target instanceof Element?event.target.closest<HTMLElement>('.typ-ribbon-item[data-id="core.search"]'):null;if(!target)return;event.preventDefault();event.stopImmediatePropagation();show(true);};
   lifetime.listen(document,"click",activity_click as EventListener,true);
   lifetime.add(core.app.commands.register({id:"linux_note:search",title:"搜索：在文件中查找",scope:"global",callback:()=>show()}));
-  const keydown=(event:KeyboardEvent)=>{if((event.ctrlKey||event.metaKey)&&event.shiftKey&&event.key.toLowerCase()==="f"&&!event.altKey&&!event.isComposing&&!document.querySelector('[role="dialog"][aria-modal="true"]')){event.preventDefault();event.stopImmediatePropagation();show();}};
+  const keydown=(event:KeyboardEvent)=>{if(is_composing_key(event)||is_terminal_input(event))return;if((event.ctrlKey||event.metaKey)&&event.shiftKey&&event.key.toLowerCase()==="f"&&!event.altKey&&!document.querySelector('[role="dialog"][aria-modal="true"]')){event.preventDefault();event.stopImmediatePropagation();show();}};
   lifetime.listen(window,"keydown",keydown as EventListener,true);
   const renamed=()=>{if(!disposed&&panel.query.value.trim())panel.schedule();};
   lifetime.listen(window,"linux-note-workspace-renamed",renamed);

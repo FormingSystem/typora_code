@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import {bind_workspace_zoom_status} from "./workspace_zoom_status";
 import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
 import {bind_workspace_editor_actions} from "./workspace_editor_actions";
@@ -86,7 +87,7 @@ export function bind_workspace_browser() {
     }catch(error){if(!lifetime.disposed&&epoch===reveal_epoch)new core.Notice(String(error instanceof Error?error.message:error),5000);}})();
   }}));
   const explorer_shortcut=(event:KeyboardEvent)=>{
-    if(!(event.ctrlKey||event.metaKey)||!event.shiftKey||event.altKey||event.code!=="KeyE"||event.isComposing||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
+    if(is_composing_key(event)||!(event.ctrlKey||event.metaKey)||!event.shiftKey||event.altKey||event.code!=="KeyE"||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
     event.preventDefault();event.stopImmediatePropagation();focus_explorer();
   };
   lifetime.listen(window,"keydown",explorer_shortcut as EventListener,true);

@@ -1,3 +1,4 @@
+import {is_composing_key} from "./workspace_keyboard";
 import {Terminal} from "@xterm/xterm";
 import {FitAddon} from "@xterm/addon-fit";
 import {SearchAddon} from "@xterm/addon-search";
@@ -26,12 +27,12 @@ export class terminal_surface {
       const control=git_icon_button(icon,title,()=>{options[key]=!options[key];control.setAttribute("aria-pressed",String(options[key]));find();});control.setAttribute("aria-pressed","false");return control;
     });
     this.find_bar.append(input,...toggles,count,git_icon_button("arrow-up","上一个匹配",()=>find(true)),git_icon_button("arrow-down","下一个匹配",()=>find()),git_icon_button("close","关闭查找",()=>{this.find_bar.hidden=true;this.search.clearDecorations();this.term.focus();}));
-    input.oninput=()=>find();input.onkeydown=event=>{event.stopPropagation();if(event.isComposing||event.keyCode===229)return;if(event.key==="Enter"){event.preventDefault();find(event.shiftKey);}if(event.key==="Escape"){this.find_bar.hidden=true;this.term.focus();}};
+    input.oninput=()=>find();input.onkeydown=event=>{event.stopPropagation();if(is_composing_key(event))return;if(event.key==="Enter"){event.preventDefault();find(event.shiftKey);}if(event.key==="Escape"){this.find_bar.hidden=true;this.term.focus();}};
     this.lifetime.own(this.term.onData(data=>actions.input(data)));
     this.lifetime.own(this.term.onSelectionChange(()=>{if(this.settings.copy_on_selection&&this.term.hasSelection())void actions.copy(this.term.getSelection()).catch(actions.error);}));
     this.term.attachCustomKeyEventHandler(event=>{
       // 候选选择与中英切换交给输入法及 xterm，不能因快捷键移走输入焦点。
-      if(event.isComposing||event.keyCode===229)return true;
+      if(is_composing_key(event))return true;
       const key=event.key.toLowerCase(),control=event.ctrlKey||event.metaKey;
       if(control&&(event.shiftKey&&["c","v","f"].includes(key)||key==="c"&&this.term.hasSelection())){
         if(event.type==="keydown"){event.preventDefault();if(key==="c")void actions.copy(this.term.getSelection()).catch(actions.error);else if(key==="v")void this.paste();else this.find();}return false;
