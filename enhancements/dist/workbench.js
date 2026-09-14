@@ -196011,6 +196011,52 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/terminal_composition.ts
+  function bind_terminal_composition(textarea) {
+    const lifetime = create_workspace_lifetime();
+    let prefix = "", composing = false, timer = 0;
+    let pending;
+    const normalize3 = (record) => {
+      if (lifetime.disposed || !textarea.isConnected || textarea.value !== record.committed) return;
+      const start = textarea.selectionStart, end = textarea.selectionEnd, direction = textarea.selectionDirection;
+      textarea.value = record.previous + record.committed;
+      textarea.setSelectionRange(record.previous.length + start, record.previous.length + end, direction);
+    };
+    const flush = (record = pending) => {
+      if (!record || pending !== record) return;
+      clearTimeout(timer);
+      timer = 0;
+      pending = void 0;
+      normalize3(record);
+    };
+    const invalidate = () => {
+      clearTimeout(timer);
+      timer = 0;
+      pending = void 0;
+      prefix = "";
+      composing = false;
+    };
+    lifetime.listen(textarea, "compositionstart", () => {
+      flush();
+      prefix = textarea.value;
+      composing = true;
+    }, true);
+    lifetime.listen(textarea, "compositionend", (event) => {
+      if (!composing) return;
+      composing = false;
+      const committed = event.data, previous = prefix;
+      prefix = "";
+      if (!previous || !committed) return;
+      const record = { previous, committed };
+      pending = record;
+      normalize3(record);
+      timer = window.setTimeout(() => flush(record), 0);
+    }, true);
+    lifetime.listen(textarea, "blur", invalidate);
+    lifetime.add(invalidate);
+    return lifetime;
+  }
+
   // src/terminal_surface.ts
   var terminal_surface = class {
     constructor(settings, actions) {
@@ -196116,6 +196162,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!this.opened) {
         this.opened = true;
         this.term.open(this.viewport);
+        if (this.term.textarea) this.lifetime.own(bind_terminal_composition(this.term.textarea));
       }
       this.resize();
     }
@@ -236714,7 +236761,7 @@ https://creativecommons.org/licenses/by/4.0/
       container.hidden = !read_workspace_save_settings()["timeline.enabled"];
       container.classList.toggle("is-collapsed", state.collapsed);
       list3.hidden = state.collapsed;
-      toggle.replaceChildren(git_icon(state.collapsed ? "chevron-right" : "chevron-down"), document.createTextNode("\u65F6\u95F4\u7EBF"), workspace_element("span", "workspace-timeline-target", target ? files.path_api.basename(target) : ""));
+      toggle.replaceChildren(git_icon(state.collapsed ? "chevron-right" : "chevron-down"), workspace_element("span", "workspace-explorer-section-label", "\u65F6\u95F4\u7EBF"), workspace_element("span", "workspace-timeline-target", target ? files.path_api.basename(target) : ""));
       toggle.title = target;
       toggle.setAttribute("aria-expanded", String(!state.collapsed));
       pin.setAttribute("aria-pressed", String(state.pinned));
@@ -236925,7 +236972,15 @@ https://creativecommons.org/licenses/by/4.0/
     });
     menu.onclick = (event) => workspace_menu(event, visibility(), "workspace-menu-compact");
     toolbar.append(menu);
-    const root_title = root.querySelector(".workspace-explorer-root-name"), old_context = root.oncontextmenu, old_title_context = root_title.oncontextmenu, old_click = root_title.onclick;
+    const root_title = root.querySelector(".workspace-explorer-root-name"), old_context = root.oncontextmenu, old_title_context = root_title.oncontextmenu;
+    const folder_toggle = workspace_element("button", "workspace-explorer-section-title"), folder_caret = workspace_element("span", "workspace-explorer-folder-caret"), folder_actions = root.querySelector(".workspace-explorer-actions");
+    folder_toggle.type = "button";
+    folder_caret.setAttribute("aria-hidden", "true");
+    root_title.before(folder_toggle);
+    folder_toggle.append(folder_caret, root_title);
+    root.classList.add("workspace-explorer-section-heading");
+    root_title.classList.add("workspace-explorer-section-label");
+    folder_actions.classList.add("workspace-explorer-section-actions");
     const section_menu = (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -236933,24 +236988,11 @@ https://creativecommons.org/licenses/by/4.0/
     };
     root.oncontextmenu = section_menu;
     root_title.oncontextmenu = section_menu;
-    root_title.onclick = () => {
+    folder_toggle.onclick = () => {
       collapsed2.folders = !collapsed2.folders;
       remember();
       render_layout();
     };
-    root_title.setAttribute("role", "button");
-    root_title.tabIndex = 0;
-    const root_key2 = (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        root_title.click();
-      }
-    };
-    root_title.addEventListener("keydown", root_key2);
-    const folder_caret = workspace_element("span", "workspace-explorer-folder-caret");
-    folder_caret.setAttribute("aria-hidden", "true");
-    folder_caret.onclick = () => root_title.click();
-    root_title.before(folder_caret);
     toggle.onclick = () => {
       collapsed2.open = !collapsed2.open;
       remember();
@@ -236964,10 +237006,11 @@ https://creativecommons.org/licenses/by/4.0/
       const value = read_workspace_save_settings();
       opened.hidden = !value["explorer.openEditors.enabled"];
       body.hidden = collapsed2.open;
-      toggle.replaceChildren(git_icon(collapsed2.open ? "chevron-right" : "chevron-down"), document.createTextNode("\u6253\u5F00\u7684\u7F16\u8F91\u5668"));
+      opened.classList.toggle("is-collapsed", collapsed2.open);
+      toggle.replaceChildren(git_icon(collapsed2.open ? "chevron-right" : "chevron-down"), workspace_element("span", "workspace-explorer-section-label", "\u6253\u5F00\u7684\u7F16\u8F91\u5668"));
       toggle.setAttribute("aria-expanded", String(!collapsed2.open));
       folder_caret.replaceChildren(git_icon(collapsed2.folders ? "chevron-right" : "chevron-down"));
-      root_title.setAttribute("aria-expanded", String(!collapsed2.folders));
+      folder_toggle.setAttribute("aria-expanded", String(!collapsed2.folders));
       tree.hidden = collapsed2.folders;
       status2.hidden = collapsed2.folders;
       folders.classList.toggle("is-collapsed", collapsed2.folders);
@@ -237085,14 +237128,13 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(() => {
       if (frame3) cancelAnimationFrame(frame3);
       menu.remove();
-      folder_caret.remove();
+      folder_toggle.before(root_title);
+      folder_toggle.remove();
+      root.classList.remove("workspace-explorer-section-heading");
+      root_title.classList.remove("workspace-explorer-section-label");
+      folder_actions.classList.remove("workspace-explorer-section-actions");
       root.oncontextmenu = old_context;
       root_title.oncontextmenu = old_title_context;
-      root_title.onclick = old_click;
-      root_title.removeEventListener("keydown", root_key2);
-      root_title.removeAttribute("role");
-      root_title.removeAttribute("tabindex");
-      root_title.removeAttribute("aria-expanded");
       tree.hidden = false;
       status2.hidden = false;
       folders.before(root, tree, status2);

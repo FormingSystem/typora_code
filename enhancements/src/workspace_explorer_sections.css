@@ -1,15 +1,19 @@
 .linux-note-workspace-explorer [hidden]{display:none!important}
 .workspace-explorer-folders{display:flex;flex-direction:column;flex:1 1 0;min-height:50px;overflow:hidden}
 .workspace-explorer-folders.is-collapsed{flex:0 0 auto;min-height:0}
-.workspace-explorer-folders .workspace-explorer-root-name{flex:1;text-align:left;cursor:pointer}
-.workspace-explorer-section-heading{display:flex;align-items:center;flex:none;height:26px;min-width:0;border-top:1px solid var(--linux-note-shell-border,rgba(128,128,128,.2))}
-.workspace-explorer-section-title{display:flex;align-items:center;gap:4px;flex:1;min-width:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0 4px;height:26px;white-space:nowrap;overflow:hidden}
-.workspace-explorer-section-title svg,.workspace-explorer-folder-caret svg{width:16px;height:16px;flex-shrink:0}
-.workspace-explorer-section-actions{display:flex;flex:none;align-items:center}
-.workspace-explorer-section-actions .git-icon-button,.workspace-explorer-open-row>.git-icon-button{position:relative;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:3px;background:transparent;color:inherit;cursor:pointer;box-shadow:none}
-.workspace-explorer-section-actions .git-icon-button:hover,.workspace-explorer-open-row>.git-icon-button:hover{background:var(--linux-note-shell-hover-background,rgba(128,128,128,.14))}
-.workspace-explorer-section-actions .git-icon-button:focus-visible,.workspace-explorer-open-row>.git-icon-button:focus-visible{outline:1px solid var(--linux-note-shell-focus-border,#0078d4);outline-offset:-1px}
-.workspace-explorer-section-actions .git-icon-button{height:22px;width:22px;padding:3px}
+/* VS Code 645f29c：Modern pane header=28，左右margin=4、左padding=4，arrow=16+2+2。
+   根目录保留文件树更新的名称节点，标题的几何和字体仅由本契约定义。 */
+.linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0 4px;padding:0 0 0 4px;gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
+.workspace-explorer-section-heading::before{content:"";position:absolute;top:0;left:4px;right:4px;height:1px;background:var(--linux-note-shell-border,rgba(128,128,128,.2));pointer-events:none}
+.workspace-explorer-opened>.workspace-explorer-section-heading::before,.workspace-explorer-opened[hidden]+.workspace-explorer-folders>.workspace-explorer-section-heading::before{display:none}
+.workspace-explorer-section-title{display:flex;align-items:center;gap:0;flex:1;min-width:20px;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;margin:0;height:28px;white-space:nowrap;overflow:hidden;cursor:pointer;--workspace-interaction-hover:var(--workspace-hover-background)}
+.workspace-explorer-section-title>svg,.workspace-explorer-folder-caret{width:16px;height:16px;flex:0 0 16px;margin:0 2px}
+.workspace-explorer-folder-caret svg{width:16px;height:16px;display:block}
+.workspace-explorer-section-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
+.workspace-explorer-section-heading>.workspace-explorer-section-actions{display:none;flex:none;align-items:center;gap:4px;margin-left:auto;margin-right:8px}
+:is(.workspace-explorer-opened,.workspace-explorer-folders,.workspace-timeline):not(.is-collapsed):is(:hover,:focus-within)>.workspace-explorer-section-heading>.workspace-explorer-section-actions{display:flex}
+.workspace-explorer-section-actions>button,.workspace-explorer-open-row>.git-icon-button{position:relative;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:inherit;cursor:pointer;box-shadow:none}
+.workspace-explorer-section-heading>.workspace-explorer-section-actions>button{height:20px;width:20px;padding:2px;flex:none}
 .workspace-explorer-opened{flex:0 0 auto;min-width:0;overflow:hidden}
 .workspace-explorer-opened-list{overflow:auto;min-width:0}
 .workspace-explorer-editor-group{height:22px;line-height:22px;padding-left:24px;font-size:11px;opacity:.75}
@@ -26,10 +30,11 @@
 .workspace-explorer-open-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .workspace-explorer-open-description{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--linux-note-shell-description-foreground,#888);min-width:0;font-size:11px;flex:0 1 auto}
 .workspace-explorer-open-row.is-preview .workspace-explorer-open-name{font-style:italic}
-.workspace-explorer-folder-caret{display:inline-flex;vertical-align:middle;flex:none;cursor:pointer}
+.workspace-explorer-folder-caret{display:inline-flex;vertical-align:middle}
 .workspace-timeline{display:flex;flex:0 1 35%;min-height:100px;flex-direction:column;overflow:hidden;min-width:0}
-.workspace-timeline.is-collapsed{flex:0 0 26px;min-height:26px}
-.workspace-timeline-target{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;margin-left:6px;font-weight:normal;opacity:.7}
+.workspace-timeline.is-collapsed{flex:0 0 28px;min-height:28px}
+.workspace-timeline .workspace-explorer-section-label{flex:0 0 auto}
+.workspace-timeline-target{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;text-indent:6px;font-weight:normal;opacity:.7}
 .workspace-timeline-list{overflow:auto;flex:1;min-height:0}
 .workspace-timeline-list>p{font-size:12px;color:var(--linux-note-shell-description-foreground,#888);padding:8px 12px;margin:0;overflow-wrap:anywhere}
 .workspace-timeline-entry{display:flex;gap:6px;align-items:center;height:24px;width:100%;border:0;background:transparent;color:inherit;padding:0 8px;font:inherit;text-align:left}
