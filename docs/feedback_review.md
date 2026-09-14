@@ -637,3 +637,15 @@ R037三个资源管理器分区统一标题行、箭头、文字行盒、UI字�
 原始Typora 1.14.10私有桌面采用同一最终观察器：旧版29/41、新版41/41通过，证据`.cache/native_zoom_1_14_10/terminal_capture_red3_20260914`与`terminal_capture_final2_20260914`。旧版12项失败覆盖终端、搜索、Graph、Explorer、SCM、面包屑及菜单捕获；新版Ctrl+F/Escape各到达一次xterm并生成正确控制字节，中文、pin、pin、a依次提交且焦点保持。纯Shift、keyup、取消及搬移正常，原Markdown、dirty和三套私有Git夹具的HEAD、暂存对象、差量与文件字节不变。首次新版观察器在xterm之后注册冒泡监听，错误地将合法消费后的零计数判为失败，已改为不拦截的捕获观察器并对旧、新两个候选重跑；未修改产品来适配夹具。截图已视检，输入采用renderer事件和实际xterm管线，不能替代搜狗物理键盘验证。
 
 已通过现有安装事务交付，安装后检查`status: OK`，23项资产与本次原生候选一致，五项用户配置及宿主保护摘要保持。备份`20260914-104535-024-06619dd16f0c440ab04d966f89df8c4f`，证据`.cache/terminal_capture_install_verification_20260914.json`。workbench.js摘要`bc17f8a82deae889f615a9fe1fcae7526d692a6894c9179c0f90067787f3a8ba`；CSS未变。用户窗口未关闭或重启，保存后正常重启加载。源码、测试、设计与同一构建按用户授权一起提交并普通推送；物理搜狗及此前独立平台验收缺口继续保留。
+
+## 2026-09-14 对照Markdown修复Shift直接提交
+
+用户要求采用正常文档编辑的输入逻辑，本轮从`3d860be`干净基线读取原始Typora 1.14.10的正文Editor和CodeMirror输入链，确认浏览器拥有候选与确认文字，文档模型只处理实际输入结果。终端继续保持独立PTY协议，复用这一输入契约，不调用绑定正文节点的编辑、刷新或撤销函数。具体证据与范围见[R006.7设计](terminal_operations.md#2026-09-14-markdown输入契约与shift直接提交)。
+
+真实Chromium左右Shift按下后直接`insertText(pin)`、抬键、后续`x`，没有composition事件，旧版textarea/contenteditable和终端textarea都有`pinx`，终端onData却只有`x`。本次修正xterm 6对纯Shift的错误已输入标记：现有输入适配器在父节点只隔离非组合纯Shift按下，不取消默认行为；input和keyup沿原路径完成，组合态、229、其他修饰组合及Shift＋字符／方向键照常进入xterm。没有私有字段补丁、自有候选缓冲或第二条PTY发送通道。
+
+最终`npm run build`、完整`npm run check`通过；组合输入目标13组检查通过，另外捕获、终端面板、工作区快捷键、Escape焦点和主题5个UI目标全部通过。组合目标保留旧版左右Shift失败证据，新版逐一发送`pin`、`x`，并覆盖取消、普通追加／整值替换、连续提交、查找、修饰边界及销毁释放。日志为`.cache/terminal_md_input_build_20260914.log`、`terminal_md_input_check_20260914.log`、`terminal_md_input_ui_20260914.log`；正式组合测试证据目录名为`typora_terminal_composition_eptALp`（旧）和`typora_terminal_composition_AoqbfC`（新）。
+
+原始Typora私有桌面同夹具旧版45/49、新版49/49：面板／编辑器和左右Shift四种组合均由旧版只收到`x`变为准确收到`pin`、`x`。普通textarea/contenteditable和真正原生Markdown同序列保持`pinx`；Markdown对照只编辑私有夹具草稿，再由原生撤销精确恢复原文与clean状态。三套私有Git夹具的HEAD、暂存对象、差量及文件字节保持。证据位于`.cache/native_zoom_1_14_10/terminal_md_input_red_20260914`和`terminal_md_input_final_20260914`，23项资产摘要一致，截图已视检。此处Shift为renderer回放，18次input由浏览器产生并记录为trusted；不等同物理搜狗按键已通过。
+
+同一候选已通过现有事务安装，检查`status: OK`；23项资产一致，原ASAR、应用图标、原生偏好、工作区设置及主题五项摘要不变。备份`20260914-111429-262-b4babab7347944f1ba479b3632df10e6`，证据`.cache/terminal_md_input_install_verification_20260914.json`。workbench.js摘要为`7877b12c288e9800f9734242e1b64948d16e1307bea96b03310ef0919078abdd`，CSS未变。按已有授权提交与普通推送，用户窗口保持，保存后正常重启加载。搜狗物理输入和并发CDP提交与xterm0ms队列竞争的独立调查仍保留，不能把本次直接提交通过扩展为所有输入法时序已验收。

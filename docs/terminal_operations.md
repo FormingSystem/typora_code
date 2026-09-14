@@ -106,7 +106,7 @@ R016、R017，2026-09-12：用户要求恢复清楚的活动栏终端图标，�
 
 2026-09-14，用户反馈搜狗中文选词正常，Shift 切换英文后无法继续输入。终端的键盘与组合输入由 `terminal_surface` 内的 xterm 持有；`terminal_session` 只接收 xterm 已提交的数据，不读取候选文本，也不补发字符。面板和编辑器中的终端复用该输入边界。
 
-此前表面只隔离 `keydown`，其他按键与文本事件仍可冒泡到宿主编辑器。统一在终端容器的冒泡阶段隔离 `keydown`、`keypress`、`keyup`、`beforeinput`、`input`、`compositionstart/update/end`；不调用 `preventDefault`、不在捕获阶段截断 xterm，也不强制重新聚焦。这样保留 Shift 中英切换、候选上屏、浏览器文本修改及 xterm 的按键状态清理。终端查找框同属此边界；其 Enter/Esc 与终端复制/粘贴/查找快捷键在 `isComposing` 或 keyCode 229 时交还输入法。事件监听随表面销毁释放。
+此前表面只隔离 `keydown`，其他按键与文本事件仍可冒泡到宿主编辑器。统一在终端容器的冒泡阶段隔离 `keydown`、`keypress`、`keyup`、`beforeinput`、`input`、`compositionstart/update/end`；不调用 `preventDefault`，也不强制重新聚焦。文本事件与普通按键继续交给 xterm；纯 Shift 的后续明确例外见下方“Markdown输入契约与Shift直接提交”。终端查找框同属此边界；其 Enter/Esc 与终端复制/粘贴/查找快捷键在 `isComposing` 或 keyCode 229 时交还输入法。事件监听随表面销毁释放。
 
 依据当前固定依赖 xterm 6.0.0 的 `CompositionHelper.keydown/compositionend` 和 `CoreBrowserTerminal._keyUp/_inputEvent`：修饰键交给输入法，keyup 清理按键状态，组合结果与直接输入沿原生路径提交。[xterm 搜狗事件说明](https://github.com/xtermjs/xterm.js/pull/3680)还覆盖没有 compositionend 的直接 insertText 路径。本修复不改第三方内部字段、不维护第二套组合状态、不修改用户输入法配置或 Typora 原生文件。
 
@@ -140,3 +140,13 @@ R016、R017，2026-09-12：用户要求恢复清楚的活动栏终端图标，�
 验收加载真实Graph、搜索和工作区捕获监听，先验证旧版终端抢键，再检查纯Shift及keyup、isComposing/229、普通终端查找、Graph自身查找与Escape、明确全局快捷键和销毁；同时回归既有组合完整提交。取消输入不能执行命令或移走焦点，关闭查找只恢复所属终端。原生窗口加载与物理搜狗分开记录。
 
 本轮完整业务检查和12个相关UI目标通过，原始Typora同夹具旧版12项捕获失败、新版41项全部通过；包括实际Explorer与SCM全局监听，弥补独立模块测试的范围。已安装并核对23项资产；用户窗口没有重启，物理搜狗仍待实际输入确认，详见[交付记录](feedback_review.md#2026-09-14-终端全局快捷键捕获归属)。
+
+### 2026-09-14 Markdown输入契约与Shift直接提交
+
+用户要求采用文档编辑时正常工作的输入法逻辑。核对原始 Typora 1.14.10：正文 Editor 使用 `#write`，组合开始后保护选区和 DOM，结束后读取实际节点并刷新；纯 Shift 不自行提交或删除候选。源码模式 CodeMirror 5.26.0 使用 textarea，组合期间不重置输入框，结束后轮询实际文本。这些行为确立共同契约：浏览器和输入法拥有候选及确认文字，应用不因修饰键抢焦点、清空候选或猜测补发。原生编辑函数绑定正文节点、文档模型与撤销，不能用于终端的 PTY 字节流。
+
+本轮真实 Chromium 对照发现另一条已确认缺口：Shift keydown → `input(insertText, composed=true, data=pin)` → Shift keyup → 后续 `x`，没有 composition 事件；textarea 与 contenteditable 均保留 `pinx`，终端 textarea 也是 `pinx`，但 xterm onData 只有 `x`。固定 xterm 6.0.0 的 `CoreBrowserTerminal._keyDown` 在公开自定义按键回调之前设 `_keyDownSeen=true`，`_inputEvent` 因而过滤 Shift 尚未抬起时的确认文本。此前组合结束偏移与全局快捷键测试均未覆盖这条直接提交路径。[xterm 6054 提案](https://github.com/xtermjs/xterm.js/pull/6054)记录相同修饰键问题；[Tabby 11650](https://github.com/Eugeny/tabby/pull/11650)已于2026-09-11合并并报告 Windows 搜狗 Shift 实测，但 xterm 提案仍未合并，不声称 VS Code 已使用它。
+
+由现有 `terminal_composition` 输入适配器在 xterm textarea 的父节点捕获纯 Shift keydown，只停止到 xterm 的传播，不取消浏览器默认行为。限定实际 textarea 目标、Shift 键或旧式 keyCode 16、没有 Ctrl/Alt/Meta/AltGraph，且不处于已登记组合或 isComposing/keyCode 229 状态。已开始的组合继续由 xterm 管理，避免直接 input 与组合结束重复发送。Shift 本身不生成终端字节，浏览器后续 input 与全部 keyup 照常进入 xterm，由原有输入路径发送一次。Ctrl/Alt/Meta 组合、Shift＋字符／方向键、终端查找和其他输入框不进入此例外。复用表面生命周期，搬移保留，销毁移除；不访问 xterm 私有字段，不引入第二套候选缓存、PTY补发、输入法配置或文档编辑器。
+
+验收先保留同序列旧版红证据，再对照普通 textarea、contenteditable 与终端：左右 Shift、直接拼音提交、后续英文、无 composition、默认行为和焦点、Ctrl+Shift+F 与 Escape，以及既有组合开始／结束、整值替换、取消、正常终端字节和销毁。浏览器可信输入、原生宿主 renderer 回放与物理搜狗分别记录；不把上游他人的实测当成本机验收。并发 CDP 连续提交与0ms组合结束队列竞争另记调查项，不能据此扩展为改写终端输入引擎。

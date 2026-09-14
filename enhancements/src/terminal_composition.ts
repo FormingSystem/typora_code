@@ -1,9 +1,16 @@
 import {create_workspace_lifetime} from "./workspace_lifetime";
 
-/** Windows输入法整值替换时恢复xterm 6的旧起点；已提交文本仍只由xterm发送。 */
+/** 保留浏览器输入法默认行为，适配xterm 6输入边界；已提交文本仍只由xterm发送。 */
 export function bind_terminal_composition(textarea:HTMLTextAreaElement){
   const lifetime=create_workspace_lifetime();
   let prefix="",composing=false,timer=0;
+  // xterm在自定义键处理之前把纯Shift记为已见输入，误丢无compositionend的搜狗insertText。
+  // 在父级只隔离纯Shift按下，保留浏览器默认行为和xterm的input/keyup清理，不补发文字。
+  const input_parent=textarea.parentElement;
+  if(input_parent)lifetime.listen(input_parent,"keydown",event=>{
+    const key=event as KeyboardEvent;
+    if(event.target===textarea&&!composing&&!key.isComposing&&key.keyCode!==229&&!key.ctrlKey&&!key.altKey&&!key.metaKey&&!key.getModifierState("AltGraph")&&(key.key==="Shift"||key.keyCode===16))event.stopPropagation();
+  },true);
   let pending:{previous:string;committed:string}|undefined;
   const normalize=(record:{previous:string;committed:string})=>{
     if(lifetime.disposed||!textarea.isConnected||textarea.value!==record.committed)return;

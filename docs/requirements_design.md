@@ -49,7 +49,7 @@
 | R006.4 | 终端的任务、调试和远端依赖 | [设计章节](terminal_operations.md#职责与边界) | 待设计：独立服务及宿主能力边界 |
 | R006.5 | 终端平台与管理员验收 | [设计章节](terminal_operations.md#职责与边界) | 部分设计：已有 Windows/UAC 入口；Linux 运行包和平台验收需补 |
 | R006.6 | 完整终端配置对照 | [设计章节](terminal_operations.md#配置) | 部分设计：已有配置清单，其余配置需逐项设计与接线 |
-| R006.7 | 终端输入法与 Shift 中英切换 | [设计章节](terminal_operations.md#r0067-输入法与按键所有权) | [候选拼音提交](terminal_operations.md#2026-09-14-shift候选拼音丢失复查)由xterm唯一发送；[全局捕获与终端焦点](terminal_operations.md#2026-09-14-全局捕获与终端焦点)统一IME/229判定和实际输入目标 |
+| R006.7 | 终端输入法与 Shift 中英切换 | [设计章节](terminal_operations.md#r0067-输入法与按键所有权) | [Markdown输入契约与Shift直接提交](terminal_operations.md#2026-09-14-markdown输入契约与shift直接提交)；保留候选提交与全局捕获修复，输入法管理候选，xterm唯一发送 |
 | R007 | 保留原生能力并补充文件菜单 | [设计章节](file_operations.md#文件管理) | 已有文件命令设计；完整工作区另见 R010 |
 | R008 | 所有功能的抽象与统一管理 | [设计章节](workspace_architecture.md#调用方向与状态所有者) | 已有全局职责和所有权设计 |
 | R009 | 系统文件剪贴板互通 | [设计章节](file_operations.md#r009-系统文件剪贴板) | 系统文件列表、版本绑定剪切及外部复制边界 |
