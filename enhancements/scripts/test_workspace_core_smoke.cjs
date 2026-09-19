@@ -48,6 +48,12 @@ assert(await win.webContents.executeJavaScript(`getComputedStyle(core_menu.conta
 await win.webContents.executeJavaScript(`for(const type of ['mousedown','mouseup'])focus_input.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true}));void 0`);
 assert(await win.webContents.executeJavaScript(`getComputedStyle(core_menu.containerEl).display==='none'`));
 await win.webContents.executeJavaScript(`core_menu.open();core_menu.close();void 0`);await new Promise(r=>setTimeout(r,40));assert(await win.webContents.executeJavaScript(`getComputedStyle(core_menu.containerEl).display==='none'`));
+// 原有生命周期夹具只加载JS；几何断言必须加载实际候选CSS和图标领域样式。
+await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../dist/workspace_core.css'),'utf8'));
+await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
+await win.webContents.executeJavaScript(`core_menu.empty().addItem(item=>item.setTitle('Outline').setIcon('list')).addItem(item=>{const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('width','24');svg.setAttribute('height','24');svg.classList.add('git-standard-icon');const wrapper=document.createElement('span');wrapper.className='git-activity-icon';wrapper.append(svg);item.setTitle('Source Control').setIcon(wrapper);});core_menu.showAtPosition({x:100,y:100});void 0`);await new Promise(r=>setTimeout(r,40));
+assert(await win.webContents.executeJavaScript(`[...core_menu.containerEl.querySelectorAll('.typ-menu-icon')].every(node=>{const r=node.firstElementChild.getBoundingClientRect(),a=node.parentElement.getBoundingClientRect();return r.width===16&&r.height===16&&Math.abs(r.top+r.height/2-a.top-a.height/2)<1&&getComputedStyle(node.parentElement).display==='flex';})`),'actual core font and SVG glyphs share menu geometry');
+await win.webContents.executeJavaScript('core_menu.close();void 0');
 console.log('PASS core input backdrop cancellation; core menu outside mouse cancellation and pending-open cleanup.');
 console.log('PASS actual core InputBox and QuickPick restore selection; workbench and core share one nested Escape owner.');
 console.log('PASS '+root);win.destroy();app.exit(0);

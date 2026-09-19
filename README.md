@@ -26,6 +26,8 @@ Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git
 
 Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供预览；源码标签可分别编辑与保存。C/C++ 符号大纲需要本机 clangd。当前没有 VS Code 扩展宿主。平台支持和未覆盖能力见[环境要求](docs/installation.md#环境要求)与[功能范围](docs/workbench_parity.md)。
 
+开发与稳定性验收入口：[需求设计](docs/requirements_design.md)、[测试架构与用例](docs/stability_testing.md)、[问题分类索引](docs/stability_issues.md)。
+
 ## 1.1\_安装、检查与恢复
 
 **Windows 快速开始：**

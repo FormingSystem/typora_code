@@ -1,3 +1,4 @@
+import {trash_native_path} from "./workspace_native_trash";
 import {request_workspace_editor_title_entries} from "./workspace_editor_actions";
 import {select_workspace_editor_group} from "./workspace_editor_settings";
 import {workspace_file_icon, acquire_workspace_file_icons} from "./workspace_file_icons";
@@ -171,8 +172,6 @@ export function create_graph_host(core: graph_core) {
       return allowed;
     },
     async trash_files(root: string, files: string[]): Promise<void> {
-      const shell = runtime.reqnode("electron").shell;
-      if (typeof shell.trashItem !== "function") throw new Error(text("host.trash_unavailable"));
       const real_root = await fs.promises.realpath(root);
       const targets: string[] = [];
       for (const file of files) {
@@ -185,7 +184,7 @@ export function create_graph_host(core: graph_core) {
         targets.push(target);
       }
       for (let index = 0; index < targets.length; index++) {
-        try { await shell.trashItem(targets[index]); }
+        try { await trash_native_path(runtime,targets[index]); }
         catch (error) { throw new Error(text("host.trash_partial_failure", {count: index, file: files[index], error: String(error)})); }
       }
     },

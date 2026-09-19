@@ -57,6 +57,8 @@ npm run check:ui
 
 `vendor/vscode_cpp/` 保存 C/C++ grammar，`vendor/gemoji/` 保存 emoji 数据与许可，`vendor/workspace_core/` 保存固定 `2.10.15` 上游源码裁剪的常驻核心，见 [SOURCE.json](vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](vendor/workspace_core/LICENSE.md)。`scripts/build_workspace_core.mjs` 输出核心脚本、CSS 和三个语言包；总构建输出其余静态样式与工作台脚本。`npm run check` 核对发布摘要、部署入口、核心构建闭包、功能标记、语法及状态逻辑。
 
+需求、用例分类、压力档位与当次证据统一见[稳定性测试架构](../docs/stability_testing.md)。用 `npm run test:quality -- --list` 查看带需求关联的全部套件；原生隔离验收和未具备环境的处理规则也在该文档中。
+
 `npm run check:ui` 使用精确锁定的 Electron `43.2.0`，顺序运行不启动真实 Typora 的隐藏窗口回归；每项在独立 Electron 进程中执行，涉及文件或用户数据的夹具使用隔离临时目录，并在末尾报告逐项耗时及失败。`npm run check:all` 依次执行平台中立检查和隐藏 UI 检查。用 `npm run check:ui -- --list` 查看固定套件，也可在 `--` 后列出一个或多个测试文件进行聚焦验证。runner 会检查全部 `test_*.cjs` 是否已明确纳入或排除，新增测试不会被静默漏过。`test_terminal_interaction.cjs` 会读取 `TYPORA_TEST_USER_DATA` 中的终端运行文件并启动真实 Shell，因此不属于这组隔离测试，仍按终端章节单独执行。
 
 当前以 `59412a2` 为平直布局与功能范围参考，保留已验证的稳定修复，并非整库恢复旧提交。VS Code `1.136.2` 与主题取证用于已明确要求的修复，不授权继续扩充工作台或恢复 Modern 布局。按用户 2026-09-10 的最新要求，Explorer 文件和真实文件标签使用随包提供的 Seti `10.0.0` 原始字形与颜色；文件夹只保留展开箭头。独立大纲保留原生 `fa-list` 图标及原节点，SCM 与 Graph 的图标各按自身语义处理。此调整仅涉及图标，不恢复 Open Editors、底部 Panel 或预览标签行为；普通安装不读取本机 VS Code。详见 [设计基线](../docs/vscode_design_baseline.md) 和 [图标映射](../docs/icon_mapping.md)。

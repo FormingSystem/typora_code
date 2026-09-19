@@ -1,0 +1,1769 @@
+{
+  "schema": 1,
+  "date": "2026-09-19",
+  "status": "passed_with_explicit_environment_gaps",
+  "scope": "114个目录条目中110个通过，4个遗留/平台条目明确未执行；历史失败及复跑报告分别保留",
+  "source_base_revision": "9164530f11f7a779ff11643618f7e94c969c231e",
+  "asset_manifest_sha256": "d626e958950b797f5fa0584d1d1a6a2fe855bf7e07630378678fd1353034f93f",
+  "catalog_sha256": "1b75451beb3971140c13c057ef3aafb6821fbfe16722172254397279ac42b2a0",
+  "counts": {
+    "passed": 110,
+    "not_run": 4
+  },
+  "runs": [
+    {
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "status": "incomplete",
+      "counts": {
+        "passed": 86,
+        "failed": 1
+      },
+      "report_sha256": "dc28adfc7716e7ad044c80141e5abd62653eec50b2834c74880bda6cec6a1784",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-13-27-279Z_239528/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "status": "incomplete",
+      "counts": {
+        "not_run": 4,
+        "passed": 7
+      },
+      "report_sha256": "962b17175c67a2835d183a5dcf9bc9252fa1701c1b9adaedf5f46f6cb2701e24",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-13-37-599Z_f94814/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-17-44-112Z_0b5e23",
+      "status": "passed",
+      "counts": {
+        "passed": 5
+      },
+      "report_sha256": "2643219fc2fa397e47161ef16ce09046ee49a8a3b74f17e76cda1773ddb2dfe8",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-17-44-112Z_0b5e23/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-17-56-455Z_1117f3",
+      "status": "passed",
+      "counts": {
+        "passed": 5
+      },
+      "report_sha256": "e930074beec1fd3d4382706f91b943437cd87a6cd66ea05ef7b58a53cc04d7be",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-17-56-455Z_1117f3/report.json",
+      "tier": 100
+    },
+    {
+      "run_id": "2026-09-19T10-18-09-682Z_525162",
+      "status": "passed",
+      "counts": {
+        "passed": 5
+      },
+      "report_sha256": "56c8ae6e77eaef7f28fac8c3b0bffcb8c629de69c2d195d884b117748a66b5ac",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-18-09-682Z_525162/report.json",
+      "tier": 1000
+    },
+    {
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "status": "passed",
+      "counts": {
+        "passed": 15
+      },
+      "report_sha256": "037b497a06978a2a5d7120dec875437586983b6adec3fdd08a889436cbf00aa7",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-21-35-409Z_edfd7b/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-21-40-640Z_68fc9d",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      },
+      "report_sha256": "3d0f160f1611f526f8ba5c4bda5c0c2eb7e0d1706f66d3a4c1ee942a02ad00d9",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-21-40-640Z_68fc9d/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-23-43-511Z_8bc4ed",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      },
+      "report_sha256": "37ddb6902ab5d91725bf4a9d0f05f4bfea1520e7a9d124e66d59c2f5b2442db7",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-23-43-511Z_8bc4ed/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-23-46-019Z_cd76f0",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      },
+      "report_sha256": "ca6d6a591ef1f7dd6e1b10c2d024f3af7537b69f76212f85231fe82fe1a748be",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-23-46-019Z_cd76f0/report.json",
+      "tier": 20
+    },
+    {
+      "run_id": "2026-09-19T10-27-54-495Z_9ca171",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      },
+      "report_sha256": "0d4be9e7ae31d39c23a6975409e9e1b63a6fadf02ea0ba9111b49b1584a3e84a",
+      "evidence": ".cache/issue_tracking/runs/2026-09-19T10-27-54-495Z_9ca171/report.json",
+      "tier": 20
+    }
+  ],
+  "native": {
+    "checks": 21,
+    "startup_viewport": {
+      "viewport": {
+        "width": 802,
+        "height": 702,
+        "device_pixel_ratio": 1.25,
+        "zoom_factor": 1
+      },
+      "input": "renderer事件与真实宿主API；非物理输入"
+    },
+    "artifacts": [
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/checks.json",
+        "sha256": "5309c74ca7f8fbb73612874515e981344672d0eb1e12dce9e7360b69506755aa"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/result.json",
+        "sha256": "c335b9943459eb08f91e292694f5a7924d951fa6e71c52b1bc6621940deac8d8"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/setup.json",
+        "sha256": "b72eebe95a2a8f2878c06e1f58a6e0d8f4c751333daf1b0e1cd1dc09deeda6e7"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/stage_stability_Github_527966.png",
+        "sha256": "6ed5a0ec3291085d155e8a28e2b78d2df9c9eeb4cab1f3a83386e61ccdd2e96f"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/stage_stability_Night_527966.png",
+        "sha256": "6b1489e11d60257b81a8452987ee67d0eaf53d73c1751ffd7dfeb2ae13a66493"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/window_18748510.png",
+        "sha256": "7b9488a833413856624959b4d9ac169b66cc0059eab125674e0a16b44a169c2d"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/window_3806308.png",
+        "sha256": "c76a12d47641dfe689b07daa791c8232da8cb152e1bbc570a074dc8af6729d96"
+      },
+      {
+        "path": ".cache/issue_tracking/native/4adafc903b394a85b803e6e4fa42cea3/window_527966.png",
+        "sha256": "ef083e1d68e668215e9ccde53adf9b027e434c44bb3362edc6279ecf58525271"
+      }
+    ]
+  },
+  "installation": {
+    "assets_matched": 23,
+    "protected_files_unchanged": 5,
+    "check": "OK",
+    "user_windows_restarted": false,
+    "evidence": ".cache/issue_tracking/install_verification_20260919.json"
+  },
+  "results": [
+    {
+      "id": "TC-reading-001",
+      "script": "enhancements/scripts/test_clangd_symbol_service.mjs",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "5f441f722e1f949aaa7da125a34e1acf3744415ac0aa7edea8969be1aa64404a"
+    },
+    {
+      "id": "TC-git-001",
+      "script": "enhancements/scripts/test_diff_overview.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "da39f8c003820bf9613f0f3aee4f667fa2dd3558eb62fb1527e0d4eb8c41c7c3"
+    },
+    {
+      "id": "TC-files-001",
+      "script": "enhancements/scripts/test_file_clipboard_platform.mjs",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "320972e31d364fa64a28a2453639c3ee2803e5dfa1bfed693d1c2502fe2a7561"
+    },
+    {
+      "id": "TC-files-002",
+      "script": "enhancements/scripts/test_file_clipboard_windows.mjs",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "not_run",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-files-003",
+      "script": "enhancements/scripts/test_file_language.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "08f44fc1ad4cc67a6f76c57cfb24988ddff7ad7e594de1c2af13744f5ecb1ef1"
+    },
+    {
+      "id": "TC-files-004",
+      "script": "enhancements/scripts/test_file_paths.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "2b36f1432b0566ff5ddc9adc23c0d143c6391b9b460dfcf08f20b19c18bc62d5"
+    },
+    {
+      "id": "TC-git-002",
+      "script": "enhancements/scripts/test_git_diff_ranges.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8e3bd5e70f43ef42f7b8b4fe1ce9c14d306048fb189994ace65cf873bf657baa"
+    },
+    {
+      "id": "TC-git-003",
+      "script": "enhancements/scripts/test_git_diff_toolbar.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "fe61940ef794e8c162a1aa2249f62dcf17821bace2dce33371d53b3b42fefc7c"
+    },
+    {
+      "id": "TC-git-004",
+      "script": "enhancements/scripts/test_git_discard_changes.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "2f6fe7015ee171d3650b1a009be8886eaa69e92a5fdb44e25612963e3006a0f4"
+    },
+    {
+      "id": "TC-git-005",
+      "script": "enhancements/scripts/test_git_discard_confirmation.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "9b8218684acdb21f4346627a44a78529477efaa782823601fa8f1ec9a856aeb8"
+    },
+    {
+      "id": "TC-git-006",
+      "script": "enhancements/scripts/test_git_graph.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "e71c0738a32c6ae32ab9fc5c9d115834df55943296e5fa91790c1cf590b4f0da"
+    },
+    {
+      "id": "TC-git-007",
+      "script": "enhancements/scripts/test_git_graph_actions_settings_i18n.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "2d30da2ed6b58be295955e00cf68d5960d5d565f21c3cf14375e8908b2e1ac9d"
+    },
+    {
+      "id": "TC-git-008",
+      "script": "enhancements/scripts/test_git_graph_full.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "6763c85df8872d96fac3518babb92ffe9e6251b2a9a25dcccf1010a297dbac64"
+    },
+    {
+      "id": "TC-git-009",
+      "script": "enhancements/scripts/test_git_graph_i18n.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cf8d36e571fb26314fccb8b64a94e91e21a53f3eea564d35a3f099fe576b9964"
+    },
+    {
+      "id": "TC-git-010",
+      "script": "enhancements/scripts/test_git_graph_interaction.cjs",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-27-54-495Z_9ca171",
+      "log_sha256": "1ce826b2797cb38704ddf0dc0922b1bf32ccca532298bc0946819604b5c88b13"
+    },
+    {
+      "id": "TC-git-011",
+      "script": "enhancements/scripts/test_git_graph_pull_request.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "2b3f9ae632111f751ab69d3407385e5337826ee5f11afba52c61d7eb90743e9b"
+    },
+    {
+      "id": "TC-git-012",
+      "script": "enhancements/scripts/test_git_graph_ref_colors.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "d870bb7926b64896d5557cc0d2ad8946b1cc4d2d32632a1a0107a0a37bf79175"
+    },
+    {
+      "id": "TC-git-013",
+      "script": "enhancements/scripts/test_git_graph_settings_view.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "73bab5f7da147d81394d4d3dc55f6f0442ea9cfd692e96b699829242fa3f1326"
+    },
+    {
+      "id": "TC-git-014",
+      "script": "enhancements/scripts/test_git_graph_visibility.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "125b36460bb6f65b2e105361c5483f6111018dbb0f9d572514bcab2c79c16933"
+    },
+    {
+      "id": "TC-git-015",
+      "script": "enhancements/scripts/test_git_operation_progress.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "c695ea0b55c443339a42b8a3821fd451cc6fd3b5028280b2efa85f46889d2b1f"
+    },
+    {
+      "id": "TC-git-016",
+      "script": "enhancements/scripts/test_git_quick_actions.cjs",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "86e0327d2a6bd4da09bf9e32c7464bb1bf16fc9106b6e7899adb84539cab679d"
+    },
+    {
+      "id": "TC-git-017",
+      "script": "enhancements/scripts/test_git_quick_actions.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "703100382b062d6a45318262d987ed505613e034e670bbd02556c5d3edbe6b98"
+    },
+    {
+      "id": "TC-git-018",
+      "script": "enhancements/scripts/test_git_refresh_scheduler.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "64309b5c138c0c95418eebe3677119d94ba5a5b315282b9b252627015fd29149"
+    },
+    {
+      "id": "TC-git-019",
+      "script": "enhancements/scripts/test_git_revision_reader.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "4837ac372a17ad0ca925d2b8ebfc97be6b03643444c22ab2e8554f9ea0ba82e2"
+    },
+    {
+      "id": "TC-git-020",
+      "script": "enhancements/scripts/test_git_scm_actions.cjs",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "27c0199a8aeb637dfc1b0cc40ac260f3691ff82438ef337856296088a572c90e"
+    },
+    {
+      "id": "TC-git-021",
+      "script": "enhancements/scripts/test_git_scm_actions.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8f84c3eb8b7978f23818ba52e810de97f44d028be99bc5102bd717f4b9c4b20c"
+    },
+    {
+      "id": "TC-git-022",
+      "script": "enhancements/scripts/test_git_scm_ref_picker.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "05596fe55690ba9fd25a97d9af5de4434f26bee41d0bf8d560933b98c2086001"
+    },
+    {
+      "id": "TC-git-023",
+      "script": "enhancements/scripts/test_git_sync.mjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "87cab285daf812658cd26ba5db4913653755ead8bf4364e0c72479d21d9c4fa3"
+    },
+    {
+      "id": "TC-delivery-001",
+      "script": "enhancements/scripts/test_install_logging.ps1",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "log_sha256": "8a565181f578ef9a1d55dce30a419abb831cb1c62eb754f4f8f9ee3b1caa81b2"
+    },
+    {
+      "id": "TC-delivery-002",
+      "script": "enhancements/scripts/test_install_windows.ps1",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "log_sha256": "fa3dad065032ddaef08144b83bb86982d5ec118c0bd4992207887e3615130214"
+    },
+    {
+      "id": "TC-workspace-001",
+      "script": "enhancements/scripts/test_interaction.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "57ce091abd0606742c273fb716de2e986119883df4c997c4ab286c78294695ec"
+    },
+    {
+      "id": "TC-reading-002",
+      "script": "enhancements/scripts/test_markdown_color.cjs",
+      "requirements": [
+        "R026"
+      ],
+      "design": "docs/markdown_text_color.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "38c5e3508c413444584ca7d35c036538a716f803e6a7649ccc5bec59a4ee71c7"
+    },
+    {
+      "id": "TC-reading-003",
+      "script": "enhancements/scripts/test_markdown_text_color.mjs",
+      "requirements": [
+        "R026"
+      ],
+      "design": "docs/markdown_text_color.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "323252b0fd40ff03c53ec37280e796f881dcea62f8015b9d3fec41258a3dc8f6"
+    },
+    {
+      "id": "TC-delivery-003",
+      "script": "enhancements/scripts/test_native_profile.mjs",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "log_sha256": "96d142325eefc8024329edc755f29e01a959c197ec7e5dd2c70340b0b61ec55b"
+    },
+    {
+      "id": "TC-reading-004",
+      "script": "enhancements/scripts/test_reading_history.mjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "52826633cd396d8d36d7bdc9f2e095c36def48930bcbf4d796bd7bc9ad350467"
+    },
+    {
+      "id": "TC-reading-005",
+      "script": "enhancements/scripts/test_reading_lifecycle.cjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "ac8d0c1bd20052209b20e2dd0771aab72163cd93bc9290044307343e0346a5b5"
+    },
+    {
+      "id": "TC-reading-006",
+      "script": "enhancements/scripts/test_reading_link_hover.cjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cb8bad25d511add32710842341ec00f2cb3dc4b0bba06e9ec25cdd2908f163d8"
+    },
+    {
+      "id": "TC-reading-007",
+      "script": "enhancements/scripts/test_reading_media_viewer.cjs",
+      "requirements": [
+        "R029"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "11132db63f068f2430d5cd56048db4e74faea6009d2cf282f0a69697a65e9db2"
+    },
+    {
+      "id": "TC-reading-008",
+      "script": "enhancements/scripts/test_reading_minimap.cjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "fe82b579765ff4cc2c0220eccc2ab29907d748478a83508a3a60ee80209d0207"
+    },
+    {
+      "id": "TC-reading-009",
+      "script": "enhancements/scripts/test_reading_native.ps1",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "not_run",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-reading-010",
+      "script": "enhancements/scripts/test_reading_positions.mjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "7c288d0680801a602686e289016e2ce5faa50c296a8c1b74109dbc6a6fdca8da"
+    },
+    {
+      "id": "TC-git-024",
+      "script": "enhancements/scripts/test_scm_file_icons.cjs",
+      "requirements": [
+        "H004"
+      ],
+      "design": "docs/icon_mapping.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "80445806c96c54e90f8eb06e31ddab88f3d7dd7a15e472d0b8e9d128eeef85b7"
+    },
+    {
+      "id": "TC-git-025",
+      "script": "enhancements/scripts/test_scm_history_layout.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "415eab82157079a51ccfa24841d49f5147d7db2ab5733da5a899bc0c612a9931"
+    },
+    {
+      "id": "TC-git-026",
+      "script": "enhancements/scripts/test_scm_sidebar_layout.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "917f7da448fc6d689345e28d29eb39465adc3c2efa7edb9172b2a5a91788eb05"
+    },
+    {
+      "id": "TC-git-027",
+      "script": "enhancements/scripts/test_scm_vscode_geometry.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "02745103b24e328c7088c037befc20ee308e2b9fdf849b72b6d879f8da3a055c"
+    },
+    {
+      "id": "TC-reading-011",
+      "script": "enhancements/scripts/test_source_outline_settings.cjs",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "7cfea62d41108ca8c7ff1409924c686ca7391247d0424fd0b884ed5d0dadcd99"
+    },
+    {
+      "id": "TC-quality-001",
+      "script": "enhancements/scripts/test_stability_contracts.mjs",
+      "requirements": [
+        "R039",
+        "R040",
+        "R041",
+        "R045"
+      ],
+      "design": "docs/stability_testing.md",
+      "level": "functional",
+      "purpose": "stress",
+      "status": "passed",
+      "run_id": "2026-09-19T10-18-09-682Z_525162",
+      "log_sha256": "0fb25a029cb88b509fa7f3a036ffc8893a9248392c091d65017b7029d2408d02"
+    },
+    {
+      "id": "TC-terminal-001",
+      "script": "enhancements/scripts/test_terminal.mjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "7cacde7585295eef4ab9d4b0f6fa45233ed2dcf31bf19777a6fa1e48eef35f0f"
+    },
+    {
+      "id": "TC-terminal-002",
+      "script": "enhancements/scripts/test_terminal_capture.cjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "ad3ebbfa52c22acefd5ff00092cbfb186a926a83dda3e65e85b9176eb454b47d"
+    },
+    {
+      "id": "TC-terminal-003",
+      "script": "enhancements/scripts/test_terminal_composition.cjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "ad0c213790e980107f1dc95524a925e208aeddb56ccfe95397a83b4b82c4a2a5"
+    },
+    {
+      "id": "TC-terminal-004",
+      "script": "enhancements/scripts/test_terminal_interaction.cjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "not_run",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-terminal-005",
+      "script": "enhancements/scripts/test_terminal_panel.cjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "63c6b1cda1a1ecec30337ae001c00734fdc7baba1a222f21836d3fe65d4562c8"
+    },
+    {
+      "id": "TC-terminal-006",
+      "script": "enhancements/scripts/test_terminal_profiles.mjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "7109877b562f61e886306404374321fc2fcefe84cd9d872ba25257685af980c5"
+    },
+    {
+      "id": "TC-terminal-007",
+      "script": "enhancements/scripts/test_terminal_settings.mjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "ba24a0f1df8c8d80a132b6a7adf7116b869734c52b7094fb5f9b6c6f078a122b"
+    },
+    {
+      "id": "TC-terminal-008",
+      "script": "enhancements/scripts/test_terminal_theme.cjs",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "1aee32745fb798eb9ef824fe8c5689c2d0694bc6f672ee7fb2533a4fd4f23752"
+    },
+    {
+      "id": "TC-reading-012",
+      "script": "enhancements/scripts/test_textmate.mjs",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "9b585998ac7befdb65de95e0c4ea1caf035ee218681db67b4b36a4c1e3cb983a"
+    },
+    {
+      "id": "TC-delivery-004",
+      "script": "enhancements/scripts/test_uninstall_windows.ps1",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "log_sha256": "ba6f8f47ab70a9c0f7ef5a9c61ceac3e6cb8660145138972e5273a7e99e54d0f"
+    },
+    {
+      "id": "TC-workspace-002",
+      "script": "enhancements/scripts/test_workspace_activity.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "f15d63f85fb53a3070e32f1e40a6b9669eec611e48d7b6271f429f6107199100"
+    },
+    {
+      "id": "TC-files-005",
+      "script": "enhancements/scripts/test_workspace_auto_save.mjs",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "792a0e527e61f5a9ea8935e2a86ce4ebdc3658b225e373b185f9aedd5809f369"
+    },
+    {
+      "id": "TC-workspace-003",
+      "script": "enhancements/scripts/test_workspace_breadcrumbs.cjs",
+      "requirements": [
+        "R034",
+        "R043"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "4b942351f5f28674bfd8179e603a53aecb1df45f7f55419ad1061b43c42f514e"
+    },
+    {
+      "id": "TC-reading-013",
+      "script": "enhancements/scripts/test_workspace_clangd_outline.cjs",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "a6e44dc0acb0a84a15986984467946dc7f57a6c9dbc2a2b8e3c6f912305c2a06"
+    },
+    {
+      "id": "TC-workspace-004",
+      "script": "enhancements/scripts/test_workspace_core_smoke.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-23-43-511Z_8bc4ed",
+      "log_sha256": "3348b96d09fe0851ad67d951b973241191ca1c6beb4ac88aa3770afee1ab41cf"
+    },
+    {
+      "id": "TC-workspace-005",
+      "script": "enhancements/scripts/test_workspace_detached_window.cjs",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "bc252ec2af99cb5968c520f7be3ad4fb7680b67b08f02324732ca4c6f518a61e"
+    },
+    {
+      "id": "TC-git-028",
+      "script": "enhancements/scripts/test_workspace_diff_status.cjs",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cae4f14a95a73c3916a35d7507f32232305c7dc840cc612064a4ef4697e948a3"
+    },
+    {
+      "id": "TC-workspace-006",
+      "script": "enhancements/scripts/test_workspace_dismissal.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "263b0127eb82f4309f3c9c9b3d1731a2b3df4aa0cfafbedbee2556f8eda9aa78"
+    },
+    {
+      "id": "TC-files-006",
+      "script": "enhancements/scripts/test_workspace_document_margin.cjs",
+      "requirements": [
+        "H009",
+        "R019"
+      ],
+      "design": "docs/statusbar_layout.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "17e28ec9d5aa7d05701f84eeab41a361afd27cfd6da059b85193c93d4f1a3f53"
+    },
+    {
+      "id": "TC-files-007",
+      "script": "enhancements/scripts/test_workspace_document_transfer.cjs",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "2ce2bf5b7c46d9a0bd2e2db58da334b3744fb4d5d9b2fa8abf673e23284c628d"
+    },
+    {
+      "id": "TC-workspace-007",
+      "script": "enhancements/scripts/test_workspace_drag.cjs",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "b4716393359feba8a5f2f4fc566e238362efb4c9c8f82a9086b90d053a6482d2"
+    },
+    {
+      "id": "TC-workspace-008",
+      "script": "enhancements/scripts/test_workspace_editor_actions.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "9a6d9c4cc46660a26cd66d48fd8e79361fedac6c744f2209dd3b9bd95af33aea"
+    },
+    {
+      "id": "TC-workspace-009",
+      "script": "enhancements/scripts/test_workspace_editor_status.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cdc860589fd1bf173cf86f7c2f0d9f1cb1e2be64caa1498e6e7e852d903c3923"
+    },
+    {
+      "id": "TC-workspace-010",
+      "script": "enhancements/scripts/test_workspace_escape_focus.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "fdc205b69c4e467facd85c90a8b7ca66d096c41d2e3d718289e725afc9b95954"
+    },
+    {
+      "id": "TC-files-008",
+      "script": "enhancements/scripts/test_workspace_explorer.cjs",
+      "requirements": [
+        "R041",
+        "R044"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "3f08aa6e74a940767a8d12772a9a2c0550299aa65696b5f91e51e6ec1461733e"
+    },
+    {
+      "id": "TC-files-009",
+      "script": "enhancements/scripts/test_workspace_explorer_history.cjs",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "e04711bf354b51dd656b372978d3c47646b50b4006ba6907a5613ba75e76b4d8"
+    },
+    {
+      "id": "TC-files-010",
+      "script": "enhancements/scripts/test_workspace_file_clipboard.mjs",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8bc20eda41b58d806f08a7ff3a10a8587c64c30e64bb9bc8924f67ff2e242e17"
+    },
+    {
+      "id": "TC-files-011",
+      "script": "enhancements/scripts/test_workspace_file_editing.cjs",
+      "requirements": [
+        "R042",
+        "R038"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "f1bc02214473eee74b1b91f39b10fee6a9d98572642fe5d2af96eca1295bf45a"
+    },
+    {
+      "id": "TC-files-012",
+      "script": "enhancements/scripts/test_workspace_file_header.cjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "86ef07eefccc0545de0452b67ba0544afd9e7c553063c5dc9bb4dec807b211e3"
+    },
+    {
+      "id": "TC-files-013",
+      "script": "enhancements/scripts/test_workspace_file_icons.cjs",
+      "requirements": [
+        "H004"
+      ],
+      "design": "docs/icon_mapping.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "0f8898aafb0fd8c9bf294bce4ffa7d96b45a5e420ff0c4e1594907ca6ca01aac"
+    },
+    {
+      "id": "TC-files-014",
+      "script": "enhancements/scripts/test_workspace_file_operations.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "ab158f8d1a1448f575301ecf7340e9ecbed92de3eab8844cc2626de8435f5fdd"
+    },
+    {
+      "id": "TC-files-015",
+      "script": "enhancements/scripts/test_workspace_file_uri.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "bfa96c2e727b447f4cdec2895c43c9642b48a679c97cf7bf2c3568ffc1f9e979"
+    },
+    {
+      "id": "TC-files-016",
+      "script": "enhancements/scripts/test_workspace_files_search.cjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8fe9ec463c772c57a0601a7bb3095eec033552fc50d5380a4a5ca795f7152026"
+    },
+    {
+      "id": "TC-workspace-011",
+      "script": "enhancements/scripts/test_workspace_first_frame.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "6f90deee07cd402346ae374775fad48fc984b1ba4b9edd42b77dc16df4f0f651"
+    },
+    {
+      "id": "TC-workspace-012",
+      "script": "enhancements/scripts/test_workspace_footer.cjs",
+      "requirements": [
+        "R008.1",
+        "R012",
+        "R013",
+        "R045"
+      ],
+      "design": "docs/statusbar_layout.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cc6d70293787d729869a867046fdc27412fdca0c4cc567ab926a74fb57cebfb5"
+    },
+    {
+      "id": "TC-delivery-005",
+      "script": "enhancements/scripts/test_workspace_install.py",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "log_sha256": "44db231390469e9f05c83deb38348e41e7d653f756c00a468dda88c2a1459749"
+    },
+    {
+      "id": "TC-delivery-006",
+      "script": "enhancements/scripts/test_workspace_install.sh",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "not_run",
+      "run_id": "2026-09-19T10-13-37-599Z_f94814",
+      "reason": "Bash/平台运行环境需单独准备"
+    },
+    {
+      "id": "TC-workspace-013",
+      "script": "enhancements/scripts/test_workspace_interaction.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "70cb76e23a693c5deaeea9f35f14209888892d12958ba70ac9e97bdb5bd3d735"
+    },
+    {
+      "id": "TC-workspace-014",
+      "script": "enhancements/scripts/test_workspace_interaction_defaults.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "aa14b0afa7269020cdbf5670bcd56cd3be03ff8f3210962688b384194b11f9fb"
+    },
+    {
+      "id": "TC-files-017",
+      "script": "enhancements/scripts/test_workspace_local_history.mjs",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "6b9dbf5615aab79c7af7202c6fb9e45f529bdeae3b2c34646901e3f049b77d01"
+    },
+    {
+      "id": "TC-workspace-015",
+      "script": "enhancements/scripts/test_workspace_lookup_preview.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "f2562953db1345d99b0aba0af462c18bf9e6f70f6f2dd3e8a591b3abe2637dab"
+    },
+    {
+      "id": "TC-files-018",
+      "script": "enhancements/scripts/test_workspace_native_save.mjs",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "49700f31d2478041aea7d0ab004e05991f8e16fcb1b12f286f1ec34c1d033e78"
+    },
+    {
+      "id": "TC-reading-014",
+      "script": "enhancements/scripts/test_workspace_outline.cjs",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "180f9a6de2034479fc09aec52e292cb886556e27b7cf121d7fb69d8095ea4dad"
+    },
+    {
+      "id": "TC-workspace-016",
+      "script": "enhancements/scripts/test_workspace_preferences.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "f15be4575702b12c0fbc203ea7d459db9bd253c6135eb98c06168e635d25a8e8"
+    },
+    {
+      "id": "TC-workspace-017",
+      "script": "enhancements/scripts/test_workspace_quick_open_performance.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "stress",
+      "status": "passed",
+      "run_id": "2026-09-19T10-18-09-682Z_525162",
+      "log_sha256": "5b3bfefc04f2443f0530b055b472c9275bd0d182a47adb31dce27027777b9fdb"
+    },
+    {
+      "id": "TC-files-019",
+      "script": "enhancements/scripts/test_workspace_rename.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "3f6d1c05999da89c321a9b482f64983c0f3471dacb69d0775ebf1bca8bf5c101"
+    },
+    {
+      "id": "TC-files-020",
+      "script": "enhancements/scripts/test_workspace_search.mjs",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "cddbe8ef56a8eb09263875c9ea9927218a4c9acf1907d6980b54a8cdae11b2b9"
+    },
+    {
+      "id": "TC-files-021",
+      "script": "enhancements/scripts/test_workspace_search_performance.mjs",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "level": "functional",
+      "purpose": "stress",
+      "status": "passed",
+      "run_id": "2026-09-19T10-18-09-682Z_525162",
+      "log_sha256": "3fb3c9543ba86bd105fbabd8367bb9ada469ff4bd26f6ae494d15cc78c5559f5"
+    },
+    {
+      "id": "TC-files-022",
+      "script": "enhancements/scripts/test_workspace_search_worker.mjs",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "level": "unit",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "04669f59c82eaab9d8fc97a157e221bb61c13cc613d37dd48418939a99dd170c"
+    },
+    {
+      "id": "TC-files-023",
+      "script": "enhancements/scripts/test_workspace_selection_search.cjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "68af8e5d3a4e99852d51672c1bda9e390d2d242994bced068b937181df4c6db3"
+    },
+    {
+      "id": "TC-workspace-018",
+      "script": "enhancements/scripts/test_workspace_shortcuts.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "a90387c5956b64d1c5f2f4dcb53186724f867c2a72952b4e1ed6e379911578e3"
+    },
+    {
+      "id": "TC-workspace-019",
+      "script": "enhancements/scripts/test_workspace_sidebar_sash.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8ea07d64b1fa1dd57fe93a4b19717bf1bf5cb430f1dd4c31e1098d1fcc6da0b5"
+    },
+    {
+      "id": "TC-files-024",
+      "script": "enhancements/scripts/test_workspace_source_lifecycle.cjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "2b68ed50083a0d51abac20ad38dcf00a131f7fa3670950459daf4de0fcad492d"
+    },
+    {
+      "id": "TC-reading-015",
+      "script": "enhancements/scripts/test_workspace_source_outline.cjs",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "64b46ff3527e576e11d70c6d6b76e7164b62f09ebd6110a8454286105817eb24"
+    },
+    {
+      "id": "TC-workspace-020",
+      "script": "enhancements/scripts/test_workspace_stability.cjs",
+      "requirements": [
+        "R043"
+      ],
+      "design": "docs/editor_header.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "c9bcfdd1650cb6a0982702562108081d74706800f8f696d25a6a98ea37c4c141"
+    },
+    {
+      "id": "TC-workspace-021",
+      "script": "enhancements/scripts/test_workspace_startup.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8253e280bb3405c7057db4f73b3bef205dea56abd20ae8a20b9255a958a08eaf"
+    },
+    {
+      "id": "TC-workspace-022",
+      "script": "enhancements/scripts/test_workspace_tab_controls.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8a4d1a43c3c081fdac4b7b7b144f46cc59fca0a56ea5fc41993dc917d13592cc"
+    },
+    {
+      "id": "TC-files-025",
+      "script": "enhancements/scripts/test_workspace_text_document.mjs",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "e47cc2f28ceda258c4fd5d4cc65b889f26e2c44d42689cfe9531feef5d42994c"
+    },
+    {
+      "id": "TC-workspace-023",
+      "script": "enhancements/scripts/test_workspace_titlebar.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "a5176d1e633cefec58c4500db5a3b5be1acdfb69cfd58580026d6701b39613f5"
+    },
+    {
+      "id": "TC-workspace-024",
+      "script": "enhancements/scripts/test_workspace_titlebar_entries.cjs",
+      "requirements": [
+        "R007",
+        "R017",
+        "R040",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "cab306d3493c908480bbb155852cc519956362b4e0f03447ff552a182f7a0dda"
+    },
+    {
+      "id": "TC-workspace-025",
+      "script": "enhancements/scripts/test_workspace_view_layout.cjs",
+      "requirements": [
+        "R018",
+        "R012"
+      ],
+      "design": "docs/workspace_view_menu.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "8a96aac9c3e9ea87ea09c91af441d5d4e10eaeea623a5205daab373676131bb0"
+    },
+    {
+      "id": "TC-workspace-026",
+      "script": "enhancements/scripts/test_workspace_widgets.cjs",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "38bd2f39b77c5ec2216a2bf80011f4e87fb602d44850475635e87db90074ba9b"
+    },
+    {
+      "id": "TC-workspace-027",
+      "script": "enhancements/scripts/test_workspace_zoom.cjs",
+      "requirements": [
+        "R014"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-13-27-279Z_239528",
+      "log_sha256": "77901c27335cbbc2befcd192c5d694d30d75ccda79b82351a210296d0f8e8bca"
+    },
+    {
+      "id": "TC-quality-implementation",
+      "script": "enhancements/scripts/test_stability_contracts.mjs",
+      "requirements": [
+        "R039",
+        "R040",
+        "R041",
+        "R045"
+      ],
+      "design": "docs/stability_testing.md",
+      "level": "functional",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-40-640Z_68fc9d",
+      "log_sha256": "9e970406d2414d614af12955ce17eef201bae1c9b4a27f6f2678a12c7dab9d40"
+    },
+    {
+      "id": "TC-system-native-stability",
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "requirements": [
+        "R040",
+        "R041",
+        "R042",
+        "R043",
+        "R044"
+      ],
+      "design": "docs/stability_testing.md#原生验收",
+      "level": "system",
+      "purpose": "implementation",
+      "status": "passed",
+      "run_id": "2026-09-19T10-23-46-019Z_cd76f0",
+      "log_sha256": "c19d8abe6264970625f71bb35767f5c2fafc7487e68cefcde419aeac94fd6773"
+    },
+    {
+      "id": "TC-system-native-stress",
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "requirements": [
+        "R040",
+        "R041",
+        "R042",
+        "R043",
+        "R044"
+      ],
+      "design": "docs/stability_testing.md#原生验收",
+      "level": "system",
+      "purpose": "stress",
+      "status": "passed",
+      "run_id": "2026-09-19T10-18-09-682Z_525162",
+      "log_sha256": "99c8563e954f7fc81e19c3376dd19a8235c439cc646e79e4a724a7043c11640c"
+    },
+    {
+      "id": "TC-quality-state-stress",
+      "script": "enhancements/scripts/test_stability_state.mjs",
+      "requirements": [
+        "R039",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "level": "unit",
+      "purpose": "stress",
+      "status": "passed",
+      "run_id": "2026-09-19T10-21-35-409Z_edfd7b",
+      "log_sha256": "468014f78f2c5c9f6acefca1909cbaff7bf966e61395dbbf8c8beaaa4d234971"
+    }
+  ]
+}

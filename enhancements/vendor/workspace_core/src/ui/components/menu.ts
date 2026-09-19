@@ -185,8 +185,13 @@ class MenuItem {
   }
 
   private _setContent() {
-    this.anchorEl.innerText = this.title
-    this.iconEl && this.anchorEl.prepend(this.iconEl)
+    const label = document.createElement('span')
+    label.className = 'typ-menu-label'
+    label.textContent = this.title || ''
+    const icon = document.createElement('span')
+    icon.className = 'typ-menu-icon'
+    if (this.iconEl) icon.append(this.iconEl)
+    this.anchorEl.replaceChildren(icon, label)
   }
 
   onClick(callback: (evt: MouseEvent | KeyboardEvent) => any): this {

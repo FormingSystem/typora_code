@@ -111,7 +111,7 @@ try {
     const pending = api.execute_git_action(waiting_run, plan, () => true); await entered.promise;
     const changed_oid = git(repo.root, ['hash-object', '-w', '--stdin'], 'a\nold\nlater staged tail\n').trim();
     git(repo.root, ['update-index', '--cacheinfo', '100644', changed_oid, repo.file]);
-    release.resolve(); await assert.rejects(pending, /重新预览/);
+    release.resolve(); await assert.rejects(pending, /刷新后重试/);
     assert.equal(content(repo.root).toString(), 'a\nnew\nend\n'); assert.equal(index_content(repo.root).toString(), 'a\nold\nlater staged tail\n');
   }
   checks.push('index changes after the repository fingerprint but during the final file validation reject both stage and revert without touching the new staged tail');

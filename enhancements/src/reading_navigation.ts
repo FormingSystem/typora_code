@@ -1,3 +1,4 @@
+import {bind_reading_native_scroll} from "./reading_native_scroll";
 import { create_reading_history, type reading_location } from "./reading_history";
 import { file_key, parse_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file } from "./workspace_file_uri";
 import { create_reading_workspace, reading_delay, type reading_context } from "./reading_workspace";
@@ -45,6 +46,7 @@ export function bind_reading_navigation(): () => void {
   const attrs = ["data-linux-note-reading-navigation", "data-linux-note-reading-positions", "data-linux-note-history-back", "data-linux-note-history-forward"];
   const previous_attrs = attrs.map(name => document.documentElement.getAttribute(name));
   const app = get_workspace_app();
+  const stop_native_scroll = bind_reading_native_scroll(editor,window);
   const runtime = window as unknown as { reqnode(name: string): {
     isAbsolute(path: string): boolean; resolve(...parts: string[]): string; dirname(path: string): string; normalize(path: string): string;
   } };
@@ -334,7 +336,7 @@ export function bind_reading_navigation(): () => void {
   const dispose = () => {
     if (disposed) return;
     disposed = true; controller.abort(); clearTimeout(pending_timer); pending_from = null;
-    workspace.dispose();
+    workspace.dispose(); stop_native_scroll();
     for (const cleanup of cleanups.reverse()) cleanup();
     if (editor.tryOpenUrl === owned_open_url) editor.tryOpenUrl = original_open_url;
     if (editor.library.openFile === owned_open_file) editor.library.openFile = original_open_file;

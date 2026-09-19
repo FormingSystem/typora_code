@@ -1,0 +1,3684 @@
+{
+  "schema": 1,
+  "suites": [
+    {
+      "id": "TC-reading-001",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "implementation": [
+        "enhancements/src/clangd_symbol_service.ts",
+        "enhancements/src/clangd_transport.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_clangd_symbol_service.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "clangd"
+      ]
+    },
+    {
+      "id": "TC-git-001",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_diff_editor.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_diff_overview.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-001",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/file_clipboard_platform.ts",
+        "enhancements/src/workspace_file_clipboard.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_file_clipboard_platform.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-002",
+      "domain": "files",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/file_clipboard_windows.ts",
+        "enhancements/src/workspace_file_clipboard.ts",
+        "enhancements/src/workspace_file_operations.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_file_clipboard_windows.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "manual_reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-files-003",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/file_language.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_file_language.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-004",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/file_paths.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_file_paths.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-002",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_diff_ranges.ts",
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_runtime.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_diff_ranges.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-003",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_diff_settings.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/workspace_editor_actions.ts",
+        "enhancements/src/workspace_editor_settings.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_tab_controls.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_diff_toolbar.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-004",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_runtime.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_discard_changes.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-005",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_discard_confirmation.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-006",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_data.ts",
+        "enhancements/src/git_graph_pull_request.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_graph_runtime.ts",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-007",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_i18n.ts",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_actions_settings_i18n.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-008",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_graph_runtime.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_ignore.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_full.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-009",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_i18n.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-010",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/terminal_settings.ts",
+        "enhancements/src/terminal_surface.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_interaction.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-011",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_pull_request_dialog.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_graph_tab_icon.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_pull_request.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-012",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_ref_colors.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-013",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_settings_view.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-014",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_repository.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_graph_visibility.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-015",
+      "domain": "git",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_operation_progress.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_operation_progress.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-016",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_status_bar.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_quick_actions.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-017",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_graph_runtime.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_quick_actions.ts",
+        "enhancements/src/git_remote_data.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_quick_actions.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-018",
+      "domain": "git",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_refresh_scheduler.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_refresh_scheduler.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-019",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_source_control.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_revision_reader.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-020",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R041",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_scm_actions.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-021",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_graph_runtime.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_scm_data.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_scm_actions.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-022",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_scm_ref_picker.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_scm_ref_picker.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-023",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_actions.ts",
+        "enhancements/src/git_graph_runtime.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_sync.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-delivery-001",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/lib/typora_install_log.ps1",
+        "scripts/lib/typora_terminal.ps1"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_install_logging.ps1",
+      "environment": "平台集成夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
+    },
+    {
+      "id": "TC-delivery-002",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "install_windows.ps1",
+        "check_windows.ps1"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_install_windows.ps1",
+      "environment": "平台集成夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
+    },
+    {
+      "id": "TC-workspace-001",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_entry.ts",
+        "enhancements/src/workspace_startup.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_interaction.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-002",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R026"
+      ],
+      "design": "docs/markdown_text_color.md",
+      "implementation": [
+        "enhancements/src/markdown_color_menu.ts",
+        "enhancements/src/markdown_color_theme.ts",
+        "enhancements/src/markdown_text_color.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_markdown_color.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-003",
+      "domain": "reading",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R026"
+      ],
+      "design": "docs/markdown_text_color.md",
+      "implementation": [
+        "enhancements/src/markdown_text_color.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_markdown_text_color.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-delivery-003",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/lib/typora_native_profile.cjs"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_native_profile.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-004",
+      "domain": "reading",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/reading_history.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_history.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-005",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/file_path_actions.ts",
+        "enhancements/src/reading_minimap.ts",
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/reading_workspace.ts",
+        "enhancements/src/workspace_markdown_location.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_lifecycle.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-006",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/reading_link_hover.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_link_hover.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-007",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R029"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "implementation": [
+        "enhancements/src/reading_image_viewer.ts",
+        "enhancements/src/reading_media_entry.ts",
+        "enhancements/src/reading_media_viewer.ts",
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_media_viewer.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-008",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/reading_minimap.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_minimap.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-009",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/reading_viewport.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_native.ps1",
+      "environment": "平台集成夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32",
+      "manual_reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-reading-010",
+      "domain": "reading",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/reading_positions.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_positions.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-024",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H004"
+      ],
+      "design": "docs/icon_mapping.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_icons.ts",
+        "enhancements/src/git_operation_progress.ts",
+        "enhancements/src/git_source_control.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_scm_file_icons.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-025",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_scm_history.ts",
+        "enhancements/src/workspace_interaction.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_scm_history_layout.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-026",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_operation_progress.ts",
+        "enhancements/src/git_source_control.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_scm_sidebar_layout.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-027",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_operation_progress.ts",
+        "enhancements/src/git_source_control.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_scm_vscode_geometry.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-011",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "implementation": [
+        "enhancements/src/source_outline_settings.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_source_outline_settings.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-quality-001",
+      "domain": "quality",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R039",
+        "R040",
+        "R041",
+        "R045"
+      ],
+      "design": "docs/stability_testing.md",
+      "implementation": [
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/workspace_native_trash.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "titlebar"
+      ],
+      "script": "enhancements/scripts/test_stability_contracts.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "循环20/100/1000次临时文件回收端口与目录更新",
+        "验证回收false/throw/假成功/接口缺失、迟到目录选择和Git分支状态"
+      ],
+      "expected": [
+        "原字节保持，单次调用，无永久删除；失效选择不记入历史；* + !语义分离"
+      ],
+      "timeout_ms": 240000,
+      "workload": "TYPORA_STRESS_ITERATIONS，20/100/1000次文件与历史操作，单并发，无随机输入",
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-terminal-001",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_pty_client.ts",
+        "enhancements/src/terminal_runtime.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-002",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_breadcrumbs.ts",
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_titlebar_menu.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_capture.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-003",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_settings.ts",
+        "enhancements/src/terminal_surface.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_composition.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-004",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_interaction.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "manual_reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-terminal-005",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_state.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_panel.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-006",
+      "domain": "terminal",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_profile_detection.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_profiles.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-007",
+      "domain": "terminal",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_settings.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_settings.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-008",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006",
+        "R006.7"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_theme.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_theme.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-012",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R043",
+        "H008"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/textmate_style.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_textmate.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-delivery-004",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "uninstall_windows.ps1",
+        "scripts/lib/typora_workspace.ps1"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_uninstall_windows.ps1",
+      "environment": "平台集成夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
+    },
+    {
+      "id": "TC-workspace-002",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/git_icons.ts",
+        "enhancements/src/workspace_activity.ts",
+        "enhancements/src/workspace_sidebar_sash.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_activity.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-005",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_auto_save.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_auto_save.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-003",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R034",
+        "R043"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/workspace_breadcrumbs.ts",
+        "enhancements/src/workspace_breadcrumbs_settings.ts",
+        "enhancements/src/workspace_document_symbols.ts",
+        "enhancements/src/workspace_file_uri.ts",
+        "enhancements/src/workspace_source_outline.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_breadcrumbs.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-013",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "implementation": [
+        "enhancements/src/clangd_symbol_service.ts",
+        "enhancements/src/source_outline_settings.ts",
+        "enhancements/src/workspace_file_uri.ts",
+        "enhancements/src/workspace_outline.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_workspace_clangd_outline.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "clangd"
+      ],
+      "runner": "enhancements/scripts/run_clangd_ui.mjs"
+    },
+    {
+      "id": "TC-workspace-004",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+        "enhancements/src/workspace_focus.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_core_smoke.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-005",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "implementation": [
+        "enhancements/src/workspace_detached_window.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_detached_window.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-028",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/workspace_editor_status.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_tab_controls.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_workspace_diff_status.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-006",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_widgets.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_dismissal.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-006",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H009",
+        "R019"
+      ],
+      "design": "docs/statusbar_layout.md",
+      "implementation": [
+        "enhancements/src/reading_positions.ts",
+        "enhancements/src/workspace_footer.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_document_margin.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-007",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "implementation": [
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_document_transfer.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-007",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R005",
+        "H011"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "implementation": [
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_activity.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_drag.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-008",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_editor_actions.ts",
+        "enhancements/src/workspace_editor_settings.ts",
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_tab_controls.ts",
+        "enhancements/src/workspace_widgets.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_editor_actions.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-009",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_editor_status.ts",
+        "enhancements/src/workspace_footer.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_editor_status.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-010",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/reading_media_viewer.ts",
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_widgets.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_escape_focus.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-008",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R041",
+        "R044"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_activity.ts",
+        "enhancements/src/workspace_explorer.ts",
+        "enhancements/src/workspace_file_clipboard.ts",
+        "enhancements/src/workspace_file_operations.ts",
+        "enhancements/src/workspace_rename.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_explorer.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "新建/改名/复制/剪切/粘贴，按Delete取消与确认，关闭原生确认选项后直接回收",
+        "2000行虚拟文件树，展开/根切换/迟到读取及销毁"
+      ],
+      "expected": [
+        "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-009",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_editor_actions.ts",
+        "enhancements/src/workspace_explorer.ts",
+        "enhancements/src/workspace_explorer_sections.ts",
+        "enhancements/src/workspace_file_events.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_save_service.ts",
+        "enhancements/src/workspace_save_settings.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_explorer_history.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-010",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R009",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_file_clipboard.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_clipboard.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-011",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R042",
+        "R038"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_editing.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "文件模型编辑/保存/改名，dirty无后缀类型转Markdown，再转回纯文本"
+      ],
+      "expected": [
+        "模型与撤销身份保留；语言立即更新；改名不静默落盘"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-012",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/git_file_title_actions.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/workspace_editor_actions.ts",
+        "enhancements/src/workspace_editor_settings.ts",
+        "enhancements/src/workspace_file_header.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_tab_controls.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_header.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-013",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H004"
+      ],
+      "design": "docs/icon_mapping.md",
+      "implementation": [
+        "enhancements/src/workspace_file_icons.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_icons.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-014",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_file_operations.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_operations.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-015",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_file_uri.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_file_uri.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-016",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/file_language.ts",
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_search.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_files_search.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-011",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_entry.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_styles.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_first_frame.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-012",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R008.1",
+        "R012",
+        "R013",
+        "R045"
+      ],
+      "design": "docs/statusbar_layout.md",
+      "implementation": [
+        "enhancements/src/git_status_bar.ts",
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_editor_status.ts",
+        "enhancements/src/workspace_footer.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_footer.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-delivery-005",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/lib/typora_workspace.py"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_workspace_install.py",
+      "environment": "Python临时安装目录事务；并非Linux原生桌面",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-delivery-006",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R025"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "install.sh",
+        "check.sh",
+        "restore.sh"
+      ],
+      "related_modules": [
+        "runtime",
+        "assets",
+        "host",
+        "profile"
+      ],
+      "script": "enhancements/scripts/test_workspace_install.sh",
+      "environment": "平台集成夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "manual_reason": "Bash/平台运行环境需单独准备"
+    },
+    {
+      "id": "TC-workspace-013",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/git_graph_data.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_icons.ts",
+        "enhancements/src/git_operation_progress.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/workspace_activity.ts",
+        "enhancements/src/workspace_hover.ts",
+        "enhancements/src/workspace_tab_controls.ts",
+        "enhancements/src/workspace_titlebar_menu.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_interaction.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-014",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_interaction.ts",
+        "enhancements/src/workspace_widgets.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_interaction_defaults.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-017",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_file_events.ts",
+        "enhancements/src/workspace_history_restore.ts",
+        "enhancements/src/workspace_local_history.ts",
+        "enhancements/src/workspace_text_document.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_local_history.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-015",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_lookup_preview.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_lookup_preview.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-018",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R037",
+        "R038"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_file_events.ts",
+        "enhancements/src/workspace_native_save.ts",
+        "enhancements/src/workspace_save_service.ts",
+        "enhancements/src/workspace_text_document.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_native_save.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-014",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "implementation": [
+        "enhancements/src/workspace_outline.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_workspace_outline.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-016",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_preferences.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_preferences.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-017",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_quick_open_performance.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "fixed",
+      "workload": "使用脚本定义的大目录/事件负载与断言；不声称按tier改变实际规模"
+    },
+    {
+      "id": "TC-files-019",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/reading_history.ts",
+        "enhancements/src/reading_positions.ts",
+        "enhancements/src/workspace_rename.ts",
+        "enhancements/src/workspace_text_document.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_rename.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-020",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "implementation": [
+        "enhancements/src/workspace_search_engine.ts",
+        "enhancements/src/workspace_search_matcher.ts",
+        "enhancements/src/workspace_search_worker.ts",
+        "enhancements/src/workspace_search_worker_client.ts"
+      ],
+      "related_modules": [
+        "search",
+        "worker",
+        "files",
+        "cancellation"
+      ],
+      "script": "enhancements/scripts/test_workspace_search.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-021",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "implementation": [
+        "enhancements/src/workspace_search_engine.ts",
+        "enhancements/src/workspace_search_matcher.ts",
+        "enhancements/src/workspace_search_worker.ts",
+        "enhancements/src/workspace_search_worker_client.ts"
+      ],
+      "related_modules": [
+        "search",
+        "worker",
+        "files",
+        "cancellation"
+      ],
+      "script": "enhancements/scripts/test_workspace_search_performance.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "fixed",
+      "workload": "使用脚本定义的大目录/事件负载与断言；不声称按tier改变实际规模"
+    },
+    {
+      "id": "TC-files-022",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "H010",
+        "R023"
+      ],
+      "design": "docs/search_performance.md",
+      "implementation": [
+        "enhancements/src/workspace_search_engine.ts",
+        "enhancements/src/workspace_search_matcher.ts",
+        "enhancements/src/workspace_search_worker.ts",
+        "enhancements/src/workspace_search_worker_client.ts"
+      ],
+      "related_modules": [
+        "search",
+        "worker",
+        "files",
+        "cancellation"
+      ],
+      "script": "enhancements/scripts/test_workspace_search_worker.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-023",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_search.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_selection_search.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-018",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_shortcuts.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-019",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_sidebar_sash.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_sidebar_sash.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-024",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_source_lifecycle.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_source_lifecycle.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-015",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "H005",
+        "R043"
+      ],
+      "design": "docs/source_outline.md",
+      "implementation": [
+        "enhancements/src/workspace_outline.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_workspace_source_outline.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-020",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R043"
+      ],
+      "design": "docs/editor_header.md",
+      "implementation": [
+        "enhancements/src/reading_native_scroll.ts",
+        "enhancements/src/reading_viewport.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_stability.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "回放已核对的宿主显式滚动算法并验证旧窗口原点遮挡",
+        "执行实际导航下沿、隐藏/邻组导航、源码模式、返回值与销毁恢复"
+      ],
+      "expected": [
+        "标题完整位于阅读顶边以下10px，正文保持，原方法恢复"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-021",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_startup.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_startup.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-022",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_tab_controls.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_tab_controls.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-files-025",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R002",
+        "R042"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_text_document.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "search",
+        "outline",
+        "auto_save"
+      ],
+      "script": "enhancements/scripts/test_workspace_text_document.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-023",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_titlebar.ts",
+        "enhancements/src/workspace_titlebar_menu.ts",
+        "enhancements/src/workspace_titlebar_settings.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_titlebar.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-024",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R007",
+        "R017",
+        "R040",
+        "R041"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_state.ts",
+        "enhancements/src/workspace_titlebar_entries.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_titlebar_entries.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-025",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R018",
+        "R012"
+      ],
+      "design": "docs/workspace_view_menu.md",
+      "implementation": [
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_native_toolbar.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_view_layout.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-026",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R020",
+        "R044"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_widgets.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_widgets.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-027",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R014"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "implementation": [
+        "enhancements/src/terminal_settings.ts",
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_zoom.ts",
+        "enhancements/src/workspace_zoom_status.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_workspace_zoom.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-quality-implementation",
+      "domain": "quality",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R039",
+        "R040",
+        "R041",
+        "R045"
+      ],
+      "design": "docs/stability_testing.md",
+      "implementation": [
+        "enhancements/src/git_graph_repository.ts",
+        "enhancements/src/workspace_native_trash.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "titlebar"
+      ],
+      "script": "enhancements/scripts/test_stability_contracts.mjs",
+      "environment": "Node规则/临时工作区",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "循环20/100/1000次临时文件回收端口与目录更新",
+        "验证回收false/throw/假成功/接口缺失、迟到目录选择和Git分支状态"
+      ],
+      "expected": [
+        "原字节保持，单次调用，无永久删除；失效选择不记入历史；* + !语义分离"
+      ],
+      "timeout_ms": 240000,
+      "workload": "固定反例与状态契约；循环次数按当前档记录",
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-system-native-stability",
+      "domain": "quality",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R040",
+        "R041",
+        "R042",
+        "R043",
+        "R044"
+      ],
+      "design": "docs/stability_testing.md#原生验收",
+      "implementation": [
+        "enhancements/fixtures/stability_native.js",
+        "enhancements/scripts/prepare_stability_native.py",
+        "enhancements/scripts/run_private_desktop.ps1"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "workspace",
+        "native"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "原始Typora1.14.10，独立宿主副本/用户目录/未切换的私有桌面",
+      "preconditions": "Windows x64；TYPORA_NATIVE_TEST_ROOT指向原始1.14.10安装；Python与足够复制空间；宿主ASAR按固定摘要校验",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ],
+      "platform": "win32",
+      "steps": [
+        "复制并校验候选资产，启动独立原生宿主",
+        "操作真实最近目录、无后缀重命名、dirty保存与回收站",
+        "Github/Night下标题跳转，真实功能菜单字体与SVG行盒、间距截图"
+      ],
+      "expected": [
+        "原生操作成功，源文档字节保持，标题可见，图标及文字对齐，原ASAR不变；checks.json=PASS"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-system-native-stress",
+      "domain": "quality",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R040",
+        "R041",
+        "R042",
+        "R043",
+        "R044"
+      ],
+      "design": "docs/stability_testing.md#原生验收",
+      "implementation": [
+        "enhancements/fixtures/stability_native.js",
+        "enhancements/scripts/prepare_stability_native.py",
+        "enhancements/scripts/run_private_desktop.ps1"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "workspace",
+        "native"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "原始Typora1.14.10，独立宿主副本/用户目录/未切换的私有桌面",
+      "preconditions": "Windows x64；TYPORA_NATIVE_TEST_ROOT指向原始1.14.10安装；Python与足够复制空间；宿主ASAR按固定摘要校验",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ],
+      "platform": "win32",
+      "steps": [
+        "先执行原生稳定性21项",
+        "按档位反复打开关闭真实功能菜单，检查DOM数量、最后关闭状态和源文档字节"
+      ],
+      "expected": [
+        "菜单节点数不增长，循环达到指定次数；状态恢复；正文不变"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-quality-state-stress",
+      "domain": "quality",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R039",
+        "R045"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_graph_repository.ts"
+      ],
+      "related_modules": [
+        "git",
+        "footer"
+      ],
+      "script": "enhancements/scripts/test_stability_state.mjs",
+      "environment": "Node；纯状态属性检查",
+      "preconditions": "固定包依赖，seed20260919，串行，最多20条文件状态",
+      "steps": [
+        "生成20/100/1000组暂存/工作区/未跟踪/冲突/重命名混合记录",
+        "检查顺序不变性、共享快照不变、中文空格路径、分离HEAD"
+      ],
+      "expected": [
+        "标记符合输入状态语义且无快照写入"
+      ],
+      "timeout_ms": 30000,
+      "workload_mode": "tiered"
+    }
+  ]
+}

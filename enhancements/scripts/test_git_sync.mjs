@@ -49,9 +49,9 @@ try {
   const guarded = pair('guards'); const guarded_plan = await plan(guarded.local); let calls = [];
   await assert.rejects(api.execute_git_action(record_run(calls), guarded_plan, () => false), /未保存/); assert.equal(writes(calls).length, 0);
   write(guarded.local, 'working.md', 'new draft\n'); calls = [];
-  await assert.rejects(api.execute_git_action(record_run(calls), guarded_plan, () => true), /重新预览/); assert.equal(writes(calls).length, 0);
+  await assert.rejects(api.execute_git_action(record_run(calls), guarded_plan, () => true), /刷新后重试/); assert.equal(writes(calls).length, 0);
   const changed_upstream = await plan(guarded.local); git(guarded.local, ['config', 'branch.main.merge', 'refs/heads/elsewhere']); calls = [];
-  await assert.rejects(api.execute_git_action(record_run(calls), changed_upstream, () => true), /上游|重新预览/); assert.equal(writes(calls).length, 0);
+  await assert.rejects(api.execute_git_action(record_run(calls), changed_upstream, () => true), /上游|刷新后重试/); assert.equal(writes(calls).length, 0);
   checks.push('unsaved documents, changed repository contents, and changed upstream invalidate the preview before networking');
 
   const late_dirty = pair('late_dirty'); commit(late_dirty.other, 'remote.md', 'remote content awaiting pull\n'); git(late_dirty.other, ['push']);

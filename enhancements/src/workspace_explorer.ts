@@ -30,6 +30,7 @@ export type workspace_explorer_options = {
   create?(root: string, parent: string, name: string, directory: boolean): Promise<string>;
   file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
+  confirm_delete?(): boolean;
   compact_folders?: boolean;
   extra_menu?(path: string, is_directory: boolean): workspace_menu_entry[];
 };
@@ -374,14 +375,23 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       if(!disposed&&root===current_root){await refresh();if(result.paths[0])await reveal(result.paths[0]);set_status(result.message);}
     } finally { operation_busy=false;if(!disposed)await refresh(); }
   }
+  let trash_confirmation: ReturnType<typeof workspace_dialog>|undefined;
   function confirm_trash() {
-    if (!root || !options.trash || operation_busy) return;
+    if (!root || !options.trash || operation_busy || trash_confirmation) return;
     const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : []; if (!paths.length) return;
-    const dialog = workspace_dialog("删除"), message = el("p", "", `确定要将 ${paths.length} 个项目移到回收站吗？`); dialogs.add(dialog); dialog.content.append(message);
-    const cancel = el("button", "", "取消"), accept = el("button", "", "移到回收站");
-    cancel.onclick = () => { dialog.close(); dialogs.delete(dialog); };
-    accept.onclick = () => { dialog.close(); dialogs.delete(dialog); run(async () => { if (disposed || root !== current_root) return; operation_busy = true; try { await options.trash!(current_root.path, paths); selection_paths.clear(); selected_path = ""; set_status("已移到回收站。"); } finally { operation_busy = false; if (!disposed) await refresh(); } }); };
-    dialog.footer.replaceChildren(cancel, accept); cancel.focus();
+    let accepted=false;
+    const execute=()=>{
+      if(accepted||operation_busy||disposed||root!==current_root)return;
+      accepted=true;operation_busy=true;
+      run(async()=>{try{if(disposed||root!==current_root)return;await options.trash!(current_root.path,paths);selection_paths.clear();selected_path="";set_status("已移到回收站。");}finally{operation_busy=false;if(!disposed)await refresh();}});
+    };
+    if(options.confirm_delete?.()===false){execute();return;}
+    const dialog=workspace_dialog("删除","取消",()=>{trash_confirmation=undefined;dialogs.delete(dialog);});
+    dialogs.add(dialog);trash_confirmation=dialog;
+    dialog.content.append(el("p","",paths.length===1?`确定要将“${path_api.basename(paths[0])}”移到回收站吗？`:`确定要将 ${paths.length} 个项目移到回收站吗？`));
+    const cancel=el("button","","取消"),accept=el("button","","移到回收站");
+    cancel.onclick=()=>dialog.close();accept.onclick=()=>{dialog.close();execute();};
+    dialog.footer.replaceChildren(cancel,accept);cancel.focus();
   }
   async function sync_root(force = false) {
     if (rename_state?.busy) return;

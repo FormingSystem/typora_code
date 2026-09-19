@@ -1,9 +1,8 @@
-.context-menu {
-  width: unset;
-  min-width: 224px;
-}
-
-.typ-menuitem .fa {
-  position: relative;
-  left: -.75rem;
-}
+.context-menu { width: unset; min-width: 224px; }
+// 菜单和活动栏分别拥有16px、24px图标，不继承宿主fa的负偏移。
+body .context-menu.dropdown-menu > .typ-menuitem > a { display: flex; align-items: center; gap: 8px; }
+.typ-menuitem > a > .typ-menu-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; height: 16px; }
+.typ-menuitem > a > .typ-menu-icon > * { display: inline-flex; align-items: center; justify-content: center; position: static; margin: 0; padding: 0; width: 16px; height: 16px; font-size: 16px; line-height: 16px; }
+.typ-menuitem > a > .typ-menu-icon svg { width: 16px; height: 16px; fill: currentColor; }
+.typ-menuitem > a > .typ-menu-label { flex: 1; min-width: 0; }
+.typ-menuitem > a > .fa-caret-right { position: static; margin-left: auto; }

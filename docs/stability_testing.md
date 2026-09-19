@@ -1,0 +1,83 @@
+# 稳定性、问题分类与测试追踪
+
+## R039 需求与证据闭环
+
+2026-09-19：用户要求把需求、设计、实现、测试和过程问题记录为可检索的工程资料，覆盖已有功能的稳定性与关联模块。R004/R011继续管理需求入口，本章管理测试与问题处理方法；不依赖会话记忆恢复要求。
+
+正式需求编号沿用需求设计索引；测试用例使用稳定 `TC-领域-序号`，问题使用 `BUG-领域-序号`。同一根因复现更新原问题的复现环境与证据，不按每次运行复制问题。领域为 files、reading、workspace、git、terminal、delivery、quality；类型为功能、兼容、并发、性能、几何、主题、测试设施。问题记录触发步骤、预期/实际、影响模块、严重度、根因状态、方案、关联用例、验证与交付边界。症状相同而根因不明时关联调查，不能先断言账户权限就是根因。
+
+需求与测试定义进入版本控制；日志、截图和大体积运行产物放 `.cache/issue_tracking/runs/`。当前问题按领域维护在 [问题索引](stability_issues.md)，运行按唯一 run_id 保存不可覆盖的结果。失败复跑产生新结果并引用原失败，不抹除第一次失败。交付历史只保留结论和证据入口；本地台账负责当前进度，不再重复完整过程叙述。
+
+## 测试架构
+
+测试有两个独立维度：层级 `unit`（单元规则）、`functional`（实际服务/界面功能）、`system`（集成、部署或原生宿主）；目的 `implementation`（行为与失败路径）、`stress`（稳定性及跨模块影响）。替身、隐藏 Electron、原生 Typora、物理输入、平台分别注明，不能用某一层通过代替其他层。
+
+测试目录统一记录用例编号、需求、设计、实现、关联模块、执行入口、前置条件、步骤和可观察断言。保留现有脚本并分类接入，不重写一套相同测试。统一运行器负责选择、超时、逐项退出状态、源版本/差量/资产摘要、环境、耗时和日志关联；未执行、条件不具备、失败都不能显示为通过。目录检查拒绝无归属的测试文件和失效链接。
+
+压力档为20（局部快速复查）、100（受影响服务集成）、1000（轻量状态机/事件长循环）；次数是工作负载而非通过断言数，不把完整UI套件无差别重复1000次。用例明确实际迭代数、随机种子、并发上限、耗时预算与停止条件；检查最后状态、单次执行、迟到结果、监听器/DOM/队列清理和不相关文档保持。真实文件、回收与Git操作只使用专属临时对象。平台或资源不足记录未执行，不能静默降低负载后仍报告高档通过。
+
+三个层级分别提供代表性压力入口：纯状态解析与分支标记排列的确定性属性检查；真实临时文件与宿主端口替身的循环/迟到/失败；原生宿主的功能菜单反复打开关闭及DOM数量、正文保持。后者不重复回收1000个系统文件，也不声称覆盖所有模块的长期运行。搜索原有性能用例保留其固定负载，报告iterations为空并指明负载，不冒充档位次数。
+
+## 实施前影响分析
+
+每次先登记需求和问题，再沿真实调用链列出：入口→命令/服务→状态所有者→平台适配→刷新订阅者；为每个受影响模块指定用例或明确缺口。补充领域设计及实现方案后才改产品。实现中发现问题先归档并更新设计；独立问题保留独立状态。收尾逐条核对需求→设计→实现→用例→本次运行→安装/加载，阶段提交允许有明确平台缺口。
+
+## 本轮范围与验收
+
+| 需求 | 问题与方案入口 | 关联模块与验收 |
+| --- | --- | --- |
+| R040 | 最近目录未跟随打开更新；检查宿主成功打开后的记录入口和菜单读取时机 | 文件选择、最近目录、顶栏、切工作区；成功更新排序/去重，取消失败不记入，跨窗口或重启持久化 |
+| R041 | 全部快捷/右键动作及跨机器文件删除 | Explorer、文件命令、Git、终端、共享对话框、原生能力；所有现有入口归类，普通动作不加执行确认，破坏动作按已核对语义确认，一次执行、失败可见、取消零写入 |
+| R042 | 无后缀重命名为Markdown后仍停留源码 | 文件事务、编辑模型、标签、图标、大纲、面包屑、搜索、自动保存；语言及默认编辑类型更新，保留内存正文/dirty，后台副本一致 |
+| R043 | 面包屑覆盖标题跳转目标 | 共同阅读视口、原生大纲、文内链接、阅读历史、缩略图；扣除真实顶部遮挡，各入口定位后标题完整可见，分栏/隐藏/缩放/终端回归 |
+| R044 | 活动区域菜单图标未对齐 | 核心菜单、活动栏、共享图标、主题；固定上游菜单槽位和活动栏尺寸分别约束，图标/文字行盒及默认/焦点/明暗验证 |
+| R045 | 既有功能与VS Code差异的系统审计 | 现有文件/搜索/编辑器/Git/终端/主题逐域检查；优先底栏Git分支、菜单、主题；逐项记录固定来源、采用值、产品适配与未覆盖，不新增未授权面板 |
+
+R039同时覆盖本轮第1/2/3/4/8/10/11条；R041覆盖第5条；其他需求分别对应目录、第6/7/9条及第8条既有功能对照。设计范围与当前交付分开，结果见[本轮验收](stability_validation_20260919.md)。跨机器环境仍需对应实机证据。
+
+## 运行与查证
+
+权威用例目录为 [test_catalog.json](../enhancements/tests/test_catalog.json)。一行代表一个可单独运行的场景套件，不把内部断言数当作独立测试数量。精确步骤与断言在同一条目指定的脚本中；新增脚本必须登记，`npm run check`首先检查目录。给已有测试补场景时维护原编号，重分类不改编号，不建立第二份脱节清单。
+
+在 `enhancements/` 中执行：
+
+```sh
+npm run check:catalog
+npm run test:quality -- --list
+npm run test:quality -- --level unit
+npm run test:quality -- --domain files --level functional
+npm run test:quality -- --purpose stress --tier 20
+npm run test:quality -- --purpose stress --tier 100
+npm run test:quality -- --purpose stress --tier 1000
+```
+
+可用 `--id`精确选套件，或组合`--domain/--level/--purpose`。每轮输出独立目录内的`report.json`与逐套件日志，包含版本、源文件摘要、候选清单摘要、平台/运行时、实际迭代数、退出码、耗时与日志摘要。失败即保留，复跑另建目录。用例因缺平台或必需环境不能执行时为`not_run`，总状态为`incomplete`且进程非零；测试期间候选资产变化也使总状态不完整，禁止用这份报告独自验收最终候选。没有`--tier`时是20，不自动执行千轮UI。
+
+安装是独立交付阶段，继续使用现有事务安装和只读检查；同一候选需要明确区分“源修改、测试通过、资产安装、运行窗口加载、实机验证”。规则更新、可选工具或平台不具备不能写成产品通过。
+
+## 原生验收
+
+设置`TYPORA_NATIVE_TEST_ROOT`为本机已安装的原始Typora 1.14.10目录，再运行：
+
+```sh
+npm run test:quality -- --id TC-system-native-stability
+npm run test:quality -- --id TC-system-native-stress --tier 1000
+```
+
+`prepare_stability_native.py`校验固定原始ASAR摘要，将完整宿主复制到唯一`.cache/issue_tracking/native/<id>/host`，复制并验证候选清单，生成独立配置和临时Git仓库。必须保留window.html引用的原生`appsrc`，不能把它当缓存过滤。`run_private_desktop.ps1`只启动/终止该副本，在未切换的Windows私有桌面执行；不会重启用户窗口。夹具结果为`checks.json`，另含setup、窗口状态及明暗截图，保留生成目录，不自动删除证据。目标菜单使用renderer事件调用真实宿主能力；不冒称物理鼠标输入或其他账户验收。
+
+默认总入口不会运行需要用户剪贴板、旧原生注入、外部Shell环境的遗留脚本；目录显式解释原因。新隔离原生入口可重现本轮用例，不依赖个人路径、以前的`.cache`准备脚本或既有测试副本。不存在目标宿主或ASAR版本不符时不修改原安装，记录未具备/失败并停止该套件。
+
+## 现有入口审计与影响范围
+
+| 领域及入口 | 共同调用/状态所有者 | 本轮检查和处理 | 可复查套件 |
+| --- | --- | --- | --- |
+| 文件菜单、快捷键、快速打开、最近目录 | workspace_open_dialog / workspace_files；宿主拥有最近历史 | 成功挂载后await写原生历史；失败可见、取消/过期不更新；菜单打开时读新状态 | workspace_titlebar_entries、workspace_shortcuts、stability_contracts、原生稳定性 |
+| 文件树标题按钮、右键、F2/Delete、剪切复制粘贴、拖放 | workspace_explorer →文件命令/事务；file_clipboard拥有快照 | 新建/复制/移动/改名/路径/刷新/关闭共用原入口；删除尊重原生确认设置，锁定单次操作，共用主进程回收适配器 | workspace_explorer、workspace_file_operations、workspace_rename、workspace_file_clipboard、原生稳定性 |
+| 文件标签、编辑组菜单、另存为、全部保存、历史恢复 | workspace_files、workspace_editor_actions、text_document/local_history | 后缀变化通知模型；clean重新选择默认视图，dirty不丢正文；后台标签和手动语言规则保持 | workspace_file_editing、workspace_editor_actions、workspace_document_transfer、workspace_auto_save、workspace_local_history |
+| Git侧栏、Graph、底栏、快捷键、更多/对象菜单 | git_graph_panel共用写事务与刷新；repository_state为快照 | 已知无参数动作直接执行；表单一次提交；危险操作先展示范围/警告；自动远端目标继续服务解析；未建第二套状态 | git_quick_actions、git_scm_actions、git_graph_interaction、git_discard_confirmation、git_sync |
+| 终端菜单、标题/标签按钮、右键、编辑器/底部搬移 | terminal_commands/controller/session | 复查已有新建/拆分/关闭/清屏/查找/配置/移动入口；没有新增通用执行确认；Shell能力仍按发现结果 | terminal_panel、terminal_capture、terminal_composition、terminal_settings、terminal_profiles |
+| 搜索、大纲、历史、面包屑、缩略图 | search controller / symbol provider / reading viewport | 跳转共用可见视口；原生显式scrollAdjust适配顶部遮挡；编辑时隐式滚动不改 | workspace_stability、breadcrumbs、outline、reading_lifecycle、reading_minimap |
+| 主题、活动栏、共享菜单、底栏 | workspace_interaction/theme，core Menu，Git快照 | 字体/SVG槽位统一，24px只属于活动按钮；明暗非悬停与文字行盒验证；分支*、+、!及分离HEAD按固定源码 | core_smoke、activity、workspace_interaction、workspace_footer、SCM几何及原生两主题 |
+
+这是当前已实现入口的调用分类及回归归属，不等于每个系统对话框都在每台电脑验证。系统定位文件、外部程序打开、系统选择、剪贴板、Shell与clangd属于主机能力边界；跨账户/其他Windows机器、ARM64/Linux及物理输入法继续登记缺口。VS Code保护分支复合图标、扩展宿主与完整设置生态不在本轮修复范围；现有明确差异记录在问题索引，不以“一比一完成”代替验收。

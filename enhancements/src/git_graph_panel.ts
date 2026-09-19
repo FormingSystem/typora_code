@@ -660,19 +660,27 @@ export class git_graph_panel {
     if (["push", "pull"].includes(id) && kind === "branch") {
       void this.network_action(id as quick_git_action, {branch: target, target_hash: hash}); return;
     }
+    if (["branch_checkout","commit_checkout","stage","unstage","stage_all","unstage_all","continue"].includes(id)) {
+      const root=this.root,state=this.state,writer=this.writer;
+      void this.prepare_and_execute_action(current=>plan_git_action(current.run,id,{root,target,paths,hash:hash===WORKTREE?state.head:hash,operation:state.operation,sign_commits:this.settings.sign_commits,sign_tags:this.settings.sign_tags,reference_space:this.settings.reference_space},preset),writer,id)
+        .then(message=>{if(!this.disposed&&this.root===root)this.report(message);}).catch(error=>this.report(error));
+      return;
+    }
     const root=this.root,state=this.state,runner=this.runner,writer=this.writer;
     const action = graph_actions.find(item => item.id === id)!; const dialog = graph_dialog(action.title); const fields = new Map<string, HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>();
     const available=()=>!this.disposed&&this.root===root&&this.runner===runner&&dialog.root.isConnected;
     if (id === "sync") dialog.root.setAttribute("data-linux-note-git-sync", "ready");
     const defaults = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...(id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}), ...preset };
+    const remote_name=kind==="remote"?state.remotes.filter(remote=>target.startsWith(remote.name+"/")).sort((a,b)=>b.name.length-a.name.length)[0]?.name:undefined;
+    const remote_branch=remote_name?target.slice(remote_name.length+1):"";
     dialog.content.append(el("p", "", text("graph.repository_target", {root: this.root, target: revision_label(target || hash || this.state.branch)})));
     const form = el("form", "git-graph-form"); const result = el("pre", "git-graph-action-preview"); dialog.content.append(form, result);
     for (const item of action.fields) {
       const input = item.type === "choice" ? el("select") : ["message", "todo"].includes(item.key) ? el("textarea") : el("input");
       let initial = defaults[item.key] ?? item.initial ?? "";
       if (item.key === "remote" && !Object.hasOwn(preset,"remote")) initial = (kind === "remote" ? this.state.remotes.filter(remote => target.startsWith(remote.name + "/")).sort((a, b) => b.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
-      if (item.key === "branch") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
-      if (item.key === "source") initial = initial || (kind === "remote" ? target.slice(target.indexOf("/") + 1) : kind === "branch" ? target : "");
+      if (item.key === "branch") initial = initial || (kind === "remote" ? remote_branch : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
+      if (item.key === "source") initial = initial || (kind === "remote" ? remote_branch : kind === "branch" ? target : "");
       if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
       if (item.key === "prune_tags") initial = defaults.prune_tags ?? this.settings.fetch_prune_tags;
       if (item.key === "sign") initial = defaults.sign ?? this.settings.sign_tags;
@@ -681,39 +689,29 @@ export class git_graph_panel {
       else input.value = String(initial);
       input.dataset.field = item.key; fields.set(item.key, input); const label = el("label", "", item.title); label.append(input); form.append(label);
     }
-    let plan: action_plan | undefined;
-    let form_revision = 0;
-    const execute = button(id === "sync" ? text("graph.sync_confirm") : text("graph.execute_action"), () => void submit()); execute.disabled = true; execute.setAttribute("data-git-execute", id);
-    const preview = button(text("graph.preview_action"), () => void prepare()); preview.setAttribute("data-git-preview", id);
-    form.oninput = () => { form_revision++; execute.disabled = true; plan = undefined; };
-    const prepare = async () => {
-      if(!available()||this.writing||preview.disabled)return;
+    let submitting=false,completed=false;
+    const warning=action.destructive||"";result.textContent=warning;
+    const execute=button(action.title,()=>void submit());execute.setAttribute("data-git-execute",id);
+    const submit=async()=>{
+      if(submitting||completed||!available()||this.writing||this.pending)return;
+      submitting=true;execute.disabled=true;for(const input of fields.values())input.disabled=true;
       try {
-        const revision = form_revision;
-        preview.disabled = true; execute.disabled = true;
-        const values: Record<string, unknown> = {};
-        for (const [key, input] of fields) values[key] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
-        if (id === "rebase" && values.interactive && !values.todo) {
-          fields.get("todo")!.value = await runner.run(root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", `${hash}..HEAD`, "--"]);
-          result.textContent = text("graph.rebase_todo_ready"); return;
+        const values:Record<string,unknown>={};
+        for(const [key,input]of fields)values[key]=input instanceof HTMLInputElement&&input.type==="checkbox"?input.checked:input.value;
+        if(id==="rebase"&&values.interactive&&!values.todo){
+          const todo=await runner.run(root,["log","--reverse","--no-merges","--format=pick %H %s",`${hash}..HEAD`,"--"]);
+          if(available()){fields.get("todo")!.value=todo;result.textContent=text("graph.rebase_todo_ready");}return;
         }
-        const prepared = await plan_git_action(runner.run, id, { root, target, paths, hash: hash === WORKTREE ? state.head : hash, operation: state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
-        if (!available() || revision !== form_revision) { plan = undefined; result.textContent = text("graph.parameters_changed"); return; }
-        plan=prepared;
-        result.textContent = (action.destructive ? action.destructive + "\n\n" : "") + plan.preview; execute.disabled = false;
-      } catch (error) { result.textContent = String(error); } finally { preview.disabled = false; }
+        const plan=await plan_git_action(runner.run,id,{root,target,paths,hash:hash===WORKTREE?state.head:hash,operation:state.operation,sign_commits:this.settings.sign_commits,sign_tags:this.settings.sign_tags,reference_space:this.settings.reference_space},values);
+        if(!available()||this.writer!==writer)return;
+        const output=await this.execute_prepared_action(plan,writer);
+        completed=true;if(available())result.textContent=output||text("graph.action_complete");
+      } catch(error){if(available())result.textContent=String(error);}
+      finally{submitting=false;if(available()){execute.disabled=completed;for(const input of fields.values())input.disabled=completed;}}
     };
-    const submit = async () => {
-      if (!plan||!available()||this.writing||this.pending) return; preview.disabled = true; execute.disabled = true;
-      result.textContent += "\n\n" + text("graph.executing");
-      try { const output = await this.execute_prepared_action(plan, writer); result.textContent += "\n" + (output || text("graph.action_complete")); }
-      catch (error) { result.textContent += "\n" + String(error); }
-      finally { plan = undefined; preview.disabled = false; }
-    };
-    form.onsubmit = event => { event.preventDefault(); if (plan && !execute.disabled) void submit(); else void prepare(); };
-    dialog.root.addEventListener("keydown", event => { if (event.key === "Enter" && !(event.target instanceof HTMLTextAreaElement)) { event.preventDefault(); if (plan && !execute.disabled) void submit(); else void prepare(); } });
-    dialog.footer.prepend(preview, execute);
-    if (id === "sync") void prepare();
+    form.onsubmit=event=>{event.preventDefault();void submit();};
+    dialog.root.addEventListener("keydown",event=>{if(event.key==="Enter"&&!(event.target instanceof HTMLTextAreaElement)){event.preventDefault();void submit();}});
+    dialog.footer.prepend(execute);
   }
   async tag_details(name: string): Promise<void> {
     const dialog = graph_dialog(text("graph.tag_details_title", {name}));

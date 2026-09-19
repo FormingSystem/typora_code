@@ -21,8 +21,8 @@ const expectations = {
     merge_title: '合并到当前分支',
     merge_field: '合并方式',
     merge_choice: '默认合并',
-    preview: '预览操作',
-    execute: '执行此操作',
+    preview: undefined,
+    execute: '合并到当前分支',
     settings_title: 'Git Graph 设置',
     settings_field: '连线样式',
     settings_choice: '曲线',
@@ -38,8 +38,8 @@ const expectations = {
     merge_title: 'Merge into Current Branch',
     merge_field: 'Merge Method',
     merge_choice: 'Default Merge',
-    preview: 'Preview Action',
-    execute: 'Run this Action',
+    preview: undefined,
+    execute: 'Merge into Current Branch',
     settings_title: 'Git Graph Settings',
     settings_field: 'Line Style',
     settings_choice: 'Curved',
@@ -99,7 +99,7 @@ async function inspect_locale(bundle, html, locale, environment = {options: {dis
       result.merge_choice = dialog.querySelector('select option').textContent;
       const action_buttons = [...dialog.querySelectorAll('.git-graph-dialog-footer button')].map(button => button.textContent);
       result.preview = action_buttons.find(label => /预览|Preview/u.test(label));
-      result.execute = action_buttons.find(label => /执行|Run/u.test(label));
+      result.execute = dialog.querySelector("[data-git-execute=merge]").textContent;
       result.close = action_buttons.at(-1);
       dialog.remove();
 

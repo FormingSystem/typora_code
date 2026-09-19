@@ -148,3 +148,9 @@ Changes标题、Graph标题和中央Graph工具栏复用同一覆盖进度组件
 复核上述固定提交的[ProgressBar样式](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/progressbar/progressbar.css)、[辅助功能服务](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/accessibility/browser/accessibilityService.ts#L66)与该版本安装包的完整工作台CSS：服务根据`workbench.reduceMotion`及系统偏好设置状态类，各组件自行采用；ProgressBar的无限进度动画没有静止替代。这里仅移除进度条的静止覆盖，恢复2%滑块、4秒横向移动、运行10秒后的`steps(100)`节流。其他组件的减少动画规则及底栏已有策略不在本次修改范围内，不修改用户系统设置。
 
 三个入口继续订阅同一真实操作；运行、结果刷新期间移动，等待目标选择时暂停，结束或失败收尾后消失，切库与销毁继续清理。验证必须包含系统减少动画开／关时三个入口的实际transform变化、明暗和窄侧栏几何、10秒后持续移动、成功／失败／取消与销毁清理，不能只检查CSS中存在animation字段。固定安装包CSS摘要及提取规则保存在忽略的`.cache/vscode_graph_1_137_0/progress_motion_verified.json`。
+
+## 2026-09-19 R045 底栏分支状态
+
+固定VS Code 1.137.0 repository.ts headLabel与statusbar.ts：工作树/未跟踪用*，暂存用+，合并或变基用!；分离HEAD为8位提交号，同步数字采用N↓ N↑。当前底栏所有dirty统一*会误表暂存状态，改从同一仓库快照changes的index_status/work_status与operation计算，UI不新增Git读取。保留现有统一命令、仓库选择和主题角色。图标按已打包的官方git-branch/git-commit区分分支/分离状态；上游保护分支/特殊状态复合图标未映射前明确列差异，不伪装完整等价。用临时Git索引和工作树验证clean、仅暂存、未跟踪、混合、冲突/变基、分离状态及快照刷新。
+
+R041全入口复查追加：底栏和菜单的branch_checkout仍落到通用预览对话框。无参数且非破坏的stage/unstage/stage_all/unstage_all/branch_checkout/commit_checkout/continue直接复用prepare_and_execute_action；remote_checkout有本地分支名时保留一次名称选择。其余表单在一次提交中校验并执行，删除预览按钮；风险文案在执行前可见。异步准备期间锁定表单并核对仓库/runner/文档身份，取消、切库或销毁后零执行。交互式rebase缺少todo时先读取供编辑，不把生成todo等同于执行。所有调用方继续共享事务锁与完成刷新。

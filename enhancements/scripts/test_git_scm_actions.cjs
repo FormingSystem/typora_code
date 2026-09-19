@@ -74,10 +74,10 @@ app.whenReady().then(async()=>{
   const title_message='SCM title action QA';for(const character of title_message)win.webContents.sendInputEvent({type:'char',keyCode:character});
   await wait(`panel.workbench.message.value===${JSON.stringify(title_message)}`);
   assert.equal(await evaluate('localStorage.getItem(panel.workbench.storage_key("message"))'),title_message);
-  await click('.git-scm-commit-options');await click('[data-action=commit_options]');await click('[data-git-preview=commit]');await wait('!document.querySelector("[data-git-execute=commit]").disabled');
-  assert(await evaluate('document.querySelector(".git-graph-action-preview").textContent.includes("SCM title action QA")'));await key('Escape');
+  await click('.git-scm-commit-options');await click('[data-action=commit_options]');assert(!await evaluate('document.querySelector("[data-git-preview=commit]")'));
+  assert(await evaluate('document.querySelector("[data-field=message]").value.includes("SCM title action QA")'));await key('Escape');
   assert.equal(git(root,['rev-parse','HEAD']),head);assert.equal(git(root,['status','--porcelain=v1']),starting_status);assert.equal(git(root,['write-tree']),starting_index);assert.equal(await evaluate('title_calls.writer.length'),0);
-  checks.push('commit options retain their existing preview and cancelling leaves HEAD, index and working files unchanged');
+  checks.push('commit options need one submission and cancelling leaves HEAD, index and working files unchanged');
 
   await click('summary.git-scm-input-heading');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
   await click(title_selector('commit'));await wait('panel.writing&&window.title_write_pending');await assert_title_disabled(busy_buttons);assert.equal(await evaluate('panel.workbench.input_section.open'),false,'a populated title commit leaves the Changes section collapsed');

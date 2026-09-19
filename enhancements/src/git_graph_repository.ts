@@ -20,6 +20,15 @@ export function repository_branch_status(state: repository_state): branch_status
     upstream: state.tracking?.upstream?.replace(/^refs\/remotes\//u, "") || "", ahead: state.tracking?.ahead || 0,
     behind: state.tracking?.behind || 0, dirty: state.changes.length > 0};
 }
+/** VS Code repository.headLabel：工作树*、暂存+、合并/变基!各自独立。 */
+export function repository_head_label(state: repository_state): string {
+  const status=repository_branch_status(state);
+  const name=status.branch==="(detached)"?status.head.slice(0,8):status.branch||"Git";
+  const working=state.changes.some(change=>change.status==="??"||Boolean(change.work_status?.trim()));
+  const staged=state.changes.some(change=>Boolean(change.index_status?.trim())&&change.index_status!=="?");
+  const conflict=state.operation==="merge"||state.operation==="rebase"||state.changes.some(change=>["DD","AU","UD","UA","DU","AA","UU"].includes(change.status));
+  return name+(working?"*":"")+(staged?"+":"")+(conflict?"!":"");
+}
 export function require_revision(value: string): string {
   if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value)) throw new Error(text("repository.invalid_revision")); return value;
 }

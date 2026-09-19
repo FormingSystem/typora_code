@@ -70,6 +70,17 @@ app.whenReady().then(async () => {
   checks.push('workspace Save writes an active Monaco source tab without invoking native Typora Save');
   await at_end(); await insert('\n// routed save all'); await evaluate('window.source_leaf=core.app.workspace.activeLeaf;core.app.workspace.activeLeaf=native_leaf;listeners.get("file:open")?.forEach(callback=>callback(native_leaf.state.path));void 0'); await evaluate('files.save_active()'); assert.deepEqual(await evaluate('native_saves'),['save']); assert.equal(fs.readFileSync(file_path,'utf8'),saved_text); await evaluate('files.save_all()'); saved_text+='\n// routed save all'; assert.equal(fs.readFileSync(file_path,'utf8'),saved_text); assert.deepEqual(await evaluate('native_saves'),['save','save_all']); assert.equal(await evaluate('source_leaf.view.dirty()'),false); await evaluate('core.app.workspace.activeLeaf=source_leaf;void 0');
   checks.push('workspace Save delegates native documents to Typora while Save All also persists inactive dirty Monaco tabs');
+  // TC-files-rename：内存模型按新后缀更新，dirty不触发保存或渲染切换。
+  await evaluate('window.extension_model=editor().getModel();editor().getModel().setValue("# draft heading\\n");window.extension_undo=editor().getModel().getAlternativeVersionId()');
+  const md_renamed=path.join(workspace,'1111.md');
+  await evaluate(`files.rename_file(workspace_path,${JSON.stringify(file_path)},'1111.md')`);
+  assert.equal(await evaluate('editor().getModel()===extension_model&&editor().getModel().getLanguageId()==="markdown"&&view().dirty()'),true);
+  assert.equal(await evaluate('editor().getModel().getAlternativeVersionId()'),await evaluate('extension_undo'));
+  assert.equal(fs.readFileSync(md_renamed,'utf8'),saved_text);
+  await evaluate(`files.rename_file(workspace_path,${JSON.stringify(md_renamed)},'sample.txt')`);
+  assert.equal(await evaluate('editor().getModel().getLanguageId()'),'plaintext');
+  await evaluate(`editor().getModel().setValue(${JSON.stringify(saved_text)});files.save_active()`);
+  checks.push('TC-files-rename: suffix updates the same Monaco model and undo identity without saving a dirty Markdown draft');
   await choose('语言模式','文件语言模式','javascript'); assert.equal(await evaluate('editor().getModel().getLanguageId()'),'javascript'); assert.equal(await evaluate('view().dirty()'),false); assert.equal(fs.existsSync(path.join(workspace,'sample.js')),false); assert.equal(fs.readFileSync(file_path,'utf8'),saved_text);
   checks.push('language selection changes only Monaco highlighting and never renames or rewrites the file');
   await choose('保存编码','文件保存编码','utf-8-bom'); await choose('行尾序列','文件行尾序列','CRLF'); assert.equal(await evaluate('view().dirty()'),true); assert.equal(fs.readFileSync(file_path,'utf8'),saved_text); await save(); let bytes=fs.readFileSync(file_path); assert.deepEqual([...bytes.subarray(0,3)],[0xef,0xbb,0xbf]); assert.equal(bytes.subarray(3).toString('utf8'),saved_text.replaceAll('\n','\r\n')); assert.equal(await evaluate('view().dirty()'),false);

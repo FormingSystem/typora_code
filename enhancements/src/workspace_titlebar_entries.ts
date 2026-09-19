@@ -84,7 +84,7 @@ export function create_workspace_titlebar_definitions(
     return [command("新建", "newFile", "Ctrl+N"), command("新建窗口", "newWindow", "Ctrl+Shift+N"), separator(),
       {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Ctrl+K Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
       {label: "打开最近文件", children: recent_entries(recents.files), disabled: !recents.files?.length},
-      {label: "最近使用的目录", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item:any)=>typeof item?.path==="string").map((item:any)=>({label:item.name||files.path_api.basename(item.path),action:()=>files.core.app.commands.run("linux_note:open_folder_path",[item.path])})),disabled:!recents.folders?.length},
+      {label: "最近使用的目录", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item:any)=>typeof item?.path==="string").map((item:any)=>({label:item.name||files.path_api.basename(item.path),title:item.path,action:()=>files.core.app.commands.run("linux_note:open_folder_path",[item.path])})),disabled:!recents.folders?.length},
       {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
       {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
       {label: "保存全部",shortcut:"Ctrl+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},

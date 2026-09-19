@@ -391,7 +391,7 @@ app.whenReady().then(async () => {
   await click('[aria-label="区分大小写"]'); await click('[aria-label="使用正则表达式"]'); await click('[aria-label="为当前匹配打开提交详情"]');
   await key('Escape'); assert.equal(await evaluate('panel.find_widget.dataset.open'),'false');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await capture('context_menu'); await click('[data-action="branch_create"]');
-  await click('[data-field="branch"]'); await test_window.webContents.insertText('ui-created'); await click('[data-git-preview]'); await wait('!document.querySelector("[data-git-execute]").disabled');
+  await click('[data-field="branch"]'); await test_window.webContents.insertText('ui-created'); assert(!await evaluate('document.querySelector("[data-git-preview]")'));
   assert(!git(['branch', '--list', 'ui-created']).trim()); await capture('action_preview'); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector(".git-graph-action-preview").textContent.includes("操作完成")'); assert(git(['branch', '--list', 'ui-created']).includes('ui-created')); await key('Escape');
   await click('.git-graph-refs[data-ref="refs/heads/main"]','right');
   assert(await evaluate('!!document.querySelector("[data-action=branch_fetch]") && !!document.querySelector("[data-action=pull]")'));
@@ -552,8 +552,8 @@ app.whenReady().then(async () => {
   assert.equal(git(['rev-parse','HEAD']),after_manual); assert.equal(await evaluate('panel.workbench.message.value'),'keep failed draft');
   git(['add','--','sample.c']); await evaluate('panel.refresh(false)'); await evaluate('panel.action_dialog("commit","changes")');
   await click('[data-field=message]'); await test_window.webContents.insertText('dialog first'); await key('Enter'); await test_window.webContents.insertText('dialog second');
-  await click('[data-git-preview]'); await wait('!document.querySelector("[data-git-execute]").disabled');
-  assert.equal(git(['rev-parse','HEAD']),after_manual); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector("[data-git-execute]").disabled'); assert.notEqual(git(['rev-parse','HEAD']),after_manual); await key('Escape');
+  assert(!await evaluate('document.querySelector("[data-git-preview]")'));
+  assert.equal(git(['rev-parse','HEAD']),after_manual); await click('[data-git-execute]'); await wait('!panel.writing && document.querySelector(".git-graph-action-preview").textContent.includes("dialog first")'); assert.notEqual(git(['rev-parse','HEAD']),after_manual); await key('Escape');
   // 保留 A 仓库的真实 Monaco 比较，再切换 B；旧按钮和已生成菜单不得使用 B 的同名路径。
   const other_repository=fs.mkdtempSync(path.join(os.tmpdir(),'typora_graph_other_'));
   const other_git=args=>child_process.execFileSync('git',['-c','user.name=UI Test','-c','user.email=ui@example.invalid','-c','commit.gpgsign=false','-c','core.autocrlf=false','-c','core.hooksPath=.git/unused_hooks',...args],{cwd:other_repository,encoding:'utf8',windowsHide:true});

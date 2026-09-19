@@ -1,7 +1,7 @@
 import type {workspace_file_host} from "./workspace_files";
 
 type open_dialog_runtime = {
-  JSBridge?: {invoke(name:string, ...args:unknown[]):Promise<{canceled?:boolean;filePaths?:string[]}>};
+  JSBridge?: {invoke(name:string, ...args:unknown[]):Promise<any>};
   File?: {setMountFolder?(path:string):void};
 };
 
@@ -26,6 +26,9 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
     // 宿主会去掉一个末尾分隔符，盘符根须保留自己的分隔符。
     runtime.File.setMountFolder(target.endsWith(files.path_api.sep)?target+files.path_api.sep:target);changed();
+    if(!runtime.JSBridge?.invoke)throw new Error("文件夹已打开，但宿主最近目录接口不可用。");
+    try { await runtime.JSBridge.invoke("setting.addRecentFolder",target); }
+    catch(error) { throw new Error("文件夹已打开，但最近目录更新失败："+String(error)); }
   };
   const open_folder_new_window=async(selected:string)=>{
     if(disposed)return;

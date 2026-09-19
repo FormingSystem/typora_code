@@ -691,9 +691,48 @@ content.typ-deactive #write {
   min-width: 224px;
 }
 
-.typ-menuitem .fa {
-  position: relative;
-  left: -0.75rem;
+body .context-menu.dropdown-menu > .typ-menuitem > a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.typ-menuitem > a > .typ-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.typ-menuitem > a > .typ-menu-icon > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: static;
+  margin: 0;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+  line-height: 16px;
+}
+
+.typ-menuitem > a > .typ-menu-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+.typ-menuitem > a > .typ-menu-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.typ-menuitem > a > .fa-caret-right {
+  position: static;
+  margin-left: auto;
 }
 [draggable=true].typ-dragging {
   background-color: var(--active-file-bg-color);

@@ -102,7 +102,7 @@ try {
   write(scope_drift, 'tracked.md', 'tracked draft after confirmation preparation\n');
   const old_tracked = api.select_discard_scope(scope_snapshot, 'tracked');
   assert.equal(old_tracked.fingerprint, scope_snapshot.fingerprint);
-  await assert.rejects(api.execute_git_action(writer.run, old_tracked, () => true), /重新预览/);
+  await assert.rejects(api.execute_git_action(writer.run, old_tracked, () => true), /刷新后重试/);
   assert.equal(read(scope_drift, 'tracked.md'), 'tracked draft after confirmation preparation\n');
   checks.push('scope selection after repository drift keeps the old fingerprint and rejects execution instead of silently preparing a new snapshot');
 
@@ -115,9 +115,9 @@ try {
   await assert.rejects(api.execute_git_action(writer.run, stale, () => true, {trash_files}), /未跟踪文件内容已改变/);
   assert.equal(calls, 0); assert.equal(read(guards, 'tracked.md'), 'working\n');
   const changed_worktree = await plan(guards); write(guards, 'tracked.md', 'changed tracked draft\n');
-  await assert.rejects(api.execute_git_action(writer.run, changed_worktree, () => true, {trash_files}), /重新预览/); assert.equal(calls, 0);
+  await assert.rejects(api.execute_git_action(writer.run, changed_worktree, () => true, {trash_files}), /刷新后重试/); assert.equal(calls, 0);
   const changed_index = await plan(guards); git(guards, ['add', '--', 'tracked.md']);
-  await assert.rejects(api.execute_git_action(writer.run, changed_index, () => true, {trash_files}), /重新预览/); assert.equal(calls, 0);
+  await assert.rejects(api.execute_git_action(writer.run, changed_index, () => true, {trash_files}), /刷新后重试/); assert.equal(calls, 0);
   checks.push('unsaved documents, unavailable recycling, untracked content drift, tracked edits, and index changes stop before discard');
 
   for (const checkpoint of ['fingerprint', 'untracked_hash']) {

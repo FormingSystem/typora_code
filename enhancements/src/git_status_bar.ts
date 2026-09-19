@@ -8,7 +8,7 @@ import { git_icon } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 
 import type {branch_status} from "./git_scm_data";
-import {repository_branch_status} from "./git_graph_repository";
+import {repository_branch_status,repository_head_label} from "./git_graph_repository";
 /** 使用控制器发布的同一仓库快照；底栏不另行轮询或因面板状态变化重复读取 Git。 */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
@@ -56,10 +56,12 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
     const status = repository_branch_status(current.state);
     snapshot = status; snapshot_root = current.root; const detached = status.branch === "(detached)";
     const name = detached ? text("status.detached_name", {hash: status.head.slice(0, 8)}) : status.branch || "Git";
-    const branch_label = name + (status.dirty ? "*" : ""); if (label.textContent !== branch_label) label.textContent = branch_label;
+    const branch_label = repository_head_label(current.state); if (label.textContent !== branch_label) label.textContent = branch_label;
+    const branch_symbol=detached?"git-commit":"git-branch";
+    if(branch.firstElementChild?.getAttribute("data-git-icon")!==branch_symbol)branch.firstElementChild?.replaceWith(git_icon(branch_symbol));
     branch.title = text("status.branch_tooltip", {root: current.root, branch: detached ? text("status.detached_head") : text("status.current_branch", {branch: name}), initial: status.head === "(initial)" ? text("status.initial_suffix") : "", worktree: status.dirty ? text("status.dirty") : text("status.clean")});
     branch.setAttribute("aria-label", branch.title); item.dataset.repository = "ready";
-    const count_label = status.upstream && (status.behind || status.ahead) ? `↓${status.behind} ↑${status.ahead}` : ""; if (counts.textContent !== count_label) counts.textContent = count_label;
+    const count_label = status.upstream && (status.behind || status.ahead) ? `${status.behind}↓ ${status.ahead}↑` : ""; if (counts.textContent !== count_label) counts.textContent = count_label;
     sync.disabled = detached || status.head === "(initial)";
     sync.title = sync.disabled ? text("status.create_commit_first") : status.upstream ? text("status.sync_tooltip", {upstream: status.upstream, behind: status.behind, ahead: status.ahead}) : text("status.publish_tooltip");
     sync.setAttribute("aria-label", sync.title);

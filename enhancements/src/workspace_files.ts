@@ -1,3 +1,4 @@
+import {trash_native_path} from "./workspace_native_trash";
 import {acquire_workspace_style} from "./workspace_styles";
 import {publish_workspace_file_changed} from "./workspace_file_events";
 import {read_workspace_editor_settings,observe_workspace_editor_settings,select_workspace_editor_group,workspace_editor_group_locked} from "./workspace_editor_settings";
@@ -8,7 +9,7 @@ import { validate_workspace_entries, create_workspace_entry, transfer_workspace_
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
-import { FILE_LANGUAGE_RULES, is_markdown_file } from "./file_language";
+import { FILE_LANGUAGE_RULES, is_markdown_file, detect_file_language } from "./file_language";
 import { create_text_document, save_text_document_as, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
 import {decode_file_bytes} from "./file_language";
 import {capture_position, apply_position} from "./reading_positions";
@@ -79,6 +80,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
+  const renamed_markdown_leaves = new Set<graph_leaf>();
+  let refreshing_renamed_editors = false;
   const preview_leaves=new Map<graph_leaf["parent"],graph_leaf>();
   const keep_open=(leaf=core.app.workspace.activeLeaf||undefined)=>{
     if(!leaf)return;delete leaf.state.workspace_preview;if(preview_leaves.get(leaf.parent)===leaf)preview_leaves.delete(leaf.parent);
@@ -257,7 +260,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       this.editor.focused_editor().pushUndoStop();
       const model=this.editor.models[0],version=model.getAlternativeVersionId(),format_key=this.format_key();
       this.saving=true;this.refresh_shared();
-      try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.refresh_shared();return true;}
+      try{const saved=await this.text_document.save(model.getValue(),{encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol});this.saved_version=version;this.saved_format=format_key;this.format={...saved,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saving=false;this.refresh_shared();await refresh_renamed_editors();return true;}
       catch(error){this.saving=false;this.refresh_shared();this.status.textContent=String(error instanceof Error?error.message:error);return false;}
     }
     async save_as(){
@@ -322,7 +325,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=workspace_dialog("重新加载文件");dialog.content.append(el("p","","重新加载会丢弃此标签中未保存的修改。"));dialog.footer.prepend(button("丢弃修改并重新加载",()=>{dialog.close();void this.load_file();}));}
     confirm_close(close:()=>void){source_lifecycle.confirm_close(this,close);}
     guard_close(){source_lifecycle.guard(this);}
-    release_source(){if(this.disposed)return;this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
+    release_source(){if(this.disposed)return;renamed_markdown_leaves.delete(this.leaf);this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
     onClose(){source_lifecycle.schedule_release(this);editor_status.schedule();}
   }
   const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
@@ -411,7 +414,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const relocate_file = async (root: string, old_path: string, name: string, moving = false) => {
     if (renaming || runtime.File?._onFileSwitching || runtime.File?.inSavingProcess) throw new Error("文件正在切换、保存或重命名，请稍后重试。");
     renaming = true;
-    const relocations: {view: source_file_view; target: string; transaction: Awaited<ReturnType<source_file_view["text_document"]["prepare_relocation"]>>}[] = [];
+    const relocations: {view: source_file_view; target: string; became_markdown: boolean; previous_path: string; transaction: Awaited<ReturnType<source_file_view["text_document"]["prepare_relocation"]>>}[] = [];
     const library = runtime.File?.editor?.library;
     let paused = false, native_watch_paused = false, old_native_path = "", new_native_path = "", applied = false, renamed_path = "";
     try {
@@ -421,7 +424,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for (const view of views) {
         const target = map(view.file_path); if (!target) continue;
         if (view.loading || view.saving) throw new Error("有关标签正在读取或保存，请稍后再重命名。");
-        relocations.push({view, target, transaction: await view.text_document.prepare_relocation(target)});
+        relocations.push({view, target, previous_path:view.file_path, became_markdown:!is_markdown_file(view.file_path)&&is_markdown_file(target), transaction: await view.text_document.prepare_relocation(target)});
       }
       old_native_path = runtime.File?.bundle?.filePath || ""; new_native_path = map(old_native_path) || "";
       if (new_native_path && typeof runtime.doApplyRename !== "function") throw new Error("当前 Typora 未提供原生文档改名接口，已停止重命名以保留编辑内容。");
@@ -441,9 +444,16 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       await plan.apply(); applied = true; renamed_path = plan.new_path;
       for (const {leaf, target} of tabs) (leaf.parent as unknown as {renameTab(old_path: string, new_path: string): void}).renameTab(leaf.state.path, target);
       const problems: string[] = [];
-      for (const {view, target, transaction} of relocations) {
+      for (const {view, target, transaction, became_markdown, previous_path} of relocations) {
         view.file_path = target; view.leaf.state.git_cwd = path_api.dirname(target);
         if (view.editor) { view.editor.data.file = target; view.editor.data.title = path_api.basename(target); view.editor.data.left_label = target; }
+        if(view.editor) {
+          const model=view.editor.models[0];
+          const first_line=model.getLineContent(1),language=detect_file_language(target,first_line);
+          if(detect_file_language(previous_path,first_line)!==language)monaco.editor.setModelLanguage(model,language);
+        }
+        if(became_markdown)renamed_markdown_leaves.add(view.leaf);
+        else if(!is_markdown_file(target))renamed_markdown_leaves.delete(view.leaf);
         try { await transaction.commit(); } catch (error) { problems.push(String(error)); }
         for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.dataset.id === view.leaf.state.path) {
           const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = path_api.basename(target);
@@ -469,8 +479,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       renaming = false;
     }
   };
-  const rename_file=(root:string,old_path:string,name:string)=>relocate_file(root,old_path,name);
-  const move_file=(root:string,old_path:string,target:string)=>relocate_file(root,old_path,target,true);
+  const rename_file=async(root:string,old_path:string,name:string)=>{const target=await relocate_file(root,old_path,name);await refresh_renamed_editors();return target;};
+  const move_file=async(root:string,old_path:string,target:string)=>{const result=await relocate_file(root,old_path,target,true);await refresh_renamed_editors();return result;};
   const active_source_view = () => [...views].find(view => view.leaf === core.app.workspace.activeLeaf);
   const native_document_active = () => Boolean(core.app.workspace.activeLeaf)
     && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
@@ -629,6 +639,21 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!await close_leaf(leaf))return false;
     if(pinned){opened.state.workspace_pinned=true;(core as graph_core&{move_workspace_leaf(leaf:graph_leaf,group:graph_leaf["parent"],index:number):void}).move_workspace_leaf(opened,group,0);}
     return true;
+  };
+  // dirty模型保留编辑；保存成功后才切换，不引入自动保存或第二份草稿。
+  const refresh_renamed_editors=async()=>{
+    if(refreshing_renamed_editors||renaming||runtime.File?.changeCounter?.isDocumentEdited())return;
+    refreshing_renamed_editors=true;
+    const active=core.app.workspace.activeLeaf;let desired_active=active;
+    try {
+      for(const leaf of [...renamed_markdown_leaves]) {
+        if(!transfer_present(leaf)){renamed_markdown_leaves.delete(leaf);continue;}
+        const state=editor_state(leaf);
+        if(state.dirty||state.busy)continue;
+        if(await reopen_leaf(leaf,false)){renamed_markdown_leaves.delete(leaf);if(leaf===active)desired_active=core.app.workspace.activeLeaf;}
+      }
+    } catch(error) { new core.Notice("文件类型已更新，编辑器切换未完成："+String(error),5000); }
+    finally {refreshing_renamed_editors=false;if(desired_active&&transfer_present(desired_active)&&core.app.workspace.activeLeaf!==desired_active)core.app.workspace.activeLeaf=desired_active;}
   };
   const transfer_captures = new WeakMap<graph_leaf,{capture_id:string;fingerprint:string}>();
   const transfer_present = (leaf:graph_leaf) => {let present=false;core.app.workspace.eachLeaves(item=>{if(item===leaf)present=true;});return present;};
@@ -882,11 +907,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const affected=[...views].filter(view=>includes(view.file_path));
     if(renaming||affected.some(view=>view.dirty()||view.saving))throw new Error("待删除项目包含未保存或正在保存的源码，请先保存，或关闭标签并处理修改后再删除。");
     if(includes(runtime.File?.bundle?.filePath||"")&&runtime.File?.changeCounter?.isDocumentEdited())throw new Error("待删除项目包含未保存的 Markdown，请先保存或关闭文档后再删除。");
-    if(typeof shell.trashItem!=="function")throw new Error("当前宿主未提供回收站接口。");
     await trash_workspace_entries({fs,path_api},root,paths,async(target:string)=>{
       // 每个文件落盘动作前重检草稿，批次期间编辑不能被后续删除吞掉。
       if([...views].some(view=>includes(view.file_path)&&(view.dirty()||view.saving)))throw new Error("源码在删除期间发生修改，已停止后续删除。");
-      await shell.trashItem(target);
+      await trash_native_path(runtime,target);
       const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(renamed_workspace_path(path_api,real_path(leaf),target,target,true)!==undefined)leaves.push(leaf);});
       for(const view of [...views])if(renamed_workspace_path(path_api,view.file_path,target,target,true)!==undefined)view.release_source();
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);

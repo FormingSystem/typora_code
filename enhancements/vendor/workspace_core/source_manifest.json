@@ -220,13 +220,13 @@
       "path": "src/ui/components/menu.scss",
       "upstream_path": "src/ui/components/menu.scss",
       "upstream_sha256": "c55c7493e6a42cd49d3d972c717239fb5b495b85d7073b56aa556e35f9fda257",
-      "sha256": "c55c7493e6a42cd49d3d972c717239fb5b495b85d7073b56aa556e35f9fda257"
+      "sha256": "3a7baa69b82965d620ef44a29ddffd93c1eb8db23ebd5a9593f65710021ceea7"
     },
     {
       "path": "src/ui/components/menu.ts",
       "upstream_path": "src/ui/components/menu.ts",
       "upstream_sha256": "f74fce5e4ccfe27b1a139077827a02e233f72724c9105e60d05639ff3ab1f4e3",
-      "sha256": "68c67fc5da071ded6388caf45222158863cd9569cfda6820244679b6cb43d10d"
+      "sha256": "a792aa00a782b610f6fb4f74833fb39f563fdace944725480914b0261278f87e"
     },
     {
       "path": "src/ui/components/modal.scss",

@@ -652,7 +652,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-revision-markdown { min-width: 0; }
 .git-scm-directory > summary, .git-scm-history-directory > summary { display: flex; align-items: center; gap: 4px; }
 .git-activity-icon, .git-tab-icon { display: inline-flex; align-items: center; justify-content: center; }
-.git-activity-icon > .git-standard-icon { width: 24px; height: 24px; }
+.typ-ribbon-item .git-activity-icon > .git-standard-icon { width: 24px; height: 24px; }
 .git-graph-menu button { display: grid; grid-template-columns: 16px minmax(0, 1fr) 16px; align-items: center; gap: 6px; }
 .git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }
 .git-menu-label { min-width: 0; }

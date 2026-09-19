@@ -22,6 +22,7 @@ const host_fixture_environment = Object.freeze([
 // Keep this list explicit. Each entry is an isolated hidden-Electron fixture that
 // creates its own temporary workspace and does not launch or modify real Typora.
 const ui_tests = Object.freeze([
+  "test_workspace_stability.cjs",
   "test_diff_overview.cjs",
   "test_git_graph_i18n.cjs",
   "test_git_graph_interaction.cjs",
