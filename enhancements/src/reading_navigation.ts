@@ -19,6 +19,8 @@ type typora_file_state = {
   editor?: typora_editor;
   _onInitParse?: boolean;
   _onFileSwitching?: boolean;
+  changeCounter?: {isDocumentEdited(): boolean};
+  reloadFromDisk?(): Promise<unknown>;
 };
 
 let active_dispose: (() => void) | undefined;
@@ -131,6 +133,14 @@ export function bind_reading_navigation(): () => void {
     if (current && file_key(current.file_path) === file_key(path)) return await activate(current, signal) ? current : undefined;
     // 保留宿主打开失败与未保存确认；绝不通过读正文、reloadContent 或自动保存来切换。
     if (disposed || signal.aborted) return;
+    // 已关闭的最后文档仍可能被宿主缓存；同路径openFile会跳过磁盘读取。
+    // 只刷新无叶子且无草稿的缓存，不能覆盖仍在其他编辑组打开的文档。
+    if (app && file_key(native_path()) === file_key(path)) {
+      if (file.changeCounter?.isDocumentEdited()) throw new Error("宿主仍有未保存修改，请先处理草稿后重新打开。");
+      if (typeof file.reloadFromDisk !== "function") throw new Error("宿主未提供文档重载接口，无法安全重新打开此文件。");
+      await file.reloadFromDisk();
+      if (disposed || signal.aborted || file_key(native_path()) !== file_key(path)) return;
+    }
     original_open_file.call(editor.library, path);
     let target: reading_context | undefined;
     if (!await wait_for(() => {

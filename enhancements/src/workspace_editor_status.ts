@@ -1,3 +1,4 @@
+import {is_empty_editor_path} from "./workspace_file_uri";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
 import type { graph_core, graph_leaf } from "./git_graph_host";
@@ -31,6 +32,8 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const refresh=()=>{
     if(disposed)return;const active=core.app.workspace.activeLeaf;
     const controls=active?owners.get(active):undefined;
+    // 宿主仍缓存最后一次Markdown，空布局不能展示该文档的字数/拼写状态。
+    footer?.toggleAttribute("data-empty-editor",!active||is_empty_editor_path(active.state.path));
     if(observed_controls!==controls){contents.disconnect();observed_controls=controls;if(controls)contents.observe(controls,{childList:true,characterData:true,subtree:true});}
     if(controls){if(container.firstChild!==controls)container.replaceChildren(controls);container.hidden=false;container.setAttribute("data-editor-path",active!.state.path);}
     else {container.replaceChildren();container.hidden=true;container.removeAttribute("data-editor-path");}
@@ -40,9 +43,10 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const contents=new MutationObserver(schedule);
   // 社区 core EventEmitter.on 返回退订函数；active-leaf:change 已在真实核心核对。
   const unsubscribe=(core.app.workspace as unknown as {on(name:string,callback:()=>void):void|(()=>void)}).on("active-leaf:change",refresh);
+  const unsubscribe_layout=core.app.workspace.on("layout-changed",schedule);
   const resize=new ResizeObserver(schedule);if(footer)resize.observe(footer);if(native_actions)resize.observe(native_actions);
   document.addEventListener("focusin",schedule,true);window.addEventListener("resize",schedule);
-  const dispose=()=>{if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);resize.disconnect();contents.disconnect();if(typeof unsubscribe==="function")unsubscribe();document.removeEventListener("focusin",schedule,true);window.removeEventListener("resize",schedule);window.removeEventListener("unload",dispose);owners.clear();container.remove();footer?.removeAttribute("data-editor-status");layout_style.remove();style.remove();status_bindings.delete(core);};
+  const dispose=()=>{if(disposed)return;disposed=true;if(frame)cancelAnimationFrame(frame);resize.disconnect();contents.disconnect();if(typeof unsubscribe==="function")unsubscribe();if(typeof unsubscribe_layout==="function")unsubscribe_layout();footer?.removeAttribute("data-empty-editor");document.removeEventListener("focusin",schedule,true);window.removeEventListener("resize",schedule);window.removeEventListener("unload",dispose);owners.clear();container.remove();footer?.removeAttribute("data-editor-status");layout_style.remove();style.remove();status_bindings.delete(core);};
   window.addEventListener("unload",dispose);
   const binding={container,register(leaf:graph_leaf,controls:HTMLElement){owners.set(leaf,controls);refresh();},release(leaf:graph_leaf){owners.delete(leaf);refresh();},refresh,schedule,dispose};
   status_bindings.set(core,binding);return binding;

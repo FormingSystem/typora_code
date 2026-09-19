@@ -1,5 +1,10 @@
 import { is_markdown_file } from "./file_language";
 
+/** 空布局不是文档；空路径则属于真实的未命名Markdown草稿。 */
+export function is_empty_editor_path(target: string): boolean {
+  return target.startsWith("typ://core.empty/");
+}
+
 export const SOURCE_FILE_VIEW_ID = "linux_note.source_file";
 const SOURCE_FILE_URI_PREFIX = `typ://${SOURCE_FILE_VIEW_ID}/`;
 

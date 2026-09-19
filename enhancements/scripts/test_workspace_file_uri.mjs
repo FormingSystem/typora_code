@@ -59,3 +59,11 @@ for(const path_api of [path.win32,path.posix]) {
   }
 }
 assert.equal(uri.resolve_host_open_file_target(path.win32,'C:/notes/current.md','<'+yaml_url+'>'),yaml_url,'angle-delimited file URLs retain their protocol before decoding');
+
+for (const cycles of [20,100,1000]) {
+  for(let i=0;i<cycles;i++) {
+    assert.equal(uri.is_empty_editor_path(`typ://core.empty/${i}/New tab`),true);
+    for(const target of ['', '/notes/New tab', 'C:\\notes\\New tab', 'typ://core.empty-other/view', 'typ://linux_note.source_file/file'])assert.equal(uri.is_empty_editor_path(target),false);
+  }
+  console.log('PASS empty editor identity cycles: '+cycles);
+}

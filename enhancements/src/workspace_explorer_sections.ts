@@ -1,3 +1,4 @@
+import {is_empty_editor_path} from "./workspace_file_uri";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import type {workspace_save_service} from "./workspace_save_service";
@@ -27,7 +28,7 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   const opened=el("section","workspace-explorer-opened"),heading=el("div","workspace-explorer-section-heading"),toggle=el("button","workspace-explorer-section-title"),actions=el("div","workspace-explorer-section-actions"),body=el("div","workspace-explorer-opened-list");
   toggle.type="button";toggle.setAttribute("aria-label","打开的编辑器");body.setAttribute("role","list");body.setAttribute("aria-label","打开的编辑器");heading.append(toggle,actions);opened.append(heading,body);folders.before(opened);
   const run=(operation:()=>unknown)=>{try{Promise.resolve(operation()).catch(saves.report);}catch(error){saves.report(error);}};
-  const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
+  const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{if(!is_empty_editor_path(leaf.state.path))result.push(leaf);});return result;};
   actions.append(git_icon_button("save-all","全部保存",()=>run(files.save_all)),git_icon_button("close-all","关闭全部编辑器",()=>run(async()=>{for(const leaf of leaves())if(!await files.close_leaf(leaf))break;})));
   const timeline=lifetime.own(bind_workspace_timeline(files,saves,viewer,explorer));container.append(timeline.container);
   const visibility=():workspace_menu_entry[]=>{const value=read_workspace_save_settings();return[

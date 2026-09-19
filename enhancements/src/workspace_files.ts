@@ -1,3 +1,4 @@
+import {prepare_deleted_native_document} from "./workspace_native_document";
 import {workspace_context_switching,assert_workspace_context_ready} from "./workspace_context";
 import {trash_native_path} from "./workspace_native_trash";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -20,7 +21,7 @@ import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
 import { prepare_workspace_rename, prepare_workspace_move, renamed_workspace_path } from "./workspace_rename";
 import { reveal_markdown_location } from "./workspace_markdown_location";
-import { SOURCE_FILE_VIEW_ID, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
+import { SOURCE_FILE_VIEW_ID, is_empty_editor_path, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
 import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
@@ -572,7 +573,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>leaves.push(leaf));
     const check=()=>{
       assert_workspace_context_ready();
-      if(!binding.active||renaming||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error("文件正在读取、保存或移动，请完成后再切换工作区。");
+      if(!binding.active||renaming||file_operation_count||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error("文件正在读取、保存或移动，请完成后再切换工作区。");
       const current:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>current.push(leaf));
       if(current.length!==leaves.length||current.some(leaf=>!leaves.includes(leaf)))throw new Error("打开的编辑器已变化，请重新切换工作区。");
     };
@@ -607,7 +608,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const native_close_dialogs=new Map<graph_leaf,{dialog:ReturnType<typeof workspace_dialog>;result:Promise<boolean>}>();
   const close_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
-    if(!transfer_present(leaf))return true;if(editor_state(leaf).busy)return false;
+    if(is_empty_editor_path(leaf.state.path)||!transfer_present(leaf))return true;if(editor_state(leaf).busy)return false;
     const group=leaf.parent,path=leaf.state.path,state=editor_state(leaf);
     const remove=async()=>{if(!transfer_present(leaf))return true;if(leaf.parent!==group||leaf.state.path!==path)return false;await group.removeTab?.(path);return !transfer_present(leaf);};
     if(state.kind!=="markdown"||!state.dirty)return remove();
@@ -950,7 +951,9 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     await trash_workspace_entries({fs,path_api},root,paths,async(target:string)=>{
       // 每个文件落盘动作前重检草稿，批次期间编辑不能被后续删除吞掉。
       if([...views].some(view=>includes(view.file_path)&&(view.dirty()||view.saving)))throw new Error("源码在删除期间发生修改，已停止后续删除。");
+      const release_native=prepare_deleted_native_document(runtime,candidate=>renamed_workspace_path(path_api,candidate,target,target,true)!==undefined,native_transfer_text);
       await trash_native_path(runtime,target);
+      if(release_native)await release_native();
       const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(renamed_workspace_path(path_api,real_path(leaf),target,target,true)!==undefined)leaves.push(leaf);});
       for(const view of [...views])if(renamed_workspace_path(path_api,view.file_path,target,target,true)!==undefined)view.release_source();
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);

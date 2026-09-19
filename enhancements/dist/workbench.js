@@ -161482,182 +161482,6 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/workspace_context.ts
-  var epoch = 0;
-  var switching = false;
-  var guards = /* @__PURE__ */ new Set();
-  var workspace_context_epoch = () => epoch;
-  var workspace_context_switching = () => switching;
-  function register_workspace_context_guard(guard) {
-    guards.add(guard);
-    return () => {
-      guards.delete(guard);
-    };
-  }
-  function assert_workspace_context_ready() {
-    for (const guard of guards) {
-      const reason = guard();
-      if (reason) throw new Error(reason);
-    }
-  }
-  function begin_workspace_context_switch() {
-    if (switching) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
-    assert_workspace_context_ready();
-    switching = true;
-    epoch++;
-  }
-  function finish_workspace_context_switch() {
-    switching = false;
-    window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
-  }
-  function cancel_workspace_context_switch() {
-    switching = false;
-  }
-
-  // src/workspace_native_trash.ts
-  async function trash_native_path(runtime2, target) {
-    const fs2 = runtime2.reqnode("fs").promises;
-    if (runtime2.JSBridge?.invoke) {
-      if (await runtime2.JSBridge.invoke("shell.trashItem", target) !== true) {
-        throw new Error("\u672A\u80FD\u79FB\u5230\u56DE\u6536\u7AD9\uFF1A" + target + "\u3002\u8BF7\u68C0\u67E5\u6587\u4EF6\u5360\u7528\u3001\u76EE\u5F55\u6743\u9650\u53CA\u56DE\u6536\u7AD9\u652F\u6301\uFF1B\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002");
-      }
-    } else {
-      const shell = runtime2.reqnode("electron")?.shell;
-      if (typeof shell?.trashItem !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u56DE\u6536\u7AD9\u63A5\u53E3\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
-      await shell.trashItem(target);
-    }
-    try {
-      await fs2.lstat(target);
-    } catch (error) {
-      if (error.code === "ENOENT") return;
-      throw error;
-    }
-    throw new Error("\u56DE\u6536\u64CD\u4F5C\u8FD4\u56DE\u540E\u9879\u76EE\u4ECD\u7136\u5B58\u5728\uFF1A" + target + "\u3002\u8BF7\u5237\u65B0\u5E76\u6838\u5BF9\uFF0C\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002");
-  }
-
-  // src/workspace_file_events.ts
-  var saved_listeners = /* @__PURE__ */ new Set();
-  var change_listeners = /* @__PURE__ */ new Set();
-  function observe_workspace_file_saved(listener) {
-    saved_listeners.add(listener);
-    return () => {
-      saved_listeners.delete(listener);
-    };
-  }
-  function observe_workspace_file_changed(listener) {
-    change_listeners.add(listener);
-    return () => {
-      change_listeners.delete(listener);
-    };
-  }
-  function publish_workspace_file_saved(file) {
-    for (const listener of saved_listeners) try {
-      listener(file);
-    } catch (error) {
-      console.error("Local history:", error);
-    }
-  }
-  function publish_workspace_file_changed(file_path) {
-    for (const listener of change_listeners) try {
-      listener(file_path);
-    } catch (error) {
-      console.error("Auto save:", error);
-    }
-  }
-
-  // src/workspace_zoom.ts
-  var WORKSPACE_ZOOM_ACTIONS = [
-    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
-    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
-    { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
-  ];
-  function workspace_zoom_available(runtime2, id) {
-    const action = WORKSPACE_ZOOM_ACTIONS.find((action2) => action2.id === id);
-    return Boolean(action && typeof runtime2.ClientCommand?.[action.native_command] === "function");
-  }
-  function workspace_zoom_shortcut(event) {
-    if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph") || event.ctrlKey === event.metaKey) return;
-    if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
-    if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
-  }
-  function bind_workspace_zoom_commands(app, runtime2) {
-    const lifetime = create_workspace_lifetime();
-    try {
-      for (const action of WORKSPACE_ZOOM_ACTIONS) {
-        if (!workspace_zoom_available(runtime2, action.id)) continue;
-        lifetime.add(app.commands.register({ id: action.id, title: "\u89C6\u56FE\uFF1A" + action.label, scope: "global", callback() {
-          if (!lifetime.disposed && workspace_zoom_available(runtime2, action.id)) runtime2.ClientCommand[action.native_command]();
-        } }));
-      }
-    } catch (error) {
-      lifetime.dispose();
-      throw error;
-    }
-    return lifetime;
-  }
-
-  // src/workspace_keyboard.ts
-  function is_composing_key(event) {
-    return event.isComposing || event.keyCode === 229;
-  }
-  function is_terminal_input(event) {
-    const target = event.composedPath().find((node) => node instanceof Element) || event.target;
-    return target instanceof Element && !!target.closest(".linux-note-terminal") && !target.closest(".linux-note-source-file");
-  }
-
-  // src/workspace_quick_open.css
-  var workspace_quick_open_default = "";
-
-  // src/terminal_theme.ts
-  function terminal_theme() {
-    const body = getComputedStyle(document.body);
-    const rgb = workspace_surface_background(document.body);
-    const background = "rgb(".concat(rgb.join(", "), ")");
-    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
-    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
-    return {
-      background,
-      foreground: foreground2,
-      cursor: foreground2,
-      cursorAccent: background,
-      selectionBackground: dark ? "#264f78" : "#add6ff",
-      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
-      black: dark ? "#000000" : "#24292f",
-      red: dark ? "#cd3131" : "#a31515",
-      green: dark ? "#0dbc79" : "#16713b",
-      yellow: dark ? "#e5e510" : "#795e26",
-      blue: dark ? "#3b8eea" : "#0451a5",
-      magenta: dark ? "#bc3fbc" : "#af00db",
-      cyan: dark ? "#11a8cd" : "#0070a8",
-      white: dark ? "#e5e5e5" : "#555555",
-      brightBlack: dark ? "#666666" : "#666666",
-      brightRed: dark ? "#f14c4c" : "#c72e2e",
-      brightGreen: dark ? "#23d18b" : "#16825d",
-      brightYellow: dark ? "#f5f543" : "#8a6500",
-      brightBlue: dark ? "#3b8eea" : "#0065b3",
-      brightMagenta: dark ? "#d670d6" : "#a626a4",
-      brightCyan: dark ? "#29b8db" : "#007f8b",
-      brightWhite: dark ? "#ffffff" : "#333333"
-    };
-  }
-  function observe_terminal_theme(apply3) {
-    let previous = "";
-    return observe_workspace_theme(() => {
-      const theme2 = terminal_theme(), key2 = JSON.stringify(theme2);
-      if (key2 !== previous) {
-        previous = key2;
-        apply3(theme2);
-      }
-    });
-  }
-
-  // src/workspace_leaf_tab.ts
-  function workspace_leaf_tab(leaf) {
-    if (leaf.parent?.tabHeader) return leaf.parent.tabHeader.getTabById(leaf.state.path);
-    const group = leaf.parent?.containerEl || leaf.containerEl.closest(".typ-workspace-tabs");
-    return [...(group || document).querySelectorAll(".typ-tab[data-id]")].find((tab) => tab.dataset.id === leaf.state.path);
-  }
-
   // src/file_language.ts
   var FILE_LANGUAGE_RULES = [
     { language: "markdown", label: "Markdown", suffixes: [".md", ".markdown", ".mdown", ".mkdn", ".mkd"] },
@@ -161837,6 +161661,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_file_uri.ts
+  function is_empty_editor_path(target) {
+    return target.startsWith("typ://core.empty/");
+  }
   var SOURCE_FILE_VIEW_ID = "linux_note.source_file";
   var SOURCE_FILE_URI_PREFIX = "typ://".concat(SOURCE_FILE_VIEW_ID, "/");
   var is_windows_absolute_file = (file_path) => /^(?:[a-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))/iu.test(file_path);
@@ -161907,6 +161734,200 @@ https://creativecommons.org/licenses/by/4.0/
     if (!parsed) return;
     const file_path = resolve_workspace_file(path_api, context_root, parsed.file_path);
     return file_path ? { ...parsed, file_path } : void 0;
+  }
+
+  // src/workspace_native_document.ts
+  function prepare_deleted_native_document(runtime2, includes, read_text) {
+    const file = runtime2.File, path = String(file?.bundle?.filePath || "");
+    if (!path || !includes(path)) return;
+    if (typeof file.changeCounter?.isDocumentEdited !== "function") throw new Error("\u5BBF\u4E3B\u65E0\u6CD5\u786E\u8BA4\u672A\u4FDD\u5B58\u72B6\u6001\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
+    if (file.changeCounter.isDocumentEdited() || file.isFileLoading?.() || file._onFileSwitching || file._onInitParse || file.inSavingProcess) throw new Error("Markdown\u6B63\u5728\u7F16\u8F91\u3001\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5220\u9664\u3002");
+    if (typeof file.loadFile !== "function" || typeof file.updateChangeCount !== "function" || file.ChangeType?.NSChangeCleared === void 0) throw new Error("\u5BBF\u4E3B\u672A\u63D0\u4F9B\u5DF2\u6838\u5BF9\u7684\u6587\u6863\u91CA\u653E\u63A5\u53E3\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
+    const text3 = read_text();
+    return async () => {
+      const current = String(file.bundle?.filePath || "");
+      if (current && file_key(current) !== file_key(path)) return;
+      if (read_text() !== text3) throw new Error("\u6587\u4EF6\u5DF2\u79FB\u5230\u56DE\u6536\u7AD9\uFF0C\u4F46\u5220\u9664\u671F\u95F4\u6B63\u6587\u53D1\u751F\u4FEE\u6539\uFF1B\u5DF2\u4FDD\u7559\u7F16\u8F91\u5668\uFF0C\u8BF7\u5C06\u8349\u7A3F\u53E6\u5B58\u4E3A\u3002");
+      await file.loadFile("", true);
+      if (file.bundle?.filePath || read_text() !== "") throw new Error("\u6587\u4EF6\u5DF2\u79FB\u5230\u56DE\u6536\u7AD9\uFF0C\u4F46\u5BBF\u4E3B\u672A\u80FD\u91CA\u653E\u539F\u6587\u6863\uFF1B\u8BF7\u4FDD\u7559\u5F53\u524D\u5185\u5BB9\u5E76\u91CD\u8BD5\u3002");
+      file.updateChangeCount(file.ChangeType.NSChangeCleared);
+    };
+  }
+
+  // src/workspace_context.ts
+  var epoch = 0;
+  var switching = false;
+  var guards = /* @__PURE__ */ new Set();
+  var workspace_context_epoch = () => epoch;
+  var workspace_context_switching = () => switching;
+  function register_workspace_context_guard(guard) {
+    guards.add(guard);
+    return () => {
+      guards.delete(guard);
+    };
+  }
+  function assert_workspace_context_ready() {
+    for (const guard of guards) {
+      const reason = guard();
+      if (reason) throw new Error(reason);
+    }
+  }
+  function begin_workspace_context_switch() {
+    if (switching) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+    assert_workspace_context_ready();
+    switching = true;
+    epoch++;
+  }
+  function finish_workspace_context_switch() {
+    switching = false;
+    window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+  }
+  function cancel_workspace_context_switch() {
+    switching = false;
+  }
+
+  // src/workspace_native_trash.ts
+  async function trash_native_path(runtime2, target) {
+    const fs2 = runtime2.reqnode("fs").promises;
+    if (runtime2.JSBridge?.invoke) {
+      if (await runtime2.JSBridge.invoke("shell.trashItem", target) !== true) {
+        throw new Error("\u672A\u80FD\u79FB\u5230\u56DE\u6536\u7AD9\uFF1A" + target + "\u3002\u8BF7\u68C0\u67E5\u6587\u4EF6\u5360\u7528\u3001\u76EE\u5F55\u6743\u9650\u53CA\u56DE\u6536\u7AD9\u652F\u6301\uFF1B\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002");
+      }
+    } else {
+      const shell = runtime2.reqnode("electron")?.shell;
+      if (typeof shell?.trashItem !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u56DE\u6536\u7AD9\u63A5\u53E3\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
+      await shell.trashItem(target);
+    }
+    try {
+      await fs2.lstat(target);
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    throw new Error("\u56DE\u6536\u64CD\u4F5C\u8FD4\u56DE\u540E\u9879\u76EE\u4ECD\u7136\u5B58\u5728\uFF1A" + target + "\u3002\u8BF7\u5237\u65B0\u5E76\u6838\u5BF9\uFF0C\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002");
+  }
+
+  // src/workspace_file_events.ts
+  var saved_listeners = /* @__PURE__ */ new Set();
+  var change_listeners = /* @__PURE__ */ new Set();
+  function observe_workspace_file_saved(listener) {
+    saved_listeners.add(listener);
+    return () => {
+      saved_listeners.delete(listener);
+    };
+  }
+  function observe_workspace_file_changed(listener) {
+    change_listeners.add(listener);
+    return () => {
+      change_listeners.delete(listener);
+    };
+  }
+  function publish_workspace_file_saved(file) {
+    for (const listener of saved_listeners) try {
+      listener(file);
+    } catch (error) {
+      console.error("Local history:", error);
+    }
+  }
+  function publish_workspace_file_changed(file_path) {
+    for (const listener of change_listeners) try {
+      listener(file_path);
+    } catch (error) {
+      console.error("Auto save:", error);
+    }
+  }
+
+  // src/workspace_zoom.ts
+  var WORKSPACE_ZOOM_ACTIONS = [
+    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
+    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
+    { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
+  ];
+  function workspace_zoom_available(runtime2, id) {
+    const action = WORKSPACE_ZOOM_ACTIONS.find((action2) => action2.id === id);
+    return Boolean(action && typeof runtime2.ClientCommand?.[action.native_command] === "function");
+  }
+  function workspace_zoom_shortcut(event) {
+    if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph") || event.ctrlKey === event.metaKey) return;
+    if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
+    if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
+  }
+  function bind_workspace_zoom_commands(app, runtime2) {
+    const lifetime = create_workspace_lifetime();
+    try {
+      for (const action of WORKSPACE_ZOOM_ACTIONS) {
+        if (!workspace_zoom_available(runtime2, action.id)) continue;
+        lifetime.add(app.commands.register({ id: action.id, title: "\u89C6\u56FE\uFF1A" + action.label, scope: "global", callback() {
+          if (!lifetime.disposed && workspace_zoom_available(runtime2, action.id)) runtime2.ClientCommand[action.native_command]();
+        } }));
+      }
+    } catch (error) {
+      lifetime.dispose();
+      throw error;
+    }
+    return lifetime;
+  }
+
+  // src/workspace_keyboard.ts
+  function is_composing_key(event) {
+    return event.isComposing || event.keyCode === 229;
+  }
+  function is_terminal_input(event) {
+    const target = event.composedPath().find((node) => node instanceof Element) || event.target;
+    return target instanceof Element && !!target.closest(".linux-note-terminal") && !target.closest(".linux-note-source-file");
+  }
+
+  // src/workspace_quick_open.css
+  var workspace_quick_open_default = "";
+
+  // src/terminal_theme.ts
+  function terminal_theme() {
+    const body = getComputedStyle(document.body);
+    const rgb = workspace_surface_background(document.body);
+    const background = "rgb(".concat(rgb.join(", "), ")");
+    const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
+    const foreground2 = body.color || (dark ? "#d4d4d4" : "#333333");
+    return {
+      background,
+      foreground: foreground2,
+      cursor: foreground2,
+      cursorAccent: background,
+      selectionBackground: dark ? "#264f78" : "#add6ff",
+      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+      black: dark ? "#000000" : "#24292f",
+      red: dark ? "#cd3131" : "#a31515",
+      green: dark ? "#0dbc79" : "#16713b",
+      yellow: dark ? "#e5e510" : "#795e26",
+      blue: dark ? "#3b8eea" : "#0451a5",
+      magenta: dark ? "#bc3fbc" : "#af00db",
+      cyan: dark ? "#11a8cd" : "#0070a8",
+      white: dark ? "#e5e5e5" : "#555555",
+      brightBlack: dark ? "#666666" : "#666666",
+      brightRed: dark ? "#f14c4c" : "#c72e2e",
+      brightGreen: dark ? "#23d18b" : "#16825d",
+      brightYellow: dark ? "#f5f543" : "#8a6500",
+      brightBlue: dark ? "#3b8eea" : "#0065b3",
+      brightMagenta: dark ? "#d670d6" : "#a626a4",
+      brightCyan: dark ? "#29b8db" : "#007f8b",
+      brightWhite: dark ? "#ffffff" : "#333333"
+    };
+  }
+  function observe_terminal_theme(apply3) {
+    let previous = "";
+    return observe_workspace_theme(() => {
+      const theme2 = terminal_theme(), key2 = JSON.stringify(theme2);
+      if (key2 !== previous) {
+        previous = key2;
+        apply3(theme2);
+      }
+    });
+  }
+
+  // src/workspace_leaf_tab.ts
+  function workspace_leaf_tab(leaf) {
+    if (leaf.parent?.tabHeader) return leaf.parent.tabHeader.getTabById(leaf.state.path);
+    const group = leaf.parent?.containerEl || leaf.containerEl.closest(".typ-workspace-tabs");
+    return [...(group || document).querySelectorAll(".typ-tab[data-id]")].find((tab) => tab.dataset.id === leaf.state.path);
   }
 
   // vendor/vscode_seti/icon_theme.json
@@ -180316,6 +180337,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       const active = core.app.workspace.activeLeaf;
       const controls = active ? owners.get(active) : void 0;
+      footer?.toggleAttribute("data-empty-editor", !active || is_empty_editor_path(active.state.path));
       if (observed_controls !== controls) {
         contents.disconnect();
         observed_controls = controls;
@@ -180341,6 +180363,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const contents = new MutationObserver(schedule);
     const unsubscribe = core.app.workspace.on("active-leaf:change", refresh);
+    const unsubscribe_layout = core.app.workspace.on("layout-changed", schedule);
     const resize = new ResizeObserver(schedule);
     if (footer) resize.observe(footer);
     if (native_actions) resize.observe(native_actions);
@@ -180353,6 +180376,8 @@ https://creativecommons.org/licenses/by/4.0/
       resize.disconnect();
       contents.disconnect();
       if (typeof unsubscribe === "function") unsubscribe();
+      if (typeof unsubscribe_layout === "function") unsubscribe_layout();
+      footer?.removeAttribute("data-empty-editor");
       document.removeEventListener("focusin", schedule, true);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("unload", dispose2);
@@ -180912,6 +180937,12 @@ https://creativecommons.org/licenses/by/4.0/
       const current = workspace.active();
       if (current && file_key(current.file_path) === file_key(path)) return await activate(current, signal) ? current : void 0;
       if (disposed || signal.aborted) return;
+      if (app && file_key(native_path()) === file_key(path)) {
+        if (file.changeCounter?.isDocumentEdited()) throw new Error("\u5BBF\u4E3B\u4ECD\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u5904\u7406\u8349\u7A3F\u540E\u91CD\u65B0\u6253\u5F00\u3002");
+        if (typeof file.reloadFromDisk !== "function") throw new Error("\u5BBF\u4E3B\u672A\u63D0\u4F9B\u6587\u6863\u91CD\u8F7D\u63A5\u53E3\uFF0C\u65E0\u6CD5\u5B89\u5168\u91CD\u65B0\u6253\u5F00\u6B64\u6587\u4EF6\u3002");
+        await file.reloadFromDisk();
+        if (disposed || signal.aborted || file_key(native_path()) !== file_key(path)) return;
+      }
       original_open_file.call(editor2.library, path);
       let target;
       if (!await wait_for(() => {
@@ -182152,7 +182183,7 @@ https://creativecommons.org/licenses/by/4.0/
       core.app.workspace.eachLeaves((leaf) => leaves.push(leaf));
       const check = () => {
         assert_workspace_context_ready();
-        if (!binding.active || renaming || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
+        if (!binding.active || renaming || file_operation_count || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
         const current = [];
         core.app.workspace.eachLeaves((leaf) => current.push(leaf));
         if (current.length !== leaves.length || current.some((leaf) => !leaves.includes(leaf))) throw new Error("\u6253\u5F00\u7684\u7F16\u8F91\u5668\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
@@ -182215,7 +182246,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const native_close_dialogs = /* @__PURE__ */ new Map();
     const close_leaf = async (leaf) => {
-      if (!transfer_present(leaf)) return true;
+      if (is_empty_editor_path(leaf.state.path) || !transfer_present(leaf)) return true;
       if (editor_state(leaf).busy) return false;
       const group = leaf.parent, path = leaf.state.path, state = editor_state(leaf);
       const remove = async () => {
@@ -182762,7 +182793,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (includes(runtime2.File?.bundle?.filePath || "") && runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u5F85\u5220\u9664\u9879\u76EE\u5305\u542B\u672A\u4FDD\u5B58\u7684 Markdown\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u6587\u6863\u540E\u518D\u5220\u9664\u3002");
       await trash_workspace_entries({ fs: fs2, path_api }, root, paths, async (target) => {
         if ([...views].some((view) => includes(view.file_path) && (view.dirty() || view.saving))) throw new Error("\u6E90\u7801\u5728\u5220\u9664\u671F\u95F4\u53D1\u751F\u4FEE\u6539\uFF0C\u5DF2\u505C\u6B62\u540E\u7EED\u5220\u9664\u3002");
+        const release_native = prepare_deleted_native_document(runtime2, (candidate) => renamed_workspace_path(path_api, candidate, target, target, true) !== void 0, native_transfer_text);
         await trash_native_path(runtime2, target);
+        if (release_native) await release_native();
         const leaves = [];
         core.app.workspace.eachLeaves((leaf) => {
           if (renamed_workspace_path(path_api, real_path(leaf), target, target, true) !== void 0) leaves.push(leaf);
@@ -237701,7 +237734,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     function follow() {
       const leaf = workspace.activeLeaf, path = leaf ? files.editor_state(leaf).file_path : "";
-      if (path && !state.pinned && file_key(path) !== file_key(target)) {
+      if (!state.pinned && file_key(path) !== file_key(target)) {
         target = path;
         render();
         run(load);
@@ -237821,6 +237854,7 @@ https://creativecommons.org/licenses/by/4.0/
     }));
     lifetime.add(workspace.on("active-leaf:change", follow));
     lifetime.add(workspace.on("file:open", follow));
+    lifetime.add(workspace.on("layout-changed", follow));
     lifetime.add(files.core.app.commands.register({ id: "linux_note:local_history_restore", title: "\u672C\u5730\u5386\u53F2\uFF1A\u67E5\u627E\u8981\u6062\u590D\u7684\u6761\u76EE\u2026", scope: "global", callback: () => run(find_entry) }));
     lifetime.add(files.core.app.commands.register({ id: "linux_note:timeline", title: "\u6587\u4EF6\uFF1A\u6253\u5F00\u65F6\u95F4\u7EBF", scope: "global", callback: () => {
       const path = files.current_file();
@@ -237888,7 +237922,7 @@ https://creativecommons.org/licenses/by/4.0/
     const leaves = () => {
       const result = [];
       workspace.eachLeaves((leaf) => {
-        result.push(leaf);
+        if (!is_empty_editor_path(leaf.state.path)) result.push(leaf);
       });
       return result;
     };
@@ -238210,6 +238244,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026091908,
+        version: "2026.09.19.8",
+        date: "2026-09-19",
+        notes: [
+          "\u7A7A\u7F16\u8F91\u533A\u4E0D\u518D\u663E\u793ANew tab\u5047\u6587\u4EF6\uFF0C\u5173\u95ED\u6700\u540E\u6587\u6863\u540C\u6B65\u6E05\u7406\u672A\u56FA\u5B9A\u65F6\u95F4\u7EBF\u548C\u65E7\u5B57\u6570\u3002",
+          "\u4FEE\u590D\u6700\u540EMarkdown\u56DE\u6536\u540E\u9690\u85CF\u8349\u7A3F\u963B\u6B62\u7EE7\u7EED\u6253\u5F00\u6587\u4EF6\uFF0C\u4EE5\u53CA\u5173\u95ED\u540E\u7ACB\u5373\u91CD\u5F00\u4ECD\u663E\u793A\u65E7\u6B63\u6587\uFF1B\u4FDD\u7559\u672A\u4FDD\u5B58\u53CA\u5E76\u53D1\u4FEE\u6539\u4FDD\u62A4\u3002"
+        ]
+      },
       {
         sequence: 2026091907,
         version: "2026.09.19.7",

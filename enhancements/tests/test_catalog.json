@@ -2312,7 +2312,8 @@
       "requirements": [
         "R037",
         "R038",
-        "R046"
+        "R046",
+        "R052"
       ],
       "design": "docs/explorer_history.md",
       "implementation": [
@@ -2516,7 +2517,8 @@
       "purpose": "implementation",
       "requirements": [
         "R002",
-        "R042"
+        "R042",
+        "R052"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -4288,6 +4290,77 @@
       ],
       "expected": [
         "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-system-native-empty-editor",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R052"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_explorer_sections.ts",
+        "enhancements/src/workspace_editor_status.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_timeline.ts",
+        "enhancements/src/workspace_native_document.ts",
+        "enhancements/src/reading_navigation.ts"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "timeline",
+        "editor-status"
+      ],
+      "script": "enhancements/scripts/test_empty_editor_native.ps1",
+      "environment": "原始Typora隔离副本",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "最后文件关闭/重开、草稿取消和保存、改名与回收；20次原生循环"
+      ],
+      "expected": [
+        "空编辑区零假行，操作和实际磁盘一致，未保存内容保留"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
+    },
+    {
+      "id": "TC-files-native-document",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R052"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_explorer_sections.ts",
+        "enhancements/src/workspace_editor_status.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_timeline.ts",
+        "enhancements/src/workspace_native_document.ts",
+        "enhancements/src/reading_navigation.ts"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "timeline",
+        "editor-status"
+      ],
+      "script": "enhancements/scripts/test_workspace_native_document.mjs",
+      "environment": "Node宿主接口替身",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "20/100/1000次释放生命周期和dirty/并发改写/切换身份/失败保护"
+      ],
+      "expected": [
+        "仅成功回收的未变化缓冲可释放，非空草稿不能清除标记"
       ],
       "timeout_ms": 240000
     }

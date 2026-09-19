@@ -32,7 +32,7 @@ export function bind_workspace_timeline(files:workspace_file_host,saves:workspac
   const more=git_icon_button("more","时间线更多操作",()=>{});more.onclick=event=>workspace_menu(event,[{title:"本地历史：查找要恢复的条目…",action:()=>run(find_entry)},{title:"自动保存与本地历史设置…",action:open_workspace_save_settings}],"workspace-menu-compact");actions.append(pin,refresh,filter,more);
   function render(){container.hidden=!read_workspace_save_settings()["timeline.enabled"];container.classList.toggle("is-collapsed",state.collapsed);list.hidden=state.collapsed;toggle.replaceChildren(git_icon(state.collapsed?"chevron-right":"chevron-down"),el("span","workspace-explorer-section-label","时间线"),el("span","workspace-timeline-target",target?files.path_api.basename(target):""));toggle.title=target;toggle.setAttribute("aria-expanded",String(!state.collapsed));pin.setAttribute("aria-pressed",String(state.pinned));}
   toggle.onclick=()=>{state.collapsed=!state.collapsed;remember();render();run(load);};
-  function follow(){const leaf=workspace.activeLeaf,path=leaf?files.editor_state(leaf).file_path:"";if(path&&!state.pinned&&file_key(path)!==file_key(target)){target=path;render();run(load);}}
+  function follow(){const leaf=workspace.activeLeaf,path=leaf?files.editor_state(leaf).file_path:"";if(!state.pinned&&file_key(path)!==file_key(target)){target=path;render();run(load);}}
   const make_runner=()=>create_git_runner({child_process:runtime.reqnode("child_process"),process:runtime.reqnode("process")},{executable:load_graph_settings(localStorage,files.context_root()||"").git_path});
   async function load(){
     const revision=++epoch;listing?.cancel();listing=undefined;if(lifetime.disposed||container.hidden||state.collapsed)return;
@@ -74,7 +74,7 @@ export function bind_workspace_timeline(files:workspace_file_host,saves:workspac
   }
   function open(path:string){if(!files.path_api.isAbsolute(path))return;target=path;state.collapsed=false;state.pinned=false;remember();set_workspace_save_settings({"timeline.enabled":true});explorer.show();render();run(load);}
   const schedule=()=>{if(refresh_timer)clearTimeout(refresh_timer);refresh_timer=setTimeout(()=>{refresh_timer=undefined;run(load);},50);};
-  lifetime.add(saves.subscribe_history(schedule));lifetime.add(observe_workspace_save_settings(()=>{render();schedule();}));lifetime.add(workspace.on("active-leaf:change",follow));lifetime.add(workspace.on("file:open",follow));
+  lifetime.add(saves.subscribe_history(schedule));lifetime.add(observe_workspace_save_settings(()=>{render();schedule();}));lifetime.add(workspace.on("active-leaf:change",follow));lifetime.add(workspace.on("file:open",follow));lifetime.add(workspace.on("layout-changed",follow));
   lifetime.add(files.core.app.commands.register({id:"linux_note:local_history_restore",title:"本地历史：查找要恢复的条目…",scope:"global",callback:()=>run(find_entry)}));
   lifetime.add(files.core.app.commands.register({id:"linux_note:timeline",title:"文件：打开时间线",scope:"global",callback:()=>{const path=files.current_file();if(path)open(path);}}));
   render();follow();

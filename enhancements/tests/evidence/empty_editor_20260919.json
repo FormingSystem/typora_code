@@ -1,0 +1,208 @@
+{
+  "schema": 1,
+  "requirement": "R052",
+  "date": "2026-09-19",
+  "base_revision": "5f519a41046a24ae5256cca69ef002eb9d28ff74",
+  "design": "docs/explorer_history.md#r052-空编辑区与最后一个文件",
+  "release": "2026.09.19.8",
+  "source_hashes": {
+    "enhancements/scripts/test_workspace_explorer_history.cjs": "a625d978cc99e185a308ce6babb2354a94703135d6a2e416ab598d1abc8c5b17",
+    "enhancements/scripts/test_workspace_file_uri.mjs": "6fcd129d58b056c48ab7b803af021c0ddd80d5c47d7b649feece862146066697",
+    "enhancements/src/reading_navigation.ts": "9b686bc26c43f30ef80e2bdce5104bf52c56e0318f58cbbae57434634d44dd19",
+    "enhancements/src/workspace_editor_status.css": "648508a415c24e10e2d5cd16e533d68fd24ec783c20b0be445f9f888ce32e0cd",
+    "enhancements/src/workspace_editor_status.ts": "f2969031481c920fba237d4f78b13ebddafdfa6788d18fb72e528033040cab3f",
+    "enhancements/src/workspace_explorer_sections.ts": "8fc95b06c417be1d95d153d6c7420dd031033eb0ff72033ec9483f37cb4b8ff2",
+    "enhancements/src/workspace_file_uri.ts": "5521436cb248d7097365ecc0c7189692e5c20b660e97dbcd3cfaf3edb8d579c7",
+    "enhancements/src/workspace_files.ts": "825b0e2a1f336e7e171a96082a1faf660c07437d7e4128f758b10ce7ffd22c91",
+    "enhancements/src/workspace_timeline.ts": "afe4721972fb90bedaddb8acdc36c44a43238ad1f86356efccf17042e6db5cd8",
+    "enhancements/src/workspace_native_document.ts": "1390db1cd368d6862b2a489ff2933ea3b02ded9f05b4b350c046412ac3918883",
+    "enhancements/scripts/test_workspace_native_document.mjs": "a080d4c8ad264462c8701b81a868b4f52fd7b8888eb30a54fb2869ca7e281543",
+    "enhancements/scripts/test_empty_editor_native.ps1": "4b858632e8d3da9333b677dbe708afaeaad86ffdceac05342e497ac6b42bd478",
+    "enhancements/fixtures/empty_editor_native.js": "39c4613ecbf86ff41b11a9e72258ef5fd287b2f973e19de0a0676b6a5e7435b7"
+  },
+  "asset_manifest_sha256": "14a83020bcb9244c28d1de7649596f221de44255da1e4d3e9e5703456f72102e",
+  "suites": [
+    {
+      "id": "TC-files-009",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-00-10-269Z_d3f57c/report.json",
+      "sha256": "ea54f1cecfac03212afa09dfaeb6f42d8ed6c4994e89138ce658653863de66ac",
+      "status": "passed",
+      "level": "functional",
+      "purpose": "implementation"
+    },
+    {
+      "id": "TC-files-015",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-00-17-057Z_5f31a0/report.json",
+      "sha256": "90518e5eaf1f5228ec2c6f64a9c490ded94d4604acf1bfdc7d60401d75bd54fe",
+      "status": "passed",
+      "level": "unit",
+      "purpose": "implementation"
+    },
+    {
+      "id": "TC-files-native-document",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-03-50-285Z_e4e9a7/report.json",
+      "sha256": "9fe1b5d4989f8af8a50e64cb63b7371057cd37ee832f4ba236cc4fb412196cf1",
+      "status": "passed",
+      "level": "unit",
+      "purpose": "stress"
+    },
+    {
+      "id": "TC-workspace-009",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-00-17-662Z_91d469/report.json",
+      "sha256": "1e72e5ad4fc4e4d9314a4a9031eb9c8870d3116851068e9e4ab3673202d682a0",
+      "status": "passed",
+      "level": "functional",
+      "purpose": "implementation"
+    },
+    {
+      "id": "TC-files-011",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-00-18-686Z_a964a1/report.json",
+      "sha256": "eb2dda2a9c046ee3e5f5b913bf5d9f5ac2340e375178cd6b2447d632f8617ca9",
+      "status": "passed",
+      "level": "functional",
+      "purpose": "implementation"
+    },
+    {
+      "id": "TC-workspace-switch-ui",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-00-25-059Z_932bee/report.json",
+      "sha256": "49d70bcebf4fea8cca5db99e050b54066ca97c2218621888bafde48b76145d52",
+      "status": "passed",
+      "level": "functional",
+      "purpose": "implementation"
+    },
+    {
+      "id": "TC-system-native-empty-editor",
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-03-50-602Z_741262/report.json",
+      "sha256": "52de00ea9308ac884a37a56d5df0ef1b680bbebfd69f8a6910667b66b52badf8",
+      "status": "passed",
+      "level": "system",
+      "purpose": "implementation"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/empty_check.log",
+      "sha256": "1a0a3633062655205f8a3b3d939c9a513c75216347bdd3c82a0232da5825c993"
+    },
+    {
+      "path": ".cache/issue_tracking/empty_check_final.log",
+      "sha256": "119d5f439b33ae77d945fcc834cecd9ac096c6ae07be19d94f7702c636fd267e"
+    },
+    {
+      "path": ".cache/issue_tracking/empty_navigation_ui.log",
+      "sha256": "330cb189f0bcae4c692ca6aa6cffa2d77cae1d62c27a9c58cd48d414d18796de"
+    },
+    {
+      "path": ".cache/issue_tracking/empty_static_final.log",
+      "sha256": "07fda36d37474cb69c7279fedf5268e46ed1968559edeb514d5443332b348ff6"
+    },
+    {
+      "path": ".cache/issue_tracking/empty_install_final.log",
+      "sha256": "bf147f05978aedf71ca3603b4c25bf1b241033d820addb6e947c8b7af28c7724"
+    },
+    {
+      "path": ".cache/issue_tracking/empty_install_final_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  ],
+  "native": {
+    "case": ".cache/issue_tracking/native/7001bf89b0144159b11659c14a9e690c",
+    "status": "PASS",
+    "assertions": 35,
+    "checks_sha256": "a6d342cb1c55f840a5e0ac48e953f1443dfd512993697859d61181d4854e11f9",
+    "setup_sha256": "e128af9e804d7eb4b74b4e0c683e2d58abd1331e48b22ceadefa8e7adadd667f",
+    "input": "原始Typora 1.14.10私有桌面；renderer事件和宿主接口，非物理输入",
+    "iterations": 20,
+    "visual_review": ".cache/issue_tracking/native/7099f04c736448c1a7fbcc1719e0e75a/window_1577430.png",
+    "visual_review_sha256": "b189b65f87aa1fc4806c398e583482b2868ae1c2e6027f06d33cf058bbc92d18"
+  },
+  "installation": {
+    "check": "OK",
+    "assets": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "7d60c77222a358cd8e69750887d85e1263d8bbe9defe067b9c5af1b8d33c68e7",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "cd152ce781e0321375d3bbe7945d37a1d670651e00070293a250c38c156a3f21",
+      "workspace.css": "37b053127a54ce318b7808309f4b78617d1faf821d640b998ba330cd4eb42cc1",
+      "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected": {
+      "app.asar": {
+        "before": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "after": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "unchanged": true
+      },
+      "icon_32x32@2x.png": {
+        "before": "72456907ba9e2f9570b0bf945c2ebc4fde995629717bd2ebbcdb2b7100a56549",
+        "after": "72456907ba9e2f9570b0bf945c2ebc4fde995629717bd2ebbcdb2b7100a56549",
+        "unchanged": true
+      },
+      "profile.data": {
+        "before": "c21f8ac4ddd5edfc330d492c53c3a46c98d484be8912ff7a8ce79889fe71d507",
+        "after": "c21f8ac4ddd5edfc330d492c53c3a46c98d484be8912ff7a8ce79889fe71d507",
+        "unchanged": true
+      },
+      "workspace.json": {
+        "before": "548dfa724b31f88cd601010be9d349fe6a5bb1944e0e6a61db279752310980db",
+        "after": "548dfa724b31f88cd601010be9d349fe6a5bb1944e0e6a61db279752310980db",
+        "unchanged": true
+      },
+      "cpp_github-consolas.css": {
+        "before": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+        "after": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+        "unchanged": true
+      }
+    },
+    "backup_id": "20260919-230447-580-06bdd196005842ad8dd362b61c08a642",
+    "user_windows_restarted": false,
+    "push": false
+  },
+  "failures_and_corrections": [
+    {
+      "case": ".cache/issue_tracking/native/236d8c0c6b0b482b8ab5b7d6c042ab13",
+      "finding": "基线关闭最后文档仍显示New tab；新用例首次断言失败。"
+    },
+    {
+      "case": ".cache/issue_tracking/native/e06f6575c1854fc2a69c8aa5ba345b5b",
+      "finding": "立即重开同路径读取旧缓存；首次较慢探测被监视器掩盖，改用确定的重开读取。"
+    },
+    {
+      "case": ".cache/issue_tracking/native/704ee81e4c244dc0a90cb3bc33e5df6b",
+      "finding": "回收后旧正文变隐藏dirty草稿，下一次打开失败；显式宿主空文档释放后通过。"
+    },
+    {
+      "log": ".cache/issue_tracking/empty_check.log",
+      "finding": "首次全仓检查在既有文本文件替换测试遭遇权限或占用拒绝；完整重跑通过，未推断为本次改动或掩盖首次失败。"
+    },
+    {
+      "finding": "新增功能夹具曾有顶层await语法错误，修正异步封装后通过；宿主重置探测失败记录保留于原生case，不视为交付通过。"
+    }
+  ],
+  "limits": [
+    "原生系统为Windows Typora 1.14.10专属副本，renderer输入非物理键鼠，不等同跨账户/跨平台验收。",
+    "100/1000档是身份与释放状态单元，原生GUI连续操作为20次。",
+    "全仓check通过后补充拒绝未知dirty状态及保留纯空格的保护，最终单元/原生/构建静态/部署复验通过；本轮未重跑72套完整UI。",
+    "历史跨机回收与终端等待项仍保持，安装成功不等于用户运行中的窗口已加载。"
+  ]
+}
