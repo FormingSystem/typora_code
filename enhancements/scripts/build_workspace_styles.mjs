@@ -5,10 +5,12 @@ import {build} from 'esbuild';
 import {editor_plugins} from './editor_bundle.cjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const normalize=value=>value.replace(/\r\n?/g,'\n');
+// Shadow DOM无法使用head预载样式；显式后缀声明独立作用域，禁止污染全局CSS。
+const shadow_style=file=>file.endsWith('_shadow.css');
 /** 扫描真实入口经 tree shaking 后仍使用的 CSS，未启用模块不贡献样式。 */
 export async function collect_workspace_styles({entry_points=[path.join(root,'src/workspace_entry.ts')]}={}) {
  const discovered=new Map();
- const result=await build({entryPoints:entry_points,absWorkingDir:root,bundle:true,write:false,metafile:true,format:'iife',platform:'browser',target:['chrome120'],loader:{'.wasm':'binary'},plugins:[{name:'workspace-style-dependencies',setup(context){context.onLoad({filter:/\.css$/},args=>{const token='typora_style_'+Buffer.from(path.relative(root,args.path)).toString('hex');discovered.set(args.path,token);return {contents:'export default '+JSON.stringify(token),loader:'js'};});}},...editor_plugins()]});
+ const result=await build({entryPoints:entry_points,absWorkingDir:root,bundle:true,write:false,metafile:true,format:'iife',platform:'browser',target:['chrome120'],loader:{'.wasm':'binary'},plugins:[{name:'workspace-style-dependencies',setup(context){context.onLoad({filter:/\.css$/},args=>{if(shadow_style(args.path))return {contents:'export default '+JSON.stringify(inline_css_assets(args.path)),loader:'js'};const token='typora_style_'+Buffer.from(path.relative(root,args.path)).toString('hex');discovered.set(args.path,token);return {contents:'export default '+JSON.stringify(token),loader:'js'};});}},...editor_plugins()]});
  const output=result.outputFiles.map(file=>file.text).join('\n');
  const files=[...discovered].filter(([,token])=>output.includes(token)).map(([file])=>file).sort();
  const active_inputs=Object.values(result.metafile.outputs).flatMap(item=>Object.entries(item.inputs).filter(([,info])=>info.bytesInOutput>0).map(([name])=>name));
@@ -28,6 +30,7 @@ export function static_workspace_css_plugin() {
  return {name:'typora-code-static-workspace-styles',setup(context){context.onLoad({filter:/\.css$/},args=>{
   const known=args.path.startsWith(path.join(root,'src')+path.sep)||args.path.startsWith(path.join(root,'node_modules')+path.sep);
   if(!known)throw new Error('CSS missing from static workspace manifest: '+args.path);
+  if(shadow_style(args.path))return {contents:'export default '+JSON.stringify(inline_css_assets(args.path)),loader:'js'};
   return {contents:'export default "";',loader:'js'};
  });}};
 }

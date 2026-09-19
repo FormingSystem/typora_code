@@ -4434,6 +4434,109 @@
       "requires_environment": [
         "TYPORA_NATIVE_TEST_ROOT"
       ]
+    },
+    {
+      "id": "TC-hover-markdown-ui",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R053"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/git_commit_hover.ts",
+        "enhancements/src/workspace_hover_markdown.ts",
+        "enhancements/src/workspace_hover_markdown_shadow.css",
+        "enhancements/src/git_graph.css",
+        "enhancements/scripts/build_workspace_styles.mjs"
+      ],
+      "related_modules": [
+        "scm",
+        "hover",
+        "theme",
+        "git"
+      ],
+      "script": "enhancements/scripts/test_commit_hover_markdown.cjs",
+      "environment": "Chromium隔离UI",
+      "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
+      "steps": [
+        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理"
+      ],
+      "expected": [
+        "所有断言通过；输出截图、几何与限制"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-hover-markdown-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R053"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/git_commit_hover.ts",
+        "enhancements/src/workspace_hover_markdown.ts",
+        "enhancements/src/workspace_hover_markdown_shadow.css",
+        "enhancements/src/git_graph.css",
+        "enhancements/scripts/build_workspace_styles.mjs",
+        "enhancements/fixtures/commit_hover_native.js"
+      ],
+      "related_modules": [
+        "scm",
+        "hover",
+        "theme",
+        "git"
+      ],
+      "script": "enhancements/scripts/test_commit_hover_native.ps1",
+      "environment": "原始Typora1.14.10私有桌面/临时仓库",
+      "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
+      "steps": [
+        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理"
+      ],
+      "expected": [
+        "所有断言通过；输出截图、几何与限制"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
+    },
+    {
+      "id": "TC-hover-markdown-stress",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R053"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/git_commit_hover.ts",
+        "enhancements/src/workspace_hover_markdown.ts",
+        "enhancements/src/workspace_hover_markdown_shadow.css",
+        "enhancements/src/git_graph.css",
+        "enhancements/scripts/build_workspace_styles.mjs"
+      ],
+      "related_modules": [
+        "scm",
+        "hover",
+        "theme",
+        "git"
+      ],
+      "script": "enhancements/scripts/test_commit_hover_markdown.cjs",
+      "environment": "Chromium隔离UI",
+      "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
+      "steps": [
+        "执行同一真实DOM夹具的20/100/1000条列表负载及20次生命周期清理，记录实际耗时与边界"
+      ],
+      "expected": [
+        "大列表受视口限制且可滚动，销毁无残留浮层/ARIA；报告固定三档负载，不把它当作Git进程循环"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

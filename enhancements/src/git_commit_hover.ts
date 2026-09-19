@@ -4,6 +4,7 @@ import {git_icon} from "./git_icons";
 import {read_commit_hover_detail,type commit_hover_detail} from "./git_graph_repository";
 import type {git_graph_panel} from "./git_graph_panel";
 import {git_graph_text as text} from "./git_graph_i18n";
+import {create_workspace_hover_markdown} from "./workspace_hover_markdown";
 
 /** SCM自己的只读提交卡片；共享浮层不理解仓库、分支或Git命令。 */
 export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
@@ -16,7 +17,13 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
       tip.classList.add("git-commit-hover");tip.dataset.hash=commit.hash;
       const heading=el("div","git-commit-hover-heading"),author=el("strong","",commit.author),date=el("span","git-commit-hover-date",panel.date(commit));
       heading.append(git_icon("account"),author,date);
-      const message=el("div","git-commit-hover-message",panel.emoji(commit.subject));
+      const message=el("div","git-commit-hover-message");
+      const render_message=(source:string)=>message.replaceChildren(create_workspace_hover_markdown(
+        // VS Code Git hover逐换行分段，同时禁用正文图片；原始提交文本不改写。
+        panel.emoji(source).replace(/\r\n|\r|\n/gu,"\n\n"),
+        url=>{if(!signal.aborted&&panel.root===state.root)void Promise.resolve().then(()=>panel.host.open_url(url)).catch(error=>{if(!signal.aborted)panel.report(error);});}
+      ));
+      render_message(commit.subject);
       const stats=el("div","git-commit-hover-stats",text("history.stats_loading"));stats.setAttribute("role","status");
       const labels=el("div","git-commit-hover-refs");
       for(const ref of anchor.querySelectorAll(".git-scm-history-ref"))labels.append(ref.cloneNode(true));
@@ -27,7 +34,7 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
       const key=state.root+"\0"+commit.hash;
       const apply=(detail:commit_hover_detail)=>{
         if(signal.aborted||panel.root!==state.root)return;
-        message.textContent=panel.emoji(detail.message||commit.subject);
+        render_message(detail.message||commit.subject);
         stats.replaceChildren(el("span","",text("history.stats_files",{count:detail.files})),el("span","git-commit-hover-added","+"+detail.insertions),el("span","git-commit-hover-deleted","−"+detail.deletions));
       };
       const cached=cache.get(key);if(cached){apply(cached);return;}

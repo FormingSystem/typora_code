@@ -1,0 +1,319 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R053"
+  ],
+  "design": "docs/workspace_interaction.md#r053-提交浮层的-markdown-排版",
+  "baseline": "31655ec64340c939385160545daa080f3cea15d5",
+  "release": "2026.09.20.1",
+  "asset_manifest_sha256": "3aab04b2f736543ba14cbbc14be59314426cd91c2ccf9af7c353f9dde807edc7",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-10-55-928Z_6777df/report.json",
+      "sha256": "5028eb26668338df13aa4c6431b31e2f4c827d74a7edc35df2f02c9c61094b1e",
+      "status": "passed",
+      "cases": [
+        "TC-hover-markdown-native"
+      ],
+      "manifest_sha256": "3aab04b2f736543ba14cbbc14be59314426cd91c2ccf9af7c353f9dde807edc7"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-10-56-104Z_f47a30/report.json",
+      "sha256": "d79350c1e8168ccd1a03618c671d250b21176d87a2f301829a6fd4319c5a7537",
+      "status": "passed",
+      "cases": [
+        "TC-hover-markdown-ui"
+      ],
+      "manifest_sha256": "3aab04b2f736543ba14cbbc14be59314426cd91c2ccf9af7c353f9dde807edc7"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-11-10-673Z_2d43b1/report.json",
+      "sha256": "16b94b1281e19b6798c5fe180c6e2e23d67a379eb527647207c4d8dbdcacdd82",
+      "status": "passed",
+      "cases": [
+        "TC-hover-markdown-stress"
+      ],
+      "manifest_sha256": "3aab04b2f736543ba14cbbc14be59314426cd91c2ccf9af7c353f9dde807edc7"
+    }
+  ],
+  "native": [
+    {
+      "path": ".cache/issue_tracking/native/96cc5e53c9cc4ac791656c2b96f4864d/checks.json",
+      "sha256": "aa0bcf7ae1fe621889026682f96138acf45faf786f055af29b770740bb7401ac",
+      "checks": 21,
+      "states": [
+        {
+          "theme": "github.css",
+          "actual_theme": "light",
+          "zoom": 1,
+          "actual_zoom": 1,
+          "background": "rgb(250, 250, 253)",
+          "viewport": [
+            802,
+            702
+          ],
+          "dpr": 1.25,
+          "box": {
+            "x": 293.20001220703125,
+            "y": 320.4750061035156,
+            "width": 217.60000610351562,
+            "height": 259.8000183105469,
+            "top": 320.4750061035156,
+            "right": 510.8000183105469,
+            "bottom": 580.2750244140625,
+            "left": 293.20001220703125
+          },
+          "lines": [
+            {
+              "x": 322,
+              "y": 377.2749938964844,
+              "width": 180,
+              "height": 19,
+              "top": 377.2749938964844,
+              "right": 502,
+              "bottom": 396.2749938964844,
+              "left": 322
+            },
+            {
+              "x": 322,
+              "y": 400.2749938964844,
+              "width": 180,
+              "height": 19.80000114440918,
+              "top": 400.2749938964844,
+              "right": 502,
+              "bottom": 420.07499504089355,
+              "left": 322
+            },
+            {
+              "x": 322,
+              "y": 424.07501220703125,
+              "width": 180,
+              "height": 19,
+              "top": 424.07501220703125,
+              "right": 502,
+              "bottom": 443.07501220703125,
+              "left": 322
+            }
+          ],
+          "input": "renderer PointerEvent + actual native SCM/Git"
+        },
+        {
+          "theme": "github.css",
+          "actual_theme": "light",
+          "zoom": 1.25,
+          "actual_zoom": 1.25,
+          "background": "rgb(250, 250, 253)",
+          "viewport": [
+            1333,
+            827
+          ],
+          "dpr": 1.5625,
+          "box": {
+            "x": 293.3599853515625,
+            "y": 389.53997802734375,
+            "width": 217.27999877929688,
+            "height": 259.47998046875,
+            "top": 389.53997802734375,
+            "right": 510.6399841308594,
+            "bottom": 649.0199584960938,
+            "left": 293.3599853515625
+          },
+          "lines": [
+            {
+              "x": 322,
+              "y": 446.17999267578125,
+              "width": 180,
+              "height": 19,
+              "top": 446.17999267578125,
+              "right": 502,
+              "bottom": 465.17999267578125,
+              "left": 322
+            },
+            {
+              "x": 322,
+              "y": 469.17999267578125,
+              "width": 180,
+              "height": 20.279998779296875,
+              "top": 469.17999267578125,
+              "right": 502,
+              "bottom": 489.4599914550781,
+              "left": 322
+            },
+            {
+              "x": 322,
+              "y": 493.4599914550781,
+              "width": 180,
+              "height": 19,
+              "top": 493.4599914550781,
+              "right": 502,
+              "bottom": 512.4599914550781,
+              "left": 322
+            }
+          ],
+          "input": "renderer PointerEvent + actual native SCM/Git"
+        },
+        {
+          "theme": "night.css",
+          "actual_theme": "dark",
+          "zoom": 1,
+          "actual_zoom": 1,
+          "background": "rgb(32, 33, 34)",
+          "viewport": [
+            1666,
+            1034
+          ],
+          "dpr": 1.25,
+          "box": {
+            "x": 294,
+            "y": 503.07501220703125,
+            "width": 217.60000610351562,
+            "height": 259.8000183105469,
+            "top": 503.07501220703125,
+            "right": 511.6000061035156,
+            "bottom": 762.8750305175781,
+            "left": 294
+          },
+          "lines": [
+            {
+              "x": 322.8000183105469,
+              "y": 559.875,
+              "width": 180,
+              "height": 19,
+              "top": 559.875,
+              "right": 502.8000183105469,
+              "bottom": 578.875,
+              "left": 322.8000183105469
+            },
+            {
+              "x": 322.8000183105469,
+              "y": 582.875,
+              "width": 180,
+              "height": 19.80000114440918,
+              "top": 582.875,
+              "right": 502.8000183105469,
+              "bottom": 602.6750011444092,
+              "left": 322.8000183105469
+            },
+            {
+              "x": 322.8000183105469,
+              "y": 606.6749877929688,
+              "width": 180,
+              "height": 19,
+              "top": 606.6749877929688,
+              "right": 502.8000183105469,
+              "bottom": 625.6749877929688,
+              "left": 322.8000183105469
+            }
+          ],
+          "input": "renderer PointerEvent + actual native SCM/Git"
+        },
+        {
+          "theme": "night.css",
+          "actual_theme": "dark",
+          "zoom": 1.25,
+          "actual_zoom": 1.25,
+          "background": "rgb(32, 33, 34)",
+          "viewport": [
+            1333,
+            827
+          ],
+          "dpr": 1.5625,
+          "box": {
+            "x": 294,
+            "y": 389.53997802734375,
+            "width": 217.27999877929688,
+            "height": 259.47998046875,
+            "top": 389.53997802734375,
+            "right": 511.2799987792969,
+            "bottom": 649.0199584960938,
+            "left": 294
+          },
+          "lines": [
+            {
+              "x": 322.6399841308594,
+              "y": 446.17999267578125,
+              "width": 180,
+              "height": 19,
+              "top": 446.17999267578125,
+              "right": 502.6399841308594,
+              "bottom": 465.17999267578125,
+              "left": 322.6399841308594
+            },
+            {
+              "x": 322.6399841308594,
+              "y": 469.17999267578125,
+              "width": 180,
+              "height": 20.279998779296875,
+              "top": 469.17999267578125,
+              "right": 502.6399841308594,
+              "bottom": 489.4599914550781,
+              "left": 322.6399841308594
+            },
+            {
+              "x": 322.6399841308594,
+              "y": 493.4599914550781,
+              "width": 180,
+              "height": 19,
+              "top": 493.4599914550781,
+              "right": 502.6399841308594,
+              "bottom": 512.4599914550781,
+              "left": 322.6399841308594
+            }
+          ],
+          "input": "renderer PointerEvent + actual native SCM/Git"
+        }
+      ]
+    }
+  ],
+  "verification_logs": [
+    {
+      "path": ".cache/hover_build_final2.log",
+      "sha256": "943aaa23c0654bed47c9156920ea2fa3c81c7fc7e720043be4dc7a176c43cd60"
+    },
+    {
+      "path": ".cache/hover_check_final.log",
+      "sha256": "2cab0b2a5867cc4325ef4f5cf92db31f86c1921625f6e3db6c2d22fde54fce53"
+    },
+    {
+      "path": ".cache/hover_regression_final.log",
+      "sha256": "3e2002271377758453b61d7bcae1c12c2cdf08605492cd3092de8768aeffc436"
+    },
+    {
+      "path": ".cache/hover_install.log",
+      "sha256": "fa965b32534aefc719cf32bdb32ddb42a1d7fa8bf6af154d21b6ad56c277972d"
+    },
+    {
+      "path": ".cache/hover_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/hover_install_verified.json",
+      "sha256": "e2cd4a718c23b7b31640f8c473c8eb2914b402b41a3b3ebec4849c716f3121f2"
+    }
+  ],
+  "coverage": {
+    "functional": "8组明暗/缩放/宽窄，Markdown语义、安全、复制/链接、失败/迟到/Esc、20次清理",
+    "stress": "20/100/1000条列表，实际DOM计数、有界滚动和耗时；未用1000次Git进程制造无效压力",
+    "system": "原始Typora1.14.10、临时Git正文、21项、实际主题/zoom计算值、正文与dirty保护",
+    "regression": "完整npm check；6相关UI加专项UI共7项；正式静态CSS首帧含Shadow作用域回归"
+  },
+  "installation": {
+    "release": "2026.09.20.1",
+    "asset_count": 27,
+    "protected_unchanged": 5,
+    "manifest_sha256": "3aab04b2f736543ba14cbbc14be59314426cd91c2ccf9af7c353f9dde807edc7"
+  },
+  "failed_attempts": [
+    "marked14要求完整Renderer实例，首次UI捕获后修复",
+    "正式CSS提取破坏Shadow样式，原生出现40px列表；修复构建并增加首帧回归",
+    "原生主题测试需等待setting.setCurTheme完成；仅发命令和命名截图不构成主题已切换证据",
+    "第一次完整check会话1000档出现EPERM，独立及完整复跑通过，原因待查，未修改该无关实现"
+  ],
+  "limits": [
+    "原生输入为renderer PointerEvent及真实Git/宿主API；Chromium专项使用真实输入事件",
+    "私有桌面PrintWindow仍保留旧画面，原生PNG不能认证逐状态像素；视觉复查使用Chromium capturePage，原生核对DOM行盒和主题计算值",
+    "依据固定VSCode源码采用尺寸；未宣称在用户机器两产品同视口逐像素一致",
+    "既有作者占位、绝对日期及复制能力保留；不扩展VSCode/GitHub提供者头像、远端操作或中央Graph设置",
+    "用户窗口未重启、未推送；既有其他未完成项保持"
+  ]
+}

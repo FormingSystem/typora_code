@@ -231,3 +231,23 @@ SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保�
 影响范围：共享Menu与MenuItem、活动栏可见性配置及普通嵌套菜单；正文、活动栏图标、宿主原生菜单不改。扩展核心UI套件验证checked真／假、无图标勾选列、持久化、反复打开／切换、键盘单次执行、普通图标／子菜单和退出；原生夹具验证明暗实际26px槽／16px图形、24px行盒、隐藏后再显示，记录截图与用户正文保护。
 
 本轮验收：6个目标套件通过，原始Typora1.14.10的46项检查及20次菜单开关压力通过，明暗截图已视检；build/check、核心摘要与部署检查通过。版本2026.09.19.2已安装，27项资产一致，check OK；未重启用户窗口，未推送。首次原生字号失败和持久化夹具修正分别保留，详见[勾选与留白证据](../enhancements/tests/evidence/menu_checks_20260919.json)。4项保护摘要不变；工作台配置在早期快照之后、安装开始前写入，安装未重写该文件，保留当时配置，不用旧快照回滚用户状态。
+# R053 提交浮层的 Markdown 排版
+
+2026-09-19，用户对照 SCM 提交详情：原始减号和空行未渲染，要求按 VS Code 的比例与显示排版。根因是 `git_commit_hover` 将完整消息赋给 `textContent`，继承 `pre-wrap`；既有 `inline_message` 只供中央 Graph 的可配置行内强调，不支持块级列表。此次作用域为 SCM 提交信息浮层，不改变中央 Graph 的设置语义、正文阅读器或 Git 操作。
+
+固定参考为 VS Code 1.137.0、提交 `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：
+
+- `extensions/git/src/hover.ts` 的 `appendContent` 禁止消息图片，逐换行转为空行再渲染 Markdown；作者、消息、统计、引用、操作分区。
+- `src/vs/workbench/contrib/scm/browser/scmHistoryViewPane.ts` 的 `_getHoverOptions` 明确 compact、右侧和 pointer；`platform/hover/browser/hover.css` 对应 12px/19px、2px 8px 内距和带 pointer 的3px圆角。不是按截图放大到14px。
+- `base/browser/ui/hover/hoverWidget.css` 的列表左距20px、列表8px上下距、首尾段无外溢、行内代码3px圆角/0.4em内距；`scm/browser/media/scm.css` 的历史卡片顶级段4px上下距、分隔线上下4px、引用4px间隙。
+- HTML内容卡片的外框上限来自 workbench hover 的700px，而500px规则只针对直接Markdown hover。这里SCM组装的是HTML容器，采用700px并受共享定位器的可用空间约束。源码链接和SHA见设计来源清单。
+
+实现职责：共同 `workspace_hover_markdown` 用现有 marked/DOMPurify 渲染只读 Markdown，Shadow DOM 隔离 Typora 文档主题，不扩大正文渲染器职责；Git领域传入已替换emoji的消息，使用与上游相同的换行策略。允许段落、列表、强调、代码、引用和表格，原始HTML按文字显示；禁用图片、脚本、表单、内嵌媒体及属性。链接仅允许HTTP(S)，点击走已有宿主 `open_url`，错误交给panel报告，不接管当前文档。无链接点击不发网络请求，作者区保留官方account图标，不因消息包含图片而隐式请求远端头像。
+
+浮层作者、消息、统计、引用、复制行使用分区边线；保留已有本地化和复制完整哈希。缓存、取消信号、指针/键盘/边界与清理由现有共同hover持有；读取失败保留已知摘要与不可用提示，切库/关闭后迟到结果不可挂载。渲染规则在公共模块集中定义，同类后续信息浮层复用，不复制局部CSS列表修补。
+
+2026-09-20原生验证修订：静态CSS构建原本把所有导入CSS提取到head，令Shadow正文丢失规则并污染全局。显式`_shadow.css`标识独立作用域，依赖扫描排除它、正式bundle保留内联字符串，仅创建Shadow正文时附到该根；全局CSS仍由启动预载。这不是全局样式的第二套加载路径。首帧用例同时验证全局资产不含Shadow规则及正式编译产物的20px列表缩进。
+
+验收：分类功能用例覆盖真实绑定、HTML/危险链接/图片隔离、列表和代码、读取失败、复制、Esc、切库迟到、主题/100%与125%缩放/窄窗长文本；20/100/1000条列表为渲染压力负载，检查有界滚动、无额外监听器及可取消。原始Typora隔离副本以临时Git提交验证原生主题和实际资产；记录视口、缩放、文字行盒与截图，不把人工对两张不同尺寸截图的观察当作像素一致证明。
+
+2026-09-20交付：2026.09.20.1已安装，27运行资产与候选一致、5项保护文件摘要不变、安装检查OK。完整check及7项UI（专项加6项关联）通过；原生21项覆盖实际Git正文、主题计算值、缩放、字形行盒与正文保护。私有桌面PrintWindow截图存在旧帧，不能认证原生逐状态像素一致；明暗/窄窗视觉检查使用Chromium capturePage，跨产品同视口截图人工逐像素验收仍保留边界。正式证据见[验证记录](../enhancements/tests/evidence/commit_hover_20260920.json)。当前用户窗口未重启、未推送。

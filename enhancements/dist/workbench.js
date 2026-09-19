@@ -203974,6 +203974,42 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_hover_markdown_shadow.css
+  var workspace_hover_markdown_shadow_default = '/* \u72EC\u7ACBShadow\u6837\u5F0F\uFF1B\u6784\u5EFA\u4FDD\u7559\u4E3A\u5B57\u7B26\u4E32\uFF0C\u7981\u6B62\u5408\u5E76\u5230\u5168\u5C40workspace.css\u3002 */\n:host {display:block;min-width:0;font:inherit;color:inherit;white-space:normal;overflow-wrap:anywhere;}\ndiv {display:flow-root;}\np {margin:4px 0;}\nul,ol {margin:8px 0;padding-left:20px;}\nli>p {margin-bottom:0;}\nli>ul {margin-top:0;}\ndiv>p:first-child,div>ul:first-child,div>ol:first-child,div>pre:first-child {margin-top:0;}\ndiv>p:last-child,div>ul:last-child,div>ol:last-child,div>pre:last-child {margin-bottom:0;}\nh1,h2,h3,h4,h5,h6 {margin:8px 0;line-height:1.1;}\ncode {font-family:var(--monaco-monospace-font,Consolas,"Courier New",monospace);border-radius:3px;padding:0 .4em;background:var(--vscode-textCodeBlock-background,rgba(127,127,127,.15));}\npre {margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere;}\npre code {display:block;}\nblockquote {margin:4px 0;padding:0 16px 0 10px;border-left:5px solid var(--vscode-textBlockQuote-border,rgba(127,127,127,.4));background:var(--vscode-textBlockQuote-background,transparent);}\ntable {border-collapse:collapse;}th,td {padding:4px 6px;border:1px solid var(--vscode-editorHoverWidget-border,#ccc);}\nhr {height:1px;border:0;border-top:1px solid var(--vscode-editorHoverWidget-border,#ccc);margin:4px 0;}\na {color:var(--vscode-textLink-foreground,#006ab1);text-decoration:none;cursor:pointer;}a:hover {text-decoration:underline;}a:focus-visible {outline:1px solid var(--vscode-focusBorder,#007fd4);}\n';
+
+  // src/workspace_hover_markdown.ts
+  function create_workspace_hover_markdown(source, open_link) {
+    const host = document.createElement("div"), shadow = host.attachShadow({ mode: "open" });
+    const style = document.createElement("style"), body = document.createElement("div");
+    style.textContent = workspace_hover_markdown_shadow_default;
+    const escape4 = (value) => value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;");
+    const renderer = new marked2.Renderer();
+    renderer.html = (token) => escape4(token.text);
+    renderer.image = (token) => escape4(token.text);
+    const html5 = marked2.parse(source, { async: false, gfm: true, renderer });
+    const fragment = purify2.sanitize(html5, {
+      ALLOWED_TAGS: ["p", "br", "hr", "ul", "ol", "li", "strong", "em", "del", "code", "pre", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6", "table", "thead", "tbody", "tr", "th", "td", "a"],
+      ALLOWED_ATTR: ["href", "title", "start"],
+      ALLOW_DATA_ATTR: false,
+      RETURN_DOM_FRAGMENT: true
+    });
+    for (const link3 of fragment.querySelectorAll("a")) {
+      const href = link3.getAttribute("href") || "";
+      if (!/^https?:\/\//iu.test(href)) {
+        link3.replaceWith(...link3.childNodes);
+        continue;
+      }
+      link3.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        open_link(href);
+      });
+    }
+    body.append(fragment);
+    shadow.append(style, body);
+    return host;
+  }
+
   // src/git_commit_hover.ts
   function bind_git_commit_hover(list3, panel) {
     const cache = /* @__PURE__ */ new Map();
@@ -203986,7 +204022,17 @@ https://creativecommons.org/licenses/by/4.0/
         tip.dataset.hash = commit.hash;
         const heading3 = workspace_element("div", "git-commit-hover-heading"), author = workspace_element("strong", "", commit.author), date = workspace_element("span", "git-commit-hover-date", panel.date(commit));
         heading3.append(git_icon("account"), author, date);
-        const message = workspace_element("div", "git-commit-hover-message", panel.emoji(commit.subject));
+        const message = workspace_element("div", "git-commit-hover-message");
+        const render_message = (source) => message.replaceChildren(create_workspace_hover_markdown(
+          // VS Code Git hover逐换行分段，同时禁用正文图片；原始提交文本不改写。
+          panel.emoji(source).replace(/\r\n|\r|\n/gu, "\n\n"),
+          (url) => {
+            if (!signal.aborted && panel.root === state.root) void Promise.resolve().then(() => panel.host.open_url(url)).catch((error) => {
+              if (!signal.aborted) panel.report(error);
+            });
+          }
+        ));
+        render_message(commit.subject);
         const stats = workspace_element("div", "git-commit-hover-stats", git_graph_text("history.stats_loading"));
         stats.setAttribute("role", "status");
         const labels = workspace_element("div", "git-commit-hover-refs");
@@ -204013,7 +204059,7 @@ https://creativecommons.org/licenses/by/4.0/
         const key2 = state.root + "\0" + commit.hash;
         const apply3 = (detail) => {
           if (signal.aborted || panel.root !== state.root) return;
-          message.textContent = panel.emoji(detail.message || commit.subject);
+          render_message(detail.message || commit.subject);
           stats.replaceChildren(workspace_element("span", "", git_graph_text("history.stats_files", { count: detail.files })), workspace_element("span", "git-commit-hover-added", "+" + detail.insertions), workspace_element("span", "git-commit-hover-deleted", "\u2212" + detail.deletions));
         };
         const cached = cache.get(key2);
@@ -238443,6 +238489,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092001,
+        version: "2026.09.20.1",
+        date: "2026-09-20",
+        notes: [
+          "\u63D0\u4EA4\u8BE6\u60C5\u6D6E\u5C42\u6309Markdown\u663E\u793A\u5217\u8868\u3001\u5F3A\u8C03\u3001\u4EE3\u7801\u548C\u94FE\u63A5\uFF0C\u4FEE\u590D\u539F\u59CB\u51CF\u53F7\u53CA\u591A\u4F59\u7A7A\u884C\u3002",
+          "\u6309VS Code\u7EDF\u4E00\u63D0\u4EA4\u5361\u7247\u7684\u5217\u8868\u7F29\u8FDB\u3001\u5206\u533A\u8FB9\u7EBF\u548C\u5BBD\u5EA6\uFF0C\u9694\u79BB\u6B63\u6587\u4E3B\u9898\uFF0C\u4FDD\u7559\u660E\u6697\u3001\u7F29\u653E\u548C\u590D\u5236\u64CD\u4F5C\u3002"
+        ]
+      },
       {
         sequence: 2026091909,
         version: "2026.09.19.9",

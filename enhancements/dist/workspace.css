@@ -794,18 +794,21 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-graph-details .git-graph-file-icon.workspace-file-theme-icon {height:16px;flex-basis:16px;opacity:1;}
 
 /* 提交卡片沿用共同浮层外观，Git只组织领域字段。 */
-.git-commit-hover {width:max-content;}
+.workspace-hover-surface.git-commit-hover {width:max-content;max-width:min(700px,calc(100vw - 16px));white-space:normal;--commit-hover-border:var(--vscode-editorHoverWidget-border,#e4e5e6);}
+:root[data-workspace-file-icon-theme="dark"] .git-commit-hover {--commit-hover-border:var(--vscode-editorHoverWidget-border,#2a2b2c);--vscode-textLink-foreground:#4daafc;}
 .git-commit-hover .git-standard-icon {width:12px;height:12px;flex-basis:12px;}
-.git-commit-hover-heading {display:flex;align-items:center;flex-wrap:wrap;gap:4px;}
+.git-commit-hover-heading {display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:4px 0;}
+.git-commit-hover-heading strong {font:inherit;font-weight:600;}
 .git-commit-hover-date {opacity:.75;}
-.git-commit-hover-message {margin:4px 0;white-space:pre-wrap;overflow-wrap:anywhere;}
-.git-commit-hover-stats {display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--vscode-editorHoverWidget-border,#e4e5e6);padding:4px 0;}
+.git-commit-hover-message {margin:4px 0;overflow-wrap:anywhere;}
+.git-commit-hover-stats {display:flex;flex-wrap:wrap;gap:8px;}
+.git-commit-hover-stats,.git-commit-hover-refs,.git-commit-hover-copy {border-top:1px solid var(--commit-hover-border);margin:4px -8px 0;padding:4px 8px 0;}
 .git-commit-hover-added {color:var(--vscode-scmGraph-historyItemHoverAdditionsForeground,#587c0c);}
 .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#ad0707);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-added {color:var(--vscode-scmGraph-historyItemHoverAdditionsForeground,#81b88b);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#c74e39);}
-.git-commit-hover-refs {--git-scm-ref-name-max-width:100%;--git-scm-ref-height:auto;--git-scm-ref-white-space:normal;display:flex;flex-wrap:wrap;min-width:0;gap:4px;margin:4px 0;}
-.git-commit-hover-copy {display:flex;align-items:center;gap:4px;border:0;background:transparent;box-shadow:none;color:inherit;font:inherit;padding:2px 4px;margin:0;}
+.git-commit-hover-refs {--git-scm-ref-name-max-width:100%;--git-scm-ref-height:auto;--git-scm-ref-white-space:normal;display:flex;flex-wrap:wrap;min-width:0;gap:4px;}
+.git-commit-hover-copy {display:flex;align-items:center;gap:4px;width:calc(100% + 16px);border-right:0;border-left:0;border-bottom:0;background:transparent;box-shadow:none;color:var(--vscode-textLink-foreground,#006ab1);font:inherit;padding-bottom:2px;}
 
 /* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */
 .git-scm-history-toolbar > button[hidden] { display: none !important; }

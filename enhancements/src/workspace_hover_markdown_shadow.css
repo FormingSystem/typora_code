@@ -1,0 +1,17 @@
+/* 独立Shadow样式；构建保留为字符串，禁止合并到全局workspace.css。 */
+:host {display:block;min-width:0;font:inherit;color:inherit;white-space:normal;overflow-wrap:anywhere;}
+div {display:flow-root;}
+p {margin:4px 0;}
+ul,ol {margin:8px 0;padding-left:20px;}
+li>p {margin-bottom:0;}
+li>ul {margin-top:0;}
+div>p:first-child,div>ul:first-child,div>ol:first-child,div>pre:first-child {margin-top:0;}
+div>p:last-child,div>ul:last-child,div>ol:last-child,div>pre:last-child {margin-bottom:0;}
+h1,h2,h3,h4,h5,h6 {margin:8px 0;line-height:1.1;}
+code {font-family:var(--monaco-monospace-font,Consolas,"Courier New",monospace);border-radius:3px;padding:0 .4em;background:var(--vscode-textCodeBlock-background,rgba(127,127,127,.15));}
+pre {margin:8px 0;white-space:pre-wrap;overflow-wrap:anywhere;}
+pre code {display:block;}
+blockquote {margin:4px 0;padding:0 16px 0 10px;border-left:5px solid var(--vscode-textBlockQuote-border,rgba(127,127,127,.4));background:var(--vscode-textBlockQuote-background,transparent);}
+table {border-collapse:collapse;}th,td {padding:4px 6px;border:1px solid var(--vscode-editorHoverWidget-border,#ccc);}
+hr {height:1px;border:0;border-top:1px solid var(--vscode-editorHoverWidget-border,#ccc);margin:4px 0;}
+a {color:var(--vscode-textLink-foreground,#006ab1);text-decoration:none;cursor:pointer;}a:hover {text-decoration:underline;}a:focus-visible {outline:1px solid var(--vscode-focusBorder,#007fd4);}
