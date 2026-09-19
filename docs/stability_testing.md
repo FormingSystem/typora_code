@@ -93,3 +93,9 @@ R054 的判定和影响范围见[启动稳定性](startup_stability.md)。`TC-si
 R047对应`update`领域：`TC-update-protocol`（单元／实现）、`TC-update-ui`（功能／实现）、`TC-update-concurrency`（功能／压力）、`TC-update-install`（系统／实现）。运行`npm run test:quality -- --domain update`；压力单独以`--id TC-update-concurrency --tier 100`或1000执行。跨进程争抢总次数按档位，最多20个并发进程，不把1000解释为同时启动1000个窗口。
 
 原生稳定性夹具复用真实宿主进程身份与标准弹窗，仅替换网络公告，选择稍后；安装系统用例使用真实ZIP、PowerShell 5.1和事务安装器，下载字节来自本地替身，目标为临时中文用户目录。保留这两个边界，不能声称真实在线新版推送已经验收。
+
+## 2026-09-20 目录核对
+
+当前机器可读目录包含142套：单元实现17、单元压力6；功能实现93、功能压力9；系统实现16、系统压力1。它们是用例归属数量，不是本轮全部执行通过的数量。新增或调整后运行 `npm run check:catalog`，实际执行结果仍以候选摘要绑定的报告为准。
+
+最近功能候选2026.09.20.2的完整基础检查、74项隐藏UI、原生及压力记录统一关联[启动交付证据](../enhancements/tests/evidence/startup_stability_20260920.json)。本次R055只同步文档、校验目录和发布身份，不冒充重新跑过全部系统/平台测试；遗留问题继续由[问题索引](stability_issues.md)管理。

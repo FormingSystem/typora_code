@@ -16,6 +16,9 @@ flowchart LR
 
 | 职责 | 当前所有者 | 界面应怎样使用 |
 | --- | --- | --- |
+| 首次展示与常驻初始化 | 静态 `runtime_head` 就绪标记、`workspace_startup` 生命周期 | 界面挂载后释放首次内容，失败/超时恢复原生；高亮不作为布局前置依赖，见[时序设计](startup_stability.md) |
+| 侧栏当前内容 | 核心 Sidebar 的活动面板及已展示面板 | 可见区域切换只移交内容；重复show不重挂载，移除时清理所有者 |
+| 工作区会话 | `workspace_files` 编排、按根目录持久化的会话服务 | 切换前保护草稿并保存旧会话，取消旧请求后恢复新根；空会话不回退最近文件，见[会话设计](workspace_switch.md) |
 | 当前挂载文件夹 | Typora `File.getMountFolder()`，由文件服务提供读取入口 | 目录切换经过宿主适配器；树、搜索和终端不各自缓存一份全局目录 |
 | 文件正文、保存基线和草稿 | `workspace_files`、`workspace_text_document` | 文件菜单、快捷键、Explorer 调用同一服务；不能直接覆盖磁盘或绕过草稿检查 |
 | 打开、保存、还原、关闭命令 | `workspace_file_commands` | 顶栏和快捷键使用已注册命令；需要路径参数的内部命令不出现在命令面板 |
