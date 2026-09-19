@@ -1948,14 +1948,16 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R018"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
         "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
         "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
         "enhancements/src/workspace_focus.ts",
-        "enhancements/src/workspace_files.ts"
+        "enhancements/src/workspace_files.ts",
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
       ],
       "related_modules": [
         "menu",
@@ -3586,7 +3588,8 @@
         "R043",
         "R044",
         "R046",
-        "R047"
+        "R047",
+        "R018"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3594,7 +3597,10 @@
         "enhancements/scripts/prepare_stability_native.py",
         "enhancements/scripts/run_private_desktop.ps1",
         "enhancements/src/workspace_explorer.css",
-        "enhancements/src/workspace_explorer_sections.css"
+        "enhancements/src/workspace_explorer_sections.css",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
       ],
       "related_modules": [
         "files",
@@ -3631,13 +3637,17 @@
         "R042",
         "R043",
         "R044",
-        "R047"
+        "R047",
+        "R018"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
         "enhancements/fixtures/stability_native.js",
         "enhancements/scripts/prepare_stability_native.py",
-        "enhancements/scripts/run_private_desktop.ps1"
+        "enhancements/scripts/run_private_desktop.ps1",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
       ],
       "related_modules": [
         "files",

@@ -67,6 +67,7 @@
     "src\\ui\\components\\draggable.scss",
     "src\\ui\\components\\pointer-drag.ts",
     "src\\ui\\components\\draggable.ts",
+    "..\\codicons\\icons.json",
     "..\\..\\src\\workspace_focus.ts",
     "src\\ui\\components\\menu.scss",
     "src\\ui\\components\\menu.ts",

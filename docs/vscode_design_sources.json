@@ -93,6 +93,14 @@
     {
       "path": "src/vs/workbench/contrib/modernUI/browser/media/titlebar.css",
       "sha256": "1e925cee685788a389b8da6b4acb863b4d4e0f4a5f79aaf8b09a7704834c0720"
+    },
+    {
+      "path": "src/vs/base/browser/ui/menu/menu.ts",
+      "sha256": "6520e2a487c7d68be5bdf2aff27e69637b89206a66f395030aaa9e0b34e58f8e"
+    },
+    {
+      "path": "src/vs/workbench/browser/parts/compositeBarActions.ts",
+      "sha256": "e6f4ab4bf4c17ecb673242075587525a42b21f84dd501af03bb0bcf98cec5edc"
     }
   ]
 }

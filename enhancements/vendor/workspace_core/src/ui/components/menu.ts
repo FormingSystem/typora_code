@@ -1,3 +1,4 @@
+import {check as check_icon} from "../../../../codicons/icons.json"
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "../../../../../src/workspace_focus"
 import './menu.scss'
 import { getElementPagePosition, html } from "src/utils"
@@ -24,13 +25,22 @@ export class Menu extends View implements Closeable {
 
   constructor() {
     super()
-    this.containerEl = $(`<ul class="dropdown-menu context-menu" role="menu">`)
+    this.containerEl = $(`<ul class="dropdown-menu context-menu typ-workspace-menu" role="menu">`)
       .on('click', event => {if(!(event.target as Element).closest('.has-extra-menu'))this.close_family()})
       .get(0)
 
     document.body.append(this.containerEl)
 
     this._registerEvent()
+    this.containerEl.addEventListener('keydown',event=>{
+      const items=Array.from(this.containerEl.querySelectorAll<HTMLElement>(':scope > .typ-menuitem > a:not([aria-disabled="true"])'))
+      const index=items.indexOf(document.activeElement as HTMLElement)
+      if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)&&items.length){
+        event.preventDefault();event.stopPropagation()
+        const next=event.key==='Home'?0:event.key==='End'?items.length-1:event.key==='ArrowDown'?(index+1)%items.length:(index<0?items.length-1:(index-1+items.length)%items.length)
+        items[next].focus({preventScroll:true})
+      }else if((event.key==='Enter'||event.key===' ')&&index>=0){event.preventDefault();event.stopPropagation();items[index].click()}
+    })
   }
 
   protected _registerEvent() {
@@ -150,6 +160,7 @@ class MenuItem {
   private anchorEl: HTMLElement
   private iconEl: HTMLElement
 
+  private checked?: boolean
   private title: string
 
   /**
@@ -157,7 +168,7 @@ class MenuItem {
    */
   protected constructor(protected menu: Menu) {
     this.containerEl = html`<li data-action="" data-key="" class="typ-menuitem"></li>`
-    this.anchorEl = html`<a role="menuitem" data-localize="" data-lg="" class="state-off"></a>`
+    this.anchorEl = html`<a role="menuitem" data-localize="" data-lg="" tabindex="-1"></a>`
 
     this.containerEl.append(this.anchorEl)
   }
@@ -184,13 +195,27 @@ class MenuItem {
     return this
   }
 
+  set_checked(checked: boolean): this {
+    this.checked = checked
+    this.anchorEl.setAttribute('role', 'menuitemcheckbox')
+    this.anchorEl.setAttribute('aria-checked', String(checked))
+    this._setContent()
+    return this
+  }
+
   private _setContent() {
     const label = document.createElement('span')
     label.className = 'typ-menu-label'
     label.textContent = this.title || ''
     const icon = document.createElement('span')
     icon.className = 'typ-menu-icon'
-    if (this.iconEl) icon.append(this.iconEl)
+    if (this.checked !== undefined) { if(this.checked) {
+      // 核心只读取同一官方资产，不引入Git视图的交互样式或本地化初始化。
+      const glyph=document.importNode(new DOMParser().parseFromString(check_icon,'image/svg+xml').documentElement,true)
+      glyph.setAttribute('aria-hidden','true');glyph.setAttribute('data-git-icon','check');glyph.setAttribute('fill','currentColor')
+      icon.append(glyph)
+    } }
+    else if (this.iconEl) icon.append(this.iconEl)
     this.anchorEl.replaceChildren(icon, label)
   }
 

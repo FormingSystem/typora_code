@@ -734,6 +734,32 @@ body .context-menu.dropdown-menu > .typ-menuitem > a {
   position: static;
   margin-left: auto;
 }
+
+body .typ-workspace-menu.dropdown-menu {
+  padding: 4px 0;
+  font: 400 13px/24px var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", "Microsoft YaHei UI", sans-serif);
+}
+
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a {
+  box-sizing: border-box;
+  height: 24px;
+  padding: 0 12px 0 8px;
+  font: inherit;
+}
+
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a[role=menuitemcheckbox] {
+  padding-left: 0;
+  gap: 0;
+}
+
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a[role=menuitemcheckbox] > .typ-menu-icon {
+  flex-basis: 2em;
+  width: 2em;
+}
+
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem {
+  font: inherit;
+}
 [draggable=true].typ-dragging {
   background-color: var(--active-file-bg-color);
 }

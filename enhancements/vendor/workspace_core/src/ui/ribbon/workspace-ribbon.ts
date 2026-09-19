@@ -211,7 +211,7 @@ class RibbonView extends View {
           this.dispalyMenu.addItem(item => {
             item
               .setKey(btn.id)
-              .setIcon(btn.icon.cloneNode(true) as HTMLElement)
+              .set_checked(Boolean(btn.visible))
               .setTitle(btn.title)
               .onClick(() => this.toggleButton(btn))
           })

@@ -237585,6 +237585,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026091902,
+        version: "2026.09.19.2",
+        date: "2026-09-19",
+        notes: [
+          "\u4FEE\u590D\u6D3B\u52A8\u680F\u53F3\u952E\u83DC\u5355\u7F3A\u5C11\u52FE\u9009\u53CA\u5DE6\u4FA7\u8FC7\u5927\u7A7A\u767D\uFF1B\u52FE\u9009\u51C6\u786E\u53CD\u6620\u5165\u53E3\u662F\u5426\u663E\u793A\u3002",
+          "\u652F\u6301\u4F7F\u7528\u65B9\u5411\u952E\u5B9A\u4F4D\u6D3B\u52A8\u680F\u83DC\u5355\u9879\uFF0C\u5E76\u7528Enter\u6216\u7A7A\u683C\u5207\u6362\u663E\u793A\u72B6\u6001\u3002"
+        ]
+      },
+      {
         sequence: 2026091901,
         version: "2026.09.19.1",
         date: "2026-09-19",

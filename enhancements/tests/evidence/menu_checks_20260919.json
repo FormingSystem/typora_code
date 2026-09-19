@@ -1,0 +1,383 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R044",
+    "R018"
+  ],
+  "issue": "BUG-workspace-002",
+  "version": "2026.09.19.2",
+  "baseline": "7c13d88181532bd3aa3f49669a3832dd1a7651f7",
+  "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+  "runs": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-41-37-072Z_97d73a/report.json",
+      "sha256": "9ec2016f77f9c2d2e3e39e8c761fbec299b244bfe2c988364668fc6c7eed4165",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-workspace-002",
+        "requirements": [
+          "R020",
+          "R044"
+        ],
+        "design": "docs/workspace_interaction.md",
+        "implementation": [
+          "enhancements/src/git_icons.ts",
+          "enhancements/src/workspace_activity.ts",
+          "enhancements/src/workspace_sidebar_sash.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_activity.cjs": "a5b35c1c38b8fc1f586f1a564ec87899daa5ee5606fee069b236f3d3a8c9dbde",
+          "enhancements/src/git_icons.ts": "02276df2e06b0c77381640c8bb6e7ec0393434a1e1381945c13256591e4a0d43",
+          "enhancements/src/workspace_activity.ts": "7b33de39a368ab5aa4ed6083b7f42ade2f957f4ad02c86595fd1c294e6af87d9",
+          "enhancements/src/workspace_sidebar_sash.ts": "a6dfee905c6821b005cea136df9a9827851ecd303c1a5310e9ebc893efe16749"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 13332,
+        "log": "TC-workspace-002.log",
+        "log_sha256": "f1e63fc367b18681d8cbc03ee35f6b2353c7f8a37df032754e00b7c3ecaeb744"
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-45-06-515Z_74e426/report.json",
+      "sha256": "ce4cf8b5b522a4970e13ee171734ca86766cdb4aeedf256cfae4a5b90c2c8c3a",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-workspace-004",
+        "requirements": [
+          "R020",
+          "R044",
+          "R018"
+        ],
+        "design": "docs/workspace_interaction.md",
+        "implementation": [
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+          "enhancements/src/workspace_focus.ts",
+          "enhancements/src/workspace_files.ts",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_core_smoke.cjs": "8c7060c49871b799b64e1427b7a0e49795e7cceb6b5912aa9b9c7c348b89f612",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts": "4636968eeb48d8311661317f86f48781c0a59e1e0cdd312b6fafed698c7c1d24",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss": "a4db94011cec8fb7133088eb07940d376472827815858c6c0ef54c0666e3bf6b",
+          "enhancements/src/workspace_focus.ts": "e9c9b8f2c9143390445e710d53d17fa01e80c3439a8b93042afd205eafb3240d",
+          "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts": "b512a6e6847653d83892b7a8eb591a88f380593b3cd0181504add6f8281dae85"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 3339,
+        "log": "TC-workspace-004.log",
+        "log_sha256": "18eaf866d0d0e02a82e6b999cd2010bce95982cdf77b8e16ee91c258f484c797"
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-41-50-663Z_fad417/report.json",
+      "sha256": "3b4165c4368694a9f5881e21e2eeb268208ec094cdb484828536b216378cc6b4",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-workspace-010",
+        "requirements": [
+          "R020",
+          "R044"
+        ],
+        "design": "docs/workspace_interaction.md",
+        "implementation": [
+          "enhancements/src/reading_media_viewer.ts",
+          "enhancements/src/workspace_quick_open.ts",
+          "enhancements/src/workspace_widgets.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_escape_focus.cjs": "f29fc67df1686a68d4dc4de07d9ab13e05cc5b0291b47b8916fd201a8eff3d79",
+          "enhancements/src/reading_media_viewer.ts": "3a0277c4fc08c708791c3de3fb56ecd72fb139d07fb8c35129f7a5efe42ade5f",
+          "enhancements/src/workspace_quick_open.ts": "70a91dc652f146368269dc892692bfc6b63e2edd0e02e912bccfe3a75b5967c9",
+          "enhancements/src/workspace_widgets.ts": "b8be4a25d10a30b3c2c21f0c69c01c57d24da56d8959168cbe933a83b952bd56"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 2727,
+        "log": "TC-workspace-010.log",
+        "log_sha256": "5c3a6b957aa21ee7c65c8942cd27975e558d696f172e7536f8c014fbace99299"
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-41-53-666Z_7e5d79/report.json",
+      "sha256": "94f27ec629b15ef73cd7a0bdc6d0c721bccbc867d8d40dbd451954a55142ef9c",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-workspace-024",
+        "requirements": [
+          "R007",
+          "R017",
+          "R040",
+          "R041"
+        ],
+        "design": "docs/file_operations.md",
+        "implementation": [
+          "enhancements/src/terminal_state.ts",
+          "enhancements/src/workspace_titlebar_entries.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_titlebar_entries.cjs": "f8885a9261182e59718de073ccffe2571382107bc0c797d4e1ff72a3b98befac",
+          "enhancements/src/terminal_state.ts": "d6be2dcccbddb8e3a78bd1f646f7326e3f948f913702cee2dcd465eda93e2334",
+          "enhancements/src/workspace_titlebar_entries.ts": "0448cb400bbed792e5b0b98a6c4ffe840f1a7ed8a1171a089edbd875d6a90f82"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 567,
+        "log": "TC-workspace-024.log",
+        "log_sha256": "9a62cd25cc08d85540c135a0d619fc9e86f2230b1ee6205a54385d3871c4c98d"
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-41-36-877Z_abb349/report.json",
+      "sha256": "9c141b4022bd4874045cd797e885c882f523be09ee438db973aabfaf4e5483f5",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-system-native-stability",
+        "requirements": [
+          "R040",
+          "R041",
+          "R042",
+          "R043",
+          "R044",
+          "R046",
+          "R047",
+          "R018"
+        ],
+        "design": "docs/stability_testing.md#原生验收",
+        "implementation": [
+          "enhancements/fixtures/stability_native.js",
+          "enhancements/scripts/prepare_stability_native.py",
+          "enhancements/scripts/run_private_desktop.ps1",
+          "enhancements/src/workspace_explorer.css",
+          "enhancements/src/workspace_explorer_sections.css",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+          "enhancements/fixtures/stability_native.js": "771a13c64ae237da9b282545667879002acbcfb20f9a45a80d6b45146a1b6bb0",
+          "enhancements/scripts/prepare_stability_native.py": "9b9690bc1d0c4c71bfa8a40da21d2be9b43d247e63b114198f687c36aca94933",
+          "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+          "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+          "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts": "e3110ece84d1a72df9655b930c498305b2022b4b046822ba55d59ffa8286236a",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss": "35fda42086601f4f6b8d344715fe4a3a1c916f9d1579ea0cdf29247729f98318",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts": "f76a69d48da3656f3c52bf773e2272fa6b11dad311dfdf0b3277340a95d5f343"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 14076,
+        "log": "TC-system-native-stability.log",
+        "log_sha256": "609d8cd5c675034135fbd88d24a65da28c8f3d8f7851936f315b3d20e644f60a"
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-41-51-209Z_ff90ed/report.json",
+      "sha256": "1a8fc0c3e4f22d6e8c4527dcfbd2bb5439582d15d66a2abba6f1bf734e44a0ed",
+      "asset_manifest_sha256": "60132177362f06a366189f1d53c9136d2dc6d4d5292c460f5c8efdf6166f17b4",
+      "result": {
+        "id": "TC-system-native-stress",
+        "requirements": [
+          "R040",
+          "R041",
+          "R042",
+          "R043",
+          "R044",
+          "R047",
+          "R018"
+        ],
+        "design": "docs/stability_testing.md#原生验收",
+        "implementation": [
+          "enhancements/fixtures/stability_native.js",
+          "enhancements/scripts/prepare_stability_native.py",
+          "enhancements/scripts/run_private_desktop.ps1",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+          "enhancements/fixtures/stability_native.js": "771a13c64ae237da9b282545667879002acbcfb20f9a45a80d6b45146a1b6bb0",
+          "enhancements/scripts/prepare_stability_native.py": "9b9690bc1d0c4c71bfa8a40da21d2be9b43d247e63b114198f687c36aca94933",
+          "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.ts": "e3110ece84d1a72df9655b930c498305b2022b4b046822ba55d59ffa8286236a",
+          "enhancements/vendor/workspace_core/src/ui/components/menu.scss": "35fda42086601f4f6b8d344715fe4a3a1c916f9d1579ea0cdf29247729f98318",
+          "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts": "f76a69d48da3656f3c52bf773e2272fa6b11dad311dfdf0b3277340a95d5f343"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "stress",
+        "iterations": 20,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 13681,
+        "log": "TC-system-native-stress.log",
+        "log_sha256": "82fbdcc1c5b24bfea18e12164c167d715cba692b320e05c6d25faa2c0d23ef96"
+      }
+    }
+  ],
+  "native": {
+    "case": ".cache/issue_tracking/native/848b747142fc48618b64679f13237a8f",
+    "sha256": "6d0492e1d9ac231eb654044ba7d5fd6e1e0446f1ee617e9b20005004565ed9d3",
+    "count": 46,
+    "checks": [
+      "TC-update-native: 原生主进程身份检查和启动公告成功且一次请求",
+      "TC-update-native: 公告展示立即安装与手动重启说明",
+      "TC-update-native: 同一会话可由帮助命令主动重试",
+      "TC-files-recent: 新目录挂载且原生最近历史包含它",
+      "TC-files-rename: 无后缀默认纯文本",
+      "TC-files-rename: clean改后缀自动进入原生Markdown且保持clean",
+      "TC-files-rename: dirty正文/模型保留且语言更新",
+      "TC-files-rename: 改名不静默保存草稿",
+      "TC-files-rename: 保存后自动进入Markdown且正文正确",
+      "TC-files-trash: 原始Typora主进程实际回收临时文件",
+      "TC-files-trash: 原始Typora主进程实际回收临时目录",
+      "TC-explorer-hierarchy: Github 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Github 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 220标题与辅助工具不重叠",
+      "TC-reading-native: Github显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Github显示入口均有真实勾选，非活动入口也保留勾选",
+      "TC-workspace-menu: Github隐藏后重开准确显示未勾选",
+      "TC-workspace-menu: Github重新勾选恢复所有者状态",
+      "TC-workspace-menu: Github单一26px勾选槽位",
+      "TC-workspace-menu: Github实际图标和文字行内居中",
+      "TC-workspace-menu: Github功能菜单文字对齐",
+      "TC-workspace-menu: Github文字紧接勾选槽且24px行高，无额外原生留白",
+      "TC-explorer-hierarchy: Night 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Night 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 220标题与辅助工具不重叠",
+      "TC-reading-native: Night显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Night显示入口均有真实勾选，非活动入口也保留勾选",
+      "TC-workspace-menu: Night隐藏后重开准确显示未勾选",
+      "TC-workspace-menu: Night重新勾选恢复所有者状态",
+      "TC-workspace-menu: Night单一26px勾选槽位",
+      "TC-workspace-menu: Night实际图标和文字行内居中",
+      "TC-workspace-menu: Night功能菜单文字对齐",
+      "TC-workspace-menu: Night文字紧接勾选槽且24px行高，无额外原生留白",
+      "原始夹具文档保持字节一致"
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/issue_tracking/native/848b747142fc48618b64679f13237a8f/stage_stability_Github_5052048.png",
+        "sha256": "68786240f81bfcba298af9cc638d715d4660c20e38489cdfced5731ed2d3e39e",
+        "visually_reviewed": true
+      },
+      {
+        "path": ".cache/issue_tracking/native/848b747142fc48618b64679f13237a8f/stage_stability_Night_5052048.png",
+        "sha256": "f05ffe71682c7a58ac99aa857703e602e3b2347cac6417b09d947c4370f2e54b",
+        "visually_reviewed": true
+      }
+    ],
+    "scope": "原始Typora 1.14.10，私有桌面/用户目录；renderer调用实际宿主API，非物理用户输入"
+  },
+  "failed_runs": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-38-25-973Z_8677b2/report.json",
+      "sha256": "8e00d3a06d95fe1692452c2922d6f836ee518d09dfbbbd2c3e0e801436ad792d",
+      "reason": "持久化夹具未等待现有1秒防抖且读错settings封装；改为等待实际配置落盘"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T11-39-31-632Z_6042a4/report.json",
+      "sha256": "630d74f4c07a5caec38cc38122bba5227d6e5b1dcebd3e02ae63f79f1eb00f7a",
+      "reason": "原生li的9pt字号覆盖导致2em为24px；显式行字体继承后26px通过"
+    }
+  ],
+  "standard_checks": {
+    "build": "PASS",
+    "check": "PASS",
+    "log": ".cache/issue_tracking/menu_checks_standard_final.log",
+    "sha256": "fdcd4990780bc1cce486316e8772d7fb769e45998e260ad25611f30e56095a73",
+    "deployment": "PASS",
+    "diff": "PASS"
+  },
+  "installation": {
+    "status": "OK",
+    "assets": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "bc83e4b39676ae2e66c8296724a1576e6e6594fc34551f1d8a698d22ec4b1504",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "5bf493a1ba22089c8a243d8b9934c7336f27a9ac71e0e895b5121f48d6165e32",
+      "workspace.css": "8e76d70b9438fbf44a83144c50be1662bd89a5c7dd32cba529b6c5f4998fb4d5",
+      "workspace_core.css": "5cabd134ebf10a18eb6154ca43f9b52a1bff21a7a5aa256c74b8eff05d7c7035",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected_files_unchanged": 4,
+    "snapshot_drift": [
+      {
+        "role": "workspace_settings",
+        "before_sha256": "ed6635044c83fd0541ac1268b8146ee0fc124b22076c80a2685246af926e5a50",
+        "after_sha256": "548dfa724b31f88cd601010be9d349fe6a5bb1944e0e6a61db279752310980db",
+        "last_write_local": "2026-09-19T19:45:11.162992",
+        "installation_started_local": "2026-09-19T19:45:25",
+        "observation": "File changed after early snapshot but before installation; installation did not rewrite it; retained current settings"
+      }
+    ],
+    "windows_restarted": false
+  },
+  "skill": {
+    "name": "develop-typora-code",
+    "validation": "PASS"
+  },
+  "notes": [
+    "Vendor source line endings restored to original style; rebuilt assets byte-identical to native-tested manifest; core smoke rerun after restoration",
+    "Build attempted during terminal tests failed EBUSY without changing candidate manifest; subsequent sequential rebuild and deployment checks passed",
+    "Host native APIs are real in the private desktop fixture; input comes from renderer events, not a physical keyboard",
+    "Prior cross-machine and platform gaps remain open"
+  ]
+}

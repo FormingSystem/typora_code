@@ -201,3 +201,15 @@ SCM网格只保留更改和提交图两个实际内容轨道。原分隔条保�
 原生复查发现Git图标还包含被克隆的`.git-activity-icon`外壳，24px规则原先没有活动栏范围。将24px约束限定到实际活动按钮，并由菜单槽统一限制外壳及内层SVG为16px；不能只测外层槽位。原生宿主覆盖菜单anchor的display规则也需用菜单所属范围解决，保留文字行盒与图标8px间距。
 
 本次来源：固定VS Code 1.136.2提交`88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f`的[src/vs/base/browser/ui/menu/menu.ts](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/browser/ui/menu/menu.ts)，采用独立文字/指示区域、flex居中及16px菜单符号语义。现有宿主菜单行高/外边距保留；本工作台16px图标槽加8px文字间隔是24px内容占位的宿主适配，不声称上游具有相同gap常量。
+
+### R044复现：活动栏可见性勾选与菜单留白
+
+2026-09-19，关联R018：前次只验了图标尺寸与文字列，未验证菜单状态。RibbonView创建菜单时仅传图标和标题，遗漏button.visible；MenuItem统一state-off又引入Typora的8px伪元素，宿主锚点24px左padding与flex gap叠加成空白。原生复查还确认ul.context-menu li的9pt字号覆盖父菜单13px，须在独立菜单的行节点统一字体继承，否则2em会缩为24px。
+
+本次菜单读取Ribbon按钮所有者的visible字段，调用原toggleButton及onChange持久化。MenuItem增加可选set_checked，提供menuitemcheckbox／aria-checked及官方Codicons check；勾选项共用原图标槽，只显示勾选和名称，不再克隆活动栏图标。每次打开重新读取实际状态；Esc／外部关闭零状态变更。键盘方向键定位，Enter／Space执行一次，关闭恢复焦点；不添加其他VS Code菜单或新的开关状态副本。
+
+固定VS Code 1.136.2、88e44fa0的compositeBarActions.ts中ToggleCompositePinnedAction.checked来自isPinned；本产品对应既有visible状态。menu.ts的updateChecked采用menuitemcheckbox、aria-checked；内嵌CSS采用24px行高、2em勾选列、上下4px。本地独立菜单13px字号下勾选列26px、官方字形16px、文字紧接槽位。普通图标菜单保留16px槽与8px间距，独立菜单显式拥有padding／行高，原生菜单节点不套用独立几何。来源使用仓库已核对固定源码，Typora1.14.10 window.css提供本次冲突规则证据。
+
+影响范围：共享Menu与MenuItem、活动栏可见性配置及普通嵌套菜单；正文、活动栏图标、宿主原生菜单不改。扩展核心UI套件验证checked真／假、无图标勾选列、持久化、反复打开／切换、键盘单次执行、普通图标／子菜单和退出；原生夹具验证明暗实际26px槽／16px图形、24px行盒、隐藏后再显示，记录截图与用户正文保护。
+
+本轮验收：6个目标套件通过，原始Typora1.14.10的46项检查及20次菜单开关压力通过，明暗截图已视检；build/check、核心摘要与部署检查通过。版本2026.09.19.2已安装，27项资产一致，check OK；未重启用户窗口，未推送。首次原生字号失败和持久化夹具修正分别保留，详见[勾选与留白证据](../enhancements/tests/evidence/menu_checks_20260919.json)。4项保护摘要不变；工作台配置在早期快照之后、安装开始前写入，安装未重写该文件，保留当时配置，不用旧快照回滚用户状态。

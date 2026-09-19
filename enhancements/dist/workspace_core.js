@@ -2374,6 +2374,9 @@ var workspace_core_module = (() => {
     };
   }
 
+  // vendor/codicons/icons.json
+  var check = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>';
+
   // src/workspace_focus.ts
   var active_element = () => {
     let node = document.activeElement;
@@ -2578,11 +2581,25 @@ var workspace_core_module = (() => {
     _mouseoutListeners = {};
     constructor() {
       super();
-      this.containerEl = $(`<ul class="dropdown-menu context-menu" role="menu">`).on("click", (event) => {
+      this.containerEl = $(`<ul class="dropdown-menu context-menu typ-workspace-menu" role="menu">`).on("click", (event) => {
         if (!event.target.closest(".has-extra-menu")) this.close_family();
       }).get(0);
       document.body.append(this.containerEl);
       this._registerEvent();
+      this.containerEl.addEventListener("keydown", (event) => {
+        const items = Array.from(this.containerEl.querySelectorAll(':scope > .typ-menuitem > a:not([aria-disabled="true"])'));
+        const index = items.indexOf(document.activeElement);
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && items.length) {
+          event.preventDefault();
+          event.stopPropagation();
+          const next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : event.key === "ArrowDown" ? (index + 1) % items.length : index < 0 ? items.length - 1 : (index - 1 + items.length) % items.length;
+          items[next].focus({ preventScroll: true });
+        } else if ((event.key === "Enter" || event.key === " ") && index >= 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          items[index].click();
+        }
+      });
     }
     _registerEvent() {
       $(this.containerEl).on("mouseover", (event) => {
@@ -2691,12 +2708,13 @@ var workspace_core_module = (() => {
     constructor(menu) {
       this.menu = menu;
       this.containerEl = html`<li data-action="" data-key="" class="typ-menuitem"></li>`;
-      this.anchorEl = html`<a role="menuitem" data-localize="" data-lg="" class="state-off"></a>`;
+      this.anchorEl = html`<a role="menuitem" data-localize="" data-lg="" tabindex="-1"></a>`;
       this.containerEl.append(this.anchorEl);
     }
     containerEl;
     anchorEl;
     iconEl;
+    checked;
     title;
     setKey(key) {
       this.containerEl.dataset.key = key;
@@ -2716,13 +2734,28 @@ var workspace_core_module = (() => {
       this._setContent();
       return this;
     }
+    set_checked(checked) {
+      this.checked = checked;
+      this.anchorEl.setAttribute("role", "menuitemcheckbox");
+      this.anchorEl.setAttribute("aria-checked", String(checked));
+      this._setContent();
+      return this;
+    }
     _setContent() {
       const label = document.createElement("span");
       label.className = "typ-menu-label";
       label.textContent = this.title || "";
       const icon = document.createElement("span");
       icon.className = "typ-menu-icon";
-      if (this.iconEl) icon.append(this.iconEl);
+      if (this.checked !== void 0) {
+        if (this.checked) {
+          const glyph = document.importNode(new DOMParser().parseFromString(check, "image/svg+xml").documentElement, true);
+          glyph.setAttribute("aria-hidden", "true");
+          glyph.setAttribute("data-git-icon", "check");
+          glyph.setAttribute("fill", "currentColor");
+          icon.append(glyph);
+        }
+      } else if (this.iconEl) icon.append(this.iconEl);
       this.anchorEl.replaceChildren(icon, label);
     }
     onClick(callback) {
@@ -2916,7 +2949,7 @@ var workspace_core_module = (() => {
         this.dispalyMenu.empty();
         this.props.buttons.filter((btn) => btn.group !== "bottom").forEach((btn) => {
           this.dispalyMenu.addItem((item) => {
-            item.setKey(btn.id).setIcon(btn.icon.cloneNode(true)).setTitle(btn.title).onClick(() => this.toggleButton(btn));
+            item.setKey(btn.id).set_checked(Boolean(btn.visible)).setTitle(btn.title).onClick(() => this.toggleButton(btn));
           });
         });
         this.dispalyMenu.showAtMouseEvent(event.originalEvent);
