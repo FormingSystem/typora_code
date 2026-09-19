@@ -39,6 +39,10 @@ domains:
 
 多行 `#define` 中的 `meta.preprocessor` 表示整个宏体所在的上下文，不能据此把所有内容染成蓝色。指令和宏定义名使用预处理器颜色，宏体内的 `do` / `while`、`unsigned long`、函数调用、注释、字符串和运算符仍按各自语法角色着色。
 
+当前资源管理器包含打开的编辑器、目录树和时间线；关闭最后文件进入真实空编辑区。工作区切换和文件恢复由[共同会话服务](../docs/workspace_switch.md)管理，提交浮层使用[安全 Markdown 渲染](../docs/workspace_interaction.md#r053-提交浮层的-markdown-排版)。
+
+首次展示由静态 head 的就绪状态控制，失败或超时恢复原生操作；语法初始化不阻塞界面挂载。功能区切换只移交侧栏内容，重复显示不重新挂载。开发验证同时检查中间帧、生命周期及长任务，入口见[启动稳定性](../docs/startup_stability.md)，不能只靠最终截图判断。
+
 ## 1.1\_普通用户一键配置
 
 从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。Windows 卸载增强时，保存文档并退出 Typora，双击 `uninstall_windows.cmd`，自动查找安装前备份；版本回退使用 `restore_windows.ps1`。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。

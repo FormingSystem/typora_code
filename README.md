@@ -29,6 +29,10 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 
 开发与稳定性验收入口：[需求设计](docs/requirements_design.md)、[测试架构与用例](docs/stability_testing.md)、[问题分类索引](docs/stability_issues.md)。
 
+当前版本为 **2026.09.20.2**，各版本修复公告以[发行记录](enhancements/release.json)为准。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。首次启动显示加载提示，界面就绪后展示；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
+
+验证与限制以[最新交付记录](docs/feedback_review.md)为准；仍有启动长任务及跨机器/平台验收缺口。更新安装后需要保存文档并手动重启所有 Typora 窗口，已运行窗口不会热替换。
+
 ## 1.1\_安装、检查与恢复
 
 **Windows 快速开始：**
