@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "date": "2026-09-20",
+  "remote": "https://github.com/FormingSystem/typora_code",
+  "branch": "main",
+  "previous_remote": "9164530f11f7a779ff11643618f7e94c969c231e",
+  "published_revision": "eee459a827b792f3aad8f442ff27f8901d8c3e6d",
+  "release": "2026.09.20.2",
+  "push_mode": "explicit force-with-lease",
+  "remote_content_checks": [
+    {
+      "path": "enhancements/dist/assets/update/release.json",
+      "sha256": "97d681f5200295314de37dab463cc5205173e705a91092645271f516b9c7c503"
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c"
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267"
+    }
+  ],
+  "backup": {
+    "path": ".cache/issue_tracking/before_publish_20260920.bundle",
+    "sha256": "bb1eecde2c6f0ffd6648d4991470ab88f7232dbd252c871546587185faa04e81",
+    "verified_complete": true
+  },
+  "verification": {
+    "relative_document_links": 330,
+    "commit_messages": 95,
+    "catalog_suites": 142,
+    "installed_assets": 27,
+    "runtime_assets_changed_this_turn": false
+  },
+  "limits": [
+    "回执记录其自身提交之前已实际核对的发布提交；后续回执提交不改变发行资产。",
+    "当前用户窗口未重启；残余启动长任务及平台验证缺口继续保留。"
+  ]
+}
