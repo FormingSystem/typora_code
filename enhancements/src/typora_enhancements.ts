@@ -435,25 +435,38 @@ function ensure_mermaid_button(container: Element): void {
 
 async function initialize(controller: AbortController, lifetime: ReturnType<typeof create_workspace_lifetime>): Promise<void> {
   ensure_style();
+  for(const phase of ["git-bind","browser-bind","grammar"]){performance.clearMarks("typora-code:"+phase+":start");performance.clearMeasures("typora-code:"+phase);}
   const current=()=>runtime_controller===controller&&!controller.signal.aborted;
   lifetime.add(dispose_workspace_widgets);
   const workspace_ready=initialize_workspace(controller.signal).then(binding=>{lifetime.own(binding);return binding;});
-  grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
-  await Promise.all([workspace_ready,grammar_loading]);
+  await workspace_ready;
   if(!current())return;
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];
   if(core?.app)lifetime.add(()=>bind_workspace_editor_status(core).dispose());
   reading_binding=lifetime.own(bind_reading_navigation());
   lifetime.own(bind_file_path_actions());
   if(core?.app)lifetime.own(bind_markdown_color_menu(core));
+  performance.mark("typora-code:git-bind:start");
   graph_binding=lifetime.own(bind_git_graph());
+  performance.measure("typora-code:git-bind","typora-code:git-bind:start");
+  // 两个独立注册阶段不连成一个长任务；交还事件循环后必须再次核对生命周期。
+  await new Promise<void>(resolve=>setTimeout(resolve,0));
+  if(!current())return;
+  performance.mark("typora-code:browser-bind:start");
   lifetime.own(bind_workspace_browser());
+  performance.measure("typora-code:browser-bind","typora-code:browser-bind:start");
   lifetime.own(bind_workspace_update());
   lifetime.own(bind_reading_minimap());
   lifetime.own(bind_reading_link_hover());
   lifetime.add(()=>{close_reading_media();});
   const images=bind_reading_images(document.body,"content > #write img");
   lifetime.add(()=>images.dispose());
+  // 高亮不是工作台布局的前置条件；先完成 chrome 挂载再初始化语法。
+  performance.mark("typora-code:grammar:start");
+  grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
+  await grammar_loading;
+  if(!current())return;
+  performance.measure("typora-code:grammar","typora-code:grammar:start");
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
   const code_mirror=window.CodeMirror;
   const previous_modes=[C_MODE_NAME,CPP_MODE_NAME].map(name=>code_mirror.modes?.[name]);

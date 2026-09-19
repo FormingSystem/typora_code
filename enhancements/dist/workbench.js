@@ -238490,6 +238490,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092002,
+        version: "2026.09.20.2",
+        date: "2026-09-20",
+        notes: [
+          "\u542F\u52A8\u5C31\u7EEA\u524D\u663E\u793A\u660E\u786E\u52A0\u8F7D\u72B6\u6001\uFF0C\u4FEE\u590D\u539F\u751F\u5E03\u5C40\u95EA\u73B0\uFF1B\u5931\u8D25\u6216\u8D85\u65F6\u6062\u590D\u539F\u751F\u64CD\u4F5C\uFF0C\u4EE3\u7801\u9AD8\u4EAE\u4E0D\u518D\u963B\u585E\u5DE5\u4F5C\u53F0\u6302\u8F7D\u3002",
+          "\u529F\u80FD\u533A\u5207\u6362\u4FDD\u6301\u4FA7\u680F\u5C55\u5F00\uFF0C\u907F\u514D\u91CD\u590D\u6302\u8F7D\u548C\u6B63\u6587\u91CD\u6392\uFF1B\u8865\u9F50\u5355\u5143\u3001\u529F\u80FD\u53CA\u539F\u751F\u7CFB\u7EDF\u65F6\u5E8F\u6D4B\u8BD5\u548C\u5206\u5C42\u538B\u529B\u8BC1\u636E\u3002"
+        ]
+      },
+      {
         sequence: 2026092001,
         version: "2026.09.20.1",
         date: "2026-09-20",
@@ -239692,25 +239701,31 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function initialize2(controller, lifetime) {
     ensure_style();
+    for (const phase of ["git-bind", "browser-bind", "grammar"]) {
+      performance.clearMarks("typora-code:" + phase + ":start");
+      performance.clearMeasures("typora-code:" + phase);
+    }
     const current = () => runtime_controller === controller && !controller.signal.aborted;
     lifetime.add(dispose_workspace_widgets);
     const workspace_ready = initialize_workspace(controller.signal).then((binding) => {
       lifetime.own(binding);
       return binding;
     });
-    grammar_loading ||= load_textmate_grammars().catch((error) => {
-      grammar_loading = void 0;
-      throw error;
-    });
-    await Promise.all([workspace_ready, grammar_loading]);
+    await workspace_ready;
     if (!current()) return;
     const core = window[Symbol.for("typora-code:workspace")];
     if (core?.app) lifetime.add(() => bind_workspace_editor_status(core).dispose());
     reading_binding = lifetime.own(bind_reading_navigation());
     lifetime.own(bind_file_path_actions());
     if (core?.app) lifetime.own(bind_markdown_color_menu(core));
+    performance.mark("typora-code:git-bind:start");
     graph_binding = lifetime.own(bind_git_graph());
+    performance.measure("typora-code:git-bind", "typora-code:git-bind:start");
+    await new Promise((resolve3) => setTimeout(resolve3, 0));
+    if (!current()) return;
+    performance.mark("typora-code:browser-bind:start");
     lifetime.own(bind_workspace_browser());
+    performance.measure("typora-code:browser-bind", "typora-code:browser-bind:start");
     lifetime.own(bind_workspace_update());
     lifetime.own(bind_reading_minimap());
     lifetime.own(bind_reading_link_hover());
@@ -239719,6 +239734,14 @@ https://creativecommons.org/licenses/by/4.0/
     });
     const images = bind_reading_images(document.body, "content > #write img");
     lifetime.add(() => images.dispose());
+    performance.mark("typora-code:grammar:start");
+    grammar_loading ||= load_textmate_grammars().catch((error) => {
+      grammar_loading = void 0;
+      throw error;
+    });
+    await grammar_loading;
+    if (!current()) return;
+    performance.measure("typora-code:grammar", "typora-code:grammar:start");
     if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
     const code_mirror = window.CodeMirror;
     const previous_modes = [C_MODE_NAME, CPP_MODE_NAME].map((name) => code_mirror.modes?.[name]);
@@ -239821,6 +239844,7 @@ https://creativecommons.org/licenses/by/4.0/
       acquire_workspace_style("typora-code-style:workspace_entry", workspace_entry_default);
       console.error("[Typora Code startup]", error);
       document.documentElement.dataset.typoraCodeStartup = "error";
+      document.documentElement.dataset.typoraCodePresentation = "error";
       const message = document.createElement("div");
       message.setAttribute("role", "alert");
       message.className = "typora-code-startup-error";

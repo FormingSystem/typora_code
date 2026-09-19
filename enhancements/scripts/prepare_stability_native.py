@@ -56,8 +56,15 @@ runner = '(()=>{const poll=setInterval(async()=>{const core=window[Symbol.for("t
 html = (host / 'resources/window.html').read_text(encoding='utf-8')
 html = re.sub(r'<!-- typora-code:begin -->.*?<!-- typora-code:end -->', '', html, flags=re.S)
 head = (repository_root / 'enhancements/runtime_head.html').read_text(encoding='utf-8')
+early_digest = None
+if len(sys.argv) > 3:
+    early_path = (fixture_directory / sys.argv[3]).resolve(strict=True)
+    assert early_path.parent == fixture_directory and early_path.suffix == '.js'
+    subprocess.run(['node', '--check', str(early_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    early_digest = digest(early_path)
+    head = '<script>' + early_path.read_text(encoding='utf-8') + '</script>' + head
 html = html.replace('</head>', head + '<script>window.addEventListener("DOMContentLoaded",()=>{' + runner + '});</script></head>')
 (host / 'resources/window.html').write_text(html, encoding='utf-8')
 assert digest(asar) == expected_asar == digest(host / 'resources/app.asar')
-(case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
+(case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
 print(case)

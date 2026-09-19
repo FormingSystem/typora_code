@@ -1,0 +1,576 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R054"
+  ],
+  "design": "docs/startup_stability.md",
+  "baseline_revision": "4c9193e18c6e4ae7385d087dda1f3ad5c67adf89",
+  "release": "2026.09.20.2",
+  "asset_manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+  "runtime_head_sha256": "9387e768e6a20bca338243dac35d41843a51463a7beafe575b2df661dceb6b24",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-39-07-985Z_78fa42/report.json",
+      "sha256": "96e97ac5375b8e1719bf93684582306acc285310fb7f2443404ac759e43126a4",
+      "status": "passed",
+      "cases": [
+        "TC-sidebar-transitions"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-39-08-289Z_9f5f4b/report.json",
+      "sha256": "1e6c29802f086aa5dde69a4dc50080e48eae702daedfafda381b2c07ee49c850",
+      "status": "passed",
+      "cases": [
+        "TC-sidebar-stress"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 100
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-39-08-589Z_397011/report.json",
+      "sha256": "fb4865332fa492db3a6c9f820f4d728b7cd681e9786ed25ed66656c032d5598a",
+      "status": "passed",
+      "cases": [
+        "TC-sidebar-stress"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 1000
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-39-08-873Z_76795e/report.json",
+      "sha256": "2e3dc602cc9dbbae62fddab62b5e139109a2b1a6d10ba12a388f3504fe9a3f7b",
+      "status": "passed",
+      "cases": [
+        "TC-startup-presentation"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-42-18-759Z_18ad83/report.json",
+      "sha256": "11c9fb461ec6dcd65aa8ce04c5d4ab311bdec008005bca3cd071fbe31b05b71a",
+      "status": "passed",
+      "cases": [
+        "TC-startup-native"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-42-25-854Z_06b14b/report.json",
+      "sha256": "b8ab50bceb5fcfa0a1022d938db9e3475678e7503d82eb28bc666bc1c5a0320b",
+      "status": "passed",
+      "cases": [
+        "TC-startup-native"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-42-32-974Z_ff75b3/report.json",
+      "sha256": "0cbb07cfedf5419e0431274d50e7627c9d7413baa9d2f7c42f907f6f9128eaba",
+      "status": "passed",
+      "cases": [
+        "TC-startup-native"
+      ],
+      "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-32-18-199Z_1b1695/report.json",
+      "sha256": "371477f52095ee1a9c6271dbe6304dc065091d483f6b3e3e8e78a8e41b47b6a7",
+      "status": "passed",
+      "cases": [
+        "TC-system-native-empty-editor"
+      ],
+      "manifest_sha256": "7fe70fd1f0c494ea46c31993ca27c8ac79c604707337af57283697814ec69b98",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-32-35-978Z_d42826/report.json",
+      "sha256": "76982d6b96deba7ca07570fd03c52284179111108e3659295e3205acbb95b067",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-sessions-native"
+      ],
+      "manifest_sha256": "7fe70fd1f0c494ea46c31993ca27c8ac79c604707337af57283697814ec69b98",
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T16-32-55-241Z_ed1770/report.json",
+      "sha256": "9afec6b25d220511338c873a1647d02428cf7307e739ca4e8e42f08d3ab53b2c",
+      "status": "passed",
+      "cases": [
+        "TC-system-native-stability"
+      ],
+      "manifest_sha256": "7fe70fd1f0c494ea46c31993ca27c8ac79c604707337af57283697814ec69b98",
+      "tier": 20
+    }
+  ],
+  "native": [
+    {
+      "path": ".cache/issue_tracking/native/b4e3cb76ccc14383b7b3fa360025e059/checks.json",
+      "sha256": "9ecad95ea6793caf9fadba8c23fbbe65b31d1215d1b78477132ed3e49322ee16",
+      "checks": 45,
+      "switches": 20,
+      "p95_synchronous_ms": 1.7000000178813934,
+      "max_synchronous_ms": 2.0999999940395355,
+      "host_calls": {
+        "show_count": 1,
+        "hide_count": 0,
+        "initial_show": 1,
+        "initial_hide": 0
+      },
+      "startup": [
+        {
+          "time": 244.89999997615814,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": 0
+        },
+        {
+          "time": 551.8999999761581,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": -0.20000000298023224
+        },
+        {
+          "time": 578.5999999940395,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 628.0999999940395,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": false,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 745.0999999940395,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 762.7999999821186,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 287.8000183105469
+        }
+      ],
+      "long_tasks": [
+        {
+          "start": 320.7999999821186,
+          "duration": 52,
+          "name": "self"
+        },
+        {
+          "start": 382.39999997615814,
+          "duration": 62,
+          "name": "self"
+        },
+        {
+          "start": 795.8999999761581,
+          "duration": 50,
+          "name": "self"
+        }
+      ],
+      "measures": [
+        {
+          "name": "typora-code:git-bind",
+          "entryType": "measure",
+          "startTime": 515.1999999880791,
+          "duration": 34.599999994039536
+        },
+        {
+          "name": "typora-code:browser-bind",
+          "entryType": "measure",
+          "startTime": 579.5999999940395,
+          "duration": 31.599999994039536
+        },
+        {
+          "name": "typora-code:grammar",
+          "entryType": "measure",
+          "startTime": 613,
+          "duration": 84.2999999821186
+        }
+      ],
+      "viewport": [
+        802,
+        702
+      ],
+      "dpr": 1.25
+    },
+    {
+      "path": ".cache/issue_tracking/native/cdbd1a829ab4492fbba923cee2d78aed/checks.json",
+      "sha256": "a88223bde8d5ce668a4f62df9fd98f03bf94ea8cd79c46b02991b7cd36011c1b",
+      "checks": 45,
+      "switches": 20,
+      "p95_synchronous_ms": 1.2000000178813934,
+      "max_synchronous_ms": 1.2000000178813934,
+      "host_calls": {
+        "show_count": 1,
+        "hide_count": 0,
+        "initial_show": 1,
+        "initial_hide": 0
+      },
+      "startup": [
+        {
+          "time": 262.19999998807907,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": 0
+        },
+        {
+          "time": 566.8999999761581,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": -0.20000000298023224
+        },
+        {
+          "time": 626.5,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 709.5,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": false,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 782,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 802.1999999880791,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 287.8000183105469
+        }
+      ],
+      "long_tasks": [
+        {
+          "start": 148.19999998807907,
+          "duration": 50,
+          "name": "self"
+        },
+        {
+          "start": 325,
+          "duration": 55,
+          "name": "self"
+        },
+        {
+          "start": 389.39999997615814,
+          "duration": 67,
+          "name": "self"
+        },
+        {
+          "start": 832.1999999880791,
+          "duration": 53,
+          "name": "self"
+        }
+      ],
+      "measures": [
+        {
+          "name": "typora-code:git-bind",
+          "entryType": "measure",
+          "startTime": 528.1999999880791,
+          "duration": 36.5
+        },
+        {
+          "name": "typora-code:browser-bind",
+          "entryType": "measure",
+          "startTime": 627.8999999761581,
+          "duration": 37
+        },
+        {
+          "name": "typora-code:grammar",
+          "entryType": "measure",
+          "startTime": 667.0999999940395,
+          "duration": 66.90000000596046
+        }
+      ],
+      "viewport": [
+        802,
+        702
+      ],
+      "dpr": 1.25
+    },
+    {
+      "path": ".cache/issue_tracking/native/109df37372134bc0a1eaccc8e21e331b/checks.json",
+      "sha256": "9434674d5c7db53e00da760691c70c7519617968455cfc3685b993dd44c3ef6c",
+      "checks": 45,
+      "switches": 20,
+      "p95_synchronous_ms": 1.9000000059604645,
+      "max_synchronous_ms": 2.300000011920929,
+      "host_calls": {
+        "show_count": 1,
+        "hide_count": 0,
+        "initial_show": 1,
+        "initial_hide": 0
+      },
+      "startup": [
+        {
+          "time": 251.7000000178814,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": 0
+        },
+        {
+          "time": 543.9000000059605,
+          "body": true,
+          "ready": "",
+          "title": "",
+          "shown": false,
+          "visibility": "hidden",
+          "write_visibility": "hidden",
+          "loading": "loading",
+          "left": -0.20000000298023224
+        },
+        {
+          "time": 672,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": false,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 790.2000000178814,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 47.79999923706055
+        },
+        {
+          "time": 839.2000000178814,
+          "body": true,
+          "ready": "ready",
+          "title": "ready",
+          "shown": true,
+          "visibility": "visible",
+          "write_visibility": "visible",
+          "loading": "ready",
+          "left": 287.8000183105469
+        }
+      ],
+      "long_tasks": [
+        {
+          "start": 307.2000000178814,
+          "duration": 54,
+          "name": "self"
+        },
+        {
+          "start": 370.10000002384186,
+          "duration": 62,
+          "name": "self"
+        },
+        {
+          "start": 613.8000000119209,
+          "duration": 58,
+          "name": "self"
+        }
+      ],
+      "measures": [
+        {
+          "name": "typora-code:git-bind",
+          "entryType": "measure",
+          "startTime": 502.10000002384186,
+          "duration": 38.29999998211861
+        },
+        {
+          "name": "typora-code:browser-bind",
+          "entryType": "measure",
+          "startTime": 613.8000000119209,
+          "duration": 52
+        },
+        {
+          "name": "typora-code:grammar",
+          "entryType": "measure",
+          "startTime": 668.5,
+          "duration": 77.60000002384186
+        }
+      ],
+      "viewport": [
+        802,
+        702
+      ],
+      "dpr": 1.25
+    }
+  ],
+  "baseline_failure": {
+    "path": ".cache/issue_tracking/native/cedbde4b27404aeb87cc0ae5d3a73572/checks.json",
+    "sha256": "079a4f8839df9a8c85ba521ee4cc1a6a025e3f485d3276af11a31a39d5f33110",
+    "error": "Error: 可见功能区切换不关闭宿主侧栏\n    at assert (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:6:47)\n    at eval (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:36:3)\n    at async typora://app/typemark/window.html:24:277",
+    "startup": [
+      {
+        "time": 253.69999998807907,
+        "body": true,
+        "ready": "",
+        "title": "",
+        "shown": false,
+        "visibility": "visible",
+        "loading": "",
+        "left": 0
+      },
+      {
+        "time": 681.8999999761581,
+        "body": true,
+        "ready": "ready",
+        "title": "ready",
+        "shown": false,
+        "visibility": "visible",
+        "loading": "",
+        "left": -0.20000000298023224
+      },
+      {
+        "time": 770.7999999821186,
+        "body": true,
+        "ready": "ready",
+        "title": "ready",
+        "shown": true,
+        "visibility": "visible",
+        "loading": "",
+        "left": 47.79999923706055
+      },
+      {
+        "time": 816.8999999761581,
+        "body": true,
+        "ready": "ready",
+        "title": "ready",
+        "shown": true,
+        "visibility": "visible",
+        "loading": "",
+        "left": 287.8000183105469
+      }
+    ],
+    "hide_calls_during_switches": 20
+  },
+  "logs": [
+    {
+      "path": ".cache/startup_check.log",
+      "sha256": "c77124e8e0c3572301c9e7ce3d3c97d796dc6ea942257843de56c51e8f61d295"
+    },
+    {
+      "path": ".cache/startup_all_ui.log",
+      "sha256": "01d7aeb32554579aa7e781ee02d634f72b87e4bf44f5748f5eba0ecd2cb60d5b"
+    },
+    {
+      "path": ".cache/startup_build_final.log",
+      "sha256": "4d7f2e5d5c12cba9e4cb6ec4235c861c760863600f62a00c848b241c5a977fcf"
+    },
+    {
+      "path": ".cache/startup_install.log",
+      "sha256": "c5dc59f8cf318b4015db3480de5a14325766b0ba5b32eadd55629afff93da562"
+    },
+    {
+      "path": ".cache/startup_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  ],
+  "ui": {
+    "passed": 74,
+    "failed": 0
+  },
+  "installation": {
+    "release": "2026.09.20.2",
+    "assets_verified": 27,
+    "protected_unchanged": 5,
+    "runtime_head_matches": true,
+    "manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+    "runtime_head_sha256": "9387e768e6a20bca338243dac35d41843a51463a7beafe575b2df661dceb6b24",
+    "running_user_windows_restarted": false
+  },
+  "limits": [
+    "rAF/DOM与renderer调用不是显示器视频或物理鼠标输入。",
+    "三次独立原生运行每次20次切换；单元压力20/100/1000，不能外推跨机器耗时。",
+    "关联原生回归及完整check在最后仅调整取消后的测量顺序之前通过；各报告保留自己的候选摘要。最终取消/重启由完整UI覆盖，最终原生候选另测三次。",
+    "残余启动长任务50-67ms，包含一次browser-bind 52ms；原始宿主inspector.Session报告This Environment was initialized without a V8::Inspector，未开启调试或修改ASAR，PERF-startup-002继续待归因。",
+    "当前用户窗口未重启；跨机器/跨平台与既有物理输入验证缺口保留。"
+  ],
+  "cpu_profile_attempt": {
+    "path": ".cache/issue_tracking/native/b483e71709b34a6988e5154d0f2fa9cd/profile_error.txt",
+    "sha256": "ca9dd006ea2b916a698fe76bc5394263d73e1a287056d41604d205c75db784b0",
+    "result": "This Environment was initialized without a V8::Inspector"
+  }
+}

@@ -3295,7 +3295,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R054"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -4537,6 +4538,157 @@
         "大列表受视口限制且可滚动，销毁无残留浮层/ARIA；报告固定三档负载，不把它当作Git进程循环"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-sidebar-transitions",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R054"
+      ],
+      "design": "docs/startup_stability.md",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/sidebar/sidebar.ts",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/runtime_head.html",
+        "enhancements/src/workspace_entry.css",
+        "enhancements/fixtures/startup_timing_probe.js",
+        "enhancements/fixtures/startup_stability_native.js"
+      ],
+      "related_modules": [
+        "startup",
+        "sidebar",
+        "explorer",
+        "outline",
+        "search",
+        "scm"
+      ],
+      "script": "enhancements/scripts/test_sidebar_transitions.mjs",
+      "environment": "Node / Electron / Typora 1.14.10 按脚本边界隔离",
+      "preconditions": "固定候选；原生层需要 TYPORA_NATIVE_TEST_ROOT；仅临时仓库",
+      "steps": [
+        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复"
+      ],
+      "expected": [
+        "全部断言通过，过程样本与耗时保留，不以最终截图替代时序证据"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": []
+    },
+    {
+      "id": "TC-sidebar-stress",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R054"
+      ],
+      "design": "docs/startup_stability.md",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/sidebar/sidebar.ts",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/runtime_head.html",
+        "enhancements/src/workspace_entry.css",
+        "enhancements/fixtures/startup_timing_probe.js",
+        "enhancements/fixtures/startup_stability_native.js"
+      ],
+      "related_modules": [
+        "startup",
+        "sidebar",
+        "explorer",
+        "outline",
+        "search",
+        "scm"
+      ],
+      "script": "enhancements/scripts/test_sidebar_transitions.mjs",
+      "environment": "Node / Electron / Typora 1.14.10 按脚本边界隔离",
+      "preconditions": "固定候选；原生层需要 TYPORA_NATIVE_TEST_ROOT；仅临时仓库",
+      "steps": [
+        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复"
+      ],
+      "expected": [
+        "全部断言通过，过程样本与耗时保留，不以最终截图替代时序证据"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": [],
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-startup-presentation",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R054"
+      ],
+      "design": "docs/startup_stability.md",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/sidebar/sidebar.ts",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/runtime_head.html",
+        "enhancements/src/workspace_entry.css",
+        "enhancements/fixtures/startup_timing_probe.js",
+        "enhancements/fixtures/startup_stability_native.js"
+      ],
+      "related_modules": [
+        "startup",
+        "sidebar",
+        "explorer",
+        "outline",
+        "search",
+        "scm"
+      ],
+      "script": "enhancements/scripts/test_startup_presentation.cjs",
+      "environment": "Node / Electron / Typora 1.14.10 按脚本边界隔离",
+      "preconditions": "固定候选；原生层需要 TYPORA_NATIVE_TEST_ROOT；仅临时仓库",
+      "steps": [
+        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复"
+      ],
+      "expected": [
+        "全部断言通过，过程样本与耗时保留，不以最终截图替代时序证据"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": []
+    },
+    {
+      "id": "TC-startup-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R054"
+      ],
+      "design": "docs/startup_stability.md",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/sidebar/sidebar.ts",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/runtime_head.html",
+        "enhancements/src/workspace_entry.css",
+        "enhancements/fixtures/startup_timing_probe.js",
+        "enhancements/fixtures/startup_stability_native.js"
+      ],
+      "related_modules": [
+        "startup",
+        "sidebar",
+        "explorer",
+        "outline",
+        "search",
+        "scm"
+      ],
+      "script": "enhancements/scripts/test_startup_stability_native.ps1",
+      "environment": "Node / Electron / Typora 1.14.10 按脚本边界隔离",
+      "preconditions": "固定候选；原生层需要 TYPORA_NATIVE_TEST_ROOT；仅临时仓库",
+      "steps": [
+        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复"
+      ],
+      "expected": [
+        "全部断言通过，过程样本与耗时保留，不以最终截图替代时序证据"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
     }
   ]
 }

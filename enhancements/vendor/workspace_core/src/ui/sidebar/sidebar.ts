@@ -21,7 +21,8 @@ export class Sidebar extends Component {
 
   container = new SidebarContainer()
 
-  private activePanel!: SidebarPanel
+  private activePanel?: SidebarPanel
+  private shown_panel?: SidebarPanel
   private internalPanels: SidebarPanel[] = []
   private panels: SidebarPanel[] = []
 
@@ -64,6 +65,11 @@ export class Sidebar extends Component {
   }
 
   removePanel(panel: SidebarPanel): void {
+    if (this.shown_panel === panel) {
+      panel.hide()
+      this.shown_panel = undefined
+    }
+    if (this.activePanel === panel) this.activePanel = undefined
     if (panel.ribbonButton) {
       this.ribbon.removeButton(panel.ribbonButton)
     }
@@ -90,15 +96,19 @@ export class Sidebar extends Component {
   }
 
   switch<T extends SidebarPanel>(viewClass: new (...args: any[]) => T) {
+    const target_panel = this.panels.find(c => c instanceof viewClass)
+    if (!target_panel) return
     if (this.activePanel instanceof viewClass) {
       this.toggle()
       return
     }
 
-    Object.values(this.internalPanels).forEach(v => v.hide())
-    this.hide()
-
-    this.activePanel = this.panels.find(c => c instanceof viewClass)!
+    // 可见面板之间只移交内容，不能关闭宿主侧栏触发正文重排与原生动画。
+    const previous_panel = this.shown_panel ?? this.activePanel
+    previous_panel?.hide()
+    this.shown_panel = undefined
+    this.internalPanels.forEach(panel => { if (panel !== previous_panel) panel.hide() })
+    this.activePanel = target_panel
     this.show()
   }
 
@@ -107,13 +117,17 @@ export class Sidebar extends Component {
   }
 
   show() {
-    editor.library.showSidebar()
+    if (!this.isShown) editor.library.showSidebar()
+    if (this.shown_panel === this.activePanel) return
+    this.shown_panel?.hide()
     this.activePanel?.show()
+    this.shown_panel = this.activePanel
   }
 
   hide() {
-    editor.library.hideSidebar()
-    this.activePanel?.hide()
+    if (this.isShown) editor.library.hideSidebar()
+    this.shown_panel?.hide()
+    this.shown_panel = undefined
   }
 }
 

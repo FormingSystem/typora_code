@@ -710,7 +710,7 @@
       "path": "src/ui/sidebar/sidebar.ts",
       "upstream_path": "src/ui/sidebar/sidebar.ts",
       "upstream_sha256": "70be8cafb4894ad0c38a55049e19f33bc79e0d7046b9210826b782dc2b17f99e",
-      "sha256": "70be8cafb4894ad0c38a55049e19f33bc79e0d7046b9210826b782dc2b17f99e"
+      "sha256": "cd7e7eed8d2c35c910df97fa336306584b91875479c894cacfd3589e5828b773"
     },
     {
       "path": "src/ui/statusbar/statistics.scss",

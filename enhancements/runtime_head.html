@@ -1,4 +1,18 @@
 <!-- typora-code:begin -->
+<script>
+(()=>{
+ const root=document.documentElement;
+ root.dataset.typoraCodePresentation='loading';
+ const finish=state=>{root.dataset.typoraCodePresentation=state;observer.disconnect();clearTimeout(deadline);};
+ const observer=new MutationObserver(()=>{
+  if(root.dataset.typoraCodeStartup==='error'||root.dataset.linuxNoteTyporaEnhancements==='failed')finish('error');
+  else if(root.dataset.linuxNoteWorkspaceBrowser==='ready')finish('ready');
+ });
+ observer.observe(root,{attributes:true,attributeFilter:['data-typora-code-startup','data-linux-note-typora-enhancements','data-linux-note-workspace-browser']});
+ // 与核心宿主初始化上限一致；超时恢复可操作的原生界面，不把窗口锁在加载态。
+ const deadline=setTimeout(()=>finish('error'),15000);
+})();
+</script>
 <link id="typora-code-core-styles" rel="stylesheet" data-typora-code-style href="typora://app/userData/typora_code/workspace_core.css">
 <link id="typora-code-workspace-styles" rel="stylesheet" data-typora-code-style href="typora://app/userData/typora_code/workspace.css">
 <script defer src="typora://app/userData/typora_code/workspace_core.js"></script>

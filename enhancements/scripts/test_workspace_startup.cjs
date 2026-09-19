@@ -35,7 +35,10 @@ app.whenReady().then(async()=>{
  await delay(150);
  assert.equal(await evaluate('document.documentElement.dataset.linuxNoteTyporaEnhancements'),'loading');
  assert.equal(await evaluate('fixture_commands.size'),0,'waiting for disconnected root must not register workbench commands');
- await evaluate('qa.shutdown_typora_code();void qa.start_typora_code().catch(error=>{fixture_errors.push(String(error));console.error(error)});document.body.append(fixture_root_element);void 0');
+ await evaluate('qa.shutdown_typora_code();window.original_wasm_instantiate=WebAssembly.instantiate;WebAssembly.instantiate=(...args)=>new Promise((resolve,reject)=>{window.release_grammar=()=>original_wasm_instantiate(...args).then(resolve,reject)});void qa.start_typora_code().catch(error=>{fixture_errors.push(String(error));console.error(error)});document.body.append(fixture_root_element);void 0');
+ await wait('document.documentElement.dataset.linuxNoteWorkspaceBrowser==="ready"&&Boolean(window.release_grammar)');
+ assert.equal(await evaluate('document.documentElement.dataset.linuxNoteTyporaEnhancements'),'loading','语法加载尚未完成时工作台界面已经挂载');
+ await evaluate('WebAssembly.instantiate=original_wasm_instantiate;release_grammar();void 0');
  await wait('document.documentElement.dataset.linuxNoteTyporaEnhancements==="ready"');
  assert.equal(await evaluate('fixture_errors.length'),0,await evaluate('fixture_errors.join("\\n")'));
  assert(await evaluate('fixture_commands.has("linux_note:terminal")&&fixture_commands.has("linux_note:search")&&fixture_factories.has("linux_note.source_file")'));

@@ -82,6 +82,12 @@ npm run test:quality -- --id TC-system-native-stress --tier 1000
 
 这是当前已实现入口的调用分类及回归归属，不等于每个系统对话框都在每台电脑验证。系统定位文件、外部程序打开、系统选择、剪贴板、Shell与clangd属于主机能力边界；跨账户/其他Windows机器、ARM64/Linux及物理输入法继续登记缺口。VS Code保护分支复合图标、扩展宿主与完整设置生态不在本轮修复范围；现有明确差异记录在问题索引，不以“一比一完成”代替验收。
 
+## 启动与切换的时序证据
+
+R054 的判定和影响范围见[启动稳定性](startup_stability.md)。`TC-sidebar-transitions` 检查生产核心的显隐所有权；`TC-sidebar-stress --tier 20/100/1000` 检查重复切换；`TC-startup-presentation` 检查静态 head 就绪／错误／超时恢复；既有 `test_workspace_startup.cjs` 增加语法加载被阻塞时的界面挂载断言。`TC-startup-native` 在真实宿主 head 前置采样，保留中间状态、宿主显隐调用、阶段耗时和长任务。
+
+首次展示不能只在 ready 后截图；测试必须能使旧实现失败。普通异步数据更新和初始化失败恢复分别判定，不能把一切加载都叫闪烁，也不能把每次长任务直接标记为已确认算法错误。压力档位只应用于真正改变操作数的用例，系统层默认20次而非启动1000个宿主。全部结果继续进入既有目录和运行报告，不另建无关联的测试清单。
+
 ## 更新模块的证据入口
 
 R047对应`update`领域：`TC-update-protocol`（单元／实现）、`TC-update-ui`（功能／实现）、`TC-update-concurrency`（功能／压力）、`TC-update-install`（系统／实现）。运行`npm run test:quality -- --domain update`；压力单独以`--id TC-update-concurrency --tier 100`或1000执行。跨进程争抢总次数按档位，最多20个并发进程，不把1000解释为同时启动1000个窗口。

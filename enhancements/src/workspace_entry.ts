@@ -10,6 +10,7 @@ if (!runtime[entry_key]) {
     acquire_workspace_style("typora-code-style:workspace_entry", entry_css);
     console.error("[Typora Code startup]", error);
     document.documentElement.dataset.typoraCodeStartup = "error";
+    document.documentElement.dataset.typoraCodePresentation = "error";
     const message = document.createElement("div");
     message.setAttribute("role", "alert");
     message.className = "typora-code-startup-error";

@@ -5136,6 +5136,7 @@ var workspace_core_module = (() => {
     }
     container = new SidebarContainer();
     activePanel;
+    shown_panel;
     internalPanels = [];
     panels = [];
     addPanel(panel) {
@@ -5158,6 +5159,11 @@ var workspace_core_module = (() => {
       return this.addPanel(panel);
     }
     removePanel(panel) {
+      if (this.shown_panel === panel) {
+        panel.hide();
+        this.shown_panel = void 0;
+      }
+      if (this.activePanel === panel) this.activePanel = void 0;
       if (panel.ribbonButton) {
         this.ribbon.removeButton(panel.ribbonButton);
       }
@@ -5178,25 +5184,35 @@ var workspace_core_module = (() => {
       return editor.library.isSidebarShown();
     }
     switch(viewClass) {
+      const target_panel = this.panels.find((c) => c instanceof viewClass);
+      if (!target_panel) return;
       if (this.activePanel instanceof viewClass) {
         this.toggle();
         return;
       }
-      Object.values(this.internalPanels).forEach((v) => v.hide());
-      this.hide();
-      this.activePanel = this.panels.find((c) => c instanceof viewClass);
+      const previous_panel = this.shown_panel ?? this.activePanel;
+      previous_panel?.hide();
+      this.shown_panel = void 0;
+      this.internalPanels.forEach((panel) => {
+        if (panel !== previous_panel) panel.hide();
+      });
+      this.activePanel = target_panel;
       this.show();
     }
     toggle() {
       this.isShown ? this.hide() : this.show();
     }
     show() {
-      editor.library.showSidebar();
+      if (!this.isShown) editor.library.showSidebar();
+      if (this.shown_panel === this.activePanel) return;
+      this.shown_panel?.hide();
       this.activePanel?.show();
+      this.shown_panel = this.activePanel;
     }
     hide() {
-      editor.library.hideSidebar();
-      this.activePanel?.hide();
+      if (this.isShown) editor.library.hideSidebar();
+      this.shown_panel?.hide();
+      this.shown_panel = void 0;
     }
   };
   var SidebarContainer = class extends View {

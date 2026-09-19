@@ -68,6 +68,7 @@ const ui_tests = Object.freeze([
   "test_workspace_file_icons.cjs",
   "test_workspace_files_search.cjs",
   "test_workspace_first_frame.cjs",
+  "test_startup_presentation.cjs",
   "test_workspace_footer.cjs",
   "test_workspace_document_margin.cjs",
   "test_workspace_lookup_preview.cjs",
