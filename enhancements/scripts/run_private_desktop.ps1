@@ -1,5 +1,5 @@
 ﻿# 在未切换的独立桌面运行专用宿主副本，只终止该副本的进程。
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -9,7 +9,7 @@ if (!$case_root.StartsWith($evidence_root + [IO.Path]::DirectorySeparatorChar, [
 $probe_root = $case_root
 $case_name = Split-Path -Leaf $case_root
 $document_path = Join-Path $case_root 'workspace/front.md'
-$exit_on_checks = $true
+$exit_on_checks = !$wait_for_normal_exit
 New-Item -ItemType Directory -Force -Path $case_root,(Join-Path $case_root 'appdata'),(Join-Path $case_root 'localappdata'),(Join-Path $case_root 'user_data') | Out-Null
 $env:APPDATA = Join-Path $case_root 'appdata'
 $env:LOCALAPPDATA = Join-Path $case_root 'localappdata'

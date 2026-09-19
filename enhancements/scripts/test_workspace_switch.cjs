@@ -96,6 +96,33 @@ app.whenReady().then(async()=>{
  await wait('!document.querySelector(".linux-note-terminal[data-session]")');
  checks.push('terminal sessions are disclosed before switch and removed only after acceptance');
  await evaluate('run_folder(fixture_root)');await wait('document.querySelector(".git-status-branch")?.textContent.includes("main")');await delay(250);
+ // R040.2：原生配置开启后，各根会话独立恢复，保留顺序和活动项。
+ await evaluate('File.option.restoreWhenLaunch=2;run_folder(second_root)');
+ await evaluate('qa.get_workspace_files().open_file(require("path").join(second_root,"target.ts"))');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ await evaluate('run_folder(fixture_root)');
+ await evaluate('qa.get_workspace_files().open_file(fixture_source)');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ await evaluate('qa.get_workspace_files().open_file(require("path").join(fixture_root,"second.ts"))');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ await evaluate('qa.get_workspace_files().open_file(fixture_source)');
+ await evaluate('run_folder(second_root)');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ assert(await evaluate('qa.get_workspace_files().editor_state(fixture_core.app.workspace.activeLeaf).file_path.endsWith("target.ts")'));
+ await evaluate('run_folder(fixture_root)');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ assert(await evaluate('qa.get_workspace_files().editor_state(fixture_core.app.workspace.activeLeaf).file_path===fixture_source'));
+ assert(await evaluate('fixture_leaves.filter(leaf=>qa.get_workspace_files().editor_state(leaf).kind==="source").map(leaf=>require("path").basename(qa.get_workspace_files().editor_state(leaf).file_path)).join(",")==="source.ts,second.ts"'));
+ checks.push('per-root saved order and active file restore after A→B→A with native restoreWhenLaunch=2');
+ await evaluate('run_folder(second_root)');fs.unlinkSync(path.join(repository,'second.ts'));
+ await evaluate('run_folder(fixture_root)');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ assert(await evaluate('notices.some(value=>value.includes("second.ts"))'));
+ assert(await evaluate('qa.get_workspace_files().editor_state(fixture_core.app.workspace.activeLeaf).file_path===fixture_source'));
+ checks.push('missing file reports a partial restore and retains the available active file');
+ await evaluate('run_folder(plain_root)');await evaluate('qa.get_workspace_files().open_file(require("path").join(plain_root,"plain.txt"))');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
+ await evaluate('qa.get_workspace_files().close_leaf(fixture_core.app.workspace.activeLeaf)');
+ await evaluate('run_folder(second_root)');await evaluate('run_folder(plain_root)');
+ assert(await evaluate('fixture_leaves.every(leaf=>qa.get_workspace_files().editor_state(leaf).kind==="other")'));
+ checks.push('closing the last file persists an empty session, with no fallback to global recent files');
+ await evaluate('File.option.restoreWhenLaunch=1;run_folder(fixture_root)');
+ assert(await evaluate('fixture_leaves.every(leaf=>qa.get_workspace_files().editor_state(leaf).kind==="other")'));
+ checks.push('folder-only native preference disables file restoration');
+ await wait('document.querySelector(".git-status-branch")?.textContent.includes("main")');await delay(350);
  const before_listeners=await evaluate('fixture_listener_snapshot()');fs.writeFileSync(path.join(evidence,'listeners_before.json'),JSON.stringify(before_listeners,null,2));
  for(let i=0;i<20;i++){await evaluate(i%2?'run_folder(fixture_root)':'run_folder(second_root)');await delay(20);}
  await wait('document.querySelector(".git-status-branch")?.textContent.includes("main")');await delay(250);const after_listeners=await evaluate('fixture_listener_snapshot()');fs.writeFileSync(path.join(evidence,'listeners_after.json'),JSON.stringify(after_listeners,null,2));console.log('Evidence: '+evidence);const identities=items=>items.map(item=>[item.target,item.type,item.callback,item.stack.split("\n")[2]].join("|")).sort();assert.deepEqual(identities(after_listeners),identities(before_listeners),'workspace switches must preserve the settled global listener owners');

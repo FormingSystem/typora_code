@@ -1,11 +1,13 @@
 import type {workspace_file_host} from "./workspace_files";
 import {bind_workspace_open_dialog} from "./workspace_open_dialog";
 import {create_workspace_lifetime} from "./workspace_lifetime";
+import {bind_workspace_sessions} from "./workspace_sessions";
 
 /** 入口层只绑定命令。文件状态归文件服务，系统窗口和目录切换归宿主适配器。 */
 export function bind_workspace_file_commands(files:workspace_file_host,changed:()=>void){
   const lifetime=create_workspace_lifetime(),core=files.core;
-  const picker=lifetime.own(bind_workspace_open_dialog(files,changed));
+  const sessions=lifetime.own(bind_workspace_sessions(files));
+  const picker=lifetime.own(bind_workspace_open_dialog(files,changed,sessions));
   const run=(action:()=>unknown)=>{
     if(lifetime.disposed)return;
     return Promise.resolve().then(()=>{if(!lifetime.disposed)return action();}).catch(error=>{

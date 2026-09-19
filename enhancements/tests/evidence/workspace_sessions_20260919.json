@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R040.2"
+  ],
+  "baseline": "60f2702614bdd8e07bcd813352f30b48ff18163a",
+  "release": "2026.09.19.9",
+  "design": "docs/workspace_switch.md#r0402-按工作区恢复上次打开的文件",
+  "implementation": [
+    "workspace_sessions.ts",
+    "workspace_session_store.ts",
+    "workspace_open_dialog.ts",
+    "workspace_file_commands.ts",
+    "workspace_files.ts"
+  ],
+  "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b",
+  "reports": [
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-33-59-575Z_fa115d/report.json",
+      "sha256": "55799a370773a455e0a01207ece0d99da87773c081059bac8b5bae0a832e5a88",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-switch-ui"
+      ],
+      "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b"
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-37-31-475Z_848eec/report.json",
+      "sha256": "d9d4c27e4fb8040897dbf35b167fe5f468f7d6f76943fce6d32e4e5dfad056f3",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-sessions-native"
+      ],
+      "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b"
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-34-31-933Z_1f6062/report.json",
+      "sha256": "cb86b92dc2bf397f9a397327a9c7e95825fc36227d6a546c47e4935b7a366767",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-session-store"
+      ],
+      "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b"
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-40-07-552Z_2247b9/report.json",
+      "sha256": "05c4177341e199ebc41c7d669c70389ede8e07455084e152a958c278df12ac0d",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-switch-native"
+      ],
+      "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b"
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T15-40-14-708Z_cd5c24/report.json",
+      "sha256": "0d28901539cbd2bb0e1889bc4fe4eb019d030a8c2e1089be68affef29b4d946f",
+      "status": "passed",
+      "cases": [
+        "TC-system-native-empty-editor"
+      ],
+      "asset_manifest_sha256": "f237350be808c52bd7c5434021521cefeb857dca0d1c90ed1ccacbd73421895b"
+    }
+  ],
+  "native": {
+    "host": "Typora 1.14.10 Windows x64",
+    "input": "独立副本及私有桌面，renderer事件/宿主API；两个不同进程window.close正常退出",
+    "case": ".cache/issue_tracking/native/7a9a9f5e4e44435c93dd3096128fb0a3",
+    "phases": [
+      {
+        "phase": 1,
+        "checks": [
+          "原生偏好页配置接口实际读到恢复文件和目录",
+          "无历史目录保持空编辑区",
+          "返回A恢复文件顺序及活动Markdown",
+          "同组非末尾Markdown草稿参与切换检查，取消保留内存",
+          "循环0恢复仅所属工作区文件",
+          "循环1恢复仅所属工作区文件",
+          "循环2恢复仅所属工作区文件",
+          "循环3恢复仅所属工作区文件",
+          "循环4恢复仅所属工作区文件",
+          "循环5恢复仅所属工作区文件",
+          "循环6恢复仅所属工作区文件",
+          "循环7恢复仅所属工作区文件",
+          "循环8恢复仅所属工作区文件",
+          "循环9恢复仅所属工作区文件",
+          "循环10恢复仅所属工作区文件",
+          "循环11恢复仅所属工作区文件",
+          "循环12恢复仅所属工作区文件",
+          "循环13恢复仅所属工作区文件",
+          "循环14恢复仅所属工作区文件",
+          "循环15恢复仅所属工作区文件",
+          "循环16恢复仅所属工作区文件",
+          "循环17恢复仅所属工作区文件",
+          "循环18恢复仅所属工作区文件",
+          "循环19恢复仅所属工作区文件",
+          "20次往返后活动文件仍一致",
+          "两个工作区分别写入独立磁盘记录",
+          "恢复全过程未改写Markdown原文"
+        ],
+        "count": 27,
+        "checks_sha256": "02e0947fe398d65bf9fcb7d3e3edea4e76e1785adac27e847d3e3b5faab777be",
+        "pid": 57112,
+        "wait_result": 0,
+        "exit_code": 0
+      },
+      {
+        "phase": 2,
+        "checks": [
+          "新宿主进程从磁盘恢复同一目录的Markdown与源码",
+          "启动时宿主明确打开文件保持活动，不被历史活动源码抢占",
+          "第二进程沿用原生持久化恢复配置"
+        ],
+        "count": 3,
+        "checks_sha256": "c21f233d512d47b286dc824e24eab6b608ee646fe335928b2c3b90e3a5f5da7c",
+        "pid": 9668,
+        "wait_result": 0,
+        "exit_code": 0
+      }
+    ]
+  },
+  "validation": {
+    "build": "passed",
+    "check": "passed",
+    "related_ui": {
+      "passed": 7,
+      "scope": "startup, explorer_history, file_editing, source_lifecycle, reading_lifecycle, editor_actions, workspace_switch"
+    },
+    "stress": {
+      "disk_roundtrips": [
+        20,
+        100,
+        1000
+      ],
+      "native_workspace_switches": 20
+    },
+    "logs": {
+      ".cache/session_build5.log": "aacf962e23219bbf2e3418e3117908e501a80442e7e6ebdc9bdc6aa841220a20",
+      ".cache/session_full_check_final.log": "2b4db46f960511eda8da6381e02c417c64b019f5ab7eb81c4e8c0aa5786ff73f",
+      ".cache/session_related_ui_final.log": "1ce27c89b8648980b456aec02b79cd8e5667d77543fa439495df8e6c50630b7c",
+      ".cache/session_editing_ui.log": "79aa847b5bfb40b985e82f690a2b6ce77e9664f5992699a5ba37fff51832b9d8",
+      ".cache/session_contracts.log": "baf8571e653eceaffabfde8c12a84fea69d0bcaaa151e178b066bea7c1c4692d",
+      ".cache/session_install.log": "055b617422c998c3a3c16f5396214fbef7e8818ffe592104c9aab141cea7b4f9",
+      ".cache/session_install_check.log": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  },
+  "installation": {
+    "installed": true,
+    "asset_count": 27,
+    "assets": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "3a65259a2a79386b28834872f7b0e31939b7fa6bae137546aec604abf6054c07",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "72ceca7a1ed830a789e62e44b852feac766076d19dbbecbaa0cc79caeb4ff40b",
+      "workspace.css": "37b053127a54ce318b7808309f4b78617d1faf821d640b998ba330cd4eb42cc1",
+      "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected_unchanged": {
+      "app.asar": true,
+      "icon_32x32@2x.png": true,
+      "profile.data": true,
+      "workspace.json": true,
+      "cpp_github-consolas.css": true
+    },
+    "check": "OK",
+    "running_user_windows_restarted": false,
+    "push": false
+  },
+  "limitations": [
+    "旧版本没有按目录记录的会话无法追溯恢复；新版开始记录。",
+    "同文件/编辑方式跨分栏去重，恢复到现有主组，不重建分栏几何，不持久化未保存正文。",
+    "原跨机权限、ARM64/Linux和终端物理输入法缺口不由本轮关闭。"
+  ],
+  "failed_attempts": [
+    "编辑器setting.loadAll缺少启动选项，原生偏好页getExtraOption已验证。",
+    "原生eachLeaves回调返回Array.push长度导致提前退出，改为void并修正夹具；文件顺序按标签DOM采集。",
+    "源码创建后仍加载，恢复等待完成；独立旧夹具补显式会话端口及用户目录，不依赖本机配置。"
+  ]
+}

@@ -35,16 +35,17 @@ for(const result of [false,undefined,true]) {
 await assert.rejects(api.trash_native_path({reqnode:require_node,JSBridge:{invoke:async()=>{throw Object.assign(Error('access denied'),{code:'EACCES'});}}},keep),/access denied/);
 await assert.rejects(api.trash_native_path({reqnode:name=>name==='fs'?fs:{}},keep),/接口/);
 let folder='',history=[],changed=0;
-globalThis.window={File:{setMountFolder:value=>{folder=value;}},JSBridge:{invoke:async(name,target)=>{assert.equal(name,'setting.addRecentFolder');history=[target,...history.filter(item=>item!==target)];}}};
-const files={fs,path_api:path,context_root:()=>folder};
-const picker=api.bind_workspace_open_dialog(files,()=>changed++);
+globalThis.window={dispatchEvent(){},File:{setMountFolder:value=>{folder=value;}},JSBridge:{invoke:async(name,target)=>{assert.equal(name,'setting.addRecentFolder');history=[target,...history.filter(item=>item!==target)];}}};
+const files={fs,path_api:path,context_root:()=>folder,prepare_workspace_switch:async()=>()=>{}};
+const sessions={ready:Promise.resolve(),suspend(){},async resume(){}};
+const picker=api.bind_workspace_open_dialog(files,()=>changed++,sessions);
 for(let index=0;index<iterations;index++)await picker.set_folder(root);
-assert.deepEqual(history,[root]);assert.equal(changed,iterations);
+assert.deepEqual(history,[root]);assert.equal(changed,iterations-1);
 await assert.rejects(picker.set_folder(keep),/不是文件夹/);assert.deepEqual(history,[root]);
-picker.dispose();await picker.set_folder(root);assert.equal(changed,iterations);
+picker.dispose();await picker.set_folder(root);assert.equal(changed,iterations-1);
 // 先发请求迟到时不能覆盖后来选择或记入历史。
 let release;const delayed=new Promise(resolve=>release=resolve);let first=true;
-const second=api.bind_workspace_open_dialog({...files,fs:{promises:{stat:async target=>{if(first){first=false;await delayed;}return fs.promises.stat(target);}}}},()=>changed++);
+const second=api.bind_workspace_open_dialog({...files,fs:{promises:{stat:async target=>{if(first){first=false;await delayed;}return fs.promises.stat(target);}}}},()=>changed++,sessions);
 const stale=second.set_folder(root);await second.set_folder(recycled);release();await stale;assert.equal(folder,recycled);assert.equal(history[0],recycled);
 second.dispose();delete globalThis.window;
 console.log(JSON.stringify({status:'PASS',iterations,port:'宿主端口替身；真实临时文件移动，不是系统回收互通',cases:['TC-files-trash','TC-files-recent','TC-git-head'],root}));

@@ -198,5 +198,19 @@
     "adopted": "getElements基于g.editors，elementCount基于g.count；默认minVisible=0，空组不产生假文件行",
     "target": "enhancements/src/workspace_explorer_sections.ts",
     "validation": "TC-files-009及TC-system-native-empty-editor"
+  },
+  "workspace_sessions_20260919": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "files": [
+      {
+        "path": "src/vs/workbench/browser/parts/editor/editorPart.ts",
+        "sha256": "78bc70010b59b536e636527a7f8d762856ba34614827d21e908d165d078eaf37"
+      }
+    ],
+    "adopted": "workspaceMemento使用StorageScope.WORKSPACE保存editorpart.state及活动组；采用按根隔离的编辑文件会话",
+    "adaptation": "复用Typora restoreWhenLaunch=2；恢复顺序、文件方式、固定状态和活动文件，不实现热退出正文备份或网格重建",
+    "target": "enhancements/src/workspace_sessions.ts",
+    "validation": "TC-workspace-switch-ui、TC-workspace-session-store、TC-workspace-sessions-native"
   }
 }

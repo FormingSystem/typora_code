@@ -181859,7 +181859,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (is_markdown_file(file_path) && !location.source) {
         if ([...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
         const existing_leaves = /* @__PURE__ */ new Set();
-        core.app.workspace.eachLeaves((leaf3) => existing_leaves.add(leaf3));
+        core.app.workspace.eachLeaves((leaf3) => {
+          existing_leaves.add(leaf3);
+        });
         const placeholder = group === "active" ? route_native_group(file_path) : void 0;
         try {
           await navigate_reading_target(file_path, { group, hash: location.hash, signal: location.signal, locate: location.line == null ? void 0 : (signal) => reveal_markdown_location(location, signal) });
@@ -182180,12 +182182,16 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const prepare_workspace_switch = async () => {
       const leaves = [];
-      core.app.workspace.eachLeaves((leaf) => leaves.push(leaf));
+      core.app.workspace.eachLeaves((leaf) => {
+        leaves.push(leaf);
+      });
       const check = () => {
         assert_workspace_context_ready();
         if (!binding.active || renaming || file_operation_count || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
         const current = [];
-        core.app.workspace.eachLeaves((leaf) => current.push(leaf));
+        core.app.workspace.eachLeaves((leaf) => {
+          current.push(leaf);
+        });
         if (current.length !== leaves.length || current.some((leaf) => !leaves.includes(leaf))) throw new Error("\u6253\u5F00\u7684\u7F16\u8F91\u5668\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
       };
       check();
@@ -231323,7 +231329,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!anchor.startsWith("#") || /[\u0000-\u0020]/u.test(anchor)) throw new Error("\u65B0\u7A97\u53E3\u951A\u70B9\u5FC5\u987B\u662F\u5B89\u5168\u7684\u6587\u5185\u7247\u6BB5\u3002");
     return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
   }
-  function bind_workspace_open_dialog(files, changed2) {
+  function bind_workspace_open_dialog(files, changed2, sessions) {
     const runtime2 = window;
     let disposed = false, pending, revision = 0, changing = false;
     const library = runtime2.File?.editor?.library, native_root_changed = library?.onRootChanged;
@@ -231333,6 +231339,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       changing = true;
       try {
+        await sessions.ready;
+        if (disposed) return;
         assert_workspace_context_ready();
         const previous = files.context_root();
         if (same_root(previous, target)) {
@@ -231344,9 +231352,10 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed || !close) return;
         if (target && !(await files.fs.promises.stat(target)).isDirectory()) throw new Error("\u76EE\u6807\u76EE\u5F55\u5DF2\u4E0D\u5B58\u5728\u3002");
         if (disposed) return;
-        begin_workspace_context_switch();
+        sessions.suspend();
         let committed = false;
         try {
+          begin_workspace_context_switch();
           close();
           const mounted = target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target;
           runtime2.File.setMountFolder(mounted);
@@ -231355,6 +231364,7 @@ https://creativecommons.org/licenses/by/4.0/
         } finally {
           if (committed) finish_workspace_context_switch();
           else cancel_workspace_context_switch();
+          await sessions.resume(committed);
         }
       } finally {
         changing = false;
@@ -236835,10 +236845,199 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/workspace_session_store.ts
+  function create_workspace_session_store(fs2, path_api, crypto2, directory) {
+    const root_key2 = (root) => {
+      const resolved = path_api.resolve(root);
+      return path_api.sep === "\\" ? resolved.toLowerCase() : resolved;
+    };
+    const location = (root) => path_api.join(directory, crypto2.createHash("sha256").update(root_key2(root)).digest("hex") + ".json");
+    const validate = (value, root) => {
+      if (value?.schema !== 1 || value.root !== root_key2(root) || !Array.isArray(value.files) || value.files.length > 1e3 || !Number.isInteger(value.active) || value.active < -1 || value.active >= value.files.length) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u65E0\u6548\u3002");
+      if (value.files.some((file) => !file || typeof file.path !== "string" || file.path.length > 32768 || file.path.includes("\0") || !path_api.isAbsolute(file.path) || typeof file.source !== "boolean" || typeof file.pinned !== "boolean")) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u6587\u4EF6\u8EAB\u4EFD\u65E0\u6548\u3002");
+      return value;
+    };
+    return {
+      root_key: root_key2,
+      read(root) {
+        if (!root) return;
+        try {
+          const file = location(root);
+          if (fs2.statSync(file).size > 2 * 1024 * 1024) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u8FC7\u5927\u3002");
+          return validate(JSON.parse(fs2.readFileSync(file, "utf8")), root);
+        } catch (error) {
+          if (error?.code === "ENOENT") return;
+          throw error;
+        }
+      },
+      write(root, files, active) {
+        if (!root) return;
+        const value = validate({ schema: 1, root: root_key2(root), files, active }, root), text3 = JSON.stringify(value);
+        if (new TextEncoder().encode(text3).length > 2 * 1024 * 1024) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u8FC7\u5927\u3002");
+        fs2.mkdirSync(directory, { recursive: true });
+        const file = location(root), temporary = file + "." + crypto2.randomUUID() + ".tmp";
+        try {
+          fs2.writeFileSync(temporary, text3, { encoding: "utf8", flag: "wx", mode: 384 });
+          fs2.renameSync(temporary, file);
+        } finally {
+          try {
+            fs2.unlinkSync(temporary);
+          } catch (error) {
+            if (error?.code !== "ENOENT") throw error;
+          }
+        }
+      }
+    };
+  }
+
+  // src/workspace_sessions.ts
+  function bind_workspace_sessions(files) {
+    const runtime2 = window, workspace = files.core.app.workspace;
+    const store = create_workspace_session_store(files.fs, files.path_api, runtime2.reqnode("crypto"), files.path_api.join(runtime2._options.userDataPath, "typora_code", "state", "workspace_sessions"));
+    let disposed = false, paused = true, timer, reported = false;
+    const controller = new AbortController();
+    const notice = (error) => {
+      if (!disposed) new files.core.Notice("\u5DE5\u4F5C\u533A\u6587\u4EF6\u6062\u590D\uFF1A" + String(error instanceof Error ? error.message : error), 6e3);
+    };
+    const snapshot = () => {
+      const entries3 = [], identities = /* @__PURE__ */ new Map();
+      let active = -1;
+      const leaves = [];
+      workspace.eachLeaves((leaf) => {
+        leaves.push(leaf);
+      });
+      leaves.sort((left, right) => {
+        const a = left.parent.tabHeader?.getTabById(left.state.path) || left.containerEl;
+        const b2 = right.parent.tabHeader?.getTabById(right.state.path) || right.containerEl;
+        const relation = a.compareDocumentPosition(b2);
+        return relation & 1 ? 0 : relation & 4 ? -1 : relation & 2 ? 1 : 0;
+      });
+      leaves.forEach((leaf) => {
+        const state = files.editor_state(leaf);
+        if (!state.file_path || state.kind === "other" || !files.path_api.isAbsolute(state.file_path)) return;
+        const identity5 = file_key(state.file_path) + ":" + state.kind;
+        let index = identities.get(identity5);
+        if (index === void 0) {
+          index = entries3.length;
+          identities.set(identity5, index);
+          entries3.push({ path: state.file_path, source: state.kind === "source", pinned: !!leaf.state.workspace_pinned });
+        }
+        if (leaf === workspace.activeLeaf) active = index;
+      });
+      return { entries: entries3, active };
+    };
+    const save = () => {
+      const { entries: entries3, active } = snapshot();
+      store.write(files.context_root(), entries3, active);
+    };
+    const flush = () => {
+      clearTimeout(timer);
+      if (disposed || paused || workspace_context_switching()) return;
+      try {
+        save();
+        reported = false;
+      } catch (error) {
+        if (!reported) notice(error);
+        reported = true;
+      }
+    };
+    const schedule = () => {
+      if (disposed || paused) return;
+      clearTimeout(timer);
+      timer = setTimeout(flush, 150);
+    };
+    const stops = [workspace.on("layout-changed", schedule), workspace.on("active-leaf:change", schedule), workspace.on("file:open", schedule)];
+    window.addEventListener("beforeunload", flush);
+    const enabled = async () => {
+      const raw = await runtime2.JSBridge?.invoke?.("setting.getExtraOption");
+      const options2 = typeof raw === "string" ? JSON.parse(raw) : raw || runtime2.File?.option;
+      return String(options2?.restoreWhenLaunch) === "2";
+    };
+    const restore = async (initial = false) => {
+      const root = files.context_root(), epoch2 = workspace_context_epoch();
+      const current = () => !disposed && !controller.signal.aborted && epoch2 === workspace_context_epoch() && root === files.context_root();
+      try {
+        if (!root || !await enabled() || !current()) return;
+        let dirty = false;
+        workspace.eachLeaves((leaf) => {
+          if (files.editor_state(leaf).dirty) dirty = true;
+        });
+        if (dirty) return;
+        const saved = store.read(root);
+        if (!saved) return;
+        const initial_state = initial && workspace.activeLeaf ? files.editor_state(workspace.activeLeaf) : void 0;
+        const preferred = initial_state?.file_path ? { path: initial_state.file_path, source: initial_state.kind === "source" } : saved.files[saved.active];
+        const errors = [];
+        for (const entry of saved.files) {
+          if (!current()) return;
+          try {
+            await files.open_file(entry.path, { source: entry.source, preview: false, signal: controller.signal });
+            if (!current()) return;
+            const leaf = workspace.activeLeaf;
+            const started = Date.now();
+            while (leaf && files.editor_state(leaf).busy && current()) {
+              if (Date.now() - started > 1e4) throw new Error("\u7B49\u5F85\u6587\u4EF6\u52A0\u8F7D\u8D85\u65F6\u3002");
+              await new Promise((resolve3) => setTimeout(resolve3, 30));
+            }
+            if (!current()) return;
+            if (leaf && file_key(files.editor_state(leaf).file_path) === file_key(entry.path)) {
+              leaf.state.workspace_pinned = entry.pinned;
+              files.keep_open(leaf);
+            }
+          } catch (error) {
+            if (!current()) return;
+            errors.push(entry.path + "\uFF1A" + String(error.message || error));
+          }
+        }
+        if (preferred && current()) {
+          let found = false;
+          workspace.eachLeaves((leaf) => {
+            const state = files.editor_state(leaf);
+            if (file_key(state.file_path) === file_key(preferred.path) && state.kind === "source" === preferred.source) found = true;
+          });
+          if (found) await files.open_file(preferred.path, { source: preferred.source, preview: false, signal: controller.signal });
+        }
+        if (errors.length) notice("\u90E8\u5206\u6587\u4EF6\u672A\u80FD\u6253\u5F00\uFF1A\n" + errors.join("\n"));
+      } catch (error) {
+        notice(error);
+      }
+    };
+    const ready = (async () => {
+      while (!disposed && document.documentElement.dataset.linuxNoteTyporaEnhancements === "loading") await new Promise((resolve3) => setTimeout(resolve3, 30));
+      if (disposed) return;
+      await restore(true);
+      paused = false;
+    })();
+    return {
+      ready,
+      suspend() {
+        clearTimeout(timer);
+        save();
+        paused = true;
+      },
+      async resume(restore_files) {
+        try {
+          if (restore_files) await restore();
+        } finally {
+          paused = false;
+        }
+      },
+      dispose() {
+        flush();
+        disposed = true;
+        controller.abort();
+        clearTimeout(timer);
+        for (const stop of stops) stop();
+        window.removeEventListener("beforeunload", flush);
+      }
+    };
+  }
+
   // src/workspace_file_commands.ts
   function bind_workspace_file_commands(files, changed2) {
     const lifetime = create_workspace_lifetime(), core = files.core;
-    const picker = lifetime.own(bind_workspace_open_dialog(files, changed2));
+    const sessions = lifetime.own(bind_workspace_sessions(files));
+    const picker = lifetime.own(bind_workspace_open_dialog(files, changed2, sessions));
     const run = (action) => {
       if (lifetime.disposed) return;
       return Promise.resolve().then(() => {
@@ -238244,6 +238443,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026091909,
+        version: "2026.09.19.9",
+        date: "2026-09-19",
+        notes: [
+          "\u542F\u7528\u6062\u590D\u4E0A\u6B21\u6587\u4EF6\u540E\uFF0C\u5207\u6362\u6216\u91CD\u5F00\u76EE\u5F55\u4F1A\u6062\u590D\u8BE5\u5DE5\u4F5C\u533A\u81EA\u5DF1\u7684\u6587\u4EF6\u987A\u5E8F\u548C\u6D3B\u52A8\u6587\u4EF6\uFF0C\u7A7A\u4F1A\u8BDD\u4FDD\u6301\u4E3A\u7A7A\u3002",
+          "\u4F1A\u8BDD\u6309\u76EE\u5F55\u72EC\u7ACB\u4FDD\u5B58\uFF0C\u6587\u4EF6\u4E22\u5931\u65F6\u63D0\u793A\u5E76\u7EE7\u7EED\u6062\u590D\u53EF\u7528\u6587\u4EF6\uFF1B\u4FDD\u7559\u672A\u4FDD\u5B58\u4FDD\u62A4\u4E0EGit\u3001\u641C\u7D22\u7684\u5207\u6362\u9694\u79BB\u3002"
+        ]
+      },
       {
         sequence: 2026091908,
         version: "2026.09.19.8",

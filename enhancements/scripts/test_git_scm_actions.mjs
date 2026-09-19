@@ -40,7 +40,7 @@ try{
   const settings=api.validate_settings({history_toolbar_hidden:['fetch','pull'],history_shortcuts:{refresh:'F5'}});assert.equal(settings.history_toolbar_hidden.length,2);assert.throws(()=>api.validate_settings({history_toolbar_hidden:['more']}));checks.push('toolbar settings preserve recoverable actions and cannot hide More');
   const window_calls=[];
   globalThis.window={JSBridge:{invoke:async(...args)=>{window_calls.push(args);return {};}}};
-  const picker=api.bind_workspace_open_dialog({fs,path_api:path,core:{app:{openFile(){throw new Error('must not route through editor');}}}},()=>{});
+  const picker=api.bind_workspace_open_dialog({fs,path_api:path,core:{app:{openFile(){throw new Error('must not route through editor');}}}},()=>{},{ready:Promise.resolve(),suspend(){},async resume(){}});
   await picker.open_folder_new_window(root);assert.deepEqual(window_calls,[['app.openFile',null,{mountFolder:path.normalize(root),anchor:'#'}]]);
   await assert.rejects(picker.open_folder_new_window('relative'),/路径无效/);await assert.rejects(picker.open_folder_new_window(path.join(root,'first.md')),/不是文件夹/);assert.equal(window_calls.length,1);
   picker.dispose();await picker.open_folder_new_window(root);assert.equal(window_calls.length,1);

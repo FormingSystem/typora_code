@@ -342,7 +342,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
-      const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>existing_leaves.add(leaf));
+      const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>{existing_leaves.add(leaf);});
       const placeholder=group==="active"?route_native_group(file_path):undefined;
       try {await navigate_reading_target(file_path, {group, hash: location.hash, signal:location.signal, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});}
       finally {if(placeholder)placeholder.parent.removeTab?.(placeholder.state.path);}
@@ -570,11 +570,11 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       busy:Boolean(renaming||source?.saving||source?.loading||native_same&&(runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||runtime.File?._onFileSwitching))};
   };
   const prepare_workspace_switch=async():Promise<(()=>void)|undefined>=>{
-    const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>leaves.push(leaf));
+    const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{leaves.push(leaf);});
     const check=()=>{
       assert_workspace_context_ready();
       if(!binding.active||renaming||file_operation_count||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error("文件正在读取、保存或移动，请完成后再切换工作区。");
-      const current:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>current.push(leaf));
+      const current:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{current.push(leaf);});
       if(current.length!==leaves.length||current.some(leaf=>!leaves.includes(leaf)))throw new Error("打开的编辑器已变化，请重新切换工作区。");
     };
     check();

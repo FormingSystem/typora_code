@@ -5,7 +5,7 @@
  const wait=async(fn,label)=>{for(let i=0;i<250;i++){if(await fn())return;await pause(30);}throw Error('timeout '+label);};
  const assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);fs.writeFileSync(path.join(base,'progress.json'),JSON.stringify(checks,null,2),'utf8');};
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
- const leaves=()=>{const result=[];core.app.workspace.eachLeaves(leaf=>result.push(leaf));return result;};
+ const leaves=()=>{const result=[];core.app.workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
  const active=()=>core.app.workspace.activeLeaf;
  const blank=()=>leaves().length===1&&active().state.path.startsWith('typ://core.empty/');
  const rows=()=>[...document.querySelectorAll('.workspace-explorer-open-row')];

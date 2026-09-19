@@ -4134,13 +4134,16 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R040.1"
+        "R040.1",
+        "R040.2"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
         "enhancements/src/workspace_open_dialog.ts",
         "enhancements/src/workspace_context.ts",
-        "enhancements/src/workspace_files.ts"
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_session_store.ts"
       ],
       "related_modules": [
         "files",
@@ -4167,13 +4170,16 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R040.1"
+        "R040.1",
+        "R040.2"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
         "enhancements/src/workspace_open_dialog.ts",
         "enhancements/src/workspace_context.ts",
-        "enhancements/src/workspace_files.ts"
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_session_store.ts"
       ],
       "related_modules": [
         "files",
@@ -4363,6 +4369,71 @@
         "仅成功回收的未变化缓冲可释放，非空草稿不能清除标记"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R040.2"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_session_store.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "git",
+        "startup"
+      ],
+      "environment": "隔离临时目录及独立宿主",
+      "preconditions": "不操作用户文档；原生需固定Typora 1.14.10",
+      "steps": [
+        "检查目录会话保存、恢复、配置和隔离，20/100/1000按层级执行"
+      ],
+      "expected": [
+        "根目录与打开文件一致，失败保留旧记录，原正文不变"
+      ],
+      "timeout_ms": 240000,
+      "id": "TC-workspace-session-store",
+      "level": "unit",
+      "purpose": "stress",
+      "script": "enhancements/scripts/test_workspace_session_store.mjs"
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R040.2"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_session_store.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "git",
+        "startup"
+      ],
+      "environment": "隔离临时目录及独立宿主",
+      "preconditions": "不操作用户文档；原生需固定Typora 1.14.10",
+      "steps": [
+        "检查目录会话保存、恢复、配置和隔离，20/100/1000按层级执行"
+      ],
+      "expected": [
+        "根目录与打开文件一致，失败保留旧记录，原正文不变"
+      ],
+      "timeout_ms": 240000,
+      "id": "TC-workspace-sessions-native",
+      "level": "system",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_workspace_sessions_native.ps1",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
     }
   ]
 }

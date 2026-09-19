@@ -1,4 +1,5 @@
 import type {workspace_file_host} from "./workspace_files";
+import type {bind_workspace_sessions} from "./workspace_sessions";
 import {assert_workspace_context_ready,begin_workspace_context_switch,finish_workspace_context_switch,cancel_workspace_context_switch} from "./workspace_context";
 
 type open_dialog_runtime = {
@@ -15,7 +16,7 @@ export async function open_workspace_window(root:string,anchor="#"):Promise<unkn
 }
 
 /** Typora 1.14.9 ClientCommand.open/openFolder 使用的同一系统选择窗口。 */
-export function bind_workspace_open_dialog(files:workspace_file_host, changed:()=>void) {
+export function bind_workspace_open_dialog(files:workspace_file_host, changed:()=>void, sessions:Pick<ReturnType<typeof bind_workspace_sessions>,"ready"|"suspend"|"resume">) {
   const runtime=window as unknown as open_dialog_runtime;
   let disposed=false, pending:Promise<void>|undefined,revision=0,changing=false;
   const library=runtime.File?.editor?.library,native_root_changed=library?.onRootChanged;
@@ -25,21 +26,24 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
     changing=true;
     try{
+      await sessions.ready;if(disposed)return;
       assert_workspace_context_ready();
       const previous=files.context_root();
       if(same_root(previous,target)){changed();window.dispatchEvent(new Event("linux-note-workspace-context-refreshed"));return;}
       const close=await files.prepare_workspace_switch();if(disposed||!close)return;
       if(target&&!(await files.fs.promises.stat(target)).isDirectory())throw new Error("目标目录已不存在。");
       if(disposed)return;
-      begin_workspace_context_switch();
+      sessions.suspend();
       let committed=false;
       try{
+        begin_workspace_context_switch();
         close();const mounted=target.endsWith(files.path_api.sep)?target+files.path_api.sep:target;
         runtime.File.setMountFolder(mounted);committed=true;
         native_root_changed?.call(library,mounted,true);
       }finally{
         // 原生缓存刷新失败也不能把已切换的根目录留在旧Git/搜索状态。
         if(committed)finish_workspace_context_switch();else cancel_workspace_context_switch();
+        await sessions.resume(committed);
       }
     }finally{changing=false;}
   };
