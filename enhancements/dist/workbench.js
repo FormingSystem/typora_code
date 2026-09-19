@@ -48540,8 +48540,8 @@ https://creativecommons.org/licenses/by/4.0/
         static _isStringArray(arr) {
           return arr.length > 0 && typeof arr[0] === "string";
         }
-        static _getElements(sequence) {
-          const elements = sequence.getElements();
+        static _getElements(sequence2) {
+          const elements = sequence2.getElements();
           if (_LcsDiff._isStringArray(elements)) {
             const hashes = new Int32Array(elements.length);
             for (let i = 0, len = elements.length; i < len; i++) {
@@ -48568,9 +48568,9 @@ https://creativecommons.org/licenses/by/4.0/
           const modifiedElement = _LcsDiff._getStrictElement(this._modifiedSequence, newIndex);
           return originalElement === modifiedElement;
         }
-        static _getStrictElement(sequence, index) {
-          if (typeof sequence.getStrictElement === "function") {
-            return sequence.getStrictElement(index);
+        static _getStrictElement(sequence2, index) {
+          if (typeof sequence2.getStrictElement === "function") {
+            return sequence2.getStrictElement(index);
           }
           return null;
         }
@@ -158472,11 +158472,22 @@ https://creativecommons.org/licenses/by/4.0/
     warning: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14.831 11.965L9.206 1.714C8.965 1.274 8.503 1 8 1C7.497 1 7.035 1.274 6.794 1.714L1.169 11.965C1.059 12.167 1 12.395 1 12.625C1 13.383 1.617 14 2.375 14H13.625C14.383 14 15 13.383 15 12.625C15 12.395 14.941 12.167 14.831 11.965ZM13.625 13H2.375C2.168 13 2 12.832 2 12.625C2 12.561 2.016 12.5 2.046 12.445L7.671 2.195C7.736 2.075 7.863 2 8 2C8.137 2 8.264 2.075 8.329 2.195L13.954 12.445C13.984 12.501 14 12.561 14 12.625C14 12.832 13.832 13 13.625 13ZM8.75 11.25C8.75 11.664 8.414 12 8 12C7.586 12 7.25 11.664 7.25 11.25C7.25 10.836 7.586 10.5 8 10.5C8.414 10.5 8.75 10.836 8.75 11.25ZM7.5 9V5.5C7.5 5.224 7.724 5 8 5C8.276 5 8.5 5.224 8.5 5.5V9C8.5 9.276 8.276 9.5 8 9.5C7.724 9.5 7.5 9.276 7.5 9Z"/></svg>',
     cloud: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M8 4C6.34315 4 5 5.34315 5 7C5 7.27614 4.77614 7.5 4.5 7.5H4.25C3.00736 7.5 2 8.50736 2 9.75C2 10.9926 3.00736 12 4.25 12H11.75C12.9926 12 14 10.9926 14 9.75C14 8.50736 12.9926 7.5 11.75 7.5H11.5C11.2239 7.5 11 7.27614 11 7C11 5.34315 9.65685 4 8 4ZM4.03004 6.50733C4.27283 4.53062 5.95767 3 8 3C10.0423 3 11.7272 4.53063 11.97 6.50733C13.6623 6.62043 15 8.029 15 9.75C15 11.5449 13.5449 13 11.75 13H4.25C2.45507 13 1 11.5449 1 9.75C1 8.029 2.33769 6.62043 4.03004 6.50733Z"/></svg>',
     whitespace: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 2H11.5C11.776 2 12 2.224 12 2.5C12 2.776 11.776 3 11.5 3H11V13.5C11 13.776 10.776 14 10.5 14C10.224 14 10 13.776 10 13.5V3H9V13.5C9 13.776 8.776 14 8.5 14C8.224 14 8 13.776 8 13.5V9H7C5.067 9 3.5 7.433 3.5 5.5C3.5 3.567 5.067 2 7 2ZM7 8H8V3H7C5.619 3 4.5 4.119 4.5 5.5C4.5 6.881 5.619 8 7 8Z"/></svg>',
-    filter: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>'
+    filter: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>',
+    "debug-disconnect": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15.3542 0.646006C15.1592 0.451006 14.8422 0.451006 14.6472 0.646006L12.5772 2.71601C11.2072 1.71701 9.20723 1.87301 7.93723 3.14401L7.80623 3.27501C7.31923 3.76201 7.31923 4.55501 7.80623 5.04301L10.9882 8.22501C11.2312 8.46901 11.5512 8.59101 11.8722 8.59101C12.1932 8.59101 12.5132 8.46901 12.7562 8.22501L12.9762 8.00501C13.6522 7.33001 14.0162 6.43101 14.0012 5.47601C13.9892 4.72001 13.7412 4.00601 13.2912 3.41701L15.3542 1.35401C15.5492 1.15901 15.5492 0.841006 15.3542 0.646006ZM12.2682 7.29701L12.0482 7.51701C11.9502 7.61501 11.7922 7.61501 11.6942 7.51701L8.51223 4.33501C8.41423 4.23701 8.41423 4.07901 8.51223 3.98101L8.64323 3.85001C9.16723 3.32601 9.86023 3.06001 10.5402 3.06001C11.1502 3.06001 11.7512 3.27401 12.2112 3.70801C12.7092 4.17601 12.9882 4.80901 12.9992 5.49101C13.0092 6.17301 12.7502 6.81501 12.2682 7.29701ZM8.14623 9.14601L7.26623 10.026L5.97323 8.73301L6.85323 7.85301C7.04823 7.65801 7.04823 7.34101 6.85323 7.14601C6.65823 6.95101 6.34123 6.95101 6.14623 7.14601L5.26623 8.02601L5.01323 7.77301C4.52723 7.28701 3.73223 7.28701 3.24523 7.77401L3.02523 7.99401C2.34923 8.66901 1.98523 9.56801 2.00023 10.523C2.01223 11.279 2.26023 11.993 2.71023 12.582L0.647227 14.645C0.452227 14.84 0.452227 15.157 0.647227 15.352C0.745227 15.45 0.873227 15.498 1.00123 15.498C1.12923 15.498 1.25723 15.449 1.35523 15.352L3.42523 13.282C4.02223 13.717 4.73723 13.934 5.46123 13.934C6.39923 13.934 7.34923 13.571 8.06523 12.854L8.19623 12.723C8.68323 12.236 8.68323 11.443 8.19623 10.955L7.97423 10.733L8.85423 9.85301C9.04923 9.65801 9.04923 9.34101 8.85423 9.14601C8.65923 8.95101 8.34223 8.95101 8.14723 9.14601H8.14623ZM7.48923 12.018L7.35723 12.149C6.36323 13.144 4.76123 13.208 3.78923 12.291C3.29123 11.823 3.01223 11.19 3.00123 10.508C2.99123 9.82601 3.25123 9.18401 3.73323 8.70201L3.95323 8.48201C4.00223 8.43301 4.06523 8.40901 4.13023 8.40901C4.19523 8.40901 4.25823 8.43301 4.30723 8.48201C5.37118 9.54596 6.42725 10.602 7.48723 11.662C7.58523 11.76 7.58523 11.918 7.48723 12.016L7.48923 12.018Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
   var zh_cn = {
+    "checkout.placeholder": "\u9009\u62E9\u8981\u68C0\u51FA\u7684\u5206\u652F\u6216\u6807\u7B7E",
+    "checkout.from": "\u9009\u62E9\u65B0\u5206\u652F\u7684\u8D77\u70B9",
+    "checkout.detached": "\u9009\u62E9\u8981\u4EE5\u5206\u79BB HEAD \u6A21\u5F0F\u68C0\u51FA\u7684\u5206\u652F",
+    "checkout.create": "\u521B\u5EFA\u65B0\u5206\u652F\u2026",
+    "checkout.create_from": "\u4ECE\u6307\u5B9A\u5F15\u7528\u521B\u5EFA\u65B0\u5206\u652F\u2026",
+    "checkout.detach": "\u4EE5\u5206\u79BB HEAD \u6A21\u5F0F\u68C0\u51FA\u2026",
+    "checkout.name": "\u8F93\u5165\u65B0\u5206\u652F\u540D\u79F0\uFF0C\u6309 Enter \u521B\u5EFA\u5E76\u68C0\u51FA",
+    "checkout.exists": "\u672C\u5730\u5206\u652F\u201C{branch}\u201D\u5DF2\u5B58\u5728\uFF1B\u8BF7\u9009\u62E9\u8BE5\u5206\u652F\u6216\u4F7F\u7528\u5176\u4ED6\u540D\u79F0\u3002",
+    "checkout.loading": "\u6B63\u5728\u8BFB\u53D6\u5206\u652F\u4E0E\u6807\u7B7E\u2026",
+    "checkout.empty": "\u6CA1\u6709\u5339\u914D\u7684\u5206\u652F\u6216\u6807\u7B7E",
     "progress.show": "\u663E\u793A Git \u64CD\u4F5C\u8FDB\u5EA6",
     "progress.running": "\u6B63\u5728{action}\u2026",
     "progress.waiting_remote": "\u7B49\u5F85\u9009\u62E9\u8FDC\u7AEF",
@@ -159316,6 +159327,16 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.settings": "Git Graph \u8BBE\u7F6E\u2026"
   };
   var en = {
+    "checkout.placeholder": "Select a branch or tag to checkout",
+    "checkout.from": "Select a starting point for the new branch",
+    "checkout.detached": "Select a branch to checkout in detached mode",
+    "checkout.create": "Create new branch\u2026",
+    "checkout.create_from": "Create new branch from\u2026",
+    "checkout.detach": "Checkout detached\u2026",
+    "checkout.name": "Enter a new branch name and press Enter to create and checkout",
+    "checkout.exists": 'Local branch "{branch}" already exists; select that branch or use another name.',
+    "checkout.loading": "Loading branches and tags\u2026",
+    "checkout.empty": "No matching branches or tags",
     "progress.show": "Show Git operation progress",
     "progress.running": "{action} in progress\u2026",
     "progress.waiting_remote": "Waiting for remote selection",
@@ -162291,13 +162312,13 @@ https://creativecommons.org/licenses/by/4.0/
         run(event, () => app.commands.run(zoom_command));
         return;
       }
-      const active_picker2 = get_workspace_quick_open();
-      if (active_picker2 && !active_picker2.root.hidden && primary_modifier(event) && event.code === "KeyP") {
+      const active_picker3 = get_workspace_quick_open();
+      if (active_picker3 && !active_picker3.root.hidden && primary_modifier(event) && event.code === "KeyP") {
         run(event, () => {
           if (event.shiftKey) {
-            active_picker2.close();
+            active_picker3.close();
             app.commands.run("command:open");
-          } else active_picker2.open();
+          } else active_picker3.open();
         });
         return;
       }
@@ -183257,7 +183278,7 @@ https://creativecommons.org/licenses/by/4.0/
     switch (id) {
       case "branch_create": {
         const name = await branch();
-        args = flag("checkout") ? ["checkout", "-b", name, hash2] : ["branch", name, hash2];
+        args = flag("checkout") ? ["checkout", "-b", name, ...hash2 ? [hash2] : []] : ["branch", name, ...hash2 ? [hash2] : []];
         break;
       }
       case "branch_checkout":
@@ -201682,6 +201703,279 @@ https://creativecommons.org/licenses/by/4.0/
     return host;
   }
 
+  // src/git_branch_checkout.ts
+  async function read_checkout_refs(run, root) {
+    const format3 = "%(refname)%00%(objectname)%00%(*objectname)%00%(objecttype)%00%(*objecttype)%00%(symref)%00%(upstream)%00%(authorname)%00%(*authorname)%00%(committerdate:unix)%00%(*committerdate:unix)%00%(subject)%00%(*subject)%00%(upstream:track)";
+    const output = await run(root, ["for-each-ref", "--sort=-committerdate", "--format=" + format3, "refs/heads", "refs/remotes", "refs/tags"]);
+    return output.split("\n").filter(Boolean).flatMap((line) => {
+      const [name, oid, peeled, type, peeled_type, symref, upstream, author, peeled_author, date, peeled_date, subject, peeled_subject, track] = line.replace(/\r$/u, "").split("\0");
+      if (symref || (peeled ? peeled_type : type) !== "commit") return [];
+      const kind = name.startsWith("refs/heads/") ? "local" : name.startsWith("refs/remotes/") ? "remote" : "tag";
+      return [{ name, label: name.replace(/^refs\/(heads|remotes|tags)\//u, ""), hash: peeled || oid, kind, upstream, author: peeled ? peeled_author : author, date: Number(peeled ? peeled_date : date) || 0, subject: peeled ? peeled_subject : subject, track }];
+    });
+  }
+  async function prepare_checkout(run, root, request) {
+    const refs = await read_checkout_refs(run, root), ref = request.ref && refs.find((item) => item.name === request.ref.name);
+    if (request.ref && (!ref || ref.hash !== request.ref.hash)) throw Error(git_graph_text("quick.target_changed"));
+    let id = "branch_checkout", target = "", hash2 = ref?.hash || request.head, values = {};
+    if (request.branch) {
+      if (refs.some((item) => item.name === "refs/heads/" + request.branch)) throw Error(git_graph_text("checkout.exists", { branch: request.branch }));
+      if (!ref) {
+        const head = await run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).then((value) => value.trim()).catch((error) => {
+          if (error.code === 1) return "";
+          throw error;
+        });
+        if (head !== request.head) throw Error(git_graph_text("quick.target_changed"));
+      }
+      id = "branch_create";
+      values = { branch: request.branch, checkout: true };
+    } else if (!ref) throw Error(git_graph_text("quick.target_changed"));
+    else if (request.detached || ref.kind === "tag") id = "commit_checkout";
+    else if (ref.kind === "local") target = ref.label;
+    else {
+      const tracked = refs.find((item) => item.kind === "local" && item.upstream === ref.name);
+      if (tracked) target = tracked.label;
+      else {
+        const remotes = (await run(root, ["remote"])).trim().split(/\r?\n/u).filter((name) => name && ref.label.startsWith(name + "/")).sort((a, b2) => b2.length - a.length);
+        if (!remotes[0]) throw Error(git_graph_text("quick.target_changed"));
+        const branch = ref.label.slice(remotes[0].length + 1);
+        if (refs.some((item) => item.name === "refs/heads/" + branch)) throw Error(git_graph_text("checkout.exists", { branch }));
+        id = "remote_checkout";
+        target = ref.name;
+        values = { branch };
+      }
+    }
+    const plan = await plan_git_action(run, id, { root, target, hash: hash2, operation: "" }, values);
+    if (id === "branch_checkout") plan.args = ["checkout", "--no-guess", target, "--"];
+    if (JSON.stringify(await read_checkout_refs(run, root)) !== JSON.stringify(refs)) throw Error(git_graph_text("quick.target_changed"));
+    return plan;
+  }
+
+  // src/git_scm_ref_picker.css
+  var git_scm_ref_picker_default = "";
+
+  // src/git_branch_picker.css
+  var git_branch_picker_default = "";
+
+  // src/git_branch_picker.ts
+  var active_picker;
+  var sequence = 0;
+  var age = (date) => {
+    const seconds = Math.max(0, Date.now() / 1e3 - date), units = [["year", 31536e3], ["month", 2592e3], ["day", 86400], ["hour", 3600], ["minute", 60]];
+    const [unit, size] = units.find(([, size2]) => seconds >= size2) || ["second", 1];
+    return new Intl.RelativeTimeFormat(git_graph_language_tag(), { numeric: "auto" }).format(-Math.floor(seconds / size), unit);
+  };
+  var git_branch_picker = class {
+    constructor(panel) {
+      this.panel = panel;
+    }
+    dismiss;
+    available;
+    close(restore = true) {
+      this.dismiss?.(restore);
+    }
+    update_state() {
+      if (this.available && !this.available()) this.close(false);
+    }
+    open() {
+      active_picker?.close();
+      const panel = this.panel, state = panel.state, root_path = panel.root, runner = panel.runner, writer = panel.writer, epoch = panel.repository_epoch;
+      if (!state || state.root !== root_path || panel.pending || panel.writing || panel.disposed) return;
+      panel.ref_picker.close();
+      const previous = capture_workspace_focus(), root = workspace_element("div", "git-scm-ref-picker git-branch-picker"), header = workspace_element("div", "git-scm-ref-header"), wrap = workspace_element("div", "git-scm-ref-input"), input = workspace_element("input", "git-scm-ref-filter"), list3 = workspace_element("div", "git-scm-ref-list"), status2 = workspace_element("div", "git-branch-status");
+      const uid = ++sequence;
+      root.dataset.gitBranchPicker = "ready";
+      root.setAttribute("role", "dialog");
+      root.setAttribute("aria-label", git_graph_text("checkout.placeholder"));
+      input.autocomplete = "off";
+      input.setAttribute("role", "combobox");
+      input.setAttribute("aria-expanded", "true");
+      input.setAttribute("aria-autocomplete", "list");
+      list3.id = "git-branch-list-" + uid;
+      list3.setAttribute("role", "listbox");
+      input.setAttribute("aria-controls", list3.id);
+      status2.setAttribute("role", "status");
+      wrap.append(input);
+      header.append(wrap);
+      root.append(header, list3, status2);
+      document.body.append(root);
+      const style = acquire_workspace_style("typora-code-style:git-scm-ref-picker", git_scm_ref_picker_default), own_style = acquire_workspace_style("typora-code-style:git-branch-picker", git_branch_picker_default), interaction = acquire_workspace_interaction(root);
+      let refs = [], visible3 = [], selected = "", closed = false, loading = true, validating = false, mode = "checkout", source;
+      const valid = () => !closed && !panel.disposed && !panel.pending && !panel.writing && panel.root === root_path && panel.runner === runner && panel.writer === writer && panel.repository_epoch === epoch && panel.state === state;
+      const close = (restore) => {
+        if (closed) return;
+        closed = true;
+        const owned2 = dismissal.owns_focus();
+        dismissal.dispose();
+        root.remove();
+        interaction.remove();
+        style.remove();
+        own_style.remove();
+        this.dismiss = void 0;
+        this.available = void 0;
+        if (active_picker === this) active_picker = void 0;
+        if (restore && owned2) previous.restore();
+      };
+      const dismissal = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape"), { inside: () => [root], window_blur: true });
+      this.dismiss = close;
+      this.available = valid;
+      active_picker = this;
+      const mark = (id) => {
+        selected = id;
+        for (const row of list3.querySelectorAll("[data-checkout-id]")) {
+          const on2 = row.dataset.checkoutId === id;
+          row.classList.toggle("is-active", on2);
+          row.setAttribute("aria-selected", String(on2));
+          if (on2) {
+            input.setAttribute("aria-activedescendant", row.id);
+            row.scrollIntoView({ block: "nearest" });
+          }
+        }
+        if (!id) input.removeAttribute("aria-activedescendant");
+      };
+      const execute = (request) => {
+        if (!valid()) return close(false);
+        close(true);
+        void panel.prepare_and_execute_action((current) => prepare_checkout(current.run, root_path, request), writer, "branch_checkout").then((message) => {
+          if (!panel.disposed && panel.root === root_path && panel.writer === writer) panel.report(message);
+        }).catch((error) => {
+          if (!panel.disposed && panel.root === root_path && panel.writer === writer) panel.report(error);
+        });
+      };
+      const name_step = (ref) => {
+        source = ref;
+        mode = "name";
+        render();
+        input.select();
+      };
+      const accept = async (item) => {
+        if (!valid()) return close(false);
+        if (loading || validating) return;
+        if (mode === "name") {
+          const branch = input.value.trim();
+          if (!branch) return;
+          validating = true;
+          input.disabled = true;
+          try {
+            await runner.run(root_path, ["check-ref-format", "--branch", branch]);
+            if (!valid()) return close(false);
+            if (refs.some((ref) => ref.name === "refs/heads/" + branch)) throw Error(git_graph_text("checkout.exists", { branch }));
+            execute({ branch, ref: source, head: state.head });
+          } catch (error) {
+            if (valid()) status2.textContent = String(error);
+          } finally {
+            validating = false;
+            if (!closed) {
+              input.disabled = false;
+              input.focus();
+            }
+          }
+          return;
+        }
+        if (!item) return;
+        if (item.id === "create") return name_step();
+        if (item.id === "from" || item.id === "detached") {
+          mode = item.id;
+          input.value = "";
+          selected = "";
+          render();
+          return;
+        }
+        if (mode === "from") {
+          input.value = "";
+          return name_step(item.ref);
+        }
+        execute({ ref: item.ref, detached: mode === "detached", head: state.head });
+      };
+      const render = () => {
+        if (!valid()) return close(false);
+        input.placeholder = git_graph_text(mode === "name" ? "checkout.name" : mode === "from" ? "checkout.from" : mode === "detached" ? "checkout.detached" : "checkout.placeholder");
+        input.setAttribute("aria-label", input.placeholder);
+        root.dataset.checkoutMode = mode;
+        list3.replaceChildren();
+        visible3 = [];
+        status2.textContent = loading ? git_graph_text("checkout.loading") : "";
+        if (mode === "name") {
+          input.removeAttribute("aria-activedescendant");
+          status2.textContent = input.placeholder;
+          return;
+        }
+        if (loading) return;
+        const query = input.value.trim().toLocaleLowerCase();
+        const actions = mode === "checkout" ? [{ id: "create", label: git_graph_text("checkout.create"), icon: "add" }, { id: "from", label: git_graph_text("checkout.create_from"), icon: "add" }, { id: "detached", label: git_graph_text("checkout.detach"), icon: "debug-disconnect" }] : [];
+        const choices2 = [];
+        for (const kind of ["local", "remote", "tag"]) {
+          if (mode === "detached" && kind === "tag") continue;
+          const group = refs.filter((ref) => ref.kind === kind && ref.label.toLocaleLowerCase().includes(query));
+          for (const [index, ref] of group.entries()) choices2.push({ id: ref.name, label: ref.label, icon: kind === "local" ? "git-branch" : kind === "remote" ? "cloud" : "tag", ref, group: index === 0 ? git_graph_text(kind === "local" ? "ref_picker.local" : kind === "remote" ? "ref_picker.remote" : "ref_picker.tags") : void 0 });
+        }
+        visible3 = query ? [...choices2, ...actions] : [...actions, ...choices2];
+        for (const item of visible3) {
+          const row = workspace_button("", () => void accept(item), "git-scm-ref-item git-branch-item");
+          row.dataset.checkoutId = item.id;
+          row.dataset.workspaceInteraction = "row";
+          row.id = "git-branch-" + uid + "-" + list3.children.length;
+          row.tabIndex = -1;
+          row.setAttribute("role", "option");
+          const first = workspace_element("span", "git-branch-line"), label = workspace_element("span", "git-scm-ref-label", item.label);
+          first.append(git_icon(item.icon), label);
+          if (item.ref) {
+            const ref = item.ref;
+            const counts = ref.track ? /ahead|behind/u.test(ref.track) ? "".concat(/behind (\d+)/u.exec(ref.track)?.[1] || 0, "\u2193 ").concat(/ahead (\d+)/u.exec(ref.track)?.[1] || 0, "\u2191") : "" : "";
+            first.append(workspace_element("span", "git-scm-ref-description", [counts, ref.date ? age(ref.date) : ref.hash.slice(0, 7)].filter(Boolean).join(" \xB7 ")));
+            if (item.group) {
+              row.classList.add("is-group-start");
+              first.append(workspace_element("span", "git-branch-group", item.group));
+            }
+            const detail = workspace_element("span", "git-branch-detail", [ref.author, ref.hash.slice(0, 7), ref.subject].filter(Boolean).join(" \xB7 "));
+            row.append(first, detail);
+            row.classList.add("has-detail");
+            row.title = ref.name + "\n" + detail.textContent;
+          } else row.append(first);
+          row.onmousedown = (event) => event.preventDefault();
+          row.onmousemove = () => mark(item.id);
+          list3.append(row);
+        }
+        if (!choices2.length) status2.textContent = git_graph_text("checkout.empty");
+        if (!visible3.some((item) => item.id === selected)) selected = visible3[0]?.id || "";
+        mark(selected);
+      };
+      input.oninput = () => {
+        selected = "";
+        render();
+      };
+      root.onkeydown = (event) => {
+        if (event.isComposing || event.keyCode === 229) return;
+        if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+          event.preventDefault();
+          event.stopPropagation();
+          const index = visible3.findIndex((item) => item.id === selected);
+          mark(visible3[Math.max(0, Math.min(visible3.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)))]?.id || "");
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!event.repeat) void accept(visible3.find((item) => item.id === selected));
+        } else if (event.key === "Tab") {
+          event.preventDefault();
+          input.focus();
+        }
+      };
+      render();
+      input.focus({ preventScroll: true });
+      void read_checkout_refs(runner.run, root_path).then((result) => {
+        if (!valid()) return close(false);
+        refs = result;
+        loading = false;
+        render();
+      }).catch((error) => {
+        if (valid()) {
+          loading = false;
+          status2.textContent = String(error);
+        }
+      });
+    }
+  };
+
   // src/git_operation_progress.ts
   var git_operation_progress = class {
     activities = /* @__PURE__ */ new Map();
@@ -201799,12 +202093,9 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/git_scm_ref_picker.css
-  var git_scm_ref_picker_default = "";
-
   // src/git_scm_ref_picker.ts
   var ALL = "__all__";
-  var active_picker;
+  var active_picker2;
   var picker_sequence = 0;
   var git_scm_ref_picker = class {
     constructor(panel) {
@@ -201819,7 +202110,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (this.available && !this.available()) this.close(false);
     }
     open() {
-      active_picker?.close();
+      active_picker2?.close();
       const panel = this.panel, state = panel.state, root_path = panel.root, runner = panel.runner;
       if (!state || state.root !== root_path || panel.pending || panel.writing || panel.disposed) return;
       const previous = capture_workspace_focus(), root = workspace_element("div", "git-scm-ref-picker"), header = workspace_element("div", "git-scm-ref-header");
@@ -201887,13 +202178,13 @@ https://creativecommons.org/licenses/by/4.0/
         style.remove();
         this.dismiss = void 0;
         this.available = void 0;
-        if (active_picker === this) active_picker = void 0;
+        if (active_picker2 === this) active_picker2 = void 0;
         if (restore && owned_focus) previous.restore();
       };
       const dismissal = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape"), { inside: () => [root], window_blur: true });
       this.dismiss = close;
       this.available = valid;
-      active_picker = this;
+      active_picker2 = this;
       const accept = () => {
         if (!valid()) {
           close(false);
@@ -202896,8 +203187,8 @@ https://creativecommons.org/licenses/by/4.0/
       }, "git-scm-repository-sync"), more = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
       }, "git-scm-repository-more");
       const valid = () => !this.disposed && this.rows.get(root)?.row === row && !panel.disposed && root === panel.root && panel.state?.root === root && !panel.pending && !panel.writing && panel.container.dataset.state !== "error";
-      branch.onclick = (event) => {
-        if (valid()) panel.configured_menu(event, "checkout", checkout_entries(panel));
+      branch.onclick = () => {
+        if (valid()) panel.branch_picker.open();
       };
       branch.oncontextmenu = (event) => workspace_menu(event, [{ title: git_graph_text("scm.configure_keybinding"), disabled: true, action() {
       } }]);
@@ -204434,13 +204725,11 @@ https://creativecommons.org/licenses/by/4.0/
         }) }]),
         ...["pull", "push", "fetch"].map((id) => ({ id, title: graph_actions.find((action) => action.id === id).title, disabled: !this.history.toolbar.enabled(id), action: () => this.history.network_action(id) })),
         ...actions(["clone"]),
-        { id: "checkout", title: git_graph_text("scm.checkout"), children: checkout_entries(panel), action() {
-        } },
+        { id: "checkout", title: git_graph_text("scm.checkout"), action: () => panel.branch_picker.open() },
         submenu(git_graph_text("scm.commit_section"), [...actions(["commit"]), { title: git_graph_text("scm.amend_staged"), action: () => panel.action_dialog("commit", "changes", "", panel.state?.head, { message: this.message.value, amend: true }) }]),
         submenu(git_graph_text("scm.changes_section"), actions(["stage_all", "unstage_all", "discard_changes", "stash_create", "clean"])),
         submenu(git_graph_text("scm.pull_push_section"), actions(["sync", "fetch", "pull", "push"])),
-        submenu(git_graph_text("scm.branches_section"), [{ id: "checkout", title: git_graph_text("scm.checkout"), children: checkout_entries(panel), action() {
-        } }, { id: "branch_create", title: git_graph_text("scm.create_branch"), action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
+        submenu(git_graph_text("scm.branches_section"), [{ id: "checkout", title: git_graph_text("scm.checkout"), action: () => panel.branch_picker.open() }, { id: "branch_create", title: git_graph_text("scm.create_branch"), action: () => panel.action_dialog("branch_create", "commit", "", panel.state?.head) }, ...branches]),
         submenu(git_graph_text("scm.remotes_section"), [{ id: "remote_add", title: git_graph_text("scm.add_remote"), action: () => panel.action_dialog("remote_add", "repository") }, ...remotes]),
         submenu(git_graph_text("scm.stashes_section"), [...actions(["stash_create"]), ...stashes]),
         submenu(git_graph_text("scm.tags_section"), [{ id: "tag_add", title: git_graph_text("scm.create_tag"), action: () => panel.action_dialog("tag_add", "commit", "", panel.state?.head) }, ...tags]),
@@ -226687,6 +226976,7 @@ https://creativecommons.org/licenses/by/4.0/
     workbench;
     finder;
     ref_picker = new git_scm_ref_picker(this);
+    branch_picker = new git_branch_picker(this);
     remote_picker;
     action_epoch = 0;
     progress = new git_operation_progress();
@@ -226759,6 +227049,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.assert_can_dispose();
       this.cancel_remote_picker();
       this.ref_picker.close(false);
+      this.branch_picker.close(false);
       this.discard_confirmation.close(false);
       this.disposed = true;
       this.close();
@@ -226818,6 +227109,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       this.ref_picker.close(false);
+      this.branch_picker.close(false);
       this.remote_picker?.close(false);
       this.discard_confirmation.close(false);
       this.progress.reset();
@@ -226844,6 +227136,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.workbench.update_actions();
       this.discard_confirmation.update_state();
       this.ref_picker.update_state();
+      this.branch_picker.update_state();
     }
     subscribe_state(listener) {
       this.state_listeners.add(listener);
@@ -227875,6 +228168,7 @@ https://creativecommons.org/licenses/by/4.0/
       })()));
     }
     filter_branches() {
+      this.branch_picker.close();
       this.ref_picker.open();
     }
     manage_repositories() {
@@ -228309,25 +228603,7 @@ https://creativecommons.org/licenses/by/4.0/
         await show2(current, available);
       })().catch((error) => current.report(error));
     };
-    branch.onclick = (event) => ready(event, (current) => {
-      const state = current.state;
-      const entries3 = state.refs.filter((ref) => ref.name.startsWith("refs/heads/")).map((ref) => ({
-        id: "checkout:" + ref.name,
-        title: ref.name.slice(11),
-        checked: ref.name.slice(11) === state.branch,
-        action: () => current.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash)
-      }));
-      entries3.push(...state.refs.filter((ref) => ref.name.startsWith("refs/remotes/") && !ref.name.endsWith("/HEAD")).map((ref) => ({
-        id: "checkout:" + ref.name,
-        title: git_graph_text("status.checkout_remote", { branch: ref.name.slice(13) }),
-        action: () => current.action_dialog("remote_checkout", "remote", ref.name.slice(13), ref.hash)
-      })));
-      entries3.push(
-        { id: "branch_create", title: git_graph_text("status.create_branch"), separator: true, disabled: !state.head, action: () => current.action_dialog("branch_create", "commit", state.head, state.head) },
-        { id: "select_repository", title: git_graph_text("status.select_repository"), action: () => current.manage_repositories() }
-      );
-      current.configured_menu(event, "status_checkout", entries3);
-    });
+    branch.onclick = (event) => ready(event, (current) => current.branch_picker.open());
     branch.oncontextmenu = (event) => ready(event, (current) => {
       const state = current.state;
       if (state.head) current.target_menu(event, state.branch ? "branch" : "commit", state.branch || state.head, state.head);
@@ -229261,7 +229537,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/source_symbol_service.ts
   function create_source_symbol_service() {
     let failure2;
-    let disposed = false, worker, url = "", sequence = 0, loading;
+    let disposed = false, worker, url = "", sequence2 = 0, loading;
     const sent_languages = /* @__PURE__ */ new Set();
     let sent_runtime = false;
     const pending = /* @__PURE__ */ new Map();
@@ -229304,7 +229580,7 @@ https://creativecommons.org/licenses/by/4.0/
       signal.throwIfAborted();
       if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
       if (failure2) throw failure2;
-      const id = ++sequence;
+      const id = ++sequence2;
       return new Promise((resolve3, reject) => {
         const abort = () => {
           pending.delete(id);
@@ -231323,9 +231599,9 @@ https://creativecommons.org/licenses/by/4.0/
               event.preventDefault();
               event.stopPropagation();
               if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
-              const sequence = click_sequence;
+              const sequence2 = click_sequence;
               click_sequence = void 0;
-              if (sequence?.node === node && sequence.selected) begin_rename(node);
+              if (sequence2?.node === node && sequence2.selected) begin_rename(node);
             };
             row2.oncontextmenu = (event) => {
               click_sequence = void 0;
@@ -237584,6 +237860,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026091903,
+        version: "2026.09.19.3",
+        date: "2026-09-19",
+        notes: [
+          "\u5E95\u680F\u4E0E\u6E90\u4EE3\u7801\u7BA1\u7406\u5206\u652F\u5165\u53E3\u6539\u4E3A\u9876\u90E8\u53EF\u641C\u7D22\u9009\u62E9\u5668\uFF0C\u5C55\u793A\u672C\u5730\u3001\u8FDC\u7AEF\u3001\u6807\u7B7E\u53CA\u63D0\u4EA4\u8BE6\u60C5\u3002",
+          "\u652F\u6301\u521B\u5EFA\u5E76\u68C0\u51FA\u3001\u4ECE\u5F15\u7528\u521B\u5EFA\u548C\u5206\u79BB\u68C0\u51FA\uFF1B\u8FDC\u7AEF\u81EA\u52A8\u590D\u7528\u8DDF\u8E2A\u5206\u652F\uFF0C\u4FDD\u7559\u53D6\u6D88\u3001\u8349\u7A3F\u4E0E\u51B2\u7A81\u4FDD\u62A4\u3002"
+        ]
+      },
       {
         sequence: 2026091902,
         version: "2026.09.19.2",

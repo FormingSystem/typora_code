@@ -1,3 +1,4 @@
+import {git_branch_picker} from "./git_branch_picker";
 import {git_operation_progress} from "./git_operation_progress";
 import {bind_git_progress_view} from "./git_progress_view";
 import {git_scm_ref_picker} from "./git_scm_ref_picker";
@@ -42,6 +43,7 @@ export class git_graph_panel {
   show_remote_input = el("input", "git-graph-show-remote-input"); find_widget = el("div", "git-graph-find-widget"); find_position = el("span", "git-graph-find-position");
   workbench: git_source_control; finder: git_graph_find;
   ref_picker = new git_scm_ref_picker(this);
+  branch_picker = new git_branch_picker(this);
   remote_picker?: ReturnType<typeof workspace_dialog>;
   private action_epoch = 0;
   progress = new git_operation_progress();
@@ -124,7 +126,7 @@ export class git_graph_panel {
   assert_can_dispose(): void { if (this.writing && !this.remote_picker) throw new Error(text("graph.operation_pending")); }
   dispose(): void {
     if (this.disposed) return;
-    this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
+    this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.branch_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
     this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
     this.publish_state(); this.state_listeners.clear();
@@ -140,13 +142,13 @@ export class git_graph_panel {
   async switch_repo(root: string): Promise<void> {
     this.cancel_remote_picker();
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
-    this.ref_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
+    this.ref_picker.close(false); this.branch_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
     this.progress.reset();this.repository_epoch++; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
     this.last_refreshed_at = 0; this.publish_state();
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; await this.refresh();
   }
-  update_scm_actions():void{this.progress.configure(this.settings.show_progress);this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();this.discard_confirmation.update_state();this.ref_picker.update_state();}
+  update_scm_actions():void{this.progress.configure(this.settings.show_progress);this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();this.discard_confirmation.update_state();this.ref_picker.update_state();this.branch_picker.update_state();}
   subscribe_state(listener: () => void): () => void { this.state_listeners.add(listener); listener(); return () => this.state_listeners.delete(listener); }
   private publish_state(): void { for (const listener of this.state_listeners) listener(); }
   refresh(reset = true): Promise<void> {
@@ -730,7 +732,7 @@ export class git_graph_panel {
       } catch (problem) { error.textContent = String(problem); }
     })()));
   }
-  filter_branches(): void { this.ref_picker.open(); }
+  filter_branches(): void { this.branch_picker.close(); this.ref_picker.open(); }
   manage_repositories(): void {
     const dialog = graph_dialog(text("graph.manage_repositories_title")); const input = el("input"); input.placeholder = text("graph.repository_path_placeholder"); input.value = this.root; const error = el("p"); const list = el("div");
     const render = () => { list.replaceChildren(); for (const root of this.known_repos()) {

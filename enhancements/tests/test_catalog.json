@@ -3589,7 +3589,8 @@
         "R044",
         "R046",
         "R047",
-        "R018"
+        "R018",
+        "R048"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3600,7 +3601,9 @@
         "enhancements/src/workspace_explorer_sections.css",
         "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
         "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
-        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
+        "enhancements/src/git_branch_picker.ts",
+        "enhancements/src/git_branch_checkout.ts"
       ],
       "related_modules": [
         "files",
@@ -3827,6 +3830,121 @@
       ],
       "timeout_ms": 240000,
       "platform": "win32"
+    },
+    {
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R048",
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_branch_checkout.md",
+      "implementation": [
+        "enhancements/src/git_branch_checkout.ts",
+        "enhancements/src/git_branch_picker.ts",
+        "enhancements/src/git_branch_picker.css",
+        "enhancements/src/git_status_bar.ts",
+        "enhancements/src/git_scm_repositories.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "footer",
+        "graph",
+        "files",
+        "focus"
+      ],
+      "preconditions": "仅使用临时工作区与本地bare远端，不操作用户真实仓库",
+      "steps": [
+        "按脚本运行分支选择、检出与生命周期场景"
+      ],
+      "expected": [
+        "实际HEAD/index/文件或UI状态断言通过，无过期执行"
+      ],
+      "timeout_ms": 240000,
+      "id": "TC-git-checkout-service",
+      "script": "enhancements/scripts/test_git_branch_checkout.mjs",
+      "environment": "真实临时Git仓库"
+    },
+    {
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R048",
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_branch_checkout.md",
+      "implementation": [
+        "enhancements/src/git_branch_checkout.ts",
+        "enhancements/src/git_branch_picker.ts",
+        "enhancements/src/git_branch_picker.css",
+        "enhancements/src/git_status_bar.ts",
+        "enhancements/src/git_scm_repositories.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "footer",
+        "graph",
+        "files",
+        "focus"
+      ],
+      "preconditions": "仅使用临时工作区与本地bare远端，不操作用户真实仓库",
+      "steps": [
+        "按脚本运行分支选择、检出与生命周期场景"
+      ],
+      "expected": [
+        "实际HEAD/index/文件或UI状态断言通过，无过期执行"
+      ],
+      "timeout_ms": 240000,
+      "id": "TC-git-checkout-ui",
+      "script": "enhancements/scripts/test_git_branch_picker.cjs",
+      "environment": "隐藏Electron真实输入；Git执行端口替身"
+    },
+    {
+      "domain": "git",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R048",
+        "R027",
+        "R045"
+      ],
+      "design": "docs/git_branch_checkout.md",
+      "implementation": [
+        "enhancements/src/git_branch_checkout.ts",
+        "enhancements/src/git_branch_picker.ts",
+        "enhancements/src/git_branch_picker.css",
+        "enhancements/src/git_status_bar.ts",
+        "enhancements/src/git_scm_repositories.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "footer",
+        "graph",
+        "files",
+        "focus"
+      ],
+      "preconditions": "仅使用临时工作区与本地bare远端，不操作用户真实仓库",
+      "steps": [
+        "按脚本运行分支选择、检出与生命周期场景"
+      ],
+      "expected": [
+        "实际HEAD/index/文件或UI状态断言通过，无过期执行"
+      ],
+      "timeout_ms": 240000,
+      "id": "TC-git-checkout-stress",
+      "script": "enhancements/scripts/test_git_branch_picker.cjs",
+      "environment": "隐藏Electron生命周期；Git执行端口替身",
+      "workload_mode": "tiered"
     }
   ]
 }

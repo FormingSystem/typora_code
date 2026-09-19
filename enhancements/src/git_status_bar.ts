@@ -1,6 +1,6 @@
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
-import { workspace_element as el, workspace_button as button, workspace_menu, type workspace_menu_entry } from "./workspace_widgets";
+import { workspace_element as el, workspace_button as button, workspace_menu } from "./workspace_widgets";
 import type { graph_core, graph_host } from "./git_graph_host";
 import type { git_graph_panel } from "./git_graph_panel";
 import status_css from "./git_status_bar.css";
@@ -90,19 +90,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
       await show(current, available);
     })().catch(error => current.report(error));
   };
-  branch.onclick = event => ready(event, current => {
-    const state = current.state!;
-    const entries: workspace_menu_entry[] = state.refs.filter(ref => ref.name.startsWith("refs/heads/")).map(ref => ({
-      id: "checkout:" + ref.name, title: ref.name.slice(11), checked: ref.name.slice(11) === state.branch,
-      action: () => current.action_dialog("branch_checkout", "branch", ref.name.slice(11), ref.hash),
-    }));
-    entries.push(...state.refs.filter(ref => ref.name.startsWith("refs/remotes/") && !ref.name.endsWith("/HEAD")).map(ref => ({
-      id: "checkout:" + ref.name, title: text("status.checkout_remote", {branch: ref.name.slice(13)}), action: () => current.action_dialog("remote_checkout", "remote", ref.name.slice(13), ref.hash),
-    })));
-    entries.push({id: "branch_create", title: text("status.create_branch"), separator: true, disabled: !state.head, action: () => current.action_dialog("branch_create", "commit", state.head, state.head)},
-      {id: "select_repository", title: text("status.select_repository"), action: () => current.manage_repositories()});
-    current.configured_menu(event, "status_checkout", entries);
-  });
+  branch.onclick = event => ready(event, current => current.branch_picker.open());
   branch.oncontextmenu = event => ready(event, current => {
     const state = current.state!;
     if (state.head) current.target_menu(event, state.branch ? "branch" : "commit", state.branch || state.head, state.head);

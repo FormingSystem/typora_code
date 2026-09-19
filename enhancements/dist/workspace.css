@@ -289,6 +289,24 @@
 	box-shadow: var(--vscode-scrollbar-shadow, #000) 6px 0 6px -6px inset;
 }
 
+/* git_branch_picker.css */
+/* 固定QuickInput契约：普通22px、带detail44px、宽600px；引用和动作共用输入焦点。 */
+.git-scm-ref-picker.git-branch-picker .git-branch-item{display:flex;flex-direction:column;align-items:stretch;gap:0;flex:none}
+.git-branch-picker .git-branch-item.has-detail{height:44px;min-height:44px}
+.git-branch-line{display:flex;align-items:center;gap:6px;min-height:22px;min-width:0;width:100%;overflow:hidden}
+.git-branch-line>.git-standard-icon{width:16px;height:16px;flex:none}
+.git-branch-detail{box-sizing:border-box;width:100%;text-align:left;align-self:stretch;display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.7;padding-left:22px;height:22px;line-height:22px}
+.git-branch-group{margin-left:auto;font-size:12px;opacity:.8;flex:none;max-width:28%;overflow:hidden;text-overflow:ellipsis}
+.git-branch-item.is-group-start{border-top:1px solid var(--item-hover-bg-color,rgba(127,127,127,.25))}
+.git-branch-picker .git-scm-ref-list{max-height:min(440px,calc(100vh - 110px))}
+.git-branch-status:empty{display:none}.git-branch-status{padding:4px 12px;overflow-wrap:anywhere;max-height:66px;overflow:auto;line-height:22px}
+
+.git-branch-picker{--git-checkout-focus:var(--vscode-quickInputList-focusBackground,#0069cc)}
+:root[data-workspace-file-icon-theme="dark"] .git-branch-picker{--git-checkout-focus:var(--vscode-quickInputList-focusBackground,#297aa0)}
+.git-branch-picker .git-branch-item.is-active{--workspace-interaction-hover:var(--git-checkout-focus);--workspace-interaction-foreground:var(--vscode-quickInputList-focusForeground,#fff)}
+.git-branch-picker .git-scm-ref-input{border-color:var(--workspace-focus-border,#0069cc)}
+.git-branch-picker .git-scm-ref-filter{border:0!important;outline:0!important}
+
 /* git_graph.css */
 /* 中央Graph几何来自固定v1.30.0：工具栏32+8+1、表头18+12+1、提交行24；与SCM宿主22分离。 */
 :is(.linux-note-git-graph, .linux-note-git-source-control) {

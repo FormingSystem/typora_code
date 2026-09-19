@@ -108,6 +108,22 @@
     fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'stability_'+name}));
     await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage==='stability_'+name;}catch{return false;}},'screenshot');
     menu.hide?.();menu.close?.();menu=null;
+    const branch_button=document.querySelector('[data-git-status="branch"]');
+    await wait(()=>branch_button&&!branch_button.disabled&&branch_button.closest('[data-repository="ready"]'),'Git底栏准备');
+    branch_button.click();await wait(()=>document.querySelectorAll('.git-branch-picker [data-checkout-id]').length>=6,'分支快速选择器');
+    const picker=document.querySelector('.git-branch-picker'),filter=picker.querySelector('input');
+    assert(document.activeElement===filter&&picker.getBoundingClientRect().top===6,'TC-git-checkout-native: '+name+'底栏打开顶部输入焦点');
+    assert(picker.querySelector('[data-checkout-id="refs/tags/release/native"]')?.textContent.includes('Native QA'),'TC-git-checkout-native: '+name+'标签读取实际作者与剥离提交');
+    const checkout_rows=[...picker.querySelectorAll('[data-checkout-id]')];
+    assert(checkout_rows.every(row=>Math.abs(row.getBoundingClientRect().height-(row.classList.contains('has-detail')?44:22))<1),'TC-git-checkout-native: '+name+'真实宿主22/44px行高');
+    assert([...picker.querySelectorAll('.git-branch-detail')].every(node=>getComputedStyle(node).textAlign==='left'&&Math.abs(node.getBoundingClientRect().left+parseFloat(getComputedStyle(node).paddingLeft)-node.parentElement.querySelector('.git-scm-ref-label').getBoundingClientRect().left)<1),'TC-git-checkout-native: '+name+'详情与名称同起点');
+    samples.push({checkout:{theme,width:picker.getBoundingClientRect().width,top:picker.getBoundingClientRect().top,rows:checkout_rows.map(row=>({label:row.textContent,height:row.getBoundingClientRect().height}))}});
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'checkout_'+name}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage==='checkout_'+name;}catch{return false;}},'checkout screenshot');
+    filter.value='topic/native';filter.dispatchEvent(new Event('input',{bubbles:true}));
+    assert(picker.querySelector('[data-checkout-id]')?.dataset.checkoutId==='refs/heads/topic/native','TC-git-checkout-native: '+name+'搜索匹配优先且不打开旧右键菜单');
+    for(const type of ['keydown','keyup'])filter.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));
+    await wait(()=>!document.querySelector('.git-branch-picker'),'取消分支选择');
    }
   }
   if(reqnode('process').env.TYPORA_TEST_PURPOSE==='stress'){

@@ -1,6 +1,17 @@
 export type git_graph_locale = "zh-cn" | "en";
 
 const zh_cn = {
+  "checkout.placeholder": "选择要检出的分支或标签",
+  "checkout.from": "选择新分支的起点",
+  "checkout.detached": "选择要以分离 HEAD 模式检出的分支",
+  "checkout.create": "创建新分支…",
+  "checkout.create_from": "从指定引用创建新分支…",
+  "checkout.detach": "以分离 HEAD 模式检出…",
+  "checkout.name": "输入新分支名称，按 Enter 创建并检出",
+  "checkout.exists": "本地分支“{branch}”已存在；请选择该分支或使用其他名称。",
+  "checkout.loading": "正在读取分支与标签…",
+  "checkout.empty": "没有匹配的分支或标签",
+
   "progress.show":"显示 Git 操作进度",
   "progress.running":"正在{action}…",
   "progress.waiting_remote":"等待选择远端",
@@ -844,6 +855,17 @@ const zh_cn = {
 export type git_graph_text_key = keyof typeof zh_cn;
 
 const en: Record<git_graph_text_key, string> = {
+  "checkout.placeholder": "Select a branch or tag to checkout",
+  "checkout.from": "Select a starting point for the new branch",
+  "checkout.detached": "Select a branch to checkout in detached mode",
+  "checkout.create": "Create new branch…",
+  "checkout.create_from": "Create new branch from…",
+  "checkout.detach": "Checkout detached…",
+  "checkout.name": "Enter a new branch name and press Enter to create and checkout",
+  "checkout.exists": "Local branch \"{branch}\" already exists; select that branch or use another name.",
+  "checkout.loading": "Loading branches and tags…",
+  "checkout.empty": "No matching branches or tags",
+
   "progress.show":"Show Git operation progress",
   "progress.running":"{action} in progress…",
   "progress.waiting_remote":"Waiting for remote selection",

@@ -1,7 +1,6 @@
 import type {git_source_control} from "./git_source_control";
 import {read_branch_status,type branch_status} from "./git_scm_data";
 import {repository_branch_status} from "./git_graph_repository";
-import {checkout_entries} from "./git_scm_menus";
 import {git_icon,git_icon_button} from "./git_icons";
 import {workspace_element as el,workspace_button as button,workspace_menu} from "./workspace_widgets";
 import {git_graph_text as text} from "./git_graph_i18n";
@@ -43,7 +42,7 @@ export class git_scm_repositories {
       const select=button("",()=>{if(!panel.disposed&&!panel.writing)void panel.switch_repo(root);},"git-scm-repository-name");select.title=root;select.append(git_icon("repo"),el("span","",panel.host.path_api.basename(root)));select.setAttribute("aria-pressed",String(root===panel.root));select.disabled=panel.writing;
       const branch=button("",()=>{},"git-scm-repository-branch"),sync=git_icon_button("sync",text("action.title.sync"),()=>{},"git-scm-repository-sync"),more=git_icon_button("more",text("scm.changes_and_operations"),()=>{},"git-scm-repository-more");
       const valid=()=>!this.disposed&&this.rows.get(root)?.row===row&&!panel.disposed&&root===panel.root&&panel.state?.root===root&&!panel.pending&&!panel.writing&&panel.container.dataset.state!=="error";
-      branch.onclick=event=>{if(valid())panel.configured_menu(event,"checkout",checkout_entries(panel));};branch.oncontextmenu=event=>workspace_menu(event,[{title:text("scm.configure_keybinding"),disabled:true,action(){}}]);
+      branch.onclick=()=>{if(valid())panel.branch_picker.open();};branch.oncontextmenu=event=>workspace_menu(event,[{title:text("scm.configure_keybinding"),disabled:true,action(){}}]);
       sync.onclick=()=>{if(valid())void panel.network_action("sync");};
       more.onclick=event=>{if(valid())this.owner.more_menu(event);};row.oncontextmenu=event=>{if(valid())this.owner.more_menu(event);else{event.preventDefault();event.stopPropagation();}};
       let loaded=false,normal_title=sync.title,normal_icon="sync";

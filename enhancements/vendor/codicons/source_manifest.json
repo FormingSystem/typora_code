@@ -541,6 +541,12 @@
       "source_path": "src/icons/filter.svg",
       "git_blob_sha1": "9c5b6fddbb5543ec4ac3bea603b80a1efc0ec8cf",
       "sha256": "737b12312754c5a2e4c43f8d7e2d0126c0d5789d4ecfc77d6f42c28dbf848fe4"
+    },
+    "debug-disconnect": {
+      "file": "icons/debug_disconnect.svg",
+      "source_path": "src/icons/debug-disconnect.svg",
+      "git_blob_sha1": "8b76d31e2dd0491dcd536b33fd12eb4d7596fa63",
+      "sha256": "b433cadad87ae2b09056e11e9c8ba4e8eb43c62c42af81ef6a2729969fc9906a"
     }
   },
   "licenses": [

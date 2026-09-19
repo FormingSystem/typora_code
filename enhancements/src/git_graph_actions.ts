@@ -200,7 +200,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
   let worktree_snapshot:string|undefined;
   let args: string[]; let todo: string | undefined; let sync: action_plan["sync"]; let discard: discard_plan | undefined; let followup: action_plan["followup"];
   switch (id) {
-    case "branch_create": { const name = await branch(); args = flag("checkout") ? ["checkout", "-b", name, hash] : ["branch", name, hash]; break; }
+    case "branch_create": { const name = await branch(); args = flag("checkout") ? ["checkout", "-b", name, ...(hash ? [hash] : [])] : ["branch", name, ...(hash ? [hash] : [])]; break; }
     case "branch_checkout": args = ["checkout", target]; break;
     case "remote_checkout": args = ["checkout", "-b", await branch(), "--track", target]; break;
     case "branch_rename": args = ["branch", "-m", target, await branch()]; break;

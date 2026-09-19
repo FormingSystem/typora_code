@@ -154,3 +154,7 @@ Changes标题、Graph标题和中央Graph工具栏复用同一覆盖进度组件
 固定VS Code 1.137.0 repository.ts headLabel与statusbar.ts：工作树/未跟踪用*，暂存用+，合并或变基用!；分离HEAD为8位提交号，同步数字采用N↓ N↑。当前底栏所有dirty统一*会误表暂存状态，改从同一仓库快照changes的index_status/work_status与operation计算，UI不新增Git读取。保留现有统一命令、仓库选择和主题角色。图标按已打包的官方git-branch/git-commit区分分支/分离状态；上游保护分支/特殊状态复合图标未映射前明确列差异，不伪装完整等价。用临时Git索引和工作树验证clean、仅暂存、未跟踪、混合、冲突/变基、分离状态及快照刷新。
 
 R041全入口复查追加：底栏和菜单的branch_checkout仍落到通用预览对话框。无参数且非破坏的stage/unstage/stage_all/unstage_all/branch_checkout/commit_checkout/continue直接复用prepare_and_execute_action；remote_checkout有本地分支名时保留一次名称选择。其余表单在一次提交中校验并执行，删除预览按钮；风险文案在执行前可见。异步准备期间锁定表单并核对仓库/runner/文档身份，取消、切库或销毁后零执行。交互式rebase缺少todo时先读取供编辑，不把生成todo等同于执行。所有调用方继续共享事务锁与完成刷新。
+
+## 2026-09-19 R048 分支检出
+
+底栏左键、SCM仓库分支按钮与通用检出菜单改为共享顶部快速选择器，搜索本地/远端/标签并显示提交详情，支持创建、从引用创建和分离检出。远端复用已有跟踪分支，执行走既有写锁、草稿检查和刷新。右键对象操作及历史引用多选保留独立语义。方案、来源和本次验证见[分支检出设计](git_branch_checkout.md)。

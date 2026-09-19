@@ -10,6 +10,9 @@ import sys
 import uuid
 
 repository_root = Path(__file__).resolve().parents[2]
+fixture_path = repository_root / 'enhancements/fixtures/stability_native.js'
+# 原生注入前先验证语法，避免静默不执行后等待整轮超时。
+subprocess.run(['node', '--check', str(fixture_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host_root = Path(sys.argv[1]).resolve(strict=True)
 release = repository_root / 'enhancements/dist'
 case = repository_root / '.cache/issue_tracking/native' / uuid.uuid4().hex
@@ -26,7 +29,7 @@ workspace.mkdir()
 (workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
 # 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
 git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
-for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture']]:
+for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:
     subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 user_data = case / 'user_data'
 user_data.mkdir()

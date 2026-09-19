@@ -1,0 +1,1333 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R048",
+    "R027",
+    "R045"
+  ],
+  "baseline": "567b938268be177a3e24b3870daf5609e2d4b054",
+  "version": "2026.09.19.3",
+  "design": "docs/git_branch_checkout.md",
+  "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-10-28-208Z_a7c71b/report.json",
+      "sha256": "4a8a8968e6e66453e52cc1a5d9a7b872d3789680e090324cc06a8e647befefc7",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-checkout-ui",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 3458,
+          "source_hashes": {
+            "enhancements/scripts/test_git_branch_picker.cjs": "79a73876e2b800c4c021918270c041f271e47c2690fb9c8c4ae8e87e05eafe00",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_picker.css": "683d8cbae9fc769984a7162e5ef3748dc76ba841319cabfc548be18d6e1a56be",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/git_scm_repositories.ts": "54e58e886f1319fdc62fc06ebd3fe7284dcc78066d2e0de2f94484eb4f2b318a",
+            "enhancements/src/git_source_control.ts": "f90af1424ea4435bd44acec01fa672f2939064e8cd3600787f7dd5c5f73319c3",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-16-55-308Z_31a433/report.json",
+      "sha256": "42a4c4144f02128581d2ee5e63dbef971ee5e4c9cb382251fba8d1d21367015f",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-checkout-service",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 4053,
+          "source_hashes": {
+            "enhancements/scripts/test_git_branch_checkout.mjs": "47fcaaae006655c23b92aa14c8296f0ebf0e4cc4a13a72fffcd99097e94c1c64",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_picker.css": "683d8cbae9fc769984a7162e5ef3748dc76ba841319cabfc548be18d6e1a56be",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/git_scm_repositories.ts": "54e58e886f1319fdc62fc06ebd3fe7284dcc78066d2e0de2f94484eb4f2b318a",
+            "enhancements/src/git_source_control.ts": "f90af1424ea4435bd44acec01fa672f2939064e8cd3600787f7dd5c5f73319c3",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-10-59-191Z_dd7fd9/report.json",
+      "sha256": "019688fe9472ac7f0674c30b9e44edda2f4034d4371779eef7197262feabc972",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-checkout-stress",
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 20,
+          "status": "passed",
+          "elapsed_ms": 3561,
+          "source_hashes": {
+            "enhancements/scripts/test_git_branch_picker.cjs": "79a73876e2b800c4c021918270c041f271e47c2690fb9c8c4ae8e87e05eafe00",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_picker.css": "683d8cbae9fc769984a7162e5ef3748dc76ba841319cabfc548be18d6e1a56be",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/git_scm_repositories.ts": "54e58e886f1319fdc62fc06ebd3fe7284dcc78066d2e0de2f94484eb4f2b318a",
+            "enhancements/src/git_source_control.ts": "f90af1424ea4435bd44acec01fa672f2939064e8cd3600787f7dd5c5f73319c3",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-11-03-215Z_56d975/report.json",
+      "sha256": "70da8db2917fd777db8f1f5ed84aa20f525314015e901d7fe5aed329215e7daa",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-checkout-stress",
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 100,
+          "status": "passed",
+          "elapsed_ms": 3587,
+          "source_hashes": {
+            "enhancements/scripts/test_git_branch_picker.cjs": "79a73876e2b800c4c021918270c041f271e47c2690fb9c8c4ae8e87e05eafe00",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_picker.css": "683d8cbae9fc769984a7162e5ef3748dc76ba841319cabfc548be18d6e1a56be",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/git_scm_repositories.ts": "54e58e886f1319fdc62fc06ebd3fe7284dcc78066d2e0de2f94484eb4f2b318a",
+            "enhancements/src/git_source_control.ts": "f90af1424ea4435bd44acec01fa672f2939064e8cd3600787f7dd5c5f73319c3",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-11-07-267Z_e43a04/report.json",
+      "sha256": "1285efbdebeca68a298d5fe4e5ce5558fa363db9714b45819bbec2484f573d30",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-checkout-stress",
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 1000,
+          "status": "passed",
+          "elapsed_ms": 3951,
+          "source_hashes": {
+            "enhancements/scripts/test_git_branch_picker.cjs": "79a73876e2b800c4c021918270c041f271e47c2690fb9c8c4ae8e87e05eafe00",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_picker.css": "683d8cbae9fc769984a7162e5ef3748dc76ba841319cabfc548be18d6e1a56be",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/git_scm_repositories.ts": "54e58e886f1319fdc62fc06ebd3fe7284dcc78066d2e0de2f94484eb4f2b318a",
+            "enhancements/src/git_source_control.ts": "f90af1424ea4435bd44acec01fa672f2939064e8cd3600787f7dd5c5f73319c3",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-11-11-681Z_bb7ac7/report.json",
+      "sha256": "cc5402b2c31c5fee5c886b54a8354ae5b7fbb8950a12628ca03ce3741cd6dd31",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-git-016",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 34238,
+          "source_hashes": {
+            "enhancements/scripts/test_git_quick_actions.cjs": "6372e980bc73ee8001922596e7dfe5367eddb36e8fbda5019b778f0af7127d4c",
+            "enhancements/src/git_graph_host.ts": "b717924bffa0f89bdff49c06557309defcbb8ba304d6df7e67be010fc2b56069",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-10-54-075Z_503691/report.json",
+      "sha256": "c6dd2b2bd3130d3fcedb7d7ebb705f6299d5408103e3b20529f7cbec4a0a9f52",
+      "status": "passed",
+      "asset_manifest_sha256": "8f2ab1e99979cf39de02656522fe8a0149237f551e41ca8c83cc08c4e020ccd0",
+      "results": [
+        {
+          "id": "TC-system-native-stability",
+          "level": "system",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 14158,
+          "source_hashes": {
+            "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+            "enhancements/fixtures/stability_native.js": "cc154a5711ee59c5f87dcdc1a5a83a0f9998f001e4ea1ebe9ca02dc094102a8e",
+            "enhancements/scripts/prepare_stability_native.py": "2f30af17e3320d19a3cddb7c42293ae12aa08f550e180907f0778cb0cdc64efe",
+            "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+            "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.ts": "4636968eeb48d8311661317f86f48781c0a59e1e0cdd312b6fafed698c7c1d24",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.scss": "a4db94011cec8fb7133088eb07940d376472827815858c6c0ef54c0666e3bf6b",
+            "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts": "b512a6e6847653d83892b7a8eb591a88f380593b3cd0181504add6f8281dae85",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-08-04-064Z_5b4580/report.json",
+      "sha256": "1c236cec14e393c100313bc93cdaf9b9a9fc0b5171ef8354e6067d100d5d5ff7",
+      "status": "passed",
+      "asset_manifest_sha256": "7acc8bba5d874895d43a690dc553e57c4a8e4ad236c1c0e128d59ff0d8cbf45b",
+      "results": [
+        {
+          "id": "TC-git-020",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 22917,
+          "source_hashes": {
+            "enhancements/scripts/test_git_scm_actions.cjs": "aa8c5e0fafe7b35c6779406d95e06f78827643eadff67239088176494397d0b0",
+            "enhancements/src/git_graph_host.ts": "b717924bffa0f89bdff49c06557309defcbb8ba304d6df7e67be010fc2b56069",
+            "enhancements/src/git_graph_panel.ts": "52bb9436758d38b91153b2d4556398041c7db5353e32ab1652fb14f49d58fdfe",
+            "enhancements/src/git_graph_settings.ts": "b1b0fdcd4a666aea6edf1f39f5e9f9ce4c1bb51daded3300ec9c649917243192"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-08-27-439Z_1f5965/report.json",
+      "sha256": "af8cb8ad250602c8d1f54b5dd4ba29cd5a4d9c753aea289b9c8540252d4c32c5",
+      "status": "passed",
+      "asset_manifest_sha256": "7acc8bba5d874895d43a690dc553e57c4a8e4ad236c1c0e128d59ff0d8cbf45b",
+      "results": [
+        {
+          "id": "TC-git-022",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 5391,
+          "source_hashes": {
+            "enhancements/scripts/test_git_scm_ref_picker.cjs": "fc74c364524f4d8de7d06535dee489d6a31ee37f86f0c183cca4c92ae53310a3",
+            "enhancements/src/git_scm_ref_picker.ts": "ceb41bce887d58d1ec7ee398e7c2f8e591d5ff794667d301a929f3c0eb534344"
+          }
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-08-33-285Z_1a1719/report.json",
+      "sha256": "ee7a89e48d2b00951fce65d8018e6d9a5bd13ccb403f8637e65f68e078294538",
+      "status": "passed",
+      "asset_manifest_sha256": "7acc8bba5d874895d43a690dc553e57c4a8e4ad236c1c0e128d59ff0d8cbf45b",
+      "results": [
+        {
+          "id": "TC-workspace-012",
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "elapsed_ms": 8702,
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_footer.cjs": "76e83faa1c3ca1bd0e7552ef4bf689b162926aa47ef9b8ab6f9edd1792fc109e",
+            "enhancements/src/git_status_bar.ts": "a740a7672026ce1cfb1da5db454866dfcf4bb7de8c02ffb033f6700b79e521d0",
+            "enhancements/src/terminal_panel.ts": "6cf43c0878ac194b018bbfbfa218b0f0d895b55d5ba3a2688a826b58a1ad7089",
+            "enhancements/src/terminal_workspace.ts": "f610c80be378ef11e92bc5bd906e7c6e9354657618a17f76f613d1b600bac7e1",
+            "enhancements/src/workspace_editor_status.ts": "664bb509bd37ea5bc8bf25fbaf7c547d6edb4cc7bd6e15c1ea84384811470ef1",
+            "enhancements/src/workspace_footer.ts": "74b0d77f501c04cc059748dc3fdf10a93157017b1f7a4d590a764882d60f13d3"
+          }
+        }
+      ]
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/b529e2644f1341c6b18d87022604fc8d/checks.json",
+    "sha256": "b2ca9a9de2e6f79542aa840d65ced44202a5e7ca8478210ee626df08828a4852",
+    "checks": 56,
+    "scope": "原始Typora 1.14.10，私有桌面/用户目录；renderer调用实际宿主API，非物理用户输入",
+    "samples": [
+      {
+        "viewport": {
+          "width": 802,
+          "height": 702,
+          "device_pixel_ratio": 1.25,
+          "zoom_factor": 1
+        },
+        "input": "renderer事件与真实宿主API；非物理输入"
+      },
+      {
+        "explorer": {
+          "theme": "github.css",
+          "width": 300,
+          "fonts": [
+            {
+              "role": "",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "12px",
+              "weight": "600"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            }
+          ],
+          "geometry": [
+            {
+              "button": {
+                "x": 243.1999969482422,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 263.1999969482422,
+                "bottom": 708.1000366210938,
+                "left": 243.1999969482422
+              },
+              "icon": {
+                "x": 245.1999969482422,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 261.1999969482422,
+                "bottom": 706.1000366210938,
+                "left": 245.1999969482422
+              }
+            },
+            {
+              "button": {
+                "x": 267.20001220703125,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 287.20001220703125,
+                "bottom": 708.1000366210938,
+                "left": 267.20001220703125
+              },
+              "icon": {
+                "x": 269.20001220703125,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 285.20001220703125,
+                "bottom": 706.1000366210938,
+                "left": 269.20001220703125
+              }
+            },
+            {
+              "button": {
+                "x": 291.20001220703125,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 311.20001220703125,
+                "bottom": 708.1000366210938,
+                "left": 291.20001220703125
+              },
+              "icon": {
+                "x": 293.20001220703125,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 309.20001220703125,
+                "bottom": 706.1000366210938,
+                "left": 293.20001220703125
+              }
+            },
+            {
+              "button": {
+                "x": 315.20001220703125,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 335.20001220703125,
+                "bottom": 708.1000366210938,
+                "left": 315.20001220703125
+              },
+              "icon": {
+                "x": 317.20001220703125,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 333.20001220703125,
+                "bottom": 706.1000366210938,
+                "left": 317.20001220703125
+              }
+            }
+          ],
+          "device_pixel_ratio": 1.25
+        }
+      },
+      {
+        "explorer": {
+          "theme": "github.css",
+          "width": 220,
+          "fonts": [
+            {
+              "role": "",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "12px",
+              "weight": "600"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            }
+          ],
+          "geometry": [
+            {
+              "button": {
+                "x": 163.1999969482422,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 183.1999969482422,
+                "bottom": 708.1000366210938,
+                "left": 163.1999969482422
+              },
+              "icon": {
+                "x": 165.1999969482422,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 181.1999969482422,
+                "bottom": 706.1000366210938,
+                "left": 165.1999969482422
+              }
+            },
+            {
+              "button": {
+                "x": 187.1999969482422,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 207.1999969482422,
+                "bottom": 708.1000366210938,
+                "left": 187.1999969482422
+              },
+              "icon": {
+                "x": 189.1999969482422,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 205.1999969482422,
+                "bottom": 706.1000366210938,
+                "left": 189.1999969482422
+              }
+            },
+            {
+              "button": {
+                "x": 211.1999969482422,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 231.1999969482422,
+                "bottom": 708.1000366210938,
+                "left": 211.1999969482422
+              },
+              "icon": {
+                "x": 213.1999969482422,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 229.1999969482422,
+                "bottom": 706.1000366210938,
+                "left": 213.1999969482422
+              }
+            },
+            {
+              "button": {
+                "x": 235.1999969482422,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 255.1999969482422,
+                "bottom": 708.1000366210938,
+                "left": 235.1999969482422
+              },
+              "icon": {
+                "x": 237.1999969482422,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 253.1999969482422,
+                "bottom": 706.1000366210938,
+                "left": 237.1999969482422
+              }
+            }
+          ],
+          "device_pixel_ratio": 1.25
+        }
+      },
+      {
+        "theme": "github.css",
+        "top": 127,
+        "content_top": 89,
+        "bottom": 1003.6000366210938,
+        "scroll": 2759.199951171875,
+        "scroll_height": 4139,
+        "client_height": 915,
+        "busy": false,
+        "bar_bottom": 89
+      },
+      {
+        "theme": "github.css",
+        "menu": [
+          {
+            "slot": {
+              "x": 30,
+              "y": 260,
+              "width": 26,
+              "height": 16,
+              "top": 260,
+              "right": 56,
+              "bottom": 276,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 260,
+              "width": 16,
+              "height": 16,
+              "top": 260,
+              "right": 51,
+              "bottom": 276,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 256,
+              "width": 224,
+              "height": 24,
+              "top": 256,
+              "right": 254,
+              "bottom": 280,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 284,
+              "width": 26,
+              "height": 16,
+              "top": 284,
+              "right": 56,
+              "bottom": 300,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 284,
+              "width": 16,
+              "height": 16,
+              "top": 284,
+              "right": 51,
+              "bottom": 300,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 280,
+              "width": 224,
+              "height": 24,
+              "top": 280,
+              "right": 254,
+              "bottom": 304,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 308,
+              "width": 26,
+              "height": 16,
+              "top": 308,
+              "right": 56,
+              "bottom": 324,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 308,
+              "width": 16,
+              "height": 16,
+              "top": 308,
+              "right": 51,
+              "bottom": 324,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 304,
+              "width": 224,
+              "height": 24,
+              "top": 304,
+              "right": 254,
+              "bottom": 328,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 332,
+              "width": 26,
+              "height": 16,
+              "top": 332,
+              "right": 56,
+              "bottom": 348,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 332,
+              "width": 16,
+              "height": 16,
+              "top": 332,
+              "right": 51,
+              "bottom": 348,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 328,
+              "width": 224,
+              "height": 24,
+              "top": 328,
+              "right": 254,
+              "bottom": 352,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          }
+        ]
+      },
+      {
+        "checkout": {
+          "theme": "github.css",
+          "width": 600,
+          "top": 6,
+          "rows": [
+            {
+              "label": "创建新分支…",
+              "height": 22
+            },
+            {
+              "label": "从指定引用创建新分支…",
+              "height": 22
+            },
+            {
+              "label": "以分离 HEAD 模式检出…",
+              "height": 22
+            },
+            {
+              "label": "main11秒钟前分支Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            },
+            {
+              "label": "topic/native11秒钟前Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            },
+            {
+              "label": "release/native11秒钟前标签Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            }
+          ]
+        }
+      },
+      {
+        "explorer": {
+          "theme": "night.css",
+          "width": 300,
+          "fonts": [
+            {
+              "role": "",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "12px",
+              "weight": "600"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            }
+          ],
+          "geometry": [
+            {
+              "button": {
+                "x": 244,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 264,
+                "bottom": 708.1000366210938,
+                "left": 244
+              },
+              "icon": {
+                "x": 246,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 262,
+                "bottom": 706.1000366210938,
+                "left": 246
+              }
+            },
+            {
+              "button": {
+                "x": 268,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 288,
+                "bottom": 708.1000366210938,
+                "left": 268
+              },
+              "icon": {
+                "x": 270,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 286,
+                "bottom": 706.1000366210938,
+                "left": 270
+              }
+            },
+            {
+              "button": {
+                "x": 292,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 312,
+                "bottom": 708.1000366210938,
+                "left": 292
+              },
+              "icon": {
+                "x": 294,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 310,
+                "bottom": 706.1000366210938,
+                "left": 294
+              }
+            },
+            {
+              "button": {
+                "x": 316,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 336,
+                "bottom": 708.1000366210938,
+                "left": 316
+              },
+              "icon": {
+                "x": 318,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 334,
+                "bottom": 706.1000366210938,
+                "left": 318
+              }
+            }
+          ],
+          "device_pixel_ratio": 1.25
+        }
+      },
+      {
+        "explorer": {
+          "theme": "night.css",
+          "width": 220,
+          "fonts": [
+            {
+              "role": "",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "12px",
+              "weight": "600"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-open-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            },
+            {
+              "role": "workspace-explorer-name",
+              "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+              "size": "13px",
+              "weight": "400"
+            }
+          ],
+          "geometry": [
+            {
+              "button": {
+                "x": 164,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 184,
+                "bottom": 708.1000366210938,
+                "left": 164
+              },
+              "icon": {
+                "x": 166,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 182,
+                "bottom": 706.1000366210938,
+                "left": 166
+              }
+            },
+            {
+              "button": {
+                "x": 188,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 208,
+                "bottom": 708.1000366210938,
+                "left": 188
+              },
+              "icon": {
+                "x": 190,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 206,
+                "bottom": 706.1000366210938,
+                "left": 190
+              }
+            },
+            {
+              "button": {
+                "x": 212,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 232,
+                "bottom": 708.1000366210938,
+                "left": 212
+              },
+              "icon": {
+                "x": 214,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 230,
+                "bottom": 706.1000366210938,
+                "left": 214
+              }
+            },
+            {
+              "button": {
+                "x": 236,
+                "y": 688.1000366210938,
+                "width": 20,
+                "height": 20,
+                "top": 688.1000366210938,
+                "right": 256,
+                "bottom": 708.1000366210938,
+                "left": 236
+              },
+              "icon": {
+                "x": 238,
+                "y": 690.1000366210938,
+                "width": 16,
+                "height": 16,
+                "top": 690.1000366210938,
+                "right": 254,
+                "bottom": 706.1000366210938,
+                "left": 238
+              }
+            }
+          ],
+          "device_pixel_ratio": 1.25
+        }
+      },
+      {
+        "theme": "night.css",
+        "top": 126.5999984741211,
+        "content_top": 89,
+        "bottom": 1003.6000366210938,
+        "scroll": 3646.39990234375,
+        "scroll_height": 5358,
+        "client_height": 915,
+        "busy": false,
+        "bar_bottom": 89
+      },
+      {
+        "theme": "night.css",
+        "menu": [
+          {
+            "slot": {
+              "x": 30,
+              "y": 260,
+              "width": 26,
+              "height": 16,
+              "top": 260,
+              "right": 56,
+              "bottom": 276,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 260,
+              "width": 16,
+              "height": 16,
+              "top": 260,
+              "right": 51,
+              "bottom": 276,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 256,
+              "width": 224,
+              "height": 24,
+              "top": 256,
+              "right": 254,
+              "bottom": 280,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 284,
+              "width": 26,
+              "height": 16,
+              "top": 284,
+              "right": 56,
+              "bottom": 300,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 284,
+              "width": 16,
+              "height": 16,
+              "top": 284,
+              "right": 51,
+              "bottom": 300,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 280,
+              "width": 224,
+              "height": 24,
+              "top": 280,
+              "right": 254,
+              "bottom": 304,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 308,
+              "width": 26,
+              "height": 16,
+              "top": 308,
+              "right": 56,
+              "bottom": 324,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 308,
+              "width": 16,
+              "height": 16,
+              "top": 308,
+              "right": 51,
+              "bottom": 324,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 304,
+              "width": 224,
+              "height": 24,
+              "top": 304,
+              "right": 254,
+              "bottom": 328,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          },
+          {
+            "slot": {
+              "x": 30,
+              "y": 332,
+              "width": 26,
+              "height": 16,
+              "top": 332,
+              "right": 56,
+              "bottom": 348,
+              "left": 30
+            },
+            "icon": {
+              "x": 35,
+              "y": 332,
+              "width": 16,
+              "height": 16,
+              "top": 332,
+              "right": 51,
+              "bottom": 348,
+              "left": 35
+            },
+            "row": {
+              "x": 30,
+              "y": 328,
+              "width": 224,
+              "height": 24,
+              "top": 328,
+              "right": 254,
+              "bottom": 352,
+              "left": 30
+            },
+            "display": "flex",
+            "html": "<span class=\"typ-menu-icon\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\" data-git-icon=\"check\"><path d=\"M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z\"></path></svg></span>",
+            "label_left": 56
+          }
+        ]
+      },
+      {
+        "checkout": {
+          "theme": "night.css",
+          "width": 600,
+          "top": 6,
+          "rows": [
+            {
+              "label": "创建新分支…",
+              "height": 22
+            },
+            {
+              "label": "从指定引用创建新分支…",
+              "height": 22
+            },
+            {
+              "label": "以分离 HEAD 模式检出…",
+              "height": 22
+            },
+            {
+              "label": "main13秒钟前分支Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            },
+            {
+              "label": "topic/native13秒钟前Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            },
+            {
+              "label": "release/native13秒钟前标签Native QA · c6155e8 · test: isolated native fixture",
+              "height": 44
+            }
+          ]
+        }
+      }
+    ],
+    "screenshots": [
+      {
+        "path": ".cache/issue_tracking/native/b529e2644f1341c6b18d87022604fc8d/stage_checkout_Github_4985594.png",
+        "sha256": "90e1fda86a4f0d711f99e5e0989dc17e14d45bf9f993c3a7bc4c2647de189323",
+        "visually_reviewed": true
+      },
+      {
+        "path": ".cache/issue_tracking/native/b529e2644f1341c6b18d87022604fc8d/stage_checkout_Night_4985594.png",
+        "sha256": "5c602b68214bba39d3f0c7c6971bd7d8bab4163d02983c57de39350b7ce5993e",
+        "visually_reviewed": true
+      }
+    ]
+  },
+  "earlier_failures": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-01-59-783Z_4af517/report.json",
+      "sha256": "2a584dd28bbca2f9d9d123505a50ac2a437baf714f3f8d191d3d5a87b4e93f18",
+      "reason": "遗漏官方add/debug-disconnect图标，首次渲染失败；已补齐官方资产"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-02-53-628Z_f3d53c/report.json",
+      "sha256": "e495fb3b30f449a3be7a451d563bea82222459538edbe2cf5c2a70d469bf88a2",
+      "reason": "窄窗实际innerWidth与请求窗口宽差1px，夹具改用真实视口"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-04-41-507Z_60de5e/report.json",
+      "sha256": "9bf5d64b2367529bf566662f2dc655529c87319884982028ff79793cd82ecb35",
+      "reason": "原生夹具重名变量导致语法失败；期间调整类型上下文使报告invalidated，已补语法预检"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-07-28-007Z_6a5e4e/report.json",
+      "sha256": "f0363b47a40d2529589094e299e8b5d880cc2c85b126f0dac5f650108a541519",
+      "reason": "原生夹具Esc缺少keyup导致取消超时；视检同时发现详情居中，均已修复"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-07-45-626Z_5483e6/report.json",
+      "sha256": "48d27cb85942eeaa3b6e398a5c9a04b2dcc48ba7e630df9a87f47e41d5536478",
+      "reason": "旧底栏用例等待git-graph-menu，改用新选择器并覆盖仓库行"
+    }
+  ],
+  "limits": [
+    "隐藏Electron使用真实输入，Git写端口替身；服务另用真实临时Git仓库覆盖10组场景",
+    "原生Typora为renderer事件和真实宿主读取；不是物理输入或另一账户",
+    "SCM菜单/历史多选/底栏布局三项共用回归报告来自前一候选，随后变更仅限检出独立CSS；最终候选另通过分支UI、快捷入口和原生明暗",
+    "未推送、未重启用户窗口；不包含远端拉取、自动stash、工作树切窗或任意提交号输入"
+  ],
+  "skill_validation": "PASS",
+  "installation": {
+    "status": "OK",
+    "asset_hashes": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "c05404a0f170438e1a97335246bc185b232d7143267e04893b4312dc57e7e8e9",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "e6edc689743e254383bc7bc6158b684caf22615385af150dac090cbd623c827f",
+      "workspace.css": "19713d38659c615f65c30fa1e235ee79bc6a35d3a53c57c3a11922e4be5f3983",
+      "workspace_core.css": "5cabd134ebf10a18eb6154ca43f9b52a1bff21a7a5aa256c74b8eff05d7c7035",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected_unchanged": 5,
+    "drift": [],
+    "backup_id": "20260919-201441-412-a283ad6d69cc497f93dcb1c27338c18f",
+    "windows_restarted": false,
+    "log": ".cache/issue_tracking/branch_install.log",
+    "check_log": ".cache/issue_tracking/branch_install_check.log"
+  },
+  "standard_check": {
+    "status": "PASS",
+    "log": ".cache/issue_tracking/branch_standard_check_final2.log",
+    "sha256": "62862f98b39c52542d82b08c29243f0434b4bccba8919b3cd2b805c4532a7b4e"
+  }
+}
