@@ -143,5 +143,25 @@
         "sha256": "909deb25576302ca1f7d7feadd449dc99e9b793b9d17daa02a0c387ef026297e"
       }
     ]
+  },
+  "git_graph_columns_20260919": {
+    "repository": "https://github.com/mhutchie/vscode-git-graph",
+    "version": "1.30.0",
+    "commit": "881a9e6",
+    "facts": [
+      "相邻可见列共同分配宽度，跳过隐藏列",
+      "说明列自动填充，最右列从左边界调整",
+      "上游6px命中；本产品保留7px含线及40至1500px配置范围"
+    ],
+    "files": [
+      {
+        "path": "web/main.ts",
+        "sha256": "c5d392db54b149780d39541323c926f671391f299a4211f6aa711b3d315ad810"
+      },
+      {
+        "path": "web/styles/main.css",
+        "sha256": "21e56ec77929aa28f1290810988e2765d8d257b19feb148ad0816e43a582ee97"
+      }
+    ]
   }
 }

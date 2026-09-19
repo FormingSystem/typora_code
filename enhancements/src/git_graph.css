@@ -106,6 +106,7 @@
 .git-graph-columns { font-size:13px; font-weight:600; position:sticky; top:0; z-index:2; height:31px; background: var(--bg-color, #fff); border-bottom: 1px solid #8884; }
 .git-graph-column { position:relative; height:30px; padding:6px 12px; overflow:hidden; white-space:nowrap; line-height:18px; opacity: .8; }
 .git-graph-column-resize { position: absolute; right: 0; top: 0; width: 7px; height: 100%; cursor: col-resize; border-right: 1px solid #8884; touch-action: none; }
+.git-graph-column-resize:focus-visible,.git-graph-column-resize.dragging { outline:1px solid var(--workspace-focus-border,#0069cc);outline-offset:-1px; }
 .git-graph-column-graph { text-align: center; }
 .git-graph-row { cursor: pointer; }
 .git-graph-row:hover { background: var(--linux-note-shell-hover-background, #e8e8e8); }

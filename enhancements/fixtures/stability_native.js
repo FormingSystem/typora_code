@@ -137,6 +137,25 @@
     assert(mini&&getComputedStyle(mini).borderRadius==='4px','TC-scrollbars-native: '+name+'阅读缩略图共享圆角');
     fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'scrollbars_'+name}));
     await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'')).stage==='scrollbars_'+name;}catch{return false;}},'scrollbars screenshot');
+    core.app.commands.run('linux_note:git_graph');
+    await wait(()=>active().view?.panel?.state&&document.querySelectorAll('.git-graph-column-resize').length===3,'Graph列宽入口');await pause(120);
+    const columns_panel=active().view.panel;
+    const column_rect=key=>columns_panel.header.querySelector('.git-graph-column-'+key).getBoundingClientRect();
+    assert([...columns_panel.header.querySelectorAll('.git-graph-column-resize')].every(node=>Math.abs(Number(node.getAttribute('aria-valuenow'))-node.parentElement.getBoundingClientRect().width)<1),'TC-columns-native: '+name+'初始无障碍列宽对应实际布局');
+    for(const [left,right]of [['subject','date'],['date','author'],['author','hash']])for(const step of [-10,10]){
+     const control=columns_panel.header.querySelector('[data-left-column='+left+']'),left_before=column_rect(left),right_before=column_rect(right);
+     control.focus();control.dispatchEvent(new KeyboardEvent('keydown',{key:step<0?'ArrowLeft':'ArrowRight',bubbles:true,cancelable:true}));
+     const left_after=column_rect(left),right_after=column_rect(right);
+     assert(Math.abs(left_after.right-left_before.right-step)<1&&Math.abs(left_after.width-left_before.width-step)<1&&Math.abs(right_after.width-right_before.width+step)<1,'TC-columns-native: '+name+' '+left+'/'+right+'边界同向、相邻宽度守恒 '+step);
+    }
+    const hash_control=columns_panel.header.querySelector('[data-right-column=hash]');hash_control.focus();
+    hash_control.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',shiftKey:true,bubbles:true,cancelable:true}));
+    assert(Math.abs(column_rect('hash').width-130)<1,'TC-columns-native: '+name+'哈希列实际扩宽至130px');
+    samples.push({columns:{theme,values:['subject','date','author','hash'].map(key=>({key,rect:column_rect(key).toJSON()}))}});
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'columns_'+name}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'')).stage==='columns_'+name;}catch{return false;}},'columns screenshot');
+    hash_control.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',shiftKey:true,bubbles:true,cancelable:true}));
+    await files.open_file(navigation);await wait(()=>active().view?.panel!==columns_panel&&File.bundle.filePath===navigation,'恢复阅读标签');
    }
   }
   if(reqnode('process').env.TYPORA_TEST_PURPOSE==='stress'){

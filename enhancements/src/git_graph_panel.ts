@@ -1,4 +1,5 @@
 import {git_branch_picker} from "./git_branch_picker";
+import {bind_git_graph_columns} from "./git_graph_columns";
 import {git_operation_progress} from "./git_operation_progress";
 import {bind_git_progress_view} from "./git_progress_view";
 import {git_scm_ref_picker} from "./git_scm_ref_picker";
@@ -36,6 +37,7 @@ const target_kind_label = (kind: string): string => text(({
 } as Record<string, git_graph_text_key>)[kind] || "graph.target.repository");
 
 export class git_graph_panel {
+  private column_binding?:ReturnType<typeof bind_git_graph_columns>;
   root: string; settings: graph_settings; state?: repository_state;
   container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar");
   status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("section", "git-graph-details");
@@ -116,7 +118,7 @@ export class git_graph_panel {
     // 标签切换只改变可见性；在途读取继续填充同一视图，已有详情和滚动状态保留。
     if (!this.pending && (!this.loaded || !this.settings.retain_context)) void this.refresh(false);
   }
-  close(): void { this.active = false; window.removeEventListener("keydown", this.key_handler, true); }
+  close(): void { this.column_binding?.cancel();this.active = false; window.removeEventListener("keydown", this.key_handler, true); }
   /** 选择远端期间尚未执行网络命令，可以取消；已开始的写操作保持原有关闭保护。 */
   private cancel_remote_picker(): void {
     const picker = this.remote_picker; if (!picker) return;
@@ -128,6 +130,7 @@ export class git_graph_panel {
     if (this.disposed) return;
     this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.branch_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
+    this.column_binding?.dispose();this.column_binding=undefined;
     this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
     this.publish_state(); this.state_listeners.clear();
     this.finder.close(); this.containment.clear(); this.ancestors.clear();
@@ -142,6 +145,7 @@ export class git_graph_panel {
   async switch_repo(root: string): Promise<void> {
     this.cancel_remote_picker();
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
+    this.column_binding?.dispose();this.column_binding=undefined;
     this.ref_picker.close(false); this.branch_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
     this.progress.reset();this.repository_epoch++; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
     this.last_refreshed_at = 0; this.publish_state();
@@ -260,6 +264,7 @@ export class git_graph_panel {
     const dot = document.createElementNS(ns, "circle"); dot.setAttribute("cx", String(x(row.lane))); dot.setAttribute("cy", String(half_height)); dot.setAttribute("r", "4"); dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]); svg.append(dot); return svg;
   }
   render_history(): void {
+    this.column_binding?.dispose();this.column_binding=undefined;
     const state = this.state!;
     this.container.setAttribute("data-details-location", this.settings.details_location);
     this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
@@ -277,13 +282,10 @@ export class git_graph_panel {
     for (const [key, width] of Object.entries(this.settings.column_widths)) this.container.style.setProperty(`--git-${key}-width`, width + "px");
     this.header.replaceChildren();
     this.header.append(el("div", "git-graph-column git-graph-column-graph", text("graph.column.graph")));
-    for (const [key, title] of [["subject", text("graph.column.description")], ["date", text("graph.column.date")], ["author", text("graph.column.author")], ["hash", text("graph.column.commit")]]) {
-      const label = el("div", "git-graph-column git-graph-column-" + key, title); const handle = el("span", "git-graph-column-resize"); label.append(handle);
-      handle.onpointerdown = event => {
-        event.preventDefault(); handle.setPointerCapture(event.pointerId); const start = event.clientX; const width = label.getBoundingClientRect().width;
-        handle.onpointermove = move => { this.settings.column_widths[key as keyof graph_settings["column_widths"]] = Math.max(40, Math.min(1500, width + move.clientX - start)); this.container.style.setProperty(`--git-${key}-width`, this.settings.column_widths[key as keyof graph_settings["column_widths"]] + "px"); };
-        handle.onpointerup = () => { handle.onpointermove = null; this.persist_settings(); };
-      }; this.header.append(label);
+    const resize_columns=[];
+    for (const [key, title] of [["subject", text("graph.column.description")], ["date", text("graph.column.date")], ["author", text("graph.column.author")], ["hash", text("graph.column.commit")]] as const) {
+      const label = el("div", "git-graph-column git-graph-column-" + key, title);this.header.append(label);
+      if(key==='subject'||this.settings[('show_'+key) as 'show_date'|'show_author'|'show_hash'])resize_columns.push({key,node:label,title});
     }
     if (state.changes.length && this.settings.show_changes) {
       const row = el("div", "git-graph-row git-graph-worktree"); row.dataset.hash = WORKTREE; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === WORKTREE));
@@ -346,6 +348,7 @@ export class git_graph_panel {
       fragment.append(row);
     });
     const scroll = this.list.scrollTop; this.list.replaceChildren(this.header, fragment); this.place_details(); this.list.scrollTop = scroll; this.finder.update(false);
+    this.column_binding=bind_git_graph_columns({container:this.container,columns:resize_columns,widths:this.settings.column_widths,save:()=>this.persist_settings(),report:error=>this.report(error),label:(left,right)=>text('graph.resize_columns',{left,right})});
   }
   place_details(): void {
     const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === this.selected);

@@ -3591,7 +3591,8 @@
         "R047",
         "R018",
         "R048",
-        "R049"
+        "R049",
+        "R050"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3605,7 +3606,9 @@
         "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
         "enhancements/src/git_branch_picker.ts",
         "enhancements/src/git_branch_checkout.ts",
-        "enhancements/src/workspace_scrollbars.css"
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/git_graph_columns.ts",
+        "enhancements/src/git_graph_panel.ts"
       ],
       "related_modules": [
         "files",
@@ -4022,6 +4025,103 @@
       ],
       "timeout_ms": 240000,
       "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-git-columns",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R050"
+      ],
+      "design": "enhancements/git_graph_features.md",
+      "implementation": [
+        "enhancements/src/git_graph_columns.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph.css",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "graph",
+        "settings",
+        "keyboard",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_git_graph_columns.cjs",
+      "environment": "隐藏Electron实际Graph组件，真实指针/键盘；压力为renderer事件，Git端口替身",
+      "preconditions": "候选已构建；独立临时用户目录",
+      "steps": [
+        "拖动每条边界双向；键盘、取消、设置保存失败、隐藏列与窄窗验证"
+      ],
+      "expected": [
+        "边界同向等量、相邻列和不变、取消零保存、表头内容对齐"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-columns-stress",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R050"
+      ],
+      "design": "enhancements/git_graph_features.md",
+      "implementation": [
+        "enhancements/src/git_graph_columns.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph.css",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "graph",
+        "settings",
+        "keyboard",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_git_graph_columns.cjs",
+      "environment": "隐藏Electron实际Graph组件，真实指针/键盘；压力为renderer事件，Git端口替身",
+      "preconditions": "候选已构建；独立临时用户目录",
+      "steps": [
+        "拖动每条边界双向；键盘、取消、设置保存失败、隐藏列与窄窗验证"
+      ],
+      "expected": [
+        "边界同向等量、相邻列和不变、取消零保存、表头内容对齐"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-git-columns-math",
+      "domain": "git",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R050"
+      ],
+      "design": "enhancements/git_graph_features.md",
+      "implementation": [
+        "enhancements/src/git_graph_columns.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph.css",
+        "enhancements/src/git_graph_settings.ts"
+      ],
+      "related_modules": [
+        "graph",
+        "settings",
+        "keyboard",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_git_graph_columns.mjs",
+      "environment": "Node内纯数学契约，确定性边界样本",
+      "preconditions": "候选已构建；独立临时用户目录",
+      "steps": [
+        "核对宽窗口弹性与随机有效输入的相邻列不变量"
+      ],
+      "expected": [
+        "空间守恒、上下界正确、不反转/超越指针、不修改输入设置"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

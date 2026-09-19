@@ -337,7 +337,7 @@ app.whenReady().then(async () => {
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
   // 源代码管理的提交图仍可独立调节，不再复用主 Git Graph 的详情分界线。
   await drag('.git-scm-history-sash',0,70);
-  await click('.git-graph-columns', 'right'); assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-menu .git-menu-label")].map(label=>label.textContent)'),['日期','作者','提交编号','重置五列宽度','全部设置']); assert(await evaluate('document.querySelectorAll("[role=menuitemcheckbox]").length === 3')); await key('Escape');
+  await click('.git-graph-columns', 'right'); assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-menu .git-menu-label")].map(label=>label.textContent)'),['日期','作者','提交编号','重置列宽','全部设置']); assert(await evaluate('document.querySelectorAll("[role=menuitemcheckbox]").length === 3')); await key('Escape');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await click('[data-action="configure_menu"]');
   await click('[data-action-id="branch_create"]'); await click('.git-graph-dialog-footer button');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); assert(!await evaluate('!!document.querySelector("[data-action=branch_create]")')); await click('[data-action="configure_menu"]');

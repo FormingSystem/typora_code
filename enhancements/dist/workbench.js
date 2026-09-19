@@ -158736,7 +158736,8 @@ https://creativecommons.org/licenses/by/4.0/
     "graph.filter_remove": "\u4ECE\u5206\u652F\u7B5B\u9009\u4E2D\u79FB\u9664",
     "graph.filter_add": "\u52A0\u5165\u5206\u652F\u7B5B\u9009",
     "graph.archive_zip": "\u5BFC\u51FA\u6B64\u7248\u672C\u7684 ZIP \u5F52\u6863",
-    "graph.reset_columns": "\u91CD\u7F6E\u4E94\u5217\u5BBD\u5EA6",
+    "graph.reset_columns": "\u91CD\u7F6E\u5217\u5BBD",
+    "graph.resize_columns": "\u8C03\u6574{left}\u4E0E{right}\u5217\u5BBD",
     "graph.all_settings": "\u5168\u90E8\u8BBE\u7F6E",
     "graph.layout_title": "\u63D0\u4EA4\u56FE\u5E03\u5C40",
     "graph.configure_context_menu": "\u914D\u7F6E\u6B64\u53F3\u952E\u83DC\u5355\u2026",
@@ -159585,7 +159586,8 @@ https://creativecommons.org/licenses/by/4.0/
     "graph.filter_remove": "Remove from Branch Filter",
     "graph.filter_add": "Add to Branch Filter",
     "graph.archive_zip": "Export this Version as ZIP",
-    "graph.reset_columns": "Reset Five Column Widths",
+    "graph.reset_columns": "Reset Column Widths",
+    "graph.resize_columns": "Resize {left} and {right} columns",
     "graph.all_settings": "All Settings",
     "graph.layout_title": "Graph Column Layout",
     "graph.configure_context_menu": "Configure this Context Menu\u2026",
@@ -201979,6 +201981,140 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/git_graph_columns.ts
+  var MIN_WIDTH = 40;
+  var MAX_WIDTH = 1500;
+  function resize_graph_column_pair(left, left_width, right_width, delta, widths) {
+    const minimum = Math.max(MIN_WIDTH - left_width, right_width - MAX_WIDTH);
+    const maximum = Math.min(left === "subject" ? Infinity : MAX_WIDTH - left_width, right_width - MIN_WIDTH);
+    const movement = Math.max(minimum, Math.min(maximum, delta));
+    return { left: left === "subject" ? Math.min(widths.subject, left_width + movement) : left_width + movement, right: right_width - movement, movement, minimum, maximum };
+  }
+  function bind_git_graph_columns(options2) {
+    const handles = [];
+    let active;
+    const apply3 = (left, right, left_width, right_width, delta, before) => {
+      const result = resize_graph_column_pair(left.key, left_width, right_width, delta, before);
+      options2.widths[left.key] = result.left;
+      options2.widths[right.key] = result.right;
+      paint();
+      return result;
+    };
+    const paint = () => {
+      for (const [key2, width2] of Object.entries(options2.widths)) options2.container.style.setProperty("--git-".concat(key2, "-width"), width2 + "px");
+      handles.forEach((handle, index) => {
+        const left = options2.columns[index], right = options2.columns[index + 1], left_width = left.node.getBoundingClientRect().width, right_width = right.node.getBoundingClientRect().width;
+        if (left_width <= 0 || right_width <= 0) return;
+        const limits = resize_graph_column_pair(left.key, left_width, right_width, 0, options2.widths);
+        handle.setAttribute("aria-valuenow", String(Math.round(left_width)));
+        handle.setAttribute("aria-valuemin", String(Math.round(left_width + limits.minimum)));
+        handle.setAttribute("aria-valuemax", String(Math.round(left_width + limits.maximum)));
+      });
+    };
+    const restore = (before) => {
+      Object.assign(options2.widths, before);
+      paint();
+    };
+    const save = (before) => {
+      if (Object.keys(before).every((key2) => before[key2] === options2.widths[key2])) return;
+      try {
+        options2.save();
+      } catch (error) {
+        restore(before);
+        options2.report(error);
+      }
+    };
+    const finish = (commit) => {
+      const drag = active;
+      if (!drag) return;
+      active = void 0;
+      drag.handle.classList.remove("dragging");
+      if (drag.handle.hasPointerCapture(drag.pointer)) drag.handle.releasePointerCapture(drag.pointer);
+      if (commit) save(drag.before);
+      else restore(drag.before);
+    };
+    const cancel = () => finish(false);
+    for (let index = 0; index < options2.columns.length - 1; index++) {
+      const left = options2.columns[index], right = options2.columns[index + 1], handle = document.createElement("span");
+      handle.className = "git-graph-column-resize";
+      handle.tabIndex = 0;
+      handle.dataset.leftColumn = left.key;
+      handle.dataset.rightColumn = right.key;
+      handle.setAttribute("role", "separator");
+      handle.setAttribute("aria-orientation", "vertical");
+      handle.setAttribute("aria-label", options2.label(left.title, right.title));
+      handle.onpointerdown = (event) => {
+        if (event.button !== 0 || active) return;
+        event.preventDefault();
+        event.stopPropagation();
+        handle.focus({ preventScroll: true });
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("dragging");
+        active = { handle, pointer: event.pointerId, start: event.clientX, left, right, left_width: left.node.getBoundingClientRect().width, right_width: right.node.getBoundingClientRect().width, before: { ...options2.widths } };
+      };
+      handle.onpointermove = (event) => {
+        const drag = active;
+        if (!drag || drag.pointer !== event.pointerId) return;
+        event.preventDefault();
+        apply3(drag.left, drag.right, drag.left_width, drag.right_width, event.clientX - drag.start, drag.before);
+      };
+      handle.onpointerup = (event) => {
+        if (active?.pointer === event.pointerId) finish(true);
+      };
+      handle.onpointercancel = handle.onlostpointercapture = (event) => {
+        if (active?.handle === handle && active.pointer === event.pointerId) cancel();
+      };
+      handle.onkeydown = (event) => {
+        if (event.key === "Escape" && active) {
+          event.preventDefault();
+          event.stopPropagation();
+          cancel();
+          return;
+        }
+        if (active || event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const before = { ...options2.widths };
+        apply3(left, right, left.node.getBoundingClientRect().width, right.node.getBoundingClientRect().width, (event.key === "ArrowLeft" ? -1 : 1) * (event.shiftKey ? 50 : 10), before);
+        save(before);
+      };
+      handle.onfocus = paint;
+      left.node.append(handle);
+      handles.push(handle);
+    }
+    const resize = () => {
+      cancel();
+      paint();
+    };
+    const header = options2.columns[0]?.node.parentElement;
+    let header_width = header?.getBoundingClientRect().width;
+    const observer2 = new ResizeObserver(() => {
+      const width2 = header?.getBoundingClientRect().width;
+      if (width2 !== header_width) {
+        header_width = width2;
+        cancel();
+      }
+      paint();
+    });
+    if (header) observer2.observe(header);
+    window.addEventListener("blur", cancel);
+    window.addEventListener("resize", resize);
+    paint();
+    return { cancel, dispose() {
+      observer2.disconnect();
+      cancel();
+      window.removeEventListener("blur", cancel);
+      window.removeEventListener("resize", resize);
+      for (const handle of handles) {
+        handle.onpointerdown = handle.onpointermove = handle.onpointerup = handle.onpointercancel = handle.onlostpointercapture = null;
+        handle.onkeydown = null;
+        handle.onfocus = null;
+        handle.remove();
+      }
+      handles.length = 0;
+    } };
+  }
+
   // src/git_operation_progress.ts
   var git_operation_progress = class {
     activities = /* @__PURE__ */ new Map();
@@ -226962,6 +227098,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       this.key_handler = (event) => this.keydown(event);
     }
+    column_binding;
     root;
     settings;
     state;
@@ -227030,6 +227167,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!this.pending && (!this.loaded || !this.settings.retain_context)) void this.refresh(false);
     }
     close() {
+      this.column_binding?.cancel();
       this.active = false;
       window.removeEventListener("keydown", this.key_handler, true);
     }
@@ -227064,6 +227202,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.progress.dispose();
       for (const view of this.progress_views) view.dispose();
       this.progress_views = [];
+      this.column_binding?.dispose();
+      this.column_binding = void 0;
       this.workbench.dispose();
       this.container.remove();
       this.container.replaceChildren();
@@ -227111,6 +227251,8 @@ https://creativecommons.org/licenses/by/4.0/
         this.report(git_graph_text("graph.operation_pending"));
         return;
       }
+      this.column_binding?.dispose();
+      this.column_binding = void 0;
       this.ref_picker.close(false);
       this.branch_picker.close(false);
       this.remote_picker?.close(false);
@@ -227308,6 +227450,8 @@ https://creativecommons.org/licenses/by/4.0/
       return svg3;
     }
     render_history() {
+      this.column_binding?.dispose();
+      this.column_binding = void 0;
       const state = this.state;
       this.container.setAttribute("data-details-location", this.settings.details_location);
       this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
@@ -227326,25 +227470,11 @@ https://creativecommons.org/licenses/by/4.0/
       for (const [key2, width2] of Object.entries(this.settings.column_widths)) this.container.style.setProperty("--git-".concat(key2, "-width"), width2 + "px");
       this.header.replaceChildren();
       this.header.append(workspace_element("div", "git-graph-column git-graph-column-graph", git_graph_text("graph.column.graph")));
+      const resize_columns = [];
       for (const [key2, title] of [["subject", git_graph_text("graph.column.description")], ["date", git_graph_text("graph.column.date")], ["author", git_graph_text("graph.column.author")], ["hash", git_graph_text("graph.column.commit")]]) {
         const label = workspace_element("div", "git-graph-column git-graph-column-" + key2, title);
-        const handle = workspace_element("span", "git-graph-column-resize");
-        label.append(handle);
-        handle.onpointerdown = (event) => {
-          event.preventDefault();
-          handle.setPointerCapture(event.pointerId);
-          const start = event.clientX;
-          const width2 = label.getBoundingClientRect().width;
-          handle.onpointermove = (move) => {
-            this.settings.column_widths[key2] = Math.max(40, Math.min(1500, width2 + move.clientX - start));
-            this.container.style.setProperty("--git-".concat(key2, "-width"), this.settings.column_widths[key2] + "px");
-          };
-          handle.onpointerup = () => {
-            handle.onpointermove = null;
-            this.persist_settings();
-          };
-        };
         this.header.append(label);
+        if (key2 === "subject" || this.settings["show_" + key2]) resize_columns.push({ key: key2, node: label, title });
       }
       if (state.changes.length && this.settings.show_changes) {
         const row = workspace_element("div", "git-graph-row git-graph-worktree");
@@ -227481,6 +227611,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.place_details();
       this.list.scrollTop = scroll;
       this.finder.update(false);
+      this.column_binding = bind_git_graph_columns({ container: this.container, columns: resize_columns, widths: this.settings.column_widths, save: () => this.persist_settings(), report: (error) => this.report(error), label: (left, right) => git_graph_text("graph.resize_columns", { left, right }) });
     }
     place_details() {
       const row = [...this.list.querySelectorAll("[data-hash]")].find((item) => item.dataset.hash === this.selected);
@@ -237863,6 +237994,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026091905,
+        version: "2026.09.19.5",
+        date: "2026-09-19",
+        notes: [
+          "\u4FEE\u590DGit Graph\u5217\u5206\u9694\u7EBF\u62D6\u52A8\u65B9\u5411\u53CD\u8F6C\uFF0C\u65E5\u671F\u3001\u4F5C\u8005\u3001\u63D0\u4EA4\u7F16\u53F7\u901A\u8FC7\u76F8\u90BB\u5217\u5206\u914D\u5BBD\u5EA6\u3002",
+          "\u8865\u9F50\u54C8\u5E0C\u5217\u8C03\u5BBD/\u8C03\u7A84\u3001\u952E\u76D8\u8C03\u8282\u548C\u53D6\u6D88\u62D6\u52A8\uFF1B\u5237\u65B0\u3001\u5207\u5E93\u53CA\u5173\u95ED\u4E0D\u4F1A\u4FDD\u5B58\u672A\u5B8C\u6210\u7684\u8C03\u6574\u3002"
+        ]
+      },
       {
         sequence: 2026091904,
         version: "2026.09.19.4",
