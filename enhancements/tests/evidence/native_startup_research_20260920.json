@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R056"
+  ],
+  "design": "docs/native_startup_design.md",
+  "kind": "source_review_and_existing_startup_baseline",
+  "release": "2026.09.20.2",
+  "upstream": {
+    "repo": "typora-community-plugin/typora-community-plugin",
+    "sha": "601a1dcbaf905b7b7a40229f7109f0411d71671c"
+  },
+  "upstream_files": {
+    "index.ts": "89cf48d76473521fc9a5c56d13e751b864e11cc94746e7f4fcba87fa6a863381",
+    "install.ps1": "d5c9be2cdd0ae1d8e3f7a9b9f12a773dcd1f2184acea6de704213207e1000b7b",
+    "about-tab.ts": "88c5250e99f075861a598fb70ed6ac2df329748736dd82f3603806f540d801e0"
+  },
+  "native": {
+    "case": ".cache/issue_tracking/native/2cf327e8d0dc4093973ad7d2c160e48c",
+    "checks_sha256": "36e34b5dc30e62f8c7ed024cb04a19a6853e2e66036f65064191d3f106e6e6f4",
+    "assertions": 45,
+    "switches": 20,
+    "head_runtime": {
+      "require": "function",
+      "reqnode": "undefined",
+      "options": "undefined",
+      "user_data": false
+    }
+  },
+  "report": {
+    "path": ".cache/issue_tracking/runs/2026-09-19T23-48-08-545Z_bf017c/report.json",
+    "sha256": "948131e95dcb7f4a265717072671fa3eb3db655449e24288eea3c250ad2a25d1",
+    "id": "TC-startup-native",
+    "status": "PASS"
+  },
+  "asset_manifest_sha256": "6b7cba75c55a52f6d7c793791f445e9e6f97cc083da569b9068661c5db70b42c",
+  "limitations": [
+    "This verifies current startup and records head dependencies; it does not validate a new direct-layout implementation.",
+    "No official Typora update was executed. No production assets were installed.",
+    "Upstream update conclusion is limited to reviewed versions and paths."
+  ]
+}

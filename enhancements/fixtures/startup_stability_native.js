@@ -40,7 +40,7 @@
   probe.stop();
   if(probe.stop_profile)fs.writeFileSync(path.join(base,'startup.cpuprofile'),JSON.stringify(await probe.stop_profile()),'utf8');
   if(probe.profile_error)fs.writeFileSync(path.join(base,'profile_error.txt'),probe.profile_error,'utf8');
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,switches,startup:probe.samples,long_tasks:probe.long_tasks,measures:performance.getEntriesByType('measure').filter(entry=>entry.name.startsWith('typora-code:')).map(entry=>entry.toJSON()),host_calls:{show_count,hide_count,initial_show,initial_hide},viewport:[innerWidth,innerHeight],dpr:devicePixelRatio},null,2),'utf8');
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',head_runtime:probe.head_runtime,checks,switches,startup:probe.samples,long_tasks:probe.long_tasks,measures:performance.getEntriesByType('measure').filter(entry=>entry.name.startsWith('typora-code:')).map(entry=>entry.toJSON()),host_calls:{show_count,hide_count,initial_show,initial_hide},viewport:[innerWidth,innerHeight],dpr:devicePixelRatio},null,2),'utf8');
  }catch(error){probe?.stop();fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,switches,startup:probe?.samples,long_tasks:probe?.long_tasks},null,2),'utf8');}
  finally{library.showSidebar=original_show;library.hideSidebar=original_hide;}
 })();
