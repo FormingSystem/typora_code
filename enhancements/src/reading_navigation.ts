@@ -41,6 +41,7 @@ export function bind_reading_navigation(): () => void {
       || typeof editor.library?.openFile !== "function" || typeof editor.selection?.buildUndo !== "function") return () => {};
   let disposed = false;
   const controller = new AbortController();
+  let context_controller=new AbortController();
   const cleanups: (() => void)[] = [];
   const collect = (value: unknown) => { if (typeof value === "function") cleanups.push(value as () => void); };
   const attrs = ["data-linux-note-reading-navigation", "data-linux-note-reading-positions", "data-linux-note-history-back", "data-linux-note-history-forward"];
@@ -226,7 +227,7 @@ export function bind_reading_navigation(): () => void {
     // 同时接受单次移交取消和阅读模块卸载；取消排队项不能在前次导航结束后再打开文件。
     const operation = new AbortController();
     const abort = () => operation.abort();
-    const signals = [controller.signal, options.signal].filter((signal): signal is AbortSignal => Boolean(signal));
+    const signals = [controller.signal, context_controller.signal, options.signal].filter((signal): signal is AbortSignal => Boolean(signal));
     for (const signal of signals) { if (signal.aborted) abort(); else signal.addEventListener("abort", abort, {once: true}); }
     try {
       if (disposed || operation.signal.aborted) return false;
@@ -247,7 +248,7 @@ export function bind_reading_navigation(): () => void {
     finish_pending();
     const current = capture();
     if (!current) return false;
-    const pending = history.travel(direction, current, location => navigate(location.file_path, undefined, location));
+    const pending = history.travel(direction, current, location => navigate(location.file_path, undefined, location,{signal:context_controller.signal}));
     publish_history_state();
     try { return await pending; }
     finally { publish_history_state(); }
@@ -346,5 +347,8 @@ export function bind_reading_navigation(): () => void {
     if (active_dispose === dispose) active_dispose = undefined;
   };
   active_dispose = dispose;
+  window.addEventListener("linux-note-workspace-context-changed",()=>{
+    context_controller.abort();context_controller=new AbortController();clearTimeout(pending_timer);pending_from=null;history.clear();publish_history_state();
+  },{signal:controller.signal});
   return dispose;
 }

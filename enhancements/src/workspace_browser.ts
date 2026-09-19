@@ -1,3 +1,4 @@
+import {workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
 import {bind_workspace_zoom_status} from "./workspace_zoom_status";
 import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
@@ -35,7 +36,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_native_toolbar(files,window as any));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
   lifetime.own(bind_workspace_preferences(core));
-  const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed()));
+  const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed(true)));
   const open_folder=file_commands.open_folder;
   const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,create:files.create_entry,file_clipboard:files.file_clipboard,trash:files.trash_entries,confirm_delete:()=>!(window as unknown as {File?:{option?:{noWarnigForDeleteFile?:boolean}}}).File?.option?.noWarnigForDeleteFile,
     reveal_system:path=>(window as unknown as {reqnode(name:string):any}).reqnode("electron").shell.showItemInFolder(path),
@@ -63,14 +64,15 @@ export function bind_workspace_browser() {
 
   const search=lifetime.own(bind_workspace_search(core,files));
   let known_context=files.context_root();
-  const context_changed=()=>{
-    if(lifetime.disposed)return;
-    const current=files.context_root();if(current===known_context)return;known_context=current;
-    window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+  const context_changed=(force=false)=>{
+    if(lifetime.disposed||workspace_context_switching())return;
+    const current=files.context_root();if(!force&&current===known_context)return;known_context=current;
+    if(!force){window.dispatchEvent(new Event("linux-note-workspace-context-changed"));return;}
     void explorer.refresh().catch(error=>console.error("Typora Code folder refresh:",error));
     search.refresh_context();outline_binding?.refresh();
   };
-  lifetime.add(core.app.vault?.on("mounted",context_changed));
+  lifetime.add(core.app.vault?.on("mounted",()=>context_changed()));
+  lifetime.listen(window,"linux-note-workspace-context-changed",()=>context_changed(true));
   const focus_explorer=()=>{explorer.show();requestAnimationFrame(()=>explorer.container.querySelector<HTMLElement>(".workspace-explorer-tree")?.focus({preventScroll:true}));};
   lifetime.add(core.app.commands.register({id:"linux_note:file_explorer",title:"视图：资源管理器",scope:"global",callback:focus_explorer}));
   let reveal_epoch=0;

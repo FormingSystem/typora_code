@@ -161482,6 +161482,38 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_context.ts
+  var epoch = 0;
+  var switching = false;
+  var guards = /* @__PURE__ */ new Set();
+  var workspace_context_epoch = () => epoch;
+  var workspace_context_switching = () => switching;
+  function register_workspace_context_guard(guard) {
+    guards.add(guard);
+    return () => {
+      guards.delete(guard);
+    };
+  }
+  function assert_workspace_context_ready() {
+    for (const guard of guards) {
+      const reason = guard();
+      if (reason) throw new Error(reason);
+    }
+  }
+  function begin_workspace_context_switch() {
+    if (switching) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+    assert_workspace_context_ready();
+    switching = true;
+    epoch++;
+  }
+  function finish_workspace_context_switch() {
+    switching = false;
+    window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+  }
+  function cancel_workspace_context_switch() {
+    switching = false;
+  }
+
   // src/workspace_native_trash.ts
   async function trash_native_path(runtime2, target) {
     const fs2 = runtime2.reqnode("fs").promises;
@@ -180375,7 +180407,14 @@ https://creativecommons.org/licenses/by/4.0/
     let entries3 = [];
     let index = -1;
     let navigating = false;
+    let revision = 0;
     return {
+      clear() {
+        revision++;
+        entries3 = [];
+        index = -1;
+        navigating = false;
+      },
       is_navigating: () => navigating,
       can_travel: (direction) => !navigating && index + direction >= 0 && index + direction < entries3.length,
       remap_paths(map) {
@@ -180401,13 +180440,14 @@ https://creativecommons.org/licenses/by/4.0/
         const target_index = index + direction;
         if (navigating || target_index < 0 || target_index >= entries3.length) return false;
         navigating = true;
+        const current_revision = revision;
         try {
-          if (!await restore(entries3[target_index])) return false;
+          if (!await restore(entries3[target_index]) || current_revision !== revision) return false;
           if (entries3[index]?.file_path === current.file_path && entries3[index]?.view_id === current.view_id) entries3[index] = current;
           index = target_index;
           return true;
         } finally {
-          navigating = false;
+          if (current_revision === revision) navigating = false;
         }
       }
     };
@@ -180781,6 +180821,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     let disposed = false;
     const controller = new AbortController();
+    let context_controller = new AbortController();
     const cleanups = [];
     const collect = (value) => {
       if (typeof value === "function") cleanups.push(value);
@@ -180970,7 +181011,7 @@ https://creativecommons.org/licenses/by/4.0/
     const owned_navigate_target = navigate_target = async (path, options2) => {
       const operation = new AbortController();
       const abort = () => operation.abort();
-      const signals = [controller.signal, options2.signal].filter((signal) => Boolean(signal));
+      const signals = [controller.signal, context_controller.signal, options2.signal].filter((signal) => Boolean(signal));
       for (const signal of signals) {
         if (signal.aborted) abort();
         else signal.addEventListener("abort", abort, { once: true });
@@ -180993,7 +181034,7 @@ https://creativecommons.org/licenses/by/4.0/
       finish_pending();
       const current = capture();
       if (!current) return false;
-      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location));
+      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location, { signal: context_controller.signal }));
       publish_history_state();
       try {
         return await pending;
@@ -181100,6 +181141,14 @@ https://creativecommons.org/licenses/by/4.0/
       if (active_dispose === dispose2) active_dispose = void 0;
     };
     active_dispose = dispose2;
+    window.addEventListener("linux-note-workspace-context-changed", () => {
+      context_controller.abort();
+      context_controller = new AbortController();
+      clearTimeout(pending_timer);
+      pending_from = null;
+      history.clear();
+      publish_history_state();
+    }, { signal: controller.signal });
     return dispose2;
   }
 
@@ -181769,6 +181818,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, (leaf) => new source_file_view(leaf));
     const open_file = async (file_path, location = {}, group = "active") => {
+      if (workspace_context_switching()) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u7A0D\u540E\u6253\u5F00\u6587\u4EF6\u3002");
       if (location.signal?.aborted) throw new Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
       if (renaming) throw new Error("\u6B63\u5728\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u6253\u5F00\u6587\u4EF6\u3002");
       const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
@@ -182095,6 +182145,72 @@ https://creativecommons.org/licenses/by/4.0/
         kind: source ? "source" : markdown ? "markdown" : "other",
         dirty: source ? source.dirty() : Boolean(native_same && runtime2.File?.changeCounter?.isDocumentEdited()),
         busy: Boolean(renaming || source?.saving || source?.loading || native_same && (runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || runtime2.File?._onFileSwitching))
+      };
+    };
+    const prepare_workspace_switch = async () => {
+      const leaves = [];
+      core.app.workspace.eachLeaves((leaf) => leaves.push(leaf));
+      const check = () => {
+        assert_workspace_context_ready();
+        if (!binding.active || renaming || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
+        const current = [];
+        core.app.workspace.eachLeaves((leaf) => current.push(leaf));
+        if (current.length !== leaves.length || current.some((leaf) => !leaves.includes(leaf))) throw new Error("\u6253\u5F00\u7684\u7F16\u8F91\u5668\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
+      };
+      check();
+      const dirty = () => leaves.filter((leaf) => editor_state(leaf).dirty);
+      const terminal_count = document.querySelectorAll(".linux-note-terminal[data-session]").length;
+      if (dirty().length || terminal_count) {
+        const accepted = await new Promise((resolve3) => {
+          let done = false, busy = false;
+          const dialog2 = workspace_dialog("\u5207\u6362\u5DE5\u4F5C\u533A", "\u53D6\u6D88", () => {
+            if (!done) resolve3(false);
+          });
+          dialog2.root.dataset.workspaceSwitch = "true";
+          dialog2.content.append(workspace_element("p", "", dirty().length ? "\u5F53\u524D\u5DE5\u4F5C\u533A\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\uFF0C\u5168\u90E8\u4FDD\u5B58\u540E\u518D\u5207\u6362\u3002" : "\u5207\u6362\u5DE5\u4F5C\u533A\u5C06\u5173\u95ED\u5F53\u524D\u7A97\u53E3\u7684\u7EC8\u7AEF\u4F1A\u8BDD\u3002"));
+          if (terminal_count && dirty().length) dialog2.content.append(workspace_element("p", "", "\u5F53\u524D\u7A97\u53E3\u7684\u7EC8\u7AEF\u4F1A\u8BDD\u4E5F\u5C06\u7ED3\u675F\u3002"));
+          const message = workspace_element("p");
+          dialog2.content.append(message);
+          const accept = workspace_button(dirty().length ? "\u5168\u90E8\u4FDD\u5B58\u5E76\u5207\u6362" : "\u5207\u6362\u5DE5\u4F5C\u533A", () => {
+            if (busy) return;
+            busy = true;
+            accept.disabled = true;
+            void (async () => {
+              check();
+              for (const leaf of dirty()) {
+                if (!dialog2.root.isConnected) return;
+                if (!await save_leaf(leaf)) throw new Error("\u4FDD\u5B58\u672A\u5B8C\u6210\uFF0C\u539F\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002\u8BF7\u5904\u7406\u4FDD\u5B58\u63D0\u793A\u540E\u91CD\u8BD5\u3002");
+              }
+              if (!dialog2.root.isConnected) return;
+              check();
+              if (dirty().length) throw new Error("\u4ECD\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002");
+              done = true;
+              dialog2.close(false);
+              resolve3(true);
+            })().catch((error) => {
+              message.textContent = String(error);
+            }).finally(() => {
+              busy = false;
+              accept.disabled = false;
+            });
+          });
+          dialog2.footer.prepend(accept);
+        });
+        if (!accepted) return;
+      }
+      check();
+      if (dirty().length) throw new Error("\u4ECD\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002");
+      return () => {
+        check();
+        if (dirty().length) throw new Error("\u6587\u6863\u53C8\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DF2\u505C\u6B62\u5207\u6362\u3002");
+        file_clipboard.invalidate();
+        dispose_workspace_widgets();
+        for (const leaf of leaves) leaf.parent.removeTab?.(leaf.state.path);
+        let empty2;
+        core.app.workspace.eachLeaves((leaf) => {
+          empty2 ??= leaf;
+        });
+        core.app.workspace.activeLeaf = empty2;
       };
     };
     const native_close_dialogs = /* @__PURE__ */ new Map();
@@ -182671,6 +182787,7 @@ https://creativecommons.org/licenses/by/4.0/
       keep_open,
       editor_state,
       close_leaf,
+      prepare_workspace_switch,
       duplicate_leaf,
       reopen_leaf,
       source_editor_active,
@@ -197025,9 +197142,10 @@ https://creativecommons.org/licenses/by/4.0/
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
       const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false) => (async () => {
-        if (lifetime.disposed) return;
+        const epoch2 = workspace_context_epoch();
+        if (lifetime.disposed || workspace_context_switching()) return;
         await settings.ready();
-        if (lifetime.disposed) return;
+        if (lifetime.disposed || epoch2 !== workspace_context_epoch()) return;
         const profile = settings.select_profile(program || settings.get().profile);
         const id = "terminal_" + ++serial2;
         let entry;
@@ -197144,8 +197262,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       const launch = (admin_mode = false, path) => {
+        const epoch2 = workspace_context_epoch();
         void resolve_root(path).then((root) => {
-          if (!lifetime.disposed) admin_mode ? admin(root) : open(root);
+          if (!lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch()) admin_mode ? admin(root) : open(root);
         }).catch(fail);
       };
       const toggle = () => {
@@ -197270,6 +197389,10 @@ https://creativecommons.org/licenses/by/4.0/
         document.documentElement.removeAttribute("data-linux-note-terminal-theme");
       });
       lifetime.listen(window, "unload", lifetime.dispose);
+      lifetime.listen(window, "linux-note-workspace-context-changed", () => {
+        for (const close of [...overlays]) close();
+        for (const id of [...sessions.keys()]) kill(id);
+      });
       document.documentElement.setAttribute("data-linux-note-terminal", "ready");
       document.documentElement.setAttribute("data-linux-note-terminal-theme", "ready");
       return { open, admin, toggle, dispose: lifetime.dispose };
@@ -201468,7 +201591,9 @@ https://creativecommons.org/licenses/by/4.0/
       },
       context_path(use_active = true) {
         const active = core.app.workspace.activeLeaf;
-        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || runtime2.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
+        const mounted = runtime2.File?.getMountFolder?.();
+        if (typeof mounted === "string") return mounted;
+        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || (runtime2.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
       },
       can_change_files() {
         if (runtime2.File?.changeCounter?.isDocumentEdited()) return false;
@@ -201784,7 +201909,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     open() {
       active_picker?.close();
-      const panel = this.panel, state = panel.state, root_path = panel.root, runner = panel.runner, writer = panel.writer, epoch = panel.repository_epoch;
+      const panel = this.panel, state = panel.state, root_path = panel.root, runner = panel.runner, writer = panel.writer, epoch2 = panel.repository_epoch;
       if (!state || state.root !== root_path || panel.pending || panel.writing || panel.disposed) return;
       panel.ref_picker.close();
       const previous = capture_workspace_focus(), root = workspace_element("div", "git-scm-ref-picker git-branch-picker"), header = workspace_element("div", "git-scm-ref-header"), wrap = workspace_element("div", "git-scm-ref-input"), input = workspace_element("input", "git-scm-ref-filter"), list3 = workspace_element("div", "git-scm-ref-list"), status2 = workspace_element("div", "git-branch-status");
@@ -201806,7 +201931,7 @@ https://creativecommons.org/licenses/by/4.0/
       document.body.append(root);
       const style = acquire_workspace_style("typora-code-style:git-scm-ref-picker", git_scm_ref_picker_default), own_style = acquire_workspace_style("typora-code-style:git-branch-picker", git_branch_picker_default), interaction = acquire_workspace_interaction(root);
       let refs = [], visible3 = [], selected = "", closed = false, loading = true, validating = false, mode = "checkout", source;
-      const valid = () => !closed && !panel.disposed && !panel.pending && !panel.writing && panel.root === root_path && panel.runner === runner && panel.writer === writer && panel.repository_epoch === epoch && panel.state === state;
+      const valid = () => !closed && !panel.disposed && !panel.pending && !panel.writing && panel.root === root_path && panel.runner === runner && panel.writer === writer && panel.repository_epoch === epoch2 && panel.state === state;
       const close = (restore) => {
         if (closed) return;
         closed = true;
@@ -202545,13 +202670,13 @@ https://creativecommons.org/licenses/by/4.0/
       this.close();
       const panel = this.panel, state = panel.state;
       if (!state || panel.disposed || panel.pending || panel.writing) return;
-      const epoch = ++this.epoch, root = panel.root, writer = panel.writer;
+      const epoch2 = ++this.epoch, root = panel.root, writer = panel.writer;
       const reader = panel.host.runner(panel.settings), selected_paths = [...paths];
       let timer = 0, consumed = false;
       const dialog2 = workspace_dialog(git_graph_text("discard.title"), git_graph_text("discard.cancel"), () => {
         clearTimeout(timer);
         reader.dispose();
-        if (this.epoch === epoch) {
+        if (this.epoch === epoch2) {
           this.epoch++;
           this.dialog = void 0;
           this.choices = [];
@@ -202569,7 +202694,7 @@ https://creativecommons.org/licenses/by/4.0/
       paragraphs.append(workspace_element("p", "", git_graph_text("discard.loading")));
       message.append(git_icon("warning"), paragraphs);
       dialog2.content.append(message);
-      const available = () => !consumed && this.epoch === epoch && dialog2.root.isConnected && !panel.disposed && panel.root === root && panel.writer === writer;
+      const available = () => !consumed && this.epoch === epoch2 && dialog2.root.isConnected && !panel.disposed && panel.root === root && panel.writer === writer;
       const confirm2 = (prepared, scope) => {
         if (!available() || panel.pending || panel.writing) return;
         const selected = select_discard_scope(prepared, scope);
@@ -202650,10 +202775,10 @@ https://creativecommons.org/licenses/by/4.0/
   async function open_scm_comparison(panel, from, to) {
     const state = panel.state;
     if (!state) return;
-    const runner = panel.runner, root = panel.root, epoch = ++panel.workbench.load_epoch;
+    const runner = panel.runner, root = panel.root, epoch2 = ++panel.workbench.load_epoch;
     try {
       const files = await compare_files(runner.run, state, from, to);
-      if (panel.disposed || root !== panel.root || runner !== panel.runner || epoch !== panel.workbench.load_epoch) return;
+      if (panel.disposed || root !== panel.root || runner !== panel.runner || epoch2 !== panel.workbench.load_epoch) return;
       if (!files.length) {
         panel.report(git_graph_text("history.no_changed_files"));
         return;
@@ -203281,7 +203406,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (this.container.children[index] !== item.row) this.container.insertBefore(item.row, this.container.children[index] || null);
       });
       this.paint_current();
-      const epoch = ++this.epoch;
+      const epoch2 = ++this.epoch;
       const rows = roots.filter((root) => root !== panel.root).map((root) => this.rows.get(root));
       if (!rows.length) return;
       if (!this.reader || this.reader_key !== panel.settings.git_path) {
@@ -203296,10 +203421,10 @@ https://creativecommons.org/licenses/by/4.0/
           const item = rows[next++];
           try {
             const status2 = await read_branch_status(reader.run, item.root);
-            if (this.disposed || epoch !== this.epoch) return;
+            if (this.disposed || epoch2 !== this.epoch) return;
             item.paint(status2);
           } catch (error) {
-            if (!this.disposed && epoch === this.epoch) {
+            if (!this.disposed && epoch2 === this.epoch) {
               item.row.title = String(error);
               item.row.dataset.error = "true";
             }
@@ -203972,7 +204097,7 @@ https://creativecommons.org/licenses/by/4.0/
     render(state) {
       this.hover.hide();
       if (state.root !== this.root) this.reset();
-      const epoch = ++this.epoch;
+      const epoch2 = ++this.epoch;
       const panel = this.owner.panel;
       const scroll = this.list.scrollTop;
       this.container.dataset.historyAlwaysShowActions = String(panel.settings.history_always_show_actions);
@@ -204040,7 +204165,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash));
           else {
             files.textContent = git_graph_text("history.loading_files");
-            void this.load_files(state, commit, files, epoch);
+            void this.load_files(state, commit, files, epoch2);
           }
         }
         const changes = git_icon_button("diff-multiple", git_graph_text("history.open_changes"), () => {
@@ -204089,14 +204214,14 @@ https://creativecommons.org/licenses/by/4.0/
       }
       return svg3;
     }
-    async load_files(state, commit, target, epoch) {
+    async load_files(state, commit, target, epoch2) {
       try {
         const files = await compare_files(this.owner.panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
-        if (epoch !== this.epoch || state.root !== this.root) return;
+        if (epoch2 !== this.epoch || state.root !== this.root) return;
         this.files_cache.set(commit.hash, files);
         this.render_files(target, commit, files);
       } catch (error) {
-        if (epoch === this.epoch) {
+        if (epoch2 === this.epoch) {
           target.textContent = String(error instanceof Error ? error.message : error);
           target.append(workspace_button(git_graph_text("history.retry"), () => {
             const current = this.owner.panel.state;
@@ -204106,11 +204231,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     async open_changes(state, commit) {
-      const panel = this.owner.panel, root = state.root, epoch = ++this.owner.load_epoch;
+      const panel = this.owner.panel, root = state.root, epoch2 = ++this.owner.load_epoch;
       if (!this.owner.repository_action_available(root)) return;
       try {
         const files = this.files_cache.get(commit.hash) || await compare_files(panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
-        if (panel.disposed || root !== panel.root || epoch !== this.owner.load_epoch) return;
+        if (panel.disposed || root !== panel.root || epoch2 !== this.owner.load_epoch) return;
         this.files_cache.set(commit.hash, files);
         this.selected = commit.hash;
         this.render(state);
@@ -204120,7 +204245,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         await this.owner.open_file(files[0], commit.parents[0] || EMPTY, commit.hash, files);
       } catch (error) {
-        if (!panel.disposed && root === panel.root && epoch === this.owner.load_epoch) panel.report(error);
+        if (!panel.disposed && root === panel.root && epoch2 === this.owner.load_epoch) panel.report(error);
       }
     }
     render_files(target, commit, files) {
@@ -204507,12 +204632,12 @@ https://creativecommons.org/licenses/by/4.0/
     async refresh(history_changed = true) {
       const state = this.panel.state;
       if (!state) return;
-      const epoch = ++this.groups_epoch;
+      const epoch2 = ++this.groups_epoch;
       this.fit_message();
       if (history_changed) this.history.render(state);
       try {
         const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
-        if (epoch !== this.groups_epoch || state !== this.panel.state) return;
+        if (epoch2 !== this.groups_epoch || state !== this.panel.state) return;
         const conflicts = new Set(state.changes.filter((file) => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map((file) => file.path));
         const groups_state = [
           { id: "staged", title: git_graph_text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter((file) => !conflicts.has(file.path)) },
@@ -204522,7 +204647,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.groups_state = groups_state;
         if (changed2 || this.groups_layout_changed || !this.groups.childElementCount) this.render_groups();
       } catch (error) {
-        if (epoch === this.groups_epoch) this.panel.report(error);
+        if (epoch2 === this.groups_epoch) this.panel.report(error);
       }
     }
     render_groups() {
@@ -204717,12 +204842,12 @@ https://creativecommons.org/licenses/by/4.0/
       await this.open_file(file, from, to, files);
     }
     async open_current_file(file) {
-      const epoch = ++this.load_epoch;
+      const epoch2 = ++this.load_epoch;
       const root = this.panel.root;
       try {
         await this.panel.host.open_file(root, file.path, this.panel.settings);
       } catch (error) {
-        if (epoch === this.load_epoch && root === this.panel.root) this.panel.report(error);
+        if (epoch2 === this.load_epoch && root === this.panel.root) this.panel.report(error);
       }
     }
     async open_revision_file(file, from, to) {
@@ -204730,17 +204855,17 @@ https://creativecommons.org/licenses/by/4.0/
       await this.open_revision(deleted ? from : to, deleted ? file.old_path || file.path : file.path);
     }
     async open_revision(revision, file) {
-      const epoch = ++this.load_epoch, root = this.panel.root, settings = { ...this.panel.settings };
+      const epoch2 = ++this.load_epoch, root = this.panel.root, settings = { ...this.panel.settings };
       try {
         const content = await this.panel.host.revision_text(root, revision, file, settings);
-        if (this.panel.disposed || epoch !== this.load_epoch || root !== this.panel.root) return;
+        if (this.panel.disposed || epoch2 !== this.load_epoch || root !== this.panel.root) return;
         this.panel.host.open_revision_document(root, revision, file, content, settings);
       } catch (error) {
-        if (!this.panel.disposed && epoch === this.load_epoch && root === this.panel.root) this.panel.report(error);
+        if (!this.panel.disposed && epoch2 === this.load_epoch && root === this.panel.root) this.panel.report(error);
       }
     }
     async open_file(file, from, to, files = [file]) {
-      const epoch = ++this.load_epoch;
+      const epoch2 = ++this.load_epoch;
       const root = this.panel.root;
       this.panel.status.textContent = git_graph_text("scm.opening_diff");
       try {
@@ -204749,7 +204874,7 @@ https://creativecommons.org/licenses/by/4.0/
           file.status.startsWith("A") || file.status === "??" ? "" : this.panel.host.revision_text(root, from, file.old_path || file.path, this.panel.settings),
           file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings)
         ]);
-        if (epoch !== this.load_epoch || root !== this.panel.root) return;
+        if (epoch2 !== this.load_epoch || root !== this.panel.root) return;
         this.panel.host.open_document({ title: "".concat(file.path.split("/").at(-1), " (").concat(short_revision(from), " \u2194 ").concat(short_revision(to), ")"), file: file.path, left, right, left_label: git_graph_text("scm.readonly_label", { file: file.old_path || file.path, revision: short_revision(from) }), right_label: git_graph_text("scm.readonly_label", { file: file.path, revision: short_revision(to) }) }, "active", {
           ...from === INDEX && to === WORKTREE && file.status !== "??" && !/^[ADRUT]/u.test(file.status) ? {
             range_available: () => this.repository_action_available(root) && !this.panel.writing && !this.panel.pending && !this.panel.disposed,
@@ -204786,7 +204911,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);
         this.panel.status.textContent = "".concat(file.path, " \xB7 ").concat(short_revision(from), " \u2194 ").concat(short_revision(to));
       } catch (error) {
-        if (epoch === this.load_epoch) this.panel.report(error);
+        if (epoch2 === this.load_epoch) this.panel.report(error);
       }
     }
     async file_history(file) {
@@ -227308,7 +227433,7 @@ https://creativecommons.org/licenses/by/4.0/
     async refresh_repository(reset2) {
       if (this.disposed) return;
       this.refresh_started_at = Date.now();
-      const epoch = ++this.epoch;
+      const epoch2 = ++this.epoch;
       if (this.pending) {
         this.detail_epoch++;
         this.detail_refresh_needed = true;
@@ -227327,7 +227452,7 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         if (!this.root) throw new Error(git_graph_text("graph.open_repository_first"));
         let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
-        if (epoch !== this.epoch) return;
+        if (epoch2 !== this.epoch) return;
         if (!this.loaded) {
           const stored = load_graph_settings(localStorage, state.root);
           const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
@@ -227345,7 +227470,7 @@ https://creativecommons.org/licenses/by/4.0/
             this.writer = this.host.runner(stored, true);
             this.branches = stored.on_load_branch ? ["HEAD"] : [...stored.on_load_branches];
             state = await read_repository(this.runner.run, state.root, stored, this.count, this.branches);
-            if (epoch !== this.epoch) return;
+            if (epoch2 !== this.epoch) return;
           }
         }
         const first_load = !this.loaded;
@@ -227376,13 +227501,13 @@ https://creativecommons.org/licenses/by/4.0/
           this.ancestors.clear();
           if (this.settings.mute_unreachable && state.head) {
             const hashes = await this.runner.run(this.root, ["rev-list", state.head, "--max-count=".concat(this.count * 4)]);
-            if (epoch !== this.epoch) return;
+            if (epoch2 !== this.epoch) return;
             this.ancestors = new Set(hashes.trim().split("\n"));
           }
           this.render_history();
         }
         await this.workbench.refresh(changed2);
-        if (epoch !== this.epoch) return;
+        if (epoch2 !== this.epoch) return;
         this.more_button.hidden = !state.more;
         this.rendered_snapshot = snapshot;
         this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label(state.operation) }) : "");
@@ -227393,12 +227518,12 @@ https://creativecommons.org/licenses/by/4.0/
         } else this.close_details();
         this.detail_refresh_needed = false;
       } catch (error) {
-        if (epoch === this.epoch) {
+        if (epoch2 === this.epoch) {
           this.report(error);
           this.container.dataset.state = "error";
         }
       } finally {
-        if (epoch === this.epoch) {
+        if (epoch2 === this.epoch) {
           this.pending = false;
           this.last_refreshed_at = Date.now();
           this.refresh_button.disabled = false;
@@ -227523,9 +227648,9 @@ https://creativecommons.org/licenses/by/4.0/
         row.style.setProperty("--git-graph-ref-color", this.settings.colors[graph_row.color % this.settings.colors.length]);
         const svg3 = this.draw_graph(graph_row, graph.width);
         svg3.onmouseenter = () => {
-          const epoch = this.epoch;
+          const epoch2 = this.epoch;
           if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then((value) => {
-            if (this.disposed || epoch !== this.epoch) return;
+            if (this.disposed || epoch2 !== this.epoch) return;
             this.containment.set(commit.hash, value);
             row.title = value + "\n" + commit.subject;
           }).catch(() => {
@@ -227710,7 +227835,7 @@ https://creativecommons.org/licenses/by/4.0/
       const same_comparison = this.from === from && this.to === to;
       const summary_scroll = same_comparison ? this.details.querySelector(".git-graph-detail-summary")?.scrollTop || 0 : 0;
       const files_scroll = same_comparison ? this.details.querySelector(".git-graph-files")?.scrollTop || 0 : 0;
-      const epoch = ++this.detail_epoch;
+      const epoch2 = ++this.detail_epoch;
       this.from = from;
       this.to = to;
       this.files = [];
@@ -227786,7 +227911,7 @@ https://creativecommons.org/licenses/by/4.0/
             img.alt = commit.author;
             summary.append(img);
             void this.host.avatar(commit.email).then((url) => {
-              if (epoch === this.detail_epoch) img.src = url;
+              if (epoch2 === this.detail_epoch) img.src = url;
             }).catch(() => img.remove());
           }
           const parent = workspace_element("select", "git-graph-parent");
@@ -227806,12 +227931,12 @@ https://creativecommons.org/licenses/by/4.0/
         const message = workspace_element("div", "git-graph-message", git_graph_text("graph.loading_message"));
         summary.append(message);
         void this.runner.run(this.root, ["show", "-s", "--format=%B".concat(this.settings.show_signature ? "%n" + git_graph_text("graph.signature_label") + "%G?%n%GS%n%GK" : ""), to, "--"]).then((message_text) => {
-          if (epoch === this.detail_epoch) {
+          if (epoch2 === this.detail_epoch) {
             message.replaceChildren(inline_message(message_text, { markdown: this.settings.inline_markdown, emoji: { ...builtin_emoji, ...this.settings.emoji }, issue_pattern: this.settings.issue_pattern, issue_url: this.settings.issue_url }, (url) => void this.host.open_url(url).catch((error) => this.report(error))));
             summary.scrollTop = summary_scroll;
           }
         }).catch((error) => {
-          if (epoch === this.detail_epoch) message.textContent = String(error);
+          if (epoch2 === this.detail_epoch) message.textContent = String(error);
         });
       }
       const tree_button = git_icon_button("list-tree", git_graph_text("graph.files_tree"), () => this.set_file_view("tree", from, to), "git-graph-detail-tree");
@@ -227824,7 +227949,7 @@ https://creativecommons.org/licenses/by/4.0/
       files_pane.append(files_heading, files);
       try {
         const changes = await compare_files(this.runner.run, this.state, from, to);
-        if (epoch !== this.detail_epoch) return;
+        if (epoch2 !== this.detail_epoch) return;
         this.files = changes;
         files_heading.textContent = git_graph_text("graph.changed_files_count", { count: this.files.length });
         if (!this.files.length) {
@@ -227834,7 +227959,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.render_files(files);
         files.scrollTop = files_scroll;
       } catch (error) {
-        if (epoch === this.detail_epoch) files.textContent = String(error);
+        if (epoch2 === this.detail_epoch) files.textContent = String(error);
       }
     }
     toggle_review(from, to) {
@@ -228799,6 +228924,12 @@ https://creativecommons.org/licenses/by/4.0/
       const panels = /* @__PURE__ */ new Map();
       const controllers = /* @__PURE__ */ new Set();
       const refresh_schedulers = /* @__PURE__ */ new Map();
+      const panel_subscriptions = /* @__PURE__ */ new Map();
+      lifetime.add(() => {
+        for (const stop of panel_subscriptions.values()) stop();
+        panel_subscriptions.clear();
+      });
+      lifetime.add(register_workspace_context_guard(() => [...controllers].some((panel) => panel.writing) ? "Git\u5199\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002" : void 0));
       let sync_refresh_visibility = () => {
       };
       const track_panel = (panel) => {
@@ -228811,11 +228942,10 @@ https://creativecommons.org/licenses/by/4.0/
           last_started: () => panel.refresh_started_at
         });
         refresh_schedulers.set(panel, scheduler);
-        lifetime.add(panel.subscribe_state(() => {
+        panel_subscriptions.set(panel, panel.subscribe_state(() => {
           if (panel.disposed) scheduler.dispose();
           else if (!panel.pending && panel.last_refreshed_at) scheduler.settled();
         }));
-        lifetime.add(() => scheduler.dispose());
         return panel;
       };
       lifetime.add(() => {
@@ -229069,8 +229199,9 @@ https://creativecommons.org/licenses/by/4.0/
             const panel = controller_for(cwd2);
             show_source_control(panel);
             void (async () => {
-              while (panel.pending && !lifetime.disposed) await new Promise((resolve3) => setTimeout(resolve3, 50));
-              if (lifetime.disposed) return;
+              const epoch2 = panel.repository_epoch;
+              while (panel.pending && !lifetime.disposed && !panel.disposed && epoch2 === panel.repository_epoch) await new Promise((resolve3) => setTimeout(resolve3, 50));
+              if (lifetime.disposed || panel.disposed || epoch2 !== panel.repository_epoch) return;
               const file = host.path_api.relative(panel.root, path).replace(/\\/gu, "/");
               if (id === "history") await panel.workbench.file_history(file);
               else {
@@ -229084,7 +229215,26 @@ https://creativecommons.org/licenses/by/4.0/
       });
       register_command({ id: "linux_note:source_control", title: git_graph_text("view.source_control_command"), scope: "global", callback: () => show_source_control() });
       workspace_on("active-leaf:change", (leaf) => {
+        if (workspace_context_switching()) return;
         if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
+        status_bar.refresh();
+      });
+      lifetime.listen(window, "linux-note-workspace-context-changed", () => {
+        for (const leaf of [...panels.keys()]) leaf.parent.removeTab?.(leaf.state.path);
+        for (const stop of panel_subscriptions.values()) stop();
+        panel_subscriptions.clear();
+        for (const scheduler of refresh_schedulers.values()) scheduler.dispose();
+        refresh_schedulers.clear();
+        for (const panel of controllers) panel.dispose();
+        controllers.clear();
+        panels.clear();
+        source_sidebar.panel = void 0;
+        source_sidebar.containerEl.replaceChildren();
+        if (source_sidebar.visible) source_sidebar.mount(controller_for(host.context_path()));
+        status_bar.refresh();
+      });
+      lifetime.listen(window, "linux-note-workspace-context-refreshed", () => {
+        for (const scheduler of refresh_schedulers.values()) scheduler.invalidate();
         status_bar.refresh();
       });
       lifetime.add(observe_workspace_file_saved(({ file_path: path }) => {
@@ -231142,17 +231292,51 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function bind_workspace_open_dialog(files, changed2) {
     const runtime2 = window;
-    let disposed = false, pending, revision = 0;
+    let disposed = false, pending, revision = 0, changing = false;
+    const library = runtime2.File?.editor?.library, native_root_changed = library?.onRootChanged;
+    const same_root = (left, right) => files.path_api.sep === "\\" ? left.toLowerCase() === right.toLowerCase() : left === right;
+    const switch_folder = async (target) => {
+      if (changing) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u5B8C\u6210\u5F53\u524D\u64CD\u4F5C\u540E\u91CD\u8BD5\u3002");
+      if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+      changing = true;
+      try {
+        assert_workspace_context_ready();
+        const previous = files.context_root();
+        if (same_root(previous, target)) {
+          changed2();
+          window.dispatchEvent(new Event("linux-note-workspace-context-refreshed"));
+          return;
+        }
+        const close = await files.prepare_workspace_switch();
+        if (disposed || !close) return;
+        if (target && !(await files.fs.promises.stat(target)).isDirectory()) throw new Error("\u76EE\u6807\u76EE\u5F55\u5DF2\u4E0D\u5B58\u5728\u3002");
+        if (disposed) return;
+        begin_workspace_context_switch();
+        let committed = false;
+        try {
+          close();
+          const mounted = target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target;
+          runtime2.File.setMountFolder(mounted);
+          committed = true;
+          native_root_changed?.call(library, mounted, true);
+        } finally {
+          if (committed) finish_workspace_context_switch();
+          else cancel_workspace_context_switch();
+        }
+      } finally {
+        changing = false;
+      }
+    };
     const set_folder = async (selected) => {
       if (disposed) return;
       const current = ++revision;
       if (!files.path_api.isAbsolute(selected)) throw new Error("\u6587\u4EF6\u5939\u8DEF\u5F84\u65E0\u6548\u3002");
-      const target = files.path_api.normalize(selected), stat = await files.fs.promises.stat(target);
+      const target = files.path_api.resolve(selected), stat = await files.fs.promises.stat(target);
       if (disposed || current !== revision) return;
       if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
       if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
-      runtime2.File.setMountFolder(target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target);
-      changed2();
+      await switch_folder(target);
+      if (disposed || !same_root(files.context_root(), target)) return;
       if (!runtime2.JSBridge?.invoke) throw new Error("\u6587\u4EF6\u5939\u5DF2\u6253\u5F00\uFF0C\u4F46\u5BBF\u4E3B\u6700\u8FD1\u76EE\u5F55\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       try {
         await runtime2.JSBridge.invoke("setting.addRecentFolder", target);
@@ -231198,6 +231382,13 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return pending;
     };
+    const routed_root_changed = (path, skip_recent) => {
+      if (typeof path !== "string" || !path) return native_root_changed?.call(library, path, skip_recent);
+      return set_folder(path).catch((error) => {
+        if (!disposed) new files.core.Notice(String(error instanceof Error ? error.message : error), 5e3);
+      });
+    };
+    if (library && native_root_changed) library.onRootChanged = routed_root_changed;
     return {
       open_file: () => choose(false),
       open_folder: () => choose(true),
@@ -231205,14 +231396,13 @@ https://creativecommons.org/licenses/by/4.0/
       open_folder_new_window,
       close_folder() {
         if (disposed) return;
-        if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
         revision++;
-        runtime2.File.setMountFolder("");
-        changed2();
+        return switch_folder("");
       },
       dispose() {
         disposed = true;
         revision++;
+        if (library?.onRootChanged === routed_root_changed) library.onRootChanged = native_root_changed;
       }
     };
   }
@@ -232106,6 +232296,9 @@ https://creativecommons.org/licenses/by/4.0/
           generation++;
           close_branch(root, true);
           root = void 0;
+          rename_state = void 0;
+          selection_paths.clear();
+          compare_path = "";
           root_name.textContent = "\u672A\u6253\u5F00\u6587\u4EF6\u5939";
           selected_path = "";
           rebuild();
@@ -232291,6 +232484,7 @@ https://creativecommons.org/licenses/by/4.0/
         context_menu(new MouseEvent("contextmenu", { clientX: bounds.left + 24, clientY: bounds.top + 30 }), node);
       }
     });
+    detachers.push(register_workspace_context_guard(() => operation_busy || rename_state?.busy ? "\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002" : void 0));
     root_label.oncontextmenu = (event) => {
       if (root) context_menu(event, root);
     };
@@ -233361,7 +233555,8 @@ https://creativecommons.org/licenses/by/4.0/
         return node;
       };
       const panels = /* @__PURE__ */ new Map();
-      let serial2 = 0, disposed = false;
+      let serial2 = 0, disposed = false, replacing = false;
+      lifetime.add(register_workspace_context_guard(() => replacing ? "\u641C\u7D22\u66FF\u6362\u6B63\u5728\u5199\u5165\u6587\u4EF6\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002" : void 0));
       class search_editor_view extends core.WorkspaceView {
         containerEl = workspace_element("section", "workspace-search-editor");
         icon = "fa-search";
@@ -234122,6 +234317,8 @@ https://creativecommons.org/licenses/by/4.0/
             const error = workspace_element("p");
             dialog2.content.append(error);
             const apply3 = workspace_button("\u786E\u8BA4\u66FF\u6362", () => {
+              if (!dialog2.root.isConnected || replacing) return;
+              replacing = true;
               apply3.disabled = true;
               void engine.apply_replace(plan, { can_write: (paths) => paths.every(files.can_write) }).then((result) => {
                 files.refresh_files(result.files);
@@ -234130,6 +234327,8 @@ https://creativecommons.org/licenses/by/4.0/
               }).catch((problem) => {
                 error.textContent = String(problem);
                 apply3.disabled = false;
+              }).finally(() => {
+                replacing = false;
               });
             });
             apply3.disabled = !plan.match_count;
@@ -237449,7 +237648,7 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = create_workspace_lifetime(), settings = get_workspace_app().settings, workspace = files.core.app.workspace, runtime2 = window;
     const initial = settings.get("workspace_timeline");
     const state = { collapsed: initial?.collapsed !== false, git: initial?.git !== false, local: initial?.local !== false, pinned: false };
-    let target = "", epoch = 0, refresh_timer;
+    let target = "", epoch2 = 0, refresh_timer;
     const container = workspace_element("section", "workspace-timeline"), heading3 = workspace_element("div", "workspace-explorer-section-heading"), toggle = workspace_element("button", "workspace-explorer-section-title"), actions = workspace_element("div", "workspace-explorer-section-actions"), list3 = workspace_element("div", "workspace-timeline-list");
     toggle.type = "button";
     list3.setAttribute("aria-label", "\u65F6\u95F4\u7EBF\u8BB0\u5F55");
@@ -237510,7 +237709,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const make_runner = () => create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") }, { executable: load_graph_settings(localStorage, files.context_root() || "").git_path });
     async function load() {
-      const revision = ++epoch;
+      const revision = ++epoch2;
       listing?.cancel();
       listing = void 0;
       if (lifetime.disposed || container.hidden || state.collapsed) return;
@@ -237557,7 +237756,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         })()
       ]);
-      if (lifetime.disposed || revision !== epoch) return;
+      if (lifetime.disposed || revision !== epoch2) return;
       for (const result of results) if (result.status === "rejected") errors.push(String(result.reason instanceof Error ? result.reason.message : result.reason));
       list3.replaceChildren();
       for (const item of items.sort((a, b2) => b2.timestamp - a.timestamp)) {
@@ -237629,9 +237828,22 @@ https://creativecommons.org/licenses/by/4.0/
     } }));
     render();
     follow();
+    lifetime.listen(window, "linux-note-workspace-context-changed", () => {
+      epoch2++;
+      listing?.cancel();
+      listing = void 0;
+      for (const runner of runners) runner.cancel();
+      for (const picker of pickers) picker.abort();
+      if (refresh_timer) clearTimeout(refresh_timer);
+      refresh_timer = void 0;
+      state.pinned = false;
+      target = "";
+      list3.replaceChildren();
+      render();
+    });
     return { container, open, find_entry, refresh: load, dispose() {
       lifetime.dispose();
-      epoch++;
+      epoch2++;
       listing?.cancel();
       for (const runner of runners) runner.cancel();
       for (const picker of pickers) picker.abort();
@@ -237885,7 +238097,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(bind_workspace_native_toolbar(files, window));
       lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
       lifetime.own(bind_workspace_preferences(core));
-      const file_commands = lifetime.own(bind_workspace_file_commands(files, () => context_changed()));
+      const file_commands = lifetime.own(bind_workspace_file_commands(files, () => context_changed(true)));
       const open_folder = file_commands.open_folder;
       const explorer = bind_workspace_explorer(core, {
         open_file: files.open_file,
@@ -237924,17 +238136,21 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.add(core.app.commands.register({ id: "linux_note:outline", title: "\u89C6\u56FE\uFF1A\u805A\u7126\u5927\u7EB2", scope: "global", callback: reveal_outline }));
       const search2 = lifetime.own(bind_workspace_search(core, files));
       let known_context = files.context_root();
-      const context_changed = () => {
-        if (lifetime.disposed) return;
+      const context_changed = (force = false) => {
+        if (lifetime.disposed || workspace_context_switching()) return;
         const current = files.context_root();
-        if (current === known_context) return;
+        if (!force && current === known_context) return;
         known_context = current;
-        window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+        if (!force) {
+          window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+          return;
+        }
         void explorer.refresh().catch((error) => console.error("Typora Code folder refresh:", error));
         search2.refresh_context();
         outline_binding?.refresh();
       };
-      lifetime.add(core.app.vault?.on("mounted", context_changed));
+      lifetime.add(core.app.vault?.on("mounted", () => context_changed()));
+      lifetime.listen(window, "linux-note-workspace-context-changed", () => context_changed(true));
       const focus_explorer = () => {
         explorer.show();
         requestAnimationFrame(() => explorer.container.querySelector(".workspace-explorer-tree")?.focus({ preventScroll: true }));
@@ -237942,21 +238158,21 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.add(core.app.commands.register({ id: "linux_note:file_explorer", title: "\u89C6\u56FE\uFF1A\u8D44\u6E90\u7BA1\u7406\u5668", scope: "global", callback: focus_explorer }));
       let reveal_epoch = 0;
       lifetime.add(core.app.commands.register({ id: "linux_note:reveal_in_explorer", title: "\u89C6\u56FE\uFF1A\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u5B9A\u4F4D", scope: "global", showInCommandPanel: false, callback: (path, root) => {
-        const epoch = ++reveal_epoch;
+        const epoch2 = ++reveal_epoch;
         void (async () => {
           try {
             if (!files.path_api.isAbsolute(path) || !files.path_api.isAbsolute(root)) throw new Error("\u5B9A\u4F4D\u8DEF\u5F84\u65E0\u6548\u3002");
             const relative2 = files.path_api.relative(root, path);
             if (files.path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + files.path_api.sep)) throw new Error("\u5B9A\u4F4D\u8DEF\u5F84\u4E0D\u5728\u4ED3\u5E93\u5185\u3002");
             await files.fs.promises.stat(path);
-            if (lifetime.disposed || epoch !== reveal_epoch) return;
+            if (lifetime.disposed || epoch2 !== reveal_epoch) return;
             const mounted = files.context_root(), inside = mounted ? files.path_api.relative(mounted, path) : "..";
             if (!mounted || files.path_api.isAbsolute(inside) || inside === ".." || inside.startsWith(".." + files.path_api.sep)) await file_commands.set_folder(root);
-            if (lifetime.disposed || epoch !== reveal_epoch) return;
+            if (lifetime.disposed || epoch2 !== reveal_epoch) return;
             explorer.show();
             await explorer.reveal(path);
           } catch (error) {
-            if (!lifetime.disposed && epoch === reveal_epoch) new core.Notice(String(error instanceof Error ? error.message : error), 5e3);
+            if (!lifetime.disposed && epoch2 === reveal_epoch) new core.Notice(String(error instanceof Error ? error.message : error), 5e3);
           }
         })();
       } }));
@@ -237994,6 +238210,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026091907,
+        version: "2026.09.19.7",
+        date: "2026-09-19",
+        notes: [
+          "\u6253\u5F00\u6216\u5207\u6362\u6700\u8FD1\u76EE\u5F55\u65F6\u5207\u6362\u6574\u4E2A\u5DE5\u4F5C\u533A\uFF0C\u5173\u95ED\u65E7\u6807\u7B7E\u5E76\u5237\u65B0\u6587\u4EF6\u6811\u3001\u641C\u7D22\u3001\u65F6\u95F4\u7EBF\u548CGit\u72B6\u6001\uFF0C\u907F\u514D\u8BEF\u64CD\u4F5C\u4E0A\u4E00\u5DE5\u7A0B\u3002",
+          "\u672A\u4FDD\u5B58\u6587\u6863\u652F\u6301\u5168\u90E8\u4FDD\u5B58\u540E\u5207\u6362\u6216\u53D6\u6D88\uFF1B\u4FDD\u5B58\u5931\u8D25\u4E0E\u8FDB\u884C\u4E2D\u7684\u5199\u64CD\u4F5C\u4FDD\u7559\u539F\u5DE5\u4F5C\u533A\uFF0C\u65E7\u5F02\u6B65\u4EFB\u52A1\u548C\u7EC8\u7AEF\u4E0D\u4F1A\u6CBF\u7528\u5230\u65B0\u76EE\u5F55\u3002"
+        ]
+      },
       {
         sequence: 2026091906,
         version: "2026.09.19.6",

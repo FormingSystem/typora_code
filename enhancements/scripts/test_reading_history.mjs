@@ -47,3 +47,22 @@ let restored_pane;
 assert.equal(await pane_history.travel(-1, right_pane, async (target) => { restored_pane = target.view_id; return true; }), true);
 assert.equal(restored_pane, 1, '同一文件同一滚动位置也要区分来源栏');
 console.log('reading history: anchors, files, scroll restoration, branching, cancellation and reentrancy passed');
+for(const count of [20,100,1000]){
+  const switched=create_reading_history();
+  for(let iteration=0;iteration<count;iteration++){
+    switched.record_jump(location('old/a',0),location('old/b',0));
+    let complete_old;
+    const old=switched.travel(-1,location('old/b',0),()=>new Promise(resolve=>{complete_old=resolve;}));
+    switched.clear();
+    assert.equal(switched.can_travel(-1),false);
+    switched.record_jump(location('new/a',0),location('new/b',0));
+    let complete_new;
+    const next=switched.travel(-1,location('new/b',0),()=>new Promise(resolve=>{complete_new=resolve;}));
+    complete_old(true);assert.equal(await old,false);
+    assert.equal(switched.is_navigating(),true,'old completion cannot unlock the new navigation');
+    complete_new(true);assert.equal(await next,true);
+    assert.equal(switched.can_travel(-1),false);
+    switched.clear();
+  }
+  console.log(`workspace navigation invalidation: ${count} pending old/new callbacks passed`);
+}

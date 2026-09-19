@@ -1,8 +1,9 @@
 import type {workspace_file_host} from "./workspace_files";
+import {assert_workspace_context_ready,begin_workspace_context_switch,finish_workspace_context_switch,cancel_workspace_context_switch} from "./workspace_context";
 
 type open_dialog_runtime = {
   JSBridge?: {invoke(name:string, ...args:unknown[]):Promise<any>};
-  File?: {setMountFolder?(path:string):void};
+  File?: {setMountFolder?(path:string):void;editor?:{library?:{onRootChanged?:(path?:string,skip_recent?:boolean)=>unknown}}};
 };
 
 /** 文件夹开窗和标签移交共用原生主进程入口；编辑器 app.openFile 只处理标签导航。 */
@@ -16,16 +17,41 @@ export async function open_workspace_window(root:string,anchor="#"):Promise<unkn
 /** Typora 1.14.9 ClientCommand.open/openFolder 使用的同一系统选择窗口。 */
 export function bind_workspace_open_dialog(files:workspace_file_host, changed:()=>void) {
   const runtime=window as unknown as open_dialog_runtime;
-  let disposed=false, pending:Promise<void>|undefined,revision=0;
+  let disposed=false, pending:Promise<void>|undefined,revision=0,changing=false;
+  const library=runtime.File?.editor?.library,native_root_changed=library?.onRootChanged;
+  const same_root=(left:string,right:string)=>files.path_api.sep==="\\"?left.toLowerCase()===right.toLowerCase():left===right;
+  const switch_folder=async(target:string)=>{
+    if(changing)throw new Error("工作区正在切换，请完成当前操作后重试。");
+    if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
+    changing=true;
+    try{
+      assert_workspace_context_ready();
+      const previous=files.context_root();
+      if(same_root(previous,target)){changed();window.dispatchEvent(new Event("linux-note-workspace-context-refreshed"));return;}
+      const close=await files.prepare_workspace_switch();if(disposed||!close)return;
+      if(target&&!(await files.fs.promises.stat(target)).isDirectory())throw new Error("目标目录已不存在。");
+      if(disposed)return;
+      begin_workspace_context_switch();
+      let committed=false;
+      try{
+        close();const mounted=target.endsWith(files.path_api.sep)?target+files.path_api.sep:target;
+        runtime.File.setMountFolder(mounted);committed=true;
+        native_root_changed?.call(library,mounted,true);
+      }finally{
+        // 原生缓存刷新失败也不能把已切换的根目录留在旧Git/搜索状态。
+        if(committed)finish_workspace_context_switch();else cancel_workspace_context_switch();
+      }
+    }finally{changing=false;}
+  };
   const set_folder=async(selected:string)=>{
     if(disposed)return;const current=++revision;
     if(!files.path_api.isAbsolute(selected))throw new Error("文件夹路径无效。");
-    const target=files.path_api.normalize(selected),stat=await files.fs.promises.stat(target);
+    const target=files.path_api.resolve(selected),stat=await files.fs.promises.stat(target);
     if(disposed||current!==revision)return;
     if(!stat.isDirectory())throw new Error("所选项目不是文件夹。");
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
-    // 宿主会去掉一个末尾分隔符，盘符根须保留自己的分隔符。
-    runtime.File.setMountFolder(target.endsWith(files.path_api.sep)?target+files.path_api.sep:target);changed();
+    await switch_folder(target);
+    if(disposed||!same_root(files.context_root(),target))return;
     if(!runtime.JSBridge?.invoke)throw new Error("文件夹已打开，但宿主最近目录接口不可用。");
     try { await runtime.JSBridge.invoke("setting.addRecentFolder",target); }
     catch(error) { throw new Error("文件夹已打开，但最近目录更新失败："+String(error)); }
@@ -56,7 +82,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
       const selected=result.filePaths[0];
       if(typeof selected!=="string"||!files.path_api.isAbsolute(selected))throw new Error("系统返回的文件路径无效。");
       if(directory){
-        // 只切换文件树根，不通过 openWithPath 替换正在编辑的文档。
+        // 系统选择和最近目录采用同一个工作区切换事务。
         await set_folder(selected);
       }else{
         const target=files.path_api.normalize(selected),stat=await files.fs.promises.stat(target);
@@ -67,7 +93,12 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     })().finally(()=>{pending=undefined;});
     return pending;
   };
+  const routed_root_changed=(path?:string,skip_recent?:boolean)=>{
+    if(typeof path!=="string"||!path)return native_root_changed?.call(library,path,skip_recent);
+    return set_folder(path).catch(error=>{if(!disposed)new files.core.Notice(String(error instanceof Error?error.message:error),5000);});
+  };
+  if(library&&native_root_changed)library.onRootChanged=routed_root_changed;
   return {open_file:()=>choose(false),open_folder:()=>choose(true),set_folder,open_folder_new_window,
-    close_folder(){if(disposed)return;if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");revision++;runtime.File.setMountFolder("");changed();},
-    dispose(){disposed=true;revision++;}};
+    close_folder(){if(disposed)return;revision++;return switch_folder("");},
+    dispose(){disposed=true;revision++;if(library?.onRootChanged===routed_root_changed)library.onRootChanged=native_root_changed;}};
 }

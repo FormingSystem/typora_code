@@ -1,3 +1,4 @@
+import {workspace_context_switching,assert_workspace_context_ready} from "./workspace_context";
 import {trash_native_path} from "./workspace_native_trash";
 import {acquire_workspace_style} from "./workspace_styles";
 import {publish_workspace_file_changed} from "./workspace_file_events";
@@ -8,7 +9,7 @@ import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./w
 import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
-import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog } from "./workspace_widgets";
+import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog,dispose_workspace_widgets } from "./workspace_widgets";
 import { FILE_LANGUAGE_RULES, is_markdown_file, detect_file_language } from "./file_language";
 import { create_text_document, save_text_document_as, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
 import {decode_file_bytes} from "./file_language";
@@ -40,6 +41,7 @@ export type workspace_file_host = {
   editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
   has_editor_errors(leaf:graph_leaf):boolean;
   close_leaf(leaf:graph_leaf):Promise<boolean>;
+  prepare_workspace_switch():Promise<(()=>void)|undefined>;
   duplicate_leaf(leaf:graph_leaf,group:graph_leaf["parent"]):Promise<graph_leaf>;
   reopen_leaf(leaf:graph_leaf,source:boolean):Promise<boolean>;
   source_editor_active(): boolean;
@@ -330,6 +332,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   }
   const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
   const open_file = async (file_path: string, location: file_location = {}, group = "active") => {
+    if(workspace_context_switching())throw new Error("工作区正在切换，请稍后打开文件。");
     if(location.signal?.aborted)throw new Error("打开文件已取消。");
     if (renaming) throw new Error("正在重命名，请稍后再打开文件。");
     const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
@@ -564,6 +567,43 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     return {file_path,kind:(source?"source":markdown?"markdown":"other") as "source"|"markdown"|"other",
       dirty:source?source.dirty():Boolean(native_same&&runtime.File?.changeCounter?.isDocumentEdited()),
       busy:Boolean(renaming||source?.saving||source?.loading||native_same&&(runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||runtime.File?._onFileSwitching))};
+  };
+  const prepare_workspace_switch=async():Promise<(()=>void)|undefined>=>{
+    const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>leaves.push(leaf));
+    const check=()=>{
+      assert_workspace_context_ready();
+      if(!binding.active||renaming||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error("文件正在读取、保存或移动，请完成后再切换工作区。");
+      const current:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>current.push(leaf));
+      if(current.length!==leaves.length||current.some(leaf=>!leaves.includes(leaf)))throw new Error("打开的编辑器已变化，请重新切换工作区。");
+    };
+    check();
+    const dirty=()=>leaves.filter(leaf=>editor_state(leaf).dirty);
+    const terminal_count=document.querySelectorAll('.linux-note-terminal[data-session]').length;
+    if(dirty().length||terminal_count){
+      const accepted=await new Promise<boolean>(resolve=>{
+        let done=false,busy=false;const dialog=workspace_dialog("切换工作区","取消",()=>{if(!done)resolve(false);});
+        dialog.root.dataset.workspaceSwitch="true";
+        dialog.content.append(el("p","",dirty().length?"当前工作区有未保存的修改，全部保存后再切换。":"切换工作区将关闭当前窗口的终端会话。"));
+        if(terminal_count&&dirty().length)dialog.content.append(el("p","","当前窗口的终端会话也将结束。"));
+        const message=el("p");dialog.content.append(message);
+        const accept=button(dirty().length?"全部保存并切换":"切换工作区",()=>{
+          if(busy)return;busy=true;accept.disabled=true;
+          void(async()=>{check();for(const leaf of dirty()){if(!dialog.root.isConnected)return;if(!await save_leaf(leaf))throw new Error("保存未完成，原工作区已保留。请处理保存提示后重试。");}
+            if(!dialog.root.isConnected)return;check();if(dirty().length)throw new Error("仍有未保存修改，工作区已保留。");done=true;dialog.close(false);resolve(true);
+          })().catch(error=>{message.textContent=String(error);}).finally(()=>{busy=false;accept.disabled=false;});
+        });dialog.footer.prepend(accept);
+      });
+      if(!accepted)return;
+    }
+    check();if(dirty().length)throw new Error("仍有未保存修改，工作区已保留。");
+    return ()=>{
+      check();if(dirty().length)throw new Error("文档又有未保存修改，已停止切换。");
+      file_clipboard.invalidate();
+      dispose_workspace_widgets();
+      for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
+      // 核心移除最后一项会创建空叶子；活动身份不能再指向已移除的旧文档。
+      let empty:graph_leaf|undefined;core.app.workspace.eachLeaves(leaf=>{empty??=leaf;});core.app.workspace.activeLeaf=empty;
+    };
   };
   const native_close_dialogs=new Map<graph_leaf,{dialog:ReturnType<typeof workspace_dialog>;result:Promise<boolean>}>();
   const close_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
@@ -916,7 +956,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{
       if(!binding.active)throw new Error("Typora Code 已停用。");

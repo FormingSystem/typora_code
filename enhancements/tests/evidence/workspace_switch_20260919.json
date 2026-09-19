@@ -1,0 +1,304 @@
+{
+  "schema": 1,
+  "requirement": "R040.1",
+  "date": "2026-09-19",
+  "base_revision": "517d29634ee48dbafa47b732ee16f669880428d8",
+  "design": "docs/workspace_switch.md",
+  "release": "2026.09.19.7",
+  "source_hashes": {
+    "enhancements/src/git_graph_host.ts": "89c0c64014f019c325e554b7b8086b52a704dc188f11d0b8f386b7b967b201f1",
+    "enhancements/src/git_graph_view.ts": "ccd3a622e2c00fb9166ecfac2973de96d9ca54f86d88169f16050958afbe9071",
+    "enhancements/src/reading_history.ts": "628c02b3774b5998747ea8cd713169b1b5ced2b091d741461a54150a96009343",
+    "enhancements/src/reading_navigation.ts": "d6b1d7bc7257021c249eba661f83b94c3d06d7d975e723ce12819da7b248c205",
+    "enhancements/src/terminal_workspace.ts": "14901d7d4bc539ff610178d615b32def64725b4a5aded706f7e4a8af5b950404",
+    "enhancements/src/workspace_browser.ts": "1a85f5439d8d0b61cf24ac8a1e541c7eabd1a4c2dc4b261b8a97f6029b2702aa",
+    "enhancements/src/workspace_explorer.ts": "f29a5e06ab3f8c40e103e1af0ff5d1f5d4ba6742d7e64199c7a97c20f749430c",
+    "enhancements/src/workspace_files.ts": "af533aabdddf273b7ab9744fc7fde45e9588021502eaafbb2eec72ea0ef641c0",
+    "enhancements/src/workspace_open_dialog.ts": "8cd9435af9537e50a365b47cb841cefc122ebd49edcbfafc00182d3952e7385a",
+    "enhancements/src/workspace_search.ts": "d9a0a77a654a51a799393be8d9c39b7687ad3957d21ce06122c24319d36827ea",
+    "enhancements/src/workspace_timeline.ts": "e40aea4748e3a91121d6196b3fb2055e90548c3f3a7b08ff67555115c125e69b",
+    "enhancements/src/workspace_context.ts": "3f6cf0a221361eacfac63a092bb6aa2e6f774a9bf54bde479fb14087b233038d"
+  },
+  "asset_manifest_sha256": "1b7c2fae75d7d229f9bc3af3fe6834f4f3c78fb8564c8b9cbf52f713d69a4663",
+  "suites": [
+    {
+      "id": "TC-workspace-switch-ui",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "source_hashes": {
+        "enhancements/scripts/test_workspace_switch.cjs": "22fa116e6a4e8abde9dc6795d343e652d0f8fb03c5d30156f083ed4800f0c312",
+        "enhancements/src/workspace_open_dialog.ts": "8cd9435af9537e50a365b47cb841cefc122ebd49edcbfafc00182d3952e7385a",
+        "enhancements/src/workspace_context.ts": "3f6cf0a221361eacfac63a092bb6aa2e6f774a9bf54bde479fb14087b233038d",
+        "enhancements/src/workspace_files.ts": "af533aabdddf273b7ab9744fc7fde45e9588021502eaafbb2eec72ea0ef641c0"
+      },
+      "sources_unchanged": true,
+      "level": "functional",
+      "purpose": "implementation",
+      "iterations": null,
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_ms": 7437,
+      "log": ".cache/issue_tracking/runs/2026-09-19T14-32-24-666Z_21c757/TC-workspace-switch-ui.log",
+      "log_sha256": "c0577ee0b41ac2d9cacd777f8105bf0783834cd25d5d6b6e2d609fe09f94566b",
+      "report_path": ".cache/issue_tracking/runs/2026-09-19T14-32-24-666Z_21c757/report.json",
+      "report_sha256": "b41bca832f7f00cd7b74744ac58af77678d5771a69ef423ed1ce39393769ed7d"
+    },
+    {
+      "id": "TC-workspace-switch-ui-stress",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "source_hashes": {
+        "enhancements/scripts/test_workspace_switch.cjs": "22fa116e6a4e8abde9dc6795d343e652d0f8fb03c5d30156f083ed4800f0c312",
+        "enhancements/src/workspace_open_dialog.ts": "8cd9435af9537e50a365b47cb841cefc122ebd49edcbfafc00182d3952e7385a",
+        "enhancements/src/workspace_context.ts": "3f6cf0a221361eacfac63a092bb6aa2e6f774a9bf54bde479fb14087b233038d",
+        "enhancements/src/workspace_files.ts": "af533aabdddf273b7ab9744fc7fde45e9588021502eaafbb2eec72ea0ef641c0"
+      },
+      "sources_unchanged": true,
+      "level": "functional",
+      "purpose": "stress",
+      "iterations": null,
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_ms": 7538,
+      "log": ".cache/issue_tracking/runs/2026-09-19T14-31-59-533Z_5a93f0/TC-workspace-switch-ui-stress.log",
+      "log_sha256": "64fc437e75ae766ab0b29f1a1a42efe1667378c08b87a151d7dfe200a4c15901",
+      "report_path": ".cache/issue_tracking/runs/2026-09-19T14-31-59-533Z_5a93f0/report.json",
+      "report_sha256": "98837d049cf1593108d51dfbc4d95908979ed22a5e241d65c395cf88f2999f1f"
+    },
+    {
+      "id": "TC-workspace-switch-context",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_context.ts"
+      ],
+      "source_hashes": {
+        "enhancements/scripts/test_workspace_context.mjs": "6d6577762d291a87f811dfb24cbf8ec53d5cbee375597ec683101e75df91ca9c",
+        "enhancements/src/workspace_context.ts": "3f6cf0a221361eacfac63a092bb6aa2e6f774a9bf54bde479fb14087b233038d"
+      },
+      "sources_unchanged": true,
+      "level": "unit",
+      "purpose": "stress",
+      "iterations": null,
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_ms": 73,
+      "log": ".cache/issue_tracking/runs/2026-09-19T14-29-43-997Z_a60b78/TC-workspace-switch-context.log",
+      "log_sha256": "b3872064d7aab26368a597690f45189c3ed19b4d11d1c8517ba2907f26b304ae",
+      "report_path": ".cache/issue_tracking/runs/2026-09-19T14-29-43-997Z_a60b78/report.json",
+      "report_sha256": "03467aee970b0e8d29f540b9c1e383dcab2348ca66d2207b6c1d94cbc1e2ca03"
+    },
+    {
+      "id": "TC-workspace-switch-history-stress",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/reading_history.ts",
+        "enhancements/src/reading_navigation.ts"
+      ],
+      "source_hashes": {
+        "enhancements/scripts/test_reading_history.mjs": "4b4db8fa5051b33eeee6052854e50dd98f782627bd18c17fb73b5eae1dc09eb9",
+        "enhancements/src/reading_history.ts": "628c02b3774b5998747ea8cd713169b1b5ced2b091d741461a54150a96009343",
+        "enhancements/src/reading_navigation.ts": "d6b1d7bc7257021c249eba661f83b94c3d06d7d975e723ce12819da7b248c205"
+      },
+      "sources_unchanged": true,
+      "level": "unit",
+      "purpose": "stress",
+      "iterations": null,
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_ms": 52,
+      "log": ".cache/issue_tracking/runs/2026-09-19T14-30-53-971Z_2a639b/TC-workspace-switch-history-stress.log",
+      "log_sha256": "1860179550bb6eedbe8987e2f4d9dae4083cd914170c03328dc0e2d14e271100",
+      "report_path": ".cache/issue_tracking/runs/2026-09-19T14-30-53-971Z_2a639b/report.json",
+      "report_sha256": "10046db08fa2f49652ac8f3d2d1e41828553f7a6e74a5756cb63ab38905cb83d"
+    },
+    {
+      "id": "TC-workspace-switch-native",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "source_hashes": {
+        "enhancements/scripts/test_workspace_switch_native.ps1": "d0bfc98fd06fbb4c9025d1dc26db9366fd303dcaa21c6e6260a8acb51372d7f5",
+        "enhancements/src/workspace_open_dialog.ts": "8cd9435af9537e50a365b47cb841cefc122ebd49edcbfafc00182d3952e7385a",
+        "enhancements/src/workspace_context.ts": "3f6cf0a221361eacfac63a092bb6aa2e6f774a9bf54bde479fb14087b233038d",
+        "enhancements/src/workspace_files.ts": "af533aabdddf273b7ab9744fc7fde45e9588021502eaafbb2eec72ea0ef641c0"
+      },
+      "sources_unchanged": true,
+      "level": "system",
+      "purpose": "implementation",
+      "iterations": null,
+      "status": "passed",
+      "exit_code": 0,
+      "elapsed_ms": 7503,
+      "log": ".cache/issue_tracking/runs/2026-09-19T14-29-44-635Z_5e1f34/TC-workspace-switch-native.log",
+      "log_sha256": "1f57962386232d199462e79badffba7406f7391b6760914058204f62c9972f7b",
+      "report_path": ".cache/issue_tracking/runs/2026-09-19T14-29-44-635Z_5e1f34/report.json",
+      "report_sha256": "3e8d034efcd84ef8685571b66af7c0088f14f70c376680ba4083a0dad63b2e88"
+    }
+  ],
+  "logs": {
+    "build": {
+      "path": ".cache/workspace_switch_20260919/build_final.log",
+      "sha256": "7cd8a05fc8e7740822d71a77726571830e24df99852c0eeaa99d45f7300db568",
+      "status": "passed"
+    },
+    "check": {
+      "path": ".cache/workspace_switch_20260919/check_final.log",
+      "sha256": "e592ff71bead08fdc1053763195037c4c9955049c6c43e201a858ef512d2b02f",
+      "status": "passed"
+    },
+    "ui_regression": {
+      "path": ".cache/workspace_switch_20260919/ui.log",
+      "sha256": "dad67d46ba8f5b6cd87fe9a08d58c45bd6cc273d07b1a3fbece9fee8c6bd4ed7",
+      "status": "72 passed"
+    },
+    "baseline": {
+      "path": ".cache/workspace_switch_20260919/baseline.log",
+      "sha256": "dcdef65f2881734838d108ec879e48652b3041934fbe4e8601a08bea7173956a",
+      "status": "expected failure: old editor must be removed"
+    },
+    "install": {
+      "path": ".cache/workspace_switch_20260919/install.log",
+      "sha256": "8034d490d31455d0f1ba57600df85acca62a629cdc61131eb17c80237040bb72",
+      "status": "passed"
+    },
+    "install_check": {
+      "path": ".cache/workspace_switch_20260919/install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+      "status": "OK"
+    }
+  },
+  "native": {
+    "path": ".cache/issue_tracking/native/5f2617056ccb4198958baa4ce62ecb57",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "1b7c2fae75d7d229f9bc3af3fe6834f4f3c78fb8564c8b9cbf52f713d69a4663",
+      "fixture_sha256": "7c2b6e047f6fc09e3d96a091d7079906f700fb1fbf4710b9f621d5d5a725a854",
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "status": "PASS",
+    "requirement": "R040.1",
+    "checks": [
+      "原生Markdown和旧标签在切换后移除",
+      "新工作区空编辑区不暴露旧正文",
+      "文件树仅显示新工作区",
+      "取消切换保留原目录和源码草稿",
+      "保存仅写原目录目标文件",
+      "切回后可重新打开原生Markdown",
+      "原始Markdown草稿进入dirty状态",
+      "取消保留原生Markdown内存草稿",
+      "原生Markdown按原路径保存后切换",
+      "宿主最近目录入口采用同一隔离流程",
+      "非Git目录不继承旧分支",
+      "20次真实宿主切换不残留旧文件标签",
+      "原Markdown只包含明确保存的草稿且原文保留"
+    ],
+    "input": "原始Typora 1.14.10，renderer事件及宿主API，非物理输入"
+  },
+  "installation": {
+    "baseline_release": "2026.09.19.6",
+    "baseline_assets_verified": 27,
+    "assets_verified": 27,
+    "asset_hashes": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "9b493cc9dae7f8b74f531db0bd5cccf706813526ffa066d3b37d1cc0b52864e5",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "14e97fd686803c747c007d277fe644de576bc2a5658e353ba83448da699e4f3e",
+      "workspace.css": "5f2f66d11d10e8d22cc3e97099a6d6f863773880e4aaf505812234dafb992b4c",
+      "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected": {
+      "app.asar": {
+        "before": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "after": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "unchanged": true
+      },
+      "icon_32x32@2x.png": {
+        "before": "72456907ba9e2f9570b0bf945c2ebc4fde995629717bd2ebbcdb2b7100a56549",
+        "after": "72456907ba9e2f9570b0bf945c2ebc4fde995629717bd2ebbcdb2b7100a56549",
+        "unchanged": true
+      },
+      "profile.data": {
+        "before": "c21f8ac4ddd5edfc330d492c53c3a46c98d484be8912ff7a8ce79889fe71d507",
+        "after": "c21f8ac4ddd5edfc330d492c53c3a46c98d484be8912ff7a8ce79889fe71d507",
+        "unchanged": true
+      },
+      "workspace.json": {
+        "before": "548dfa724b31f88cd601010be9d349fe6a5bb1944e0e6a61db279752310980db",
+        "after": "548dfa724b31f88cd601010be9d349fe6a5bb1944e0e6a61db279752310980db",
+        "unchanged": true
+      },
+      "cpp_github-consolas.css": {
+        "before": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+        "after": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+        "unchanged": true
+      }
+    },
+    "backup_id": "20260919-223233-232-94e61aeea845422e9c446bda95690199",
+    "check": "OK",
+    "user_windows_restarted": false,
+    "push": false
+  },
+  "corrected_findings": [
+    "修复前基线在旧标签移除断言失败，新版同例通过。",
+    "启动销毁回归发现低层挂载通知清空Git映射但未移除图标签；现统一释放残留标签和控制器。",
+    "Node业务测试发现目录适配器引入UI样式依赖；浮层清理由已有文件UI所有者执行。",
+    "监听器计数和明细分两次采样，清理发生在中间导致数量不一致；改为同一快照比较监听器所有者及数量。失败报告2026-09-19T14-30-46-356Z_40c533保留。",
+    "原生非Git夹具原本位于开发仓库内且只等旧分支消失，不能证明无仓库；最终使用仓库外临时目录并等待repository=none。",
+    "测试夹具补齐settings.set_and_save端口；新增故障注入字符串转义错误已由node --check发现并修正，不作为产品故障。"
+  ],
+  "limits": [
+    "原生系统验证仅Windows Typora 1.14.10；使用renderer事件和宿主API，不宣称物理输入或跨平台验收。",
+    "新目录空编辑区起步，未新增按目录恢复标签、完整热退出备份或VS Code配置文件导入。",
+    "20次功能和系统切换；100/1000档为代次及迟到导航单元，不冒充1000次原生GUI操作。",
+    "72套UI为广泛回归；其后原生缓存异常分支和最终发布候选经对应功能/系统用例复验。",
+    "历史跨机器回收、平台及终端未决项目保留，不用本轮通过记录关闭。"
+  ]
+}

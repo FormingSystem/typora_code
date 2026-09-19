@@ -1,3 +1,4 @@
+import {register_workspace_context_guard} from "./workspace_context";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_file_icons,workspace_file_icon} from "./workspace_file_icons";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -397,7 +398,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     if (rename_state?.busy) return;
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
-      if (root) { generation++; close_branch(root, true); root = undefined; root_name.textContent = "未打开文件夹"; selected_path = ""; rebuild(); }
+      if (root) { generation++; close_branch(root, true); root = undefined; rename_state=undefined;selection_paths.clear();compare_path="";root_name.textContent = "未打开文件夹"; selected_path = ""; rebuild(); }
       set_status("打开一个文件夹以浏览全部文件。"); return;
     }
     const file_path = path_api.normalize(requested);
@@ -499,6 +500,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       event.preventDefault(); const bounds = tree.getBoundingClientRect(); context_menu(new MouseEvent("contextmenu", {clientX: bounds.left + 24, clientY: bounds.top + 30}), node);
     }
   });
+  detachers.push(register_workspace_context_guard(()=>operation_busy||rename_state?.busy?"文件操作正在执行，请完成后再切换工作区。":undefined));
   root_label.oncontextmenu=event=>{if(root)context_menu(event,root);};
   tree.oncontextmenu = event => { if (event.target instanceof Element && event.target.closest(".workspace-explorer-row")) return; if (root) context_menu(event, root); };
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);

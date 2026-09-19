@@ -5,6 +5,7 @@
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
 | BUG-files-001 最近目录遗漏 | R040 | 功能/P1 | 打开新目录只调用setMountFolder，未像宿主onRootChanged写入addRecentFolder | await宿主历史；取消/无效/迟到不记入。TC-quality-implementation、TC-system-native-stability |
+| BUG-workspace-005 切目录残留旧工作区 | R040.1 | 状态生命周期/P1 | 只改挂载路径，旧标签仍有效；Git优先活动标签且未订阅工作区切换；搜索、固定时间线、终端等须一并失效 | 设计见workspace_switch.md；统一预检/保存取消/切换代次，逐领域清理与目标刷新；补齐旧Git订阅与迟到导航清理。TC-workspace-switch-ui/context/history-stress/native，证据workspace_switch_20260919.json |
 | BUG-files-002 回收无效果 | R041 | 兼容/P1 | 用户在另一电脑确认删除无效果；本地调用renderer shell，未对齐原生主进程布尔返回契约。账户权限仍是未证实的跨机因素 | 文件/Git统一JSBridge回收，false/异常/仍存在均失败，禁止永久删除后备；尊重原生删除警告配置。TC-quality-001、Explorer与原生稳定性；另一电脑实际验收待补 |
 | BUG-files-003 改后缀未更新编辑器 | R042 | 功能/P1 | 111→1111.md只迁移路径，源模型语言和视图未重分类 | 保持模型、撤销及dirty；clean自动原生Markdown，dirty保存成功后切换。TC-files-011、TC-system-native-stability |
 | BUG-reading-001 章节被顶部遮挡 | R043 | 几何/P1 | 原生scrollAdjust显式margin以窗口顶端计算，未扣工作台顶部；共同视口原先仅处理底栏 | 统一读取顶部相交遮挡，适配显式宿主跳转；保留隐式编辑滚动。TC-workspace-020与原生两主题，关联大纲/面包屑/缩略图回归 |

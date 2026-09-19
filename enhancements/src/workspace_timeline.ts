@@ -78,6 +78,10 @@ export function bind_workspace_timeline(files:workspace_file_host,saves:workspac
   lifetime.add(files.core.app.commands.register({id:"linux_note:local_history_restore",title:"本地历史：查找要恢复的条目…",scope:"global",callback:()=>run(find_entry)}));
   lifetime.add(files.core.app.commands.register({id:"linux_note:timeline",title:"文件：打开时间线",scope:"global",callback:()=>{const path=files.current_file();if(path)open(path);}}));
   render();follow();
+  lifetime.listen(window,"linux-note-workspace-context-changed",()=>{
+    epoch++;listing?.cancel();listing=undefined;for(const runner of runners)runner.cancel();for(const picker of pickers)picker.abort();
+    if(refresh_timer)clearTimeout(refresh_timer);refresh_timer=undefined;state.pinned=false;target="";list.replaceChildren();render();
+  });
   return{container,open,find_entry,refresh:load,dispose(){lifetime.dispose();epoch++;listing?.cancel();for(const runner of runners)runner.cancel();for(const picker of pickers)picker.abort();if(refresh_timer)clearTimeout(refresh_timer);container.remove();}};
 }
 function source_label(source:string){return({"File Saved":"文件已保存","File Restored":"文件已恢复","Before Restore":"恢复前版本","File Renamed":"文件已重命名"} as Record<string,string>)[source]||source;}

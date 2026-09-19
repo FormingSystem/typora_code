@@ -1,3 +1,4 @@
+import {register_workspace_context_guard} from "./workspace_context";
 import {is_composing_key,is_terminal_input} from "./workspace_keyboard";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -32,7 +33,8 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
   const engine = create_workspace_search_engine({fs:files.fs,path_api:files.path_api,git_run:runner.run,platform:runtime.reqnode("process").platform});
   const native_sidebar = document.querySelector<HTMLElement>("#typora-sidebar");
   const input = (label: string, placeholder = label) => { const node = el("input"); node.type="text"; node.placeholder=placeholder; node.setAttribute("aria-label",label); node.autocomplete="off"; node.spellcheck=false; return node; };
-  const panels = new Map<string, HTMLElement>(); let serial = 0, disposed = false;
+  const panels = new Map<string, HTMLElement>(); let serial = 0, disposed = false, replacing=false;
+  lifetime.add(register_workspace_context_guard(()=>replacing?"搜索替换正在写入文件，请完成后再切换工作区。":undefined));
   class search_editor_view extends core.WorkspaceView {
     containerEl = el("section", "workspace-search-editor"); icon="fa-search";
     onOpen() { const panel = panels.get(this.leaf.state.path); if (panel) this.containerEl.replaceChildren(panel); else this.containerEl.textContent="请在搜索侧栏重新运行搜索。"; }
@@ -298,7 +300,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const picker=el("select");picker.setAttribute("aria-label","预览替换文件");for(const file of plan.files){const option=el("option","",file.relative_path);option.value=file.file_path;picker.append(option);}
         const preview=el("div","workspace-search-replace-preview");dialog.content.append(picker,preview);
         const show=()=>{editors.splice(0).forEach(editor=>editor.dispose());const file=plan.files.find(file=>file.file_path===picker.value);if(file){const editor=new git_diff_editor({title:file.relative_path,file:file.relative_path,left:file.before_text,right:file.after_text,left_label:"替换前",right_label:"替换后"});editors.push(editor);preview.replaceChildren(editor.container);}};picker.onchange=show;show();
-        const error=el("p");dialog.content.append(error);const apply=button("确认替换",()=>{apply.disabled=true;void engine.apply_replace(plan,{can_write:paths=>paths.every(files.can_write)}).then(result=>{files.refresh_files(result.files);dialog.close();void this.search();}).catch(problem=>{error.textContent=String(problem);apply.disabled=false;});});apply.disabled=!plan.match_count;dialog.footer.prepend(apply);
+        const error=el("p");dialog.content.append(error);const apply=button("确认替换",()=>{if(!dialog.root.isConnected||replacing)return;replacing=true;apply.disabled=true;void engine.apply_replace(plan,{can_write:paths=>paths.every(files.can_write)}).then(result=>{files.refresh_files(result.files);dialog.close();void this.search();}).catch(problem=>{error.textContent=String(problem);apply.disabled=false;}).finally(()=>{replacing=false;});});apply.disabled=!plan.match_count;dialog.footer.prepend(apply);
       }catch(error){dialog.content.append(el("p","",String(error)));}
     }
   }

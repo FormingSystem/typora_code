@@ -10,7 +10,9 @@ import sys
 import uuid
 
 repository_root = Path(__file__).resolve().parents[2]
-fixture_path = repository_root / 'enhancements/fixtures/stability_native.js'
+fixture_directory = repository_root / 'enhancements/fixtures'
+fixture_path = (fixture_directory / (sys.argv[2] if len(sys.argv) > 2 else 'stability_native.js')).resolve(strict=True)
+assert fixture_path.parent == fixture_directory and fixture_path.suffix == '.js', 'Use a checked-in native fixture'
 # 原生注入前先验证语法，避免静默不执行后等待整轮超时。
 subprocess.run(['node', '--check', str(fixture_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host_root = Path(sys.argv[1]).resolve(strict=True)
@@ -49,7 +51,6 @@ runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal
 if runtime.is_dir():
     shutil.copytree(runtime, user_data / 'linux_note_enhancements/terminal_runtime')
 (user_data / 'profile.data').write_text(json.dumps({'framelessWindow': True, 'enableAutoSave': False}).encode('utf-8').hex(), encoding='ascii')
-fixture_path = repository_root / 'enhancements/fixtures/stability_native.js'
 fixture = fixture_path.read_text(encoding='utf-8').replace('__CASE_ROOT__', json.dumps(case.as_posix()))
 runner = '(()=>{const poll=setInterval(async()=>{const core=window[Symbol.for("typora-code:workspace")];if(!core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host||!core.app.workspace.activeLeaf)return;clearInterval(poll);await (0,eval)(' + json.dumps(fixture) + ')},100)})();'
 html = (host / 'resources/window.html').read_text(encoding='utf-8')

@@ -18,7 +18,9 @@ export function create_reading_history(maximum_entries = 100) {
   let entries: reading_location[] = [];
   let index = -1;
   let navigating = false;
+  let revision = 0;
   return {
+    clear(){revision++;entries=[];index=-1;navigating=false;},
     is_navigating: () => navigating,
     can_travel: (direction: -1 | 1) => !navigating && index + direction >= 0 && index + direction < entries.length,
     remap_paths(map: (path: string) => string | undefined) {
@@ -39,13 +41,14 @@ export function create_reading_history(maximum_entries = 100) {
       const target_index = index + direction;
       if (navigating || target_index < 0 || target_index >= entries.length) return false;
       navigating = true;
+      const current_revision = revision;
       try {
-        if (!await restore(entries[target_index])) return false;
+        if (!await restore(entries[target_index]) || current_revision !== revision) return false;
         if (entries[index]?.file_path === current.file_path && entries[index]?.view_id === current.view_id) entries[index] = current;
         index = target_index;
         return true;
       } finally {
-        navigating = false;
+        if(current_revision === revision)navigating = false;
       }
     },
   };

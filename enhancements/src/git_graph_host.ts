@@ -162,8 +162,10 @@ export function create_graph_host(core: graph_core) {
     },
     context_path(use_active = true): string {
       const active = core.app.workspace.activeLeaf;
+      const mounted=runtime.File?.getMountFolder?.();
+      if(typeof mounted==="string")return mounted;
       return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path)
-        : active?.state.git_cwd || runtime.File?.getMountFolder?.() || (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : "");
+        : active?.state.git_cwd || (runtime.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
     },
     can_change_files() {
       if(runtime.File?.changeCounter?.isDocumentEdited())return false;

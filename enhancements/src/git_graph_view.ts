@@ -1,3 +1,4 @@
+import {register_workspace_context_guard,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_git_file_title_actions} from "./git_file_title_actions";
@@ -29,6 +30,9 @@ export function bind_git_graph() {
   const host = lifetime.own(create_graph_host(core)); const panels = new Map<graph_leaf, git_graph_panel>();
   const controllers = new Set<git_graph_panel>();
   const refresh_schedulers = new Map<git_graph_panel, git_refresh_scheduler>();
+  const panel_subscriptions=new Map<git_graph_panel,()=>void>();
+  lifetime.add(()=>{for(const stop of panel_subscriptions.values())stop();panel_subscriptions.clear();});
+  lifetime.add(register_workspace_context_guard(()=>[...controllers].some(panel=>panel.writing)?"Git写操作正在执行，请完成后再切换工作区。":undefined));
   let sync_refresh_visibility = () => {};
   const track_panel = (panel: git_graph_panel) => {
     controllers.add(panel);
@@ -36,8 +40,7 @@ export function bind_git_graph() {
       allowed: () => !panel.disposed && document.visibilityState !== "hidden" && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker"),
       last_refresh: () => panel.last_refreshed_at, last_started: () => panel.refresh_started_at});
     refresh_schedulers.set(panel, scheduler);
-    lifetime.add(panel.subscribe_state(() => { if (panel.disposed) scheduler.dispose(); else if (!panel.pending && panel.last_refreshed_at) scheduler.settled(); }));
-    lifetime.add(() => scheduler.dispose());
+    panel_subscriptions.set(panel,panel.subscribe_state(() => { if (panel.disposed) scheduler.dispose(); else if (!panel.pending && panel.last_refreshed_at) scheduler.settled(); }));
     return panel;
   };
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});
@@ -160,7 +163,8 @@ export function bind_git_graph() {
         if (id === "graph") { host.show_history(cwd); return; }
         const panel = controller_for(cwd); show_source_control(panel);
         void (async () => {
-          while (panel.pending && !lifetime.disposed) await new Promise(resolve => setTimeout(resolve, 50)); if(lifetime.disposed)return;
+          const epoch=panel.repository_epoch;
+          while (panel.pending && !lifetime.disposed&&!panel.disposed&&epoch===panel.repository_epoch) await new Promise(resolve => setTimeout(resolve, 50)); if(lifetime.disposed||panel.disposed||epoch!==panel.repository_epoch)return;
           const file = host.path_api.relative(panel.root, path).replace(/\\/gu, "/");
           if (id === "history") await panel.workbench.file_history(file);
           else { const change = panel.state?.changes.find(item => item.path === file); await panel.workbench.open_file(change || {path: file, status: "M"}, panel.state?.head || "EMPTY", "WORKTREE"); }
@@ -170,9 +174,20 @@ export function bind_git_graph() {
   });
   register_command({id: "linux_note:source_control", title: text("view.source_control_command"), scope: "global", callback: () => show_source_control()});
   workspace_on("active-leaf:change", leaf => {
+    if(workspace_context_switching())return;
     if (source_sidebar.visible) source_sidebar.mount(panels.get(leaf) || controller_for(host.context_path()));
     status_bar.refresh();
   });
+  lifetime.listen(window,"linux-note-workspace-context-changed",()=>{
+    for(const leaf of [...panels.keys()])leaf.parent.removeTab?.(leaf.state.path);
+    for(const stop of panel_subscriptions.values())stop();panel_subscriptions.clear();
+    for(const scheduler of refresh_schedulers.values())scheduler.dispose();refresh_schedulers.clear();
+    for(const panel of controllers)panel.dispose();controllers.clear();panels.clear();
+    source_sidebar.panel=undefined;source_sidebar.containerEl.replaceChildren();
+    if(source_sidebar.visible)source_sidebar.mount(controller_for(host.context_path()));
+    status_bar.refresh();
+  });
+  lifetime.listen(window,"linux-note-workspace-context-refreshed",()=>{for(const scheduler of refresh_schedulers.values())scheduler.invalidate();status_bar.refresh();});
   lifetime.add(observe_workspace_file_saved(({file_path: path}) => {
     for (const [panel, scheduler] of refresh_schedulers) {
       const relative = typeof path === "string" ? host.path_api.relative(panel.root, path) : "";

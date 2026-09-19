@@ -4125,6 +4125,171 @@
         "空间守恒、上下界正确、不反转/超越指针、不修改输入设置"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-switch-ui",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "search",
+        "terminal",
+        "history",
+        "timeline"
+      ],
+      "script": "enhancements/scripts/test_workspace_switch.cjs",
+      "environment": "隔离Electron或Node临时双仓库",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "执行脚本内切换、取消、保存和旧状态隔离断言；压力档位由脚本记录"
+      ],
+      "expected": [
+        "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-switch-ui-stress",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "search",
+        "terminal",
+        "history",
+        "timeline"
+      ],
+      "script": "enhancements/scripts/test_workspace_switch.cjs",
+      "environment": "隔离Electron或Node临时双仓库",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "执行脚本内切换、取消、保存和旧状态隔离断言；压力档位由脚本记录"
+      ],
+      "expected": [
+        "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-switch-history-stress",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/reading_history.ts",
+        "enhancements/src/reading_navigation.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "search",
+        "terminal",
+        "history",
+        "timeline"
+      ],
+      "script": "enhancements/scripts/test_reading_history.mjs",
+      "environment": "隔离Electron或Node临时双仓库",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "执行脚本内切换、取消、保存和旧状态隔离断言；压力档位由脚本记录"
+      ],
+      "expected": [
+        "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-switch-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_context.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "search",
+        "terminal",
+        "history",
+        "timeline"
+      ],
+      "script": "enhancements/scripts/test_workspace_switch_native.ps1",
+      "environment": "原始Typora隔离副本",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "执行脚本内切换、取消、保存和旧状态隔离断言；压力档位由脚本记录"
+      ],
+      "expected": [
+        "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000,
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
+    },
+    {
+      "id": "TC-workspace-switch-context",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R040.1"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_context.ts"
+      ],
+      "related_modules": [
+        "files",
+        "git",
+        "search",
+        "terminal",
+        "history",
+        "timeline"
+      ],
+      "script": "enhancements/scripts/test_workspace_context.mjs",
+      "environment": "隔离Electron或Node临时双仓库",
+      "preconditions": "固定依赖；禁止操作用户真实仓库与文档",
+      "steps": [
+        "执行脚本内切换、取消、保存和旧状态隔离断言；压力档位由脚本记录"
+      ],
+      "expected": [
+        "全部断言通过；保存失败与取消不得变更工作区；旧结果不覆盖新上下文"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

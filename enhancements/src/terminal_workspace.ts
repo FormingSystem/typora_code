@@ -1,3 +1,4 @@
+import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
 import {bind_terminal_state} from "./terminal_state";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -81,7 +82,7 @@ export function bind_terminal_workspace(host:graph_host){
     if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
   };
   const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false)=>(async()=>{
-    if(lifetime.disposed)return;await settings.ready();if(lifetime.disposed)return;
+    const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;await settings.ready();if(lifetime.disposed||epoch!==workspace_context_epoch())return;
     const profile=settings.select_profile(program||settings.get().profile);
     const id="terminal_"+(++serial);let entry:session_entry;
     const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status);schedule();}},explicit_cwd);
@@ -150,7 +151,7 @@ export function bind_terminal_workspace(host:graph_host){
   function attach_editor(entry:session_entry){const parent=core.app.workspace.activeLeaf?.parent;if(!parent){entry.location="panel";panel.show();return;}const leaf=core.app.workspace.createLeaf({type:TERMINAL_TYPE,state:{path:`typ://${TERMINAL_TYPE}/${entry.session.id}/Terminal`,git_cwd:entry.session.root}});entry.leaf=leaf;parent.appendChild(leaf);core.app.workspace.activeLeaf=leaf;}
   // 普通新建跟随统一工作区根；明确传入文件的仓库入口才查询 Git。
   const resolve_root=async(path?:string)=>{let cwd=path||host.workspace_path();if(!host.fs.statSync(cwd).isDirectory())cwd=host.path_api.dirname(cwd);if(!path)return cwd;try{return(await host.runner({git_path:"git"} as Parameters<graph_host["runner"]>[0]).run(cwd,["rev-parse","--show-toplevel"])).trim();}catch{return cwd;}};
-  const launch=(admin_mode=false,path?:string)=>{void resolve_root(path).then(root=>{if(!lifetime.disposed)admin_mode?admin(root):open(root);}).catch(fail);};
+  const launch=(admin_mode=false,path?:string)=>{const epoch=workspace_context_epoch();void resolve_root(path).then(root=>{if(!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch())admin_mode?admin(root):open(root);}).catch(fail);};
   const toggle=()=>{if(panel.visible){panel.hide();return;}const entry=[...sessions.values()].find(item=>item.location==="panel");if(entry)activate(entry.session.id);else launch();};
   const profile_menu=(event:MouseEvent,refresh=false)=>{
     let closed=false;const close=menu(event,[{title:"正在检测已安装的 Shell…",disabled:true,action:()=>{}}],()=>{closed=true;});
@@ -198,6 +199,7 @@ export function bind_terminal_workspace(host:graph_host){
   lifetime.add(observe_terminal_theme(theme=>{for(const entry of sessions.values())entry.surface.term.options.theme=theme;}));
   lifetime.add(()=>{cancelAnimationFrame(render_frame);for(const id of [...sessions.keys()])kill(id);document.documentElement.removeAttribute("data-linux-note-terminal");document.documentElement.removeAttribute("data-linux-note-terminal-theme");});
   lifetime.listen(window,"unload",lifetime.dispose);
+  lifetime.listen(window,"linux-note-workspace-context-changed",()=>{for(const close of [...overlays])close();for(const id of [...sessions.keys()])kill(id);});
   document.documentElement.setAttribute("data-linux-note-terminal","ready");document.documentElement.setAttribute("data-linux-note-terminal-theme","ready");
   return {open,admin,toggle,dispose:lifetime.dispose};
   }catch(error){lifetime.dispose();throw error;}
