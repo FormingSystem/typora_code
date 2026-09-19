@@ -1,0 +1,593 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R047"
+  ],
+  "date": "2026-09-19",
+  "version": "2026.09.19.1",
+  "base_revision": "5c72e5db7873e677b6d939240b6a066a082e739f",
+  "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+  "runs": [
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-25-59-889Z_4649e0/report.json",
+      "report_sha256": "6e0268e2af336f9cc537dc9c0a310c91b352a3bafff0cc500df388345fb80ba9",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-workspace-021",
+        "requirements": [
+          "R020",
+          "R044"
+        ],
+        "design": "docs/workspace_interaction.md",
+        "implementation": [
+          "enhancements/src/workspace_files.ts",
+          "enhancements/src/workspace_startup.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_startup.cjs": "851828f699a40c0c3c89868e43e4f1cec0a563a033473411ec6cf80f509af193",
+          "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+          "enhancements/src/workspace_startup.ts": "063cf29958878357195311bca1fe41bc52c8fd4a469f9defeba7109cdc02c1bf"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 12765,
+        "log": "TC-workspace-021.log",
+        "log_sha256": "4935a757fc49570570dcf6bd362131ab9acd20adb7542821780eabc8ce69bc3b"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-26-12-900Z_b4872f/report.json",
+      "report_sha256": "48e7e19022368711353eff692fad6c26f7a7230cd1b9260cfa750ab33ac95208",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-workspace-023",
+        "requirements": [
+          "R020",
+          "R044"
+        ],
+        "design": "docs/workspace_interaction.md",
+        "implementation": [
+          "enhancements/src/workspace_titlebar.ts",
+          "enhancements/src/workspace_titlebar_menu.ts",
+          "enhancements/src/workspace_titlebar_settings.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_titlebar.cjs": "70da87b122caca87dbe758924c6ff1a48070d781b522616760f82c92cb79ec2c",
+          "enhancements/src/workspace_titlebar.ts": "1e617cae97e6100b78354b34176a19611723e7aa49b8b61620397e77e574f607",
+          "enhancements/src/workspace_titlebar_menu.ts": "771acf3dd1a8e5a6e1b7b7d71bb28e72422dc15525cc2255e74719e38927d012",
+          "enhancements/src/workspace_titlebar_settings.ts": "e4bfa41c1b530779ade9a3f1f00766980e140c5e94a56dc73780ccce8ec58226"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 6278,
+        "log": "TC-workspace-023.log",
+        "log_sha256": "fa2b3939af235c2b8674d621f732d7d288a080a3ca28316748d9470bbb901e3a"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-26-19-424Z_510469/report.json",
+      "report_sha256": "859e138b16a0ada620341dac95f89922eb37126302467ff9300255c8d70c1d98",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-workspace-024",
+        "requirements": [
+          "R007",
+          "R017",
+          "R040",
+          "R041"
+        ],
+        "design": "docs/file_operations.md",
+        "implementation": [
+          "enhancements/src/terminal_state.ts",
+          "enhancements/src/workspace_titlebar_entries.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_titlebar_entries.cjs": "f8885a9261182e59718de073ccffe2571382107bc0c797d4e1ff72a3b98befac",
+          "enhancements/src/terminal_state.ts": "d6be2dcccbddb8e3a78bd1f646f7326e3f948f913702cee2dcd465eda93e2334",
+          "enhancements/src/workspace_titlebar_entries.ts": "0448cb400bbed792e5b0b98a6c4ffe840f1a7ed8a1171a089edbd875d6a90f82"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 486,
+        "log": "TC-workspace-024.log",
+        "log_sha256": "c921bd5481fbd79efa314e905313fd711e600e9ab98db417df7a33c2efcc1afe"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-22-40-431Z_3ad661/report.json",
+      "report_sha256": "5265912290ba7d9195cecb44aecf28604427c1701ddd1ab394f9ddbe6880e1b2",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-system-native-stability",
+        "requirements": [
+          "R040",
+          "R041",
+          "R042",
+          "R043",
+          "R044",
+          "R046",
+          "R047"
+        ],
+        "design": "docs/stability_testing.md#原生验收",
+        "implementation": [
+          "enhancements/fixtures/stability_native.js",
+          "enhancements/scripts/prepare_stability_native.py",
+          "enhancements/scripts/run_private_desktop.ps1",
+          "enhancements/src/workspace_explorer.css",
+          "enhancements/src/workspace_explorer_sections.css"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+          "enhancements/fixtures/stability_native.js": "aa1b40ef3e9ace532d1404fe9ac2c535164feb167f3ced074e3f8fcc3a2ff36c",
+          "enhancements/scripts/prepare_stability_native.py": "9b9690bc1d0c4c71bfa8a40da21d2be9b43d247e63b114198f687c36aca94933",
+          "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+          "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+          "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 13778,
+        "log": "TC-system-native-stability.log",
+        "log_sha256": "69671b6525f363742f61ef2604963142100882124f2e0fcc29b180cbc476aaf4"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-25-25-481Z_267a41/report.json",
+      "report_sha256": "21123554d0bad9748dedafd704044f200049f241b0c8d33aca04f3d74201308f",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-delivery-002",
+        "requirements": [
+          "R025"
+        ],
+        "design": "docs/installation_design.md",
+        "implementation": [
+          "install_windows.ps1",
+          "check_windows.ps1"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_install_windows.ps1": "fbb89107d3783d7b3e06d2a3aec5f21cee7ce757bd669cafc897e576d7c945be",
+          "install_windows.ps1": "2815d2ab4be482f01530f2eb000c8d95ec5dabee9d2f4c18b145b6c8443d6ee8",
+          "check_windows.ps1": "4f2fcc7f06a47b1a3428b7aae02b66024915641d1c63641a9ab616ee23679a0c"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 64098,
+        "log": "TC-delivery-002.log",
+        "log_sha256": "2e2cdeead80cb93b09a6495ed2582a45d7cafe013b743462dc6d31b898059c58"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-22-40-252Z_fb0f9e/report.json",
+      "report_sha256": "f8f82d6c428dd44f4ea4279abc12fdabfacda114e326f9754a008460ab10e23f",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-protocol",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update_service.cjs"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update.mjs": "bf2f23ceba10ce6498fa44bf351bfcb2dbc75551180bcbcd3d032739b47004e9",
+          "enhancements/src/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2"
+        },
+        "sources_unchanged": true,
+        "level": "unit",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 223,
+        "log": "TC-update-protocol.log",
+        "log_sha256": "5820272c528a8aaf199541854d1449109edd2223f5822894bbb3db650473ad25"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-22-40-252Z_fb0f9e/report.json",
+      "report_sha256": "f8f82d6c428dd44f4ea4279abc12fdabfacda114e326f9754a008460ab10e23f",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-concurrency",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update_service.cjs"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update.mjs": "bf2f23ceba10ce6498fa44bf351bfcb2dbc75551180bcbcd3d032739b47004e9",
+          "enhancements/src/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "stress",
+        "iterations": 20,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 231,
+        "log": "TC-update-concurrency.log",
+        "log_sha256": "4271ecbe51b9547878dc0495f26af676324038062e8478e7b65490dc2c1c27f3"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-22-40-252Z_fb0f9e/report.json",
+      "report_sha256": "f8f82d6c428dd44f4ea4279abc12fdabfacda114e326f9754a008460ab10e23f",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-ui",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update.ts",
+          "enhancements/src/workspace_titlebar_entries.ts"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update_ui.cjs": "ae23289b355221736fd8ba7f278e11727ac659cbb28ff5220a4c5d46588a4723",
+          "enhancements/src/workspace_update.ts": "3c35d222d80e178c9ff27da7c724fea2fa8ec6120d88b88411c533af2919c964",
+          "enhancements/src/workspace_titlebar_entries.ts": "0448cb400bbed792e5b0b98a6c4ffe840f1a7ed8a1171a089edbd875d6a90f82"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 3731,
+        "log": "TC-update-ui.log",
+        "log_sha256": "99d33b23fc5446c23be6c4eb91a6a5063fd18e69397116af53fbeb6a4d6652bb"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-27-13-565Z_ab519e/report.json",
+      "report_sha256": "5612cae2b8c9d623f9f8c8c26c641bb78e340c903f0c2d2e0af8ed959ca5b2d8",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 20,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-install",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update_archive.ps1",
+          "enhancements/src/workspace_update_service.cjs",
+          "install_windows.ps1",
+          "scripts/install_workspace_windows.ps1",
+          "scripts/lib/typora_terminal.ps1"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update_install.mjs": "7df64e3a6bc9dd8be85125e5fae4a8f765a6f26eb07dc7fa0882d9b32b0a1a4a",
+          "enhancements/src/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+          "enhancements/src/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+          "install_windows.ps1": "2815d2ab4be482f01530f2eb000c8d95ec5dabee9d2f4c18b145b6c8443d6ee8",
+          "scripts/install_workspace_windows.ps1": "4b83ada2ef2809466fbdcfa17045ed41bdc175a0c2643c7d875809bb556923c7",
+          "scripts/lib/typora_terminal.ps1": "30297d606b2d8db0da5b0f19202e041bfa6948d8bcf1fdc2d6cd541b4db0e2e2"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 14439,
+        "log": "TC-update-install.log",
+        "log_sha256": "70120760fa8b669aaaa70acb484353394720e0d857dea9c8f990edcefce5daae"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-23-04-663Z_aa5e53/report.json",
+      "report_sha256": "77768ba01001da8014fd21c64e65421eb113e258e24bd762c23737091927f084",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 100,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-concurrency",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update_service.cjs"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update.mjs": "bf2f23ceba10ce6498fa44bf351bfcb2dbc75551180bcbcd3d032739b47004e9",
+          "enhancements/src/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "stress",
+        "iterations": 100,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 250,
+        "log": "TC-update-concurrency.log",
+        "log_sha256": "55f95f5a35330ded0124e1caf74fb4fe3c0f2df9f1b9362fb8c547986852f6d9"
+      }
+    },
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-23-05-154Z_f03f0c/report.json",
+      "report_sha256": "263ae0dcd82e3d6702f700f486adfe3571724916c28dcc226f091f42e1fe71d6",
+      "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+      "tier": 1000,
+      "environment": {
+        "platform": "win32",
+        "arch": "x64",
+        "os_release": "10.0.26200",
+        "node": "v24.19.0",
+        "electron": "43.2.0"
+      },
+      "result": {
+        "id": "TC-update-concurrency",
+        "requirements": [
+          "R047"
+        ],
+        "design": "docs/workspace_update.md",
+        "implementation": [
+          "enhancements/src/workspace_update_service.cjs"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_workspace_update.mjs": "bf2f23ceba10ce6498fa44bf351bfcb2dbc75551180bcbcd3d032739b47004e9",
+          "enhancements/src/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2"
+        },
+        "sources_unchanged": true,
+        "level": "functional",
+        "purpose": "stress",
+        "iterations": 1000,
+        "status": "passed",
+        "exit_code": 0,
+        "elapsed_ms": 287,
+        "log": "TC-update-concurrency.log",
+        "log_sha256": "ba87a638064723f68abbfb469d517cde110fa9bf30d88de547532f368fc2d090"
+      }
+    }
+  ],
+  "native": {
+    "report": ".cache/issue_tracking/native/63aaba511cc542f8b0d7a1960c10395d/checks.json",
+    "sha256": "ea133314b24cb7b2a780a490a9bea8ef00eb80d8701513fc05c6e34c461942d8",
+    "status": "PASS",
+    "check_count": 40,
+    "checks": [
+      "TC-update-native: 原生主进程身份检查和启动公告成功且一次请求",
+      "TC-update-native: 公告展示立即安装与手动重启说明",
+      "TC-update-native: 同一会话可由帮助命令主动重试",
+      "TC-files-recent: 新目录挂载且原生最近历史包含它",
+      "TC-files-rename: 无后缀默认纯文本",
+      "TC-files-rename: clean改后缀自动进入原生Markdown且保持clean",
+      "TC-files-rename: dirty正文/模型保留且语言更新",
+      "TC-files-rename: 改名不静默保存草稿",
+      "TC-files-rename: 保存后自动进入Markdown且正文正确",
+      "TC-files-trash: 原始Typora主进程实际回收临时文件",
+      "TC-files-trash: 原始Typora主进程实际回收临时目录",
+      "TC-explorer-hierarchy: Github 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Github 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 220标题与辅助工具不重叠",
+      "TC-reading-native: Github显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Github字体/SVG共用16px槽位",
+      "TC-workspace-menu: Github实际图标和文字行内居中",
+      "TC-workspace-menu: Github功能菜单文字对齐",
+      "TC-workspace-menu: Github图标与文字保留槽间距",
+      "TC-explorer-hierarchy: Night 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Night 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 220标题与辅助工具不重叠",
+      "TC-reading-native: Night显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Night字体/SVG共用16px槽位",
+      "TC-workspace-menu: Night实际图标和文字行内居中",
+      "TC-workspace-menu: Night功能菜单文字对齐",
+      "TC-workspace-menu: Night图标与文字保留槽间距",
+      "原始夹具文档保持字节一致"
+    ],
+    "scope": "原始Typora 1.14.10，私有桌面/用户目录；renderer调用实际宿主API，非物理用户输入"
+  },
+  "standard_checks": {
+    "build": "passed",
+    "npm_run_check": "passed; cache-service correction additionally verified by real concurrent installers and deployment checker",
+    "log": ".cache/issue_tracking/update_check_delivery.log",
+    "log_sha256": "382c2cd642491cb3746b1e190a8b26afa3a45343c07e61fd580c63f91401fb2f",
+    "git_diff_check": "passed"
+  },
+  "installation": {
+    "status": "PASS",
+    "installed_assets": 27,
+    "assets": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "6eb4938cbf7bfa8d482ea971b7a6ea372df3c4334c0af9774f52bfb7731919fc",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "6ed0adaa63ce142baf39c0eb12123edd2484bd7e290c523ab2632d9f35154fc1",
+      "workspace.css": "8e76d70b9438fbf44a83144c50be1662bd89a5c7dd32cba529b6c5f4998fb4d5",
+      "workspace_core.css": "28637981890ebc230d4cea75a06f5608929e6a83481e0b4855899b969a67de25",
+      "workspace_core.js": "30857d8f3319e844740499e4743fd3f1a9c945e9f0614fbb9238767b26b41154"
+    },
+    "protected_unchanged": 5,
+    "candidate_manifest_sha256": "b0fde6fa79de16c2036ccdbb1ca729cd69d63ee2a8927b81bad307dde26f7894",
+    "windows_restarted": false
+  },
+  "failed_runs": [
+    {
+      "report": ".cache/issue_tracking/runs/2026-09-19T11-22-54-501Z_0d15a5/report.json",
+      "sha256": "ddae1454b317f0049ba068f23c95c7510fbaa5c1da9dc5f65baaf44f944510f0",
+      "issue": "BUG-update-003",
+      "result": {
+        "id": "TC-delivery-002",
+        "requirements": [
+          "R025"
+        ],
+        "design": "docs/installation_design.md",
+        "implementation": [
+          "install_windows.ps1",
+          "check_windows.ps1"
+        ],
+        "source_hashes": {
+          "enhancements/scripts/test_install_windows.ps1": "fbb89107d3783d7b3e06d2a3aec5f21cee7ce757bd669cafc897e576d7c945be",
+          "install_windows.ps1": "2815d2ab4be482f01530f2eb000c8d95ec5dabee9d2f4c18b145b6c8443d6ee8",
+          "check_windows.ps1": "4f2fcc7f06a47b1a3428b7aae02b66024915641d1c63641a9ab616ee23679a0c"
+        },
+        "sources_unchanged": true,
+        "level": "system",
+        "purpose": "implementation",
+        "iterations": null,
+        "status": "failed",
+        "exit_code": 1,
+        "elapsed_ms": 1970,
+        "log": "TC-delivery-002.log",
+        "log_sha256": "8e550638d3db90a9adf8fd9af74a5475bf67bb70d76f6661599212a3ff9c9de4"
+      }
+    }
+  ],
+  "development_failures": [
+    {
+      "issue": "BUG-update-001",
+      "observation": "Windows PowerShell 5.1 MissingCatchOrFinally with UTF-8 without BOM; recovered with BOM and real-engine validation"
+    },
+    {
+      "issue": "BUG-update-002",
+      "observation": "Missing expected rejection /EEXIST/ in stream test; complete only on finish"
+    }
+  ],
+  "skill": {
+    "name": "develop-typora-code",
+    "validation": "quick_validate.py PASS",
+    "sha256": "ad14cdb05ba1567262f0e5e45144413c28ad74f2c8b740eba0829644c18099b4"
+  },
+  "limits": [
+    "Online GitHub release not pushed or installed from an actual future release; transport and archive bytes supplied through deterministic fixtures",
+    "Native startup uses real host identity and dialogs, with release lookup replaced; multi-window claim race uses independent Node processes",
+    "Windows x64 validated; ARM64 real machine and non-Windows automatic installation not validated",
+    "User windows were not restarted; existing unsaved content and settings preserved",
+    "Whole directory replacement is not atomic; installation reuses existing file transaction and rollback"
+  ]
+}

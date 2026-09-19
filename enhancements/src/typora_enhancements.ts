@@ -23,6 +23,7 @@ import { initialize_workspace } from "./workspace_bootstrap";
 import { bind_file_path_actions } from "./file_path_actions";
 import { bind_git_graph } from "./git_graph_view";
 import { bind_workspace_browser } from "./workspace_browser";
+import {bind_workspace_update} from "./workspace_update";
 import { bind_reading_minimap } from "./reading_minimap";
 import { bind_reading_link_hover } from "./reading_link_hover";
 
@@ -446,6 +447,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   if(core?.app)lifetime.own(bind_markdown_color_menu(core));
   graph_binding=lifetime.own(bind_git_graph());
   lifetime.own(bind_workspace_browser());
+  lifetime.own(bind_workspace_update());
   lifetime.own(bind_reading_minimap());
   lifetime.own(bind_reading_link_hover());
   lifetime.add(()=>{close_reading_media();});

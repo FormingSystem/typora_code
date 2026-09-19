@@ -3585,7 +3585,8 @@
         "R042",
         "R043",
         "R044",
-        "R046"
+        "R046",
+        "R047"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3629,7 +3630,8 @@
         "R041",
         "R042",
         "R043",
-        "R044"
+        "R044",
+        "R047"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3689,6 +3691,132 @@
       ],
       "timeout_ms": 30000,
       "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-update-protocol",
+      "domain": "update",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R047"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "enhancements/src/workspace_update_service.cjs"
+      ],
+      "related_modules": [
+        "startup",
+        "titlebar",
+        "installation",
+        "settings"
+      ],
+      "script": "enhancements/scripts/test_workspace_update.mjs",
+      "environment": "Windows Node / 隐藏Electron / 独立中文用户目录与真实PowerShell安装器",
+      "preconditions": "仅使用新建临时目录和本地ZIP下载替身；不关闭真实窗口，不改用户文档",
+      "steps": [
+        "检查发布协议、并发互斥及取消／失败边界；精确断言由脚本维护"
+      ],
+      "expected": [
+        "单次提醒，固定提交与摘要一致；未选择更新零安装；成功保留配置；失败可查日志"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
+    },
+    {
+      "id": "TC-update-concurrency",
+      "domain": "update",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R047"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "enhancements/src/workspace_update_service.cjs"
+      ],
+      "related_modules": [
+        "startup",
+        "titlebar",
+        "installation",
+        "settings"
+      ],
+      "script": "enhancements/scripts/test_workspace_update.mjs",
+      "environment": "Windows Node / 隐藏Electron / 独立中文用户目录与真实PowerShell安装器",
+      "preconditions": "仅使用新建临时目录和本地ZIP下载替身；不关闭真实窗口，不改用户文档",
+      "steps": [
+        "检查发布协议、并发互斥及取消／失败边界；精确断言由脚本维护"
+      ],
+      "expected": [
+        "单次提醒，固定提交与摘要一致；未选择更新零安装；成功保留配置；失败可查日志"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32",
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-update-ui",
+      "domain": "update",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R047"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "enhancements/src/workspace_update.ts",
+        "enhancements/src/workspace_titlebar_entries.ts"
+      ],
+      "related_modules": [
+        "startup",
+        "titlebar",
+        "installation",
+        "settings"
+      ],
+      "script": "enhancements/scripts/test_workspace_update_ui.cjs",
+      "environment": "Windows Node / 隐藏Electron / 独立中文用户目录与真实PowerShell安装器",
+      "preconditions": "仅使用新建临时目录和本地ZIP下载替身；不关闭真实窗口，不改用户文档",
+      "steps": [
+        "检查发布协议、并发互斥及取消／失败边界；精确断言由脚本维护"
+      ],
+      "expected": [
+        "单次提醒，固定提交与摘要一致；未选择更新零安装；成功保留配置；失败可查日志"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
+    },
+    {
+      "id": "TC-update-install",
+      "domain": "update",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R047"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "enhancements/src/workspace_update_archive.ps1",
+        "enhancements/src/workspace_update_service.cjs",
+        "install_windows.ps1",
+        "scripts/install_workspace_windows.ps1",
+        "scripts/lib/typora_terminal.ps1"
+      ],
+      "related_modules": [
+        "startup",
+        "titlebar",
+        "installation",
+        "settings"
+      ],
+      "script": "enhancements/scripts/test_workspace_update_install.mjs",
+      "environment": "Windows Node / 隐藏Electron / 独立中文用户目录与真实PowerShell安装器",
+      "preconditions": "仅使用新建临时目录和本地ZIP下载替身；不关闭真实窗口，不改用户文档",
+      "steps": [
+        "检查发布协议、并发互斥及取消／失败边界；精确断言由脚本维护"
+      ],
+      "expected": [
+        "单次提醒，固定提交与摘要一致；未选择更新零安装；成功保留配置；失败可查日志"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32"
     }
   ]
 }

@@ -235761,6 +235761,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const help_entries = async () => [
+      { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
       { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
       { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
     ];
@@ -237579,6 +237580,162 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // release.json
+  var release_default = {
+    schema: 1,
+    releases: [
+      {
+        sequence: 2026091901,
+        version: "2026.09.19.1",
+        date: "2026-09-19",
+        notes: [
+          "\u65B0\u589E\u53EF\u9009\u539F\u5730\u66F4\u65B0\uFF1A\u542F\u52A8\u65F6\u591A\u7A97\u53E3\u5408\u8BA1\u63D0\u9192\u4E00\u6B21\uFF0C\u5C55\u793A\u4FEE\u590D\u516C\u544A\uFF0C\u4E0B\u8F7D\u5B98\u65B9\u4ED3\u5E93ZIP\u5E76\u5B89\u88C5\uFF0C\u624B\u52A8\u91CD\u542F\u751F\u6548\u3002",
+          "\u4FEE\u590D\u6700\u8FD1\u76EE\u5F55\u5237\u65B0\u3001\u6587\u4EF6\u6539\u540E\u7F00\u8BC6\u522B\u548C\u7AE0\u8282\u8DF3\u8F6C\u88AB\u9876\u90E8\u5BFC\u822A\u906E\u6321\u7684\u95EE\u9898\u3002",
+          "\u4F18\u5316\u8D44\u6E90\u7BA1\u7406\u5668\u5185\u5BB9\u4E0E\u8F85\u52A9\u56FE\u6807\u5C42\u7EA7\uFF0C\u7EDF\u4E00\u4FA7\u680F\u83DC\u5355\u56FE\u6807\u5BF9\u9F50\u3002",
+          "\u7EDF\u4E00\u539F\u751F\u56DE\u6536\u64CD\u4F5C\u53CA\u9519\u8BEF\u53CD\u9988\uFF0C\u79FB\u9664\u666E\u901AGit\u5FEB\u6377\u64CD\u4F5C\u7684\u591A\u4F59\u786E\u8BA4\u3002"
+        ]
+      }
+    ]
+  };
+
+  // src/workspace_update.ts
+  function bind_workspace_update() {
+    const lifetime = create_workspace_lifetime(), app = get_workspace_app();
+    const runtime2 = window;
+    if (!app || !runtime2.reqnode || !runtime2._options?.userDataPath) return lifetime;
+    const fs2 = runtime2.reqnode("fs"), path = runtime2.reqnode("path"), process2 = runtime2.reqnode("process");
+    const user_data = runtime2._options.userDataPath, installed_root = path.join(user_data, "typora_code"), state_root = path.join(user_data, "typora_code_updates");
+    let service, current, busy = false, disposed = false, dialog2, poll;
+    const controller = new AbortController();
+    const write_log = (error) => {
+      try {
+        fs2.mkdirSync(state_root, { recursive: true });
+        fs2.appendFileSync(path.join(state_root, "checks.log"), (/* @__PURE__ */ new Date()).toISOString() + " " + String(error) + "\n", "utf8");
+      } catch {
+      }
+      ;
+    };
+    const message = (title, text3) => {
+      dialog2?.close();
+      dialog2 = workspace_dialog(title, "\u5173\u95ED", () => {
+        dialog2 = void 0;
+      });
+      dialog2.content.append(workspace_element("p", "", text3));
+    };
+    function load() {
+      service ||= runtime2.reqnode(path.join(installed_root, "assets/update/workspace_update_service.cjs"));
+      current ||= service.release_info(release_default);
+    }
+    function show_progress(job) {
+      dialog2?.close();
+      dialog2 = workspace_dialog("Typora Code \u66F4\u65B0\u8FDB\u5EA6", "\u5173\u95ED", () => {
+        clearInterval(poll);
+        poll = void 0;
+        dialog2 = void 0;
+      });
+      const target = dialog2, status2 = workspace_element("p", "", "\u6B63\u5728\u542F\u52A8\u66F4\u65B0\u2026"), log2 = workspace_element("p", "", "\u65E5\u5FD7\uFF1A" + path.join(state_root, job)), cancel = workspace_button("\u53D6\u6D88\u4E0B\u8F7D", () => service.cancel_update(state_root, job));
+      status2.setAttribute("role", "status");
+      target.content.append(status2, log2);
+      target.footer.append(cancel);
+      const refresh = () => {
+        try {
+          const value = service.status_of(state_root, job);
+          status2.textContent = value.message;
+          cancel.disabled = !["starting", "downloading", "verifying"].includes(value.phase);
+          if (["succeeded", "failed", "cancelled"].includes(value.phase)) {
+            clearInterval(poll);
+            poll = void 0;
+            cancel.remove();
+          }
+        } catch (error) {
+          status2.textContent = String(error);
+        }
+      };
+      poll = setInterval(refresh, 350);
+      refresh();
+    }
+    async function check(manual = false) {
+      if (busy || disposed || dialog2) return;
+      busy = true;
+      try {
+        if (process2.platform !== "win32") {
+          if (manual) message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5E73\u53F0\u6682\u672A\u652F\u6301\u81EA\u52A8\u5B89\u88C5\uFF0C\u8BF7\u4ECE\u9879\u76EE\u4ED3\u5E93\u4E0B\u8F7D\u5B8C\u6574ZIP\u540E\u6309\u5B89\u88C5\u6307\u5357\u66F4\u65B0\u3002");
+          return;
+        }
+        load();
+        const installed = service.release_info(JSON.parse(fs2.readFileSync(path.join(installed_root, "assets/update/release.json"), "utf8")));
+        if (installed.releases[0].sequence > current.releases[0].sequence) {
+          if (manual) message("Typora Code \u66F4\u65B0", "\u78C1\u76D8\u4E0A\u7684 " + installed.releases[0].version + " \u5DF2\u5B89\u88C5\uFF1B\u5F53\u524D\u7A97\u53E3\u4ECD\u8FD0\u884C " + current.releases[0].version + "\uFF0C\u8BF7\u4FDD\u5B58\u6587\u6863\u540E\u624B\u52A8\u91CD\u542F\u3002");
+          return;
+        }
+        if (manual) {
+          try {
+            const active = JSON.parse(fs2.readFileSync(path.join(state_root, "active_job.json"), "utf8"));
+            const state = service.status_of(state_root, active.job);
+            if (!["succeeded", "failed", "cancelled"].includes(state.phase)) {
+              show_progress(active.job);
+              return;
+            }
+          } catch {
+          }
+        } else if (!service.claim_startup(state_root, await service.session_identity(process2.ppid, process2.execPath))) return;
+        const plan = await service.check_update(current, { signal: controller.signal });
+        if (disposed) return;
+        if (!plan) {
+          if (manual) message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5B89\u88C5\u5DF2\u662F\u6700\u65B0\u53D1\u5E03\u7248\u672C\uFF08" + current.releases[0].version + "\uFF09\u3002");
+          return;
+        }
+        const target = dialog2 = workspace_dialog("Typora Code \u6709\u65B0\u7248\u672C", "\u7A0D\u540E", () => {
+          dialog2 = void 0;
+        });
+        target.content.append(workspace_element("p", "", "\u5F53\u524D\u7248\u672C " + current.releases[0].version + " \u2192 " + plan.release.releases[0].version));
+        target.content.append(workspace_element("p", "", "\u66F4\u65B0\u5C06\u7ACB\u5373\u4E0B\u8F7D\u5E76\u5B89\u88C5\u3002\u8BF7\u4FDD\u5B58\u6587\u6863\u540E\u624B\u52A8\u91CD\u542F Typora\uFF1B\u4E0D\u4F1A\u81EA\u52A8\u5173\u95ED\u7A97\u53E3\u3002"));
+        for (const release of plan.release.releases.filter((item) => item.sequence > current.releases[0].sequence)) {
+          target.content.append(workspace_element("h4", "", release.version + " \xB7 " + release.date));
+          const list3 = workspace_element("ul");
+          for (const note of release.notes) list3.append(workspace_element("li", "", note));
+          target.content.append(list3);
+        }
+        const update2 = workspace_button("\u7ACB\u5373\u66F4\u65B0", () => {
+          update2.disabled = true;
+          try {
+            const config = JSON.parse(fs2.readFileSync(path.join(installed_root, "assets/update/runtime.json"), "utf8"));
+            const node_path = path.join(user_data, "linux_note_enhancements/terminal_runtime/node", config.node_version, "node.exe");
+            const job = service.start_update({ state_root, installed_root, user_data, host_root: path.dirname(process2.execPath), node_path, plan });
+            show_progress(job);
+          } catch (error) {
+            update2.disabled = false;
+            target.content.append(workspace_element("p", "", String(error)));
+            write_log(error);
+          }
+        });
+        target.footer.append(update2);
+      } catch (error) {
+        if (!disposed) {
+          write_log(error);
+          if (manual) message("\u68C0\u67E5\u66F4\u65B0\u5931\u8D25", String(error));
+        }
+      } finally {
+        busy = false;
+      }
+    }
+    const command = app.commands.register({ id: "typora_code:check_update", title: "\u68C0\u67E5 Typora Code \u66F4\u65B0", scope: "global", callback: () => {
+      void check(true);
+    } });
+    if (typeof command === "function") lifetime.add(command);
+    const timer = setTimeout(() => {
+      void check();
+    }, 2e3);
+    lifetime.add(() => {
+      disposed = true;
+      controller.abort();
+      clearTimeout(timer);
+      clearInterval(poll);
+      dialog2?.close(false);
+    });
+    return lifetime;
+  }
+
   // src/reading_minimap.css
   var reading_minimap_default = "";
 
@@ -238569,6 +238726,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (core?.app) lifetime.own(bind_markdown_color_menu(core));
     graph_binding = lifetime.own(bind_git_graph());
     lifetime.own(bind_workspace_browser());
+    lifetime.own(bind_workspace_update());
     lifetime.own(bind_reading_minimap());
     lifetime.own(bind_reading_link_hover());
     lifetime.add(() => {

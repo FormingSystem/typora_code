@@ -8,10 +8,12 @@
 Typora 安装目录、可执行文件或 resources/window.html；省略时自动发现。
 .PARAMETER backup_root
 可选的新备份目录，不能使用已存在的目录；省略时保存到用户数据目录。
+.PARAMETER user_data
+实际Typora用户数据目录；省略时使用当前账户默认目录，自动更新传入宿主真实位置。
 .PARAMETER non_interactive
 自动发现失败时立即报错，不等待输入。
 #>
 [CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive)
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='')
 $ErrorActionPreference = 'Stop'
-& (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme
+& (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme -user_data $user_data

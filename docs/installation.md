@@ -49,7 +49,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -typor
 powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
 ```
 
-安装额外支持 `-backup_root '<新的备份目录>'`，指定目录必须尚未存在。默认使用用户数据目录下的 `backups/typora_code_configuration/`。`-non_interactive` 在无法发现路径时直接失败，适合自动化，不会等待输入。PowerShell 帮助可通过 `Get-Help .\install_windows.ps1 -Detailed` 查看；`ExecutionPolicy Bypass` 仅作用于本次 PowerShell 进程。
+安装支持 `-user_data '<实际Typora用户目录>'` 指定便携／独立配置目录，自动更新会传入当前宿主使用的真实位置；省略仍使用默认用户数据目录。额外支持 `-backup_root '<新的备份目录>'`，指定目录必须尚未存在。默认使用用户数据目录下的 `backups/typora_code_configuration/`。`-non_interactive` 在无法发现路径时直接失败，适合自动化，不会等待输入。PowerShell 帮助可通过 `Get-Help .\install_windows.ps1 -Detailed` 查看；`ExecutionPolicy Bypass` 仅作用于本次 PowerShell 进程。
 
 安装目录受系统权限保护时，先确认错误指向哪个目录。必要时在**同一用户**的管理员 PowerShell 中执行明确路径的安装命令；换成另一管理员账户会使用另一套用户数据。不要给整个磁盘或用户目录开放写权限。
 
@@ -117,7 +117,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1
 
 `check_windows.ps1` / `check.sh` 只读比较**本下载包**与已安装入口、主题和发布摘要；成功显示 `status: OK`，失败返回非零。它不修复文件。自定义改过本项目同名主题也会报告不同，这不等同 Typora 文档损坏。
 
-**更新 Typora Code：**保存文档，获取新完整包，运行新包的 install，再运行 check。每次产生新备份；既有工作台设置保留。完成后正常重启 Typora。
+**更新 Typora Code：**安装含更新模块的版本后，Windows 启动时会在多个窗口中合计检查一次；有新发布版本则显示版本号和修复公告。选择“稍后”不下载、不安装；选择“立即更新”后下载官方仓库 ZIP、校验并立即原地安装，完成后保存文档，手动重启所有 Typora 窗口生效。不会自动关闭窗口。帮助菜单的“检查 Typora Code 更新”可主动重试或查看正在运行的更新。
+
+下载／校验期间可取消；进入安装事务后等待完成。关闭进度窗不终止后台更新。离线、限流或权限不足不会静默提权；错误与日志可查看，安装写入失败沿用备份回滚。用户设置保留，当前窗口不热替换。多文件安装期间不要主动新建窗口，完成后再正常重启。
+
+首次从不含更新模块的旧版升级，或使用尚不支持自动安装的平台，仍需获取完整新包，运行 install，再运行 check。每次安装产生新备份。仅提交代码不会自动产生新版公告；维护者需要递增发布版本并推送经过验证的资产，详见[更新设计与发布契约](workspace_update.md)。
 
 **更新 Typora：**照常使用官方更新。更新可能覆盖 `window.html`，增强随之不再加载；用当前增强包检查，核对新宿主兼容情况后重新安装并生成新备份。脚本不会阻止或改写官方更新流程。当前没有更新后自动重注入机制，也不能保证未来 Typora 版本无需适配。
 

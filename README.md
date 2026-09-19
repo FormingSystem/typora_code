@@ -22,6 +22,7 @@ Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git
 | 搜索 | 工作区内容搜索；单击侧栏预览，双击或 Enter 打开；重复单击返回命中位置 |
 | Git | [仓库列表、提交图与操作菜单](docs/git_scm_actions.md)、文件历史、只读差异、提交和远端操作 |
 | 终端 | Windows 本机 Shell、多会话、分屏、查找及终端配置 |
+| 更新 | Windows 启动时可选新版公告，多窗口仅提醒一次；立即安装，手动重启生效 |
 | Markdown | 原生编辑、标题大纲、缩略图、代码高亮、长代码展开及[图片／Mermaid放大查看](docs/reading_media_viewer.md) |
 
 Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供预览；源码标签可分别编辑与保存。C/C++ 符号大纲需要本机 clangd。当前没有 VS Code 扩展宿主。平台支持和未覆盖能力见[环境要求](docs/installation.md#环境要求)与[功能范围](docs/workbench_parity.md)。

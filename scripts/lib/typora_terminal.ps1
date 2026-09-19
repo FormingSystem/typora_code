@@ -1,4 +1,4 @@
-﻿# 固定官方 Node 运行时仅供终端后台进程使用，不修改 PATH 或全局 Node 环境。
+﻿# 固定官方 Node 供终端与更新后台进程使用，不修改 PATH 或全局 Node 环境。
 function get_typora_node_release {
     param([string]$tools_root)
     $release = [IO.File]::ReadAllText((Join-Path $tools_root 'enhancements/node_runtime.json')) | ConvertFrom-Json
@@ -16,6 +16,14 @@ function prepare_typora_node {
     $cache_root = if ($env:TYPORA_TERMINAL_CACHE) { [IO.Path]::GetFullPath($env:TYPORA_TERMINAL_CACHE) } else { Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Typora/terminal_downloads' }
     New-Item -ItemType Directory -Force -Path $cache_root | Out-Null
     $name = "node-v$($release.version)-win-$($release.arch)"
+    # 不同用户配置仍共用下载缓存；串行准备且不覆写已验证、可能正在执行的Node。
+    $provider=[Security.Cryptography.SHA256]::Create()
+    try {$cache_key=[BitConverter]::ToString($provider.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cache_root.ToLowerInvariant()+'|'+$name)))).Replace('-','')} finally {$provider.Dispose()}
+    $cache_mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeNodeCache_'+$cache_key))
+    $owns_cache=$false
+    try {
+    try {$owns_cache=$cache_mutex.WaitOne(120000)} catch [Threading.AbandonedMutexException] {$owns_cache=$true}
+    if(!$owns_cache){throw 'Timed out waiting for the shared Node cache. Retry after the other installation finishes.'}
     $archive = Join-Path $cache_root ($name + '.zip')
     & $report ("检查 Node $($release.version) / $($release.arch) 的本地缓存。")
     if (!(Test-Path -LiteralPath $archive -PathType Leaf) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $release.sha256) {
@@ -38,7 +46,11 @@ function prepare_typora_node {
         foreach ($filename in @('node.exe', 'LICENSE')) {
             $entry = $zip.GetEntry("$name/$filename")
             if (!$entry) { throw "Official Node archive is missing $filename" }
-            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $target_directory $filename), $true)
+            $target=Join-Path $target_directory $filename
+            $expected=if($filename -eq 'node.exe'){$release.executable_sha256}else{$release.license_sha256}
+            if(!(Test-Path -LiteralPath $target -PathType Leaf) -or (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -ne $expected){
+                [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$true)
+            }
         }
     } finally { $zip.Dispose() }
     $executable = Join-Path $target_directory 'node.exe'
@@ -48,6 +60,7 @@ function prepare_typora_node {
     foreach ($filename in @('node.exe', 'LICENSE')) { $assets += [pscustomobject]@{ relative_path = "node/$($release.version)/$filename"; sha256 = (Get-FileHash -LiteralPath (Join-Path $target_directory $filename) -Algorithm SHA256).Hash } }
     & $report '运行时已就绪。'
     return [pscustomobject]@{ root = $stage; assets = $assets }
+    } finally {if($owns_cache){$cache_mutex.ReleaseMutex()};$cache_mutex.Dispose()}
 }
 
 function assert_typora_node {

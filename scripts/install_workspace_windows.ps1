@@ -1,17 +1,26 @@
 ﻿[CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme)
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='')
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $tools_root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_install_log.ps1')
-$install_log = new_typora_install_log (get_typora_windows_user_data)
+$user_data = [IO.Path]::GetFullPath($(if($user_data){$user_data}else{get_typora_windows_user_data}))
+$install_log = new_typora_install_log $user_data
+$install_mutex=$null
+$owns_mutex=$false
 $rollback_state = 'not_required'
 try {
 start_typora_install_step $install_log 1 '检查安装环境'
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
-$user_data = [IO.Path]::GetFullPath((get_typora_windows_user_data))
+# 手工安装与后台更新共享互斥，避免备份和回滚交错；进程退出自动释放。
+$hash_provider=[Security.Cryptography.SHA256]::Create()
+try {$lock_key=[BitConverter]::ToString($hash_provider.ComputeHash([Text.Encoding]::UTF8.GetBytes($user_data.ToLowerInvariant()))).Replace('-','')} finally {$hash_provider.Dispose()}
+$install_mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeInstall_'+$lock_key))
+try {$owns_mutex=$install_mutex.WaitOne(0)} catch [Threading.AbandonedMutexException] {$owns_mutex=$true}
+if(!$owns_mutex){throw 'Another Typora Code installation is running. Retry after it finishes.'}
 write_typora_install_log $install_log INFO ('安装位置：' + $typora_root)
 write_typora_install_log $install_log INFO ('用户数据：' + $user_data)
 start_typora_install_step $install_log 2 '校验安装包'
@@ -123,4 +132,7 @@ if ($include_theme) { write_typora_install_log $install_log INFO '在“主题�
     if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO '安装尚未写入目标文件，无须回滚。' }
     if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
     throw
+} finally {
+    if($owns_mutex){$install_mutex.ReleaseMutex()}
+    if($null -ne $install_mutex){$install_mutex.Dispose()}
 }

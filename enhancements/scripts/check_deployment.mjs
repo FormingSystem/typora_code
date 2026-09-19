@@ -107,6 +107,12 @@ for (const marker of ["UCRT64", "Linux", "cygpath", "TYPORA_ROOT", "/dev/tty", "
 }
 
 const release_root = path.join(enhancement_root, 'dist');
+const {release_info}=await import('../src/workspace_update_service.cjs');
+const update_release=fs.readFileSync(path.join(enhancement_root,'release.json'),'utf8').replace(/\r\n?/gu,'\n');
+release_info(JSON.parse(update_release));
+if(fs.readFileSync(path.join(release_root,'assets/update/release.json'),'utf8')!==update_release)throw new Error('Update release notes differ from the built version. Rebuild before publishing.');
+for(const name of ['workspace_update_service.cjs','workspace_update_archive.ps1'])if(fs.readFileSync(path.join(release_root,'assets/update',name),'utf8')!==fs.readFileSync(path.join(enhancement_root,'src',name),'utf8').replace(/\r\n?/gu,'\n'))throw new Error('Update helper differs from source: '+name);
+
 const fontawesome_root = path.join(enhancement_root, 'vendor/fontawesome');
 const fontawesome_manifest = JSON.parse(fs.readFileSync(path.join(fontawesome_root, 'SOURCE.json'), 'utf8'));
 const fontawesome_icons = JSON.parse(fs.readFileSync(path.join(fontawesome_root, 'icons.json'), 'utf8'));

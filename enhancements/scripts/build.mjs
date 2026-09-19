@@ -17,6 +17,15 @@ await build_workspace_styles({outdir: path.resolve("dist")});
 await build_source_symbol_assets(path.resolve("dist"));
 fs.mkdirSync("dist/licenses",{recursive:true});
 fs.copyFileSync("vendor/fontawesome/LICENSE.txt","dist/licenses/fontawesome.txt");
+// 公告与后台辅助程序随同一资产清单安装，普通用户不依赖源码仓库或全局Node。
+const update_root="dist/assets/update";
+fs.mkdirSync(update_root,{recursive:true});
+const {release_info}=await import("../src/workspace_update_service.cjs");
+const release_source=fs.readFileSync("release.json","utf8").replace(/\r\n?/gu,"\n");
+release_info(JSON.parse(release_source));
+fs.writeFileSync(`${update_root}/release.json`,release_source);
+fs.writeFileSync(`${update_root}/runtime.json`,JSON.stringify({node_version:JSON.parse(fs.readFileSync("node_runtime.json","utf8")).version})+"\n");
+for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"])fs.writeFileSync(`${update_root}/${name}`,fs.readFileSync(`src/${name}`,"utf8").replace(/\r\n?/gu,"\n"));
 
 await build({
   entryPoints: ["src/workspace_entry.ts"],

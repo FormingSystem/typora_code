@@ -12,6 +12,19 @@
  const active=()=>core.app.workspace.activeLeaf;
  let menu;
  try {
+  const update_service=reqnode(path.join(window._options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs'));
+  const update_release=JSON.parse(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/assets/update/release.json'),'utf8'));
+  const check_update=update_service.check_update;let update_checks=0;
+  update_service.check_update=async()=>{update_checks++;const release=JSON.parse(JSON.stringify(update_release));release.releases[0].sequence++;release.releases[0].version='9999.1';release.releases[0].notes=['原生验收公告，不联网、不安装'];return {release};};
+  const update_popup=()=>document.querySelector('[role="dialog"][aria-label="Typora Code 有新版本"]');
+  await wait(update_popup,'原生启动更新公告');
+  assert(update_checks===1,'TC-update-native: 原生主进程身份检查和启动公告成功且一次请求');
+  assert(update_popup().textContent.includes('手动重启')&&update_popup().textContent.includes('原生验收公告'),'TC-update-native: 公告展示立即安装与手动重启说明');
+  [...update_popup().querySelectorAll('button')].find(button=>button.textContent==='稍后').click();
+  core.app.commands.run('typora_code:check_update');await wait(update_popup,'手动更新入口');
+  assert(update_checks===2,'TC-update-native: 同一会话可由帮助命令主动重试');
+  [...update_popup().querySelectorAll('button')].find(button=>button.textContent==='稍后').click();
+  update_service.check_update=check_update;
   await wait(()=>File.bundle.filePath.endsWith('front.md')&&!File.isFileLoading(),'startup');await pause(1200);
   samples.push({viewport:{width:innerWidth,height:innerHeight,device_pixel_ratio:devicePixelRatio,zoom_factor:reqnode('electron').webFrame?.getZoomFactor?.()},input:'renderer事件与真实宿主API；非物理输入'});
   const before=hash(path.join(root,'front.md'));
