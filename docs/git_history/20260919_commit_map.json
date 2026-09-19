@@ -1,0 +1,1516 @@
+{
+  "schema": 1,
+  "requirement": "R051",
+  "date": "2026-09-19",
+  "counts": {
+    "added_details": 64,
+    "formatted_details": 3,
+    "preserved_details": 19
+  },
+  "backup": {
+    "path": ".cache/issue_tracking/git_history_20260919/before_rewrite.bundle",
+    "sha256": "e42f0481635cd598cbca82d606c75c98daa0f233bf11c2673399116be408c3a2",
+    "complete": true
+  },
+  "branches": {
+    "refs/heads/main": {
+      "old": "3fb5af67e986a4cfce6970903439e9f12a0f1321",
+      "new": "d4e0c894ca811c56431798e6e38e3405a3664e9e"
+    },
+    "refs/heads/work/graph-settings-parity": {
+      "old": "a60ba584614874943334965b306a8006ef1feb4e",
+      "new": "d70a65ba0ce5d1f8320e5a2c9652632e19bbdbf6"
+    },
+    "refs/heads/work/plugin-and-workbench": {
+      "old": "440ec3fa5762397002c896007c144ef6bf828f0c",
+      "new": "6a7b349b8baeb4980ca098b4d22c49ba162a8445"
+    }
+  },
+  "commits": [
+    {
+      "old": "26ff4ba7894fabc9dd26ee2a28be29afead1c3f7",
+      "new": "9ea36115d6734207ce48a36a0f58a77c4cb8a021",
+      "title": "docs(repository/git): 初始化文档提交规则",
+      "kind": "added_details",
+      "tree": "1b55f30e74c59a9b5db444c1003c4b6e636996c7",
+      "old_parents": [],
+      "new_parents": [],
+      "metadata_sha256": "a5be3f52c42572ad6569622550d8576b9a85348467309b78a654be899a81ab9d",
+      "old_message_sha256": "7cea7b8fbe63e635ea477c4daeaf600b34c8a8d9df042acfdcb1057e6a1c8537",
+      "new_message_sha256": "c25ebd90bccf54833f3ea111c62eabc89d47c6b78c726b4be9dc3c4378bad3c7",
+      "message": "docs(repository/git): 初始化文档提交规则\n\n- 纳入Typora主题样式、配置修改说明和配置展示文档\n- 保存文件、编辑器、图像、Markdown、导出及外观配置截图\n"
+    },
+    {
+      "old": "141630d5a9fd7005d5aeee8030ccb29d0cc8e8a2",
+      "new": "a4cbbb7d6afe5d16a482429155db4397d3e80514",
+      "title": "refactor(repository/markdown): 统一全仓标题出版序号并维护锚点",
+      "kind": "added_details",
+      "tree": "38e79fc3f43f52fb20da7491d9cf17f709e3f86d",
+      "old_parents": [
+        "26ff4ba7894fabc9dd26ee2a28be29afead1c3f7"
+      ],
+      "new_parents": [
+        "9ea36115d6734207ce48a36a0f58a77c4cb8a021"
+      ],
+      "metadata_sha256": "c400cefb6ce5bb7cec2563646cb8fb1b3668353c6804aa2468a9acddbc30f098",
+      "old_message_sha256": "31b093ae618b8968e9f0c260116d9e939d71d4f37daf099389d2947f8bd1cfdc",
+      "new_message_sha256": "9461f5b7b8c012a7d7e8f8b8a8d805a7a199cd556982a1f795834bba77680826",
+      "message": "refactor(repository/markdown): 统一全仓标题出版序号并维护锚点\n\n- 为Typora配置修改和展示文档的标题统一添加章节序号\n- 保留原配置内容及截图，调整文档层级表达\n"
+    },
+    {
+      "old": "156d4cccbfcfec5e994dbb718f73f48549d8f486",
+      "new": "c19083bbb92f98a08798774e822844141e1707e7",
+      "title": "refactor(repository): 全量重构成熟知识库目录",
+      "kind": "added_details",
+      "tree": "912d5ac0c9f431b22a5cf21dd5d775c3c0d021f0",
+      "old_parents": [
+        "141630d5a9fd7005d5aeee8030ccb29d0cc8e8a2"
+      ],
+      "new_parents": [
+        "a4cbbb7d6afe5d16a482429155db4397d3e80514"
+      ],
+      "metadata_sha256": "583f09ced8009c29efd8b30d773ab1b56ecf9fecaf83d923ecbafb04fc44c533",
+      "old_message_sha256": "27258c840357aeb8b477a65bddd9930d1c604d9ac8929b9e146742486e98816a",
+      "new_message_sha256": "4a674c507a01b7ffa847d5660c9742fc61b529534423e2a6391dc17347eef117",
+      "message": "refactor(repository): 全量重构成熟知识库目录\n\n- 将Typora配置展示中的七处截图引用改为assets/images下的路径\n- 本仓库保留的差量仅涉及配置展示文档，沿用迁移前提交标题\n"
+    },
+    {
+      "old": "ea7c9f847a0dbf3033745a8d935f065a4160a5c0",
+      "new": "50aa4b181056b92e485168f76fc6f8a11707c45c",
+      "title": "docs(repository/markdown): 为全仓文档添加稳定元数据",
+      "kind": "added_details",
+      "tree": "9edcdfa1a26c00b85e386fbec995e3271d6cc28b",
+      "old_parents": [
+        "156d4cccbfcfec5e994dbb718f73f48549d8f486"
+      ],
+      "new_parents": [
+        "c19083bbb92f98a08798774e822844141e1707e7"
+      ],
+      "metadata_sha256": "da9459e8d4a8ac6d5d65fd5160decc8a8512e3be5983fb65f9b19cc32af599f6",
+      "old_message_sha256": "ae706e7783fefa4e4a89ead9e92bab4d71dc08caf7cca0b1ccc07b3ad845c3cf",
+      "new_message_sha256": "f59d2f17ee02e1363537fa5b02805bd85a2414fbda0aacc77d028b51e98149f5",
+      "message": "docs(repository/markdown): 为全仓文档添加稳定元数据\n\n- 为两份Typora配置文档增加稳定标识、标题和知识领域元数据\n- 通过YAML头记录文档类型与维护状态，保留正文配置说明\n"
+    },
+    {
+      "old": "e4efc0581811b1a4be85ad299f22c3e50054d76a",
+      "new": "d26a9690acee0ba1b4d68310432e97b64115bd3d",
+      "title": "refactor(repository/markdown): 全量转义标题下划线",
+      "kind": "preserved_details",
+      "tree": "3e744c8cdec4928292990a7098a8dc6c99cabe27",
+      "old_parents": [
+        "ea7c9f847a0dbf3033745a8d935f065a4160a5c0"
+      ],
+      "new_parents": [
+        "50aa4b181056b92e485168f76fc6f8a11707c45c"
+      ],
+      "metadata_sha256": "43cfa0d4f04e63956bb06d651f521809357b411065882854cda67ae6579ed19e",
+      "old_message_sha256": "d926eb16ab12e07dd766967df503f67010c58a956ac8c5871f38f84951b8045a",
+      "new_message_sha256": "d926eb16ab12e07dd766967df503f67010c58a956ac8c5871f38f84951b8045a",
+      "message": "refactor(repository/markdown): 全量转义标题下划线\n\n- 修复标题格式器对下划线的转义与幂等处理\n- 全量规范化 Markdown 标题并同步维护写作规范\n"
+    },
+    {
+      "old": "525b8a842aa94cf9d5e101499ba9cd243fd13c9d",
+      "new": "add476af00c9d45decb301447b3a3ccd1d9e3cb7",
+      "title": "fix(practice/ebook): 修复电子书导入与阅读渲染",
+      "kind": "preserved_details",
+      "tree": "18fa69a91045f2bf5ccc659e1d759160e809ad9b",
+      "old_parents": [
+        "e4efc0581811b1a4be85ad299f22c3e50054d76a"
+      ],
+      "new_parents": [
+        "d26a9690acee0ba1b4d68310432e97b64115bd3d"
+      ],
+      "metadata_sha256": "4210637cce6da5031108098caf36f64b3b2434782f7a63a5bc18cec0698196ce",
+      "old_message_sha256": "52c4efe46b069048ef4a3ef1961723ef32477371ccb0cf836f2400634c693194",
+      "new_message_sha256": "52c4efe46b069048ef4a3ef1961723ef32477371ccb0cf836f2400634c693194",
+      "message": "fix(practice/ebook): 修复电子书导入与阅读渲染\n\n- 重构目录上下固定操作区并压缩导入配置布局\n- 修复 Mermaid 全屏缩放、目录跳转、代码高亮和夜间主题\n- 统一 Markdown 代码围栏并完善跨平台升级环境\n"
+    },
+    {
+      "old": "50a3d1298c25d520304784b868d98c9610f81538",
+      "new": "24fb2a5a3d3be877ec87afa5758d8e1b28de0555",
+      "title": "feat(tools/typora): 增加语法高亮与跨平台增强部署",
+      "kind": "added_details",
+      "tree": "9b35f917ae7f7434dde2420cd44f59055043436e",
+      "old_parents": [
+        "525b8a842aa94cf9d5e101499ba9cd243fd13c9d"
+      ],
+      "new_parents": [
+        "add476af00c9d45decb301447b3a3ccd1d9e3cb7"
+      ],
+      "metadata_sha256": "65b4a41b15631f03d49571920d430311d32ead4782b268e49adcd07f691c07f4",
+      "old_message_sha256": "cbdcfe4f271f041526db1fd67cf1a6e6e852c955866a0ba4393a1ea0ee2218d2",
+      "new_message_sha256": "39503de84c2d18f2d7bf533efd8265061e34793763fa2bf1eb7ebc6cd8ae21ef",
+      "message": "feat(tools/typora): 增加语法高亮与跨平台增强部署\n\n- 引入固定VS Code C/C++语法资源及Typora增强构建，补充代码高亮和主题样式\n- 增加Windows与Bash配置、检查、备份恢复入口以及部署和语法测试脚本\n"
+    },
+    {
+      "old": "090db7f4496cfc664295b9df34dfcb941bca39ae",
+      "new": "f85b3beb3b1c166a16a317befe203bcdacd09697",
+      "title": "feat(tools/typora): 统一GitHub Light代码配色",
+      "kind": "added_details",
+      "tree": "083fd38f8eb1c6e385da1c7f1a4cb8e8683d4e9f",
+      "old_parents": [
+        "50a3d1298c25d520304784b868d98c9610f81538"
+      ],
+      "new_parents": [
+        "24fb2a5a3d3be877ec87afa5758d8e1b28de0555"
+      ],
+      "metadata_sha256": "bffa50c986a013980d90981c71b1506ca87aa8bbe9aa2c46925fde1a8f478b69",
+      "old_message_sha256": "b7f9a0d06c3566d1b0b5fbd55617919334e8c963883e01702978b4ab6b682cd9",
+      "new_message_sha256": "c6a48a60d1f7cb2aaf81a681303566b01fc58307633c68dd535250fe22281608",
+      "message": "feat(tools/typora): 统一GitHub Light代码配色\n\n- 将主题和增强代码块配色统一到GitHub Light风格\n- 同步构建检查、增强说明与Typora配置文档中的配色约定\n"
+    },
+    {
+      "old": "75a258d54b00813fec52ac7ad96cf7870259b64a",
+      "new": "37243a840ea17cd1c2d8e7dc3b9e34e2b6360645",
+      "title": "feat(typora/workspace): 支持同窗多文档分栏与阅读导航",
+      "kind": "preserved_details",
+      "tree": "69289e1b8c5a702b43c60df8c20b158e070c5f79",
+      "old_parents": [
+        "090db7f4496cfc664295b9df34dfcb941bca39ae"
+      ],
+      "new_parents": [
+        "f85b3beb3b1c166a16a317befe203bcdacd09697"
+      ],
+      "metadata_sha256": "ce11af507293954dd8d89c08d1d247b6e66cdc98fbceb0685e08226db55cdc4b",
+      "old_message_sha256": "249fdbba84a46b3be270fc26da6889adced0b8573b803b2948f4a2e25de9261c",
+      "new_message_sha256": "249fdbba84a46b3be270fc26da6889adced0b8573b803b2948f4a2e25de9261c",
+      "message": "feat(typora/workspace): 支持同窗多文档分栏与阅读导航\n\n- 安装固定版本的社区插件核心，提供标签页、左右和上下分栏及 Alt 方向键阅读历史\n- 修复代码展开收起首次点击和多行宏的语法颜色映射\n- 同步可移植安装、摘要校验、备份恢复、使用说明与回归测试\n- Windows Typora 1.14.9 实窗、Chromium 交互和 PowerShell 安装回滚验证通过\n"
+    },
+    {
+      "old": "94018e330aefe6f580c6c0a96459c17461f14e5f",
+      "new": "d21b261cef77f6030905fd55574cfee356e5a436",
+      "title": "fix(typora/install): 校验主题同步与插件核心版本一致性",
+      "kind": "preserved_details",
+      "tree": "15ff4e17fbea060c5f8acb95b7aae8f4b8ebf2f4",
+      "old_parents": [
+        "75a258d54b00813fec52ac7ad96cf7870259b64a"
+      ],
+      "new_parents": [
+        "37243a840ea17cd1c2d8e7dc3b9e34e2b6360645"
+      ],
+      "metadata_sha256": "cab6c34b75c399fcbdaa98084adf962facf1be597075fd13cddbcfcb4cc0d4fe",
+      "old_message_sha256": "92a631cca378844a31868d3eda1278529a707f17ffca11e89c9a5facdf295bf0",
+      "new_message_sha256": "92a631cca378844a31868d3eda1278529a707f17ffca11e89c9a5facdf295bf0",
+      "message": "fix(typora/install): 校验主题同步与插件核心版本一致性\n\n- 安装后及只读检查均比较主题摘要，回归测试拒绝旧主题\n- 核对源码、预构建与固定版本插件资产，并补齐 Bash 入口可执行权限\n"
+    },
+    {
+      "old": "4ce161b2b7d8cff12092b60f025b9d2611296986",
+      "new": "35add17d3b934da936e3b054352967e1f9da4e42",
+      "title": "docs(typora/navigation): 统一安装与工作区文档入口",
+      "kind": "added_details",
+      "tree": "73aea07508d0131581eff11aecac06acfcbe02f7",
+      "old_parents": [
+        "94018e330aefe6f580c6c0a96459c17461f14e5f"
+      ],
+      "new_parents": [
+        "d21b261cef77f6030905fd55574cfee356e5a436"
+      ],
+      "metadata_sha256": "72d0176c9100dd3e2affe4d6e44f39369283c6ca41a7742cd8b351aff73c0fae",
+      "old_message_sha256": "44c7d0fded7bef27b58ba93ae23dc163fa3af06d8b1a82a9351d1bd48d80f2f8",
+      "new_message_sha256": "2d4c702c70621de7768bd1bed776bbb7b8b540ee5c9e2505fb7fd8a9e29fde1e",
+      "message": "docs(typora/navigation): 统一安装与工作区文档入口\n\n- 建立仓库README作为Typora安装和阅读工作区入口\n- 整理增强说明与两份配置文档之间的导航链接\n"
+    },
+    {
+      "old": "c04048b22018df0d056381482ad0333271f30bc6",
+      "new": "d9f87b18b0c8f635c64d54bcaefa68d75c1628c8",
+      "title": "fix(typora/navigation): 保留来源阅读位置并同步目标标题和续读状态",
+      "kind": "added_details",
+      "tree": "576946eca16eacd17ed0c1e8c440bd3262235b3f",
+      "old_parents": [
+        "4ce161b2b7d8cff12092b60f025b9d2611296986"
+      ],
+      "new_parents": [
+        "35add17d3b934da936e3b054352967e1f9da4e42"
+      ],
+      "metadata_sha256": "7df2e5730bf691e761976e175daefbcb70496459dfd625f56fd8527185090f7d",
+      "old_message_sha256": "ef15d672f18f40882753bd0429691563081f3608484ca7190fc90e5f219e06d2",
+      "new_message_sha256": "a6c5120f6d9f08a1be52b024e6b7c10f53ca575f44e230938c23444c347b5c0c",
+      "message": "fix(typora/navigation): 保留来源阅读位置并同步目标标题和续读状态\n\n- 将来源阅读位置、目标标题和续读状态纳入共享阅读导航与工作区协调\n- 增加阅读位置及原生阅读夹具，同步安装检查和使用说明\n"
+    },
+    {
+      "old": "371c1a6f4eb0a9bc5da77aff3cf93e77eef390b3",
+      "new": "5b62f3e6f81c59287383ca1eff4ae3b50e379a01",
+      "title": "feat(typora/paths): 支持菜单和快捷键复制相对及绝对路径",
+      "kind": "added_details",
+      "tree": "da11b072cd5b46d3d5fdc35588e3d0795637c51e",
+      "old_parents": [
+        "c04048b22018df0d056381482ad0333271f30bc6"
+      ],
+      "new_parents": [
+        "d9f87b18b0c8f635c64d54bcaefa68d75c1628c8"
+      ],
+      "metadata_sha256": "2d36c3d75fcf23cbde9d177a30e14b05e456424460c231623e17e6896cb51429",
+      "old_message_sha256": "77b25f3fc02111ec4ce60ea65bb2c44dc2b96e1f8e3fba2e7d3363d11b05ab87",
+      "new_message_sha256": "d3183e5b061bf546c295fa02ec85ee173adc7606a76f57c41a7c97cd809b6fd5",
+      "message": "feat(typora/paths): 支持菜单和快捷键复制相对及绝对路径\n\n- 增加文件路径解析与复制动作，提供相对和绝对路径入口\n- 接入工作区启动与原生路径夹具，补充路径测试和用户说明\n"
+    },
+    {
+      "old": "36bcb734e82c9ad6ce97da39e04c22bfa21dd6e0",
+      "new": "430aa1e6c6083180d2ccae653226f6c88227ef99",
+      "title": "feat(typora/git): 添加提交关系图与文件差异查看工具",
+      "kind": "added_details",
+      "tree": "d155caa2f7dd08fd0d6b84ba1b9ab1616c47aa2e",
+      "old_parents": [
+        "371c1a6f4eb0a9bc5da77aff3cf93e77eef390b3"
+      ],
+      "new_parents": [
+        "5b62f3e6f81c59287383ca1eff4ae3b50e379a01"
+      ],
+      "metadata_sha256": "da540167969e1afdd0b95c736ec31df54486d461316a8eed6e5981cf6ed6c3f5",
+      "old_message_sha256": "a43b3e66db048c3200ea75db79857d22621e805cf6a6123856db96ceda930ecf",
+      "new_message_sha256": "0aef1538041050d38b565322161c18ac1180d60e9f5ee1b8a14839ed511e00bd",
+      "message": "feat(typora/git): 添加提交关系图与文件差异查看工具\n\n- 引入Git提交数据、运行适配和提交图视图，支持提交关系及文件差异阅读\n- 同步配置入口、部署校验和Git原生夹具，保留阅读工作区集成\n"
+    },
+    {
+      "old": "acace05d7ee120226742945e45c20a52351cb1da",
+      "new": "82c910a707a8191a468fd9781a42eba85c645713",
+      "title": "docs(typora/git): 同步提交图入口与安装验证说明",
+      "kind": "added_details",
+      "tree": "fa8995b6152380e5789ab5f4f9c5e32f1ebf9537",
+      "old_parents": [
+        "36bcb734e82c9ad6ce97da39e04c22bfa21dd6e0"
+      ],
+      "new_parents": [
+        "430aa1e6c6083180d2ccae653226f6c88227ef99"
+      ],
+      "metadata_sha256": "b344edff72d362fb2c6eee5d080d73a5efbd683ae83d7460d405aa55565954a0",
+      "old_message_sha256": "9859854bba818ae48cd28755d8ad2461171103f7ad0060a506de532e79445b22",
+      "new_message_sha256": "b70e16c810fdf3da71d3e36ea1572d78b1db219aa461a74318acf95bbf187dd2",
+      "message": "docs(typora/git): 同步提交图入口与安装验证说明\n\n- 在仓库README和增强说明中补充提交图入口及安装验证方式\n- 同步Typora配置修改文档，使Git功能与安装指引可相互定位\n"
+    },
+    {
+      "old": "2829e78a4b2833f3556180e7b6464539506313ed",
+      "new": "dde3044bb0b231c386ad46ae842e3934066fb0f8",
+      "title": "feat(typora/git): 补齐提交图操作、版本比较和评审功能",
+      "kind": "preserved_details",
+      "tree": "a16095e097d658503183cf6503e9517492440b6b",
+      "old_parents": [
+        "acace05d7ee120226742945e45c20a52351cb1da"
+      ],
+      "new_parents": [
+        "82c910a707a8191a468fd9781a42eba85c645713"
+      ],
+      "metadata_sha256": "32f63c6e9bad36341e9103a5fd2ed33b857238046b17a1af8fd391805ee80410",
+      "old_message_sha256": "e522d4e52e8efe76df88160b55334b2809c89259aa7e4575e87f291d81bff660",
+      "new_message_sha256": "e522d4e52e8efe76df88160b55334b2809c89259aa7e4575e87f291d81bff660",
+      "message": "feat(typora/git): 补齐提交图操作、版本比较和评审功能\n\n- 接入分支、标签、stash、远端同步、交互式变基及冲突恢复，执行前展示具体操作\n- 同步功能对照、便携安装校验、预构建与许可，保留阅读位置及用户设置\n- 通过真实 Git、临时签名、Typora 实窗、鼠标键盘和安装回滚验证\n"
+    },
+    {
+      "old": "ab9307779a6bb79d583abdb8eadac04f62770c98",
+      "new": "471ea97fd15587bee5aabad4f30fc395294ef781",
+      "title": "feat(typora/workspace): 增加仓库集成终端并完善提交图菜单与分界线",
+      "kind": "added_details",
+      "tree": "7745043ead53374a80babe9779d4dc0dcd40ab32",
+      "old_parents": [
+        "2829e78a4b2833f3556180e7b6464539506313ed"
+      ],
+      "new_parents": [
+        "dde3044bb0b231c386ad46ae842e3934066fb0f8"
+      ],
+      "metadata_sha256": "58a6d6b8d55f11f2db981e1905468e8ef55e392205290c5a6408d7628df8690f",
+      "old_message_sha256": "2843a86908b7afd7310da7a3bbb4223331ce7ef47bc5a4c240aafe96fe2f958e",
+      "new_message_sha256": "9bbb453da7ee4c41effa6ca922632a5cf1511cd01757514bbecc0d1ac0f144ff",
+      "message": "feat(typora/workspace): 增加仓库集成终端并完善提交图菜单与分界线\n\n- 引入仓库终端和随包PTY运行资源，补充终端构建、安装与原生验证入口\n- 完善提交图菜单和区域分界，更新功能说明与部署清单\n"
+    },
+    {
+      "old": "77823d3c5eb9fe4d69ab5f79f8aa8182f9061dc5",
+      "new": "ddb34b3ffb51289a85d7a34972323eb97ed51565",
+      "title": "feat(typora/git): 复用主侧栏并提供中文操作与完整双栏差异",
+      "kind": "preserved_details",
+      "tree": "3d69204a1387b36addc779122fdbac8a0001fee8",
+      "old_parents": [
+        "ab9307779a6bb79d583abdb8eadac04f62770c98"
+      ],
+      "new_parents": [
+        "471ea97fd15587bee5aabad4f30fc395294ef781"
+      ],
+      "metadata_sha256": "f1fa5ba5c566a4ed2bc25ad19948e50a47f2d65470c9cecee6e83780a787e03a",
+      "old_message_sha256": "3b8dc77e492f08100f63a84f1533c9d2dda233c5e01baf13e0917231a88395e5",
+      "new_message_sha256": "3b8dc77e492f08100f63a84f1533c9d2dda233c5e01baf13e0917231a88395e5",
+      "message": "feat(typora/git): 复用主侧栏并提供中文操作与完整双栏差异\n\n- Git 图标移至文件和大纲下方，源代码管理使用原有侧栏，历史与差异复用编辑标签\n- 增加中文分组菜单、文件时间线、单击暂存与 Monaco 源码对齐和行内差异\n- 修复新窗口续读被宿主滚动重置覆盖，以及关闭加载中提交图后侧栏无法刷新\n- 同步离线安装包与校验入口，通过真实 Git、Typora、鼠标键盘及安装恢复验证\n"
+    },
+    {
+      "old": "a5e32506f52345f9ab8a54f3b08aac85027c17f4",
+      "new": "447b58ba454b7e9f8de8a1ab70fd1e333499e131",
+      "title": "docs(typora/git): 同步中文主侧栏与双栏差异安装说明",
+      "kind": "added_details",
+      "tree": "3bf41e750557d0bbeb9ccf5aaa2a4ea64f589982",
+      "old_parents": [
+        "77823d3c5eb9fe4d69ab5f79f8aa8182f9061dc5"
+      ],
+      "new_parents": [
+        "ddb34b3ffb51289a85d7a34972323eb97ed51565"
+      ],
+      "metadata_sha256": "618475171ed4aaf1adfcd0b24cbc4e5054cf6700840438d637b97c7a93ca95a0",
+      "old_message_sha256": "8d1a114311861d66cc4afcedea733b57c2a9671c6bdc9f077fbbfba114e6ec82",
+      "new_message_sha256": "0977a2217276232ac09a15fa2ecc122f03b937d592700e7ce3b2361190e9b3e9",
+      "message": "docs(typora/git): 同步中文主侧栏与双栏差异安装说明\n\n- 将中文源代码管理主侧栏及双栏差异的使用方式写入功能说明\n- 同步README、增强模块和配置文档的安装及导航入口\n"
+    },
+    {
+      "old": "d85cd6915b405c61f5458c3e63d82f619ecdac41",
+      "new": "be253062d10d00c78675d78caf7253cfe89e09aa",
+      "title": "feat(typora/git): 完善源代码管理侧栏、提交图与同步操作",
+      "kind": "preserved_details",
+      "tree": "bc544f35470490604c458006ece7a7c2cebfacd9",
+      "old_parents": [
+        "a5e32506f52345f9ab8a54f3b08aac85027c17f4"
+      ],
+      "new_parents": [
+        "447b58ba454b7e9f8de8a1ab70fd1e333499e131"
+      ],
+      "metadata_sha256": "13a976dd48e9c6c27fc5e6d7e41ef30d38b60f764b8c8cd9611d8bee445d0fc2",
+      "old_message_sha256": "1aa83585724b79cef709790f56425fc1a49e2acf9ad3139eaf21cf068efa4990",
+      "new_message_sha256": "1aa83585724b79cef709790f56425fc1a49e2acf9ad3139eaf21cf068efa4990",
+      "message": "feat(typora/git): 完善源代码管理侧栏、提交图与同步操作\n\n- 补齐中文视图菜单、历史文件展开与树形展示，固定状态和操作列并恢复提交快捷键\n- 统一活动栏显隐、分支状态栏与确认同步，精确放弃更改并回收未跟踪文件\n- 恢复双栏细滚动条并加入差异与阅读缩略图，保留原文档位置\n- 通过真实 Git、鼠标键盘和 Typora 实窗回归，同步构建产物与功能说明\n"
+    },
+    {
+      "old": "dcf9a9be32c8c8bad599ca4e6bc6a1837952c379",
+      "new": "16394c4e42206383f84822c712dac3e5bc6fe493",
+      "title": "build(typora/install): 同步提交图与阅读缩略图安装检查和使用入口",
+      "kind": "added_details",
+      "tree": "615d0f5521259000f943ac5fac3fd2402a86848e",
+      "old_parents": [
+        "d85cd6915b405c61f5458c3e63d82f619ecdac41"
+      ],
+      "new_parents": [
+        "be253062d10d00c78675d78caf7253cfe89e09aa"
+      ],
+      "metadata_sha256": "27cda63f8f3d782a123cd2cb052a1e138000acecb4bd04d747cba7ffad630572",
+      "old_message_sha256": "e97af5cf169b6b95bf8051cdd1a8b44d5e16670f4d08495284fb43b9e0123b0a",
+      "new_message_sha256": "0863da6d85919012c16e9106b31e5caef56eea17a70ed15597d6110f039e65bb",
+      "message": "build(typora/install): 同步提交图与阅读缩略图安装检查和使用入口\n\n- 在Windows和Bash只读检查入口同步提交图与阅读缩略图的安装要求\n- 更新安装脚本及用户文档，保持使用入口与部署资产一致\n"
+    },
+    {
+      "old": "e8d55e04ca32ff8f2fba17056dbbe1c7c454e5f7",
+      "new": "10e81f3af1bfe8e0b22a43313e1a36e0dce3060a",
+      "title": "feat(typora/workspace): 完善全文件阅读、搜索与标准界面交互",
+      "kind": "added_details",
+      "tree": "feafbfe75bbdae73ce9e5be5b913f959732bd364",
+      "old_parents": [
+        "dcf9a9be32c8c8bad599ca4e6bc6a1837952c379"
+      ],
+      "new_parents": [
+        "16394c4e42206383f84822c712dac3e5bc6fe493"
+      ],
+      "metadata_sha256": "55d4509da3b05c56ca542820a632fccfe7f336090521a503baf1d252e0f1c034",
+      "old_message_sha256": "bfa72c04a858297d7210f78273f2ad7f172ea7fb783c8242e26e7b99a09a39e9",
+      "new_message_sha256": "b30f42babef9356ca44e0b272d43951f711db8f5da847679406c2c7f3469008b",
+      "message": "feat(typora/workspace): 完善全文件阅读、搜索与标准界面交互\n\n- 增加全文件类型识别、资源管理器及工作区搜索服务，接入后台搜索Worker\n- 统一活动栏、编辑器与终端主题交互，补充工作区和差异视图测试及安装资源\n"
+    },
+    {
+      "old": "59412a23e961a56ece7224a7cfb002dd1ce0bfcb",
+      "new": "e6159022b9044672a67614c13a4d7b6c1a3ba9a2",
+      "title": "feat(typora/workspace): 统一搜索预览并完善编辑、重命名与窗口布局",
+      "kind": "preserved_details",
+      "tree": "1826da24e53f7ce6ebcb9fbb0a6997e655495d47",
+      "old_parents": [
+        "e8d55e04ca32ff8f2fba17056dbbe1c7c454e5f7"
+      ],
+      "new_parents": [
+        "10e81f3af1bfe8e0b22a43313e1a36e0dce3060a"
+      ],
+      "metadata_sha256": "e7415240906157b3b4f268c0fe0c501f58f931ad5803f3fae7d2320c574b5ead",
+      "old_message_sha256": "e144059d265c48a745255361dd950ed70b3a26c4ad5c4285632e6a45e6ad35e1",
+      "new_message_sha256": "e144059d265c48a745255361dd950ed70b3a26c4ad5c4285632e6a45e6ad35e1",
+      "message": "feat(typora/workspace): 统一搜索预览并完善编辑、重命名与窗口布局\n\n- 合并手动搜索与选中文字跳转，提供下方渲染预览、精确命中定位和直接百分比缩放。\n- 支持源码编辑保存、独立格式、草稿保护及文件和目录重命名，同步标签、历史与搜索。\n- 统一单行顶栏与全局编辑状态，修复工具栏重叠、侧栏缩放、提交图排版及差异缩略图。\n- 构建、类型、完整检查及安装一致性通过，Windows Typora 工作区实窗75项、Git66项、重命名和Markdown定位各16项通过。\n"
+    },
+    {
+      "old": "3904ebfc878b79f29e3e3b726fd66243af729ec4",
+      "new": "a469fdd7d9d67d6c64c036d29fc030716e9df973",
+      "title": "fix(typora/workspace): 重构工作区并统一 VS Code 交互",
+      "kind": "added_details",
+      "tree": "b393d931e8474141f75dae854850b553387ed3c8",
+      "old_parents": [
+        "59412a23e961a56ece7224a7cfb002dd1ce0bfcb"
+      ],
+      "new_parents": [
+        "e6159022b9044672a67614c13a4d7b6c1a3ba9a2"
+      ],
+      "metadata_sha256": "d81e90139bd349993c3a64af769d52c48f35129bc50dbbe4129a9c33e70799a0",
+      "old_message_sha256": "b1b01af773df03dac4890915325fac2f0df30ae532ef829147f1cd7ffc274d66",
+      "new_message_sha256": "e94f04dc33b693813d42e6ac24d089fe02e9469cbd96290f045291b3a4972450",
+      "message": "fix(typora/workspace): 重构工作区并统一 VS Code 交互\n\n- 拆分顶栏菜单与入口，补充快速打开、多标签及共享工作区控件\n- 调整搜索预览、文件阅读与Git视图的协作，更新交互和标签回归脚本\n"
+    },
+    {
+      "old": "71fcf1d459e0bbe53caa98b6748a12f0fda46dd2",
+      "new": "94c158c616ab43dc821233bfd5d44a935fcce451",
+      "title": "fix(typora/workspace): 对齐 VS Code 工作台并完善双语提交图",
+      "kind": "added_details",
+      "tree": "dfb445281b60a467b3181022879e976693e150ce",
+      "old_parents": [
+        "3904ebfc878b79f29e3e3b726fd66243af729ec4"
+      ],
+      "new_parents": [
+        "a469fdd7d9d67d6c64c036d29fc030716e9df973"
+      ],
+      "metadata_sha256": "7c963edd5301abdd801f3efeb419cea10347a8d8358705911c16543d060e1e76",
+      "old_message_sha256": "81d20740cd73e6b9af00aacef29dda0246aae28e85826d7690c4b30ffd0d7852",
+      "new_message_sha256": "5ce1f4d30e9bca849eb55bcb30d01ff0137d44811412ffee28ef4c64faaa36cb",
+      "message": "fix(typora/workspace): 对齐 VS Code 工作台并完善双语提交图\n\n- 增加Git Graph双语文本与Monaco本地化，统一相关菜单和界面状态\n- 补充文件URI、快捷键、主题及SCM几何回归，并集中登记隐藏UI测试入口\n"
+    },
+    {
+      "old": "df9737e0912290c74ed4d2c621bbba670b347e34",
+      "new": "e1273cbd7edb2fd1469b0633ddc1d528021ded90",
+      "title": "docs(repository): 建立独立阅读工作台入口与开发约定",
+      "kind": "added_details",
+      "tree": "e686d24f89060298b0ec3121d75080b08a9f64d3",
+      "old_parents": [
+        "71fcf1d459e0bbe53caa98b6748a12f0fda46dd2"
+      ],
+      "new_parents": [
+        "94c158c616ab43dc821233bfd5d44a935fcce451"
+      ],
+      "metadata_sha256": "ad47e12806d715cea71803c36f2d5b10b8bfc1d7a560f4911793b1ecd6ed7e23",
+      "old_message_sha256": "fc8e8f23fa4f6c358fc6d16641165c75b659dc9c5ec4072bbdc2d3f361a8f6c0",
+      "new_message_sha256": "4c515d2598a271b16cae77820daeac8b8ecc400a39237c9ffc936c9526c95ce7",
+      "message": "docs(repository): 建立独立阅读工作台入口与开发约定\n\n- 建立独立工程的AGENTS、开发交接和README，明确源码与维护边界\n- 增加Git属性和忽略规则，同步环境入口及原配置文档的独立路径\n"
+    },
+    {
+      "old": "0221c58380d83e4d34b6e68e3eaab8019d9d1f62",
+      "new": "278bb0c322fe9e77d69c790dd1bb693be68ae947",
+      "title": "feat(workspace): 对齐编辑与 Git 工作台并接入官方插件生命周期",
+      "kind": "preserved_details",
+      "tree": "7eae5b7d20d4e20567b31ed65f1f5c47a0e81b2e",
+      "old_parents": [
+        "df9737e0912290c74ed4d2c621bbba670b347e34"
+      ],
+      "new_parents": [
+        "e1273cbd7edb2fd1469b0633ddc1d528021ded90"
+      ],
+      "metadata_sha256": "78156ec41725cae0d107a83c6e0ecee7b0adf46e535b5baee00df34fd942d9d9",
+      "old_message_sha256": "a1a057003f7b4fbfbec663ebb9ffc9e30748fd0c28280325f5e0333a2cf18211",
+      "new_message_sha256": "a1a057003f7b4fbfbec663ebb9ffc9e30748fd0c28280325f5e0333a2cf18211",
+      "message": "feat(workspace): 对齐编辑与 Git 工作台并接入官方插件生命周期\n\n- 统一工作台菜单、侧栏、预览标签、大纲与底部终端，保留草稿和文件操作保护\n- 对照 Git Graph 默认布局和操作，补查找、标签推送、PR 集成及宿主语言识别\n- 官方插件加载卸载与安装恢复收敛到单一入口，固定分发摘要与跨换行检出\n- 完整逻辑、28项隐藏UI、真实阅读20项、Git 68项及隔离安装回归通过\n"
+    },
+    {
+      "old": "440ec3fa5762397002c896007c144ef6bf828f0c",
+      "new": "6a7b349b8baeb4980ca098b4d22c49ba162a8445",
+      "title": "docs(workspace): 记录 VS Code 对照矩阵与回归边界",
+      "kind": "added_details",
+      "tree": "4a0a239b16b311ed082b90214a28a77e87c535bb",
+      "old_parents": [
+        "0221c58380d83e4d34b6e68e3eaab8019d9d1f62"
+      ],
+      "new_parents": [
+        "278bb0c322fe9e77d69c790dd1bb693be68ae947"
+      ],
+      "metadata_sha256": "6b5a4747b257cdd6b76d1b29426fa23aed9ac476798fd47811311f24c5cef4c6",
+      "old_message_sha256": "0c65d73e6edeca63a276a114acd943403667ad59119f1856b5b768eed79886d8",
+      "new_message_sha256": "0a328a902a93481415755465a6aa56038351486148f631e04b21f69bc24a4d95",
+      "message": "docs(workspace): 记录 VS Code 对照矩阵与回归边界\n\n- 新增工作台功能对照矩阵，记录现有能力与回归边界\n- 同步开发交接、增强说明和Git功能入口，区分已实现范围与待验收项目\n"
+    },
+    {
+      "old": "a60ba584614874943334965b306a8006ef1feb4e",
+      "new": "d70a65ba0ce5d1f8320e5a2c9652632e19bbdbf6",
+      "title": "fix(workspace): 固定定稿布局并修复文档跳转与 Git 审阅",
+      "kind": "preserved_details",
+      "tree": "6c07c266b2c13db9c736d1aa5e732b869ee03647",
+      "old_parents": [
+        "440ec3fa5762397002c896007c144ef6bf828f0c"
+      ],
+      "new_parents": [
+        "6a7b349b8baeb4980ca098b4d22c49ba162a8445"
+      ],
+      "metadata_sha256": "810b4729b977de16f031a02cd9cb8de1afbdcf41f47d8cb371ae147abc9e6d22",
+      "old_message_sha256": "21ad0aa632e4a8dfc15ba1b5ab4659196cbe5e99365702efdb8a051f157eff9b",
+      "new_message_sha256": "21ad0aa632e4a8dfc15ba1b5ab4659196cbe5e99365702efdb8a051f157eff9b",
+      "message": "fix(workspace): 固定定稿布局并修复文档跳转与 Git 审阅\n\n- 收敛静态启动和原生菜单，恢复设置、搜索、大纲入口及文件标签比例\n- 修复相对链接、YAML 打开、缺失目标草稿保护和 1 秒链接悬停提示\n- 修复 SCM 层级、文件操作、Git 分支与 stash 连线及节点详情\n- 构建和检查通过，37 个 UI 目标及 18 项原生整合验证通过\n- 安装与回滚事务已验证；原生菜单快捷键的物理输入冲突仍未完成验证\n"
+    },
+    {
+      "old": "629fc6ae22dadfcadf7ad782548d2795ff7638ce",
+      "new": "598817a76b270bc03bb0e6156dbae664d01b99f7",
+      "title": "fix(workspace): 恢复顶栏导航并统一图标与代码大纲",
+      "kind": "preserved_details",
+      "tree": "d4c5878460c756e6ba4e4c19d09abeba7df548b5",
+      "old_parents": [
+        "a60ba584614874943334965b306a8006ef1feb4e"
+      ],
+      "new_parents": [
+        "d70a65ba0ce5d1f8320e5a2c9652632e19bbdbf6"
+      ],
+      "metadata_sha256": "b2ec2cd661e8607e847a17feefe7ad3790c119521cc77a9668fa2ede48bba723",
+      "old_message_sha256": "ca8654bc589f9de5cd8c67584bbc9887fa1d119d75feeb9305be3033be9f84df",
+      "new_message_sha256": "ca8654bc589f9de5cd8c67584bbc9887fa1d119d75feeb9305be3033be9f84df",
+      "message": "fix(workspace): 恢复顶栏导航并统一图标与代码大纲\n\n- 将七类菜单、阅读历史和文件搜索放入单行顶栏，长菜单在主栏下滚动；保留宿主标题节点，避免中断原生文档加载\n- SCM、历史、Graph 文件和差异标签共用 Explorer 文件类型图标，清理侧栏额外顶距\n- 内置七种离线语法解析，代码符号可点击定位；保留 Markdown 大纲与草稿、异步切换保护\n- 构建与检查通过，39项UI基线及后续专项回归通过，原生45项和Windows安装核验通过\n"
+    },
+    {
+      "old": "8ffad6721a0a8ad1e8bef280315b4170ff0c0014",
+      "new": "13519290969d18e6907afa55bcc5d230f4877947",
+      "title": "feat(workspace): 接入 clangd 大纲并修复布局与链接提示",
+      "kind": "preserved_details",
+      "tree": "5685bb406cad1887125b4680ba79d55588bcda7d",
+      "old_parents": [
+        "629fc6ae22dadfcadf7ad782548d2795ff7638ce"
+      ],
+      "new_parents": [
+        "598817a76b270bc03bb0e6156dbae664d01b99f7"
+      ],
+      "metadata_sha256": "6151984154edd0c848843706c4da5c113ffcbb1112c0007053be91652f6a0ba8",
+      "old_message_sha256": "7ec9fb2d1f57df77860c6228b91f671d65b3844e93e78695fdf944211399f525",
+      "new_message_sha256": "7ec9fb2d1f57df77860c6228b91f671d65b3844e93e78695fdf944211399f525",
+      "message": "feat(workspace): 接入 clangd 大纲并修复布局与链接提示\n\n- C/C++ 使用本机 clangd 和项目编译配置，支持分类配色、精确定位及解析环境设置\n- 修复活动栏遮挡、图标比例和模块分界，链接提示支持项目相对位置与复制\n- Markdown 滚动仅在跨标题时更新选中项，升级事务清理旧 C/C++ 解析资源\n- 基础检查、40 项 UI 基线、最终相关回归与 63 项隔离原生验证通过\n"
+    },
+    {
+      "old": "94b47b2ad42f069f78b1a7e29873793f66381775",
+      "new": "c39e6533b85e6b2188697e4ff080d029da04aafa",
+      "title": "fix(workspace): 修正活动栏位置并补齐文件与导航交互",
+      "kind": "preserved_details",
+      "tree": "ad55637fc18c71b0f36c2d1e72d6d6e55557feb0",
+      "old_parents": [
+        "8ffad6721a0a8ad1e8bef280315b4170ff0c0014"
+      ],
+      "new_parents": [
+        "13519290969d18e6907afa55bcc5d230f4877947"
+      ],
+      "metadata_sha256": "621bc4e3694f4bc933e66b5fcd1a2d66056834d382915be8c9a0bc69f8c9510a",
+      "old_message_sha256": "9b646b9b8d5571849b0752d56fa4d08a184e37ae18b5a070bd03125526e72804",
+      "new_message_sha256": "9b646b9b8d5571849b0752d56fa4d08a184e37ae18b5a070bd03125526e72804",
+      "message": "fix(workspace): 修正活动栏位置并补齐文件与导航交互\n\n- 修复资源管理器图标被顶栏遮挡与侧栏分界线错位\n- 统一文件夹上下文与文件图标，新文件默认直接打开，保护旧仓库差异页操作\n- 修正当前编辑组快捷键、中文组字和旧搜索结果，补齐反馈复查清单\n- 通过完整 40 项界面、4 项补充目标、clangd 与最终原生 80 项检查\n"
+    },
+    {
+      "old": "36aef2d389cdcc87d6b8e73f2a6c859536563ea1",
+      "new": "7b24ac475bcf48982bf9fe99c5ae0619e0c8d088",
+      "title": "fix(outline): 消除相邻标题滚动时的高亮争抢与抖动",
+      "kind": "added_details",
+      "tree": "c3b29a7f6d89cb89c206b678d67601f67f93f8af",
+      "old_parents": [
+        "94b47b2ad42f069f78b1a7e29873793f66381775"
+      ],
+      "new_parents": [
+        "c39e6533b85e6b2188697e4ff080d029da04aafa"
+      ],
+      "metadata_sha256": "a649c5c4670a02e32aae1cf56e87e9e3e230245e8e97b278ff1327fd3fa376ff",
+      "old_message_sha256": "0415877e935faca9de35ec30574d2bf0bac946959e95816a1a01f533a67201de",
+      "new_message_sha256": "447bfdfebc21f83f65746f35138b42ab4b510195438ddb602e56c42d0c051037",
+      "message": "fix(outline): 消除相邻标题滚动时的高亮争抢与抖动\n\n- 修正相邻标题滚动时的大纲选中判定，减少重复高亮与位置争抢\n- 更新大纲回归、设计及反馈记录，并同步工作台构建摘要\n"
+    },
+    {
+      "old": "56222589f2997a6ee2ea0a6ae87d5015f43af63b",
+      "new": "dd4c436f08325d7c5726b87424ec9f1dc088aad7",
+      "title": "fix(reading): 修正可见目录定位并恢复边距与可读链接",
+      "kind": "added_details",
+      "tree": "3bb3e26be33d6a4b09fc88c1eb832e9a13c54940",
+      "old_parents": [
+        "36aef2d389cdcc87d6b8e73f2a6c859536563ea1"
+      ],
+      "new_parents": [
+        "7b24ac475bcf48982bf9fe99c5ae0619e0c8d088"
+      ],
+      "metadata_sha256": "d186d9aaec0cc6995aceed968d8eff58079a7cf91a797eb4baf3f0144ff9a1c6",
+      "old_message_sha256": "73850de49ea66f37ac62ee3fbc1625d2ad10845bcb64d57c04aca90de88924ee",
+      "new_message_sha256": "f926e8bc2301f81f790397457bab836ed62ff93b2edbb57999fa5749ffb15ce1",
+      "message": "fix(reading): 修正可见目录定位并恢复边距与可读链接\n\n- 引入共享阅读视口并联动大纲、缩略图和底栏，修正可见章节定位\n- 恢复文档边距控制及可读链接提示，增加边距与相关阅读回归\n"
+    },
+    {
+      "old": "68f1af2a6a2f005a143359d3f1dcb5c5d2277948",
+      "new": "49126c59cf8e65fb11f025117545eb54f24789d7",
+      "title": "feat(workspace): 优化搜索响应并统一拖动与跨窗文档移交",
+      "kind": "preserved_details",
+      "tree": "0698157d003e8b3a66c2a4c83fdd6717c8ff6359",
+      "old_parents": [
+        "56222589f2997a6ee2ea0a6ae87d5015f43af63b"
+      ],
+      "new_parents": [
+        "dd4c436f08325d7c5726b87424ec9f1dc088aad7"
+      ],
+      "metadata_sha256": "6bb7373ca9c16409bb5fcf5ee0a56d3f4a02bdd4359a86754b7264ff8dab316e",
+      "old_message_sha256": "4cd54c28967435a57de3168a130f53eed49335d553a8b4d971964bc679f4629a",
+      "new_message_sha256": "4cd54c28967435a57de3168a130f53eed49335d553a8b4d971964bc679f4629a",
+      "message": "feat(workspace): 优化搜索响应并统一拖动与跨窗文档移交\n\n- 文件名分片筛选、正文Worker匹配与有界预读，渐进显示并取消旧结果\n- 标签和侧栏工具共用左键拖动，跨窗保留草稿与保存基线并校验接收确认\n- 同步工作台文档、预构建和来源摘要；原生未保存Markdown安全保留来源副本\n- 验证build/check、完整45项界面及后续8项目标、20项原生多窗口检查与安装核验\n"
+    },
+    {
+      "old": "1bfc8da38939ab455b576e5119b2ae7433c25be5",
+      "new": "559c0046d14f439dc4b4c51ac5d8d8a2ef83bef6",
+      "title": "fix(workspace): 修复跨窗标签移交与历史差异阅读",
+      "kind": "preserved_details",
+      "tree": "90cf1df7baa3b9a317901d9bd223d94c613c8b66",
+      "old_parents": [
+        "68f1af2a6a2f005a143359d3f1dcb5c5d2277948"
+      ],
+      "new_parents": [
+        "49126c59cf8e65fb11f025117545eb54f24789d7"
+      ],
+      "metadata_sha256": "71f992eba9daf3cc63663b2887da51e4929c4f36bf4873182bca492fdbcb8c1d",
+      "old_message_sha256": "6f89e52adaa245bc96942d1b310c060c2c090c98c899365f1efd17941a342972",
+      "new_message_sha256": "6f89e52adaa245bc96942d1b310c060c2c090c98c899365f1efd17941a342972",
+      "message": "fix(workspace): 修复跨窗标签移交与历史差异阅读\n\n- 标签采用原生拖放，支持指定位置合并和窗口外新建，修复协议弹窗、确认竞态并保护未保存正文\n- 补齐提交改动和历史版本阅读入口，Markdown链接与图片跟随所选提交，文件行动作独立显示\n- 差异操作与标签同行，按编辑组900px宽度自动切换行内和左右布局，修复分组标签的版本与图标同步\n- 构建与检查通过，完整UI 46/46及后续3个目标通过；原生跨窗11项和最终差异页7项通过，安装校验OK\n"
+    },
+    {
+      "old": "7b5b552ecc5a12a7b0764570f1e41e23bad94aa0",
+      "new": "346bf2c1eebaadabfd90e7a5d88735537fd7626d",
+      "title": "feat(workspace): 统一文件命令并重构终端面板与配置",
+      "kind": "preserved_details",
+      "tree": "10f84fe325f19cff317d142bca6143038b98d080",
+      "old_parents": [
+        "1bfc8da38939ab455b576e5119b2ae7433c25be5"
+      ],
+      "new_parents": [
+        "559c0046d14f439dc4b4c51ac5d8d8a2ef83bef6"
+      ],
+      "metadata_sha256": "9f3799a9aa1d1e74a311c0209c9577896dee153bdd45610f263529416c765886",
+      "old_message_sha256": "662022a80d2634d08c57eb9f0f0866890c5524c6135c407a010b3f8986213943",
+      "new_message_sha256": "662022a80d2634d08c57eb9f0f0866890c5524c6135c407a010b3f8986213943",
+      "message": "feat(workspace): 统一文件命令并重构终端面板与配置\n\n- 文件菜单和快捷键共用原生选择、保存及关闭服务，补齐资源管理器操作和紧凑缩进。\n- 终端拆分配置、PTY、显示和面板职责，支持会话操作并统一临时界面与进程清理。\n- 同步全局设计规则、需求登记流程及实际能力边界；构建、完整检查、相关界面回归和安装校验通过。\n"
+    },
+    {
+      "old": "09df883c724b8450fdcef4a38439c2a82676a500",
+      "new": "7c11f5f366391753c31fd949cd51704a411c6834",
+      "title": "docs(requirements): 建立逐项需求设计文档与同步规则",
+      "kind": "added_details",
+      "tree": "0b4fbbccf31f38e05691f9ed422b1047a79483f4",
+      "old_parents": [
+        "7b5b552ecc5a12a7b0764570f1e41e23bad94aa0"
+      ],
+      "new_parents": [
+        "346bf2c1eebaadabfd90e7a5d88735537fd7626d"
+      ],
+      "metadata_sha256": "889ffccf14c527b6ad930a584dedf1deb69b9e5c81b591e4e673a24931318d6f",
+      "old_message_sha256": "2c016496251266eab56fb3dac93f9848d368a537fc943186e9d7bc58a3c86271",
+      "new_message_sha256": "96b4d4eb7aa67cc7e34f405c73918cb3a56482c3051a98b78c917076f6a8901b",
+      "message": "docs(requirements): 建立逐项需求设计文档与同步规则\n\n- 建立稳定需求编号与权威设计索引，将每条反馈关联到具体设计入口\n- 更新协作规则、架构与交接，要求设计先行并持续同步实现和验证状态\n"
+    },
+    {
+      "old": "417027e26ad21b5ceaaf559b7e416b3586b050f2",
+      "new": "c96a7eb1df3c797768562932c5b80577727a7585",
+      "title": "fix(workspace): 修复终端识别与底栏目录及字数布局",
+      "kind": "added_details",
+      "tree": "4f3680f26f1c9ac6c52aa3aa5039837235a8a8aa",
+      "old_parents": [
+        "09df883c724b8450fdcef4a38439c2a82676a500"
+      ],
+      "new_parents": [
+        "7c11f5f366391753c31fd949cd51704a411c6834"
+      ],
+      "metadata_sha256": "5c9fd5969c6895c3c2791bdac0feb0dcda58cc02ee5c6184f41d59897915acc5",
+      "old_message_sha256": "14e15585e87ba6971af2e4b296d2efc98f66ba9d98a3c02ab3e6feb9e31475a0",
+      "new_message_sha256": "6b294c0f6441c76301a0eb7fe2a7ef1d9c78513ea914e97ada315c35a7db9d1b",
+      "message": "fix(workspace): 修复终端识别与底栏目录及字数布局\n\n- 通过独立异步发现服务统一终端配置、默认选择与启动，处理重检和失效项\n- 修复底栏目录浮层坐标及字数行盒，补充终端和底栏回归与设计说明\n"
+    },
+    {
+      "old": "afaf11ef148272f7920facd616dd60539555c0ad",
+      "new": "c4a7e84e1d0d1fc703648b82c5d05f8110f89d0b",
+      "title": "fix(workspace): 修复 Ctrl+= 与 Ctrl+- 窗口缩放快捷键",
+      "kind": "added_details",
+      "tree": "ac3932683bfa6ee2c60e879073a4296ae81e3b9b",
+      "old_parents": [
+        "417027e26ad21b5ceaaf559b7e416b3586b050f2"
+      ],
+      "new_parents": [
+        "c96a7eb1df3c797768562932c5b80577727a7585"
+      ],
+      "metadata_sha256": "077b37992a44bfc404142550d27c03bad540c6d9cc7274a89449ec71e92987e4",
+      "old_message_sha256": "0b2c8d2574991fda0cb1481277075f14fb6a82884feda5ae14e43005bc3128c2",
+      "new_message_sha256": "3b5814d6f81a8ce4c66576562d3523c1c02712e888e75d7ec28903d5b5593ca9",
+      "message": "fix(workspace): 修复 Ctrl+= 与 Ctrl+- 窗口缩放快捷键\n\n- 由共享缩放命令适配宿主窗口比例，统一Ctrl加减及小键盘变体\n- 调整快捷键优先级，保护终端输入与正文操作，新增缩放专项回归\n"
+    },
+    {
+      "old": "d6b1494aae6f7b1387842e7d768c72692b10bd67",
+      "new": "1063495081243406745bb2331f75afb98176700f",
+      "title": "fix(workspace): 统一底栏布局与菜单状态",
+      "kind": "added_details",
+      "tree": "4c98e66967a0680155295479b88b82e3498db30b",
+      "old_parents": [
+        "afaf11ef148272f7920facd616dd60539555c0ad"
+      ],
+      "new_parents": [
+        "c4a7e84e1d0d1fc703648b82c5d05f8110f89d0b"
+      ],
+      "metadata_sha256": "b60e8697e1f8d0ec1d81ffd836900a5f446cc23730eb9c276ba0be11b6e4e238",
+      "old_message_sha256": "efedad00af51b5c3b7e6e880d5ade8cba04139ff9dbb040b4426c56d4ccee072",
+      "new_message_sha256": "b8330bdfb8b50a9dccb0b1a1684dad89ed5bc37e901cb63cafc2800371e904b0",
+      "message": "fix(workspace): 统一底栏布局与菜单状态\n\n- 将底栏组、操作和文本收敛到共同布局规则，清理原生控件偏移\n- 接通顶部终端菜单和真实视图勾选，取消重复底栏大纲入口并补充布局回归\n"
+    },
+    {
+      "old": "f21a6ba61d6936d425cb278d9d95384061d8df58",
+      "new": "005711a82ec377398b3e231a08f7ea07f8382289",
+      "title": "fix(workspace): 修复底栏菜单、语言常显与统一对齐",
+      "kind": "added_details",
+      "tree": "b3b72d58e5e17dd13b893e4380a0b0b999d58fec",
+      "old_parents": [
+        "d6b1494aae6f7b1387842e7d768c72692b10bd67"
+      ],
+      "new_parents": [
+        "1063495081243406745bb2331f75afb98176700f"
+      ],
+      "metadata_sha256": "bc1acfbd955ef79080504a8c53a90119245814ad169da7b6ff7316ec4ad7431b",
+      "old_message_sha256": "999a7aead98bd5e9cc04a11dea3e8d9f382003e14450368bd2b28c43eb2f597a",
+      "new_message_sha256": "fc63cc1a23127e13f4cfcd1a4fafd77969d8d7246665c751a5e73244a3ac5133",
+      "message": "fix(workspace): 修复底栏菜单、语言常显与统一对齐\n\n- 限制原生侧栏状态的作用范围，恢复底栏目录菜单可见行及语言入口常显\n- 修正文字与图标的共享行盒，并补充真实宿主状态下的底栏回归\n"
+    },
+    {
+      "old": "79d22d7354fb32a8d120acae3527217e53dc3a52",
+      "new": "777fdffe18d821582067d11ea0c588cc2962b87d",
+      "title": "fix(workspace): 统一默认悬停与独立交互管理",
+      "kind": "preserved_details",
+      "tree": "0830e64788ef1e4009ad0265f0b531e6ba2dc2bd",
+      "old_parents": [
+        "f21a6ba61d6936d425cb278d9d95384061d8df58"
+      ],
+      "new_parents": [
+        "005711a82ec377398b3e231a08f7ea07f8382289"
+      ],
+      "metadata_sha256": "bc5b2d1fdb95658077c09ae55c638106c42843d8809679e704a71d7aa11edd04",
+      "old_message_sha256": "25cb46b0562ceddef72b88f4bce00a6c2f0f7fd63e7e67c8571fd09057d30979",
+      "new_message_sha256": "25cb46b0562ceddef72b88f4bce00a6c2f0f7fd63e7e67c8571fd09057d30979",
+      "message": "fix(workspace): 统一默认悬停与独立交互管理\n\n- 共享动态控件反馈和行内居中，保留独立形状与状态，修复 Git 提交排版及详情卡片。\n- 完整检查、相关 UI 和原生 13 项验证通过，已安装并同步需求设计。\n"
+    },
+    {
+      "old": "961d2e2c11e0b67d42d2535e63fdcf57e4a601f9",
+      "new": "55029faa0e43cb0a770731591a6a3de06a99bd23",
+      "title": "fix(workspace): 对齐 Graph 悬停配置并修复预览重选定位",
+      "kind": "preserved_details",
+      "tree": "7c00a117f64caa5319e1dd3494a6b1b55ca9539a",
+      "old_parents": [
+        "79d22d7354fb32a8d120acae3527217e53dc3a52"
+      ],
+      "new_parents": [
+        "777fdffe18d821582067d11ea0c588cc2962b87d"
+      ],
+      "metadata_sha256": "392a127c17a4b8076104dea05ea8c26820dc9f657e7ed5fa7846be3e6d47c3dd",
+      "old_message_sha256": "dfdee4f0e9b955c35a75bacb5e138805cfc10438d5c3d312c78a97667fb9000f",
+      "new_message_sha256": "dfdee4f0e9b955c35a75bacb5e138805cfc10438d5c3d312c78a97667fb9000f",
+      "message": "fix(workspace): 对齐 Graph 悬停配置并修复预览重选定位\n\n- 统一卡片避让、紧凑外形与行操作策略，记录 VS Code Graph 配置差异。\n- 重选搜索结果复用预览并恢复精确匹配位置。\n- 构建、完整检查、8 个相关 UI 目标和 17 项原生验证通过，安装检查 OK。\n"
+    },
+    {
+      "old": "e1fccb72c4ad4ecd1d2a3a03f351c8b5c6cd7b66",
+      "new": "46ea50489ee3d36f89bce18b7a892c39abba0aa4",
+      "title": "fix(workspace): 补齐原生底栏操作的统一悬停",
+      "kind": "added_details",
+      "tree": "53974c34f489f29f7292518b2355cee1ac0db4a8",
+      "old_parents": [
+        "961d2e2c11e0b67d42d2535e63fdcf57e4a601f9"
+      ],
+      "new_parents": [
+        "55029faa0e43cb0a770731591a6a3de06a99bd23"
+      ],
+      "metadata_sha256": "82b07516c6ca503fc872320d63e240cca42e180edc07e8778ee3291d74d6203a",
+      "old_message_sha256": "9f6b4400658a2cc099da5e5589634dbfcc9ce8cd87ac87f3264bf47da6a6680d",
+      "new_message_sha256": "e5cd78040c13e3e1d9e0e7b833a8f7cae134eebc527e54d155b11f7113094e96",
+      "message": "fix(workspace): 补齐原生底栏操作的统一悬停\n\n- 将源码、字数、语言等原生底栏控件登记到公共交互角色，补齐统一悬停\n- 保留宿主节点和处理器，增加明暗、缩放、卸载恢复与邻居隔离检查\n"
+    },
+    {
+      "old": "151d54c29f28e83e1655a7c2110da530868af9e1",
+      "new": "c2b523c9cda11188e09489dd7f9afc74780fe88c",
+      "title": "fix(workspace): 统一悬停圆角与文件行文字裁切",
+      "kind": "added_details",
+      "tree": "53df4d0c2378358e52ebeca199e53ede00f963d0",
+      "old_parents": [
+        "e1fccb72c4ad4ecd1d2a3a03f351c8b5c6cd7b66"
+      ],
+      "new_parents": [
+        "46ea50489ee3d36f89bce18b7a892c39abba0aa4"
+      ],
+      "metadata_sha256": "581127b81604297e49c8b00ce2061595371acfff02f45cd089230379d6e34d25",
+      "old_message_sha256": "03629940e2d6f024a273be89417a4bd50b92853c064cc8151e36592a257e0a41",
+      "new_message_sha256": "dbc0c39ff1685506f70335b6b50b02463e3eb8c14b96907476c63ef2f41d59ed",
+      "message": "fix(workspace): 统一悬停圆角与文件行文字裁切\n\n- 将普通控件悬停圆角统一为4px，独立形状通过局部变量声明\n- 合并Git文件名称与目录的裁切区，按悬停和焦点分配行尾操作空间\n"
+    },
+    {
+      "old": "b6e77780ce1ec16842f222d2235f849b06df7544",
+      "new": "de00d3b394a6c928adb81d51d36fcbaee55923cb",
+      "title": "docs(install): 规范安装入口与下载恢复指南",
+      "kind": "added_details",
+      "tree": "b441eecf395c11c66f44150e04d93bf789a61d4b",
+      "old_parents": [
+        "151d54c29f28e83e1655a7c2110da530868af9e1"
+      ],
+      "new_parents": [
+        "c2b523c9cda11188e09489dd7f9afc74780fe88c"
+      ],
+      "metadata_sha256": "30806f663c4daf3d298dd5beebf6a582d7c1d668e839d4d1e9cc7301fe7d6b73",
+      "old_message_sha256": "3688bdcd30e4f4cf76d8d4876ec1c8537ee32586e6e9138ae11f370ba1652a6f",
+      "new_message_sha256": "78e969a4660bf42dbf73439ed074c301afae53097c44f8430c8f51147b13b780",
+      "message": "docs(install): 规范安装入口与下载恢复指南\n\n- 将公开脚本入口统一为install/check/restore，并集中安装、下载及恢复说明\n- 恢复前核对宿主页面外部变化，补充Windows隔离安装和恢复边界记录\n"
+    },
+    {
+      "old": "a72b5650c02121b86a569672d45f8d75cf4e8f12",
+      "new": "ba3c75578c576582b5f6837f32849c82c78c331e",
+      "title": "fix(install): 保留 Bash 安装入口的执行权限",
+      "kind": "added_details",
+      "tree": "3e2a9747d74c5f33bedd0b17b4bcd803ad08d2e8",
+      "old_parents": [
+        "b6e77780ce1ec16842f222d2235f849b06df7544"
+      ],
+      "new_parents": [
+        "de00d3b394a6c928adb81d51d36fcbaee55923cb"
+      ],
+      "metadata_sha256": "8ffc0888928f0a6865cd2fc1a1cf25a8d78ce473a8739f4cc31c093bbf58e921",
+      "old_message_sha256": "77d59267a4518fab49a3f494eba40211ca627ee92dc00cb0af57c01b1307c2f4",
+      "new_message_sha256": "0dc1bf3a65a67530f3766475ec7e753a4b14549bb43ae79d8c1a7767d2aae3c5",
+      "message": "fix(install): 保留 Bash 安装入口的执行权限\n\n- 为install.sh、check.sh和restore.sh恢复Git可执行位\n- 仅调整三个入口的文件模式，脚本内容保持不变\n"
+    },
+    {
+      "old": "f90b409f7eaafe0dd860cff491cf5b636379bb66",
+      "new": "7b76c316719d622999f25a8fba98e3edfd43b99f",
+      "title": "feat(terminal): 支持分隔条调节与列表拖动排序",
+      "kind": "added_details",
+      "tree": "ba9059cd2bac1f9ec97b9cd0ce7d071bf14998c1",
+      "old_parents": [
+        "a72b5650c02121b86a569672d45f8d75cf4e8f12"
+      ],
+      "new_parents": [
+        "ba3c75578c576582b5f6837f32849c82c78c331e"
+      ],
+      "metadata_sha256": "cbd901c4d063c885a92c64486ad3104c4d638e4609e8193e6f88077ee94a33df",
+      "old_message_sha256": "26b12d61fe27472be1828e6cc573d10bfe3bddc8016b82f942ee3bdc1b3bef58",
+      "new_message_sha256": "f32bcdab75c741ff83669fbb55704d02c65f477c553b788a4a1d367666cfea21",
+      "message": "feat(terminal): 支持分隔条调节与列表拖动排序\n\n- 为终端列表和分屏接入共同分隔条，支持调整宽度、取消恢复及窄列表模式\n- 支持同组排序和跨组移动，终端移入编辑器时保留PTY及缓冲并释放固定宽度\n"
+    },
+    {
+      "old": "2b869327e3f71c3dd2e5c9d8772345ed11d883f8",
+      "new": "d8389f7a356db04d4e0d099c7b2d32d31487250a",
+      "title": "feat(markdown): 支持选区字体颜色随明暗主题适配",
+      "kind": "added_details",
+      "tree": "11b60ec24d3669e09f6d88207a1292b59976ee16",
+      "old_parents": [
+        "f90b409f7eaafe0dd860cff491cf5b636379bb66"
+      ],
+      "new_parents": [
+        "7b76c316719d622999f25a8fba98e3edfd43b99f"
+      ],
+      "metadata_sha256": "1190c476ffb5c9f2f96f4881dcfdcf24b1fede363a1be99961a8068a08e1506a",
+      "old_message_sha256": "ee70e7700028bc0f0a000292b09b61c0bf6ab4752fa55b02db5e47a0be5a38bf",
+      "new_message_sha256": "4cf5d8304e8c6481aada9e591d1a7657fa102d9f9d5a7f3274e77ab780f67d2e",
+      "message": "feat(markdown): 支持选区字体颜色随明暗主题适配\n\n- 在原生Markdown选区菜单提供常用色、自定义色及恢复默认，按明暗背景适配显示\n- 使用原生撤销事务维护正文和表格缓存，对无法安全映射的选区保留原文\n"
+    },
+    {
+      "old": "a983aee42dfd2bbbb6647eb34f5204f4b2581485",
+      "new": "82ce8f4b4f8f3b5a7f63330abcb76069554db558",
+      "title": "feat(git): 补齐源代码管理工具栏与仓库操作",
+      "kind": "added_details",
+      "tree": "6dce9553ecf6988644468de037e7d015e29d3993",
+      "old_parents": [
+        "2b869327e3f71c3dd2e5c9d8772345ed11d883f8"
+      ],
+      "new_parents": [
+        "d8389f7a356db04d4e0d099c7b2d32d31487250a"
+      ],
+      "metadata_sha256": "fb8a375facd2dc76dfa81570d43f79c7d506544a9422dfa3656c5de5e01a4506",
+      "old_message_sha256": "e5491948c6ee162e4cb70794ad04b7deaca88a2f24d401eae3ac110a94559c7f",
+      "new_message_sha256": "ae29705746864b51a067e04795ef078a9af6903e322d36850c064a8d2df74eec",
+      "message": "feat(git): 补齐源代码管理工具栏与仓库操作\n\n- 补齐SCM工具栏、引用筛选、仓库分区与工作树操作，复用真实Git对象及命令\n- 完善文件和提交菜单、动作溢出与设置持久化，记录受保护操作及验收边界\n"
+    },
+    {
+      "old": "ae30dffe59b4095ea1a20c17ddbf344486cc9216",
+      "new": "a58bf61d6a9dddc8562bd256c2e153ea39e5cab1",
+      "title": "fix(workspace): 修复文件行开关与双击重命名",
+      "kind": "added_details",
+      "tree": "d0c69ca411ecb780355f3bb2dac4d701fc84e72e",
+      "old_parents": [
+        "a983aee42dfd2bbbb6647eb34f5204f4b2581485"
+      ],
+      "new_parents": [
+        "82ce8f4b4f8f3b5a7f63330abcb76069554db558"
+      ],
+      "metadata_sha256": "d9222aff46b47c85b37e66efe3690585b8a605c417c4d3a5898a100ffbf573c7",
+      "old_message_sha256": "28cdead9ff4a55fc4ba0cf1a539b1c9efc31abfad16376cead5d67e627db5dd1",
+      "new_message_sha256": "9ec07abece162c04480e4c210fbb86ff6ed99fc4816496fc346cc5ecdf167837",
+      "message": "fix(workspace): 修复文件行开关与双击重命名\n\n- 让搜索文件组和Explorer文件夹整行立即响应开关，保留匹配预览与文件打开行为\n- 复用可见节点并合并刷新，慢速目录读取服从最后状态；当时选中项双击改名规则同步入设计\n"
+    },
+    {
+      "old": "8efff4b38a8197e61f8a2cefeef083fd5f967cb3",
+      "new": "524a52f5fd1915aa1d54b8b7342ce52bbe970aac",
+      "title": "fix(workspace): 保持顶栏搜索悬停外观稳定",
+      "kind": "added_details",
+      "tree": "e09a980267a01045b68c9d8c6004099f92bf2b39",
+      "old_parents": [
+        "ae30dffe59b4095ea1a20c17ddbf344486cc9216"
+      ],
+      "new_parents": [
+        "a58bf61d6a9dddc8562bd256c2e153ea39e5cab1"
+      ],
+      "metadata_sha256": "03d3afbc80b35dfffcbb074b436087fb7659ebaa9849d201cc9b5ea5a90421ca",
+      "old_message_sha256": "692265ed2b102342aad4d98788c04e12f77aa0c578aab92def2b498453a75b58",
+      "new_message_sha256": "08884b34695a18ad30fb3aac22571a94b1cd98f402c106425cda639724d7aca5",
+      "message": "fix(workspace): 保持顶栏搜索悬停外观稳定\n\n- 为顶栏搜索声明局部悬停颜色，移入时保持中性背景与主题文字\n- 保留相邻导航的公共反馈以及搜索按钮的焦点、尺寸和单次激活行为\n"
+    },
+    {
+      "old": "a21af8dbf10b6c036f0991a4d28cf6e98300752d",
+      "new": "f826474b54f91cfd1aa7d97b48c6c4c2ebeb35e2",
+      "title": "feat(workspace): 完善文档标签菜单与分屏草稿管理",
+      "kind": "added_details",
+      "tree": "a6109836f527144448821bd20a674923cd2ff9df",
+      "old_parents": [
+        "8efff4b38a8197e61f8a2cefeef083fd5f967cb3"
+      ],
+      "new_parents": [
+        "524a52f5fd1915aa1d54b8b7342ce52bbe970aac"
+      ],
+      "metadata_sha256": "cb52781670de2f1c9d397a1384a449184cf53f4644e0fd5cb47732fa59637c97",
+      "old_message_sha256": "7483c7f8e90f49aeb377faddebc9d43ddd295e1da35d2deaa8552072a45c791a",
+      "new_message_sha256": "9a21ebcdbd1eb02f0f4cefbc85b719415f4c589cb305cf87c9c12dc44a673cf4",
+      "message": "feat(workspace): 完善文档标签菜单与分屏草稿管理\n\n- 完善标签关闭、固定、复制路径、分屏及跨窗菜单，批量关闭保留草稿和取消保护\n- 同窗源码副本共享模型与保存基线，Markdown分栏同步内存内容并等待真实保存完成\n"
+    },
+    {
+      "old": "658d6ab473aae13824c61ca8c2aa517afd50405a",
+      "new": "92717e3eb778350a3991df7f44448a778351e7d3",
+      "title": "feat(reading): 支持图片双击与全屏缩放查看",
+      "kind": "added_details",
+      "tree": "344169788bd1e14f691365d123dc2db8a84d16b5",
+      "old_parents": [
+        "a21af8dbf10b6c036f0991a4d28cf6e98300752d"
+      ],
+      "new_parents": [
+        "f826474b54f91cfd1aa7d97b48c6c4c2ebeb35e2"
+      ],
+      "metadata_sha256": "f443f70633efcb51aefb0c76c5a635bc1bcd6d1ea986d337ba9bc8a798338cd6",
+      "old_message_sha256": "691e7fb704afad7c77113625fe6a361fdff215547c2f8a1c5ab30855d810adf9",
+      "new_message_sha256": "4691ed489631bbfbee2030511d629cf148791050fa3224b06cc9f52ca09b9abc",
+      "message": "feat(reading): 支持图片双击与全屏缩放查看\n\n- 为原生Markdown与Git历史图片提供双击和按钮打开的全屏查看器\n- 图片与Mermaid共用缩放、适应窗口、拖动和Esc退出，单击图片继续保留原生选中\n"
+    },
+    {
+      "old": "b986b3680758dee6253bf3279a15536b1031185d",
+      "new": "aaa6d3862eeac4d00c7557aa987d26987a43c01c",
+      "title": "fix(scm): 按VS Code连续排列提交标题与作者",
+      "kind": "added_details",
+      "tree": "7f60fbcd8dbf8e9d139c2cd6eb9e27b249f2d9a0",
+      "old_parents": [
+        "658d6ab473aae13824c61ca8c2aa517afd50405a"
+      ],
+      "new_parents": [
+        "92717e3eb778350a3991df7f44448a778351e7d3"
+      ],
+      "metadata_sha256": "9cec86e386d3a9bf479edfd2b554d78cd01c10fdc81a5575558d001bd771aad1",
+      "old_message_sha256": "a16c1490fe4264dad464198a1d987a25f5d4e0c040a2771a81f829479cd243ce",
+      "new_message_sha256": "826137394a64252fabadaa2a5fb96e76a2c792641d3d4836a202c5881666418b",
+      "message": "fix(scm): 按VS Code连续排列提交标题与作者\n\n- 将提交标题和作者放入同一连续裁切区，避免短标题后留下独立列空白\n- 保留引用与行尾动作，统一当前提交字重及明暗主题作者显示规则\n"
+    },
+    {
+      "old": "30755cd923ad4ba13847a5b50b9edc02203388b0",
+      "new": "0bf523c05bd8aea2906766b3e6df0bfc9e63691f",
+      "title": "fix(reading): 统一图片与图表全屏入口并避免遮挡",
+      "kind": "added_details",
+      "tree": "67828759d8339086712fe9d331613f72eede75f0",
+      "old_parents": [
+        "b986b3680758dee6253bf3279a15536b1031185d"
+      ],
+      "new_parents": [
+        "aaa6d3862eeac4d00c7557aa987d26987a43c01c"
+      ],
+      "metadata_sha256": "d6d557083fb933537eacab272bbc01d1568411ec91f4bd3e8b4c0493ae91dbc9",
+      "old_message_sha256": "b55ab0b424fe071b8939a9b850dd81fb7aaf298cffd70656f41de6baac8e008a",
+      "new_message_sha256": "24e2bc656542dc24fff3ab2c84f861120d96f3451723964125d19ab5a1e3411c",
+      "message": "fix(reading): 统一图片与图表全屏入口并避免遮挡\n\n- 将图片与Mermaid全屏入口收敛到同一控件工厂和样式\n- 当时采用图像上方的流内工具行，入口随内容滚动并保留单击选中和双击放大\n"
+    },
+    {
+      "old": "c91ded73e673ba1d0bb7fe33332ad6e515a030b2",
+      "new": "e37de49f944eee6e916f52f1e58349c84d0f5780",
+      "title": "fix(reading): 统一外侧悬停入口与 Esc 焦点恢复",
+      "kind": "added_details",
+      "tree": "a3c056a683c351db3dc06057b1a3156adbb14cb9",
+      "old_parents": [
+        "30755cd923ad4ba13847a5b50b9edc02203388b0"
+      ],
+      "new_parents": [
+        "0bf523c05bd8aea2906766b3e6df0bfc9e63691f"
+      ],
+      "metadata_sha256": "ba70c36f24e0da5f48b8372db0d2edfbed21d5cef2bd27c4b9d2e811eec05744",
+      "old_message_sha256": "facf2c3729f8f096bb2b2d26526785037d0aae6e2d6d67d6c2aabc213c29b8a8",
+      "new_message_sha256": "96d5287b0c105ae68c6096ad415576b6e5b7cfdc8d6a0bb25aadc3197fa9d76f",
+      "message": "fix(reading): 统一外侧悬停入口与 Esc 焦点恢复\n\n- 为菜单、对话框、搜索及媒体查看器统一Esc退出与原焦点和选区恢复\n- 媒体入口改为外侧右上悬停显示，键盘焦点仍可见，来源变化后清理失效状态\n"
+    },
+    {
+      "old": "541f12076ba5c7e17f7222072526e0258daf61aa",
+      "new": "15f199da765b97f659148cf5ac11ce7f4d14f791",
+      "title": "fix(workspace): 统一弹窗外部关闭并移除媒体按钮占位",
+      "kind": "added_details",
+      "tree": "5fc385741b10184a027d9eeca5250080eb19a116",
+      "old_parents": [
+        "c91ded73e673ba1d0bb7fe33332ad6e515a030b2"
+      ],
+      "new_parents": [
+        "e37de49f944eee6e916f52f1e58349c84d0f5780"
+      ],
+      "metadata_sha256": "eb10ae6843cd00b43a2204a0ff7e3da4d04f666efc9b30692f9e122478804990",
+      "old_message_sha256": "4a2dcc1e5ccf2cc64b5b29e542d60230cae9b7b50b81891efe9705d36f4ee063",
+      "new_message_sha256": "8333426ec49b1d7e7d84eac1c391ea5a1332ba669ab15697fc49064d235e5459",
+      "message": "fix(workspace): 统一弹窗外部关闭并移除媒体按钮占位\n\n- 将搜索、选择器、普通对话框和菜单的外部点击及焦点离开接入共同取消机制\n- 移除媒体工具行占位与图片包装，保持正文间距和原图片节点\n"
+    },
+    {
+      "old": "2407d40edc13eac000a42d996f64d48fe513dd9a",
+      "new": "bf804385e54281b5eb44f45b0afd952d06a95cbd",
+      "title": "fix(workspace): 对齐 VS Code 文件标签与编辑器顶部",
+      "kind": "added_details",
+      "tree": "3787cb1e0b5967aaa9df914ea723b0ef2d6a94fe",
+      "old_parents": [
+        "541f12076ba5c7e17f7222072526e0258daf61aa"
+      ],
+      "new_parents": [
+        "15f199da765b97f659148cf5ac11ce7f4d14f791"
+      ],
+      "metadata_sha256": "8584527345211d49104b488db4ccf3edd1eb7da490c04d2ad6b8687446d7a430",
+      "old_message_sha256": "8ed6aa34eb0b9a4b1614379aa3ab2208b0e0007c4f70dc484eddda889f195d15",
+      "new_message_sha256": "0b32c1a81f5eacaa940a13576f4709f1078ca1c446705824f3da1665d6a06cb8",
+      "message": "fix(workspace): 对齐 VS Code 文件标签与编辑器顶部\n\n- 采用32px标签行和24px圆角背景，关闭动作覆盖显示以保持名称位置稳定\n- 将源码和diff路径栏及操作放入所属编辑组，记录当时Markdown预览标签语义\n"
+    },
+    {
+      "old": "4b00f6c540c0a766315f96e24b8351ba90ed06bc",
+      "new": "3cedea1b86f84398da47f4053272bfb9aee330d7",
+      "title": "fix(workspace): 移除提交图分隔条占位并改为悬停覆盖",
+      "kind": "added_details",
+      "tree": "49526fd31b480ced1334c5eb552d9bb798b191ba",
+      "old_parents": [
+        "2407d40edc13eac000a42d996f64d48fe513dd9a"
+      ],
+      "new_parents": [
+        "bf804385e54281b5eb44f45b0afd952d06a95cbd"
+      ],
+      "metadata_sha256": "4e08df6c39868538cea8a4c3fddea53f1ebf5ae4ddd34e25314655659944c948",
+      "old_message_sha256": "85e2691c007c26c221d7b4aef9305791476f5bc10639c07c525dda2668cc2709",
+      "new_message_sha256": "6d40c238eff250657bb6597bd627eef1358c7c9ead5383da56154f3fd7f0e3b6",
+      "message": "fix(workspace): 移除提交图分隔条占位并改为悬停覆盖\n\n- 移除更改区与提交图区之间的7px占位轨道，分隔条覆盖实际边界\n- 保留比例和键盘控制，悬停延迟显示强调色，拖动及焦点立即反馈\n"
+    },
+    {
+      "old": "fa6f490397b31e8f7b954e3250274dc37448890a",
+      "new": "1784246b510a828e7ff8edebf8820b9a7ccf91b9",
+      "title": "feat(workspace): 支持标题函数导航并完整显示详情分支",
+      "kind": "preserved_details",
+      "tree": "64933118479c26263b7c3f1c3dba1f04fcaf01e1",
+      "old_parents": [
+        "4b00f6c540c0a766315f96e24b8351ba90ed06bc"
+      ],
+      "new_parents": [
+        "3cedea1b86f84398da47f4053272bfb9aee330d7"
+      ],
+      "metadata_sha256": "4d6db6b4286ca52465b4809ad13c386345fe61d2c197b35f7b494c2791d8ea5a",
+      "old_message_sha256": "9cc4f623b8de0cf1b0d936091b05220e9656ea8dc7993cabc6476f687eb9068b",
+      "new_message_sha256": "9cc4f623b8de0cf1b0d936091b05220e9656ea8dc7993cabc6476f687eb9068b",
+      "message": "feat(workspace): 支持标题函数导航并完整显示详情分支\n\n- 按所属编辑组共享标题和函数符号，统一选择器、配置及退出焦点\n- 提交列表保留省略号，详情卡显示完整分支名称并避免换行裁切\n- 构建及完整检查通过，58个UI目标完成验证，隔离原生35项通过并完成事务安装\n"
+    },
+    {
+      "old": "a692e6df9ba88976a96848472a781a94194524f9",
+      "new": "81a96a5681c34419da813516cce38a7a721bf57b",
+      "title": "fix(explorer): 取消文件夹双击重命名并修复连续点击",
+      "kind": "added_details",
+      "tree": "658691bed5f9696d76891c70aa29991466714497",
+      "old_parents": [
+        "fa6f490397b31e8f7b954e3250274dc37448890a"
+      ],
+      "new_parents": [
+        "1784246b510a828e7ff8edebf8820b9a7ccf91b9"
+      ],
+      "metadata_sha256": "560431d03eafdac586d1afd0b031aa9297ff77b3dbc1d94028e3b311e4d4363b",
+      "old_message_sha256": "e5cbf33f020dc50c5ff6d0229b6b3c85a2a062cfdfca321aee4570c0258b0d6b",
+      "new_message_sha256": "bd0fbe3d44ac605dc38008e7d44371f5951de4dc55393524188268f01733429c",
+      "message": "fix(explorer): 取消文件夹双击重命名并修复连续点击\n\n- 按最新交互要求取消文件夹双击重命名，每次单击立即切换展开状态\n- 保留F2和右键改名以及已选中文件双击规则，慢读完成服从最后折叠状态\n"
+    },
+    {
+      "old": "40591dffb767f8d8b713c4de7de47eccf0f848c2",
+      "new": "be7f80540f35ef7790a48cd8374f8a245eb8f492",
+      "title": "docs(copyright): 补齐版权声明并注明VS Code设计来源",
+      "kind": "added_details",
+      "tree": "9545952dc65a880263c135055bada387062fc2a3",
+      "old_parents": [
+        "a692e6df9ba88976a96848472a781a94194524f9"
+      ],
+      "new_parents": [
+        "81a96a5681c34419da813516cce38a7a721bf57b"
+      ],
+      "metadata_sha256": "7478ad24ebc706c8a4ff031d5b87757585d3c0e5bb464241a8522f8439d1aef7",
+      "old_message_sha256": "360e7072da6f43e49634f93c2299c34525a037d76c262c6522e3d55275301ddf",
+      "new_message_sha256": "60a79dbfc3bdb89263b286124e2182415d0d2f25f79c60fc17ac5eb6be076ba1",
+      "message": "docs(copyright): 补齐版权声明并注明VS Code设计来源\n\n- 增加GPL-2.0-only许可证与版权声明，明确原创署名、贡献和第三方许可边界\n- 在README、增强说明及包元数据中注明VS Code设计来源和独立社区项目身份\n"
+    },
+    {
+      "old": "7885b59960f169180a62aa0cc4f849e331a2f4b9",
+      "new": "ba25100fbe884c8c535c9e7381ccf5106e99a57a",
+      "title": "fix(workspace): 恢复Markdown标签图标并移除预览前缀",
+      "kind": "added_details",
+      "tree": "901f3cfdb55caebdade54591a8e452997092b80f",
+      "old_parents": [
+        "40591dffb767f8d8b713c4de7de47eccf0f848c2"
+      ],
+      "new_parents": [
+        "be7f80540f35ef7790a48cd8374f8a245eb8f492"
+      ],
+      "metadata_sha256": "962145d8e132d287fa08b83861523c517b9466ae2da5282c41e2339d120898e9",
+      "old_message_sha256": "e060b62ef15d1d3899ca2e9cd1a87b1d176897af1d132eee4ea463ba41fba6d5",
+      "new_message_sha256": "da0774a34d28eb8ca25ef2c88aedbdde789839f577ebdfb30b9ca5d890fcafa0",
+      "message": "fix(workspace): 恢复Markdown标签图标并移除预览前缀\n\n- Markdown活动、后台与分栏标签统一显示Seti文件图标及真实名称\n- 移除阅读视图预览图标和前缀，保留临时、固定、未保存与关闭状态\n"
+    },
+    {
+      "old": "08b39ad5816d42093db935059e734e2b8eeeae3f",
+      "new": "6a7d612f80a151ea5baf94a000ccf8d03622822b",
+      "title": "feat(files): 接入系统文件剪贴板并保护剪切状态",
+      "kind": "formatted_details",
+      "tree": "262e294b1a644633f6308f1c94267e859aad5688",
+      "old_parents": [
+        "7885b59960f169180a62aa0cc4f849e331a2f4b9"
+      ],
+      "new_parents": [
+        "ba25100fbe884c8c535c9e7381ccf5106e99a57a"
+      ],
+      "metadata_sha256": "eb6dac3723e8b4443f5368d8e65222d549980c3f01bc54e981dcf8bbee9cac52",
+      "old_message_sha256": "40826f0b5980dc8d74faa5ff40fa7eb164b87892c1b61ac61b3afbb7c268b88d",
+      "new_message_sha256": "18a2e2e12d9ba1ec1a3037a6dc0948ea266a501c45b5c157ee8b29bd4b8a367a",
+      "message": "feat(files): 接入系统文件剪贴板并保护剪切状态\n\n- 提交R009阶段实现、测试与对应构建。build、完整check和3个相关UI目标通过；Windows隔离测试仍受Win32 5限制，Windows与Linux原生互通待验收，本次未安装。\n"
+    },
+    {
+      "old": "ef256cdcfa06ab4ae7d7ed89e15523ad32782a23",
+      "new": "cdf85e1198b3e6a329e3a0d952d41e384adfc71b",
+      "title": "docs(workflow): 明确每轮及时提交已验证修改",
+      "kind": "added_details",
+      "tree": "347ca853407cc6445b0c6696c38d028bd815aad9",
+      "old_parents": [
+        "08b39ad5816d42093db935059e734e2b8eeeae3f"
+      ],
+      "new_parents": [
+        "6a7d612f80a151ea5baf94a000ccf8d03622822b"
+      ],
+      "metadata_sha256": "75e36d5516b0d905f0e5df6c4d83b759ca8c0f05a4ff5db0712b019d5b2c8341",
+      "old_message_sha256": "f8559f33a55e50342ec4afd0632e353d7aef5a5b95c647e683c8c5ad6d13b5fd",
+      "new_message_sha256": "e03e9ebc3a573e82c2083df85f5d2dcf9714f6c1f68a836d66bdbbeeb70c70a7",
+      "message": "docs(workflow): 明确每轮及时提交已验证修改\n\n- 明确每轮及时提交已验证代码、测试、设计及必要构建，不长期积压完成项\n- 允许阶段实现连同验收缺口入库，保持提交、安装验收与远端推送的独立边界\n"
+    },
+    {
+      "old": "70185e6d28131a16c2a9fd41a986e760fd3b8838",
+      "new": "b884e8699af2d8dc503028616bc84ebed8995452",
+      "title": "fix(workspace): 统一选中行的明暗主题配色",
+      "kind": "added_details",
+      "tree": "5985bcb32e78e7c4aceae353c39a293601d98373",
+      "old_parents": [
+        "ef256cdcfa06ab4ae7d7ed89e15523ad32782a23"
+      ],
+      "new_parents": [
+        "cdf85e1198b3e6a329e3a0d952d41e384adfc71b"
+      ],
+      "metadata_sha256": "abbc91d4954519574d80e39bee51cc31ae5edd2f26b17cc9fca75f4b353bf34e",
+      "old_message_sha256": "f688d0d195006fd30cdddfd03ed8cdb507112fb4dc3906beaebddafaabe9ba27",
+      "new_message_sha256": "0eb8049f2daa47dc52cf09bf36f64b6dd81163d8aaa1ff72c3d514df276ffa9f",
+      "message": "fix(workspace): 统一选中行的明暗主题配色\n\n- 共享交互层统一明暗选中背景与前景，修复Night文件树浅底浅字\n- Explorer、Graph和SCM共用选中色，行尾按钮保留独立悬停及原业务状态\n"
+    },
+    {
+      "old": "2c5b4cd85aec627881d48f49ae5f252a1c7b5910",
+      "new": "11d899d9678fe7d477318dd5e044d2e3f9c80abf",
+      "title": "fix(reading): 保持全屏查看悬停入口不透明",
+      "kind": "added_details",
+      "tree": "93de211dc2ea23de83781e8b925f8be29dd2aa03",
+      "old_parents": [
+        "70185e6d28131a16c2a9fd41a986e760fd3b8838"
+      ],
+      "new_parents": [
+        "b884e8699af2d8dc503028616bc84ebed8995452"
+      ],
+      "metadata_sha256": "303b22bb1569b52fb171e533c543ea5ca3c492073a66052d34248beb59b08849",
+      "old_message_sha256": "95ddcd54d6acc50ba8170d46266a1bc92fa4bf0b67b8d3e8e461a1d7f6e67e86",
+      "new_message_sha256": "95933ca6f7acf0257d5ce070970dc8ba6f91de44feca0e36f576aea5f1a8517e",
+      "message": "fix(reading): 保持全屏查看悬停入口不透明\n\n- 为媒体全屏入口声明不透明的局部悬停背景，避免正文或图像透出\n- 图片和Mermaid共用此规则，保留显隐、外侧定位、命中与正文零占位\n"
+    },
+    {
+      "old": "a686a2d74fb4026b8a491f7cd8cc081003ebb209",
+      "new": "49fc56134d3224553afbaec875990beb97fca546",
+      "title": "feat(workspace): 增加底栏窗口缩放控件",
+      "kind": "added_details",
+      "tree": "e847ef25c38e16f3bf438cad79e8a9222d9b8c82",
+      "old_parents": [
+        "2c5b4cd85aec627881d48f49ae5f252a1c7b5910"
+      ],
+      "new_parents": [
+        "11d899d9678fe7d477318dd5e044d2e3f9c80abf"
+      ],
+      "metadata_sha256": "07269bb7ca4daca759e232a2190bf4cde5f2ffa14510bd308020402abed5698f",
+      "old_message_sha256": "c4655c5e6d55dba9d98ae515ab5c554b575fc268539ec1dfeaa9b95e6ff0a9f1",
+      "new_message_sha256": "e44a7f5cd089001b79fb8e4b1157995b063dd26bee2c50093dbf8b52867b6338",
+      "message": "feat(workspace): 增加底栏窗口缩放控件\n\n- 在底栏增加窗口缩放入口和紧凑操作浮层，复用实际webFrame比例及已有命令\n- 支持缩小、放大、重置和原生设置入口，外部比例变化同步且100%时隐藏状态入口\n"
+    },
+    {
+      "old": "c33fab861428f07359961610126396ea99e85ed1",
+      "new": "0ef2ee395c88b14b1fe2f5e818a40e98b742a50b",
+      "title": "fix(scm): 补齐更改标题的提交刷新和Graph入口",
+      "kind": "added_details",
+      "tree": "964a092e787e19b01053fc609ccd0adcd18dc225",
+      "old_parents": [
+        "a686a2d74fb4026b8a491f7cd8cc081003ebb209"
+      ],
+      "new_parents": [
+        "49fc56134d3224553afbaec875990beb97fca546"
+      ],
+      "metadata_sha256": "93837025ac57aa37daee0c2593a43667b7af34be4168dd9013226039e34a35a4",
+      "old_message_sha256": "1be58a0c1afbfc1e4d94a0f2643e69522525135994675da04b48295299016bae",
+      "new_message_sha256": "e8b262a178a3274e2623042d314fbc4fe3f8713f06d68b7dc23d606b6fd2aa8f",
+      "message": "fix(scm): 补齐更改标题的提交刷新和Graph入口\n\n- 为SCM更改标题补齐提交、刷新及完整Git Graph入口，复用原事务和分页\n- 按真实忙碌状态禁用操作，折叠状态提交空消息时先展开再聚焦输入框\n"
+    },
+    {
+      "old": "890c1e47a921b4d102dd1d286b0f41a771868b0c",
+      "new": "f054ee09d0d9105da732bbefadc25961e0fa9bc2",
+      "title": "feat(install): 增加Windows卸载入口并自动识别安装前备份",
+      "kind": "added_details",
+      "tree": "e425aae0e5591d68127eee3f9dc4c15dee2e488c",
+      "old_parents": [
+        "c33fab861428f07359961610126396ea99e85ed1"
+      ],
+      "new_parents": [
+        "0ef2ee395c88b14b1fe2f5e818a40e98b742a50b"
+      ],
+      "metadata_sha256": "bdec9278b18fe07a86198925d0f0feed83d6c171d52e125fc8a1f63695a84f4f",
+      "old_message_sha256": "e1c69c52fabd2073320ec684d2725fb5621674a12c45d144f68da142d3960658",
+      "new_message_sha256": "4ed4fede1346505cd154e325414ea30cb25081109f9bc48818ff9a6b43b8f9d8",
+      "message": "feat(install): 增加Windows卸载入口并自动识别安装前备份\n\n- 增加Windows卸载入口，自动筛选安装前完整备份，多个候选才交由用户选择\n- 复用恢复事务并保留文档及偏好，拒绝运行中的宿主和非交互歧义候选\n"
+    },
+    {
+      "old": "ccf0f2465fcf9c8eb76e2bad6316f810c2d26c37",
+      "new": "6f1c88c9d6e508b4df1e87791d75f3af4138e3b3",
+      "title": "feat(workspace): 集成Git快捷操作与编辑器保存历史",
+      "kind": "formatted_details",
+      "tree": "33917ffe8ac9de0f7bfd39e51ef02fefccb7295f",
+      "old_parents": [
+        "890c1e47a921b4d102dd1d286b0f41a771868b0c"
+      ],
+      "new_parents": [
+        "f054ee09d0d9105da732bbefadc25961e0fa9bc2"
+      ],
+      "metadata_sha256": "775fb5d9f5ec480fc50202a1fc119b2e8dd352defe3893431436fbb774ad50c0",
+      "old_message_sha256": "7ecc16879d93a88c1b061d833f882bc48323b5dcda393e6efb5831c5a44251c2",
+      "new_message_sha256": "a929a64533d7de3a391a706c863714749436fa8f817118b6f6d840c903db88fd",
+      "message": "feat(workspace): 集成Git快捷操作与编辑器保存历史\n\n- 收拢文件功能栏、顶栏配置、终端输入边界和安装日志，统一命令、保存与浮层所有权。\n- 完整业务检查通过；64个UI目标中62个首次通过，2个修正夹具后复测通过。原始Typora保存历史73项、安装及卸载检查通过。系统剪贴板新窗口站权限与物理搜狗输入仍保留验收边界；最终全量安装及Git动态进度作为后续独立交付。\n"
+    },
+    {
+      "old": "61acabbde7341a86bd4bea1d2f2a26e7744ef47a",
+      "new": "07e8ad6766985f2dbfef566456be0f9ce0736d6b",
+      "title": "fix(workspace): 统一Git动态进度并修复历史比较布局",
+      "kind": "added_details",
+      "tree": "e14b1271ca1c4dc9f2853af6b6822e537d3fce8b",
+      "old_parents": [
+        "ccf0f2465fcf9c8eb76e2bad6316f810c2d26c37"
+      ],
+      "new_parents": [
+        "6f1c88c9d6e508b4df1e87791d75f3af4138e3b3"
+      ],
+      "metadata_sha256": "b01d1c9238f7cf513f180e59da6e07052ba89a20596525d896f501c8be43fed8",
+      "old_message_sha256": "68118b9a59347da8dde6704f0bfce40f313b26b110a06f649f25dd6733c9ba72",
+      "new_message_sha256": "ace1da06efc892063b1881a0992c0d20b851a5fd7067bbdc4d6de18d647b490f",
+      "message": "fix(workspace): 统一Git动态进度并修复历史比较布局\n\n- 由共享Git操作生命周期驱动标题、工具栏、底栏和仓库行的动态进度与清理\n- 修复历史比较布局并保留刷新期间新输入的提交说明，记录相关回归及交付边界\n"
+    },
+    {
+      "old": "1a427fa7016cc1e67a2649ea2e84866f06305d7d",
+      "new": "d6d73a140794ef2a37c5b499be657bb4f4f7026b",
+      "title": "fix(workspace): 修复Shift拼音提交并统一侧栏标题与活动提示",
+      "kind": "added_details",
+      "tree": "6b3c945c91ebf2490fd6b4286e178b981020efcd",
+      "old_parents": [
+        "61acabbde7341a86bd4bea1d2f2a26e7744ef47a"
+      ],
+      "new_parents": [
+        "07e8ad6766985f2dbfef566456be0f9ce0736d6b"
+      ],
+      "metadata_sha256": "d976d35e31dc29e9bcece6676f009f2d59c0b729b1266871a8bee493b35d4004",
+      "old_message_sha256": "4574bf9642ed83eb1485e5e8dc58f258a6fec6341038ffbf1909f6b36a4d2c53",
+      "new_message_sha256": "793c0f9e34e00ea21a638d3ed6506c589aa669c222ae7f9b0320e1e493480474",
+      "message": "fix(workspace): 修复Shift拼音提交并统一侧栏标题与活动提示\n\n- 增加终端输入适配以保护整值替换形态的组合提交，仍由xterm唯一发送正文\n- 统一Explorer分区标题和辅助动作，恢复Git活动条运动并记录物理输入法待验收边界\n"
+    },
+    {
+      "old": "3d860be7f7bfc3b1328cadc0380578f614437ec6",
+      "new": "8a2624c07306c8a1f253e009955316cd631b3020",
+      "title": "fix(terminal): 归还输入法按键并修复全局快捷键抢焦点",
+      "kind": "added_details",
+      "tree": "7ca1ad39a79cb8ed2587caf7a7bafa2d02c42e23",
+      "old_parents": [
+        "1a427fa7016cc1e67a2649ea2e84866f06305d7d"
+      ],
+      "new_parents": [
+        "d6d73a140794ef2a37c5b499be657bb4f4f7026b"
+      ],
+      "metadata_sha256": "26e9ce981fac38cbdb5404c805fd87b7b5dd3ff574b8da9ea45307ffa01d2826",
+      "old_message_sha256": "96da3c054f0f533938bb199bed76a74c01b0cc1902f4261a3a1edeef6d8655ac",
+      "new_message_sha256": "3fc8384c38c0af287a72a5c7fee3b6daaa2640271954d74f6ea6503f71ea8343",
+      "message": "fix(terminal): 归还输入法按键并修复全局快捷键抢焦点\n\n- 统一输入法事件与实际终端输入目标判定，让全局捕获入口避让IME及229事件\n- 修复Graph和工作区搜索抢走终端查找与退出按键，不将此视为物理搜狗问题已完全解决\n"
+    },
+    {
+      "old": "1015789218d0cdc8188fc754b956b09e7c2c30ed",
+      "new": "a446d4faccdd68e6e7c543fbfe2fe4a8ce63d3b5",
+      "title": "fix(terminal): 按文档输入规则保留Shift提交的拼音",
+      "kind": "added_details",
+      "tree": "18bb0d6a24b4ee7323b814598b5cd50f80feb48d",
+      "old_parents": [
+        "3d860be7f7bfc3b1328cadc0380578f614437ec6"
+      ],
+      "new_parents": [
+        "8a2624c07306c8a1f253e009955316cd631b3020"
+      ],
+      "metadata_sha256": "664669b719b84f37023f3be9703d1e13e2d2212c558b59c3765a1dc0598361c0",
+      "old_message_sha256": "c4aca8ae5cd98d3c823f291d0eb6c0d37b185ace888b1eb134290d5904eb79e6",
+      "new_message_sha256": "af0a655beacb82dc02221b3280ad47329de2e7588ba142093db5a36e4fe4d0ec",
+      "message": "fix(terminal): 按文档输入规则保留Shift提交的拼音\n\n- 按实际文档input契约处理终端文字，隔离xterm对非组合纯Shift按下的错误输入标记\n- 保留浏览器默认输入及原有keyup路径，补充左右Shift直接提交和普通输入回归\n"
+    },
+    {
+      "old": "9164530f11f7a779ff11643618f7e94c969c231e",
+      "new": "d2fb48d52080ed4cca7606e9b2fea3b94bed1df9",
+      "title": "fix(git): 合并刷新并保留未变化的界面状态",
+      "kind": "added_details",
+      "tree": "de635cc18a6ff9572dc3da62e7c60292cc6cd5bd",
+      "old_parents": [
+        "1015789218d0cdc8188fc754b956b09e7c2c30ed"
+      ],
+      "new_parents": [
+        "a446d4faccdd68e6e7c543fbfe2fe4a8ce63d3b5"
+      ],
+      "metadata_sha256": "9d51c17ddb9019d40696a76b83adfd4292f3f0c889e6829498a40914de3cae46",
+      "old_message_sha256": "b5a767fcf071a41bb8cf746069f1df82778148aa195ec4eebc81d3b6ba0fb796",
+      "new_message_sha256": "4cfcdbc5836897d3520182d13714cbc599c146ec605d685fcda6b316e3a4a3fa",
+      "message": "fix(git): 合并刷新并保留未变化的界面状态\n\n- 改为首次可见、可见期间30分钟、保存成功及手动或Git操作完成后刷新，合并重复读取\n- 无变化时保留行节点、焦点和滚动，切库及旧异步结果按仓库身份失效\n"
+    },
+    {
+      "old": "a2852472108544053a0f0671786b9e0a84b3a58a",
+      "new": "c3c980ef030b9260d8db036aa1dff2455951fcb9",
+      "title": "fix(workspace): 修复目录与交互刷新并建立稳定性验证闭环",
+      "kind": "formatted_details",
+      "tree": "27fa4fa4751b774699c12cf865f4f0ff87bc4ea3",
+      "old_parents": [
+        "9164530f11f7a779ff11643618f7e94c969c231e"
+      ],
+      "new_parents": [
+        "d2fb48d52080ed4cca7606e9b2fea3b94bed1df9"
+      ],
+      "metadata_sha256": "1386c72fa53e011d8c640127615d1e6f6a6a02a21f8d6ff7790d192cf47ffbee",
+      "old_message_sha256": "3d3bb0550cf5806aa0c314561f04c3bc8b6c1fc36d6fe6165ea5c3d7801d3d87",
+      "new_message_sha256": "c8807b490d37b59128fd54e121f5f7e694c2566608dcbb5fbe958bcc9d956a55",
+      "message": "fix(workspace): 修复目录与交互刷新并建立稳定性验证闭环\n\n- 统一最近目录写入、原生回收、后缀识别和阅读视口，修正菜单图标、Git快捷动作及底栏状态。\n- 关联需求设计、分类用例、分档压力与独立原生证据；110套件通过，4项环境测试明确未执行。候选已本机安装并核对23项资产，当前用户窗口待正常重启加载。\n"
+    },
+    {
+      "old": "5c72e5db7873e677b6d939240b6a066a082e739f",
+      "new": "9b42fe360a6964615fb839e9ac4b1086acfb47bd",
+      "title": "fix(explorer): 统一资源管理器内容与辅助图标层级",
+      "kind": "added_details",
+      "tree": "fe3a3df9f9e976230cd7990ffef2a5c588f17d07",
+      "old_parents": [
+        "a2852472108544053a0f0671786b9e0a84b3a58a"
+      ],
+      "new_parents": [
+        "c3c980ef030b9260d8db036aa1dff2455951fcb9"
+      ],
+      "metadata_sha256": "c46af2c4311e67dab9642aa0d1d2c7415df0828585287d1e0454ad0725793689",
+      "old_message_sha256": "458f64ffbdccd94ed97d1a1e401c4bb60f580553a6ac76feb5b849efe5053e76",
+      "new_message_sha256": "dd6cc2cee1260a276b9bf0adb1df46ba4fc96a7d5c2a2ad3e7da22b11dbced02",
+      "message": "fix(explorer): 统一资源管理器内容与辅助图标层级\n\n- 为文件树、打开编辑器和时间线统一工作台字体，区分内容、分区标题与辅助说明\n- 固定辅助图标字形和命中区，补充窄栏及明暗原生证据并保留已有动作和文件状态\n"
+    },
+    {
+      "old": "7c13d88181532bd3aa3f49669a3832dd1a7651f7",
+      "new": "a5e6cfac0a7f46470f095573ff585353d82b6399",
+      "title": "feat(update): 增加可选原地更新与启动公告",
+      "kind": "added_details",
+      "tree": "18522c1b227be70d33db9ccf6620550510afad70",
+      "old_parents": [
+        "5c72e5db7873e677b6d939240b6a066a082e739f"
+      ],
+      "new_parents": [
+        "9b42fe360a6964615fb839e9ac4b1086acfb47bd"
+      ],
+      "metadata_sha256": "634c0862708b82f101656a206c0b817495d72e1608de6a5a9061d2212848f05c",
+      "old_message_sha256": "def702993480cfe31df9d068fde2404d9ee190e1c78ab3f75ec1d78cbd3e2886",
+      "new_message_sha256": "4df0ee35d45c149370dff78324816b43c82a658b917849090e77515fbc7f4c68",
+      "message": "feat(update): 增加可选原地更新与启动公告\n\n- 新增启动多窗口一次的可选更新公告，固定提交ZIP下载后复用原安装事务立即写盘\n- 保留草稿、设置和备份，用户手动重启生效；补充并发安装、下载失败及回滚验证\n"
+    },
+    {
+      "old": "567b938268be177a3e24b3870daf5609e2d4b054",
+      "new": "a8bf337557aa6f55447ffc02bc269f6a756399c3",
+      "title": "fix(workspace): 恢复活动栏菜单勾选并收紧留白",
+      "kind": "added_details",
+      "tree": "c8d14b72f9cb51e32a23d122f439cd9452d4820e",
+      "old_parents": [
+        "7c13d88181532bd3aa3f49669a3832dd1a7651f7"
+      ],
+      "new_parents": [
+        "a5e6cfac0a7f46470f095573ff585353d82b6399"
+      ],
+      "metadata_sha256": "fe4f4fa16eb7be7e56c6e118a874e35ad48fb5e8b7a0d37308d98d10825b3d72",
+      "old_message_sha256": "def0623def5df07a3b9104897fbe714d00d7c2e94c718d371d7c5be0142edbb0",
+      "new_message_sha256": "b521f4df0ad4b1ac2859edcc3608f27beb48861e0e519dd7cf66727252ba2d0f",
+      "message": "fix(workspace): 恢复活动栏菜单勾选并收紧留白\n\n- 活动栏右键菜单根据实际可见状态显示勾选，移除额外功能图标和宿主留白\n- 隔离菜单字号及伪元素干扰，覆盖隐藏、重开、键盘和持久化并记录明暗原生证据\n"
+    },
+    {
+      "old": "aa1b42c95c6d0c71e05d26b815e7404886cb4ace",
+      "new": "38e1aac0f30b96f0ad1b70853aa164e9704dde6c",
+      "title": "fix(git): 统一分支检出快速选择与远端跟踪行为",
+      "kind": "added_details",
+      "tree": "779e08264c44103c90147d50412846c980d27af0",
+      "old_parents": [
+        "567b938268be177a3e24b3870daf5609e2d4b054"
+      ],
+      "new_parents": [
+        "a8bf337557aa6f55447ffc02bc269f6a756399c3"
+      ],
+      "metadata_sha256": "e9a18eee8c614a454c74fa6834d365cfde17344dd6b1863237e75e2021edb34e",
+      "old_message_sha256": "67d5727705a975d916805267883ff98e9c68a95e5ca61e578454e06bc30d206a",
+      "new_message_sha256": "088854948df726c934f9f92c915fdc8feb4d9dd31dc5f5c9ff726f4c5c8f8569",
+      "message": "fix(git): 统一分支检出快速选择与远端跟踪行为\n\n- 将底栏和SCM检出入口统一为顶部可搜索选择器，列出本地分支、远端、标签及提交详情\n- 接通创建、指定起点和分离检出，远端复用跟踪分支并保持写锁、草稿保护和刷新\n"
+    },
+    {
+      "old": "4faeffa81a48f18ea14c41a15e9663c91653408a",
+      "new": "627bf416a4aa0fd570da1c901ab36c9d5f3349eb",
+      "title": "fix(workspace): 统一滚动条圆角与主题状态",
+      "kind": "added_details",
+      "tree": "68502f8284a63ec310b505c89b834cc8cd32c17b",
+      "old_parents": [
+        "aa1b42c95c6d0c71e05d26b815e7404886cb4ace"
+      ],
+      "new_parents": [
+        "38e1aac0f30b96f0ad1b70853aa164e9704dde6c"
+      ],
+      "metadata_sha256": "ed9bb2957509d20187041ab53961f11123d170cc319cb6f11e544eefedad0324",
+      "old_message_sha256": "b5f661f0434f28be0bc2a073c911ebc6f647979fae3ff25820a350de7c4e1b3e",
+      "new_message_sha256": "b61fc2c45d7a9d03568ff8c9d1f49100e1bb617c7b53b4620e2b21afec0ed109",
+      "message": "fix(workspace): 统一滚动条圆角与主题状态\n\n- 将原生滚动条宽度、圆角和三态颜色集中到共享样式，统一Monaco、xterm及阅读缩略图适配\n- 保留隐藏与滚动所有者契约，补充主题、缩放、压力及原生截图证据\n"
+    },
+    {
+      "old": "5ac1d9617e5153d338a74640774eb303033b3641",
+      "new": "9cd72682609eaf53b5344d1c736f9066953c841c",
+      "title": "fix(git): 修复提交图列分隔线方向与哈希列宽",
+      "kind": "added_details",
+      "tree": "4d8c8a6e8a033419fdbe150a2932d0d451a84cd7",
+      "old_parents": [
+        "4faeffa81a48f18ea14c41a15e9663c91653408a"
+      ],
+      "new_parents": [
+        "627bf416a4aa0fd570da1c901ab36c9d5f3349eb"
+      ],
+      "metadata_sha256": "ae4aa5bc1d960ba36a9b45b9757fb97648786524a45ea6e3cda04f10a02d7410",
+      "old_message_sha256": "aac05c4e536931dc240b4a50765d8bca71cf3678ada5566868915f07674111ba",
+      "new_message_sha256": "489f97c5eccf0266c06b5378cb472a3e4beee58f551b6738b2e5422550f0d90f",
+      "message": "fix(git): 修复提交图列分隔线方向与哈希列宽\n\n- 三条提交图文本列边界改为相邻可见列共同调整，保持同向拖动并支持哈希列调宽调窄\n- 统一保存、取消和键盘控制，修复隐藏恢复后的无障碍宽度同步，补充三档压力与原生证据\n"
+    },
+    {
+      "old": "3fb5af67e986a4cfce6970903439e9f12a0f1321",
+      "new": "d4e0c894ca811c56431798e6e38e3405a3664e9e",
+      "title": "fix(workspace): 恢复面包屑与正文的主题分界线",
+      "kind": "added_details",
+      "tree": "874c3cff786de344d37405587237508dd15b7353",
+      "old_parents": [
+        "5ac1d9617e5153d338a74640774eb303033b3641"
+      ],
+      "new_parents": [
+        "9cd72682609eaf53b5344d1c736f9066953c841c"
+      ],
+      "metadata_sha256": "15a9d3367065516dbe4caa8d21006b2c21f671795ea3c71e80d86b9b1808a5c9",
+      "old_message_sha256": "d06dae292b0880e2ecc238e34ea452d3e787c8ea64a8e9f80af14441b2b377c3",
+      "new_message_sha256": "a4b31df5469f3a2b6bcf5208dd57a56252615f223bce4952ef44f0b661eb1aac",
+      "message": "fix(workspace): 恢复面包屑与正文的主题分界线\n\n- 在共享面包屑下沿绘制1px主题分界线，覆盖整行并保持22px栏高及点击行为\n- 补充明暗、缩放、分组和关联顶栏回归，记录原生截图与2026.09.19.6安装证据\n"
+    }
+  ],
+  "checks": {
+    "tree_identical": 86,
+    "title_identical": 86,
+    "metadata_identical": 86,
+    "parent_order_preserved": 86,
+    "message_format_valid": 86,
+    "branch_refs_updated": 3,
+    "other_refs_unchanged": 5,
+    "worktree_and_index_unchanged": true,
+    "backup_restored_in_isolated_bare_repository": true,
+    "product_assets_unchanged": 27
+  },
+  "remote_pushed": false,
+  "format_validation": {
+    "cases": 8,
+    "status": "passed",
+    "evidence": ".cache/issue_tracking/git_history_20260919/format_cases.json",
+    "script": "scripts/check_commit_messages.py",
+    "script_sha256": "3624511d865511359712b1af8909894cfc1ddd295052863482f88e0b52c9a133"
+  },
+  "remote": {
+    "name": "origin",
+    "main": "9164530f11f7a779ff11643618f7e94c969c231e",
+    "observed_before_rewrite": true,
+    "pushed": false,
+    "tracking_refs_unchanged": true
+  }
+}
