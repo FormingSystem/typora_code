@@ -17,6 +17,7 @@ import cpp_grammar from "../vendor/vscode_cpp/syntaxes/cpp.tmLanguage.json";
 import cpp_macro_grammar from "../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.tmLanguage.json";
 import platform_grammar from "../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json";
 import extension_css from "./typora_enhancements.css";
+import scrollbar_css from "./workspace_scrollbars.css";
 import { scope_style } from "./textmate_style";
 import { bind_reading_navigation } from "./reading_navigation";
 import { initialize_workspace } from "./workspace_bootstrap";
@@ -478,7 +479,10 @@ export async function activate_typora_enhancements(): Promise<void> {
   const controller=runtime_controller=new AbortController();
   const lifetime=runtime_lifetime=create_workspace_lifetime();
   document.documentElement.setAttribute("data-linux-note-typora-enhancements","loading");
-  try { await initialize(controller,lifetime); }
+  try {
+    lifetime.add(acquire_workspace_style("typora-code-style:workspace_scrollbars",scrollbar_css).remove);
+    await initialize(controller,lifetime);
+  }
   catch(error:unknown){
     if(runtime_controller!==controller||controller.signal.aborted)return;
     deactivate_typora_enhancements();

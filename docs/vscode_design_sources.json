@@ -102,5 +102,46 @@
       "path": "src/vs/workbench/browser/parts/compositeBarActions.ts",
       "sha256": "e6f4ab4bf4c17ecb673242075587525a42b21f84dd501af03bb0bcf98cec5edc"
     }
-  ]
+  ],
+  "scrollbars_20260919": {
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "version": "1.137.0",
+    "adopted": {
+      "native_scrollbar_size": 8,
+      "slider_radius": 4,
+      "light_states": [
+        "#646464C0",
+        "#646464D0",
+        "#646464E0"
+      ],
+      "dark_states": [
+        "#A8A9AA85",
+        "#A8A9AA90",
+        "#A8A9AA9C"
+      ],
+      "progress_height": 2
+    },
+    "files": [
+      {
+        "path": "src/vs/workbench/contrib/modernUI/browser/modernUI.contribution.ts",
+        "sha256": "fd4a19f1a8eb9df56d4a9948886ce0fab2d61904b029754450c0220187c60262"
+      },
+      {
+        "path": "src/vs/workbench/contrib/modernUI/browser/media/roundedCorners.css",
+        "sha256": "461987fb6faa588a3c2869ae671bb98c23675bdbaf1fdccce12ca1b52fdd407b"
+      },
+      {
+        "path": "src/vs/base/browser/ui/progressbar/progressbar.css",
+        "sha256": "8c67efa51409ab88aeb10e8c79e517b56193c7f852da8c5401865246b21d4460"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "ee779361c6dc45d35df2bd08d089e6abb88be60b9222b47e4d8130ef3907ad89"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "909deb25576302ca1f7d7feadd449dc99e9b793b9d17daa02a0c387ef026297e"
+      }
+    ]
+  }
 }

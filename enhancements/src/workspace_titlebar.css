@@ -30,9 +30,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights svg { width:16px;height:16px;vertical-align:middle; }
 #top-titlebar[data-workspace-titlebar=ready] svg,#top-titlebar[data-workspace-titlebar=ready] svg * { stroke:none; }
 @media(max-width:600px) { .workspace-titlebar-center { min-width:88px;margin:0 4px; } }
-.workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(127,127,127,.5) transparent;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
-.workspace-titlebar-popup::-webkit-scrollbar { width:7px; }
-.workspace-titlebar-popup::-webkit-scrollbar-thumb { background:rgba(127,127,127,.5);border-radius:4px; }
+.workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
 .workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
 
 .workspace-titlebar-entry:disabled { opacity:.45; }

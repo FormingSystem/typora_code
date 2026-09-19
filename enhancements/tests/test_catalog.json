@@ -3590,7 +3590,8 @@
         "R046",
         "R047",
         "R018",
-        "R048"
+        "R048",
+        "R049"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3603,7 +3604,8 @@
         "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
         "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
         "enhancements/src/git_branch_picker.ts",
-        "enhancements/src/git_branch_checkout.ts"
+        "enhancements/src/git_branch_checkout.ts",
+        "enhancements/src/workspace_scrollbars.css"
       ],
       "related_modules": [
         "files",
@@ -3944,6 +3946,81 @@
       "id": "TC-git-checkout-stress",
       "script": "enhancements/scripts/test_git_branch_picker.cjs",
       "environment": "隐藏Electron生命周期；Git执行端口替身",
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-workspace-scrollbars",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/src/workspace_explorer.css",
+        "enhancements/src/workspace_search.css",
+        "enhancements/src/workspace_titlebar.css",
+        "enhancements/src/git_graph.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_workspace_scrollbars.cjs",
+      "environment": "隐藏Electron，正式静态CSS、真实Chromium输入及Monaco/xterm",
+      "preconditions": "候选已构建，使用独立临时用户目录",
+      "steps": [
+        "核对明暗与缩放下纵横滑块；真实滚轮/键盘/拖动；动态挂载及恢复"
+      ],
+      "expected": [
+        "共同宽度/圆角、隐藏契约、滚动位置正确，无样式/节点增长"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-scrollbars-stress",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/src/workspace_explorer.css",
+        "enhancements/src/workspace_search.css",
+        "enhancements/src/workspace_titlebar.css",
+        "enhancements/src/git_graph.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_workspace_scrollbars.cjs",
+      "environment": "隐藏Electron，正式静态CSS、真实Chromium输入及Monaco/xterm",
+      "preconditions": "候选已构建，使用独立临时用户目录",
+      "steps": [
+        "核对明暗与缩放下纵横滑块；真实滚轮/键盘/拖动；动态挂载及恢复"
+      ],
+      "expected": [
+        "共同宽度/圆角、隐藏契约、滚动位置正确，无样式/节点增长"
+      ],
+      "timeout_ms": 240000,
       "workload_mode": "tiered"
     }
   ]

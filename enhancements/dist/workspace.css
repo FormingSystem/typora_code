@@ -586,7 +586,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
   .git-scm-sidebar { --git-scm-column-gap: 2px; }
   .git-scm-file-directory { display: none; }
 }
-.git-scm-history-list { overflow-x:hidden;overflow-y:auto;scrollbar-width:thin; min-width: 0; min-height: 0; flex: 1; }
+.git-scm-history-list { overflow-x:hidden;overflow-y:auto; min-width: 0; min-height: 0; flex: 1; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
 .git-scm-history-commit[aria-expanded=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8) !important; color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-history-disclosure { display: none; }
@@ -1450,8 +1450,6 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
 .workspace-explorer-tree { flex:1; min-height:0; position:relative; overflow:auto; outline:none; }
-.workspace-explorer-tree::-webkit-scrollbar { width:8px; height:8px; }
-.workspace-explorer-tree::-webkit-scrollbar-thumb { background:#8886; }
 .workspace-explorer-spacer { position:relative; min-width:100%; }
 .workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
@@ -1840,6 +1838,42 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}
 
+/* workspace_scrollbars.css */
+/* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。
+   仅统一滚动条绘制；overflow、滚动位置和输入始终由原容器拥有。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) {
+  --workspace-scrollbar-size:8px;
+  --workspace-scrollbar-radius:var(--vscode-cornerRadius-small,4px);
+  --workspace-scrollbar-background:var(--vscode-scrollbarSlider-background,#646464c0);
+  --workspace-scrollbar-hover:var(--vscode-scrollbarSlider-hoverBackground,#646464d0);
+  --workspace-scrollbar-active:var(--vscode-scrollbarSlider-activeBackground,#646464e0);
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"])[data-workspace-file-icon-theme="dark"] {
+  --workspace-scrollbar-background:var(--vscode-scrollbarSlider-background,#a8a9aa85);
+  --workspace-scrollbar-hover:var(--vscode-scrollbarSlider-hoverBackground,#a8a9aa90);
+  --workspace-scrollbar-active:var(--vscode-scrollbarSlider-activeBackground,#a8a9aa9c);
+}
+/* 标准颜色非auto会跳过WebKit滑块绘制；不覆盖scrollbar-width:none隐藏契约。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]),html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) * { scrollbar-color:auto; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar {
+  width:var(--workspace-scrollbar-size);height:var(--workspace-scrollbar-size);background:transparent;
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-track,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-corner { background:transparent;box-shadow:none; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-button { display:none; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb {
+  border:0;border-radius:var(--workspace-scrollbar-radius);background:var(--workspace-scrollbar-background);box-shadow:none;
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { background:var(--workspace-scrollbar-hover); }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { background:var(--workspace-scrollbar-active); }
+/* Monaco与xterm拥有颜色/拖动/显隐；这里仅适配真实DOM形状。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :is(.monaco-scrollable-element,.xterm-scrollable-element) > .scrollbar > .slider,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-editor .minimap-slider .minimap-slider-horizontal,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .linux-note-reading-minimap-viewport { border-radius:var(--workspace-scrollbar-radius); }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-diff-editor.has-diff-overview .modified-in-monaco-diff-editor .monaco-scrollable-element > .scrollbar.vertical > .slider {
+  border-radius:var(--workspace-scrollbar-radius) 0 0 var(--workspace-scrollbar-radius);
+}
+
 /* workspace_search.css */
 ﻿/* 原生文件搜索与大纲过滤共用此容器；自定义搜索卸载后选择器失效，原生显示规则自动恢复。 */
 #sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }
@@ -1873,7 +1907,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-search-status>.workspace-search-open-editor {--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--link-color,#006ab1);}
 .workspace-search-status>.workspace-search-open-editor:hover {text-decoration:underline;}
 .workspace-search-notices p { white-space:pre-wrap; margin:3px; }
-.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }
+.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px;  }
 .workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:var(--linux-note-shell-row-height,22px); gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }
 .workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }
 .workspace-search-file[open]>summary>.workspace-search-file-toggle>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }
@@ -2031,9 +2065,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights svg { width:16px;height:16px;vertical-align:middle; }
 #top-titlebar[data-workspace-titlebar=ready] svg,#top-titlebar[data-workspace-titlebar=ready] svg * { stroke:none; }
 @media(max-width:600px) { .workspace-titlebar-center { min-width:88px;margin:0 4px; } }
-.workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(127,127,127,.5) transparent;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
-.workspace-titlebar-popup::-webkit-scrollbar { width:7px; }
-.workspace-titlebar-popup::-webkit-scrollbar-thumb { background:rgba(127,127,127,.5);border-radius:4px; }
+.workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
 .workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
 
 .workspace-titlebar-entry:disabled { opacity:.45; }

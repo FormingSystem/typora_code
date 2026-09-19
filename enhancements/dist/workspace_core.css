@@ -778,9 +778,6 @@ body .typ-workspace-menu.dropdown-menu > .typ-menuitem {
     --typ-tab-border-color: #555;
   }
 }
-.typ-tabs-wrapper::-webkit-scrollbar {
-  height: 6px;
-}
 
 .typ-tab, .typ-tabs::after {
   display: inline-block;

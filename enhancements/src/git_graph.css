@@ -276,7 +276,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
   .git-scm-sidebar { --git-scm-column-gap: 2px; }
   .git-scm-file-directory { display: none; }
 }
-.git-scm-history-list { overflow-x:hidden;overflow-y:auto;scrollbar-width:thin; min-width: 0; min-height: 0; flex: 1; }
+.git-scm-history-list { overflow-x:hidden;overflow-y:auto; min-width: 0; min-height: 0; flex: 1; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
 .git-scm-history-commit[aria-expanded=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8) !important; color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-history-disclosure { display: none; }

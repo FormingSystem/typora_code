@@ -266,7 +266,7 @@
       "path": "src/ui/components/tabs.scss",
       "upstream_path": "src/ui/components/tabs.scss",
       "upstream_sha256": "7d12b44b275f5532e904dc76121625c81f563bc01582a1b872d278c14bc0f294",
-      "sha256": "7d12b44b275f5532e904dc76121625c81f563bc01582a1b872d278c14bc0f294"
+      "sha256": "db5b68a5a8d22d9d52d36e3e01f1b577c510958587192453f288e4fef8a1a551"
     },
     {
       "path": "src/ui/components/tabs.ts",

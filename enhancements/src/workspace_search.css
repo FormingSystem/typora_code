@@ -30,7 +30,7 @@
 .workspace-search-status>.workspace-search-open-editor {--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--link-color,#006ab1);}
 .workspace-search-status>.workspace-search-open-editor:hover {text-decoration:underline;}
 .workspace-search-notices p { white-space:pre-wrap; margin:3px; }
-.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px; scrollbar-width:thin; }
+.workspace-search-results { overflow:auto; flex:1; min-height:0; min-width:0; padding-bottom:8px;  }
 .workspace-search-file>summary,.workspace-search-directory>summary { display:flex; align-items:center; height:var(--linux-note-shell-row-height,22px); gap:4px; padding:0 10px 0 3px; cursor:pointer; list-style:none; user-select:none; }
 .workspace-search-file>summary::-webkit-details-marker,.workspace-search-directory>summary::-webkit-details-marker { display:none; }
 .workspace-search-file[open]>summary>.workspace-search-file-toggle>.git-disclosure-icon,.workspace-search-directory[open]>summary>.git-disclosure-icon { transform:rotate(90deg); }

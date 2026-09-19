@@ -182732,6 +182732,9 @@ https://creativecommons.org/licenses/by/4.0/
   // src/typora_enhancements.css
   var typora_enhancements_default = "";
 
+  // src/workspace_scrollbars.css
+  var workspace_scrollbars_default = "";
+
   // src/textmate_style.ts
   function scope_style(scopes) {
     const joined = scopes.join(" ");
@@ -237861,6 +237864,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026091904,
+        version: "2026.09.19.4",
+        date: "2026-09-19",
+        notes: [
+          "\u7EDF\u4E00\u5DE5\u4F5C\u53F0\u6EDA\u52A8\u6761\u76848px\u5BBD\u5EA6\u30014px\u5706\u89D2\u4E0E\u660E\u6697\u4E3B\u9898\u72B6\u6001\uFF0C\u52A8\u6001\u9762\u677F\u81EA\u52A8\u91C7\u7528\u5171\u540C\u6837\u5F0F\u3002",
+          "\u8865\u9F50Monaco\u3001\u7EC8\u7AEF\u53CA\u9605\u8BFB\u7F29\u7565\u56FE\u6ED1\u5757\u5706\u89D2\uFF0C\u4FDD\u7559\u9690\u85CF\u6EDA\u52A8\u6761\u4E0E\u65E2\u6709\u6EDA\u52A8\u4EA4\u4E92\u3002"
+        ]
+      },
+      {
         sequence: 2026091903,
         version: "2026.09.19.3",
         date: "2026-09-19",
@@ -239058,6 +239070,7 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = runtime_lifetime = create_workspace_lifetime();
     document.documentElement.setAttribute("data-linux-note-typora-enhancements", "loading");
     try {
+      lifetime.add(acquire_workspace_style("typora-code-style:workspace_scrollbars", workspace_scrollbars_default).remove);
       await initialize2(controller, lifetime);
     } catch (error) {
       if (runtime_controller !== controller || controller.signal.aborted) return;

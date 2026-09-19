@@ -1,0 +1,748 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R049"
+  ],
+  "date": "2026-09-19",
+  "baseline": "aa1b42c95c6d0c71e05d26b815e7404886cb4ace",
+  "version": "2026.09.19.4",
+  "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-36-57-901Z_bc4289/report.json",
+      "sha256": "85f2ecf2417ba8b837835726e55230c9d17ad08e6d22c332e20474177c662a1c",
+      "status": "passed",
+      "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a57c8ec5fe94a2b03cd1c282bf8e12154cbbda71d7ed50194a1438382607336c",
+            "enhancements/src/workspace_scrollbars.css": "86ffca00a70a90f0e40cf85844497ca379c8a31dff4c635565f2efb7902e1b45",
+            "enhancements/src/typora_enhancements.ts": "b4e82694ae3be0c53ab03b2c1067e0327b9331b1595a8cfe1639151184031fa3",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4411,
+          "log": "TC-workspace-scrollbars.log",
+          "log_sha256": "0aa7020cfea44e98ee38bc8c93801e227104e35041dc4866e6fd81a84099f8d3"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-36-42-825Z_079316/report.json",
+      "sha256": "29995ac9d6877d0e8f8b61920104303a3af64a32ca7ca6678909b320fb02f4f5",
+      "status": "passed",
+      "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+      "results": [
+        {
+          "id": "TC-system-native-stability",
+          "requirements": [
+            "R040",
+            "R041",
+            "R042",
+            "R043",
+            "R044",
+            "R046",
+            "R047",
+            "R018",
+            "R048",
+            "R049"
+          ],
+          "design": "docs/stability_testing.md#原生验收",
+          "implementation": [
+            "enhancements/fixtures/stability_native.js",
+            "enhancements/scripts/prepare_stability_native.py",
+            "enhancements/scripts/run_private_desktop.ps1",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_explorer_sections.css",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
+            "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
+            "enhancements/src/git_branch_picker.ts",
+            "enhancements/src/git_branch_checkout.ts",
+            "enhancements/src/workspace_scrollbars.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+            "enhancements/fixtures/stability_native.js": "b534cdb2afa314512fff396b5e1d08dbfadf4cec9b62716c21b4724c2c21c90f",
+            "enhancements/scripts/prepare_stability_native.py": "2f30af17e3320d19a3cddb7c42293ae12aa08f550e180907f0778cb0cdc64efe",
+            "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.ts": "4636968eeb48d8311661317f86f48781c0a59e1e0cdd312b6fafed698c7c1d24",
+            "enhancements/vendor/workspace_core/src/ui/components/menu.scss": "a4db94011cec8fb7133088eb07940d376472827815858c6c0ef54c0666e3bf6b",
+            "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts": "b512a6e6847653d83892b7a8eb591a88f380593b3cd0181504add6f8281dae85",
+            "enhancements/src/git_branch_picker.ts": "ef162bd3f3c9ecf2d15e56e54a5d6df0791da428d26669341f4a4b1c03d07a32",
+            "enhancements/src/git_branch_checkout.ts": "e4fe3738b0936d760786c27c47d64dbffbe63d5b30fce0a178b1eb5e1cb309a1",
+            "enhancements/src/workspace_scrollbars.css": "86ffca00a70a90f0e40cf85844497ca379c8a31dff4c635565f2efb7902e1b45"
+          },
+          "sources_unchanged": true,
+          "level": "system",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 16983,
+          "log": "TC-system-native-stability.log",
+          "log_sha256": "f634d346da3143f0706915846fa2927467af084a2c3feeb5ad032e1ba3e8a30f"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-36-43-346Z_32bffa/report.json",
+      "sha256": "688a54ed5956f1ae77be1ad93ae12b449d387270da45341e8b3319fd0f2be6c5",
+      "status": "passed",
+      "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a57c8ec5fe94a2b03cd1c282bf8e12154cbbda71d7ed50194a1438382607336c",
+            "enhancements/src/workspace_scrollbars.css": "86ffca00a70a90f0e40cf85844497ca379c8a31dff4c635565f2efb7902e1b45",
+            "enhancements/src/typora_enhancements.ts": "b4e82694ae3be0c53ab03b2c1067e0327b9331b1595a8cfe1639151184031fa3",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 20,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4538,
+          "log": "TC-workspace-scrollbars-stress.log",
+          "log_sha256": "78db8a3530cc0d2bead8b0b802f95223d3f85092f093689dd9130b5cc827aef1"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-36-48-358Z_a062d5/report.json",
+      "sha256": "f474d01f077588ca76aeebd1903b99972ff660dc2c8beb7f268e7d78223842b1",
+      "status": "passed",
+      "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a57c8ec5fe94a2b03cd1c282bf8e12154cbbda71d7ed50194a1438382607336c",
+            "enhancements/src/workspace_scrollbars.css": "86ffca00a70a90f0e40cf85844497ca379c8a31dff4c635565f2efb7902e1b45",
+            "enhancements/src/typora_enhancements.ts": "b4e82694ae3be0c53ab03b2c1067e0327b9331b1595a8cfe1639151184031fa3",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 100,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4224,
+          "log": "TC-workspace-scrollbars-stress.log",
+          "log_sha256": "e65bdcea28f70013b7266b87a369ff99f4ec1fcee82dfa20d55590b89cf918fc"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-36-53-050Z_7559bc/report.json",
+      "sha256": "346b38b522a5eec57b9f44ddcce57bcdd765870c4e2ba1570da54c7b6fc2a0ca",
+      "status": "passed",
+      "asset_manifest_sha256": "a4d9df1fe72971b464954e6fdf0f0e5ce1683f6d4bf9cab3524019322115111d",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a57c8ec5fe94a2b03cd1c282bf8e12154cbbda71d7ed50194a1438382607336c",
+            "enhancements/src/workspace_scrollbars.css": "86ffca00a70a90f0e40cf85844497ca379c8a31dff4c635565f2efb7902e1b45",
+            "enhancements/src/typora_enhancements.ts": "b4e82694ae3be0c53ab03b2c1067e0327b9331b1595a8cfe1639151184031fa3",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "stress",
+          "iterations": 1000,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4397,
+          "log": "TC-workspace-scrollbars-stress.log",
+          "log_sha256": "52aa1be4e04e1e72605754fb2c9483e4f25211d39c11f3f696632678bf67e95e"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-31-34-691Z_a86278/report.json",
+      "sha256": "a2745bcd9692be01c945dad15513a89fa485a36cbbbcbac7673f6c3761b6df51",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-git-001",
+          "requirements": [
+            "R027",
+            "R045"
+          ],
+          "design": "docs/git_scm_actions.md",
+          "implementation": [
+            "enhancements/src/git_diff_editor.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_diff_overview.cjs": "e31005037d01a3632df2140b37b68c75f4822cfab9f57a5846b808223c3b139b",
+            "enhancements/src/git_diff_editor.ts": "1a59f1a206606e547edbb8dd1e435163d1b3d38eda8fb4a1fb7fd5d41ade0028"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 2476,
+          "log": "TC-git-001.log",
+          "log_sha256": "e984f4749ed3bb15f6e3d1064eeb92d65c3dba5394e4666865454abbb5549580"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-31-37-638Z_79b35b/report.json",
+      "sha256": "173fc7cd8a3c1601f0dca16a649ddf661924141838a50dc2839e2f19eeb1553e",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-reading-008",
+          "requirements": [
+            "R043",
+            "H008"
+          ],
+          "design": "docs/editor_header.md",
+          "implementation": [
+            "enhancements/src/git_diff_editor.ts",
+            "enhancements/src/reading_minimap.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_reading_minimap.cjs": "412abdc92e7f7de596b9240b68eb2a58f1144c27c250009bf940e8a743e59214",
+            "enhancements/src/git_diff_editor.ts": "1a59f1a206606e547edbb8dd1e435163d1b3d38eda8fb4a1fb7fd5d41ade0028",
+            "enhancements/src/reading_minimap.ts": "77292c7603fc7b8ceec61ad4174066709c51f931b873236f5fa564a35f954a34"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 7784,
+          "log": "TC-reading-008.log",
+          "log_sha256": "97d5cd17c1cacec588d9c16fd2226420a4bac8b01ecedf622bd9e25a02544f6e"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-31-45-907Z_2ed887/report.json",
+      "sha256": "f86ac81557fbaa5852ad546e333e00e8719efaaa861e4b954ba48feb78053280",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-terminal-005",
+          "requirements": [
+            "R006",
+            "R006.7"
+          ],
+          "design": "docs/terminal_operations.md",
+          "implementation": [
+            "enhancements/src/terminal_state.ts",
+            "enhancements/src/terminal_workspace.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_terminal_panel.cjs": "d0ed5dfd1af69f34214e53e693edf99c1a7ee3361466788af2848165a6fed403",
+            "enhancements/src/terminal_state.ts": "d6be2dcccbddb8e3a78bd1f646f7326e3f948f913702cee2dcd465eda93e2334",
+            "enhancements/src/terminal_workspace.ts": "f610c80be378ef11e92bc5bd906e7c6e9354657618a17f76f613d1b600bac7e1"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4551,
+          "log": "TC-terminal-005.log",
+          "log_sha256": "63c0b51ce9aa569c2b4f3db8bab30e59321d1488e0616e8cde9fb7dc6eeec599"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-31-50-922Z_7817de/report.json",
+      "sha256": "99bcfbedea3f28234b2ede7d59f68cf97d05bfa10e414702a5469acfd5066584",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-files-009",
+          "requirements": [
+            "R037",
+            "R038",
+            "R046"
+          ],
+          "design": "docs/explorer_history.md",
+          "implementation": [
+            "enhancements/src/workspace_editor_actions.ts",
+            "enhancements/src/workspace_explorer.ts",
+            "enhancements/src/workspace_explorer_sections.ts",
+            "enhancements/src/workspace_file_events.ts",
+            "enhancements/src/workspace_files.ts",
+            "enhancements/src/workspace_save_service.ts",
+            "enhancements/src/workspace_save_settings.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_explorer_sections.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_explorer_history.cjs": "da385028f4901d85c9809fdbc3e7a8960df6a0fb7290ddbbcedd82d56bd3386c",
+            "enhancements/src/workspace_editor_actions.ts": "7b4668e145be2db4cd44c7208cc62c634981ff5a9565e090ac19d4b581a366d3",
+            "enhancements/src/workspace_explorer.ts": "ad2be45347d28476729f0cbe07cb3191e3bfe0ecda30a665ac392335a85c5a4f",
+            "enhancements/src/workspace_explorer_sections.ts": "a11acd69d997a0100da77e2edbd0af0fa9670066833c7deb62c4b2fc739cf700",
+            "enhancements/src/workspace_file_events.ts": "810e15bcc77fc4c78923106efa80b7c53a03ad776fbf4d40def18d53b5d64494",
+            "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+            "enhancements/src/workspace_save_service.ts": "d41be5871a12db290033a67228c58e0b123b31672f06c05f88525312d836fa24",
+            "enhancements/src/workspace_save_settings.ts": "8755a532d83717644cebe0727cf32a8abd4eb8364b1264c1ee4f69223b3dee87",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 6578,
+          "log": "TC-files-009.log",
+          "log_sha256": "d40b7f034907a7d1d8af9247d066c57c420d3252cc7ea5c22d5f911735f6965f"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-35-04-507Z_44aa11/report.json",
+      "sha256": "2f26bbf04fd6ec30073380a76aa030081b939115b9a6d824150a8cc5dbc81172",
+      "status": "passed",
+      "asset_manifest_sha256": "da33ff7a8ae705625b8aae36d8a85a77dc635b4e71183a8a170101c51bb18e0d",
+      "results": [
+        {
+          "id": "TC-workspace-021",
+          "requirements": [
+            "R020",
+            "R044"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_files.ts",
+            "enhancements/src/workspace_startup.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_startup.cjs": "851828f699a40c0c3c89868e43e4f1cec0a563a033473411ec6cf80f509af193",
+            "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+            "enhancements/src/workspace_startup.ts": "063cf29958878357195311bca1fe41bc52c8fd4a469f9defeba7109cdc02c1bf"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 13165,
+          "log": "TC-workspace-021.log",
+          "log_sha256": "5a3d59faed5b5d2c01aef0e5989cee2076dfcd697cc9e5caf21e04e881c60835"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-32-11-880Z_38e5ed/report.json",
+      "sha256": "94a3d40fbbd0c7a63411a53512f0bbb0005f9162e34e7a861b634886baa81966",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-workspace-023",
+          "requirements": [
+            "R020",
+            "R044"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_titlebar.ts",
+            "enhancements/src/workspace_titlebar_menu.ts",
+            "enhancements/src/workspace_titlebar_settings.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_titlebar.cjs": "70da87b122caca87dbe758924c6ff1a48070d781b522616760f82c92cb79ec2c",
+            "enhancements/src/workspace_titlebar.ts": "1e617cae97e6100b78354b34176a19611723e7aa49b8b61620397e77e574f607",
+            "enhancements/src/workspace_titlebar_menu.ts": "771acf3dd1a8e5a6e1b7b7d71bb28e72422dc15525cc2255e74719e38927d012",
+            "enhancements/src/workspace_titlebar_settings.ts": "e4bfa41c1b530779ade9a3f1f00766980e140c5e94a56dc73780ccce8ec58226"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 6235,
+          "log": "TC-workspace-023.log",
+          "log_sha256": "598c40f81e143b578d5c0e2f6913b2fa17048910f9a92b53b90d85adcdadee34"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-32-18-571Z_681b92/report.json",
+      "sha256": "ad1fd7bf5492afb4a080edc12fb1d5d61332cfacb00c71c617e54884b8c93f9d",
+      "status": "passed",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-workspace-024",
+          "requirements": [
+            "R007",
+            "R017",
+            "R040",
+            "R041"
+          ],
+          "design": "docs/file_operations.md",
+          "implementation": [
+            "enhancements/src/terminal_state.ts",
+            "enhancements/src/workspace_titlebar_entries.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_titlebar_entries.cjs": "f8885a9261182e59718de073ccffe2571382107bc0c797d4e1ff72a3b98befac",
+            "enhancements/src/terminal_state.ts": "d6be2dcccbddb8e3a78bd1f646f7326e3f948f913702cee2dcd465eda93e2334",
+            "enhancements/src/workspace_titlebar_entries.ts": "0448cb400bbed792e5b0b98a6c4ffe840f1a7ed8a1171a089edbd875d6a90f82"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 511,
+          "log": "TC-workspace-024.log",
+          "log_sha256": "dcd725367f0b022c152891172df368acd0222819e90b8cdcd414b60306215ce7"
+        }
+      ]
+    }
+  ],
+  "failed_attempts": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-27-46-071Z_aa6f1a/report.json",
+      "sha256": "f2b8355c2ecdbf9531ffd38af55ce7f48b7818046875e69035fa009d2b08b0b5",
+      "status": "incomplete",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a9ca289247d5c6268bae7b0cc1af69737b53224009248a4a31222d1bad1db0ef",
+            "enhancements/src/workspace_scrollbars.css": "945481eba23a260a266e74857bdd9ce89df50a5adbf66d746fefe353d3a8cc34",
+            "enhancements/src/typora_enhancements.ts": "9b4714ea4fbb1badc6452e7150a53d6c4654c675e7a574d6767472208496e0e4",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "failed",
+          "exit_code": 1,
+          "elapsed_ms": 968,
+          "log": "TC-workspace-scrollbars.log",
+          "log_sha256": "07b157437a7c90a71cc8b161fc9644b5bc860e9cdc5a25c25d1b366fce8e26c2"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-28-21-586Z_25776e/report.json",
+      "sha256": "5385abd33a72b9830ee32d470fc095d503379a13288e604b5ee15eff3edf9fa1",
+      "status": "incomplete",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "70ab4d8b0252c28cbd2221d26ac05b5a1bbca0c5d9ab533265b875a49ae8a8b6",
+            "enhancements/src/workspace_scrollbars.css": "945481eba23a260a266e74857bdd9ce89df50a5adbf66d746fefe353d3a8cc34",
+            "enhancements/src/typora_enhancements.ts": "9b4714ea4fbb1badc6452e7150a53d6c4654c675e7a574d6767472208496e0e4",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "failed",
+          "exit_code": 1,
+          "elapsed_ms": 1683,
+          "log": "TC-workspace-scrollbars.log",
+          "log_sha256": "851242f857a5c1c7873cffb8ca74abe7bbd98c192139d161f89da10832fcedbd"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T12-28-56-895Z_2fb5d9/report.json",
+      "sha256": "939e2b20b566527282ea7549d576351873bfb573277947d30db36b0a88548b37",
+      "status": "incomplete",
+      "asset_manifest_sha256": "493e3016876ee5ae423d7a302a86bc88cf537d3202b12efb6b28969c19db9da3",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "d549f3ee94af8702fde8beedcedc347292bf533b217589a14279acce1a7bb404",
+            "enhancements/src/workspace_scrollbars.css": "945481eba23a260a266e74857bdd9ce89df50a5adbf66d746fefe353d3a8cc34",
+            "enhancements/src/typora_enhancements.ts": "9b4714ea4fbb1badc6452e7150a53d6c4654c675e7a574d6767472208496e0e4",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "1883a62dd1dada12c21224f1abf02fb3b46b07ee0fda5b659a313aad7f0803ce"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "failed",
+          "exit_code": 1,
+          "elapsed_ms": 3303,
+          "log": "TC-workspace-scrollbars.log",
+          "log_sha256": "b3c464b098f174e3413b861bb36409435a898fa5ac109d67549337eec6ad30ab"
+        }
+      ]
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/f71e8c752d5742859c34fc08c6f7a9dd",
+    "checks": 62,
+    "status": "PASS",
+    "scope": "原始Typora 1.14.10，私有桌面/用户目录；renderer调用实际宿主API，非物理用户输入",
+    "checks_sha256": "3d464456ad8d3125d326567b3535a89d836588a0c08f8a75d1f79246ded8828a",
+    "screenshots": [
+      {
+        "path": ".cache/issue_tracking/native/f71e8c752d5742859c34fc08c6f7a9dd/stage_scrollbars_Github_12390970.png",
+        "sha256": "44d3604c1415f302b89eea563d1b21b0ded9bdf643e6ff922783006e403942e9"
+      },
+      {
+        "path": ".cache/issue_tracking/native/f71e8c752d5742859c34fc08c6f7a9dd/stage_scrollbars_Night_12390970.png",
+        "sha256": "00bd3959392b72727eddc75fc194bdf1fed0bfbb5271bb194142c931395f6d42"
+      }
+    ],
+    "scrollbar_samples": [
+      {
+        "scrollbars": {
+          "theme": "github.css",
+          "values": [
+            {
+              "name": "git-scm-groups",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(100, 100, 100, 0.753)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            },
+            {
+              "name": "git-scm-history-list",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(100, 100, 100, 0.753)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            },
+            {
+              "name": "typ-workspace-binding",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(100, 100, 100, 0.753)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            }
+          ]
+        }
+      },
+      {
+        "scrollbars": {
+          "theme": "night.css",
+          "values": [
+            {
+              "name": "git-scm-groups",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(168, 169, 170, 0.52)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            },
+            {
+              "name": "git-scm-history-list",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(168, 169, 170, 0.52)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            },
+            {
+              "name": "typ-workspace-binding",
+              "bar": "8px",
+              "radius": "4px",
+              "color": "rgba(168, 169, 170, 0.52)",
+              "standard_width": "auto",
+              "standard_color": "auto"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "standard_check": {
+    "status": "PASS",
+    "log": ".cache/issue_tracking/scrollbars_check.log",
+    "sha256": "aad22ffb326662bce3cf4a4263efa9244253b2ffa8545322e5994c00381ffed4",
+    "final_followup": "最终启动异常范围调整后，重建并通过源码/部署检查、启动UI、共享滚动条及原生62项；最终共享样式仅收紧到loading/ready状态。"
+  },
+  "installation": {
+    "status": "OK",
+    "asset_hashes": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "5cfeea8b4561f3eafec36c9286401b5020185d60526264b1130a7e8361b38499",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "d0cb7f08d4d149613fcf1e53989a305bf0f174ca6f5d6e8d30036b4c65cff4f2",
+      "workspace.css": "c55b010f925cc397edad35fb62ff908350c82ca2e99aed5931b6b56fc280ade4",
+      "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+      "workspace_core.js": "30d9959ad4b14d940594257c306340a7ec51a9cba74121901cd2dabb0907aba6"
+    },
+    "protected_unchanged": 5,
+    "drift": [],
+    "backup_id": "20260919-203733-065-be0fe875a25143a290bffcbb0a1219b4",
+    "windows_restarted": false,
+    "log": ".cache/issue_tracking/scrollbars_install.log",
+    "check_log": ".cache/issue_tracking/scrollbars_install_check.log"
+  },
+  "skill_validation": "PASS (cached PyYAML, official quick_validate)",
+  "limits": [
+    "真实输入为隐藏Electron；原始Typora为隔离桌面renderer调用，不代表其他操作系统或物理输入验收。",
+    "领域回归来自同轮候选；随后仅修共享样式在启动失败时的退出范围，并另做最终原生/启动/样式复验。",
+    "同类样式复用不改变任务进度条或领域滚动/主题所有者；既有其他需求未完成项保持。",
+    "安装不重启用户窗口；未推送。"
+  ]
+}

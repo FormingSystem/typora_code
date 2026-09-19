@@ -53,6 +53,7 @@
   await files.trash_entries(root,[directory]);assert(!fs.existsSync(directory),'TC-files-trash: 原始Typora主进程实际回收临时目录');
   const navigation=path.join(root,'navigation.md');fs.writeFileSync(navigation,'# 起点\n\n'+Array.from({length:70},(_,i)=>'段落 '+i+'\n\n').join('')+'## 目标章节\n\n'+Array.from({length:30},()=> '结尾\n\n').join(''),'utf8');
   await files.open_file(navigation);await wait(()=>File.bundle.filePath===navigation&&!File.isFileLoading()&&document.querySelector('#write h2'),'navigation ready');await pause(300);
+  for(let index=0;index<60;index++)fs.writeFileSync(path.join(root,'scrollbar_'+index+'.txt'),'scrollbar fixture\n','utf8');
   for(const [theme,name]of [['github.css','Github'],['night.css','Night']]){
    ClientCommand.setTheme(theme,name);await pause(250);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    // Explorer使用真实宿主主题；标题、文件内容和辅助动作分别核对。
@@ -124,6 +125,18 @@
     assert(picker.querySelector('[data-checkout-id]')?.dataset.checkoutId==='refs/heads/topic/native','TC-git-checkout-native: '+name+'搜索匹配优先且不打开旧右键菜单');
     for(const type of ['keydown','keyup'])filter.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));
     await wait(()=>!document.querySelector('.git-branch-picker'),'取消分支选择');
+    core.app.commands.run('linux_note:source_control');
+    await wait(()=>document.querySelectorAll('.git-scm-file').length>=60&&document.querySelector('.git-scm-groups')?.getBoundingClientRect().height>0,'SCM滚动列表');await pause(150);
+    const scroll_nodes=[document.querySelector('.git-scm-groups'),document.querySelector('.git-scm-history-list'),document.querySelector('content')];
+    const scroll_samples=scroll_nodes.map(node=>({name:node.className,bar:getComputedStyle(node,'::-webkit-scrollbar').width,radius:getComputedStyle(node,'::-webkit-scrollbar-thumb').borderRadius,color:getComputedStyle(node,'::-webkit-scrollbar-thumb').backgroundColor,standard_width:getComputedStyle(node).scrollbarWidth,standard_color:getComputedStyle(node).scrollbarColor}));
+    samples.push({scrollbars:{theme,values:scroll_samples}});persist();
+    assert(scroll_samples.every(item=>item.bar==='8px'&&item.radius==='4px'&&item.standard_width==='auto'&&item.standard_color==='auto'),'TC-scrollbars-native: '+name+'SCM/历史/正文共同8px/4px且标准样式不绕过绘制');
+    const scroll_group=scroll_nodes[0];scroll_group.scrollTop=100;
+    assert(scroll_group.scrollTop===100,'TC-scrollbars-native: '+name+'真实SCM列表仍可滚动');scroll_group.scrollTop=0;
+    const mini=document.querySelector('.linux-note-reading-minimap-viewport');
+    assert(mini&&getComputedStyle(mini).borderRadius==='4px','TC-scrollbars-native: '+name+'阅读缩略图共享圆角');
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'scrollbars_'+name}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'')).stage==='scrollbars_'+name;}catch{return false;}},'scrollbars screenshot');
    }
   }
   if(reqnode('process').env.TYPORA_TEST_PURPOSE==='stress'){

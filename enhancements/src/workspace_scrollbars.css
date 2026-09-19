@@ -1,0 +1,34 @@
+/* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。
+   仅统一滚动条绘制；overflow、滚动位置和输入始终由原容器拥有。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) {
+  --workspace-scrollbar-size:8px;
+  --workspace-scrollbar-radius:var(--vscode-cornerRadius-small,4px);
+  --workspace-scrollbar-background:var(--vscode-scrollbarSlider-background,#646464c0);
+  --workspace-scrollbar-hover:var(--vscode-scrollbarSlider-hoverBackground,#646464d0);
+  --workspace-scrollbar-active:var(--vscode-scrollbarSlider-activeBackground,#646464e0);
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"])[data-workspace-file-icon-theme="dark"] {
+  --workspace-scrollbar-background:var(--vscode-scrollbarSlider-background,#a8a9aa85);
+  --workspace-scrollbar-hover:var(--vscode-scrollbarSlider-hoverBackground,#a8a9aa90);
+  --workspace-scrollbar-active:var(--vscode-scrollbarSlider-activeBackground,#a8a9aa9c);
+}
+/* 标准颜色非auto会跳过WebKit滑块绘制；不覆盖scrollbar-width:none隐藏契约。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]),html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) * { scrollbar-color:auto; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar {
+  width:var(--workspace-scrollbar-size);height:var(--workspace-scrollbar-size);background:transparent;
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-track,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-corner { background:transparent;box-shadow:none; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-button { display:none; }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb {
+  border:0;border-radius:var(--workspace-scrollbar-radius);background:var(--workspace-scrollbar-background);box-shadow:none;
+}
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { background:var(--workspace-scrollbar-hover); }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { background:var(--workspace-scrollbar-active); }
+/* Monaco与xterm拥有颜色/拖动/显隐；这里仅适配真实DOM形状。 */
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :is(.monaco-scrollable-element,.xterm-scrollable-element) > .scrollbar > .slider,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-editor .minimap-slider .minimap-slider-horizontal,
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .linux-note-reading-minimap-viewport { border-radius:var(--workspace-scrollbar-radius); }
+html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-diff-editor.has-diff-overview .modified-in-monaco-diff-editor .monaco-scrollable-element > .scrollbar.vertical > .slider {
+  border-radius:var(--workspace-scrollbar-radius) 0 0 var(--workspace-scrollbar-radius);
+}
