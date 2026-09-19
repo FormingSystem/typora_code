@@ -1,0 +1,869 @@
+{
+  "schema": 1,
+  "requirement": "R046",
+  "date": "2026-09-19",
+  "base_commit": "a2852472108544053a0f0671786b9e0a84b3a58a",
+  "asset_manifest_sha256": "132ef907d0523d27317217dbe798e51107951b7ded8f3b4a49c6b3a387dc626f",
+  "runs": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T10-43-01-400Z_1f3615/report.json",
+      "sha256": "087443da021117b0d59494b8da0323329b3c9897d0cdbc28653b3739fca37d58",
+      "results": [
+        {
+          "id": "TC-files-008",
+          "requirements": [
+            "R041",
+            "R044",
+            "R046"
+          ],
+          "design": "docs/file_operations.md",
+          "implementation": [
+            "enhancements/src/workspace_activity.ts",
+            "enhancements/src/workspace_explorer.ts",
+            "enhancements/src/workspace_file_clipboard.ts",
+            "enhancements/src/workspace_file_operations.ts",
+            "enhancements/src/workspace_rename.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_explorer_sections.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_explorer.cjs": "80dfb271642bda3b125cdbd3b6d44d8c3d5c3b28152ce800fd0f26ae86c7e377",
+            "enhancements/src/workspace_activity.ts": "7b33de39a368ab5aa4ed6083b7f42ade2f957f4ad02c86595fd1c294e6af87d9",
+            "enhancements/src/workspace_explorer.ts": "ad2be45347d28476729f0cbe07cb3191e3bfe0ecda30a665ac392335a85c5a4f",
+            "enhancements/src/workspace_file_clipboard.ts": "9f33330267aab740caee8d9292ad13cf3a8eca9521fa5509d343de22259b87c7",
+            "enhancements/src/workspace_file_operations.ts": "bdd561578f92bd637d2db6c93e131cfd4f6bb5e4ec0b0de2c26e3c0e67ef7120",
+            "enhancements/src/workspace_rename.ts": "cca25f5c56f99e944e01f042d1423c4ce7b3172411c9908fa2fb04deacd2038a",
+            "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 12356,
+          "log": "TC-files-008.log",
+          "log_sha256": "09cc81c869625c0e6150354910c8daee0b04dc5827e12b89c59098e4853c7189"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T10-43-01-396Z_77c474/report.json",
+      "sha256": "92d0cf1287e47f357a0868ace17fbd497236d588a1871f6d78db28d958ab2b4d",
+      "results": [
+        {
+          "id": "TC-files-009",
+          "requirements": [
+            "R037",
+            "R038",
+            "R046"
+          ],
+          "design": "docs/explorer_history.md",
+          "implementation": [
+            "enhancements/src/workspace_editor_actions.ts",
+            "enhancements/src/workspace_explorer.ts",
+            "enhancements/src/workspace_explorer_sections.ts",
+            "enhancements/src/workspace_file_events.ts",
+            "enhancements/src/workspace_files.ts",
+            "enhancements/src/workspace_save_service.ts",
+            "enhancements/src/workspace_save_settings.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_explorer_sections.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_explorer_history.cjs": "da385028f4901d85c9809fdbc3e7a8960df6a0fb7290ddbbcedd82d56bd3386c",
+            "enhancements/src/workspace_editor_actions.ts": "7b4668e145be2db4cd44c7208cc62c634981ff5a9565e090ac19d4b581a366d3",
+            "enhancements/src/workspace_explorer.ts": "ad2be45347d28476729f0cbe07cb3191e3bfe0ecda30a665ac392335a85c5a4f",
+            "enhancements/src/workspace_explorer_sections.ts": "a11acd69d997a0100da77e2edbd0af0fa9670066833c7deb62c4b2fc739cf700",
+            "enhancements/src/workspace_file_events.ts": "810e15bcc77fc4c78923106efa80b7c53a03ad776fbf4d40def18d53b5d64494",
+            "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+            "enhancements/src/workspace_save_service.ts": "d41be5871a12db290033a67228c58e0b123b31672f06c05f88525312d836fa24",
+            "enhancements/src/workspace_save_settings.ts": "8755a532d83717644cebe0727cf32a8abd4eb8364b1264c1ee4f69223b3dee87",
+            "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 6753,
+          "log": "TC-files-009.log",
+          "log_sha256": "034eaebba6e591a3d2eb6aaf705c175d3e51cfa19cf77d5bd81416a4fbe43159"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T10-43-01-606Z_b65a47/report.json",
+      "sha256": "b53f3b0756e9e7fc88e10abe8bfecb348fe7b5e7a53cccd9417586fe1f6e72d4",
+      "results": [
+        {
+          "id": "TC-files-013",
+          "requirements": [
+            "H004"
+          ],
+          "design": "docs/icon_mapping.md",
+          "implementation": [
+            "enhancements/src/workspace_file_icons.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_file_icons.cjs": "3de8d6e7ef21ee55e99aed80877530131b1438444d7e7832a5d470c9432398da",
+            "enhancements/src/workspace_file_icons.ts": "36bcdc66e36459f856eb893171636bc750e999add495534324d34a13ae35c107"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 2360,
+          "log": "TC-files-013.log",
+          "log_sha256": "0f8752faab52e280301834579b76a8273529104ae524007bc29cb61ed69b50d8"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T10-42-22-216Z_51ce35/report.json",
+      "sha256": "55d745b26c68b89f04f8c303b13605a633324a0b0f228f1b55f814707d5310fa",
+      "results": [
+        {
+          "id": "TC-files-016",
+          "requirements": [
+            "R002",
+            "R042"
+          ],
+          "design": "docs/file_operations.md",
+          "implementation": [
+            "enhancements/src/file_language.ts",
+            "enhancements/src/reading_navigation.ts",
+            "enhancements/src/workspace_file_icons.ts",
+            "enhancements/src/workspace_files.ts",
+            "enhancements/src/workspace_quick_open.ts",
+            "enhancements/src/workspace_search.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_files_search.cjs": "4f3a89b9a973d183dfe047d271f943aae6644004befe49eb0f1dd48b200d3068",
+            "enhancements/src/file_language.ts": "bbce9debdb7d59ae1efb6645e66620df89f09c454e41ea53944d3c3bd78b6230",
+            "enhancements/src/reading_navigation.ts": "cec5aafab7cf5616fb6b203b4861fc7619dfd534cba7f20f8a248294756c4f0d",
+            "enhancements/src/workspace_file_icons.ts": "36bcdc66e36459f856eb893171636bc750e999add495534324d34a13ae35c107",
+            "enhancements/src/workspace_files.ts": "43122e74296148a6377f2c61ad173af211cecdb48cb15de249499a3dec048cc6",
+            "enhancements/src/workspace_quick_open.ts": "70a91dc652f146368269dc892692bfc6b63e2edd0e02e912bccfe3a75b5967c9",
+            "enhancements/src/workspace_search.ts": "e6cc473d8750b06afc8b392a41855207492256ac0fecf7b5b7b6fd6ba5199361"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 16772,
+          "log": "TC-files-016.log",
+          "log_sha256": "f1081aa04cb46578787061a8026aaf8bcb702eb1bc3663190b2364904dc66443"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-19T10-47-19-004Z_0227aa/report.json",
+      "sha256": "4bcea25062dad9a0802967ef29a3c9b6980d2716ec3a8af6e72bea3f31db8241",
+      "results": [
+        {
+          "id": "TC-system-native-stability",
+          "requirements": [
+            "R040",
+            "R041",
+            "R042",
+            "R043",
+            "R044",
+            "R046"
+          ],
+          "design": "docs/stability_testing.md#原生验收",
+          "implementation": [
+            "enhancements/fixtures/stability_native.js",
+            "enhancements/scripts/prepare_stability_native.py",
+            "enhancements/scripts/run_private_desktop.ps1",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_explorer_sections.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_stability_native.ps1": "d31fab6b2e3dce899735689c1e6275ba0ad46f2e411aa6f08915c9ddcb9404cc",
+            "enhancements/fixtures/stability_native.js": "e66c13bf1fd5aad87658e6efcd08758ff4dbc729851774cd95511854a673f2bd",
+            "enhancements/scripts/prepare_stability_native.py": "9b9690bc1d0c4c71bfa8a40da21d2be9b43d247e63b114198f687c36aca94933",
+            "enhancements/scripts/run_private_desktop.ps1": "d354bf0b4b9545a417ee40482e8685a94ad6ff94b98474219ff3f888e80252f4",
+            "enhancements/src/workspace_explorer.css": "a4884cb5210bfb1746d22c40c2dcb8454a883841db771bad9777b33d2e01e2b4",
+            "enhancements/src/workspace_explorer_sections.css": "4a2053919c9a8d20ec752a968fed5c981b2af818c0b083f9e60420dff494fe88"
+          },
+          "sources_unchanged": true,
+          "level": "system",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 11625,
+          "log": "TC-system-native-stability.log",
+          "log_sha256": "6b6de86f80e087c8051023b6aa8f03e81427deecc579604c65b523341d331a91"
+        }
+      ]
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/2ea98850200e442c8806023819548984",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "132ef907d0523d27317217dbe798e51107951b7ded8f3b4a49c6b3a387dc626f",
+      "fixture_sha256": "e66c13bf1fd5aad87658e6efcd08758ff4dbc729851774cd95511854a673f2bd",
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "checks_sha256": "e63f7c3c58b9214985891a7e4ad7643362e0cb79ef3832ab8aed67661c302412",
+    "checks": [
+      "TC-files-recent: 新目录挂载且原生最近历史包含它",
+      "TC-files-rename: 无后缀默认纯文本",
+      "TC-files-rename: clean改后缀自动进入原生Markdown且保持clean",
+      "TC-files-rename: dirty正文/模型保留且语言更新",
+      "TC-files-rename: 改名不静默保存草稿",
+      "TC-files-rename: 保存后自动进入Markdown且正文正确",
+      "TC-files-trash: 原始Typora主进程实际回收临时文件",
+      "TC-files-trash: 原始Typora主进程实际回收临时目录",
+      "TC-explorer-hierarchy: Github 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Github 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Github 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Github 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Github 220标题与辅助工具不重叠",
+      "TC-reading-native: Github显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Github字体/SVG共用16px槽位",
+      "TC-workspace-menu: Github实际图标和文字行内居中",
+      "TC-workspace-menu: Github功能菜单文字对齐",
+      "TC-workspace-menu: Github图标与文字保留槽间距",
+      "TC-explorer-hierarchy: Night 300真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 300正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 300分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 300标题与辅助工具不重叠",
+      "TC-explorer-hierarchy: Night 220真实分隔条调整且不覆盖编辑区",
+      "TC-explorer-hierarchy: Night 220正文主题不改变UI字体",
+      "TC-explorer-hierarchy: Night 220分区20px目标内16px图标居中",
+      "TC-explorer-hierarchy: Night 220标题与辅助工具不重叠",
+      "TC-reading-native: Night显式章节跳转完整避开顶部导航",
+      "实际活动栏功能菜单打开",
+      "TC-workspace-menu: Night字体/SVG共用16px槽位",
+      "TC-workspace-menu: Night实际图标和文字行内居中",
+      "TC-workspace-menu: Night功能菜单文字对齐",
+      "TC-workspace-menu: Night图标与文字保留槽间距",
+      "原始夹具文档保持字节一致"
+    ],
+    "explorer_samples": [
+      {
+        "theme": "github.css",
+        "width": 300,
+        "fonts": [
+          {
+            "role": "",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "12px",
+            "weight": "600"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          }
+        ],
+        "geometry": [
+          {
+            "button": {
+              "x": 243.1999969482422,
+              "y": 472.3000183105469,
+              "width": 20,
+              "height": 20,
+              "top": 472.3000183105469,
+              "right": 263.1999969482422,
+              "bottom": 492.3000183105469,
+              "left": 243.1999969482422
+            },
+            "icon": {
+              "x": 245.1999969482422,
+              "y": 474.3000183105469,
+              "width": 16,
+              "height": 16,
+              "top": 474.3000183105469,
+              "right": 261.1999969482422,
+              "bottom": 490.3000183105469,
+              "left": 245.1999969482422
+            }
+          },
+          {
+            "button": {
+              "x": 267.20001220703125,
+              "y": 472.3000183105469,
+              "width": 20,
+              "height": 20,
+              "top": 472.3000183105469,
+              "right": 287.20001220703125,
+              "bottom": 492.3000183105469,
+              "left": 267.20001220703125
+            },
+            "icon": {
+              "x": 269.20001220703125,
+              "y": 474.3000183105469,
+              "width": 16,
+              "height": 16,
+              "top": 474.3000183105469,
+              "right": 285.20001220703125,
+              "bottom": 490.3000183105469,
+              "left": 269.20001220703125
+            }
+          },
+          {
+            "button": {
+              "x": 291.20001220703125,
+              "y": 472.3000183105469,
+              "width": 20,
+              "height": 20,
+              "top": 472.3000183105469,
+              "right": 311.20001220703125,
+              "bottom": 492.3000183105469,
+              "left": 291.20001220703125
+            },
+            "icon": {
+              "x": 293.20001220703125,
+              "y": 474.3000183105469,
+              "width": 16,
+              "height": 16,
+              "top": 474.3000183105469,
+              "right": 309.20001220703125,
+              "bottom": 490.3000183105469,
+              "left": 293.20001220703125
+            }
+          },
+          {
+            "button": {
+              "x": 315.20001220703125,
+              "y": 472.3000183105469,
+              "width": 20,
+              "height": 20,
+              "top": 472.3000183105469,
+              "right": 335.20001220703125,
+              "bottom": 492.3000183105469,
+              "left": 315.20001220703125
+            },
+            "icon": {
+              "x": 317.20001220703125,
+              "y": 474.3000183105469,
+              "width": 16,
+              "height": 16,
+              "top": 474.3000183105469,
+              "right": 333.20001220703125,
+              "bottom": 490.3000183105469,
+              "left": 317.20001220703125
+            }
+          }
+        ],
+        "device_pixel_ratio": 1.25
+      },
+      {
+        "theme": "github.css",
+        "width": 220,
+        "fonts": [
+          {
+            "role": "",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "12px",
+            "weight": "600"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          }
+        ],
+        "geometry": [
+          {
+            "button": {
+              "x": 163.1999969482422,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 183.1999969482422,
+              "bottom": 708.1000366210938,
+              "left": 163.1999969482422
+            },
+            "icon": {
+              "x": 165.1999969482422,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 181.1999969482422,
+              "bottom": 706.1000366210938,
+              "left": 165.1999969482422
+            }
+          },
+          {
+            "button": {
+              "x": 187.1999969482422,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 207.1999969482422,
+              "bottom": 708.1000366210938,
+              "left": 187.1999969482422
+            },
+            "icon": {
+              "x": 189.1999969482422,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 205.1999969482422,
+              "bottom": 706.1000366210938,
+              "left": 189.1999969482422
+            }
+          },
+          {
+            "button": {
+              "x": 211.1999969482422,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 231.1999969482422,
+              "bottom": 708.1000366210938,
+              "left": 211.1999969482422
+            },
+            "icon": {
+              "x": 213.1999969482422,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 229.1999969482422,
+              "bottom": 706.1000366210938,
+              "left": 213.1999969482422
+            }
+          },
+          {
+            "button": {
+              "x": 235.1999969482422,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 255.1999969482422,
+              "bottom": 708.1000366210938,
+              "left": 235.1999969482422
+            },
+            "icon": {
+              "x": 237.1999969482422,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 253.1999969482422,
+              "bottom": 706.1000366210938,
+              "left": 237.1999969482422
+            }
+          }
+        ],
+        "device_pixel_ratio": 1.25
+      },
+      {
+        "theme": "night.css",
+        "width": 300,
+        "fonts": [
+          {
+            "role": "",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "12px",
+            "weight": "600"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          }
+        ],
+        "geometry": [
+          {
+            "button": {
+              "x": 244,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 264,
+              "bottom": 708.1000366210938,
+              "left": 244
+            },
+            "icon": {
+              "x": 246,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 262,
+              "bottom": 706.1000366210938,
+              "left": 246
+            }
+          },
+          {
+            "button": {
+              "x": 268,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 288,
+              "bottom": 708.1000366210938,
+              "left": 268
+            },
+            "icon": {
+              "x": 270,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 286,
+              "bottom": 706.1000366210938,
+              "left": 270
+            }
+          },
+          {
+            "button": {
+              "x": 292,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 312,
+              "bottom": 708.1000366210938,
+              "left": 292
+            },
+            "icon": {
+              "x": 294,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 310,
+              "bottom": 706.1000366210938,
+              "left": 294
+            }
+          },
+          {
+            "button": {
+              "x": 316,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 336,
+              "bottom": 708.1000366210938,
+              "left": 316
+            },
+            "icon": {
+              "x": 318,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 334,
+              "bottom": 706.1000366210938,
+              "left": 318
+            }
+          }
+        ],
+        "device_pixel_ratio": 1.25
+      },
+      {
+        "theme": "night.css",
+        "width": 220,
+        "fonts": [
+          {
+            "role": "",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "12px",
+            "weight": "600"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-open-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          },
+          {
+            "role": "workspace-explorer-name",
+            "font": "\"Segoe WPC\", \"Segoe UI\", \"Microsoft YaHei UI\", sans-serif",
+            "size": "13px",
+            "weight": "400"
+          }
+        ],
+        "geometry": [
+          {
+            "button": {
+              "x": 164,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 184,
+              "bottom": 708.1000366210938,
+              "left": 164
+            },
+            "icon": {
+              "x": 166,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 182,
+              "bottom": 706.1000366210938,
+              "left": 166
+            }
+          },
+          {
+            "button": {
+              "x": 188,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 208,
+              "bottom": 708.1000366210938,
+              "left": 188
+            },
+            "icon": {
+              "x": 190,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 206,
+              "bottom": 706.1000366210938,
+              "left": 190
+            }
+          },
+          {
+            "button": {
+              "x": 212,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 232,
+              "bottom": 708.1000366210938,
+              "left": 212
+            },
+            "icon": {
+              "x": 214,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 230,
+              "bottom": 706.1000366210938,
+              "left": 214
+            }
+          },
+          {
+            "button": {
+              "x": 236,
+              "y": 688.1000366210938,
+              "width": 20,
+              "height": 20,
+              "top": 688.1000366210938,
+              "right": 256,
+              "bottom": 708.1000366210938,
+              "left": 236
+            },
+            "icon": {
+              "x": 238,
+              "y": 690.1000366210938,
+              "width": 16,
+              "height": 16,
+              "top": 690.1000366210938,
+              "right": 254,
+              "bottom": 706.1000366210938,
+              "left": 238
+            }
+          }
+        ],
+        "device_pixel_ratio": 1.25
+      }
+    ],
+    "screenshots": {
+      "stage_explorer_Github_220_6099664.png": "5402760d1ebce294ab9822c28e263b1f07db3dff3833728a271093d68ccf4b86",
+      "stage_explorer_Github_300_6099664.png": "62f0d3b94e7bd53eeabeef769464c6dd1220d9d59078b2278c7df3a6928fd50a",
+      "stage_explorer_Night_220_6099664.png": "eeec7a07aee2a3bebf46219f53b5663e7c4e98dba99c5eb8d6d4d18fd90d2fdb",
+      "stage_explorer_Night_300_6099664.png": "c481d2c6ff584bf37983be61bb821b145e76e6580ade56ffbf360b61a8b51155"
+    },
+    "input": "renderer keyboard events through actual sidebar sash and native host APIs; not physical keyboard",
+    "window_pixels": [
+      2100,
+      1300
+    ],
+    "device_pixel_ratio": 1.25,
+    "zoom_factor": 1
+  },
+  "red": {
+    "path": ".cache/issue_tracking/runs/2026-09-19T10-40-06-405Z_1295e1/report.json",
+    "reason": "UI typography depends on document font before the fix"
+  },
+  "validation": {
+    "build": "passed",
+    "check": "passed",
+    "check_log_sha256": "51b06e6e037889232ce85ac05601ff925c14da0205bb9ab26c9366e0a441e5dd",
+    "installed_assets": 23,
+    "protected_unchanged": 5,
+    "install_check": "OK",
+    "user_windows_restarted": false,
+    "skill_validator": "passed"
+  }
+}

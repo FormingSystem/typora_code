@@ -1421,11 +1421,13 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 .typora-code-startup-error { position:fixed;z-index:2147483647;inset:0 0 auto;padding:12px;color:var(--linux-note-shell-foreground,#202020);background:var(--linux-note-shell-input-background,#fff);border:1px solid var(--linux-note-shell-border,#F0F1F2);font:13px/1.4 "Segoe UI",sans-serif; }
 
 /* workspace_explorer.css */
-.linux-note-workspace-explorer { position:absolute; inset:0; display:flex; flex-direction:column; min-width:0; min-height:0; font:13px var(--monospace,Arial,sans-serif); color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); }
+.linux-note-workspace-explorer { position:absolute; inset:0; display:flex; flex-direction:column; min-width:0; min-height:0; font:400 13px/normal var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif); color:var(--linux-note-shell-foreground,var(--text-color,#333)); background:var(--side-bar-bg-color,#f8f8f8); }
+/* 内容使用工作台字体；Codicons 字形与按钮命中区域分别约束，避免正文主题改变层级。 */
+.linux-note-workspace-explorer .git-standard-icon { display:block; flex:none; width:16px; height:16px; }
 .workspace-explorer-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:38px; box-sizing:border-box; padding:4px 10px 4px 14px; gap:6px; }
-.workspace-explorer-toolbar strong { white-space:nowrap; font-family:var(--font-family,Arial,sans-serif); font-size:12px; font-weight:600; }
+.workspace-explorer-toolbar strong { white-space:nowrap; font-family:inherit; font-size:12px; font-weight:600; }
 .workspace-explorer-actions { display:flex; align-items:center; gap:2px; }
-.workspace-explorer-actions button { display:inline-flex; align-items:center; justify-content:center; width:25px; height:25px; padding:0; color:inherit; background:transparent; border:0; cursor:pointer; }
+.workspace-explorer-actions button { display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; flex:none; width:25px; height:25px; margin:0; padding:0; color:inherit; background:transparent; border:0; cursor:pointer; }
 
 
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
@@ -1475,7 +1477,7 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 .workspace-explorer-section-heading>.workspace-explorer-section-actions{display:none;flex:none;align-items:center;gap:4px;margin-left:auto;margin-right:8px}
 :is(.workspace-explorer-opened,.workspace-explorer-folders,.workspace-timeline):not(.is-collapsed):is(:hover,:focus-within)>.workspace-explorer-section-heading>.workspace-explorer-section-actions{display:flex}
 .workspace-explorer-section-actions>button,.workspace-explorer-open-row>.git-icon-button{position:relative;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:inherit;cursor:pointer;box-shadow:none}
-.workspace-explorer-section-heading>.workspace-explorer-section-actions>button{height:20px;width:20px;padding:2px;flex:none}
+.workspace-explorer-section-heading>.workspace-explorer-section-actions>button{box-sizing:border-box;height:20px;width:20px;margin:0;padding:2px;flex:none}
 .workspace-explorer-opened{flex:0 0 auto;min-width:0;overflow:hidden}
 .workspace-explorer-opened-list{overflow:auto;min-width:0}
 .workspace-explorer-editor-group{height:22px;line-height:22px;padding-left:24px;font-size:11px;opacity:.75}
@@ -1496,7 +1498,7 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 .workspace-timeline{display:flex;flex:0 1 35%;min-height:100px;flex-direction:column;overflow:hidden;min-width:0}
 .workspace-timeline.is-collapsed{flex:0 0 28px;min-height:28px}
 .workspace-timeline .workspace-explorer-section-label{flex:0 0 auto}
-.workspace-timeline-target{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;text-indent:6px;font-weight:normal;opacity:.7}
+.workspace-timeline-target{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;text-indent:6px;font-weight:normal;color:var(--linux-note-shell-description-foreground,#888)}
 .workspace-timeline-list{overflow:auto;flex:1;min-height:0}
 .workspace-timeline-list>p{font-size:12px;color:var(--linux-note-shell-description-foreground,#888);padding:8px 12px;margin:0;overflow-wrap:anywhere}
 .workspace-timeline-entry{display:flex;gap:6px;align-items:center;height:24px;width:100%;border:0;background:transparent;color:inherit;padding:0 8px;font:inherit;text-align:left}

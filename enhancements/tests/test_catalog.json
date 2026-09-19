@@ -2269,7 +2269,8 @@
       "purpose": "implementation",
       "requirements": [
         "R041",
-        "R044"
+        "R044",
+        "R046"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2277,7 +2278,9 @@
         "enhancements/src/workspace_explorer.ts",
         "enhancements/src/workspace_file_clipboard.ts",
         "enhancements/src/workspace_file_operations.ts",
-        "enhancements/src/workspace_rename.ts"
+        "enhancements/src/workspace_rename.ts",
+        "enhancements/src/workspace_explorer.css",
+        "enhancements/src/workspace_explorer_sections.css"
       ],
       "related_modules": [
         "explorer",
@@ -2305,7 +2308,8 @@
       "purpose": "implementation",
       "requirements": [
         "R037",
-        "R038"
+        "R038",
+        "R046"
       ],
       "design": "docs/explorer_history.md",
       "implementation": [
@@ -2315,7 +2319,9 @@
         "enhancements/src/workspace_file_events.ts",
         "enhancements/src/workspace_files.ts",
         "enhancements/src/workspace_save_service.ts",
-        "enhancements/src/workspace_save_settings.ts"
+        "enhancements/src/workspace_save_settings.ts",
+        "enhancements/src/workspace_explorer.css",
+        "enhancements/src/workspace_explorer_sections.css"
       ],
       "related_modules": [
         "explorer",
@@ -3578,13 +3584,16 @@
         "R041",
         "R042",
         "R043",
-        "R044"
+        "R044",
+        "R046"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
         "enhancements/fixtures/stability_native.js",
         "enhancements/scripts/prepare_stability_native.py",
-        "enhancements/scripts/run_private_desktop.ps1"
+        "enhancements/scripts/run_private_desktop.ps1",
+        "enhancements/src/workspace_explorer.css",
+        "enhancements/src/workspace_explorer_sections.css"
       ],
       "related_modules": [
         "files",
@@ -3602,7 +3611,8 @@
       "steps": [
         "复制并校验候选资产，启动独立原生宿主",
         "操作真实最近目录、无后缀重命名、dirty保存与回收站",
-        "Github/Night下标题跳转，真实功能菜单字体与SVG行盒、间距截图"
+        "Github/Night下标题跳转，真实功能菜单字体与SVG行盒、间距截图",
+        "Explorer在300/220px侧栏与Github/Night主题核对UI字体、实际SVG、按钮命中区和截图"
       ],
       "expected": [
         "原生操作成功，源文档字节保持，标题可见，图标及文字对齐，原ASAR不变；checks.json=PASS"

@@ -42,6 +42,33 @@
   await files.open_file(navigation);await wait(()=>File.bundle.filePath===navigation&&!File.isFileLoading()&&document.querySelector('#write h2'),'navigation ready');await pause(300);
   for(const [theme,name]of [['github.css','Github'],['night.css','Night']]){
    ClientCommand.setTheme(theme,name);await pause(250);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
+   // Explorer使用真实宿主主题；标题、文件内容和辅助动作分别核对。
+   if(!document.querySelector('.linux-note-workspace-explorer')?.getBoundingClientRect().width)document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]').click();
+   await wait(()=>document.querySelector('.linux-note-workspace-explorer'),'Explorer挂载');
+   const explorer=document.querySelector('.linux-note-workspace-explorer');
+   await wait(()=>{const title=explorer.querySelector('.workspace-explorer-toolbar strong'),box=title.getBoundingClientRect();return title.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));},'Explorer实际可见命中');
+   await document.fonts.ready;
+   for(const toggle of explorer.querySelectorAll('.workspace-explorer-section-title'))if(toggle.getAttribute('aria-expanded')==='false')toggle.click();
+   await wait(()=>explorer.querySelector('.workspace-explorer-name'),'Explorer内容');
+   const sidebar=document.querySelector('#typora-sidebar'),sash=document.querySelector('#typora-sidebar-resizer');
+   for(const width of [300,220]){
+    sash.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true}));
+    for(let step=170;step<width;step+=10)sash.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
+    explorer.querySelector('.workspace-timeline .workspace-explorer-section-title').focus();await pause(350);
+    assert(Math.abs(sidebar.getBoundingClientRect().width-width)<1&&document.querySelector('.typ-workspace-root').getBoundingClientRect().left>=sidebar.getBoundingClientRect().right-1,'TC-explorer-hierarchy: '+name+' '+width+'真实分隔条调整且不覆盖编辑区');
+    const fonts=[...explorer.querySelectorAll('.workspace-explorer-toolbar strong,.workspace-explorer-name,.workspace-explorer-open-name,.workspace-timeline-label')].map(node=>({role:node.className,font:getComputedStyle(node).fontFamily,size:getComputedStyle(node).fontSize,weight:getComputedStyle(node).fontWeight}));
+    const buttons=[...explorer.querySelectorAll('.workspace-explorer-section-actions button')].filter(node=>node.getBoundingClientRect().width>0);
+    const geometry=buttons.map(node=>({button:node.getBoundingClientRect().toJSON(),icon:node.querySelector('svg').getBoundingClientRect().toJSON()}));
+    samples.push({explorer:{theme,width,fonts,geometry,device_pixel_ratio:devicePixelRatio}});persist();
+    const stage='explorer_'+name+'_'+width;
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage===stage;}catch{return false;}},'Explorer截图');
+    assert(fonts.length>1&&fonts.every(item=>item.font.includes('Segoe')),'TC-explorer-hierarchy: '+name+' '+width+'正文主题不改变UI字体');
+    assert(geometry.length===4&&geometry.every(({button,icon})=>Math.abs(button.width-20)<1&&Math.abs(button.height-20)<1&&Math.abs(icon.width-16)<1&&Math.abs(icon.height-16)<1&&Math.abs(icon.x+8-button.x-10)<1&&Math.abs(icon.y+8-button.y-10)<1),'TC-explorer-hierarchy: '+name+' '+width+'分区20px目标内16px图标居中');
+    const title=explorer.querySelector('.workspace-timeline .workspace-explorer-section-title').getBoundingClientRect(),actions=explorer.querySelector('.workspace-timeline .workspace-explorer-section-actions').getBoundingClientRect();
+    assert(title.right<=actions.left+.5&&title.width>20,'TC-explorer-hierarchy: '+name+' '+width+'标题与辅助工具不重叠');
+   }
+   document.activeElement?.blur();
    const heading=document.querySelector('#write h2'),content=document.querySelector('content');
    await wait(()=>!File.editor.isScrolling()&&!File._onInitParse,'native scroll idle');File.editor.selection.scrollAdjust($(heading),10,0,true);await pause(650);
    const geometry={theme,top:heading.getBoundingClientRect().top,content_top:content.getBoundingClientRect().top+content.clientTop,bottom:content.getBoundingClientRect().bottom,scroll:content.scrollTop,scroll_height:content.scrollHeight,client_height:content.clientHeight,busy:File.inBusyMode,typewriter:File.isTypeWriterMode,bar_bottom:document.querySelector('.workspace-breadcrumbs:not([hidden])')?.getBoundingClientRect().bottom};samples.push(geometry);
