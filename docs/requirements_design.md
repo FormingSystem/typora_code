@@ -79,7 +79,7 @@
 | R031 | 图片与图表共用放大查看器 | [设计](reading_media_viewer.md) | 图片／Mermaid共享外侧右上方[不透明悬停入口](reading_media_viewer.md#r031-悬停入口的不透明底色)，缩放拖动、主题与来源生命周期 |
 | R032 | Esc逐层退出并恢复原操作 | [设计](workspace_interaction.md#r032-esc退出与原操作恢复) | 共同焦点与选区恢复、按下释放配对、来源身份及取消边界 |
 | R033 | 弹窗外部关闭 | [设计](workspace_interaction.md#r033-弹窗外部关闭与焦点转移) | 外部点击与焦点离开取消，Esc恢复，内部交互与手势归属 |
-| R034 | 文件标签与编辑器顶部 | [设计](editor_header.md) | 普通MD文件图标与名称、紧凑标签及[标题／函数面包屑](editor_header.md#r034-标题与函数面包屑)、[Git 比较编辑器动作](editor_header.md#r034-git比较编辑器动作)、[普通文件顶端功能栏](editor_header.md#r034-普通文件顶端功能栏)、分组定位及集中配置 |
+| R034 | 文件标签与编辑器顶部 | [设计](editor_header.md) | [导航与正文分界线](editor_header.md#r034-面包屑与正文分界线)、普通MD文件图标与名称、紧凑标签及[标题／函数面包屑](editor_header.md#r034-标题与函数面包屑)、[Git 比较编辑器动作](editor_header.md#r034-git比较编辑器动作)、[普通文件顶端功能栏](editor_header.md#r034-普通文件顶端功能栏)、分组定位及集中配置 |
 | R035 | 更改与提交图覆盖式分隔条 | [设计](workspace_interaction.md#r035-更改与提交图覆盖式分隔条) | 删除网格占位，按实际交界覆盖命中与悬停高亮 |
 | R036 | 版权与来源声明 | [设计](copyright_notice.md) | 根许可证与版权声明、原创署名、VS Code设计参考、贡献及第三方边界，包元数据一致 |
 | R037 | 资源管理器分区、打开的编辑器与时间线 | [设计](explorer_history.md#r037-资源管理器分区与菜单) | 三分区共用标题几何、字体和折叠工具栏规则；扩展及引用提供者、实机交付边界见设计 |

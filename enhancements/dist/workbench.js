@@ -237995,6 +237995,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026091906,
+        version: "2026.09.19.6",
+        date: "2026-09-19",
+        notes: [
+          "\u6062\u590D\u9762\u5305\u5C51\u4E0E\u6B63\u6587\u4E4B\u95F4\u7684\u6A2A\u5411\u5206\u754C\u7EBF\uFF0C\u7EDF\u4E00Markdown\u3001\u6E90\u7801\u548C\u5206\u680F\u7F16\u8F91\u5668\u7684\u660E\u6697\u4E3B\u9898\u8FB9\u754C\u3002"
+        ]
+      },
+      {
         sequence: 2026091905,
         version: "2026.09.19.5",
         date: "2026-09-19",

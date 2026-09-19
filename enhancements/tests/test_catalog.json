@@ -1885,7 +1885,8 @@
         "enhancements/src/workspace_breadcrumbs_settings.ts",
         "enhancements/src/workspace_document_symbols.ts",
         "enhancements/src/workspace_file_uri.ts",
-        "enhancements/src/workspace_source_outline.ts"
+        "enhancements/src/workspace_source_outline.ts",
+        "enhancements/src/workspace_breadcrumbs.css"
       ],
       "related_modules": [
         "menu",
@@ -3592,7 +3593,8 @@
         "R018",
         "R048",
         "R049",
-        "R050"
+        "R050",
+        "R034"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3608,7 +3610,8 @@
         "enhancements/src/git_branch_checkout.ts",
         "enhancements/src/workspace_scrollbars.css",
         "enhancements/src/git_graph_columns.ts",
-        "enhancements/src/git_graph_panel.ts"
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/workspace_breadcrumbs.css"
       ],
       "related_modules": [
         "files",

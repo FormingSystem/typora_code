@@ -163,5 +163,27 @@
         "sha256": "21e56ec77929aa28f1290810988e2765d8d257b19feb148ad0816e43a582ee97"
       }
     ]
+  },
+  "breadcrumb_border_20260919": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "files": [
+      {
+        "path": "src/vs/workbench/browser/parts/editor/media/breadcrumbscontrol.css",
+        "sha256": "c0dfef5c1e7c713392aa3bfd37e13b4c0b4b310bde89fcb2284d73cadbb1d967"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "ee779361c6dc45d35df2bd08d089e6abb88be60b9222b47e4d8130ef3907ad89"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "909deb25576302ca1f7d7feadd449dc99e9b793b9d17daa02a0c387ef026297e"
+      }
+    ],
+    "adopted": "breadcrumbscontrol.css 6-8: 1px editorWidget.border; Light 2026 #E4E5E6, Dark 2026 #2A2B2C",
+    "adaptation": "共享伪元素保持22px行盒及正文起点；本项目暗色也绘制边界",
+    "target": "enhancements/src/workspace_breadcrumbs.css",
+    "validation": "TC-workspace-003与原生稳定性用例：明暗、缩放、两组、导航隐藏及章节边界"
   }
 }

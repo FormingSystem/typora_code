@@ -1328,6 +1328,10 @@ body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
 /* VS Code 1.137.0 breadcrumbsControl / breadcrumbsWidget / breadcrumbsPicker。 */
 .workspace-breadcrumbs {display:flex;align-items:center;flex:0 0 22px;box-sizing:border-box;height:22px;min-height:22px;min-width:0;width:100%;padding:0 4px 0 8px;background:var(--bg-color,#fff);color:var(--text-color,#333);font:13px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);border:0;user-select:none;}
 .workspace-breadcrumbs[hidden] {display:none;}
+/* VS Code breadcrumbscontrol.css 的1px底边；绘制层保持既有22px行盒与正文起点。 */
+.workspace-breadcrumbs {position:relative;--workspace-breadcrumb-border:var(--vscode-editorWidget-border,#E4E5E6);}
+:root[data-workspace-file-icon-theme="dark"] .workspace-breadcrumbs {--workspace-breadcrumb-border:var(--vscode-editorWidget-border,#2A2B2C);}
+.workspace-breadcrumbs::after {content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--workspace-breadcrumb-border);pointer-events:none;}
 .workspace-breadcrumb-trail {display:flex;align-items:center;flex:1;min-width:0;height:22px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;}
 .workspace-breadcrumb-trail::-webkit-scrollbar {height:0;}
 .workspace-breadcrumbs button.workspace-breadcrumb-segment {--workspace-interaction-hover:transparent;--workspace-interaction-radius:0;display:flex;align-items:center;flex:0 0 auto;min-width:0;max-width:80%;height:22px;padding:0 2px;border:0;margin:0;box-shadow:none;background:transparent;color:inherit;opacity:.8;font:inherit;line-height:22px;cursor:pointer;}

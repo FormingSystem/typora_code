@@ -88,6 +88,13 @@
    const geometry={theme,top:heading.getBoundingClientRect().top,content_top:content.getBoundingClientRect().top+content.clientTop,bottom:content.getBoundingClientRect().bottom,scroll:content.scrollTop,scroll_height:content.scrollHeight,client_height:content.clientHeight,busy:File.inBusyMode,typewriter:File.isTypeWriterMode,bar_bottom:document.querySelector('.workspace-breadcrumbs:not([hidden])')?.getBoundingClientRect().bottom};samples.push(geometry);
    assert(geometry.top>=Math.max(geometry.content_top,geometry.bar_bottom||0)-1&&geometry.top-geometry.content_top<100&&geometry.top+heading.getBoundingClientRect().height<geometry.bottom,'TC-reading-native: '+name+'显式章节跳转完整避开顶部导航');
    {
+    const bar=document.querySelector('.workspace-breadcrumbs:not([hidden])'),line=getComputedStyle(bar,'::after'),rect=bar.getBoundingClientRect();
+    assert(line.content==='""'&&line.height==='1px'&&line.left==='0px'&&line.right==='0px'&&line.bottom==='0px'&&line.pointerEvents==='none'&&line.backgroundColor===(name==='Night'?'rgb(42, 43, 44)':'rgb(228, 229, 230)')&&Math.abs(rect.height-22)<.1,'TC-breadcrumb-border: '+name+'整行下沿主题分界线且栏高不变');
+    samples.push({breadcrumb_border:{theme,rect:rect.toJSON(),color:line.backgroundColor}});
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:'breadcrumb_border_'+name}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'')).stage==='breadcrumb_border_'+name;}catch{return false;}},'breadcrumb border screenshot');
+   }
+   {
     const group=document.querySelector('.typ-ribbon .group.top');
     group.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,clientX:30,clientY:250}));
     await pause(100);menu=core.app.workspace.ribbon.ribbonView.dispalyMenu;
