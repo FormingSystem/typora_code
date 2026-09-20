@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T08:01:03.382412+00:00",
+  "remote": "origin/main",
+  "previous_commit": "90e1cafbeca0e751e7584442dbaf933885b45aca",
+  "published_commit": "ac1c903c07945446861a49e92085c4aad4a9cd80",
+  "mode": "fast-forward",
+  "release": "2026.09.20.19",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "d12bd1de558bcb246419e582ebdb9b1b653dc4c726115904f9aa1d86ec46bb88",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "437ec5715d7f279db88e442d9adbb3152bd9c128a81d19625a30e7baa0e948c8",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workspace_core.js",
+      "sha256": "7adb7577742bfaa9676b7555a5d858dde2f20ed037487e29226b4973c3a74e55",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "6c0b042b614a7bfa3c774a430a6a3d49eadec861b0a910a45070ab9d59dfe71a",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "本轮同步说明并发布已验证候选，没有重建、重装或重跑完整UI。",
+    "物理鼠标跨屏、正文边缘自动拆组、跨进程撤销历史及既有平台/性能边界保持。",
+    "远端固定SHA内容核验不替代其他电脑实际下载更新；用户运行窗口未由本流程重启。"
+  ]
+}
