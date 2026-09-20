@@ -21,6 +21,28 @@
    await service.set_enabled(id,false);
    assert(!document.querySelector('#write .typ-block-operate-button'),'停用清除注册按钮 '+i);
   }
+  // 实际社区设置插件，避免仅用自制SettingTab证明兼容。
+  const mapper_id='typora-community-plugin.codeblock-highlight-mapper',original_mode=window.getCodeMirrorMode;
+  await service.install_archive(path.join(base,'community_mapper_plugin.zip'));
+  await service.set_enabled(mapper_id,true);
+  assert(window.getCodeMirrorMode!==original_mode,'实际语言映射插件独立注册功能');
+  bridge.open_settings();
+  [...document.querySelectorAll('.workspace-community-setting-list button')].find(n=>n.textContent==='Codeblock Highlight Mapper').click();
+  const mapper_table=document.querySelector('.workspace-community-settings .typ-editable-table');
+  assert(mapper_table?.querySelectorAll('tbody tr').length===3,'社区原始设置页实际渲染语言映射表');
+  mapper_table.querySelector('tbody tr td').click();
+  const mapper_inputs=mapper_table.querySelectorAll('tbody tr:first-child input');
+  mapper_inputs[1].value='javascript';mapper_inputs[1].dispatchEvent(new Event('input',{bubbles:true}));
+  await pause(2500);
+  const mapper_config=path.join(_options.userDataPath,'typora_code/settings/data/'+mapper_id+'.json');
+  assert(JSON.parse(fs.readFileSync(mapper_config,'utf8')).settings.mapper.dataviewjs==='javascript','实际社区PluginSettings保存编辑后的映射');
+  await service.set_enabled(mapper_id,false);
+  assert(!document.querySelector('.workspace-community-settings')&&window.getCodeMirrorMode===original_mode,'停用实际设置插件关闭其配置并恢复原函数');
+  await service.set_enabled(mapper_id,true);bridge.open_settings();
+  [...document.querySelectorAll('.workspace-community-setting-list button')].find(n=>n.textContent==='Codeblock Highlight Mapper').click();
+  assert(document.querySelector('.workspace-community-settings').textContent.includes('javascript'),'重新启用实际社区插件读取独立保存的配置');
+  await service.set_enabled(mapper_id,false);await service.uninstall(mapper_id);
+  assert(fs.existsSync(mapper_config)&&core.app.workspace.rootSplit.containerEl===root,'卸载保留插件配置且工作台布局根不变');
   class Settings extends abi.SettingTab {get name(){return '测试设置'}onshow(){this.containerEl.replaceChildren();this.addSetting(item=>item.addText(input=>{input.value='保留';}));}}
   class Broken extends abi.Plugin {onload(){this.registerSettingTab(new Settings());const element=this.addStatusBarItem({hint:'失败清理',position:'right'});element.dataset.fixtureBroken='yes';this.registerCommand({id:'broken',title:'失败清理',scope:'global',callback(){}});throw Error('预期初始化失败');}}
   const broken=new Broken(core.app,{id:'fixture.broken',name:'Broken'});let failed=false;try{await broken.load();}catch{failed=true;}
@@ -53,7 +75,7 @@
   document.querySelector('.workspace-community-setting-list button').click();
   assert(!!document.querySelector('.workspace-community-settings input'),'设置选择进入插件真实配置');
 
-  const setting_button=[...document.querySelectorAll('.workspace-community-manager button')].find(button=>button.textContent==='设置');setting_button.click();assert(document.querySelectorAll('.workspace-community-settings').length===1,'插件行和齿轮共用单个设置页');
+  const setting_button=[...document.querySelectorAll('.workspace-community-manager button')].find(button=>button.textContent==='设置'&&!button.disabled);setting_button.click();assert(document.querySelectorAll('.workspace-community-settings').length===1,'插件行和齿轮共用单个设置页');
   const input=document.querySelector('.workspace-community-settings input');assert(input.value==='初始值','上游SettingTab/SettingItem正确渲染设置');input.value='已保存';input.dispatchEvent(new Event('change',{bubbles:true}));await pause(1200);
   const config=path.join(_options.userDataPath,'typora_code/settings/data/fixture.public-api.json');assert(JSON.parse(fs.readFileSync(config,'utf8')).settings.message==='已保存','PluginSettings保存到独立用户目录');
   window.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));window.dispatchEvent(new KeyboardEvent('keyup',{key:'Escape',bubbles:true}));await pause(30);assert(!document.querySelector('.workspace-community-settings')&&!!document.querySelector('.workspace-community-manager'),'Escape只关闭顶层插件设置');

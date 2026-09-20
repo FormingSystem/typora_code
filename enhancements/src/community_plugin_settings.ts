@@ -1,7 +1,7 @@
 import {workspace_button,workspace_dialog,workspace_element} from './workspace_widgets';
 
 /** 插件设置只呈现公共SettingTab；持久化仍归插件自身的PluginSettings。 */
-export function create_community_plugin_settings(list:()=>any[],on_change:()=>void){
+export function create_community_plugin_settings(list:()=>any[],on_change:()=>void,navigate:(mode:string)=>void=()=>{}){
   const tabs=new Map<string,Set<any>>();
   const opened=new Map<string,ReturnType<typeof workspace_dialog>>();
   let chooser:ReturnType<typeof workspace_dialog>|undefined;
@@ -15,7 +15,14 @@ export function create_community_plugin_settings(list:()=>any[],on_change:()=>vo
         chooser?.close();show(id);
       }));
     }
-    if(!chooser.content.children.length)chooser.content.append(workspace_element('p','','当前没有可配置的插件。请在扩展中启用提供设置页的插件。'));
+    for(const info of records){
+      if(tabs.get(info.id)?.size)continue;
+      chooser.content.append(workspace_element('p','',`${info.name}：${info.running?'此插件未提供设置页。':info.error||'尚未启用，请在已安装中启用后配置。'}`));
+    }
+    if(!records.length&&!tabs.size)chooser.content.append(workspace_element('p','','当前没有可配置的插件。请先到社区插件市场选择并安装插件。'));
+    const actions=workspace_element('div','workspace-community-settings-navigation');
+    for(const [title,mode]of [['管理已安装插件','installed'],['浏览社区插件市场','catalog']])actions.append(workspace_button(title,()=>{chooser?.close();navigate(mode);}));
+    chooser.content.append(actions);
   };
   const show=(id:string)=>{
     const existing=opened.get(id);
@@ -30,7 +37,7 @@ export function create_community_plugin_settings(list:()=>any[],on_change:()=>vo
     catch(error){dialog.close();throw error;}
   };
   return {
-    has:(id:string)=>Boolean(tabs.get(id)?.size),show,
+    has:(id:string)=>Boolean(tabs.get(id)?.size),show,refresh:render,
     open(){
       if(chooser){chooser.root.querySelector<HTMLElement>('button')?.focus();return;}
       chooser=workspace_dialog('插件设置','关闭',()=>{chooser=undefined;});

@@ -11,6 +11,14 @@ export function community_constructor(base:any,on_construct?:(value:any)=>void){
   compatible.prototype=base.prototype;Object.setPrototypeOf(compatible,base);return compatible;
 }
 
+/** 社区设置采用JSON持久化；隔离默认对象，并兼容旧插件修改同一引用后set。 */
+export function community_settings_class(base:any){
+  return class extends base {
+    setDefault(value:any){super.setDefault(JSON.parse(JSON.stringify(value)));}
+    set(key:any,value:any){super.set(key,value&&typeof value==='object'&&this.get(key)===value?JSON.parse(JSON.stringify(value)):value);}
+  };
+}
+
 export function bind_community_plugins(){
   const runtime=window as any,core=runtime[Symbol.for('typora-code:workspace')];
   if(!core?.app||!runtime.reqnode)return {dispose(){}};
@@ -19,6 +27,7 @@ export function bind_community_plugins(){
   const previous_abi=runtime[abi_key],abi={...core};
   let construction_scope:Set<any>|undefined;
   for(const name of ['Plugin','PluginSettings','I18n','Events','WorkspaceRibbon','Sidebar','StatisticHandler','StatisticContext','ExportProcessor','HtmlExportProcessor','CodeblockExportProcessor','Component','SettingTab','SettingItem','View','Modal','SidebarPanel','WorkspaceView','PostProcessor','HtmlPostProcessor','CodeblockPostProcessor','EditorSuggest','TextSuggest'])if(core[name])abi[name]=community_constructor(core[name],name==='Plugin'?value=>construction_scope?.add(value):undefined);
+  if(core.PluginSettings)abi.PluginSettings=community_constructor(community_settings_class(core.PluginSettings));
   const fs=runtime.reqnode('fs'),path=runtime.reqnode('path'),url=runtime.reqnode('url');
   const asset_root=path.join(runtime._options.userDataPath,'typora_code');
   const api=runtime.reqnode(path.join(asset_root,'assets/plugins/community_plugin_service.cjs'));
@@ -47,44 +56,61 @@ export function bind_community_plugins(){
   const style=acquire_workspace_style('typora-code-style:community_plugins',css);
   runtime[abi_key]=abi;
   let refresh_manager=()=>{};
-  const settings=create_community_plugin_settings(()=>service.list(),()=>refresh_manager());
+  const settings=create_community_plugin_settings(()=>service.list(),()=>refresh_manager(),mode=>{open_manager();manager?.select(mode);});
   const create_manager=()=>{
-    let alive=true,busy=false,mode='installed',catalog:any[]=[];
+    let alive=true,busy=false,mode=service.list().length?'installed':'catalog',catalog:any[]=[],catalog_loaded=false;
     const content=workspace_element('div','workspace-community-manager');
     const interaction=acquire_workspace_interaction(content);
-    const explanation=workspace_element('p','','插件拥有Typora进程权限。安装后默认停用，仅启用你信任的插件；工作台更新与Typora官方更新分别管理。');
+    const explanation=workspace_element('p','','使用 typora-community-plugin 社区插件。安装后默认停用；插件拥有 Typora 进程权限，仅启用你信任的插件。已有工作台功能保持当前配置。');
     const toolbar=workspace_element('div','workspace-community-toolbar'),search=workspace_element('input'),message=workspace_element('p','workspace-community-message'),list=workspace_element('div','workspace-community-list');
-    search.type='search';search.placeholder='搜索插件';search.setAttribute('aria-label','搜索插件');
-    const run=async(action:()=>Promise<unknown>)=>{if(busy||!alive)return;busy=true;message.textContent='正在处理…';render();try{const result=await action();if(alive)message.textContent=typeof result==='string'?result:'操作完成。已运行插件的新版在正常重启后生效。';}catch(error){if(alive)message.textContent=String((error as Error).message||error);}finally{busy=false;if(alive)render();}};
-    const installed=workspace_button('已安装',()=>{mode='installed';render();});
-    const community=workspace_button('社区目录',()=>void run(async()=>{catalog=await service.catalog();mode='catalog';}));
+    search.type='search';search.placeholder='搜索名称、描述或作者';search.setAttribute('aria-label','搜索插件');message.setAttribute('role','status');
+    const run=async(action:()=>Promise<unknown>)=>{if(busy||!alive)return;busy=true;message.textContent='正在处理…';render();try{const result=await action();if(alive)message.textContent=typeof result==='string'?result:'操作完成。';}catch(error){if(alive)message.textContent=String((error as Error).message||error);}finally{busy=false;if(alive)render();}};
+    const installed=workspace_button('已安装',()=>select('installed'));
+    const load_catalog=()=>run(async()=>{catalog=await service.catalog();catalog_loaded=true;return `已加载 ${catalog.length} 个社区插件。`;});
+    const select=(next:string)=>{mode=next;search.value='';message.textContent='';render();if(mode==='catalog'&&!catalog_loaded)void load_catalog();};
+    const community=workspace_button('社区插件市场',()=>select('catalog'));
+    const refresh=workspace_button('刷新目录',()=>void load_catalog());
     const picker=workspace_element('input');picker.type='file';picker.accept='.zip';picker.hidden=true;
-    picker.onchange=()=>{const file=picker.files?.[0] as any;if(!file)return;const archive=file.path||runtime.reqnode('electron').webUtils?.getPathForFile(file);picker.value='';if(!archive){message.textContent='无法取得所选文件路径。';return;}void run(()=>service.install_archive(archive));};
+    picker.onchange=()=>{const file=picker.files?.[0] as any;if(!file)return;const archive=file.path||runtime.reqnode('electron').webUtils?.getPathForFile(file);picker.value='';if(!archive){message.textContent='无法取得所选文件路径。';return;}void run(async()=>{const info=await service.install_archive(archive);mode='installed';search.value='';return `已安装 ${info.name}。${info.enabled?'已启用插件的更新在正常重启后生效。':'点击“信任并启用”后使用；提供配置的插件会显示“设置”。'}`;});};
     const local=workspace_button('安装本地ZIP…',()=>picker.click());
-    toolbar.append(installed,community,local,search,picker);content.append(explanation,toolbar,message,list);
+    toolbar.append(installed,community,refresh,local,picker);content.append(search,toolbar,message,list,explanation);
     const render=()=>{
-      if(!alive)return;for(const node of [installed,community,local])node.disabled=busy;
+      if(!alive)return;for(const node of [installed,community,refresh,local])node.disabled=busy;
+      refresh.hidden=mode!=='catalog';content.setAttribute('aria-busy',String(busy));
       installed.setAttribute('aria-pressed',String(mode==='installed'));community.setAttribute('aria-pressed',String(mode==='catalog'));
       list.replaceChildren();let rows:any[]=[];
       try{rows=mode==='installed'?service.list():catalog;}catch(error){message.textContent=String((error as Error).message);return;}
       const installed_rows=service.list(),needle=search.value.trim().toLocaleLowerCase();
-      for(const info of rows.filter(row=>(row.name+' '+row.id+' '+(row.description||'')).toLocaleLowerCase().includes(needle))){
+      for(const info of rows.filter(row=>(row.name+' '+row.id+' '+(row.description||'')+' '+(row.author||'')).toLocaleLowerCase().includes(needle))){
         const row=workspace_element('section','workspace-community-row'),details=workspace_element('div');
-        details.append(workspace_element('strong','',info.name),workspace_element('p','',info.description||info.id));
+        details.append(workspace_element('strong','',info.name),workspace_element('p','workspace-community-description',info.description||info.id));
+        const metadata=workspace_element('p','workspace-community-meta',`${info.author||'作者未提供'}${info.platforms?.length?' · '+info.platforms.map((platform:string)=>({win32:'Windows',darwin:'macOS',linux:'Linux'}[platform]||platform)).join(' / '):''}`);
+        details.append(metadata);
+        if(/^[\w.-]+\/[\w.-]+$/.test(info.repo||'')){
+          const source=workspace_element('a','workspace-community-source','项目说明');source.href='https://github.com/'+info.repo;source.title=source.href;
+          source.onclick=event=>{event.preventDefault();void runtime.reqnode('electron').shell.openExternal(source.href).catch((error:Error)=>{if(alive)message.textContent='打开项目说明失败：'+error.message;});};details.append(source);
+        }
         const current=installed_rows.find((item:any)=>item.id===info.id),actions=workspace_element('div','workspace-community-actions');
         if(current){
           details.append(workspace_element('p','',current.error||`${current.version||''} · ${current.running?'已启用':current.enabled?'启用失败':'已停用'}${current.restart_required?' · 新版等待重启':''}`));
-          actions.append(workspace_button(current.enabled?'停用':'信任并启用',()=>void run(()=>service.set_enabled(info.id,!current.enabled))));
-          if(settings.has(info.id))actions.append(workspace_button('设置',()=>settings.show(info.id)));
-          actions.append(workspace_button('检查并更新',()=>void run(async()=>{const release=await service.latest(current);if(api.compare_version(release.version,current.version)<=0)return '已是最新版本。';await service.install_online(current);})),workspace_button('卸载',()=>void run(async()=>{await service.uninstall(info.id);return '已卸载；个人设置和运行中窗口可能引用的包缓存保留。';})));
-        }else actions.append(workspace_button('安装',()=>void run(()=>service.install_online(info))));
-        for(const button of actions.querySelectorAll('button'))button.disabled=busy;
+          actions.append(workspace_button(current.enabled?'停用':'信任并启用',()=>void run(async()=>{const enable=!current.enabled;await service.set_enabled(info.id,enable);return !enable?'已停用，插件注册的功能和设置已卸载。':`已启用 ${info.name}。${settings.has(info.id)?'点击“设置”配置此插件。':'此插件未提供设置页。'}`;})));
+          const configure=workspace_button('设置',()=>settings.show(info.id));configure.dataset.unavailable=String(!settings.has(info.id));configure.title=settings.has(info.id)?'打开插件提供的设置页':current.running?'此插件未提供设置页':'启用插件后加载其设置页';actions.append(configure);
+          actions.append(workspace_button('检查并更新',()=>void run(async()=>{const release=await service.latest(current);if(api.compare_version(release.version,current.version)<=0)return '已是最新版本。';await service.install_online(current);return current.running?'新版已安装，正常重启后生效。':'新版已安装。';})),workspace_button('卸载',()=>void run(async()=>{await service.uninstall(info.id);return '已卸载；个人设置和运行中窗口可能引用的包缓存保留。';})));
+        }else {
+          const install=workspace_button('安装',()=>void run(async()=>{const result=await service.install_online(info);mode='installed';search.value=info.id;return `已安装 ${result?.name||info.name}，默认停用。点击“信任并启用”后使用插件。`;}));
+          if(info.platforms?.length&&!info.platforms.includes(runtime.reqnode('process').platform)){install.dataset.unavailable='true';install.title='此插件不支持当前系统';}
+          actions.append(install);
+        }
+        for(const button of actions.querySelectorAll('button'))button.disabled=busy||button.dataset.unavailable==='true';
         row.append(details,actions);list.append(row);
       }
-      if(!list.children.length)list.append(workspace_element('p','','没有匹配的插件。'));
+      if(!list.children.length){
+        list.append(workspace_element('p','',busy?'正在加载…':needle?'没有匹配的插件。':mode==='catalog'?'社区目录尚未加载，请刷新目录重试。':'尚未安装社区插件。'));
+        if(mode==='installed'&&!needle)list.append(workspace_button('浏览社区插件市场',()=>select('catalog')));
+      }
     };
-    const unsubscribe=service.subscribe(render);search.oninput=render;refresh_manager=render;render();
-    return {content,focus:()=>search.focus(),dispose(){alive=false;unsubscribe();interaction.remove();content.remove();refresh_manager=()=>{};}};
+    const unsubscribe=service.subscribe(()=>{render();settings.refresh();});search.oninput=render;refresh_manager=()=>{render();settings.refresh();};render();if(mode==='catalog')void load_catalog();
+    return {content,select,focus:()=>search.focus(),dispose(){alive=false;unsubscribe();interaction.remove();content.remove();refresh_manager=()=>{};}};
   };
   let manager:ReturnType<typeof create_manager>|undefined;
   class community_sidebar extends core.SidebarPanel {

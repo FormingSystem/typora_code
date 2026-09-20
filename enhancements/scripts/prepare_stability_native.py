@@ -33,6 +33,9 @@ if fixture_path.name == 'community_plugins_native.js':
     plugin_archive = repository_root / '.cache/community_copy_plugin/plugin.zip'
     assert digest(plugin_archive) == '41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704', 'Prepare verified Codeblock Copy Button 1.2.0 archive'
     shutil.copyfile(plugin_archive, case / 'community_plugin.zip')
+    mapper_archive = repository_root / '.cache/community_mapper_plugin/plugin.zip'
+    assert digest(mapper_archive) == 'eb38a5f5a9e5388edcd06d86fecf1d7e22971b4403f16a0355500c27364ea756', 'Prepare verified Codeblock Highlight Mapper 1.2.1 archive'
+    shutil.copyfile(mapper_archive, case / 'community_mapper_plugin.zip')
     with zipfile.ZipFile(case / 'community_api_plugin.zip', 'w') as archive:
         archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
         archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
