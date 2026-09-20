@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T05:56:25.755364+00:00",
+  "remote": "origin/main",
+  "previous_commit": "8567d531bbd235908e5dba253c22af7e30c34c0a",
+  "published_commit": "66f32d4d9f710c4a5dc180511ede59ed8bdf290d",
+  "mode": "fast-forward",
+  "release": "2026.09.20.17",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "3bf6bfb39585ceffc7f2a70e36ddd9dedcb2c0cfc337e17a6f3b989f15ff3f9c",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "84eee5b80a9d97d03d0fc21e1c080a419281c29916c777635e999af99e3c6add",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    },
+    {
+      "path": "uninstall_windows.ps1",
+      "sha256": "01b637f1e4d2bc93ee0837e6e406b3662ddb1743c4ca2de6c87144dfb099cda2",
+      "matches_commit": true
+    },
+    {
+      "path": "scripts/lib/typora_uninstall.ps1",
+      "sha256": "882d445c378ba9ac8ab3461797a0e9a708107986dfe9bf52ffce793fe7c24905",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "本轮同步文档并发布已验证候选，未重新构建或重装",
+    "远端固定SHA内容校验不替代其他电脑实际更新及卸载",
+    "任意社区插件兼容、跨平台、真实跨账户UAC及启动长任务边界保留"
+  ]
+}
