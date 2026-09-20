@@ -1,6 +1,7 @@
 import {workspace_dialog,workspace_button,workspace_element as el} from "./workspace_widgets";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {create_workspace_lifetime} from "./workspace_lifetime";
+import {create_workspace_progress_view} from "./workspace_progress_view";
 import bundled_release from "../release.json";
 
 /** UI只负责公告和进度；磁盘与多窗口状态属于Node更新服务。 */
@@ -24,10 +25,33 @@ export function bind_workspace_update(){
   current ||= service.release_info(bundled_release);
  }
  function show_progress(job:string){
-  dialog?.close();dialog=workspace_dialog("Typora Code 更新进度","关闭",()=>{clearInterval(poll);poll=undefined;dialog=undefined;});
-  const target=dialog,status=el("p","","正在启动更新…"),log=el("p","","日志："+path.join(state_root,job)),cancel=workspace_button("取消下载",()=>service.cancel_update(state_root,job));
-  status.setAttribute("role","status");target.content.append(status,log);target.footer.append(cancel);
-  const refresh=()=>{try{const value=service.status_of(state_root,job);status.textContent=value.message;cancel.disabled=!['starting','downloading','verifying'].includes(value.phase);if(['succeeded','failed','cancelled'].includes(value.phase)){clearInterval(poll);poll=undefined;cancel.remove();}}catch(error){status.textContent=String(error);}};
+  dialog?.close();
+  const progress=create_workspace_progress_view();
+  dialog=workspace_dialog("Typora Code 更新进度","关闭",()=>{clearInterval(poll);poll=undefined;progress.dispose();dialog=undefined;});
+  let cancelling=false;const started=Date.now();
+  const target=dialog,status=el("p","","正在启动更新…"),detail=el("p"),log=el("p","","日志："+path.join(state_root,job));
+  log.style.overflowWrap="anywhere";
+  const cancel=workspace_button("取消下载",()=>{
+   try{service.cancel_update(state_root,job);cancelling=true;cancel.disabled=true;status.textContent="正在取消更新，请稍候…";}
+   catch(error){status.textContent="取消请求失败："+String(error);write_log(error);}
+  });
+  status.setAttribute("role","status");target.content.append(progress.root,status,detail,log,el("p","","关闭此窗口不会中断更新；可从“检查 Typora Code 更新”再次查看进度。"));target.footer.append(cancel);
+  const bytes_text=(bytes:number)=>(bytes/1048576).toFixed(1)+" MB";
+  const refresh=()=>{try{
+   const value=service.status_of(state_root,job),finished=['succeeded','failed','cancelled'].includes(value.phase);
+   const can_cancel=['starting','downloading','verifying'].includes(value.phase);
+   status.textContent=cancelling&&can_cancel?"正在取消更新，请稍候…":value.message;
+   cancel.disabled=cancelling||!can_cancel;
+   const bytes=Number.isSafeInteger(value.bytes)&&value.bytes>=0?value.bytes:undefined;
+   const total=Number.isSafeInteger(value.total_bytes)&&value.total_bytes>0&&bytes!==undefined&&bytes<=value.total_bytes?value.total_bytes:undefined;
+   const percentage=value.phase==='downloading'&&total!==undefined?Math.floor(bytes!/total*100):undefined;
+   detail.textContent=finished?"":value.phase==='downloading'&&bytes!==undefined
+    ?"已下载 "+bytes_text(bytes)+(total!==undefined?" / "+bytes_text(total)+"（"+percentage+"%）":"；服务器未提供总大小")
+    :"已等待 "+Math.floor((Date.now()-started)/1000)+" 秒";
+   target.content.setAttribute("aria-busy",String(!finished));
+   if(finished){clearInterval(poll);poll=undefined;cancel.remove();if(value.phase==='succeeded')progress.update("更新安装完成",100);else progress.hide();}
+   else progress.update(status.textContent||"正在更新",percentage);
+  }catch(error){status.textContent="暂时无法读取更新状态："+String(error);progress.hide();target.content.setAttribute("aria-busy","false");cancel.disabled=true;}};
   poll=setInterval(refresh,350);refresh();
  }
  function close_checking(request:check_request){
@@ -38,7 +62,9 @@ export function bind_workspace_update(){
  function show_checking(request:check_request){
   request.manual=true;
   if(request.dialog)return;
+  const progress=create_workspace_progress_view();
   const target=dialog=workspace_dialog("检查 Typora Code 更新","取消检查",()=>{
+   progress.dispose();
    if(request.dialog!==target)return;
    request.dialog=undefined;if(dialog===target)dialog=undefined;
    if(active_check===request)active_check=undefined;
@@ -46,7 +72,9 @@ export function bind_workspace_update(){
   });
   request.dialog=target;
   const status=el("p","","正在检查更新…");status.setAttribute("role","status");
-  target.content.append(status,el("p","","正在连接更新服务并核对版本，请稍候。此时不会下载或安装更新，可取消后重试。"));
+  progress.update("正在检查 Typora Code 更新");
+  target.content.setAttribute("aria-busy","true");
+  target.content.append(progress.root,status,el("p","","正在连接更新服务并核对版本，请稍候。此时不会下载或安装更新，可取消后重试。"));
  }
  async function check(manual=false){
   if(disposed)return;

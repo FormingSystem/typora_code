@@ -203204,28 +203204,75 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/workspace_progress.css
+  var workspace_progress_default = "";
+
+  // src/workspace_progress_view.ts
+  function create_workspace_progress_view() {
+    const style = acquire_workspace_style("typora-code-workspace-progress", workspace_progress_default);
+    const root = workspace_element("div", "workspace-progress"), bit = workspace_element("span", "workspace-progress-bit");
+    root.setAttribute("role", "progressbar");
+    root.hidden = true;
+    root.append(bit);
+    let long_timer, disposed = false;
+    const clear = () => {
+      clearTimeout(long_timer);
+      long_timer = void 0;
+      root.classList.remove("is-long-running");
+    };
+    return {
+      root,
+      bit,
+      update(label, value) {
+        if (disposed) return;
+        root.hidden = false;
+        root.setAttribute("aria-label", label);
+        const discrete = typeof value === "number" && Number.isFinite(value);
+        root.classList.toggle("is-discrete", discrete);
+        root.setAttribute("aria-busy", String(!discrete || value < 100));
+        if (discrete) {
+          clear();
+          root.setAttribute("aria-valuemin", "0");
+          root.setAttribute("aria-valuemax", "100");
+          root.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, value))));
+          bit.style.width = Math.max(0, Math.min(100, value)) + "%";
+        } else {
+          for (const name of ["aria-valuenow", "aria-valuemin", "aria-valuemax"]) root.removeAttribute(name);
+          bit.style.removeProperty("width");
+          if (!long_timer) long_timer = setTimeout(() => root.classList.add("is-long-running"), 1e4);
+        }
+      },
+      hide() {
+        clear();
+        root.hidden = true;
+        root.setAttribute("aria-busy", "false");
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        clear();
+        root.remove();
+        style.remove();
+      }
+    };
+  }
+
   // src/git_progress.css
   var git_progress_default = "";
 
   // src/git_progress_view.ts
   function bind_git_progress_view(owner, progress) {
-    const style = acquire_workspace_style("typora-code-git-progress", git_progress_default), bar = workspace_element("span", "git-operation-progress"), bit = workspace_element("span", "git-operation-progress-bit");
-    bar.setAttribute("role", "progressbar");
-    bar.hidden = true;
-    bar.append(bit);
+    const style = acquire_workspace_style("typora-code-git-progress", git_progress_default), view = create_workspace_progress_view(), bar = view.root;
+    bar.classList.add("git-operation-progress");
+    view.bit.classList.add("git-operation-progress-bit");
     owner.classList.add("git-progress-owner");
     owner.append(bar);
-    let finish_timer, long_timer, visible3 = false;
-    const clear = () => {
-      clearTimeout(finish_timer);
-      clearTimeout(long_timer);
-      finish_timer = long_timer = void 0;
-    };
+    let finish_timer, visible3 = false;
     const hide2 = () => {
-      clear();
+      clearTimeout(finish_timer);
+      finish_timer = void 0;
       visible3 = false;
-      bar.hidden = true;
-      bar.classList.remove("is-long-running");
+      view.hide();
     };
     const update2 = (state) => {
       owner.setAttribute("aria-busy", String(state.busy));
@@ -203239,10 +203286,8 @@ https://creativecommons.org/licenses/by/4.0/
         bar.setAttribute("aria-label", state.label);
         bar.title = state.label;
         bar.hidden = false;
-        if (!visible3) {
-          visible3 = true;
-          long_timer = setTimeout(() => bar.classList.add("is-long-running"), 1e4);
-        }
+        view.update(state.label);
+        visible3 = true;
       } else if (visible3 && !finish_timer) {
         finish_timer = setTimeout(hide2, 300);
       }
@@ -203251,7 +203296,7 @@ https://creativecommons.org/licenses/by/4.0/
     return { dispose() {
       stop();
       hide2();
-      bar.remove();
+      view.dispose();
       owner.classList.remove("git-progress-owner");
       owner.removeAttribute("aria-busy");
       style.remove();
@@ -239873,6 +239918,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092022,
+        version: "2026.09.20.22",
+        date: "2026-09-20",
+        notes: [
+          "\u68C0\u67E5\u3001\u4E0B\u8F7D\u3001\u6821\u9A8C\u548C\u5B89\u88C5\u66F4\u65B0\u6301\u7EED\u663E\u793A\u8FDB\u5EA6\uFF1B\u4E0B\u8F7D\u663E\u793A\u5B9E\u9645\u5927\u5C0F\uFF0C\u670D\u52A1\u5668\u63D0\u4F9B\u603B\u91CF\u65F6\u663E\u793A\u767E\u5206\u6BD4\uFF0C\u907F\u514D\u7B49\u5F85\u65F6\u8BEF\u4EE5\u4E3A\u5361\u4F4F\u3002",
+          "\u53D6\u6D88\u4E0B\u8F7D\u7ACB\u5373\u63D0\u793A\u5904\u7406\u72B6\u6001\uFF0C\u5173\u95ED\u540E\u53EF\u91CD\u65B0\u67E5\u770B\u6B63\u5728\u8FDB\u884C\u7684\u66F4\u65B0\uFF1B\u5B89\u88C5\u5B8C\u6210\u660E\u786E\u63D0\u793A\u624B\u52A8\u91CD\u542F\u3002"
+        ]
+      },
+      {
         sequence: 2026092021,
         version: "2026.09.20.21",
         date: "2026-09-20",
@@ -240185,27 +240239,55 @@ https://creativecommons.org/licenses/by/4.0/
     }
     function show_progress(job) {
       dialog2?.close();
+      const progress = create_workspace_progress_view();
       dialog2 = workspace_dialog("Typora Code \u66F4\u65B0\u8FDB\u5EA6", "\u5173\u95ED", () => {
         clearInterval(poll);
         poll = void 0;
+        progress.dispose();
         dialog2 = void 0;
       });
-      const target = dialog2, status2 = workspace_element("p", "", "\u6B63\u5728\u542F\u52A8\u66F4\u65B0\u2026"), log2 = workspace_element("p", "", "\u65E5\u5FD7\uFF1A" + path.join(state_root, job)), cancel = workspace_button("\u53D6\u6D88\u4E0B\u8F7D", () => service.cancel_update(state_root, job));
+      let cancelling = false;
+      const started = Date.now();
+      const target = dialog2, status2 = workspace_element("p", "", "\u6B63\u5728\u542F\u52A8\u66F4\u65B0\u2026"), detail = workspace_element("p"), log2 = workspace_element("p", "", "\u65E5\u5FD7\uFF1A" + path.join(state_root, job));
+      log2.style.overflowWrap = "anywhere";
+      const cancel = workspace_button("\u53D6\u6D88\u4E0B\u8F7D", () => {
+        try {
+          service.cancel_update(state_root, job);
+          cancelling = true;
+          cancel.disabled = true;
+          status2.textContent = "\u6B63\u5728\u53D6\u6D88\u66F4\u65B0\uFF0C\u8BF7\u7A0D\u5019\u2026";
+        } catch (error) {
+          status2.textContent = "\u53D6\u6D88\u8BF7\u6C42\u5931\u8D25\uFF1A" + String(error);
+          write_log(error);
+        }
+      });
       status2.setAttribute("role", "status");
-      target.content.append(status2, log2);
+      target.content.append(progress.root, status2, detail, log2, workspace_element("p", "", "\u5173\u95ED\u6B64\u7A97\u53E3\u4E0D\u4F1A\u4E2D\u65AD\u66F4\u65B0\uFF1B\u53EF\u4ECE\u201C\u68C0\u67E5 Typora Code \u66F4\u65B0\u201D\u518D\u6B21\u67E5\u770B\u8FDB\u5EA6\u3002"));
       target.footer.append(cancel);
+      const bytes_text = (bytes) => (bytes / 1048576).toFixed(1) + " MB";
       const refresh = () => {
         try {
-          const value = service.status_of(state_root, job);
-          status2.textContent = value.message;
-          cancel.disabled = !["starting", "downloading", "verifying"].includes(value.phase);
-          if (["succeeded", "failed", "cancelled"].includes(value.phase)) {
+          const value = service.status_of(state_root, job), finished = ["succeeded", "failed", "cancelled"].includes(value.phase);
+          const can_cancel = ["starting", "downloading", "verifying"].includes(value.phase);
+          status2.textContent = cancelling && can_cancel ? "\u6B63\u5728\u53D6\u6D88\u66F4\u65B0\uFF0C\u8BF7\u7A0D\u5019\u2026" : value.message;
+          cancel.disabled = cancelling || !can_cancel;
+          const bytes = Number.isSafeInteger(value.bytes) && value.bytes >= 0 ? value.bytes : void 0;
+          const total = Number.isSafeInteger(value.total_bytes) && value.total_bytes > 0 && bytes !== void 0 && bytes <= value.total_bytes ? value.total_bytes : void 0;
+          const percentage = value.phase === "downloading" && total !== void 0 ? Math.floor(bytes / total * 100) : void 0;
+          detail.textContent = finished ? "" : value.phase === "downloading" && bytes !== void 0 ? "\u5DF2\u4E0B\u8F7D " + bytes_text(bytes) + (total !== void 0 ? " / " + bytes_text(total) + "\uFF08" + percentage + "%\uFF09" : "\uFF1B\u670D\u52A1\u5668\u672A\u63D0\u4F9B\u603B\u5927\u5C0F") : "\u5DF2\u7B49\u5F85 " + Math.floor((Date.now() - started) / 1e3) + " \u79D2";
+          target.content.setAttribute("aria-busy", String(!finished));
+          if (finished) {
             clearInterval(poll);
             poll = void 0;
             cancel.remove();
-          }
+            if (value.phase === "succeeded") progress.update("\u66F4\u65B0\u5B89\u88C5\u5B8C\u6210", 100);
+            else progress.hide();
+          } else progress.update(status2.textContent || "\u6B63\u5728\u66F4\u65B0", percentage);
         } catch (error) {
-          status2.textContent = String(error);
+          status2.textContent = "\u6682\u65F6\u65E0\u6CD5\u8BFB\u53D6\u66F4\u65B0\u72B6\u6001\uFF1A" + String(error);
+          progress.hide();
+          target.content.setAttribute("aria-busy", "false");
+          cancel.disabled = true;
         }
       };
       poll = setInterval(refresh, 350);
@@ -240220,7 +240302,9 @@ https://creativecommons.org/licenses/by/4.0/
     function show_checking(request) {
       request.manual = true;
       if (request.dialog) return;
+      const progress = create_workspace_progress_view();
       const target = dialog2 = workspace_dialog("\u68C0\u67E5 Typora Code \u66F4\u65B0", "\u53D6\u6D88\u68C0\u67E5", () => {
+        progress.dispose();
         if (request.dialog !== target) return;
         request.dialog = void 0;
         if (dialog2 === target) dialog2 = void 0;
@@ -240230,7 +240314,9 @@ https://creativecommons.org/licenses/by/4.0/
       request.dialog = target;
       const status2 = workspace_element("p", "", "\u6B63\u5728\u68C0\u67E5\u66F4\u65B0\u2026");
       status2.setAttribute("role", "status");
-      target.content.append(status2, workspace_element("p", "", "\u6B63\u5728\u8FDE\u63A5\u66F4\u65B0\u670D\u52A1\u5E76\u6838\u5BF9\u7248\u672C\uFF0C\u8BF7\u7A0D\u5019\u3002\u6B64\u65F6\u4E0D\u4F1A\u4E0B\u8F7D\u6216\u5B89\u88C5\u66F4\u65B0\uFF0C\u53EF\u53D6\u6D88\u540E\u91CD\u8BD5\u3002"));
+      progress.update("\u6B63\u5728\u68C0\u67E5 Typora Code \u66F4\u65B0");
+      target.content.setAttribute("aria-busy", "true");
+      target.content.append(progress.root, status2, workspace_element("p", "", "\u6B63\u5728\u8FDE\u63A5\u66F4\u65B0\u670D\u52A1\u5E76\u6838\u5BF9\u7248\u672C\uFF0C\u8BF7\u7A0D\u5019\u3002\u6B64\u65F6\u4E0D\u4F1A\u4E0B\u8F7D\u6216\u5B89\u88C5\u66F4\u65B0\uFF0C\u53EF\u53D6\u6D88\u540E\u91CD\u8BD5\u3002"));
     }
     async function check(manual = false) {
       if (disposed) return;

@@ -873,12 +873,8 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 
 /* git_progress.css */
 .git-progress-owner{position:relative}
-.git-operation-progress{position:absolute;left:0;right:0;bottom:0;width:100%;height:2px;overflow:hidden;pointer-events:none;z-index:3}
-.git-operation-progress[hidden]{display:none!important}
-.git-operation-progress-bit{position:absolute;left:0;top:0;width:2%;height:2px;background:var(--vscode-progressBar-background,#0e70c0);animation:git-operation-progress 4s linear infinite}
-.git-operation-progress.is-long-running .git-operation-progress-bit{animation-timing-function:steps(100)}
+.git-progress-owner .git-operation-progress{position:absolute;left:0;right:0;bottom:0;z-index:3}
 .git-operation-spinning .git-standard-icon{animation:git-operation-spin 1.5s steps(30) infinite;transform-origin:center center}
-@keyframes git-operation-progress{from{transform:translateX(0) scaleX(1)}50%{transform:translateX(2500%) scaleX(3)}to{transform:translateX(4900%) scaleX(1)}}
 @keyframes git-operation-spin{to{transform:rotate(360deg)}}
 /* 与上游ProgressBar一致，执行进度保留横向移动，不将未知总量画成满宽静止线。 */
 @media(prefers-reduced-motion:reduce){.git-operation-spinning .git-standard-icon{animation:none}}
@@ -1899,6 +1895,14 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
   background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
 }
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
+
+/* workspace_progress.css */
+.workspace-progress{position:relative;width:100%;height:2px;overflow:hidden;pointer-events:none;flex-shrink:0}
+.workspace-progress[hidden]{display:none!important}
+.workspace-progress-bit{position:absolute;left:0;top:0;width:2%;height:2px;background:var(--vscode-progressBar-background,#0e70c0);animation:workspace-progress 4s linear infinite}
+.workspace-progress.is-long-running .workspace-progress-bit{animation-timing-function:steps(100)}
+.workspace-progress.is-discrete .workspace-progress-bit{animation:none;transition:width 100ms linear}
+@keyframes workspace-progress{from{transform:translateX(0) scaleX(1)}50%{transform:translateX(2500%) scaleX(3)}to{transform:translateX(4900%) scaleX(1)}}
 
 /* workspace_quick_open.css */
 .workspace-quick-open{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(600px,calc(100vw - 12px));max-height:min(70vh,560px);padding:0;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}

@@ -1,10 +1,6 @@
 .git-progress-owner{position:relative}
-.git-operation-progress{position:absolute;left:0;right:0;bottom:0;width:100%;height:2px;overflow:hidden;pointer-events:none;z-index:3}
-.git-operation-progress[hidden]{display:none!important}
-.git-operation-progress-bit{position:absolute;left:0;top:0;width:2%;height:2px;background:var(--vscode-progressBar-background,#0e70c0);animation:git-operation-progress 4s linear infinite}
-.git-operation-progress.is-long-running .git-operation-progress-bit{animation-timing-function:steps(100)}
+.git-progress-owner .git-operation-progress{position:absolute;left:0;right:0;bottom:0;z-index:3}
 .git-operation-spinning .git-standard-icon{animation:git-operation-spin 1.5s steps(30) infinite;transform-origin:center center}
-@keyframes git-operation-progress{from{transform:translateX(0) scaleX(1)}50%{transform:translateX(2500%) scaleX(3)}to{transform:translateX(4900%) scaleX(1)}}
 @keyframes git-operation-spin{to{transform:rotate(360deg)}}
 /* 与上游ProgressBar一致，执行进度保留横向移动，不将未知总量画成满宽静止线。 */
 @media(prefers-reduced-motion:reduce){.git-operation-spinning .git-standard-icon{animation:none}}

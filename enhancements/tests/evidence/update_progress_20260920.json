@@ -1,0 +1,179 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R047.2"
+  ],
+  "release": "2026.09.20.22",
+  "root_cause": "检查仅静态文字，下载字节未呈现，安装阶段缺少活动进度。",
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 162,
+    "update_ui_assertions": 41,
+    "update_service": "PASS",
+    "real_zip_standard_install": "PASS",
+    "git_quick_actions_ui": "PASS",
+    "native_assertions": 34
+  },
+  "ui_checks": [
+    "启动异步检查一次并打开公告",
+    "公告作为纯文本，不执行HTML",
+    "稍后关闭不下载或安装",
+    "重复手动检查只开一个弹窗",
+    "选择更新一次启动任务并显示进度",
+    "未知下载总量使用活动条，不冒充百分比",
+    "等待网络期间进度条实际运动",
+    "已知总量显示真实下载量和50%",
+    "下载完成显示100%",
+    "校验解压移除下载百分比并持续活动",
+    "读取状态失败不保留虚假活动，明确提示",
+    "关闭再检查恢复同一后台任务，不重复安装",
+    "取消点击立即给出反馈",
+    "只在下载校验阶段可取消，安装阶段禁用取消",
+    "安装使用活动条不伪造进度",
+    "成功停止轮询与取消入口",
+    "成功后停止动画显示完成",
+    "同版本提交变化提示手动重启",
+    "销毁清理弹窗、命令及定时器",
+    "手动失败展示错误",
+    "关闭失败弹窗后可以再次检查",
+    "慢网络开始即显示状态及可取消检查",
+    "手动检查当帧显示未知总量活动条",
+    "连续20次点击共用同一检查",
+    "慢请求完成后替换为最新版本结果",
+    "取消请求后立即重试使用新信号",
+    "旧检查迟到成功及finally不覆盖新检查",
+    "网络超时明确显示失败与重试提示",
+    "Esc取消后迟到失败不重开错误弹窗",
+    "检查中销毁取消网络及迟到结果",
+    "自动检查待响应时保持后台静默",
+    "手动入口把后台检查转为可见且不另发请求",
+    "转为手动后的后台检查也显示完成结果",
+    "未手动介入的后台网络失败仍保持静默",
+    "进度在窄窗口/缩放/主题下可见 1 rgb(14, 112, 192)",
+    "进度在窄窗口/缩放/主题下可见 1 rgb(77, 170, 255)",
+    "进度在窄窗口/缩放/主题下可见 1.25 rgb(14, 112, 192)",
+    "进度在窄窗口/缩放/主题下可见 1.25 rgb(77, 170, 255)",
+    "failed停止活动并移除取消入口",
+    "cancelled停止活动并移除取消入口",
+    "所有更新视图销毁后无进度节点或样式残留"
+  ],
+  "native_samples": [
+    {
+      "phase": "starting",
+      "bar": {
+        "x": 42.79999923706055,
+        "y": 261.5,
+        "width": 716.7999877929688,
+        "height": 2
+      },
+      "color": "rgb(14, 112, 192)",
+      "animation": "workspace-progress"
+    },
+    {
+      "phase": "downloading",
+      "bar": {
+        "x": 472,
+        "y": 427.5,
+        "width": 722.4000244140625,
+        "height": 2
+      },
+      "color": "rgb(14, 112, 192)",
+      "animation": "none"
+    },
+    {
+      "phase": "verifying",
+      "bar": {
+        "x": 472,
+        "y": 427.5,
+        "width": 722.4000244140625,
+        "height": 2
+      },
+      "color": "rgb(14, 112, 192)",
+      "animation": "workspace-progress"
+    },
+    {
+      "phase": "installing",
+      "bar": {
+        "x": 472,
+        "y": 427.5,
+        "width": 722.4000244140625,
+        "height": 2
+      },
+      "color": "rgb(14, 112, 192)",
+      "animation": "workspace-progress"
+    },
+    {
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "asset_sha256": "e4c3430825a359fc54b4b38f1de512102da67141604af01d5ec8268a5fcb42ff"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/update_progress_build.log",
+      "sha256": "d5d9a6410d692b5e89ae22fe294ce39f76ec5206f6a3f9b124d3b850847f715f"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_check.log",
+      "sha256": "0dfee5016900ec1a89f91bc0836f802dda4aa1c712620c682c4c162abbe7b735"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_ui.log",
+      "sha256": "0a2b75c031d40894d270670b3ceac29136dbe3c8028f197daabfd0d587c05f36"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_service.log",
+      "sha256": "f19b5d0057a8ea9f3dec9eab72fe86bf423e41c3b55cd05ff17fb797889487f0"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_install_test.log",
+      "sha256": "bfc1584abf94317b4164e10fb20662f1bba88570b2de76d59cf3c3635d9e353b"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_native_final.log",
+      "sha256": "7a9d4d7e4c9d466e803a1b5d3d46b7d4f842b19e7dcdf5062ecd61909f8b9128"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_install.log",
+      "sha256": "05c0eb4f275042383c648615b503cd3aa005c7889fb373d4f39e827624ce58f2"
+    },
+    {
+      "path": ".cache/issue_tracking/update_progress_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/native/a5ed2934ef914490bcc7cae962b14812/checks.json",
+      "sha256": "efcdc4df8771ee89f8afff836c9a0b360406e2a422cd820d6c0782586343b409"
+    },
+    {
+      "path": ".cache/issue_tracking/native/22ed7820f0de4ff7a70e8e52701e2516/checks.json",
+      "sha256": "9ca0c69a363071458be693711757b905264b60a656c1e281cab41a621abfc948"
+    }
+  ],
+  "candidate": {
+    "manifest_sha256": "289812893344c715a41c29a7fb25d78a854fb829e52185857ea5d29f65e0ff6b",
+    "workbench_sha256": "e4c3430825a359fc54b4b38f1de512102da67141604af01d5ec8268a5fcb42ff",
+    "workspace_css_sha256": "8a3a8825b047e5b9359361b7aeabda3bb1a99ac1a173e592a52d38cb26a0a751",
+    "native_fixture_sha256": "8d22c374294034e263dab4b935939b1bc57328281b185ffd0afcfe2b666dee9b"
+  },
+  "installation": {
+    "status": "OK",
+    "matching_installed_and_native_assets": 29,
+    "unchanged_protected_files": 6,
+    "user_windows_restarted": false
+  },
+  "test_corrections": [
+    "首轮原生夹具在宿主首次文档切换结束前打开浮层，被现有生命周期关闭；等待就绪后重测通过，保留原始失败记录。"
+  ],
+  "limits": [
+    "网络传输以替身验证；未执行真实在线升级下载和真实UAC等待。",
+    "原生正式资产验证阶段展示；真实ZIP安装使用独立临时目标，未把服务替身视为真实联网安装。",
+    "安装未知工作总量只显示活动条；下载百分比依赖服务器有效Content-Length。",
+    "未重启用户窗口、未推送；历史跨平台、跨账户UAC、物理跨屏与H001.2间歇性尺寸问题边界保留。"
+  ]
+}

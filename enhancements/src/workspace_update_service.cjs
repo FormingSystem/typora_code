@@ -33,13 +33,15 @@ function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,
      settled=true;cleanup();download(new URL(location,url).href,{limit,file,signal,deadline,redirects:redirects+1,on_progress}).then(resolve,reject);return;
     }
     if(response.statusCode!==200){response.resume();return fail(Error('更新服务器返回HTTP '+response.statusCode+'，请稍后重试。'));}
-    if(Number(response.headers['content-length'])>limit)return fail(Error('更新下载超过体积上限。'));
+    const length=Number(response.headers['content-length']);
+    if(length>limit)return fail(Error('更新下载超过体积上限。'));
+    const total_bytes=Number.isSafeInteger(length)&&length>0?length:undefined;
     if(file){output=fs.createWriteStream(file,{flags:'wx'});output.on('error',fail);}
     response.on('data',chunk=>{
      if(settled)return;
      total+=chunk.length;if(total>limit)return fail(Error('更新下载超过体积上限。'));
      if(output){if(!output.write(chunk)){response.pause();output.once('drain',()=>response.resume());}}else chunks.push(chunk);
-     on_progress(total);
+     on_progress(total,total_bytes&&total<=total_bytes?total_bytes:undefined);
     });
     response.on('aborted',()=>fail(Error('更新下载意外中断。')));
     response.on('end',()=>{
@@ -155,7 +157,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   status('downloading','正在下载 '+plan.release.releases[0].version+'…');
   timer=setInterval(()=>{if(fs.existsSync(path.join(root,'cancel')))abort.abort();},100);
   const archive=path.join(root,'repository.zip');let last_progress=0;
-  await request(plan.archive_url,{file:archive,limit:128*1024*1024,timeout_ms:180000,signal:abort.signal,on_progress:bytes=>{if(Date.now()-last_progress>500){last_progress=Date.now();status('downloading','正在下载…',{bytes});}}});
+  await request(plan.archive_url,{file:archive,limit:128*1024*1024,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   status('verifying','正在校验并解压更新包…');
   const payload=unpack?await unpack(archive,root):await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'workspace_update_archive.ps1'),'-archive',archive,'-destination',path.join(root,'payload')],{timeout:120000});

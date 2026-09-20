@@ -34,6 +34,15 @@ const downloaded=path.join(root,'stream.bin');await transfer({body:response=>res
 await assert.rejects(transfer({body:response=>response.end('overwrite')},{file:downloaded}),/EEXIST/);assert.equal(fs.readFileSync(downloaded,'utf8'),'saved');
 checks.push('真实下载流覆盖状态码、字节上限、重定向、超时、断流、取消及文件排他写入；HTTPS端口使用替身');
 
+const progress_samples=[];
+await transfer({headers:{'content-length':'6'},body:response=>{response.write('abc');response.end('def');}},{on_progress:(bytes,total)=>progress_samples.push({bytes,total})});
+assert.deepEqual(progress_samples,[{bytes:3,total:6},{bytes:6,total:6}]);
+for(const header of [undefined,'invalid','0','-1','2.5']){
+ const samples=[];await transfer({headers:{'content-length':header},body:response=>response.end('abc')},{on_progress:(bytes,total)=>samples.push({bytes,total})});assert.deepEqual(samples,[{bytes:3,total:undefined}]);
+}
+const oversized=[];await transfer({headers:{'content-length':'2'},body:response=>response.end('abc')},{on_progress:(bytes,total)=>oversized.push({bytes,total})});assert.equal(oversized[0].total,undefined);
+checks.push('下载进度按真实分块字节累计；缺失/无效/小于实际的长度不生成百分比');
+
 const request=async url=>{calls.push(url);return Buffer.from(url.includes('/commits/')?JSON.stringify({sha}):url.endsWith('/release.json')?JSON.stringify(latest):'manifest');};
 const plan=await service.check_update(old,{request});assert.equal(plan.commit,sha);assert.equal(plan.archive_url,'https://codeload.github.com/FormingSystem/typora_code/zip/'+sha);assert.equal(plan.notes_sha256,service.digest(Buffer.from(JSON.stringify(latest))));assert(calls.slice(1).every(url=>url.includes('/'+sha+'/')));
 assert.equal((await service.check_update(latest,{request})).commit,sha);assert.equal(await service.check_update(make_release(3),{request}),null);
@@ -63,7 +72,7 @@ checks.push('解压后的公告、构建版本与所有资产摘要一致才接�
 const user_data=path.join(root,'user_data'),installed=path.join(user_data,'typora_code/assets/update');fs.mkdirSync(installed,{recursive:true});fs.writeFileSync(path.join(installed,'release.json'),JSON.stringify(old));
 async function run_case(name,{cancel=false,failure=false,network=false,uac_cancel=false}={}){
  const job=path.join(root,name);fs.mkdirSync(job);fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root:root,user_data,host_root:path.join(root,'host'),plan}));let installed_count=0;
- await service.run_worker(path.join(job,'request.json'),{request:async(_url,{file})=>{if(network)throw Error('network failure');fs.writeFileSync(file,'fixture');if(cancel)fs.writeFileSync(path.join(job,'cancel'),'yes');},unpack:async()=>payload,install:async()=>{installed_count++;if(uac_cancel)throw Error('[TYPORA_INSTALL_CANCELLED] 已取消系统授权，未修改安装目标');if(failure)throw Error('权限不足，安装已回滚');fs.writeFileSync(path.join(installed,'release.json'),notes);fs.writeFileSync(service.update_paths(user_data).manifest_file,manifest);}});
+ await service.run_worker(path.join(job,'request.json'),{request:async(_url,{file,on_progress})=>{on_progress(3,6);const progress=JSON.parse(fs.readFileSync(path.join(job,"status.json"),"utf8"));assert.equal(progress.bytes,3);assert.equal(progress.total_bytes,6);if(network)throw Error('network failure');fs.writeFileSync(file,'fixture');if(cancel)fs.writeFileSync(path.join(job,'cancel'),'yes');},unpack:async()=>payload,install:async()=>{installed_count++;if(uac_cancel)throw Error('[TYPORA_INSTALL_CANCELLED] 已取消系统授权，未修改安装目标');if(failure)throw Error('权限不足，安装已回滚');fs.writeFileSync(path.join(installed,'release.json'),notes);fs.writeFileSync(service.update_paths(user_data).manifest_file,manifest);}});
  return {status:JSON.parse(fs.readFileSync(path.join(job,'status.json'),'utf8')),installed_count};
 }
 let result=await run_case('cancel',{cancel:true});assert.equal(result.status.phase,'cancelled');assert.equal(result.installed_count,0);

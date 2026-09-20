@@ -426,5 +426,34 @@
     "adaptation": "跨进程没有共享内存，文件服务比较真实正文、保存格式和磁盘基线；相同复用目标模型和撤销，不因同路径拒绝；差异保留双方。不宣称完整VS Code跨窗口编辑器宿主等价。",
     "design": "docs/drag_and_windows.md#r0053-同文件无差异合并2026-09-20",
     "validation": "enhancements/tests/evidence/drag_duplicate_20260920.json"
+  },
+  "update_progress_20260920": {
+    "repository": "https://github.com/microsoft/vscode",
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "files": [
+      {
+        "path": "src/vs/base/browser/ui/progressbar/progressbar.css",
+        "sha256": "8c67efa51409ab88aeb10e8c79e517b56193c7f852da8c5401865246b21d4460"
+      },
+      {
+        "path": "src/vs/base/browser/ui/progressbar/progressbar.ts",
+        "sha256": "0bf9c80d2c8f4cc332ea38f42c1896acc66a45fc4db2b9c49cc821da2b2e075d"
+      }
+    ],
+    "adopted": {
+      "height_px": 2,
+      "infinite_width_percent": 2,
+      "animation_seconds": 4,
+      "long_running_ms": 10000,
+      "long_running_timing": "steps(100)",
+      "discrete_transition_ms": 100
+    },
+    "targets": [
+      "workspace_progress_view",
+      "git_progress_view",
+      "workspace_update"
+    ],
+    "verification": "TC-update-ui / TC-git-quick-actions / update_progress_native；结果见当次交付证据"
   }
 }

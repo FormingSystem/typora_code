@@ -4,7 +4,7 @@
 
 2026-09-19，用户截图标出SCM文件列表的直角滚动条，要求同类基础样式由共同层管理。现有Explorer、搜索、历史和顶栏菜单各设宽度或颜色，其他区域继承宿主；`scrollbar-width:thin`及非auto的`scrollbar-color`还会让Chromium绕过WebKit圆角绘制。修复范围是滚动条滑块，不将所有细长控件等同于任务进度。
 
-固定参考VS Code 1.137.0、`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：`modernUI.contribution.ts`的`MODERN_UI_SCROLLBAR_SIZE=8`；`modernUI/browser/media/roundedCorners.css`为普通滑块、Monaco缩略图及终端设置`cornerRadius-small`（4px），带差异概览的右编辑器仅保留左侧圆角。Light/Dark 2026的`scrollbarSlider.background/hoverBackground/activeBackground`分别为`#646464C0/D0/E0`和`#A8A9AA85/90/9C`。同版本`base/browser/ui/progressbar/progressbar.css`的任务进度为2px且无圆角要求，继续使用现有共享`git_progress`。源码路径、摘要及采用值登记到设计来源清单。
+固定参考VS Code 1.137.0、`645f29cc3176500b4b5762ba887cf2a7f0ffdf2c`：`modernUI.contribution.ts`的`MODERN_UI_SCROLLBAR_SIZE=8`；`modernUI/browser/media/roundedCorners.css`为普通滑块、Monaco缩略图及终端设置`cornerRadius-small`（4px），带差异概览的右编辑器仅保留左侧圆角。Light/Dark 2026的`scrollbarSlider.background/hoverBackground/activeBackground`分别为`#646464C0/D0/E0`和`#A8A9AA85/90/9C`。同版本`base/browser/ui/progressbar/progressbar.css`的任务进度为2px且无圆角要求，统一使用共享`workspace_progress_view`（R047.2）；`git_progress`只绑定Git业务状态。源码路径、摘要及采用值登记到设计来源清单。
 
 实现由`workspace_scrollbars.css`唯一管理8px宽度、4px圆角和三态颜色，静态head样式构建包含它；运行激活范围使用已有`data-linux-note-typora-enhancements`标记，销毁后恢复宿主规则。不增加事件监听、DOM扫描、观察器或配置。删除各业务面板重复的宽度/颜色规则。原生滚动条只改伪元素绘制，不改正文、overflow、滚动位置、键盘或指针处理。原本隐藏的面包屑、状态控件和Graph工具栏继续隐藏；局部滚动条尺寸差异通过共同变量声明，不复制基础规则。
 

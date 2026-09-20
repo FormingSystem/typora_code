@@ -3854,7 +3854,10 @@
       "design": "docs/workspace_update.md",
       "implementation": [
         "enhancements/src/workspace_update.ts",
-        "enhancements/src/workspace_titlebar_entries.ts"
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_progress_view.ts",
+        "enhancements/src/workspace_progress.css",
+        "enhancements/fixtures/update_progress_native.js"
       ],
       "related_modules": [
         "startup",
@@ -3866,10 +3869,12 @@
       "environment": "Windows Node / 隐藏Electron / 独立中文用户目录与真实PowerShell安装器",
       "preconditions": "仅使用新建临时目录和本地ZIP下载替身；不关闭真实窗口，不改用户文档",
       "steps": [
-        "检查公告、重复点击与安装进度；慢请求即时提示、后台转前台、取消后重试、迟到响应和销毁"
+        "检查公告、重复点击与安装进度；慢请求即时提示、后台转前台、取消后重试、迟到响应和销毁",
+        "检查与安装持续活动、真实下载量和百分比、关闭重开同一任务、失败和取消停止、窄窗口/缩放/主题及样式清理；原生夹具使用正式构建"
       ],
       "expected": [
-        "自动检查静默且单次提醒；手动检查立即反馈、重复点击共用请求；取消/销毁的迟到结果不覆盖新检查；结果明确且失败可重试"
+        "自动检查静默且单次提醒；手动检查立即反馈、重复点击共用请求；取消/销毁的迟到结果不覆盖新检查；结果明确且失败可重试",
+        "未知总量无百分比；下载100%不等于安装完成，进度来源和动画均可验证"
       ],
       "timeout_ms": 240000,
       "platform": "win32"
