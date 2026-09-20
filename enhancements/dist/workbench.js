@@ -239791,6 +239791,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092018,
+        version: "2026.09.20.18",
+        date: "2026-09-20",
+        notes: [
+          "\u624B\u52A8\u68C0\u67E5\u66F4\u65B0\u7ACB\u5373\u663E\u793A\u6B63\u5728\u68C0\u67E5\uFF0C\u540E\u53F0\u68C0\u67E5\u53EF\u8F6C\u4E3A\u53EF\u89C1\uFF0C\u660E\u786E\u53CD\u9988\u6700\u65B0\u7248\u672C\u6216\u7F51\u7EDC\u5931\u8D25\u3002",
+          "\u652F\u6301\u53D6\u6D88\u68C0\u67E5\u540E\u91CD\u8BD5\uFF0C\u91CD\u590D\u70B9\u51FB\u4E0D\u91CD\u590D\u8BF7\u6C42\uFF0C\u65E7\u8BF7\u6C42\u8FD4\u56DE\u4E0D\u8986\u76D6\u65B0\u7684\u63D0\u793A\u3002"
+        ]
+      },
+      {
         sequence: 2026092017,
         version: "2026.09.20.17",
         date: "2026-09-20",
@@ -240044,8 +240053,8 @@ https://creativecommons.org/licenses/by/4.0/
       return lifetime;
     }
     const state_root = service.update_paths(user_data).state_root;
-    let current, busy = false, disposed = false, dialog2, poll;
-    const controller = new AbortController();
+    let current, disposed = false, dialog2, poll;
+    let active_check;
     const write_log = (error) => {
       try {
         fs2.mkdirSync(state_root, { recursive: true });
@@ -240092,19 +240101,57 @@ https://creativecommons.org/licenses/by/4.0/
       poll = setInterval(refresh, 350);
       refresh();
     }
+    function close_checking(request) {
+      const target = request.dialog;
+      request.dialog = void 0;
+      if (dialog2 === target) dialog2 = void 0;
+      target?.close();
+    }
+    function show_checking(request) {
+      request.manual = true;
+      if (request.dialog) return;
+      const target = dialog2 = workspace_dialog("\u68C0\u67E5 Typora Code \u66F4\u65B0", "\u53D6\u6D88\u68C0\u67E5", () => {
+        if (request.dialog !== target) return;
+        request.dialog = void 0;
+        if (dialog2 === target) dialog2 = void 0;
+        if (active_check === request) active_check = void 0;
+        request.controller.abort();
+      });
+      request.dialog = target;
+      const status2 = workspace_element("p", "", "\u6B63\u5728\u68C0\u67E5\u66F4\u65B0\u2026");
+      status2.setAttribute("role", "status");
+      target.content.append(status2, workspace_element("p", "", "\u6B63\u5728\u8FDE\u63A5\u66F4\u65B0\u670D\u52A1\u5E76\u6838\u5BF9\u7248\u672C\uFF0C\u8BF7\u7A0D\u5019\u3002\u6B64\u65F6\u4E0D\u4F1A\u4E0B\u8F7D\u6216\u5B89\u88C5\u66F4\u65B0\uFF0C\u53EF\u53D6\u6D88\u540E\u91CD\u8BD5\u3002"));
+    }
     async function check(manual = false) {
-      if (busy || disposed || dialog2) return;
-      busy = true;
+      if (disposed) return;
+      if (active_check) {
+        if (manual) show_checking(active_check);
+        return;
+      }
+      if (dialog2) {
+        if (manual) dialog2.footer.querySelector("button")?.focus();
+        return;
+      }
+      const request = { controller: new AbortController(), manual };
+      active_check = request;
+      const is_current = () => !disposed && active_check === request && !request.controller.signal.aborted;
+      if (manual) show_checking(request);
       try {
         if (process2.platform !== "win32") {
-          if (manual) message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5E73\u53F0\u6682\u672A\u652F\u6301\u81EA\u52A8\u5B89\u88C5\uFF0C\u8BF7\u4ECE\u9879\u76EE\u4ED3\u5E93\u4E0B\u8F7D\u5B8C\u6574ZIP\u540E\u6309\u5B89\u88C5\u6307\u5357\u66F4\u65B0\u3002");
+          if (request.manual) {
+            close_checking(request);
+            message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5E73\u53F0\u6682\u672A\u652F\u6301\u81EA\u52A8\u5B89\u88C5\uFF0C\u8BF7\u4ECE\u9879\u76EE\u4ED3\u5E93\u4E0B\u8F7D\u5B8C\u6574ZIP\u540E\u6309\u5B89\u88C5\u6307\u5357\u66F4\u65B0\u3002");
+          }
           return;
         }
         load();
         const installed = service.release_info(JSON.parse(fs2.readFileSync(path.join(installed_root, "assets/update/release.json"), "utf8")));
         const identity5 = service.installed_identity(user_data);
         if (installed.releases[0].sequence > current.releases[0].sequence || identity5?.basis === "installed-archive" && identity5.commit !== loaded_identity) {
-          if (manual) message("Typora Code \u66F4\u65B0", "\u78C1\u76D8\u4E0A\u7684 " + installed.releases[0].version + " \u5DF2\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u5B58\u6587\u6863\u540E\u624B\u52A8\u91CD\u542F\u4EE5\u52A0\u8F7D\u65B0\u63D0\u4EA4\u3002");
+          if (request.manual) {
+            close_checking(request);
+            message("Typora Code \u66F4\u65B0", "\u78C1\u76D8\u4E0A\u7684 " + installed.releases[0].version + " \u5DF2\u5B89\u88C5\uFF1B\u8BF7\u4FDD\u5B58\u6587\u6863\u540E\u624B\u52A8\u91CD\u542F\u4EE5\u52A0\u8F7D\u65B0\u63D0\u4EA4\u3002");
+          }
           return;
         }
         if (manual) {
@@ -240112,16 +240159,24 @@ https://creativecommons.org/licenses/by/4.0/
             const active = JSON.parse(fs2.readFileSync(path.join(state_root, "active_job.json"), "utf8"));
             const state = service.status_of(state_root, active.job);
             if (!["succeeded", "failed", "cancelled"].includes(state.phase)) {
+              close_checking(request);
               show_progress(active.job);
               return;
             }
           } catch {
           }
-        } else if (!service.claim_startup(state_root, await service.session_identity(process2.ppid, process2.execPath))) return;
-        const plan = await service.check_update(installed, { signal: controller.signal, user_data });
-        if (disposed) return;
+        } else {
+          const session = await service.session_identity(process2.ppid, process2.execPath);
+          if (!is_current()) return;
+          if (!service.claim_startup(state_root, session) && !request.manual) return;
+        }
+        const plan = await service.check_update(installed, { signal: request.controller.signal, user_data });
+        if (!is_current()) return;
+        close_checking(request);
         if (!plan) {
-          if (manual) message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5B89\u88C5\u5DF2\u662F\u6700\u65B0\u53D1\u5E03\u7248\u672C\uFF08" + current.releases[0].version + "\uFF09\u3002");
+          if (request.manual) {
+            message("Typora Code \u66F4\u65B0", "\u5F53\u524D\u5B89\u88C5\u5DF2\u662F\u6700\u65B0\u53D1\u5E03\u7248\u672C\uFF08" + current.releases[0].version + "\uFF09\u3002");
+          }
           return;
         }
         const target = dialog2 = workspace_dialog("Typora Code \u6709\u65B0\u7248\u672C", "\u7A0D\u540E", () => {
@@ -240152,12 +240207,16 @@ https://creativecommons.org/licenses/by/4.0/
         });
         target.footer.append(update2);
       } catch (error) {
-        if (!disposed) {
+        if (is_current()) {
           write_log(error);
-          if (manual) message("\u68C0\u67E5\u66F4\u65B0\u5931\u8D25", String(error));
+          if (request.manual) {
+            close_checking(request);
+            message("\u68C0\u67E5\u66F4\u65B0\u5931\u8D25", String(error) + "\n\u8BF7\u68C0\u67E5\u7F51\u7EDC\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002");
+          }
         }
       } finally {
-        busy = false;
+        close_checking(request);
+        if (active_check === request) active_check = void 0;
       }
     }
     const command = app.commands.register({ id: "typora_code:check_update", title: "\u68C0\u67E5 Typora Code \u66F4\u65B0", scope: "global", callback: () => {
@@ -240169,7 +240228,7 @@ https://creativecommons.org/licenses/by/4.0/
     }, 2e3);
     lifetime.add(() => {
       disposed = true;
-      controller.abort();
+      active_check?.controller.abort();
       clearTimeout(timer);
       clearInterval(poll);
       dialog2?.close(false);

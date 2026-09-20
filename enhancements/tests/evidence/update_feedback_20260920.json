@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R047"
+  ],
+  "release": "2026.09.20.18",
+  "root_cause": "手动检查没有请求进行中反馈；忙碌时再次点击被直接忽略。",
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 161,
+    "update_ui_assertions": 23,
+    "shared_escape_focus_assertions": 21,
+    "native_assertions": 268,
+    "native_update_assertions": 10
+  },
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/update_feedback_check.log",
+      "sha256": "e9f2039da6ac237b8acbeef6e5de54f2155711d9f35418c498342dec27e137d8"
+    },
+    {
+      "path": ".cache/issue_tracking/update_feedback_ui.json",
+      "sha256": "da9c166bf188949a8b7c5945ee072b787b38ddbbb3288712c7270f69add591c7"
+    },
+    {
+      "path": ".cache/issue_tracking/update_feedback_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/update_feedback_install.log",
+      "sha256": "ab74ba6e16967c1953d7f718cf077e8c6da9ce0b5d979dfbf068d7b2db2b916d"
+    },
+    {
+      "path": ".cache/issue_tracking/native/9fb24f2559b84b0cb766b11a987de498/checks.json",
+      "sha256": "74c2ac7edd88ef50ab91e16db54d8dcaddb7ceba051a3b1aac0a1d92cfd4b50b"
+    },
+    {
+      "path": ".cache/issue_tracking/native/eedc7ee8f98f40cdaed0fc721d51dc77/checks.json",
+      "sha256": "63e704e3c300ee9409d68c4284329f4d084d2ba82e796b47d1d274102e90b97e"
+    }
+  ],
+  "candidate": {
+    "manifest_sha256": "f7b3a91e096c82ebceefcfa5ca7e64680927dc4830aeace36971dbaf74811a5b",
+    "source_sha256": "c989a8dbd6ce100e122b730718225ac1e901e9f1c140d8f70f9927479eae44c1",
+    "native_fixture_sha256": "a89f95908860071b762c57b327207589f6c02ee2f65524874a91dbc7e12dba44"
+  },
+  "installation": {
+    "status": "OK",
+    "matching_assets": 29,
+    "unchanged_protected_files": 6,
+    "release": "2026.09.20.18",
+    "user_windows_restarted": false
+  },
+  "test_corrections": [
+    "Esc夹具最初只发keydown，改为共同退出契约的完整keydown/keyup后通过。",
+    "Electron返回binding对象不可克隆，夹具改为void返回。",
+    "原生全局role=dialog计数包含宿主内置弹窗，收窄为工作台弹窗后通过，原失败记录保留。"
+  ],
+  "limits": [
+    "慢请求、超时和离线使用服务替身，未执行真实在线更新安装。",
+    "原生测试使用独立副本及renderer事件，不是用户当前窗口或物理输入。",
+    "版本已本机安装，当前用户窗口仍需手动重启；本轮未推送。",
+    "历史跨平台、跨账户UAC及启动长任务验收边界保持。"
+  ]
+}

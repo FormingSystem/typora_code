@@ -14,8 +14,9 @@ export function bind_workspace_update(){
  try{service=runtime.reqnode(path.join(installed_root,"assets/update/workspace_update_service.cjs"));loaded_identity=service.installed_identity(user_data)?.commit;}
  catch(error){console.error("Typora Code更新模块加载失败",error);return lifetime;}
  const state_root=service.update_paths(user_data).state_root;
- let current:any,busy=false,disposed=false,dialog:ReturnType<typeof workspace_dialog>|undefined,poll:ReturnType<typeof setInterval>|undefined;
- const controller=new AbortController();
+ let current:any,disposed=false,dialog:ReturnType<typeof workspace_dialog>|undefined,poll:ReturnType<typeof setInterval>|undefined;
+ type check_request={controller:AbortController;manual:boolean;dialog?:ReturnType<typeof workspace_dialog>};
+ let active_check:check_request|undefined;
  const write_log=(error:unknown)=>{try{fs.mkdirSync(state_root,{recursive:true});fs.appendFileSync(path.join(state_root,"checks.log"),new Date().toISOString()+" "+String(error)+"\n","utf8");}catch{};};
  const message=(title:string,text:string)=>{dialog?.close();dialog=workspace_dialog(title,"关闭",()=>{dialog=undefined;});dialog.content.append(el("p","",text));};
  function load(){
@@ -29,18 +30,45 @@ export function bind_workspace_update(){
   const refresh=()=>{try{const value=service.status_of(state_root,job);status.textContent=value.message;cancel.disabled=!['starting','downloading','verifying'].includes(value.phase);if(['succeeded','failed','cancelled'].includes(value.phase)){clearInterval(poll);poll=undefined;cancel.remove();}}catch(error){status.textContent=String(error);}};
   poll=setInterval(refresh,350);refresh();
  }
+ function close_checking(request:check_request){
+  const target=request.dialog;request.dialog=undefined;
+  if(dialog===target)dialog=undefined;
+  target?.close();
+ }
+ function show_checking(request:check_request){
+  request.manual=true;
+  if(request.dialog)return;
+  const target=dialog=workspace_dialog("检查 Typora Code 更新","取消检查",()=>{
+   if(request.dialog!==target)return;
+   request.dialog=undefined;if(dialog===target)dialog=undefined;
+   if(active_check===request)active_check=undefined;
+   request.controller.abort();
+  });
+  request.dialog=target;
+  const status=el("p","","正在检查更新…");status.setAttribute("role","status");
+  target.content.append(status,el("p","","正在连接更新服务并核对版本，请稍候。此时不会下载或安装更新，可取消后重试。"));
+ }
  async function check(manual=false){
-  if(busy||disposed||dialog)return;busy=true;
+  if(disposed)return;
+  if(active_check){if(manual)show_checking(active_check);return;}
+  if(dialog){if(manual)dialog.footer.querySelector<HTMLButtonElement>("button")?.focus();return;}
+  const request:check_request={controller:new AbortController(),manual};active_check=request;
+  const is_current=()=>!disposed&&active_check===request&&!request.controller.signal.aborted;
+  if(manual)show_checking(request);
   try{
-   if(process.platform!=="win32"){if(manual)message("Typora Code 更新","当前平台暂未支持自动安装，请从项目仓库下载完整ZIP后按安装指南更新。");return;}
+   if(process.platform!=="win32"){if(request.manual){close_checking(request);message("Typora Code 更新","当前平台暂未支持自动安装，请从项目仓库下载完整ZIP后按安装指南更新。");}return;}
    load();
    const installed=service.release_info(JSON.parse(fs.readFileSync(path.join(installed_root,"assets/update/release.json"),"utf8")));
    const identity=service.installed_identity(user_data);
-   if(installed.releases[0].sequence>current.releases[0].sequence||(identity?.basis==="installed-archive"&&identity.commit!==loaded_identity)){if(manual)message("Typora Code 更新","磁盘上的 "+installed.releases[0].version+" 已安装；请保存文档后手动重启以加载新提交。");return;}
-   if(manual){try{const active=JSON.parse(fs.readFileSync(path.join(state_root,"active_job.json"),"utf8"));const state=service.status_of(state_root,active.job);if(!['succeeded','failed','cancelled'].includes(state.phase)){show_progress(active.job);return;}}catch{}}
-   else if(!service.claim_startup(state_root,await service.session_identity(process.ppid,process.execPath)))return;
-   const plan=await service.check_update(installed,{signal:controller.signal,user_data});if(disposed)return;
-   if(!plan){if(manual)message("Typora Code 更新","当前安装已是最新发布版本（"+current.releases[0].version+"）。");return;}
+   if(installed.releases[0].sequence>current.releases[0].sequence||(identity?.basis==="installed-archive"&&identity.commit!==loaded_identity)){if(request.manual){close_checking(request);message("Typora Code 更新","磁盘上的 "+installed.releases[0].version+" 已安装；请保存文档后手动重启以加载新提交。");}return;}
+   if(manual){try{const active=JSON.parse(fs.readFileSync(path.join(state_root,"active_job.json"),"utf8"));const state=service.status_of(state_root,active.job);if(!['succeeded','failed','cancelled'].includes(state.phase)){close_checking(request);show_progress(active.job);return;}}catch{}}
+   else {
+    const session=await service.session_identity(process.ppid,process.execPath);if(!is_current())return;
+    if(!service.claim_startup(state_root,session)&&!request.manual)return;
+   }
+   const plan=await service.check_update(installed,{signal:request.controller.signal,user_data});if(!is_current())return;
+   close_checking(request);
+   if(!plan){if(request.manual){message("Typora Code 更新","当前安装已是最新发布版本（"+current.releases[0].version+"）。");}return;}
    const target=dialog=workspace_dialog("Typora Code 有新版本","稍后",()=>{dialog=undefined;});
    target.content.append(el("p","","当前版本 "+current.releases[0].version+" → "+plan.release.releases[0].version));
    target.content.append(el("p","","目标提交 "+plan.commit.slice(0,12)));
@@ -57,12 +85,12 @@ export function bind_workspace_update(){
      const job=service.start_update({state_root,installed_root,user_data,host_root:path.dirname(process.execPath),node_path,plan});show_progress(job);
     }catch(error){update.disabled=false;target.content.append(el("p","",String(error)));write_log(error);}
    });target.footer.append(update);
-  }catch(error){if(!disposed){write_log(error);if(manual)message("检查更新失败",String(error));}}
-  finally{busy=false;}
+  }catch(error){if(is_current()){write_log(error);if(request.manual){close_checking(request);message("检查更新失败",String(error)+"\n请检查网络连接后重试。");}}}
+  finally{close_checking(request);if(active_check===request)active_check=undefined;}
  }
  const command=app.commands.register({id:"typora_code:check_update",title:"检查 Typora Code 更新",scope:"global",callback:()=>{void check(true);}});
  if(typeof command==="function")lifetime.add(command as ()=>void);
  const timer=setTimeout(()=>{void check();},2000);
- lifetime.add(()=>{disposed=true;controller.abort();clearTimeout(timer);clearInterval(poll);dialog?.close(false);});
+ lifetime.add(()=>{disposed=true;active_check?.controller.abort();clearTimeout(timer);clearInterval(poll);dialog?.close(false);});
  return lifetime;
 }

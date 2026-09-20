@@ -483,6 +483,6 @@ Markdown正文及历史阅读中已显示的图片，鼠标悬停时在图像外
 
 ## 按提交更新与安装权限
 
-当前候选2026.09.20.17；Windows更新使用GitHub提交API与固定SHA的ZIP，不要求本地Git、`.git`或仓库历史。下载/解压放在Typora用户数据的`temp`，成功后才记录提交身份，同序号新提交仍可更新；立即安装后手动重启。安装按实际待写目标检查权限，可写目标不提权，受保护入口解释原因并请求一次系统授权，取消保留原安装。配置和备份仍由标准安装事务管理，详见[更新设计](../docs/workspace_update.md)及[安装权限](../docs/installation_design.md#r063-windows权限预检与按需授权)。
+当前候选2026.09.20.18；Windows更新使用GitHub提交API与固定SHA的ZIP，不要求本地Git、`.git`或仓库历史。下载/解压放在Typora用户数据的`temp`，成功后才记录提交身份，同序号新提交仍可更新；立即安装后手动重启。安装按实际待写目标检查权限，可写目标不提权，受保护入口解释原因并请求一次系统授权，取消保留原安装。配置和备份仍由标准安装事务管理，详见[更新设计](../docs/workspace_update.md)及[安装权限](../docs/installation_design.md#r063-windows权限预检与按需授权)。
 
 提交详情浮层与菜单共用GitHub/Gitee/GitLab/Bitbucket网页识别，多候选一次选择；无远端、本地或未知托管平台不生成猜测的提交URL，详见[提交网页](../docs/git_commit_web.md)。
