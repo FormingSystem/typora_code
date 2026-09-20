@@ -258,7 +258,12 @@
       {
         "path": "src/vs/base/browser/ui/scrollbar/scrollableElement.ts",
         "sha256": "ca8b55a67cd3052a9a2cbdfe3ac7e380797fa686f0210f5296c9aabdc4f3617e"
+      },
+      {
+        "path": "src/vs/platform/accessibility/browser/accessibilityService.ts",
+        "sha256": "c345cbe1040210a09357866da8645c240e6970fb8b447d04f81966591fe3fa06"
       }
-    ]
+    ],
+    "adaptation": "2026-09-20按用户明确要求，本滚动条绘制采用reduceMotion=off有效语义，系统减少动画不再使渐隐归零；第三方滚动所有者保持原策略。"
   }
 }

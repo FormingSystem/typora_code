@@ -182966,7 +182966,6 @@ https://creativecommons.org/licenses/by/4.0/
     const entries3 = /* @__PURE__ */ new Map();
     const releases = /* @__PURE__ */ new Map();
     let hovered = /* @__PURE__ */ new Set(), dragged = /* @__PURE__ */ new Set();
-    const reduced_motion = matchMedia("(prefers-reduced-motion: reduce)");
     const is_native_scroll = (node) => {
       if (node.closest(EXCLUDED)) return false;
       if (node.scrollHeight <= node.clientHeight && node.scrollWidth <= node.clientWidth) return false;
@@ -183002,7 +183001,8 @@ https://creativecommons.org/licenses/by/4.0/
           animation?.cancel();
           node.style.setProperty(OPACITY_PROPERTY, visible3 ? "1" : "0");
           animation = node.animate([{ [OPACITY_PROPERTY]: from }, { [OPACITY_PROPERTY]: visible3 ? "1" : "0" }], {
-            duration: reduced_motion.matches || root.classList.contains("disable-animations") ? 0 : duration,
+            // 用户明确指定渐隐；等效上游 reduceMotion=off，仅限本滚动条绘制层。
+            duration,
             easing: "linear"
           });
           animation.onfinish = finished;
@@ -235863,6 +235863,7 @@ https://creativecommons.org/licenses/by/4.0/
     for (const [selector, role] of [
       ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn", "group"],
       ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "control"],
+      ["#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "icon-control"],
       ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand", "text"]
     ]) for (const node of document.querySelectorAll(selector)) {
       if (role === "control" && !node.hasAttribute("data-workspace-interaction")) {
@@ -235898,7 +235899,9 @@ https://creativecommons.org/licenses/by/4.0/
     ]);
     const update_context = () => {
       actions.dataset.workspaceSidebarTab = sidebar.classList.contains("active-tab-outline") ? "outline" : "files";
-      for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
+      const native_tree = window.editor?.library?.useTreeStyle;
+      const has_mode = mirrored_classes.some((name) => sidebar.classList.contains(name));
+      for (const name of mirrored_classes) actions.classList.toggle(name, has_mode ? sidebar.classList.contains(name) : typeof native_tree === "boolean" && name === "use-file-tree-style" === native_tree);
     };
     update_context();
     const observer2 = new MutationObserver(update_context);
@@ -238651,6 +238654,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092004,
+        version: "2026.09.20.4",
+        date: "2026-09-20",
+        notes: [
+          "\u4FEE\u590D\u5E95\u680F\u65B0\u5EFA\u6587\u4EF6\u3001\u5217\u8868\u5207\u6362\u548C\u66F4\u591A\u56FE\u6807\u7684\u504F\u79FB\u4E0E\u975E\u60AC\u505C\u9690\u85CF\uFF0C\u7EDF\u4E00\u5171\u4EAB\u56FE\u6807\u5185\u5BB9\u76D2\u3002",
+          "\u4FEE\u590D\u7CFB\u7EDF\u51CF\u5C11\u52A8\u753B\u65F6\u6EDA\u52A8\u6761\u7A81\u7136\u6D88\u5931\uFF0C\u5DE5\u4F5C\u53F0\u6EDA\u52A8\u6761\u505C\u6B62\u64CD\u4F5C\u540E\u4FDD\u6301800\u6BEB\u79D2\u6E10\u9690\u3002"
+        ]
+      },
       {
         sequence: 2026092003,
         version: "2026.09.20.3",

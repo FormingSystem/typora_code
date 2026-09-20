@@ -24,7 +24,7 @@
   tree.dispatchEvent(new PointerEvent('pointerout',{bubbles:true,relatedTarget:document.body}));
   for(const delay of [300,400,300,600]){await pause(delay);samples.push({delay,opacity:read()});}
   assert(read()===0&&!tree.style.getPropertyValue('--workspace-scrollbar-opacity'),'空闲隐藏并清理属性');
-  if(!matchMedia('(prefers-reduced-motion: reduce)').matches&&!root.classList.contains('disable-animations'))assert(samples.some(s=>s.opacity>0&&s.opacity<1),'支持动画时原生引擎存在中间透明度');
+  assert(samples.some(s=>s.opacity>0&&s.opacity<1),'真实系统偏好下原生引擎必须存在中间透明度');
   for(let i=0;i<20;i++){
    tree.scrollTop=i%2?0:70;await pause(25);
    tree.dispatchEvent(new PointerEvent('pointerover',{bubbles:true}));

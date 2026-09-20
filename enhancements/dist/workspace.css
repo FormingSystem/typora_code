@@ -1666,6 +1666,21 @@ footer.ty-footer .workspace-footer-text {
   margin:0!important;padding:0!important;font:inherit;line-height:normal!important;color:inherit;white-space:nowrap;
 }
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}
+/* 原生 footer-btn 的隐藏和内边距由共享图标角色接管；业务 hide 和内联隐藏仍有效。 */
+footer.ty-footer #ty-sidebar-footer .workspace-footer-control.workspace-footer-icon-control,
+footer.ty-footer .workspace-footer-control.workspace-footer-icon-control {
+  display:flex;align-items:center;justify-content:center;padding-left:0;padding-right:0;
+}
+footer.ty-footer .workspace-footer-icon-control .workspace-official-icon-slot {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;padding:0;margin:0;line-height:0;
+  position:static!important;inset:auto!important;vertical-align:middle;
+}
+footer.ty-footer .workspace-footer-icon-control > span,
+footer.ty-footer .workspace-footer-icon-control .footer-btn {line-height:0;vertical-align:middle;}
+
+/* 宿主 .show 强制 block；保留其可见语义，只纠正内容布局。 */
+footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {display:flex!important;}
 
 /* workspace_hover_surface.css */
 /* 固定 VS Code hoverWidget.css：4×8px内容内距、500px最大宽度、自然1.5行高。 */

@@ -1,0 +1,69 @@
+{
+  "requirements": [
+    "R008.2",
+    "R049.1"
+  ],
+  "date": "2026-09-20",
+  "release": "2026.09.20.4",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-42-05-264Z_3f6f41/report.json",
+      "sha256": "6c7465114edcc37e465b4ff6f6c591f425b13ecaa8319b605bf1a0c3ead21290"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-42-12-426Z_69fdda/report.json",
+      "sha256": "05eccaf867cfa1d4d50598b4febf04205d293c6a8ec3226807f2addf925b9502"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-42-19-650Z_fee6b1/report.json",
+      "sha256": "6d257e5d14cc4c32e1bd8ee31d7e03064a68954cda8e866f3f7916e7e4f3ee03"
+    }
+  ],
+  "checks": [
+    "完整npm run check通过",
+    "底栏UI明暗/缩放/22与30px/菜单/清理通过",
+    "真实Monaco与xterm共享样式回归通过",
+    "原生底栏20次模式切换和hide语义通过",
+    "系统reduce=true的原生渐隐中间帧通过"
+  ],
+  "failures": [
+    "首次UI遗漏真实footer-btn内边距及隐藏",
+    "原生not-empty-menu-group隐藏及show强制block分别被新用例发现，已保留失败报告"
+  ],
+  "installed_assets": {
+    "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+    "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+    "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+    "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+    "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+    "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+    "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+    "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+    "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+    "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+    "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+    "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+    "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+    "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+    "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+    "assets/update/release.json": "77c81b2d2efbfb96850e19c9f117a2b41cd75b8da8671165b386fb978d7a733a",
+    "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+    "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+    "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+    "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+    "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+    "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+    "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+    "workbench.js": "f1ae2e2a58526164beb943a5fcb14930f8cc0064dea57d762b93fd2ffaa4ed0f",
+    "workspace.css": "c4cfef1eec85813e51e5d4114ecd07cfecbbef9ee51f4b148c99ddd22c2f002c",
+    "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+    "workspace_core.js": "62f5fac7c4c1158e3cb4633de2666c5de6f409c644ef4d7357efe1c1d4c23922"
+  },
+  "protected_hashes_unchanged": 5,
+  "installation_check": "OK",
+  "runtime_loaded": "用户窗口未重启",
+  "limitations": [
+    "原始Typora1.14.10独立副本，非用户桌面物理输入",
+    "R056/R057尚在实施，未并入本次完成项"
+  ]
+}

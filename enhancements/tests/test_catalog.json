@@ -4827,6 +4827,39 @@
       "script": "enhancements/scripts/test_scrollbar_fade_native.ps1",
       "environment": "原始Typora1.14.10独立副本、私有桌面与用户数据；renderer合成指针",
       "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R008"
+      ],
+      "design": "docs/statusbar_layout.md",
+      "implementation": [
+        "enhancements/src/workspace_footer.ts",
+        "enhancements/src/workspace_footer_layout.css",
+        "enhancements/fixtures/footer_icons_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "检查实际宿主文件/源码按钮非悬停可见、字形居中、状态保持"
+      ],
+      "expected": [
+        "同类图标使用公共盒模型，保留宿主业务显隐与原文"
+      ],
+      "id": "TC-footer-icons-native",
+      "level": "system",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_footer_icons_native.ps1",
+      "environment": "原始Typora1.14.10独立副本、私有桌面与用户数据；renderer合成指针",
+      "timeout_ms": 240000
     }
   ]
 }

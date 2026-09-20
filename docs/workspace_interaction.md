@@ -16,7 +16,7 @@ Monaco与实际安装的xterm 6.0.0使用DOM滑块，集中适配其真实`.scro
 
 2026-09-20用户指出资源管理器滚动条没有悬停时仍常驻。新增共享显隐行为，覆盖工作台原生overflow滚动区域；不改8px占位、4px圆角、滚动位置、容器布局、原生拖动或快捷键。Monaco/xterm、CodeMirror等自有滚动实现保留自身状态；真正任务进度及缩略图不纳入本次淡出。
 
-固定VS Code提交645f29c的scrollableElement.ts规定HIDE_TIMEOUT=500；scrollbars.css规定显示100ms、淡出800ms linear，disable-animations关闭动画。采用同样时序：悬停区域或拖动保持显示，滚动/键盘滚动后短暂显示；离开且停止操作500ms后用800ms渐隐，重新进入中断渐隐。空闲初始状态不显示，不新增设置；尊重prefers-reduced-motion。登记到设计来源清单。
+固定VS Code提交645f29c的scrollableElement.ts规定HIDE_TIMEOUT=500；scrollbars.css规定显示100ms、淡出800ms linear，disable-animations关闭动画。采用同样时序：悬停区域或拖动保持显示，滚动/键盘滚动后短暂显示；离开且停止操作500ms后用800ms渐隐，重新进入中断渐隐。空闲初始状态不显示，不新增设置。2026-09-20用户明确要求必须慢慢淡出：取代首版自动遵从系统减少动画的约定，仅本滚动条绘制采用固定上游workbench.reduceMotion=off的有效语义，保留800ms渐隐；不改变系统偏好、正文动画或第三方编辑器策略。登记到设计来源清单。
 
 实现由workspace_scrollbars.ts统一持有事件和短期状态，通过文档捕获监听识别真实overflow所有者；不周期扫描DOM，不增加覆盖滚动条或替换原生滚动机制。绘制只用公共CSS颜色及局部透明度，动画不改变元素opacity、不重写原有transition/animation。CSS伪元素不可靠地支持直接transition，因此对所有者注册的数值属性使用Web Animations，再由伪元素显式继承。仅当前活动/渐隐元素占有状态，隐藏结束释放；新面板通过委托自动接入，销毁取消计时/动画并还原属性。能力不支持时保持原滚动条，不能让控制永久不可见。
 

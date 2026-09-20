@@ -29,6 +29,7 @@ export function install_workspace_footer(): footer_binding | undefined {
   for(const [selector,role]of[
     ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn","group"],
     ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item","control"],
+    ["#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item","icon-control"],
     ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand","text"],
   ])for(const node of document.querySelectorAll<HTMLElement>(selector)){
     // 无button语义的原生div也从同一角色登记处接入；已有独立策略保持。
@@ -61,7 +62,10 @@ export function install_workspace_footer(): footer_binding | undefined {
   // 侧栏模式仅影响直接操作行；不把宿主 active-tab-outline 的后代隐藏规则带进独立文件菜单。
   const update_context = () => {
     actions.dataset.workspaceSidebarTab=sidebar.classList.contains("active-tab-outline")?"outline":"files";
-    for (const name of mirrored_classes) actions.classList.toggle(name, sidebar.classList.contains(name));
+    // 增强侧栏可能移除原生展示类，真实列表配置仍由宿主 library 持有。
+    const native_tree = (window as unknown as {editor?: {library?: {useTreeStyle?: boolean}}}).editor?.library?.useTreeStyle;
+    const has_mode = mirrored_classes.some(name => sidebar.classList.contains(name));
+    for (const name of mirrored_classes) actions.classList.toggle(name, has_mode ? sidebar.classList.contains(name) : typeof native_tree === "boolean" && (name === "use-file-tree-style") === native_tree);
   };
   update_context();
   // 只观察侧栏状态；不观察移入的节点，避免 class 镜像产生自触发循环。

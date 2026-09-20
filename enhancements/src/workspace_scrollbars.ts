@@ -15,7 +15,6 @@ export function bind_workspace_scrollbars() {
   const entries = new Map<HTMLElement, ReturnType<typeof create_scrollbar_visibility>>();
   const releases = new Map<HTMLElement, () => void>();
   let hovered = new Set<HTMLElement>(), dragged = new Set<HTMLElement>();
-  const reduced_motion = matchMedia("(prefers-reduced-motion: reduce)");
   const is_native_scroll = (node: HTMLElement) => {
     if (node.closest(EXCLUDED)) return false;
     if (node.scrollHeight <= node.clientHeight && node.scrollWidth <= node.clientWidth) return false;
@@ -48,7 +47,8 @@ export function bind_workspace_scrollbars() {
         animation?.cancel();
         node.style.setProperty(OPACITY_PROPERTY, visible ? "1" : "0");
         animation = node.animate([{[OPACITY_PROPERTY]: from}, {[OPACITY_PROPERTY]: visible ? "1" : "0"}], {
-          duration: reduced_motion.matches || root.classList.contains("disable-animations") ? 0 : duration,
+          // 用户明确指定渐隐；等效上游 reduceMotion=off，仅限本滚动条绘制层。
+          duration,
           easing: "linear",
         });
         animation.onfinish = finished;

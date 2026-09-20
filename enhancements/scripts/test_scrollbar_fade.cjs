@@ -44,9 +44,9 @@ app.whenReady().then(async()=>{
   win.webContents.setZoomFactor(1.25);await ev(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';void 0`);await move(60,60);await pause(200);
   await check(theme+'缩放下保持公共几何',opacity+'>.99&&getComputedStyle(probe,"::-webkit-scrollbar-thumb").borderRadius==="4px"&&getComputedStyle(probe,"::-webkit-scrollbar").width==="8px"');
  }
- await ev('document.documentElement.classList.add("disable-animations");void 0');await move(600,400);await pause(620);await check('关闭动画仍在空闲时隐藏',opacity+'===0');
+ await ev('document.documentElement.classList.add("disable-animations");void 0');await move(600,400);await pause(720);await check('宿主关闭动画仍保留滚动条渐隐',opacity+'>0&&'+opacity+'<1');await pause(650);
  await ev('document.documentElement.classList.remove("disable-animations");void 0');await win.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
- await move(60,60);await pause(50);await check('系统减少动画时立即显示',opacity+'===1');await move(600,400);await pause(620);await check('系统减少动画时无渐变残留',opacity+'===0&&probe.getAnimations().length===0');
+ await move(60,60);await pause(150);await check('系统减少动画时正常显示',opacity+'===1');await move(600,400);await pause(720);await check('系统减少动画仍有渐隐中间帧',opacity+'>0&&'+opacity+'<1');await pause(650);await check('渐隐结束释放动画',opacity+'===0&&probe.getAnimations().length===0');
  await move(60,60);await pause(70);await ev('binding.dispose();void 0');await check('销毁恢复原生绘制并取消全部动画','!document.documentElement.hasAttribute("data-workspace-scrollbars")&&!probe.style.getPropertyValue("--workspace-scrollbar-opacity")&&probe.getAnimations().length===0');
  fs.writeFileSync(path.join(base,'results.json'),JSON.stringify({status:'PASS',checks,samples},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,evidence:base,samples}));win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error('Evidence: '+base);win?.destroy();app.exit(1);});
