@@ -55,7 +55,8 @@
   await files.open_file(navigation);await wait(()=>File.bundle.filePath===navigation&&!File.isFileLoading()&&document.querySelector('#write h2'),'navigation ready');await pause(300);
   for(let index=0;index<60;index++)fs.writeFileSync(path.join(root,'scrollbar_'+index+'.txt'),'scrollbar fixture\n','utf8');
   for(const [theme,name]of [['github.css','Github'],['night.css','Night']]){
-   ClientCommand.setTheme(theme,name);await pause(250);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
+   await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(350);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
+   assert(document.documentElement.dataset.workspaceFileIconTheme===(name==='Night'?'dark':'light'),'实际主题完成 '+name);
    // Explorer使用真实宿主主题；标题、文件内容和辅助动作分别核对。
    if(!document.querySelector('.linux-note-workspace-explorer')?.getBoundingClientRect().width)document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]').click();
    await wait(()=>document.querySelector('.linux-note-workspace-explorer'),'Explorer挂载');
@@ -65,7 +66,8 @@
    for(const toggle of explorer.querySelectorAll('.workspace-explorer-section-title'))if(toggle.getAttribute('aria-expanded')==='false')toggle.click();
    await wait(()=>explorer.querySelector('.workspace-explorer-name'),'Explorer内容');
    const sidebar=document.querySelector('#typora-sidebar'),sash=document.querySelector('#typora-sidebar-resizer');
-   for(const width of [300,220]){
+   for(const zoom of [1,1.25])for(const width of [300,220]){
+    reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);
     sash.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true}));
     for(let step=170;step<width;step+=10)sash.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
     explorer.querySelector('.workspace-timeline .workspace-explorer-section-title').focus();await pause(350);
@@ -74,7 +76,28 @@
     const buttons=[...explorer.querySelectorAll('.workspace-explorer-section-actions button')].filter(node=>node.getBoundingClientRect().width>0);
     const geometry=buttons.map(node=>({button:node.getBoundingClientRect().toJSON(),icon:node.querySelector('svg').getBoundingClientRect().toJSON()}));
     samples.push({explorer:{theme,width,fonts,geometry,device_pixel_ratio:devicePixelRatio}});persist();
-    const stage='explorer_'+name+'_'+width;
+    const origin=explorer.getBoundingClientRect().left;
+    const section_geometry=[...explorer.querySelectorAll('.workspace-explorer-section-heading')].map(node=>{
+     const icon=node.querySelector('svg').getBoundingClientRect(),title=node.querySelector('.workspace-explorer-section-label,.workspace-explorer-root-name')||node.querySelector('.workspace-explorer-section-title');
+     const range=document.createRange();range.selectNodeContents([...title.childNodes].find(child=>child.nodeType===Node.TEXT_NODE)||title);
+     return {icon:icon.left-origin,label:range.getBoundingClientRect().left-origin,icon_width:icon.width};
+    });
+    assert(section_geometry.length===3&&section_geometry.every(row=>Math.abs(row.icon-4)<.5&&Math.abs(row.label-24)<.5&&Math.abs(row.icon_width-16)<.5),'R061 '+name+' '+width+' '+zoom+' Explorer三分区图标/文字共用4/24px');
+    for(const toggle of explorer.querySelectorAll('.workspace-explorer-section-title')){
+     const before=toggle.getAttribute('aria-expanded');toggle.click();await pause(20);
+     assert(toggle.getAttribute('aria-expanded')!==before,'R061折叠状态响应 '+toggle.textContent);
+     toggle.click();await pause(20);
+    }
+    core.app.commands.run('linux_note:source_control');
+    await wait(()=>document.querySelector('.git-scm-input-heading')?.getBoundingClientRect().width>0,'R061 SCM显示');
+    const scm=document.querySelector('.linux-note-git-source-control'),scm_origin=scm.getBoundingClientRect().left;
+    const scm_geometry=[...scm.querySelectorAll('.git-scm-input-heading>.git-disclosure-icon,.git-scm-history-toggle>.git-disclosure-icon')].map(node=>({left:node.getBoundingClientRect().left-scm_origin,width:node.getBoundingClientRect().width}));
+    assert(scm_geometry.length===2&&scm_geometry.every(row=>Math.abs(row.left-section_geometry[0].icon)<.5&&Math.abs(row.width-16)<.5),'R061 '+name+' '+width+' '+zoom+' Git与Explorer实际槽位相同');
+    samples.push({disclosure:{theme,zoom,width,section_geometry,scm_geometry}});persist();
+    document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]').click();
+    await wait(()=>explorer.getBoundingClientRect().width>0,'R061返回Explorer');
+    explorer.querySelector('.workspace-timeline .workspace-explorer-section-title').focus();await pause(100);
+    const stage='explorer_'+name+'_'+width+'_'+Math.round(zoom*100);
     fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage}));
     await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage===stage;}catch{return false;}},'Explorer截图');
     assert(fonts.length>1&&fonts.every(item=>item.font.includes('Segoe')),'TC-explorer-hierarchy: '+name+' '+width+'正文主题不改变UI字体');
@@ -82,6 +105,7 @@
     const title=explorer.querySelector('.workspace-timeline .workspace-explorer-section-title').getBoundingClientRect(),actions=explorer.querySelector('.workspace-timeline .workspace-explorer-section-actions').getBoundingClientRect();
     assert(title.right<=actions.left+.5&&title.width>20,'TC-explorer-hierarchy: '+name+' '+width+'标题与辅助工具不重叠');
    }
+   reqnode('electron').webFrame.setZoomFactor(1);await pause(100);
    document.activeElement?.blur();
    const heading=document.querySelector('#write h2'),content=document.querySelector('content');
    await wait(()=>!File.editor.isScrolling()&&!File._onInitParse,'native scroll idle');File.editor.selection.scrollAdjust($(heading),10,0,true);await pause(650);

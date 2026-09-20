@@ -442,23 +442,23 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 }
 .linux-note-git-source-control .git-scm-group > summary > .git-disclosure-icon {
   position:static;display:block!important;visibility:visible!important;opacity:1!important;
-  flex:0 0 16px;width:16px!important;height:16px!important;margin:0 6px 0 0;translate:3px 0;overflow:visible;
+  flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0 var(--workspace-tree-twistie-gap) 0 0;translate:var(--workspace-tree-twistie-offset) 0;overflow:visible;
 }
 /* The Changes and Graph view headers share one leading icon slot; tree groups remain body rows. */
 .linux-note-git-source-control :is(.git-scm-input-heading,.git-scm-history-header) {
-  box-sizing:border-box;height:22px;min-height:22px;flex-basis:22px;margin:0;padding:0 4px;
+  box-sizing:border-box;height:22px;min-height:22px;flex-basis:22px;margin:0;padding:0 var(--workspace-disclosure-inset);
   font-size:12px!important;font-weight:600;line-height:22px;border:0;border-radius:0;
 }
-.linux-note-git-source-control .git-scm-input-heading {gap:4px}
+.linux-note-git-source-control .git-scm-input-heading {gap:var(--workspace-disclosure-gap)}
 .linux-note-git-source-control .git-scm-input-heading > .git-disclosure-icon {
-  position:static;display:block!important;flex:0 0 16px;width:16px!important;height:16px!important;margin:0;
+  position:static;display:block!important;flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0;
 }
 .linux-note-git-source-control .git-scm-history-header > button.git-scm-history-toggle {
-  display:flex;align-items:center;gap:4px;margin:0;padding:0;height:22px;min-height:22px;
+  display:flex;align-items:center;gap:var(--workspace-disclosure-gap);margin:0;padding:0;height:22px;min-height:22px;
   font-size:12px!important;font-weight:600;line-height:22px;color:inherit;background:transparent;
 }
 .linux-note-git-source-control .git-scm-history-toggle > .git-disclosure-icon {
-  display:block!important;flex:0 0 16px;width:16px!important;height:16px!important;margin:0;
+  display:block!important;flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0;
 }
 /* Primary buttons and coloured reference badges own their icon foregrounds. */
 .linux-note-git-source-control .git-scm-commit-bar > button {

@@ -1,6 +1,13 @@
 /* VS Code 88e44fa语义颜色、645f29c的4px控件圆角：仅在声明的UI范围绘制。
    内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
 :root {
+  /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
+  --workspace-disclosure-inset:4px;
+  --workspace-disclosure-size:16px;
+  --workspace-disclosure-gap:4px;
+  --workspace-tree-indent:8px;
+  --workspace-tree-twistie-gap:6px;
+  --workspace-tree-twistie-offset:3px;
   --workspace-control-radius:var(--vscode-cornerRadius-small,4px);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#00000014);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#202020);

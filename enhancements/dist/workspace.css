@@ -768,23 +768,23 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 }
 .linux-note-git-source-control .git-scm-group > summary > .git-disclosure-icon {
   position:static;display:block!important;visibility:visible!important;opacity:1!important;
-  flex:0 0 16px;width:16px!important;height:16px!important;margin:0 6px 0 0;translate:3px 0;overflow:visible;
+  flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0 var(--workspace-tree-twistie-gap) 0 0;translate:var(--workspace-tree-twistie-offset) 0;overflow:visible;
 }
 /* The Changes and Graph view headers share one leading icon slot; tree groups remain body rows. */
 .linux-note-git-source-control :is(.git-scm-input-heading,.git-scm-history-header) {
-  box-sizing:border-box;height:22px;min-height:22px;flex-basis:22px;margin:0;padding:0 4px;
+  box-sizing:border-box;height:22px;min-height:22px;flex-basis:22px;margin:0;padding:0 var(--workspace-disclosure-inset);
   font-size:12px!important;font-weight:600;line-height:22px;border:0;border-radius:0;
 }
-.linux-note-git-source-control .git-scm-input-heading {gap:4px}
+.linux-note-git-source-control .git-scm-input-heading {gap:var(--workspace-disclosure-gap)}
 .linux-note-git-source-control .git-scm-input-heading > .git-disclosure-icon {
-  position:static;display:block!important;flex:0 0 16px;width:16px!important;height:16px!important;margin:0;
+  position:static;display:block!important;flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0;
 }
 .linux-note-git-source-control .git-scm-history-header > button.git-scm-history-toggle {
-  display:flex;align-items:center;gap:4px;margin:0;padding:0;height:22px;min-height:22px;
+  display:flex;align-items:center;gap:var(--workspace-disclosure-gap);margin:0;padding:0;height:22px;min-height:22px;
   font-size:12px!important;font-weight:600;line-height:22px;color:inherit;background:transparent;
 }
 .linux-note-git-source-control .git-scm-history-toggle > .git-disclosure-icon {
-  display:block!important;flex:0 0 16px;width:16px!important;height:16px!important;margin:0;
+  display:block!important;flex:0 0 var(--workspace-disclosure-size);width:var(--workspace-disclosure-size)!important;height:var(--workspace-disclosure-size)!important;margin:0;
 }
 /* Primary buttons and coloured reference badges own their icon foregrounds. */
 .linux-note-git-source-control .git-scm-commit-bar > button {
@@ -1478,12 +1478,12 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
 .workspace-explorer-tree { flex:1; min-height:0; position:relative; overflow:auto; outline:none; }
 .workspace-explorer-spacer { position:relative; min-width:100%; }
-.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
+.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent)); padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
 .workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background); color:var(--linux-note-shell-inactive-selection-foreground); }
 .workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--workspace-focus-border); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
-.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:22px; }
+.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:calc(var(--workspace-disclosure-size) + var(--workspace-tree-twistie-gap)); }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
 .workspace-explorer-note { font:11px var(--font-family,Arial,sans-serif); color:#777; margin-left:auto; }
 .workspace-explorer-note.is-error { color:#d33; }
@@ -1504,17 +1504,20 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-explorer-row[data-directory="false"]>.workspace-explorer-chevron{display:none}
 .workspace-explorer-row>.workspace-file-theme-icon{margin-right:6px}
 
+/* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
+.workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
+.workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}
+
 /* workspace_explorer_sections.css */
 .linux-note-workspace-explorer [hidden]{display:none!important}
 .workspace-explorer-folders{display:flex;flex-direction:column;flex:1 1 0;min-height:50px;overflow:hidden}
 .workspace-explorer-folders.is-collapsed{flex:0 0 auto;min-height:0}
-/* VS Code 645f29c：Modern pane header=28，左右margin=4、左padding=4，arrow=16+2+2。
-   根目录保留文件树更新的名称节点，标题的几何和字体仅由本契约定义。 */
-.linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0 4px;padding:0 0 0 4px;gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
+/* R061横向槽位与SCM共享interaction token；保留Modern 28px高度和原有字体。 */
+.linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0;padding:0 var(--workspace-disclosure-inset);gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
 .workspace-explorer-section-heading::before{content:"";position:absolute;top:0;left:4px;right:4px;height:1px;background:var(--linux-note-shell-border,rgba(128,128,128,.2));pointer-events:none}
 .workspace-explorer-opened>.workspace-explorer-section-heading::before,.workspace-explorer-opened[hidden]+.workspace-explorer-folders>.workspace-explorer-section-heading::before{display:none}
-.workspace-explorer-section-title{display:flex;align-items:center;gap:0;flex:1;min-width:20px;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;margin:0;height:28px;white-space:nowrap;overflow:hidden;cursor:pointer;--workspace-interaction-hover:var(--workspace-hover-background)}
-.workspace-explorer-section-title>svg,.workspace-explorer-folder-caret{width:16px;height:16px;flex:0 0 16px;margin:0 2px}
+.workspace-explorer-section-title{display:flex;align-items:center;gap:var(--workspace-disclosure-gap);flex:1;min-width:20px;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;margin:0;height:28px;white-space:nowrap;overflow:hidden;cursor:pointer;--workspace-interaction-hover:var(--workspace-hover-background)}
+.workspace-explorer-section-title>svg,.workspace-explorer-folder-caret{width:var(--workspace-disclosure-size);height:var(--workspace-disclosure-size);flex:0 0 var(--workspace-disclosure-size);margin:0}
 .workspace-explorer-folder-caret svg{width:16px;height:16px;display:block}
 .workspace-explorer-section-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
 .workspace-explorer-section-heading>.workspace-explorer-section-actions{display:none;flex:none;align-items:center;gap:4px;margin-left:auto;margin-right:8px}
@@ -1738,6 +1741,13 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 /* VS Code 88e44fa语义颜色、645f29c的4px控件圆角：仅在声明的UI范围绘制。
    内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
 :root {
+  /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
+  --workspace-disclosure-inset:4px;
+  --workspace-disclosure-size:16px;
+  --workspace-disclosure-gap:4px;
+  --workspace-tree-indent:8px;
+  --workspace-tree-twistie-gap:6px;
+  --workspace-tree-twistie-offset:3px;
   --workspace-control-radius:var(--vscode-cornerRadius-small,4px);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#00000014);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#202020);

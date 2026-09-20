@@ -2278,7 +2278,8 @@
       "requirements": [
         "R041",
         "R044",
-        "R046"
+        "R046",
+        "R061"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2288,7 +2289,9 @@
         "enhancements/src/workspace_file_operations.ts",
         "enhancements/src/workspace_rename.ts",
         "enhancements/src/workspace_explorer.css",
-        "enhancements/src/workspace_explorer_sections.css"
+        "enhancements/src/workspace_explorer_sections.css",
+        "enhancements/src/workspace_interaction.css",
+        "enhancements/src/git_graph.css"
       ],
       "related_modules": [
         "explorer",
@@ -2318,7 +2321,8 @@
         "R037",
         "R038",
         "R046",
-        "R052"
+        "R052",
+        "R061"
       ],
       "design": "docs/explorer_history.md",
       "implementation": [
@@ -2330,7 +2334,9 @@
         "enhancements/src/workspace_save_service.ts",
         "enhancements/src/workspace_save_settings.ts",
         "enhancements/src/workspace_explorer.css",
-        "enhancements/src/workspace_explorer_sections.css"
+        "enhancements/src/workspace_explorer_sections.css",
+        "enhancements/src/workspace_interaction.css",
+        "enhancements/src/git_graph.css"
       ],
       "related_modules": [
         "explorer",
@@ -3605,7 +3611,8 @@
         "R048",
         "R049",
         "R050",
-        "R034"
+        "R034",
+        "R061"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3622,7 +3629,10 @@
         "enhancements/src/workspace_scrollbars.css",
         "enhancements/src/git_graph_columns.ts",
         "enhancements/src/git_graph_panel.ts",
-        "enhancements/src/workspace_breadcrumbs.css"
+        "enhancements/src/workspace_breadcrumbs.css",
+        "enhancements/src/workspace_interaction.css",
+        "enhancements/src/workspace_explorer.ts",
+        "enhancements/src/git_graph.css"
       ],
       "related_modules": [
         "files",

@@ -10,12 +10,12 @@
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
 .workspace-explorer-tree { flex:1; min-height:0; position:relative; overflow:auto; outline:none; }
 .workspace-explorer-spacer { position:relative; min-width:100%; }
-.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
+.workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent)); padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
 .workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background); color:var(--linux-note-shell-inactive-selection-foreground); }
 .workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--workspace-focus-border); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
-.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:22px; }
+.workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:calc(var(--workspace-disclosure-size) + var(--workspace-tree-twistie-gap)); }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
 .workspace-explorer-note { font:11px var(--font-family,Arial,sans-serif); color:#777; margin-left:auto; }
 .workspace-explorer-note.is-error { color:#d33; }
@@ -35,3 +35,7 @@
 /* VS Code tree.indent=8；Seti无文件夹图标时，叶子折叠槽归零（views.css）。 */
 .workspace-explorer-row[data-directory="false"]>.workspace-explorer-chevron{display:none}
 .workspace-explorer-row>.workspace-file-theme-icon{margin-right:6px}
+
+/* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
+.workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
+.workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}

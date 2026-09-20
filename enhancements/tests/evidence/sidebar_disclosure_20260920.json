@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R061"
+  ],
+  "release": "2026.09.20.11",
+  "asset_manifest_sha256": "11df8d57de071821fbc74e23b9acdf66229d194a251e9fca602c8089c60df884",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-22-01-673Z_288dba/report.json",
+      "sha256": "653a02b7325230f61086e2694ee21cc852505f2e2fb7d90a2fb85c43bb491da4",
+      "status": "incomplete"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-23-32-745Z_b34fcb/report.json",
+      "sha256": "80a3383868ea6375361e5e2113c96c8462959087d9d41df45fecb09e717a5d1f",
+      "status": "passed"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/r061_red.log",
+      "sha256": "abd8cc2af73f0c06bd9c35b9de6a86ca6b674087fb71c53db46e82f8a718d6bf",
+      "result": "expected failure: old header inset 10px violates shared 4px contract"
+    },
+    {
+      "path": ".cache/r061_build.log",
+      "sha256": "a7698daf0b157113ed9a257e10b371c022bee69939c002723d31f1b7bdcd731d",
+      "result": "passed"
+    },
+    {
+      "path": ".cache/r061_ui.log",
+      "sha256": "455f67fe9f277c8de9230aee0db6748580b7795c674405e27f265dc93ba2ca91",
+      "result": "passed: six UI suites"
+    },
+    {
+      "path": ".cache/r061_check.log",
+      "sha256": "00f2fad2ebfd2f2dbf6ff3148d3998a16afd0ccfe073f5e896dfae309fff1238",
+      "result": "passed: full check"
+    },
+    {
+      "path": ".cache/sidebar_disclosure_20260920/install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+      "result": "passed"
+    },
+    {
+      "path": ".cache/sidebar_disclosure_20260920/install_verification.json",
+      "sha256": "9fbd5de4aad049a51b6fe707eb58dbd35093a6b84382227d054eb316134152d3",
+      "result": "passed: 29 assets and head match; five protected files unchanged"
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d",
+    "status": "PASS",
+    "assertions": 138,
+    "themes": [
+      "Github",
+      "Night"
+    ],
+    "sidebar_widths_css_px": [
+      220,
+      300
+    ],
+    "zoom": [
+      1,
+      1.25
+    ],
+    "geometry": {
+      "section_icon_left": 4,
+      "section_label_left": 24,
+      "section_icon_width": 16,
+      "tree_root_icon_left": 3,
+      "tree_depth_step": 8
+    },
+    "screenshots": [
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Github_220_100_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Github_220_125_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Github_300_100_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Github_300_125_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Night_220_100_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Night_220_125_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Night_300_100_7214650.png",
+      ".cache/issue_tracking/native/196a98a925f74ff383d2f1adfc23477d/stage_explorer_Night_300_125_7214650.png"
+    ],
+    "input": "renderer events and real Typora APIs; private desktop, no physical input"
+  },
+  "source_hashes": {
+    "enhancements/src/workspace_interaction.css": "05fd6dbcaf94e9d17fce70a0354c6578845503efedd2f8c6f163287f6be6fb42",
+    "enhancements/src/workspace_explorer.css": "1ab14148d8a4422e0a8645a7a568a02d0af211fce27b6485a25ad72dfa4cf1f4",
+    "enhancements/src/workspace_explorer.ts": "cf105cbeedbb894186a7394bd4eb3a861199721e27f62976b48106185376d2dc",
+    "enhancements/src/workspace_explorer_sections.css": "424d7257255b5c08c3f71978f30bfa6f61f8e721f02ef2b15fdecb6ce9cd9886",
+    "enhancements/src/git_graph.css": "994507f49d9cd01635cd225a1521b1e996acae90f65f0987c089c8c8def9096d",
+    "enhancements/fixtures/stability_native.js": "d12baaeaf7249e8e462c99ecea54fa193c7d99bfcd2a32a82102e8152474ced9",
+    "enhancements/scripts/test_workspace_explorer.cjs": "20ec7d9dc4d815b11f3c7dc2810811338538e8f394b4a6c2bd8a98b53344831e",
+    "enhancements/scripts/test_workspace_explorer_history.cjs": "42f44a0822f2f41ab5b035f91f17a10d4e50fc706265b321fc15f097ceeb7856"
+  },
+  "limitations": [
+    "Only Windows Typora 1.14.10 exercised; other hosts/platforms remain unverified.",
+    "First native run failed screenshot handoff because decimal zoom in stage name violated allowed filename token; corrected to integer percentage. Product assertions passed before timeout.",
+    "No new performance behavior introduced; existing PERF-startup-002 and other historical gaps are not closed by these UI checks.",
+    "Installed files verified; user windows have not restarted. No remote push."
+  ]
+}

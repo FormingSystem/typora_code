@@ -188,7 +188,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
         row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
         if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
         row.setAttribute("aria-busy", String(Boolean(node.loading)));
-        row.style.top = index * ROW_HEIGHT + "px"; row.style.paddingLeft = ((node.display_depth ?? node.depth) * 8 + 8) + "px";
+        row.style.top = index * ROW_HEIGHT + "px"; row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
         row.title = node.path + (node.error ? "\n" + node.error : "");
         const state = node.directory ? String(node.expanded) : "file";
         if (chevron.dataset.state !== state) { chevron.dataset.state = state; chevron.replaceChildren(...(node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : [])); }

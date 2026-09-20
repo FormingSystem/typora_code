@@ -232841,7 +232841,7 @@ https://creativecommons.org/licenses/by/4.0/
           else row.removeAttribute("aria-expanded");
           row.setAttribute("aria-busy", String(Boolean(node.loading)));
           row.style.top = index * ROW_HEIGHT + "px";
-          row.style.paddingLeft = (node.display_depth ?? node.depth) * 8 + 8 + "px";
+          row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
           row.title = node.path + (node.error ? "\n" + node.error : "");
           const state = node.directory ? String(node.expanded) : "file";
           if (chevron.dataset.state !== state) {
@@ -239678,6 +239678,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092011,
+        version: "2026.09.20.11",
+        date: "2026-09-20",
+        notes: [
+          "\u7EDF\u4E00\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u65F6\u95F4\u7EBF\u4E0EGit\u5206\u533A\u6298\u53E0\u6309\u94AE\u7684\u5DE6\u4FA7\u69FD\u4F4D\uFF0C\u79FB\u9664\u989D\u5916\u7559\u767D\u3002",
+          "\u6587\u4EF6\u6811\u6839\u5C42\u7BAD\u5934\u4E0EGit\u6811\u884C\u5BF9\u9F50\uFF0C\u5B50\u76EE\u5F55\u4FDD\u7559\u6BCF\u7EA78px\u7F29\u8FDB\uFF0C\u660E\u6697\u4E0E\u7F29\u653E\u5171\u7528\u540C\u4E00\u51E0\u4F55\u89C4\u5219\u3002"
+        ]
+      },
       {
         sequence: 2026092010,
         version: "2026.09.20.10",

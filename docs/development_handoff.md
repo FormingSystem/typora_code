@@ -1,5 +1,7 @@
 # TyporaCode 开发交接
 
+2026-09-20最新交付2026.09.20.11：R061统一Explorer／时间线／Git分区折叠槽位，树根取消额外留白并保留8px层级缩进。完整check、6关联UI和原始宿主138断言通过；29资产/head一致、5保护项不变、安装检查OK。用户待正常重启，未推送。[设计](explorer_history.md#r061-折叠槽位与树形缩进)与[证据](../enhancements/tests/evidence/sidebar_disclosure_20260920.json)。以下保留历史版本事实。
+
 2026-09-20最新交付2026.09.20.10：R060扩展图标/侧栏与齿轮插件设置，入口复用同一插件服务和SettingTab；帮助菜单移除旧入口。完整check、7UI、20/100/1000及原始宿主通过，29资产/head一致、5保护项不变、安装检查OK；用户待正常重启，未推送。[设计](community_plugins.md#r060-扩展活动栏与设置入口)与[证据](../enhancements/tests/evidence/community_plugin_entries_20260920.json)。以下保留各历史版本事实。
 
 2026-09-20最新交付2026.09.20.9：R059统一最近文件/目录菜单与Ctrl+R管理，确定失效记录在打开前持久化移除，权限/离线保留，清空与单项移除仅处理历史。目录切换/文件会话沿用原服务。完整check、7相关UI、20/100/1000及原生20次重读通过；29资产/head及5保护摘要一致，安装检查OK，用户待正常重启，未推送。见[设计](recent_open.md)和[证据](../enhancements/tests/evidence/recent_open_20260920.json)；下文保留当时版本事实。

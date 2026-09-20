@@ -1,13 +1,12 @@
 .linux-note-workspace-explorer [hidden]{display:none!important}
 .workspace-explorer-folders{display:flex;flex-direction:column;flex:1 1 0;min-height:50px;overflow:hidden}
 .workspace-explorer-folders.is-collapsed{flex:0 0 auto;min-height:0}
-/* VS Code 645f29c：Modern pane header=28，左右margin=4、左padding=4，arrow=16+2+2。
-   根目录保留文件树更新的名称节点，标题的几何和字体仅由本契约定义。 */
-.linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0 4px;padding:0 0 0 4px;gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
+/* R061横向槽位与SCM共享interaction token；保留Modern 28px高度和原有字体。 */
+.linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0;padding:0 var(--workspace-disclosure-inset);gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
 .workspace-explorer-section-heading::before{content:"";position:absolute;top:0;left:4px;right:4px;height:1px;background:var(--linux-note-shell-border,rgba(128,128,128,.2));pointer-events:none}
 .workspace-explorer-opened>.workspace-explorer-section-heading::before,.workspace-explorer-opened[hidden]+.workspace-explorer-folders>.workspace-explorer-section-heading::before{display:none}
-.workspace-explorer-section-title{display:flex;align-items:center;gap:0;flex:1;min-width:20px;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;margin:0;height:28px;white-space:nowrap;overflow:hidden;cursor:pointer;--workspace-interaction-hover:var(--workspace-hover-background)}
-.workspace-explorer-section-title>svg,.workspace-explorer-folder-caret{width:16px;height:16px;flex:0 0 16px;margin:0 2px}
+.workspace-explorer-section-title{display:flex;align-items:center;gap:var(--workspace-disclosure-gap);flex:1;min-width:20px;box-sizing:border-box;border:0;background:transparent;color:inherit;font:inherit;text-align:left;padding:0;margin:0;height:28px;white-space:nowrap;overflow:hidden;cursor:pointer;--workspace-interaction-hover:var(--workspace-hover-background)}
+.workspace-explorer-section-title>svg,.workspace-explorer-folder-caret{width:var(--workspace-disclosure-size);height:var(--workspace-disclosure-size);flex:0 0 var(--workspace-disclosure-size);margin:0}
 .workspace-explorer-folder-caret svg{width:16px;height:16px;display:block}
 .workspace-explorer-section-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:inherit}
 .workspace-explorer-section-heading>.workspace-explorer-section-actions{display:none;flex:none;align-items:center;gap:4px;margin-left:auto;margin-right:8px}
