@@ -61,14 +61,15 @@ fs.writeFileSync(path.join(dist,'SHA256SUMS'),manifest);plan.manifest_sha256=ser
 service.validate_payload(payload,plan);fs.appendFileSync(path.join(dist,'workbench.js'),'tampered');assert.throws(()=>service.validate_payload(payload,plan),/摘要/);fs.writeFileSync(path.join(dist,'workbench.js'),'workbench.js');
 checks.push('解压后的公告、构建版本与所有资产摘要一致才接受');
 const user_data=path.join(root,'user_data'),installed=path.join(user_data,'typora_code/assets/update');fs.mkdirSync(installed,{recursive:true});fs.writeFileSync(path.join(installed,'release.json'),JSON.stringify(old));
-async function run_case(name,{cancel=false,failure=false,network=false}={}){
+async function run_case(name,{cancel=false,failure=false,network=false,uac_cancel=false}={}){
  const job=path.join(root,name);fs.mkdirSync(job);fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root:root,user_data,host_root:path.join(root,'host'),plan}));let installed_count=0;
- await service.run_worker(path.join(job,'request.json'),{request:async(_url,{file})=>{if(network)throw Error('network failure');fs.writeFileSync(file,'fixture');if(cancel)fs.writeFileSync(path.join(job,'cancel'),'yes');},unpack:async()=>payload,install:async()=>{installed_count++;if(failure)throw Error('权限不足，安装已回滚');fs.writeFileSync(path.join(installed,'release.json'),notes);}});
+ await service.run_worker(path.join(job,'request.json'),{request:async(_url,{file})=>{if(network)throw Error('network failure');fs.writeFileSync(file,'fixture');if(cancel)fs.writeFileSync(path.join(job,'cancel'),'yes');},unpack:async()=>payload,install:async()=>{installed_count++;if(uac_cancel)throw Error('[TYPORA_INSTALL_CANCELLED] 已取消系统授权，未修改安装目标');if(failure)throw Error('权限不足，安装已回滚');fs.writeFileSync(path.join(installed,'release.json'),notes);}});
  return {status:JSON.parse(fs.readFileSync(path.join(job,'status.json'),'utf8')),installed_count};
 }
 let result=await run_case('cancel',{cancel:true});assert.equal(result.status.phase,'cancelled');assert.equal(result.installed_count,0);
 result=await run_case('network',{network:true});assert.equal(result.status.phase,'failed');assert.equal(result.installed_count,0);
 result=await run_case('install_failure',{failure:true});assert.equal(result.status.phase,'failed');assert.match(result.status.message,/权限/);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installed,'release.json'),'utf8')),old);
+result=await run_case('uac_cancel',{uac_cancel:true});assert.equal(result.status.phase,'cancelled');assert.equal(result.installed_count,1);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(installed,'release.json'),'utf8')),old);
 result=await run_case('success');assert.equal(result.status.phase,'succeeded');assert.equal(result.installed_count,1);
 result=await run_case('repeat');assert.equal(result.status.phase,'failed');assert.equal(result.installed_count,0);
 checks.push('取消及下载失败零安装，安装失败保留旧版本，成功后重复任务拒绝降级／覆盖');

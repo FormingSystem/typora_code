@@ -226,6 +226,14 @@ try {
     & $restore -backup_root $upgrade_backup
     assert_equal ([IO.File]::ReadAllText($upgrade_window)) $new_host 'Upgrade restore must retain new host'
     Write-Host 'PASS: official-page replacement simulation, standard reinstall, new kernel/scripts and community data preserved; restore returns to new host.'
+    # 重复更新不写未变化的宿主入口；受保护/只读入口不应迫使资源更新提权。
+    & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'prepare protected host') -non_interactive
+    $unchanged_host=(Get-FileHash -LiteralPath $window).Hash
+    [IO.File]::SetAttributes($window,[IO.FileAttributes]::ReadOnly)
+    try { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'unchanged protected host') -non_interactive }
+    finally { [IO.File]::SetAttributes($window,[IO.FileAttributes]::Normal) }
+    assert_equal (Get-FileHash -LiteralPath $window).Hash $unchanged_host 'Identical protected startup page changed'
+    Write-Host 'PASS: unchanged readonly host entry permits ordinary resource update without elevation.'
     # 源发布损坏在创建备份或覆盖用户文件前拒绝。
     [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'
@@ -254,5 +262,38 @@ try {
     }
     if ($success_logs -lt 3 -or $rollback_logs -lt 2 -or $preflight_logs -lt 1) { throw 'Missing success, rollback or preflight log coverage' }
     Write-Host 'PASS: ordered stages, UTF-8 per-run logs, clean output streams and truthful rollback/preflight outcomes'
+    # 仅独立包中替换权限/UAC端口；子进程仍执行真实安装事务，检验互斥交接及原用户路径。
+    Copy-Item -LiteralPath (Join-Path $source_root 'enhancements/dist/workspace.css') -Destination (Join-Path $tools_copy 'enhancements/dist/workspace.css') -Force
+    $permission_file=Join-Path $tools_copy 'scripts/lib/typora_install_permissions.ps1'
+    $permission_source=[IO.File]::ReadAllText($permission_file,[Text.Encoding]::UTF8)
+    $permission_fixture=@'
+
+function test_typora_administrator { return $false }
+function get_typora_write_denials { param($paths); if (-not $elevation_attempted) { $paths[0] } }
+function start_typora_elevated_install {
+    param($encoded_command)
+    $shell=Join-Path ([Environment]::GetFolderPath('System')) 'WindowsPowerShell/v1.0/powershell.exe'
+    return Start-Process -FilePath $shell -ArgumentList @('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded_command) -WindowStyle Hidden -Wait -PassThru
+}
+'@
+    [IO.File]::WriteAllText($permission_file,$permission_source+$permission_fixture,[Text.UTF8Encoding]::new($true))
+    $permission_backup=Join-Path $fake_root 'backup/original user'
+    $before_permission=(Get-FileHash -LiteralPath $window).Hash
+    assert_rejected { & $installer -typora_root $fake_root -backup_root $permission_backup -non_interactive } 'Unattended installation requested UAC'
+    assert_equal (Test-Path -LiteralPath $permission_backup) $false 'Unattended denial created backup'
+    assert_equal (Get-FileHash -LiteralPath $window).Hash $before_permission 'Unattended denial changed host'
+    & $installer -typora_root $fake_root -backup_root $permission_backup -user_data $user_data -non_interactive -allow_elevation
+    & $checker -typora_root $fake_root -non_interactive
+    $permission_manifest=[IO.File]::ReadAllText((Join-Path $permission_backup 'manifest.json'),[Text.Encoding]::UTF8)|ConvertFrom-Json
+    assert_equal $permission_manifest.user_data $user_data 'Elevated child changed user identity'
+    [IO.File]::AppendAllText($permission_file,"`nfunction start_typora_elevated_install { param(`$encoded_command); throw [ComponentModel.Win32Exception]::new(1223) }",[Text.Encoding]::UTF8)
+    $cancel_backup=Join-Path $fake_root 'backup/cancelled'
+    $before_cancel=(Get-FileHash -LiteralPath $window).Hash
+    $cancel_message=''
+    try { & $installer -typora_root $fake_root -backup_root $cancel_backup -user_data $user_data -non_interactive -allow_elevation } catch { $cancel_message=$_.Exception.Message }
+    assert_equal ($cancel_message.Contains('[TYPORA_INSTALL_CANCELLED]')) $true 'UAC cancellation not identified'
+    assert_equal (Test-Path -LiteralPath $cancel_backup) $false 'Cancelled authorization created backup'
+    assert_equal (Get-FileHash -LiteralPath $window).Hash $before_cancel 'Cancelled authorization changed host'
+    Write-Host 'PASS: ordinary-privilege UAC port simulation, real child transaction, lock handoff, explicit identity, host backup, unattended refusal and cancellation without target writes; real UAC not exercised.'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

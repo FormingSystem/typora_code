@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R063"
+  ],
+  "release": "2026.09.20.13",
+  "asset_manifest_sha256": "152f8c18281783cd275cd6dc6214340ae72e2ecc91803776e53ab265ea1453a3",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-09-54-396Z_685264/report.json",
+      "sha256": "5b81a13428f59e56d2125a688e80d661fec86627a8cd91c2d457709923a14af5",
+      "status": "passed"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/r063_build.log",
+      "sha256": "ed87517cda4b5d6a298edf60d1adbb1ffba998e68bbd6b8a10b1265005e86338",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_check.log",
+      "sha256": "99e933535940b3532dc05008284ad3101799b1a8685f28dc6d8b495aeabceb02",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_permissions_first.log",
+      "sha256": "b053def1fa6a0c2a1a7622af1e35400ed0dc4bdfffdf9e2dd943312e567b43a2",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_install_verified.log",
+      "sha256": "7cec77df99feacd210eea60af3d90c4f98d466b777aa25b802cbbffa9abcc8ab",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_update_first.log",
+      "sha256": "ecc3b756579325a2c2a2554a4ae739ca8623cb051d8047198b75071ca01184f8",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_update_install_final.log",
+      "sha256": "11463cfdd0c23799e14639d5c8432508936aee32d270fb1ebe9de89912a6c67e",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_ui.log",
+      "sha256": "2b33ecde3cf37f3a7fc479e175e1955ea6dcca1bdddc7dc50169ea94a3ab7448",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_logging.log",
+      "sha256": "a92837776d4a666d6d662dd6bb66c285666dfa09c04084da2e5ff163bc0cd345",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_uninstall.log",
+      "sha256": "d647ae4e3bf48ec06f4bb7dd9a8cf3a350453c3dfc787d40a499e8aa9bddd46a",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_deployment_final.log",
+      "sha256": "b35248b7fbc0ae3304c0ef4293f3af9abb46cbdf9b3fdd2b5f9f3834914075b9",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r063_skill_final.log",
+      "sha256": "6cf9e7f0d34ccd36dbd28f270cd28dd04277b2e1516bd4333ce7bb501d7b18d4",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/install_permissions_20260920/install.log",
+      "sha256": "eb91a7bb91cbd092a401fc08609747f10e9857e5c1cd1a436914edf51ac7a63e",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/install_permissions_20260920/install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/install_permissions_20260920/install_verification.json",
+      "sha256": "d517294a5603c3232fc105c96df424ecc726001d6be75146aeed10644611aa26",
+      "status": "passed"
+    }
+  ],
+  "coverage": {
+    "unit": "PowerShell5.1真实临时ACL拒绝、只读与占用、探针零改字节/清理；20/100/1000权限决策和编码往返；编码子进程实际执行，系统UAC端口替身",
+    "functional": "授权分支一次执行、互斥移交、无人值守拒绝、原用户/缓存/备份参数；更新授权取消显示cancelled且不替换版本；1套更新UI",
+    "system": "隔离真实完整安装/备份/回滚/恢复、未变化只读宿主更新、安装目录自定义backup；真实ZIP+私有Node更新和并发互斥；卸载38断言",
+    "local_install": "普通权限本机安装，未触发UAC，不关闭用户窗口"
+  },
+  "installation": {
+    "status": "PASS",
+    "release": "2026.09.20.13",
+    "assets": [
+      {
+        "path": "assets/plugins/community_plugin_service.cjs",
+        "sha256": "d9ebd65a80836148b2337ba7f5e4cbcd169c07e63407556596633c0007914de3"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_cmake",
+        "sha256": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_javascript",
+        "sha256": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_package",
+        "sha256": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_python",
+        "sha256": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_runtime",
+        "sha256": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_typescript",
+        "sha256": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_yaml",
+        "sha256": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e"
+      },
+      {
+        "path": "assets/source_symbols/source_manifest.json",
+        "sha256": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-cmake.wasm",
+        "sha256": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-javascript.wasm",
+        "sha256": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-python.wasm",
+        "sha256": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-typescript.wasm",
+        "sha256": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-yaml.wasm",
+        "sha256": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter.wasm",
+        "sha256": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f"
+      },
+      {
+        "path": "assets/source_symbols/worker.js",
+        "sha256": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39"
+      },
+      {
+        "path": "assets/update/release.json",
+        "sha256": "890945c2060e3c6efa5f5add1d1b7ac1e880c61fd7350f0ab539660b013589ad"
+      },
+      {
+        "path": "assets/update/runtime.json",
+        "sha256": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff"
+      },
+      {
+        "path": "assets/update/workspace_update_archive.ps1",
+        "sha256": "43842c7d5c08f5e3a4add3dc7b411c766bbdfe8dfc4dacc9d7a1e54303ad4735"
+      },
+      {
+        "path": "assets/update/workspace_update_service.cjs",
+        "sha256": "9c82cf1cf196606a52610e58e388f9c82969ee6e90eadc2c4f9a87fa5591abab"
+      },
+      {
+        "path": "licenses/fontawesome.txt",
+        "sha256": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc"
+      },
+      {
+        "path": "licenses/vscode_quick_open.txt",
+        "sha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9"
+      },
+      {
+        "path": "locales/lang.de.json",
+        "sha256": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640"
+      },
+      {
+        "path": "locales/lang.en.json",
+        "sha256": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b"
+      },
+      {
+        "path": "locales/lang.zh-cn.json",
+        "sha256": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d"
+      },
+      {
+        "path": "workbench.js",
+        "sha256": "0c9935404c98fd6ae2bcad2388d6be917dc9bda207234d9032aa7db8618b193e"
+      },
+      {
+        "path": "workspace.css",
+        "sha256": "929b6bbc12a16d4d6e8508b4ffd9abede17d7a74d952f6b211eed1fcb4b2d398"
+      },
+      {
+        "path": "workspace_core.css",
+        "sha256": "63ea711178fcd4d0fee7a5630c9164af8385d611c8b0a7047e80291e0f3bd373"
+      },
+      {
+        "path": "workspace_core.js",
+        "sha256": "33a2e0e5d58fbcd33f00f5885867d58038a31ade63af84fa2f01d4ac2687f05c"
+      }
+    ],
+    "head_matches": true,
+    "protected_files_unchanged": 6,
+    "startup_page_unchanged": true,
+    "administrator": "False",
+    "user_windows_restarted": false
+  },
+  "first_attempts": [
+    {
+      "path": ".cache/r063_update_install.log",
+      "sha256": "918a0e0ff97e8c389b83ab7ff8865b33aa96c5dd8cff5f137b1b94259b32d640",
+      "result": "failed: 写打开所有资产误判正在执行但摘要相同的Node；按真实写入范围跳过，最终真实更新通过"
+    },
+    {
+      "path": ".cache/r063_install_final.log",
+      "sha256": "2c2ead160cb64ba4960a8304be54c04b5f12623d742d74a0ce4b11582f550936",
+      "result": "failed: 只读重复更新夹具此前已恢复为原生页面，并非相同入口；补先安装再只读，最终通过"
+    },
+    {
+      "result": "技能校验先缺PyYAML，再遇系统GBK默认解码；复用本地依赖并以-X utf8运行后通过，无全局环境修改"
+    }
+  ],
+  "boundaries": [
+    "未在用户安全桌面实际接受/拒绝UAC，授权边界用替身；不同管理员凭据、企业策略与其他电脑ACL仍需实测",
+    "Linux/UCRT64 Bash和Windows ARM64未在对应实机运行；UCRT64调用参数已更新",
+    "下载本身不提权；缓存不可写或网络错误仍显示阶段与路径，不将其伪装成宿主权限问题",
+    "默认备份保持用户目录，安装目录backup仅通过自定义位置选择，不能规避目录ACL",
+    "既有启动性能PERF-startup-002和其他历史验收边界未关闭"
+  ],
+  "final_source_hashes": {
+    "install_windows.ps1": "99579bfe43e9855feea0ad4d8e7777c957862fa6d155772eca9a2c80c4bd4fd1",
+    "install.sh": "c539e54c777f9d86eb0b3e0953ba96622940905f8789112ca68eab99a456af0b",
+    "scripts/install_workspace_windows.ps1": "cb6e8a055d059a7a10c77b30d3e4bf59083336a420f55d93b7f0131f3b6b0313",
+    "scripts/lib/typora_install_permissions.ps1": "27abd2b555e8e84ce48dbd442abe268a01cfc01809e797186024918a40c6d409",
+    "enhancements/src/workspace_update_service.cjs": "08346d27b11019cf9c0f9d2c8a2fabdaac7410164019554ae42c55148ff368fc",
+    "enhancements/scripts/test_install_permissions.ps1": "fed03c587a32a08b17d345c6ea5962353fd3976dd14491fed5fc8d226f5e7b81",
+    "enhancements/scripts/test_install_windows.ps1": "1d911bd383e8e12c713fa3897fca976c7815e9064253d40d8b1adc4d2425a0d5",
+    "enhancements/scripts/test_workspace_update.mjs": "fc0b939308fc20aa90449a3e6af63c7f8591c0a3d755ab9200f6c64ae8b9e90c"
+  },
+  "skill": {
+    "name": "develop-typora-code",
+    "change": "R063权限预检、真实待写范围、身份保持和UAC验收边界",
+    "validation": "passed"
+  }
+}

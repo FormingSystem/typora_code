@@ -946,12 +946,15 @@
       "requirements": [
         "R025",
         "R056",
-        "R057"
+        "R057",
+        "R063"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
         "install_windows.ps1",
-        "check_windows.ps1"
+        "check_windows.ps1",
+        "scripts/lib/typora_install_permissions.ps1",
+        "scripts/install_workspace_windows.ps1"
       ],
       "related_modules": [
         "runtime",
@@ -3748,11 +3751,15 @@
       "level": "unit",
       "purpose": "implementation",
       "requirements": [
-        "R047"
+        "R047",
+        "R063"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
-        "enhancements/src/workspace_update_service.cjs"
+        "enhancements/src/workspace_update_service.cjs",
+        "scripts/lib/typora_install_permissions.ps1",
+        "scripts/install_workspace_windows.ps1",
+        "install_windows.ps1"
       ],
       "related_modules": [
         "startup",
@@ -3778,11 +3785,15 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R047"
+        "R047",
+        "R063"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
-        "enhancements/src/workspace_update_service.cjs"
+        "enhancements/src/workspace_update_service.cjs",
+        "scripts/lib/typora_install_permissions.ps1",
+        "scripts/install_workspace_windows.ps1",
+        "install_windows.ps1"
       ],
       "related_modules": [
         "startup",
@@ -3840,7 +3851,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R047"
+        "R047",
+        "R063"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -3848,7 +3860,8 @@
         "enhancements/src/workspace_update_service.cjs",
         "install_windows.ps1",
         "scripts/install_workspace_windows.ps1",
-        "scripts/lib/typora_terminal.ps1"
+        "scripts/lib/typora_terminal.ps1",
+        "scripts/lib/typora_install_permissions.ps1"
       ],
       "related_modules": [
         "startup",
@@ -5360,6 +5373,38 @@
       "requires_environment": [
         "TYPORA_NATIVE_TEST_ROOT"
       ]
+    },
+    {
+      "id": "TC-install-permissions",
+      "domain": "installation",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R063"
+      ],
+      "design": "docs/installation_design.md#r063-windows权限预检与按需授权",
+      "implementation": [
+        "scripts/lib/typora_install_permissions.ps1",
+        "scripts/install_workspace_windows.ps1",
+        "install_windows.ps1"
+      ],
+      "related_modules": [
+        "installation",
+        "update",
+        "backup"
+      ],
+      "script": "enhancements/scripts/test_install_permissions.ps1",
+      "environment": "Windows PowerShell 5.1；临时文件真实ACL和子进程；UAC端口替身",
+      "preconditions": "不触发真实管理员授权，不修改用户安装和全局权限",
+      "steps": [
+        "真实文件预检、ACL/只读/占用区分；20/100/1000决策和编码循环",
+        "真实编码子进程保留用户/备份/缓存身份，模拟成功/取消/失败/缺失回执"
+      ],
+      "expected": [
+        "可写不提权；取消零目标写入；无授权循环和参数注入；错误不报成功"
+      ],
+      "timeout_ms": 60000,
+      "platform": "win32"
     }
   ]
 }

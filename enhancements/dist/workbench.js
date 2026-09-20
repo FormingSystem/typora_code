@@ -239779,6 +239779,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092013,
+        version: "2026.09.20.13",
+        date: "2026-09-20",
+        notes: [
+          "Windows\u5B89\u88C5\u5199\u5165\u524D\u68C0\u67E5\u6743\u9650\uFF1B\u53EF\u5199\u76EE\u5F55\u4E0D\u63D0\u6743\uFF0C\u53D7\u4FDD\u62A4\u76EE\u5F55\u89E3\u91CA\u539F\u56E0\u5E76\u6309\u9700\u7533\u8BF7\u7CFB\u7EDF\u6388\u6743\u3002",
+          "\u63D0\u6743\u7EED\u88C5\u4FDD\u6301\u539F\u7528\u6237\u914D\u7F6E\u548C\u5907\u4EFD\u4F4D\u7F6E\uFF1B\u62D2\u7EDD\u6388\u6743\u4FDD\u7559\u539F\u5B89\u88C5\uFF0C\u5185\u7F6E\u66F4\u65B0\u80FD\u533A\u5206\u53D6\u6D88\u4E0E\u5B89\u88C5\u5931\u8D25\u3002"
+        ]
+      },
+      {
         sequence: 2026092012,
         version: "2026.09.20.12",
         date: "2026-09-20",

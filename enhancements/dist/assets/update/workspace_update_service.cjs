@@ -142,17 +142,17 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   clearInterval(timer);timer=undefined;
   installing=true;
-  status('installing','正在备份并安装；请勿关闭更新进程。文档窗口可以继续使用。',{archive_sha256:digest(fs.readFileSync(archive))});
+  status('installing','正在备份并安装；若Typora安装目录受保护，Windows会请求管理员授权以更新启动入口，取消则保留原版本。文档窗口可以继续使用。',{archive_sha256:digest(fs.readFileSync(archive))});
   if(install)await install(payload,configuration);else{
    const env=child_environment();env.APPDATA=path.dirname(user_data);
    // 写入事务没有强杀超时；备份／回滚必须允许安装器完整结束。
-   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive'],{env,timeout:0,maxBuffer:4*1024*1024});
+   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive','-allow_elevation'],{env,timeout:0,maxBuffer:4*1024*1024});
    fs.writeFileSync(path.join(root,'install.log'),output,'utf8');
   }
   const installed=release_info(read_json(path.join(user_data,'typora_code/assets/update/release.json')));
   if(installed.releases[0].sequence!==plan.release.releases[0].sequence)throw Error('安装器返回后版本校验未通过，请查看安装备份。');
   status('succeeded','更新已安装。请保存文档后手动重启所有 Typora 窗口以加载新版。',{version:installed.releases[0].version});
- }catch(error){status(!installing&&(abort.signal.aborted||fs.existsSync(path.join(root,'cancel')))?'cancelled':'failed',String(error.message||error));}
+ }catch(error){const message=String(error.message||error);status(message.includes('[TYPORA_INSTALL_CANCELLED]')||(!installing&&(abort.signal.aborted||fs.existsSync(path.join(root,'cancel'))))?'cancelled':'failed',message);}
  finally{clearInterval(timer);if(unlock)await unlock();}
 }
 module.exports={execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};

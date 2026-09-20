@@ -32,7 +32,9 @@ typora_environment_init "$typora_tools_root"
 typora_root="$(typora_resolve_root "$requested_root" "$non_interactive")"
 # Windows 的安装、下载、校验与回滚统一交给同一实现。
 if [[ "$TYPORA_PLATFORM_ID" == 'windows-ucrt64' ]]; then
-    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$typora_tools_root/install_windows.ps1")" -typora_root "$(cygpath -w "$typora_root")" -non_interactive
+    permission_args=()
+    [[ "$non_interactive" == 1 ]] || permission_args=(-allow_elevation)
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$typora_tools_root/install_windows.ps1")" -typora_root "$(cygpath -w "$typora_root")" -non_interactive "${permission_args[@]}"
     exit $?
 fi
 

@@ -12,8 +12,10 @@ Typora 安装目录、可执行文件或 resources/window.html；省略时自动
 实际Typora用户数据目录；省略时使用当前账户默认目录，自动更新传入宿主真实位置。
 .PARAMETER non_interactive
 自动发现失败时立即报错，不等待输入。
+.PARAMETER allow_elevation
+允许无人值守入口在确认写权限不足后申请一次Windows系统授权；交互安装默认按需申请。
 #>
 [CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='')
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='', [switch]$allow_elevation)
 $ErrorActionPreference = 'Stop'
-& (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme -user_data $user_data
+& (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme -user_data $user_data -allow_elevation:$allow_elevation

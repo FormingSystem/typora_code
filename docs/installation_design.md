@@ -12,7 +12,7 @@
 
 恢复的状态所有者是所选备份清单。首次安装前的备份恢复此前环境，后续安装的备份用于回退增强版本，不能混称卸载；从旧插件迁入时首次备份可能恢复旧插件，因此卸载独立工作台也不代表删除所有第三方插件。用户设置、阅读记录与非托管文件继续保留。没有备份时不声称可以还原原配置，应通过 Typora 官方安装器修复宿主入口并保留用户数据。
 
-安装与恢复继续执行预检、备份、摘要校验和失败回滚。恢复增加宿主启动文件比较：去除本工程拥有的入口后，现有文件与备份不一致则在写入前拒绝，防止旧备份覆写升级或外部修改后的启动页面；这不等同完整宿主版本兼容验证。升级 Typora 后使用新安装和新备份。取消/预检失败不写入目标，安装过程中失败使用已有事务回滚；不自动关闭用户窗口或提升权限。
+安装与恢复继续执行预检、备份、摘要校验和失败回滚。恢复增加宿主启动文件比较：去除本工程拥有的入口后，现有文件与备份不一致则在写入前拒绝，防止旧备份覆写升级或外部修改后的启动页面；这不等同完整宿主版本兼容验证。升级 Typora 后使用新安装和新备份。取消/预检失败不写入目标，安装过程中失败使用已有事务回滚；不自动关闭用户窗口；Windows安装权限行为现按下述R063按需授权。
 
 验收覆盖 Windows 公开入口和含空格路径、重复安装、损坏资产、越界备份、宿主变化拒绝、原偏好恢复与后续偏好保留、故障回滚；Python 事务执行同类恢复边界。检查所有当前文档和脚本引用、帮助入口、构建检查与链接；无实际 Linux/UCRT64/ARM64 原生验证时明确标注。下载说明使用当前仓库网页的 Code / Download ZIP，不编造尚未验证的远端项目名或 Release 包。
 
@@ -34,6 +34,20 @@
 
 验收复用独立 APPDATA、假宿主、私有离线 Node 缓存和原有安装／恢复事务测试，补充阶段顺序、下载与缓存执行分支、日志 UTF-8、失败／回滚结论、日志存储不可用及重复调用隔离。下载使用本地 ZIP 替身验证消息和摘要链，不把替身称作真实网络下载。此侧会话只修改安装日志及说明，不构建或部署主会话工作台资产。
 
+## R063 Windows权限预检与按需授权
+
+2026-09-20用户要求可写安装无需管理员权限，遇到实际权限不足时解释并申请系统授权。现有脚本无管理员身份硬门槛，但写宿主resources/window.html可能被ACL拒绝。安装目录backup没有权限豁免，新建它也可能受限；用户数据仍由原账户管理。保留默认用户备份和-backup_root指定新目录的能力，不迁移设置和运行资产。
+
+权限服务归scripts/lib/typora_install_permissions.ps1，事务仍归原安装器。安装包和普通用户下载缓存校验后，在备份和托管写入前检查待变更目标写打开及父目录临时探针。预检与写入共用实际变更范围：摘要相同的运行资产不写打开，宿主启动页内容未变化时不探测写权限也不覆盖；因此常规增强更新可保持普通权限。仅访问拒绝进入授权分支；只读、文件占用、网络和磁盘错误分别反馈。原文件不被探针改写；后续竞态继续由原事务回滚。
+
+可写安装不提权。受限安装打印具体路径、修改宿主入口的原因、用户/备份路径及取消语义，再请求一次系统UAC。授权后重入同一安装器并重新校验。参数结构化编码，显式传递绝对宿主、原用户数据、备份、缓存与主题选择，不拼接用户路径为Shell代码，不依赖管理员账户的APPDATA。父进程释放事务锁后子进程重新取得；重入标记防止循环。管理员仍不可写时停止并解释，不修改ACL。
+
+默认交互安装允许申请；-non_interactive保留无人值守语义，可显式加-allow_elevation。用户主动安装更新及UCRT64入口显式传此开关。更新进度说明可能出现系统授权；拒绝时返回取消，安装失败保留实际日志和退出结果，不报成功，不关闭或重启用户窗口。恢复/卸载权限流程不在本次自动扩展范围。
+
+依据为[Microsoft Start-Process](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.management/start-process?view=powershell-5.1)的RunAs/Wait/PassThru和[UAC工作原理](https://learn.microsoft.com/en-us/windows-server/security/user-account-control/how-user-account-control-works)。本次用户授权替代旧安装流程不申请系统权限的限制。
+
+验证覆盖PowerShell5.1真实临时文件、ACL拒绝、只读/占用，20/100/1000参数与决策循环，模拟系统授权成功/取消/失败，临时宿主安装/回滚/更新及原用户配置保持。本机普通权限路径和资产安装检查必须执行；真实安全桌面授权及不同管理员凭据未执行时明确保留边界，不拿替身代替。脚本以UTF-8 BOM兼容5.1。
+
 ## 本次验证
 
 2026-09-14 安装日志：Windows PowerShell 5.1 的 `test_install_windows.ps1` 通过首次／重复安装、校验拒绝和事务回滚，并验证六阶段顺序、每次独立 UTF-8 日志、失败状态及返回值隔离；`test_install_logging.ps1` 通过缓存命中、模拟下载与损坏归档、日志文件独占锁、临时目录降级。Python 的 `test_workspace_install.py` 通过原事务与新增五阶段日志、预检／回滚结果、日志保存失败，以及回滚自身失败时保留原安装错误。`check_deployment.mjs` 通过20个部署文件和23个工作台资产。证据保存在 `.cache/install_logging_side_20260914/`，其中 `windows_install.log`、`logging_failures.log`、`python_transaction.log`、`deployment.log` 分别对应上述检查。本次 Python 事务在 Windows 临时文件系统执行，未运行 Linux/UCRT64 Bash 或 ARM64 原生环境；没有安装、关闭或重启用户 Typora，没有重建工作台发布包。
@@ -43,3 +57,5 @@
 2026-09-13：Windows PowerShell 5.1 公开 install/check/restore 入口在含空格的隔离目录通过首次/重复安装、损坏清单、宿主变化零写入拒绝、原偏好恢复和故障回滚；Python 事务全部通过。完整 npm run check 通过；26份文档、50项需求、354本地链接与187锚点核对通过。Bash 命令所在环境未具备，未运行 UCRT64/Linux 入口或 ARM64 原生实例，已在用户指南明确。日志为 `.cache/install_entry_windows_final_20260913.log`、`install_entry_python_20260913.log`、`install_entry_check_20260913.log`；文档证据为 `.cache/issue_tracking/requirements_install_entry_verification_20260913.json`。测试仅使用临时安装和用户数据目录，未卸载或重启用户 Typora。
 
 2026-09-14 全量整合复验：用户将全部当前改动纳入统一构建和安装后，以上 Windows 安装日志、公开 install/check/restore 事务、卸载入口及 Python 事务再次在临时目录通过。Windows 卸载为38项断言，安装复验包含首次／重复安装、受损资产拒绝、配置保护、故障回滚与日志顺序；日志专测覆盖本地 ZIP 下载替身、缓存、坏摘要及存储降级。Windows 安装使用通过正式摘要校验的 Node24.20.0/x64 缓存副本；Python 事务仍是在 Windows 文件系统运行，不代表 Linux 原生验证。证据为 `.cache/all_changes_windows_install_20260914.log`、`.cache/all_changes_uninstall_20260914.log`、`.cache/all_changes_install_logging_20260914.log` 和 `.cache/all_changes_python_install_20260914.log`。本轮回归未操作用户安装／卸载；完整工作台构建、原生验收和最终安装由整合交付记录汇总。
+
+2026-09-20 R063：普通权限安装2026.09.20.13完成，29资产/head一致，原5保护文件及宿主window.html均未改变，安装检查OK。完整check、权限20/100/1000、Windows完整事务/回滚、真实ZIP和私有Node更新、更新UI、日志及卸载38断言通过。真实ACL使用本轮临时文件，系统授权端口使用替身；真实安全桌面和不同管理员凭据未实测。预检误报未变化Node占用及夹具初始化错误的首次失败和最终纠正均记录在[证据](../enhancements/tests/evidence/install_permissions_20260920.json)。用户窗口未重启、未推送；需要时手动重启加载新的更新提示。

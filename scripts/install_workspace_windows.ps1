@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='')
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='', [switch]$allow_elevation, [switch]$elevation_attempted)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $tools_root = Split-Path -Parent $PSScriptRoot
@@ -7,6 +7,7 @@ $tools_root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_install_log.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_install_permissions.ps1')
 $user_data = [IO.Path]::GetFullPath($(if($user_data){$user_data}else{get_typora_windows_user_data}))
 $install_log = new_typora_install_log $user_data
 $install_mutex=$null
@@ -30,7 +31,10 @@ assert_typora_migration_available $user_data
 $migrated_settings = get_typora_migrated_settings $user_data
 $head = [IO.File]::ReadAllText((Join-Path $tools_root 'enhancements/runtime_head.html'), [Text.Encoding]::UTF8)
 $window = resolve_typora_asset_path $typora_root 'resources/window.html'
-$window_source = get_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) $head
+$window_before = [IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)
+$window_source = get_typora_window_source $window_before $head
+$window_changed = $window_source -cne $window_before
+$window_written = $false
 assert_typora_window_source $window_source $head
 $terminal_source = Join-Path $source 'terminal_runtime'
 $terminal_assets = @(get_typora_terminal_assets $terminal_source)
@@ -64,6 +68,40 @@ foreach ($group in $groups) {
         if (Test-Path -LiteralPath $target -PathType Container) { throw "Managed file target is a directory: $target" }
     }
 }
+# 下载及摘要校验仍在当前账户完成；备份和所有托管写入之前决定是否需要系统授权。
+$write_targets = @($manifest_path)
+if ($window_changed) { $write_targets += $window }
+if ($null -ne $migrated_settings) { $write_targets += Join-Path $user_data 'typora_code/settings/workspace.json' }
+foreach ($group in $groups) {
+    foreach ($asset in $group.assets) {
+        $target = resolve_typora_asset_path $group.root $asset.relative_path
+        $exists = Test-Path -LiteralPath $target -PathType Leaf
+        # 与install_typora_workspace相同的摘要规则；已加载且不变的Node/native模块不需要写打开。
+        if ($group.name -in @('product','terminal') -and $null -ne $asset.PSObject.Properties['sha256']) {
+            if ($exists -and (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -eq $asset.sha256) { continue }
+        } elseif ($group.name -in @('product','migration') -and -not $exists) { continue }
+        $write_targets += $target
+    }
+}
+$denied_paths = @(get_typora_write_denials $write_targets)
+$permission_action = get_typora_permission_action $denied_paths (test_typora_administrator) ([bool]$elevation_attempted) (-not $non_interactive) ([bool]$allow_elevation)
+if ($permission_action -ne 'continue') {
+    write_typora_install_log $install_log WARN ('当前账户不能写入以下安装目标：' + ($denied_paths -join '; '))
+    if ($window_changed) { write_typora_install_log $install_log INFO '工作台需要修改Typora安装目录的resources/window.html；受保护的安装目录需要Windows管理员授权。移动备份不能免除该权限。' }
+    else { write_typora_install_log $install_log INFO '宿主入口未变化，本次无须写入安装目录；受限的是上述配置/资源或备份位置，请核对所选用户目录。下载本身不要求管理员权限。' }
+    write_typora_install_log $install_log INFO ('仍使用原用户目录：' + $user_data + '；备份：' + $backup_root)
+    if ($permission_action -eq 'blocked') { throw '管理员或已授权进程仍无写权限；请检查上述路径的ACL和安全软件策略。安装器不会重复请求授权或修改目录权限。' }
+    if ($permission_action -eq 'unattended') { throw '无人值守安装未授权显示UAC。请用普通交互入口重试，或显式传入-allow_elevation以允许Windows系统授权；安装目标未修改。' }
+    write_typora_install_log $install_log INFO '即将请求Windows管理员授权；取消则停止安装，保留原版本。授权子进程沿用同一安装事务，完成后自动返回。'
+    $install_mutex.ReleaseMutex(); $owns_mutex = $false
+    $install_mutex.Dispose(); $install_mutex = $null
+    $cache_root = Split-Path -Parent $node_stage.root
+    $rollback_state = 'delegated'
+    invoke_typora_elevated_install ([pscustomobject]@{installer=(Join-Path $tools_root 'scripts/install_workspace_windows.ps1');typora_root=$typora_root;user_data=$user_data;backup_root=$backup_root;cache_root=$cache_root;include_theme=[bool]$include_theme})
+    write_typora_install_log $install_log SUCCESS ('已授权安装完成。Backup: ' + $backup_root)
+    write_typora_install_log $install_log INFO '保存文档后正常重启Typora加载新版；安装子进程日志位于原用户数据目录的logs/installation。'
+    return
+}
 start_typora_install_step $install_log 4 '备份现有配置'
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 New-Item -ItemType Directory -Path $backup_root | Out-Null
@@ -96,7 +134,11 @@ try {
         $created_settings = $true
     }
     if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; Copy-Item -LiteralPath $theme_source -Destination (resolve_typora_asset_path $groups[4].root 'cpp_github-consolas.css') -Force }
-    [IO.File]::WriteAllText($window, $window_source, [Text.UTF8Encoding]::new($false))
+    if ($window_changed) {
+        # 写入开始即登记，部分写入失败也必须走原备份回滚。
+        $window_written = $true
+        [IO.File]::WriteAllText($window, $window_source, [Text.UTF8Encoding]::new($false))
+    }
     start_typora_install_step $install_log 6 '验证安装结果'
     assert_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) $head
     assert_typora_workspace_assets $groups[0].root $assets
@@ -111,7 +153,7 @@ try {
     foreach ($group in $groups) { if ($group.name -ne 'native_profile') { restore_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.records '' } }
     if ($profile_changed) { $current_profile = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path; $null = invoke_typora_native_profile $profile_node $tools_root restore $profile_path $current_profile.sha256 (Join-Path $backup_root 'native_profile/profile.data') }
     if ($created_settings -and (Test-Path -LiteralPath $settings_target -PathType Leaf)) { Move-Item -LiteralPath $settings_target -Destination ($settings_target + '.disabled.' + [guid]::NewGuid().ToString('N')) }
-    Copy-Item -LiteralPath (Join-Path $backup_root 'window.html') -Destination $window -Force
+    if ($window_written) { Copy-Item -LiteralPath (Join-Path $backup_root 'window.html') -Destination $window -Force }
     $rollback_state = 'completed'
     write_typora_install_log $install_log OK '已回滚本次安装，备份已保留。'
     } catch {

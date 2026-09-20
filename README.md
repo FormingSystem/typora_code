@@ -40,7 +40,7 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 
 1. 从 [Typora 官方网站](https://typora.io/)安装 Typora，并确认可以正常打开文档。
 2. 在**本仓库网页**点击 **Code → Download ZIP**，完整解压下载包。进入能看到本文件和 `install_windows.cmd` 的目录。包内已含 `enhancements/dist/`，普通安装无需构建或预装 Node.js。
-3. 保存正在编辑的文档。双击 **`install_windows.cmd`**，按提示完成安装并记下输出的 **Backup** 目录；首次安装需要联网下载经摘要校验的私有 Node 运行时。
+3. 保存正在编辑的文档。双击 **`install_windows.cmd`**，按提示完成安装并记下输出的 **Backup** 目录；首次安装需要联网下载经摘要校验的私有 Node 运行时。普通权限优先；遇受保护写入目标时说明原因并请求Windows系统授权，取消保留原安装。
 4. 在该目录打开 PowerShell，执行下面的只读检查。返回 **`status: OK`** 后，正常重启 Typora，在“主题”菜单选择 **cpp github consolas**。
 
 ```powershell
