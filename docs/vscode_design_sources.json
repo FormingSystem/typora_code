@@ -413,6 +413,7 @@
     ],
     "adopted": "实际drop提交、窗口边界建窗、相邻尺寸约束和取消清理；保留本工作台120px分栏下限及原入口",
     "limits": "不声明Alt对称调整、吸附、跨多栏递推、正文边缘创建组及全部编辑组设置等价",
-    "validation": "R005.1: TC-workspace-005/007及TC-system-native-drag-windows"
+    "validation": "R005.1: TC-workspace-005/007及TC-system-native-drag-windows",
+    "direct_drop_20260920": "R005.2：multiEditorTabsControl.ts 2458及editorDropTarget.ts moveEditors直接提交落点，无额外移动确认；复用Notice呈现失败，附窗不恢复整个目录会话。"
   }
 }

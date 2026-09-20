@@ -96,5 +96,26 @@ app.whenReady().then(async()=>{
  source=await create_window();await evaluate(source,`make_markdown(${JSON.stringify(markdown)},${JSON.stringify('# Current unsaved\n')},true);window.background_leaf=make_markdown(${JSON.stringify(background)},'',false,false);void 0`);snapshot=await evaluate(source,'files.capture_transfer(background_leaf)');assert.equal(snapshot.text,'# Background\n');assert.equal(snapshot.dirty,false);assert.equal(snapshot.reading_position.scroll_top,123);assert.equal(await evaluate(source,'native_text'),'# Current unsaved\n');target=await create_window();await receive(target,snapshot);assert.equal(await evaluate(target,'native_text'),'# Background\n');assert.equal(await evaluate(target,'reload_calls.length'),0);assert.equal(await evaluate(source,`files.release_transfer(background_leaf,${JSON.stringify(snapshot)})`),false);checks.push('background Markdown captures its own disk text and scroll while preserving unrelated active native draft');close(source);close(target);
  source=await create_window();await evaluate(source,`window.source_leaf=make_markdown(${JSON.stringify(markdown)},${JSON.stringify('# Title\n\nBaseline\n')},false);void 0`);snapshot=await capture(source);assert.equal(await evaluate(source,`files.release_transfer(source_leaf,${JSON.stringify(snapshot)})`),true);assert.equal(await evaluate(source,'native_saves'),0);checks.push('clean Markdown can release without invoking native Save');close(source);
  source=await create_window();await evaluate(source,`make_markdown(${JSON.stringify(markdown)},${JSON.stringify('# Draft\n')},true);File.bundle.savedContent='wrong baseline';void 0`);await assert.rejects(()=>capture(source),/加载基线不同/u);assert.equal(await evaluate(source,'native_text'),'# Draft\n');checks.push('native saved-content mismatch refuses a misleading Markdown baseline');close(source);
+
+ // 原生前一次标签关闭的异步切换尚未结束时，等待就绪而非要求用户重拖。
+ source=await source_window();
+ await evaluate(source,`File._onFileSwitching=true;window.prepared=false;window.preparing=files.capture_transfer(core.app.workspace.activeLeaf).then(value=>{prepared=true;return value});void 0`);
+ await delay(60);assert.equal(await evaluate(source,'prepared'),false);
+ await evaluate(source,'File._onFileSwitching=false;void 0');snapshot=await evaluate(source,'preparing');
+ target=await create_window();
+ await evaluate(target,`File._onInitParse=true;window.received=false;window.receiving=files.receive_transfer(${JSON.stringify(snapshot)},{group,index:group.children.length}).then(()=>received=true);void 0`);
+ await delay(60);assert.equal(await evaluate(target,'leaves.length'),1);
+ await evaluate(target,'File._onInitParse=false;void 0');await evaluate(target,'receiving');assert.equal(await evaluate(target,'received'),true);
+ checks.push('transient native switch and parse wait before capture or insertion');close(target);
+ for(const action of ['abort','root','group','dispose']){
+  target=await create_window();
+  await evaluate(target,`File._onFileSwitching=true;window.receive_abort=new AbortController();window.receiving=files.receive_transfer(${JSON.stringify(snapshot)},{group,index:group.children.length},receive_abort.signal).then(()=>'',error=>error.message);void 0`);
+  await evaluate(target,action==='abort'?'receive_abort.abort();void 0':action==='root'?"root_path+='-changed';void 0":action==='group'?'leaves.splice(0);void 0':'files.dispose();void 0');
+  assert.match(await evaluate(target,'receiving'),/取消|改变/u);assert.equal(await evaluate(target,'native_saves'),0);assert.equal(await evaluate(target,'reload_calls.length'),0);
+  checks.push('pending native switch cancels safely on '+action);close(target);
+ }
+ target=await create_window();await evaluate(target,'File._onFileSwitching=true;void 0');
+ await assert.rejects(()=>receive(target,snapshot),/正在读取/u);assert.equal(await evaluate(target,'leaves.length'),1);
+ checks.push('persistent native loading times out without inserting a tab');close(target);close(source);
  console.log(JSON.stringify({checks,passed:checks.length,scope:'hidden Electron, real Monaco, real temporary files, native Markdown API contract fixture'},null,2));
 }).then(()=>app.exit(0)).catch(error=>{console.error(error);app.exit(1)}).finally(()=>{for(const win of windows)if(!win.isDestroyed())win.destroy();});

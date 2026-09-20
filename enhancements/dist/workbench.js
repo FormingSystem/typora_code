@@ -183069,9 +183069,21 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return present;
     };
+    const transfer_loading = () => Boolean(runtime2.File?.isFileLoading?.() || runtime2.File?._onFileSwitching || runtime2.File?._onInitParse);
     const transfer_guard = (signal) => {
       if (signal?.aborted || !binding.active) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
       if (renaming || runtime2.File?.isFileLoading?.() || runtime2.File?._onFileSwitching || runtime2.File?._onInitParse || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
+    };
+    const prepare_transfer = async (current, signal) => {
+      const deadline = Date.now() + 5e3, epoch2 = workspace_context_epoch();
+      const valid = () => epoch2 === workspace_context_epoch() && !workspace_context_switching() && current();
+      while (transfer_loading()) {
+        if (signal?.aborted || !binding.active || !valid()) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\u6216\u76EE\u6807\u5DF2\u6539\u53D8\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+        if (renaming || runtime2.File?.inSavingProcess || Date.now() >= deadline) transfer_guard(signal);
+        await new Promise((resolve3) => setTimeout(resolve3, 20));
+      }
+      transfer_guard(signal);
+      if (!valid()) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u76EE\u6807\u5DF2\u6539\u53D8\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
     };
     const transfer_hash = async (value) => {
       const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
@@ -183208,13 +183220,26 @@ https://creativecommons.org/licenses/by/4.0/
       return snapshot;
     };
     const capture_transfer = async (leaf, signal) => {
+      const root = context_root(), path = leaf.state.path;
+      await prepare_transfer(() => context_root() === root && !workspace_context_switching() && transfer_present(leaf) && leaf.state.path === path, signal);
       const snapshot = await collect_transfer(leaf, signal);
       transfer_guard(signal);
       transfer_captures.set(leaf, { capture_id: snapshot.capture_id, fingerprint: snapshot.capture_fingerprint });
       return snapshot;
     };
     const receive_transfer = async (snapshot, target, signal) => {
-      transfer_guard(signal);
+      const initial_root = context_root(), initial_children = [];
+      core.app.workspace.eachLeaves((leaf2) => {
+        if (leaf2.parent === target?.group) initial_children.push(leaf2);
+      });
+      if (!initial_children.length) throw new Error("\u63A5\u6536\u7F16\u8F91\u7EC4\u6216\u6807\u7B7E\u63D2\u5165\u4F4D\u7F6E\u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u62D6\u52A8\u3002");
+      await prepare_transfer(() => {
+        const children = [];
+        core.app.workspace.eachLeaves((leaf2) => {
+          if (leaf2.parent === target?.group) children.push(leaf2);
+        });
+        return context_root() === initial_root && initial_children.length > 0 && children.length === initial_children.length && children.every((leaf2, index) => leaf2 === initial_children[index]);
+      }, signal);
       if (!snapshot || snapshot.schema !== 1 || !["source", "markdown"].includes(snapshot.kind) || typeof snapshot.text !== "string" || snapshot.text.length > MAX_TEXT_DOCUMENT_BYTES || typeof snapshot.file_path !== "string" || !path_api.isAbsolute(snapshot.file_path) || typeof snapshot.root !== "string" || typeof snapshot.dirty !== "boolean" || !/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256) || snapshot.capture_fingerprint !== await transfer_fingerprint(snapshot)) throw new Error("\u7A97\u53E3\u6587\u6863\u5FEB\u7167\u65E0\u6548\uFF0C\u672A\u4FEE\u6539\u5F53\u524D\u6587\u6863\u3002");
       const target_root = context_root(), target_group = target?.group;
       const target_children = [];
@@ -232415,10 +232440,17 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/workspace_window_intent.ts
+  var TRANSFER_WINDOW_ANCHOR_PREFIX = "#typora-code-window-";
+  var TRANSFER_TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
+  function window_transfer_token(initial_file, anchor) {
+    if (initial_file || !anchor.startsWith(TRANSFER_WINDOW_ANCHOR_PREFIX)) return "";
+    const token = anchor.slice(TRANSFER_WINDOW_ANCHOR_PREFIX.length);
+    return TRANSFER_TOKEN_PATTERN.test(token) ? token : "";
+  }
+
   // src/workspace_detached_window.ts
-  var WINDOW_ANCHOR_PREFIX = "#typora-code-window-";
   var CHANNEL_PREFIX = "typora-code:tab-transfer:";
-  var TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
   var TRANSFER_TIMEOUT_MS = 25e3;
   var bindings5 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_detached_window(files, options2 = {}) {
@@ -232428,8 +232460,9 @@ https://creativecommons.org/licenses/by/4.0/
     const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
     const timeout_ms = options2.timeout_ms ?? TRANSFER_TIMEOUT_MS;
     const notify = options2.notify || ((message) => {
-      const dialog2 = workspace_dialog("\u79FB\u52A8\u6807\u7B7E");
-      dialog2.content.append(workspace_element("p", "", message));
+      const text3 = document.createElement("span");
+      text3.textContent = "\u79FB\u52A8\u6807\u7B7E\uFF1A" + message;
+      new files.core.Notice(text3.innerHTML, 6e3);
     });
     const open_window = options2.open_window || ((anchor2, root) => open_workspace_window(root, anchor2));
     const cancellations = /* @__PURE__ */ new Set();
@@ -232437,8 +232470,8 @@ https://creativecommons.org/licenses/by/4.0/
     const senders = /* @__PURE__ */ new Map();
     const receivers = /* @__PURE__ */ new Set();
     const anchor = options2.initial_anchor ?? runtime2._options?.initAnchor ?? runtime2.File?.option?.initAnchor ?? "";
-    const initial_token = anchor.startsWith(WINDOW_ANCHOR_PREFIX) ? anchor.slice(WINDOW_ANCHOR_PREFIX.length) : "";
-    const auxiliary = TOKEN_PATTERN.test(initial_token) && !runtime2._options?.initFilePath;
+    const initial_token = window_transfer_token(runtime2._options?.initFilePath, anchor);
+    const auxiliary = Boolean(initial_token);
     let disposed = false;
     const report = (error) => {
       if (!disposed) notify(error instanceof Error ? error.message : String(error));
@@ -232536,7 +232569,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       channel.onmessage = (event) => {
         const message = event.data;
-        if (finished || !message || !TOKEN_PATTERN.test(message.peer_id || "")) return;
+        if (finished || !message || !TRANSFER_TOKEN_PATTERN.test(message.peer_id || "")) return;
         if (message.kind === "ready" && (!peer_id || message.peer_id === peer_id)) {
           peer_id = message.peer_id;
           void deliver();
@@ -232570,7 +232603,7 @@ https://creativecommons.org/licenses/by/4.0/
         void (async () => {
           const snapshot = await capture();
           if (finished || peer_id) return;
-          await open_window(WINDOW_ANCHOR_PREFIX + token, snapshot.root);
+          await open_window(TRANSFER_WINDOW_ANCHOR_PREFIX + token, snapshot.root);
         })().catch((error) => finish(error));
       };
       cancellations.add(cancel);
@@ -232661,11 +232694,11 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const drag_start = (event) => {
       const detail = event.detail;
-      if (detail?.leaf && TOKEN_PATTERN.test(detail.transfer_token || "")) start_sender(detail.leaf, detail.transfer_token);
+      if (detail?.leaf && TRANSFER_TOKEN_PATTERN.test(detail.transfer_token || "")) start_sender(detail.leaf, detail.transfer_token);
     };
     const drop = (event) => {
       const detail = event.detail;
-      if (!detail?.target_group || !TOKEN_PATTERN.test(detail.transfer_token || "") || disposed) return;
+      if (!detail?.target_group || !TRANSFER_TOKEN_PATTERN.test(detail.transfer_token || "") || disposed) return;
       let present = false;
       files.core.app.workspace.eachLeaves((leaf) => {
         if (leaf.parent === detail.target_group) present = true;
@@ -238240,6 +238273,7 @@ https://creativecommons.org/licenses/by/4.0/
     const runtime2 = window, workspace = files.core.app.workspace;
     const store = create_workspace_session_store(files.fs, files.path_api, runtime2.reqnode("crypto"), files.path_api.join(runtime2._options.userDataPath, "typora_code", "state", "workspace_sessions"));
     let disposed = false, paused = true, timer, reported = false;
+    let owns_session = !window_transfer_token(runtime2._options?.initFilePath, runtime2._options?.initAnchor ?? runtime2.File?.option?.initAnchor ?? "");
     const controller = new AbortController();
     const notice = (error) => {
       if (!disposed) new files.core.Notice("\u5DE5\u4F5C\u533A\u6587\u4EF6\u6062\u590D\uFF1A" + String(error instanceof Error ? error.message : error), 6e3);
@@ -238272,6 +238306,7 @@ https://creativecommons.org/licenses/by/4.0/
       return { entries: entries3, active };
     };
     const save = () => {
+      if (!owns_session) return;
       const { entries: entries3, active } = snapshot();
       store.write(files.context_root(), entries3, active);
     };
@@ -238299,6 +238334,7 @@ https://creativecommons.org/licenses/by/4.0/
       return String(options2?.restoreWhenLaunch) === "2";
     };
     const restore = async (initial = false) => {
+      if (initial && !owns_session) return;
       const root = files.context_root(), epoch2 = workspace_context_epoch();
       const current = () => !disposed && !controller.signal.aborted && epoch2 === workspace_context_epoch() && root === files.context_root();
       try {
@@ -238362,7 +238398,10 @@ https://creativecommons.org/licenses/by/4.0/
       },
       async resume(restore_files) {
         try {
-          if (restore_files) await restore();
+          if (restore_files) {
+            owns_session = true;
+            await restore();
+          }
         } finally {
           paused = false;
         }
@@ -239790,6 +239829,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092020,
+        version: "2026.09.20.20",
+        date: "2026-09-20",
+        notes: [
+          "\u4FEE\u590D\u5F00\u542F\u6062\u590D\u4E0A\u6B21\u6587\u4EF6\u65F6\uFF0C\u62D6\u51FA\u6807\u7B7E\u7684\u65B0\u7A97\u53E3\u6062\u590D\u6574\u7EC4\u6587\u4EF6\u5E76\u4E0E\u6807\u7B7E\u4EA4\u63A5\u51B2\u7A81\u7684\u95EE\u9898\uFF1B\u9644\u7A97\u53EA\u63A5\u6536\u6307\u5B9A\u6587\u4EF6\uFF0C\u4FDD\u7559\u4E3B\u7A97\u53E3\u4F1A\u8BDD\u3002",
+          "\u8FDE\u7EED\u79FB\u51FA\u540E\u7ACB\u5373\u79FB\u56DE\u65F6\uFF0C\u7B49\u5F85\u5BBF\u4E3B\u4E0A\u4E00\u8F6E\u6587\u6863\u5207\u6362\u5C31\u7EEA\uFF1B\u7B49\u5F85\u671F\u95F4\u53D6\u6D88\u6216\u76EE\u6807\u53D8\u5316\u4ECD\u4FDD\u7559\u539F\u6587\u6863\u3002",
+          "\u62D6\u52A8\u548C\u5408\u5E76\u76F4\u63A5\u6267\u884C\uFF1B\u5931\u8D25\u4FDD\u7559\u6587\u6863\u5E76\u4F7F\u7528\u4E0D\u62A2\u7126\u70B9\u7684\u8F7B\u63D0\u793A\uFF0C\u4E0D\u518D\u51FA\u73B0\u201C\u79FB\u52A8\u6807\u7B7E\u201D\u6A21\u6001\u5173\u95ED\u6846\u3002"
+        ]
+      },
       {
         sequence: 2026092019,
         version: "2026.09.20.19",

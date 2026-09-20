@@ -8,7 +8,7 @@ $case_root = & python -X utf8 (Join-Path $PSScriptRoot 'prepare_stability_native
 if ($LASTEXITCODE -ne 0) { throw 'Native fixture preparation failed' }
 $case_root = ($case_root | Select-Object -Last 1).Trim()
 Write-Output ('Native evidence: ' + $case_root)
-& (Join-Path $PSScriptRoot 'run_private_desktop.ps1') -case_root $case_root
+& (Join-Path $PSScriptRoot 'run_private_desktop.ps1') -case_root $case_root -wait_ms $(if ($fixture -eq 'drag_windows_native.js') { 180000 } else { 60000 })
 $checks_file=Join-Path $case_root 'checks.json'
 if (!(Test-Path -LiteralPath $checks_file)) { throw ('Native fixture timed out: '+$case_root) }
 $checks=[IO.File]::ReadAllText($checks_file,[Text.Encoding]::UTF8)|ConvertFrom-Json

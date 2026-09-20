@@ -1,5 +1,5 @@
 import {prepare_deleted_native_document} from "./workspace_native_document";
-import {workspace_context_switching,assert_workspace_context_ready} from "./workspace_context";
+import {workspace_context_switching,workspace_context_epoch,assert_workspace_context_ready} from "./workspace_context";
 import {trash_native_path} from "./workspace_native_trash";
 import {acquire_workspace_style} from "./workspace_styles";
 import {publish_workspace_file_changed} from "./workspace_file_events";
@@ -698,9 +698,22 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const transfer_captures = new WeakMap<graph_leaf,{capture_id:string;fingerprint:string}>();
   const transfer_present = (leaf:graph_leaf) => {let present=false;core.app.workspace.eachLeaves(item=>{if(item===leaf)present=true;});return present;};
+  const transfer_loading = () => Boolean(runtime.File?.isFileLoading?.()||runtime.File?._onFileSwitching||runtime.File?._onInitParse);
   const transfer_guard = (signal?:AbortSignal) => {
     if(signal?.aborted||!binding.active)throw new Error("窗口移交已取消，原标签仍保留。");
     if(renaming||runtime.File?.isFileLoading?.()||runtime.File?._onFileSwitching||runtime.File?._onInitParse||runtime.File?.inSavingProcess)throw new Error("文件正在读取、切换、保存或重命名，请稍后再移至新窗口。");
+  };
+  // 上一次移出会触发宿主异步切换。仅在事务开始前等待它结束，不重试已写入的移交。
+  const prepare_transfer = async (current:()=>boolean,signal?:AbortSignal) => {
+    const deadline=Date.now()+5000,epoch=workspace_context_epoch();
+    const valid=()=>epoch===workspace_context_epoch()&&!workspace_context_switching()&&current();
+    while(transfer_loading()){
+      if(signal?.aborted||!binding.active||!valid())throw new Error("窗口移交已取消或目标已改变，原标签仍保留。");
+      if(renaming||runtime.File?.inSavingProcess||Date.now()>=deadline)transfer_guard(signal);
+      await new Promise(resolve=>setTimeout(resolve,20));
+    }
+    transfer_guard(signal);
+    if(!valid())throw new Error("窗口移交目标已改变，原标签仍保留。");
   };
   const transfer_hash=async(value:Uint8Array|string)=>{
     const bytes=typeof value==="string"?new TextEncoder().encode(value):value;
@@ -784,10 +797,18 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     return snapshot;
   };
   const capture_transfer=async(leaf:graph_leaf,signal?:AbortSignal)=>{
+    const root=context_root(),path=leaf.state.path;
+    await prepare_transfer(()=>context_root()===root&&!workspace_context_switching()&&transfer_present(leaf)&&leaf.state.path===path,signal);
     const snapshot=await collect_transfer(leaf,signal);transfer_guard(signal);transfer_captures.set(leaf,{capture_id:snapshot.capture_id,fingerprint:snapshot.capture_fingerprint});return snapshot;
   };
   const receive_transfer=async(snapshot:workspace_document_snapshot,target:workspace_transfer_target,signal?:AbortSignal):Promise<graph_leaf>=>{
-    transfer_guard(signal);
+    const initial_root=context_root(),initial_children:graph_leaf[]=[];
+    core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target?.group)initial_children.push(leaf);});
+    if(!initial_children.length)throw new Error("接收编辑组或标签插入位置无效，请重新拖动。");
+    await prepare_transfer(()=>{
+      const children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target?.group)children.push(leaf);});
+      return context_root()===initial_root&&initial_children.length>0&&children.length===initial_children.length&&children.every((leaf,index)=>leaf===initial_children[index]);
+    },signal);
     if(!snapshot||snapshot.schema!==1||!["source","markdown"].includes(snapshot.kind)||typeof snapshot.text!=="string"||snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES||typeof snapshot.file_path!=="string"||!path_api.isAbsolute(snapshot.file_path)||typeof snapshot.root!=="string"||typeof snapshot.dirty!=="boolean"||!/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256)||snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))throw new Error("窗口文档快照无效，未修改当前文档。");
     const target_root=context_root(),target_group=target?.group as graph_leaf["parent"]&{insertChild?(index:number,leaf:graph_leaf):void};
     const target_children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target_group)target_children.push(leaf);});

@@ -488,3 +488,5 @@ Markdown正文及历史阅读中已显示的图片，鼠标悬停时在图像外
 当前候选2026.09.20.19；帮助菜单手动检查更新立即反馈状态，可取消重试；后台检查复用同一请求，完成后展示结果或失败原因。Windows更新使用GitHub提交API与固定SHA的ZIP，不要求本地Git、`.git`或仓库历史。下载/解压放在Typora用户数据的`temp`，成功后才记录提交身份，同序号新提交仍可更新；立即安装后手动重启。安装按实际待写目标检查权限，可写目标不提权，受保护入口解释原因并请求一次系统授权，取消保留原安装。配置和备份仍由标准安装事务管理，详见[更新设计](../docs/workspace_update.md)及[安装权限](../docs/installation_design.md#r063-windows权限预检与按需授权)。
 
 提交详情浮层与菜单共用GitHub/Gitee/GitLab/Bitbucket网页识别，多候选一次选择；无远端、本地或未知托管平台不生成猜测的提交URL，详见[提交网页](../docs/git_commit_web.md)。
+
+跨窗口移交验收使用 `scripts/test_drag_windows_native.ps1`：独立原始宿主显式启用恢复上次文件，源码、已保存及未保存Markdown各20轮拖出/合并；检查附窗仅有指定文件、无模态/失败通知、源磁盘不变及空附窗实际退出。普通重开恢复单独使用 `scripts/test_workspace_sessions_native.ps1` 验证第二进程读取磁盘记录。原生输入为renderer事件，物理跨屏输入仍需现场复核。详见[拖动设计](../docs/drag_and_windows.md#r0052-拖放直接执行与非模态反馈2026-09-20)。

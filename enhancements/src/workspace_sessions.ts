@@ -1,5 +1,6 @@
 import type {workspace_file_host} from "./workspace_files";
 import {create_workspace_session_store,type workspace_session_file} from "./workspace_session_store";
+import {window_transfer_token} from "./workspace_window_intent";
 import {file_key} from "./workspace_file_uri";
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 
@@ -8,6 +9,8 @@ export function bind_workspace_sessions(files:workspace_file_host){
   const runtime=window as any,workspace=files.core.app.workspace;
   const store=create_workspace_session_store(files.fs,files.path_api,runtime.reqnode("crypto"),files.path_api.join(runtime._options.userDataPath,"typora_code","state","workspace_sessions"));
   let disposed=false,paused=true,timer:ReturnType<typeof setTimeout>|undefined,reported=false;
+  // 在移交控制器清理安全锚点之前同步读取启动意图；不在异步恢复阶段重读。
+  let owns_session = !window_transfer_token(runtime._options?.initFilePath, runtime._options?.initAnchor ?? runtime.File?.option?.initAnchor ?? "");
   const controller=new AbortController();
   const notice=(error:unknown)=>{if(!disposed)new files.core.Notice("工作区文件恢复："+String(error instanceof Error?error.message:error),6000);};
   const snapshot=()=>{
@@ -28,7 +31,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
     });
     return {entries,active};
   };
-  const save=()=>{const {entries,active}=snapshot();store.write(files.context_root(),entries,active);};
+  const save=()=>{if(!owns_session)return;const {entries,active}=snapshot();store.write(files.context_root(),entries,active);};
   const flush=()=>{clearTimeout(timer);if(disposed||paused||workspace_context_switching())return;try{save();reported=false;}catch(error){if(!reported)notice(error);reported=true;}};
   const schedule=()=>{if(disposed||paused)return;clearTimeout(timer);timer=setTimeout(flush,150);};
   const stops=[workspace.on("layout-changed",schedule),workspace.on("active-leaf:change",schedule),workspace.on("file:open",schedule)];
@@ -40,6 +43,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
     return String(options?.restoreWhenLaunch)==="2";
   };
   const restore=async(initial=false)=>{
+    if(initial&&!owns_session)return;
     const root=files.context_root(),epoch=workspace_context_epoch();
     const current=()=>!disposed&&!controller.signal.aborted&&epoch===workspace_context_epoch()&&root===files.context_root();
     try{
@@ -79,7 +83,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
   })();
   return {ready,
     suspend(){clearTimeout(timer);save();paused=true;},
-    async resume(restore_files:boolean){try{if(restore_files)await restore();}finally{paused=false;}},
+    async resume(restore_files:boolean){try{if(restore_files){owns_session=true;await restore();}}finally{paused=false;}},
     dispose(){flush();disposed=true;controller.abort();clearTimeout(timer);for(const stop of stops)stop();window.removeEventListener("beforeunload",flush);},
   };
 }

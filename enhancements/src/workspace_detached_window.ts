@@ -1,12 +1,10 @@
 import {open_workspace_window} from "./workspace_open_dialog";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
-import {workspace_dialog, workspace_element} from "./workspace_widgets";
+import {TRANSFER_WINDOW_ANCHOR_PREFIX as WINDOW_ANCHOR_PREFIX, TRANSFER_TOKEN_PATTERN as TOKEN_PATTERN, window_transfer_token} from "./workspace_window_intent";
 
 // anchor 会被 Typora 的延迟文件加载流程再次消费，只能使用无副作用的文内片段。
-const WINDOW_ANCHOR_PREFIX = "#typora-code-window-";
 const CHANNEL_PREFIX = "typora-code:tab-transfer:";
-const TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 const TRANSFER_TIMEOUT_MS = 25000;
 export type detached_window_binding = {open(leaf:graph_leaf,copy?:boolean):void;dispose():void};
 const bindings = new WeakMap<object, detached_window_binding>();
@@ -35,7 +33,9 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
   const make_channel = options.channel || ((name: string) => new BroadcastChannel(name));
   const timeout_ms = options.timeout_ms ?? TRANSFER_TIMEOUT_MS;
   const notify = options.notify || ((message: string) => {
-    const dialog = workspace_dialog("移动标签"); dialog.content.append(workspace_element("p", "", message));
+    // Notice 接口接收 HTML；先按文本转义，路径和错误不能注入标记。
+    const text = document.createElement("span"); text.textContent = "移动标签：" + message;
+    new files.core.Notice(text.innerHTML, 6000);
   });
   const open_window = options.open_window || ((anchor: string, root: string) => open_workspace_window(root,anchor));
   const cancellations = new Set<() => void>();
@@ -43,8 +43,8 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
   const senders = new Map<string, {leaf: graph_leaf; cancel(): void; detach(): void; wait(): void; claimed(): boolean; releasing(): boolean}>();
   const receivers = new Set<string>();
   const anchor = options.initial_anchor ?? runtime._options?.initAnchor ?? runtime.File?.option?.initAnchor ?? "";
-  const initial_token = anchor.startsWith(WINDOW_ANCHOR_PREFIX) ? anchor.slice(WINDOW_ANCHOR_PREFIX.length) : "";
-  const auxiliary = TOKEN_PATTERN.test(initial_token) && !runtime._options?.initFilePath;
+  const initial_token = window_transfer_token(runtime._options?.initFilePath, anchor);
+  const auxiliary = Boolean(initial_token);
   let disposed = false;
   const report = (error: unknown) => { if (!disposed) notify(error instanceof Error ? error.message : String(error)); };
   const owns_leaf = (candidate: graph_leaf) => {

@@ -189,6 +189,16 @@ app.whenReady().then(async()=>{
   await evaluate(direct,'binding.open(leaf);void 0');await wait(direct,'releases===1');
   assert.equal(await evaluate(last_child,'received.length'),1,'move menu receives exactly one payload before releasing the source');
   await evaluate(direct,'binding.dispose();void 0');
+  // 实际默认通知路径不能创建模态框或改变输入焦点；错误内容作为文本处理。
+  const feedback=await open();
+  await evaluate(feedback,`binding.dispose();window.notice_calls=[];files.core.Notice=class{constructor(text,duration){notice_calls.push({text,duration});const node=document.createElement('div');node.className='fixture-notice';node.innerHTML=text;document.body.append(node);}};window.focus_input=document.createElement('input');document.body.append(focus_input);focus_input.focus();files.capture_transfer=async()=>{throw Error('failed <img src=x onerror="window.injected=true">')};install('',1800,{notify:undefined});detach();void 0`);
+  await wait(feedback,'notice_calls.length===1');
+  assert.equal(await evaluate(feedback,`document.querySelectorAll('[role="dialog"]').length`),0);
+  assert.equal(await evaluate(feedback,'document.activeElement===focus_input'),true);
+  assert.equal(await evaluate(feedback,'document.querySelector(".fixture-notice").textContent'), '移动标签：failed <img src=x onerror="window.injected=true">');
+  assert.equal(await evaluate(feedback,'Boolean(window.injected)||Boolean(document.querySelector(".fixture-notice img"))'),false);
+  assert.equal(await evaluate(feedback,'releases'),0);
+  await evaluate(feedback,'binding.dispose();void 0');
   await require('../fixtures/transfer_stress.cjs')({open,evaluate,evidence});
   console.log(JSON.stringify({status:'PASS',checks:26,close_checks,channel_failure_checks:6,window_bounds_checks,release_drag_checks,evidence}));
   for(const win of windows)if(!win.isDestroyed())win.destroy();app.exit(0);

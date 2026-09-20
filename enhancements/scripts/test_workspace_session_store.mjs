@@ -22,3 +22,36 @@ const target=path.join(dir,crypto.createHash('sha256').update(store.root_key(a))
 fs.writeFileSync(target,'x'.repeat(2*1024*1024+1));assert.throws(()=>store.read(a),/过大/);
 const win=create(fs,path.win32,crypto,dir);assert.equal(win.root_key('C:\\Workspace\\'),win.root_key('c:\\workspace'));
 console.log('PASS empty, invalid, corrupt, oversized and atomic failure preservation; Windows root normalization');
+
+// 启动意图在异步恢复之前捕获；拖放附窗不读写目录会话，正常窗口和主动切目录继续恢复。
+const session_bundle=await build({entryPoints:['src/workspace_sessions.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const {bind_workspace_sessions:bind_sessions}=await import('data:text/javascript;base64,'+Buffer.from(session_bundle.outputFiles[0].text).toString('base64'));
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const session_user=fs.mkdtempSync(path.join(os.tmpdir(),'typora_session_intent_'));
+const service_store=create(fs,path,crypto,path.join(session_user,'typora_code','state','workspace_sessions'));
+const saved_files=[{path:path.join(a,'one.c'),source:true,pinned:false},{path:path.join(a,'two.c'),source:true,pinned:true}];
+const cases=[
+ {name:'transfer',anchor:'#typora-code-window-'+crypto.randomUUID(),initial_file:'',auxiliary:true},
+ {name:'invalid token',anchor:'#typora-code-window-bad',initial_file:'',auxiliary:false},
+ {name:'normal',anchor:'#',initial_file:'',auxiliary:false},
+ {name:'explicit file',anchor:'#typora-code-window-'+crypto.randomUUID(),initial_file:path.join(a,'one.c'),auxiliary:false},
+];
+for(const scenario of cases){
+ service_store.write(a,saved_files,1);
+ const original_session=JSON.stringify(service_store.read(a)),opened=[],listeners=new Set();let current_root=a;
+ const workspace={activeLeaf:undefined,eachLeaves(){},on(_event,callback){listeners.add(callback);return()=>listeners.delete(callback);}};
+ const runtime=Object.assign(new EventTarget(),{_options:{userDataPath:session_user,initAnchor:scenario.anchor,initFilePath:scenario.initial_file},reqnode:()=>crypto,JSBridge:{invoke:async()=>({restoreWhenLaunch:2})}});
+ globalThis.window=runtime;globalThis.document={documentElement:{dataset:{linuxNoteTyporaEnhancements:'loading'}}};
+ const files={fs,path_api:path,context_root:()=>current_root,core:{app:{workspace},Notice:class{constructor(message){throw Error(message)}}},editor_state:leaf=>({file_path:leaf.path,kind:'source',dirty:false,busy:false}),keep_open(){},async open_file(file){opened.push(file);workspace.activeLeaf={path:file,state:{}};}};
+ const binding=bind_sessions(files);runtime._options.initAnchor='';document.documentElement.dataset.linuxNoteTyporaEnhancements='ready';await binding.ready;
+ assert.equal(opened.length,scenario.auxiliary?0:2,scenario.name+' restores only regular window');
+ for(const callback of listeners)callback();await delay(180);runtime.dispatchEvent(new Event('beforeunload'));
+ if(scenario.auxiliary){
+  assert.equal(JSON.stringify(service_store.read(a)),original_session,'empty or transferred auxiliary never overwrites original session');
+  binding.suspend();service_store.write(b,[saved_files[1]],0);current_root=b;await binding.resume(true);
+  assert.deepEqual(opened,[saved_files[1].path],'explicit directory switch resumes regular restore');
+ }
+ binding.dispose();assert.equal(listeners.size,0);
+}
+delete globalThis.window;delete globalThis.document;
+console.log('PASS transfer startup suppresses restore and persistence; consumed/invalid anchors, explicit file and later folder switch');

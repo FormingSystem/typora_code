@@ -1,0 +1,232 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R005",
+    "R005.2",
+    "R040.2"
+  ],
+  "release": "2026.09.20.20",
+  "status": "PASS",
+  "root_causes": [
+    "拖放附窗与普通启动共用目录恢复，整组文件恢复与移交竞争，并覆写主窗会话",
+    "移交失败使用模态关闭框，用户需额外点击",
+    "移走Markdown触发宿主异步切换，快速移回在接收前遭busy保护拒绝"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 162,
+    "target_ui": {
+      "passed": 3,
+      "failed": 0,
+      "document_transfer_assertions": 38
+    },
+    "native_rounds": 60,
+    "native_cases": {
+      "source_dirty": 20,
+      "markdown_saved": 20,
+      "markdown_dirty": 20
+    },
+    "native_restore_preference": 2,
+    "auxiliary_real_editors": 1,
+    "unexpected_modals": 0,
+    "unexpected_notices": 0,
+    "source_disk_unchanged": true,
+    "empty_auxiliary_renderer_exited": true,
+    "native_regular_restore_phases": [
+      [
+        "原生偏好页配置接口实际读到恢复文件和目录",
+        "无历史目录保持空编辑区",
+        "返回A恢复文件顺序及活动Markdown",
+        "同组非末尾Markdown草稿参与切换检查，取消保留内存",
+        "循环0恢复仅所属工作区文件",
+        "循环1恢复仅所属工作区文件",
+        "循环2恢复仅所属工作区文件",
+        "循环3恢复仅所属工作区文件",
+        "循环4恢复仅所属工作区文件",
+        "循环5恢复仅所属工作区文件",
+        "循环6恢复仅所属工作区文件",
+        "循环7恢复仅所属工作区文件",
+        "循环8恢复仅所属工作区文件",
+        "循环9恢复仅所属工作区文件",
+        "循环10恢复仅所属工作区文件",
+        "循环11恢复仅所属工作区文件",
+        "循环12恢复仅所属工作区文件",
+        "循环13恢复仅所属工作区文件",
+        "循环14恢复仅所属工作区文件",
+        "循环15恢复仅所属工作区文件",
+        "循环16恢复仅所属工作区文件",
+        "循环17恢复仅所属工作区文件",
+        "循环18恢复仅所属工作区文件",
+        "循环19恢复仅所属工作区文件",
+        "20次往返后活动文件仍一致",
+        "两个工作区分别写入独立磁盘记录",
+        "恢复全过程未改写Markdown原文"
+      ],
+      [
+        "新宿主进程从磁盘恢复同一目录的Markdown与源码",
+        "启动时宿主明确打开文件保持活动，不被历史活动源码抢占",
+        "第二进程沿用原生持久化恢复配置"
+      ]
+    ]
+  },
+  "performance": {
+    "rounds_ms": [
+      839.0999999940395,
+      862.9000000059605,
+      890.5,
+      855.9000000059605,
+      836.7000000178814,
+      853.2000000178814,
+      866.5999999940395,
+      812.3000000119209,
+      878.2000000178814,
+      859.9000000059605,
+      842.0999999940395,
+      854.5,
+      869.2999999821186,
+      852.3999999761581,
+      845.5999999940395,
+      893,
+      862.1000000238419,
+      818.5,
+      862.8000000119209,
+      842.6000000238419,
+      1442.4000000059605,
+      1437.4000000059605,
+      1456.9000000059605,
+      1523.1000000238419,
+      1433.0999999940395,
+      1493.5,
+      1456.699999988079,
+      1422.0999999940395,
+      1429,
+      1468.4000000059605,
+      1506.300000011921,
+      1406.0999999940395,
+      1447.5999999940395,
+      1456,
+      1507.6000000238419,
+      1404,
+      1417.9000000059605,
+      1467.199999988079,
+      1499,
+      1500.4000000059605,
+      1557.0999999940395,
+      1564.5,
+      1544.5,
+      1539.7999999821186,
+      1528.2999999821186,
+      1497.199999988079,
+      1524.4000000059605,
+      1559.800000011921,
+      1566.7000000178814,
+      1524.0999999940395,
+      1554.5999999940395,
+      1563,
+      1533.0999999940395,
+      1556.5,
+      1527.699999988079,
+      1553.800000011921,
+      1536,
+      1513.7999999821186,
+      1549.7999999821186,
+      1551.4000000059605
+    ],
+    "max_round_ms": 1566.7000000178814,
+    "meaning": "完整建窗、双向交接和空附窗退出，含轮询和IPC，不代表主线程阻塞或纯算法耗时。"
+  },
+  "failures_preserved": [
+    {
+      "path": ".cache/issue_tracking/native/d8966d3b09244786b22de469ab2566f3",
+      "result": "原版本开启恢复上次文件，首次移交因附窗整组恢复竞争失败，两个窗口显示移动标签模态框。"
+    },
+    {
+      "path": ".cache/issue_tracking/native/51648eed51d64f85b9236d1fd338b7c8",
+      "result": "仅修复恢复竞争后，41轮完成，未保存Markdown第二轮合并超时。"
+    },
+    {
+      "path": ".cache/issue_tracking/native/a6847e3fee894ac994cfef0e5661165b",
+      "result": "复跑43轮后失败，双方通知捕获宿主读取/切换/解析busy拒绝；随后补事务开始前有界等待。"
+    },
+    {
+      "path": ".cache/issue_tracking/native/ae423f81be244ba290f30c859f66c3ae",
+      "result": "扩展为60轮后超过原夹具60秒截止，完成51轮；drag专属截止改180秒，非产品修复。"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/issue_tracking/drag_direct_build_final.log",
+      "sha256": "75d34d1137ae21b5b13ee6a89f70e8dc0921f5ccb3d63d264b2454c95db3c5e1"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_check.log",
+      "sha256": "6f2e2afd7da6716ba4c653c485e1dde688756c49022a7b83319eebe7932a3a37"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_ui_final.log",
+      "sha256": "8a82b77782e5d548becb316da2a4afd9d9ba0ca5a84206f31d07bb63950ce8b0"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_native_delivery.log",
+      "sha256": "69dca20902f2ce34049fcb0498dbd6c6b336409fcc12b6ba962fab58f4c62bea"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_sessions_native.log",
+      "sha256": "d518ba4da8ae370cbe391b7f78e6205b268f8a83bb8863e866a39708a5845539"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_install.log",
+      "sha256": "b9c993e7feffeda9ff4ed9d8d794c6279bf9f6a561db5748b2a116c55d9c8cc6"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_direct_install_verification.json",
+      "sha256": "d3ab5e51789c2f4d2f721b46cb1c5b926b2aa0f282bee117e1f7be755426fc37"
+    },
+    {
+      "path": ".cache/issue_tracking/native/cb3b907892034e8f8f68693a4482aa46/checks.json",
+      "sha256": "6a401963d0b0907445d9f7e29c5c9d20b583a5e346b0bf01ffe1696dfcffdfb3"
+    },
+    {
+      "path": ".cache/issue_tracking/native/cb3b907892034e8f8f68693a4482aa46/setup.json",
+      "sha256": "bb65ee80eceb5791aa9407a3db0d554bb9ab6051fc68415b657050a2f322265d"
+    },
+    {
+      "path": ".cache/issue_tracking/native/aa534d960c2c4bdf883bcf57593ee8cc/checks_phase_1.json",
+      "sha256": "02e0947fe398d65bf9fcb7d3e3edea4e76e1785adac27e847d3e3b5faab777be"
+    },
+    {
+      "path": ".cache/issue_tracking/native/aa534d960c2c4bdf883bcf57593ee8cc/checks_phase_2.json",
+      "sha256": "c21f233d512d47b286dc824e24eab6b608ee646fe335928b2c3b90e3a5f5da7c"
+    }
+  ],
+  "candidate": {
+    "workbench_sha256": "77fe47779e83ce06d233e109035fa9d01251526f38476c69f8fb48644c762c41",
+    "manifest_sha256": "0ed664e77c3d1962084d6361d1aba7168f7eb760e6003a9423f8464c8d67735f",
+    "native_tested_bytes_match_installed": true
+  },
+  "installation": {
+    "protected_unchanged": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "assets_matched": 29,
+    "native_candidate_matches_installed": true,
+    "release": "2026.09.20.20",
+    "user_windows_restarted": false,
+    "check": "OK"
+  },
+  "limits": [
+    "原生Windows Typora 1.14.10独立副本、私有桌面，renderer拖动事件驱动实际建窗；物理OS鼠标多屏拖放尚未实测。",
+    "同窗保留撤销身份；跨进程仍建立新编辑历史，不迁移完整撤销栈。",
+    "保留原有正文边缘自动拆组及其他未实现VS Code配置边界，不覆盖其他既有平台、UAC和启动性能未决项。"
+  ]
+}

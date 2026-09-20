@@ -2006,7 +2006,8 @@
       "requirements": [
         "R005",
         "H011",
-        "R005.1"
+        "R005.1",
+        "R005.2"
       ],
       "design": "docs/drag_and_windows.md",
       "implementation": [
@@ -2133,7 +2134,8 @@
       "purpose": "implementation",
       "requirements": [
         "R005",
-        "H011"
+        "H011",
+        "R005.2"
       ],
       "design": "docs/drag_and_windows.md",
       "implementation": [
@@ -4202,7 +4204,8 @@
       "purpose": "implementation",
       "requirements": [
         "R040.1",
-        "R040.2"
+        "R040.2",
+        "R005.2"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -4238,7 +4241,8 @@
       "purpose": "stress",
       "requirements": [
         "R040.1",
-        "R040.2"
+        "R040.2",
+        "R005.2"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -4440,7 +4444,8 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R040.2"
+        "R040.2",
+        "R005.2"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -5440,7 +5445,8 @@
       "purpose": "stress",
       "requirements": [
         "R005",
-        "R005.1"
+        "R005.1",
+        "R005.2"
       ],
       "design": "docs/drag_and_windows.md",
       "implementation": [
@@ -5462,10 +5468,10 @@
       ],
       "platform": "win32",
       "steps": [
-        "原始Typora独立副本20次拖出建窗和拖入原窗；实际移交未保存源码并等待空附窗renderer退出"
+        "启用原生恢复上次文件配置，分别20次未保存源码、已保存Markdown、未保存Markdown拖出再合并；附窗只接收指定文件，不恢复其他标签，不弹模态框或提示"
       ],
       "expected": [
-        "每轮正文/dirty及磁盘基线不变；来源仅确认后释放；空附窗进程退出；保留耗时及输入边界"
+        "60轮正文/dirty及磁盘基线保持；每个附窗仅一个指定文件；来源确认后释放且空附窗进程退出；成功零模态/零通知，记录输入边界"
       ],
       "timeout_ms": 240000
     }
