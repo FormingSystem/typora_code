@@ -13,7 +13,7 @@ domains:
 
 工作台布局、交互方式和部分功能设计参考并模仿 VS Code，来源及采用范围见 [界面基线](../docs/vscode_design_baseline.md)。本项目原创代码采用 [GPL-2.0-only](../LICENSE)，原创署名、二次开发、贡献与第三方边界见 [版权、开源与贡献声明](../COPYRIGHT.md)。第三方依赖继续适用各自许可证。
 
-社区扩展从左侧“扩展”（Ctrl+Shift+X）侧栏管理，配置从左下齿轮“插件设置…”或插件行“设置”进入，支持typora-community-plugin v2插件的在线目录/本地ZIP安装、启停、设置、更新和卸载；新安装默认停用，先确认信任再启用。复用当前核心和UI，兼容范围见[社区插件接入](../docs/community_plugins.md)。
+社区扩展从左侧“扩展”（Ctrl+Shift+X）侧栏管理，配置从左下齿轮“插件设置…”或插件行“设置”进入，支持typora-community-plugin v2插件的真实社区市场/本地ZIP安装、启停、设置、更新和卸载；空安装自动加载市场，支持作者筛选、来源和系统兼容提示，设置仍由插件自身注册及持久化；新安装默认停用，先确认信任再启用。复用当前核心和UI，兼容范围见[社区插件接入](../docs/community_plugins.md)。
 
 本扩展补足主题 CSS 无法承担的以下能力：
 
@@ -47,7 +47,7 @@ domains:
 
 ## 1.1\_普通用户一键配置
 
-从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。Windows 卸载增强时，保存文档并退出 Typora，双击 `uninstall_windows.cmd`，自动查找安装前备份；版本回退使用 `restore_windows.ps1`。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。
+从仓库根目录运行 `install_windows.cmd`（Windows）或 `bash ./install.sh`（Linux / MSYS2 UCRT64）。Windows 卸载增强时，保存文档并退出 Typora，双击 `uninstall_windows.cmd`，自动查找兼容安装前备份；没有兼容备份时备份并撤销当前加载入口，保留宿主和个人数据，支持`-check_only`预检及卸载日志。版本回退使用 `restore_windows.ps1`。完整下载安装、环境、离线缓存、升级、卸载与恢复统一见[安装与恢复指南](../docs/installation.md)。普通用户使用随包预构建文件；开发者构建步骤见下一节。
 
 ## 1.2\_开发者构建
 
@@ -483,6 +483,6 @@ Markdown正文及历史阅读中已显示的图片，鼠标悬停时在图像外
 
 ## 按提交更新与安装权限
 
-当前候选2026.09.20.14；Windows更新使用GitHub提交API与固定SHA的ZIP，不要求本地Git、`.git`或仓库历史。下载/解压放在Typora用户数据的`temp`，成功后才记录提交身份，同序号新提交仍可更新；立即安装后手动重启。安装按实际待写目标检查权限，可写目标不提权，受保护入口解释原因并请求一次系统授权，取消保留原安装。配置和备份仍由标准安装事务管理，详见[更新设计](../docs/workspace_update.md)及[安装权限](../docs/installation_design.md#r063-windows权限预检与按需授权)。
+当前候选2026.09.20.17；Windows更新使用GitHub提交API与固定SHA的ZIP，不要求本地Git、`.git`或仓库历史。下载/解压放在Typora用户数据的`temp`，成功后才记录提交身份，同序号新提交仍可更新；立即安装后手动重启。安装按实际待写目标检查权限，可写目标不提权，受保护入口解释原因并请求一次系统授权，取消保留原安装。配置和备份仍由标准安装事务管理，详见[更新设计](../docs/workspace_update.md)及[安装权限](../docs/installation_design.md#r063-windows权限预检与按需授权)。
 
 提交详情浮层与菜单共用GitHub/Gitee/GitLab/Bitbucket网页识别，多候选一次选择；无远端、本地或未知托管平台不生成猜测的提交URL，详见[提交网页](../docs/git_commit_web.md)。
