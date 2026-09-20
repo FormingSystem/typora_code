@@ -1,5 +1,7 @@
 # TyporaCode 开发交接
 
+2026-09-20最新交付2026.09.20.12：R062提交浮层/菜单共用GitHub、Gitee、GitLab、Bitbucket网页入口，多目标一次选择，点击前复核远端并拒绝切库迟到。完整check、两组UI、解析20/100/1000与原始宿主33断言通过；29资产/head一致、5保护项不变、安装检查OK。用户待正常重启，未推送。[设计](git_commit_web.md)与[证据](../enhancements/tests/evidence/git_commit_web_20260920.json)。未知自托管平台及联网可访问性不在已通过范围；以下保留历史事实。
+
 2026-09-20最新交付2026.09.20.11：R061统一Explorer／时间线／Git分区折叠槽位，树根取消额外留白并保留8px层级缩进。完整check、6关联UI和原始宿主138断言通过；29资产/head一致、5保护项不变、安装检查OK。用户待正常重启，未推送。[设计](explorer_history.md#r061-折叠槽位与树形缩进)与[证据](../enhancements/tests/evidence/sidebar_disclosure_20260920.json)。以下保留历史版本事实。
 
 2026-09-20最新交付2026.09.20.10：R060扩展图标/侧栏与齿轮插件设置，入口复用同一插件服务和SettingTab；帮助菜单移除旧入口。完整check、7UI、20/100/1000及原始宿主通过，29资产/head一致、5保护项不变、安装检查OK；用户待正常重启，未推送。[设计](community_plugins.md#r060-扩展活动栏与设置入口)与[证据](../enhancements/tests/evidence/community_plugin_entries_20260920.json)。以下保留各历史版本事实。

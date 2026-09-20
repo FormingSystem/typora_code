@@ -63,10 +63,6 @@ export function parse_worktrees(source:string):git_worktree[]{
 }
 export const read_worktrees=async(run:git_run,root:string):Promise<git_worktree[]>=>parse_worktrees(await run(root,["worktree","list","--porcelain","-z"]));
 /** 菜单只提供可验证的 GitHub 链接，剥离远端凭据；其他托管平台不冒充 GitHub。 */
-export function commit_github_url(remote:string,hash:string):string {
-  if(!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(hash))return "";
-  try{const url=new URL(remote.replace(/^git@([^:]+):/u,"https://$1/").replace(/^ssh:\/\/git@/u,"https://"));if(url.hostname!=="github.com"||!["https:","http:"].includes(url.protocol))return "";const path=url.pathname.replace(/\.git\/?$/u,"").replace(/\/$/u,"");if(!/^\/[^/]+\/[^/]+$/u.test(path))return "";return `https://github.com${path}/commit/${hash}`;}catch{return "";}
-}
 export const HISTORY_ACTION_IDS=["branches","head","fetch","pull","push","refresh"] as const;
 export type history_action_id=typeof HISTORY_ACTION_IDS[number];
 export function validate_history_shortcuts(value:unknown):Record<string,string>{

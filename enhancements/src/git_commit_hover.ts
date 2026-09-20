@@ -1,3 +1,4 @@
+import {commit_web_entry} from "./git_commit_web_action";
 import {bind_workspace_hover} from "./workspace_hover";
 import {workspace_element as el,workspace_button as button} from "./workspace_widgets";
 import {git_icon} from "./git_icons";
@@ -30,7 +31,13 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
       const copy=button(commit.hash.slice(0,8),()=>{},"git-commit-hover-copy");copy.dataset.workspaceInteraction="action";
       copy.prepend(git_icon("copy"));copy.title=text("graph.copy_commit_hash");copy.setAttribute("aria-label",copy.title);
       copy.onclick=()=>{void Promise.resolve().then(()=>panel.host.copy(commit.hash)).then(()=>{if(!signal.aborted){copy.textContent=text("history.copy_done");copy.prepend(git_icon("check"));}}).catch(()=>{if(!signal.aborted)copy.textContent=text("history.copy_failed");});};
-      tip.append(heading,message,stats);if(labels.childNodes.length)tip.append(labels);tip.append(copy);
+      const commands=el("div","git-commit-hover-commands");commands.append(copy);
+      const web=commit_web_entry(panel,commit.hash);
+      if(!web.disabled){
+        const open=button(web.title,()=>{if(!signal.aborted&&panel.root===state.root)web.action();},"git-commit-hover-web");
+        open.prepend(git_icon("link-external"));open.dataset.workspaceInteraction="action";commands.append(open);
+      }
+      tip.append(heading,message,stats);if(labels.childNodes.length)tip.append(labels);tip.append(commands);
       const key=state.root+"\0"+commit.hash;
       const apply=(detail:commit_hover_detail)=>{
         if(signal.aborted||panel.root!==state.root)return;

@@ -778,13 +778,16 @@
       "purpose": "implementation",
       "requirements": [
         "R041",
-        "R045"
+        "R045",
+        "R062"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
         "enhancements/src/git_graph_host.ts",
         "enhancements/src/git_graph_panel.ts",
-        "enhancements/src/git_graph_settings.ts"
+        "enhancements/src/git_graph_settings.ts",
+        "enhancements/src/git_commit_web.ts",
+        "enhancements/src/git_commit_web_action.ts"
       ],
       "related_modules": [
         "scm",
@@ -796,7 +799,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "R062：按真实远端生成托管提交URL；多目标/取消/过期保护和底部同行布局按对应测试层验证"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -810,7 +814,8 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R062"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -819,7 +824,9 @@
         "enhancements/src/git_graph_runtime.ts",
         "enhancements/src/git_graph_settings.ts",
         "enhancements/src/git_scm_data.ts",
-        "enhancements/src/workspace_open_dialog.ts"
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/git_commit_web.ts",
+        "enhancements/src/git_commit_web_action.ts"
       ],
       "related_modules": [
         "scm",
@@ -831,7 +838,8 @@
       "environment": "Node规则/临时工作区",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "R062：按真实远端生成托管提交URL；多目标/取消/过期保护和底部同行布局按对应测试层验证"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -4460,7 +4468,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R053"
+        "R053",
+        "R062"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -4468,7 +4477,9 @@
         "enhancements/src/workspace_hover_markdown.ts",
         "enhancements/src/workspace_hover_markdown_shadow.css",
         "enhancements/src/git_graph.css",
-        "enhancements/scripts/build_workspace_styles.mjs"
+        "enhancements/scripts/build_workspace_styles.mjs",
+        "enhancements/src/git_commit_web.ts",
+        "enhancements/src/git_commit_web_action.ts"
       ],
       "related_modules": [
         "scm",
@@ -4480,7 +4491,8 @@
       "environment": "Chromium隔离UI",
       "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
       "steps": [
-        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理"
+        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理",
+        "R062：按真实远端生成托管提交URL；多目标/取消/过期保护和底部同行布局按对应测试层验证"
       ],
       "expected": [
         "所有断言通过；输出截图、几何与限制"
@@ -4493,7 +4505,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R053"
+        "R053",
+        "R062"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -4502,7 +4515,9 @@
         "enhancements/src/workspace_hover_markdown_shadow.css",
         "enhancements/src/git_graph.css",
         "enhancements/scripts/build_workspace_styles.mjs",
-        "enhancements/fixtures/commit_hover_native.js"
+        "enhancements/fixtures/commit_hover_native.js",
+        "enhancements/src/git_commit_web.ts",
+        "enhancements/src/git_commit_web_action.ts"
       ],
       "related_modules": [
         "scm",
@@ -4514,7 +4529,8 @@
       "environment": "原始Typora1.14.10私有桌面/临时仓库",
       "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
       "steps": [
-        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理"
+        "实际浮层列表、主题几何与安全渲染；UI另含20/100/1000条列表压力、取消/失败和清理",
+        "R062：按真实远端生成托管提交URL；多目标/取消/过期保护和底部同行布局按对应测试层验证"
       ],
       "expected": [
         "所有断言通过；输出截图、几何与限制"
@@ -4530,7 +4546,8 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R053"
+        "R053",
+        "R062"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -4538,7 +4555,9 @@
         "enhancements/src/workspace_hover_markdown.ts",
         "enhancements/src/workspace_hover_markdown_shadow.css",
         "enhancements/src/git_graph.css",
-        "enhancements/scripts/build_workspace_styles.mjs"
+        "enhancements/scripts/build_workspace_styles.mjs",
+        "enhancements/src/git_commit_web.ts",
+        "enhancements/src/git_commit_web_action.ts"
       ],
       "related_modules": [
         "scm",
@@ -4550,7 +4569,8 @@
       "environment": "Chromium隔离UI",
       "preconditions": "使用固定依赖；原生测试需要TYPORA_NATIVE_TEST_ROOT；不改用户窗口",
       "steps": [
-        "执行同一真实DOM夹具的20/100/1000条列表负载及20次生命周期清理，记录实际耗时与边界"
+        "执行同一真实DOM夹具的20/100/1000条列表负载及20次生命周期清理，记录实际耗时与边界",
+        "R062：按真实远端生成托管提交URL；多目标/取消/过期保护和底部同行布局按对应测试层验证"
       ],
       "expected": [
         "大列表受视口限制且可滚动，销毁无残留浮层/ARIA；报告固定三档负载，不把它当作Git进程循环"

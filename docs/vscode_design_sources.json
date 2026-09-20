@@ -375,5 +375,13 @@
     "adaptation": "Existing SCM compact header inset 4px + icon 16px + label gap 4px shared with Explorer. Remove stacked Explorer margin/padding; preserve tree depth. Not a claim of complete upstream pane equivalence.",
     "implementation": "enhancements/src/workspace_interaction.css",
     "verification": "enhancements/tests/evidence/sidebar_disclosure_20260920.json"
+  },
+  "commit_web_footer_r062": {
+    "revision": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "source": "extensions/git/src/hover.ts",
+    "rules": "appendCommands groups commands with separators; processHoverRemoteCommands passes commit hash",
+    "adaptation": "Shared provider entry beside copy, existing R053 12px/19px typography, link-external Codicon; four public providers from documented routes",
+    "design": "docs/git_commit_web.md",
+    "verification": "enhancements/tests/evidence/git_commit_web_20260920.json"
   }
 }

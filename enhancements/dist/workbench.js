@@ -142389,8 +142389,8 @@ https://creativecommons.org/licenses/by/4.0/
     return result;
   }
   async function getDocumentRangeFormattingEditsUntilResult(workerService, languageFeaturesService, model, range2, options2, token) {
-    const providers = languageFeaturesService.documentRangeFormattingEditProvider.ordered(model);
-    for (const provider of providers) {
+    const providers2 = languageFeaturesService.documentRangeFormattingEditProvider.ordered(model);
+    for (const provider of providers2) {
       const rawEdits = await Promise.resolve(provider.provideDocumentRangeFormattingEdits(model, range2, options2, token)).catch(onUnexpectedExternalError);
       if (isNonEmptyArray(rawEdits)) {
         return await workerService.computeMoreMinimalEdits(model.uri, rawEdits);
@@ -142399,8 +142399,8 @@ https://creativecommons.org/licenses/by/4.0/
     return void 0;
   }
   async function getDocumentFormattingEditsUntilResult(workerService, languageFeaturesService, model, options2, token) {
-    const providers = getRealAndSyntheticDocumentFormattersOrdered(languageFeaturesService.documentFormattingEditProvider, languageFeaturesService.documentRangeFormattingEditProvider, model);
-    for (const provider of providers) {
+    const providers2 = getRealAndSyntheticDocumentFormattersOrdered(languageFeaturesService.documentFormattingEditProvider, languageFeaturesService.documentRangeFormattingEditProvider, model);
+    for (const provider of providers2) {
       const rawEdits = await Promise.resolve(provider.provideDocumentFormattingEdits(model, options2, token)).catch(onUnexpectedExternalError);
       if (isNonEmptyArray(rawEdits)) {
         return await workerService.computeMoreMinimalEdits(model.uri, rawEdits);
@@ -142409,14 +142409,14 @@ https://creativecommons.org/licenses/by/4.0/
     return void 0;
   }
   function getOnTypeFormattingEdits(workerService, languageFeaturesService, model, position2, ch, options2, token) {
-    const providers = languageFeaturesService.onTypeFormattingEditProvider.ordered(model);
-    if (providers.length === 0) {
+    const providers2 = languageFeaturesService.onTypeFormattingEditProvider.ordered(model);
+    if (providers2.length === 0) {
       return Promise.resolve(void 0);
     }
-    if (providers[0].autoFormatTriggerCharacters.indexOf(ch) < 0) {
+    if (providers2[0].autoFormatTriggerCharacters.indexOf(ch) < 0) {
       return Promise.resolve(void 0);
     }
-    return Promise.resolve(providers[0].provideOnTypeFormattingEdits(model, position2, ch, options2, token)).catch(onUnexpectedExternalError).then((edits) => {
+    return Promise.resolve(providers2[0].provideOnTypeFormattingEdits(model, position2, ch, options2, token)).catch(onUnexpectedExternalError).then((edits) => {
       return workerService.computeMoreMinimalEdits(model.uri, edits);
     });
   }
@@ -158556,7 +158556,11 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.shortcut_help": "\u5FEB\u6377\u952E\u5728\u6E90\u4EE3\u7801\u7BA1\u7406\u533A\u57DF\u751F\u6548\uFF1B\u8F93\u5165\u6846\u4E2D\u4FDD\u7559\u8F93\u5165\u884C\u4E3A\u3002\u7559\u7A7A\u53D6\u6D88\u7ED1\u5B9A\u3002",
     "scm.search_references": "\u641C\u7D22\u5206\u652F\u6216\u6807\u7B7E",
     "scm.remote_branch": "\u8FDC\u7AEF\u5206\u652F\uFF08\u7559\u7A7A\u4F7F\u7528\u672C\u5730\u540D\u79F0\uFF09",
-    "scm.open_github": "\u5728 GitHub \u4E0A\u6253\u5F00",
+    "scm.open_provider": "\u5728 {provider} \u4E0A\u6253\u5F00",
+    "scm.open_remote_web": "\u5728\u8FDC\u7AEF\u6253\u5F00\u2026",
+    "scm.choose_web_remote": "\u9009\u62E9\u63D0\u4EA4\u6240\u5728\u7684\u6258\u7BA1\u4ED3\u5E93",
+    "scm.web_remote_changed": "\u8FDC\u7AEF\u5730\u5740\u5DF2\u6539\u53D8\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002",
+    "scm.web_open_failed": "\u65E0\u6CD5\u6253\u5F00\u63D0\u4EA4\u7F51\u9875\uFF0C\u8BF7\u68C0\u67E5\u8FDC\u7AEF\u914D\u7F6E\u4E0E\u7CFB\u7EDF\u6D4F\u89C8\u5668\u3002",
     "scm.checkout_detached": "\u68C0\u51FA\u63D0\u4EA4\uFF08\u5206\u79BB HEAD\uFF09",
     "scm.delete_branch": "\u5220\u9664\u5206\u652F",
     "scm.compare_remote": "\u4E0E\u8FDC\u7AEF\u6BD4\u8F83",
@@ -159406,7 +159410,11 @@ https://creativecommons.org/licenses/by/4.0/
     "scm.shortcut_help": "Keybindings apply within Source Control, except text inputs. Leave empty to remove the binding.",
     "scm.search_references": "Search branches or tags",
     "scm.remote_branch": "Remote branch (leave empty to use the local name)",
-    "scm.open_github": "Open on GitHub",
+    "scm.open_provider": "Open on {provider}",
+    "scm.open_remote_web": "Open on Remote\u2026",
+    "scm.choose_web_remote": "Select the hosted repository for this commit",
+    "scm.web_remote_changed": "The remote URL changed. Refresh and try again.",
+    "scm.web_open_failed": "Unable to open the commit page. Check the remote and system browser.",
     "scm.checkout_detached": "Checkout (Detached)",
     "scm.delete_branch": "Delete Branch",
     "scm.compare_remote": "Compare with Remote",
@@ -164084,13 +164092,13 @@ https://creativecommons.org/licenses/by/4.0/
   registerEditorAction(GrowSelectionAction);
   registerEditorAction(ShrinkSelectionAction);
   async function provideSelectionRanges(registry, model, positions, options2, token) {
-    const providers = registry.all(model).concat(new WordSelectionRangeProvider(options2.selectSubwords));
-    if (providers.length === 1) {
-      providers.unshift(new BracketSelectionRangeProvider());
+    const providers2 = registry.all(model).concat(new WordSelectionRangeProvider(options2.selectSubwords));
+    if (providers2.length === 1) {
+      providers2.unshift(new BracketSelectionRangeProvider());
     }
     const work = [];
     const allRawRanges = [];
-    for (const provider of providers) {
+    for (const provider of providers2) {
       work.push(Promise.resolve(provider.provideSelectionRanges(model, positions, token)).then((allProviderRanges) => {
         if (isNonEmptyArray(allProviderRanges) && allProviderRanges.length === positions.length) {
           for (let i = 0; i < positions.length; i++) {
@@ -172718,20 +172726,20 @@ https://creativecommons.org/licenses/by/4.0/
         pasteOnNewLine: e.dataToCopy.isFromEmptySelection,
         mode: null
       };
-      const providers = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
-      if (!providers.length) {
+      const providers2 = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
+      if (!providers2.length) {
         this.setCopyMetadata(e.clipboardData, { defaultPastePayload });
         return;
       }
       const dataTransfer = new VSDataTransfer();
-      const providerCopyMimeTypes = providers.flatMap((x) => x.copyMimeTypes ?? []);
+      const providerCopyMimeTypes = providers2.flatMap((x) => x.copyMimeTypes ?? []);
       const handle = generateUuid();
       this.setCopyMetadata(e.clipboardData, {
         id: handle,
         providerCopyMimeTypes,
         defaultPastePayload
       });
-      const operations = providers.map((provider) => {
+      const operations = providers2.map((provider) => {
         return {
           providerMimeTypes: provider.copyMimeTypes,
           operation: createCancelablePromise((token) => provider.prepareDocumentPaste(model, e.dataToCopy.sourceRanges, dataTransfer, token).catch((err) => {
@@ -173031,9 +173039,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     }
-    async getPasteEdits(providers, dataTransfer, model, selections, context, token) {
+    async getPasteEdits(providers2, dataTransfer, model, selections, context, token) {
       const disposables = new DisposableStore();
-      const results = await raceCancellation(Promise.all(providers.map(async (provider) => {
+      const results = await raceCancellation(Promise.all(providers2.map(async (provider) => {
         try {
           const edits2 = await provider.provideDocumentPasteEdits?.(model, selections, dataTransfer, context, token);
           if (edits2) {
@@ -175063,9 +175071,9 @@ https://creativecommons.org/licenses/by/4.0/
   var foldingContext = {};
   var ID_SYNTAX_PROVIDER = "syntax";
   var SyntaxRangeProvider = class {
-    constructor(editorModel, providers, handleFoldingRangesChange, foldingRangesLimit, fallbackRangeProvider) {
+    constructor(editorModel, providers2, handleFoldingRangesChange, foldingRangesLimit, fallbackRangeProvider) {
       this.editorModel = editorModel;
-      this.providers = providers;
+      this.providers = providers2;
       this.handleFoldingRangesChange = handleFoldingRangesChange;
       this.foldingRangesLimit = foldingRangesLimit;
       this.fallbackRangeProvider = fallbackRangeProvider;
@@ -175074,7 +175082,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (fallbackRangeProvider) {
         this.disposables.add(fallbackRangeProvider);
       }
-      for (const provider of providers) {
+      for (const provider of providers2) {
         if (typeof provider.onDidChange === "function") {
           this.disposables.add(provider.onDidChange(handleFoldingRangesChange));
         }
@@ -175096,9 +175104,9 @@ https://creativecommons.org/licenses/by/4.0/
       this.disposables.dispose();
     }
   };
-  function collectSyntaxRanges(providers, model, cancellationToken) {
+  function collectSyntaxRanges(providers2, model, cancellationToken) {
     let rangeData = null;
-    const promises = providers.map((provider, i) => {
+    const promises = providers2.map((provider, i) => {
       return Promise.resolve(provider.provideFoldingRanges(model, foldingContext, cancellationToken)).then((ranges2) => {
         if (cancellationToken.isCancellationRequested) {
           return;
@@ -176439,9 +176447,9 @@ https://creativecommons.org/licenses/by/4.0/
     const indentRangeProvider = new IndentRangeProvider(model, languageConfigurationService, foldingLimitReporter);
     let rangeProvider = indentRangeProvider;
     if (strategy !== "indentation") {
-      const providers = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
-      if (providers.length) {
-        rangeProvider = new SyntaxRangeProvider(model, providers, () => {
+      const providers2 = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
+      if (providers2.length) {
+        rangeProvider = new SyntaxRangeProvider(model, providers2, () => {
         }, foldingLimitReporter, indentRangeProvider);
       }
     }
@@ -183913,18 +183921,6 @@ https://creativecommons.org/licenses/by/4.0/
     return result;
   }
   var read_worktrees = async (run, root) => parse_worktrees(await run(root, ["worktree", "list", "--porcelain", "-z"]));
-  function commit_github_url(remote, hash2) {
-    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(hash2)) return "";
-    try {
-      const url = new URL(remote.replace(/^git@([^:]+):/u, "https://$1/").replace(/^ssh:\/\/git@/u, "https://"));
-      if (url.hostname !== "github.com" || !["https:", "http:"].includes(url.protocol)) return "";
-      const path = url.pathname.replace(/\.git\/?$/u, "").replace(/\/$/u, "");
-      if (!/^\/[^/]+\/[^/]+$/u.test(path)) return "";
-      return "https://github.com".concat(path, "/commit/").concat(hash2);
-    } catch {
-      return "";
-    }
-  }
   var HISTORY_ACTION_IDS = ["branches", "head", "fetch", "pull", "push", "refresh"];
   function validate_history_shortcuts(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(git_graph_text("scm.invalid_shortcut"));
@@ -184527,7 +184523,7 @@ https://creativecommons.org/licenses/by/4.0/
       names.add(item.name);
     }
   }
-  function create_pull_request_url(config, branch, providers) {
+  function create_pull_request_url(config, branch, providers2) {
     if (!branch || !config.destination_branch) throw new Error(git_graph_text("pr.error.branches_required"));
     const host = parse_url(config.host);
     if (!["https:", "http:"].includes(host.protocol) || host.username || host.password || host.search || host.hash) throw new Error(git_graph_text("pr.error.host_invalid"));
@@ -184558,7 +184554,7 @@ https://creativecommons.org/licenses/by/4.0/
       url2.searchParams.set("dest", "".concat(config.destination_owner, "/").concat(config.destination_repository, "::").concat(config.destination_branch));
       result = url2.href;
     } else {
-      const provider = providers.find((item) => item.name === config.provider);
+      const provider = providers2.find((item) => item.name === config.provider);
       if (!provider) throw new Error(git_graph_text("pr.error.provider_unavailable"));
       result = provider.template_url.replace(/\$([1-8])/gu, (_2, index) => fields[Number(index) - 1]);
     }
@@ -203588,6 +203584,101 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/git_commit_web.ts
+  var providers = {
+    "github.com": { name: "GitHub", route: "commit" },
+    "gitee.com": { name: "Gitee", route: "commit" },
+    "gitlab.com": { name: "GitLab", route: "-/commit", nested: true },
+    "bitbucket.org": { name: "Bitbucket", route: "commits" },
+    "ssh.bitbucket.org": { name: "Bitbucket", route: "commits", web_host: "bitbucket.org" }
+  };
+  function commit_web_url(remote, hash2) {
+    if (!/^[a-f\d]{40}(?:[a-f\d]{24})?$/iu.test(hash2) || !remote || /[\x00-\x20\x7f\\?#]/u.test(remote)) return;
+    const scp = /^(?:[^@/:]+@)?([^/:]+):(.+)$/u.exec(remote);
+    const input = !remote.includes("://") && scp ? "ssh://" + scp[1] + "/" + scp[2] : remote;
+    if (!/^(?:https?|ssh):\/\//iu.test(input)) return;
+    const raw_path = input.replace(/^[^:]+:\/\/[^/]+\/?/u, "");
+    let segments;
+    try {
+      segments = raw_path.replace(/\/$/u, "").split("/").map((part) => decodeURIComponent(part));
+    } catch {
+      return;
+    }
+    if (segments.some((part) => !part || part === "." || part === ".." || /[\x00-\x1f\x7f/\\]/u.test(part))) return;
+    try {
+      const parsed = new URL(input), provider = Object.hasOwn(providers, parsed.hostname.toLowerCase()) ? providers[parsed.hostname.toLowerCase()] : void 0;
+      if (!provider || !provider.nested && segments.length !== 2 || segments.length < 2) return;
+      if (provider.web_host && parsed.protocol !== "ssh:") return;
+      if (parsed.protocol !== "ssh:" && parsed.port) return;
+      segments[segments.length - 1] = segments.at(-1).replace(/\.git$/iu, "");
+      if (!segments.at(-1) || segments.at(-1) === "." || segments.at(-1) === "..") return;
+      const repository_url = "https://" + (provider.web_host || parsed.hostname) + "/" + segments.map(encodeURIComponent).join("/");
+      return { provider: provider.name, repository_url, url: repository_url + "/" + provider.route + "/" + hash2 };
+    } catch {
+      return;
+    }
+  }
+  function commit_web_targets(remotes, hash2, tracking = "") {
+    const seen = /* @__PURE__ */ new Set(), result = [];
+    const priority = (name) => name === tracking ? 0 : name === "origin" ? 1 : 2;
+    for (const remote of [...remotes].sort((a, b2) => priority(a.name) - priority(b2.name) || a.name.localeCompare(b2.name))) {
+      const push = !remote.fetch;
+      for (const url of (remote.fetch || remote.push).split(/\r?\n/u)) {
+        const target = commit_web_url(url, hash2);
+        if (!target || seen.has(target.url)) continue;
+        seen.add(target.url);
+        result.push({ ...target, remote: remote.name, push });
+      }
+    }
+    return result;
+  }
+
+  // src/git_commit_web_action.ts
+  function commit_web_entry(panel, hash2) {
+    const state = panel.state, root = panel.root, runner = panel.runner;
+    const targets = commit_web_targets(state?.remotes || [], hash2, state?.tracking?.remote);
+    const valid = () => !panel.disposed && panel.root === root && panel.runner === runner;
+    let busy = false;
+    const open = async (target) => {
+      if (busy || !valid()) return;
+      busy = true;
+      try {
+        const urls = await runner.run(root, ["remote", "get-url", ...target.push ? ["--push"] : [], "--all", target.remote]);
+        if (!valid()) return;
+        if (!urls.trim().split(/\r?\n/u).some((url) => commit_web_url(url, hash2)?.url === target.url)) {
+          panel.report(git_graph_text("scm.web_remote_changed"));
+          return;
+        }
+        await panel.host.open_url(target.url);
+      } catch {
+        if (valid()) panel.report(git_graph_text("scm.web_open_failed"));
+      } finally {
+        busy = false;
+      }
+    };
+    return { id: "open_commit_web", title: targets.length === 1 ? git_graph_text("scm.open_provider", { provider: targets[0].provider }) : git_graph_text("scm.open_remote_web"), disabled: !targets.length, action() {
+      if (busy || !valid() || !targets.length) return;
+      if (targets.length === 1) {
+        void open(targets[0]);
+        return;
+      }
+      busy = true;
+      const dialog2 = workspace_dialog(git_graph_text("scm.choose_web_remote"), void 0, () => {
+        busy = false;
+      });
+      dialog2.root.classList.add("git-commit-web-picker");
+      for (const target of targets) {
+        const choice = workspace_button(target.remote + " \xB7 " + target.provider + " \xB7 " + target.repository_url, () => {
+          dialog2.close();
+          void open(target);
+        });
+        choice.dataset.commitWebRemote = target.remote;
+        dialog2.content.append(choice);
+      }
+      dialog2.content.querySelector("button")?.focus();
+    } };
+  }
+
   // src/git_scm_menus.ts
   function checkout_entries(panel, hash2) {
     const state = panel.state;
@@ -203626,13 +203717,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const action = (id) => ({ id, title: graph_actions.find((action2) => action2.id === id).title, disabled: panel.writing, action: () => panel.action_dialog(id, "commit", hash2, hash2) });
-    const remote = state.remotes.find((remote2) => remote2.name === state.tracking?.remote) || state.remotes.find((remote2) => remote2.name === "origin") || state.remotes[0];
-    const web = commit_github_url(remote?.fetch || "", hash2);
     const checkout = checkout_entries(panel, hash2);
     const deletes = state.refs.filter((ref) => ref.hash === hash2 && /^refs\/(heads|remotes)\//u.test(ref.name) && !ref.name.endsWith("/HEAD")).map((ref) => {
       const local = ref.name.startsWith("refs/heads/"), name = ref.name.replace(/^refs\/(heads|remotes)\//u, "");
-      const remote2 = state.remotes.filter((remote3) => name.startsWith(remote3.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name || "";
-      return { id: "delete:" + ref.name, title: name, disabled: panel.writing || local && name === state.branch || ref.name === state.tracking?.upstream, action: () => panel.action_dialog(local ? "branch_delete" : "remote_branch_delete", local ? "branch" : "remote", name, hash2, local ? {} : { remote: remote2, branch: name.slice(remote2.length + 1) }) };
+      const remote = state.remotes.filter((remote2) => name.startsWith(remote2.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name || "";
+      return { id: "delete:" + ref.name, title: name, disabled: panel.writing || local && name === state.branch || ref.name === state.tracking?.upstream, action: () => panel.action_dialog(local ? "branch_delete" : "remote_branch_delete", local ? "branch" : "remote", name, hash2, local ? {} : { remote, branch: name.slice(remote.length + 1) }) };
     });
     const open_changes = () => void read2(async () => {
       const parent = state.commits.find((commit) => commit.hash === hash2)?.parents[0] || (await runner.run(root, ["show", "-s", "--format=%P", require_revision(hash2), "--"])).trim().split(" ")[0] || EMPTY;
@@ -203658,7 +203747,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     return [
       { id: "open_changes", title: git_graph_text("history.open_changes"), action: open_changes },
-      { id: "open_github", title: git_graph_text("scm.open_github"), disabled: !web, action: () => void read2(() => panel.host.open_url(web)) },
+      commit_web_entry(panel, hash2),
       { id: "checkout", title: git_graph_text("scm.checkout"), children: checkout, disabled: !checkout.length, separator: true, action() {
       } },
       { ...action("commit_checkout"), title: git_graph_text("scm.checkout_detached") },
@@ -204840,9 +204929,20 @@ https://creativecommons.org/licenses/by/4.0/
             if (!signal.aborted) copy.textContent = git_graph_text("history.copy_failed");
           });
         };
+        const commands = workspace_element("div", "git-commit-hover-commands");
+        commands.append(copy);
+        const web = commit_web_entry(panel, commit.hash);
+        if (!web.disabled) {
+          const open = workspace_button(web.title, () => {
+            if (!signal.aborted && panel.root === state.root) web.action();
+          }, "git-commit-hover-web");
+          open.prepend(git_icon("link-external"));
+          open.dataset.workspaceInteraction = "action";
+          commands.append(open);
+        }
         tip.append(heading3, message, stats);
         if (labels.childNodes.length) tip.append(labels);
-        tip.append(copy);
+        tip.append(commands);
         const key2 = state.root + "\0" + commit.hash;
         const apply3 = (detail) => {
           if (signal.aborted || panel.root !== state.root) return;
@@ -239678,6 +239778,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092012,
+        version: "2026.09.20.12",
+        date: "2026-09-20",
+        notes: [
+          "\u63D0\u4EA4\u6D6E\u5C42\u589E\u52A0\u6258\u7BA1\u7F51\u9875\u5165\u53E3\uFF0C\u6839\u636E\u8FDC\u7AEF\u8BC6\u522BGitHub\u3001Gitee\u3001GitLab\u548CBitbucket\uFF0CSSH\u5730\u5740\u81EA\u52A8\u8F6C\u6362\u4E3A\u63D0\u4EA4\u7F51\u9875\u3002",
+          "\u6D6E\u5C42\u4E0E\u63D0\u4EA4\u83DC\u5355\u5171\u7528\u8FDC\u7AEF\u8BC6\u522B\uFF0C\u591A\u76EE\u6807\u4E00\u6B21\u9009\u62E9\uFF1B\u6253\u5F00\u524D\u590D\u6838\u8FDC\u7AEF\uFF0C\u5207\u5E93\u6216\u5730\u5740\u6539\u53D8\u4E0D\u4F1A\u6253\u5F00\u65E7\u76EE\u6807\u3002"
+        ]
+      },
       {
         sequence: 2026092011,
         version: "2026.09.20.11",

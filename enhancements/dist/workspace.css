@@ -818,13 +818,17 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-commit-hover-date {opacity:.75;}
 .git-commit-hover-message {margin:4px 0;overflow-wrap:anywhere;}
 .git-commit-hover-stats {display:flex;flex-wrap:wrap;gap:8px;}
-.git-commit-hover-stats,.git-commit-hover-refs,.git-commit-hover-copy {border-top:1px solid var(--commit-hover-border);margin:4px -8px 0;padding:4px 8px 0;}
+.git-commit-hover-stats,.git-commit-hover-refs,.git-commit-hover-commands {border-top:1px solid var(--commit-hover-border);margin:4px -8px 0;padding:4px 8px 0;}
 .git-commit-hover-added {color:var(--vscode-scmGraph-historyItemHoverAdditionsForeground,#587c0c);}
 .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#ad0707);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-added {color:var(--vscode-scmGraph-historyItemHoverAdditionsForeground,#81b88b);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover-deleted {color:var(--vscode-scmGraph-historyItemHoverDeletionsForeground,#c74e39);}
 .git-commit-hover-refs {--git-scm-ref-name-max-width:100%;--git-scm-ref-height:auto;--git-scm-ref-white-space:normal;display:flex;flex-wrap:wrap;min-width:0;gap:4px;}
-.git-commit-hover-copy {display:flex;align-items:center;gap:4px;width:calc(100% + 16px);border-right:0;border-left:0;border-bottom:0;background:transparent;box-shadow:none;color:var(--vscode-textLink-foreground,#006ab1);font:inherit;padding-bottom:2px;}
+.git-commit-hover-commands{display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding-bottom:2px;}
+.git-commit-hover-commands>button{display:inline-flex;align-items:center;gap:4px;flex:0 1 auto;width:auto;min-width:0;height:auto;min-height:19px;margin:0;padding:0;border:0;background:transparent;box-shadow:none;color:var(--vscode-textLink-foreground,#006ab1);font:inherit;}
+.git-commit-hover-commands>.git-commit-hover-web{border-left:1px solid var(--commit-hover-border);padding-left:8px;margin-left:4px;}
+.git-commit-web-picker .git-graph-dialog-content>button{display:block;max-width:100%;text-align:left;overflow-wrap:anywhere;}
+
 
 /* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */
 .git-scm-history-toolbar > button[hidden] { display: none !important; }

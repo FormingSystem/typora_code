@@ -129,3 +129,11 @@ R056继续修正BUG-startup-001：首帧控制旧范围只含原正文/侧栏，
 | --- | --- | --- |
 | BUG-sidebar-geometry-001 分区与树根左侧留白不一致 | Explorer叠加margin/padding/icon margin，树renderer硬编码额外8px；统一interaction几何token，renderer仅写深度 | 旧候选红测；6关联UI和原生明暗、窄栏、缩放、折叠及SCM对照 |
 | TEST-sidebar-geometry-001 原生截图交接超时 | zoom小数直接进入阶段名，违反私有桌面允许的字母数字下划线契约；改整数百分比 | 保留首次失败，最终138断言与8张Explorer截图；未改放宽捕获边界 |
+
+## R062：提交托管网页
+
+| 问题 | 根因与处理 | 验证边界 |
+| --- | --- | --- |
+| BUG-scm-web-001 浮层缺入口且菜单绑定GitHub | 菜单私有拼接只支持一个平台；移入共同provider解析与打开动作，浮层/菜单复用 | 四公共平台解析、多目标/取消、切库/远端变化；原生真实runner在浏览器边界截获 |
+| TEST-scm-web-001 旧GitHub测试未迁移 | 移除旧函数后首次测试仍导出原接口；测试改共同解析及真实菜单 | 最终完整check、两项UI通过，首次失败保留 |
+| TEST-hover-capture-002 原生截图未包含浮层 | 私有桌面PrintWindow抽查未捕获DOM已显示的浮层；不将该图作为像素证据 | 原生33断言及Electron capturePage明暗图通过，不等同物理屏幕验证 |

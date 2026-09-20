@@ -1,7 +1,8 @@
+import {commit_web_entry} from "./git_commit_web_action";
 import type {git_graph_panel} from "./git_graph_panel";
 import {graph_actions} from "./git_graph_actions";
 import {compare_files,EMPTY,require_revision} from "./git_graph_repository";
-import {commit_github_url,read_worktrees} from "./git_scm_data";
+import {read_worktrees} from "./git_scm_data";
 import {workspace_element as el,workspace_button as button,workspace_dialog,type workspace_menu_entry} from "./workspace_widgets";
 import {git_graph_text as text} from "./git_graph_i18n";
 
@@ -23,8 +24,6 @@ export function commit_entries(panel:git_graph_panel,hash:string):workspace_menu
   const root=panel.root,runner=panel.runner;
   const read=async(action:()=>Promise<void>)=>{try{if(!panel.disposed&&root===panel.root&&runner===panel.runner)await action();}catch(error){if(root===panel.root&&runner===panel.runner)panel.report(error);}};
   const action=(id:string):workspace_menu_entry=>({id,title:graph_actions.find(action=>action.id===id)!.title,disabled:panel.writing,action:()=>panel.action_dialog(id,"commit",hash,hash)});
-  const remote=state.remotes.find(remote=>remote.name===state.tracking?.remote)||state.remotes.find(remote=>remote.name==="origin")||state.remotes[0];
-  const web=commit_github_url(remote?.fetch||"",hash);
   const checkout=checkout_entries(panel,hash);
   const deletes:workspace_menu_entry[]=state.refs.filter(ref=>ref.hash===hash&&/^refs\/(heads|remotes)\//u.test(ref.name)&&!ref.name.endsWith("/HEAD")).map(ref=>{
     const local=ref.name.startsWith("refs/heads/"),name=ref.name.replace(/^refs\/(heads|remotes)\//u,"");
@@ -42,7 +41,7 @@ export function commit_entries(panel:git_graph_panel,hash:string):workspace_menu
   };
   return [
     {id:"open_changes",title:text("history.open_changes"),action:open_changes},
-    {id:"open_github",title:text("scm.open_github"),disabled:!web,action:()=>void read(()=>panel.host.open_url(web))},
+    commit_web_entry(panel,hash),
     {id:"checkout",title:text("scm.checkout"),children:checkout,disabled:!checkout.length,separator:true,action(){}},
     {...action("commit_checkout"),title:text("scm.checkout_detached")},
     {...action("branch_create"),separator:true},

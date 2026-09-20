@@ -13,6 +13,9 @@
   const message='fix(workspace): 恢复目录文件会话\n\n- **切换目录**恢复各自上次打开的文件\n- 保持 `main` 状态和文件顺序\n- [设计说明](https://example.com/doc)\n\n<img src=x onerror=alert(1)>\n\n![禁用图片](https://example.com/tracker.png)';
   fs.writeFileSync(path.join(base,'message.txt'),message,'utf8');
   cp.execFileSync('git',['-C',root,'-c','user.name=Native QA','-c','user.email=native@example.invalid','-c','commit.gpgsign=false','-c','core.hooksPath=.git/unused_hooks','commit','--allow-empty','-F',path.join(base,'message.txt')],{windowsHide:true});
+  cp.execFileSync('git',['-C',root,'remote','add','origin','git@gitee.com:fixture/hosted-repo.git'],{windowsHide:true});
+  const opened_urls=[],shell=reqnode('electron').shell,original_open=shell.openExternal;
+  shell.openExternal=async url=>{opened_urls.push(url);};
   core.app.commands.run('linux_note:source_control');
   await wait(()=>[...document.querySelectorAll('.git-scm-history-commit')].some(n=>n.textContent.includes('恢复目录文件会话')),'SCM commit');
   for(const [theme,name]of [['github.css','light'],['night.css','dark']]){
@@ -31,6 +34,13 @@
     assert(getComputedStyle(body.querySelector('li')).fontSize==='12px'&&getComputedStyle(body.querySelector('li')).lineHeight==='19px',name+'/'+zoom+' 12px/19px且不受正文主题污染');
     const list_padding=getComputedStyle(body.querySelector('ul')).paddingLeft;
     assert(Math.abs(parseFloat(list_padding)-20)<.01,name+'/'+zoom+' 20px列表缩进，实际 '+list_padding);
+    const web=tip.querySelector('.git-commit-hover-web'),copy=tip.querySelector('.git-commit-hover-copy');
+    assert(web?.textContent==='在 Gitee 上打开',name+'/'+zoom+' 真实Git远端识别Gitee');
+    const copy_box=copy.getBoundingClientRect(),web_box=web.getBoundingClientRect();
+    assert(Math.abs(copy_box.top-web_box.top)<1&&web_box.left>=copy_box.right,name+'/'+zoom+' 哈希和托管操作同一行且不重叠');
+    const count=opened_urls.length;web.click();web.click();
+    await wait(()=>opened_urls.length===count+1,'一次网页打开');
+    assert(opened_urls.at(-1)==='https://gitee.com/fixture/hosted-repo/commit/'+row.dataset.hash,name+'/'+zoom+' 真实runner与浏览器边界收到完整提交网页');
     const box=tip.getBoundingClientRect();assert(box.right<=innerWidth&&box.bottom<=innerHeight&&tip.scrollWidth<=tip.clientWidth+1,name+'/'+zoom+' 浮层未越界/横向溢出');
     samples.push({theme,actual_theme:document.documentElement.dataset.workspaceFileIconTheme,zoom,actual_zoom:reqnode('electron').webFrame.getZoomFactor(),background:getComputedStyle(tip).backgroundColor,viewport:[innerWidth,innerHeight],dpr:devicePixelRatio,box:box.toJSON(),lines:[...body.querySelectorAll('li')].map(n=>n.getBoundingClientRect().toJSON()),input:'renderer PointerEvent + actual native SCM/Git'});
     const stage='commit_hover_'+name+'_'+String(zoom).replace('.','_');
@@ -39,6 +49,7 @@
     document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause(100);
    }
   }
+  shell.openExternal=original_open;
   assert(digest(path.join(root,'front.md'))===before&&!File.changeCounter.isDocumentEdited(),'原正文和dirty状态保持');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2),'utf8');
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2),'utf8');}
