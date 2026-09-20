@@ -5036,6 +5036,144 @@
       "script": "enhancements/scripts/test_community_plugins_ui.cjs",
       "environment": "隔离Chromium真实键盘/DOM及服务端口替身",
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-quick-open-matcher",
+      "domain": "search",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R058"
+      ],
+      "design": "docs/quick_open.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open_matcher.ts",
+        "enhancements/vendor/vscode_quick_open/fuzzyScorer.ts",
+        "enhancements/vendor/vscode_quick_open/comparers.ts",
+        "enhancements/vendor/vscode_quick_open/charCode.ts",
+        "enhancements/src/workspace_quick_open.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_quick_open_matcher.mjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行脚本中的路径、排序、高亮、错误与身份隔离用例"
+      ],
+      "expected": [
+        "真实目标正确；结果与固定上游一致；异步无旧结果"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-quick-open-stress",
+      "domain": "search",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R058"
+      ],
+      "design": "docs/quick_open.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open_matcher.ts",
+        "enhancements/vendor/vscode_quick_open/fuzzyScorer.ts",
+        "enhancements/vendor/vscode_quick_open/comparers.ts",
+        "enhancements/vendor/vscode_quick_open/charCode.ts",
+        "enhancements/src/workspace_quick_open.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_quick_open_matcher.mjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行脚本中的路径、排序、高亮、错误与身份隔离用例"
+      ],
+      "expected": [
+        "真实目标正确；结果与固定上游一致；异步无旧结果"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-quick-open-ui",
+      "domain": "search",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R058"
+      ],
+      "design": "docs/quick_open.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open_matcher.ts",
+        "enhancements/vendor/vscode_quick_open/fuzzyScorer.ts",
+        "enhancements/vendor/vscode_quick_open/comparers.ts",
+        "enhancements/vendor/vscode_quick_open/charCode.ts",
+        "enhancements/src/workspace_quick_open.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_quick_open.cjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行脚本中的路径、排序、高亮、错误与身份隔离用例"
+      ],
+      "expected": [
+        "真实目标正确；结果与固定上游一致；异步无旧结果"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-quick-open-native",
+      "domain": "search",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R058"
+      ],
+      "design": "docs/quick_open.md",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open_matcher.ts",
+        "enhancements/fixtures/quick_open_native.js",
+        "enhancements/vendor/vscode_quick_open/fuzzyScorer.ts",
+        "enhancements/vendor/vscode_quick_open/comparers.ts",
+        "enhancements/vendor/vscode_quick_open/charCode.ts",
+        "enhancements/src/workspace_quick_open.css"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_quick_open_native.ps1",
+      "environment": "Windows原始Typora1.14.10独立副本/私有桌面/候选构建",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行脚本中的路径、排序、高亮、错误与身份隔离用例"
+      ],
+      "expected": [
+        "真实目标正确；结果与固定上游一致；异步无旧结果"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
     }
   ]
 }

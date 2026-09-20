@@ -1,0 +1,120 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R058"
+  ],
+  "release": "2026.09.20.8",
+  "asset_manifest_sha256": "e18df189e8cacfd2938504dcbd9be809e5290b07864d0323f03242c53ec528e1",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-16-297Z_682735/report.json",
+      "sha256": "84e9435c19548b77332f060f33d40baefacf170597cf11812420482df0b574f0",
+      "suites": [
+        "TC-quick-open-native"
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-16-476Z_60ced1/report.json",
+      "sha256": "6457e135a1baf3fbead1764fc3ebd40d96f27f9f51f0e9661f73f02c59cc3359",
+      "suites": [
+        "TC-quick-open-matcher"
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-16-849Z_a83506/report.json",
+      "sha256": "9e6b55e2efdb32ca821ecf0fca46e171d23ee4a4713bd9edbb8da9de356989c9",
+      "suites": [
+        "TC-quick-open-stress"
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-17-216Z_f8c03c/report.json",
+      "sha256": "25382dcf5ae85919ce29643b5f456e1aa175ca7ccba9a556062042a4646d1950",
+      "suites": [
+        "TC-quick-open-stress"
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-17-633Z_6f4612/report.json",
+      "sha256": "de4f47838bf295827a6c52e0a60ff66bdaa8b74895ade334d8583e1e4d781605",
+      "suites": [
+        "TC-quick-open-stress"
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-12-18-468Z_43b9bf/report.json",
+      "sha256": "7a2d0eb638427906f1f1580a11d55dba02049ea156d6ed3dd158ecb402223d66",
+      "suites": [
+        "TC-quick-open-ui"
+      ]
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/quick_open_build.log",
+      "sha256": "027a00e93e30d20c60197e4554ba4ca7e9e567c46be3f20bc3ad561c56899ea5"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_check.log",
+      "sha256": "2303abfe5846880be42aa1e91499f705942cf457be40e95a190d45d017fdb175"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_ui.log",
+      "sha256": "2a3077a593731f996362d5e551281aab3516e8c03d8470b24d05a0ae4034d49e"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_performance.log",
+      "sha256": "aec5d15379513a109266efb4a8c283d924c1f49c18425bd83662219f4f702d70"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_baseline.log",
+      "sha256": "923869e8d56c09f8d7898ea8e76b52c4e45ddfd44f48e39f13a74fb4ab5c4913"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_install.log",
+      "sha256": "2ce94642de4cec1225ad192c0e48150ad4ffba3a9f9c2b531b197e29c88e9578"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/quick_open_installed.json",
+      "sha256": "708aff79c82cc42d81988987054f786426f59a26c0ecaf0d0238dc5b288f30a8"
+    }
+  ],
+  "checks": [
+    "固定上游评分/排序/高亮",
+    "正反斜线、多词、引号、Unicode、长路径与绝对路径",
+    "临时真实文件打开及原生Ctrl+P20循环",
+    "51001文件后段命中、512候选虚拟绘制与最后一项键盘可达",
+    "读取/打开错误可见、迟到与工作区隔离",
+    "最终候选29资产/head一致、5项安装前保护摘要不变"
+  ],
+  "performance": {
+    "files": 50000,
+    "first_results_ms": 381,
+    "total_ms": 387,
+    "max_event_loop_gap_ms": 21,
+    "input_sync_ms": 10,
+    "environment": "隔离Chromium43.2.0当前机器；单次测量"
+  },
+  "baseline": {
+    "revision": "0235f5b",
+    "result": "同一功能测试缺少路径高亮断言失败"
+  },
+  "installation": {
+    "status": "PASS",
+    "release": "2026.09.20.8",
+    "assets": 29,
+    "protected_files_unchanged": 5,
+    "runtime_head": true,
+    "manifest_sha256": "e18df189e8cacfd2938504dcbd9be809e5290b07864d0323f03242c53ec528e1"
+  },
+  "boundaries": [
+    "用户现有窗口未重启；私有原生副本已加载候选",
+    "不是所有VS Code历史/排除配置与远程搜索的完整移植；当前查询评分/排序/高亮按固定算法验收",
+    "前阶段完整check及5关联UI通过；最终样式补验构建/资产检查与目标UI/原生",
+    "原有PERF-startup-002及实际官方升级等历史未决未被本次覆盖"
+  ]
+}

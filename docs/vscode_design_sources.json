@@ -265,5 +265,35 @@
       }
     ],
     "adaptation": "2026-09-20按用户明确要求，本滚动条绘制采用reduceMotion=off有效语义，系统减少动画不再使渐隐归零；第三方滚动所有者保持原策略。"
+  },
+  "quick_open_20260920": {
+    "version": "1.136.2",
+    "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+    "files": [
+      {
+        "path": "src/vs/base/common/fuzzyScorer.ts",
+        "url": "https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/common/fuzzyScorer.ts",
+        "sha256": "4d667c383e142c66fc927ed1494d8592e52630f25537f9635b6ad06e769e68ae"
+      },
+      {
+        "path": "src/vs/base/common/comparers.ts",
+        "url": "https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/base/common/comparers.ts",
+        "sha256": "31e574fe9e164120cd23f6bcb0aeeaf1501c9565d5d0ef127795620a68bd478c"
+      },
+      {
+        "path": "src/vs/workbench/contrib/search/browser/anythingQuickAccess.ts",
+        "url": "https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/contrib/search/browser/anythingQuickAccess.ts",
+        "sha256": "d007f1bc57a540f70b0a900de4cd217c744025cba05d72204456125fe113184f"
+      },
+      {
+        "path": "src/vs/platform/quickinput/browser/media/quickInput.css",
+        "url": "https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/platform/quickinput/browser/media/quickInput.css",
+        "sha256": "48679724b7570cb040bd2a0d9a55c0a2602ae1714c322f756f3527ac91fdb9d8"
+      }
+    ],
+    "adopted": "prepareQuery、scoreItemFuzzy、compareItemsByFuzzyScore及高亮范围；MAX_RESULTS=512；22px行、600px宽、bold高亮、独立选中高亮色",
+    "adaptation": "保留当前工作台目录枚举和文件服务，4并发/8ms分片/可见行绘制；不是VS Code所有历史与排除配置的完整移植",
+    "target": "enhancements/src/workspace_quick_open.ts",
+    "validation": "TC-quick-open-matcher / TC-quick-open-stress / TC-quick-open-ui / TC-quick-open-native"
   }
 }

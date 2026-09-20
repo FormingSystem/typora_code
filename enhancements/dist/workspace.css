@@ -1863,7 +1863,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
 
 /* workspace_quick_open.css */
-.workspace-quick-open{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);width:min(62vw,600px,calc(100vw - 12px));max-height:min(70vh,560px);padding:0;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}
+.workspace-quick-open{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(600px,calc(100vw - 12px));max-height:min(70vh,560px);padding:0;border:1px solid rgba(127,127,127,.28);border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.3}
 .workspace-quick-open[hidden]{display:none}
 .workspace-quick-open-input-row{display:flex;align-items:center;height:25px;margin:6px 6px 4px;padding:0 6px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px}
 .workspace-quick-open-input-row input{min-width:0;flex:1;height:23px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}
@@ -1872,7 +1872,14 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;background:transparent;color:inherit;text-align:left;font:inherit}
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.62;font-size:12px}
+.workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+
+.workspace-quick-open-status.is-visible{position:static;width:auto;height:auto;margin:4px 12px 8px;padding:0;clip:auto;clip-path:none;white-space:normal;overflow-wrap:anywhere}
+.workspace-quick-open{--quick-pick-focus:var(--vscode-quickInputList-focusBackground,#0069cc);--quick-pick-highlight:var(--vscode-list-highlightForeground,#0066bf)}
+:root[data-workspace-file-icon-theme="dark"] .workspace-quick-open{--quick-pick-focus:var(--vscode-quickInputList-focusBackground,#297aa0);--quick-pick-highlight:var(--vscode-list-highlightForeground,#2aaaff)}
+.workspace-quick-open-highlight{color:var(--quick-pick-highlight);font-weight:bold}
+.workspace-quick-open-result.is-selected{background:var(--quick-pick-focus);color:var(--vscode-quickInputList-focusForeground,#fff);--workspace-interaction-hover:var(--quick-pick-focus);--workspace-interaction-foreground:var(--vscode-quickInputList-focusForeground,#fff)}
+.workspace-quick-open-result.is-selected .workspace-quick-open-highlight{color:var(--vscode-quickInputList-focusHighlightForeground,currentColor)}
 
 /* workspace_scrollbars.css */
 /* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。

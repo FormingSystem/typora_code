@@ -17,6 +17,7 @@ await build_workspace_styles({outdir: path.resolve("dist")});
 await build_source_symbol_assets(path.resolve("dist"));
 fs.mkdirSync("dist/licenses",{recursive:true});
 fs.copyFileSync("vendor/fontawesome/LICENSE.txt","dist/licenses/fontawesome.txt");
+fs.copyFileSync("vendor/vscode_quick_open/LICENSE.txt","dist/licenses/vscode_quick_open.txt");
 // 公告与后台辅助程序随同一资产清单安装，普通用户不依赖源码仓库或全局Node。
 const update_root="dist/assets/update";
 fs.mkdirSync(update_root,{recursive:true});
