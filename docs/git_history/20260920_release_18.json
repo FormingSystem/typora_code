@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T06:30:20.306001+00:00",
+  "remote": "origin/main",
+  "previous_commit": "a1272d4bd7a52b84bf9466da90510ec2f978c84f",
+  "published_commit": "b14a6cb5738244834a7ded4e4d968e30369db572",
+  "mode": "fast-forward",
+  "release": "2026.09.20.18",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "b27b0fc2013ab285e913642d1885e2635e59ee3a957dbcaa29c447dc64eff732",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "f7b3a91e096c82ebceefcfa5ca7e64680927dc4830aeace36971dbaf74811a5b",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "39318a45052c9d61c9e938709ec82cd02b8156ad3012069c255939bb023222a7",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "本轮补齐说明并发布已验证候选，没有重建或重装。",
+    "固定SHA内容核验不替代其他电脑实际下载更新；既有跨平台/UAC/启动长任务边界保持。",
+    "用户运行窗口未重启，保存后手动重启加载。"
+  ]
+}
