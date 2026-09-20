@@ -299,7 +299,8 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R066"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -316,7 +317,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "验证右上关闭沿用取消语义、键盘可达；共享底部操作右对齐及窄窗口换行。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -3529,7 +3531,8 @@
       "requirements": [
         "R020",
         "R044",
-        "R065"
+        "R065",
+        "R066"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3547,7 +3550,8 @@
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
-        "实际三项设置菜单无辅助长标签：名称与快捷键共同列宽，320/800px及100%/125%下逐行Range完整"
+        "实际三项设置菜单无辅助长标签：名称与快捷键共同列宽，320/800px及100%/125%下逐行Range完整",
+        "验证右上关闭沿用取消语义、键盘可达；共享底部操作右对齐及窄窗口换行。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -5516,6 +5520,37 @@
         "隐藏重开复用PID，终止清理会话和进度。"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-dialog-controls-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R066"
+      ],
+      "design": "docs/workspace_interaction.md",
+      "implementation": [
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_widgets.css"
+      ],
+      "related_modules": [
+        "dialog",
+        "terminal",
+        "update"
+      ],
+      "script": "enhancements/fixtures/dialog_controls_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora 1.14.10独立副本和未切换的Windows私有桌面",
+      "preconditions": "使用prepare_stability_native.py建立独立配置及文档；更新服务替身，不联网安装。",
+      "steps": [
+        "Github/Cpp/Night及100%/125%分别打开终端设置和更新检查，核对关闭实际命中与底部对齐。",
+        "修改设置草稿后关闭不落盘；检查关闭中止请求，公告关闭不安装，进度关闭不取消安装；连续20次清理。"
+      ],
+      "expected": [
+        "原生正式资产几何及取消语义正确，文档未改变，无遗留弹窗。"
+      ],
+      "timeout_ms": 45000
     }
   ]
 }

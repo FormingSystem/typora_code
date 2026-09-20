@@ -160286,11 +160286,12 @@ https://creativecommons.org/licenses/by/4.0/
     const content = workspace_element("div", "git-graph-dialog-content");
     const footer = workspace_element("div", "git-graph-dialog-footer");
     const interaction = acquire_workspace_interaction(root);
+    const dialog_style = acquire_workspace_style("typora-code-style:widgets", workspace_widgets_default);
     const previous = capture_workspace_focus();
     panel.tabIndex = -1;
     let closed = false;
     const is_top_dialog = () => escape_layer.is_top();
-    const focusable_controls = () => [...root.querySelectorAll("button,input,textarea,select,a[href],[tabindex]")].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
+    const focusable_controls = () => [...root.querySelectorAll("button,input,textarea,select,summary,a[href],[tabindex]")].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
     const close = (restore = true) => {
       if (closed) return;
       const restore_focus = restore && escape_layer.owns_focus();
@@ -160301,6 +160302,7 @@ https://creativecommons.org/licenses/by/4.0/
       window.removeEventListener("keydown", global_key, true);
       root.remove();
       interaction.remove();
+      dialog_style.remove();
       if (restore_focus) previous.restore();
       on_close?.(restore_focus);
     };
@@ -160318,7 +160320,13 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     };
-    panel.append(workspace_element("h3", "", title), content, footer);
+    const header = workspace_element("div", "workspace-dialog-header");
+    const close_button = workspace_button("", () => close(), "workspace-dialog-close");
+    close_button.title = close_title;
+    close_button.setAttribute("aria-label", close_title);
+    close_button.append(git_icon("close"));
+    header.append(workspace_element("h3", "workspace-dialog-title", title), close_button);
+    panel.append(header, content, footer);
     root.append(panel);
     document.body.append(root);
     window.addEventListener("keydown", global_key, true);
@@ -160327,7 +160335,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
     footer.append(workspace_button(close_title, () => close()));
     const focus_timer = window.setTimeout(() => {
-      if (root.isConnected && is_top_dialog()) (focusable_controls()[0] || panel).focus();
+      if (root.isConnected && is_top_dialog()) (focusable_controls().find((node) => !header.contains(node)) || close_button).focus({ preventScroll: true });
     }, 0);
     active_dialogs.add(close);
     return { root, content, footer, close };
@@ -239962,6 +239970,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092024,
+        version: "2026.09.20.24",
+        date: "2026-09-20",
+        notes: [
+          "\u5171\u4EAB\u5F39\u7A97\u589E\u52A0\u53F3\u4E0A\u89D2\u5173\u95ED\u6309\u94AE\uFF0C\u6CBF\u7528\u53D6\u6D88\u6216\u5173\u95ED\u8BED\u4E49\uFF1B\u8BBE\u7F6E\u3001Git\u548C\u66F4\u65B0\u7B49\u5F39\u7A97\u5E95\u90E8\u64CD\u4F5C\u7EDF\u4E00\u53F3\u5BF9\u9F50\u3002",
+          "\u7A84\u7A97\u53E3\u64CD\u4F5C\u6309\u94AE\u81EA\u52A8\u6362\u884C\u5E76\u4FDD\u6301\u53F3\u5BF9\u9F50\uFF1B\u4FDD\u7559\u5185\u5BB9\u521D\u59CB\u7126\u70B9\u3001Tab\u5FAA\u73AF\u548C\u5173\u95ED\u540E\u7126\u70B9\u6062\u590D\u3002"
+        ]
+      },
       {
         sequence: 2026092023,
         version: "2026.09.20.23",

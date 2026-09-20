@@ -10,10 +10,11 @@ app.setPath('userData', path.join(evidence, 'profile'));
 app.disableHardwareAcceleration();
 let test_window;
 const checks = [];
-const evaluate = source => test_window.webContents.executeJavaScript(source);
+const evaluate = async source => {try{return await test_window.webContents.executeJavaScript(source);}catch(error){console.error(source);throw error;}};
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const key = async (key_code, modifiers = []) => {
   test_window.webContents.sendInputEvent({type: 'keyDown', keyCode: key_code, modifiers});
+  if(key_code==='Enter')test_window.webContents.sendInputEvent({type:'char',keyCode:'\r',modifiers});
   test_window.webContents.sendInputEvent({type: 'keyUp', keyCode: key_code, modifiers});
   await delay(35);
 };
@@ -26,6 +27,7 @@ app.whenReady().then(async () => {
   const fixture = path.join(evidence, 'fixture.html');
   fs.writeFileSync(fixture, '<!doctype html><meta charset="utf-8"><style>.git-graph-dialog-shade{position:fixed;inset:0;background:#eee}.git-graph-dialog{padding:20px}.git-graph-dialog-content{display:grid;gap:8px}.css-hidden{display:none}</style><button id="opener">Open settings</button><button id="outside">Outside</button>');
   test_window = new BrowserWindow({show: false, width: 800, height: 600, webPreferences: {contextIsolation: false, backgroundThrottling: false}});
+  test_window.webContents.on('console-message',event=>console.error(event.message));
   await test_window.loadFile(fixture);
   const bundle = await build({stdin: {contents: 'export { workspace_dialog, workspace_menu, dispose_workspace_widgets } from "./src/workspace_widgets";', resolveDir: path.join(__dirname, '..')}, bundle: true, format: 'iife', globalName: 'widgets_qa', write: false, loader: {'.css': 'text'}});
   await evaluate(bundle.outputFiles[0].text);
@@ -33,14 +35,18 @@ app.whenReady().then(async () => {
   await delay(60);
   await focus_is('#first', 'autofocus skips hidden, disabled, fieldset-disabled and inert controls');
   await key('Tab', ['shift']);
-  await focus_is('#close', 'Shift Tab from first visible field reaches the visible close button');
+  await focus_is('.workspace-dialog-close', 'Shift Tab from first field reaches the titlebar close control');
+  await key('Tab', ['shift']);
+  await focus_is('#close', 'Shift Tab from titlebar close wraps to the footer');
   await key('Tab');
-  await focus_is('#first', 'Tab at the end returns to the first visible control');
+  await focus_is('.workspace-dialog-close', 'Tab at the end returns to the titlebar close control');
+  await key('Tab');
+  await focus_is('#first', 'Tab from titlebar close reaches the first input');
   await key('Tab');
   await focus_is('#second', 'native Tab traverses the next available field');
   await evaluate("document.querySelector('#second').disabled=true");
   await key('Tab');
-  await focus_is('#first', 'disabling the focused input returns lost focus to the active modal');
+  await focus_is('.workspace-dialog-close', 'disabling the focused input returns lost focus to the active modal');
   await evaluate("document.querySelector('#first').focus();document.querySelector('#first').hidden=true");
   await key('Tab', ['shift']);
   await focus_is('#close', 'filtering the focused field cannot move focus behind the modal');
@@ -138,6 +144,26 @@ app.whenReady().then(async () => {
     await evaluate('actual_close();void 0');
     checks.push(`actual preferences menu full labels and shortcuts at ${width}/${zoom}`);
   }
+  // R066：真实共享样式在普通/大纲领域、明暗与窄视口下都有可访问的关闭和右侧操作。
+  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/source_outline_settings.css'),'utf8'));
+  for(const zoom of [1,1.25])for(const width of [800,320])for(const dark of [false,true])for(const outline of [false,true]){
+    test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`document.body.style.setProperty('--bg-color','${dark?'#191a1b':'#fff'}');document.body.style.setProperty('--text-color','${dark?'#ddd':'#24292f'}');window.action_count=0;window.cancel_count=0;window.layout_dialog=widgets_qa.workspace_dialog('长标题：共享设置与操作确认窗口','取消',()=>cancel_count++);if(${outline})layout_dialog.root.classList.add('source-outline-settings');layout_dialog.content.innerHTML='<input id=dialog-value value=unchanged><p>'+('scrolling content '.repeat(500))+'</p>';window.apply_action=document.createElement('button');apply_action.textContent='确认并执行选定操作';apply_action.onclick=()=>action_count++;layout_dialog.footer.prepend(apply_action);void 0;`);await delay(35);
+    const metrics=await evaluate(`(()=>{const root=layout_dialog.root,panel=root.querySelector('.git-graph-dialog'),header=root.querySelector('.workspace-dialog-header'),close=root.querySelector('.workspace-dialog-close'),footer=layout_dialog.footer,style=getComputedStyle(footer);const box=node=>node.getBoundingClientRect().toJSON();return{viewport:innerWidth,panel:box(panel),header:box(header),close:box(close),svg:box(close.querySelector('svg')),footer:box(footer),justify:style.justifyContent,padding:parseFloat(style.paddingRight),scroll:panel.scrollWidth,client:panel.clientWidth,buttons:[...footer.children].map(node=>({rect:box(node),margin:parseFloat(getComputedStyle(node).marginRight)})),focus:document.activeElement.id,content_scroll:layout_dialog.content.scrollHeight>layout_dialog.content.clientHeight,accessible:close.getAttribute('aria-label')}})()`);
+    assert.equal(metrics.justify,'flex-end');assert.equal(metrics.focus,'dialog-value');assert.equal(metrics.accessible,'取消');
+    assert(metrics.panel.right<=metrics.viewport+.5&&metrics.scroll<=metrics.client,JSON.stringify(metrics));
+    assert(metrics.close.width===20&&metrics.close.height===20&&metrics.svg.width===16&&metrics.close.right<=metrics.header.right&&metrics.close.top>=metrics.header.top,JSON.stringify(metrics));
+    assert(metrics.content_scroll&&metrics.footer.bottom<=600/zoom+.5,JSON.stringify(metrics));
+    const rows=new Map();for(const button of metrics.buttons){const top=Math.round(button.rect.top);rows.set(top,button);}
+    for(const last of rows.values())assert(Math.abs(last.rect.right+last.margin-(metrics.footer.right-metrics.padding))<1,JSON.stringify(metrics));
+    await evaluate(`layout_dialog.root.querySelector('.workspace-dialog-close').click();layout_dialog.close();void 0`);
+    assert.deepEqual(await evaluate('({action_count,cancel_count,remaining:document.querySelectorAll(".git-graph-dialog-shade").length})'),{action_count:0,cancel_count:1,remaining:0});
+    checks.push(`R066 ${outline?'outline':'shared'} ${dark?'dark':'light'} ${width}/${zoom}: close visible, footer right aligned including wrapped rows, content scroll, cancel once without applying`);
+  }
+  test_window.setContentSize(800,600);test_window.webContents.setZoomFactor(1);
+  await evaluate(`window.keyboard_cancel=0;window.keyboard_dialog=widgets_qa.workspace_dialog('Keyboard close','关闭',()=>keyboard_cancel++);void 0`);await delay(30);
+  await key('Tab',['shift']);await focus_is('.workspace-dialog-close','titlebar close participates in normal keyboard navigation');await key('Enter');
+  assert.equal(await evaluate('keyboard_cancel'),1);checks.push('Enter on titlebar close cancels once');
   console.log(JSON.stringify({status: 'PASS', checks, evidence}));
   test_window.destroy(); app.exit(0);
 }).catch(error => { console.error(error); console.error(evidence); test_window?.destroy(); app.exit(1); });

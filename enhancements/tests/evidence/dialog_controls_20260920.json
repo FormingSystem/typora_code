@@ -1,0 +1,650 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R066"
+  ],
+  "release": "2026.09.20.24",
+  "root_cause": "共享弹窗没有标题关闭，底部flex未声明右对齐；Git与大纲重复持有基础规则。",
+  "changes": [
+    "共享标题栏采用官方close，关闭沿用原取消回调，不确认或保存。",
+    "底部动作右对齐，长按钮换行；基础样式归共同控件，领域只保留实际差异。",
+    "初始焦点保留内容/底部；标题关闭与summary纳入Tab循环。"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 164,
+    "full_ui": "PASS",
+    "native_assertions": 111,
+    "native_close_repetitions": 20,
+    "ui_suites": 78
+  },
+  "native_checks": [
+    "真实终端设置就绪",
+    "Github/1终端设置标题栏关闭尺寸正确",
+    "Github/1终端设置右上关闭可见且未被裁切",
+    "Github/1终端设置关闭命中区可交互",
+    "Github/1终端设置底部操作在可视区域右对齐",
+    "Github/1终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Github/1更新检查标题栏关闭尺寸正确",
+    "Github/1更新检查右上关闭可见且未被裁切",
+    "Github/1更新检查关闭命中区可交互",
+    "Github/1更新检查底部操作在可视区域右对齐",
+    "Github/1更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "真实终端设置就绪",
+    "Github/1.25终端设置标题栏关闭尺寸正确",
+    "Github/1.25终端设置右上关闭可见且未被裁切",
+    "Github/1.25终端设置关闭命中区可交互",
+    "Github/1.25终端设置底部操作在可视区域右对齐",
+    "Github/1.25终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Github/1.25更新检查标题栏关闭尺寸正确",
+    "Github/1.25更新检查右上关闭可见且未被裁切",
+    "Github/1.25更新检查关闭命中区可交互",
+    "Github/1.25更新检查底部操作在可视区域右对齐",
+    "Github/1.25更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "真实终端设置就绪",
+    "Cpp/1终端设置标题栏关闭尺寸正确",
+    "Cpp/1终端设置右上关闭可见且未被裁切",
+    "Cpp/1终端设置关闭命中区可交互",
+    "Cpp/1终端设置底部操作在可视区域右对齐",
+    "Cpp/1终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Cpp/1更新检查标题栏关闭尺寸正确",
+    "Cpp/1更新检查右上关闭可见且未被裁切",
+    "Cpp/1更新检查关闭命中区可交互",
+    "Cpp/1更新检查底部操作在可视区域右对齐",
+    "Cpp/1更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "真实终端设置就绪",
+    "Cpp/1.25终端设置标题栏关闭尺寸正确",
+    "Cpp/1.25终端设置右上关闭可见且未被裁切",
+    "Cpp/1.25终端设置关闭命中区可交互",
+    "Cpp/1.25终端设置底部操作在可视区域右对齐",
+    "Cpp/1.25终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Cpp/1.25更新检查标题栏关闭尺寸正确",
+    "Cpp/1.25更新检查右上关闭可见且未被裁切",
+    "Cpp/1.25更新检查关闭命中区可交互",
+    "Cpp/1.25更新检查底部操作在可视区域右对齐",
+    "Cpp/1.25更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "真实终端设置就绪",
+    "Night/1终端设置标题栏关闭尺寸正确",
+    "Night/1终端设置右上关闭可见且未被裁切",
+    "Night/1终端设置关闭命中区可交互",
+    "Night/1终端设置底部操作在可视区域右对齐",
+    "Night/1终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Night/1更新检查标题栏关闭尺寸正确",
+    "Night/1更新检查右上关闭可见且未被裁切",
+    "Night/1更新检查关闭命中区可交互",
+    "Night/1更新检查底部操作在可视区域右对齐",
+    "Night/1更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "真实终端设置就绪",
+    "Night/1.25终端设置标题栏关闭尺寸正确",
+    "Night/1.25终端设置右上关闭可见且未被裁切",
+    "Night/1.25终端设置关闭命中区可交互",
+    "Night/1.25终端设置底部操作在可视区域右对齐",
+    "Night/1.25终端设置操作行右边界一致",
+    "关闭设置不应用草稿",
+    "Night/1.25更新检查标题栏关闭尺寸正确",
+    "Night/1.25更新检查右上关闭可见且未被裁切",
+    "Night/1.25更新检查关闭命中区可交互",
+    "Night/1.25更新检查底部操作在可视区域右对齐",
+    "Night/1.25更新检查操作行右边界一致",
+    "标题关闭取消检查请求",
+    "新版本公告标题栏关闭尺寸正确",
+    "新版本公告右上关闭可见且未被裁切",
+    "新版本公告关闭命中区可交互",
+    "新版本公告底部操作在可视区域右对齐",
+    "新版本公告操作行右边界一致",
+    "公告关闭等同稍后，未开始安装",
+    "安装进度标题栏关闭尺寸正确",
+    "安装进度右上关闭可见且未被裁切",
+    "安装进度关闭命中区可交互",
+    "安装进度底部操作在可视区域右对齐",
+    "安装进度操作行右边界一致",
+    "关闭安装进度不取消任务",
+    "重复标题关闭无遗留 0",
+    "重复标题关闭无遗留 1",
+    "重复标题关闭无遗留 2",
+    "重复标题关闭无遗留 3",
+    "重复标题关闭无遗留 4",
+    "重复标题关闭无遗留 5",
+    "重复标题关闭无遗留 6",
+    "重复标题关闭无遗留 7",
+    "重复标题关闭无遗留 8",
+    "重复标题关闭无遗留 9",
+    "重复标题关闭无遗留 10",
+    "重复标题关闭无遗留 11",
+    "重复标题关闭无遗留 12",
+    "重复标题关闭无遗留 13",
+    "重复标题关闭无遗留 14",
+    "重复标题关闭无遗留 15",
+    "重复标题关闭无遗留 16",
+    "重复标题关闭无遗留 17",
+    "重复标题关闭无遗留 18",
+    "重复标题关闭无遗留 19",
+    "宿主文档未改变"
+  ],
+  "native_samples": [
+    {
+      "label": "Github/1终端设置",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 69.2249984741211,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 919.2125244140625,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Github/1更新检查",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 423.3500061035156,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 565.1000366210938,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Github/1.25终端设置",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 58.72999954223633,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 723.469970703125,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "Github/1.25更新检查",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 320.30999755859375,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 461.8999938964844,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "Cpp/1终端设置",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 69.2249984741211,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 919.2125244140625,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Cpp/1更新检查",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 423.3500061035156,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 565.1000366210938,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Cpp/1.25终端设置",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 58.72999954223633,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 723.469970703125,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "Cpp/1.25更新检查",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(255, 255, 255)",
+      "foreground": "rgb(51, 51, 51)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 320.30999755859375,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 461.8999938964844,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "Night/1终端设置",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 69.2249984741211,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 919.2125244140625,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Night/1更新检查",
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1174.4000244140625,
+        "y": 414.95001220703125,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 454,
+        "y": 573.5,
+        "width": 758.4000244140625,
+        "height": 61.900001525878906
+      }
+    },
+    {
+      "label": "Night/1.25终端设置",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 58.72999954223633,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 723.469970703125,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "Night/1.25更新检查",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 311.9100036621094,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 470.29998779296875,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "新版本公告",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 236.6599884033203,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 545.5499877929688,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    },
+    {
+      "label": "安装进度",
+      "viewport": {
+        "width": 1333,
+        "height": 827,
+        "dpi": 1.5625,
+        "zoom": 1.25
+      },
+      "background": "rgb(54, 59, 64)",
+      "foreground": "rgb(184, 191, 198)",
+      "close": {
+        "x": 1007.9199829101562,
+        "y": 248.9099884033203,
+        "width": 20,
+        "height": 20
+      },
+      "footer": {
+        "x": 287.1999816894531,
+        "y": 533.2999877929688,
+        "width": 758.719970703125,
+        "height": 61.41999816894531
+      }
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/plugins/community_plugin_service.cjs",
+      "sha256": "d9ebd65a80836148b2337ba7f5e4cbcd169c07e63407556596633c0007914de3"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_cmake",
+      "sha256": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_javascript",
+      "sha256": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_package",
+      "sha256": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_python",
+      "sha256": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_runtime",
+      "sha256": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_typescript",
+      "sha256": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b"
+    },
+    {
+      "path": "assets/source_symbols/LICENSE_yaml",
+      "sha256": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e"
+    },
+    {
+      "path": "assets/source_symbols/source_manifest.json",
+      "sha256": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter-cmake.wasm",
+      "sha256": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter-javascript.wasm",
+      "sha256": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter-python.wasm",
+      "sha256": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter-typescript.wasm",
+      "sha256": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter-yaml.wasm",
+      "sha256": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580"
+    },
+    {
+      "path": "assets/source_symbols/tree-sitter.wasm",
+      "sha256": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f"
+    },
+    {
+      "path": "assets/source_symbols/worker.js",
+      "sha256": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39"
+    },
+    {
+      "path": "assets/update/release.json",
+      "sha256": "a83162c5d2740aa19b86c88c0eaf49b9dc8a98a2cbbcfb24218f247146d44ffd"
+    },
+    {
+      "path": "assets/update/runtime.json",
+      "sha256": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff"
+    },
+    {
+      "path": "assets/update/workspace_update_archive.ps1",
+      "sha256": "43842c7d5c08f5e3a4add3dc7b411c766bbdfe8dfc4dacc9d7a1e54303ad4735"
+    },
+    {
+      "path": "assets/update/workspace_update_service.cjs",
+      "sha256": "43e9fc16865b7c8417dc6c675f491ef68450449f71ed1641ad07b69a1eb27860"
+    },
+    {
+      "path": "licenses/fontawesome.txt",
+      "sha256": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc"
+    },
+    {
+      "path": "licenses/vscode_quick_open.txt",
+      "sha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9"
+    },
+    {
+      "path": "locales/lang.de.json",
+      "sha256": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640"
+    },
+    {
+      "path": "locales/lang.en.json",
+      "sha256": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b"
+    },
+    {
+      "path": "locales/lang.zh-cn.json",
+      "sha256": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d"
+    },
+    {
+      "path": "workbench.js",
+      "sha256": "50a969eb7a224ca34775125feb0187312b651ed8d19eb50a3cc5ae4344400419"
+    },
+    {
+      "path": "workspace.css",
+      "sha256": "78163423d6a91a05c5b39710493b23962615c8efba466ae78bf8dbc7f5b2d0e1"
+    },
+    {
+      "path": "workspace_core.css",
+      "sha256": "63ea711178fcd4d0fee7a5630c9164af8385d611c8b0a7047e80291e0f3bd373"
+    },
+    {
+      "path": "workspace_core.js",
+      "sha256": "7adb7577742bfaa9676b7555a5d858dde2f20ed037487e29226b4973c3a74e55"
+    }
+  ],
+  "asset_manifest_sha256": "962bac0522cf96d464fdababf48a5623d0928d749179617f6163b07f5d8f5a3d",
+  "installation": {
+    "status": "PASS",
+    "assets_match": 29,
+    "protected_unchanged": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "check": "OK",
+    "loaded_in_user_window": false,
+    "load_instruction": "下次启动Typora加载已安装版本；本流程未重启用户窗口。"
+  },
+  "publication": "按用户后续要求暂不推送，等待检查效果。",
+  "limits": [
+    "原始Typora正式候选；更新服务为替身，无联网或安装事务。",
+    "私有桌面PrintWindow返回启动中的旧帧，仅支持早期关闭图标观测；主题/缩放及最终布局以实际DOM几何、颜色与命中测试为准。",
+    "未进行物理输入及其他平台验证；历史未决边界保持。"
+  ],
+  "initial_failures": [
+    "早期断言未包含新增标题关闭/summary的Tab停靠点，按真实键盘顺序修正。",
+    "Electron Enter夹具缺少char事件，补齐后原生默认按钮激活验证通过。",
+    "早期矩阵在共享renderer重复声明const，改为独立fixture变量。"
+  ],
+  "evidence_files": [
+    {
+      "path": ".cache/issue_tracking/dialog_build.log",
+      "sha256": "c6e192fd2a4a6fc693875d5355c62bfc94075df62c067000dafb3fa18444c8ca"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_check.log",
+      "sha256": "779a196b1dfc0e18c2a2366123f68969fed9f8bed056a305e39944dee5fd8106"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_ui_target.log",
+      "sha256": "f3e23ecb379b531df6468409fb67fbc5ebf2294a1343ed8489a9c3babf11e189"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_ui_target2.log",
+      "sha256": "c83a90c315c7094f50b57da32d6590629216e63d338f00e323be07872e5fc436"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_ui_target3.log",
+      "sha256": "88e11c9565ef1987cafc7bdc5bec7636486ffe46907f1390c493f3b0b2a7a9c2"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_widgets_final.log",
+      "sha256": "176c1240a9a1c1eccd296f3e89a65ba413e4832552c05a3726ae5b2a90e6ed98"
+    },
+    {
+      "path": ".cache/issue_tracking/native/74fc762aaff8445cb43b39116913f1b7/setup.json",
+      "sha256": "78dc3cec3fa2b148dc3c670ffcdee0728afdb33d9503fd6be76613faf6ad5223"
+    },
+    {
+      "path": ".cache/issue_tracking/native/74fc762aaff8445cb43b39116913f1b7/checks.json",
+      "sha256": "9170c30d2d22202c9261211f942a0ac262c7c8599a7bcf685551c9d919e8cd5a"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_ui_all.log",
+      "sha256": "2388c3b9e1b2e50371b371da7d9060235cba51c54d0e4d1e775000f1aa42bbf0"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_install.log",
+      "sha256": "6ac5d8bd7d43ba2e3343aeaff8fa71b6fcf2f95f87c15bd1625d06f0ec67af7c"
+    },
+    {
+      "path": ".cache/issue_tracking/dialog_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  ]
+}

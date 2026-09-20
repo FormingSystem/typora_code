@@ -22,18 +22,19 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
   const interaction=acquire_workspace_interaction(root);
+  const dialog_style=acquire_workspace_style("typora-code-style:widgets",widget_css);
   const previous = capture_workspace_focus();
   panel.tabIndex = -1;
   let closed = false;
   const is_top_dialog = () => escape_layer.is_top();
   // 搜索筛选、折叠或动态禁用后，只让仍可见且可操作的控件参与焦点循环。
-  const focusable_controls = () => [...root.querySelectorAll<HTMLElement>('button,input,textarea,select,a[href],[tabindex]')]
+  const focusable_controls = () => [...root.querySelectorAll<HTMLElement>('button,input,textarea,select,summary,a[href],[tabindex]')]
     .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility))
     .sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
   const close = (restore=true) => {
     if (closed) return;
     const restore_focus = restore && escape_layer.owns_focus(); closed = true; escape_layer.dispose();
-    active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove();interaction.remove();
+    active_dialogs.delete(close); window.clearTimeout(focus_timer); window.removeEventListener("keydown", global_key, true); root.remove();interaction.remove();dialog_style.remove();
     if (restore_focus) previous.restore();
     on_close?.(restore_focus);
   };
@@ -47,13 +48,18 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
       if (target) { event.preventDefault(); event.stopImmediatePropagation(); target.focus({preventScroll: true}); }
     }
   };
-  panel.append(workspace_element("h3", "", title), content, footer); root.append(panel); document.body.append(root);
+  const header=workspace_element("div","workspace-dialog-header");
+  const close_button=workspace_button("",()=>close(),"workspace-dialog-close");
+  close_button.title=close_title;close_button.setAttribute("aria-label",close_title);
+  close_button.append(git_icon("close"));
+  header.append(workspace_element("h3","workspace-dialog-title",title),close_button);
+  panel.append(header, content, footer); root.append(panel); document.body.append(root);
   window.addEventListener("keydown", global_key, true);
   root.addEventListener("keydown", event => {
     event.stopPropagation();
   });
   footer.append(workspace_button(close_title, ()=>close()));
-  const focus_timer = window.setTimeout(() => { if (root.isConnected && is_top_dialog()) (focusable_controls()[0] || panel).focus(); }, 0);
+  const focus_timer = window.setTimeout(() => { if (root.isConnected && is_top_dialog()) (focusable_controls().find(node=>!header.contains(node)) || close_button).focus({preventScroll:true}); }, 0);
   active_dialogs.add(close);
   return { root, content, footer, close };
 }

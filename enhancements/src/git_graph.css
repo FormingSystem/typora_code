@@ -82,20 +82,8 @@
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-message { white-space: pre-wrap; overflow-wrap: anywhere; margin-top:18px; max-height: none; overflow: visible; flex: none; }
 .git-graph-files { flex: 1; min-width: 0; min-height: 0; overflow: auto; }
 .git-diff-hunk { color: #2684d4; }
-/* Git Graph 的弹窗属于宿主窗口，不能依赖正文编辑区的焦点或样式。 */
-.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.git-graph-dialog, .git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }
-.git-graph-dialog { display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }
-.git-graph-dialog h3 { font-family: inherit; font-size: 1.308em; font-weight: 600; line-height: 1.5; margin: 0; padding: 14px 18px; border-bottom: 1px solid #8884; }
-.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.git-graph-dialog-footer { padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }
-.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea, .git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }
-.git-graph-dialog button { cursor: pointer; margin: 2px; }
-.git-graph-dialog button:disabled { opacity: .5; cursor: default; }
-
-.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }
-.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }
-.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font-family: Consolas, monospace; font-size: .923em; line-height: 1.6; }
+.git-graph-menu { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }
+.git-graph-menu button { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }
 .git-graph-form label, .git-graph-settings-form label { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr); gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid #8882; }
 .git-graph-form input[type=checkbox], .git-graph-settings-form input[type=checkbox] { justify-self: start; }
 .git-graph-filter { display: block; padding: 4px; }
@@ -535,5 +523,3 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-discard-confirmation .git-discard-files summary { cursor: pointer; }
 .git-discard-confirmation .git-discard-files ul { margin: 4px 0 12px; padding-inline-start: 20px; }
 .git-discard-confirmation .git-discard-files p { margin: 12px 0 0; }
-.git-discard-confirmation .git-graph-dialog-footer { justify-content: flex-end; }
-.git-discard-confirmation .git-graph-dialog-footer button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }

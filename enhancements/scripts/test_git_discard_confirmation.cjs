@@ -97,16 +97,16 @@ app.whenReady().then(async()=>{
   })()`);
 
   const cancelling=create_repo('cancel');await mount(cancelling);const cancel_before=snapshot(cancelling);
-  for(const method of ['button','enter','escape','outside']){
+  for(const method of ['button','titlebar','enter','escape','outside']){
     await open_group();await ready();const text=await verify_prompt(['tracked','all']);assert(text.includes('已跟踪')&&text.includes('回收站'));
     await evaluate(`window.cancelled_scope=document.querySelector(${JSON.stringify(scope('all'))});void 0`);
-    if(method==='button')await click(cancel);else if(method==='enter')await key('Enter');else if(method==='escape')await key('Escape');else await click_point({x:2,y:2});
+    if(method==='button')await click(cancel);else if(method==='titlebar')await click('.workspace-dialog-close');else if(method==='enter')await key('Enter');else if(method==='escape')await key('Escape');else await click_point({x:2,y:2});
     await closed();await evaluate('cancelled_scope.click();cancelled_scope.onclick?.(new MouseEvent("click",{cancelable:true}))');unchanged(cancelling,cancel_before,method+' cancellation is read-only');await no_mutations();
   }
   checks.push('real group entry prepares a mixed confirmation with Cancel focus; pointer Cancel, Enter, Escape and outside dismissal write nothing');
 
   const tracked=create_repo('tracked_choice');await mount(tracked);const tracked_before=snapshot(tracked);await open_group();await ready();await verify_prompt(['tracked','all']);
-  await evaluate(`document.querySelector(${JSON.stringify(cancel)}).focus()`);await key('Tab');assert.equal(await evaluate('document.activeElement.dataset.gitDiscardScope'),'tracked');await key('Enter');await completed();
+  await evaluate(`document.querySelector(${JSON.stringify(cancel)}).focus()`);await key('Tab');assert(await evaluate('document.activeElement.matches(".workspace-dialog-close")'));await key('Tab');assert(await evaluate('document.activeElement.matches("summary")'));await key('Tab');assert.equal(await evaluate('document.activeElement.dataset.gitDiscardScope'),'tracked');await key('Enter');await completed();
   assert.equal(fs.readFileSync(path.join(tracked.root,'tracked.md'),'utf8'),'index tracked\n');assert.equal(fs.readFileSync(path.join(tracked.root,'deleted.md'),'utf8'),'HEAD deleted.md\n');
   const tracked_after=snapshot(tracked);assert.equal(tracked_after.head,tracked_before.head);assert.equal(tracked_after.index,tracked_before.index);for(const file of [long_path,binary_path,'staged_only.md'])assert.equal(tracked_after.files[file],tracked_before.files[file]);
   assert.deepEqual((await evaluate('panel.workbench.groups_state.find(group=>group.id==="changes").files.map(file=>file.path)')).sort(),[long_path,binary_path].sort(),'restored files disappear from the actual SCM Changes group');assert.equal(await evaluate('recycled.length'),0);assert.equal(await evaluate('mutations.length'),1);checks.push('keyboard tracked choice restores the index version and deleted tracked file, preserving untracked bytes, staged-only content, HEAD and staged paths, modes, object IDs and content');

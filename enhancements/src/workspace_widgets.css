@@ -1,3 +1,21 @@
+/* 共享模态外壳：标题关闭、滚动正文及右对齐操作区由同一所有者管理。 */
+.git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.git-graph-dialog { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }
+.git-graph-dialog { box-sizing: border-box; max-width: 100%; display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }
+.git-graph-dialog .workspace-dialog-title { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: inherit; font-size: 1.308em; font-weight: 600; line-height: 1.5; margin: 0; padding: 0; border: 0; }
+.git-graph-dialog-content { overflow: auto; padding: 16px 18px; min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.git-graph-dialog-footer { flex: none; justify-content: flex-end; padding: 12px 18px; display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid #8884; }
+.git-graph-dialog button, .git-graph-dialog input, .git-graph-dialog select, .git-graph-dialog textarea { box-sizing: border-box; font: inherit; color: inherit; background: var(--bg-color, #fff); border: 1px solid #8885; border-radius: 4px; padding: 6px 9px; }
+.git-graph-dialog button { cursor: pointer; margin: 2px; }
+.git-graph-dialog button:disabled { opacity: .5; cursor: default; }
+.git-graph-dialog input:not([type=checkbox]), .git-graph-dialog textarea { width: 100%; }
+.git-graph-dialog textarea { min-height: 84px; resize: vertical; font-family: Consolas, monospace; }
+.git-graph-dialog pre { max-height: 300px; overflow: auto; white-space: pre-wrap; background: #8881; padding: 12px; font-family: Consolas, monospace; font-size: .923em; line-height: 1.6; }
+.git-graph-dialog .workspace-dialog-header { display: flex; flex: none; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #8884; }
+.git-graph-dialog .workspace-dialog-header > .workspace-dialog-close { display: flex; flex: 0 0 20px; align-items: center; justify-content: center; width: 20px; height: 20px; min-width: 0; min-height: 0; padding: 2px; margin: 0; border: 0; background: transparent; }
+.git-graph-dialog .workspace-dialog-close > svg { display: block; flex: none; width: 16px; height: 16px; }
+.git-graph-dialog-footer > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
 /* 菜单按内容计宽；四种语义单元固定分列，不由调用方class决定结构。 */
 .git-graph-menu[role=menu]{box-sizing:border-box;width:max-content;min-width:min(190px,calc(100vw - 8px));max-width:calc(100vw - 8px);overflow-x:hidden;overflow-y:auto}
 .git-graph-menu[role=menu]>button{grid-template-columns:16px minmax(0,1fr) var(--workspace-menu-shortcut-width,max-content) 16px;white-space:normal}
