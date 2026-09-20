@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T12:11:52.446858+00:00",
+  "remote": "origin/main",
+  "previous_commit": "22de19424334c99fd441f7b04733355834bcffee",
+  "published_commit": "5fcfeed1263da0c164ebef23a7e232074b5a92db",
+  "mode": "fast-forward",
+  "release": "2026.09.20.23",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "39d9c3c1d51485f9d739e8c376820fdf89452252efb01454e0f84cc3eabd81c4",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "eb02efe2a049a262a64177f0aa0108552e23a72ebf875498b12e5cc966c73dac",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "bae3ffc2aec1b28b9b00b09bb1eacad3b4247d495239fff999c75bd57dce59e5",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workspace.css",
+      "sha256": "8a3a8825b047e5b9359361b7aeabda3bb1a99ac1a173e592a52d38cb26a0a751",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/assets/update/release.json",
+      "sha256": "39d9c3c1d51485f9d739e8c376820fdf89452252efb01454e0f84cc3eabd81c4",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "终端先展示、阶段反馈和取消通过本轮完整检查、6组关联UI及63项原生检查；本机安装29项资产一致。",
+    "本机计时样本与首次输出不代表其他Shell配置的整体就绪；用户窗口未重启。",
+    "本回执仅同步发布结果，不重复构建或安装；历史跨平台、物理输入和其他未决边界保留。"
+  ]
+}
