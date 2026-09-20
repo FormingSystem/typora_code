@@ -4,6 +4,9 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-plugins-002 真实插件对象配置未保存 | R057/R060 | 数据持久化/P1 | Mapper 1.2.1原地修改对象再set，上游Store因同引用跳过通知；替身设置测试没有覆盖此调用 | 仅社区PluginSettings ABI隔离默认对象、同引用set复制后通知；实际插件编辑磁盘保存、停用/重启实例、卸载保留配置通过，shared_ui_plugins_20260920.json |
+| BUG-menu-002 实际菜单名称仍被截断 | R065 | 呈现/P2 | 四列在每行独立分配，其他行长快捷键挤占名称；测试插入额外长标签撑宽菜单掩盖问题 | 公共工厂统一测量最长名称及快捷键；实际三项菜单Range逐段验证，窄视口换行，三主题原生检查通过 |
+| BUG-sidebar-002 分区整行背景不统一 | R061 | 呈现/P2 | 仅统一箭头槽，Explorer标题按钮和Git整行仍分别持有背景与边距 | header/title/actions公共角色接管一级分区；真实指针悬停验证整行，连接状态下采集5类标题几何 |
 | BUG-plugins-001 管理和配置入口难发现 | R060 | 可用性/P2 | 初始管理页只在帮助菜单，齿轮仅原生偏好；迁入侧栏时宿主header/input规则又导致标题覆盖和隐藏控件外露 | 左侧扩展/快捷键/视图统一SidebarPanel，齿轮与插件行共用SettingTab，停用清理；标题语义与hidden在独立区域隔离。TC-community-plugins-ui/native和活动栏/偏好/快捷键/顶栏回归 |
 | BUG-scrollbar-002 空闲滑块常驻 | R049.1 | 呈现/P2 | 共享CSS仅统一圆角和颜色，没有按交互状态收起原生滑块；不是单个Explorer样式缺陷 | 公共显隐服务按实际overflow所有者登记，500ms空闲后800ms淡出，保留原生输入与第三方所有者；TC-scrollbar-fade-unit/stress/ui/native，scrollbar_fade_20260920.json |
 | BUG-files-001 最近目录遗漏 | R040 | 功能/P1 | 打开新目录只调用setMountFolder，未像宿主onRootChanged写入addRecentFolder | await宿主历史；取消/无效/迟到不记入。TC-quality-implementation、TC-system-native-stability |

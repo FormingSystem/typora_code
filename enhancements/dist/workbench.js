@@ -160443,6 +160443,16 @@ https://creativecommons.org/licenses/by/4.0/
         input.stopPropagation();
       });
       document.body.append(menu);
+      const text_width = (selector) => Math.max(0, ...[...menu.querySelectorAll(selector)].map((node) => {
+        const range2 = document.createRange();
+        range2.selectNodeContents(node);
+        return range2.getBoundingClientRect().width;
+      }));
+      const shortcut_width = Math.ceil(text_width(".git-menu-shortcut"));
+      menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
+      const row = menu.querySelector("button"), row_style = row && getComputedStyle(row), menu_style2 = getComputedStyle(menu);
+      const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key2) => sum + (parseFloat(style[key2]) || 0), 0);
+      if (row_style) menu.style.width = Math.ceil(text_width(".git-menu-label") + shortcut_width + 32 + 3 * (parseFloat(row_style.columnGap) || 0) + horizontal(row_style) + horizontal(menu_style2)) + "px";
       const bounds = menu.getBoundingClientRect();
       if (!parent && options2.anchor?.isConnected) {
         const anchor = options2.anchor.getBoundingClientRect();
@@ -204980,12 +204990,13 @@ https://creativecommons.org/licenses/by/4.0/
       this.hover = bind_git_commit_hover(this.list, owner.panel);
       this.container.setAttribute("aria-label", git_graph_text("history.graph"));
       this.container.setAttribute("data-linux-note-scm-history", "ready");
-      this.toggle = workspace_button("", () => owner.toggle_history(), "git-scm-history-toggle");
+      this.toggle = workspace_button("", () => owner.toggle_history(), "git-scm-history-toggle workspace-section-title");
       this.toggle.append(git_disclosure(), workspace_element("span", "git-scm-history-title", git_graph_text("history.graph")));
       this.toggle.title = git_graph_text("history.toggle_help");
       this.toggle.setAttribute("aria-expanded", "true");
       this.toggle.append(this.count);
       this.toolbar = new git_scm_toolbar(this);
+      this.toolbar.element.classList.add("workspace-section-actions");
       this.header.append(this.toggle, this.toolbar.element);
       this.container.append(this.header, this.list);
       this.header.oncontextmenu = (event) => owner.view_menu(event, "show_history");
@@ -205010,7 +205021,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
     }
     container = workspace_element("section", "git-scm-history");
-    header = workspace_element("div", "git-scm-history-header");
+    header = workspace_element("div", "git-scm-history-header workspace-section-header");
     list = workspace_element("div", "git-scm-history-list");
     count = workspace_element("span", "git-scm-badge");
     toggle;
@@ -205403,7 +205414,7 @@ https://creativecommons.org/licenses/by/4.0/
       const input_heading = this.input_heading;
       const input_menu = git_icon_button("more", git_graph_text("scm.changes_and_operations"), () => {
       }, "git-scm-operation-menu");
-      const input_actions = workspace_element("div", "git-scm-input-actions");
+      const input_actions = workspace_element("div", "git-scm-input-actions workspace-section-actions");
       for (const [id, icon, label] of [["commit", "check", git_graph_text("scm.commit")], ["refresh", "refresh", git_graph_text("history.refresh")], ["graph", "git-branch", git_graph_text("scm.open_graph")]]) {
         const control = git_icon_button(icon, label, () => {
         });
@@ -205486,7 +205497,7 @@ https://creativecommons.org/licenses/by/4.0/
     groups_scroll = 0;
     repositories_view = workspace_element("section", "git-scm-repositories-view");
     message_resize;
-    input_heading = workspace_element("summary", "git-scm-input-heading");
+    input_heading = workspace_element("summary", "git-scm-input-heading workspace-section-header");
     show_repositories = false;
     show_changes = true;
     show_history = true;
@@ -239217,7 +239228,7 @@ https://creativecommons.org/licenses/by/4.0/
     const initial = settings.get("workspace_timeline");
     const state = { collapsed: initial?.collapsed !== false, git: initial?.git !== false, local: initial?.local !== false, pinned: false };
     let target = "", epoch2 = 0, refresh_timer;
-    const container = workspace_element("section", "workspace-timeline"), heading3 = workspace_element("div", "workspace-explorer-section-heading"), toggle = workspace_element("button", "workspace-explorer-section-title"), actions = workspace_element("div", "workspace-explorer-section-actions"), list3 = workspace_element("div", "workspace-timeline-list");
+    const container = workspace_element("section", "workspace-timeline"), heading3 = workspace_element("div", "workspace-explorer-section-heading workspace-section-header"), toggle = workspace_element("button", "workspace-explorer-section-title workspace-section-title"), actions = workspace_element("div", "workspace-explorer-section-actions workspace-section-actions"), list3 = workspace_element("div", "workspace-timeline-list");
     toggle.type = "button";
     list3.setAttribute("aria-label", "\u65F6\u95F4\u7EBF\u8BB0\u5F55");
     heading3.append(toggle, actions);
@@ -239439,7 +239450,7 @@ https://creativecommons.org/licenses/by/4.0/
     const folders = workspace_element("section", "workspace-explorer-folders");
     root.before(folders);
     folders.append(root, tree, status2);
-    const opened = workspace_element("section", "workspace-explorer-opened"), heading3 = workspace_element("div", "workspace-explorer-section-heading"), toggle = workspace_element("button", "workspace-explorer-section-title"), actions = workspace_element("div", "workspace-explorer-section-actions"), body = workspace_element("div", "workspace-explorer-opened-list");
+    const opened = workspace_element("section", "workspace-explorer-opened"), heading3 = workspace_element("div", "workspace-explorer-section-heading workspace-section-header"), toggle = workspace_element("button", "workspace-explorer-section-title workspace-section-title"), actions = workspace_element("div", "workspace-explorer-section-actions workspace-section-actions"), body = workspace_element("div", "workspace-explorer-opened-list");
     toggle.type = "button";
     toggle.setAttribute("aria-label", "\u6253\u5F00\u7684\u7F16\u8F91\u5668");
     body.setAttribute("role", "list");
@@ -239482,14 +239493,14 @@ https://creativecommons.org/licenses/by/4.0/
     menu.onclick = (event) => workspace_menu(event, visibility(), "workspace-menu-compact");
     toolbar.append(menu);
     const root_title = root.querySelector(".workspace-explorer-root-name"), old_context = root.oncontextmenu, old_title_context = root_title.oncontextmenu;
-    const folder_toggle = workspace_element("button", "workspace-explorer-section-title"), folder_caret = workspace_element("span", "workspace-explorer-folder-caret"), folder_actions = root.querySelector(".workspace-explorer-actions");
+    const folder_toggle = workspace_element("button", "workspace-explorer-section-title workspace-section-title"), folder_caret = workspace_element("span", "workspace-explorer-folder-caret"), folder_actions = root.querySelector(".workspace-explorer-actions");
     folder_toggle.type = "button";
     folder_caret.setAttribute("aria-hidden", "true");
     root_title.before(folder_toggle);
     folder_toggle.append(folder_caret, root_title);
-    root.classList.add("workspace-explorer-section-heading");
+    root.classList.add("workspace-explorer-section-heading", "workspace-section-header");
     root_title.classList.add("workspace-explorer-section-label");
-    folder_actions.classList.add("workspace-explorer-section-actions");
+    folder_actions.classList.add("workspace-explorer-section-actions", "workspace-section-actions");
     const section_menu = (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -239639,9 +239650,9 @@ https://creativecommons.org/licenses/by/4.0/
       menu.remove();
       folder_toggle.before(root_title);
       folder_toggle.remove();
-      root.classList.remove("workspace-explorer-section-heading");
+      root.classList.remove("workspace-explorer-section-heading", "workspace-section-header");
       root_title.classList.remove("workspace-explorer-section-label");
-      folder_actions.classList.remove("workspace-explorer-section-actions");
+      folder_actions.classList.remove("workspace-explorer-section-actions", "workspace-section-actions");
       root.oncontextmenu = old_context;
       root_title.oncontextmenu = old_title_context;
       tree.hidden = false;
@@ -239779,6 +239790,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092016,
+        version: "2026.09.20.16",
+        date: "2026-09-20",
+        notes: [
+          "\u5171\u4EAB\u83DC\u5355\u7EDF\u4E00\u8BA1\u7B97\u540D\u79F0\u548C\u5FEB\u6377\u952E\u5217\u5BBD\uFF0C\u5B8C\u6574\u5C55\u793A\u529F\u80FD\u540D\u79F0\uFF1B\u6781\u7A84\u7A97\u53E3\u81EA\u52A8\u6362\u884C\u3002",
+          "\u7EDF\u4E00\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u65F6\u95F4\u7EBF\u4E0EGit\u5206\u533A\u6807\u9898\u7684\u5916\u7559\u767D\u3001\u6574\u884C\u60AC\u505C\u80CC\u666F\u548C\u5DE5\u5177\u533A\u3002",
+          "\u6269\u5C55\u652F\u6301\u76F4\u63A5\u6D4F\u89C8\u771F\u5B9E\u793E\u533A\u63D2\u4EF6\u5E02\u573A\u3001\u5B89\u88C5\u542F\u7528\u53CA\u72EC\u7ACB\u8BBE\u7F6E\uFF1B\u4FEE\u590D\u90E8\u5206\u793E\u533A\u63D2\u4EF6\u4FEE\u6539\u5BF9\u8C61\u914D\u7F6E\u540E\u672A\u4FDD\u5B58\u7684\u95EE\u9898\uFF0C\u4FDD\u7559\u73B0\u6709\u5DE5\u4F5C\u53F0\u5E03\u5C40\u3002"
+        ]
+      },
       {
         sequence: 2026092015,
         version: "2026.09.20.15",
@@ -240149,7 +240170,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/community_plugin_settings.ts
-  function create_community_plugin_settings(list3, on_change) {
+  function create_community_plugin_settings(list3, on_change, navigate = () => {
+  }) {
     const tabs = /* @__PURE__ */ new Map();
     const opened = /* @__PURE__ */ new Map();
     let chooser;
@@ -240164,7 +240186,17 @@ https://creativecommons.org/licenses/by/4.0/
           show2(id);
         }));
       }
-      if (!chooser.content.children.length) chooser.content.append(workspace_element("p", "", "\u5F53\u524D\u6CA1\u6709\u53EF\u914D\u7F6E\u7684\u63D2\u4EF6\u3002\u8BF7\u5728\u6269\u5C55\u4E2D\u542F\u7528\u63D0\u4F9B\u8BBE\u7F6E\u9875\u7684\u63D2\u4EF6\u3002"));
+      for (const info of records) {
+        if (tabs.get(info.id)?.size) continue;
+        chooser.content.append(workspace_element("p", "", "".concat(info.name, "\uFF1A").concat(info.running ? "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875\u3002" : info.error || "\u5C1A\u672A\u542F\u7528\uFF0C\u8BF7\u5728\u5DF2\u5B89\u88C5\u4E2D\u542F\u7528\u540E\u914D\u7F6E\u3002")));
+      }
+      if (!records.length && !tabs.size) chooser.content.append(workspace_element("p", "", "\u5F53\u524D\u6CA1\u6709\u53EF\u914D\u7F6E\u7684\u63D2\u4EF6\u3002\u8BF7\u5148\u5230\u793E\u533A\u63D2\u4EF6\u5E02\u573A\u9009\u62E9\u5E76\u5B89\u88C5\u63D2\u4EF6\u3002"));
+      const actions = workspace_element("div", "workspace-community-settings-navigation");
+      for (const [title, mode] of [["\u7BA1\u7406\u5DF2\u5B89\u88C5\u63D2\u4EF6", "installed"], ["\u6D4F\u89C8\u793E\u533A\u63D2\u4EF6\u5E02\u573A", "catalog"]]) actions.append(workspace_button(title, () => {
+        chooser?.close();
+        navigate(mode);
+      }));
+      chooser.content.append(actions);
     };
     const show2 = (id) => {
       const existing = opened.get(id);
@@ -240196,6 +240228,7 @@ https://creativecommons.org/licenses/by/4.0/
     return {
       has: (id) => Boolean(tabs.get(id)?.size),
       show: show2,
+      refresh: render,
       open() {
         if (chooser) {
           chooser.root.querySelector("button")?.focus();
@@ -240256,6 +240289,16 @@ https://creativecommons.org/licenses/by/4.0/
     Object.setPrototypeOf(compatible, base);
     return compatible;
   }
+  function community_settings_class(base) {
+    return class extends base {
+      setDefault(value) {
+        super.setDefault(JSON.parse(JSON.stringify(value)));
+      }
+      set(key2, value) {
+        super.set(key2, value && typeof value === "object" && this.get(key2) === value ? JSON.parse(JSON.stringify(value)) : value);
+      }
+    };
+  }
   function bind_community_plugins() {
     const runtime2 = window, core = runtime2[Symbol.for("typora-code:workspace")];
     if (!core?.app || !runtime2.reqnode) return { dispose() {
@@ -240265,6 +240308,7 @@ https://creativecommons.org/licenses/by/4.0/
     const previous_abi = runtime2[abi_key], abi = { ...core };
     let construction_scope;
     for (const name of ["Plugin", "PluginSettings", "I18n", "Events", "WorkspaceRibbon", "Sidebar", "StatisticHandler", "StatisticContext", "ExportProcessor", "HtmlExportProcessor", "CodeblockExportProcessor", "Component", "SettingTab", "SettingItem", "View", "Modal", "SidebarPanel", "WorkspaceView", "PostProcessor", "HtmlPostProcessor", "CodeblockPostProcessor", "EditorSuggest", "TextSuggest"]) if (core[name]) abi[name] = community_constructor(core[name], name === "Plugin" ? (value) => construction_scope?.add(value) : void 0);
+    if (core.PluginSettings) abi.PluginSettings = community_constructor(community_settings_class(core.PluginSettings));
     const fs2 = runtime2.reqnode("fs"), path = runtime2.reqnode("path"), url = runtime2.reqnode("url");
     const asset_root = path.join(runtime2._options.userDataPath, "typora_code");
     const api2 = runtime2.reqnode(path.join(asset_root, "assets/plugins/community_plugin_service.cjs"));
@@ -240310,16 +240354,20 @@ https://creativecommons.org/licenses/by/4.0/
     runtime2[abi_key] = abi;
     let refresh_manager = () => {
     };
-    const settings = create_community_plugin_settings(() => service.list(), () => refresh_manager());
+    const settings = create_community_plugin_settings(() => service.list(), () => refresh_manager(), (mode) => {
+      open_manager();
+      manager?.select(mode);
+    });
     const create_manager = () => {
-      let alive = true, busy = false, mode = "installed", catalog = [];
+      let alive = true, busy = false, mode = service.list().length ? "installed" : "catalog", catalog = [], catalog_loaded = false;
       const content = workspace_element("div", "workspace-community-manager");
       const interaction = acquire_workspace_interaction(content);
-      const explanation = workspace_element("p", "", "\u63D2\u4EF6\u62E5\u6709Typora\u8FDB\u7A0B\u6743\u9650\u3002\u5B89\u88C5\u540E\u9ED8\u8BA4\u505C\u7528\uFF0C\u4EC5\u542F\u7528\u4F60\u4FE1\u4EFB\u7684\u63D2\u4EF6\uFF1B\u5DE5\u4F5C\u53F0\u66F4\u65B0\u4E0ETypora\u5B98\u65B9\u66F4\u65B0\u5206\u522B\u7BA1\u7406\u3002");
+      const explanation = workspace_element("p", "", "\u4F7F\u7528 typora-community-plugin \u793E\u533A\u63D2\u4EF6\u3002\u5B89\u88C5\u540E\u9ED8\u8BA4\u505C\u7528\uFF1B\u63D2\u4EF6\u62E5\u6709 Typora \u8FDB\u7A0B\u6743\u9650\uFF0C\u4EC5\u542F\u7528\u4F60\u4FE1\u4EFB\u7684\u63D2\u4EF6\u3002\u5DF2\u6709\u5DE5\u4F5C\u53F0\u529F\u80FD\u4FDD\u6301\u5F53\u524D\u914D\u7F6E\u3002");
       const toolbar = workspace_element("div", "workspace-community-toolbar"), search2 = workspace_element("input"), message = workspace_element("p", "workspace-community-message"), list3 = workspace_element("div", "workspace-community-list");
       search2.type = "search";
-      search2.placeholder = "\u641C\u7D22\u63D2\u4EF6";
+      search2.placeholder = "\u641C\u7D22\u540D\u79F0\u3001\u63CF\u8FF0\u6216\u4F5C\u8005";
       search2.setAttribute("aria-label", "\u641C\u7D22\u63D2\u4EF6");
+      message.setAttribute("role", "status");
       const run = async (action) => {
         if (busy || !alive) return;
         busy = true;
@@ -240327,7 +240375,7 @@ https://creativecommons.org/licenses/by/4.0/
         render();
         try {
           const result = await action();
-          if (alive) message.textContent = typeof result === "string" ? result : "\u64CD\u4F5C\u5B8C\u6210\u3002\u5DF2\u8FD0\u884C\u63D2\u4EF6\u7684\u65B0\u7248\u5728\u6B63\u5E38\u91CD\u542F\u540E\u751F\u6548\u3002";
+          if (alive) message.textContent = typeof result === "string" ? result : "\u64CD\u4F5C\u5B8C\u6210\u3002";
         } catch (error) {
           if (alive) message.textContent = String(error.message || error);
         } finally {
@@ -240335,14 +240383,21 @@ https://creativecommons.org/licenses/by/4.0/
           if (alive) render();
         }
       };
-      const installed = workspace_button("\u5DF2\u5B89\u88C5", () => {
-        mode = "installed";
-        render();
-      });
-      const community = workspace_button("\u793E\u533A\u76EE\u5F55", () => void run(async () => {
+      const installed = workspace_button("\u5DF2\u5B89\u88C5", () => select("installed"));
+      const load_catalog = () => run(async () => {
         catalog = await service.catalog();
-        mode = "catalog";
-      }));
+        catalog_loaded = true;
+        return "\u5DF2\u52A0\u8F7D ".concat(catalog.length, " \u4E2A\u793E\u533A\u63D2\u4EF6\u3002");
+      });
+      const select = (next) => {
+        mode = next;
+        search2.value = "";
+        message.textContent = "";
+        render();
+        if (mode === "catalog" && !catalog_loaded) void load_catalog();
+      };
+      const community = workspace_button("\u793E\u533A\u63D2\u4EF6\u5E02\u573A", () => select("catalog"));
+      const refresh = workspace_button("\u5237\u65B0\u76EE\u5F55", () => void load_catalog());
       const picker = workspace_element("input");
       picker.type = "file";
       picker.accept = ".zip";
@@ -240356,14 +240411,21 @@ https://creativecommons.org/licenses/by/4.0/
           message.textContent = "\u65E0\u6CD5\u53D6\u5F97\u6240\u9009\u6587\u4EF6\u8DEF\u5F84\u3002";
           return;
         }
-        void run(() => service.install_archive(archive));
+        void run(async () => {
+          const info = await service.install_archive(archive);
+          mode = "installed";
+          search2.value = "";
+          return "\u5DF2\u5B89\u88C5 ".concat(info.name, "\u3002").concat(info.enabled ? "\u5DF2\u542F\u7528\u63D2\u4EF6\u7684\u66F4\u65B0\u5728\u6B63\u5E38\u91CD\u542F\u540E\u751F\u6548\u3002" : "\u70B9\u51FB\u201C\u4FE1\u4EFB\u5E76\u542F\u7528\u201D\u540E\u4F7F\u7528\uFF1B\u63D0\u4F9B\u914D\u7F6E\u7684\u63D2\u4EF6\u4F1A\u663E\u793A\u201C\u8BBE\u7F6E\u201D\u3002");
+        });
       };
       const local = workspace_button("\u5B89\u88C5\u672C\u5730ZIP\u2026", () => picker.click());
-      toolbar.append(installed, community, local, search2, picker);
-      content.append(explanation, toolbar, message, list3);
+      toolbar.append(installed, community, refresh, local, picker);
+      content.append(search2, toolbar, message, list3, explanation);
       const render = () => {
         if (!alive) return;
-        for (const node of [installed, community, local]) node.disabled = busy;
+        for (const node of [installed, community, refresh, local]) node.disabled = busy;
+        refresh.hidden = mode !== "catalog";
+        content.setAttribute("aria-busy", String(busy));
         installed.setAttribute("aria-pressed", String(mode === "installed"));
         community.setAttribute("aria-pressed", String(mode === "catalog"));
         list3.replaceChildren();
@@ -240375,34 +240437,78 @@ https://creativecommons.org/licenses/by/4.0/
           return;
         }
         const installed_rows = service.list(), needle = search2.value.trim().toLocaleLowerCase();
-        for (const info of rows.filter((row) => (row.name + " " + row.id + " " + (row.description || "")).toLocaleLowerCase().includes(needle))) {
+        for (const info of rows.filter((row) => (row.name + " " + row.id + " " + (row.description || "") + " " + (row.author || "")).toLocaleLowerCase().includes(needle))) {
           const row = workspace_element("section", "workspace-community-row"), details = workspace_element("div");
-          details.append(workspace_element("strong", "", info.name), workspace_element("p", "", info.description || info.id));
+          details.append(workspace_element("strong", "", info.name), workspace_element("p", "workspace-community-description", info.description || info.id));
+          const metadata = workspace_element("p", "workspace-community-meta", "".concat(info.author || "\u4F5C\u8005\u672A\u63D0\u4F9B").concat(info.platforms?.length ? " \xB7 " + info.platforms.map((platform3) => ({ win32: "Windows", darwin: "macOS", linux: "Linux" })[platform3] || platform3).join(" / ") : ""));
+          details.append(metadata);
+          if (/^[\w.-]+\/[\w.-]+$/.test(info.repo || "")) {
+            const source = workspace_element("a", "workspace-community-source", "\u9879\u76EE\u8BF4\u660E");
+            source.href = "https://github.com/" + info.repo;
+            source.title = source.href;
+            source.onclick = (event) => {
+              event.preventDefault();
+              void runtime2.reqnode("electron").shell.openExternal(source.href).catch((error) => {
+                if (alive) message.textContent = "\u6253\u5F00\u9879\u76EE\u8BF4\u660E\u5931\u8D25\uFF1A" + error.message;
+              });
+            };
+            details.append(source);
+          }
           const current = installed_rows.find((item) => item.id === info.id), actions = workspace_element("div", "workspace-community-actions");
           if (current) {
             details.append(workspace_element("p", "", current.error || "".concat(current.version || "", " \xB7 ").concat(current.running ? "\u5DF2\u542F\u7528" : current.enabled ? "\u542F\u7528\u5931\u8D25" : "\u5DF2\u505C\u7528").concat(current.restart_required ? " \xB7 \u65B0\u7248\u7B49\u5F85\u91CD\u542F" : "")));
-            actions.append(workspace_button(current.enabled ? "\u505C\u7528" : "\u4FE1\u4EFB\u5E76\u542F\u7528", () => void run(() => service.set_enabled(info.id, !current.enabled))));
-            if (settings.has(info.id)) actions.append(workspace_button("\u8BBE\u7F6E", () => settings.show(info.id)));
+            actions.append(workspace_button(current.enabled ? "\u505C\u7528" : "\u4FE1\u4EFB\u5E76\u542F\u7528", () => void run(async () => {
+              const enable = !current.enabled;
+              await service.set_enabled(info.id, enable);
+              return !enable ? "\u5DF2\u505C\u7528\uFF0C\u63D2\u4EF6\u6CE8\u518C\u7684\u529F\u80FD\u548C\u8BBE\u7F6E\u5DF2\u5378\u8F7D\u3002" : "\u5DF2\u542F\u7528 ".concat(info.name, "\u3002").concat(settings.has(info.id) ? "\u70B9\u51FB\u201C\u8BBE\u7F6E\u201D\u914D\u7F6E\u6B64\u63D2\u4EF6\u3002" : "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875\u3002");
+            })));
+            const configure = workspace_button("\u8BBE\u7F6E", () => settings.show(info.id));
+            configure.dataset.unavailable = String(!settings.has(info.id));
+            configure.title = settings.has(info.id) ? "\u6253\u5F00\u63D2\u4EF6\u63D0\u4F9B\u7684\u8BBE\u7F6E\u9875" : current.running ? "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875" : "\u542F\u7528\u63D2\u4EF6\u540E\u52A0\u8F7D\u5176\u8BBE\u7F6E\u9875";
+            actions.append(configure);
             actions.append(workspace_button("\u68C0\u67E5\u5E76\u66F4\u65B0", () => void run(async () => {
               const release = await service.latest(current);
               if (api2.compare_version(release.version, current.version) <= 0) return "\u5DF2\u662F\u6700\u65B0\u7248\u672C\u3002";
               await service.install_online(current);
+              return current.running ? "\u65B0\u7248\u5DF2\u5B89\u88C5\uFF0C\u6B63\u5E38\u91CD\u542F\u540E\u751F\u6548\u3002" : "\u65B0\u7248\u5DF2\u5B89\u88C5\u3002";
             })), workspace_button("\u5378\u8F7D", () => void run(async () => {
               await service.uninstall(info.id);
               return "\u5DF2\u5378\u8F7D\uFF1B\u4E2A\u4EBA\u8BBE\u7F6E\u548C\u8FD0\u884C\u4E2D\u7A97\u53E3\u53EF\u80FD\u5F15\u7528\u7684\u5305\u7F13\u5B58\u4FDD\u7559\u3002";
             })));
-          } else actions.append(workspace_button("\u5B89\u88C5", () => void run(() => service.install_online(info))));
-          for (const button of actions.querySelectorAll("button")) button.disabled = busy;
+          } else {
+            const install = workspace_button("\u5B89\u88C5", () => void run(async () => {
+              const result = await service.install_online(info);
+              mode = "installed";
+              search2.value = info.id;
+              return "\u5DF2\u5B89\u88C5 ".concat(result?.name || info.name, "\uFF0C\u9ED8\u8BA4\u505C\u7528\u3002\u70B9\u51FB\u201C\u4FE1\u4EFB\u5E76\u542F\u7528\u201D\u540E\u4F7F\u7528\u63D2\u4EF6\u3002");
+            }));
+            if (info.platforms?.length && !info.platforms.includes(runtime2.reqnode("process").platform)) {
+              install.dataset.unavailable = "true";
+              install.title = "\u6B64\u63D2\u4EF6\u4E0D\u652F\u6301\u5F53\u524D\u7CFB\u7EDF";
+            }
+            actions.append(install);
+          }
+          for (const button of actions.querySelectorAll("button")) button.disabled = busy || button.dataset.unavailable === "true";
           row.append(details, actions);
           list3.append(row);
         }
-        if (!list3.children.length) list3.append(workspace_element("p", "", "\u6CA1\u6709\u5339\u914D\u7684\u63D2\u4EF6\u3002"));
+        if (!list3.children.length) {
+          list3.append(workspace_element("p", "", busy ? "\u6B63\u5728\u52A0\u8F7D\u2026" : needle ? "\u6CA1\u6709\u5339\u914D\u7684\u63D2\u4EF6\u3002" : mode === "catalog" ? "\u793E\u533A\u76EE\u5F55\u5C1A\u672A\u52A0\u8F7D\uFF0C\u8BF7\u5237\u65B0\u76EE\u5F55\u91CD\u8BD5\u3002" : "\u5C1A\u672A\u5B89\u88C5\u793E\u533A\u63D2\u4EF6\u3002"));
+          if (mode === "installed" && !needle) list3.append(workspace_button("\u6D4F\u89C8\u793E\u533A\u63D2\u4EF6\u5E02\u573A", () => select("catalog")));
+        }
       };
-      const unsubscribe = service.subscribe(render);
+      const unsubscribe = service.subscribe(() => {
+        render();
+        settings.refresh();
+      });
       search2.oninput = render;
-      refresh_manager = render;
+      refresh_manager = () => {
+        render();
+        settings.refresh();
+      };
       render();
-      return { content, focus: () => search2.focus(), dispose() {
+      if (mode === "catalog") void load_catalog();
+      return { content, select, focus: () => search2.focus(), dispose() {
         alive = false;
         unsubscribe();
         interaction.remove();

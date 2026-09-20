@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R057",
+    "R060",
+    "R061",
+    "R065"
+  ],
+  "release": "2026.09.20.16",
+  "asset_manifest_sha256": "a28cf2023e5c89fde32140f73e8cb7cfba3998aa3ec97d05cc29a37d782725d1",
+  "native": [
+    {
+      "path": ".cache/issue_tracking/native/b666dca48386417abe701d9b5e7e6831/checks.json",
+      "sha256": "d1537a127061f66de94bf936e9055d6528d645e3b0544ecc8001dfee599a9167",
+      "status": "PASS",
+      "checks": 261
+    },
+    {
+      "path": ".cache/issue_tracking/native/371f3a53e3684a1ca6cfdaf557601287/checks.json",
+      "sha256": "deacbd8e2c146c57b9a58c0f9d8a3dd49579235b4289a933a4de5baf803e8853",
+      "status": "PASS",
+      "checks": 90
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/shared_plugins_check_final.log",
+      "sha256": "614c3088549994742ed8b9c3aced3678d0b36eef1438449f6403a126155ca462"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_ui_final.log",
+      "sha256": "375ad37b38a43dd8b94b2297e364968c62e50feca705d9efa3ff9d8f9b08ef2a"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_ui_last.log",
+      "sha256": "e00b8c542e96af4e8c91235cf35307ed3735ef7aa9fa60c66c1484379df7a1f3"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_online.log",
+      "sha256": "775eb382d4fb0c252ab3f53a22a30b8226439c1962c8dcee4404f30636a8fdd2"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_stress.log",
+      "sha256": "d98df68eb609b8dff6054f83fe585ab23761ef93dba8956de9941632c271e1ea"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_install.log",
+      "sha256": "8361529812e3ff6f433466af5ff0be5e11ae572038718f7a9e5ef01c447b4deb"
+    },
+    {
+      "path": ".cache/issue_tracking/shared_plugins_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  ],
+  "ui_suites": 8,
+  "catalog_cases": 161,
+  "real_plugins": [
+    {
+      "id": "typora-plugin-codeblock-copy-button",
+      "version": "1.2.0",
+      "package_sha256": "41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704"
+    },
+    {
+      "id": "typora-plugin-codeblock-highlight-mapper",
+      "version": "1.2.1",
+      "package_sha256": "eb38a5f5a9e5388edcd06d86fecf1d7e22971b4403f16a0355500c27364ea756"
+    }
+  ],
+  "installation": {
+    "status": "OK",
+    "assets_verified": 29,
+    "protected_unchanged": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "running_user_windows_restarted": false
+  },
+  "visual_review": [
+    "原生Cpp 300px 125%与Night 220px 100%设置菜单，标题及快捷键完整，未见横向滚动",
+    "其他几何与悬停以连接中的DOM测量及真实指针UI测试验证，不把私有桌面截图外推为物理首帧性能"
+  ],
+  "failures_corrected": [
+    "真实mapper同引用对象set未触发保存；仅社区PluginSettings ABI复制值后交给原设置服务",
+    "原生测试读取已移除Explorer节点的computedStyle得到空值；改为各面板连接时采集"
+  ],
+  "limits": [
+    "只验证两个真实社区插件及API夹具，不保证整个社区目录兼容",
+    "本轮保留现有布局；第三方进程内插件的任意CSS与宿主修改不能承诺完全隔离",
+    "用户窗口待正常重启加载；官方更新后仍需重装",
+    "此前启动长任务、跨平台、跨账户UAC未决项保持"
+  ]
+}
