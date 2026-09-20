@@ -927,3 +927,171 @@ button.typ-block-operate-button:active {
 .ty-advanced-search-active #typora-sidebar .searchpanel-search-option-btn {
   right: -100px;
 }
+@scope (.workspace-community-settings) {
+.typ-setting-tab table {
+  margin-top: 0;
+  font-size: 0.8125rem;
+}
+
+.typ-setting-title {
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+}
+.typ-setting-item:first-child .typ-setting-title {
+  margin-top: 0;
+}
+}
+@scope (.workspace-community-settings) {
+@charset "UTF-8";
+.typ-button {
+  color: var(--panel-border-color);
+  border: none;
+  border-radius: 3px;
+}
+.typ-button:hover {
+  background: var(--item-hover-bg-color);
+}
+.typ-button:active {
+  background: var(--active-toggle-btn-color);
+}
+.typ-button:disabled {
+  cursor: not-allowed;
+}
+.typ-button {
+  /**
+   * Color
+   ****************************************/
+}
+.typ-button.primary {
+  color: var(--primary-btn-text-color);
+  background: var(--primary-color);
+}
+.typ-button.primary:active {
+  background: var(--primary-btn-border-color);
+}
+.typ-button.danger {
+  color: var(--primary-btn-text-color);
+  background: rgb(var(--typ-color-red-4));
+}
+.typ-button.danger:active {
+  background: rgb(var(--typ-color-red-5));
+}
+
+.typ-icon.typ-close::before {
+  content: "×";
+  padding-left: 6px;
+  font-style: normal;
+  font-size: 1.2rem;
+  line-height: 1.2rem;
+  vertical-align: middle;
+}
+
+.typ-tag {
+  padding: 0 0.5rem;
+  border: 1px solid var(--table-border-color);
+  border-radius: 3px;
+}
+.typora-node .typ-tag {
+  box-shadow: 1px 1px 1px 0 rgba(var(--typ-shadow-color), 0.4);
+}
+.html-for-mac .typ-tag {
+  filter: drop-shadow(1px 1px 1px 0 rgba(var(--typ-shadow-color), 0.4));
+}
+.typ-tag.primary {
+  color: var(--primary-btn-text-color);
+  background: var(--primary-color);
+}
+
+.typ-setting-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  margin-right: 0;
+}
+.typ-setting-item:not(:last-child:has(table)) {
+  border-bottom: solid 1px rgb(var(--typ-border-color));
+}
+.typ-setting-info {
+  align-self: flex-start;
+  flex: 1;
+}
+.typ-setting-description {
+  font-size: 0.75rem;
+  color: var(--text-color);
+  opacity: 0.6;
+}
+
+.typ-setting-info textarea {
+  width: 100%;
+}
+
+.typ-setting-controls.prefix:not(:empty) {
+  align-self: flex-start;
+  padding-right: 0.5rem;
+}
+.typ-setting-controls.postfix {
+  display: flex;
+}
+.typ-setting-controls.postfix > * {
+  margin-left: 0.5rem;
+}
+
+.typ-setting-sidebar-layout {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+.typ-setting-sidebar-layout > * {
+  align-self: stretch;
+}
+.typ-setting-sidebar {
+  flex: 0 0 auto;
+  width: 10rem;
+}
+.typ-setting-sidebar .typ-nav__item {
+  margin: 0 0.75rem 2px 0;
+  padding: 0.3rem 0.8rem;
+  width: 10rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+.typ-setting-sidebar .typ-nav__item:hover {
+  background: rgba(var(--typ-border-color), 0.35);
+}
+.typ-setting-sidebar .typ-nav__item.active {
+  color: var(--primary-btn-text-color);
+  background: var(--control-text-color);
+  opacity: 0.8;
+}
+.typ-setting-sidebar .typ-nav__item {
+  margin: 0 0 2px 0;
+  width: calc(100% - 0.5rem);
+  text-align: left;
+}
+
+.typ-setting-panel {
+  flex: 1;
+  min-width: 0;
+}
+.typ-setting-panel > .typ-setting-item:last-child {
+  border-bottom: none;
+}
+}
+@scope (.workspace-community-settings) {
+.typ-editable-table th:last-child {
+  width: 0.67rem;
+}
+.typ-editable-table th:last-child div {
+  padding: 0 0.33rem;
+}
+.typ-editable-table tr.typ-editing td:not(:last-child) {
+  height: 1px;
+  padding: 0;
+}
+.typ-editable-table tr.typ-editing input {
+  width: 100%;
+  height: 100%;
+  padding-left: 0.75rem;
+}
+}

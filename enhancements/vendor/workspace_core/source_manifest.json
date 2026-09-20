@@ -58,13 +58,13 @@
       "path": "src/index.ts",
       "upstream_path": "src/index.ts",
       "upstream_sha256": "052780c972bfcaced615f760548b7fc7bd5e0bb047c594fe7147efa17d03e2b2",
-      "sha256": "2ce7f65f0995f544fcbf4bd3c4c093d82863f6611e8a5249221609f7bdc8bf5f"
+      "sha256": "34caf82db855731092876cd02490eecd1b9cab5a693817959ac40ed76a1ad651"
     },
     {
       "path": "src/io/config-repository.ts",
       "upstream_path": "src/io/config-repository.ts",
       "upstream_sha256": "8e7fde43b946cc896cef91498977163f74713990acaef3886603e718615e634d",
-      "sha256": "d66c5e64e3a5ba033448218a3d41e0c53b9fdfae6d56addedaab5d9e344d5fa9"
+      "sha256": "efe7adee2e80aaa4eb7f2d2d7c07e5a568131d1d82e290a2e02fdde0a0986698"
     },
     {
       "path": "src/io/fs/file-adapter.ts",
@@ -302,7 +302,7 @@
       "path": "src/ui/editor/postprocessor/codeblock-postprocessor.ts",
       "upstream_path": "src/ui/editor/postprocessor/codeblock-postprocessor.ts",
       "upstream_sha256": "6a6af6a83ee7757217eefd8a021463f062193184bbc8cad0587fae4319842562",
-      "sha256": "6a6af6a83ee7757217eefd8a021463f062193184bbc8cad0587fae4319842562"
+      "sha256": "173bef9e1ab46c6c824ada35f8df34fe2b7d7973c2ad8e8e7df28438c75b511d"
     },
     {
       "path": "src/ui/editor/postprocessor/html-postprocessor.ts",
@@ -314,7 +314,7 @@
       "path": "src/ui/editor/postprocessor/postprocessor-manager.ts",
       "upstream_path": "src/ui/editor/postprocessor/postprocessor-manager.ts",
       "upstream_sha256": "8b80ed4e348c122948fd0ef9a881c6e1de962ee97efa36f69b20df852ae3cadf",
-      "sha256": "8b80ed4e348c122948fd0ef9a881c6e1de962ee97efa36f69b20df852ae3cadf"
+      "sha256": "f8d56dc405bb0de90a3acb94553fc6c22025e58172c61e56375fc75535a78d74"
     },
     {
       "path": "src/ui/editor/postprocessor/postprocessor.scss",
@@ -326,7 +326,7 @@
       "path": "src/ui/editor/postprocessor/postprocessor.ts",
       "upstream_path": "src/ui/editor/postprocessor/postprocessor.ts",
       "upstream_sha256": "50fbf5e29f6b444c7fd15c258bd90d5b9fc783e153ce8befd473f41b2d64d6ca",
-      "sha256": "50fbf5e29f6b444c7fd15c258bd90d5b9fc783e153ce8befd473f41b2d64d6ca"
+      "sha256": "3f99142622a6634d99bea5d59f17f8428a667d2fba148030dc336fdb4c9f2078"
     },
     {
       "path": "src/ui/editor/preprocessor/preprocessor.ts",
@@ -950,6 +950,90 @@
       "path": "src/ui/layout/workspace_leaf_actions.ts",
       "sha256": "ec2d5c6b036b3c0c8dc4d12d6948ad4e631eabe712c48b8a26d87ea35fbc5cf0",
       "upstream_sha256": null
+    },
+    {
+      "path": "src/os.ts",
+      "upstream_path": "src/os.ts",
+      "upstream_sha256": "c17ab38b1f1e921c57b035c088f7059413bace2b4a26c5a1034430c8fd3318b1",
+      "sha256": "c17ab38b1f1e921c57b035c088f7059413bace2b4a26c5a1034430c8fd3318b1"
+    },
+    {
+      "path": "src/plugin/plugin-manifest.ts",
+      "upstream_path": "src/plugin/plugin-manifest.ts",
+      "upstream_sha256": "0438d27f8105a61cdb2d2ed43f02103b4cda1c7cfcc8a17e1c86f1fb00e22223",
+      "sha256": "0438d27f8105a61cdb2d2ed43f02103b4cda1c7cfcc8a17e1c86f1fb00e22223"
+    },
+    {
+      "path": "src/plugin/plugin-settings.ts",
+      "upstream_path": "src/plugin/plugin-settings.ts",
+      "upstream_sha256": "88a65331542c3d94abf97d8d45a133941da9ba93c43e49126bcd81a966623778",
+      "sha256": "88a65331542c3d94abf97d8d45a133941da9ba93c43e49126bcd81a966623778"
+    },
+    {
+      "path": "src/plugin/plugin.ts",
+      "upstream_path": "src/plugin/plugin.ts",
+      "upstream_sha256": "49924b34f9524010c871d03c1faec58e05d2858111bb1d1ee26214534faa1d5e",
+      "sha256": "dbcfe9ab39fbc589e333a4ea313c9804e3725a1bdbcc0e9af7ff05f2d74a1887"
+    },
+    {
+      "path": "src/ui/components/button.scss",
+      "upstream_path": "src/ui/components/button.scss",
+      "upstream_sha256": "a34e00ab29c9766442d8fdd66fa0ce76466932ae147a89711ea0bdbcdbfc2c6f",
+      "sha256": "a34e00ab29c9766442d8fdd66fa0ce76466932ae147a89711ea0bdbcdbfc2c6f"
+    },
+    {
+      "path": "src/ui/components/editable-table.scss",
+      "upstream_path": "src/ui/components/editable-table.scss",
+      "upstream_sha256": "2d8f24197b3e2dd16d266eaad06bd7367c4606c5f9aeb8800f0e2f06f60dfb34",
+      "sha256": "2d8f24197b3e2dd16d266eaad06bd7367c4606c5f9aeb8800f0e2f06f60dfb34"
+    },
+    {
+      "path": "src/ui/components/editable-table.ts",
+      "upstream_path": "src/ui/components/editable-table.ts",
+      "upstream_sha256": "db1b07f0815b9003a67339feb4a175b34640a428c029bf0f32f9944cc74b113e",
+      "sha256": "db1b07f0815b9003a67339feb4a175b34640a428c029bf0f32f9944cc74b113e"
+    },
+    {
+      "path": "src/ui/components/tag.scss",
+      "upstream_path": "src/ui/components/tag.scss",
+      "upstream_sha256": "8516942c5351958dbf6f3a9853205efd9dcd5f8ab67e3bf896ae65e5d5fe60f9",
+      "sha256": "8516942c5351958dbf6f3a9853205efd9dcd5f8ab67e3bf896ae65e5d5fe60f9"
+    },
+    {
+      "path": "src/ui/settings/setting-item.scss",
+      "upstream_path": "src/ui/settings/setting-item.scss",
+      "upstream_sha256": "df8bf56c4c68ec7a3c3d1eb705b54d64e288aea9863e2afa7a086006d3e98f71",
+      "sha256": "df8bf56c4c68ec7a3c3d1eb705b54d64e288aea9863e2afa7a086006d3e98f71"
+    },
+    {
+      "path": "src/ui/settings/setting-item.ts",
+      "upstream_path": "src/ui/settings/setting-item.ts",
+      "upstream_sha256": "aa347e03f4aa39277ac0f8859b51d68ee42804434444af3ce7748f7a9f71adc4",
+      "sha256": "aa347e03f4aa39277ac0f8859b51d68ee42804434444af3ce7748f7a9f71adc4"
+    },
+    {
+      "path": "src/ui/settings/setting-tab.scss",
+      "upstream_path": "src/ui/settings/setting-tab.scss",
+      "upstream_sha256": "e89defe5825564ce4a1fc8e12c43e7e7c2eb2b8744a5f424f70a51e4bb9037d8",
+      "sha256": "e89defe5825564ce4a1fc8e12c43e7e7c2eb2b8744a5f424f70a51e4bb9037d8"
+    },
+    {
+      "path": "src/ui/settings/setting-tab.ts",
+      "upstream_path": "src/ui/settings/setting-tab.ts",
+      "upstream_sha256": "64a118196288e134d2c6da99fd2f4b914ddfb8679af78748e0fafc61fdcc2295",
+      "sha256": "64a118196288e134d2c6da99fd2f4b914ddfb8679af78748e0fafc61fdcc2295"
+    },
+    {
+      "path": "src/ui/settings/_sidebar-nav.scss",
+      "upstream_path": "src/ui/settings/_sidebar-nav.scss",
+      "upstream_sha256": "1b5e82d2669f11d19bbb36676b4a7ec088f38381b8135ab97bf679dd8d56fca0",
+      "sha256": "1b5e82d2669f11d19bbb36676b4a7ec088f38381b8135ab97bf679dd8d56fca0"
+    },
+    {
+      "path": "src/ui/editor/suggestion/text-suggest.ts",
+      "upstream_path": "src/ui/editor/suggestion/text-suggest.ts",
+      "upstream_sha256": "a99cd684591674fb7b0403a2bdb02bd5c8519e7af6f80e05b2fc2fbddeeea275",
+      "sha256": "a99cd684591674fb7b0403a2bdb02bd5c8519e7af6f80e05b2fc2fbddeeea275"
     }
   ]
 }

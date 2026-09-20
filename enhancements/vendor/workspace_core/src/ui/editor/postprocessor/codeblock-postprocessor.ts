@@ -89,13 +89,16 @@ export class CodeblockPostProcessor extends HtmlPostProcessor {
     const render = async () => {
       const code = this.getValueOfCodeblock(codeblock)
       const previewEl = await preview(code, codeblock)
+      if (!previewer.isConnected) return
       containerEl.innerHTML = ''
       containerEl.append(previewEl)
     }
     render()
 
     codeblock.classList.add('md-diagram', 'md-fences-advanced')
-    codeblock.addEventListener('keyup', debounce(render, 1000))
+    const on_key = debounce(render, 1000)
+    codeblock.addEventListener('keyup', on_key)
+    this.register_cleanup(() => {codeblock.removeEventListener('keyup', on_key);previewer.remove();codeblock.classList.remove('md-diagram','md-fences-advanced')})
     codeblock.append(previewer)
   }
 

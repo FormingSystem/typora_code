@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([Parameter(Mandatory=$true)][string]$archive,[Parameter(Mandatory=$true)][string]$destination)
+param([Parameter(Mandatory=$true)][string]$archive,[Parameter(Mandatory=$true)][string]$destination,[ValidateSet('repository','plugin')][string]$package_kind='repository')
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -7,6 +7,7 @@ $destination=[IO.Path]::GetFullPath($destination)
 if(Test-Path -LiteralPath $destination){throw 'Extraction destination must not exist.'}
 $zip=[IO.Compression.ZipFile]::OpenRead([IO.Path]::GetFullPath($archive))
 try {
+ if($package_kind -eq 'plugin' -and ($zip.Entries.Count -gt 5000 -or (Get-Item -LiteralPath $archive).Length -gt 32MB)){throw 'Plugin archive exceeds limit.'}
  if($zip.Entries.Count -gt 30000){throw 'Archive contains too many entries.'}
  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
  $roots=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
@@ -24,9 +25,10 @@ try {
   $mode=($entry.ExternalAttributes -shr 16) -band 0xF000
   if($mode -ne 0 -and $mode -ne 0x8000 -and $mode -ne 0x4000){throw 'Linked or special ZIP entry.'}
   $total+=$entry.Length
+  if($package_kind -eq 'plugin' -and $total -gt 128MB){throw 'Plugin expands beyond limit.'}
   if($total -gt 768MB -or $entry.Length -gt 128MB -or ($entry.Length -gt 1MB -and $entry.Length -gt [Math]::Max(1,$entry.CompressedLength)*300)){throw 'Archive expands beyond limit.'}
  }
- if($roots.Count -ne 1){throw 'Expected one repository root.'}
+ if($package_kind -eq 'repository' -and $roots.Count -ne 1){throw 'Expected one repository root.'}
  New-Item -ItemType Directory -Path $destination | Out-Null
  $prefix=$destination.TrimEnd('\')+'\'
  foreach($entry in $zip.Entries){
@@ -36,7 +38,8 @@ try {
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
   [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$false)
  }
- $root=Join-Path $destination (@($roots)[0])
- foreach($name in @('install_windows.ps1','enhancements/release.json','enhancements/dist/SHA256SUMS')){if(!(Test-Path -LiteralPath (Join-Path $root $name) -PathType Leaf)){throw 'Incomplete repository archive.'}}
+ $root=if($package_kind -eq 'plugin'){$destination}else{Join-Path $destination (@($roots)[0])}
+ $required=if($package_kind -eq 'plugin'){@('manifest.json','main.js')}else{@('install_windows.ps1','enhancements/release.json','enhancements/dist/SHA256SUMS')}
+ foreach($name in $required){if(!(Test-Path -LiteralPath (Join-Path $root $name) -PathType Leaf)){throw 'Incomplete archive.'}}
  Write-Output $root
 } finally {$zip.Dispose()}

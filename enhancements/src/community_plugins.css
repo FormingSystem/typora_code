@@ -1,0 +1,8 @@
+.workspace-community-manager {min-width:0;max-height:65vh;overflow:auto;}
+.workspace-community-toolbar,.workspace-community-actions {display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.workspace-community-toolbar input[type=search] {flex:1;min-width:100px;}
+.workspace-community-row {display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--workspace-panel-border,#ddd);}
+.workspace-community-row>div:first-child {flex:1;min-width:0;overflow-wrap:anywhere;}
+.workspace-community-row p {margin:4px 0;}
+.workspace-community-message {min-height:1.4em;}
+.workspace-community-settings {max-height:65vh;overflow:auto;}

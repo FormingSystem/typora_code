@@ -936,7 +936,9 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R025"
+        "R025",
+        "R056",
+        "R057"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
@@ -953,10 +955,12 @@
       "environment": "平台集成夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "模拟官方更新覆盖启动页，再运行标准安装及恢复，核对新版脚本/内核和社区配置/包/设置"
       ],
       "expected": [
-        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
+        "重装保留升级后的宿主及社区数据，备份和恢复均以新版宿主为基底"
       ],
       "timeout_ms": 240000,
       "platform": "win32"
@@ -4864,6 +4868,170 @@
       "purpose": "implementation",
       "script": "enhancements/scripts/test_footer_icons_native.ps1",
       "environment": "原始Typora1.14.10独立副本、私有桌面与用户数据；renderer合成指针",
+      "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R057"
+      ],
+      "design": "docs/community_plugins.md",
+      "implementation": [
+        "enhancements/src/community_plugins.ts",
+        "enhancements/src/community_plugin_service.cjs",
+        "enhancements/fixtures/community_plugins_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "安装固定真实社区ZIP，20次启停、失败清理、同一个工作台"
+      ],
+      "expected": [
+        "真实公共API可执行，失败/停用无登记资源残留，布局与文档保持"
+      ],
+      "id": "TC-community-plugins-native",
+      "level": "system",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_community_plugins_native.ps1",
+      "environment": "原始Typora1.14.10独立副本、私有桌面与用户数据；renderer合成指针",
+      "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R057"
+      ],
+      "design": "docs/community_plugins.md",
+      "implementation": [
+        "enhancements/src/community_plugins.ts",
+        "enhancements/src/community_plugin_service.cjs"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "安装固定真实社区ZIP，20次启停、失败清理、同一个工作台"
+      ],
+      "expected": [
+        "真实公共API可执行，失败/停用无登记资源残留，布局与文档保持"
+      ],
+      "id": "TC-community-plugins-unit",
+      "level": "unit",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_community_plugin_service.mjs",
+      "environment": "Node真实临时文件系统，插件加载/解压/下载端口替身",
+      "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R057"
+      ],
+      "design": "docs/community_plugins.md",
+      "implementation": [
+        "enhancements/src/community_plugins.ts",
+        "enhancements/src/community_plugin_service.cjs"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "安装固定真实社区ZIP，20次启停、失败清理、同一个工作台"
+      ],
+      "expected": [
+        "真实公共API可执行，失败/停用无登记资源残留，布局与文档保持"
+      ],
+      "id": "TC-community-plugins-stress",
+      "level": "unit",
+      "purpose": "stress",
+      "script": "enhancements/scripts/test_community_plugin_service.mjs",
+      "environment": "Node真实临时文件系统，插件加载/解压/下载端口替身",
+      "timeout_ms": 240000,
+      "workload_mode": "tiered"
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R057"
+      ],
+      "design": "docs/community_plugins.md",
+      "implementation": [
+        "enhancements/src/community_plugins.ts",
+        "enhancements/src/community_plugin_service.cjs",
+        "enhancements/fixtures/community_plugins_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "查询固定身份目录与发行版本，下载并验证重复安装"
+      ],
+      "expected": [
+        "安装版本匹配发行身份，默认停用，重复安装幂等"
+      ],
+      "id": "TC-community-plugins-online",
+      "level": "system",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_community_online.mjs",
+      "environment": "Windows/Node真实GitHub HTTPS目录、发行下载和ZIP解压，不运行插件",
+      "timeout_ms": 240000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R057"
+      ],
+      "design": "docs/community_plugins.md",
+      "implementation": [
+        "enhancements/src/community_plugins.ts",
+        "enhancements/src/community_plugin_service.cjs",
+        "enhancements/fixtures/community_plugins_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "管理入口、搜索、安装/启停、错误、忙碌防重复、明暗缩放、关闭/销毁"
+      ],
+      "expected": [
+        "共享对话框行为正确，状态由唯一服务拥有，迟到结果不重开窗口"
+      ],
+      "id": "TC-community-plugins-ui",
+      "level": "functional",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_community_plugins_ui.cjs",
+      "environment": "隔离Chromium真实键盘/DOM及服务端口替身",
       "timeout_ms": 240000
     }
   ]

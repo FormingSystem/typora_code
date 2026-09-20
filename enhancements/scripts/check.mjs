@@ -10,9 +10,10 @@ const runtime_source = fs.readFileSync(path.resolve("dist/workspace_core.js"), "
 const static_css = fs.readFileSync(path.resolve("dist/workspace.css"), "utf8");
 if (!source.includes('Symbol.for("typora-code:workspace")')) throw new Error("resident core bridge is missing");
 if (!source.includes("start_typora_code")) throw new Error("resident startup entry is missing");
-for (const forbidden of ["PluginManager", "InternalPluginManager", "class linux_note_enhancements_plugin", "typora-plugin-core@v2"]) {
+for (const forbidden of ["PluginManager", "InternalPluginManager", "class linux_note_enhancements_plugin", "plugins/loader.json"]) {
   if (source.includes(forbidden) || runtime_source.includes(forbidden)) throw new Error(`Previous plugin lifecycle remains: ${forbidden}`);
 }
+if (!source.includes('bind_community_plugins') || (source.match(/typora-plugin-core@v2/g)||[]).length!==1 || runtime_source.includes('typora-plugin-core@v2')) throw new Error('Community ABI must be exposed only by the resident workbench adapter');
 for (const marker of [
   "linux-note-vscode-textmate-c",
   "linux-note-vscode-textmate-cpp",

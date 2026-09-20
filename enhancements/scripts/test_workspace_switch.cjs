@@ -16,6 +16,7 @@ const capture=async name=>{await delay(100);fs.writeFileSync(path.join(evidence,
 const wait=async source=>{for(let i=0;i<200;i++){if(await evaluate(source))return;await delay(30);}throw new Error('Timeout: '+source+'; '+await evaluate('JSON.stringify({errors:fixture_errors,state:document.documentElement.dataset.linuxNoteTyporaEnhancements})'));};
 app.whenReady().then(async()=>{
  await (await import("./build_source_symbol_assets.mjs")).build_source_symbol_assets(path.join(evidence,"typora_code"));
+ for(const directory of ['plugins','update'])fs.cpSync(path.join(__dirname,'../dist/assets',directory),path.join(evidence,'typora_code/assets',directory),{recursive:true});
  require("electron").ipcMain.handle("setting.put",(_event,key,value)=>{assert.equal(key,"framelessWindow");assert.equal(value,true);return true;});
  const {build_workspace_styles,static_workspace_css_plugin}=await import(require('node:url').pathToFileURL(path.join(__dirname,'build_workspace_styles.mjs')).href);await build_workspace_styles({outdir:evidence});
  test_window=new BrowserWindow({show:false,width:1100,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});

@@ -15,7 +15,7 @@ fs.writeFileSync(path.join(root,'baseline.log'),ps('-File',path.join(checkout,'i
 const settings=path.join(user_data,'typora_code/settings/workspace.json');fs.mkdirSync(path.dirname(settings),{recursive:true});fs.writeFileSync(settings,'{"fixture":"keep 设置"}');
 const protected_file=path.join(root,'note.md');fs.writeFileSync(protected_file,'# 用户草稿不属于安装目标\n');
 const installed_release=path.join(user_data,'typora_code/assets/update/release.json'),release=JSON.parse(fs.readFileSync(installed_release,'utf8'));
-const older=structuredClone(release);older.releases[0].sequence--;older.releases[0].version='0.0.0';fs.writeFileSync(installed_release,JSON.stringify(older));
+const older=structuredClone(release);older.releases=older.releases.slice(1);assert(older.releases.length,'fixture requires a prior release');fs.writeFileSync(installed_release,JSON.stringify(older));
 const archive=path.join(root,'candidate.zip');
 const create_zip=String.raw`import pathlib,sys,zipfile
 root=pathlib.Path(sys.argv[1])

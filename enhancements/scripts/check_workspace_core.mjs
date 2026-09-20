@@ -19,4 +19,4 @@ for(const asset of source_assets){
   if(actual!==asset.sha256)source_errors.push(asset.directory+'/'+asset.name+': expected '+asset.sha256+', actual '+actual);
 }
 assert.equal(source_errors.length,0,'Vendor source SHA-256 mismatch:\n'+source_errors.join('\n'));
-console.log('PASS: standalone core assets, '+core_manifest.files.length+' core source hashes, four Seti hashes and no plugin startup paths');
+console.log('PASS: standalone core assets, '+core_manifest.files.length+' core source hashes, four Seti hashes and no second community core startup paths');

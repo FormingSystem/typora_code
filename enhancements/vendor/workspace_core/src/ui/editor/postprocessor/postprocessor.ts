@@ -25,6 +25,15 @@ export type RawProcessor = (el: HTMLElement) => void
 
 
 export class PostProcessor {
+  private owned_buttons = new Set<HTMLElement>()
+  private cleanups: (() => void)[] = []
+  register_cleanup(cleanup: () => void) { this.cleanups.push(cleanup) }
+  dispose() {
+    for (const button of this.owned_buttons) { const group=button.parentElement;button.remove();if(group?.classList.contains('typ-buttons')&&!group.children.length)group.remove() }
+    this.owned_buttons.clear()
+    for (const cleanup of this.cleanups.splice(0)) cleanup()
+  }
+
 
   constructor(
     protected logger = useService('logger', ['PostProcessor'])
@@ -58,6 +67,7 @@ export class PostProcessor {
     buttonEl.onclick = (event: any) => button.onclick(event, {})
 
     group.append(buttonEl)
+    this.owned_buttons.add(buttonEl)
   }
 
   setupButtonContainer(codeblock: HTMLElement) {

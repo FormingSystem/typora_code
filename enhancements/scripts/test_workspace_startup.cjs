@@ -16,6 +16,7 @@ const capture=async name=>{await delay(100);fs.writeFileSync(path.join(evidence,
 const wait=async source=>{for(let i=0;i<200;i++){if(await evaluate(source))return;await delay(30);}throw new Error('Timeout: '+source+'; '+await evaluate('JSON.stringify({errors:fixture_errors,state:document.documentElement.dataset.linuxNoteTyporaEnhancements})'));};
 app.whenReady().then(async()=>{
  await (await import("./build_source_symbol_assets.mjs")).build_source_symbol_assets(path.join(evidence,"typora_code"));
+ for(const directory of ['plugins','update'])fs.cpSync(path.join(__dirname,'../dist/assets',directory),path.join(evidence,'typora_code/assets',directory),{recursive:true});
  require("electron").ipcMain.handle("setting.put",(_event,key,value)=>{assert.equal(key,"framelessWindow");assert.equal(value,true);return true;});
  const {build_workspace_styles,static_workspace_css_plugin}=await import(require('node:url').pathToFileURL(path.join(__dirname,'build_workspace_styles.mjs')).href);await build_workspace_styles({outdir:evidence});
  test_window=new BrowserWindow({show:false,width:1100,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});
@@ -23,7 +24,7 @@ app.whenReady().then(async()=>{
  await test_window.loadFile(html);
  await evaluate(`window.fixture_root=${JSON.stringify(repository)};window.fixture_source=${JSON.stringify(source_path)};`);
  await evaluate(fs.readFileSync(path.join(__dirname,'../fixtures/workspace_host.js'),'utf8'));await evaluate(`window._options.userDataPath=${JSON.stringify(evidence)};void 0`);await evaluate('window.original_outline=document.querySelector("#outline-content");window.original_outline_parent=original_outline.parentNode');
- await evaluate('fixture_core.app.vault={on:fixture_core.app.workspace.on};void 0');
+ await evaluate('fixture_core.app.vault={on:fixture_core.app.workspace.on};fixture_core.ready=new Promise(resolve=>window.resolve_core_ready=resolve);void 0');
  const bundle=await build({preserveSymlinks:true,stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup";export {get_workspace_files} from "./src/workspace_files";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},plugins:[static_workspace_css_plugin(),...editor_plugins()],bundle:true,format:'iife',globalName:'qa',write:false,loader:{'.css':'text','.svg':'text','.png':'dataurl','.wasm':'binary'},define:{'process.env.NODE_ENV':'"production"'}});
  await evaluate(bundle.outputFiles[0].text);
  // Monaco 的 ContextKey/Clipboard 单例是宿主窗口级；先显式预热并销毁临时 editor，避免把首次惰性初始化误算为插件泄漏。
@@ -35,7 +36,7 @@ app.whenReady().then(async()=>{
  await delay(150);
  assert.equal(await evaluate('document.documentElement.dataset.linuxNoteTyporaEnhancements'),'loading');
  assert.equal(await evaluate('fixture_commands.size'),0,'waiting for disconnected root must not register workbench commands');
- await evaluate('qa.shutdown_typora_code();window.original_wasm_instantiate=WebAssembly.instantiate;WebAssembly.instantiate=(...args)=>new Promise((resolve,reject)=>{window.release_grammar=()=>original_wasm_instantiate(...args).then(resolve,reject)});void qa.start_typora_code().catch(error=>{fixture_errors.push(String(error));console.error(error)});document.body.append(fixture_root_element);void 0');
+ await evaluate('qa.shutdown_typora_code();window.original_wasm_instantiate=WebAssembly.instantiate;WebAssembly.instantiate=(...args)=>new Promise((resolve,reject)=>{window.release_grammar=()=>original_wasm_instantiate(...args).then(resolve,reject)});void qa.start_typora_code().catch(error=>{fixture_errors.push(String(error));console.error(error)});document.body.append(fixture_root_element);resolve_core_ready();void 0');
  await wait('document.documentElement.dataset.linuxNoteWorkspaceBrowser==="ready"&&Boolean(window.release_grammar)');
  assert.equal(await evaluate('document.documentElement.dataset.linuxNoteTyporaEnhancements'),'loading','语法加载尚未完成时工作台界面已经挂载');
  await evaluate('WebAssembly.instantiate=original_wasm_instantiate;release_grammar();void 0');

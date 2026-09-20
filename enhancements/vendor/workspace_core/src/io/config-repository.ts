@@ -7,7 +7,7 @@ export class ConfigRepository {
   const fs=reqnode('fs'),path=reqnode('path');
   const target=path.join(this.configDir,filename+'.json');
   const contents=JSON.stringify(value,null,2);
-  fs.mkdirSync(this.configDir,{recursive:true});
+  fs.mkdirSync(path.dirname(target),{recursive:true});
   const temporary=target+'.'+reqnode('crypto').randomBytes(12).toString('hex')+'.tmp';
   let descriptor:number|undefined,created=false;
   try {

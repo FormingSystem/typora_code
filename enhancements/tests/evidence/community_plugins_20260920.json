@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R057",
+    "R056"
+  ],
+  "release": "2026.09.20.6",
+  "asset_manifest_sha256": "6eaa18aff043df9e8ad3b6e7341831bc3baa2247da9f848a47ab8809dbc67f54",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-30-06-357Z_4926d5/report.json",
+      "sha256": "c9cbfedd1529cd57d65c0786a568349a4a79c4f04433554a60e8c7c8647d1659"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-30-41-391Z_df95c3/report.json",
+      "sha256": "7b91996ec1a43cc02fad7acae9c9411427abbfd0159f3459ef3ebbb06f46d8b9"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-30-43-287Z_c66df9/report.json",
+      "sha256": "018fef43cfdd34686adca23ef0ecfd86b9548360e745e3636bb5787e4aa84c8a"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-30-31-014Z_bf3a4e/report.json",
+      "sha256": "59604f203c42d9a3e1effd477f14f549e1d04fe79f384659c1ea348cfcb3a92d"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-30-38-050Z_1ddd89/report.json",
+      "sha256": "f2a177dee369c81f71678c8ae9d4e1c25d00293f108527173da0cc8f6b3952a4"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-21-02-520Z_4b8364/report.json",
+      "sha256": "9715f13d75ab6f219506575e2b868150603ce2fb9bab546d14ec31a64d0aa7d1"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-20-52-147Z_ff2271/report.json",
+      "sha256": "81491302ccefbe9ac746600b09907dbf60cf900ae10c2c6aa6b99cddbd97e438"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-22-35-050Z_4691f8/report.json",
+      "sha256": "1f8f6c30cbc80d6cc6dfba128117eb2d40547cda13bdb6ac6264bd3c01b15ede"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-21-35-264Z_0926ed/report.json",
+      "sha256": "90af3e0bd73a9bb9542e4a0cc28b7f737a278ed1a06a71ef5ad9bf9c2e6a4456"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-07-04-665Z_11b9cd/report.json",
+      "sha256": "c314fe584334759b384e9b3866740c41dcd36a1b2f8eb57bf2dbd50d9504089c"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-36-55-659Z_ee25ca/report.json",
+      "sha256": "0a19f0c785d859d5353efae6708e60cbf57336efea8d0da92eb854984c95059a"
+    },
+    {
+      "path": ".cache/issue_tracking/community_ui_full.log",
+      "sha256": "044e37e059c77fcbc44a61742f6d4eaf81d3f23b92b8cad012e0074ecf826f06"
+    },
+    {
+      "path": ".cache/issue_tracking/community_check_stream.log",
+      "sha256": "1e4cd5101d55185fe8dc13917eaf2c8fb9ff1817d924be01fe0e0fbb70c9a4da"
+    }
+  ],
+  "checks": [
+    "完整check通过",
+    "20/100/1000插件启停、原子配置与故障注入通过",
+    "12MiB流式摘要心跳响应与内容变化检测通过",
+    "原始Typora1.14.10真实社区ZIP及公共API夹具通过",
+    "多窗口启停同步及不可变版本更新通过",
+    "真实在线目录/发行/ZIP重复安装曾通过，后续公网复跑ECONNRESET保留失败报告",
+    "官方页面更新后标准重装模拟保留新版脚本/内核/插件状态/包/设置通过",
+    "全量76项UI通过；服务初始化失败不残留ABI/样式专项通过"
+  ],
+  "installation": {
+    "status": "passed",
+    "assets": 28,
+    "protected_unchanged": 5,
+    "check": "OK",
+    "user_windows_restarted": false
+  },
+  "failures": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-18-03-319Z_798219/report.json",
+      "sha256": "67eebf7517af3e4b353c284f07e2d1443c5d7eef94238b7ee91d637c60f62075"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-21-35-767Z_cf1f71/report.json",
+      "sha256": "3406ad86416b3ce8c3ea2f5b12cd52ec840446242eaee4ec997fe24b8b39f267"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-25-40-579Z_2a967a/report.json",
+      "sha256": "b869f4521a174c850b33b1373c7addf7a86219eec90bf179aaf5ca19f5a66d24"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-26-47-270Z_a0c866/report.json",
+      "sha256": "95a7a953142867f5bf4cd7b000a219adae531c913337f9f84e15827eaac238e1"
+    }
+  ],
+  "limitations": [
+    "真实社区验证样本限Codeblock Copy Button 1.2.0；其他协议/全部第三方插件不作兼容承诺",
+    "原生测试为隔离桌面DOM/renderer和静态截图，不是物理屏幕首帧录像",
+    "官方升级为文件事务模拟；真实官方升级及其他平台未实测",
+    "安装28资产已一致；当前用户窗口未重启，未推送",
+    "R056静态模板前置方案未实施，原生编辑内核继续加载"
+  ]
+}

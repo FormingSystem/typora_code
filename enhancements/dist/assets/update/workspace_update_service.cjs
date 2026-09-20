@@ -14,7 +14,7 @@ function release_info(value){
  }
  return value;
 }
-function allowed_url(value){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!['api.github.com','raw.githubusercontent.com','codeload.github.com','github.com'].includes(url.hostname))throw Error('更新地址不属于允许的GitHub HTTPS来源。');return url;}
+function allowed_url(value){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!['api.github.com','raw.githubusercontent.com','codeload.github.com','github.com','release-assets.githubusercontent.com'].includes(url.hostname))throw Error('更新地址不属于允许的GitHub HTTPS来源。');return url;}
 /** 总截止时间和字节上限覆盖重定向及慢速响应；下载不关闭TLS证书校验。 */
 function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{}}={}){
  return new Promise((resolve,reject)=>{
@@ -155,5 +155,5 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
  }catch(error){status(!installing&&(abort.signal.aborted||fs.existsSync(path.join(root,'cancel')))?'cancelled':'failed',String(error.message||error));}
  finally{clearInterval(timer);if(unlock)await unlock();}
 }
-module.exports={release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};
+module.exports={execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};
 if(require.main===module&&process.argv[2]==='--worker')run_worker(process.argv[3]).catch(error=>{console.error(error);process.exitCode=1;});

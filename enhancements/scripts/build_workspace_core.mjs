@@ -35,7 +35,10 @@ const core_style_entries = [
   "src/ui/layout/workspace-root.scss",
   "src/ui/editor/postprocessor/postprocessor.scss",
   "src/ui/sidebar/search/views/global-search-progressbar.scss",
-  "src/ui/sidebar/search/views/advanced-search-mode.scss"
+  "src/ui/sidebar/search/views/advanced-search-mode.scss",
+  "src/ui/settings/setting-tab.scss",
+  "src/ui/settings/setting-item.scss",
+  "src/ui/components/editable-table.scss"
 ];
 export async function build_workspace_core({outdir=path.resolve(import.meta.dirname,'../dist')}={}) {
 const dist=path.resolve(outdir);fs.mkdirSync(dist,{recursive:true});
@@ -54,7 +57,7 @@ const license='/*! Typora Code workspace core, derived from Typora Community Plu
 fs.writeFileSync(path.join(dist,'workspace_core.js'),license+bootstrap,'utf8');
 const ordered_css=core_style_entries.map(name=>path.join(base,name));
 if(ordered_css.length!==css_files.size||ordered_css.some(name=>!css_files.has(name)))throw new Error('Workspace core CSS closure differs from explicit style entries');
-let css='';const style_inputs=new Set(ordered_css);for(const filename of ordered_css){const compiled=sass.compile(filename,{silenceDeprecations:['import','global-builtin','color-functions'],logger:{warn(){},debug(){}}});css+=compiled.css+'\n';for(const url of compiled.loadedUrls)style_inputs.add(fileURLToPath(url));}fs.writeFileSync(path.join(dist,'workspace_core.css'),license+css,'utf8');
+let css='';const style_inputs=new Set(ordered_css);for(const filename of ordered_css){const compiled=sass.compile(filename,{silenceDeprecations:['import','global-builtin','color-functions'],logger:{warn(){},debug(){}}});css+=(/setting-(tab|item)\.scss$|editable-table\.scss$/.test(filename)?'@scope (.workspace-community-settings) {\n'+compiled.css+'\n}':compiled.css)+'\n';for(const url of compiled.loadedUrls)style_inputs.add(fileURLToPath(url));}fs.writeFileSync(path.join(dist,'workspace_core.css'),license+css,'utf8');
 fs.mkdirSync(path.join(dist,'locales'),{recursive:true});for(const name of fs.readdirSync(path.join(base,'src/locales')).filter(name=>/^lang\..+\.json$/.test(name)))fs.copyFileSync(path.join(base,'src/locales',name),path.join(dist,'locales',name));
 fs.writeFileSync(path.join(base,'build_inputs.json'),JSON.stringify({inputs:Object.keys(result.metafile.inputs).map(name=>path.relative(base,path.resolve(name))),styles:[...style_inputs].map(name=>path.relative(base,name))},null,2)+'\n','utf8');
 console.log('Workspace core: '+result.metafile.outputs[Object.keys(result.metafile.outputs)[0]].bytes+' bytes');

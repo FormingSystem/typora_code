@@ -1,5 +1,7 @@
 # TyporaCode 开发交接
 
+2026-09-20 R057已实现：帮助菜单管理社区v2插件，唯一核心ABI、安装默认停用、异步后置加载、跨窗口配置同步、不可变包更新及共享设置窗口。候选2026.09.20.6，具体测试和安装状态见最新反馈记录；历史段落为当时状态。R056已完成单次显式挂载和标准重装模拟，前置静态模板及实际官方升级仍不能宣称完成。
+
 2026-09-20最新安装2026.09.20.3：全局原生滚动条活动显示、空闲淡出，共享实现保留原布局和第三方显隐。检查及边界见[工作台交互](workspace_interaction.md#r0491-空闲滚动条淡出)，安装27资产/head一致，用户待手动重启。R056/R057仍按先现有UI、后社区适配推进；官方更新后用户手动重装增强，不再追踪独立启动器/自动修复。
 
 
@@ -52,7 +54,7 @@ Markdown 使用原生渲染和标题大纲；源码使用可保存的 Monaco。C
 
 唯一入口是 `resources/window.html` 的 head 静态 CSS 与 defer 脚本。`workspace_core.js` 等待宿主和样式就绪，初始化一次并发布 `ready`；`workbench.js` 等待该核心。文件切换不重建工作台。发布23个常驻资产，另有终端独立运行包；以构建生成的 `dist/SHA256SUMS` 为准。
 
-部署使用 schema 4 事务：预检、完整备份、逐文件摘要验证、失败回滚。`profile.data` 为十六进制 UTF-8 JSON，只调整 `framelessWindow=true`，恢复只还原该字段原值或缺省。保留用户其他设置；不修改 ASAR，不注册社区插件，不部署主进程菜单桥。Windows／UCRT64 使用同一 PowerShell 实现，Linux 使用 Python 实现；Windows 上的 Python 事务测试不代表 Linux 实机权限已验证。
+部署使用 schema 4 事务：预检、完整备份、逐文件摘要验证、失败回滚。`profile.data` 为十六进制 UTF-8 JSON，只调整 `framelessWindow=true`，恢复只还原该字段原值或缺省。保留用户其他设置；不修改 ASAR，不部署第二个社区核心或旧加载器，不部署主进程菜单桥。Windows／UCRT64 使用同一 PowerShell 实现，Linux 使用 Python 实现；Windows 上的 Python 事务测试不代表 Linux 实机权限已验证。
 
 新窗口由现有 `app.openFile(null, {mountFolder, anchor})` 创建，安全的文内片段锚点标识唯一内存频道，已有窗口仅在实际接收落点时握手。`workspace_files` 负责文档快照和基线保护，`workspace_detached_window` 负责双窗确认与生命周期；不保存临时正文，不写工程设置。接收成功也必须复查来源身份，不能按全局路径关闭另一个编辑组的同名标签。
 

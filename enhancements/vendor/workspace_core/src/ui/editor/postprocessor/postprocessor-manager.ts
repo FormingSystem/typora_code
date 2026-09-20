@@ -64,6 +64,7 @@ export class MarkdownPostProcessor {
       })
     }
     this._processors = this._processors.filter(p => p !== processor)
+    if (processor instanceof PostProcessor) processor.dispose()
   }
 }
 

@@ -198,6 +198,34 @@ try {
     assert_equal $restored_profile.created_later.text '保留' 'Restore removed later preferences'
     foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Final restore lost retired asset: '+$name) }
     assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Final restore changed unrelated asset'
+    # 模拟官方升级把启动页还原：标准安装必须以新宿主为基底，保留新版内核和扩展数据。
+    $upgrade_root=Join-Path $test_root 'upgraded installation'
+    $upgrade_window=Join-Path $upgrade_root 'resources/window.html'
+    $upgrade_kernel=Join-Path $upgrade_root 'resources/app.asar'
+    write_fixture (Join-Path $upgrade_root 'Typora.exe') 'new host fixture'
+    $new_host='<html><head><title>new official host</title><script src="new-host.js"></script></head><body>new native editor</body></html>'
+    write_fixture $upgrade_window $new_host
+    write_fixture $upgrade_kernel 'new official kernel bytes'
+    $community_state=Join-Path $user_data 'typora_code/community/plugins.json'
+    $community_program=Join-Path $user_data 'typora_code/community/packages/example/fixture/main.js'
+    $community_settings=Join-Path $user_data 'typora_code/settings/data/example.json'
+    write_fixture $community_state '{"schema":1,"plugins":{"example":{"enabled":false,"revision":"fixture"}}}'
+    write_fixture $community_program 'user installed plugin'
+    write_fixture $community_settings '{"message":"保留设置"}'
+    $upgrade_backup=Join-Path $test_root 'upgraded host backup'
+    & $installer -typora_root $upgrade_root -backup_root $upgrade_backup -non_interactive
+    & $checker -typora_root $upgrade_root -non_interactive
+    $upgrade_installed=[IO.File]::ReadAllText($upgrade_window)
+    assert_equal ([regex]::Matches($upgrade_installed,'typora-code:begin').Count) 1 'Upgrade reinstallation duplicated entry'
+    assert_equal ($upgrade_installed.Contains('new-host.js')) $true 'Upgrade reinstallation lost new native scripts'
+    assert_equal ([IO.File]::ReadAllText((Join-Path $upgrade_backup 'window.html'))) $new_host 'Upgrade backup must contain new host'
+    assert_equal ([IO.File]::ReadAllText($upgrade_kernel)) 'new official kernel bytes' 'Upgrade replaced kernel'
+    assert_equal ([IO.File]::ReadAllText($community_state)) '{"schema":1,"plugins":{"example":{"enabled":false,"revision":"fixture"}}}' 'Upgrade changed community state'
+    assert_equal ([IO.File]::ReadAllText($community_program)) 'user installed plugin' 'Upgrade changed community package'
+    assert_equal ([IO.File]::ReadAllText($community_settings)) '{"message":"保留设置"}' 'Upgrade changed plugin settings'
+    & $restore -backup_root $upgrade_backup
+    assert_equal ([IO.File]::ReadAllText($upgrade_window)) $new_host 'Upgrade restore must retain new host'
+    Write-Host 'PASS: official-page replacement simulation, standard reinstall, new kernel/scripts and community data preserved; restore returns to new host.'
     # 源发布损坏在创建备份或覆盖用户文件前拒绝。
     [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'

@@ -26,6 +26,8 @@ release_info(JSON.parse(release_source));
 fs.writeFileSync(`${update_root}/release.json`,release_source);
 fs.writeFileSync(`${update_root}/runtime.json`,JSON.stringify({node_version:JSON.parse(fs.readFileSync("node_runtime.json","utf8")).version})+"\n");
 for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"])fs.writeFileSync(`${update_root}/${name}`,fs.readFileSync(`src/${name}`,"utf8").replace(/\r\n?/gu,"\n"));
+fs.mkdirSync('dist/assets/plugins',{recursive:true});
+fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
 
 await build({
   entryPoints: ["src/workspace_entry.ts"],

@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import uuid
+import zipfile
 
 repository_root = Path(__file__).resolve().parents[2]
 fixture_directory = repository_root / 'enhancements/fixtures'
@@ -28,6 +29,13 @@ assert (host_root / 'Typora.exe').is_file()
 shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
 workspace = case / 'workspace'
 workspace.mkdir()
+if fixture_path.name == 'community_plugins_native.js':
+    plugin_archive = repository_root / '.cache/community_copy_plugin/plugin.zip'
+    assert digest(plugin_archive) == '41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704', 'Prepare verified Codeblock Copy Button 1.2.0 archive'
+    shutil.copyfile(plugin_archive, case / 'community_plugin.zip')
+    with zipfile.ZipFile(case / 'community_api_plugin.zip', 'w') as archive:
+        archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
+        archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
 (workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
 # 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
 git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']

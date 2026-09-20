@@ -236614,6 +236614,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const help_entries = async () => [
+      { label: "\u793E\u533A\u63D2\u4EF6\u2026", action: () => files.core.app.commands.run("typora_code:community_plugins") },
       { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
       { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
       { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
@@ -238645,6 +238646,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092006,
+        version: "2026.09.20.6",
+        date: "2026-09-20",
+        notes: [
+          "\u65B0\u589E\u201C\u5E2E\u52A9\u2192\u793E\u533A\u63D2\u4EF6\u201D\uFF0C\u652F\u6301typora-community-plugin v2\u793E\u533A\u76EE\u5F55\u3001\u672C\u5730ZIP\u5B89\u88C5\u3001\u542F\u7528/\u505C\u7528\u3001\u63D2\u4EF6\u8BBE\u7F6E\u3001\u68C0\u67E5\u66F4\u65B0\u548C\u5378\u8F7D\u3002",
+          "\u793E\u533A\u63D2\u4EF6\u5728\u73B0\u6709\u5DE5\u4F5C\u53F0\u663E\u793A\u540E\u52A0\u8F7D\uFF0C\u590D\u7528\u540C\u4E00\u4E2A\u6838\u5FC3\uFF1B\u65B0\u5B89\u88C5\u9ED8\u8BA4\u505C\u7528\uFF0C\u5931\u8D25\u4E0E\u505C\u7528\u6E05\u7406\u767B\u8BB0\u8D44\u6E90\uFF0C\u7A0B\u5E8F\u66F4\u65B0\u7B49\u5F85\u624B\u52A8\u6B63\u5E38\u91CD\u542F\u3002"
+        ]
+      },
+      {
         sequence: 2026092005,
         version: "2026.09.20.5",
         date: "2026-09-20",
@@ -238910,6 +238920,240 @@ https://creativecommons.org/licenses/by/4.0/
       dialog2?.close(false);
     });
     return lifetime;
+  }
+
+  // src/community_plugins.css
+  var community_plugins_default = "";
+
+  // src/community_plugins.ts
+  function community_constructor(base, on_construct) {
+    const compatible = function(...args) {
+      const value = Reflect.construct(base, args, new.target || this.constructor);
+      on_construct?.(value);
+      return value;
+    };
+    compatible.prototype = base.prototype;
+    Object.setPrototypeOf(compatible, base);
+    return compatible;
+  }
+  function bind_community_plugins() {
+    const runtime2 = window, core = runtime2[Symbol.for("typora-code:workspace")];
+    if (!core?.app || !runtime2.reqnode) return { dispose() {
+    } };
+    const abi_key = Symbol.for("typora-plugin-core@v2");
+    if (runtime2[abi_key] && runtime2[abi_key].app !== core.app) throw Error("\u68C0\u6D4B\u5230\u53E6\u4E00\u4E2A\u793E\u533A\u6838\u5FC3\uFF1B\u8BF7\u505C\u7528\u65E7\u6838\u5FC3\u540E\u91CD\u65B0\u6253\u5F00\u3002");
+    const previous_abi = runtime2[abi_key], abi = { ...core };
+    let construction_scope;
+    for (const name of ["Plugin", "PluginSettings", "I18n", "Events", "WorkspaceRibbon", "Sidebar", "StatisticHandler", "StatisticContext", "ExportProcessor", "HtmlExportProcessor", "CodeblockExportProcessor", "Component", "SettingTab", "SettingItem", "View", "Modal", "SidebarPanel", "WorkspaceView", "PostProcessor", "HtmlPostProcessor", "CodeblockPostProcessor", "EditorSuggest", "TextSuggest"]) if (core[name]) abi[name] = community_constructor(core[name], name === "Plugin" ? (value) => construction_scope?.add(value) : void 0);
+    const fs2 = runtime2.reqnode("fs"), path = runtime2.reqnode("path"), url = runtime2.reqnode("url");
+    const asset_root = path.join(runtime2._options.userDataPath, "typora_code");
+    const api2 = runtime2.reqnode(path.join(asset_root, "assets/plugins/community_plugin_service.cjs"));
+    const network = runtime2.reqnode(path.join(asset_root, "assets/update/workspace_update_service.cjs"));
+    const tabs = /* @__PURE__ */ new Map(), dialogs = /* @__PURE__ */ new Set();
+    const abort = new AbortController();
+    let disposed = false;
+    const service = api2.create_community_service({
+      root: path.join(asset_root, "community"),
+      acquire_lock: () => network.acquire_update_lock(path.join(asset_root, "community")),
+      host_version: runtime2._options.appVersion,
+      request: (address, options2) => network.download(address, { ...options2, signal: abort.signal }),
+      extract: (archive, destination) => network.execute(network.powershell(), ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path.join(asset_root, "assets/update/workspace_update_archive.ps1"), "-archive", archive, "-destination", destination, "-package_kind", "plugin"], { timeout: 6e4 }),
+      async load_plugin(manifest) {
+        const entry = url.pathToFileURL(path.join(manifest.dir, "main.js"));
+        entry.searchParams.set("v", manifest.revision);
+        const module = await import(entry.href);
+        if (disposed) throw Error("\u63D2\u4EF6\u670D\u52A1\u5DF2\u7ECF\u5173\u95ED\u3002");
+        if (typeof module.default !== "function") throw Error("\u63D2\u4EF6\u6CA1\u6709\u5BFC\u51FA\u53EF\u7528\u7684\u9ED8\u8BA4\u6784\u9020\u51FD\u6570\u3002");
+        let instance;
+        const created = /* @__PURE__ */ new Set();
+        construction_scope = created;
+        try {
+          instance = new module.default(core.app, manifest);
+        } catch (error) {
+          for (const value of created) await value.unload();
+          throw error;
+        } finally {
+          construction_scope = void 0;
+        }
+        if (!(instance instanceof core.Plugin)) throw Error("\u63D2\u4EF6\u672A\u7EE7\u627F\u793E\u533Av2 Plugin API\u3002");
+        try {
+          if (fs2.existsSync(path.join(manifest.dir, "styles.css"))) instance.registerCss("styles.css");
+          await instance.load();
+          return instance;
+        } catch (error) {
+          await instance.unload();
+          throw error;
+        }
+      },
+      unload_plugin: (instance) => instance.unload()
+    });
+    const style = acquire_workspace_style("typora-code-style:community_plugins", community_plugins_default);
+    runtime2[abi_key] = abi;
+    const show_settings = (id) => {
+      const registered = [...tabs.get(id) || []];
+      if (!registered.length) return;
+      let release = () => {
+      };
+      const dialog2 = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
+        for (const tab of registered) {
+          tab.hide();
+          tab.containerEl.remove();
+        }
+        release();
+        dialogs.delete(dialog2);
+      });
+      dialog2.content.classList.add("workspace-community-settings");
+      release = acquire_workspace_interaction(dialog2.content).remove;
+      dialogs.add(dialog2);
+      for (const tab of registered) {
+        dialog2.content.append(workspace_element("h4", "", tab.name || id), tab.containerEl);
+        tab.show();
+      }
+    };
+    let manager;
+    const open_manager = () => {
+      if (manager) {
+        manager.root.querySelector("button")?.focus();
+        return;
+      }
+      let alive = true, busy = false, mode = "installed", catalog = [];
+      const dialog2 = workspace_dialog("\u793E\u533A\u63D2\u4EF6", "\u5173\u95ED", () => {
+        alive = false;
+        unsubscribe();
+        dialogs.delete(dialog2);
+        manager = void 0;
+      });
+      manager = dialog2;
+      dialogs.add(dialog2);
+      dialog2.content.classList.add("workspace-community-manager");
+      const explanation = workspace_element("p", "", "\u63D2\u4EF6\u62E5\u6709Typora\u8FDB\u7A0B\u6743\u9650\u3002\u5B89\u88C5\u540E\u9ED8\u8BA4\u505C\u7528\uFF0C\u4EC5\u542F\u7528\u4F60\u4FE1\u4EFB\u7684\u63D2\u4EF6\uFF1B\u5DE5\u4F5C\u53F0\u66F4\u65B0\u4E0ETypora\u5B98\u65B9\u66F4\u65B0\u5206\u522B\u7BA1\u7406\u3002");
+      const toolbar = workspace_element("div", "workspace-community-toolbar"), search2 = workspace_element("input"), message = workspace_element("p", "workspace-community-message"), list3 = workspace_element("div", "workspace-community-list");
+      search2.type = "search";
+      search2.placeholder = "\u641C\u7D22\u63D2\u4EF6";
+      search2.setAttribute("aria-label", "\u641C\u7D22\u63D2\u4EF6");
+      const run = async (action) => {
+        if (busy || !alive) return;
+        busy = true;
+        message.textContent = "\u6B63\u5728\u5904\u7406\u2026";
+        render();
+        try {
+          const result = await action();
+          if (alive) message.textContent = typeof result === "string" ? result : "\u64CD\u4F5C\u5B8C\u6210\u3002\u5DF2\u8FD0\u884C\u63D2\u4EF6\u7684\u65B0\u7248\u5728\u6B63\u5E38\u91CD\u542F\u540E\u751F\u6548\u3002";
+        } catch (error) {
+          if (alive) message.textContent = String(error.message || error);
+        } finally {
+          busy = false;
+          if (alive) render();
+        }
+      };
+      const installed = workspace_button("\u5DF2\u5B89\u88C5", () => {
+        mode = "installed";
+        render();
+      });
+      const community = workspace_button("\u793E\u533A\u76EE\u5F55", () => void run(async () => {
+        catalog = await service.catalog();
+        mode = "catalog";
+      }));
+      const picker = workspace_element("input");
+      picker.type = "file";
+      picker.accept = ".zip";
+      picker.hidden = true;
+      picker.onchange = () => {
+        const file = picker.files?.[0];
+        if (!file) return;
+        const archive = file.path || runtime2.reqnode("electron").webUtils?.getPathForFile(file);
+        picker.value = "";
+        if (!archive) {
+          message.textContent = "\u65E0\u6CD5\u53D6\u5F97\u6240\u9009\u6587\u4EF6\u8DEF\u5F84\u3002";
+          return;
+        }
+        void run(() => service.install_archive(archive));
+      };
+      const local = workspace_button("\u5B89\u88C5\u672C\u5730ZIP\u2026", () => picker.click());
+      toolbar.append(installed, community, local, search2, picker);
+      dialog2.content.append(explanation, toolbar, message, list3);
+      const render = () => {
+        if (!alive) return;
+        for (const node of [installed, community, local]) node.disabled = busy;
+        installed.setAttribute("aria-pressed", String(mode === "installed"));
+        community.setAttribute("aria-pressed", String(mode === "catalog"));
+        list3.replaceChildren();
+        let rows = [];
+        try {
+          rows = mode === "installed" ? service.list() : catalog;
+        } catch (error) {
+          message.textContent = String(error.message);
+          return;
+        }
+        const installed_rows = service.list(), needle = search2.value.trim().toLocaleLowerCase();
+        for (const info of rows.filter((row) => (row.name + " " + row.id + " " + (row.description || "")).toLocaleLowerCase().includes(needle))) {
+          const row = workspace_element("section", "workspace-community-row"), details = workspace_element("div");
+          details.append(workspace_element("strong", "", info.name), workspace_element("p", "", info.description || info.id));
+          const current = installed_rows.find((item) => item.id === info.id), actions = workspace_element("div", "workspace-community-actions");
+          if (current) {
+            details.append(workspace_element("p", "", current.error || "".concat(current.version || "", " \xB7 ").concat(current.running ? "\u5DF2\u542F\u7528" : current.enabled ? "\u542F\u7528\u5931\u8D25" : "\u5DF2\u505C\u7528").concat(current.restart_required ? " \xB7 \u65B0\u7248\u7B49\u5F85\u91CD\u542F" : "")));
+            actions.append(workspace_button(current.enabled ? "\u505C\u7528" : "\u4FE1\u4EFB\u5E76\u542F\u7528", () => void run(() => service.set_enabled(info.id, !current.enabled))));
+            if (tabs.get(info.id)?.size) actions.append(workspace_button("\u8BBE\u7F6E", () => show_settings(info.id)));
+            actions.append(workspace_button("\u68C0\u67E5\u5E76\u66F4\u65B0", () => void run(async () => {
+              const release = await service.latest(current);
+              if (api2.compare_version(release.version, current.version) <= 0) return "\u5DF2\u662F\u6700\u65B0\u7248\u672C\u3002";
+              await service.install_online(current);
+            })), workspace_button("\u5378\u8F7D", () => void run(async () => {
+              await service.uninstall(info.id);
+              return "\u5DF2\u5378\u8F7D\uFF1B\u4E2A\u4EBA\u8BBE\u7F6E\u548C\u8FD0\u884C\u4E2D\u7A97\u53E3\u53EF\u80FD\u5F15\u7528\u7684\u5305\u7F13\u5B58\u4FDD\u7559\u3002";
+            })));
+          } else actions.append(workspace_button("\u5B89\u88C5", () => void run(() => service.install_online(info))));
+          for (const button of actions.querySelectorAll("button")) button.disabled = busy;
+          row.append(details, actions);
+          list3.append(row);
+        }
+        if (!list3.children.length) list3.append(workspace_element("p", "", "\u6CA1\u6709\u5339\u914D\u7684\u63D2\u4EF6\u3002"));
+      };
+      const unsubscribe = service.subscribe(render);
+      search2.oninput = render;
+      render();
+    };
+    const binding = { service, open_manager, register_setting_tab(id, tab) {
+      let registered = tabs.get(id);
+      if (!registered) {
+        registered = /* @__PURE__ */ new Set();
+        tabs.set(id, registered);
+      }
+      registered.add(tab);
+      tab.load();
+      return () => {
+        tab.hide();
+        tab.unload();
+        tab.containerEl.remove();
+        registered.delete(tab);
+        if (!registered.size) tabs.delete(id);
+      };
+    } };
+    core.app.community_plugins = binding;
+    const unregister = core.app.commands.register({ id: "typora_code:community_plugins", title: "\u7BA1\u7406\u793E\u533A\u63D2\u4EF6", scope: "global", callback: open_manager });
+    let start_frame = requestAnimationFrame(() => {
+      start_frame = requestAnimationFrame(() => {
+        if (!disposed) void service.start().catch((error) => {
+          console.error(error);
+          if (!disposed) new core.Notice("\u793E\u533A\u63D2\u4EF6\u52A0\u8F7D\u5931\u8D25\uFF1A" + error.message);
+        });
+      });
+    });
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(start_frame);
+      abort.abort();
+      unregister();
+      for (const dialog2 of [...dialogs]) dialog2.close(false);
+      void service.dispose().catch(console.error);
+      style.remove();
+      if (core.app.community_plugins === binding) delete core.app.community_plugins;
+      if (runtime2[abi_key] === abi) {
+        if (previous_abi) runtime2[abi_key] = previous_abi;
+        else delete runtime2[abi_key];
+      }
+    } };
   }
 
   // src/reading_minimap.css
@@ -239909,6 +240153,11 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.own(bind_workspace_browser());
     performance.measure("typora-code:browser-bind", "typora-code:browser-bind:start");
     lifetime.own(bind_workspace_update());
+    try {
+      lifetime.own(bind_community_plugins());
+    } catch (error) {
+      console.error("\u793E\u533A\u63D2\u4EF6\u63A5\u5165\u5931\u8D25\uFF0C\u57FA\u7840\u5DE5\u4F5C\u53F0\u7EE7\u7EED\u8FD0\u884C", error);
+    }
     lifetime.own(bind_reading_minimap());
     lifetime.own(bind_reading_link_hover());
     lifetime.add(() => {

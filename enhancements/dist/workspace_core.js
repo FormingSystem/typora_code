@@ -171,13 +171,41 @@ var workspace_core_module = (() => {
   // vendor/workspace_core/src/index.ts
   var index_exports = {};
   __export(index_exports, {
+    CodeblockExportProcessor: () => CodeblockExportProcessor,
+    CodeblockPostProcessor: () => CodeblockPostProcessor,
     Component: () => Component,
+    EditorSuggest: () => EditorSuggest,
     Events: () => Events,
+    ExportProcessor: () => ExportProcessor,
+    HtmlExportProcessor: () => HtmlExportProcessor,
+    HtmlPostProcessor: () => HtmlPostProcessor,
+    I18n: () => I18n,
+    Modal: () => Modal,
     Notice: () => Notice,
+    Plugin: () => Plugin,
+    PluginSettings: () => PluginSettings,
+    PostProcessor: () => PostProcessor,
+    SettingItem: () => SettingItem,
+    SettingTab: () => SettingTab,
+    Sidebar: () => Sidebar,
     SidebarPanel: () => SidebarPanel,
+    StatisticContext: () => StatisticContext,
+    TextSuggest: () => TextSuggest,
+    View: () => ViewLegacy,
+    WorkspaceRibbon: () => WorkspaceRibbon,
     WorkspaceView: () => WorkspaceView,
+    debounce: () => debounce,
+    decorate: () => decorate,
+    format: () => format,
+    fs: () => filesystem_default,
+    html: () => html,
     move_workspace_leaf: () => move_workspace_leaf,
-    split_workspace_group: () => split_workspace_group
+    openInputBox: () => openInputBox,
+    openQuickPick: () => openQuickPick,
+    os: () => os_default,
+    path: () => path_default,
+    split_workspace_group: () => split_workspace_group,
+    until: () => until
   });
 
   // vendor/workspace_core/src/common/component.ts
@@ -235,6 +263,56 @@ var workspace_core_module = (() => {
     }
   };
 
+  // vendor/workspace_core/src/common/constants.ts
+  var globalRootDir = () => reqnode("path").join(_options.userDataPath, "typora_code");
+  var globalConfigDir = () => reqnode("path").join(globalRootDir(), "settings");
+  var coreDir = () => globalRootDir();
+  var platform = () => globalThis.process?.platform || "win32";
+  var isDebug = () => false;
+
+  // vendor/workspace_core/src/common/service.ts
+  var services = {};
+  var loadedServices = {};
+  var stacks = [];
+  function registerService(id, factory) {
+    services[id] = factory;
+  }
+  function useService(id, args) {
+    if (false) {
+      if (!services[id]) {
+        throw Error(`[Service] "${id}" is not registered.`);
+      }
+      if (stacks.includes(id)) {
+        throw Error(`[Service] Circular dependency detected: ${[...stacks, id].join(" \u2192 ")}`);
+      }
+      if (fixedServicesLoadingOrder.includes(id)) {
+        const index = fixedServicesLoadingOrder.indexOf(id);
+        if (index !== 0) {
+          throw Error(`[Service] "${id}" should be loaded before: ${fixedServicesLoadingOrder.slice(0, index).join(" \u2192 ")}`);
+        } else {
+          fixedServicesLoadingOrder.shift();
+        }
+      }
+    }
+    stacks.push(id);
+    if (isDebug() && !loadedServices[id]) {
+      loadedServices[id] = true;
+      console.log(`[Service] Loading "${stacks.join(" \u2192 ")}"...`);
+    }
+    let service = services[id](args);
+    if (false) {
+      service = wrapWithLoggingProxy(service, id, useService("logger", [id]), {
+        args: true,
+        entry: true,
+        exit: true,
+        errors: true,
+        perf: false
+      });
+    }
+    stacks.pop();
+    return service;
+  }
+
   // vendor/workspace_core/src/utils/schedule/debounce.ts
   function debounce(func, wait, immediate) {
     let timeout;
@@ -291,6 +369,13 @@ var workspace_core_module = (() => {
   // vendor/workspace_core/src/utils/string/capitalize.ts
   function capitalize(text) {
     return text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : "";
+  }
+
+  // vendor/workspace_core/src/utils/string/format.ts
+  function format(template, dict) {
+    return template.replace(/\{([^}]+)\}/g, (_, name) => {
+      return dict[name] ?? _;
+    });
   }
 
   // vendor/workspace_core/src/utils/string/is-markdown-url.ts
@@ -824,56 +909,6 @@ var workspace_core_module = (() => {
     });
   }
 
-  // vendor/workspace_core/src/common/constants.ts
-  var globalRootDir = () => reqnode("path").join(_options.userDataPath, "typora_code");
-  var globalConfigDir = () => reqnode("path").join(globalRootDir(), "settings");
-  var coreDir = () => globalRootDir();
-  var platform = () => globalThis.process?.platform || "win32";
-  var isDebug = () => false;
-
-  // vendor/workspace_core/src/common/service.ts
-  var services = {};
-  var loadedServices = {};
-  var stacks = [];
-  function registerService(id, factory) {
-    services[id] = factory;
-  }
-  function useService(id, args) {
-    if (false) {
-      if (!services[id]) {
-        throw Error(`[Service] "${id}" is not registered.`);
-      }
-      if (stacks.includes(id)) {
-        throw Error(`[Service] Circular dependency detected: ${[...stacks, id].join(" \u2192 ")}`);
-      }
-      if (fixedServicesLoadingOrder.includes(id)) {
-        const index = fixedServicesLoadingOrder.indexOf(id);
-        if (index !== 0) {
-          throw Error(`[Service] "${id}" should be loaded before: ${fixedServicesLoadingOrder.slice(0, index).join(" \u2192 ")}`);
-        } else {
-          fixedServicesLoadingOrder.shift();
-        }
-      }
-    }
-    stacks.push(id);
-    if (isDebug() && !loadedServices[id]) {
-      loadedServices[id] = true;
-      console.log(`[Service] Loading "${stacks.join(" \u2192 ")}"...`);
-    }
-    let service = services[id](args);
-    if (false) {
-      service = wrapWithLoggingProxy(service, id, useService("logger", [id]), {
-        args: true,
-        entry: true,
-        exit: true,
-        errors: true,
-        perf: false
-      });
-    }
-    stacks.pop();
-    return service;
-  }
-
   // vendor/workspace_core/src/common/events.ts
   var scopedListeners = {};
   var Events = class {
@@ -981,412 +1016,6 @@ var workspace_core_module = (() => {
     }
     emit(event, ...args) {
       return super.emit(event, ...args);
-    }
-  };
-
-  // vendor/workspace_core/src/common/eventbus.ts
-  var useEventBus = memorize(
-    function(scope) {
-      return new PublicEvents(scope);
-    }
-  );
-
-  // vendor/workspace_core/src/ui/layout/workspace-view.ts
-  var WorkspaceView = class extends Component {
-    constructor(leaf) {
-      super();
-      this.leaf = leaf;
-    }
-    containerEl;
-    icon = "fa-file-text-o";
-    setIcon(icon) {
-      setTimeout(() => {
-        $(this.leaf.parent?.tabHeader.getTabById(this.leaf.state.path)).find(".typ-file-icon").removeClass(this.icon).addClass(icon);
-        this.icon = icon;
-      }, 100);
-    }
-    isOpen = false;
-    open() {
-      if (this.isOpen) return;
-      this.isOpen = true;
-      this.setIcon(this.icon);
-      this.load();
-      this.onOpen();
-      useEventBus("workspace-root").emit("leaf:open", this.leaf);
-    }
-    onOpen() {
-    }
-    close() {
-      if (!this.isOpen) return;
-      this.isOpen = false;
-      useEventBus("workspace-root").emit("leaf:will-close", this.leaf);
-      this.onClose();
-      useEventBus("workspace-root").emit("leaf:close", this.leaf);
-      this.unload();
-    }
-    onClose() {
-    }
-    getScroll() {
-      return { scrollTop: this.leaf.containerEl.scrollTop };
-    }
-    applyScroll(state) {
-      this.leaf.containerEl.scrollTop = state.scrollTop;
-    }
-  };
-
-  // vendor/workspace_core/src/ui/common/view.ts
-  var View = class {
-    containerEl;
-    then(callback) {
-      callback(this.containerEl);
-      return this;
-    }
-  };
-
-  // vendor/workspace_core/src/ui/sidebar/sidebar-panel.ts
-  var SidebarPanel = class extends View {
-    constructor(ribbon = useService("ribbon"), sidebar = useService("sidebar")) {
-      super();
-      this.ribbon = ribbon;
-      this.sidebar = sidebar;
-    }
-    ribbonButton;
-    show() {
-      this.sidebar.container.addPanel(this);
-      this.onshow();
-    }
-    onshow() {
-    }
-    hide() {
-      this.sidebar.container.removePanel(this);
-      this.onhide();
-    }
-    onhide() {
-    }
-    addRibbonButton(button) {
-      this.ribbonButton = {
-        ...button,
-        // @ts-ignore
-        onclick: () => this.sidebar.switch(this.constructor)
-      };
-    }
-    /**
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    load() {
-      this.onload();
-    }
-    /**
-     * Use `onshow` instead.
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    onload() {
-    }
-    /**
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    unload() {
-      this.onunload();
-    }
-    /**
-     * Use `onhide` instead.
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    onunload() {
-    }
-  };
-  var InternalSidebarPanel = class extends SidebarPanel {
-    constructor() {
-      super();
-    }
-    show() {
-      this.onshow();
-    }
-    hide() {
-      this.onhide();
-    }
-  };
-
-  // vendor/workspace_core/src/ui/components/notice.ts
-  var NoticeContainer = class extends Component {
-    containerEl;
-    notices = [];
-    constructor() {
-      super();
-      until(() => useService("command-manager")).then((commands) => {
-        const { t } = useService("i18n");
-        this.register(
-          commands.register({
-            id: "core.notice:clear-all",
-            title: t.notice.clearAll,
-            scope: "global",
-            callback: () => this.clearAll()
-          })
-        );
-      });
-    }
-    /** @private */
-    onload() {
-      this.containerEl = html`<div class="typ-notice__container" style="display: none;"></div>`;
-      document.body.append(this.containerEl);
-    }
-    /** @private */
-    onunload() {
-      this.containerEl.remove();
-    }
-    add(notice) {
-      this.notices.push(notice);
-    }
-    remove(notice) {
-      this.notices = this.notices.filter((item) => item !== notice);
-    }
-    clearAll() {
-      [...this.notices].forEach((notice) => notice.close());
-    }
-    open() {
-      this.containerEl.style.display = "block";
-    }
-    close() {
-      if (this.containerEl.children.length > 0) return;
-      this.containerEl.style.display = "none";
-    }
-  };
-  var noticeContainer = new NoticeContainer();
-  var Notice = class _Notice extends View {
-    static info(message, duration) {
-      return new _Notice(message, duration);
-    }
-    static success(message, duration) {
-      return new _Notice(message, { type: "success", duration });
-    }
-    static warning(message, duration) {
-      return new _Notice(message, { type: "warning", duration });
-    }
-    static error(message, duration) {
-      return new _Notice(message, { type: "error", duration });
-    }
-    constructor(message, options) {
-      super();
-      const duration = (typeof options === "number" ? options : options?.duration) ?? 5e3;
-      const type = options?.type ?? "info";
-      this.containerEl = $(`<div class="typ-notice ${type}"></div>`).append(`<div class="typ-notice__content">${message}</div>`).append($('<div class="typ-notice__close"><i class="typ-icon typ-close"></i></div>').on("click", () => this.close())).get(0);
-      this.show();
-      duration > 0 && setTimeout(() => this.close(), duration);
-    }
-    /**
-     * @deprecated Use `setMessage` instead.
-     */
-    set message(msg) {
-      this.containerEl.innerText = msg;
-    }
-    setMessage(msg) {
-      this.message = msg;
-      return this;
-    }
-    /**
-     * @deprecated Notices should always be closable.
-     */
-    setCloseable(closeable) {
-      return this;
-    }
-    show() {
-      if (!noticeContainer.containerEl) return;
-      noticeContainer.containerEl.append(this.containerEl);
-      noticeContainer.add(this);
-      noticeContainer.open();
-      requestAnimationFrame(() => this.containerEl.classList.add("show"));
-    }
-    close() {
-      this.containerEl.remove();
-      noticeContainer.remove(this);
-      noticeContainer.close();
-    }
-  };
-
-  // node_modules/@plylrnsdy/decorate.js/index.js
-  function decorate(object, method, wrapper) {
-    const originalKey = Symbol.for(`${method}$original`);
-    const decoratorsKey = Symbol.for(`${method}$decorators`);
-    const original = object[originalKey] ?? object[method];
-    if (!object[decoratorsKey]) {
-      object[originalKey] = original;
-      object[decoratorsKey] = [];
-    }
-    object[decoratorsKey].push(wrapper);
-    wrap(object, method, original, object[decoratorsKey]);
-    return () => {
-      object[decoratorsKey] = object[decoratorsKey].filter((fn) => fn !== wrapper);
-      wrap(object, method, original, object[decoratorsKey]);
-    };
-  }
-  function wrap(object, method, original, wrappers) {
-    object[method] = wrappers.reduce((res, wrapper) => wrapper(res.bind(object), res), original);
-  }
-  decorate.parameters = function(object, method, wrapper) {
-    return decorate(object, method, (_, fn) => function(...args) {
-      return fn.call(this, ...wrapper.call(this, args));
-    });
-  };
-  decorate.returnValue = function(object, method, wrapper) {
-    return decorate(object, method, (_, fn) => function(...args) {
-      const res = fn.call(this, ...args);
-      const wrapped = (ret) => wrapper.call(this, args, ret);
-      return res instanceof Promise ? res.then(wrapped) : wrapped(res);
-    });
-  };
-  decorate.beforeCall = function(object, method, listener) {
-    return decorate.parameters(object, method, function(args) {
-      return listener.call(this, args), args;
-    });
-  };
-  decorate.afterCall = function(object, method, listener) {
-    return decorate.returnValue(object, method, function(args, res) {
-      return listener.call(this, args, res), res;
-    });
-  };
-
-  // vendor/workspace_core/src/ui/layout/workspace-node.ts
-  var WorkspaceNode = class extends Events {
-    parent = null;
-    containerEl;
-    resizeHandleEl;
-    constructor() {
-      super();
-      this.containerEl = $('<div class="typ-workspace-node">').append(this.resizeHandleEl = $('<hr class="typ-workspace-leaf-resize-handle">').on("mousedown", (e) => this.onResizeStart(e.originalEvent))[0])[0];
-    }
-    closest(type) {
-      let node = this;
-      while (node != null && node.type !== type) node = node.parent;
-      return node;
-    }
-    setParent(parent) {
-      this.parent = parent;
-    }
-    getRoot() {
-      return useService("workspace").rootSplit;
-    }
-    detach() {
-      this.parent?.removeChild(this);
-    }
-    onResizeStart(event) {
-      if (event.button === 0 && this.parent?.type === "split") {
-        this.parent.onChildResizeStart(this, event);
-      }
-    }
-  };
-
-  // vendor/workspace_core/src/ui/layout/workspace-leaf.ts
-  var WorkspaceLeaf = class extends WorkspaceNode {
-    constructor(view, viewManager = useService("view-manager")) {
-      super();
-      this.viewManager = viewManager;
-      this.containerEl.classList.add("typ-workspace-leaf");
-      this.view = view;
-    }
-    type = "leaf";
-    state = {};
-    viewType;
-    view;
-    isLeaf() {
-      return true;
-    }
-    setState(state) {
-      const factory = this.viewManager.getViewCreatorByType(state.type);
-      this.state = state.state ?? {};
-      this.viewType = state.type;
-      this.view = factory(this, state);
-      this.containerEl.append(this.view.containerEl);
-      return this;
-    }
-    toJSON() {
-      return {
-        type: "leaf",
-        state: this.state
-      };
-    }
-  };
-
-  // vendor/workspace_core/src/ui/views/markdown-view/use-editing-tabs.ts
-  var useEditingTabs = memorize(() => {
-    let editingTabs = null;
-    return {
-      /**
-       * @tips Cannot be used outside the Workspace API; otherwise, `null` will be returned after the Workspace is disabled.
-       */
-      editingTabs() {
-        return editingTabs;
-      },
-      setEditingTabs(tabs) {
-        editingTabs = tabs;
-      },
-      isEditingTabs(tabs) {
-        return editingTabs === tabs;
-      },
-      isEditingSingleChildTabs() {
-        return editingTabs?.children.length === 1;
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/md-editor-mode.ts
-  var MdEditorMode = class _MdEditorMode {
-    constructor(workspace = useService("workspace")) {
-      this.workspace = workspace;
-    }
-    static getInstance = memorize(() => new _MdEditorMode());
-    contentEl = editor.writingArea.parentElement;
-    _parentTabs = null;
-    _resizeObserver = null;
-    handleSettingActiveLeaf = null;
-    enter(ctx) {
-      const { containerEl, leaf } = ctx;
-      containerEl.classList.add("mode-typora");
-      containerEl.innerHTML = '<object type="text/html" data="about:blank"></object>';
-      const { setEditingTabs } = useEditingTabs();
-      setEditingTabs(ctx.leaf.parent);
-      this.contentEl.classList.add("typ-workspace-binding");
-      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
-      this.contentEl.addEventListener("mousedown", this.handleSettingActiveLeaf = () => {
-        this.workspace.activeLeaf = leaf;
-      });
-      this._parentTabs = leaf.parent;
-      this.syncSize();
-      this.unregisterObserver();
-      this.registerObserver();
-    }
-    exit(ctx) {
-      ctx.containerEl.classList.remove("mode-typora");
-      ctx.containerEl.innerHTML = "";
-      this.contentEl.classList.remove("typ-workspace-binding");
-      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
-      this.unregisterObserver();
-    }
-    getScroll() {
-      return { scrollTop: this.contentEl.scrollTop };
-    }
-    applyScroll(state) {
-      this.contentEl.scrollTop = state.scrollTop;
-    }
-    registerObserver() {
-      this._resizeObserver = new ResizeObserver(() => this.syncSize());
-      if (this._parentTabs) {
-        this._resizeObserver.observe(this._parentTabs.tabContentEl);
-      }
-    }
-    unregisterObserver() {
-      this._resizeObserver?.disconnect();
-      this._resizeObserver = null;
-    }
-    syncSize() {
-      const parent = this._parentTabs;
-      if (!parent) return;
-      const { style } = document.body;
-      const targetEl = parent.tabContentEl;
-      const rect = targetEl.getBoundingClientRect();
-      style.setProperty("--typ-editor-top", rect.top + "px");
-      style.setProperty("--typ-editor-left", rect.left + "px");
-      style.setProperty("--typ-editor-width", rect.width + "px");
-      style.setProperty("--typ-editor-height", rect.height + "px");
     }
   };
 
@@ -1562,565 +1191,1589 @@ var workspace_core_module = (() => {
   var filesystem = File.isNode ? new NodeFS() : new MacFS();
   var filesystem_default = filesystem;
 
-  // vendor/workspace_core/src/ui/views/markdown-view/md-previewer-mode.ts
-  var MdPreviewerMode = class {
-    constructor(mdRenderer = useService("markdown-renderer")) {
-      this.mdRenderer = mdRenderer;
+  // vendor/workspace_core/src/locales/i18n.ts
+  var DEFAULT_OPTIONS = {
+    defaultLang: "en"
+  };
+  var I18n = class {
+    constructor(options, logger = useService("logger", ["I18n"])) {
+      this.logger = logger;
+      const {
+        defaultLang,
+        userLang,
+        localePath,
+        resources
+      } = Object.assign({}, DEFAULT_OPTIONS, options);
+      const locale = (userLang ?? _options.appLocale ?? _options.locale).toLowerCase();
+      const localeList = [locale, locale.split("-").at(0), defaultLang];
+      if (resources) {
+        this.loadFormJson(localeList, resources);
+        return;
+      }
+      this.loadFormFile(localeList, localePath);
     }
-    _containerEl = null;
-    render_sequence = 0;
-    cleanup = [];
-    enter(ctx) {
-      const { containerEl, filePath } = ctx;
-      containerEl.classList.add("mode-previewer");
-      this._containerEl = containerEl;
-      const refresh = async () => {
-        const sequence = ++this.render_sequence;
-        const native_matches = () => (File.bundle.filePath || "") === filePath && !File.isFileLoading();
+    locale;
+    resources;
+    get t() {
+      return this.resources;
+    }
+    loadFormJson(localeList, resources) {
+      this.locale = localeList.find((s) => resources[s]) ?? "";
+      this.resources = resources[this.locale];
+    }
+    loadFormFile(localeList, localePath) {
+      const pathList = localeList.map((s) => path_default.join(localePath, `lang.${s}.json`));
+      for (let i = 0; i < pathList.length; i++) {
         try {
-          let markdown2 = native_matches() ? editor.getMarkdown() : filePath ? await filesystem_default.readText(filePath) : "";
-          if (sequence !== this.render_sequence || this._containerEl !== containerEl) return;
-          if (native_matches()) markdown2 = editor.getMarkdown();
-          const scroll_top = containerEl.parentElement?.scrollTop || 0;
-          this.mdRenderer.renderTo(markdown2, containerEl);
-          if (containerEl.parentElement) containerEl.parentElement.scrollTop = scroll_top;
+          const localePath2 = pathList[i];
+          const localeText = filesystem_default.readTextSync(localePath2);
+          this.locale = localeList[i];
+          this.resources = JSON.parse(localeText);
+          return;
         } catch (error) {
-          if (sequence === this.render_sequence && this._containerEl === containerEl) containerEl.textContent = String(error);
+          this.logger.warn(`Failed to load locale file: lang.${localeList[i]}.json`);
+          continue;
         }
-      };
-      this.cleanup.push(useService("markdown-editor").on("edit", refresh), useService("workspace").on("file:open", refresh));
-      void refresh();
-    }
-    exit(ctx) {
-      this.render_sequence++;
-      for (const cleanup of this.cleanup.splice(0)) cleanup();
-      ctx.containerEl.classList.remove("mode-previewer");
-      ctx.containerEl.innerHTML = "";
-      this._containerEl = null;
-    }
-    getScroll() {
-      return {
-        scrollTop: this._containerEl?.parentElement.scrollTop ?? 0
-      };
-    }
-    applyScroll(state) {
-      if (this._containerEl)
-        this._containerEl.parentElement.scrollTop = state.scrollTop;
+      }
+      throw new Error("No locale file found.");
     }
   };
 
-  // vendor/workspace_core/src/ui/views/markdown-view/use-preview-tab-to-swap.ts
-  var usePreviewTabToSwap = memorize(() => {
-    let previewTabToSwap = null;
-    return {
-      beginSwap(leaf) {
-        previewTabToSwap = leaf;
-      },
-      endSwap() {
-        previewTabToSwap = null;
-      },
-      previewFileToSwap() {
-        return previewTabToSwap?.state.path;
-      },
-      isPreviewFileToSwap(path2) {
-        return previewTabToSwap?.state.path === path2;
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/use-record.ts
-  var useRecord = memorize(() => {
-    return {
-      saveStateToLeaf(view) {
-        view.leaf.state = { ...view.leaf.state, ...view.getState() };
-      },
-      restoreStateFromLeaf(view) {
-        view.setState(view.leaf.state);
-      }
-    };
-  });
-
-  // vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts
-  var KEY_OPENFILE = Symbol.for("openFile$original");
-  var SwapCommand = class extends Component {
-    constructor(settings = useService("settings"), workspace = useService("workspace")) {
+  // vendor/workspace_core/src/settings/settings.ts
+  var Settings = class extends Store {
+    constructor(options, logger = useService("logger", ["Settings"]), config = useService("config-repository")) {
       super();
-      this.settings = settings;
-      this.workspace = workspace;
-      const SETTING_KEY = "useAutoSwap";
-      if (settings.get(SETTING_KEY)) {
-        this.load();
+      this.logger = logger;
+      this.config = config;
+      this.filename = options.filename;
+      this._codeVersion = options.version;
+      this._fileVersion = options.version;
+      this._migrations = options.migrations;
+      this._data = Object.create(this._defaultSettings);
+      this.addChangeListener("*", () => {
+        if (!this._is_saving_immediately) this.save();
+      });
+      this.load();
+    }
+    _settingsDir;
+    get _isSettingsLoaded() {
+      return this._settingsDir === this.config.configDir;
+    }
+    filename;
+    get version() {
+      return this._fileVersion;
+    }
+    _codeVersion = 0;
+    _fileVersion = 0;
+    _defaultSettings = {};
+    _migrations;
+    _is_saving_immediately = false;
+    setDefault(settings) {
+      Object.assign(this._defaultSettings, settings);
+    }
+    /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
+    set_and_save(key, value) {
+      if (typeof key !== "string") throw new TypeError("Setting key must be a string.");
+      const settings = { ...this._data, [key]: value };
+      this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings });
+      this._is_saving_immediately = true;
+      try {
+        this.set(key, value);
+      } finally {
+        this._is_saving_immediately = false;
       }
-      settings.onChange(SETTING_KEY, (_, isEnabled) => {
-        isEnabled ? this.load() : this.unload();
+    }
+    load() {
+      if (this._isSettingsLoaded) {
+        return;
+      } else {
+        this._settingsDir = this.config.configDir;
+      }
+      const oldSettings = this._data;
+      const rawStores = this.config.readConfigJson(this.filename, {
+        version: this._codeVersion,
+        settings: {}
+      });
+      this._fileVersion = rawStores.version;
+      this._data = Object.assign(
+        Object.create(this._defaultSettings),
+        rawStores.settings
+      );
+      Object.keys(this._defaultSettings).forEach((key) => {
+        if (this._data[key] === oldSettings[key]) return;
+        this._emit(key, this._data[key]);
+      });
+      if (this._fileVersion < this._codeVersion) {
+        this._migrations?.migrate(this);
+        if (this._migrations?.hasMigrated) {
+          this.save();
+          this._migrations.hasMigrated = false;
+        }
+      }
+    }
+    save() {
+      this.logger.debug(`Saving settings to ${this.filename}.json`);
+      this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings: this._data });
+    }
+    migrateTo(newVersion, transform) {
+      const result = transform({ version: this._fileVersion, settings: this._data });
+      this._fileVersion = newVersion;
+      this._data = result.settings;
+    }
+  };
+  __decorateClass([
+    debounced(1e3)
+  ], Settings.prototype, "save", 1);
+
+  // vendor/workspace_core/src/plugin/plugin-settings.ts
+  var PluginSettings = class extends Settings {
+    constructor(app, manifest, options) {
+      super({
+        ...options,
+        filename: `data/${manifest.id}`
       });
     }
-    execute(editorLeaf, previewLeaf) {
-      if (!this._loaded) return;
-      const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path;
-      const previewView = previewLeaf.view;
-      const writeEl = editor.writingArea.parentElement;
-      const { saveStateToLeaf, restoreStateFromLeaf } = useRecord();
-      const { beginSwap, endSwap } = usePreviewTabToSwap();
-      saveStateToLeaf(editorLeaf.view);
-      saveStateToLeaf(previewView);
-      editorLeaf.view.setMode("previewer");
-      beginSwap(previewLeaf);
-      this._hideEditor(writeEl);
-      this._setParent(previewLeaf);
-      this._openFile(previewLeaf.state.path);
-      const doSwap = () => {
-        previewView.setMode("typora");
-        this._syncEditorSize(previewView);
-        this._showEditor(writeEl);
-        setTimeout(() => {
-          restoreStateFromLeaf(editorLeaf.view);
-          restoreStateFromLeaf(previewView);
-          endSwap();
+  };
+
+  // vendor/workspace_core/src/plugin/plugin.ts
+  var Plugin = class extends Component {
+    constructor(app, manifest, config = useService("config-repository")) {
+      super();
+      this.app = app;
+      this.manifest = manifest;
+      this.config = config;
+    }
+    _settings;
+    get settings() {
+      if (!this._settings) {
+        throw Error("[Plugin] Use `registerSettings()` register `PluginSettings` instance before using `settings`.");
+      }
+      return this._settings;
+    }
+    async load() {
+      if (this._loaded) return;
+      this._loaded = true;
+      try {
+        await this.onload();
+        for (const child of this._children) await child.load();
+      } catch (error) {
+        await this.unload();
+        throw error;
+      }
+    }
+    async unload() {
+      const was_loaded = this._loaded;
+      if (!was_loaded && !this._disposables.length && !this._children.length) return;
+      this._loaded = false;
+      const errors = [];
+      try {
+        if (was_loaded) await this.onunload();
+      } catch (error) {
+        errors.push(error);
+      }
+      for (const dispose of this._disposables.splice(0).reverse()) try {
+        await dispose();
+      } catch (error) {
+        errors.push(error);
+      }
+      for (const child of this._children.splice(0).reverse()) try {
+        await child.unload();
+      } catch (error) {
+        errors.push(error);
+      }
+      if (errors.length) console.error("\u793E\u533A\u63D2\u4EF6\u6E05\u7406\u5F02\u5E38", this.manifest.id, errors);
+    }
+    get dataPath() {
+      return path_default.join(this.config.dataDir, `${this.manifest.id}.json`);
+    }
+    registerSettings(settings) {
+      this._settings = settings;
+      this._settings.load();
+    }
+    registerSettingTab(tab) {
+      this.register(
+        this.app.community_plugins.register_setting_tab(this.manifest.id, tab)
+      );
+    }
+    /**
+     * ActualCommand.id = `${this.manifest.id}:${command.id}`
+     */
+    registerCommand(command) {
+      command.id = this.manifest.id + ":" + command.id;
+      command.title = this.manifest.name + ": " + command.title;
+      this.register(
+        this.app.commands.register(command)
+      );
+    }
+    /**
+     * @deprecated Use `this.register(app.features.markdownEditor.on(...))` instead.
+     */
+    registerMarkdownEvent(...args) {
+      this.register(
+        useService("markdown-editor").on(...args)
+      );
+    }
+    /**
+     * @deprecated Use `this.register(app.features.markdownEditor.preProcessor.register(...))` instead.
+     */
+    registerMarkdownPreProcessor(processor) {
+      this.register(
+        useService("markdown-editor").preProcessor.register(processor)
+      );
+    }
+    /**
+     * @deprecated Use `this.register(app.features.markdownEditor.postProcessor.register(...))` instead.
+     */
+    registerMarkdownPostProcessor(processor) {
+      this.register(
+        useService("markdown-editor").postProcessor.register(processor)
+      );
+    }
+    /**
+     * @deprecated Use `this.register(app.features.markdownEditor.suggestion.register(...))` instead.
+     */
+    registerMarkdownSugguest(suggest) {
+      this.register(
+        useService("markdown-editor").suggestion.register(
+          suggest
+        )
+      );
+    }
+    registerScript(relativePath) {
+      this.register(this.importScript(relativePath));
+    }
+    importScript(relativePath) {
+      const script = document.createElement("script");
+      script.dataset.by = this.manifest.id;
+      script.src = "file://" + path_default.join(this.manifest.dir, relativePath);
+      document.head.appendChild(script);
+      return () => script.remove();
+    }
+    registerCss(relativePath) {
+      this.register(this.importCss(relativePath));
+    }
+    importCss(relativePath) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.dataset.by = this.manifest.id;
+      link.href = "file://" + path_default.join(this.manifest.dir, relativePath);
+      document.head.appendChild(link);
+      return () => link.remove();
+    }
+    addStatusBarItem(options) {
+      options ??= { position: "left" };
+      const { hint = "", type = "button" } = options;
+      const btnCls = "workspace-footer-control";
+      const el = $(`<div class="footer-item footer-item-${options.position} ${btnCls}" ty-hint="${hint}" aria-label="${hint}">`).appendTo($("footer.ty-footer")).get(0);
+      el.setAttribute("data-workspace-interaction", type === "button" ? "action" : "none");
+      this.register(() => el.remove());
+      return el;
+    }
+  };
+
+  // vendor/workspace_core/src/ui/common/view-legacy.ts
+  var ViewLegacy = class extends Component {
+    containerEl;
+    show() {
+      this.containerEl.style.display = "block";
+    }
+    hide() {
+      this.containerEl.style.display = "none";
+    }
+  };
+
+  // src/workspace_focus.ts
+  var active_element = () => {
+    let node = document.activeElement;
+    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
+    return node;
+  };
+  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
+  var within = (root, node) => {
+    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
+    return false;
+  };
+  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
+  var file_state = () => window.File;
+  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
+  function capture_workspace_focus(fallback) {
+    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
+    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
+    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback) || null;
+    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
+    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
+    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
+    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
+    let rangy;
+    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
+      try {
+        rangy = file?.editor?.selection?.getRangy();
+      } catch {
+      }
+    }
+    const scroll = [];
+    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
+    return { restore() {
+      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
+      const now = workspace_state();
+      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
+      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
+      previous.focus({ preventScroll: true });
+      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
+      else if (rangy) {
+        try {
+          rangy.select();
+        } catch {
+        }
+      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
+        try {
+          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
+        } catch {
+        }
+      }
+      for (const item of scroll) if (item.node.isConnected) {
+        item.node.scrollTop = item.top;
+        item.node.scrollLeft = item.left;
+      }
+    } };
+  }
+  var service_key = Symbol.for("typora-code:workspace-dismissal");
+  function register_workspace_dismissal(roots, cancel, options = {}) {
+    const runtime = window;
+    if (!runtime[service_key]) {
+      const stack = [];
+      let pending, listening = false, dismissing = false;
+      let gesture;
+      let gesture_timer;
+      const top = () => stack.findLast((record) => record.roots().some(visible));
+      const inside = (record, node) => (record.options.inside?.() || record.roots()).some((root) => within(root, node));
+      const consume = (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      };
+      const cancel_record = (record, reason) => {
+        if (dismissing) return;
+        dismissing = true;
+        try {
+          record.cancel(reason);
+        } finally {
+          dismissing = false;
+        }
+      };
+      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), pointerup: (event) => release(event), mouseup: (event) => release(event), click: (event) => complete(event), auxclick: (event) => complete(event), contextmenu: (event) => swallow(event), pointercancel: (event) => {
+        swallow(event);
+        finish();
+      }, focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
+      const cleanup = () => {
+        if (!stack.length && !pending && !gesture && listening) {
+          listening = false;
+          for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
+        }
+      };
+      const keydown = (event) => {
+        if (!gesture?.consumed) gesture = void 0;
+        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
+        if (pending) {
+          consume(event);
+          return;
+        }
+        const owner = top();
+        if (!owner) return;
+        consume(event);
+        if (!event.repeat) pending = owner;
+      };
+      const keyup = (event) => {
+        if (event.key !== "Escape" || !pending) return;
+        const owner = pending;
+        pending = void 0;
+        consume(event);
+        if (!event.isComposing && top() === owner && stack.includes(owner)) cancel_record(owner, "escape");
+        cleanup();
+      };
+      const down = (event, pointer) => {
+        if (!pointer && gesture?.pointer && gesture.button === event.button) {
+          gesture.pointer = false;
+          if (gesture.consumed) consume(event);
+          return;
+        }
+        window.clearTimeout(gesture_timer);
+        gesture_timer = void 0;
+        const owner = top();
+        gesture = { owner, button: event.button, pointer, dismissed: false, consumed: false };
+        if (!owner || owner.options.outside === false) return;
+        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
+        if (!hit) {
+          gesture.dismissed = true;
+          gesture.consumed = owner.options.consume_outside === true;
+          if (gesture.consumed) consume(event);
+          cancel_record(owner, "outside");
+        }
+      };
+      const swallow = (event) => {
+        if (gesture?.consumed && gesture.button === event.button) consume(event);
+      };
+      const finish = () => {
+        const current = gesture;
+        window.clearTimeout(gesture_timer);
+        gesture_timer = window.setTimeout(() => {
+          gesture_timer = void 0;
+          if (gesture === current) gesture = void 0;
+          cleanup();
+        }, 0);
+      };
+      const release = (event) => {
+        swallow(event);
+        finish();
+      };
+      const complete = (event) => {
+        swallow(event);
+        if (gesture?.button === event.button) {
+          window.clearTimeout(gesture_timer);
+          gesture_timer = void 0;
+          gesture = void 0;
+        }
+        cleanup();
+      };
+      const focus_changed = () => {
+        if (dismissing) return;
+        const owner = top();
+        if (!owner) return;
+        if (inside(owner, active_element())) owner.focused = true;
+        queueMicrotask(() => {
+          if (dismissing || top() !== owner || !stack.includes(owner) || !owner.focused || owner.options.focus_out === false) return;
+          if (gesture && (gesture.dismissed || gesture.owner !== owner)) return;
+          if (active_element() === document.body || active_element() === document.documentElement || inside(owner, active_element())) return;
+          cancel_record(owner, "focus-out");
+          cleanup();
         });
       };
-      if (isSwappingSameFile) {
-        doSwap();
-      } else {
-        this.workspace.once("file:open", doSwap);
-      }
+      const blur = () => {
+        pending = void 0;
+        window.clearTimeout(gesture_timer);
+        gesture_timer = void 0;
+        gesture = void 0;
+        const owner = top();
+        if (owner?.options.window_blur) cancel_record(owner, "window-blur");
+        cleanup();
+      };
+      runtime[service_key] = { add(record) {
+        record.focused = inside(record, active_element());
+        stack.push(record);
+        if (!listening) {
+          listening = true;
+          for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");
+        }
+        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
+          const index = stack.indexOf(record);
+          if (index !== -1) stack.splice(index, 1);
+          cleanup();
+        } };
+      } };
     }
-    _hideEditor(writeEl) {
-      writeEl.style.display = "none";
-      writeEl.classList.remove("typ-deactive");
-    }
-    _setParent(previewLeaf) {
-      const { setEditingTabs } = useEditingTabs();
-      setEditingTabs(previewLeaf.parent);
-    }
-    _openFile(filePath) {
-      editor.library[KEY_OPENFILE](filePath);
-    }
-    _syncEditorSize(previewView) {
-      const mode = previewView._modeState;
-      mode.syncSize();
-    }
-    _showEditor(writeEl) {
-      writeEl.style.display = "";
+    return runtime[service_key].add({ roots, cancel, options, focused: false });
+  }
+
+  // vendor/workspace_core/src/ui/common/view.ts
+  var View = class {
+    containerEl;
+    then(callback) {
+      callback(this.containerEl);
+      return this;
     }
   };
 
-  // vendor/workspace_core/src/ui/views/markdown-view/index.ts
-  var KEY_OPENFILE2 = Symbol.for("openFile$original");
-  var MarkdownView = class _MarkdownView extends WorkspaceView {
-    constructor(leaf, workspace = useService("workspace"), mdEditor = useService("markdown-editor"), mdRenderer = useService("markdown-renderer")) {
-      super(leaf);
-      this.leaf = leaf;
-      this.workspace = workspace;
-      this.mdEditor = mdEditor;
-      this.mdRenderer = mdRenderer;
+  // vendor/workspace_core/src/ui/components/modal.ts
+  var Modal = class extends View {
+    modal;
+    header;
+    body;
+    footer;
+    previous_focus;
+    escape_layer;
+    opened = false;
+    closeListeners = [];
+    constructor(props) {
+      super();
+      this.containerEl = $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>').append(
+        this.modal = $(`<div class="typ-modal ${props.className ?? ""}"></div>`).append(
+          this.body = html`<div class="typ-modal__body"></div>`
+        ).get(0)
+      ).get(0);
+      document.body.append(this.containerEl);
     }
-    static type = "core.markdown";
-    /** @override */
-    containerEl = $('<div class="typ-markdown-view"></div>')[0];
-    _modeState = null;
-    _swapCommand = new SwapCommand();
-    get filePath() {
-      return this.leaf.state.path;
-    }
-    get _modeCtx() {
-      return {
-        filePath: this.filePath,
-        leaf: this.leaf,
-        containerEl: this.containerEl
-      };
-    }
-    /** @override */
-    onload() {
-      this.addChild(this._swapCommand);
-      setTimeout(() => this.autoSetMode());
-      this.register(
-        this.leaf.getRoot().on("layout-changed", () => this.autoSetMode())
-      );
-      this.registerDomEvent(this.containerEl, "mousedown", (e) => {
-        if (this.isEditor()) return;
-        if (e.target.closest("a")) return;
-        const { editingTabs } = useEditingTabs();
-        const editorLeaf = editingTabs()?.findLeaf(
-          (leaf) => leaf.viewType === _MarkdownView.type && leaf.view.isEditor()
-        );
-        if (!editorLeaf) return;
-        this._swapCommand.execute(editorLeaf, this.leaf);
-      });
-    }
-    isEditor() {
-      return this._modeState instanceof MdEditorMode;
-    }
-    /** @override */
-    getScroll() {
-      return this._modeState?.getScroll() ?? super.getScroll();
-    }
-    /** @override */
-    applyScroll(state) {
-      this._modeState?.applyScroll(state);
-    }
-    /** @private */
-    autoSetMode() {
-      const { editingTabs, isEditingTabs } = useEditingTabs();
-      if (!editingTabs() || isEditingTabs(this.leaf.parent)) {
-        this.setMode("typora");
+    setHeader(text) {
+      if (!this.header) {
+        this.header = html`<div class="typ-modal__header">${text}</div>`;
+        this.modal.prepend(this.header);
       } else {
-        this.setMode("previewer");
+        this.header.textContent = text;
       }
+      return this;
     }
-    /** @override */
-    onOpen() {
-      this.autoSetMode();
-      const doRestore = () => {
-        const { restoreStateFromLeaf } = useRecord();
-        restoreStateFromLeaf(this);
-      };
-      if (this.isEditor()) {
-        editor.writingArea.parentElement.classList.remove("typ-deactive");
-        editor.library[KEY_OPENFILE2](this.filePath);
-        this.workspace.once("file:open", doRestore);
+    setBody(build) {
+      build(this.body);
+      return this;
+    }
+    setFooter(build) {
+      if (!this.footer) {
+        this.footer = html`<div class="typ-modal__footer"></div>`;
+        this.modal.append(this.footer);
       } else {
-        setTimeout(doRestore);
+        this.footer.innerHTML = "";
       }
+      build(this.footer);
+      return this;
     }
-    /** @override */
-    onClose() {
-      const { saveStateToLeaf } = useRecord();
-      saveStateToLeaf(this);
-      if (this.isEditor()) {
-        if (this.workspace.activeFile === this.filePath)
-          editor.writingArea.parentElement.classList.add("typ-deactive");
-        const { setEditingTabs, isEditingTabs, isEditingSingleChildTabs } = useEditingTabs();
-        if (isEditingTabs(this.leaf.parent)) {
-          this._modeState?.exit(this._modeCtx);
-          this._modeState = null;
-          if (isEditingSingleChildTabs()) {
-            setEditingTabs(null);
-            const nextMdLeaf = this.leaf.getRoot().findLeaf((leaf) => leaf.viewType === _MarkdownView.type && leaf !== this.leaf);
-            if (nextMdLeaf) nextMdLeaf.parent.activeLeaf.view.onOpen();
-          }
-        } else {
-          this._modeState = null;
-        }
-      } else {
-        this._modeState?.exit(this._modeCtx);
-        this._modeState = null;
-      }
+    onClose(callback) {
+      this.closeListeners.push(callback);
+      return this;
     }
-    /** @private */
-    setMode(mode) {
-      const prevMode = this._modeState;
-      if (prevMode instanceof MdEditorMode) {
-        this._modeCtx.containerEl.classList.remove("mode-typora");
-        this._modeCtx.containerEl.innerHTML = "";
-      } else {
-        prevMode?.exit(this._modeCtx);
-      }
-      this._modeState = mode === "typora" ? MdEditorMode.getInstance() : new MdPreviewerMode();
-      this._modeState.enter(this._modeCtx);
-      this.setIcon(mode === "typora" ? "fa-file-text-o" : "fa-file-text");
+    open() {
+      if (this.opened) return;
+      this.opened = true;
+      this.previous_focus = capture_workspace_focus();
+      this.containerEl.style.display = "";
+      this.escape_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => this.close(reason === "escape" || reason === "outside"), { inside: () => [this.modal], window_blur: true, consume_outside: true });
     }
-    getState() {
-      const state = this.getScroll();
-      if (this.isEditor()) {
-        state.cursorOffset = this.mdEditor.selection.getCursor();
-      }
-      return state;
-    }
-    setState(state) {
-      requestAnimationFrame(() => {
-        if (state.scrollTop != null) {
-          this.applyScroll(state);
-        }
-        if (state.cursorOffset != null && this.isEditor()) {
-          this.mdEditor.selection.setCursor(state.cursorOffset);
-        }
-      });
-    }
-    getCodeMirrorInstance(cid) {
-      return this.isEditor() ? editor.fences.getCm(cid) : this.mdRenderer.getCodeMirrorInstance(cid);
+    close(restore = true) {
+      if (!this.opened) return;
+      const owned = this.escape_layer?.owns_focus();
+      this.opened = false;
+      this.escape_layer?.dispose();
+      this.escape_layer = void 0;
+      this.containerEl.style.display = "none";
+      $("input", this.containerEl).each((i, el) => el.blur());
+      if (restore && owned) this.previous_focus?.restore();
+      this.previous_focus = void 0;
+      this.closeListeners.forEach((callback) => callback());
     }
   };
 
-  // vendor/workspace_core/src/ui/views/empty-view.ts
-  var EmptyView = class extends WorkspaceView {
-    constructor(leaf, settings = useService("settings")) {
-      super(leaf);
-      this.settings = settings;
-    }
-    static type = "core.empty";
-    containerEl = html`<div></div>`;
-    onload() {
-      if (this.settings.get("useBlankNewTab")) return;
-      $(this.containerEl).addClass("typ-empty-view").empty().append(html`<div><div class="typ-empty-title"></div><div class="typ-empty-hotkey"></div></div>`);
-      setTimeout(() => {
-        const config = useService("config-repository");
-        const commands = useService("command-manager");
+  // vendor/workspace_core/src/ui/components/notice.ts
+  var NoticeContainer = class extends Component {
+    containerEl;
+    notices = [];
+    constructor() {
+      super();
+      until(() => useService("command-manager")).then((commands) => {
         const { t } = useService("i18n");
-        const getHotky = (id) => commands.commandMap[id].hotkey?.split("+").map((k) => `<kbd>${k}</kbd>`).join("+") ?? "";
-        $(this.containerEl).find(".typ-empty-title").text(t.views.empty.noFile).end().find(".typ-empty-hotkey").append(html`<dl><dt>${t.commandModal.commandOpen}</dt><dd>${getHotky("command:open")}</dd></dl>`).append(html`<dl><dt>${t.ribbon.settingOfApp}</dt><dd><kbd>Ctrl</kbd>+<kbd>,</kbd></dd></dl>`);
+        this.register(
+          commands.register({
+            id: "core.notice:clear-all",
+            title: t.notice.clearAll,
+            scope: "global",
+            callback: () => this.clearAll()
+          })
+        );
+      });
+    }
+    /** @private */
+    onload() {
+      this.containerEl = html`<div class="typ-notice__container" style="display: none;"></div>`;
+      document.body.append(this.containerEl);
+    }
+    /** @private */
+    onunload() {
+      this.containerEl.remove();
+    }
+    add(notice) {
+      this.notices.push(notice);
+    }
+    remove(notice) {
+      this.notices = this.notices.filter((item) => item !== notice);
+    }
+    clearAll() {
+      [...this.notices].forEach((notice) => notice.close());
+    }
+    open() {
+      this.containerEl.style.display = "block";
+    }
+    close() {
+      if (this.containerEl.children.length > 0) return;
+      this.containerEl.style.display = "none";
+    }
+  };
+  var noticeContainer = new NoticeContainer();
+  var Notice = class _Notice extends View {
+    static info(message, duration) {
+      return new _Notice(message, duration);
+    }
+    static success(message, duration) {
+      return new _Notice(message, { type: "success", duration });
+    }
+    static warning(message, duration) {
+      return new _Notice(message, { type: "warning", duration });
+    }
+    static error(message, duration) {
+      return new _Notice(message, { type: "error", duration });
+    }
+    constructor(message, options) {
+      super();
+      const duration = (typeof options === "number" ? options : options?.duration) ?? 5e3;
+      const type = options?.type ?? "info";
+      this.containerEl = $(`<div class="typ-notice ${type}"></div>`).append(`<div class="typ-notice__content">${message}</div>`).append($('<div class="typ-notice__close"><i class="typ-icon typ-close"></i></div>').on("click", () => this.close())).get(0);
+      this.show();
+      duration > 0 && setTimeout(() => this.close(), duration);
+    }
+    /**
+     * @deprecated Use `setMessage` instead.
+     */
+    set message(msg) {
+      this.containerEl.innerText = msg;
+    }
+    setMessage(msg) {
+      this.message = msg;
+      return this;
+    }
+    /**
+     * @deprecated Notices should always be closable.
+     */
+    setCloseable(closeable) {
+      return this;
+    }
+    show() {
+      if (!noticeContainer.containerEl) return;
+      noticeContainer.containerEl.append(this.containerEl);
+      noticeContainer.add(this);
+      noticeContainer.open();
+      requestAnimationFrame(() => this.containerEl.classList.add("show"));
+    }
+    close() {
+      this.containerEl.remove();
+      noticeContainer.remove(this);
+      noticeContainer.close();
+    }
+  };
+
+  // vendor/workspace_core/src/ui/components/quick-open.ts
+  globalThis.openInputBox = openInputBox;
+  globalThis.openQuickPick = openQuickPick;
+  function openInputBox(options) {
+    const inputBox = useService("input-box");
+    return new Promise((resolve) => {
+      inputBox.open(resolve, options);
+    });
+  }
+  function openQuickPick(items, options) {
+    const quickPick = useService("quick-pick");
+    return new Promise((resolve) => {
+      quickPick.open(resolve, items, options);
+    });
+  }
+  var InputBox = class extends Component {
+    modal;
+    input;
+    options;
+    resolve;
+    resolved = false;
+    constructor() {
+      super();
+    }
+    onload() {
+      this.render();
+      super.onload();
+    }
+    open(resolve, options = {}) {
+      this.resolve = resolve;
+      this.resolved = false;
+      this.options = options;
+      $(this.modal.containerEl).find(".typ-command-modal__title").text(options.title ?? "").end().find(".typ-command-modal__form input").attr("placeholder", this.options.placeholder ?? "").end().find(".typ-command-modal__prompt").text(options.prompt ?? "");
+      this.modal.open();
+      this.input.focus();
+    }
+    close() {
+      if (!this.resolved) {
+        this.resolve(void 0);
+      }
+      this.resolve = void 0;
+      this.input.value = "";
+    }
+    render() {
+      this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {
+        $(body).on("keyup", this.onKeyup).append(
+          html`<div class="typ-command-modal__title"></div>`,
+          $('<div class="typ-command-modal__form"></div>').append(this.input = html`<input type="text" />`),
+          html`<div class="typ-command-modal__prompt"></div>`
+        );
+      });
+    }
+    onKeyup = (e) => {
+      switch (e.key) {
+        case "Enter":
+          this.resolve(this.input.value);
+          this.resolved = true;
+          this.close();
+          this.modal.close();
+          break;
+      }
+    };
+  };
+  var QuickPick = class extends Component {
+    modal;
+    input;
+    results;
+    items = [];
+    filteredItems = [];
+    selected = -1;
+    picked = {};
+    options;
+    resolve;
+    resolved = false;
+    constructor() {
+      super();
+    }
+    onload() {
+      this.render();
+      super.onload();
+    }
+    open(resolve, items, options = {}) {
+      this.items = items;
+      this.options = options;
+      this.resolve = resolve;
+      this.resolved = false;
+      $(this.modal.containerEl).find(".typ-command-modal__title").text(options.title ?? "").end().find(".typ-command-modal__form input").attr("placeholder", options.placeholder ?? "").end().find(".typ-command-modal__form button").css("display", options.canPickMany ? "" : "none");
+      this.filteredItems = items;
+      this.renderItems();
+      this.modal.open();
+      this.input.focus();
+    }
+    closePickMany() {
+      const res = Object.values(this.picked);
+      this.resolve(res.length ? res : void 0);
+      this.resolved = true;
+      this.close();
+      this.modal.close();
+    }
+    close() {
+      if (!this.resolved) {
+        this.resolve(void 0);
+      }
+      this.items = [];
+      this.resolve = void 0;
+      this.input.value = "";
+      this.selected = -1;
+      this.picked = {};
+    }
+    render() {
+      this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {
+        $(body).on("keyup", this.onKeyup).append(
+          html`<div class="typ-command-modal__title"></div>`,
+          $('<div class="typ-command-modal__form"></div>').append(
+            this.input = html`<input type="text" />`,
+            $(`<button class="typ-button primary">OK</button>`).on("click", () => this.closePickMany())
+          )
+        ).append(
+          this.results = $('<div class="typ-command-modal__results stopselect"></div>').on("click", this.onItemClick).get(0)
+        );
+      });
+    }
+    onKeyup = (event) => {
+      let { key } = event;
+      if (key.startsWith("Arrow")) {
+        if (key === "ArrowDown") {
+          if (this.selected < this.filteredItems.length - 1) {
+            this.selected++;
+          } else {
+            this.selected = 0;
+          }
+        } else if (key === "ArrowUp") {
+          if (this.selected > 0) {
+            this.selected--;
+          } else {
+            this.selected = this.filteredItems.length - 1;
+          }
+        }
+        this.renderItems();
+        return;
+      }
+      if (key === "Enter") {
+        this.onSelect(this.selected);
+        return;
+      }
+      this.selected = -1;
+      this.filteredItems = this.items.filter(
+        (c) => c.label.toLowerCase().includes(this.input.value.toLowerCase())
+      );
+      this.renderItems();
+    };
+    renderItems() {
+      this.results.innerHTML = "";
+      this.results.append(...this.filteredItems.map((item, i) => {
+        const active = i === this.selected ? "active" : "";
+        return $(`<div class="typ-command-modal__item ${active}" data-index=${i}>${item.label}</div>`).prepend(this.options.canPickMany ? `<input type="checkbox" ${this.picked[i] ? "checked" : ""}> ` : "").get(0);
+      }));
+    }
+    onItemClick = (event) => {
+      const el = event.target;
+      const item = el.closest(".typ-command-modal__item");
+      if (!item) return;
+      this.onSelect(+item.dataset.index);
+    };
+    onSelect = (index) => {
+      if (this.options.canPickMany) {
+        $(this.modal.containerEl).find(".typ-command-modal__item input").eq(index).prop("checked", !this.picked[index]);
+        if (this.picked[index]) {
+          delete this.picked[index];
+        } else {
+          this.picked[index] = this.filteredItems[index];
+        }
+        return;
+      }
+      this.resolve(this.filteredItems[index]);
+      this.resolved = true;
+      this.close();
+      this.modal.close();
+    };
+  };
+
+  // vendor/workspace_core/src/common/eventbus.ts
+  var useEventBus = memorize(
+    function(scope) {
+      return new PublicEvents(scope);
+    }
+  );
+
+  // vendor/workspace_core/src/ui/layout/workspace-view.ts
+  var WorkspaceView = class extends Component {
+    constructor(leaf) {
+      super();
+      this.leaf = leaf;
+    }
+    containerEl;
+    icon = "fa-file-text-o";
+    setIcon(icon) {
+      setTimeout(() => {
+        $(this.leaf.parent?.tabHeader.getTabById(this.leaf.state.path)).find(".typ-file-icon").removeClass(this.icon).addClass(icon);
+        this.icon = icon;
+      }, 100);
+    }
+    isOpen = false;
+    open() {
+      if (this.isOpen) return;
+      this.isOpen = true;
+      this.setIcon(this.icon);
+      this.load();
+      this.onOpen();
+      useEventBus("workspace-root").emit("leaf:open", this.leaf);
+    }
+    onOpen() {
+    }
+    close() {
+      if (!this.isOpen) return;
+      this.isOpen = false;
+      useEventBus("workspace-root").emit("leaf:will-close", this.leaf);
+      this.onClose();
+      useEventBus("workspace-root").emit("leaf:close", this.leaf);
+      this.unload();
+    }
+    onClose() {
+    }
+    getScroll() {
+      return { scrollTop: this.leaf.containerEl.scrollTop };
+    }
+    applyScroll(state) {
+      this.leaf.containerEl.scrollTop = state.scrollTop;
+    }
+  };
+
+  // vendor/workspace_core/src/ui/components/editable-table.ts
+  var removeRowCell = `<td><button class="typ-button" data-op="removeRow"><span class="fa fa-minus"></span></button></td>`;
+  var EditableTable = class extends View {
+    bodyEl;
+    editingRowEl;
+    headers = [];
+    data = [];
+    rowChangeHandlers = [];
+    rowRemoveHandlers = [];
+    constructor() {
+      super();
+      this.containerEl = $(`<table class="typ-editable-table"></table>`).append(
+        "<thead></thead>",
+        this.bodyEl = $("<tbody></tbody>").get(0),
+        "<tfoot></tfoot>"
+      ).on("click", (event) => {
+        const el = event.target;
+        if (el.tagName === "TH") return;
+        let btn;
+        if (btn = el.closest("button")) {
+          const op = btn.dataset.op;
+          op === "addRow" ? this.addRow() : this.removeRow(el);
+          return;
+        }
+        this.startEdit(el);
+      }).get(0);
+    }
+    setHeaders(headers) {
+      this.headers = headers;
+      this.renderHeaders();
+      this.renderFooter();
+      return this;
+    }
+    renderHeaders() {
+      const headers = this.headers.map((h) => `<th>${h.title}</th>`).concat(`<th><div><span class="fa fa-edit"></span></div></th>`).join("");
+      $("thead", this.containerEl).empty().html(headers);
+    }
+    addRow() {
+      this.renderRow({}, this.data.length);
+      this.data.push({});
+    }
+    removeRow(el) {
+      const tr = el.closest("tr");
+      const r = +tr.dataset.r;
+      this.rowRemoveHandlers.forEach(
+        (fn) => fn(this.data.splice(r, 1).at(0))
+      );
+      tr.remove();
+      $("tr", this.bodyEl).each((r2, tr2) => {
+        tr2.dataset.r = r2 + "";
+      });
+    }
+    renderFooter() {
+      const footer = `<tr><td colspan="${this.headers.length}"></td><td><button class="typ-button" data-op="addRow"><span class="fa fa-plus"></span></button></td></tr>`;
+      $("tfoot", this.containerEl).empty().html(footer);
+    }
+    /** Return a copy of the table data. */
+    getData() {
+      return JSON.parse(JSON.stringify(this.data));
+    }
+    setData(data) {
+      this.data = data;
+      this.renderBody();
+      return this;
+    }
+    renderBody() {
+      $(this.bodyEl).empty();
+      this.data.forEach((row, r) => this.renderRow(row, r));
+    }
+    renderRow(row, r) {
+      const cells = this.headers.map((h) => `<td>${row[h.prop] ?? ""}</td>`).concat(removeRowCell).join("");
+      $(this.bodyEl).append(html`<tr data-r="${r}">${cells}</tr>`);
+    }
+    onRowChange(listener) {
+      this.rowChangeHandlers.push(listener);
+      return this;
+    }
+    onRowRemove(listener) {
+      this.rowRemoveHandlers.push(listener);
+      return this;
+    }
+    startEdit(el) {
+      const tr = el.closest("tbody tr");
+      if (!tr) return;
+      if (tr === this.editingRowEl) return;
+      if (this.editingRowEl) {
+        const r2 = +this.editingRowEl.dataset.r;
+        this.editingRowEl.classList.remove("typ-editing");
+        Array.from(this.editingRowEl.cells).slice(0, -1).forEach((td, i) => {
+          td.innerText = this.data[r2][this.headers[i].prop] ?? "";
+        });
+      }
+      this.editingRowEl = tr;
+      const r = +tr.dataset.r;
+      this.editingRowEl.classList.add("typ-editing");
+      Array.from(tr.cells).forEach((td, i) => {
+        const { type, prop } = this.headers[i] ?? {};
+        if (!type) return;
+        $(td).empty().append(
+          $(`<input type="${type}" value="${this.data[r][prop] ?? ""}">`).on("input", debounce((event) => {
+            this.data[r][prop] = event.target.value;
+            this.rowChangeHandlers.forEach((fn) => fn(this.data[r]));
+          }, 1e3))
+        );
+        el.closest("td").querySelector("input")?.focus();
       });
     }
   };
 
-  // vendor/workspace_core/src/ui/layout/floating/theme.ts
-  function defaultTheme(containerEl) {
-    containerEl.classList.add("typ-theme-default");
-  }
-  function windowTheme(containerEl, title) {
-    containerEl.classList.add("typ-theme-window");
-    const titleBar = document.createElement("div");
-    titleBar.className = "typ-titlebar";
-    const iconEl = document.createElement("span");
-    iconEl.className = "typ-titlebar-icon";
-    iconEl.innerHTML = '<i class="fa fa-window-maximize"></i>';
-    const textEl = document.createElement("span");
-    textEl.className = "typ-titlebar-text";
-    textEl.textContent = title || "Floating View";
-    titleBar.appendChild(iconEl);
-    titleBar.appendChild(textEl);
-    containerEl.prepend(titleBar);
-  }
+  // vendor/workspace_core/src/ui/settings/setting-item.ts
+  var SettingContainer = class {
+    containerEl;
+    constructor(el) {
+      this.containerEl = el;
+    }
+    addSetting(build) {
+      const setting = new SettingItem();
+      build(setting);
+      this.containerEl.append(setting.containerEl);
+    }
+  };
+  var SettingItem = class extends View {
+    /**
+     * Contain `name` and `description`.
+     */
+    info;
+    name;
+    /**
+     * Constrols before `info`.
+     */
+    controlsPrefix;
+    /**
+     * Constrols after `info`.
+     */
+    controls;
+    constructor() {
+      super();
+      this.containerEl = html`<div class="typ-setting-item"></div>`;
+      this.containerEl.append(
+        this.controlsPrefix = html`<div class="typ-setting-controls prefix"></div>`,
+        this.info = html`<div class="typ-setting-info"></div>`,
+        this.controls = html`<div class="typ-setting-controls postfix"></div>`
+      );
+    }
+    onunload() {
+      this.containerEl.remove();
+    }
+    addTitle(text) {
+      this.info.append(
+        html`<h3 class="typ-setting-title">${text}</h3>`
+      );
+    }
+    addName(name) {
+      this.info.append(
+        this.name = html`<div class="typ-setting-name">${name} </div>`
+      );
+    }
+    /**
+     * Add badge to `name` element.
+     */
+    addBadge(text) {
+      if (!this.name) {
+        this.addName("");
+      }
+      this.name.append(html` <code>${text}</code>`);
+    }
+    addDescription(param0) {
+      const el = html`<div class="typ-setting-description"></div>`;
+      if (typeof param0 === "string") {
+        el.innerText = param0;
+      } else {
+        param0(el);
+      }
+      this.info.append(el);
+    }
+    addCheckbox(build) {
+      const input = html`<input type="checkbox">`;
+      build(input);
+      this.controlsPrefix.append(input);
+    }
+    addButton(build) {
+      const button = html`<button class="typ-button"></button>`;
+      build(button);
+      this.controls.append(button);
+    }
+    addInput(type, build) {
+      const input = html`<input type="${type}">`;
+      build(input);
+      this.controls.append(input);
+    }
+    addText(build) {
+      this.addInput("text", build);
+    }
+    addTextArea(build) {
+      const text = html`<textarea></textarea>`;
+      build(text);
+      this.info.append(text);
+    }
+    addSelect(param0) {
+      const select = html`<select></select>`;
+      if (typeof param0 === "function") {
+        param0(select);
+      } else {
+        select.innerHTML = param0.options.map((o) => `<option ${o === param0.selected ? "selected" : ""}>${o}</option>`).join("");
+        select.onchange = param0.onchange;
+      }
+      this.controls.append(select);
+    }
+    addTag(text, build) {
+      const el = html`<div class="typ-tag">${text} </div>`;
+      build?.(el);
+      this.controls.prepend(el);
+    }
+    addRemovableTag(text, onClose = noop) {
+      this.addTag(text, (el) => {
+        el.classList.add("removable");
+        $(`<span class="typ-icon typ-close"></span>`).on("click", () => {
+          el.remove();
+          onClose();
+        }).appendTo(el);
+      });
+    }
+    /**
+     * @beta
+     */
+    addTable(build) {
+      const table = new EditableTable();
+      build(table);
+      this.containerEl.append(table.containerEl);
+    }
+    /**
+     * Add a sidebar + panel layout. The active state is managed internally;
+     * `onSelect` receives the selected item, the panel element and a `panel`
+     * object supporting `addSetting()` to compose multiple setting rows into it.
+     * Returns an object with methods to manage the sidebar list dynamically.
+     * @beta
+     */
+    addSidebarLayout(options, onSelect) {
+      const layoutEl = html`<div class="typ-setting-sidebar-layout"></div>`;
+      const sidebarEl = html`<aside class="typ-sidebar typ-setting-sidebar"></aside>`;
+      const panelEl = html`<div class="typ-setting-panel"></div>`;
+      layoutEl.append(sidebarEl, panelEl);
+      let active = options.initialActive ?? options.items[0];
+      const renderSidebar = () => {
+        sidebarEl.replaceChildren();
+        for (const item of options.items) {
+          const el = html`<div class="typ-nav__item"></div>`;
+          el.textContent = item;
+          if (item === active) el.classList.add("active");
+          el.onclick = () => select(item);
+          sidebarEl.append(el);
+        }
+      };
+      const select = (item) => {
+        active = item;
+        renderSidebar();
+        panelEl.replaceChildren();
+        const panel = new SettingContainer(panelEl);
+        onSelect({ items: options.items, item, panelEl, panel });
+      };
+      renderSidebar();
+      if (options.items.length) select(active);
+      this.info.append(layoutEl);
+      return {
+        setItems(items) {
+          options.items = [...items];
+          if (options.items.length) {
+            if (!options.items.includes(active)) active = options.items[0];
+            select(active);
+          } else {
+            sidebarEl.replaceChildren();
+            panelEl.replaceChildren();
+          }
+        },
+        addItem(item) {
+          if (!options.items.includes(item)) {
+            options.items.push(item);
+            renderSidebar();
+          }
+        },
+        removeItem(item) {
+          const index = options.items.indexOf(item);
+          if (index >= 0) {
+            options.items.splice(index, 1);
+            if (item === active && !options.items.length) {
+              renderSidebar();
+              panelEl.replaceChildren();
+            } else if (item === active) {
+              select(options.items[0]);
+            } else {
+              renderSidebar();
+            }
+          }
+        }
+      };
+    }
+  };
 
-  // vendor/workspace_core/src/ui/layout/floating/resizable.ts
-  function resizable(containerEl, options) {
-    const minWidth = options?.minWidth ?? 120;
-    const minHeight = options?.minHeight ?? 80;
-    const handle = document.createElement("div");
-    handle.className = "typ-floating-resize-handle";
-    const prevPosition = getComputedStyle(containerEl).position;
-    if (!["absolute", "fixed"].includes(prevPosition)) {
-      containerEl.style.position = "relative";
+  // vendor/workspace_core/src/ui/settings/setting-tab.ts
+  var SettingTab = class extends View {
+    constructor() {
+      super();
+      this.containerEl = html`<div class="typ-setting-tab"></div>`;
     }
-    let startX = 0;
-    let startY = 0;
-    let startWidth = 0;
-    let startHeight = 0;
-    function onMouseMove(e) {
-      const width = Math.max(minWidth, startWidth + e.clientX - startX);
-      const height = Math.max(minHeight, startHeight + e.clientY - startY);
-      containerEl.style.width = `${width}px`;
-      containerEl.style.height = `${height}px`;
+    addSettingTitle(text) {
+      this.addSetting((setting) => setting.addTitle(text));
     }
-    function onMouseUp() {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+    addSetting(build) {
+      new SettingContainer(this.containerEl).addSetting(build);
     }
-    function onHandleMouseDown(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      startX = e.clientX;
-      startY = e.clientY;
-      startWidth = containerEl.offsetWidth;
-      startHeight = containerEl.offsetHeight;
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+    /**
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    load() {
+      this.onload?.();
     }
-    handle.addEventListener("mousedown", onHandleMouseDown);
-    containerEl.appendChild(handle);
+    /**
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    unload() {
+      this.onunload?.();
+    }
+    show() {
+      this.onshow();
+    }
+    onshow() {
+    }
+    hide() {
+      this.onhide();
+    }
+    onhide() {
+    }
+  };
+
+  // vendor/workspace_core/src/ui/editor/postprocessor/postprocessor.ts
+  var PostProcessor = class _PostProcessor {
+    constructor(logger = useService("logger", ["PostProcessor"])) {
+      this.logger = logger;
+    }
+    owned_buttons = /* @__PURE__ */ new Set();
+    cleanups = [];
+    register_cleanup(cleanup) {
+      this.cleanups.push(cleanup);
+    }
+    dispose() {
+      for (const button of this.owned_buttons) {
+        const group = button.parentElement;
+        button.remove();
+        if (group?.classList.contains("typ-buttons") && !group.children.length) group.remove();
+      }
+      this.owned_buttons.clear();
+      for (const cleanup of this.cleanups.splice(0)) cleanup();
+    }
+    _process(el) {
+      try {
+        this.process(el, { containerEl: el });
+      } catch (e) {
+        this.logger.error(e);
+      }
+    }
+    process(el, context) {
+      throw new Error("Method not implemented.");
+    }
+    renderButton(parent, button) {
+      const className = button.className ??= "typ-btn_" + randomString();
+      const group = this.setupButtonContainer(parent);
+      if (group.getElementsByClassName(className).length) {
+        return;
+      }
+      const buttonEl = document.createElement("button");
+      buttonEl.classList.add("typ-block-operate-button", className);
+      buttonEl.innerHTML = button.text;
+      buttonEl.title = button.title ?? "";
+      buttonEl.onclick = (event) => button.onclick(event, {});
+      group.append(buttonEl);
+      this.owned_buttons.add(buttonEl);
+    }
+    setupButtonContainer(codeblock) {
+      let group = codeblock.querySelector(".typ-buttons");
+      if (group) return group;
+      group = document.createElement("div");
+      group.className = "typ-buttons";
+      group.addEventListener("mouseup", (event) => event.stopPropagation());
+      codeblock.append(group);
+      return group;
+    }
+    static from(options) {
+      const processor = new _PostProcessor();
+      if (typeof options === "function") {
+        processor.process = options;
+      } else {
+        Object.assign(processor, options);
+      }
+      return processor;
+    }
+  };
+
+  // vendor/workspace_core/src/ui/editor/postprocessor/html-postprocessor.ts
+  var HtmlPostProcessor = class _HtmlPostProcessor extends PostProcessor {
+    constructor(logger = useService("logger", ["HtmlPostProcessor"])) {
+      super();
+      this.logger = logger;
+    }
+    _selector = "";
+    get selector() {
+      return this._selector;
+    }
+    set selector(value) {
+      this._selector = value;
+    }
+    process(el, context) {
+      throw new Error("Method not implemented.");
+    }
+    _process(el) {
+      try {
+        const elements = this.selector ? $(this.selector, el).toArray() : [el];
+        elements.forEach((selected) => this.process(selected, { containerEl: el }), this);
+      } catch (error) {
+        this.logger.error(error);
+      }
+    }
+    static from(options) {
+      const processor = new _HtmlPostProcessor();
+      Object.assign(processor, options);
+      return processor;
+    }
+  };
+
+  // node_modules/@plylrnsdy/decorate.js/index.js
+  function decorate(object, method, wrapper) {
+    const originalKey = Symbol.for(`${method}$original`);
+    const decoratorsKey = Symbol.for(`${method}$decorators`);
+    const original = object[originalKey] ?? object[method];
+    if (!object[decoratorsKey]) {
+      object[originalKey] = original;
+      object[decoratorsKey] = [];
+    }
+    object[decoratorsKey].push(wrapper);
+    wrap(object, method, original, object[decoratorsKey]);
     return () => {
-      handle.removeEventListener("mousedown", onHandleMouseDown);
-      handle.remove();
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+      object[decoratorsKey] = object[decoratorsKey].filter((fn) => fn !== wrapper);
+      wrap(object, method, original, object[decoratorsKey]);
     };
   }
+  function wrap(object, method, original, wrappers) {
+    object[method] = wrappers.reduce((res, wrapper) => wrapper(res.bind(object), res), original);
+  }
+  decorate.parameters = function(object, method, wrapper) {
+    return decorate(object, method, (_, fn) => function(...args) {
+      return fn.call(this, ...wrapper.call(this, args));
+    });
+  };
+  decorate.returnValue = function(object, method, wrapper) {
+    return decorate(object, method, (_, fn) => function(...args) {
+      const res = fn.call(this, ...args);
+      const wrapped = (ret) => wrapper.call(this, args, ret);
+      return res instanceof Promise ? res.then(wrapped) : wrapped(res);
+    });
+  };
+  decorate.beforeCall = function(object, method, listener) {
+    return decorate.parameters(object, method, function(args) {
+      return listener.call(this, args), args;
+    });
+  };
+  decorate.afterCall = function(object, method, listener) {
+    return decorate.returnValue(object, method, function(args, res) {
+      return listener.call(this, args, res), res;
+    });
+  };
 
-  // vendor/workspace_core/src/ui/layout/floating/draggable.ts
-  function draggable(containerEl, handleEl) {
-    const handle = handleEl ?? containerEl;
-    let startX = 0;
-    let startY = 0;
-    let startLeft = 0;
-    let startTop = 0;
-    function onMouseMove(e) {
-      containerEl.style.left = `${startLeft + e.clientX - startX}px`;
-      containerEl.style.top = `${startTop + e.clientY - startY}px`;
+  // vendor/workspace_core/src/ui/editor/postprocessor/codeblock-postprocessor.ts
+  var CodeblockPostProcessor = class _CodeblockPostProcessor extends HtmlPostProcessor {
+    constructor(workspace = useService("workspace")) {
+      super();
+      this.workspace = workspace;
     }
-    function onMouseUp() {
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+    type = "codeblock";
+    lang = [""];
+    get selector() {
+      const selector = this.lang.map((lang) => lang ? `[lang="${lang}"]` : "").map((langSelector) => `.md-fences${langSelector}:has(.CodeMirror)`).join(",");
+      return selector;
     }
-    function onHandleMouseDown(e) {
-      if (e.button !== 0) return;
-      const rect = containerEl.getBoundingClientRect();
-      startX = e.clientX;
-      startY = e.clientY;
-      startLeft = rect.left;
-      startTop = rect.top;
-      if (!containerEl.style.position || !["fixed", "absolute"].includes(containerEl.style.position)) {
-        containerEl.style.position = "fixed";
+    button;
+    exportPreview = false;
+    preview(code, el) {
+      throw new Error("Method not implemented.");
+    }
+    process(el, context) {
+      if (this.button) {
+        this.renderButton(el, this.button);
       }
-      containerEl.style.left = `${rect.left}px`;
-      containerEl.style.top = `${rect.top}px`;
-      containerEl.style.right = "";
-      containerEl.style.bottom = "";
-      document.addEventListener("mousemove", onMouseMove);
-      document.addEventListener("mouseup", onMouseUp);
+      if (this.hasPreview()) {
+        this.buildPreviewer(el, this.preview);
+      }
     }
-    handle.addEventListener("mousedown", onHandleMouseDown);
-    return () => {
-      handle.removeEventListener("mousedown", onHandleMouseDown);
-      document.removeEventListener("mousemove", onMouseMove);
-      document.removeEventListener("mouseup", onMouseUp);
+    /**
+     * If override `preview()` to render codeblock preview, then return `true`
+     */
+    hasPreview() {
+      return this.preview !== _CodeblockPostProcessor.prototype.preview;
+    }
+    renderButton(parent, button) {
+      const btn = button;
+      if (!btn.$button) {
+        btn.$button = {
+          ...button,
+          onclick: (event) => {
+            const pre = event.target.closest("pre");
+            const code = this.getValueOfCodeblock(pre);
+            button.onclick(event, { codeblock: pre, code });
+          }
+        };
+      }
+      super.renderButton(parent, btn.$button);
+    }
+    buildPreviewer(codeblock, preview) {
+      if (codeblock.querySelector(".md-diagram-panel-preview")) {
+        return;
+      }
+      const previewer = document.querySelector("#componenet > .md-diagram-panel").cloneNode(true);
+      previewer.style.cssText = "position:initial; margin:0; padding:0;";
+      previewer.addEventListener("click", () => {
+        codeblock.classList.add("md-focus");
+      });
+      const containerEl = previewer.querySelector(".md-diagram-panel-preview");
+      const render = async () => {
+        const code = this.getValueOfCodeblock(codeblock);
+        const previewEl = await preview(code, codeblock);
+        if (!previewer.isConnected) return;
+        containerEl.innerHTML = "";
+        containerEl.append(previewEl);
+      };
+      render();
+      codeblock.classList.add("md-diagram", "md-fences-advanced");
+      const on_key = debounce(render, 1e3);
+      codeblock.addEventListener("keyup", on_key);
+      this.register_cleanup(() => {
+        codeblock.removeEventListener("keyup", on_key);
+        previewer.remove();
+        codeblock.classList.remove("md-diagram", "md-fences-advanced");
+      });
+      codeblock.append(previewer);
+    }
+    getValueOfCodeblock(codeblock) {
+      const rootEl = codeblock.closest("#write") ?? codeblock.closest(".typ-markdown-view");
+      const cid = codeblock.getAttribute("cid");
+      if (!cid) throw Error("`cid` of codeblock can not be empty.");
+      if ($(rootEl).is("#write")) {
+        return editor.fences.getCm(cid)?.getValue() ?? "";
+      } else {
+        const leaf = this.workspace.rootSplit.findLeaf((leaf2) => leaf2.view.containerEl === rootEl);
+        const mdView = leaf?.view;
+        return mdView?.getCodeMirrorInstance(cid)?.getValue() ?? "";
+      }
+    }
+    static from(options) {
+      const processor = new _CodeblockPostProcessor();
+      Object.assign(processor, options);
+      return processor;
+    }
+  };
+  function blockMarkdownViewPreviewMode() {
+    decorate.parameters(editor.fences, "refreshEditor", ([a0, a1, a2]) => [a0, a1, a2 ?? editor.writingArea]);
+  }
+
+  // vendor/workspace_core/src/ui/editor/suggestion/suggest.ts
+  var EditorSuggest = class {
+    _query = "";
+    _placeholder = [];
+    get isUsing() {
+      return editor.autoComplete.state.all === this._placeholder;
+    }
+    _handlers = {
+      search: this.getSuggestions.bind(this),
+      render: this._renderSuggestion.bind(this)
     };
-  }
+    canTrigger(textBefore, textAfter, range) {
+      return !!textBefore;
+    }
+    show(range, query) {
+      this._query = query;
+      editor.autoComplete.show(this._placeholder, range, query, this._handlers);
+    }
+    hide() {
+      editor.autoComplete.hide();
+    }
+    /**
+     * @returns HTML string
+     */
+    _renderSuggestion(suggest, isActive) {
+      const className = `typ-suggestion ${isActive ? "active" : ""}`;
+      const id = this.getSuggestionId(suggest);
+      const text = this.renderSuggestion(suggest);
+      return `<li class="${className}" data-content="${id}">${text}</li>`;
+    }
+    /**
+     * @returns HTML string
+     */
+    renderSuggestion(suggest) {
+      return suggest.toString();
+    }
+    _beforeApply(matched) {
+      if (typeof matched === "string")
+        return this.beforeApply(this.getSuggestionById(matched));
+      else
+        return this.beforeApply(matched);
+    }
+    lengthOfTextBeforeToBeReplaced(query) {
+      return query.length + this.triggerText.length;
+    }
+  };
 
-  // vendor/workspace_core/src/ui/layout/floating/closable.ts
-  function closable(containerEl, onClose) {
-    const closeBtn = document.createElement("div");
-    closeBtn.className = "typ-floating-close";
-    closeBtn.innerHTML = `<i class="typ-icon typ-close"></i>`;
-    function onClick(e) {
-      e.stopPropagation();
-      onClose();
+  // vendor/workspace_core/src/ui/editor/suggestion/text-suggest.ts
+  var TextSuggest = class extends EditorSuggest {
+    getSuggestionId(suggest) {
+      return suggest.replace(/"/g, "&#34;").replace(/'/g, "&#39;");
     }
-    closeBtn.addEventListener("click", onClick);
-    containerEl.appendChild(closeBtn);
-    return () => {
-      closeBtn.removeEventListener("click", onClick);
-    };
-  }
+    getSuggestionById(id) {
+      return id;
+    }
+    getSuggestions(query) {
+      if (!query) return this.suggestions;
+      query = query.toLowerCase();
+      const cache = {};
+      return this.suggestions.filter((n) => {
+        cache[n] = n.toLowerCase().indexOf(query);
+        return cache[n] !== -1;
+      }).sort((a, b) => cache[a] - cache[b] || a.length - b.length);
+    }
+  };
 
-  // vendor/workspace_core/src/ui/layout/workspace-utils.ts
-  function createUntitledTabs() {
-    const tabs = useService("workspace-tabs");
-    tabs.appendChild(createEditorLeaf(""));
-    tabs.once("tab:toggle", () => tabs.removeTab(""));
-    return tabs;
-  }
-  function createTabs(path2) {
-    const workspace = useService("workspace");
-    const tabs = useService("workspace-tabs");
-    const newLeaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
-    tabs.appendChild(newLeaf);
-    workspace.activeLeaf = newLeaf;
-    return tabs;
-  }
-  function openFileInActiveTabs(file) {
-    const workspace = useService("workspace");
-    const activeTabs = workspace.activeLeaf?.parent;
-    if (activeTabs.findLeaf((leaf) => leaf.state.path === file)) {
-      workspace.activeLeaf = activeTabs.toggleTab(file);
-      return;
+  // vendor/workspace_core/src/export-manager.ts
+  var ExportManager = class {
+    _processors = [];
+    constructor() {
+      setTimeout(() => {
+        const { postProcessor } = useService("markdown-editor");
+        decorate.returnValue(editor.export, "exportToHTML", (args, html2) => {
+          postProcessor.processAllCodeblock();
+          const doc = new DOMParser().parseFromString(html2, "text/html");
+          const ctx = {
+            type: "html",
+            html: html2,
+            doc
+          };
+          this._processHtml(ctx);
+          return `<!DOCTYPE HTML>
+${doc.documentElement.outerHTML}`;
+        });
+      });
     }
-    activeTabs.appendChild(createEditorLeaf(file));
-    workspace.activeLeaf = activeTabs.activeLeaf;
-  }
-  function createLeaf(state) {
-    const leaf = new WorkspaceLeaf();
-    if (state) leaf.setState(state);
-    return leaf;
-  }
-  function createEditorLeaf(filePath) {
-    return createLeaf({
-      type: MarkdownView.type,
-      state: {
-        path: filePath
-      }
-    });
-  }
-  var RE_TYPE = /^typ:\/\/([^/]+)/;
-  function createCustomLeaf(path2) {
-    const type = (path2.match(RE_TYPE) ?? [])[1];
-    if (!type) throw Error(`View "${type}" has not registered.`);
-    return createLeaf({
-      type,
-      state: {
-        path: path2
-      }
-    });
-  }
-  function createEmptyLeaf() {
-    return createLeaf({
-      type: EmptyView.type,
-      state: {
-        path: uniqueId(`typ://${EmptyView.type}/`) + "/New tab"
-      }
-    });
-  }
-  function splitRight(path2) {
-    split("vertical", path2);
-  }
-  function splitDown(path2) {
-    split("horizontal", path2);
-  }
-  function split(direction, path2) {
-    const workspace = useService("workspace");
-    const source = workspace.activeLeaf;
-    if (!source) return;
-    const target = split_workspace_group(source, direction === "vertical" ? "right" : "down");
-    const leaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
-    target.appendChild(leaf);
-    workspace.activeLeaf = leaf;
-  }
-  function split_workspace_group(leaf, side) {
-    const direction = side === "left" || side === "right" ? "vertical" : "horizontal";
-    const previous_group = leaf.parent;
-    const parent_split = previous_group.parent;
-    const next_group = useService("workspace-tabs");
-    const before = side === "left" || side === "up";
-    if (parent_split.direction === direction) {
-      parent_split.insertChild(parent_split.children.indexOf(previous_group) + (before ? 0 : 1), next_group);
-    } else {
-      const next_split = useService("workspace-split", [direction]);
-      parent_split.replaceChild(previous_group, next_split);
-      next_split.appendChild(before ? next_group : previous_group);
-      next_split.appendChild(before ? previous_group : next_group);
+    register(processor) {
+      this._processors.push(processor);
+      return () => this.unregister(processor);
     }
-    return next_group;
-  }
-  function ensureRightSidedockLeaf(uri) {
-    const workspace = useService("workspace");
-    const type = (uri.match(RE_TYPE) ?? [])[1];
-    const existing = workspace.rightSplit.findLeaf((leaf2) => leaf2.type === type);
-    if (existing) return;
-    const tabs = useService("workspace-tabs");
-    const leaf = createCustomLeaf(uri);
-    tabs.appendChild(leaf);
-    workspace.rightSplit.appendChild(tabs);
-  }
-  function openFloatingLeaf(arg0) {
-    const workspace = useService("workspace");
-    const tabs = useService("workspace-tabs");
-    const leaf = typeof arg0 === "string" ? createCustomLeaf(arg0) : arg0;
-    const { view, state } = leaf;
-    const { containerEl } = view;
-    let titlebar;
-    containerEl.classList.add("typ-workspace-floating");
-    decorate.afterCall(view, "onload", () => {
-      state.theme === "default" && defaultTheme(containerEl);
-      state.theme === "window" && (windowTheme(containerEl, state.path.split("/").pop()), titlebar = containerEl.querySelector(".typ-titlebar"));
-      state.resizable && view.register(resizable(containerEl));
-      state.draggable && view.register(draggable(containerEl, titlebar));
-      state.onClose && view.register(closable(titlebar ?? containerEl, state.onClose));
-    });
-    tabs.appendChild(leaf);
-    workspace.floatingSplit.appendChild(tabs);
-  }
-
-  // vendor/workspace_core/src/ui/layout/workspace_leaf_actions.ts
-  function move_workspace_leaf(leaf, target, index, workspace = useService("workspace")) {
-    const source = leaf.parent;
-    const fixed_count = target.children.filter((child) => child !== leaf && child.state.workspace_pinned).length;
-    const next_index = leaf.state.workspace_pinned ? Math.min(index, fixed_count) : Math.max(index, fixed_count);
-    if (source === target) {
-      const old_index = target.children.indexOf(leaf);
-      if (old_index < 0) return;
-      target.children.splice(old_index, 1);
-      target.children.splice(next_index, 0, leaf);
-      const tab = target.tabHeader.getTabById(leaf.state.path);
-      const other_tabs = [...target.tabHeader.container.children].filter((child) => child !== tab);
-      const other_leaves = [...target.tabContentEl.children].filter((child) => child !== leaf.containerEl);
-      target.tabHeader.container.insertBefore(tab, other_tabs[next_index] || null);
-      target.tabContentEl.insertBefore(leaf.containerEl, other_leaves[next_index] || null);
-      target.getRoot().emit("layout-changed");
-    } else {
-      leaf.detach();
-      target.insertChild(next_index, leaf);
+    unregister(processor) {
+      this._processors = this._processors.filter((p) => p !== processor);
     }
-    workspace.activeLeaf = target.toggleTab(leaf.state.path);
-  }
+    _processHtml(ctx) {
+      this._processors.filter((p) => p.type === "html").forEach((p) => p.process(ctx));
+    }
+  };
+  var ExportProcessor = class _ExportProcessor {
+    type;
+    process(context) {
+    }
+    static from(options) {
+      const processor = new _ExportProcessor();
+      Object.assign(processor, options);
+      return processor;
+    }
+  };
+  var HtmlExportProcessor = class _HtmlExportProcessor extends ExportProcessor {
+    type = "html";
+    process(context) {
+    }
+    static from(options) {
+      const processor = new _HtmlExportProcessor();
+      Object.assign(processor, options);
+      return processor;
+    }
+  };
+  var CodeblockExportProcessor = class _CodeblockExportProcessor extends HtmlExportProcessor {
+    lang;
+    process({ doc }) {
+      const selectors = this.lang.map((l) => `pre[lang="${l}"]`);
+      const previewSelectors = selectors.map((l) => `${l} .md-fences-adv-panel-preview`);
+      const previews = $(previewSelectors.join(","));
+      $(selectors.join(","), doc).removeClass().addClass("md-diagram-panel md-fences-adv-panel").empty().each((i, pre) => {
+        $(pre).append($(previews[i].innerHTML));
+      });
+    }
+    static from(options) {
+      const processor = new _CodeblockExportProcessor();
+      Object.assign(processor, options);
+      return processor;
+    }
+  };
 
   // vendor/workspace_core/src/ui/components/pointer-drag.ts
   var session_key = Symbol.for("typora-code:pointer-drag");
@@ -2330,7 +2983,7 @@ var workspace_core_module = (() => {
   }
 
   // vendor/workspace_core/src/ui/components/draggable.ts
-  function draggable2(container_el, direction, on_change) {
+  function draggable(container_el, direction, on_change) {
     const doc = container_el.ownerDocument, marker = create_drop_marker(doc);
     let session;
     const on_pointer_down = (event) => {
@@ -2376,197 +3029,6 @@ var workspace_core_module = (() => {
 
   // vendor/codicons/icons.json
   var check = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>';
-
-  // src/workspace_focus.ts
-  var active_element = () => {
-    let node = document.activeElement;
-    while (node?.shadowRoot?.activeElement) node = node.shadowRoot.activeElement;
-    return node;
-  };
-  var parent_element = (node) => node.parentElement || (node.getRootNode() instanceof ShadowRoot ? node.getRootNode().host : null);
-  var within = (root, node) => {
-    for (let current = node; current; current = parent_element(current)) if (root === current) return true;
-    return false;
-  };
-  var visible = (node) => node.isConnected && node.getClientRects().length > 0 && !node.closest("[hidden],[inert]") && getComputedStyle(node).visibility === "visible";
-  var file_state = () => window.File;
-  var workspace_state = () => window[Symbol.for("typora-code:workspace")]?.app?.workspace;
-  function capture_workspace_focus(fallback) {
-    const current = active_element(), selection = window.getSelection(), write = document.querySelector("#write");
-    const native_owner = !!write && (current === document.body || current === document.documentElement || !!current && within(write, current)) && !!selection?.anchorNode && write.contains(selection.anchorNode);
-    const previous = (native_owner ? write : current instanceof HTMLElement && current !== document.body && current !== document.documentElement ? current : fallback) || null;
-    const input = previous instanceof HTMLInputElement || previous instanceof HTMLTextAreaElement ? previous : void 0;
-    const input_selection = input && input.selectionStart !== null ? { start: input.selectionStart, end: input.selectionEnd, direction: input.selectionDirection, value: input.value } : void 0;
-    const dom_selection = !input && selection?.anchorNode && selection.focusNode ? { anchor: selection.anchorNode, anchor_offset: selection.anchorOffset, focus: selection.focusNode, focus_offset: selection.focusOffset, anchor_text: selection.anchorNode.textContent, focus_text: selection.focusNode.textContent } : void 0;
-    const file = file_state(), bundle = file?.bundle, workspace = workspace_state(), leaf = workspace?.activeLeaf, active_file = workspace?.activeFile;
-    let rangy;
-    if (native_owner && !file?.isFileLoading?.() && !file?.editor?.sourceView?.inSourceMode) {
-      try {
-        rangy = file?.editor?.selection?.getRangy();
-      } catch {
-      }
-    }
-    const scroll = [];
-    for (let node = previous; node; node = parent_element(node)) if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) scroll.push({ node, top: node.scrollTop, left: node.scrollLeft });
-    return { restore() {
-      if (!previous || !visible(previous) || previous.matches(":disabled")) return;
-      const now = workspace_state();
-      if (now?.activeLeaf !== leaf || now?.activeFile !== active_file) return;
-      if (native_owner && (file_state() !== file || file_state()?.bundle !== bundle || file?.isFileLoading?.() || file?.editor?.sourceView?.inSourceMode)) return;
-      previous.focus({ preventScroll: true });
-      if (input && input_selection && input.value === input_selection.value) input.setSelectionRange(input_selection.start, input_selection.end, input_selection.direction);
-      else if (rangy) {
-        try {
-          rangy.select();
-        } catch {
-        }
-      } else if (dom_selection && dom_selection.anchor.isConnected && dom_selection.focus.isConnected && dom_selection.anchor.textContent === dom_selection.anchor_text && dom_selection.focus.textContent === dom_selection.focus_text) {
-        try {
-          window.getSelection()?.setBaseAndExtent(dom_selection.anchor, dom_selection.anchor_offset, dom_selection.focus, dom_selection.focus_offset);
-        } catch {
-        }
-      }
-      for (const item of scroll) if (item.node.isConnected) {
-        item.node.scrollTop = item.top;
-        item.node.scrollLeft = item.left;
-      }
-    } };
-  }
-  var service_key = Symbol.for("typora-code:workspace-dismissal");
-  function register_workspace_dismissal(roots, cancel, options = {}) {
-    const runtime = window;
-    if (!runtime[service_key]) {
-      const stack = [];
-      let pending, listening = false, dismissing = false;
-      let gesture;
-      let gesture_timer;
-      const top = () => stack.findLast((record) => record.roots().some(visible));
-      const inside = (record, node) => (record.options.inside?.() || record.roots()).some((root) => within(root, node));
-      const consume = (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      };
-      const cancel_record = (record, reason) => {
-        if (dismissing) return;
-        dismissing = true;
-        try {
-          record.cancel(reason);
-        } finally {
-          dismissing = false;
-        }
-      };
-      const handlers = { keydown: (event) => keydown(event), keyup: (event) => keyup(event), pointerdown: (event) => down(event, true), mousedown: (event) => down(event, false), pointerup: (event) => release(event), mouseup: (event) => release(event), click: (event) => complete(event), auxclick: (event) => complete(event), contextmenu: (event) => swallow(event), pointercancel: (event) => {
-        swallow(event);
-        finish();
-      }, focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
-      const cleanup = () => {
-        if (!stack.length && !pending && !gesture && listening) {
-          listening = false;
-          for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
-        }
-      };
-      const keydown = (event) => {
-        if (!gesture?.consumed) gesture = void 0;
-        if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
-        if (pending) {
-          consume(event);
-          return;
-        }
-        const owner = top();
-        if (!owner) return;
-        consume(event);
-        if (!event.repeat) pending = owner;
-      };
-      const keyup = (event) => {
-        if (event.key !== "Escape" || !pending) return;
-        const owner = pending;
-        pending = void 0;
-        consume(event);
-        if (!event.isComposing && top() === owner && stack.includes(owner)) cancel_record(owner, "escape");
-        cleanup();
-      };
-      const down = (event, pointer) => {
-        if (!pointer && gesture?.pointer && gesture.button === event.button) {
-          gesture.pointer = false;
-          if (gesture.consumed) consume(event);
-          return;
-        }
-        window.clearTimeout(gesture_timer);
-        gesture_timer = void 0;
-        const owner = top();
-        gesture = { owner, button: event.button, pointer, dismissed: false, consumed: false };
-        if (!owner || owner.options.outside === false) return;
-        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
-        if (!hit) {
-          gesture.dismissed = true;
-          gesture.consumed = owner.options.consume_outside === true;
-          if (gesture.consumed) consume(event);
-          cancel_record(owner, "outside");
-        }
-      };
-      const swallow = (event) => {
-        if (gesture?.consumed && gesture.button === event.button) consume(event);
-      };
-      const finish = () => {
-        const current = gesture;
-        window.clearTimeout(gesture_timer);
-        gesture_timer = window.setTimeout(() => {
-          gesture_timer = void 0;
-          if (gesture === current) gesture = void 0;
-          cleanup();
-        }, 0);
-      };
-      const release = (event) => {
-        swallow(event);
-        finish();
-      };
-      const complete = (event) => {
-        swallow(event);
-        if (gesture?.button === event.button) {
-          window.clearTimeout(gesture_timer);
-          gesture_timer = void 0;
-          gesture = void 0;
-        }
-        cleanup();
-      };
-      const focus_changed = () => {
-        if (dismissing) return;
-        const owner = top();
-        if (!owner) return;
-        if (inside(owner, active_element())) owner.focused = true;
-        queueMicrotask(() => {
-          if (dismissing || top() !== owner || !stack.includes(owner) || !owner.focused || owner.options.focus_out === false) return;
-          if (gesture && (gesture.dismissed || gesture.owner !== owner)) return;
-          if (active_element() === document.body || active_element() === document.documentElement || inside(owner, active_element())) return;
-          cancel_record(owner, "focus-out");
-          cleanup();
-        });
-      };
-      const blur = () => {
-        pending = void 0;
-        window.clearTimeout(gesture_timer);
-        gesture_timer = void 0;
-        gesture = void 0;
-        const owner = top();
-        if (owner?.options.window_blur) cancel_record(owner, "window-blur");
-        cleanup();
-      };
-      runtime[service_key] = { add(record) {
-        record.focused = inside(record, active_element());
-        stack.push(record);
-        if (!listening) {
-          listening = true;
-          for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");
-        }
-        return { is_top: () => top() === record, owns_focus: () => top() === record && (active_element() === document.body || record.roots().some((root) => within(root, active_element()))), dispose() {
-          const index = stack.indexOf(record);
-          if (index !== -1) stack.splice(index, 1);
-          cleanup();
-        } };
-      } };
-    }
-    return runtime[service_key].add({ roots, cancel, options, focused: false });
-  }
 
   // vendor/workspace_core/src/ui/components/menu.ts
   var Menu = class extends View {
@@ -2936,7 +3398,7 @@ var workspace_core_module = (() => {
         this.groupBottom = html`<div class="group bottom"></div>`
       );
       this.props.buttons.sort((a, b) => a.order - b.order).forEach((btn) => this.renderButton(btn));
-      draggable2(this.groupTop, "y", () => {
+      draggable(this.groupTop, "y", () => {
         const el = this.groupTop;
         Array.from(el.children).forEach((icon, i) => {
           const btn = this.props.buttons.find((btn2) => btn2.id === icon.dataset.id);
@@ -3013,6 +3475,1096 @@ var workspace_core_module = (() => {
       $(`.typ-ribbon-item[data-id="${id}"]`, this.containerEl).get(0).click();
     }
   };
+
+  // vendor/workspace_core/src/ui/sidebar/sidebar.ts
+  var Sidebar = class extends Component {
+    constructor(panel_factory, ribbon = useService("ribbon")) {
+      super();
+      this.panel_factory = panel_factory;
+      this.ribbon = ribbon;
+    }
+    container = new SidebarContainer();
+    activePanel;
+    shown_panel;
+    internalPanels = [];
+    panels = [];
+    mount() {
+      if (this.internalPanels.length) return;
+      this.internalPanels = this.panel_factory();
+      this.internalPanels.forEach((view) => this.addPanel(view));
+    }
+    addPanel(panel) {
+      super.addChild(panel);
+      if (panel instanceof ViewLegacy) {
+        panel.load();
+        this.container.addPanel(panel);
+      }
+      if (panel.ribbonButton) {
+        this.ribbon.addButton(panel.ribbonButton);
+      }
+      this.panels.push(panel);
+      return () => this.removePanel(panel);
+    }
+    /**
+     * Use `addPanel` instead.
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    addChild(panel) {
+      return this.addPanel(panel);
+    }
+    removePanel(panel) {
+      if (this.shown_panel === panel) {
+        panel.hide();
+        this.shown_panel = void 0;
+      }
+      if (this.activePanel === panel) this.activePanel = void 0;
+      if (panel.ribbonButton) {
+        this.ribbon.removeButton(panel.ribbonButton);
+      }
+      this.panels = this.panels.filter((v) => v !== panel);
+      if (panel instanceof ViewLegacy) {
+        panel.unload();
+        this.container.removePanel(panel);
+      }
+    }
+    /**
+     * Use `removePanel` instead.
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    removeChild(panel) {
+      this.removePanel(panel);
+    }
+    get isShown() {
+      return editor.library.isSidebarShown();
+    }
+    switch(viewClass) {
+      const target_panel = this.panels.find((c) => c instanceof viewClass);
+      if (!target_panel) return;
+      if (this.activePanel instanceof viewClass) {
+        this.toggle();
+        return;
+      }
+      const previous_panel = this.shown_panel ?? this.activePanel;
+      previous_panel?.hide();
+      this.shown_panel = void 0;
+      this.internalPanels.forEach((panel) => {
+        if (panel !== previous_panel) panel.hide();
+      });
+      this.activePanel = target_panel;
+      this.show();
+    }
+    toggle() {
+      this.isShown ? this.hide() : this.show();
+    }
+    show() {
+      if (!this.isShown) editor.library.showSidebar();
+      if (this.shown_panel === this.activePanel) return;
+      this.shown_panel?.hide();
+      this.activePanel?.show();
+      this.shown_panel = this.activePanel;
+    }
+    hide() {
+      if (this.isShown) editor.library.hideSidebar();
+      this.shown_panel?.hide();
+      this.shown_panel = void 0;
+    }
+  };
+  var SidebarContainer = class extends View {
+    wrapperEl;
+    constructor() {
+      super();
+      this.containerEl = document.getElementById("sidebar-content");
+      this.wrapperEl = this.containerEl.parentElement;
+    }
+    addPanel(panel) {
+      this.containerEl.append(panel.containerEl);
+    }
+    removePanel(panel) {
+      panel.containerEl.remove();
+    }
+  };
+
+  // vendor/workspace_core/src/ui/sidebar/sidebar-panel.ts
+  var SidebarPanel = class extends View {
+    constructor(ribbon = useService("ribbon"), sidebar = useService("sidebar")) {
+      super();
+      this.ribbon = ribbon;
+      this.sidebar = sidebar;
+    }
+    ribbonButton;
+    show() {
+      this.sidebar.container.addPanel(this);
+      this.onshow();
+    }
+    onshow() {
+    }
+    hide() {
+      this.sidebar.container.removePanel(this);
+      this.onhide();
+    }
+    onhide() {
+    }
+    addRibbonButton(button) {
+      this.ribbonButton = {
+        ...button,
+        // @ts-ignore
+        onclick: () => this.sidebar.switch(this.constructor)
+      };
+    }
+    /**
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    load() {
+      this.onload();
+    }
+    /**
+     * Use `onshow` instead.
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    onload() {
+    }
+    /**
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    unload() {
+      this.onunload();
+    }
+    /**
+     * Use `onhide` instead.
+     * @deprecated compatible with old api (<=2.2.22)
+     */
+    onunload() {
+    }
+  };
+  var InternalSidebarPanel = class extends SidebarPanel {
+    constructor() {
+      super();
+    }
+    show() {
+      this.onshow();
+    }
+    hide() {
+      this.onhide();
+    }
+  };
+
+  // vendor/workspace_core/src/ui/statusbar/statistics.ts
+  var TBODY_SEL = "li.ty-footer-word-count-all table tbody";
+  var SELECTION_TBODY_SEL = "li.footer-word-count-selection table tbody";
+  var DOM_STAT_IDS = {
+    "reading-time": "#footer-read-time-count-td",
+    "lines": "#footer-line-count-td",
+    "words": "#footer-word-count-td",
+    "characters": "#footer-char-count-td",
+    "selected-words": "#footer-word-count-td-sel",
+    "selected-characters": "#footer-char-count-td-sel"
+  };
+  var StatisticContext = class {
+    _markdown;
+    _values = {};
+    /** Lazily reads the current document's markdown once; subsequent accesses return the cached value. */
+    get markdown() {
+      return this._markdown ??= editor.getMarkdown();
+    }
+    /**
+     * Reads the currently selected plain text (not markdown) from the DOM.
+     * Returns an empty string when no selection exists.
+     */
+    get selectionText() {
+      return window.getSelection()?.toString() ?? "";
+    }
+    /**
+     * Get a stat's result by its `id`. Returns `null` if not yet computed or was hidden.
+     *
+     * For the built-in Typora footer stats (`reading-time`, `lines`, `words`, `characters`, `selected-words`, `selected-characters`),
+     * falls back to lazily reading from the raw DOM when no previously computed value exists.
+     */
+    get(id) {
+      return this._values[id] ?? this._lazyFromDOM(id);
+    }
+    /** Lazy-load a built-in stat value from the Typora footer DOM. */
+    _lazyFromDOM(id) {
+      const selector = DOM_STAT_IDS[id];
+      if (!selector) return null;
+      const el = document.querySelector(selector);
+      const val = el?.textContent?.trim() ?? null;
+      this._values[id] = val;
+      return val;
+    }
+    /** Set a value under any stat's id (including the current one) so it can be read via {@link get}. Use `null` to indicate hidden/skipped. Call from within {@link StatisticHandler.eval} — pass your own id or another stat's id. */
+    set(id, value) {
+      this._values[id] = value;
+    }
+  };
+  var Statistics = class extends Component {
+    _stats = [];
+    _selectionStats = [];
+    _observer = null;
+    onload() {
+      this.register(
+        decorate.afterCall(editor.wordCount, "updateLabel", () => {
+          this._updateAllStats();
+          this._updateAllSelectionStats();
+        })
+      );
+      this._observePanelClass();
+    }
+    onunload() {
+      this._disconnectObserver();
+      this._removeInjectedRows();
+      this._removeInjectedSelectionRows();
+      this._stats = [];
+      this._selectionStats = [];
+    }
+    /* ─── public registry ────────────────────────────────── */
+    /**
+     * Register a statistic row.
+     *
+     * If the word count panel is already open the row is injected and synced
+     * immediately.  Returns a dispose function that unregisters the statistic
+     * and removes its DOM row.
+     */
+    registerStatistic(stat) {
+      if (this._stats.some((s) => s.id === stat.id)) throw new Error(`[WordCountStatistics] Duplicate statistic id: "${stat.id}"`);
+      this._stats.push(stat);
+      if (document.body.classList.contains("ty-show-word-count")) {
+        this._injectRow(stat);
+        this._updateStat(stat, new StatisticContext());
+      }
+      return () => {
+        this._stats = this._stats.filter((s) => s !== stat);
+        $(`#typ-wc-${stat.id}`).closest("tr").remove();
+      };
+    }
+    /**
+     * Register a statistic row in the selection section of the word-count panel.
+     *
+     * If the panel is open the row is injected and synced immediately.
+     * Returns a dispose function that unregisters the statistic and removes its DOM row.
+     */
+    registerSelectionStatistic(stat) {
+      if (this._selectionStats.some((s) => s.id === stat.id)) throw new Error(`[WordCountStatistics] Duplicate selection statistic id: "${stat.id}"`);
+      this._selectionStats.push(stat);
+      if (document.body.classList.contains("ty-show-word-count")) {
+        this._injectSelectionRow(stat);
+        this._updateSelectionStat(stat, new StatisticContext());
+      }
+      return () => {
+        this._selectionStats = this._selectionStats.filter((s) => s !== stat);
+        $(`#typ-wc-sel-${stat.id}`).closest("tr").remove();
+      };
+    }
+    /* ─── mutation observer on body class ────────────────── */
+    _observePanelClass() {
+      this._observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type !== "attributes") continue;
+          const target = mutation.target;
+          if (target.classList.contains("ty-show-word-count")) this._onPanelOpen();
+          else this._onPanelClose();
+          break;
+        }
+      });
+      this._observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    }
+    _disconnectObserver() {
+      this._observer?.disconnect();
+      this._observer = null;
+    }
+    /* ─── panel open / close handlers ────────────────────── */
+    _onPanelOpen() {
+      if (this._stats.length > 0 && !document.querySelector(`#typ-wc-${this._stats[0].id}`)) {
+        this._stats.forEach((s) => this._injectRow(s));
+      }
+      if (this._selectionStats.length > 0 && !document.querySelector(`#typ-wc-sel-${this._selectionStats[0].id}`)) {
+        this._selectionStats.forEach((s) => this._injectSelectionRow(s));
+      }
+      this._updateAllStats();
+      this._updateAllSelectionStats();
+    }
+    _onPanelClose() {
+      this._removeInjectedRows();
+      this._removeInjectedSelectionRows();
+    }
+    _updateAllStats = throttle(() => {
+      if (!document.body.classList.contains("ty-show-word-count")) return;
+      const context = new StatisticContext();
+      this._stats.forEach((s) => this._updateStat(s, context));
+    }, 167);
+    _updateAllSelectionStats = throttle(() => {
+      if (!document.body.classList.contains("ty-show-word-count")) return;
+      const context = new StatisticContext();
+      this._selectionStats.forEach((s) => this._updateSelectionStat(s, context));
+    }, 167);
+    _updateStat(stat, context) {
+      const $cell = $(`#typ-wc-${stat.id}`);
+      if (!$cell.length) return;
+      const val = stat.eval(context);
+      context.set(stat.id, val);
+      val === null ? $cell.closest("tr").hide() : ($cell.closest("tr").show(), $cell.text(val));
+    }
+    _updateSelectionStat(stat, context) {
+      const $cell = $(`#typ-wc-sel-${stat.id}`);
+      if (!$cell.length) return;
+      const val = stat.eval(context);
+      context.set(stat.id, val);
+      val === null ? $cell.closest("tr").hide() : ($cell.closest("tr").show(), $cell.text(val));
+    }
+    /* ─── inject all rows ────────────────────────────────── */
+    _injectRow(stat) {
+      const $tbody = $(TBODY_SEL);
+      if ($tbody.length) {
+        $tbody.append(`<tr><td id="typ-wc-${stat.id.replace(/#/g, "\\#")}">-</td><td>${stat.name}</td><td></td></tr>`);
+      }
+    }
+    _injectSelectionRow(stat) {
+      const $tbody = $(SELECTION_TBODY_SEL);
+      if ($tbody.length) {
+        $tbody.append(`<tr><td id="typ-wc-sel-${stat.id.replace(/#/g, "\\#")}">-</td><td>${stat.name}</td><td></td></tr>`);
+      }
+    }
+    _removeInjectedRows() {
+      this._stats.forEach((s) => $(`#typ-wc-${s.id}`).closest("tr").remove());
+    }
+    _removeInjectedSelectionRows() {
+      this._selectionStats.forEach((s) => $(`#typ-wc-sel-${s.id}`).closest("tr").remove());
+    }
+  };
+
+  // vendor/workspace_core/src/os.ts
+  var BrowserOs = class {
+    arch() {
+      const ua = navigator.userAgent;
+      if (/arm/gi.test(ua) || /iPhone|iPad|iPod/i.test(ua)) return "arm64";
+      if (/x86_64|x86-64|amd64|Win64|WOW64/i.test(ua)) return "x64";
+      if (/i[3-6]86|x86/i.test(ua)) return "ia32";
+      return "x64";
+    }
+    homedir() {
+      const loaderScriptEl = document.querySelector('script[src^="file:///Users/"]');
+      if (!loaderScriptEl) throw Error("Can not get homedir.");
+      return loaderScriptEl.getAttribute("src").match(/(\/Users\/[^\/]+)\//)[1];
+    }
+    hostname() {
+      return navigator.userAgent || "browser";
+    }
+    platform() {
+      return platform();
+    }
+    type() {
+      const p = this.platform();
+      if (p === "win32") return "Windows";
+      if (p === "darwin") return "Darwin";
+      return "Linux";
+    }
+  };
+  var os = File.isNode ? reqnode("os") : new BrowserOs();
+  var os_default = os;
+
+  // vendor/workspace_core/src/ui/layout/workspace-node.ts
+  var WorkspaceNode = class extends Events {
+    parent = null;
+    containerEl;
+    resizeHandleEl;
+    constructor() {
+      super();
+      this.containerEl = $('<div class="typ-workspace-node">').append(this.resizeHandleEl = $('<hr class="typ-workspace-leaf-resize-handle">').on("mousedown", (e) => this.onResizeStart(e.originalEvent))[0])[0];
+    }
+    closest(type) {
+      let node = this;
+      while (node != null && node.type !== type) node = node.parent;
+      return node;
+    }
+    setParent(parent) {
+      this.parent = parent;
+    }
+    getRoot() {
+      return useService("workspace").rootSplit;
+    }
+    detach() {
+      this.parent?.removeChild(this);
+    }
+    onResizeStart(event) {
+      if (event.button === 0 && this.parent?.type === "split") {
+        this.parent.onChildResizeStart(this, event);
+      }
+    }
+  };
+
+  // vendor/workspace_core/src/ui/layout/workspace-leaf.ts
+  var WorkspaceLeaf = class extends WorkspaceNode {
+    constructor(view, viewManager = useService("view-manager")) {
+      super();
+      this.viewManager = viewManager;
+      this.containerEl.classList.add("typ-workspace-leaf");
+      this.view = view;
+    }
+    type = "leaf";
+    state = {};
+    viewType;
+    view;
+    isLeaf() {
+      return true;
+    }
+    setState(state) {
+      const factory = this.viewManager.getViewCreatorByType(state.type);
+      this.state = state.state ?? {};
+      this.viewType = state.type;
+      this.view = factory(this, state);
+      this.containerEl.append(this.view.containerEl);
+      return this;
+    }
+    toJSON() {
+      return {
+        type: "leaf",
+        state: this.state
+      };
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-editing-tabs.ts
+  var useEditingTabs = memorize(() => {
+    let editingTabs = null;
+    return {
+      /**
+       * @tips Cannot be used outside the Workspace API; otherwise, `null` will be returned after the Workspace is disabled.
+       */
+      editingTabs() {
+        return editingTabs;
+      },
+      setEditingTabs(tabs) {
+        editingTabs = tabs;
+      },
+      isEditingTabs(tabs) {
+        return editingTabs === tabs;
+      },
+      isEditingSingleChildTabs() {
+        return editingTabs?.children.length === 1;
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/md-editor-mode.ts
+  var MdEditorMode = class _MdEditorMode {
+    constructor(workspace = useService("workspace")) {
+      this.workspace = workspace;
+    }
+    static getInstance = memorize(() => new _MdEditorMode());
+    contentEl = editor.writingArea.parentElement;
+    _parentTabs = null;
+    _resizeObserver = null;
+    handleSettingActiveLeaf = null;
+    enter(ctx) {
+      const { containerEl, leaf } = ctx;
+      containerEl.classList.add("mode-typora");
+      containerEl.innerHTML = '<object type="text/html" data="about:blank"></object>';
+      const { setEditingTabs } = useEditingTabs();
+      setEditingTabs(ctx.leaf.parent);
+      this.contentEl.classList.add("typ-workspace-binding");
+      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
+      this.contentEl.addEventListener("mousedown", this.handleSettingActiveLeaf = () => {
+        this.workspace.activeLeaf = leaf;
+      });
+      this._parentTabs = leaf.parent;
+      this.syncSize();
+      this.unregisterObserver();
+      this.registerObserver();
+    }
+    exit(ctx) {
+      ctx.containerEl.classList.remove("mode-typora");
+      ctx.containerEl.innerHTML = "";
+      this.contentEl.classList.remove("typ-workspace-binding");
+      this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
+      this.unregisterObserver();
+    }
+    getScroll() {
+      return { scrollTop: this.contentEl.scrollTop };
+    }
+    applyScroll(state) {
+      this.contentEl.scrollTop = state.scrollTop;
+    }
+    registerObserver() {
+      this._resizeObserver = new ResizeObserver(() => this.syncSize());
+      if (this._parentTabs) {
+        this._resizeObserver.observe(this._parentTabs.tabContentEl);
+      }
+    }
+    unregisterObserver() {
+      this._resizeObserver?.disconnect();
+      this._resizeObserver = null;
+    }
+    syncSize() {
+      const parent = this._parentTabs;
+      if (!parent) return;
+      const { style } = document.body;
+      const targetEl = parent.tabContentEl;
+      const rect = targetEl.getBoundingClientRect();
+      style.setProperty("--typ-editor-top", rect.top + "px");
+      style.setProperty("--typ-editor-left", rect.left + "px");
+      style.setProperty("--typ-editor-width", rect.width + "px");
+      style.setProperty("--typ-editor-height", rect.height + "px");
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/md-previewer-mode.ts
+  var MdPreviewerMode = class {
+    constructor(mdRenderer = useService("markdown-renderer")) {
+      this.mdRenderer = mdRenderer;
+    }
+    _containerEl = null;
+    render_sequence = 0;
+    cleanup = [];
+    enter(ctx) {
+      const { containerEl, filePath } = ctx;
+      containerEl.classList.add("mode-previewer");
+      this._containerEl = containerEl;
+      const refresh = async () => {
+        const sequence = ++this.render_sequence;
+        const native_matches = () => (File.bundle.filePath || "") === filePath && !File.isFileLoading();
+        try {
+          let markdown2 = native_matches() ? editor.getMarkdown() : filePath ? await filesystem_default.readText(filePath) : "";
+          if (sequence !== this.render_sequence || this._containerEl !== containerEl) return;
+          if (native_matches()) markdown2 = editor.getMarkdown();
+          const scroll_top = containerEl.parentElement?.scrollTop || 0;
+          this.mdRenderer.renderTo(markdown2, containerEl);
+          if (containerEl.parentElement) containerEl.parentElement.scrollTop = scroll_top;
+        } catch (error) {
+          if (sequence === this.render_sequence && this._containerEl === containerEl) containerEl.textContent = String(error);
+        }
+      };
+      this.cleanup.push(useService("markdown-editor").on("edit", refresh), useService("workspace").on("file:open", refresh));
+      void refresh();
+    }
+    exit(ctx) {
+      this.render_sequence++;
+      for (const cleanup of this.cleanup.splice(0)) cleanup();
+      ctx.containerEl.classList.remove("mode-previewer");
+      ctx.containerEl.innerHTML = "";
+      this._containerEl = null;
+    }
+    getScroll() {
+      return {
+        scrollTop: this._containerEl?.parentElement.scrollTop ?? 0
+      };
+    }
+    applyScroll(state) {
+      if (this._containerEl)
+        this._containerEl.parentElement.scrollTop = state.scrollTop;
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-preview-tab-to-swap.ts
+  var usePreviewTabToSwap = memorize(() => {
+    let previewTabToSwap = null;
+    return {
+      beginSwap(leaf) {
+        previewTabToSwap = leaf;
+      },
+      endSwap() {
+        previewTabToSwap = null;
+      },
+      previewFileToSwap() {
+        return previewTabToSwap?.state.path;
+      },
+      isPreviewFileToSwap(path2) {
+        return previewTabToSwap?.state.path === path2;
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/use-record.ts
+  var useRecord = memorize(() => {
+    return {
+      saveStateToLeaf(view) {
+        view.leaf.state = { ...view.leaf.state, ...view.getState() };
+      },
+      restoreStateFromLeaf(view) {
+        view.setState(view.leaf.state);
+      }
+    };
+  });
+
+  // vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts
+  var KEY_OPENFILE = Symbol.for("openFile$original");
+  var SwapCommand = class extends Component {
+    constructor(settings = useService("settings"), workspace = useService("workspace")) {
+      super();
+      this.settings = settings;
+      this.workspace = workspace;
+      const SETTING_KEY = "useAutoSwap";
+      if (settings.get(SETTING_KEY)) {
+        this.load();
+      }
+      settings.onChange(SETTING_KEY, (_, isEnabled) => {
+        isEnabled ? this.load() : this.unload();
+      });
+    }
+    execute(editorLeaf, previewLeaf) {
+      if (!this._loaded) return;
+      const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path;
+      const previewView = previewLeaf.view;
+      const writeEl = editor.writingArea.parentElement;
+      const { saveStateToLeaf, restoreStateFromLeaf } = useRecord();
+      const { beginSwap, endSwap } = usePreviewTabToSwap();
+      saveStateToLeaf(editorLeaf.view);
+      saveStateToLeaf(previewView);
+      editorLeaf.view.setMode("previewer");
+      beginSwap(previewLeaf);
+      this._hideEditor(writeEl);
+      this._setParent(previewLeaf);
+      this._openFile(previewLeaf.state.path);
+      const doSwap = () => {
+        previewView.setMode("typora");
+        this._syncEditorSize(previewView);
+        this._showEditor(writeEl);
+        setTimeout(() => {
+          restoreStateFromLeaf(editorLeaf.view);
+          restoreStateFromLeaf(previewView);
+          endSwap();
+        });
+      };
+      if (isSwappingSameFile) {
+        doSwap();
+      } else {
+        this.workspace.once("file:open", doSwap);
+      }
+    }
+    _hideEditor(writeEl) {
+      writeEl.style.display = "none";
+      writeEl.classList.remove("typ-deactive");
+    }
+    _setParent(previewLeaf) {
+      const { setEditingTabs } = useEditingTabs();
+      setEditingTabs(previewLeaf.parent);
+    }
+    _openFile(filePath) {
+      editor.library[KEY_OPENFILE](filePath);
+    }
+    _syncEditorSize(previewView) {
+      const mode = previewView._modeState;
+      mode.syncSize();
+    }
+    _showEditor(writeEl) {
+      writeEl.style.display = "";
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/markdown-view/index.ts
+  var KEY_OPENFILE2 = Symbol.for("openFile$original");
+  var MarkdownView = class _MarkdownView extends WorkspaceView {
+    constructor(leaf, workspace = useService("workspace"), mdEditor = useService("markdown-editor"), mdRenderer = useService("markdown-renderer")) {
+      super(leaf);
+      this.leaf = leaf;
+      this.workspace = workspace;
+      this.mdEditor = mdEditor;
+      this.mdRenderer = mdRenderer;
+    }
+    static type = "core.markdown";
+    /** @override */
+    containerEl = $('<div class="typ-markdown-view"></div>')[0];
+    _modeState = null;
+    _swapCommand = new SwapCommand();
+    get filePath() {
+      return this.leaf.state.path;
+    }
+    get _modeCtx() {
+      return {
+        filePath: this.filePath,
+        leaf: this.leaf,
+        containerEl: this.containerEl
+      };
+    }
+    /** @override */
+    onload() {
+      this.addChild(this._swapCommand);
+      setTimeout(() => this.autoSetMode());
+      this.register(
+        this.leaf.getRoot().on("layout-changed", () => this.autoSetMode())
+      );
+      this.registerDomEvent(this.containerEl, "mousedown", (e) => {
+        if (this.isEditor()) return;
+        if (e.target.closest("a")) return;
+        const { editingTabs } = useEditingTabs();
+        const editorLeaf = editingTabs()?.findLeaf(
+          (leaf) => leaf.viewType === _MarkdownView.type && leaf.view.isEditor()
+        );
+        if (!editorLeaf) return;
+        this._swapCommand.execute(editorLeaf, this.leaf);
+      });
+    }
+    isEditor() {
+      return this._modeState instanceof MdEditorMode;
+    }
+    /** @override */
+    getScroll() {
+      return this._modeState?.getScroll() ?? super.getScroll();
+    }
+    /** @override */
+    applyScroll(state) {
+      this._modeState?.applyScroll(state);
+    }
+    /** @private */
+    autoSetMode() {
+      const { editingTabs, isEditingTabs } = useEditingTabs();
+      if (!editingTabs() || isEditingTabs(this.leaf.parent)) {
+        this.setMode("typora");
+      } else {
+        this.setMode("previewer");
+      }
+    }
+    /** @override */
+    onOpen() {
+      this.autoSetMode();
+      const doRestore = () => {
+        const { restoreStateFromLeaf } = useRecord();
+        restoreStateFromLeaf(this);
+      };
+      if (this.isEditor()) {
+        editor.writingArea.parentElement.classList.remove("typ-deactive");
+        editor.library[KEY_OPENFILE2](this.filePath);
+        this.workspace.once("file:open", doRestore);
+      } else {
+        setTimeout(doRestore);
+      }
+    }
+    /** @override */
+    onClose() {
+      const { saveStateToLeaf } = useRecord();
+      saveStateToLeaf(this);
+      if (this.isEditor()) {
+        if (this.workspace.activeFile === this.filePath)
+          editor.writingArea.parentElement.classList.add("typ-deactive");
+        const { setEditingTabs, isEditingTabs, isEditingSingleChildTabs } = useEditingTabs();
+        if (isEditingTabs(this.leaf.parent)) {
+          this._modeState?.exit(this._modeCtx);
+          this._modeState = null;
+          if (isEditingSingleChildTabs()) {
+            setEditingTabs(null);
+            const nextMdLeaf = this.leaf.getRoot().findLeaf((leaf) => leaf.viewType === _MarkdownView.type && leaf !== this.leaf);
+            if (nextMdLeaf) nextMdLeaf.parent.activeLeaf.view.onOpen();
+          }
+        } else {
+          this._modeState = null;
+        }
+      } else {
+        this._modeState?.exit(this._modeCtx);
+        this._modeState = null;
+      }
+    }
+    /** @private */
+    setMode(mode) {
+      const prevMode = this._modeState;
+      if (prevMode instanceof MdEditorMode) {
+        this._modeCtx.containerEl.classList.remove("mode-typora");
+        this._modeCtx.containerEl.innerHTML = "";
+      } else {
+        prevMode?.exit(this._modeCtx);
+      }
+      this._modeState = mode === "typora" ? MdEditorMode.getInstance() : new MdPreviewerMode();
+      this._modeState.enter(this._modeCtx);
+      this.setIcon(mode === "typora" ? "fa-file-text-o" : "fa-file-text");
+    }
+    getState() {
+      const state = this.getScroll();
+      if (this.isEditor()) {
+        state.cursorOffset = this.mdEditor.selection.getCursor();
+      }
+      return state;
+    }
+    setState(state) {
+      requestAnimationFrame(() => {
+        if (state.scrollTop != null) {
+          this.applyScroll(state);
+        }
+        if (state.cursorOffset != null && this.isEditor()) {
+          this.mdEditor.selection.setCursor(state.cursorOffset);
+        }
+      });
+    }
+    getCodeMirrorInstance(cid) {
+      return this.isEditor() ? editor.fences.getCm(cid) : this.mdRenderer.getCodeMirrorInstance(cid);
+    }
+  };
+
+  // vendor/workspace_core/src/ui/views/empty-view.ts
+  var EmptyView = class extends WorkspaceView {
+    constructor(leaf, settings = useService("settings")) {
+      super(leaf);
+      this.settings = settings;
+    }
+    static type = "core.empty";
+    containerEl = html`<div></div>`;
+    onload() {
+      if (this.settings.get("useBlankNewTab")) return;
+      $(this.containerEl).addClass("typ-empty-view").empty().append(html`<div><div class="typ-empty-title"></div><div class="typ-empty-hotkey"></div></div>`);
+      setTimeout(() => {
+        const config = useService("config-repository");
+        const commands = useService("command-manager");
+        const { t } = useService("i18n");
+        const getHotky = (id) => commands.commandMap[id].hotkey?.split("+").map((k) => `<kbd>${k}</kbd>`).join("+") ?? "";
+        $(this.containerEl).find(".typ-empty-title").text(t.views.empty.noFile).end().find(".typ-empty-hotkey").append(html`<dl><dt>${t.commandModal.commandOpen}</dt><dd>${getHotky("command:open")}</dd></dl>`).append(html`<dl><dt>${t.ribbon.settingOfApp}</dt><dd><kbd>Ctrl</kbd>+<kbd>,</kbd></dd></dl>`);
+      });
+    }
+  };
+
+  // vendor/workspace_core/src/ui/layout/floating/theme.ts
+  function defaultTheme(containerEl) {
+    containerEl.classList.add("typ-theme-default");
+  }
+  function windowTheme(containerEl, title) {
+    containerEl.classList.add("typ-theme-window");
+    const titleBar = document.createElement("div");
+    titleBar.className = "typ-titlebar";
+    const iconEl = document.createElement("span");
+    iconEl.className = "typ-titlebar-icon";
+    iconEl.innerHTML = '<i class="fa fa-window-maximize"></i>';
+    const textEl = document.createElement("span");
+    textEl.className = "typ-titlebar-text";
+    textEl.textContent = title || "Floating View";
+    titleBar.appendChild(iconEl);
+    titleBar.appendChild(textEl);
+    containerEl.prepend(titleBar);
+  }
+
+  // vendor/workspace_core/src/ui/layout/floating/resizable.ts
+  function resizable(containerEl, options) {
+    const minWidth = options?.minWidth ?? 120;
+    const minHeight = options?.minHeight ?? 80;
+    const handle = document.createElement("div");
+    handle.className = "typ-floating-resize-handle";
+    const prevPosition = getComputedStyle(containerEl).position;
+    if (!["absolute", "fixed"].includes(prevPosition)) {
+      containerEl.style.position = "relative";
+    }
+    let startX = 0;
+    let startY = 0;
+    let startWidth = 0;
+    let startHeight = 0;
+    function onMouseMove(e) {
+      const width = Math.max(minWidth, startWidth + e.clientX - startX);
+      const height = Math.max(minHeight, startHeight + e.clientY - startY);
+      containerEl.style.width = `${width}px`;
+      containerEl.style.height = `${height}px`;
+    }
+    function onMouseUp() {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+    function onHandleMouseDown(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = containerEl.offsetWidth;
+      startHeight = containerEl.offsetHeight;
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    }
+    handle.addEventListener("mousedown", onHandleMouseDown);
+    containerEl.appendChild(handle);
+    return () => {
+      handle.removeEventListener("mousedown", onHandleMouseDown);
+      handle.remove();
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }
+
+  // vendor/workspace_core/src/ui/layout/floating/draggable.ts
+  function draggable2(containerEl, handleEl) {
+    const handle = handleEl ?? containerEl;
+    let startX = 0;
+    let startY = 0;
+    let startLeft = 0;
+    let startTop = 0;
+    function onMouseMove(e) {
+      containerEl.style.left = `${startLeft + e.clientX - startX}px`;
+      containerEl.style.top = `${startTop + e.clientY - startY}px`;
+    }
+    function onMouseUp() {
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    }
+    function onHandleMouseDown(e) {
+      if (e.button !== 0) return;
+      const rect = containerEl.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      if (!containerEl.style.position || !["fixed", "absolute"].includes(containerEl.style.position)) {
+        containerEl.style.position = "fixed";
+      }
+      containerEl.style.left = `${rect.left}px`;
+      containerEl.style.top = `${rect.top}px`;
+      containerEl.style.right = "";
+      containerEl.style.bottom = "";
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+    }
+    handle.addEventListener("mousedown", onHandleMouseDown);
+    return () => {
+      handle.removeEventListener("mousedown", onHandleMouseDown);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }
+
+  // vendor/workspace_core/src/ui/layout/floating/closable.ts
+  function closable(containerEl, onClose) {
+    const closeBtn = document.createElement("div");
+    closeBtn.className = "typ-floating-close";
+    closeBtn.innerHTML = `<i class="typ-icon typ-close"></i>`;
+    function onClick(e) {
+      e.stopPropagation();
+      onClose();
+    }
+    closeBtn.addEventListener("click", onClick);
+    containerEl.appendChild(closeBtn);
+    return () => {
+      closeBtn.removeEventListener("click", onClick);
+    };
+  }
+
+  // vendor/workspace_core/src/ui/layout/workspace-utils.ts
+  function createUntitledTabs() {
+    const tabs = useService("workspace-tabs");
+    tabs.appendChild(createEditorLeaf(""));
+    tabs.once("tab:toggle", () => tabs.removeTab(""));
+    return tabs;
+  }
+  function createTabs(path2) {
+    const workspace = useService("workspace");
+    const tabs = useService("workspace-tabs");
+    const newLeaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
+    tabs.appendChild(newLeaf);
+    workspace.activeLeaf = newLeaf;
+    return tabs;
+  }
+  function openFileInActiveTabs(file) {
+    const workspace = useService("workspace");
+    const activeTabs = workspace.activeLeaf?.parent;
+    if (activeTabs.findLeaf((leaf) => leaf.state.path === file)) {
+      workspace.activeLeaf = activeTabs.toggleTab(file);
+      return;
+    }
+    activeTabs.appendChild(createEditorLeaf(file));
+    workspace.activeLeaf = activeTabs.activeLeaf;
+  }
+  function createLeaf(state) {
+    const leaf = new WorkspaceLeaf();
+    if (state) leaf.setState(state);
+    return leaf;
+  }
+  function createEditorLeaf(filePath) {
+    return createLeaf({
+      type: MarkdownView.type,
+      state: {
+        path: filePath
+      }
+    });
+  }
+  var RE_TYPE = /^typ:\/\/([^/]+)/;
+  function createCustomLeaf(path2) {
+    const type = (path2.match(RE_TYPE) ?? [])[1];
+    if (!type) throw Error(`View "${type}" has not registered.`);
+    return createLeaf({
+      type,
+      state: {
+        path: path2
+      }
+    });
+  }
+  function createEmptyLeaf() {
+    return createLeaf({
+      type: EmptyView.type,
+      state: {
+        path: uniqueId(`typ://${EmptyView.type}/`) + "/New tab"
+      }
+    });
+  }
+  function splitRight(path2) {
+    split("vertical", path2);
+  }
+  function splitDown(path2) {
+    split("horizontal", path2);
+  }
+  function split(direction, path2) {
+    const workspace = useService("workspace");
+    const source = workspace.activeLeaf;
+    if (!source) return;
+    const target = split_workspace_group(source, direction === "vertical" ? "right" : "down");
+    const leaf = path2 ? path2.startsWith("typ://") ? createCustomLeaf(path2) : createEditorLeaf(path2) : createEmptyLeaf();
+    target.appendChild(leaf);
+    workspace.activeLeaf = leaf;
+  }
+  function split_workspace_group(leaf, side) {
+    const direction = side === "left" || side === "right" ? "vertical" : "horizontal";
+    const previous_group = leaf.parent;
+    const parent_split = previous_group.parent;
+    const next_group = useService("workspace-tabs");
+    const before = side === "left" || side === "up";
+    if (parent_split.direction === direction) {
+      parent_split.insertChild(parent_split.children.indexOf(previous_group) + (before ? 0 : 1), next_group);
+    } else {
+      const next_split = useService("workspace-split", [direction]);
+      parent_split.replaceChild(previous_group, next_split);
+      next_split.appendChild(before ? next_group : previous_group);
+      next_split.appendChild(before ? previous_group : next_group);
+    }
+    return next_group;
+  }
+  function ensureRightSidedockLeaf(uri) {
+    const workspace = useService("workspace");
+    const type = (uri.match(RE_TYPE) ?? [])[1];
+    const existing = workspace.rightSplit.findLeaf((leaf2) => leaf2.type === type);
+    if (existing) return;
+    const tabs = useService("workspace-tabs");
+    const leaf = createCustomLeaf(uri);
+    tabs.appendChild(leaf);
+    workspace.rightSplit.appendChild(tabs);
+  }
+  function openFloatingLeaf(arg0) {
+    const workspace = useService("workspace");
+    const tabs = useService("workspace-tabs");
+    const leaf = typeof arg0 === "string" ? createCustomLeaf(arg0) : arg0;
+    const { view, state } = leaf;
+    const { containerEl } = view;
+    let titlebar;
+    containerEl.classList.add("typ-workspace-floating");
+    decorate.afterCall(view, "onload", () => {
+      state.theme === "default" && defaultTheme(containerEl);
+      state.theme === "window" && (windowTheme(containerEl, state.path.split("/").pop()), titlebar = containerEl.querySelector(".typ-titlebar"));
+      state.resizable && view.register(resizable(containerEl));
+      state.draggable && view.register(draggable2(containerEl, titlebar));
+      state.onClose && view.register(closable(titlebar ?? containerEl, state.onClose));
+    });
+    tabs.appendChild(leaf);
+    workspace.floatingSplit.appendChild(tabs);
+  }
+
+  // vendor/workspace_core/src/ui/layout/workspace_leaf_actions.ts
+  function move_workspace_leaf(leaf, target, index, workspace = useService("workspace")) {
+    const source = leaf.parent;
+    const fixed_count = target.children.filter((child) => child !== leaf && child.state.workspace_pinned).length;
+    const next_index = leaf.state.workspace_pinned ? Math.min(index, fixed_count) : Math.max(index, fixed_count);
+    if (source === target) {
+      const old_index = target.children.indexOf(leaf);
+      if (old_index < 0) return;
+      target.children.splice(old_index, 1);
+      target.children.splice(next_index, 0, leaf);
+      const tab = target.tabHeader.getTabById(leaf.state.path);
+      const other_tabs = [...target.tabHeader.container.children].filter((child) => child !== tab);
+      const other_leaves = [...target.tabContentEl.children].filter((child) => child !== leaf.containerEl);
+      target.tabHeader.container.insertBefore(tab, other_tabs[next_index] || null);
+      target.tabContentEl.insertBefore(leaf.containerEl, other_leaves[next_index] || null);
+      target.getRoot().emit("layout-changed");
+    } else {
+      leaf.detach();
+      target.insertChild(next_index, leaf);
+    }
+    workspace.activeLeaf = target.toggleTab(leaf.state.path);
+  }
 
   // vendor/workspace_core/src/ui/sidebar/search/search-result-renderer.ts
   var SELECTOR_RESULTS = "#file-library-search-result";
@@ -4380,189 +5932,6 @@ var workspace_core_module = (() => {
     }
   };
 
-  // vendor/workspace_core/src/ui/statusbar/statistics.ts
-  var TBODY_SEL = "li.ty-footer-word-count-all table tbody";
-  var SELECTION_TBODY_SEL = "li.footer-word-count-selection table tbody";
-  var DOM_STAT_IDS = {
-    "reading-time": "#footer-read-time-count-td",
-    "lines": "#footer-line-count-td",
-    "words": "#footer-word-count-td",
-    "characters": "#footer-char-count-td",
-    "selected-words": "#footer-word-count-td-sel",
-    "selected-characters": "#footer-char-count-td-sel"
-  };
-  var StatisticContext = class {
-    _markdown;
-    _values = {};
-    /** Lazily reads the current document's markdown once; subsequent accesses return the cached value. */
-    get markdown() {
-      return this._markdown ??= editor.getMarkdown();
-    }
-    /**
-     * Reads the currently selected plain text (not markdown) from the DOM.
-     * Returns an empty string when no selection exists.
-     */
-    get selectionText() {
-      return window.getSelection()?.toString() ?? "";
-    }
-    /**
-     * Get a stat's result by its `id`. Returns `null` if not yet computed or was hidden.
-     *
-     * For the built-in Typora footer stats (`reading-time`, `lines`, `words`, `characters`, `selected-words`, `selected-characters`),
-     * falls back to lazily reading from the raw DOM when no previously computed value exists.
-     */
-    get(id) {
-      return this._values[id] ?? this._lazyFromDOM(id);
-    }
-    /** Lazy-load a built-in stat value from the Typora footer DOM. */
-    _lazyFromDOM(id) {
-      const selector = DOM_STAT_IDS[id];
-      if (!selector) return null;
-      const el = document.querySelector(selector);
-      const val = el?.textContent?.trim() ?? null;
-      this._values[id] = val;
-      return val;
-    }
-    /** Set a value under any stat's id (including the current one) so it can be read via {@link get}. Use `null` to indicate hidden/skipped. Call from within {@link StatisticHandler.eval} — pass your own id or another stat's id. */
-    set(id, value) {
-      this._values[id] = value;
-    }
-  };
-  var Statistics = class extends Component {
-    _stats = [];
-    _selectionStats = [];
-    _observer = null;
-    onload() {
-      this.register(
-        decorate.afterCall(editor.wordCount, "updateLabel", () => {
-          this._updateAllStats();
-          this._updateAllSelectionStats();
-        })
-      );
-      this._observePanelClass();
-    }
-    onunload() {
-      this._disconnectObserver();
-      this._removeInjectedRows();
-      this._removeInjectedSelectionRows();
-      this._stats = [];
-      this._selectionStats = [];
-    }
-    /* ─── public registry ────────────────────────────────── */
-    /**
-     * Register a statistic row.
-     *
-     * If the word count panel is already open the row is injected and synced
-     * immediately.  Returns a dispose function that unregisters the statistic
-     * and removes its DOM row.
-     */
-    registerStatistic(stat) {
-      if (this._stats.some((s) => s.id === stat.id)) throw new Error(`[WordCountStatistics] Duplicate statistic id: "${stat.id}"`);
-      this._stats.push(stat);
-      if (document.body.classList.contains("ty-show-word-count")) {
-        this._injectRow(stat);
-        this._updateStat(stat, new StatisticContext());
-      }
-      return () => {
-        this._stats = this._stats.filter((s) => s !== stat);
-        $(`#typ-wc-${stat.id}`).closest("tr").remove();
-      };
-    }
-    /**
-     * Register a statistic row in the selection section of the word-count panel.
-     *
-     * If the panel is open the row is injected and synced immediately.
-     * Returns a dispose function that unregisters the statistic and removes its DOM row.
-     */
-    registerSelectionStatistic(stat) {
-      if (this._selectionStats.some((s) => s.id === stat.id)) throw new Error(`[WordCountStatistics] Duplicate selection statistic id: "${stat.id}"`);
-      this._selectionStats.push(stat);
-      if (document.body.classList.contains("ty-show-word-count")) {
-        this._injectSelectionRow(stat);
-        this._updateSelectionStat(stat, new StatisticContext());
-      }
-      return () => {
-        this._selectionStats = this._selectionStats.filter((s) => s !== stat);
-        $(`#typ-wc-sel-${stat.id}`).closest("tr").remove();
-      };
-    }
-    /* ─── mutation observer on body class ────────────────── */
-    _observePanelClass() {
-      this._observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          if (mutation.type !== "attributes") continue;
-          const target = mutation.target;
-          if (target.classList.contains("ty-show-word-count")) this._onPanelOpen();
-          else this._onPanelClose();
-          break;
-        }
-      });
-      this._observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
-    }
-    _disconnectObserver() {
-      this._observer?.disconnect();
-      this._observer = null;
-    }
-    /* ─── panel open / close handlers ────────────────────── */
-    _onPanelOpen() {
-      if (this._stats.length > 0 && !document.querySelector(`#typ-wc-${this._stats[0].id}`)) {
-        this._stats.forEach((s) => this._injectRow(s));
-      }
-      if (this._selectionStats.length > 0 && !document.querySelector(`#typ-wc-sel-${this._selectionStats[0].id}`)) {
-        this._selectionStats.forEach((s) => this._injectSelectionRow(s));
-      }
-      this._updateAllStats();
-      this._updateAllSelectionStats();
-    }
-    _onPanelClose() {
-      this._removeInjectedRows();
-      this._removeInjectedSelectionRows();
-    }
-    _updateAllStats = throttle(() => {
-      if (!document.body.classList.contains("ty-show-word-count")) return;
-      const context = new StatisticContext();
-      this._stats.forEach((s) => this._updateStat(s, context));
-    }, 167);
-    _updateAllSelectionStats = throttle(() => {
-      if (!document.body.classList.contains("ty-show-word-count")) return;
-      const context = new StatisticContext();
-      this._selectionStats.forEach((s) => this._updateSelectionStat(s, context));
-    }, 167);
-    _updateStat(stat, context) {
-      const $cell = $(`#typ-wc-${stat.id}`);
-      if (!$cell.length) return;
-      const val = stat.eval(context);
-      context.set(stat.id, val);
-      val === null ? $cell.closest("tr").hide() : ($cell.closest("tr").show(), $cell.text(val));
-    }
-    _updateSelectionStat(stat, context) {
-      const $cell = $(`#typ-wc-sel-${stat.id}`);
-      if (!$cell.length) return;
-      const val = stat.eval(context);
-      context.set(stat.id, val);
-      val === null ? $cell.closest("tr").hide() : ($cell.closest("tr").show(), $cell.text(val));
-    }
-    /* ─── inject all rows ────────────────────────────────── */
-    _injectRow(stat) {
-      const $tbody = $(TBODY_SEL);
-      if ($tbody.length) {
-        $tbody.append(`<tr><td id="typ-wc-${stat.id.replace(/#/g, "\\#")}">-</td><td>${stat.name}</td><td></td></tr>`);
-      }
-    }
-    _injectSelectionRow(stat) {
-      const $tbody = $(SELECTION_TBODY_SEL);
-      if ($tbody.length) {
-        $tbody.append(`<tr><td id="typ-wc-sel-${stat.id.replace(/#/g, "\\#")}">-</td><td>${stat.name}</td><td></td></tr>`);
-      }
-    }
-    _removeInjectedRows() {
-      this._stats.forEach((s) => $(`#typ-wc-${s.id}`).closest("tr").remove());
-    }
-    _removeInjectedSelectionRows() {
-      this._selectionStats.forEach((s) => $(`#typ-wc-sel-${s.id}`).closest("tr").remove());
-    }
-  };
-
   // vendor/workspace_core/src/app.ts
   var App = class extends Events {
     _isReady = false;
@@ -4834,7 +6203,7 @@ var workspace_core_module = (() => {
       const fs2 = reqnode("fs"), path2 = reqnode("path");
       const target = path2.join(this.configDir, filename + ".json");
       const contents = JSON.stringify(value, null, 2);
-      fs2.mkdirSync(this.configDir, { recursive: true });
+      fs2.mkdirSync(path2.dirname(target), { recursive: true });
       const temporary = target + "." + reqnode("crypto").randomBytes(12).toString("hex") + ".tmp";
       let descriptor, created = false;
       try {
@@ -4918,140 +6287,6 @@ var workspace_core_module = (() => {
     return (s.split("").reduce((a, b) => (a << 5) - a + b.charCodeAt(0) | 0, 0) + 2147483648).toString(16);
   }
 
-  // vendor/workspace_core/src/locales/i18n.ts
-  var DEFAULT_OPTIONS = {
-    defaultLang: "en"
-  };
-  var I18n = class {
-    constructor(options, logger = useService("logger", ["I18n"])) {
-      this.logger = logger;
-      const {
-        defaultLang,
-        userLang,
-        localePath,
-        resources
-      } = Object.assign({}, DEFAULT_OPTIONS, options);
-      const locale = (userLang ?? _options.appLocale ?? _options.locale).toLowerCase();
-      const localeList = [locale, locale.split("-").at(0), defaultLang];
-      if (resources) {
-        this.loadFormJson(localeList, resources);
-        return;
-      }
-      this.loadFormFile(localeList, localePath);
-    }
-    locale;
-    resources;
-    get t() {
-      return this.resources;
-    }
-    loadFormJson(localeList, resources) {
-      this.locale = localeList.find((s) => resources[s]) ?? "";
-      this.resources = resources[this.locale];
-    }
-    loadFormFile(localeList, localePath) {
-      const pathList = localeList.map((s) => path_default.join(localePath, `lang.${s}.json`));
-      for (let i = 0; i < pathList.length; i++) {
-        try {
-          const localePath2 = pathList[i];
-          const localeText = filesystem_default.readTextSync(localePath2);
-          this.locale = localeList[i];
-          this.resources = JSON.parse(localeText);
-          return;
-        } catch (error) {
-          this.logger.warn(`Failed to load locale file: lang.${localeList[i]}.json`);
-          continue;
-        }
-      }
-      throw new Error("No locale file found.");
-    }
-  };
-
-  // vendor/workspace_core/src/settings/settings.ts
-  var Settings = class extends Store {
-    constructor(options, logger = useService("logger", ["Settings"]), config = useService("config-repository")) {
-      super();
-      this.logger = logger;
-      this.config = config;
-      this.filename = options.filename;
-      this._codeVersion = options.version;
-      this._fileVersion = options.version;
-      this._migrations = options.migrations;
-      this._data = Object.create(this._defaultSettings);
-      this.addChangeListener("*", () => {
-        if (!this._is_saving_immediately) this.save();
-      });
-      this.load();
-    }
-    _settingsDir;
-    get _isSettingsLoaded() {
-      return this._settingsDir === this.config.configDir;
-    }
-    filename;
-    get version() {
-      return this._fileVersion;
-    }
-    _codeVersion = 0;
-    _fileVersion = 0;
-    _defaultSettings = {};
-    _migrations;
-    _is_saving_immediately = false;
-    setDefault(settings) {
-      Object.assign(this._defaultSettings, settings);
-    }
-    /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
-    set_and_save(key, value) {
-      if (typeof key !== "string") throw new TypeError("Setting key must be a string.");
-      const settings = { ...this._data, [key]: value };
-      this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings });
-      this._is_saving_immediately = true;
-      try {
-        this.set(key, value);
-      } finally {
-        this._is_saving_immediately = false;
-      }
-    }
-    load() {
-      if (this._isSettingsLoaded) {
-        return;
-      } else {
-        this._settingsDir = this.config.configDir;
-      }
-      const oldSettings = this._data;
-      const rawStores = this.config.readConfigJson(this.filename, {
-        version: this._codeVersion,
-        settings: {}
-      });
-      this._fileVersion = rawStores.version;
-      this._data = Object.assign(
-        Object.create(this._defaultSettings),
-        rawStores.settings
-      );
-      Object.keys(this._defaultSettings).forEach((key) => {
-        if (this._data[key] === oldSettings[key]) return;
-        this._emit(key, this._data[key]);
-      });
-      if (this._fileVersion < this._codeVersion) {
-        this._migrations?.migrate(this);
-        if (this._migrations?.hasMigrated) {
-          this.save();
-          this._migrations.hasMigrated = false;
-        }
-      }
-    }
-    save() {
-      this.logger.debug(`Saving settings to ${this.filename}.json`);
-      this.config.writeConfigJson(this.filename, { version: this._fileVersion, settings: this._data });
-    }
-    migrateTo(newVersion, transform) {
-      const result = transform({ version: this._fileVersion, settings: this._data });
-      this._fileVersion = newVersion;
-      this._data = result.settings;
-    }
-  };
-  __decorateClass([
-    debounced(1e3)
-  ], Settings.prototype, "save", 1);
-
   // vendor/workspace_core/src/ui/view-manager.ts
   var ViewManager = class {
     viewByType = {};
@@ -5113,125 +6348,6 @@ var workspace_core_module = (() => {
     }
   };
 
-  // vendor/workspace_core/src/ui/common/view-legacy.ts
-  var ViewLegacy = class extends Component {
-    containerEl;
-    show() {
-      this.containerEl.style.display = "block";
-    }
-    hide() {
-      this.containerEl.style.display = "none";
-    }
-  };
-
-  // vendor/workspace_core/src/ui/sidebar/sidebar.ts
-  var Sidebar = class extends Component {
-    constructor(panel_factory, ribbon = useService("ribbon")) {
-      super();
-      this.panel_factory = panel_factory;
-      this.ribbon = ribbon;
-    }
-    container = new SidebarContainer();
-    activePanel;
-    shown_panel;
-    internalPanels = [];
-    panels = [];
-    mount() {
-      if (this.internalPanels.length) return;
-      this.internalPanels = this.panel_factory();
-      this.internalPanels.forEach((view) => this.addPanel(view));
-    }
-    addPanel(panel) {
-      super.addChild(panel);
-      if (panel instanceof ViewLegacy) {
-        panel.load();
-        this.container.addPanel(panel);
-      }
-      if (panel.ribbonButton) {
-        this.ribbon.addButton(panel.ribbonButton);
-      }
-      this.panels.push(panel);
-      return () => this.removePanel(panel);
-    }
-    /**
-     * Use `addPanel` instead.
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    addChild(panel) {
-      return this.addPanel(panel);
-    }
-    removePanel(panel) {
-      if (this.shown_panel === panel) {
-        panel.hide();
-        this.shown_panel = void 0;
-      }
-      if (this.activePanel === panel) this.activePanel = void 0;
-      if (panel.ribbonButton) {
-        this.ribbon.removeButton(panel.ribbonButton);
-      }
-      this.panels = this.panels.filter((v) => v !== panel);
-      if (panel instanceof ViewLegacy) {
-        panel.unload();
-        this.container.removePanel(panel);
-      }
-    }
-    /**
-     * Use `removePanel` instead.
-     * @deprecated compatible with old api (<=2.2.22)
-     */
-    removeChild(panel) {
-      this.removePanel(panel);
-    }
-    get isShown() {
-      return editor.library.isSidebarShown();
-    }
-    switch(viewClass) {
-      const target_panel = this.panels.find((c) => c instanceof viewClass);
-      if (!target_panel) return;
-      if (this.activePanel instanceof viewClass) {
-        this.toggle();
-        return;
-      }
-      const previous_panel = this.shown_panel ?? this.activePanel;
-      previous_panel?.hide();
-      this.shown_panel = void 0;
-      this.internalPanels.forEach((panel) => {
-        if (panel !== previous_panel) panel.hide();
-      });
-      this.activePanel = target_panel;
-      this.show();
-    }
-    toggle() {
-      this.isShown ? this.hide() : this.show();
-    }
-    show() {
-      if (!this.isShown) editor.library.showSidebar();
-      if (this.shown_panel === this.activePanel) return;
-      this.shown_panel?.hide();
-      this.activePanel?.show();
-      this.shown_panel = this.activePanel;
-    }
-    hide() {
-      if (this.isShown) editor.library.hideSidebar();
-      this.shown_panel?.hide();
-      this.shown_panel = void 0;
-    }
-  };
-  var SidebarContainer = class extends View {
-    wrapperEl;
-    constructor() {
-      super();
-      this.containerEl = document.getElementById("sidebar-content");
-      this.wrapperEl = this.containerEl.parentElement;
-    }
-    addPanel(panel) {
-      this.containerEl.append(panel.containerEl);
-    }
-    removePanel(panel) {
-      panel.containerEl.remove();
-    }
-  };
-
   // vendor/workspace_core/src/ui/sidebar/outline.ts
   var Outline = class extends InternalSidebarPanel {
     constructor(i18n = useService("i18n")) {
@@ -5252,254 +6368,6 @@ var workspace_core_module = (() => {
       this.containerEl.parentElement.classList.remove("active-tab-outline");
       this.containerEl.style.display = "none";
     }
-  };
-
-  // vendor/workspace_core/src/ui/components/modal.ts
-  var Modal = class extends View {
-    modal;
-    header;
-    body;
-    footer;
-    previous_focus;
-    escape_layer;
-    opened = false;
-    closeListeners = [];
-    constructor(props) {
-      super();
-      this.containerEl = $('<div class="typ-modal__wrapper middle stopselect" style="display: none;"></div>').append(
-        this.modal = $(`<div class="typ-modal ${props.className ?? ""}"></div>`).append(
-          this.body = html`<div class="typ-modal__body"></div>`
-        ).get(0)
-      ).get(0);
-      document.body.append(this.containerEl);
-    }
-    setHeader(text) {
-      if (!this.header) {
-        this.header = html`<div class="typ-modal__header">${text}</div>`;
-        this.modal.prepend(this.header);
-      } else {
-        this.header.textContent = text;
-      }
-      return this;
-    }
-    setBody(build) {
-      build(this.body);
-      return this;
-    }
-    setFooter(build) {
-      if (!this.footer) {
-        this.footer = html`<div class="typ-modal__footer"></div>`;
-        this.modal.append(this.footer);
-      } else {
-        this.footer.innerHTML = "";
-      }
-      build(this.footer);
-      return this;
-    }
-    onClose(callback) {
-      this.closeListeners.push(callback);
-      return this;
-    }
-    open() {
-      if (this.opened) return;
-      this.opened = true;
-      this.previous_focus = capture_workspace_focus();
-      this.containerEl.style.display = "";
-      this.escape_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => this.close(reason === "escape" || reason === "outside"), { inside: () => [this.modal], window_blur: true, consume_outside: true });
-    }
-    close(restore = true) {
-      if (!this.opened) return;
-      const owned = this.escape_layer?.owns_focus();
-      this.opened = false;
-      this.escape_layer?.dispose();
-      this.escape_layer = void 0;
-      this.containerEl.style.display = "none";
-      $("input", this.containerEl).each((i, el) => el.blur());
-      if (restore && owned) this.previous_focus?.restore();
-      this.previous_focus = void 0;
-      this.closeListeners.forEach((callback) => callback());
-    }
-  };
-
-  // vendor/workspace_core/src/ui/components/quick-open.ts
-  globalThis.openInputBox = openInputBox;
-  globalThis.openQuickPick = openQuickPick;
-  function openInputBox(options) {
-    const inputBox = useService("input-box");
-    return new Promise((resolve) => {
-      inputBox.open(resolve, options);
-    });
-  }
-  function openQuickPick(items, options) {
-    const quickPick = useService("quick-pick");
-    return new Promise((resolve) => {
-      quickPick.open(resolve, items, options);
-    });
-  }
-  var InputBox = class extends Component {
-    modal;
-    input;
-    options;
-    resolve;
-    resolved = false;
-    constructor() {
-      super();
-    }
-    onload() {
-      this.render();
-      super.onload();
-    }
-    open(resolve, options = {}) {
-      this.resolve = resolve;
-      this.resolved = false;
-      this.options = options;
-      $(this.modal.containerEl).find(".typ-command-modal__title").text(options.title ?? "").end().find(".typ-command-modal__form input").attr("placeholder", this.options.placeholder ?? "").end().find(".typ-command-modal__prompt").text(options.prompt ?? "");
-      this.modal.open();
-      this.input.focus();
-    }
-    close() {
-      if (!this.resolved) {
-        this.resolve(void 0);
-      }
-      this.resolve = void 0;
-      this.input.value = "";
-    }
-    render() {
-      this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {
-        $(body).on("keyup", this.onKeyup).append(
-          html`<div class="typ-command-modal__title"></div>`,
-          $('<div class="typ-command-modal__form"></div>').append(this.input = html`<input type="text" />`),
-          html`<div class="typ-command-modal__prompt"></div>`
-        );
-      });
-    }
-    onKeyup = (e) => {
-      switch (e.key) {
-        case "Enter":
-          this.resolve(this.input.value);
-          this.resolved = true;
-          this.close();
-          this.modal.close();
-          break;
-      }
-    };
-  };
-  var QuickPick = class extends Component {
-    modal;
-    input;
-    results;
-    items = [];
-    filteredItems = [];
-    selected = -1;
-    picked = {};
-    options;
-    resolve;
-    resolved = false;
-    constructor() {
-      super();
-    }
-    onload() {
-      this.render();
-      super.onload();
-    }
-    open(resolve, items, options = {}) {
-      this.items = items;
-      this.options = options;
-      this.resolve = resolve;
-      this.resolved = false;
-      $(this.modal.containerEl).find(".typ-command-modal__title").text(options.title ?? "").end().find(".typ-command-modal__form input").attr("placeholder", options.placeholder ?? "").end().find(".typ-command-modal__form button").css("display", options.canPickMany ? "" : "none");
-      this.filteredItems = items;
-      this.renderItems();
-      this.modal.open();
-      this.input.focus();
-    }
-    closePickMany() {
-      const res = Object.values(this.picked);
-      this.resolve(res.length ? res : void 0);
-      this.resolved = true;
-      this.close();
-      this.modal.close();
-    }
-    close() {
-      if (!this.resolved) {
-        this.resolve(void 0);
-      }
-      this.items = [];
-      this.resolve = void 0;
-      this.input.value = "";
-      this.selected = -1;
-      this.picked = {};
-    }
-    render() {
-      this.modal = new Modal({ className: "typ-command-modal" }).onClose(() => this.close()).setBody((body) => {
-        $(body).on("keyup", this.onKeyup).append(
-          html`<div class="typ-command-modal__title"></div>`,
-          $('<div class="typ-command-modal__form"></div>').append(
-            this.input = html`<input type="text" />`,
-            $(`<button class="typ-button primary">OK</button>`).on("click", () => this.closePickMany())
-          )
-        ).append(
-          this.results = $('<div class="typ-command-modal__results stopselect"></div>').on("click", this.onItemClick).get(0)
-        );
-      });
-    }
-    onKeyup = (event) => {
-      let { key } = event;
-      if (key.startsWith("Arrow")) {
-        if (key === "ArrowDown") {
-          if (this.selected < this.filteredItems.length - 1) {
-            this.selected++;
-          } else {
-            this.selected = 0;
-          }
-        } else if (key === "ArrowUp") {
-          if (this.selected > 0) {
-            this.selected--;
-          } else {
-            this.selected = this.filteredItems.length - 1;
-          }
-        }
-        this.renderItems();
-        return;
-      }
-      if (key === "Enter") {
-        this.onSelect(this.selected);
-        return;
-      }
-      this.selected = -1;
-      this.filteredItems = this.items.filter(
-        (c) => c.label.toLowerCase().includes(this.input.value.toLowerCase())
-      );
-      this.renderItems();
-    };
-    renderItems() {
-      this.results.innerHTML = "";
-      this.results.append(...this.filteredItems.map((item, i) => {
-        const active = i === this.selected ? "active" : "";
-        return $(`<div class="typ-command-modal__item ${active}" data-index=${i}>${item.label}</div>`).prepend(this.options.canPickMany ? `<input type="checkbox" ${this.picked[i] ? "checked" : ""}> ` : "").get(0);
-      }));
-    }
-    onItemClick = (event) => {
-      const el = event.target;
-      const item = el.closest(".typ-command-modal__item");
-      if (!item) return;
-      this.onSelect(+item.dataset.index);
-    };
-    onSelect = (index) => {
-      if (this.options.canPickMany) {
-        $(this.modal.containerEl).find(".typ-command-modal__item input").eq(index).prop("checked", !this.picked[index]);
-        if (this.picked[index]) {
-          delete this.picked[index];
-        } else {
-          this.picked[index] = this.filteredItems[index];
-        }
-        return;
-      }
-      this.resolve(this.filteredItems[index]);
-      this.resolved = true;
-      this.close();
-      this.modal.close();
-    };
   };
 
   // vendor/workspace_core/src/ui/commands/command-modal.ts
@@ -6058,7 +6926,7 @@ var workspace_core_module = (() => {
           }
         }).get(0)
       );
-      if (props.draggable) draggable2(this.containerEl, "x");
+      if (props.draggable) draggable(this.containerEl, "x");
     }
     container;
     showTab(tabEl) {
@@ -6809,241 +7677,6 @@ var workspace_core_module = (() => {
     });
   }
 
-  // vendor/workspace_core/src/ui/editor/postprocessor/postprocessor.ts
-  var PostProcessor = class _PostProcessor {
-    constructor(logger = useService("logger", ["PostProcessor"])) {
-      this.logger = logger;
-    }
-    _process(el) {
-      try {
-        this.process(el, { containerEl: el });
-      } catch (e) {
-        this.logger.error(e);
-      }
-    }
-    process(el, context) {
-      throw new Error("Method not implemented.");
-    }
-    renderButton(parent, button) {
-      const className = button.className ??= "typ-btn_" + randomString();
-      const group = this.setupButtonContainer(parent);
-      if (group.getElementsByClassName(className).length) {
-        return;
-      }
-      const buttonEl = document.createElement("button");
-      buttonEl.classList.add("typ-block-operate-button", className);
-      buttonEl.innerHTML = button.text;
-      buttonEl.title = button.title ?? "";
-      buttonEl.onclick = (event) => button.onclick(event, {});
-      group.append(buttonEl);
-    }
-    setupButtonContainer(codeblock) {
-      let group = codeblock.querySelector(".typ-buttons");
-      if (group) return group;
-      group = document.createElement("div");
-      group.className = "typ-buttons";
-      group.addEventListener("mouseup", (event) => event.stopPropagation());
-      codeblock.append(group);
-      return group;
-    }
-    static from(options) {
-      const processor = new _PostProcessor();
-      if (typeof options === "function") {
-        processor.process = options;
-      } else {
-        Object.assign(processor, options);
-      }
-      return processor;
-    }
-  };
-
-  // vendor/workspace_core/src/ui/editor/postprocessor/html-postprocessor.ts
-  var HtmlPostProcessor = class _HtmlPostProcessor extends PostProcessor {
-    constructor(logger = useService("logger", ["HtmlPostProcessor"])) {
-      super();
-      this.logger = logger;
-    }
-    _selector = "";
-    get selector() {
-      return this._selector;
-    }
-    set selector(value) {
-      this._selector = value;
-    }
-    process(el, context) {
-      throw new Error("Method not implemented.");
-    }
-    _process(el) {
-      try {
-        const elements = this.selector ? $(this.selector, el).toArray() : [el];
-        elements.forEach((selected) => this.process(selected, { containerEl: el }), this);
-      } catch (error) {
-        this.logger.error(error);
-      }
-    }
-    static from(options) {
-      const processor = new _HtmlPostProcessor();
-      Object.assign(processor, options);
-      return processor;
-    }
-  };
-
-  // vendor/workspace_core/src/ui/editor/postprocessor/codeblock-postprocessor.ts
-  var CodeblockPostProcessor = class _CodeblockPostProcessor extends HtmlPostProcessor {
-    constructor(workspace = useService("workspace")) {
-      super();
-      this.workspace = workspace;
-    }
-    type = "codeblock";
-    lang = [""];
-    get selector() {
-      const selector = this.lang.map((lang) => lang ? `[lang="${lang}"]` : "").map((langSelector) => `.md-fences${langSelector}:has(.CodeMirror)`).join(",");
-      return selector;
-    }
-    button;
-    exportPreview = false;
-    preview(code, el) {
-      throw new Error("Method not implemented.");
-    }
-    process(el, context) {
-      if (this.button) {
-        this.renderButton(el, this.button);
-      }
-      if (this.hasPreview()) {
-        this.buildPreviewer(el, this.preview);
-      }
-    }
-    /**
-     * If override `preview()` to render codeblock preview, then return `true`
-     */
-    hasPreview() {
-      return this.preview !== _CodeblockPostProcessor.prototype.preview;
-    }
-    renderButton(parent, button) {
-      const btn = button;
-      if (!btn.$button) {
-        btn.$button = {
-          ...button,
-          onclick: (event) => {
-            const pre = event.target.closest("pre");
-            const code = this.getValueOfCodeblock(pre);
-            button.onclick(event, { codeblock: pre, code });
-          }
-        };
-      }
-      super.renderButton(parent, btn.$button);
-    }
-    buildPreviewer(codeblock, preview) {
-      if (codeblock.querySelector(".md-diagram-panel-preview")) {
-        return;
-      }
-      const previewer = document.querySelector("#componenet > .md-diagram-panel").cloneNode(true);
-      previewer.style.cssText = "position:initial; margin:0; padding:0;";
-      previewer.addEventListener("click", () => {
-        codeblock.classList.add("md-focus");
-      });
-      const containerEl = previewer.querySelector(".md-diagram-panel-preview");
-      const render = async () => {
-        const code = this.getValueOfCodeblock(codeblock);
-        const previewEl = await preview(code, codeblock);
-        containerEl.innerHTML = "";
-        containerEl.append(previewEl);
-      };
-      render();
-      codeblock.classList.add("md-diagram", "md-fences-advanced");
-      codeblock.addEventListener("keyup", debounce(render, 1e3));
-      codeblock.append(previewer);
-    }
-    getValueOfCodeblock(codeblock) {
-      const rootEl = codeblock.closest("#write") ?? codeblock.closest(".typ-markdown-view");
-      const cid = codeblock.getAttribute("cid");
-      if (!cid) throw Error("`cid` of codeblock can not be empty.");
-      if ($(rootEl).is("#write")) {
-        return editor.fences.getCm(cid)?.getValue() ?? "";
-      } else {
-        const leaf = this.workspace.rootSplit.findLeaf((leaf2) => leaf2.view.containerEl === rootEl);
-        const mdView = leaf?.view;
-        return mdView?.getCodeMirrorInstance(cid)?.getValue() ?? "";
-      }
-    }
-    static from(options) {
-      const processor = new _CodeblockPostProcessor();
-      Object.assign(processor, options);
-      return processor;
-    }
-  };
-  function blockMarkdownViewPreviewMode() {
-    decorate.parameters(editor.fences, "refreshEditor", ([a0, a1, a2]) => [a0, a1, a2 ?? editor.writingArea]);
-  }
-
-  // vendor/workspace_core/src/export-manager.ts
-  var ExportManager = class {
-    _processors = [];
-    constructor() {
-      setTimeout(() => {
-        const { postProcessor } = useService("markdown-editor");
-        decorate.returnValue(editor.export, "exportToHTML", (args, html2) => {
-          postProcessor.processAllCodeblock();
-          const doc = new DOMParser().parseFromString(html2, "text/html");
-          const ctx = {
-            type: "html",
-            html: html2,
-            doc
-          };
-          this._processHtml(ctx);
-          return `<!DOCTYPE HTML>
-${doc.documentElement.outerHTML}`;
-        });
-      });
-    }
-    register(processor) {
-      this._processors.push(processor);
-      return () => this.unregister(processor);
-    }
-    unregister(processor) {
-      this._processors = this._processors.filter((p) => p !== processor);
-    }
-    _processHtml(ctx) {
-      this._processors.filter((p) => p.type === "html").forEach((p) => p.process(ctx));
-    }
-  };
-  var ExportProcessor = class _ExportProcessor {
-    type;
-    process(context) {
-    }
-    static from(options) {
-      const processor = new _ExportProcessor();
-      Object.assign(processor, options);
-      return processor;
-    }
-  };
-  var HtmlExportProcessor = class _HtmlExportProcessor extends ExportProcessor {
-    type = "html";
-    process(context) {
-    }
-    static from(options) {
-      const processor = new _HtmlExportProcessor();
-      Object.assign(processor, options);
-      return processor;
-    }
-  };
-  var CodeblockExportProcessor = class _CodeblockExportProcessor extends HtmlExportProcessor {
-    lang;
-    process({ doc }) {
-      const selectors = this.lang.map((l) => `pre[lang="${l}"]`);
-      const previewSelectors = selectors.map((l) => `${l} .md-fences-adv-panel-preview`);
-      const previews = $(previewSelectors.join(","));
-      $(selectors.join(","), doc).removeClass().addClass("md-diagram-panel md-fences-adv-panel").empty().each((i, pre) => {
-        $(pre).append($(previews[i].innerHTML));
-      });
-    }
-    static from(options) {
-      const processor = new _CodeblockExportProcessor();
-      Object.assign(processor, options);
-      return processor;
-    }
-  };
-
   // vendor/workspace_core/src/ui/editor/postprocessor/postprocessor-manager.ts
   var MarkdownPostProcessor = class {
     constructor(exporter = useService("exporter")) {
@@ -7085,6 +7718,7 @@ ${doc.documentElement.outerHTML}`;
         });
       }
       this._processors = this._processors.filter((p) => p !== processor);
+      if (processor instanceof PostProcessor) processor.dispose();
     }
   };
   function bindPostProcessorToEditor(mdEditor) {
@@ -7177,53 +7811,6 @@ ${doc.documentElement.outerHTML}`;
         sel.removeAllRanges();
         sel.addRange(range);
       }
-    }
-  };
-
-  // vendor/workspace_core/src/ui/editor/suggestion/suggest.ts
-  var EditorSuggest = class {
-    _query = "";
-    _placeholder = [];
-    get isUsing() {
-      return editor.autoComplete.state.all === this._placeholder;
-    }
-    _handlers = {
-      search: this.getSuggestions.bind(this),
-      render: this._renderSuggestion.bind(this)
-    };
-    canTrigger(textBefore, textAfter, range) {
-      return !!textBefore;
-    }
-    show(range, query) {
-      this._query = query;
-      editor.autoComplete.show(this._placeholder, range, query, this._handlers);
-    }
-    hide() {
-      editor.autoComplete.hide();
-    }
-    /**
-     * @returns HTML string
-     */
-    _renderSuggestion(suggest, isActive) {
-      const className = `typ-suggestion ${isActive ? "active" : ""}`;
-      const id = this.getSuggestionId(suggest);
-      const text = this.renderSuggestion(suggest);
-      return `<li class="${className}" data-content="${id}">${text}</li>`;
-    }
-    /**
-     * @returns HTML string
-     */
-    renderSuggestion(suggest) {
-      return suggest.toString();
-    }
-    _beforeApply(matched) {
-      if (typeof matched === "string")
-        return this.beforeApply(this.getSuggestionById(matched));
-      else
-        return this.beforeApply(matched);
-    }
-    lengthOfTextBeforeToBeReplaced(query) {
-      return query.length + this.triggerText.length;
     }
   };
 
