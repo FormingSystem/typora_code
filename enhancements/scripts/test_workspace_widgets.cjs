@@ -130,6 +130,14 @@ app.whenReady().then(async () => {
     checks.push(`R065 ${kind||'standard'} width ${width} zoom ${zoom}: four aligned cells, full shortcut, no horizontal overflow`);
     await evaluate('width_close();void 0');
   }
+  // 不放人为超长条目来撑宽菜单：正是三项设置菜单在真实用户截图中再次失败。
+  for(const zoom of [1,1.25])for(const width of [800,320]){
+    test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`window.actual_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'Typora 偏好设置…',shortcut:'Ctrl+,',action(){}},{title:'插件设置…',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}}],'workspace-preferences-menu');void 0`);await delay(20);
+    assert(await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu');return menu.scrollWidth<=menu.clientWidth&&[...menu.querySelectorAll('.git-menu-label,.git-menu-shortcut')].every(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return [...range.getClientRects()].every(text=>text.left>=box.left-.5&&text.right<=box.right+.5&&text.bottom<=box.bottom+.5);});})()`),'actual three commands must show every text line');
+    await evaluate('actual_close();void 0');
+    checks.push(`actual preferences menu full labels and shortcuts at ${width}/${zoom}`);
+  }
   console.log(JSON.stringify({status: 'PASS', checks, evidence}));
   test_window.destroy(); app.exit(0);
 }).catch(error => { console.error(error); console.error(evidence); test_window?.destroy(); app.exit(1); });

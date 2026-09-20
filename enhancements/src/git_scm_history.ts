@@ -14,7 +14,7 @@ const HISTORY_ROW_HEIGHT = 22;
 
 /** 复用仓库控制器的真实提交及拓扑；展开文件只读取所选提交，不切走当前文档。 */
 export class git_scm_history {
-  container = el("section", "git-scm-history"); header = el("div", "git-scm-history-header");
+  container = el("section", "git-scm-history"); header = el("div", "git-scm-history-header workspace-section-header");
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
   toolbar:git_scm_toolbar;
@@ -25,10 +25,10 @@ export class git_scm_history {
     this.hover=bind_git_commit_hover(this.list,owner.panel);
     this.container.setAttribute("aria-label", text("history.graph"));
     this.container.setAttribute("data-linux-note-scm-history", "ready");
-    this.toggle = button("", () => owner.toggle_history(), "git-scm-history-toggle"); this.toggle.append(git_disclosure(),el("span","git-scm-history-title",text("history.graph")));
+    this.toggle = button("", () => owner.toggle_history(), "git-scm-history-toggle workspace-section-title"); this.toggle.append(git_disclosure(),el("span","git-scm-history-title",text("history.graph")));
     this.toggle.title = text("history.toggle_help");
     this.toggle.setAttribute("aria-expanded", "true"); this.toggle.append(this.count);
-    this.toolbar=new git_scm_toolbar(this);
+    this.toolbar=new git_scm_toolbar(this);this.toolbar.element.classList.add("workspace-section-actions");
     this.header.append(this.toggle,this.toolbar.element);this.container.append(this.header,this.list);
     this.header.oncontextmenu=event=>owner.view_menu(event,"show_history");
     this.list.setAttribute("aria-label", text("history.commit_history"));

@@ -50,3 +50,14 @@ body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(butto
   background-color:var(--workspace-interaction-hover,var(--workspace-default-hover))!important;
   color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;
 }
+
+/* 一级侧栏分区的外留白和整行底色统一；各视图继续拥有高度、折叠和工具显隐。 */
+body .workspace-section-header.workspace-section-header {
+  box-sizing:border-box; margin-left:var(--workspace-disclosure-inset);margin-right:var(--workspace-disclosure-inset);
+  padding-left:0;padding-right:0;min-width:0;width:calc(100% - 2 * var(--workspace-disclosure-inset));
+  --workspace-interaction-hover:var(--workspace-hover-background);background-color:transparent;
+  border-radius:var(--workspace-control-radius);
+}
+body .workspace-section-header.workspace-section-header:hover {background-color:var(--workspace-hover-background)!important;}
+body .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}
+body .workspace-section-header > .workspace-section-actions {margin-right:0;}

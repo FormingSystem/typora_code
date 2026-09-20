@@ -19,7 +19,7 @@ export function bind_workspace_timeline(files:workspace_file_host,saves:workspac
   const lifetime=create_workspace_lifetime(),settings=get_workspace_app()!.settings,workspace=files.core.app.workspace,runtime=window as any;
   const initial=settings.get("workspace_timeline") as Record<string,boolean>|undefined;
   const state={collapsed:initial?.collapsed!==false,git:initial?.git!==false,local:initial?.local!==false,pinned:false};let target="",epoch=0,refresh_timer:ReturnType<typeof setTimeout>|undefined;
-  const container=el("section","workspace-timeline"),heading=el("div","workspace-explorer-section-heading"),toggle=el("button","workspace-explorer-section-title"),actions=el("div","workspace-explorer-section-actions"),list=el("div","workspace-timeline-list");toggle.type="button";list.setAttribute("aria-label","时间线记录");
+  const container=el("section","workspace-timeline"),heading=el("div","workspace-explorer-section-heading workspace-section-header"),toggle=el("button","workspace-explorer-section-title workspace-section-title"),actions=el("div","workspace-explorer-section-actions workspace-section-actions"),list=el("div","workspace-timeline-list");toggle.type="button";list.setAttribute("aria-label","时间线记录");
   heading.append(toggle,actions);container.append(heading,list);const runners=new Set<ReturnType<typeof create_git_runner>>();let listing:ReturnType<typeof create_git_runner>|undefined;
   const remember=()=>settings.set_and_save("workspace_timeline",{collapsed:state.collapsed,git:state.git,local:state.local});
   const run=(action:()=>Promise<unknown>)=>void action().catch(error=>{if(!lifetime.disposed)saves.report(error);});

@@ -32,6 +32,12 @@ app.whenReady().then(async()=>{
   const read_sash=()=>evaluate(`(()=>{const top=scm.changes_pane.getBoundingClientRect(),bottom=scm.history.container.getBoundingClientRect(),sash=scm.history_sash.getBoundingClientRect();return{gap:bottom.top-top.bottom,center:sash.top+sash.height/2,boundary:bottom.top,height:sash.height,x:sash.left+sash.width/2,y:sash.top+sash.height/2,color:getComputedStyle(scm.history_sash,'::before').backgroundColor,position:getComputedStyle(scm.history_sash).position,dragging:scm.history_sash.classList.contains('dragging'),ratio:scm.history_ratio,rows:getComputedStyle(scm.sections).gridTemplateRows};})()`);
   const pointer=(type,x,y,extra={})=>{const zoom=test_window.webContents.getZoomFactor();test_window.webContents.sendInputEvent({type,x:Math.round(x*zoom),y:Math.round(y*zoom),...extra});};
   const assert_overlay=async()=>{const m=await read_sash();assert(Math.abs(m.gap)<.1,'分隔条预留了额外高度：'+JSON.stringify(m));assert.equal(m.position,'absolute');assert(Math.abs(m.height-4)<.1);assert(Math.abs(m.center-m.boundary)<.1,'命中区没有对准实际轨道边界：'+JSON.stringify(m));return m;};
+  for(const selector of ['.git-scm-input-heading','.git-scm-history-header']){
+    const point=await evaluate(`(()=>{const r=document.querySelector('${selector}').getBoundingClientRect();return{x:r.left+25,y:r.top+r.height/2}})()`);
+    pointer('mouseMove',point.x,point.y);await delay(40);
+    assert(await evaluate(`(()=>{const node=document.querySelector('${selector}'),style=getComputedStyle(node);return node.classList.contains('workspace-section-header')&&style.marginLeft==='4px'&&style.marginRight==='4px'&&style.paddingLeft==='0px'&&style.backgroundColor!=='rgba(0, 0, 0, 0)';})()`),'R061 SCM uses same full header hover and margins as Explorer');
+  }
+  pointer('mouseMove',600,20);await delay(30);
   await assert_overlay();
   const idle=await read_sash();assert.equal(idle.color,'rgba(0, 0, 0, 0)');
   pointer('mouseMove',idle.x,idle.y);await delay(70);assert.equal((await read_sash()).color,'rgba(0, 0, 0, 0)','穿过边界不应立即闪烁');await delay(350);

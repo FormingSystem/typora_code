@@ -28,7 +28,7 @@ export class git_source_control {
   notice = el("div", "git-scm-notice");
   sections = el("div", "git-scm-sections"); changes_pane = el("section", "git-scm-changes-pane");
   input_section = el("details", "git-scm-input-section"); changes_body = el("div", "git-scm-changes-body"); groups_scroll = 0; repositories_view = el("section", "git-scm-repositories-view"); message_resize: ResizeObserver;
-  input_heading=el("summary","git-scm-input-heading");
+  input_heading=el("summary","git-scm-input-heading workspace-section-header");
   show_repositories = false; show_changes = true; show_history = true; sort_order = "path"; history_tree = false;
   repositories:git_scm_repositories;
   history: git_scm_history; history_sash: HTMLElement; history_ratio = .55; history_open = true;
@@ -62,7 +62,7 @@ export class git_source_control {
     this.changes_pane.setAttribute("aria-label", text("scm.working_tree_changes"));
     this.notice.setAttribute("role", "status");
     const input_heading = this.input_heading; const input_menu = icon_button("more", text("scm.changes_and_operations"), () => {}, "git-scm-operation-menu");
-    const input_actions = el("div", "git-scm-input-actions");
+    const input_actions = el("div", "git-scm-input-actions workspace-section-actions");
     for (const [id, icon, label] of [["commit", "check", text("scm.commit")], ["refresh", "refresh", text("history.refresh")], ["graph", "git-branch", text("scm.open_graph")]] as const) {
       const control = icon_button(icon, label, () => {});
       control.dataset.scmTitleAction = id;

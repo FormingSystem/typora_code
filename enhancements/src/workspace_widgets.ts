@@ -96,7 +96,17 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
         buttons[input.key === "Home" ? 0 : input.key === "End" ? buttons.length - 1 : (current + (input.key === "ArrowDown" ? 1 : buttons.length - 1)) % buttons.length]?.focus();
       } input.stopPropagation();
     });
-    document.body.append(menu); const bounds = menu.getBoundingClientRect();
+    document.body.append(menu);
+    // 每一行共用列宽，不能让某行长快捷键挤掉另一行功能名。按实际字体测量，缩放自然计入。
+    const text_width=(selector:string)=>Math.max(0,...[...menu.querySelectorAll<HTMLElement>(selector)].map(node=>{
+      const range=document.createRange();range.selectNodeContents(node);return range.getBoundingClientRect().width;
+    }));
+    const shortcut_width=Math.ceil(text_width('.git-menu-shortcut'));
+    menu.style.setProperty('--workspace-menu-shortcut-width',shortcut_width+'px');
+    const row=menu.querySelector('button'),row_style=row&&getComputedStyle(row),menu_style=getComputedStyle(menu);
+    const horizontal=(style:CSSStyleDeclaration)=>['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth'].reduce((sum,key)=>sum+(parseFloat((style as any)[key])||0),0);
+    if(row_style)menu.style.width=Math.ceil(text_width('.git-menu-label')+shortcut_width+32+3*(parseFloat(row_style.columnGap)||0)+horizontal(row_style)+horizontal(menu_style))+'px';
+    const bounds = menu.getBoundingClientRect();
     if(!parent&&options.anchor?.isConnected){const anchor=options.anchor.getBoundingClientRect();x=options.align==="right"?anchor.right-bounds.width:anchor.left;y=anchor.bottom;}
     if (parent && x + bounds.width > innerWidth - 4) x = parent.getBoundingClientRect().left - bounds.width + 2;
     menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";

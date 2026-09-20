@@ -85,6 +85,7 @@
     const menu_geometry={box:preferences.getBoundingClientRect().toJSON(),client:preferences.clientWidth,scroll:preferences.scrollWidth,cells:[...preferences.querySelectorAll('button')].map(button=>[...button.children].map(node=>({name:node.className,box:node.getBoundingClientRect().toJSON(),scroll:node.scrollWidth,client:node.clientWidth})))};
     samples.push({menu_geometry,theme,zoom});persist();
     assert(menu_geometry.client>=menu_geometry.scroll&&menu_geometry.cells.every(cells=>cells.length===4&&cells.every(cell=>cell.scroll<=cell.client)&&cells.every(cell=>Math.abs(cell.box.top+cell.box.height/2-cells[1].box.top-cells[1].box.height/2)<1)),'R065 '+name+' '+width+' '+zoom+' 原生设置菜单文字快捷键完整且无水平溢出');
+    assert([...preferences.querySelectorAll('.git-menu-label,.git-menu-shortcut')].every(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return [...range.getClientRects()].every(text=>text.left>=box.left-.5&&text.right<=box.right+.5&&text.bottom<=box.bottom+.5);}), 'R065 原生功能名与快捷键的每一文字行盒完整');
     const menu_stage='preferences_'+name+'_'+width+'_'+Math.round(zoom*100);
     fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:menu_stage}));
     await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage===menu_stage;}catch{return false;}},'设置菜单截图');
@@ -102,11 +103,16 @@
      assert(toggle.getAttribute('aria-expanded')!==before,'R061折叠状态响应 '+toggle.textContent);
      toggle.click();await pause(20);
     }
+    const read_section_style=node=>{const css=getComputedStyle(node);return {class:node.className,margin_left:css.marginLeft,margin_right:css.marginRight,padding_left:css.paddingLeft,padding_right:css.paddingRight,connected:node.isConnected};};
+    const explorer_headers=[...explorer.querySelectorAll('.workspace-section-header')].map(read_section_style);
     core.app.commands.run('linux_note:source_control');
     await wait(()=>document.querySelector('.git-scm-input-heading')?.getBoundingClientRect().width>0,'R061 SCM显示');
     const scm=document.querySelector('.linux-note-git-source-control'),scm_origin=scm.getBoundingClientRect().left;
     const scm_geometry=[...scm.querySelectorAll('.git-scm-input-heading>.git-disclosure-icon,.git-scm-history-toggle>.git-disclosure-icon')].map(node=>({left:node.getBoundingClientRect().left-scm_origin,width:node.getBoundingClientRect().width}));
     assert(scm_geometry.length===2&&scm_geometry.every(row=>Math.abs(row.left-section_geometry[0].icon)<.5&&Math.abs(row.width-16)<.5),'R061 '+name+' '+width+' '+zoom+' Git与Explorer实际槽位相同');
+    const headers=[...explorer_headers,...[...scm.querySelectorAll('.workspace-section-header')].map(read_section_style)];
+    samples.push({section_styles:headers});persist();
+    assert(headers.length===5&&headers.every(row=>row.connected&&row.margin_left==='4px'&&row.margin_right==='4px'&&row.padding_left==='0px'&&row.padding_right==='0px'),'R061 五个一级分区共用外留白与整行边界');
     samples.push({disclosure:{theme,zoom,width,section_geometry,scm_geometry}});persist();
     document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]').click();
     await wait(()=>explorer.getBoundingClientRect().width>0,'R061返回Explorer');

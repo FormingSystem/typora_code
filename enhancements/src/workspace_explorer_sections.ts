@@ -25,7 +25,7 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   const remember=()=>settings.set_and_save("workspace_explorer_sections",collapsed);
   const root=container.querySelector<HTMLElement>(".workspace-explorer-root")!,tree=container.querySelector<HTMLElement>(".workspace-explorer-tree")!,status=container.querySelector<HTMLElement>(".workspace-explorer-status")!;
   const folders=el("section","workspace-explorer-folders");root.before(folders);folders.append(root,tree,status);
-  const opened=el("section","workspace-explorer-opened"),heading=el("div","workspace-explorer-section-heading"),toggle=el("button","workspace-explorer-section-title"),actions=el("div","workspace-explorer-section-actions"),body=el("div","workspace-explorer-opened-list");
+  const opened=el("section","workspace-explorer-opened"),heading=el("div","workspace-explorer-section-heading workspace-section-header"),toggle=el("button","workspace-explorer-section-title workspace-section-title"),actions=el("div","workspace-explorer-section-actions workspace-section-actions"),body=el("div","workspace-explorer-opened-list");
   toggle.type="button";toggle.setAttribute("aria-label","打开的编辑器");body.setAttribute("role","list");body.setAttribute("aria-label","打开的编辑器");heading.append(toggle,actions);opened.append(heading,body);folders.before(opened);
   const run=(operation:()=>unknown)=>{try{Promise.resolve(operation()).catch(saves.report);}catch(error){saves.report(error);}};
   const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{if(!is_empty_editor_path(leaf.state.path))result.push(leaf);});return result;};
@@ -40,9 +40,9 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   const toolbar=container.querySelector(".workspace-explorer-toolbar .workspace-explorer-actions")!;
   const menu=git_icon_button("more","资源管理器视图",()=>{});menu.onclick=event=>workspace_menu(event,visibility(),"workspace-menu-compact");toolbar.append(menu);
   const root_title=root.querySelector<HTMLElement>(".workspace-explorer-root-name")!,old_context=root.oncontextmenu,old_title_context=root_title.oncontextmenu;
-  const folder_toggle=el("button","workspace-explorer-section-title"),folder_caret=el("span","workspace-explorer-folder-caret"),folder_actions=root.querySelector<HTMLElement>(".workspace-explorer-actions")!;
+  const folder_toggle=el("button","workspace-explorer-section-title workspace-section-title"),folder_caret=el("span","workspace-explorer-folder-caret"),folder_actions=root.querySelector<HTMLElement>(".workspace-explorer-actions")!;
   folder_toggle.type="button";folder_caret.setAttribute("aria-hidden","true");root_title.before(folder_toggle);folder_toggle.append(folder_caret,root_title);
-  root.classList.add("workspace-explorer-section-heading");root_title.classList.add("workspace-explorer-section-label");folder_actions.classList.add("workspace-explorer-section-actions");
+  root.classList.add("workspace-explorer-section-heading","workspace-section-header");root_title.classList.add("workspace-explorer-section-label");folder_actions.classList.add("workspace-explorer-section-actions","workspace-section-actions");
   const section_menu=(event:MouseEvent)=>{event.preventDefault();event.stopPropagation();workspace_menu(event,visibility(),"workspace-menu-compact");};
   root.oncontextmenu=section_menu;root_title.oncontextmenu=section_menu;
   folder_toggle.onclick=()=>{collapsed.folders=!collapsed.folders;remember();render_layout();};
@@ -91,6 +91,6 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
     entries.splice(2,0,{title:"打开方式…",children,action:()=>{}},{title:"与剪贴板比较",action:()=>run(async()=>{const right=await files.read_text(path),left=(window as any).reqnode("electron").clipboard.readText();if(left.length>16*1024*1024)throw new Error("剪贴板文本超过16 MiB。");viewer.open({title:files.path_api.basename(path)+"（剪贴板比较）",file:path,left,right,left_label:"剪贴板",right_label:path});})});
     entries.push({title:"打开时间线",separator:true,action:()=>timeline.open(path)});
   }) as EventListener);
-  render_layout();lifetime.add(()=>{if(frame)cancelAnimationFrame(frame);menu.remove();folder_toggle.before(root_title);folder_toggle.remove();root.classList.remove("workspace-explorer-section-heading");root_title.classList.remove("workspace-explorer-section-label");folder_actions.classList.remove("workspace-explorer-section-actions");root.oncontextmenu=old_context;root_title.oncontextmenu=old_title_context;tree.hidden=false;status.hidden=false;folders.before(root,tree,status);folders.remove();opened.remove();});
+  render_layout();lifetime.add(()=>{if(frame)cancelAnimationFrame(frame);menu.remove();folder_toggle.before(root_title);folder_toggle.remove();root.classList.remove("workspace-explorer-section-heading","workspace-section-header");root_title.classList.remove("workspace-explorer-section-label");folder_actions.classList.remove("workspace-explorer-section-actions","workspace-section-actions");root.oncontextmenu=old_context;root_title.oncontextmenu=old_title_context;tree.hidden=false;status.hidden=false;folders.before(root,tree,status);folders.remove();opened.remove();});
   return{dispose:()=>lifetime.dispose()};
 }
