@@ -440,7 +440,7 @@
       "path": "src/ui/layout/split/index.ts",
       "upstream_path": "src/ui/layout/split/index.ts",
       "upstream_sha256": "e24d2ae016fa0fa1d35b7016e7d7825fd1ee46aa565e7fd385790ca493fe56f2",
-      "sha256": "e24d2ae016fa0fa1d35b7016e7d7825fd1ee46aa565e7fd385790ca493fe56f2"
+      "sha256": "117e3669a2d299183666651fa3ce406dd25b6be04c33dffd2970b27d06919c60"
     },
     {
       "path": "src/ui/layout/tabs/contextmenu.ts",
@@ -452,7 +452,7 @@
       "path": "src/ui/layout/tabs/draggable.ts",
       "upstream_path": "src/ui/layout/tabs/draggable.ts",
       "upstream_sha256": "cb6a0425020b7e1666e8b9aeb5ecf7ceeaac1377ce7cb7a6f57543608c202235",
-      "sha256": "abf787961cca9b4a44e40033cc03f207c6579a7be23b8ea99fbd33f63fb86c52"
+      "sha256": "1dafdb38479440a06b3368b7c23904f0016694ed30089e07c87445ae648104f5"
     },
     {
       "path": "src/ui/layout/tabs/file-tabs.scss",
@@ -948,7 +948,7 @@
     },
     {
       "path": "src/ui/layout/workspace_leaf_actions.ts",
-      "sha256": "ec2d5c6b036b3c0c8dc4d12d6948ad4e631eabe712c48b8a26d87ea35fbc5cf0",
+      "sha256": "a594468043bae53d60505e6714e4520d54ec72d06530cfb10684636c58ec84ea",
       "upstream_sha256": null
     },
     {

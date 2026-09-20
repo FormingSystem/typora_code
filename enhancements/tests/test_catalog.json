@@ -2002,10 +2002,11 @@
       "id": "TC-workspace-005",
       "domain": "workspace",
       "level": "functional",
-      "purpose": "implementation",
+      "purpose": "stress",
       "requirements": [
         "R005",
-        "H011"
+        "H011",
+        "R005.1"
       ],
       "design": "docs/drag_and_windows.md",
       "implementation": [
@@ -2021,10 +2022,10 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行原功能场景及20/100/1000分层压力，保存每轮耗时、资源计数与文档身份断言"
       ],
       "expected": [
-        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+        "原功能断言及20/100/1000次真实频道握手通过；payload/accepted/committed恰好一次；2000次取消后频道和定时器归零；文档端口为替身，真实正文由独立文件/原生用例验证"
       ],
       "timeout_ms": 240000
     },
@@ -2160,15 +2161,17 @@
       "id": "TC-workspace-007",
       "domain": "workspace",
       "level": "functional",
-      "purpose": "implementation",
+      "purpose": "stress",
       "requirements": [
         "R005",
-        "H011"
+        "H011",
+        "R005.1"
       ],
       "design": "docs/drag_and_windows.md",
       "implementation": [
-        "enhancements/src/workspace_widgets.ts",
-        "enhancements/src/workspace_activity.ts"
+        "enhancements/vendor/workspace_core/src/ui/layout/tabs/draggable.ts",
+        "enhancements/vendor/workspace_core/src/ui/layout/split/index.ts",
+        "enhancements/vendor/workspace_core/src/ui/layout/workspace_leaf_actions.ts"
       ],
       "related_modules": [
         "menu",
@@ -2180,10 +2183,10 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行原功能场景及20/100/1000分层压力，保存每轮耗时、资源计数与文档身份断言"
       ],
       "expected": [
-        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+        "原拖放断言及20/100/1000次真实core布局压力通过；空闲rAF归零，1000次活动排序无额外open/close；分栏权重、DOM顺序、叶子/视图及夹具草稿身份保持一致"
       ],
       "timeout_ms": 240000
     },
@@ -3636,7 +3639,8 @@
         "R050",
         "R034",
         "R061",
-        "R065"
+        "R065",
+        "R005.1"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3697,7 +3701,8 @@
         "R044",
         "R047",
         "R018",
-        "R065"
+        "R065",
+        "R005.1"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -5427,6 +5432,42 @@
       ],
       "timeout_ms": 60000,
       "platform": "win32"
+    },
+    {
+      "id": "TC-system-native-drag-windows",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R005",
+        "R005.1"
+      ],
+      "design": "docs/drag_and_windows.md",
+      "implementation": [
+        "enhancements/src/workspace_detached_window.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/fixtures/drag_windows_native.js"
+      ],
+      "related_modules": [
+        "files",
+        "reading",
+        "workspace",
+        "native"
+      ],
+      "script": "enhancements/scripts/test_drag_windows_native.ps1",
+      "environment": "原始Typora1.14.10，独立宿主副本/用户目录/未切换的私有桌面",
+      "preconditions": "Windows x64；TYPORA_NATIVE_TEST_ROOT指向原始1.14.10安装；Python与足够复制空间；宿主ASAR按固定摘要校验",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ],
+      "platform": "win32",
+      "steps": [
+        "原始Typora独立副本20次拖出建窗和拖入原窗；实际移交未保存源码并等待空附窗renderer退出"
+      ],
+      "expected": [
+        "每轮正文/dirty及磁盘基线不变；来源仅确认后释放；空附窗进程退出；保留耗时及输入边界"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

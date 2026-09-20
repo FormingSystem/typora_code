@@ -10,6 +10,10 @@ export function move_workspace_leaf(leaf: WorkspaceLeaf, target: WorkspaceTabs, 
   if (source === target) {
     const old_index = target.children.indexOf(leaf)
     if (old_index < 0) return
+    if (old_index === next_index) {
+      workspace.activeLeaf = target.activeLeaf === leaf ? leaf : target.toggleTab(leaf.state.path)
+      return
+    }
     target.children.splice(old_index, 1)
     target.children.splice(next_index, 0, leaf)
     const tab = target.tabHeader.getTabById(leaf.state.path)!
@@ -21,7 +25,12 @@ export function move_workspace_leaf(leaf: WorkspaceLeaf, target: WorkspaceTabs, 
   } else {
     leaf.detach()
     target.insertChild(next_index, leaf)
+    if (workspace.activeLeaf === leaf) {
+      source.containerEl.classList.remove('mod-active')
+      target.containerEl.classList.add('mod-active')
+    }
   }
-  workspace.activeLeaf = target.toggleTab(leaf.state.path)
+  // insertChild 已激活目标；活动标签排序也不应重新开关编辑器。
+  workspace.activeLeaf = target.activeLeaf === leaf ? leaf : target.toggleTab(leaf.state.path)
 }
 

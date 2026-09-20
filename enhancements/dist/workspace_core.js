@@ -4551,6 +4551,10 @@ ${doc.documentElement.outerHTML}`;
     if (source === target) {
       const old_index = target.children.indexOf(leaf);
       if (old_index < 0) return;
+      if (old_index === next_index) {
+        workspace.activeLeaf = target.activeLeaf === leaf ? leaf : target.toggleTab(leaf.state.path);
+        return;
+      }
       target.children.splice(old_index, 1);
       target.children.splice(next_index, 0, leaf);
       const tab = target.tabHeader.getTabById(leaf.state.path);
@@ -4562,8 +4566,12 @@ ${doc.documentElement.outerHTML}`;
     } else {
       leaf.detach();
       target.insertChild(next_index, leaf);
+      if (workspace.activeLeaf === leaf) {
+        source.containerEl.classList.remove("mod-active");
+        target.containerEl.classList.add("mod-active");
+      }
     }
-    workspace.activeLeaf = target.toggleTab(leaf.state.path);
+    workspace.activeLeaf = target.activeLeaf === leaf ? leaf : target.toggleTab(leaf.state.path);
   }
 
   // vendor/workspace_core/src/ui/sidebar/search/search-result-renderer.ts
@@ -6625,17 +6633,23 @@ ${doc.documentElement.outerHTML}`;
       this.containerEl.insertBefore(child.containerEl, this.containerEl.children[index + 1]);
     }
     removeChild(child) {
+      const removed_index = this.children.indexOf(child);
+      if (removed_index < 0) return;
+      const [released_size] = this.sizes.splice(removed_index, 1);
       super.removeChild(child);
-      const idx = this.children.findIndex((c) => c === child);
-      const [leftWidth] = this.sizes.splice(idx, 1);
       if (this.children.length) {
-        const avgWidth = leftWidth / this.children.length;
-        this.sizes = this.sizes.map((s) => s + avgWidth);
+        const shared_size = released_size / this.children.length;
+        this.sizes = this.sizes.map((size) => size + shared_size);
         this.updatePaneSizes();
       }
       if (this.children.length === 1) {
         this.parent?.replaceChild(this, this.children[0]);
       }
+    }
+    replaceChild(previous, next) {
+      if (!this.children.includes(previous)) return;
+      super.replaceChild(previous, next);
+      this.updatePaneSizes();
     }
     onChildResizeStart(child, e) {
       let dragging = true;
@@ -6646,30 +6660,22 @@ ${doc.documentElement.outerHTML}`;
       const leftIdx = idx - 1;
       const containerRect = this.containerEl.getBoundingClientRect();
       const totalPixel = isVertical ? containerRect.width : containerRect.height;
+      if (totalPixel <= 0) return;
       const leftDom = splits[leftIdx].containerEl;
       const rightDom = splits[idx].containerEl;
       const leftW = isVertical ? leftDom.offsetWidth : leftDom.offsetHeight;
       const rightW = isVertical ? rightDom.offsetWidth : rightDom.offsetHeight;
       const startPos = isVertical ? e.clientX : e.clientY;
+      const pair_pixels = leftW + rightW;
+      const pair_size = this.sizes[leftIdx] + this.sizes[idx];
+      const minimum_pixels = Math.min(120, pair_pixels / 2);
       document.onmousemove = (e2) => {
         if (!dragging) return;
         const curPos = isVertical ? e2.clientX : e2.clientY;
         const deltaPx = curPos - startPos;
-        let newLeftPx = Math.max(120, leftW + deltaPx);
-        let newRightPx = Math.max(120, rightW - deltaPx);
-        if (newLeftPx + newRightPx > totalPixel) {
-          newRightPx = totalPixel - newLeftPx;
-        }
-        const newLeftSize = newLeftPx / totalPixel;
-        const newRightSize = newRightPx / totalPixel;
-        this.sizes[leftIdx] = newLeftSize;
-        this.sizes[idx] = newRightSize;
-        const remain = 1 - (newLeftSize + newRightSize);
-        const otherIdx = this.sizes.map((v, index) => index === leftIdx || index === idx ? -1 : index).filter((i) => i !== -1);
-        if (otherIdx.length > 0) {
-          const fact = remain / otherIdx.length;
-          otherIdx.forEach((i) => this.sizes[i] = fact);
-        }
+        const left_pixels = Math.min(pair_pixels - minimum_pixels, Math.max(minimum_pixels, leftW + deltaPx));
+        this.sizes[leftIdx] = pair_pixels > 0 ? pair_size * left_pixels / pair_pixels : pair_size / 2;
+        this.sizes[idx] = pair_size - this.sizes[leftIdx];
         this.updatePaneSizes();
       };
       document.onmouseup = () => {
@@ -6731,7 +6737,6 @@ ${doc.documentElement.outerHTML}`;
       } }));
     };
     const resolve_target = (event) => {
-      marker.hide();
       scroll_header = void 0;
       const element = doc.elementFromPoint(event.clientX, event.clientY);
       if (element?.closest(".typ-ribbon,#typora-sidebar,#top-titlebar,footer,.workspace-menu,.workspace-titlebar-menu-panel")) return;
@@ -6745,7 +6750,10 @@ ${doc.documentElement.outerHTML}`;
       const header = group.tabHeader.containerEl, header_box = header.getBoundingClientRect();
       const tabs = [...group.tabHeader.container.children].filter((node) => node instanceof HTMLElement && node !== local?.tab);
       if (event.clientY >= header_box.top && event.clientY <= header_box.bottom) {
-        let index = tabs.findIndex((node) => event.clientX < node.getBoundingClientRect().left + node.getBoundingClientRect().width / 2);
+        let index = tabs.findIndex((node) => {
+          const box = node.getBoundingClientRect();
+          return event.clientX < box.left + box.width / 2;
+        });
         if (index < 0) index = tabs.length;
         const x = tabs[index]?.getBoundingClientRect().left ?? tabs[index - 1]?.getBoundingClientRect().right ?? header_box.left;
         marker.show({ left: Math.max(header_box.left, Math.min(x, header_box.right - 2)), top: header_box.top, width: 2, height: header_box.height });
@@ -6756,19 +6764,26 @@ ${doc.documentElement.outerHTML}`;
       marker.highlight({ left: body.left, top: body.top, width: body.width, height: body.height });
       return { group, index: tabs.length };
     };
+    const scroll_direction = () => {
+      if (!last_over || !scroll_header || !scroll_header.isConnected) return 0;
+      const box = scroll_header.getBoundingClientRect(), edge = 24;
+      if (last_over.clientX < box.left + edge && scroll_header.scrollLeft > 0) return -1;
+      if (last_over.clientX > box.right - edge && scroll_header.scrollLeft < scroll_header.scrollWidth - scroll_header.clientWidth - 1) return 1;
+      return 0;
+    };
     const auto_scroll = () => {
       scroll_frame = 0;
       if (!last_over || disposed) return;
-      if (scroll_header) {
-        const box = scroll_header.getBoundingClientRect(), edge = 24;
-        const direction = last_over.clientX < box.left + edge ? -1 : last_over.clientX > box.right - edge ? 1 : 0;
-        if (direction) {
-          const before = scroll_header.scrollLeft;
-          scroll_header.scrollLeft += direction * 10;
-          if (scroll_header.scrollLeft !== before) resolve_target(last_over);
-        }
+      const direction = scroll_direction();
+      if (!direction || !scroll_header) return;
+      const before = scroll_header.scrollLeft;
+      scroll_header.scrollLeft += direction * 10;
+      if (scroll_header.scrollLeft === before) return;
+      if (!resolve_target(last_over)) {
+        clear_feedback();
+        return;
       }
-      scroll_frame = view.requestAnimationFrame(auto_scroll);
+      if (scroll_direction()) scroll_frame = view.requestAnimationFrame(auto_scroll);
     };
     const on_start = (event) => {
       const element = event.target instanceof Element ? event.target : null;
@@ -6811,7 +6826,12 @@ ${doc.documentElement.outerHTML}`;
       }
       event.preventDefault();
       last_over = event;
-      if (!scroll_frame) scroll_frame = view.requestAnimationFrame(auto_scroll);
+      if (scroll_direction()) {
+        if (!scroll_frame) scroll_frame = view.requestAnimationFrame(auto_scroll);
+      } else {
+        view.cancelAnimationFrame(scroll_frame);
+        scroll_frame = 0;
+      }
     };
     const move_local = (drag, target) => {
       drag.local_drop = true;

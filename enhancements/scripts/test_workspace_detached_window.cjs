@@ -189,6 +189,7 @@ app.whenReady().then(async()=>{
   await evaluate(direct,'binding.open(leaf);void 0');await wait(direct,'releases===1');
   assert.equal(await evaluate(last_child,'received.length'),1,'move menu receives exactly one payload before releasing the source');
   await evaluate(direct,'binding.dispose();void 0');
+  await require('../fixtures/transfer_stress.cjs')({open,evaluate,evidence});
   console.log(JSON.stringify({status:'PASS',checks:26,close_checks,channel_failure_checks:6,window_bounds_checks,release_drag_checks,evidence}));
   for(const win of windows)if(!win.isDestroyed())win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(evidence);for(const win of windows)if(!win.isDestroyed())win.destroy();app.exit(1);});

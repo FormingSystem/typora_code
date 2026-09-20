@@ -393,5 +393,26 @@
     "rules": "action label and keybinding separate; inline menu stylesheet, nowrap labels, content layout",
     "adaptation": "shared four-cell grid and max-content width; preserve existing 360px standard maximum, viewport clamp, vertical scrolling and standard/compact density",
     "design": "docs/workspace_interaction.md#r065-菜单宽度与快捷键列"
+  },
+  "drag_split_stress_20260920": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "sources": [
+      {
+        "path": "src/vs/base/browser/ui/splitview/splitview.ts",
+        "sha256": "f356800ec6e1e456a55e7a6ab6f049e74ae1d5aafaeccbc125cd88e42af4c4a4"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/editor/multiEditorTabsControl.ts",
+        "sha256": "a9b3df7960ad2108db15557556021bc4ed7c424fb2e0b3db5acd55ae6f8de104"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/editor/editorDropTarget.ts",
+        "sha256": "d29958ea2dbab5f66c2b2239f515c313f839a28473e1b074ca1c41e46b2a28eb"
+      }
+    ],
+    "adopted": "实际drop提交、窗口边界建窗、相邻尺寸约束和取消清理；保留本工作台120px分栏下限及原入口",
+    "limits": "不声明Alt对称调整、吸附、跨多栏递推、正文边缘创建组及全部编辑组设置等价",
+    "validation": "R005.1: TC-workspace-005/007及TC-system-native-drag-windows"
   }
 }

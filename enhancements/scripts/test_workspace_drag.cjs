@@ -85,6 +85,10 @@ await delay(50);await check('group.children[2]===second&&ends.at(-1).local_drop&
 await win.webContents.debugger.sendCommand('Input.cancelDragging');
 await win.webContents.debugger.sendCommand('Input.dispatchMouseEvent',{type:'mouseReleased',...actual_target,button:'left',buttons:0});
 win.webContents.debugger.detach();
+const stress=await evaluate(fs.readFileSync(path.join(__dirname,'../fixtures/drag_stress.js'),'utf8'));
+fs.writeFileSync(path.join(root,'stress.json'),JSON.stringify(stress,null,2));
+console.log(JSON.stringify({stress,evidence:root}));
+assert.deepEqual(stress.failures,[]);
 await evaluate('begin(group.tabHeader.getTabById("two.c"));drag_binding();void 0');await check('ends.at(-1).cancelled&&clean()','adapter disposal cancels transfer and all own feedback');assert.deepEqual(await evaluate('fixture_errors'),[]);
 fs.writeFileSync(path.join(root,'checks.json'),JSON.stringify({status:'PASS',input_boundary:'DragEvent/DataTransfer adapter cases plus trusted Chromium native DnD interception and drop; generic tool pointer uses trusted Electron input. No physical OS cross-window DnD claim.',native_drag_data:intercepted,checks},null,2));console.log(JSON.stringify({status:'PASS',checks,evidence:root}));win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(root);app.exit(1)});

@@ -49,6 +49,25 @@
   await wait(()=>File.bundle.filePath.endsWith('front.md')&&!File.isFileLoading(),'startup');await pause(1200);
   samples.push({viewport:{width:innerWidth,height:innerHeight,device_pixel_ratio:devicePixelRatio,zoom_factor:reqnode('electron').webFrame?.getZoomFactor?.()},input:'renderer事件与真实宿主API；非物理输入'});
   const before=hash(path.join(root,'front.md'));
+  // 原生宿主的真实 Monaco 草稿连续拆分/合并，检查模型、撤销栈和磁盘原文。
+  const drag_path=path.join(root,'split_stress.c'),drag_original='int original = 1;\n';
+  fs.writeFileSync(drag_path,drag_original,'utf8');await files.open_file(drag_path);
+  await wait(()=>active().view?.loaded&&active().view?.editor?.models?.[0],'split source ready');
+  const drag_leaf=active(),drag_group=drag_leaf.parent,drag_view=drag_leaf.view,drag_model=drag_view.editor.models[0];
+  drag_model.pushStackElement();drag_model.pushEditOperations([],[{range:drag_model.getFullModelRange(),text:'int dirty = 2;\n'}],()=>null);drag_model.pushStackElement();
+  const drag_times=[];
+  for(let i=0;i<20;i++){
+   const start=performance.now(),destination=core.split_workspace_group(drag_leaf,['right','down','left','up'][i%4]);
+   core.move_workspace_leaf(drag_leaf,destination,0);core.move_workspace_leaf(drag_leaf,drag_group,drag_group.children.length);drag_times.push(performance.now()-start);
+   await pause(20);
+   assert(active()===drag_leaf&&drag_leaf.view===drag_view&&drag_view.editor.models[0]===drag_model&&drag_model.getValue()==='int dirty = 2;\n'&&files.editor_state(drag_leaf).dirty,'TC-drag-native: 第'+(i+1)+'轮分屏合并保留模型与草稿');
+  }
+  await drag_model.undo();
+  assert(drag_model.getValue()===drag_original,'TC-drag-native: 分屏合并保留真实撤销历史');
+  assert(fs.readFileSync(drag_path,'utf8')===drag_original,'TC-drag-native: 拖动没有隐式保存磁盘');
+  samples.push({drag_stress:{rounds:20,max_round_ms:Math.max(...drag_times),elapsed_operation_ms:drag_times.reduce((a,b)=>a+b,0),model_preserved:true}});
+  await files.close_leaf(drag_leaf);await files.open_file(path.join(root,'front.md'));
+  await wait(()=>File.bundle.filePath.endsWith('front.md')&&!File.isFileLoading(),'restore after split stress');
   const folder=path.join(root,'recent_validation');fs.mkdirSync(folder);
   core.app.commands.run('linux_note:open_folder_path',[folder]);
   await wait(async()=>{const data=await JSBridge.invoke('setting.getRecentFiles');return data.folders?.some(item=>path.resolve(item.path)===folder);},'最近目录写入原生历史');

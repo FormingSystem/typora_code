@@ -47,20 +47,27 @@ export class WorkspaceSplit extends WorkspaceParent {
   }
 
   removeChild(child: WorkspaceNode) {
+    const removed_index = this.children.indexOf(child)
+    if (removed_index < 0) return
+    const [released_size] = this.sizes.splice(removed_index, 1)
     super.removeChild(child)
 
-    const idx = this.children.findIndex(c => c === child)
-    const [leftWidth] = this.sizes.splice(idx, 1)
-
     if (this.children.length) {
-      const avgWidth = leftWidth / this.children.length
-      this.sizes = this.sizes.map(s => s + avgWidth)
+      const shared_size = released_size / this.children.length
+      this.sizes = this.sizes.map(size => size + shared_size)
       this.updatePaneSizes()
     }
 
     if (this.children.length === 1) {
       this.parent?.replaceChild(this, this.children[0])
     }
+  }
+
+  replaceChild(previous: WorkspaceNode, next: WorkspaceNode) {
+    if (!this.children.includes(previous)) return
+    super.replaceChild(previous, next)
+    // 嵌套分栏展开/收回后，新节点继续占用父分栏原来的份额。
+    this.updatePaneSizes()
   }
 
   onChildResizeStart(child: WorkspaceNode, e: MouseEvent) {
@@ -76,40 +83,25 @@ export class WorkspaceSplit extends WorkspaceParent {
 
     const containerRect = this.containerEl.getBoundingClientRect()
     const totalPixel = isVertical ? containerRect.width : containerRect.height
+    if (totalPixel <= 0) return
 
     const leftDom = splits[leftIdx].containerEl
     const rightDom = splits[idx].containerEl
     const leftW = isVertical ? leftDom.offsetWidth : leftDom.offsetHeight
     const rightW = isVertical ? rightDom.offsetWidth : rightDom.offsetHeight
     const startPos = isVertical ? e.clientX : e.clientY
+    const pair_pixels = leftW + rightW
+    const pair_size = this.sizes[leftIdx] + this.sizes[idx]
+    const minimum_pixels = Math.min(120, pair_pixels / 2)
 
     document.onmousemove = (e2) => {
       if (!dragging) return;
       const curPos = isVertical ? e2.clientX : e2.clientY
       const deltaPx = curPos - startPos
 
-      let newLeftPx = Math.max(120, leftW + deltaPx)
-      let newRightPx = Math.max(120, rightW - deltaPx)
-
-      if (newLeftPx + newRightPx > totalPixel) {
-        newRightPx = totalPixel - newLeftPx
-      }
-
-      const newLeftSize = newLeftPx / totalPixel
-      const newRightSize = newRightPx / totalPixel
-
-      this.sizes[leftIdx] = newLeftSize
-      this.sizes[idx] = newRightSize
-
-      const remain = 1 - (newLeftSize + newRightSize)
-      const otherIdx = this.sizes
-        .map((v, index) => (index === leftIdx || index === idx ? -1 : index))
-        .filter(i => i !== -1)
-
-      if (otherIdx.length > 0) {
-        const fact = remain / otherIdx.length
-        otherIdx.forEach(i => this.sizes[i] = fact)
-      }
+      const left_pixels = Math.min(pair_pixels - minimum_pixels, Math.max(minimum_pixels, leftW + deltaPx))
+      this.sizes[leftIdx] = pair_pixels > 0 ? pair_size * left_pixels / pair_pixels : pair_size / 2
+      this.sizes[idx] = pair_size - this.sizes[leftIdx]
 
       this.updatePaneSizes()
     }

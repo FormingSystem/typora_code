@@ -1,0 +1,361 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R005",
+    "R005.1"
+  ],
+  "release": "2026.09.20.19",
+  "status": "PASS",
+  "root_causes": [
+    "无需滚动时持续安排rAF",
+    "删除分栏后才取原索引，错误移除末权重",
+    "活动标签排序及跨组插入重复切换视图",
+    "调整分隔线时重分配无关栏，嵌套替换未应用父份额"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 162,
+    "full_ui": {
+      "passed": 78,
+      "failed": 0,
+      "elapsed_ms": 675636
+    },
+    "native_shared_assertions": 290,
+    "native_windows_rounds": 20,
+    "final_build_matches_tested_candidate": true
+  },
+  "model_baseline": {
+    "failures": [
+      "idle animation remains active: body",
+      "idle animation remains active: center",
+      "idle animation remains active: limit",
+      "removed pane redistributes another pane size: 0",
+      "repeated pane removal mutates survivors",
+      "removed pane redistributes another pane size: 1",
+      "repeated pane removal mutates survivors",
+      "active reorder reopens the editor"
+    ],
+    "idle": {
+      "body": 15,
+      "center": 15,
+      "limit": 14
+    },
+    "tiers": [
+      {
+        "rounds": 20,
+        "elapsed_ms": 121.80000001192093,
+        "max_round_ms": 3.2999999821186066,
+        "p95_round_ms": 3.2999999821186066,
+        "opens": 80,
+        "closes": 120,
+        "dom_nodes": 115
+      },
+      {
+        "rounds": 100,
+        "elapsed_ms": 567.2999999821186,
+        "max_round_ms": 2.0999999940395355,
+        "p95_round_ms": 1.7999999821186066,
+        "opens": 400,
+        "closes": 600,
+        "dom_nodes": 115
+      },
+      {
+        "rounds": 1000,
+        "elapsed_ms": 5627.4000000059605,
+        "max_round_ms": 2.2000000178813934,
+        "p95_round_ms": 1.699999988079071,
+        "opens": 4000,
+        "closes": 6000,
+        "dom_nodes": 115
+      }
+    ],
+    "layout": {
+      "remove_0": [
+        0.6,
+        0.4
+      ],
+      "remove_1": [
+        0.6,
+        0.4
+      ]
+    },
+    "reorder": {
+      "rounds": 1000,
+      "opens": 1000,
+      "closes": 1000
+    }
+  },
+  "model_final": {
+    "failures": [],
+    "idle": {
+      "body": 0,
+      "center": 0,
+      "limit": 0
+    },
+    "tiers": [
+      {
+        "rounds": 20,
+        "elapsed_ms": 117.19999998807907,
+        "max_round_ms": 2.300000011920929,
+        "p95_round_ms": 2.300000011920929,
+        "opens": 40,
+        "closes": 80,
+        "dom_nodes": 115
+      },
+      {
+        "rounds": 100,
+        "elapsed_ms": 569.2000000178814,
+        "max_round_ms": 2,
+        "p95_round_ms": 1.800000011920929,
+        "opens": 200,
+        "closes": 400,
+        "dom_nodes": 115
+      },
+      {
+        "rounds": 1000,
+        "elapsed_ms": 5717.5999999940395,
+        "max_round_ms": 3.800000011920929,
+        "p95_round_ms": 2.0999999940395355,
+        "opens": 2000,
+        "closes": 4000,
+        "dom_nodes": 115
+      }
+    ],
+    "layout": {
+      "remove_0": [
+        0.55,
+        0.45
+      ],
+      "remove_1": [
+        0.65,
+        0.35
+      ],
+      "replacement_vertical": {
+        "basis": "58.0342%",
+        "weight": 0.5803418803418803
+      },
+      "replacement_horizontal": {
+        "basis": "58%",
+        "weight": 0.58
+      }
+    },
+    "reorder": {
+      "rounds": 1000,
+      "opens": 0,
+      "closes": 0
+    }
+  },
+  "cross_renderer": {
+    "tiers": [
+      {
+        "rounds": 20,
+        "elapsed_ms": 64.39619999999923,
+        "max_transfer_ms": 4.136500000000524,
+        "p95_transfer_ms": 4.136500000000524,
+        "states": [
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 10,
+            "received": 10,
+            "messages": {
+              "payload": 10,
+              "committed": 10,
+              "ready": 10,
+              "accepted": 10
+            },
+            "notices": []
+          },
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 10,
+            "received": 10,
+            "messages": {
+              "ready": 10,
+              "accepted": 10,
+              "payload": 10,
+              "committed": 10
+            },
+            "notices": []
+          }
+        ]
+      },
+      {
+        "rounds": 100,
+        "elapsed_ms": 320.27590000000055,
+        "max_transfer_ms": 6.810399999998481,
+        "p95_transfer_ms": 3.7695000000003347,
+        "states": [
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 60,
+            "received": 60,
+            "messages": {
+              "payload": 60,
+              "committed": 60,
+              "ready": 60,
+              "accepted": 60
+            },
+            "notices": []
+          },
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 60,
+            "received": 60,
+            "messages": {
+              "ready": 60,
+              "accepted": 60,
+              "payload": 60,
+              "committed": 60
+            },
+            "notices": []
+          }
+        ]
+      },
+      {
+        "rounds": 1000,
+        "elapsed_ms": 3166.974699999999,
+        "max_transfer_ms": 4.726699999999255,
+        "p95_transfer_ms": 3.6337000000003172,
+        "states": [
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 560,
+            "received": 560,
+            "messages": {
+              "payload": 560,
+              "committed": 560,
+              "ready": 560,
+              "accepted": 560
+            },
+            "notices": []
+          },
+          {
+            "channels": 0,
+            "timers": 0,
+            "releases": 560,
+            "received": 560,
+            "messages": {
+              "ready": 560,
+              "accepted": 560,
+              "payload": 560,
+              "committed": 560
+            },
+            "notices": []
+          }
+        ]
+      }
+    ],
+    "renderer_count": 2,
+    "document_boundary": "fixture ports; real BroadcastChannel and production transfer controller",
+    "cancelled": 2000
+  },
+  "native_split": {
+    "rounds": 20,
+    "max_round_ms": 21.099999994039536,
+    "elapsed_operation_ms": 351.2000000476837,
+    "model_preserved": true
+  },
+  "native_windows": {
+    "rounds": 20,
+    "min_round_ms": 809.0999999940395,
+    "max_round_ms": 895.4000000059605,
+    "boundary": "原始Typora独立副本；renderer拖动事件驱动真实宿主建窗/关闭、真实Monaco和BroadcastChannel；非物理OS跨窗输入"
+  },
+  "performance_interpretation": "明确消除空闲rAF和活动重排重复open/close；同负载总耗时小幅波动，不宣称整体提速。原生建窗合并耗时包括宿主启动、IPC及夹具轮询，不等于主线程阻塞。",
+  "test_corrections": [
+    "CSS百分比序列化有精度舍入，比例断言改为1e-5容差，保留最初失败。",
+    "原生unload未报告不能证明窗口仍在；改为核对专属附窗renderer PID退出，生产关闭逻辑未修改。",
+    "首次完整check发现派生核心源码摘要未同步；补三项实际摘要，完整复跑通过。"
+  ],
+  "candidate": {
+    "enhancements/dist/SHA256SUMS": "437ec5715d7f279db88e442d9adbb3152bd9c128a81d19625a30e7baa0e948c8",
+    "enhancements/dist/workspace_core.js": "7adb7577742bfaa9676b7555a5d858dde2f20ed037487e29226b4973c3a74e55",
+    "enhancements/dist/workbench.js": "6c0b042b614a7bfa3c774a430a6a3d49eadec861b0a910a45070ab9d59dfe71a"
+  },
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/drag_target.log",
+      "sha256": "847a265bb7cd3286465f968079c82af0c9bade33397997ca45b33b385985bcc2"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_full_check_final.log",
+      "sha256": "4365c7e7351281835fd405b748d150ea82a9396eaddeb321838d49e5398a9ad8"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_full_check_manifest_failure.log",
+      "sha256": "27e7319a6065ded8eb5c24d9ef8c8c7b94c107782f7b280244007c84eaa5b654"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T07-45-29-641Z_1b3e1e/report.json",
+      "sha256": "82ecf353a73cd6e8496ad732d498cb6a072ce4e5de922bd0258cd4f584118690"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/baseline.json",
+      "sha256": "1a552e28726629ff9ed390a46c06e218890bdf7b672b27d1afd0a4189b6113de"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/cross_renderer.json",
+      "sha256": "db39c26572e62784364db43adfe62e4035072ed838b139f809566bb0dbd8f993"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/css_precision_failure.json",
+      "sha256": "cbb0e6d53981767ba7c9ead6ea9dc29d7479f3bc98b4f427a4f370fe1297924a"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/final_model.json",
+      "sha256": "9481fc3128102d510e12a373e9f5c58def8dbe21dd787997af4de4fc7a605773"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/native_layout.json",
+      "sha256": "66f5c390762b696b60926aa7c61b82f662922d15f975f1f650f532eaf4e0f179"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/native_unload_failure.json",
+      "sha256": "c2a3993b8ea2c11c3e8019d794fe35114149ac33a02f19944e19f47b9b0793e1"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_stress/native_windows.json",
+      "sha256": "2de780d1586132f5683101cdbc320343191b58b93e844a5631d52a0eebd656ee"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_full_ui.log",
+      "sha256": "24bfa58d0a0c6134fd580fd422ac7bf525899b05cab58f6704f1d83d97cf45e3"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_final_build.log",
+      "sha256": "8322fcef97fb16f2ba8e87025a3b26464b77d44b1a6f689bfd000323320583ef"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_install.log",
+      "sha256": "edd787c5a0ace9499c58635b802916ed29f6c03c6599ce8c9ad698252ddfe8d8"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/drag_install_verification.json",
+      "sha256": "f4f2e539006b2026b2ad348a07fe9d7d2119b09fce2ef8794d487ca9d7e1a3ca"
+    }
+  ],
+  "limits": [
+    "原生测试驱动renderer事件；物理OS鼠标跨窗口/多屏操作未实测。",
+    "同窗验证真实Monaco模型及撤销历史；跨进程继续新建编辑历史，不迁移完整撤销栈。",
+    "跨窗高轮次测试使用真实频道和文档端口替身；真实宿主源码文档另跑20轮，不表示全部文档大小/格式性能通过。",
+    "保留原有分屏命令和拖入合并范围；正文边缘自动拆组、Alt对称调整、吸附及全部VS Code编辑组配置未实现。",
+    "其他平台与既有启动长任务、UAC等验收缺口保持。"
+  ],
+  "installation": {
+    "release": "2026.09.20.19",
+    "protected_unchanged": 6,
+    "assets_matched": 29,
+    "check": "OK",
+    "user_windows_restarted": false
+  }
+}
