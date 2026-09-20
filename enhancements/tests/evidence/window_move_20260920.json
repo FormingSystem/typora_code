@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "requirement": "H001.2",
+  "date": "2026-09-20",
+  "status": "NOT_REPRODUCED",
+  "tested_release": "2026.09.20.21",
+  "user_update": "用户后续反馈重新打开后已正常。保留间歇性缺陷，未确定根因。",
+  "observations": {
+    "titlebar": "原生app-region:drag；工作台顶栏未发现直接设置窗口固定宽高。",
+    "normal_system_move": [
+      {
+        "before": {
+          "left": 100,
+          "top": 60,
+          "right": 1060,
+          "bottom": 700
+        },
+        "restore": {
+          "left": 128,
+          "top": 74,
+          "right": 1088,
+          "bottom": 714
+        },
+        "size": [
+          960,
+          640
+        ],
+        "after": {
+          "left": 128,
+          "top": 74,
+          "right": 1088,
+          "bottom": 714
+        }
+      },
+      {
+        "before": {
+          "left": 100,
+          "top": 60,
+          "right": 1230,
+          "bottom": 780
+        },
+        "restore": {
+          "left": 62,
+          "top": 58,
+          "right": 1192,
+          "bottom": 778
+        },
+        "size": [
+          1130,
+          720
+        ],
+        "after": {
+          "left": 62,
+          "top": 58,
+          "right": 1192,
+          "bottom": 778
+        }
+      }
+    ],
+    "assertions": "两种尺寸960x640和1130x720：系统移动改变位置且宽高保持；最大化/还原后恢复相同宽高。",
+    "caption_input_limit": "追加非客户区标题栏消息的测试未完成真实鼠标拖下路径；最大化窗口仍保持最大化，不能将此记录视为最大化拖下通过。"
+  },
+  "evidence": [
+    {
+      "path": ".cache/issue_tracking/native/8672de01226c4e9e994a678408f32696/checks.json",
+      "sha256": "fde9fa6682655da8c6c1aed657cf5418a55f57f03003fe487a611a65b53e6309"
+    },
+    {
+      "path": ".cache/issue_tracking/native/6d96c7ae94b0497bb249fe741d97c37b/checks.json",
+      "sha256": "b9e22ea6e2ba17d19d5b585e61aeddd11e4ea5b1f2b895ed1ca3127370e5fd17"
+    },
+    {
+      "path": ".cache/issue_tracking/window_move/probe_private.ps1",
+      "sha256": "0f2307a588b3ccb5c70556bd68cca3f47813aee6fb84e8d9a2f86f5a9a7066b1"
+    },
+    {
+      "path": ".cache/issue_tracking/window_move/window_move_native.js",
+      "sha256": "37365e93cffb931d9a2b32ea91f9e564ac988301b144c4b245425fe6adfe48ba"
+    }
+  ],
+  "delivery": {
+    "product_code_changed": false,
+    "installed_version_unchanged": true,
+    "user_windows_modified": false
+  },
+  "next_step": "若复发，采集同一次手势前后GetWindowPlacement和外框、普通/最大化/贴靠状态、窗口启动版本及DPI，实际复现后再确定修复。"
+}
