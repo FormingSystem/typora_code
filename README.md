@@ -22,7 +22,7 @@ Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git
 | 搜索 | 工作区内容搜索；单击侧栏预览，双击或 Enter 打开；重复单击返回命中位置 |
 | Git | [仓库列表、提交图与操作菜单](docs/git_scm_actions.md)、文件历史、只读差异、提交和远端操作 |
 | 终端 | Windows 本机 Shell、多会话、分屏、查找及终端配置 |
-| 社区插件 | 帮助 → 社区插件；v2插件目录或本地ZIP安装，默认停用，支持启停、设置及更新；[兼容边界](docs/community_plugins.md) |
+| 社区插件 | 左侧扩展（Ctrl+Shift+X）；左下齿轮 → 插件设置；v2插件目录或本地ZIP安装，默认停用，支持启停、设置及更新；[兼容边界](docs/community_plugins.md) |
 | 更新 | Windows 启动时可选新版公告，多窗口仅提醒一次；立即安装，手动重启生效 |
 | Markdown | 原生编辑、标题大纲、缩略图、代码高亮、长代码展开及[图片／Mermaid放大查看](docs/reading_media_viewer.md) |
 
@@ -30,7 +30,7 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 
 开发与稳定性验收入口：[需求设计](docs/requirements_design.md)、[测试架构与用例](docs/stability_testing.md)、[问题分类索引](docs/stability_issues.md)。
 
-当前版本为 **2026.09.20.7**，各版本修复公告以[发行记录](enhancements/release.json)为准。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。底栏图标复用共享居中规则，滚动条离开后渐隐；社区插件在工作台显示后加载。原生图标启动后一次呈现完整工作台，不显示加载提示覆盖层；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
+当前版本为 **2026.09.20.10**，各版本修复公告以[发行记录](enhancements/release.json)为准。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。底栏图标复用共享居中规则，滚动条离开后渐隐；社区插件在工作台显示后加载。原生图标启动后一次呈现完整工作台，不显示加载提示覆盖层；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
 
 验证与限制以[最新交付记录](docs/feedback_review.md)为准；仍有启动长任务及跨机器/平台验收缺口。更新安装后需要保存文档并手动重启所有 Typora 窗口，已运行窗口不会热替换。
 

@@ -72,6 +72,9 @@ app.whenReady().then(async () => {
   check(await evaluate(`binding.dispose();calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host,runtime);send('KeyC',{key:'c',altKey:true,shiftKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
 
   check(await evaluate(`calls=[];send('KeyP',{key:'P',ctrlKey:true,shiftKey:true})&&calls[0][1]==='command:open'`), 'Ctrl+Shift+P opens the registered command panel');
+  check(await evaluate(`calls=[];send('KeyX',{key:'X',ctrlKey:true,shiftKey:true})&&calls.length===1&&calls[0][1]==='typora_code:community_plugins'`), 'Ctrl+Shift+X opens extensions through the shared command');
+  check(await evaluate(`calls=[];!send('KeyX',{key:'X',ctrlKey:true,shiftKey:true,isComposing:true})&&calls.length===0`), 'extensions shortcut respects IME composition');
+  check(await evaluate(`calls=[];!send('KeyX',{key:'X',ctrlKey:true,shiftKey:true},'#terminal')&&calls.length===0`), 'extensions shortcut respects terminal input');
   check(await evaluate(`calls=[];send('KeyF',{key:'F',ctrlKey:true,shiftKey:true})&&calls[0][1]==='linux_note:search'`), 'Ctrl+Shift+F opens workspace search');
   await evaluate(`(()=>{const parent=document.createElement('div');parent.innerHTML='<div class="typ-workspace-tab-header"><div class="typ-tab" data-id="folder/source.md"><i class="typ-close"></i></div><div class="typ-tab" data-id="other.md"></div></div>';document.body.append(parent);host.workspace.activeLeaf.parent={containerEl:parent};parent.querySelector('.typ-close').onclick=()=>calls.push(['close_existing_tab']);parent.querySelector('[data-id="other.md"]').onclick=()=>calls.push(['activate_existing_tab']);})()`);
   check(await evaluate(`calls=[];send('KeyW',{key:'w',ctrlKey:true})&&calls[0][1]==='linux_note:close_editor'`), 'Ctrl+W uses the same guarded close command as Ctrl+F4 and the File menu');

@@ -1818,7 +1818,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R060"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -2917,7 +2918,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R060"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3146,7 +3148,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R060"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3427,7 +3430,8 @@
         "R007",
         "R017",
         "R040",
-        "R041"
+        "R041",
+        "R060"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -4876,13 +4880,15 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R057"
+        "R057",
+        "R060"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
         "enhancements/src/community_plugins.ts",
         "enhancements/src/community_plugin_service.cjs",
-        "enhancements/fixtures/community_plugins_native.js"
+        "enhancements/fixtures/community_plugins_native.js",
+        "enhancements/src/community_plugin_settings.ts"
       ],
       "related_modules": [
         "explorer",
@@ -4909,7 +4915,8 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R057"
+        "R057",
+        "R060"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
@@ -4941,7 +4948,8 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R057"
+        "R057",
+        "R060"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
@@ -5007,13 +5015,15 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R057"
+        "R057",
+        "R060"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
         "enhancements/src/community_plugins.ts",
         "enhancements/src/community_plugin_service.cjs",
-        "enhancements/fixtures/community_plugins_native.js"
+        "enhancements/fixtures/community_plugins_native.js",
+        "enhancements/src/community_plugin_settings.ts"
       ],
       "related_modules": [
         "explorer",

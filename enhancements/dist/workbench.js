@@ -158473,7 +158473,8 @@ https://creativecommons.org/licenses/by/4.0/
     cloud: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M8 4C6.34315 4 5 5.34315 5 7C5 7.27614 4.77614 7.5 4.5 7.5H4.25C3.00736 7.5 2 8.50736 2 9.75C2 10.9926 3.00736 12 4.25 12H11.75C12.9926 12 14 10.9926 14 9.75C14 8.50736 12.9926 7.5 11.75 7.5H11.5C11.2239 7.5 11 7.27614 11 7C11 5.34315 9.65685 4 8 4ZM4.03004 6.50733C4.27283 4.53062 5.95767 3 8 3C10.0423 3 11.7272 4.53063 11.97 6.50733C13.6623 6.62043 15 8.029 15 9.75C15 11.5449 13.5449 13 11.75 13H4.25C2.45507 13 1 11.5449 1 9.75C1 8.029 2.33769 6.62043 4.03004 6.50733Z"/></svg>',
     whitespace: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 2H11.5C11.776 2 12 2.224 12 2.5C12 2.776 11.776 3 11.5 3H11V13.5C11 13.776 10.776 14 10.5 14C10.224 14 10 13.776 10 13.5V3H9V13.5C9 13.776 8.776 14 8.5 14C8.224 14 8 13.776 8 13.5V9H7C5.067 9 3.5 7.433 3.5 5.5C3.5 3.567 5.067 2 7 2ZM7 8H8V3H7C5.619 3 4.5 4.119 4.5 5.5C4.5 6.881 5.619 8 7 8Z"/></svg>',
     filter: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>',
-    "debug-disconnect": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15.3542 0.646006C15.1592 0.451006 14.8422 0.451006 14.6472 0.646006L12.5772 2.71601C11.2072 1.71701 9.20723 1.87301 7.93723 3.14401L7.80623 3.27501C7.31923 3.76201 7.31923 4.55501 7.80623 5.04301L10.9882 8.22501C11.2312 8.46901 11.5512 8.59101 11.8722 8.59101C12.1932 8.59101 12.5132 8.46901 12.7562 8.22501L12.9762 8.00501C13.6522 7.33001 14.0162 6.43101 14.0012 5.47601C13.9892 4.72001 13.7412 4.00601 13.2912 3.41701L15.3542 1.35401C15.5492 1.15901 15.5492 0.841006 15.3542 0.646006ZM12.2682 7.29701L12.0482 7.51701C11.9502 7.61501 11.7922 7.61501 11.6942 7.51701L8.51223 4.33501C8.41423 4.23701 8.41423 4.07901 8.51223 3.98101L8.64323 3.85001C9.16723 3.32601 9.86023 3.06001 10.5402 3.06001C11.1502 3.06001 11.7512 3.27401 12.2112 3.70801C12.7092 4.17601 12.9882 4.80901 12.9992 5.49101C13.0092 6.17301 12.7502 6.81501 12.2682 7.29701ZM8.14623 9.14601L7.26623 10.026L5.97323 8.73301L6.85323 7.85301C7.04823 7.65801 7.04823 7.34101 6.85323 7.14601C6.65823 6.95101 6.34123 6.95101 6.14623 7.14601L5.26623 8.02601L5.01323 7.77301C4.52723 7.28701 3.73223 7.28701 3.24523 7.77401L3.02523 7.99401C2.34923 8.66901 1.98523 9.56801 2.00023 10.523C2.01223 11.279 2.26023 11.993 2.71023 12.582L0.647227 14.645C0.452227 14.84 0.452227 15.157 0.647227 15.352C0.745227 15.45 0.873227 15.498 1.00123 15.498C1.12923 15.498 1.25723 15.449 1.35523 15.352L3.42523 13.282C4.02223 13.717 4.73723 13.934 5.46123 13.934C6.39923 13.934 7.34923 13.571 8.06523 12.854L8.19623 12.723C8.68323 12.236 8.68323 11.443 8.19623 10.955L7.97423 10.733L8.85423 9.85301C9.04923 9.65801 9.04923 9.34101 8.85423 9.14601C8.65923 8.95101 8.34223 8.95101 8.14723 9.14601H8.14623ZM7.48923 12.018L7.35723 12.149C6.36323 13.144 4.76123 13.208 3.78923 12.291C3.29123 11.823 3.01223 11.19 3.00123 10.508C2.99123 9.82601 3.25123 9.18401 3.73323 8.70201L3.95323 8.48201C4.00223 8.43301 4.06523 8.40901 4.13023 8.40901C4.19523 8.40901 4.25823 8.43301 4.30723 8.48201C5.37118 9.54596 6.42725 10.602 7.48723 11.662C7.58523 11.76 7.58523 11.918 7.48723 12.016L7.48923 12.018Z"/></svg>'
+    "debug-disconnect": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15.3542 0.646006C15.1592 0.451006 14.8422 0.451006 14.6472 0.646006L12.5772 2.71601C11.2072 1.71701 9.20723 1.87301 7.93723 3.14401L7.80623 3.27501C7.31923 3.76201 7.31923 4.55501 7.80623 5.04301L10.9882 8.22501C11.2312 8.46901 11.5512 8.59101 11.8722 8.59101C12.1932 8.59101 12.5132 8.46901 12.7562 8.22501L12.9762 8.00501C13.6522 7.33001 14.0162 6.43101 14.0012 5.47601C13.9892 4.72001 13.7412 4.00601 13.2912 3.41701L15.3542 1.35401C15.5492 1.15901 15.5492 0.841006 15.3542 0.646006ZM12.2682 7.29701L12.0482 7.51701C11.9502 7.61501 11.7922 7.61501 11.6942 7.51701L8.51223 4.33501C8.41423 4.23701 8.41423 4.07901 8.51223 3.98101L8.64323 3.85001C9.16723 3.32601 9.86023 3.06001 10.5402 3.06001C11.1502 3.06001 11.7512 3.27401 12.2112 3.70801C12.7092 4.17601 12.9882 4.80901 12.9992 5.49101C13.0092 6.17301 12.7502 6.81501 12.2682 7.29701ZM8.14623 9.14601L7.26623 10.026L5.97323 8.73301L6.85323 7.85301C7.04823 7.65801 7.04823 7.34101 6.85323 7.14601C6.65823 6.95101 6.34123 6.95101 6.14623 7.14601L5.26623 8.02601L5.01323 7.77301C4.52723 7.28701 3.73223 7.28701 3.24523 7.77401L3.02523 7.99401C2.34923 8.66901 1.98523 9.56801 2.00023 10.523C2.01223 11.279 2.26023 11.993 2.71023 12.582L0.647227 14.645C0.452227 14.84 0.452227 15.157 0.647227 15.352C0.745227 15.45 0.873227 15.498 1.00123 15.498C1.12923 15.498 1.25723 15.449 1.35523 15.352L3.42523 13.282C4.02223 13.717 4.73723 13.934 5.46123 13.934C6.39923 13.934 7.34923 13.571 8.06523 12.854L8.19623 12.723C8.68323 12.236 8.68323 11.443 8.19623 10.955L7.97423 10.733L8.85423 9.85301C9.04923 9.65801 9.04923 9.34101 8.85423 9.14601C8.65923 8.95101 8.34223 8.95101 8.14723 9.14601H8.14623ZM7.48923 12.018L7.35723 12.149C6.36323 13.144 4.76123 13.208 3.78923 12.291C3.29123 11.823 3.01223 11.19 3.00123 10.508C2.99123 9.82601 3.25123 9.18401 3.73323 8.70201L3.95323 8.48201C4.00223 8.43301 4.06523 8.40901 4.13023 8.40901C4.19523 8.40901 4.25823 8.43301 4.30723 8.48201C5.37118 9.54596 6.42725 10.602 7.48723 11.662C7.58523 11.76 7.58523 11.918 7.48723 12.016L7.48923 12.018Z"/></svg>',
+    extensions: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 4.95703C15 4.58711 14.8563 4.24054 14.5949 3.97992L12.0096 1.39234C11.4879 0.86922 10.5788 0.86922 10.0571 1.39234L8 3.45119V3.32321C8 2.55068 7.37187 1.922 6.6 1.922H2.4C1.62813 1.922 1 2.55068 1 3.32321V13.5988C1 14.3713 1.62813 15 2.4 15H12.6667C13.4385 15 14.0667 14.3713 14.0667 13.5988V9.39514C14.0667 8.62261 13.4385 7.99393 12.6667 7.99393H12.5379L14.5949 5.93508C14.8553 5.67445 15 5.32602 15 4.95703ZM2.4 2.85521H6.6C6.85667 2.85521 7.06667 3.06446 7.06667 3.32228V7.99299H1.93333V3.32228C1.93333 3.06446 2.14333 2.85521 2.4 2.85521ZM1.93333 13.5979V8.92714H7.06667V14.0649H2.4C2.14333 14.0649 1.93333 13.8547 1.93333 13.5979ZM13.1333 9.39421V13.5979C13.1333 13.8547 12.9233 14.0649 12.6667 14.0649H8V8.92714H12.6667C12.9233 8.92714 13.1333 9.13638 13.1333 9.39421ZM8 7.99299V6.46287L9.5288 7.99299H8ZM13.9351 5.2737L11.3488 7.86221C11.1789 8.03223 10.8859 8.03223 10.716 7.86221L8.12973 5.2737C8.0448 5.18963 7.99813 5.07753 7.99813 4.95796C7.99813 4.83839 8.0448 4.7263 8.12973 4.64129L10.716 2.05278C10.8009 1.96777 10.9129 1.92106 11.0324 1.92106C11.1519 1.92106 11.2639 1.96777 11.3488 2.05278L13.9351 4.64129C14.02 4.72536 14.0667 4.83746 14.0667 4.95703C14.0667 5.0766 14.02 5.1887 13.9351 5.2737Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -163009,6 +163010,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
       if (primary_modifier(event)) {
+        if (event.code === "KeyX" && event.shiftKey) {
+          run(event, () => app.commands.run("typora_code:community_plugins"));
+          return;
+        }
         if (event.code === "KeyR" && !event.shiftKey) {
           run(event, () => app.commands.run("linux_note:open_recent"));
           return;
@@ -231969,7 +231974,7 @@ https://creativecommons.org/licenses/by/4.0/
     icon.className = "fa fa-cog";
     icon.setAttribute("aria-hidden", "true");
     button.append(icon);
-    button.onclick = () => {
+    const open_native = () => {
       try {
         const commands = window.ClientCommand;
         if (!commands?.showPreferencePanel) throw new Error("Typora native preferences command is unavailable.");
@@ -231979,6 +231984,25 @@ https://creativecommons.org/licenses/by/4.0/
         button.dataset.preferencesError = String(error);
         console.error("Typora Code preferences:", error);
       }
+    };
+    let close_menu;
+    button.setAttribute("aria-haspopup", "menu");
+    button.setAttribute("aria-expanded", "false");
+    button.onclick = (event) => {
+      if (close_menu) {
+        close_menu();
+        return;
+      }
+      const plugins = Boolean(core.app.community_plugins);
+      button.setAttribute("aria-expanded", "true");
+      close_menu = workspace_menu(event, [
+        { title: "Typora \u504F\u597D\u8BBE\u7F6E\u2026", shortcut: "Ctrl+,", action: open_native },
+        { title: "\u63D2\u4EF6\u8BBE\u7F6E\u2026", disabled: !plugins, action: () => core.app.commands.run("typora_code:community_plugin_settings") },
+        { title: "\u6269\u5C55\u2026", shortcut: "Ctrl+Shift+X", disabled: !plugins, action: () => core.app.commands.run("typora_code:community_plugins") }
+      ], "workspace-preferences-menu", () => {
+        close_menu = void 0;
+        button.setAttribute("aria-expanded", "false");
+      }, { anchor: button });
     };
     let disposed = false;
     const refresh = () => {
@@ -231992,6 +232016,7 @@ https://creativecommons.org/licenses/by/4.0/
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
+      close_menu?.();
       observer2.disconnect();
       button.onclick = null;
       button.remove();
@@ -235525,7 +235550,7 @@ https://creativecommons.org/licenses/by/4.0/
     const interaction = acquire_workspace_interaction(ribbon);
     const interaction_nodes = /* @__PURE__ */ new Map();
     const allowed = new Set(options2.item_ids);
-    const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter((id) => allowed.has(id));
+    const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control", "typora_code:community_plugins"].filter((id) => allowed.has(id));
     const storage_key = options2.storage_key || "linux-note:workspace:activity-order:v1";
     const style = acquire_workspace_style("typora-code-style:workspace_activity", workspace_activity_default, { "data-workspace-activity-style": "ready" });
     const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", workspace_chrome_default);
@@ -235600,7 +235625,7 @@ https://creativecommons.org/licenses/by/4.0/
       for (const item of items()) {
         if (!originals.has(item)) {
           originals.set(item, { draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes] });
-          const icon_names = { "core.file-explorer": "files", "core.search": "search", "linux_note:source_control": "source-control" };
+          const icon_names = { "core.file-explorer": "files", "core.search": "search", "linux_note:source_control": "source-control", "typora_code:community_plugins": "extensions" };
           const icon_name = icon_names[item.dataset.id];
           if (icon_name) item.replaceChildren(git_icon(icon_name));
           item.classList.add("workspace-activity-item");
@@ -237591,6 +237616,7 @@ https://creativecommons.org/licenses/by/4.0/
         { label: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => files.core.app.commands.run("linux_note:breadcrumbs_settings") },
         { label: "\u5927\u7EB2", checked: sidebar.sidebar_visible && sidebar.active_id === "core.outline", action: () => toggle_sidebar_view("core.outline", "linux_note:outline") },
         { label: "\u6587\u4EF6\u6811", checked: sidebar.sidebar_visible && sidebar.active_id === "core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer", "linux_note:file_explorer") },
+        { label: "\u6269\u5C55", shortcut: "Ctrl+Shift+X", checked: sidebar.sidebar_visible && sidebar.active_id === "typora_code:community_plugins", action: () => toggle_sidebar_view("typora_code:community_plugins", "typora_code:community_plugins") },
         { ...command("\u72B6\u6001\u680F", "toggleStatusBar"), checked: document.body.classList.contains("show-footer") },
         { ...native_command("\u5DE5\u5177\u680F", "toggleToolbar", void 0, false), checked: Boolean(native_active() && toolbar?.getClientRects().length && getComputedStyle(toolbar).display !== "none") },
         { label: "\u7EC8\u7AEF", shortcut: "Ctrl+`", checked: Boolean(terminal?.panel_visible), disabled: !terminal, action: () => files.core.app.commands.run("linux_note:terminal_toggle") },
@@ -237620,7 +237646,6 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const help_entries = async () => [
-      { label: "\u793E\u533A\u63D2\u4EF6\u2026", action: () => files.core.app.commands.run("typora_code:community_plugins") },
       { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
       { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
       { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
@@ -239631,7 +239656,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(install_workspace_sidebar_sash({ sidebar: core.app.workspace.sidebar, save_width: (width2) => window.JSBridge.putSetting("sidebar-width", width2) }));
       const sidebar = core.app.workspace.sidebar;
       const ribbon = document.querySelector(".typ-ribbon");
-      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control"], read_state: () => read_workspace_sidebar_state(sidebar) }));
+      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control", "typora_code:community_plugins"], read_state: () => read_workspace_sidebar_state(sidebar) }));
       const detached = lifetime.own(bind_workspace_detached_window(files));
       const editor_actions = lifetime.own(bind_workspace_editor_actions(files, detached));
       lifetime.own(bind_workspace_file_header(files, editor_actions));
@@ -239653,6 +239678,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092010,
+        version: "2026.09.20.10",
+        date: "2026-09-20",
+        notes: [
+          "\u65B0\u589E\u5DE6\u4FA7\u201C\u6269\u5C55\u201D\u5165\u53E3\u548CCtrl+Shift+X\uFF0C\u5728\u4FA7\u680F\u7BA1\u7406\u793E\u533A\u63D2\u4EF6\uFF1B\u9762\u677F\u5207\u6362\u4FDD\u7559\u7B5B\u9009\uFF0C\u5E2E\u52A9\u83DC\u5355\u4E0D\u518D\u653E\u7F6E\u63D2\u4EF6\u7BA1\u7406\u3002",
+          "\u5DE6\u4E0B\u9F7F\u8F6E\u540C\u65F6\u63D0\u4F9BTypora\u504F\u597D\u8BBE\u7F6E\u548C\u63D2\u4EF6\u8BBE\u7F6E\uFF1B\u63D2\u4EF6\u884C\u8FDB\u5165\u540C\u4E00\u914D\u7F6E\u9875\uFF0C\u505C\u7528\u6216\u5378\u8F7D\u65F6\u5173\u95ED\u5931\u6548\u8BBE\u7F6E\u3002"
+        ]
+      },
       {
         sequence: 2026092009,
         version: "2026.09.20.9",
@@ -239957,6 +239991,100 @@ https://creativecommons.org/licenses/by/4.0/
     return lifetime;
   }
 
+  // src/community_plugin_settings.ts
+  function create_community_plugin_settings(list3, on_change) {
+    const tabs = /* @__PURE__ */ new Map();
+    const opened = /* @__PURE__ */ new Map();
+    let chooser;
+    const render = () => {
+      if (!chooser) return;
+      chooser.content.replaceChildren();
+      const records = list3();
+      for (const [id, registered] of tabs) {
+        if (!registered.size) continue;
+        chooser.content.append(workspace_button(records.find((info) => info.id === id)?.name || id, () => {
+          chooser?.close();
+          show2(id);
+        }));
+      }
+      if (!chooser.content.children.length) chooser.content.append(workspace_element("p", "", "\u5F53\u524D\u6CA1\u6709\u53EF\u914D\u7F6E\u7684\u63D2\u4EF6\u3002\u8BF7\u5728\u6269\u5C55\u4E2D\u542F\u7528\u63D0\u4F9B\u8BBE\u7F6E\u9875\u7684\u63D2\u4EF6\u3002"));
+    };
+    const show2 = (id) => {
+      const existing = opened.get(id);
+      if (existing) {
+        existing.root.querySelector("button,input,select")?.focus();
+        return;
+      }
+      const registered = [...tabs.get(id) || []];
+      if (!registered.length) return;
+      const dialog2 = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
+        opened.delete(id);
+        for (const tab of registered) {
+          tab.hide();
+          tab.containerEl.remove();
+        }
+      });
+      opened.set(id, dialog2);
+      dialog2.content.classList.add("workspace-community-settings");
+      try {
+        for (const tab of registered) {
+          dialog2.content.append(workspace_element("h4", "", tab.name || id), tab.containerEl);
+          tab.show();
+        }
+      } catch (error) {
+        dialog2.close();
+        throw error;
+      }
+    };
+    return {
+      has: (id) => Boolean(tabs.get(id)?.size),
+      show: show2,
+      open() {
+        if (chooser) {
+          chooser.root.querySelector("button")?.focus();
+          return;
+        }
+        chooser = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
+          chooser = void 0;
+        });
+        chooser.content.classList.add("workspace-community-settings", "workspace-community-setting-list");
+        render();
+      },
+      register(id, tab) {
+        tab.load();
+        let registered = tabs.get(id);
+        if (!registered) {
+          registered = /* @__PURE__ */ new Set();
+          tabs.set(id, registered);
+        }
+        registered.add(tab);
+        render();
+        on_change();
+        let removed = false;
+        return () => {
+          if (removed) return;
+          removed = true;
+          opened.get(id)?.close(false);
+          try {
+            tab.hide();
+            tab.unload();
+          } finally {
+            tab.containerEl.remove();
+            registered.delete(tab);
+            if (!registered.size) tabs.delete(id);
+            render();
+            on_change();
+          }
+        };
+      },
+      dispose() {
+        chooser?.close(false);
+        for (const dialog2 of [...opened.values()]) dialog2.close(false);
+        tabs.clear();
+      }
+    };
+  }
+
   // src/community_plugins.css
   var community_plugins_default = "";
 
@@ -239984,7 +240112,6 @@ https://creativecommons.org/licenses/by/4.0/
     const asset_root = path.join(runtime2._options.userDataPath, "typora_code");
     const api2 = runtime2.reqnode(path.join(asset_root, "assets/plugins/community_plugin_service.cjs"));
     const network = runtime2.reqnode(path.join(asset_root, "assets/update/workspace_update_service.cjs"));
-    const tabs = /* @__PURE__ */ new Map(), dialogs = /* @__PURE__ */ new Set();
     const abort = new AbortController();
     let disposed = false;
     const service = api2.create_community_service({
@@ -240024,43 +240151,13 @@ https://creativecommons.org/licenses/by/4.0/
     });
     const style = acquire_workspace_style("typora-code-style:community_plugins", community_plugins_default);
     runtime2[abi_key] = abi;
-    const show_settings = (id) => {
-      const registered = [...tabs.get(id) || []];
-      if (!registered.length) return;
-      let release = () => {
-      };
-      const dialog2 = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
-        for (const tab of registered) {
-          tab.hide();
-          tab.containerEl.remove();
-        }
-        release();
-        dialogs.delete(dialog2);
-      });
-      dialog2.content.classList.add("workspace-community-settings");
-      release = acquire_workspace_interaction(dialog2.content).remove;
-      dialogs.add(dialog2);
-      for (const tab of registered) {
-        dialog2.content.append(workspace_element("h4", "", tab.name || id), tab.containerEl);
-        tab.show();
-      }
+    let refresh_manager = () => {
     };
-    let manager;
-    const open_manager = () => {
-      if (manager) {
-        manager.root.querySelector("button")?.focus();
-        return;
-      }
+    const settings = create_community_plugin_settings(() => service.list(), () => refresh_manager());
+    const create_manager = () => {
       let alive = true, busy = false, mode = "installed", catalog = [];
-      const dialog2 = workspace_dialog("\u793E\u533A\u63D2\u4EF6", "\u5173\u95ED", () => {
-        alive = false;
-        unsubscribe();
-        dialogs.delete(dialog2);
-        manager = void 0;
-      });
-      manager = dialog2;
-      dialogs.add(dialog2);
-      dialog2.content.classList.add("workspace-community-manager");
+      const content = workspace_element("div", "workspace-community-manager");
+      const interaction = acquire_workspace_interaction(content);
       const explanation = workspace_element("p", "", "\u63D2\u4EF6\u62E5\u6709Typora\u8FDB\u7A0B\u6743\u9650\u3002\u5B89\u88C5\u540E\u9ED8\u8BA4\u505C\u7528\uFF0C\u4EC5\u542F\u7528\u4F60\u4FE1\u4EFB\u7684\u63D2\u4EF6\uFF1B\u5DE5\u4F5C\u53F0\u66F4\u65B0\u4E0ETypora\u5B98\u65B9\u66F4\u65B0\u5206\u522B\u7BA1\u7406\u3002");
       const toolbar = workspace_element("div", "workspace-community-toolbar"), search2 = workspace_element("input"), message = workspace_element("p", "workspace-community-message"), list3 = workspace_element("div", "workspace-community-list");
       search2.type = "search";
@@ -240106,7 +240203,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const local = workspace_button("\u5B89\u88C5\u672C\u5730ZIP\u2026", () => picker.click());
       toolbar.append(installed, community, local, search2, picker);
-      dialog2.content.append(explanation, toolbar, message, list3);
+      content.append(explanation, toolbar, message, list3);
       const render = () => {
         if (!alive) return;
         for (const node of [installed, community, local]) node.disabled = busy;
@@ -240128,7 +240225,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (current) {
             details.append(workspace_element("p", "", current.error || "".concat(current.version || "", " \xB7 ").concat(current.running ? "\u5DF2\u542F\u7528" : current.enabled ? "\u542F\u7528\u5931\u8D25" : "\u5DF2\u505C\u7528").concat(current.restart_required ? " \xB7 \u65B0\u7248\u7B49\u5F85\u91CD\u542F" : "")));
             actions.append(workspace_button(current.enabled ? "\u505C\u7528" : "\u4FE1\u4EFB\u5E76\u542F\u7528", () => void run(() => service.set_enabled(info.id, !current.enabled))));
-            if (tabs.get(info.id)?.size) actions.append(workspace_button("\u8BBE\u7F6E", () => show_settings(info.id)));
+            if (settings.has(info.id)) actions.append(workspace_button("\u8BBE\u7F6E", () => settings.show(info.id)));
             actions.append(workspace_button("\u68C0\u67E5\u5E76\u66F4\u65B0", () => void run(async () => {
               const release = await service.latest(current);
               if (api2.compare_version(release.version, current.version) <= 0) return "\u5DF2\u662F\u6700\u65B0\u7248\u672C\u3002";
@@ -240146,26 +240243,62 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const unsubscribe = service.subscribe(render);
       search2.oninput = render;
+      refresh_manager = render;
       render();
+      return { content, focus: () => search2.focus(), dispose() {
+        alive = false;
+        unsubscribe();
+        interaction.remove();
+        content.remove();
+        refresh_manager = () => {
+        };
+      } };
     };
-    const binding = { service, open_manager, register_setting_tab(id, tab) {
-      let registered = tabs.get(id);
-      if (!registered) {
-        registered = /* @__PURE__ */ new Set();
-        tabs.set(id, registered);
+    let manager;
+    class community_sidebar extends core.SidebarPanel {
+      containerEl = workspace_element("section", "workspace-community-sidebar");
+      visible = false;
+      native_observer = new MutationObserver(() => this.clear_native_tabs());
+      constructor() {
+        super();
+        this.addRibbonButton({ id: "typora_code:community_plugins", title: "\u6269\u5C55 (Ctrl+Shift+X)", icon: git_icon("extensions"), group: "top" });
+        const title = workspace_element("div", "workspace-community-title", "\u6269\u5C55");
+        title.setAttribute("role", "heading");
+        title.setAttribute("aria-level", "2");
+        this.containerEl.append(title);
       }
-      registered.add(tab);
-      tab.load();
-      return () => {
-        tab.hide();
-        tab.unload();
-        tab.containerEl.remove();
-        registered.delete(tab);
-        if (!registered.size) tabs.delete(id);
-      };
-    } };
+      clear_native_tabs() {
+        const native = document.querySelector("#typora-sidebar");
+        const classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
+        if (this.visible && native && classes.some((name) => native.classList.contains(name))) native.classList.remove(...classes);
+      }
+      onshow() {
+        this.visible = true;
+        this.clear_native_tabs();
+        const native = document.querySelector("#typora-sidebar");
+        if (native) this.native_observer.observe(native, { attributes: true, attributeFilter: ["class"] });
+        if (!manager) {
+          manager = create_manager();
+          this.containerEl.append(manager.content);
+        }
+      }
+      onhide() {
+        this.visible = false;
+        this.native_observer.disconnect();
+      }
+    }
+    const sidebar = core.app.workspace.sidebar, panel = new community_sidebar();
+    const remove_panel = sidebar.addPanel(panel);
+    const open_manager = () => {
+      if (disposed) return;
+      if (sidebar.activePanel === panel) sidebar.show();
+      else sidebar.switch(community_sidebar);
+      manager?.focus();
+    };
+    const binding = { service, open_manager, open_settings: () => settings.open(), register_setting_tab: settings.register };
     core.app.community_plugins = binding;
     const unregister = core.app.commands.register({ id: "typora_code:community_plugins", title: "\u7BA1\u7406\u793E\u533A\u63D2\u4EF6", scope: "global", callback: open_manager });
+    const unregister_settings = core.app.commands.register({ id: "typora_code:community_plugin_settings", title: "\u63D2\u4EF6\u8BBE\u7F6E", scope: "global", callback: binding.open_settings });
     let start_frame = requestAnimationFrame(() => {
       start_frame = requestAnimationFrame(() => {
         if (!disposed) void service.start().catch((error) => {
@@ -240180,7 +240313,11 @@ https://creativecommons.org/licenses/by/4.0/
       cancelAnimationFrame(start_frame);
       abort.abort();
       unregister();
-      for (const dialog2 of [...dialogs]) dialog2.close(false);
+      unregister_settings();
+      remove_panel();
+      panel.onhide();
+      manager?.dispose();
+      settings.dispose();
       void service.dispose().catch(console.error);
       style.remove();
       if (core.app.community_plugins === binding) delete core.app.community_plugins;

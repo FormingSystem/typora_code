@@ -290,14 +290,20 @@
 }
 
 /* community_plugins.css */
-.workspace-community-manager {min-width:0;max-height:65vh;overflow:auto;}
+.workspace-community-sidebar {display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:1.4;color:var(--text-color,#24292f);}
+.workspace-community-title {display:flex;align-items:center;flex:none;box-sizing:border-box;height:35px;margin:0;padding:0 20px;font-size:11px;font-weight:400;}
+.workspace-community-manager {display:flex;flex-direction:column;min-width:0;min-height:0;flex:1;padding:0 12px;overflow:auto;}
+.workspace-community-manager>p {margin:8px 0;}
 .workspace-community-toolbar,.workspace-community-actions {display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
 .workspace-community-toolbar input[type=search] {flex:1;min-width:100px;}
-.workspace-community-row {display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--workspace-panel-border,#ddd);}
+.workspace-community-manager :is(button,input) {box-sizing:border-box;max-width:100%;min-width:0;min-height:22px;margin:0;padding:2px 6px;border:1px solid var(--workspace-border-color,#8885);background:var(--bg-color,#fff);color:inherit;font:inherit;line-height:1.4;}
+.workspace-community-manager [hidden] {display:none!important;}
+.workspace-community-row {display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:10px 0;border-bottom:1px solid var(--workspace-panel-border,#ddd);}
 .workspace-community-row>div:first-child {flex:1;min-width:0;overflow-wrap:anywhere;}
 .workspace-community-row p {margin:4px 0;}
 .workspace-community-message {min-height:1.4em;}
 .workspace-community-settings {max-height:65vh;overflow:auto;}
+.workspace-community-setting-list {display:flex;flex-direction:column;gap:6px;}
 
 /* git_branch_picker.css */
 /* 固定QuickInput契约：普通22px、带detail44px、宽600px；引用和动作共用输入焦点。 */

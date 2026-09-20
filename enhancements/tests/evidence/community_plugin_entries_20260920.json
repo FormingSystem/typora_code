@@ -1,0 +1,204 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R060"
+  ],
+  "release": "2026.09.20.10",
+  "asset_manifest_sha256": "fa622754acac4179179cb355bf6ebaca1a711020459b718dd1c02fb76a34a239",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-02-01-704Z_3b6ca3/report.json",
+      "sha256": "72516c3594eb2c9091307d9619fd14f866deac8dd304c9f25168cfb85752f86a",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-native"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-05-48-958Z_381697/report.json",
+      "sha256": "35a7f5c089f588e952534bedb7e8e56d2e9762edc7bfe7024adaa82f4b608c05",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-native"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-34-696Z_22d204/report.json",
+      "sha256": "e7e0aed087662792f19559d506ea4d94ee8245d665bb2b1a0ecb06162ed219e9",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-ui"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-36-322Z_2f1d9e/report.json",
+      "sha256": "2711077e3970d4df1bfca053e52f119afa5c80c5fde59a5b3170d8c2b4a8ddce",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-002"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-49-948Z_0541c5/report.json",
+      "sha256": "e4ea0af21717f69689e46da31dbce4e2bb5d6920b9afbe4856eccb98a1edc56d",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-004"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-53-545Z_9ea2a1/report.json",
+      "sha256": "22a4564bd0390a1bb784407c6e0ab55536fcd0d67273df17d77579656dc3af34",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-016"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-54-438Z_b77ddf/report.json",
+      "sha256": "226f1b18055a6bbfa9afe198e828ab551580386764fa59876823b3c34cecd8cd",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-018"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-08-55-299Z_fd3b63/report.json",
+      "sha256": "8f4a404c22a3473376a0d4764eb453e94e995f1d6a2c53d4268319614c1259cd",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-023"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-09-01-675Z_c3a864/report.json",
+      "sha256": "e11274ace344d7ffb9257d4bdad08edd4b846e84cf4cf08b4799aca4d150f7ea",
+      "status": "passed",
+      "cases": [
+        "TC-workspace-024"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-09-43-039Z_228e5a/report.json",
+      "sha256": "05b46625b938165692d5eceb6c3ba790d6a5d0a47bd5cb5d15bafa26d5343012",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-stress"
+      ],
+      "tier": 20
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-09-44-570Z_5be7ac/report.json",
+      "sha256": "77f03b16dea55fb26a59526be6bedfba1330d1269c877aeda7d91af0bb866346",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-stress"
+      ],
+      "tier": 100
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T03-09-46-443Z_e6e593/report.json",
+      "sha256": "b0147880bc427666f0cdd6c765084980d5163b7edbb2efe1f3ed06687414acd8",
+      "status": "passed",
+      "cases": [
+        "TC-community-plugins-stress"
+      ],
+      "tier": 1000
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/f19a4bebd4c84d39a8490b4a83b590de/checks.json",
+    "sha256": "1a13390885c5df7bca8d3a972b2e11deae48f74c8938fb1b7654ca2e42d9429b",
+    "checks": 84,
+    "panel_switches": 20,
+    "real_plugin_cycles": 20,
+    "layout_samples": [
+      {
+        "theme": "dark",
+        "zoom": 1.25,
+        "title_height": 35,
+        "content_top": 70,
+        "content_bottom": 561.2799987792969,
+        "font": "\"Segoe WPC\", \"Segoe UI\", sans-serif",
+        "color": "rgb(184, 191, 198)"
+      },
+      {
+        "theme": "dark",
+        "zoom": 1,
+        "title_height": 35,
+        "content_top": 70,
+        "content_bottom": 701.6000366210938,
+        "font": "\"Segoe WPC\", \"Segoe UI\", sans-serif",
+        "color": "rgb(184, 191, 198)"
+      },
+      {
+        "theme": "light",
+        "zoom": 1.25,
+        "title_height": 35,
+        "content_top": 70,
+        "content_bottom": 826.8800048828125,
+        "font": "\"Segoe WPC\", \"Segoe UI\", sans-serif",
+        "color": "rgb(51, 51, 51)"
+      },
+      {
+        "theme": "light",
+        "zoom": 1,
+        "title_height": 35,
+        "content_top": 70,
+        "content_bottom": 1033.6000366210938,
+        "font": "\"Segoe WPC\", \"Segoe UI\", sans-serif",
+        "color": "rgb(51, 51, 51)"
+      }
+    ],
+    "screenshot": ".cache/issue_tracking/native/f19a4bebd4c84d39a8490b4a83b590de/window_1376854.png"
+  },
+  "validation": {
+    "build": "passed",
+    "complete_check": {
+      "path": ".cache/plugins_ui_20260920/check_final.log",
+      "sha256": "353babd8a190de90329fbf8971ff8a2a1da16156d132ee9398c463e0535c1448",
+      "status": "passed"
+    },
+    "related_ui_suites": 7,
+    "service_stress_tiers": [
+      20,
+      100,
+      1000
+    ]
+  },
+  "installation": {
+    "release": "2026.09.20.10",
+    "assets_checked": 29,
+    "assets_match": true,
+    "head_match": true,
+    "protected": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true
+    },
+    "asset_manifest_sha256": "fa622754acac4179179cb355bf6ebaca1a711020459b718dd1c02fb76a34a239",
+    "running_user_windows_restarted": false
+  },
+  "failures_and_corrections": [
+    "初次功能夹具用固定600px容器，在125%缩放超过视口；修正为真实可用高度。SettingTab注册断言从错误的dispose返回值改为公开app绑定。",
+    "原生首次功能通过后截图发现header定位与input显示穿透，修复独立标题/hidden并增加原生断言后重验；03-02旧报告不能代替03-05最终原生结果。",
+    "一次构建受Windows文件暂时占用失败，随后完整构建成功；首次完整check因新增Codicons元数据使用CRLF失败，改为要求的LF并重算摘要，完整check重验通过。"
+  ],
+  "limitations": [
+    "原始Typora 1.14.10独立副本与renderer事件；未操作用户运行窗口，不宣称其他宿主版本或平台验证。",
+    "在线目录与下载协议本轮未改；UI使用网络替身，原生使用固定真实社区ZIP，不把本轮当作新增在线网络验证。",
+    "私有桌面截图与实际计算几何分别记录；不是物理首帧录像。",
+    "既有真实官方升级、其他平台及PERF-startup-002未决边界保持。"
+  ]
+}

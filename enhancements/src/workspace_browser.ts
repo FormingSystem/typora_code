@@ -98,7 +98,7 @@ export function bind_workspace_browser() {
   lifetime.own(install_workspace_sidebar_sash({sidebar:core.app.workspace.sidebar,save_width:width=>(window as unknown as {JSBridge:{putSetting(key:string,value:number):void}}).JSBridge.putSetting("sidebar-width",width)}));
   const sidebar=core.app.workspace.sidebar as unknown as {isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}};
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");
-  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
+  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control", "typora_code:community_plugins"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
   const detached=lifetime.own(bind_workspace_detached_window(files));
   const editor_actions=lifetime.own(bind_workspace_editor_actions(files,detached));
   lifetime.own(bind_workspace_file_header(files,editor_actions));

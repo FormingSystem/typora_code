@@ -169,6 +169,7 @@ export function create_workspace_titlebar_definitions(
     {label:"面包屑设置…",action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
     {label: "大纲", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
     {label: "文件树", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
+    {label:"扩展",shortcut:"Ctrl+Shift+X",checked:sidebar.sidebar_visible&&sidebar.active_id==="typora_code:community_plugins",action:()=>toggle_sidebar_view("typora_code:community_plugins","typora_code:community_plugins")},
     {...command("状态栏", "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},
     {...native_command("工具栏", "toggleToolbar",undefined,false),checked:Boolean(native_active()&&toolbar?.getClientRects().length&&getComputedStyle(toolbar).display!=="none")},
     {label:"终端",shortcut:"Ctrl+`",checked:Boolean(terminal?.panel_visible),disabled:!terminal,action:()=>files.core.app.commands.run("linux_note:terminal_toggle")},separator(),
@@ -189,7 +190,6 @@ export function create_workspace_titlebar_definitions(
     } catch {return [{label: "无法读取主题列表", disabled: true}];}
   };
   const help_entries = async (): Promise<entry[]> => [
-    {label: "社区插件…", action: () => files.core.app.commands.run("typora_code:community_plugins")},
     {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
     {label: "支持文档", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://support.typora.io/")},
     {label: "Typora 官网", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/")},

@@ -13,7 +13,7 @@ domains:
 
 工作台布局、交互方式和部分功能设计参考并模仿 VS Code，来源及采用范围见 [界面基线](../docs/vscode_design_baseline.md)。本项目原创代码采用 [GPL-2.0-only](../LICENSE)，原创署名、二次开发、贡献与第三方边界见 [版权、开源与贡献声明](../COPYRIGHT.md)。第三方依赖继续适用各自许可证。
 
-社区扩展从“帮助 → 社区插件…”管理，支持typora-community-plugin v2插件的在线目录/本地ZIP安装、启停、设置、更新和卸载；新安装默认停用，先确认信任再启用。复用当前核心和UI，兼容范围见[社区插件接入](../docs/community_plugins.md)。
+社区扩展从左侧“扩展”（Ctrl+Shift+X）侧栏管理，配置从左下齿轮“插件设置…”或插件行“设置”进入，支持typora-community-plugin v2插件的在线目录/本地ZIP安装、启停、设置、更新和卸载；新安装默认停用，先确认信任再启用。复用当前核心和UI，兼容范围见[社区插件接入](../docs/community_plugins.md)。
 
 本扩展补足主题 CSS 无法承担的以下能力：
 

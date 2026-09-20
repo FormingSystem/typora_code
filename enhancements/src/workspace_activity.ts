@@ -22,7 +22,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   const interaction_nodes=new Map<HTMLElement,string|null>();
   const allowed = new Set(options.item_ids);
   // 核心按注册时序可能先插入搜索；仅没有用户排序的项采用定稿的文件／搜索／大纲／Git 顺序。
-  const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control"].filter(id => allowed.has(id));
+  const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control", "typora_code:community_plugins"].filter(id => allowed.has(id));
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
   const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
   const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", chrome_css);
@@ -70,7 +70,7 @@ export function install_workspace_activity(options: workspace_activity_options):
       if (!originals.has(item)) {
         originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes]});
         // 大纲保留原生 fa-list 目录图标和原节点，按用户定稿不再替换。
-        const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control"} as const;
+        const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control", "typora_code:community_plugins":"extensions"} as const;
         const icon_name = icon_names[item.dataset.id as keyof typeof icon_names];
         if (icon_name) item.replaceChildren(git_icon(icon_name));
         item.classList.add("workspace-activity-item"); item.draggable = false; item.setAttribute("role", "button"); item.tabIndex = 0;

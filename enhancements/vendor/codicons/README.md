@@ -19,6 +19,7 @@ domains:
 
 | 操作 | 上游图标 ID | 本地原始文件 |
 | --- | --- | --- |
+| 扩展活动栏 | `extensions` | [extensions.svg](icons/extensions.svg) |
 | Markdown 阅读预览 | `preview` | [preview.svg](icons/preview.svg) |
 | Git 仓库 | `repo` | [repo.svg](icons/repo.svg) |
 | 查看本组全部更改 | `diff-multiple` | [diff_multiple.svg](icons/diff_multiple.svg) |

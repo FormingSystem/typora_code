@@ -18,6 +18,8 @@ app.whenReady().then(async()=>{
  window.reqnode=require;const preferences={};files.core.app.settings={get:k=>preferences[k],set_and_save:(k,v)=>preferences[k]=v};window[Symbol.for('typora-code:workspace')]=files.core;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
  check((await get('视图','面包屑导航')).checked,'breadcrumbs menu reads shared defaults');(await get('视图','面包屑导航')).action();check(!(await get('视图','面包屑导航')).checked,'breadcrumbs menu writes shared settings');
+ (await get('视图','扩展')).action();check(calls.at(-1).join('|')==='core|typora_code:community_plugins','extensions view routes to shared sidebar command');
+ check(!(await get('帮助','社区插件…')),'plugin manager is removed from Help');
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,终端,帮助','seven native categories plus the authorized terminal menu');
  (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');

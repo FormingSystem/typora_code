@@ -40,3 +40,5 @@
 R014新增官方zoom-in／zoom-out放大镜表示当前窗口正／负缩放。控制浮层使用既有remove、add（固定上游plus同图形映射）和settings-gear；保留原始SVG及viewBox，显示16px，随公共明暗前景切换。来源与采用值见[窗口缩放](workspace_zoom.md#固定来源与采用策略)及vendor/codicons/source_manifest.json，不绘制近似图形。
 
 2026-09-19 R048：检出单选复用`git-branch/cloud/tag/add`并补齐固定Codicons同提交的`debug-disconnect`原始SVG、blob和SHA256。普通动作22px，引用详情44px，字形16px；详情不占图标槽，完整行为与证据见[分支检出](git_branch_checkout.md)。
+
+2026-09-20 R060：扩展活动栏使用固定Codicons的`extensions`原始SVG、blob与SHA256，复用48px槽位/24px字形和公共选择、焦点与排序；左下设置保留`fa-cog`。配置和管理的入口约定见[社区插件设计](community_plugins.md#r060-扩展活动栏与设置入口)。

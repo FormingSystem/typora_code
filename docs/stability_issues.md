@@ -4,6 +4,7 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-plugins-001 管理和配置入口难发现 | R060 | 可用性/P2 | 初始管理页只在帮助菜单，齿轮仅原生偏好；迁入侧栏时宿主header/input规则又导致标题覆盖和隐藏控件外露 | 左侧扩展/快捷键/视图统一SidebarPanel，齿轮与插件行共用SettingTab，停用清理；标题语义与hidden在独立区域隔离。TC-community-plugins-ui/native和活动栏/偏好/快捷键/顶栏回归 |
 | BUG-scrollbar-002 空闲滑块常驻 | R049.1 | 呈现/P2 | 共享CSS仅统一圆角和颜色，没有按交互状态收起原生滑块；不是单个Explorer样式缺陷 | 公共显隐服务按实际overflow所有者登记，500ms空闲后800ms淡出，保留原生输入与第三方所有者；TC-scrollbar-fade-unit/stress/ui/native，scrollbar_fade_20260920.json |
 | BUG-files-001 最近目录遗漏 | R040 | 功能/P1 | 打开新目录只调用setMountFolder，未像宿主onRootChanged写入addRecentFolder | await宿主历史；取消/无效/迟到不记入。TC-quality-implementation、TC-system-native-stability |
 | BUG-workspace-005 切目录残留旧工作区 | R040.1 | 状态生命周期/P1 | 只改挂载路径，旧标签仍有效；Git优先活动标签且未订阅工作区切换；搜索、固定时间线、终端等须一并失效 | 设计见workspace_switch.md；统一预检/保存取消/切换代次，逐领域清理与目标刷新；补齐旧Git订阅与迟到导航清理。TC-workspace-switch-ui/context/history-stress/native，证据workspace_switch_20260919.json |

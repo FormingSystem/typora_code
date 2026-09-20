@@ -62,6 +62,7 @@ export function install_workspace_shortcuts(
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
 
     if (primary_modifier(event)) {
+      if(event.code==="KeyX"&&event.shiftKey){run(event,()=>app.commands.run("typora_code:community_plugins"));return;}
       if(event.code==="KeyR"&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:open_recent"));return;}
       if (event.code === "KeyP") {
         if (event.shiftKey) run(event, () => app.commands.run("command:open"));

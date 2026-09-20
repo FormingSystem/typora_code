@@ -547,6 +547,12 @@
       "source_path": "src/icons/debug-disconnect.svg",
       "git_blob_sha1": "8b76d31e2dd0491dcd536b33fd12eb4d7596fa63",
       "sha256": "b433cadad87ae2b09056e11e9c8ba4e8eb43c62c42af81ef6a2729969fc9906a"
+    },
+    "extensions": {
+      "file": "icons/extensions.svg",
+      "source_path": "src/icons/extensions.svg",
+      "git_blob_sha1": "1c113b08a6681a0aa3f6a7ef8cb07eb46bc99fc0",
+      "sha256": "d69ffbb60b33ff0d9b47ae4560ce487dcd042288f18f5aec401108a795939274"
     }
   },
   "licenses": [

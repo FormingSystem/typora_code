@@ -320,5 +320,35 @@
     "adaptation": "主进程Typora历史持久化，异步验证区分离线/权限与确定缺失；保留共同目录切换/草稿保护，不伪造多根工作区或远程URI。",
     "target": "enhancements/src/workspace_recent.ts",
     "validation": "TC-recent-service / TC-recent-stress / TC-recent-ui / TC-recent-native"
+  },
+  "extensions_entry_20260920": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "sources": [
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/extensions/browser/extensions.contribution.ts",
+        "sha256": "6f902001584edcdcfe8b5829ef9f0cefb146793ac7557b263e952d8fc741ccea"
+      },
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/extensionsIcons.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/contrib/extensions/browser/extensionsIcons.ts",
+        "sha256": "f661b75546bd2bd0523c5fa24cbf44246100ebab8e8fbba975408ab82ced4bdf"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/compositePart.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/parts/compositePart.ts",
+        "sha256": "16f9fc988c9408640a52b76d281f0eb71d8c4cd7a2eb213ac828a7f11996855e"
+      },
+      {
+        "path": "src/vs/workbench/browser/media/part.css",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/media/part.css",
+        "sha256": "0df0499e694c090223f2e9d5662a22f618d22ec72c4d2f3df7a734d4637b7a1e"
+      }
+    ],
+    "adopted": "Extensions侧栏、Codicon.extensions、Ctrl+Shift+X；活动项复用既有48px槽位/24px图形，侧栏标题35px/11px。",
+    "adaptation": "沿用社区v2插件服务与SettingTab；齿轮菜单同时保留Typora偏好和插件设置，不移植VS Code设置宿主。",
+    "target": "enhancements/src/community_plugins.ts",
+    "validation": "TC-community-plugins-ui / TC-community-plugins-native / preferences、activity、shortcuts和titlebar回归"
   }
 }
