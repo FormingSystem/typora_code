@@ -241,5 +241,24 @@
     "adopted": "SCM compact 12px/19px/2px 8px; HTML hover max700px; list20px; paragraph4px; list8px; sections4px",
     "target": "git_commit_hover and workspace_hover_markdown",
     "validation": "TC-hover-markdown-ui / TC-hover-markdown-native"
+  },
+  "scrollbar_visibility_20260920": {
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "adopted": {
+      "hide_timeout_ms": 500,
+      "reveal_ms": 100,
+      "fade_ms": 800,
+      "easing": "linear"
+    },
+    "files": [
+      {
+        "path": "src/vs/base/browser/ui/scrollbar/media/scrollbars.css",
+        "sha256": "39e5be458917904ddbc613289a17d4ae32ca5e75ccdb22364c8ce2a5aa251432"
+      },
+      {
+        "path": "src/vs/base/browser/ui/scrollbar/scrollableElement.ts",
+        "sha256": "ca8b55a67cd3052a9a2cbdfe3ac7e380797fa686f0210f5296c9aabdc4f3617e"
+      }
+    ]
   }
 }

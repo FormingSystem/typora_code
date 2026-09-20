@@ -18,6 +18,7 @@ import cpp_macro_grammar from "../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.
 import platform_grammar from "../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json";
 import extension_css from "./typora_enhancements.css";
 import scrollbar_css from "./workspace_scrollbars.css";
+import {bind_workspace_scrollbars} from "./workspace_scrollbars";
 import { scope_style } from "./textmate_style";
 import { bind_reading_navigation } from "./reading_navigation";
 import { initialize_workspace } from "./workspace_bootstrap";
@@ -494,6 +495,7 @@ export async function activate_typora_enhancements(): Promise<void> {
   document.documentElement.setAttribute("data-linux-note-typora-enhancements","loading");
   try {
     lifetime.add(acquire_workspace_style("typora-code-style:workspace_scrollbars",scrollbar_css).remove);
+    lifetime.own(bind_workspace_scrollbars());
     await initialize(controller,lifetime);
   }
   catch(error:unknown){

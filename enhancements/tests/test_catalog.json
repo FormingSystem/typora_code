@@ -4689,6 +4689,144 @@
       "requires_environment": [
         "TYPORA_NATIVE_TEST_ROOT"
       ]
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+      "implementation": [
+        "enhancements/src/scrollbar_visibility.ts",
+        "enhancements/src/workspace_scrollbars.ts",
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "区域悬停/离开、滚动、拖动、迟到动画、动态区域和销毁"
+      ],
+      "expected": [
+        "活动显示、空闲逐步淡出，布局及输入保持；所有者退出后无残留"
+      ],
+      "id": "TC-scrollbar-fade-unit",
+      "level": "unit",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_scrollbar_visibility.mjs",
+      "environment": "Node虚拟时钟，验证状态语义",
+      "timeout_ms": 180000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+      "implementation": [
+        "enhancements/src/scrollbar_visibility.ts",
+        "enhancements/src/workspace_scrollbars.ts",
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "区域悬停/离开、滚动、拖动、迟到动画、动态区域和销毁"
+      ],
+      "expected": [
+        "活动显示、空闲逐步淡出，布局及输入保持；所有者退出后无残留"
+      ],
+      "id": "TC-scrollbar-fade-stress",
+      "level": "unit",
+      "purpose": "stress",
+      "script": "enhancements/scripts/test_scrollbar_visibility.mjs",
+      "environment": "Node虚拟时钟，20/100/1000状态循环",
+      "timeout_ms": 180000,
+      "workload_mode": "tiered"
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+      "implementation": [
+        "enhancements/src/scrollbar_visibility.ts",
+        "enhancements/src/workspace_scrollbars.ts",
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "区域悬停/离开、滚动、拖动、迟到动画、动态区域和销毁"
+      ],
+      "expected": [
+        "活动显示、空闲逐步淡出，布局及输入保持；所有者退出后无残留"
+      ],
+      "id": "TC-scrollbar-fade-ui",
+      "level": "functional",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_scrollbar_fade.cjs",
+      "environment": "隔离Chromium真实指针/键盘/滑块像素与共享DOM；媒体偏好模拟",
+      "timeout_ms": 180000
+    },
+    {
+      "domain": "workspace",
+      "requirements": [
+        "R049"
+      ],
+      "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+      "implementation": [
+        "enhancements/src/scrollbar_visibility.ts",
+        "enhancements/src/workspace_scrollbars.ts",
+        "enhancements/src/workspace_scrollbars.css",
+        "enhancements/src/typora_enhancements.ts",
+        "enhancements/fixtures/scrollbar_fade_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "search",
+        "scm",
+        "menus",
+        "editor",
+        "terminal"
+      ],
+      "preconditions": "已构建候选，专用临时环境，无用户文档",
+      "steps": [
+        "区域悬停/离开、滚动、拖动、迟到动画、动态区域和销毁"
+      ],
+      "expected": [
+        "活动显示、空闲逐步淡出，布局及输入保持；所有者退出后无残留"
+      ],
+      "id": "TC-scrollbar-fade-native",
+      "level": "system",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_scrollbar_fade_native.ps1",
+      "environment": "原始Typora1.14.10独立副本、私有桌面与用户数据；renderer合成指针",
+      "timeout_ms": 240000
     }
   ]
 }

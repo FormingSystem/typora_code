@@ -1878,6 +1878,15 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 }
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { background:var(--workspace-scrollbar-hover); }
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { background:var(--workspace-scrollbar-active); }
+/* 注册在容器上的数值可动画，伪元素显式继承；不改变容器自身透明度。 */
+@property --workspace-scrollbar-opacity { syntax:"<number>";inherits:false;initial-value:0; }
+html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :where(:not(.monaco-editor *,.monaco-scrollable-element *,.xterm *,.CodeMirror *,.CodeMirror,#write,#write *,[data-workspace-scrollbar-visibility="native"],[data-workspace-scrollbar-visibility="native"] *))::-webkit-scrollbar-thumb {
+  --workspace-scrollbar-opacity:inherit;
+  --workspace-scrollbar-paint:var(--workspace-scrollbar-background);
+  background:color-mix(in srgb,var(--workspace-scrollbar-paint) calc(var(--workspace-scrollbar-opacity) * 100%),transparent);
+}
+html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { --workspace-scrollbar-paint:var(--workspace-scrollbar-hover); }
+html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { --workspace-scrollbar-paint:var(--workspace-scrollbar-active); }
 /* Monaco与xterm拥有颜色/拖动/显隐；这里仅适配真实DOM形状。 */
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :is(.monaco-scrollable-element,.xterm-scrollable-element) > .scrollbar > .slider,
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-editor .minimap-slider .minimap-slider-horizontal,

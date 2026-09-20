@@ -4,6 +4,7 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-scrollbar-002 空闲滑块常驻 | R049.1 | 呈现/P2 | 共享CSS仅统一圆角和颜色，没有按交互状态收起原生滑块；不是单个Explorer样式缺陷 | 公共显隐服务按实际overflow所有者登记，500ms空闲后800ms淡出，保留原生输入与第三方所有者；TC-scrollbar-fade-unit/stress/ui/native，scrollbar_fade_20260920.json |
 | BUG-files-001 最近目录遗漏 | R040 | 功能/P1 | 打开新目录只调用setMountFolder，未像宿主onRootChanged写入addRecentFolder | await宿主历史；取消/无效/迟到不记入。TC-quality-implementation、TC-system-native-stability |
 | BUG-workspace-005 切目录残留旧工作区 | R040.1 | 状态生命周期/P1 | 只改挂载路径，旧标签仍有效；Git优先活动标签且未订阅工作区切换；搜索、固定时间线、终端等须一并失效 | 设计见workspace_switch.md；统一预检/保存取消/切换代次，逐领域清理与目标刷新；补齐旧Git订阅与迟到导航清理。TC-workspace-switch-ui/context/history-stress/native，证据workspace_switch_20260919.json |
 | BUG-files-002 回收无效果 | R041 | 兼容/P1 | 用户在另一电脑确认删除无效果；本地调用renderer shell，未对齐原生主进程布尔返回契约。账户权限仍是未证实的跨机因素 | 文件/Git统一JSBridge回收，false/异常/仍存在均失败，禁止永久删除后备；尊重原生删除警告配置。TC-quality-001、Explorer与原生稳定性；另一电脑实际验收待补 |

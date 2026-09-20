@@ -26,6 +26,7 @@ const ui_tests = Object.freeze([
   "test_workspace_switch.cjs",
   "test_git_graph_columns.cjs",
   "test_workspace_scrollbars.cjs",
+  "test_scrollbar_fade.cjs",
   "test_git_branch_picker.cjs",
   "test_workspace_update_ui.cjs",
   "test_workspace_stability.cjs",

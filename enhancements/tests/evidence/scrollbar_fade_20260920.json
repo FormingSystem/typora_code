@@ -1,0 +1,389 @@
+{
+  "schema": 1,
+  "date": "2026-09-20",
+  "requirements": [
+    "R049"
+  ],
+  "subsection": "R049.1",
+  "baseline": "e9ed1863ce82a5395bce52082cc64b05faecacfb",
+  "version": "2026.09.20.3",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-18-14-250Z_07be1f/report.json",
+      "sha256": "1be3056814615a48350a1dd34674761df098578b6a51cf932741dab157aede21",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-native",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/fixtures/scrollbar_fade_native.js"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_fade_native.ps1": "9fe86aa10bba52c7dba8ab37a6029a93dcffe2c9f832d0d0e948940b53b6517a",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882",
+            "enhancements/fixtures/scrollbar_fade_native.js": "469d84a92b579e531d2b2b54b926ba35b90ffab0fc8545fc6f233ccfa7caa4e4"
+          },
+          "sources_unchanged": true,
+          "level": "system",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 7018,
+          "log": "TC-scrollbar-fade-native.log",
+          "log_sha256": "917d255f7fc4a4ad58f7ade473d9f02c5666f80081d24e95cad9b4a55511ddfe"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-18-48-624Z_e210ae/report.json",
+      "sha256": "861a47f0ce678690197349ae1dddd8300c2d1921df0ba3ca55d9dc71dd282035",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-workspace-scrollbars",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md",
+          "implementation": [
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts",
+            "enhancements/src/workspace_explorer.css",
+            "enhancements/src/workspace_search.css",
+            "enhancements/src/workspace_titlebar.css",
+            "enhancements/src/git_graph.css"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_workspace_scrollbars.cjs": "a57c8ec5fe94a2b03cd1c282bf8e12154cbbda71d7ed50194a1438382607336c",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882",
+            "enhancements/src/workspace_explorer.css": "57ade9158970d893185c0507907d4c14fbac186b89fc180c43275f28a002a897",
+            "enhancements/src/workspace_search.css": "f8037999cb99650ea2efe56efd17ab17f0c75d79c30b1f269bc60a27df5e2919",
+            "enhancements/src/workspace_titlebar.css": "24dcbf324be69949acd2c30d2c9517717758e4bdbfc17250100bd00bb14e0e80",
+            "enhancements/src/git_graph.css": "75bd50e2bce307bf0dd6943b21e3f92f0f1d9d67ec7d5db60baa41e5c7d679db"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 4521,
+          "log": "TC-workspace-scrollbars.log",
+          "log_sha256": "474abe061bc447248aecd13f0bf2e93833352874cfa9a7a66e7bcc1c63d24a91"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-19-34-451Z_06d9db/report.json",
+      "sha256": "890e89a9b081b1e1d6fa9b3d446cfc3ee8fa15e0fae098a9c2206c26b78fcecf",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-unit",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_visibility.mjs": "bafcf148c4cf2d8ae5fe6d10a2139feb461725d81103dd7839f9f018d555a4ef",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882"
+          },
+          "sources_unchanged": true,
+          "level": "unit",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 56,
+          "log": "TC-scrollbar-fade-unit.log",
+          "log_sha256": "2ac26394229c24289cc0c8b64c07e39468be04b02da869075e3791adb52ea692"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-19-34-776Z_ee59b8/report.json",
+      "sha256": "98380a93c69cc13b14df8f24b0fef7622ebf6b211afdce83542d0d116724805b",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-ui",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_fade.cjs": "4ed36da1df5baf38d064206871cbd1d70edda9835f0ac7ca20377701e91fb5f6",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882"
+          },
+          "sources_unchanged": true,
+          "level": "functional",
+          "purpose": "implementation",
+          "iterations": null,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 8582,
+          "log": "TC-scrollbar-fade-ui.log",
+          "log_sha256": "803954e8b67e1b2c06ae05a738c47fcb5d8610545007ff4d202338579c0bc3b3"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-19-43-631Z_69a470/report.json",
+      "sha256": "3cb25b920e789770a59ec3f28806d8ec3609cfd3f0720c51814666687a615442",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_visibility.mjs": "bafcf148c4cf2d8ae5fe6d10a2139feb461725d81103dd7839f9f018d555a4ef",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882"
+          },
+          "sources_unchanged": true,
+          "level": "unit",
+          "purpose": "stress",
+          "iterations": 20,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 52,
+          "log": "TC-scrollbar-fade-stress.log",
+          "log_sha256": "2ac26394229c24289cc0c8b64c07e39468be04b02da869075e3791adb52ea692"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-19-43-932Z_c23ba4/report.json",
+      "sha256": "1235210ecae33463bccd73e7ba402df3eed5df6bfcfb22a0fbe3d7a370a79fe6",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_visibility.mjs": "bafcf148c4cf2d8ae5fe6d10a2139feb461725d81103dd7839f9f018d555a4ef",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882"
+          },
+          "sources_unchanged": true,
+          "level": "unit",
+          "purpose": "stress",
+          "iterations": 100,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 52,
+          "log": "TC-scrollbar-fade-stress.log",
+          "log_sha256": "55dc04567e849f135e3865a3545777687e410e01f028ad25af86856e7c9b1d84"
+        }
+      ]
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-19-44-245Z_b02aec/report.json",
+      "sha256": "c455db53755e7e36a96e4d8ce5c034b5259c6c7523085289c7fd55ced600c1ed",
+      "status": "passed",
+      "asset_manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b",
+      "results": [
+        {
+          "id": "TC-scrollbar-fade-stress",
+          "requirements": [
+            "R049"
+          ],
+          "design": "docs/workspace_interaction.md#r0491-空闲滚动条淡出",
+          "implementation": [
+            "enhancements/src/scrollbar_visibility.ts",
+            "enhancements/src/workspace_scrollbars.ts",
+            "enhancements/src/workspace_scrollbars.css",
+            "enhancements/src/typora_enhancements.ts"
+          ],
+          "source_hashes": {
+            "enhancements/scripts/test_scrollbar_visibility.mjs": "bafcf148c4cf2d8ae5fe6d10a2139feb461725d81103dd7839f9f018d555a4ef",
+            "enhancements/src/scrollbar_visibility.ts": "acd2d98a2ba8f9db96d70d2cdaa2b1d81b6cb0c55de8ed3edfb5f27e19cbba76",
+            "enhancements/src/workspace_scrollbars.ts": "8bdfa85554ac6eaa1bbbc99ce0dd672b44e2828bb52ca2e0cb4576ddc365d6fe",
+            "enhancements/src/workspace_scrollbars.css": "ac9e05364495b504f173bc85d3d92a324621a013fd327afa28fc19421825b2c0",
+            "enhancements/src/typora_enhancements.ts": "307f105bec2d646cacf9a5d1e064ca8f4c9c1dd46b4047691e80ff807c7e8882"
+          },
+          "sources_unchanged": true,
+          "level": "unit",
+          "purpose": "stress",
+          "iterations": 1000,
+          "status": "passed",
+          "exit_code": 0,
+          "elapsed_ms": 65,
+          "log": "TC-scrollbar-fade-stress.log",
+          "log_sha256": "0acdea0b7054f71269046509d95898d6c9bbfaf438114d004cf2ca470db7706e"
+        }
+      ]
+    }
+  ],
+  "native": {
+    "path": ".cache/issue_tracking/native/09d88231c0264488824cfb041ceea3a1/checks.json",
+    "sha256": "d4f9ecf55782ce6077e44ea0537408fbdb748c187cd275697a78e756cf8d62c3",
+    "result": {
+      "status": "PASS",
+      "checks": [
+        "正式启动入口已接入全局滚动条行为",
+        "真实资源管理器产生可滚动内容",
+        "原生宿主悬停显示",
+        "空闲隐藏并清理属性",
+        "显隐不改变原生区域宽度与公共滑块尺寸",
+        "20次交互后没有动画及属性残留",
+        "原文、编辑节点和未保存状态保持"
+      ],
+      "samples": [
+        {
+          "delay": 300,
+          "opacity": 1
+        },
+        {
+          "delay": 400,
+          "opacity": 0
+        },
+        {
+          "delay": 300,
+          "opacity": 0
+        },
+        {
+          "delay": 600,
+          "opacity": 0
+        }
+      ],
+      "iterations": 20,
+      "reduced_motion": true,
+      "viewport": [
+        1666,
+        1034
+      ],
+      "dpr": 1.25,
+      "scope": "原始宿主正式入口；renderer合成指针与真实Explorer，非物理鼠标"
+    }
+  },
+  "checks": {
+    "build": {
+      "status": "PASS",
+      "path": ".cache/issue_tracking/r049_fade_build.log",
+      "sha256": "cf85233cff06f93aca61c385c5e379db88b4da0b8186e54be309709e10626900"
+    },
+    "check": {
+      "status": "PASS",
+      "path": ".cache/issue_tracking/r049_fade_check.log",
+      "sha256": "deaee45ff62877a678eb33e28dfc4a0fd946896dfcc25c2daf6f5e056617c9d5"
+    },
+    "related_ui": {
+      "status": "PASS",
+      "path": ".cache/issue_tracking/r049_fade_related_ui.log",
+      "sha256": "ff50b397e29087e32dc6c2c717a87230d6c32992a53baa8c664aed3f600c001a"
+    },
+    "install": {
+      "status": "PASS",
+      "path": ".cache/issue_tracking/r049_fade_install.log",
+      "sha256": "004ee6c367a6123f23257fc4fe2d3b281321c422bba400cc7b6bb8f0d8e4029b"
+    },
+    "install_check": {
+      "status": "PASS",
+      "path": ".cache/issue_tracking/r049_fade_install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  },
+  "installation": {
+    "status": "OK",
+    "version": "2026.09.20.3",
+    "assets": {
+      "assets/source_symbols/LICENSE_cmake": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d",
+      "assets/source_symbols/LICENSE_javascript": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f",
+      "assets/source_symbols/LICENSE_package": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51",
+      "assets/source_symbols/LICENSE_python": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37",
+      "assets/source_symbols/LICENSE_runtime": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147",
+      "assets/source_symbols/LICENSE_typescript": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b",
+      "assets/source_symbols/LICENSE_yaml": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e",
+      "assets/source_symbols/source_manifest.json": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0",
+      "assets/source_symbols/tree-sitter-cmake.wasm": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204",
+      "assets/source_symbols/tree-sitter-javascript.wasm": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f",
+      "assets/source_symbols/tree-sitter-python.wasm": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028",
+      "assets/source_symbols/tree-sitter-typescript.wasm": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db",
+      "assets/source_symbols/tree-sitter-yaml.wasm": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580",
+      "assets/source_symbols/tree-sitter.wasm": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f",
+      "assets/source_symbols/worker.js": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39",
+      "assets/update/release.json": "e743a23f435ed23242c318ce6b58ca6c1fd9efe006f65cb1b625ec41bc35bb72",
+      "assets/update/runtime.json": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff",
+      "assets/update/workspace_update_archive.ps1": "562d0b6f4c13865988bf0b3421f87441e1af6fea36c1d0f47fc6eb8cd88478bb",
+      "assets/update/workspace_update_service.cjs": "dc4a25ebddd7a8a4fe21f39cb31ec4e650eca29d4b14b3bf775520db009176b2",
+      "licenses/fontawesome.txt": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc",
+      "locales/lang.de.json": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640",
+      "locales/lang.en.json": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b",
+      "locales/lang.zh-cn.json": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d",
+      "workbench.js": "5cd2cd0537f99b47b239a5bc0d4a0ea4e66dfbc87b9ae2b814fb70d7c1dd87d8",
+      "workspace.css": "a52ceb6f07b489731271c748dcc2848a742d0dd290e8b4acadbaee1932343d78",
+      "workspace_core.css": "c93c2554752e93cb916ea7c1c0dd3153d7f8979e1d8c84dd6abf5193fd578e5c",
+      "workspace_core.js": "62f5fac7c4c1158e3cb4633de2666c5de6f409c644ef4d7357efe1c1d4c23922"
+    },
+    "protected_unchanged": 5,
+    "head_matches": true,
+    "windows_restarted": false,
+    "manifest_sha256": "e0f9c452ffc9c08a5eea10b84d08f8ca36ad75dcfc2a9999aaf31aac7b6b952b"
+  },
+  "skill_validation": "PASS",
+  "limits": [
+    "原生私有桌面使用renderer合成指针，非物理鼠标；系统减少动画为true，渐变像素在隔离Chromium通过媒体模拟验证。",
+    "7类动态区域是共享DOM功能用例；实际Monaco/xterm回归使用自身显隐，没有添加第二个控制器。",
+    "用户窗口未重启，未推送；R056直接布局前置和R057插件接入仍独立待实施。"
+  ]
+}

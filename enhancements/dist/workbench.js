@@ -182893,6 +182893,168 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_scrollbars.css
   var workspace_scrollbars_default = "";
 
+  // src/scrollbar_visibility.ts
+  var SCROLLBAR_HIDE_MS = 500;
+  var SCROLLBAR_REVEAL_MS = 100;
+  var SCROLLBAR_FADE_MS = 800;
+  function create_scrollbar_visibility(port) {
+    let hovered = false, dragging = false, disposed = false, visible3 = false, generation = 0;
+    let cancel_timer, cancel_animation;
+    const stop_timer = () => {
+      cancel_timer?.();
+      cancel_timer = void 0;
+    };
+    const reveal = () => {
+      stop_timer();
+      if (visible3 || disposed) return;
+      visible3 = true;
+      generation++;
+      cancel_animation?.();
+      cancel_animation = port.animate(true, SCROLLBAR_REVEAL_MS, () => {
+      });
+    };
+    const defer_hide = () => {
+      stop_timer();
+      if (disposed || hovered || dragging) return;
+      cancel_timer = port.schedule(() => {
+        cancel_timer = void 0;
+        if (disposed || hovered || dragging) return;
+        visible3 = false;
+        const current = ++generation;
+        cancel_animation?.();
+        cancel_animation = port.animate(false, SCROLLBAR_FADE_MS, () => {
+          if (!disposed && generation === current) port.hidden();
+        });
+      }, SCROLLBAR_HIDE_MS);
+    };
+    return {
+      hover(value) {
+        if (disposed || hovered === value) return;
+        hovered = value;
+        value ? reveal() : defer_hide();
+      },
+      drag(value) {
+        if (disposed || dragging === value) return;
+        dragging = value;
+        value ? reveal() : defer_hide();
+      },
+      pulse() {
+        if (disposed) return;
+        reveal();
+        defer_hide();
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        generation++;
+        stop_timer();
+        cancel_animation?.();
+        cancel_animation = void 0;
+      }
+    };
+  }
+
+  // src/workspace_scrollbars.ts
+  var OPACITY_PROPERTY = "--workspace-scrollbar-opacity";
+  var EXCLUDED = ".monaco-editor,.monaco-scrollable-element,.xterm,.CodeMirror,#write,[data-workspace-scrollbar-visibility='native']";
+  function bind_workspace_scrollbars() {
+    const lifetime = create_workspace_lifetime();
+    const root = document.documentElement;
+    if (!CSS.supports("background", "color-mix(in srgb, black 50%, transparent)") || !CSS.registerProperty || !Element.prototype.animate) return lifetime;
+    const previous_mode = root.getAttribute("data-workspace-scrollbars");
+    root.setAttribute("data-workspace-scrollbars", "auto");
+    const entries3 = /* @__PURE__ */ new Map();
+    const releases = /* @__PURE__ */ new Map();
+    let hovered = /* @__PURE__ */ new Set(), dragged = /* @__PURE__ */ new Set();
+    const reduced_motion = matchMedia("(prefers-reduced-motion: reduce)");
+    const is_native_scroll = (node) => {
+      if (node.closest(EXCLUDED)) return false;
+      if (node.scrollHeight <= node.clientHeight && node.scrollWidth <= node.clientWidth) return false;
+      const style = getComputedStyle(node);
+      return style.scrollbarWidth !== "none" && (/^(auto|scroll|overlay)$/.test(style.overflowY) || /^(auto|scroll|overlay)$/.test(style.overflowX));
+    };
+    const scroll_ancestors = (target) => {
+      const result = /* @__PURE__ */ new Set();
+      for (let node = target instanceof Element ? target : null; node; node = node.parentElement) {
+        if (node instanceof HTMLElement && is_native_scroll(node)) result.add(node);
+      }
+      return result;
+    };
+    const obtain = (node) => {
+      const existing = entries3.get(node);
+      if (existing) return existing;
+      const previous = node.style.getPropertyValue(OPACITY_PROPERTY), priority = node.style.getPropertyPriority(OPACITY_PROPERTY);
+      let animation;
+      const release = () => {
+        controller.dispose();
+        animation?.cancel();
+        previous ? node.style.setProperty(OPACITY_PROPERTY, previous, priority) : node.style.removeProperty(OPACITY_PROPERTY);
+        entries3.delete(node);
+        releases.delete(node);
+      };
+      const controller = create_scrollbar_visibility({
+        schedule(callback, delay) {
+          const timer = setTimeout(callback, delay);
+          return () => clearTimeout(timer);
+        },
+        animate(visible3, duration, finished) {
+          const from = getComputedStyle(node).getPropertyValue(OPACITY_PROPERTY).trim() || "0";
+          animation?.cancel();
+          node.style.setProperty(OPACITY_PROPERTY, visible3 ? "1" : "0");
+          animation = node.animate([{ [OPACITY_PROPERTY]: from }, { [OPACITY_PROPERTY]: visible3 ? "1" : "0" }], {
+            duration: reduced_motion.matches || root.classList.contains("disable-animations") ? 0 : duration,
+            easing: "linear"
+          });
+          animation.onfinish = finished;
+          return () => {
+            if (animation) animation.onfinish = null;
+          };
+        },
+        hidden: release
+      });
+      entries3.set(node, controller);
+      releases.set(node, release);
+      return controller;
+    };
+    const move_hover = (target) => {
+      const next = scroll_ancestors(target);
+      for (const node of hovered) if (!next.has(node)) entries3.get(node)?.hover(false);
+      for (const node of next) if (!hovered.has(node)) obtain(node).hover(true);
+      hovered = next;
+    };
+    lifetime.listen(document, "pointerover", (event) => move_hover(event.target), { capture: true, passive: true });
+    lifetime.listen(document, "pointerout", (event) => move_hover(event.relatedTarget), { capture: true, passive: true });
+    lifetime.listen(document, "scroll", (event) => {
+      const node = event.target === document ? document.scrollingElement : event.target;
+      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();
+    }, { capture: true, passive: true });
+    lifetime.listen(document, "pointerdown", (event) => {
+      dragged = scroll_ancestors(event.target);
+      for (const node of dragged) obtain(node).drag(true);
+    }, { capture: true, passive: true });
+    const end_drag = () => {
+      for (const node of dragged) entries3.get(node)?.drag(false);
+      dragged.clear();
+    };
+    lifetime.listen(window, "pointerup", end_drag, true);
+    lifetime.listen(window, "pointercancel", end_drag, true);
+    lifetime.listen(window, "mouseup", end_drag, true);
+    lifetime.listen(window, "blur", () => {
+      move_hover(null);
+      end_drag();
+    });
+    const initial_hover = document.querySelectorAll(":hover");
+    move_hover(initial_hover.item(initial_hover.length - 1));
+    lifetime.add(() => {
+      for (const release of releases.values()) release();
+      entries3.clear();
+      hovered.clear();
+      dragged.clear();
+      previous_mode === null ? root.removeAttribute("data-workspace-scrollbars") : root.setAttribute("data-workspace-scrollbars", previous_mode);
+    });
+    return lifetime;
+  }
+
   // src/textmate_style.ts
   function scope_style(scopes) {
     const joined = scopes.join(" ");
@@ -238490,6 +238652,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092003,
+        version: "2026.09.20.3",
+        date: "2026-09-20",
+        notes: [
+          "\u7EDF\u4E00\u5DE5\u4F5C\u53F0\u539F\u751F\u6EDA\u52A8\u6761\u663E\u9690\uFF1A\u60AC\u505C\u3001\u6EDA\u52A8\u6216\u62D6\u52A8\u65F6\u663E\u793A\uFF0C\u79BB\u5F00\u5E76\u505C\u6B62\u64CD\u4F5C\u540E\u9010\u6E10\u6DE1\u51FA\uFF0C\u4FDD\u6301\u539F\u6709\u5E03\u5C40\u4E0E\u6EDA\u52A8\u64CD\u4F5C\u3002",
+          "\u8986\u76D6\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u6253\u5F00\u7684\u7F16\u8F91\u5668\u3001\u641C\u7D22\u3001Git\u5217\u8868\u548C\u83DC\u5355\u7B49\u6EDA\u52A8\u533A\u57DF\uFF1B\u4FDD\u7559\u7F16\u8F91\u5668\u4E0E\u7EC8\u7AEF\u81EA\u6709\u673A\u5236\uFF0C\u652F\u6301\u51CF\u5C11\u52A8\u753B\u504F\u597D\u3002"
+        ]
+      },
+      {
         sequence: 2026092002,
         version: "2026.09.20.2",
         date: "2026-09-20",
@@ -239773,6 +239944,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.documentElement.setAttribute("data-linux-note-typora-enhancements", "loading");
     try {
       lifetime.add(acquire_workspace_style("typora-code-style:workspace_scrollbars", workspace_scrollbars_default).remove);
+      lifetime.own(bind_workspace_scrollbars());
       await initialize2(controller, lifetime);
     } catch (error) {
       if (runtime_controller !== controller || controller.signal.aborted) return;
