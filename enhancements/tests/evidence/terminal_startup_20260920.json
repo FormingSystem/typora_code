@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R006.8"
+  ],
+  "release": "2026.09.20.23",
+  "root_cause": "原open在Shell扫描结束后才创建会话和面板；明确文件入口还在显示前等待目录解析。",
+  "changes": [
+    "先建立真实会话和xterm表面，再异步准备目录、探测Shell及启动PTY。",
+    "终端与Git/更新复用共享活动进度；区分进程就绪和首次输出，失败保留在会话内。",
+    "旧目录解析先核对代际再更新基点，重启/关闭/切库不会接收迟到结果。"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 163,
+    "ui_suites": [
+      "test_terminal_panel.cjs",
+      "test_terminal_theme.cjs",
+      "test_workspace_view_layout.cjs",
+      "test_workspace_shortcuts.cjs",
+      "test_terminal_capture.cjs",
+      "test_terminal_composition.cjs"
+    ],
+    "native_assertions": 63,
+    "native_real_shell_rounds": 3,
+    "native_immediate_cancel_rounds": 20
+  },
+  "native_checks": [
+    "命令返回前已有可见终端面板 0",
+    "真实进程未启动时显示忙碌状态 0",
+    "下一绘制帧终端布局完整 0",
+    "真实Shell已启动 0",
+    "首次真实输出结束启动进度 0",
+    "隐藏重开复用同一真实终端 0",
+    "终止清理表面及进度节点 0",
+    "命令返回前已有可见终端面板 1",
+    "真实进程未启动时显示忙碌状态 1",
+    "下一绘制帧终端布局完整 1",
+    "真实Shell已启动 1",
+    "首次真实输出结束启动进度 1",
+    "隐藏重开复用同一真实终端 1",
+    "终止清理表面及进度节点 1",
+    "命令返回前已有可见终端面板 2",
+    "真实进程未启动时显示忙碌状态 2",
+    "下一绘制帧终端布局完整 2",
+    "真实Shell已启动 2",
+    "首次真实输出结束启动进度 2",
+    "隐藏重开复用同一真实终端 2",
+    "终止清理表面及进度节点 2",
+    "快速打开先展示启动状态 0",
+    "立即终止不恢复迟到会话 0",
+    "快速打开先展示启动状态 1",
+    "立即终止不恢复迟到会话 1",
+    "快速打开先展示启动状态 2",
+    "立即终止不恢复迟到会话 2",
+    "快速打开先展示启动状态 3",
+    "立即终止不恢复迟到会话 3",
+    "快速打开先展示启动状态 4",
+    "立即终止不恢复迟到会话 4",
+    "快速打开先展示启动状态 5",
+    "立即终止不恢复迟到会话 5",
+    "快速打开先展示启动状态 6",
+    "立即终止不恢复迟到会话 6",
+    "快速打开先展示启动状态 7",
+    "立即终止不恢复迟到会话 7",
+    "快速打开先展示启动状态 8",
+    "立即终止不恢复迟到会话 8",
+    "快速打开先展示启动状态 9",
+    "立即终止不恢复迟到会话 9",
+    "快速打开先展示启动状态 10",
+    "立即终止不恢复迟到会话 10",
+    "快速打开先展示启动状态 11",
+    "立即终止不恢复迟到会话 11",
+    "快速打开先展示启动状态 12",
+    "立即终止不恢复迟到会话 12",
+    "快速打开先展示启动状态 13",
+    "立即终止不恢复迟到会话 13",
+    "快速打开先展示启动状态 14",
+    "立即终止不恢复迟到会话 14",
+    "快速打开先展示启动状态 15",
+    "立即终止不恢复迟到会话 15",
+    "快速打开先展示启动状态 16",
+    "立即终止不恢复迟到会话 16",
+    "快速打开先展示启动状态 17",
+    "立即终止不恢复迟到会话 17",
+    "快速打开先展示启动状态 18",
+    "立即终止不恢复迟到会话 18",
+    "快速打开先展示启动状态 19",
+    "立即终止不恢复迟到会话 19",
+    "启动取消无遗留进度节点",
+    "原生文档磁盘正文保持"
+  ],
+  "native_samples": [
+    {
+      "round": 0,
+      "frame_ms": 22.400000005960464,
+      "output_ms": 2198.800000011921,
+      "stages": [
+        {
+          "ms": 20.400000005960464,
+          "label": "正在准备终端工作目录…",
+          "state": "starting"
+        },
+        {
+          "ms": 28.599999994039536,
+          "label": "正在检测可用的 Shell…",
+          "state": "starting"
+        },
+        {
+          "ms": 1527.4000000059605,
+          "label": "正在启动 PowerShell 进程…",
+          "state": "starting"
+        },
+        {
+          "ms": 2168.4000000059605,
+          "label": "PowerShell 进程已启动，正在等待首次输出（Shell初始化可能需要一些时间）…",
+          "state": "running"
+        },
+        {
+          "ms": 2179,
+          "label": "",
+          "state": "running"
+        }
+      ],
+      "pid": 27000,
+      "width": 754,
+      "height": 218.83750915527344
+    },
+    {
+      "round": 1,
+      "frame_ms": 8.700000017881393,
+      "output_ms": 634,
+      "stages": [
+        {
+          "ms": 7.300000011920929,
+          "label": "正在准备终端工作目录…",
+          "state": "starting"
+        },
+        {
+          "ms": 13.900000005960464,
+          "label": "正在检测可用的 Shell…",
+          "state": "starting"
+        },
+        {
+          "ms": 17.100000023841858,
+          "label": "正在启动 PowerShell 进程…",
+          "state": "starting"
+        },
+        {
+          "ms": 611.3000000119209,
+          "label": "PowerShell 进程已启动，正在等待首次输出（Shell初始化可能需要一些时间）…",
+          "state": "running"
+        },
+        {
+          "ms": 617.2000000178814,
+          "label": "",
+          "state": "running"
+        }
+      ],
+      "pid": 29444,
+      "width": 1618,
+      "height": 351.63751220703125
+    },
+    {
+      "round": 2,
+      "frame_ms": 28,
+      "output_ms": 617.3000000119209,
+      "stages": [
+        {
+          "ms": 10.700000017881393,
+          "label": "正在检测可用的 Shell…",
+          "state": "starting"
+        },
+        {
+          "ms": 13.5,
+          "label": "正在启动 PowerShell 进程…",
+          "state": "starting"
+        },
+        {
+          "ms": 595.2000000178814,
+          "label": "PowerShell 进程已启动，正在等待首次输出（Shell初始化可能需要一些时间）…",
+          "state": "running"
+        },
+        {
+          "ms": 600.9000000059605,
+          "label": "",
+          "state": "running"
+        }
+      ],
+      "pid": 37164,
+      "width": 1618,
+      "height": 351.63751220703125
+    },
+    {
+      "viewport": {
+        "width": 1666,
+        "height": 1034,
+        "dpi": 1.25,
+        "zoom": 1
+      },
+      "asset_sha256": "bae3ffc2aec1b28b9b00b09bb1eacad3b4247d495239fff999c75bd57dce59e5"
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/terminal_startup_check_final.log",
+      "sha256": "11600155420e176031b0b9151cc6e0b530f043b1f4d80e769d854e57059d437d"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_ui_final.log",
+      "sha256": "70ce065fb7057e543f0ab8acb9859c6700a992ef80124334de10c6130f4994b1"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_ui_final2.log",
+      "sha256": "a5d28acc423d05decda748952a7231298beb366dde7e680a792490e06af89a64"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_input.log",
+      "sha256": "faec925705aaef8f295d903cc3c39b97c16390d6c6bed545c509b0b1319a05c1"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_native_final.log",
+      "sha256": "9416ef2e32433c27ce889df6564b8a4e9828d40358682a0e6bc0216db9f1b91b"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_install_final.log",
+      "sha256": "aa1247edf7338fde26ea57e8623a0136098a9bd7bc14d08b0e8d8019796d3f88"
+    },
+    {
+      "path": ".cache/issue_tracking/terminal_startup_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/native/289f626346754f238acb522b5e19eb1d/checks.json",
+      "sha256": "4b49276c2d536a7b6f11b85b73c260e80db0b0ce01b0e876fb891199483687be"
+    }
+  ],
+  "candidate": {
+    "manifest_sha256": "eb02efe2a049a262a64177f0aa0108552e23a72ebf875498b12e5cc966c73dac",
+    "workbench_sha256": "bae3ffc2aec1b28b9b00b09bb1eacad3b4247d495239fff999c75bd57dce59e5",
+    "native_fixture_sha256": "5fd5f701d641a08b47a7e8b09f22302dcc474aa22c9fedc4ede218d3fb9a612f"
+  },
+  "installation": {
+    "status": "OK",
+    "matching_installed_and_native_assets": 29,
+    "unchanged_protected_files": 6,
+    "user_windows_restarted": false
+  },
+  "test_corrections": [
+    "主题夹具曾在模拟reqnode中拒绝读取os，导致提前进入失败状态而未进入被测目录解析；允许只读os后通过，PTY端口继续禁用。",
+    "首个关联UI命令误写不存在的测试文件名，runner拒绝执行；改用已登记脚本后验证。"
+  ],
+  "limits": [
+    "真实宿主通过命令入口，无物理点击；下一rAF布局采样不是屏幕逐帧录像，数值仅为本机样本。",
+    "首次输出不代表Shell登录脚本和命令提示符全部就绪，不宣称Shell本身已加速。",
+    "用户运行窗口未重启；跨平台、跨窗终端和历史未决边界保留。"
+  ]
+}

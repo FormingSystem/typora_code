@@ -35,14 +35,27 @@ app.whenReady().then(async()=>{
     localStorage.setItem('linux-note-terminal:v1:',JSON.stringify({profiles:[${JSON.stringify(custom)}]}));
     window.parent_group={appendChild(leaf){leaves.push(leaf);document.querySelector('.typ-workspace-root').append(leaf.view.containerEl);leaf.view.onOpen()},toggleTab(uri){const leaf=leaves.find(item=>item.state.path===uri);leaf.view.onOpen();return leaf},removeTab(uri){const index=leaves.findIndex(item=>item.state.path===uri);if(index>=0){const leaf=leaves.splice(index,1)[0];leaf.view.onClose();leaf.view.containerEl.remove();core.app.workspace.activeLeaf=original_leaf;}}};
     window.original_leaf={state:{path:'draft.md'},parent:parent_group};
-    window.core={WorkspaceView:class{constructor(leaf){this.leaf=leaf}},app:{viewManager:{registerView(id,factory){factories.set(id,factory);return()=>factories.delete(id)}},commands:{register(command){commands.set(command.id,command);return()=>commands.delete(command.id)},run(id){commands.get(id)?.callback()}},workspace:{activeLeaf:original_leaf,eachLeaves(callback){leaves.forEach(callback)},createLeaf({type,state}){const leaf={state,parent:parent_group};leaf.view=factories.get(type)(leaf);return leaf},on(){return()=>{}},ribbon:{addButton(){return()=>{}}}}}};
+    window.core={WorkspaceView:class{constructor(leaf){this.leaf=leaf}},app:{viewManager:{registerView(id,factory){factories.set(id,factory);return()=>factories.delete(id)}},commands:{register(command){commands.set(command.id,command);return()=>commands.delete(command.id)},run(id){commands.get(id)?.callback()}},workspace:{activeLeaf:original_leaf,eachLeaves(callback){leaves.forEach(callback)},createLeaf({type,state}){const leaf={state,parent:parent_group};leaf.view=factories.get(type)(leaf);return leaf},on(name,callback){if(name==="file-menu")window.file_menu=callback;return()=>{}},ribbon:{addButton(name,callback){if(name==="file-menu")window.file_menu=callback;return()=>{}}}}}};
     window.host={core,fs:require('node:fs'),path_api:require('node:path'),process_api:process,copy:async text=>window.copied=text,context_path:()=>${JSON.stringify(root)},workspace_path:()=>${JSON.stringify(root)},runner:()=>({run:async()=>${JSON.stringify(root)}})};
     window.binding=panel_api.bind_terminal_workspace(host);window.pending_open=binding.open(${JSON.stringify(root)},'cmd');void 0;`);
   assert(await evaluate('profile_scans.length===1&&profile_scans[0].scans===1&&pty_starts.length===0'));
+  await evaluate('(async()=>{window.first=await pending_open;await new Promise(requestAnimationFrame);return true})()');
+  assert(await evaluate('!document.querySelector(".typora-terminal-panel").hidden&&first.surface.container.getBoundingClientRect().height>100&&first.surface.container.getAttribute("aria-busy")==="true"&&first.surface.status.textContent.includes("检测")'),'panel paints while shell discovery is unresolved');
+  assert(await evaluate('!first.surface.container.querySelector("[role=progressbar]").hidden'),'shared activity bar is visible during discovery');
+  await evaluate('commands.get("linux_note:terminal_move_editor").callback();void 0');
+  assert(await evaluate('leaves.length===1&&document.querySelector(".terminal-editor-host .linux-note-terminal")===first.surface.container&&pty_starts.length===0'),'pending session moves to editor before discovery');
+  await evaluate('commands.get("linux_note:terminal_move_panel").callback();void 0');
+  assert(await evaluate('leaves.length===0&&document.querySelector(".typora-terminal-panel .linux-note-terminal")===first.surface.container'),'pending session moves back without recreation');
+  for(let index=0;index<20;index++)await evaluate('binding.toggle();binding.toggle();void 0');
+  assert(await evaluate('document.querySelectorAll(".linux-note-terminal").length===1&&pty_starts.length===0'),'rapid toggles reuse pending session');
   await evaluate('commands.get("linux_note:terminal_settings").callback();void 0');
   assert(await evaluate('Boolean(document.querySelector("[role=dialog]"))&&!document.querySelector(".terminal-settings-form")'));
   await dialog_action('关闭');
+  await evaluate('binding.toggle();void 0');
   await evaluate(`profile_scans[0].complete(${JSON.stringify(profiles)});void 0`);
+  await wait('pty_starts.length===1');
+  assert(await evaluate('document.querySelector(".typora-terminal-panel").hidden'),'late discovery does not reopen hidden panel');
+  await evaluate('binding.toggle();void 0');
   await evaluate('(async()=>{window.first=await pending_open;return Boolean(first)})()');
   await wait('pty_starts.length===1&&document.querySelector(".typora-terminal-panel").getBoundingClientRect().height>200');
   assert(await evaluate('!document.querySelector("[role=dialog]")&&profile_scans[0].scans===1'));
@@ -51,12 +64,15 @@ app.whenReady().then(async()=>{
   assert(await evaluate('Math.abs(document.querySelector(".typ-workspace-root").getBoundingClientRect().bottom-document.querySelector(".typora-terminal-panel").getBoundingClientRect().top)<2'));
   await evaluate('pty_starts[0].ready();void 0');await wait('first.session.state==="running"');
 
+  assert(await evaluate('first.session.launch_pending&&first.surface.status.textContent.includes("等待首次输出")'),'PTY ready is not shell output readiness');
   await evaluate('pty_starts[0].callbacks.data("KEEP_OUTPUT\\r\\n");void 0');await delay(100);
+  assert(await evaluate('!first.session.launch_pending&&first.surface.status.hidden&&first.surface.container.querySelector("[role=progressbar]").hidden'),'first output clears busy feedback');
   assert(await evaluate('panel_api.read_terminal_state(core.app).active_id===first.session.id&&panel_api.read_terminal_state(core.app).panel_visible'),'menu state reads coordinator session and panel');
   await evaluate('binding.toggle();void 0');assert(await evaluate('!panel_api.read_terminal_state(core.app).panel_visible'),'menu state follows external hide');assert(await evaluate('document.querySelector(".typora-terminal-panel").hidden&&pty_starts[0].killed===0'));
   await evaluate('binding.toggle();commands.get("linux_note:terminal_split").callback();void 0');await wait('pty_starts.length===2');
   assert(await evaluate('!document.querySelector(".terminal-tabs").hidden&&document.querySelectorAll(".terminal-split-group:not([hidden])>.linux-note-terminal").length===2'));
-  await evaluate('pty_starts[1].ready();void 0');await delay(100);
+  await evaluate('pty_starts[1].callbacks.data("EARLY_OUTPUT");pty_starts[1].ready();void 0');await delay(100);
+  assert(await evaluate('!document.querySelector("[data-session=terminal_2]").textContent.includes("等待首次输出")'),'output before ready does not leave stale waiting status');
 
   // 使用真实输入路径拖动分隔条；每次变化只调整表面几何，不创建或结束PTY。
   const sash_drag=async(selector,dx,cancel=false)=>{
@@ -218,8 +234,9 @@ app.whenReady().then(async()=>{
   await evaluate(`profile_scans[0].complete(${JSON.stringify([profiles[0],profiles[1],wsl])});void 0`);await delay(50);
   assert(await evaluate('!document.querySelector(".git-graph-menu")'));
   await evaluate('(async()=>{window.missing_default=await binding.open('+JSON.stringify(root)+');return missing_default===undefined})()');
-  assert(await evaluate('missing_default===undefined&&pty_starts.length===8&&document.querySelector("[role=dialog]").textContent.includes("git_bash")'));
-  await dialog_action('关闭');await open_settings();
+  await wait('missing_default.session.state==="error"');
+  assert(await evaluate('pty_starts.length===8&&missing_default.surface.status.textContent.includes("git_bash")&&!missing_default.session.launch_pending&&!document.querySelector("[role=dialog]")'),'failed startup stays visible in its session without modal');
+  await open_settings();
   assert(await evaluate('document.querySelector("[data-setting=profile]").value==="git_bash"&&document.querySelector("[data-setting=profile]").selectedOptions[0].textContent.includes("不可用")'));
   await evaluate('document.querySelector("[data-setting=font_size]").value="19";void 0');await dialog_action('应用');
   assert.equal(await evaluate('JSON.parse(localStorage.getItem("linux-note-terminal:v1:")).profile'),'git_bash');
@@ -244,9 +261,32 @@ app.whenReady().then(async()=>{
   assert(await evaluate('Boolean(document.querySelector(".git-graph-menu"))&&Boolean(document.querySelector("[role=dialog]"))&&profile_scans[0].scans===6'));
   await evaluate('binding.dispose();binding.dispose();void 0');
   await evaluate(`profile_scans[0].complete(${JSON.stringify(profiles)});void 0`);
-  assert(await evaluate('(async()=>await pending_after_dispose===undefined)()'));await delay(50);
+  assert(await evaluate('(async()=>{const entry=await pending_after_dispose;return entry.session.state==="exited"&&!entry.surface.container.isConnected})()'));await delay(50);
   assert(await evaluate('profile_scans[0].disposed&&pty_starts.length===8&&commands.size===0&&factories.size===0&&!document.querySelector(".typora-terminal-panel,.git-graph-menu,.git-graph-dialog-shade")&&document.querySelector(".typ-workspace-root").style.bottom===""&&pty_starts.every(item=>item.killed===1)'));
   assert(await evaluate('panel_api.read_terminal_state(core.app)===undefined'),'dispose releases menu state');
   assert(await evaluate(`(()=>{const input=document.createElement('input'),surface=first.surface.container;surface.append(input);document.body.append(surface);let reached=false;const listener=()=>reached=true;document.body.addEventListener('keyup',listener,{once:true});input.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',bubbles:true}));document.body.removeEventListener('keyup',listener);surface.remove();return reached})()`),'disposed terminal releases input event listeners');
-  console.log(JSON.stringify({status:'PASS',checks:['Chinese composition, Shift English commit, cancellation and repeated input send exactly once','terminal IME and key releases stay local without blocking browser defaults','IME shortcuts preserve focus; normal copy, interrupt, find and Escape still work','disposed terminal releases input event listeners','list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
+  // 命令入口先显示真实会话；目录解析暂停、终止和切库不能留下迟到进程。
+  await evaluate('window.binding=panel_api.bind_terminal_workspace(host);window.resolve_directory=undefined;host.runner=()=>({run:()=>new Promise(resolve=>window.resolve_directory=resolve)});window.file_popup=document.createElement("ul");file_menu({menu:{containerEl:file_popup},path:'+JSON.stringify(root)+'});file_popup.firstElementChild.click();void 0');
+  await wait('Boolean(resolve_directory)');
+  assert(await evaluate('!document.querySelector(".typora-terminal-panel").hidden&&document.querySelector(".linux-note-terminal-status").textContent.includes("工作目录")&&pty_starts.length===8'),'command paints while directory resolution is pending');
+  await evaluate('commands.get("linux_note:terminal_kill").callback();resolve_directory('+JSON.stringify(root)+');void 0');await delay(30);
+  assert(await evaluate('!document.querySelector(".linux-note-terminal")&&pty_starts.length===8'),'kill before directory resolution prevents process creation');
+  await evaluate('commands.get("linux_note:terminal_toggle").callback();void 0');await delay(30);
+  assert(await evaluate('document.querySelector(".linux-note-terminal-status").textContent.includes("检测")'),'icon command paints before profile discovery');
+  await evaluate('window.dispatchEvent(new Event("linux-note-workspace-context-changed"));profile_scans[1].complete('+JSON.stringify(profiles)+');void 0');await delay(30);
+  assert(await evaluate('!document.querySelector(".linux-note-terminal")&&pty_starts.length===8'),'workspace change rejects late discovery');
+  await evaluate('binding.dispose();void 0');
+  // 同一会话重启时，旧目录解析晚于新解析返回，不能污染新启动基点。
+  fs.mkdirSync(path.join(root,'restart_target'));
+  await evaluate('window.binding=panel_api.bind_terminal_workspace(host);window.resolve_directory=undefined;window.file_popup=document.createElement("ul");file_menu({menu:{containerEl:file_popup},path:'+JSON.stringify(root)+'});file_popup.firstElementChild.click();void 0');
+  await wait('Boolean(resolve_directory)');
+  await evaluate('window.old_resolve_directory=resolve_directory;resolve_directory=undefined;commands.get("linux_note:terminal_restart").callback();void 0');
+  await wait('Boolean(resolve_directory)');
+  await evaluate('resolve_directory('+JSON.stringify(path.join(root,'restart_target'))+');void 0');await delay(30);
+  await evaluate('old_resolve_directory('+JSON.stringify(root)+');void 0');await delay(30);
+  await evaluate('profile_scans[2].complete('+JSON.stringify(profiles)+');void 0');await wait('pty_starts.length===9');
+  assert.equal(await evaluate('pty_starts[8].request.options.cwd'),path.join(root,'restart_target'),'stale root resolution never overwrites restarted session cwd');
+  await evaluate('commands.get("linux_note:terminal_kill").callback();pty_starts[8].ready();binding.dispose();void 0');await delay(30);
+  assert(await evaluate('pty_starts[8].killed===1&&!document.querySelector(".linux-note-terminal")'),'late PTY after kill stays disposed');
+  console.log(JSON.stringify({status:'PASS',checks:['late directory result cannot overwrite restarted session cwd','pending startup moves between panel and editor without recreation','directory wait, kill and workspace change reject late startup','panel paints before shell discovery; 20 rapid toggles reuse pending session','late discovery does not reopen hidden panel','PTY ready waits for first output; early output clears busy status','failed startup stays in session; disposal prevents late process creation','Chinese composition, Shift English commit, cancellation and repeated input send exactly once','terminal IME and key releases stay local without blocking browser defaults','IME shortcuts preserve focus; normal copy, interrupt, find and Escape still work','disposed terminal releases input event listeners','list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;if(win){fs.writeFileSync(path.join(root,'failure.png'),(await win.webContents.capturePage()).toPNG());await evaluate('window.binding?.dispose()');}}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

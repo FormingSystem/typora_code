@@ -1,3 +1,4 @@
+import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
 import {Terminal} from "@xterm/xterm";
 import {FitAddon} from "@xterm/addon-fit";
@@ -14,11 +15,11 @@ export class terminal_surface {
   readonly container=el("section","linux-note-terminal");readonly viewport=el("div","linux-note-terminal-viewport");
   readonly status=el("div","linux-note-terminal-status");readonly term:Terminal;readonly fit=new FitAddon();readonly search=new SearchAddon();
   private lifetime=create_workspace_lifetime();private frame=0;private settings:terminal_settings;private find_bar=el("div","terminal-find");
-  private opened=false;
+  private opened=false;private progress=create_workspace_progress_view();
   constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void}){
     this.settings=settings;this.term=new Terminal({allowProposedApi:false,theme:terminal_theme()});this.apply_settings(settings);
     this.term.loadAddon(this.fit);this.term.loadAddon(this.search);
-    this.status.setAttribute("role","status");this.status.hidden=true;this.container.append(this.viewport,this.status,this.find_bar);
+    this.status.setAttribute("role","status");this.status.hidden=true;this.container.append(this.progress.root,this.viewport,this.status,this.find_bar);this.lifetime.add(()=>this.progress.dispose());
     this.find_bar.hidden=true;this.find_bar.setAttribute("role","search");
     const input=el("input"),count=el("span","terminal-find-count");input.placeholder="查找";input.setAttribute("aria-label","查找终端输出");
     const options={caseSensitive:false,wholeWord:false,regex:false};
@@ -66,6 +67,6 @@ export class terminal_surface {
     try{this.paste_text(await navigator.clipboard.readText());}
     catch(error){if(!this.lifetime.disposed)this.actions.error(error);}
   }
-  set_status(state:string,message:string){this.container.dataset.state=state;this.status.textContent=message;this.status.hidden=!message;}
+  set_status(state:string,message:string,busy=state==="starting"){this.container.dataset.state=state;this.container.setAttribute("aria-busy",String(busy));this.status.textContent=message;this.status.hidden=!message;if(busy)this.progress.update(message);else this.progress.hide();}
   dispose(){this.lifetime.dispose();}
 }

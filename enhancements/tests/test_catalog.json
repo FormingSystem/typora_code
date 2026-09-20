@@ -1647,7 +1647,8 @@
       "purpose": "implementation",
       "requirements": [
         "R006",
-        "R006.7"
+        "R006.7",
+        "R006.8"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
@@ -1664,7 +1665,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "暂停目录解析及Shell发现，确认面板先绘制；20次开关复用会话，终止/切库/卸载拒绝迟到，PTY就绪与首次输出分别结束对应阶段。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -5482,6 +5484,38 @@
         "80轮正文/dirty及磁盘基线保持，其中40轮复用已打开同文件目标；每个附窗仅一个指定文件；来源确认后释放且空附窗进程退出；成功零模态/零通知，记录输入边界"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-startup-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.8"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/terminal_session.ts",
+        "enhancements/src/terminal_surface.ts"
+      ],
+      "related_modules": [
+        "terminal",
+        "workspace-progress"
+      ],
+      "script": "enhancements/fixtures/terminal_startup_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora 1.14.10独立副本、Windows私有桌面、真实ConPTY",
+      "preconditions": "使用prepare_stability_native.py创建独立用户数据及文档，已安装私有终端运行包；不操作用户窗口。",
+      "steps": [
+        "调用终端命令并记录当帧及下一绘制帧状态，等待真实默认Shell首次输出；重复3轮。",
+        "重复20次打开后立即终止，确认无迟到界面；复核文档未改变。"
+      ],
+      "expected": [
+        "面板在启动完成前展示，并显示共享进度；真实输出后清除忙碌。",
+        "隐藏重开复用PID，终止清理会话和进度。"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }

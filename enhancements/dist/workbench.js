@@ -186316,7 +186316,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/terminal_session.ts
   var terminal_session = class {
-    constructor(id, root, profile, host, settings, output, changed2, explicit_cwd = false) {
+    constructor(id, root, profile, host, settings, output, changed2, explicit_cwd = false, resolve_cwd, is_current = () => true) {
       this.id = id;
       this.profile = profile;
       this.host = host;
@@ -186324,6 +186324,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.output = output;
       this.changed = changed2;
       this.explicit_cwd = explicit_cwd;
+      this.resolve_cwd = resolve_cwd;
+      this.is_current = is_current;
       this.title = profile.title;
       this.root = root;
       this.launch_root = root;
@@ -186333,6 +186335,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     state = "exited";
     status = "";
+    launch_pending = false;
     pid = 0;
     title;
     icon = "terminal";
@@ -186347,21 +186350,42 @@ https://creativecommons.org/licenses/by/4.0/
     rows = 24;
     launch_root;
     async start() {
-      if (this.disposed) return;
+      if (this.disposed || !this.is_current()) return;
       this.stop();
       const generation = ++this.generation;
       const startup = new AbortController();
       this.startup = startup;
       this.state = "starting";
-      this.status = "\u6B63\u5728\u542F\u52A8 " + this.profile.title + "\u2026";
+      this.launch_pending = true;
+      this.status = "\u6B63\u5728\u51C6\u5907\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u2026";
       this.changed();
+      let received_output = false;
+      const current = () => !this.disposed && generation === this.generation && this.is_current();
       const runtime2 = window;
       try {
         if (this.host.process_api.platform !== "win32") throw new Error("\u96C6\u6210\u7EC8\u7AEF\u8FD0\u884C\u5305\u5F53\u524D\u652F\u6301 Windows x64/ARM64\u3002");
         if (Number(runtime2.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
+        await new Promise((resolve3) => setTimeout(resolve3, 0));
+        if (!current()) return;
+        if (this.resolve_cwd) {
+          const root = await this.resolve_cwd();
+          if (!current()) return;
+          this.launch_root = root;
+          this.resolve_cwd = void 0;
+        }
+        this.status = "\u6B63\u5728\u68C0\u6D4B\u53EF\u7528\u7684 Shell\u2026";
+        this.changed();
         await this.settings.ready();
-        if (this.disposed || generation !== this.generation) return;
+        if (!current()) return;
         const profile = this.settings.select_profile(this.profile.id);
+        if (this.title === this.profile.title) this.title = profile.title;
+        if (!this.profile.executable) {
+          this.icon = profile.icon || "terminal";
+          this.color = profile.color || "";
+        }
+        this.profile = profile;
+        this.status = "\u6B63\u5728\u542F\u52A8 " + profile.title + " \u8FDB\u7A0B\u2026";
+        this.changed();
         const launch = resolve_terminal_launch(this.settings.get(), profile, this.launch_root, this.host.process_api, this.host.path_api, this.explicit_cwd);
         if (!this.host.path_api.isAbsolute(launch.cwd) || !this.host.fs.statSync(launch.cwd).isDirectory()) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u4E0D\u5B58\u5728\u3002");
         this.root = launch.cwd;
@@ -186377,7 +186401,16 @@ https://creativecommons.org/licenses/by/4.0/
           { executable: launch.executable, args: launch.args, options: { name: "xterm-256color", cols: this.cols, rows: this.rows, cwd: launch.cwd, env: launch.env, useConpty: true, useConptyDll: false } },
           {
             data: (data) => {
-              if (!this.disposed && generation === this.generation) this.output(data, () => {
+              if (!current()) return;
+              if (data.length) {
+                received_output = true;
+                if (this.state === "running" && this.launch_pending) {
+                  this.launch_pending = false;
+                  this.status = "";
+                  this.changed();
+                }
+              }
+              this.output(data, () => {
                 if (generation === this.generation) this.pty?.acknowledge(data.length);
               });
             },
@@ -186386,29 +186419,33 @@ https://creativecommons.org/licenses/by/4.0/
               this.pty = void 0;
               this.pid = 0;
               this.state = "exited";
+              this.launch_pending = false;
               this.status = "Shell \u5DF2\u9000\u51FA\uFF08".concat(code, "\uFF09");
               this.changed();
             },
             error: (message) => {
               if (generation !== this.generation || this.disposed) return;
               this.state = "error";
+              this.launch_pending = false;
               this.status = message;
               this.changed();
             }
           }
         );
-        if (this.disposed || generation !== this.generation || this.state !== "starting") {
+        if (!current() || this.state !== "starting") {
           pty.kill();
           return;
         }
         this.pty = pty;
         this.pid = pty.pid;
         this.state = "running";
-        this.status = "";
+        this.launch_pending = !received_output;
+        this.status = received_output ? "" : profile.title + " \u8FDB\u7A0B\u5DF2\u542F\u52A8\uFF0C\u6B63\u5728\u7B49\u5F85\u9996\u6B21\u8F93\u51FA\uFF08Shell\u521D\u59CB\u5316\u53EF\u80FD\u9700\u8981\u4E00\u4E9B\u65F6\u95F4\uFF09\u2026";
         this.changed();
       } catch (error) {
         if (this.disposed || generation !== this.generation) return;
         this.state = "error";
+        this.launch_pending = false;
         this.status = String(error instanceof Error ? error.message : error);
         this.changed();
       } finally {
@@ -186432,6 +186469,7 @@ https://creativecommons.org/licenses/by/4.0/
       pty?.kill();
       this.pid = 0;
       this.state = "exited";
+      this.launch_pending = false;
       this.status = "Shell \u5DF2\u7EC8\u6B62";
     }
     dispose() {
@@ -186440,6 +186478,59 @@ https://creativecommons.org/licenses/by/4.0/
       this.stop();
     }
   };
+
+  // src/workspace_progress.css
+  var workspace_progress_default = "";
+
+  // src/workspace_progress_view.ts
+  function create_workspace_progress_view() {
+    const style = acquire_workspace_style("typora-code-workspace-progress", workspace_progress_default);
+    const root = workspace_element("div", "workspace-progress"), bit = workspace_element("span", "workspace-progress-bit");
+    root.setAttribute("role", "progressbar");
+    root.hidden = true;
+    root.append(bit);
+    let long_timer, disposed = false;
+    const clear = () => {
+      clearTimeout(long_timer);
+      long_timer = void 0;
+      root.classList.remove("is-long-running");
+    };
+    return {
+      root,
+      bit,
+      update(label, value) {
+        if (disposed) return;
+        root.hidden = false;
+        root.setAttribute("aria-label", label);
+        const discrete = typeof value === "number" && Number.isFinite(value);
+        root.classList.toggle("is-discrete", discrete);
+        root.setAttribute("aria-busy", String(!discrete || value < 100));
+        if (discrete) {
+          clear();
+          root.setAttribute("aria-valuemin", "0");
+          root.setAttribute("aria-valuemax", "100");
+          root.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, value))));
+          bit.style.width = Math.max(0, Math.min(100, value)) + "%";
+        } else {
+          for (const name of ["aria-valuenow", "aria-valuemin", "aria-valuemax"]) root.removeAttribute(name);
+          bit.style.removeProperty("width");
+          if (!long_timer) long_timer = setTimeout(() => root.classList.add("is-long-running"), 1e4);
+        }
+      },
+      hide() {
+        clear();
+        root.hidden = true;
+        root.setAttribute("aria-busy", "false");
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        clear();
+        root.remove();
+        style.remove();
+      }
+    };
+  }
 
   // node_modules/@xterm/xterm/lib/xterm.mjs
   /**
@@ -197237,7 +197328,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.term.loadAddon(this.search);
       this.status.setAttribute("role", "status");
       this.status.hidden = true;
-      this.container.append(this.viewport, this.status, this.find_bar);
+      this.container.append(this.progress.root, this.viewport, this.status, this.find_bar);
+      this.lifetime.add(() => this.progress.dispose());
       this.find_bar.hidden = true;
       this.find_bar.setAttribute("role", "search");
       const input = workspace_element("input"), count = workspace_element("span", "terminal-find-count");
@@ -197326,6 +197418,7 @@ https://creativecommons.org/licenses/by/4.0/
     settings;
     find_bar = workspace_element("div", "terminal-find");
     opened = false;
+    progress = create_workspace_progress_view();
     mount() {
       if (this.lifetime.disposed) return;
       if (!this.opened) {
@@ -197383,10 +197476,13 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.lifetime.disposed) this.actions.error(error);
       }
     }
-    set_status(state, message) {
+    set_status(state, message, busy = state === "starting") {
       this.container.dataset.state = state;
+      this.container.setAttribute("aria-busy", String(busy));
       this.status.textContent = message;
       this.status.hidden = !message;
+      if (busy) this.progress.update(message);
+      else this.progress.hide();
     }
     dispose() {
       this.lifetime.dispose();
@@ -198042,22 +198138,20 @@ https://creativecommons.org/licenses/by/4.0/
         activate(id);
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
-      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false) => (async () => {
+      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false, resolve_cwd) => (async () => {
         const epoch2 = workspace_context_epoch();
         if (lifetime.disposed || workspace_context_switching()) return;
-        await settings.ready();
-        if (lifetime.disposed || epoch2 !== workspace_context_epoch()) return;
-        const profile = settings.select_profile(program || settings.get().profile);
+        const profile = { id: program || settings.get().profile, title: "\u7EC8\u7AEF", executable: "", args: [] };
         const id = "terminal_" + ++serial2;
         let entry;
         const session = new terminal_session(id, root, profile, host, settings, (data, done) => surface.term.write(data, done), () => {
           if (entry) {
             surface.container.dataset.cwd = session.root;
             surface.container.dataset.pid = String(session.pid);
-            surface.set_status(session.state, session.status);
+            surface.set_status(session.state, session.status, session.launch_pending);
             schedule();
           }
-        }, explicit_cwd);
+        }, explicit_cwd, resolve_cwd, () => !lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch());
         const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, active: () => {
           if (active_id !== id) activate(id, false);
         } });
@@ -198163,9 +198257,13 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       const launch = (admin_mode = false, path) => {
+        if (!admin_mode) {
+          void open(host.workspace_path(), "", settings.get().location, "", false, () => resolve_root(path));
+          return;
+        }
         const epoch2 = workspace_context_epoch();
         void resolve_root(path).then((root) => {
-          if (!lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch()) admin_mode ? admin(root) : open(root);
+          if (!lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch()) admin(root);
         }).catch(fail);
       };
       const toggle = () => {
@@ -203203,59 +203301,6 @@ https://creativecommons.org/licenses/by/4.0/
       this.listeners.clear();
     }
   };
-
-  // src/workspace_progress.css
-  var workspace_progress_default = "";
-
-  // src/workspace_progress_view.ts
-  function create_workspace_progress_view() {
-    const style = acquire_workspace_style("typora-code-workspace-progress", workspace_progress_default);
-    const root = workspace_element("div", "workspace-progress"), bit = workspace_element("span", "workspace-progress-bit");
-    root.setAttribute("role", "progressbar");
-    root.hidden = true;
-    root.append(bit);
-    let long_timer, disposed = false;
-    const clear = () => {
-      clearTimeout(long_timer);
-      long_timer = void 0;
-      root.classList.remove("is-long-running");
-    };
-    return {
-      root,
-      bit,
-      update(label, value) {
-        if (disposed) return;
-        root.hidden = false;
-        root.setAttribute("aria-label", label);
-        const discrete = typeof value === "number" && Number.isFinite(value);
-        root.classList.toggle("is-discrete", discrete);
-        root.setAttribute("aria-busy", String(!discrete || value < 100));
-        if (discrete) {
-          clear();
-          root.setAttribute("aria-valuemin", "0");
-          root.setAttribute("aria-valuemax", "100");
-          root.setAttribute("aria-valuenow", String(Math.max(0, Math.min(100, value))));
-          bit.style.width = Math.max(0, Math.min(100, value)) + "%";
-        } else {
-          for (const name of ["aria-valuenow", "aria-valuemin", "aria-valuemax"]) root.removeAttribute(name);
-          bit.style.removeProperty("width");
-          if (!long_timer) long_timer = setTimeout(() => root.classList.add("is-long-running"), 1e4);
-        }
-      },
-      hide() {
-        clear();
-        root.hidden = true;
-        root.setAttribute("aria-busy", "false");
-      },
-      dispose() {
-        if (disposed) return;
-        disposed = true;
-        clear();
-        root.remove();
-        style.remove();
-      }
-    };
-  }
 
   // src/git_progress.css
   var git_progress_default = "";
@@ -239917,6 +239962,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092023,
+        version: "2026.09.20.23",
+        date: "2026-09-20",
+        notes: [
+          "\u70B9\u51FB\u7EC8\u7AEF\u7ACB\u5373\u663E\u793A\u9762\u677F\uFF0C\u5DE5\u4F5C\u76EE\u5F55\u51C6\u5907\u3001Shell\u68C0\u6D4B\u548C\u8FDB\u7A0B\u542F\u52A8\u671F\u95F4\u6301\u7EED\u663E\u793A\u72B6\u6001\u53CA\u6D3B\u52A8\u8FDB\u5EA6\uFF0C\u907F\u514D\u8BEF\u4EE5\u4E3A\u754C\u9762\u5361\u4F4F\u3002",
+          "\u8FDB\u7A0B\u542F\u52A8\u540E\u7B49\u5F85\u9996\u6B21\u8F93\u51FA\u65F6\u660E\u786E\u63D0\u793A\uFF1B\u9690\u85CF\u3001\u91CD\u5F00\u548C\u5173\u95ED\u542F\u52A8\u4E2D\u7684\u7EC8\u7AEF\u4E0D\u4F1A\u91CD\u590D\u521B\u5EFA\u6216\u91CD\u65B0\u5F39\u51FA\uFF0C\u5931\u8D25\u4FDD\u7559\u5728\u4F1A\u8BDD\u5185\u3002"
+        ]
+      },
       {
         sequence: 2026092022,
         version: "2026.09.20.22",
