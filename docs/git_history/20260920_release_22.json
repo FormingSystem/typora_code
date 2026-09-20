@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T11:39:14.250472+00:00",
+  "remote": "origin/main",
+  "previous_commit": "465de13c385d575cd2e19f1c1dc2d2f2f41e454f",
+  "published_commit": "f76a580040a9ebd031d3949ec3c50c31d2621859",
+  "mode": "fast-forward",
+  "release": "2026.09.20.22",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "d905612cfedf69ffcfacdca0e173f9bf944b8744122588265c5fb91a6015277d",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "289812893344c715a41c29a7fb25d78a854fb829e52185857ea5d29f65e0ff6b",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "e4c3430825a359fc54b4b38f1de512102da67141604af01d5ec8268a5fcb42ff",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workspace.css",
+      "sha256": "8a3a8825b047e5b9359361b7aeabda3bb1a99ac1a173e592a52d38cb26a0a751",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/assets/update/workspace_update_service.cjs",
+      "sha256": "43e9fc16865b7c8417dc6c675f491ef68450449f71ed1641ad07b69a1eb27860",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "本轮同步说明并发布已验证候选，没有重建、重装或重跑完整UI。",
+    "H001.2顶栏尺寸问题仍未复现；联网升级、真实UAC及历史跨平台/物理输入验收边界保持。",
+    "固定SHA远端内容核验不替代其他电脑实际升级；用户运行窗口未由本流程重启。"
+  ]
+}
