@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R056",
+    "R057",
+    "R008.2",
+    "R049.1"
+  ],
+  "release": "2026.09.20.7",
+  "asset_manifest_sha256": "cb0838c5bb7010d4010b7e9e4bfe06eb48063bd9d42caffdb6b97306e7511e45",
+  "runtime_head_sha256": "9387e768e6a20bca338243dac35d41843a51463a7beafe575b2df661dceb6b24",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-39-58-977Z_524bea/report.json",
+      "sha256": "6bd1fa584b417f36152c7330b33a6baa9f4d9520d78bdafad5ae2c3567c3d785"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-40-01-204Z_2b96e6/report.json",
+      "sha256": "31db7608c0c2a81da312b6dbf3c667b9bbb6c6f42800c69e520eda8afe5c3b1b"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-40-08-330Z_55cd91/report.json",
+      "sha256": "17e8bb7f81a4c6c39a790346809f5c0bc6284b759c34a2726f3ce1d7b0a4da3b"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-40-57-127Z_d71633/report.json",
+      "sha256": "c57bce13ebc85f449e3e4a5569d95a32a86b492c2499e7973d1f9a8a6ac0e141"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-41-17-103Z_f56287/report.json",
+      "sha256": "35e3777df569dc4e242b43962f8c67d228c56d0f61443550a64b609fb22bcc3f"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T01-41-24-471Z_eba361/report.json",
+      "sha256": "da63a4f5a5ee10beb0b7b33b6bee0b905a621772be87eb92a433610cd455d5c1"
+    },
+    {
+      "path": ".cache/issue_tracking/startup_final_ui.log",
+      "sha256": "c995da8824f92b1aeb865468e478c998428a1bcbba392afcb8d3d92e5f0b1b10"
+    },
+    {
+      "path": ".cache/issue_tracking/startup_final_check.log",
+      "sha256": "49c59183a1e38b2b5b16aaa595b70451591adf93b62385a867560fa22e2a844e"
+    }
+  ],
+  "baseline_failure": {
+    "path": ".cache/issue_tracking/runs/2026-09-20T01-39-08-993Z_5188df/report.json",
+    "sha256": "d181b8ce925edd156eab0532aa54f8e0b260ecface8c4ff2cc2ca05dc3b03eda"
+  },
+  "checks": [
+    "本轮完整check与7项相关UI通过，前阶段76项全量UI通过，未把旧结果写成当前重跑",
+    "根提前可见红测复现，修复后无加载提示、完整首帧、错误/超时/节点保持通过",
+    "原始Typora1.14.10首帧rAF/DOM、20/100/1000幂等及20轮面板切换通过",
+    "真实社区发行ZIP与公共ABI20轮、正常退出/第二进程会话重开、底栏图标和系统减少动画下渐隐均通过"
+  ],
+  "installation": {
+    "status": "passed",
+    "assets": 28,
+    "head_matches": true,
+    "protected_unchanged": 5,
+    "check": "OK",
+    "user_windows_restarted": false
+  },
+  "architecture_decision": "静态模板研究备选由唯一DOM工厂显式挂载取代，保留原生内核；不把未采用模板当作已实现",
+  "limitations": [
+    "原始宿主的rAF/DOM与静态截图不是物理屏幕首帧录像",
+    "真实官方升级与其他宿主/平台未实测，升级后标准重装已在文件事务模拟中通过",
+    "真实社区样本限Codeblock Copy Button 1.2.0及自有公共API夹具，不承诺所有第三方插件",
+    "R057在线安装曾真实通过，后续公网ECONNRESET失败报告保留；失败可重新操作",
+    "PERF-startup-002残余长任务继续追踪，不宣称所有启动卡顿已消失",
+    "用户窗口未重启，未推送"
+  ]
+}

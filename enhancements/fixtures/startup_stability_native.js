@@ -42,6 +42,9 @@
   assert(hide_count===initial_hide,'可见功能区切换不关闭宿主侧栏');
   const exposed=probe.samples.filter(sample=>sample.body&&(sample.visibility==='visible'||sample.write_visibility==='visible')&&sample.title!=='ready');
   assert(exposed.length===0,'head起采样未暴露尚未挂载工作台的旧正文布局');
+  assert(!probe.samples.some(sample=>sample.workspace_visibility==='visible'&&sample.ready!=='ready'),'首个可见工作台根已完成基础UI注册');
+  assert(!probe.samples.some(sample=>sample.overlay.includes('正在加载工作台')),'启动无加载提示覆盖层');
+  assert(probe.first_visible_root===root_node&&probe.first_visible_write===editor_node,'首个可见工作台和原生正文节点沿用至当前');
   assert(digest(front)===before&&!File.changeCounter.isDocumentEdited(),'原文及未保存状态不变');
   probe.stop();
   if(probe.stop_profile)fs.writeFileSync(path.join(base,'startup.cpuprofile'),JSON.stringify(await probe.stop_profile()),'utf8');

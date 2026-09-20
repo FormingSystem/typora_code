@@ -17,8 +17,10 @@
  function frame(){
   if(!probe.running)return;
   const root=document.documentElement,body=document.body,title=document.querySelector('#top-titlebar'),content=document.querySelector('content');
-  const write=document.querySelector('#write');
-  const state={body:!!body,ready:root.dataset.linuxNoteWorkspaceBrowser||'',title:title?.dataset.workspaceTitlebar||'',shown:!!body?.classList.contains('pin-outline'),visibility:content?getComputedStyle(content).visibility:'absent',write_visibility:write?getComputedStyle(write).visibility:'absent',loading:root.dataset.typoraCodePresentation||'',left:content?.getBoundingClientRect().left??null};
+  const write=document.querySelector('#write'),workspace=document.querySelector('.typ-workspace-root');
+  const workspace_visibility=workspace?getComputedStyle(workspace).visibility:'absent';
+  if(workspace_visibility==='visible'&&!probe.first_visible_root){probe.first_visible_root=workspace;probe.first_visible_write=write;}
+  const state={body:!!body,ready:root.dataset.linuxNoteWorkspaceBrowser||'',title:title?.dataset.workspaceTitlebar||'',shown:!!body?.classList.contains('pin-outline'),visibility:content?getComputedStyle(content).visibility:'absent',write_visibility:write?getComputedStyle(write).visibility:'absent',workspace_visibility,overlay:body?getComputedStyle(body,'::after').content:'none',loading:root.dataset.typoraCodePresentation||'',left:content?.getBoundingClientRect().left??null};
   const key=JSON.stringify(state);if(key!==previous){samples.push({time:performance.now(),...state});previous=key;}
   probe.frame=requestAnimationFrame(frame);
  }
