@@ -160397,7 +160397,7 @@ https://creativecommons.org/licenses/by/4.0/
         const arrow = workspace_element("span", "git-menu-arrow");
         if (entry.children) arrow.append(git_icon("chevron-right"));
         node.append(check, workspace_element("span", "git-menu-label", entry.title));
-        if (class_name || entry.shortcut) node.append(workspace_element("span", "git-menu-shortcut", entry.shortcut || ""));
+        node.append(workspace_element("span", "git-menu-shortcut", entry.shortcut || ""));
         node.append(arrow);
         const open_child = (focus = false) => {
           if (!entry.children || node.disabled) return;
@@ -160405,6 +160405,7 @@ https://creativecommons.org/licenses/by/4.0/
           const child = show2(entry.children, rect.right - 2, rect.top, level + 1, node);
           if (focus) child.querySelector("button:not([disabled])")?.focus();
         };
+        node.title = entry.title;
         node.setAttribute("role", "menuitem");
         if (entry.id) node.dataset.action = entry.id;
         node.disabled = Boolean(entry.disabled);
@@ -239778,6 +239779,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092015,
+        version: "2026.09.20.15",
+        date: "2026-09-20",
+        notes: [
+          "\u4FEE\u590D\u8BBE\u7F6E\u7B49\u5171\u4EAB\u83DC\u5355\u7684\u5FEB\u6377\u952E\u5217\u9519\u4F4D\u548C\u6A2A\u5411\u6EDA\u52A8\uFF0C\u5B8C\u6574\u663E\u793A\u540D\u79F0\u4E0E\u5FEB\u6377\u952E\uFF1B\u7A84\u7A97\u53E3\u4FDD\u6301\u53EF\u7528\u3002",
+          "\u590D\u67E5\u8D44\u6E90\u7BA1\u7406\u5668\u5DE6\u4FA7\u8FB9\u754C\u4E0E\u6839\u5C42\u7F29\u8FDB\uFF0C\u8986\u76D6\u5B9E\u9645\u4E3B\u9898\u53CA\u7F29\u653E\uFF1B\u5DF2\u6253\u5F00\u7A97\u53E3\u9700\u624B\u52A8\u91CD\u542F\u52A0\u8F7D\u65B0\u7248\u3002"
+        ]
+      },
       {
         sequence: 2026092014,
         version: "2026.09.20.14",

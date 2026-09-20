@@ -2936,11 +2936,14 @@
       "requirements": [
         "R020",
         "R044",
-        "R060"
+        "R060",
+        "R065"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
-        "enhancements/src/workspace_preferences.ts"
+        "enhancements/src/workspace_preferences.ts",
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_widgets.css"
       ],
       "related_modules": [
         "menu",
@@ -3511,11 +3514,13 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R065"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
-        "enhancements/src/workspace_widgets.ts"
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_widgets.css"
       ],
       "related_modules": [
         "menu",
@@ -3623,7 +3628,8 @@
         "R049",
         "R050",
         "R034",
-        "R061"
+        "R061",
+        "R065"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3643,7 +3649,9 @@
         "enhancements/src/workspace_breadcrumbs.css",
         "enhancements/src/workspace_interaction.css",
         "enhancements/src/workspace_explorer.ts",
-        "enhancements/src/git_graph.css"
+        "enhancements/src/git_graph.css",
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_widgets.css"
       ],
       "related_modules": [
         "files",
@@ -3681,7 +3689,8 @@
         "R043",
         "R044",
         "R047",
-        "R018"
+        "R018",
+        "R065"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3690,7 +3699,9 @@
         "enhancements/scripts/run_private_desktop.ps1",
         "enhancements/vendor/workspace_core/src/ui/components/menu.ts",
         "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
-        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_widgets.css"
       ],
       "related_modules": [
         "files",

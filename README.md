@@ -30,7 +30,7 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 
 开发与稳定性验收入口：[需求设计](docs/requirements_design.md)、[测试架构与用例](docs/stability_testing.md)、[问题分类索引](docs/stability_issues.md)。
 
-当前版本为 **2026.09.20.14**，各版本修复公告以[发行记录](enhancements/release.json)为准。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。底栏图标复用共享居中规则，滚动条离开后渐隐；社区插件在工作台显示后加载。原生图标启动后一次呈现完整工作台，不显示加载提示覆盖层；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
+当前版本为 **2026.09.20.15**，各版本修复公告以[发行记录](enhancements/release.json)为准。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。底栏图标复用共享居中规则，滚动条离开后渐隐；社区插件在工作台显示后加载。原生图标启动后一次呈现完整工作台，不显示加载提示覆盖层；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
 
 本轮统一了资源管理器与Git分区的折叠图标槽位；提交详情可按远端识别GitHub、Gitee、GitLab和Bitbucket并打开网页。安装按实际写权限决定是否申请系统授权；更新下载和解压默认创建Typora用户数据下的`temp`，同版本新提交也可更新。详细行为见[安装与更新](docs/installation.md)及[提交网页入口](docs/git_commit_web.md)。
 

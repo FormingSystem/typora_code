@@ -383,5 +383,15 @@
     "adaptation": "Shared provider entry beside copy, existing R053 12px/19px typography, link-external Codicon; four public providers from documented routes",
     "design": "docs/git_commit_web.md",
     "verification": "enhancements/tests/evidence/git_commit_web_20260920.json"
+  },
+  "menu_columns_r065": {
+    "requirement": "R065",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "source": "src/vs/base/browser/ui/menu/menu.ts",
+    "url": "https://raw.githubusercontent.com/microsoft/vscode/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/menu/menu.ts",
+    "sha256": "6520e2a487c7d68be5bdf2aff27e69637b89206a66f395030aaa9e0b34e58f8e",
+    "rules": "action label and keybinding separate; inline menu stylesheet, nowrap labels, content layout",
+    "adaptation": "shared four-cell grid and max-content width; preserve existing 360px standard maximum, viewport clamp, vertical scrolling and standard/compact density",
+    "design": "docs/workspace_interaction.md#r065-菜单宽度与快捷键列"
   }
 }

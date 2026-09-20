@@ -120,6 +120,16 @@ app.whenReady().then(async () => {
     await evaluate('separator_close();void 0;');
   }
   await evaluate('theme_pollution.remove();document_rule.remove();void 0;');
+  // R065: 不能仅隐藏滚动条；实际文字、快捷键与箭头必须分列且保持同一行。
+  for(const zoom of [1,1.25])for(const width of [800,320])for(const kind of ['', 'workspace-preferences-menu','workspace-menu-compact']) {
+    test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`window.width_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'Typora 偏好设置…',shortcut:'Ctrl+,',action(){}},{title:'插件设置…',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}},{title:'Long menu label '.repeat(12),children:[{title:'Child',action(){}}],action(){}}],${JSON.stringify(kind)});void 0`);await delay(30);
+    const metrics=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu'),box=menu.getBoundingClientRect();return{scroll:menu.scrollWidth,client:menu.clientWidth,right:box.right,viewport:innerWidth,rows:[...menu.querySelectorAll('button')].map(node=>{const parts=[...node.children].map(part=>({name:part.className,box:part.getBoundingClientRect().toJSON(),scroll:part.scrollWidth,client:part.clientWidth}));return parts;})}})()`);
+    assert(metrics.scroll<=metrics.client&&metrics.right<=metrics.viewport,JSON.stringify(metrics));
+    for(const parts of metrics.rows){assert.equal(parts.length,4);assert(parts.every(part=>Math.abs(part.box.top+part.box.height/2-parts[1].box.top-parts[1].box.height/2)<1),JSON.stringify(parts));assert(parts[1].box.right<=parts[2].box.left+.5&&parts[2].box.right<=parts[3].box.left+.5);assert(parts[2].scroll<=parts[2].client);}
+    checks.push(`R065 ${kind||'standard'} width ${width} zoom ${zoom}: four aligned cells, full shortcut, no horizontal overflow`);
+    await evaluate('width_close();void 0');
+  }
   console.log(JSON.stringify({status: 'PASS', checks, evidence}));
   test_window.destroy(); app.exit(0);
 }).catch(error => { console.error(error); console.error(evidence); test_window?.destroy(); app.exit(1); });

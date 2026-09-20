@@ -110,6 +110,7 @@
 | R062 | 提交托管网页入口 | [设计](git_commit_web.md) | 共用平台识别、远端选择与网页打开，浮层和菜单一致 |
 | R063 | Windows安装权限预检与按需授权 | [设计](installation_design.md#r063-windows权限预检与按需授权) | 普通权限优先、明确受限目标、一次系统授权与取消保护 |
 | R064 | 按提交身份更新ZIP安装 | [设计](workspace_update.md#r064-无git安装的提交身份与temp目录) | 固定SHA ZIP、安装身份回执、用户数据temp及权限分离 |
+| R065 | 共享菜单宽度与快捷键溢出 | [菜单列契约](workspace_interaction.md#r065-菜单宽度与快捷键列) | 四列统一、内容宽度、窄视口与实际文字可见性 |
 | R050 | Git Graph列边界同向拖动及哈希列宽 | [设计](../enhancements/git_graph_features.md#r050-提交图列分隔线) | 相邻可见列、弹性说明列、取消/保存及生命周期 |
 | R047 | 启动公告与可选原地ZIP更新 | [设计](workspace_update.md) | 多窗口一次、固定提交下载、立即安装与手动重启 |
 | H001 | 七类菜单、居中搜索与阅读前后退 | [设计章节](../enhancements/README.md#1.4.5_活动栏与侧栏布局) | 已有交互与宿主边界 |

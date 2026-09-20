@@ -78,10 +78,10 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
       const check = workspace_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
       const arrow = workspace_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
       node.append(check, workspace_element("span", "git-menu-label", entry.title));
-      if(class_name||entry.shortcut)node.append(workspace_element("span","git-menu-shortcut",entry.shortcut||""));
+      node.append(workspace_element("span","git-menu-shortcut",entry.shortcut||""));
       node.append(arrow);
       const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
-      node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
+      node.title=entry.title; node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
       if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }
       if (entry.children) node.setAttribute("aria-haspopup", "menu");
       node.onmouseenter = () => entry.children ? open_child() : close_from(level + 1);

@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R065",
+    "R061"
+  ],
+  "date": "2026-09-20",
+  "candidate": "2026.09.20.15",
+  "baseline": "8567d531bbd235908e5dba253c22af7e30c34c0a",
+  "design": [
+    "docs/workspace_interaction.md#r065-菜单宽度与快捷键列",
+    "docs/explorer_history.md#r061-再次复现的边界核对"
+  ],
+  "source_sha256": {
+    "enhancements/src/workspace_widgets.ts": "f5e8d5f8cb8c4b674e48bcb510f6542fb9834b2dd4535e0647abe4c2a97062ac",
+    "enhancements/src/workspace_widgets.css": "26aab37102888078f10ec4ded38b85c59564a40cb9a289bed098f116e405d8a4",
+    "enhancements/fixtures/stability_native.js": "1a0b994ab3fb4073a4a57950566e0a136457c962952b0c223334e0377b8186bf",
+    "enhancements/scripts/run_private_desktop.ps1": "b9b9237b4ff655cbc1cbdab91d8c55e65a2f3d4c4da28ccd11fbfc6bd22a038b"
+  },
+  "build": {
+    "status": "PASS",
+    "log": ".cache/r065_build.log"
+  },
+  "check": {
+    "status": "PASS",
+    "log": ".cache/r065_check.log"
+  },
+  "ui": {
+    "status": "PASS",
+    "count": 7,
+    "log": ".cache/r065_ui_final.log",
+    "cases": [
+      "TC-workspace-016",
+      "TC-workspace-026"
+    ],
+    "coverage": "共享菜单四列、320/800px、100%/125%、标题与快捷键行盒；原生偏好入口、Explorer、活动栏、顶栏、Git菜单、插件面板"
+  },
+  "native": {
+    "status": "PASS",
+    "assertions": 237,
+    "evidence_root": ".cache/issue_tracking/native/dd965ec956f84808b88f15d00699b0d0",
+    "host": "Typora 1.14.10",
+    "themes": [
+      "github.css",
+      "cpp_github-consolas.css",
+      "night.css"
+    ],
+    "sidebar_css_widths": [
+      220,
+      300
+    ],
+    "zoom": [
+      1,
+      1.25
+    ],
+    "input": "renderer events and actual host APIs; private desktop PrintWindow",
+    "fixture_manifest": "134a66095660ee7f461d3f2f4366ad56c0fed0c203a733006e1c4241f7127471"
+  },
+  "red": {
+    "ui": ".cache/r065_red.log",
+    "native": ".cache/issue_tracking/native/3e0415fa6616412c943cf1cfded26f96/checks.json",
+    "observed": "旧候选四单元三列导致原生设置菜单快捷键裁切及水平溢出"
+  },
+  "failed_attempts": [
+    {
+      "log": ".cache/r065_ui.log",
+      "reason": "筛选参数误写不存在的activity_menu脚本，未执行；纠正为现有activity脚本"
+    },
+    {
+      "log": ".cache/r065_native.log",
+      "reason": "截图回执文件读写争抢，写失败后已标完成使后续确认超时；标记移到成功写后，IO失败下次轮询重试"
+    }
+  ],
+  "installation": {
+    "version": "2026.09.20.15",
+    "assets": 29,
+    "protected_unchanged": 6,
+    "manifest_sha256": "134a66095660ee7f461d3f2f4366ad56c0fed0c203a733006e1c4241f7127471",
+    "status": "OK",
+    "log": ".cache/r065_install.log",
+    "check_log": ".cache/r065_install_check.log",
+    "user_window_restarted": false
+  },
+  "boundaries": [
+    "R061本次未修改产品侧栏几何；当前候选原生三主题下活动栏与面板/树根相接，用户截图中的运行窗口加载版本未知，重启后仍待用户复核。",
+    "未覆盖其他宿主版本/平台或用户私有主题覆写，不以原生自动化代替物理鼠标及屏幕录像。",
+    "前轮跨账户UAC、启动长任务和其他历史未决不由本轮关闭。"
+  ]
+}

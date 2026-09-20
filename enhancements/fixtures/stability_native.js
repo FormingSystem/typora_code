@@ -15,7 +15,7 @@
   const update_service=reqnode(path.join(window._options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs'));
   const update_release=JSON.parse(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/assets/update/release.json'),'utf8'));
   const check_update=update_service.check_update;let update_checks=0;
-  update_service.check_update=async()=>{update_checks++;const release=JSON.parse(JSON.stringify(update_release));release.releases[0].sequence++;release.releases[0].version='9999.1';release.releases[0].notes=['原生验收公告，不联网、不安装'];return {release};};
+  update_service.check_update=async()=>{update_checks++;const release=JSON.parse(JSON.stringify(update_release));release.releases[0].sequence++;release.releases[0].version='9999.1';release.releases[0].notes=['原生验收公告，不联网、不安装'];return {release,commit:"a".repeat(40)};};
   const update_popup=()=>document.querySelector('[role="dialog"][aria-label="Typora Code 有新版本"]');
   await wait(update_popup,'原生启动更新公告');
   assert(update_checks===1,'TC-update-native: 原生主进程身份检查和启动公告成功且一次请求');
@@ -54,7 +54,7 @@
   const navigation=path.join(root,'navigation.md');fs.writeFileSync(navigation,'# 起点\n\n'+Array.from({length:70},(_,i)=>'段落 '+i+'\n\n').join('')+'## 目标章节\n\n'+Array.from({length:30},()=> '结尾\n\n').join(''),'utf8');
   await files.open_file(navigation);await wait(()=>File.bundle.filePath===navigation&&!File.isFileLoading()&&document.querySelector('#write h2'),'navigation ready');await pause(300);
   for(let index=0;index<60;index++)fs.writeFileSync(path.join(root,'scrollbar_'+index+'.txt'),'scrollbar fixture\n','utf8');
-  for(const [theme,name]of [['github.css','Github'],['night.css','Night']]){
+  for(const [theme,name]of [['github.css','Github'],['cpp_github-consolas.css','Cpp'],['night.css','Night']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(350);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    assert(document.documentElement.dataset.workspaceFileIconTheme===(name==='Night'?'dark':'light'),'实际主题完成 '+name);
    // Explorer使用真实宿主主题；标题、文件内容和辅助动作分别核对。
@@ -77,6 +77,20 @@
     const geometry=buttons.map(node=>({button:node.getBoundingClientRect().toJSON(),icon:node.querySelector('svg').getBoundingClientRect().toJSON()}));
     samples.push({explorer:{theme,width,fonts,geometry,device_pixel_ratio:devicePixelRatio}});persist();
     const origin=explorer.getBoundingClientRect().left;
+    assert(Math.abs(origin-sidebar.getBoundingClientRect().left)<.5&&Math.abs(origin-document.querySelector('.typ-ribbon').getBoundingClientRect().right)<.5,'R061 '+name+' '+width+' '+zoom+' Explorer实际左边界与活动栏相接');
+    const root_row=explorer.querySelector('.workspace-explorer-row[aria-level="1"]');
+    assert(root_row&&Math.abs(root_row.getBoundingClientRect().left-origin)<.5&&parseFloat(getComputedStyle(root_row).paddingLeft)===(root_row.dataset.directory==='true'?0:3),'R061 根层行没有额外白边且保留文件字形偏移');
+    const gear=document.querySelector('.workspace-preferences-trigger');gear.click();await pause(60);
+    const preferences=document.querySelector('.workspace-preferences-menu');
+    const menu_geometry={box:preferences.getBoundingClientRect().toJSON(),client:preferences.clientWidth,scroll:preferences.scrollWidth,cells:[...preferences.querySelectorAll('button')].map(button=>[...button.children].map(node=>({name:node.className,box:node.getBoundingClientRect().toJSON(),scroll:node.scrollWidth,client:node.clientWidth})))};
+    samples.push({menu_geometry,theme,zoom});persist();
+    assert(menu_geometry.client>=menu_geometry.scroll&&menu_geometry.cells.every(cells=>cells.length===4&&cells.every(cell=>cell.scroll<=cell.client)&&cells.every(cell=>Math.abs(cell.box.top+cell.box.height/2-cells[1].box.top-cells[1].box.height/2)<1)),'R065 '+name+' '+width+' '+zoom+' 原生设置菜单文字快捷键完整且无水平溢出');
+    const menu_stage='preferences_'+name+'_'+width+'_'+Math.round(zoom*100);
+    fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:menu_stage}));
+    await wait(()=>{try{return JSON.parse(fs.readFileSync(base+'/capture_done.json','utf8').replace(/^\uFEFF/,'' )).stage===menu_stage;}catch{return false;}},'设置菜单截图');
+    gear.click();await pause(30);
+
+    samples.push({outer_geometry:{zoom,width,theme,nodes:['.typ-ribbon','#typora-sidebar','#sidebar-content','.linux-note-workspace-explorer','.workspace-explorer-tree','.workspace-explorer-row'].map(selector=>{const node=document.querySelector(selector),style=getComputedStyle(node);return {selector,box:node.getBoundingClientRect().toJSON(),padding:style.padding,margin:style.margin,depth:node.style.getPropertyValue('--workspace-tree-depth')};})}});persist();
     const section_geometry=[...explorer.querySelectorAll('.workspace-explorer-section-heading')].map(node=>{
      const icon=node.querySelector('svg').getBoundingClientRect(),title=node.querySelector('.workspace-explorer-section-label,.workspace-explorer-root-name')||node.querySelector('.workspace-explorer-section-title');
      const range=document.createRange();range.selectNodeContents([...title.childNodes].find(child=>child.nodeType===Node.TEXT_NODE)||title);

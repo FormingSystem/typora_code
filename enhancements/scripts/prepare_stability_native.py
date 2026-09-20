@@ -43,6 +43,8 @@ for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', 
     subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 user_data = case / 'user_data'
 user_data.mkdir()
+(user_data / 'themes').mkdir()
+shutil.copyfile(repository_root / 'cpp_github-consolas.css', user_data / 'themes/cpp_github-consolas.css')
 for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
     if not line.strip():
         continue

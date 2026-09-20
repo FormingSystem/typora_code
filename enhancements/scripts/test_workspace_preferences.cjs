@@ -9,10 +9,14 @@ await win.webContents.executeJavaScript(`window.runtime=window[Symbol.for('typor
 
 const evaluate=source=>win.webContents.executeJavaScript(source);const pause=()=>new Promise(resolve=>setTimeout(resolve,40));
 await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../dist/workspace_core.css'),'utf8'));
+await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
 const bundle=await require('esbuild').build({stdin:{contents:'export {bind_workspace_preferences} from "./src/workspace_preferences";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'preferences_qa'});await evaluate(bundle.outputFiles[0].text);
 await evaluate(`window.preference_calls=0;window.ClientCommand={showPreferencePanel(){preference_calls++;}};window.remove_terminal=runtime.app.workspace.ribbon.addButton({id:'fixture.terminal',group:'bottom',title:'terminal',icon:document.createElement('i'),onclick(){}});window.binding=preferences_qa.bind_workspace_preferences(runtime);window.gear=document.querySelector('.workspace-preferences-trigger');document.querySelector('#typora-sidebar').classList.add('active-tab-outline');void 0`);
 assert(await evaluate('preferences_qa.bind_workspace_preferences(runtime)===binding&&document.querySelectorAll(".workspace-preferences-trigger").length===1'));
 assert(await evaluate('gear.parentElement.matches(".typ-ribbon>.group.bottom")&&gear===gear.parentElement.firstElementChild&&gear.querySelector(".fa.fa-cog")&&gear.getBoundingClientRect().width===48&&gear.getBoundingClientRect().height===48'));
+await evaluate('gear.click();void 0');
+assert(await evaluate(`(()=>{const m=document.querySelector('.workspace-preferences-menu');return m.scrollWidth<=m.clientWidth&&[...m.querySelectorAll('.git-menu-shortcut,.git-menu-label')].every(n=>n.scrollWidth<=n.clientWidth);})()`),'settings menu shows full labels and shortcuts without horizontal scrolling');
+await evaluate('gear.click();void 0');
 await evaluate(`gear.click();document.querySelector('.workspace-preferences-menu button').click();void 0`);assert.equal(await evaluate('preference_calls'),1,'actual click invokes native preference command once');
 assert(await evaluate('document.querySelector("#typora-sidebar").classList.contains("active-tab-outline")&&!gear.classList.contains("active")'),'preferences click leaves sidebar and selection state intact');
 assert(await evaluate('!document.querySelector(`[data-id="core.settings"]`)'),'no duplicate community core settings panel returns');

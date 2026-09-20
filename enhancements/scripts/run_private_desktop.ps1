@@ -102,8 +102,11 @@ try {
      }
      return $true
     };[void][isolated_desktop]::EnumDesktopWindows($desktop,$capture_stage,[IntPtr]::Zero)
-    [void]$captured_stages.Add($stage)
-    @{stage=$stage}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'capture_done.json') -Encoding utf8
+    # renderer正读取回执时Windows可能拒绝写入；只有确认写入成功才标记阶段完成。
+    try {
+     @{stage=$stage}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'capture_done.json') -Encoding utf8 -ErrorAction Stop
+     [void]$captured_stages.Add($stage)
+    } catch [System.IO.IOException] { Write-Output ('Retry capture acknowledgement: '+$stage) }
    }
   }
   [void][isolated_desktop]::EnumDesktopWindows($desktop,$inspect_all,[IntPtr]::Zero)

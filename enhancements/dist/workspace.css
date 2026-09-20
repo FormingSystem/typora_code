@@ -2157,6 +2157,11 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-separator { height:1px;margin:4px 12px;background:rgba(127,127,127,.25); }
 
 /* workspace_widgets.css */
+/* 菜单按内容计宽；四种语义单元固定分列，不由调用方class决定结构。 */
+.git-graph-menu[role=menu]{box-sizing:border-box;width:max-content;min-width:min(190px,calc(100vw - 8px));max-width:min(360px,calc(100vw - 8px));overflow-x:hidden;overflow-y:auto}
+.git-graph-menu[role=menu]>button{grid-template-columns:16px minmax(0,1fr) max-content 16px;white-space:nowrap}
+.git-graph-menu[role=menu] .git-menu-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.git-graph-menu[role=menu] .git-menu-shortcut{white-space:nowrap}
 /* 菜单分隔线由共享控件拥有，隔离正文主题的全局 hr 高度和强制边距。 */
 .git-graph-menu hr{height:1px;min-height:0;padding:0;border:0;border-top:1px solid #8884;box-sizing:border-box;margin:5px 2px!important}
 /* 文件、终端等紧凑动作菜单共用布局，不由某个业务面板拥有。 */
