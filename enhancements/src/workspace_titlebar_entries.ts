@@ -1,3 +1,4 @@
+import {get_workspace_recents} from "./workspace_recent";
 import {read_breadcrumb_settings,set_breadcrumb_enabled} from "./workspace_breadcrumbs_settings";
 import {read_workspace_save_settings} from "./workspace_save_settings";
 import {read_terminal_state} from "./terminal_state";
@@ -61,11 +62,6 @@ export function create_workspace_titlebar_definitions(
     return [...((leaf?.parent as any)?.containerEl?.querySelectorAll(".typ-workspace-tab-header .typ-tab") || [])]
       .find((tab: HTMLElement) => tab.dataset.id === leaf?.state.path)?.querySelector(".typ-close") as HTMLElement | undefined;
   };
-  const recent_entries = (items: any[]): entry[] => (Array.isArray(items) ? items : []).filter(item => typeof item?.path === "string").map(item => ({
-    label: item.name || files.path_api.basename(item.path), title: item.path,
-    // 复用文件路由和打开保护，不直接调用旧后台 Markdown 文档。
-    action: () => files.open_file(item.path),
-  }));
   const export_entries = async (): Promise<entry[]> => {
     try {
       const data = await runtime.JSBridge?.invoke("setting.loadExports");
@@ -77,14 +73,12 @@ export function create_workspace_titlebar_definitions(
     } catch {return [{label: "无法读取导出配置", disabled: true}];}
   };
   const file_entries = async (): Promise<entry[]> => {
-    let recents: any = {};
-    try {recents = await runtime.JSBridge?.invoke("setting.getRecentFiles") || {};} catch { /* 不伪造最近记录。 */ }
+    const recent_entries=await get_workspace_recents(files)?.entries() || [{label:"最近打开服务不可用",disabled:true}];
     const exports = await export_entries();
     const leaf = workspace.activeLeaf;
     return [command("新建", "newFile", "Ctrl+N"), command("新建窗口", "newWindow", "Ctrl+Shift+N"), separator(),
       {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Ctrl+K Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
-      {label: "打开最近文件", children: recent_entries(recents.files), disabled: !recents.files?.length},
-      {label: "最近使用的目录", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item:any)=>typeof item?.path==="string").map((item:any)=>({label:item.name||files.path_api.basename(item.path),title:item.path,action:()=>files.core.app.commands.run("linux_note:open_folder_path",[item.path])})),disabled:!recents.folders?.length},
+      {label:"打开最近",children:recent_entries},
       {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
       {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
       {label: "保存全部",shortcut:"Ctrl+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},

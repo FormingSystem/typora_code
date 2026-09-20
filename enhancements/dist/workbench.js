@@ -163009,6 +163009,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
       if (primary_modifier(event)) {
+        if (event.code === "KeyR" && !event.shiftKey) {
+          run(event, () => app.commands.run("linux_note:open_recent"));
+          return;
+        }
         if (event.code === "KeyP") {
           if (event.shiftKey) run(event, () => app.commands.run("command:open"));
           else {
@@ -197468,8 +197472,8 @@ https://creativecommons.org/licenses/by/4.0/
         for (const pane of panes) weights.set(pane.dataset.session, previous.has(pane.dataset.session) ? (previous.get(pane.dataset.session) || 0) * retained.length / Math.max(1, panes.length) / Math.max(Number.EPSILON, retained_weight) : 1 / Math.max(1, panes.length));
         const sum = [...weights.values()].reduce((a, b2) => a + b2, 0) || 1;
         for (const [key2, value] of weights) weights.set(key2, value / sum);
-        const bindings8 = create_workspace_lifetime();
-        group = { node, panes, signature, weights, clear: bindings8.dispose };
+        const bindings9 = create_workspace_lifetime();
+        group = { node, panes, signature, weights, clear: bindings9.dispose };
         groups.set(id, group);
         for (let index = 0; index < panes.length - 1; index++) {
           const left = panes[index], right = panes[index + 1], divider = workspace_element("div", "terminal-split-sash");
@@ -197478,7 +197482,7 @@ https://creativecommons.org/licenses/by/4.0/
           node.append(divider);
           let pair_width = 0;
           const current = group;
-          bindings8.own(bind_terminal_sash(divider, { read: () => {
+          bindings9.own(bind_terminal_sash(divider, { read: () => {
             pair_width = left.getBoundingClientRect().width + right.getBoundingClientRect().width;
             return left.getBoundingClientRect().width;
           }, write: (value) => {
@@ -197490,7 +197494,7 @@ https://creativecommons.org/licenses/by/4.0/
             for (const pane of current.panes) weights.set(pane.dataset.session, 1 / current.panes.length);
             layout2();
           } }));
-          bindings8.add(() => divider.remove());
+          bindings9.add(() => divider.remove());
         }
       }
       layout2();
@@ -232153,7 +232157,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!anchor.startsWith("#") || /[\u0000-\u0020]/u.test(anchor)) throw new Error("\u65B0\u7A97\u53E3\u951A\u70B9\u5FC5\u987B\u662F\u5B89\u5168\u7684\u6587\u5185\u7247\u6BB5\u3002");
     return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
   }
-  function bind_workspace_open_dialog(files, changed2, sessions) {
+  function bind_workspace_open_dialog(files, changed2, sessions, open_recent_folder) {
     const runtime2 = window;
     let disposed = false, pending, revision = 0, changing = false;
     const library = runtime2.File?.editor?.library, native_root_changed = library?.onRootChanged;
@@ -232251,7 +232255,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const routed_root_changed = (path, skip_recent) => {
       if (typeof path !== "string" || !path) return native_root_changed?.call(library, path, skip_recent);
-      return set_folder(path).catch((error) => {
+      return (open_recent_folder ? open_recent_folder(path) : set_folder(path)).catch((error) => {
         if (!disposed) new files.core.Notice(String(error instanceof Error ? error.message : error), 5e3);
       });
     };
@@ -236869,6 +236873,393 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_recent_service.ts
+  function create_recent_service(ports) {
+    let disposed = false, pending = false;
+    const bounded = (operation) => new Promise((resolve3, reject) => {
+      const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports.timeout_ms ?? 2500);
+      operation.then(resolve3, reject).finally(() => clearTimeout(timer));
+    });
+    const key2 = (item) => item.kind + ":" + (ports.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
+    const read2 = async () => {
+      const data = await bounded(ports.invoke("setting.getRecentFiles"));
+      if (disposed) return [];
+      const seen = /* @__PURE__ */ new Set(), result = [];
+      for (const [group, kind] of [["folders", "folder"], ["files", "file"]]) {
+        const items = [];
+        for (const item of Array.isArray(data?.[group]) ? data[group] : []) {
+          if (typeof item?.path !== "string" || !ports.path_api.isAbsolute(item.path)) continue;
+          const entry = { path: ports.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
+          if (!seen.has(key2(entry))) {
+            seen.add(key2(entry));
+            items.push(entry);
+          }
+        }
+        result.push(...items.sort((left, right) => right.date - left.date));
+      }
+      return result;
+    };
+    const remove = async (item) => {
+      if (disposed) return;
+      await ports.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
+    };
+    const missing = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
+    const available = async (item) => {
+      try {
+        const stat = await bounded(ports.fs.promises.stat(item.path));
+        return item.kind === "folder" ? stat.isDirectory() : stat.isFile();
+      } catch (error) {
+        if (!missing(error)) throw error;
+        const root = ports.path_api.parse(item.path).root;
+        try {
+          const stat = await bounded(ports.fs.promises.stat(root));
+          if (!stat.isDirectory()) throw error;
+        } catch {
+          throw new Error("\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u5DF2\u4FDD\u7559\u6700\u8FD1\u8BB0\u5F55\uFF1A" + item.path);
+        }
+        return false;
+      }
+    };
+    const forget_missing = async (item) => {
+      await remove(item);
+      ports.notice("\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728\u6216\u7C7B\u578B\u5DF2\u6539\u53D8\uFF0C\u5DF2\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664\uFF1A" + item.path);
+    };
+    const open = async (item, valid = () => true) => {
+      if (disposed || pending || ports.context_switching() || !valid()) return false;
+      if (!ports.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
+      pending = true;
+      const epoch2 = ports.context_epoch();
+      const active = () => !disposed && valid() && !ports.context_switching() && ports.context_epoch() === epoch2;
+      try {
+        const exists = await available(item);
+        if (!active()) return false;
+        if (!exists) {
+          await forget_missing(item);
+          return false;
+        }
+        try {
+          if (item.kind === "folder") await ports.open_folder(item.path);
+          else await ports.open_file(item.path);
+        } catch (error) {
+          if (active() && missing(error) && !await available(item)) {
+            if (active()) await forget_missing(item);
+            return false;
+          }
+          throw error;
+        }
+        return true;
+      } finally {
+        pending = false;
+      }
+    };
+    const clear = async (items) => {
+      let removed = 0;
+      for (const item of items) {
+        if (disposed) return;
+        try {
+          await remove(item);
+          removed++;
+        } catch (error) {
+          throw new Error("\u5DF2\u79FB\u9664".concat(removed, "\u9879\uFF0C\u5269\u4F59\u8BB0\u5F55\u6E05\u7406\u5931\u8D25\uFF1A").concat(String(error)));
+        }
+      }
+    };
+    return { read: read2, remove, clear, open, dispose() {
+      disposed = true;
+    } };
+  }
+
+  // src/workspace_recent_view.css
+  var workspace_recent_view_default = "";
+
+  // src/workspace_recent_view.ts
+  function create_recent_view(service, path_api, notice) {
+    const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default), local_style = acquire_workspace_style("typora-code-recent-style", workspace_recent_view_default);
+    const icons3 = acquire_workspace_file_icons(), events = new AbortController();
+    const root = workspace_element("section", "workspace-quick-open workspace-recent-open");
+    root.hidden = true;
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-label", "\u6253\u5F00\u6700\u8FD1");
+    const input_row = workspace_element("div", "workspace-quick-open-input-row"), input = workspace_element("input");
+    input.placeholder = "\u9009\u62E9\u8981\u6253\u5F00\u7684\u6587\u4EF6\u5939\u6216\u6587\u4EF6";
+    input.setAttribute("aria-label", "\u7B5B\u9009\u6700\u8FD1\u6587\u4EF6\u5939\u548C\u6587\u4EF6");
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-controls", "workspace-recent-list");
+    input.setAttribute("aria-autocomplete", "list");
+    input.spellcheck = false;
+    input.autocomplete = "off";
+    input_row.append(input);
+    const status2 = workspace_element("div", "workspace-quick-open-status is-visible");
+    status2.setAttribute("role", "status");
+    const results = workspace_element("div", "workspace-quick-open-results");
+    results.id = "workspace-recent-list";
+    results.setAttribute("role", "listbox");
+    root.append(input_row, status2, results);
+    document.body.append(root);
+    const interaction = acquire_workspace_interaction(root);
+    let items = [], shown = [], selected = 0, generation = 0, load_generation = 0, busy = false, disposed = false;
+    let previous, layer, confirmation;
+    const close = (restore = true) => {
+      generation++;
+      load_generation++;
+      busy = false;
+      const owned2 = layer?.owns_focus();
+      layer?.dispose();
+      layer = void 0;
+      root.hidden = true;
+      root.setAttribute("aria-modal", "false");
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      results.replaceChildren();
+      items = [];
+      shown = [];
+      if (restore && owned2) previous?.restore();
+      previous = void 0;
+    };
+    const select = (index) => {
+      selected = shown.length ? (index + shown.length) % shown.length : 0;
+      input.removeAttribute("aria-activedescendant");
+      for (const row of results.querySelectorAll(".workspace-recent-row")) {
+        const active = Number(row.dataset.index) === selected;
+        row.classList.toggle("is-selected", active);
+        row.setAttribute("aria-selected", String(active));
+        if (active) {
+          input.setAttribute("aria-activedescendant", row.id);
+          row.scrollIntoView({ block: "nearest" });
+        }
+      }
+    };
+    const refresh = async () => {
+      const revision = ++load_generation, current = generation;
+      try {
+        const data = await service.read();
+        if (disposed || root.hidden || current !== generation || revision !== load_generation) return;
+        items = data;
+        render();
+      } catch (error) {
+        if (!disposed && !root.hidden && current === generation && revision === load_generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      }
+    };
+    const open_selected = async (item = shown[selected]) => {
+      if (!item || busy) return;
+      busy = true;
+      const current = generation, epoch2 = workspace_context_epoch();
+      try {
+        const opened = await service.open(item, () => !root.hidden && current === generation && epoch2 === workspace_context_epoch());
+        if (current !== generation) return;
+        if (opened) close(false);
+        else await refresh();
+      } catch (error) {
+        if (current === generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      } finally {
+        if (current === generation) busy = false;
+      }
+    };
+    const remove_item = async (item) => {
+      if (busy) return;
+      busy = true;
+      const current = generation;
+      try {
+        await service.remove(item);
+        if (current === generation) {
+          await refresh();
+          input.focus();
+        }
+      } catch (error) {
+        if (current === generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      } finally {
+        if (current === generation) busy = false;
+      }
+    };
+    const render = () => {
+      const matcher = create_quick_matcher(input.value), matches = items.map((item) => ({ item, match: matcher.match({ file_path: item.path, relative_path: item.path, name: path_api.basename(item.path) || item.path, directory: path_api.dirname(item.path) }) })).filter((entry) => entry.match);
+      shown = matches.map((entry) => entry.item);
+      results.replaceChildren();
+      status2.textContent = shown.length ? "" : "\u6CA1\u6709\u5339\u914D\u7684\u6700\u8FD1\u9879\u76EE";
+      status2.classList.toggle("is-visible", !shown.length);
+      let kind = "";
+      matches.forEach(({ item, match: match2 }, index) => {
+        if (kind !== item.kind) {
+          kind = item.kind;
+          const heading3 = workspace_element("div", "workspace-recent-group", kind === "folder" ? "\u6587\u4EF6\u5939" : "\u6587\u4EF6");
+          heading3.setAttribute("role", "presentation");
+          results.append(heading3);
+        }
+        const row = workspace_element("div", "workspace-quick-open-result workspace-recent-row");
+        row.dataset.index = String(index);
+        row.id = "workspace-recent-item-" + index;
+        row.setAttribute("role", "option");
+        row.title = item.path;
+        const open_button = workspace_button("", () => void open_selected(item));
+        open_button.className = "workspace-recent-target";
+        open_button.tabIndex = -1;
+        open_button.setAttribute("aria-label", "\u6253\u5F00 " + item.path);
+        open_button.append(item.kind === "folder" ? git_icon("folder") : workspace_file_icon(item.path));
+        const name = workspace_element("span", "workspace-quick-open-name"), directory = workspace_element("span", "workspace-quick-open-path");
+        append_quick_highlights(name, match2.file.name, match2.score.labelMatch);
+        append_quick_highlights(directory, match2.file.directory, match2.score.descriptionMatch);
+        open_button.append(name, directory);
+        const remove = workspace_button("", () => void remove_item(item));
+        remove.className = "workspace-recent-remove";
+        remove.title = "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664";
+        remove.setAttribute("aria-label", "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664 " + item.path);
+        remove.append(git_icon("close"));
+        row.append(open_button, remove);
+        results.append(row);
+      });
+      select(Math.min(selected, shown.length - 1));
+    };
+    const open = async () => {
+      if (disposed) return;
+      if (!root.hidden) {
+        select(selected + 1);
+        input.focus();
+        return;
+      }
+      previous = capture_workspace_focus();
+      generation++;
+      root.hidden = false;
+      root.setAttribute("aria-modal", "true");
+      input.setAttribute("aria-expanded", "true");
+      input.value = "";
+      selected = 0;
+      status2.classList.add("is-visible");
+      status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u2026";
+      layer = register_workspace_dismissal(() => [root], (reason) => close(reason !== "window-blur"), { window_blur: true });
+      input.focus();
+      await refresh();
+    };
+    const confirm_clear = (snapshot) => {
+      if (disposed || confirmation) return;
+      confirmation = workspace_dialog("\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55", "\u53D6\u6D88", () => {
+        confirmation = void 0;
+      });
+      const dialog2 = confirmation;
+      dialog2.content.append(workspace_element("p", "", "\u79FB\u9664\u8FD9".concat(snapshot.length, "\u9879\u6700\u8FD1\u8BB0\u5F55\uFF1F\u4E0D\u4F1A\u5220\u9664\u78C1\u76D8\u6587\u4EF6\u3001\u5173\u95ED\u7F16\u8F91\u5668\u6216\u6E05\u9664\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u3002")));
+      const message = workspace_element("p");
+      message.setAttribute("role", "status");
+      dialog2.content.append(message);
+      const confirm2 = workspace_button("\u6E05\u7A7A\u8BB0\u5F55", async () => {
+        confirm2.disabled = true;
+        dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = true);
+        try {
+          await service.clear(snapshot);
+          dialog2.close();
+          if (!disposed) {
+            notice("\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u5DF2\u6E05\u7A7A\u3002");
+            if (!root.hidden) await refresh();
+          }
+        } catch (error) {
+          message.textContent = String(error);
+          dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = false);
+        }
+      });
+      dialog2.footer.append(confirm2);
+    };
+    input.addEventListener("input", () => {
+      selected = 0;
+      render();
+    }, { signal: events.signal });
+    root.addEventListener("keydown", (event) => {
+      if (is_composing_key(event)) return;
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && event.target === input) {
+        event.preventDefault();
+        select(event.key === "Home" ? 0 : event.key === "End" ? shown.length - 1 : selected + (event.key === "ArrowDown" ? 1 : -1));
+      } else if (event.key === "Enter" && event.target === input) {
+        event.preventDefault();
+        void open_selected();
+      } else if (event.code === "KeyR" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        select(selected + (event.shiftKey ? -1 : 1));
+      }
+    }, { signal: events.signal });
+    window.addEventListener("linux-note-workspace-context-changed", () => {
+      close(false);
+      confirmation?.close(false);
+    }, { signal: events.signal });
+    window.addEventListener("focus", () => {
+      if (!root.hidden && !busy) void refresh();
+    }, { signal: events.signal });
+    return { open, confirm_clear, dispose() {
+      disposed = true;
+      close(false);
+      confirmation?.close(false);
+      events.abort();
+      interaction.remove();
+      icons3.remove();
+      style.remove();
+      local_style.remove();
+      root.remove();
+    } };
+  }
+
+  // src/workspace_recent.ts
+  var bindings7 = /* @__PURE__ */ new WeakMap();
+  function get_workspace_recents(files) {
+    return bindings7.get(files);
+  }
+  function bind_workspace_recents(files, open_folder) {
+    const runtime2 = window;
+    const notice = (message) => {
+      new files.core.Notice(message, 5e3);
+    };
+    const service = create_recent_service({
+      fs: files.fs,
+      path_api: files.path_api,
+      open_file: files.open_file,
+      open_folder,
+      invoke: (name, ...args) => {
+        if (!runtime2.JSBridge?.invoke) return Promise.reject(new Error("\u6700\u8FD1\u6253\u5F00\u63A5\u53E3\u4E0D\u53EF\u7528\u3002"));
+        return runtime2.JSBridge.invoke(name, ...args);
+      },
+      context_epoch: workspace_context_epoch,
+      context_switching: workspace_context_switching,
+      notice
+    });
+    const view = create_recent_view(service, files.path_api, notice);
+    const entries3 = async () => {
+      let items = [];
+      let error = "";
+      try {
+        items = await service.read();
+      } catch (cause) {
+        error = "\u65E0\u6CD5\u8BFB\u53D6\u6700\u8FD1\u8BB0\u5F55\uFF1A" + String(cause);
+      }
+      const epoch2 = workspace_context_epoch();
+      const group = (kind) => items.filter((item) => item.kind === kind).slice(0, 10).map((item) => ({
+        label: item.path,
+        title: item.path,
+        action: () => service.open(item, () => workspace_context_epoch() === epoch2).catch((cause) => notice(String(cause)))
+      }));
+      const folders = group("folder"), documents = group("file");
+      return [
+        ...folders,
+        ...folders.length && documents.length ? [{ separator: true }] : [],
+        ...documents,
+        ...!items.length ? [{ label: error || "\u6CA1\u6709\u6700\u8FD1\u6253\u5F00\u7684\u9879\u76EE", disabled: true }] : [],
+        { separator: true },
+        { label: "\u66F4\u591A\u2026", shortcut: "Ctrl+R", action: view.open },
+        { label: "\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u2026", disabled: !items.length, action: () => view.confirm_clear(items) }
+      ];
+    };
+    const binding = { entries: entries3, open: view.open, open_item: service.open, dispose() {
+      view.dispose();
+      service.dispose();
+      bindings7.delete(files);
+    } };
+    bindings7.set(files, binding);
+    return binding;
+  }
+
   // src/workspace_save_settings.ts
   var FILE_SETTING_DEFAULTS = Object.freeze({
     "files.autoSave": "off",
@@ -237029,12 +237420,6 @@ https://creativecommons.org/licenses/by/4.0/
       const leaf = workspace.activeLeaf;
       return [...leaf?.parent?.containerEl?.querySelectorAll(".typ-workspace-tab-header .typ-tab") || []].find((tab) => tab.dataset.id === leaf?.state.path)?.querySelector(".typ-close");
     };
-    const recent_entries = (items) => (Array.isArray(items) ? items : []).filter((item) => typeof item?.path === "string").map((item) => ({
-      label: item.name || files.path_api.basename(item.path),
-      title: item.path,
-      // 复用文件路由和打开保护，不直接调用旧后台 Markdown 文档。
-      action: () => files.open_file(item.path)
-    }));
     const export_entries = async () => {
       try {
         const data = await runtime2.JSBridge?.invoke("setting.loadExports");
@@ -237048,11 +237433,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const file_entries = async () => {
-      let recents = {};
-      try {
-        recents = await runtime2.JSBridge?.invoke("setting.getRecentFiles") || {};
-      } catch {
-      }
+      const recent_entries = await get_workspace_recents(files)?.entries() || [{ label: "\u6700\u8FD1\u6253\u5F00\u670D\u52A1\u4E0D\u53EF\u7528", disabled: true }];
       const exports = await export_entries();
       const leaf = workspace.activeLeaf;
       return [
@@ -237061,8 +237442,7 @@ https://creativecommons.org/licenses/by/4.0/
         separator(),
         { label: "\u6253\u5F00\u2026", shortcut: "Ctrl+O", action: () => files.core.app.commands.run("linux_note:open_file") },
         { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: () => files.core.app.commands.run("linux_note:open_folder") },
-        { label: "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6", children: recent_entries(recents.files), disabled: !recents.files?.length },
-        { label: "\u6700\u8FD1\u4F7F\u7528\u7684\u76EE\u5F55", children: (Array.isArray(recents.folders) ? recents.folders : []).filter((item) => typeof item?.path === "string").map((item) => ({ label: item.name || files.path_api.basename(item.path), title: item.path, action: () => files.core.app.commands.run("linux_note:open_folder_path", [item.path]) })), disabled: !recents.folders?.length },
+        { label: "\u6253\u5F00\u6700\u8FD1", children: recent_entries },
         { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_files },
         separator(),
         { label: "\u4FDD\u5B58", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {
@@ -237481,13 +237861,13 @@ https://creativecommons.org/licenses/by/4.0/
   var SIDEBAR_MIN_WIDTH = 170;
   var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
   var EDITOR_MIN_WIDTH = 220;
-  var bindings7 = /* @__PURE__ */ new WeakMap();
+  var bindings8 = /* @__PURE__ */ new WeakMap();
   function install_workspace_sidebar_sash(options2) {
     const sash = document.querySelector("#typora-sidebar-resizer");
     const sidebar_element = document.querySelector("#typora-sidebar");
     const ribbon = document.querySelector(".typ-ribbon");
     if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings7.get(sash);
+    const existing = bindings8.get(sash);
     if (existing) return existing;
     const root = document.documentElement;
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
@@ -237664,10 +238044,10 @@ https://creativecommons.org/licenses/by/4.0/
       delete sash.dataset.workspaceSidebarSash;
       root.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
-      bindings7.delete(sash);
+      bindings8.delete(sash);
     };
     const binding = { element: sash, refresh, dispose: dispose2 };
-    bindings7.set(sash, binding);
+    bindings8.set(sash, binding);
     window.addEventListener("pagehide", dispose2, { once: true });
     refresh();
     return binding;
@@ -237865,7 +238245,8 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_file_commands(files, changed2) {
     const lifetime = create_workspace_lifetime(), core = files.core;
     const sessions = lifetime.own(bind_workspace_sessions(files));
-    const picker = lifetime.own(bind_workspace_open_dialog(files, changed2, sessions));
+    const picker = lifetime.own(bind_workspace_open_dialog(files, changed2, sessions, (path) => recents.open_item({ path, kind: "folder", date: 0 })));
+    const recents = lifetime.own(bind_workspace_recents(files, picker.set_folder));
     const run = (action) => {
       if (lifetime.disposed) return;
       return Promise.resolve().then(() => {
@@ -237875,9 +238256,10 @@ https://creativecommons.org/licenses/by/4.0/
       });
     };
     const commands = [
+      ["open_recent", "\u6253\u5F00\u6700\u8FD1", recents.open],
       ["open_file", "\u6253\u5F00\u6587\u4EF6", picker.open_file],
       ["open_folder", "\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder],
-      ["open_folder_path", "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6\u5939", picker.set_folder],
+      ["open_folder_path", "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6\u5939", (path) => recents.open_item({ path, kind: "folder", date: 0 })],
       ["open_folder_new_window", "\u5728\u65B0\u7A97\u53E3\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder_new_window],
       ["close_folder", "\u5173\u95ED\u6587\u4EF6\u5939", picker.close_folder],
       ["save", "\u4FDD\u5B58", files.save_active],
@@ -239271,6 +239653,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092009,
+        version: "2026.09.20.9",
+        date: "2026-09-20",
+        notes: [
+          "\u6587\u4EF6\u83DC\u5355\u7EDF\u4E00\u201C\u6253\u5F00\u6700\u8FD1\u201D\uFF0C\u6309\u6700\u8FD1\u987A\u5E8F\u5206\u7EC4\u663E\u793A\u76EE\u5F55\u548C\u6587\u4EF6\u5B8C\u6574\u8DEF\u5F84\uFF1BCtrl+R\u652F\u6301\u7B5B\u9009\u3001\u9AD8\u4EAE\u4E0E\u5355\u9879\u79FB\u9664\uFF0C\u5E76\u53EF\u786E\u8BA4\u6E05\u7A7A\u5386\u53F2\u3002",
+          "\u786E\u8BA4\u5931\u6548\u7684\u6700\u8FD1\u6587\u4EF6\u6216\u76EE\u5F55\u4F1A\u79FB\u9664\u5386\u53F2\uFF0C\u907F\u514D\u53CD\u590D\u6253\u5F00\u62A5\u9519\uFF1B\u6743\u9650\u3001\u79BB\u7EBF\u548C\u8D85\u65F6\u4FDD\u7559\u8BB0\u5F55\uFF0C\u6E05\u7406\u4E0D\u5220\u9664\u6587\u4EF6\u6216\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u3002"
+        ]
+      },
       {
         sequence: 2026092008,
         version: "2026.09.20.8",

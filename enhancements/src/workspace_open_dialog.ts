@@ -16,7 +16,7 @@ export async function open_workspace_window(root:string,anchor="#"):Promise<unkn
 }
 
 /** Typora 1.14.9 ClientCommand.open/openFolder 使用的同一系统选择窗口。 */
-export function bind_workspace_open_dialog(files:workspace_file_host, changed:()=>void, sessions:Pick<ReturnType<typeof bind_workspace_sessions>,"ready"|"suspend"|"resume">) {
+export function bind_workspace_open_dialog(files:workspace_file_host, changed:()=>void, sessions:Pick<ReturnType<typeof bind_workspace_sessions>,"ready"|"suspend"|"resume">,open_recent_folder?:(path:string)=>Promise<unknown>) {
   const runtime=window as unknown as open_dialog_runtime;
   let disposed=false, pending:Promise<void>|undefined,revision=0,changing=false;
   const library=runtime.File?.editor?.library,native_root_changed=library?.onRootChanged;
@@ -99,7 +99,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
   };
   const routed_root_changed=(path?:string,skip_recent?:boolean)=>{
     if(typeof path!=="string"||!path)return native_root_changed?.call(library,path,skip_recent);
-    return set_folder(path).catch(error=>{if(!disposed)new files.core.Notice(String(error instanceof Error?error.message:error),5000);});
+    return (open_recent_folder?open_recent_folder(path):set_folder(path)).catch(error=>{if(!disposed)new files.core.Notice(String(error instanceof Error?error.message:error),5000);});
   };
   if(library&&native_root_changed)library.onRootChanged=routed_root_changed;
   return {open_file:()=>choose(false),open_folder:()=>choose(true),set_folder,open_folder_new_window,

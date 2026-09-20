@@ -1881,6 +1881,16 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open-result.is-selected{background:var(--quick-pick-focus);color:var(--vscode-quickInputList-focusForeground,#fff);--workspace-interaction-hover:var(--quick-pick-focus);--workspace-interaction-foreground:var(--vscode-quickInputList-focusForeground,#fff)}
 .workspace-quick-open-result.is-selected .workspace-quick-open-highlight{color:var(--vscode-quickInputList-focusHighlightForeground,currentColor)}
 
+/* workspace_recent_view.css */
+.workspace-recent-row{padding-right:0}
+.workspace-recent-target{display:flex;align-items:center;gap:7px;flex:1;min-width:0;height:22px;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left}
+.workspace-recent-remove{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:0;border:0;background:transparent;color:inherit}
+.workspace-recent-row svg{width:16px;height:16px;flex:none}
+.workspace-recent-group{height:22px;display:flex;align-items:center;font-size:12px;opacity:.8;border-top:1px solid rgba(127,127,127,.25);margin-top:4px}
+.workspace-recent-group:first-child{border-top:0;margin-top:0}
+.workspace-recent-target .workspace-quick-open-name{flex-shrink:0;max-width:55%}
+.workspace-recent-row.is-selected .workspace-recent-target{--workspace-interaction-hover:var(--quick-pick-focus);--workspace-interaction-foreground:#fff}
+
 /* workspace_scrollbars.css */
 /* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。
    仅统一滚动条绘制；overflow、滚动位置和输入始终由原容器拥有。 */

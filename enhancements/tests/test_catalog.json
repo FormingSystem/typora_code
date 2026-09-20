@@ -5174,6 +5174,152 @@
       "requires_environment": [
         "TYPORA_NATIVE_TEST_ROOT"
       ]
+    },
+    {
+      "id": "TC-recent-service",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R059"
+      ],
+      "design": "docs/recent_open.md",
+      "implementation": [
+        "enhancements/src/workspace_recent_service.ts",
+        "enhancements/src/workspace_recent.ts",
+        "enhancements/src/workspace_recent_view.ts",
+        "enhancements/src/workspace_recent_view.css",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_recent_service.mjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行最近记录分组、打开校验、失效移除及取消/并发用例"
+      ],
+      "expected": [
+        "失效不反复报错；历史清理不改变文件/草稿/会话；状态与实际主进程一致"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-recent-stress",
+      "domain": "files",
+      "level": "unit",
+      "purpose": "stress",
+      "requirements": [
+        "R059"
+      ],
+      "design": "docs/recent_open.md",
+      "implementation": [
+        "enhancements/src/workspace_recent_service.ts",
+        "enhancements/src/workspace_recent.ts",
+        "enhancements/src/workspace_recent_view.ts",
+        "enhancements/src/workspace_recent_view.css",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_recent_service.mjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行最近记录分组、打开校验、失效移除及取消/并发用例"
+      ],
+      "expected": [
+        "失效不反复报错；历史清理不改变文件/草稿/会话；状态与实际主进程一致"
+      ],
+      "timeout_ms": 240000,
+      "workload_mode": "tiered"
+    },
+    {
+      "id": "TC-recent-ui",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R059"
+      ],
+      "design": "docs/recent_open.md",
+      "implementation": [
+        "enhancements/src/workspace_recent_service.ts",
+        "enhancements/src/workspace_recent.ts",
+        "enhancements/src/workspace_recent_view.ts",
+        "enhancements/src/workspace_recent_view.css",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_shortcuts.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_recent.cjs",
+      "environment": "Node / isolated Chromium / temporary real files",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行最近记录分组、打开校验、失效移除及取消/并发用例"
+      ],
+      "expected": [
+        "失效不反复报错；历史清理不改变文件/草稿/会话；状态与实际主进程一致"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-recent-native",
+      "domain": "files",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R059"
+      ],
+      "design": "docs/recent_open.md",
+      "implementation": [
+        "enhancements/src/workspace_recent_service.ts",
+        "enhancements/src/workspace_recent.ts",
+        "enhancements/src/workspace_recent_view.ts",
+        "enhancements/src/workspace_recent_view.css",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_file_commands.ts",
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/fixtures/recent_open_native.js"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_recent_open_native.ps1",
+      "environment": "Windows原始Typora1.14.10独立副本/私有桌面/候选构建",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "执行最近记录分组、打开校验、失效移除及取消/并发用例"
+      ],
+      "expected": [
+        "失效不反复报错；历史清理不改变文件/草稿/会话；状态与实际主进程一致"
+      ],
+      "timeout_ms": 240000,
+      "platform": "win32",
+      "requires_environment": [
+        "TYPORA_NATIVE_TEST_ROOT"
+      ]
     }
   ]
 }

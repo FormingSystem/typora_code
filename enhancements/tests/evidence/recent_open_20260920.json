@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R059"
+  ],
+  "release": "2026.09.20.9",
+  "asset_manifest_sha256": "ba13e1730116687717d5f63980db2b6907d3e2a05af3b8c91e2fb8fbf19f9a70",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-36-22-517Z_c5f756/report.json",
+      "sha256": "422cc29b26ff63d5b0f5fdc7b3a219c1dcac33369b0647fe0d3c67edd009314b",
+      "status": "incomplete",
+      "counts": {
+        "failed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-38-30-447Z_30768b/report.json",
+      "sha256": "4e036cae63f86b04c2d0095f6ff73b0f1475f20c257e5819084d75c7e1b34248",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-41-31-106Z_3bbaf9/report.json",
+      "sha256": "597b420b1aca63d67b5e1a4e5e2cb8b42f2818c386366bc86206a897a06a6562",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-41-31-527Z_6de05b/report.json",
+      "sha256": "b2e14d829fd8341281f9be00b572b066a6181e18d33ca689f64443c128078907",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-41-31-905Z_efb8fc/report.json",
+      "sha256": "ae4b593de2ff94ead03e813081816e5f572448c7b82b2ee2c967f3bb6af69148",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-41-32-348Z_ee3957/report.json",
+      "sha256": "354bce2b8fae9bdf608d8346090e0bca1630c1fee097999109d5f19cba185647",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T02-41-32-871Z_aff6fd/report.json",
+      "sha256": "9c73ea2bdc59ed4f63d65cee16e779407ced7be5f198f19675998ee4a572ef27",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/recent_open_20260920/build_final.log",
+      "sha256": "111aa09686c57312e0a3a1a31443c4b80afb6692c8da89af028fb6c5d3dfcbb5"
+    },
+    {
+      "path": ".cache/recent_open_20260920/build_retry.log",
+      "sha256": "cb01efea665ba7e061dec0f567546d4541e36a87fd66a89704318dbeccb9d9af"
+    },
+    {
+      "path": ".cache/recent_open_20260920/check_final.log",
+      "sha256": "dd64b22de128257216063fbb3cae20effebb66e8ff9727c700461b8159fd6624"
+    },
+    {
+      "path": ".cache/recent_open_20260920/regressions_final.log",
+      "sha256": "6ffbdbb3782ff5b7920f5358f3f4f2bb752d35232e5abe7155d449d2b7ddaf4c"
+    },
+    {
+      "path": ".cache/recent_open_20260920/install.log",
+      "sha256": "db2b32cce24a54aaf762f58709edb3da30b3cea70fb61299456373f6d1a243e8"
+    },
+    {
+      "path": ".cache/recent_open_20260920/install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/recent_open_20260920/install_verification.json",
+      "sha256": "b8aea1e667fe20c64e2819a7dc6a633dd0ca00ea036f62fcbce230e57ddfe27f"
+    },
+    {
+      "path": ".cache/recent_open_20260920/ui.log",
+      "sha256": "6233129d9eb9f341914d860058bb20d417fc1afe53a2263036fb2fa45ce9bbc8"
+    },
+    {
+      "path": ".cache/recent_open_20260920/ui_retry.log",
+      "sha256": "2dbae553935c608ee8e69742082247204af48b296a5bef2d2301d8657c28a628"
+    },
+    {
+      "path": ".cache/recent_open_20260920/ui_final.log",
+      "sha256": "876768294b691dccb7593b37866392feef384a1a768f70b81c5bf257def7ec54"
+    },
+    {
+      "path": ".cache/recent_open_20260920/ui_pass.log",
+      "sha256": "05f2ca966a1abd46d819a133b31107eb063ecd45ced3cd57cdc86a69264ee239"
+    }
+  ],
+  "installation": {
+    "status": "PASS",
+    "release": "2026.09.20.9",
+    "assets": 29,
+    "runtime_head": true,
+    "protected_unchanged": 5,
+    "user_windows_restarted": false
+  },
+  "validation": {
+    "check": "PASS",
+    "related_ui": "7 passed",
+    "stress": [
+      20,
+      100,
+      1000
+    ],
+    "native": "PASS: actual main-process history removals, 20 rereads, switch/restore, clear/cancel"
+  },
+  "limitations": [
+    "Windows Typora1.14.10独立原生副本及renderer合成事件；不是物理键盘或跨平台实测",
+    "首次原生夹具未开启恢复偏好导致恢复断言失败，修正独立配置后通过",
+    "首次构建被Windows临时映射占用拒绝，重建并重新检查通过；未安装失败资产",
+    "用户真实窗口未重启，未推送远端；历史移除只在用户选择失效项目或明确清理时执行"
+  ]
+}

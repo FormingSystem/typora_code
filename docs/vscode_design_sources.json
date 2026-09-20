@@ -295,5 +295,30 @@
     "adaptation": "保留当前工作台目录枚举和文件服务，4并发/8ms分片/可见行绘制；不是VS Code所有历史与排除配置的完整移植",
     "target": "enhancements/src/workspace_quick_open.ts",
     "validation": "TC-quick-open-matcher / TC-quick-open-stress / TC-quick-open-ui / TC-quick-open-native"
+  },
+  "recent_open_20260920": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "sources": [
+      {
+        "path": "src/vs/workbench/browser/actions/windowActions.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/actions/windowActions.ts",
+        "sha256": "249458191b0cd2eadbf1ac48bbe2c17458b9211eac08ced1410ff1ad1a64051c"
+      },
+      {
+        "path": "src/vs/platform/windows/electron-main/windowsMainService.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/windows/electron-main/windowsMainService.ts",
+        "sha256": "9c8d58f214610c8fd532dc6e2d0e59e1df3faeadfac4409edff2a2b5ed3ca2f3"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/titlebar/menubarControl.ts",
+        "url": "https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/workbench/browser/parts/titlebar/menubarControl.ts",
+        "sha256": "3c2bf10540c5d7c445d44fd772362a0b7744aa3f70f2ef844af93c7ac99fad37"
+      }
+    ],
+    "adopted": "目录/文件分组，最近顺序，完整路径菜单、More/Clear、Ctrl+R、removeClose；失效路径移除。复用R058的600px/22px与共享控件主题。",
+    "adaptation": "主进程Typora历史持久化，异步验证区分离线/权限与确定缺失；保留共同目录切换/草稿保护，不伪造多根工作区或远程URI。",
+    "target": "enhancements/src/workspace_recent.ts",
+    "validation": "TC-recent-service / TC-recent-stress / TC-recent-ui / TC-recent-native"
   }
 }

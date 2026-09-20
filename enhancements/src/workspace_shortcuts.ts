@@ -62,6 +62,7 @@ export function install_workspace_shortcuts(
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
 
     if (primary_modifier(event)) {
+      if(event.code==="KeyR"&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:open_recent"));return;}
       if (event.code === "KeyP") {
         if (event.shiftKey) run(event, () => app.commands.run("command:open"));
         else { const picker=get_workspace_quick_open(); if(picker)run(event,()=>picker.open()); }
