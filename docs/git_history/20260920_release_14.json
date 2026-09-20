@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-20T04:41:19.289388+00:00",
+  "remote": "origin/main",
+  "previous_commit": "9c525aff3e0ea367b7224885e827a66f0e33e2af",
+  "published_commit": "5587d15d214a29fd1f08bb1f4ff7abc9194b4204",
+  "mode": "fast-forward",
+  "release": "2026.09.20.14",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "07d7f522e5ed8c1c154a53a33492fa7c585892645eb6368eeb7711d5e0e8a0bb",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "90bbe5dc50bd85a1cc6775d03713b55ed556938c27cf827e7acdb9cd4de5215f",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "limits": [
+    "文档发布未重建或重装，沿用已验证候选；本次重新执行安装只读检查",
+    "在线固定提交公告和清单核对不替代其他电脑下载/安装验收",
+    "真实跨账户UAC、跨平台和启动长任务未决保持"
+  ]
+}
