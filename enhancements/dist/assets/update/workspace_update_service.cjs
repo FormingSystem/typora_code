@@ -51,16 +51,36 @@ function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,
  });
 }
 function parse_json(bytes){return JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));}
-async function check_update(current,{request=download,signal}={}){
+function update_paths(user_data){return {state_root:path.join(user_data,'temp','typora_code_updates'),identity_file:path.join(user_data,'typora_code_update_identity.json'),manifest_file:path.join(user_data,'typora_code','SHA256SUMS')};}
+function installed_identity(user_data){
+ if(!user_data)return null;
+ try{const paths=update_paths(user_data),value=read_json(paths.identity_file);
+  return value?.schema===1&&value.repository===repository&&/^[a-f0-9]{40}$/.test(value.commit)&&Number.isSafeInteger(value.sequence)&&['equivalent-assets','installed-archive'].includes(value.basis)&&value.manifest_sha256===digest(fs.readFileSync(paths.manifest_file))?value:null;
+ }catch(error){if(error.code==='ENOENT'||error instanceof SyntaxError)return null;throw error;}
+}
+function record_identity(user_data,plan,basis){
+ const paths=update_paths(user_data);
+ if(digest(fs.readFileSync(paths.manifest_file))!==plan.manifest_sha256)throw Error('安装后的资产清单与目标提交不一致。');
+ write_json(paths.identity_file,{schema:1,repository,commit:plan.commit,sequence:plan.release.releases[0].sequence,manifest_sha256:plan.manifest_sha256,basis,recorded_at:new Date().toISOString()});
+}
+async function check_update(current,{request=download,signal,user_data}={}){
  release_info(current);
  const head=parse_json(await request(`https://api.github.com/repos/${repository}/commits/${branch}`,{signal}));
  if(!/^[a-f0-9]{40}$/.test(head.sha))throw Error('更新提交身份无效。');
  const prefix=`https://raw.githubusercontent.com/${repository}/${head.sha}/`;
  const notes_bytes=await request(prefix+'enhancements/release.json',{signal});
  const latest=release_info(parse_json(notes_bytes));
- if(latest.releases[0].sequence<=current.releases[0].sequence)return null;
+ if(latest.releases[0].sequence<current.releases[0].sequence)return null;
+ const identity=installed_identity(user_data);
+ if(identity?.commit===head.sha&&identity.sequence===current.releases[0].sequence)return null;
  const manifest=await request(prefix+'enhancements/dist/SHA256SUMS',{signal});
- return {commit:head.sha,release:latest,notes_sha256:digest(notes_bytes),manifest_sha256:digest(manifest),current:current.releases[0],archive_url:`https://codeload.github.com/${repository}/zip/${head.sha}`};
+ const plan={commit:head.sha,base_commit:identity?.commit||null,commit_message:typeof head.commit?.message==='string'?head.commit.message.slice(0,8000):'',release:latest,notes_sha256:digest(notes_bytes),manifest_sha256:digest(manifest),current:current.releases[0],archive_url:`https://codeload.github.com/${repository}/zip/${head.sha}`};
+ // 首次手工ZIP安装没有Git身份；仅在磁盘资产等价时建立回执。
+ if(user_data&&!identity&&latest.releases[0].sequence===current.releases[0].sequence){
+  try{if(digest(fs.readFileSync(update_paths(user_data).manifest_file))===plan.manifest_sha256&&!installed_identity(user_data)){record_identity(user_data,plan,'equivalent-assets');return null;}}
+  catch(error){if(error.code!=='ENOENT')throw error;}
+ }
+ return plan;
 }
 function powershell(){return path.join(process.env.SystemRoot||'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe');}
 function child_environment(){const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;for(const key of Object.keys(env))if(key.toLowerCase()==='psmodulepath')delete env[key];return env;}
@@ -130,7 +150,8 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   release_info(plan.release);
   if(!/^[a-f0-9]{40}$/.test(plan.commit)||plan.archive_url!==`https://codeload.github.com/${repository}/zip/${plan.commit}`)throw Error('下载地址与固定提交不匹配。');
   const current=release_info(read_json(path.join(user_data,'typora_code/assets/update/release.json')));
-  if(plan.release.releases[0].sequence<=current.releases[0].sequence)throw Error('本地已经是相同或更新版本，无需覆盖。');
+  if(plan.release.releases[0].sequence<current.releases[0].sequence||installed_identity(user_data)?.commit===plan.commit)throw Error('本地已经是相同提交或更新版本，无需覆盖。');
+  if(Object.hasOwn(plan,'base_commit')&&(installed_identity(user_data)?.commit||null)!==plan.base_commit)throw Error('本地安装提交已变化，请重新检查更新。');
   status('downloading','正在下载 '+plan.release.releases[0].version+'…');
   timer=setInterval(()=>{if(fs.existsSync(path.join(root,'cancel')))abort.abort();},100);
   const archive=path.join(root,'repository.zip');let last_progress=0;
@@ -151,9 +172,10 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   }
   const installed=release_info(read_json(path.join(user_data,'typora_code/assets/update/release.json')));
   if(installed.releases[0].sequence!==plan.release.releases[0].sequence)throw Error('安装器返回后版本校验未通过，请查看安装备份。');
-  status('succeeded','更新已安装。请保存文档后手动重启所有 Typora 窗口以加载新版。',{version:installed.releases[0].version});
+  record_identity(user_data,plan,'installed-archive');
+  status('succeeded','更新已安装。请保存文档后手动重启所有 Typora 窗口以加载新版。',{version:installed.releases[0].version,commit:plan.commit});
  }catch(error){const message=String(error.message||error);status(message.includes('[TYPORA_INSTALL_CANCELLED]')||(!installing&&(abort.signal.aborted||fs.existsSync(path.join(root,'cancel'))))?'cancelled':'failed',message);}
  finally{clearInterval(timer);if(unlock)await unlock();}
 }
-module.exports={execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};
+module.exports={update_paths,installed_identity,execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};
 if(require.main===module&&process.argv[2]==='--worker')run_worker(process.argv[3]).catch(error=>{console.error(error);process.exitCode=1;});

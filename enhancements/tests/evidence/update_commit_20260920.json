@@ -1,0 +1,250 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R064"
+  ],
+  "release": "2026.09.20.14",
+  "asset_manifest_sha256": "90bbe5dc50bd85a1cc6775d03713b55ed556938c27cf827e7acdb9cd4de5215f",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-31-41-658Z_13ee8a/report.json",
+      "sha256": "47545ed528efed8f383746d1b5fb9f0ef884fcf017b4242473b979beef57279a",
+      "status": "passed",
+      "counts": {
+        "passed": 4
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-32-30-480Z_9e4b5e/report.json",
+      "sha256": "5d9bca8295c1717103e4fdae959bae50ccc75c2042826b5ccaea9f9edd9c6b49",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-32-31-179Z_dad0a1/report.json",
+      "sha256": "6bbe5f76bec8e07ef4b9a1c10d95242c0d0569448585f8658442057a09f771a4",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-30-41-849Z_f89814/report.json",
+      "sha256": "d792453c546cbdb2c16b6a3c56e36807d5361461a61942d440df4d24eebe6fdd",
+      "status": "incomplete",
+      "counts": {
+        "passed": 3,
+        "failed": 1
+      }
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T04-35-53-779Z_42e0db/report.json",
+      "sha256": "5f0bbe78371a23ceb831ac292b794d8a0b82358cc5ea4d49aa0157283716d87e",
+      "status": "passed",
+      "counts": {
+        "passed": 1
+      }
+    }
+  ],
+  "logs": [
+    {
+      "path": ".cache/r064_build.log",
+      "sha256": "59bb4f0c8607e14837941ca08e8cbf8c3d87fbaf4a0a9fe22814034e59d0bd78",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r064_build_mapped_failure.log",
+      "sha256": "53a61a22d47e711363747fc17c69ac16894a491abdaf5b3217f8d48f3920fa19",
+      "status": "failed"
+    },
+    {
+      "path": ".cache/r064_check.log",
+      "sha256": "63577622361e41702ff94ed120ef17de6354cc4e14949c7f09d049bf5b0005d3",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r064_check_final.log",
+      "sha256": "661ad1b79b35320b59215bda5aa3acb09b93f422c2f7e2c48bbd8a1e7bb6e385",
+      "status": "failed"
+    },
+    {
+      "path": ".cache/r064_check_final_package.log",
+      "sha256": "047baaae92fb64b8fd491135eefebf623ffa7e64ec5127aec7df7534eac1c727",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r064_deployment_final.log",
+      "sha256": "b35248b7fbc0ae3304c0ef4293f3af9abb46cbdf9b3fdd2b5f9f3834914075b9",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r064_skill.log",
+      "sha256": "6cf9e7f0d34ccd36dbd28f270cd28dd04277b2e1516bd4333ce7bb501d7b18d4",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/update_commit_20260920/install.log",
+      "sha256": "0b8167f99636a9ccebf7f7f1c1b7d9bfac058b119b4b0a29903780d7c19bad06",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/update_commit_20260920/install_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/update_commit_20260920/install_verification.json",
+      "sha256": "1d5e4658a4c4e99f9465c06a09513c0b7ca5f423ccb036eb1babe11ac4392ecd",
+      "status": "passed"
+    },
+    {
+      "path": ".cache/r064_check_final_all.log",
+      "sha256": "a87ea5df8e7d41c9e80dd83d601becdc16c17c6ad8b0708002426fcfd7839fe0",
+      "status": "passed"
+    }
+  ],
+  "coverage": {
+    "unit": "固定SHA公告/ZIP、无身份引导、同版本不同SHA、损坏/手工换装回执、失败不推进、重复/过期计划拒绝；下载故障与取消",
+    "functional": "Electron更新公告纯文本、稍后、重复操作、取消、销毁，同版本新提交安装后提示手动重启",
+    "system": "完整ZIP包无.git，真实子进程PATH不含Git且git启动返回ENOENT，真实PowerShell事务安装/私有Node/互斥，temp目录及设置/文档保护",
+    "stress": "最终20/100/1000次跨进程提醒争抢仅一次成功"
+  },
+  "installed": {
+    "status": "PASS",
+    "release": "2026.09.20.14",
+    "assets": [
+      {
+        "path": "assets/plugins/community_plugin_service.cjs",
+        "sha256": "d9ebd65a80836148b2337ba7f5e4cbcd169c07e63407556596633c0007914de3"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_cmake",
+        "sha256": "e0a37eb84a4e328abf81bfe802d73ee295aeeebb95574eee7187a1fac964133d"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_javascript",
+        "sha256": "f0869b7078a5c25f32a99c89f4894b7fb14f3eabbe532575bea74fdef839648f"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_package",
+        "sha256": "9836b901f21211b515de4866ace8af39e9c502648bb553c9f54cde1951e57b51"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_python",
+        "sha256": "da5eb5149fab3d0780ba40db6958e0e32347dfc032a4bc9ce9ee3db7e2219b37"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_runtime",
+        "sha256": "5f9cf9fb6acb1972b35ae29119ce563bb60ec097656bc4b69b9bac2d04c7a147"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_typescript",
+        "sha256": "1849e6bdac5cc0b908a3a003ced62edc15415736c485a72acd38409d88b9b07b"
+      },
+      {
+        "path": "assets/source_symbols/LICENSE_yaml",
+        "sha256": "e98877f5ac54215d8bdb8362a897fd0292604db94d18ddb45fc5aa18e8349e3e"
+      },
+      {
+        "path": "assets/source_symbols/source_manifest.json",
+        "sha256": "ee98dfe5e7c56d571310d2eb13b88964ddd65ae62ecb0de5bebc60af576556d0"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-cmake.wasm",
+        "sha256": "567d22f6475437680f500579ee86a5ae8c106890e8f26e62a85bed86f1322204"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-javascript.wasm",
+        "sha256": "fc5362de9cacbfd6c6ee11e5bf144c7adbbf26ae3703eaaba916d4b0d78da76f"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-python.wasm",
+        "sha256": "2091d112a2989c54c2157a0a9a62c06d41a5ef3e40fd71f19cde7b4663bdd028"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-typescript.wasm",
+        "sha256": "78a2710a7d0f60a8c9ab92cc6e961f76cf80b3d69690140eeca8a29eba9185db"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter-yaml.wasm",
+        "sha256": "81dd56ecfadd34b62181f996e52cff6d3c4c026d7fbff6a201323a9abe8b2580"
+      },
+      {
+        "path": "assets/source_symbols/tree-sitter.wasm",
+        "sha256": "f38dcc4b43b818f9a0785bc1c6d5611a75ac4cdd428ff3f02757c34ca4e46d7f"
+      },
+      {
+        "path": "assets/source_symbols/worker.js",
+        "sha256": "896bf31670dd795505b0c8d99a6e6b5a0e3d216a51b18a2d6e6a03cd4f389e39"
+      },
+      {
+        "path": "assets/update/release.json",
+        "sha256": "07d7f522e5ed8c1c154a53a33492fa7c585892645eb6368eeb7711d5e0e8a0bb"
+      },
+      {
+        "path": "assets/update/runtime.json",
+        "sha256": "e7f6d04dd5ccc04338e65cfaeaa0f7c06931defcbb451157d2ce9aba664159ff"
+      },
+      {
+        "path": "assets/update/workspace_update_archive.ps1",
+        "sha256": "43842c7d5c08f5e3a4add3dc7b411c766bbdfe8dfc4dacc9d7a1e54303ad4735"
+      },
+      {
+        "path": "assets/update/workspace_update_service.cjs",
+        "sha256": "f06579117187bc9bb51a20187d71485a1191ece4e652bcd2875bc51b6f4983e5"
+      },
+      {
+        "path": "licenses/fontawesome.txt",
+        "sha256": "9b914eae88817d63b576eab5aafde7068c7a1abae125d7cdfb034f1da43a9afc"
+      },
+      {
+        "path": "licenses/vscode_quick_open.txt",
+        "sha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9"
+      },
+      {
+        "path": "locales/lang.de.json",
+        "sha256": "8593f4928ea80e9cf03b6ca19a4cb90604b217d732ed72bb0b75d1d38ecca640"
+      },
+      {
+        "path": "locales/lang.en.json",
+        "sha256": "3be0a7b616689f7ca5f45291d1b230f12921b4fbe0274bd2e7b7fa0d5af9456b"
+      },
+      {
+        "path": "locales/lang.zh-cn.json",
+        "sha256": "3cf851c67d5942d2d21c01b9d86ab9539cfdc5cccbddd793f95bffa11a60c25d"
+      },
+      {
+        "path": "workbench.js",
+        "sha256": "1a23c16643d3f443ff8553b25e3c4099d78de036e90247a5f96406c5fd7eefff"
+      },
+      {
+        "path": "workspace.css",
+        "sha256": "929b6bbc12a16d4d6e8508b4ffd9abede17d7a74d952f6b211eed1fcb4b2d398"
+      },
+      {
+        "path": "workspace_core.css",
+        "sha256": "63ea711178fcd4d0fee7a5630c9164af8385d611c8b0a7047e80291e0f3bd373"
+      },
+      {
+        "path": "workspace_core.js",
+        "sha256": "33a2e0e5d58fbcd33f00f5885867d58038a31ade63af84fa2f01d4ac2687f05c"
+      }
+    ],
+    "asset_manifest_sha256": "90bbe5dc50bd85a1cc6775d03713b55ed556938c27cf827e7acdb9cd4de5215f",
+    "protected_unchanged": true,
+    "protected_count": 6,
+    "administrator": false,
+    "installed_check": "OK",
+    "user_windows_restarted": false
+  },
+  "limits": [
+    "网络与固定提交内容使用替身；不是远端正式发布实测",
+    "实际UAC安全桌面/不同管理员账户未执行，R063边界保留",
+    "用户窗口未重启；未推送",
+    "Windows构建文件映射占用的来源未归因，完整重建后复验通过",
+    "此前原生启动长任务、跨平台与宿主兼容未决不在本次关闭范围"
+  ],
+  "validation": "最终完整npm run check、build、更新域与压力、部署检查均通过；失败记录单独保留"
+}

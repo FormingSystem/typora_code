@@ -9,13 +9,16 @@ export function bind_workspace_update(){
  const runtime=window as any;
  if(!app||!runtime.reqnode||!runtime._options?.userDataPath)return lifetime;
  const fs=runtime.reqnode("fs"),path=runtime.reqnode("path"),process=runtime.reqnode("process");
- const user_data=runtime._options.userDataPath,installed_root=path.join(user_data,"typora_code"),state_root=path.join(user_data,"typora_code_updates");
- let service:any,current:any,busy=false,disposed=false,dialog:ReturnType<typeof workspace_dialog>|undefined,poll:ReturnType<typeof setInterval>|undefined;
+ const user_data=runtime._options.userDataPath,installed_root=path.join(user_data,"typora_code");
+ let service:any,loaded_identity:string|undefined;
+ try{service=runtime.reqnode(path.join(installed_root,"assets/update/workspace_update_service.cjs"));loaded_identity=service.installed_identity(user_data)?.commit;}
+ catch(error){console.error("Typora Code更新模块加载失败",error);return lifetime;}
+ const state_root=service.update_paths(user_data).state_root;
+ let current:any,busy=false,disposed=false,dialog:ReturnType<typeof workspace_dialog>|undefined,poll:ReturnType<typeof setInterval>|undefined;
  const controller=new AbortController();
  const write_log=(error:unknown)=>{try{fs.mkdirSync(state_root,{recursive:true});fs.appendFileSync(path.join(state_root,"checks.log"),new Date().toISOString()+" "+String(error)+"\n","utf8");}catch{};};
  const message=(title:string,text:string)=>{dialog?.close();dialog=workspace_dialog(title,"关闭",()=>{dialog=undefined;});dialog.content.append(el("p","",text));};
  function load(){
-  service ||= runtime.reqnode(path.join(installed_root,"assets/update/workspace_update_service.cjs"));
   // 每个窗口保留启动时的内存版本；安装成功不能冒充本窗口已经加载新版。
   current ||= service.release_info(bundled_release);
  }
@@ -32,13 +35,16 @@ export function bind_workspace_update(){
    if(process.platform!=="win32"){if(manual)message("Typora Code 更新","当前平台暂未支持自动安装，请从项目仓库下载完整ZIP后按安装指南更新。");return;}
    load();
    const installed=service.release_info(JSON.parse(fs.readFileSync(path.join(installed_root,"assets/update/release.json"),"utf8")));
-   if(installed.releases[0].sequence>current.releases[0].sequence){if(manual)message("Typora Code 更新","磁盘上的 "+installed.releases[0].version+" 已安装；当前窗口仍运行 "+current.releases[0].version+"，请保存文档后手动重启。");return;}
+   const identity=service.installed_identity(user_data);
+   if(installed.releases[0].sequence>current.releases[0].sequence||(identity?.basis==="installed-archive"&&identity.commit!==loaded_identity)){if(manual)message("Typora Code 更新","磁盘上的 "+installed.releases[0].version+" 已安装；请保存文档后手动重启以加载新提交。");return;}
    if(manual){try{const active=JSON.parse(fs.readFileSync(path.join(state_root,"active_job.json"),"utf8"));const state=service.status_of(state_root,active.job);if(!['succeeded','failed','cancelled'].includes(state.phase)){show_progress(active.job);return;}}catch{}}
    else if(!service.claim_startup(state_root,await service.session_identity(process.ppid,process.execPath)))return;
-   const plan=await service.check_update(current,{signal:controller.signal});if(disposed)return;
+   const plan=await service.check_update(installed,{signal:controller.signal,user_data});if(disposed)return;
    if(!plan){if(manual)message("Typora Code 更新","当前安装已是最新发布版本（"+current.releases[0].version+"）。");return;}
    const target=dialog=workspace_dialog("Typora Code 有新版本","稍后",()=>{dialog=undefined;});
    target.content.append(el("p","","当前版本 "+current.releases[0].version+" → "+plan.release.releases[0].version));
+   target.content.append(el("p","","目标提交 "+plan.commit.slice(0,12)));
+   if(plan.commit_message)target.content.append(el("p","",plan.commit_message));
    target.content.append(el("p","","更新将立即下载并安装。请保存文档后手动重启 Typora；不会自动关闭窗口。"));
    for(const release of plan.release.releases.filter((item:any)=>item.sequence>current.releases[0].sequence)){
     target.content.append(el("h4","",release.version+" · "+release.date));const list=el("ul");for(const note of release.notes)list.append(el("li","",note));target.content.append(list);

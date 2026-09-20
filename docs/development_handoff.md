@@ -1,5 +1,7 @@
 # TyporaCode 开发交接
 
+2026-09-20交付2026.09.20.14：R064按远端SHA下载ZIP并记录成功安装身份，同序号新提交仍可更新；首次无Git安装按清单建立等价身份。下载/解压位于Typora用户数据temp，安装权限继续归R063。最终更新域4套、20/100/1000争抢和无Git/.git真实ZIP安装通过；本机普通权限安装，29资产一致、6保护摘要不变、check OK。用户未重启、未推送；网络使用固定提交替身，实际安全桌面/跨账户UAC仍未实测。[设计](workspace_update.md#r064-无git安装的提交身份与temp目录)与[证据](../enhancements/tests/evidence/update_commit_20260920.json)。
+
 2026-09-20最新交付2026.09.20.13：R063按待写目标预检，未变化入口不覆盖，实际拒绝后解释并一次系统授权续装，保持原用户/备份/缓存身份；取消保留旧版本。完整check、权限压力、Windows事务与真实ZIP更新、更新UI和卸载回归通过。本机普通权限安装，29资产/head一致、6保护摘要不变、check OK；用户待正常重启，未推送。真实安全桌面和不同管理员凭据仍未实测。[设计](installation_design.md#r063-windows权限预检与按需授权)与[证据](../enhancements/tests/evidence/install_permissions_20260920.json)。
 
 2026-09-20最新交付2026.09.20.12：R062提交浮层/菜单共用GitHub、Gitee、GitLab、Bitbucket网页入口，多目标一次选择，点击前复核远端并拒绝切库迟到。完整check、两组UI、解析20/100/1000与原始宿主33断言通过；29资产/head一致、5保护项不变、安装检查OK。用户待正常重启，未推送。[设计](git_commit_web.md)与[证据](../enhancements/tests/evidence/git_commit_web_20260920.json)。未知自托管平台及联网可访问性不在已通过范围；以下保留历史事实。

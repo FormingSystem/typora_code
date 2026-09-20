@@ -3752,7 +3752,8 @@
       "purpose": "implementation",
       "requirements": [
         "R047",
-        "R063"
+        "R063",
+        "R064"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -3786,7 +3787,8 @@
       "purpose": "stress",
       "requirements": [
         "R047",
-        "R063"
+        "R063",
+        "R064"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -3820,7 +3822,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R047"
+        "R047",
+        "R064"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -3852,7 +3855,8 @@
       "purpose": "implementation",
       "requirements": [
         "R047",
-        "R063"
+        "R063",
+        "R064"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
