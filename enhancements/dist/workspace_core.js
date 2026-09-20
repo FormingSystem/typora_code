@@ -5126,19 +5126,21 @@ var workspace_core_module = (() => {
 
   // vendor/workspace_core/src/ui/sidebar/sidebar.ts
   var Sidebar = class extends Component {
-    constructor(internalPanels, ribbon = useService("ribbon")) {
+    constructor(panel_factory, ribbon = useService("ribbon")) {
       super();
+      this.panel_factory = panel_factory;
       this.ribbon = ribbon;
-      setTimeout(() => {
-        this.internalPanels = internalPanels();
-        this.internalPanels.forEach((view) => this.addPanel(view));
-      }, 1);
     }
     container = new SidebarContainer();
     activePanel;
     shown_panel;
     internalPanels = [];
     panels = [];
+    mount() {
+      if (this.internalPanels.length) return;
+      this.internalPanels = this.panel_factory();
+      this.internalPanels.forEach((view) => this.addPanel(view));
+    }
     addPanel(panel) {
       super.addChild(panel);
       if (panel instanceof ViewLegacy) {
@@ -6155,6 +6157,9 @@ var workspace_core_module = (() => {
 
   // vendor/workspace_core/src/ui/layout/workspace-root.ts
   var WorkspaceRoot = class extends WorkspaceSplit {
+    mount() {
+      this.registry.load();
+    }
     registry = new Component();
     constructor(workspace, app = useService("app"), commands = useService("command-manager"), { t } = useService("i18n"), settings = useService("settings"), vault = useEventBus("vault")) {
       super("vertical");
@@ -6298,7 +6303,6 @@ var workspace_core_module = (() => {
         const { setEditingTabs } = useEditingTabs();
         setEditingTabs(null);
       };
-      setTimeout(() => this.registry.load());
     }
   };
 
@@ -6544,10 +6548,18 @@ var workspace_core_module = (() => {
       this._children.push(useService("quick-pick"));
       this._children.push(new QuickOpenPanel());
       this.activeEditor = useService("markdown-editor");
-      setTimeout(() => this._children.forEach((child) => child.load()));
       document.body.appendChild(this.rightSplit.containerEl);
       viewManager.registerViewWithExtensions(["md", "markdown"], MarkdownView.type, (leaf, s) => new MarkdownView(leaf));
       viewManager.registerView(EmptyView.type, (leaf) => new EmptyView(leaf));
+    }
+    mounted = false;
+    mount() {
+      if (this.mounted) return;
+      this.rootSplit.mount();
+      this.sidebar.mount();
+      this._children.forEach((child) => child.load());
+      useService("file-explorer")._onContextMenu((params) => this.emit("file-menu", params));
+      this.mounted = true;
     }
     createLeaf = createLeaf;
     getViewByType(cls) {
@@ -6621,9 +6633,6 @@ var workspace_core_module = (() => {
           this.emit("file:will-save", this.activeFile);
         });
       })();
-      setTimeout(() => useService("file-explorer")._onContextMenu((params) => {
-        this.emit("file-menu", params);
-      }));
     }
   };
 
@@ -8011,11 +8020,8 @@ ${doc.documentElement.outerHTML}`;
   async function initialize() {
     const app = useService("app");
     app.initialize();
-    const started = Date.now();
-    while (!app.workspace.rootSplit.containerEl.isConnected || !app.workspace.sidebar.panels?.length) {
-      if (Date.now() - started > 15e3) throw new Error("Typora Code workspace mount timed out");
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    }
+    app.workspace.mount();
+    if (!app.workspace.rootSplit.containerEl.isConnected) throw new Error("Typora Code workspace mount failed");
     app.start();
     return app;
   }

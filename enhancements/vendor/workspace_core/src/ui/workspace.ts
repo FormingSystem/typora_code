@@ -107,13 +107,23 @@ export class Workspace extends Events<WorkspaceEvents> {
 
     this.activeEditor = useService('markdown-editor')
 
-    setTimeout(() => this._children.forEach(child => child.load()))
+
 
     // Insert rightSplit into DOM (position: fixed, so it floats independently)
     document.body.appendChild(this.rightSplit.containerEl)
 
     viewManager.registerViewWithExtensions(['md', 'markdown'], MarkdownView.type, (leaf, s) => new MarkdownView(leaf))
     viewManager.registerView(EmptyView.type, (leaf) => new EmptyView(leaf))
+  }
+
+  private mounted = false
+  mount() {
+    if (this.mounted) return
+    this.rootSplit.mount()
+    this.sidebar.mount()
+    this._children.forEach(child => child.load())
+    useService('file-explorer')._onContextMenu(params => this.emit('file-menu', params))
+    this.mounted = true
   }
 
   createLeaf = createLeaf
@@ -204,9 +214,6 @@ export class Workspace extends Events<WorkspaceEvents> {
         })
       })()
 
-    setTimeout(() =>
-      useService('file-explorer')._onContextMenu(params => {
-        this.emit('file-menu', params)
-      }))
+
   }
 }

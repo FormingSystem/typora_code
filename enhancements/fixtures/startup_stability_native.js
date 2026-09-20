@@ -14,6 +14,12 @@
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>undefined;
   for(let i=0;i<200&&document.documentElement.dataset.linuxNoteTyporaEnhancements!=='ready';i++)await pause(25);
   assert(document.documentElement.dataset.linuxNoteTyporaEnhancements==='ready','真实常驻入口就绪');
+  const root_node=core.app.workspace.rootSplit.containerEl,editor_node=editor.writingArea;
+  const node_count=document.querySelectorAll('*').length;
+  for(const tier of [20,100,1000]){
+   for(let index=0;index<tier;index++){core.app.initialize();core.app.workspace.mount();core.app.start();}
+   assert(core.app.workspace.rootSplit.containerEl===root_node&&editor.writingArea===editor_node&&document.querySelectorAll('*').length===node_count,'重复挂载 '+tier+' 次保持布局及原生编辑节点身份和数量');
+  }
   const sidebar=core.app.workspace.sidebar;
   const panels=['core.file-explorer','core.outline','linux_note:search','linux_note:source_control'].map(id=>sidebar.panels.find(panel=>panel.ribbonButton?.id===id));
   // Explorer 用增强实现，避免同名原生面板取错。

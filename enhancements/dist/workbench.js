@@ -162507,20 +162507,10 @@ https://creativecommons.org/licenses/by/4.0/
     signal?.throwIfAborted();
     const app = core.app;
     if (!app) throw new Error("Typora Code workspace did not initialize.");
-    const started = Date.now();
-    const wait_ready = async (ready) => {
-      while (!ready()) {
-        signal?.throwIfAborted();
-        if (Date.now() - started > 15e3) throw new Error("Typora workspace initialization timed out.");
-        await new Promise((resolve3) => setTimeout(resolve3, 50));
-      }
-      signal?.throwIfAborted();
-    };
-    await wait_ready(() => Boolean(app.settings));
+    if (!app.settings || !app.workspace?.rootSplit?.containerEl?.isConnected) throw new Error("Typora Code ready contract is incomplete.");
     for (const [key2, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
       if (app.settings.get(key2) !== value) app.settings.set(key2, value);
     }
-    await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
     const reconcile_sidebar = (event) => {
       const item = event.target instanceof Element ? event.target.closest(".typ-ribbon-item[data-id]") : null;
       if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
@@ -238654,6 +238644,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092005,
+        version: "2026.09.20.5",
+        date: "2026-09-20",
+        notes: [
+          "\u5DE5\u4F5C\u53F0\u6839\u5E03\u5C40\u3001\u4FA7\u680F\u548C\u5E38\u9A7B\u7EC4\u4EF6\u6539\u4E3A\u7EDF\u4E00\u5355\u6B21\u6302\u8F7D\uFF0C\u907F\u514D\u5206\u6563\u5B9A\u65F6\u521D\u59CB\u5316\u9020\u6210\u534A\u5C31\u7EEA\u72B6\u6001\uFF1B\u539F\u751F\u542F\u52A8\u56FE\u6807\u4E0E\u73B0\u6709\u5E03\u5C40\u4FDD\u6301\u3002",
+          "Typora\u5B98\u65B9\u5347\u7EA7\u540E\u91CD\u65B0\u8FD0\u884C\u6807\u51C6\u589E\u5F3A\u5B89\u88C5\u5668\uFF0C\u4FDD\u7559\u65B0\u7248\u5BBF\u4E3B\u4E0E\u7528\u6237\u8BBE\u7F6E\u3002"
+        ]
+      },
       {
         sequence: 2026092004,
         version: "2026.09.20.4",

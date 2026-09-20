@@ -31,6 +31,8 @@ export type WorkspaceRootEvents = {
  */
 export class WorkspaceRoot extends WorkspaceSplit {
 
+  mount() { this.registry.load() }
+
   private registry = new Component()
 
   constructor(
@@ -224,7 +226,7 @@ export class WorkspaceRoot extends WorkspaceSplit {
       setEditingTabs(null)
     }
 
-    setTimeout(() => this.registry.load())
+
 
   }
 }

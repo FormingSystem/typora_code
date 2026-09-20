@@ -160,7 +160,7 @@
       "path": "src/runtime.ts",
       "upstream_path": null,
       "upstream_sha256": null,
-      "sha256": "68504ca332953a21bd6e46c91efbf60e9a2a1f6525048499a3df21cd3d892f90"
+      "sha256": "cf7c3dadb16f67c0bf997b0f39878d29d068b1e2c3cc2b9541411844a0be45b0"
     },
     {
       "path": "src/settings/settings.ts",
@@ -518,7 +518,7 @@
       "path": "src/ui/layout/workspace-root.ts",
       "upstream_path": "src/ui/layout/workspace-root.ts",
       "upstream_sha256": "a841ebc71c3e22ba6a7a60c29bbf8f222645ca3d1e0a6af956885ae3726983c5",
-      "sha256": "a3ecc885ad0c5c70d59baeea8de64d629ef9a6a3addf59b2c6f7a7f105d86fb3"
+      "sha256": "f426b486b7bf047d106afaf768a28754304042c4ffc1b353f127d473aaca4117"
     },
     {
       "path": "src/ui/layout/workspace-utils.ts",
@@ -710,7 +710,7 @@
       "path": "src/ui/sidebar/sidebar.ts",
       "upstream_path": "src/ui/sidebar/sidebar.ts",
       "upstream_sha256": "70be8cafb4894ad0c38a55049e19f33bc79e0d7046b9210826b782dc2b17f99e",
-      "sha256": "cd7e7eed8d2c35c910df97fa336306584b91875479c894cacfd3589e5828b773"
+      "sha256": "4a17327fcace2cc8ae2d09eeda9e9cdbf61a96eb83da4d613ed5159c548f9c44"
     },
     {
       "path": "src/ui/statusbar/statistics.scss",
@@ -812,7 +812,7 @@
       "path": "src/ui/workspace.ts",
       "upstream_path": "src/ui/workspace.ts",
       "upstream_sha256": "8ee29e6b75eede49f442abe89dfcdbe6a5236f5b1fcb2c2d373cb9db89a61842",
-      "sha256": "1ed4e4a77a8028f672836958294a7c8c5245e77878d090d5a3e8d82771d4f9e1"
+      "sha256": "72ffdaf88b277d0d47b4e457b52d588c8d772becc31c8ba23dd9c4ebba745fd1"
     },
     {
       "path": "src/utils/decorator/debounced.ts",

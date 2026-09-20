@@ -27,15 +27,18 @@ export class Sidebar extends Component {
   private panels: SidebarPanel[] = []
 
   constructor(
-    internalPanels: () => SidebarPanel[],
+    private readonly panel_factory: () => SidebarPanel[],
     private ribbon = useService('ribbon'),
   ) {
     super()
 
-    setTimeout(() => {
-      this.internalPanels = internalPanels()
-      this.internalPanels.forEach(view => this.addPanel(view))
-    }, 1)
+
+  }
+
+  mount() {
+    if (this.internalPanels.length) return
+    this.internalPanels = this.panel_factory()
+    this.internalPanels.forEach(view => this.addPanel(view))
   }
 
   addPanel(panel: SidebarPanel): DisposeFunc {

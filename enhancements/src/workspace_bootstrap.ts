@@ -54,20 +54,11 @@ export async function initialize_workspace(signal?: AbortSignal) {
   signal?.throwIfAborted();
   const app = core.app;
   if (!app) throw new Error("Typora Code workspace did not initialize.");
-  const started = Date.now();
-  const wait_ready = async (ready: () => boolean) => {
-    while (!ready()) {
-      signal?.throwIfAborted();
-      if (Date.now() - started > 15000) throw new Error("Typora workspace initialization timed out.");
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    }
-    signal?.throwIfAborted();
-  };
-  await wait_ready(() => Boolean(app.settings));
+  if (!app.settings || !app.workspace?.rootSplit?.containerEl?.isConnected) throw new Error("Typora Code ready contract is incomplete.");
   for (const [key, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
     if (app.settings.get(key) !== value) app.settings.set(key, value);
   }
-  await wait_ready(() => Boolean(app.workspace?.rootSplit?.containerEl?.isConnected));
+
 
   // 核心启动时尚未设置 activePanel，原生侧栏却可能已显示文件或大纲。
   // 点击前按实际面板校正状态，再由核心 switch 执行同项收起、异项切换。

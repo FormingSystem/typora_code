@@ -1,0 +1,28 @@
+{
+  "requirements": [
+    "R056"
+  ],
+  "release": "2026.09.20.5",
+  "reports": [
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-52-04-575Z_54244a/report.json",
+      "sha256": "65265620aa65a7920869801d329f5e37ba6a7cb9415a8e9d047e4f9d4fdaf158"
+    },
+    {
+      "path": ".cache/issue_tracking/runs/2026-09-20T00-52-11-696Z_bc2ced/report.json",
+      "sha256": "cebe0a3f537d1b10e19c83dd9bcbf767423334a9980fa09310c0406e203dc686"
+    }
+  ],
+  "checks": [
+    "完整check通过",
+    "核心/首帧/切库UI通过",
+    "原始宿主20/100/1000次幂等挂载节点不增不换",
+    "原始宿主20次面板切换与正常退出再开恢复通过"
+  ],
+  "installation": "27资产一致；5保护项不变；check OK",
+  "limitations": [
+    "显式挂载已实施，静态模板前置尚未实施",
+    "未重启用户窗口；未推送",
+    "实际官方升级和其他宿主版本未实测"
+  ]
+}

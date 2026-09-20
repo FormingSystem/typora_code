@@ -4657,7 +4657,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R054"
+        "R054",
+        "R056"
       ],
       "design": "docs/startup_stability.md",
       "implementation": [
@@ -4666,7 +4667,10 @@
         "enhancements/runtime_head.html",
         "enhancements/src/workspace_entry.css",
         "enhancements/fixtures/startup_timing_probe.js",
-        "enhancements/fixtures/startup_stability_native.js"
+        "enhancements/fixtures/startup_stability_native.js",
+        "enhancements/vendor/workspace_core/src/runtime.ts",
+        "enhancements/vendor/workspace_core/src/ui/workspace.ts",
+        "enhancements/vendor/workspace_core/src/ui/layout/workspace-root.ts"
       ],
       "related_modules": [
         "startup",
@@ -4680,7 +4684,8 @@
       "environment": "Node / Electron / Typora 1.14.10 按脚本边界隔离",
       "preconditions": "固定候选；原生层需要 TYPORA_NATIVE_TEST_ROOT；仅临时仓库",
       "steps": [
-        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复"
+        "执行真实生命周期，检查中间状态、宿主调用、重复挂载和错误恢复",
+        "20/100/1000次幂等挂载保持原节点和数量"
       ],
       "expected": [
         "全部断言通过，过程样本与耗时保留，不以最终截图替代时序证据"
