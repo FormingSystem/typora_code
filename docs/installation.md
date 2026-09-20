@@ -138,7 +138,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1
 
 **Windows 卸载增强：**保存文档并退出 Typora，双击根目录 `uninstall_windows.cmd`。它自动发现当前用户默认备份目录中的有效安装前备份；唯一候选直接使用，多个候选显示时间、安装位置和备份路径，输入编号选择，直接按 Enter 或输入 Q 取消。结果窗口保留供查看。
 
-`uninstall` 会排除更新备份，并使用原有恢复事务完成卸载。目标 Typora 仍在运行时会停止并提示退出，不会关闭进程。没有有效备份时会报错，不会把最近一次更新备份当作卸载来源，也不会删除整个用户数据目录。需要限定安装位置、自定义备份位置或用于自动化时，在包根目录运行：
+`uninstall` 会排除更新备份，并使用原有恢复事务完成卸载。目标 Typora 仍在运行时会停止并提示退出，不会关闭进程。没有兼容的安装前备份时（例如旧schema备份、Typora已经升级），会先备份当前启动页，再只移除TyporaCode自己的加载入口，保留当前宿主版本、主题、偏好、插件包及配置。不会把更新备份当作卸载来源，也不会删除整个用户数据目录；无法确认入口完整性时仍拒绝修改。需要限定安装位置、自定义备份位置或用于自动化时，在包根目录运行：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -non_interactive
@@ -146,7 +146,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -typ
 powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -backup_root '<安装前完整备份目录>' -non_interactive
 ```
 
-以上为三种独立用法。`-non_interactive` 遇到缺失或多个候选直接失败，不等待输入；加 `-Verbose` 可查看备份被跳过的原因。CMD 也接受相同参数。卸载保留 Typora 本体、文档、用户设置、阅读记录与备份；最初从旧插件迁入的环境会恢复该备份中的旧插件。
+以上为三种独立用法。`-non_interactive` 遇到无法确定安装位置或多个备份候选直接失败，不等待输入；加 `-Verbose` 可查看备份被跳过的原因。CMD 也接受相同参数。卸载保留 Typora 本体、文档、用户设置、阅读记录与备份；最初从旧插件迁入的环境会恢复该备份中的旧插件。
 
 **回退增强版本，或在 Linux / UCRT64 手动恢复：**继续使用 `restore`，显式指定所选备份。
 
@@ -172,7 +172,15 @@ bash ./restore.sh --backup-root '<所选备份目录>'
 
 恢复成功后重新打开 Typora；如果卸载移除了当前主题，在“主题”菜单选择一个原生或自己保留的主题。此时增强安装检查出现缺失是预期结果，不能再次运行 install 作为“卸载验证”。检查原生菜单、编辑和自己的文档是否正常。
 
-**备份丢失：**无法保证还原安装前的同名主题、旧插件或原窗口字段。可用 Typora 官方同版本安装包修复宿主文件、恢复原生启动，再选择原生主题；这只能撤除入口，不能重建丢失的原配置。保留用户数据和文档，避免整目录删除。
+**备份丢失：**无法保证还原安装前的同名主题、旧插件或原窗口字段。新版卸载可先备份并撤销当前完整的工作台入口；若入口损坏而不能安全识别，再用 Typora 官方同版本安装包修复宿主文件、恢复原生启动，随后选择原生主题。两种方式都不能重建丢失的原配置。保留用户数据和文档，避免整目录删除。
+
+可先运行只读预检，不必退出Typora：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -check_only -non_interactive
+```
+
+预检显示 `restore`（有效安装前备份）、`detach`（移除当前入口）或 `absent`（已无工作台入口）。实际卸载仍需先保存并退出。每次实际运行生成用户数据目录 `logs/installation/uninstall-*.log`；移除入口前的备份在 `backups/typora_code_uninstall/`，保存原始启动页及事务摘要。权限不足时会指出安装目录并说明需要以管理员运行的原因。卸载保留的主题可在Typora主题菜单切换；它不代表增强仍在加载。
 
 ## 常见问题
 

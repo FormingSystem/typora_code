@@ -17,9 +17,7 @@ try {
 start_typora_install_step $install_log 1 '检查安装环境'
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
 # 手工安装与后台更新共享互斥，避免备份和回滚交错；进程退出自动释放。
-$hash_provider=[Security.Cryptography.SHA256]::Create()
-try {$lock_key=[BitConverter]::ToString($hash_provider.ComputeHash([Text.Encoding]::UTF8.GetBytes($user_data.ToLowerInvariant()))).Replace('-','')} finally {$hash_provider.Dispose()}
-$install_mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeInstall_'+$lock_key))
+$install_mutex=new_typora_install_mutex $user_data
 try {$owns_mutex=$install_mutex.WaitOne(0)} catch [Threading.AbandonedMutexException] {$owns_mutex=$true}
 if(!$owns_mutex){throw 'Another Typora Code installation is running. Retry after it finishes.'}
 write_typora_install_log $install_log INFO ('安装位置：' + $typora_root)

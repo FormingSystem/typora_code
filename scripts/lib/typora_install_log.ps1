@@ -1,8 +1,8 @@
 ﻿# 安装日志只使用信息流，不混入安装函数返回值；每次安装持有独立上下文。
 function new_typora_install_log {
-    param([string]$user_data)
+    param([string]$user_data, [ValidateSet('install','uninstall')][string]$operation='install')
     $log = [pscustomobject]@{path='';clock=[Diagnostics.Stopwatch]::StartNew();step_clock=$null;step='';total=6}
-    $filename = 'install-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N') + '.log'
+    $filename = $operation + '-' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N') + '.log'
     $directories = @((Join-Path $user_data 'logs/installation'), (Join-Path ([IO.Path]::GetTempPath()) 'TyporaCode/install_logs'))
     foreach ($directory in $directories) {
         try {
@@ -12,7 +12,7 @@ function new_typora_install_log {
             break
         } catch { $log.path = '' }
     }
-    write_typora_install_log $log INFO 'Typora Code | 安装程序'
+    write_typora_install_log $log INFO $(if ($operation -eq 'install') { 'Typora Code | 安装程序' } else { 'Typora Code | uninstall' })
     if ($log.path) { write_typora_install_log $log INFO ('Log: ' + $log.path) }
     else { write_typora_install_log $log WARN '无法保存日志文件，本次过程仍会在此窗口显示。' }
     return $log

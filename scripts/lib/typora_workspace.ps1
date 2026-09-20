@@ -233,6 +233,14 @@ function assert_typora_record_scope {
     }
 }
 
+function new_typora_install_mutex {
+    param([string]$user_data)
+    $hash_provider = [Security.Cryptography.SHA256]::Create()
+    try { $lock_key = [BitConverter]::ToString($hash_provider.ComputeHash([Text.Encoding]::UTF8.GetBytes(([IO.Path]::GetFullPath($user_data)).ToLowerInvariant()))).Replace('-','') }
+    finally { $hash_provider.Dispose() }
+    return [Threading.Mutex]::new($false, ('Local\TyporaCodeInstall_' + $lock_key))
+}
+
 function get_typora_restore_context {
     param([string]$backup_root)
     $backup_root = (Resolve-Path -LiteralPath $backup_root).Path

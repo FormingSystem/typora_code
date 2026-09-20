@@ -1803,7 +1803,9 @@
       "design": "docs/installation_design.md",
       "implementation": [
         "uninstall_windows.ps1",
-        "scripts/lib/typora_workspace.ps1"
+        "scripts/lib/typora_workspace.ps1",
+        "scripts/lib/typora_uninstall.ps1",
+        "scripts/lib/typora_install_log.ps1"
       ],
       "related_modules": [
         "runtime",
@@ -1815,7 +1817,9 @@
       "environment": "平台集成夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "Windows PowerShell 5.1真实CMD执行完整备份恢复及旧schema备份/新宿主当前入口移除",
+        "预检零写入、损坏入口拒绝、并发变化/安装互斥、验证失败回滚、重复卸载",
+        "核对BOM及标记外字节、文档/偏好/插件配置保持，日志及事务备份可追溯"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"

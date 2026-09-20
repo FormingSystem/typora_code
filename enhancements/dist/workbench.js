@@ -239791,6 +239791,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092017,
+        version: "2026.09.20.17",
+        date: "2026-09-20",
+        notes: [
+          "\u4FEE\u590D\u65E7\u5B89\u88C5\u5907\u4EFD\u6216Typora\u5347\u7EA7\u540E\u5378\u8F7D\u5931\u8D25\uFF1A\u5B89\u5168\u79FB\u9664\u5F53\u524D\u52A0\u8F7D\u5165\u53E3\uFF0C\u4FDD\u7559\u5BBF\u4E3B\u7248\u672C\u548C\u4E2A\u4EBA\u914D\u7F6E\uFF1B\u589E\u52A0\u53EA\u8BFB\u9884\u68C0\u3001\u5907\u4EFD\u53CA\u9519\u8BEF\u65E5\u5FD7\u3002"
+        ]
+      },
+      {
         sequence: 2026092016,
         version: "2026.09.20.16",
         date: "2026-09-20",

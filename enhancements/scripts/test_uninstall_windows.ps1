@@ -52,7 +52,7 @@ function new_backup([string]$directory, [string]$installation, [bool]$update=$fa
     write_fixture (Join-Path $directory 'manifest.json') ($manifest | ConvertTo-Json -Depth 20)
 }
 function snapshot {
-    return (@(Get-ChildItem -LiteralPath $test_root -Recurse -Force | Sort-Object FullName | ForEach-Object {
+    return (@(Get-ChildItem -LiteralPath $test_root -Recurse -Force | Where-Object { $_.FullName -notmatch '\\Typora\\logs(?:\\|$)' } | Sort-Object FullName | ForEach-Object {
         if ($_.PSIsContainer) { 'D:' + $_.FullName }
         else { 'F:' + $_.FullName + ':' + (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash }
     }) -join "`n")
@@ -84,7 +84,7 @@ try {
     # 复制入口和事务到含空格、方括号的独立包；不读取或修改真实 APPDATA。
     foreach ($relative in @('uninstall_windows.cmd','uninstall_windows.ps1','restore_windows.ps1',
         'scripts/restore_workspace_windows.ps1','scripts/lib/typora_environment.ps1','scripts/lib/typora_workspace.ps1',
-        'scripts/lib/typora_uninstall.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
+        'scripts/lib/typora_uninstall.ps1','scripts/lib/typora_install_log.ps1','scripts/lib/typora_install_permissions.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
         $destination = Join-Path $package_root $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination
@@ -200,6 +200,72 @@ try {
     assert_equal ([IO.File]::ReadAllText($profile)) (profile_text $false 'later preference') 'Native preference restore lost later preferences'
     assert_equal (Test-Path -LiteralPath $manifest_path) $true 'Original backup was deleted'
     assert_equal ([IO.File]::ReadAllText((Join-Path $other_installation 'resources/window.html'))) $installed 'Another installation was changed'
+
+    # 历史schema 3备份来自旧宿主；只撤销当前入口，不恢复旧宿主、主题或插件。
+    $upgraded = Join-Path $test_root 'upgraded Typora [current]'
+    $old_backup = Join-Path $backups 'legacy schema 3'
+    new_backup $old_backup $upgraded
+    $legacy_path = Join-Path $old_backup 'manifest.json'
+    $legacy = [IO.File]::ReadAllText($legacy_path) | ConvertFrom-Json
+    $legacy.schema_version = 3
+    $legacy.PSObject.Properties.Remove('native_profile')
+    write_fixture $legacy_path ($legacy | ConvertTo-Json -Depth 20)
+    $upgraded_window = Join-Path $upgraded 'resources/window.html'
+    $block = '<!-- typora-code:begin -->' + (($product_names | ForEach-Object { '<script src="typora://app/userData/typora_code/' + $_ + '"></script>' }) -join '') + '<!-- typora-code:end -->'
+    $native = [char]0xfeff + "<html>`r`n<head><title>new host 49b5981e</title><script src='other-plugin.js'></script></head>`r`n<body>keep</body></html>"
+    $current = $native.Replace('</head>', $block + '</head>')
+    write_fixture $upgraded_window $current
+    $before = snapshot
+    $preflight = run_cmd ('-typora_root "' + $upgraded + '" -non_interactive -check_only')
+    assert_equal $preflight.code 0 'Legacy/updated host preflight failed'
+    assert_equal ($preflight.output.Contains('Uninstall plan: detach')) $true 'Preflight did not choose current entry'
+    assert_equal (snapshot) $before 'Read-only preflight wrote files'
+    . (Join-Path $package_root 'scripts/lib/typora_install_permissions.ps1')
+    $context = get_typora_current_uninstall_context $upgraded
+    write_fixture $upgraded_window ($current + 'external change')
+    assert_rejected { invoke_typora_current_uninstall $context $user_data } 'changed during uninstall preparation'
+    assert_equal ([IO.File]::ReadAllText($upgraded_window)) ($current.TrimStart([char]0xfeff) + 'external change') 'Concurrent change was overwritten'
+    write_fixture $upgraded_window $current
+    $original_reader = $function:get_typora_current_uninstall_context
+    $context = get_typora_current_uninstall_context $upgraded
+    function get_typora_current_uninstall_context { throw 'Injected post-write verification failure' }
+    try { assert_rejected { invoke_typora_current_uninstall $context $user_data } 'Injected post-write' }
+    finally { $function:get_typora_current_uninstall_context = $original_reader }
+    assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes($upgraded_window))) ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($current))) 'Rollback did not restore original bytes and BOM'
+    foreach ($bad in @($current.Replace('workspace_core.js','unknown.js'), $current.Replace($block,$block+$block), $current.Replace('</head>','</head>'+ '<script src="typora://app/userData/typora_code/workbench.js"></script>'), $current.Replace('<!-- typora-code:end -->',''), $current.Replace($block,'').Replace('</body>',$block+'</body>'))) {
+        write_fixture $upgraded_window $bad
+        assert_rejected { get_typora_current_uninstall_context $upgraded } 'Incomplete|duplicate|outside'
+    }
+    [IO.File]::WriteAllBytes($upgraded_window, [byte[]]@(0xff,0xfe,0xff))
+    assert_rejected { get_typora_current_uninstall_context $upgraded } 'Unable to translate|转换|轉換'
+    write_fixture $upgraded_window $current
+    [IO.File]::SetAttributes($upgraded_window, [IO.FileAttributes]::ReadOnly)
+    try { assert_rejected { invoke_typora_current_uninstall (get_typora_current_uninstall_context $upgraded) $user_data } '只读' }
+    finally { [IO.File]::SetAttributes($upgraded_window, [IO.FileAttributes]::Normal) }
+    $mutex = new_typora_install_mutex $user_data
+    $null = $mutex.WaitOne(0)
+    try {
+        $blocked = run_cmd ('-typora_root "' + $upgraded + '" -non_interactive')
+        assert_equal $blocked.code 1 'Concurrent installer did not block uninstall'
+        assert_equal ($blocked.output.Contains('Another Typora Code installation')) $true 'Missing lock reason'
+    } finally { $mutex.ReleaseMutex(); $mutex.Dispose() }
+    $before_settings = [IO.File]::ReadAllText($settings)
+    $before_profile = [IO.File]::ReadAllText($profile)
+    $env:TYPORA_TERMINAL_CACHE = Join-Path $test_root 'unused offline cache'
+    $success = run_cmd ('-typora_root "' + $upgraded + '" -non_interactive')
+    assert_equal $success.code 0 ('Current host detach failed: ' + $success.error)
+    assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes($upgraded_window))) ([Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($native))) 'Host bytes outside entry changed'
+    assert_equal ([IO.File]::ReadAllText($settings)) $before_settings 'Detach changed workspace settings'
+    assert_equal ([IO.File]::ReadAllText($profile)) $before_profile 'Detach guessed legacy native preferences'
+    assert_equal (Test-Path -LiteralPath $env:TYPORA_TERMINAL_CACHE) $false 'Detach unnecessarily downloaded Node'
+    assert_equal ([IO.File]::ReadAllText($document, [Text.Encoding]::UTF8)) '# 中文文档保持原字节' 'Detach changed document'
+    $again = run_cmd ('-typora_root "' + $upgraded + '" -non_interactive')
+    assert_equal $again.code 0 'Repeated detach failed'
+    assert_equal ($again.output.Contains('already detached')) $true 'Repeated detach was not idempotent'
+    $receipts = @(Get-ChildItem -LiteralPath (Join-Path $user_data 'backups/typora_code_uninstall') -Filter uninstall.json -Recurse | ForEach-Object { [IO.File]::ReadAllText($_.FullName) | ConvertFrom-Json })
+    assert_equal (@($receipts | Where-Object status -eq complete).Count) 1 'Completed detach receipt missing'
+    assert_equal (@($receipts | Where-Object status -eq failed).Count) 1 'Rollback receipt missing'
+    assert_equal (@(Get-ChildItem -LiteralPath (Join-Path $user_data 'logs/installation') -Filter 'uninstall-*.log').Count -gt 0) $true 'Uninstall logs missing'
     $passed = $true
     Write-Host "Windows uninstall: $script:checks assertions passed (isolated CMD and PowerShell restore)."
 } finally {

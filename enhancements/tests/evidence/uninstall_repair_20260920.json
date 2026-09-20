@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R025"
+  ],
+  "release": "2026.09.20.17",
+  "diagnosis": {
+    "before_fix_backup_count": 87,
+    "schema_3_rejected": 6,
+    "update_backups_rejected": 79,
+    "missing_manifest": 1,
+    "valid_candidates": 0,
+    "original_host_release": "be82b3a0",
+    "current_host_release": "49b5981e"
+  },
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "windows_uninstall_assertions": 65,
+    "windows_install_restore": "PASS",
+    "install_logging": "PASS",
+    "live_readonly_plan": "detach",
+    "ui": "not run; no UI layout or runtime logic changed"
+  },
+  "logs": [
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_build.log",
+      "sha256": "33294480a2db79f5ea1a5a9822e2df8d09c60bc0fb54b658ce36bda3623ddd35"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_check.log",
+      "sha256": "43fb99b29dfb26242b32d0c2d9c30033574e7784fcf9a113ed8c22453ef6296a"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_install_test.log",
+      "sha256": "b1aa8db7f831852ebbc492e5870f13313cc7cbeb1ad66133c3f0dcc3f7538836"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_logging.log",
+      "sha256": "cf6714c119eb5683293c1de431bd85831f80254309355f92073fcccdcd813552"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_complete_retry.log",
+      "sha256": "f3b3900b11d0cf3c91b4566d73f452eb23de7ae56d05e6bec7fcdf798a14e1ab"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_live_preflight.log",
+      "sha256": "d3ad9b38b0b0ef80f747519b8fee6ca9eebc6968135dbb55287c348c25952e26"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_install.log",
+      "sha256": "cf622444daf863e74ed89329ccc2fdd74d7e489e24063be39e657612435943aa"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  ],
+  "failure_evidence": [
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_first.log",
+      "sha256": "3ac875115698ce1dbf6b19eba0b65023cdf7f652a9b3016280dceb4c0fc4d774"
+    },
+    {
+      "path": ".cache/issue_tracking/uninstall_repair_complete.log",
+      "sha256": "8b94641d0d9e6c4bc9a99a0d127a4911437a06a92d78244a0a11bf89c397a273"
+    }
+  ],
+  "failures": [
+    "PowerShell 5.1将File.Replace的$null传为非法空路径，改为NullString.Value后通过",
+    "一次原子替换出现临时I/O拒绝，记录失败且保留原启动页；同一隔离环境重试成功，完整65项复跑通过，未绕过原子替换保护"
+  ],
+  "installation": {
+    "status": "OK",
+    "assets_matched": 29,
+    "asset_manifest_sha256": "84eee5b80a9d97d03d0fc21e1c080a419281c29916c777635e999af99e3c6add",
+    "protected_unchanged": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "user_environment_uninstalled": false,
+    "user_windows_restarted": false
+  },
+  "limits": [
+    "真实用户环境只做只读卸载预检，不自动卸载",
+    "无兼容原始备份时保留主题、原生偏好、插件配置和运行资源缓存，只撤销加载入口",
+    "无法识别完整入口、宿主运行中、只读/权限/占用均失败，不通过删除用户目录或覆盖旧宿主解决",
+    "旧启动性能、跨平台及真实跨账户UAC缺口未在本轮关闭"
+  ]
+}
