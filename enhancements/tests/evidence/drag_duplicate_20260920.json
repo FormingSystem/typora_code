@@ -1,0 +1,213 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R005",
+    "R005.3"
+  ],
+  "release": "2026.09.20.21",
+  "status": "PASS",
+  "root_cause": "receive_transfer按同一路径无条件拒绝，未比较目标实际内存正文与保存格式。",
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS on final serial run; earlier failures retained below",
+    "catalog_suites": 162,
+    "document_transfer_cases": 46,
+    "detached_controller_cases": 26,
+    "transfer_stress_rounds": [
+      20,
+      100,
+      1000
+    ],
+    "cancelled_transfer_rounds": 2000,
+    "native_rounds": 80,
+    "native_existing_target_rounds": 40,
+    "native_empty_target_rounds": 40,
+    "native_cases": {
+      "source_saved": 20,
+      "source_dirty": 20,
+      "markdown_saved": 20,
+      "markdown_dirty": 20
+    },
+    "target_editor_and_undo_identity_retained": true,
+    "source_disk_unchanged": true,
+    "unexpected_modals": 0,
+    "unexpected_notices": 0,
+    "empty_auxiliary_renderer_exited": true
+  },
+  "performance": {
+    "rounds_ms": [
+      840.6999999880791,
+      895.3000000119209,
+      868,
+      847,
+      804.1999999880791,
+      828.3999999761581,
+      811.5,
+      844.7000000178814,
+      815.1999999880791,
+      841.8999999761581,
+      850.4000000059605,
+      801.4000000059605,
+      847.9000000059605,
+      894.4000000059605,
+      859.5,
+      894.7999999821186,
+      846.0999999940395,
+      845.9000000059605,
+      806.3000000119209,
+      861.5999999940395,
+      830.4000000059605,
+      898.6999999880791,
+      869.7999999821186,
+      866.3000000119209,
+      851.5,
+      903.5999999940395,
+      911.5,
+      893.9000000059605,
+      875.4000000059605,
+      842.4000000059605,
+      872.2000000178814,
+      924.6999999880791,
+      864.7999999821186,
+      878,
+      815.4000000059605,
+      895.6000000238419,
+      866.7999999821186,
+      864.3000000119209,
+      851.2999999821186,
+      833.5999999940395,
+      1466.5,
+      1494,
+      1487.0999999940395,
+      1490.5999999940395,
+      1522.699999988079,
+      1485.2999999821186,
+      1519.699999988079,
+      1514.6000000238419,
+      1461.800000011921,
+      1486.9000000059605,
+      1515.800000011921,
+      1503.5999999940395,
+      1487.0999999940395,
+      1489.699999988079,
+      1512,
+      1492.4000000059605,
+      1458.4000000059605,
+      1503.0999999940395,
+      1418.800000011921,
+      1542.4000000059605,
+      1550,
+      1517.5999999940395,
+      1549.800000011921,
+      1533.800000011921,
+      1473.0999999940395,
+      1527,
+      1532.199999988079,
+      1500.5,
+      1556.9000000059605,
+      1536.4000000059605,
+      1548.300000011921,
+      1526.4000000059605,
+      1495.199999988079,
+      1561.699999988079,
+      1558.1000000238419,
+      1551.699999988079,
+      1531.5,
+      1587.0999999940395,
+      1472.2999999821186,
+      1527.5999999940395
+    ],
+    "max_round_ms": 1587.0999999940395,
+    "meaning": "完整建窗、双向移交及空附窗退出，含轮询和IPC；不代表主线程阻塞或纯比较耗时。"
+  },
+  "failures_preserved": [
+    {
+      "path": ".cache/issue_tracking/native/c45753bb03774713bc6ce7c3f5a28269",
+      "result": "夹具准备重复目标时，前一次移出触发的原生Markdown切换未结束，open_file失败。夹具等实际宿主状态就绪后再准备，未改产品打开行为。"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_ui_final.log",
+      "result": "新增多组用例误把同文件共享模型当独立草稿；改断言核对两个视图共享且保留不同于来源的新内容，最终46项通过。该日志中的detached套件独立通过。"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_check.log",
+      "result": "文本另存后再次保存遇到EPERM；独立文本复跑通过。"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_check_verified.log",
+      "result": "会话记录rename遇到EPERM；既有Windows临时占用原因仍未确认，最终完整串行检查通过，不代表已修复。"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_document_ui.log",
+      "result": "早期夹具eval字符串换行转义错误，已修正；另一次异步门闩拦截所有读取而等待，改为仅拦首次读取。没有据此放宽产品保护。"
+    }
+  ],
+  "evidence": [
+    {
+      "path": ".cache/issue_tracking/duplicate_build.log",
+      "sha256": "8dab642a66fbb1def86008ace5b727b6e546a51e01a46cc69839717f70f7f945"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_check_serial.log",
+      "sha256": "9a4047c8bfe114cca712a034b0bf6865cc92512f845f7ccef52a465a65d9040e"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_document_ui_verified.log",
+      "sha256": "8fff6104b578c68e9d2b6620784a02aed8a2d0275a85e67dafecfd5e68aa9b40"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_ui_final.log",
+      "sha256": "e1b8ccc0ced3b6e73662c38272e0eb270de45e048ddf00a6eb8647aef7d3f99d"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_native_final.log",
+      "sha256": "e0e6aaa6f2813d1525af65addeaf985ef894737b91588bc7a5a3634c7a9acf50"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_install.log",
+      "sha256": "6f0f7c2296a123c142bfa86f9d305e1ab712ce6c063ed6375818bd0f67994136"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_installed_check.log",
+      "sha256": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    },
+    {
+      "path": ".cache/issue_tracking/duplicate_install_verification.json",
+      "sha256": "18655e90e5b196a0982844728beebc7c5e4425c9a9bef031f335b0806e37dcf5"
+    },
+    {
+      "path": ".cache/issue_tracking/native/81540ed1ac264d1fbd31c04b57a69a5d/checks.json",
+      "sha256": "1ddaf60ffc68c954c1a4e8b3f4a84b49d4a348e8db5de0b6b63e532ac9a82b17"
+    },
+    {
+      "path": ".cache/issue_tracking/native/81540ed1ac264d1fbd31c04b57a69a5d/setup.json",
+      "sha256": "4330362714008727fe3ff88706b70bfc265152af412ae5cbd3b56c9dffbb5a21"
+    }
+  ],
+  "candidate": {
+    "workbench_sha256": "b842ee77192a805278f4a1229f342fd4f671ce09bab7d9fcf28094b57ee33f95",
+    "manifest_sha256": "b3c72487282174889bf6bf31205123befc3c7474a94c94b69cee7c3e5f82782f",
+    "native_tested_bytes_match_installed": true
+  },
+  "installation": {
+    "protected_unchanged": {
+      "asar": true,
+      "icon": true,
+      "profile": true,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "assets_matched": 29,
+    "native_candidate_matches_installed": true,
+    "release": "2026.09.20.21",
+    "user_windows_restarted": false,
+    "check": "OK"
+  },
+  "limits": [
+    "Windows Typora 1.14.10独立副本、私有桌面，renderer事件驱动实际窗口；物理鼠标跨屏输入尚未实测。",
+    "相同文件复用目标撤销历史；新接收的跨进程文档仍不迁移来源完整撤销栈。",
+    "时间线记录已保存版本，不保证恢复每次未保存输入；实际差异保留双方，不自动选新覆盖。",
+    "保留既有整窗批量合并、正文边缘自动拆组、平台及启动性能边界；EPERM根因未决，不属于本次已修复范围。"
+  ]
+}

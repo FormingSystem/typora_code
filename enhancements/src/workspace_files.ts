@@ -813,6 +813,45 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const target_root=context_root(),target_group=target?.group as graph_leaf["parent"]&{insertChild?(index:number,leaf:graph_leaf):void};
     const target_children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target_group)target_children.push(leaf);});
     if(!target_group||typeof target_group.insertChild!=="function"||!target_children.length||!Number.isInteger(target.index)||target.index<0||target.index>target_children.length)throw new Error("接收编辑组或标签插入位置无效，请重新拖动。");
+    const existing:graph_leaf[]=[];
+    core.app.workspace.eachLeaves(leaf=>{if(file_key(real_path(leaf))===file_key(snapshot.file_path))existing.push(leaf);});
+    if(existing.length){
+      const epoch=workspace_context_epoch(),stable_targets:(()=>boolean)[]=[];
+      const conflict=()=>new Error("同一文件的内容或保存格式不同，已保留两个窗口中的文档，请先比较或保存需要的版本。");
+      const same_document=(current:workspace_document_snapshot)=>{
+        if(current.kind!==snapshot.kind||current.disk_sha256!==snapshot.disk_sha256)return false;
+        if(snapshot.kind==="markdown")return normalized_transfer_text(current.text)===normalized_transfer_text(snapshot.text)
+          &&normalized_transfer_text(current.markdown_baseline||"")===normalized_transfer_text(snapshot.markdown_baseline||"");
+        const format=(value:workspace_transfer_format|undefined)=>value&&[value.encoding,value.bom,value.eol];
+        return current.text===snapshot.text&&current.source_baseline===snapshot.source_baseline&&current.source_model_eol===snapshot.source_model_eol
+          &&JSON.stringify(format(current.source_format))===JSON.stringify(format(snapshot.source_format))
+          &&JSON.stringify(format(current.source_baseline_format))===JSON.stringify(format(snapshot.source_baseline_format));
+      };
+      const validate_existing=()=>{
+        transfer_guard(signal);
+        if(context_root()!==target_root||epoch!==workspace_context_epoch()||workspace_context_switching()||existing.some(leaf=>!transfer_present(leaf)||file_key(real_path(leaf))!==file_key(snapshot.file_path)))throw new Error("接收编辑组或工作区已改变，请重新拖动。");
+        if(stable_targets.some(stable=>!stable()))throw new Error("目标文档在比较期间发生变化，已保留两个窗口中的文档。");
+      };
+      for(const leaf of existing){
+        const current=await collect_transfer(leaf,signal);validate_existing();
+        if(!same_document(current))throw conflict();
+        const source=[...views].find(view=>view.leaf===leaf&&!view.disposed);
+        if(source){
+          const model=source.editor!.models[0],version=model.getAlternativeVersionId(),format=source.format_key(),baseline=source.format!.text,saved=source.saved_format;
+          stable_targets.push(()=>!source.disposed&&source.editor?.models[0]===model&&model.getAlternativeVersionId()===version&&source.format_key()===format&&source.format?.text===baseline&&source.saved_format===saved);
+        }
+      }
+      const leaf=existing.find(item=>item===core.app.workspace.activeLeaf)||existing[0];
+      // 复用现有模型和撤销历史；不能用接收到的文本重载目标。
+      if(snapshot.kind==="markdown"&&file_key(runtime.File?.bundle?.filePath||"")!==file_key(snapshot.file_path)){
+        if(runtime.File?.changeCounter?.isDocumentEdited())throw new Error("目标窗口当前有另一份未保存的Markdown草稿，已保留文档，请先处理该草稿。");
+        core.app.workspace.activeLeaf=leaf;await navigate_reading_target(snapshot.file_path,{signal});
+      }else if(core.app.workspace.activeLeaf!==leaf)core.app.workspace.activeLeaf=leaf;
+      validate_existing();
+      // 激活原生文档可能继承宿主共享草稿，激活完成后再次核对，才允许来源关闭。
+      for(const item of existing){const current=await collect_transfer(item,signal);validate_existing();if(!same_document(current))throw conflict();}
+      keep_open(leaf);return leaf;
+    }
     const native_before={path:runtime.File?.bundle?.filePath||"",dirty:Boolean(runtime.File?.changeCounter?.isDocumentEdited()),text:native_transfer_text()};
     const check_destination=(received?:graph_leaf)=>{
       transfer_guard(signal);let present=false,duplicate=false;const children:graph_leaf[]=[];

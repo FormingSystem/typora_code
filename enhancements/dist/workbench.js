@@ -183247,6 +183247,49 @@ https://creativecommons.org/licenses/by/4.0/
         if (leaf2.parent === target_group) target_children.push(leaf2);
       });
       if (!target_group || typeof target_group.insertChild !== "function" || !target_children.length || !Number.isInteger(target.index) || target.index < 0 || target.index > target_children.length) throw new Error("\u63A5\u6536\u7F16\u8F91\u7EC4\u6216\u6807\u7B7E\u63D2\u5165\u4F4D\u7F6E\u65E0\u6548\uFF0C\u8BF7\u91CD\u65B0\u62D6\u52A8\u3002");
+      const existing = [];
+      core.app.workspace.eachLeaves((leaf2) => {
+        if (file_key(real_path(leaf2)) === file_key(snapshot.file_path)) existing.push(leaf2);
+      });
+      if (existing.length) {
+        const epoch2 = workspace_context_epoch(), stable_targets = [];
+        const conflict2 = () => new Error("\u540C\u4E00\u6587\u4EF6\u7684\u5185\u5BB9\u6216\u4FDD\u5B58\u683C\u5F0F\u4E0D\u540C\uFF0C\u5DF2\u4FDD\u7559\u4E24\u4E2A\u7A97\u53E3\u4E2D\u7684\u6587\u6863\uFF0C\u8BF7\u5148\u6BD4\u8F83\u6216\u4FDD\u5B58\u9700\u8981\u7684\u7248\u672C\u3002");
+        const same_document = (current) => {
+          if (current.kind !== snapshot.kind || current.disk_sha256 !== snapshot.disk_sha256) return false;
+          if (snapshot.kind === "markdown") return normalized_transfer_text(current.text) === normalized_transfer_text(snapshot.text) && normalized_transfer_text(current.markdown_baseline || "") === normalized_transfer_text(snapshot.markdown_baseline || "");
+          const format3 = (value) => value && [value.encoding, value.bom, value.eol];
+          return current.text === snapshot.text && current.source_baseline === snapshot.source_baseline && current.source_model_eol === snapshot.source_model_eol && JSON.stringify(format3(current.source_format)) === JSON.stringify(format3(snapshot.source_format)) && JSON.stringify(format3(current.source_baseline_format)) === JSON.stringify(format3(snapshot.source_baseline_format));
+        };
+        const validate_existing = () => {
+          transfer_guard(signal);
+          if (context_root() !== target_root || epoch2 !== workspace_context_epoch() || workspace_context_switching() || existing.some((leaf3) => !transfer_present(leaf3) || file_key(real_path(leaf3)) !== file_key(snapshot.file_path))) throw new Error("\u63A5\u6536\u7F16\u8F91\u7EC4\u6216\u5DE5\u4F5C\u533A\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u62D6\u52A8\u3002");
+          if (stable_targets.some((stable) => !stable())) throw new Error("\u76EE\u6807\u6587\u6863\u5728\u6BD4\u8F83\u671F\u95F4\u53D1\u751F\u53D8\u5316\uFF0C\u5DF2\u4FDD\u7559\u4E24\u4E2A\u7A97\u53E3\u4E2D\u7684\u6587\u6863\u3002");
+        };
+        for (const leaf3 of existing) {
+          const current = await collect_transfer(leaf3, signal);
+          validate_existing();
+          if (!same_document(current)) throw conflict2();
+          const source = [...views].find((view) => view.leaf === leaf3 && !view.disposed);
+          if (source) {
+            const model = source.editor.models[0], version = model.getAlternativeVersionId(), format3 = source.format_key(), baseline = source.format.text, saved = source.saved_format;
+            stable_targets.push(() => !source.disposed && source.editor?.models[0] === model && model.getAlternativeVersionId() === version && source.format_key() === format3 && source.format?.text === baseline && source.saved_format === saved);
+          }
+        }
+        const leaf2 = existing.find((item) => item === core.app.workspace.activeLeaf) || existing[0];
+        if (snapshot.kind === "markdown" && file_key(runtime2.File?.bundle?.filePath || "") !== file_key(snapshot.file_path)) {
+          if (runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F53\u524D\u6709\u53E6\u4E00\u4EFD\u672A\u4FDD\u5B58\u7684Markdown\u8349\u7A3F\uFF0C\u5DF2\u4FDD\u7559\u6587\u6863\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u8349\u7A3F\u3002");
+          core.app.workspace.activeLeaf = leaf2;
+          await navigate_reading_target(snapshot.file_path, { signal });
+        } else if (core.app.workspace.activeLeaf !== leaf2) core.app.workspace.activeLeaf = leaf2;
+        validate_existing();
+        for (const item of existing) {
+          const current = await collect_transfer(item, signal);
+          validate_existing();
+          if (!same_document(current)) throw conflict2();
+        }
+        keep_open(leaf2);
+        return leaf2;
+      }
       const native_before = { path: runtime2.File?.bundle?.filePath || "", dirty: Boolean(runtime2.File?.changeCounter?.isDocumentEdited()), text: native_transfer_text() };
       const check_destination = (received) => {
         transfer_guard(signal);
@@ -239829,6 +239872,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092021,
+        version: "2026.09.20.21",
+        date: "2026-09-20",
+        notes: [
+          "\u4FEE\u590D\u4E24\u4E2A\u7A97\u53E3\u6253\u5F00\u540C\u4E00\u6587\u4EF6\u5C31\u62D2\u7EDD\u5408\u5E76\u7684\u95EE\u9898\uFF1B\u6B63\u6587\u548C\u4FDD\u5B58\u683C\u5F0F\u76F8\u540C\u76F4\u63A5\u590D\u7528\u76EE\u6807\u6807\u7B7E\uFF0C\u4FDD\u7559\u76EE\u6807\u64A4\u9500\u5386\u53F2\uFF0C\u4E0D\u518D\u63D0\u793A\u91CD\u590D\u6587\u4EF6\u3002",
+          "\u540C\u4E00\u6587\u4EF6\u786E\u6709\u4E0D\u540C\u6B63\u6587\u6216\u4FDD\u5B58\u683C\u5F0F\u65F6\u4FDD\u7559\u4E24\u8FB9\u5E76\u63D0\u793A\uFF1B\u6BD4\u8F83\u671F\u95F4\u7684\u65B0\u4FEE\u6539\u3001\u53D6\u6D88\u548C\u76EE\u6807\u53D8\u5316\u4E0D\u4F1A\u88AB\u8986\u76D6\u3002"
+        ]
+      },
       {
         sequence: 2026092020,
         version: "2026.09.20.20",

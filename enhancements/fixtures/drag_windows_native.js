@@ -58,7 +58,7 @@
       }
       if(event.data.kind==='error')fs.writeFileSync(path.join(base,'child_error.json'),JSON.stringify(event.data));
     };
-    for(const config of [{kind:'source',dirty:true,file:'window_draft.c'},{kind:'markdown',dirty:false,file:'window_saved.md'},{kind:'markdown',dirty:true,file:'window_dirty.md'}]){
+    for(const config of [{kind:'source',dirty:false,file:'window_saved.c'},{kind:'source',dirty:true,file:'window_draft.c'},{kind:'markdown',dirty:false,file:'window_saved.md'},{kind:'markdown',dirty:true,file:'window_dirty.md'}]){
       scenario=config;file=path.join(root,scenario.file);fs.writeFileSync(scenario_path,JSON.stringify(scenario));
       fs.writeFileSync(file,original_text(),'utf8');await files.open_file(file);
       await wait(()=>find()&&(scenario.kind==='source'?find().view?.loaded:File.bundle.filePath===file&&!File.isFileLoading()),'source loaded');
@@ -72,12 +72,29 @@
       await wait(()=>!files.editor_state(leaf).busy,'source idle');
       const token=start(leaf);end(leaf,token,'none');
       await wait(()=>child_id&&!find(),'native detached window and source ACK');
+      // 每类10轮在返回前先打开同一文件，验证真实重复路径合并不创建第二份标签。
+      let duplicate_leaf,duplicate_model,duplicate_version,duplicate_count;
+      if(i%2===1){
+        // 移出导致原生切到另一标签；独立的测试准备打开必须等该切换完成。
+        await wait(()=>{const active=files.editor_state(workspace.activeLeaf);return !File.isFileLoading()&&!File._onFileSwitching&&!File._onInitParse&&(active.kind!=='markdown'||File.bundle.filePath===active.file_path);},'main settled before duplicate setup');
+        await files.open_file(file);
+        await wait(()=>find()&&(scenario.kind==='source'?find().view?.loaded:File.bundle.filePath===file&&!File.isFileLoading()),'duplicate target loaded');
+        if(scenario.kind==='source'&&scenario.dirty)find().view.editor.models[0].setValue(expected_text());
+        if(scenario.kind==='markdown'&&scenario.dirty&&File.editor.getMarkdown()!==expected_text())File.reloadContent(expected_text(),{delayRefresh:false,skipChangeCount:false,skipStore:true});
+        await wait(ready,'duplicate target prepared');duplicate_leaf=find();duplicate_count=0;workspace.eachLeaves(()=>{duplicate_count++;});
+        if(scenario.kind==='source'){duplicate_model=find().view.editor.models[0];duplicate_version=duplicate_model.getAlternativeVersionId();}
+      }
       coordinator.postMessage({kind:'return',id:child_id});
       await wait(()=>merge_token&&ready(),'merge restored document');
       if(!child_pid||child_pid===reqnode('process').pid)throw Error('Expected independent child renderer');
       await wait(()=>{try{reqnode('process').kill(child_pid,0);return false;}catch(error){if(error.code==='ESRCH')return true;throw error;}},'empty auxiliary renderer actually exited');
+      if(duplicate_leaf){
+        let count=0;workspace.eachLeaves(()=>{count++;});
+        if(find()!==duplicate_leaf||count!==duplicate_count)throw Error('Duplicate merge replaced target leaf or added a tab');
+        if(duplicate_model&&(find().view.editor.models[0]!==duplicate_model||duplicate_model.getAlternativeVersionId()!==duplicate_version))throw Error('Duplicate merge replaced source model or undo state');
+      }
       if(actual_text()!==expected_text()||fs.readFileSync(file,'utf8')!==original_text())throw Error('native roundtrip changed memory/disk');
-      checks.push(scenario.kind+(scenario.dirty?' dirty':' saved')+' 第'+(i+1)+'轮原生拖出建窗、草稿回合并、附窗关闭且磁盘不变');
+      checks.push(scenario.kind+(scenario.dirty?' dirty':' saved')+(duplicate_leaf?' existing target':' empty target')+' 第'+(i+1)+'轮原生拖出建窗、草稿回合并、附窗关闭且磁盘不变');
       rounds.push(performance.now()-started);
       fs.writeFileSync(path.join(base,'progress.json'),JSON.stringify({checks,rounds},null,2));
     }

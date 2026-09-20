@@ -415,5 +415,16 @@
     "limits": "不声明Alt对称调整、吸附、跨多栏递推、正文边缘创建组及全部编辑组设置等价",
     "validation": "R005.1: TC-workspace-005/007及TC-system-native-drag-windows",
     "direct_drop_20260920": "R005.2：multiEditorTabsControl.ts 2458及editorDropTarget.ts moveEditors直接提交落点，无额外移动确认；复用Notice呈现失败，附窗不恢复整个目录会话。"
+  },
+  "drag_duplicate_merge_20260920": {
+    "requirement": "R005.3",
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "source": "src/vs/workbench/browser/parts/editor/editorGroupView.ts",
+    "sha256": "88b8cb90adb6d19403fd634e050b2bf7688364a8c58a1eb674db8f4ef9c88ead",
+    "rules": "doOpenEditor复用model.openEditor返回的已打开实例；doMoveOrCopyEditorAcrossGroups先打开目标再关闭来源，canMove明确拒绝才提示。",
+    "adaptation": "跨进程没有共享内存，文件服务比较真实正文、保存格式和磁盘基线；相同复用目标模型和撤销，不因同路径拒绝；差异保留双方。不宣称完整VS Code跨窗口编辑器宿主等价。",
+    "design": "docs/drag_and_windows.md#r0053-同文件无差异合并2026-09-20",
+    "validation": "enhancements/tests/evidence/drag_duplicate_20260920.json"
   }
 }
