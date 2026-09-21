@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-21T15:58:53.858208+00:00",
+  "remote": "origin/main",
+  "previous_commit": "9c0bb5d7cab8160937ac1012c29b6cfe3aba5b90",
+  "published_commit": "9633d18282af537c4eb1ae58d116395aa3e31925",
+  "mode": "fast-forward",
+  "release": "2026.09.21.4",
+  "included_changes": [
+    "27b689e R006.9 终端末行间距与缩放裁切",
+    "e31c357 R058 完整路径搜索异步探测",
+    "9633d18 R068 代码块高度缓存与独立测量"
+  ],
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "70d5fcc9fd6e1ce89e82f01bdcba303a39bd2c257ee17a59ecaa1a3daf59c783",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/assets/update/release.json",
+      "sha256": "70d5fcc9fd6e1ce89e82f01bdcba303a39bd2c257ee17a59ecaa1a3daf59c783",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "a2881d3e987ed5a70465bfde9d7f6c5d01994ccaf43db8fb4c0a61c88415da7e",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "ae532ec2cf0856a31809870ca163898340bbf45202820dc9f5cdc251d9d76b75",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    },
+    {
+      "path": "uninstall_windows.ps1",
+      "sha256": "01b637f1e4d2bc93ee0837e6e406b3662ddb1743c4ca2de6c87144dfb099cda2",
+      "matches_commit": true
+    },
+    {
+      "path": "scripts/lib/typora_uninstall.ps1",
+      "sha256": "882d445c378ba9ac8ab3461797a0e9a708107986dfe9bf52ffce793fe7c24905",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "uninstall_preflight": "detach",
+  "limits": [
+    "复用各修复本次已执行的构建/测试/安装卸载证据，此发布步骤不声称重跑原生回归。",
+    "用户窗口未重启，保存后正常重启加载。",
+    "物理输入、其他平台及卸载后真实宿主启动未验收。"
+  ]
+}
