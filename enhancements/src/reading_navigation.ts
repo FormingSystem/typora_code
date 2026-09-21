@@ -5,10 +5,12 @@ import { create_reading_workspace, reading_delay, type reading_context } from ".
 import { get_workspace_app } from "./workspace_bootstrap";
 import { capture_markdown_location, reveal_markdown_location } from "./workspace_markdown_location";
 import type { file_location } from "./workspace_files";
+import {navigation_editor, observe_navigation_selection} from "./reading_navigation_ports";
 
 // Typora 1.14.9 appsrc/window/frame.js 与社区核心 2.10.15 已核对的宿主接口。
 type typora_editor = {
   tryOpenUrl(url: string, ...args: unknown[]): unknown;
+  tryOpenUrl_?(url: string, ...args: unknown[]): unknown;
   library: { openFile(path: string, callback?: () => void): unknown };
   selection: { buildUndo(): Record<string, unknown> | null };
   undo: { exeCommand(cursor: Record<string, unknown>): void };
@@ -62,7 +64,9 @@ export function bind_reading_navigation(): () => void {
     document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
     window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
   };
-  const original_open_url = editor.tryOpenUrl;
+  // 沿用核心已核对的入口选择；存在内部方法时，点击可能绕过外层。
+  const url_method = typeof editor.tryOpenUrl_ === "function" ? "tryOpenUrl_" : "tryOpenUrl";
+  const original_open_url = editor[url_method]!;
   const original_open_file = editor.library.openFile;
   const native_path = () => file.bundle?.filePath ?? "";
   const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
@@ -70,12 +74,18 @@ export function bind_reading_navigation(): () => void {
   let navigating = false;
   let pending_from: reading_location | null = null;
   let pending_timer = 0;
+  let selection_timer = 0;
+  let last_location: reading_location | null = null;
   const owned_remap_paths = remap_paths = map => {
     if (disposed) return;
     history.remap_paths(map); workspace.remap_paths(map);
     if (pending_from) pending_from.file_path = map(pending_from.file_path) ?? pending_from.file_path;
+    if (last_location) last_location.file_path = map(last_location.file_path) ?? last_location.file_path;
   };
   const capture = (context = workspace.active()): reading_location | null => {
+    const source = navigation_editor()?.capture();
+    if (source) return source;
+    if (app?.workspace.activeLeaf && typeof app.workspace.activeLeaf.view?.isEditor !== "function") return null;
     if (disposed || !context?.file_path || file.bundle?.unsupported || editor.sourceView?.inSourceMode) return null;
     const position = workspace.capture(context);
     if (!position) return null;
@@ -96,7 +106,7 @@ export function bind_reading_navigation(): () => void {
     window.clearTimeout(pending_timer);
     if (disposed) return;
     const current = capture();
-    if (pending_from && current && !is_busy() && !navigating) { history.record_jump(pending_from, current); publish_history_state(); }
+    if (pending_from && current && !is_busy() && !navigating) { history.record_jump(pending_from, current); last_location = current; publish_history_state(); }
     pending_from = null;
   };
   const wait_for = async (ready: () => boolean, signal = controller.signal): Promise<boolean> => {
@@ -165,7 +175,7 @@ export function bind_reading_navigation(): () => void {
     }
     if (disposed || signal.aborted) return false;
     finish_pending();
-    const from = capture();
+    const from = capture() ?? last_location;
     workspace.checkpoint();
     navigating = true;
     workspace.hold(path, true);
@@ -226,6 +236,7 @@ export function bind_reading_navigation(): () => void {
       if (to) {
         workspace.remember(target, to.position!);
         if (from && !location) { history.record_jump(from, to); publish_history_state(); }
+        last_location = to;
       }
       return true;
     } finally {
@@ -258,13 +269,19 @@ export function bind_reading_navigation(): () => void {
     finish_pending();
     const current = capture();
     if (!current) return false;
-    const pending = history.travel(direction, current, location => navigate(location.file_path, undefined, location,{signal:context_controller.signal}));
+    const pending = history.travel(direction, current, async location => {
+      const result = location.kind === "source"
+        ? await navigation_editor()?.restore(location, context_controller.signal) ?? false
+        : await navigate(location.file_path, undefined, location,{signal:context_controller.signal});
+      if (result) last_location = capture();
+      return result;
+    });
     publish_history_state();
     try { return await pending; }
     finally { publish_history_state(); }
   };
 
-  const owned_open_url = editor.tryOpenUrl = function (url, ...args) {
+  const owned_open_url = editor[url_method] = function (url: string, ...args: unknown[]) {
     if (disposed) return original_open_url.call(this, url, ...args);
     const local_url = url.trim().replace(/^<|>$/gu, "");
     if (navigating) return;
@@ -278,7 +295,10 @@ export function bind_reading_navigation(): () => void {
     }
     const markdown_target = parse_markdown_file_target(local_url);
     if (!app && markdown_target) {
-      void navigate(markdown_target.file_path, markdown_target.hash).catch(report);
+      let path = markdown_target.file_path;
+      // DOM链接编码只在URL边界解一次；file:继续由共同URI解析器解码。
+      if (!/^file:/iu.test(path)) { try { path = decodeURIComponent(path); } catch { /* 保留本机合法的字面百分号。 */ } }
+      void navigate(path, markdown_target.hash).catch(report);
       return;
     }
     return original_open_url.call(this, url, ...args);
@@ -316,7 +336,7 @@ export function bind_reading_navigation(): () => void {
       if (disposed) return;
       workspace.checkpoint();
       if (navigating || history.is_navigating() || pending_from) return;
-      pending_from = capture();
+      pending_from = capture() ?? last_location;
     }));
     collect(app.workspace.on("file:open", () => {
       if (disposed) return;
@@ -325,13 +345,31 @@ export function bind_reading_navigation(): () => void {
       pending_timer = window.setTimeout(finish_pending, 500);
     }));
   }
+  const record_selection = (explicit = false) => {
+    if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
+    const current = capture();
+    if (!current) return;
+    history.record_selection(current, explicit); last_location = current; publish_history_state();
+  };
+  collect(observe_navigation_selection(record_selection));
+  const schedule_selection = () => {
+    clearTimeout(selection_timer);
+    selection_timer = window.setTimeout(() => record_selection(), 100);
+  };
+  // 点击前更新来源的滚动位置；定位由对应入口提交，滚轮本身不新增记录。
+  document.addEventListener("pointerdown", () => record_selection(), {capture: true, signal: controller.signal});
+  document.addEventListener("selectionchange", () => {
+    if (window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
+  }, {signal: controller.signal});
+  if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
+  schedule_selection();
   window.addEventListener("keydown", (event) => {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing
         || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
     const active = document.activeElement;
     if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
         || editor.sourceView?.inSourceMode
-        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write"))) return;
+        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file"))) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     if (event.repeat) return;
@@ -346,10 +384,10 @@ export function bind_reading_navigation(): () => void {
   document.documentElement.setAttribute("data-linux-note-reading-positions", "ready");
   const dispose = () => {
     if (disposed) return;
-    disposed = true; controller.abort(); clearTimeout(pending_timer); pending_from = null;
+    disposed = true; controller.abort(); clearTimeout(pending_timer); clearTimeout(selection_timer); pending_from = null; last_location = null;
     workspace.dispose(); stop_native_scroll();
     for (const cleanup of cleanups.reverse()) cleanup();
-    if (editor.tryOpenUrl === owned_open_url) editor.tryOpenUrl = original_open_url;
+    if (editor[url_method] === owned_open_url) editor[url_method] = original_open_url;
     if (editor.library.openFile === owned_open_file) editor.library.openFile = original_open_file;
     if (navigate_target === owned_navigate_target) navigate_target = undefined;
     if (remap_paths === owned_remap_paths) remap_paths = undefined;
@@ -358,7 +396,7 @@ export function bind_reading_navigation(): () => void {
   };
   active_dispose = dispose;
   window.addEventListener("linux-note-workspace-context-changed",()=>{
-    context_controller.abort();context_controller=new AbortController();clearTimeout(pending_timer);pending_from=null;history.clear();publish_history_state();
+    context_controller.abort();context_controller=new AbortController();clearTimeout(pending_timer);clearTimeout(selection_timer);pending_from=null;last_location=null;history.clear();publish_history_state();
   },{signal:controller.signal});
   return dispose;
 }

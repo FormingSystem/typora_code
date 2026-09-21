@@ -475,5 +475,37 @@
       "close action uses cancel result"
     ],
     "adopted": "共享标题栏20px关闭控件、16px既有Codicons close、右对齐操作组；保留原有尺寸/按钮顺序，长内容换行。"
+  },
+  "navigation_history_20260921": {
+    "version": "1.137.0",
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "source_files": [
+      {
+        "path": "src/vs/workbench/services/history/browser/historyService.ts",
+        "sha256": "7ca4a5b010708e521d3811f8bff159456d12d5c9173026b6c9d4cd07affb237a"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/editor/editorActions.ts",
+        "sha256": "49e56831c417f2fe164b868391fc02732e02afb4e235b2c3e61ac5c3cf490792"
+      },
+      {
+        "path": "src/vs/workbench/browser/parts/editor/textEditor.ts",
+        "sha256": "3bc845bdb40bc4e118f8d04a145daf0ac6d0f36ffd94aa51ae419e4acab5bfe2"
+      },
+      {
+        "path": "src/vs/workbench/browser/workbench.contribution.ts",
+        "sha256": "24aa656d1b30fe5c427bc3d1f4d1f565eb826212ee32821c2af8296cfa0bd233"
+      }
+    ],
+    "effective_settings": {
+      "workbench.editor.navigationScope": "default; 本机用户设置未覆盖",
+      "window.zoomLevel": "不改变"
+    },
+    "rules": [
+      "Windows Alt+Left/Right → navigateBack/navigateForward; GoFilter.NONE",
+      "50 entries; ordinary source selection same line identical, less than 10 lines similar; explicit cross-line navigation preserved",
+      "default scope crosses editors and groups"
+    ],
+    "adopted": "一个窗口导航栈，源码适配行列与视图状态，Markdown保留原生光标及阅读锚点；不新增范围设置页。"
   }
 }

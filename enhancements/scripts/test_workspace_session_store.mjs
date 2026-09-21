@@ -22,6 +22,13 @@ const target=path.join(dir,crypto.createHash('sha256').update(store.root_key(a))
 fs.writeFileSync(target,'x'.repeat(2*1024*1024+1));assert.throws(()=>store.read(a),/过大/);
 const win=create(fs,path.win32,crypto,dir);assert.equal(win.root_key('C:\\Workspace\\'),win.root_key('c:\\workspace'));
 console.log('PASS empty, invalid, corrupt, oversized and atomic failure preservation; Windows root normalization');
+let replacements=0;
+const counted=create({...fs,renameSync(...args){replacements++;fs.renameSync(...args);}},path,crypto,dir);
+counted.write(a,[file],0);
+for(let i=0;i<1000;i++)counted.write(a,[file],0);
+assert.equal(replacements,1,'相同会话连续1000次事件不反复替换文件');
+counted.write(a,[],-1);assert.equal(replacements,2,'实际会话变化仍写入');
+assert.deepEqual(counted.read(a).files,[]);
 
 // 启动意图在异步恢复之前捕获；拖放附窗不读写目录会话，正常窗口和主动切目录继续恢复。
 const session_bundle=await build({entryPoints:['src/workspace_sessions.ts'],bundle:true,platform:'node',format:'esm',write:false});

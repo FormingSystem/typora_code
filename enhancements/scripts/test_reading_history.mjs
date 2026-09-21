@@ -47,6 +47,23 @@ let restored_pane;
 assert.equal(await pane_history.travel(-1, right_pane, async (target) => { restored_pane = target.view_id; return true; }), true);
 assert.equal(restored_pane, 1, '同一文件同一滚动位置也要区分来源栏');
 console.log('reading history: anchors, files, scroll restoration, branching, cancellation and reentrancy passed');
+const source = (line, view_id = -1) => ({...location('code.c', line * 10), kind:'source', view_id, line, cursor:{startLineNumber:line,startColumn:1}});
+const cursor_history = create_reading_history();
+cursor_history.record_selection(source(1));
+cursor_history.record_selection(source(5));
+assert.equal(cursor_history.can_travel(-1),false,'普通光标近邻替换');
+cursor_history.record_selection(source(6),true);
+let selection;
+assert(await cursor_history.travel(-1,source(6),async target=>{selection=target;return true;}));
+assert.equal(selection.line,5,'明确定位即使相邻仍可返回');
+cursor_history.record_selection(source(7));
+assert(cursor_history.can_travel(1),'返回后普通近邻移动保留前进');
+cursor_history.record_selection(source(25));
+assert(!cursor_history.can_travel(1),'新的远距离移动截断前进');
+const bounded=create_reading_history();for(let i=0;i<1000;i++)bounded.record_selection(source(i*10+1));
+let count=0;while(await bounded.travel(-1,source(9991-count*10),async()=>true))count++;
+assert.equal(count,49,'连续1000次定位只保留50项');
+console.log('navigation selection: near/far, explicit, forward branch and 50-entry bound passed');
 for(const count of [20,100,1000]){
   const switched=create_reading_history();
   for(let iteration=0;iteration<count;iteration++){

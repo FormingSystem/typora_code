@@ -16,7 +16,7 @@ app.whenReady().then(async () => {
   const filename = path.join(root, 'test.html');
   fs.writeFileSync(filename, '<!doctype html><meta charset="utf-8"><style>content{display:block;height:300px;overflow:auto}#write{height:3000px}#menu{display:block}</style><content><div id="write"><p>Reading content</p></div></content><ul id="menu"></ul>');
   await test_window.loadFile(filename);
-  const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
+  const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { register_navigation_editor, notify_navigation_selection } from "./src/reading_navigation_ports"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`(() => {
     window.subscriptions=new Map(); window.commands=new Map(); window.notices=[]; window.copy_count=0;
@@ -84,6 +84,28 @@ app.whenReady().then(async () => {
   await evaluate('window.dispose_nav2=qa.bind_reading_navigation();window.dispose_paths2=qa.bind_file_path_actions();window.dispose_map2=qa.bind_reading_minimap();void 0;');
   assert.equal(await evaluate('commands.size'),2);assert.equal(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length'),1);
   await evaluate('dispose_nav2();dispose_paths2();dispose_map2();');
+  // 同时存在内外两个原生链接入口时，真实点击可能直接进入内部方法。
+  await evaluate(`File.editor.tryOpenUrl_=function(){document.querySelector('content').scrollTop=1200;};window.native_inner=File.editor.tryOpenUrl_;window.dispose_inner=qa.bind_reading_navigation();void 0;`);
+  await delay(400);
+  await evaluate(`document.querySelector('content').scrollTop=120;File.editor.tryOpenUrl_('#target');void 0;`);
+  await delay(320);
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),1200);
+  await evaluate(`document.querySelector('#write').contentEditable='true';document.querySelector('#write').focus();void 0`);
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});
+  await delay(600);
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),120,'内部链接入口可由Alt后退恢复来源');
+  await evaluate('dispose_inner();void 0');
+  assert(await evaluate('File.editor.tryOpenUrl_===native_inner'),'销毁恢复真实内部链接入口');
+  // Monaco以textarea接收键盘，不能被普通表单的Alt保护误拦截。
+  await evaluate(`window.source_position={kind:'source',file_path:'/test/code.c',view_id:-1,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position=location;qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();source_position={...source_position,line:11,cursor:{startLineNumber:11}};qa.notify_navigation_selection(true);const source_panel=document.createElement('section');source_panel.className='linux-note-source-file';source_panel.innerHTML='<textarea></textarea>';document.body.append(source_panel);source_panel.firstChild.focus();void 0;`);
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(50);
+  assert.equal(await evaluate('source_position.line'),10,'源码输入面中的Alt后退走共同历史');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Right',modifiers:['alt']});
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(50);
+  assert.equal(await evaluate('source_position.line'),11,'恢复引起的选区事件不污染前进历史');
+  await evaluate(`dispose_source_nav();release_port();document.querySelector('.linux-note-source-file').remove();void 0;`);
   // 原生定位跨帧等待期间取消：不得滚动新视口或恢复旧选区。
   await evaluate(`(() => {
     const wrapper=document.createElement('div');wrapper.className='CodeMirror';wrapper.tabIndex=0;document.querySelector('#write').append(wrapper);

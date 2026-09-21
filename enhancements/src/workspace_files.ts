@@ -19,6 +19,7 @@ import type {workspace_document_snapshot, workspace_transfer_format, workspace_t
 import { bind_source_lifecycle } from "./workspace_source_lifecycle";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
+import {register_navigation_editor, notify_navigation_selection} from "./reading_navigation_ports";
 import { prepare_workspace_rename, prepare_workspace_move, renamed_workspace_path } from "./workspace_rename";
 import { reveal_markdown_location } from "./workspace_markdown_location";
 import { SOURCE_FILE_VIEW_ID, is_empty_editor_path, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
@@ -83,6 +84,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
+  let next_navigation_id = -1;
   const renamed_markdown_leaves = new Set<graph_leaf>();
   let refreshing_renamed_editors = false;
   const preview_leaves=new Map<graph_leaf["parent"],graph_leaf>();
@@ -141,6 +143,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const context_root = () => runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
   class source_file_view extends core.WorkspaceView {
+    navigation_id = next_navigation_id--;
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
     editor?: git_diff_editor; focus_requested=true; disposed=false; target?:file_location;
     status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
@@ -167,7 +170,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(!original?.editor)return;
       this.editor=new git_diff_editor({title:path_api.basename(this.file_path),file:this.file_path,left:original.editor.models[0].getValue(),left_label:this.file_path},()=>this.menu_entries(),original.editor.models[0]);
       this.body.replaceChildren(this.editor.container);const editor=this.editor.focused_editor();editor.updateOptions({readOnly:false});
-      this.editor.subscriptions.push(editor.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),editor.onDidChangeCursorPosition(()=>this.update_status()),editor.onDidFocusEditorText(()=>editor_status.schedule()));
+      this.editor.subscriptions.push(editor.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),editor.onDidChangeCursorPosition(event=>{this.update_status();if(core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection(event.source==="api");}),editor.onDidFocusEditorText(()=>editor_status.schedule()));
     }
     constructor(leaf: graph_leaf) {
       super(leaf); const file_path=real_path(leaf);
@@ -218,7 +221,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         else {
           this.editor = new git_diff_editor(data,()=>this.menu_entries()); this.body.replaceChildren(this.editor.container);
           const view=this.editor.focused_editor();
-          this.editor.subscriptions.push(view.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),view.onDidChangeCursorPosition(()=>this.update_status()),view.onDidFocusEditorText(()=>editor_status.schedule()));
+          this.editor.subscriptions.push(view.onDidChangeModelContent(()=>queueMicrotask(()=>{if(!this.disposed){this.update_status();publish_workspace_file_changed(this.file_path);}})),view.onDidChangeCursorPosition(event=>{this.update_status();if(core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection(event.source==="api");}),view.onDidFocusEditorText(()=>editor_status.schedule()));
         }
         this.editor.focused_editor().updateOptions({readOnly:false});
         this.saved_version=this.editor.models[0].getAlternativeVersionId();
@@ -229,7 +232,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         this.status.textContent = "无法作为文本预览";
         if (!this.editor) this.body.replaceChildren(el("p", "workspace-file-notice", String(error)), button("使用系统程序打开", () => void shell.openPath(this.file_path)));
         else this.status.textContent = String(error);
-      } finally { const status=this.status.textContent;this.loading = false;this.refresh_shared();if(status&&status!=="正在读取…")this.status.textContent=status; }
+      } finally { const status=this.status.textContent;this.loading = false;this.refresh_shared();if(status&&status!=="正在读取…")this.status.textContent=status;if(core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection(true); }
     }
     reveal() {
       if(this.disposed)return;this.editor?.editor.layout();
@@ -340,6 +343,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (!resolved_path) throw new Error("无法解析文件路径。");
     file_path = resolved_path;
     if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
+    notify_navigation_selection();
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
       const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>{existing_leaves.add(leaf);});
@@ -363,6 +367,33 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(location.line!=null)(leaf.view as source_file_view).target=location;
     parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;set_preview(leaf,Boolean(location.preview));
   };
+  const release_navigation = register_navigation_editor({
+    capture() {
+      const view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf);
+      if (!view?.editor || view.loading || !view.loaded) return null;
+      const editor = view.editor.focused_editor(), selection = editor.getSelection();
+      return {kind: "source", file_path: view.file_path, view_id: view.navigation_id,
+        line: selection?.startLineNumber, cursor: selection ? {...selection} : null,
+        scroll_top: editor.getScrollTop(), scroll_left: editor.getScrollLeft(), editor_state: editor.saveViewState()};
+    },
+    async restore(location, signal) {
+      if (signal.aborted || workspace_context_switching()) return false;
+      let view = [...views].find(item => !item.disposed && item.navigation_id === location.view_id && file_key(item.file_path) === file_key(location.file_path));
+      if (view) core.app.workspace.activeLeaf = view.leaf.parent.toggleTab(view.leaf.state.path);
+      else {
+        await open_file(location.file_path, {source: true, signal});
+        view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf && file_key(item.file_path) === file_key(location.file_path));
+      }
+      const started = Date.now();
+      while (view && !view.disposed && (!view.loaded || view.loading) && !signal.aborted && Date.now() - started < 15000) await new Promise(resolve => setTimeout(resolve, 40));
+      if (signal.aborted || !view?.loaded || view.loading || view.disposed || !view.editor || core.app.workspace.activeLeaf !== view.leaf) return false;
+      const editor = view.editor.focused_editor();
+      if (location.editor_state) editor.restoreViewState(location.editor_state as import("monaco-editor/editor/editor.api").editor.ICodeEditorViewState);
+      if (location.cursor) editor.setSelection(location.cursor as unknown as import("monaco-editor/editor/editor.api").IRange);
+      editor.setScrollTop(location.scroll_top); editor.setScrollLeft(location.scroll_left); editor.focus();
+      return true;
+    }
+  });
   // 社区核心默认把不支持的文件送到外部程序；所有应用内打开入口统一分流。
   const routed_app_open_file = function (this: typeof core.app, target: string) {
     const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
@@ -392,6 +423,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       }
       // 检查与使用必须是同一个绝对文件；相对路径、file URL 和锚点不传给原生文件 API。
       if (markdown.hash) {
+        // 普通链接在打开前保存来源，不能先打开文件再补锚点历史。
+        if (typeof args[0] !== "function") return open_file(markdown.file_path, {hash: markdown.hash});
         const callback=args[0];
         const completed=function(this:unknown,...callback_args:unknown[]) {
           const result=typeof callback==="function"?callback.apply(this,callback_args):undefined;
@@ -962,7 +995,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
-    binding.active = false;file_clipboard.dispose();
+    binding.active = false;file_clipboard.dispose();release_navigation();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;

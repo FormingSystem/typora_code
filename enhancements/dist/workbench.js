@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners4 = this._listeners;
-          const index = listeners4.indexOf(listener);
+          const listeners5 = this._listeners;
+          const index = listeners5.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners4[index] = void 0;
+          listeners5[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners4.length) {
+          if (this._size * compactionThreshold <= listeners5.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners4.length; i++) {
-              if (listeners4[i]) {
-                listeners4[n2++] = listeners4[i];
+            for (let i = 0; i < listeners5.length; i++) {
+              if (listeners5[i]) {
+                listeners5[n2++] = listeners5[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners4.length = n2;
+            listeners5.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners4 = dq.current._listeners;
+          const listeners5 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners4[dq.i++], dq.value);
+            this._deliver(listeners5[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners4 = [];
-          listeners4.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners4.push(value.onWillDispose(() => {
+          const listeners5 = [];
+          listeners5.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners5.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners4);
+            dispose(listeners5);
           }));
           return value;
         }
@@ -163359,8 +163359,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners4 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners4) listener();
+    const listeners5 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners5) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || snapshot.paths.length > 512 || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || path.length > 32767 || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -163390,8 +163390,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate,
       subscribe(listener) {
-        listeners4.add(listener);
-        return () => listeners4.delete(listener);
+        listeners5.add(listener);
+        return () => listeners5.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -163435,7 +163435,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners4.clear();
+        listeners5.clear();
         adapter.dispose();
       }
     };
@@ -181078,9 +181078,9 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/reading_history.ts
   function same_location(left, right) {
-    return left.file_path === right.file_path && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2 && Math.abs(left.scroll_left - right.scroll_left) < 2 && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
+    return left.file_path === right.file_path && left.kind === right.kind && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2 && Math.abs(left.scroll_left - right.scroll_left) < 2 && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
   }
-  function create_reading_history(maximum_entries = 100) {
+  function create_reading_history(maximum_entries = 50) {
     let entries3 = [];
     let index = -1;
     let navigating = false;
@@ -181097,12 +181097,31 @@ https://creativecommons.org/licenses/by/4.0/
       remap_paths(map) {
         for (const entry of entries3) entry.file_path = map(entry.file_path) ?? entry.file_path;
       },
+      record_selection(current, explicit = false) {
+        if (navigating) return;
+        const previous = entries3[index];
+        if (!previous) {
+          entries3 = [current];
+          index = 0;
+          return;
+        }
+        const same_editor = previous.file_path === current.file_path && previous.kind === current.kind && previous.view_id === current.view_id;
+        const same_line = current.line != null && previous.line === current.line;
+        const nearby = current.line != null && previous.line != null ? Math.abs(current.line - previous.line) < 10 : previous.cursor?.id === current.cursor?.id && previous.cursor?.startId === current.cursor?.startId;
+        if (same_editor && (same_location(previous, current) || same_line || !explicit && nearby)) entries3[index] = current;
+        else {
+          entries3 = entries3.slice(0, index + 1);
+          entries3.push(current);
+          if (entries3.length > maximum_entries) entries3.shift();
+          index = entries3.length - 1;
+        }
+      },
       record_jump(from, to) {
         if (navigating || same_location(from, to)) return;
         if (index < 0) {
           entries3 = [from];
           index = 0;
-        } else if (entries3[index].file_path === from.file_path && entries3[index].view_id === from.view_id) entries3[index] = from;
+        } else if (entries3[index].file_path === from.file_path && entries3[index].kind === from.kind && entries3[index].view_id === from.view_id) entries3[index] = from;
         else {
           entries3 = entries3.slice(0, index + 1);
           entries3.push(from);
@@ -181120,7 +181139,7 @@ https://creativecommons.org/licenses/by/4.0/
         const current_revision = revision;
         try {
           if (!await restore(entries3[target_index]) || current_revision !== revision) return false;
-          if (entries3[index]?.file_path === current.file_path && entries3[index]?.view_id === current.view_id) entries3[index] = current;
+          if (entries3[index]?.file_path === current.file_path && entries3[index]?.kind === current.kind && entries3[index]?.view_id === current.view_id) entries3[index] = current;
           index = target_index;
           return true;
         } finally {
@@ -181479,6 +181498,26 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/reading_navigation_ports.ts
+  var source_port;
+  var listeners3 = /* @__PURE__ */ new Set();
+  function register_navigation_editor(port) {
+    source_port = port;
+    return () => {
+      if (source_port === port) source_port = void 0;
+    };
+  }
+  function navigation_editor() {
+    return source_port;
+  }
+  function notify_navigation_selection(explicit = false) {
+    for (const listener of listeners3) listener(explicit);
+  }
+  function observe_navigation_selection(listener) {
+    listeners3.add(listener);
+    return () => listeners3.delete(listener);
+  }
+
   // src/reading_navigation.ts
   var active_dispose;
   var navigate_target;
@@ -181517,7 +181556,8 @@ https://creativecommons.org/licenses/by/4.0/
       document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
       window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
     };
-    const original_open_url = editor2.tryOpenUrl;
+    const url_method = typeof editor2.tryOpenUrl_ === "function" ? "tryOpenUrl_" : "tryOpenUrl";
+    const original_open_url = editor2[url_method];
     const original_open_file = editor2.library.openFile;
     const native_path = () => file.bundle?.filePath ?? "";
     const is_busy = () => Boolean(file._onInitParse || file._onFileSwitching);
@@ -181525,13 +181565,19 @@ https://creativecommons.org/licenses/by/4.0/
     let navigating = false;
     let pending_from = null;
     let pending_timer = 0;
+    let selection_timer = 0;
+    let last_location = null;
     const owned_remap_paths = remap_paths = (map) => {
       if (disposed) return;
       history.remap_paths(map);
       workspace.remap_paths(map);
       if (pending_from) pending_from.file_path = map(pending_from.file_path) ?? pending_from.file_path;
+      if (last_location) last_location.file_path = map(last_location.file_path) ?? last_location.file_path;
     };
     const capture = (context = workspace.active()) => {
+      const source = navigation_editor()?.capture();
+      if (source) return source;
+      if (app?.workspace.activeLeaf && typeof app.workspace.activeLeaf.view?.isEditor !== "function") return null;
       if (disposed || !context?.file_path || file.bundle?.unsupported || editor2.sourceView?.inSourceMode) return null;
       const position2 = workspace.capture(context);
       if (!position2) return null;
@@ -181555,6 +181601,7 @@ https://creativecommons.org/licenses/by/4.0/
       const current = capture();
       if (pending_from && current && !is_busy() && !navigating) {
         history.record_jump(pending_from, current);
+        last_location = current;
         publish_history_state();
       }
       pending_from = null;
@@ -181620,7 +181667,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (disposed || signal.aborted) return false;
       finish_pending();
-      const from = capture();
+      const from = capture() ?? last_location;
       workspace.checkpoint();
       navigating = true;
       workspace.hold(path, true);
@@ -181684,6 +181731,7 @@ https://creativecommons.org/licenses/by/4.0/
             history.record_jump(from, to);
             publish_history_state();
           }
+          last_location = to;
         }
         return true;
       } finally {
@@ -181717,7 +181765,11 @@ https://creativecommons.org/licenses/by/4.0/
       finish_pending();
       const current = capture();
       if (!current) return false;
-      const pending = history.travel(direction, current, (location) => navigate(location.file_path, void 0, location, { signal: context_controller.signal }));
+      const pending = history.travel(direction, current, async (location) => {
+        const result = location.kind === "source" ? await navigation_editor()?.restore(location, context_controller.signal) ?? false : await navigate(location.file_path, void 0, location, { signal: context_controller.signal });
+        if (result) last_location = capture();
+        return result;
+      });
       publish_history_state();
       try {
         return await pending;
@@ -181725,7 +181777,7 @@ https://creativecommons.org/licenses/by/4.0/
         publish_history_state();
       }
     };
-    const owned_open_url = editor2.tryOpenUrl = function(url, ...args) {
+    const owned_open_url = editor2[url_method] = function(url, ...args) {
       if (disposed) return original_open_url.call(this, url, ...args);
       const local_url = url.trim().replace(/^<|>$/gu, "");
       if (navigating) return;
@@ -181739,7 +181791,14 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const markdown_target = parse_markdown_file_target(local_url);
       if (!app && markdown_target) {
-        void navigate(markdown_target.file_path, markdown_target.hash).catch(report);
+        let path = markdown_target.file_path;
+        if (!/^file:/iu.test(path)) {
+          try {
+            path = decodeURIComponent(path);
+          } catch {
+          }
+        }
+        void navigate(path, markdown_target.hash).catch(report);
         return;
       }
       return original_open_url.call(this, url, ...args);
@@ -181778,7 +181837,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed) return;
         workspace.checkpoint();
         if (navigating || history.is_navigating() || pending_from) return;
-        pending_from = capture();
+        pending_from = capture() ?? last_location;
       }));
       collect(app.workspace.on("file:open", () => {
         if (disposed) return;
@@ -181787,10 +181846,29 @@ https://creativecommons.org/licenses/by/4.0/
         pending_timer = window.setTimeout(finish_pending, 500);
       }));
     }
+    const record_selection = (explicit = false) => {
+      if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
+      const current = capture();
+      if (!current) return;
+      history.record_selection(current, explicit);
+      last_location = current;
+      publish_history_state();
+    };
+    collect(observe_navigation_selection(record_selection));
+    const schedule_selection = () => {
+      clearTimeout(selection_timer);
+      selection_timer = window.setTimeout(() => record_selection(), 100);
+    };
+    document.addEventListener("pointerdown", () => record_selection(), { capture: true, signal: controller.signal });
+    document.addEventListener("selectionchange", () => {
+      if (window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
+    }, { signal: controller.signal });
+    if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
+    schedule_selection();
     window.addEventListener("keydown", (event) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active = document.activeElement;
-      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write")) return;
+      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (event.repeat) return;
@@ -181808,11 +181886,13 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       controller.abort();
       clearTimeout(pending_timer);
+      clearTimeout(selection_timer);
       pending_from = null;
+      last_location = null;
       workspace.dispose();
       stop_native_scroll();
       for (const cleanup of cleanups.reverse()) cleanup();
-      if (editor2.tryOpenUrl === owned_open_url) editor2.tryOpenUrl = original_open_url;
+      if (editor2[url_method] === owned_open_url) editor2[url_method] = original_open_url;
       if (editor2.library.openFile === owned_open_file) editor2.library.openFile = original_open_file;
       if (navigate_target === owned_navigate_target) navigate_target = void 0;
       if (remap_paths === owned_remap_paths) remap_paths = void 0;
@@ -181828,7 +181908,9 @@ https://creativecommons.org/licenses/by/4.0/
       context_controller.abort();
       context_controller = new AbortController();
       clearTimeout(pending_timer);
+      clearTimeout(selection_timer);
       pending_from = null;
+      last_location = null;
       history.clear();
       publish_history_state();
     }, { signal: controller.signal });
@@ -181936,6 +182018,7 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_files", workspace_files_default, {});
     const group_locations = /* @__PURE__ */ new Map();
     const views = /* @__PURE__ */ new Set();
+    let next_navigation_id = -1;
     const renamed_markdown_leaves = /* @__PURE__ */ new Set();
     let refreshing_renamed_editors = false;
     const preview_leaves = /* @__PURE__ */ new Map();
@@ -182038,6 +182121,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const context_root = () => runtime2.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
     class source_file_view extends core.WorkspaceView {
+      navigation_id = next_navigation_id--;
       containerEl = workspace_element("section", "linux-note-source-file");
       icon = "fa-file-code-o";
       editor;
@@ -182124,7 +182208,10 @@ https://creativecommons.org/licenses/by/4.0/
             this.update_status();
             publish_workspace_file_changed(this.file_path);
           }
-        })), editor2.onDidChangeCursorPosition(() => this.update_status()), editor2.onDidFocusEditorText(() => editor_status.schedule()));
+        })), editor2.onDidChangeCursorPosition((event) => {
+          this.update_status();
+          if (core.app.workspace.activeLeaf === this.leaf) notify_navigation_selection(event.source === "api");
+        }), editor2.onDidFocusEditorText(() => editor_status.schedule()));
       }
       constructor(leaf) {
         super(leaf);
@@ -182210,7 +182297,10 @@ https://creativecommons.org/licenses/by/4.0/
                 this.update_status();
                 publish_workspace_file_changed(this.file_path);
               }
-            })), view.onDidChangeCursorPosition(() => this.update_status()), view.onDidFocusEditorText(() => editor_status.schedule()));
+            })), view.onDidChangeCursorPosition((event) => {
+              this.update_status();
+              if (core.app.workspace.activeLeaf === this.leaf) notify_navigation_selection(event.source === "api");
+            }), view.onDidFocusEditorText(() => editor_status.schedule()));
           }
           this.editor.focused_editor().updateOptions({ readOnly: false });
           this.saved_version = this.editor.models[0].getAlternativeVersionId();
@@ -182228,6 +182318,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.loading = false;
           this.refresh_shared();
           if (status2 && status2 !== "\u6B63\u5728\u8BFB\u53D6\u2026") this.status.textContent = status2;
+          if (core.app.workspace.activeLeaf === this.leaf) notify_navigation_selection(true);
         }
       }
       reveal() {
@@ -182508,6 +182599,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!resolved_path) throw new Error("\u65E0\u6CD5\u89E3\u6790\u6587\u4EF6\u8DEF\u5F84\u3002");
       file_path = resolved_path;
       if (!fs2.statSync(file_path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
+      notify_navigation_selection();
       if (is_markdown_file(file_path) && !location.source) {
         if ([...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
         const existing_leaves = /* @__PURE__ */ new Set();
@@ -182554,6 +182646,42 @@ https://creativecommons.org/licenses/by/4.0/
       core.app.workspace.activeLeaf = leaf;
       set_preview(leaf, Boolean(location.preview));
     };
+    const release_navigation = register_navigation_editor({
+      capture() {
+        const view = [...views].find((item) => !item.disposed && item.leaf === core.app.workspace.activeLeaf);
+        if (!view?.editor || view.loading || !view.loaded) return null;
+        const editor2 = view.editor.focused_editor(), selection = editor2.getSelection();
+        return {
+          kind: "source",
+          file_path: view.file_path,
+          view_id: view.navigation_id,
+          line: selection?.startLineNumber,
+          cursor: selection ? { ...selection } : null,
+          scroll_top: editor2.getScrollTop(),
+          scroll_left: editor2.getScrollLeft(),
+          editor_state: editor2.saveViewState()
+        };
+      },
+      async restore(location, signal) {
+        if (signal.aborted || workspace_context_switching()) return false;
+        let view = [...views].find((item) => !item.disposed && item.navigation_id === location.view_id && file_key(item.file_path) === file_key(location.file_path));
+        if (view) core.app.workspace.activeLeaf = view.leaf.parent.toggleTab(view.leaf.state.path);
+        else {
+          await open_file(location.file_path, { source: true, signal });
+          view = [...views].find((item) => !item.disposed && item.leaf === core.app.workspace.activeLeaf && file_key(item.file_path) === file_key(location.file_path));
+        }
+        const started = Date.now();
+        while (view && !view.disposed && (!view.loaded || view.loading) && !signal.aborted && Date.now() - started < 15e3) await new Promise((resolve3) => setTimeout(resolve3, 40));
+        if (signal.aborted || !view?.loaded || view.loading || view.disposed || !view.editor || core.app.workspace.activeLeaf !== view.leaf) return false;
+        const editor2 = view.editor.focused_editor();
+        if (location.editor_state) editor2.restoreViewState(location.editor_state);
+        if (location.cursor) editor2.setSelection(location.cursor);
+        editor2.setScrollTop(location.scroll_top);
+        editor2.setScrollLeft(location.scroll_left);
+        editor2.focus();
+        return true;
+      }
+    });
     const routed_app_open_file = function(target) {
       const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime2.File?.bundle?.filePath || "";
       target = resolve_host_open_file_target(path_api, source, target);
@@ -182583,6 +182711,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (placeholder) watch_native_placeholder(placeholder);
         }
         if (markdown.hash) {
+          if (typeof args[0] !== "function") return open_file(markdown.file_path, { hash: markdown.hash });
           const callback = args[0];
           const completed = function(...callback_args) {
             const result = typeof callback === "function" ? callback.apply(this, callback_args) : void 0;
@@ -183457,6 +183586,7 @@ https://creativecommons.org/licenses/by/4.0/
       assert_can_dispose();
       binding.active = false;
       file_clipboard.dispose();
+      release_navigation();
       for (const cancel of [...pending_native_saves]) cancel();
       release_save_active();
       release_save_open();
@@ -186038,7 +186168,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners4 = /* @__PURE__ */ new Set();
+    const listeners5 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -186067,14 +186197,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners4) listener(structuredClone(current));
+        for (const listener of listeners5) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners4.add(listener);
-        return () => listeners4.delete(listener);
+        listeners5.add(listener);
+        return () => listeners5.delete(listener);
       },
       dispose() {
-        listeners4.clear();
+        listeners5.clear();
       }
     };
   }
@@ -231513,10 +231643,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key2 = file_path + "\0" + workspace_root;
     let owner = entries3.get(key2);
     if (!owner) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners4 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners5 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners4) callback(state);
+        for (const callback of listeners5) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -231546,7 +231676,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner = { state, listeners: listeners4, refresh, dispose() {
+      owner = { state, listeners: listeners5, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -231555,7 +231685,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners4.clear();
+        listeners5.clear();
       } };
       entries3.set(key2, owner);
       refresh();
@@ -237589,7 +237719,7 @@ https://creativecommons.org/licenses/by/4.0/
     "timeline.enabled": true
   });
   var KEY3 = "workspace_files";
-  var listeners3 = /* @__PURE__ */ new Set();
+  var listeners4 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -237613,12 +237743,12 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     settings.set_and_save(KEY3, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners3) listener();
+    for (const listener of listeners4) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners3.add(listener);
+    listeners4.add(listener);
     return () => {
-      listeners3.delete(listener);
+      listeners4.delete(listener);
     };
   }
   var current_dialog2;
@@ -238396,6 +238526,11 @@ https://creativecommons.org/licenses/by/4.0/
         fs2.mkdirSync(directory, { recursive: true });
         const file = location(root), temporary = file + "." + crypto2.randomUUID() + ".tmp";
         try {
+          if (fs2.readFileSync(file, "utf8") === text3) return;
+        } catch (error) {
+          if (error?.code !== "ENOENT") throw error;
+        }
+        try {
           fs2.writeFileSync(temporary, text3, { encoding: "utf8", flag: "wx", mode: 384 });
           fs2.renameSync(temporary, file);
         } finally {
@@ -238970,8 +239105,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_save_service.ts
   function bind_workspace_save_service(files, runtime2 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners4 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners4) listener();
+    const listeners5 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners5) listener();
     };
     const notify_history = () => {
       notify();
@@ -239079,9 +239214,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners4.add(listener);
+      listeners5.add(listener);
       return () => {
-        listeners4.delete(listener);
+        listeners5.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -239090,7 +239225,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners4.clear();
+      listeners5.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -239970,6 +240105,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092101,
+        version: "2026.09.21.1",
+        date: "2026-09-21",
+        notes: [
+          "Alt\uFF0B\u5DE6\u53F3\u952E\u4E0E\u9876\u680F\u524D\u540E\u6309\u94AE\u5171\u7528\u8DE8\u7F16\u8F91\u5668\u5BFC\u822A\u5386\u53F2\uFF0C\u8865\u9F50\u6E90\u7801\u5149\u6807\u3001\u660E\u786E\u5B9A\u4F4D\u4E0EMarkdown\u4E4B\u95F4\u7684\u4F4D\u7F6E\u6062\u590D\u3002",
+          "\u6587\u5185\u548C\u8DE8\u6587\u4EF6\u6807\u9898\u94FE\u63A5\u7EDF\u4E00\u8BB0\u5F55\u6765\u6E90\u53CA\u76EE\u6807\uFF1B\u666E\u901A\u6E90\u7801\u8FD1\u90BB\u79FB\u52A8\u5408\u5E76\uFF0C\u8FD4\u56DE\u540E\u65B0\u8DF3\u8F6C\u6E05\u9664\u65E7\u524D\u8FDB\u5206\u652F\uFF0C\u4FDD\u7559\u5931\u8D25\u53D6\u6D88\u4FDD\u62A4\u3002"
+        ]
+      },
       {
         sequence: 2026092024,
         version: "2026.09.20.24",

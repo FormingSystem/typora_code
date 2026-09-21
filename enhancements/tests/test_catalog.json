@@ -1105,9 +1105,10 @@
       "purpose": "implementation",
       "requirements": [
         "R043",
-        "H008"
+        "H008",
+        "R067"
       ],
-      "design": "docs/editor_header.md",
+      "design": "docs/navigation_history.md",
       "implementation": [
         "enhancements/src/reading_history.ts"
       ],
@@ -1135,9 +1136,10 @@
       "purpose": "implementation",
       "requirements": [
         "R043",
-        "H008"
+        "H008",
+        "R067"
       ],
-      "design": "docs/editor_header.md",
+      "design": "docs/navigation_history.md",
       "implementation": [
         "enhancements/src/file_path_actions.ts",
         "enhancements/src/reading_minimap.ts",
@@ -4289,9 +4291,10 @@
       "level": "unit",
       "purpose": "stress",
       "requirements": [
-        "R040.1"
+        "R040.1",
+        "R067"
       ],
-      "design": "docs/workspace_switch.md",
+      "design": "docs/navigation_history.md",
       "implementation": [
         "enhancements/src/reading_history.ts",
         "enhancements/src/reading_navigation.ts"
@@ -4457,7 +4460,8 @@
       "domain": "workspace",
       "requirements": [
         "R040.2",
-        "R005.2"
+        "R005.2",
+        "R067"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -5551,6 +5555,39 @@
         "原生正式资产几何及取消语义正确，文档未改变，无遗留弹窗。"
       ],
       "timeout_ms": 45000
+    },
+    {
+      "id": "TC-navigation-history-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R067"
+      ],
+      "design": "docs/navigation_history.md",
+      "implementation": [
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/reading_history.ts",
+        "enhancements/src/reading_navigation_ports.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "links",
+        "source",
+        "history"
+      ],
+      "script": "enhancements/fixtures/navigation_history_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora1.14.10私有桌面独立副本",
+      "preconditions": "prepare_stability_native.py创建临时文档及正式候选，不写用户正文。",
+      "steps": [
+        "原生文内/跨文标题链接回退与前进，源码近邻显式定位及跨编辑器20次往返。",
+        "关闭源码标签后历史重开并恢复行列，核对正文和草稿。"
+      ],
+      "expected": [
+        "来源与目标可双向回溯，正文不变，关闭重开可用。"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }

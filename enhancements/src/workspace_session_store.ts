@@ -21,6 +21,9 @@ export function create_workspace_session_store(fs:any,path_api:any,crypto:any,di
       const value=validate({schema:1,root:root_key(root),files,active},root),text=JSON.stringify(value);
       if(new TextEncoder().encode(text).length>2*1024*1024)throw new Error("工作区会话记录过大。");
       fs.mkdirSync(directory,{recursive:true});const file=location(root),temporary=file+"."+crypto.randomUUID()+".tmp";
+      // 光标/布局事件可能重复提交同一会话；不变的身份不应反复替换磁盘文件。
+      try { if (fs.readFileSync(file,"utf8") === text) return; }
+      catch(error) { if((error as any)?.code!=="ENOENT")throw error; }
       try{fs.writeFileSync(temporary,text,{encoding:"utf8",flag:"wx",mode:0o600});fs.renameSync(temporary,file);}
       finally{try{fs.unlinkSync(temporary);}catch(error){if((error as any)?.code!=="ENOENT")throw error;}}
     },

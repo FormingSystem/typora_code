@@ -4,17 +4,20 @@ export type reading_location = {
   scroll_left: number;
   cursor: Record<string, unknown> | null;
   view_id?: number;
+  kind?: "source";
+  line?: number;
+  editor_state?: unknown;
   position?: import("./reading_positions").reading_position;
 };
 
 function same_location(left: reading_location, right: reading_location): boolean {
-  return left.file_path === right.file_path && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2
+  return left.file_path === right.file_path && left.kind === right.kind && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2
     && Math.abs(left.scroll_left - right.scroll_left) < 2
     && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
 }
 
 /** 历史只保存窗口内的阅读位置；恢复成功后才移动索引，取消打开不会丢掉原记录。 */
-export function create_reading_history(maximum_entries = 100) {
+export function create_reading_history(maximum_entries = 50) {
   let entries: reading_location[] = [];
   let index = -1;
   let navigating = false;
@@ -26,10 +29,26 @@ export function create_reading_history(maximum_entries = 100) {
     remap_paths(map: (path: string) => string | undefined) {
       for (const entry of entries) entry.file_path = map(entry.file_path) ?? entry.file_path;
     },
+    record_selection(current: reading_location, explicit = false) {
+      if (navigating) return;
+      const previous = entries[index];
+      if (!previous) { entries = [current]; index = 0; return; }
+      const same_editor = previous.file_path === current.file_path && previous.kind === current.kind && previous.view_id === current.view_id;
+      const same_line = current.line != null && previous.line === current.line;
+      const nearby = current.line != null && previous.line != null
+        ? Math.abs(current.line - previous.line) < 10
+        : previous.cursor?.id === current.cursor?.id && previous.cursor?.startId === current.cursor?.startId;
+      if (same_editor && (same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = current;
+      else {
+        entries = entries.slice(0, index + 1); entries.push(current);
+        if (entries.length > maximum_entries) entries.shift();
+        index = entries.length - 1;
+      }
+    },
     record_jump(from: reading_location, to: reading_location) {
       if (navigating || same_location(from, to)) return;
       if (index < 0) { entries = [from]; index = 0; }
-      else if (entries[index].file_path === from.file_path && entries[index].view_id === from.view_id) entries[index] = from;
+      else if (entries[index].file_path === from.file_path && entries[index].kind === from.kind && entries[index].view_id === from.view_id) entries[index] = from;
       else { entries = entries.slice(0, index + 1); entries.push(from); index += 1; }
       entries = entries.slice(0, index + 1);
       entries.push(to);
@@ -44,7 +63,7 @@ export function create_reading_history(maximum_entries = 100) {
       const current_revision = revision;
       try {
         if (!await restore(entries[target_index]) || current_revision !== revision) return false;
-        if (entries[index]?.file_path === current.file_path && entries[index]?.view_id === current.view_id) entries[index] = current;
+        if (entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = current;
         index = target_index;
         return true;
       } finally {

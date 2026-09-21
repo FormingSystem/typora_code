@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R067",
+    "R040.2"
+  ],
+  "release": "2026.09.21.1",
+  "root_cause": "原历史缺少源码与普通选区观察；带锚点打开的部分路径先换文件再补定位，来源可能丢失。",
+  "changes": [
+    "一个窗口历史管理Markdown链接、源码光标、分栏身份和关闭重开；100ms合并Markdown选区事件。",
+    "普通源码近邻10行合并，明确跨行定位保留；URL路径在边界解码一次，失败取消不移动索引。",
+    "相同会话字节跳过重复磁盘替换，变化仍沿用原子写入。"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "ui_suites": 7,
+    "final_target_ui_suites": 3,
+    "native_assertions": 49,
+    "native_cross_editor_travels": 20,
+    "catalog_suites": 165,
+    "installed_asset_matches": 29,
+    "protected_matches": {
+      "asar": true,
+      "icon": true,
+      "profile": false,
+      "settings": true,
+      "theme": true,
+      "window": true
+    },
+    "profile_matches_final_install_backup": true
+  },
+  "native_checks": [
+    "原生渲染链接存在",
+    "同文链接跳到远端标题",
+    "后退恢复链接来源滚动",
+    "后退恢复链接来源光标",
+    "前进恢复标题滚动",
+    "跨文件标题链接打开目标",
+    "跨文后退一次即回来源",
+    "跨文前进恢复标题位置",
+    "URL空格百分号和井号路径只解码一次",
+    "编码文件链接仍返回正确来源",
+    "源码明确近邻跳转可后退",
+    "源码近邻跳转可前进",
+    "Markdown后退到源码",
+    "跨编辑器保留源码行列",
+    "源码前进到Markdown",
+    "反复返回源码 0",
+    "反复前进Markdown 0",
+    "反复返回源码 1",
+    "反复前进Markdown 1",
+    "反复返回源码 2",
+    "反复前进Markdown 2",
+    "反复返回源码 3",
+    "反复前进Markdown 3",
+    "反复返回源码 4",
+    "反复前进Markdown 4",
+    "反复返回源码 5",
+    "反复前进Markdown 5",
+    "反复返回源码 6",
+    "反复前进Markdown 6",
+    "反复返回源码 7",
+    "反复前进Markdown 7",
+    "反复返回源码 8",
+    "反复前进Markdown 8",
+    "反复返回源码 9",
+    "反复前进Markdown 9",
+    "已关闭源码标签可由历史重开",
+    "重开保留源码行列",
+    "同源码在独立编辑组打开",
+    "跨组后退恢复原编辑组",
+    "原编辑组光标不被另一组覆盖",
+    "跨组前进恢复目标编辑组",
+    "目标组保留明确行列",
+    "失效链接不替换当前编辑器",
+    "失效链接不污染返回位置",
+    "导航未修改正文 nav_a.md",
+    "导航未修改正文 nav_b.md",
+    "导航未修改正文 nav space#%.md",
+    "导航未修改正文 nav.txt",
+    "导航未产生Markdown草稿"
+  ],
+  "native_samples": [
+    {
+      "before": {
+        "file": "<fixture>\\workspace\\nav_a.md",
+        "cursor": {
+          "type": "cursor",
+          "id": "n2",
+          "start": 0,
+          "end": 0
+        },
+        "top": 0,
+        "back": "true",
+        "forward": "false"
+      },
+      "target": {
+        "file": "<fixture>\\workspace\\nav_a.md",
+        "cursor": {
+          "type": "cursor",
+          "id": "n38",
+          "start": 0,
+          "end": 0
+        },
+        "top": 766.4000244140625,
+        "back": "true",
+        "forward": "false"
+      },
+      "internal_link": "undefined"
+    }
+  ],
+  "candidate": {
+    "host_version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "asset_manifest_sha256": "e32f6658902eccdd2086b01a0480a9fa564dac74fc24ca14fcba787738f114bf",
+    "fixture_sha256": "e05fde53509e042ac1c44d80756caafba00f09243cb90aa7bf720b48e12be086",
+    "early_fixture_sha256": null,
+    "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+  },
+  "failures_and_resolution": [
+    "两轮完整检查在相同会话连续替换时出现EPERM；减少无变化写入后全量检查通过，外部占用者未确定，未吞掉实际写入错误。",
+    "首次工作区切换UI计数多出临时菜单全局监听器；单独、7组套件及最终3组复核均通过，记录为时序采样波动，未改产品监听器。",
+    "新内部入口测试未等夹具初始化恢复结束，修正等待后通过；原生链接测试选择器错误使用未编码中文href，改用实际DOM链接后通过。"
+  ],
+  "limits": [
+    "原始Typora1.14.10私有桌面，实际DOM链接点击及生产命令；键盘用隔离Electron sendInputEvent，无真人输入/跨平台声明。",
+    "当前运行窗口未重启；保存后正常重启加载，暂不推送。",
+    "采用VS Code默认跨编辑器/组范围，未新增editorGroup/editor范围设置；原生Markdown源码模式仍沿用宿主，工作台源码由Monaco适配。",
+    "个人开发skill已追加导航契约并检查元数据；quick_validate.py因本机缺PyYAML未运行成功。",
+    "最终复核时profile与本轮最初摘要不同，写入时间早于最终安装；当前字节与最终安装前备份一致。其余5项与最初摘要一致，不把运行期间profile变化归因于安装。"
+  ]
+}
