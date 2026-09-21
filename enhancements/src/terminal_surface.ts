@@ -1,6 +1,6 @@
 import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
-import {Terminal} from "@xterm/xterm";
+import {Terminal,type IWindowsPty} from "@xterm/xterm";
 import {FitAddon} from "@xterm/addon-fit";
 import {SearchAddon} from "@xterm/addon-search";
 import {git_icon_button} from "./git_icons";
@@ -15,9 +15,11 @@ export class terminal_surface {
   readonly container=el("section","linux-note-terminal");readonly viewport=el("div","linux-note-terminal-viewport");
   readonly status=el("div","linux-note-terminal-status");readonly term:Terminal;readonly fit=new FitAddon();readonly search=new SearchAddon();
   private lifetime=create_workspace_lifetime();private frame=0;private settings:terminal_settings;private find_bar=el("div","terminal-find");
-  private opened=false;private progress=create_workspace_progress_view();
-  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void}){
-    this.settings=settings;this.term=new Terminal({allowProposedApi:false,theme:terminal_theme()});this.apply_settings(settings);
+  private opened=false;private progress=create_workspace_progress_view();private sent_cols=0;private sent_rows=0;
+  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void},windows_pty?:IWindowsPty){
+    this.settings=settings;this.term=new Terminal({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);
+    // 与 VS Code 一样回应 ConPTY 的 DA1 握手，避免新版后端等待能力响应。
+    if(windows_pty?.backend==="conpty")this.lifetime.own(this.term.parser.registerCsiHandler({final:"c"},params=>{if(!params.length||params.length===1&&params[0]===0){actions.input("\x1b[?61;4c");return true;}return false;}));
     this.term.loadAddon(this.fit);this.term.loadAddon(this.search);
     this.status.setAttribute("role","status");this.status.hidden=true;this.container.append(this.progress.root,this.viewport,this.status,this.find_bar);this.lifetime.add(()=>this.progress.dispose());
     this.find_bar.hidden=true;this.find_bar.setAttribute("role","search");
@@ -53,7 +55,7 @@ export class terminal_surface {
   }
   mount(){if(this.lifetime.disposed)return;if(!this.opened){this.opened=true;this.term.open(this.viewport);if(this.term.textarea)this.lifetime.own(bind_terminal_composition(this.term.textarea));}this.resize();}
   apply_settings(settings:terminal_settings){this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:settings.font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();}
-  resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{this.fit.fit();this.actions.resize(this.term.cols,this.term.rows);}catch{/* 初次布局等待可用尺寸。 */}});}
+  resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{this.fit.fit();const {cols,rows}=this.term;if(cols!==this.sent_cols||rows!==this.sent_rows){this.sent_cols=cols;this.sent_rows=rows;this.actions.resize(cols,rows);}}catch{/* 初次布局等待可用尺寸。 */}});}
   focus(){if(!this.lifetime.disposed)this.term.focus();}
   find(){this.find_bar.hidden=false;this.find_bar.querySelector("input")?.focus();}
   private paste_text(text:string){

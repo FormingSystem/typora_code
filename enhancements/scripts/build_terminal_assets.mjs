@@ -17,6 +17,8 @@ const walk = directory => {
 };
 walk('lib');
 for (const arch of ['x64', 'arm64']) for (const name of ['conpty.node', 'conpty_console_list.node']) files.push(`prebuilds/win32-${arch}/${name}`);
+// 与 node-pty 锁定包配套；不能在 Windows 10 静默退回系统旧 ConPTY。
+for (const arch of ['x64', 'arm64']) for (const name of ['conpty.dll', 'OpenConsole.exe']) files.push(`prebuilds/win32-${arch}/conpty/${name}`);
 const records = [];
 for (const relative of files.sort()) {
   const data = fs.readFileSync(path.join(source, relative)); const name = version + '/node-pty/' + relative;

@@ -457,7 +457,7 @@ Git Graph 的提交、分支、远端、标签、stash、未提交行、变更�
 
 Windows 集成终端要求 Windows 10 1903 或更新版本、x64 或 ARM64。已在 x64 Typora `1.14.9` 实测，ARM64 运行文件来自上游预构建，尚未完成 ARM64 实机验证。
 
-安装器通过系统环境发现 Typora 和用户目录。前端依赖锁定为 xterm.js `6.0.0`、FitAddon `0.11.0`、SearchAddon `0.16.0`；node-pty `1.1.0` 的原始 JavaScript、MIT 许可证与 Windows Node-API 模块保存于 `dist/terminal_runtime/`，由 `scripts/build_terminal_assets.mjs` 从锁定 npm 包生成并附 SHA-256 清单。安装器不编译本机模块，不下载或复制已安装 VS Code 的私有文件。
+安装器通过系统环境发现 Typora 和用户目录。前端依赖锁定为 xterm.js `6.0.0`、FitAddon `0.11.0`、SearchAddon `0.16.0`；node-pty `1.1.0` 的原始 JavaScript、MIT 许可证、Windows Node-API 模块及配套 ConPTY DLL/OpenConsole 保存于 `dist/terminal_runtime/`，由 `scripts/build_terminal_assets.mjs` 从锁定 npm 包生成并附 SHA-256 清单。安装器不编译本机模块，不下载或复制已安装 VS Code 的私有文件。ConPTY 1.23.251008001来自同一锁定node-pty包，Microsoft版权/MIT声明随运行文件保留，上游为[Windows Terminal](https://github.com/microsoft/terminal)。终端传入真实Windows后端信息并回应DA1，具体版本差异和Win10验收边界见[R006.10](../docs/terminal_operations.md#r00610-多shell输入积压与历史滚动2026-09-22)。
 
 独立后台运行时固定为 Node `24.20.0`，官方来源与 x64 / ARM64 ZIP、可执行文件摘要见 [运行时清单](./node_runtime.json)；来源为 [Node 官方发行目录](https://nodejs.org/dist/v24.20.0/)。首次配置下载约 38 MB 的架构对应 ZIP，校验后只提取 `node.exe` 和 `LICENSE`。运行文件安装到 Typora 用户数据中的 `linux_note_enhancements/terminal_runtime/`，不依赖系统 Node，不修改 PATH。离线环境可把相同官方 ZIP 放进 `TYPORA_TERMINAL_CACHE` 指向的目录；默认缓存通过系统本地应用数据目录发现。缓存和提取文件仍须通过摘要校验。
 

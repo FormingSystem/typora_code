@@ -5715,6 +5715,101 @@
         "未点击短代码即具有正确高度，刷新不改变正文/选区，各块展开状态独立"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-terminal-conpty",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.10"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/terminal_session.ts"
+      ],
+      "related_modules": [
+        "xterm",
+        "panel",
+        "zoom",
+        "statusbar"
+      ],
+      "script": "enhancements/scripts/test_terminal_conpty.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行真实xterm与键盘滚轮事件，Win10兼容参数、DA1握手、重复尺寸、200次按键、200行滚动及TUI协议"
+      ],
+      "expected": [
+        "输入不重复、不自行续发；重复行格不发送resize；历史滚动与TUI归属保持"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-shells",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.10"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/terminal_session.ts",
+        "enhancements/src/terminal_surface.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/scripts/test_terminal_shells.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "实际发现并逐个启动全部Shell，隔离HOME/配置，200行输出、滚轮、100次长按、简单提示符排空"
+      ],
+      "expected": [
+        "逐Shell报告，不以检测代替启动；输入不丢失/重复；滚轮改变历史位置；简单提示符松键后1秒内无输出积压"
+      ],
+      "timeout_ms": 300000,
+      "manual_reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板"
+    },
+    {
+      "id": "TC-terminal-scrollback-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.10"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/terminal_session.ts",
+        "enhancements/src/terminal_surface.ts"
+      ],
+      "related_modules": [
+        "keyboard",
+        "focus",
+        "theme",
+        "panel"
+      ],
+      "script": "enhancements/fixtures/terminal_scrollback_native.js",
+      "environment": "原始Typora 1.14.10独立副本、Windows私有桌面、真实ConPTY",
+      "preconditions": "使用prepare_stability_native.py准备当前清单资产；不操作用户窗口。",
+      "steps": [
+        "PowerShell与Git Bash各200行输出、滚轮、100次Enter；记录默认提示符输出尾延迟"
+      ],
+      "expected": [
+        "历史视口移动、100次输入单次传递；尾延迟仅报告，默认Git提示符仍有积压"
+      ],
+      "timeout_ms": 60000,
+      "manual_reason": "需按脚本参数准备独立原生宿主/系统运行环境；禁止默认使用用户安装或真实剪贴板",
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

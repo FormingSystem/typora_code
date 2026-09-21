@@ -87,7 +87,8 @@ export function bind_terminal_workspace(host:graph_host){
     const profile={id:program||settings.get().profile,title:"终端",executable:"",args:[]};
     const id="terminal_"+(++serial);let entry:session_entry;
     const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status,session.launch_pending);schedule();}},explicit_cwd,resolve_cwd,()=>!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch());
-    const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,active:()=>{if(active_id!==id)activate(id,false);}});
+    const windows_pty=host.process_api.platform==="win32"?{backend:"conpty" as const,buildNumber:Number(runtime.reqnode("os").release().split(".")[2])}:undefined;
+    const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,active:()=>{if(active_id!==id)activate(id,false);}},windows_pty);
     entry={session,surface,location,moving:false};sessions.set(id,entry);surface.container.dataset.session=id;active_id=id;
     if(split_id&&sessions.get(split_id)?.location==="panel")session.group=sessions.get(split_id)!.session.group;
     surface.container.oncontextmenu=event=>{const config=settings.get();if(!event.shiftKey&&config.right_click!=="menu"){event.preventDefault();if(config.right_click==="copy_paste"&&surface.term.hasSelection())void host.copy(surface.term.getSelection()).catch(fail);else void surface.paste();return;}menu(event,session_menu(id));};

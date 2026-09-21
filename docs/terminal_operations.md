@@ -184,3 +184,24 @@ Shell负责执行命令，PTY传输输出，xterm保存并绘制终端屏幕。�
 面板、分屏、移入编辑器共用一个surface及PTY，不另设margin/top补偿，不重复创建终端。验证需实测screen和末行边界、状态条显示/隐藏、三档缩放/字号、不同高度及分屏，保留首次失败和最终结果；原生宿主与隔离Electron分别记录。安装交付同时执行卸载/重装回归，用户窗口正常重启加载。
 
 本次验证：54组隔离几何、3组关联UI和原始宿主140检查通过；45组原生采样最小底部间距约4.21px。完整检查、成对安装卸载和本机安装通过，用户需正常重启，未推送。详见[证据](../enhancements/tests/evidence/terminal_geometry_20260921.json)。
+
+## R006.10 多Shell输入积压与历史滚动（2026-09-22）
+
+用户反馈Git Bash长按Enter等键后吞键/抖动，松开仍继续处理；PowerShell滚轮无效，不能回看输出。R006历史容量说明仅为机制调查，不能替代本轮故障复现。目标是在原有界面、Shell和容量设置下恢复正常输入及滚动，不改变用户命令、不为掩盖积压丢弃重复键。
+
+先核对实际Shell矩阵、键盘→xterm→IPC→ConPTY的输入计数与时间，区分Shell提示符耗时和工作台重复发送/布局抖动；核对xterm缓冲是否仍有旧行及鼠标滚轮是否到达滚动所有者，区分容量淘汰、替代屏幕、焦点和视口回跳。原生能力与平台信息集中适配，会话负责PTY，surface负责终端显示与事件；原生窗口/用户数据保持。修复方案在证实后更新，不先选定清屏拦截或容量增加。
+
+验收按实际检测的每个Shell记录：普通键入、20/100/1000档重复输入与停止、低于容量的编号输出及滚轮、尺寸改变、清屏/退出语义；根据成本分别进行功能和压力验证。原生宿主补验实际焦点/事件链。未安装/不可启动的Shell明确列为未覆盖；隔离配置不等于用户启动脚本已验证。同候选安装→检查→卸载→重装→检查，覆盖restore/detach及失败回滚，本机仅卸载预检；不关闭用户窗口。
+
+
+2026-09-22补充：用户确认故障机为Windows 10，PowerShell没有出现历史滚动条。本次执行机是Windows 11（26200）；Win10参数夹具不能替代Win10实机验收。固定VS Code 1.136.2（88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f）的 terminalConfiguration.ts 默认启用 WindowsUseConptyDll，terminalProcess.ts将后端及系统build提供给xterm，terminalInstance.ts接入windowsPty并回应DA1。本项目原来强制useConptyDll=false，且未设置windowsPty；现改为使用锁定node-pty配套DLL、真实系统build以及同一DA1响应，资源由标准清单安装/校验，缺失时报告启动失败，不静默切回另一后端。
+
+上游来源：[配置](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/contrib/terminal/common/terminalConfiguration.ts)、[前端](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/workbench/contrib/terminal/browser/terminalInstance.ts)、[进程](https://github.com/microsoft/vscode/blob/88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f/src/vs/platform/terminal/node/terminalProcess.ts)。当前锁定xterm 6.0.0/node-pty 1.1.0，包内ConPTY为1.23.251008001；该VS Code使用xterm 6.1测试版/node-pty 1.2测试版/ConPTY 1.25.260303002，不能宣称依赖逐版本一比一。本轮不跳换测试版依赖。
+
+重复布局只在行列变化时通知PTY，启动期间记住最终行格并在ready后补发。输入仍逐次传递，历史容量、清屏和应用鼠标协议继续由Shell/xterm管理，不增加隐藏日志副本或抢占TUI滚轮。测试必须给Chromium滚轮提供wheelTicksY；仅设置deltaY时生成的wheelDeltaY为0，会导致错误的滚轮失效结论。
+
+Git Bash默认Git提示符的积压仍可复现：原始宿主100次Enter全部单次转发，松键后约4.9秒仍有输出；隔离测试临时使用简单PS1后无相同积压。这支持继续排查Git提示符成本，不能把它写成已消除，也不修改个人PS1/PROMPT_COMMAND。原生夹具核对普通输出滚轮与输入计数；简单提示符测试仅隔离传输链路，不代表默认Shell启动脚本性能通过。原生准备工具现在按当前发行清单覆盖并校验终端资产，防止新前端错误配上旧安装后端。
+
+本轮候选及分类验证见[证据](../enhancements/tests/evidence/terminal_conpty_20260922.json)：11种本机Shell的隔离传输/滚动、5组UI、原始宿主12项断言及安装/卸载重装通过；Win10现场与默认Git提示符性能保留未完成，1000档未运行。
+
+R006.10独立归因补充：在同一隔离Git仓库直接运行Git Bash，绕过工作台/xterm/IPC，100次`__git_ps1`耗时10.979秒（退出码0）。因此默认提示符的持续输出不能靠前端取消已经提交的回车安全消除；本轮保留Shell配置，未把该性能项记为修复。

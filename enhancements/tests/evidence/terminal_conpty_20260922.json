@@ -1,0 +1,587 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R006.10"
+  ],
+  "release": "2026.09.22.1",
+  "status": "partial: Win10 field verification and default Git prompt latency remain",
+  "environment": {
+    "os": "Windows 11 build 26200 x64",
+    "host": "Typora 1.14.10",
+    "xterm": "6.0.0",
+    "node_pty": "1.1.0",
+    "conpty": "1.23.251008001"
+  },
+  "changes": [
+    "匹配ConPTY DLL、windowsPty真实系统build、DA1握手",
+    "行格变化才通知后端，启动迟到尺寸补发"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "ui_suites": 5,
+    "conpty_final_slider_check": "PASS",
+    "geometry_cases": 54,
+    "catalog_suites": 172,
+    "real_shell_profiles": 11,
+    "native_assertions": 12,
+    "install_uninstall_reinstall": "PASS restore and detach",
+    "uninstall_assertions": 65,
+    "local_install_check": "OK",
+    "local_uninstall_preflight": "detach",
+    "protected_matches": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "installed_assets": {
+      "workspace": 29,
+      "terminal": 24
+    }
+  },
+  "candidate": {
+    "host_version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "asset_manifest_sha256": "746e7410414457e480a79208a8bd343c2d51edf8f0ca781637294767befc7780",
+    "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+    "fixture_sha256": "92dec407e042c88743039623286bea88204ad484cbdec026e4892eb50264a3ad",
+    "early_fixture_sha256": null,
+    "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+  },
+  "shell_matrix": [
+    {
+      "title": "PowerShell",
+      "id": "pwsh",
+      "before": {
+        "base": 189,
+        "position": 189,
+        "mode": "none",
+        "length": 203,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 145,
+        "base": 189,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4590,
+      "released": 10610.10000000894,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 10564.20000000298,
+            "size": 2
+          },
+          {
+            "time": 10564.70000000298,
+            "size": 8
+          },
+          {
+            "time": 10565.79999999702,
+            "size": 64
+          }
+        ],
+        "bytes": 7400
+      },
+      "tail_ms": -44.30000001192093,
+      "status": "PASS"
+    },
+    {
+      "title": "Git Bash",
+      "id": "git_bash_1gsa4ba",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4572,
+      "released": 24134.70000000298,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 24104.60000000894,
+            "size": 9
+          },
+          {
+            "time": 24105,
+            "size": 8
+          },
+          {
+            "time": 24105,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -29.700000002980232,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 MSYS",
+      "id": "msys2_msys_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4589,
+      "released": 37716.90000000596,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 37687,
+            "size": 9
+          },
+          {
+            "time": 37687.10000000894,
+            "size": 8
+          },
+          {
+            "time": 37687.10000000894,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -29.799999997019768,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 CLANG64",
+      "id": "msys2_clang64_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4624,
+      "released": 51307.20000000298,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 51277.20000000298,
+            "size": 9
+          },
+          {
+            "time": 51277.29999999702,
+            "size": 8
+          },
+          {
+            "time": 51277.40000000596,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -29.799999997019768,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 CLANGARM64",
+      "id": "msys2_clangarm64_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4569,
+      "released": 64903.5,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 64873.29999999702,
+            "size": 9
+          },
+          {
+            "time": 64873.40000000596,
+            "size": 8
+          },
+          {
+            "time": 64873.5,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -30,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 MINGW32",
+      "id": "msys2_mingw32_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4600,
+      "released": 78457.79999999702,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 78428.40000000596,
+            "size": 9
+          },
+          {
+            "time": 78428.40000000596,
+            "size": 8
+          },
+          {
+            "time": 78428.5,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -29.299999997019768,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 MINGW64",
+      "id": "msys2_mingw64_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4601,
+      "released": 91969.10000000894,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 91938.5,
+            "size": 9
+          },
+          {
+            "time": 91939.5,
+            "size": 8
+          },
+          {
+            "time": 91939.5,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -29.600000008940697,
+      "status": "PASS"
+    },
+    {
+      "title": "MSYS2 UCRT64",
+      "id": "msys2_ucrt64_1nabe14",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4551,
+      "released": 105450.20000000298,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 105419.79999999702,
+            "size": 1
+          },
+          {
+            "time": 105419.79999999702,
+            "size": 8
+          },
+          {
+            "time": 105419.90000000596,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -30.299999997019768,
+      "status": "PASS"
+    },
+    {
+      "title": "Cygwin",
+      "id": "cygwin_c8qt3",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4523,
+      "released": 118921.40000000596,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 118891.10000000894,
+            "size": 9
+          },
+          {
+            "time": 118891.10000000894,
+            "size": 8
+          },
+          {
+            "time": 118891.20000000298,
+            "size": 2
+          }
+        ],
+        "bytes": 2100
+      },
+      "tail_ms": -30.200000002980232,
+      "status": "PASS"
+    },
+    {
+      "title": "Windows PowerShell",
+      "id": "powershell",
+      "before": {
+        "base": 189,
+        "position": 189,
+        "mode": "none",
+        "length": 203,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 145,
+        "base": 189,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4559,
+      "released": 131697.60000000894,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 131654.70000000298,
+            "size": 4
+          },
+          {
+            "time": 131654.79999999702,
+            "size": 4
+          },
+          {
+            "time": 131655.90000000596,
+            "size": 64
+          }
+        ],
+        "bytes": 7400
+      },
+      "tail_ms": -41.70000000298023,
+      "status": "PASS"
+    },
+    {
+      "title": "Command Prompt",
+      "id": "cmd",
+      "before": {
+        "base": 193,
+        "position": 193,
+        "mode": "none",
+        "length": 207,
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 149,
+        "base": 193,
+        "mode": "none"
+      },
+      "after_programmatic": 0,
+      "release_ms": 4570,
+      "released": 144605.70000000298,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 144514.79999999702,
+            "size": 60
+          },
+          {
+            "time": 144559.60000000894,
+            "size": 10
+          },
+          {
+            "time": 144559.70000000298,
+            "size": 60
+          }
+        ],
+        "bytes": 7000
+      },
+      "tail_ms": -46,
+      "status": "PASS"
+    }
+  ],
+  "native": {
+    "status": "PASS",
+    "checks": [
+      "检测 Windows PowerShell",
+      "取得编辑器会话",
+      "ConPTY前后端匹配",
+      "Windows PowerShell滚轮改变历史视口",
+      "Windows PowerShell实际历史滑块存在",
+      "Windows PowerShell100次回车单次转发",
+      "检测 Git Bash",
+      "取得编辑器会话",
+      "ConPTY前后端匹配",
+      "Git Bash滚轮改变历史视口",
+      "Git Bash实际历史滑块存在",
+      "Git Bash100次回车单次转发"
+    ],
+    "samples": [
+      {
+        "title": "Windows PowerShell",
+        "mode": {
+          "applicationCursorKeysMode": false,
+          "applicationKeypadMode": false,
+          "bracketedPasteMode": false,
+          "insertMode": false,
+          "mouseTrackingMode": "none",
+          "originMode": false,
+          "reverseWraparoundMode": false,
+          "sendFocusMode": true,
+          "synchronizedOutputMode": false,
+          "wraparoundMode": true
+        },
+        "base": 184,
+        "before": 184,
+        "after": 175,
+        "first": true,
+        "wheel_prevented": true,
+        "slider": {
+          "width": 14,
+          "height": 31
+        },
+        "inputs": 100,
+        "tail_ms": 2.6000000089406967,
+        "bytes": 20300
+      },
+      {
+        "title": "Git Bash",
+        "mode": {
+          "applicationCursorKeysMode": false,
+          "applicationKeypadMode": false,
+          "bracketedPasteMode": true,
+          "insertMode": false,
+          "mouseTrackingMode": "none",
+          "originMode": false,
+          "reverseWraparoundMode": false,
+          "sendFocusMode": true,
+          "synchronizedOutputMode": false,
+          "wraparoundMode": true
+        },
+        "base": 188,
+        "before": 188,
+        "after": 179,
+        "first": true,
+        "wheel_prevented": true,
+        "slider": {
+          "width": 14,
+          "height": 30
+        },
+        "inputs": 100,
+        "tail_ms": 4971.899999991059,
+        "bytes": 18796
+      }
+    ]
+  },
+  "limits": [
+    "本机为Win11；Win10 build19045仅xterm参数夹具，不是实机验收",
+    "Shell矩阵200行/100输入使用隔离配置及简单PS1；未执行1000档输入压力",
+    "默认Git Bash提示符松键约5秒仍有输出，未消除；没有修改个人提示符或丢弃输入",
+    "MSYS2 CLANGARM64是本机x64 Bash配置，不是ARM64运行验收；WSL/fish/zsh未发现，未测试",
+    "用户窗口未关闭或重启；真实物理键盘滚轮与Win10现场待复核",
+    "安装后实际用户环境未卸载，仅只读预检；恢复/撤销卸载在隔离目录实测"
+  ],
+  "failed_attempts": [
+    "初次Chromium滚轮仅deltaY导致wheelDeltaY=0假失败，最终补wheelTicksY",
+    "首次候选原生夹具误用旧安装后端缺DLL，准备工具现覆盖当前清单",
+    "Git Bash首次输出早于提示符，测试命令过早；改等真实提示符，PowerShell允许已配置的非PS前缀"
+  ],
+  "direct_shell_probe": {
+    "command": "bash --login -i -c: 100 calls to __git_ps1 in isolated Git repository, stdout redirected",
+    "seconds": 10.979,
+    "exit_code": 0,
+    "scope": "不经过xterm、IPC或工作台；保留默认提示符函数配置；非PTY输出报告无job control，仅计函数执行耗时"
+  }
+}

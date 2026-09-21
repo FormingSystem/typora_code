@@ -55,6 +55,7 @@
 | R006.7 | 终端输入法与 Shift 中英切换 | [设计章节](terminal_operations.md#r0067-输入法与按键所有权) | [Markdown输入契约与Shift直接提交](terminal_operations.md#2026-09-14-markdown输入契约与shift直接提交)；保留候选提交与全局捕获修复，输入法管理候选，xterm唯一发送 |
 | R006.8 | 终端先展示面板与启动阶段反馈 | [设计](terminal_operations.md#r0068-面板先展示与启动阶段反馈2026-09-20) | 统一新建入口、目录/探测/进程/首次输出状态及取消清理 |
 | R006.9 | 终端末行与底栏边界 | [设计章节](terminal_operations.md#r0069-终端末行与底栏边界2026-09-21) | 统一表面内边距与行数计算，覆盖缩放/分屏/状态条 |
+| R006.10 | Git Bash输入积压与PowerShell历史滚动 | [设计章节](terminal_operations.md#r00610-多shell输入积压与历史滚动2026-09-22) | 按实际Shell矩阵核对键入、滚轮、缓冲与平台适配 |
 | R007 | 保留原生能力并补充文件菜单 | [设计章节](file_operations.md#文件管理) | 已有文件命令设计；完整工作区另见 R010 |
 | R008 | 所有功能的抽象与统一管理 | [设计章节](workspace_architecture.md#调用方向与状态所有者) | 已有全局职责和所有权设计 |
 | R009 | 系统文件剪贴板互通 | [设计章节](file_operations.md#r009-系统文件剪贴板) | 系统文件列表、版本绑定剪切及外部复制边界 |

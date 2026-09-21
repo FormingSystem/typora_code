@@ -63,6 +63,19 @@ for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines(
 runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal_runtime'
 if runtime.is_dir():
     shutil.copytree(runtime, user_data / 'linux_note_enhancements/terminal_runtime')
+# Shell 后端必须来自本次候选，不能让新脚本配上本机旧 ConPTY。
+terminal_release = release / 'terminal_runtime'
+for line in (terminal_release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
+    if not line.strip():
+        continue
+    expected, name = line.split(None, 1)
+    relative = Path(name.strip())
+    assert not relative.is_absolute() and '..' not in relative.parts
+    source = terminal_release / relative
+    assert digest(source) == expected, f'Invalid terminal candidate asset: {relative}'
+    target = user_data / 'linux_note_enhancements/terminal_runtime' / relative
+    target.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, target)
 (user_data / 'profile.data').write_text(json.dumps({'framelessWindow': True, 'enableAutoSave': False}).encode('utf-8').hex(), encoding='ascii')
 fixture = fixture_path.read_text(encoding='utf-8').replace('__CASE_ROOT__', json.dumps(case.as_posix()))
 runner = '(()=>{const poll=setInterval(async()=>{const core=window[Symbol.for("typora-code:workspace")];if(!core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host||!core.app.workspace.activeLeaf)return;clearInterval(poll);await (0,eval)(' + json.dumps(fixture) + ')},100)})();'
@@ -79,5 +92,5 @@ if len(sys.argv) > 3:
 html = html.replace('</head>', head + '<script>window.addEventListener("DOMContentLoaded",()=>{' + runner + '});</script></head>')
 (host / 'resources/window.html').write_text(html, encoding='utf-8')
 assert digest(asar) == expected_asar == digest(host / 'resources/app.asar')
-(case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
+(case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'terminal_manifest_sha256': digest(terminal_release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
 print(case)

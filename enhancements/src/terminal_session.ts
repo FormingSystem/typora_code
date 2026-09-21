@@ -35,20 +35,21 @@ export class terminal_session {
       if(!this.host.path_api.isAbsolute(launch.cwd)||!this.host.fs.statSync(launch.cwd).isDirectory())throw new Error("终端工作目录不存在。");
       this.root=launch.cwd;
       const base=this.host.path_api.join(runtime._options.userDataPath,"linux_note_enhancements","terminal_runtime");
+      const start_cols=this.cols,start_rows=this.rows;
       const pty=await start_terminal_pty({signal:startup.signal,child_process:runtime.reqnode("child_process"),process_api:this.host.process_api,
         broker:this.host.path_api.join(base,"1.1.0","terminal_broker.cjs"),executable:this.host.path_api.join(base,"node",node_release.version,"node.exe")},
-        {executable:launch.executable,args:launch.args,options:{name:"xterm-256color",cols:this.cols,rows:this.rows,cwd:launch.cwd,env:launch.env,useConpty:true,useConptyDll:false}}, {
+        {executable:launch.executable,args:launch.args,options:{name:"xterm-256color",cols:start_cols,rows:start_rows,cwd:launch.cwd,env:launch.env,useConpty:true,useConptyDll:true}}, {
           data:data=>{if(!current())return;if(data.length){received_output=true;if(this.state==="running"&&this.launch_pending){this.launch_pending=false;this.status="";this.changed();}}this.output(data,()=>{if(generation===this.generation)this.pty?.acknowledge(data.length);});},
           exit:code=>{if(generation!==this.generation||this.disposed)return;this.pty=undefined;this.pid=0;this.state="exited";this.launch_pending=false;this.status=`Shell 已退出（${code}）`;this.changed();},
           error:message=>{if(generation!==this.generation||this.disposed)return;this.state="error";this.launch_pending=false;this.status=message;this.changed();},
         });
       if(!current()||this.state!=="starting"){pty.kill();return;}
-      this.pty=pty;this.pid=pty.pid;this.state="running";this.launch_pending=!received_output;this.status=received_output?"":profile.title+" 进程已启动，正在等待首次输出（Shell初始化可能需要一些时间）…";this.changed();
+      this.pty=pty;if(this.cols!==start_cols||this.rows!==start_rows)pty.resize(this.cols,this.rows);this.pid=pty.pid;this.state="running";this.launch_pending=!received_output;this.status=received_output?"":profile.title+" 进程已启动，正在等待首次输出（Shell初始化可能需要一些时间）…";this.changed();
     }catch(error){if(this.disposed||generation!==this.generation)return;this.state="error";this.launch_pending=false;this.status=String(error instanceof Error?error.message:error);this.changed();}
     finally{if(this.startup===startup)this.startup=undefined;}
   }
   write(data:string){this.pty?.write(data);}
-  resize(cols:number,rows:number){this.cols=cols;this.rows=rows;this.pty?.resize(cols,rows);}
+  resize(cols:number,rows:number){if(cols===this.cols&&rows===this.rows)return;this.cols=cols;this.rows=rows;this.pty?.resize(cols,rows);}
   stop(){this.generation++;this.startup?.abort();this.startup=undefined;const pty=this.pty;this.pty=undefined;pty?.kill();this.pid=0;this.state="exited";this.launch_pending=false;this.status="Shell 已终止";}
   dispose(){if(this.disposed)return;this.disposed=true;this.stop();}
 }

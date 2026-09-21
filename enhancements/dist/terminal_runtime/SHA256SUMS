@@ -14,7 +14,11 @@ c3a65716f53fed0135a8a633373d5f9c2ab092544d651f27ef0a67096dd3bcd9  1.1.0/node-pty
 3e4bac095ac3870c3248a7302f5d10217de625f30c32b7000fe48a34788e47ac  1.1.0/node-pty/lib/worker/conoutSocketWorker.js
 f8b6a14f7022c14f1cd5d109486f5dacd32bffb63a9a63e38eced37dacb47439  1.1.0/node-pty/package.json
 25a06916c5cb1a3aac7acc401424d8e6a6a9e8eea441a3604cd657a0619555cd  1.1.0/node-pty/prebuilds/win32-arm64/conpty.node
+b7763ba27e80d5e84f9e60d1368ec2ddb25dfd10283336c0c9f3f252d35cb2f8  1.1.0/node-pty/prebuilds/win32-arm64/conpty/OpenConsole.exe
+b6cca5f1081111f59e5255eec043d924ebd11a86d09986c0d121b680540b3380  1.1.0/node-pty/prebuilds/win32-arm64/conpty/conpty.dll
 fda76b16afb3bf9a4de085c943b5fb4138ecbeb08e8254c09d5555ea5426bd4e  1.1.0/node-pty/prebuilds/win32-arm64/conpty_console_list.node
 ee8f4e6f4dad71939eecfda11de249400e34bfefe4c8b48af13f3b5476f4035b  1.1.0/node-pty/prebuilds/win32-x64/conpty.node
+d1fe7faa62f9e955e2ac2371f95d7e5513df4d496255097158f979c94782c5fc  1.1.0/node-pty/prebuilds/win32-x64/conpty/OpenConsole.exe
+7c7430632052ff703540b68371ec43821820aa1335d8e11dfbcd9ff00e9daaed  1.1.0/node-pty/prebuilds/win32-x64/conpty/conpty.dll
 879dd94cfc79f1e263a00077597ae9448a5394b7d193381aaa50d992a1f91090  1.1.0/node-pty/prebuilds/win32-x64/conpty_console_list.node
 9e39ba84bd9ff9fe73c2e3d55110b1c90c5b508501a2e67db846efdde71e6011  1.1.0/terminal_broker.cjs

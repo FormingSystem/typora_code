@@ -186676,6 +186676,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.host.path_api.isAbsolute(launch.cwd) || !this.host.fs.statSync(launch.cwd).isDirectory()) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u4E0D\u5B58\u5728\u3002");
         this.root = launch.cwd;
         const base = this.host.path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime");
+        const start_cols = this.cols, start_rows = this.rows;
         const pty = await start_terminal_pty(
           {
             signal: startup.signal,
@@ -186684,7 +186685,7 @@ https://creativecommons.org/licenses/by/4.0/
             broker: this.host.path_api.join(base, "1.1.0", "terminal_broker.cjs"),
             executable: this.host.path_api.join(base, "node", node_runtime_default.version, "node.exe")
           },
-          { executable: launch.executable, args: launch.args, options: { name: "xterm-256color", cols: this.cols, rows: this.rows, cwd: launch.cwd, env: launch.env, useConpty: true, useConptyDll: false } },
+          { executable: launch.executable, args: launch.args, options: { name: "xterm-256color", cols: start_cols, rows: start_rows, cwd: launch.cwd, env: launch.env, useConpty: true, useConptyDll: true } },
           {
             data: (data) => {
               if (!current()) return;
@@ -186723,6 +186724,7 @@ https://creativecommons.org/licenses/by/4.0/
           return;
         }
         this.pty = pty;
+        if (this.cols !== start_cols || this.rows !== start_rows) pty.resize(this.cols, this.rows);
         this.pid = pty.pid;
         this.state = "running";
         this.launch_pending = !received_output;
@@ -186742,6 +186744,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.pty?.write(data);
     }
     resize(cols, rows) {
+      if (cols === this.cols && rows === this.rows) return;
       this.cols = cols;
       this.rows = rows;
       this.pty?.resize(cols, rows);
@@ -197605,11 +197608,18 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/terminal_surface.ts
   var terminal_surface = class {
-    constructor(settings, actions) {
+    constructor(settings, actions, windows_pty) {
       this.actions = actions;
       this.settings = settings;
-      this.term = new Dl({ allowProposedApi: false, theme: terminal_theme() });
+      this.term = new Dl({ allowProposedApi: false, theme: terminal_theme(), windowsPty: windows_pty });
       this.apply_settings(settings);
+      if (windows_pty?.backend === "conpty") this.lifetime.own(this.term.parser.registerCsiHandler({ final: "c" }, (params) => {
+        if (!params.length || params.length === 1 && params[0] === 0) {
+          actions.input("\x1B[?61;4c");
+          return true;
+        }
+        return false;
+      }));
       this.term.loadAddon(this.fit);
       this.term.loadAddon(this.search);
       this.status.setAttribute("role", "status");
@@ -197705,6 +197715,8 @@ https://creativecommons.org/licenses/by/4.0/
     find_bar = workspace_element("div", "terminal-find");
     opened = false;
     progress = create_workspace_progress_view();
+    sent_cols = 0;
+    sent_rows = 0;
     mount() {
       if (this.lifetime.disposed) return;
       if (!this.opened) {
@@ -197726,7 +197738,12 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.opened || !this.viewport.clientWidth || !this.viewport.clientHeight) return;
         try {
           this.fit.fit();
-          this.actions.resize(this.term.cols, this.term.rows);
+          const { cols, rows } = this.term;
+          if (cols !== this.sent_cols || rows !== this.sent_rows) {
+            this.sent_cols = cols;
+            this.sent_rows = rows;
+            this.actions.resize(cols, rows);
+          }
         } catch {
         }
       });
@@ -198438,9 +198455,10 @@ https://creativecommons.org/licenses/by/4.0/
             schedule();
           }
         }, explicit_cwd, resolve_cwd, () => !lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch());
+        const windows_pty = host.process_api.platform === "win32" ? { backend: "conpty", buildNumber: Number(runtime2.reqnode("os").release().split(".")[2]) } : void 0;
         const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, active: () => {
           if (active_id !== id) activate(id, false);
-        } });
+        } }, windows_pty);
         entry = { session, surface, location, moving: false };
         sessions.set(id, entry);
         surface.container.dataset.session = id;
@@ -240253,6 +240271,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092201,
+        version: "2026.09.22.1",
+        date: "2026-09-22",
+        notes: [
+          "\u7EC8\u7AEF\u6539\u7528\u914D\u5957ConPTY\u8FD0\u884C\u6587\u4EF6\u5E76\u4F20\u9012Windows\u517C\u5BB9\u4FE1\u606F\uFF0C\u5BF9\u9F50VS Code\u540E\u7AEF\u63A5\u5165\u65B9\u5F0F\uFF1BWindows 10\u73B0\u573A\u6548\u679C\u4ECD\u9700\u590D\u6838\u3002",
+          "\u7EC8\u7AEF\u53EA\u5728\u884C\u5217\u53D8\u5316\u65F6\u901A\u77E5Shell\u8C03\u6574\u5C3A\u5BF8\uFF0C\u542F\u52A8\u671F\u95F4\u7684\u6700\u7EC8\u5C3A\u5BF8\u4E0D\u4E22\u5931\uFF1B\u4FDD\u7559\u8F93\u5165\u3001\u5386\u53F2\u5BB9\u91CF\u548CShell\u63D0\u793A\u7B26\u914D\u7F6E\u3002"
+        ]
+      },
       {
         sequence: 2026092104,
         version: "2026.09.21.4",
