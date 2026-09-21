@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-21T14:29:02.047641+00:00",
+  "remote": "origin/main",
+  "previous_commit": "56de16d0c06c62e1391978c8a68858de0fe44d1d",
+  "published_commit": "95f596d781ae4a7000b7ac886040f92c8830c78a",
+  "mode": "fast-forward",
+  "release": "2026.09.21.1",
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "b0dc2ee05f54ff71f73cba6d10aec19a6261ac369f3e38032698f8c407032db7",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/assets/update/release.json",
+      "sha256": "b0dc2ee05f54ff71f73cba6d10aec19a6261ac369f3e38032698f8c407032db7",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "e32f6658902eccdd2086b01a0480a9fa564dac74fc24ca14fcba787738f114bf",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "6aa3393ab11cf5f9bb26134a183477edcdd4e4c7b19717618359fa46c97f663d",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    },
+    {
+      "path": "uninstall_windows.ps1",
+      "sha256": "01b637f1e4d2bc93ee0837e6e406b3662ddb1743c4ca2de6c87144dfb099cda2",
+      "matches_commit": true
+    },
+    {
+      "path": "scripts/lib/typora_uninstall.ps1",
+      "sha256": "882d445c378ba9ac8ab3461797a0e9a708107986dfe9bf52ffce793fe7c24905",
+      "matches_commit": true
+    }
+  ],
+  "asset_count": 29,
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "uninstall_preflight": "detach",
+  "limits": [
+    "导航验证为49项原始宿主检查、完整检查和7组UI及最终3组复验；安装/卸载/重装为隔离Windows文件事务和65卸载断言。",
+    "未实际卸载用户环境，未执行卸载后的真实宿主启动；用户运行窗口未由发布流程重启。",
+    "本次仅发布既有候选并同步说明，不重复构建或安装；跨平台、物理输入及历史未决保持。"
+  ]
+}
