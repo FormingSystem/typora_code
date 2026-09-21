@@ -240106,6 +240106,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092102,
+        version: "2026.09.21.2",
+        date: "2026-09-21",
+        notes: [
+          "\u4FEE\u590D\u7EC8\u7AEF\u5728\u7F29\u653E\u6216\u8C03\u6574\u9762\u677F\u9AD8\u5EA6\u65F6\u672B\u884C\u8D34\u5E95\u548C\u88C1\u5207\uFF0C\u5E95\u90E8\u7559\u767D\u7EDF\u4E00\u8BA1\u5165\u884C\u5217\u8BA1\u7B97\u3002",
+          "\u9762\u677F\u3001\u5206\u5C4F\u548C\u7F16\u8F91\u5668\u4E2D\u7684\u7EC8\u7AEF\u5171\u7528\u5C3A\u5BF8\u89C4\u5219\uFF0C\u4FDD\u7559\u8FD0\u884C\u4E2D\u7684Shell\u4E0E\u8F93\u51FA\u5386\u53F2\u3002"
+        ]
+      },
+      {
         sequence: 2026092101,
         version: "2026.09.21.1",
         date: "2026-09-21",

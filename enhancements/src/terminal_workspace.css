@@ -23,8 +23,9 @@
 
 .terminal-editor-host,.linux-note-terminal{height:100%;min-height:0;min-width:0;display:flex;flex:1;overflow:hidden}
 .linux-note-terminal{position:relative;flex-direction:column;background:var(--bg-color,transparent);color:var(--text-color,inherit);font:12px/1.4 system-ui,sans-serif}
-.linux-note-terminal-viewport{flex:1;min-height:0;min-width:0;overflow:hidden;padding:4px 8px 0 16px}
-.linux-note-terminal-viewport .xterm{height:100%}
+.linux-note-terminal-viewport{box-sizing:border-box;flex:1;min-height:0;min-width:0;overflow:hidden;padding:0}
+/* FitAddon扣除xterm本身的内边距；不能把留白放在其父层。 */
+.linux-note-terminal-viewport .xterm{box-sizing:border-box;height:100%;padding:4px 8px 4px 16px}
 .linux-note-terminal .xterm-viewport{background-color:transparent}
 .linux-note-terminal .xterm textarea{resize:none}
 .linux-note-terminal-status{padding:3px 10px;border-top:1px solid #8883;max-height:66px;overflow:auto;flex:none}

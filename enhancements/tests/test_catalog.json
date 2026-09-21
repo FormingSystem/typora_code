@@ -5590,6 +5590,66 @@
         "来源与目标可双向回溯，正文不变，关闭重开可用。"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-terminal-geometry",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.9"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/terminal_workspace.css"
+      ],
+      "related_modules": [
+        "xterm",
+        "panel",
+        "zoom",
+        "statusbar"
+      ],
+      "script": "enhancements/scripts/test_terminal_geometry.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "三档缩放/字号、三种高度与状态条开关实测末行、screen及视口边界"
+      ],
+      "expected": [
+        "末行和光标完整显示，留白计入可用行数"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-terminal-geometry-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.9"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/terminal_workspace.css"
+      ],
+      "related_modules": [
+        "terminal",
+        "workspace-progress"
+      ],
+      "script": "enhancements/fixtures/terminal_geometry_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora 1.14.10独立副本、Windows私有桌面、真实ConPTY",
+      "preconditions": "使用prepare_stability_native.py创建独立用户数据及文档，已安装私有终端运行包；不操作用户窗口。",
+      "steps": [
+        "真实Shell填充输出，面板/分屏/编辑器三档缩放及键盘高度调整，检查行格/末行/底栏边界",
+        "终止全部会话，核对进程身份及原文保持"
+      ],
+      "expected": [
+        "所有几何与生命周期断言通过，记录原始候选摘要与renderer事件边界"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }

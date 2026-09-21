@@ -507,5 +507,30 @@
       "default scope crosses editors and groups"
     ],
     "adopted": "一个窗口导航栈，源码适配行列与视图状态，Markdown保留原生光标及阅读锚点；不新增范围设置页。"
+  },
+  "terminal_geometry_20260921": {
+    "upstream": "VS Code 1.136.2",
+    "files": [
+      "src/vs/workbench/contrib/terminal/browser/terminalInstance.ts:getCanvasDimensions",
+      "@xterm/addon-fit/src/FitAddon.ts:proposeDimensions"
+    ],
+    "rule": "内容行列尺寸扣除xterm自身上下左右内边距；父视口不承担未被扣除的padding",
+    "adopted": {
+      "top": 4,
+      "right": 8,
+      "bottom": 4,
+      "left": 16
+    },
+    "boundary": "保留既有上/右/左值；下4px为项目对称留白适配值，不宣称上游默认",
+    "targets": [
+      "terminal panel",
+      "terminal split",
+      "terminal editor"
+    ],
+    "verification": "TC-terminal-geometry / TC-terminal-geometry-native",
+    "source_hashes": {
+      ".cache/vscode_workbench_1_136_2/src/vs/workbench/contrib/terminal/browser/terminalInstance.ts": "0814b324675678eb11096cbd4d3e4ec864aadc290da5cd352c7fe50e53f3ae4d",
+      "enhancements/node_modules/@xterm/addon-fit/src/FitAddon.ts": "fdf85d2fe929cbdd71fa1382f66f209069812eaa0f106a0c67ef3fcd1e105e9a"
+    }
   }
 }
