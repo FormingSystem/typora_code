@@ -1,3 +1,4 @@
+import {bind_reading_code_geometry} from "./reading_code_geometry";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {open_reading_media,close_reading_media} from "./reading_media_viewer";
 import {bind_reading_images} from "./reading_image_viewer";
@@ -83,6 +84,7 @@ let graph_binding: ReturnType<typeof bind_git_graph>;
 let reading_binding: ReturnType<typeof bind_reading_navigation>;
 let grammar_loading: Promise<void> | undefined;
 const original_code_modes = new Map<code_mirror_instance, unknown>();
+let code_geometry:ReturnType<typeof bind_reading_code_geometry>|undefined;
 let runtime_observer: MutationObserver | null = null;
 let dispose_reading_action_events: (() => void) | null = null;
 
@@ -227,7 +229,7 @@ function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expand
     const scroller = fence.querySelector<HTMLElement>(".CodeMirror-scroll");
     if (scroller) scroller.scrollTop = 0;
   }
-  requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
+  code_geometry?.refresh(fence);
 }
 
 function bind_reading_action_events(): () => void {
@@ -318,7 +320,9 @@ function scan_document(): void {
   if (!runtime_active) return;
   if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding=runtime_lifetime.own(bind_reading_navigation());
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
-  document.querySelectorAll(".md-fences").forEach(ensure_code_collapse);
+  const fences=[...document.querySelectorAll<HTMLElement>(".md-fences")];
+  code_geometry?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)));
+  fences.forEach(ensure_code_collapse);
   const diagram_containers = new Set<Element>();
   document.querySelectorAll(".md-diagram-panel-preview").forEach((preview) => {
     diagram_containers.add(mermaid_container_for_preview(preview));
@@ -476,6 +480,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   code_mirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
   code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
   lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
+  code_geometry=bind_reading_code_geometry();
   dispose_reading_action_events = bind_reading_action_events();
   scan_document();
   runtime_observer = new MutationObserver(schedule_scan);
@@ -518,6 +523,7 @@ export function deactivate_typora_enhancements(): void {
   }
   runtime_observer?.disconnect();
   runtime_observer = null;
+  code_geometry?.dispose();code_geometry=undefined;
   dispose_reading_action_events?.();
   dispose_reading_action_events = null;
   window.removeEventListener("resize", schedule_scan);

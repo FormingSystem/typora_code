@@ -72,6 +72,8 @@ try {
    if($owner -eq $info.pid){$title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024);if($title.ToString().EndsWith(' - Typora')){[void][isolated_desktop]::MoveWindow($hwnd,0,0,2100,1300,$true)}}
    return $true
  };[void][isolated_desktop]::EnumDesktopWindows($desktop,$resize,[IntPtr]::Zero)
+ # 几何夹具先等外部布局阶段结束，不能把运行器改窗口尺寸误判为产品回归。
+ @{completed=$true}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'window_bounds_ready.json') -Encoding utf8
  $review_deadline=$watch.ElapsedMilliseconds+$wait_ms
  $all_windows_seen=[Collections.Generic.Dictionary[string,object]]::new()
  $inspect_all=[isolated_desktop+enum_windows]{param($hwnd,$state)

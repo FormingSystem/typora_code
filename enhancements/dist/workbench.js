@@ -158116,6 +158116,98 @@ https://creativecommons.org/licenses/by/4.0/
     }
   });
 
+  // src/reading_code_geometry.ts
+  function bind_reading_code_geometry() {
+    const entries3 = /* @__PURE__ */ new Map();
+    const wrappers = /* @__PURE__ */ new Map();
+    const queued = /* @__PURE__ */ new Set();
+    let frame3 = 0, disposed = false;
+    const enqueue = (fence) => {
+      const entry = entries3.get(fence);
+      if (!entry || disposed) return;
+      entry.pending = true;
+      if (!entry.visible) return;
+      queued.add(fence);
+      if (!frame3) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        const batch = [...queued];
+        queued.clear();
+        for (const current of batch) {
+          const item = entries3.get(current);
+          if (disposed || !item?.pending || !item.visible || !current.isConnected || !item.wrapper.getBoundingClientRect().width) continue;
+          if (item.wrapper.CodeMirror !== item.editor) continue;
+          item.pending = false;
+          item.editor.refresh();
+        }
+      });
+    };
+    const intersection2 = new IntersectionObserver((records) => {
+      for (const record of records) {
+        const fence = record.target, entry = entries3.get(fence);
+        if (!entry) continue;
+        const entered = record.isIntersecting && !entry.visible;
+        entry.visible = record.isIntersecting;
+        if (entered) enqueue(fence);
+      }
+    });
+    const resize = new ResizeObserver((records) => {
+      for (const record of records) {
+        const fence = wrappers.get(record.target), entry = fence && entries3.get(fence);
+        if (!entry || !fence) continue;
+        const width2 = record.contentRect.width;
+        if (width2 > 0 && width2 !== entry.width) {
+          entry.width = width2;
+          enqueue(fence);
+        }
+      }
+    });
+    const invalidate = () => {
+      for (const fence of entries3.keys()) enqueue(fence);
+    };
+    window.addEventListener("resize", invalidate, { passive: true });
+    document.fonts?.addEventListener("loadingdone", invalidate);
+    const remove = (fence, entry) => {
+      intersection2.unobserve(fence);
+      resize.unobserve(entry.wrapper);
+      wrappers.delete(entry.wrapper);
+      entries3.delete(fence);
+      queued.delete(fence);
+    };
+    return {
+      reconcile(fences3) {
+        if (disposed) return;
+        const current = new Set(fences3);
+        for (const [fence, entry] of entries3) if (!current.has(fence) || !fence.isConnected) remove(fence, entry);
+        for (const fence of current) {
+          const wrapper = fence.querySelector(".CodeMirror");
+          const editor2 = wrapper?.CodeMirror;
+          const previous = entries3.get(fence);
+          if (previous?.wrapper === wrapper && previous.editor === editor2) continue;
+          if (previous) remove(fence, previous);
+          if (!wrapper || !editor2?.refresh) continue;
+          entries3.set(fence, { wrapper, editor: editor2, visible: false, width: 0, pending: true });
+          wrappers.set(wrapper, fence);
+          intersection2.observe(fence);
+          resize.observe(wrapper);
+        }
+      },
+      refresh: enqueue,
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        cancelAnimationFrame(frame3);
+        frame3 = 0;
+        intersection2.disconnect();
+        resize.disconnect();
+        queued.clear();
+        entries3.clear();
+        wrappers.clear();
+        window.removeEventListener("resize", invalidate);
+        document.fonts?.removeEventListener("loadingdone", invalidate);
+      }
+    };
+  }
+
   // src/workspace_focus.ts
   var active_element = () => {
     let node = document.activeElement;
@@ -240162,6 +240254,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092104,
+        version: "2026.09.21.4",
+        date: "2026-09-21",
+        notes: [
+          "\u4FEE\u590D\u5C55\u5F00\u957F\u4EE3\u7801\u6216\u6539\u53D8\u5E03\u5C40\u540E\u5176\u4ED6\u4EE3\u7801\u6846\u6B8B\u7559\u8FC7\u5927\u9AD8\u5EA6\u7684\u95EE\u9898\uFF0C\u53EF\u89C1\u4EE3\u7801\u5757\u6309\u81EA\u5DF1\u7684\u539F\u751F\u7F16\u8F91\u5668\u91CD\u65B0\u6D4B\u91CF\u3002",
+          "\u4EE3\u7801\u5757\u5BBD\u5EA6\u548C\u53EF\u89C1\u6027\u53D8\u5316\u5408\u5E76\u5237\u65B0\uFF0C\u79BB\u5C4F\u5EF6\u540E\u5904\u7406\uFF0C\u4E0D\u6539\u53D8\u5404\u5757\u5C55\u5F00\u72B6\u6001\u3001\u6B63\u6587\u548C\u5149\u6807\u3002"
+        ]
+      },
+      {
         sequence: 2026092103,
         version: "2026.09.21.3",
         date: "2026-09-21",
@@ -241793,6 +241894,7 @@ https://creativecommons.org/licenses/by/4.0/
   var reading_binding;
   var grammar_loading;
   var original_code_modes = /* @__PURE__ */ new Map();
+  var code_geometry;
   var runtime_observer = null;
   var dispose_reading_action_events = null;
   var extension_style;
@@ -241922,7 +242024,7 @@ https://creativecommons.org/licenses/by/4.0/
       const scroller = fence.querySelector(".CodeMirror-scroll");
       if (scroller) scroller.scrollTop = 0;
     }
-    requestAnimationFrame(() => code_mirror_for_fence(fence)?.refresh());
+    code_geometry?.refresh(fence);
   }
   function bind_reading_action_events() {
     const handle_event = (event) => {
@@ -242002,7 +242104,9 @@ https://creativecommons.org/licenses/by/4.0/
     if (!runtime_active) return;
     if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding = runtime_lifetime.own(bind_reading_navigation());
     document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
-    document.querySelectorAll(".md-fences").forEach(ensure_code_collapse);
+    const fences3 = [...document.querySelectorAll(".md-fences")];
+    code_geometry?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence)));
+    fences3.forEach(ensure_code_collapse);
     const diagram_containers = /* @__PURE__ */ new Set();
     document.querySelectorAll(".md-diagram-panel-preview").forEach((preview) => {
       diagram_containers.add(mermaid_container_for_preview(preview));
@@ -242172,6 +242276,7 @@ https://creativecommons.org/licenses/by/4.0/
         else delete code_mirror.modes[name];
       }
     });
+    code_geometry = bind_reading_code_geometry();
     dispose_reading_action_events = bind_reading_action_events();
     scan_document();
     runtime_observer = new MutationObserver(schedule_scan);
@@ -242211,6 +242316,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     runtime_observer?.disconnect();
     runtime_observer = null;
+    code_geometry?.dispose();
+    code_geometry = void 0;
     dispose_reading_action_events?.();
     dispose_reading_action_events = null;
     window.removeEventListener("resize", schedule_scan);

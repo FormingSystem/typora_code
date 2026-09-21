@@ -1,0 +1,118 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R068"
+  ],
+  "release": "2026.09.21.4",
+  "baseline": "e31c357",
+  "design": "docs/reading_code_blocks.md",
+  "problem": "布局改变后原生CodeMirror保留换行高度缓存；原先只有被展开围栏主动refresh，其他实例缺少宽度与可见性失效。",
+  "changes": [
+    "各围栏独立登记原生编辑器、观察宽度和可见性",
+    "离屏延后、帧内合并，高度变化不触发刷新反馈循环",
+    "原生实例替换和销毁取消旧观察与回调，保留正文/光标/展开状态"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 169,
+    "ui_suites": 3,
+    "geometry_cycles": 20,
+    "native_generated_cycles": 20,
+    "native_document_cycles": 10,
+    "native_height_samples": 230,
+    "install_restore_uninstall_reinstall_detach_uninstall_reinstall": "PASS",
+    "uninstall_assertions": 65,
+    "same_candidate_manifest_confirmed": true,
+    "installed_asset_count": 29,
+    "protected_unchanged": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "local_install_check": "OK",
+    "local_uninstall_preflight": "detach"
+  },
+  "native_runs": {
+    "generated": {
+      "case": "3a4972e4a8d64889a2b6b8ffd0ef0e18",
+      "status": "PASS",
+      "assertions": 364,
+      "samples": 80,
+      "candidate": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "a2881d3e987ed5a70465bfde9d7f6c5d01994ccaf43db8fb4c0a61c88415da7e",
+        "fixture_sha256": "3b19eda8a271c0636c3b537a80976de3abd85bdbafee1f629bdac85c0ece800b",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "max_height_delta_css_px": 0.0,
+      "source_unchanged": true,
+      "error": ""
+    },
+    "document": {
+      "case": "9569c2fe00f745278d8c3e2b931ce743",
+      "status": "PASS",
+      "assertions": 623,
+      "samples": 150,
+      "candidate": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "a2881d3e987ed5a70465bfde9d7f6c5d01994ccaf43db8fb4c0a61c88415da7e",
+        "fixture_sha256": "3b19eda8a271c0636c3b537a80976de3abd85bdbafee1f629bdac85c0ece800b",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "max_height_delta_css_px": 0.0,
+      "source_unchanged": true,
+      "error": ""
+    },
+    "baseline": {
+      "case": "5c3c7c788bc64293861b31c35f612099",
+      "status": "FAIL",
+      "assertions": 83,
+      "samples": 20,
+      "candidate": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "d0820ee5a701e0bddaf52959d11b1077aba344b7c6a22d87b259118f1ab208da",
+        "fixture_sha256": "38fda22baeb5482dc5f91202ca9242c0b19efa34a389e8f1a724bb10a525e707",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32",
+        "comparison_baseline": "e31c357"
+      },
+      "max_height_delta_css_px": 45.91666793823242,
+      "source_unchanged": null,
+      "error": "Error: 短块无需点击即具有最终高度 1.8 1 4 107.77777862548828/61.86111068725586",
+      "failed_sample": {
+        "zoom": 1.8,
+        "cycle": 1,
+        "index": 4,
+        "lines": 2,
+        "before_height": 107.77777862548828,
+        "after_refresh_height": 61.86111068725586
+      }
+    }
+  },
+  "test_attempts": [
+    "最初正常宽度的生成文档和原文副本在旧版也可通过，未记作旧版失败。",
+    "原生运行器在5秒后改变窗口尺寸，初版夹具采到离屏高度；加入窗口准备回执及可见区域断言，排除此假失败。",
+    "宽度条件不能按物理像素猜DIP；改为运行器完成回执。",
+    "原文中没有真正长块且宿主延迟建立离屏CodeMirror，夹具追加生成长块并滚动初始化后选取集合。",
+    "宽度520/640px交替时旧版可见短块107.78px→61.86px失败；新版150次原文混排和80次生成混排对照通过。",
+    "一次宽度切换采样因文档高度变化离开可见区；改为有限重定位并保留可见断言，不放宽高度误差。"
+  ],
+  "limits": [
+    "Windows Typora1.14.10原始宿主，renderer事件；非物理鼠标压力测试。",
+    "520/640px仅为隔离夹具施加的布局宽度，产品不新增固定尺寸；旧版稳定宽度用例通过。",
+    "安装卸载为真实隔离文件事务，未实际卸载用户环境，未验证卸载后真实宿主启动。",
+    "当前用户窗口未重启；保存后正常重启加载；其他平台和用户原场景仍需复核。"
+  ],
+  "delivery": {
+    "installed": true,
+    "pushed": false
+  }
+}

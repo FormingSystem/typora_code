@@ -5654,6 +5654,67 @@
         "所有几何与生命周期断言通过，记录原始候选摘要与renderer事件边界"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-reading-code-geometry",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_geometry.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "CodeMirror",
+        "reading",
+        "zoom",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_reading_code_geometry.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "运行围栏可见性、宽度变化、20次批次与替换/清理用例"
+      ],
+      "expected": [
+        "每块独立测量，离屏延后，无高度反馈循环，正文焦点保持"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-code-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_geometry.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "CodeMirror",
+        "reading",
+        "zoom",
+        "minimap"
+      ],
+      "script": "enhancements/fixtures/code_blocks_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora 1.14.10独立副本、Windows私有桌面、真实CodeMirror",
+      "preconditions": "使用prepare_stability_native.py创建独立用户数据及文档，等待运行器窗口尺寸就绪；不操作用户窗口。",
+      "steps": [
+        "原始宿主加载长短混排文档，缩放和20轮展开/收起/滚动"
+      ],
+      "expected": [
+        "未点击短代码即具有正确高度，刷新不改变正文/选区，各块展开状态独立"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }

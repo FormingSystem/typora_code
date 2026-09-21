@@ -47,6 +47,7 @@ const ui_tests = Object.freeze([
   "test_git_graph_settings_view.cjs",
   "test_git_graph_visibility.cjs",
   "test_interaction.cjs",
+  "test_reading_code_geometry.cjs",
   "test_reading_media_viewer.cjs",
   "test_workspace_startup.cjs",
   "test_workspace_breadcrumbs.cjs",
