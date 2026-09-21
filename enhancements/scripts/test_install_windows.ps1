@@ -10,7 +10,7 @@ $test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-direct-install-' + [g
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
     $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse
@@ -295,5 +295,38 @@ function start_typora_elevated_install {
     assert_equal (Test-Path -LiteralPath $cancel_backup) $false 'Cancelled authorization created backup'
     assert_equal (Get-FileHash -LiteralPath $window).Hash $before_cancel 'Cancelled authorization changed host'
     Write-Host 'PASS: ordinary-privilege UAC port simulation, real child transaction, lock handoff, explicit identity, host backup, unattended refusal and cancellation without target writes; real UAC not exercised.'
+    # 同一正式候选通过公开入口完成安装、两种卸载和重装，独立于上面的故障注入。
+    Copy-Item -LiteralPath (Join-Path $source_root 'scripts/lib/typora_install_permissions.ps1') -Destination $permission_file -Force
+    $env:APPDATA=Join-Path $test_root 'lifecycle user'
+    $cycle_root=Join-Path $test_root 'lifecycle host'
+    $cycle_window=Join-Path $cycle_root 'resources/window.html'
+    $cycle_native='<html><head><title>lifecycle</title></head><body>native</body></html>'
+    write_fixture (Join-Path $cycle_root 'Typora.exe') 'fixture'
+    write_fixture $cycle_window $cycle_native
+    $cycle_document=Join-Path $test_root 'lifecycle document.md'
+    $cycle_settings=Join-Path $env:APPDATA 'Typora/typora_code/settings/workspace.json'
+    write_fixture $cycle_document '# 用户文档保持'
+    write_fixture $cycle_settings '{"user_setting":"保留"}'
+    $document_hash=(Get-FileHash -LiteralPath $cycle_document).Hash
+    $settings_hash=(Get-FileHash -LiteralPath $cycle_settings).Hash
+    $cycle_backup=Join-Path $test_root 'lifecycle original backup'
+    $uninstaller=Join-Path $tools_copy 'uninstall_windows.ps1'
+    & $installer -typora_root $cycle_root -backup_root $cycle_backup -non_interactive
+    & $checker -typora_root $cycle_root -non_interactive
+    & $uninstaller -typora_root $cycle_root -backup_root $cycle_backup -non_interactive
+    assert_equal ([IO.File]::ReadAllText($cycle_window)) $cycle_native 'Restore uninstall did not restore native startup'
+    assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $false 'Restore uninstall left managed bundle'
+    & $installer -typora_root $cycle_root -backup_root (Join-Path $test_root 'lifecycle reinstall backup') -non_interactive
+    & $checker -typora_root $cycle_root -non_interactive
+    # 安装前备份均在自定义位置，默认扫描没有兼容备份，必须走detach。
+    & $uninstaller -typora_root $cycle_root -non_interactive
+    assert_equal (([IO.File]::ReadAllText($cycle_window)).Contains('typora-code:begin')) $false 'Detach left startup entry'
+    assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $true 'Detach removed reusable assets'
+    & $installer -typora_root $cycle_root -backup_root (Join-Path $test_root 'lifecycle final backup') -non_interactive
+    & $checker -typora_root $cycle_root -non_interactive
+    assert_equal (Get-FileHash -LiteralPath $cycle_document).Hash $document_hash 'Lifecycle changed document'
+    assert_equal (Get-FileHash -LiteralPath $cycle_settings).Hash $settings_hash 'Lifecycle changed workspace settings'
+    assert_equal (Test-Path -LiteralPath (Join-Path $cycle_backup 'manifest.json')) $true 'Lifecycle removed original backup'
+    Write-Host 'PASS: candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved.'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

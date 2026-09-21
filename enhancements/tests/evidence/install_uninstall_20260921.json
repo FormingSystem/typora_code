@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R025"
+  ],
+  "date": "2026-09-21",
+  "candidate": "2026.09.21.1",
+  "candidate_commit": "d9cf397",
+  "asset_manifest_sha256": "e32f6658902eccdd2086b01a0480a9fa564dac74fc24ca14fcba787738f114bf",
+  "checks": {
+    "windows_powershell": "5.1",
+    "install_uninstall_reinstall": "PASS",
+    "uninstall_assertions": 65,
+    "catalog_suites": 165,
+    "deployment_files": 21,
+    "deployment_assets": 29,
+    "local_uninstall_preflight": "detach",
+    "local_install_check": "OK"
+  },
+  "coverage": [
+    "同候选公开入口安装/检查/备份恢复卸载/重装/检查/入口撤销卸载/重装/检查",
+    "卸载后原生入口恢复，detach保留可复用资产，正文和工作台配置摘要保持，原始备份保留",
+    "卸载专测覆盖取消、失败、回滚、并发、损坏入口和重复卸载"
+  ],
+  "limits": [
+    "隔离宿主使用启动页与Typora.exe占位夹具，实际执行Windows脚本/CMD和文件事务；未在用户安装位置执行卸载，未验证卸载后原生编辑器启动。",
+    "权限提升为现有端口模拟，真实UAC及跨平台未验收；本次无产品变更或新发行，用户安装保持。"
+  ],
+  "logs": {
+    "install_uninstall_cycle_20260921.log": "1f1ea13edeaecb8a582d00c60d065de06bcedae825947feaf0b586fc1287895e",
+    "uninstall_regression_20260921.log": "f3d03808cdf624443ca8f0c130fb51d9de724320503810d29f7cdfde0454bb8a"
+  }
+}

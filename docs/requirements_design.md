@@ -74,7 +74,7 @@
 | R022 | Git侧栏提交排版与信息悬停 | [设计章节](workspace_interaction.md#r022)、[详情避让](workspace_interaction.md#r022-详情卡片避让) | 追加完整列表避让；[文件名称与动作](workspace_interaction.md#r022-文件名称与行尾操作)共用末端裁切，按悬停/移出验收；[提交标题与作者](workspace_interaction.md#r022-提交标题与作者连续排列)连续排列并共同裁切；[长分支徽章](workspace_interaction.md#r022-长分支徽章完整名称)列表省略、详情展示完整名称 |
 | R023 | 再次选择搜索结果恢复预览定位 | [设计章节](search_performance.md#r023) | 已有身份去重与显式定位分工、加载取消及回归设计 |
 | R024 | 核对VS Code Graph配置并修正截图相关交互 | [设计与差异表](git_graph_configuration.md#r024) | 实现按钮、卡片定位与形状；其余配置只记录差异，不擅自扩项 |
-| R025 | 安装脚本命名、环境与用户安装恢复文档 | [设计章节](installation_design.md#r025)、[卸载入口](installation_design.md#r025-卸载入口)、[历史备份与宿主升级后的卸载](installation_design.md#r025-历史备份与宿主升级后的卸载修复2026-09-20)、[安装日志](installation_design.md#r025-安装过程日志) | 统一公开入口、阶段日志和用户指南，卸载自动识别安装前备份，沿用恢复事务；验证结果见领域设计 |
+| R025 | 安装脚本命名、环境与用户安装恢复文档 | [设计章节](installation_design.md#r025)、[卸载入口](installation_design.md#r025-卸载入口)、[安装卸载成对验收](installation_design.md#r025-安装与卸载成对验收2026-09-21)、[历史备份与宿主升级后的卸载](installation_design.md#r025-历史备份与宿主升级后的卸载修复2026-09-20)、[安装日志](installation_design.md#r025-安装过程日志) | 统一公开入口、阶段日志和用户指南，卸载自动识别安装前备份，沿用恢复事务；验证结果见领域设计 |
 | R026 | Markdown 选区字体颜色及明暗主题适配 | [设计章节](markdown_text_color.md#r026) | 原生选区事务、常用／自定义色、局部恢复及按背景适配；验收见领域设计 |
 | R027 | SCM Graph 工具栏、仓库分区及右键功能补齐 | [设计章节](git_scm_actions.md#r027) | 复用业务服务；[刷新触发与无变化更新](git_scm_actions.md#2026-09-14-git刷新触发与无变化更新)、[动态执行进度](git_scm_actions.md#2026-09-14-git快捷操作动态进度)、[快捷执行与上游识别](git_scm_actions.md#2026-09-13-快捷执行与上游识别)、[引用多选](git_scm_actions.md#2026-09-13-分支范围快速选择)及[放弃更改确认](git_scm_actions.md#2026-09-13-放弃更改确认)，核对条件、显隐、快捷键及工作树 |
 | R028 | 目录整行单击开关、选中文件双击重命名与即时反馈 | [设计章节](file_operations.md#r028-文件行的单击双击与加载反馈) | 复用行节点，区分展开、选择、编辑与异步加载；搜索和资源管理器分别持有业务状态 |
