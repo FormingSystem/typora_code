@@ -50,12 +50,15 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   let selected_index = 0;
   let scan_generation = 0;
   let render_generation = 0; let render_timer = 0; let scanning = false; let unreadable = 0; let scan_root=""; let context_epoch=0; let rendered_query = "";
+  let direct_query:string|undefined;let direct_file:quick_file|undefined;let direct_pending=false;let direct_error="";let direct_generation=0;
+  let ranking=false;let ranking_query="";let rank_again=false;
   let pending_open_query: string | undefined;let opening=false;
   let previous_focus:workspace_focus_snapshot|undefined;let escape_layer:workspace_dismiss_layer|undefined;
 
   const close = (restore=true) => {
     if (root.hidden) return;
     const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;
+    direct_generation++;direct_query=undefined;direct_file=undefined;direct_pending=false;direct_error="";ranking=false;rank_again=false;
     scan_generation += 1;
     render_generation += 1;clearTimeout(render_timer);render_timer=0;scanning=false;
     pending_open_query=undefined;opening=false;
@@ -101,7 +104,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   const open_selected = async () => {
     if(opening)return;
     const query=input.value.trim();
-    if(query!==rendered_query){pending_open_query=query;return;}
+    if(query!==rendered_query||(!shown.length&&(scanning||direct_pending))){pending_open_query=query;return;}
     const target=shown[selected_index];if(!target)return;
     if(files.context_root()!==scan_root||workspace_context_epoch()!==context_epoch||workspace_context_switching()){close(false);return;}
     const opening_generation=scan_generation;opening=true;
@@ -110,22 +113,41 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     finally{if(opening_generation===scan_generation)opening=false;}
   };
   const render = async () => {
-    const generation=++render_generation;const query = input.value.trim();
+    const query=input.value.trim();
+    // 扫描增量不取消同查询的分片计算；新输入仍立即使旧计算过期。
+    if(ranking&&ranking_query===query){rank_again=true;return;}
+    const generation=++render_generation;ranking=true;ranking_query=query;rank_again=false;
+    try {
     const previous_path=query===rendered_query?shown[selected_index]?.file_path:undefined;
-    if(query!==rendered_query){shown=[];results.replaceChildren();status.textContent="正在筛选文件…";}
+    if(query!==rendered_query){shown=[];results.replaceChildren();status.textContent="正在筛选文件…";status.classList.add("is-visible");}
     const ranked:quick_match[]=[];const matcher=create_quick_matcher(query);
     const order=matcher.compare;
-    let candidates=catalogue;
-    // VS Code 同时直接探测显式路径，允许打开默认排除目录中的已知文件。
-    if(/[\\/]/u.test(query)&&files.fs.promises.stat){
-      const requested=files.path_api.resolve(scan_root,query.replaceAll("\\","/"));
-      try{if((await files.fs.promises.stat(requested)).isFile()){
-        const relative_path=files.path_api.relative(scan_root,requested).replaceAll("\\","/");
-        const direct={file_path:requested,relative_path,name:files.path_api.basename(requested),directory:files.path_api.dirname(relative_path).replace(/^\.$/u,"")};
-        candidates=files.path_api.isAbsolute(query)?[direct]:[direct,...catalogue.filter(file=>file.file_path!==requested)];
-      }}catch{/* 不存在的显式路径继续模糊匹配；读取错误由枚举报告。 */}
-      if(disposed||root.hidden||generation!==render_generation)return;
+    // 已枚举候选先筛选；显式路径探测独立补充，不能因磁盘等待清空整个搜索。
+    if(direct_query!==query){
+      direct_query=query;direct_file=undefined;direct_pending=false;direct_error="";
+      const request=++direct_generation,requested_root=scan_root;
+      if(/[\\/]/u.test(query)&&files.fs.promises.stat){
+        direct_pending=true;
+        void (async()=>{
+          try{
+            const requested=files.path_api.resolve(requested_root,query.replaceAll("\\","/"));
+            const stat=await files.fs.promises.stat(requested);
+            if(request!==direct_generation||disposed||root.hidden||input.value.trim()!==query||files.context_root()!==requested_root||workspace_context_epoch()!==context_epoch||workspace_context_switching())return;
+            if(stat.isFile()){
+              const relative_path=files.path_api.relative(requested_root,requested).replaceAll("\\","/");
+              direct_file={file_path:requested,relative_path,name:files.path_api.basename(requested),directory:files.path_api.dirname(relative_path).replace(/^\.$/u,"")};
+            }
+          }catch(error){
+            if(request===direct_generation&&!['ENOENT','ENOTDIR'].includes(String((error as {code?:string})?.code)))direct_error=`路径核对失败：${String((error as Error)?.message||error)}`;
+          }finally{
+            if(request===direct_generation&&!disposed&&!root.hidden&&input.value.trim()===query&&files.context_root()===requested_root&&workspace_context_epoch()===context_epoch&&!workspace_context_switching()){
+              direct_pending=false;void render();
+            }
+          }
+        })();
+      }
     }
+    const candidates=direct_file?(files.path_api.isAbsolute(query)?[direct_file]:[direct_file,...catalogue.filter(file=>file.file_path!==direct_file!.file_path)]):catalogue.slice();
     let deadline=performance.now()+8;let total=0;
     // 只维护前512项，不为每次按键排序整个工程；长目录在小时间片之间让出UI线程。
     for(let index=0;index<candidates.length;index++){
@@ -141,11 +163,18 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     if(!previous_path)results.scrollTop=0;
     paint_rows(true);
     status.textContent = (shown.length ? `${total} 个文件${total>MAX_QUICK_RESULTS?" · 显示前512项":""}` : query ? `没有匹配的文件 · ${scan_root||"未打开文件夹"}` : `工作区中没有可打开的文件 · ${scan_root||"未打开文件夹"}`)+(scanning?` · 正在查找（已发现 ${catalogue.length} 个文件）`:"");
+    if(direct_pending)status.textContent+=" · 正在核对文件路径…";
+    if(direct_error)status.textContent+=` · ${direct_error}`;
     if(unreadable)status.textContent+=` · ${unreadable} 个目录无法读取，结果不完整`;
-    status.classList.toggle("is-visible",!shown.length||unreadable>0);
+    status.classList.toggle("is-visible",!shown.length||scanning||direct_pending||!!direct_error||unreadable>0);
     if(!shown.length)input.removeAttribute("aria-activedescendant");
     select(selected_index);
-    if(pending_open_query===query){pending_open_query=undefined;open_selected();}
+    if(pending_open_query===query&&(shown.length||(!scanning&&!direct_pending))){pending_open_query=undefined;void open_selected();}
+    }catch(error){
+      if(!disposed&&!root.hidden&&generation===render_generation){status.textContent=`搜索失败：${String((error as Error)?.message||error)}`;status.classList.add("is-visible");}
+    }finally{
+      if(generation===render_generation){ranking=false;if(rank_again&&!root.hidden&&!disposed){rank_again=false;schedule_render();}}
+    }
   };
   const schedule_render=()=>{if(!render_timer)render_timer=window.setTimeout(()=>{render_timer=0;void render();},80);};
   const scan = async () => {

@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R058"
+  ],
+  "release": "2026.09.21.3",
+  "baseline": "27b689e",
+  "problem": "显式路径stat位于筛选前，延迟时清空已知候选且未显示进行中状态；受控延迟旧版回归超时。",
+  "changes": [
+    "已枚举结果不等待显式路径探测",
+    "同查询增量不取消在途评分，候选使用当次快照",
+    "路径等待/错误可见，关闭/新查询/切库拒绝迟到结果"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "ui_suites": 3,
+    "functional_scan_files": 51001,
+    "performance_files": 50000,
+    "performance_first_result_ms": 383,
+    "performance_max_event_loop_gap_ms": 18,
+    "native_assertions": 30,
+    "native_query_cycles": 20,
+    "install_restore_uninstall_reinstall_detach_uninstall_reinstall": "PASS",
+    "uninstall_assertions": 65,
+    "catalog_suites": 167,
+    "installed_assets": 29,
+    "protected_matches": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "local_install_check": "OK",
+    "local_uninstall_preflight": "detach"
+  },
+  "candidate": {
+    "host_version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "asset_manifest_sha256": "d0820ee5a701e0bddaf52959d11b1077aba344b7c6a22d87b259118f1ab208da",
+    "fixture_sha256": "442dcd75e58b00ff35a09c4b0497148e718f3e8f6fc5345b8e0c2face9efe8d3",
+    "early_fixture_sha256": null,
+    "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+  },
+  "native_checks": [
+    "已打开源码文件的完整相对路径命中",
+    "完整路径结果实际可见",
+    "原生路径等待状态可见且已枚举结果可用",
+    "迟到路径不覆盖新查询",
+    "原生构建目录查询顺序与固定上游一致",
+    "每个路径命中片段均高亮",
+    "原生主题真实结果行22px",
+    "原生候选宽600px：600，视口802",
+    "Enter实际加载选中的Markdown内容",
+    "连续查询 1",
+    "连续查询 2",
+    "连续查询 3",
+    "连续查询 4",
+    "连续查询 5",
+    "连续查询 6",
+    "连续查询 7",
+    "连续查询 8",
+    "连续查询 9",
+    "连续查询 10",
+    "连续查询 11",
+    "连续查询 12",
+    "连续查询 13",
+    "连续查询 14",
+    "连续查询 15",
+    "连续查询 16",
+    "连续查询 17",
+    "连续查询 18",
+    "连续查询 19",
+    "连续查询 20",
+    "20轮查询和退出不修改任何临时文件内容"
+  ],
+  "upstream": {
+    "file": "anythingQuickAccess.ts",
+    "sha256": "d007f1bc57a540f70b0a900de4cd217c744025cba05d72204456125fe113184f",
+    "fact": "已核对固定版本快速picks与异步additionalPicks及取消令牌，本地已枚举候选提前显示是适配选择。"
+  },
+  "limits": [
+    "原始Typora1.14.10私有桌面，renderer事件，不是物理键盘",
+    "路径延迟由受控端口注入；旧版小工作区完整路径测试也通过，截图现场具体延迟源尚未确认",
+    "安装卸载是真实隔离文件事务，不代表卸载后实际宿主启动",
+    "用户窗口未重启，需保存后正常重启复核；其他平台未测"
+  ],
+  "test_attempts": [
+    "新增延迟stat断言旧版超时，修复后通过",
+    "首次从仓库根执行npm缺少package.json，改用enhancements目录后正常",
+    "最初原生小工作区完整路径基线通过，未将它记录为旧版失败"
+  ],
+  "delivery": {
+    "installed": true,
+    "pushed": false
+  }
+}

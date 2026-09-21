@@ -30,7 +30,20 @@ app.whenReady().then(async()=>{
   await evaluate(`picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));void 0`);
   await wait('picker.root.hidden');assert.equal(await evaluate('opened.length'),1);assert.equal(await evaluate('opened[0].text'),'fixture samples/bringup/src/main.c');
   await evaluate('picker.open();void 0');await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);
+  // stat变慢不能阻塞已经枚举的文件；旧路径完成不能覆盖新查询。
+  await evaluate(`window.native_fs=host.fs;window.release_stat=null;host.fs={promises:{...native_fs.promises,stat:async target=>{await new Promise(resolve=>release_stat=resolve);return native_fs.promises.stat(target);}}};picker.input.value='samples/bringup/prj.conf';picker.input.dispatchEvent(new Event('input'));void 0`);
+  await wait(`!!release_stat&&picker.root.querySelector('.workspace-quick-open-name')?.textContent==='prj.conf'`);
+  await query('readModel');await evaluate(`release_stat();host.fs=native_fs;void 0`);await pause(120);
+  assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'readModel.ts');
   await query('node_modules/known.js');assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'known.js');
+  await evaluate(`window.release_stat=null;host.fs={promises:{...native_fs.promises,stat:async target=>{await new Promise(resolve=>release_stat=resolve);return native_fs.promises.stat(target);}}};picker.input.value='node_modules/known.js';picker.input.dispatchEvent(new Event('input'));void 0`);
+  // 新查询使显式探测重新开始，排除目录中的文件不在普通枚举中。
+  await query('readModel');await evaluate(`picker.input.value='node_modules/known.js';picker.input.dispatchEvent(new Event('input'));void 0`);
+  await wait(`!!release_stat&&picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在核对')`);
+  assert(await evaluate(`picker.root.querySelector('.workspace-quick-open-status').classList.contains('is-visible')`),'pending path status is visible');
+  await evaluate(`picker.close();release_stat();host.fs=native_fs;void 0`);await pause(120);
+  assert(await evaluate(`picker.root.hidden&&!picker.root.querySelector('.workspace-quick-open-result')`),'late stat cannot reopen a closed picker');
+  await evaluate(`picker.open();void 0`);await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);
   await query('no such file xyz');assert(await evaluate(`picker.root.querySelector('.workspace-quick-open-status').classList.contains('is-visible')&&picker.root.querySelector('.workspace-quick-open-status').textContent.includes(current_root)`));
   await query('README');await evaluate(`window.fail_open=true;picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));void 0`);await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.includes('权限不足')`);assert.equal(await evaluate('picker.root.hidden'),false);
   await evaluate(`window.fail_open=false;quick_test.begin_workspace_context_switch();picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));quick_test.finish_workspace_context_switch();void 0`);assert.equal(await evaluate('opened.length'),1);assert(await evaluate('picker.root.hidden'));
@@ -46,5 +59,5 @@ app.whenReady().then(async()=>{
   await query('last-target');assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'last-target.md');
   await evaluate(`picker.close();host.fs={promises:{readdir:async()=>{throw Error('denied')}}};picker.open();void 0`);await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.includes('不完整')`);
   await evaluate('picker.dispose();void 0');assert.equal(await evaluate(`document.querySelectorAll('.workspace-quick-open').length`),0);
-  console.log(JSON.stringify({status:'PASS',checks:['real filesystem path open','upstream ordering and highlights','slash/multiword','explicit excluded path','visible scope/empty/error','single execution','workspace switch safety','light/dark/zoom','51001 files','dispose'],evidence:root},null,2));win.destroy();app.exit(0);
+  console.log(JSON.stringify({status:'PASS',checks:['delayed stat does not block indexed results','late stat/query/close isolation','visible pending path status','real filesystem path open','upstream ordering and highlights','slash/multiword','explicit excluded path','visible scope/empty/error','single execution','workspace switch safety','light/dark/zoom','51001 files','dispose'],evidence:root},null,2));win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);win?.destroy();app.exit(1);});

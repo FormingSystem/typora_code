@@ -162673,6 +162673,14 @@ https://creativecommons.org/licenses/by/4.0/
     let scan_root = "";
     let context_epoch = 0;
     let rendered_query = "";
+    let direct_query;
+    let direct_file;
+    let direct_pending = false;
+    let direct_error = "";
+    let direct_generation = 0;
+    let ranking = false;
+    let ranking_query = "";
+    let rank_again = false;
     let pending_open_query;
     let opening = false;
     let previous_focus;
@@ -162682,6 +162690,13 @@ https://creativecommons.org/licenses/by/4.0/
       const owned2 = escape_layer?.owns_focus();
       escape_layer?.dispose();
       escape_layer = void 0;
+      direct_generation++;
+      direct_query = void 0;
+      direct_file = void 0;
+      direct_pending = false;
+      direct_error = "";
+      ranking = false;
+      rank_again = false;
       scan_generation += 1;
       render_generation += 1;
       clearTimeout(render_timer);
@@ -162765,7 +162780,7 @@ https://creativecommons.org/licenses/by/4.0/
     const open_selected = async () => {
       if (opening) return;
       const query = input.value.trim();
-      if (query !== rendered_query) {
+      if (query !== rendered_query || !shown.length && (scanning || direct_pending)) {
         pending_open_query = query;
         return;
       }
@@ -162790,68 +162805,109 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const render = async () => {
-      const generation = ++render_generation;
       const query = input.value.trim();
-      const previous_path = query === rendered_query ? shown[selected_index]?.file_path : void 0;
-      if (query !== rendered_query) {
-        shown = [];
-        results.replaceChildren();
-        status2.textContent = "\u6B63\u5728\u7B5B\u9009\u6587\u4EF6\u2026";
+      if (ranking && ranking_query === query) {
+        rank_again = true;
+        return;
       }
-      const ranked = [];
-      const matcher = create_quick_matcher(query);
-      const order = matcher.compare;
-      let candidates = catalogue;
-      if (/[\\/]/u.test(query) && files.fs.promises.stat) {
-        const requested = files.path_api.resolve(scan_root, query.replaceAll("\\", "/"));
-        try {
-          if ((await files.fs.promises.stat(requested)).isFile()) {
-            const relative_path = files.path_api.relative(scan_root, requested).replaceAll("\\", "/");
-            const direct = { file_path: requested, relative_path, name: files.path_api.basename(requested), directory: files.path_api.dirname(relative_path).replace(/^\.$/u, "") };
-            candidates = files.path_api.isAbsolute(query) ? [direct] : [direct, ...catalogue.filter((file) => file.file_path !== requested)];
+      const generation = ++render_generation;
+      ranking = true;
+      ranking_query = query;
+      rank_again = false;
+      try {
+        const previous_path = query === rendered_query ? shown[selected_index]?.file_path : void 0;
+        if (query !== rendered_query) {
+          shown = [];
+          results.replaceChildren();
+          status2.textContent = "\u6B63\u5728\u7B5B\u9009\u6587\u4EF6\u2026";
+          status2.classList.add("is-visible");
+        }
+        const ranked = [];
+        const matcher = create_quick_matcher(query);
+        const order = matcher.compare;
+        if (direct_query !== query) {
+          direct_query = query;
+          direct_file = void 0;
+          direct_pending = false;
+          direct_error = "";
+          const request = ++direct_generation, requested_root = scan_root;
+          if (/[\\/]/u.test(query) && files.fs.promises.stat) {
+            direct_pending = true;
+            void (async () => {
+              try {
+                const requested = files.path_api.resolve(requested_root, query.replaceAll("\\", "/"));
+                const stat = await files.fs.promises.stat(requested);
+                if (request !== direct_generation || disposed || root.hidden || input.value.trim() !== query || files.context_root() !== requested_root || workspace_context_epoch() !== context_epoch || workspace_context_switching()) return;
+                if (stat.isFile()) {
+                  const relative_path = files.path_api.relative(requested_root, requested).replaceAll("\\", "/");
+                  direct_file = { file_path: requested, relative_path, name: files.path_api.basename(requested), directory: files.path_api.dirname(relative_path).replace(/^\.$/u, "") };
+                }
+              } catch (error) {
+                if (request === direct_generation && !["ENOENT", "ENOTDIR"].includes(String(error?.code))) direct_error = "\u8DEF\u5F84\u6838\u5BF9\u5931\u8D25\uFF1A".concat(String(error?.message || error));
+              } finally {
+                if (request === direct_generation && !disposed && !root.hidden && input.value.trim() === query && files.context_root() === requested_root && workspace_context_epoch() === context_epoch && !workspace_context_switching()) {
+                  direct_pending = false;
+                  void render();
+                }
+              }
+            })();
           }
-        } catch {
+        }
+        const candidates = direct_file ? files.path_api.isAbsolute(query) ? [direct_file] : [direct_file, ...catalogue.filter((file) => file.file_path !== direct_file.file_path)] : catalogue.slice();
+        let deadline = performance.now() + 8;
+        let total = 0;
+        for (let index = 0; index < candidates.length; index++) {
+          if (index % 256 === 0 && performance.now() > deadline) {
+            await new Promise((resolve3) => window.setTimeout(resolve3, 0));
+            if (disposed || root.hidden || generation !== render_generation) return;
+            deadline = performance.now() + 8;
+          }
+          const file = candidates[index], item = matcher.match(file);
+          if (!item) continue;
+          total++;
+          if (ranked.length === MAX_QUICK_RESULTS && order(item, ranked[MAX_QUICK_RESULTS - 1]) >= 0) continue;
+          let low = 0, high = ranked.length;
+          while (low < high) {
+            const middle = low + high >>> 1;
+            if (order(item, ranked[middle]) < 0) high = middle;
+            else low = middle + 1;
+          }
+          ranked.splice(low, 0, item);
+          if (ranked.length > MAX_QUICK_RESULTS) ranked.pop();
         }
         if (disposed || root.hidden || generation !== render_generation) return;
-      }
-      let deadline = performance.now() + 8;
-      let total = 0;
-      for (let index = 0; index < candidates.length; index++) {
-        if (index % 256 === 0 && performance.now() > deadline) {
-          await new Promise((resolve3) => window.setTimeout(resolve3, 0));
-          if (disposed || root.hidden || generation !== render_generation) return;
-          deadline = performance.now() + 8;
+        shown = ranked.map((item) => item.file);
+        rendered_query = query;
+        selected_index = Math.max(0, shown.findIndex((file) => file.file_path === previous_path));
+        shown_matches = ranked;
+        visible_start = -1;
+        visible_end = -1;
+        if (!previous_path) results.scrollTop = 0;
+        paint_rows(true);
+        status2.textContent = (shown.length ? "".concat(total, " \u4E2A\u6587\u4EF6").concat(total > MAX_QUICK_RESULTS ? " \xB7 \u663E\u793A\u524D512\u9879" : "") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939") : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939")) + (scanning ? " \xB7 \u6B63\u5728\u67E5\u627E\uFF08\u5DF2\u53D1\u73B0 ".concat(catalogue.length, " \u4E2A\u6587\u4EF6\uFF09") : "");
+        if (direct_pending) status2.textContent += " \xB7 \u6B63\u5728\u6838\u5BF9\u6587\u4EF6\u8DEF\u5F84\u2026";
+        if (direct_error) status2.textContent += " \xB7 ".concat(direct_error);
+        if (unreadable) status2.textContent += " \xB7 ".concat(unreadable, " \u4E2A\u76EE\u5F55\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u7ED3\u679C\u4E0D\u5B8C\u6574");
+        status2.classList.toggle("is-visible", !shown.length || scanning || direct_pending || !!direct_error || unreadable > 0);
+        if (!shown.length) input.removeAttribute("aria-activedescendant");
+        select(selected_index);
+        if (pending_open_query === query && (shown.length || !scanning && !direct_pending)) {
+          pending_open_query = void 0;
+          void open_selected();
         }
-        const file = candidates[index], item = matcher.match(file);
-        if (!item) continue;
-        total++;
-        if (ranked.length === MAX_QUICK_RESULTS && order(item, ranked[MAX_QUICK_RESULTS - 1]) >= 0) continue;
-        let low = 0, high = ranked.length;
-        while (low < high) {
-          const middle = low + high >>> 1;
-          if (order(item, ranked[middle]) < 0) high = middle;
-          else low = middle + 1;
+      } catch (error) {
+        if (!disposed && !root.hidden && generation === render_generation) {
+          status2.textContent = "\u641C\u7D22\u5931\u8D25\uFF1A".concat(String(error?.message || error));
+          status2.classList.add("is-visible");
         }
-        ranked.splice(low, 0, item);
-        if (ranked.length > MAX_QUICK_RESULTS) ranked.pop();
-      }
-      if (disposed || root.hidden || generation !== render_generation) return;
-      shown = ranked.map((item) => item.file);
-      rendered_query = query;
-      selected_index = Math.max(0, shown.findIndex((file) => file.file_path === previous_path));
-      shown_matches = ranked;
-      visible_start = -1;
-      visible_end = -1;
-      if (!previous_path) results.scrollTop = 0;
-      paint_rows(true);
-      status2.textContent = (shown.length ? "".concat(total, " \u4E2A\u6587\u4EF6").concat(total > MAX_QUICK_RESULTS ? " \xB7 \u663E\u793A\u524D512\u9879" : "") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939") : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939")) + (scanning ? " \xB7 \u6B63\u5728\u67E5\u627E\uFF08\u5DF2\u53D1\u73B0 ".concat(catalogue.length, " \u4E2A\u6587\u4EF6\uFF09") : "");
-      if (unreadable) status2.textContent += " \xB7 ".concat(unreadable, " \u4E2A\u76EE\u5F55\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u7ED3\u679C\u4E0D\u5B8C\u6574");
-      status2.classList.toggle("is-visible", !shown.length || unreadable > 0);
-      if (!shown.length) input.removeAttribute("aria-activedescendant");
-      select(selected_index);
-      if (pending_open_query === query) {
-        pending_open_query = void 0;
-        open_selected();
+      } finally {
+        if (generation === render_generation) {
+          ranking = false;
+          if (rank_again && !root.hidden && !disposed) {
+            rank_again = false;
+            schedule_render();
+          }
+        }
       }
     };
     const schedule_render = () => {
@@ -240105,6 +240161,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092103,
+        version: "2026.09.21.3",
+        date: "2026-09-21",
+        notes: [
+          "\u4FEE\u590D\u5B8C\u6574\u8DEF\u5F84\u641C\u7D22\u7B49\u5F85\u78C1\u76D8\u6838\u5BF9\u65F6\u6E05\u7A7A\u7ED3\u679C\u7684\u95EE\u9898\uFF0C\u5DF2\u679A\u4E3E\u6587\u4EF6\u7EE7\u7EED\u663E\u793A\u5E76\u53EF\u6253\u5F00\u3002",
+          "\u626B\u63CF\u3001\u8DEF\u5F84\u6838\u5BF9\u548C\u5931\u8D25\u63D0\u4F9B\u660E\u786E\u72B6\u6001\uFF1B\u8FDE\u7EED\u8F93\u5165\u4E0E\u5173\u95ED\u540E\u62D2\u7EDD\u8FDF\u5230\u7ED3\u679C\uFF0C\u76EE\u5F55\u589E\u91CF\u4E0D\u518D\u53CD\u590D\u4E2D\u65AD\u540C\u4E00\u67E5\u8BE2\u3002"
+        ]
+      },
       {
         sequence: 2026092102,
         version: "2026.09.21.2",
