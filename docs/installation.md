@@ -17,7 +17,7 @@ macOS、Git Bash、MSYS2 MINGW64 和 Windows 32 位不属于当前安装支持�
 
 ## 下载完整安装包
 
-在提供本 README 的仓库网页选择 **Code → Download ZIP**，解压整个目录。请确认同时存在：
+已安装用户可从 **帮助 → Typora Code GitHub 仓库** 用系统浏览器打开[项目仓库](https://github.com/FormingSystem/typora_code)，选择 **Code → Download ZIP**，解压整个目录。该入口不依赖更新检查成功。目标机无法连接GitHub时，可在其他可联网设备下载后转移完整包；纯离线首次安装还需准备下文“离线安装”所述运行时缓存。请确认同时存在：
 
 ```text
 install_windows.cmd / install_windows.ps1 / install.sh

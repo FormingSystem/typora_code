@@ -191,6 +191,7 @@ export function create_workspace_titlebar_definitions(
   };
   const help_entries = async (): Promise<entry[]> => [
     {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
+    {label: "Typora Code GitHub 仓库", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://github.com/FormingSystem/typora_code")},
     {label: "支持文档", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://support.typora.io/")},
     {label: "Typora 官网", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/")},
   ];

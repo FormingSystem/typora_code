@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R047.4"
+  ],
+  "release": "2026.09.22.3",
+  "checks": {
+    "build": "PASS",
+    "full_check": "PASS on final run",
+    "titlebar_ui": "PASS; repository disabled/more menu/keyboard/single call/dismissal plus existing titlebar suite",
+    "native_assertions": 119,
+    "install_restore_detach_reinstall": "PASS",
+    "uninstall_assertions": 65,
+    "local_check": "OK",
+    "local_uninstall_preflight": "detach",
+    "installed_assets": {
+      "workspace": 29,
+      "terminal": 24
+    },
+    "protected_matches": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    }
+  },
+  "candidate": {
+    "host_version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "asset_manifest_sha256": "9e335782f91e98fa556824616243ef2c63047cbf9d54f4abb7b8fa14aba2c97c",
+    "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+    "fixture_sha256": "3a88bef632675cfbc1895a73408c54a0682aff63e77194df936e2f8ed9ad9dcf",
+    "early_fixture_sha256": null,
+    "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+  },
+  "native_checks": [
+    "原生宿主提供系统浏览器适配",
+    "真实帮助菜单含可用项目仓库入口",
+    "项目仓库入口未被裁切",
+    "浏览器仅收到一次固定仓库地址",
+    "访问仓库不启动检查或安装"
+  ],
+  "failed_attempts": [
+    {
+      "stage": "titlebar UI",
+      "reason": "测试仅发送keydown/keyup，缺少Chromium char事件；补齐完整Enter事件后通过，未修改产品键盘逻辑"
+    },
+    {
+      "stage": "native fixture",
+      "reason": "启动后台检查已发生，原断言错误要求检查计数为零；改为比较访问仓库前后计数，最终通过"
+    },
+    {
+      "stage": "first full check",
+      "reason": "既有文本保存用例发生权限/文件占用拒绝，原因未证实；保留help_repository_check_20260922.log，最终完整复跑通过"
+    },
+    {
+      "stage": "before installation check",
+      "reason": "检查器按新候选比较旧安装，公告摘要不匹配；随后按HEAD清单核对旧安装29项一致，非旧安装损坏"
+    }
+  ],
+  "limits": [
+    "原始Typora1.14.10独立副本；renderer点击与浏览器桥接替身，未实际启动系统浏览器",
+    "网络与更新服务采用受控端口；仓库网页单独只读访问成功，不代表用户设备可联网",
+    "本机Win11；Win10终端问题按用户要求暂停，未修改终端产品",
+    "用户窗口未重启；隔离卸载为文件事务测试，不代表卸载后真实原生宿主启动",
+    "当前本地候选未推送；提交前重新fetch核对远端，保留Win10并行修改"
+  ],
+  "evidence_paths": {
+    "native": ".cache/issue_tracking/native/6dc3892a88b0489b902bbdbcee93fa1e",
+    "check": ".cache/issue_tracking/help_repository_check_final_20260922.log",
+    "install_cycle": ".cache/issue_tracking/help_repository_install_cycle_20260922.log",
+    "uninstall": ".cache/issue_tracking/help_repository_uninstall_20260922.log"
+  },
+  "test_hashes": {
+    "enhancements/scripts/test_workspace_titlebar.cjs": "440b828ac32e25b81660a30088ab2d16b273062560addf057fceb2afc7b31b11",
+    "enhancements/fixtures/update_progress_native.js": "3a88bef632675cfbc1895a73408c54a0682aff63e77194df936e2f8ed9ad9dcf"
+  }
+}

@@ -238229,6 +238229,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const help_entries = async () => [
       { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
+      { label: "Typora Code GitHub \u4ED3\u5E93", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://github.com/FormingSystem/typora_code") },
       { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
       { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
     ];
@@ -240271,6 +240272,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092203,
+        version: "2026.09.22.3",
+        date: "2026-09-22",
+        notes: [
+          "\u5E2E\u52A9\u83DC\u5355\u65B0\u589E\u201CTypora Code GitHub \u4ED3\u5E93\u201D\uFF0C\u53EF\u901A\u8FC7\u7CFB\u7EDF\u6D4F\u89C8\u5668\u8BBF\u95EE\u9879\u76EE\u5E76\u4E0B\u8F7D\u5B8C\u6574ZIP\u5B89\u88C5\u5305\uFF0C\u4E0D\u4F9D\u8D56\u66F4\u65B0\u68C0\u67E5\u6210\u529F\u3002"
+        ]
+      },
       {
         sequence: 2026092202,
         version: "2026.09.22.2",

@@ -19,6 +19,17 @@
   // 等宿主首次文档切换完成；该切换本来会关闭打开期间的浮层。
   for(let i=0;i<100&&(File.isFileLoading()||!File.bundle.filePath.endsWith('front.md'));i++)await pause(50);
   await pause(2400);
+  const browser_open=JSBridge.showInBrowser,urls=[],prior_checks=check_count,prior_installs=install_count;
+  try{
+   assert(typeof browser_open==='function','原生宿主提供系统浏览器适配');
+   JSBridge.showInBrowser=url=>urls.push(url);
+   [...document.querySelectorAll('.workspace-titlebar-menu>button')].find(b=>b.textContent==='帮助').click();await pause(80);
+   const link=[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='Typora Code GitHub 仓库');
+   assert(link&&!link.disabled,'真实帮助菜单含可用项目仓库入口');
+   const rect=link.getBoundingClientRect();assert(rect.width>0&&rect.left>=0&&rect.right<=innerWidth,'项目仓库入口未被裁切');
+   link.click();await pause(20);assert(urls.length===1&&urls[0]==='https://github.com/FormingSystem/typora_code','浏览器仅收到一次固定仓库地址');
+   assert(check_count===prior_checks&&install_count===prior_installs,'访问仓库不启动检查或安装');
+  }finally{JSBridge.showInBrowser=browser_open;}
   core.app.commands.run('typora_code:check_update');
   assert(bars().length===1&&!bars()[0].hidden,'检查命令立即呈现活动条');
   const transform=()=>getComputedStyle(bars()[0].firstElementChild).transform;

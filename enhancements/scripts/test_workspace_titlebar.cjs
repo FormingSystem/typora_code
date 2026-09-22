@@ -30,6 +30,14 @@ app.whenReady().then(async()=>{
  assert.deepEqual(await run('[...document.querySelectorAll(".workspace-titlebar-menu>button")].slice(0,-1).map(b=>b.textContent)'),['文件','编辑','段落','格式','视图','主题','终端','帮助']);
  await run('document.querySelector(".workspace-titlebar-menu>button:last-child").click();void 0');await tick();assert(await run('document.querySelector(".workspace-titlebar-popup").textContent.includes("帮助")'),'overflow retains Help when the new terminal menu consumes its slot');await run('window.dispatchEvent(new Event("workspace-titlebar-dismiss"))');
  assert.equal(geometry.logo.width,24);assert.equal(geometry.logo.height,24);assert.equal(geometry.logo.y+12,17.5);
+ await run(`document.querySelector('.workspace-titlebar-menu>button:nth-child(8)').click();void 0`);await tick();
+ assert(await run(`[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='Typora Code GitHub 仓库').disabled`),'浏览器适配缺失时仓库入口禁用');
+ await run(`window.dispatchEvent(new Event('workspace-titlebar-dismiss'));window.repository_urls=[];JSBridge.showInBrowser=url=>repository_urls.push(url);document.querySelector('.workspace-titlebar-menu>button:last-child').click();void 0`);await tick();
+ await run(`[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='帮助').click();void 0`);await tick();
+ assert(await run(`(()=>{const b=[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='Typora Code GitHub 仓库'),r=b.getBoundingClientRect();b.focus();return !b.disabled&&r.width>0&&r.right<=innerWidth&&r.left>=0})()`),'更多菜单内仓库入口完整可见');
+ win.webContents.sendInputEvent({type:'keyDown',keyCode:'Return'});win.webContents.sendInputEvent({type:'char',keyCode:'\r'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Return'});await tick();
+ assert.deepEqual(await run('repository_urls'),['https://github.com/FormingSystem/typora_code'],'键盘激活一次仅打开固定项目仓库');
+ assert.equal(await run(`document.querySelectorAll('.workspace-titlebar-popup').length`),0,'打开浏览器后关闭菜单');
  await run(`files.context_root=()=> 'D:/alternate_workspace';window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);
  assert.equal(await run('document.querySelector(".workspace-titlebar-search span").textContent'),'alternate_workspace','folder-only changes update the centered search label without a title or active editor change');
  await run(`files.context_root=()=> 'D:/';window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);
