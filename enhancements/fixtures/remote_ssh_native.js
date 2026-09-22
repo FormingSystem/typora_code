@@ -8,11 +8,17 @@
  const assets=path.join(_options.userDataPath,'typora_code/assets/remote'),api=reqnode(path.join(assets,'remote_ssh_service.cjs'));
  const version=JSON.parse(fs.readFileSync(path.join(_options.userDataPath,'typora_code/assets/update/runtime.json'),'utf8')).node_version;
  const service=api.create_remote_ssh({asset_root:assets,node_path:path.join(_options.userDataPath,'linux_note_enhancements/terminal_runtime/node',version,'node.exe'),authenticate:async prompt=>{if(/yes\/no|fingerprint/iu.test(prompt))throw Error('实机测试要求已信任主机');return password;}});
- let root='',file='',remote_leaf;
+ let root='',file='',remote_leaf,terminal_entry;
+ const terminal_command=name=>core.app.commands.run('linux_note:'+name);
+ const terminal_text=entry=>Array.from({length:entry.surface.term.buffer.active.length},(_,i)=>entry.surface.term.buffer.active.getLine(i)?.translateToString()+(entry.surface.term.buffer.active.getLine(i+1)?.isWrapped?'':'\n')).join('');
+ const enter=entry=>{const node=entry.surface.term.textarea;node.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true,cancelable:true}));node.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true}));};
+ const send=async(entry,text,marker)=>{entry.surface.term.paste(text);enter(entry);await wait(()=>terminal_text(entry).includes(marker),'远程终端命令未完成');};
+ const authenticate_terminal=async entry=>{await wait(()=>terminal_text(entry).includes('password:'),'SSH终端密码提示未出现');entry.surface.term.paste(password);enter(entry);await wait(()=>terminal_text(entry).includes('$')||terminal_text(entry).includes('#'),'SSH登录未输出提示符');await pause(500);};
+ const remove_scratch=async directory=>{if(!root||!directory.startsWith(root))throw Error('清理路径不属于夹具');for(const item of (await service.request('list',{path:directory})).entries){const child=directory+'/'+item.name;if(item.directory&&!item.link)await remove_scratch(child);else await service.request('remove',{path:child});}await service.request('remove',{path:directory});};
  const button=(root,label)=>[...root.querySelectorAll('button')].find(node=>node.textContent===label);
  try{
   if(!target||!password)throw Error('未提供显式SSH测试目标和内存凭据');
-  await pause(1200);const hello=await service.connect(target);root=hello.home+'/.typora-code-test-'+crypto.randomUUID();await service.request('mkdir',{path:root});
+  await pause(1200);const hello=await service.connect(target);root=hello.home+'/.typora-code-test-'+crypto.randomUUID()+" ' ${env:NOT_LOCAL} 中文";await service.request('mkdir',{path:root});
   file=root+'/远程 空格.md';await service.request('create',{path:file,data:reqnode('buffer').Buffer.from('# 远程测试\n\n**原文**\n').toString('base64')});
   const original_root=files.context_root(),original_file=File.bundle.filePath,original=fs.readFileSync(original_file);
   core.app.commands.run('typora_code:remote_ssh');await wait(()=>document.querySelector('.workspace-ssh-sidebar'),'远程侧栏未出现');
@@ -20,6 +26,27 @@
   const connect=async()=>{button(panel,'连接').click();await wait(()=>document.querySelector('[role=dialog] input[type=password]'),'密码对话框未出现');const input=document.querySelector('[role=dialog] input[type=password]');input.value=password;button(input.closest('[role=dialog]'),'连接').click();await wait(()=>panel.dataset.connection==='connected'&&panel.querySelector('.workspace-ssh-row'),'未完成连接和目录加载');};
   await connect();assert(panel.getAttribute('aria-busy')==='false','连接结束进度清理');
   const row=[...panel.querySelectorAll('.workspace-ssh-row')].find(n=>n.title===root);assert(row,'真实远程测试目录可见');row.click();await wait(()=>[...panel.querySelectorAll('.workspace-ssh-row')].some(n=>n.title===file),'项目目录未加载');
+  button(panel,'项目终端').click();assert(document.querySelector('.linux-note-terminal')?.dataset.state==='starting','点击SSH项目终端立即出现启动界面');
+  terminal_command('terminal_move_editor');await wait(()=>core.app.workspace.activeLeaf?.view.entry,'SSH终端未进入编辑组');terminal_entry=core.app.workspace.activeLeaf.view.entry;terminal_command('terminal_move_panel');
+  await authenticate_terminal(terminal_entry);
+  await send(terminal_entry,"python3 -c 'import os;print(\"REMOTE\"+\"_DIR=\"+os.getcwd())'",'REMOTE_DIR=');
+  assert(terminal_text(terminal_entry).includes(root),'含中文、空格、单引号和本机变量形式的远程目录保持原样');
+  await send(terminal_entry,"git init -q && printf 'GIT_%s\\n' READY",'GIT_READY');
+  const git=await service.request('git_status',{path:root});assert(git.text.includes('##')&&git.text.includes('.md'),'Git状态来自真实远程测试仓库');
+  button(panel,'Git状态').click();await wait(()=>document.querySelector('.workspace-ssh-git-status')?.textContent.includes('##'),'远程Git状态未展示');
+  const git_dialog=document.querySelector('.workspace-ssh-git-status').closest('[role=dialog]');assert(git_dialog.textContent.includes(root),'Git对话框明确远程目录');button(git_dialog,'关闭').click();
+  for(let i=0;i<20;i++)await send(terminal_entry,"printf 'ROUND_%s\\n' "+i,'ROUND_'+i);
+  assert(!terminal_text(terminal_entry).includes(password+'\n'),'SSH密码未作为终端输出回显');
+  const first_profile=JSON.stringify(terminal_entry.session.launch_profile),first_pid=terminal_entry.session.pid;
+  terminal_command('terminal_split');terminal_command('terminal_move_editor');await wait(()=>core.app.workspace.activeLeaf?.view.entry?.session.pid!==first_pid,'拆分终端未出现');
+  const second=core.app.workspace.activeLeaf.view.entry;terminal_command('terminal_move_panel');await authenticate_terminal(second);
+  assert(JSON.stringify(second.session.launch_profile)===first_profile,'拆分保留SSH主机和远程目录');terminal_command('terminal_kill');
+  // 拆分终止后主会话重新成为活动会话，重启仍使用原SSH配置。
+  terminal_command('terminal_restart');await wait(()=>terminal_entry.session.pid!==first_pid&&terminal_entry.session.state==='running','SSH重启未创建进程');
+  await wait(()=>terminal_text(terminal_entry).lastIndexOf('password:')>terminal_text(terminal_entry).lastIndexOf('ROUND_19'),'重启密码提示未出现');
+  terminal_entry.surface.term.paste(password);enter(terminal_entry);await pause(1000);
+  await send(terminal_entry,"printf 'RESTART_%s\\n' READY",'RESTART_READY');assert(JSON.stringify(terminal_entry.session.launch_profile)===first_profile,'重启保留SSH临时配置');
+  terminal_command('terminal_kill');terminal_entry=undefined;
   [...panel.querySelectorAll('.workspace-ssh-row')].find(n=>n.title===file).click();await wait(()=>core.app.workspace.activeLeaf?.view.loaded,'远程编辑器未加载');remote_leaf=core.app.workspace.activeLeaf;
   const view=remote_leaf.view;assert(view.read_text().includes('原文'),'读取远程Markdown正文');assert(files.context_root()===original_root,'远程文件不改变本地工作区身份');
   assert(files.current_file()==='','远程身份不伪装为本地绝对路径');
@@ -36,8 +63,8 @@
   service.disconnect();assert(!document.querySelector('[role=dialog] input[type=password]'),'密码对话框与输入已清理');
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex')});
   // 清理仅限本夹具创建的随机目录。
-  await service.connect(target);await service.request('remove',{path:file});file='';await service.request('remove',{path:root});root='';
+  await service.connect(target);await remove_scratch(root);file='';root='';
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,write_cycles:20,limits:'原生renderer点击/Monaco输入；单一Linux虚拟机，未代表全部SSH平台或VS Code扩展宿主'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
- finally{try{if(service.state()==='connected'){if(file)await service.request('remove',{path:file});if(root)await service.request('remove',{path:root});}}finally{service.dispose();}}
+ finally{terminal_command('terminal_kill');terminal_command('terminal_kill');try{if(service.state()==='connected'&&root)await remove_scratch(root);}finally{service.dispose();}}
 })();

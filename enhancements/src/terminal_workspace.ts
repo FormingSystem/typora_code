@@ -11,7 +11,7 @@ import {create_terminal_profile_service} from "./terminal_profile_detection";
 import {workspace_button as button,workspace_element as el,workspace_dialog,workspace_menu,type workspace_menu_entry} from "./workspace_widgets";
 import type {graph_host,graph_leaf} from "./git_graph_host";
 import {observe_terminal_theme} from "./terminal_theme";
-import {create_terminal_settings} from "./terminal_settings";
+import {create_terminal_settings,type terminal_profile_config} from "./terminal_settings";
 import {show_terminal_settings} from "./terminal_settings_view";
 import {terminal_session} from "./terminal_session";
 import {terminal_surface} from "./terminal_surface";
@@ -81,12 +81,12 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();entry.moving=false;activate(id);
     if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
   };
-  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>)=>(async()=>{
+  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
     // 先建立真实会话与显示表面；配置探测由会话启动阶段等待。
-    const profile={id:program||settings.get().profile,title:"终端",executable:"",args:[]};
+    const profile=launch_profile||{id:program||settings.get().profile,title:"终端",executable:"",args:[]};
     const id="terminal_"+(++serial);let entry:session_entry;
-    const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status,session.launch_pending);schedule();}},explicit_cwd,resolve_cwd,()=>!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch());
+    const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status,session.launch_pending);schedule();}},explicit_cwd,resolve_cwd,()=>!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch(),launch_profile);
     const windows_pty=host.process_api.platform==="win32"?{backend:"conpty" as const,buildNumber:Number(runtime.reqnode("os").release().split(".")[2])}:undefined;
     const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,active:()=>{if(active_id!==id)activate(id,false);}},windows_pty);
     entry={session,surface,location,moving:false};sessions.set(id,entry);surface.container.dataset.session=id;active_id=id;
@@ -95,7 +95,7 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();render();surface.mount();surface.focus();void session.start();return entry;
   })().catch(fail);
   const split=(id=active_id)=>{const entry=sessions.get(id);if(!entry)return;const root=settings.get().split_cwd==="workspace"?host.workspace_path():entry.session.root;
-    if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true);};
+    if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true,undefined,entry.session.launch_profile);};
   const join=(target:string,id=active_id)=>{const entry=sessions.get(id),other=sessions.get(target);if(!entry||!other||entry===other)return;if(entry.location!=="panel")move("panel",id);entry.session.group=other.session.group;activate(id);};
   const detach=(id=active_id)=>{const entry=sessions.get(id);if(entry){entry.session.group="group_"+(++group_serial);activate(id);}};
   const admin=(root:string)=>{if(lifetime.disposed)return;try{const launch=administrator_launch(root,host.process_api,host.path_api);runtime.reqnode("child_process").execFile(launch.executable,launch.args,{cwd:root,windowsHide:true,shell:false},(error:Error|null)=>{if(error)fail("管理员终端未启动（UAC 可能已取消）："+error.message);});}catch(error){fail(error);}};
@@ -195,6 +195,13 @@ export function bind_terminal_workspace(host:graph_host){
     }
   }));
   lifetime.listen(window,"linux-note-open-terminal",((event:CustomEvent<{path?:string;cwd?:string;admin?:boolean}>)=>{if(event.detail.cwd)open(event.detail.cwd,"",settings.get().location,"",true);else launch(Boolean(event.detail.admin),event.detail.path);}) as EventListener);
+  lifetime.listen(window,"linux-note-open-ssh-terminal",((event:CustomEvent<{target:string;remote_path:string}>)=>{
+    try{const api=runtime.reqnode(host.path_api.join(runtime._options.userDataPath,"typora_code","assets","remote","remote_ssh_service.cjs"));
+      const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
+      const profile=api.remote_terminal_profile(event.detail.target,event.detail.remote_path,executable);
+      void open(host.workspace_path(),"","panel","",true,undefined,profile);
+    }catch(error){fail(error);}
+  }) as EventListener);
   lifetime.listen(window,"keydown",((event:KeyboardEvent)=>{
     if(is_composing_key(event)||!event.ctrlKey||event.altKey||event.metaKey||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
     if(event.code==="Backquote"){event.preventDefault();event.stopImmediatePropagation();event.shiftKey?launch():toggle();}

@@ -25,6 +25,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const node_path=path_api.join(runtime._options.userDataPath,'linux_note_enhancements','terminal_runtime','node',node_release.version,'node.exe');
   const style=acquire_workspace_style('typora-code-style:workspace_remote_ssh',css);
   const views=new Set<remote_file_view>();
+  const overlays=new Set<()=>void>();
   let disposed=false,target='',folder='',browse_epoch=0,connecting=false,mutating=false;
   let auth_dialog:ReturnType<typeof workspace_dialog>|undefined;
   const notice=(error:unknown)=>{if(!disposed)new core.Notice(String(error instanceof Error?error.message:error),7000);};
@@ -46,7 +47,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
     panel.containerEl.setAttribute('aria-busy',String(value.state==='connecting'));
     if(value.state==='disconnected'){auth_dialog?.close();++browse_epoch;list.replaceChildren();for(const view of views)view.update_status();}
     connect_button.disabled=value.state==='connecting';disconnect_button.disabled=value.state==='disconnected';
-    for(const control of [up_button,refresh_button,new_file,new_folder])control.disabled=value.state!=='connected';
+    for(const control of [up_button,refresh_button,new_file,new_folder,terminal_button,git_button])control.disabled=value.state!=='connected';
   }});
   const connected=()=>service.state()==='connected';
   const require_connection=(owner=target)=>{if(!connected()||target!==owner)throw Error('此文档所属SSH主机未连接；草稿保留，请连接原主机后保存。');};
@@ -146,7 +147,18 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const up_button=button('上一级',()=>void browse(path_api.posix.dirname(folder)).catch(notice));
   const refresh_button=button('刷新',()=>void browse(folder).catch(notice));
   const new_file=button('新建文件',()=>void create(false).catch(notice)),new_folder=button('新建文件夹',()=>void create(true).catch(notice));
-  for(const control of [up_button,refresh_button,new_file,new_folder])control.disabled=true;
+  const terminal_button=button('项目终端',()=>{try{require_connection();window.dispatchEvent(new CustomEvent('linux-note-open-ssh-terminal',{detail:{target,remote_path:folder}}));}catch(error){notice(error);}});
+  const git_button=button('Git状态',()=>{
+    const owner=target,parent=folder;const dialog=workspace_dialog('远程Git状态','关闭',()=>overlays.delete(dialog.close));overlays.add(dialog.close);
+    const output=el('pre','workspace-ssh-git-status');output.setAttribute('role','status');dialog.content.append(el('p','',`SSH: ${owner} · ${parent}`),output);
+    let busy=false;const refresh=button('刷新',()=>void load());dialog.footer.prepend(refresh);
+    async function load(){if(busy||disposed||!dialog.root.isConnected)return;busy=true;refresh.disabled=true;output.textContent='正在读取远程Git状态…';
+      try{require_connection(owner);const result=await service.request('git_status',{path:parent});if(!disposed&&dialog.root.isConnected)output.textContent=result.text;}
+      catch(error){if(!disposed&&dialog.root.isConnected)output.textContent=String((error as Error).message);}
+      finally{busy=false;refresh.disabled=false;}
+    }void load();
+  });
+  for(const control of [up_button,refresh_button,new_file,new_folder,terminal_button,git_button])control.disabled=true;
   input.onkeydown=event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();void connect().catch(notice);}};
   const hosts=el('datalist');hosts.id='workspace-ssh-hosts';input.setAttribute('list',hosts.id);
   try{input.value=localStorage.getItem('typora-code:ssh:last-host')||'';}catch{/* 无本地偏好时等待输入。 */}
@@ -154,7 +166,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   class remote_sidebar extends core.SidebarPanel {
     containerEl=el('div','workspace-ssh-sidebar');
     constructor(){super();this.addRibbonButton({id:'typora_code:remote_ssh',title:'远程资源管理器 (SSH)',icon:git_icon('remote-explorer') as unknown as HTMLElement,group:'top'});
-      const toolbar=el('div','workspace-ssh-toolbar');toolbar.append(connect_button,disconnect_button,up_button,refresh_button,new_file,new_folder);
+      const toolbar=el('div','workspace-ssh-toolbar');toolbar.append(connect_button,disconnect_button,up_button,refresh_button,new_file,new_folder,terminal_button,git_button);
       this.containerEl.append(el('div','workspace-ssh-title','远程资源管理器 · SSH'),input,hosts,toolbar,status,location,list);
     }
     onshow(){document.querySelector('#typora-sidebar')?.classList.remove('active-tab-files','active-tab-outline','ty-show-search');}
@@ -163,5 +175,5 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const remove_panel=sidebar.addPanel(panel);
   const show=()=>{if(sidebar.activePanel===panel)sidebar.show();else sidebar.switch(remote_sidebar);input.focus();};
   const unregister=core.app.commands.register({id:'typora_code:remote_ssh',title:'远程：连接SSH主机',scope:'global',callback:show});
-  return {show,service,panel,connect,browse,open_file,dispose(){if(disposed)return;files.assert_can_dispose();disposed=true;auth_dialog?.close();service.dispose();++browse_epoch;for(const view of [...views])view.release_source();unregister();unregister_view();remove_panel();interaction.remove();style.remove();}};
+  return {show,service,panel,connect,browse,open_file,dispose(){if(disposed)return;files.assert_can_dispose();disposed=true;auth_dialog?.close();for(const close of [...overlays])close();service.dispose();++browse_epoch;for(const view of [...views])view.release_source();unregister();unregister_view();remove_panel();interaction.remove();style.remove();}};
 }

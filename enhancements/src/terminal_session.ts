@@ -10,7 +10,7 @@ export class terminal_session {
   private pty?:terminal_pty;private startup?:AbortController;private generation=0;private disposed=false;
   private cols=80;private rows=24;private launch_root:string;
   constructor(readonly id:string,root:string,public profile:terminal_profile_config,private host:graph_host,private settings:terminal_settings_store,
-    private output:(data:string,done:()=>void)=>void,private changed:()=>void,private explicit_cwd=false,private resolve_cwd?:()=>Promise<string>,private is_current=()=>true){
+    private output:(data:string,done:()=>void)=>void,private changed:()=>void,private explicit_cwd=false,private resolve_cwd?:()=>Promise<string>,private is_current=()=>true,readonly launch_profile?:terminal_profile_config){
     this.title=profile.title;this.root=root;this.launch_root=root;this.icon=profile.icon||"terminal";this.color=profile.color||"";this.group=id;
   }
   async start(){
@@ -27,11 +27,11 @@ export class terminal_session {
       if(this.resolve_cwd){const root=await this.resolve_cwd();if(!current())return;this.launch_root=root;this.resolve_cwd=undefined;}
       this.status="正在检测可用的 Shell…";this.changed();
       await this.settings.ready();if(!current())return;
-      const profile=this.settings.select_profile(this.profile.id);
+      const profile=this.launch_profile||this.settings.select_profile(this.profile.id);
       if(this.title===this.profile.title)this.title=profile.title;
       if(!this.profile.executable){this.icon=profile.icon||"terminal";this.color=profile.color||"";}
       this.profile=profile;this.status="正在启动 "+profile.title+" 进程…";this.changed();
-      const launch=resolve_terminal_launch(this.settings.get(),profile,this.launch_root,this.host.process_api,this.host.path_api,this.explicit_cwd);
+      const launch=resolve_terminal_launch(this.settings.get(),profile,this.launch_root,this.host.process_api,this.host.path_api,this.explicit_cwd,Boolean(this.launch_profile));
       if(!this.host.path_api.isAbsolute(launch.cwd)||!this.host.fs.statSync(launch.cwd).isDirectory())throw new Error("终端工作目录不存在。");
       this.root=launch.cwd;
       const base=this.host.path_api.join(runtime._options.userDataPath,"linux_note_enhancements","terminal_runtime");

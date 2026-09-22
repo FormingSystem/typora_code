@@ -84,7 +84,7 @@ export function create_terminal_settings(storage: Pick<Storage,"getItem"|"setIte
 export type terminal_settings_store=ReturnType<typeof create_terminal_settings>;
 
 /** 参数与环境按数组／对象交给 PTY，不拼接 Shell 命令。 */
-export function resolve_terminal_launch(settings:terminal_settings,profile:terminal_profile_config,root:string,process_api:any,path_api:any,explicit_cwd=false){
+export function resolve_terminal_launch(settings:terminal_settings,profile:terminal_profile_config,root:string,process_api:any,path_api:any,explicit_cwd=false,literal_profile=false){
   const lookup=(name:string)=>Object.entries(process_api.env).find(([key])=>process_api.platform==="win32"?key.toLowerCase()===name.toLowerCase():key===name)?.[1];
   const expand=(text:string)=>text.replace(/\$\{(workspaceFolder|env:[^}]+)\}/gu,(_,key:string)=>{const value=key==="workspaceFolder"?root:lookup(key.slice(4));if(typeof value!=="string")throw new Error("无法解析配置变量："+key);return value;});
   const cwd=explicit_cwd?root:expand(profile.cwd||settings.cwd||root);
@@ -94,6 +94,6 @@ export function resolve_terminal_launch(settings:terminal_settings,profile:termi
     if(existing)delete env[existing];if(value!==null)Object.defineProperty(env,key,{value:expand(value),enumerable:true,writable:true,configurable:true});
   }
   const resolved_cwd=path_api.isAbsolute(cwd)?cwd:path_api.resolve(root,cwd);
-  const args=profile.args.map(expand);if(profile.wsl)args.push("--cd",resolved_cwd);
-  return {executable:expand(profile.executable),args,cwd:resolved_cwd,env};
+  const args=profile.args.map(value=>literal_profile?value:expand(value));if(profile.wsl)args.push("--cd",resolved_cwd);
+  return {executable:literal_profile?profile.executable:expand(profile.executable),args,cwd:resolved_cwd,env};
 }

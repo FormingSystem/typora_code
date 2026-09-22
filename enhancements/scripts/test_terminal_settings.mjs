@@ -31,4 +31,8 @@ assert.deepEqual(wsl.args,['-d','Ubuntu LTS','--cd','D:\\chosen path']);
 detected=[{id:'project',title:'Detected',executable:'other.exe',args:[]}];assert.equal(store.select_profile('project').title,'Project');
 const profile_snapshot=store.profiles();profile_snapshot[0].args.push('MUTATED');assert(!store.profiles()[0].args.includes('MUTATED'));
 store.dispose();
+const remote_profile={id:'ssh_remote',title:'SSH',executable:'ssh.exe',args:["cd -- '/tmp/${env:NOT_LOCAL} ${workspaceFolder}'"]};
+const remote_launch=api.resolve_terminal_launch(store.get(),remote_profile,'D:\\chosen',process_api,path.win32,true,true);
+assert.deepEqual(remote_launch.args,remote_profile.args,'remote directory never expands local environment or workspace variables');
+assert.equal(remote_launch.cwd,'D:\\chosen');
 console.log(JSON.stringify({status:'PASS',checks:['valid stored fields retained','invalid update atomic','default profile must exist','custom profile arguments remain separate','relative cwd and variable expansion','case-insensitive Windows env replacement and null removal','explicit selected directory wins','configuration snapshots isolated','unavailable saved default preserved and launch rejected','auto default prefers detected PowerShell','custom profile overrides detected identity','MSYS environment and WSL cwd stay structured']}));

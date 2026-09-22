@@ -53,4 +53,11 @@ function create_remote_ssh(options){
   };
   return {connect,request,disconnect:()=>close(),state:()=>state,dispose(){if(disposed)return;disposed=true;close();}};
 }
-module.exports={validate_target,create_remote_ssh};
+/** 固定启动协议；远程目录只能作为单引号参数，不能展开本机配置模板。 */
+function remote_terminal_profile(target,remote_path,executable){
+  validate_target(target);
+  if(typeof remote_path!=='string'||!remote_path.startsWith('/')||remote_path.includes('\0')||remote_path.length>32768)throw Error('远程工作目录必须是绝对路径。');
+  const quoted="'"+remote_path.replace(/'/g,"'\\''")+"'";
+  return {id:'ssh_remote',title:'SSH: '+target,executable,args:['-tt','-o','ConnectTimeout=15','-o','StrictHostKeyChecking=ask',target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
+}
+module.exports={validate_target,create_remote_ssh,remote_terminal_profile};

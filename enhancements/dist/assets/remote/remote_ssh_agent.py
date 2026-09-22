@@ -6,6 +6,7 @@ import os
 import stat
 import sys
 import tempfile
+import subprocess
 
 MAX_BYTES = 16 * 1024 * 1024
 
@@ -50,6 +51,16 @@ def perform(request):
     if operation == "read":
         data, version, _ = snapshot(path)
         return {"data": base64.b64encode(data).decode("ascii"), "version": version}
+    if operation == "git_status":
+        # 显式固定参数，不运行本机Git，也不拼接Shell；状态查询不获取可选写锁。
+        environment = {key: value for key, value in os.environ.items() if key not in {"GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE"}}
+        result = subprocess.run(["git", "--no-optional-locks", "-C", path, "status", "--short", "--branch", "--untracked-files=normal"],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, encoding="utf-8", errors="replace", env=environment)
+        if result.returncode:
+            raise ValueError(result.stderr[:4096].strip() or "远程Git状态查询失败")
+        if len(result.stdout) > 2 * 1024 * 1024:
+            raise ValueError("远程Git状态超过2 MiB，请在项目终端中查看")
+        return {"path": path, "text": result.stdout}
     if operation == "write":
         original, version, mode = snapshot(path)
         if version != request.get("version"):
