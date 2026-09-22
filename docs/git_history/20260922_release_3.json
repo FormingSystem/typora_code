@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "requirement": "R055",
+  "verified_at": "2026-09-22T01:01:54.966684+00:00",
+  "remote": "origin/main",
+  "previous_commit": "2548443fda6f085aac7c401214a1058d2eb3a5d0",
+  "published_commit": "64127b5ae1f847d19daac01cc59dca8745365275",
+  "mode": "fast-forward",
+  "release": "2026.09.22.3",
+  "included_changes": [
+    "7215a16 R047.3 检查更新失败直接重试",
+    "76b2c6c/d3101ec R006.10 现场复现及测试边界",
+    "5b9b6f9 R047.4 帮助菜单仓库入口",
+    "64127b5 当前版本与发布范围说明"
+  ],
+  "verified_remote_files": [
+    {
+      "path": "enhancements/release.json",
+      "sha256": "dc0081cb8cc03bb3260fe19f20539ee80b53d926ca04352d19951a270ea27797",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/assets/update/release.json",
+      "sha256": "dc0081cb8cc03bb3260fe19f20539ee80b53d926ca04352d19951a270ea27797",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/SHA256SUMS",
+      "sha256": "9e335782f91e98fa556824616243ef2c63047cbf9d54f4abb7b8fa14aba2c97c",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/dist/workbench.js",
+      "sha256": "686b0b4e4db1195c8b6f1e3499ff271080eec016c3672f180bdfd90e2b0e27ab",
+      "matches_commit": true
+    },
+    {
+      "path": "enhancements/runtime_head.html",
+      "sha256": "f4012d30d6f9eac24fec69e3b78c73d1771b0ff309a14442cbb8304d6fc50267",
+      "matches_commit": true
+    },
+    {
+      "path": "uninstall_windows.ps1",
+      "sha256": "01b637f1e4d2bc93ee0837e6e406b3662ddb1743c4ca2de6c87144dfb099cda2",
+      "matches_commit": true
+    },
+    {
+      "path": "scripts/lib/typora_uninstall.ps1",
+      "sha256": "882d445c378ba9ac8ab3461797a0e9a708107986dfe9bf52ffce793fe7c24905",
+      "matches_commit": true
+    }
+  ],
+  "installed_assets": {
+    "workspace": 29,
+    "terminal": 24
+  },
+  "installation_check": "OK",
+  "installed_assets_match": true,
+  "uninstall_preflight": "detach",
+  "commit_messages_checked": 150,
+  "limits": [
+    "复用本轮功能验证/安装卸载证据，此次发布未重新执行功能压力或实际卸载。",
+    "用户窗口未重启，保存后正常重启加载。",
+    "Win10 PowerShell故障按用户要求暂停本机排查，未声称已修复；Git Bash子项已撤回。",
+    "推送前fetch未发现远端独有提交；后续Win10并行提交仍需重新核对。",
+    "浏览器入口为菜单/原生桥接验证，不等同目标设备网络可用。"
+  ]
+}
