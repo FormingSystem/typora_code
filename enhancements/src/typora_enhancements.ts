@@ -1,4 +1,5 @@
 import {bind_reading_code_geometry} from "./reading_code_geometry";
+import {bind_reading_code_copy} from "./reading_code_copy";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {open_reading_media,close_reading_media} from "./reading_media_viewer";
 import {bind_reading_images} from "./reading_image_viewer";
@@ -40,6 +41,7 @@ type code_mirror_stream = {
 };
 
 type code_mirror_instance = {
+  getValue():string;
   state: Record<string, unknown>;
   getOption(name: string): unknown;
   setOption(name: string, value: unknown): void;
@@ -85,6 +87,7 @@ let reading_binding: ReturnType<typeof bind_reading_navigation>;
 let grammar_loading: Promise<void> | undefined;
 const original_code_modes = new Map<code_mirror_instance, unknown>();
 let code_geometry:ReturnType<typeof bind_reading_code_geometry>|undefined;
+let code_copy:ReturnType<typeof bind_reading_code_copy>|undefined;
 let runtime_observer: MutationObserver | null = null;
 let dispose_reading_action_events: (() => void) | null = null;
 
@@ -322,6 +325,9 @@ function scan_document(): void {
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
   const fences=[...document.querySelectorAll<HTMLElement>(".md-fences")];
   code_geometry?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)));
+  code_copy?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)&&Boolean(code_mirror_for_fence(fence))).map(element=>({element,read_text:()=>{
+    const editor=code_mirror_for_fence(element);if(!editor)throw new Error("代码块正在重新加载");return editor.getValue();
+  }})));
   fences.forEach(ensure_code_collapse);
   const diagram_containers = new Set<Element>();
   document.querySelectorAll(".md-diagram-panel-preview").forEach((preview) => {
@@ -481,6 +487,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
   lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
   code_geometry=bind_reading_code_geometry();
+  code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error("剪贴板尚未就绪");files.copy(text);});
   dispose_reading_action_events = bind_reading_action_events();
   scan_document();
   runtime_observer = new MutationObserver(schedule_scan);
@@ -524,6 +531,7 @@ export function deactivate_typora_enhancements(): void {
   runtime_observer?.disconnect();
   runtime_observer = null;
   code_geometry?.dispose();code_geometry=undefined;
+  code_copy?.dispose();code_copy=undefined;
   dispose_reading_action_events?.();
   dispose_reading_action_events = null;
   window.removeEventListener("resize", schedule_scan);

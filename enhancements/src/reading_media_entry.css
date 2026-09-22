@@ -15,3 +15,11 @@ body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 
 /* 只在入口显示时提供跨过8px间隙的命中桥，普通阅读不拦截指针。 */
 .reading-media-entry.is-revealed,.reading-media-entry:focus-within{pointer-events:auto}
+
+/* 代码复制采用共享紧凑动作尺寸，覆盖定位不占正文行盒。 */
+.reading-media-entry.is-compact{height:28px;padding:0 4px 4px}
+.reading-media-entry.is-compact .reading-media-open{min-width:24px;width:24px;height:24px;padding:3px;font-weight:normal}
+.reading-media-entry.is-compact .reading-copy-feedback{position:absolute;right:32px;top:0;width:max-content;max-width:min(240px,calc(100vw - 64px));padding:3px 6px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px/18px "Segoe UI","Microsoft YaHei UI",sans-serif;white-space:normal;pointer-events:none}
+.reading-media-entry.is-feedback .reading-media-open{opacity:1;pointer-events:auto}
+.reading-copy-feedback:empty{display:none}
+.reading-media-open[hidden]~.reading-copy-feedback{display:none}

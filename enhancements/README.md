@@ -1,4 +1,6 @@
 ---
+
+2026.09.22.13：Markdown围栏在右上角提供一键复制，涵盖纯文本、短代码、折叠长块及未保存修改；只读Markdown预览共用入口。成功/失败反馈不占正文高度，详见[代码块设计](../docs/reading_code_blocks.md#r0681-围栏代码块一键复制)。
 id: tools.typora.enhancements
 title: "Typora 工作区、阅读导航与代码增强"
 kind: reference

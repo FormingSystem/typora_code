@@ -160678,7 +160678,7 @@ https://creativecommons.org/licenses/by/4.0/
         const enabled = entry.enabled && source.isConnected && width2 >= 48 && rect.height > 0;
         const height = entry.toolbar.offsetHeight;
         button.classList.toggle("is-small", width2 < 160);
-        const entry_top = rect.top - height;
+        const entry_top = entry.options.compact ? rect.top + 4 : rect.top - height;
         let left = 0, right = innerWidth, top = 0, bottom = innerHeight, shown = enabled;
         for (let node = source; shown && node; node = parent_element2(node)) {
           const computed = getComputedStyle(node);
@@ -160709,7 +160709,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const x = Math.max(left, rect.left), end = Math.min(right, rect.right);
-        shown = shown && entry_top >= top && rect.top <= bottom && end - x >= 48;
+        shown = shown && entry_top >= top && entry_top + height <= bottom && end - x >= 48;
         button.hidden = !shown;
         const entry_width = Math.min(Math.max(0, end - x), button.offsetWidth + 16);
         entry.toolbar.style.left = "".concat(end - entry_width, "px");
@@ -160743,12 +160743,13 @@ https://creativecommons.org/licenses/by/4.0/
     for (const name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) document.addEventListener(name, activate, { capture: true, signal });
     return {
       add(options2) {
-        const toolbar = workspace_element("div", "reading-media-entry"), button = workspace_element("button", "reading-media-open ".concat(options2.button_class));
+        const toolbar = workspace_element("div", "reading-media-entry" + (options2.compact ? " is-compact" : "")), button = workspace_element("button", "reading-media-open ".concat(options2.button_class));
         button.type = "button";
         button.hidden = true;
         button.title = options2.label;
         button.setAttribute("aria-label", options2.label);
-        button.append(git_icon("screen-full"), workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
+        button.append(git_icon(options2.icon || "screen-full"));
+        if (!options2.compact) button.append(workspace_element("span", "", "\u5168\u5C4F\u67E5\u770B"));
         toolbar.append(button);
         layer.append(toolbar);
         const entry_events = new AbortController();
@@ -160794,6 +160795,69 @@ https://creativecommons.org/licenses/by/4.0/
         layer.remove();
         interaction.remove();
         style.remove();
+      }
+    };
+  }
+
+  // src/reading_code_copy.ts
+  function bind_reading_code_copy(root, copy) {
+    const overlay = bind_reading_media_entries(root);
+    const entries3 = /* @__PURE__ */ new Map();
+    let disposed = false;
+    const remove = (element) => {
+      const state = entries3.get(element);
+      if (!state) return;
+      clearTimeout(state.timer);
+      state.entry.dispose();
+      entries3.delete(element);
+    };
+    return {
+      reconcile(sources) {
+        if (disposed) return;
+        const current = new Set(sources.map((source) => source.element));
+        for (const element of entries3.keys()) if (!current.has(element)) remove(element);
+        for (const source of sources) {
+          const existing = entries3.get(source.element);
+          if (existing) {
+            existing.source = source;
+            continue;
+          }
+          const feedback = workspace_element("span", "reading-copy-feedback");
+          feedback.setAttribute("role", "status");
+          feedback.setAttribute("aria-live", "polite");
+          const entry = overlay.add({ source: source.element, host: source.element, label: "\u590D\u5236\u4EE3\u7801", button_class: "reading-code-copy", icon: "copy", compact: true, open: () => {
+            const state = entries3.get(source.element);
+            if (!state || !source.element.isConnected || disposed) return;
+            clearTimeout(state.timer);
+            let label = "\u5DF2\u590D\u5236", icon = "check";
+            try {
+              copy(state.source.read_text());
+            } catch {
+              label = "\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5";
+              icon = "warning";
+            }
+            entry.button.replaceChildren(git_icon(icon));
+            entry.button.title = label;
+            entry.button.setAttribute("aria-label", label);
+            feedback.textContent = label;
+            entry.button.parentElement.classList.add("is-feedback");
+            state.timer = window.setTimeout(() => {
+              entry.button.replaceChildren(git_icon("copy"));
+              entry.button.title = "\u590D\u5236\u4EE3\u7801";
+              entry.button.setAttribute("aria-label", "\u590D\u5236\u4EE3\u7801");
+              feedback.textContent = "";
+              entry.button.parentElement?.classList.remove("is-feedback");
+            }, 1800);
+          } });
+          entry.button.parentElement.append(feedback);
+          entries3.set(source.element, { source, entry, feedback, timer: 0 });
+        }
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        for (const element of entries3.keys()) remove(element);
+        overlay.dispose();
       }
     };
   }
@@ -235453,6 +235517,7 @@ https://creativecommons.org/licenses/by/4.0/
     const theme_style = workspace_element("style");
     shadow.append(theme_style, reader);
     const reflow = bind_reading_reflow(body, reader);
+    const code_copy2 = bind_reading_code_copy(reader, (text3) => files.copy(text3));
     container.append(body);
     container.setAttribute("data-linux-note-lookup-preview", "ready");
     let scale = 80;
@@ -235594,6 +235659,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || request !== generation) return;
       reader.replaceChildren(content);
       selected_block = target_block;
+      code_copy2.reconcile([...reader.querySelectorAll("pre > code")].map((code) => ({ element: code.parentElement, read_text: () => code.textContent || "" })));
       if (selected_block && match2.text) {
         const needle = match2.text.replace(/\r\n?/gu, "\n");
         const raw_start = Number(selected_block.dataset.sourceStart);
@@ -235640,6 +235706,7 @@ https://creativecommons.org/licenses/by/4.0/
       selected = { file, match: match2 };
       body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8\uFF1A".concat(file.relative_path, "\uFF0C\u884C ").concat(match2.line, "\uFF0C\u5217 ").concat(match2.column));
       for (const key2 of ["previewPath", "previewKind", "previewLine", "previewColumn", "previewEndLine", "previewEndColumn", "previewText"]) delete body.dataset[key2];
+      code_copy2.reconcile([]);
       editor2?.dispose();
       editor2 = void 0;
       selected_block = void 0;
@@ -235714,6 +235781,7 @@ https://creativecommons.org/licenses/by/4.0/
     apply_scale();
     const clear = () => {
       generation++;
+      code_copy2.reconcile([]);
       selected = void 0;
       selected_block = void 0;
       editor2?.dispose();
@@ -235722,6 +235790,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     return { container, show: show2, clear, reveal_match, get_scale: () => scale, set_scale, dispose() {
       disposed = true;
+      code_copy2.dispose();
       reflow.dispose();
       generation++;
       body.removeEventListener("wheel", wheel, true);
@@ -242256,6 +242325,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092213,
+        version: "2026.09.22.13",
+        date: "2026-09-22",
+        notes: [
+          "Markdown\u4EE3\u7801\u548C\u7EAF\u6587\u672C\u56F4\u680F\u589E\u52A0\u4E00\u952E\u590D\u5236\uFF1B\u60AC\u505C\u53F3\u4E0A\u89D2\u6216\u952E\u76D8\u8FDB\u5165\u53EF\u590D\u5236\u5B8C\u6574\u5F53\u524D\u5185\u5BB9\uFF0C\u6298\u53E0\u957F\u5757\u548C\u672A\u4FDD\u5B58\u4FEE\u6539\u540C\u6837\u9002\u7528\u3002",
+          "\u590D\u5236\u63D0\u4F9B\u6210\u529F\u53CA\u5931\u8D25\u91CD\u8BD5\u53CD\u9988\uFF0C\u6B63\u6587\u548C\u53EA\u8BFBMarkdown\u9884\u89C8\u5171\u7528\u5165\u53E3\uFF0C\u4E0D\u6539\u53D8\u5149\u6807\u3001\u6298\u53E0\u72B6\u6001\u6216\u6B63\u6587\u6392\u7248\u3002"
+        ]
+      },
+      {
         sequence: 2026092212,
         version: "2026.09.22.12",
         date: "2026-09-22",
@@ -244061,6 +244139,7 @@ https://creativecommons.org/licenses/by/4.0/
   var grammar_loading;
   var original_code_modes = /* @__PURE__ */ new Map();
   var code_geometry;
+  var code_copy;
   var runtime_observer = null;
   var dispose_reading_action_events = null;
   var extension_style;
@@ -244272,6 +244351,11 @@ https://creativecommons.org/licenses/by/4.0/
     document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
     const fences3 = [...document.querySelectorAll(".md-fences")];
     code_geometry?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence)));
+    code_copy?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence) && Boolean(code_mirror_for_fence(fence))).map((element) => ({ element, read_text: () => {
+      const editor2 = code_mirror_for_fence(element);
+      if (!editor2) throw new Error("\u4EE3\u7801\u5757\u6B63\u5728\u91CD\u65B0\u52A0\u8F7D");
+      return editor2.getValue();
+    } })));
     fences3.forEach(ensure_code_collapse);
     const diagram_containers = /* @__PURE__ */ new Set();
     document.querySelectorAll(".md-diagram-panel-preview").forEach((preview) => {
@@ -244443,6 +244527,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     code_geometry = bind_reading_code_geometry();
+    code_copy = bind_reading_code_copy(document.body, (text3) => {
+      const files = get_workspace_files();
+      if (!files) throw new Error("\u526A\u8D34\u677F\u5C1A\u672A\u5C31\u7EEA");
+      files.copy(text3);
+    });
     dispose_reading_action_events = bind_reading_action_events();
     scan_document();
     runtime_observer = new MutationObserver(schedule_scan);
@@ -244484,6 +244573,8 @@ https://creativecommons.org/licenses/by/4.0/
     runtime_observer = null;
     code_geometry?.dispose();
     code_geometry = void 0;
+    code_copy?.dispose();
+    code_copy = void 0;
     dispose_reading_action_events?.();
     dispose_reading_action_events = null;
     window.removeEventListener("resize", schedule_scan);

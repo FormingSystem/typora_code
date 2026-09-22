@@ -53,7 +53,7 @@ app.whenReady().then(async () => {
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
     window.documents=${JSON.stringify(documents)};window.workspace_path=${JSON.stringify(workspace)};window.preview_attack=0;window.reads=[];window.delay_files=new Map();
     const files_api=require('node:fs').promises;window.path_api=require('node:path');
-    window.files={fs:{promises:{stat:async file=>file.endsWith('large.md')?{isFile:()=>true,size:3*1024*1024}:files_api.stat(file),readFile:async file=>{reads.push(file);const pause=delay_files.get(file);if(pause)await new Promise(resolve=>setTimeout(resolve,pause));return files_api.readFile(file);}}},path_api,open_file(){throw new Error('Preview must not open the central file');}};
+    window.preview_copies=[];window.files={copy:text=>window.preview_copies.push(text),fs:{promises:{stat:async file=>file.endsWith('large.md')?{isFile:()=>true,size:3*1024*1024}:files_api.stat(file),readFile:async file=>{reads.push(file);const pause=delay_files.get(file);if(pause)await new Promise(resolve=>setTimeout(resolve,pause));return files_api.readFile(file);}}},path_api,open_file(){throw new Error('Preview must not open the central file');}};
     window.make_match=(name,needle,occurrence=0)=>{const text=documents[name];let start=-1;for(let index=0;index<=occurrence;index++)start=text.indexOf(needle,start+1);const end=start+needle.length;if(start<0)throw new Error('missing fixture match');const lines=text.slice(0,start).split(/\\r\\n|\\r|\\n/),ends=text.slice(0,end).split(/\\r\\n|\\r|\\n/);return{id:name+':'+start,start,end,line:lines.length,column:lines.at(-1).length+1,end_line:ends.length,end_column:ends.at(-1).length+1,text:needle,preview:needle,preview_ranges:[{start:0,end:needle.length}]};};
     window.file_result=(name,needle,occurrence=0)=>({file_path:path_api.join(workspace_path,name),relative_path:name,matches:[make_match(name,needle,occurrence)]});
     window.show_file=(name,needle,occurrence=0)=>preview.show(file_result(name,needle,occurrence),make_match(name,needle,occurrence));
@@ -116,6 +116,15 @@ app.whenReady().then(async () => {
   await verify('A match in a table retains the whole table and highlights the correct cell', async () => {assert.equal(await evaluate('markdown_root().querySelector("mark")?.textContent'),'table_target');assert.equal(await evaluate('markdown_root().querySelectorAll(".lookup-target-block table tr").length'),2);});
   await evaluate('show_file("notes.md","code_target")');await delay(70);
   await verify('A match in a fenced block preserves the code block instead of rendering lines separately', async () => {assert.equal(await evaluate('markdown_root().querySelector("pre code mark")?.textContent'),'code_target');assert.equal(await evaluate('markdown_root().querySelector("pre code")?.textContent.trim()'),'int code_target = 7;');});
+  await verify('Readonly Markdown uses shared copy and keeps central selection',async()=>{
+    const before=await evaluate('reader_state()');
+    await evaluate(`markdown_root().querySelector('pre').dispatchEvent(new PointerEvent('pointerenter'));void 0`);await delay(80);
+    assert.equal(await evaluate(`document.querySelector('.reading-code-copy').hidden`),false);
+    await evaluate(`document.querySelector('.reading-code-copy').click();void 0`);
+    assert.equal(await evaluate('preview_copies.at(-1)'),await evaluate(`markdown_root().querySelector('pre code').textContent`));
+    assert.deepEqual(await evaluate('reader_state()'),before);
+  });
+
   await evaluate('document.documentElement.classList.add("dark")');await delay(80);
   await verify('Markdown preview responds to a live theme and base font change', async () => {
     const theme=await evaluate(`(()=>{const root=markdown_root();return{font:getComputedStyle(root.querySelector('#write')).fontSize,heading:getComputedStyle(root.querySelector('h1')).color,color:getComputedStyle(preview.container).color,scale:preview.container.dataset.previewScale}})()`);

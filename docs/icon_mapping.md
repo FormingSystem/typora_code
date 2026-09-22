@@ -43,3 +43,5 @@ R014新增官方zoom-in／zoom-out放大镜表示当前窗口正／负缩放。�
 2026-09-19 R048：检出单选复用`git-branch/cloud/tag/add`并补齐固定Codicons同提交的`debug-disconnect`原始SVG、blob和SHA256。普通动作22px，引用详情44px，字形16px；详情不占图标槽，完整行为与证据见[分支检出](git_branch_checkout.md)。
 
 2026-09-20 R060：扩展活动栏使用固定Codicons的`extensions`原始SVG、blob与SHA256，复用48px槽位/24px字形和公共选择、焦点与排序；2026-09-22 R072.1将左下设置改为同源官方`settings-gear`，保留48px槽位/24px字形。配置和管理的入口约定见[社区插件设计](community_plugins.md#r060-扩展活动栏与设置入口)。
+
+R068.1（2026-09-22）：围栏复制使用现有官方Codicons `copy`、成功`check`、失败`warning`；16px字形、24px紧凑动作，圆角/键盘焦点走共享交互。正文外覆盖层不参与代码块行盒。当前反馈单行、明暗/缩放及图片/图表入口回归见[代码块证据](../enhancements/tests/evidence/code_copy_20260922.json)。

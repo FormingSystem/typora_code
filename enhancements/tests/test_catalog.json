@@ -6243,6 +6243,70 @@
         "实际PTY在指定远端目录，原本地文档及会话保持，清理仅限测试目录"
       ],
       "timeout_ms": 120000
+    },
+    {
+      "id": "TC-reading-copy-ui",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.1"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_copy.ts",
+        "enhancements/src/reading_media_entry.ts"
+      ],
+      "related_modules": [
+        "Markdown",
+        "CodeMirror",
+        "preview",
+        "clipboard",
+        "media"
+      ],
+      "script": "enhancements/scripts/test_reading_code_copy.cjs",
+      "runner": "enhancements/scripts/test_ui.mjs",
+      "environment": "Electron隔离文档",
+      "preconditions": "独立文档，剪贴板端口记录副本，不覆盖用户剪贴板",
+      "steps": [
+        "复制当前完整内容、长短块、失败重试、键盘、100次功能或20次原生、清理及正文不变量"
+      ],
+      "expected": [
+        "完整文本进入复制端口，宿主正文与排版保持，资源清理"
+      ],
+      "timeout_ms": 120000
+    },
+    {
+      "id": "TC-reading-copy-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.1"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_copy.ts",
+        "enhancements/src/reading_media_entry.ts"
+      ],
+      "related_modules": [
+        "Markdown",
+        "CodeMirror",
+        "preview",
+        "clipboard",
+        "media"
+      ],
+      "script": "enhancements/fixtures/code_copy_native.js",
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "environment": "原始Typora1.14.10隔离副本",
+      "preconditions": "独立文档，剪贴板端口记录副本，不覆盖用户剪贴板",
+      "steps": [
+        "复制当前完整内容、长短块、失败重试、键盘、100次功能或20次原生、清理及正文不变量"
+      ],
+      "expected": [
+        "完整文本进入复制端口，宿主正文与排版保持，资源清理"
+      ],
+      "timeout_ms": 120000
     }
   ]
 }

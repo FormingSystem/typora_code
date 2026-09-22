@@ -2,10 +2,10 @@ import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {reading_viewport_bounds} from "./reading_viewport";
-import {git_icon} from "./git_icons";
+import {git_icon,type git_icon_name} from "./git_icons";
 import css from "./reading_media_entry.css";
 
-type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void};
+type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean};
 export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;dispose():void};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 
@@ -25,7 +25,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       const enabled=entry.enabled&&source.isConnected&&width>=48&&rect.height>0;
       const height=entry.toolbar.offsetHeight;
       button.classList.toggle("is-small",width<160);
-      const entry_top=rect.top-height;
+      const entry_top=entry.options.compact?rect.top+4:rect.top-height;
       let left=0,right=innerWidth,top=0,bottom=innerHeight,shown=enabled;
       for(let node:Element|null=source;shown&&node;node=parent_element(node)){
         const computed=getComputedStyle(node);
@@ -45,7 +45,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       }
       const x=Math.max(left,rect.left),end=Math.min(right,rect.right);
       // 外侧入口完整可见才显示；滚到图像中段时不吸附到正在阅读的内容上。
-      shown=shown&&entry_top>=top&&rect.top<=bottom&&end-x>=48;
+      shown=shown&&entry_top>=top&&entry_top+height<=bottom&&end-x>=48;
       button.hidden=!shown;
       // 命中桥仅跟随按钮宽度，不把整段图文间隙变成不可选择的操作区域。
       const entry_width=Math.min(Math.max(0,end-x),button.offsetWidth+16);
@@ -75,8 +75,8 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
   for(const name of ["pointerdown","pointerup","mousedown","mouseup","click","dblclick","keydown","keypress","keyup"])document.addEventListener(name,activate,{capture:true,signal});
   return {
     add(options:entry_options):reading_media_entry{
-      const toolbar=el("div","reading-media-entry"),button=el("button",`reading-media-open ${options.button_class}`);
-      button.type="button";button.hidden=true;button.title=options.label;button.setAttribute("aria-label",options.label);button.append(git_icon("screen-full"),el("span","","全屏查看"));toolbar.append(button);layer.append(toolbar);
+      const toolbar=el("div","reading-media-entry"+(options.compact?" is-compact":"")),button=el("button",`reading-media-open ${options.button_class}`);
+      button.type="button";button.hidden=true;button.title=options.label;button.setAttribute("aria-label",options.label);button.append(git_icon(options.icon||"screen-full"));if(!options.compact)button.append(el("span","","全屏查看"));toolbar.append(button);layer.append(toolbar);
       const entry_events=new AbortController();
       const reveal=(event:PointerEvent)=>{const target=event.relatedTarget;const inside=target instanceof Node&&(options.host.contains(target)||toolbar.contains(target));if(event.type==='pointerenter'||!inside)toolbar.classList.toggle('is-revealed',event.type==='pointerenter');};
       for(const node of [options.host,toolbar])for(const name of ['pointerenter','pointerleave'])node.addEventListener(name,reveal as EventListener,{signal:entry_events.signal});

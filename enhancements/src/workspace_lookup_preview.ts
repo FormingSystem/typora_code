@@ -1,4 +1,5 @@
 import {bind_reading_reflow} from "./reading_reflow";
+import {bind_reading_code_copy} from "./reading_code_copy";
 import {acquire_workspace_style} from "./workspace_styles";
 import { marked, type TokensList } from "marked";
 import DOMPurify from "dompurify";
@@ -25,6 +26,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const reader = el("article"); reader.id = "write";
   const theme_style = el("style"); shadow.append(theme_style,reader);
   const reflow=bind_reading_reflow(body,reader);
+  const code_copy=bind_reading_code_copy(reader,text=>files.copy(text));
   container.append(body); container.setAttribute("data-linux-note-lookup-preview", "ready");
   let scale = 80; try { scale = clamp_scale(Number(localStorage.getItem(SCALE_KEY) || 80)); } catch { /* 禁止存储时仍可调整本次字号。 */ }
   let editor: git_diff_editor | undefined; let generation = 0; let disposed = false;
@@ -135,6 +137,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     await Promise.all(rendering);
     if(disposed||request!==generation)return;
     reader.replaceChildren(content);selected_block=target_block;
+    code_copy.reconcile([...reader.querySelectorAll<HTMLElement>("pre > code")].map(code=>({element:code.parentElement!,read_text:()=>code.textContent||""})));
     if (selected_block && match.text) {
       const needle = match.text.replace(/\r\n?/gu, "\n");
       const raw_start = Number(selected_block.dataset.sourceStart);
@@ -156,6 +159,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
+    code_copy.reconcile([]);
     editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", "正在读取预览…"));
     try {
       let text:string;
@@ -198,6 +202,6 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
-  const clear=()=>{generation++;selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  const clear=()=>{generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
+  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }
