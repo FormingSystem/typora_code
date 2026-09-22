@@ -1,3 +1,4 @@
+import {get_workspace_quick_open} from "./workspace_quick_open";
 import type {graph_core,graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import type {detached_window_binding} from "./workspace_detached_window";
@@ -6,7 +7,7 @@ import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {format_file_path} from "./file_paths";
 import {is_markdown_file} from "./file_language";
 import {git_icon} from "./git_icons";
-import {read_workspace_editor_settings,set_workspace_editor_preview,workspace_editor_group_locked,set_workspace_editor_group_locked,open_workspace_editor_settings,close_workspace_editor_settings} from "./workspace_editor_settings";
+import {read_workspace_editor_settings,set_workspace_editor_preview,workspace_editor_group_locked,set_workspace_editor_group_locked} from "./workspace_editor_settings";
 
 type direction="left"|"right"|"up"|"down";
 type editor_group=graph_leaf["parent"]&{children:graph_leaf[];containerEl:HTMLElement;parent?:{removeChild(group:editor_group):void};root?:{emit(event:string):void}};
@@ -149,14 +150,13 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
     if(!present(leaf))return [];
     const group=leaf.parent;
     const entry=(id:string,title:string,action:()=>unknown,options:Partial<workspace_menu_entry>={}):workspace_menu_entry=>({id,title,action:()=>run(()=>present(leaf)&&leaf.parent===group&&action()),...options});
-    const opened=group_leaves(leaf);
     return [
-      entry("show_opened_editors","显示已打开的编辑器",()=>{}, {children:opened.map((item,index)=>entry("opened_editor_"+index,files.editor_state(item).file_path?.split(/[\\/]/u).at(-1)||item.state.path.split("/").at(-1)||"未命名",()=>{if(present(item)&&item.parent===group){workspace.activeLeaf=group.toggleTab(item.state.path);(item.view as any).editor?.focused_editor?.().focus();}}, {checked:(group as editor_group&{activeLeaf?:graph_leaf}).activeLeaf===item}))}),
+      entry("show_opened_editors","显示已打开的编辑器",()=>get_workspace_quick_open()?.open_editors(group)),
       entry("close_all","关闭全部",()=>close_batch(leaf,"all"),{separator:true,disabled:!candidates(leaf,"all").length||batches.has(group)}),
       entry("close_saved","关闭已保存",()=>close_batch(leaf,"saved"),{disabled:!candidates(leaf,"saved").length||batches.has(group)}),
       entry("enable_preview_editors","启用预览编辑器",()=>set_workspace_editor_preview(!read_workspace_editor_settings().enable_preview),{separator:true,checked:read_workspace_editor_settings().enable_preview}),
       entry("lock_group","锁定编辑组",()=>{const locked=!workspace_editor_group_locked(group);set_workspace_editor_group_locked(group,locked);if(locked)owned_locks.add(group);else owned_locks.delete(group);},{separator:true,checked:workspace_editor_group_locked(group)}),
-      entry("configure_editors","配置编辑器…",()=>open_workspace_editor_settings(),{separator:true}),
+      entry("configure_editors","配置编辑器…",()=>core.app.commands.run("typora_code:settings"),{separator:true}),
     ];
   };
   const contribute_title=(event:Event)=>{const detail=(event as CustomEvent<{leaf:graph_leaf;entries?:workspace_menu_entry[]}>).detail;if(detail&&!detail.entries&&present(detail.leaf))detail.entries=title_entries(detail.leaf);};
@@ -186,7 +186,7 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
   command("split_right","向右拆分",leaf=>split(leaf,"right"));command("split_down","向下拆分",leaf=>split(leaf,"down"));
   cleanups.push(workspace.on("layout-changed",()=>queueMicrotask(refresh)),workspace.on("active-leaf:change",()=>queueMicrotask(refresh)));refresh();
   return {entries,title_entries,close_batch,pin,split,move,refresh,dispose(){
-    if(disposed)return;disposed=true;close_menu?.();close_workspace_editor_settings();for(const cleanup of cleanups.reverse())cleanup();
+    if(disposed)return;disposed=true;close_menu?.();for(const cleanup of cleanups.reverse())cleanup();
     document.removeEventListener(TITLE_ENTRIES_EVENT,contribute_title);for(const group of owned_locks)set_workspace_editor_group_locked(group,false);owned_locks.clear();
     document.removeEventListener("typora-code:tab-context-menu",context);document.removeEventListener("click",click,true);document.removeEventListener("mousedown",middle,true);
     document.querySelectorAll(".workspace-tab-pin").forEach(node=>node.remove());

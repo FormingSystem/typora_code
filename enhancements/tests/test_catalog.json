@@ -2111,7 +2111,8 @@
       "purpose": "implementation",
       "requirements": [
         "H009",
-        "R019"
+        "R019",
+        "R069.1"
       ],
       "design": "docs/statusbar_layout.md",
       "implementation": [
@@ -2209,7 +2210,9 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R073.1",
+        "R072.2"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -2862,7 +2865,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R069.1"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3376,7 +3380,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R073"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -5828,14 +5833,17 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R069"
+        "R069",
+        "R069.1"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
         "enhancements/src/workspace_link_target.ts",
         "enhancements/src/workspace_link_preview.ts",
         "enhancements/src/workspace_link_selection.ts",
-        "enhancements/src/workspace_search.ts"
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_link_dock.ts",
+        "enhancements/src/reading_reflow.ts"
       ],
       "related_modules": [
         "search",
@@ -5861,14 +5869,19 @@
       "level": "system",
       "purpose": "stress",
       "requirements": [
-        "R069"
+        "R069",
+        "R069.1",
+        "R072.2",
+        "R073"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
         "enhancements/src/workspace_link_target.ts",
         "enhancements/src/workspace_link_preview.ts",
         "enhancements/src/workspace_link_selection.ts",
-        "enhancements/src/workspace_search.ts"
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_link_dock.ts",
+        "enhancements/src/reading_reflow.ts"
       ],
       "related_modules": [
         "search",
@@ -6138,7 +6151,9 @@
       "id": "TC-workspace-settings",
       "requirements": [
         "R072",
-        "R070"
+        "R070",
+        "R072.2",
+        "R073"
       ],
       "level": "functional",
       "purpose": "implementation",

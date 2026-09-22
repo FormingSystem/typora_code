@@ -7,6 +7,7 @@ import css from "./workspace_tab_controls.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import type {graph_core} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
+import {read_workspace_editor_settings,observe_workspace_editor_settings} from "./workspace_editor_settings";
 
 const bindings = new WeakMap<object, {dispose():void}>();
 /** 包装原生标签并渲染真实状态，叶子与文件服务继续拥有文档和关闭动作。 */
@@ -15,7 +16,7 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
   const interaction=acquire_workspace_interaction(),inline=acquire_workspace_inline_layout();
   const style=acquire_workspace_style("typora-code-tab-controls",css),events=new AbortController();
   const marked=new Map<HTMLElement,Map<string,string|null>>();
-  const strips=new Map<HTMLElement,{strip:HTMLElement}>();
+  const strips=new Map<HTMLElement,{strip:HTMLElement;geometry?:string}>();
   const tabs=new Map<HTMLElement,{label:HTMLElement;actions:HTMLElement;close:HTMLElement;owned:Element[];classes:string[]}>();
   let frame=0,disposed=false;
   const attr=(node:HTMLElement,name:string,value:string)=>{
@@ -35,10 +36,19 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
   const refresh=()=>{
     frame=0;if(disposed)return;
     for(const tab of tabs.keys())if(!tab.isConnected)release_tab(tab);
-    for(const [header,entry] of strips)if(!header.isConnected){if(entry.strip.parentElement){entry.strip.before(header);entry.strip.remove();}strips.delete(header);}
+    for(const [header,entry] of strips)if(!header.isConnected){if(entry.strip.parentElement){sizes.unobserve(entry.strip.parentElement);entry.strip.before(header);entry.strip.remove();}strips.delete(header);}
     for(const header of document.querySelectorAll<HTMLElement>(".typ-workspace-tabs > .typ-workspace-tab-header")){
       const strip=document.createElement("div");strip.className="workspace-tab-strip";
-      header.before(strip);strip.append(header);strips.set(header,{strip});
+      header.before(strip);strip.append(header);strips.set(header,{strip});sizes.observe(strip.parentElement!);
+    }
+    for(const [header,entry] of strips){
+      const {strip}=entry;
+      const enabled=read_workspace_editor_settings().wrap_tabs;
+      const geometry=`${enabled}:${strip.clientWidth}:${strip.parentElement?.clientHeight}:${header.textContent}`;
+      if(entry.geometry===geometry)continue;entry.geometry=geometry;
+      strip.classList.toggle("is-wrapping",enabled);
+      // 留出正文空间；短窗口与过多标签回退单行滚动，设置值不被覆盖。
+      if(enabled&&strip.offsetHeight>Math.max(32,(strip.parentElement?.clientHeight||0)/2))strip.classList.remove("is-wrapping");
     }
     core.app.workspace.eachLeaves(leaf=>{
       const tab=workspace_leaf_tab(leaf),close=tab?.querySelector<HTMLElement>(".typ-close");if(!tab||!close||!tab.isConnected)return;
@@ -57,8 +67,10 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
     for(const node of marked.keys())if(!node.isConnected)restore_attributes(node);
   };
   const schedule=()=>{if(!frame&&!disposed)frame=requestAnimationFrame(refresh);};
+  const sizes=new ResizeObserver(schedule);
   const observer=new MutationObserver(schedule);observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class","data-id"]});
-  const cleanups=[core.app.workspace.on("active-leaf:change",schedule),core.app.workspace.on("layout-changed",schedule)];
+  const cleanups=[core.app.workspace.on("active-leaf:change",schedule),core.app.workspace.on("layout-changed",schedule),observe_workspace_editor_settings(schedule)];
+  window.addEventListener("resize",schedule,{signal:events.signal});
   document.addEventListener("input",schedule,{capture:true,signal:events.signal});
   document.addEventListener("keydown",event=>{
     const target=event.target;if(!(target instanceof HTMLElement)||event.altKey||event.ctrlKey||event.metaKey)return;
@@ -74,7 +86,7 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
     const label=close.getAttribute("aria-label")||"关闭（Ctrl+F4）";return {anchor:close,label,compact:true,render:content=>{content.textContent=label;}};
   });refresh();
   const binding={dispose(){
-    if(disposed)return;disposed=true;observer.disconnect();cancelAnimationFrame(frame);events.abort();cleanups.forEach(release=>release?.());hover.dispose();
+    if(disposed)return;disposed=true;observer.disconnect();sizes.disconnect();cancelAnimationFrame(frame);events.abort();cleanups.forEach(release=>release?.());hover.dispose();
     for(const tab of tabs.keys())release_tab(tab);
     for(const [header,{strip}] of strips)if(strip.parentElement){strip.before(header);strip.remove();}strips.clear();
     for(const node of marked.keys())restore_attributes(node);

@@ -1,26 +1,30 @@
 import type {graph_core, graph_leaf} from "./git_graph_host";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {file_key, source_file_path} from "./workspace_file_uri";
-import {workspace_dialog, workspace_element as el, workspace_button} from "./workspace_widgets";
 
-export const WORKSPACE_EDITOR_DEFAULTS = Object.freeze({enable_preview: true});
+export const WORKSPACE_EDITOR_DEFAULTS = Object.freeze({enable_preview: true, wrap_tabs: false, link_preview_enabled: true});
 const KEY = "workspace_editor";
 const listeners = new Set<() => void>();
 const locked_groups = new WeakSet<object>();
 type editor_group = graph_leaf["parent"] & {children?: graph_leaf[]; activeLeaf?: graph_leaf; containerEl?: HTMLElement};
 type routing_core = graph_core & {split_workspace_group?(leaf: graph_leaf, side: "right"): editor_group};
-let settings_dialog: ReturnType<typeof workspace_dialog> | undefined;
 
 /** 编辑器预览设置只从既有用户设置存储解析，关闭后也不改变当前文档的正文状态。 */
-export function read_workspace_editor_settings(): {enable_preview: boolean} {
-  const value = get_workspace_app()?.settings.get(KEY) as {enable_preview?: unknown} | undefined;
-  return {enable_preview: typeof value?.enable_preview === "boolean" ? value.enable_preview : WORKSPACE_EDITOR_DEFAULTS.enable_preview};
+export function read_workspace_editor_settings(): {enable_preview: boolean;wrap_tabs:boolean;link_preview_enabled:boolean} {
+  const value = get_workspace_app()?.settings.get(KEY) as Record<string,unknown> | undefined;
+  return Object.fromEntries(Object.entries(WORKSPACE_EDITOR_DEFAULTS).map(([key,fallback])=>[key,typeof value?.[key]==="boolean"?value[key]:fallback])) as ReturnType<typeof read_workspace_editor_settings>;
 }
 export function set_workspace_editor_preview(enabled: boolean | undefined): void {
+  set_workspace_editor_setting("enable_preview",enabled);
+}
+export function set_workspace_editor_setting(key:string,enabled:boolean|undefined):void {
+  if(!Object.hasOwn(WORKSPACE_EDITOR_DEFAULTS,key))throw new Error("未知编辑器设置。");
   if (enabled !== undefined && typeof enabled !== "boolean") throw new Error("编辑器预览设置无效。");
   const settings = get_workspace_app()?.settings;
   if (!settings) throw new Error("工作台设置尚未就绪。");
-  settings.set_and_save(KEY, enabled === undefined ? {} : {enable_preview: enabled});
+  const value={...(settings.get(KEY) as Record<string,unknown>||{})};
+  if(enabled===undefined)delete value[key];else value[key]=enabled;
+  settings.set_and_save(KEY,value);
   for (const listener of listeners) listener();
 }
 export function observe_workspace_editor_settings(listener: () => void): () => void {listeners.add(listener); return () => {listeners.delete(listener);};}
@@ -48,21 +52,3 @@ export function select_workspace_editor_group(core: graph_core, target_path: str
   if (!source || typeof split !== "function") throw new Error("没有可用的未锁定编辑器组。");
   return split.call(core, source, "right");
 }
-export function open_workspace_editor_settings(): void {
-  settings_dialog?.close(false);
-  const dialog = settings_dialog = workspace_dialog("编辑器设置", "关闭设置", () => {if (settings_dialog === dialog) settings_dialog = undefined;});
-  dialog.root.dataset.workspaceEditorSettings = "ready";
-  const row = el("label"), control = el("input"), label = el("span", "", "启用预览编辑器");
-  row.style.display = "flex"; row.style.alignItems = "center"; row.style.gap = "8px";
-  control.type = "checkbox"; control.dataset.workspaceEditorPreview = "true"; control.checked = read_workspace_editor_settings().enable_preview;
-  const status = el("p"); status.setAttribute("role", "status");
-  const change = (enabled: boolean | undefined) => {
-    try {set_workspace_editor_preview(enabled); status.textContent = "设置已保存并生效。";}
-    catch (error) {status.textContent = error instanceof Error ? error.message : String(error);}
-    control.checked = read_workspace_editor_settings().enable_preview;
-  };
-  control.onchange = () => change(control.checked); row.append(control, label);
-  dialog.content.append(row, el("p", "", "启用后可用临时标签预览文件。关闭后，现有临时标签保持打开，新文件也使用普通标签。"), status);
-  const reset = workspace_button("恢复默认", () => change(undefined)); reset.dataset.workspaceEditorReset = "true"; dialog.footer.prepend(reset);
-}
-export function close_workspace_editor_settings(): void {settings_dialog?.close(false); settings_dialog = undefined;}

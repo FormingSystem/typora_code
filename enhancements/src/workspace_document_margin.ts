@@ -1,5 +1,5 @@
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
-import {capture_position, apply_position} from "./reading_positions";
+import {change_reading_geometry} from "./reading_reflow";
 import {acquire_workspace_style} from "./workspace_styles";
 import margin_css from "./workspace_document_margin.css";
 
@@ -34,9 +34,8 @@ function read_margin():number {
 function preserve_reading_position(change:()=>void):void {
   const content = document.querySelector<HTMLElement>("content");
   const write = content?.querySelector<HTMLElement>(":scope > #write");
-  const position = content && write && write.getBoundingClientRect().height > 0 ? capture_position(content, write) : undefined;
-  change();
-  if (position && content?.isConnected && write?.parentElement === content) apply_position(content, write, position);
+  if(content&&write&&write.getBoundingClientRect().height>0)change_reading_geometry(content,write,change);
+  else change();
 }
 
 /** 恢复原有底栏百分比入口，只控制活动 Markdown 正文框的左右边距。 */

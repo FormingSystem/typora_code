@@ -1,29 +1,24 @@
-import type {graph_core,graph_leaf} from './git_graph_host';
-import {workspace_element as el,workspace_button as button} from './workspace_widgets';
+import type {graph_core} from './git_graph_host';
+import {workspace_element as el,workspace_button as button,workspace_dialog} from './workspace_widgets';
 import {workspace_settings_sections,observe_workspace_settings,notify_workspace_settings} from './workspace_settings_registry';
-import {select_workspace_editor_group} from './workspace_editor_settings';
-import {workspace_leaf_tab} from './workspace_leaf_tab';
-import {git_icon} from './git_icons';
+import {git_icon,git_icon_button} from './git_icons';
 import {acquire_workspace_interaction} from './workspace_interaction';
 import {acquire_workspace_style} from './workspace_styles';
 import css from './workspace_settings_view.css';
 
-const VIEW_ID='typora_code.settings',URI=`typ://${VIEW_ID}/settings`;
 export function bind_workspace_settings_view(core:graph_core){
   const views=new Set<settings_view>(),style=acquire_workspace_style('typora-code-style:workspace_settings_view',css);
-  class settings_view extends core.WorkspaceView {
+  let dialog:ReturnType<typeof workspace_dialog>|undefined;
+  class settings_view {
     containerEl=el('section','workspace-settings');icon='fa-cog';disposed=false;category='';
     search=el('input');categories=el('nav','workspace-settings-categories');body=el('div','workspace-settings-body');status=el('p','workspace-settings-status');
     release_port:()=>void;release_registry:()=>void;
-    constructor(leaf:graph_leaf){
-      super(leaf);views.add(this);this.search.placeholder='搜索设置';this.search.setAttribute('aria-label','搜索设置');this.status.setAttribute('role','status');
+    constructor(){
+      views.add(this);this.search.placeholder='搜索设置';this.search.setAttribute('aria-label','搜索设置');this.status.setAttribute('role','status');
       const content=el('div','workspace-settings-content');content.append(this.categories,this.body);this.containerEl.append(this.search,content,this.status);
       const interaction=acquire_workspace_interaction(this.containerEl);this.release_port=()=>interaction.remove();this.release_registry=observe_workspace_settings(()=>{if(!this.containerEl.contains(document.activeElement))this.render();});
       this.search.oninput=()=>this.render();this.render();
     }
-    setIcon(){const tab=workspace_leaf_tab(this.leaf);const label=tab?.querySelector('.typ-file-basename');if(label)label.textContent='设置';tab?.querySelector('.typ-file-ext')?.remove();const icon=tab?.querySelector('.typ-file-icon');if(icon){icon.className='typ-file-icon git-tab-icon';icon.replaceChildren(git_icon('settings-gear'));}}
-    onOpen(){this.setIcon();this.render();}
-    onClose(){queueMicrotask(()=>{let present=false;core.app.workspace.eachLeaves(leaf=>{if(leaf===this.leaf)present=true;});if(!present)this.dispose();});}
     render(){
       if(this.disposed)return;this.categories.replaceChildren();this.body.replaceChildren();
       const query=this.search.value.trim().toLocaleLowerCase(),sections=workspace_settings_sections();
@@ -52,10 +47,20 @@ export function bind_workspace_settings_view(core:graph_core){
     }
     dispose(){if(this.disposed)return;this.disposed=true;this.release_port();this.release_registry();views.delete(this);}
   }
-  const unregister_view=core.app.viewManager.registerView(VIEW_ID,leaf=>new settings_view(leaf));
-  const show=()=>{let existing:graph_leaf|undefined;core.app.workspace.eachLeaves(leaf=>{if(leaf.state.path===URI)existing=leaf;});if(existing){core.app.workspace.activeLeaf=existing.parent.toggleTab(URI);return;}const group=select_workspace_editor_group(core,URI),leaf=core.app.workspace.createLeaf({type:VIEW_ID,state:{path:URI}});group.appendChild(leaf);core.app.workspace.activeLeaf=leaf;};
+  const show=()=>{
+    if(dialog){dialog.root.querySelector<HTMLInputElement>('.workspace-settings>input')?.focus();return;}
+    const view=new settings_view();
+    const panel=dialog=workspace_dialog('设置','关闭设置',()=>{view.dispose();if(dialog===panel)dialog=undefined;});
+    panel.root.classList.add('workspace-settings-modal');panel.footer.hidden=true;panel.content.append(view.containerEl);
+    const header=panel.root.querySelector('.workspace-dialog-header')!;
+    const maximize=git_icon_button('screen-full','最大化设置',()=>{
+      const enabled=panel.root.classList.toggle('is-maximized');maximize.title=enabled?'还原设置窗口':'最大化设置';maximize.setAttribute('aria-label',maximize.title);maximize.setAttribute('aria-pressed',String(enabled));maximize.replaceChildren(git_icon(enabled?'screen-normal':'screen-full'));
+    });
+    maximize.dataset.settingsMaximize='true';header.insertBefore(maximize,header.lastElementChild);
+    header.querySelector('.workspace-dialog-title')?.prepend(git_icon('settings-gear'));
+  };
   const unregister=core.app.commands.register({id:'typora_code:settings',title:'打开设置',scope:'global',callback:show});
   const keydown=(event:KeyboardEvent)=>{if(event.isComposing||event.repeat||event.altKey||event.shiftKey||!(event.ctrlKey||event.metaKey)||event.key!==',')return;event.preventDefault();event.stopImmediatePropagation();show();};
   window.addEventListener('keydown',keydown,true);
-  return{show,dispose(){window.removeEventListener('keydown',keydown,true);for(const view of [...views])view.dispose();unregister();unregister_view();style.remove();}};
+  return{show,dispose(){window.removeEventListener('keydown',keydown,true);dialog?.close(false);for(const view of [...views])view.dispose();unregister();style.remove();}};
 }

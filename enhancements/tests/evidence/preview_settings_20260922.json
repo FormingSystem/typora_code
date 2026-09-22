@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R069.1",
+    "R072.2",
+    "R073",
+    "R073.1"
+  ],
+  "version": "2026.09.22.11",
+  "environment": {
+    "os": "Windows 11",
+    "typora": "1.14.10",
+    "native_fixture": "原始ASAR独立副本、临时用户数据、私有桌面",
+    "input": "原生renderer选区/DOM菜单及Electron键盘测试"
+  },
+  "assets": {
+    "SHA256SUMS": "b566a8058a64858df9d0d68309f9663f2d432a503f983cea74d2508a7c270a46",
+    "workbench.js": "a541519edc75bec61461bc765a6cdbad7adb0b44b9b72d8c2b59caaa9fa912c8",
+    "workspace.css": "ce4f2b222cac0cb0ae82dc6f78e7d4a21de82824b0084954a1e47eaaad6e6b46",
+    "terminal_runtime/SHA256SUMS": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d"
+  },
+  "checks": {
+    "full_check": "PASS",
+    "ui_initial": "10 suites passed",
+    "ui_reflow_final": "5 suites passed: reading lifecycle, margin, lookup, tabs, editor actions",
+    "ui_delivery": "3 suites passed: files_search, settings, link_preview",
+    "native": {
+      "status": "PASS",
+      "assertions": 82,
+      "checks": [
+        "首次选择前未打开搜索侧栏",
+        "侧栏预览保留来源活动标签",
+        "侧栏预览保留原生选区",
+        "侧栏只读",
+        "原生右键含分屏动作0",
+        "真实编辑组方向正确0",
+        "分屏只读0",
+        "主题缩放工具按钮完整 Github/1",
+        "主题缩放工具按钮完整 Github/1.25",
+        "主题缩放工具按钮完整 Night/1",
+        "主题缩放工具按钮完整 Night/1.25",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1.25",
+        "源文件入口进入可编辑文档",
+        "原生长段落可捕获字符位置",
+        "原生边距重排保持当前字符",
+        "原生窗口缩放仍保留当前文字行",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确1",
+        "分屏只读1",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确2",
+        "分屏只读2",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确3",
+        "分屏只读3",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确4",
+        "分屏只读4",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确5",
+        "分屏只读5",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确6",
+        "分屏只读6",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确7",
+        "分屏只读7",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确8",
+        "分屏只读8",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确9",
+        "分屏只读9",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确10",
+        "分屏只读10",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确11",
+        "分屏只读11",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确12",
+        "分屏只读12",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确13",
+        "分屏只读13",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确14",
+        "分屏只读14",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确15",
+        "分屏只读15",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确16",
+        "分屏只读16",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确17",
+        "分屏只读17",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确18",
+        "分屏只读18",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确19",
+        "分屏只读19",
+        "20次关闭无残留预览标签",
+        "设置出现时没有遗留链接菜单",
+        "设置浮层跨越资源管理器独立布局",
+        "设置最大化保留16px边距",
+        "关闭自动链接预览立即隐藏阅读dock",
+        "右上关闭释放浮层",
+        "自动链接预览关闭不影响搜索侧栏",
+        "来源磁盘正文不变"
+      ],
+      "samples": [
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "anchor_before": 305.20001220703125,
+          "anchor_after": 305.20001220703125,
+          "scroll": 30434.400390625,
+          "root_parent": "CONTENT",
+          "margin": "18",
+          "line_height": "25.6px"
+        },
+        {
+          "viewport": {
+            "width": 1666,
+            "height": 1034,
+            "dpi": 1.25,
+            "zoom": 1
+          },
+          "asset_sha256": "a541519edc75bec61461bc765a6cdbad7adb0b44b9b72d8c2b59caaa9fa912c8"
+        }
+      ],
+      "split_cycles": 20
+    },
+    "isolated_install_uninstall": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/backup retained",
+    "uninstall_regression": "65 assertions passed, real Windows PowerShell 5.1 and CMD, cancellation and rollback",
+    "actual_uninstall": "read-only detach precheck passed; user environment not uninstalled",
+    "actual_install": "PASS; check OK",
+    "installed_asset_counts": {
+      "workbench": 34,
+      "terminal_runtime/": 24
+    },
+    "protected_unchanged": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "user_windows_restarted": false
+  },
+  "failures_resolved": [
+    "原生长文档边距恢复后被宿主旧滚动动画再次拉走；共享锚点接管并取消旧动画",
+    "整数offsetHeight比例使长距离滚动产生舍入误差",
+    "关闭当前QuickPick项激活相邻文件时触发focus-out关闭整个列表",
+    "设置最大化被共享dialog外距优先级覆盖",
+    "搜索拆分后遗留无效链接回调已移除"
+  ],
+  "limits": [
+    "网页沿用宿主Chromium，不嵌入操作系统默认浏览器内核；站点禁止嵌入时使用默认浏览器入口",
+    "公网登录应用、其他操作系统和物理指针录屏未覆盖；PrintWindow截图可能含旧帧，几何及交互另有实时DOM断言",
+    "未移植完整VS Code Modal Editor迁移/拖动；SSH统一远程工作区/搜索/SCM仍由R070.4继续实施"
+  ]
+}

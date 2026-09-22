@@ -1,5 +1,12 @@
 import {reading_viewport_bounds} from "./reading_viewport";
 
+/** 重排接管当前视口时取消宿主尚在运行的滚动动画，不能跳到动画旧终点。 */
+export function stop_native_reading_scroll(scroller:HTMLElement):void {
+  if(scroller.tagName!=="CONTENT")return;
+  const runtime=window as any;
+  runtime.$?.(scroller).stop?.(true,false);
+}
+
 /** Typora 1.14.10 scrollAdjust 的显式距离以窗口顶边为原点，工作台须传入阅读区域偏移。 */
 export function bind_reading_native_scroll(editor: any, runtime: any): () => void {
   const selection = editor?.selection, original = selection?.scrollAdjust;

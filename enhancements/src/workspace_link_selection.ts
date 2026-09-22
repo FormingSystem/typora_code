@@ -7,7 +7,7 @@ import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {git_icon} from "./git_icons";
 
-/** 选区只向已打开的搜索侧栏发送；分屏持有自己的固定目标和资源。 */
+/** 选区向阅读侧栏发送；分屏持有自己的固定目标和资源。 */
 export function bind_workspace_link_selection(core:graph_core,files:workspace_file_host,visible:()=>boolean,preview:(request:workspace_link_request)=>void){
   const lifetime=create_workspace_lifetime(),runtime=window as any,type="linux_note.link_preview";
   const payloads=new Map<string,workspace_link_request>(),views=new Set<link_view>();
@@ -35,7 +35,7 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   const split=(request:workspace_link_request,direction:"right"|"down")=>{
     if(disposed||!core.app.workspace.activeLeaf)return;
     const name=request.href.split("#")[0].split(/[\\/]/u).filter(Boolean).at(-1)||"文内链接";
-    const uri=`typ://${type}/${crypto.randomUUID()}/${encodeURIComponent(name+"（预览）")}`;
+    const uri=`typ://${type}/${crypto.randomUUID()}/${encodeURIComponent(name)}`;
     payloads.set(uri,{...request});
     try{core.app.commands.run(`core.workspace:split-${direction}`,[uri]);}catch(error){payloads.delete(uri);new core.Notice(String(error),4000);}
   };

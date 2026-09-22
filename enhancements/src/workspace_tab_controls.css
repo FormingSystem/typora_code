@@ -23,6 +23,10 @@
 .workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:var(--workspace-tab-height);background:inherit;position:relative;overflow-x:auto;overflow-y:hidden;}
 .workspace-tab-strip .typ-tabs {height:var(--workspace-tab-height);box-sizing:border-box;padding-left:2px;}
 .workspace-tab-strip .typ-tabs::after {padding:0;border:0;}
+.workspace-tab-strip.is-wrapping {height:auto;align-items:flex-end;}
+.workspace-tab-strip.is-wrapping > .typ-workspace-tab-header {height:auto;overflow-x:hidden;}
+.workspace-tab-strip.is-wrapping .typ-tabs {display:flex;flex-wrap:wrap;width:auto;height:auto;min-height:var(--workspace-tab-height);}
+.workspace-tab-strip.is-wrapping .typ-tabs::after {display:none;}
 .workspace-tab-strip .typ-tab {
   position:relative;box-sizing:border-box;flex:0 0 auto;min-width:0;max-width:100%;height:var(--workspace-tab-height);padding:0 8px 0 6px!important;
   font:inherit;color:var(--workspace-tab-inactive-fg);background:transparent;border:0!important;box-shadow:none!important;

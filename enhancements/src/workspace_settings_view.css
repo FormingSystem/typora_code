@@ -16,3 +16,19 @@
 .workspace-settings button[aria-pressed=true]{font-weight:600;background:var(--item-hover-bg-color,#8882)}
 .workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
 .workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}
+
+/* VS Code modalEditorPart.ts：1400×900 上限、16px 最大化边距、33px 标题栏。 */
+.git-graph-dialog-shade.workspace-settings-modal{background:rgba(0,0,0,.45);padding:16px;box-sizing:border-box}
+.workspace-settings-modal>.git-graph-dialog{width:min(1400px,80vw);height:min(900px,80vh);max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);min-width:min(400px,calc(100vw - 32px));min-height:min(300px,calc(100vh - 32px));background:var(--bg-color,#fff)}
+.workspace-settings-modal.is-maximized>.git-graph-dialog{width:calc(100vw - 32px);height:calc(100vh - 32px)}
+.workspace-settings-modal .git-graph-dialog .workspace-dialog-header{height:33px;box-sizing:border-box;padding:0 10px;gap:6px}
+.workspace-settings-modal .git-graph-dialog .workspace-dialog-title{display:flex;align-items:center;gap:8px;font-size:13px;line-height:33px}
+.workspace-settings-modal .workspace-dialog-header>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;border:0;background:transparent}
+.workspace-settings-modal .git-graph-dialog-content{display:flex;flex:1;min-height:0;padding:0;white-space:normal;overflow:hidden}
+.workspace-settings-modal .git-graph-dialog-footer[hidden]{display:none}
+.workspace-settings-modal .workspace-settings{max-width:none}
+.workspace-settings-modal .git-graph-dialog .workspace-settings>input{width:calc(100% - 48px)}
+.workspace-settings-modal .workspace-settings button{border:0;background:transparent;margin:0;min-height:26px;padding:4px 8px}
+.workspace-settings-modal .workspace-settings button[aria-pressed=true]{background:var(--item-hover-bg-color,#8882)}
+.workspace-settings-modal .workspace-settings-categories{flex-basis:210px;border-right:1px solid var(--workspace-border-color,#8882)}
+.workspace-settings-modal .workspace-settings-body{padding-left:32px}

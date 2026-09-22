@@ -8,6 +8,9 @@
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.workspace-quick-open-close{display:flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;visibility:hidden}
+.workspace-quick-open-close svg{width:16px;height:16px}
+.workspace-quick-open-result:is(.is-selected,:hover,:focus-within) .workspace-quick-open-close{visibility:visible}
 
 .workspace-quick-open-status.is-visible{position:static;width:auto;height:auto;margin:4px 12px 8px;padding:0;clip:auto;clip-path:none;white-space:normal;overflow-wrap:anywhere}
 .workspace-quick-open{--quick-pick-focus:var(--vscode-quickInputList-focusBackground,#0069cc);--quick-pick-highlight:var(--vscode-list-highlightForeground,#0066bf)}

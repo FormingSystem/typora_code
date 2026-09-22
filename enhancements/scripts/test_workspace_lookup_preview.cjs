@@ -47,7 +47,7 @@ app.whenReady().then(async () => {
     :root{--text-color:#24292f;--bg-color:#fff;--preview-heading:#175f91;--select-text-bg-color:#67a8e9}html,body{height:100%;margin:0;overflow:hidden}body{color:var(--text-color);background:var(--bg-color);font:16px/1.5 system-ui}html.dark{--text-color:#ddd;--bg-color:#202124;--preview-heading:#c7a0ff}#preview_mount{position:absolute;left:0;top:0;bottom:0;width:340px;border-right:1px solid #777}#central{position:absolute;left:380px;right:20px;top:20px;bottom:20px;overflow:auto}#write{font-size:20px;min-height:1500px;padding-top:12px}#write h1,#write h2{color:var(--preview-heading)}#write strong{font-weight:800}#write blockquote{border-left:4px solid #888;padding-left:10px}html.dark #write{font-size:22px}#central:focus-within{outline:1px solid #888}.workspace-lookup-preview-body{scrollbar-width:thin}
   </style><section id="preview_mount"></section><section id="central"><article id="write" contenteditable="true"><p>Central reader selection remains here.</p></article></section>`);
   await test_window.loadFile(html);
-  const bundle = await build({plugins:editor_plugins(),stdin:{contents:'export {create_lookup_preview} from "./src/workspace_lookup_preview";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});
+  const bundle = await build({plugins:editor_plugins(),stdin:{contents:'export {create_lookup_preview} from "./src/workspace_lookup_preview";export * from "./src/reading_reflow";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
@@ -174,7 +174,7 @@ app.whenReady().then(async () => {
     assert(await evaluate('make_match("long_notes.md","demo_remove").line>2300'));const before=await position();assert.equal(before.text,'demo_remove');assert(before.scroll>10000);assert(before.top>=0&&before.bottom<=before.height);
     await evaluate('document.body.classList.add("lookup-preview-layout-probe");document.body.style.setProperty("--lookup-preview-probe","1");new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve(true))))');
     const after=await position();assert(after.scroll>10000);assert(Math.abs(after.scroll-before.scroll)<2);assert(after.top>=0&&after.bottom<=after.height);
-    const scale=Number(await evaluate('preview.container.dataset.previewScale'));await wheel(120,['control']);assert.equal(Number(await evaluate('preview.container.dataset.previewScale')),scale+5);const zoomed=await position();assert(zoomed.scroll>10000);assert(zoomed.top>=0&&zoomed.bottom<=zoomed.height);await wheel(-120,['control']);
+    const scale=Number(await evaluate('preview.container.dataset.previewScale'));await wheel(120,['control']);assert.equal(Number(await evaluate('preview.container.dataset.previewScale')),scale+5);const zoomed=await position();assert(zoomed.scroll>10000);assert(zoomed.top>=0&&zoomed.bottom<=zoomed.height,JSON.stringify(zoomed));await wheel(-120,['control']);
     await evaluate('document.body.classList.remove("lookup-preview-layout-probe");document.body.style.removeProperty("--lookup-preview-probe");void 0');
   });
   await verify('Reselect during a pending preview read does not create a second request', async () => {
@@ -188,6 +188,16 @@ app.whenReady().then(async () => {
   await verify('Large or binary content shows an explicit preview limit without executing or opening it', async () => {
     const reads_before=await evaluate('reads.length');await evaluate('show_file("large.md","large_target")');assert(await evaluate('preview.container.textContent.includes("2 MiB")'));assert.equal(await evaluate('reads.length'),reads_before);
     await evaluate('show_file("binary.bin","binary_target")');assert(await evaluate('preview.container.textContent.includes("二进制")'));assert.equal(await evaluate('preview_attack'),0);assert.equal(network_requests.length,0);
+  });
+  await verify('Current text survives 20 width and percentage reflows without returning to the original hit',async()=>{
+    await evaluate('show_file("long_notes.md","Paragraph 10")');await delay(80);
+    await evaluate(`window.scroll_body=preview.container.querySelector('.workspace-lookup-preview-body');window.anchor_root=markdown_root().querySelector('#write');scroll_body.scrollTop=scroll_body.scrollHeight/2;`);await delay(50);
+    for(let i=0;i<20;i++){
+      await evaluate('window.anchor=lookup_qa.capture_reflow_anchor(scroll_body,anchor_root)');
+      await evaluate(`preview.set_scale(${i%2?80:110});document.querySelector('#preview_mount').style.width='${i%2?340:240}px';`);await delay(80);
+      const result=await evaluate(`(()=>{const r=document.createRange();r.setStart(anchor.node,anchor.offset);r.setEnd(anchor.node,anchor.offset+1);const p=r.getBoundingClientRect(),v=scroll_body.getBoundingClientRect();return {top:p.top-v.top,height:v.height,scroll:scroll_body.scrollTop};})()`);
+      assert(result.top>=0&&result.top<result.height&&result.scroll>1000,JSON.stringify({i,...result}));
+    }
   });
   await verify('Disposing during a pending read removes resources and prevents late rendering', async () => {
     await evaluate('window.pending_request=show_file("slow.md","slow_target");preview.dispose()');await evaluate('pending_request');assert.equal(await evaluate('document.querySelectorAll(".workspace-lookup-preview").length'),0);assert.equal(await evaluate('lookup_qa.monaco.editor.getModels().length'),0);

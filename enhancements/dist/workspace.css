@@ -1835,7 +1835,13 @@ body .workspace-section-header > .workspace-section-actions {margin-right:0;}
 .workspace-link-preview,.workspace-link-preview-content{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;height:100%}
 .workspace-link-preview[hidden]{display:none}
 .workspace-link-preview-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:4px;height:26px;min-width:0;padding:0 6px;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
+.workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}
+.workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
+.workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
+.workspace-link-dock{position:absolute;bottom:0;left:0;right:0;height:40%;min-height:120px;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:2}
+.workspace-link-dock[hidden]{display:none}
+#typora-sidebar.has-workspace-link-preview > #sidebar-content,#typora-sidebar.has-workspace-link-preview[data-workspace-footer=moved] > #sidebar-content{bottom:max(40%,120px)!important}
 .workspace-link-web{flex:1;width:100%;min-height:0;border:0;background:white}
 
 /* workspace_native_toolbar.css */
@@ -1936,6 +1942,9 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open-result:is(.is-selected,:focus-visible){outline:0;background:var(--active-file-bg-color,rgba(0,122,204,.18))}
 .workspace-quick-open-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .workspace-quick-open-path{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.workspace-quick-open-close{display:flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;visibility:hidden}
+.workspace-quick-open-close svg{width:16px;height:16px}
+.workspace-quick-open-result:is(.is-selected,:hover,:focus-within) .workspace-quick-open-close{visibility:visible}
 
 .workspace-quick-open-status.is-visible{position:static;width:auto;height:auto;margin:4px 12px 8px;padding:0;clip:auto;clip-path:none;white-space:normal;overflow-wrap:anywhere}
 .workspace-quick-open{--quick-pick-focus:var(--vscode-quickInputList-focusBackground,#0069cc);--quick-pick-highlight:var(--vscode-list-highlightForeground,#0066bf)}
@@ -2115,6 +2124,22 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
 .workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}
 
+/* VS Code modalEditorPart.ts：1400×900 上限、16px 最大化边距、33px 标题栏。 */
+.git-graph-dialog-shade.workspace-settings-modal{background:rgba(0,0,0,.45);padding:16px;box-sizing:border-box}
+.workspace-settings-modal>.git-graph-dialog{width:min(1400px,80vw);height:min(900px,80vh);max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);min-width:min(400px,calc(100vw - 32px));min-height:min(300px,calc(100vh - 32px));background:var(--bg-color,#fff)}
+.workspace-settings-modal.is-maximized>.git-graph-dialog{width:calc(100vw - 32px);height:calc(100vh - 32px)}
+.workspace-settings-modal .git-graph-dialog .workspace-dialog-header{height:33px;box-sizing:border-box;padding:0 10px;gap:6px}
+.workspace-settings-modal .git-graph-dialog .workspace-dialog-title{display:flex;align-items:center;gap:8px;font-size:13px;line-height:33px}
+.workspace-settings-modal .workspace-dialog-header>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;border:0;background:transparent}
+.workspace-settings-modal .git-graph-dialog-content{display:flex;flex:1;min-height:0;padding:0;white-space:normal;overflow:hidden}
+.workspace-settings-modal .git-graph-dialog-footer[hidden]{display:none}
+.workspace-settings-modal .workspace-settings{max-width:none}
+.workspace-settings-modal .git-graph-dialog .workspace-settings>input{width:calc(100% - 48px)}
+.workspace-settings-modal .workspace-settings button{border:0;background:transparent;margin:0;min-height:26px;padding:4px 8px}
+.workspace-settings-modal .workspace-settings button[aria-pressed=true]{background:var(--item-hover-bg-color,#8882)}
+.workspace-settings-modal .workspace-settings-categories{flex-basis:210px;border-right:1px solid var(--workspace-border-color,#8882)}
+.workspace-settings-modal .workspace-settings-body{padding-left:32px}
+
 /* workspace_sidebar_sash.css */
 /* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
@@ -2156,6 +2181,10 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .workspace-tab-strip > .typ-workspace-tab-header {flex:1;min-width:0;height:var(--workspace-tab-height);background:inherit;position:relative;overflow-x:auto;overflow-y:hidden;}
 .workspace-tab-strip .typ-tabs {height:var(--workspace-tab-height);box-sizing:border-box;padding-left:2px;}
 .workspace-tab-strip .typ-tabs::after {padding:0;border:0;}
+.workspace-tab-strip.is-wrapping {height:auto;align-items:flex-end;}
+.workspace-tab-strip.is-wrapping > .typ-workspace-tab-header {height:auto;overflow-x:hidden;}
+.workspace-tab-strip.is-wrapping .typ-tabs {display:flex;flex-wrap:wrap;width:auto;height:auto;min-height:var(--workspace-tab-height);}
+.workspace-tab-strip.is-wrapping .typ-tabs::after {display:none;}
 .workspace-tab-strip .typ-tab {
   position:relative;box-sizing:border-box;flex:0 0 auto;min-width:0;max-width:100%;height:var(--workspace-tab-height);padding:0 8px 0 6px!important;
   font:inherit;color:var(--workspace-tab-inactive-fg);background:transparent;border:0!important;box-shadow:none!important;

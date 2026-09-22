@@ -1,7 +1,7 @@
 import {register_workspace_settings,notify_workspace_settings,type workspace_settings_section} from './workspace_settings_registry';
 import {get_workspace_app} from './workspace_bootstrap';
 import {FILE_SETTING_DEFAULTS,read_workspace_save_settings,set_workspace_save_settings,observe_workspace_save_settings} from './workspace_save_settings';
-import {WORKSPACE_EDITOR_DEFAULTS,read_workspace_editor_settings,set_workspace_editor_preview,observe_workspace_editor_settings} from './workspace_editor_settings';
+import {WORKSPACE_EDITOR_DEFAULTS,read_workspace_editor_settings,set_workspace_editor_setting,observe_workspace_editor_settings} from './workspace_editor_settings';
 import {TITLEBAR_DEFAULTS,read_titlebar_settings,toggle_titlebar_setting} from './workspace_titlebar_settings';
 import {BREADCRUMB_DEFAULTS,read_breadcrumb_settings,update_breadcrumb_settings,observe_breadcrumb_settings} from './workspace_breadcrumbs_settings';
 import {git_diff_defaults,read_git_diff_preferences,update_git_diff_preferences,watch_git_diff_preferences} from './git_diff_settings';
@@ -12,7 +12,7 @@ import type {workspace_file_host} from './workspace_files';
 export function bind_workspace_settings_sections(files:workspace_file_host){
   const releases:(()=>void)[]=[],user=()=> '用户设置',root=()=>files.context_root(),project=()=>`工作区：${root()||'未打开文件夹'}`;
   const add=(section:workspace_settings_section)=>releases.push(register_workspace_settings(section));
-  add({id:'editor',title:'编辑器',scope:user,defaults:WORKSPACE_EDITOR_DEFAULTS,fields:[{key:'enable_preview',title:'启用预览编辑器'}],read:read_workspace_editor_settings,write:(_key,value)=>set_workspace_editor_preview(value as boolean)});
+  add({id:'editor',title:'编辑器',scope:user,defaults:WORKSPACE_EDITOR_DEFAULTS,fields:[{key:'enable_preview',title:'启用预览编辑器'},{key:'wrap_tabs',title:'标签换行（Wrap Tabs）',description:'标签超过可用宽度时显示为多行；关闭时使用单行滚动。'},{key:'link_preview_enabled',title:'选中链接自动预览',description:'在左侧下方只读预览选中的链接，不影响搜索结果预览和手动分屏预览。'}],read:read_workspace_editor_settings,write:(key,value)=>set_workspace_editor_setting(key,value as boolean)});
   const file_labels=['自动保存','自动保存延迟（毫秒）','仅自动保存工作区内文件','仅在没有诊断错误时自动保存','启用本地历史','历史文件大小上限（KB）','每个文件历史条数','相邻保存合并窗口（秒）','历史排除规则（JSON）','打开的编辑器最大可见行数','打开的编辑器最小可见行数','打开的编辑器排序','显示打开的编辑器','显示时间线'];
   add({id:'files',title:'资源管理器与保存',scope:user,defaults:FILE_SETTING_DEFAULTS,fields:Object.keys(FILE_SETTING_DEFAULTS).map((key,index)=>({key,title:file_labels[index]||key,choices:key==='files.autoSave'?['off','afterDelay','onFocusChange','onWindowChange']:key==='explorer.openEditors.sortOrder'?['editorOrder','alphabetical','fullPath']:undefined})),read:read_workspace_save_settings,write:(key,value)=>{const baseline=(FILE_SETTING_DEFAULTS as any)[key];if(typeof baseline==='number'&&(typeof value!=='number'||value<0||!Number.isInteger(value)))throw Error('请输入非负整数');if(key.endsWith('exclude')&&(!value||Array.isArray(value)||typeof value!=='object'||Object.values(value).some(item=>typeof item!=='boolean')))throw Error('排除规则必须为glob到布尔值的JSON对象');set_workspace_save_settings({[key]:value});}});
   add({id:'titlebar',title:'顶栏',scope:user,defaults:TITLEBAR_DEFAULTS,fields:[{key:'menu_bar',title:'显示菜单栏'},{key:'command_center',title:'显示文件搜索'},{key:'navigation_controls',title:'显示后退与前进'}],read:()=>read_titlebar_settings(get_workspace_app()?.settings),write:(key,value)=>{if((read_titlebar_settings(get_workspace_app()?.settings) as any)[key]!==value)toggle_titlebar_setting(get_workspace_app()?.settings,key as keyof typeof TITLEBAR_DEFAULTS);}});

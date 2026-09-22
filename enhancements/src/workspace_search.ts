@@ -13,8 +13,6 @@ import { create_git_runner } from "./git_graph_runtime";
 import { parse_status } from "./git_graph_repository";
 import { git_diff_editor } from "./git_diff_editor";
 import { create_lookup_preview } from "./workspace_lookup_preview";
-import {create_link_preview,type workspace_link_request} from "./workspace_link_preview";
-import {bind_workspace_link_selection} from "./workspace_link_selection";
 import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file_language";
 import { bind_workspace_selection_search, type workspace_selection_request } from "./workspace_selection_search";
 import { file_key, source_file_path } from "./workspace_file_uri";
@@ -42,7 +40,6 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     onOpen() { const panel = panels.get(this.leaf.state.path); if (panel) this.containerEl.replaceChildren(panel); else this.containerEl.textContent="请在搜索侧栏重新运行搜索。"; }
   }
   lifetime.add(core.app.viewManager.registerView("linux_note.search_results", leaf => new search_editor_view(leaf)));
-  let link_selection:ReturnType<typeof bind_workspace_link_selection>|undefined;
   class search_sidebar extends core.SidebarPanel {
     containerEl = el("section", "linux-note-workspace-search");
     query = el("textarea"); replacement = input("替换"); includes = input("包含的文件", "例如 *.md, src/**"); excludes = input("排除的文件", "例如 *.c, *.h");
@@ -50,7 +47,6 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     replace_row = el("div", "workspace-search-input-row workspace-search-replace"); details = el("div", "workspace-search-details");
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
     preview = lifetime.own(create_lookup_preview(files)); preview_section = el("section", "workspace-search-preview-section");
-    link_preview=lifetime.own(create_link_preview(files));link_active=false;
     preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true;
     preview_smaller = git_icon_button("remove","缩小预览",()=>this.preview.set_scale(this.preview.get_scale()-5));
     preview_larger = git_icon_button("add","放大预览",()=>this.preview.set_scale(this.preview.get_scale()+5));
@@ -114,7 +110,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       this.preview_slider.type="range";this.preview_slider.min="50";this.preview_slider.max="150";this.preview_slider.step="1";this.preview_slider.setAttribute("aria-label","预览字号比例");this.preview_slider.title="拖动调整预览字号（50%–150%）";
       this.preview_slider.oninput=()=>this.preview.set_scale(Number(this.preview_slider.value));this.preview_scale.setAttribute("aria-label","当前预览比例");
       const preview_actions=el("div","workspace-search-preview-actions");preview_actions.append(this.preview_smaller,this.preview_slider,this.preview_scale,this.preview_larger);
-      preview_heading.append(this.preview_toggle,preview_actions);this.preview_section.append(preview_heading,this.preview.container,this.link_preview.container);this.link_preview.container.hidden=true;this.preview_section.hidden=true;
+      preview_heading.append(this.preview_toggle,preview_actions);this.preview_section.append(preview_heading,this.preview.container);this.preview_section.hidden=true;
       this.scale_observer.observe(this.preview.container,{attributes:true,attributeFilter:["data-preview-scale"]});this.update_preview_scale();
       this.split.tabIndex=0;this.split.setAttribute("role","separator");this.split.setAttribute("aria-orientation","horizontal");this.split.setAttribute("aria-label","调整搜索结果与预览高度");this.split.setAttribute("aria-valuemin","15");this.split.setAttribute("aria-valuemax","75");this.split.hidden=true;this.set_split(40);
       this.body.append(this.results,this.split,this.preview_section);
@@ -135,12 +131,11 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       this.split.onkeydown=event=>{if(["ArrowUp","ArrowDown"].includes(event.key)){event.preventDefault();this.set_split(Number(this.split.getAttribute("aria-valuenow"))+(event.key==="ArrowUp"?-5:5));}};
     }
     set_split(value:number){value=Math.max(15,Math.min(75,Math.round(value)));this.body.style.setProperty("--search-results-size",`${value}%`);this.split.setAttribute("aria-valuenow",String(value));}
-    set_preview_open(open:boolean){const was_open=this.preview_open;this.preview_open=open;this.preview_section.classList.toggle("is-collapsed",!open);this.preview.container.hidden=!open||this.link_active;this.link_preview.container.hidden=!open||!this.link_active;this.preview_section.querySelector<HTMLElement>(".workspace-search-preview-actions")!.hidden=this.link_active;this.split.hidden=!open||this.preview_section.hidden;this.body.classList.toggle("has-preview",open&&!this.preview_section.hidden);this.preview_toggle.setAttribute("aria-expanded",String(open));this.preview_toggle.title=open?"收起预览":"展开预览";this.preview_toggle.setAttribute("aria-label",this.preview_toggle.title);if(!open&&this.link_active){this.link_preview.clear();link_selection?.reset();}else if(open&&!was_open&&this.link_active)link_selection?.refresh();}
-    clear_results(preserve_link=false){if(!preserve_link){this.link_active=false;this.link_preview.clear();link_selection?.reset();}this.preview.clear();++this.open_generation;this.render_versions.set(this.results,(this.render_versions.get(this.results)||0)+1);this.omitted_files.clear();this.result=undefined;this.selected=undefined;this.results.replaceChildren();if(!preserve_link){this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");}this.containerEl.dataset.state="waiting";}
+    set_preview_open(open:boolean){this.preview_open=open;this.preview_section.classList.toggle("is-collapsed",!open);this.preview.container.hidden=!open;this.split.hidden=!open||this.preview_section.hidden;this.body.classList.toggle("has-preview",open&&!this.preview_section.hidden);this.preview_toggle.setAttribute("aria-expanded",String(open));this.preview_toggle.title=open?"收起预览":"展开预览";this.preview_toggle.setAttribute("aria-label",this.preview_toggle.title);}
+    clear_results(){this.preview.clear();++this.open_generation;this.render_versions.set(this.results,(this.render_versions.get(this.results)||0)+1);this.omitted_files.clear();this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
     clear_native(){if(this.visible&&native_sidebar){const classes=["active-tab-files","active-tab-outline","ty-show-search","ty-on-search"];if(classes.some(name=>native_sidebar.classList.contains(name)))native_sidebar.classList.remove(...classes);}}
-    onshow(){this.visible=true;this.clear_native();link_selection?.refresh();if(native_sidebar)this.native_observer.observe(native_sidebar,{attributes:true,attributeFilter:["class"]});}
-    onhide(){this.visible=false;this.native_observer.disconnect();this.link_preview.clear();link_selection?.reset();}
-    show_link(request:workspace_link_request){this.selected=undefined;this.preview.clear();this.preview_section.hidden=false;this.set_preview_open(true);this.link_active=true;this.preview.container.hidden=true;this.link_preview.container.hidden=false;this.preview_section.querySelector<HTMLElement>(".workspace-search-preview-actions")!.hidden=true;void this.link_preview.show(request);}
+    onshow(){this.visible=true;this.clear_native();if(native_sidebar)this.native_observer.observe(native_sidebar,{attributes:true,attributeFilter:["class"]});}
+    onhide(){this.visible=false;this.native_observer.disconnect();}
     schedule(){clearTimeout(this.timer);this.controller?.abort();this.controller=undefined;this.clear_results();this.status.textContent="";this.timer=window.setTimeout(()=>void this.search(),250);}
     path_key(path:string){return file_key(files.path_api.resolve(path));}
     async read_git_status(root:string,signal:AbortSignal){
@@ -168,7 +163,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       if(this.selected?.file===file){this.selected=undefined;this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");++this.open_generation;}
     }
     async search(){
-      clearTimeout(this.timer);this.timer=0;this.controller?.abort();this.controller=undefined;this.clear_results(this.link_active);if(!this.query.value||disposed){this.status.textContent="";return;}
+      clearTimeout(this.timer);this.timer=0;this.controller?.abort();this.controller=undefined;this.clear_results();if(!this.query.value||disposed){this.status.textContent="";return;}
       const controller=new AbortController();this.controller=controller;this.containerEl.dataset.state="searching";this.status.textContent="正在搜索…";
       controller.signal.addEventListener("abort",()=>runner.cancel(),{once:true});
       const stop=git_icon_button("search-stop","停止搜索",()=>controller.abort());this.status.append(stop);
@@ -195,8 +190,8 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         this.result=result;await this.render();if(disposed||this.controller!==controller)return;this.containerEl.dataset.state=result.cancelled?"stopped":"ready";
         this.history=[this.query.value,...this.history.filter(value=>value!==this.query.value)].slice(0,30);this.history_index=-1;
         this.update_status();
-        if(!result.cancelled&&!this.link_active&&!this.selected&&result.files[0]?.matches[0])this.select(result.files[0],result.files[0].matches[0]);
-      }catch(error){if(!disposed&&this.controller===controller){this.clear_results(this.link_active);this.containerEl.dataset.state="error";this.status.textContent=String(error);}}
+        if(!result.cancelled&&!this.selected&&result.files[0]?.matches[0])this.select(result.files[0],result.files[0].matches[0]);
+      }catch(error){if(!disposed&&this.controller===controller){this.clear_results();this.containerEl.dataset.state="error";this.status.textContent=String(error);}}
     }
     set_group_open(group:HTMLDetailsElement,open:boolean){
       group.open=open;group.querySelector(":scope>summary")?.setAttribute("aria-expanded",String(open));const toggle=group.querySelector<HTMLButtonElement>(":scope>summary>.workspace-search-file-toggle");
@@ -266,7 +261,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     file_match(file:workspace_search_file){return file.matches.find(match=>match.id===this.remembered.get(file.file_path))||file.matches[0];}
     select(file:workspace_search_file,match:workspace_search_match){
-      this.link_active=false;this.link_preview.clear();link_selection?.reset();
+
       if(!match||disposed)return;this.preview_section.hidden=false;this.set_preview_open(true);
       if(this.selected?.file===file&&this.selected.match===match){this.preview.reveal_match();return;}
       ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
@@ -319,7 +314,6 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
   const search=async(request:workspace_selection_request)=>{if(disposed||typeof request.query!=="string"||!request.query.trim())return;panel.query.value=request.query;panel.options.regex=false;panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed","false");panel.containerEl.dataset.sourcePath=request.source_path||"";show(false,false);panel.clear_results();await panel.search();};
   const find_in_folder=(path:string)=>{if(disposed)return;folder_path=path;folder_scope.hidden=false;const label=el("span","",files.path_api.relative(files.context_root(),path).split(files.path_api.sep).join("/")||"项目根目录");label.title=label.textContent||"";folder_scope.replaceChildren(label,git_icon_button("close","取消文件夹搜索范围",()=>{clear_folder();panel.schedule();}));panel.details.hidden=false;show();panel.schedule();};
   lifetime.own(bind_workspace_selection_search(core,files,search));
-  link_selection=lifetime.own(bind_workspace_link_selection(core,files,()=>panel.visible&&core.app.workspace.sidebar.isShown,request=>panel.show_link(request)));
   const activity_click=(event:MouseEvent)=>{const target=event.target instanceof Element?event.target.closest<HTMLElement>('.typ-ribbon-item[data-id="core.search"]'):null;if(!target)return;event.preventDefault();event.stopImmediatePropagation();show(true);};
   lifetime.listen(document,"click",activity_click as EventListener,true);
   lifetime.add(core.app.commands.register({id:"linux_note:search",title:"搜索：在文件中查找",scope:"global",callback:()=>show()}));

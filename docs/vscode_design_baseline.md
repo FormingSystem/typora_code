@@ -117,3 +117,7 @@ R022依据用户最后两张VS Code截图明确两个显示上下文：列表中
 ## 2026-09-13 底栏窗口缩放
 
 R014核对固定VS Code1.137.0提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c的WindowZoomStatusEntry、statusbarItem/statusbarPart、window.css、hover.css与desktop.contribution。采用非默认级别入口、官方方向放大镜、实际级别及减／加／重置／齿轮顺序；12px紧凑文案、2px 8px内距和10px右组间隔复用在公共浮层中。图标仍来自固定Codicons1c47ab36原始SVG，plus复用同映射add。宿主比例和设置保持Typora所有权，底栏高度、22px操作目标及4px控件圆角沿用本产品公共规则；原生偏好没有缩放深链，使用无参入口。逐项来源与回归见[窗口缩放](workspace_zoom.md#r014-底栏缩放入口)。
+
+## 2026-09-22 设置浮层、标签换行和已打开编辑器
+
+R072.2/R073沿用1.137.0固定提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c。`modalEditorPart.ts`取默认上限1400×900、最小400×300、33px标题、最大化16px边距；不移植通用编辑器迁移和拖动。`multiEditorTabsControl.ts#doLayoutTabsWrapping`用于开启换行后按组宽及可用高度回退，默认`workbench.editor.wrapTabs=false`。`editorQuickAccess.ts`取`edt active `、当前组最近激活顺序、名称/路径筛选及逐行关闭。几何保留本工作台已采用32px标签及24px工具按钮，源文件图标复用已有go-to-file；主题和缩放实际回归见[本轮证据](../enhancements/tests/evidence/preview_settings_20260922.json)。

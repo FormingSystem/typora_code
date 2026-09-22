@@ -13,7 +13,7 @@ domains:
 
 工作台布局、交互方式和部分功能设计参考并模仿 VS Code，来源及采用范围见 [界面基线](../docs/vscode_design_baseline.md)。本项目原创代码采用 [GPL-2.0-only](../LICENSE)，原创署名、二次开发、贡献与第三方边界见 [版权、开源与贡献声明](../COPYRIGHT.md)。第三方依赖继续适用各自许可证。
 
-统一设置使用注册表描述字段和作用域，不存第二份业务状态；从齿轮“设置…”进入九类自有配置，原生偏好和插件设置保留实际所有者。SSH可见目录按设置轮询，Git状态在独立只读标签显示，慢查询与文件协议隔离。见[设置设计](../docs/workspace_settings.md)。
+统一设置使用注册表描述字段和作用域，不存第二份业务状态；从齿轮“设置…”或Ctrl+,进入可最大化的唯一设置浮层及九类自有配置，原生偏好和插件设置保留实际所有者。SSH可见目录按设置轮询，Git状态在独立只读标签显示，慢查询与文件协议隔离。见[设置设计](../docs/workspace_settings.md)。
 
 SSH远程入口使用系统OpenSSH和远端Python3处理文件，远端身份独立于本地工作区。源码编辑复用Monaco，Markdown阅读复用只读预览，保存与关闭草稿保护接入共同文件服务；当前目录可打开SSH项目终端和只读Git状态，远程Git写操作在终端执行；详见[远程设计](../docs/remote_ssh.md)。
 
@@ -75,7 +75,7 @@ npm run check:ui
 
 跳转正文预览直接依赖固定版本的 Marked `14.0.0`（MIT）与 DOMPurify `3.4.14`（Apache-2.0 或 MPL-2.0）；清单、锁文件及构建所用版本一致，Monaco 的同名传递依赖也使用锁定版本。构建在 bundle 开头保留完整许可证，普通安装不另行下载这两个包。
 
-链接选择与右键由 `workspace_link_selection.ts` 接入搜索侧栏和现有编辑组；两个方向复用同一 `workspace_link_preview.ts`，目标及网络读取由 `workspace_link_target.ts` 所有。网页仅显示隔离的静态只读快照，取消/失败不切换中央文件；本地文件可通过“打开源文件”进入普通编辑器。详细交互和边界见[链接预览](../docs/link_preview.md)。
+链接选择与右键由 `workspace_link_selection.ts` 接入独立左下预览和现有编辑组；搜索无需打开。两个方向复用 `workspace_link_preview.ts`，目标由 `workspace_link_target.ts` 解析，网页使用隔离iframe。预览使用当前主题，打开源文件/刷新采用快捷图标，标签只显示目标名称。编辑器设置可关闭自动链接预览，搜索结果预览不受影响；本地目标可通过“打开源文件”进入普通编辑器。详细交互和边界见[链接预览](../docs/link_preview.md)。
 
 搜索面板由 `workspace_search.ts` 统一承担，`workspace_selection_search.ts` 连接选中文字的 Ctrl 加左键动作，`workspace_lookup_preview.ts` 展示下方内容；`workspace_markdown_location.ts` 负责原生 Markdown 行列定位。修改这一入口时，需要核对“单击预览、双击打开”、Markdown 原生渲染、中央位置保持、预览收放、缩放持久化和分界线拖动，并同步预构建及安装功能标记。
 

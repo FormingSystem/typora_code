@@ -1,3 +1,4 @@
+import {bind_reading_reflow} from "./reading_reflow";
 import {acquire_workspace_style} from "./workspace_styles";
 import { marked, type TokensList } from "marked";
 import DOMPurify from "dompurify";
@@ -23,6 +24,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const shadow = markdown_host.attachShadow({mode: "open"});
   const reader = el("article"); reader.id = "write";
   const theme_style = el("style"); shadow.append(theme_style,reader);
+  const reflow=bind_reading_reflow(body,reader);
   container.append(body); container.setAttribute("data-linux-note-lookup-preview", "ready");
   let scale = 80; try { scale = clamp_scale(Number(localStorage.getItem(SCALE_KEY) || 80)); } catch { /* 禁止存储时仍可调整本次字号。 */ }
   let editor: git_diff_editor | undefined; let generation = 0; let disposed = false;
@@ -37,6 +39,14 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     if(end&&end.left>right)view.setScrollLeft(view.getScrollLeft()+end.left-right);
     else if(start&&start.left<layout.contentLeft)view.setScrollLeft(Math.max(0,view.getScrollLeft()+start.left-layout.contentLeft));
   };
+  const retain_visible_code_selection=()=>{
+    const view=editor?.focused_editor(),selection=view?.getSelection();if(!view||!selection)return;
+    const start=view.getScrolledVisiblePosition(selection.getStartPosition()),end=view.getScrolledVisiblePosition(selection.getEndPosition()),layout=view.getLayoutInfo();
+    if(!start||start.top<0||start.top>=layout.height)return;
+    const right=layout.width-layout.verticalScrollbarWidth-4;
+    if(start.left<layout.contentLeft)view.setScrollLeft(Math.max(0,view.getScrollLeft()+start.left-layout.contentLeft));
+    else if(end&&end.left>right&&end.left-start.left<right-layout.contentLeft)view.setScrollLeft(view.getScrollLeft()+end.left-right);
+  };
   const apply_scale = () => {
     container.dataset.previewScale = String(scale);
     reader.style.setProperty("font-size", `${base_font()}px`, "important");
@@ -44,18 +54,18 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     reader.style.zoom = String(scale / 100);
     editor?.focused_editor().updateOptions({fontSize: base_font() * scale / 100, lineHeight: Math.round(base_font() * 1.5 * scale / 100), minimap: {enabled: false}});
     editor?.sync_theme();
-    requestAnimationFrame(reveal_code);
+
   };
   const update_theme = () => {
     const rules: string[]=[];
     // Shadow DOM 中复用已有主题规则，既不影响正文，也不让预览内容被正文增强器再次接管。
     for (const sheet of [...document.styleSheets]) {
       try {
-        const text = [...sheet.cssRules].map(rule => rule.cssText).filter(rule => rule.includes("#write") || rule.startsWith(":root")).join("\n");
-        if (text) rules.push(text);
+        const text = [...sheet.cssRules].map(rule => rule.cssText).filter(rule => rule.includes("#write") || rule.startsWith(":root") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
+        if (text) rules.push(text.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
       } catch { /* 不可读取的外部样式不阻塞内容，下面提供基本正文样式。 */ }
     }
-    const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;color:inherit!important;overflow-wrap:anywhere;line-height:1.6}#write h1{font-size:1.8em}#write h2{font-size:1.5em}#write h3{font-size:1.25em}#write p{margin:.7em 0}#write pre{overflow:auto;background:rgba(127,127,127,.08);padding:8px}#write pre code{white-space:pre}#write table{border-collapse:collapse;width:100%}#write th,#write td{border:1px solid rgba(127,127,127,.3);padding:5px 8px}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:default}#write input{pointer-events:none}`;
+    const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:default}#write input{pointer-events:none}`;
     local.textContent += `#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}`;
     rules.push(local.textContent||"");const text=rules.join("\n");
     // 原生侧栏反复修改 body.class。只更新样式，不能移走 reader 令预览滚动位置归零。
@@ -81,8 +91,10 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   };
   const set_scale = (value: number) => {
     if (disposed) return;
-    scale = clamp_scale(value);
-    apply_scale(); reveal();
+    const view=editor?.focused_editor(),state=view?.saveViewState(),line=view?.getVisibleRanges()[0]?.startLineNumber;
+    const offset=view&&line?view.getScrollTop()-view.getTopForLineNumber(line):0;
+    reflow.change(()=>{scale = clamp_scale(value);apply_scale();});
+    if(view&&state){view.restoreViewState(state);if(line)view.setScrollTop(view.getTopForLineNumber(line)+offset);retain_visible_code_selection();}
     try {localStorage.setItem(SCALE_KEY, String(scale));} catch { /* 本次设置仍生效。 */ }
   };
   const wheel = (event: WheelEvent) => {
@@ -184,8 +196,8 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   };
   const theme_observer = new MutationObserver(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
-  const resize_observer = new ResizeObserver(reveal_code); resize_observer.observe(body);
+  const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
   const clear=()=>{generation++;selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }
