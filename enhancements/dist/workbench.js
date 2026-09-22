@@ -234813,7 +234813,7 @@ https://creativecommons.org/licenses/by/4.0/
         const block3 = workspace_element("div");
         block3.dataset.sourceStart = String(safe_start);
         const single = Object.assign([token], { links: tokens.links });
-        block3.innerHTML = purify2.sanitize(marked2.parser(single, { gfm: true }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name"], ALLOW_DATA_ATTR: false });
+        block3.innerHTML = purify2.sanitize(marked2.parser(single, { gfm: true }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false });
         for (const link3 of block3.querySelectorAll("a")) {
           link3.removeAttribute("href");
           link3.removeAttribute("target");
@@ -234877,7 +234877,7 @@ https://creativecommons.org/licenses/by/4.0/
       apply_scale();
       requestAnimationFrame(reveal);
     };
-    const show2 = async (file, match2) => {
+    const show2 = async (file, match2, hash2 = "", live = false) => {
       const request = ++generation;
       selected = { file, match: match2 };
       body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8\uFF1A".concat(file.relative_path, "\uFF0C\u884C ").concat(match2.line, "\uFF0C\u5217 ").concat(match2.column));
@@ -234892,7 +234892,33 @@ https://creativecommons.org/licenses/by/4.0/
         const bytes = await files.fs.promises.readFile(file.file_path);
         if (disposed || request !== generation) return;
         if (detect_binary_bytes(bytes)) throw new Error("\u8BE5\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u9884\u89C8\u6587\u672C\u3002");
-        const text3 = decode_file_bytes(bytes).text;
+        const text3 = live && files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+        if (disposed || request !== generation) return;
+        if (text3.length > 2 * 1024 * 1024) throw new Error("\u6B63\u6587\u8D85\u8FC72 MiB\u9884\u89C8\u4E0A\u9650\u3002");
+        if (hash2 && is_markdown_file(file.file_path)) {
+          let name = hash2.slice(1);
+          try {
+            name = decodeURIComponent(name);
+          } catch {
+          }
+          const slug = (value) => value.toLowerCase().trim().replace(/<[^>]*>/gu, "").replace(/[\\`*_~]/gu, "").replace(/[^\p{L}\p{N}\s_-]/gu, "").replace(/\s/gu, "-");
+          let offset = 0;
+          const used = /* @__PURE__ */ new Map(), normalized2 = text3.replace(/\r\n?/gu, "\n");
+          for (const token of marked2.lexer(normalized2)) {
+            const start = normalized2.indexOf(token.raw, offset);
+            offset = Math.max(offset, start) + token.raw.length;
+            if (token.type !== "heading") continue;
+            const base = slug(token.text), count = used.get(base) || 0;
+            used.set(base, count + 1);
+            if (name === token.text || name === (count ? "".concat(base, "-").concat(count) : base) || slug(name) === (count ? "".concat(base, "-").concat(count) : base)) {
+              const line = normalized2.slice(0, start).split("\n").length;
+              const original = text3.split(/(?<=\n)/u).slice(0, line - 1).join("").length;
+              match2 = { ...match2, start: original, end: original, line, end_line: line, text: "" };
+              selected = { file, match: match2 };
+              break;
+            }
+          }
+        }
         if (is_markdown_file(file.file_path)) await render_markdown(text3, match2, request);
         else {
           editor2 = new git_diff_editor({ title: file.relative_path, file: file.file_path, left: text3, left_label: file.relative_path });
@@ -234916,7 +234942,15 @@ https://creativecommons.org/licenses/by/4.0/
     const resize_observer = new ResizeObserver(reveal_code);
     resize_observer.observe(body);
     apply_scale();
-    return { container, show: show2, reveal_match, get_scale: () => scale, set_scale, dispose() {
+    const clear = () => {
+      generation++;
+      selected = void 0;
+      selected_block = void 0;
+      editor2?.dispose();
+      editor2 = void 0;
+      body.replaceChildren();
+    };
+    return { container, show: show2, clear, reveal_match, get_scale: () => scale, set_scale, dispose() {
       disposed = true;
       generation++;
       body.removeEventListener("wheel", wheel, true);
@@ -234926,6 +234960,387 @@ https://creativecommons.org/licenses/by/4.0/
       resize_observer.disconnect();
       style.remove();
       container.remove();
+    } };
+  }
+
+  // src/workspace_link_target.ts
+  function resolve_preview_link(path_api, source, href) {
+    const raw = href.trim().replace(/^<(.*)>$/u, "$1");
+    if (/^https?:\/\//iu.test(raw) || raw.startsWith("//")) {
+      const url = new URL(raw.startsWith("//") ? "https:" + raw : raw);
+      if (url.username || url.password) throw new Error("\u9884\u89C8\u94FE\u63A5\u4E0D\u80FD\u5305\u542B\u7528\u6237\u540D\u6216\u5BC6\u7801\u3002");
+      return { kind: "web", url: url.href };
+    }
+    if (!raw) throw new Error("\u94FE\u63A5\u672A\u5B9A\u4E49\u3002");
+    if (!path_api.isAbsolute(raw) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(raw)) throw new Error("\u6B64\u94FE\u63A5\u534F\u8BAE\u4E0D\u652F\u6301\u53EA\u8BFB\u9884\u89C8\u3002");
+    const markdown = parse_markdown_file_target(raw), separator2 = raw.indexOf("#");
+    const part = markdown?.file_path ?? (separator2 < 0 ? raw : raw.slice(0, separator2));
+    const hash2 = markdown?.hash ?? (separator2 < 0 ? "" : raw.slice(separator2));
+    let decoded = part;
+    if (!/^file:/iu.test(part)) try {
+      decoded = decodeURIComponent(part);
+    } catch {
+    }
+    const path = part ? resolve_workspace_file(path_api, path_api.dirname(source), resolve_host_open_file_target(path_api, source, decoded)) : source;
+    if (!path || !path_api.isAbsolute(path)) throw new Error("\u8BF7\u5148\u4FDD\u5B58\u6765\u6E90\u6587\u6863\uFF0C\u518D\u9884\u89C8\u76F8\u5BF9\u94FE\u63A5\u3002");
+    return { kind: "file", path, hash: hash2 };
+  }
+  async function read_preview_web(reqnode, url, signal) {
+    const deadline = Date.now() + 15e3;
+    const read2 = (address, redirects) => new Promise((resolve3, reject) => {
+      if (signal.aborted) return reject(new Error("\u5DF2\u53D6\u6D88\u9884\u89C8\u3002"));
+      const target = new URL(address);
+      if (!["http:", "https:"].includes(target.protocol) || target.username || target.password) return reject(new Error("\u7F51\u9875\u91CD\u5B9A\u5411\u76EE\u6807\u4E0D\u53D7\u652F\u6301\u3002"));
+      let finished = false;
+      let timer;
+      const finish = (error, value) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        signal.removeEventListener("abort", cancel);
+        error ? reject(error) : resolve3(value);
+      };
+      const request = reqnode(target.protocol === "https:" ? "https" : "http").get(target, { headers: { Accept: "text/html, text/plain;q=0.8", "Accept-Encoding": "identity" } }, (response) => {
+        const status2 = response.statusCode || 0;
+        if (status2 >= 300 && status2 < 400 && response.headers.location) {
+          response.resume();
+          if (redirects >= 5) return finish(new Error("\u7F51\u9875\u91CD\u5B9A\u5411\u6B21\u6570\u8FC7\u591A\u3002"));
+          let next;
+          try {
+            next = new URL(response.headers.location, address).href;
+          } catch {
+            return finish(new Error("\u7F51\u9875\u91CD\u5B9A\u5411\u5730\u5740\u65E0\u6548\u3002"));
+          }
+          finished = true;
+          clearTimeout(timer);
+          signal.removeEventListener("abort", cancel);
+          void read2(next, redirects + 1).then(resolve3, reject);
+          return;
+        }
+        if (status2 < 200 || status2 >= 300) {
+          response.resume();
+          return finish(new Error("\u7F51\u9875\u8FD4\u56DEHTTP ".concat(status2, "\u3002")));
+        }
+        const type = String(response.headers["content-type"] || "");
+        if (!/^(text\/(html|plain)|application\/xhtml\+xml)(?:;|$)/iu.test(type)) {
+          response.resume();
+          return finish(new Error("\u8BE5\u5730\u5740\u4E0D\u662F\u53EF\u9884\u89C8\u7684\u7F51\u9875\u6587\u6863\u3002"));
+        }
+        const chunks = [];
+        let size = 0;
+        response.on("data", (chunk) => {
+          size += chunk.length;
+          if (size > 2 * 1024 * 1024) {
+            finish(new Error("\u7F51\u9875\u8D85\u8FC72 MiB\u9884\u89C8\u4E0A\u9650\u3002"));
+            response.destroy();
+            request.destroy();
+          } else chunks.push(chunk);
+        });
+        response.on("error", (error) => finish(error));
+        response.on("end", () => {
+          try {
+            const bytes = reqnode("buffer").Buffer.concat(chunks);
+            const charset = type.match(/charset\s*=\s*["']?([^;\s"']+)/iu)?.[1] || "utf-8";
+            let html5 = new TextDecoder(charset).decode(bytes);
+            if (/^text\/plain/iu.test(type)) html5 = "<pre>" + html5.replace(/&/gu, "&amp;").replace(/</gu, "&lt;") + "</pre>";
+            finish(void 0, { html: html5, url: address });
+          } catch (error) {
+            finish(error);
+          }
+        });
+      });
+      const cancel = () => {
+        finish(new Error("\u5DF2\u53D6\u6D88\u9884\u89C8\u3002"));
+        request.destroy();
+      };
+      signal.addEventListener("abort", cancel, { once: true });
+      request.on("error", (error) => finish(error));
+      timer = setTimeout(() => {
+        finish(new Error("\u7F51\u9875\u52A0\u8F7D\u8D85\u65F6\uFF0C\u8BF7\u91CD\u8BD5\u3002"));
+        request.destroy();
+      }, Math.max(1, deadline - Date.now()));
+    });
+    return read2(url, 0);
+  }
+
+  // src/workspace_link_preview.ts
+  function preview_web_document(html5, address) {
+    const clean2 = purify2.sanitize(html5, { WHOLE_DOCUMENT: true, ADD_TAGS: ["style", "link"], ADD_ATTR: ["rel"], FORBID_TAGS: ["script", "iframe", "frame", "frameset", "object", "embed", "base", "meta", "form", "audio", "video", "source"], FORBID_ATTR: ["contenteditable", "autofocus", "srcdoc", "srcset", "action", "formaction"], ALLOW_DATA_ATTR: false });
+    const doc = new DOMParser().parseFromString(clean2, "text/html");
+    for (const node of doc.querySelectorAll("a,area")) {
+      node.removeAttribute("href");
+      node.removeAttribute("target");
+    }
+    for (const node of doc.querySelectorAll("input,button,select,textarea")) node.setAttribute("disabled", "");
+    for (const node of doc.querySelectorAll("link")) if (node.getAttribute("rel") !== "stylesheet") node.remove();
+    for (const node of doc.querySelectorAll("[src],link[href]")) for (const attribute of ["src", "href"]) {
+      const value = node.getAttribute(attribute);
+      if (!value) continue;
+      try {
+        const url = new URL(value, address);
+        if (!["https:", "http:"].includes(url.protocol)) node.removeAttribute(attribute);
+        else node.setAttribute(attribute, url.href);
+      } catch {
+        node.removeAttribute(attribute);
+      }
+    }
+    const base = doc.createElement("base");
+    base.href = address;
+    doc.head.prepend(base);
+    const csp = doc.createElement("meta");
+    csp.httpEquiv = "Content-Security-Policy";
+    csp.content = "default-src 'none'; script-src 'none'; style-src 'unsafe-inline' https: http:; img-src https: http: data:; font-src https: http: data:; form-action 'none'; base-uri https: http:";
+    doc.head.prepend(csp);
+    const privacy = doc.createElement("meta");
+    privacy.name = "referrer";
+    privacy.content = "no-referrer";
+    doc.head.prepend(privacy);
+    return "<!doctype html>" + doc.documentElement.outerHTML;
+  }
+  function create_link_preview(files) {
+    const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title = workspace_element("span", "workspace-link-preview-title");
+    const content = workspace_element("div", "workspace-link-preview-content"), reader = create_lookup_preview(files);
+    const runtime2 = window, interaction = acquire_workspace_interaction(container);
+    let target, request, controller, generation = 0, disposed = false;
+    const open = workspace_button("\u6253\u5F00\u6E90\u6587\u4EF6", async () => {
+      const version = generation;
+      if (open.disabled) return;
+      open.disabled = true;
+      try {
+        if (target?.kind === "file") await files.open_file(target.path, { hash: target.hash });
+        else if (target?.kind === "web") runtime2.JSBridge?.showInBrowser?.(target.url);
+      } catch (error) {
+        if (!disposed && version === generation) fail(error);
+      } finally {
+        if (!disposed && version === generation) open.disabled = false;
+      }
+    });
+    const retry = workspace_button("\u91CD\u65B0\u52A0\u8F7D", () => {
+      if (request) void show2(request);
+    });
+    const fail = (error) => {
+      content.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", String(error)));
+      container.dataset.state = "error";
+    };
+    toolbar.setAttribute("role", "toolbar");
+    toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
+    toolbar.append(title, open, retry);
+    container.append(toolbar, content);
+    const clear = () => {
+      ++generation;
+      controller?.abort();
+      controller = void 0;
+      reader.clear();
+      content.replaceChildren();
+      request = void 0;
+      target = void 0;
+    };
+    const show2 = async (value) => {
+      clear();
+      if (disposed) return;
+      request = { ...value };
+      const version = generation;
+      controller = new AbortController();
+      container.dataset.state = "loading";
+      title.textContent = value.href;
+      title.title = value.href;
+      open.disabled = true;
+      content.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", "\u6B63\u5728\u52A0\u8F7D\u94FE\u63A5\u9884\u89C8\u2026"));
+      try {
+        target = resolve_preview_link(files.path_api, value.source, value.href);
+        const resolved = target;
+        open.textContent = resolved.kind === "file" ? "\u6253\u5F00\u6E90\u6587\u4EF6" : "\u5728\u6D4F\u89C8\u5668\u6253\u5F00";
+        open.disabled = resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
+        if (resolved.kind === "file") {
+          content.replaceChildren(reader.container);
+          await reader.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
+        } else {
+          const result = await read_preview_web(runtime2.reqnode, resolved.url, controller.signal);
+          if (disposed || version !== generation) return;
+          const frame3 = workspace_element("iframe", "workspace-link-web");
+          frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
+          frame3.setAttribute("sandbox", "");
+          frame3.referrerPolicy = "no-referrer";
+          frame3.srcdoc = preview_web_document(result.html, result.url);
+          content.replaceChildren(workspace_element("div", "workspace-lookup-preview-message", "\u7F51\u9875\u53EA\u8BFB\u5FEB\u7167\uFF1B\u4EA4\u4E92\u6216\u767B\u5F55\u8BF7\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002"), frame3);
+        }
+        if (!disposed && version === generation) container.dataset.state = "ready";
+      } catch (error) {
+        if (!disposed && version === generation) fail(error);
+      }
+    };
+    return { container, show: show2, clear, dispose() {
+      if (disposed) return;
+      disposed = true;
+      clear();
+      reader.dispose();
+      interaction.remove();
+      container.remove();
+    } };
+  }
+
+  // src/workspace_link_selection.ts
+  function bind_workspace_link_selection(core, files, visible3, preview) {
+    const lifetime = create_workspace_lifetime(), runtime2 = window, type = "linux_note.link_preview";
+    const payloads = /* @__PURE__ */ new Map(), views = /* @__PURE__ */ new Set();
+    let disposed = false, timer = 0, last = "", close_menu;
+    const source_for = (node) => {
+      if (node.closest("#write") && runtime2.File?.bundle?.filePath) return String(runtime2.File.bundle.filePath);
+      let source = "";
+      core.app.workspace.eachLeaves((leaf) => {
+        if (leaf.view.containerEl.contains(node)) source = files.editor_state(leaf).file_path;
+      });
+      return source || files.current_file();
+    };
+    const request_for = (node) => {
+      const element = node instanceof Element ? node : node?.parentElement;
+      const link3 = element?.closest("a[href],a[data-href],a[data-ref]");
+      if (!link3?.closest("#write,.typ-markdown-preview") || link3.closest(".workspace-link-preview,.workspace-lookup-preview")) return;
+      let href = link3.getAttribute("href") || link3.getAttribute("data-href") || "";
+      if (link3.dataset.ref && link3.closest("#write")) href = runtime2.File?.editor?.nodeMap?.link_list?.getHrefByRef?.(link3.dataset.ref, true, true) || "";
+      return { source: source_for(link3), href };
+    };
+    const selected = () => {
+      const selection = window.getSelection();
+      if (!selection?.rangeCount) return;
+      const first = request_for(selection.anchorNode), last2 = request_for(selection.focusNode);
+      if (first && last2 && first.source === last2.source && first.href === last2.href) return first;
+    };
+    const update2 = () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (disposed || !visible3()) return;
+        const request = selected();
+        if (!request) return;
+        const key2 = JSON.stringify(request);
+        if (key2 === last) return;
+        last = key2;
+        preview(request);
+      }, 80);
+    };
+    class link_view extends core.WorkspaceView {
+      containerEl = workspace_element("section", "workspace-link-preview");
+      icon = "";
+      reader = create_link_preview(files);
+      loaded = false;
+      constructor(leaf) {
+        super(leaf);
+        views.add(this);
+        this.containerEl.append(this.reader.container);
+      }
+      setIcon() {
+        const slot = workspace_leaf_tab(this.leaf)?.querySelector(".typ-file-icon");
+        if (slot) {
+          slot.className = "typ-file-icon workspace-file-theme-slot";
+          slot.replaceChildren(git_icon("preview"));
+        }
+      }
+      onOpen() {
+        const request = payloads.get(this.leaf.state.path);
+        if (request && !this.loaded) {
+          this.loaded = true;
+          void this.reader.show(request);
+        } else if (!request) this.containerEl.textContent = "\u8BF7\u4ECE\u539F\u6587\u94FE\u63A5\u91CD\u65B0\u6253\u5F00\u9884\u89C8\u3002";
+      }
+      onClose() {
+        queueMicrotask(() => {
+          if (disposed) return;
+          let exists = false, retained = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf === this.leaf) exists = true;
+            if (leaf.state.path === this.leaf.state.path) retained = true;
+          });
+          if (!exists) {
+            this.reader.dispose();
+            views.delete(this);
+            if (!retained) payloads.delete(this.leaf.state.path);
+          }
+        });
+      }
+    }
+    lifetime.add(core.app.viewManager.registerView(type, (leaf) => new link_view(leaf)));
+    const split = (request, direction) => {
+      if (disposed || !core.app.workspace.activeLeaf) return;
+      const name = request.href.split("#")[0].split(/[\\/]/u).filter(Boolean).at(-1) || "\u6587\u5185\u94FE\u63A5";
+      const uri = "typ://".concat(type, "/").concat(crypto.randomUUID(), "/").concat(encodeURIComponent(name + "\uFF08\u9884\u89C8\uFF09"));
+      payloads.set(uri, { ...request });
+      try {
+        core.app.commands.run("core.workspace:split-".concat(direction), [uri]);
+      } catch (error) {
+        payloads.delete(uri);
+        new core.Notice(String(error), 4e3);
+      }
+    };
+    const entries3 = (request) => [
+      { title: "\u5DE6\u53F3\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", action: () => split(request, "right") },
+      { title: "\u4E0A\u4E0B\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", action: () => split(request, "down") }
+    ];
+    const menu = document.querySelector("#context-menu"), context = runtime2.File?.editor?.contextMenu;
+    let menu_request;
+    if (menu && context?.show) {
+      const items = ["\u5DE6\u53F3\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", "\u4E0A\u4E0B\u5206\u5C4F\u9884\u89C8\u94FE\u63A5"].map((label, index) => {
+        const item = workspace_element("li", "hide"), anchor = workspace_element("a", "", label);
+        item.dataset.key = "typora-code-link-preview-".concat(index);
+        anchor.tabIndex = 0;
+        anchor.setAttribute("role", "menuitem");
+        item.append(anchor);
+        menu.append(item);
+        return item;
+      });
+      const interaction = acquire_workspace_interaction(menu);
+      lifetime.add(() => interaction.remove());
+      const original = context.show;
+      const show2 = context.show = function(event, node) {
+        menu_request = request_for(node || event.target) || selected();
+        items.forEach((item) => item.classList.toggle("hide", !menu_request));
+        return original.call(this, event, node);
+      };
+      lifetime.add(() => {
+        if (context.show === show2) context.show = original;
+        items.forEach((item) => item.remove());
+      });
+      for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) lifetime.listen(document, name, ((event) => {
+        const index = items.findIndex((item) => event.target instanceof Node && item.contains(event.target));
+        if (index < 0) return;
+        if (event instanceof KeyboardEvent && !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if ((name === "click" || event instanceof KeyboardEvent && !event.repeat) && menu_request) {
+          context.hide();
+          split(menu_request, index === 0 ? "right" : "down");
+        }
+      }), true);
+    }
+    lifetime.listen(document, "contextmenu", ((event) => {
+      if (!(event.target instanceof Element) || !event.target.closest("#write,.typ-markdown-preview")) return;
+      const request = request_for(event.target) || selected();
+      if (!request) return;
+      if (menu && context?.show && event.target?.closest?.("#write")) return;
+      event.stopImmediatePropagation();
+      close_menu = workspace_menu(event, entries3(request));
+    }), true);
+    lifetime.listen(document, "selectionchange", update2);
+    lifetime.listen(document, "pointerup", update2);
+    const reset2 = () => {
+      last = "";
+      clearTimeout(timer);
+      close_menu?.();
+      menu_request = void 0;
+    };
+    return { refresh() {
+      last = "";
+      update2();
+    }, reset: reset2, dispose() {
+      if (disposed) return;
+      disposed = true;
+      reset2();
+      lifetime.dispose();
+      for (const view of views) {
+        view.reader.dispose();
+        view.leaf.parent.removeTab?.(view.leaf.state.path);
+      }
+      views.clear();
+      payloads.clear();
     } };
   }
 
@@ -235045,6 +235460,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       lifetime.add(core.app.viewManager.registerView("linux_note.search_results", (leaf) => new search_editor_view(leaf)));
+      let link_selection;
       class search_sidebar extends core.SidebarPanel {
         containerEl = workspace_element("section", "linux-note-workspace-search");
         query = workspace_element("textarea");
@@ -235060,6 +235476,8 @@ https://creativecommons.org/licenses/by/4.0/
         split = workspace_element("div", "workspace-search-split");
         preview = lifetime.own(create_lookup_preview(files));
         preview_section = workspace_element("section", "workspace-search-preview-section");
+        link_preview = lifetime.own(create_link_preview(files));
+        link_active = false;
         preview_toggle = git_icon_button("chevron-down", "\u6536\u8D77\u9884\u89C8", () => this.set_preview_open(!this.preview_open));
         preview_open = true;
         preview_smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() - 5));
@@ -235232,7 +235650,8 @@ https://creativecommons.org/licenses/by/4.0/
           const preview_actions = workspace_element("div", "workspace-search-preview-actions");
           preview_actions.append(this.preview_smaller, this.preview_slider, this.preview_scale, this.preview_larger);
           preview_heading.append(this.preview_toggle, preview_actions);
-          this.preview_section.append(preview_heading, this.preview.container);
+          this.preview_section.append(preview_heading, this.preview.container, this.link_preview.container);
+          this.link_preview.container.hidden = true;
           this.preview_section.hidden = true;
           this.scale_observer.observe(this.preview.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
           this.update_preview_scale();
@@ -235258,6 +235677,7 @@ https://creativecommons.org/licenses/by/4.0/
             if (event.isComposing || event.keyCode === 229) return;
             if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
+              this.clear_results();
               void this.search();
             }
             if (event.key === "Escape") {
@@ -235311,25 +235731,40 @@ https://creativecommons.org/licenses/by/4.0/
           this.split.setAttribute("aria-valuenow", String(value));
         }
         set_preview_open(open) {
+          const was_open = this.preview_open;
           this.preview_open = open;
           this.preview_section.classList.toggle("is-collapsed", !open);
-          this.preview.container.hidden = !open;
+          this.preview.container.hidden = !open || this.link_active;
+          this.link_preview.container.hidden = !open || !this.link_active;
+          this.preview_section.querySelector(".workspace-search-preview-actions").hidden = this.link_active;
           this.split.hidden = !open || this.preview_section.hidden;
           this.body.classList.toggle("has-preview", open && !this.preview_section.hidden);
           this.preview_toggle.setAttribute("aria-expanded", String(open));
           this.preview_toggle.title = open ? "\u6536\u8D77\u9884\u89C8" : "\u5C55\u5F00\u9884\u89C8";
           this.preview_toggle.setAttribute("aria-label", this.preview_toggle.title);
+          if (!open && this.link_active) {
+            this.link_preview.clear();
+            link_selection?.reset();
+          } else if (open && !was_open && this.link_active) link_selection?.refresh();
         }
-        clear_results() {
+        clear_results(preserve_link = false) {
+          if (!preserve_link) {
+            this.link_active = false;
+            this.link_preview.clear();
+            link_selection?.reset();
+          }
+          this.preview.clear();
           ++this.open_generation;
           this.render_versions.set(this.results, (this.render_versions.get(this.results) || 0) + 1);
           this.omitted_files.clear();
           this.result = void 0;
           this.selected = void 0;
           this.results.replaceChildren();
-          this.preview_section.hidden = true;
-          this.split.hidden = true;
-          this.body.classList.remove("has-preview");
+          if (!preserve_link) {
+            this.preview_section.hidden = true;
+            this.split.hidden = true;
+            this.body.classList.remove("has-preview");
+          }
           this.containerEl.dataset.state = "waiting";
         }
         clear_native() {
@@ -235341,11 +235776,25 @@ https://creativecommons.org/licenses/by/4.0/
         onshow() {
           this.visible = true;
           this.clear_native();
+          link_selection?.refresh();
           if (native_sidebar) this.native_observer.observe(native_sidebar, { attributes: true, attributeFilter: ["class"] });
         }
         onhide() {
           this.visible = false;
           this.native_observer.disconnect();
+          this.link_preview.clear();
+          link_selection?.reset();
+        }
+        show_link(request) {
+          this.selected = void 0;
+          this.preview.clear();
+          this.preview_section.hidden = false;
+          this.set_preview_open(true);
+          this.link_active = true;
+          this.preview.container.hidden = true;
+          this.link_preview.container.hidden = false;
+          this.preview_section.querySelector(".workspace-search-preview-actions").hidden = true;
+          void this.link_preview.show(request);
         }
         schedule() {
           clearTimeout(this.timer);
@@ -235416,7 +235865,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.timer = 0;
           this.controller?.abort();
           this.controller = void 0;
-          this.clear_results();
+          this.clear_results(this.link_active);
           if (!this.query.value || disposed) {
             this.status.textContent = "";
             return;
@@ -235488,10 +235937,10 @@ https://creativecommons.org/licenses/by/4.0/
             this.history = [this.query.value, ...this.history.filter((value) => value !== this.query.value)].slice(0, 30);
             this.history_index = -1;
             this.update_status();
-            if (!result.cancelled && !this.selected && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
+            if (!result.cancelled && !this.link_active && !this.selected && result.files[0]?.matches[0]) this.select(result.files[0], result.files[0].matches[0]);
           } catch (error) {
             if (!disposed && this.controller === controller) {
-              this.clear_results();
+              this.clear_results(this.link_active);
               this.containerEl.dataset.state = "error";
               this.status.textContent = String(error);
             }
@@ -235670,6 +236119,9 @@ https://creativecommons.org/licenses/by/4.0/
           return file.matches.find((match2) => match2.id === this.remembered.get(file.file_path)) || file.matches[0];
         }
         select(file, match2) {
+          this.link_active = false;
+          this.link_preview.clear();
+          link_selection?.reset();
           if (!match2 || disposed) return;
           this.preview_section.hidden = false;
           this.set_preview_open(true);
@@ -235842,6 +236294,7 @@ https://creativecommons.org/licenses/by/4.0/
         panel.containerEl.querySelector('[data-search-option="regex"]')?.setAttribute("aria-pressed", "false");
         panel.containerEl.dataset.sourcePath = request.source_path || "";
         show2(false, false);
+        panel.clear_results();
         await panel.search();
       };
       const find_in_folder = (path) => {
@@ -235859,6 +236312,7 @@ https://creativecommons.org/licenses/by/4.0/
         panel.schedule();
       };
       lifetime.own(bind_workspace_selection_search(core, files, search2));
+      link_selection = lifetime.own(bind_workspace_link_selection(core, files, () => panel.visible && core.app.workspace.sidebar.isShown, (request) => panel.show_link(request)));
       const activity_click = (event) => {
         const target = event.target instanceof Element ? event.target.closest('.typ-ribbon-item[data-id="core.search"]') : null;
         if (!target) return;
@@ -240272,6 +240726,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092204,
+        version: "2026.09.22.4",
+        date: "2026-09-22",
+        notes: [
+          "\u641C\u7D22\u4FA7\u680F\u6253\u5F00\u65F6\uFF0C\u9009\u4E2DMarkdown\u94FE\u63A5\u53EF\u76F4\u63A5\u53EA\u8BFB\u9884\u89C8\u76EE\u6807\u5185\u5BB9\uFF1B\u53F3\u952E\u652F\u6301\u5DE6\u53F3\u53CA\u4E0A\u4E0B\u5206\u5C4F\u9884\u89C8\u3002",
+          "\u672C\u5730\u9884\u89C8\u63D0\u4F9B\u6253\u5F00\u6E90\u6587\u4EF6\u7F16\u8F91\u5165\u53E3\uFF1B\u7F51\u9875\u8054\u7F51\u8BFB\u53D6\u540E\u9694\u79BB\u5C55\u793A\u53EA\u8BFB\u5FEB\u7167\uFF0C\u5E76\u63D0\u4F9B\u91CD\u65B0\u52A0\u8F7D\u4E0E\u6D4F\u89C8\u5668\u5165\u53E3\u3002"
+        ]
+      },
       {
         sequence: 2026092203,
         version: "2026.09.22.3",

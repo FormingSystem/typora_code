@@ -107,7 +107,7 @@ export function create_lookup_preview(files: workspace_file_host) {
       const token_start = token.raw===front_matter?0:normalized.indexOf(token.raw, offset); const safe_start = token_start < 0 ? offset : token_start;
       const block = el("div"); block.dataset.sourceStart = String(safe_start);
       const single = Object.assign([token], {links: tokens.links}) as TokensList;
-      block.innerHTML = DOMPurify.sanitize(marked.parser(single, {gfm: true}), {FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name"], ALLOW_DATA_ATTR: false});
+      block.innerHTML = DOMPurify.sanitize(marked.parser(single, {gfm: true}), {FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false});
       // 预览中的链接仅作阅读，不让一次单击间接导航或离开当前文档。
       for (const link of block.querySelectorAll("a")) { link.removeAttribute("href"); link.removeAttribute("target"); }
       const target=start >= safe_start && start < safe_start + token.raw.length;
@@ -141,7 +141,7 @@ export function create_lookup_preview(files: workspace_file_host) {
     }
     body.replaceChildren(markdown_host); apply_scale(); requestAnimationFrame(reveal);
   };
-  const show = async (file: workspace_search_file, match: workspace_search_match) => {
+  const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
     editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", "正在读取预览…"));
@@ -150,7 +150,23 @@ export function create_lookup_preview(files: workspace_file_host) {
       if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("预览支持 2 MiB 以内的文本文件；双击结果可打开完整文件。");
       const bytes = await files.fs.promises.readFile(file.file_path); if (disposed || request !== generation) return;
       if (detect_binary_bytes(bytes)) throw new Error("该文件已变为二进制，无法预览文本。");
-      const text = decode_file_bytes(bytes).text;
+      const text = live&&files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+      if(disposed||request!==generation)return;
+      if(text.length>2*1024*1024)throw new Error("正文超过2 MiB预览上限。");
+      if(hash&&is_markdown_file(file.file_path)){
+        let name=hash.slice(1);try{name=decodeURIComponent(name);}catch{/* 非法编码按原文字匹配。 */}
+        const slug=(value:string)=>value.toLowerCase().trim().replace(/<[^>]*>/gu,"").replace(/[\\`*_~]/gu,"").replace(/[^\p{L}\p{N}\s_-]/gu,"").replace(/\s/gu,"-");
+        let offset=0;const used=new Map<string,number>(),normalized=text.replace(/\r\n?/gu,"\n");
+        for(const token of marked.lexer(normalized)){
+          const start=normalized.indexOf(token.raw,offset);offset=Math.max(offset,start)+token.raw.length;
+          if(token.type!=="heading")continue;
+          const base=slug(token.text),count=used.get(base)||0;used.set(base,count+1);
+          if(name===token.text||name===(count?`${base}-${count}`:base)||slug(name)===(count?`${base}-${count}`:base)){
+            const line=normalized.slice(0,start).split("\n").length;const original=text.split(/(?<=\n)/u).slice(0,line-1).join("").length;
+            match={...match,start:original,end:original,line,end_line:line,text:""};selected={file,match};break;
+          }
+        }
+      }
       if (is_markdown_file(file.file_path)) await render_markdown(text, match,request);
       else {
         editor = new git_diff_editor({title: file.relative_path, file: file.file_path, left: text, left_label: file.relative_path});
@@ -166,5 +182,6 @@ export function create_lookup_preview(files: workspace_file_host) {
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
   const resize_observer = new ResizeObserver(reveal_code); resize_observer.observe(body);
   apply_scale();
-  return {container, show, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  const clear=()=>{generation++;selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
+  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

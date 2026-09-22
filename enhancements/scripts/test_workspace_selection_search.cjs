@@ -225,6 +225,20 @@ app.whenReady().then(async()=>{
     await click_point(cm_point,['control']);await wait('search_panel.container.dataset.state==="ready" && document.querySelector(".workspace-search-query-box>textarea").value==="lookup_cm_token"');assert.equal(await evaluate('open_calls.length'),cm_calls);assert.equal(await evaluate('cm.getSelection()'),'lookup_cm_token');assert.equal(await evaluate('document.querySelectorAll(".workspace-search-match").length'),1);
     checks.push('real CodeMirror 5 selected Ctrl-click searches through its public selection API and preserves the native selection without opening a document');
   }
+  // 链接选择晚于搜索输入：排队、运行中及失败的搜索均不能抢回预览所有权。
+  await evaluate(`core.app.workspace.activeLeaf=native_leaf;document.querySelector('#write').hidden=false;if(File.editor.sourceView)File.editor.sourceView.inSourceMode=false;search_panel.show();document.querySelectorAll('.workspace-search-pattern-box input').forEach(input=>input.value='');document.querySelector('#native-link').setAttribute('href','target.md#target');void 0`);
+  const link_visible=`!document.querySelector('.workspace-link-preview').hidden&&document.querySelector('.workspace-link-preview .workspace-lookup-preview-body')?.dataset.previewPath?.endsWith('target.md')`;
+  await evaluate(`(()=>{const input=document.querySelector('.workspace-search-query-box>textarea');input.value='needle';input.dispatchEvent(new Event('input',{bubbles:true}));select_dom('#native-link')})()`);
+  await wait(link_visible);await wait(`search_panel.container.dataset.state==='ready'`);assert(await evaluate(link_visible));
+  checks.push('a link selected while search is queued stays visible after search starts and auto-results finish');
+  await evaluate(`window.old_readdir=files.fs.promises.readdir;window.scan_gate=new Promise(resolve=>window.release_scan=resolve);window.scan_started=false;files.fs.promises.readdir=async(...args)=>{scan_started=true;await scan_gate;return old_readdir(...args)};void search_panel.search({query:'needle'});void 0`);
+  await wait('scan_started');await evaluate(`select_dom('#native-link');void 0`);await wait(link_visible);
+  await evaluate('files.fs.promises.readdir=old_readdir;release_scan();void 0');await wait(`search_panel.container.dataset.state==='ready'`);assert(await evaluate(link_visible));
+  checks.push('running search completes without replacing a newer selected-link preview');
+  await evaluate(`window.panel_instance=sidebar.activePanel;window.old_git_status=panel_instance.read_git_status;window.failure_gate=new Promise(resolve=>window.release_failure=resolve);panel_instance.only_changed=true;panel_instance.read_git_status=async()=>{await failure_gate;return{statuses:new Map()}};void search_panel.search({query:'needle'});void 0`);
+  await evaluate(`select_dom('#native-link');void 0`);await wait(link_visible);await evaluate('release_failure();void 0');await wait(`search_panel.container.dataset.state==='error'`);assert(await evaluate(link_visible));
+  await evaluate('panel_instance.read_git_status=old_git_status;panel_instance.only_changed=false;void search_panel.search({query:"needle"});void 0');await wait(`search_panel.container.dataset.state==='ready'`);assert(await evaluate(`document.querySelector('.workspace-link-preview').hidden`));
+  checks.push('search failure preserves newer link preview, while explicit new search returns ownership to search results');
   fs.writeFileSync(path.join(root,'lookup.png'),(await test_window.webContents.capturePage()).toPNG());
   assert.deepEqual(Object.fromEntries(Object.keys(documents).map(name=>[name,fs.readFileSync(path.join(workspace,name),'utf8')])),documents);
   console.log(JSON.stringify({status:'PASS',checks,native_css_sources,preview_geometry,narrow_geometry,evidence:root},null,2));await evaluate('search_panel.dispose()');

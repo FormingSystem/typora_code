@@ -1800,6 +1800,11 @@ body .workspace-section-header > .workspace-section-actions {margin-right:0;}
 .workspace-lookup-preview-body .git-diff-toolbar,.workspace-lookup-preview-body .git-diff-labels{display:none}
 .workspace-lookup-preview-body .git-monaco-body{flex:1;min-height:0}
 .workspace-lookup-preview-message{padding:10px;font-size:12px}
+.workspace-link-preview,.workspace-link-preview-content{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;height:100%}
+.workspace-link-preview[hidden]{display:none}
+.workspace-link-preview-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.workspace-link-web{flex:1;width:100%;min-height:0;border:0;background:white}
 
 /* workspace_native_toolbar.css */
 /* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */

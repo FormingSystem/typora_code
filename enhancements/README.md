@@ -71,6 +71,8 @@ npm run check:ui
 
 跳转正文预览直接依赖固定版本的 Marked `14.0.0`（MIT）与 DOMPurify `3.4.14`（Apache-2.0 或 MPL-2.0）；清单、锁文件及构建所用版本一致，Monaco 的同名传递依赖也使用锁定版本。构建在 bundle 开头保留完整许可证，普通安装不另行下载这两个包。
 
+链接选择与右键由 `workspace_link_selection.ts` 接入搜索侧栏和现有编辑组；两个方向复用同一 `workspace_link_preview.ts`，目标及网络读取由 `workspace_link_target.ts` 所有。网页仅显示隔离的静态只读快照，取消/失败不切换中央文件；本地文件可通过“打开源文件”进入普通编辑器。详细交互和边界见[链接预览](../docs/link_preview.md)。
+
 搜索面板由 `workspace_search.ts` 统一承担，`workspace_selection_search.ts` 连接选中文字的 Ctrl 加左键动作，`workspace_lookup_preview.ts` 展示下方内容；`workspace_markdown_location.ts` 负责原生 Markdown 行列定位。修改这一入口时，需要核对“单击预览、双击打开”、Markdown 原生渲染、中央位置保持、预览收放、缩放持久化和分界线拖动，并同步预构建及安装功能标记。
 
 `workspace_markdown_preview_render.ts` 负责围栏高亮和隔离的 Mermaid 预览；图表从当前 Typora 安装的 `lib.asar/diagram/mermaid.min.js` 加载到独立 iframe，不调用中央文档共享的 Mermaid 实例，也不需要联网下载图表库。Windows Typora `1.14.9` 的随附库已核对为 Mermaid `11.13.0`。`workspace_editor_status.ts` 将活动源码或差异编辑器的状态控件挂到唯一全局底栏，切换标签、分组或差异左右两侧后更新归属。

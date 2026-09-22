@@ -1,0 +1,123 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R069"
+  ],
+  "version": "2026.09.22.4",
+  "baseline": "30b86bb539e50f92f5bafa00c3f85119fb8322c8",
+  "implementation": "侧栏链接选择与左右/上下分屏共用只读预览；本地打开源文件进入编辑；网页隔离快照",
+  "build": {
+    "manifest_sha256": "b1db8f177636ad4e8ce9c227dfeaf8796be95631dc22417e4e824ccf430a99d6",
+    "workbench_sha256": "db517b24ad7bf7f138ac6ece9719d07965654be429a35b38368be93d268a60b6"
+  },
+  "validation": {
+    "build": "PASS",
+    "check": "PASS",
+    "catalog_suites": 174,
+    "ui": [
+      "test_workspace_link_preview.cjs",
+      "test_workspace_lookup_preview.cjs",
+      "test_workspace_selection_search.cjs",
+      "test_workspace_switch.cjs",
+      "test_markdown_color.cjs"
+    ],
+    "link_ui_checks": 18,
+    "network": "真实本地HTTP：重定向、503、大文档、迟到取消；不运行网页脚本",
+    "native": {
+      "status": "PASS",
+      "checks": 70,
+      "iterations": 20,
+      "samples": [
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 25.600000381469727
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 25.599998474121094
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "viewport": {
+            "width": 1666,
+            "height": 1034,
+            "dpi": 1.25,
+            "zoom": 1
+          },
+          "asset_sha256": "db517b24ad7bf7f138ac6ece9719d07965654be429a35b38368be93d268a60b6"
+        }
+      ],
+      "checks_sha256": "4d0961605fecbe409c4cbf5ba73826a57e41df22664def8b7e0a812acd9bb59f",
+      "fixture": "enhancements/fixtures/link_preview_native.js",
+      "case_id": "a14392dc5dcc4b2aaeda23334da9e624"
+    },
+    "search_preview_races": [
+      "queued query preserves newer link",
+      "running query preserves newer link",
+      "failed search preserves newer link",
+      "explicit new search restores result preview"
+    ],
+    "latest_check_log": ".cache/issue_tracking/link_preview_check_delivery_final.log"
+  },
+  "installation": {
+    "isolated_cycle": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_assertions": 65,
+    "local": "PASS",
+    "installed_assets": {
+      "workspace": 29,
+      "terminal": 24
+    },
+    "protected_matches": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "check": "OK",
+    "uninstall_preflight": "detach",
+    "user_windows_restarted": false
+  },
+  "failed_attempts": [
+    "第一次UI夹具把函数对象作为executeJavaScript返回值，触发不可克隆异常；修正夹具返回值后通过。",
+    "首次目录检查R069只登记独立章节，缺少索引表行；补齐稳定索引后通过。",
+    "原生前五次夹具混淆活动叶子标记、标签切换及正文所有者；使用真实toggleTab和原生/阅读栏分别定位后通过。",
+    "搜索时序新增夹具首次在加载期间读取尚不存在的正文节点；补齐等待条件后通过。"
+  ],
+  "limits": [
+    "网页为静态只读快照，登录及依赖脚本页面在系统浏览器使用；不声称完整浏览器交互。",
+    "原生测试通过renderer选择及菜单事件；物理鼠标和其他平台未覆盖。",
+    "私有桌面PrintWindow截图出现混合旧帧，已目视检查但不用于证明像素布局；主题和按钮几何由实际DOM记录。",
+    "隔离安装卸载不等同卸载后原始宿主启动；本机仅卸载只读预检，保留用户窗口。",
+    "Win10 PowerShell历史滚动问题继续按用户要求暂停，不属于本次修复。",
+    "真实公网样式兼容、15秒超时实等及多层重定向上限未在本次自动验收中逐项执行；本地HTTP覆盖获取、一次跳转、503、超限和取消。"
+  ]
+}
