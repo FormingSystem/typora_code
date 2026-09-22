@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R070"
+  ],
+  "version": "2026.09.22.12",
+  "assets": {
+    "SHA256SUMS": "6c88152d90ac029ebcdfbf10c7bc52fb478116dedb79a452303bbd1b13d246b0",
+    "workbench.js": "74a9706806fadafb70c108fab96bf23c5dc0ed9a973d994c5fe77059eba97a9f",
+    "terminal_runtime/SHA256SUMS": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d"
+  },
+  "checks": {
+    "full_check": "PASS",
+    "ui": "5 suites PASS: terminal_panel, terminal_geometry, terminal_theme, workspace_settings, terminal_conpty",
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "活动栏语义选择远程，不复用已显示的本地会话",
+        "连接和打开远程终端保留原本地PTY",
+        "实际Shell位于选定远端目录",
+        "真实SSH连续20轮命令输出",
+        "默认终端写入由独立SSH通道回读确认",
+        "原生拆分保留远端目录",
+        "原生重启仍在远端",
+        "断线默认新建不产生本机终端",
+        "本地原始Markdown保持原字节",
+        "认证未作为终端输出回显"
+      ],
+      "command_cycles": 20,
+      "asset_sha256": "74a9706806fadafb70c108fab96bf23c5dc0ed9a973d994c5fe77059eba97a9f",
+      "limits": "Windows原生宿主连接单一Linux虚拟机；身份和PTY真实执行，不表示其他远程工作区功能已接入"
+    },
+    "isolated_install_uninstall": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_regression": "PASS: 65 assertions with real Windows PowerShell 5.1",
+    "installed_assets": [
+      34,
+      24
+    ],
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "local_install": "PASS",
+    "local_uninstall": "read-only check only",
+    "running_user_windows": "not restarted"
+  },
+  "limits": [
+    "Linux virtual machine / Windows 11 native host only",
+    "Remote file/search/SCM/native Markdown integration and optional OS credential storage still pending",
+    "SSH terminal authentication remains interactive; no password persistence added"
+  ]
+}

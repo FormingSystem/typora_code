@@ -26,7 +26,7 @@ export class terminal_session {
       await new Promise<void>(resolve=>setTimeout(resolve,0));if(!current())return;
       if(this.resolve_cwd){const root=await this.resolve_cwd();if(!current())return;this.launch_root=root;this.resolve_cwd=undefined;}
       this.status="正在检测可用的 Shell…";this.changed();
-      await this.settings.ready();if(!current())return;
+      if(!this.launch_profile)await this.settings.ready();if(!current())return;
       const profile=this.launch_profile||this.settings.select_profile(this.profile.id);
       if(this.title===this.profile.title)this.title=profile.title;
       if(!this.profile.executable){this.icon=profile.icon||"terminal";this.color=profile.color||"";}

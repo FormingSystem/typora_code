@@ -186817,7 +186817,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         this.status = "\u6B63\u5728\u68C0\u6D4B\u53EF\u7528\u7684 Shell\u2026";
         this.changed();
-        await this.settings.ready();
+        if (!this.launch_profile) await this.settings.ready();
         if (!current()) return;
         const profile = this.launch_profile || this.settings.select_profile(this.profile.id);
         if (this.title === this.profile.title) this.title = profile.title;
@@ -198390,6 +198390,25 @@ https://creativecommons.org/licenses/by/4.0/
     window.dispatchEvent(new Event("typora-code-ssh-settings-changed"));
   }
 
+  // src/remote_workspace_context.ts
+  var read_context;
+  function register_remote_workspace_context(read2) {
+    if (read_context) throw Error("\u5F53\u524D\u7A97\u53E3\u5DF2\u6CE8\u518CSSH\u5DE5\u4F5C\u533A\u8EAB\u4EFD\u3002");
+    read_context = read2;
+    return () => {
+      if (read_context === read2) read_context = void 0;
+    };
+  }
+  function current_remote_workspace() {
+    const value = read_context?.();
+    return value ? { ...value } : void 0;
+  }
+  function require_remote_terminal_context() {
+    const value = current_remote_workspace();
+    if (value && (value.state !== "connected" || !value.remote_path)) throw Error("SSH\u5C1A\u672A\u8FDE\u63A5\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u65B0\u5EFA\u8FDC\u7A0B\u7EC8\u7AEF\uFF1B\u5982\u9700\u672C\u5730\u7EC8\u7AEF\uFF0C\u8BF7\u660E\u786E\u9009\u62E9\u672C\u5730\u914D\u7F6E\u3002");
+    return value;
+  }
+
   // src/terminal_workspace.ts
   var TERMINAL_TYPE = "linux_note.terminal";
   var icons = ["terminal", "git-branch", "folder", "file", "book", "symbol-method"];
@@ -198418,8 +198437,8 @@ https://creativecommons.org/licenses/by/4.0/
           { title: "\u91CD\u547D\u540D\u2026", separator: true, action: () => edit_identity("title", id) },
           { title: "\u66F4\u6539\u989C\u8272\u2026", action: () => edit_identity("color", id) },
           { title: "\u66F4\u6539\u56FE\u6807\u2026", action: () => edit_identity("icon", id) },
-          { title: "\u590D\u5236\u521D\u59CB\u5DE5\u4F5C\u76EE\u5F55", action: () => void host.copy(session.root).catch(fail) },
-          { id: "terminal_admin", title: "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u7EC8\u7AEF\uFF08UAC\uFF09", disabled: host.process_api.platform !== "win32", action: () => admin(session.root) },
+          { title: "\u590D\u5236\u521D\u59CB\u5DE5\u4F5C\u76EE\u5F55", action: () => void host.copy(session.launch_profile?.remote?.remote_path || session.root).catch(fail) },
+          { id: "terminal_admin", title: "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u7EC8\u7AEF\uFF08UAC\uFF09", disabled: host.process_api.platform !== "win32" || Boolean(session.launch_profile?.remote), action: () => admin(session.root) },
           { id: "terminal_restart", title: "\u91CD\u542F\u7EC8\u7AEF", separator: true, action: () => void session.start() },
           { id: "terminal_kill", title: "\u7EC8\u6B62\u7EC8\u7AEF", action: () => kill(id) },
           { title: "\u7EC8\u7AEF\u8BBE\u7F6E\u2026", separator: true, action: configure }
@@ -198455,7 +198474,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.setAttribute("aria-selected", String(session.id === active_id));
           row.dataset.session = session.id;
           row.draggable = true;
-          row.title = "".concat(session.title, "\n").concat(session.root, "\n").concat(session.state).concat(session.pid ? " \xB7 PID " + session.pid : "");
+          row.title = "".concat(session.title, "\n").concat(session.launch_profile?.remote?.remote_path || session.root, "\n").concat(session.state).concat(session.pid ? " \xB7 PID " + session.pid : "");
           const icon = git_icon(icons.includes(session.icon) ? session.icon : "terminal");
           if (session.color) icon.style.color = session.color;
           row.append(icon, workspace_element("span", "terminal-tab-label", session.title), workspace_element("span", "terminal-tab-state", session.state === "running" ? "" : session.state === "starting" ? "\u2026" : session.state === "error" ? "!" : "\u25CB"), git_icon_button("split-horizontal", "\u62C6\u5206\u7EC8\u7AEF", () => split(session.id)), git_icon_button("trash", "\u7EC8\u6B62\u7EC8\u7AEF", () => kill(session.id)));
@@ -198641,9 +198660,23 @@ https://creativecommons.org/licenses/by/4.0/
         activate(id);
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
-      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false, resolve_cwd, launch_profile) => (async () => {
+      const ssh_profile = (target, remote_path) => {
+        const api2 = runtime2.reqnode(host.path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
+        const executable = host.path_api.join(host.process_api.env.SystemRoot || "C:\\Windows", "System32", "OpenSSH", "ssh.exe");
+        return api2.remote_terminal_profile(target, remote_path, executable, read_remote_ssh_settings());
+      };
+      const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false, resolve_cwd, launch_profile, local = false) => (async () => {
         const epoch2 = workspace_context_epoch();
         if (lifetime.disposed || workspace_context_switching()) return;
+        if (!launch_profile && !local) {
+          const remote = require_remote_terminal_context();
+          if (remote) launch_profile = ssh_profile(remote.target, remote.remote_path);
+        }
+        if (launch_profile?.remote) {
+          root = runtime2._options.userDataPath;
+          explicit_cwd = true;
+          resolve_cwd = void 0;
+        }
         const profile = launch_profile || { id: program || settings.get().profile, title: "\u7EC8\u7AEF", executable: "", args: [] };
         const id = "terminal_" + ++serial2;
         let entry;
@@ -198687,7 +198720,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!entry) return;
         const root = settings.get().split_cwd === "workspace" ? host.workspace_path() : entry.session.root;
         if (entry.location === "editor") move("panel", id);
-        open(root, entry.session.profile.id, "panel", id, true, void 0, entry.session.launch_profile);
+        open(root, entry.session.profile.id, "panel", id, true, void 0, entry.session.launch_profile, true);
       };
       const join3 = (target, id = active_id) => {
         const entry = sessions.get(id), other = sessions.get(target);
@@ -198765,17 +198798,23 @@ https://creativecommons.org/licenses/by/4.0/
           void open(host.workspace_path(), "", settings.get().location, "", false, () => resolve_root(path));
           return;
         }
+        if (current_remote_workspace()) {
+          fail("\u5F53\u524D\u9009\u62E9SSH\u4E3B\u673A\uFF1B\u7BA1\u7406\u5458\u7EC8\u7AEF\u662F\u672C\u673AUAC\u64CD\u4F5C\u3002\u8FDC\u7A0B\u63D0\u6743\u8BF7\u5728\u8FDC\u7A0B\u7EC8\u7AEF\u6267\u884C\u3002");
+          return;
+        }
         const epoch2 = workspace_context_epoch();
         void resolve_root(path).then((root) => {
           if (!lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch()) admin(root);
         }).catch(fail);
       };
       const toggle = () => {
-        if (panel.visible) {
+        const remote = current_remote_workspace();
+        const matches = (entry2) => entry2.location === "panel" && (remote ? entry2.session.launch_profile?.remote?.target === remote.target : !entry2.session.launch_profile?.remote);
+        if (panel.visible && active() && matches(active())) {
           panel.hide();
           return;
         }
-        const entry = [...sessions.values()].find((item) => item.location === "panel");
+        const entry = [...sessions.values()].find(matches);
         if (entry) activate(entry.session.id);
         else launch();
       };
@@ -198789,9 +198828,11 @@ https://creativecommons.org/licenses/by/4.0/
           if (closed || lifetime.disposed) return;
           close();
           const profiles = settings.profiles();
+          const remote = current_remote_workspace();
           menu(event, [
-            ...profiles.map((profile) => ({ id: "terminal_profile_" + profile.id, title: profile.title, action: () => {
-              void open(host.workspace_path(), profile.id);
+            ...remote ? [{ id: "terminal_profile_remote", title: "SSH: " + remote.target, action: () => launch() }] : [],
+            ...profiles.map((profile) => ({ id: "terminal_profile_" + profile.id, title: (remote ? "\u672C\u5730\uFF1A" : "") + profile.title, action: () => {
+              void open(host.workspace_path(), profile.id, settings.get().location, "", false, void 0, void 0, true);
             } })),
             ...!profiles.length ? [{ title: "\u672A\u53D1\u73B0\u53EF\u7528\u7684 Shell", disabled: true, action: () => {
             } }] : [],
@@ -198868,9 +198909,7 @@ https://creativecommons.org/licenses/by/4.0/
       }));
       lifetime.listen(window, "linux-note-open-ssh-terminal", ((event) => {
         try {
-          const api2 = runtime2.reqnode(host.path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
-          const executable = host.path_api.join(host.process_api.env.SystemRoot || "C:\\Windows", "System32", "OpenSSH", "ssh.exe");
-          const profile = api2.remote_terminal_profile(event.detail.target, event.detail.remote_path, executable, read_remote_ssh_settings());
+          const profile = ssh_profile(event.detail.target, event.detail.remote_path);
           void open(host.workspace_path(), "", "panel", "", true, void 0, profile);
         } catch (error) {
           fail(error);
@@ -240929,6 +240968,7 @@ https://creativecommons.org/licenses/by/4.0/
     const views = /* @__PURE__ */ new Set();
     const git_views = /* @__PURE__ */ new Set();
     let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false, list_signature = "";
+    let remote_selected = false;
     let auth_dialog;
     const notice = (error) => {
       if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 7e3);
@@ -240989,6 +241029,11 @@ https://creativecommons.org/licenses/by/4.0/
       for (const control of [up_button, refresh_button, new_file, new_folder, terminal_button, git_button]) control.disabled = value.state !== "connected";
     } });
     const connected = () => service.state() === "connected";
+    const release_context = register_remote_workspace_context(() => remote_selected && target ? { target, remote_path: folder, state: service.state() } : void 0);
+    const local_context_changed = () => {
+      remote_selected = false;
+    };
+    window.addEventListener("linux-note-workspace-context-changed", local_context_changed);
     const require_connection = (owner = target) => {
       if (!connected() || target !== owner) throw Error("\u6B64\u6587\u6863\u6240\u5C5ESSH\u4E3B\u673A\u672A\u8FDE\u63A5\uFF1B\u8349\u7A3F\u4FDD\u7559\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u4FDD\u5B58\u3002");
     };
@@ -241017,7 +241062,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       input2.focus();
     });
-    const browse = async (next) => {
+    const browse = async (next, select = true) => {
       require_connection();
       const epoch2 = ++browse_epoch;
       status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0B\u76EE\u5F55\u2026";
@@ -241026,6 +241071,7 @@ https://creativecommons.org/licenses/by/4.0/
         const result = await service.request("list", { path: next });
         if (disposed || epoch2 !== browse_epoch) return;
         folder = result.path;
+        if (select) remote_selected = true;
         location.textContent = folder;
         location.title = folder;
         const signature = JSON.stringify(result);
@@ -241414,7 +241460,9 @@ https://creativecommons.org/licenses/by/4.0/
       api2.validate_target(next);
       if ([...views].some((view) => view.owner !== next)) throw Error("\u5207\u6362\u4E3B\u673A\u524D\u8BF7\u5148\u5173\u95ED\u5F53\u524D\u8FDC\u7A0B\u6807\u7B7E\u5E76\u5904\u7406\u8349\u7A3F\u3002");
       connecting = true;
+      remote_selected = true;
       target = next;
+      folder = "";
       try {
         const hello = await service.connect(target);
         if (disposed) return;
@@ -241522,7 +241570,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!seconds) return;
       refresh_timer = setTimeout(async () => {
         try {
-          if (connected() && folder && sidebar.isShown && sidebar.activePanel === panel && !list3.hasAttribute("aria-busy") && !mutating) await browse(folder);
+          if (connected() && folder && sidebar.isShown && sidebar.activePanel === panel && !list3.hasAttribute("aria-busy") && !mutating) await browse(folder, false);
         } catch {
         } finally {
           if (!disposed) schedule_refresh();
@@ -241535,6 +241583,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       files.assert_can_dispose();
       disposed = true;
+      release_context();
+      window.removeEventListener("linux-note-workspace-context-changed", local_context_changed);
       clearTimeout(refresh_timer);
       window.removeEventListener("typora-code-ssh-settings-changed", schedule_refresh);
       auth_dialog?.close();
@@ -242205,6 +242255,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092212,
+        version: "2026.09.22.12",
+        date: "2026-09-22",
+        notes: [
+          "\u8FDE\u63A5SSH\u540E\uFF0C\u7EC8\u7AEF\u56FE\u6807\u3001\u83DC\u5355\u3001\u65B0\u5EFA\u53CA\u5FEB\u6377\u952E\u9ED8\u8BA4\u6253\u5F00\u8FDC\u7A0BShell\u5E76\u8FDB\u5165\u5F53\u524D\u8FDC\u7AEF\u76EE\u5F55\uFF0C\u4E0D\u518D\u8BEF\u590D\u7528\u5DF2\u6709\u672C\u5730\u7EC8\u7AEF\u3002",
+          "\u62C6\u5206\u3001\u91CD\u542F\u548C\u79FB\u52A8\u4FDD\u7559\u539F\u4F1A\u8BDD\u8EAB\u4EFD\uFF1B\u65AD\u7EBF\u9ED8\u8BA4\u65B0\u5EFA\u660E\u786E\u62A5\u9519\uFF0C\u4E0D\u56DE\u843D\u672C\u5730\u3002\u9009\u62E9\u83DC\u5355\u63D0\u4F9B\u660E\u786E\u7684\u672C\u5730Shell\u5165\u53E3\u3002",
+          "\u8FDC\u7A0B\u7EC8\u7AEF\u4E0D\u518D\u7B49\u5F85\u672C\u673AShell\u63A2\u6D4B\uFF1B\u8D44\u6E90\u7BA1\u7406\u3001\u641C\u7D22\u3001SCM\u548C\u539F\u751FMarkdown\u7684\u5B8C\u6574\u8FDC\u7A0B\u63A5\u5165\u7EE7\u7EED\u5F00\u53D1\u3002"
+        ]
+      },
       {
         sequence: 2026092211,
         version: "2026.09.22.11",

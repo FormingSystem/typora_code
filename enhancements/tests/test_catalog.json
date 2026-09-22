@@ -6212,6 +6212,37 @@
         "回车产生真实历史，悬停可见；滚轮回看，上下键后完整宽度可命中；原始正文与用户环境保持"
       ],
       "timeout_ms": 120000
+    },
+    {
+      "id": "TC-remote-terminal-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_context.ts",
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_remote_ssh.ts"
+      ],
+      "related_modules": [
+        "SSH",
+        "PTY",
+        "终端"
+      ],
+      "script": "enhancements/fixtures/remote_terminal_native.js",
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "environment": "Windows原始Typora1.14.10隔离副本及Linux真实SSH",
+      "preconditions": "已信任测试主机；凭据仅由环境提供；随机远端临时目录",
+      "steps": [
+        "默认终端选择远端、已有本地进程保留、20轮命令及独立通道回读、拆分、重启、断线拒绝本地回落"
+      ],
+      "expected": [
+        "实际PTY在指定远端目录，原本地文档及会话保持，清理仅限测试目录"
+      ],
+      "timeout_ms": 120000
     }
   ]
 }

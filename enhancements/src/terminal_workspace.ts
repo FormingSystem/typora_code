@@ -20,6 +20,7 @@ import {create_terminal_layout} from "./terminal_layout";
 import {bind_terminal_tab_drag} from "./terminal_tab_drag";
 import {create_terminal_panel} from "./terminal_panel";
 import {read_remote_ssh_settings} from './remote_ssh_settings';
+import {current_remote_workspace,require_remote_terminal_context} from './remote_workspace_context';
 
 const TERMINAL_TYPE="linux_note.terminal";
 const icons:git_icon_name[]=["terminal","git-branch","folder","file","book","symbol-method"];
@@ -86,8 +87,16 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();entry.moving=false;activate(id);
     if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
   };
-  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config)=>(async()=>{
+  const ssh_profile=(target:string,remote_path:string):terminal_profile_config=>{
+    const api=runtime.reqnode(host.path_api.join(runtime._options.userDataPath,"typora_code","assets","remote","remote_ssh_service.cjs"));
+    const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
+    return api.remote_terminal_profile(target,remote_path,executable,read_remote_ssh_settings());
+  };
+  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
+    if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,remote.remote_path);}
+    // 本机工作目录仅供启动OpenSSH进程；远端目录由固定远程启动协议拥有。
+    if(launch_profile?.remote){root=runtime._options.userDataPath;explicit_cwd=true;resolve_cwd=undefined;}
     // 先建立真实会话与显示表面；配置探测由会话启动阶段等待。
     const profile=launch_profile||{id:program||settings.get().profile,title:"终端",executable:"",args:[]};
     const id="terminal_"+(++serial);let entry:session_entry;
@@ -100,7 +109,7 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();render();surface.mount();surface.focus();void session.start();return entry;
   })().catch(fail);
   const split=(id=active_id)=>{const entry=sessions.get(id);if(!entry)return;const root=settings.get().split_cwd==="workspace"?host.workspace_path():entry.session.root;
-    if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true,undefined,entry.session.launch_profile);};
+    if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true,undefined,entry.session.launch_profile,true);};
   const join=(target:string,id=active_id)=>{const entry=sessions.get(id),other=sessions.get(target);if(!entry||!other||entry===other)return;if(entry.location!=="panel")move("panel",id);entry.session.group=other.session.group;activate(id);};
   const detach=(id=active_id)=>{const entry=sessions.get(id);if(entry){entry.session.group="group_"+(++group_serial);activate(id);}};
   const admin=(root:string)=>{if(lifetime.disposed)return;try{const launch=administrator_launch(root,host.process_api,host.path_api);runtime.reqnode("child_process").execFile(launch.executable,launch.args,{cwd:root,windowsHide:true,shell:false},(error:Error|null)=>{if(error)fail("管理员终端未启动（UAC 可能已取消）："+error.message);});}catch(error){fail(error);}};
@@ -117,8 +126,8 @@ export function bind_terminal_workspace(host:graph_host){
       {title:"合并到…",disabled:join_targets.length===0,children:join_targets.map(item=>({title:item.session.title,action:()=>join(item.session.id,id)})),action:()=>{}},
       {title:entry.location==="panel"?"移动到编辑器区域":"移动到面板",action:()=>move(entry.location==="panel"?"editor":"panel",id)},
       {title:"重命名…",separator:true,action:()=>edit_identity("title",id)},{title:"更改颜色…",action:()=>edit_identity("color",id)},{title:"更改图标…",action:()=>edit_identity("icon",id)},
-      {title:"复制初始工作目录",action:()=>void host.copy(session.root).catch(fail)},
-      {id:"terminal_admin",title:"以管理员身份打开终端（UAC）",disabled:host.process_api.platform!=="win32",action:()=>admin(session.root)},
+      {title:"复制初始工作目录",action:()=>void host.copy(session.launch_profile?.remote?.remote_path||session.root).catch(fail)},
+      {id:"terminal_admin",title:"以管理员身份打开终端（UAC）",disabled:host.process_api.platform!=="win32"||Boolean(session.launch_profile?.remote),action:()=>admin(session.root)},
       {id:"terminal_restart",title:"重启终端",separator:true,action:()=>void session.start()},
       {id:"terminal_kill",title:"终止终端",action:()=>kill(id)},
       {title:"终端设置…",separator:true,action:configure},
@@ -139,7 +148,7 @@ export function bind_terminal_workspace(host:graph_host){
       const position=entries.filter(item=>item.session.group===session.group).indexOf(entry),existing=[...group.children].filter(node=>node.matches(".linux-note-terminal"))[position];
       if(existing!==surface.container)group.insertBefore(surface.container,existing||null);surface.mount();
       const row=el("div","terminal-tab");row.setAttribute("role","tab");row.tabIndex=session.id===active_id?0:-1;row.setAttribute("aria-selected",String(session.id===active_id));row.dataset.session=session.id;row.draggable=true;
-      row.title=`${session.title}\n${session.root}\n${session.state}${session.pid?" · PID "+session.pid:""}`;
+      row.title=`${session.title}\n${session.launch_profile?.remote?.remote_path||session.root}\n${session.state}${session.pid?" · PID "+session.pid:""}`;
       const icon=git_icon(icons.includes(session.icon as git_icon_name)?session.icon as git_icon_name:"terminal");if(session.color)icon.style.color=session.color;
       row.append(icon,el("span","terminal-tab-label",session.title),el("span","terminal-tab-state",session.state==="running"?"":session.state==="starting"?"…":session.state==="error"?"!":"○"),git_icon_button("split-horizontal","拆分终端",()=>split(session.id)),git_icon_button("trash","终止终端",()=>kill(session.id)));
       row.onclick=event=>{if(!(event.target as Element).closest("button"))activate(session.id);};row.oncontextmenu=event=>menu(event,session_menu(session.id));row.ondblclick=()=>edit_identity("title",session.id);
@@ -160,14 +169,21 @@ export function bind_terminal_workspace(host:graph_host){
   const resolve_root=async(path?:string)=>{let cwd=path||host.workspace_path();if(!host.fs.statSync(cwd).isDirectory())cwd=host.path_api.dirname(cwd);if(!path)return cwd;try{return(await host.runner({git_path:"git"} as Parameters<graph_host["runner"]>[0]).run(cwd,["rev-parse","--show-toplevel"])).trim();}catch{return cwd;}};
   const launch=(admin_mode=false,path?:string)=>{
     if(!admin_mode){void open(host.workspace_path(),"",settings.get().location,"",false,()=>resolve_root(path));return;}
+    if(current_remote_workspace()){fail('当前选择SSH主机；管理员终端是本机UAC操作。远程提权请在远程终端执行。');return;}
     const epoch=workspace_context_epoch();void resolve_root(path).then(root=>{if(!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch())admin(root);}).catch(fail);
   };
-  const toggle=()=>{if(panel.visible){panel.hide();return;}const entry=[...sessions.values()].find(item=>item.location==="panel");if(entry)activate(entry.session.id);else launch();};
+  const toggle=()=>{
+    const remote=current_remote_workspace();
+    const matches=(entry:session_entry)=>entry.location==='panel'&&(remote?entry.session.launch_profile?.remote?.target===remote.target:!entry.session.launch_profile?.remote);
+    if(panel.visible&&active()&&matches(active()!)){panel.hide();return;}
+    const entry=[...sessions.values()].find(matches);if(entry)activate(entry.session.id);else launch();
+  };
   const profile_menu=(event:MouseEvent,refresh=false)=>{
     let closed=false;const close=menu(event,[{title:"正在检测已安装的 Shell…",disabled:true,action:()=>{}}],()=>{closed=true;});
     void (refresh?settings.refresh():settings.ready()).then(()=>{
       if(closed||lifetime.disposed)return;close();const profiles=settings.profiles();
-      menu(event,[...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:profile.title,action:()=>{void open(host.workspace_path(),profile.id);}})),
+      const remote=current_remote_workspace();
+      menu(event,[...(remote?[{id:'terminal_profile_remote',title:'SSH: '+remote.target,action:()=>launch()}]:[]),...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:(remote?'本地：':'')+profile.title,action:()=>{void open(host.workspace_path(),profile.id,settings.get().location,'',false,undefined,undefined,true);}})),
         ...(!profiles.length?[{title:"未发现可用的 Shell",disabled:true,action:()=>{}}]:[]),
         ...settings.warnings().map(title=>({title,disabled:true,action:()=>{}})),
         {title:"重新检测终端",separator:true,action:()=>profile_menu(event,true)},
@@ -201,9 +217,7 @@ export function bind_terminal_workspace(host:graph_host){
   }));
   lifetime.listen(window,"linux-note-open-terminal",((event:CustomEvent<{path?:string;cwd?:string;admin?:boolean}>)=>{if(event.detail.cwd)open(event.detail.cwd,"",settings.get().location,"",true);else launch(Boolean(event.detail.admin),event.detail.path);}) as EventListener);
   lifetime.listen(window,"linux-note-open-ssh-terminal",((event:CustomEvent<{target:string;remote_path:string}>)=>{
-    try{const api=runtime.reqnode(host.path_api.join(runtime._options.userDataPath,"typora_code","assets","remote","remote_ssh_service.cjs"));
-      const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
-      const profile=api.remote_terminal_profile(event.detail.target,event.detail.remote_path,executable,read_remote_ssh_settings());
+    try{const profile=ssh_profile(event.detail.target,event.detail.remote_path);
       void open(host.workspace_path(),"","panel","",true,undefined,profile);
     }catch(error){fail(error);}
   }) as EventListener);

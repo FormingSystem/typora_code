@@ -66,6 +66,6 @@ function remote_terminal_profile(target,remote_path,executable,settings={}){
   validate_target(target);
   if(typeof remote_path!=='string'||!remote_path.startsWith('/')||remote_path.includes('\0')||remote_path.length>32768)throw Error('远程工作目录必须是绝对路径。');
   const quoted="'"+remote_path.replace(/'/g,"'\\''")+"'";
-  return {id:'ssh_remote',title:'SSH: '+target,executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
+  return {id:'ssh_remote',title:'SSH: '+target,remote:{target,remote_path},executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
 }
 module.exports={validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments};
