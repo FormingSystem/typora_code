@@ -5,3 +5,6 @@
 *.json text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
+enhancements/vendor/xterm/* text eol=lf
+enhancements/scripts/check_xterm_patch.mjs text eol=lf
+enhancements/vendor/source_symbols/LICENSE_package text eol=lf

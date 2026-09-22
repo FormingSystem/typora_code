@@ -1,0 +1,296 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R006.10",
+    "R025",
+    "R055"
+  ],
+  "date": "2026-09-22",
+  "candidate": "2026.09.22.9",
+  "base_commit": "6cd3329",
+  "environment": {
+    "os": "Windows 10 Pro 22H2 19045.7725",
+    "host": "Typora 1.14.10",
+    "shell": "Windows PowerShell",
+    "electron": "43.2.0",
+    "powershell_installer": "5.1"
+  },
+  "asset_manifest_sha256": "0beacd073e396eb4e99abff27eca0be79504cfc8564ac64114584d2202aa4a86",
+  "diagnosis": {
+    "trigger": "连续空回车提示符使用CSI S；普通换行编号输出不能覆盖",
+    "upstream": "xterm 6.0.0 SU直接删除滚出行",
+    "scope": "ConPTY普通缓冲全屏滚动区域；复用BufferService.scroll并保持保存光标屏幕行",
+    "vendor_sha256": "876c9e8b28b994d347a5be818bb48b85b5117ba8cc5e7d719e8db41e0c5200ba",
+    "baseline": [
+      {
+        "label": "repeated_enter_idle",
+        "width": 14,
+        "height": 334,
+        "top": 655.5750122070312,
+        "track_height": 334,
+        "opacity": "0",
+        "hit": "xterm-scrollable-element "
+      },
+      {
+        "label": "repeated_enter_hover",
+        "width": 14,
+        "height": 334,
+        "top": 655.5750122070312,
+        "track_height": 334,
+        "opacity": "0",
+        "hit": "xterm-scrollable-element "
+      },
+      {
+        "label": "repeated_enter_wheel",
+        "width": 14,
+        "height": 334,
+        "top": 655.5750122070312,
+        "track_height": 334,
+        "opacity": "0",
+        "hit": "xterm-scrollable-element "
+      },
+      {
+        "label": "repeated_enter_up",
+        "width": 14,
+        "height": 334,
+        "top": 655.5750122070312,
+        "track_height": 334,
+        "opacity": "0",
+        "hit": "xterm-scrollable-element "
+      },
+      {
+        "label": "repeated_enter_down",
+        "width": 14,
+        "height": 334,
+        "top": 655.5750122070312,
+        "track_height": 334,
+        "opacity": "0",
+        "hit": "xterm-scrollable-element "
+      }
+    ]
+  },
+  "checks": {
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "连续100次空回车产生真实历史滑块",
+        "悬停后历史滑块可见且可命中",
+        "连续空回车后滚轮可回看历史",
+        "repeated_enter_hover滑块左中右均可命中",
+        "repeated_enter_wheel滑块左中右均可命中",
+        "repeated_enter_up滑块左中右均可命中",
+        "repeated_enter_down滑块左中右均可命中",
+        "首次打开始终具有滚动条宽度"
+      ],
+      "samples": [
+        {
+          "label": "repeated_enter_idle",
+          "width": 14,
+          "height": 29,
+          "top": 687.5750122070312,
+          "track_height": 229,
+          "opacity": "0",
+          "hit": "xterm-scrollable-element ",
+          "hits": [
+            "xterm-scrollable-element ",
+            "xterm-scrollable-element ",
+            "xterm-scrollable-element "
+          ]
+        },
+        {
+          "label": "repeated_enter_hover",
+          "width": 14,
+          "height": 29,
+          "top": 687.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "repeated_enter_wheel",
+          "width": 14,
+          "height": 29,
+          "top": 668.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "repeated_enter_up",
+          "width": 14,
+          "height": 29,
+          "top": 687.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "repeated_enter_down",
+          "width": 14,
+          "height": 29,
+          "top": 687.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "first_output",
+          "width": 14,
+          "height": 20,
+          "top": 696.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "hover",
+          "width": 14,
+          "height": 20,
+          "top": 696.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "wheel",
+          "width": 14,
+          "height": 20,
+          "top": 690.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "arrow_up",
+          "width": 14,
+          "height": 20,
+          "top": 696.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        },
+        {
+          "label": "arrow_down",
+          "width": 14,
+          "height": 20,
+          "top": 696.5750122070312,
+          "track_height": 229,
+          "opacity": "1",
+          "hit": "slider",
+          "hits": [
+            "slider",
+            "slider",
+            "slider"
+          ]
+        }
+      ],
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "0beacd073e396eb4e99abff27eca0be79504cfc8564ac64114584d2202aa4a86",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "b5194e06ba28b2b1e89c90188a12909e5af25ca1bebafcd8248f80a39f10ac0c",
+        "early_fixture_sha256": "63b99a4f323420f6544d5d9baec0e355ee2b784dcf4ea93ae3e52c33d641f98d",
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      }
+    },
+    "ui": {
+      "terminal_conpty": "PASS：20/100/1000次SU完整行序、0/1/3/1000历史上限、两种光标保存恢复、清屏、擦除色、非ConPTY/替代屏幕/局部区域对照；真实Chromium滚轮/拖动/按键；20轮首次挂载状态",
+      "terminal_geometry": "PASS：54组缩放/字号/高度/状态条",
+      "terminal_panel": "PASS：31项生命周期、分屏、编辑组搬移、SSH项目身份",
+      "terminal_composition": "PASS：13项组合输入与Shift直接提交",
+      "workspace_scrollbars": "PASS：25项，20轮样式/节点稳定性"
+    },
+    "uninstall_assertions": 65,
+    "full_check": {
+      "status": "PASS",
+      "stages": 42,
+      "execution": "完整命令前24项通过；修正CMD长提示符回显折行断言后，从test_terminal继续18项全部通过，未重跑已通过Git事务",
+      "catalog_suites": 181
+    },
+    "isolated_install_uninstall": "PASS：最终同候选安装/检查/restore卸载/重装/检查/detach卸载/重装/检查；文档、设置、备份保持",
+    "actual_install": {
+      "window_equal_after_lf": true,
+      "assets": {
+        "terminal": 24,
+        "workspace": 34
+      },
+      "check": "OK",
+      "protected_bytes": {
+        "settings": true,
+        "theme": false,
+        "profile": true,
+        "asar": true,
+        "window": false
+      },
+      "running_windows_restarted": false,
+      "theme_equal_after_lf": true,
+      "uninstall": "read-only preflight restore"
+    },
+    "index_assets": "PASS：暂存区58项发行资产与候选及实际安装逐字节一致，xterm补丁字节未发生Git换行转换"
+  },
+  "first_attempts": [
+    "原始200行普通输出通过但不能复现空回车；真实100次回车证实SU历史缺失",
+    "第一次截图窗口大于屏幕导致右侧截断；原生运行器增加可选窗口尺寸，1600×950复跑可见完整滑块",
+    "Electron拖动夹具未携带leftButtonDown导致未形成拖动；补正确按下状态后通过",
+    "完整check初次因TEMP短路径与Git返回长路径不同失败；改用完整TEMP/TMP路径重跑",
+    "跨机autocrlf使两个许可证发布字节不同；固定来源换行与构建规范化，最终同候选重新验证",
+    "CMD长临时路径使输入命令折行，旧断言错误要求标记出现两次；改为剥离CSI后匹配独立实际输出行，再继续剩余18项检查"
+  ],
+  "limits": [
+    "真实Shell运行在原始Typora独立副本，输入由renderer事件发起；拖动与键盘由Electron真实Chromium事件验证，不宣称物理鼠标/搜狗验收",
+    "Git Bash默认提示符性能按用户明确要求撤回；其他平台不以Win10参数测试代替",
+    "隔离卸载使用宿主文件夹具，未在用户实际位置卸载；用户窗口未强制重启"
+  ],
+  "logs": {
+    "check_final.log": "9ef6aa7953c1eefd452abd43dd9a49d10c7eabeb96029f87bb5c2df90007b0c4",
+    "check_final_long_path.log": "27d7457ee469bcae688e59a641555e44a22eb389f0f49cffc2d1133166567e8f",
+    "check_remaining.log": "149538937e8432cb9f1856931874f699e1a7e31e5162abeea4380835b6bb583a",
+    "conpty_final.log": "5bcaa60a226a30462cd7ae5f2436559103ec76a630d4df8fcc4ceef4c884066d",
+    "install_final.log": "d100ab78613b5d2499a4a8f6b869a0b70f597e4c6317130ff31316ddffaf83ae",
+    "uninstall_candidate.log": "7c7661f9eb224efc1eb31c14f2b086d4acc07ae92bbef095b18e2181ded1d02f",
+    "local_install.log": "99720685eda78fe7125d85b9adcce07782c149c18802b160c814b97948ff87b0",
+    "local_check.log": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+    "local_preflight.log": "fe7e5badc99341e8b80d8b7d08198aa6079dd1cd06d30bdeed7dda3349d3199a"
+  }
+}

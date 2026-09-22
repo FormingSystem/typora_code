@@ -1,0 +1,14 @@
+{
+  "package": "@xterm/xterm",
+  "version": "6.0.0",
+  "license": "MIT",
+  "source": "https://github.com/xtermjs/xterm.js/tree/6.0.0",
+  "file": "lib/xterm.mjs",
+  "upstream_sha256": "b336ec65a086c056d4804b3d4c2347da5663d3f23c3f25be866467bd8857ad59",
+  "patch": "ConPTY normal full-screen CSI S preserves scrollback via BufferService.scroll; saved cursor remains at the same screen row, including at capacity.",
+  "reproduce": "node scripts/check_xterm_patch.mjs --write",
+  "verify": "node scripts/check_xterm_patch.mjs",
+  "related_issue": "https://github.com/xtermjs/xterm.js/issues/6010",
+  "related_unmerged_proposal": "https://github.com/xtermjs/xterm.js/pull/6011",
+  "scope": "Local independently scoped compatibility patch, not an upstream release. Non-ConPTY, alternate buffer and partial scroll regions retain upstream behavior."
+}

@@ -7,6 +7,9 @@ import { editor_plugins } from "./editor_bundle.cjs";
 import { build_workspace_core } from "./build_workspace_core.mjs";
 import { build_workspace_styles, static_workspace_css_plugin } from "./build_workspace_styles.mjs";
 import path from "node:path";
+import {check_xterm_patch} from "./check_xterm_patch.mjs";
+
+check_xterm_patch();
 
 // 已退休的首帧脚本不能残留在发布目录。
 fs.rmSync('dist/appearance_bootstrap.js',{force:true});
@@ -17,7 +20,9 @@ await build_workspace_styles({outdir: path.resolve("dist")});
 await build_source_symbol_assets(path.resolve("dist"));
 fs.mkdirSync("dist/licenses",{recursive:true});
 fs.copyFileSync("vendor/fontawesome/LICENSE.txt","dist/licenses/fontawesome.txt");
-fs.copyFileSync("vendor/vscode_quick_open/LICENSE.txt","dist/licenses/vscode_quick_open.txt");
+fs.writeFileSync("dist/licenses/vscode_quick_open.txt",fs.readFileSync("vendor/vscode_quick_open/LICENSE.txt","utf8").replace(/\r\n?/gu,"\n"));
+fs.copyFileSync("vendor/xterm/LICENSE","dist/licenses/xterm.txt");
+fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
 // 公告与后台辅助程序随同一资产清单安装，普通用户不依赖源码仓库或全局Node。
 const update_root="dist/assets/update";
 fs.mkdirSync(update_root,{recursive:true});

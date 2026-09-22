@@ -186897,7 +186897,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
-  // node_modules/@xterm/xterm/lib/xterm.mjs
+  // vendor/xterm/xterm.mjs
   /**
    * Copyright (c) 2014-2024 The xterm.js authors. All rights reserved.
    * @license MIT
@@ -194011,6 +194011,15 @@ https://creativecommons.org/licenses/by/4.0/
       return i && (i.deleteCells(this._activeBuffer.x, e.params[0] || 1, this._activeBuffer.getNullCell(this._eraseAttrData())), this._dirtyRowTracker.markDirty(this._activeBuffer.y)), true;
     }
     scrollUp(e) {
+      const buffer = this._activeBuffer;
+      if (this._optionsService.rawOptions.windowsPty.backend === "conpty" && buffer === this._bufferService.buffers.normal && buffer.scrollTop === 0 && buffer.scrollBottom === this._bufferService.rows - 1) {
+        const saved_row = buffer.savedY - buffer.ybase;
+        let count = Math.min(e.params[0] || 1, this._bufferService.rows);
+        while (count--) this._bufferService.scroll(this._eraseAttrData());
+        buffer.savedY = buffer.ybase + saved_row;
+        this._dirtyRowTracker.markRangeDirty(buffer.scrollTop, buffer.scrollBottom);
+        return true;
+      }
       let i = e.params[0] || 1;
       for (; i--; ) this._activeBuffer.lines.splice(this._activeBuffer.ybase + this._activeBuffer.scrollTop, 1), this._activeBuffer.lines.splice(this._activeBuffer.ybase + this._activeBuffer.scrollBottom, 0, this._activeBuffer.getBlankLine(this._eraseAttrData()));
       return this._dirtyRowTracker.markRangeDirty(this._activeBuffer.scrollTop, this._activeBuffer.scrollBottom), true;
@@ -241685,6 +241694,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092209,
+        version: "2026.09.22.9",
+        date: "2026-09-22",
+        notes: [
+          "\u4FEE\u590DWindows PowerShell\u8FDE\u7EED\u56DE\u8F66\u540E\u63D0\u793A\u7B26\u5386\u53F2\u4E22\u5931\u3001\u53F3\u4FA7\u8F93\u51FA\u6EDA\u52A8\u6761\u4E0D\u51FA\u73B0\u7684\u95EE\u9898\u3002",
+          "\u4FDD\u7559ConPTY\u666E\u901A\u7EC8\u7AEF\u7684\u5411\u4E0A\u6EDA\u52A8\u5386\u53F2\uFF0C\u53EF\u7528\u6EDA\u8F6E\u548C\u6ED1\u5757\u56DE\u770B\uFF1B\u5168\u5C4F\u5E94\u7528\u3001\u5C40\u90E8\u6EDA\u52A8\u533A\u4E0E\u6E05\u5C4F\u7EE7\u7EED\u6CBF\u7528\u539F\u6709\u884C\u4E3A\u3002"
+        ]
+      },
       {
         sequence: 2026092208,
         version: "2026.09.22.8",

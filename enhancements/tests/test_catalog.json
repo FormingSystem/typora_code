@@ -1542,7 +1542,8 @@
       "environment": "Node规则/临时工作区",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "长路径提示符下核对独立实际输出行，不把折行输入回显计作第二次输出"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -5732,7 +5733,9 @@
       "design": "docs/terminal_operations.md",
       "implementation": [
         "enhancements/src/terminal_surface.ts",
-        "enhancements/src/terminal_session.ts"
+        "enhancements/src/terminal_session.ts",
+        "enhancements/vendor/xterm/xterm.mjs",
+        "enhancements/scripts/check_xterm_patch.mjs"
       ],
       "related_modules": [
         "xterm",
@@ -5744,7 +5747,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行真实xterm与键盘滚轮事件，Win10兼容参数、DA1握手、重复尺寸、200次按键、200行滚动及TUI协议；20轮首次挂载前后/隐藏输出/重新挂载，对比上下键前后滑块"
+        "执行真实xterm与键盘滚轮事件，Win10兼容参数、DA1握手、重复尺寸、200次按键、200行滚动及TUI协议；20轮首次挂载前后/隐藏输出/重新挂载，对比上下键前后滑块",
+        "原版SU丢行对照；20/100/1000次ConPTY全屏SU完整行序；容量0/1/3/1000和两种光标保存恢复；替代屏幕/局部区域/非ConPTY语义、清屏、擦除背景与真实拖动"
       ],
       "expected": [
         "输入不重复、不自行续发；重复行格不发送resize；历史滚动与TUI归属保持"
@@ -6098,6 +6102,38 @@
         "git"
       ],
       "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "id": "TC-terminal-scrollbar-win10-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.10"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/vendor/xterm/xterm.mjs",
+        "enhancements/fixtures/terminal_scrollbar_setup.js"
+      ],
+      "related_modules": [
+        "xterm",
+        "conpty",
+        "scrollbars",
+        "powershell"
+      ],
+      "script": "enhancements/fixtures/terminal_scrollbar_native.js",
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "environment": "Windows 10 22H2 / 原始Typora1.14.10隔离副本 / Windows PowerShell",
+      "preconditions": "独立桌面、用户目录与工作区；首次打开前指定PowerShell，不修改用户Shell配置",
+      "steps": [
+        "连续100次空回车，再执行200行编号输出；按上下键前后采样滑块、滚轮和左中右命中；截图窗口应位于屏幕内"
+      ],
+      "expected": [
+        "回车产生真实历史，悬停可见；滚轮回看，上下键后完整宽度可命中；原始正文与用户环境保持"
+      ],
+      "timeout_ms": 120000
     }
   ]
 }

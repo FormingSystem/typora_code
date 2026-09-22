@@ -1,5 +1,5 @@
 ﻿# 在未切换的独立桌面运行专用宿主副本，只终止该副本的进程。
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -69,7 +69,7 @@ try {
  [void][isolated_desktop]::WaitForSingleObject($info.process,5000)
  $resize=[isolated_desktop+enum_windows]{param($hwnd,$state)
    $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
-   if($owner -eq $info.pid){$title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024);if($title.ToString().EndsWith(' - Typora')){[void][isolated_desktop]::MoveWindow($hwnd,0,0,2100,1300,$true)}}
+   if($owner -eq $info.pid){$title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024);if($title.ToString().EndsWith(' - Typora')){[void][isolated_desktop]::MoveWindow($hwnd,0,0,$window_width,$window_height,$true)}}
    return $true
  };[void][isolated_desktop]::EnumDesktopWindows($desktop,$resize,[IntPtr]::Zero)
  # 几何夹具先等外部布局阶段结束，不能把运行器改窗口尺寸误判为产品回归。

@@ -1,6 +1,7 @@
 import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
-import {Terminal,type IWindowsPty} from "@xterm/xterm";
+import type {Terminal,IWindowsPty} from "@xterm/xterm";
+import {Terminal as terminal_constructor} from "../vendor/xterm/xterm.mjs";
 import {FitAddon} from "@xterm/addon-fit";
 import {SearchAddon} from "@xterm/addon-search";
 import {git_icon_button} from "./git_icons";
@@ -17,7 +18,7 @@ export class terminal_surface {
   private lifetime=create_workspace_lifetime();private frame=0;private settings:terminal_settings;private find_bar=el("div","terminal-find");
   private opened=false;private progress=create_workspace_progress_view();private sent_cols=0;private sent_rows=0;
   constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void},windows_pty?:IWindowsPty){
-    this.settings=settings;this.term=new Terminal({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);
+    this.settings=settings;this.term=new terminal_constructor({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);
     // 与 VS Code 一样回应 ConPTY 的 DA1 握手，避免新版后端等待能力响应。
     if(windows_pty?.backend==="conpty")this.lifetime.own(this.term.parser.registerCsiHandler({final:"c"},params=>{if(!params.length||params.length===1&&params[0]===0){actions.input("\x1b[?61;4c");return true;}return false;}));
     this.term.loadAddon(this.fit);this.term.loadAddon(this.search);

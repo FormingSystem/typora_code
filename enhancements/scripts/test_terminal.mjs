@@ -36,7 +36,8 @@ try {
     executable: process.env.ComSpec, args: [], options: { cwd: root, cols: 90, rows: 25, env: terminal_environment(process.env), useConpty: true },
   }, { data(value) { text += value; terminal?.acknowledge(value.length); }, exit() { exited = true; }, error(message) { throw new Error(message); } });
   await wait(() => text.includes('Microsoft Windows'));
-  terminal.write('echo BROKER_' + 'ROUNDTRIP\r'); await wait(() => (text.match(/BROKER_ROUNDTRIP/gu) || []).length >= 2);
+  // 长路径提示符可能让输入回显折行；断言独立输出行，不依赖命令再次原样回显。
+  terminal.write('echo BROKER_' + 'ROUNDTRIP\r'); await wait(() => text.replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu,'').split(/\r?\n/u).some(line=>line.trim()==='BROKER_ROUNDTRIP'));
   terminal.resize(50, 15); terminal.write('echo %CD%\r'); await wait(() => text.includes("typora_terminal_'中文 & $()_"));
   terminal.write('exit\r'); await wait(() => exited);
   console.log('terminal: broker round trip, special-character cwd, resize, process exit, environment and UAC quoting passed (no elevation requested)');

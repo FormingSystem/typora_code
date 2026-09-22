@@ -459,7 +459,7 @@ Git Graph 的提交、分支、远端、标签、stash、未提交行、变更�
 
 ## 1.7\_终端运行文件、安装与验证
 
-Windows 集成终端要求 Windows 10 1903 或更新版本、x64 或 ARM64。已在 x64 Typora `1.14.9` 实测，ARM64 运行文件来自上游预构建，尚未完成 ARM64 实机验证。
+Windows 集成终端要求 Windows 10 1903 或更新版本、x64 或 ARM64。已在 x64 Typora `1.14.9` 实测，并在Windows 10 22H2 / Typora `1.14.10`完成PowerShell连续提示符与历史滚动回归，ARM64 运行文件来自上游预构建，尚未完成 ARM64 实机验证。
 
 安装器通过系统环境发现 Typora 和用户目录。前端依赖锁定为 xterm.js `6.0.0`、FitAddon `0.11.0`、SearchAddon `0.16.0`；node-pty `1.1.0` 的原始 JavaScript、MIT 许可证、Windows Node-API 模块及配套 ConPTY DLL/OpenConsole 保存于 `dist/terminal_runtime/`，由 `scripts/build_terminal_assets.mjs` 从锁定 npm 包生成并附 SHA-256 清单。安装器不编译本机模块，不下载或复制已安装 VS Code 的私有文件。ConPTY 1.23.251008001来自同一锁定node-pty包，Microsoft版权/MIT声明随运行文件保留，上游为[Windows Terminal](https://github.com/microsoft/terminal)。终端传入真实Windows后端信息并回应DA1，具体版本差异和Win10验收边界见[R006.10](../docs/terminal_operations.md#r00610-多shell输入积压与历史滚动2026-09-22)。
 
@@ -503,3 +503,7 @@ Git命令执行只占用所属仓库，确认后局部反馈进度与结果；SC
 
 
 2026-09-22 R071.1：SCM欢迎页独立呈现扫描、空仓、错误与就绪状态，初始化进度不依赖提交区可见性；主按钮共用主题颜色。操作及几何上游来源、分类验证和限制见[响应性设计](../docs/workspace_responsiveness.md)与[本次证据](tests/evidence/git_welcome_20260922.json)。
+
+### Win10 PowerShell连续回车历史（2026-09-22）
+
+2026.09.22.9在固定xterm 6.0.0中加入ConPTY全屏普通缓冲SU历史补丁，修复连续空回车提示符被直接删行的问题。`vendor/xterm/SOURCE.json`记录来源、原包摘要和可重现命令；构建校验原包与生成字节，MIT声明随发行清单安装。替代屏幕、局部滚动区、非ConPTY保持原语义，默认容量仍为1000行；详见[R006.10设计](../docs/terminal_operations.md#2026-09-22-win10-连续提示符的历史丢失)。

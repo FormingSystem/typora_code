@@ -186,7 +186,7 @@ R056继续修正BUG-startup-001：首帧控制旧范围只含原正文/侧栏，
 
 | 问题 | 根因与处理 | 验证边界 |
 | --- | --- | --- |
-| BUG-terminal-conpty-001 后端兼容信息缺失 | 原实现禁用配套DLL，xterm未获windowsPty；接入匹配DLL、真实系统build及DA1，去掉重复行格通知 | Windows 11真实Shell、Win10参数功能测试；用户Win10无滚动条现场尚未验收 |
+| BUG-terminal-conpty-001 后端兼容信息缺失 | 原实现禁用配套DLL，xterm未获windowsPty；接入匹配DLL、真实系统build及DA1，去掉重复行格通知 | Windows 11后端测试保留；Win10连续提示符缺陷已单独复现并修复，见下文R006.10记录 |
 | PERF-terminal-prompt-001 Git Bash默认提示符积压 | 100次输入单次转发，Git仓库默认提示符松键约4.9秒仍有输出；简单PS1隔离后无积压 | 用户2026-09-22确认原生Git Bash同样出现并撤销修复要求；停止处理，保留配置，不记为已修复 |
 | TEST-terminal-wheel-001 滚轮事件错误 | Chromium仅传deltaY时wheelDeltaY为0；补wheelTicksY及原生DOM完整数据 | 首次假失败保留，最终实际视口移动判定 |
 | TEST-terminal-assets-001 原生夹具使用旧后端 | 准备工具原先仅复制已安装运行文件；现覆盖当前发行清单并逐项校验 | 缺DLL的失败样本不是候选功能结论；最终前后端摘要同时登记 |
@@ -216,3 +216,7 @@ R071本次验证：上述Git模态、二次合并、全量DOM及仓库生命周�
 
 
 2026-09-22 R071.1复核：空仓欢迎页复用无更改透明度、初始化反馈归属隐藏区域，以及分区布局覆盖空仓状态，归入BUG-git-modal-001的状态呈现后续修复。SCM统一loading/empty/error/ready所有者；主题主按钮角色补齐默认颜色，初始化与提交共用。验证见本轮交付记录，缩放长帧问题保持独立未完成。
+
+## 2026-09-22 R006.10 Win10连续空回车丢失历史
+
+真实PowerShell提示符重绘使用CSI S，固定xterm的SU路径直接删除首行；普通换行的200行测试无法覆盖。补丁限定ConPTY普通全屏缓冲，使用同一历史滚动所有者；证据同时保留原版失败、20/100/1000行序测试与Win10原始宿主复现。上游尚未合并的提案不作为正式修复来源。分类证据见[本轮记录](../enhancements/tests/evidence/terminal_scrollbar_win10_20260922.json)。
