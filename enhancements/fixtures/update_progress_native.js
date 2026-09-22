@@ -10,9 +10,9 @@
  const document_file=path.join(base,'workspace/front.md'),before=fs.readFileSync(document_file,'utf8');
  const bars=()=>document.querySelectorAll('.git-graph-dialog [role=progressbar]');
  const popup=()=>document.querySelector('.git-graph-dialog-shade');
- let resolve_check,phase='starting',bytes,total_bytes,install_count=0;
+ let resolve_check,reject_check,check_count=0,phase='starting',bytes,total_bytes,install_count=0;
  try{
-  service.check_update=()=>new Promise(resolve=>resolve_check=resolve);
+  service.check_update=()=>new Promise((resolve,reject)=>{resolve_check=resolve;reject_check=reject;check_count++;});
   service.start_update=()=>{install_count++;return 'fixture-job';};
   service.status_of=()=>({phase,message:'原生进度验收：'+phase,bytes,total_bytes});
   service.cancel_update=()=>{phase='cancelled';};
@@ -41,6 +41,13 @@
    popup().querySelector('button').click();resolve_check(null);await pause(0);
   }
   assert(bars().length===0,'20次打开取消无遗留进度节点');
+  for(let i=0;i<20;i++){
+   core.app.commands.run('typora_code:check_update');await pause(0);reject_check(Error('原生重试验收：网络超时'));await pause(20);
+   const retry=[...popup().querySelectorAll('button')].find(b=>b.textContent==='重试');assert(!!retry,'失败存在重试按钮 '+i);
+   const rect=retry.getBoundingClientRect(),parent=retry.parentElement.getBoundingClientRect();assert(rect.width>0&&rect.height>0&&rect.left>=parent.left&&rect.right<=parent.right,'重试按钮完整位于操作区 '+i);
+   const prior=check_count;retry.click();retry.click();await pause(0);assert(check_count===prior+1&&bars().length===1&&!bars()[0].hidden,'重试立即检查且只发一次 '+i);
+   resolve_check(null);await pause(20);assert(popup().textContent.includes('最新发布版本'),'重试成功显示实际结果 '+i);popup().querySelector('button').click();
+  }
   assert(fs.readFileSync(document_file,'utf8')===before,'原生文档磁盘正文保持');
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio,zoom:reqnode('electron').webFrame.getZoomFactor()},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(user_data,'typora_code/workbench.js'))).digest('hex')});
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,limits:'真实宿主正式资产；服务替身阶段，无联网或实际安装，无物理输入'},null,2));

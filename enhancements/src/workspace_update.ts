@@ -19,7 +19,13 @@ export function bind_workspace_update(){
  type check_request={controller:AbortController;manual:boolean;dialog?:ReturnType<typeof workspace_dialog>};
  let active_check:check_request|undefined;
  const write_log=(error:unknown)=>{try{fs.mkdirSync(state_root,{recursive:true});fs.appendFileSync(path.join(state_root,"checks.log"),new Date().toISOString()+" "+String(error)+"\n","utf8");}catch{};};
- const message=(title:string,text:string)=>{dialog?.close();dialog=workspace_dialog(title,"关闭",()=>{dialog=undefined;});dialog.content.append(el("p","",text));};
+ const message=(title:string,text:string,can_retry=false)=>{
+  dialog?.close();const target=dialog=workspace_dialog(title,"关闭",()=>{if(dialog===target)dialog=undefined;});target.content.append(el("p","",text));
+  if(can_retry){const retry=workspace_button("重试",()=>{
+   if(disposed||dialog!==target||retry.disabled)return;
+   retry.disabled=true;target.close();void check(true);
+  });target.footer.append(retry);}
+ };
  function load(){
   // 每个窗口保留启动时的内存版本；安装成功不能冒充本窗口已经加载新版。
   current ||= service.release_info(bundled_release);
@@ -113,7 +119,7 @@ export function bind_workspace_update(){
      const job=service.start_update({state_root,installed_root,user_data,host_root:path.dirname(process.execPath),node_path,plan});show_progress(job);
     }catch(error){update.disabled=false;target.content.append(el("p","",String(error)));write_log(error);}
    });target.footer.append(update);
-  }catch(error){if(is_current()){write_log(error);if(request.manual){close_checking(request);message("检查更新失败",String(error)+"\n请检查网络连接后重试。");}}}
+  }catch(error){if(is_current()){write_log(error);if(request.manual){close_checking(request);message("检查更新失败",String(error)+"\n请检查网络连接后重试。",true);}}}
   finally{close_checking(request);if(active_check===request)active_check=undefined;}
  }
  const command=app.commands.register({id:"typora_code:check_update",title:"检查 Typora Code 更新",scope:"global",callback:()=>{void check(true);}});

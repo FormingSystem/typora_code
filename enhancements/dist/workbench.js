@@ -240272,6 +240272,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092202,
+        version: "2026.09.22.2",
+        date: "2026-09-22",
+        notes: [
+          "\u68C0\u67E5\u66F4\u65B0\u5931\u8D25\u6216\u8D85\u65F6\u540E\u53EF\u76F4\u63A5\u70B9\u51FB\u201C\u91CD\u8BD5\u201D\uFF0C\u7ACB\u5373\u663E\u793A\u68C0\u67E5\u8FDB\u5EA6\uFF0C\u65E0\u987B\u9000\u51FA\u5F39\u7A97\u91CD\u65B0\u6253\u5F00\u5E2E\u52A9\u83DC\u5355\u3002",
+          "\u91CD\u590D\u70B9\u51FB\u53CA\u5DF2\u5173\u95ED\u5F39\u7A97\u4E0D\u4F1A\u91CD\u590D\u53D1\u8D77\u68C0\u67E5\uFF0C\u4FDD\u7559\u53D6\u6D88\u3001\u952E\u76D8\u64CD\u4F5C\u548C\u65E7\u8BF7\u6C42\u9694\u79BB\u3002"
+        ]
+      },
+      {
         sequence: 2026092201,
         version: "2026.09.22.1",
         date: "2026-09-22",
@@ -240644,12 +240653,21 @@ https://creativecommons.org/licenses/by/4.0/
       }
       ;
     };
-    const message = (title, text3) => {
+    const message = (title, text3, can_retry = false) => {
       dialog2?.close();
-      dialog2 = workspace_dialog(title, "\u5173\u95ED", () => {
-        dialog2 = void 0;
+      const target = dialog2 = workspace_dialog(title, "\u5173\u95ED", () => {
+        if (dialog2 === target) dialog2 = void 0;
       });
-      dialog2.content.append(workspace_element("p", "", text3));
+      target.content.append(workspace_element("p", "", text3));
+      if (can_retry) {
+        const retry = workspace_button("\u91CD\u8BD5", () => {
+          if (disposed || dialog2 !== target || retry.disabled) return;
+          retry.disabled = true;
+          target.close();
+          void check(true);
+        });
+        target.footer.append(retry);
+      }
     };
     function load() {
       current ||= service.release_info(release_default);
@@ -240824,7 +240842,7 @@ https://creativecommons.org/licenses/by/4.0/
           write_log(error);
           if (request.manual) {
             close_checking(request);
-            message("\u68C0\u67E5\u66F4\u65B0\u5931\u8D25", String(error) + "\n\u8BF7\u68C0\u67E5\u7F51\u7EDC\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002");
+            message("\u68C0\u67E5\u66F4\u65B0\u5931\u8D25", String(error) + "\n\u8BF7\u68C0\u67E5\u7F51\u7EDC\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002", true);
           }
         }
       } finally {

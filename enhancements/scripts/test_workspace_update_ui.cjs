@@ -36,6 +36,21 @@ app.whenReady().then(async()=>{
  await evaluate("window.active_job=false;document.querySelector('[role=dialog] button').click();window.identity={commit:'b'.repeat(40),basis:'installed-archive'};commands.get('typora_code:check_update')()");await delay(30);await check("document.querySelector('[role=dialog]').textContent.includes('手动重启')",'同版本提交变化提示手动重启');await evaluate('window.identity=null');
  await evaluate('binding.dispose()');await check("!document.querySelector('[role=dialog]')&&commands.size===0",'销毁清理弹窗、命令及定时器');
  await evaluate("service.check_update=async()=>{throw Error('offline')};window.binding=update_qa.bind_workspace_update();commands.get('typora_code:check_update')()");await delay(30);await check("document.querySelector('[role=dialog]').textContent.includes('offline')",'手动失败展示错误');await evaluate("document.querySelector('[role=dialog] button').click();commands.get('typora_code:check_update')()");await delay(30);await check("document.querySelector('[role=dialog]').textContent.includes('offline')",'关闭失败弹窗后可以再次检查');await evaluate('binding.dispose()');
+ // 直接重试必须由真实按钮进入同一检查，不再要求先关闭结果窗。
+ await evaluate("window.retry_pending=[];service.check_update=(_current,options)=>new Promise((resolve,reject)=>retry_pending.push({resolve,reject,signal:options.signal}));window.binding=update_qa.bind_workspace_update();commands.get('typora_code:check_update')()");
+ for(let i=0;i<20;i++){
+  await evaluate(`retry_pending[${i}].reject(Error('offline retry'))`);await delay(20);
+  await check("[...document.querySelectorAll('button')].some(b=>b.textContent==='重试')&&[...document.querySelectorAll('button')].some(b=>b.textContent==='关闭')",'失败结果提供关闭及重试 '+i);
+  await evaluate("window.stale_retry=[...document.querySelectorAll('button')].find(b=>b.textContent==='重试')");
+  if(i===0){win.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await delay(20);await check("document.activeElement?.textContent==='重试'",'Tab可到达重试');win.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});await delay(20);}
+  else await evaluate('stale_retry.click()');
+  await evaluate('stale_retry.click();stale_retry.click()');
+  await check(`retry_pending.length===${i+2}&&document.querySelectorAll('[role=dialog]').length===1&&document.querySelector('[role=status]').textContent==='正在检查更新…'`,'重试立即显示进度且旧按钮/连点不重复请求 '+i);
+ }
+ await evaluate('retry_pending[20].resolve(null)');await delay(20);
+ await check("document.querySelector('[role=dialog]').textContent.includes('最新发布版本')&&![...document.querySelectorAll('button')].some(b=>b.textContent==='重试')",'重试成功替换结果并撤下重试');
+ await evaluate('binding.dispose();stale_retry.click()');
+ await check("retry_pending.length===21&&!document.querySelector('[role=dialog]')",'销毁后的旧重试按钮不能重新检查');
  // 可控慢响应验证点击当帧反馈及旧请求隔离；不连接真实更新服务器。
  await evaluate("window.pending=[];service.check_update=(_current,options)=>new Promise((resolve,reject)=>{pending.push({resolve,reject,signal:options.signal})});window.binding=update_qa.bind_workspace_update();commands.get('typora_code:check_update')()");
  await check("document.querySelector('[role=status]').textContent==='正在检查更新…'&&pending.length===1&&!pending[0].signal.aborted",'慢网络开始即显示状态及可取消检查');
