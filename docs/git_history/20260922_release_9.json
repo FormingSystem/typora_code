@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "version": "2026.09.22.9",
+  "requirements": ["R006.10", "R055"],
+  "repository": "https://github.com/FormingSystem/typora_code",
+  "integrated_remote_base": "6cd3329",
+  "integrated_remote_commits": 11,
+  "release_commit": "8eae4e9cf7ecedee47ff683c85b6080611175a00",
+  "push": "PASS：普通快进推送main，git ls-remote确认远端与发行提交一致；未强推",
+  "asset_manifest_sha256": "0beacd073e396eb4e99abff27eca0be79504cfc8564ac64114584d2202aa4a86",
+  "checks": {
+    "workspace_assets": 34,
+    "terminal_assets": 24,
+    "index_and_installed_bytes_match": true,
+    "local_install": "OK",
+    "local_uninstall": "只读预检restore，未在用户环境执行卸载",
+    "running_windows_restarted": false
+  },
+  "evidence": "enhancements/tests/evidence/terminal_scrollbar_win10_20260922.json",
+  "notes": [
+    "保留另一机器新增的Git、SSH远程、阅读和首次挂载回归；设计冲突保留历史反馈并追加Win10实机根因。",
+    "发布回执仅补充交付状态，不修改发行资产，不增加版本号。",
+    "保存文档后正常重启Typora加载修复；物理输入法和其他平台边界见本轮证据。"
+  ]
+}
