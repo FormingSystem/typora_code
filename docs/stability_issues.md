@@ -187,7 +187,7 @@ R056继续修正BUG-startup-001：首帧控制旧范围只含原正文/侧栏，
 | 问题 | 根因与处理 | 验证边界 |
 | --- | --- | --- |
 | BUG-terminal-conpty-001 后端兼容信息缺失 | 原实现禁用配套DLL，xterm未获windowsPty；接入匹配DLL、真实系统build及DA1，去掉重复行格通知 | Windows 11真实Shell、Win10参数功能测试；用户Win10无滚动条现场尚未验收 |
-| PERF-terminal-prompt-001 Git Bash默认提示符积压 | 100次输入单次转发，Git仓库默认提示符松键约4.9秒仍有输出；简单PS1隔离后无积压 | 尚未修复，继续定位提示符Git命令成本，不丢弃重复输入、不改个人配置 |
+| PERF-terminal-prompt-001 Git Bash默认提示符积压 | 100次输入单次转发，Git仓库默认提示符松键约4.9秒仍有输出；简单PS1隔离后无积压 | 用户2026-09-22确认原生Git Bash同样出现并撤销修复要求；停止处理，保留配置，不记为已修复 |
 | TEST-terminal-wheel-001 滚轮事件错误 | Chromium仅传deltaY时wheelDeltaY为0；补wheelTicksY及原生DOM完整数据 | 首次假失败保留，最终实际视口移动判定 |
 | TEST-terminal-assets-001 原生夹具使用旧后端 | 准备工具原先仅复制已安装运行文件；现覆盖当前发行清单并逐项校验 | 缺DLL的失败样本不是候选功能结论；最终前后端摘要同时登记 |
 
