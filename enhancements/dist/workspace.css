@@ -301,7 +301,7 @@
 .workspace-community-row>div:first-child {flex:1;min-width:0;overflow-wrap:anywhere;}
 .workspace-community-row p {margin:4px 0;}
 .workspace-community-message {min-height:1.4em;}
-.workspace-community-settings {max-height:65vh;overflow:auto;}
+
 .workspace-community-setting-list {display:flex;flex-direction:column;gap:6px;}
 
 .workspace-community-manager > input[type=search]{box-sizing:border-box;width:100%;flex:none;margin:6px 0;}
@@ -311,6 +311,19 @@
 .workspace-community-settings-navigation{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .workspace-community-message:empty{display:none;}
 .workspace-community-row strong{font:600 13px/1.5 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);}
+
+/* 官方社区2.10.23 SettingsModal几何；设置内容不属于工作台通用表单。 */
+.workspace-community-settings-root {position:fixed;inset:0;z-index:var(--typ-layer-modal,10000);display:flex;align-items:center;justify-content:center;background:rgba(var(--typ-light-bg-color,255,255,255),.4);}
+.workspace-community-settings-root>.typ-settings-modal {box-sizing:border-box;display:flex;flex-direction:column;width:90vw;height:85vh;padding:1rem;border:1px solid rgb(var(--typ-border-color,200,200,200));background:var(--bg-color,#fff);color:var(--text-color,#333);font-size:.875rem;box-shadow:0 1rem 2rem rgba(var(--typ-shadow-color,0,0,0),.5);}
+.workspace-community-settings-root .typ-modal__header {display:flex;align-items:center;justify-content:space-between;flex:none;padding-bottom:1.25rem;font-size:1.25rem;}
+.workspace-community-settings-root .typ-modal__body {display:flex;flex:1;min-height:0;overflow:hidden;}
+.workspace-community-settings-root .typ-main {flex:1;min-width:0;padding:0 1rem;overflow:auto;}
+.workspace-community-settings-root .typ-sidebar {flex:none;overflow:auto;border-right:1px solid rgb(var(--typ-border-color,200,200,200));}
+.workspace-community-settings-root .typ-nav__group-title {font-weight:300;color:var(--control-text-color,#888);}
+.workspace-community-settings-root .typ-nav__item {display:block;box-sizing:border-box;width:10rem;margin:0 .75rem 2px 0;padding:.3rem .8rem;border:0;border-radius:.25rem;font-size:.75rem;text-align:left;background:transparent;color:inherit;}
+.workspace-community-settings-root .typ-nav__item:hover {background:rgba(var(--typ-border-color,200,200,200),.35);}
+.workspace-community-settings-root .typ-nav__item.active {background:var(--control-text-color,#888);color:var(--side-bar-bg-color,#fff);opacity:.8;}
+.workspace-community-settings-close {display:flex;align-items:center;justify-content:center;padding:4px;border:0;background:transparent;color:inherit;}
 
 /* git_branch_picker.css */
 /* 固定QuickInput契约：普通22px、带detail44px、宽600px；引用和动作共用输入焦点。 */
@@ -1896,13 +1909,13 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-source-symbol:is([data-symbol-kind=variable],[data-symbol-kind=field],[data-symbol-kind=interface],[data-symbol-kind=enum-member])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-variableForeground,var(--outline-variable));}
 
 /* workspace_preferences.css */
-/* 原核心 bottom/fa-cog，48px 活动栏与原 fa::before 1.5rem（24px）槽位。 */
+/* 固定VS Code Codicons settings-gear；48px活动栏槽位与24px字形。 */
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger {
   appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
   flex:none;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:0;
   background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
 }
-.typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger svg {width:24px;height:24px;flex:none;}
 
 /* workspace_progress.css */
 .workspace-progress{position:relative;width:100%;height:2px;overflow:hidden;pointer-events:none;flex-shrink:0}
@@ -1954,7 +1967,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-ssh-document{display:flex;flex-direction:column;width:100%;height:100%;min-height:0;min-width:0;font:var(--linux-note-ui-font-size,13px)/1.4 var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
 .workspace-ssh-body{flex:1;min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column}.workspace-ssh-body>:is(.git-graph-document,.workspace-lookup-preview){flex:1;min-height:0}
 .workspace-ssh-document-status{overflow-wrap:anywhere}.workspace-ssh-auth-prompt{white-space:pre-wrap;overflow-wrap:anywhere}
-.workspace-ssh-git-status{white-space:pre-wrap;overflow-wrap:anywhere;max-height:50vh;overflow:auto;font-family:var(--monospace)}
+.workspace-ssh-git-status{flex:1;min-height:0;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;font-family:var(--monospace);margin:0;padding:6px 12px}
 
 /* workspace_scrollbars.css */
 /* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。
@@ -2081,6 +2094,26 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-search-match.is-selected { background:#0078d426; }
 .workspace-search-folder-scope:not([hidden]){display:flex;align-items:center;gap:4px;min-height:24px;border:1px solid var(--linux-note-shell-border,#e5e5e5);padding-left:6px;margin-bottom:4px}
 .workspace-search-folder-scope>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* workspace_settings_view.css */
+.workspace-settings{box-sizing:border-box;width:100%;max-width:1400px;margin:0 auto;overflow:hidden;display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;color:var(--text-color);background:var(--bg-color);font:var(--linux-note-ui-font-size,13px)/1.4 var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
+.workspace-settings>input{margin:14px 24px;flex:none;min-width:0}
+.workspace-settings-content{display:flex;flex:1;min-height:0;min-width:0}
+.workspace-settings-categories{flex:0 1 180px;min-width:80px;overflow:auto;padding:6px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.workspace-settings-body{flex:1;min-width:0;overflow:auto;padding:0 24px 20px}
+.workspace-settings .workspace-settings-body h2{font:600 26px/1.4 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:inherit;margin:16px 0 6px;padding:0;border:0;letter-spacing:normal;text-transform:none}.workspace-settings-scope{overflow-wrap:anywhere;color:var(--control-text-color)}
+.workspace-setting-row{display:flex;flex-wrap:wrap;align-items:start;gap:8px;border-bottom:1px solid var(--workspace-border-color,#8883);padding:12px 0}
+.workspace-setting-label{display:flex;flex:1;flex-direction:column;min-width:100px;gap:6px;overflow-wrap:anywhere}
+.workspace-setting-label small{color:var(--control-text-color)}
+.workspace-setting-label :is(input:not([type=checkbox]),select,textarea){box-sizing:border-box;width:100%;max-width:480px;min-width:0}.workspace-setting-label input[type=checkbox]{align-self:flex-start}
+.workspace-setting-label textarea{min-height:75px}.workspace-setting-row>p{flex-basis:100%;margin:0}
+.workspace-settings-status{flex:none;margin:6px 12px;overflow-wrap:anywhere}
+.workspace-settings :is(button,input,select,textarea){font:inherit;color:inherit}.workspace-settings button{white-space:normal}
+
+.workspace-settings button{appearance:none;border:0;background:transparent;min-height:26px;padding:4px 8px;text-align:left}
+.workspace-settings button[aria-pressed=true]{font-weight:600;background:var(--item-hover-bg-color,#8882)}
+.workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
+.workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}
 
 /* workspace_sidebar_sash.css */
 /* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */

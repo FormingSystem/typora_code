@@ -5115,7 +5115,8 @@
       "domain": "workspace",
       "requirements": [
         "R057",
-        "R060"
+        "R060",
+        "R072"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
@@ -5134,7 +5135,8 @@
       ],
       "preconditions": "已构建候选，专用临时环境，无用户文档",
       "steps": [
-        "空安装自动市场、作者搜索、真实来源链接及平台禁用；安装转到已装并提示启用；齿轮真实设置与空态导航、同引用设置兼容、失败重试、迟到销毁"
+        "空安装自动市场、作者搜索、真实来源链接及平台禁用；安装转到已装并提示启用；齿轮真实设置与空态导航、同引用设置兼容、失败重试、迟到销毁",
+        "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖"
       ],
       "expected": [
         "共享对话框行为正确，状态由唯一服务拥有，迟到结果不重开窗口"
@@ -5963,7 +5965,8 @@
       "domain": "remote",
       "purpose": "implementation",
       "requirements": [
-        "R070"
+        "R070",
+        "R072"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -5985,7 +5988,8 @@
       "environment": "Windows OpenSSH / Linux Python3",
       "preconditions": "真实远端仅使用用户明确授权目标，凭据通过环境传递；仅创建清理随机临时目录",
       "steps": [
-        "真实SSH特殊目录、项目终端立即呈现/认证/20次命令/拆分/重启，远程Git状态，以及20轮编辑保存和断线冲突保护"
+        "真实SSH特殊目录、项目终端立即呈现/认证/20次命令/拆分/重启，远程Git状态，以及20轮编辑保存和断线冲突保护",
+        "统一设置与所有者直达修改回读、远程Git非模态复用/关闭与20轮刷新"
       ],
       "expected": [
         "全部断言通过且远程与本地无关文件保持"
@@ -6102,6 +6106,65 @@
         "git"
       ],
       "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "id": "TC-remote-ssh-agent-isolation",
+      "requirements": [
+        "R070"
+      ],
+      "level": "functional",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_remote_ssh_agent.py",
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_agent.py"
+      ],
+      "related_modules": [
+        "设置",
+        "SSH",
+        "文件服务"
+      ],
+      "steps": [
+        "慢Git时100轮文件读写先完成，重复Git请求忙碌反馈，真实空仓与嵌套仓"
+      ],
+      "expected": [
+        "操作隔离且配置唯一所有者，失败不覆盖状态"
+      ],
+      "environment": "Windows Python3/Git；隐藏Electron，Windows协议测试POSIX标志适配，不替代Linux真实SSH",
+      "preconditions": "已安装项目测试依赖",
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-workspace-settings",
+      "requirements": [
+        "R072",
+        "R070"
+      ],
+      "level": "functional",
+      "purpose": "implementation",
+      "script": "enhancements/scripts/test_workspace_settings.cjs",
+      "design": "docs/workspace_settings.md",
+      "implementation": [
+        "enhancements/src/workspace_settings_registry.ts",
+        "enhancements/src/workspace_settings_view.ts",
+        "enhancements/src/workspace_settings_sections.ts",
+        "enhancements/src/remote_ssh_settings.ts"
+      ],
+      "related_modules": [
+        "设置",
+        "SSH",
+        "文件服务"
+      ],
+      "steps": [
+        "三层入口、搜索、校验失败、默认值、作用域保护与100轮注册清理",
+        "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖"
+      ],
+      "expected": [
+        "操作隔离且配置唯一所有者，失败不覆盖状态"
+      ],
+      "environment": "Windows Python3/Git；隐藏Electron，Windows协议测试POSIX标志适配，不替代Linux真实SSH",
+      "preconditions": "已安装项目测试依赖",
+      "timeout_ms": 180000
     },
     {
       "id": "TC-terminal-scrollbar-win10-native",

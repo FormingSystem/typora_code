@@ -9,7 +9,7 @@
 .workspace-community-row>div:first-child {flex:1;min-width:0;overflow-wrap:anywhere;}
 .workspace-community-row p {margin:4px 0;}
 .workspace-community-message {min-height:1.4em;}
-.workspace-community-settings {max-height:65vh;overflow:auto;}
+
 .workspace-community-setting-list {display:flex;flex-direction:column;gap:6px;}
 
 .workspace-community-manager > input[type=search]{box-sizing:border-box;width:100%;flex:none;margin:6px 0;}
@@ -19,3 +19,16 @@
 .workspace-community-settings-navigation{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .workspace-community-message:empty{display:none;}
 .workspace-community-row strong{font:600 13px/1.5 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);}
+
+/* 官方社区2.10.23 SettingsModal几何；设置内容不属于工作台通用表单。 */
+.workspace-community-settings-root {position:fixed;inset:0;z-index:var(--typ-layer-modal,10000);display:flex;align-items:center;justify-content:center;background:rgba(var(--typ-light-bg-color,255,255,255),.4);}
+.workspace-community-settings-root>.typ-settings-modal {box-sizing:border-box;display:flex;flex-direction:column;width:90vw;height:85vh;padding:1rem;border:1px solid rgb(var(--typ-border-color,200,200,200));background:var(--bg-color,#fff);color:var(--text-color,#333);font-size:.875rem;box-shadow:0 1rem 2rem rgba(var(--typ-shadow-color,0,0,0),.5);}
+.workspace-community-settings-root .typ-modal__header {display:flex;align-items:center;justify-content:space-between;flex:none;padding-bottom:1.25rem;font-size:1.25rem;}
+.workspace-community-settings-root .typ-modal__body {display:flex;flex:1;min-height:0;overflow:hidden;}
+.workspace-community-settings-root .typ-main {flex:1;min-width:0;padding:0 1rem;overflow:auto;}
+.workspace-community-settings-root .typ-sidebar {flex:none;overflow:auto;border-right:1px solid rgb(var(--typ-border-color,200,200,200));}
+.workspace-community-settings-root .typ-nav__group-title {font-weight:300;color:var(--control-text-color,#888);}
+.workspace-community-settings-root .typ-nav__item {display:block;box-sizing:border-box;width:10rem;margin:0 .75rem 2px 0;padding:.3rem .8rem;border:0;border-radius:.25rem;font-size:.75rem;text-align:left;background:transparent;color:inherit;}
+.workspace-community-settings-root .typ-nav__item:hover {background:rgba(var(--typ-border-color,200,200,200),.35);}
+.workspace-community-settings-root .typ-nav__item.active {background:var(--control-text-color,#888);color:var(--side-bar-bg-color,#fff);opacity:.8;}
+.workspace-community-settings-close {display:flex;align-items:center;justify-content:center;padding:4px;border:0;background:transparent;color:inherit;}

@@ -5,6 +5,12 @@ function validate_target(target){
   if(typeof target!=='string'||!target||target.length>255||target.startsWith('-')||/\s/.test(target)||!/^([a-zA-Z0-9_.-]+@)?[a-zA-Z0-9_.:[\]-]+$/.test(target))throw Error('SSH主机应为配置别名或 user@hostname，不能包含命令参数。');
   return target;
 }
+function connection_arguments(settings={},tty=false){
+  const number=(key,fallback,min,max)=>{const value=settings[key]??fallback;if(!Number.isInteger(value)||value<min||value>max)throw Error('SSH配置无效：'+key);return value;};
+  const args=[tty?'-tt':'-T','-o','ConnectTimeout='+number('connect_timeout',15,1,300),'-o','ServerAliveInterval='+number('server_alive_interval',15,0,300),'-o','ServerAliveCountMax='+number('server_alive_count',3,1,10),'-o','StrictHostKeyChecking=ask'];
+  if(settings.config_file){if(typeof settings.config_file!=='string'||/[\0\r\n]/u.test(settings.config_file))throw Error('SSH配置文件路径无效');args.push('-F',settings.config_file);}
+  return args;
+}
 
 /** OpenSSH拥有配置和认证；该服务只拥有有限JSON文件协议与连接生命周期。 */
 function create_remote_ssh(options){
@@ -20,7 +26,8 @@ function create_remote_ssh(options){
   const request=(operation,values={})=>new Promise((resolve,reject)=>{
     if(!process_handle||!['connecting','connected'].includes(state))return reject(Error('SSH尚未连接，请先连接主机。'));
     if(pending.size>=32)return reject(Error('远程请求过多，请等待当前操作完成。'));
-    const id=++serial,timer=setTimeout(()=>{close('远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。');},30000);
+    const timeout=options.connection_options?.().request_timeout??30;
+    const id=++serial,timer=setTimeout(()=>{close('远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。');},Math.max(16,Math.min(300,timeout))*1000);
     pending.set(id,{resolve,reject,timer});process_handle.stdin.write(JSON.stringify({...values,id,operation})+'\n',error=>{if(error)close('SSH写入失败；当前草稿已保留。');});
   });
   const connect=async(target)=>{
@@ -39,7 +46,8 @@ function create_remote_ssh(options){
     const code=Buffer.from(agent).toString('base64');
     const command=`python3 -u -c 'import base64;exec(base64.b64decode("${code}"))'`;
     const env={...process.env,SSH_ASKPASS:options.node_path,SSH_ASKPASS_REQUIRE:'force',DISPLAY:'typora-code:0',NODE_OPTIONS:'--import '+JSON.stringify(require('node:url').pathToFileURL(path.join(options.asset_root,'remote_ssh_askpass.mjs')).href),TYPORA_SSH_AUTH_PORT:String(auth_server.address().port),TYPORA_SSH_AUTH_TOKEN:token};
-    process_handle=child_process.spawn(options.ssh_path||'ssh',['-T','-o','ConnectTimeout=15','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-o','NumberOfPasswordPrompts=1','-o','StrictHostKeyChecking=ask',target,command],{env,windowsHide:true,stdio:['pipe','pipe','pipe']});
+    const settings=options.connection_options?.()||{};
+    process_handle=child_process.spawn(settings.ssh_path||options.ssh_path||'ssh',[...connection_arguments(settings),'-o','NumberOfPasswordPrompts=1',target,command],{env,windowsHide:true,stdio:['pipe','pipe','pipe']});
     const child=process_handle;
     child.on('error',error=>{if(epoch===generation)close('无法启动SSH：'+error.message);});
     child.on('exit',()=>{if(epoch===generation)close(diagnostic.trim()||'SSH连接结束，请检查远程Python3及认证配置。');});
@@ -54,10 +62,10 @@ function create_remote_ssh(options){
   return {connect,request,disconnect:()=>close(),state:()=>state,dispose(){if(disposed)return;disposed=true;close();}};
 }
 /** 固定启动协议；远程目录只能作为单引号参数，不能展开本机配置模板。 */
-function remote_terminal_profile(target,remote_path,executable){
+function remote_terminal_profile(target,remote_path,executable,settings={}){
   validate_target(target);
   if(typeof remote_path!=='string'||!remote_path.startsWith('/')||remote_path.includes('\0')||remote_path.length>32768)throw Error('远程工作目录必须是绝对路径。');
   const quoted="'"+remote_path.replace(/'/g,"'\\''")+"'";
-  return {id:'ssh_remote',title:'SSH: '+target,executable,args:['-tt','-o','ConnectTimeout=15','-o','StrictHostKeyChecking=ask',target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
+  return {id:'ssh_remote',title:'SSH: '+target,executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
 }
-module.exports={validate_target,create_remote_ssh,remote_terminal_profile};
+module.exports={validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments};

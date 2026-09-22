@@ -1,7 +1,7 @@
-/* 原核心 bottom/fa-cog，48px 活动栏与原 fa::before 1.5rem（24px）槽位。 */
+/* 固定VS Code Codicons settings-gear；48px活动栏槽位与24px字形。 */
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger {
   appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
   flex:none;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:0;
   background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
 }
-.typ-ribbon > .group.bottom > .workspace-preferences-trigger .fa::before {font-size:24px;}
+.typ-ribbon > .group.bottom > .workspace-preferences-trigger svg {width:24px;height:24px;flex:none;}

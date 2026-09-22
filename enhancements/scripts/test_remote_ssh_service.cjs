@@ -1,9 +1,15 @@
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
-const {validate_target,create_remote_ssh,remote_terminal_profile}=require('../src/remote_ssh_service.cjs');
+const {validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments}=require('../src/remote_ssh_service.cjs');
 (async()=>{
+ const configured={config_file:'C:/SSH configs/个人 config',connect_timeout:45,server_alive_interval:0,server_alive_count:5};
+ assert.deepEqual(connection_arguments(configured),['-T','-o','ConnectTimeout=45','-o','ServerAliveInterval=0','-o','ServerAliveCountMax=5','-o','StrictHostKeyChecking=ask','-F',configured.config_file]);
+ for(const bad of [{connect_timeout:0},{connect_timeout:301},{connect_timeout:'15'},{server_alive_interval:-1},{server_alive_count:0},{server_alive_count:1.5},{config_file:'path\nProxyCommand bad'}])assert.throws(()=>connection_arguments(bad));
+ const configured_terminal=remote_terminal_profile('alias','/tmp','default-ssh',{...configured,ssh_path:'C:/SSH tools/ssh.exe'});
+ assert.equal(configured_terminal.executable,'C:/SSH tools/ssh.exe');
+ assert.deepEqual(configured_terminal.args.slice(0,-2),connection_arguments(configured,true));
  const launch=remote_terminal_profile('test-alias',"/tmp/中文 ' ${env:NOT_LOCAL} $(no-command)",'ssh.exe');
- assert.deepEqual(launch.args.slice(0,-1),['-tt','-o','ConnectTimeout=15','-o','StrictHostKeyChecking=ask','test-alias']);
+ assert.deepEqual(launch.args.slice(0,-1),['-tt','-o','ConnectTimeout=15','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-o','StrictHostKeyChecking=ask','test-alias']);
  assert.equal(launch.args.at(-1),"cd -- '/tmp/中文 '\\'' ${env:NOT_LOCAL} $(no-command)' && exec \"${SHELL:-/bin/sh}\" -l");
  for(const value of ['relative','/bad\0path',null])assert.throws(()=>remote_terminal_profile('alias',value,'ssh.exe'));
  assert.throws(()=>remote_terminal_profile('-oProxyCommand=bad','/tmp','ssh.exe'));

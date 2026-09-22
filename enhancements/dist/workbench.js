@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners5 = this._listeners;
-          const index = listeners5.indexOf(listener);
+          const listeners6 = this._listeners;
+          const index = listeners6.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners5[index] = void 0;
+          listeners6[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners5.length) {
+          if (this._size * compactionThreshold <= listeners6.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners5.length; i++) {
-              if (listeners5[i]) {
-                listeners5[n2++] = listeners5[i];
+            for (let i = 0; i < listeners6.length; i++) {
+              if (listeners6[i]) {
+                listeners6[n2++] = listeners6[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners5.length = n2;
+            listeners6.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners5 = dq.current._listeners;
+          const listeners6 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners5[dq.i++], dq.value);
+            this._deliver(listeners6[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -30481,8 +30481,8 @@ https://creativecommons.org/licenses/by/4.0/
                 inBrackets = true;
                 continue;
               case "}": {
-                const choices2 = splitGlobAware(braceVal, ",");
-                const braceRegExp = "(?:".concat(choices2.map((choice) => parseRegExp(choice)).join("|"), ")");
+                const choices = splitGlobAware(braceVal, ",");
+                const braceRegExp = "(?:".concat(choices.map((choice) => parseRegExp(choice)).join("|"), ")");
                 regEx += braceRegExp;
                 inBraces = false;
                 braceVal = "";
@@ -88104,7 +88104,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return _StandaloneNotificationService.NO_OP;
         }
-        prompt(severity, message, choices2, options2) {
+        prompt(severity, message, choices, options2) {
           return _StandaloneNotificationService.NO_OP;
         }
         status(message, options2) {
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners5 = [];
-          listeners5.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners5.push(value.onWillDispose(() => {
+          const listeners6 = [];
+          listeners6.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners6.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners5);
+            dispose(listeners6);
           }));
           return value;
         }
@@ -119009,11 +119009,11 @@ https://creativecommons.org/licenses/by/4.0/
           this.ctx = ensureNonNullable(this.canvas.domNode.getContext("webgpu"));
           if (!ViewGpuContext_1.device) {
             ViewGpuContext_1.device = GPULifecycle.requestDevice((message) => {
-              const choices2 = [{
+              const choices = [{
                 label: localize(82, "Use DOM-based rendering"),
                 run: () => this.configurationService.updateValue("editor.experimentalGpuAcceleration", "off")
               }];
-              this._notificationService.prompt(Severity2.Warning, message, choices2);
+              this._notificationService.prompt(Severity2.Warning, message, choices);
             }).then((ref) => {
               ViewGpuContext_1.deviceSync = ref.object;
               if (!ViewGpuContext_1._atlas) {
@@ -163508,8 +163508,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners5 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners5) listener();
+    const listeners6 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners6) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || snapshot.paths.length > 512 || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || path.length > 32767 || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -163539,8 +163539,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate,
       subscribe(listener) {
-        listeners5.add(listener);
-        return () => listeners5.delete(listener);
+        listeners6.add(listener);
+        return () => listeners6.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -163584,7 +163584,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners5.clear();
+        listeners6.clear();
         adapter.dispose();
       }
     };
@@ -182619,9 +182619,9 @@ https://creativecommons.org/licenses/by/4.0/
         const dialog2 = workspace_dialog("\u9009\u62E9\u8BED\u8A00\u6A21\u5F0F");
         const select = workspace_element("select");
         select.setAttribute("aria-label", "\u6587\u4EF6\u8BED\u8A00\u6A21\u5F0F");
-        const choices2 = new Map(FILE_LANGUAGE_RULES.filter((rule) => !rule.category || rule.category === "text").map((rule) => [rule.language, rule.label]));
-        choices2.set("plaintext", "\u7EAF\u6587\u672C");
-        for (const [value, label] of choices2) {
+        const choices = new Map(FILE_LANGUAGE_RULES.filter((rule) => !rule.category || rule.category === "text").map((rule) => [rule.language, rule.label]));
+        choices.set("plaintext", "\u7EAF\u6587\u672C");
+        for (const [value, label] of choices) {
           const option = workspace_element("option", "", label);
           option.value = value;
           select.append(option);
@@ -184391,13 +184391,13 @@ https://creativecommons.org/licenses/by/4.0/
     const label = (key2) => git_graph_text(key2, {}, locale);
     const field = (key2, title, optional3 = false) => ({ key: key2, title: label(title), optional: optional3 });
     const check = (key2, title, initial = false) => ({ key: key2, title: label(title), type: "boolean", initial });
-    const choice = (key2, title, choices2) => ({
+    const choice = (key2, title, choices) => ({
       key: key2,
       title: label(title),
       type: "choice",
-      choices: choices2,
-      choice_labels: Object.fromEntries(choices2.map((value) => [value, graph_action_choice_label(value, locale)])),
-      initial: choices2[0]
+      choices,
+      choice_labels: Object.fromEntries(choices.map((value) => [value, graph_action_choice_label(value, locale)])),
+      initial: choices[0]
     });
     const remote = field("remote", "action.field.remote");
     const branch = field("branch", "action.field.branch");
@@ -186330,7 +186330,7 @@ https://creativecommons.org/licenses/by/4.0/
     minimum_contrast: [1, 21],
     tab_stop_width: [1, 32, true]
   };
-  var choices = {
+  var terminal_setting_choices = {
     font_weight: ["normal", "bold"],
     cursor_style: ["block", "bar", "underline"],
     right_click: ["menu", "copy_paste", "paste"],
@@ -186357,8 +186357,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (ranges[key2]) {
         const [min, max, integer] = ranges[key2];
         if (typeof item !== "number" || !Number.isFinite(item) || item < min || item > max || integer && !Number.isInteger(item)) throw new Error("".concat(key2, " \u5FC5\u987B\u5728 ").concat(min, "\u2013").concat(max, " \u8303\u56F4\u5185\u3002"));
-      } else if (choices[key2]) {
-        if (!choices[key2].includes(item)) throw new Error(key2 + " \u7684\u9009\u9879\u65E0\u6548\u3002");
+      } else if (terminal_setting_choices[key2]) {
+        if (!terminal_setting_choices[key2].includes(item)) throw new Error(key2 + " \u7684\u9009\u9879\u65E0\u6548\u3002");
       } else if (typeof result[key2] === "boolean") {
         if (typeof item !== "boolean") throw new Error(key2 + " \u5FC5\u987B\u662F\u5E03\u5C14\u503C\u3002");
       } else if (typeof result[key2] === "string") {
@@ -186391,7 +186391,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners5 = /* @__PURE__ */ new Set();
+    const listeners6 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -186420,14 +186420,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners5) listener(structuredClone(current));
+        for (const listener of listeners6) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners5.add(listener);
-        return () => listeners5.delete(listener);
+        listeners6.add(listener);
+        return () => listeners6.delete(listener);
       },
       dispose() {
-        listeners5.clear();
+        listeners6.clear();
       }
     };
   }
@@ -186449,6 +186449,33 @@ https://creativecommons.org/licenses/by/4.0/
     const args = profile.args.map((value) => literal_profile ? value : expand(value));
     if (profile.wsl) args.push("--cd", resolved_cwd);
     return { executable: literal_profile ? profile.executable : expand(profile.executable), args, cwd: resolved_cwd, env: env2 };
+  }
+
+  // src/workspace_settings_registry.ts
+  var sections = /* @__PURE__ */ new Map();
+  var listeners4 = /* @__PURE__ */ new Set();
+  function notify_workspace_settings() {
+    for (const listener of listeners4) listener();
+  }
+  function register_workspace_settings(section) {
+    if (sections.has(section.id)) throw Error("\u8BBE\u7F6E\u5206\u7C7B\u5DF2\u767B\u8BB0\uFF1A" + section.id);
+    sections.set(section.id, section);
+    notify_workspace_settings();
+    return () => {
+      if (sections.get(section.id) === section) {
+        sections.delete(section.id);
+        notify_workspace_settings();
+      }
+    };
+  }
+  function workspace_settings_sections() {
+    return [...sections.values()];
+  }
+  function observe_workspace_settings(listener) {
+    listeners4.add(listener);
+    return () => {
+      listeners4.delete(listener);
+    };
   }
 
   // src/terminal_settings_view.ts
@@ -198278,6 +198305,38 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/remote_ssh_settings.ts
+  var REMOTE_SSH_DEFAULTS = { ssh_path: "", config_file: "", connect_timeout: 15, server_alive_interval: 15, server_alive_count: 3, request_timeout: 30, refresh_interval: 5 };
+  var KEY2 = "remote_ssh";
+  function validate_remote_ssh_settings(value) {
+    const input = value, result = { ...REMOTE_SSH_DEFAULTS };
+    for (const key2 of ["ssh_path", "config_file"]) {
+      const entry = input?.[key2] ?? "";
+      if (typeof entry !== "string" || /[\0\r\n]/u.test(entry)) throw Error("SSH\u8DEF\u5F84\u5FC5\u987B\u662F\u5355\u884C\u6587\u672C");
+      result[key2] = entry.trim();
+    }
+    for (const [key2, min, max] of [["connect_timeout", 1, 300], ["server_alive_interval", 0, 300], ["server_alive_count", 1, 10], ["request_timeout", 16, 300], ["refresh_interval", 0, 300]]) {
+      const entry = input?.[key2] ?? REMOTE_SSH_DEFAULTS[key2];
+      if (typeof entry !== "number" || !Number.isInteger(entry) || entry < min || entry > max) throw Error("".concat(key2, " \u5FC5\u987B\u4E3A ").concat(min, "\u2013").concat(max, " \u7684\u6574\u6570"));
+      result[key2] = entry;
+    }
+    return result;
+  }
+  function read_remote_ssh_settings() {
+    try {
+      return validate_remote_ssh_settings(get_workspace_app()?.settings.get(KEY2) || {});
+    } catch {
+      return { ...REMOTE_SSH_DEFAULTS };
+    }
+  }
+  function write_remote_ssh_setting(key2, value) {
+    if (!Object.hasOwn(REMOTE_SSH_DEFAULTS, key2)) throw Error("\u672A\u77E5SSH\u914D\u7F6E\u9879");
+    const settings = get_workspace_app()?.settings;
+    if (!settings) throw Error("\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA");
+    settings.set_and_save(KEY2, validate_remote_ssh_settings({ ...read_remote_ssh_settings(), [key2]: value }));
+    window.dispatchEvent(new Event("typora-code-ssh-settings-changed"));
+  }
+
   // src/terminal_workspace.ts
   var TERMINAL_TYPE = "linux_note.terminal";
   var icons = ["terminal", "git-branch", "folder", "file", "book", "symbol-method"];
@@ -198388,6 +198447,9 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.add(style.remove);
       const profile_service = lifetime.own(create_terminal_profile_service({ process_api: host.process_api, path_api: host.path_api, fs: host.fs, child_process: runtime2.reqnode("child_process") }));
       const settings = lifetime.own(create_terminal_settings(localStorage, profile_service));
+      const setting_titles = { profile: "\u9ED8\u8BA4Shell\u914D\u7F6E", profiles: "\u81EA\u5B9A\u4E49Shell\u914D\u7F6E\uFF08JSON\uFF09", cwd: "\u9ED8\u8BA4\u5DE5\u4F5C\u76EE\u5F55", env: "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", font_family: "\u5B57\u4F53\u7CFB\u5217", font_size: "\u5B57\u4F53\u5927\u5C0F", font_weight: "\u5B57\u91CD", line_height: "\u884C\u9AD8\u500D\u6570", letter_spacing: "\u5B57\u7B26\u95F4\u8DDD", cursor_style: "\u5149\u6807\u6837\u5F0F", cursor_blink: "\u5149\u6807\u95EA\u70C1", cursor_width: "\u5149\u6807\u5BBD\u5EA6", scrollback: "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", smooth_scrolling: "\u5E73\u6ED1\u6EDA\u52A8", scroll_sensitivity: "\u6EDA\u8F6E\u901F\u5EA6", fast_scroll_sensitivity: "Alt\u6EDA\u8F6E\u500D\u901F", minimum_contrast: "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", tab_stop_width: "\u5236\u8868\u7B26\u5BBD\u5EA6", right_click: "\u53F3\u952E\u64CD\u4F5C", copy_on_selection: "\u9009\u4E2D\u5373\u590D\u5236", confirm_multiline: "\u7C98\u8D34\u591A\u884C\u524D\u786E\u8BA4", tabs_location: "\u4F1A\u8BDD\u5217\u8868\u4F4D\u7F6E", tabs_hide: "\u81EA\u52A8\u9690\u85CF\u4F1A\u8BDD\u5217\u8868", split_cwd: "\u62C6\u5206\u540E\u7684\u5DE5\u4F5C\u76EE\u5F55", location: "\u9ED8\u8BA4\u7EC8\u7AEF\u4F4D\u7F6E" };
+      lifetime.add(register_workspace_settings({ id: "terminal", title: "\u7EC8\u7AEF", scope: () => "\u7528\u6237\u8BBE\u7F6E", defaults: terminal_defaults, fields: Object.keys(terminal_defaults).map((key2) => ({ key: key2, title: setting_titles[key2], choices: terminal_setting_choices[key2], description: ["profile", "profiles", "env", "cwd"].includes(key2) ? "Shell\u3001\u73AF\u5883\u4E0E\u521D\u59CB\u76EE\u5F55\u7684\u53D8\u66F4\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u4F1A\u8BDD\u65F6\u751F\u6548\u3002" : void 0 })), read: settings.get, write: (key2, value) => settings.update({ ...settings.get(), [key2]: value }) }));
+      lifetime.add(settings.subscribe(notify_workspace_settings));
       const sessions = /* @__PURE__ */ new Map(), groups = /* @__PURE__ */ new Map();
       let serial2 = 0, group_serial = 0, active_id = "", render_frame = 0;
       const panel = lifetime.own(create_terminal_panel(() => {
@@ -198755,7 +198817,7 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           const api2 = runtime2.reqnode(host.path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
           const executable = host.path_api.join(host.process_api.env.SystemRoot || "C:\\Windows", "System32", "OpenSSH", "ssh.exe");
-          const profile = api2.remote_terminal_profile(event.detail.target, event.detail.remote_path, executable);
+          const profile = api2.remote_terminal_profile(event.detail.target, event.detail.remote_path, executable, read_remote_ssh_settings());
           void open(host.workspace_path(), "", "panel", "", true, void 0, profile);
         } catch (error) {
           fail(error);
@@ -203542,13 +203604,13 @@ https://creativecommons.org/licenses/by/4.0/
         if (loading) return;
         const query = input.value.trim().toLocaleLowerCase();
         const actions = mode === "checkout" ? [{ id: "create", label: git_graph_text("checkout.create"), icon: "add" }, { id: "from", label: git_graph_text("checkout.create_from"), icon: "add" }, { id: "detached", label: git_graph_text("checkout.detach"), icon: "debug-disconnect" }] : [];
-        const choices2 = [];
+        const choices = [];
         for (const kind of ["local", "remote", "tag"]) {
           if (mode === "detached" && kind === "tag") continue;
           const group = refs.filter((ref) => ref.kind === kind && ref.label.toLocaleLowerCase().includes(query));
-          for (const [index, ref] of group.entries()) choices2.push({ id: ref.name, label: ref.label, icon: kind === "local" ? "git-branch" : kind === "remote" ? "cloud" : "tag", ref, group: index === 0 ? git_graph_text(kind === "local" ? "ref_picker.local" : kind === "remote" ? "ref_picker.remote" : "ref_picker.tags") : void 0 });
+          for (const [index, ref] of group.entries()) choices.push({ id: ref.name, label: ref.label, icon: kind === "local" ? "git-branch" : kind === "remote" ? "cloud" : "tag", ref, group: index === 0 ? git_graph_text(kind === "local" ? "ref_picker.local" : kind === "remote" ? "ref_picker.remote" : "ref_picker.tags") : void 0 });
         }
-        visible3 = query ? [...choices2, ...actions] : [...actions, ...choices2];
+        visible3 = query ? [...choices, ...actions] : [...actions, ...choices];
         for (const item of visible3) {
           const row = workspace_button("", () => void accept(item), "git-scm-ref-item git-branch-item");
           row.dataset.checkoutId = item.id;
@@ -203575,7 +203637,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.onmousemove = () => mark(item.id);
           list3.append(row);
         }
-        if (!choices2.length) status2.textContent = git_graph_text("checkout.empty");
+        if (!choices.length) status2.textContent = git_graph_text("checkout.empty");
         if (!visible3.some((item) => item.id === selected)) selected = visible3[0]?.id || "";
         mark(selected);
       };
@@ -228895,6 +228957,7 @@ https://creativecommons.org/licenses/by/4.0/
   ];
 
   // src/git_graph_panel.ts
+  var settings_serial = 0;
   var graph_dialog2 = (title) => workspace_dialog(title, git_graph_text("common.close"));
   var revision_label = (revision) => revision === WORKTREE ? git_graph_text("graph.revision.worktree") : revision === INDEX ? git_graph_text("graph.revision.index") : revision === EMPTY ? git_graph_text("graph.revision.empty") : revision;
   var short_revision_label = (revision) => revision === WORKTREE || revision === INDEX || revision === EMPTY ? revision_label(revision) : revision.slice(0, 8);
@@ -228990,7 +229053,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
       });
       this.key_handler = (event) => this.keydown(event);
+      this.release_settings = register_workspace_settings({ id: "git_" + ++settings_serial, title: "Git", scope: () => "\u4ED3\u5E93\uFF1A".concat(this.root), defaults: graph_defaults, fields: Object.keys(graph_defaults).map((key2) => ({ key: key2, title: settings_labels_for()[key2], choices: settings_choices[key2] })), read: () => ({ ...this.settings }), write: (key2, value) => this.apply_settings(validate_settings({ ...this.settings, [key2]: value }), this.root) });
     }
+    release_settings = () => {
+    };
     files_list;
     column_binding;
     context_directory;
@@ -229094,6 +229160,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.pending = false;
       this.writer.cancel();
       this.close_details();
+      this.release_settings();
       this.progress.dispose();
       for (const view of this.progress_views) view.dispose();
       this.progress_views = [];
@@ -229118,6 +229185,23 @@ https://creativecommons.org/licenses/by/4.0/
       localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings));
       this.progress.configure(this.settings.show_progress);
       window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings }));
+      notify_workspace_settings();
+    }
+    apply_settings(settings, root) {
+      if (this.disposed || this.writing || this.root !== root) throw new Error(git_graph_text("graph.operation_pending"));
+      const previous = this.settings;
+      this.settings = settings;
+      try {
+        this.persist_settings();
+      } catch (error) {
+        this.settings = previous;
+        throw error;
+      }
+      this.runner.cancel();
+      this.writer.cancel();
+      this.runner = this.host.runner(settings);
+      this.writer = this.host.runner(settings, true);
+      void this.refresh();
     }
     repository_paths(repos) {
       const found = /* @__PURE__ */ new Set();
@@ -229975,16 +230059,16 @@ https://creativecommons.org/licenses/by/4.0/
       const all_entries = (items) => items.flatMap((entry) => [entry, ...all_entries(entry.children || [])]);
       workspace_menu(event, [...filter_entries(entries3), { id: "configure_menu", title: git_graph_text("graph.configure_context_menu"), separator: true, action: () => {
         const dialog2 = graph_dialog2(git_graph_text("graph.context_menu_title", { kind: target_kind_label(kind) }));
-        const choices2 = /* @__PURE__ */ new Map();
+        const choices = /* @__PURE__ */ new Map();
         for (const entry of all_entries(entries3)) {
-          if (!entry.id || choices2.has(entry.id)) continue;
+          if (!entry.id || choices.has(entry.id)) continue;
           const label = workspace_element("label", "git-graph-filter", entry.title);
           const input = workspace_element("input");
           input.type = "checkbox";
           input.checked = !hidden(entry.id);
           input.setAttribute("data-action-id", entry.id);
           label.prepend(input);
-          choices2.set(entry.id, input);
+          choices.set(entry.id, input);
           dialog2.content.append(label);
         }
         dialog2.footer.prepend(workspace_button(git_graph_text("graph.apply"), () => {
@@ -229992,7 +230076,7 @@ https://creativecommons.org/licenses/by/4.0/
             dialog2.close();
             return;
           }
-          for (const [id, input] of choices2) {
+          for (const [id, input] of choices) {
             this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== kind + ":" + id);
             if (!input.checked) this.settings.hidden_actions.push(kind + ":" + id);
             else this.settings.hidden_actions = this.settings.hidden_actions.filter((value) => value !== id);
@@ -230004,7 +230088,7 @@ https://creativecommons.org/licenses/by/4.0/
             dialog2.close();
             return;
           }
-          this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices2.has(id));
+          this.settings.hidden_actions = this.settings.hidden_actions.filter((id) => !id.startsWith(kind + ":") && !choices.has(id));
           this.persist_settings();
           dialog2.close();
         }));
@@ -230387,20 +230471,8 @@ https://creativecommons.org/licenses/by/4.0/
       dialog2.content.append(form, error);
       const apply3 = (settings) => {
         if (this.disposed || this.writing || this.root !== root || !dialog2.root.isConnected) throw new Error(git_graph_text("graph.operation_pending"));
-        const previous = this.settings;
-        this.settings = settings;
-        try {
-          this.persist_settings();
-        } catch (problem) {
-          this.settings = previous;
-          throw problem;
-        }
-        this.runner.cancel();
-        this.writer.cancel();
-        this.runner = this.host.runner(settings);
-        this.writer = this.host.runner(settings, true);
+        this.apply_settings(settings, root);
         dialog2.close();
-        void this.refresh();
       };
       const file = workspace_element("input");
       file.type = "file";
@@ -231550,7 +231622,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_breadcrumbs_settings.ts
   var BREADCRUMB_DEFAULTS = Object.freeze({ enabled: true, file_path: "on", symbol_path: "on", icons: true, show_editor_type: true, symbol_sort_order: "position", symbol_path_separator: "." });
   var BREADCRUMB_KINDS = ["file", "module", "namespace", "package", "class", "method", "property", "field", "constructor", "enum", "interface", "function", "variable", "constant", "string", "number", "boolean", "array", "object", "key", "null", "enum-member", "struct", "event", "operator", "type-parameter"];
-  var KEY2 = "breadcrumbs";
+  var KEY3 = "breadcrumbs";
   var changed = /* @__PURE__ */ new Set();
   var dialog;
   var object = (v2) => v2 && typeof v2 === "object" && !Array.isArray(v2) ? v2 : {};
@@ -231560,7 +231632,7 @@ https://creativecommons.org/licenses/by/4.0/
     return runtime2.reqnode("process").platform === "win32" ? p.toLowerCase() : p;
   }
   function stored_settings() {
-    return object(get_workspace_app()?.settings.get(KEY2));
+    return object(get_workspace_app()?.settings.get(KEY3));
   }
   function clean(value) {
     const source = object(value), result = {};
@@ -231604,7 +231676,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!(key2 in valid)) throw new Error("\u914D\u7F6E\u503C\u65E0\u6548\u3002");
       Object.assign(target, valid);
     }
-    settings.set_and_save(KEY2, next);
+    settings.set_and_save(KEY3, next);
     for (const listener of changed) listener();
   }
   function set_breadcrumb_enabled(root, enabled) {
@@ -232250,10 +232322,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key2 = file_path + "\0" + workspace_root;
     let owner = entries3.get(key2);
     if (!owner) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners5 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners6 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners5) callback(state);
+        for (const callback of listeners6) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -232283,7 +232355,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner = { state, listeners: listeners5, refresh, dispose() {
+      owner = { state, listeners: listeners6, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -232292,7 +232364,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners5.clear();
+        listeners6.clear();
       } };
       entries3.set(key2, owner);
       refresh();
@@ -232983,23 +233055,9 @@ https://creativecommons.org/licenses/by/4.0/
     button.type = "button";
     button.className = "typ-ribbon-item workspace-preferences-trigger";
     button.dataset.id = "typora_code:preferences";
-    button.title = "\u504F\u597D\u8BBE\u7F6E";
+    button.title = "\u7BA1\u7406";
     button.setAttribute("aria-label", button.title);
-    const icon = document.createElement("i");
-    icon.className = "fa fa-cog";
-    icon.setAttribute("aria-hidden", "true");
-    button.append(icon);
-    const open_native = () => {
-      try {
-        const commands = window.ClientCommand;
-        if (!commands?.showPreferencePanel) throw new Error("Typora native preferences command is unavailable.");
-        commands.showPreferencePanel();
-        delete button.dataset.preferencesError;
-      } catch (error) {
-        button.dataset.preferencesError = String(error);
-        console.error("Typora Code preferences:", error);
-      }
-    };
+    button.append(git_icon("settings-gear"));
     let close_menu;
     button.setAttribute("aria-haspopup", "menu");
     button.setAttribute("aria-expanded", "false");
@@ -233011,8 +233069,7 @@ https://creativecommons.org/licenses/by/4.0/
       const plugins = Boolean(core.app.community_plugins);
       button.setAttribute("aria-expanded", "true");
       close_menu = workspace_menu(event, [
-        { title: "Typora \u504F\u597D\u8BBE\u7F6E\u2026", shortcut: "Ctrl+,", action: open_native },
-        { title: "\u63D2\u4EF6\u8BBE\u7F6E\u2026", disabled: !plugins, action: () => core.app.commands.run("typora_code:community_plugin_settings") },
+        { title: "\u8BBE\u7F6E", shortcut: "Ctrl+,", action: () => core.app.commands.run("typora_code:settings") },
         { title: "\u6269\u5C55\u2026", shortcut: "Ctrl+Shift+X", disabled: !plugins, action: () => core.app.commands.run("typora_code:community_plugins") }
       ], "workspace-preferences-menu", () => {
         close_menu = void 0;
@@ -238783,8 +238840,8 @@ https://creativecommons.org/licenses/by/4.0/
     "explorer.openEditors.enabled": true,
     "timeline.enabled": true
   });
-  var KEY3 = "workspace_files";
-  var listeners4 = /* @__PURE__ */ new Set();
+  var KEY4 = "workspace_files";
+  var listeners5 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -238802,18 +238859,18 @@ https://creativecommons.org/licenses/by/4.0/
     return result;
   }
   function read_workspace_save_settings() {
-    return normalize_workspace_save_settings(get_workspace_app()?.settings.get(KEY3));
+    return normalize_workspace_save_settings(get_workspace_app()?.settings.get(KEY4));
   }
   function set_workspace_save_settings(patch) {
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
-    settings.set_and_save(KEY3, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners4) listener();
+    settings.set_and_save(KEY4, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
+    for (const listener of listeners5) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners4.add(listener);
+    listeners5.add(listener);
     return () => {
-      listeners4.delete(listener);
+      listeners5.delete(listener);
     };
   }
   var current_dialog2;
@@ -238839,12 +238896,12 @@ https://creativecommons.org/licenses/by/4.0/
     ];
     const error = workspace_element("p");
     error.setAttribute("role", "status");
-    for (const [key2, title, choices2] of rows) {
-      const row = workspace_element("label", "workspace-save-setting"), label2 = workspace_element("span", "", title), control = choices2 ? workspace_element("select") : workspace_element("input");
+    for (const [key2, title, choices] of rows) {
+      const row = workspace_element("label", "workspace-save-setting"), label2 = workspace_element("span", "", title), control = choices ? workspace_element("select") : workspace_element("input");
       control.setAttribute("aria-label", title);
       control.title = key2;
       if (control instanceof HTMLSelectElement) {
-        for (const value of choices2) control.append(new Option({ off: "\u5173\u95ED", afterDelay: "\u5EF6\u8FDF\u4FDD\u5B58", onFocusChange: "\u7F16\u8F91\u5668\u5931\u7126\u65F6", onWindowChange: "\u7A97\u53E3\u5931\u7126\u65F6", editorOrder: "\u7F16\u8F91\u5668\u987A\u5E8F", alphabetical: "\u540D\u79F0", fullPath: "\u5B8C\u6574\u8DEF\u5F84" }[value], value));
+        for (const value of choices) control.append(new Option({ off: "\u5173\u95ED", afterDelay: "\u5EF6\u8FDF\u4FDD\u5B58", onFocusChange: "\u7F16\u8F91\u5668\u5931\u7126\u65F6", onWindowChange: "\u7A97\u53E3\u5931\u7126\u65F6", editorOrder: "\u7F16\u8F91\u5668\u987A\u5E8F", alphabetical: "\u540D\u79F0", fullPath: "\u5B8C\u6574\u8DEF\u5F84" }[value], value));
         control.value = String(settings[key2]);
       } else if (typeof settings[key2] === "boolean") {
         control.type = "checkbox";
@@ -240171,8 +240228,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_save_service.ts
   function bind_workspace_save_service(files, runtime2 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners5 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners5) listener();
+    const listeners6 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners6) listener();
     };
     const notify_history = () => {
       notify();
@@ -240280,9 +240337,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners5.add(listener);
+      listeners6.add(listener);
       return () => {
-        listeners5.delete(listener);
+        listeners6.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -240291,7 +240348,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners5.clear();
+      listeners6.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -241050,6 +241107,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_remote_ssh.ts
   var VIEW_ID = "typora_code.remote_file";
+  var GIT_VIEW_ID = "typora_code.remote_git_status";
   function bind_workspace_remote_ssh(core, files, runtime2 = window) {
     const path_api = runtime2.reqnode("path"), buffer_api = runtime2.reqnode("buffer").Buffer;
     const asset_root = path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote");
@@ -241057,8 +241115,8 @@ https://creativecommons.org/licenses/by/4.0/
     const node_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
     const style = acquire_workspace_style("typora-code-style:workspace_remote_ssh", workspace_remote_ssh_default);
     const views = /* @__PURE__ */ new Set();
-    const overlays = /* @__PURE__ */ new Set();
-    let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false;
+    const git_views = /* @__PURE__ */ new Set();
+    let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false, list_signature = "";
     let auth_dialog;
     const notice = (error) => {
       if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 7e3);
@@ -241100,7 +241158,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       if (!confirm2) input2.focus();
     });
-    const service = api2.create_remote_ssh({ asset_root, node_path, authenticate, on_state: (value) => {
+    const service = api2.create_remote_ssh({ asset_root, node_path, authenticate, connection_options: read_remote_ssh_settings, on_state: (value) => {
       if (disposed) return;
       status2.textContent = value.detail || "\u672A\u8FDE\u63A5SSH";
       panel.containerEl.dataset.connection = value.state;
@@ -241108,8 +241166,11 @@ https://creativecommons.org/licenses/by/4.0/
       if (value.state === "disconnected") {
         auth_dialog?.close();
         ++browse_epoch;
+        list_signature = "";
+        list3.removeAttribute("aria-busy");
         list3.replaceChildren();
         for (const view of views) view.update_status();
+        for (const view of git_views) view.disconnected();
       }
       connect_button.disabled = value.state === "connecting";
       disconnect_button.disabled = value.state === "disconnected";
@@ -241155,6 +241216,12 @@ https://creativecommons.org/licenses/by/4.0/
         folder = result.path;
         location.textContent = folder;
         location.title = folder;
+        const signature = JSON.stringify(result);
+        if (signature === list_signature) {
+          status2.textContent = "SSH: ".concat(target, " \xB7 ").concat(result.entries.length, " \u9879");
+          return;
+        }
+        list_signature = signature;
         list3.replaceChildren();
         let shown = 0;
         const more = workspace_button("\u663E\u793A\u66F4\u591A", () => append_batch());
@@ -241415,6 +241482,100 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     const unregister_view = core.app.viewManager.registerView(VIEW_ID, (leaf) => new remote_file_view(leaf));
+    class remote_git_view extends core.WorkspaceView {
+      containerEl = workspace_element("section", "workspace-ssh-document workspace-ssh-git-document");
+      icon = "fa-code-fork";
+      owner;
+      remote_path;
+      disposed = false;
+      loading = false;
+      loaded = false;
+      epoch = 0;
+      message = workspace_element("span", "workspace-ssh-document-status");
+      output = workspace_element("pre", "workspace-ssh-git-status");
+      refresh = workspace_button("\u5237\u65B0", () => void this.load());
+      release_port;
+      constructor(leaf) {
+        super(leaf);
+        const parts = leaf.state.path.split("/");
+        this.owner = decodeURIComponent(parts[3]);
+        this.remote_path = decodeURIComponent(parts[4]);
+        git_views.add(this);
+        const toolbar = workspace_element("div", "workspace-ssh-toolbar");
+        toolbar.append(this.refresh, this.message);
+        this.message.setAttribute("role", "status");
+        this.output.tabIndex = 0;
+        this.output.setAttribute("aria-label", "\u8FDC\u7A0BGit\u53EA\u8BFB\u72B6\u6001");
+        this.containerEl.append(toolbar, workspace_element("div", "workspace-ssh-location", "SSH: ".concat(this.owner, " \xB7 ").concat(this.remote_path)), this.output);
+        const interaction2 = acquire_workspace_interaction(this.containerEl);
+        this.release_port = () => interaction2.remove();
+      }
+      setIcon() {
+        this.sync_tab();
+      }
+      sync_tab() {
+        const tab = workspace_leaf_tab(this.leaf);
+        if (!tab) return;
+        const label = tab.querySelector(".typ-file-basename");
+        if (label) label.textContent = "Git \xB7 ".concat(path_api.posix.basename(this.remote_path) || "/");
+        tab.querySelector(".typ-file-ext")?.remove();
+        tab.title = "SSH: ".concat(this.owner, " \xB7 ").concat(this.remote_path);
+      }
+      onOpen() {
+        this.sync_tab();
+        if (!this.loaded && !this.loading) void this.load();
+      }
+      onClose() {
+        queueMicrotask(() => {
+          let present = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf === this.leaf) present = true;
+          });
+          if (!present) this.release_source();
+        });
+      }
+      disconnected() {
+        if (this.disposed) return;
+        ++this.epoch;
+        this.loading = false;
+        this.refresh.disabled = false;
+        this.containerEl.removeAttribute("aria-busy");
+        this.message.textContent = "SSH\u5DF2\u65AD\u5F00\uFF1B\u5DF2\u6709\u7ED3\u679C\u4FDD\u7559\uFF0C\u91CD\u8FDE\u539F\u4E3B\u673A\u540E\u5237\u65B0\u3002";
+      }
+      async load() {
+        if (this.disposed || this.loading) return;
+        const epoch2 = ++this.epoch;
+        this.loading = true;
+        this.refresh.disabled = true;
+        this.message.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0BGit\u72B6\u6001\u2026";
+        this.containerEl.setAttribute("aria-busy", "true");
+        try {
+          require_connection(this.owner);
+          const result = await service.request("git_status", { path: this.remote_path });
+          if (!this.disposed && epoch2 === this.epoch) {
+            this.output.textContent = result.text;
+            this.message.textContent = "\u8FDC\u7A0BGit\u72B6\u6001 \xB7 \u53EA\u8BFB";
+            this.loaded = true;
+          }
+        } catch (error) {
+          if (!this.disposed && epoch2 === this.epoch) this.message.textContent = String(error.message) + "\uFF1B\u53EF\u70B9\u51FB\u5237\u65B0\u91CD\u8BD5\u3002";
+        } finally {
+          if (!this.disposed && epoch2 === this.epoch) {
+            this.loading = false;
+            this.refresh.disabled = false;
+            this.containerEl.removeAttribute("aria-busy");
+          }
+        }
+      }
+      release_source() {
+        if (this.disposed) return;
+        this.disposed = true;
+        ++this.epoch;
+        this.release_port();
+        git_views.delete(this);
+      }
+    }
+    const unregister_git_view = core.app.viewManager.registerView(GIT_VIEW_ID, (leaf) => new remote_git_view(leaf));
     const open_file = async (path) => {
       require_connection();
       const uri = "typ://".concat(VIEW_ID, "/").concat(encodeURIComponent(target), "/").concat(encodeURIComponent(path), "/").concat(encodeURIComponent(path_api.posix.basename(path)));
@@ -241470,32 +241631,23 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     const git_button = workspace_button("Git\u72B6\u6001", () => {
-      const owner = target, parent = folder;
-      const dialog2 = workspace_dialog("\u8FDC\u7A0BGit\u72B6\u6001", "\u5173\u95ED", () => overlays.delete(dialog2.close));
-      overlays.add(dialog2.close);
-      const output = workspace_element("pre", "workspace-ssh-git-status");
-      output.setAttribute("role", "status");
-      dialog2.content.append(workspace_element("p", "", "SSH: ".concat(owner, " \xB7 ").concat(parent)), output);
-      let busy = false;
-      const refresh = workspace_button("\u5237\u65B0", () => void load());
-      dialog2.footer.prepend(refresh);
-      async function load() {
-        if (busy || disposed || !dialog2.root.isConnected) return;
-        busy = true;
-        refresh.disabled = true;
-        output.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0BGit\u72B6\u6001\u2026";
-        try {
-          require_connection(owner);
-          const result = await service.request("git_status", { path: parent });
-          if (!disposed && dialog2.root.isConnected) output.textContent = result.text;
-        } catch (error) {
-          if (!disposed && dialog2.root.isConnected) output.textContent = String(error.message);
-        } finally {
-          busy = false;
-          refresh.disabled = false;
+      try {
+        require_connection();
+        const uri = "typ://".concat(GIT_VIEW_ID, "/").concat(encodeURIComponent(target), "/").concat(encodeURIComponent(folder), "/Git");
+        let existing;
+        core.app.workspace.eachLeaves((leaf2) => {
+          if (leaf2.state.path === uri) existing = leaf2;
+        });
+        if (existing) {
+          core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
+          return;
         }
+        const group = select_workspace_editor_group(core, uri), leaf = core.app.workspace.createLeaf({ type: GIT_VIEW_ID, state: { path: uri } });
+        group.appendChild(leaf);
+        core.app.workspace.activeLeaf = leaf;
+      } catch (error) {
+        notice(error);
       }
-      void load();
     });
     for (const control of [up_button, refresh_button, new_file, new_folder, terminal_button, git_button]) control.disabled = true;
     input.onkeydown = (event) => {
@@ -241536,6 +241688,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.addRibbonButton({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 (SSH)", icon: git_icon("remote-explorer"), group: "top" });
         const toolbar = workspace_element("div", "workspace-ssh-toolbar");
         toolbar.append(connect_button, disconnect_button, up_button, refresh_button, new_file, new_folder, terminal_button, git_button);
+        toolbar.append(workspace_button("\u8BBE\u7F6E", () => core.app.commands.run("typora_code:settings")));
         this.containerEl.append(workspace_element("div", "workspace-ssh-title", "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 \xB7 SSH"), input, hosts, toolbar, status2, location, list3);
       }
       onshow() {
@@ -241550,19 +241703,262 @@ https://creativecommons.org/licenses/by/4.0/
       input.focus();
     };
     const unregister = core.app.commands.register({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\uFF1A\u8FDE\u63A5SSH\u4E3B\u673A", scope: "global", callback: show2 });
+    let refresh_timer;
+    const schedule_refresh = () => {
+      clearTimeout(refresh_timer);
+      const seconds = read_remote_ssh_settings().refresh_interval;
+      if (!seconds) return;
+      refresh_timer = setTimeout(async () => {
+        try {
+          if (connected() && folder && sidebar.isShown && sidebar.activePanel === panel && !list3.hasAttribute("aria-busy") && !mutating) await browse(folder);
+        } catch {
+        } finally {
+          if (!disposed) schedule_refresh();
+        }
+      }, seconds * 1e3);
+    };
+    schedule_refresh();
+    window.addEventListener("typora-code-ssh-settings-changed", schedule_refresh);
     return { show: show2, service, panel, connect, browse, open_file, dispose() {
       if (disposed) return;
       files.assert_can_dispose();
       disposed = true;
+      clearTimeout(refresh_timer);
+      window.removeEventListener("typora-code-ssh-settings-changed", schedule_refresh);
       auth_dialog?.close();
-      for (const close of [...overlays]) close();
       service.dispose();
       ++browse_epoch;
       for (const view of [...views]) view.release_source();
+      for (const view of [...git_views]) view.release_source();
       unregister();
       unregister_view();
+      unregister_git_view();
       remove_panel();
       interaction.remove();
+      style.remove();
+    } };
+  }
+
+  // src/workspace_settings_sections.ts
+  function bind_workspace_settings_sections(files) {
+    const releases = [], user = () => "\u7528\u6237\u8BBE\u7F6E", root = () => files.context_root(), project = () => "\u5DE5\u4F5C\u533A\uFF1A".concat(root() || "\u672A\u6253\u5F00\u6587\u4EF6\u5939");
+    const add = (section) => releases.push(register_workspace_settings(section));
+    add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: WORKSPACE_EDITOR_DEFAULTS, fields: [{ key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }], read: read_workspace_editor_settings, write: (_key, value) => set_workspace_editor_preview(value) });
+    const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u4E0A\u9650\uFF08KB\uFF09", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
+    add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key2, index) => ({ key: key2, title: file_labels[index] || key2, choices: key2 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key2 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key2, value) => {
+      const baseline = FILE_SETTING_DEFAULTS[key2];
+      if (typeof baseline === "number" && (typeof value !== "number" || value < 0 || !Number.isInteger(value))) throw Error("\u8BF7\u8F93\u5165\u975E\u8D1F\u6574\u6570");
+      if (key2.endsWith("exclude") && (!value || Array.isArray(value) || typeof value !== "object" || Object.values(value).some((item) => typeof item !== "boolean"))) throw Error("\u6392\u9664\u89C4\u5219\u5FC5\u987B\u4E3Aglob\u5230\u5E03\u5C14\u503C\u7684JSON\u5BF9\u8C61");
+      set_workspace_save_settings({ [key2]: value });
+    } });
+    add({ id: "titlebar", title: "\u9876\u680F", scope: user, defaults: TITLEBAR_DEFAULTS, fields: [{ key: "menu_bar", title: "\u663E\u793A\u83DC\u5355\u680F" }, { key: "command_center", title: "\u663E\u793A\u6587\u4EF6\u641C\u7D22" }, { key: "navigation_controls", title: "\u663E\u793A\u540E\u9000\u4E0E\u524D\u8FDB" }], read: () => read_titlebar_settings(get_workspace_app()?.settings), write: (key2, value) => {
+      if (read_titlebar_settings(get_workspace_app()?.settings)[key2] !== value) toggle_titlebar_setting(get_workspace_app()?.settings, key2);
+    } });
+    const crumb_labels = { enabled: "\u663E\u793A\u9762\u5305\u5C51", file_path: "\u6587\u4EF6\u8DEF\u5F84", symbol_path: "\u7B26\u53F7\u8DEF\u5F84", icons: "\u663E\u793A\u56FE\u6807", show_editor_type: "\u663E\u793A\u7F16\u8F91\u5668\u7C7B\u578B", symbol_sort_order: "\u7B26\u53F7\u6392\u5E8F", symbol_path_separator: "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84\u5206\u9694\u7B26" };
+    add({ id: "breadcrumbs", title: "\u9762\u5305\u5C51\uFF08\u5DE5\u4F5C\u533A\uFF09", scope: project, defaults: BREADCRUMB_DEFAULTS, fields: Object.keys(BREADCRUMB_DEFAULTS).map((key2) => ({ key: key2, title: crumb_labels[key2], choices: key2 === "file_path" || key2 === "symbol_path" ? ["on", "off", "last"] : key2 === "symbol_sort_order" ? ["position", "name", "type"] : void 0 })), read: () => read_breadcrumb_settings(root()), write: (key2, value) => update_breadcrumb_settings(root(), root() ? "workspace" : "user", key2, value) });
+    const diff_labels = { render_side_by_side: "\u5E76\u6392\u6BD4\u8F83", inline_when_narrow: "\u7A84\u5BBD\u5EA6\u81EA\u52A8\u5185\u8054", ignore_trim_whitespace: "\u5FFD\u7565\u9996\u5C3E\u7A7A\u767D\u5DEE\u5F02", hide_unchanged: "\u9690\u85CF\u672A\u4FEE\u6539\u533A\u57DF", show_moves: "\u663E\u793A\u79FB\u52A8\u4EE3\u7801" };
+    add({ id: "diff", title: "\u5DEE\u5F02\u7F16\u8F91\u5668", scope: user, defaults: { ...git_diff_defaults }, fields: Object.keys(git_diff_defaults).map((key2) => ({ key: key2, title: diff_labels[key2] })), read: read_git_diff_preferences, write: (key2, value) => update_git_diff_preferences({ [key2]: value }) });
+    const ssh_labels = { ssh_path: "OpenSSH\u7A0B\u5E8F\u8DEF\u5F84\uFF08\u7A7A\u4E3A\u7CFB\u7EDF\u9ED8\u8BA4\uFF09", config_file: "SSH\u914D\u7F6E\u6587\u4EF6\u8DEF\u5F84\uFF08\u7A7A\u4E3AOpenSSH\u9ED8\u8BA4\uFF09", connect_timeout: "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09", server_alive_interval: "\u8FDE\u63A5\u4FDD\u6D3B\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09", server_alive_count: "\u4FDD\u6D3B\u8FDE\u7EED\u5931\u8D25\u6B21\u6570", request_timeout: "\u6587\u4EF6\u8BF7\u6C42\u8D85\u65F6\uFF08\u79D2\uFF09", refresh_interval: "\u53EF\u89C1\u8FDC\u7A0B\u76EE\u5F55\u5237\u65B0\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09" };
+    add({ id: "ssh", title: "SSH\u8FDC\u7A0B", scope: user, defaults: REMOTE_SSH_DEFAULTS, fields: Object.keys(REMOTE_SSH_DEFAULTS).map((key2) => ({ key: key2, title: ssh_labels[key2], description: key2 === "config_file" ? "\u7AEF\u53E3\u3001\u5BC6\u94A5\u3001\u4EE3\u7406\u53CA\u8D26\u6237\u7531OpenSSH\u914D\u7F6E\u7BA1\u7406\uFF0C\u59CB\u7EC8\u6821\u9A8C\u4E3B\u673A\u5BC6\u94A5\u3002\u8FDE\u63A5\u53C2\u6570\u4E0B\u6B21\u8FDE\u63A5\u751F\u6548\u3002" : void 0 })), read: read_remote_ssh_settings, write: write_remote_ssh_setting });
+    add({ id: "outline", title: "C/C++\u8BED\u8A00\u670D\u52A1", scope: project, defaults: { clangd_path: "", compile_commands_dir: "", fallback_flags: [] }, fields: [{ key: "clangd_path", title: "clangd\u8DEF\u5F84\uFF08\u7528\u6237\u7EA7\uFF09" }, { key: "compile_commands_dir", title: "\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\uFF08\u5DE5\u4F5C\u533A\uFF09" }, { key: "fallback_flags", title: "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08JSON\u6570\u7EC4\uFF09" }], read: () => read_source_outline_settings(root()), write: (key2, value) => save_source_outline_settings(root(), { ...read_source_outline_settings(root()), [key2]: value }) });
+    releases.push(observe_workspace_save_settings(notify_workspace_settings), observe_workspace_editor_settings(notify_workspace_settings), observe_breadcrumb_settings(notify_workspace_settings), watch_git_diff_preferences(notify_workspace_settings));
+    window.addEventListener("linux-note-workspace-context-changed", notify_workspace_settings);
+    return { dispose() {
+      window.removeEventListener("linux-note-workspace-context-changed", notify_workspace_settings);
+      for (const release of releases.reverse()) release();
+    } };
+  }
+
+  // src/workspace_settings_view.css
+  var workspace_settings_view_default = "";
+
+  // src/workspace_settings_view.ts
+  var VIEW_ID2 = "typora_code.settings";
+  var URI2 = "typ://".concat(VIEW_ID2, "/settings");
+  function bind_workspace_settings_view(core) {
+    const views = /* @__PURE__ */ new Set(), style = acquire_workspace_style("typora-code-style:workspace_settings_view", workspace_settings_view_default);
+    class settings_view extends core.WorkspaceView {
+      containerEl = workspace_element("section", "workspace-settings");
+      icon = "fa-cog";
+      disposed = false;
+      category = "";
+      search = workspace_element("input");
+      categories = workspace_element("nav", "workspace-settings-categories");
+      body = workspace_element("div", "workspace-settings-body");
+      status = workspace_element("p", "workspace-settings-status");
+      release_port;
+      release_registry;
+      constructor(leaf) {
+        super(leaf);
+        views.add(this);
+        this.search.placeholder = "\u641C\u7D22\u8BBE\u7F6E";
+        this.search.setAttribute("aria-label", "\u641C\u7D22\u8BBE\u7F6E");
+        this.status.setAttribute("role", "status");
+        const content = workspace_element("div", "workspace-settings-content");
+        content.append(this.categories, this.body);
+        this.containerEl.append(this.search, content, this.status);
+        const interaction = acquire_workspace_interaction(this.containerEl);
+        this.release_port = () => interaction.remove();
+        this.release_registry = observe_workspace_settings(() => {
+          if (!this.containerEl.contains(document.activeElement)) this.render();
+        });
+        this.search.oninput = () => this.render();
+        this.render();
+      }
+      setIcon() {
+        const tab = workspace_leaf_tab(this.leaf);
+        const label = tab?.querySelector(".typ-file-basename");
+        if (label) label.textContent = "\u8BBE\u7F6E";
+        tab?.querySelector(".typ-file-ext")?.remove();
+        const icon = tab?.querySelector(".typ-file-icon");
+        if (icon) {
+          icon.className = "typ-file-icon git-tab-icon";
+          icon.replaceChildren(git_icon("settings-gear"));
+        }
+      }
+      onOpen() {
+        this.setIcon();
+        this.render();
+      }
+      onClose() {
+        queueMicrotask(() => {
+          let present = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf === this.leaf) present = true;
+          });
+          if (!present) this.dispose();
+        });
+      }
+      render() {
+        if (this.disposed) return;
+        this.categories.replaceChildren();
+        this.body.replaceChildren();
+        const query = this.search.value.trim().toLocaleLowerCase(), sections2 = workspace_settings_sections();
+        const all = workspace_button("\u5168\u90E8\u8BBE\u7F6E", () => {
+          this.category = "";
+          this.render();
+        });
+        all.setAttribute("aria-pressed", String(!this.category));
+        this.categories.append(all);
+        for (const section of sections2) {
+          const item = workspace_button(section.title, () => {
+            this.category = section.id;
+            this.render();
+          });
+          item.setAttribute("aria-pressed", String(this.category === section.id));
+          this.categories.append(item);
+        }
+        const native = workspace_button("Typora \u504F\u597D\u8BBE\u7F6E", () => {
+          try {
+            const command = window.ClientCommand?.showPreferencePanel;
+            if (!command) throw Error("\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528");
+            command();
+          } catch (error) {
+            this.status.textContent = String(error);
+          }
+        });
+        native.dataset.settingsOwner = "native";
+        const community = workspace_button("\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E", () => core.app.commands.run("typora_code:community_plugin_settings"));
+        community.dataset.settingsOwner = "community";
+        native.append(git_icon("link-external"));
+        community.append(git_icon("link-external"));
+        this.categories.append(workspace_element("hr"), native, community);
+        let count = 0;
+        for (const section of sections2) {
+          if (this.category && this.category !== section.id) continue;
+          const fields = section.fields.filter((field) => !query || "".concat(section.title, " ").concat(field.title, " ").concat(field.key, " ").concat(field.description || "").toLocaleLowerCase().includes(query));
+          if (!fields.length) continue;
+          const scope = section.scope();
+          this.body.append(workspace_element("h2", "", section.title), workspace_element("p", "workspace-settings-scope", scope));
+          let values;
+          try {
+            values = section.read();
+          } catch (error) {
+            this.body.append(workspace_element("p", "", String(error)));
+            continue;
+          }
+          for (const field of fields) {
+            count++;
+            const value = values[field.key], baseline = section.defaults[field.key];
+            const row = workspace_element("div", "workspace-setting-row"), label = workspace_element("label", "workspace-setting-label", field.title), key2 = workspace_element("small", "", field.key);
+            const control = field.choices ? workspace_element("select") : typeof baseline === "object" ? workspace_element("textarea") : workspace_element("input");
+            control.dataset.setting = section.id + "." + field.key;
+            control.setAttribute("aria-label", field.title);
+            if (control instanceof HTMLSelectElement) for (const choice of field.choices) control.append(new Option(choice, choice));
+            const fill = () => {
+              const current = section.read()[field.key];
+              if (control instanceof HTMLInputElement && typeof baseline === "boolean") {
+                control.type = "checkbox";
+                control.checked = current === true;
+              } else {
+                if (control instanceof HTMLInputElement) control.type = typeof baseline === "number" ? "number" : "text";
+                control.value = typeof baseline === "object" ? JSON.stringify(current, null, 2) : String(current ?? "");
+              }
+            };
+            fill();
+            const save = (next) => {
+              try {
+                if (section.scope() !== scope) throw Error("\u914D\u7F6E\u76EE\u6807\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u8BBE\u7F6E\u9875\u540E\u91CD\u8BD5\u3002");
+                section.write(field.key, next);
+                fill();
+                this.status.textContent = "\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\u3002";
+                notify_workspace_settings();
+              } catch (error) {
+                this.status.textContent = String(error instanceof Error ? error.message : error);
+              }
+            };
+            control.onchange = () => {
+              try {
+                const next = control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : typeof baseline === "number" ? Number(control.value) : typeof baseline === "object" ? JSON.parse(control.value) : control.value;
+                if (typeof baseline === "number" && (!control.value.trim() || !Number.isFinite(next))) throw Error("\u8BF7\u8F93\u5165\u6709\u6548\u6570\u503C\u3002");
+                save(next);
+              } catch (error) {
+                this.status.textContent = String(error);
+              }
+            };
+            label.append(key2, control);
+            row.append(label, workspace_button("\u6062\u590D\u9ED8\u8BA4", () => save(structuredClone(baseline))));
+            if (field.description) row.append(workspace_element("p", "", field.description));
+            this.body.append(row);
+          }
+        }
+        if (!count) this.body.append(workspace_element("p", "", "\u6CA1\u6709\u5339\u914D\u7684\u8BBE\u7F6E\u3002"));
+      }
+      dispose() {
+        if (this.disposed) return;
+        this.disposed = true;
+        this.release_port();
+        this.release_registry();
+        views.delete(this);
+      }
+    }
+    const unregister_view = core.app.viewManager.registerView(VIEW_ID2, (leaf) => new settings_view(leaf));
+    const show2 = () => {
+      let existing;
+      core.app.workspace.eachLeaves((leaf2) => {
+        if (leaf2.state.path === URI2) existing = leaf2;
+      });
+      if (existing) {
+        core.app.workspace.activeLeaf = existing.parent.toggleTab(URI2);
+        return;
+      }
+      const group = select_workspace_editor_group(core, URI2), leaf = core.app.workspace.createLeaf({ type: VIEW_ID2, state: { path: URI2 } });
+      group.appendChild(leaf);
+      core.app.workspace.activeLeaf = leaf;
+    };
+    const unregister = core.app.commands.register({ id: "typora_code:settings", title: "\u6253\u5F00\u8BBE\u7F6E", scope: "global", callback: show2 });
+    const keydown = (event) => {
+      if (event.isComposing || event.repeat || event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey) || event.key !== ",") return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      show2();
+    };
+    window.addEventListener("keydown", keydown, true);
+    return { show: show2, dispose() {
+      window.removeEventListener("keydown", keydown, true);
+      for (const view of [...views]) view.dispose();
+      unregister();
+      unregister_view();
       style.remove();
     } };
   }
@@ -241575,6 +241971,8 @@ https://creativecommons.org/licenses/by/4.0/
     try {
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files = lifetime.own(bind_workspace_files(core));
+      lifetime.own(bind_workspace_settings_sections(files));
+      lifetime.own(bind_workspace_settings_view(core));
       lifetime.own(create_workspace_quick_open(files));
       lifetime.own(bind_workspace_tab_controls(core, files));
       lifetime.own(bind_workspace_native_toolbar(files, window));
@@ -241694,6 +242092,18 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092210,
+        version: "2026.09.22.10",
+        date: "2026-09-22",
+        notes: [
+          "\u8BBE\u7F6E\u83DC\u5355\u7EDF\u4E00\u4E3A\u5355\u4E00\u5165\u53E3\uFF0C\u6309\u5206\u7C7B\u641C\u7D22\u548C\u4FEE\u6539\u81EA\u6709\u914D\u7F6E\uFF1B\u539F\u751F\u504F\u597D\u53CA\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E\u72EC\u7ACB\u6253\u5F00\uFF0C\u53D6\u6D88\u91CD\u590D\u7684\u4E09\u9875\u5BFC\u822A\u3002",
+          "\u793E\u533A\u8BBE\u7F6E\u4FDD\u7559\u539F\u59CBSettingTab\u548C\u5B57\u6BB5\u6837\u5F0F\uFF0C\u4FEE\u590D\u901A\u7528\u5BF9\u8BDD\u6846\u62C9\u4F38\u63D2\u4EF6\u8F93\u5165\u6846\u3001\u8986\u76D6\u6309\u94AE\u5916\u89C2\u7684\u95EE\u9898\u3002",
+          "SSH\u8FDC\u7A0BGit\u72B6\u6001\u4F7F\u7528\u72EC\u7ACB\u53EA\u8BFB\u6807\u7B7E\uFF0C\u6162\u67E5\u8BE2\u4E0D\u963B\u585E\u540C\u8FDE\u63A5\u6587\u4EF6\u64CD\u4F5C\uFF1B\u91CD\u590D\u6253\u5F00\u590D\u7528\u6807\u7B7E\uFF0C\u5173\u95ED\u4E0D\u5F71\u54CD\u8FDC\u7A0B\u6587\u4EF6\u548C\u7EC8\u7AEF\u3002",
+          "SSH\u8FDE\u63A5\u53C2\u6570\u96C6\u4E2D\u914D\u7F6E\uFF0C\u4FDD\u7559OpenSSH\u4E3B\u673A\u9A8C\u8BC1\uFF1B\u53EF\u89C1\u8FDC\u7A0B\u76EE\u5F55\u5B9A\u65F6\u5237\u65B0\u5E76\u4FDD\u7559\u672A\u53D8\u5316\u5217\u8868\u3002",
+          "\u5408\u5E76Win10\u7AEF\u5DF2\u53D1\u5E03\u7684PowerShell\u5386\u53F2\u6EDA\u52A8\u4FEE\u590D\uFF0C\u4FDD\u7559\u8FDE\u7EED\u56DE\u8F66\u4EA7\u751F\u7684\u8F93\u51FA\u5386\u53F2\u3002"
+        ]
+      },
       {
         sequence: 2026092209,
         version: "2026.09.22.9",
@@ -242359,72 +242769,112 @@ https://creativecommons.org/licenses/by/4.0/
   function create_community_plugin_settings(list3, on_change, navigate = () => {
   }) {
     const tabs = /* @__PURE__ */ new Map();
-    const opened = /* @__PURE__ */ new Map();
-    let chooser;
+    let surface;
+    let active;
+    const detach = () => {
+      const previous = active;
+      active = void 0;
+      if (previous) try {
+        previous.tab.hide();
+      } finally {
+        previous.tab.containerEl.remove();
+      }
+    };
+    const activate = (id, tab) => {
+      if (!surface || active?.tab === tab) return;
+      detach();
+      surface.main.replaceChildren(tab.containerEl);
+      surface.main.classList.remove("workspace-community-setting-list");
+      active = { id, tab };
+      for (const item of surface.sidebar.querySelectorAll("[data-tab-index]")) item.classList.toggle("active", item.dataset.pluginId === id && Number(item.dataset.tabIndex) === [...tabs.get(id) || []].indexOf(tab));
+      try {
+        tab.show();
+      } catch (error) {
+        detach();
+        surface.main.textContent = String(error);
+      }
+    };
     const render = () => {
-      if (!chooser) return;
-      chooser.content.replaceChildren();
+      if (!surface) return;
       const records = list3();
+      surface.sidebar.replaceChildren(workspace_element("div", "typ-nav__group-title", "\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E"));
       for (const [id, registered] of tabs) {
-        if (!registered.size) continue;
-        chooser.content.append(workspace_button(records.find((info) => info.id === id)?.name || id, () => {
-          chooser?.close();
-          show2(id);
-        }));
+        let index = 0;
+        for (const tab of registered) {
+          const item = workspace_button(tab.name || records.find((info) => info.id === id)?.name || id, () => activate(id, tab));
+          item.className = "typ-nav__item";
+          item.dataset.pluginId = id;
+          item.dataset.tabIndex = String(index++);
+          item.classList.toggle("active", active?.tab === tab);
+          surface.sidebar.append(item);
+        }
       }
-      for (const info of records) {
-        if (tabs.get(info.id)?.size) continue;
-        chooser.content.append(workspace_element("p", "", "".concat(info.name, "\uFF1A").concat(info.running ? "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875\u3002" : info.error || "\u5C1A\u672A\u542F\u7528\uFF0C\u8BF7\u5728\u5DF2\u5B89\u88C5\u4E2D\u542F\u7528\u540E\u914D\u7F6E\u3002")));
-      }
-      if (!records.length && !tabs.size) chooser.content.append(workspace_element("p", "", "\u5F53\u524D\u6CA1\u6709\u53EF\u914D\u7F6E\u7684\u63D2\u4EF6\u3002\u8BF7\u5148\u5230\u793E\u533A\u63D2\u4EF6\u5E02\u573A\u9009\u62E9\u5E76\u5B89\u88C5\u63D2\u4EF6\u3002"));
+      if (active) return;
+      surface.main.replaceChildren();
+      surface.main.classList.add("workspace-community-setting-list");
+      for (const info of records) if (!tabs.get(info.id)?.size) surface.main.append(workspace_element("p", "", "".concat(info.name, "\uFF1A").concat(info.running ? "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875\u3002" : info.error || "\u5C1A\u672A\u542F\u7528\uFF0C\u8BF7\u5728\u5DF2\u5B89\u88C5\u4E2D\u542F\u7528\u540E\u914D\u7F6E\u3002")));
+      if (!records.length && !tabs.size) surface.main.append(workspace_element("p", "", "\u5F53\u524D\u6CA1\u6709\u53EF\u914D\u7F6E\u7684\u63D2\u4EF6\u3002\u8BF7\u5148\u5230\u793E\u533A\u63D2\u4EF6\u5E02\u573A\u9009\u62E9\u5E76\u5B89\u88C5\u63D2\u4EF6\u3002"));
       const actions = workspace_element("div", "workspace-community-settings-navigation");
       for (const [title, mode] of [["\u7BA1\u7406\u5DF2\u5B89\u88C5\u63D2\u4EF6", "installed"], ["\u6D4F\u89C8\u793E\u533A\u63D2\u4EF6\u5E02\u573A", "catalog"]]) actions.append(workspace_button(title, () => {
-        chooser?.close();
+        surface?.close();
         navigate(mode);
       }));
-      chooser.content.append(actions);
+      surface.main.append(actions);
     };
-    const show2 = (id) => {
-      const existing = opened.get(id);
-      if (existing) {
-        existing.root.querySelector("button,input,select")?.focus();
-        return;
-      }
-      const registered = [...tabs.get(id) || []];
-      if (!registered.length) return;
-      const dialog2 = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
-        opened.delete(id);
-        for (const tab of registered) {
-          tab.hide();
-          tab.containerEl.remove();
+    const open = () => {
+      if (surface) return;
+      const focus = capture_workspace_focus(), root = workspace_element("div", "typ-modal__wrapper middle workspace-community-settings-root"), panel = workspace_element("section", "typ-modal typ-settings-modal");
+      root.dataset.workspaceInteraction = "none";
+      root.setAttribute("role", "dialog");
+      root.setAttribute("aria-modal", "true");
+      root.setAttribute("aria-label", "\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E");
+      const header = workspace_element("div", "typ-modal__header"), body = workspace_element("div", "typ-modal__body"), sidebar = workspace_element("nav", "typ-sidebar"), main = workspace_element("div", "typ-main workspace-community-settings");
+      const close = (restore = true) => {
+        if (surface?.root !== root) return;
+        const owned2 = layer.owns_focus();
+        try {
+          detach();
+        } finally {
+          layer.dispose();
+          root.remove();
+          surface = void 0;
+          if (restore && owned2) focus.restore();
+        }
+      };
+      const close_button = workspace_button("", () => close());
+      close_button.className = "workspace-community-settings-close";
+      close_button.append(git_icon("close"));
+      close_button.setAttribute("aria-label", "\u5173\u95ED");
+      header.append(workspace_element("span", "", "\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E"), close_button);
+      body.append(sidebar, main);
+      panel.append(header, body);
+      root.append(panel);
+      const layer = register_workspace_dismissal(() => [root], () => close(), { inside: () => [panel], consume_outside: true, focus_out: false });
+      surface = { root, sidebar, main, close };
+      document.body.append(root);
+      render();
+      const first = tabs.entries().next().value;
+      if (first) activate(first[0], [...first[1]][0]);
+      root.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab" || !layer.is_top()) return;
+        const controls = [...panel.querySelectorAll("button,input,select,textarea,a[href],[tabindex]")].filter((node) => !node.matches(':disabled,[tabindex="-1"]') && node.getClientRects().length);
+        const index = controls.indexOf(document.activeElement);
+        if (controls.length && (index < 0 || event.shiftKey && index === 0 || !event.shiftKey && index === controls.length - 1)) {
+          event.preventDefault();
+          controls[event.shiftKey ? controls.length - 1 : 0].focus();
         }
       });
-      opened.set(id, dialog2);
-      dialog2.content.classList.add("workspace-community-settings");
-      try {
-        for (const tab of registered) {
-          dialog2.content.append(workspace_element("h4", "", tab.name || id), tab.containerEl);
-          tab.show();
-        }
-      } catch (error) {
-        dialog2.close();
-        throw error;
-      }
+      close_button.focus({ preventScroll: true });
     };
     return {
       has: (id) => Boolean(tabs.get(id)?.size),
-      show: show2,
+      open,
       refresh: render,
-      open() {
-        if (chooser) {
-          chooser.root.querySelector("button")?.focus();
-          return;
-        }
-        chooser = workspace_dialog("\u63D2\u4EF6\u8BBE\u7F6E", "\u5173\u95ED", () => {
-          chooser = void 0;
-        });
-        chooser.content.classList.add("workspace-community-settings", "workspace-community-setting-list");
-        render();
+      show(id) {
+        const tab = tabs.get(id)?.values().next().value;
+        if (!tab) return;
+        open();
+        activate(id, tab);
       },
       register(id, tab) {
         tab.load();
@@ -242440,9 +242890,8 @@ https://creativecommons.org/licenses/by/4.0/
         return () => {
           if (removed) return;
           removed = true;
-          opened.get(id)?.close(false);
+          if (active?.tab === tab) surface?.close(false);
           try {
-            tab.hide();
             tab.unload();
           } finally {
             tab.containerEl.remove();
@@ -242454,8 +242903,7 @@ https://creativecommons.org/licenses/by/4.0/
         };
       },
       dispose() {
-        chooser?.close(false);
-        for (const dialog2 of [...opened.values()]) dialog2.close(false);
+        surface?.close(false);
         tabs.clear();
       }
     };

@@ -25,6 +25,8 @@ import {bind_workspace_file_commands} from "./workspace_file_commands";
 import {bind_workspace_save_service} from "./workspace_save_service";
 import {bind_workspace_explorer_sections} from "./workspace_explorer_sections";
 import {bind_workspace_remote_ssh} from "./workspace_remote_ssh";
+import {bind_workspace_settings_sections} from './workspace_settings_sections';
+import {bind_workspace_settings_view} from './workspace_settings_view';
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -32,6 +34,8 @@ export function bind_workspace_browser() {
   try {
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
+  lifetime.own(bind_workspace_settings_sections(files));
+  lifetime.own(bind_workspace_settings_view(core));
   lifetime.own(create_workspace_quick_open(files));
   lifetime.own(bind_workspace_tab_controls(core,files));
   lifetime.own(bind_workspace_native_toolbar(files,window as any));

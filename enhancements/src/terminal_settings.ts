@@ -21,7 +21,7 @@ const ranges: Partial<Record<keyof terminal_settings,[number,number,boolean?]>> 
   font_size:[6,100],line_height:[1,3],letter_spacing:[-5,10],cursor_width:[1,10,true],scrollback:[0,100000,true],
   scroll_sensitivity:[0.1,20],fast_scroll_sensitivity:[1,20],minimum_contrast:[1,21],tab_stop_width:[1,32,true],
 };
-const choices: Partial<Record<keyof terminal_settings,string[]>> = {
+export const terminal_setting_choices: Partial<Record<keyof terminal_settings,string[]>> = {
   font_weight:["normal","bold"],cursor_style:["block","bar","underline"],right_click:["menu","copy_paste","paste"],
   tabs_location:["left","right"],tabs_hide:["never","single_terminal","single_group"],split_cwd:["initial","workspace"],location:["panel","editor"],
 };
@@ -41,7 +41,7 @@ export function validate_terminal_settings(value: unknown): terminal_settings {
     if(!(key in candidate))continue;
     const item=candidate[key];
     if(ranges[key]){const[min,max,integer]=ranges[key]!;if(typeof item!=="number"||!Number.isFinite(item)||item<min||item>max||integer&&!Number.isInteger(item))throw new Error(`${key} 必须在 ${min}–${max} 范围内。`);}
-    else if(choices[key]){if(!choices[key]!.includes(item as string))throw new Error(key+" 的选项无效。");}
+    else if(terminal_setting_choices[key]){if(!terminal_setting_choices[key]!.includes(item as string))throw new Error(key+" 的选项无效。");}
     else if(typeof result[key]==="boolean"){if(typeof item!=="boolean")throw new Error(key+" 必须是布尔值。");}
     else if(typeof result[key]==="string"){if(typeof item!=="string"||item.includes("\0"))throw new Error(key+" 必须是有效文本。");}
     if(key!=="profiles"&&key!=="env")(result as any)[key]=item;

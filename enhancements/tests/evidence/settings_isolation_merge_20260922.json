@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R072",
+    "R070",
+    "R060",
+    "R006"
+  ],
+  "version": "2026.09.22.10",
+  "remote_base": "fb174abf95fac1f0fd6f40259980fb83677cad3c",
+  "preserved_remote_commits": [
+    "8eae4e9cf7ecedee47ff683c85b6080611175a00",
+    "fb174abf95fac1f0fd6f40259980fb83677cad3c"
+  ],
+  "environment": {
+    "os": "Windows-11-10.0.26200-SP0",
+    "typora": "1.14.10",
+    "remote": "authorized Linux Python3 host"
+  },
+  "assets": {
+    "SHA256SUMS": "6d0e59002f3ce2270b9f82fb5554cdd1ed789b9a9283bdd043d10c937bb154f1",
+    "workbench.js": "a71dd082b49c7be7fa29e7a1a2f9d3886e383d9443e299628c5f7ba9348e6e0c",
+    "workspace.css": "32a45c6c4887a58442d0945dc74567684f1b6d7ec7c932cecc7f73b1360cf4ff",
+    "terminal_runtime/SHA256SUMS": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d"
+  },
+  "checks": {
+    "full_check": "PASS; final appearance-only adjustments additionally covered by final UI/native checks",
+    "settings_assertions": 123,
+    "ui_final": [
+      "test_workspace_settings.cjs",
+      "test_community_plugins_ui.cjs",
+      "test_terminal_conpty.cjs",
+      "test_git_graph_interaction.cjs"
+    ],
+    "ui_related": [
+      "test_workspace_titlebar.cjs",
+      "test_terminal_panel.cjs",
+      "test_terminal_geometry.cjs",
+      "test_terminal_theme.cjs"
+    ],
+    "community_native": {
+      "status": "PASS",
+      "assertions": 92,
+      "checks": [
+        "社区ABI与现有工作台同一个App",
+        "真实社区ZIP安装后默认停用不执行",
+        "真实ES5社区插件产生复制按钮 0",
+        "真实复制按钮取得当前代码，剪贴板端口替身不触碰用户剪贴板",
+        "停用清除注册按钮 0",
+        "真实ES5社区插件产生复制按钮 1",
+        "停用清除注册按钮 1",
+        "真实ES5社区插件产生复制按钮 2",
+        "停用清除注册按钮 2",
+        "真实ES5社区插件产生复制按钮 3",
+        "停用清除注册按钮 3",
+        "真实ES5社区插件产生复制按钮 4",
+        "停用清除注册按钮 4",
+        "真实ES5社区插件产生复制按钮 5",
+        "停用清除注册按钮 5",
+        "真实ES5社区插件产生复制按钮 6",
+        "停用清除注册按钮 6",
+        "真实ES5社区插件产生复制按钮 7",
+        "停用清除注册按钮 7",
+        "真实ES5社区插件产生复制按钮 8",
+        "停用清除注册按钮 8",
+        "真实ES5社区插件产生复制按钮 9",
+        "停用清除注册按钮 9",
+        "真实ES5社区插件产生复制按钮 10",
+        "停用清除注册按钮 10",
+        "真实ES5社区插件产生复制按钮 11",
+        "停用清除注册按钮 11",
+        "真实ES5社区插件产生复制按钮 12",
+        "停用清除注册按钮 12",
+        "真实ES5社区插件产生复制按钮 13",
+        "停用清除注册按钮 13",
+        "真实ES5社区插件产生复制按钮 14",
+        "停用清除注册按钮 14",
+        "真实ES5社区插件产生复制按钮 15",
+        "停用清除注册按钮 15",
+        "真实ES5社区插件产生复制按钮 16",
+        "停用清除注册按钮 16",
+        "真实ES5社区插件产生复制按钮 17",
+        "停用清除注册按钮 17",
+        "真实ES5社区插件产生复制按钮 18",
+        "停用清除注册按钮 18",
+        "真实ES5社区插件产生复制按钮 19",
+        "停用清除注册按钮 19",
+        "实际语言映射插件独立注册功能",
+        "社区原始设置页实际渲染语言映射表",
+        "实际社区PluginSettings保存编辑后的映射",
+        "停用实际设置插件关闭其配置并恢复原函数",
+        "重新启用实际社区插件读取独立保存的配置",
+        "卸载保留插件配置且工作台布局根不变",
+        "插件初始化失败也清理已登记底栏与设置资源",
+        "插件构造抛错也清理已登记资源",
+        "公共命令与共享底栏API可用",
+        "扩展活动栏入口存在",
+        "活动栏打开实际扩展侧栏",
+        "原生主题中标题与管理正文无重叠",
+        "宿主input规则不显示隐藏的ZIP选择器",
+        "扩展复用48px槽位和24px官方图标",
+        "扩展选择状态由侧栏所有者提供",
+        "20次切换保留插件面板和筛选，不重建服务",
+        "迟到宿主样式不覆盖扩展",
+        "齿轮只有设置和扩展两个入口",
+        "设置页直接打开社区原始配置",
+        "设置选择进入插件真实配置",
+        "插件行和齿轮共用单个设置页",
+        "上游SettingTab/SettingItem正确渲染设置",
+        "PluginSettings保存到独立用户目录",
+        "Escape只关闭顶层插件设置",
+        "停用关闭该插件已打开的设置",
+        "停用清理插件底栏",
+        "卸载保留个人设置",
+        "接入/启停不重建工作台或原生编辑器",
+        "卸载移除插件登记",
+        "实际主题已切换 dark",
+        "dark/1.25 标题与滚动区不重叠且不超出视口",
+        "dark/1.25 图标和标题保持公共尺寸",
+        "dark/1.25 文件选择控件保持隐藏",
+        "dark/1 标题与滚动区不重叠且不超出视口",
+        "dark/1 图标和标题保持公共尺寸",
+        "dark/1 文件选择控件保持隐藏",
+        "实际主题已切换 light",
+        "light/1.25 标题与滚动区不重叠且不超出视口",
+        "light/1.25 图标和标题保持公共尺寸",
+        "light/1.25 文件选择控件保持隐藏",
+        "light/1 标题与滚动区不重叠且不超出视口",
+        "light/1 图标和标题保持公共尺寸",
+        "light/1 文件选择控件保持隐藏",
+        "扩展参与公共键盘排序",
+        "扩展排序可恢复",
+        "键盘Enter关闭当前扩展侧栏",
+        "键盘Enter恢复同一扩展侧栏",
+        "原用户文档字节保持",
+        "真实插件字段没有通用表单祖先"
+      ]
+    },
+    "ssh_native": {
+      "status": "PASS",
+      "assertions": 119
+    },
+    "community_upstream": {
+      "version": "2.10.23",
+      "source": "https://github.com/typora-community-plugin/typora-community-plugin/releases/tag/2.10.23",
+      "zip_sha256": "1dcdcc4158862f328665f23ae3718ea90c1080fad78497f5849b98711f4523d7",
+      "install": "Unmodified official loader/core manually mounted in isolated Typora per official installer entry; no user profile changed",
+      "checks": [
+        "官方2.10.23设置模态真实启动",
+        "未加载TyporaCode工作台"
+      ]
+    },
+    "install_cycle": "PASS install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_regressions": 65
+  },
+  "delivery": {
+    "installed": true,
+    "asset_counts": {
+      "dist": 34,
+      "terminal_runtime": 24
+    },
+    "protected_unchanged": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "installation_check": "OK",
+    "uninstall_readonly_precheck": "detach",
+    "user_windows_restarted": false
+  },
+  "limits": [
+    "Full VS Code remote workspace/resource provider, remote SCM, remote session/history and platform coverage remain pending under R070.4.",
+    "Current-machine terminal regression is Windows 11; Windows 10 native evidence remains the preserved remote delivery, not a new local Win10 run.",
+    "Settings uses verified VS Code entry/icon/basic geometry; full pixel and all-settings parity is not claimed.",
+    "Community setting tab contents and storage are original plugin-owned; arbitrary third-party global CSS or blocking code cannot be sandboxed inside the host process."
+  ]
+}

@@ -7,6 +7,8 @@ import stat
 import sys
 import tempfile
 import subprocess
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 MAX_BYTES = 16 * 1024 * 1024
 
@@ -55,7 +57,7 @@ def perform(request):
         # 显式固定参数，不运行本机Git，也不拼接Shell；状态查询不获取可选写锁。
         environment = {key: value for key, value in os.environ.items() if key not in {"GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE"}}
         result = subprocess.run(["git", "--no-optional-locks", "-C", path, "status", "--short", "--branch", "--untracked-files=normal"],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, encoding="utf-8", errors="replace", env=environment)
+                                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, encoding="utf-8", errors="replace", env=environment)
         if result.returncode:
             raise ValueError(result.stderr[:4096].strip() or "远程Git状态查询失败")
         if len(result.stdout) > 2 * 1024 * 1024:
@@ -112,20 +114,46 @@ def perform(request):
 
 
 def main():
-    while True:
-        line = sys.stdin.buffer.readline(24 * 1024 * 1024)
-        if not line:
-            return
-        if not line.endswith(b"\n"):
-            return
-        request = {}
+    output_lock = threading.Lock()
+    git_slot = threading.BoundedSemaphore(1)
+
+    def respond(result):
+        with output_lock:
+            sys.stdout.write(json.dumps(result, ensure_ascii=True) + "\n")
+            sys.stdout.flush()
+
+    def execute(request, git=False):
         try:
-            request = json.loads(line)
-            result = {"id": request["id"], "result": perform(request)}
-        except Exception as error:
-            result = {"id": request.get("id"), "error": str(error)}
-        sys.stdout.write(json.dumps(result, ensure_ascii=True) + "\n")
-        sys.stdout.flush()
+            try:
+                result = {"id": request["id"], "result": perform(request)}
+            except Exception as error:
+                result = {"id": request.get("id"), "error": str(error)}
+            respond(result)
+        finally:
+            if git:
+                git_slot.release()
+
+    # Git只读查询最多一个，不排无限队列；文件读写仍由主循环串行执行。
+    # EOF时等待有15秒上限的查询退出，避免遗留工作线程。
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        while True:
+            line = sys.stdin.buffer.readline(24 * 1024 * 1024)
+            if not line or not line.endswith(b"\n"):
+                return
+            try:
+                request = json.loads(line)
+                if not isinstance(request, dict):
+                    raise ValueError("远程请求必须为对象")
+            except Exception as error:
+                respond({"id": None, "error": str(error)})
+                continue
+            if request.get("operation") == "git_status":
+                if git_slot.acquire(blocking=False):
+                    executor.submit(execute, request, True)
+                else:
+                    respond({"id": request.get("id"), "error": "远程Git正在查询，请稍后刷新；文件操作仍可使用"})
+            else:
+                execute(request)
 
 
 if __name__ == "__main__":

@@ -11,13 +11,15 @@ import {create_terminal_profile_service} from "./terminal_profile_detection";
 import {workspace_button as button,workspace_element as el,workspace_dialog,workspace_menu,type workspace_menu_entry} from "./workspace_widgets";
 import type {graph_host,graph_leaf} from "./git_graph_host";
 import {observe_terminal_theme} from "./terminal_theme";
-import {create_terminal_settings,type terminal_profile_config} from "./terminal_settings";
+import {create_terminal_settings,terminal_defaults,terminal_setting_choices,type terminal_profile_config} from "./terminal_settings";
+import {register_workspace_settings,notify_workspace_settings} from './workspace_settings_registry';
 import {show_terminal_settings} from "./terminal_settings_view";
 import {terminal_session} from "./terminal_session";
 import {terminal_surface} from "./terminal_surface";
 import {create_terminal_layout} from "./terminal_layout";
 import {bind_terminal_tab_drag} from "./terminal_tab_drag";
 import {create_terminal_panel} from "./terminal_panel";
+import {read_remote_ssh_settings} from './remote_ssh_settings';
 
 const TERMINAL_TYPE="linux_note.terminal";
 const icons:git_icon_name[]=["terminal","git-branch","folder","file","book","symbol-method"];
@@ -31,6 +33,9 @@ export function bind_terminal_workspace(host:graph_host){
   const style=acquire_workspace_style("typora-code-style:terminal_workspace",xterm_css+"\n"+terminal_css,{"data-workspace-terminal-style":"ready"});lifetime.add(style.remove);
   const profile_service=lifetime.own(create_terminal_profile_service({process_api:host.process_api,path_api:host.path_api,fs:host.fs,child_process:runtime.reqnode("child_process")}));
   const settings=lifetime.own(create_terminal_settings(localStorage,profile_service));
+  const setting_titles:Record<string,string>={profile:'默认Shell配置',profiles:'自定义Shell配置（JSON）',cwd:'默认工作目录',env:'环境变量（JSON）',font_family:'字体系列',font_size:'字体大小',font_weight:'字重',line_height:'行高倍数',letter_spacing:'字符间距',cursor_style:'光标样式',cursor_blink:'光标闪烁',cursor_width:'光标宽度',scrollback:'滚动缓冲行数',smooth_scrolling:'平滑滚动',scroll_sensitivity:'滚轮速度',fast_scroll_sensitivity:'Alt滚轮倍速',minimum_contrast:'最小对比度',tab_stop_width:'制表符宽度',right_click:'右键操作',copy_on_selection:'选中即复制',confirm_multiline:'粘贴多行前确认',tabs_location:'会话列表位置',tabs_hide:'自动隐藏会话列表',split_cwd:'拆分后的工作目录',location:'默认终端位置'};
+  lifetime.add(register_workspace_settings({id:'terminal',title:'终端',scope:()=> '用户设置',defaults:terminal_defaults,fields:Object.keys(terminal_defaults).map(key=>({key,title:setting_titles[key],choices:terminal_setting_choices[key as keyof typeof terminal_defaults],description:['profile','profiles','env','cwd'].includes(key)?'Shell、环境与初始目录的变更在新建或重启会话时生效。':undefined})),read:settings.get,write:(key,value)=>settings.update({...settings.get(),[key]:value})}));
+  lifetime.add(settings.subscribe(notify_workspace_settings));
   const sessions=new Map<string,session_entry>(),groups=new Map<string,HTMLElement>();let serial=0,group_serial=0,active_id="",render_frame=0;
   const panel=lifetime.own(create_terminal_panel(()=>{for(const entry of sessions.values())entry.surface.resize();}));
   const layout=lifetime.own(create_terminal_layout(panel.body,panel.tabs,()=>{for(const entry of sessions.values())entry.surface.resize();}));
@@ -198,7 +203,7 @@ export function bind_terminal_workspace(host:graph_host){
   lifetime.listen(window,"linux-note-open-ssh-terminal",((event:CustomEvent<{target:string;remote_path:string}>)=>{
     try{const api=runtime.reqnode(host.path_api.join(runtime._options.userDataPath,"typora_code","assets","remote","remote_ssh_service.cjs"));
       const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
-      const profile=api.remote_terminal_profile(event.detail.target,event.detail.remote_path,executable);
+      const profile=api.remote_terminal_profile(event.detail.target,event.detail.remote_path,executable,read_remote_ssh_settings());
       void open(host.workspace_path(),"","panel","",true,undefined,profile);
     }catch(error){fail(error);}
   }) as EventListener);

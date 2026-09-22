@@ -26,6 +26,8 @@ import { workspace_element as el, workspace_button as button, workspace_option a
 import { is_composing_key, is_terminal_input } from "./workspace_keyboard";
 import type { graph_host } from "./git_graph_host";
 import { git_graph_language_tag, git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
+import {register_workspace_settings,notify_workspace_settings} from './workspace_settings_registry';
+let settings_serial=0;
 
 const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 const revision_label = (revision: string): string => revision === WORKTREE ? text("graph.revision.worktree") : revision === INDEX ? text("graph.revision.index") : revision === EMPTY ? text("graph.revision.empty") : revision;
@@ -40,6 +42,7 @@ const target_kind_label = (kind: string): string => text(({
 } as Record<string, git_graph_text_key>)[kind] || "graph.target.repository");
 
 export class git_graph_panel {
+  private release_settings=()=>{};
   private files_list?: {dispose(): void};
   private column_binding?:ReturnType<typeof bind_git_graph_columns>;
   context_directory: string;
@@ -116,6 +119,7 @@ export class git_graph_panel {
       if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) { this.count += this.settings.page_count; void this.refresh(false); }
     });
     this.key_handler = event => this.keydown(event);
+    this.release_settings=register_workspace_settings({id:'git_'+(++settings_serial),title:'Git',scope:()=>`仓库：${this.root}`,defaults:graph_defaults,fields:Object.keys(graph_defaults).map(key=>({key,title:settings_labels_for()[key as keyof graph_settings],choices:settings_choices[key]})),read:()=>({...this.settings}),write:(key,value)=>this.apply_settings(validate_settings({...this.settings,[key]:value}),this.root)});
   }
   open(): void {
     if (this.disposed) return;
@@ -134,6 +138,7 @@ export class git_graph_panel {
   dispose(): void {
     if (this.disposed) return;
     this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.branch_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
+    this.release_settings();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
     this.column_binding?.dispose();this.column_binding=undefined;
     this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
@@ -141,7 +146,12 @@ export class git_graph_panel {
     this.finder.close(); this.containment.clear(); this.ancestors.clear();
   }
   report(error: unknown): void { if (this.disposed) return; this.status.textContent = String(error instanceof Error ? error.message : error); if (this.workbench) this.workbench.notice.textContent = this.status.textContent; }
-  persist_settings(): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings));this.progress.configure(this.settings.show_progress); window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings })); }
+  persist_settings(): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "settings:" + this.root, JSON.stringify(this.settings));this.progress.configure(this.settings.show_progress); window.dispatchEvent(new CustomEvent("linux-note-git-settings", { detail: this.settings }));notify_workspace_settings(); }
+  apply_settings(settings:graph_settings,root:string):void {
+    if(this.disposed||this.writing||this.root!==root)throw new Error(text('graph.operation_pending'));
+    const previous=this.settings;this.settings=settings;try{this.persist_settings();}catch(error){this.settings=previous;throw error;}
+    this.runner.cancel();this.writer.cancel();this.runner=this.host.runner(settings);this.writer=this.host.runner(settings,true);void this.refresh();
+  }
   repository_paths(repos:string[]):string[]{
     const found=new Set<string>();return repos.filter(root=>{if(typeof root!=="string"||!root)return false;let key=this.host.path_api.normalize(root);if(this.host.path_api.sep==="\\")key=key.toLowerCase();if(found.has(key))return false;found.add(key);return true;});
   }
@@ -828,10 +838,7 @@ export class git_graph_panel {
     dialog.content.append(form, error);
     const apply = (settings: graph_settings) => {
       if (this.disposed || this.writing || this.root !== root || !dialog.root.isConnected) throw new Error(text("graph.operation_pending"));
-      const previous = this.settings; this.settings = settings;
-      try { this.persist_settings(); } catch (problem) { this.settings = previous; throw problem; }
-      this.runner.cancel(); this.writer.cancel(); this.runner = this.host.runner(settings); this.writer = this.host.runner(settings, true);
-      dialog.close(); void this.refresh();
+      this.apply_settings(settings,root);dialog.close();
     };
     const file = el("input"); file.type = "file"; file.accept = ".json"; file.hidden = true;
     file.onchange = () => void file.files?.[0]?.text().then(contents => {

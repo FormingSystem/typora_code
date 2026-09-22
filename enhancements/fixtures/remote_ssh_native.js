@@ -18,7 +18,17 @@
  const button=(root,label)=>[...root.querySelectorAll('button')].find(node=>node.textContent===label);
  try{
   if(!target||!password)throw Error('未提供显式SSH测试目标和内存凭据');
-  await pause(1200);const hello=await service.connect(target);root=hello.home+'/.typora-code-test-'+crypto.randomUUID()+" ' ${env:NOT_LOCAL} 中文";await service.request('mkdir',{path:root});
+  await pause(1200);
+  core.app.commands.run('typora_code:settings');await wait(()=>document.querySelector('.workspace-settings'),'统一设置未出现');
+  const settings_leaf=core.app.workspace.activeLeaf,settings_view=settings_leaf.view;
+  assert(!document.querySelector('.git-graph-dialog-shade'),'统一设置不锁全屏');
+  assert(!settings_view.containerEl.querySelector('[data-settings-layer]')&&settings_view.containerEl.querySelectorAll('[data-settings-owner]').length===2,'唯一设置页及两个原始配置跳转入口');
+  for(const key of ['editor.enable_preview','files.files.autoSave','terminal.scrollback','ssh.refresh_interval'])assert(settings_view.containerEl.querySelector('[data-setting="'+key+'"]'),'实际功能配置 '+key);
+  const preview=settings_view.containerEl.querySelector('[data-setting="editor.enable_preview"]'),before_preview=preview.checked;preview.checked=!before_preview;preview.dispatchEvent(new Event('change'));assert(core.app.settings.get('workspace_editor').enable_preview===!before_preview,'原生候选配置持久化');
+  const restored=settings_view.containerEl.querySelector('[data-setting="editor.enable_preview"]');restored.checked=before_preview;restored.dispatchEvent(new Event('change'));
+  const setting_samples=[];for(const width of [300,650]){settings_view.containerEl.style.maxWidth=width+'px';assert(settings_view.containerEl.scrollWidth<=width+1,'原生设置窄宽度 '+width);setting_samples.push({width,actual:settings_view.containerEl.getBoundingClientRect().width});}samples.push({settings:setting_samples});
+  await files.close_leaf(settings_leaf);await pause(50);assert(settings_view.disposed,'设置关闭清理');
+  const hello=await service.connect(target);root=hello.home+'/.typora-code-test-'+crypto.randomUUID()+" ' ${env:NOT_LOCAL} 中文";await service.request('mkdir',{path:root});
   file=root+'/远程 空格.md';await service.request('create',{path:file,data:reqnode('buffer').Buffer.from('# 远程测试\n\n**原文**\n').toString('base64')});
   const original_root=files.context_root(),original_file=File.bundle.filePath,original=fs.readFileSync(original_file);
   core.app.commands.run('typora_code:remote_ssh');await wait(()=>document.querySelector('.workspace-ssh-sidebar'),'远程侧栏未出现');
@@ -34,7 +44,13 @@
   await send(terminal_entry,"git init -q && printf 'GIT_%s\\n' READY",'GIT_READY');
   const git=await service.request('git_status',{path:root});assert(git.text.includes('##')&&git.text.includes('.md'),'Git状态来自真实远程测试仓库');
   button(panel,'Git状态').click();await wait(()=>document.querySelector('.workspace-ssh-git-status')?.textContent.includes('##'),'远程Git状态未展示');
-  const git_dialog=document.querySelector('.workspace-ssh-git-status').closest('[role=dialog]');assert(git_dialog.textContent.includes(root),'Git对话框明确远程目录');button(git_dialog,'关闭').click();
+  const git_leaf=core.app.workspace.activeLeaf,git_view=git_leaf.view;
+  assert(!document.querySelector('.git-graph-dialog-shade'),'Git审阅不创建模态窗');
+  assert(git_view.containerEl.textContent.includes(root),'Git标签明确远程目录');
+  button(panel,'Git状态').click();assert(core.app.workspace.activeLeaf===git_leaf,'重复入口复用远程Git标签');
+  button(panel,'刷新').click();await wait(()=>panel.getAttribute('aria-busy')==='false','Git审阅期间目录可刷新');
+  for(let i=0;i<20;i++){await git_view.load();assert(git_view.output.textContent.includes('##'),'Git标签刷新 '+i);}
+  await files.close_leaf(git_leaf);await pause(50);assert(git_view.disposed,'Git标签关闭清理所有者');
   for(let i=0;i<20;i++)await send(terminal_entry,"printf 'ROUND_%s\\n' "+i,'ROUND_'+i);
   assert(!terminal_text(terminal_entry).includes(password+'\n'),'SSH密码未作为终端输出回显');
   const first_profile=JSON.stringify(terminal_entry.session.launch_profile),first_pid=terminal_entry.session.pid;
@@ -64,6 +80,7 @@
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex')});
   // 清理仅限本夹具创建的随机目录。
   await service.connect(target);await remove_scratch(root);file='';root='';
+  await JSBridge.invoke('setting.setCurTheme','github.css','Github');File.setTheme('github.css');await pause(250);core.app.commands.run('typora_code:settings');await pause(100);
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,write_cycles:20,limits:'原生renderer点击/Monaco输入；单一Linux虚拟机，未代表全部SSH平台或VS Code扩展宿主'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
  finally{terminal_command('terminal_kill');terminal_command('terminal_kill');try{if(service.state()==='connected'&&root)await remove_scratch(root);}finally{service.dispose();}}

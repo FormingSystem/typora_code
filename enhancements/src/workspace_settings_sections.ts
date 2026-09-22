@@ -1,0 +1,29 @@
+import {register_workspace_settings,notify_workspace_settings,type workspace_settings_section} from './workspace_settings_registry';
+import {get_workspace_app} from './workspace_bootstrap';
+import {FILE_SETTING_DEFAULTS,read_workspace_save_settings,set_workspace_save_settings,observe_workspace_save_settings} from './workspace_save_settings';
+import {WORKSPACE_EDITOR_DEFAULTS,read_workspace_editor_settings,set_workspace_editor_preview,observe_workspace_editor_settings} from './workspace_editor_settings';
+import {TITLEBAR_DEFAULTS,read_titlebar_settings,toggle_titlebar_setting} from './workspace_titlebar_settings';
+import {BREADCRUMB_DEFAULTS,read_breadcrumb_settings,update_breadcrumb_settings,observe_breadcrumb_settings} from './workspace_breadcrumbs_settings';
+import {git_diff_defaults,read_git_diff_preferences,update_git_diff_preferences,watch_git_diff_preferences} from './git_diff_settings';
+import {REMOTE_SSH_DEFAULTS,read_remote_ssh_settings,write_remote_ssh_setting} from './remote_ssh_settings';
+import {read_source_outline_settings,save_source_outline_settings} from './source_outline_settings';
+import type {workspace_file_host} from './workspace_files';
+
+export function bind_workspace_settings_sections(files:workspace_file_host){
+  const releases:(()=>void)[]=[],user=()=> '用户设置',root=()=>files.context_root(),project=()=>`工作区：${root()||'未打开文件夹'}`;
+  const add=(section:workspace_settings_section)=>releases.push(register_workspace_settings(section));
+  add({id:'editor',title:'编辑器',scope:user,defaults:WORKSPACE_EDITOR_DEFAULTS,fields:[{key:'enable_preview',title:'启用预览编辑器'}],read:read_workspace_editor_settings,write:(_key,value)=>set_workspace_editor_preview(value as boolean)});
+  const file_labels=['自动保存','自动保存延迟（毫秒）','仅自动保存工作区内文件','仅在没有诊断错误时自动保存','启用本地历史','历史文件大小上限（KB）','每个文件历史条数','相邻保存合并窗口（秒）','历史排除规则（JSON）','打开的编辑器最大可见行数','打开的编辑器最小可见行数','打开的编辑器排序','显示打开的编辑器','显示时间线'];
+  add({id:'files',title:'资源管理器与保存',scope:user,defaults:FILE_SETTING_DEFAULTS,fields:Object.keys(FILE_SETTING_DEFAULTS).map((key,index)=>({key,title:file_labels[index]||key,choices:key==='files.autoSave'?['off','afterDelay','onFocusChange','onWindowChange']:key==='explorer.openEditors.sortOrder'?['editorOrder','alphabetical','fullPath']:undefined})),read:read_workspace_save_settings,write:(key,value)=>{const baseline=(FILE_SETTING_DEFAULTS as any)[key];if(typeof baseline==='number'&&(typeof value!=='number'||value<0||!Number.isInteger(value)))throw Error('请输入非负整数');if(key.endsWith('exclude')&&(!value||Array.isArray(value)||typeof value!=='object'||Object.values(value).some(item=>typeof item!=='boolean')))throw Error('排除规则必须为glob到布尔值的JSON对象');set_workspace_save_settings({[key]:value});}});
+  add({id:'titlebar',title:'顶栏',scope:user,defaults:TITLEBAR_DEFAULTS,fields:[{key:'menu_bar',title:'显示菜单栏'},{key:'command_center',title:'显示文件搜索'},{key:'navigation_controls',title:'显示后退与前进'}],read:()=>read_titlebar_settings(get_workspace_app()?.settings),write:(key,value)=>{if((read_titlebar_settings(get_workspace_app()?.settings) as any)[key]!==value)toggle_titlebar_setting(get_workspace_app()?.settings,key as keyof typeof TITLEBAR_DEFAULTS);}});
+  const crumb_labels:Record<string,string>={enabled:'显示面包屑',file_path:'文件路径',symbol_path:'符号路径',icons:'显示图标',show_editor_type:'显示编辑器类型',symbol_sort_order:'符号排序',symbol_path_separator:'复制符号路径分隔符'};
+  add({id:'breadcrumbs',title:'面包屑（工作区）',scope:project,defaults:BREADCRUMB_DEFAULTS,fields:Object.keys(BREADCRUMB_DEFAULTS).map(key=>({key,title:crumb_labels[key],choices:key==='file_path'||key==='symbol_path'?['on','off','last']:key==='symbol_sort_order'?['position','name','type']:undefined})),read:()=>read_breadcrumb_settings(root()),write:(key,value)=>update_breadcrumb_settings(root(),root()?'workspace':'user',key as any,value)});
+  const diff_labels:Record<string,string>={render_side_by_side:'并排比较',inline_when_narrow:'窄宽度自动内联',ignore_trim_whitespace:'忽略首尾空白差异',hide_unchanged:'隐藏未修改区域',show_moves:'显示移动代码'};
+  add({id:'diff',title:'差异编辑器',scope:user,defaults:{...git_diff_defaults},fields:Object.keys(git_diff_defaults).map(key=>({key,title:diff_labels[key]})),read:read_git_diff_preferences,write:(key,value)=>update_git_diff_preferences({[key]:value})});
+  const ssh_labels:Record<string,string>={ssh_path:'OpenSSH程序路径（空为系统默认）',config_file:'SSH配置文件路径（空为OpenSSH默认）',connect_timeout:'连接超时（秒）',server_alive_interval:'连接保活间隔（秒，0关闭）',server_alive_count:'保活连续失败次数',request_timeout:'文件请求超时（秒）',refresh_interval:'可见远程目录刷新间隔（秒，0关闭）'};
+  add({id:'ssh',title:'SSH远程',scope:user,defaults:REMOTE_SSH_DEFAULTS,fields:Object.keys(REMOTE_SSH_DEFAULTS).map(key=>({key,title:ssh_labels[key],description:key==='config_file'?'端口、密钥、代理及账户由OpenSSH配置管理，始终校验主机密钥。连接参数下次连接生效。':undefined})),read:read_remote_ssh_settings,write:write_remote_ssh_setting});
+  add({id:'outline',title:'C/C++语言服务',scope:project,defaults:{clangd_path:'',compile_commands_dir:'',fallback_flags:[]},fields:[{key:'clangd_path',title:'clangd路径（用户级）'},{key:'compile_commands_dir',title:'编译数据库目录（工作区）'},{key:'fallback_flags',title:'后备编译参数（JSON数组）'}],read:()=>read_source_outline_settings(root()),write:(key,value)=>save_source_outline_settings(root(),{...read_source_outline_settings(root()),[key]:value})});
+  releases.push(observe_workspace_save_settings(notify_workspace_settings),observe_workspace_editor_settings(notify_workspace_settings),observe_breadcrumb_settings(notify_workspace_settings),watch_git_diff_preferences(notify_workspace_settings));
+  window.addEventListener('linux-note-workspace-context-changed',notify_workspace_settings);
+  return{dispose(){window.removeEventListener('linux-note-workspace-context-changed',notify_workspace_settings);for(const release of releases.reverse())release();}};
+}

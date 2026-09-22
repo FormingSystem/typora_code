@@ -1,0 +1,284 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R070",
+    "R072"
+  ],
+  "subtasks": [
+    "R070.3",
+    "R070.4 configuration/visible-directory-refresh",
+    "R072"
+  ],
+  "version": "2026.09.22.9",
+  "baseline": "6cd3329",
+  "design": [
+    "docs/remote_ssh.md",
+    "docs/workspace_settings.md"
+  ],
+  "assets": {
+    "SHA256SUMS": "90f11bb9ca7cbb93a1ac1eaac4862fbe0531acec3124ee961142e6cce6d45f5a",
+    "workbench.js": "edb7491e25721a8ad6ad9f1b1ac1d041421d74a1cebfed7bf663dee763bbe147",
+    "workspace.css": "cafe1618ca361d7cdc055e02599d2d3eb9fff02d5b048e47b78ef4b944f7d856"
+  },
+  "checks": {
+    "full_check": "PASS",
+    "ui_suites": [
+      "test_workspace_settings.cjs",
+      "test_terminal_panel.cjs",
+      "test_git_graph_interaction.cjs",
+      "test_community_plugins_ui.cjs",
+      "test_workspace_titlebar.cjs"
+    ],
+    "settings_assertions": 120,
+    "ssh_agent": "PASS: slow Git isolation, 100 read/write cycles, bounded Git, real non-repository/empty/nested repositories",
+    "ssh_service": "PASS: 1000 target-validation cycles, 20 failure cleanup cycles, configured arguments and terminal parity",
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "统一设置不锁全屏",
+        "原生插件自有三层设置",
+        "实际功能配置 editor.enable_preview",
+        "实际功能配置 files.files.autoSave",
+        "实际功能配置 terminal.scrollback",
+        "实际功能配置 ssh.refresh_interval",
+        "原生候选配置持久化",
+        "原生设置窄宽度 300",
+        "原生设置窄宽度 650",
+        "设置关闭清理",
+        "连接结束进度清理",
+        "真实远程测试目录可见",
+        "点击SSH项目终端立即出现启动界面",
+        "含中文、空格、单引号和本机变量形式的远程目录保持原样",
+        "Git状态来自真实远程测试仓库",
+        "Git审阅不创建模态窗",
+        "Git标签明确远程目录",
+        "重复入口复用远程Git标签",
+        "Git标签刷新 0",
+        "Git标签刷新 1",
+        "Git标签刷新 2",
+        "Git标签刷新 3",
+        "Git标签刷新 4",
+        "Git标签刷新 5",
+        "Git标签刷新 6",
+        "Git标签刷新 7",
+        "Git标签刷新 8",
+        "Git标签刷新 9",
+        "Git标签刷新 10",
+        "Git标签刷新 11",
+        "Git标签刷新 12",
+        "Git标签刷新 13",
+        "Git标签刷新 14",
+        "Git标签刷新 15",
+        "Git标签刷新 16",
+        "Git标签刷新 17",
+        "Git标签刷新 18",
+        "Git标签刷新 19",
+        "Git标签关闭清理所有者",
+        "SSH密码未作为终端输出回显",
+        "拆分保留SSH主机和远程目录",
+        "重启保留SSH临时配置",
+        "读取远程Markdown正文",
+        "远程文件不改变本地工作区身份",
+        "远程身份不伪装为本地绝对路径",
+        "公共文件层识别远程草稿 0",
+        "公共保存入口 0",
+        "真实SSH回读 0",
+        "公共文件层识别远程草稿 1",
+        "公共保存入口 1",
+        "真实SSH回读 1",
+        "公共文件层识别远程草稿 2",
+        "公共保存入口 2",
+        "真实SSH回读 2",
+        "公共文件层识别远程草稿 3",
+        "公共保存入口 3",
+        "真实SSH回读 3",
+        "公共文件层识别远程草稿 4",
+        "公共保存入口 4",
+        "真实SSH回读 4",
+        "公共文件层识别远程草稿 5",
+        "公共保存入口 5",
+        "真实SSH回读 5",
+        "公共文件层识别远程草稿 6",
+        "公共保存入口 6",
+        "真实SSH回读 6",
+        "公共文件层识别远程草稿 7",
+        "公共保存入口 7",
+        "真实SSH回读 7",
+        "公共文件层识别远程草稿 8",
+        "公共保存入口 8",
+        "真实SSH回读 8",
+        "公共文件层识别远程草稿 9",
+        "公共保存入口 9",
+        "真实SSH回读 9",
+        "公共文件层识别远程草稿 10",
+        "公共保存入口 10",
+        "真实SSH回读 10",
+        "公共文件层识别远程草稿 11",
+        "公共保存入口 11",
+        "真实SSH回读 11",
+        "公共文件层识别远程草稿 12",
+        "公共保存入口 12",
+        "真实SSH回读 12",
+        "公共文件层识别远程草稿 13",
+        "公共保存入口 13",
+        "真实SSH回读 13",
+        "公共文件层识别远程草稿 14",
+        "公共保存入口 14",
+        "真实SSH回读 14",
+        "公共文件层识别远程草稿 15",
+        "公共保存入口 15",
+        "真实SSH回读 15",
+        "公共文件层识别远程草稿 16",
+        "公共保存入口 16",
+        "真实SSH回读 16",
+        "公共文件层识别远程草稿 17",
+        "公共保存入口 17",
+        "真实SSH回读 17",
+        "公共文件层识别远程草稿 18",
+        "公共保存入口 18",
+        "真实SSH回读 18",
+        "公共文件层识别远程草稿 19",
+        "公共保存入口 19",
+        "真实SSH回读 19",
+        "远程Markdown阅读预览只读",
+        "远程工具操作完整 Github/1",
+        "远程工具操作完整 Github/1.25",
+        "远程工具操作完整 Night/1",
+        "远程工具操作完整 Night/1.25",
+        "远程冲突拒绝覆盖",
+        "冲突保留草稿",
+        "断线保存明确失败",
+        "断线仍保留草稿",
+        "未确认前保留远程标签",
+        "关闭真正释放远程编辑器",
+        "本地正文保持原字节",
+        "远程断线和关闭不切本地工作区",
+        "密码对话框与输入已清理"
+      ],
+      "samples": [
+        {
+          "settings": [
+            {
+              "width": 300,
+              "actual": 300
+            },
+            {
+              "width": 650,
+              "actual": 650
+            }
+          ]
+        },
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "color": "rgb(51, 51, 51)",
+          "toolbar": {
+            "x": 287.8000183105469,
+            "y": 67,
+            "width": 1377.5999755859375,
+            "height": 35.79999923706055,
+            "top": 67,
+            "right": 1665.3999938964844,
+            "bottom": 102.79999923706055,
+            "left": 287.8000183105469
+          }
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "color": "rgb(51, 51, 51)",
+          "toolbar": {
+            "x": 287.6399841308594,
+            "y": 67,
+            "width": 1044.47998046875,
+            "height": 35.47999954223633,
+            "top": 67,
+            "right": 1332.1199645996094,
+            "bottom": 102.47999954223633,
+            "left": 287.6399841308594
+          }
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "color": "rgb(184, 191, 198)",
+          "toolbar": {
+            "x": 287.8000183105469,
+            "y": 67,
+            "width": 1377.5999755859375,
+            "height": 35.79999923706055,
+            "top": 67,
+            "right": 1665.3999938964844,
+            "bottom": 102.79999923706055,
+            "left": 287.8000183105469
+          }
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "color": "rgb(184, 191, 198)",
+          "toolbar": {
+            "x": 287.6399841308594,
+            "y": 67,
+            "width": 1044.47998046875,
+            "height": 35.47999954223633,
+            "top": 67,
+            "right": 1332.1199645996094,
+            "bottom": 102.47999954223633,
+            "left": 287.6399841308594
+          }
+        },
+        {
+          "viewport": {
+            "width": 1666,
+            "height": 1034,
+            "dpi": 1.25
+          },
+          "asset_sha256": "edb7491e25721a8ad6ad9f1b1ac1d041421d74a1cebfed7bf663dee763bbe147"
+        }
+      ],
+      "write_cycles": 20,
+      "limits": "原生renderer点击/Monaco输入；单一Linux虚拟机，未代表全部SSH平台或VS Code扩展宿主"
+    },
+    "native_setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "90f11bb9ca7cbb93a1ac1eaac4862fbe0531acec3124ee961142e6cce6d45f5a",
+      "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+      "fixture_sha256": "50a979aa8eeea14eaced1c9324c8aaed1b71efaa2f674da5456ccfa30df19b8a",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "isolated_install_uninstall": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_assertions": 65,
+    "actual_install": {
+      "assets": {
+        "workspace": 32,
+        "terminal": 24
+      },
+      "protected_files": {
+        "asar": true,
+        "window": true,
+        "theme": true,
+        "settings": true,
+        "profile": true
+      },
+      "check": "OK",
+      "uninstall": "read-only precheck detach",
+      "running_windows_restarted": false
+    }
+  },
+  "first_attempts": [
+    "Windows agent protocol fixture required platform-only POSIX flag adaptation; real Linux validation remains separate",
+    "Git subprocess inherited JSON protocol stdin and blocked the Windows fixture; explicitly disconnected subprocess stdin and reran",
+    "Native modal assertion initially included hidden host dialog templates; now checks actual workbench modal overlay; failure log retained"
+  ],
+  "limits": [
+    "Remote directory refresh polls visible current directory; full remote workspace/tree/watch provider is not implemented",
+    "Remote SCM/Graph, session restoration, remote autosave/history, remote extension host/debug/port forwarding and other remote platforms remain unimplemented",
+    "Native fixture invokes renderer commands in isolated Typora 1.14.10 with real Linux SSH; not physical pointer or Windows 10 validation",
+    "Native/community settings ownership routing verified; this run does not retest every third-party SettingTab or native preferences option",
+    "Settings UI adopts fixed upstream values and shared controls; not full pixel-for-pixel VS Code settings parity"
+  ]
+}

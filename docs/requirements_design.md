@@ -124,7 +124,8 @@
 | R047.4 | 帮助菜单访问项目仓库 | [设计章节](workspace_update.md#r0474-帮助菜单项目仓库入口2026-09-22) | 固定GitHub仓库、系统浏览器、ZIP离线获取指引 |
 | R069 | Markdown链接侧栏及左右/上下分屏只读预览 | [设计](link_preview.md) | 共用目标解析、安全网页快照、只读呈现与打开源文件 |
 | R071 | 模块刷新隔离与Git仓库生命周期 | [并发与响应性及VS Code空仓复核](workspace_responsiveness.md) | Git隔离与空仓复核已交付；缩放性能继续追踪 |
-| R070 | SSH远程Markdown与项目管理 | [远程连接与文件生命周期](remote_ssh.md) | 文件读写、项目终端与Git状态已实现；平台和上游完整能力边界见设计 |
+| R072 | 配置所有权隔离与统一自有设置 | [设置架构](workspace_settings.md) | Typora / 社区插件 / TyporaCode 所有权隔离；R072.1单一设置入口、原始社区设置独立呈现 |
+| R070 | SSH远程Markdown与项目管理 | [远程连接与文件生命周期](remote_ssh.md) | 文件读写、项目终端与Git状态已实现；R070.3按VS Code复核交互与慢操作隔离，完整工作区等差距见设计 |
 | R068 | 长短代码块展开与高度隔离 | [代码块显示](reading_code_blocks.md) | 独立状态、原生测量失效、混排/缩放及正文保持 |
 | R067 | 光标及链接跳转前后历史 | [导航历史](navigation_history.md) | 固定上游配置、来源/目标事务、跨编辑器与编辑组、失败取消及原生回归 |
 | H001 | 七类菜单、居中搜索与阅读前后退 | [设计章节](../enhancements/README.md#1.4.5_活动栏与侧栏布局)、[导航历史](navigation_history.md) | 已有交互与宿主边界；R067补齐链接及源码位置 |

@@ -1,0 +1,18 @@
+.workspace-settings{box-sizing:border-box;width:100%;max-width:1400px;margin:0 auto;overflow:hidden;display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;color:var(--text-color);background:var(--bg-color);font:var(--linux-note-ui-font-size,13px)/1.4 var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
+.workspace-settings>input{margin:14px 24px;flex:none;min-width:0}
+.workspace-settings-content{display:flex;flex:1;min-height:0;min-width:0}
+.workspace-settings-categories{flex:0 1 180px;min-width:80px;overflow:auto;padding:6px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
+.workspace-settings-body{flex:1;min-width:0;overflow:auto;padding:0 24px 20px}
+.workspace-settings .workspace-settings-body h2{font:600 26px/1.4 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:inherit;margin:16px 0 6px;padding:0;border:0;letter-spacing:normal;text-transform:none}.workspace-settings-scope{overflow-wrap:anywhere;color:var(--control-text-color)}
+.workspace-setting-row{display:flex;flex-wrap:wrap;align-items:start;gap:8px;border-bottom:1px solid var(--workspace-border-color,#8883);padding:12px 0}
+.workspace-setting-label{display:flex;flex:1;flex-direction:column;min-width:100px;gap:6px;overflow-wrap:anywhere}
+.workspace-setting-label small{color:var(--control-text-color)}
+.workspace-setting-label :is(input:not([type=checkbox]),select,textarea){box-sizing:border-box;width:100%;max-width:480px;min-width:0}.workspace-setting-label input[type=checkbox]{align-self:flex-start}
+.workspace-setting-label textarea{min-height:75px}.workspace-setting-row>p{flex-basis:100%;margin:0}
+.workspace-settings-status{flex:none;margin:6px 12px;overflow-wrap:anywhere}
+.workspace-settings :is(button,input,select,textarea){font:inherit;color:inherit}.workspace-settings button{white-space:normal}
+
+.workspace-settings button{appearance:none;border:0;background:transparent;min-height:26px;padding:4px 8px;text-align:left}
+.workspace-settings button[aria-pressed=true]{font-weight:600;background:var(--item-hover-bg-color,#8882)}
+.workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
+.workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}

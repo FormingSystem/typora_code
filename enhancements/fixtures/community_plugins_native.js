@@ -27,7 +27,7 @@
   await service.set_enabled(mapper_id,true);
   assert(window.getCodeMirrorMode!==original_mode,'实际语言映射插件独立注册功能');
   bridge.open_settings();
-  [...document.querySelectorAll('.workspace-community-setting-list button')].find(n=>n.textContent==='Codeblock Highlight Mapper').click();
+  document.querySelector('.workspace-community-settings-root .typ-nav__item[data-plugin-id="typora-community-plugin.codeblock-highlight-mapper"]').click();
   const mapper_table=document.querySelector('.workspace-community-settings .typ-editable-table');
   assert(mapper_table?.querySelectorAll('tbody tr').length===3,'社区原始设置页实际渲染语言映射表');
   mapper_table.querySelector('tbody tr td').click();
@@ -39,7 +39,7 @@
   await service.set_enabled(mapper_id,false);
   assert(!document.querySelector('.workspace-community-settings')&&window.getCodeMirrorMode===original_mode,'停用实际设置插件关闭其配置并恢复原函数');
   await service.set_enabled(mapper_id,true);bridge.open_settings();
-  [...document.querySelectorAll('.workspace-community-setting-list button')].find(n=>n.textContent==='Codeblock Highlight Mapper').click();
+  document.querySelector('.workspace-community-settings-root .typ-nav__item[data-plugin-id="typora-community-plugin.codeblock-highlight-mapper"]').click();
   assert(document.querySelector('.workspace-community-settings').textContent.includes('javascript'),'重新启用实际社区插件读取独立保存的配置');
   await service.set_enabled(mapper_id,false);await service.uninstall(mapper_id);
   assert(fs.existsSync(mapper_config)&&core.app.workspace.rootSplit.containerEl===root,'卸载保留插件配置且工作台布局根不变');
@@ -70,9 +70,10 @@
   assert(!document.querySelector('#typora-sidebar').classList.contains('active-tab-files'),'迟到宿主样式不覆盖扩展');
   search.value='';search.dispatchEvent(new Event('input'));
   document.querySelector('.workspace-preferences-trigger').click();
-  [...document.querySelectorAll('.workspace-preferences-menu button')].find(n=>n.textContent.includes('插件设置')).click();
-  assert(!!document.querySelector('.workspace-community-setting-list'),'左下齿轮打开插件设置选择页');
-  document.querySelector('.workspace-community-setting-list button').click();
+  assert(document.querySelectorAll('.workspace-preferences-menu [role=menuitem]').length===2,'齿轮只有设置和扩展两个入口');
+  [...document.querySelectorAll('.workspace-preferences-menu button')].find(n=>n.textContent.startsWith('设置')).click();
+  document.querySelector('[data-settings-owner=community]').click();
+  assert(!!document.querySelector('.workspace-community-settings-root .typ-nav__item'),'设置页直接打开社区原始配置');
   assert(!!document.querySelector('.workspace-community-settings input'),'设置选择进入插件真实配置');
 
   const setting_button=[...document.querySelectorAll('.workspace-community-manager button')].find(button=>button.textContent==='设置'&&!button.disabled);setting_button.click();assert(document.querySelectorAll('.workspace-community-settings').length===1,'插件行和齿轮共用单个设置页');
@@ -106,6 +107,8 @@
   extension_button.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',bubbles:true,cancelable:true}));await pause(40);
   assert(sidebar.isShown&&document.querySelector('.workspace-community-manager')===manager,'键盘Enter恢复同一扩展侧栏');
   assert(fs.readFileSync(path.join(base,'workspace/front.md'),'utf8')===original,'原用户文档字节保持');
+  await service.install_archive(path.join(base,'community_mapper_plugin.zip'));await service.set_enabled(mapper_id,true);bridge.open_settings();await pause(100);
+  const plugin_input=document.querySelector('.workspace-community-settings input');assert(!document.querySelector('.workspace-community-settings').closest('.git-graph-dialog'),'真实插件字段没有通用表单祖先');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,layout_samples,iterations:20,plugin:{id,version:'1.2.0',sha256:'41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704'},scope:'原始Typora独立副本，真实社区发行ZIP与公共ABI，renderer操作'},null,2),'utf8');
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks},null,2),'utf8');}
 })();

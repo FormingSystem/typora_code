@@ -2,6 +2,7 @@ import css from "./workspace_preferences.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_menu} from "./workspace_widgets";
 import type {graph_core} from "./git_graph_host";
+import {git_icon} from './git_icons';
 
 const bindings = new WeakMap<object, {dispose():void}>();
 
@@ -11,16 +12,8 @@ export function bind_workspace_preferences(core:graph_core) {
   const style=acquire_workspace_style("typora-code-preferences",css);
   const button=document.createElement("button");button.type="button";
   button.className="typ-ribbon-item workspace-preferences-trigger";
-  button.dataset.id="typora_code:preferences";button.title="偏好设置";button.setAttribute("aria-label",button.title);
-  // 上游核心 2.10.15 的原设置槽位采用 fa-cog，保留其字形。
-  const icon=document.createElement("i");icon.className="fa fa-cog";icon.setAttribute("aria-hidden","true");button.append(icon);
-  const open_native=()=>{
-    try {
-      const commands=(window as unknown as {ClientCommand?:{showPreferencePanel?():void}}).ClientCommand;
-      if(!commands?.showPreferencePanel)throw new Error("Typora native preferences command is unavailable.");
-      commands.showPreferencePanel();delete button.dataset.preferencesError;
-    } catch(error) {button.dataset.preferencesError=String(error);console.error("Typora Code preferences:",error);}
-  };
+  button.dataset.id="typora_code:preferences";button.title="管理";button.setAttribute("aria-label",button.title);
+  button.append(git_icon('settings-gear'));
   let close_menu:(()=>void)|undefined;
   button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');
   button.onclick=event=>{
@@ -28,8 +21,7 @@ export function bind_workspace_preferences(core:graph_core) {
     const plugins=Boolean((core.app as any).community_plugins);
     button.setAttribute('aria-expanded','true');
     close_menu=workspace_menu(event,[
-      {title:'Typora 偏好设置…',shortcut:'Ctrl+,',action:open_native},
-      {title:'插件设置…',disabled:!plugins,action:()=>core.app.commands.run('typora_code:community_plugin_settings')},
+      {title:'设置',shortcut:'Ctrl+,',action:()=>core.app.commands.run('typora_code:settings')},
       {title:'扩展…',shortcut:'Ctrl+Shift+X',disabled:!plugins,action:()=>core.app.commands.run('typora_code:community_plugins')},
     ],'workspace-preferences-menu',()=>{close_menu=undefined;button.setAttribute('aria-expanded','false');},{anchor:button});
   };
