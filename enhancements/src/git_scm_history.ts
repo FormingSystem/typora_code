@@ -1,3 +1,5 @@
+import {create_workspace_virtual_list} from "./workspace_virtual_list";
+import {workspace_tree_rows} from "./workspace_tree_rows";
 import {git_scm_toolbar} from "./git_scm_toolbar";
 import {bind_git_commit_hover} from "./git_commit_hover";
 import {git_file_label} from "./git_file_label";
@@ -18,6 +20,8 @@ export class git_scm_history {
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
   toolbar:git_scm_toolbar;
+  private file_lists = new Map<HTMLElement, {dispose(): void}>();
+  private clear_file_lists(): void { for (const list of this.file_lists.values()) list.dispose(); this.file_lists.clear(); }
   files_cache = new Map<string, graph_change[]>();
   hover:ReturnType<typeof bind_git_commit_hover>;
   collapsed_directories = new Set<string>();
@@ -50,7 +54,7 @@ export class git_scm_history {
     if(id==="fetch"||id==="pull"||id==="push"||id==="sync")void this.owner.panel.network_action(id);
   }
   more_menu(event:MouseEvent):void{this.toolbar.more_menu(event);}
-  reset(): void { this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
+  reset(): void { this.clear_file_lists(); this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
     if (!panel.state?.head) { panel.report(text("history.no_head")); return; }
@@ -66,7 +70,7 @@ export class git_scm_history {
     this.toggle.setAttribute("aria-expanded", String(open)); this.list.hidden = !open;
   }
   render(state: repository_state): void {
-    this.hover.hide();
+    this.clear_file_lists(); this.hover.hide();
     if (state.root !== this.root) this.reset();
     const epoch = ++this.epoch; const panel = this.owner.panel; const scroll = this.list.scrollTop;
     this.container.dataset.historyAlwaysShowActions=String(panel.settings.history_always_show_actions);
@@ -163,6 +167,7 @@ export class git_scm_history {
     } catch (error) { if (!panel.disposed && root === panel.root && epoch === this.owner.load_epoch) panel.report(error); }
   }
   render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
+    this.file_lists.get(target)?.dispose(); this.file_lists.delete(target);
     target.replaceChildren(); const from = commit.parents[0] || EMPTY;
     target.setAttribute("role", "group");
     target.setAttribute("aria-label", text("history.changed_files_aria", {count: files.length, parent: commit.parents.length > 1 ? text("history.first_parent_suffix") : ""}));
@@ -177,7 +182,7 @@ export class git_scm_history {
       parent.append(directory); directories.set(path, directory); return directory;
     };
     const root = this.owner.panel.root;
-    for (const file of [...files].sort((a, b) => a.path.localeCompare(b.path))) {
+    const create_row = (file: graph_change) => {
       const wrapper = el("div", "git-scm-history-file-row");
       const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
       row.dataset.workspaceInteraction="row";
@@ -188,8 +193,24 @@ export class git_scm_history {
       revision.dataset.historyFileAction = "open-revision"; revision.dataset.historyPath = file.path;
       revision.onclick = event => { event.preventDefault(); event.stopPropagation(); if (this.owner.repository_action_available(root)) void this.owner.open_revision_file(file, from, commit.hash); };
       row.oncontextmenu = event => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files, root));
-      wrapper.append(row, revision); parent_for(file.path.split("/").slice(0, -1).join("/")).append(wrapper);
-    }
+      wrapper.append(row, revision); return wrapper;
+    };
+    const collator = new Intl.Collator(), sorted = [...files].sort((a, b) => collator.compare(a.path, b.path));
+    if (sorted.length > 200) {
+      const collapsed = new Set([...this.collapsed_directories].filter(key => key.startsWith(commit.hash + ":")).map(key => key.slice(commit.hash.length + 1)));
+      const entries = () => this.owner.history_tree ? workspace_tree_rows(sorted, file => file.path, collapsed) : sorted.map(item => ({item, depth: 0, directory: undefined as string | undefined}));
+      const list = create_workspace_virtual_list({root: target, scroller: this.list, items: entries(), row_height: 22, render: item => {
+        if (item.item) { const wrapper = create_row(item.item); wrapper.tabIndex = 0; wrapper.style.paddingLeft = item.depth * 12 + "px";
+          const row = wrapper.querySelector<HTMLButtonElement>(".git-scm-history-file")!; row.tabIndex = -1;
+          wrapper.onkeydown = event => { if (event.target === wrapper && ["Enter", " "].includes(event.key)) {event.preventDefault(); row.click();} }; return wrapper;
+        }
+        const directory = item.directory!, key = commit.hash + ":" + directory;
+        const row = button(directory.split("/").at(-1)!, () => {
+          if (collapsed.has(directory)) {collapsed.delete(directory); this.collapsed_directories.delete(key);} else {collapsed.add(directory); this.collapsed_directories.add(key);}
+          list.set_items(entries());
+        }, "git-scm-virtual-directory"); row.prepend(git_icon(collapsed.has(directory) ? "chevron-right" : "chevron-down")); row.style.paddingLeft = item.depth * 12 + "px"; row.setAttribute("aria-expanded", String(!collapsed.has(directory))); return row;
+      }}); this.file_lists.set(target, list);
+    } else for (const file of sorted) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_row(file));
   }
-  dispose(): void { this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
+  dispose(): void { this.clear_file_lists(); this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
 }

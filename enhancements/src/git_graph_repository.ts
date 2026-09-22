@@ -53,6 +53,16 @@ export function parse_changes(source: string): graph_change[] {
 }
 const quiet_head = async (run: git_run, root: string) => run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).then(value => value.trim()).catch(error => { if (error.code === 1) return ""; throw error; });
 
+/** 只把 Git 明确报告的非仓库识别为空状态；权限、可执行文件和损坏仓库错误继续报告。 */
+export function is_missing_repository(error: unknown): boolean {
+  return (error as {code?: number})?.code === 128 && /not a git repository \(or any of the parent directories\): \.git/u.test(String((error as Error)?.message));
+}
+export async function initialize_repository(run: git_run, cwd: string): Promise<void> {
+  try { await run(cwd, ["rev-parse", "--show-toplevel"]); return; }
+  catch (error) { if (!is_missing_repository(error)) throw error; }
+  await run(cwd, ["init"]);
+}
+
 export async function read_repository(run: git_run, cwd: string, settings: graph_settings, count: number, branches: string[] = []): Promise<repository_state> {
   const root = (await run(cwd, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
   const [head, branch, ref_text, stash_text, status_text, remote_text, git_path, status] = await Promise.all([
@@ -126,7 +136,10 @@ export async function compare_files(run: git_run, state: repository_state, from:
   // 尚无首次提交时，暂存的新文件也属于工作区内容，普通 diff 只会返回未暂存差量。
   if (from === EMPTY && to === WORKTREE) return state.changes.filter(file => file.work_status !== "D").map(file => ({ ...file, status: "A" }));
   const changes = parse_changes(await run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]));
-  if (to === WORKTREE) for (const file of state.changes) if (file.status === "??" && !changes.some(item => item.path === file.path)) changes.push(file);
+  if (to === WORKTREE) {
+    const paths = new Set(changes.map(file => file.path));
+    for (const file of state.changes) if (file.status === "??" && !paths.has(file.path)) { paths.add(file.path); changes.push(file); }
+  }
   return changes;
 }
 export async function compare_patch(run: git_run, state: repository_state, from: string, to: string, file: graph_change): Promise<string> {

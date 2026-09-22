@@ -1,3 +1,4 @@
+import {discover_git_repositories} from "./git_repository_discovery";
 import {trash_native_path} from "./workspace_native_trash";
 import {request_workspace_editor_title_entries} from "./workspace_editor_actions";
 import {select_workspace_editor_group} from "./workspace_editor_settings";
@@ -273,16 +274,11 @@ export function create_graph_host(core: graph_core) {
       if (existing) { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
       else add_tab("linux_note.git_document", uri, group);
     },
-    async discover(root: string, depth: number): Promise<string[]> {
-      const found: string[] = []; let visited = 0;
-      const walk = async (directory: string, level: number) => {
-        if (++visited > 1500) return;
-        const entries = await fs.promises.readdir(directory, { withFileTypes: true }).catch(() => []);
-        if (entries.some((entry: { name: string }) => entry.name === ".git")) found.push(directory);
-        if (level >= depth) return;
-        for (const entry of entries) if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk(path_api.join(directory, entry.name), level + 1);
-      };
-      await walk(root, 0); return found;
+    async discover(root: string, depth: number, signal?: AbortSignal) {
+      const reader = create_git_runner({child_process: runtime.reqnode("child_process"), process: runtime.reqnode("process")});
+      const cancel = () => reader.cancel(); signal?.addEventListener("abort", cancel, {once: true});
+      try { return await discover_git_repositories({root, depth, run: reader.run, fs, path: path_api, signal}); }
+      finally { signal?.removeEventListener("abort", cancel); reader.cancel(); }
     },
     async avatar(email: string): Promise<string> {
       const hash = crypto.createHash("md5").update(email.trim().toLowerCase()).digest("hex");

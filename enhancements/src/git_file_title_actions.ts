@@ -36,7 +36,7 @@ export function bind_git_file_title_actions(host:graph_host,controller_for:(root
       const change=parse_status(await reader.run(root,["status","--porcelain=v1","-z","--untracked-files=all","--",":(literal)"+relative])).find(item=>item.path===relative);
       if(!valid()||!change)return [];
       const panel=controller_for(root);
-      while(panel.pending&&valid()&&!panel.disposed)await new Promise(resolve=>window.setTimeout(resolve,25));
+      await panel.when_refreshed();
       if(!valid()||panel.disposed||!panel.state||host.path_api.relative(panel.root,root)!=="")return [];
       const writer=panel.writer,paths=[change.path,...(change.old_path?[change.old_path]:[])];
       const writable=()=>{

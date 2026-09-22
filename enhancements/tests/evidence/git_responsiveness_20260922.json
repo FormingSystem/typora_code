@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R071"
+  ],
+  "version": "2026.09.22.7",
+  "baseline": "582951a",
+  "design": "docs/workspace_responsiveness.md",
+  "build": {
+    "SHA256SUMS": "f180e88b6ce790783292bdb2ab09680c14569430410097f79997b79a09a42feb",
+    "workbench.js": "8db3f664baad1dd78546bd70e3e3028b330911b93d5698e1b768bc2e1b12703b"
+  },
+  "validation": {
+    "full_check": "PASS",
+    "ui_suites": {
+      "test_git_graph_interaction.cjs": "PASS",
+      "test_git_responsiveness.cjs": {
+        "status": "PASS",
+        "results": [
+          "accepted Git action releases modal before command completes",
+          "real mouse and keyboard work outside pending Git",
+          "real branch command completes once",
+          "50k SCM rows bounded without truncating last file",
+          "keyboard can reach final row",
+          "large tree collapses without dropping source data",
+          "20 refreshes keep DOM bounded",
+          "Graph details share bounded list and retain last file",
+          "history file expansion shares bounded list and retains final file",
+          "50k workload event-loop P95 under 100ms and max under 500ms",
+          "empty folder clears previous repository and exposes initialize",
+          "UI initialize creates empty real repository"
+        ],
+        "metrics": {
+          "render_ms": 33.900000005960464,
+          "nodes": 22,
+          "last_visible": true,
+          "keyboard_last": true,
+          "collapsed": true,
+          "peak_nodes": 22,
+          "detail_nodes": 18,
+          "detail_last": true,
+          "history_nodes": 23,
+          "history_last": true,
+          "max_ms": 18.19999998807907,
+          "p95_ms": 13.699999988079071,
+          "samples": 120
+        }
+      },
+      "test_git_scm_actions.cjs": "PASS",
+      "test_git_discard_confirmation.cjs": "PASS",
+      "test_git_quick_actions.cjs": "PASS"
+    },
+    "lifecycle": "21 assertions; actual temporary empty/init/first commit/nested/worktree/deleted marker and missing directory; permission/executable errors injected",
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "真实Git识别一万未跟踪文件",
+        "刷新期间阅读切换 0",
+        "刷新期间终端可获焦 0",
+        "刷新保留有界DOM 0",
+        "刷新保留有界DOM 1",
+        "刷新期间阅读切换 2",
+        "刷新期间终端可获焦 2",
+        "刷新保留有界DOM 2",
+        "刷新保留有界DOM 3",
+        "刷新期间阅读切换 4",
+        "刷新期间终端可获焦 4",
+        "刷新保留有界DOM 4",
+        "刷新保留有界DOM 5",
+        "刷新期间阅读切换 6",
+        "刷新期间终端可获焦 6",
+        "刷新保留有界DOM 6",
+        "刷新保留有界DOM 7",
+        "刷新期间阅读切换 8",
+        "刷新期间终端可获焦 8",
+        "刷新保留有界DOM 8",
+        "刷新保留有界DOM 9",
+        "刷新期间阅读切换 10",
+        "刷新期间终端可获焦 10",
+        "刷新保留有界DOM 10",
+        "刷新保留有界DOM 11",
+        "刷新期间阅读切换 12",
+        "刷新期间终端可获焦 12",
+        "刷新保留有界DOM 12",
+        "刷新保留有界DOM 13",
+        "刷新期间阅读切换 14",
+        "刷新期间终端可获焦 14",
+        "刷新保留有界DOM 14",
+        "刷新保留有界DOM 15",
+        "刷新期间阅读切换 16",
+        "刷新期间终端可获焦 16",
+        "刷新保留有界DOM 16",
+        "刷新保留有界DOM 17",
+        "刷新期间阅读切换 18",
+        "刷新期间终端可获焦 18",
+        "刷新保留有界DOM 18",
+        "刷新保留有界DOM 19",
+        "缩放后可访问最后文件 0.8",
+        "缩放后可访问最后文件 1",
+        "缩放后可访问最后文件 1.25",
+        "Git刷新和缩放保留终端进程",
+        "阅读正文未修改",
+        "宿主事件循环P95小于100ms且最大间隔小于500ms"
+      ],
+      "metrics": {
+        "max_ms": 83.80000001192093,
+        "p95_ms": 15.700000002980232,
+        "samples": 799,
+        "refresh_ms": [
+          300.90000000596046,
+          308.5,
+          292.19999998807907,
+          282.29999999701977,
+          279.5,
+          255.6000000089407,
+          252.6000000089407,
+          272.79999999701977,
+          257.09999999403954,
+          284.40000000596046,
+          260.40000000596046,
+          280.90000000596046,
+          271.29999999701977,
+          288.20000000298023,
+          261,
+          294.20000000298023,
+          361.90000000596046,
+          272.29999999701977,
+          282.29999999701977,
+          438.90000000596046
+        ],
+        "long_intervals": [
+          {
+            "phase": "zoom_0.8",
+            "duration_ms": 83.80000001192093
+          },
+          {
+            "phase": "zoom_1",
+            "duration_ms": 54.20000000298023
+          },
+          {
+            "phase": "zoom_1.25",
+            "duration_ms": 79.5
+          }
+        ]
+      }
+    },
+    "native_setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "f180e88b6ce790783292bdb2ab09680c14569430410097f79997b79a09a42feb",
+      "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+      "fixture_sha256": "3cc830cb71903c43c6a6ac290111efb2061ce79b89d64b19af7e3f2474ac2f34",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "baseline_merge": {
+      "rows": 50000,
+      "old_ms": 3586.1149,
+      "new_ms": 4.90079999999989,
+      "method": "same 50k inputs; prior .some loop vs path Set; pure Node data processing, not native UI"
+    },
+    "install_cycle": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; files/settings/backups retained",
+    "uninstall_cases": "65 assertions PASS",
+    "local_install": {
+      "protected": {
+        "asar": true,
+        "window": true,
+        "theme": true,
+        "settings": true,
+        "profile": true
+      },
+      "matched_assets": {
+        "workspace": 32,
+        "terminal": 24
+      },
+      "check": "PASS",
+      "uninstall_precheck": "detach; read-only",
+      "loaded_running_window": false
+    }
+  },
+  "failed_attempts": [
+    "Windows mapped-file build conflicts; partial output rejected by candidate manifest; final complete build verified before delivery",
+    "An IPC fixture returned a function; fixed fixture serialization",
+    "Scoped keyboard guard initially rejected Ctrl+F after Escape returned focus to body; reproduced twice and corrected; final full interaction passed",
+    "First native heartbeat sampling included Shell startup (maximum 361ms); final measurement begins after Shell ready and separately records zoom phases"
+  ],
+  "limits": [
+    "Actual Typora 1.14.10 on current Windows only; no Win10/Linux/macOS parity claim",
+    "50k model rows and 10k actual untracked files, 20 refresh cycles; not unlimited size or network-volume certification",
+    "Native switching/focus uses renderer commands; physical mouse/keyboard exercised in isolated Electron, not native hardware injection",
+    "Zoom phases still show 54-84ms intervals; all recorded intervals above 50ms were in zoom phases; this is not a claim of zero long frames",
+    "Skill updated locally on explicit request; repository testing/design contract is version controlled",
+    "User running windows were not restarted; installed candidate loads after normal save and restart"
+  ]
+}

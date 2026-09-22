@@ -1,3 +1,5 @@
+import {workspace_tree_rows} from "./workspace_tree_rows";
+import {create_workspace_virtual_list} from "./workspace_virtual_list";
 import {plan_git_diff_ranges} from "./git_diff_ranges";
 import {git_scm_repositories} from "./git_scm_repositories";
 import {checkout_entries,show_worktrees} from "./git_scm_menus";
@@ -34,6 +36,12 @@ export class git_source_control {
   history: git_scm_history; history_sash: HTMLElement; history_ratio = .55; history_open = true;
   load_epoch = 0; groups_epoch = 0; tree = false; groups_state: change_group[] = [];
   private groups_layout_changed = true;
+  private virtual_lists: {dispose(): void}[] = [];
+  private selected_file = "";
+  private collapsed_directories = new Set<string>();
+  private empty_view = el("div", "git-scm-empty");
+  private initialize_button = button("初始化仓库", () => void this.panel.initialize());
+  private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
@@ -103,8 +111,13 @@ export class git_source_control {
       if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
       this.view_menu(event);
     };
+    this.empty_view.append(el("p", "", "当前文件夹尚未初始化 Git 仓库。"), this.initialize_button,
+      button("查找子文件夹中的仓库…", () => panel.manage_repositories()));
+    this.empty_view.hidden = true; this.sidebar.append(this.empty_view);
     this.load_layout(); this.update_actions();
   }
+  set_empty(empty: boolean): void { this.empty_view.hidden = !empty; this.sections.hidden = empty || !this.show_changes && !this.show_history; }
+  clear_changes(): void { this.groups_epoch++; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups_state = []; this.groups.replaceChildren(); }
   storage_key(suffix: string): string { return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root; }
   load_layout(): void {
     this.groups_layout_changed = true;
@@ -156,6 +169,7 @@ export class git_source_control {
     return id === "refresh" || !!panel.state && panel.state.root === panel.root && panel.container.dataset.state !== "error";
   }
   update_actions(): void {
+    this.initialize_button.disabled = this.panel.pending || this.panel.writing;
     this.message.disabled=this.panel.writing&&this.panel.progress.state.kind==="commit";
     for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
     for (const control of this.changes_body.querySelectorAll<HTMLButtonElement>(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
@@ -188,7 +202,7 @@ export class git_source_control {
   }
   render_groups(): void {
     this.groups_layout_changed = false;
-    const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; this.groups.replaceChildren();
+    const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups.replaceChildren();
     for (const group of this.groups_state) {
       const section = el("details", "git-scm-group"); section.setAttribute("data-scm-group", group.id); section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";
       section.ontoggle = () => localStorage.setItem(this.storage_key("collapsed:" + group.id), String(!section.open));
@@ -214,7 +228,7 @@ export class git_source_control {
         if (!this.tree || !path) return section; if (directories.has(path)) return directories.get(path)!;
         const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/")); const directory = el("details", "git-scm-directory"); directory.open = true; const heading = el("summary", "", parts.at(-1)!); heading.prepend(git_disclosure()); directory.append(heading); parent.append(directory); directories.set(path, directory); return directory;
       };
-      for (const file of [...group.files].sort((a, b) => this.sort_files(a, b))) {
+      const create_file_row = (file: graph_change) => {
         const row = el("div", "git-scm-file"); row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-file", file.path); row.tabIndex = 0; row.setAttribute("role", "button"); row.title = `${file.old_path ? file.old_path + " → " : ""}${file.path}\n${short_revision(group.from)} ↔ ${short_revision(group.to)}`;
         const label = git_file_label(file.path, !this.tree);
         const action = group.id === "staged" ? "unstage" : "stage";
@@ -228,10 +242,31 @@ export class git_source_control {
         mini.dataset.scmFileAction=action;actions.append(mini);
         const status = el("span", "git-scm-file-status", file.status === "??" ? "U" : file.status); status.title = file.status; status.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
         row.append(label, actions, status);
-        row.onclick = () => { for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected"); row.classList.add("selected"); void this.open_default_file(file, group.from, group.to, group.files); };
+        row.classList.toggle("selected", this.selected_file === group.id + ":" + file.path);
+        row.onclick = () => { this.selected_file = group.id + ":" + file.path; for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected"); row.classList.add("selected"); void this.open_default_file(file, group.from, group.to, group.files); };
         row.onkeydown = event => { if (event.target === row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); row.click(); } };
         row.oncontextmenu = event => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
-        parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
+        return row;
+      };
+      const files = [...group.files].sort((a, b) => this.sort_files(a, b));
+      if (files.length <= 200) for (const file of files) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_file_row(file));
+      else {
+        // 沿用固定 VS Code SCM ListDelegate 的22px行高。展开状态属于SCM，窗口化仅负责绘制。
+        const content = el("div", "git-scm-virtual-list"); section.append(content);
+        const entries = () => this.tree
+          ? workspace_tree_rows(files, file => file.path, this.collapsed_directories)
+          : files.map(item => ({item, depth: 0, directory: undefined as string | undefined}));
+        const list = create_workspace_virtual_list({root: content, scroller: this.groups, items: entries(), row_height: 22, render: item => {
+          if (item.item) { const row = create_file_row(item.item); if (this.tree) row.style.paddingLeft = item.depth * 12 + "px"; return row; }
+          const key = item.directory!, collapsed = this.collapsed_directories.has(key);
+          const row = button(item.directory!.split("/").at(-1)!, () => {
+            if (this.collapsed_directories.has(key)) this.collapsed_directories.delete(key); else this.collapsed_directories.add(key);
+            list.set_items(entries());
+          }, "git-scm-virtual-directory");
+          row.prepend(git_icon(collapsed ? "chevron-right" : "chevron-down")); row.style.paddingLeft = item.depth * 12 + "px"; row.setAttribute("aria-expanded", String(!collapsed));
+          return row;
+        }});
+        this.virtual_lists.push(list);
       }
       if (!group.files.length) section.append(el("div", "git-scm-empty", text("scm.no_changes")));
     }
@@ -239,7 +274,7 @@ export class git_source_control {
   }
   sort_files(a: graph_change, b: graph_change): number {
     const value = (file: graph_change) => this.sort_order === "name" ? file.path.split("/").at(-1)! : this.sort_order === "status" ? file.status : file.path;
-    return value(a).localeCompare(value(b)) || a.path.localeCompare(b.path);
+    return this.path_collator.compare(value(a), value(b)) || this.path_collator.compare(a.path, b.path);
   }
   repository_action_available(root: string): boolean {
     if (!this.panel.disposed && root === this.panel.root) return true;
@@ -403,5 +438,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void {this.update_actions();this.input_actions.clear();this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
+  dispose(): void {this.clear_changes();this.update_actions();this.input_actions.clear();this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

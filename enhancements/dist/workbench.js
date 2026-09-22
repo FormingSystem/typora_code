@@ -185319,6 +185319,18 @@ https://creativecommons.org/licenses/by/4.0/
     if (error.code === 1) return "";
     throw error;
   });
+  function is_missing_repository(error) {
+    return error?.code === 128 && /not a git repository \(or any of the parent directories\): \.git/u.test(String(error?.message));
+  }
+  async function initialize_repository(run, cwd2) {
+    try {
+      await run(cwd2, ["rev-parse", "--show-toplevel"]);
+      return;
+    } catch (error) {
+      if (!is_missing_repository(error)) throw error;
+    }
+    await run(cwd2, ["init"]);
+  }
   async function read_repository(run, cwd2, settings, count, branches = []) {
     const root = (await run(cwd2, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
     const [head, branch, ref_text, stash_text, status_text, remote_text, git_path, status2] = await Promise.all([
@@ -185407,7 +185419,11 @@ https://creativecommons.org/licenses/by/4.0/
     if (from === EMPTY && to === WORKTREE) return state.changes.filter((file) => file.work_status !== "D").map((file) => ({ ...file, status: "A" }));
     const changes = parse_changes(await run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]));
     if (to === WORKTREE) {
-      for (const file of state.changes) if (file.status === "??" && !changes.some((item) => item.path === file.path)) changes.push(file);
+      const paths = new Set(changes.map((file) => file.path));
+      for (const file of state.changes) if (file.status === "??" && !paths.has(file.path)) {
+        paths.add(file.path);
+        changes.push(file);
+      }
     }
     return changes;
   }
@@ -185513,7 +185529,7 @@ https://creativecommons.org/licenses/by/4.0/
         const change = parse_status(await reader.run(root, ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--", ":(literal)" + relative2])).find((item) => item.path === relative2);
         if (!valid() || !change) return [];
         const panel = controller_for(root);
-        while (panel.pending && valid() && !panel.disposed) await new Promise((resolve3) => window.setTimeout(resolve3, 25));
+        await panel.when_refreshed();
         if (!valid() || panel.disposed || !panel.state || host.path_api.relative(panel.root, root) !== "") return [];
         const writer = panel.writer, paths = [change.path, ...change.old_path ? [change.old_path] : []];
         const writable = () => {
@@ -185593,6 +185609,47 @@ https://creativecommons.org/licenses/by/4.0/
       svg3.append(dot);
     }
     return svg3;
+  }
+
+  // src/git_repository_discovery.ts
+  async function discover_git_repositories(options2) {
+    const result = { roots: [], visited: 0, truncated: false, errors: [] };
+    const known = /* @__PURE__ */ new Set();
+    const verify = async (directory) => {
+      try {
+        const root = (await options2.run(directory, ["rev-parse", "--show-toplevel"])).trim();
+        const key2 = options2.path.normalize(root);
+        if (!known.has(key2)) {
+          known.add(key2);
+          result.roots.push(root);
+        }
+      } catch (error) {
+        if (!is_missing_repository(error)) result.errors.push(directory + ": " + String(error));
+      }
+    };
+    const walk2 = async (directory, level) => {
+      if (options2.signal?.aborted) throw new Error("\u4ED3\u5E93\u53D1\u73B0\u5DF2\u53D6\u6D88");
+      if (result.visited >= (options2.limit ?? 1500)) {
+        result.truncated = true;
+        return;
+      }
+      result.visited++;
+      let entries3;
+      try {
+        entries3 = await options2.fs.promises.readdir(directory, { withFileTypes: true });
+      } catch (error) {
+        result.errors.push(directory + ": " + String(error));
+        return;
+      }
+      if (level === 0 || entries3.some((entry) => entry.name === ".git")) await verify(directory);
+      if (level >= options2.depth) return;
+      for (const entry of entries3) {
+        if (result.truncated) break;
+        if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk2(options2.path.join(directory, entry.name), level + 1);
+      }
+    };
+    await walk2(options2.root, 0);
+    return result;
   }
 
   // src/workspace_editor_actions.ts
@@ -198802,7 +198859,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_graph_runtime.ts
   function create_git_runner(modules, options2 = {}) {
     const children = /* @__PURE__ */ new Set();
-    const env2 = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options2.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
+    const env2 = { ...modules.process.env, LC_ALL: "C", LANG: "C", GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options2.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
     for (const key2 of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env2[key2];
     const execute = (cwd2, args, binary = false, todo = "", input) => new Promise((resolve3, reject) => {
       const sequence_editor = 'sh -c \'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"\' --';
@@ -203074,18 +203131,16 @@ https://creativecommons.org/licenses/by/4.0/
           existing.view.onOpen();
         } else add_tab("linux_note.git_document", uri, group);
       },
-      async discover(root, depth) {
-        const found = [];
-        let visited = 0;
-        const walk2 = async (directory, level) => {
-          if (++visited > 1500) return;
-          const entries3 = await fs2.promises.readdir(directory, { withFileTypes: true }).catch(() => []);
-          if (entries3.some((entry) => entry.name === ".git")) found.push(directory);
-          if (level >= depth) return;
-          for (const entry of entries3) if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk2(path_api.join(directory, entry.name), level + 1);
-        };
-        await walk2(root, 0);
-        return found;
+      async discover(root, depth, signal) {
+        const reader = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
+        const cancel = () => reader.cancel();
+        signal?.addEventListener("abort", cancel, { once: true });
+        try {
+          return await discover_git_repositories({ root, depth, run: reader.run, fs: fs2, path: path_api, signal });
+        } finally {
+          signal?.removeEventListener("abort", cancel);
+          reader.cancel();
+        }
       },
       async avatar(email) {
         const hash2 = crypto2.createHash("md5").update(email.trim().toLowerCase()).digest("hex");
@@ -203163,6 +203218,119 @@ https://creativecommons.org/licenses/by/4.0/
     } });
     terminal_workspace = bind_terminal_workspace(host);
     return host;
+  }
+
+  // src/git_repository_operation.ts
+  var repository_operations = /* @__PURE__ */ new WeakMap();
+  function acquire_git_repository_operation(owner, root, normalize3) {
+    const key2 = normalize3(root), active = repository_operations.get(owner) || /* @__PURE__ */ new Set();
+    if (active.has(key2)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
+    repository_operations.set(owner, active);
+    active.add(key2);
+    let released = false;
+    return () => {
+      if (!released) {
+        released = true;
+        active.delete(key2);
+        if (!active.size) repository_operations.delete(owner);
+      }
+    };
+  }
+
+  // src/workspace_virtual_list.ts
+  function create_workspace_virtual_list(options2) {
+    const { root, scroller, row_height, render } = options2;
+    let items = options2.items, frame3 = 0, disposed = false;
+    const rows = /* @__PURE__ */ new Map();
+    root.style.position = "relative";
+    const update2 = () => {
+      frame3 = 0;
+      if (disposed) return;
+      root.style.height = items.length * row_height + "px";
+      if (!root.getClientRects().length) return;
+      const top = scroller.getBoundingClientRect().top - root.getBoundingClientRect().top;
+      const first = Math.max(0, Math.floor(top / row_height) - 8);
+      const last = Math.min(items.length, Math.ceil((top + scroller.clientHeight) / row_height) + 8);
+      for (const [index, row] of rows) if ((index < first || index >= last) && !row.contains(document.activeElement)) {
+        row.remove();
+        rows.delete(index);
+      }
+      for (let index = first; index < last; index++) if (!rows.has(index)) {
+        const row = render(items[index], index);
+        row.dataset.virtualIndex = String(index);
+        Object.assign(row.style, { position: "absolute", top: index * row_height + "px", left: "0", right: "0", height: row_height + "px", boxSizing: "border-box", margin: "0" });
+        rows.set(index, row);
+        root.append(row);
+      }
+    };
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
+    };
+    const keydown = (event) => {
+      const target = event.target, row = target.closest("[data-virtual-index]");
+      if (!row || row.parentElement !== root || target !== row) return;
+      const index = Number(row.dataset.virtualIndex);
+      const next = event.key === "ArrowDown" ? index + 1 : event.key === "ArrowUp" ? index - 1 : event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : -1;
+      if (next < 0 || next >= items.length) return;
+      event.preventDefault();
+      const offset = root.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+      const y = offset + next * row_height;
+      if (y < scroller.scrollTop) scroller.scrollTop = y;
+      else if (y + row_height > scroller.scrollTop + scroller.clientHeight) scroller.scrollTop = y + row_height - scroller.clientHeight;
+      update2();
+      rows.get(next)?.focus({ preventScroll: true });
+      schedule();
+    };
+    const resize = new ResizeObserver(schedule);
+    resize.observe(scroller);
+    scroller.addEventListener("scroll", schedule, { passive: true });
+    scroller.addEventListener("toggle", schedule, true);
+    root.addEventListener("keydown", keydown);
+    schedule();
+    return {
+      refresh: schedule,
+      set_items(next) {
+        items = next;
+        for (const row of rows.values()) row.remove();
+        rows.clear();
+        schedule();
+      },
+      dispose() {
+        disposed = true;
+        cancelAnimationFrame(frame3);
+        resize.disconnect();
+        scroller.removeEventListener("scroll", schedule);
+        scroller.removeEventListener("toggle", schedule, true);
+        root.removeEventListener("keydown", keydown);
+        for (const row of rows.values()) row.remove();
+        rows.clear();
+      }
+    };
+  }
+
+  // src/workspace_tree_rows.ts
+  function workspace_tree_rows(items, path_of, collapsed2, compact = false) {
+    const root = { path: "", directories: /* @__PURE__ */ new Map(), files: [] };
+    for (const item of items) {
+      const parts = path_of(item).split("/");
+      let current = root;
+      for (const part of parts.slice(0, -1)) {
+        if (!current.directories.has(part)) current.directories.set(part, { path: current.path ? current.path + "/" + part : part, directories: /* @__PURE__ */ new Map(), files: [] });
+        current = current.directories.get(part);
+      }
+      current.files.push(item);
+    }
+    const result = [];
+    const walk2 = (current, depth) => {
+      for (let child of current.directories.values()) {
+        if (compact) while (!child.files.length && child.directories.size === 1) child = child.directories.values().next().value;
+        result.push({ directory: child.path, depth });
+        if (!collapsed2.has(child.path)) walk2(child, depth + 1);
+      }
+      for (const item of current.files) result.push({ item, depth });
+    };
+    walk2(root, 0);
+    return result;
   }
 
   // src/git_branch_checkout.ts
@@ -205520,6 +205688,11 @@ https://creativecommons.org/licenses/by/4.0/
     epoch = 0;
     root = "";
     toolbar;
+    file_lists = /* @__PURE__ */ new Map();
+    clear_file_lists() {
+      for (const list3 of this.file_lists.values()) list3.dispose();
+      this.file_lists.clear();
+    }
     files_cache = /* @__PURE__ */ new Map();
     hover;
     collapsed_directories = /* @__PURE__ */ new Set();
@@ -205530,6 +205703,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.toolbar.more_menu(event);
     }
     reset() {
+      this.clear_file_lists();
       this.hover.hide();
       this.epoch++;
       this.root = this.owner.panel.root;
@@ -205570,6 +205744,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.list.hidden = !open;
     }
     render(state) {
+      this.clear_file_lists();
       this.hover.hide();
       if (state.root !== this.root) this.reset();
       const epoch2 = ++this.epoch;
@@ -205724,6 +205899,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     render_files(target, commit, files) {
+      this.file_lists.get(target)?.dispose();
+      this.file_lists.delete(target);
       target.replaceChildren();
       const from = commit.parents[0] || EMPTY;
       target.setAttribute("role", "group");
@@ -205750,7 +205927,7 @@ https://creativecommons.org/licenses/by/4.0/
         return directory;
       };
       const root = this.owner.panel.root;
-      for (const file of [...files].sort((a, b2) => a.path.localeCompare(b2.path))) {
+      const create_row = (file) => {
         const wrapper = workspace_element("div", "git-scm-history-file-row");
         const row = workspace_button("", () => {
           if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files);
@@ -205775,10 +205952,48 @@ https://creativecommons.org/licenses/by/4.0/
         };
         row.oncontextmenu = (event) => this.owner.panel.configured_menu(event, "scm_history_file", this.owner.file_entries(file, from, commit.hash, files, root));
         wrapper.append(row, revision);
-        parent_for(file.path.split("/").slice(0, -1).join("/")).append(wrapper);
-      }
+        return wrapper;
+      };
+      const collator = new Intl.Collator(), sorted = [...files].sort((a, b2) => collator.compare(a.path, b2.path));
+      if (sorted.length > 200) {
+        const collapsed2 = new Set([...this.collapsed_directories].filter((key2) => key2.startsWith(commit.hash + ":")).map((key2) => key2.slice(commit.hash.length + 1)));
+        const entries3 = () => this.owner.history_tree ? workspace_tree_rows(sorted, (file) => file.path, collapsed2) : sorted.map((item) => ({ item, depth: 0, directory: void 0 }));
+        const list3 = create_workspace_virtual_list({ root: target, scroller: this.list, items: entries3(), row_height: 22, render: (item) => {
+          if (item.item) {
+            const wrapper = create_row(item.item);
+            wrapper.tabIndex = 0;
+            wrapper.style.paddingLeft = item.depth * 12 + "px";
+            const row2 = wrapper.querySelector(".git-scm-history-file");
+            row2.tabIndex = -1;
+            wrapper.onkeydown = (event) => {
+              if (event.target === wrapper && ["Enter", " "].includes(event.key)) {
+                event.preventDefault();
+                row2.click();
+              }
+            };
+            return wrapper;
+          }
+          const directory = item.directory, key2 = commit.hash + ":" + directory;
+          const row = workspace_button(directory.split("/").at(-1), () => {
+            if (collapsed2.has(directory)) {
+              collapsed2.delete(directory);
+              this.collapsed_directories.delete(key2);
+            } else {
+              collapsed2.add(directory);
+              this.collapsed_directories.add(key2);
+            }
+            list3.set_items(entries3());
+          }, "git-scm-virtual-directory");
+          row.prepend(git_icon(collapsed2.has(directory) ? "chevron-right" : "chevron-down"));
+          row.style.paddingLeft = item.depth * 12 + "px";
+          row.setAttribute("aria-expanded", String(!collapsed2.has(directory)));
+          return row;
+        } });
+        this.file_lists.set(target, list3);
+      } else for (const file of sorted) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_row(file));
     }
     dispose() {
+      this.clear_file_lists();
       this.toolbar.dispose();
       this.hover.dispose();
       this.epoch++;
@@ -205970,6 +206185,13 @@ https://creativecommons.org/licenses/by/4.0/
         if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
         this.view_menu(event);
       };
+      this.empty_view.append(
+        workspace_element("p", "", "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002"),
+        this.initialize_button,
+        workspace_button("\u67E5\u627E\u5B50\u6587\u4EF6\u5939\u4E2D\u7684\u4ED3\u5E93\u2026", () => panel.manage_repositories())
+      );
+      this.empty_view.hidden = true;
+      this.sidebar.append(this.empty_view);
       this.load_layout();
       this.update_actions();
     }
@@ -206004,6 +206226,23 @@ https://creativecommons.org/licenses/by/4.0/
     tree = false;
     groups_state = [];
     groups_layout_changed = true;
+    virtual_lists = [];
+    selected_file = "";
+    collapsed_directories = /* @__PURE__ */ new Set();
+    empty_view = workspace_element("div", "git-scm-empty");
+    initialize_button = workspace_button("\u521D\u59CB\u5316\u4ED3\u5E93", () => void this.panel.initialize());
+    path_collator = new Intl.Collator();
+    set_empty(empty2) {
+      this.empty_view.hidden = !empty2;
+      this.sections.hidden = empty2 || !this.show_changes && !this.show_history;
+    }
+    clear_changes() {
+      this.groups_epoch++;
+      for (const list3 of this.virtual_lists) list3.dispose();
+      this.virtual_lists = [];
+      this.groups_state = [];
+      this.groups.replaceChildren();
+    }
     storage_key(suffix) {
       return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root;
     }
@@ -206089,6 +206328,7 @@ https://creativecommons.org/licenses/by/4.0/
       return id === "refresh" || !!panel.state && panel.state.root === panel.root && panel.container.dataset.state !== "error";
     }
     update_actions() {
+      this.initialize_button.disabled = this.panel.pending || this.panel.writing;
       this.message.disabled = this.panel.writing && this.panel.progress.state.kind === "commit";
       for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
       for (const control of this.changes_body.querySelectorAll(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
@@ -206128,6 +206368,8 @@ https://creativecommons.org/licenses/by/4.0/
     render_groups() {
       this.groups_layout_changed = false;
       const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll;
+      for (const list3 of this.virtual_lists) list3.dispose();
+      this.virtual_lists = [];
       this.groups.replaceChildren();
       for (const group of this.groups_state) {
         const section = workspace_element("details", "git-scm-group");
@@ -206199,7 +206441,7 @@ https://creativecommons.org/licenses/by/4.0/
           directories.set(path, directory);
           return directory;
         };
-        for (const file of [...group.files].sort((a, b2) => this.sort_files(a, b2))) {
+        const create_file_row = (file) => {
           const row = workspace_element("div", "git-scm-file");
           row.style.lineHeight = "var(--git-scm-row-height,22px)";
           row.setAttribute("data-file", file.path);
@@ -206240,7 +206482,9 @@ https://creativecommons.org/licenses/by/4.0/
           status2.title = file.status;
           status2.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
           row.append(label2, actions2, status2);
+          row.classList.toggle("selected", this.selected_file === group.id + ":" + file.path);
           row.onclick = () => {
+            this.selected_file = group.id + ":" + file.path;
             for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected");
             row.classList.add("selected");
             void this.open_default_file(file, group.from, group.to, group.files);
@@ -206252,7 +206496,32 @@ https://creativecommons.org/licenses/by/4.0/
             }
           };
           row.oncontextmenu = (event) => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
-          parent_for(file.path.split("/").slice(0, -1).join("/")).append(row);
+          return row;
+        };
+        const files = [...group.files].sort((a, b2) => this.sort_files(a, b2));
+        if (files.length <= 200) for (const file of files) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_file_row(file));
+        else {
+          const content = workspace_element("div", "git-scm-virtual-list");
+          section.append(content);
+          const entries3 = () => this.tree ? workspace_tree_rows(files, (file) => file.path, this.collapsed_directories) : files.map((item) => ({ item, depth: 0, directory: void 0 }));
+          const list3 = create_workspace_virtual_list({ root: content, scroller: this.groups, items: entries3(), row_height: 22, render: (item) => {
+            if (item.item) {
+              const row2 = create_file_row(item.item);
+              if (this.tree) row2.style.paddingLeft = item.depth * 12 + "px";
+              return row2;
+            }
+            const key2 = item.directory, collapsed2 = this.collapsed_directories.has(key2);
+            const row = workspace_button(item.directory.split("/").at(-1), () => {
+              if (this.collapsed_directories.has(key2)) this.collapsed_directories.delete(key2);
+              else this.collapsed_directories.add(key2);
+              list3.set_items(entries3());
+            }, "git-scm-virtual-directory");
+            row.prepend(git_icon(collapsed2 ? "chevron-right" : "chevron-down"));
+            row.style.paddingLeft = item.depth * 12 + "px";
+            row.setAttribute("aria-expanded", String(!collapsed2));
+            return row;
+          } });
+          this.virtual_lists.push(list3);
         }
         if (!group.files.length) section.append(workspace_element("div", "git-scm-empty", git_graph_text("scm.no_changes")));
       }
@@ -206260,7 +206529,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     sort_files(a, b2) {
       const value = (file) => this.sort_order === "name" ? file.path.split("/").at(-1) : this.sort_order === "status" ? file.status : file.path;
-      return value(a).localeCompare(value(b2)) || a.path.localeCompare(b2.path);
+      return this.path_collator.compare(value(a), value(b2)) || this.path_collator.compare(a.path, b2.path);
     }
     repository_action_available(root) {
       if (!this.panel.disposed && root === this.panel.root) return true;
@@ -206481,6 +206750,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.clear_changes();
       this.update_actions();
       this.input_actions.clear();
       this.repositories.dispose();
@@ -228623,6 +228893,7 @@ https://creativecommons.org/licenses/by/4.0/
   var git_graph_panel = class {
     constructor(host, cwd2) {
       this.host = host;
+      this.context_directory = cwd2;
       this.root = cwd2;
       this.settings = load_graph_settings(localStorage, cwd2);
       this.count = this.settings.initial_count;
@@ -228698,7 +228969,9 @@ https://creativecommons.org/licenses/by/4.0/
       });
       this.key_handler = (event) => this.keydown(event);
     }
+    files_list;
     column_binding;
+    context_directory;
     root;
     settings;
     state;
@@ -228859,6 +229132,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.discard_confirmation.close(false);
       this.progress.reset();
       this.repository_epoch++;
+      this.context_directory = root;
       this.root = root;
       this.workbench.load_layout();
       this.state = void 0;
@@ -228890,6 +229164,14 @@ https://creativecommons.org/licenses/by/4.0/
     }
     publish_state() {
       for (const listener of this.state_listeners) listener();
+    }
+    /** 等待现有刷新任务，多个入口共享完成通知，不为每次点击建立轮询定时器。 */
+    async when_refreshed() {
+      while (!this.disposed && this.pending && this.refresh_task) {
+        const task = this.refresh_task;
+        await task;
+        if (task === this.refresh_task) return;
+      }
     }
     refresh(reset2 = true) {
       if (this.disposed) return Promise.resolve();
@@ -228926,15 +229208,27 @@ https://creativecommons.org/licenses/by/4.0/
       this.update_scm_actions();
       try {
         if (!this.root) throw new Error(git_graph_text("graph.open_repository_first"));
-        let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
+        let state = await read_repository(this.runner.run, this.context_directory, this.settings, this.count, this.branches);
         if (epoch2 !== this.epoch) return;
+        if (this.loaded && this.root !== state.root) {
+          this.loaded = false;
+          this.repository_epoch++;
+          this.close_details();
+          this.workbench.message.value = "";
+        }
+        this.workbench.set_empty(false);
         if (!this.loaded) {
           const stored = load_graph_settings(localStorage, state.root);
           const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
-          if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root) && this.host.fs.existsSync(config_path)) {
-            const info = this.host.fs.statSync(config_path);
-            if (info.size < 1e5) {
-              const imported = validate_settings(JSON.parse(this.host.fs.readFileSync(config_path, "utf8")));
+          if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root)) {
+            const info = await this.host.fs.promises.stat(config_path).catch((error) => {
+              if (error.code === "ENOENT") return void 0;
+              throw error;
+            });
+            if (epoch2 !== this.epoch) return;
+            if (info && info.size < 1e5) {
+              const imported = validate_settings(JSON.parse(await this.host.fs.promises.readFile(config_path, "utf8")));
+              if (epoch2 !== this.epoch) return;
               Object.assign(stored, imported, { git_path: stored.git_path, terminal_shell: stored.terminal_shell, fetch_avatars: stored.fetch_avatars });
             }
           }
@@ -228994,8 +229288,16 @@ https://creativecommons.org/licenses/by/4.0/
         this.detail_refresh_needed = false;
       } catch (error) {
         if (epoch2 === this.epoch) {
-          this.report(error);
-          this.container.dataset.state = "error";
+          this.state = void 0;
+          this.loaded = false;
+          this.close_details();
+          this.list.replaceChildren();
+          this.workbench.clear_changes();
+          this.workbench.history.reset();
+          const missing = is_missing_repository(error);
+          this.workbench.set_empty(missing);
+          this.report(missing ? "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002" : error);
+          this.container.dataset.state = missing ? "empty" : "error";
         }
       } finally {
         if (epoch2 === this.epoch) {
@@ -229010,6 +229312,38 @@ https://creativecommons.org/licenses/by/4.0/
         activity.finish();
         if (this.read_progress === activity) this.read_progress = void 0;
       }
+    }
+    acquire_operation(root) {
+      return acquire_git_repository_operation(this.host, root, (value) => {
+        const normalized2 = this.host.path_api.normalize(value);
+        return this.host.path_api.sep === "\\" ? normalized2.toLowerCase() : normalized2;
+      });
+    }
+    async initialize() {
+      if (this.disposed || this.writing || this.pending || this.state) return;
+      const writer = this.writer, root = this.context_directory;
+      let release;
+      try {
+        release = this.acquire_operation(root);
+      } catch (error) {
+        this.report(error);
+        return;
+      }
+      this.writing = true;
+      const activity = this.progress.begin("init", "\u6B63\u5728\u521D\u59CB\u5316 Git \u4ED3\u5E93\u2026");
+      this.update_scm_actions();
+      try {
+        await initialize_repository(writer.run, root);
+      } catch (error) {
+        this.report(error);
+        return;
+      } finally {
+        release();
+        this.writing = false;
+        activity.finish();
+        this.update_scm_actions();
+      }
+      if (!this.disposed && this.writer === writer && this.context_directory === root) await this.refresh();
     }
     date(commit) {
       const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;
@@ -229239,6 +229573,8 @@ https://creativecommons.org/licenses/by/4.0/
       } else this.details.remove();
     }
     close_details() {
+      this.files_list?.dispose();
+      this.files_list = void 0;
       this.detail_epoch++;
       this.selected = "";
       this.from = EMPTY;
@@ -229451,6 +229787,8 @@ https://creativecommons.org/licenses/by/4.0/
       void this.show_comparison(from, to);
     }
     render_files(container) {
+      this.files_list?.dispose();
+      this.files_list = void 0;
       const directories = /* @__PURE__ */ new Map();
       directories.set("", container);
       const parent_for = (path) => {
@@ -229470,7 +229808,7 @@ https://creativecommons.org/licenses/by/4.0/
         directories.set(path, group);
         return group;
       };
-      for (const file of this.files) {
+      const create_row = (file) => {
         const row = workspace_button("", () => {
           for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
           row.classList.add("selected");
@@ -229486,8 +229824,33 @@ https://creativecommons.org/licenses/by/4.0/
         row.querySelector(".git-graph-file-name")?.prepend(git_icon("circle-filled", "git-graph-unreviewed-icon"));
         if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
         row.oncontextmenu = (event) => this.file_menu(event, file);
-        (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(row);
+        return row;
+      };
+      if (this.files.length > 200) {
+        const content = workspace_element("div"), collapsed2 = /* @__PURE__ */ new Set();
+        container.append(content);
+        const entries3 = () => this.settings.file_view === "tree" ? workspace_tree_rows(this.files, (file) => file.path, collapsed2, this.settings.compact_folders) : this.files.map((item) => ({ item, depth: 0, directory: void 0 }));
+        const list3 = create_workspace_virtual_list({ root: content, scroller: container, items: entries3(), row_height: 22, render: (item) => {
+          if (item.item) {
+            const row2 = create_row(item.item);
+            row2.style.paddingLeft = item.depth * 12 + "px";
+            return row2;
+          }
+          const directory = item.directory;
+          const row = workspace_button(directory, () => {
+            if (collapsed2.has(directory)) collapsed2.delete(directory);
+            else collapsed2.add(directory);
+            list3.set_items(entries3());
+          }, "git-graph-file");
+          row.prepend(git_icon(collapsed2.has(directory) ? "chevron-right" : "chevron-down"));
+          row.style.paddingLeft = item.depth * 12 + "px";
+          row.setAttribute("aria-expanded", String(!collapsed2.has(directory)));
+          return row;
+        } });
+        this.files_list = list3;
+        return;
       }
+      for (const file of this.files) (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(create_row(file));
       if (this.settings.compact_folders) {
         for (const directory of [...container.querySelectorAll("details")].reverse()) {
           const children = [...directory.children];
@@ -229690,6 +230053,7 @@ https://creativecommons.org/licenses/by/4.0/
     async run_operation(id, operation, expected_writer = this.writer) {
       if (this.disposed || !this.state || this.pending || this.writing || this.writer !== expected_writer) throw new Error(git_graph_text("graph.wait_for_repository"));
       const root = this.root, writer = expected_writer, action_epoch = ++this.action_epoch;
+      const release = this.acquire_operation(root);
       this.writing = true;
       const activity = this.progress.begin(id, this.operation_label(id));
       this.write_progress = activity;
@@ -229704,6 +230068,7 @@ https://creativecommons.org/licenses/by/4.0/
             if (!this.disposed && this.root === root && this.writer === writer) await this.refresh(false);
           }
         } finally {
+          release();
           activity.finish();
           if (this.write_progress === activity) this.write_progress = void 0;
         }
@@ -229848,11 +230213,13 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const plan = await plan_git_action(runner.run, id, { root, target, paths, hash: hash2 === WORKTREE ? state.head : hash2, operation: state.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space }, values);
           if (!available() || this.writer !== writer) return;
-          const output = await this.execute_prepared_action(plan, writer);
           completed = true;
-          if (available()) result.textContent = output || git_graph_text("graph.action_complete");
+          dialog2.close();
+          const output = await this.execute_prepared_action(plan, writer);
+          if (!this.disposed && this.root === root && this.writer === writer) this.report(output || git_graph_text("graph.action_complete"));
         } catch (error) {
           if (available()) result.textContent = String(error);
+          else if (completed && !this.disposed && this.root === root && this.writer === writer) this.report(error);
         } finally {
           submitting = false;
           if (available()) {
@@ -229886,18 +230253,34 @@ https://creativecommons.org/licenses/by/4.0/
       show_pull_request_dialog(this, branch);
     }
     archive_dialog(hash2) {
+      const root = this.root, writer = this.writer;
       const dialog2 = graph_dialog2(git_graph_text("graph.archive_title"));
       const target = workspace_element("input");
-      target.value = this.host.path_api.join(this.root, hash2.slice(0, 8) + ".zip");
+      target.value = this.host.path_api.join(root, hash2.slice(0, 8) + ".zip");
       const error = workspace_element("pre");
       dialog2.content.append(target, error);
+      let submitting = false;
       dialog2.footer.prepend(workspace_button(git_graph_text("graph.export_zip"), () => void (async () => {
+        if (submitting || this.disposed || this.root !== root || this.writer !== writer) return;
+        submitting = true;
+        let accepted = false;
         try {
-          if (this.host.fs.existsSync(target.value)) throw new Error(git_graph_text("graph.target_exists"));
-          await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash2]);
-          error.textContent = git_graph_text("graph.exported", { path: target.value });
+          const destination = target.value;
+          const exists = await this.host.fs.promises.stat(destination).then(() => true, (problem) => {
+            if (problem.code === "ENOENT") return false;
+            throw problem;
+          });
+          if (!dialog2.root.isConnected || this.disposed || this.root !== root || this.writer !== writer) return;
+          if (exists) throw new Error(git_graph_text("graph.target_exists"));
+          accepted = true;
+          dialog2.close();
+          await this.run_operation("archive", (current) => current.run(root, ["archive", "--format=zip", "--output=" + destination, hash2]), writer);
+          this.report(git_graph_text("graph.exported", { path: destination }));
         } catch (problem) {
-          error.textContent = String(problem);
+          if (accepted) this.report(problem);
+          else if (dialog2.root.isConnected) error.textContent = String(problem);
+        } finally {
+          submitting = false;
         }
       })()));
     }
@@ -229906,7 +230289,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.ref_picker.open();
     }
     manage_repositories() {
-      const dialog2 = graph_dialog2(git_graph_text("graph.manage_repositories_title"));
+      const scan = new AbortController();
+      const dialog2 = workspace_dialog(git_graph_text("graph.manage_repositories_title"), git_graph_text("common.close"), () => scan.abort());
       const input = workspace_element("input");
       input.placeholder = git_graph_text("graph.repository_path_placeholder");
       input.value = this.root;
@@ -229935,10 +230319,11 @@ https://creativecommons.org/licenses/by/4.0/
         }).catch((problem) => {
           error.textContent = String(problem);
         })),
-        workspace_button(git_graph_text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth).then((roots) => {
-          this.save_repos([...this.known_repos(), ...roots]);
+        workspace_button(git_graph_text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth, scan.signal).then((result) => {
+          if (!dialog2.root.isConnected || this.disposed) return;
+          this.save_repos([...this.known_repos(), ...result.roots]);
           render();
-          error.textContent = git_graph_text("graph.discovered_repositories", { count: roots.length });
+          error.textContent = git_graph_text("graph.discovered_repositories", { count: result.roots.length }) + (result.truncated ? "\uFF1B\u8FBE\u5230\u626B\u63CF\u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u76EE\u5F55\u8303\u56F4\u3002" : "") + (result.errors.length ? "\uFF1B" + result.errors.join("\uFF1B") : "");
         }).catch((problem) => {
           error.textContent = String(problem);
         }))
@@ -230049,7 +230434,7 @@ https://creativecommons.org/licenses/by/4.0/
               dialog2.close();
               if (review.root !== this.root) this.switch_repo(review.root);
               void (async () => {
-                while (this.pending) await new Promise((resolve3) => setTimeout(resolve3, 50));
+                await this.when_refreshed();
                 this.selected = review.to;
                 void this.show_comparison(review.from, review.to);
               })();
@@ -230077,6 +230462,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
+      if (event.target instanceof Element && event.target !== document.body && event.target !== document.documentElement && !this.container.contains(event.target)) return;
       const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
       let handled = true;
       if (shortcut_matches(event, this.settings.shortcuts.find)) this.open_find();
@@ -230328,7 +230714,7 @@ https://creativecommons.org/licenses/by/4.0/
       const available = () => !disposed && !current.disposed && current === current_panel() && current.repository_epoch === repository_epoch;
       void (async () => {
         if (!current.state && !current.pending && !current.writing) await current.refresh(false);
-        while (current.pending && available()) await new Promise((resolve3) => setTimeout(resolve3, 50));
+        await current.when_refreshed();
         if (!available()) return;
         if (!current.state || current.container.dataset.state === "error") {
           workspace_menu(event, [{ id: "select_repository", title: git_graph_text("status.select_repository"), action: () => current.manage_repositories() }, { id: "refresh_status", title: git_graph_text("status.recheck_repository"), action: () => void current.refresh(false) }]);
@@ -230435,8 +230821,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       const controller_for = (cwd2) => {
         for (const panel2 of controllers) {
-          const relative2 = host.path_api.relative(panel2.root, cwd2);
-          if (panel2.root === cwd2 || panel2.loaded && relative2 !== ".." && !relative2.startsWith(".." + host.path_api.sep) && !host.path_api.isAbsolute(relative2)) return panel2;
+          if (!panel2.disposed && host.path_api.relative(panel2.context_directory, cwd2) === "") return panel2;
         }
         const panel = track_panel(new git_graph_panel(host, cwd2));
         void panel.refresh(false);
@@ -230611,7 +230996,7 @@ https://creativecommons.org/licenses/by/4.0/
         ["fetch", "view.command.fetch", (panel) => void (async () => {
           const repository_epoch = panel.repository_epoch;
           const available = () => !lifetime.disposed && !panel.disposed && panel.repository_epoch === repository_epoch;
-          while (panel.pending && available()) await new Promise((resolve3) => setTimeout(resolve3, 50));
+          await panel.when_refreshed();
           if (!available()) return;
           void panel.network_action("fetch");
         })()],
@@ -230675,7 +231060,7 @@ https://creativecommons.org/licenses/by/4.0/
             show_source_control(panel);
             void (async () => {
               const epoch2 = panel.repository_epoch;
-              while (panel.pending && !lifetime.disposed && !panel.disposed && epoch2 === panel.repository_epoch) await new Promise((resolve3) => setTimeout(resolve3, 50));
+              await panel.when_refreshed();
               if (lifetime.disposed || panel.disposed || epoch2 !== panel.repository_epoch) return;
               const file = host.path_api.relative(panel.root, path).replace(/\\/gu, "/");
               if (id === "history") await panel.workbench.file_history(file);
@@ -241282,6 +241667,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092207,
+        version: "2026.09.22.7",
+        date: "2026-09-22",
+        notes: [
+          "Git\u64CD\u4F5C\u786E\u8BA4\u540E\u5728\u4ED3\u5E93\u9762\u677F\u5185\u663E\u793A\u8FDB\u5EA6\uFF0C\u6267\u884C\u671F\u95F4\u53EF\u7EE7\u7EED\u4F7F\u7528\u9605\u8BFB\u3001\u641C\u7D22\u548C\u7EC8\u7AEF\u3002",
+          "\u5927\u91CF\u53D8\u66F4\u3001\u63D0\u4EA4\u8BE6\u60C5\u548C\u5386\u53F2\u6587\u4EF6\u5217\u8868\u6309\u53EF\u89C1\u8303\u56F4\u7ED8\u5236\uFF0C\u4FEE\u590D\u672A\u8DDF\u8E2A\u6587\u4EF6\u5408\u5E76\u7684\u91CD\u590D\u626B\u63CF\u3002",
+          "\u7A7A\u6587\u4EF6\u5939\u63D0\u4F9B\u521D\u59CB\u5316\u4ED3\u5E93\u5165\u53E3\uFF1B\u4ED3\u5E93\u8BC6\u522B\u4EE5Git\u5B9E\u9645\u6839\u76EE\u5F55\u4E3A\u51C6\uFF0C\u652F\u6301\u5D4C\u5957\u4ED3\u5E93\u4E0Eworktree\u5E76\u533A\u5206\u6743\u9650\u7B49\u9519\u8BEF\u3002"
+        ]
+      },
       {
         sequence: 2026092206,
         version: "2026.09.22.6",

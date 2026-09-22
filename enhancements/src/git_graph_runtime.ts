@@ -11,7 +11,7 @@ type native_modules = {
 /** 直接传递参数，不经过 shell；每个视图单独管理进程，隐藏或刷新时取消旧请求。 */
 export function create_git_runner(modules: native_modules, options: { executable?: string; writable?: boolean } = {}): { run: git_run; run_bytes(cwd: string, args: string[]): Promise<Uint8Array>; cancel(): void } {
   const children = new Set<git_child>();
-  const env: Record<string, string | undefined> = { ...modules.process.env, GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
+  const env: Record<string, string | undefined> = { ...modules.process.env, LC_ALL: "C", LANG: "C", GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
   for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env[key];
   const execute = (cwd: string, args: string[], binary = false, todo = "", input?: string): Promise<any> => new Promise((resolve, reject) => {
       // 命令文本固定；用户批准的 todo 仅通过被双引号保护的环境数据传入 Git 自带的 shell。

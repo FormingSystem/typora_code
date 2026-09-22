@@ -1,3 +1,6 @@
+import {acquire_git_repository_operation} from "./git_repository_operation";
+import {create_workspace_virtual_list} from "./workspace_virtual_list";
+import {workspace_tree_rows} from "./workspace_tree_rows";
 import {git_branch_picker} from "./git_branch_picker";
 import {bind_git_graph_columns} from "./git_graph_columns";
 import {git_operation_progress} from "./git_operation_progress";
@@ -15,7 +18,7 @@ import { graph_file_icon } from "./git_graph_file_icon";
 import type { workspace_menu_entry } from "./workspace_widgets";
 import emoji_data from "../vendor/gemoji/emoji.json";
 import { build_git_graph, type graph_row, type git_ref } from "./git_graph_data";
-import { read_repository, compare_files, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
+import { is_missing_repository, initialize_repository, read_repository, compare_files, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
   type repository_state, type graph_commit, type graph_change } from "./git_graph_repository";
 import { graph_defaults, settings_choices, settings_labels_for, settings_choice_label, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
 import { graph_actions, plan_git_action, execute_git_action, type graph_action, type action_plan } from "./git_graph_actions";
@@ -37,7 +40,9 @@ const target_kind_label = (kind: string): string => text(({
 } as Record<string, git_graph_text_key>)[kind] || "graph.target.repository");
 
 export class git_graph_panel {
+  private files_list?: {dispose(): void};
   private column_binding?:ReturnType<typeof bind_git_graph_columns>;
+  context_directory: string;
   root: string; settings: graph_settings; state?: repository_state;
   container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar");
   status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("section", "git-graph-details");
@@ -69,7 +74,7 @@ export class git_graph_panel {
   key_handler: (event: KeyboardEvent) => void;
 
   constructor(public host: graph_host, cwd: string) {
-    this.root = cwd; this.settings = load_graph_settings(localStorage, cwd); this.count = this.settings.initial_count;
+    this.context_directory = cwd; this.root = cwd; this.settings = load_graph_settings(localStorage, cwd); this.count = this.settings.initial_count;
     this.runner = host.runner(this.settings); this.writer = host.runner(this.settings, true);
     this.branches = [...this.settings.on_load_branches]; if (this.settings.on_load_branch) this.branches = ["HEAD"];
     this.container.setAttribute("aria-label", text("graph.aria_label")); this.status.setAttribute("role", "status");
@@ -147,7 +152,7 @@ export class git_graph_panel {
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
     this.column_binding?.dispose();this.column_binding=undefined;
     this.ref_picker.close(false); this.branch_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
-    this.progress.reset();this.repository_epoch++; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
+    this.progress.reset();this.repository_epoch++; this.context_directory = root; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
     this.last_refreshed_at = 0; this.publish_state();
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; await this.refresh();
@@ -155,6 +160,13 @@ export class git_graph_panel {
   update_scm_actions():void{this.progress.configure(this.settings.show_progress);this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();this.discard_confirmation.update_state();this.ref_picker.update_state();this.branch_picker.update_state();}
   subscribe_state(listener: () => void): () => void { this.state_listeners.add(listener); listener(); return () => this.state_listeners.delete(listener); }
   private publish_state(): void { for (const listener of this.state_listeners) listener(); }
+  /** 等待现有刷新任务，多个入口共享完成通知，不为每次点击建立轮询定时器。 */
+  async when_refreshed(): Promise<void> {
+    while (!this.disposed && this.pending && this.refresh_task) {
+      const task = this.refresh_task; await task;
+      if (task === this.refresh_task) return;
+    }
+  }
   refresh(reset = true): Promise<void> {
     if (this.disposed) return Promise.resolve();
     const request = JSON.stringify([this.repository_epoch, this.root, this.settings, reset ? this.settings.initial_count : this.count, this.branches]);
@@ -179,15 +191,19 @@ export class git_graph_panel {
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");this.update_scm_actions();
     try {
       if (!this.root) throw new Error(text("graph.open_repository_first"));
-      let state = await read_repository(this.runner.run, this.root, this.settings, this.count, this.branches);
+      let state = await read_repository(this.runner.run, this.context_directory, this.settings, this.count, this.branches);
       if (epoch !== this.epoch) return;
+      if (this.loaded && this.root !== state.root) { this.loaded = false; this.repository_epoch++; this.close_details(); this.workbench.message.value = ""; }
+      this.workbench.set_empty(false);
       if (!this.loaded) {
         const stored = load_graph_settings(localStorage, state.root);
         const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
-        if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root) && this.host.fs.existsSync(config_path)) {
-          const info = this.host.fs.statSync(config_path);
-          if (info.size < 100000) {
-            const imported = validate_settings(JSON.parse(this.host.fs.readFileSync(config_path, "utf8")));
+        if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root)) {
+          const info = await this.host.fs.promises.stat(config_path).catch((error: {code?: string}) => { if (error.code === "ENOENT") return undefined; throw error; });
+          if (epoch !== this.epoch) return;
+          if (info && info.size < 100000) {
+            const imported = validate_settings(JSON.parse(await this.host.fs.promises.readFile(config_path, "utf8")));
+            if (epoch !== this.epoch) return;
             // 仓库共享配置只影响显示；不从项目文件取得可执行程序，也不自动启用联网头像。
             Object.assign(stored, imported, { git_path: stored.git_path, terminal_shell: stored.terminal_shell, fetch_avatars: stored.fetch_avatars });
           }
@@ -237,8 +253,27 @@ export class git_graph_panel {
       }
       else this.close_details();
       this.detail_refresh_needed = false;
-    } catch (error) { if (epoch === this.epoch) { this.report(error); this.container.dataset.state = "error"; } }
+    } catch (error) { if (epoch === this.epoch) {
+      this.state = undefined; this.loaded = false; this.close_details(); this.list.replaceChildren();
+      this.workbench.clear_changes(); this.workbench.history.reset();
+      const missing = is_missing_repository(error);
+      this.workbench.set_empty(missing); this.report(missing ? "当前文件夹尚未初始化 Git 仓库。" : error);
+      this.container.dataset.state = missing ? "empty" : "error";
+    } }
     finally { if (epoch === this.epoch) { this.pending = false; this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
+  }
+  private acquire_operation(root: string): () => void {
+    return acquire_git_repository_operation(this.host, root, value => { const normalized = this.host.path_api.normalize(value); return this.host.path_api.sep === "\\" ? normalized.toLowerCase() : normalized; });
+  }
+  async initialize(): Promise<void> {
+    if (this.disposed || this.writing || this.pending || this.state) return;
+    const writer = this.writer, root = this.context_directory;
+    let release: () => void; try { release = this.acquire_operation(root); } catch (error) { this.report(error); return; }
+    this.writing = true; const activity = this.progress.begin("init", "正在初始化 Git 仓库…"); this.update_scm_actions();
+    try { await initialize_repository(writer.run, root); }
+    catch (error) { this.report(error); return; }
+    finally { release(); this.writing = false; activity.finish(); this.update_scm_actions(); }
+    if (!this.disposed && this.writer === writer && this.context_directory === root) await this.refresh();
   }
   date(commit: graph_commit): string {
     const source = this.settings.date_type === "author" ? commit.date : commit.commit_date || commit.date;
@@ -372,6 +407,7 @@ export class git_graph_panel {
     } else this.details.remove();
   }
   close_details(): void {
+    this.files_list?.dispose(); this.files_list = undefined;
     this.detail_epoch++; this.selected = ""; this.from = EMPTY; this.to = ""; this.files = []; this.details.replaceChildren(); this.place_details();
     for (const row of this.list.querySelectorAll<HTMLElement>("[data-hash]")) row.setAttribute("aria-pressed", "false");
   }
@@ -470,6 +506,7 @@ export class git_graph_panel {
     if (this.settings.file_view === view) return; this.settings.file_view = view; this.persist_settings(); void this.show_comparison(from, to);
   }
   render_files(container: HTMLElement): void {
+    this.files_list?.dispose(); this.files_list = undefined;
     const directories = new Map<string, HTMLElement>(); directories.set("", container);
     const parent_for = (path: string): HTMLElement => {
       if (directories.has(path)) return directories.get(path)!;
@@ -478,7 +515,7 @@ export class git_graph_panel {
       group.ontoggle = () => { const current = summary.querySelector(".git-graph-file-folder"); current?.replaceWith(graph_file_icon(group.open ? "folder-open" : "folder", "git-graph-file-folder")); };
       parent.append(group); directories.set(path, group); return group;
     };
-    for (const file of this.files) {
+    const create_row = (file: graph_change) => {
       const row = button("", () => {
         for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected"); row.classList.add("selected");
         void this.workbench.open_default_file(file, this.from, this.to, this.files);
@@ -489,8 +526,19 @@ export class git_graph_panel {
       row.querySelector(".git-graph-file-name")?.prepend(git_icon("circle-filled","git-graph-unreviewed-icon"));
       if (this.review_active() && !this.is_reviewed(file.path)) row.classList.add("git-file-unreviewed");
       row.oncontextmenu = event => this.file_menu(event, file);
-      (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(row);
+      return row;
+    };
+    if (this.files.length > 200) {
+      const content = el("div"), collapsed = new Set<string>(); container.append(content);
+      const entries = () => this.settings.file_view === "tree" ? workspace_tree_rows(this.files, file => file.path, collapsed, this.settings.compact_folders) : this.files.map(item => ({item, depth: 0, directory: undefined as string | undefined}));
+      const list = create_workspace_virtual_list({root: content, scroller: container, items: entries(), row_height: 22, render: item => {
+        if (item.item) { const row = create_row(item.item); row.style.paddingLeft = item.depth * 12 + "px"; return row; }
+        const directory = item.directory!;
+        const row = button(directory, () => { if (collapsed.has(directory)) collapsed.delete(directory); else collapsed.add(directory); list.set_items(entries()); }, "git-graph-file");
+        row.prepend(git_icon(collapsed.has(directory) ? "chevron-right" : "chevron-down")); row.style.paddingLeft = item.depth * 12 + "px"; row.setAttribute("aria-expanded", String(!collapsed.has(directory))); return row;
+      }}); this.files_list = list; return;
     }
+    for (const file of this.files) (this.settings.file_view === "tree" ? parent_for(file.path.split("/").slice(0, -1).join("/")) : container).append(create_row(file));
     if (this.settings.compact_folders) {
       for (const directory of [...container.querySelectorAll("details")].reverse()) {
         const children = [...directory.children];
@@ -606,6 +654,7 @@ export class git_graph_panel {
   async run_operation<T>(id:string,operation:(writer:typeof this.writer)=>Promise<T>,expected_writer=this.writer):Promise<T>{
     if (this.disposed || !this.state || this.pending || this.writing || this.writer !== expected_writer) throw new Error(text("graph.wait_for_repository"));
     const root = this.root, writer = expected_writer, action_epoch = ++this.action_epoch;
+    const release = this.acquire_operation(root);
     this.writing = true;const activity=this.progress.begin(id,this.operation_label(id));this.write_progress=activity;this.update_scm_actions();
     try {
       return await operation(writer);
@@ -614,7 +663,7 @@ export class git_graph_panel {
       try{if (action_epoch === this.action_epoch) {
         this.writing = false;activity.phase(text("graph.loading_repository"));
         if (!this.disposed && this.root === root && this.writer === writer) await this.refresh(false);
-      }}finally{activity.finish();if(this.write_progress===activity)this.write_progress=undefined;}
+      }}finally{release();activity.finish();if(this.write_progress===activity)this.write_progress=undefined;}
     }
   }
   private operation_label(id:string):string{return text("progress.running",{action:graph_actions.find(action=>action.id===id)?.title||(id==="ignore"?text("scm.add_to_gitignore"):text("graph.executing"))});}
@@ -709,9 +758,11 @@ export class git_graph_panel {
         }
         const plan=await plan_git_action(runner.run,id,{root,target,paths,hash:hash===WORKTREE?state.head:hash,operation:state.operation,sign_commits:this.settings.sign_commits,sign_tags:this.settings.sign_tags,reference_space:this.settings.reference_space},values);
         if(!available()||this.writer!==writer)return;
+        // 参数与破坏性确认已完成；执行阶段只占用本仓库，立即释放全局输入与焦点。
+        completed=true;dialog.close();
         const output=await this.execute_prepared_action(plan,writer);
-        completed=true;if(available())result.textContent=output||text("graph.action_complete");
-      } catch(error){if(available())result.textContent=String(error);}
+        if(!this.disposed&&this.root===root&&this.writer===writer)this.report(output||text("graph.action_complete"));
+      } catch(error){if(available())result.textContent=String(error);else if(completed&&!this.disposed&&this.root===root&&this.writer===writer)this.report(error);}
       finally{submitting=false;if(available()){execute.disabled=completed;for(const input of fields.values())input.disabled=completed;}}
     };
     form.onsubmit=event=>{event.preventDefault();void submit();};
@@ -728,21 +779,33 @@ export class git_graph_panel {
   }
   pr_dialog(branch: string): void { show_pull_request_dialog(this,branch); }
   archive_dialog(hash: string): void {
-    const dialog = graph_dialog(text("graph.archive_title")); const target = el("input"); target.value = this.host.path_api.join(this.root, hash.slice(0, 8) + ".zip"); const error = el("pre"); dialog.content.append(target, error);
+    const root = this.root, writer = this.writer;
+    const dialog = graph_dialog(text("graph.archive_title")); const target = el("input"); target.value = this.host.path_api.join(root, hash.slice(0, 8) + ".zip"); const error = el("pre"); dialog.content.append(target, error);
+    let submitting = false;
     dialog.footer.prepend(button(text("graph.export_zip"), () => void (async () => {
-      try { if (this.host.fs.existsSync(target.value)) throw new Error(text("graph.target_exists"));
-        await this.writer.run(this.root, ["archive", "--format=zip", "--output=" + target.value, hash]); error.textContent = text("graph.exported", {path: target.value});
-      } catch (problem) { error.textContent = String(problem); }
+      if (submitting || this.disposed || this.root !== root || this.writer !== writer) return;
+      submitting = true; let accepted = false;
+      try {
+        const destination = target.value;
+        const exists = await this.host.fs.promises.stat(destination).then(() => true, (problem: {code?: string}) => {if (problem.code === "ENOENT") return false; throw problem;});
+        if (!dialog.root.isConnected || this.disposed || this.root !== root || this.writer !== writer) return;
+        if (exists) throw new Error(text("graph.target_exists"));
+        accepted = true; dialog.close();
+        await this.run_operation("archive", current => current.run(root, ["archive", "--format=zip", "--output=" + destination, hash]), writer);
+        this.report(text("graph.exported", {path: destination}));
+      } catch (problem) { if (accepted) this.report(problem); else if (dialog.root.isConnected) error.textContent = String(problem); }
+      finally { submitting = false; }
     })()));
   }
   filter_branches(): void { this.branch_picker.close(); this.ref_picker.open(); }
   manage_repositories(): void {
-    const dialog = graph_dialog(text("graph.manage_repositories_title")); const input = el("input"); input.placeholder = text("graph.repository_path_placeholder"); input.value = this.root; const error = el("p"); const list = el("div");
+    const scan = new AbortController();
+    const dialog = workspace_dialog(text("graph.manage_repositories_title"), text("common.close"), () => scan.abort()); const input = el("input"); input.placeholder = text("graph.repository_path_placeholder"); input.value = this.root; const error = el("p"); const list = el("div");
     const render = () => { list.replaceChildren(); for (const root of this.known_repos()) {
       const row = el("div", "git-graph-repo-entry", root); row.append(button(text("graph.open"), () => { this.switch_repo(root); dialog.close(); }), button(text("graph.remove_record"), () => { this.save_repos(this.known_repos().filter(item => item !== root)); render(); })); list.append(row);
     } }; render(); dialog.content.append(input, list, error);
     dialog.footer.prepend(button(text("graph.add_repository"), () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then(root => { this.save_repos([...this.known_repos(), root.trim()]); render(); }).catch(problem => { error.textContent = String(problem); })),
-      button(text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth).then(roots => { this.save_repos([...this.known_repos(), ...roots]); render(); error.textContent = text("graph.discovered_repositories", {count: roots.length}); }).catch(problem => { error.textContent = String(problem); })));
+      button(text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth, scan.signal).then(result => { if (!dialog.root.isConnected || this.disposed) return; this.save_repos([...this.known_repos(), ...result.roots]); render(); error.textContent = text("graph.discovered_repositories", {count: result.roots.length}) + (result.truncated ? "；达到扫描上限，请缩小目录范围。" : "") + (result.errors.length ? "；" + result.errors.join("；") : ""); }).catch(problem => { error.textContent = String(problem); })));
   }
   settings_dialog(): void {
     if (this.disposed) return;
@@ -792,7 +855,7 @@ export class git_graph_panel {
       if (!reviews.length) dialog.content.textContent = text("graph.no_reviews");
       for (const review of reviews) {
         const row = el("div", "git-graph-review", text("graph.review_record", {root: review.root, from: short_revision_label(review.from), to: short_revision_label(review.to), count: review.reviewed.length}));
-        row.append(button(text("graph.resume_review"), () => { dialog.close(); if (review.root !== this.root) this.switch_repo(review.root); void (async () => { while (this.pending) await new Promise(resolve => setTimeout(resolve, 50)); this.selected = review.to; void this.show_comparison(review.from, review.to); })(); }),
+        row.append(button(text("graph.resume_review"), () => { dialog.close(); if (review.root !== this.root) this.switch_repo(review.root); void (async () => { await this.when_refreshed(); this.selected = review.to; void this.show_comparison(review.from, review.to); })(); }),
           button(text("graph.finish"), () => { save_reviews(localStorage, reviews.filter(item => item !== review)); render(); })); dialog.content.append(row);
       }
     }; render(); dialog.footer.prepend(button(text("graph.finish_all_reviews"), () => { save_reviews(localStorage, []); render(); }));
@@ -802,6 +865,7 @@ export class git_graph_panel {
     if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") { event.preventDefault(); this.host.core.app.workspace.sidebar.toggle(); return; }
     if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
+    if (event.target instanceof Element && event.target !== document.body && event.target !== document.documentElement && !this.container.contains(event.target)) return;
     const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
     let handled = true;
     if (shortcut_matches(event, this.settings.shortcuts.find)) this.open_find();

@@ -46,8 +46,8 @@ export function bind_git_graph() {
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});
   const controller_for = (cwd: string): git_graph_panel => {
     for (const panel of controllers) {
-      const relative = host.path_api.relative(panel.root, cwd);
-      if (panel.root === cwd || panel.loaded && relative !== ".." && !relative.startsWith(".." + host.path_api.sep) && !host.path_api.isAbsolute(relative)) return panel;
+      // 文件夹包含关系不等于仓库身份：子目录可能新建了独立仓库或 worktree。
+      if (!panel.disposed && host.path_api.relative(panel.context_directory, cwd) === "") return panel;
     }
     const panel = track_panel(new git_graph_panel(host, cwd)); void panel.refresh(false); return panel;
   };
@@ -139,7 +139,7 @@ export function bind_git_graph() {
   const commands: [string, git_graph_text_key, (panel: git_graph_panel) => void][] = [
     ["view", "view.command.view", () => {}], ["add_repository", "view.command.add_repository", panel => panel.manage_repositories()],
     ["remove_repository", "view.command.remove_repository", panel => panel.manage_repositories()],
-    ["fetch", "view.command.fetch", panel => void (async () => { const repository_epoch=panel.repository_epoch; const available=()=>!lifetime.disposed&&!panel.disposed&&panel.repository_epoch===repository_epoch; while (panel.pending&&available()) await new Promise(resolve => setTimeout(resolve, 50)); if(!available())return; void panel.network_action("fetch"); })()],
+    ["fetch", "view.command.fetch", panel => void (async () => { const repository_epoch=panel.repository_epoch; const available=()=>!lifetime.disposed&&!panel.disposed&&panel.repository_epoch===repository_epoch; await panel.when_refreshed(); if(!available())return; void panel.network_action("fetch"); })()],
     ["reviews", "view.command.reviews", panel => panel.reviews_dialog()], ["clear_avatars", "view.command.clear_avatars", () => host.clear_avatars()],
     ["end_all_reviews", "view.command.end_all_reviews", panel => { save_reviews(localStorage, []); if (panel.to) void panel.show_comparison(panel.from, panel.to); }],
     ["end_review", "view.command.end_review", panel => panel.reviews_dialog()], ["resume_review", "view.command.resume_review", panel => panel.reviews_dialog()],
@@ -164,7 +164,7 @@ export function bind_git_graph() {
         const panel = controller_for(cwd); show_source_control(panel);
         void (async () => {
           const epoch=panel.repository_epoch;
-          while (panel.pending && !lifetime.disposed&&!panel.disposed&&epoch===panel.repository_epoch) await new Promise(resolve => setTimeout(resolve, 50)); if(lifetime.disposed||panel.disposed||epoch!==panel.repository_epoch)return;
+          await panel.when_refreshed(); if(lifetime.disposed||panel.disposed||epoch!==panel.repository_epoch)return;
           const file = host.path_api.relative(panel.root, path).replace(/\\/gu, "/");
           if (id === "history") await panel.workbench.file_history(file);
           else { const change = panel.state?.changes.find(item => item.path === file); await panel.workbench.open_file(change || {path: file, status: "M"}, panel.state?.head || "EMPTY", "WORKTREE"); }

@@ -523,3 +523,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-discard-confirmation .git-discard-files summary { cursor: pointer; }
 .git-discard-confirmation .git-discard-files ul { margin: 4px 0 12px; padding-inline-start: 20px; }
 .git-discard-confirmation .git-discard-files p { margin: 12px 0 0; }
+
+/* 大列表沿用SCM行高和主题，窗口化容器不引入新的滚动所有者。 */
+.git-scm-virtual-directory { display: flex; align-items: center; gap: 4px; border: 0; background: transparent; color: inherit; text-align: left; }
+.git-scm-virtual-directory .git-icon { flex: 0 0 16px; }

@@ -82,7 +82,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
     const available = () => !disposed && !current.disposed && current === current_panel() && current.repository_epoch === repository_epoch;
     void (async () => {
       if (!current.state && !current.pending && !current.writing) await current.refresh(false);
-      while (current.pending && available()) await new Promise(resolve => setTimeout(resolve, 50));
+      await current.when_refreshed();
       if (!available()) return;
       if (!current.state || current.container.dataset.state === "error") {
         workspace_menu(event, [{id: "select_repository", title: text("status.select_repository"), action: () => current.manage_repositories()}, {id: "refresh_status", title: text("status.recheck_repository"), action: () => void current.refresh(false)}]); return;
