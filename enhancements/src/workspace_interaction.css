@@ -33,6 +33,13 @@
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
 :where([role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]) { --workspace-default-hover:var(--workspace-menu-item-hover); }
 :where([data-workspace-interaction="menu"],[role="menubar"]>[role="menuitem"]) { --workspace-default-hover:var(--workspace-menu-hover); }
+/* VS Code button.css 主题角色：主操作共用颜色，领域仅保留尺寸与分裂形状。 */
+body [data-workspace-interaction="primary"]:not(:where([data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) {
+  background-color:var(--vscode-button-background,#0078d4)!important;
+  color:var(--vscode-button-foreground,#fff)!important;
+  --workspace-interaction-hover:var(--vscode-button-hoverBackground,#006cbe);
+  --workspace-interaction-foreground:var(--vscode-button-foreground,#fff);
+}
 /* 局部形状不继承到子操作；跨控件默认通过control-radius管理。
    稳定圆角覆盖默认/悬停/选中/禁用，不改命中盒大小或裁剪内容。 */
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }

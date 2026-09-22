@@ -111,7 +111,7 @@ export class git_graph_panel {
     };
     this.body.append(this.list); this.workbench = new git_source_control(this); this.container.append(this.toolbar, this.find_widget, this.status, this.body, this.more_button);
     this.progress.configure(this.settings.show_progress);
-    this.progress_views=[this.toolbar,this.workbench.input_heading,this.workbench.history.header].map(owner=>bind_git_progress_view(owner,this.progress));
+    this.progress_views=[this.toolbar,this.workbench.title,this.workbench.history.header].map(owner=>bind_git_progress_view(owner,this.progress));
     this.list.addEventListener("scroll", () => {
       if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) { this.count += this.settings.page_count; void this.refresh(false); }
     });
@@ -186,6 +186,7 @@ export class git_graph_panel {
     // 正常刷新不取消仍在读取的历史详情；替换在途查询时才使旧详情失效。
     if (this.pending) { this.detail_epoch++; this.detail_refresh_needed = true; this.runner.cancel(); }
     this.pending = true;
+    if (!this.state) { this.workbench.notice.textContent = ""; this.workbench.set_repository_state("loading"); }
     const previous_progress=this.read_progress,activity=this.progress.begin("refresh",text("graph.loading_repository"));this.read_progress=activity;previous_progress?.finish();
     if (reset) this.count = this.settings.initial_count;
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");this.update_scm_actions();
@@ -194,7 +195,6 @@ export class git_graph_panel {
       let state = await read_repository(this.runner.run, this.context_directory, this.settings, this.count, this.branches);
       if (epoch !== this.epoch) return;
       if (this.loaded && this.root !== state.root) { this.loaded = false; this.repository_epoch++; this.close_details(); this.workbench.message.value = ""; }
-      this.workbench.set_empty(false);
       if (!this.loaded) {
         const stored = load_graph_settings(localStorage, state.root);
         const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
@@ -221,6 +221,7 @@ export class git_graph_panel {
       const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
       const changed = first_load || snapshot !== this.rendered_snapshot;
       this.state = state; this.root = state.root; this.loaded = true;
+      this.workbench.set_repository_state("ready");
       if (changed) {
         this.containment.clear();
         if (first_load && !this.workbench.message.value) this.workbench.load_layout();
@@ -257,7 +258,9 @@ export class git_graph_panel {
       this.state = undefined; this.loaded = false; this.close_details(); this.list.replaceChildren();
       this.workbench.clear_changes(); this.workbench.history.reset();
       const missing = is_missing_repository(error);
-      this.workbench.set_empty(missing); this.report(missing ? "当前文件夹尚未初始化 Git 仓库。" : error);
+      this.workbench.set_repository_state(missing ? "empty" : "error");
+      this.report(missing ? "" : error);
+      if (missing) this.status.textContent = "当前文件夹尚未初始化 Git 仓库。";
       this.container.dataset.state = missing ? "empty" : "error";
     } }
     finally { if (epoch === this.epoch) { this.pending = false; this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }

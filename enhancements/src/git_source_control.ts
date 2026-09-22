@@ -39,8 +39,12 @@ export class git_source_control {
   private virtual_lists: {dispose(): void}[] = [];
   private selected_file = "";
   private collapsed_directories = new Set<string>();
-  private empty_view = el("div", "git-scm-empty");
+  private repository_view_state: "loading" | "empty" | "error" | "ready" = "loading";
+  private empty_view = el("div", "git-scm-welcome");
+  private empty_message = el("p");
   private initialize_button = button("初始化仓库", () => void this.panel.initialize());
+  private discover_button = button("查找子文件夹中的仓库…", () => this.panel.manage_repositories());
+  private retry_button = button("重试", () => void this.panel.refresh());
   private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
@@ -111,12 +115,24 @@ export class git_source_control {
       if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
       this.view_menu(event);
     };
-    this.empty_view.append(el("p", "", "当前文件夹尚未初始化 Git 仓库。"), this.initialize_button,
-      button("查找子文件夹中的仓库…", () => panel.manage_repositories()));
-    this.empty_view.hidden = true; this.sidebar.append(this.empty_view);
+    this.initialize_button.dataset.workspaceInteraction = "primary";
+    this.empty_view.setAttribute("role", "region"); this.empty_view.setAttribute("aria-label", text("scm.source_control"));
+    this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button);
+    this.sidebar.append(this.empty_view);
+    this.set_repository_state(panel.state ? "ready" : "loading");
     this.load_layout(); this.update_actions();
   }
-  set_empty(empty: boolean): void { this.empty_view.hidden = !empty; this.sections.hidden = empty || !this.show_changes && !this.show_history; }
+  set_repository_state(state: "loading" | "empty" | "error" | "ready"): void {
+    if (this.sidebar.dataset.repositoryState === state) return;
+    this.repository_view_state = state; this.sidebar.dataset.repositoryState = state;
+    const ready = state === "ready";
+    this.empty_view.hidden = ready;
+    this.empty_message.textContent = state === "loading" ? text("graph.loading_repository") : state === "empty" ? "当前打开的文件夹尚未包含 Git 仓库。" : "无法读取 Git 仓库。";
+    this.initialize_button.hidden = this.discover_button.hidden = state !== "empty";
+    this.retry_button.hidden = state !== "error";
+    (ready ? this.changes_body : this.empty_view).append(this.notice);
+    this.apply_history_layout();
+  }
   clear_changes(): void { this.groups_epoch++; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups_state = []; this.groups.replaceChildren(); }
   storage_key(suffix: string): string { return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root; }
   load_layout(): void {
@@ -155,8 +171,9 @@ export class git_source_control {
   }
   toggle_history(): void { this.history_open = !this.history_open; this.apply_history_layout(); this.save_layout(); }
   apply_history_layout(): void {
-    this.repositories_view.hidden = !this.show_repositories; this.changes_pane.hidden = !this.show_changes; this.history.container.hidden = !this.show_history;
-    this.sections.hidden = !this.show_changes && !this.show_history;
+    const ready = this.repository_view_state === "ready";
+    this.repositories_view.hidden = !ready || !this.show_repositories; this.changes_pane.hidden = !this.show_changes; this.history.container.hidden = !this.show_history;
+    this.sections.hidden = !ready || !this.show_changes && !this.show_history;
     this.sections.setAttribute("data-show-changes", String(this.show_changes)); this.sections.setAttribute("data-show-history", String(this.show_history));
     this.sections.setAttribute("data-history-open", String(this.history_open)); this.history_sash.hidden = !this.history_open || !this.show_changes || !this.show_history;
     this.sections.style.setProperty("--git-scm-changes-size", this.history_ratio * 100 + "fr");
@@ -170,6 +187,7 @@ export class git_source_control {
   }
   update_actions(): void {
     this.initialize_button.disabled = this.panel.pending || this.panel.writing;
+    this.discover_button.disabled = this.retry_button.disabled = this.panel.pending || this.panel.writing;
     this.message.disabled=this.panel.writing&&this.panel.progress.state.kind==="commit";
     for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
     for (const control of this.changes_body.querySelectorAll<HTMLButtonElement>(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");

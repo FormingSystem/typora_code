@@ -1,0 +1,239 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R071"
+  ],
+  "subtask": "R071.1",
+  "version": "2026.09.22.8",
+  "baseline": "7a04182",
+  "design": "docs/workspace_responsiveness.md",
+  "sources": [
+    {
+      "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+      "path": "src/vs/workbench/browser/parts/views/media/views.css",
+      "adopted": "20px横向/1em底部与子项上距/300px按钮最大宽度"
+    },
+    {
+      "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+      "path": "src/vs/base/browser/ui/button/button.css",
+      "adopted": "12px字体/16px行高/4px 8px内边距/主题按钮颜色"
+    },
+    {
+      "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+      "paths": [
+        "extensions/git/package.json",
+        "extensions/git/src/commands.ts",
+        "extensions/git/src/repository.ts"
+      ],
+      "adopted": "viewsWelcome状态隔离、单一目标直接初始化、SourceControl局部进度"
+    }
+  ],
+  "assets": {
+    "SHA256SUMS": "1e2868e7c4d655d498743c748b1a0771786e15467724615f53ca881aad1bc781",
+    "workbench.js": "12c6e1e4835b0bf19937f160d6e950075647e9734ed482af87f9132134d2e2b2",
+    "workspace.css": "a9c81f16b70b81c09a84994c344f44b268c370728f87beecddf9ef53c4fbcfb5"
+  },
+  "checks": {
+    "full_check": "PASS; final state guard additionally covered by final UI and source/deployment checks",
+    "ui_suites": [
+      "test_git_graph_interaction.cjs",
+      "test_workspace_interaction_defaults.cjs",
+      "test_workspace_interaction.cjs",
+      "test_scm_sidebar_layout.cjs",
+      "test_scm_vscode_geometry.cjs",
+      "test_scm_file_icons.cjs",
+      "test_git_responsiveness.cjs"
+    ],
+    "shared_controls_assertions": 58,
+    "ui_final": {
+      "status": "PASS",
+      "results": [
+        "accepted Git action releases modal before command completes",
+        "real mouse and keyboard work outside pending Git",
+        "real branch command completes once",
+        "50k SCM rows bounded without truncating last file",
+        "keyboard can reach final row",
+        "large tree collapses without dropping source data",
+        "20 refreshes keep DOM bounded",
+        "Graph details share bounded list and retain last file",
+        "history file expansion shares bounded list and retains final file",
+        "50k workload event-loop P95 under 100ms and max under 500ms",
+        "empty folder clears previous repository and exposes initialize",
+        "welcome remains exclusive when section preferences change",
+        "initialization progress visible in SCM title with duplicate action disabled",
+        "slow initialization leaves other module interactive",
+        "initialization error visible and retry available",
+        "welcome uses upstream inset and undimmed primary button",
+        "initialize and commit share primary theme role",
+        "welcome fits light/180/0.8",
+        "welcome fits light/180/1.25",
+        "welcome fits light/260/0.8",
+        "welcome fits light/260/1.25",
+        "welcome fits light/480/0.8",
+        "welcome fits light/480/1.25",
+        "welcome fits dark/180/0.8",
+        "welcome fits dark/180/1.25",
+        "welcome fits dark/260/0.8",
+        "welcome fits dark/260/1.25",
+        "welcome fits dark/480/0.8",
+        "welcome fits dark/480/1.25",
+        "UI initialize creates empty real repository",
+        "ready restores original notice owner and sections",
+        "read error has retry but never initializes over a failure",
+        "read retry restores real repository"
+      ],
+      "metrics": {
+        "render_ms": 34.69999998807907,
+        "nodes": 22,
+        "last_visible": true,
+        "keyboard_last": true,
+        "collapsed": true,
+        "peak_nodes": 22,
+        "detail_nodes": 18,
+        "detail_last": true,
+        "history_nodes": 23,
+        "history_last": true,
+        "max_ms": 24.099999994039536,
+        "p95_ms": 14.5,
+        "samples": 117
+      }
+    },
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "真实Git识别一万未跟踪文件",
+        "刷新期间阅读切换 0",
+        "刷新期间终端可获焦 0",
+        "刷新保留有界DOM 0",
+        "刷新保留有界DOM 1",
+        "刷新期间阅读切换 2",
+        "刷新期间终端可获焦 2",
+        "刷新保留有界DOM 2",
+        "刷新保留有界DOM 3",
+        "刷新期间阅读切换 4",
+        "刷新期间终端可获焦 4",
+        "刷新保留有界DOM 4",
+        "刷新保留有界DOM 5",
+        "刷新期间阅读切换 6",
+        "刷新期间终端可获焦 6",
+        "刷新保留有界DOM 6",
+        "刷新保留有界DOM 7",
+        "刷新期间阅读切换 8",
+        "刷新期间终端可获焦 8",
+        "刷新保留有界DOM 8",
+        "刷新保留有界DOM 9",
+        "刷新期间阅读切换 10",
+        "刷新期间终端可获焦 10",
+        "刷新保留有界DOM 10",
+        "刷新保留有界DOM 11",
+        "刷新期间阅读切换 12",
+        "刷新期间终端可获焦 12",
+        "刷新保留有界DOM 12",
+        "刷新保留有界DOM 13",
+        "刷新期间阅读切换 14",
+        "刷新期间终端可获焦 14",
+        "刷新保留有界DOM 14",
+        "刷新保留有界DOM 15",
+        "刷新期间阅读切换 16",
+        "刷新期间终端可获焦 16",
+        "刷新保留有界DOM 16",
+        "刷新保留有界DOM 17",
+        "刷新期间阅读切换 18",
+        "刷新期间终端可获焦 18",
+        "刷新保留有界DOM 18",
+        "刷新保留有界DOM 19",
+        "缩放后可访问最后文件 0.8",
+        "缩放后可访问最后文件 1",
+        "缩放后可访问最后文件 1.25",
+        "Git刷新和缩放保留终端进程",
+        "阅读正文未修改",
+        "宿主事件循环P95小于100ms且最大间隔小于500ms",
+        "原生空目录欢迎页",
+        "原生空仓布局不露出提交控件",
+        "原生初始化局部进度可见",
+        "原生初始化期间终端可获焦",
+        "原生初始化错误归可见欢迎页",
+        "原生重新初始化真实仓库完成"
+      ],
+      "metrics": {
+        "max_ms": 69.20000000298023,
+        "p95_ms": 16.900000005960464,
+        "samples": 700,
+        "refresh_ms": [
+          253.30000001192093,
+          235.90000000596046,
+          244.09999999403954,
+          233.90000000596046,
+          240.09999999403954,
+          238.70000000298023,
+          249.80000001192093,
+          237.59999999403954,
+          244,
+          243.29999999701977,
+          247.20000000298023,
+          240.09999999403954,
+          242.20000000298023,
+          251.20000000298023,
+          238,
+          236.90000000596046,
+          242.5,
+          248.09999999403954,
+          237.20000000298023,
+          243.5
+        ],
+        "long_intervals": [
+          {
+            "phase": "zoom_0.8",
+            "duration_ms": 69.20000000298023
+          },
+          {
+            "phase": "zoom_1.25",
+            "duration_ms": 68.6000000089407
+          }
+        ]
+      },
+      "limits": "Typora 1.14.10 / 当前Windows；真实Git和Shell，renderer发起切换与焦点，非物理鼠标与Win10验收"
+    },
+    "native_setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "1e2868e7c4d655d498743c748b1a0771786e15467724615f53ca881aad1bc781",
+      "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+      "fixture_sha256": "a7a805d610286077b18202aea5b50b6a3bc7a570578e61e57d2c297b04761b5a",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "isolated_install_uninstall": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_assertions": 65,
+    "actual_install": {
+      "assets": {
+        "workspace": 32,
+        "terminal": 24
+      },
+      "protected_files": {
+        "asar": true,
+        "window": true,
+        "theme": true,
+        "settings": true,
+        "profile": true
+      },
+      "check": "OK",
+      "uninstall": "read-only precheck detach",
+      "running_windows_restarted": false
+    }
+  },
+  "first_attempts": [
+    "测试注入函数返回值不可序列化，改为void返回",
+    "真实鼠标定位插入点后字符顺序不固定，按保留前字符且新增字符验证",
+    "通用font:inherit覆盖欢迎页按钮，实测13px/19.5px；修正CSS优先级为12px/16px",
+    "截图发现primary缺少共享默认颜色；补角色颜色及主题/禁用回归",
+    "已有仓库状态的独立SCM构造未显示列表；构造时按已有状态初始化，相关6组回归通过"
+  ],
+  "limits": [
+    "原生桌面为独立副本；renderer命令与焦点，物理输入由Electron夹具覆盖",
+    "明暗主题状态与变量、几何验证，不宣称和VS Code完整窗口逐像素一致",
+    "Git初始分支仍读取本机Git配置，未实现VS Code git.defaultBranchName设置",
+    "原生缩放阶段68.6/69.2ms间隔仍属未解决性能跟踪；其他平台与网络磁盘未验收"
+  ]
+}

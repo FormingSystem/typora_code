@@ -23,7 +23,16 @@ app.whenReady().then(async()=>{
   assert.equal((await style('#nested')).shape[2],'12px');assert.equal((await style('#child')).shape[2],'4px','parent override must not leak to child');
   await move('#child');assert.equal((await style('#nested')).bg,'rgba(0, 0, 0, 0)','only deepest control receives hover');assert.notEqual((await style('#child')).bg,'rgba(0, 0, 0, 0)');
  }
- win.webContents.setZoomFactor(1);await move('#outside');win.webContents.focus();await ev('document.querySelector("#circle").focus()');win.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await pause(80);
+ win.webContents.setZoomFactor(1);
+ await ev(`const primary=qa.workspace_button('主操作',()=>{});primary.id='primary';qa.workspace_interaction(primary,'primary');document.querySelector('#scope').append(primary);void 0`);
+ for(const background of ['rgb(0, 120, 212)','rgb(17, 60, 100)']) {
+  await ev(`document.documentElement.style.setProperty('--vscode-button-background','${background}');document.documentElement.style.setProperty('--vscode-button-hoverBackground','rgb(30, 90, 150)');document.documentElement.style.setProperty('--vscode-button-foreground','rgb(255, 255, 255)');`);
+  await move('#outside');assert.equal((await style('#primary')).bg,background);
+  await move('#primary');assert.equal((await style('#primary')).bg,'rgb(30, 90, 150)');assert.equal((await style('#primary')).color,'rgb(255, 255, 255)');
+  await ev('document.querySelector("#primary").disabled=true');assert.equal((await style('#primary')).bg,background,'disabled primary does not use hover');
+  await ev('document.querySelector("#primary").disabled=false');checks.push('primary theme, hover and disabled '+background);
+ }
+ await ev('document.querySelector("#primary").remove()');await move('#outside');win.webContents.focus();await ev('document.querySelector("#circle").focus()');win.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await pause(80);
  assert(await ev('document.activeElement.id==="long"&&document.activeElement.matches(":focus-visible")&&getComputedStyle(document.activeElement).outlineStyle==="solid"'),'real keyboard focus uses shared outline '+JSON.stringify(await ev('({id:document.activeElement.id,visible:document.activeElement.matches(":focus-visible"),outline:getComputedStyle(document.activeElement).outlineStyle})')));checks.push('keyboard focus');
  await ev('binding.remove()');assert.equal((await style('#dynamic')).shape[2],'0px','scope disposal restores previous radius');await move('#outside');await move('#long');assert.equal((await style('#long')).bg,'rgba(0, 0, 0, 0)','removed scope restores unregistered descendants');
  await move('#factory');assert.notEqual((await style('#factory')).bg,'rgba(0, 0, 0, 0)','independent owner keeps common style');await ev('extra.remove()');assert(await ev('!document.getElementById("typora-code-style:workspace_interaction")'),'last owner removes fallback stylesheet');checks.push('independent ownership and disposal');

@@ -206185,13 +206185,12 @@ https://creativecommons.org/licenses/by/4.0/
         if (event.target instanceof Element && event.target.closest("input,textarea,select,[contenteditable=true]")) return;
         this.view_menu(event);
       };
-      this.empty_view.append(
-        workspace_element("p", "", "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002"),
-        this.initialize_button,
-        workspace_button("\u67E5\u627E\u5B50\u6587\u4EF6\u5939\u4E2D\u7684\u4ED3\u5E93\u2026", () => panel.manage_repositories())
-      );
-      this.empty_view.hidden = true;
+      this.initialize_button.dataset.workspaceInteraction = "primary";
+      this.empty_view.setAttribute("role", "region");
+      this.empty_view.setAttribute("aria-label", git_graph_text("scm.source_control"));
+      this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button);
       this.sidebar.append(this.empty_view);
+      this.set_repository_state(panel.state ? "ready" : "loading");
       this.load_layout();
       this.update_actions();
     }
@@ -206229,12 +206228,24 @@ https://creativecommons.org/licenses/by/4.0/
     virtual_lists = [];
     selected_file = "";
     collapsed_directories = /* @__PURE__ */ new Set();
-    empty_view = workspace_element("div", "git-scm-empty");
+    repository_view_state = "loading";
+    empty_view = workspace_element("div", "git-scm-welcome");
+    empty_message = workspace_element("p");
     initialize_button = workspace_button("\u521D\u59CB\u5316\u4ED3\u5E93", () => void this.panel.initialize());
+    discover_button = workspace_button("\u67E5\u627E\u5B50\u6587\u4EF6\u5939\u4E2D\u7684\u4ED3\u5E93\u2026", () => this.panel.manage_repositories());
+    retry_button = workspace_button("\u91CD\u8BD5", () => void this.panel.refresh());
     path_collator = new Intl.Collator();
-    set_empty(empty2) {
-      this.empty_view.hidden = !empty2;
-      this.sections.hidden = empty2 || !this.show_changes && !this.show_history;
+    set_repository_state(state) {
+      if (this.sidebar.dataset.repositoryState === state) return;
+      this.repository_view_state = state;
+      this.sidebar.dataset.repositoryState = state;
+      const ready = state === "ready";
+      this.empty_view.hidden = ready;
+      this.empty_message.textContent = state === "loading" ? git_graph_text("graph.loading_repository") : state === "empty" ? "\u5F53\u524D\u6253\u5F00\u7684\u6587\u4EF6\u5939\u5C1A\u672A\u5305\u542B Git \u4ED3\u5E93\u3002" : "\u65E0\u6CD5\u8BFB\u53D6 Git \u4ED3\u5E93\u3002";
+      this.initialize_button.hidden = this.discover_button.hidden = state !== "empty";
+      this.retry_button.hidden = state !== "error";
+      (ready ? this.changes_body : this.empty_view).append(this.notice);
+      this.apply_history_layout();
     }
     clear_changes() {
       this.groups_epoch++;
@@ -206310,10 +206321,11 @@ https://creativecommons.org/licenses/by/4.0/
       this.save_layout();
     }
     apply_history_layout() {
-      this.repositories_view.hidden = !this.show_repositories;
+      const ready = this.repository_view_state === "ready";
+      this.repositories_view.hidden = !ready || !this.show_repositories;
       this.changes_pane.hidden = !this.show_changes;
       this.history.container.hidden = !this.show_history;
-      this.sections.hidden = !this.show_changes && !this.show_history;
+      this.sections.hidden = !ready || !this.show_changes && !this.show_history;
       this.sections.setAttribute("data-show-changes", String(this.show_changes));
       this.sections.setAttribute("data-show-history", String(this.show_history));
       this.sections.setAttribute("data-history-open", String(this.history_open));
@@ -206329,6 +206341,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     update_actions() {
       this.initialize_button.disabled = this.panel.pending || this.panel.writing;
+      this.discover_button.disabled = this.retry_button.disabled = this.panel.pending || this.panel.writing;
       this.message.disabled = this.panel.writing && this.panel.progress.state.kind === "commit";
       for (const [id, control] of this.input_actions) control.disabled = !this.input_action_enabled(id);
       for (const control of this.changes_body.querySelectorAll(".git-scm-commit, .git-scm-commit-options")) control.disabled = !this.input_action_enabled("commit");
@@ -228960,7 +228973,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.workbench = new git_source_control(this);
       this.container.append(this.toolbar, this.find_widget, this.status, this.body, this.more_button);
       this.progress.configure(this.settings.show_progress);
-      this.progress_views = [this.toolbar, this.workbench.input_heading, this.workbench.history.header].map((owner) => bind_git_progress_view(owner, this.progress));
+      this.progress_views = [this.toolbar, this.workbench.title, this.workbench.history.header].map((owner) => bind_git_progress_view(owner, this.progress));
       this.list.addEventListener("scroll", () => {
         if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) {
           this.count += this.settings.page_count;
@@ -229197,6 +229210,10 @@ https://creativecommons.org/licenses/by/4.0/
         this.runner.cancel();
       }
       this.pending = true;
+      if (!this.state) {
+        this.workbench.notice.textContent = "";
+        this.workbench.set_repository_state("loading");
+      }
       const previous_progress = this.read_progress, activity = this.progress.begin("refresh", git_graph_text("graph.loading_repository"));
       this.read_progress = activity;
       previous_progress?.finish();
@@ -229216,7 +229233,6 @@ https://creativecommons.org/licenses/by/4.0/
           this.close_details();
           this.workbench.message.value = "";
         }
-        this.workbench.set_empty(false);
         if (!this.loaded) {
           const stored = load_graph_settings(localStorage, state.root);
           const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
@@ -229250,6 +229266,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.state = state;
         this.root = state.root;
         this.loaded = true;
+        this.workbench.set_repository_state("ready");
         if (changed2) {
           this.containment.clear();
           if (first_load && !this.workbench.message.value) this.workbench.load_layout();
@@ -229295,8 +229312,9 @@ https://creativecommons.org/licenses/by/4.0/
           this.workbench.clear_changes();
           this.workbench.history.reset();
           const missing = is_missing_repository(error);
-          this.workbench.set_empty(missing);
-          this.report(missing ? "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002" : error);
+          this.workbench.set_repository_state(missing ? "empty" : "error");
+          this.report(missing ? "" : error);
+          if (missing) this.status.textContent = "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002";
           this.container.dataset.state = missing ? "empty" : "error";
         }
       } finally {
@@ -241667,6 +241685,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092208,
+        version: "2026.09.22.8",
+        date: "2026-09-22",
+        notes: [
+          "Git\u7A7A\u76EE\u5F55\u6309\u6B22\u8FCE\u9875\u663E\u793A\u521D\u59CB\u5316\u5165\u53E3\uFF0C\u9690\u85CF\u65E0\u6548\u63D0\u4EA4\u63A7\u4EF6\uFF1B\u8BFB\u53D6\u5931\u8D25\u63D0\u4F9B\u539F\u59CB\u9519\u8BEF\u548C\u91CD\u8BD5\u3002",
+          "\u521D\u59CB\u5316\u8FDB\u5EA6\u56FA\u5B9A\u5728\u53EF\u89C1\u4FA7\u680F\u6807\u9898\uFF0C\u5931\u8D25\u4FE1\u606F\u7559\u5728\u5F53\u524D\u9875\u9762\uFF0C\u53EF\u76F4\u63A5\u518D\u6B21\u64CD\u4F5C\uFF0C\u4E0D\u963B\u585E\u5176\u4ED6\u6A21\u5757\u3002",
+          "\u6B22\u8FCE\u9875\u6309\u94AE\u7EDF\u4E00\u4F7F\u7528\u4E3B\u9898\u4E0E\u4E0A\u6E38\u51E0\u4F55\uFF0C\u7A84\u4FA7\u680F\u53EF\u6362\u884C\uFF0C\u5207\u6362\u5206\u533A\u8BBE\u7F6E\u4E0D\u7834\u574F\u7A7A\u4ED3\u72B6\u6001\u3002"
+        ]
+      },
       {
         sequence: 2026092207,
         version: "2026.09.22.7",

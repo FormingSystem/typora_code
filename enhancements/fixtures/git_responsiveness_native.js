@@ -46,6 +46,28 @@
     clearInterval(timer); intervals.sort((a, b) => a - b);
     const metrics = {max_ms: intervals.at(-1), p95_ms: intervals[Math.floor(intervals.length * .95)], samples: intervals.length, refresh_ms, long_intervals};
     assert(metrics.p95_ms < 100 && metrics.max_ms < 500, '宿主事件循环P95小于100ms且最大间隔小于500ms');
+    phase = 'welcome'; reqnode('electron').webFrame.setZoomFactor(1);
+    const empty = fs.mkdtempSync(path.join(reqnode('os').tmpdir(), 'typora-git-welcome-'));
+    try {
+      panel.switch_repo(empty); await wait(() => !panel.pending);
+      assert(panel.workbench.sidebar.dataset.repositoryState === 'empty', '原生空目录欢迎页');
+      panel.workbench.apply_history_layout();
+      assert(panel.workbench.sections.hidden && panel.workbench.repositories_view.hidden, '原生空仓布局不露出提交控件');
+      const run = panel.writer.run; let reject_init;
+      panel.writer.run = async (...args) => { if (args[1][0] === 'init') await new Promise((resolve, reject) => { reject_init = reject; }); return run(...args); };
+      panel.workbench.sidebar.querySelector('.git-scm-welcome button').click(); await wait(() => !!reject_init);
+      assert(panel.workbench.title.getAttribute('aria-busy') === 'true' && !panel.workbench.title.querySelector('[role=progressbar]').hidden, '原生初始化局部进度可见');
+      terminal.querySelector('.xterm-helper-textarea').focus();
+      assert(document.activeElement === terminal.querySelector('.xterm-helper-textarea'), '原生初始化期间终端可获焦');
+      reject_init(Error('fixture init failed')); await wait(() => !panel.writing);
+      assert(panel.workbench.notice.closest('.git-scm-welcome') && panel.workbench.notice.textContent.includes('fixture init failed'), '原生初始化错误归可见欢迎页');
+      panel.writer.run = run; await panel.initialize(); await wait(() => panel.loaded && !panel.pending);
+      assert(fs.existsSync(path.join(empty, '.git')) && panel.workbench.sidebar.dataset.repositoryState === 'ready', '原生重新初始化真实仓库完成');
+      panel.switch_repo(path.join(base, 'workspace')); await wait(() => panel.loaded && !panel.pending);
+    } finally {
+      if (path.dirname(empty) !== path.resolve(reqnode('os').tmpdir()) || !path.basename(empty).startsWith('typora-git-welcome-')) throw Error('测试目录边界不符');
+      fs.rmSync(empty, {recursive: true, force: true});
+    }
     app.commands.run('linux_note:terminal_kill');
     fs.writeFileSync(path.join(base, 'checks.json'), JSON.stringify({status: 'PASS', checks, metrics, limits: 'Typora 1.14.10 / 当前Windows；真实Git和Shell，renderer发起切换与焦点，非物理鼠标与Win10验收'}, null, 2));
   } catch (error) { clearInterval(timer); fs.writeFileSync(path.join(base, 'checks.json'), JSON.stringify({status: 'ERROR', error: String(error.stack || error), checks, refresh_ms, intervals}, null, 2)); }

@@ -135,8 +135,39 @@ app.whenReady().then(async () => {
   try {
     await evaluate(`panel.switch_repo(${JSON.stringify(empty)})`);await wait('!panel.pending');
     record('empty folder clears previous repository and exposes initialize',await evaluate('!panel.state&&panel.container.dataset.state==="empty"&&panel.workbench.groups.childElementCount===0&&[...panel.workbench.sidebar.querySelectorAll("button")].some(button=>button.textContent==="初始化仓库"&&!button.closest("[hidden]"))'));
-    await evaluate(`panel.workbench.sidebar.querySelector('.git-scm-empty button').click()`);await wait('panel.loaded&&!panel.pending&&!panel.writing');
+    record('welcome remains exclusive when section preferences change',await evaluate(`(()=>{panel.workbench.show_repositories=true;panel.workbench.apply_history_layout();return panel.workbench.sections.hidden&&panel.workbench.repositories_view.hidden&&getComputedStyle(panel.workbench.sections).display==='none';})()`));
+    await evaluate(`window.init_run=panel.writer.run;window.fail_init=null;panel.writer.run=async(...args)=>{if(args[1][0]==='init')await new Promise((resolve,reject)=>fail_init=()=>reject(Error('fixture init permission denied')));return init_run(...args);};void 0;`);
+    await click('.git-scm-welcome button[data-workspace-interaction="primary"]');await wait('panel.writing&&!!fail_init');
+    record('initialization progress visible in SCM title with duplicate action disabled',await evaluate(`panel.workbench.title.getAttribute('aria-busy')==='true'&&!panel.workbench.title.querySelector('[role=progressbar]').hidden&&panel.workbench.sidebar.querySelector('.git-scm-welcome button').disabled&&!document.querySelector('.git-graph-dialog-shade')`));
+    await click('#independent');test_window.webContents.sendInputEvent({type:'char',keyCode:'y'});await delay(40);
+    record('slow initialization leaves other module interactive',await evaluate('independent.value.length===2&&independent.value.includes("x")&&independent.value.includes("y")&&document.activeElement===independent&&panel.writing'));
+    await evaluate('fail_init()');await wait('!panel.writing');
+    record('initialization error visible and retry available',await evaluate(`panel.workbench.notice.closest('.git-scm-welcome')&&!panel.workbench.notice.closest('[hidden]')&&panel.workbench.notice.textContent.includes('fixture init permission denied')&&!panel.workbench.sidebar.querySelector('.git-scm-welcome button').disabled`));
+    const geometry=await evaluate(`(()=>{const view=panel.workbench.sidebar.querySelector('.git-scm-welcome'),button=view.querySelector('button'),styles=getComputedStyle(view),b=getComputedStyle(button);return {padding:styles.paddingLeft,opacity:styles.opacity,button_width:button.getBoundingClientRect().width,view_width:view.clientWidth,font_size:b.fontSize,line_height:b.lineHeight};})()`);
+    console.log('welcome geometry',JSON.stringify(geometry));
+    record('welcome uses upstream inset and undimmed primary button',geometry.padding==='20px'&&geometry.opacity==='1'&&geometry.button_width<=300&&geometry.button_width<=geometry.view_width-40&&geometry.font_size==='12px'&&geometry.line_height==='16px');
+    record('initialize and commit share primary theme role',await evaluate(`(()=>{const init=panel.workbench.sidebar.querySelector('.git-scm-welcome button'),commit=panel.workbench.sidebar.querySelector('.git-scm-commit');return getComputedStyle(init).backgroundColor==='rgb(0, 120, 212)'&&getComputedStyle(init).backgroundColor===getComputedStyle(commit).backgroundColor&&getComputedStyle(init).color===getComputedStyle(commit).color;})()`));
+    await capture('welcome-init-failed');
+    for (const theme of ['light','dark']) for (const width of [180,260,480]) {
+      await evaluate(`document.documentElement.dataset.workspaceFileIconTheme=${JSON.stringify(theme)};document.querySelector('#sidebar-content').style.width=${JSON.stringify(width+'px')};`);
+      for (const zoom of [.8,1.25]) {
+        test_window.webContents.setZoomFactor(zoom);await delay(40);
+        record('welcome fits '+theme+'/'+width+'/'+zoom,await evaluate(`(()=>{const root=panel.workbench.sidebar.querySelector('.git-scm-welcome'),button=root.querySelector('button'),b=button.getBoundingClientRect(),r=root.getBoundingClientRect();return b.left>=r.left&&b.right<=r.right&&root.scrollWidth<=root.clientWidth+1&&button.scrollWidth<=button.clientWidth+1&&getComputedStyle(button).opacity==='1'&&getComputedStyle(button).borderRadius==='4px';})()`));
+      }
+      if(width===180)await capture('welcome-'+theme+'-narrow');
+    }
+    test_window.webContents.setZoomFactor(1);
+    await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='light';document.querySelector('#sidebar-content').style.width='260px';`);
+    await evaluate('void (panel.writer.run=init_run)');
+    // 已连接到真实Chromium焦点，Enter必须走按钮默认click而非直接调用初始化方法。
+    await evaluate(`panel.workbench.sidebar.querySelector('.git-scm-welcome button').focus()`);await key('Enter');await wait('panel.loaded&&!panel.pending&&!panel.writing');
     record('UI initialize creates empty real repository',fs.existsSync(path.join(empty,'.git'))&&await evaluate('!panel.state.head&&panel.container.dataset.state==="ready"'));
+    record('ready restores original notice owner and sections',await evaluate(`panel.workbench.notice.parentElement===panel.workbench.changes_body&&!panel.workbench.sections.hidden&&panel.workbench.sidebar.querySelector('.git-scm-welcome').hidden`));
+    await evaluate(`window.read_run=panel.runner.run;panel.runner.run=async()=>{throw Error('fixture git executable unavailable');};void 0;`);
+    await evaluate('panel.refresh()');await wait('!panel.pending');
+    record('read error has retry but never initializes over a failure',await evaluate(`panel.workbench.sidebar.dataset.repositoryState==='error'&&panel.workbench.sections.hidden&&panel.workbench.notice.textContent.includes('fixture git executable unavailable')&&[...panel.workbench.sidebar.querySelectorAll('.git-scm-welcome button')].filter(button=>!button.hidden).map(button=>button.textContent).join()==='重试'`));
+    await evaluate('void (panel.runner.run=read_run)');await click('.git-scm-welcome button:not([hidden])');await wait('panel.loaded&&!panel.pending');
+    record('read retry restores real repository',await evaluate(`panel.workbench.sidebar.dataset.repositoryState==='ready'`));
     await evaluate(`panel.switch_repo(${JSON.stringify(root)})`);await wait('panel.loaded&&!panel.pending');
   } finally {assert(path.dirname(empty)===path.resolve(os.tmpdir())&&path.basename(empty).startsWith('typora_git_empty_'));fs.rmSync(empty,{recursive:true,force:true});}
   await evaluate('panel.dispose()');
