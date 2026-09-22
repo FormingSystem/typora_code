@@ -29,6 +29,8 @@ fs.writeFileSync(`${update_root}/runtime.json`,JSON.stringify({node_version:JSON
 for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"])fs.writeFileSync(`${update_root}/${name}`,fs.readFileSync(`src/${name}`,"utf8").replace(/\r\n?/gu,"\n"));
 fs.mkdirSync('dist/assets/plugins',{recursive:true});
 fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
+fs.mkdirSync('dist/assets/remote',{recursive:true});
+for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
 
 await build({
   entryPoints: ["src/workspace_entry.ts"],

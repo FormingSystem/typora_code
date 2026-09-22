@@ -91,7 +91,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     event.preventDefault(); event.stopImmediatePropagation(); event.returnValue = "";
     if (window_dialog?.root.isConnected) return true;
     const dialog = window_dialog = workspace_dialog("保存文件修改"); dialog.root.setAttribute("data-workspace-save-close", "true");
-    dialog.content.append(el("p", "", `${dirty.length} 个源码文件有未保存修改。`));
+    dialog.content.append(el("p", "", `${dirty.length} 个文档有未保存修改。`));
     let saving = false;
     const discard_button = button("不保存并关闭", () => { dialog.close(); request_window_close(); });
     const save_button = button("全部保存并关闭", () => {

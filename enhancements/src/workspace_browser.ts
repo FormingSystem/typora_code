@@ -24,6 +24,7 @@ import { install_workspace_sidebar_sash } from "./workspace_sidebar_sash";
 import {bind_workspace_file_commands} from "./workspace_file_commands";
 import {bind_workspace_save_service} from "./workspace_save_service";
 import {bind_workspace_explorer_sections} from "./workspace_explorer_sections";
+import {bind_workspace_remote_ssh} from "./workspace_remote_ssh";
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -63,6 +64,7 @@ export function bind_workspace_browser() {
   lifetime.add(core.app.commands.register({id:"linux_note:outline",title:"视图：聚焦大纲",scope:"global",callback:reveal_outline}));
 
   const search=lifetime.own(bind_workspace_search(core,files));
+  lifetime.own(bind_workspace_remote_ssh(core,files));
   let known_context=files.context_root();
   const context_changed=(force=false)=>{
     if(lifetime.disposed||workspace_context_switching())return;
@@ -98,7 +100,7 @@ export function bind_workspace_browser() {
   lifetime.own(install_workspace_sidebar_sash({sidebar:core.app.workspace.sidebar,save_width:width=>(window as unknown as {JSBridge:{putSetting(key:string,value:number):void}}).JSBridge.putSetting("sidebar-width",width)}));
   const sidebar=core.app.workspace.sidebar as unknown as {isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}};
   const ribbon=document.querySelector<HTMLElement>(".typ-ribbon");
-  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control", "typora_code:community_plugins"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
+  if(ribbon)lifetime.own(install_workspace_activity({ribbon,item_ids:["core.search","core.file-explorer","core.outline","linux_note:source_control", "typora_code:community_plugins","typora_code:remote_ssh"],read_state:()=>read_workspace_sidebar_state(sidebar)}));
   const detached=lifetime.own(bind_workspace_detached_window(files));
   const editor_actions=lifetime.own(bind_workspace_editor_actions(files,detached));
   lifetime.own(bind_workspace_file_header(files,editor_actions));

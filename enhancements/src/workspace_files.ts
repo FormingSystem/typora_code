@@ -16,7 +16,7 @@ import { create_text_document, save_text_document_as, MAX_TEXT_DOCUMENT_BYTES } 
 import {decode_file_bytes} from "./file_language";
 import {capture_position, apply_position} from "./reading_positions";
 import type {workspace_document_snapshot, workspace_transfer_format, workspace_transfer_target} from "./workspace_document_transfer";
-import { bind_source_lifecycle } from "./workspace_source_lifecycle";
+import { bind_source_lifecycle, type source_lifecycle_view } from "./workspace_source_lifecycle";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { navigate_reading_target, rename_reading_paths } from "./reading_navigation";
 import {register_navigation_editor, notify_navigation_selection} from "./reading_navigation_ports";
@@ -27,8 +27,11 @@ import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
 export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
+/** 独立文档提供者保留资源身份与IO，公共文件层只接管保存/关闭/卸载保护。 */
+export type workspace_document_port = source_lifecycle_view & {busy():boolean; read_text():string};
 export type workspace_file_host = {
   fs: any; path_api: any; core: graph_core;
+  register_document(port:workspace_document_port):()=>void;
   open_file(file_path: string, location?: file_location, group?: string): Promise<void>;
   context_root(): string;
   file_menu(event: MouseEvent, file_path: string): void;
@@ -84,6 +87,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
   const views = new Set<source_file_view>();
+  const document_ports = new Set<workspace_document_port>();
+  const document_port=(leaf:graph_leaf|null)=>[...document_ports].find(port=>port.leaf===leaf&&!port.disposed);
   let next_navigation_id = -1;
   const renamed_markdown_leaves = new Set<graph_leaf>();
   let refreshing_renamed_editors = false;
@@ -132,7 +137,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const keep_edited_native=(event:Event)=>{if(event.target instanceof Element&&event.target.closest("#write"))keep_open();};
   document.addEventListener("dblclick",keep_clicked_tab,true);document.addEventListener("input",keep_edited_native,true);
   let renaming = false, file_operation_count = 0;
-  const source_lifecycle = bind_source_lifecycle(core, () => views);
+  const source_lifecycle = bind_source_lifecycle(core, () => [...views,...document_ports]);
   const editor_status = bind_workspace_editor_status(core);
   const real_path = (leaf: graph_leaf | null): string => {
     if (!leaf) return "";
@@ -526,7 +531,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     editor.focus();const action=editor.getAction(command);if(action)void action.run();else editor.trigger("workspace-menu",command,null);
   };
   const source_editor_active=()=>Boolean(active_source_view()?.editor);
-  const can_save_active = () => Boolean(active_source_view()) || native_document_active();
+  const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view()) || native_document_active();
   const pending_native_saves=new Set<()=>void>();
   let native_open_pending=false;
   const release_save_active=core.app.workspace.on("active-leaf:change",()=>{
@@ -535,6 +540,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   });
   const release_save_open=core.app.workspace.on("file:open",(opened:string)=>{if(typeof opened==="string"&&file_key(opened)===file_key(core.app.workspace.activeLeaf?.state.path||"")&&file_key(opened)===file_key(runtime.File?.bundle?.filePath||""))native_open_pending=false;});
   const save_leaf=async(leaf:graph_leaf):Promise<boolean>=>{
+    const port=document_port(leaf);if(port)return port.save();
     const source=[...views].find(view=>view.leaf===leaf&&!view.disposed);if(source)return source.save();
     if(leaf.state.path.startsWith("typ://")||!binding.active)return false;
     const target=file_key(leaf.state.path),workspace=core.app.workspace;
@@ -588,6 +594,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const save_all = async () => {
     const owners = new Set<object>();
     const source_saves = [...views].filter(view => {if(view.disposed||!view.dirty()||owners.has(view.shared))return false;owners.add(view.shared);return true;}).map(view => view.save());
+    source_saves.push(...[...document_ports].filter(port=>!port.disposed&&port.dirty()).map(port=>port.save()));
     const [, source_results] = await Promise.all([
       Promise.resolve().then(() => runtime.ClientCommand?.saveAll?.()),
       Promise.all(source_saves),
@@ -595,6 +602,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     return source_results.every(Boolean);
   };
   const editor_state=(leaf:graph_leaf)=>{
+    const port=document_port(leaf);if(port)return {file_path:"",kind:"other" as const,dirty:port.dirty(),busy:port.busy()};
     const source=[...views].find(view=>view.leaf===leaf&&!view.disposed),file_path=real_path(leaf);
     const markdown=!source&&(is_markdown_file(file_path)||leaf.state.path==="");
     const native_same=markdown&&file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path);
@@ -987,6 +995,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
   let binding: workspace_files_binding;
   const assert_can_dispose = () => {
+    if([...document_ports].some(port=>!port.disposed&&(port.busy()||port.dirty())))throw new Error("远程文档正在操作或有未保存修改，请先保存或关闭后再停用。");
     if(file_operation_count||file_clipboard.is_busy())throw new Error("文件操作正在执行，请完成后再停用 Typora Code。");
     if (renaming || [...views].some(view => view.saving)) throw new Error("文件正在保存或重命名，请完成后再停用 Typora Code。");
     if ([...views].some(view => !view.disposed && view.dirty())) throw new Error("源码标签有未保存修改，请先保存，或关闭标签并处理修改，再停用 Typora Code。");
@@ -1053,9 +1062,11 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     });
   });
   const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+    register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{
       if(!binding.active)throw new Error("Typora Code 已停用。");
+      const port=[...document_ports].find(port=>!port.disposed&&port.file_path===file_path);if(port)return port.read_text();
       const source=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path)&&view.editor?.models[0]);
       if(source)return source.editor!.models[0].getValue();
       if(file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path))return native_transfer_text();

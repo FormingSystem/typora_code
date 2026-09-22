@@ -158566,7 +158566,8 @@ https://creativecommons.org/licenses/by/4.0/
     whitespace: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M7 2H11.5C11.776 2 12 2.224 12 2.5C12 2.776 11.776 3 11.5 3H11V13.5C11 13.776 10.776 14 10.5 14C10.224 14 10 13.776 10 13.5V3H9V13.5C9 13.776 8.776 14 8.5 14C8.224 14 8 13.776 8 13.5V9H7C5.067 9 3.5 7.433 3.5 5.5C3.5 3.567 5.067 2 7 2ZM7 8H8V3H7C5.619 3 4.5 4.119 4.5 5.5C4.5 6.881 5.619 8 7 8Z"/></svg>',
     filter: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>',
     "debug-disconnect": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15.3542 0.646006C15.1592 0.451006 14.8422 0.451006 14.6472 0.646006L12.5772 2.71601C11.2072 1.71701 9.20723 1.87301 7.93723 3.14401L7.80623 3.27501C7.31923 3.76201 7.31923 4.55501 7.80623 5.04301L10.9882 8.22501C11.2312 8.46901 11.5512 8.59101 11.8722 8.59101C12.1932 8.59101 12.5132 8.46901 12.7562 8.22501L12.9762 8.00501C13.6522 7.33001 14.0162 6.43101 14.0012 5.47601C13.9892 4.72001 13.7412 4.00601 13.2912 3.41701L15.3542 1.35401C15.5492 1.15901 15.5492 0.841006 15.3542 0.646006ZM12.2682 7.29701L12.0482 7.51701C11.9502 7.61501 11.7922 7.61501 11.6942 7.51701L8.51223 4.33501C8.41423 4.23701 8.41423 4.07901 8.51223 3.98101L8.64323 3.85001C9.16723 3.32601 9.86023 3.06001 10.5402 3.06001C11.1502 3.06001 11.7512 3.27401 12.2112 3.70801C12.7092 4.17601 12.9882 4.80901 12.9992 5.49101C13.0092 6.17301 12.7502 6.81501 12.2682 7.29701ZM8.14623 9.14601L7.26623 10.026L5.97323 8.73301L6.85323 7.85301C7.04823 7.65801 7.04823 7.34101 6.85323 7.14601C6.65823 6.95101 6.34123 6.95101 6.14623 7.14601L5.26623 8.02601L5.01323 7.77301C4.52723 7.28701 3.73223 7.28701 3.24523 7.77401L3.02523 7.99401C2.34923 8.66901 1.98523 9.56801 2.00023 10.523C2.01223 11.279 2.26023 11.993 2.71023 12.582L0.647227 14.645C0.452227 14.84 0.452227 15.157 0.647227 15.352C0.745227 15.45 0.873227 15.498 1.00123 15.498C1.12923 15.498 1.25723 15.449 1.35523 15.352L3.42523 13.282C4.02223 13.717 4.73723 13.934 5.46123 13.934C6.39923 13.934 7.34923 13.571 8.06523 12.854L8.19623 12.723C8.68323 12.236 8.68323 11.443 8.19623 10.955L7.97423 10.733L8.85423 9.85301C9.04923 9.65801 9.04923 9.34101 8.85423 9.14601C8.65923 8.95101 8.34223 8.95101 8.14723 9.14601H8.14623ZM7.48923 12.018L7.35723 12.149C6.36323 13.144 4.76123 13.208 3.78923 12.291C3.29123 11.823 3.01223 11.19 3.00123 10.508C2.99123 9.82601 3.25123 9.18401 3.73323 8.70201L3.95323 8.48201C4.00223 8.43301 4.06523 8.40901 4.13023 8.40901C4.19523 8.40901 4.25823 8.43301 4.30723 8.48201C5.37118 9.54596 6.42725 10.602 7.48723 11.662C7.58523 11.76 7.58523 11.918 7.48723 12.016L7.48923 12.018Z"/></svg>',
-    extensions: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 4.95703C15 4.58711 14.8563 4.24054 14.5949 3.97992L12.0096 1.39234C11.4879 0.86922 10.5788 0.86922 10.0571 1.39234L8 3.45119V3.32321C8 2.55068 7.37187 1.922 6.6 1.922H2.4C1.62813 1.922 1 2.55068 1 3.32321V13.5988C1 14.3713 1.62813 15 2.4 15H12.6667C13.4385 15 14.0667 14.3713 14.0667 13.5988V9.39514C14.0667 8.62261 13.4385 7.99393 12.6667 7.99393H12.5379L14.5949 5.93508C14.8553 5.67445 15 5.32602 15 4.95703ZM2.4 2.85521H6.6C6.85667 2.85521 7.06667 3.06446 7.06667 3.32228V7.99299H1.93333V3.32228C1.93333 3.06446 2.14333 2.85521 2.4 2.85521ZM1.93333 13.5979V8.92714H7.06667V14.0649H2.4C2.14333 14.0649 1.93333 13.8547 1.93333 13.5979ZM13.1333 9.39421V13.5979C13.1333 13.8547 12.9233 14.0649 12.6667 14.0649H8V8.92714H12.6667C12.9233 8.92714 13.1333 9.13638 13.1333 9.39421ZM8 7.99299V6.46287L9.5288 7.99299H8ZM13.9351 5.2737L11.3488 7.86221C11.1789 8.03223 10.8859 8.03223 10.716 7.86221L8.12973 5.2737C8.0448 5.18963 7.99813 5.07753 7.99813 4.95796C7.99813 4.83839 8.0448 4.7263 8.12973 4.64129L10.716 2.05278C10.8009 1.96777 10.9129 1.92106 11.0324 1.92106C11.1519 1.92106 11.2639 1.96777 11.3488 2.05278L13.9351 4.64129C14.02 4.72536 14.0667 4.83746 14.0667 4.95703C14.0667 5.0766 14.02 5.1887 13.9351 5.2737Z"/></svg>'
+    extensions: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 4.95703C15 4.58711 14.8563 4.24054 14.5949 3.97992L12.0096 1.39234C11.4879 0.86922 10.5788 0.86922 10.0571 1.39234L8 3.45119V3.32321C8 2.55068 7.37187 1.922 6.6 1.922H2.4C1.62813 1.922 1 2.55068 1 3.32321V13.5988C1 14.3713 1.62813 15 2.4 15H12.6667C13.4385 15 14.0667 14.3713 14.0667 13.5988V9.39514C14.0667 8.62261 13.4385 7.99393 12.6667 7.99393H12.5379L14.5949 5.93508C14.8553 5.67445 15 5.32602 15 4.95703ZM2.4 2.85521H6.6C6.85667 2.85521 7.06667 3.06446 7.06667 3.32228V7.99299H1.93333V3.32228C1.93333 3.06446 2.14333 2.85521 2.4 2.85521ZM1.93333 13.5979V8.92714H7.06667V14.0649H2.4C2.14333 14.0649 1.93333 13.8547 1.93333 13.5979ZM13.1333 9.39421V13.5979C13.1333 13.8547 12.9233 14.0649 12.6667 14.0649H8V8.92714H12.6667C12.9233 8.92714 13.1333 9.13638 13.1333 9.39421ZM8 7.99299V6.46287L9.5288 7.99299H8ZM13.9351 5.2737L11.3488 7.86221C11.1789 8.03223 10.8859 8.03223 10.716 7.86221L8.12973 5.2737C8.0448 5.18963 7.99813 5.07753 7.99813 4.95796C7.99813 4.83839 8.0448 4.7263 8.12973 4.64129L10.716 2.05278C10.8009 1.96777 10.9129 1.92106 11.0324 1.92106C11.1519 1.92106 11.2639 1.96777 11.3488 2.05278L13.9351 4.64129C14.02 4.72536 14.0667 4.83746 14.0667 4.95703C14.0667 5.0766 14.02 5.1887 13.9351 5.2737Z"/></svg>',
+    "remote-explorer": '<svg width="24" height="25" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.32 20.0677C9.469 20.5907 9.667 21.0917 9.911 21.5677H3.759C3.345 21.5677 3.009 21.2317 3.009 20.8177C3.009 20.4037 3.345 20.0677 3.759 20.0677H6.008V18.5517H3C1.343 18.5517 0 17.2087 0 15.5517V5.06775C0 3.41075 1.343 2.06775 3 2.06775H16.5C18.157 2.06775 19.5 3.41075 19.5 5.06775V9.88775C19.016 9.74975 18.516 9.65275 18 9.60575V5.06775C18 4.23975 17.328 3.56775 16.5 3.56775H3C2.172 3.56775 1.5 4.23975 1.5 5.06775V15.5517C1.5 16.3797 2.172 17.0517 3 17.0517H9.039C9.016 17.3047 9 17.5587 9 17.8177C9 18.0657 9.016 18.3097 9.037 18.5517H7.507V20.0677H9.32ZM24 17.8177C24 21.5457 20.978 24.5677 17.25 24.5677C13.522 24.5677 10.5 21.5457 10.5 17.8177C10.5 14.0897 13.522 11.0677 17.25 11.0677C20.978 11.0677 24 14.0897 24 17.8177ZM17.251 19.3177C17.251 19.2187 17.231 19.1217 17.194 19.0307C17.156 18.9397 17.101 18.8567 17.031 18.7867L14.781 16.5367C14.64 16.3957 14.449 16.3167 14.25 16.3167C14.051 16.3167 13.86 16.3957 13.719 16.5367C13.578 16.6777 13.499 16.8687 13.499 17.0677C13.499 17.2667 13.578 17.4577 13.719 17.5987L15.44 19.3177L13.719 21.0367C13.578 21.1777 13.499 21.3687 13.499 21.5677C13.499 21.7667 13.578 21.9577 13.719 22.0987C13.86 22.2397 14.051 22.3187 14.25 22.3187C14.449 22.3187 14.64 22.2397 14.781 22.0987L17.031 19.8487C17.101 19.7787 17.156 19.6967 17.194 19.6057C17.232 19.5147 17.251 19.4167 17.251 19.3177ZM19.06 16.3177L20.78 14.5987C20.921 14.4577 21 14.2667 21 14.0677C21 13.8687 20.921 13.6777 20.78 13.5367C20.639 13.3957 20.448 13.3167 20.249 13.3167C20.05 13.3167 19.859 13.3957 19.718 13.5367L17.468 15.7867C17.398 15.8567 17.343 15.9387 17.305 16.0307C17.267 16.1217 17.248 16.2197 17.248 16.3177C17.248 16.4157 17.268 16.5137 17.305 16.6057C17.343 16.6967 17.398 16.7797 17.468 16.8487L19.718 19.0987C19.859 19.2397 20.05 19.3187 20.249 19.3187C20.448 19.3187 20.639 19.2397 20.78 19.0987C20.921 18.9577 21 18.7667 21 18.5677C21 18.3687 20.921 18.1777 20.78 18.0367L19.06 16.3177Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -181030,7 +181031,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (window_dialog?.root.isConnected) return true;
       const dialog2 = window_dialog = workspace_dialog("\u4FDD\u5B58\u6587\u4EF6\u4FEE\u6539");
       dialog2.root.setAttribute("data-workspace-save-close", "true");
-      dialog2.content.append(workspace_element("p", "", "".concat(dirty.length, " \u4E2A\u6E90\u7801\u6587\u4EF6\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
+      dialog2.content.append(workspace_element("p", "", "".concat(dirty.length, " \u4E2A\u6587\u6863\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\u3002")));
       let saving = false;
       const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
         dialog2.close();
@@ -182166,6 +182167,8 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_files", workspace_files_default, {});
     const group_locations = /* @__PURE__ */ new Map();
     const views = /* @__PURE__ */ new Set();
+    const document_ports = /* @__PURE__ */ new Set();
+    const document_port = (leaf) => [...document_ports].find((port) => port.leaf === leaf && !port.disposed);
     let next_navigation_id = -1;
     const renamed_markdown_leaves = /* @__PURE__ */ new Set();
     let refreshing_renamed_editors = false;
@@ -182258,7 +182261,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.addEventListener("dblclick", keep_clicked_tab, true);
     document.addEventListener("input", keep_edited_native, true);
     let renaming = false, file_operation_count = 0;
-    const source_lifecycle = bind_source_lifecycle(core, () => views);
+    const source_lifecycle = bind_source_lifecycle(core, () => [...views, ...document_ports]);
     const editor_status = bind_workspace_editor_status(core);
     const real_path = (leaf) => {
       if (!leaf) return "";
@@ -182997,7 +183000,7 @@ https://creativecommons.org/licenses/by/4.0/
       else editor2.trigger("workspace-menu", command, null);
     };
     const source_editor_active = () => Boolean(active_source_view()?.editor);
-    const can_save_active = () => Boolean(active_source_view()) || native_document_active2();
+    const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view()) || native_document_active2();
     const pending_native_saves = /* @__PURE__ */ new Set();
     let native_open_pending = false;
     const release_save_active = core.app.workspace.on("active-leaf:change", () => {
@@ -183007,6 +183010,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (typeof opened === "string" && file_key(opened) === file_key(core.app.workspace.activeLeaf?.state.path || "") && file_key(opened) === file_key(runtime2.File?.bundle?.filePath || "")) native_open_pending = false;
     });
     const save_leaf = async (leaf) => {
+      const port = document_port(leaf);
+      if (port) return port.save();
       const source = [...views].find((view) => view.leaf === leaf && !view.disposed);
       if (source) return source.save();
       if (leaf.state.path.startsWith("typ://") || !binding.active) return false;
@@ -183092,6 +183097,7 @@ https://creativecommons.org/licenses/by/4.0/
         owners.add(view.shared);
         return true;
       }).map((view) => view.save());
+      source_saves.push(...[...document_ports].filter((port) => !port.disposed && port.dirty()).map((port) => port.save()));
       const [, source_results] = await Promise.all([
         Promise.resolve().then(() => runtime2.ClientCommand?.saveAll?.()),
         Promise.all(source_saves)
@@ -183099,6 +183105,8 @@ https://creativecommons.org/licenses/by/4.0/
       return source_results.every(Boolean);
     };
     const editor_state = (leaf) => {
+      const port = document_port(leaf);
+      if (port) return { file_path: "", kind: "other", dirty: port.dirty(), busy: port.busy() };
       const source = [...views].find((view) => view.leaf === leaf && !view.disposed), file_path = real_path(leaf);
       const markdown = !source && (is_markdown_file(file_path) || leaf.state.path === "");
       const native_same = markdown && file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
@@ -183725,6 +183733,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.documentElement.setAttribute("data-linux-note-source-editing", "ready");
     let binding;
     const assert_can_dispose = () => {
+      if ([...document_ports].some((port) => !port.disposed && (port.busy() || port.dirty()))) throw new Error("\u8FDC\u7A0B\u6587\u6863\u6B63\u5728\u64CD\u4F5C\u6216\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u540E\u518D\u505C\u7528\u3002");
       if (file_operation_count || file_clipboard.is_busy()) throw new Error("\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u505C\u7528 Typora Code\u3002");
       if (renaming || [...views].some((view) => view.saving)) throw new Error("\u6587\u4EF6\u6B63\u5728\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u505C\u7528 Typora Code\u3002");
       if ([...views].some((view) => !view.disposed && view.dirty())) throw new Error("\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\uFF0C\u6216\u5173\u95ED\u6807\u7B7E\u5E76\u5904\u7406\u4FEE\u6539\uFF0C\u518D\u505C\u7528 Typora Code\u3002");
@@ -183839,12 +183848,21 @@ https://creativecommons.org/licenses/by/4.0/
       capture_transfer,
       receive_transfer,
       release_transfer,
+      register_document: (port) => {
+        document_ports.add(port);
+        source_lifecycle.guard(port);
+        return () => {
+          document_ports.delete(port);
+        };
+      },
       has_editor_errors: (leaf) => {
         const model = [...views].find((view) => view.leaf === leaf && !view.disposed)?.editor?.models[0];
         return Boolean(model && editor.getModelMarkers({ resource: model.uri }).some((marker) => marker.severity === MarkerSeverity3.Error));
       },
       read_text: async (file_path) => {
         if (!binding.active) throw new Error("Typora Code \u5DF2\u505C\u7528\u3002");
+        const port = [...document_ports].find((port2) => !port2.disposed && port2.file_path === file_path);
+        if (port) return port.read_text();
         const source = [...views].find((view) => !view.disposed && file_key(view.file_path) === file_key(file_path) && view.editor?.models[0]);
         if (source) return source.editor.models[0].getValue();
         if (file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path)) return native_transfer_text();
@@ -234699,7 +234717,7 @@ https://creativecommons.org/licenses/by/4.0/
   var SCALE_KEY = "linux-note:lookup:preview-scale:v1";
   var clamp_scale = (value) => Number.isFinite(value) ? Math.min(150, Math.max(50, Math.round(value))) : 80;
   var markdown_source = (text3) => text3.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
-  function create_lookup_preview(files) {
+  function create_lookup_preview(files, read_content) {
     const container = workspace_element("section", "workspace-lookup-preview");
     const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
     const body = workspace_element("div", "workspace-lookup-preview-body");
@@ -234887,12 +234905,16 @@ https://creativecommons.org/licenses/by/4.0/
       selected_block = void 0;
       body.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", "\u6B63\u5728\u8BFB\u53D6\u9884\u89C8\u2026"));
       try {
-        const stat = await files.fs.promises.stat(file.file_path);
-        if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("\u9884\u89C8\u652F\u6301 2 MiB \u4EE5\u5185\u7684\u6587\u672C\u6587\u4EF6\uFF1B\u53CC\u51FB\u7ED3\u679C\u53EF\u6253\u5F00\u5B8C\u6574\u6587\u4EF6\u3002");
-        const bytes = await files.fs.promises.readFile(file.file_path);
-        if (disposed || request !== generation) return;
-        if (detect_binary_bytes(bytes)) throw new Error("\u8BE5\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u9884\u89C8\u6587\u672C\u3002");
-        const text3 = live && files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+        let text3;
+        if (read_content) text3 = await read_content(file.file_path);
+        else {
+          const stat = await files.fs.promises.stat(file.file_path);
+          if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("\u9884\u89C8\u652F\u6301 2 MiB \u4EE5\u5185\u7684\u6587\u672C\u6587\u4EF6\uFF1B\u53CC\u51FB\u7ED3\u679C\u53EF\u6253\u5F00\u5B8C\u6574\u6587\u4EF6\u3002");
+          const bytes = await files.fs.promises.readFile(file.file_path);
+          if (disposed || request !== generation) return;
+          if (detect_binary_bytes(bytes)) throw new Error("\u8BE5\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u9884\u89C8\u6587\u672C\u3002");
+          text3 = live && files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+        }
         if (disposed || request !== generation) return;
         if (text3.length > 2 * 1024 * 1024) throw new Error("\u6B63\u6587\u8D85\u8FC72 MiB\u9884\u89C8\u4E0A\u9650\u3002");
         if (hash2 && is_markdown_file(file.file_path)) {
@@ -240600,6 +240622,490 @@ https://creativecommons.org/licenses/by/4.0/
     return { dispose: () => lifetime.dispose() };
   }
 
+  // src/workspace_remote_ssh.css
+  var workspace_remote_ssh_default = "";
+
+  // src/workspace_remote_ssh.ts
+  var VIEW_ID = "typora_code.remote_file";
+  function bind_workspace_remote_ssh(core, files, runtime2 = window) {
+    const path_api = runtime2.reqnode("path"), buffer_api = runtime2.reqnode("buffer").Buffer;
+    const asset_root = path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote");
+    const api2 = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_service.cjs"));
+    const node_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
+    const style = acquire_workspace_style("typora-code-style:workspace_remote_ssh", workspace_remote_ssh_default);
+    const views = /* @__PURE__ */ new Set();
+    let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false;
+    let auth_dialog;
+    const notice = (error) => {
+      if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 7e3);
+    };
+    const authenticate = (prompt, stale2) => new Promise((resolve3) => {
+      if (disposed || stale2()) {
+        resolve3(void 0);
+        return;
+      }
+      let answer;
+      const confirm2 = /yes\/no|fingerprint|authenticity/iu.test(prompt);
+      const dialog2 = workspace_dialog(confirm2 ? "\u786E\u8BA4SSH\u4E3B\u673A\u8EAB\u4EFD" : "SSH\u8EAB\u4EFD\u9A8C\u8BC1", "\u53D6\u6D88", () => {
+        input2.value = "";
+        if (auth_dialog === dialog2) auth_dialog = void 0;
+        resolve3(answer);
+      });
+      auth_dialog = dialog2;
+      const input2 = workspace_element("input");
+      input2.type = "password";
+      input2.autocomplete = "off";
+      input2.setAttribute("aria-label", "SSH\u8BA4\u8BC1\u4FE1\u606F");
+      dialog2.content.append(workspace_element("p", "workspace-ssh-auth-prompt", prompt));
+      if (confirm2) dialog2.content.append(workspace_element("p", "", "\u8BF7\u6838\u5BF9\u8FDC\u7A0B\u7535\u8111\u63D0\u4F9B\u7684\u4E3B\u673A\u6307\u7EB9\uFF0C\u786E\u8BA4\u540E\u7531OpenSSH\u8BB0\u5F55\u4FE1\u4EFB\u3002"));
+      else dialog2.content.append(input2);
+      const accept = () => {
+        if (stale2() || disposed) {
+          dialog2.close();
+          return;
+        }
+        answer = confirm2 ? "yes" : input2.value;
+        dialog2.close();
+      };
+      dialog2.footer.prepend(workspace_button(confirm2 ? "\u4FE1\u4EFB\u5E76\u8FDE\u63A5" : "\u8FDE\u63A5", accept));
+      input2.onkeydown = (event) => {
+        if (event.key === "Enter" && !event.isComposing) {
+          event.preventDefault();
+          accept();
+        }
+      };
+      if (!confirm2) input2.focus();
+    });
+    const service = api2.create_remote_ssh({ asset_root, node_path, authenticate, on_state: (value) => {
+      if (disposed) return;
+      status2.textContent = value.detail || "\u672A\u8FDE\u63A5SSH";
+      panel.containerEl.dataset.connection = value.state;
+      panel.containerEl.setAttribute("aria-busy", String(value.state === "connecting"));
+      if (value.state === "disconnected") {
+        auth_dialog?.close();
+        ++browse_epoch;
+        list3.replaceChildren();
+        for (const view of views) view.update_status();
+      }
+      connect_button.disabled = value.state === "connecting";
+      disconnect_button.disabled = value.state === "disconnected";
+      for (const control of [up_button, refresh_button, new_file, new_folder]) control.disabled = value.state !== "connected";
+    } });
+    const connected = () => service.state() === "connected";
+    const require_connection = (owner = target) => {
+      if (!connected() || target !== owner) throw Error("\u6B64\u6587\u6863\u6240\u5C5ESSH\u4E3B\u673A\u672A\u8FDE\u63A5\uFF1B\u8349\u7A3F\u4FDD\u7559\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u4FDD\u5B58\u3002");
+    };
+    const prompt_name = (title) => new Promise((resolve3) => {
+      let result;
+      const dialog2 = workspace_dialog(title, "\u53D6\u6D88", () => resolve3(result));
+      const input2 = workspace_element("input");
+      input2.setAttribute("aria-label", title);
+      dialog2.content.append(input2);
+      const accept = () => {
+        if (!input2.value || input2.value === "." || input2.value === ".." || /[\/\0]/u.test(input2.value)) {
+          input2.setCustomValidity("\u8BF7\u8F93\u5165\u5355\u4E2A\u6709\u6548\u540D\u79F0\uFF0C\u4E0D\u542B\u659C\u7EBF");
+          input2.reportValidity();
+          return;
+        }
+        result = input2.value;
+        dialog2.close();
+      };
+      dialog2.footer.prepend(workspace_button("\u786E\u5B9A", accept));
+      input2.oninput = () => input2.setCustomValidity("");
+      input2.onkeydown = (event) => {
+        if (event.key === "Enter" && !event.isComposing) {
+          event.preventDefault();
+          accept();
+        }
+      };
+      input2.focus();
+    });
+    const browse = async (next) => {
+      require_connection();
+      const epoch2 = ++browse_epoch;
+      status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0B\u76EE\u5F55\u2026";
+      list3.setAttribute("aria-busy", "true");
+      try {
+        const result = await service.request("list", { path: next });
+        if (disposed || epoch2 !== browse_epoch) return;
+        folder = result.path;
+        location.textContent = folder;
+        location.title = folder;
+        list3.replaceChildren();
+        let shown = 0;
+        const more = workspace_button("\u663E\u793A\u66F4\u591A", () => append_batch());
+        const append_batch = () => {
+          more.remove();
+          const end = Math.min(shown + 200, result.entries.length);
+          for (; shown < end; shown++) {
+            const entry = result.entries[shown], entry_path = path_api.posix.join(folder, entry.name);
+            const row = workspace_button("", () => void (entry.directory ? browse(entry_path) : open_file(entry_path)).catch(notice), "workspace-ssh-row");
+            row.title = entry_path + (entry.link ? "\uFF08\u7B26\u53F7\u94FE\u63A5\uFF09" : "");
+            row.append(entry.directory ? git_icon("chevron-right") : workspace_file_icon(entry.name), workspace_element("span", "", entry.name));
+            list3.append(row);
+          }
+          if (shown < result.entries.length) list3.append(more);
+        };
+        append_batch();
+        if (!result.entries.length) list3.append(workspace_element("p", "", "\u6B64\u76EE\u5F55\u4E3A\u7A7A\u3002"));
+        status2.textContent = "SSH: ".concat(target, " \xB7 ").concat(result.entries.length, " \u9879");
+      } catch (error) {
+        if (epoch2 === browse_epoch && !disposed) {
+          status2.textContent = String(error.message);
+          throw error;
+        }
+      } finally {
+        if (epoch2 === browse_epoch) list3.removeAttribute("aria-busy");
+      }
+    };
+    const create4 = async (directory) => {
+      if (mutating) return;
+      require_connection();
+      const owner = target, parent = folder;
+      const name = await prompt_name(directory ? "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6");
+      if (!name || disposed) return;
+      require_connection(owner);
+      if (folder !== parent) throw Error("\u76EE\u5F55\u5DF2\u5207\u6362\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+      mutating = true;
+      status2.textContent = "\u6B63\u5728\u521B\u5EFA\u2026";
+      try {
+        const path = path_api.posix.join(parent, name);
+        await service.request(directory ? "mkdir" : "create", { path, data: "" });
+        await browse(parent);
+        if (!directory) await open_file(path);
+      } finally {
+        mutating = false;
+      }
+    };
+    class remote_file_view extends core.WorkspaceView {
+      containerEl = workspace_element("section", "workspace-ssh-document");
+      icon = "fa-file-code-o";
+      disposed = false;
+      loading = false;
+      saving = false;
+      loaded = false;
+      editor;
+      reader;
+      version;
+      saved_text = "";
+      bom = false;
+      remote_path;
+      owner;
+      file_path;
+      release_port = () => {
+      };
+      release_document = () => {
+      };
+      toolbar = workspace_element("div", "workspace-ssh-toolbar");
+      message = workspace_element("span", "workspace-ssh-document-status");
+      body = workspace_element("div", "workspace-ssh-body");
+      constructor(leaf) {
+        super(leaf);
+        const parts = leaf.state.path.split("/");
+        this.owner = decodeURIComponent(parts[3]);
+        this.remote_path = decodeURIComponent(parts[4]);
+        this.file_path = leaf.state.path;
+        views.add(this);
+        this.toolbar.append(workspace_button("\u4FDD\u5B58", () => void this.save()), workspace_button("\u91CD\u65B0\u8BFB\u53D6", () => void this.reload()), workspace_button("\u5220\u9664\u8FDC\u7A0B\u6587\u4EF6", () => void this.remove()), this.message);
+        if (is_markdown_file(this.remote_path)) this.toolbar.append(workspace_button("\u9605\u8BFB\u9884\u89C8 / \u7F16\u8F91", () => void this.toggle_preview()));
+        this.containerEl.append(this.toolbar, this.body);
+        this.message.setAttribute("role", "status");
+        const interaction2 = acquire_workspace_interaction(this.containerEl);
+        this.release_port = () => interaction2.remove();
+        this.containerEl.addEventListener("keydown", (event) => {
+          if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "s" && !event.isComposing) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            void this.save();
+          }
+        }, true);
+      }
+      setIcon() {
+        this.sync_tab();
+      }
+      sync_tab() {
+        const tab = workspace_leaf_tab(this.leaf);
+        if (!tab) return;
+        const label = tab.querySelector(".typ-file-basename");
+        if (label) label.textContent = path_api.posix.basename(this.remote_path);
+        tab.querySelector(".typ-file-ext")?.remove();
+        tab.title = "SSH: ".concat(this.owner, " ").concat(this.remote_path);
+        const icon = tab.querySelector(".typ-file-icon");
+        if (icon) {
+          icon.className = "typ-file-icon workspace-file-theme-slot";
+          icon.replaceChildren(workspace_file_icon(this.remote_path));
+        }
+        tab.classList.toggle("workspace-file-dirty", this.dirty());
+      }
+      busy() {
+        return this.loading || this.saving;
+      }
+      dirty() {
+        return this.loaded && this.read_text() !== this.saved_text;
+      }
+      read_text() {
+        return this.editor?.models[0].getValue() ?? this.saved_text;
+      }
+      update_status() {
+        this.message.textContent = "SSH: ".concat(this.owner, " \xB7 ").concat(this.saving ? "\u6B63\u5728\u4FDD\u5B58\u2026" : this.loading ? "\u6B63\u5728\u8BFB\u53D6\u2026" : !connected() ? "\u5DF2\u65AD\u5F00\uFF0C\u8349\u7A3F\u4FDD\u7559" : this.dirty() ? "\u672A\u4FDD\u5B58" : "\u5DF2\u4FDD\u5B58");
+        this.sync_tab();
+      }
+      async onOpen() {
+        this.release_document();
+        this.release_document = files.register_document(this);
+        this.sync_tab();
+        if (!this.loaded && !this.loading) await this.load();
+        else this.editor?.focused_editor().layout();
+      }
+      onClose() {
+        queueMicrotask(() => {
+          let present = false;
+          core.app.workspace.eachLeaves((leaf) => {
+            if (leaf === this.leaf) present = true;
+          });
+          if (!present) this.release_source();
+        });
+      }
+      async load() {
+        if (this.busy() || this.disposed) return;
+        this.loading = true;
+        this.editor?.focused_editor().updateOptions({ readOnly: true });
+        this.update_status();
+        try {
+          require_connection(this.owner);
+          const snapshot = await service.request("read", { path: this.remote_path });
+          if (this.disposed) return;
+          const bytes = buffer_api.from(snapshot.data, "base64");
+          if (detect_binary_bytes(bytes)) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u662F\u4E8C\u8FDB\u5236\uFF0C\u5F53\u524D\u7F16\u8F91\u5668\u4EC5\u652F\u6301UTF-8\u6587\u672C\u3002");
+          const text3 = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+          this.bom = bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191;
+          this.reader?.dispose();
+          this.reader = void 0;
+          this.editor?.dispose();
+          this.version = snapshot.version;
+          this.editor = new git_diff_editor({ title: path_api.posix.basename(this.remote_path), file: this.remote_path, left: text3, left_label: "SSH: ".concat(this.owner) });
+          this.editor.focused_editor().updateOptions({ readOnly: false });
+          this.body.replaceChildren(this.editor.container);
+          this.saved_text = this.read_text();
+          this.loaded = true;
+          this.editor.subscriptions.push(this.editor.focused_editor().onDidChangeModelContent(() => this.update_status()));
+          this.update_status();
+        } catch (error) {
+          if (!this.disposed) {
+            this.message.textContent = String(error.message);
+            notice(error);
+          }
+        } finally {
+          this.loading = false;
+          if (!this.disposed) {
+            this.editor?.focused_editor().updateOptions({ readOnly: false });
+            if (this.loaded) this.update_status();
+            this.sync_tab();
+          }
+        }
+      }
+      async save() {
+        if (this.busy() || this.disposed || !this.loaded) return false;
+        if (!this.dirty()) return true;
+        this.saving = true;
+        this.update_status();
+        const text3 = this.read_text();
+        try {
+          require_connection(this.owner);
+          const result = await service.request("write", { path: this.remote_path, version: this.version, data: buffer_api.from((this.bom ? "\uFEFF" : "") + text3, "utf8").toString("base64") });
+          this.version = result.version;
+          this.saved_text = text3;
+          return true;
+        } catch (error) {
+          notice(error);
+          return false;
+        } finally {
+          this.saving = false;
+          if (!this.disposed) this.update_status();
+        }
+      }
+      async reload() {
+        if (this.busy()) return;
+        if (this.dirty()) {
+          notice("\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\uFF1B\u82E5\u9700\u4E22\u5F03\uFF0C\u8BF7\u5173\u95ED\u6807\u7B7E\u5E76\u9009\u62E9\u4E0D\u4FDD\u5B58\uFF0C\u518D\u91CD\u65B0\u6253\u5F00\u3002");
+          return;
+        }
+        await this.load();
+      }
+      async toggle_preview() {
+        if (!this.loaded || this.disposed) return;
+        if (this.reader) {
+          this.reader.dispose();
+          this.reader = void 0;
+          this.body.replaceChildren(this.editor.container);
+          this.editor.focused_editor().layout();
+          return;
+        }
+        this.reader = create_lookup_preview(files, async () => this.read_text());
+        this.body.replaceChildren(this.reader.container);
+        await this.reader.show({ file_path: this.remote_path, relative_path: this.remote_path, matches: [] }, { start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "" });
+      }
+      async remove() {
+        if (this.busy()) return;
+        if (this.dirty()) {
+          notice("\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u672A\u4FDD\u5B58\u7684\u8FDC\u7A0B\u6587\u6863\uFF0C\u518D\u5220\u9664\u3002");
+          return;
+        }
+        const dialog2 = workspace_dialog("\u5220\u9664\u8FDC\u7A0B\u6587\u4EF6", "\u53D6\u6D88");
+        dialog2.content.append(workspace_element("p", "", "\u6C38\u4E45\u5220\u9664 ".concat(this.remote_path, "\uFF1FSSH\u8FDC\u7AEF\u4E0D\u4F7F\u7528\u672C\u673A\u56DE\u6536\u7AD9\u3002")));
+        const remove = workspace_button("\u5220\u9664", () => {
+          if (this.disposed || this.busy() || this.dirty()) {
+            notice("\u6587\u6863\u72B6\u6001\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5173\u95ED\u6B64\u5BF9\u8BDD\u6846\u5E76\u91CD\u65B0\u68C0\u67E5\u3002");
+            return;
+          }
+          remove.disabled = true;
+          this.saving = true;
+          this.editor?.focused_editor().updateOptions({ readOnly: true });
+          void (async () => {
+            try {
+              require_connection(this.owner);
+              await service.request("remove", { path: this.remote_path, version: this.version });
+              dialog2.close();
+              this.saving = false;
+              await files.close_leaf(this.leaf);
+              await browse(folder);
+            } catch (error) {
+              notice(error);
+            } finally {
+              this.saving = false;
+              remove.disabled = false;
+              if (!this.disposed) this.editor?.focused_editor().updateOptions({ readOnly: false });
+            }
+          })();
+        });
+        dialog2.footer.prepend(remove);
+      }
+      release_source() {
+        if (this.disposed) return;
+        this.disposed = true;
+        this.release_document();
+        this.release_port();
+        this.editor?.dispose();
+        this.reader?.dispose();
+        views.delete(this);
+      }
+    }
+    const unregister_view = core.app.viewManager.registerView(VIEW_ID, (leaf) => new remote_file_view(leaf));
+    const open_file = async (path) => {
+      require_connection();
+      const uri = "typ://".concat(VIEW_ID, "/").concat(encodeURIComponent(target), "/").concat(encodeURIComponent(path), "/").concat(encodeURIComponent(path_api.posix.basename(path)));
+      let existing;
+      core.app.workspace.eachLeaves((leaf2) => {
+        if (leaf2.state.path === uri) existing = leaf2;
+      });
+      if (existing) {
+        core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
+        return;
+      }
+      const group = select_workspace_editor_group(core, uri), leaf = core.app.workspace.createLeaf({ type: VIEW_ID, state: { path: uri } });
+      group.appendChild(leaf);
+      core.app.workspace.activeLeaf = leaf;
+    };
+    const input = workspace_element("input"), status2 = workspace_element("p", "workspace-ssh-status", "\u8F93\u5165SSH\u914D\u7F6E\u522B\u540D\u6216 user@hostname\u3002"), location = workspace_element("div", "workspace-ssh-location"), list3 = workspace_element("div", "workspace-ssh-list");
+    input.placeholder = "user@hostname \u6216 SSH \u914D\u7F6E\u522B\u540D";
+    input.setAttribute("aria-label", "SSH\u4E3B\u673A");
+    input.autocomplete = "off";
+    status2.setAttribute("role", "status");
+    const connect = async () => {
+      if (connecting) return;
+      const next = input.value.trim();
+      api2.validate_target(next);
+      if ([...views].some((view) => view.owner !== next)) throw Error("\u5207\u6362\u4E3B\u673A\u524D\u8BF7\u5148\u5173\u95ED\u5F53\u524D\u8FDC\u7A0B\u6807\u7B7E\u5E76\u5904\u7406\u8349\u7A3F\u3002");
+      connecting = true;
+      target = next;
+      try {
+        const hello = await service.connect(target);
+        if (disposed) return;
+        await browse(hello.home);
+        for (const view of views) if (view.owner === target && !view.loaded) void view.load();
+        try {
+          localStorage.setItem("typora-code:ssh:last-host", target);
+        } catch {
+        }
+      } finally {
+        connecting = false;
+      }
+    };
+    const connect_button = workspace_button("\u8FDE\u63A5", () => void connect().catch(notice));
+    const disconnect_button = workspace_button("\u65AD\u5F00 / \u53D6\u6D88", () => service.disconnect());
+    disconnect_button.disabled = true;
+    const up_button = workspace_button("\u4E0A\u4E00\u7EA7", () => void browse(path_api.posix.dirname(folder)).catch(notice));
+    const refresh_button = workspace_button("\u5237\u65B0", () => void browse(folder).catch(notice));
+    const new_file = workspace_button("\u65B0\u5EFA\u6587\u4EF6", () => void create4(false).catch(notice)), new_folder = workspace_button("\u65B0\u5EFA\u6587\u4EF6\u5939", () => void create4(true).catch(notice));
+    for (const control of [up_button, refresh_button, new_file, new_folder]) control.disabled = true;
+    input.onkeydown = (event) => {
+      if (event.key === "Enter" && !event.isComposing) {
+        event.preventDefault();
+        void connect().catch(notice);
+      }
+    };
+    const hosts = workspace_element("datalist");
+    hosts.id = "workspace-ssh-hosts";
+    input.setAttribute("list", hosts.id);
+    try {
+      input.value = localStorage.getItem("typora-code:ssh:last-host") || "";
+    } catch {
+    }
+    try {
+      const config = files.fs.readFileSync(path_api.join(runtime2.reqnode("os").homedir(), ".ssh", "config"), "utf8");
+      const names = /* @__PURE__ */ new Set();
+      for (const match2 of config.matchAll(/^\s*Host\s+(.+)$/gimu)) for (const name of match2[1].split(/\s+/u)) {
+        if (/[!*?#]/u.test(name)) continue;
+        try {
+          api2.validate_target(name);
+          names.add(name);
+        } catch {
+        }
+      }
+      for (const name of names) {
+        const option = workspace_element("option");
+        option.value = name;
+        hosts.append(option);
+      }
+    } catch {
+    }
+    class remote_sidebar extends core.SidebarPanel {
+      containerEl = workspace_element("div", "workspace-ssh-sidebar");
+      constructor() {
+        super();
+        this.addRibbonButton({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 (SSH)", icon: git_icon("remote-explorer"), group: "top" });
+        const toolbar = workspace_element("div", "workspace-ssh-toolbar");
+        toolbar.append(connect_button, disconnect_button, up_button, refresh_button, new_file, new_folder);
+        this.containerEl.append(workspace_element("div", "workspace-ssh-title", "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 \xB7 SSH"), input, hosts, toolbar, status2, location, list3);
+      }
+      onshow() {
+        document.querySelector("#typora-sidebar")?.classList.remove("active-tab-files", "active-tab-outline", "ty-show-search");
+      }
+    }
+    const panel = new remote_sidebar(), interaction = acquire_workspace_interaction(panel.containerEl), sidebar = core.app.workspace.sidebar;
+    const remove_panel = sidebar.addPanel(panel);
+    const show2 = () => {
+      if (sidebar.activePanel === panel) sidebar.show();
+      else sidebar.switch(remote_sidebar);
+      input.focus();
+    };
+    const unregister = core.app.commands.register({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\uFF1A\u8FDE\u63A5SSH\u4E3B\u673A", scope: "global", callback: show2 });
+    return { show: show2, service, panel, connect, browse, open_file, dispose() {
+      if (disposed) return;
+      files.assert_can_dispose();
+      disposed = true;
+      auth_dialog?.close();
+      service.dispose();
+      ++browse_epoch;
+      for (const view of [...views]) view.release_source();
+      unregister();
+      unregister_view();
+      remove_panel();
+      interaction.remove();
+      style.remove();
+    } };
+  }
+
   // src/workspace_browser.ts
   function bind_workspace_browser() {
     const core = window[Symbol.for("typora-code:workspace")];
@@ -240651,6 +241157,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       lifetime.add(core.app.commands.register({ id: "linux_note:outline", title: "\u89C6\u56FE\uFF1A\u805A\u7126\u5927\u7EB2", scope: "global", callback: reveal_outline }));
       const search2 = lifetime.own(bind_workspace_search(core, files));
+      lifetime.own(bind_workspace_remote_ssh(core, files));
       let known_context = files.context_root();
       const context_changed = (force = false) => {
         if (lifetime.disposed || workspace_context_switching()) return;
@@ -240704,7 +241211,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(install_workspace_sidebar_sash({ sidebar: core.app.workspace.sidebar, save_width: (width2) => window.JSBridge.putSetting("sidebar-width", width2) }));
       const sidebar = core.app.workspace.sidebar;
       const ribbon = document.querySelector(".typ-ribbon");
-      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control", "typora_code:community_plugins"], read_state: () => read_workspace_sidebar_state(sidebar) }));
+      if (ribbon) lifetime.own(install_workspace_activity({ ribbon, item_ids: ["core.search", "core.file-explorer", "core.outline", "linux_note:source_control", "typora_code:community_plugins", "typora_code:remote_ssh"], read_state: () => read_workspace_sidebar_state(sidebar) }));
       const detached = lifetime.own(bind_workspace_detached_window(files));
       const editor_actions = lifetime.own(bind_workspace_editor_actions(files, detached));
       lifetime.own(bind_workspace_file_header(files, editor_actions));
@@ -240726,6 +241233,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092205,
+        version: "2026.09.22.5",
+        date: "2026-09-22",
+        notes: [
+          "\u65B0\u589E\u5DE6\u4FA7SSH\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668\uFF0C\u4F7F\u7528OpenSSH\u914D\u7F6E\u3001\u5BC6\u94A5\u6216\u5BC6\u7801\u8FDE\u63A5Linux\u4E3B\u673A\uFF0C\u6D4F\u89C8\u76EE\u5F55\u5E76\u65B0\u5EFA\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u3002",
+          "\u8FDC\u7A0BUTF-8\u6587\u4EF6\u4F7F\u7528\u6587\u672C\u7F16\u8F91\u5668\u8BFB\u5199\uFF0CMarkdown\u53EF\u5207\u6362\u53EA\u8BFB\u9605\u8BFB\u9884\u89C8\uFF1B\u4FDD\u5B58\u68C0\u67E5\u5916\u90E8\u4FEE\u6539\uFF0C\u65AD\u7EBF\u4FDD\u7559\u8349\u7A3F\uFF0C\u5173\u95ED\u7EDF\u4E00\u63D0\u793A\u4FDD\u5B58\u3002",
+          "\u6B64\u7248\u672C\u4E3A\u8FDC\u7A0B\u6587\u4EF6\u8BFB\u5199\u9996\u671F\uFF0C\u4E0D\u5305\u542BVS Code\u6269\u5C55\u5BBF\u4E3B\u548C\u8FDC\u7A0BGit\u9762\u677F\u3002"
+        ]
+      },
       {
         sequence: 2026092204,
         version: "2026.09.22.4",

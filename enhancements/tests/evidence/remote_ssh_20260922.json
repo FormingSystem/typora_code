@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "date": "2026-09-22",
+  "requirements": [
+    "R070"
+  ],
+  "version": "2026.09.22.5",
+  "baseline": "110709ee096774c86c93b03e135a425552075ead",
+  "implementation": "首期SSH文件读写；远程终端与Git后续独立交付",
+  "build": {
+    "manifest_sha256": "fa012517fee34fd13c0c774f9c2131d5397ce1c9cfca76aa0159f62d5e5fbe40",
+    "workbench_sha256": "672aea08bb520d7673132efda29cc2f1808bc9f55ef3b10161d15032d97e0f23"
+  },
+  "validation": {
+    "build": "PASS",
+    "check": "PASS",
+    "catalog_suites": 177,
+    "ui": [
+      "test_workspace_source_lifecycle.cjs",
+      "test_workspace_switch.cjs",
+      "test_workspace_link_preview.cjs",
+      "test_workspace_explorer_history.cjs",
+      "test_workspace_startup.cjs"
+    ],
+    "unit": {
+      "target_cycles": 1000,
+      "failure_cleanup_cycles": 20
+    },
+    "live": {
+      "write_cycles": 100,
+      "conflict": "PASS"
+    },
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "连接结束进度清理",
+        "真实远程测试目录可见",
+        "读取远程Markdown正文",
+        "远程文件不改变本地工作区身份",
+        "远程身份不伪装为本地绝对路径",
+        "公共文件层识别远程草稿 0",
+        "公共保存入口 0",
+        "真实SSH回读 0",
+        "公共文件层识别远程草稿 1",
+        "公共保存入口 1",
+        "真实SSH回读 1",
+        "公共文件层识别远程草稿 2",
+        "公共保存入口 2",
+        "真实SSH回读 2",
+        "公共文件层识别远程草稿 3",
+        "公共保存入口 3",
+        "真实SSH回读 3",
+        "公共文件层识别远程草稿 4",
+        "公共保存入口 4",
+        "真实SSH回读 4",
+        "公共文件层识别远程草稿 5",
+        "公共保存入口 5",
+        "真实SSH回读 5",
+        "公共文件层识别远程草稿 6",
+        "公共保存入口 6",
+        "真实SSH回读 6",
+        "公共文件层识别远程草稿 7",
+        "公共保存入口 7",
+        "真实SSH回读 7",
+        "公共文件层识别远程草稿 8",
+        "公共保存入口 8",
+        "真实SSH回读 8",
+        "公共文件层识别远程草稿 9",
+        "公共保存入口 9",
+        "真实SSH回读 9",
+        "公共文件层识别远程草稿 10",
+        "公共保存入口 10",
+        "真实SSH回读 10",
+        "公共文件层识别远程草稿 11",
+        "公共保存入口 11",
+        "真实SSH回读 11",
+        "公共文件层识别远程草稿 12",
+        "公共保存入口 12",
+        "真实SSH回读 12",
+        "公共文件层识别远程草稿 13",
+        "公共保存入口 13",
+        "真实SSH回读 13",
+        "公共文件层识别远程草稿 14",
+        "公共保存入口 14",
+        "真实SSH回读 14",
+        "公共文件层识别远程草稿 15",
+        "公共保存入口 15",
+        "真实SSH回读 15",
+        "公共文件层识别远程草稿 16",
+        "公共保存入口 16",
+        "真实SSH回读 16",
+        "公共文件层识别远程草稿 17",
+        "公共保存入口 17",
+        "真实SSH回读 17",
+        "公共文件层识别远程草稿 18",
+        "公共保存入口 18",
+        "真实SSH回读 18",
+        "公共文件层识别远程草稿 19",
+        "公共保存入口 19",
+        "真实SSH回读 19",
+        "远程Markdown阅读预览只读",
+        "远程工具操作完整 Github/1",
+        "远程工具操作完整 Github/1.25",
+        "远程工具操作完整 Night/1",
+        "远程工具操作完整 Night/1.25",
+        "远程冲突拒绝覆盖",
+        "冲突保留草稿",
+        "断线保存明确失败",
+        "断线仍保留草稿",
+        "未确认前保留远程标签",
+        "关闭真正释放远程编辑器",
+        "本地正文保持原字节",
+        "远程断线和关闭不切本地工作区",
+        "密码对话框与输入已清理"
+      ],
+      "samples": [
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "color": "rgb(51, 51, 51)",
+          "toolbar": {
+            "x": 287.8000183105469,
+            "y": 67,
+            "width": 513.6000366210938,
+            "height": 65.5999984741211,
+            "top": 67,
+            "right": 801.4000549316406,
+            "bottom": 132.5999984741211,
+            "left": 287.8000183105469
+          }
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "color": "rgb(51, 51, 51)",
+          "toolbar": {
+            "x": 287.6399841308594,
+            "y": 67,
+            "width": 353.2799987792969,
+            "height": 89.15999603271484,
+            "top": 67,
+            "right": 640.9199829101562,
+            "bottom": 156.15999603271484,
+            "left": 287.6399841308594
+          }
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "color": "rgb(184, 191, 198)",
+          "toolbar": {
+            "x": 287.8000183105469,
+            "y": 67,
+            "width": 513.6000366210938,
+            "height": 65.5999984741211,
+            "top": 67,
+            "right": 801.4000549316406,
+            "bottom": 132.5999984741211,
+            "left": 287.8000183105469
+          }
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "color": "rgb(184, 191, 198)",
+          "toolbar": {
+            "x": 287.6399841308594,
+            "y": 67,
+            "width": 353.2799987792969,
+            "height": 89.15999603271484,
+            "top": 67,
+            "right": 640.9199829101562,
+            "bottom": 156.15999603271484,
+            "left": 287.6399841308594
+          }
+        },
+        {
+          "viewport": {
+            "width": 802,
+            "height": 702,
+            "dpi": 1.25
+          },
+          "asset_sha256": "672aea08bb520d7673132efda29cc2f1808bc9f55ef3b10161d15032d97e0f23"
+        }
+      ],
+      "write_cycles": 20,
+      "limits": "原生renderer点击/Monaco输入；单一Linux虚拟机，未代表全部SSH平台或VS Code扩展宿主"
+    }
+  },
+  "installation": {
+    "isolated_cycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check PASS",
+    "uninstall_assertions": 65,
+    "local": "PASS",
+    "installed_assets": {
+      "workspace": 32,
+      "terminal": 24
+    },
+    "protected_matches": {
+      "asar": true,
+      "window": true,
+      "theme": true,
+      "settings": true,
+      "profile": true
+    },
+    "check": "OK",
+    "uninstall_preflight": "detach",
+    "user_windows_restarted": false
+  },
+  "failed_attempts": [
+    "认证helper使用require异步预加载时Node把提示作为脚本；改为ESM等待认证后退出。",
+    "纳秒时间戳跨JSON丢失整数精度导致冲突误报；版本身份统一字符串。",
+    "原生初测关闭保护在标签挂载前登记；改为onOpen登记，复查通过。",
+    "构建曾遇到Windows映射文件临时占用；保留失败记录，重跑正式构建通过。",
+    "关联启动夹具缺少新增资产；从正式dist复制后回归通过。"
+  ],
+  "limits": [
+    "单一Linux/Python3远端、原生renderer操作；不能替代全平台和物理输入验收。",
+    "保存采用基线检查与原子替换，不保证对任意外部写入的跨进程CAS。",
+    "首期不支持远程自动保存、跨窗移交及会话恢复；退出有未保存保护。",
+    "隔离安装卸载通过，本机仅卸载预检，不关闭用户窗口。"
+  ]
+}

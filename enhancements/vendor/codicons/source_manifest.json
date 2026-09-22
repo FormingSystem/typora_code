@@ -553,6 +553,12 @@
       "source_path": "src/icons/extensions.svg",
       "git_blob_sha1": "1c113b08a6681a0aa3f6a7ef8cb07eb46bc99fc0",
       "sha256": "d69ffbb60b33ff0d9b47ae4560ce487dcd042288f18f5aec401108a795939274"
+    },
+    "remote-explorer": {
+      "file": "icons/remote_explorer.svg",
+      "source_path": "src/icons/remote-explorer.svg",
+      "git_blob_sha1": "4162e4249462c6d44e96ea215d07cbd48d4961a6",
+      "sha256": "9123b866fda5e9c658a81c3440eee2979d0823b76dfb2756e3dd2cce878de142"
     }
   },
   "licenses": [

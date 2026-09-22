@@ -15,7 +15,7 @@ const clamp_scale = (value: number) => Number.isFinite(value) ? Math.min(150, Ma
 const markdown_source = (text: string) => text.replace(/\r\n?/gu,"\n").replace(/^( *)(\t+)/gmu,(_,leading:string,tabs:string)=>leading+"    ".repeat(tabs.length));
 
 /** 侧栏预览独立于中央编辑器，不切换文档、不创建工作区标签，也不改变正文选区。 */
-export function create_lookup_preview(files: workspace_file_host) {
+export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>) {
   const container = el("section", "workspace-lookup-preview");
   const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", preview_css, {});
   const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", "命中内容预览");
@@ -146,11 +146,15 @@ export function create_lookup_preview(files: workspace_file_host) {
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
     editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", "正在读取预览…"));
     try {
+      let text:string;
+      if(read_content)text=await read_content(file.file_path);
+      else {
       const stat = await files.fs.promises.stat(file.file_path);
       if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("预览支持 2 MiB 以内的文本文件；双击结果可打开完整文件。");
       const bytes = await files.fs.promises.readFile(file.file_path); if (disposed || request !== generation) return;
       if (detect_binary_bytes(bytes)) throw new Error("该文件已变为二进制，无法预览文本。");
-      const text = live&&files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+      text = live&&files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
+      }
       if(disposed||request!==generation)return;
       if(text.length>2*1024*1024)throw new Error("正文超过2 MiB预览上限。");
       if(hash&&is_markdown_file(file.file_path)){

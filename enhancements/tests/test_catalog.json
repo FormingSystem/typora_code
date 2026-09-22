@@ -5882,6 +5882,100 @@
       "timeout_ms": 120000,
       "required_executables": [],
       "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "domain": "remote",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_service.cjs",
+        "enhancements/src/remote_ssh_agent.py",
+        "enhancements/src/workspace_remote_ssh.ts"
+      ],
+      "related_modules": [
+        "files",
+        "lifecycle",
+        "sidebar",
+        "preview"
+      ],
+      "environment": "Node / 无网络",
+      "preconditions": "真实远端仅使用用户明确授权目标，凭据通过环境传递；仅创建清理随机临时目录",
+      "steps": [
+        "执行脚本定义的目标、认证、读写、冲突、取消和清理场景"
+      ],
+      "expected": [
+        "全部断言通过且远程与本地无关文件保持"
+      ],
+      "timeout_ms": 180000,
+      "id": "TC-remote-unit",
+      "level": "unit",
+      "script": "enhancements/scripts/test_remote_ssh_service.cjs"
+    },
+    {
+      "domain": "remote",
+      "purpose": "stress",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_service.cjs",
+        "enhancements/src/remote_ssh_agent.py",
+        "enhancements/src/workspace_remote_ssh.ts"
+      ],
+      "related_modules": [
+        "files",
+        "lifecycle",
+        "sidebar",
+        "preview"
+      ],
+      "environment": "Windows OpenSSH / Linux Python3",
+      "preconditions": "真实远端仅使用用户明确授权目标，凭据通过环境传递；仅创建清理随机临时目录",
+      "steps": [
+        "执行脚本定义的目标、认证、读写、冲突、取消和清理场景"
+      ],
+      "expected": [
+        "全部断言通过且远程与本地无关文件保持"
+      ],
+      "timeout_ms": 180000,
+      "id": "TC-remote-live",
+      "level": "system",
+      "script": "enhancements/scripts/test_remote_ssh_live.cjs"
+    },
+    {
+      "domain": "remote",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_service.cjs",
+        "enhancements/src/remote_ssh_agent.py",
+        "enhancements/src/workspace_remote_ssh.ts"
+      ],
+      "related_modules": [
+        "files",
+        "lifecycle",
+        "sidebar",
+        "preview"
+      ],
+      "environment": "Windows OpenSSH / Linux Python3",
+      "preconditions": "真实远端仅使用用户明确授权目标，凭据通过环境传递；仅创建清理随机临时目录",
+      "steps": [
+        "执行脚本定义的目标、认证、读写、冲突、取消和清理场景"
+      ],
+      "expected": [
+        "全部断言通过且远程与本地无关文件保持"
+      ],
+      "timeout_ms": 180000,
+      "id": "TC-remote-native",
+      "level": "system",
+      "script": "enhancements/fixtures/remote_ssh_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

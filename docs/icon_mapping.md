@@ -6,6 +6,7 @@
 
 | 当前槽位 | 官方图标／行为 | 说明 |
 | --- | --- | --- |
+| SSH远程活动栏 | Codicons `remote-explorer`，原始`src/icons/remote-explorer.svg` | 固定上游提交、原始viewBox；文件仍共用Seti，验证明暗/缩放 |
 | Explorer、搜索、快速打开及真实文件标签 | 固定 Seti 文件名／扩展名／语言关联 | 共用 `workspace_file_icon`；16px 槽，主题字体比例150%，当前13px文本对应19.5px字形字体 |
 | Markdown / TypeScript / TXT | `_markdown` U+E060 / `_typescript` U+E099 / `_default` U+E023 | 浅色前两者 `#498ba7`，TXT `#bfc2c1`；深色按主题对应定义 |
 | Explorer 文件夹 | 无 folder glyph，仅 `chevron-right` | Seti 无 folder / rootFolder 定义；保留展开、折叠和对齐 |
