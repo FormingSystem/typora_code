@@ -43,9 +43,18 @@ app.whenReady().then(async () => {
       const command=ps?"1..200 | ForEach-Object { 'HISTORY_LINE_' + $_ }; 'HISTORY_DONE'":cmd?'for /L %i in (1,1,200) do @echo HISTORY_LINE_%i':'for i in {1..200}; do echo HISTORY_LINE_$i; done; echo HISTORY_DONE';
       test_window.webContents.insertText(command);await key('Enter');if(cmd)await key('Enter');await wait('output_text().includes("HISTORY_LINE_200")');await delay(400);
       report.before=await evaluate('({base:view.term.buffer.active.baseY,position:view.term.buffer.active.viewportY,mode:view.term.modes.mouseTrackingMode,length:view.term.buffer.active.length,contains_first:output_text().includes("HISTORY_LINE_1")})');
+      const slider_snapshot=()=>evaluate('(()=>{const slider=view.term.element.querySelector(".scrollbar.vertical .slider"),rect=slider?.getBoundingClientRect();return {width:rect?.width||0,height:rect?.height||0,viewport_height:view.viewport.clientHeight,base:view.term.buffer.active.baseY,position:view.term.buffer.active.viewportY,type:view.term.buffer.active.type,contains_first:output_text().includes("HISTORY_LINE_1")}})()');
+      report.before_history_keys=await slider_snapshot();
       const point=await evaluate('(()=>{const r=view.viewport.getBoundingClientRect();return {x:Math.round(r.x+100),y:Math.round(r.y+80)}})()');
       for(let i=0;i<5;i++){test_window.webContents.sendInputEvent({type:'mouseWheel',...point,deltaY:180,deltaX:0,wheelTicksY:3,wheelTicksX:0,canScroll:true});await delay(70);}
       await delay(250);report.after_wheel=await evaluate('({position:view.term.buffer.active.viewportY,base:view.term.buffer.active.baseY,mode:view.term.modes.mouseTrackingMode})');
+      if(ps){
+        assert(report.before_history_keys.width>0&&report.before_history_keys.height>0&&report.before_history_keys.height<report.before_history_keys.viewport_height,'PowerShell输出后无需上下键就有历史滑块');
+        await evaluate('view.term.scrollToBottom();view.focus();void 0');await key('Up');await key('Down');await delay(200);
+        report.after_history_keys=await slider_snapshot();
+        assert(report.after_history_keys.contains_first,'PowerShell命令历史召回不丢旧输出');
+        assert.equal(report.after_history_keys.width,report.before_history_keys.width,'命令历史召回前后滑块宽度一致');
+      }
       await evaluate('view.term.scrollToTop();void 0');await delay(200);report.after_programmatic=await evaluate('view.term.buffer.active.viewportY');
       await evaluate('view.term.scrollToBottom();events=[];output_chunks=[];view.focus();void 0');
       if(!ps&&!cmd){test_window.webContents.insertText("PS1='$ '; PROMPT_COMMAND=''");await key('Enter');await delay(600);await evaluate('events=[];output_chunks=[];void 0')}const start=Date.now();for(let i=0;i<100;i++){test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Enter',isAutoRepeat:i>0});await delay(33);}test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Enter'});report.release_ms=Date.now()-start;report.released=await evaluate('performance.now()');

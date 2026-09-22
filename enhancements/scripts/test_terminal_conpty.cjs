@@ -44,6 +44,37 @@ app.whenReady().then(async()=>{
   assert(await evaluate('inputs.some(data=>data.startsWith("\\x1b[<64;"))'),'TUI鼠标协议仍交给应用');
   samples.push({windows_build:19045,resize_cycles:20,key_events:200,history_lines:200,wheel:'trusted Chromium ticks',limits:'Win10兼容参数测试，不冒充Win10实机'});
   await evaluate('surface.dispose()');
+  // 首次输出不能依赖预先按键/反复mount；覆盖输出先于挂载及隐藏后重新显示。
+  await evaluate(`{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_scrollbars.css'),'utf8'))};document.head.append(style);document.documentElement.dataset.linuxNoteTyporaEnhancements='ready';document.documentElement.dataset.workspaceScrollbars='auto';}`);
+  const snapshot=()=>evaluate(`(()=>{const buffer=surface.term.buffer.active,slider=surface.term.element.querySelector('.scrollbar.vertical .slider'),rect=slider?.getBoundingClientRect();return {base:buffer.baseY,position:buffer.viewportY,length:buffer.length,type:buffer.type,first:buffer.getLine(0)?.translateToString(true),slider_width:rect?.width||0,slider_height:rect?.height||0,rows:surface.term.rows,viewport_height:surface.viewport.clientHeight,inputs:inputs.length}})()`);
+  for(let cycle=0;cycle<20;cycle++){
+    const mode=['before_mount','after_mount','hidden_output','remount'][cycle%4];
+    await evaluate(`{inputs=[];window.surface=new geometry_api.terminal_surface(geometry_api.terminal_defaults,{input:data=>inputs.push(data),resize(){},copy:async()=>{},active(){},error(error){throw error}},{backend:'conpty',buildNumber:19045});document.querySelector('#host').append(surface.container);}`);
+    if(mode!=='before_mount')await evaluate('surface.mount()');
+    if(mode==='hidden_output'){await evaluate("document.querySelector('#host').style.display='none';void 0");await new Promise(r=>setTimeout(r,50));}
+    await evaluate("new Promise(r=>surface.term.write(Array.from({length:200},(_,i)=>'EARLY_'+i+'\\r\\n').join(''),r))");
+    if(mode==='hidden_output')await new Promise(r=>setTimeout(r,50));
+    await evaluate("document.querySelector('#host').style.display='flex';surface.mount();void 0");
+    if(mode==='remount'){await evaluate('surface.container.remove()');await new Promise(r=>setTimeout(r,50));await evaluate('document.querySelector("#host").append(surface.container);surface.mount();void 0');}
+    await new Promise(r=>setTimeout(r,150));
+    const before=await snapshot();
+    assert.equal(before.inputs,0,'首次输出验证之前不得发送键盘输入');
+    assert(before.base>100&&before.first==='EARLY_0','首次编号输出已进入历史');
+    assert(before.slider_width>0&&before.slider_height>0&&before.slider_height<before.viewport_height,'按上下键前已经生成历史滑块');
+    const startup_point=await evaluate('(()=>{const r=surface.term.element.getBoundingClientRect();return {x:Math.round(r.x+80),y:Math.round(r.y+70)}})()');
+    win.webContents.sendInputEvent({type:'mouseMove',...startup_point});
+    win.webContents.sendInputEvent({type:'mouseWheel',...startup_point,deltaY:180,deltaX:0,wheelTicksY:3,wheelTicksX:0,canScroll:true});
+    await new Promise(r=>setTimeout(r,100));
+    const after_wheel=await snapshot();assert(after_wheel.position<before.position,'首次滚轮不依赖历史命令键');
+    await evaluate('surface.focus();void 0');
+    for(const key_code of ['Up','Down'])for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCode:key_code});
+    await new Promise(r=>setTimeout(r,100));
+    const after_keys=await snapshot();
+    assert.equal(after_keys.length,before.length,'前端上下键不能自行生成输出历史');
+    assert.equal(after_keys.slider_width,before.slider_width,'前端上下键不能改变滑块宽度');
+    samples.push({cycle,mode,before,after_wheel,after_keys,limits:'真实Chromium事件，受控输出；无PowerShell命令历史执行'});
+    await evaluate('surface.dispose()');
+  }
   fs.writeFileSync(path.join(root,'checks.json'),JSON.stringify({status:'PASS',samples},null,2));
   console.log(JSON.stringify({status:'PASS',cases:samples.length,evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;fs.writeFileSync(path.join(root,'failure.json'),JSON.stringify({error:String(error),samples},null,2));}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

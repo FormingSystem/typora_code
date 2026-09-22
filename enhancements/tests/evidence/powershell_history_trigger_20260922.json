@@ -1,0 +1,976 @@
+{
+  "requirement": "R006.10",
+  "date": "2026-09-22",
+  "status": "INVESTIGATING",
+  "user_reproduction": {
+    "system": "Windows 10 Pro 22H2 19045.7725",
+    "loaded_release": "2026.09.22.1",
+    "trigger": "PowerShell上下键调出命令历史后才出现较宽的输出历史滚动条",
+    "unconfirmed": "出现后能否回看旧输出"
+  },
+  "host": "Windows 11 build 26200",
+  "product_base": "76b2c6c",
+  "product_changes": false,
+  "frontend": {
+    "result": "PASS",
+    "startup_cycles": 20,
+    "scenarios": [
+      "before_mount",
+      "after_mount",
+      "hidden_output",
+      "remount"
+    ],
+    "compatibility_build": 19045,
+    "real_win10": false,
+    "samples": [
+      {
+        "cycle": 0,
+        "mode": "before_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 1,
+        "mode": "after_mount",
+        "before": {
+          "base": 175,
+          "position": 175,
+          "length": 201,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 57,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 175,
+          "position": 166,
+          "length": 201,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 57,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 175,
+          "position": 175,
+          "length": 201,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 57,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 2,
+        "mode": "hidden_output",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 3,
+        "mode": "remount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 4,
+        "mode": "before_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 5,
+        "mode": "after_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 6,
+        "mode": "hidden_output",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 7,
+        "mode": "remount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 8,
+        "mode": "before_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 9,
+        "mode": "after_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 10,
+        "mode": "hidden_output",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 11,
+        "mode": "remount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 12,
+        "mode": "before_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 13,
+        "mode": "after_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 14,
+        "mode": "hidden_output",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 15,
+        "mode": "remount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 16,
+        "mode": "before_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 17,
+        "mode": "after_mount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 18,
+        "mode": "hidden_output",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      },
+      {
+        "cycle": 19,
+        "mode": "remount",
+        "before": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_wheel": {
+          "base": 177,
+          "position": 168,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 0
+        },
+        "after_keys": {
+          "base": 177,
+          "position": 177,
+          "length": 203,
+          "type": "normal",
+          "first": "EARLY_0",
+          "slider_width": 14,
+          "slider_height": 56,
+          "rows": 26,
+          "viewport_height": 450,
+          "inputs": 2
+        },
+        "limits": "真实Chromium事件，受控输出；无PowerShell命令历史执行"
+      }
+    ]
+  },
+  "powershell": [
+    {
+      "title": "PowerShell",
+      "id": "pwsh",
+      "before": {
+        "base": 189,
+        "position": 189,
+        "mode": "none",
+        "length": 203,
+        "contains_first": true
+      },
+      "before_history_keys": {
+        "width": 14,
+        "height": 20,
+        "viewport_height": 254,
+        "base": 189,
+        "position": 189,
+        "type": "normal",
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 145,
+        "base": 189,
+        "mode": "none"
+      },
+      "after_history_keys": {
+        "width": 14,
+        "height": 20,
+        "viewport_height": 254,
+        "base": 189,
+        "position": 189,
+        "type": "normal",
+        "contains_first": true
+      },
+      "after_programmatic": 0,
+      "release_ms": 4578,
+      "released": 11137.90000000596,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 11093.5,
+            "size": 4
+          },
+          {
+            "time": 11093.60000000894,
+            "size": 4
+          },
+          {
+            "time": 11093.70000000298,
+            "size": 64
+          }
+        ],
+        "bytes": 7400
+      },
+      "tail_ms": -44.20000000298023,
+      "status": "PASS"
+    },
+    {
+      "title": "Windows PowerShell",
+      "id": "powershell",
+      "before": {
+        "base": 189,
+        "position": 189,
+        "mode": "none",
+        "length": 203,
+        "contains_first": true
+      },
+      "before_history_keys": {
+        "width": 14,
+        "height": 20,
+        "viewport_height": 254,
+        "base": 189,
+        "position": 189,
+        "type": "normal",
+        "contains_first": true
+      },
+      "after_wheel": {
+        "position": 145,
+        "base": 189,
+        "mode": "none"
+      },
+      "after_history_keys": {
+        "width": 14,
+        "height": 20,
+        "viewport_height": 254,
+        "base": 189,
+        "position": 189,
+        "type": "normal",
+        "contains_first": true
+      },
+      "after_programmatic": 0,
+      "release_ms": 4569,
+      "released": 24476.90000000596,
+      "input": {
+        "count": 100,
+        "all": 100,
+        "tail": [
+          {
+            "time": 24430.90000000596,
+            "size": 2
+          },
+          {
+            "time": 24431,
+            "size": 8
+          },
+          {
+            "time": 24431.90000000596,
+            "size": 64
+          }
+        ],
+        "bytes": 7400
+      },
+      "tail_ms": -45,
+      "status": "PASS"
+    }
+  ],
+  "scope_limits": [
+    "真实ConPTY与Chromium输入；不是原始Typora宿主",
+    "Shell使用隔离HOME及NoProfile，未运行用户配置",
+    "未复现现场故障，不声称已修复",
+    "仅测试和文档变化，不构建、不发布、不安装或卸载"
+  ],
+  "test_hashes": {
+    "enhancements\\scripts\\test_terminal_conpty.cjs": "fac5c145f054eb05a0b6c65917138c77cdf7242a03314c182adfa5cbbfa1b5a7",
+    "enhancements\\scripts\\test_terminal_shells.cjs": "3a2d391303c8e57657502c6ef17b7cb450ca17220ef8a3e6b40c0f6d0fce4c41"
+  }
+}
