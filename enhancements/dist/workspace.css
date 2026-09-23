@@ -1063,6 +1063,7 @@ content.typ-deactive .linux-note-reading-minimap,
 .workspace-resource-picker-identity {min-width:0;overflow-wrap:anywhere;font:inherit;color:var(--workspace-ui-foreground,var(--text-color,#333));}
 .workspace-resource-picker-actions .git-icon-button {display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;box-sizing:border-box;border:0;background:transparent;color:inherit;}
 .workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
+.workspace-resource-picker-address>[hidden] {display:none!important;}
 
 /* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
 .workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}
@@ -2164,6 +2165,8 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-quick-open[hidden]{display:none}
 .workspace-quick-open-input-row{display:flex;align-items:center;height:25px;margin:6px 6px 4px;padding:0 6px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px}
 .workspace-quick-open-input-row input{min-width:0;flex:1;height:23px;padding:0;border:0!important;outline:0;background:transparent!important;color:inherit;font:inherit;box-shadow:none!important}
+.workspace-quick-open-input-row .git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:3px;border:0;background:transparent;color:inherit}
+.workspace-quick-open-input-row .git-icon-button[aria-pressed=true]{background:var(--linux-note-shell-inactive-selection-background);outline:1px solid var(--workspace-focus-border);outline-offset:-1px}
 .workspace-quick-open-status{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .workspace-quick-open-results{max-height:40vh;overflow:auto;padding:0 6px 6px}
 .workspace-quick-open-result{display:flex;align-items:center;gap:7px;width:100%;height:22px;padding:0 6px;border:0;background:transparent;color:inherit;text-align:left;font:inherit}

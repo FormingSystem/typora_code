@@ -376,3 +376,11 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 ## R040.4 后台源码标题（2026-09-23）
 
 BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文件名，按需恢复暴露未激活标题。将身份元数据同步与正文打开分离，插入后同步标签；旧候选原生断言失败，新候选70+5项通过。用户本机另反馈R040.3错乱和保存弹窗未再出现，保留其他环境边界。见[证据](../enhancements/tests/evidence/session_label_20260923.json)。
+
+## 2026-09-24 R070.9 地址编辑与目录搜索
+
+- BUG-picker-mousedown-enter：选择树mousedown提前进入目录，使真实单击与程序click行为不同；移除重复进入，只由click展开/选择，双击与Enter进入。原始Typora真实SSH55项及完整指针序列回归通过。
+- BUG-picker-address-scope：路径探测期间仍可确认旧目录、正则先映射Windows缓存被拒绝；提交立即禁用确认，远端POSIX stat优先，搜索取消与迟到回调绑定地址请求及工作区所有者。最终原生/目标UI通过，早期失败保留在本轮证据。
+- TEST-existing-search-interaction部分收敛：搜索等待夹具改为延迟实际spawn进程的close，替代已失效的execFile拦截，files_search已通过；旧SCM节点夹具问题未在本轮关闭。
+
+当次证据见[地址栏验证](../enhancements/tests/evidence/address_picker_20260924.json)，平台边界不以旧结果补齐。

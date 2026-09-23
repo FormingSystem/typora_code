@@ -162,6 +162,8 @@ app.whenReady().then(async()=>{
   await click('[data-id="core.search"]');assert.equal(await evaluate('getComputedStyle(document.querySelector("#file-library-search")).display'),'block','native shared search display rules restore when custom panel detaches');await click('[data-id="core.search"]');
   const set_input=async(label,value)=>evaluate(`(()=>{const input=document.querySelector('[aria-label=${JSON.stringify(label)}]');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}))})()`);
   const search_for=async(value,count)=>{await set_input('搜索内容',value);await wait(`document.querySelectorAll('.workspace-search-match').length===${count} && !document.querySelector('[aria-label="停止搜索"]')`);await delay(50)};
+  assert(await evaluate('document.querySelector("[aria-label=使用正则表达式]").getAttribute("aria-pressed")==="true"'));
+  await click('[aria-label="使用正则表达式"]');
   await search_for('needle',5);
   assert.equal(await evaluate('document.querySelectorAll(".workspace-search-file>summary>.workspace-file-theme-icon").length'),3);
   assert(await evaluate(`([...document.querySelectorAll('.workspace-search-file')].every(group=>{const icon=group.querySelector('summary>.workspace-file-theme-icon'),expected=files_qa.workspace_file_icon(group.dataset.path);return icon.dataset.fileIconPath===group.dataset.path&&icon.textContent===expected.textContent&&icon.dataset.vscodeFileIcon===expected.dataset.vscodeFileIcon&&icon.style.getPropertyValue('--workspace-file-icon-light')===expected.style.getPropertyValue('--workspace-file-icon-light')&&icon.style.getPropertyValue('--workspace-file-icon-dark')===expected.style.getPropertyValue('--workspace-file-icon-dark')&&icon.getBoundingClientRect().width===16}))`),'search rows reuse the same Explorer glyphs and light/dark colors');
@@ -245,14 +247,14 @@ app.whenReady().then(async()=>{
   for(let index=0;index<12;index++)fs.writeFileSync(path.join(workspace,`perf_${String(index).padStart(4,'0')}.txt`),index%2?'progress_new\n':'progress_old\n');
   fs.writeFileSync(path.join(workspace,'dense_perf.txt'),'dense_marker\n'.repeat(5000));
   await evaluate(`(()=>{window.original_search_read=files.fs.promises.readFile;window.release_search_read=null;let held=false;files.fs.promises.readFile=async(...args)=>{if(!held&&String(args[0]).endsWith('perf_0006.txt')){held=true;await new Promise(resolve=>release_search_read=resolve);}return original_search_read(...args)};const panel=sidebar.activePanel;panel.options.regex=false;panel.options.use_ignore=false;panel.options.case_sensitive=false;panel.options.whole_word=false;panel.includes.value='./perf_*.txt';panel.excludes.value='';window.progress_open_count=open_calls.length;void 0})()`);
-  await evaluate(`(()=>{const processes=reqnode('child_process');window.original_search_exec=processes.execFile;window.release_search_git=null;let held=false;processes.execFile=function(file,args,options,callback){return original_search_exec.call(this,file,args,options,(...reply)=>{if(args.includes('status')&&!held){held=true;release_search_git=()=>callback(...reply);}else callback(...reply);});};})()`);
+  await evaluate(`(()=>{const processes=reqnode('child_process');window.original_search_spawn=processes.spawn;window.release_search_git=null;let held=false;processes.spawn=function(file,args,...options){const child=original_search_spawn.call(this,file,args,...options);if(args.includes('status')&&!held){held=true;const emit=child.emit;child.emit=function(event,...reply){if(event==='close'){release_search_git=()=>emit.call(child,event,...reply);return true;}return emit.call(this,event,...reply);};}return child;};})()`);
   await set_input('搜索内容','progress_old');
   await wait('!!release_search_read&&!!release_search_git&&document.querySelectorAll(".workspace-search-match").length>0&&document.querySelector(".linux-note-workspace-search").dataset.state==="searching"');
   await click('.workspace-search-match');await wait('document.querySelector(".workspace-lookup-preview-body").dataset.previewPath?.includes("perf_")');
   assert.equal(await evaluate('open_calls.length'),await evaluate('progress_open_count'),'progressive matches remain read-only previews until explicitly opened');
   await set_input('搜索内容','progress_new');
   await wait('document.querySelector(".linux-note-workspace-search").dataset.state==="ready"&&document.querySelectorAll(".workspace-search-match").length===6');
-  await evaluate('release_search_read();release_search_git();reqnode("child_process").execFile=original_search_exec;void 0');await delay(80);
+  await evaluate('release_search_read();release_search_git();reqnode("child_process").spawn=original_search_spawn;void 0');await delay(80);
   assert(await evaluate('[...document.querySelectorAll(".workspace-search-preview mark")].every(node=>node.textContent==="progress_new")'),'late reads and render slices cannot repopulate previous-query matches');
   await evaluate('files.fs.promises.readFile=original_search_read;sidebar.activePanel.includes.value="./dense_perf.txt";void 0');
   await set_input('搜索内容','dense_marker');

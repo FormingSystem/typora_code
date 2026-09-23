@@ -2,6 +2,17 @@
 export type search_query_options = {query: string; regex?: boolean; case_sensitive?: boolean; whole_word?: boolean};
 export type search_captured_match = {start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]; captures: (string | undefined)[]; groups?: Record<string, string | undefined>};
 export type search_match_reply = {matches: search_captured_match[]; limit_reached: boolean};
+export const DEFAULT_SEARCH_REGEX = true;
+export type search_path_match = {index:number;start:number;end:number};
+/** 与正文搜索共用语法；仅在隔离Worker中执行可能高耗时的正则。 */
+export function collect_path_matches(paths:string[],options:search_query_options):search_path_match[]{
+  const expression=query_expression(options),matches:search_path_match[]=[];
+  for(let index=0;index<paths.length;index++){
+    expression.lastIndex=0;const found=expression.exec(paths[index]);
+    if(found)matches.push({index,start:found.index,end:found.index+found[0].length});
+  }
+  return matches;
+}
 const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 
 export function query_expression(options: search_query_options): RegExp {

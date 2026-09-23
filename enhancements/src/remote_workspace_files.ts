@@ -91,6 +91,11 @@ export class remote_file_provider {
     const prior=this.names.get(key);if(prior&&prior!==normalized)throw Error('远程文件存在仅大小写不同的名称，宿主缓存不能合并这两个文件。');this.names.set(key,normalized);return local;
   }
   private call(operation:string,values:Record<string,unknown>){if(this.disposed||!this.connection.connected())throw Error('SSH已断开；草稿保留，请重连原主机后重试。');return this.connection.request(operation,values);}
+  /** 地址草稿可含正则字符；先核对远端对象，只有真实路径才进入宿主缓存映射。 */
+  async stat_remote(path:string){
+    if(typeof path!=='string'||!path.startsWith('/')||path.includes('\0'))throw Error('远程路径无效');
+    return stat_value(await this.call('filesystem',{action:'stat',path:this.path_api.posix.normalize(path)}));
+  }
   async mount(path:string){const local=this.local_path(path);if(!(await this.fs.promises.stat(local)).isDirectory())throw Error('所选项目不是远程文件夹');await this.native_fs.promises.mkdir(local,{recursive:true});return local;}
   prepare(path:string,force=false,valid:()=>boolean=()=>true){
     let pending=this.preparing.get(path);if(pending)return pending.then(()=>{if(this.disposed||!valid())throw Error('远程文件读取已取消。');if(force)return this.prepare(path,true,valid);});

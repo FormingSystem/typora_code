@@ -14,11 +14,15 @@ app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1100,height:800,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false}});
   win.webContents.on('console-message',(_event,...details)=>{if(baseline)console.log('renderer:',...details)});
   fs.writeFileSync(path.join(root,'page.html'),'<!doctype html><meta charset="utf-8"><button id="editor">原文档</button>');await win.loadFile(path.join(root,'page.html'));
-  const bundle=await build({plugins:[baseline_plugin],stdin:{contents:'export {create_workspace_quick_open} from "./src/workspace_quick_open";export {begin_workspace_context_switch,finish_workspace_context_switch} from "./src/workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'quick_test',write:false,loader:{'.css':'text'}});
+  const bundle=await build({plugins:[baseline_plugin,...require('./editor_bundle.cjs').editor_plugins()],stdin:{contents:'export {create_workspace_quick_open} from "./src/workspace_quick_open";export {begin_workspace_context_switch,finish_workspace_context_switch} from "./src/workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'quick_test',write:false,loader:{'.css':'text'}});
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`window.opened=[];window.current_root=${JSON.stringify(path.join(root,'workspace'))};window.host={fs:require('fs'),path_api:require('path'),context_root:()=>current_root,open_file:async file=>{if(window.fail_open)throw Error('权限不足');opened.push({file,text:await require('fs').promises.readFile(file,'utf8')});}};window.picker=quick_test.create_workspace_quick_open(host);document.querySelector('#editor').focus();picker.open();void 0`);
   const query=async value=>{await evaluate(`picker.input.value=${JSON.stringify(value)};picker.input.dispatchEvent(new Event('input'));void 0`);await wait(`!picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在')`);};
   await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);
+  assert(await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").getAttribute("aria-pressed")==="true"'));
+  await query('main[.]c$');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
+  await query('[');assert(await evaluate('picker.root.textContent.includes("正则表达式无效")'));
+  await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").click();void 0');
   await query('samples/bringup');
   assert.deepEqual(await evaluate(`[...picker.root.querySelectorAll('.workspace-quick-open-name')].slice(0,5).map(n=>n.textContent)`),['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt']);
   assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-path .workspace-quick-open-highlight')?.textContent`),'samples/bringup');

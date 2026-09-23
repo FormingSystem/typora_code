@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-24",
+  "release": "2026.09.24.1",
+  "requirements": [
+    "R070.9"
+  ],
+  "design": [
+    "docs/remote_ssh.md#r0709-地址栏编辑与路径搜索",
+    "docs/quick_open.md",
+    "docs/search_performance.md"
+  ],
+  "asset_manifest_sha256": "fba801aba11c4281f8030c29a2b9b1b48db1c2e6dd47bf9761d36f0d9ad11bf8",
+  "bundle_sha256": "3b0ed868e9c4885c40f1c0c64d4dea3ac6def1d631d658ec55d277abbd5aa902",
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 208,
+    "ui_suites": [
+      "remote_workspace_picker",
+      "workspace_quick_open",
+      "workspace_quick_open_performance",
+      "workspace_dismissal",
+      "workspace_escape_focus",
+      "workspace_explorer",
+      "workspace_files_search",
+      "workspace_shortcuts"
+    ],
+    "quick_open_50000": {
+      "input_sync_ms": 3,
+      "max_gap_ms": 19,
+      "scope": "受控文件索引、实际Electron事件，不代表物理输入延迟"
+    },
+    "native": {
+      "case_id": "47b217a84c434d48984c374ea544ae56",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "fba801aba11c4281f8030c29a2b9b1b48db1c2e6dd47bf9761d36f0d9ad11bf8",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "2c5595e4774b09724fbad712d7dbb1c701749ae6900c44cc28d0319a05980269",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "status": "PASS",
+      "checks": 55,
+      "command_cycles": 20,
+      "scope": "原始Typora与真实SSH；专用夹具进程，不作为关闭软件重启验收"
+    },
+    "install_cycle": "PASS 有备份恢复与无兼容备份撤销入口，安装/检查/卸载/重装/检查，正文配置备份保留",
+    "uninstall_assertions": 65
+  },
+  "installation": {
+    "version": "2026.09.24.1",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "retained_failures": [
+    "原生首次暴露路径探测中确认旧目录，已立即禁用确认",
+    "原生第二次暴露正则提前经过Windows缓存路径校验，已先stat真实POSIX路径",
+    "原生第三次表达式同时匹配目录及.git，夹具改用锚定表达式",
+    "旧搜索等待夹具拦截execFile，实际Git使用spawn；夹具更新后通过，旧SCM节点维护项保持"
+  ],
+  "limits": [
+    "未覆盖Win10及物理键鼠现场、多台真实SSH主机",
+    "路径搜索上限512匹配或100000枚举项，明确提示；不递归.git/node_modules或符号链接",
+    "真实SSH目录中宿主无法映射的名称仍受远程缓存提供者约束",
+    "当前用户窗口未重启，安装不等于已加载新版本"
+  ]
+}

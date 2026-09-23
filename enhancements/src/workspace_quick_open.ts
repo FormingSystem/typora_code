@@ -1,6 +1,8 @@
 import type {graph_leaf} from "./git_graph_host";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
-import {git_icon} from "./git_icons";
+import {git_icon,git_icon_button} from "./git_icons";
+import {DEFAULT_SEARCH_REGEX,query_expression,type search_path_match} from './workspace_search_matcher';
+import {create_search_matcher} from './workspace_search_worker_client';
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
 import css from "./workspace_quick_open.css";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -36,7 +38,10 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   input.setAttribute("role","combobox");input.setAttribute("aria-autocomplete","list");input.setAttribute("aria-controls","workspace-quick-open-list");
   input.autocomplete = "off";
   input.spellcheck = false;
-  input_row.append(input);
+  let use_regex=DEFAULT_SEARCH_REGEX,match_controller:AbortController|undefined;
+  const regex_button=git_icon_button('regex','使用正则表达式',()=>{use_regex=!use_regex;regex_button.setAttribute('aria-pressed',String(use_regex));pending_open_query=undefined;rendered_query='\0';match_controller?.abort();render_generation++;ranking=false;void render();});
+  regex_button.setAttribute('aria-pressed',String(use_regex));
+  input_row.append(input,regex_button);
   const results = document.createElement("div");
   results.className = "workspace-quick-open-results";
   results.setAttribute("role", "listbox");results.id="workspace-quick-open-list";
@@ -75,6 +80,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
 
   const close = (restore=true) => {
     if (root.hidden) return;
+    match_controller?.abort();match_controller=undefined;
     const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;
     direct_generation++;direct_query=undefined;direct_file=undefined;direct_pending=false;direct_error="";ranking=false;rank_again=false;
     scan_generation += 1;
@@ -148,8 +154,9 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     const previous_path=query===rendered_query?shown[selected_index]?.file_path:undefined;
     if(query!==rendered_query){shown=[];results.replaceChildren();status.textContent="正在筛选文件…";status.classList.add("is-visible");}
     if(editor_group)catalogue=read_editors();
-    const ranked:quick_match[]=[];const matcher=create_quick_matcher(query);
-    const order=editor_group&&!query?()=>0:matcher.compare;
+    let regex_mode=use_regex&&!!query;
+    const ranked:quick_match[]=[];const matcher=create_quick_matcher(regex_mode?'':query);
+    const order=editor_group&&!query?()=>0:regex_mode?(left:quick_match,right:quick_match)=>left.file.relative_path.localeCompare(right.file.relative_path):matcher.compare;
     // 已枚举候选先筛选；显式路径探测独立补充，不能因磁盘等待清空整个搜索。
     if(!editor_group&&direct_query!==query){
       direct_query=query;direct_file=undefined;direct_pending=false;direct_error="";
@@ -176,11 +183,30 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       }
     }
     const candidates=direct_file?(files.path_api.isAbsolute(query)?[direct_file]:[direct_file,...catalogue.filter(file=>file.file_path!==direct_file!.file_path)]):catalogue.slice();
+    const literal_file=regex_mode?(direct_file||candidates.find(file=>file.relative_path===query.replaceAll('\\','/'))):undefined;
+    if(literal_file)regex_mode=false;
+    const regex_matches=new Map<number,search_path_match>();
+    if(regex_mode){
+      query_expression({query,regex:true});
+      match_controller?.abort();const controller=new AbortController();match_controller=controller;
+      const worker=create_search_matcher();
+      try{
+        for(let offset=0;offset<candidates.length;offset+=2048){
+          const reply=await worker.match_paths(candidates.slice(offset,offset+2048).map(file=>file.relative_path||file.name),{query,regex:true},controller.signal);
+          if(disposed||root.hidden||generation!==render_generation)return;
+          for(const match of reply)regex_matches.set(offset+match.index,match);
+        }
+      }finally{worker.dispose();if(match_controller===controller)match_controller=undefined;}
+    }
     let deadline=performance.now()+8;let total=0;
     // 只维护前512项，不为每次按键排序整个工程；长目录在小时间片之间让出UI线程。
     for(let index=0;index<candidates.length;index++){
       if(index%256===0&&performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(disposed||root.hidden||generation!==render_generation)return;deadline=performance.now()+8;}
-      const file=candidates[index],item=matcher.match(file);if(!item)continue;total++;
+      const file=candidates[index];
+      if(literal_file&&file!==literal_file)continue;
+      const found=regex_matches.get(index);if(regex_mode&&!found&&file!==direct_file)continue;
+      const item=matcher.match(file);if(!item)continue;total++;
+      if(found){const start=(file.relative_path||file.name).length-file.name.length;item.score.labelMatch=[{start:Math.max(0,found.start-start),end:Math.max(0,found.end-start)}];item.score.descriptionMatch=[{start:found.start,end:Math.min(found.end,start)}].filter(range=>range.end>range.start);}
       if(ranked.length===MAX_QUICK_RESULTS&&order(item,ranked[MAX_QUICK_RESULTS-1])>=0)continue;
       let low=0,high=ranked.length;while(low<high){const middle=(low+high)>>>1;if(order(item,ranked[middle])<0)high=middle;else low=middle+1;}ranked.splice(low,0,item);if(ranked.length>MAX_QUICK_RESULTS)ranked.pop();
     }
@@ -199,7 +225,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     select(selected_index);
     if(pending_open_query===query&&(shown.length||(!scanning&&!direct_pending))){pending_open_query=undefined;void open_selected();}
     }catch(error){
-      if(!disposed&&!root.hidden&&generation===render_generation){status.textContent=`搜索失败：${String((error as Error)?.message||error)}`;status.classList.add("is-visible");}
+      if(!disposed&&!root.hidden&&generation===render_generation){shown=[];shown_matches=[];results.replaceChildren();input.removeAttribute('aria-activedescendant');pending_open_query=undefined;status.textContent=`搜索失败：${String((error as Error)?.message||error)}`;status.classList.add("is-visible");}
     }finally{
       if(generation===render_generation){ranking=false;if(rank_again&&!root.hidden&&!disposed){rank_again=false;schedule_render();}}
     }
@@ -260,6 +286,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   };
 
   input.oninput = () => {
+    match_controller?.abort();render_generation++;ranking=false;
     pending_open_query=undefined;
     const group=/^edt active(?:\s|$)/u.test(input.value)?files.core?.app.workspace.activeLeaf?.parent:undefined;
     if(Boolean(group)!==Boolean(editor_group)){scan_generation++;direct_generation++;scanning=false;direct_pending=false;direct_file=undefined;direct_query=undefined;editor_group=group;catalogue=[];if(!group)void scan();}

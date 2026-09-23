@@ -1,4 +1,5 @@
 import {create_preview_scale_controls} from "./workspace_preview_scale";
+import {DEFAULT_SEARCH_REGEX} from './workspace_search_matcher';
 import {bind_preview_resize} from "./workspace_preview_resize";
 import {SIDEBAR_MIN_WIDTH,EDITOR_MIN_WIDTH,resize_workspace_sidebar} from "./workspace_sidebar_sash";
 import {register_workspace_context_guard} from "./workspace_context";
@@ -53,7 +54,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true;
     preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
     selected?: {file:workspace_search_file;match:workspace_search_match}; remembered = new Map<string,string>(); open_generation = 0;
-    options: workspace_search_options = {query:"",use_ignore:true}; result?: workspace_search_result;
+    options: workspace_search_options = {query:"",regex:DEFAULT_SEARCH_REGEX,use_ignore:true}; result?: workspace_search_result;
     controller?: AbortController; visible=false; timer=0; tree=false; sort="path"; only_open=false; only_changed=false; history: string[]=[]; history_index=-1;
     git_status = new Map<string,string>();
     render_versions = new WeakMap<HTMLElement,number>();

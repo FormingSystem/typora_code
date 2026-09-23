@@ -24,6 +24,7 @@ app.whenReady().then(async () => {
   fs.writeFileSync(fixture, '<!doctype html><meta charset="utf-8"><input id="editor"><section class="linux-note-terminal"><input id="terminal"></section><section id="dialog" role="dialog" aria-modal="true" hidden></section>');
   await test_window.loadFile(fixture);
   const bundle = await build({
+    plugins:require("./editor_bundle.cjs").editor_plugins(),
     stdin: { contents: 'export * from "./src/workspace_shortcuts";export * from "./src/workspace_quick_open";', resolveDir: path.join(__dirname, '..') },
     bundle: true,
     loader: {'.css':'text'},

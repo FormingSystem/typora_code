@@ -2,6 +2,7 @@
 .workspace-resource-picker-identity {min-width:0;overflow-wrap:anywhere;font:inherit;color:var(--workspace-ui-foreground,var(--text-color,#333));}
 .workspace-resource-picker-actions .git-icon-button {display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;box-sizing:border-box;border:0;background:transparent;color:inherit;}
 .workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
+.workspace-resource-picker-address>[hidden] {display:none!important;}
 
 /* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
 .workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}

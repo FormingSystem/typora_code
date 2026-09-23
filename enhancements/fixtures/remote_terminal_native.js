@@ -40,6 +40,12 @@
   const repository_picker=document.querySelector('input[aria-label="远程路径"]');await wait(()=>!button(repository_picker.closest('[role=dialog]'),'打开').disabled,'发现目录未读取');await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备未完成');
   const picker_dialog=repository_picker.closest('[role=dialog]'),tree_row=name=>[...picker_dialog.querySelectorAll('[role=treeitem]')].find(node=>node.querySelector('.workspace-explorer-name')?.textContent===name);
   await wait(()=>tree_row('nested'),'真实远端树未显示目录');
+  const edit_current=()=>picker_dialog.querySelector('nav button[aria-current=location]').click();
+  edit_current();assert(!repository_picker.hidden,'单击当前路径直接编辑');
+  picker_dialog.querySelector('.workspace-resource-picker-identity').dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));assert(repository_picker.hidden&&picker_dialog.isConnected,'原生共享外部退出只关闭地址编辑');
+  edit_current();repository_picker.value='^nes.*d$';repository_picker.dispatchEvent(new Event('input',{bubbles:true}));picker_dialog.querySelector('[aria-label="跳转路径或搜索（正则表达式，Enter）"]').click();
+  await wait(()=>repository_picker.hidden&&picker_dialog.querySelector('[role=status]').textContent.includes('1 个匹配'),'真实远端正则目录搜索未完成');assert(!!tree_row('nested'),'真实远端搜索结果可选');
+  picker_dialog.querySelector('[aria-label=刷新]').click();await wait(()=>tree_row('nested')&&!button(picker_dialog,'打开').disabled,'搜索返回原目录');
   for(let i=0;i<20;i++){tree_row('nested').click();await wait(()=>tree_row('.git'),'单击未展开真实远端目录');assert(repository_picker.value===root,'展开保持根路径 '+i);tree_row('nested').click();await wait(()=>!tree_row('.git'),'单击未折叠真实远端目录');}
   assert(button(picker_dialog,'远程文件夹').getAttribute('aria-pressed')==='true'&&getComputedStyle(button(picker_dialog,'远程文件夹')).backgroundColor!==getComputedStyle(picker_dialog.querySelector('.git-graph-dialog')).backgroundColor,'原生选择器远端模式明确选中');
   const address=picker_dialog.querySelector('.workspace-resource-picker-address'),bar=address.getBoundingClientRect();

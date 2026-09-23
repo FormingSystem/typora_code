@@ -8,6 +8,7 @@ import { format_file_path } from "./file_paths";
 import { git_icon, type git_icon_name } from "./git_icons";
 import type {workspace_file_clipboard} from "./workspace_file_clipboard";
 import explorer_css from "./workspace_explorer.css";
+import type {workspace_path_result} from './workspace_path_search';
 
 export type workspace_file_tree_options = {
   fs?:any;
@@ -58,6 +59,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   let flat_nodes: explorer_node[] = [], render_frame = 0, watcher_count = 0;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
+  let search_projection = false;
   const selection_paths = new Set<string>();
   let operation_busy = false, compare_path = "";
   const dialogs = new Set<{close(): void}>();
@@ -153,7 +155,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
           view = {row, chevron, label, note, file_icon: workspace_file_icon(node.path)}; row_views.set(node, view);
           row.onmousedown = event => {
             if (event.target === rename_state?.input) return;
-            if(options.selection){if(event.button===0&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){select(node);run(()=>options.selection!.enter(node.path,node.directory));}return;}
+            if(options.selection)return;
             if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) { click_sequence = undefined; return; }
             if (event.detail < 2) click_sequence = {node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path)};
           };
@@ -393,6 +395,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   }
   async function sync_root(force = false) {
     if (rename_state?.busy) return;
+    if(search_projection){search_projection=false;generation++;if(root)close_branch(root,true);root=undefined;}
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
       if (root) { generation++; close_branch(root, true); root = undefined; rename_state=undefined;selection_paths.clear();compare_path="";root_name.textContent = "未打开文件夹"; selected_path = ""; rebuild(); }
@@ -491,5 +494,21 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     container.remove();style.remove();
   }
   if(options.selection){toolbar.remove();root_label.remove();}
-  return {container,tree,run,refresh,reveal,sync_root,set_visible,dispose,ready:()=>Boolean(root?.children&&!root.error)};
+  function show_results(entries:workspace_path_result[]){
+    if(disposed||!options.selection)return;
+    generation++;if(root)close_branch(root,true);nodes.clear();selection_paths.clear();selected_path='';search_projection=true;
+    const base=options.context_root();root=create_node(base,path_api.basename(base),true,false);root.expanded=true;root.children=[];
+    for(const entry of entries){
+      const relative=path_api.relative(base,entry.path);if(!relative||path_api.isAbsolute(relative)||relative==='..'||relative.startsWith('..'+path_api.sep))continue;
+      const parts=relative.split(path_api.sep);let parent=root;
+      for(let index=0;index<parts.length;index++){
+        const path=path_api.join(parent.path,parts[index]),last=index===parts.length-1;
+        let node=nodes.get(path);
+        if(!node){node=create_node(path,parts[index],!last||entry.directory,last&&entry.link,parent);(parent.children||=[]).push(node);}
+        if(!last){node.expanded=true;node.children||=[];}parent=node;
+      }
+    }
+    tree.scrollTop=0;set_status('');rebuild();
+  }
+  return {container,tree,run,refresh,reveal,sync_root,set_visible,dispose,show_results,ready:()=>Boolean(root?.children&&!root.error)};
 }

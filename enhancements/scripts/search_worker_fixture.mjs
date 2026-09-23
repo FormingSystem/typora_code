@@ -9,7 +9,7 @@ export async function build_search_test_api(source_ref) {
   const project_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const source_plugins=source_ref?[{name:'search-benchmark-baseline',setup(build){build.onLoad({filter:/workspace_search(?:_engine|_matcher|_worker|_worker_client)\.ts$/},args=>({contents:execFileSync('git',['show',`${source_ref}:enhancements/src/${path.basename(args.path)}`],{cwd:project_root,encoding:'utf8',windowsHide:true}),loader:'ts'}));}}]:[];
   const worker_code = (await build({entryPoints: [path.join(project_root, 'src/workspace_search_worker.ts')], bundle: true, format: 'iife', write: false,plugins:source_plugins})).outputFiles[0].text;
-  const compiled = await build({stdin: {contents: "export * from './src/workspace_search_engine.ts';", resolveDir: project_root}, bundle: true, platform: 'node', format: 'esm', write: false, plugins: [{
+  const compiled = await build({stdin: {contents: "export * from './src/workspace_search_engine.ts';export {create_search_matcher} from './src/workspace_search_worker_client.ts';", resolveDir: project_root}, bundle: true, platform: 'node', format: 'esm', write: false, plugins: [{
     name: 'injected-search-worker', setup(build) {
       build.onResolve({filter: /^linux_note_search_worker$/}, () => ({path: 'injected', namespace: 'search-worker-test'}));
       build.onLoad({filter: /.*/, namespace: 'search-worker-test'}, () => ({contents: 'export default "";', loader: 'js'}));

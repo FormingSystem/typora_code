@@ -34,6 +34,14 @@ try {
   assert.equal(result.counts.matches, 3); assert.equal(result.files[0].matches[0].column, 4);
   const plan = await engine.prepare_replace(result, '\\U$<word>-$1'); assert.equal(plan.files[0].after_text, '😀 FOO-FOO\r\nFOO-FOO FOO-FOO\r\n');
   checks.push('normal worker matches preserve Unicode positions, whole words, named and numbered replacement captures');
+  const paths=api.create_search_matcher(matcher_factory);
+  assert.deepEqual(await paths.match_paths(['sub/目标.md','other.txt','a\nb.md'],{query:'[.]md$',regex:true}),[{index:0,start:6,end:9},{index:2,start:3,end:6}]);
+  await assert.rejects(paths.match_paths(['x'],{query:'[',regex:true}),/正则表达式无效/);
+  const path_cancel=new AbortController(),path_timer=setTimeout(()=>path_cancel.abort(),80),path_start=Date.now();
+  await assert.rejects(paths.match_paths(['a'.repeat(40)+'!'],{query:'(a+)+$',regex:true},path_cancel.signal),/搜索已取消/);clearTimeout(path_timer);
+  assert(Date.now()-path_start<1500);
+  assert.equal((await paths.match_paths(['ok.md'],{query:'md$',regex:true})).length,1);paths.dispose();
+  checks.push('path batches retain Unicode/newline filename boundaries, reject invalid regex, cancel expensive patterns and restart cleanly');
 
   const isolated_missing = api.create_workspace_search_engine({fs, path_api: path});
   await assert.rejects(isolated_missing.search(root, {query: '(a+)+$', regex: true, use_ignore: false}), /没有可隔离运行/);
