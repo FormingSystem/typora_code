@@ -311,3 +311,13 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - TEST-git-ui-snapshot：原UI测试按两份status和全部按钮计数；改为验证单份status、非等待时取消按钮隐藏及慢读取实际取消。分批任务需等待生命周期完成再检查DOM。
 
 本轮完整证据及平台边界见[大仓库Git验证](../enhancements/tests/evidence/git_scale_20260923.json)。
+
+## R069.8 预览事件边界（2026-09-23）
+
+- BUG-preview-shadow-wheel：document捕获阶段从composedPath首节点取得影子树的#write，closest查不到外部所有者，先执行主窗口缩放。沿完整传播路径排除独立预览；旧版组合测试失败，修复后真实Chromium滚轮只改变命中实例。
+- BUG-preview-link-modifier：旧预览拒绝Ctrl链接点击。按用户最新澄清同时支持普通单击、Ctrl/Command单击和右键菜单；普通拖选不跳转，菜单随目标/阅读器销毁。
+- BUG-preview-browser-rejection：显式默认浏览器入口未等待异步启动，拒绝可能成为全局未处理错误。当前所有者等待并捕获，过期错误不更新新目标；网页frame独立清理回调和等待计时。
+- TEST-preview-shadow-integration：仅对预览外层派发wheel无法覆盖影子树捕获次序；新增真实内部composed事件并同时绑定主缩放监听。真实网页拒绝内嵌与可观察error事件分别记录，跨域load不等同成功显示。
+- TEST-preview-native-inline：原生夹具中的HTML关闭script字面量会截断运行器内联脚本；拆分字面量后重跑。初次无checks回执的运行不算通过。
+
+本轮结果与平台限制见[预览隔离证据](../enhancements/tests/evidence/preview_isolation_20260923.json)。

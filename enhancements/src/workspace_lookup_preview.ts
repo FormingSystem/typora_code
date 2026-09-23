@@ -8,7 +8,7 @@ import type { workspace_file_host } from "./workspace_files";
 import type { workspace_search_file, workspace_search_match } from "./workspace_search_engine";
 import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file_language";
 import { git_diff_editor } from "./git_diff_editor";
-import { workspace_element as el } from "./workspace_widgets";
+import { workspace_element as el, workspace_menu } from "./workspace_widgets";
 import preview_css from "./workspace_lookup_preview.css";
 import { highlight_preview_code, create_preview_diagrams } from "./workspace_markdown_preview_render";
 
@@ -156,6 +156,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     body.replaceChildren(markdown_host); apply_scale(); reveal();reflow.capture();
   };
   const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
+    close_menu?.();
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
     code_copy.reconcile([]);
@@ -198,15 +199,26 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       }
     } catch (error) { if (!disposed && request === generation) body.replaceChildren(el("p", "workspace-lookup-preview-message", String(error))); return false; }
   };
+  let close_menu:(()=>void)|undefined;
+  const link_at=(event:Event)=>(event.target instanceof Element?event.target:event.target instanceof Node?event.target.parentElement:null)?.closest<HTMLElement>('[data-preview-href]');
+  const selected_link_text=()=>{
+    const selection=(shadow as ShadowRoot & {getSelection?:()=>Selection|null}).getSelection?.()||window.getSelection();
+    return !!selection&&!selection.isCollapsed&&!!selection.anchorNode&&reader.contains(selection.anchorNode);
+  };
   const follow_link=(event:MouseEvent|KeyboardEvent)=>{
     if(event instanceof KeyboardEvent&&event.key!=="Enter")return;
-    const link=(event.target instanceof Element?event.target:event.target instanceof Node?event.target.parentElement:null)?.closest<HTMLElement>('[data-preview-href]');
+    const link=link_at(event);
     if(!link||!reader.contains(link)||!options.navigate)return;
     event.preventDefault();event.stopImmediatePropagation();
-    if(event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||(event instanceof MouseEvent&&event.button!==0)||(event instanceof KeyboardEvent&&event.repeat))return;
+    if(disposed||event.altKey||event.shiftKey||(event.ctrlKey&&event.metaKey)||(event instanceof MouseEvent&&(event.button!==0||(!event.ctrlKey&&!event.metaKey&&selected_link_text())))||(event instanceof KeyboardEvent&&event.repeat))return;
     options.navigate(link.dataset.previewHref!);
   };
-  reader.addEventListener('click',follow_link);reader.addEventListener('keydown',follow_link);
+  const context_link=(event:MouseEvent)=>{
+    const link=link_at(event);if(!link||!reader.contains(link)||!options.navigate||disposed)return;
+    event.preventDefault();event.stopImmediatePropagation();const href=link.dataset.previewHref!,version=generation;
+    close_menu=workspace_menu(event,[{title:'跳转链接',action:()=>{if(!disposed&&version===generation)options.navigate!(href);}}],'workspace-menu-compact',()=>{close_menu=undefined;});
+  };
+  reader.addEventListener('click',follow_link);reader.addEventListener('keydown',follow_link);reader.addEventListener('contextmenu',context_link);
   const capture_position=()=>{
     const anchor=capture_reflow_anchor(body,reader),path:number[]=[];
     if(anchor){let node:Node=anchor.node;while(node!==reader&&node.parentNode){path.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes,node));node=node.parentNode;}}
@@ -223,6 +235,6 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
-  const clear=()=>{generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true; reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  const clear=()=>{close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
+  return {container, show, clear, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true; close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

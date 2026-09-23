@@ -11,6 +11,7 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.join(evidence,'source.py'),'print("readonly")\n');
   server=http.createServer((req,res)=>{
     if(req.url==='/redirect'){res.writeHead(302,{Location:'/page'});res.end();return;}
+    if(req.url==='/denied'){res.setHeader('Content-Security-Policy',"frame-ancestors 'none'");res.end('<p>denied</p>');return;}
     if(req.url==='/bad'){res.writeHead(503);res.end();return;}
     if(req.url==='/large'){res.setHeader('Content-Type','text/html');res.end('x'.repeat(2*1024*1024+1));return;}
     if(req.url==='/slow'){setTimeout(()=>{res.setHeader('Content-Type','text/html');res.end('<p>OLD SLOW</p>');},450);return;}
@@ -19,8 +20,9 @@ app.whenReady().then(async()=>{
   const html=path.join(evidence,'index.html');fs.writeFileSync(html,'<style>body{margin:0;display:flex;height:600px}#mount{width:320px;height:500px}#write{width:450px}.workspace-link-preview[hidden]{display:none!important}</style><section id="mount"></section><article id="write" contenteditable="true"><a href="target.md#target-heading">Local</a><a data-ref="ref">Reference</a></article>');
   win=new BrowserWindow({show:false,width:1000,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});await win.loadFile(html);
   const evaluate=async code=>{try{return await win.webContents.executeJavaScript(code,true);}catch(error){console.error("Renderer input:",code);throw error;}};
-  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export * from "./src/workspace_link_preview";export * from "./src/workspace_link_target";export * from "./src/workspace_link_selection";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'qa',write:false});await evaluate(bundle.outputFiles[0].text+";void 0;");
+  const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export * from "./src/workspace_zoom";export * from "./src/workspace_link_preview";export * from "./src/workspace_link_target";export * from "./src/workspace_link_selection";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'qa',write:false});await evaluate(bundle.outputFiles[0].text+";void 0;");
   await evaluate(`window.reqnode=require;window.preview_attack=0;window.web_message=null;window.addEventListener("message",e=>{if(e.data?.preview_test)web_message={origin:e.origin,node:e.data.node}});window.opened=[];window.web_opened=[];window.JSBridge={showInBrowser:url=>web_opened.push(url)};window.root=${JSON.stringify(evidence)};window.source=require('path').join(root,'source.md');window.files={fs:require('fs'),path_api:require('path'),current_file:()=>source,editor_state:()=>({file_path:source}),open_file:async(path,location)=>opened.push({path,location})};window.view=qa.create_link_preview(files,{close:()=>view.clear()});document.querySelector('#mount').append(view.container);window.link=href=>view.show({source,href});void 0;`);
+  await evaluate(`window.host_zoom=0;window.zoom_binding=qa.bind_workspace_zoom_commands({commands:{register:()=>()=>{}}},{ClientCommand:{zoomIn:()=>host_zoom++,zoomOut:()=>host_zoom--}});void 0;`);
   check('1000轮解析与协议边界',await evaluate(`(()=>{const p=require('path').win32;for(let i=0;i<1000;i++){if(qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','sub/a%20b.md#标题').path!=='C:\\\\docs\\\\sub\\\\a b.md')return false;}return qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','#标题').hash==='#标题';})()`));
   await evaluate('link("target.md#target-heading")');
   check('Markdown标题定位并渲染',await evaluate(`view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('Target heading')`));
@@ -29,6 +31,13 @@ app.whenReady().then(async()=>{
   check('链接Markdown滑条比例与文字同步',await evaluate(`view.container.querySelector('.workspace-preview-scale-value').value==='115%'&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='115'`));
   await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:-120,bubbles:true,cancelable:true}))`);
   await new Promise(r=>setTimeout(r,20));check('链接滚轮同步滑条和百分比',await evaluate(`scale_slider.value==='120'&&view.container.querySelector('.workspace-preview-scale-value').value==='120%'`));
+  await evaluate(`window.isolated_second=qa.create_link_preview(files);document.body.append(isolated_second.container);isolated_second.show({source,href:'target.md'})`);
+  await evaluate(`window.other_scale=isolated_second.container.querySelector('.workspace-lookup-preview').dataset.previewScale;window.main_text=document.querySelector('#write').innerHTML;view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:120,bubbles:true,composed:true,cancelable:true}))`);await new Promise(r=>setTimeout(r,50));
+  check('Shadow内部Ctrl滚轮只修改命中实例',await evaluate(`host_zoom===0&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='115'&&isolated_second.container.querySelector('.workspace-lookup-preview').dataset.previewScale===other_scale&&document.querySelector('#write').innerHTML===main_text`));
+  const preview_point=await evaluate(`(()=>{const r=view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+8)}})()`);
+  win.webContents.sendInputEvent({type:'mouseWheel',...preview_point,deltaY:120,modifiers:['control'],canScroll:true});await new Promise(r=>setTimeout(r,100));
+  check('真实Chromium鼠标命中预览而非主窗口',await evaluate(`host_zoom===0&&require('electron').webFrame.getZoomFactor()===1&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='120'&&isolated_second.container.querySelector('.workspace-lookup-preview').dataset.previewScale===other_scale`));
+  await evaluate('isolated_second.dispose()');
   await evaluate(`view.container.querySelector('[aria-label="打开源文件"]').click()`);
   check('显式打开源文件保留锚点',await evaluate(`opened.length===1&&opened[0].path.endsWith('target.md')&&opened[0].location.hash==='#target-heading'`));
   fs.writeFileSync(path.join(evidence,'target.md'),'# First\n\n[中文链接](%E4%B8%AD%E6%96%87.md#next) [锚点](#bottom) [引用][ref] [失败](missing.md)\n\n'+Array.from({length:70},(_,i)=>`段落 ${i} 阅读位置保持。\n\n`).join('')+'## Bottom\n\n结尾\n\n[ref]: 中文.md#next');
@@ -38,6 +47,13 @@ app.whenReady().then(async()=>{
   const travel=async key=>{await evaluate(`view.container.querySelector('.workspace-lookup-preview-body,.workspace-preview-directory-scroll').focus()`);win.webContents.sendInputEvent({type:'keyDown',keyCode:key,modifiers:['alt']});win.webContents.sendInputEvent({type:'keyUp',keyCode:key,modifiers:['alt']});await new Promise(r=>setTimeout(r,60));await idle();};
   await evaluate('link("target.md")');
   await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').scrollTop=450;window.before_scroll=view.container.querySelector('.workspace-lookup-preview-body').scrollTop;window.before_open_count=opened.length;`);
+  await evaluate(`window.preview_link=[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent==='中文链接');window.preview_range=document.createRange();preview_range.selectNodeContents(preview_link);getSelection().removeAllRanges();getSelection().addRange(preview_range);preview_link.click()`);await idle();
+  check('选中文字的普通单击不误跳转',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('target.md')`));
+  await evaluate(`preview_link.dispatchEvent(new MouseEvent('click',{ctrlKey:true,bubbles:true,composed:true,cancelable:true}))`);await idle();
+  check('Ctrl左键兼容且仍只在预览导航',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')&&opened.length===before_open_count`));
+  await travel('Left');await evaluate('getSelection().removeAllRanges()');
+  await evaluate(`[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent==='中文链接').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true,cancelable:true,clientX:150,clientY:100}));document.querySelector('[role=menuitem]').click()`);await idle();
+  check('右键跳转链接复用当前预览历史',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')&&!document.querySelector('[role=menu]')`));await travel('Left');
   await click_link('中文链接');
   check('预览内部中文相对链接和锚点导航且不打开标签',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')&&opened.length===before_open_count`));
   await travel('Left');
@@ -116,6 +132,19 @@ app.whenReady().then(async()=>{
   check('网页可运行布局脚本但无同源及宿主权限',await evaluate(`view.container.querySelector('iframe').getAttribute('sandbox')==='allow-scripts'&&preview_attack===0`));
   check('文件与关闭图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar]>.git-icon-button svg').length===3&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
   check('失败与被拒绝内嵌均有浏览器入口',await evaluate(`view.container.textContent.includes('浏览器')&&!!view.container.querySelector('[aria-label="在默认浏览器打开"]')`));
+  await evaluate(`window.web_unhandled=0;window.on_web_unhandled=()=>web_unhandled++;window.addEventListener('unhandledrejection',on_web_unhandled);window.original_browser=JSBridge.showInBrowser;JSBridge.showInBrowser=async()=>{throw Error('browser-open-test')};view.container.querySelector('[aria-label="在默认浏览器打开"]').click();`);await new Promise(r=>setTimeout(r,50));
+  check('默认浏览器启动失败由预览捕获不产生全局错误',await evaluate(`view.container.dataset.state==='error'&&view.container.textContent.includes('browser-open-test')&&web_unhandled===0`));
+  await evaluate(`JSBridge.showInBrowser=original_browser;window.removeEventListener('unhandledrejection',on_web_unhandled);`);
+  await evaluate(`window.web_before=document.querySelector('#write').innerHTML;window.detached_frame=view.container.querySelector('iframe');detached_frame.dispatchEvent(new Event('error'));`);
+  check('网页错误只显示在所属预览且正文不变',await evaluate(`view.container.querySelector('.workspace-link-web-status').textContent.includes('加载失败')&&detached_frame.dataset.loadState==='error'&&document.querySelector('#write').innerHTML===web_before&&web_opened.length===0`));
+  await evaluate(`link('target.md')`);
+  check('离开网页清理回调和旧frame',await evaluate(`!detached_frame.isConnected&&detached_frame.onload===null&&detached_frame.onerror===null`));
+  await evaluate(`[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')][0].dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true,cancelable:true}));link('中文.md')`);
+  check('新目标取消旧链接菜单',await evaluate(`!document.querySelector('[role=menu]')`));
+  for(const endpoint of ['/denied','/bad']){
+    await evaluate(`link(${JSON.stringify(url)}+${JSON.stringify(endpoint)})`);await new Promise(r=>setTimeout(r,100));
+    check('真实HTTP '+endpoint+'响应留在沙箱且无正文回退',await evaluate(`!!view.container.querySelector('iframe')&&view.container.querySelector('iframe').src.endsWith(${JSON.stringify(endpoint)})&&document.querySelector('#write').innerHTML===web_before&&web_opened.length===0&&view.container.textContent.includes('浏览器')`));
+  }
   await evaluate(`link(${JSON.stringify(url+'/slow')});link('target.md')`);await new Promise(r=>setTimeout(r,600));check('迟到网页不覆盖新目标',await evaluate(`!view.container.querySelector('iframe')&&view.container.querySelector('.workspace-lookup-markdown')!==null`));
   await evaluate(`link('javascript:alert(1)')`);check('拒绝执行协议',await evaluate(`view.container.dataset.state==='error'`));
   await evaluate(`window.commands=[];window.callbacks=new Map();window.leaves=[];window.previews=[];window.is_visible=true;window.File={editor:{nodeMap:{link_list:{getHrefByRef:()=> 'target.md'}}}};window.core={Notice:class{},WorkspaceView:class{constructor(leaf){this.leaf=leaf}},app:{workspace:{activeLeaf:{},eachLeaves:cb=>leaves.forEach(leaf=>{cb(leaf)})},commands:{run:(id,args)=>commands.push({id,args})},viewManager:{registerView:(id,fn)=>{callbacks.set(id,fn);return()=>callbacks.delete(id)}}}};window.binding=qa.bind_workspace_link_selection(core,files,()=>is_visible,r=>previews.push(r));window.select_link=()=>{const a=document.querySelector('#write a'),range=document.createRange();range.selectNodeContents(a);const s=getSelection();s.removeAllRanges();s.addRange(range);};select_link();`);
@@ -127,6 +156,6 @@ app.whenReady().then(async()=>{
   }
   await evaluate('is_visible=false;binding.reset();select_link()');await new Promise(r=>setTimeout(r,160));check('关闭自动预览不加载',await evaluate('previews.length===1'));
   for(let i=0;i<20;i++)await evaluate(`(()=>{const uri=commands.at(-1).args[0],leaf={state:{path:uri},parent:{removeTab(){}}};const v=callbacks.get('linux_note.link_preview')(leaf);leaf.view=v;leaves.push(leaf);document.body.append(v.containerEl);v.onOpen();leaves.pop();v.onClose();v.containerEl.remove();})()`);
-  await evaluate('binding.dispose();view.dispose()');check('销毁释放视图注册和Monaco',await evaluate(`callbacks.size===0&&qa.monaco.editor.getEditors().length===0`));
+  await evaluate('binding.dispose();view.dispose();zoom_binding.dispose()');check('销毁释放视图注册和Monaco',await evaluate(`callbacks.size===0&&qa.monaco.editor.getEditors().length===0`));
   fs.writeFileSync(path.join(evidence,'checks.json'),JSON.stringify({status:'PASS',checks,split_cycles:20},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,evidence}));
 }).catch(error=>{console.error(error);process.exitCode=1;fs.writeFileSync(path.join(evidence,'error.txt'),String(error.stack));}).finally(()=>{win?.destroy();server?.close();app.exit(process.exitCode||0);});

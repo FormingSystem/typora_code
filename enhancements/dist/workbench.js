@@ -162336,7 +162336,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function reading_wheel_root(event) {
     if (event.defaultPrevented || !wheel_zoom_direction(event)) return;
-    const target = event.composedPath()[0];
+    const path = event.composedPath();
+    if (path.some((node) => node instanceof Element && node.matches(".workspace-link-preview,.workspace-lookup-preview"))) return;
+    const target = path[0];
     if (!(target instanceof Element)) return;
     if (target.closest('pre,code,.md-fences,.md-diagram,.md-math,.md-inline-math,.md-htmlblock,.md-image,.md-video,.md-audio,.md-rawblock,.CodeMirror,.monaco-editor,.mermaid,svg,canvas,img,picture,video,audio,iframe,webview,a,button,input,textarea,select,[role="button"],.workspace-link-preview,.workspace-lookup-preview')) return;
     const root = target.closest("#write,.typ-markdown-preview");
@@ -237703,6 +237705,7 @@ https://creativecommons.org/licenses/by/4.0/
       reflow.capture();
     };
     const show2 = async (file, match2, hash2 = "", live = false) => {
+      close_menu?.();
       const request = ++generation;
       selected = { file, match: match2 };
       body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8\uFF1A".concat(file.relative_path, "\uFF0C\u884C ").concat(match2.line, "\uFF0C\u5217 ").concat(match2.column));
@@ -237765,17 +237768,36 @@ https://creativecommons.org/licenses/by/4.0/
         return false;
       }
     };
+    let close_menu;
+    const link_at = (event) => (event.target instanceof Element ? event.target : event.target instanceof Node ? event.target.parentElement : null)?.closest("[data-preview-href]");
+    const selected_link_text = () => {
+      const selection = shadow.getSelection?.() || window.getSelection();
+      return !!selection && !selection.isCollapsed && !!selection.anchorNode && reader.contains(selection.anchorNode);
+    };
     const follow_link = (event) => {
       if (event instanceof KeyboardEvent && event.key !== "Enter") return;
-      const link3 = (event.target instanceof Element ? event.target : event.target instanceof Node ? event.target.parentElement : null)?.closest("[data-preview-href]");
+      const link3 = link_at(event);
       if (!link3 || !reader.contains(link3) || !options2.navigate) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event instanceof MouseEvent && event.button !== 0 || event instanceof KeyboardEvent && event.repeat) return;
+      if (disposed || event.altKey || event.shiftKey || event.ctrlKey && event.metaKey || event instanceof MouseEvent && (event.button !== 0 || !event.ctrlKey && !event.metaKey && selected_link_text()) || event instanceof KeyboardEvent && event.repeat) return;
       options2.navigate(link3.dataset.previewHref);
+    };
+    const context_link = (event) => {
+      const link3 = link_at(event);
+      if (!link3 || !reader.contains(link3) || !options2.navigate || disposed) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const href = link3.dataset.previewHref, version = generation;
+      close_menu = workspace_menu(event, [{ title: "\u8DF3\u8F6C\u94FE\u63A5", action: () => {
+        if (!disposed && version === generation) options2.navigate(href);
+      } }], "workspace-menu-compact", () => {
+        close_menu = void 0;
+      });
     };
     reader.addEventListener("click", follow_link);
     reader.addEventListener("keydown", follow_link);
+    reader.addEventListener("contextmenu", context_link);
     const capture_position2 = () => {
       const anchor = capture_reflow_anchor(body, reader), path = [];
       if (anchor) {
@@ -237818,6 +237840,7 @@ https://creativecommons.org/licenses/by/4.0/
     resize_observer.observe(body);
     apply_scale();
     const clear = () => {
+      close_menu?.();
       generation++;
       code_copy2.reconcile([]);
       selected = void 0;
@@ -237828,6 +237851,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     return { container, show: show2, clear, reveal_match, capture_position: capture_position2, restore_position, focus: () => body.focus({ preventScroll: true }), get_scale: () => scale, set_scale, dispose() {
       disposed = true;
+      close_menu?.();
+      reader.removeEventListener("contextmenu", context_link);
       reader.removeEventListener("click", follow_link);
       reader.removeEventListener("keydown", follow_link);
       code_copy2.dispose();
@@ -243896,6 +243921,42 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_preview_web.ts
+  function create_preview_web(url) {
+    const frame3 = workspace_element("iframe", "workspace-link-web"), status2 = workspace_element("div", "workspace-link-web-status");
+    frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
+    frame3.setAttribute("sandbox", "allow-scripts");
+    frame3.referrerPolicy = "no-referrer";
+    status2.setAttribute("role", "status");
+    status2.textContent = "\u6B63\u5728\u52A0\u8F7D\u7F51\u9875\uFF1B\u82E5\u7AD9\u70B9\u7981\u6B62\u5185\u5D4C\uFF0C\u53EF\u7528\u4E0A\u65B9\u56FE\u6807\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002";
+    let disposed = false;
+    const report = (state, text3) => {
+      if (disposed) return;
+      frame3.dataset.loadState = state;
+      status2.textContent = text3;
+    };
+    const timer = window.setTimeout(() => report("waiting", "\u7F51\u9875\u4ECD\u5728\u7B49\u5F85\u54CD\u5E94\u3002\u53EF\u5728\u5F53\u524D\u9884\u89C8\u91CD\u65B0\u52A0\u8F7D\uFF0C\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002"), 15e3);
+    frame3.dataset.loadState = "loading";
+    frame3.onload = () => {
+      clearTimeout(timer);
+      report("loaded", "\u7F51\u9875\u5DF2\u7ED3\u675F\u52A0\u8F7D\uFF1B\u82E5\u4E3A\u7A7A\u767D\u6216\u663E\u793A\u8FDE\u63A5\u9519\u8BEF\uFF0C\u53EF\u80FD\u662F\u7F51\u7EDC\u6216\u7AD9\u70B9\u7981\u6B62\u5185\u5D4C\uFF0C\u53EF\u91CD\u65B0\u52A0\u8F7D\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
+    };
+    frame3.onerror = () => {
+      clearTimeout(timer);
+      report("error", "\u7F51\u9875\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u5728\u5F53\u524D\u9884\u89C8\u91CD\u8BD5\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
+    };
+    frame3.src = url;
+    return { frame: frame3, status: status2, dispose() {
+      if (disposed) return;
+      disposed = true;
+      clearTimeout(timer);
+      frame3.onload = null;
+      frame3.onerror = null;
+      frame3.remove();
+      status2.remove();
+    } };
+  }
+
   // src/workspace_link_target.ts
   function resolve_preview_link(path_api, source, href) {
     const raw = href.trim().replace(/^<(.*)>$/u, "$1");
@@ -243973,6 +244034,7 @@ https://creativecommons.org/licenses/by/4.0/
     message.setAttribute("role", "status");
     const runtime2 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
     const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
+    let web;
     let target, request, failed_request, generation = 0, disposed = false;
     let reader, pending_reader, pending_stage;
     let directory, pending_directory, directories = [];
@@ -243982,9 +244044,11 @@ https://creativecommons.org/licenses/by/4.0/
       if (last) void navigate(path_request(last.path));
     }, "workspace-preview-directory-return");
     return_directory.hidden = true;
+    container.tabIndex = -1;
     const focus = () => {
       if (directory) directory.focus();
-      else reader?.focus();
+      else if (reader) reader.focus();
+      else container.focus({ preventScroll: true });
     };
     const scale = create_preview_scale_controls({ container, get_scale: () => reader?.get_scale() || 80, set_scale: (value) => reader?.set_scale(value) });
     scale.container.hidden = true;
@@ -244000,7 +244064,7 @@ https://creativecommons.org/licenses/by/4.0/
       open.disabled = true;
       try {
         if (target?.kind === "file") await files.open_file(target.path, { hash: target.hash });
-        else if (target?.kind === "web") runtime2.JSBridge?.showInBrowser?.(target.url);
+        else if (target?.kind === "web") await runtime2.JSBridge?.showInBrowser?.(target.url);
       } catch (error) {
         if (!disposed && version === generation) fail(error);
       } finally {
@@ -244034,6 +244098,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const clear = () => {
       cancel_pending();
+      web?.dispose();
+      web = void 0;
       history.clear();
       reader?.dispose();
       reader = void 0;
@@ -244081,6 +244147,7 @@ https://creativecommons.org/licenses/by/4.0/
         title.title = value.href;
         open.disabled = true;
       }
+      let next_web;
       let next, next_directory;
       const stage = workspace_element("div", "workspace-link-preview-stage");
       stage.style.cssText = "position:absolute;inset:0;visibility:hidden;display:flex;min-height:0";
@@ -244121,26 +244188,18 @@ https://creativecommons.org/licenses/by/4.0/
             if (!ok2) throw new Error(next.container.textContent || "\u65E0\u6CD5\u8BFB\u53D6\u94FE\u63A5\u76EE\u6807\u3002");
           }
         } else {
-          const frame3 = workspace_element("iframe", "workspace-link-web");
-          frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
-          frame3.setAttribute("sandbox", "allow-scripts");
-          frame3.referrerPolicy = "no-referrer";
-          frame3.src = resolved.url;
-          const status2 = workspace_element("div", "workspace-link-web-status", "\u6B63\u5728\u52A0\u8F7D\u7F51\u9875\uFF1B\u82E5\u7AD9\u70B9\u7981\u6B62\u5185\u5D4C\uFF0C\u53EF\u7528\u4E0A\u65B9\u56FE\u6807\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
-          frame3.onload = () => {
-            if (!disposed && version === generation) status2.textContent = "\u7F51\u9875\u7531\u7AD9\u70B9\u63D0\u4F9B\uFF1B\u82E5\u5185\u5BB9\u4E0D\u53EF\u663E\u793A\uFF0C\u8BF7\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002";
-          };
-          frame3.onerror = () => {
-            if (!disposed && version === generation) status2.textContent = "\u7F51\u9875\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u6216\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002";
-          };
-          stage.append(frame3, status2);
+          next_web = create_preview_web(resolved.url);
+          stage.append(next_web.frame, next_web.status);
         }
         if (disposed || version !== generation) {
+          next_web?.dispose();
           next?.dispose();
           next_directory?.dispose();
           stage.remove();
           return false;
         }
+        web?.dispose();
+        web = next_web;
         reader?.dispose();
         directory?.dispose();
         reader = next;
@@ -244170,6 +244229,7 @@ https://creativecommons.org/licenses/by/4.0/
         container.dataset.state = "ready";
         return true;
       } catch (error) {
+        next_web?.dispose();
         next?.dispose();
         next_directory?.dispose();
         stage.remove();
@@ -244694,6 +244754,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092313,
+        version: "2026.09.23.13",
+        date: "2026-09-23",
+        notes: [
+          "\u4FEE\u590D\u9884\u89C8\u6B63\u6587Ctrl+\u6EDA\u8F6E\u8BEF\u89E6\u53D1\u4E3B\u7A97\u53E3\u7F29\u653E\uFF0C\u6D6E\u52A8\u3001\u641C\u7D22\u548C\u5206\u5C4F\u9884\u89C8\u6309\u5404\u81EA\u5B9E\u4F8B\u8C03\u6574\u6BD4\u4F8B\u5E76\u4FDD\u6301\u9605\u8BFB\u4F4D\u7F6E\u3002",
+          "\u9884\u89C8\u94FE\u63A5\u517C\u5BB9\u666E\u901A\u5355\u51FB\u3001Ctrl+\u5DE6\u952E\u548C\u53F3\u952E\u8DF3\u8F6C\uFF0C\u62D6\u9009\u6587\u5B57\u4E0D\u8BEF\u8DF3\u8F6C\uFF1B\u7F51\u9875\u7B49\u5F85\u3001\u5931\u8D25\u53CA\u9000\u51FA\u6E05\u7406\u9650\u5B9A\u5728\u5F53\u524D\u9884\u89C8\u3002"
+        ]
+      },
       {
         sequence: 2026092312,
         version: "2026.09.23.12",

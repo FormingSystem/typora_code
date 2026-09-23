@@ -5843,7 +5843,8 @@
         "R069.1",
         "R069.3",
         "R069.6",
-        "R069.7"
+        "R069.7",
+        "R069.8"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5854,7 +5855,10 @@
         "enhancements/src/workspace_link_dock.ts",
         "enhancements/src/reading_reflow.ts",
         "enhancements/src/workspace_preview_scale.ts",
-        "enhancements/src/workspace_preview_directory.ts"
+        "enhancements/src/workspace_preview_directory.ts",
+        "enhancements/src/workspace_lookup_preview.ts",
+        "enhancements/src/workspace_preview_web.ts",
+        "enhancements/src/workspace_wheel_zoom.ts"
       ],
       "related_modules": [
         "search",
@@ -5868,7 +5872,8 @@
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
         "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。",
-        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。"
+        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。",
+        "R069.8：Shadow内部composed滚轮与全局缩放同时绑定；多实例/主正文隔离，真实鼠标命中及三种预览链接动作。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
@@ -5892,7 +5897,8 @@
         "R069.4",
         "R069.5",
         "R069.6",
-        "R069.7"
+        "R069.7",
+        "R069.8"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5904,7 +5910,10 @@
         "enhancements/src/reading_reflow.ts",
         "enhancements/src/workspace_sidebar_sash.css",
         "enhancements/src/workspace_preview_scale.ts",
-        "enhancements/src/workspace_preview_directory.ts"
+        "enhancements/src/workspace_preview_directory.ts",
+        "enhancements/src/workspace_lookup_preview.ts",
+        "enhancements/src/workspace_preview_web.ts",
+        "enhancements/src/workspace_wheel_zoom.ts"
       ],
       "related_modules": [
         "search",
@@ -5918,7 +5927,8 @@
       "steps": [
         "真实Markdown选区与原生/阅读栏右键、20次左右/上下分屏打开关闭；明暗与缩放；精确断言数以当次证据为准",
         "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。",
-        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。"
+        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。",
+        "R069.8：原生Shadow内部滚轮与主窗口比例隔离，三种链接操作及真实Chromium网页/拒绝内嵌、局部错误与回退清理。"
       ],
       "expected": [
         "来源选区和正文保持、只读、可打开源文件、按钮完整、预览标签无残留",
@@ -6544,7 +6554,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R014.1"
+        "R014.1",
+        "R069.8"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -6568,7 +6579,8 @@
       "environment": "隐藏Electron43、真实xterm/滚轮；临时配置与模拟宿主命令",
       "preconditions": "独立用户目录，不启动用户Shell或访问用户正文",
       "steps": [
-        "验证字号同步、历史锚点、普通正文/嵌入控件路由、连续1000事件及销毁"
+        "验证字号同步、历史锚点、普通正文/嵌入控件路由、连续1000事件及销毁",
+        "R069.8：Shadow内部composed滚轮与全局缩放同时绑定；多实例/主正文隔离，真实鼠标命中及三种预览链接动作。"
       ],
       "expected": [
         "命中终端改变字号、正文调用唯一窗口命令；定位保持且排除区域不抢占"

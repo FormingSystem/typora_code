@@ -1,3 +1,4 @@
+import {create_preview_web} from './workspace_preview_web';
 import type {workspace_file_host} from "./workspace_files";
 import {create_lookup_preview} from "./workspace_lookup_preview";
 import {resolve_preview_link,type workspace_link_target} from "./workspace_link_target";
@@ -21,23 +22,25 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const content=el("div","workspace-link-preview-content"),message=el('p','workspace-lookup-preview-message');message.hidden=true;message.setAttribute('role','status');
   const runtime=window as any,interaction=acquire_workspace_interaction(container),history=create_reading_history();
   const style=acquire_workspace_style('typora-code-style:workspace_lookup_preview',preview_css,{});
+  let web:ReturnType<typeof create_preview_web>|undefined;
   let target:workspace_link_target|undefined,request:workspace_link_request|undefined,failed_request:workspace_link_request|undefined,generation=0,disposed=false;
   let reader:preview_reader|undefined,pending_reader:preview_reader|undefined,pending_stage:HTMLElement|undefined;
   let directory:ReturnType<typeof create_preview_directory>|undefined,pending_directory:ReturnType<typeof create_preview_directory>|undefined,directories:directory_location[]=[];
   const path_request=(path:string):workspace_link_request=>({source:path,href:encodeURI(path.replace(/\\/gu,'/')).replace(/#/gu,'%23')});
   const return_directory=workspace_button('',()=>{const last=directories.at(-1);if(last)void navigate(path_request(last.path));},'workspace-preview-directory-return');return_directory.hidden=true;
-  const focus=()=>{if(directory)directory.focus();else reader?.focus();};
+  container.tabIndex=-1;
+  const focus=()=>{if(directory)directory.focus();else if(reader)reader.focus();else container.focus({preventScroll:true});};
   const scale=create_preview_scale_controls({container,get_scale:()=>reader?.get_scale()||80,set_scale:value=>reader?.set_scale(value)});
   scale.container.hidden=true;
   const sync_scale=()=>{const value=String(reader?.get_scale()||80);if(container.dataset.previewScale!==value)container.dataset.previewScale=value;};
   const scale_observer=new MutationObserver(sync_scale);scale_observer.observe(content,{subtree:true,attributes:true,attributeFilter:['data-preview-scale']});
-  const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")runtime.JSBridge?.showInBrowser?.(target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
+  const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")await runtime.JSBridge?.showInBrowser?.(target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
   const retry=git_icon_button("refresh","重新加载",()=>{const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
   const fail=(error:unknown)=>{message.textContent=String(error);message.hidden=false;container.dataset.state="error";};
   toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,scale.container,open,retry);container.append(toolbar,return_directory,message,content);
   if(options.close)toolbar.append(git_icon_button('close','关闭链接预览',options.close));
   const cancel_pending=()=>{++generation;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
-  const clear=()=>{cancel_pending();history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
+  const clear=()=>{cancel_pending();web?.dispose();web=undefined;history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
   const capture=():reading_location|undefined=>{
     if(!target||!request)return;
     const position=reader?.capture_position();
@@ -52,6 +55,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     cancel_pending();if(disposed)return false;const version=generation;
     container.dataset.state="loading";message.textContent="正在加载链接预览…";message.hidden=false;failed_request=undefined;
     if(!target){title.textContent=value.href;title.title=value.href;open.disabled=true;}
+    let next_web:ReturnType<typeof create_preview_web>|undefined;
     let next:preview_reader|undefined,next_directory:ReturnType<typeof create_preview_directory>|undefined;
     const stage=el('div','workspace-link-preview-stage');stage.style.cssText='position:absolute;inset:0;visibility:hidden;display:flex;min-height:0';pending_stage=stage;content.append(stage);
     try{
@@ -71,13 +75,10 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
         if(!ok)throw new Error(next.container.textContent||'无法读取链接目标。');
         }
       }else{
-        const frame=el("iframe","workspace-link-web");frame.title="网页只读预览";frame.setAttribute("sandbox","allow-scripts");frame.referrerPolicy="no-referrer";frame.src=resolved.url;
-        const status=el("div","workspace-link-web-status","正在加载网页；若站点禁止内嵌，可用上方图标在浏览器打开。");
-        frame.onload=()=>{if(!disposed&&version===generation)status.textContent="网页由站点提供；若内容不可显示，请在浏览器打开。";};
-        frame.onerror=()=>{if(!disposed&&version===generation)status.textContent="网页加载失败，请重试或在浏览器打开。";};stage.append(frame,status);
+        next_web=create_preview_web(resolved.url);stage.append(next_web.frame,next_web.status);
       }
-      if(disposed||version!==generation){next?.dispose();next_directory?.dispose();stage.remove();return false;}
-      reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
+      if(disposed||version!==generation){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
+      web?.dispose();web=next_web;reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
       target=resolved;request={...value};message.hidden=true;
       if(restore?.position)reader?.restore_position(restore.position);
       if(directory_position)directory?.restore_position(directory_position);
@@ -85,7 +86,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       title.textContent=resolved.kind==="file"?files.path_api.basename(resolved.path):new URL(resolved.url).hostname;title.title=resolved.kind==='file'?resolved.path+resolved.hash:resolved.url;
       open.title=resolved.kind==="file"?"打开源文件":"在默认浏览器打开";open.setAttribute("aria-label",open.title);open.disabled=!!directory||(resolved.kind==="web"&&!runtime.JSBridge?.showInBrowser);
       scale.container.hidden=resolved.kind!=='file'||!!directory;sync_scale();container.dataset.state="ready";return true;
-    }catch(error){next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);}return false;}
+    }catch(error){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);}return false;}
   };
   const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}};
   const travel=async(direction:-1|1)=>{

@@ -27,7 +27,8 @@
    assert(slider&&output,label+'有缩放滑条和百分比');
    for(const percent of [50,80,125,150]){slider.value=String(percent);slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);assert(output.value===percent+'%'&&panel.querySelector('.workspace-lookup-preview').dataset.previewScale===String(percent),label+'比例同步 '+percent);}
    const b=panel.getBoundingClientRect(),sb=slider.getBoundingClientRect(),ob=output.getBoundingClientRect();assert(sb.width>=48&&ob.width>=34&&sb.left>=b.left&&ob.right<=b.right+1,label+'滑条及百分比完整可见');
-   panel.querySelector('.workspace-lookup-preview-body').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:120,bubbles:true,cancelable:true}));await pause(40);assert(slider.value==='145'&&output.value==='145%',label+'滚轮同步');
+   const zoom_before=reqnode('electron').webFrame.getZoomFactor(),main_font=getComputedStyle(document.querySelector('#write')).fontSize;
+   panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:120,bubbles:true,composed:true,cancelable:true}));await pause(100);assert(reqnode('electron').webFrame.getZoomFactor()===zoom_before&&getComputedStyle(document.querySelector('#write')).fontSize===main_font,label+'Shadow滚轮不影响主窗口缩放');assert(slider.value==='145'&&output.value==='145%',label+'滚轮同步');
    slider.value='80';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);
   };
   await verify_scale(sidebar,'独立预览');
@@ -38,6 +39,11 @@
   await pause(180);main_events=0;
   const main_before={file:File.bundle.filePath,top:document.querySelector('content').scrollTop,cursor:JSON.stringify(File.editor.selection.buildUndo())};
   preview_body().scrollTop=260;await pause(100);const saved_top=preview_body().scrollTop;
+  const preview_link=()=>[...nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent==='下一页');
+  const selected_preview_range=document.createRange();selected_preview_range.selectNodeContents(preview_link());getSelection().removeAllRanges();getSelection().addRange(selected_preview_range);preview_link().click();await pause(100);assert(preview_body().dataset.previewPath===target,'原始宿主拖选链接文字不误跳转');
+  preview_link().dispatchEvent(new MouseEvent('click',{ctrlKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>nav_panel.dataset.state==='ready','Ctrl导航未完成');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原始宿主Ctrl左键预览导航');await travel(-1);
+  preview_link().dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true,cancelable:true,clientX:160,clientY:300}));
+  const menu_item=[...document.querySelectorAll('[role=menuitem]')].find(node=>node.textContent==='跳转链接');assert(menu_item,'原始宿主预览右键提供跳转');menu_item.click();await wait(()=>nav_panel.dataset.state==='ready','菜单导航未完成');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原始宿主右键导航');await travel(-1);
   await follow('下一页');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生预览内部链接导航');
   await travel(-1);assert(preview_body().dataset.previewPath===target&&Math.abs(preview_body().scrollTop-saved_top)<3,'原生Alt左恢复文件及滚动');
   await travel(1);assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生Alt右恢复目标');await travel(-1);
@@ -45,6 +51,22 @@
   await follow('文内');assert(nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('目标标题'),'原生文内标题导航');await travel(-1);
   await follow('失败');assert(nav_panel.dataset.state==='error'&&preview_body().dataset.previewPath===target,'原生失败保留正文');
   fs.writeFileSync(path.join(base,'workspace/missing.md'),'# 重试成功');nav_panel.querySelector('[aria-label="重新加载"]').click();await wait(()=>nav_panel.dataset.state==='ready','重试失败');assert(preview_body().dataset.previewPath.endsWith('missing.md'),'失败目标修复后重试成功');await travel(-1);assert(preview_body().dataset.previewPath===target,'重试成功仍可返回');
+  // 本地真实网页/拒绝内嵌，在原宿主中确认错误不会打开主文档。
+  const server=reqnode('http').createServer((request,response)=>{if(request.url==='/denied')response.setHeader('Content-Security-Policy',"frame-ancestors 'none'");response.setHeader('Content-Type','text/html');response.end('<h1>Web preview</h1><script>parent.postMessage({preview_native:true,node:typeof require},"*")<'+ '/script>');});
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  let web_message;const web_event=event=>{if(event.data?.preview_native)web_message={origin:event.origin,node:event.data.node};};window.addEventListener('message',web_event);
+  try{
+   const base_url='http://127.0.0.1:'+server.address().port;
+   for(const endpoint of ['/page','/denied']){
+    const shadow_reader=nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('#write'),web_link=document.createElement('a');web_link.dataset.previewHref=base_url+endpoint;web_link.textContent='网页';shadow_reader.append(web_link);
+    web_link.dispatchEvent(new MouseEvent('click',{ctrlKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>!!nav_panel.querySelector('iframe'),'网页未进入预览');await pause(300);
+    assert(nav_panel.querySelector('iframe').src===base_url+endpoint&&File.bundle.filePath===main_before.file,'网页'+endpoint+'只进入当前预览');
+    assert(nav_panel.querySelector('iframe').getAttribute('sandbox')==='allow-scripts','网页隔离权限'+endpoint);
+    if(endpoint==='/page'){await wait(()=>web_message,'网页脚本未执行');assert(web_message.node==='undefined'&&web_message.origin==='null','原始宿主真实Chromium网页无Node及同源权限');}
+    const old_frame=nav_panel.querySelector('iframe');old_frame.dispatchEvent(new Event('error'));assert(nav_panel.textContent.includes('网页加载失败')&&File.bundle.filePath===main_before.file,'网页失败仅当前预览提示'+endpoint);
+    nav_panel.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',altKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>!!preview_body(),'网页回退失败');await pause(100);assert(old_frame.onload===null&&old_frame.onerror===null&&!old_frame.isConnected,'离开网页释放回调'+endpoint);
+   }
+  }finally{window.removeEventListener('message',web_event);server.close();}
   await follow('目录');assert(nav_panel.querySelector('.workspace-preview-directory').dataset.directoryPath===directory_path,'原生目录链接在预览列出当前子项');
   assert(nav_panel.querySelector('[aria-label="打开源文件"]').disabled,'原生目录不误作文件打开');
   const dir_wait=async()=>{await wait(()=>nav_panel.dataset.state!=='loading','目录导航超时');await pause(120);};

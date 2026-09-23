@@ -56,6 +56,11 @@ app.whenReady().then(async()=>{
  await check('frame.getZoomLevel()===1&&zoom_calls===1','plain paragraph delegates exactly one host window zoom');
  await check('(()=>{const r=document.createRange();r.setStart(anchor.node,anchor.offset);r.setEnd(anchor.node,anchor.offset+1);return Math.abs(r.getBoundingClientRect().top-scroller.getBoundingClientRect().top-anchor.top)<3})()','body keeps reading character in viewport after zoom');
  await read('frame.setZoomLevel(0)');await pause(100);
+ // Shadow正文的事件会穿过document捕获监听，必须先识别外层预览所有者。
+ for(const kind of ['workspace-link-preview','workspace-lookup-preview']){
+  await read(`window.before_preview_calls=zoom_calls;window.preview_root=document.createElement('section');preview_root.className='${kind}';document.body.append(preview_root);window.preview_shadow=preview_root.attachShadow({mode:'open'});preview_shadow.innerHTML='<article id="write"><p>Preview text</p></article>';window.preview_wheels=0;preview_root.addEventListener('wheel',e=>{preview_wheels++;e.preventDefault();e.stopImmediatePropagation();},{capture:true,passive:false});preview_shadow.querySelector('p').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:-120,bubbles:true,composed:true,cancelable:true}));`);await pause(100);
+  await check('zoom_calls===before_preview_calls&&preview_wheels===1',kind+' composed Shadow wheel stays with preview, not host');await read('preview_root.remove()');
+ }
  const excluded=['<pre class="md-fences"><span>code</span></pre>','<p><code>inline code</code></p>','<p><img></p>','<p><video></video></p>','<div class="md-diagram"><p>mermaid</p></div>','<p><a href="#">link</a></p>','<p><input></p>','<p><span class="md-inline-math">math</span></p>'];
  for(const markup of excluded)await check(`(()=>{const x=document.createElement('div');x.innerHTML=${JSON.stringify(markup)};root.append(x);const result=wheel(x.querySelector('span,code,img,video,a,input')||x.querySelector('p'));x.remove();return !result})()`,'excluded child keeps gesture '+markup);
  await read('window.before_calls=zoom_calls;for(let i=0;i<1000;i++)wheel(document.querySelector("#p10"))');await pause(140);
