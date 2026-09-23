@@ -1367,7 +1367,8 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R034.4"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -1912,7 +1913,8 @@
       "purpose": "implementation",
       "requirements": [
         "R034",
-        "R043"
+        "R043",
+        "R034.4"
       ],
       "design": "docs/editor_header.md",
       "implementation": [
@@ -6904,7 +6906,8 @@
         "R034.1",
         "R034.2",
         "R034.3",
-        "R067.1"
+        "R067.1",
+        "R034.4"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7143,6 +7146,40 @@
         "31个标签恢复，首屏不被后台文件替换，未编辑不产生脏状态"
       ],
       "timeout_ms": 420000
+    },
+    {
+      "id": "TC-git-029",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R034.4"
+      ],
+      "design": "docs/git_markdown_diff.md",
+      "implementation": [
+        "enhancements/src/git_diff_source.ts",
+        "enhancements/src/git_scm_history.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/workspace_breadcrumbs.ts",
+        "enhancements/src/workspace_virtual_list.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "breadcrumbs",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_diff_source.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

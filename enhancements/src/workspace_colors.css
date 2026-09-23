@@ -34,6 +34,8 @@
   --workspace-ui-elevated:#FFFFFF;
   --workspace-ui-focus:#005FB8;
   --workspace-ui-selection:#E8E8E8;
+  --vscode-list-activeSelectionBackground:#E8E8E8;
+  --vscode-list-activeSelectionForeground:#000000;
   --workspace-ui-hover:#F2F2F2;
 }
 :root[data-workspace-colors=dark] {
@@ -70,6 +72,8 @@
   --workspace-ui-elevated:#1F1F1F;
   --workspace-ui-focus:#0078D4;
   --workspace-ui-selection:#37373D;
+  --vscode-list-activeSelectionBackground:#04395E;
+  --vscode-list-activeSelectionForeground:#FFFFFF;
   --workspace-ui-hover:#2A2D2E;
 }
 :root[data-workspace-colors] {

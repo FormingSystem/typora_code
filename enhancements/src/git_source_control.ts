@@ -1,3 +1,4 @@
+import {bind_git_source_row,sync_git_source_rows,git_diff_source_key,type git_diff_source} from './git_diff_source';
 import {project_git_changes,same_git_changes,sort_git_changes} from './git_status_snapshot';
 import {workspace_tree_rows} from "./workspace_tree_rows";
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
@@ -38,7 +39,9 @@ export class git_source_control {
   load_epoch = 0; groups_epoch = 0; tree = false; groups_state: change_group[] = [];
   private groups_layout_changed = true;
   private virtual_lists: {dispose(): void}[] = [];
-  private selected_file = "";
+  private change_revealers:((source:git_diff_source)=>HTMLElement|undefined)[]=[];
+  private source_subscription?:()=>void;
+  sync_source_selection(){const source=this.panel.host.diff_source?.();sync_git_source_rows(this.sidebar,source);sync_git_source_rows(this.panel.container,source);}
   private collapsed_directories = new Set<string>();
   private repository_view_state: "loading" | "empty" | "error" | "ready" = "loading";
   private empty_view = el("div", "git-scm-welcome");
@@ -53,6 +56,7 @@ export class git_source_control {
   update_read_controls():void{this.cancel_read.hidden=this.cancel_empty.hidden=!this.panel.pending||this.panel.writing||this.panel.installing_git;this.install_button.disabled=this.panel.pending;}
   private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
+    this.source_subscription=panel.host.core?.app?.workspace?.on?.("active-leaf:change",()=>this.sync_source_selection());
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
     const title_label=el("span", "git-scm-title-label", text("scm.source_control"));title_label.title=text("scm.source_control");this.title.append(title_label);
@@ -140,7 +144,7 @@ export class git_source_control {
     (ready ? this.changes_body : this.empty_view).append(this.notice);
     this.apply_history_layout();
   }
-  clear_changes(): void { this.groups_epoch++; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups_state = []; this.groups.replaceChildren(); }
+  clear_changes(): void { this.groups_epoch++; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups_state = [];this.change_revealers=[]; this.groups.replaceChildren(); }
   storage_key(suffix: string): string { return "linux-note-source-control:v1:" + suffix + ":" + this.panel.root; }
   load_layout(): void {
     this.groups_layout_changed = true;
@@ -231,7 +235,7 @@ export class git_source_control {
     const sorted=await Promise.all(groups.map(group=>sort_git_changes(group.files,(a,b)=>this.sort_files(a,b))));
     if(epoch!==this.render_epoch||groups!==this.groups_state||this.panel.disposed)return;
     this.groups_layout_changed = false;
-    const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups.replaceChildren();
+    const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = [];this.change_revealers=[]; this.groups.replaceChildren();
     for (const group of this.groups_state) {
       const section = el("details", "git-scm-group"); section.setAttribute("data-scm-group", group.id); section.open = localStorage.getItem(this.storage_key("collapsed:" + group.id)) !== "true";
       section.ontoggle = () => localStorage.setItem(this.storage_key("collapsed:" + group.id), String(!section.open));
@@ -271,8 +275,8 @@ export class git_source_control {
         mini.dataset.scmFileAction=action;actions.append(mini);
         const status = el("span", "git-scm-file-status", file.status === "??" ? "U" : file.status); status.title = file.status; status.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
         row.append(label, actions, status);
-        row.classList.toggle("selected", this.selected_file === group.id + ":" + file.path);
-        row.onclick = () => { this.selected_file = group.id + ":" + file.path; for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected"); row.classList.add("selected"); void this.open_default_file(file, group.from, group.to, group.files); };
+        bind_git_source_row(row,{root:this.panel.root,from:group.from,to:group.to,file:file.path,old_path:file.old_path},this.panel.host.diff_source?.());
+        row.onclick = () => { void this.open_default_file(file, group.from, group.to, group.files); };
         row.onkeydown = event => { if (event.target === row && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); row.click(); } };
         row.oncontextmenu = event => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
         return row;
@@ -296,6 +300,7 @@ export class git_source_control {
           return row;
         }});
         this.virtual_lists.push(list);
+        this.change_revealers.push(source=>source.from===group.from&&source.to===group.to?list.reveal(item=>item.item?.path===source.file):undefined);
       }
       if (!group.files.length) section.append(el("div", "git-scm-empty", text("scm.no_changes")));
     }
@@ -370,6 +375,13 @@ export class git_source_control {
       this.panel.host.open_revision_document(root, revision, file, content, settings);
     } catch (error) { if (!this.panel.disposed && epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
   }
+  async reveal_change(source:git_diff_source,valid:()=>boolean){
+    this.show_changes=true;this.input_section.open=true;this.collapsed_directories.clear();this.apply_history_layout();this.save_layout();await this.render_groups();if(!valid())return;
+    for(const section of this.groups.querySelectorAll('details'))section.open=true;
+    let row:HTMLElement|undefined;for(const reveal of this.change_revealers)row ||= reveal(source);
+    row ||= [...this.groups.querySelectorAll<HTMLElement>('[data-git-source]')].find(node=>node.dataset.gitSource===git_diff_source_key(source));
+    if(!row)throw Error('该文件已不在对应变更组中。');row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.sync_source_selection();
+  }
   async open_file(file: graph_change, from: string, to: string, files: graph_change[] = [file]): Promise<void> {
     const epoch = ++this.load_epoch; const root = this.panel.root;
     this.panel.status.textContent = text("scm.opening_diff");
@@ -398,10 +410,12 @@ export class git_source_control {
             }catch(error){this.panel.report(error);throw error;}
           }
         }:{}),
+        source:{root,from,to,file:file.path,old_path:file.old_path},
         root, key: JSON.stringify([from, to, file.path]), menu: () => this.file_entries(file, from, to, files, root),
         refresh: () => { if (this.repository_action_available(root)) void this.open_file(file, from, to, files); },
         adjacent: direction => { if (!this.repository_action_available(root)) return; const index = files.findIndex(item => item.path === file.path); void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files); },
       });
+      this.sync_source_selection();
       // 侧栏历史可独立选择版本，不能把同名文件误记到中央页正在进行的另一场评审。
       if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);
       this.panel.status.textContent = `${file.path} · ${short_revision(from)} ↔ ${short_revision(to)}`;
@@ -467,5 +481,5 @@ export class git_source_control {
       {id: "settings", title: text("scm.settings"), action: () => panel.settings_dialog()},
     ]);
   }
-  dispose(): void {this.clear_changes();this.update_actions();this.input_actions.clear();this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
+  dispose(): void {this.source_subscription?.();this.clear_changes();this.update_actions();this.input_actions.clear();this.repositories.dispose(); this.interaction_style.remove();this.file_icon_style.remove(); this.load_epoch++; this.groups_epoch++; this.history.dispose(); this.message_resize.disconnect(); this.input_section.ontoggle = null; this.groups.onscroll = null; this.sidebar.remove(); this.sidebar.replaceChildren(); this.groups_state = []; }
 }

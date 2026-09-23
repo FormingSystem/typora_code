@@ -66,6 +66,7 @@ const ui_tests = Object.freeze([
   "test_reading_lifecycle.cjs",
   "test_reading_link_hover.cjs",
   "test_scm_history_layout.cjs",
+  "test_git_diff_source.cjs",
   "test_scm_file_icons.cjs",
   "test_scm_sidebar_layout.cjs",
   "test_scm_vscode_geometry.cjs",

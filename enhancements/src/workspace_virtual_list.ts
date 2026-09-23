@@ -42,6 +42,12 @@ export function create_workspace_virtual_list<T>(options: {
   schedule();
   return {
     refresh: schedule,
+    reveal(predicate:(item:T)=>boolean){
+      if(disposed)return;const index=items.findIndex(predicate);if(index<0)return;
+      root.style.height=items.length*row_height+"px";
+      const offset=root.getBoundingClientRect().top-scroller.getBoundingClientRect().top+scroller.scrollTop;
+      scroller.scrollTop=Math.max(0,offset+index*row_height-scroller.clientHeight/2);update();return rows.get(index);
+    },
     set_items(next: readonly T[]) { items = next; for (const row of rows.values()) row.remove(); rows.clear(); schedule(); },
     dispose() { disposed = true; cancelAnimationFrame(frame); resize.disconnect(); scroller.removeEventListener("scroll", schedule); scroller.removeEventListener("toggle", schedule, true); root.removeEventListener("keydown", keydown); for (const row of rows.values()) row.remove(); rows.clear(); },
   };

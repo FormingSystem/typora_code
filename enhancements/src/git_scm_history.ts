@@ -1,3 +1,6 @@
+import {bind_git_source_row,type git_diff_source} from './git_diff_source';
+import {parse_git_log} from './git_graph_data';
+import {require_revision} from './git_graph_repository';
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
 import {workspace_tree_rows} from "./workspace_tree_rows";
 import {git_scm_toolbar} from "./git_scm_toolbar";
@@ -20,7 +23,10 @@ export class git_scm_history {
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
   toolbar:git_scm_toolbar;
-  private file_lists = new Map<HTMLElement, {dispose(): void}>();
+  private file_lists = new Map<HTMLElement, {dispose(): void;reveal(predicate:(item:any)=>boolean):HTMLElement|undefined}>();
+  private revealed_commit?:graph_commit;
+  private comparison_from=new Map<string,string>();
+  private reveal_request=0;
   private clear_file_lists(): void { for (const list of this.file_lists.values()) list.dispose(); this.file_lists.clear(); }
   files_cache = new Map<string, graph_change[]>();
   hover:ReturnType<typeof bind_git_commit_hover>;
@@ -54,7 +60,7 @@ export class git_scm_history {
     if(id==="fetch"||id==="pull"||id==="push"||id==="sync")void this.owner.panel.network_action(id);
   }
   more_menu(event:MouseEvent):void{this.toolbar.more_menu(event);}
-  reset(): void { this.clear_file_lists(); this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear(); this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
+  reset(): void { this.clear_file_lists(); this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear();this.comparison_from.clear();this.revealed_commit=undefined;this.reveal_request++; this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
     if (!panel.state?.head) { panel.report(text("history.no_head")); return; }
@@ -72,6 +78,7 @@ export class git_scm_history {
   render(state: repository_state): void {
     this.clear_file_lists(); this.hover.hide();
     if (state.root !== this.root) this.reset();
+    if(this.revealed_commit&&!state.commits.some(commit=>commit.hash===this.revealed_commit!.hash))state={...state,commits:[this.revealed_commit,...state.commits]};
     const epoch = ++this.epoch; const panel = this.owner.panel; const scroll = this.list.scrollTop;
     this.container.dataset.historyAlwaysShowActions=String(panel.settings.history_always_show_actions);
     const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
@@ -87,7 +94,7 @@ export class git_scm_history {
     }
     for (const [index, commit] of state.commits.entries()) {
       const entry = el("div", "git-scm-history-entry"); const expanded = commit.hash === this.selected;
-      const row = button("", () => { this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
+      const row = button("", () => { this.reveal_request++;this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
       row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
       const names = [...(refs.get(commit.hash) || [])].sort((a, b) => Number(b === state.branch) - Number(a === state.branch));
       if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
@@ -118,7 +125,7 @@ export class git_scm_history {
       if (expanded) {
         const outgoing_lanes = Math.max(-1, ...graph_row.edges.filter(edge => !edge.upper).map(edge => edge.to)) + 1;
         const expansion = el("div", "git-scm-history-expansion"); expansion.style.setProperty("--git-history-lanes", (outgoing_lanes + 1) * HISTORY_LANE_WIDTH + "px");
-        const files = el("div", "git-scm-history-files"); files.dataset.commit = commit.hash;
+        const files = el("div", "git-scm-history-files"); files.dataset.commit = commit.hash;files.title=`${(this.comparison_from.get(commit.hash)||commit.parents[0]||EMPTY).slice(0,8)} ↔ ${commit.hash.slice(0,8)}`;
         expansion.append(this.continuation(graph_row, outgoing_lanes), files); entry.append(expansion);
         if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash)!);
         else { files.textContent = text("history.loading_files"); void this.load_files(state, commit, files, epoch); }
@@ -149,7 +156,7 @@ export class git_scm_history {
   }
   async load_files(state: repository_state, commit: graph_commit, target: HTMLElement, epoch: number): Promise<void> {
     try {
-      const files = await compare_files(this.owner.panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
+      const files = await compare_files(this.owner.panel.runner.run, state, this.comparison_from.get(commit.hash)||commit.parents[0] || EMPTY, commit.hash);
       if (epoch !== this.epoch || state.root !== this.root) return;
       this.files_cache.set(commit.hash, files); this.render_files(target, commit, files);
     } catch (error) { if (epoch === this.epoch) { target.textContent = String(error instanceof Error ? error.message : error); target.append(button(text("history.retry"), () => { const current = this.owner.panel.state; if (current) this.render(current); })); } }
@@ -168,7 +175,7 @@ export class git_scm_history {
   }
   render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
     this.file_lists.get(target)?.dispose(); this.file_lists.delete(target);
-    target.replaceChildren(); const from = commit.parents[0] || EMPTY;
+    target.replaceChildren(); const from = this.comparison_from.get(commit.hash)||commit.parents[0] || EMPTY;
     target.setAttribute("role", "group");
     target.setAttribute("aria-label", text("history.changed_files_aria", {count: files.length, parent: commit.parents.length > 1 ? text("history.first_parent_suffix") : ""}));
     const directories = new Map<string, HTMLElement>([["", target]]);
@@ -186,6 +193,7 @@ export class git_scm_history {
       const wrapper = el("div", "git-scm-history-file-row");
       const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
       row.dataset.workspaceInteraction="row";
+      bind_git_source_row(row,{root,from,to:commit.hash,file:file.path,old_path:file.old_path},this.owner.panel.host.diff_source?.());
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
       const label = git_file_label(file.path, !this.owner.history_tree, "git-scm-history-file-name");
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
@@ -212,5 +220,25 @@ export class git_scm_history {
       }}); this.file_lists.set(target, list);
     } else for (const file of sorted) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_row(file));
   }
-  dispose(): void { this.clear_file_lists(); this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
+  async reveal_source(source:git_diff_source,valid:()=>boolean):Promise<void>{
+    const request=++this.reveal_request,panel=this.owner.panel;
+    const active=()=>request===this.reveal_request&&valid()&&!panel.disposed&&panel.root===source.root;
+    let state=panel.state;if(!state||!active())return;
+    let commit=state.commits.find(item=>item.hash===source.to);
+    if(!commit){const reply=await panel.runner.run(source.root,['log','-1','--format=%H%x00%P%x00%an%x00%aI%x00%s','-z',require_revision(source.to),'--']);if(!active())return;commit=parse_git_log(reply)[0];if(!commit)throw Error('无法读取差异所属提交。');}
+    const files=await compare_files(panel.runner.run,state,source.from,source.to);if(!active())return;
+    if(!files.some(file=>file.path===source.file))throw Error('该比较中已找不到目标文件。');
+    if(!state.commits.some(item=>item.hash===commit!.hash))this.revealed_commit=commit;
+    this.files_cache.set(commit.hash,files);this.comparison_from.set(commit.hash,source.from);
+    this.selected=commit.hash;
+    for(const key of [...this.collapsed_directories])if(key.startsWith(commit.hash+':'))this.collapsed_directories.delete(key);
+    this.owner.history_open=true;this.owner.show_history=true;this.owner.apply_history_layout();this.owner.save_layout();this.render(state);
+    const target=[...this.list.querySelectorAll<HTMLElement>('[data-commit]')].find(node=>node.dataset.commit===commit!.hash);if(!target)return;
+    const virtual=this.file_lists.get(target);const wrapper=virtual?.reveal(item=>item.item?.path===source.file);
+    const row=wrapper?.querySelector<HTMLElement>('[data-history-file]')||[...target.querySelectorAll<HTMLElement>('[data-history-file]')].find(node=>node.dataset.historyFile===source.file);
+    if(!row)throw Error('目标文件尚未显示，请重试。');
+    for(let ancestor=row.parentElement;ancestor&&ancestor!==this.list;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
+    row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.owner.sync_source_selection();
+  }
+  dispose(): void {this.reveal_request++; this.clear_file_lists(); this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
 }

@@ -546,3 +546,17 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-markdown-overview[data-dragging=true] .git-markdown-overview-viewport{background:var(--workspace-scrollbar-active,#646464e0)}
 .git-markdown-overview:focus-visible{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}
+
+/* R034.4：当前比较的来源选择与展开/焦点独立；焦点离开仍保留选择。 */
+:is(.linux-note-git-source-control,.linux-note-git-graph) [data-git-source][data-git-source-selected=true] {
+  --git-source-background:var(--linux-note-shell-inactive-selection-background);
+  --git-source-foreground:var(--linux-note-shell-inactive-selection-foreground);
+  --git-scm-row-background:var(--git-source-background);
+  --workspace-interaction-hover:var(--git-source-background);
+  background:var(--git-source-background)!important;color:var(--git-source-foreground)!important;
+}
+:is(.git-scm-history-list,.git-scm-groups,.git-graph-files):focus-within [data-git-source][data-git-source-selected=true] {
+  --git-source-background:var(--vscode-list-activeSelectionBackground,#e8e8e8);
+  --git-source-foreground:var(--vscode-list-activeSelectionForeground,#000);
+}
+[data-git-source][data-git-source-selected=true]:focus-visible {outline:1px solid var(--workspace-focus-border,#0078d4);outline-offset:-1px;}

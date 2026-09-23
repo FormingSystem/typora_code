@@ -14,6 +14,7 @@
     app.commands.run('linux_note:git_graph');await wait(()=>app.workspace.activeLeaf?.view.panel?.loaded);
     const panel=app.workspace.activeLeaf.view.panel;await wait(()=>!panel.pending);await panel.refresh();
     await panel.workbench.open_file({path:filename,status:'M'},'INDEX','WORKTREE',[{path:filename,status:'M'}]);
+    await panel.host.reveal_diff_source(panel.host.diff_source());assert(document.querySelector('.git-scm-file[data-git-source-selected=true]')?.dataset.path===filename||document.querySelector('.git-scm-file[data-git-source-selected=true]')?.dataset.file===filename,'工作区比较定位对应变更文件');
     await wait(()=>app.workspace.activeLeaf?.view.editor?.markdown_preview?.container.dataset.ready==='true');
     const leaf=app.workspace.activeLeaf,diff=leaf.view.editor,preview=diff.markdown_preview,shadow=preview.shadow;
     assert(diff.rendered_markdown&&diff.body.hidden,'真实Git Markdown比较默认渲染');
@@ -75,14 +76,25 @@
     const first=git(['rev-parse','HEAD~1']).toString().trim(),second=git(['rev-parse','HEAD']).toString().trim();
     await panel.workbench.open_file({path:filename,status:'M'},first,second,[{path:filename,status:'M'}]);await wait(()=>app.workspace.activeLeaf?.view.editor?.markdown_preview?.container.dataset.ready==='true');
     const historical=app.workspace.activeLeaf;historical.view.editor.markdown_preview.scroll.scrollTop=500;
+    await wait(()=>historical.parent.containerEl.querySelector('[data-git-diff-reveal]'));
+    historical.parent.containerEl.querySelector('[data-git-diff-reveal]').click();
+    await wait(()=>document.querySelector('.git-scm-history [data-git-source-selected=true]'));
+    const source_row=document.querySelector('.git-scm-history [data-git-source-selected=true]');
+    assert(source_row.dataset.historyFile===filename&&source_row.closest('[data-commit]').dataset.commit===second,'定位入口展开准确提交与文件');
+    assert(app.workspace.activeLeaf===historical,'定位来源不切换比较正文');
+    assert(getComputedStyle(source_row).backgroundColor!=='rgba(0, 0, 0, 0)','Git历史来源有实际选中底色');
+    historical.view.containerEl.tabIndex=-1;historical.view.containerEl.focus();
+    assert(source_row.dataset.gitSourceSelected==='true','焦点离开提交图仍保留比较文件选中');
+
     historical.view.editor.toolbar.querySelector('[data-diff-open-file]').click();await wait(()=>!!app.workspace.activeLeaf?.view.document?.options.navigation);await settled();
+    assert(!document.querySelector('.git-scm-history [data-git-source-selected=true]'),'历史单版本不沿用旧比较选中');
     const revision_leaf=app.workspace.activeLeaf,revision_article=revision_leaf.view.containerEl.querySelector('.git-revision-markdown').shadowRoot.querySelector('#write');
     assert(getComputedStyle(revision_article).fontFamily===getComputedStyle(document.querySelector('content > #write')).fontFamily,'历史单版本正文沿用当前主题字体');
     revision_leaf.view.document.options.navigation.restore({scroll_top:600,scroll_left:0});await settled();
     [...revision_article.querySelectorAll('a')].find(node=>node.textContent==='回到标题').click();await pause(100);assert(revision_leaf.view.document.options.navigation.capture().scroll_top<100,'历史阅读文内链接定位标题');
     alt('ArrowLeft');await settled();assert(app.workspace.activeLeaf===revision_leaf&&Math.abs(revision_leaf.view.document.options.navigation.capture().scroll_top-600)<2,'历史阅读显式文内跳转也可后退');
     document.querySelectorAll('.workspace-titlebar-history')[0].click();await wait(()=>app.workspace.activeLeaf===historical);await settled();
-    assert(Math.abs(historical.view.editor.markdown_preview.scroll.scrollTop-500)<2,'历史版本打开原文后主顶栏后退恢复原比较');
+    assert(Math.abs(historical.view.editor.markdown_preview.scroll.scrollTop-500)<2,'历史版本打开原文后主顶栏后退恢复原比较');assert(document.querySelector('.git-scm-history [data-git-source-selected=true]')?.dataset.historyFile===filename,'后退返回比较同步来源选中');
     document.querySelectorAll('.workspace-titlebar-history')[1].click();await wait(()=>app.workspace.activeLeaf===revision_leaf);await settled();assert(revision_leaf.state.path.includes(encodeURIComponent(second)),'主顶栏前进返回正确提交版本');
     alt('ArrowLeft');await wait(()=>app.workspace.activeLeaf===historical);await settled();
     historical.view.editor.toolbar.querySelector('[data-diff-action=split_editor]').click();await wait(()=>app.workspace.activeLeaf!==historical&&app.workspace.activeLeaf?.view.editor);await settled();

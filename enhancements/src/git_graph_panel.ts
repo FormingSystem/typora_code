@@ -1,3 +1,4 @@
+import {bind_git_source_row} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
 import {same_git_changes} from './git_status_snapshot';
 import {acquire_git_repository_operation} from "./git_repository_operation";
@@ -560,9 +561,9 @@ export class git_graph_panel {
     };
     const create_row = (file: graph_change) => {
       const row = button("", () => {
-        for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected"); row.classList.add("selected");
         void this.workbench.open_default_file(file, this.from, this.to, this.files);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
+      bind_git_source_row(row,{root:this.root,from:this.from,to:this.to,file:file.path,old_path:file.old_path},this.host.diff_source?.());
       const display_path = file.old_path ? file.old_path + " → " + file.path : file.path; const parts = display_path.split("/");
       const file_icon = workspace_file_icon(file.path); file_icon.classList.add("git-graph-file-icon");
       row.append(file_icon, el("span", "git-graph-file-name", parts.pop() || display_path), el("span", "git-graph-file-path", parts.join("/")), el("span", "git-graph-file-status", file.status));

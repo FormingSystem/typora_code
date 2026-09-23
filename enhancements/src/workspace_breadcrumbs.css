@@ -35,3 +35,5 @@
 .workspace-breadcrumb-setting > span {flex:1;}
 .workspace-breadcrumb-setting > input[type=text] {width:120px;}
 .workspace-breadcrumb-kind {display:inline-flex;align-items:center;margin:4px 10px 4px 0;}
+
+.workspace-breadcrumb-editor-type>[data-git-diff-reveal] {width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:4px;flex:none;}

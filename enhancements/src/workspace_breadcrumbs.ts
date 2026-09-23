@@ -1,3 +1,4 @@
+import {git_icon_button} from './git_icons';
 import {is_composing_key} from "./workspace_keyboard";
 import css from "./workspace_breadcrumbs.css";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -100,7 +101,9 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
     for(const symbol of shown_symbols)segment(symbol.kind==="string"?symbol.detail:symbol.name,symbol.detail||symbol.name,settings.icons?git_icon(icons[symbol.kind]||"symbol-variable"):undefined,button=>open_items(state,button,symbol_items(state,state.headings),language==="markdown"?"选择标题":"选择符号","symbol:"+symbol.selection_start));
     if(settings.symbol_path!=="off"&&!shown_symbols.length){const status=state.symbol_state?.loading?"正在读取符号…":state.symbol_state?.error||(!has_symbols?"当前文件没有可显示的符号":"选择标题或符号");segment("…",status,undefined,button=>open_items(state,button,has_symbols?symbol_items(state,state.headings):[{id:"status",label:status}],"选择标题或符号"));}
     const buttons=[...trail.querySelectorAll<HTMLButtonElement>("button")];if(buttons.length){const target=buttons[Math.max(0,Math.min(buttons.length-1,focused?focus_index:buttons.length-1))];target.tabIndex=0;if(focused)target.focus({preventScroll:true});}trail.scrollLeft=trail.scrollWidth;
-    state.type.replaceChildren();if(settings.show_editor_type){const diff=state.leaf.view?.editor?.data?.right!=null;
+    state.type.replaceChildren();
+    if(state.leaf.view?.document?.options?.source){const locate=git_icon_button('target','定位当前Git差异来源',()=>state.leaf.view.reveal_diff_source());locate.dataset.gitDiffReveal='true';state.type.append(locate);}
+    if(settings.show_editor_type){const diff=state.leaf.view?.editor?.data?.right!=null;
       if(diff){const mode=el("button","","差异编辑器");mode.append(git_icon("chevron-down"));mode.onclick=()=>{const r=mode.getBoundingClientRect(),editor=state.leaf.view.editor;workspace_menu(new MouseEvent("contextmenu",{clientX:r.left,clientY:r.bottom}),[{title:"内联显示",action:()=>editor.set_side_by_side(false)},{title:"并排显示",action:()=>{editor.inline_when_narrow=false;editor.set_side_by_side(true);}}]);};state.type.append(mode);}
       else if(/\.(md|markdown|mdown)$/i.test(state.file)){const mode=el("button","",state.model?"文本编辑器":state.leaf.view?.isEditor?.()?"Markdown 编辑器":"Markdown 预览");mode.append(git_icon("chevron-down"));mode.onclick=()=>{const leaf=state.leaf,r=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:r.left,clientY:r.bottom}),[{title:"Markdown 编辑器",checked:!state.model,action:()=>{void files.reopen_leaf(leaf,false).catch(e=>error(String(e)));}},{title:"文本编辑器",checked:!!state.model,action:()=>{void files.reopen_leaf(leaf,true).catch(e=>error(String(e)));}}]);};state.type.append(mode);}
     }

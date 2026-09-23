@@ -1,3 +1,4 @@
+import type {git_diff_source} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
 import {install_missing_git} from './git_runtime_environment';
 import {workspace_resource_fs} from './remote_workspace_files';
@@ -50,7 +51,7 @@ export function create_graph_host(core: graph_core) {
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void;
+  type document_options = {source?:git_diff_source;range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void;
     navigation?:{capture:()=>{scroll_top:number;scroll_left:number};restore:(state:{scroll_top:number;scroll_left:number})=>void;reopen:(parent?:graph_leaf['parent'])=>void}};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
@@ -122,6 +123,7 @@ export function create_graph_host(core: graph_core) {
         editor_status.register(this.leaf,this.editor.create_readonly_status());
       } catch (error) { this.containerEl.append(workspace_element("p", "git-scm-empty", String(error))); }
     }
+    reveal_diff_source(){const source=this.document?.options.source;if(source)void host.reveal_diff_source(source).catch(error=>this.editor?.report_error?.(error));}
     attach_toolbar(){const header=this.leaf.parent.containerEl?.querySelector<HTMLElement>(".typ-workspace-tab-header");if(header)this.editor?.attach_toolbar(header);}
     sync_file_action(){
       if(!this.editor)return;
@@ -143,6 +145,8 @@ export function create_graph_host(core: graph_core) {
   let terminal_workspace: ReturnType<typeof bind_terminal_workspace>;
   const host = {
     core, fs, path_api, process_api,
+    diff_source(leaf=core.app.workspace.activeLeaf){return leaf?contents.get(leaf.state.path)?.options.source:undefined;},
+    reveal_diff_source: async (_source:git_diff_source)=>{},
     install_git(report:(message:string)=>void){return install_missing_git({child_process,process:process_api},report);},
     dispose(){
       if(disposed)return;disposed=true;unregister_navigation();if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();

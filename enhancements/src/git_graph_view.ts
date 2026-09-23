@@ -84,6 +84,15 @@ export function bind_git_graph() {
     else core.app.workspace.sidebar.show();
     source_sidebar.mount(panel || controller_for(host.context_path()));
   };
+  let source_reveal_request=0;
+  host.reveal_diff_source=async source=>{
+    const request=++source_reveal_request,leaf=core.app.workspace.activeLeaf;
+    const valid=()=>!lifetime.disposed&&!workspace_context_switching()&&request===source_reveal_request&&host.diff_source(leaf)===source&&core.app.workspace.activeLeaf===leaf;
+    const panel=controller_for(source.root);await panel.when_refreshed();if(!valid())return;
+    show_source_control(panel);
+    if(source.to==='WORKTREE'||source.to==='INDEX')await panel.workbench.reveal_change(source,valid);
+    else await panel.workbench.history.reveal_source(source,valid);
+  };
   const context_settings = () => {
     const active = core.app.workspace.activeLeaf; if (active && panels.has(active)) return panels.get(active)!.settings;
     const cwd = host.context_path(); let root = cwd;

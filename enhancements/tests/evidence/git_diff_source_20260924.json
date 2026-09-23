@@ -1,0 +1,75 @@
+{
+  "date": "2026-09-24",
+  "release": "2026.09.24.2",
+  "requirements": [
+    "R034.4"
+  ],
+  "design": [
+    "docs/git_markdown_diff.md#r0344-差异来源身份选中与定位",
+    "docs/navigation_history.md#内容视图与来源关联"
+  ],
+  "asset_manifest_sha256": "f98e170dacaf353f7ed3a2839d3c5e97dde017f34aa335cc7100a1cb1b1163d4",
+  "bundle_sha256": "22d2e045f6a6f2bb3d4fffefac6f307da94f08d6ef4eced0567046e3efb7d055",
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS; 最终小范围修正后补跑静态/部署与专项UI、原生",
+    "catalog_suites": 209,
+    "ui_suites": [
+      "git_diff_source",
+      "scm_history_layout",
+      "workspace_breadcrumbs",
+      "git_markdown_diff"
+    ],
+    "source_checks": 16,
+    "stress_file_counts": [
+      20,
+      100,
+      1000
+    ],
+    "source_scope": "真实Electron/DOM与受控Git端口，精确明暗活动/非活动选中色；筛选外提交、改名及迟到取消；1000文件仍虚拟化",
+    "native": {
+      "case_id": "4787fd5255244b99914b637ec4f1b27a",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "f98e170dacaf353f7ed3a2839d3c5e97dde017f34aa335cc7100a1cb1b1163d4",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "3be57388c15718a195c803ab655eca7c9a403e48c58345ecc35d6677c7b16dad",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "status": "PASS",
+      "checks": 110,
+      "scope": "原始Typora1.14.10/Win11、真实临时Git；工作树定位、历史来源按钮、标签/主历史切换和选中保留"
+    },
+    "install_cycle": "PASS 复验有备份恢复与无兼容备份撤销入口，安装/检查/卸载/重装/检查，正文配置备份保留",
+    "uninstall_assertions": 65
+  },
+  "retained_failures": [
+    "虚拟列表首次定位未先建立滚动高度，定位不到末项；修复后20/100/1000通过",
+    "首次隔离卸载无备份分支File.Replace无法移除目标；错误日志保留，具体外部占用者未确认",
+    "早期UI夹具包含非提交格式revision和错误清理API，已修正，不计产品验收通过"
+  ],
+  "limits": [
+    "未覆盖Win10、物理键鼠现场或真实SSH Git定位",
+    "任意基线到WORKTREE的合并比较没有精确暂存/未暂存对应行时明确提示，不假选其他比较行",
+    "用户运行窗口未重启，安装不代表已加载"
+  ],
+  "installation": {
+    "version": "2026.09.24.2",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  }
+}

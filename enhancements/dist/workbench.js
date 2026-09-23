@@ -206279,6 +206279,10 @@ https://creativecommons.org/licenses/by/4.0/
           this.containerEl.append(workspace_element("p", "git-scm-empty", String(error)));
         }
       }
+      reveal_diff_source() {
+        const source = this.document?.options.source;
+        if (source) void host.reveal_diff_source(source).catch((error) => this.editor?.report_error?.(error));
+      }
       attach_toolbar() {
         const header = this.leaf.parent.containerEl?.querySelector(".typ-workspace-tab-header");
         if (header) this.editor?.attach_toolbar(header);
@@ -206334,6 +206338,11 @@ https://creativecommons.org/licenses/by/4.0/
       fs: fs2,
       path_api,
       process_api,
+      diff_source(leaf = core.app.workspace.activeLeaf) {
+        return leaf ? contents.get(leaf.state.path)?.options.source : void 0;
+      },
+      reveal_diff_source: async (_source) => {
+      },
       install_git(report) {
         return install_missing_git({ child_process, process: process_api }, report);
       },
@@ -206726,6 +206735,26 @@ https://creativecommons.org/licenses/by/4.0/
     return host;
   }
 
+  // src/git_diff_source.ts
+  var git_diff_source_key = (source) => source ? JSON.stringify([source.root, source.from, source.to, source.file, source.old_path || ""]) : "";
+  function sync_git_source_rows(root, source) {
+    const key2 = git_diff_source_key(source);
+    for (const row of root.querySelectorAll("[data-git-source]")) {
+      const selected = !!key2 && row.dataset.gitSource === key2;
+      row.classList.toggle("selected", selected);
+      row.dataset.gitSourceSelected = String(selected);
+      if (selected) row.setAttribute("aria-current", "true");
+      else row.removeAttribute("aria-current");
+    }
+  }
+  function bind_git_source_row(row, source, active2) {
+    row.dataset.gitSource = git_diff_source_key(source);
+    const selected = row.dataset.gitSource === git_diff_source_key(active2);
+    row.classList.toggle("selected", selected);
+    row.dataset.gitSourceSelected = String(selected);
+    if (selected) row.setAttribute("aria-current", "true");
+  }
+
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
   function acquire_git_repository_operation(owner2, root, normalize4) {
@@ -206795,6 +206824,16 @@ https://creativecommons.org/licenses/by/4.0/
     schedule();
     return {
       refresh: schedule,
+      reveal(predicate) {
+        if (disposed) return;
+        const index = items.findIndex(predicate);
+        if (index < 0) return;
+        root.style.height = items.length * row_height + "px";
+        const offset = root.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+        scroller.scrollTop = Math.max(0, offset + index * row_height - scroller.clientHeight / 2);
+        update2();
+        return rows.get(index);
+      },
       set_items(next) {
         items = next;
         for (const row of rows.values()) row.remove();
@@ -209274,6 +209313,9 @@ https://creativecommons.org/licenses/by/4.0/
     root = "";
     toolbar;
     file_lists = /* @__PURE__ */ new Map();
+    revealed_commit;
+    comparison_from = /* @__PURE__ */ new Map();
+    reveal_request = 0;
     clear_file_lists() {
       for (const list3 of this.file_lists.values()) list3.dispose();
       this.file_lists.clear();
@@ -209294,6 +209336,9 @@ https://creativecommons.org/licenses/by/4.0/
       this.root = this.owner.panel.root;
       this.selected = "";
       this.files_cache.clear();
+      this.comparison_from.clear();
+      this.revealed_commit = void 0;
+      this.reveal_request++;
       this.collapsed_directories.clear();
       this.list.replaceChildren();
       this.count.textContent = "";
@@ -209332,6 +209377,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.clear_file_lists();
       this.hover.hide();
       if (state.root !== this.root) this.reset();
+      if (this.revealed_commit && !state.commits.some((commit) => commit.hash === this.revealed_commit.hash)) state = { ...state, commits: [this.revealed_commit, ...state.commits] };
       const epoch2 = ++this.epoch;
       const panel = this.owner.panel;
       const scroll = this.list.scrollTop;
@@ -209352,6 +209398,7 @@ https://creativecommons.org/licenses/by/4.0/
         const entry = workspace_element("div", "git-scm-history-entry");
         const expanded2 = commit.hash === this.selected;
         const row = workspace_button("", () => {
+          this.reveal_request++;
           this.selected = this.selected === commit.hash ? "" : commit.hash;
           this.render(state);
         }, "git-scm-history-commit");
@@ -209395,6 +209442,7 @@ https://creativecommons.org/licenses/by/4.0/
           expansion.style.setProperty("--git-history-lanes", (outgoing_lanes + 1) * HISTORY_LANE_WIDTH + "px");
           const files = workspace_element("div", "git-scm-history-files");
           files.dataset.commit = commit.hash;
+          files.title = "".concat((this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY).slice(0, 8), " \u2194 ").concat(commit.hash.slice(0, 8));
           expansion.append(this.continuation(graph_row, outgoing_lanes), files);
           entry.append(expansion);
           if (this.files_cache.has(commit.hash)) this.render_files(files, commit, this.files_cache.get(commit.hash));
@@ -209451,7 +209499,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     async load_files(state, commit, target, epoch2) {
       try {
-        const files = await compare_files(this.owner.panel.runner.run, state, commit.parents[0] || EMPTY, commit.hash);
+        const files = await compare_files(this.owner.panel.runner.run, state, this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY, commit.hash);
         if (epoch2 !== this.epoch || state.root !== this.root) return;
         this.files_cache.set(commit.hash, files);
         this.render_files(target, commit, files);
@@ -209487,7 +209535,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.file_lists.get(target)?.dispose();
       this.file_lists.delete(target);
       target.replaceChildren();
-      const from = commit.parents[0] || EMPTY;
+      const from = this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY;
       target.setAttribute("role", "group");
       target.setAttribute("aria-label", git_graph_text("history.changed_files_aria", { count: files.length, parent: commit.parents.length > 1 ? git_graph_text("history.first_parent_suffix") : "" }));
       const directories = /* @__PURE__ */ new Map([["", target]]);
@@ -209518,6 +209566,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files);
         }, "git-scm-history-file");
         row.dataset.workspaceInteraction = "row";
+        bind_git_source_row(row, { root, from, to: commit.hash, file: file.path, old_path: file.old_path }, this.owner.panel.host.diff_source?.());
         row.style.lineHeight = "var(--git-scm-row-height,22px)";
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
@@ -209577,7 +209626,44 @@ https://creativecommons.org/licenses/by/4.0/
         this.file_lists.set(target, list3);
       } else for (const file of sorted) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_row(file));
     }
+    async reveal_source(source, valid) {
+      const request = ++this.reveal_request, panel = this.owner.panel;
+      const active2 = () => request === this.reveal_request && valid() && !panel.disposed && panel.root === source.root;
+      let state = panel.state;
+      if (!state || !active2()) return;
+      let commit = state.commits.find((item) => item.hash === source.to);
+      if (!commit) {
+        const reply = await panel.runner.run(source.root, ["log", "-1", "--format=%H%x00%P%x00%an%x00%aI%x00%s", "-z", require_revision(source.to), "--"]);
+        if (!active2()) return;
+        commit = parse_git_log(reply)[0];
+        if (!commit) throw Error("\u65E0\u6CD5\u8BFB\u53D6\u5DEE\u5F02\u6240\u5C5E\u63D0\u4EA4\u3002");
+      }
+      const files = await compare_files(panel.runner.run, state, source.from, source.to);
+      if (!active2()) return;
+      if (!files.some((file) => file.path === source.file)) throw Error("\u8BE5\u6BD4\u8F83\u4E2D\u5DF2\u627E\u4E0D\u5230\u76EE\u6807\u6587\u4EF6\u3002");
+      if (!state.commits.some((item) => item.hash === commit.hash)) this.revealed_commit = commit;
+      this.files_cache.set(commit.hash, files);
+      this.comparison_from.set(commit.hash, source.from);
+      this.selected = commit.hash;
+      for (const key2 of [...this.collapsed_directories]) if (key2.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key2);
+      this.owner.history_open = true;
+      this.owner.show_history = true;
+      this.owner.apply_history_layout();
+      this.owner.save_layout();
+      this.render(state);
+      const target = [...this.list.querySelectorAll("[data-commit]")].find((node) => node.dataset.commit === commit.hash);
+      if (!target) return;
+      const virtual = this.file_lists.get(target);
+      const wrapper = virtual?.reveal((item) => item.item?.path === source.file);
+      const row = wrapper?.querySelector("[data-history-file]") || [...target.querySelectorAll("[data-history-file]")].find((node) => node.dataset.historyFile === source.file);
+      if (!row) throw Error("\u76EE\u6807\u6587\u4EF6\u5C1A\u672A\u663E\u793A\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+      for (let ancestor = row.parentElement; ancestor && ancestor !== this.list; ancestor = ancestor.parentElement) if (ancestor instanceof HTMLDetailsElement) ancestor.open = true;
+      row.scrollIntoView({ block: "nearest" });
+      row.focus({ preventScroll: true });
+      this.owner.sync_source_selection();
+    }
     dispose() {
+      this.reveal_request++;
       this.clear_file_lists();
       this.toolbar.dispose();
       this.hover.dispose();
@@ -209653,6 +209739,7 @@ https://creativecommons.org/licenses/by/4.0/
   var git_source_control = class {
     constructor(panel) {
       this.panel = panel;
+      this.source_subscription = panel.host.core?.app?.workspace?.on?.("active-leaf:change", () => this.sync_source_selection());
       this.sidebar.setAttribute("data-linux-note-source-control", "ready");
       this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
       const title_label = workspace_element("span", "git-scm-title-label", git_graph_text("scm.source_control"));
@@ -209813,7 +209900,13 @@ https://creativecommons.org/licenses/by/4.0/
     groups_state = [];
     groups_layout_changed = true;
     virtual_lists = [];
-    selected_file = "";
+    change_revealers = [];
+    source_subscription;
+    sync_source_selection() {
+      const source = this.panel.host.diff_source?.();
+      sync_git_source_rows(this.sidebar, source);
+      sync_git_source_rows(this.panel.container, source);
+    }
     collapsed_directories = /* @__PURE__ */ new Set();
     repository_view_state = "loading";
     empty_view = workspace_element("div", "git-scm-welcome");
@@ -209849,6 +209942,7 @@ https://creativecommons.org/licenses/by/4.0/
       for (const list3 of this.virtual_lists) list3.dispose();
       this.virtual_lists = [];
       this.groups_state = [];
+      this.change_revealers = [];
       this.groups.replaceChildren();
     }
     storage_key(suffix) {
@@ -209984,6 +210078,7 @@ https://creativecommons.org/licenses/by/4.0/
       const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll;
       for (const list3 of this.virtual_lists) list3.dispose();
       this.virtual_lists = [];
+      this.change_revealers = [];
       this.groups.replaceChildren();
       for (const group of this.groups_state) {
         const section = workspace_element("details", "git-scm-group");
@@ -210096,11 +210191,8 @@ https://creativecommons.org/licenses/by/4.0/
           status2.title = file.status;
           status2.setAttribute("data-status", file.status === "??" ? "U" : file.status[0]);
           row.append(label2, actions2, status2);
-          row.classList.toggle("selected", this.selected_file === group.id + ":" + file.path);
+          bind_git_source_row(row, { root: this.panel.root, from: group.from, to: group.to, file: file.path, old_path: file.old_path }, this.panel.host.diff_source?.());
           row.onclick = () => {
-            this.selected_file = group.id + ":" + file.path;
-            for (const item of this.groups.querySelectorAll(".selected")) item.classList.remove("selected");
-            row.classList.add("selected");
             void this.open_default_file(file, group.from, group.to, group.files);
           };
           row.onkeydown = (event) => {
@@ -210136,6 +210228,7 @@ https://creativecommons.org/licenses/by/4.0/
             return row;
           } });
           this.virtual_lists.push(list3);
+          this.change_revealers.push((source) => source.from === group.from && source.to === group.to ? list3.reveal((item) => item.item?.path === source.file) : void 0);
         }
         if (!group.files.length) section.append(workspace_element("div", "git-scm-empty", git_graph_text("scm.no_changes")));
       }
@@ -210222,6 +210315,23 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.panel.disposed && epoch2 === this.load_epoch && root === this.panel.root) this.panel.report(error);
       }
     }
+    async reveal_change(source, valid) {
+      this.show_changes = true;
+      this.input_section.open = true;
+      this.collapsed_directories.clear();
+      this.apply_history_layout();
+      this.save_layout();
+      await this.render_groups();
+      if (!valid()) return;
+      for (const section of this.groups.querySelectorAll("details")) section.open = true;
+      let row;
+      for (const reveal of this.change_revealers) row ||= reveal(source);
+      row ||= [...this.groups.querySelectorAll("[data-git-source]")].find((node) => node.dataset.gitSource === git_diff_source_key(source));
+      if (!row) throw Error("\u8BE5\u6587\u4EF6\u5DF2\u4E0D\u5728\u5BF9\u5E94\u53D8\u66F4\u7EC4\u4E2D\u3002");
+      row.scrollIntoView({ block: "nearest" });
+      row.focus({ preventScroll: true });
+      this.sync_source_selection();
+    }
     async open_file(file, from, to, files = [file]) {
       const epoch2 = ++this.load_epoch;
       const root = this.panel.root;
@@ -210254,6 +210364,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
           } : {},
+          source: { root, from, to, file: file.path, old_path: file.old_path },
           root,
           key: JSON.stringify([from, to, file.path]),
           menu: () => this.file_entries(file, from, to, files, root),
@@ -210266,6 +210377,7 @@ https://creativecommons.org/licenses/by/4.0/
             void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files);
           }
         });
+        this.sync_source_selection();
         if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);
         this.panel.status.textContent = "".concat(file.path, " \xB7 ").concat(short_revision(from), " \u2194 ").concat(short_revision(to));
       } catch (error) {
@@ -210364,6 +210476,7 @@ https://creativecommons.org/licenses/by/4.0/
       ]);
     }
     dispose() {
+      this.source_subscription?.();
       this.clear_changes();
       this.update_actions();
       this.input_actions.clear();
@@ -233517,12 +233630,11 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const create_row = (file) => {
         const row = workspace_button("", () => {
-          for (const node of container.querySelectorAll(".selected")) node.classList.remove("selected");
-          row.classList.add("selected");
           void this.workbench.open_default_file(file, this.from, this.to, this.files);
         }, "git-graph-file");
         row.dataset.file = file.path;
         row.title = file.path;
+        bind_git_source_row(row, { root: this.root, from: this.from, to: this.to, file: file.path, old_path: file.old_path }, this.host.diff_source?.());
         const display_path = file.old_path ? file.old_path + " \u2192 " + file.path : file.path;
         const parts = display_path.split("/");
         const file_icon = workspace_file_icon(file.path);
@@ -234583,6 +234695,17 @@ https://creativecommons.org/licenses/by/4.0/
         else if (toggle) core.app.workspace.sidebar.toggle();
         else core.app.workspace.sidebar.show();
         source_sidebar.mount(panel || controller_for(host.context_path()));
+      };
+      let source_reveal_request = 0;
+      host.reveal_diff_source = async (source) => {
+        const request = ++source_reveal_request, leaf = core.app.workspace.activeLeaf;
+        const valid = () => !lifetime.disposed && !workspace_context_switching() && request === source_reveal_request && host.diff_source(leaf) === source && core.app.workspace.activeLeaf === leaf;
+        const panel = controller_for(source.root);
+        await panel.when_refreshed();
+        if (!valid()) return;
+        show_source_control(panel);
+        if (source.to === "WORKTREE" || source.to === "INDEX") await panel.workbench.reveal_change(source, valid);
+        else await panel.workbench.history.reveal_source(source, valid);
       };
       const context_settings = () => {
         const active2 = core.app.workspace.activeLeaf;
@@ -236204,6 +236327,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
       trail.scrollLeft = trail.scrollWidth;
       state.type.replaceChildren();
+      if (state.leaf.view?.document?.options?.source) {
+        const locate = git_icon_button("target", "\u5B9A\u4F4D\u5F53\u524DGit\u5DEE\u5F02\u6765\u6E90", () => state.leaf.view.reveal_diff_source());
+        locate.dataset.gitDiffReveal = "true";
+        state.type.append(locate);
+      }
       if (settings2.show_editor_type) {
         const diff = state.leaf.view?.editor?.data?.right != null;
         if (diff) {
@@ -245626,6 +245754,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092402,
+        version: "2026.09.24.2",
+        date: "2026-09-24",
+        notes: [
+          "Git\u5DEE\u5F02\u9875\u4E0E\u63D0\u4EA4\u56FE\u3001\u53D8\u66F4\u5217\u8868\u5171\u7528\u6765\u6E90\u8EAB\u4EFD\uFF1B\u5207\u6362\u6807\u7B7E\u548C\u5237\u65B0\u540E\u51C6\u786E\u6807\u8BB0\u5F53\u524D\u6BD4\u8F83\u6587\u4EF6\uFF0C\u7126\u70B9\u79FB\u5F00\u4ECD\u4FDD\u7559\u9009\u4E2D\u3002",
+          "\u5DEE\u5F02\u9875\u9762\u5305\u5C51\u53F3\u4FA7\u65B0\u589E\u5B9A\u4F4D\u6765\u6E90\u56FE\u6807\uFF0C\u5C55\u5F00\u5BF9\u5E94\u63D0\u4EA4\u548C\u76EE\u5F55\u5E76\u5B9A\u4F4D\u6587\u4EF6\uFF1B\u5927\u5217\u8868\u4FDD\u6301\u865A\u62DF\u5316\uFF0C\u4E0D\u91CD\u5F00\u5F53\u524D\u6B63\u6587\u3002"
+        ]
+      },
       {
         sequence: 2026092401,
         version: "2026.09.24.1",
