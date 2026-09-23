@@ -6,8 +6,9 @@
  const wait=async(fn,label)=>{for(let i=0;i<400;i++){if(fn())return;await pause(50);}throw Error(label);};
  const source=path.join(base,'workspace/links.md'),target=path.join(base,'workspace/target.md');
  const text='# Links\n\n[目标](target.md#目标标题)\n\n[引用][ref]\n\n[ref]: target.md#目标标题\n';
- fs.writeFileSync(source,text);fs.writeFileSync(target,'# 起点\n\n[下一页](next.md#终点) [文内](#目标标题) [失败](missing.md)\n\n'+Array.from({length:30},(_,i)=>'段落'+i+' '+ 'reading anchor long paragraph content '.repeat(40)+'\n\n').join('')+'## 目标标题\n\n**目标正文**\n');
+ fs.writeFileSync(source,text);fs.writeFileSync(target,'# 起点\n\n[下一页](next.md#终点) [文内](#目标标题) [失败](missing.md) [目录](目录%20预览)\n\n'+Array.from({length:30},(_,i)=>'段落'+i+' '+ 'reading anchor long paragraph content '.repeat(40)+'\n\n').join('')+'## 目标标题\n\n**目标正文**\n');
  fs.writeFileSync(path.join(base,'workspace/next.md'),'# 下一页\n\n[返回](target.md)\n\n'+Array.from({length:50},(_,i)=>'下一页段落 '+i+'\n\n').join('')+'## 终点\n\n结束');
+ const directory_path=path.join(base,'workspace/目录 预览');fs.mkdirSync(directory_path);fs.mkdirSync(path.join(directory_path,'空目录'));for(let i=0;i<100;i++)fs.writeFileSync(path.join(directory_path,'file'+i+'.md'),'# 文件'+i+'\n\n[返回正文](../target.md)\n');
  try{
   await pause(2400);await files.open_file(source);await wait(()=>document.querySelector('#write a[href],#write a[data-ref]'),'原生链接未出现');await pause(500);
   const source_leaf=core.app.workspace.activeLeaf;
@@ -32,7 +33,7 @@
   await verify_scale(sidebar,'独立预览');
   const nav_panel=sidebar.querySelector('.workspace-link-preview'),preview_body=()=>nav_panel.querySelector('.workspace-lookup-preview-body');
   const follow=async label=>{const anchor=[...nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent===label);anchor.dispatchEvent(new MouseEvent('pointerdown',{bubbles:true,composed:true}));anchor.click();await wait(()=>nav_panel.dataset.state!=='loading','内部链接超时');await pause(100);};
-  const travel=async direction=>{preview_body().focus({preventScroll:true});preview_body().dispatchEvent(new KeyboardEvent('keydown',{key:direction<0?'ArrowLeft':'ArrowRight',altKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>nav_panel.dataset.state!=='loading','预览历史超时');await pause(100);};
+  const travel=async direction=>{const focus=preview_body()||nav_panel.querySelector('.workspace-preview-directory-scroll');focus.focus({preventScroll:true});focus.dispatchEvent(new KeyboardEvent('keydown',{key:direction<0?'ArrowLeft':'ArrowRight',altKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>nav_panel.dataset.state!=='loading','预览历史超时');await pause(100);};
   let main_events=0;const on_history=()=>main_events++;window.addEventListener('linux-note-reading-history-state',on_history);
   await pause(180);main_events=0;
   const main_before={file:File.bundle.filePath,top:document.querySelector('content').scrollTop,cursor:JSON.stringify(File.editor.selection.buildUndo())};
@@ -44,6 +45,21 @@
   await follow('文内');assert(nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('目标标题'),'原生文内标题导航');await travel(-1);
   await follow('失败');assert(nav_panel.dataset.state==='error'&&preview_body().dataset.previewPath===target,'原生失败保留正文');
   fs.writeFileSync(path.join(base,'workspace/missing.md'),'# 重试成功');nav_panel.querySelector('[aria-label="重新加载"]').click();await wait(()=>nav_panel.dataset.state==='ready','重试失败');assert(preview_body().dataset.previewPath.endsWith('missing.md'),'失败目标修复后重试成功');await travel(-1);assert(preview_body().dataset.previewPath===target,'重试成功仍可返回');
+  await follow('目录');assert(nav_panel.querySelector('.workspace-preview-directory').dataset.directoryPath===directory_path,'原生目录链接在预览列出当前子项');
+  assert(nav_panel.querySelector('[aria-label="打开源文件"]').disabled,'原生目录不误作文件打开');
+  const dir_wait=async()=>{await wait(()=>nav_panel.dataset.state!=='loading','目录导航超时');await pause(120);};
+  const dir_back=async()=>{nav_panel.querySelector('.workspace-preview-directory-return').click();await dir_wait();};
+  nav_panel.querySelector('[data-entry-name="空目录"]').click();await dir_wait();assert(nav_panel.textContent.includes('此目录为空'),'原生空目录提示');await dir_back();
+  const list_scroll=nav_panel.querySelector('.workspace-preview-directory-scroll');list_scroll.scrollTop=650;list_scroll.dispatchEvent(new Event('scroll'));await pause(120);
+  const saved_directory_top=list_scroll.scrollTop,entry=[...nav_panel.querySelectorAll('[data-entry-name]')].find(node=>node.dataset.entryName.startsWith('file')),entry_name=entry.dataset.entryName;entry.click();await dir_wait();
+  assert(preview_body().dataset.previewPath===path.join(directory_path,entry_name),'原生目录内文件只读预览');
+  const return_box=nav_panel.querySelector('.workspace-preview-directory-return').getBoundingClientRect();assert(return_box.height===26&&return_box.width>100,'原生返回目录入口可见且沿用26px行');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_directory_file'}));await pause(350);
+  await dir_back();assert(Math.abs(nav_panel.querySelector('.workspace-preview-directory-scroll').scrollTop-saved_directory_top)<3,'原生返回恢复目录位置');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_directory_list'}));await pause(350);
+  for(let i=0;i<20;i++){nav_panel.querySelector('[data-entry-name="'+entry_name+'"]').click();await dir_wait();await dir_back();assert(Math.abs(nav_panel.querySelector('.workspace-preview-directory-scroll').scrollTop-saved_directory_top)<3,'原生目录往返 '+i);}
+  nav_panel.querySelector('[data-entry-name="'+entry_name+'"]').click();await dir_wait();await travel(-1);assert(!!nav_panel.querySelector('.workspace-preview-directory'),'原生Alt后退到目录');await travel(1);assert(preview_body().dataset.previewPath.endsWith(entry_name),'原生Alt前进到目录文件');
+  await follow('返回正文');assert(!nav_panel.querySelector('.workspace-preview-directory-return').hidden,'原生连续文件跳转保留目录出口');
   assert(File.bundle.filePath===main_before.file&&Math.abs(document.querySelector('content').scrollTop-main_before.top)<3,'预览导航不移动主正文');
   assert(main_events===0,'预览导航不写主历史状态');window.removeEventListener('linux-note-reading-history-state',on_history);
   const scale_box=nav_panel.querySelector('.workspace-preview-scale-controls').getBoundingClientRect(),open_box=nav_panel.querySelector('[aria-label="打开源文件"]').getBoundingClientRect();
@@ -145,6 +161,11 @@
   assert(sidebar.hidden,'搜索预览不恢复已关闭链接预览');
   await verify_scale(search_preview,'搜索预览');
   assert(fs.readFileSync(source,'utf8')===text,'来源磁盘正文不变');
+  core.app.commands.run('typora_code:settings');await wait(()=>document.querySelector('.workspace-settings-modal'),'最终设置未打开');const final_modal=document.querySelector('.workspace-settings-modal'),enable=final_modal.querySelector('[data-setting="editor.link_preview_enabled"]');enable.checked=true;enable.dispatchEvent(new Event('change'));final_modal.querySelector('.workspace-dialog-close').click();
+  getSelection().removeAllRanges();document.dispatchEvent(new Event('selectionchange'));await pause(100);select();await wait(()=>!sidebar.hidden&&nav_panel.dataset.state==='ready','最终原文件动作预览未就绪');await follow('目录');
+  assert(nav_panel.querySelector('.workspace-preview-directory-path').textContent==='目录 预览','目录标题使用名称并悬停保留路径');
+  nav_panel.querySelector('[data-entry-name="file0.md"]').click();await dir_wait();nav_panel.querySelector('[aria-label="打开源文件"]').click();await wait(()=>core.app.workspace.activeLeaf?.state.path===path.join(directory_path,'file0.md')&&core.app.workspace.activeLeaf.view.containerEl.textContent.includes('文件0'),'未在主工作区打开目录预览原文件');
+  assert(core.app.workspace.activeLeaf.state.path===path.join(directory_path,'file0.md')&&!core.app.workspace.activeLeaf.view.containerEl.classList.contains('workspace-link-preview'),'原生打开源文件进入当前预览目标的普通文档标签');
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio,zoom:reqnode('electron').webFrame.getZoomFactor()},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex')});
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,iterations:20,limits:'原生renderer选区/菜单；物理鼠标、其他系统及远端网页登录未覆盖'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples,debug:{file:File.bundle.filePath,active:core.app.workspace.activeLeaf?.state.path,links:[...document.querySelectorAll('#write a')].map(a=>a.outerHTML),leaves:(()=>{const x=[];core.app.workspace.eachLeaves(l=>{x.push({path:l.state.path,visible:l.view.containerEl.getBoundingClientRect().width,mode:l.view.isEditor?.(),classes:l.view.containerEl.className,children:l.view.containerEl.children.length})});return x;})()}},null,2));}

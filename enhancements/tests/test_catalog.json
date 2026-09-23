@@ -5842,7 +5842,8 @@
         "R069",
         "R069.1",
         "R069.3",
-        "R069.6"
+        "R069.6",
+        "R069.7"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5852,7 +5853,8 @@
         "enhancements/src/workspace_search.ts",
         "enhancements/src/workspace_link_dock.ts",
         "enhancements/src/reading_reflow.ts",
-        "enhancements/src/workspace_preview_scale.ts"
+        "enhancements/src/workspace_preview_scale.ts",
+        "enhancements/src/workspace_preview_directory.ts"
       ],
       "related_modules": [
         "search",
@@ -5865,7 +5867,8 @@
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
-        "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。"
+        "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。",
+        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
@@ -5888,7 +5891,8 @@
         "R069.3",
         "R069.4",
         "R069.5",
-        "R069.6"
+        "R069.6",
+        "R069.7"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5899,7 +5903,8 @@
         "enhancements/src/workspace_link_dock.ts",
         "enhancements/src/reading_reflow.ts",
         "enhancements/src/workspace_sidebar_sash.css",
-        "enhancements/src/workspace_preview_scale.ts"
+        "enhancements/src/workspace_preview_scale.ts",
+        "enhancements/src/workspace_preview_directory.ts"
       ],
       "related_modules": [
         "search",
@@ -5912,7 +5917,8 @@
       "preconditions": "仅运行独立临时副本；prepare_stability_native.py后由run_private_desktop.ps1执行，不能关闭用户窗口",
       "steps": [
         "真实Markdown选区与原生/阅读栏右键、20次左右/上下分屏打开关闭；明暗与缩放；精确断言数以当次证据为准",
-        "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。"
+        "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。",
+        "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。"
       ],
       "expected": [
         "来源选区和正文保持、只读、可打开源文件、按钮完整、预览标签无残留",

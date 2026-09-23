@@ -2007,6 +2007,15 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 @container workspace-link-toolbar (max-width:360px){.workspace-link-preview-title{flex:1 1 0}.workspace-link-preview .workspace-preview-scale-controls>.git-icon-button{display:none}}
 @container workspace-link-toolbar (max-width:240px){.workspace-link-preview-title{display:none}.workspace-link-preview>[role=toolbar]{gap:2px;padding:0 4px}.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{width:48px}.workspace-link-preview [role=toolbar]>.git-icon-button{width:22px;padding:3px}}
 
+/* 目录预览复用资源管理器26px行，不接管主资源树或正文排版。 */
+.workspace-preview-directory{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}
+.workspace-preview-directory-path,.workspace-preview-directory-return{flex:none;box-sizing:border-box;min-width:0;max-width:100%;height:26px;line-height:26px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:13px/26px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:inherit;border:0;border-bottom:1px solid var(--workspace-border-color,#ddd);background:transparent;text-align:left}
+.workspace-preview-directory-return[hidden]{display:none}
+.workspace-preview-directory-scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.workspace-preview-directory-entry{display:flex;align-items:center;width:100%;gap:6px;padding:0 8px;border:0;background:transparent;color:inherit;text-align:left;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
+.workspace-preview-directory-entry>.git-standard-icon{flex:none;width:16px;height:16px}
+.workspace-preview-directory-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
 /* workspace_native_toolbar.css */
 /* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */
 body.hide-footer {--typ-footer-height:0px;}

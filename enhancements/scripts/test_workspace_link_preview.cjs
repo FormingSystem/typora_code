@@ -17,8 +17,8 @@ app.whenReady().then(async()=>{
     res.setHeader('Content-Type','text/html; charset=utf-8');res.end('<html><head><style>h1{color:rgb(12,34,56)}</style></head><body><h1>网络内容</h1><a href="/other">no navigation</a><form action="/post"><input value="locked"><button>send</button></form><script>try{window.parent.preview_attack=1}catch{};parent.postMessage({preview_test:true,node:typeof require},"*")</script><iframe src="file:///C:/"></iframe></body></html>');
   });await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const url=`http://127.0.0.1:${server.address().port}`;
   const html=path.join(evidence,'index.html');fs.writeFileSync(html,'<style>body{margin:0;display:flex;height:600px}#mount{width:320px;height:500px}#write{width:450px}.workspace-link-preview[hidden]{display:none!important}</style><section id="mount"></section><article id="write" contenteditable="true"><a href="target.md#target-heading">Local</a><a data-ref="ref">Reference</a></article>');
-  win=new BrowserWindow({show:false,width:1000,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false}});await win.loadFile(html);
-  const evaluate=code=>win.webContents.executeJavaScript(code,true);
+  win=new BrowserWindow({show:false,width:1000,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});await win.loadFile(html);
+  const evaluate=async code=>{try{return await win.webContents.executeJavaScript(code,true);}catch(error){console.error("Renderer input:",code);throw error;}};
   const bundle=await build({plugins:editor_plugins(),stdin:{contents:'export * from "./src/workspace_link_preview";export * from "./src/workspace_link_target";export * from "./src/workspace_link_selection";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'qa',write:false});await evaluate(bundle.outputFiles[0].text+";void 0;");
   await evaluate(`window.reqnode=require;window.preview_attack=0;window.web_message=null;window.addEventListener("message",e=>{if(e.data?.preview_test)web_message={origin:e.origin,node:e.data.node}});window.opened=[];window.web_opened=[];window.JSBridge={showInBrowser:url=>web_opened.push(url)};window.root=${JSON.stringify(evidence)};window.source=require('path').join(root,'source.md');window.files={fs:require('fs'),path_api:require('path'),current_file:()=>source,editor_state:()=>({file_path:source}),open_file:async(path,location)=>opened.push({path,location})};window.view=qa.create_link_preview(files,{close:()=>view.clear()});document.querySelector('#mount').append(view.container);window.link=href=>view.show({source,href});void 0;`);
   check('1000轮解析与协议边界',await evaluate(`(()=>{const p=require('path').win32;for(let i=0;i<1000;i++){if(qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','sub/a%20b.md#标题').path!=='C:\\\\docs\\\\sub\\\\a b.md')return false;}return qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','#标题').hash==='#标题';})()`));
@@ -35,7 +35,7 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.join(evidence,'中文.md'),'# Next\n\n[返回](target.md)\n\n'+Array.from({length:70},(_,i)=>`目标 ${i}\n\n`).join(''));
   const idle=async()=>{for(let i=0;i<150;i++){if(await evaluate(`view.container.dataset.state!=='loading'`))return;await new Promise(r=>setTimeout(r,20));}throw Error('preview load timeout');};
   const click_link=async label=>{await evaluate(`[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent===${JSON.stringify(label)}).click()`);await idle();};
-  const travel=async key=>{await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').focus()`);win.webContents.sendInputEvent({type:'keyDown',keyCode:key,modifiers:['alt']});win.webContents.sendInputEvent({type:'keyUp',keyCode:key,modifiers:['alt']});await new Promise(r=>setTimeout(r,60));await idle();};
+  const travel=async key=>{await evaluate(`view.container.querySelector('.workspace-lookup-preview-body,.workspace-preview-directory-scroll').focus()`);win.webContents.sendInputEvent({type:'keyDown',keyCode:key,modifiers:['alt']});win.webContents.sendInputEvent({type:'keyUp',keyCode:key,modifiers:['alt']});await new Promise(r=>setTimeout(r,60));await idle();};
   await evaluate('link("target.md")');
   await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').scrollTop=450;window.before_scroll=view.container.querySelector('.workspace-lookup-preview-body').scrollTop;window.before_open_count=opened.length;`);
   await click_link('中文链接');
@@ -67,6 +67,43 @@ app.whenReady().then(async()=>{
   check('新选择取消迟到读取且历史从新目标开始',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));await travel('Left');
   check('迟到结果不会恢复旧历史',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));
   await evaluate('delete files.read_text');
+
+
+  fs.mkdirSync(path.join(evidence,'目录 空格'));fs.mkdirSync(path.join(evidence,'目录 空格','子目录'));
+  fs.writeFileSync(path.join(evidence,'目录 空格','文件 # %25.md'),'# Directory file\n\n[继续](../target.md)\n');
+  for(let i=0;i<1000;i++)fs.writeFileSync(path.join(evidence,'目录 空格',`item${i}.md`),'# '+i+'\n');
+  const directory_click=async name=>{await evaluate(`[...view.container.querySelectorAll('[data-entry-name]')].find(n=>n.dataset.entryName===${JSON.stringify(name)}).click()`);await idle();};
+  const directory_return=async()=>{await evaluate(`view.container.querySelector('.workspace-preview-directory-return').click()`);await idle();await new Promise(r=>setTimeout(r,40));};
+  await evaluate(`link('目录%20空格')`);await idle();await new Promise(r=>setTimeout(r,40));
+  check('目录无尾斜线进入一层资源列表',await evaluate(`view.container.querySelector('.workspace-preview-directory').dataset.directoryPath.endsWith('目录 空格')`));
+  check('目录禁用源文件与缩放',await evaluate(`view.container.querySelector('[aria-label="打开源文件"]').disabled&&view.container.querySelector('.workspace-preview-scale-controls').hidden`));
+  check('1000文件只绘制可见行并保留全部高度',await evaluate(`view.container.querySelectorAll('[data-entry-name]').length<60&&view.container.querySelector('.workspace-preview-directory-scroll').scrollHeight>=1002*26`));
+  await directory_click('子目录');check('空子目录可返回父目录',await evaluate(`view.container.textContent.includes('此目录为空')&&!view.container.querySelector('.workspace-preview-directory-return').hidden`));await directory_return();
+  await evaluate(`window.dir_scroll=view.container.querySelector('.workspace-preview-directory-scroll');dir_scroll.scrollTop=25000;dir_scroll.dispatchEvent(new Event('scroll'));`);await new Promise(r=>setTimeout(r,40));
+  await evaluate(`view.container.querySelector('[data-entry-name]').focus()`);win.webContents.sendInputEvent({type:'keyDown',keyCode:'End'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'End'});await new Promise(r=>setTimeout(r,40));
+  check('目录键盘End访问最后文件',await evaluate(`document.activeElement.dataset.virtualIndex==='1001'`));
+  await evaluate(`(()=>{const names=reqnode('fs').readdirSync(reqnode('path').join(root,'目录 空格'),{withFileTypes:true}).sort((a,b)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name,undefined,{numeric:true}));const scroller=view.container.querySelector('.workspace-preview-directory-scroll');scroller.scrollTop=names.findIndex(n=>n.name==='文件 # %25.md')*26;scroller.dispatchEvent(new Event('scroll'));})()`);await new Promise(r=>setTimeout(r,40));
+  const dir_top=await evaluate(`view.container.querySelector('.workspace-preview-directory-scroll').scrollTop`);
+  await directory_click('文件 # %25.md');
+  check('特殊文件名原样预览并保留目录出口',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('文件 # %25.md')&&!view.container.querySelector('.workspace-preview-directory-return').hidden`));
+  await evaluate(`view.container.querySelector('[aria-label="打开源文件"]').click()`);await idle();check('打开源文件指向当前目录文件',await evaluate(`opened.at(-1).path.endsWith('文件 # %25.md')`));
+  await directory_return();await new Promise(r=>setTimeout(r,40));
+  check('返回目录恢复滚动和焦点',Math.abs((await evaluate(`view.container.querySelector('.workspace-preview-directory-scroll').scrollTop`))-dir_top)<3&&await evaluate(`document.activeElement.dataset.entryName==='文件 # %25.md'`));
+  for(let i=0;i<20;i++){await directory_click('文件 # %25.md');await directory_return();}
+  check('20轮往返维持出口及可视行规模',await evaluate(`view.container.querySelectorAll('[data-entry-name]').length<60`));
+  await directory_click('文件 # %25.md');await travel('Left');check('Alt左恢复目录',await evaluate(`!!view.container.querySelector('.workspace-preview-directory')`));await travel('Right');check('Alt右恢复文件及出口',await evaluate(`!!view.container.querySelector('.workspace-lookup-markdown')&&!view.container.querySelector('.workspace-preview-directory-return').hidden`));
+  await click_link('继续');check('文件继续跳转仍可返回目录',await evaluate(`view.container.querySelector('.workspace-preview-directory-return').textContent.includes('目录 空格')`));await directory_return();
+  await evaluate(`files.fs={...reqnode('fs'),promises:{...reqnode('fs').promises,readdir:async()=>{throw Error('EACCES test')}}};view.container.querySelector('[aria-label="重新加载"]').click()`);await idle();check('目录刷新失败保留列表及反馈',await evaluate(`!!view.container.querySelector('.workspace-preview-directory')&&view.container.textContent.includes('EACCES test')`));
+  await evaluate(`files.fs=reqnode('fs');view.container.querySelector('[aria-label="重新加载"]').click()`);await idle();check('目录失败可重试恢复',await evaluate(`view.container.dataset.state==='ready'`));
+  await evaluate(`window.release_dir=null;files.fs={...reqnode('fs'),promises:{...reqnode('fs').promises,readdir:async(...args)=>{await new Promise(resolve=>release_dir=resolve);return reqnode('fs').promises.readdir(...args)}}};window.slow_dir=link('目录%20空格');void 0`);
+  for(let i=0;i<100;i++){if(await evaluate('!!release_dir'))break;await new Promise(r=>setTimeout(r,10));}
+  await evaluate(`link('中文.md')`);await evaluate(`release_dir();slow_dir`);check('迟到目录不能覆盖新选择或恢复出口',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')&&view.container.querySelector('.workspace-preview-directory-return').hidden`));await evaluate(`files.fs=reqnode('fs');void 0`);
+
+
+  await evaluate(`window.remote_root=require('path').join(root,'virtual_remote');window.remote_calls=[];files.fs={promises:{stat:async path=>{remote_calls.push('stat');return {isDirectory:()=>path===remote_root,isFile:()=>path!==remote_root,size:40}},readdir:async path=>{remote_calls.push('list');if(path!==remote_root)throw Error('wrong remote directory');return [{name:'remote.md',isDirectory:()=>false}]},readFile:async path=>{remote_calls.push('read');return Buffer.from('# Remote provider')}}};files.read_text=async()=> '# Remote provider';view.show({source,href:remote_root.split(require('path').sep).join('/')})`);await new Promise(r=>setTimeout(r,40));
+  await directory_click('remote.md');check('目录与文件读取共用异步远端提供者不依赖本地副本',await evaluate(`remote_calls.includes('list')&&remote_calls.includes('read')&&view.container.querySelector('.workspace-lookup-markdown').shadowRoot.textContent.includes('Remote provider')`));await directory_return();
+  check('远端提供者文件可回到对应目录',await evaluate(`view.container.querySelector('.workspace-preview-directory').dataset.directoryPath===remote_root`));
+  await evaluate(`files.fs=reqnode('fs');delete files.read_text;void 0`);
 
   await evaluate('link("source.py")');check('源码Monaco只读',await evaluate(`qa.monaco.editor.getEditors().filter(e=>view.container.contains(e.getDomNode())).every(e=>e.getOption(qa.monaco.editor.EditorOption.readOnly))`));
   await evaluate(`scale_slider.value='95';scale_slider.dispatchEvent(new Event('input',{bubbles:true}));`);

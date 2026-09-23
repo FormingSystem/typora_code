@@ -243118,6 +243118,52 @@ https://creativecommons.org/licenses/by/4.0/
     return { kind: "file", path, hash: hash2 };
   }
 
+  // src/workspace_preview_directory.ts
+  function create_preview_directory(files, path, entries3, open) {
+    const container = workspace_element("section", "workspace-preview-directory"), heading3 = workspace_element("div", "workspace-preview-directory-path", files.path_api.basename(path) || path), scroller = workspace_element("div", "workspace-preview-directory-scroll"), list3 = workspace_element("div");
+    const icons3 = acquire_workspace_file_icons();
+    let focused_name, focus_frame = 0;
+    heading3.title = path;
+    scroller.tabIndex = 0;
+    scroller.setAttribute("aria-label", "\u76EE\u5F55\u5185\u5BB9");
+    container.dataset.directoryPath = path;
+    container.append(heading3, scroller);
+    scroller.append(list3);
+    const items = entries3.map((entry) => ({ name: String(entry.name), directory: Boolean(entry.isDirectory()) })).sort((a, b2) => Number(b2.directory) - Number(a.directory) || a.name.localeCompare(b2.name, void 0, { numeric: true }));
+    list3.style.height = items.length * 26 + "px";
+    const virtual = create_workspace_virtual_list({ root: list3, scroller, items, row_height: 26, render: (item) => {
+      const file_path = files.path_api.join(path, item.name), row = workspace_button("", () => {
+        focused_name = item.name;
+        open(file_path);
+      }, "workspace-preview-directory-entry");
+      row.dataset.entryName = item.name;
+      row.title = item.name;
+      row.setAttribute("aria-label", item.name + (item.directory ? "\uFF0C\u76EE\u5F55" : ""));
+      row.append(item.directory ? git_icon("chevron-right") : workspace_file_icon(file_path), workspace_element("span", "workspace-preview-directory-name", item.name));
+      row.onfocus = () => {
+        focused_name = item.name;
+      };
+      return row;
+    } });
+    if (!items.length) scroller.append(workspace_element("p", "workspace-lookup-preview-message", "\u6B64\u76EE\u5F55\u4E3A\u7A7A\u3002"));
+    return { container, capture_position: () => ({ scroll_top: scroller.scrollTop, focused_name }), restore_position(position2) {
+      scroller.scrollTop = position2.scroll_top;
+      focused_name = position2.focused_name;
+      virtual.refresh();
+    }, focus() {
+      cancelAnimationFrame(focus_frame);
+      focus_frame = requestAnimationFrame(() => {
+        const rows = [...list3.querySelectorAll("[data-entry-name]")], row = rows.find((node) => node.dataset.entryName === focused_name) || rows[0];
+        (row || scroller).focus({ preventScroll: true });
+      });
+    }, dispose() {
+      cancelAnimationFrame(focus_frame);
+      virtual.dispose();
+      icons3.remove();
+      container.remove();
+    } };
+  }
+
   // src/workspace_link_preview.ts
   function create_link_preview(files, options2 = {}) {
     const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title = workspace_element("span", "workspace-link-preview-title");
@@ -243125,8 +243171,20 @@ https://creativecommons.org/licenses/by/4.0/
     message.hidden = true;
     message.setAttribute("role", "status");
     const runtime2 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
+    const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
     let target, request, failed_request, generation = 0, disposed = false;
     let reader, pending_reader, pending_stage;
+    let directory, pending_directory, directories = [];
+    const path_request = (path) => ({ source: path, href: encodeURI(path.replace(/\\/gu, "/")).replace(/#/gu, "%23") });
+    const return_directory = workspace_button("", () => {
+      const last = directories.at(-1);
+      if (last) void navigate(path_request(last.path));
+    }, "workspace-preview-directory-return");
+    return_directory.hidden = true;
+    const focus = () => {
+      if (directory) directory.focus();
+      else reader?.focus();
+    };
     const scale = create_preview_scale_controls({ container, get_scale: () => reader?.get_scale() || 80, set_scale: (value) => reader?.set_scale(value) });
     scale.container.hidden = true;
     const sync_scale = () => {
@@ -243137,7 +243195,7 @@ https://creativecommons.org/licenses/by/4.0/
     scale_observer.observe(content, { subtree: true, attributes: true, attributeFilter: ["data-preview-scale"] });
     const open = git_icon_button("go-to-file", "\u6253\u5F00\u6E90\u6587\u4EF6", async () => {
       const version = generation;
-      if (open.disabled) return;
+      if (open.disabled || directory) return;
       open.disabled = true;
       try {
         if (target?.kind === "file") await files.open_file(target.path, { hash: target.hash });
@@ -243162,12 +243220,14 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.setAttribute("role", "toolbar");
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
     toolbar.append(title, scale.container, open, retry);
-    container.append(toolbar, message, content);
+    container.append(toolbar, return_directory, message, content);
     if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
     const cancel_pending = () => {
       ++generation;
       pending_reader?.dispose();
       pending_reader = void 0;
+      pending_directory?.dispose();
+      pending_directory = void 0;
       pending_stage?.remove();
       pending_stage = void 0;
     };
@@ -243176,6 +243236,10 @@ https://creativecommons.org/licenses/by/4.0/
       history.clear();
       reader?.dispose();
       reader = void 0;
+      directory?.dispose();
+      directory = void 0;
+      directories = [];
+      return_directory.hidden = true;
       content.replaceChildren();
       scale.container.hidden = true;
       request = void 0;
@@ -243186,7 +243250,7 @@ https://creativecommons.org/licenses/by/4.0/
     const capture = () => {
       if (!target || !request) return;
       const position2 = reader?.capture_position();
-      return { file_path: target.kind === "file" ? target.path : target.url, scroll_top: position2?.scroll_top || 0, scroll_left: position2?.scroll_left || 0, cursor: { href: request.href }, editor_state: { request: { ...request }, position: position2 } };
+      return { file_path: target.kind === "file" ? target.path : target.url, scroll_top: position2?.scroll_top || 0, scroll_left: position2?.scroll_left || 0, cursor: { href: request.href }, editor_state: { request: { ...request }, position: position2, directory_position: directory?.capture_position(), directories: [...directories] } };
     };
     const navigate = async (value) => {
       if (history.is_navigating()) return;
@@ -243197,7 +243261,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (from) history.record_jump(from, to);
           else history.record_selection(to);
         }
-        reader?.focus();
+        focus();
       }
     };
     const follow = (href) => {
@@ -243216,19 +243280,45 @@ https://creativecommons.org/licenses/by/4.0/
         title.title = value.href;
         open.disabled = true;
       }
-      let next;
+      let next, next_directory;
       const stage = workspace_element("div", "workspace-link-preview-stage");
       stage.style.cssText = "position:absolute;inset:0;visibility:hidden;display:flex;min-height:0";
       pending_stage = stage;
       content.append(stage);
       try {
         const resolved = resolve_preview_link(files.path_api, value.source, value.href);
+        let next_directories = restore ? [...restore.directories] : [...directories];
+        if (!restore && directory && target?.kind === "file" && (resolved.kind !== "file" || resolved.path !== target.path)) next_directories = [...next_directories, { path: target.path, position: directory.capture_position() }].slice(-50);
+        let directory_position = restore?.directory_position;
         if (resolved.kind === "file") {
-          next = create_lookup_preview(files, void 0, { navigate: (href) => void follow(href) });
-          pending_reader = next;
-          stage.append(next.container);
-          const ok2 = await next.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
-          if (!ok2) throw new Error(next.container.textContent || "\u65E0\u6CD5\u8BFB\u53D6\u94FE\u63A5\u76EE\u6807\u3002");
+          const stat = await files.fs.promises.stat(resolved.path);
+          if (disposed || version !== generation) {
+            stage.remove();
+            return false;
+          }
+          if (stat.isDirectory()) {
+            const entries3 = await files.fs.promises.readdir(resolved.path, { withFileTypes: true });
+            if (disposed || version !== generation) {
+              stage.remove();
+              return false;
+            }
+            if (!restore) {
+              const index = next_directories.findIndex((item) => item.path === resolved.path);
+              if (index >= 0) {
+                directory_position = next_directories[index].position;
+                next_directories = next_directories.slice(0, index);
+              }
+            }
+            next_directory = create_preview_directory(files, resolved.path, entries3, (path) => void navigate(path_request(path)));
+            pending_directory = next_directory;
+            stage.append(next_directory.container);
+          } else {
+            next = create_lookup_preview(files, void 0, { navigate: (href) => void follow(href) });
+            pending_reader = next;
+            stage.append(next.container);
+            const ok2 = await next.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
+            if (!ok2) throw new Error(next.container.textContent || "\u65E0\u6CD5\u8BFB\u53D6\u94FE\u63A5\u76EE\u6807\u3002");
+          }
         } else {
           const frame3 = workspace_element("iframe", "workspace-link-web");
           frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
@@ -243246,11 +243336,16 @@ https://creativecommons.org/licenses/by/4.0/
         }
         if (disposed || version !== generation) {
           next?.dispose();
+          next_directory?.dispose();
           stage.remove();
           return false;
         }
         reader?.dispose();
+        directory?.dispose();
         reader = next;
+        directory = next_directory;
+        directories = next_directories;
+        pending_directory = void 0;
         pending_reader = void 0;
         pending_stage = void 0;
         content.replaceChildren(...stage.childNodes);
@@ -243259,20 +243354,27 @@ https://creativecommons.org/licenses/by/4.0/
         request = { ...value };
         message.hidden = true;
         if (restore?.position) reader?.restore_position(restore.position);
+        if (directory_position) directory?.restore_position(directory_position);
+        const last = directories.at(-1);
+        return_directory.hidden = !last;
+        return_directory.textContent = last ? "\u8FD4\u56DE\u76EE\u5F55\uFF1A" + (files.path_api.basename(last.path) || last.path) : "";
+        return_directory.title = last?.path || "";
         title.textContent = resolved.kind === "file" ? files.path_api.basename(resolved.path) : new URL(resolved.url).hostname;
         title.title = resolved.kind === "file" ? resolved.path + resolved.hash : resolved.url;
         open.title = resolved.kind === "file" ? "\u6253\u5F00\u6E90\u6587\u4EF6" : "\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00";
         open.setAttribute("aria-label", open.title);
-        open.disabled = resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
-        scale.container.hidden = resolved.kind !== "file";
+        open.disabled = !!directory || resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
+        scale.container.hidden = resolved.kind !== "file" || !!directory;
         sync_scale();
         container.dataset.state = "ready";
         return true;
       } catch (error) {
         next?.dispose();
+        next_directory?.dispose();
         stage.remove();
         if (!disposed && version === generation) {
           pending_reader = void 0;
+          pending_directory = void 0;
           pending_stage = void 0;
           failed_request = { ...value };
           fail(error);
@@ -243294,7 +243396,7 @@ https://creativecommons.org/licenses/by/4.0/
         const saved = location.editor_state;
         return load(saved.request, saved);
       });
-      if (ok2) reader?.focus();
+      if (ok2) focus();
       return ok2;
     };
     const keydown = (event) => {
@@ -243312,6 +243414,7 @@ https://creativecommons.org/licenses/by/4.0/
       scale_observer.disconnect();
       scale.dispose();
       interaction.remove();
+      style.remove();
       container.remove();
     } };
   }
@@ -243790,6 +243893,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092309,
+        version: "2026.09.23.9",
+        date: "2026-09-23",
+        notes: [
+          "\u76EE\u5F55\u94FE\u63A5\u5728\u9884\u89C8\u4E2D\u663E\u793A\u5F53\u524D\u76EE\u5F55\u5B50\u9879\uFF0C\u6587\u4EF6\u548C\u5B50\u76EE\u5F55\u53EF\u7EE7\u7EED\u9884\u89C8\uFF1B\u8FDB\u5165\u6587\u4EF6\u540E\u4FDD\u7559\u8FD4\u56DE\u76EE\u5F55\u5165\u53E3\uFF0C\u6062\u590D\u5217\u8868\u4F4D\u7F6E\u5E76\u652F\u6301\u72EC\u7ACBAlt\u524D\u540E\u5386\u53F2\u3002",
+          "\u6253\u5F00\u6E90\u6587\u4EF6\u8DDF\u968F\u5F53\u524D\u9884\u89C8\u6587\u4EF6\uFF1B\u5927\u76EE\u5F55\u6309\u53EF\u89C1\u884C\u7ED8\u5236\uFF0C\u8BFB\u53D6\u5931\u8D25\u4FDD\u7559\u73B0\u6709\u5185\u5BB9\uFF0C\u5173\u95ED\u53CA\u65B0\u9009\u62E9\u9694\u79BB\u8FDF\u5230\u7ED3\u679C\u3002"
+        ]
+      },
       {
         sequence: 2026092308,
         version: "2026.09.23.8",
