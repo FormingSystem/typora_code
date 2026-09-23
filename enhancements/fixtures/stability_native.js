@@ -124,7 +124,7 @@
     const preferences=document.querySelector('.workspace-preferences-menu');
     const menu_geometry={box:preferences.getBoundingClientRect().toJSON(),client:preferences.clientWidth,scroll:preferences.scrollWidth,cells:[...preferences.querySelectorAll('button')].map(button=>[...button.children].map(node=>({name:node.className,box:node.getBoundingClientRect().toJSON(),scroll:node.scrollWidth,client:node.clientWidth})))};
     samples.push({menu_geometry,theme,zoom});persist();
-    assert(menu_geometry.client>=menu_geometry.scroll&&menu_geometry.cells.every(cells=>cells.length===4&&cells.every(cell=>cell.scroll<=cell.client)&&cells.every(cell=>Math.abs(cell.box.top+cell.box.height/2-cells[1].box.top-cells[1].box.height/2)<1)),'R065 '+name+' '+width+' '+zoom+' 原生设置菜单文字快捷键完整且无水平溢出');
+    assert(menu_geometry.client>=menu_geometry.scroll&&menu_geometry.cells.every(cells=>cells.length===3&&cells.every(cell=>cell.scroll<=cell.client)&&cells.every(cell=>Math.abs(cell.box.top+cell.box.height/2-cells[0].box.top-cells[0].box.height/2)<1)),'R065 '+name+' '+width+' '+zoom+' 原生设置菜单文字快捷键完整且无水平溢出');
     assert([...preferences.querySelectorAll('.git-menu-label,.git-menu-shortcut')].every(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return [...range.getClientRects()].every(text=>text.left>=box.left-.5&&text.right<=box.right+.5&&text.bottom<=box.bottom+.5);}), 'R065 原生功能名与快捷键的每一文字行盒完整');
     const menu_stage='preferences_'+name+'_'+width+'_'+Math.round(zoom*100);
     fs.writeFileSync(base+'/capture_request.json',JSON.stringify({stage:menu_stage}));

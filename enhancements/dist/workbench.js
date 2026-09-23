@@ -4596,8 +4596,8 @@ https://creativecommons.org/licenses/by/4.0/
   function isString(str) {
     return typeof str === "string";
   }
-  function isArrayOf(value, check) {
-    return Array.isArray(value) && value.every(check);
+  function isArrayOf(value, check2) {
+    return Array.isArray(value) && value.every(check2);
   }
   function isObject(obj) {
     return typeof obj === "object" && obj !== null && !Array.isArray(obj) && !(obj instanceof RegExp) && !(obj instanceof Date);
@@ -158474,6 +158474,7 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_widgets_default = "";
 
   // vendor/codicons/icons.json
+  var check = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>';
   var icons_default = {
     "arrow-left": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.5 8.00023H3.70701L7.85301 3.85423C8.04801 3.65923 8.04801 3.34223 7.85301 3.14723C7.65801 2.95223 7.34101 2.95223 7.14601 3.14723L2.14601 8.14723C1.95101 8.34223 1.95101 8.65923 2.14601 8.85423L7.14601 13.8542C7.24401 13.9522 7.37201 14.0002 7.50001 14.0002C7.62801 14.0002 7.75601 13.9512 7.85401 13.8542C8.04901 13.6592 8.04901 13.3422 7.85401 13.1472L3.70801 9.00123H13.501C13.777 9.00123 14.001 8.77723 14.001 8.50123C14.001 8.22523 13.777 8.00123 13.501 8.00123L13.5 8.00023Z"/></svg>',
     "arrow-right": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.854 8.14576L8.854 3.14576C8.659 2.95076 8.342 2.95076 8.147 3.14576C7.952 3.34076 7.952 3.65776 8.147 3.85276L12.293 7.99876H2.5C2.224 7.99876 2 8.22276 2 8.49876C2 8.77476 2.224 8.99876 2.5 8.99876H12.293L8.147 13.1448C7.952 13.3398 7.952 13.6568 8.147 13.8518C8.245 13.9498 8.373 13.9978 8.501 13.9978C8.629 13.9978 8.757 13.9488 8.855 13.8518L13.855 8.85176C14.05 8.65676 14.05 8.33976 13.855 8.14476L13.854 8.14576Z"/></svg>',
@@ -158483,7 +158484,7 @@ https://creativecommons.org/licenses/by/4.0/
     discard: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3.00098 2.5C3.00098 2.22386 3.22483 2 3.50098 2C3.77712 2 4.00098 2.22386 4.00098 2.5V6.34262L7.17202 3.17157C8.73412 1.60948 11.2668 1.60948 12.8289 3.17157C14.391 4.73367 14.391 7.26633 12.8289 8.82843L7.80375 13.8536C7.60849 14.0488 7.2919 14.0488 7.09664 13.8536C6.90138 13.6583 6.90138 13.3417 7.09664 13.1464L12.1218 8.12132C13.2933 6.94975 13.2933 5.05025 12.1218 3.87868C10.9502 2.70711 9.0507 2.70711 7.87913 3.87868L4.75781 7H8.50098C8.77712 7 9.00098 7.22386 9.00098 7.5C9.00098 7.77614 8.77712 8 8.50098 8H3.60098C3.26961 8 3.00098 7.73137 3.00098 7.4V2.5Z"/></svg>',
     add: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M8 1.5C8 1.22386 7.77614 1 7.5 1C7.22386 1 7 1.22386 7 1.5V7H1.5C1.22386 7 1 7.22386 1 7.5C1 7.77614 1.22386 8 1.5 8H7V13.5C7 13.7761 7.22386 14 7.5 14C7.77614 14 8 13.7761 8 13.5V8H13.5C13.7761 8 14 7.77614 14 7.5C14 7.22386 13.7761 7 13.5 7H8V1.5Z"/></svg>',
     remove: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M1 7.5C1 7.22386 1.22386 7 1.5 7H13.5C13.7761 7 14 7.22386 14 7.5C14 7.77614 13.7761 8 13.5 8H1.5C1.22386 8 1 7.77614 1 7.5Z"/></svg>',
-    check: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>',
+    check,
     "chevron-right": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M6.14601 3.14579C5.95101 3.34079 5.95101 3.65779 6.14601 3.85279L10.292 7.99879L6.14601 12.1448C5.95101 12.3398 5.95101 12.6568 6.14601 12.8518C6.34101 13.0468 6.65801 13.0468 6.85301 12.8518L11.353 8.35179C11.548 8.15679 11.548 7.83979 11.353 7.64478L6.85301 3.14479C6.65801 2.94979 6.34101 2.95079 6.14601 3.14579Z"/></svg>',
     "chevron-down": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M3.14598 5.85423L7.64598 10.3542C7.84098 10.5492 8.15798 10.5492 8.35298 10.3542L12.853 5.85423C13.048 5.65923 13.048 5.34223 12.853 5.14723C12.658 4.95223 12.341 4.95223 12.146 5.14723L7.99998 9.29323L3.85398 5.14723C3.65898 4.95223 3.34198 4.95223 3.14698 5.14723C2.95198 5.34223 2.95098 5.65923 3.14598 5.85423Z"/></svg>',
     more: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M5 8C5 8.55229 4.55228 9 4 9C3.44772 9 3 8.55229 3 8C3 7.44772 3.44772 7 4 7C4.55228 7 5 7.44772 5 8ZM9 8C9 8.55229 8.55229 9 8 9C7.44772 9 7 8.55229 7 8C7 7.44772 7.44772 7 8 7C8.55229 7 9 7.44772 9 8ZM12 9C12.5523 9 13 8.55229 13 8C13 7.44772 12.5523 7 12 7C11.4477 7 11 7.44772 11 8C11 8.55229 11.4477 9 12 9Z"/></svg>',
@@ -158570,6 +158571,27 @@ https://creativecommons.org/licenses/by/4.0/
     "remote-explorer": '<svg width="24" height="25" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.32 20.0677C9.469 20.5907 9.667 21.0917 9.911 21.5677H3.759C3.345 21.5677 3.009 21.2317 3.009 20.8177C3.009 20.4037 3.345 20.0677 3.759 20.0677H6.008V18.5517H3C1.343 18.5517 0 17.2087 0 15.5517V5.06775C0 3.41075 1.343 2.06775 3 2.06775H16.5C18.157 2.06775 19.5 3.41075 19.5 5.06775V9.88775C19.016 9.74975 18.516 9.65275 18 9.60575V5.06775C18 4.23975 17.328 3.56775 16.5 3.56775H3C2.172 3.56775 1.5 4.23975 1.5 5.06775V15.5517C1.5 16.3797 2.172 17.0517 3 17.0517H9.039C9.016 17.3047 9 17.5587 9 17.8177C9 18.0657 9.016 18.3097 9.037 18.5517H7.507V20.0677H9.32ZM24 17.8177C24 21.5457 20.978 24.5677 17.25 24.5677C13.522 24.5677 10.5 21.5457 10.5 17.8177C10.5 14.0897 13.522 11.0677 17.25 11.0677C20.978 11.0677 24 14.0897 24 17.8177ZM17.251 19.3177C17.251 19.2187 17.231 19.1217 17.194 19.0307C17.156 18.9397 17.101 18.8567 17.031 18.7867L14.781 16.5367C14.64 16.3957 14.449 16.3167 14.25 16.3167C14.051 16.3167 13.86 16.3957 13.719 16.5367C13.578 16.6777 13.499 16.8687 13.499 17.0677C13.499 17.2667 13.578 17.4577 13.719 17.5987L15.44 19.3177L13.719 21.0367C13.578 21.1777 13.499 21.3687 13.499 21.5677C13.499 21.7667 13.578 21.9577 13.719 22.0987C13.86 22.2397 14.051 22.3187 14.25 22.3187C14.449 22.3187 14.64 22.2397 14.781 22.0987L17.031 19.8487C17.101 19.7787 17.156 19.6967 17.194 19.6057C17.232 19.5147 17.251 19.4167 17.251 19.3177ZM19.06 16.3177L20.78 14.5987C20.921 14.4577 21 14.2667 21 14.0677C21 13.8687 20.921 13.6777 20.78 13.5367C20.639 13.3957 20.448 13.3167 20.249 13.3167C20.05 13.3167 19.859 13.3957 19.718 13.5367L17.468 15.7867C17.398 15.8567 17.343 15.9387 17.305 16.0307C17.267 16.1217 17.248 16.2197 17.248 16.3177C17.248 16.4157 17.268 16.5137 17.305 16.6057C17.343 16.6967 17.398 16.7797 17.468 16.8487L19.718 19.0987C19.859 19.2397 20.05 19.3187 20.249 19.3187C20.448 19.3187 20.639 19.2397 20.78 19.0987C20.921 18.9577 21 18.7667 21 18.5677C21 18.3687 20.921 18.1777 20.78 18.0367L19.06 16.3177Z"/></svg>',
     edit: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14.236 1.76386C13.2123 0.740172 11.5525 0.740171 10.5289 1.76386L2.65722 9.63549C2.28304 10.0097 2.01623 10.4775 1.88467 10.99L1.01571 14.3755C0.971767 14.5467 1.02148 14.7284 1.14646 14.8534C1.27144 14.9783 1.45312 15.028 1.62432 14.9841L5.00978 14.1151C5.52234 13.9836 5.99015 13.7168 6.36433 13.3426L14.236 5.47097C15.2596 4.44728 15.2596 2.78755 14.236 1.76386ZM11.236 2.47097C11.8691 1.8378 12.8957 1.8378 13.5288 2.47097C14.162 3.10413 14.162 4.1307 13.5288 4.76386L12.75 5.54269L10.4571 3.24979L11.236 2.47097ZM9.75002 3.9569L12.0429 6.24979L5.65722 12.6355C5.40969 12.883 5.10023 13.0595 4.76117 13.1465L2.19447 13.8053L2.85327 11.2386C2.9403 10.8996 3.1168 10.5901 3.36433 10.3426L9.75002 3.9569Z"/></svg>'
   };
+
+  // src/workspace_menu_item.ts
+  function create_workspace_menu_check(item, checked, class_name) {
+    const checkable = typeof checked === "boolean";
+    item.setAttribute("role", checkable ? "menuitemcheckbox" : "menuitem");
+    if (!checkable) {
+      item.removeAttribute("aria-checked");
+      return;
+    }
+    item.setAttribute("aria-checked", String(checked));
+    const slot = document.createElement("span");
+    slot.className = class_name;
+    slot.setAttribute("aria-hidden", "true");
+    if (checked) {
+      const icon = document.importNode(new DOMParser().parseFromString(check, "image/svg+xml").documentElement, true);
+      icon.setAttribute("data-git-icon", "check");
+      icon.setAttribute("fill", "currentColor");
+      slot.append(icon);
+    }
+    return slot;
+  }
 
   // src/git_graph_i18n.ts
   var zh_cn = {
@@ -160497,11 +160519,11 @@ https://creativecommons.org/licenses/by/4.0/
             entry.action();
           }
         });
-        const check = workspace_element("span", "git-menu-check");
-        if (entry.checked) check.append(git_icon("check"));
+        const check2 = create_workspace_menu_check(node, entry.checked, "git-menu-check");
         const arrow = workspace_element("span", "git-menu-arrow");
         if (entry.children) arrow.append(git_icon("chevron-right"));
-        node.append(check, workspace_element("span", "git-menu-label", entry.title));
+        if (check2) node.append(check2);
+        node.append(workspace_element("span", "git-menu-label", entry.title));
         node.append(workspace_element("span", "git-menu-shortcut", entry.shortcut || ""));
         node.append(arrow);
         const open_child = (focus = false) => {
@@ -160511,13 +160533,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (focus) child.querySelector("button:not([disabled])")?.focus();
         };
         node.title = entry.title;
-        node.setAttribute("role", "menuitem");
         if (entry.id) node.dataset.action = entry.id;
         node.disabled = Boolean(entry.disabled);
-        if (entry.checked != null) {
-          node.setAttribute("role", "menuitemcheckbox");
-          node.setAttribute("aria-checked", String(entry.checked));
-        }
         if (entry.children) node.setAttribute("aria-haspopup", "menu");
         node.onmouseenter = () => entry.children ? open_child() : close_from(level + 1);
         node.onkeydown = (input) => {
@@ -160557,7 +160574,15 @@ https://creativecommons.org/licenses/by/4.0/
       menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
       const row = menu.querySelector("button"), row_style = row && getComputedStyle(row), menu_style2 = getComputedStyle(menu);
       const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key3) => sum + (parseFloat(style[key3]) || 0), 0);
-      if (row_style) menu.style.width = Math.ceil(text_width(".git-menu-label") + shortcut_width + 32 + 3 * (parseFloat(row_style.columnGap) || 0) + horizontal(row_style) + horizontal(menu_style2)) + "px";
+      if (row_style) {
+        const gap = parseFloat(row_style.columnGap) || 0;
+        const label_width = Math.max(0, ...[...menu.querySelectorAll(".git-menu-label")].map((label) => {
+          const range2 = document.createRange();
+          range2.selectNodeContents(label);
+          return range2.getBoundingClientRect().width + (label.parentElement?.getAttribute("role") === "menuitemcheckbox" ? 16 + gap : 0);
+        }));
+        menu.style.width = Math.ceil(label_width + shortcut_width + 16 + 2 * gap + horizontal(row_style) + horizontal(menu_style2)) + "px";
+      }
       const bounds = menu.getBoundingClientRect();
       if (!parent && options2.anchor?.isConnected) {
         const anchor = options2.anchor.getBoundingClientRect();
@@ -184300,15 +184325,15 @@ https://creativecommons.org/licenses/by/4.0/
       }
       return false;
     };
-    const _matchesNameCheck = function _matchesNameCheck2(check, name) {
-      if (check instanceof RegExp) {
-        return regExpTest2(check, name);
+    const _matchesNameCheck = function _matchesNameCheck2(check2, name) {
+      if (check2 instanceof RegExp) {
+        return regExpTest2(check2, name);
       }
-      if (check instanceof Function) {
+      if (check2 instanceof Function) {
         for (var _len = arguments.length, args = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
           args[_key - 2] = arguments[_key];
         }
-        return Boolean(check(name, ...args));
+        return Boolean(check2(name, ...args));
       }
       return false;
     };
@@ -188922,14 +188947,14 @@ https://creativecommons.org/licenses/by/4.0/
         for (const release of releases) release();
         leaf.parent.removeTab?.(leaf.state.path);
       };
-      const check = () => queueMicrotask(() => {
+      const check2 = () => queueMicrotask(() => {
         if (!native_placeholders.has(leaf)) return;
         const children = leaf.parent.children || [];
         if (!children.includes(leaf) || children.some((item) => item !== leaf) || core.app.workspace.activeLeaf !== leaf) cleanup();
       });
-      const releases = [core.app.workspace.on("layout-changed", check), core.app.workspace.on("active-leaf:change", check), core.app.workspace.on("file:open", check)];
+      const releases = [core.app.workspace.on("layout-changed", check2), core.app.workspace.on("active-leaf:change", check2), core.app.workspace.on("file:open", check2)];
       native_placeholders.set(leaf, cleanup);
-      check();
+      check2();
     };
     const keep_clicked_tab = (event) => {
       const tab = event.target instanceof Element ? event.target.closest(".typ-tab[data-id]") : null;
@@ -189904,7 +189929,7 @@ https://creativecommons.org/licenses/by/4.0/
       core.app.workspace.eachLeaves((leaf) => {
         leaves.push(leaf);
       });
-      const check = () => {
+      const check2 = () => {
         assert_workspace_context_ready();
         if (!binding.active || renaming || file_operation_count || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
         const current = [];
@@ -189913,7 +189938,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
         if (current.length !== leaves.length || current.some((leaf) => !leaves.includes(leaf))) throw new Error("\u6253\u5F00\u7684\u7F16\u8F91\u5668\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
       };
-      check();
+      check2();
       const dirty = () => leaves.filter((leaf) => editor_state(leaf).dirty);
       const terminal_count = document.querySelectorAll(".linux-note-terminal[data-session]").length;
       if (dirty().length || terminal_count) {
@@ -189932,13 +189957,13 @@ https://creativecommons.org/licenses/by/4.0/
             busy = true;
             accept.disabled = true;
             void (async () => {
-              check();
+              check2();
               for (const leaf of dirty()) {
                 if (!dialog2.root.isConnected) return;
                 if (!await save_leaf(leaf)) throw new Error("\u4FDD\u5B58\u672A\u5B8C\u6210\uFF0C\u539F\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002\u8BF7\u5904\u7406\u4FDD\u5B58\u63D0\u793A\u540E\u91CD\u8BD5\u3002");
               }
               if (!dialog2.root.isConnected) return;
-              check();
+              check2();
               if (dirty().length) throw new Error("\u4ECD\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002");
               done = true;
               dialog2.close(false);
@@ -189954,10 +189979,10 @@ https://creativecommons.org/licenses/by/4.0/
         });
         if (!accepted) return;
       }
-      check();
+      check2();
       if (dirty().length) throw new Error("\u4ECD\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\u3002");
       return () => {
-        check();
+        check2();
         if (dirty().length) throw new Error("\u6587\u6863\u53C8\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u5DF2\u505C\u6B62\u5207\u6362\u3002");
         file_clipboard.invalidate();
         dispose_workspace_widgets();
@@ -191187,7 +191212,7 @@ https://creativecommons.org/licenses/by/4.0/
   function graph_actions_for(locale) {
     const label = (key3) => git_graph_text(key3, {}, locale);
     const field = (key3, title, optional3 = false) => ({ key: key3, title: label(title), optional: optional3 });
-    const check = (key3, title, initial = false) => ({ key: key3, title: label(title), type: "boolean", initial });
+    const check2 = (key3, title, initial = false) => ({ key: key3, title: label(title), type: "boolean", initial });
     const choice = (key3, title, choices) => ({
       key: key3,
       title: label(title),
@@ -191199,38 +191224,38 @@ https://creativecommons.org/licenses/by/4.0/
     const remote = field("remote", "action.field.remote");
     const branch = field("branch", "action.field.branch");
     return [
-      { id: "branch_create", title: label("action.title.branch_create"), targets: ["commit", "branch", "tag"], fields: [branch, check("checkout", "action.field.checkout")], touches_files: true },
+      { id: "branch_create", title: label("action.title.branch_create"), targets: ["commit", "branch", "tag"], fields: [branch, check2("checkout", "action.field.checkout")], touches_files: true },
       { id: "branch_checkout", title: label("action.title.branch_checkout"), targets: ["branch"], fields: [], touches_files: true },
       { id: "remote_checkout", title: label("action.title.remote_checkout"), targets: ["remote"], fields: [branch], touches_files: true },
       { id: "branch_rename", title: label("action.title.branch_rename"), targets: ["branch"], fields: [branch] },
-      { id: "branch_delete", title: label("action.title.branch_delete"), targets: ["branch"], fields: [check("force", "action.field.force_delete")], destructive: label("action.warning.branch_delete") },
+      { id: "branch_delete", title: label("action.title.branch_delete"), targets: ["branch"], fields: [check2("force", "action.field.force_delete")], destructive: label("action.warning.branch_delete") },
       { id: "remote_branch_delete", title: label("action.title.remote_branch_delete"), targets: ["remote"], fields: [remote, branch], destructive: label("action.warning.remote_branch_delete") },
-      { id: "branch_fetch", title: label("action.title.branch_fetch"), targets: ["branch", "remote"], fields: [remote, field("source", "action.field.remote_source"), branch, check("force", "action.field.force_fetch")] },
-      { id: "merge", title: label("action.title.merge"), targets: ["commit", "branch", "remote"], fields: [choice("mode", "action.field.merge_mode", ["normal", "no-ff", "ff-only", "squash"]), check("no_commit", "action.field.defer_commit"), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
-      { id: "rebase", title: label("action.title.rebase"), targets: ["commit", "branch", "remote"], fields: [check("preserve_merges", "action.field.preserve_merges"), check("ignore_date", "action.field.ignore_date"), check("interactive", "action.field.interactive"), field("todo", "action.field.rebase_todo", true)], touches_files: true, destructive: label("action.warning.rebase") },
+      { id: "branch_fetch", title: label("action.title.branch_fetch"), targets: ["branch", "remote"], fields: [remote, field("source", "action.field.remote_source"), branch, check2("force", "action.field.force_fetch")] },
+      { id: "merge", title: label("action.title.merge"), targets: ["commit", "branch", "remote"], fields: [choice("mode", "action.field.merge_mode", ["normal", "no-ff", "ff-only", "squash"]), check2("no_commit", "action.field.defer_commit"), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
+      { id: "rebase", title: label("action.title.rebase"), targets: ["commit", "branch", "remote"], fields: [check2("preserve_merges", "action.field.preserve_merges"), check2("ignore_date", "action.field.ignore_date"), check2("interactive", "action.field.interactive"), field("todo", "action.field.rebase_todo", true)], touches_files: true, destructive: label("action.warning.rebase") },
       { id: "reset", title: label("action.title.reset"), targets: ["commit", "branch", "tag", "changes"], fields: [choice("mode", "action.field.reset_mode", ["mixed", "soft", "hard"])], touches_files: true, destructive: label("action.warning.reset") },
       { id: "commit_checkout", title: label("action.title.commit_checkout"), targets: ["commit", "tag"], fields: [], touches_files: true },
-      { id: "cherry_pick", title: label("action.title.cherry_pick"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), check("record_origin", "action.field.record_origin"), field("mainline", "action.field.mainline", true)], touches_files: true },
-      { id: "revert", title: label("action.title.revert"), targets: ["commit"], fields: [check("no_commit", "action.field.apply_only"), field("mainline", "action.field.mainline", true)], touches_files: true },
+      { id: "cherry_pick", title: label("action.title.cherry_pick"), targets: ["commit"], fields: [check2("no_commit", "action.field.apply_only"), check2("record_origin", "action.field.record_origin"), field("mainline", "action.field.mainline", true)], touches_files: true },
+      { id: "revert", title: label("action.title.revert"), targets: ["commit"], fields: [check2("no_commit", "action.field.apply_only"), field("mainline", "action.field.mainline", true)], touches_files: true },
       { id: "drop", title: label("action.title.drop"), targets: ["commit"], fields: [], touches_files: true, destructive: label("action.warning.drop") },
-      { id: "tag_add", title: label("action.title.tag_add"), targets: ["commit", "branch"], fields: [field("tag", "action.field.tag"), choice("tag_type", "action.field.tag_type", ["annotated", "lightweight"]), field("message", "action.field.tag_message", true), check("sign", "action.field.sign_tag"), check("push", "action.field.push_tag"), field("remote", "action.field.remote", true)] },
+      { id: "tag_add", title: label("action.title.tag_add"), targets: ["commit", "branch"], fields: [field("tag", "action.field.tag"), choice("tag_type", "action.field.tag_type", ["annotated", "lightweight"]), field("message", "action.field.tag_message", true), check2("sign", "action.field.sign_tag"), check2("push", "action.field.push_tag"), field("remote", "action.field.remote", true)] },
       { id: "tag_delete", title: label("action.title.tag_delete"), targets: ["tag"], fields: [], destructive: label("action.warning.tag_delete") },
       { id: "tag_push", title: label("action.title.tag_push"), targets: ["tag"], fields: [remote] },
-      { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check("prune", "action.field.prune"), check("prune_tags", "action.field.prune_tags")] },
+      { id: "fetch", title: label("action.title.fetch"), targets: ["repository", "remote"], fields: [field("remote", "action.field.fetch_remote_optional", true), check2("prune", "action.field.prune"), check2("prune_tags", "action.field.prune_tags")] },
       { id: "pull", title: label("action.title.pull"), targets: ["repository", "branch", "remote"], fields: [remote, branch, choice("mode", "action.field.pull_mode", ["ff-only", "merge", "rebase", "no-ff", "squash"]), choice("squash_message", "action.field.squash_message", ["default", "git"])], touches_files: true },
       { id: "sync", title: label("action.title.sync"), targets: ["repository"], fields: [choice("mode", "action.field.sync_mode", ["merge", "rebase", "ff-only"])], touches_files: true },
-      { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, field("remote_branch", "scm.remote_branch", true), check("upstream", "action.field.set_upstream"), check("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
-      { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check("untracked", "action.field.include_untracked"), check("keep_index", "action.field.keep_index")], touches_files: true },
-      { id: "stash_apply", title: label("action.title.stash_apply"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
-      { id: "stash_pop", title: label("action.title.stash_pop"), targets: ["stash"], fields: [check("index", "action.field.restore_index")], touches_files: true },
+      { id: "push", title: label("action.title.push"), targets: ["repository", "branch"], fields: [remote, branch, field("remote_branch", "scm.remote_branch", true), check2("upstream", "action.field.set_upstream"), check2("force_lease", "action.field.force_with_lease")], destructive: label("action.warning.push") },
+      { id: "stash_create", title: label("action.title.stash_create"), targets: ["changes", "repository"], fields: [field("message", "action.field.message_optional", true), check2("untracked", "action.field.include_untracked"), check2("keep_index", "action.field.keep_index")], touches_files: true },
+      { id: "stash_apply", title: label("action.title.stash_apply"), targets: ["stash"], fields: [check2("index", "action.field.restore_index")], touches_files: true },
+      { id: "stash_pop", title: label("action.title.stash_pop"), targets: ["stash"], fields: [check2("index", "action.field.restore_index")], touches_files: true },
       { id: "stash_drop", title: label("action.title.stash_drop"), targets: ["stash"], fields: [], destructive: label("action.warning.stash_drop") },
       { id: "stash_branch", title: label("action.title.stash_branch"), targets: ["stash"], fields: [branch], touches_files: true },
-      { id: "clean", title: label("action.title.clean"), targets: ["changes"], fields: [check("directories", "action.field.clean_directories"), check("ignored", "action.field.clean_ignored")], touches_files: true, destructive: label("action.warning.clean") },
+      { id: "clean", title: label("action.title.clean"), targets: ["changes"], fields: [check2("directories", "action.field.clean_directories"), check2("ignored", "action.field.clean_ignored")], touches_files: true, destructive: label("action.warning.clean") },
       { id: "worktree_add", title: label("scm.worktree_add"), targets: ["repository"], fields: [field("directory", "action.field.target_directory"), field("branch", "scm.worktree_new_branch", true)] },
       { id: "worktree_remove", title: label("scm.worktree_remove"), targets: ["worktree"], fields: [], touches_files: true, destructive: label("scm.worktree_remove_warning") },
       { id: "clone", title: label("action.title.clone"), targets: ["repository"], fields: [field("url", "action.field.repository_url"), field("directory", "action.field.target_directory")] },
       { id: "remote_add", title: label("action.title.remote_add"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url")] },
-      { id: "remote_edit", title: label("action.title.remote_edit"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url"), check("push_url", "action.field.push_url")] },
+      { id: "remote_edit", title: label("action.title.remote_edit"), targets: ["repository"], fields: [remote, field("url", "action.field.remote_url"), check2("push_url", "action.field.push_url")] },
       { id: "remote_remove", title: label("action.title.remote_remove"), targets: ["repository"], fields: [remote], destructive: label("action.warning.remote_remove") },
       { id: "remote_prune", title: label("action.title.remote_prune"), targets: ["repository"], fields: [remote], destructive: label("action.warning.remote_prune") },
       { id: "stage", title: label("action.title.stage"), targets: ["file"], fields: [] },
@@ -191238,9 +191263,9 @@ https://creativecommons.org/licenses/by/4.0/
       { id: "stage_all", title: label("action.title.stage_all"), targets: ["changes", "repository"], fields: [] },
       { id: "unstage_all", title: label("action.title.unstage_all"), targets: ["changes", "repository"], fields: [] },
       { id: "discard_file", title: label("action.title.discard_file"), targets: ["file"], fields: [], touches_files: true, destructive: label("action.warning.discard_file") },
-      { id: "discard_changes", title: label("action.title.discard_changes"), targets: ["changes"], fields: [check("include_untracked", "action.field.discard_untracked", true)], touches_files: true, destructive: label("action.warning.discard_changes") },
+      { id: "discard_changes", title: label("action.title.discard_changes"), targets: ["changes"], fields: [check2("include_untracked", "action.field.discard_untracked", true)], touches_files: true, destructive: label("action.warning.discard_changes") },
       { id: "delete_untracked", title: label("action.title.delete_untracked"), targets: ["file"], fields: [], touches_files: true, destructive: label("action.warning.delete_untracked") },
-      { id: "commit", title: label("action.title.commit"), targets: ["changes"], fields: [field("message", "action.field.commit_message"), check("amend", "action.field.amend")], destructive: label("action.warning.commit") },
+      { id: "commit", title: label("action.title.commit"), targets: ["changes"], fields: [field("message", "action.field.commit_message"), check2("amend", "action.field.amend")], destructive: label("action.warning.commit") },
       { id: "continue", title: label("action.title.continue"), targets: ["repository"], fields: [], touches_files: true },
       { id: "abort", title: label("action.title.abort"), targets: ["repository"], fields: [], touches_files: true },
       { id: "skip", title: label("action.title.skip"), targets: ["repository"], fields: [], touches_files: true }
@@ -236057,19 +236082,19 @@ https://creativecommons.org/licenses/by/4.0/
       const controller = active2 = new AbortController();
       const abort = () => controller.abort();
       signal.addEventListener("abort", abort, { once: true });
-      const check = () => {
+      const check2 = () => {
         if (disposed || controller.signal.aborted) throw abort_error();
       };
       const operation = queue2.catch(() => {
       }).then(async () => {
-        check();
+        check2();
         const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? options2.workspace_root : path.dirname(options2.file_path);
         const key3 = JSON.stringify([root, options2.executable || "", options2.compile_commands_dir || "", options2.fallback_flags || []]);
         if (key3 !== configuration || !transport || transport.failure) {
           await close();
-          check();
+          check2();
           environment = await discover_clangd_environment({ ...options2, workspace_root: root }, node);
-          check();
+          check2();
           const args = ["--background-index=false", "--clang-tidy=false", "--pch-storage=memory", "--log=error", "--enable-config=false"];
           if (environment.compile_commands_dir) args.push("--compile-commands-dir=".concat(environment.compile_commands_dir));
           transport = create_clangd_transport(node, environment.executable, args, root, (method, params) => {
@@ -236087,7 +236112,7 @@ https://creativecommons.org/licenses/by/4.0/
             throw error;
           }
         }
-        check();
+        check2();
         const target = transport, uri = url.pathToFileURL(options2.file_path).href;
         if (document_uri !== uri || document_language !== options2.language) {
           if (document_uri) target.notify("textDocument/didClose", { textDocument: { uri: document_uri } });
@@ -236104,7 +236129,7 @@ https://creativecommons.org/licenses/by/4.0/
           target.notify("textDocument/didChange", { textDocument: { uri, version: document_version }, contentChanges: [{ text: options2.text }] });
         }
         const items = await target.request("textDocument/documentSymbol", { textDocument: { uri } }, controller.signal);
-        check();
+        check2();
         const latest = diagnostics.get(uri), received = Boolean(latest && latest.version === document_version), valid = received ? latest.items : [];
         return { symbols: clangd_document_symbols(items, options2.text), incomplete: false, provider: "clangd", executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
       });
@@ -241309,15 +241334,12 @@ https://creativecommons.org/licenses/by/4.0/
         item.className = "workspace-titlebar-entry";
         item.disabled = Boolean(entry.disabled);
         item.title = entry.title || "";
-        item.setAttribute("role", entry.checked !== void 0 ? "menuitemcheckbox" : "menuitem");
-        if (entry.checked !== void 0) item.setAttribute("aria-checked", String(entry.checked));
-        const check = document.createElement("span");
-        check.className = "workspace-titlebar-check";
-        if (entry.checked) check.append(git_icon("check"));
+        const check2 = create_workspace_menu_check(item, entry.checked, "workspace-titlebar-check");
+        if (check2) item.append(check2);
         const label = document.createElement("span");
         label.className = "workspace-titlebar-label";
         label.textContent = entry.label || "";
-        item.append(check, label);
+        item.append(label);
         if (entry.shortcut) {
           const shortcut = document.createElement("span");
           shortcut.className = "workspace-titlebar-shortcut";
@@ -245968,6 +245990,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092404,
+        version: "2026.09.24.4",
+        date: "2026-09-24",
+        notes: [
+          "\u666E\u901A\u83DC\u5355\u547D\u4EE4\u4E0D\u518D\u9884\u7559\u52FE\u9009\u7A7A\u767D\uFF0C\u9876\u680F\u3001\u53F3\u952E\u4E0E\u5B50\u83DC\u5355\u7EDF\u4E00\u6309\u6761\u76EE\u80FD\u529B\u6392\u7248\uFF1B\u53EF\u52FE\u9009\u9879\u4FDD\u7559\u7A33\u5B9A\u72B6\u6001\u4F4D\u7F6E\uFF0C\u5FEB\u6377\u952E\u3001\u5B9E\u9645\u56FE\u6807\u548C\u952E\u76D8\u64CD\u4F5C\u4FDD\u6301\u3002"
+        ]
+      },
+      {
         sequence: 2026092403,
         version: "2026.09.24.3",
         date: "2026-09-24",
@@ -246722,7 +246752,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (disposed || dialog2 !== target || retry.disabled) return;
           retry.disabled = true;
           target.close();
-          void check(true);
+          void check2(true);
         });
         target.footer.append(retry);
       }
@@ -246815,7 +246845,7 @@ https://creativecommons.org/licenses/by/4.0/
       target.content.setAttribute("aria-busy", "true");
       target.content.append(progress.root, status2, workspace_element("p", "", "\u6B63\u5728\u8FDE\u63A5\u66F4\u65B0\u670D\u52A1\u5E76\u6838\u5BF9\u7248\u672C\uFF0C\u8BF7\u7A0D\u5019\u3002\u6B64\u65F6\u4E0D\u4F1A\u4E0B\u8F7D\u6216\u5B89\u88C5\u66F4\u65B0\uFF0C\u53EF\u53D6\u6D88\u540E\u91CD\u8BD5\u3002"));
     }
-    async function check(manual = false) {
+    async function check2(manual = false) {
       if (disposed) return;
       if (active_check) {
         if (manual) show_checking(active_check);
@@ -246914,11 +246944,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     const command = app.commands.register({ id: "typora_code:check_update", title: "\u68C0\u67E5 Typora Code \u66F4\u65B0", scope: "global", callback: () => {
-      void check(true);
+      void check2(true);
     } });
     if (typeof command === "function") lifetime.add(command);
     const timer = setTimeout(() => {
-      void check();
+      void check2();
     }, 2e3);
     lifetime.add(() => {
       disposed = true;

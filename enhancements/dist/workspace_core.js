@@ -3030,6 +3030,27 @@ ${doc.documentElement.outerHTML}`;
   // vendor/codicons/icons.json
   var check = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>';
 
+  // src/workspace_menu_item.ts
+  function create_workspace_menu_check(item, checked, class_name) {
+    const checkable = typeof checked === "boolean";
+    item.setAttribute("role", checkable ? "menuitemcheckbox" : "menuitem");
+    if (!checkable) {
+      item.removeAttribute("aria-checked");
+      return;
+    }
+    item.setAttribute("aria-checked", String(checked));
+    const slot = document.createElement("span");
+    slot.className = class_name;
+    slot.setAttribute("aria-hidden", "true");
+    if (checked) {
+      const icon = document.importNode(new DOMParser().parseFromString(check, "image/svg+xml").documentElement, true);
+      icon.setAttribute("data-git-icon", "check");
+      icon.setAttribute("fill", "currentColor");
+      slot.append(icon);
+    }
+    return slot;
+  }
+
   // vendor/workspace_core/src/ui/components/menu.ts
   var Menu = class extends View {
     submenus = {};
@@ -3198,8 +3219,6 @@ ${doc.documentElement.outerHTML}`;
     }
     set_checked(checked) {
       this.checked = checked;
-      this.anchorEl.setAttribute("role", "menuitemcheckbox");
-      this.anchorEl.setAttribute("aria-checked", String(checked));
       this._setContent();
       return this;
     }
@@ -3207,18 +3226,13 @@ ${doc.documentElement.outerHTML}`;
       const label = document.createElement("span");
       label.className = "typ-menu-label";
       label.textContent = this.title || "";
-      const icon = document.createElement("span");
-      icon.className = "typ-menu-icon";
-      if (this.checked !== void 0) {
-        if (this.checked) {
-          const glyph = document.importNode(new DOMParser().parseFromString(check, "image/svg+xml").documentElement, true);
-          glyph.setAttribute("aria-hidden", "true");
-          glyph.setAttribute("data-git-icon", "check");
-          glyph.setAttribute("fill", "currentColor");
-          icon.append(glyph);
-        }
-      } else if (this.iconEl) icon.append(this.iconEl);
-      this.anchorEl.replaceChildren(icon, label);
+      let icon = create_workspace_menu_check(this.anchorEl, this.checked, "typ-menu-icon");
+      if (!icon && this.iconEl) {
+        icon = document.createElement("span");
+        icon.className = "typ-menu-icon";
+        icon.append(this.iconEl);
+      }
+      this.anchorEl.replaceChildren(...icon ? [icon, label] : [label]);
     }
     onClick(callback) {
       this.containerEl.addEventListener("click", callback);

@@ -226,7 +226,7 @@
       "path": "src/ui/components/menu.ts",
       "upstream_path": "src/ui/components/menu.ts",
       "upstream_sha256": "f74fce5e4ccfe27b1a139077827a02e233f72724c9105e60d05639ff3ab1f4e3",
-      "sha256": "4636968eeb48d8311661317f86f48781c0a59e1e0cdd312b6fafed698c7c1d24"
+      "sha256": "014e4016c49841e32a9d77a0f50c9f2207f103763bd347825dda6d2d1df8a2f4"
     },
     {
       "path": "src/ui/components/modal.scss",

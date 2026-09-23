@@ -1989,7 +1989,8 @@
       "requirements": [
         "R020",
         "R044",
-        "R018"
+        "R018",
+        "R065.1"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -1997,7 +1998,8 @@
         "enhancements/vendor/workspace_core/src/ui/components/menu.scss",
         "enhancements/src/workspace_focus.ts",
         "enhancements/src/workspace_files.ts",
-        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts"
+        "enhancements/vendor/workspace_core/src/ui/ribbon/workspace-ribbon.ts",
+        "enhancements/src/workspace_menu_item.ts"
       ],
       "related_modules": [
         "menu",
@@ -2009,7 +2011,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "普通项不留状态槽；true/false与禁用保持能力；混合项文字几何、右侧列对齐及键盘/子菜单回归。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -3459,13 +3462,15 @@
       "requirements": [
         "R020",
         "R044",
-        "R047.4"
+        "R047.4",
+        "R065.1"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
         "enhancements/src/workspace_titlebar.ts",
         "enhancements/src/workspace_titlebar_menu.ts",
-        "enhancements/src/workspace_titlebar_settings.ts"
+        "enhancements/src/workspace_titlebar_settings.ts",
+        "enhancements/src/workspace_menu_item.ts"
       ],
       "related_modules": [
         "menu",
@@ -3477,7 +3482,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "普通项不留状态槽；true/false与禁用保持能力；混合项文字几何、右侧列对齐及键盘/子菜单回归。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -3559,12 +3565,14 @@
         "R020",
         "R044",
         "R065",
-        "R066"
+        "R066",
+        "R065.1"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
         "enhancements/src/workspace_widgets.ts",
-        "enhancements/src/workspace_widgets.css"
+        "enhancements/src/workspace_widgets.css",
+        "enhancements/src/workspace_menu_item.ts"
       ],
       "related_modules": [
         "menu",
@@ -3578,7 +3586,8 @@
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
         "实际三项设置菜单无辅助长标签：名称与快捷键共同列宽，320/800px及100%/125%下逐行Range完整",
-        "验证右上关闭沿用取消语义、键盘可达；共享底部操作右对齐及窄窗口换行。"
+        "验证右上关闭沿用取消语义、键盘可达；共享底部操作右对齐及窄窗口换行。",
+        "普通项不留状态槽；true/false与禁用保持能力；混合项文字几何、右侧列对齐及键盘/子菜单回归。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -7227,6 +7236,43 @@
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-menu-slots-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R065.1"
+      ],
+      "design": "docs/workspace_interaction.md#r0651-按条目能力分配勾选位置",
+      "implementation": [
+        "enhancements/src/workspace_menu_item.ts",
+        "enhancements/src/workspace_titlebar_menu.ts",
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/vendor/workspace_core/src/ui/components/menu.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "theme",
+        "layout",
+        "focus"
+      ],
+      "script": "enhancements/fixtures/menu_slots_native.js",
+      "environment": "Windows原始Typora1.14.10 / 三主题 / 100%与125%缩放 / 实际菜单",
+      "preconditions": "专属临时仓库与独立宿主副本，运行私有桌面，不修改用户文档",
+      "steps": [
+        "原始Typora独立副本打开实际文件/编辑/视图菜单、齿轮和核心菜单，三主题两档缩放检查状态槽及实际文字几何。"
+      ],
+      "expected": [
+        "普通项无状态槽，可勾选项按真实状态呈现，文字从正确边距开始，无水平溢出，正文不变"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ],
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "fixture": "enhancements/fixtures/menu_slots_native.js"
     }
   ]
 }

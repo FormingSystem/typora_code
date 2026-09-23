@@ -1,3 +1,4 @@
+import {create_workspace_menu_check} from "./workspace_menu_item";
 import {is_composing_key} from "./workspace_keyboard";
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -34,9 +35,8 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     for(const entry of entries){
       if(entry.separator){const line=document.createElement("div");line.className="workspace-titlebar-separator";line.setAttribute("role","separator");panel.append(line);continue;}
       const item=document.createElement("button");item.type="button";item.className="workspace-titlebar-entry";item.disabled=Boolean(entry.disabled);item.title=entry.title||"";
-      item.setAttribute("role",entry.checked!==undefined?"menuitemcheckbox":"menuitem");if(entry.checked!==undefined)item.setAttribute("aria-checked",String(entry.checked));
-      const check=document.createElement("span");check.className="workspace-titlebar-check";if(entry.checked)check.append(git_icon("check"));
-      const label=document.createElement("span");label.className="workspace-titlebar-label";label.textContent=entry.label||"";item.append(check,label);
+      const check=create_workspace_menu_check(item,entry.checked,"workspace-titlebar-check");if(check)item.append(check);
+      const label=document.createElement("span");label.className="workspace-titlebar-label";label.textContent=entry.label||"";item.append(label);
       if(entry.shortcut){const shortcut=document.createElement("span");shortcut.className="workspace-titlebar-shortcut";shortcut.textContent=entry.shortcut;item.append(shortcut);}
       if(entry.children){item.setAttribute("aria-haspopup","menu");item.append(git_icon("chevron-right"));}
       const activate=(keyboard=false)=>{

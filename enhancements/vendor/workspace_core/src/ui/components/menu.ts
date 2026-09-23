@@ -1,4 +1,4 @@
-import {check as check_icon} from "../../../../codicons/icons.json"
+import {create_workspace_menu_check} from "../../../../../src/workspace_menu_item"
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "../../../../../src/workspace_focus"
 import './menu.scss'
 import { getElementPagePosition, html } from "src/utils"
@@ -197,8 +197,6 @@ class MenuItem {
 
   set_checked(checked: boolean): this {
     this.checked = checked
-    this.anchorEl.setAttribute('role', 'menuitemcheckbox')
-    this.anchorEl.setAttribute('aria-checked', String(checked))
     this._setContent()
     return this
   }
@@ -207,16 +205,11 @@ class MenuItem {
     const label = document.createElement('span')
     label.className = 'typ-menu-label'
     label.textContent = this.title || ''
-    const icon = document.createElement('span')
-    icon.className = 'typ-menu-icon'
-    if (this.checked !== undefined) { if(this.checked) {
-      // 核心只读取同一官方资产，不引入Git视图的交互样式或本地化初始化。
-      const glyph=document.importNode(new DOMParser().parseFromString(check_icon,'image/svg+xml').documentElement,true)
-      glyph.setAttribute('aria-hidden','true');glyph.setAttribute('data-git-icon','check');glyph.setAttribute('fill','currentColor')
-      icon.append(glyph)
-    } }
-    else if (this.iconEl) icon.append(this.iconEl)
-    this.anchorEl.replaceChildren(icon, label)
+    let icon = create_workspace_menu_check(this.anchorEl, this.checked, 'typ-menu-icon')
+    if (!icon && this.iconEl) {
+      icon = document.createElement('span'); icon.className = 'typ-menu-icon'; icon.append(this.iconEl)
+    }
+    this.anchorEl.replaceChildren(...(icon ? [icon, label] : [label]))
   }
 
   onClick(callback: (evt: MouseEvent | KeyboardEvent) => any): this {

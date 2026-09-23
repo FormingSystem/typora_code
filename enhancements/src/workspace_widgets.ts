@@ -2,6 +2,7 @@ import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_
 import {workspace_interaction,acquire_workspace_interaction} from "./workspace_interaction";
 import widget_css from "./workspace_widgets.css";
 import {acquire_workspace_style} from "./workspace_styles";
+import {create_workspace_menu_check} from "./workspace_menu_item";
 
 export function workspace_element<K extends keyof HTMLElementTagNameMap>(tag: K, class_name = "", text = ""): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag); node.className = class_name; node.textContent = text; if(tag==="button"||tag==="summary")workspace_interaction(node);return node;
@@ -81,14 +82,14 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
     for (const entry of items) {
       if (entry.separator && menu.children.length) { const separator = workspace_element("hr"); separator.setAttribute("role", "separator"); menu.append(separator); }
       const node = workspace_button("", () => { if (entry.children) open_child(true); else { close(); entry.action(); } });
-      const check = workspace_element("span", "git-menu-check"); if (entry.checked) check.append(git_icon("check"));
+      const check = create_workspace_menu_check(node, entry.checked, "git-menu-check");
       const arrow = workspace_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
-      node.append(check, workspace_element("span", "git-menu-label", entry.title));
+      if (check) node.append(check);
+      node.append(workspace_element("span", "git-menu-label", entry.title));
       node.append(workspace_element("span","git-menu-shortcut",entry.shortcut||""));
       node.append(arrow);
       const open_child = (focus = false) => { if (!entry.children || node.disabled) return; const rect = node.getBoundingClientRect(); const child = show(entry.children, rect.right - 2, rect.top, level + 1, node); if (focus) child.querySelector<HTMLButtonElement>("button:not([disabled])")?.focus(); };
-      node.title=entry.title; node.setAttribute("role", "menuitem"); if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
-      if (entry.checked != null) { node.setAttribute("role", "menuitemcheckbox"); node.setAttribute("aria-checked", String(entry.checked)); }
+      node.title=entry.title; if (entry.id) node.dataset.action = entry.id; node.disabled = Boolean(entry.disabled);
       if (entry.children) node.setAttribute("aria-haspopup", "menu");
       node.onmouseenter = () => entry.children ? open_child() : close_from(level + 1);
       node.onkeydown = input => { if (input.key === "ArrowRight" && entry.children) { input.preventDefault(); input.stopPropagation(); open_child(true); } };
@@ -111,7 +112,14 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
     menu.style.setProperty('--workspace-menu-shortcut-width',shortcut_width+'px');
     const row=menu.querySelector('button'),row_style=row&&getComputedStyle(row),menu_style=getComputedStyle(menu);
     const horizontal=(style:CSSStyleDeclaration)=>['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth'].reduce((sum,key)=>sum+(parseFloat((style as any)[key])||0),0);
-    if(row_style)menu.style.width=Math.ceil(text_width('.git-menu-label')+shortcut_width+32+3*(parseFloat(row_style.columnGap)||0)+horizontal(row_style)+horizontal(menu_style))+'px';
+    if(row_style){
+      const gap=parseFloat(row_style.columnGap)||0;
+      const label_width=Math.max(0,...[...menu.querySelectorAll<HTMLElement>('.git-menu-label')].map(label=>{
+        const range=document.createRange();range.selectNodeContents(label);
+        return range.getBoundingClientRect().width+(label.parentElement?.getAttribute('role')==='menuitemcheckbox'?16+gap:0);
+      }));
+      menu.style.width=Math.ceil(label_width+shortcut_width+16+2*gap+horizontal(row_style)+horizontal(menu_style))+'px';
+    }
     const bounds = menu.getBoundingClientRect();
     if(!parent&&options.anchor?.isConnected){const anchor=options.anchor.getBoundingClientRect();x=options.align==="right"?anchor.right-bounds.width:anchor.left;y=anchor.bottom;}
     if (parent && x + bounds.width > innerWidth - 4) x = parent.getBoundingClientRect().left - bounds.width + 2;

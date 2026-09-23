@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.4",
+  "requirements": [
+    "R065.1"
+  ],
+  "design": "docs/workspace_interaction.md#r0651-按条目能力分配勾选位置",
+  "asset_manifest_sha256": "ebf30c70df3593f38f573e6abf74e15f24918033ed821de2826ad093be7aa697",
+  "bundle_sha256": "55c9e88188f92c82f74366c185bc623dde428b0771592d75cf7f6f578479ff51",
+  "core_sha256": "631c2592832635fa6b8e8fa29733099d529e3a4cb362c1dd62f6c40e47c2e8a1",
+  "validation": {
+    "build": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_slots_build_final.log"
+    },
+    "check": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_slots_check.log"
+    },
+    "static_final": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_slots_static_final.log"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 211
+    },
+    "ui": {
+      "status": "PASS",
+      "groups": 5,
+      "logs": [
+        ".cache\\issue_tracking\\menu_slots_ui.log",
+        ".cache\\issue_tracking\\menu_slots_titlebar_final.log",
+        ".cache\\issue_tracking\\menu_slots_titlebar_pass.log"
+      ],
+      "cases": [
+        "test_workspace_widgets.cjs",
+        "test_workspace_titlebar.cjs",
+        "test_workspace_titlebar_entries.cjs",
+        "test_workspace_core_smoke.cjs",
+        "test_git_graph_interaction.cjs"
+      ],
+      "scope": "普通/禁用/混合/已勾/未勾、核心真实图标、快捷键共同列、嵌套与键盘取消、320/500/800/1280宽度及100%/125%；真实Git临时仓库操作回归。",
+      "visual": "隐藏Chromium capturePage检查混合菜单与子菜单，图片保存在本次titlebar临时夹具。"
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "d26b22b3a5704c72984be14e91663628",
+      "checks": 199,
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "ebf30c70df3593f38f573e6abf74e15f24918033ed821de2826ad093be7aa697",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "6e178a6aab35ffe5b117192ad2951ec976503d8899422fe2cb8f1af536eb33c9",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "原始Typora1.14.10/Win11，实际文件/编辑/视图、齿轮及核心菜单；Github/Night/Cpp Github Consolas，100%/125%，检查文字/状态槽几何及正文不变。"
+    },
+    "install_cycle": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_slots_install_cycle.log",
+      "modes": [
+        "restore",
+        "detach"
+      ]
+    },
+    "uninstall": {
+      "status": "PASS",
+      "assertions": 65,
+      "log": ".cache\\issue_tracking\\menu_slots_uninstall.log"
+    }
+  },
+  "retained_failures": [
+    {
+      "log": ".cache\\issue_tracking\\menu_slots_ui.log",
+      "reason": "两个旧顶栏夹具未接入新增搜索Worker虚拟模块，补用既有editor_plugins后通过；产品构建不受影响。"
+    },
+    {
+      "log": ".cache\\issue_tracking\\menu_slots_titlebar_metrics.log",
+      "reason": "夹具改变窗口尺寸后立刻打开菜单，布局resize关闭了菜单，实际rows为空；等待尺寸稳定再操作后通过，未改变产品关闭语义。"
+    },
+    {
+      "reason": "两次准备命令误用工作目录导致脚本未找到，已用仓库根目录纠正；未将失败当通过。"
+    }
+  ],
+  "installation": {
+    "version": "2026.09.24.4",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "limits": [
+    "用户窗口未重启，需保存后正常重启加载。",
+    "Win10、其他宿主版本和物理键鼠现场未本轮复验。",
+    "原生和第三方自有菜单保持其所有者，本次覆盖TyporaCode三类自有菜单。"
+  ]
+}

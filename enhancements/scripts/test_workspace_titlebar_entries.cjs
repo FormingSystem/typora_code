@@ -6,7 +6,7 @@ app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceler
 app.whenReady().then(async()=>{
  test_window=new BrowserWindow({show:false,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true}});
  await test_window.loadURL('data:text/html,<div id="group"><div class="typ-workspace-tab-header"><div class="typ-tab" data-id="C:/docs/test.md"><button class="typ-close">close</button></div></div></div>');
- const bundle=await build({stdin:{contents:'export {create_workspace_titlebar_definitions} from "./src/workspace_titlebar_entries";export {bind_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'entries_api',write:false,loader:{'.css':'text'}});
+ const bundle=await build({stdin:{contents:'export {create_workspace_titlebar_definitions} from "./src/workspace_titlebar_entries";export {bind_terminal_state} from "./src/terminal_state";',resolveDir:path.join(__dirname,'..')},bundle:true,plugins:require("./editor_bundle.cjs").editor_plugins(),format:'iife',globalName:'entries_api',write:false,loader:{'.css':'text'}});
  await test_window.webContents.executeJavaScript(bundle.outputFiles[0].text);
  const result=await test_window.webContents.executeJavaScript(`(async()=>{
  const checks=[],calls=[];const check=(v,label)=>{if(!v)throw Error(label);checks.push(label);};let source=false,saves=0,closes=0;
