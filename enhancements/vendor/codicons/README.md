@@ -24,6 +24,7 @@ domains:
 | Git 仓库 | `repo` | [repo.svg](icons/repo.svg) |
 | 查看本组全部更改 | `diff-multiple` | [diff_multiple.svg](icons/diff_multiple.svg) |
 | 打开单文件更改 | `compare-changes` | [compare_changes.svg](icons/compare_changes.svg) |
+| 编辑完整路径 | `edit` | [edit.svg](icons/edit.svg) |
 | 打开文件 | `go-to-file` | [go_to_file.svg](icons/go_to_file.svg) |
 | 放弃更改 | `discard` | [discard.svg](icons/discard.svg) |
 | Diff 空白字符显示 | `whitespace` | [whitespace.svg](icons/whitespace.svg) |

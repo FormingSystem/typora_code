@@ -158567,7 +158567,8 @@ https://creativecommons.org/licenses/by/4.0/
     filter: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M9.5 14H6.5C6.224 14 6 13.776 6 13.5V9.329C6 8.928 5.844 8.552 5.561 8.268L1.561 4.268C1.205 3.911 1 3.418 1 2.914C1 1.858 1.858 1 2.914 1H13.086C14.142 1 15 1.858 15 2.914C15 3.417 14.796 3.911 14.439 4.267L10.439 8.267C10.156 8.551 10 8.927 10 9.328V13.499C10 13.775 9.776 13.999 9.5 13.999V14ZM7 13H9V9.329C9 8.661 9.26 8.033 9.732 7.561L13.732 3.561C13.902 3.391 14 3.155 14 2.915C14 2.411 13.59 2.001 13.086 2.001H2.914C2.41 2.001 2 2.411 2 2.915C2 3.155 2.098 3.391 2.268 3.562L6.268 7.562C6.741 8.034 7 8.662 7 9.33V13.001V13Z"/></svg>',
     "debug-disconnect": '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15.3542 0.646006C15.1592 0.451006 14.8422 0.451006 14.6472 0.646006L12.5772 2.71601C11.2072 1.71701 9.20723 1.87301 7.93723 3.14401L7.80623 3.27501C7.31923 3.76201 7.31923 4.55501 7.80623 5.04301L10.9882 8.22501C11.2312 8.46901 11.5512 8.59101 11.8722 8.59101C12.1932 8.59101 12.5132 8.46901 12.7562 8.22501L12.9762 8.00501C13.6522 7.33001 14.0162 6.43101 14.0012 5.47601C13.9892 4.72001 13.7412 4.00601 13.2912 3.41701L15.3542 1.35401C15.5492 1.15901 15.5492 0.841006 15.3542 0.646006ZM12.2682 7.29701L12.0482 7.51701C11.9502 7.61501 11.7922 7.61501 11.6942 7.51701L8.51223 4.33501C8.41423 4.23701 8.41423 4.07901 8.51223 3.98101L8.64323 3.85001C9.16723 3.32601 9.86023 3.06001 10.5402 3.06001C11.1502 3.06001 11.7512 3.27401 12.2112 3.70801C12.7092 4.17601 12.9882 4.80901 12.9992 5.49101C13.0092 6.17301 12.7502 6.81501 12.2682 7.29701ZM8.14623 9.14601L7.26623 10.026L5.97323 8.73301L6.85323 7.85301C7.04823 7.65801 7.04823 7.34101 6.85323 7.14601C6.65823 6.95101 6.34123 6.95101 6.14623 7.14601L5.26623 8.02601L5.01323 7.77301C4.52723 7.28701 3.73223 7.28701 3.24523 7.77401L3.02523 7.99401C2.34923 8.66901 1.98523 9.56801 2.00023 10.523C2.01223 11.279 2.26023 11.993 2.71023 12.582L0.647227 14.645C0.452227 14.84 0.452227 15.157 0.647227 15.352C0.745227 15.45 0.873227 15.498 1.00123 15.498C1.12923 15.498 1.25723 15.449 1.35523 15.352L3.42523 13.282C4.02223 13.717 4.73723 13.934 5.46123 13.934C6.39923 13.934 7.34923 13.571 8.06523 12.854L8.19623 12.723C8.68323 12.236 8.68323 11.443 8.19623 10.955L7.97423 10.733L8.85423 9.85301C9.04923 9.65801 9.04923 9.34101 8.85423 9.14601C8.65923 8.95101 8.34223 8.95101 8.14723 9.14601H8.14623ZM7.48923 12.018L7.35723 12.149C6.36323 13.144 4.76123 13.208 3.78923 12.291C3.29123 11.823 3.01223 11.19 3.00123 10.508C2.99123 9.82601 3.25123 9.18401 3.73323 8.70201L3.95323 8.48201C4.00223 8.43301 4.06523 8.40901 4.13023 8.40901C4.19523 8.40901 4.25823 8.43301 4.30723 8.48201C5.37118 9.54596 6.42725 10.602 7.48723 11.662C7.58523 11.76 7.58523 11.918 7.48723 12.016L7.48923 12.018Z"/></svg>',
     extensions: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M15 4.95703C15 4.58711 14.8563 4.24054 14.5949 3.97992L12.0096 1.39234C11.4879 0.86922 10.5788 0.86922 10.0571 1.39234L8 3.45119V3.32321C8 2.55068 7.37187 1.922 6.6 1.922H2.4C1.62813 1.922 1 2.55068 1 3.32321V13.5988C1 14.3713 1.62813 15 2.4 15H12.6667C13.4385 15 14.0667 14.3713 14.0667 13.5988V9.39514C14.0667 8.62261 13.4385 7.99393 12.6667 7.99393H12.5379L14.5949 5.93508C14.8553 5.67445 15 5.32602 15 4.95703ZM2.4 2.85521H6.6C6.85667 2.85521 7.06667 3.06446 7.06667 3.32228V7.99299H1.93333V3.32228C1.93333 3.06446 2.14333 2.85521 2.4 2.85521ZM1.93333 13.5979V8.92714H7.06667V14.0649H2.4C2.14333 14.0649 1.93333 13.8547 1.93333 13.5979ZM13.1333 9.39421V13.5979C13.1333 13.8547 12.9233 14.0649 12.6667 14.0649H8V8.92714H12.6667C12.9233 8.92714 13.1333 9.13638 13.1333 9.39421ZM8 7.99299V6.46287L9.5288 7.99299H8ZM13.9351 5.2737L11.3488 7.86221C11.1789 8.03223 10.8859 8.03223 10.716 7.86221L8.12973 5.2737C8.0448 5.18963 7.99813 5.07753 7.99813 4.95796C7.99813 4.83839 8.0448 4.7263 8.12973 4.64129L10.716 2.05278C10.8009 1.96777 10.9129 1.92106 11.0324 1.92106C11.1519 1.92106 11.2639 1.96777 11.3488 2.05278L13.9351 4.64129C14.02 4.72536 14.0667 4.83746 14.0667 4.95703C14.0667 5.0766 14.02 5.1887 13.9351 5.2737Z"/></svg>',
-    "remote-explorer": '<svg width="24" height="25" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.32 20.0677C9.469 20.5907 9.667 21.0917 9.911 21.5677H3.759C3.345 21.5677 3.009 21.2317 3.009 20.8177C3.009 20.4037 3.345 20.0677 3.759 20.0677H6.008V18.5517H3C1.343 18.5517 0 17.2087 0 15.5517V5.06775C0 3.41075 1.343 2.06775 3 2.06775H16.5C18.157 2.06775 19.5 3.41075 19.5 5.06775V9.88775C19.016 9.74975 18.516 9.65275 18 9.60575V5.06775C18 4.23975 17.328 3.56775 16.5 3.56775H3C2.172 3.56775 1.5 4.23975 1.5 5.06775V15.5517C1.5 16.3797 2.172 17.0517 3 17.0517H9.039C9.016 17.3047 9 17.5587 9 17.8177C9 18.0657 9.016 18.3097 9.037 18.5517H7.507V20.0677H9.32ZM24 17.8177C24 21.5457 20.978 24.5677 17.25 24.5677C13.522 24.5677 10.5 21.5457 10.5 17.8177C10.5 14.0897 13.522 11.0677 17.25 11.0677C20.978 11.0677 24 14.0897 24 17.8177ZM17.251 19.3177C17.251 19.2187 17.231 19.1217 17.194 19.0307C17.156 18.9397 17.101 18.8567 17.031 18.7867L14.781 16.5367C14.64 16.3957 14.449 16.3167 14.25 16.3167C14.051 16.3167 13.86 16.3957 13.719 16.5367C13.578 16.6777 13.499 16.8687 13.499 17.0677C13.499 17.2667 13.578 17.4577 13.719 17.5987L15.44 19.3177L13.719 21.0367C13.578 21.1777 13.499 21.3687 13.499 21.5677C13.499 21.7667 13.578 21.9577 13.719 22.0987C13.86 22.2397 14.051 22.3187 14.25 22.3187C14.449 22.3187 14.64 22.2397 14.781 22.0987L17.031 19.8487C17.101 19.7787 17.156 19.6967 17.194 19.6057C17.232 19.5147 17.251 19.4167 17.251 19.3177ZM19.06 16.3177L20.78 14.5987C20.921 14.4577 21 14.2667 21 14.0677C21 13.8687 20.921 13.6777 20.78 13.5367C20.639 13.3957 20.448 13.3167 20.249 13.3167C20.05 13.3167 19.859 13.3957 19.718 13.5367L17.468 15.7867C17.398 15.8567 17.343 15.9387 17.305 16.0307C17.267 16.1217 17.248 16.2197 17.248 16.3177C17.248 16.4157 17.268 16.5137 17.305 16.6057C17.343 16.6967 17.398 16.7797 17.468 16.8487L19.718 19.0987C19.859 19.2397 20.05 19.3187 20.249 19.3187C20.448 19.3187 20.639 19.2397 20.78 19.0987C20.921 18.9577 21 18.7667 21 18.5677C21 18.3687 20.921 18.1777 20.78 18.0367L19.06 16.3177Z"/></svg>'
+    "remote-explorer": '<svg width="24" height="25" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M9.32 20.0677C9.469 20.5907 9.667 21.0917 9.911 21.5677H3.759C3.345 21.5677 3.009 21.2317 3.009 20.8177C3.009 20.4037 3.345 20.0677 3.759 20.0677H6.008V18.5517H3C1.343 18.5517 0 17.2087 0 15.5517V5.06775C0 3.41075 1.343 2.06775 3 2.06775H16.5C18.157 2.06775 19.5 3.41075 19.5 5.06775V9.88775C19.016 9.74975 18.516 9.65275 18 9.60575V5.06775C18 4.23975 17.328 3.56775 16.5 3.56775H3C2.172 3.56775 1.5 4.23975 1.5 5.06775V15.5517C1.5 16.3797 2.172 17.0517 3 17.0517H9.039C9.016 17.3047 9 17.5587 9 17.8177C9 18.0657 9.016 18.3097 9.037 18.5517H7.507V20.0677H9.32ZM24 17.8177C24 21.5457 20.978 24.5677 17.25 24.5677C13.522 24.5677 10.5 21.5457 10.5 17.8177C10.5 14.0897 13.522 11.0677 17.25 11.0677C20.978 11.0677 24 14.0897 24 17.8177ZM17.251 19.3177C17.251 19.2187 17.231 19.1217 17.194 19.0307C17.156 18.9397 17.101 18.8567 17.031 18.7867L14.781 16.5367C14.64 16.3957 14.449 16.3167 14.25 16.3167C14.051 16.3167 13.86 16.3957 13.719 16.5367C13.578 16.6777 13.499 16.8687 13.499 17.0677C13.499 17.2667 13.578 17.4577 13.719 17.5987L15.44 19.3177L13.719 21.0367C13.578 21.1777 13.499 21.3687 13.499 21.5677C13.499 21.7667 13.578 21.9577 13.719 22.0987C13.86 22.2397 14.051 22.3187 14.25 22.3187C14.449 22.3187 14.64 22.2397 14.781 22.0987L17.031 19.8487C17.101 19.7787 17.156 19.6967 17.194 19.6057C17.232 19.5147 17.251 19.4167 17.251 19.3177ZM19.06 16.3177L20.78 14.5987C20.921 14.4577 21 14.2667 21 14.0677C21 13.8687 20.921 13.6777 20.78 13.5367C20.639 13.3957 20.448 13.3167 20.249 13.3167C20.05 13.3167 19.859 13.3957 19.718 13.5367L17.468 15.7867C17.398 15.8567 17.343 15.9387 17.305 16.0307C17.267 16.1217 17.248 16.2197 17.248 16.3177C17.248 16.4157 17.268 16.5137 17.305 16.6057C17.343 16.6967 17.398 16.7797 17.468 16.8487L19.718 19.0987C19.859 19.2397 20.05 19.3187 20.249 19.3187C20.448 19.3187 20.639 19.2397 20.78 19.0987C20.921 18.9577 21 18.7667 21 18.5677C21 18.3687 20.921 18.1777 20.78 18.0367L19.06 16.3177Z"/></svg>',
+    edit: '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M14.236 1.76386C13.2123 0.740172 11.5525 0.740171 10.5289 1.76386L2.65722 9.63549C2.28304 10.0097 2.01623 10.4775 1.88467 10.99L1.01571 14.3755C0.971767 14.5467 1.02148 14.7284 1.14646 14.8534C1.27144 14.9783 1.45312 15.028 1.62432 14.9841L5.00978 14.1151C5.52234 13.9836 5.99015 13.7168 6.36433 13.3426L14.236 5.47097C15.2596 4.44728 15.2596 2.78755 14.236 1.76386ZM11.236 2.47097C11.8691 1.8378 12.8957 1.8378 13.5288 2.47097C14.162 3.10413 14.162 4.1307 13.5288 4.76386L12.75 5.54269L10.4571 3.24979L11.236 2.47097ZM9.75002 3.9569L12.0429 6.24979L5.65722 12.6355C5.40969 12.883 5.10023 13.0595 4.76117 13.1465L2.19447 13.8053L2.85327 11.2386C2.9403 10.8996 3.1168 10.5901 3.36433 10.3426L9.75002 3.9569Z"/></svg>'
   };
 
   // src/git_graph_i18n.ts
@@ -160399,7 +160400,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (restore_focus) previous.restore();
       on_close?.(restore_focus);
     };
-    const escape_layer = register_workspace_dismissal(() => [root, ...options2.regions?.() || []], (reason) => close(reason === "escape" || reason === "outside"), { inside: () => [panel, ...options2.regions?.() || []], consume_outside: true, focus_out: options2.focus_out });
+    const escape_layer = register_workspace_dismissal(() => [root, ...options2.regions?.() || []], (reason) => {
+      if (reason === "escape" && options2.escape?.()) return;
+      close(reason === "escape" || reason === "outside");
+    }, { inside: () => [panel, ...options2.regions?.() || []], consume_outside: true, focus_out: options2.focus_out });
     const global_key = (event) => {
       if (!is_top_dialog()) return;
       if (event.key === "Tab") {
@@ -187129,54 +187133,882 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_files.css
   var workspace_files_default = "";
 
+  // src/workspace_explorer.css
+  var workspace_explorer_default = "";
+
+  // src/workspace_file_tree.ts
+  var ROW_HEIGHT = 26;
+  function create_workspace_file_tree(options2) {
+    const runtime2 = window;
+    const fs2 = options2.fs || runtime2.reqnode("fs"), path_api = options2.path_api || runtime2.reqnode("path");
+    const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
+    const container = workspace_element("section", "linux-note-workspace-explorer");
+    if (options2.selection) container.classList.add("workspace-file-tree-selection");
+    container.setAttribute("aria-label", "\u8D44\u6E90\u7BA1\u7406\u5668");
+    const interaction = acquire_workspace_interaction(container);
+    const toolbar = workspace_element("div", "workspace-explorer-toolbar");
+    const title = workspace_element("strong", "", "\u8D44\u6E90\u7BA1\u7406\u5668");
+    const actions = workspace_element("div", "workspace-explorer-actions");
+    const root_label = workspace_element("div", "workspace-explorer-root");
+    const root_name = workspace_element("span", "workspace-explorer-root-name"), root_actions = workspace_element("div", "workspace-explorer-actions");
+    root_label.append(root_name, root_actions);
+    const tree = workspace_element("div", "workspace-explorer-tree");
+    tree.tabIndex = 0;
+    tree.setAttribute("role", "tree");
+    tree.setAttribute("aria-label", "\u6587\u4EF6\u548C\u6587\u4EF6\u5939");
+    const spacer = workspace_element("div", "workspace-explorer-spacer");
+    tree.append(spacer);
+    const status2 = workspace_element("div", "workspace-explorer-status");
+    status2.setAttribute("role", "status");
+    status2.hidden = true;
+    toolbar.append(title, actions);
+    container.append(toolbar, root_label, tree, status2);
+    let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
+    let flat_nodes = [], render_frame = 0, watcher_count = 0;
+    let rename_state;
+    let compact_folders = false;
+    const selection_paths = /* @__PURE__ */ new Set();
+    let operation_busy = false, compare_path = "";
+    const dialogs = /* @__PURE__ */ new Set();
+    const nodes = /* @__PURE__ */ new Map();
+    const detachers = [];
+    const row_views = /* @__PURE__ */ new Map();
+    let click_sequence;
+    const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
+    function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
+      if (!node || !tree.clientHeight) return;
+      const index = flat_nodes.indexOf(node);
+      if (index < 0) return;
+      const top = index * ROW_HEIGHT, before = tree.scrollTop;
+      if (top < before) tree.scrollTop = top;
+      else if (top + ROW_HEIGHT > before + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
+      if (tree.scrollTop !== before) render();
+    }
+    const set_status = (message) => {
+      if (disposed) return;
+      status2.textContent = message;
+      status2.hidden = !message;
+      keep_row_visible();
+    };
+    const run = (operation) => {
+      void Promise.resolve().then(operation).catch((error) => set_status(String(error)));
+    };
+    const file_icon_style = acquire_workspace_file_icons();
+    const icon = (name) => git_icon(name, "workspace-explorer-icon");
+    const icon_button = (name, label, action) => {
+      const button = workspace_element("button");
+      button.type = "button";
+      button.title = label;
+      button.setAttribute("aria-label", label);
+      button.append(icon(name));
+      button.onclick = () => run(action);
+      return button;
+    };
+    const open_folder = async () => {
+      await options2.open_folder();
+      await sync_root(true);
+    };
+    actions.append(icon_button("folder-opened", "\u6253\u5F00\u6587\u4EF6\u5939", open_folder), icon_button("target", "\u5B9A\u4F4D\u5F53\u524D\u6587\u4EF6", () => reveal()));
+    root_actions.append(icon_button("new-file", "\u65B0\u5EFA\u6587\u4EF6", () => begin_create(false)), icon_button("new-folder", "\u65B0\u5EFA\u6587\u4EF6\u5939", () => begin_create(true)), icon_button("refresh", "\u5237\u65B0\u8D44\u6E90\u7BA1\u7406\u5668", () => refresh()), icon_button("collapse-all", "\u5168\u90E8\u6298\u53E0", () => {
+      if (!root) return;
+      for (const child of root.children || []) collapse(child);
+      rebuild();
+    }));
+    function close_watch(node) {
+      if (node.watcher) {
+        node.watcher.close();
+        node.watcher = void 0;
+        watcher_count--;
+      }
+      if (node.refresh_timer) {
+        window.clearTimeout(node.refresh_timer);
+        node.refresh_timer = void 0;
+      }
+    }
+    function close_branch(node, forget = false) {
+      close_watch(node);
+      for (const child of node.children || []) close_branch(child, forget);
+      if (forget) nodes.delete(node.path);
+    }
+    function watch(node) {
+      if (options2.selection || !visible3 || disposed || !node.expanded && !node.compact_parent || node.watcher || watcher_count >= 128) return;
+      try {
+        node.watcher = fs2.watch(node.path, { persistent: false }, () => {
+          if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
+          node.refresh_timer = window.setTimeout(() => {
+            node.refresh_timer = void 0;
+            if (visible3 && node.expanded) void load_children(node, true);
+          }, 250);
+        });
+        watcher_count++;
+        const watcher = node.watcher;
+        watcher.on?.("error", () => {
+          close_watch(node);
+        });
+      } catch {
+      }
+    }
+    function watch_visible(node) {
+      if (node.expanded || node.compact_parent) {
+        watch(node);
+        for (const child of node.children || []) watch_visible(child);
+      }
+    }
+    function collapse(node) {
+      node.expanded = false;
+      close_branch(node);
+    }
+    function create_node(file_path, name, directory, link3, parent) {
+      const node = { id: "workspace-explorer-node-" + ++serial2, path: file_path, name, directory, link: link3, expanded: false, parent, depth: parent ? parent.depth + 1 : -1 };
+      nodes.set(file_path, node);
+      return node;
+    }
+    function rebuild() {
+      flat_nodes = [];
+      for (const node of nodes.values()) node.compact_parent = false;
+      const append4 = (node, depth = 0) => {
+        let current = node;
+        const names = [node.name];
+        if (compact_folders && !rename_state) while (current.directory && current.children?.length === 1 && current.children[0].directory && !current.children[0].link) {
+          current.compact_parent = true;
+          watch(current);
+          current = current.children[0];
+          names.push(current.name);
+        }
+        current.display_name = names.join(" / ");
+        current.display_depth = depth;
+        flat_nodes.push(current);
+        if (current.expanded) for (const child of current.children || []) append4(child, depth + 1);
+      };
+      if (root) for (const child of root.children || []) append4(child);
+      spacer.style.height = flat_nodes.length * ROW_HEIGHT + "px";
+      render();
+    }
+    function render() {
+      if (disposed || render_frame) return;
+      render_frame = requestAnimationFrame(() => {
+        render_frame = 0;
+        const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
+        const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
+        const shown = new Set(flat_nodes.slice(start, end));
+        const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : void 0;
+        const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
+        for (const [node, view] of row_views) if (!shown.has(node)) {
+          view.row.remove();
+          row_views.delete(node);
+        }
+        for (let index = start; index < end; index++) {
+          const node = flat_nodes[index];
+          let view = row_views.get(node);
+          if (!view) {
+            const row2 = workspace_element("div", "workspace-explorer-row"), chevron2 = workspace_element("span", "workspace-explorer-chevron");
+            const label2 = workspace_element("span", "workspace-explorer-name"), note2 = workspace_element("span", "workspace-explorer-note");
+            view = { row: row2, chevron: chevron2, label: label2, note: note2, file_icon: workspace_file_icon(node.path) };
+            row_views.set(node, view);
+            row2.onmousedown = (event) => {
+              if (event.target === rename_state?.input) return;
+              if (options2.selection) {
+                if (event.button === 0 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+                  select(node);
+                  run(() => options2.selection.enter(node.path, node.directory));
+                }
+                return;
+              }
+              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                click_sequence = void 0;
+                return;
+              }
+              if (event.detail < 2) click_sequence = { node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path) };
+            };
+            row2.onclick = (event) => {
+              if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
+              if (!options2.selection && (event.ctrlKey || event.metaKey)) {
+                if (selection_paths.has(node.path)) selection_paths.delete(node.path);
+                else selection_paths.add(node.path);
+                selected_path = node.path;
+                render();
+                return;
+              }
+              if (!options2.selection && event.shiftKey) {
+                const start2 = flat_nodes.findIndex((candidate) => candidate.path === selected_path), end2 = flat_nodes.indexOf(node);
+                selection_paths.clear();
+                for (const candidate of flat_nodes.slice(Math.min(Math.max(start2, 0), end2), Math.max(start2, end2) + 1)) selection_paths.add(candidate.path);
+                render();
+                return;
+              }
+              if (event.altKey || !node.directory && event.detail >= 2) return;
+              select(node, false, true);
+              run(() => activate(node));
+            };
+            row2.ondblclick = (event) => {
+              if (event.target === rename_state?.input) return;
+              event.preventDefault();
+              event.stopPropagation();
+              if (options2.selection) {
+                if (event.button === 0 && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+                  select(node);
+                  run(() => options2.selection.enter(node.path, node.directory));
+                }
+                return;
+              }
+              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+              const sequence2 = click_sequence;
+              click_sequence = void 0;
+              if (sequence2?.node === node && sequence2.selected) begin_rename(node);
+            };
+            row2.oncontextmenu = (event) => {
+              click_sequence = void 0;
+              if (!selection_paths.has(node.path)) select(node);
+              context_menu(event, node);
+            };
+          }
+          const { row, chevron, label, note, file_icon } = view;
+          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
+          row.id = node.id;
+          row.dataset.path = node.path;
+          row.dataset.directory = String(node.directory);
+          row.setAttribute("role", "treeitem");
+          row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1));
+          row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
+          if (node.directory) row.setAttribute("aria-expanded", String(node.expanded));
+          else row.removeAttribute("aria-expanded");
+          row.setAttribute("aria-busy", String(Boolean(node.loading)));
+          row.style.top = index * ROW_HEIGHT + "px";
+          row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
+          row.title = (options2.selection?.label(node.path) || node.path) + (node.error ? "\n" + node.error : "");
+          const state = node.directory ? String(node.expanded) : "file";
+          if (chevron.dataset.state !== state) {
+            chevron.dataset.state = state;
+            chevron.replaceChildren(...node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : []);
+          }
+          const name = node.display_name || node.name;
+          if (label.textContent !== name) label.textContent = name;
+          const message = [node.link ? "\u94FE\u63A5" : "", node.loading ? "\u8BFB\u53D6\u4E2D\u2026" : node.error ? "\u65E0\u6CD5\u8BFB\u53D6" : ""].filter(Boolean).join(" ");
+          if (note.textContent !== message) note.textContent = message;
+          note.classList.toggle("is-error", Boolean(node.error) && !node.loading);
+          const children = [chevron, ...node.directory ? [] : [file_icon], rename_state?.node === node ? rename_state.input : label, ...message ? [note] : []];
+          for (const child of [...row.children]) if (!children.includes(child)) child.remove();
+          for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
+          if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
+        }
+        if (focused_input?.isConnected && document.activeElement !== focused_input) {
+          focused_input.focus({ preventScroll: true });
+          focused_input.setSelectionRange(selection[0], selection[1]);
+        }
+        if (rename_state?.focus_requested && rename_state.input.isConnected) {
+          const { input, node } = rename_state;
+          rename_state.focus_requested = false;
+          input.focus({ preventScroll: true });
+          const dot = node.directory ? -1 : node.name.lastIndexOf(".");
+          input.setSelectionRange(0, dot > 0 ? dot : node.name.length);
+        }
+        const selected = nodes.get(selected_path);
+        if (selected && shown.has(selected)) tree.setAttribute("aria-activedescendant", selected.id);
+        else tree.removeAttribute("aria-activedescendant");
+      });
+    }
+    function select(node, scroll = false, preserve_dom = false) {
+      if (rename_state && rename_state.node !== node && !rename_state.busy) cancel_edit();
+      selection_paths.clear();
+      selection_paths.add(node.path);
+      selected_path = node.path;
+      options2.selection?.select(node.path, node.directory);
+      set_status("");
+      tree.focus({ preventScroll: true });
+      if (scroll) {
+        const index = flat_nodes.indexOf(node), top = index * ROW_HEIGHT;
+        if (top < tree.scrollTop) tree.scrollTop = top;
+        else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
+      }
+      if (preserve_dom) {
+        for (const row of tree.querySelectorAll(".workspace-explorer-row")) {
+          const selected = row.dataset.path === node.path;
+          row.classList.toggle("is-selected", selected);
+          row.setAttribute("aria-selected", String(selected));
+        }
+        tree.setAttribute("aria-activedescendant", node.id);
+      } else render();
+    }
+    async function load_children(node, force = false, probing = false) {
+      if (rename_state?.busy) return;
+      if (disposed || nodes.get(node.path) !== node) return;
+      if (node.loading) return node.loading;
+      if (node.children && !force) {
+        watch(node);
+        return;
+      }
+      const current_generation = generation;
+      node.error = void 0;
+      node.loading = (async () => {
+        try {
+          const entries3 = await fs2.promises.readdir(node.path, { withFileTypes: true });
+          if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
+          const old_children = new Map((node.children || []).map((child) => [child.path, child]));
+          const children = [];
+          for (const entry of entries3) {
+            const file_path = path_api.join(node.path, entry.name);
+            let child = old_children.get(file_path);
+            old_children.delete(file_path);
+            const directory = entry.isDirectory(), link3 = entry.isSymbolicLink();
+            if (child && (!link3 && child.directory !== directory || child.link !== link3)) {
+              close_branch(child, true);
+              child = void 0;
+            }
+            children.push(child || create_node(file_path, entry.name, directory, link3, node));
+          }
+          for (const child of old_children.values()) close_branch(child, true);
+          children.sort((left, right) => Number(right.directory) - Number(left.directory) || collator.compare(left.name, right.name) || left.name.localeCompare(right.name));
+          node.children = children;
+          watch(node);
+          rebuild();
+          if (compact_folders && !probing) for (const child of children) {
+            let current = child;
+            for (let depth = 0; current.directory && !current.link && depth < 32; depth++) {
+              await load_children(current, false, true);
+              if (disposed || generation !== current_generation || current.children?.length !== 1 || !current.children[0].directory) break;
+              current = current.children[0];
+            }
+          }
+          if (node === root && !children.length) set_status("\u6B64\u6587\u4EF6\u5939\u4E3A\u7A7A\u3002");
+        } catch (error) {
+          if (!disposed && current_generation === generation) {
+            node.error = String(error);
+            set_status("\u65E0\u6CD5\u8BFB\u53D6\u6587\u4EF6\u5939\uFF1A" + (options2.selection?.label(node.path) || node.path) + "\n" + node.error);
+          }
+        } finally {
+          node.loading = void 0;
+          if (!disposed && generation === current_generation) rebuild();
+        }
+      })();
+      render();
+      return node.loading;
+    }
+    async function activate(node, preview = false) {
+      if (rename_state || disposed || nodes.get(node.path) !== node) return;
+      const current_generation = generation;
+      if (node.link && !node.directory) {
+        const stat = await fs2.promises.stat(node.path);
+        if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
+        node.directory = stat.isDirectory();
+      }
+      if (node.directory) {
+        if (node.expanded) {
+          collapse(node);
+          rebuild();
+        } else {
+          node.expanded = true;
+          rebuild();
+          await load_children(node);
+          if (!disposed && generation === current_generation && nodes.get(node.path) === node && node.expanded) watch_visible(node);
+        }
+      } else if (!options2.selection) await options2.open_file(node.path, { preview });
+    }
+    function context_menu(event, node) {
+      if (options2.selection) {
+        event.preventDefault();
+        return;
+      }
+      const current_generation = generation;
+      const selected_files = [...selection_paths].filter((path) => !nodes.get(path)?.directory);
+      const entries3 = node === root ? [{ title: "\u5168\u90E8\u6298\u53E0", action: () => {
+        for (const child of node.children || []) collapse(child);
+        rebuild();
+      } }] : node.directory ? [{ title: node.expanded ? "\u6298\u53E0\u6587\u4EF6\u5939" : "\u5C55\u5F00\u6587\u4EF6\u5939", action: () => run(() => activate(node)) }] : [{ title: "\u6253\u5F00\u6587\u4EF6", action: () => run(() => options2.open_file(node.path)) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => run(() => options2.open_file(node.path, {}, "right")) }];
+      if (node.directory && options2.create) entries3.push({ title: "\u65B0\u5EFA\u6587\u4EF6\u2026", separator: true, action: () => run(() => begin_create(false, node)) }, { title: "\u65B0\u5EFA\u6587\u4EF6\u5939\u2026", action: () => run(() => begin_create(true, node)) });
+      if (options2.reveal_system && !remote_files_for(node.path)) entries3.push({ title: "\u5728\u7CFB\u7EDF\u6587\u4EF6\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u663E\u793A", shortcut: "Shift+Alt+R", action: () => run(() => options2.reveal_system(node.path)) });
+      if (options2.terminal) entries3.push({ title: "\u5728\u96C6\u6210\u7EC8\u7AEF\u4E2D\u6253\u5F00", action: () => run(() => options2.terminal(node.directory ? node.path : node.parent.path)) });
+      if (node.directory && options2.find_in_folder) entries3.push({ title: "\u5728\u6587\u4EF6\u5939\u4E2D\u67E5\u627E\u2026", shortcut: "Shift+Alt+F", separator: true, action: () => run(() => options2.find_in_folder(node.path)) });
+      if (!node.directory && options2.compare) {
+        entries3.push({ title: "\u9009\u62E9\u4EE5\u8FDB\u884C\u6BD4\u8F83", separator: true, action: () => {
+          compare_path = node.path;
+          set_status("\u5DF2\u9009\u62E9\u6BD4\u8F83\u6587\u4EF6\uFF1A" + node.name);
+        } });
+        if (compare_path && compare_path !== node.path) entries3.push({ title: "\u4E0E\u5DF2\u9009\u9879\u76EE\u6BD4\u8F83", action: () => run(() => options2.compare(compare_path, node.path)) });
+        if (selected_files.length === 2) entries3.push({ title: "\u6BD4\u8F83\u6240\u9009\u6587\u4EF6", action: () => run(() => options2.compare(selected_files[0], selected_files[1])) });
+      }
+      if (node !== root && options2.file_clipboard) entries3.push({ title: "\u526A\u5207", shortcut: "Ctrl+X", separator: true, disabled: operation_busy, action: () => run(() => set_clipboard(true)) }, { title: "\u590D\u5236", shortcut: "Ctrl+C", disabled: operation_busy, action: () => run(() => set_clipboard(false)) });
+      if (node.directory && options2.file_clipboard) entries3.push({ title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node)) });
+      entries3.push(
+        { title: "\u590D\u5236\u8DEF\u5F84", shortcut: "Shift+Alt+C", separator: true, action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, false) || node.path)) },
+        { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", shortcut: "Ctrl+K Ctrl+Shift+C", action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, true) || node.name)) }
+      );
+      if (node !== root) entries3.push({ title: "\u91CD\u547D\u540D", shortcut: "F2", separator: true, disabled: Boolean(rename_state?.busy) || operation_busy, action: () => begin_rename(node) });
+      if (node !== root && options2.trash) entries3.push({ title: "\u5220\u9664", shortcut: "Del", disabled: operation_busy, action: () => confirm_trash() });
+      if (node.directory) entries3.push({ title: "\u5237\u65B0\u6587\u4EF6\u5939", separator: true, action: () => run(() => load_children(node, true)) });
+      entries3.push(...options2.extra_menu?.(node.path, node.directory) || []);
+      container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu", { detail: { path: node.path, directory: node.directory, entries: entries3 } }));
+      const guard = (items) => {
+        for (const entry of items) {
+          const action = entry.action;
+          entry.action = () => {
+            if (!disposed && generation === current_generation && nodes.get(node.path) === node) action();
+          };
+          if (entry.children) guard(entry.children);
+        }
+      };
+      guard(entries3);
+      workspace_menu(event, entries3, "workspace-explorer-menu workspace-menu-compact");
+    }
+    function begin_rename(node) {
+      if (!root || node === root || disposed || rename_state?.busy) return;
+      select(node, true);
+      const input = workspace_element("input", "workspace-explorer-rename");
+      input.value = node.name;
+      input.setAttribute("aria-label", "\u65B0\u540D\u79F0");
+      input.spellcheck = false;
+      rename_state = { node, input, busy: false, focus_requested: true };
+      set_status("\u8F93\u5165\u65B0\u540D\u79F0\uFF0C\u6309 Enter \u786E\u8BA4\uFF0CEsc \u53D6\u6D88\u3002");
+      input.onkeydown = (event) => {
+        event.stopPropagation();
+        if (event.isComposing) return;
+        if (event.key === "Escape") {
+          event.preventDefault();
+          if (!rename_state?.busy) {
+            cancel_edit();
+            set_status("\u5DF2\u53D6\u6D88\u64CD\u4F5C\u3002");
+            tree.focus({ preventScroll: true });
+            render();
+          }
+        } else if (event.key === "Enter") {
+          event.preventDefault();
+          run(finish_rename);
+        }
+      };
+      render();
+    }
+    async function finish_rename() {
+      const edit3 = rename_state, current_root = root;
+      if (!edit3 || !current_root || edit3.busy) return;
+      if (!edit3.creating && edit3.input.value === edit3.node.name) {
+        rename_state = void 0;
+        tree.focus({ preventScroll: true });
+        render();
+        return;
+      }
+      edit3.busy = true;
+      edit3.input.disabled = true;
+      set_status("\u6B63\u5728\u91CD\u547D\u540D\u2026");
+      try {
+        const expanded2 = edit3.node.expanded;
+        const target = edit3.creating ? await options2.create(current_root.path, edit3.node.parent.path, edit3.input.value, edit3.node.directory) : await options2.rename(current_root.path, edit3.node.path, edit3.input.value);
+        rename_state = void 0;
+        if (disposed || root !== current_root) return;
+        close_branch(edit3.node, true);
+        await load_children(edit3.node.parent || current_root, true);
+        await reveal(target);
+        const replacement = nodes.get(target);
+        if (expanded2 && replacement?.directory) {
+          replacement.expanded = true;
+          await load_children(replacement);
+        }
+        set_status((edit3.creating ? "\u5DF2\u521B\u5EFA " : "\u5DF2\u91CD\u547D\u540D\u4E3A ") + path_api.basename(target));
+        tree.focus({ preventScroll: true });
+      } catch (error) {
+        if (disposed) return;
+        const renamed_path = error.renamed_path;
+        if (renamed_path) {
+          rename_state = void 0;
+          await refresh();
+          await reveal(renamed_path);
+          set_status(String(error instanceof Error ? error.message : error));
+          return;
+        }
+        edit3.busy = false;
+        edit3.input.disabled = false;
+        edit3.input.setAttribute("aria-invalid", "true");
+        set_status(String(error instanceof Error ? error.message : error));
+        edit3.input.focus({ preventScroll: true });
+      }
+    }
+    function cancel_edit() {
+      const edit3 = rename_state;
+      rename_state = void 0;
+      if (edit3?.creating) {
+        const parent = edit3.node.parent;
+        parent.children = parent.children?.filter((child) => child !== edit3.node);
+        nodes.delete(edit3.node.path);
+        rebuild();
+      }
+    }
+    async function begin_create(directory, parent = nodes.get(selected_path) || root) {
+      if (!root || !parent || !options2.create || rename_state?.busy || operation_busy) return;
+      if (!parent.directory) parent = parent.parent || root;
+      cancel_edit();
+      parent.expanded = true;
+      await load_children(parent);
+      if (disposed) return;
+      const node = create_node(path_api.join(parent.path, ".workspace-new-" + ++serial2), "", directory, false, parent);
+      parent.children = [node, ...parent.children || []];
+      rebuild();
+      begin_rename(node);
+      if (rename_state) {
+        rename_state.creating = true;
+        rebuild();
+      }
+    }
+    async function set_clipboard(move) {
+      if (!root || !options2.file_clipboard || operation_busy) return;
+      const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
+      if (!paths.length) return;
+      operation_busy = true;
+      set_status("\u6B63\u5728\u5199\u5165\u7CFB\u7EDF\u526A\u8D34\u677F\u2026");
+      try {
+        await options2.file_clipboard.copy(current_root.path, paths, move, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path);
+        if (!disposed && root === current_root) set_status(move ? "\u5DF2\u526A\u5207\uFF0C\u9009\u62E9\u76EE\u6807\u6587\u4EF6\u5939\u540E\u7C98\u8D34\u3002" : "\u5DF2\u590D\u5236\u5230\u7CFB\u7EDF\u526A\u8D34\u677F\u3002");
+      } finally {
+        operation_busy = false;
+        if (!disposed) render();
+      }
+    }
+    async function paste(target = nodes.get(selected_path) || root) {
+      if (!root || !target || !options2.file_clipboard || operation_busy) return;
+      const current_root = root;
+      if (!target.directory) target = target.parent || root;
+      const destination = target;
+      operation_busy = true;
+      set_status("\u6B63\u5728\u7C98\u8D34\u6587\u4EF6\u2026");
+      try {
+        const result = await options2.file_clipboard.paste(current_root.path, destination.path, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path && nodes.get(destination.path) === destination);
+        if (!disposed && root === current_root) {
+          await refresh();
+          if (result.paths[0]) await reveal(result.paths[0]);
+          set_status(result.message);
+        }
+      } finally {
+        operation_busy = false;
+        if (!disposed) await refresh();
+      }
+    }
+    let trash_confirmation;
+    function confirm_trash() {
+      if (!root || !options2.trash || operation_busy || trash_confirmation) return;
+      const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
+      if (!paths.length) return;
+      let accepted = false;
+      const execute = () => {
+        if (accepted || operation_busy || disposed || root !== current_root) return;
+        accepted = true;
+        operation_busy = true;
+        run(async () => {
+          try {
+            if (disposed || root !== current_root) return;
+            await options2.trash(current_root.path, paths);
+            selection_paths.clear();
+            selected_path = "";
+            set_status("\u5DF2\u79FB\u5230\u56DE\u6536\u7AD9\u3002");
+          } finally {
+            operation_busy = false;
+            if (!disposed) await refresh();
+          }
+        });
+      };
+      if (options2.confirm_delete?.() === false) {
+        execute();
+        return;
+      }
+      const dialog2 = workspace_dialog("\u5220\u9664", "\u53D6\u6D88", () => {
+        trash_confirmation = void 0;
+        dialogs.delete(dialog2);
+      });
+      dialogs.add(dialog2);
+      trash_confirmation = dialog2;
+      dialog2.content.append(workspace_element("p", "", paths.length === 1 ? "\u786E\u5B9A\u8981\u5C06\u201C".concat(path_api.basename(paths[0]), "\u201D\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F") : "\u786E\u5B9A\u8981\u5C06 ".concat(paths.length, " \u4E2A\u9879\u76EE\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F")));
+      const cancel = workspace_element("button", "", "\u53D6\u6D88"), accept = workspace_element("button", "", "\u79FB\u5230\u56DE\u6536\u7AD9");
+      cancel.onclick = () => dialog2.close();
+      accept.onclick = () => {
+        dialog2.close();
+        execute();
+      };
+      dialog2.footer.replaceChildren(cancel, accept);
+      cancel.focus();
+    }
+    async function sync_root(force = false) {
+      if (rename_state?.busy) return;
+      const requested = options2.context_root();
+      if (!requested || !path_api.isAbsolute(requested)) {
+        if (root) {
+          generation++;
+          close_branch(root, true);
+          root = void 0;
+          rename_state = void 0;
+          selection_paths.clear();
+          compare_path = "";
+          root_name.textContent = "\u672A\u6253\u5F00\u6587\u4EF6\u5939";
+          selected_path = "";
+          rebuild();
+        }
+        set_status("\u6253\u5F00\u4E00\u4E2A\u6587\u4EF6\u5939\u4EE5\u6D4F\u89C8\u5168\u90E8\u6587\u4EF6\u3002");
+        return;
+      }
+      const file_path = path_api.normalize(requested);
+      if (root?.path === file_path) {
+        if (force) {
+          set_status("");
+          await load_children(root, true);
+        }
+        return;
+      }
+      generation++;
+      rename_state = void 0;
+      selection_paths.clear();
+      compare_path = "";
+      if (root) close_branch(root, true);
+      root = create_node(file_path, path_api.basename(file_path) || file_path, true, false);
+      root.expanded = true;
+      selected_path = "";
+      const remote = remote_files_for(root.path);
+      root_name.textContent = root.name + (remote ? " [SSH: ".concat(remote.connection.target, "]") : "");
+      root_label.title = remote ? remote.remote_path(root.path) : root.path;
+      tree.scrollTop = 0;
+      set_status("\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5939\u2026");
+      rebuild();
+      await load_children(root);
+      if (root && !root.error && root.children?.length) set_status("");
+    }
+    async function refresh() {
+      await sync_root();
+      if (!root) return;
+      const expanded2 = [...nodes.values()].filter((node) => node.directory && (node.expanded || node.compact_parent));
+      for (const node of expanded2) if (!disposed && nodes.get(node.path) === node) await load_children(node, true);
+    }
+    async function reveal(file_path = options2.active_file?.() || "") {
+      await sync_root();
+      if (!root || !file_path || !path_api.isAbsolute(file_path)) return;
+      file_path = path_api.normalize(file_path);
+      const relative2 = path_api.relative(root.path, file_path);
+      if (!relative2 || path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) return;
+      let parent = root;
+      const reveal_generation = generation;
+      const current = () => !disposed && generation === reveal_generation;
+      const components = relative2.split(path_api.sep);
+      for (const name2 of components.slice(0, -1)) {
+        await load_children(parent);
+        if (!current()) return;
+        const child = parent.children?.find((node2) => path_api.sep === "\\" ? node2.name.toLowerCase() === name2.toLowerCase() : node2.name === name2);
+        if (!child) return;
+        if (child.link && !child.directory) {
+          try {
+            child.directory = (await fs2.promises.stat(child.path)).isDirectory();
+          } catch {
+            return;
+          }
+        }
+        if (!child.directory) return;
+        child.expanded = true;
+        await load_children(child);
+        parent = child;
+      }
+      await load_children(parent);
+      if (!current()) return;
+      rebuild();
+      const name = components.at(-1);
+      let node = parent.children?.find((candidate) => path_api.sep === "\\" ? candidate.name.toLowerCase() === name.toLowerCase() : candidate.name === name);
+      while (node?.compact_parent && node.children?.length === 1) node = node.children[0];
+      if (node && current()) {
+        selection_paths.clear();
+        selection_paths.add(node.path);
+        selected_path = node.path;
+        options2.selection?.select(node.path, node.directory);
+        set_status("");
+        const index = flat_nodes.indexOf(node);
+        tree.scrollTop = Math.max(0, index * ROW_HEIGHT - tree.clientHeight / 2);
+        render();
+      }
+    }
+    async function set_visible(value) {
+      visible3 = value;
+      if (!value) {
+        if (root) close_branch(root);
+        return;
+      }
+      await sync_root();
+      if (root) watch_visible(root);
+    }
+    tree.addEventListener("scroll", render, { passive: true });
+    tree.addEventListener("keydown", (event) => {
+      if (event.target !== tree || event.isComposing) return;
+      const selected = nodes.get(selected_path) || root;
+      if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey && selected) {
+        if (event.code === "KeyR" && options2.reveal_system && !remote_files_for(selected.path)) {
+          event.preventDefault();
+          event.stopPropagation();
+          run(() => options2.reveal_system(selected.path));
+        }
+        if (event.code === "KeyF" && options2.find_in_folder) {
+          event.preventDefault();
+          event.stopPropagation();
+          run(() => options2.find_in_folder(selected.directory ? selected.path : selected.parent.path));
+        }
+        return;
+      }
+      if (event.altKey) return;
+      if (options2.selection && (event.ctrlKey || event.metaKey || ["Delete", "F2", "F10"].includes(event.key))) return;
+      if (event.ctrlKey || event.metaKey) {
+        const key2 = event.key.toLowerCase();
+        if (!["c", "x", "v", "a"].includes(key2)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (key2 === "v") run(() => paste());
+        else if (key2 === "a") {
+          selection_paths.clear();
+          for (const node2 of flat_nodes) selection_paths.add(node2.path);
+          render();
+        } else run(() => set_clipboard(key2 === "x"));
+        return;
+      }
+      if (event.key === "Delete") {
+        event.preventDefault();
+        event.stopPropagation();
+        confirm_trash();
+        return;
+      }
+      let index = Math.max(0, flat_nodes.findIndex((node2) => node2.path === selected_path));
+      const node = flat_nodes[index];
+      if (!node) return;
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        index = event.key === "Home" ? 0 : event.key === "End" ? flat_nodes.length - 1 : Math.min(flat_nodes.length - 1, Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1)));
+        select(flat_nodes[index], true);
+      } else if (["ArrowLeft", "ArrowRight", "Enter", " "].includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === "ArrowLeft") {
+          if (node.expanded) {
+            collapse(node);
+            rebuild();
+          } else {
+            let parent = node.parent;
+            while (parent && parent !== root && !flat_nodes.includes(parent)) parent = parent.parent;
+            if (parent && parent !== root) select(parent, true);
+          }
+        } else if (event.key === "ArrowRight") {
+          if (node.directory && !node.expanded) run(() => activate(node));
+          else if (node.expanded && node.children?.length) select(flat_nodes[index + 1] || node.children[0], true);
+        } else if (event.key === "Enter" && options2.selection) run(() => options2.selection.enter(node.path, node.directory));
+        else run(() => activate(node));
+      } else if (event.key === "F2") {
+        event.preventDefault();
+        event.stopPropagation();
+        begin_rename(node);
+      } else if (event.key === "F10" && event.shiftKey) {
+        event.preventDefault();
+        const bounds = tree.getBoundingClientRect();
+        context_menu(new MouseEvent("contextmenu", { clientX: bounds.left + 24, clientY: bounds.top + 30 }), node);
+      }
+    });
+    detachers.push(register_workspace_context_guard(() => operation_busy || rename_state?.busy ? "\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002" : void 0));
+    root_label.oncontextmenu = (event) => {
+      if (root) context_menu(event, root);
+    };
+    tree.oncontextmenu = (event) => {
+      if (event.target instanceof Element && event.target.closest(".workspace-explorer-row")) return;
+      if (root) context_menu(event, root);
+    };
+    const resize_observer = new ResizeObserver(() => {
+      if (rename_state) keep_row_visible();
+      render();
+    });
+    resize_observer.observe(tree);
+    if (options2.file_clipboard) detachers.push(options2.file_clipboard.subscribe(() => {
+      if (!disposed) render();
+    }));
+    function dispose2() {
+      file_icon_style.remove();
+      if (disposed) return;
+      disposed = true;
+      interaction.remove();
+      generation++;
+      visible3 = false;
+      resize_observer.disconnect();
+      if (root) close_branch(root, true);
+      if (render_frame) cancelAnimationFrame(render_frame);
+      row_views.clear();
+      click_sequence = void 0;
+      rename_state = void 0;
+      for (const dialog2 of dialogs) dialog2.close();
+      dialogs.clear();
+      for (const detach of detachers) detach();
+      container.remove();
+      style.remove();
+    }
+    if (options2.selection) {
+      toolbar.remove();
+      root_label.remove();
+    }
+    return { container, tree, run, refresh, reveal, sync_root, set_visible, dispose: dispose2, ready: () => Boolean(root?.children && !root.error) };
+  }
+
+  // src/workspace_breadcrumbs.css
+  var workspace_breadcrumbs_default = "";
+
+  // src/remote_workspace_picker.css
+  var remote_workspace_picker_default = "";
+
   // src/remote_workspace_picker.ts
   function choose_remote_resource(directory, save_path, options2 = {}) {
     const provider = active_remote_files();
     if (!provider) throw Error("\u5F53\u524D\u6CA1\u6709SSH\u5DE5\u4F5C\u533A");
     return new Promise((resolve3) => {
       let result, disposed = false, epoch2 = 0, checking = false;
+      const styles = [acquire_workspace_style("typora-code-style:breadcrumbs", workspace_breadcrumbs_default), acquire_workspace_style("typora-code-style:remote_picker", remote_workspace_picker_default)];
       let current = save_path && provider.owns(save_path) ? provider.path_api.dirname(save_path) : options2.initial_path || provider.root || provider.local_path("/");
       let selected = "", selected_directory = false;
       const dialog2 = workspace_dialog(save_path ? "\u53E6\u5B58\u4E3A\u8FDC\u7A0B\u6587\u4EF6" : directory ? "\u6253\u5F00\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u6253\u5F00\u8FDC\u7A0B\u6587\u4EF6", "\u53D6\u6D88", () => {
         disposed = true;
         ++epoch2;
+        file_tree.dispose();
+        for (const style of styles) style.remove();
         window.removeEventListener("linux-note-workspace-context-changed", close_stale);
         resolve3(result);
-      }, { focus_out: false });
+      }, { focus_out: false, escape: () => {
+        if (path.hidden) return false;
+        edit_path(false);
+        return true;
+      } });
       const close_stale = () => dialog2.close();
       window.addEventListener("linux-note-workspace-context-changed", close_stale);
       const valid = (generation = epoch2) => !disposed && generation === epoch2 && active_remote_files() === provider;
-      const path = workspace_element("input"), status2 = workspace_element("p"), list3 = workspace_element("div", "workspace-ssh-list"), toolbar = workspace_element("div", "workspace-ssh-toolbar"), breadcrumbs = workspace_element("nav", "workspace-ssh-toolbar");
+      const path = workspace_element("input"), status2 = workspace_element("p"), toolbar = workspace_element("div", "workspace-resource-picker-address"), breadcrumbs = workspace_element("nav", "workspace-breadcrumb-trail");
+      const location = workspace_element("div", "workspace-breadcrumbs workspace-resource-picker-location");
+      location.append(breadcrumbs, path);
+      path.hidden = true;
+      const edit_path = (editing) => {
+        path.hidden = !editing;
+        breadcrumbs.hidden = editing;
+        edit_button.setAttribute("aria-pressed", String(editing));
+        if (editing) {
+          path.value = provider.remote_path(current);
+          path.focus();
+          path.select();
+        } else breadcrumbs.querySelector("button:last-child")?.focus();
+      };
+      const edit_button = git_icon_button("edit", "\u7F16\u8F91\u5B8C\u6574\u8DEF\u5F84 (Ctrl+L)", () => edit_path(path.hidden));
       const filename = workspace_element("input");
       filename.setAttribute("aria-label", "\u6587\u4EF6\u540D");
       filename.value = save_path ? provider.path_api.basename(save_path) : "";
       path.setAttribute("aria-label", "\u8FDC\u7A0B\u8DEF\u5F84");
       breadcrumbs.setAttribute("aria-label", "\u8FDC\u7A0B\u8DEF\u5F84\u5C42\u7EA7");
       status2.setAttribute("role", "status");
-      list3.setAttribute("role", "listbox");
-      list3.setAttribute("aria-label", "\u8FDC\u7A0B\u76EE\u5F55\u5185\u5BB9");
       const report = (error) => {
         if (valid()) status2.textContent = String(error instanceof Error ? error.message : error);
       };
-      const select = (target, is_directory, row) => {
+      const select = (target, is_directory) => {
         selected = target;
         selected_directory = is_directory;
-        for (const item of list3.querySelectorAll("[role=option]")) {
-          item.setAttribute("aria-selected", String(item === row));
-          item.classList.toggle("selected", item === row);
-        }
         if (save_path && !is_directory) filename.value = provider.path_api.basename(target);
         accept.disabled = checking || !save_path && (directory ? !is_directory : is_directory);
       };
       const accept = workspace_button(save_path ? "\u4FDD\u5B58" : "\u6253\u5F00", () => {
         void (async () => {
           if (!valid() || checking) return;
+          let target = selected;
           if (save_path) {
             if (!filename.value || filename.value === "." || filename.value === ".." || /[\/\\\0]/u.test(filename.value)) throw Error("\u8BF7\u8F93\u5165\u5355\u4E2A\u6709\u6548\u6587\u4EF6\u540D\u3002");
-            selected = provider.local_path(provider.path_api.posix.join(provider.remote_path(current), filename.value));
+            target = provider.local_path(provider.path_api.posix.join(provider.remote_path(selected ? selected_directory ? selected : provider.path_api.dirname(selected) : current), filename.value));
           }
-          if (!selected || !save_path && directory !== selected_directory) return;
-          const target = selected, generation = epoch2;
+          if (!target || !save_path && directory !== selected_directory) return;
+          const generation = epoch2;
           checking = true;
           accept.disabled = true;
           try {
@@ -187222,8 +188054,10 @@ https://creativecommons.org/licenses/by/4.0/
         const remote = provider.remote_path(current), segments = remote.split("/").filter(Boolean);
         let parent = "";
         const crumb = (label, value) => {
-          const control = workspace_button(label, () => void browse(provider.local_path(value)));
+          const control = workspace_button("", () => void browse(provider.local_path(value)), "workspace-breadcrumb-segment");
+          control.append(workspace_element("span", "", label));
           control.title = value;
+          if (value === remote) control.setAttribute("aria-current", "location");
           breadcrumbs.append(control);
         };
         crumb("/", "/");
@@ -187232,97 +188066,90 @@ https://creativecommons.org/licenses/by/4.0/
           breadcrumbs.append(git_icon("chevron-right"));
           crumb(part, parent);
         }
+        breadcrumbs.scrollLeft = breadcrumbs.scrollWidth;
       };
+      breadcrumbs.addEventListener("wheel", (event) => {
+        if (!event.ctrlKey && !event.metaKey && breadcrumbs.scrollWidth > breadcrumbs.clientWidth) {
+          event.preventDefault();
+          event.stopPropagation();
+          breadcrumbs.scrollLeft += event.deltaX || event.deltaY;
+        }
+      }, { passive: false });
+      breadcrumbs.onkeydown = (event) => {
+        if (event.isComposing || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const items = [...breadcrumbs.querySelectorAll("button")], index = items.indexOf(document.activeElement), next = event.key === "Home" ? 0 : event.key === "End" ? items.length - 1 : Math.max(0, Math.min(items.length - 1, index + (event.key === "ArrowLeft" ? -1 : 1)));
+        items[next]?.focus();
+      };
+      dialog2.root.addEventListener("keydown", (event) => {
+        if (event.isComposing) return;
+        if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "l") {
+          event.preventDefault();
+          event.stopPropagation();
+          edit_path(true);
+        }
+      }, true);
+      const file_tree = create_workspace_file_tree({
+        fs: provider.fs,
+        path_api: provider.path_api,
+        context_root: () => current,
+        open_file: () => {
+        },
+        open_folder: () => {
+        },
+        copy: () => {
+        },
+        selection: { select, enter: async (target, is_directory) => {
+          if (is_directory) await browse(target);
+          else {
+            select(target, false);
+            accept.click();
+          }
+        }, label: (target) => provider.remote_path(target) }
+      });
+      file_tree.tree.setAttribute("aria-label", "\u8FDC\u7A0B\u76EE\u5F55\u5185\u5BB9");
       const browse = async (value, select_path = "") => {
         if (!valid()) return;
         const generation = ++epoch2;
         selected = "";
         accept.disabled = true;
-        status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0B\u76EE\u5F55\u2026";
-        list3.setAttribute("aria-busy", "true");
-        list3.replaceChildren();
-        try {
-          const entries3 = await provider.fs.promises.readdir(value, { withFileTypes: true });
-          if (!valid(generation)) return;
-          current = value;
-          path.value = provider.remote_path(value);
-          paint_breadcrumbs();
-          selected = directory ? current : "";
-          selected_directory = directory;
-          accept.disabled = checking || !save_path && !selected;
-          const visible3 = entries3.filter((entry) => !directory || entry.isDirectory()).sort((a, b2) => Number(b2.isDirectory()) - Number(a.isDirectory()) || a.name.localeCompare(b2.name));
-          let shown = 0;
-          const more = workspace_button("\u663E\u793A\u66F4\u591A", () => append_batch());
-          const append_batch = () => {
-            if (!valid(generation)) return;
-            more.remove();
-            const fragment = document.createDocumentFragment(), end = Math.min(shown + 200, visible3.length);
-            for (; shown < end; shown++) {
-              const entry = visible3[shown], target = provider.path_api.join(current, entry.name), is_directory = entry.isDirectory();
-              const row = workspace_button("", () => select(target, is_directory, row), "workspace-ssh-row");
-              row.setAttribute("role", "option");
-              row.setAttribute("aria-label", entry.name);
-              row.setAttribute("aria-selected", "false");
-              row.title = provider.remote_path(target);
-              row.append(is_directory ? git_icon("chevron-right") : workspace_file_icon(entry.name), workspace_element("span", "", entry.name));
-              const enter = () => {
-                if (is_directory) void browse(target);
-                else {
-                  select(target, false, row);
-                  accept.click();
-                }
-              };
-              row.ondblclick = enter;
-              row.onkeydown = (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  enter();
-                }
-              };
-              fragment.append(row);
-            }
-            list3.append(fragment);
-            if (shown < visible3.length) list3.append(more);
-          };
-          append_batch();
-          if (select_path) {
-            while (shown < visible3.length && !Array.from(list3.querySelectorAll("[role=option]")).some((row2) => row2.title === provider.remote_path(select_path))) append_batch();
-            const row = Array.from(list3.querySelectorAll("[role=option]")).find((row2) => row2.title === provider.remote_path(select_path));
-            if (row) {
-              row.click();
-              row.focus();
-            } else throw Error("\u6240\u9009\u6587\u4EF6\u4E0D\u5728\u5F53\u524D\u76EE\u5F55\u3002");
-          }
-          status2.textContent = visible3.length ? "" : "\u6B64\u76EE\u5F55\u4E3A\u7A7A";
-        } catch (error) {
-          if (valid(generation)) report(error);
-        } finally {
-          if (valid(generation)) list3.removeAttribute("aria-busy");
+        status2.textContent = "";
+        current = value;
+        path.value = provider.remote_path(value);
+        paint_breadcrumbs();
+        up_button.disabled = provider.remote_path(value) === "/";
+        await file_tree.sync_root(true);
+        if (!valid(generation) || !file_tree.ready()) return;
+        path.hidden = true;
+        breadcrumbs.hidden = false;
+        edit_button.setAttribute("aria-pressed", "false");
+        breadcrumbs.scrollLeft = breadcrumbs.scrollWidth;
+        selected = directory ? current : "";
+        selected_directory = directory;
+        accept.disabled = checking || !save_path && !selected;
+        if (select_path) {
+          await file_tree.reveal(select_path);
+          if (valid(generation) && selected !== select_path) report(Error("\u6240\u9009\u6587\u4EF6\u4E0D\u5728\u5F53\u524D\u76EE\u5F55\u3002"));
         }
       };
       const up = () => void browse(provider.local_path(provider.path_api.posix.dirname(provider.remote_path(current))));
-      toolbar.append(workspace_button("\u4E0A\u4E00\u7EA7", up), workspace_button("\u5237\u65B0", () => void browse(current)));
-      list3.onkeydown = (event) => {
-        if (event.isComposing) return;
-        if (event.key === "Backspace") {
+      const up_button = git_icon_button("arrow-up", "\u4E0A\u4E00\u7EA7", up), refresh_button = git_icon_button("refresh", "\u5237\u65B0", () => void file_tree.refresh());
+      toolbar.classList.add("workspace-resource-picker-actions");
+      toolbar.append(up_button, refresh_button, location, edit_button);
+      file_tree.tree.addEventListener("keydown", (event) => {
+        if (!event.isComposing && event.key === "Backspace" && !event.altKey && !event.ctrlKey && !event.metaKey) {
           event.preventDefault();
+          event.stopPropagation();
           up();
-          return;
         }
-        if (!["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
-        event.preventDefault();
-        const rows = Array.from(list3.querySelectorAll("[role=option]"));
-        if (!rows.length) return;
-        const index = rows.indexOf(document.activeElement), next = event.key === "Home" ? 0 : event.key === "End" ? rows.length - 1 : Math.max(0, Math.min(rows.length - 1, index + (event.key === "ArrowDown" ? 1 : -1)));
-        rows[next].click();
-        rows[next].focus();
-      };
+      });
       path.onkeydown = (event) => {
         if (event.key === "Enter" && !event.isComposing) {
           event.preventDefault();
+          const generation = ++epoch2;
           void (async () => {
-            const value = path.value.trim(), generation = ++epoch2;
+            const value = path.value.trim();
             selected = "";
             accept.disabled = true;
             const remote = value.startsWith("/") ? value : provider.path_api.posix.resolve(provider.remote_path(current), value), target = provider.local_path(remote);
@@ -187331,11 +188158,13 @@ https://creativecommons.org/licenses/by/4.0/
             if (stat.isDirectory()) await browse(target);
             else if (!directory && stat.isFile()) await browse(provider.path_api.dirname(target), target);
             else throw Error("\u8BF7\u8F93\u5165\u6709\u6548\u7684\u8FDC\u7A0B\u76EE\u5F55\u3002");
-          })().catch(report);
+          })().catch((error) => {
+            if (valid(generation)) report(error);
+          });
         }
       };
-      if (directory && !save_path && options2.choose_local_folder) {
-        const modes = workspace_element("div", "workspace-ssh-toolbar"), remote = workspace_button("\u8FDC\u7A0B\u6587\u4EF6\u5939", () => {
+      {
+        const modes = workspace_element("div", "workspace-ssh-toolbar workspace-resource-picker-modes"), remote = workspace_button(directory ? "\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u8FDC\u7A0B\u6587\u4EF6", () => {
         }), local = workspace_button("\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939\u2026", () => {
           void (async () => {
             if (checking || !valid()) return;
@@ -187355,13 +188184,16 @@ https://creativecommons.org/licenses/by/4.0/
           })().catch(report);
         });
         remote.setAttribute("aria-pressed", "true");
-        modes.append(remote, local);
+        remote.classList.add("selected");
+        remote.title = "\u5F53\u524D\u6D4F\u89C8 SSH: " + provider.connection.target;
+        local.setAttribute("aria-pressed", "false");
+        modes.append(remote, ...directory && !save_path && options2.choose_local_folder ? [local] : [], workspace_element("span", "workspace-resource-picker-identity", "SSH: " + provider.connection.target));
         dialog2.content.append(modes);
       }
-      dialog2.content.append(path, breadcrumbs, toolbar, status2, list3);
+      dialog2.content.classList.add("workspace-resource-picker-content");
+      dialog2.content.append(toolbar, status2, file_tree.container);
       if (save_path) dialog2.content.append(filename);
       void browse(current);
-      path.focus();
     });
   }
 
@@ -233702,9 +234534,6 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
-  // src/workspace_breadcrumbs.css
-  var workspace_breadcrumbs_default = "";
-
   // src/workspace_breadcrumbs_picker.ts
   function open_breadcrumb_picker(anchor, items, options2) {
     const root = workspace_element("section", "workspace-breadcrumb-picker"), filter_box = workspace_element("div", "workspace-breadcrumb-filter"), filter = workspace_element("input"), tree = workspace_element("div", "workspace-breadcrumb-tree");
@@ -236023,665 +236852,15 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
-  // src/workspace_explorer.css
-  var workspace_explorer_default = "";
-
   // src/workspace_explorer.ts
-  var ROW_HEIGHT = 26;
   var EXPLORER_ID = "linux_note:file_explorer";
   function bind_workspace_explorer(core, options2) {
-    const runtime2 = window;
-    const fs2 = options2.fs || runtime2.reqnode("fs"), path_api = runtime2.reqnode("path");
-    const sidebar = core.app.workspace.sidebar;
-    const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
-    const container = workspace_element("section", "linux-note-workspace-explorer");
-    container.setAttribute("aria-label", "\u8D44\u6E90\u7BA1\u7406\u5668");
-    const interaction = acquire_workspace_interaction(container);
-    const toolbar = workspace_element("div", "workspace-explorer-toolbar");
-    const title = workspace_element("strong", "", "\u8D44\u6E90\u7BA1\u7406\u5668");
-    const actions = workspace_element("div", "workspace-explorer-actions");
-    const root_label = workspace_element("div", "workspace-explorer-root");
-    const root_name = workspace_element("span", "workspace-explorer-root-name"), root_actions = workspace_element("div", "workspace-explorer-actions");
-    root_label.append(root_name, root_actions);
-    const tree = workspace_element("div", "workspace-explorer-tree");
-    tree.tabIndex = 0;
-    tree.setAttribute("role", "tree");
-    tree.setAttribute("aria-label", "\u6587\u4EF6\u548C\u6587\u4EF6\u5939");
-    const spacer = workspace_element("div", "workspace-explorer-spacer");
-    tree.append(spacer);
-    const status2 = workspace_element("div", "workspace-explorer-status");
-    status2.setAttribute("role", "status");
-    status2.hidden = true;
-    toolbar.append(title, actions);
-    container.append(toolbar, root_label, tree, status2);
-    let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
-    let flat_nodes = [], render_frame = 0, refresh_frame = 0, watcher_count = 0;
-    let rename_state;
-    let compact_folders = false;
-    const selection_paths = /* @__PURE__ */ new Set();
-    let operation_busy = false, compare_path = "";
-    const dialogs = /* @__PURE__ */ new Set();
-    const nodes = /* @__PURE__ */ new Map();
+    const view = create_workspace_file_tree(options2), { container, refresh, reveal } = view, sidebar = core.app.workspace.sidebar;
+    let visible3 = false, disposed = false, refresh_frame = 0;
     const detachers = [];
-    const row_views = /* @__PURE__ */ new Map();
-    let click_sequence;
-    const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
-    function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
-      if (!node || !tree.clientHeight) return;
-      const index = flat_nodes.indexOf(node);
-      if (index < 0) return;
-      const top = index * ROW_HEIGHT, before = tree.scrollTop;
-      if (top < before) tree.scrollTop = top;
-      else if (top + ROW_HEIGHT > before + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
-      if (tree.scrollTop !== before) render();
-    }
-    const set_status = (message) => {
-      if (disposed) return;
-      status2.textContent = message;
-      status2.hidden = !message;
-      keep_row_visible();
-    };
-    const run = (operation) => {
-      void Promise.resolve().then(operation).catch((error) => set_status(String(error)));
-    };
-    const file_icon_style = acquire_workspace_file_icons();
-    const icon = (name) => git_icon(name, "workspace-explorer-icon");
-    const icon_button = (name, label, action) => {
-      const button = workspace_element("button");
-      button.type = "button";
-      button.title = label;
-      button.setAttribute("aria-label", label);
-      button.append(icon(name));
-      button.onclick = () => run(action);
-      return button;
-    };
-    const open_folder = async () => {
-      await options2.open_folder();
-      await sync_root(true);
-    };
-    actions.append(icon_button("folder-opened", "\u6253\u5F00\u6587\u4EF6\u5939", open_folder), icon_button("target", "\u5B9A\u4F4D\u5F53\u524D\u6587\u4EF6", () => reveal()));
-    root_actions.append(icon_button("new-file", "\u65B0\u5EFA\u6587\u4EF6", () => begin_create(false)), icon_button("new-folder", "\u65B0\u5EFA\u6587\u4EF6\u5939", () => begin_create(true)), icon_button("refresh", "\u5237\u65B0\u8D44\u6E90\u7BA1\u7406\u5668", () => refresh()), icon_button("collapse-all", "\u5168\u90E8\u6298\u53E0", () => {
-      if (!root) return;
-      for (const child of root.children || []) collapse(child);
-      rebuild();
-    }));
-    function close_watch(node) {
-      if (node.watcher) {
-        node.watcher.close();
-        node.watcher = void 0;
-        watcher_count--;
-      }
-      if (node.refresh_timer) {
-        window.clearTimeout(node.refresh_timer);
-        node.refresh_timer = void 0;
-      }
-    }
-    function close_branch(node, forget = false) {
-      close_watch(node);
-      for (const child of node.children || []) close_branch(child, forget);
-      if (forget) nodes.delete(node.path);
-    }
-    function watch(node) {
-      if (!visible3 || disposed || !node.expanded && !node.compact_parent || node.watcher || watcher_count >= 128) return;
-      try {
-        node.watcher = fs2.watch(node.path, { persistent: false }, () => {
-          if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
-          node.refresh_timer = window.setTimeout(() => {
-            node.refresh_timer = void 0;
-            if (visible3 && node.expanded) void load_children(node, true);
-          }, 250);
-        });
-        watcher_count++;
-        const watcher = node.watcher;
-        watcher.on?.("error", () => {
-          close_watch(node);
-        });
-      } catch {
-      }
-    }
-    function watch_visible(node) {
-      if (node.expanded || node.compact_parent) {
-        watch(node);
-        for (const child of node.children || []) watch_visible(child);
-      }
-    }
-    function collapse(node) {
-      node.expanded = false;
-      close_branch(node);
-    }
-    function create_node(file_path, name, directory, link3, parent) {
-      const node = { id: "workspace-explorer-node-" + ++serial2, path: file_path, name, directory, link: link3, expanded: false, parent, depth: parent ? parent.depth + 1 : -1 };
-      nodes.set(file_path, node);
-      return node;
-    }
-    function rebuild() {
-      flat_nodes = [];
-      for (const node of nodes.values()) node.compact_parent = false;
-      const append4 = (node, depth = 0) => {
-        let current = node;
-        const names = [node.name];
-        if (compact_folders && !rename_state) while (current.directory && current.children?.length === 1 && current.children[0].directory && !current.children[0].link) {
-          current.compact_parent = true;
-          watch(current);
-          current = current.children[0];
-          names.push(current.name);
-        }
-        current.display_name = names.join(" / ");
-        current.display_depth = depth;
-        flat_nodes.push(current);
-        if (current.expanded) for (const child of current.children || []) append4(child, depth + 1);
-      };
-      if (root) for (const child of root.children || []) append4(child);
-      spacer.style.height = flat_nodes.length * ROW_HEIGHT + "px";
-      render();
-    }
-    function render() {
-      if (disposed || render_frame) return;
-      render_frame = requestAnimationFrame(() => {
-        render_frame = 0;
-        const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
-        const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
-        const shown = new Set(flat_nodes.slice(start, end));
-        const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : void 0;
-        const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
-        for (const [node, view] of row_views) if (!shown.has(node)) {
-          view.row.remove();
-          row_views.delete(node);
-        }
-        for (let index = start; index < end; index++) {
-          const node = flat_nodes[index];
-          let view = row_views.get(node);
-          if (!view) {
-            const row2 = workspace_element("div", "workspace-explorer-row"), chevron2 = workspace_element("span", "workspace-explorer-chevron");
-            const label2 = workspace_element("span", "workspace-explorer-name"), note2 = workspace_element("span", "workspace-explorer-note");
-            view = { row: row2, chevron: chevron2, label: label2, note: note2, file_icon: workspace_file_icon(node.path) };
-            row_views.set(node, view);
-            row2.onmousedown = (event) => {
-              if (event.target === rename_state?.input) return;
-              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
-                click_sequence = void 0;
-                return;
-              }
-              if (event.detail < 2) click_sequence = { node, selected: selected_path === node.path && selection_paths.size === 1 && selection_paths.has(node.path) };
-            };
-            row2.onclick = (event) => {
-              if (event.target === rename_state?.input || rename_state?.busy || disposed || nodes.get(node.path) !== node) return;
-              if (event.ctrlKey || event.metaKey) {
-                if (selection_paths.has(node.path)) selection_paths.delete(node.path);
-                else selection_paths.add(node.path);
-                selected_path = node.path;
-                render();
-                return;
-              }
-              if (event.shiftKey) {
-                const start2 = flat_nodes.findIndex((candidate) => candidate.path === selected_path), end2 = flat_nodes.indexOf(node);
-                selection_paths.clear();
-                for (const candidate of flat_nodes.slice(Math.min(Math.max(start2, 0), end2), Math.max(start2, end2) + 1)) selection_paths.add(candidate.path);
-                render();
-                return;
-              }
-              if (event.altKey || !node.directory && event.detail >= 2) return;
-              select(node, false, true);
-              run(() => activate(node));
-            };
-            row2.ondblclick = (event) => {
-              if (event.target === rename_state?.input) return;
-              event.preventDefault();
-              event.stopPropagation();
-              if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
-              const sequence2 = click_sequence;
-              click_sequence = void 0;
-              if (sequence2?.node === node && sequence2.selected) begin_rename(node);
-            };
-            row2.oncontextmenu = (event) => {
-              click_sequence = void 0;
-              if (!selection_paths.has(node.path)) select(node);
-              context_menu(event, node);
-            };
-          }
-          const { row, chevron, label, note, file_icon } = view;
-          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
-          row.id = node.id;
-          row.dataset.path = node.path;
-          row.dataset.directory = String(node.directory);
-          row.setAttribute("role", "treeitem");
-          row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1));
-          row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
-          if (node.directory) row.setAttribute("aria-expanded", String(node.expanded));
-          else row.removeAttribute("aria-expanded");
-          row.setAttribute("aria-busy", String(Boolean(node.loading)));
-          row.style.top = index * ROW_HEIGHT + "px";
-          row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
-          row.title = node.path + (node.error ? "\n" + node.error : "");
-          const state = node.directory ? String(node.expanded) : "file";
-          if (chevron.dataset.state !== state) {
-            chevron.dataset.state = state;
-            chevron.replaceChildren(...node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : []);
-          }
-          const name = node.display_name || node.name;
-          if (label.textContent !== name) label.textContent = name;
-          const message = [node.link ? "\u94FE\u63A5" : "", node.loading ? "\u8BFB\u53D6\u4E2D\u2026" : node.error ? "\u65E0\u6CD5\u8BFB\u53D6" : ""].filter(Boolean).join(" ");
-          if (note.textContent !== message) note.textContent = message;
-          note.classList.toggle("is-error", Boolean(node.error) && !node.loading);
-          const children = [chevron, ...node.directory ? [] : [file_icon], rename_state?.node === node ? rename_state.input : label, ...message ? [note] : []];
-          for (const child of [...row.children]) if (!children.includes(child)) child.remove();
-          for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
-          if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
-        }
-        if (focused_input?.isConnected && document.activeElement !== focused_input) {
-          focused_input.focus({ preventScroll: true });
-          focused_input.setSelectionRange(selection[0], selection[1]);
-        }
-        if (rename_state?.focus_requested && rename_state.input.isConnected) {
-          const { input, node } = rename_state;
-          rename_state.focus_requested = false;
-          input.focus({ preventScroll: true });
-          const dot = node.directory ? -1 : node.name.lastIndexOf(".");
-          input.setSelectionRange(0, dot > 0 ? dot : node.name.length);
-        }
-        const selected = nodes.get(selected_path);
-        if (selected && shown.has(selected)) tree.setAttribute("aria-activedescendant", selected.id);
-        else tree.removeAttribute("aria-activedescendant");
-      });
-    }
-    function select(node, scroll = false, preserve_dom = false) {
-      if (rename_state && rename_state.node !== node && !rename_state.busy) cancel_edit();
-      selection_paths.clear();
-      selection_paths.add(node.path);
-      selected_path = node.path;
-      set_status("");
-      tree.focus({ preventScroll: true });
-      if (scroll) {
-        const index = flat_nodes.indexOf(node), top = index * ROW_HEIGHT;
-        if (top < tree.scrollTop) tree.scrollTop = top;
-        else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
-      }
-      if (preserve_dom) {
-        for (const row of tree.querySelectorAll(".workspace-explorer-row")) {
-          const selected = row.dataset.path === node.path;
-          row.classList.toggle("is-selected", selected);
-          row.setAttribute("aria-selected", String(selected));
-        }
-        tree.setAttribute("aria-activedescendant", node.id);
-      } else render();
-    }
-    async function load_children(node, force = false, probing = false) {
-      if (rename_state?.busy) return;
-      if (disposed || nodes.get(node.path) !== node) return;
-      if (node.loading) return node.loading;
-      if (node.children && !force) {
-        watch(node);
-        return;
-      }
-      const current_generation = generation;
-      node.error = void 0;
-      node.loading = (async () => {
-        try {
-          const entries3 = await fs2.promises.readdir(node.path, { withFileTypes: true });
-          if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
-          const old_children = new Map((node.children || []).map((child) => [child.path, child]));
-          const children = [];
-          for (const entry of entries3) {
-            const file_path = path_api.join(node.path, entry.name);
-            let child = old_children.get(file_path);
-            old_children.delete(file_path);
-            const directory = entry.isDirectory(), link3 = entry.isSymbolicLink();
-            if (child && (!link3 && child.directory !== directory || child.link !== link3)) {
-              close_branch(child, true);
-              child = void 0;
-            }
-            children.push(child || create_node(file_path, entry.name, directory, link3, node));
-          }
-          for (const child of old_children.values()) close_branch(child, true);
-          children.sort((left, right) => Number(right.directory) - Number(left.directory) || collator.compare(left.name, right.name) || left.name.localeCompare(right.name));
-          node.children = children;
-          watch(node);
-          rebuild();
-          if (compact_folders && !probing) for (const child of children) {
-            let current = child;
-            for (let depth = 0; current.directory && !current.link && depth < 32; depth++) {
-              await load_children(current, false, true);
-              if (disposed || generation !== current_generation || current.children?.length !== 1 || !current.children[0].directory) break;
-              current = current.children[0];
-            }
-          }
-          if (node === root && !children.length) set_status("\u6B64\u6587\u4EF6\u5939\u4E3A\u7A7A\u3002");
-        } catch (error) {
-          if (!disposed && current_generation === generation) {
-            node.error = String(error);
-            set_status("\u65E0\u6CD5\u8BFB\u53D6\u6587\u4EF6\u5939\uFF1A" + node.path + "\n" + node.error);
-          }
-        } finally {
-          node.loading = void 0;
-          if (!disposed && generation === current_generation) rebuild();
-        }
-      })();
-      render();
-      return node.loading;
-    }
-    async function activate(node, preview = false) {
-      if (rename_state || disposed || nodes.get(node.path) !== node) return;
-      const current_generation = generation;
-      if (node.link && !node.directory) {
-        const stat = await fs2.promises.stat(node.path);
-        if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
-        node.directory = stat.isDirectory();
-      }
-      if (node.directory) {
-        if (node.expanded) {
-          collapse(node);
-          rebuild();
-        } else {
-          node.expanded = true;
-          rebuild();
-          await load_children(node);
-          if (!disposed && generation === current_generation && nodes.get(node.path) === node && node.expanded) watch_visible(node);
-        }
-      } else await options2.open_file(node.path, { preview });
-    }
-    function context_menu(event, node) {
-      const current_generation = generation;
-      const selected_files = [...selection_paths].filter((path) => !nodes.get(path)?.directory);
-      const entries3 = node === root ? [{ title: "\u5168\u90E8\u6298\u53E0", action: () => {
-        for (const child of node.children || []) collapse(child);
-        rebuild();
-      } }] : node.directory ? [{ title: node.expanded ? "\u6298\u53E0\u6587\u4EF6\u5939" : "\u5C55\u5F00\u6587\u4EF6\u5939", action: () => run(() => activate(node)) }] : [{ title: "\u6253\u5F00\u6587\u4EF6", action: () => run(() => options2.open_file(node.path)) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => run(() => options2.open_file(node.path, {}, "right")) }];
-      if (node.directory && options2.create) entries3.push({ title: "\u65B0\u5EFA\u6587\u4EF6\u2026", separator: true, action: () => run(() => begin_create(false, node)) }, { title: "\u65B0\u5EFA\u6587\u4EF6\u5939\u2026", action: () => run(() => begin_create(true, node)) });
-      if (options2.reveal_system && !remote_files_for(node.path)) entries3.push({ title: "\u5728\u7CFB\u7EDF\u6587\u4EF6\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u663E\u793A", shortcut: "Shift+Alt+R", action: () => run(() => options2.reveal_system(node.path)) });
-      if (options2.terminal) entries3.push({ title: "\u5728\u96C6\u6210\u7EC8\u7AEF\u4E2D\u6253\u5F00", action: () => run(() => options2.terminal(node.directory ? node.path : node.parent.path)) });
-      if (node.directory && options2.find_in_folder) entries3.push({ title: "\u5728\u6587\u4EF6\u5939\u4E2D\u67E5\u627E\u2026", shortcut: "Shift+Alt+F", separator: true, action: () => run(() => options2.find_in_folder(node.path)) });
-      if (!node.directory && options2.compare) {
-        entries3.push({ title: "\u9009\u62E9\u4EE5\u8FDB\u884C\u6BD4\u8F83", separator: true, action: () => {
-          compare_path = node.path;
-          set_status("\u5DF2\u9009\u62E9\u6BD4\u8F83\u6587\u4EF6\uFF1A" + node.name);
-        } });
-        if (compare_path && compare_path !== node.path) entries3.push({ title: "\u4E0E\u5DF2\u9009\u9879\u76EE\u6BD4\u8F83", action: () => run(() => options2.compare(compare_path, node.path)) });
-        if (selected_files.length === 2) entries3.push({ title: "\u6BD4\u8F83\u6240\u9009\u6587\u4EF6", action: () => run(() => options2.compare(selected_files[0], selected_files[1])) });
-      }
-      if (node !== root && options2.file_clipboard) entries3.push({ title: "\u526A\u5207", shortcut: "Ctrl+X", separator: true, disabled: operation_busy, action: () => run(() => set_clipboard(true)) }, { title: "\u590D\u5236", shortcut: "Ctrl+C", disabled: operation_busy, action: () => run(() => set_clipboard(false)) });
-      if (node.directory && options2.file_clipboard) entries3.push({ title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node)) });
-      entries3.push(
-        { title: "\u590D\u5236\u8DEF\u5F84", shortcut: "Shift+Alt+C", separator: true, action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, false) || node.path)) },
-        { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", shortcut: "Ctrl+K Ctrl+Shift+C", action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, true) || node.name)) }
-      );
-      if (node !== root) entries3.push({ title: "\u91CD\u547D\u540D", shortcut: "F2", separator: true, disabled: Boolean(rename_state?.busy) || operation_busy, action: () => begin_rename(node) });
-      if (node !== root && options2.trash) entries3.push({ title: "\u5220\u9664", shortcut: "Del", disabled: operation_busy, action: () => confirm_trash() });
-      if (node.directory) entries3.push({ title: "\u5237\u65B0\u6587\u4EF6\u5939", separator: true, action: () => run(() => load_children(node, true)) });
-      entries3.push(...options2.extra_menu?.(node.path, node.directory) || []);
-      container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu", { detail: { path: node.path, directory: node.directory, entries: entries3 } }));
-      const guard = (items) => {
-        for (const entry of items) {
-          const action = entry.action;
-          entry.action = () => {
-            if (!disposed && generation === current_generation && nodes.get(node.path) === node) action();
-          };
-          if (entry.children) guard(entry.children);
-        }
-      };
-      guard(entries3);
-      workspace_menu(event, entries3, "workspace-explorer-menu workspace-menu-compact");
-    }
-    function begin_rename(node) {
-      if (!root || node === root || disposed || rename_state?.busy) return;
-      select(node, true);
-      const input = workspace_element("input", "workspace-explorer-rename");
-      input.value = node.name;
-      input.setAttribute("aria-label", "\u65B0\u540D\u79F0");
-      input.spellcheck = false;
-      rename_state = { node, input, busy: false, focus_requested: true };
-      set_status("\u8F93\u5165\u65B0\u540D\u79F0\uFF0C\u6309 Enter \u786E\u8BA4\uFF0CEsc \u53D6\u6D88\u3002");
-      input.onkeydown = (event) => {
-        event.stopPropagation();
-        if (event.isComposing) return;
-        if (event.key === "Escape") {
-          event.preventDefault();
-          if (!rename_state?.busy) {
-            cancel_edit();
-            set_status("\u5DF2\u53D6\u6D88\u64CD\u4F5C\u3002");
-            tree.focus({ preventScroll: true });
-            render();
-          }
-        } else if (event.key === "Enter") {
-          event.preventDefault();
-          run(finish_rename);
-        }
-      };
-      render();
-    }
-    async function finish_rename() {
-      const edit3 = rename_state, current_root = root;
-      if (!edit3 || !current_root || edit3.busy) return;
-      if (!edit3.creating && edit3.input.value === edit3.node.name) {
-        rename_state = void 0;
-        tree.focus({ preventScroll: true });
-        render();
-        return;
-      }
-      edit3.busy = true;
-      edit3.input.disabled = true;
-      set_status("\u6B63\u5728\u91CD\u547D\u540D\u2026");
-      try {
-        const expanded2 = edit3.node.expanded;
-        const target = edit3.creating ? await options2.create(current_root.path, edit3.node.parent.path, edit3.input.value, edit3.node.directory) : await options2.rename(current_root.path, edit3.node.path, edit3.input.value);
-        rename_state = void 0;
-        if (disposed || root !== current_root) return;
-        close_branch(edit3.node, true);
-        await load_children(edit3.node.parent || current_root, true);
-        await reveal(target);
-        const replacement = nodes.get(target);
-        if (expanded2 && replacement?.directory) {
-          replacement.expanded = true;
-          await load_children(replacement);
-        }
-        set_status((edit3.creating ? "\u5DF2\u521B\u5EFA " : "\u5DF2\u91CD\u547D\u540D\u4E3A ") + path_api.basename(target));
-        tree.focus({ preventScroll: true });
-      } catch (error) {
-        if (disposed) return;
-        const renamed_path = error.renamed_path;
-        if (renamed_path) {
-          rename_state = void 0;
-          await refresh();
-          await reveal(renamed_path);
-          set_status(String(error instanceof Error ? error.message : error));
-          return;
-        }
-        edit3.busy = false;
-        edit3.input.disabled = false;
-        edit3.input.setAttribute("aria-invalid", "true");
-        set_status(String(error instanceof Error ? error.message : error));
-        edit3.input.focus({ preventScroll: true });
-      }
-    }
-    function cancel_edit() {
-      const edit3 = rename_state;
-      rename_state = void 0;
-      if (edit3?.creating) {
-        const parent = edit3.node.parent;
-        parent.children = parent.children?.filter((child) => child !== edit3.node);
-        nodes.delete(edit3.node.path);
-        rebuild();
-      }
-    }
-    async function begin_create(directory, parent = nodes.get(selected_path) || root) {
-      if (!root || !parent || !options2.create || rename_state?.busy || operation_busy) return;
-      if (!parent.directory) parent = parent.parent || root;
-      cancel_edit();
-      parent.expanded = true;
-      await load_children(parent);
-      if (disposed) return;
-      const node = create_node(path_api.join(parent.path, ".workspace-new-" + ++serial2), "", directory, false, parent);
-      parent.children = [node, ...parent.children || []];
-      rebuild();
-      begin_rename(node);
-      if (rename_state) {
-        rename_state.creating = true;
-        rebuild();
-      }
-    }
-    async function set_clipboard(move) {
-      if (!root || !options2.file_clipboard || operation_busy) return;
-      const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
-      if (!paths.length) return;
-      operation_busy = true;
-      set_status("\u6B63\u5728\u5199\u5165\u7CFB\u7EDF\u526A\u8D34\u677F\u2026");
-      try {
-        await options2.file_clipboard.copy(current_root.path, paths, move, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path);
-        if (!disposed && root === current_root) set_status(move ? "\u5DF2\u526A\u5207\uFF0C\u9009\u62E9\u76EE\u6807\u6587\u4EF6\u5939\u540E\u7C98\u8D34\u3002" : "\u5DF2\u590D\u5236\u5230\u7CFB\u7EDF\u526A\u8D34\u677F\u3002");
-      } finally {
-        operation_busy = false;
-        if (!disposed) render();
-      }
-    }
-    async function paste(target = nodes.get(selected_path) || root) {
-      if (!root || !target || !options2.file_clipboard || operation_busy) return;
-      const current_root = root;
-      if (!target.directory) target = target.parent || root;
-      const destination = target;
-      operation_busy = true;
-      set_status("\u6B63\u5728\u7C98\u8D34\u6587\u4EF6\u2026");
-      try {
-        const result = await options2.file_clipboard.paste(current_root.path, destination.path, () => !disposed && root === current_root && path_api.normalize(options2.context_root()) === current_root.path && nodes.get(destination.path) === destination);
-        if (!disposed && root === current_root) {
-          await refresh();
-          if (result.paths[0]) await reveal(result.paths[0]);
-          set_status(result.message);
-        }
-      } finally {
-        operation_busy = false;
-        if (!disposed) await refresh();
-      }
-    }
-    let trash_confirmation;
-    function confirm_trash() {
-      if (!root || !options2.trash || operation_busy || trash_confirmation) return;
-      const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : [];
-      if (!paths.length) return;
-      let accepted = false;
-      const execute = () => {
-        if (accepted || operation_busy || disposed || root !== current_root) return;
-        accepted = true;
-        operation_busy = true;
-        run(async () => {
-          try {
-            if (disposed || root !== current_root) return;
-            await options2.trash(current_root.path, paths);
-            selection_paths.clear();
-            selected_path = "";
-            set_status("\u5DF2\u79FB\u5230\u56DE\u6536\u7AD9\u3002");
-          } finally {
-            operation_busy = false;
-            if (!disposed) await refresh();
-          }
-        });
-      };
-      if (options2.confirm_delete?.() === false) {
-        execute();
-        return;
-      }
-      const dialog2 = workspace_dialog("\u5220\u9664", "\u53D6\u6D88", () => {
-        trash_confirmation = void 0;
-        dialogs.delete(dialog2);
-      });
-      dialogs.add(dialog2);
-      trash_confirmation = dialog2;
-      dialog2.content.append(workspace_element("p", "", paths.length === 1 ? "\u786E\u5B9A\u8981\u5C06\u201C".concat(path_api.basename(paths[0]), "\u201D\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F") : "\u786E\u5B9A\u8981\u5C06 ".concat(paths.length, " \u4E2A\u9879\u76EE\u79FB\u5230\u56DE\u6536\u7AD9\u5417\uFF1F")));
-      const cancel = workspace_element("button", "", "\u53D6\u6D88"), accept = workspace_element("button", "", "\u79FB\u5230\u56DE\u6536\u7AD9");
-      cancel.onclick = () => dialog2.close();
-      accept.onclick = () => {
-        dialog2.close();
-        execute();
-      };
-      dialog2.footer.replaceChildren(cancel, accept);
-      cancel.focus();
-    }
-    async function sync_root(force = false) {
-      if (rename_state?.busy) return;
-      const requested = options2.context_root();
-      if (!requested || !path_api.isAbsolute(requested)) {
-        if (root) {
-          generation++;
-          close_branch(root, true);
-          root = void 0;
-          rename_state = void 0;
-          selection_paths.clear();
-          compare_path = "";
-          root_name.textContent = "\u672A\u6253\u5F00\u6587\u4EF6\u5939";
-          selected_path = "";
-          rebuild();
-        }
-        set_status("\u6253\u5F00\u4E00\u4E2A\u6587\u4EF6\u5939\u4EE5\u6D4F\u89C8\u5168\u90E8\u6587\u4EF6\u3002");
-        return;
-      }
-      const file_path = path_api.normalize(requested);
-      if (root?.path === file_path) {
-        if (force) await load_children(root, true);
-        return;
-      }
-      generation++;
-      rename_state = void 0;
-      selection_paths.clear();
-      compare_path = "";
-      if (root) close_branch(root, true);
-      root = create_node(file_path, path_api.basename(file_path) || file_path, true, false);
-      root.expanded = true;
-      selected_path = "";
-      const remote = remote_files_for(root.path);
-      root_name.textContent = root.name + (remote ? " [SSH: ".concat(remote.connection.target, "]") : "");
-      root_label.title = remote ? remote.remote_path(root.path) : root.path;
-      tree.scrollTop = 0;
-      set_status("\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5939\u2026");
-      rebuild();
-      await load_children(root);
-      if (root && !root.error && root.children?.length) set_status("");
-    }
-    async function refresh() {
-      await sync_root();
-      if (!root) return;
-      const expanded2 = [...nodes.values()].filter((node) => node.directory && (node.expanded || node.compact_parent));
-      for (const node of expanded2) if (!disposed && nodes.get(node.path) === node) await load_children(node, true);
-    }
-    async function reveal(file_path = options2.active_file?.() || "") {
-      await sync_root();
-      if (!root || !file_path || !path_api.isAbsolute(file_path)) return;
-      file_path = path_api.normalize(file_path);
-      const relative2 = path_api.relative(root.path, file_path);
-      if (!relative2 || path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) return;
-      let parent = root;
-      const components = relative2.split(path_api.sep);
-      for (const name2 of components.slice(0, -1)) {
-        await load_children(parent);
-        const child = parent.children?.find((node2) => path_api.sep === "\\" ? node2.name.toLowerCase() === name2.toLowerCase() : node2.name === name2);
-        if (!child) return;
-        if (child.link && !child.directory) {
-          try {
-            child.directory = (await fs2.promises.stat(child.path)).isDirectory();
-          } catch {
-            return;
-          }
-        }
-        if (!child.directory) return;
-        child.expanded = true;
-        await load_children(child);
-        parent = child;
-      }
-      await load_children(parent);
-      rebuild();
-      const name = components.at(-1);
-      let node = parent.children?.find((candidate) => path_api.sep === "\\" ? candidate.name.toLowerCase() === name.toLowerCase() : candidate.name === name);
-      while (node?.compact_parent && node.children?.length === 1) node = node.children[0];
-      if (node) {
-        selection_paths.clear();
-        selection_paths.add(node.path);
-        selected_path = node.path;
-        set_status("");
-        const index = flat_nodes.indexOf(node);
-        tree.scrollTop = Math.max(0, index * ROW_HEIGHT - tree.clientHeight / 2);
-        render();
-      }
-    }
+    const run = view.run;
     const clear_native_tabs = () => {
-      const native_sidebar = document.querySelector("#typora-sidebar");
-      const classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
+      const native_sidebar = document.querySelector("#typora-sidebar"), classes = ["active-tab-files", "active-tab-outline", "ty-show-search"];
       if (visible3 && native_sidebar && classes.some((name) => native_sidebar.classList.contains(name))) native_sidebar.classList.remove(...classes);
     };
     const native_observer = new MutationObserver(clear_native_tabs);
@@ -236694,15 +236873,14 @@ https://creativecommons.org/licenses/by/4.0/
         const native_sidebar = document.querySelector("#typora-sidebar");
         if (native_sidebar) native_observer.observe(native_sidebar, { attributes: true, attributeFilter: ["class"] });
         run(async () => {
-          await sync_root();
-          if (root) watch_visible(root);
+          await view.set_visible(true);
           await reveal();
         });
       }
       onhide() {
         visible3 = false;
         native_observer.disconnect();
-        if (root) close_branch(root);
+        void view.set_visible(false);
       }
     }
     const panel = new explorer_sidebar();
@@ -236720,90 +236898,6 @@ https://creativecommons.org/licenses/by/4.0/
       show2(true);
     };
     document.addEventListener("click", activity_click, true);
-    tree.addEventListener("scroll", render, { passive: true });
-    tree.addEventListener("keydown", (event) => {
-      if (event.target !== tree || event.isComposing) return;
-      const selected = nodes.get(selected_path) || root;
-      if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey && selected) {
-        if (event.code === "KeyR" && options2.reveal_system && !remote_files_for(selected.path)) {
-          event.preventDefault();
-          event.stopPropagation();
-          run(() => options2.reveal_system(selected.path));
-        }
-        if (event.code === "KeyF" && options2.find_in_folder) {
-          event.preventDefault();
-          event.stopPropagation();
-          run(() => options2.find_in_folder(selected.directory ? selected.path : selected.parent.path));
-        }
-        return;
-      }
-      if (event.altKey) return;
-      if (event.ctrlKey || event.metaKey) {
-        const key2 = event.key.toLowerCase();
-        if (!["c", "x", "v", "a"].includes(key2)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (key2 === "v") run(() => paste());
-        else if (key2 === "a") {
-          selection_paths.clear();
-          for (const node2 of flat_nodes) selection_paths.add(node2.path);
-          render();
-        } else run(() => set_clipboard(key2 === "x"));
-        return;
-      }
-      if (event.key === "Delete") {
-        event.preventDefault();
-        event.stopPropagation();
-        confirm_trash();
-        return;
-      }
-      let index = Math.max(0, flat_nodes.findIndex((node2) => node2.path === selected_path));
-      const node = flat_nodes[index];
-      if (!node) return;
-      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        index = event.key === "Home" ? 0 : event.key === "End" ? flat_nodes.length - 1 : Math.min(flat_nodes.length - 1, Math.max(0, index + (event.key === "ArrowDown" ? 1 : -1)));
-        select(flat_nodes[index], true);
-      } else if (["ArrowLeft", "ArrowRight", "Enter", " "].includes(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.key === "ArrowLeft") {
-          if (node.expanded) {
-            collapse(node);
-            rebuild();
-          } else {
-            let parent = node.parent;
-            while (parent && parent !== root && !flat_nodes.includes(parent)) parent = parent.parent;
-            if (parent && parent !== root) select(parent, true);
-          }
-        } else if (event.key === "ArrowRight") {
-          if (node.directory && !node.expanded) run(() => activate(node));
-          else if (node.expanded && node.children?.length) select(flat_nodes[index + 1] || node.children[0], true);
-        } else run(() => activate(node));
-      } else if (event.key === "F2") {
-        event.preventDefault();
-        event.stopPropagation();
-        begin_rename(node);
-      } else if (event.key === "F10" && event.shiftKey) {
-        event.preventDefault();
-        const bounds = tree.getBoundingClientRect();
-        context_menu(new MouseEvent("contextmenu", { clientX: bounds.left + 24, clientY: bounds.top + 30 }), node);
-      }
-    });
-    detachers.push(register_workspace_context_guard(() => operation_busy || rename_state?.busy ? "\u6587\u4EF6\u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002" : void 0));
-    root_label.oncontextmenu = (event) => {
-      if (root) context_menu(event, root);
-    };
-    tree.oncontextmenu = (event) => {
-      if (event.target instanceof Element && event.target.closest(".workspace-explorer-row")) return;
-      if (root) context_menu(event, root);
-    };
-    const resize_observer = new ResizeObserver(() => {
-      if (rename_state) keep_row_visible();
-      render();
-    });
-    resize_observer.observe(tree);
     const active_change = () => {
       if (!visible3 || disposed || refresh_frame) return;
       refresh_frame = requestAnimationFrame(() => {
@@ -236815,43 +236909,28 @@ https://creativecommons.org/licenses/by/4.0/
       const detach = core.app.workspace.on(event, active_change);
       if (typeof detach === "function") detachers.push(detach);
     }
-    if (options2.file_clipboard) detachers.push(options2.file_clipboard.subscribe(() => {
-      if (!disposed) render();
-    }));
     const window_focus = () => {
       run(() => options2.file_clipboard?.refresh());
       if (visible3) run(() => refresh());
     };
     window.addEventListener("focus", window_focus);
     function dispose2() {
-      file_icon_style.remove();
       if (disposed) return;
       disposed = true;
-      interaction.remove();
-      generation++;
       visible3 = false;
       native_observer.disconnect();
-      resize_observer.disconnect();
-      if (root) close_branch(root, true);
-      if (render_frame) cancelAnimationFrame(render_frame);
       if (refresh_frame) cancelAnimationFrame(refresh_frame);
-      row_views.clear();
-      click_sequence = void 0;
-      rename_state = void 0;
-      for (const dialog2 of dialogs) dialog2.close();
-      dialogs.clear();
       document.removeEventListener("click", activity_click, true);
       window.removeEventListener("focus", window_focus);
       window.removeEventListener("pagehide", dispose2);
       for (const detach of detachers) detach();
+      view.dispose();
       if (sidebar.activePanel === panel) {
         sidebar.hide();
         sidebar.activePanel = sidebar.panels.find((candidate) => candidate.ribbonButton?.id === "core.file-explorer");
       }
       panel.ribbonButton = void 0;
       sidebar.removePanel(panel);
-      container.remove();
-      style.remove();
       document.documentElement.removeAttribute("data-linux-note-workspace-explorer");
     }
     window.addEventListener("pagehide", dispose2);
@@ -244426,6 +244505,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (failed_request) void navigate(value);
       else void load(value, capture()?.editor_state);
     });
+    const back = git_icon_button("arrow-left", "\u9884\u89C8\u540E\u9000 (Alt+\u2190)", () => void travel(-1));
+    const forward = git_icon_button("arrow-right", "\u9884\u89C8\u524D\u8FDB (Alt+\u2192)", () => void travel(1));
+    const sync_navigation = () => {
+      back.disabled = disposed || container.dataset.state === "loading" || !history.can_travel(-1);
+      forward.disabled = disposed || container.dataset.state === "loading" || !history.can_travel(1);
+    };
+    sync_navigation();
     const fail = (error) => {
       message.textContent = String(error);
       message.hidden = false;
@@ -244433,7 +244519,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     toolbar.setAttribute("role", "toolbar");
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
-    toolbar.append(title, scale.container, open, retry);
+    toolbar.append(title, scale.container, back, forward, open, retry);
     container.append(toolbar, return_directory, message, content);
     if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
     const cancel_pending = () => {
@@ -244450,6 +244536,7 @@ https://creativecommons.org/licenses/by/4.0/
       web?.dispose();
       web = void 0;
       history.clear();
+      sync_navigation();
       reader?.dispose();
       reader = void 0;
       directory?.dispose();
@@ -244479,6 +244566,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         focus();
       }
+      sync_navigation();
     };
     const follow = (href) => {
       if (target?.kind === "file") return navigate({ source: target.path, href });
@@ -244491,6 +244579,7 @@ https://creativecommons.org/licenses/by/4.0/
       message.textContent = "\u6B63\u5728\u52A0\u8F7D\u94FE\u63A5\u9884\u89C8\u2026";
       message.hidden = false;
       failed_request = void 0;
+      sync_navigation();
       if (!target) {
         title.textContent = value.href;
         title.title = value.href;
@@ -244590,6 +244679,8 @@ https://creativecommons.org/licenses/by/4.0/
           fail(error);
         }
         return false;
+      } finally {
+        if (!disposed && version === generation) sync_navigation();
       }
     };
     const show2 = async (value) => {
@@ -244598,6 +244689,7 @@ https://creativecommons.org/licenses/by/4.0/
         const location = capture();
         if (location) history.record_selection(location);
       }
+      sync_navigation();
     };
     const travel = async (direction) => {
       const current = capture();
@@ -244606,6 +244698,7 @@ https://creativecommons.org/licenses/by/4.0/
         const saved = location.editor_state;
         return load(saved.request, saved);
       });
+      sync_navigation();
       if (ok2) focus();
       return ok2;
     };
@@ -245103,6 +245196,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092317,
+        version: "2026.09.23.17",
+        date: "2026-09-23",
+        notes: [
+          "\u8FDC\u7A0B\u8D44\u6E90\u9009\u62E9\u4E0E\u8D44\u6E90\u7BA1\u7406\u5668\u5171\u7528\u6587\u4EF6\u6811\uFF0C\u5355\u51FB\u5C55\u5F00/\u6298\u53E0\uFF0C\u65B9\u5411\u952E\u9009\u62E9\uFF1B\u4FDD\u7559\u53CC\u51FB\u8FDB\u5165\u4E0E\u786E\u8BA4\u6253\u5F00\uFF0C\u6309\u9700\u8BFB\u53D6\u548C\u865A\u62DF\u884C\u907F\u514D\u5927\u76EE\u5F55\u5806\u79EF\u3002",
+          "\u8FDC\u7A0B\u9009\u62E9\u5668\u660E\u786E\u5F53\u524DSSH\u8EAB\u4EFD\u4E0E\u9009\u4E2D\u72B6\u6001\uFF0C\u8DEF\u5F84\u8F93\u5165\u548C\u9762\u5305\u5C51\u5408\u5E76\u4E3A\u5355\u884C\u5730\u5740\u680F\uFF0C\u957F\u8DEF\u5F84\u6A2A\u5411\u6D4F\u89C8\uFF1B\u4E0A\u4E00\u7EA7\u548C\u5237\u65B0\u6539\u4E3A\u56FE\u6807\u3002",
+          "\u9884\u89C8\u9876\u90E8\u589E\u52A0\u72EC\u7ACB\u524D\u8FDB/\u540E\u9000\u56FE\u6807\uFF0C\u6062\u590D\u672C\u9884\u89C8\u7684\u94FE\u63A5\u548C\u9605\u8BFB\u4F4D\u7F6E\uFF0C\u4E0D\u6539\u53D8\u6B63\u6587\u6216\u5176\u4ED6\u9884\u89C8\u5386\u53F2\u3002"
+        ]
+      },
       {
         sequence: 2026092316,
         version: "2026.09.23.16",

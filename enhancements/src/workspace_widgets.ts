@@ -17,7 +17,7 @@ export function dispose_workspace_widgets(): void {
   close_active_menu?.();
   for (const close of [...active_dialogs]) close();
 }
-export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void, options:{regions?:()=>HTMLElement[];focus_out?:boolean}={}): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
+export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void, options:{regions?:()=>HTMLElement[];focus_out?:boolean;escape?:()=>boolean}={}): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -38,7 +38,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
     if (restore_focus) previous.restore();
     on_close?.(restore_focus);
   };
-  const escape_layer=register_workspace_dismissal(()=>[root,...(options.regions?.()||[])],reason=>close(reason==="escape"||reason==="outside"),{inside:()=>[panel,...(options.regions?.()||[])],consume_outside:true,focus_out:options.focus_out});
+  const escape_layer=register_workspace_dismissal(()=>[root,...(options.regions?.()||[])],reason=>{if(reason==="escape"&&options.escape?.())return;close(reason==="escape"||reason==="outside");},{inside:()=>[panel,...(options.regions?.()||[])],consume_outside:true,focus_out:options.focus_out});
   // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
     if (!is_top_dialog()) return;

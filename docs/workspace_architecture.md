@@ -24,6 +24,7 @@ flowchart LR
 | 打开、保存、还原、关闭命令 | `workspace_file_commands` | 顶栏和快捷键使用已注册命令；需要路径参数的内部命令不出现在命令面板 |
 | 系统选择窗口 | `workspace_open_dialog` | 统一处理取消、并发选择和卸载后的迟到结果；使用已核对的 Typora API |
 | 文件创建、移动、复制和回收站 | 既有文件操作服务，由 `workspace_files` 编排 | Explorer 菜单仅提供选择与动作，不重复实现写入与冲突判断 |
+| 文件树的展开、选择与可见行 | `workspace_file_tree` | 资源管理器和远端选择器共用节点缓存、懒加载、键盘和虚拟行；Explorer适配宿主侧栏，选择器只管理进入目录和确认草稿。选择不等于打开，不响应宿主文件监听的选择器不能顺带注册监视或文件写操作，见[R070.8](remote_ssh.md#r0708-远端资源选择器树形展开) |
 | 搜索会话 | `workspace_search_engine`、搜索控制器 | 搜索 UI 设置范围并消费渐进结果；身份变化取消旧结果，字面目录范围不冒充 glob |
 | 代码大纲 | 大纲控制器与相应解析服务 | C/C++ 使用 clangd；Markdown 保留标题服务；展示与解析生命周期分别管理 |
 | SCM 工具栏、仓库列表与菜单 | `git_scm_toolbar`、`git_scm_repositories`、`git_scm_menus` | 同一控制器持有当前可写仓库；摘要只读、切库取消，按钮／更多／快捷键共享动作状态，见[SCM 设计](git_scm_actions.md#r027) |

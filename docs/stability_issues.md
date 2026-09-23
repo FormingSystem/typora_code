@@ -333,3 +333,14 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - TEST-breadcrumb-theme：旧暗色测试只设变量但实际背景仍为浅色，主题服务将其纠正；夹具补齐实际背景，保留原颜色断言。
 
 运行样本和边界见[性能证据](../enhancements/tests/evidence/reading_performance_20260923.json)。原生鼠标硬件与Win10现场未覆盖；用户暂缓的未编辑保存提示仍保持暂停。
+
+## R070.8/R069.9 资源树与预览导航（2026-09-23）
+
+- BUG-picker-flat-tree：旧选择器在平面目录上画箭头，单击只有选择。改为复用Explorer的节点缓存、按需展开、键盘和可见行，选择与确认归各入口所有。
+- BUG-picker-static-cascade：原生静态样式中通用breadcrumb的固定flex覆盖地址栏剩余宽度；通用对话框按钮颜色覆盖远端选中。明确地址轨道布局和选中状态的所有者，专项测试直接加载完整发行CSS，复验实际宽度与非悬停颜色。
+- BUG-picker-stale-selection：输入路径/展开定位期间切目录后，迟到失败或选择可能更新新视图；按目录代次拒绝。保存目标与选择草稿分开，取消覆盖后重试不将文件名当成目录。
+- BUG-preview-history-actions：预览只有Alt历史，工具栏缺少入口；图标与同一实例历史及忙碌状态同步，新链接清空旧记录，不能调用正文历史补位。
+- TEST-picker-overwrite-retry：新增覆盖取消用例最初在取消同一事件回合点击仍忙碌的保存按钮；改为等待真实忙碌状态解除后操作，保留失败日志并重跑。
+- OBS-preview-reflow-timing：并行运行完整检查/安装时，原生预览一次在既有边距字符锚点断言失败；未改实现或放宽阈值，串行空闲重跑最终候选222项通过。单次现象不足以判定根因，失败样本保留，不作为负载下位置稳定的通过证据。
+
+实现、系统回归与交付边界见[本次证据](../enhancements/tests/evidence/preview_tree_20260923.json)。

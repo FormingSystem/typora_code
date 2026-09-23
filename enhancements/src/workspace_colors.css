@@ -128,7 +128,7 @@
 }
 :root[data-workspace-colors] :is(.workspace-search-query-box,.git-scm-ref-input) {background-color:var(--workspace-ui-input);border-color:var(--workspace-ui-control-border);}
 :root[data-workspace-colors] :is(.workspace-search-query-box,.git-scm-ref-input):focus-within {border-color:var(--workspace-ui-focus);}
-:root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu) button:not(:where([data-workspace-interaction=none] *,.workspace-settings *,[data-workspace-interaction=primary],.git-icon-button,.workspace-dialog-close,[role^=menuitem])) {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-control-border);}
+:root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu) button:not(:where([data-workspace-interaction=none] *,.workspace-settings *,[data-workspace-interaction=primary],.git-icon-button,.workspace-dialog-close,.workspace-breadcrumb-segment,[aria-pressed=true],[role^=menuitem])) {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-control-border);}
 :root[data-workspace-colors] :is(.terminal-tab[aria-selected=true],.workspace-ssh-account[data-active=true]) {background-color:var(--workspace-ui-selection);color:var(--workspace-ui-foreground);--workspace-interaction-hover:var(--workspace-ui-selection);}
 :root[data-workspace-colors] .linux-note-terminal {background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] .terminal-panel-title {border-color:var(--workspace-ui-focus);}

@@ -37,7 +37,18 @@
   assert(graph.known_repos().every(value=>value===remote_root),'SSH仓库历史排除本地和其他账号缓存');
   await service.request('mkdir',{path:root+'/nested'});await graph.writer.run(path.join(remote_root,'nested'),['init','-q']);
   const discovery=graph.choose_repository(true);await wait(()=>document.querySelector('input[aria-label="远程路径"]'),'查找仓库未直接打开远端选择器');
-  const repository_picker=document.querySelector('input[aria-label="远程路径"]');await wait(()=>!button(repository_picker.closest('[role=dialog]'),'打开').disabled,'发现目录未读取');await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备未完成');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'ssh_resource_picker'}));await pause(700);button(repository_picker.closest('[role=dialog]'),'打开').click();await discovery;
+  const repository_picker=document.querySelector('input[aria-label="远程路径"]');await wait(()=>!button(repository_picker.closest('[role=dialog]'),'打开').disabled,'发现目录未读取');await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备未完成');
+  const picker_dialog=repository_picker.closest('[role=dialog]'),tree_row=name=>[...picker_dialog.querySelectorAll('[role=treeitem]')].find(node=>node.querySelector('.workspace-explorer-name')?.textContent===name);
+  await wait(()=>tree_row('nested'),'真实远端树未显示目录');
+  for(let i=0;i<20;i++){tree_row('nested').click();await wait(()=>tree_row('.git'),'单击未展开真实远端目录');assert(repository_picker.value===root,'展开保持根路径 '+i);tree_row('nested').click();await wait(()=>!tree_row('.git'),'单击未折叠真实远端目录');}
+  assert(button(picker_dialog,'远程文件夹').getAttribute('aria-pressed')==='true'&&getComputedStyle(button(picker_dialog,'远程文件夹')).backgroundColor!==getComputedStyle(picker_dialog.querySelector('.git-graph-dialog')).backgroundColor,'原生选择器远端模式明确选中');
+  const address=picker_dialog.querySelector('.workspace-resource-picker-address'),bar=address.getBoundingClientRect();
+  assert(bar.height<=32&&address.scrollWidth<=address.clientWidth+1&&address.querySelector('.workspace-resource-picker-location').getBoundingClientRect().width>bar.width-110,'原生单行地址栏不溢出');
+  assert([...address.querySelectorAll('.git-icon-button')].every(n=>!n.textContent&&n.title&&n.querySelector('svg')),'原生上级刷新及路径编辑为命名图标');
+  picker_dialog.querySelector('[aria-label="编辑完整路径 (Ctrl+L)"]').click();assert(!repository_picker.hidden&&repository_picker.value===root,'原生完整路径可编辑');
+  for(const type of ['keydown','keyup'])repository_picker.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));assert(picker_dialog.isConnected&&repository_picker.hidden,'原生Esc退出路径编辑保留弹窗');
+  picker_dialog.querySelector('nav button[aria-current=location]').click();await wait(()=>!button(picker_dialog,'打开').disabled,'恢复当前根确认');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'ssh_resource_picker'}));await pause(700);button(repository_picker.closest('[role=dialog]'),'打开').click();await discovery;
   assert(graph.known_repos().some(value=>value===path.join(remote_root,'nested')),'真实SSH发现嵌套空仓库');
   graph.manage_repositories();const management=document.querySelector('[role=dialog][aria-label="管理 Git 仓库"]');
   assert(management.textContent.includes(root+'/nested')&&!management.textContent.includes('remote_cache')&&!management.textContent.includes(path.dirname(original_path)),'仓库管理仅显示真实远端路径');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'ssh_repository_scope'}));await pause(700);button(management,'关闭').click();

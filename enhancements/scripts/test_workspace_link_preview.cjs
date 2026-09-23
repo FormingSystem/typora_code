@@ -46,6 +46,7 @@ app.whenReady().then(async()=>{
   const click_link=async label=>{await evaluate(`[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent===${JSON.stringify(label)}).click()`);await idle();};
   const travel=async key=>{await evaluate(`view.container.querySelector('.workspace-lookup-preview-body,.workspace-preview-directory-scroll').focus()`);win.webContents.sendInputEvent({type:'keyDown',keyCode:key,modifiers:['alt']});win.webContents.sendInputEvent({type:'keyUp',keyCode:key,modifiers:['alt']});await new Promise(r=>setTimeout(r,60));await idle();};
   await evaluate('link("target.md")');
+  check('新预览两方向禁用',await evaluate(`[...view.container.querySelectorAll('[aria-label^=预览后退],[aria-label^=预览前进]')].every(n=>n.disabled)`));
   await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').scrollTop=450;window.before_scroll=view.container.querySelector('.workspace-lookup-preview-body').scrollTop;window.before_open_count=opened.length;`);
   await evaluate(`window.preview_link=[...view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent==='中文链接');window.preview_range=document.createRange();preview_range.selectNodeContents(preview_link);getSelection().removeAllRanges();getSelection().addRange(preview_range);preview_link.click()`);await idle();
   check('选中文字的普通单击不误跳转',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('target.md')`));
@@ -62,14 +63,15 @@ app.whenReady().then(async()=>{
   await travel('Left');await click_link('锚点');check('文内标题链接',await evaluate(`view.container.querySelector('.lookup-target-block')===null&&view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('Bottom')`));
   await travel('Left');await click_link('引用');check('引用式链接沿当前预览文件解析',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));
   await travel('Left');await click_link('失败');check('失败保留旧内容并提供反馈',await evaluate(`view.container.dataset.state==='error'&&view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('target.md')`));
-  for(let i=0;i<20;i++){await click_link('中文链接');await travel('Left');}
+  const click_history=async direction=>{await evaluate(`view.container.querySelector('[aria-label^="${direction<0?'预览后退':'预览前进'}"]').click()`);await idle();};
+  for(let i=0;i<20;i++){await click_link('中文链接');check('工具栏后退可用 '+i,await evaluate(`!view.container.querySelector('[aria-label^=预览后退]').disabled&&view.container.querySelector('[aria-label^=预览前进]').disabled`));await click_history(-1);await click_history(1);await click_history(-1);}
   check('20轮链接往返保持只读且没有创建工作区文件',await evaluate(`opened.length===before_open_count&&!view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('[contenteditable=true]')`));
-  await evaluate(`link('中文.md')`);await travel('Left');check('外部新选择清空上一会话历史',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));
+  await evaluate(`link('中文.md')`);check('新选择重置按钮',await evaluate(`view.container.querySelector('[aria-label^=预览后退]').disabled&&view.container.querySelector('[aria-label^=预览前进]').disabled`));await travel('Left');check('外部新选择清空上一会话历史',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));
   await evaluate(`window.second=qa.create_link_preview(files);document.body.append(second.container);second.show({source,href:'target.md'})`);await travel('Right');check('两个预览历史隔离',await evaluate(`second.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('target.md')&&view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('中文.md')`));await evaluate('second.dispose()');
   await evaluate(`link('target.md');`);
   check('缩放和文件操作同一行',await evaluate(`(()=>{const scale=view.container.querySelector('.workspace-preview-scale-controls').getBoundingClientRect(),open=view.container.querySelector('[aria-label="打开源文件"]').getBoundingClientRect();return Math.abs(scale.top-open.top)<4&&scale.right<=open.left})()`));
   await evaluate(`document.querySelector('#mount').style.width='170px'`);await new Promise(r=>setTimeout(r,80));
-  check('170px单行保留滑条比例与文件操作',await evaluate(`(()=>{const t=view.container.querySelector('[role=toolbar]'),b=t.getBoundingClientRect();return [...t.querySelectorAll('input,output,.git-icon-button')].filter(n=>n.getClientRects().length&&getComputedStyle(n).display!=='none').every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1&&r.bottom<=b.bottom+1})})()`));
+  check('170px单行保留比例与全部导航操作',await evaluate(`(()=>{const t=view.container.querySelector('[role=toolbar]'),b=t.getBoundingClientRect();return [...t.querySelectorAll('input,output,.git-icon-button')].filter(n=>n.getClientRects().length&&getComputedStyle(n).display!=='none').every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1&&r.bottom<=b.bottom+1})})()`));
   await evaluate(`document.querySelector('#mount').style.width='320px'`);
   await click_link('中文链接');await travel('Left');await click_link('锚点');await travel('Right');
   check('回退后新跳转截断原前进分支',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('target.md')`));
@@ -124,13 +126,13 @@ app.whenReady().then(async()=>{
   await evaluate('link("source.py")');check('源码Monaco只读',await evaluate(`qa.monaco.editor.getEditors().filter(e=>view.container.contains(e.getDomNode())).every(e=>e.getOption(qa.monaco.editor.EditorOption.readOnly))`));
   await evaluate(`scale_slider.value='95';scale_slider.dispatchEvent(new Event('input',{bubbles:true}));`);
   check('源码预览滑条同步真实编辑器',await evaluate(`view.container.querySelector('.workspace-preview-scale-value').value==='95%'&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='95'`));
-  await evaluate(`link(${JSON.stringify(url+'/redirect')})`);
+  fs.writeFileSync(path.join(evidence,'web_entry.md'),'# 网页入口\n\n[网页]('+url+'/redirect)');await evaluate(`link('web_entry.md')`);await click_link('网页');await click_history(-1);check('网页入口可由按钮返回Markdown',await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dataset.previewPath.endsWith('web_entry.md')`));await click_history(1);
   for(let i=0;i<100;i++){if(await evaluate('!!web_message'))break;await new Promise(r=>setTimeout(r,20));}
   check('真实网页脚本在opaque沙箱执行且没有Node',await evaluate(`web_message?.origin==='null'&&web_message.node==='undefined'`));
   check('网页不展示不生效的文字比例控件',await evaluate(`view.container.querySelector('.workspace-preview-scale-controls').hidden`));
   check('真实URL经Chromium加载而非HTML快照',await evaluate(`view.container.querySelector('iframe').src.endsWith('/redirect')&&!view.container.querySelector('iframe').srcdoc`));
   check('网页可运行布局脚本但无同源及宿主权限',await evaluate(`view.container.querySelector('iframe').getAttribute('sandbox')==='allow-scripts'&&preview_attack===0`));
-  check('文件与关闭图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar]>.git-icon-button svg').length===3&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
+  check('文件与关闭图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar]>.git-icon-button svg').length===5&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
   check('失败与被拒绝内嵌均有浏览器入口',await evaluate(`view.container.textContent.includes('浏览器')&&!!view.container.querySelector('[aria-label="在默认浏览器打开"]')`));
   await evaluate(`window.web_unhandled=0;window.on_web_unhandled=()=>web_unhandled++;window.addEventListener('unhandledrejection',on_web_unhandled);window.original_browser=JSBridge.showInBrowser;JSBridge.showInBrowser=async()=>{throw Error('browser-open-test')};view.container.querySelector('[aria-label="在默认浏览器打开"]').click();`);await new Promise(r=>setTimeout(r,50));
   check('默认浏览器启动失败由预览捕获不产生全局错误',await evaluate(`view.container.dataset.state==='error'&&view.container.textContent.includes('browser-open-test')&&web_unhandled===0`));

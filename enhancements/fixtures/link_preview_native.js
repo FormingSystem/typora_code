@@ -26,7 +26,7 @@
    const slider=panel.querySelector('[aria-label="预览字号比例"]'),output=panel.querySelector('.workspace-preview-scale-value');
    assert(slider&&output,label+'有缩放滑条和百分比');
    for(const percent of [50,80,125,150]){slider.value=String(percent);slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);assert(output.value===percent+'%'&&panel.querySelector('.workspace-lookup-preview').dataset.previewScale===String(percent),label+'比例同步 '+percent);}
-   const b=panel.getBoundingClientRect(),sb=slider.getBoundingClientRect(),ob=output.getBoundingClientRect();assert(sb.width>=48&&ob.width>=34&&sb.left>=b.left&&ob.right<=b.right+1,label+'滑条及百分比完整可见');
+   const b=panel.getBoundingClientRect(),sb=slider.getBoundingClientRect(),ob=output.getBoundingClientRect();samples.push({label,panel:b.toJSON(),slider:sb.toJSON(),output:ob.toJSON(),display:getComputedStyle(slider).display,zoom:reqnode('electron').webFrame.getZoomFactor()});assert(((panel.matches('.workspace-link-preview')||panel.querySelector('.workspace-link-preview'))&&b.width<=210?sb.width===0:sb.width>=48&&sb.left>=b.left)&&ob.width>=34&&ob.right<=b.right+1,label+'宽视图滑条、窄视图比例与操作完整可见');
    const zoom_before=reqnode('electron').webFrame.getZoomFactor(),main_font=getComputedStyle(document.querySelector('#write')).fontSize;
    panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:120,bubbles:true,composed:true,cancelable:true}));await pause(100);assert(reqnode('electron').webFrame.getZoomFactor()===zoom_before&&getComputedStyle(document.querySelector('#write')).fontSize===main_font,label+'Shadow滚轮不影响主窗口缩放');assert(slider.value==='145'&&output.value==='145%',label+'滚轮同步');
    slider.value='80';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);
@@ -35,6 +35,7 @@
   const nav_panel=sidebar.querySelector('.workspace-link-preview'),preview_body=()=>nav_panel.querySelector('.workspace-lookup-preview-body');
   const follow=async label=>{const anchor=[...nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent===label);anchor.dispatchEvent(new MouseEvent('pointerdown',{bubbles:true,composed:true}));anchor.click();await wait(()=>nav_panel.dataset.state!=='loading','内部链接超时');await pause(100);};
   const travel=async direction=>{const focus=preview_body()||nav_panel.querySelector('.workspace-preview-directory-scroll');focus.focus({preventScroll:true});focus.dispatchEvent(new KeyboardEvent('keydown',{key:direction<0?'ArrowLeft':'ArrowRight',altKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>nav_panel.dataset.state!=='loading','预览历史超时');await pause(100);};
+  const click_history=async direction=>{const control=nav_panel.querySelector('[aria-label^="'+(direction<0?'预览后退':'预览前进')+'"]');assert(control&&!control.disabled,'原生导航图标可执行');control.click();await wait(()=>nav_panel.dataset.state!=='loading','导航图标超时');await pause(100);};
   let main_events=0;const on_history=()=>main_events++;window.addEventListener('linux-note-reading-history-state',on_history);
   await pause(180);main_events=0;
   const main_before={file:File.bundle.filePath,top:document.querySelector('content').scrollTop,cursor:JSON.stringify(File.editor.selection.buildUndo())};
@@ -45,8 +46,8 @@
   preview_link().dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true,cancelable:true,clientX:160,clientY:300}));
   const menu_item=[...document.querySelectorAll('[role=menuitem]')].find(node=>node.textContent==='跳转链接');assert(menu_item,'原始宿主预览右键提供跳转');menu_item.click();await wait(()=>nav_panel.dataset.state==='ready','菜单导航未完成');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原始宿主右键导航');await travel(-1);
   await follow('下一页');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生预览内部链接导航');
-  await travel(-1);assert(preview_body().dataset.previewPath===target&&Math.abs(preview_body().scrollTop-saved_top)<3,'原生Alt左恢复文件及滚动');
-  await travel(1);assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生Alt右恢复目标');await travel(-1);
+  await click_history(-1);assert(preview_body().dataset.previewPath===target&&Math.abs(preview_body().scrollTop-saved_top)<3,'原生Alt左恢复文件及滚动');
+  await click_history(1);assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生Alt右恢复目标');await travel(-1);
   for(let i=0;i<20;i++){await follow('下一页');await travel(-1);assert(Math.abs(preview_body().scrollTop-saved_top)<3,'原生预览往返位置 '+i);}
   await follow('文内');assert(nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('目标标题'),'原生文内标题导航');await travel(-1);
   await follow('失败');assert(nav_panel.dataset.state==='error'&&preview_body().dataset.previewPath===target,'原生失败保留正文');

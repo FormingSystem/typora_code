@@ -36,11 +36,15 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const scale_observer=new MutationObserver(sync_scale);scale_observer.observe(content,{subtree:true,attributes:true,attributeFilter:['data-preview-scale']});
   const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")await runtime.JSBridge?.showInBrowser?.(target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
   const retry=git_icon_button("refresh","重新加载",()=>{const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
+  const back=git_icon_button('arrow-left','预览后退 (Alt+←)',()=>void travel(-1));
+  const forward=git_icon_button('arrow-right','预览前进 (Alt+→)',()=>void travel(1));
+  const sync_navigation=()=>{back.disabled=disposed||container.dataset.state==='loading'||!history.can_travel(-1);forward.disabled=disposed||container.dataset.state==='loading'||!history.can_travel(1);};
+  sync_navigation();
   const fail=(error:unknown)=>{message.textContent=String(error);message.hidden=false;container.dataset.state="error";};
-  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,scale.container,open,retry);container.append(toolbar,return_directory,message,content);
+  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,scale.container,back,forward,open,retry);container.append(toolbar,return_directory,message,content);
   if(options.close)toolbar.append(git_icon_button('close','关闭链接预览',options.close));
   const cancel_pending=()=>{++generation;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
-  const clear=()=>{cancel_pending();web?.dispose();web=undefined;history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
+  const clear=()=>{cancel_pending();web?.dispose();web=undefined;history.clear();sync_navigation();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
   const capture=():reading_location|undefined=>{
     if(!target||!request)return;
     const position=reader?.capture_position();
@@ -49,11 +53,13 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const navigate=async(value:workspace_link_request)=>{
     if(history.is_navigating())return;const from=capture();
     if(await load(value)){const to=capture();if(to){if(from)history.record_jump(from,to);else history.record_selection(to);}focus();}
+    sync_navigation();
   };
   const follow=(href:string)=>{if(target?.kind==='file')return navigate({source:target.path,href});};
   const load=async(value:workspace_link_request,restore?:preview_location)=>{
     cancel_pending();if(disposed)return false;const version=generation;
     container.dataset.state="loading";message.textContent="正在加载链接预览…";message.hidden=false;failed_request=undefined;
+    sync_navigation();
     if(!target){title.textContent=value.href;title.title=value.href;open.disabled=true;}
     let next_web:ReturnType<typeof create_preview_web>|undefined;
     let next:preview_reader|undefined,next_directory:ReturnType<typeof create_preview_directory>|undefined;
@@ -87,12 +93,13 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       open.title=resolved.kind==="file"?"打开源文件":"在默认浏览器打开";open.setAttribute("aria-label",open.title);open.disabled=!!directory||(resolved.kind==="web"&&!runtime.JSBridge?.showInBrowser);
       scale.container.hidden=resolved.kind!=='file'||!!directory;sync_scale();container.dataset.state="ready";return true;
     }catch(error){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);}return false;}
+    finally{if(!disposed&&version===generation)sync_navigation();}
   };
-  const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}};
+  const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}sync_navigation();};
   const travel=async(direction:-1|1)=>{
     const current=capture();if(!current)return false;
     const ok=await history.travel(direction,current,async location=>{const saved=location.editor_state as preview_location;return load(saved.request,saved);});
-    if(ok)focus();return ok;
+    sync_navigation();if(ok)focus();return ok;
   };
   const keydown=(event:KeyboardEvent)=>{
     if(!event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||event.isComposing||!['ArrowLeft','ArrowRight'].includes(event.key))return;

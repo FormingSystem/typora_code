@@ -39,3 +39,6 @@
 /* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
 .workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
 .workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}
+
+/* 选择器复用同一虚拟树，不继承侧栏绝对定位；高度由弹窗可用空间约束。 */
+.workspace-file-tree-selection {position:relative;inset:auto;height:320px;max-height:40vh;min-height:104px;flex:none;background:var(--workspace-ui-surface,var(--bg-color,#fff));}

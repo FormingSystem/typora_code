@@ -2314,7 +2314,8 @@
         "R041",
         "R044",
         "R046",
-        "R061"
+        "R061",
+        "R070.8"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2326,7 +2327,8 @@
         "enhancements/src/workspace_explorer.css",
         "enhancements/src/workspace_explorer_sections.css",
         "enhancements/src/workspace_interaction.css",
-        "enhancements/src/git_graph.css"
+        "enhancements/src/git_graph.css",
+        "enhancements/src/workspace_file_tree.ts"
       ],
       "related_modules": [
         "explorer",
@@ -5848,7 +5850,8 @@
         "R069.3",
         "R069.6",
         "R069.7",
-        "R069.8"
+        "R069.8",
+        "R069.9"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5877,7 +5880,8 @@
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
         "R069.6：当前预览链接/Alt左右、20轮位置往返、新会话/正文隔离、失败重试、单行170px全部操作。",
         "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。",
-        "R069.8：Shadow内部composed滚轮与全局缩放同时绑定；多实例/主正文隔离，真实鼠标命中及三种预览链接动作。"
+        "R069.8：Shadow内部composed滚轮与全局缩放同时绑定；多实例/主正文隔离，真实鼠标命中及三种预览链接动作。",
+        "R069.9：前进/后退图标与Alt历史共用，20轮按钮往返、Markdown/网页、禁用/重置及多个预览隔离。"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
@@ -5902,7 +5906,8 @@
         "R069.5",
         "R069.6",
         "R069.7",
-        "R069.8"
+        "R069.8",
+        "R069.9"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6226,13 +6231,15 @@
         "R070",
         "R070.5",
         "R070.6",
-        "R070.7"
+        "R070.7",
+        "R070.8"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
         "enhancements/src/remote_workspace_context.ts",
         "enhancements/src/terminal_workspace.ts",
-        "enhancements/src/workspace_remote_ssh.ts"
+        "enhancements/src/workspace_remote_ssh.ts",
+        "enhancements/src/workspace_file_tree.ts"
       ],
       "related_modules": [
         "SSH",
@@ -6387,13 +6394,15 @@
       "requirements": [
         "R070",
         "R070.5",
-        "R070.6"
+        "R070.6",
+        "R070.8"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
         "enhancements/src/remote_workspace_files.ts",
         "enhancements/src/workspace_remote_ssh.ts",
-        "enhancements/src/workspace_native_save.ts"
+        "enhancements/src/workspace_native_save.ts",
+        "enhancements/src/workspace_file_tree.ts"
       ],
       "related_modules": [
         "文件",
@@ -6982,13 +6991,17 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R070.7"
+        "R070.7",
+        "R070.8"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
         "enhancements/src/remote_workspace_picker.ts",
         "enhancements/src/git_workspace_resources.ts",
-        "enhancements/src/workspace_open_dialog.ts"
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/remote_workspace_picker.css",
+        "enhancements/src/workspace_widgets.ts"
       ],
       "related_modules": [
         "git",
@@ -6999,8 +7012,9 @@
       "environment": "真实Electron DOM/本地临时目录；远端与系统选择器受控端口",
       "preconditions": "不操作用户文档、仓库或凭据",
       "steps": [
-        "目录单击选择、双击进入、祖先跳转、路径输入文件并确认",
-        "本地取消/成功共同切换、旧混合仓库记录过滤、20/100/1000次身份代次隔离"
+        "共用Explorer树的目录单击展开/折叠、选择、双击进入、方向键与确认，20轮缓存及20/100/1000项虚拟行",
+        "完整发行CSS下远程选中/SSH身份、图标、25段长路径单行、窄宽明暗100/125%、Ctrl+L和Escape",
+        "迟到读取/输入失败、覆盖取消重试、本地取消/成功共同切换、旧仓库过滤与20/100/1000次身份隔离"
       ],
       "expected": [
         "SSH模式无本地执行和缓存路径展示，取消保持工作区，迟到结果无效"

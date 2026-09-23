@@ -1,0 +1,19 @@
+.workspace-resource-picker-modes button[aria-pressed=true] {background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);border-color:var(--workspace-focus-border);}
+.workspace-resource-picker-identity {min-width:0;overflow-wrap:anywhere;font:inherit;color:var(--workspace-ui-foreground,var(--text-color,#333));}
+.workspace-resource-picker-actions .git-icon-button {display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;box-sizing:border-box;border:0;background:transparent;color:inherit;}
+.workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
+
+/* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
+.workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}
+.workspace-resource-picker-content .workspace-resource-picker-modes {display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:0;}
+.workspace-resource-picker-modes button {font:inherit;white-space:nowrap;}
+.workspace-resource-picker-identity {margin-left:auto;}
+.workspace-resource-picker-address {display:flex;align-items:center;gap:2px;min-width:0;padding:0;margin:0 0 8px;height:28px;box-sizing:border-box;}
+.workspace-resource-picker-address>.workspace-resource-picker-location {flex:1;min-width:0;width:auto;height:28px;padding:0 4px;border:1px solid var(--workspace-breadcrumb-border);border-radius:var(--workspace-control-radius,4px);}
+.workspace-resource-picker-location::after {display:none;}
+.workspace-resource-picker-location .workspace-breadcrumb-segment {max-width:none;}
+.workspace-resource-picker-location [hidden] {display:none!important;}
+.workspace-resource-picker-content .workspace-resource-picker-location input {flex:1;min-width:0;width:100%;height:24px;padding:0 2px;margin:0;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;box-sizing:border-box;}
+.workspace-resource-picker-location:focus-within {outline:1px solid var(--workspace-focus-border);outline-offset:-1px;}
+.workspace-resource-picker-content>p:empty {display:none;}
+.workspace-resource-picker-content>p {margin:4px 0;overflow-wrap:anywhere;}

@@ -1058,6 +1058,27 @@ content[data-linux-note-minimap-owner],
 content.typ-deactive .linux-note-reading-minimap,
 .linux-note-reading-minimap[hidden] { display:none!important; }
 
+/* remote_workspace_picker.css */
+.workspace-resource-picker-modes button[aria-pressed=true] {background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);border-color:var(--workspace-focus-border);}
+.workspace-resource-picker-identity {min-width:0;overflow-wrap:anywhere;font:inherit;color:var(--workspace-ui-foreground,var(--text-color,#333));}
+.workspace-resource-picker-actions .git-icon-button {display:inline-flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;margin:0;box-sizing:border-box;border:0;background:transparent;color:inherit;}
+.workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
+
+/* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
+.workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}
+.workspace-resource-picker-content .workspace-resource-picker-modes {display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:0;}
+.workspace-resource-picker-modes button {font:inherit;white-space:nowrap;}
+.workspace-resource-picker-identity {margin-left:auto;}
+.workspace-resource-picker-address {display:flex;align-items:center;gap:2px;min-width:0;padding:0;margin:0 0 8px;height:28px;box-sizing:border-box;}
+.workspace-resource-picker-address>.workspace-resource-picker-location {flex:1;min-width:0;width:auto;height:28px;padding:0 4px;border:1px solid var(--workspace-breadcrumb-border);border-radius:var(--workspace-control-radius,4px);}
+.workspace-resource-picker-location::after {display:none;}
+.workspace-resource-picker-location .workspace-breadcrumb-segment {max-width:none;}
+.workspace-resource-picker-location [hidden] {display:none!important;}
+.workspace-resource-picker-content .workspace-resource-picker-location input {flex:1;min-width:0;width:100%;height:24px;padding:0 2px;margin:0;border:0;border-radius:0;background:transparent;color:inherit;font:inherit;box-sizing:border-box;}
+.workspace-resource-picker-location:focus-within {outline:1px solid var(--workspace-focus-border);outline-offset:-1px;}
+.workspace-resource-picker-content>p:empty {display:none;}
+.workspace-resource-picker-content>p {margin:4px 0;overflow-wrap:anywhere;}
+
 /* source_outline_settings.css */
 /* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
 .source-outline-settings>.git-graph-dialog{width:min(600px,95vw)}
@@ -1594,7 +1615,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 }
 :root[data-workspace-colors] :is(.workspace-search-query-box,.git-scm-ref-input) {background-color:var(--workspace-ui-input);border-color:var(--workspace-ui-control-border);}
 :root[data-workspace-colors] :is(.workspace-search-query-box,.git-scm-ref-input):focus-within {border-color:var(--workspace-ui-focus);}
-:root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu) button:not(:where([data-workspace-interaction=none] *,.workspace-settings *,[data-workspace-interaction=primary],.git-icon-button,.workspace-dialog-close,[role^=menuitem])) {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-control-border);}
+:root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu) button:not(:where([data-workspace-interaction=none] *,.workspace-settings *,[data-workspace-interaction=primary],.git-icon-button,.workspace-dialog-close,.workspace-breadcrumb-segment,[aria-pressed=true],[role^=menuitem])) {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-control-border);}
 :root[data-workspace-colors] :is(.terminal-tab[aria-selected=true],.workspace-ssh-account[data-active=true]) {background-color:var(--workspace-ui-selection);color:var(--workspace-ui-foreground);--workspace-interaction-hover:var(--workspace-ui-selection);}
 :root[data-workspace-colors] .linux-note-terminal {background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] .terminal-panel-title {border-color:var(--workspace-ui-focus);}
@@ -1687,6 +1708,9 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 /* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
 .workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
 .workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}
+
+/* 选择器复用同一虚拟树，不继承侧栏绝对定位；高度由弹窗可用空间约束。 */
+.workspace-file-tree-selection {position:relative;inset:auto;height:320px;max-height:40vh;min-height:104px;flex:none;background:var(--workspace-ui-surface,var(--bg-color,#fff));}
 
 /* workspace_explorer_sections.css */
 .linux-note-workspace-explorer [hidden]{display:none!important}
@@ -2017,6 +2041,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-link-preview .workspace-preview-scale-controls[hidden]{display:none}
 @container workspace-link-toolbar (max-width:360px){.workspace-link-preview-title{flex:1 1 0}.workspace-link-preview .workspace-preview-scale-controls>.git-icon-button{display:none}}
 @container workspace-link-toolbar (max-width:240px){.workspace-link-preview-title{display:none}.workspace-link-preview>[role=toolbar]{gap:2px;padding:0 4px}.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{width:48px}.workspace-link-preview [role=toolbar]>.git-icon-button{width:22px;padding:3px}}
+@container workspace-link-toolbar (max-width:210px){.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{display:none}}
 
 /* 目录预览复用资源管理器26px行，不接管主资源树或正文排版。 */
 .workspace-preview-directory{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}
